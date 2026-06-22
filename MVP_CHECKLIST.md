@@ -128,3 +128,8 @@
 
 - [x] Redirect to saved report detail page after chart creation
 - [x] Local data update event after chart creation
+
+## Recent export polish
+
+- [x] Single saved report JSON export
+- [x] Single report export includes note and favorite state

@@ -108,3 +108,10 @@ Frontend MVP polish release.
 
 - Chart creation now redirects directly to the saved report detail page
 - Chart creation dispatches local data update events
+
+## Unreleased
+
+### Added
+
+- Single saved report JSON export from report detail pages
+- Single report export includes report data, note, and favorite state

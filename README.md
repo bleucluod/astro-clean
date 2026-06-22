@@ -240,3 +240,13 @@ After creating a chart, the user is redirected to the saved report detail page:
 /reports/[reportId]
 
 This keeps the flow focused on the generated report and its personal notes.
+
+## Single report export
+
+Saved report detail pages support exporting a single report as JSON.
+
+The export includes:
+
+- report data
+- personal note
+- favorite state

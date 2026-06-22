@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
+import { loadFavoriteReportIds } from "@/lib/storage/favorite-reports-storage";
 import {
   loadReportNote,
   saveReportNote,
@@ -19,9 +20,27 @@ function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
 
+function downloadJsonFile(fileName: string, data: unknown) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
 export function ReportDetail({ reportId }: ReportDetailProps) {
   const [report, setReport] = useState<AstrologyReport | null>(null);
   const [note, setNote] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -33,6 +52,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
 
       setReport(selectedReport);
       setNote(loadReportNote(reportId));
+      setIsFavorite(loadFavoriteReportIds().includes(reportId));
       setIsReady(true);
     }
 
@@ -47,6 +67,24 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     saveReportNote(reportId, note);
     notifyLocalDataChanged();
     setMessage(note.trim() ? "یادداشت ذخیره شد." : "یادداشت پاک شد.");
+  }
+
+  function handleExportReport() {
+    if (!report) {
+      return;
+    }
+
+    downloadJsonFile(`astro-clean-report-${report.id.slice(0, 8)}.json`, {
+      app: "astro-clean",
+      type: "single-report",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      report,
+      note,
+      isFavorite,
+    });
+
+    setMessage("خروجی JSON گزارش ساخته شد.");
   }
 
   if (!isReady) {
@@ -140,6 +178,24 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
         </div>
 
         {message ? <p className="success-message">{message}</p> : null}
+      </section>
+
+      <section className="card">
+        <span className="badge">Single Export</span>
+
+        <h2>خروجی تکی این گزارش</h2>
+
+        <p>
+          می‌توانی فقط همین گزارش را به همراه یادداشت و وضعیت علاقه‌مندی به صورت
+          JSON خروجی بگیری. این قابلیت برای backup، پشتیبانی و نسخه‌های بعدی
+          public profile مفید است.
+        </p>
+
+        <div className="actions">
+          <button className="button" type="button" onClick={handleExportReport}>
+            گرفتن خروجی JSON این گزارش
+          </button>
+        </div>
       </section>
     </section>
   );
