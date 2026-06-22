@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Astro Clean
 
-## Getting Started
+Astro Clean یک MVP فارسی‌زبان برای تجربه آسترولوژی نمادین است.
 
-First, run the development server:
+هدف فعلی پروژه این است که سریع به یک محصول قابل دیدن، ساده، تمیز و دوست‌داشتنی برسیم؛ بدون backend، دیتابیس، Docker یا معماری سنگین.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+## Tech Stack فعلی
+
+* Next.js
+* TypeScript
+* App Router
+* CSS ساده
+* localStorage برای ذخیره موقت
+* Git محلی برای checkpointها
+
+## قابلیت‌های MVP
+
+* Home فارسی و RTL
+* فرم ساخت چارت تولد mock
+* mock astrology engine برای Sun, Moon, Rising
+* rule engine ساده برای متن تفسیری فارسی
+* ذخیره گزارش‌ها در localStorage
+* نمایش گزارش‌ها در Reports
+* نمایش آخرین گزارش در Dashboard
+* پروفایل ساده با localStorage
+* Admin نمایشی برای feature flags و demo data
+* Roadmap آینده محصول
+* Astro Wiki ساده برای پایه SEO
+* sitemap و robots ساده
+* صفحه 404 فارسی
+
+## اجرای پروژه
+
+اول وارد پوشه پروژه شو:
+
+cd C:\Projects\astro-clean
+
+اگر dependencyها لازم بود نصب شوند:
+
+pnpm install
+
+اجرای dev server:
+
 pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+بعد در مرورگر باز کن:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+وقتی pnpm dev اجراست، همان ترمینال مخصوص dev server است. برای دستورهای Git، lint یا build یک ترمینال دوم باز کن.
 
-## Learn More
+## چک سلامت
 
-To learn more about Next.js, take a look at the following resources:
+pnpm lint
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+pnpm build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+git status
 
-## Deploy on Vercel
+خروجی خوب یعنی:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* lint بدون error
+* build موفق
+* git status برابر nothing to commit, working tree clean
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## مسیرهای MVP
+
+* /
+* /chart
+* /dashboard
+* /reports
+* /profile
+* /admin
+* /roadmap
+* /wiki
+
+## قوانین محتوایی
+
+تحلیل‌ها در Astro Clean به عنوان تفسیر نمادین، سرگرمی و خودشناسی ارائه می‌شوند.
+
+این محصول نباید پیش‌بینی قطعی یا توصیه پزشکی، مالی، حقوقی یا تصمیم‌گیری جدی ارائه کند.
+
+## چیزهایی که فعلاً عمداً نداریم
+
+* backend جدا
+* database
+* auth
+* Docker
+* Prisma
+* NestJS
+* PostgreSQL
+* Redis
+* payment
+* AI integration
+* programmatic SEO سنگین
+
+این موارد فقط بعد از پایدار شدن MVP فرانت‌اند بررسی می‌شوند.
+
+## Git محلی
+
+بعد از هر تغییر موفق:
+
+git status
+
+git add .
+
+git commit -m "Your commit message"
+
+برای دیدن آخرین commitها بدون گیر کردن در حالت Git pager:
+
+git --no-pager log --oneline -8
