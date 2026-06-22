@@ -34,8 +34,16 @@ export function ProfileForm() {
     setMessage("پروفایل در مرورگر ذخیره شد.");
   }
 
+  const privacyLabel =
+    profile.privacyMode === "private" ? "خصوصی" : "عمومی";
+
+  const privacyDescription =
+    profile.privacyMode === "private"
+      ? "فعلاً فقط روی همین دستگاه دیده می‌شود."
+      : "در آینده می‌تواند پایه پروفایل عمومی باشد.";
+
   return (
-    <section className="grid">
+    <section className="grid profile-page">
       <form className="card form" onSubmit={handleSubmit}>
         <div>
           <span className="badge">پروفایل MVP</span>
@@ -91,26 +99,29 @@ export function ProfileForm() {
         {message ? <p className="success-message">{message}</p> : null}
       </form>
 
-      <div className="card">
-        <h2>پیش‌نمایش پروفایل</h2>
+      <aside className="card profile-preview">
+        <span className="badge">پیش‌نمایش پروفایل</span>
 
-        <p>
-          <strong>نام:</strong>{" "}
+        <div className="avatar">
+          {(profile.displayName.trim()[0] ?? "؟").toUpperCase()}
+        </div>
+
+        <h2>
           {profile.displayName.trim() ? profile.displayName : "بدون نام"}
-        </p>
+        </h2>
 
         <p>
-          <strong>حریم خصوصی:</strong>{" "}
-          {profile.privacyMode === "private" ? "خصوصی" : "عمومی"}
-        </p>
-
-        <p>
-          <strong>بیو:</strong>{" "}
           {profile.bio.trim()
             ? profile.bio
             : "هنوز بیوگرافی نوشته نشده است."}
         </p>
-      </div>
+
+        <div className="mini-card">
+          <strong>حریم خصوصی</strong>
+          <span>{privacyLabel}</span>
+          <p>{privacyDescription}</p>
+        </div>
+      </aside>
     </section>
   );
 }
