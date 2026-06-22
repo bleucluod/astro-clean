@@ -450,3 +450,17 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 800px) {
+  nav > div {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+  }
+
+  nav > div a {
+    flex: 0 0 auto;
+  }
+}
