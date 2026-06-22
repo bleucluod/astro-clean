@@ -346,3 +346,34 @@ select {
   margin: 8px 0 0;
   font-size: 14px;
 }
+
+.home-page {
+  gap: 32px;
+}
+
+.hero-card {
+  display: grid;
+  gap: 18px;
+}
+
+.section-label {
+  display: inline-flex;
+  margin-bottom: 16px;
+  color: #5b2bbf;
+  font-weight: 800;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.tag-list span {
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #f3edff;
+  color: #4c1d95;
+  font-weight: 700;
+}
