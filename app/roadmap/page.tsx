@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import Link from "next/link";
 import { roadmapItems } from "@/lib/config/roadmap";
 
 export const metadata: Metadata = {
@@ -25,6 +26,16 @@ export default function RoadmapPage() {
           مسیر آینده به شکلی طراحی می‌شود که منطق نجومی، قانون‌های تفسیری،
           لایه ارائه فارسی و در آینده AI از هم جدا بمانند.
         </p>
+
+        <div className="actions">
+          <Link className="button" href="/chart">
+            ساخت چارت mock
+          </Link>
+
+          <Link className="button secondary" href="/wiki">
+            دیدن Astro Wiki
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-3">

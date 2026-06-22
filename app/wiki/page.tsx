@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import Link from "next/link";
 import { wikiTopics } from "@/lib/config/wiki";
 
 export const metadata: Metadata = {
@@ -25,6 +26,16 @@ export default function WikiPage() {
           متن‌های این بخش باید فارسی روان، بومی‌سازی‌شده و کنترل‌شده باشند؛ نه
           ترجمه ماشینی یا محتوای بی‌کیفیت programmatic.
         </p>
+
+        <div className="actions">
+          <Link className="button" href="/roadmap">
+            دیدن نقشه راه
+          </Link>
+
+          <Link className="button secondary" href="/chart">
+            ساخت چارت mock
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-3">
