@@ -109,3 +109,23 @@ git commit -m "Your commit message"
 برای دیدن آخرین commitها بدون گیر کردن در حالت Git pager:
 
 git --no-pager log --oneline -8
+
+## Deployment readiness
+
+The project supports a public site URL through:
+
+NEXT_PUBLIC_SITE_URL
+
+For local development, the fallback is:
+
+http://localhost:3000
+
+Before any deployment, run:
+
+pnpm lint
+pnpm build
+git status
+
+Also review:
+
+DEPLOYMENT_NOTES.md
