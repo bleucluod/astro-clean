@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import { DemoDataPanel } from "@/components/DemoDataPanel";
 import { FeatureFlagList } from "@/components/FeatureFlagList";
 
 export const metadata: Metadata = {
@@ -21,6 +22,8 @@ export default function AdminPage() {
           تمیز نگه داریم.
         </p>
       </div>
+
+      <DemoDataPanel />
 
       <FeatureFlagList />
     </section>
