@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ReportCard } from "@/components/ReportCard";
 import { createMockReport } from "@/lib/astrology/mock-engine";
+import { saveReport } from "@/lib/storage/reports-storage";
 import type { AstrologyReport, BirthInput } from "@/types/astro";
 
 const initialForm: BirthInput = {
@@ -13,9 +14,15 @@ const initialForm: BirthInput = {
   birthCountry: "",
 };
 
+function createShareText(report: AstrologyReport): string {
+  return `گزارش Astro Clean من: خورشید در ${report.chart.sunSign.faName}، ماه در ${report.chart.moonSign.faName} و رایزینگ ${report.chart.risingSign.faName}. این یک تفسیر نمادین و سرگرم‌کننده است.`;
+}
+
 export function ChartForm() {
   const [form, setForm] = useState<BirthInput>(initialForm);
   const [report, setReport] = useState<AstrologyReport | null>(null);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
 
   function updateField(field: keyof BirthInput, value: string) {
     setForm((current) => ({
@@ -28,7 +35,25 @@ export function ChartForm() {
     event.preventDefault();
 
     const nextReport = createMockReport(form);
+    saveReport(nextReport);
     setReport(nextReport);
+    setSaveMessage("گزارش در مرورگر ذخیره شد.");
+    setCopyMessage("");
+  }
+
+  async function handleCopyShareText() {
+    if (!report) {
+      return;
+    }
+
+    const shareText = createShareText(report);
+
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopyMessage("متن اشتراک‌گذاری کپی شد.");
+    } catch {
+      setCopyMessage("کپی خودکار ممکن نشد. متن را دستی کپی کن.");
+    }
   }
 
   return (
@@ -97,12 +122,30 @@ export function ChartForm() {
         </div>
 
         <button className="button" type="submit">
-          ساخت گزارش mock
+          ساخت و ذخیره گزارش mock
         </button>
+
+        {saveMessage ? <p className="success-message">{saveMessage}</p> : null}
       </form>
 
       {report ? (
-        <ReportCard report={report} />
+        <div className="grid">
+          <ReportCard report={report} />
+
+          <div className="card">
+            <h2>اشتراک‌گذاری</h2>
+            <p>
+              فعلاً فقط یک متن کوتاه برای اشتراک‌گذاری می‌سازیم. کارت تصویری
+              وایرال را برای نسخه‌های بعد نگه می‌داریم.
+            </p>
+
+            <button className="button secondary" onClick={handleCopyShareText}>
+              کپی متن اشتراک‌گذاری
+            </button>
+
+            {copyMessage ? <p className="success-message">{copyMessage}</p> : null}
+          </div>
+        </div>
       ) : (
         <div className="card">
           <h2>خروجی گزارش اینجا نمایش داده می‌شود</h2>
