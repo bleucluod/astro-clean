@@ -391,3 +391,7 @@ select {
   justify-items: start;
   gap: 10px;
 }
+
+.chart-page {
+  gap: 24px;
+}

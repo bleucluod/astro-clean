@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ReportCard } from "@/components/ReportCard";
 import { createMockReport } from "@/lib/astrology/mock-engine";
@@ -32,18 +33,25 @@ export function ChartForm() {
     const nextReport = createMockReport(form);
     saveReport(nextReport);
     setReport(nextReport);
-    setSaveMessage("گزارش در مرورگر ذخیره شد.");
+    setSaveMessage("گزارش ساخته و در مرورگر ذخیره شد.");
   }
 
   return (
-    <div className="grid">
+    <div className="grid chart-page">
       <form className="card form" onSubmit={handleSubmit}>
         <div>
           <span className="badge">فرم MVP</span>
-          <h1>اطلاعات تولد خود را وارد کن</h1>
+          <h1>ساخت چارت تولد mock</h1>
+
           <p>
-            این نسخه فعلاً از mock engine استفاده می‌کند. یعنی خروجی برای تست
-            محصول است، نه محاسبه واقعی نجومی.
+            اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. این
+            نسخه هنوز محاسبه واقعی نجومی انجام نمی‌دهد و برای تجربه MVP طراحی
+            شده است.
+          </p>
+
+          <p className="notice">
+            خروجی این بخش قطعی نیست و فقط برای سرگرمی، خودشناسی و تست تجربه
+            محصول استفاده می‌شود.
           </p>
         </div>
 
@@ -100,9 +108,17 @@ export function ChartForm() {
           </label>
         </div>
 
-        <button className="button" type="submit">
-          ساخت و ذخیره گزارش mock
-        </button>
+        <div className="actions">
+          <button className="button" type="submit">
+            ساخت و ذخیره گزارش
+          </button>
+
+          {report ? (
+            <Link className="button secondary" href="/reports">
+              دیدن گزارش‌های ذخیره‌شده
+            </Link>
+          ) : null}
+        </div>
 
         {saveMessage ? <p className="success-message">{saveMessage}</p> : null}
       </form>
@@ -111,11 +127,31 @@ export function ChartForm() {
         <ReportCard report={report} />
       ) : (
         <div className="card">
-          <h2>خروجی گزارش اینجا نمایش داده می‌شود</h2>
+          <span className="badge">پیش‌نمایش خروجی</span>
+
+          <h2>گزارش اینجا ظاهر می‌شود</h2>
+
           <p>
             بعد از ثبت فرم، Astro Clean یک چارت mock شامل خورشید، ماه و رایزینگ
             می‌سازد و چند جمله تفسیری فارسی نشان می‌دهد.
           </p>
+
+          <div className="grid grid-3">
+            <div className="mini-card">
+              <strong>خورشید</strong>
+              <span>؟</span>
+            </div>
+
+            <div className="mini-card">
+              <strong>ماه</strong>
+              <span>؟</span>
+            </div>
+
+            <div className="mini-card">
+              <strong>رایزینگ</strong>
+              <span>؟</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
