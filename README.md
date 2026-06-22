@@ -220,3 +220,15 @@ Favorite report IDs are stored in localStorage separately from reports and are i
 Saved report detail pages support personal notes.
 
 Notes are stored in localStorage and included in local JSON backups. Reports search also searches inside saved notes.
+
+## Dashboard
+
+The Dashboard now shows:
+
+- total saved reports
+- favorite report count
+- personal note count
+- latest saved report
+- recent report links
+- favorite report links
+- quick links to Chart, Reports, and Admin

@@ -114,3 +114,12 @@
 - [x] Report notes included in local backup export/import
 - [x] Report notes count shown in Admin local data status
 - [x] Report notes cleared with demo reset
+
+## Recent dashboard polish
+
+- [x] Dashboard report count
+- [x] Dashboard favorite count
+- [x] Dashboard note count
+- [x] Recent reports quick links
+- [x] Favorite reports quick links
+- [x] Latest report detail link

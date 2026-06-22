@@ -92,3 +92,12 @@ Frontend MVP polish release.
 - Report notes included in Reports search
 - Report notes included in local backup export/import
 - Report notes count in Admin local data status
+
+## Unreleased
+
+### Added
+
+- Upgraded Dashboard with report, favorite, and note stats
+- Recent reports quick links
+- Favorite reports quick links
+- Latest report detail link from Dashboard

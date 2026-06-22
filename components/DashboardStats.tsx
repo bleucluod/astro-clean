@@ -1,28 +1,37 @@
-﻿import type { AstrologyReport } from "@/types/astro";
-
-type DashboardStatsProps = {
-  reports: AstrologyReport[];
+﻿type DashboardStatsProps = {
+  reportCount: number;
+  favoriteCount: number;
+  noteCount: number;
+  latestReportLabel: string;
 };
 
-export function DashboardStats({ reports }: DashboardStatsProps) {
-  const latestReport = reports[0];
-
+export function DashboardStats({
+  reportCount,
+  favoriteCount,
+  noteCount,
+  latestReportLabel,
+}: DashboardStatsProps) {
   return (
-    <section className="grid grid-3">
-      <div className="mini-card stat-card">
-        <strong>گزارش‌های ذخیره‌شده</strong>
-        <span>{reports.length.toLocaleString("fa-IR")}</span>
+    <div className="status-grid">
+      <div className="mini-card">
+        <strong>گزارش‌ها</strong>
+        <span>{reportCount.toLocaleString("fa-IR")}</span>
       </div>
 
-      <div className="mini-card stat-card">
-        <strong>آخرین خورشید</strong>
-        <span>{latestReport?.chart.sunSign.faName ?? "—"}</span>
+      <div className="mini-card">
+        <strong>علاقه‌مندی‌ها</strong>
+        <span>{favoriteCount.toLocaleString("fa-IR")}</span>
       </div>
 
-      <div className="mini-card stat-card">
-        <strong>آخرین رایزینگ</strong>
-        <span>{latestReport?.chart.risingSign.faName ?? "—"}</span>
+      <div className="mini-card">
+        <strong>یادداشت‌ها</strong>
+        <span>{noteCount.toLocaleString("fa-IR")}</span>
       </div>
-    </section>
+
+      <div className="mini-card">
+        <strong>آخرین گزارش</strong>
+        <span>{latestReportLabel}</span>
+      </div>
+    </div>
   );
 }
