@@ -12,7 +12,11 @@ export function ReportsList() {
   const [reports, setReports] = useState<AstrologyReport[]>([]);
 
   useEffect(() => {
-    setReports(loadReports());
+    const timer = window.setTimeout(() => {
+      setReports(loadReports());
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   function handleClearReports() {

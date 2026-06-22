@@ -10,8 +10,12 @@ export function DashboardSummary() {
   const [latestReport, setLatestReport] = useState<AstrologyReport | null>(null);
 
   useEffect(() => {
-    const reports = loadReports();
-    setLatestReport(reports[0] ?? null);
+    const timer = window.setTimeout(() => {
+      const reports = loadReports();
+      setLatestReport(reports[0] ?? null);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   if (!latestReport) {
