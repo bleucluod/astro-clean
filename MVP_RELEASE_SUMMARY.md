@@ -10,6 +10,17 @@
 
 - صفحه Home فارسی و محصولی
 - Layout فارسی RTL
+- Loading state فارسی
+- Error state فارسی
+- Active navigation
+- Mobile navigation polish
+- Demo flow در صفحه Home
+- Dashboard stats
+- حذف تکی گزارش‌ها
+- نمایش birth details در گزارش‌ها
+- Local data status در Admin
+- Safety disclaimer مشترک
+- Internal links بین Roadmap و Wiki
 - Navigation با active state
 - صفحه Chart برای ساخت گزارش mock
 - Mock astrology engine برای Sun, Moon, Rising
