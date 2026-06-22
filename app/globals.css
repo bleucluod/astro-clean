@@ -179,3 +179,93 @@ select {
     padding: 32px 0;
   }
 }
+.form {
+  display: grid;
+  gap: 22px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  color: #4b3b66;
+  font-weight: 700;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid rgba(77, 52, 122, 0.16);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #24143d;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+}
+
+.report-card {
+  display: grid;
+  gap: 20px;
+}
+
+.report-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #f6efff;
+  color: #5b2bbf;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mini-card {
+  display: grid;
+  gap: 8px;
+  border-radius: 18px;
+  padding: 16px;
+  background: #faf7ff;
+  border: 1px solid rgba(77, 52, 122, 0.1);
+}
+
+.mini-card span {
+  font-size: 22px;
+  font-weight: 800;
+  color: #5b2bbf;
+}
+
+.report-list {
+  display: grid;
+  gap: 8px;
+}
+
+.notice {
+  border-radius: 18px;
+  padding: 16px;
+  background: #fff8e8;
+  color: #6b4e16;
+}
+
+@media (max-width: 800px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-header {
+    flex-direction: column;
+  }
+}

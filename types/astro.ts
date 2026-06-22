@@ -17,7 +17,7 @@ export type ZodiacSign = {
   faName: string;
   enName: string;
   element: "آتش" | "زمین" | "هوا" | "آب";
-  quality: "کارדینال" | "ثابت" | "متغیر";
+  quality: "کاردینال" | "ثابت" | "متغیر";
 };
 
 export type BirthInput = {
