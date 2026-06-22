@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import { roadmapItems } from "@/lib/config/roadmap";
 
 export const metadata: Metadata = {
   title: "نقشه راه محصول | Astro Clean",
@@ -15,22 +16,33 @@ export default function RoadmapPage() {
         <h1>از MVP ساده تا اکوسیستم آسترولوژی شخصی</h1>
 
         <p>
-          نسخه فعلی فقط شروع مسیر است: ساخت چارت، گزارش نمادین، ذخیره محلی و
-          تجربه کاربری تمیز. هدف این است که سریع یک محصول قابل دیدن و دوست‌داشتنی
-          داشته باشیم.
-        </p>
-
-        <h2>قابلیت‌های آینده</h2>
-
-        <p>
-          چارت تولد واقعی، تحلیل روزانه و ماهانه، داشبورد شخصی، پروفایل عمومی یا
-          خصوصی، سازگاری رابطه، Couple Mode، Celebrity System، Event Charts،
-          AI Astrologer Chat، گیمیفیکیشن، نوتیفیکیشن و سیستم محتوایی SEO محور.
+          Astro Clean را از یک محصول کوچک و قابل دیدن شروع می‌کنیم. هدف فعلی
+          ساخت تجربه‌ای تمیز و قابل لمس است، نه معماری سنگین یا قابلیت‌های
+          enterprise.
         </p>
 
         <p>
-          تحلیل‌ها همیشه به عنوان تفسیر نمادین، سرگرمی و خودشناسی ارائه می‌شوند؛
-          نه پیش‌بینی قطعی یا توصیه پزشکی، مالی و حقوقی.
+          مسیر آینده به شکلی طراحی می‌شود که منطق نجومی، قانون‌های تفسیری،
+          لایه ارائه فارسی و در آینده AI از هم جدا بمانند.
+        </p>
+      </div>
+
+      <div className="grid grid-3">
+        {roadmapItems.map((item) => (
+          <article className="card" key={item.title}>
+            <span className="badge">{item.phase}</span>
+            <h2>{item.title}</h2>
+            <p>{item.description}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="card">
+        <h2>اصل اخلاقی محصول</h2>
+        <p>
+          تحلیل‌ها در Astro Clean به عنوان تفسیر نمادین، سرگرمی و خودشناسی
+          ارائه می‌شوند. محصول نباید پیش‌بینی قطعی یا توصیه پزشکی، مالی، حقوقی
+          یا تصمیم‌گیری جدی ارائه کند.
         </p>
       </div>
     </section>

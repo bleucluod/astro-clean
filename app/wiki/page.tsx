@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import { wikiTopics } from "@/lib/config/wiki";
 
 export const metadata: Metadata = {
   title: "Astro Wiki | آسترو ویکی فارسی",
@@ -15,17 +16,25 @@ export default function WikiPage() {
         <h1>پایه سبک برای محتوای آموزشی و SEO</h1>
 
         <p>
-          Astro Wiki در آینده محل توضیح سیارات، خانه‌ها، رایزینگ‌ها، جنبه‌ها و
-          اصطلاحات آسترولوژی خواهد بود. فعلاً فقط یک صفحه ساده داریم تا مسیر
-          محتوایی و SEO از روز اول در ساختار محصول دیده شود.
+          Astro Wiki در آینده محل محتوای آموزشی، طبیعی و قابل ایندکس خواهد بود.
+          فعلاً فقط چند موضوع پایه را نشان می‌دهیم تا مسیر SEO از روز اول در
+          ساختار محصول دیده شود، بدون اینکه وارد تولید انبوه صفحه شویم.
         </p>
-
-        <h2>موضوعات آینده</h2>
 
         <p>
-          خورشید در نشانه‌ها، ماه در نشانه‌ها، ونوس در خانه‌ها، رایزینگ‌ها،
-          سازگاری رابطه، چارت رویدادها و صفحات قابل توسعه برای جستجوی فارسی.
+          متن‌های این بخش باید فارسی روان، بومی‌سازی‌شده و کنترل‌شده باشند؛ نه
+          ترجمه ماشینی یا محتوای بی‌کیفیت programmatic.
         </p>
+      </div>
+
+      <div className="grid grid-3">
+        {wikiTopics.map((topic) => (
+          <article className="card" key={topic.slug}>
+            <span className="badge">موضوع آموزشی</span>
+            <h2>{topic.title}</h2>
+            <p>{topic.description}</p>
+          </article>
+        ))}
       </div>
     </section>
   );
