@@ -129,3 +129,28 @@ git status
 Also review:
 
 DEPLOYMENT_NOTES.md
+
+## Project documents
+
+Useful project documents:
+
+- `MVP_CHECKLIST.md` — checklist of completed and remaining MVP work
+- `MVP_RELEASE_SUMMARY.md` — summary of the current MVP release
+- `CHANGELOG.md` — release history and notable changes
+- `DEPLOYMENT_NOTES.md` — deployment preparation notes
+- `RELEASE_TEST_PLAN.md` — manual QA flow before demo or deploy
+- `FINAL_QA_NOTES.md` — known limitations and QA notes
+- `NOTES_FOR_NEXT_STEPS.md` — suggested next product directions
+
+## Current local release tags
+
+- `v0.1.0-mvp`
+- `v0.1.1-polish`
+
+Use this command to see local tags:
+
+git tag --list
+
+Use this command to inspect recent history:
+
+git --no-pager log --oneline -10
