@@ -250,3 +250,14 @@ The export includes:
 - report data
 - personal note
 - favorite state
+
+## Deploy preparation addendum
+
+Before public deployment, review:
+
+- DEPLOY_READY_CHECKLIST.md
+- PUBLIC_DEMO_PLAN.md
+
+Important:
+
+Public indexed account/report pages are planned for the future, but they are not active in this release.

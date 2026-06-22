@@ -249,3 +249,17 @@ Expected result:
 - main CTAs are obvious
 - localStorage limitation is clear
 - no page claims public SEO pages are active yet
+
+## Deploy readiness QA addendum
+
+Before a public frontend demo, verify:
+
+- Home clearly explains the current MVP
+- Chart redirects to report detail
+- Reports search, sort, favorites, and notes work
+- Dashboard stats work
+- Privacy page explains localStorage
+- Admin backup/export works
+- sitemap.xml loads
+- robots.txt loads
+- public SEO account/report pages are not active yet

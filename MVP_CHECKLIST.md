@@ -168,3 +168,10 @@
 - [x] Mobile button layout polish
 - [x] Card spacing polish
 - [x] Final visual QA checklist
+
+## Deploy preparation
+
+- [x] Provider-neutral deploy-ready checklist
+- [x] Public demo plan
+- [x] Production preview checklist
+- [x] Public SEO future note without implementation

@@ -180,3 +180,15 @@ Frontend MVP polish release.
 - Mobile button layout
 - Card spacing and hover polish
 - Final visual QA checklist
+
+## Unreleased
+
+### Added
+
+- Deploy-ready checklist
+- Public demo plan
+- Provider-neutral production preview checklist
+
+### Clarified
+
+- Public SEO account/report pages are planned for the future but not active yet
