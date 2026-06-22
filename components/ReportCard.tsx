@@ -39,6 +39,14 @@ export function ReportCard({ report }: ReportCardProps) {
         </span>
       </div>
 
+      <div className="birth-details">
+        <span>{report.input.birthDate}</span>
+        <span>{report.input.birthTime}</span>
+        <span>
+          {report.input.birthCity}، {report.input.birthCountry}
+        </span>
+      </div>
+
       <div className="grid grid-3">
         <div className="mini-card">
           <strong>خورشید</strong>

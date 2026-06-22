@@ -464,3 +464,18 @@ select {
     flex: 0 0 auto;
   }
 }
+
+.birth-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.birth-details span {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #f7f2ff;
+  color: #5f5175;
+  font-weight: 700;
+  font-size: 14px;
+}
