@@ -26,6 +26,13 @@ const mvpFeatures = [
   },
 ];
 
+const demoSteps = [
+  "اطلاعات تولد را وارد کن",
+  "گزارش mock فارسی بساز",
+  "گزارش را در Reports ببین",
+  "آخرین گزارش را در Dashboard دنبال کن",
+];
+
 const futureAreas = [
   "چارت واقعی و Rule Engine",
   "داشبورد شخصی و Mood Tracking",
@@ -75,6 +82,31 @@ export default function Home() {
             <strong>هدف فعلی</strong>
             <span>محصول قابل دیدن، تمیز و دوست‌داشتنی</span>
           </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <span className="section-label">مسیر دمو</span>
+
+        <h2>در کمتر از یک دقیقه محصول را تست کن</h2>
+
+        <div className="demo-flow">
+          {demoSteps.map((step, index) => (
+            <div className="demo-step" key={step}>
+              <span>{(index + 1).toLocaleString("fa-IR")}</span>
+              <p>{step}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="actions">
+          <Link className="button" href="/chart">
+            شروع دمو
+          </Link>
+
+          <Link className="button secondary" href="/admin">
+            ریست داده‌های دمو
+          </Link>
         </div>
       </div>
 

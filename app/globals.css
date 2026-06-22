@@ -502,3 +502,47 @@ select {
 .safety-disclaimer.compact {
   margin: 18px 0 0;
 }
+
+.demo-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.demo-step {
+  border-radius: 20px;
+  padding: 16px;
+  background: #faf7ff;
+  border: 1px solid rgba(77, 52, 122, 0.1);
+}
+
+.demo-step span {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #5b2bbf;
+  color: white;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.demo-step p {
+  margin: 0;
+  font-weight: 800;
+  color: #4b3b66;
+}
+
+@media (max-width: 900px) {
+  .demo-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .demo-flow {
+    grid-template-columns: 1fr;
+  }
+}
