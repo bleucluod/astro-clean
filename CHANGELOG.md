@@ -192,3 +192,11 @@ Frontend MVP polish release.
 ### Clarified
 
 - Public SEO account/report pages are planned for the future but not active yet
+
+## Unreleased
+
+### Added
+
+- Deployment status card in Admin
+- Quick links to sitemap and robots from Admin
+- Public SEO inactive status in Admin

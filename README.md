@@ -261,3 +261,16 @@ Before public deployment, review:
 Important:
 
 Public indexed account/report pages are planned for the future, but they are not active in this release.
+
+## Deployment status card
+
+The Admin page includes a deployment status card showing:
+
+- current site URL
+- SEO route count
+- sitemap link
+- robots link
+- public SEO status
+- backend status
+
+Public indexed account/report pages are still intentionally not active.

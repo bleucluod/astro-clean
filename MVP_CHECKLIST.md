@@ -175,3 +175,9 @@
 - [x] Public demo plan
 - [x] Production preview checklist
 - [x] Public SEO future note without implementation
+
+## Deploy preparation polish
+
+- [x] Deployment status card in Admin
+- [x] Sitemap and robots quick links
+- [x] Public SEO inactive status visible in Admin

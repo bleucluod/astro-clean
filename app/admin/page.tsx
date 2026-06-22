@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next";
 import { DemoDataPanel } from "@/components/DemoDataPanel";
+import { DeploymentStatusCard } from "@/components/DeploymentStatusCard";
 import { FeatureFlagList } from "@/components/FeatureFlagList";
 import { LocalDataBackupPanel } from "@/components/LocalDataBackupPanel";
 import { LocalDataStatusCard } from "@/components/LocalDataStatusCard";
@@ -21,12 +22,13 @@ export default function AdminPage() {
 
         <p>
           این صفحه ادمین واقعی نیست. فعلاً فقط برای دیدن وضعیت محصول، کنترل
-          فیچرهای آینده، ریست داده‌های دمو و مدیریت داده‌های localStorage ساخته
-          شده است.
+          فیچرهای آینده، ریست داده‌های دمو، مدیریت داده‌های localStorage و
+          بررسی آمادگی deploy ساخته شده است.
         </p>
       </div>
 
       <MvpStatusCard />
+      <DeploymentStatusCard />
       <LocalDataStatusCard />
       <LocalDataBackupPanel />
       <DemoDataPanel />
