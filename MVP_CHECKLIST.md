@@ -140,3 +140,10 @@
 - [x] Demo flow clarity
 - [x] Local data transparency on Home
 - [x] Future public SEO direction noted without implementation
+
+## Recent reports and dashboard visual polish
+
+- [x] Reports toolbar visual refinement
+- [x] Filter tabs visual refinement
+- [x] Dashboard quick links visual refinement
+- [x] Mobile report action layout polish

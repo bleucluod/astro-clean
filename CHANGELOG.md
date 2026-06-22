@@ -144,3 +144,12 @@ Frontend MVP polish release.
 - Demo flow clarity
 - Local data transparency on the landing page
 - Future public SEO direction documented in product copy
+
+## Unreleased
+
+### Improved
+
+- Reports archive visual hierarchy
+- Reports toolbar and filter tab styling
+- Dashboard section and quick link styling
+- Mobile layout polish for report actions
