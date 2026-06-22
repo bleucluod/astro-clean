@@ -154,3 +154,10 @@
 - [x] Report detail note card refinement
 - [x] Single report export card refinement
 - [x] Mobile action layout polish for chart and report detail
+
+## Recent privacy and admin visual polish
+
+- [x] Privacy page visual refinement
+- [x] Admin local data status refinement
+- [x] Admin backup panel refinement
+- [x] Admin demo controls mobile polish

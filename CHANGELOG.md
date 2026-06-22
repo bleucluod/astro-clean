@@ -162,3 +162,12 @@ Frontend MVP polish release.
 - Report detail note card styling
 - Single report export card styling
 - Mobile layout polish for chart and report detail actions
+
+## Unreleased
+
+### Improved
+
+- Privacy page visual clarity
+- Admin local data card styling
+- Admin backup panel styling
+- Demo control spacing and mobile layout
