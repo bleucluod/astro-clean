@@ -1,0 +1,43 @@
+﻿# Changelog
+
+## v0.1.1-polish
+
+Frontend MVP polish release.
+
+### Added
+
+- Loading state فارسی
+- Error state فارسی
+- Centralized navigation config
+- Mobile navigation polish
+- MVP status card in Admin
+- Local data status card in Admin
+- Dashboard stats
+- Individual report deletion
+- Birth details in report cards
+- Shared safety disclaimer
+- Internal links between Roadmap and Wiki
+- Demo flow section on Home
+- Deployment notes
+- Environment example file
+
+### Improved
+
+- Home page demo readiness
+- Chart form experience
+- Profile experience
+- Reports empty states
+- Dashboard empty states
+- Admin demo controls
+- SEO config structure
+
+### Still not included
+
+- Real astrology calculations
+- Backend
+- Database
+- Authentication
+- Payments
+- AI integration
+- Programmatic SEO
+- Real admin panel

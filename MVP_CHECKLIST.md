@@ -1,27 +1,40 @@
-# Astro Clean MVP Checklist
+﻿# Astro Clean MVP Checklist
 
 ## Done
 
 - [x] Next.js + TypeScript + App Router
 - [x] Persian RTL layout
 - [x] Navigation
+- [x] Active navigation state
+- [x] Mobile navigation polish
 - [x] Home page
+- [x] Demo flow on Home
 - [x] Chart page
 - [x] Dashboard page
+- [x] Dashboard stats
 - [x] Reports page
+- [x] Individual report deletion
 - [x] Profile page
 - [x] Admin page
+- [x] MVP status card
+- [x] Local data status card
 - [x] Roadmap page
 - [x] Astro Wiki page
+- [x] Internal links between Roadmap and Wiki
 - [x] Basic page metadata
 - [x] Basic sitemap
 - [x] Basic robots.txt
+- [x] Central SEO config
 - [x] Persian 404 page
+- [x] Persian loading state
+- [x] Persian error state
 - [x] Mock astrology engine
 - [x] Simple Persian rule engine
+- [x] Shared safety disclaimer
 - [x] Safety note for symbolic interpretation
 - [x] Chart form
 - [x] Report card
+- [x] Birth details on report cards
 - [x] Save reports in localStorage
 - [x] Show saved reports
 - [x] Show latest report in dashboard
@@ -31,19 +44,22 @@
 - [x] Demo data reset controls
 - [x] Empty states
 - [x] README
+- [x] Deployment notes
+- [x] Changelog
 - [x] Git checkpoints
+- [x] Local release tag
 - [x] Lint passes
 - [x] Production build passes
+- [x] Production preview tested
+- [x] Manual route testing passed
 
 ## Remaining for MVP polish
 
-- [ ] Manual test all routes
-- [ ] Test empty states after demo data reset
-- [ ] Test report creation with several inputs
-- [ ] Test profile save and refresh
-- [ ] Review Persian copy for tone
-- [ ] Review mobile layout
-- [ ] Optional: deploy preparation
+- [ ] Final copy review
+- [ ] Final mobile review on a real phone
+- [ ] Optional: choose deployment target
+- [ ] Optional: replace localhost site URL with real domain
+- [ ] Optional: create deploy-ready tag after domain config
 
 ## Not in this MVP
 
