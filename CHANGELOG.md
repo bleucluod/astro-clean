@@ -49,3 +49,19 @@ Frontend MVP polish release.
 - User-facing privacy and local data transparency page
 - Privacy route in navigation
 - Privacy route in sitemap
+
+## Unreleased
+
+### Added
+
+- Single saved report detail page at `/reports/[reportId]`
+- Detail links from the Reports archive
+- Missing-report empty state for localStorage-only reports
+
+## Unreleased
+
+### Added
+
+- Single saved report detail page at `/reports/[reportId]`
+- Detail links from the Reports archive
+- Missing-report empty state for localStorage-only reports

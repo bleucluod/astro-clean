@@ -178,3 +178,19 @@ The project does not currently include:
 User-facing privacy and local data information is available at:
 
 /privacy
+
+## Report detail pages
+
+Saved reports have local detail routes:
+
+/reports/[reportId]
+
+These pages currently read from localStorage, so they only work in the browser where the report exists. They are not permanent public links yet because the MVP has no backend or database.
+
+## Report detail pages
+
+Saved reports have local detail routes:
+
+/reports/[reportId]
+
+These pages currently read from localStorage, so they only work in the browser where the report exists. They are not permanent public links yet because the MVP has no backend or database.

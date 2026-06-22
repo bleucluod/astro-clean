@@ -80,3 +80,15 @@
 - [x] User-facing privacy and local data transparency page
 - [x] Privacy route added to navigation
 - [x] Privacy route added to sitemap
+
+## Recent report UX polish
+
+- [x] Single saved report detail page
+- [x] Detail links from Reports archive
+- [x] Missing-report empty state
+
+## Recent report UX polish
+
+- [x] Single saved report detail page
+- [x] Detail links from Reports archive
+- [x] Missing-report empty state
