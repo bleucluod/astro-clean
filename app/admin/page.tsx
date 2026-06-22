@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import { DemoDataPanel } from "@/components/DemoDataPanel";
 import { FeatureFlagList } from "@/components/FeatureFlagList";
+import { MvpStatusCard } from "@/components/MvpStatusCard";
 
 export const metadata: Metadata = {
   title: "ادمین MVP | Astro Clean",
@@ -22,6 +23,8 @@ export default function AdminPage() {
           تمیز نگه داریم.
         </p>
       </div>
+
+      <MvpStatusCard />
 
       <DemoDataPanel />
 
