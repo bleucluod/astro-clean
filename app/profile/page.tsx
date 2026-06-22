@@ -1,4 +1,12 @@
-﻿export default function ProfilePage() {
+﻿import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "پروفایل کاربر | Astro Clean",
+  description:
+    "پروفایل ساده کاربر در Astro Clean برای نام، بیوگرافی و حالت حریم خصوصی در نسخه MVP.",
+};
+
+export default function ProfilePage() {
   return (
     <section className="grid">
       <div className="card">

@@ -1,4 +1,12 @@
-﻿export default function WikiPage() {
+﻿import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Astro Wiki | آسترو ویکی فارسی",
+  description:
+    "آسترو ویکی Astro Clean پایه‌ای سبک برای محتوای آموزشی فارسی درباره سیارات، خانه‌ها، رایزینگ‌ها و اصطلاحات آسترولوژی.",
+};
+
+export default function WikiPage() {
   return (
     <section className="grid">
       <div className="card">

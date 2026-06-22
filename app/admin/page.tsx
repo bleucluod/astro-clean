@@ -1,4 +1,12 @@
-﻿export default function AdminPage() {
+﻿import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "ادمین MVP | Astro Clean",
+  description:
+    "پنل ساده ادمین Astro Clean برای نمایش feature flagها و آماده‌سازی مسیر کنترل محصول در آینده.",
+};
+
+export default function AdminPage() {
   return (
     <section className="grid">
       <div className="card">

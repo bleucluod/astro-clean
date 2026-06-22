@@ -1,4 +1,12 @@
-﻿export default function RoadmapPage() {
+﻿import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "نقشه راه محصول | Astro Clean",
+  description:
+    "نقشه راه Astro Clean از MVP ساده تا اکوسیستم فارسی آسترولوژی شخصی، اجتماعی، محتوایی و SEO محور.",
+};
+
+export default function RoadmapPage() {
   return (
     <section className="grid">
       <div className="card">

@@ -1,4 +1,11 @@
+﻿import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Astro Clean | چارت تولد و تحلیل نمادین فارسی",
+  description:
+    "Astro Clean یک پلتفرم فارسی برای ساخت چارت تولد، گزارش شخصی و تجربه نمادین آسترولوژی است.",
+};
 
 export default function Home() {
   return (
