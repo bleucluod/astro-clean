@@ -1,27 +1,32 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { loadFavoriteReportIds } from "@/lib/storage/favorite-reports-storage";
 import { loadProfile } from "@/lib/storage/profile-storage";
 import { loadReports } from "@/lib/storage/reports-storage";
 
 type LocalDataStatus = {
   reportCount: number;
+  favoriteCount: number;
   hasProfileName: boolean;
   privacyMode: string;
 };
 
 const initialStatus: LocalDataStatus = {
   reportCount: 0,
+  favoriteCount: 0,
   hasProfileName: false,
   privacyMode: "private",
 };
 
 function readLocalDataStatus(): LocalDataStatus {
   const reports = loadReports();
+  const favoriteReportIds = loadFavoriteReportIds();
   const profile = loadProfile();
 
   return {
     reportCount: reports.length,
+    favoriteCount: reports.filter((report) => favoriteReportIds.includes(report.id)).length,
     hasProfileName: profile.displayName.trim().length > 0,
     privacyMode: profile.privacyMode,
   };
@@ -60,6 +65,11 @@ export function LocalDataStatusCard() {
         <div className="mini-card">
           <strong>گزارش‌ها</strong>
           <span>{status.reportCount.toLocaleString("fa-IR")}</span>
+        </div>
+
+        <div className="mini-card">
+          <strong>علاقه‌مندی‌ها</strong>
+          <span>{status.favoriteCount.toLocaleString("fa-IR")}</span>
         </div>
 
         <div className="mini-card">

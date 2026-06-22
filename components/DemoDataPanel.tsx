@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
+import { clearFavoriteReportIds } from "@/lib/storage/favorite-reports-storage";
 import { defaultProfile, saveProfile } from "@/lib/storage/profile-storage";
 import { clearReports } from "@/lib/storage/reports-storage";
 
@@ -13,8 +14,9 @@ export function DemoDataPanel() {
 
   function handleClearReports() {
     clearReports();
+    clearFavoriteReportIds();
     notifyLocalDataChanged();
-    setMessage("همه گزارش‌های ذخیره‌شده پاک شدند.");
+    setMessage("همه گزارش‌های ذخیره‌شده و علاقه‌مندی‌ها پاک شدند.");
   }
 
   function handleResetProfile() {
@@ -25,6 +27,7 @@ export function DemoDataPanel() {
 
   function handleResetAll() {
     clearReports();
+    clearFavoriteReportIds();
     saveProfile(defaultProfile);
     notifyLocalDataChanged();
     setMessage("همه داده‌های دمو پاک شدند.");

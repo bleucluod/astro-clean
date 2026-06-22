@@ -99,3 +99,10 @@
 - [x] Sort saved reports by newest or oldest
 - [x] Report result count
 - [x] No-result state for search
+
+## Recent favorites polish
+
+- [x] Favorite saved reports
+- [x] Favorites filter in Reports archive
+- [x] Favorite report IDs included in local backup export/import
+- [x] Favorite count shown in Admin local data status

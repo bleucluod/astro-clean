@@ -74,3 +74,12 @@ Frontend MVP polish release.
 - Sort saved reports by newest or oldest
 - Result count in Reports archive
 - No-result state for report search
+
+## Unreleased
+
+### Added
+
+- Favorite saved reports
+- Favorites filter in Reports archive
+- Favorite report IDs in local JSON backup
+- Favorite count in Admin local data status

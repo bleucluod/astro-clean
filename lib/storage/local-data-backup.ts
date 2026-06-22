@@ -1,4 +1,9 @@
 ﻿import type { AstrologyReport } from "@/types/astro";
+import {
+  clearFavoriteReportIds,
+  loadFavoriteReportIds,
+  saveFavoriteReportIds,
+} from "@/lib/storage/favorite-reports-storage";
 import { clearReports, loadReports, saveReport } from "@/lib/storage/reports-storage";
 import {
   defaultProfile,
@@ -12,6 +17,7 @@ export type LocalDataBackup = {
   exportedAt: string;
   profile: typeof defaultProfile;
   reports: AstrologyReport[];
+  favoriteReportIds: string[];
 };
 
 export type RestoreResult = {
@@ -26,6 +32,7 @@ export function createLocalDataBackup(): LocalDataBackup {
     exportedAt: new Date().toISOString(),
     profile: loadProfile(),
     reports: loadReports(),
+    favoriteReportIds: loadFavoriteReportIds(),
   };
 }
 
@@ -54,6 +61,7 @@ export function restoreLocalDataBackup(value: unknown): RestoreResult {
   }
 
   clearReports();
+  clearFavoriteReportIds();
 
   for (const report of [...value.reports].reverse()) {
     saveReport(report);
@@ -63,6 +71,10 @@ export function restoreLocalDataBackup(value: unknown): RestoreResult {
     ...defaultProfile,
     ...value.profile,
   });
+
+  saveFavoriteReportIds(
+    Array.isArray(value.favoriteReportIds) ? value.favoriteReportIds : [],
+  );
 
   return {
     ok: true,

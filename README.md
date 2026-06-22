@@ -208,3 +208,9 @@ The Reports page supports:
 - clear all reports
 
 Reports are still localStorage-only in this MVP.
+
+## Favorite reports
+
+Saved reports can be marked as favorites.
+
+Favorite report IDs are stored in localStorage separately from reports and are included in local JSON backups.

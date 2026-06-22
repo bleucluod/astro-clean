@@ -5,6 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import {
+  loadFavoriteReportIds,
+  toggleFavoriteReportId,
+} from "@/lib/storage/favorite-reports-storage";
+import {
   clearReports,
   deleteReport,
   loadReports,
@@ -12,6 +16,7 @@ import {
 import type { AstrologyReport } from "@/types/astro";
 
 type SortMode = "newest" | "oldest";
+type ReportFilterMode = "all" | "favorites";
 
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
@@ -33,27 +38,37 @@ function reportMatchesSearch(report: AstrologyReport, searchTerm: string) {
 
 export function ReportsList() {
   const [reports, setReports] = useState<AstrologyReport[]>([]);
+  const [favoriteReportIds, setFavoriteReportIds] = useState<string[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [message, setMessage] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [filterMode, setFilterMode] = useState<ReportFilterMode>("all");
 
   const searchTerm = normalizeSearchText(searchInput);
 
+  const favoriteCount = reports.filter((report) =>
+    favoriteReportIds.includes(report.id),
+  ).length;
+
   const visibleReports = useMemo(() => {
-    const filteredReports = reports.filter((report) =>
-      reportMatchesSearch(report, searchTerm),
-    );
+    const filteredReports = reports.filter((report) => {
+      const matchesFavoriteFilter =
+        filterMode === "all" || favoriteReportIds.includes(report.id);
+
+      return matchesFavoriteFilter && reportMatchesSearch(report, searchTerm);
+    });
 
     if (sortMode === "oldest") {
       return [...filteredReports].reverse();
     }
 
     return filteredReports;
-  }, [reports, searchTerm, sortMode]);
+  }, [favoriteReportIds, filterMode, reports, searchTerm, sortMode]);
 
   function refreshReports() {
     setReports(loadReports());
+    setFavoriteReportIds(loadFavoriteReportIds());
     setIsReady(true);
   }
 
@@ -65,8 +80,20 @@ export function ReportsList() {
     };
   }, []);
 
+  function handleToggleFavorite(reportId: string) {
+    const isNowFavorite = toggleFavoriteReportId(reportId);
+    refreshReports();
+    notifyLocalDataChanged();
+    setMessage(isNowFavorite ? "گزارش ستاره‌دار شد." : "گزارش از علاقه‌مندی‌ها حذف شد.");
+  }
+
   function handleDeleteReport(reportId: string) {
     deleteReport(reportId);
+
+    if (favoriteReportIds.includes(reportId)) {
+      toggleFavoriteReportId(reportId);
+    }
+
     notifyLocalDataChanged();
     refreshReports();
     setMessage("گزارش انتخاب‌شده حذف شد.");
@@ -77,6 +104,7 @@ export function ReportsList() {
     notifyLocalDataChanged();
     refreshReports();
     setSearchInput("");
+    setFilterMode("all");
     setMessage("همه گزارش‌ها پاک شدند.");
   }
 
@@ -111,8 +139,8 @@ export function ReportsList() {
 
         <p>
           این گزارش‌ها فعلاً فقط در مرورگر همین دستگاه ذخیره شده‌اند. می‌توانی
-          در آن‌ها جستجو کنی، ترتیب نمایش را عوض کنی و وارد صفحه جزئیات هر
-          گزارش شوی.
+          جستجو کنی، ترتیب نمایش را عوض کنی، گزارش‌های مهم را ستاره‌دار کنی و
+          وارد صفحه جزئیات هر گزارش شوی.
         </p>
 
         <div className="reports-toolbar">
@@ -135,6 +163,26 @@ export function ReportsList() {
               <option value="oldest">قدیمی‌ترین اول</option>
             </select>
           </label>
+        </div>
+
+        <div className="filter-tabs">
+          <button
+            className={filterMode === "all" ? "filter-tab active" : "filter-tab"}
+            type="button"
+            onClick={() => setFilterMode("all")}
+          >
+            همه گزارش‌ها
+          </button>
+
+          <button
+            className={
+              filterMode === "favorites" ? "filter-tab active" : "filter-tab"
+            }
+            type="button"
+            onClick={() => setFilterMode("favorites")}
+          >
+            علاقه‌مندی‌ها ({favoriteCount.toLocaleString("fa-IR")})
+          </button>
         </div>
 
         <div className="reports-summary-row">
@@ -175,44 +223,59 @@ export function ReportsList() {
         <div className="card">
           <span className="badge">بدون نتیجه</span>
 
-          <h2>گزارشی با این جستجو پیدا نشد</h2>
+          <h2>گزارشی با این فیلتر پیدا نشد</h2>
 
           <p>
-            عبارت جستجو را کوتاه‌تر کن یا آن را پاک کن تا همه گزارش‌های ذخیره‌شده
-            دوباره نمایش داده شوند.
+            عبارت جستجو را کوتاه‌تر کن، فیلتر علاقه‌مندی‌ها را بردار، یا یک
+            گزارش را ستاره‌دار کن.
           </p>
 
           <button
             className="button secondary"
             type="button"
-            onClick={() => setSearchInput("")}
+            onClick={() => {
+              setSearchInput("");
+              setFilterMode("all");
+            }}
           >
-            پاک کردن جستجو
+            نمایش همه گزارش‌ها
           </button>
         </div>
       ) : null}
 
-      {visibleReports.map((report) => (
-        <article className="report-list-item" key={report.id}>
-          <ReportCard report={report} />
+      {visibleReports.map((report) => {
+        const isFavorite = favoriteReportIds.includes(report.id);
 
-          <div className="card report-actions-card">
-            <div className="actions">
-              <Link className="button" href={`/reports/${report.id}`}>
-                دیدن جزئیات گزارش
-              </Link>
+        return (
+          <article className="report-list-item" key={report.id}>
+            <ReportCard report={report} />
 
-              <button
-                className="button secondary"
-                type="button"
-                onClick={() => handleDeleteReport(report.id)}
-              >
-                حذف این گزارش
-              </button>
+            <div className="card report-actions-card">
+              <div className="actions">
+                <Link className="button" href={`/reports/${report.id}`}>
+                  دیدن جزئیات گزارش
+                </Link>
+
+                <button
+                  className="button secondary"
+                  type="button"
+                  onClick={() => handleToggleFavorite(report.id)}
+                >
+                  {isFavorite ? "حذف از علاقه‌مندی‌ها" : "ستاره‌دار کردن"}
+                </button>
+
+                <button
+                  className="button secondary"
+                  type="button"
+                  onClick={() => handleDeleteReport(report.id)}
+                >
+                  حذف این گزارش
+                </button>
+              </div>
             </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </section>
   );
 }
