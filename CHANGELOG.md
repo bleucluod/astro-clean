@@ -83,3 +83,12 @@ Frontend MVP polish release.
 - Favorites filter in Reports archive
 - Favorite report IDs in local JSON backup
 - Favorite count in Admin local data status
+
+## Unreleased
+
+### Added
+
+- Personal notes for saved reports
+- Report notes included in Reports search
+- Report notes included in local backup export/import
+- Report notes count in Admin local data status

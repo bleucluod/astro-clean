@@ -4,6 +4,12 @@ import {
   loadFavoriteReportIds,
   saveFavoriteReportIds,
 } from "@/lib/storage/favorite-reports-storage";
+import {
+  clearReportNotes,
+  loadReportNotes,
+  saveReportNotes,
+  type ReportNotesMap,
+} from "@/lib/storage/report-notes-storage";
 import { clearReports, loadReports, saveReport } from "@/lib/storage/reports-storage";
 import {
   defaultProfile,
@@ -18,6 +24,7 @@ export type LocalDataBackup = {
   profile: typeof defaultProfile;
   reports: AstrologyReport[];
   favoriteReportIds: string[];
+  reportNotes: ReportNotesMap;
 };
 
 export type RestoreResult = {
@@ -33,6 +40,7 @@ export function createLocalDataBackup(): LocalDataBackup {
     profile: loadProfile(),
     reports: loadReports(),
     favoriteReportIds: loadFavoriteReportIds(),
+    reportNotes: loadReportNotes(),
   };
 }
 
@@ -52,6 +60,23 @@ function isLocalDataBackup(value: unknown): value is LocalDataBackup {
   );
 }
 
+function cleanReportNotes(value: unknown): ReportNotesMap {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  const notes = value as Record<string, unknown>;
+  const cleanNotes: ReportNotesMap = {};
+
+  for (const [reportId, note] of Object.entries(notes)) {
+    if (typeof note === "string") {
+      cleanNotes[reportId] = note;
+    }
+  }
+
+  return cleanNotes;
+}
+
 export function restoreLocalDataBackup(value: unknown): RestoreResult {
   if (!isLocalDataBackup(value)) {
     return {
@@ -62,6 +87,7 @@ export function restoreLocalDataBackup(value: unknown): RestoreResult {
 
   clearReports();
   clearFavoriteReportIds();
+  clearReportNotes();
 
   for (const report of [...value.reports].reverse()) {
     saveReport(report);
@@ -75,6 +101,8 @@ export function restoreLocalDataBackup(value: unknown): RestoreResult {
   saveFavoriteReportIds(
     Array.isArray(value.favoriteReportIds) ? value.favoriteReportIds : [],
   );
+
+  saveReportNotes(cleanReportNotes(value.reportNotes));
 
   return {
     ok: true,

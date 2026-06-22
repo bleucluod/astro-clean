@@ -106,3 +106,11 @@
 - [x] Favorites filter in Reports archive
 - [x] Favorite report IDs included in local backup export/import
 - [x] Favorite count shown in Admin local data status
+
+## Recent report notes polish
+
+- [x] Personal notes for saved reports
+- [x] Report notes included in Reports search
+- [x] Report notes included in local backup export/import
+- [x] Report notes count shown in Admin local data status
+- [x] Report notes cleared with demo reset

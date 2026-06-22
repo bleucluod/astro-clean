@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
+import {
+  loadReportNote,
+  saveReportNote,
+} from "@/lib/storage/report-notes-storage";
 import { loadReports } from "@/lib/storage/reports-storage";
 import type { AstrologyReport } from "@/types/astro";
 
@@ -11,9 +15,15 @@ type ReportDetailProps = {
   reportId: string;
 };
 
+function notifyLocalDataChanged() {
+  window.dispatchEvent(new Event("astro-clean-data-changed"));
+}
+
 export function ReportDetail({ reportId }: ReportDetailProps) {
   const [report, setReport] = useState<AstrologyReport | null>(null);
+  const [note, setNote] = useState("");
   const [isReady, setIsReady] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     function loadReport() {
@@ -22,6 +32,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
         savedReports.find((item) => item.id === reportId) ?? null;
 
       setReport(selectedReport);
+      setNote(loadReportNote(reportId));
       setIsReady(true);
     }
 
@@ -31,6 +42,12 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       window.clearTimeout(timer);
     };
   }, [reportId]);
+
+  function handleSaveNote() {
+    saveReportNote(reportId, note);
+    notifyLocalDataChanged();
+    setMessage(note.trim() ? "یادداشت ذخیره شد." : "یادداشت پاک شد.");
+  }
 
   if (!isReady) {
     return (
@@ -87,6 +104,43 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       </div>
 
       <ReportCard report={report} />
+
+      <section className="card report-note-card">
+        <span className="badge">یادداشت شخصی</span>
+
+        <h2>یادداشت من درباره این گزارش</h2>
+
+        <p>
+          این یادداشت فقط در مرورگر همین دستگاه ذخیره می‌شود و فعلاً به هیچ
+          سروری ارسال نمی‌شود.
+        </p>
+
+        <label className="field">
+          <span>یادداشت</span>
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="مثلاً: این گزارش را بعد از یک تصمیم مهم دوباره بخوانم..."
+            rows={6}
+          />
+        </label>
+
+        <div className="actions">
+          <button className="button" type="button" onClick={handleSaveNote}>
+            ذخیره یادداشت
+          </button>
+
+          <button
+            className="button secondary"
+            type="button"
+            onClick={() => setNote("")}
+          >
+            خالی کردن متن
+          </button>
+        </div>
+
+        {message ? <p className="success-message">{message}</p> : null}
+      </section>
     </section>
   );
 }

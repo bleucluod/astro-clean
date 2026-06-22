@@ -214,3 +214,9 @@ Reports are still localStorage-only in this MVP.
 Saved reports can be marked as favorites.
 
 Favorite report IDs are stored in localStorage separately from reports and are included in local JSON backups.
+
+## Report notes
+
+Saved report detail pages support personal notes.
+
+Notes are stored in localStorage and included in local JSON backups. Reports search also searches inside saved notes.

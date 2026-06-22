@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { clearFavoriteReportIds } from "@/lib/storage/favorite-reports-storage";
 import { defaultProfile, saveProfile } from "@/lib/storage/profile-storage";
+import { clearReportNotes } from "@/lib/storage/report-notes-storage";
 import { clearReports } from "@/lib/storage/reports-storage";
 
 function notifyLocalDataChanged() {
@@ -15,8 +16,9 @@ export function DemoDataPanel() {
   function handleClearReports() {
     clearReports();
     clearFavoriteReportIds();
+    clearReportNotes();
     notifyLocalDataChanged();
-    setMessage("همه گزارش‌های ذخیره‌شده و علاقه‌مندی‌ها پاک شدند.");
+    setMessage("همه گزارش‌ها، علاقه‌مندی‌ها و یادداشت‌ها پاک شدند.");
   }
 
   function handleResetProfile() {
@@ -28,6 +30,7 @@ export function DemoDataPanel() {
   function handleResetAll() {
     clearReports();
     clearFavoriteReportIds();
+    clearReportNotes();
     saveProfile(defaultProfile);
     notifyLocalDataChanged();
     setMessage("همه داده‌های دمو پاک شدند.");

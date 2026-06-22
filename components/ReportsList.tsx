@@ -5,9 +5,15 @@ import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import {
+  clearFavoriteReportIds,
   loadFavoriteReportIds,
   toggleFavoriteReportId,
 } from "@/lib/storage/favorite-reports-storage";
+import {
+  deleteReportNote,
+  loadReportNotes,
+  type ReportNotesMap,
+} from "@/lib/storage/report-notes-storage";
 import {
   clearReports,
   deleteReport,
@@ -26,12 +32,16 @@ function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
 }
 
-function reportMatchesSearch(report: AstrologyReport, searchTerm: string) {
+function reportMatchesSearch(
+  report: AstrologyReport,
+  reportNote: string,
+  searchTerm: string,
+) {
   if (!searchTerm) {
     return true;
   }
 
-  const searchableText = JSON.stringify(report).toLowerCase();
+  const searchableText = `${JSON.stringify(report)} ${reportNote}`.toLowerCase();
 
   return searchableText.includes(searchTerm);
 }
@@ -39,6 +49,7 @@ function reportMatchesSearch(report: AstrologyReport, searchTerm: string) {
 export function ReportsList() {
   const [reports, setReports] = useState<AstrologyReport[]>([]);
   const [favoriteReportIds, setFavoriteReportIds] = useState<string[]>([]);
+  const [reportNotes, setReportNotes] = useState<ReportNotesMap>({});
   const [isReady, setIsReady] = useState(false);
   const [message, setMessage] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -51,12 +62,17 @@ export function ReportsList() {
     favoriteReportIds.includes(report.id),
   ).length;
 
+  const notesCount = reports.filter((report) => reportNotes[report.id]).length;
+
   const visibleReports = useMemo(() => {
     const filteredReports = reports.filter((report) => {
       const matchesFavoriteFilter =
         filterMode === "all" || favoriteReportIds.includes(report.id);
 
-      return matchesFavoriteFilter && reportMatchesSearch(report, searchTerm);
+      return (
+        matchesFavoriteFilter &&
+        reportMatchesSearch(report, reportNotes[report.id] ?? "", searchTerm)
+      );
     });
 
     if (sortMode === "oldest") {
@@ -64,11 +80,12 @@ export function ReportsList() {
     }
 
     return filteredReports;
-  }, [favoriteReportIds, filterMode, reports, searchTerm, sortMode]);
+  }, [favoriteReportIds, filterMode, reportNotes, reports, searchTerm, sortMode]);
 
   function refreshReports() {
     setReports(loadReports());
     setFavoriteReportIds(loadFavoriteReportIds());
+    setReportNotes(loadReportNotes());
     setIsReady(true);
   }
 
@@ -89,6 +106,7 @@ export function ReportsList() {
 
   function handleDeleteReport(reportId: string) {
     deleteReport(reportId);
+    deleteReportNote(reportId);
 
     if (favoriteReportIds.includes(reportId)) {
       toggleFavoriteReportId(reportId);
@@ -101,11 +119,12 @@ export function ReportsList() {
 
   function handleClearReports() {
     clearReports();
+    clearFavoriteReportIds();
     notifyLocalDataChanged();
     refreshReports();
     setSearchInput("");
     setFilterMode("all");
-    setMessage("همه گزارش‌ها پاک شدند.");
+    setMessage("همه گزارش‌ها و علاقه‌مندی‌ها پاک شدند.");
   }
 
   if (!isReady) {
@@ -140,16 +159,16 @@ export function ReportsList() {
         <p>
           این گزارش‌ها فعلاً فقط در مرورگر همین دستگاه ذخیره شده‌اند. می‌توانی
           جستجو کنی، ترتیب نمایش را عوض کنی، گزارش‌های مهم را ستاره‌دار کنی و
-          وارد صفحه جزئیات هر گزارش شوی.
+          برای هر گزارش یادداشت شخصی بنویسی.
         </p>
 
         <div className="reports-toolbar">
           <label className="field">
-            <span>جستجو در گزارش‌ها</span>
+            <span>جستجو در گزارش‌ها و یادداشت‌ها</span>
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="نام، شهر، کشور، نشانه یا متن گزارش..."
+              placeholder="نام، شهر، کشور، نشانه، متن گزارش یا یادداشت..."
             />
           </label>
 
@@ -188,7 +207,8 @@ export function ReportsList() {
         <div className="reports-summary-row">
           <span>
             نمایش {visibleReports.length.toLocaleString("fa-IR")} از{" "}
-            {reports.length.toLocaleString("fa-IR")} گزارش
+            {reports.length.toLocaleString("fa-IR")} گزارش ·{" "}
+            {notesCount.toLocaleString("fa-IR")} یادداشت
           </span>
 
           {searchInput ? (
@@ -245,12 +265,19 @@ export function ReportsList() {
 
       {visibleReports.map((report) => {
         const isFavorite = favoriteReportIds.includes(report.id);
+        const hasNote = Boolean(reportNotes[report.id]);
 
         return (
           <article className="report-list-item" key={report.id}>
             <ReportCard report={report} />
 
             <div className="card report-actions-card">
+              {hasNote ? (
+                <p className="report-note-preview">
+                  یادداشت: {reportNotes[report.id]}
+                </p>
+              ) : null}
+
               <div className="actions">
                 <Link className="button" href={`/reports/${report.id}`}>
                   دیدن جزئیات گزارش

@@ -637,3 +637,19 @@ select {
   background: #5b2bbf;
   color: #ffffff;
 }
+
+.report-note-card textarea {
+  resize: vertical;
+  min-height: 150px;
+}
+
+.report-note-preview {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #faf7ff;
+  color: #5f5277;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  font-weight: 700;
+  line-height: 1.8;
+}
