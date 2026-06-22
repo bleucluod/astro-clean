@@ -195,3 +195,33 @@ Ctrl + C
 ## Release decision
 
 If all tests pass, the MVP is safe to treat as a stable frontend release.
+
+## v0.1.2 local reports QA addendum
+
+Additional manual checks:
+
+- create a chart from `/chart`
+- confirm redirect to `/reports/[reportId]`
+- save a personal note on report detail page
+- export a single report JSON file
+- confirm exported single report includes report, note, and isFavorite
+- go to `/reports`
+- search by text inside the note
+- mark a report as favorite
+- filter by favorites
+- sort newest / oldest
+- delete a report and confirm its note is removed
+- go to `/dashboard`
+- confirm report, favorite, and note counts
+- confirm recent report links work
+- confirm favorite report links work
+- go to `/admin`
+- confirm local data status includes reports, favorites, and notes
+- export full local backup JSON
+- confirm backup includes favoriteReportIds and reportNotes
+- reset all demo data
+- confirm reports, favorites, and notes are cleared
+
+Expected result:
+
+All checks pass without backend or database.

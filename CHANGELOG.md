@@ -115,3 +115,23 @@ Frontend MVP polish release.
 
 - Single saved report JSON export from report detail pages
 - Single report export includes report data, note, and favorite state
+
+## v0.1.2-local-reports
+
+### Added
+
+- Local report detail pages
+- Search and sorting for saved reports
+- Favorite reports
+- Personal notes for reports
+- Single report JSON export
+- Upgraded Dashboard with local report stats
+- Chart creation redirect to saved report detail page
+- Full local backup support for favorites and notes
+
+### Not added
+
+- Public SEO report pages
+- Public account pages
+- Real astrology calculations
+- Backend or database
