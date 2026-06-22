@@ -325,3 +325,24 @@ select {
   background: #f3f0f8;
   color: #6b5d80;
 }
+
+.site-footer {
+  width: min(1120px, calc(100% - 32px));
+  margin: 24px auto 0;
+  padding: 0 0 40px;
+  color: #6b5d80;
+}
+
+.site-footer div {
+  border-top: 1px solid rgba(77, 52, 122, 0.12);
+  padding-top: 24px;
+}
+
+.site-footer strong {
+  color: #5b2bbf;
+}
+
+.site-footer p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
