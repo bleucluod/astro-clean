@@ -2,22 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { DashboardStats } from "@/components/DashboardStats";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import { loadReports } from "@/lib/storage/reports-storage";
 import type { AstrologyReport } from "@/types/astro";
 
 export function DashboardSummary() {
-  const [latestReport, setLatestReport] = useState<AstrologyReport | null>(null);
+  const [reports, setReports] = useState<AstrologyReport[]>([]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const reports = loadReports();
-      setLatestReport(reports[0] ?? null);
+      setReports(loadReports());
     }, 0);
 
     return () => window.clearTimeout(timer);
   }, []);
+
+  const latestReport = reports[0] ?? null;
 
   if (!latestReport) {
     return (
@@ -41,7 +43,7 @@ export function DashboardSummary() {
         <h1>آخرین گزارش تو</h1>
 
         <p>
-          این نسخه فقط آخرین گزارش ذخیره‌شده در مرورگر را نشان می‌دهد. در آینده
+          این نسخه فقط گزارش‌های ذخیره‌شده در مرورگر را می‌خواند. در آینده
           اینجا Mood Tracking، گزارش‌های روزانه، Saved Charts و پیشنهادهای شخصی
           اضافه می‌شوند.
         </p>
@@ -50,6 +52,8 @@ export function DashboardSummary() {
           دیدن همه گزارش‌ها
         </Link>
       </div>
+
+      <DashboardStats reports={reports} />
 
       <ReportCard report={latestReport} />
     </section>

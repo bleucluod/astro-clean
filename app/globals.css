@@ -490,3 +490,7 @@ select {
   background: #fee2e2;
   color: #991b1b;
 }
+
+.stat-card span {
+  font-size: 28px;
+}
