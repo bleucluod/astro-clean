@@ -377,3 +377,9 @@ select {
   color: #4c1d95;
   font-weight: 700;
 }
+
+.nav-link.active {
+  background: #5b2bbf;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(91, 43, 191, 0.18);
+}

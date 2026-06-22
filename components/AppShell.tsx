@@ -1,16 +1,6 @@
 ﻿import Link from "next/link";
 import type { ReactNode } from "react";
-
-const navItems = [
-  { href: "/", label: "خانه" },
-  { href: "/chart", label: "ساخت چارت" },
-  { href: "/dashboard", label: "داشبورد" },
-  { href: "/reports", label: "گزارش‌ها" },
-  { href: "/profile", label: "پروفایل" },
-  { href: "/roadmap", label: "نقشه راه" },
-  { href: "/wiki", label: "آسترو ویکی" },
-  { href: "/admin", label: "ادمین" },
-];
+import { NavLinks } from "@/components/NavLinks";
 
 type AppShellProps = {
   children: ReactNode;
@@ -23,13 +13,7 @@ export function AppShell({ children }: AppShellProps) {
         <nav>
           <Link href="/">Astro Clean</Link>
 
-          <div>
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                {item.label}
-              </Link>
-            ))}
-          </div>
+          <NavLinks />
         </nav>
       </header>
 
