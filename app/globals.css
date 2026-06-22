@@ -424,3 +424,10 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+.loading-state {
+  min-height: 360px;
+  display: grid;
+  align-content: center;
+  gap: 12px;
+}
