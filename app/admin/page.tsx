@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import { FeatureFlagList } from "@/components/FeatureFlagList";
 
 export const metadata: Metadata = {
   title: "ادمین MVP | Astro Clean",
@@ -12,18 +13,16 @@ export default function AdminPage() {
       <div className="card">
         <span className="badge">ادمین MVP</span>
 
-        <h1>پنل ساده برای آینده محصول</h1>
+        <h1>Feature Flags آینده محصول</h1>
 
         <p>
-          این صفحه فعلاً فقط یک placeholder برای feature flagها و تصمیم‌های
-          محصولی آینده است. هنوز ادمین واقعی، دیتابیس یا سیستم دسترسی نداریم.
-        </p>
-
-        <p>
-          بعداً این بخش می‌تواند برای کنترل قابلیت‌ها، Rule Engine، تست A/B،
-          گزارش‌ها، لاگ‌ها و تنظیمات محتوایی استفاده شود.
+          این پنل فعلاً فقط نمایشی است. هنوز backend، auth، دیتابیس یا ادمین
+          واقعی نداریم. هدف این است که از همین MVP ذهنیت کنترل قابلیت‌ها را
+          تمیز نگه داریم.
         </p>
       </div>
+
+      <FeatureFlagList />
     </section>
   );
 }
