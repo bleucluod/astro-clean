@@ -101,3 +101,10 @@ Frontend MVP polish release.
 - Recent reports quick links
 - Favorite reports quick links
 - Latest report detail link from Dashboard
+
+## Unreleased
+
+### Improved
+
+- Chart creation now redirects directly to the saved report detail page
+- Chart creation dispatches local data update events

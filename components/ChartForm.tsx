@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 import { ReportCard } from "@/components/ReportCard";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { createMockReport } from "@/lib/astrology/mock-engine";
@@ -16,7 +17,12 @@ const initialForm: BirthInput = {
   birthCountry: "",
 };
 
+function notifyLocalDataChanged() {
+  window.dispatchEvent(new Event("astro-clean-data-changed"));
+}
+
 export function ChartForm() {
+  const router = useRouter();
   const [form, setForm] = useState<BirthInput>(initialForm);
   const [report, setReport] = useState<AstrologyReport | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
@@ -28,13 +34,18 @@ export function ChartForm() {
     }));
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextReport = createMockReport(form);
+
     saveReport(nextReport);
+    notifyLocalDataChanged();
+
     setReport(nextReport);
-    setSaveMessage("گزارش ساخته و در مرورگر ذخیره شد.");
+    setSaveMessage("گزارش ساخته و ذخیره شد. در حال انتقال به صفحه جزئیات...");
+
+    router.push(`/reports/${nextReport.id}`);
   }
 
   return (
@@ -42,12 +53,13 @@ export function ChartForm() {
       <form className="card form" onSubmit={handleSubmit}>
         <div>
           <span className="badge">فرم MVP</span>
+
           <h1>ساخت چارت تولد mock</h1>
 
           <p>
-            اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. این
-            نسخه هنوز محاسبه واقعی نجومی انجام نمی‌دهد و برای تجربه MVP طراحی
-            شده است.
+            اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. بعد از
+            ساخت گزارش، مستقیم وارد صفحه جزئیات همان گزارش می‌شوی و می‌توانی
+            یادداشت شخصی هم اضافه کنی.
           </p>
 
           <SafetyDisclaimer compact />
@@ -108,14 +120,12 @@ export function ChartForm() {
 
         <div className="actions">
           <button className="button" type="submit">
-            ساخت و ذخیره گزارش
+            ساخت گزارش و رفتن به جزئیات
           </button>
 
-          {report ? (
-            <Link className="button secondary" href="/reports">
-              دیدن گزارش‌های ذخیره‌شده
-            </Link>
-          ) : null}
+          <Link className="button secondary" href="/reports">
+            دیدن گزارش‌های ذخیره‌شده
+          </Link>
         </div>
 
         {saveMessage ? <p className="success-message">{saveMessage}</p> : null}
@@ -127,27 +137,28 @@ export function ChartForm() {
         <div className="card">
           <span className="badge">پیش‌نمایش خروجی</span>
 
-          <h2>گزارش اینجا ظاهر می‌شود</h2>
+          <h2>گزارش اینجا ساخته می‌شود</h2>
 
           <p>
-            بعد از ثبت فرم، Astro Clean یک چارت mock شامل خورشید، ماه و رایزینگ
-            می‌سازد و چند جمله تفسیری فارسی نشان می‌دهد.
+            بعد از ثبت فرم، Astro Clean یک چارت mock شامل نشانه‌های اصلی می‌سازد،
+            گزارش را در مرورگر ذخیره می‌کند و تو را به صفحه جزئیات همان گزارش
+            می‌برد.
           </p>
 
           <div className="grid grid-3">
             <div className="mini-card">
-              <strong>خورشید</strong>
-              <span>؟</span>
+              <strong>ساخت</strong>
+              <span>mock</span>
             </div>
 
             <div className="mini-card">
-              <strong>ماه</strong>
-              <span>؟</span>
+              <strong>ذخیره</strong>
+              <span>local</span>
             </div>
 
             <div className="mini-card">
-              <strong>رایزینگ</strong>
-              <span>؟</span>
+              <strong>جزئیات</strong>
+              <span>فعال</span>
             </div>
           </div>
         </div>

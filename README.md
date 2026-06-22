@@ -232,3 +232,11 @@ The Dashboard now shows:
 - recent report links
 - favorite report links
 - quick links to Chart, Reports, and Admin
+
+## Chart creation flow
+
+After creating a chart, the user is redirected to the saved report detail page:
+
+/reports/[reportId]
+
+This keeps the flow focused on the generated report and its personal notes.
