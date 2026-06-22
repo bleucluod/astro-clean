@@ -888,3 +888,96 @@ select {
     text-align: center;
   }
 }
+
+/* Visual polish: chart and report detail */
+
+.chart-page > .form {
+  background:
+    radial-gradient(circle at top left, rgba(91, 43, 191, 0.08), transparent 34%),
+    #ffffff;
+}
+
+.chart-page .form h1 {
+  max-width: 680px;
+}
+
+.form-grid {
+  padding: 16px;
+  border-radius: 24px;
+  background: #fbf8ff;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+}
+
+.field input,
+.field select,
+.field textarea {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: rgba(91, 43, 191, 0.45);
+  box-shadow: 0 0 0 4px rgba(91, 43, 191, 0.08);
+  background: #ffffff;
+  outline: none;
+}
+
+.chart-page .mini-card {
+  min-height: 110px;
+}
+
+.report-note-card {
+  background:
+    linear-gradient(180deg, #ffffff, #fbf8ff);
+  border-color: rgba(91, 43, 191, 0.12);
+}
+
+.report-note-card textarea {
+  background: #fffdfd;
+  line-height: 1.9;
+}
+
+.report-note-card .actions {
+  margin-top: 14px;
+}
+
+.report-note-card + .card {
+  background: #fffdf7;
+  border-color: rgba(189, 139, 54, 0.16);
+}
+
+.success-message {
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #f0fff7;
+  border: 1px solid rgba(34, 148, 92, 0.16);
+  color: #1f7a4c;
+  font-weight: 900;
+}
+
+.safety-disclaimer {
+  border-color: rgba(189, 139, 54, 0.18);
+  background: #fffaf0;
+}
+
+@media (max-width: 760px) {
+  .form-grid {
+    padding: 12px;
+  }
+
+  .chart-page .actions,
+  .report-note-card .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chart-page .button,
+  .report-note-card .button {
+    width: 100%;
+    text-align: center;
+  }
+}

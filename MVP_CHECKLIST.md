@@ -147,3 +147,10 @@
 - [x] Filter tabs visual refinement
 - [x] Dashboard quick links visual refinement
 - [x] Mobile report action layout polish
+
+## Recent chart and report detail visual polish
+
+- [x] Chart form visual refinement
+- [x] Report detail note card refinement
+- [x] Single report export card refinement
+- [x] Mobile action layout polish for chart and report detail

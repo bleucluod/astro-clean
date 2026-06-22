@@ -153,3 +153,12 @@ Frontend MVP polish release.
 - Reports toolbar and filter tab styling
 - Dashboard section and quick link styling
 - Mobile layout polish for report actions
+
+## Unreleased
+
+### Improved
+
+- Chart form visual hierarchy
+- Report detail note card styling
+- Single report export card styling
+- Mobile layout polish for chart and report detail actions
