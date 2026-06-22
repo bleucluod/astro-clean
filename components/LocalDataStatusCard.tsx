@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { loadReports } from "@/lib/storage/reports-storage";
 import { loadProfile } from "@/lib/storage/profile-storage";
+import { loadReports } from "@/lib/storage/reports-storage";
 
 type LocalDataStatus = {
   reportCount: number;
@@ -10,58 +10,66 @@ type LocalDataStatus = {
   privacyMode: string;
 };
 
+const initialStatus: LocalDataStatus = {
+  reportCount: 0,
+  hasProfileName: false,
+  privacyMode: "private",
+};
+
+function readLocalDataStatus(): LocalDataStatus {
+  const reports = loadReports();
+  const profile = loadProfile();
+
+  return {
+    reportCount: reports.length,
+    hasProfileName: profile.displayName.trim().length > 0,
+    privacyMode: profile.privacyMode,
+  };
+}
+
 export function LocalDataStatusCard() {
-  const [status, setStatus] = useState<LocalDataStatus>({
-    reportCount: 0,
-    hasProfileName: false,
-    privacyMode: "private",
-  });
+  const [status, setStatus] = useState<LocalDataStatus>(initialStatus);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const reports = loadReports();
-      const profile = loadProfile();
+    function refreshStatus() {
+      setStatus(readLocalDataStatus());
+    }
 
-      setStatus({
-        reportCount: reports.length,
-        hasProfileName: profile.displayName.trim().length > 0,
-        privacyMode: profile.privacyMode,
-      });
-    }, 0);
+    const timer = window.setTimeout(refreshStatus, 0);
 
-    return () => window.clearTimeout(timer);
+    window.addEventListener("astro-clean-data-changed", refreshStatus);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("astro-clean-data-changed", refreshStatus);
+    };
   }, []);
 
   return (
     <section className="card">
       <span className="badge">Local Data</span>
 
-      <h2>وضعیت داده‌های مرورگر</h2>
+      <h2>وضعیت داده‌های محلی</h2>
 
       <p>
-        این کارت فقط داده‌های ذخیره‌شده روی همین مرورگر را نشان می‌دهد. در MVP
-        فعلی هنوز دیتابیس یا حساب کاربری نداریم.
+        این MVP هنوز backend ندارد. این کارت فقط وضعیت داده‌های ذخیره‌شده در
+        مرورگر فعلی را نشان می‌دهد.
       </p>
 
       <div className="status-grid">
         <div className="mini-card">
-          <strong>تعداد گزارش‌ها</strong>
+          <strong>گزارش‌ها</strong>
           <span>{status.reportCount.toLocaleString("fa-IR")}</span>
         </div>
 
         <div className="mini-card">
-          <strong>نام پروفایل</strong>
-          <span>{status.hasProfileName ? "ثبت شده" : "خالی"}</span>
+          <strong>پروفایل</strong>
+          <span>{status.hasProfileName ? "تکمیل شده" : "پیش‌فرض"}</span>
         </div>
 
         <div className="mini-card">
           <strong>حریم خصوصی</strong>
-          <span>{status.privacyMode === "private" ? "خصوصی" : "عمومی"}</span>
-        </div>
-
-        <div className="mini-card">
-          <strong>Backend</strong>
-          <span>نداریم</span>
+          <span>{status.privacyMode}</span>
         </div>
       </div>
     </section>

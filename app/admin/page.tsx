@@ -1,36 +1,35 @@
 ﻿import type { Metadata } from "next";
 import { DemoDataPanel } from "@/components/DemoDataPanel";
 import { FeatureFlagList } from "@/components/FeatureFlagList";
+import { LocalDataBackupPanel } from "@/components/LocalDataBackupPanel";
 import { LocalDataStatusCard } from "@/components/LocalDataStatusCard";
 import { MvpStatusCard } from "@/components/MvpStatusCard";
 
 export const metadata: Metadata = {
   title: "ادمین MVP | Astro Clean",
   description:
-    "پنل ساده ادمین Astro Clean برای نمایش feature flagها و آماده‌سازی مسیر کنترل محصول در آینده.",
+    "نمای داخلی وضعیت MVP، فیچر فلگ‌ها و ابزارهای دمو در Astro Clean.",
 };
 
 export default function AdminPage() {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">ادمین MVP</span>
+        <span className="badge">MVP Admin</span>
 
-        <h1>Feature Flags آینده محصول</h1>
+        <h1>پنل داخلی سبک برای کنترل MVP</h1>
 
         <p>
-          این پنل فعلاً فقط نمایشی است. هنوز backend، auth، دیتابیس یا ادمین
-          واقعی نداریم. هدف این است که از همین MVP ذهنیت کنترل قابلیت‌ها را
-          تمیز نگه داریم.
+          این صفحه ادمین واقعی نیست. فعلاً فقط برای دیدن وضعیت محصول، کنترل
+          فیچرهای آینده، ریست داده‌های دمو و مدیریت داده‌های localStorage ساخته
+          شده است.
         </p>
       </div>
 
       <MvpStatusCard />
-
       <LocalDataStatusCard />
-
+      <LocalDataBackupPanel />
       <DemoDataPanel />
-
       <FeatureFlagList />
     </section>
   );

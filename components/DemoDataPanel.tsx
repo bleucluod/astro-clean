@@ -1,53 +1,56 @@
 ﻿"use client";
 
 import { useState } from "react";
+import { defaultProfile, saveProfile } from "@/lib/storage/profile-storage";
 import { clearReports } from "@/lib/storage/reports-storage";
-import {
-  defaultProfile,
-  saveProfile,
-} from "@/lib/storage/profile-storage";
+
+function notifyLocalDataChanged() {
+  window.dispatchEvent(new Event("astro-clean-data-changed"));
+}
 
 export function DemoDataPanel() {
   const [message, setMessage] = useState("");
 
   function handleClearReports() {
     clearReports();
-    setMessage("گزارش‌های ذخیره‌شده از مرورگر پاک شدند.");
+    notifyLocalDataChanged();
+    setMessage("همه گزارش‌های ذخیره‌شده پاک شدند.");
   }
 
   function handleResetProfile() {
     saveProfile(defaultProfile);
-    setMessage("پروفایل دمو به حالت اولیه برگشت.");
+    notifyLocalDataChanged();
+    setMessage("پروفایل به حالت پیش‌فرض برگشت.");
   }
 
-  function handleResetAllDemoData() {
+  function handleResetAll() {
     clearReports();
     saveProfile(defaultProfile);
-    setMessage("همه داده‌های دمو پاک یا ریست شدند.");
+    notifyLocalDataChanged();
+    setMessage("همه داده‌های دمو پاک شدند.");
   }
 
   return (
     <section className="card">
-      <span className="badge">Demo Data</span>
+      <span className="badge">Demo Controls</span>
 
-      <h2>مدیریت داده‌های تستی مرورگر</h2>
+      <h2>کنترل داده‌های دمو</h2>
 
       <p>
-        چون MVP فعلاً backend و دیتابیس ندارد، گزارش‌ها و پروفایل در مرورگر همین
-        دستگاه ذخیره می‌شوند. این بخش کمک می‌کند هنگام تست محصول، داده‌های دمو
-        را سریع پاک یا ریست کنی.
+        این بخش فقط برای تست MVP است. چون فعلاً دیتابیس نداریم، داده‌ها در
+        مرورگر ذخیره می‌شوند و می‌توانی آن‌ها را سریع پاک کنی.
       </p>
 
       <div className="actions">
-        <button className="button secondary" onClick={handleClearReports}>
+        <button className="button secondary" type="button" onClick={handleClearReports}>
           پاک کردن گزارش‌ها
         </button>
 
-        <button className="button secondary" onClick={handleResetProfile}>
+        <button className="button secondary" type="button" onClick={handleResetProfile}>
           ریست پروفایل
         </button>
 
-        <button className="button" onClick={handleResetAllDemoData}>
+        <button className="button" type="button" onClick={handleResetAll}>
           ریست همه داده‌های دمو
         </button>
       </div>
