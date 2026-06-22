@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
+import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 
 export const metadata: Metadata = {
   title: "Astro Clean | چارت تولد و تحلیل نمادین فارسی",
@@ -47,10 +48,7 @@ export default function Home() {
             اما از همین ابتدا حس یک محصول واقعی و قابل توسعه را دارد.
           </p>
 
-          <p>
-            تحلیل‌ها در این محصول به عنوان تفسیر نمادین، سرگرمی و تأمل شخصی
-            ارائه می‌شوند؛ نه پیش‌بینی قطعی یا توصیه پزشکی، مالی و حقوقی.
-          </p>
+          <SafetyDisclaimer compact />
 
           <div className="actions">
             <Link className="button" href="/chart">

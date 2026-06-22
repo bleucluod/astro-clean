@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ReportCard } from "@/components/ReportCard";
+import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { createMockReport } from "@/lib/astrology/mock-engine";
 import { saveReport } from "@/lib/storage/reports-storage";
 import type { AstrologyReport, BirthInput } from "@/types/astro";
@@ -49,10 +50,7 @@ export function ChartForm() {
             شده است.
           </p>
 
-          <p className="notice">
-            خروجی این بخش قطعی نیست و فقط برای سرگرمی، خودشناسی و تست تجربه
-            محصول استفاده می‌شود.
-          </p>
+          <SafetyDisclaimer compact />
         </div>
 
         <div className="form-grid">

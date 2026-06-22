@@ -494,3 +494,11 @@ select {
 .stat-card span {
   font-size: 28px;
 }
+
+.safety-disclaimer {
+  display: block;
+}
+
+.safety-disclaimer.compact {
+  margin: 18px 0 0;
+}
