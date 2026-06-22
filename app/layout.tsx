@@ -1,11 +1,20 @@
 ﻿import type { Metadata } from "next";
 import { AppShell } from "@/components/AppShell";
+import { siteConfig } from "@/lib/config/seo";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Astro Clean | تحلیل نمادین چارت تولد",
-  description:
-    "Astro Clean یک تجربه فارسی برای ساخت چارت تولد، گزارش‌های شخصی و مسیر آینده آسترولوژی نمادین است.",
+  metadataBase: new URL(siteConfig.url),
+  title: siteConfig.title,
+  description: siteConfig.description,
+  openGraph: {
+    title: siteConfig.title,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    locale: siteConfig.locale,
+    type: "website",
+  },
 };
 
 export default function RootLayout({
