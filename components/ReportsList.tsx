@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import {
   clearReports,
@@ -26,16 +27,15 @@ export function ReportsList() {
 
   if (reports.length === 0) {
     return (
-      <div className="card">
-        <span className="badge">گزارش‌های ذخیره‌شده</span>
-
-        <h1>هنوز گزارشی ذخیره نشده</h1>
-
-        <p>
-          اول از صفحه ساخت چارت یک گزارش mock بساز. بعد اینجا لیست گزارش‌های
-          ذخیره‌شده در مرورگر نمایش داده می‌شود.
-        </p>
-      </div>
+      <EmptyState
+        badge="گزارش‌های ذخیره‌شده"
+        title="هنوز گزارشی ذخیره نشده"
+        description="اول یک چارت mock بساز تا گزارش فارسی تو اینجا ذخیره و نمایش داده شود. فعلاً همه چیز فقط در مرورگر همین دستگاه نگهداری می‌شود."
+        actionHref="/chart"
+        actionLabel="ساخت اولین گزارش"
+        secondaryHref="/roadmap"
+        secondaryLabel="دیدن مسیر آینده"
+      />
     );
   }
 

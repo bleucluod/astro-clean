@@ -383,3 +383,11 @@ select {
   color: #ffffff;
   box-shadow: 0 10px 24px rgba(91, 43, 191, 0.18);
 }
+
+.empty-state {
+  min-height: 420px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 10px;
+}

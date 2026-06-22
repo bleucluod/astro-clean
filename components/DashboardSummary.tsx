@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import { loadReports } from "@/lib/storage/reports-storage";
 import type { AstrologyReport } from "@/types/astro";
@@ -20,22 +21,15 @@ export function DashboardSummary() {
 
   if (!latestReport) {
     return (
-      <section className="grid">
-        <div className="card">
-          <span className="badge">داشبورد شخصی</span>
-
-          <h1>هنوز گزارشی برای نمایش نداریم</h1>
-
-          <p>
-            داشبورد بعداً مرکز تجربه شخصی تو می‌شود. فعلاً برای دیدن خروجی،
-            ابتدا یک چارت mock بساز.
-          </p>
-
-          <Link className="button" href="/chart">
-            ساخت اولین چارت
-          </Link>
-        </div>
-      </section>
+      <EmptyState
+        badge="داشبورد شخصی"
+        title="داشبورد تو آماده شروع است"
+        description="هنوز گزارشی برای نمایش نداریم. اولین چارت mock را بساز تا داشبورد، آخرین گزارش تو را نشان بدهد."
+        actionHref="/chart"
+        actionLabel="ساخت اولین چارت"
+        secondaryHref="/profile"
+        secondaryLabel="تکمیل پروفایل"
+      />
     );
   }
 
