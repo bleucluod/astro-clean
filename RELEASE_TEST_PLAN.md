@@ -225,3 +225,27 @@ Additional manual checks:
 Expected result:
 
 All checks pass without backend or database.
+
+## Final visual QA addendum
+
+Before deployment preparation, manually check:
+
+- Home on desktop
+- Home on mobile width
+- Chart form on mobile width
+- Reports archive with multiple reports
+- Reports search and favorites filter
+- Report detail page with a personal note
+- Dashboard with reports, favorites, and notes
+- Privacy page
+- Admin page and backup controls
+
+Expected result:
+
+- no horizontal scrolling
+- buttons are easy to tap on mobile
+- cards have enough spacing
+- Persian text is readable
+- main CTAs are obvious
+- localStorage limitation is clear
+- no page claims public SEO pages are active yet

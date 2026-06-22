@@ -161,3 +161,10 @@
 - [x] Admin local data status refinement
 - [x] Admin backup panel refinement
 - [x] Admin demo controls mobile polish
+
+## Final visual polish
+
+- [x] Mobile spacing polish
+- [x] Mobile button layout polish
+- [x] Card spacing polish
+- [x] Final visual QA checklist

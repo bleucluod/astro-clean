@@ -171,3 +171,12 @@ Frontend MVP polish release.
 - Admin local data card styling
 - Admin backup panel styling
 - Demo control spacing and mobile layout
+
+## Unreleased
+
+### Improved
+
+- Final mobile spacing
+- Mobile button layout
+- Card spacing and hover polish
+- Final visual QA checklist

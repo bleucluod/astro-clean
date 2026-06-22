@@ -1082,3 +1082,218 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+/* Final visual polish: mobile, spacing, and QA readiness */
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.main-content {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.card {
+  scroll-margin-top: 110px;
+}
+
+.actions {
+  align-items: center;
+}
+
+.button {
+  white-space: nowrap;
+}
+
+.hero {
+  align-items: stretch;
+}
+
+.hero > * {
+  min-width: 0;
+}
+
+.hero-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.section-label,
+.badge {
+  letter-spacing: -0.01em;
+}
+
+.empty-state,
+.card {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.card:hover {
+  border-color: rgba(91, 43, 191, 0.16);
+}
+
+.form,
+.report-note-card,
+.dashboard-section {
+  scroll-margin-top: 120px;
+}
+
+.field span {
+  line-height: 1.6;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+}
+
+.report-list-item + .report-list-item {
+  margin-top: 6px;
+}
+
+.success-message {
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    width: min(100% - 24px, 1120px);
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 8vw, 3.1rem);
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actions {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+  }
+
+  .main-content {
+    width: min(100% - 20px, 1120px);
+  }
+
+  .card {
+    border-radius: 24px;
+    padding: 22px;
+  }
+
+  .hero {
+    gap: 18px;
+  }
+
+  .hero h1 {
+    line-height: 1.22;
+  }
+
+  .hero p,
+  .card p {
+    line-height: 1.9;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .trust-strip span {
+    width: 100%;
+    text-align: center;
+  }
+
+  .demo-step {
+    padding: 14px;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-summary-row {
+    font-size: 0.94rem;
+  }
+
+  .filter-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .filter-tab {
+    width: 100%;
+  }
+
+  .link-list a {
+    padding: 13px;
+  }
+
+  .section-heading-row {
+    align-items: flex-start;
+  }
+
+  .section-heading-row .text-button {
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 18px;
+  }
+
+  .badge,
+  .section-label {
+    font-size: 0.78rem;
+  }
+
+  .hero h1 {
+    font-size: 1.85rem;
+  }
+
+  .card h1 {
+    font-size: 1.7rem;
+  }
+
+  .card h2 {
+    font-size: 1.25rem;
+  }
+
+  .mini-card {
+    padding: 14px;
+  }
+}
