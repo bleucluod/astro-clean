@@ -33,6 +33,17 @@ export function saveReport(report: AstrologyReport): void {
   window.localStorage.setItem(reportsStorageKey, JSON.stringify(nextReports));
 }
 
+export function deleteReport(reportId: string): AstrologyReport[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const nextReports = loadReports().filter((report) => report.id !== reportId);
+  window.localStorage.setItem(reportsStorageKey, JSON.stringify(nextReports));
+
+  return nextReports;
+}
+
 export function clearReports(): void {
   if (typeof window === "undefined") {
     return;

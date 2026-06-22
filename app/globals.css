@@ -479,3 +479,14 @@ select {
   font-weight: 700;
   font-size: 14px;
 }
+
+.report-wrapper {
+  display: grid;
+  gap: 12px;
+}
+
+.button.danger {
+  justify-self: start;
+  background: #fee2e2;
+  color: #991b1b;
+}

@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import {
   clearReports,
+  deleteReport,
   loadReports,
 } from "@/lib/storage/reports-storage";
 import type { AstrologyReport } from "@/types/astro";
@@ -23,6 +24,11 @@ export function ReportsList() {
   function handleClearReports() {
     clearReports();
     setReports([]);
+  }
+
+  function handleDeleteReport(reportId: string) {
+    const nextReports = deleteReport(reportId);
+    setReports(nextReports);
   }
 
   if (reports.length === 0) {
@@ -52,12 +58,21 @@ export function ReportsList() {
         </p>
 
         <button className="button secondary" onClick={handleClearReports}>
-          پاک کردن گزارش‌های ذخیره‌شده
+          پاک کردن همه گزارش‌ها
         </button>
       </div>
 
       {reports.map((report) => (
-        <ReportCard key={report.id} report={report} />
+        <div className="report-wrapper" key={report.id}>
+          <ReportCard report={report} />
+
+          <button
+            className="button danger"
+            onClick={() => handleDeleteReport(report.id)}
+          >
+            حذف این گزارش
+          </button>
+        </div>
       ))}
     </section>
   );
