@@ -1,10 +1,27 @@
-﻿import type { AstrologyReport } from "@/types/astro";
+﻿"use client";
+
+import { useState } from "react";
+import { createShareText } from "@/lib/astrology/share-text";
+import type { AstrologyReport } from "@/types/astro";
 
 type ReportCardProps = {
   report: AstrologyReport;
 };
 
 export function ReportCard({ report }: ReportCardProps) {
+  const [copyMessage, setCopyMessage] = useState("");
+
+  async function handleCopyShareText() {
+    const shareText = createShareText(report);
+
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopyMessage("متن اشتراک‌گذاری کپی شد.");
+    } catch {
+      setCopyMessage("کپی خودکار ممکن نشد. متن را دستی کپی کن.");
+    }
+  }
+
   return (
     <article className="card report-card">
       <div className="report-header">
@@ -46,6 +63,14 @@ export function ReportCard({ report }: ReportCardProps) {
           <p key={item}>• {item}</p>
         ))}
       </div>
+
+      <div className="actions">
+        <button className="button secondary" onClick={handleCopyShareText}>
+          کپی متن اشتراک‌گذاری
+        </button>
+      </div>
+
+      {copyMessage ? <p className="success-message">{copyMessage}</p> : null}
 
       <p className="notice">{report.safetyNote}</p>
     </article>
