@@ -73,3 +73,10 @@
 - [ ] Programmatic SEO
 - [ ] Notifications
 - [ ] Social graph
+
+## Recent polish after v0.1.1
+
+- [x] Local backup export/import controls
+- [x] User-facing privacy and local data transparency page
+- [x] Privacy route added to navigation
+- [x] Privacy route added to sitemap

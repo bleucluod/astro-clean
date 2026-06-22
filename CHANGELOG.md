@@ -41,3 +41,11 @@ Frontend MVP polish release.
 - AI integration
 - Programmatic SEO
 - Real admin panel
+
+## Unreleased
+
+### Added
+
+- User-facing privacy and local data transparency page
+- Privacy route in navigation
+- Privacy route in sitemap

@@ -154,3 +154,27 @@ git tag --list
 Use this command to inspect recent history:
 
 git --no-pager log --oneline -10
+
+## Data and privacy
+
+Astro Clean MVP stores data locally in the browser.
+
+Current local data:
+
+- saved reports
+- local profile
+- privacy mode setting
+
+The project does not currently include:
+
+- backend
+- database
+- authentication
+- real user accounts
+- server-side persistence
+- payments
+- AI integration
+
+User-facing privacy and local data information is available at:
+
+/privacy

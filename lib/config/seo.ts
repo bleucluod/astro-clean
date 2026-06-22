@@ -16,4 +16,5 @@ export const seoRoutes = [
   "/admin",
   "/roadmap",
   "/wiki",
+  "/privacy",
 ];
