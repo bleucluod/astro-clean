@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import { DemoDataPanel } from "@/components/DemoDataPanel";
 import { FeatureFlagList } from "@/components/FeatureFlagList";
+import { LocalDataStatusCard } from "@/components/LocalDataStatusCard";
 import { MvpStatusCard } from "@/components/MvpStatusCard";
 
 export const metadata: Metadata = {
@@ -25,6 +26,8 @@ export default function AdminPage() {
       </div>
 
       <MvpStatusCard />
+
+      <LocalDataStatusCard />
 
       <DemoDataPanel />
 
