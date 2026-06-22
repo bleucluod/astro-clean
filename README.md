@@ -194,3 +194,17 @@ Saved reports have local detail routes:
 /reports/[reportId]
 
 These pages currently read from localStorage, so they only work in the browser where the report exists. They are not permanent public links yet because the MVP has no backend or database.
+
+## Reports archive
+
+The Reports page supports:
+
+- saved report list
+- local detail links
+- search across saved report data
+- newest / oldest sorting
+- result count
+- individual report deletion
+- clear all reports
+
+Reports are still localStorage-only in this MVP.

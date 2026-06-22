@@ -576,3 +576,41 @@ select {
   padding-top: 16px;
   padding-bottom: 16px;
 }
+
+.reports-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
+  gap: 14px;
+  margin: 18px 0 12px;
+}
+
+.reports-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  color: #7b6d92;
+  font-weight: 800;
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: #5b2bbf;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0;
+}
+
+.text-button:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  .reports-toolbar {
+    grid-template-columns: 1fr;
+  }
+}

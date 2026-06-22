@@ -92,3 +92,10 @@
 - [x] Single saved report detail page
 - [x] Detail links from Reports archive
 - [x] Missing-report empty state
+
+## Recent reports archive polish
+
+- [x] Search saved reports
+- [x] Sort saved reports by newest or oldest
+- [x] Report result count
+- [x] No-result state for search

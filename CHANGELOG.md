@@ -65,3 +65,12 @@ Frontend MVP polish release.
 - Single saved report detail page at `/reports/[reportId]`
 - Detail links from the Reports archive
 - Missing-report empty state for localStorage-only reports
+
+## Unreleased
+
+### Added
+
+- Search saved reports
+- Sort saved reports by newest or oldest
+- Result count in Reports archive
+- No-result state for report search
