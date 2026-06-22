@@ -135,3 +135,12 @@ Frontend MVP polish release.
 - Public account pages
 - Real astrology calculations
 - Backend or database
+
+## Unreleased
+
+### Improved
+
+- Home page messaging for first-time users
+- Demo flow clarity
+- Local data transparency on the landing page
+- Future public SEO direction documented in product copy

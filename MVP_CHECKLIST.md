@@ -133,3 +133,10 @@
 
 - [x] Single saved report JSON export
 - [x] Single report export includes note and favorite state
+
+## Recent visual polish
+
+- [x] Home page first-time user messaging
+- [x] Demo flow clarity
+- [x] Local data transparency on Home
+- [x] Future public SEO direction noted without implementation

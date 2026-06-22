@@ -10,91 +10,121 @@ export const metadata: Metadata = {
 
 const mvpFeatures = [
   {
-    title: "چارت تولد mock",
+    title: "گزارش شخصی ذخیره‌شده",
     description:
-      "برای شروع سریع، خورشید، ماه و رایزینگ را با یک موتور mock می‌سازیم تا تجربه محصول قابل لمس شود.",
+      "گزارش‌ها در مرورگر ذخیره می‌شوند و می‌توانی بعداً دوباره آن‌ها را ببینی، جستجو کنی یا یادداشت اضافه کنی.",
   },
   {
-    title: "گزارش فارسی نرم",
+    title: "آرشیو، علاقه‌مندی و یادداشت",
     description:
-      "متن‌ها قطعی و ترسناک نیستند؛ برای سرگرمی، خودشناسی و تأمل شخصی نوشته شده‌اند.",
+      "برای هر گزارش صفحه جزئیات، یادداشت شخصی، ستاره‌دار کردن و خروجی JSON تکی داریم.",
   },
   {
-    title: "ذخیره در مرورگر",
+    title: "شفافیت داده",
     description:
-      "گزارش‌ها و پروفایل فعلاً در localStorage ذخیره می‌شوند؛ بدون دیتابیس و backend.",
+      "این نسخه هنوز backend ندارد؛ داده‌ها فعلاً فقط روی مرورگر همین دستگاه ذخیره می‌شوند.",
   },
 ];
 
 const demoSteps = [
-  "اطلاعات تولد را وارد کن",
-  "گزارش mock فارسی بساز",
-  "گزارش را در Reports ببین",
-  "آخرین گزارش را در Dashboard دنبال کن",
+  {
+    title: "ساخت چارت mock",
+    description: "اطلاعات تولد را وارد کن و یک گزارش نمادین فارسی بساز.",
+  },
+  {
+    title: "رفتن به جزئیات گزارش",
+    description: "بعد از ساخت، مستقیم وارد صفحه اختصاصی همان گزارش می‌شوی.",
+  },
+  {
+    title: "یادداشت و علاقه‌مندی",
+    description: "گزارش‌های مهم را ستاره‌دار کن و برایشان یادداشت بنویس.",
+  },
+  {
+    title: "مدیریت داده محلی",
+    description: "از Admin می‌توانی backup بگیری یا داده‌های دمو را پاک کنی.",
+  },
+];
+
+const trustItems = [
+  "تفسیر نمادین، نه پیش‌بینی قطعی",
+  "بدون توصیه پزشکی، مالی یا حقوقی",
+  "ذخیره محلی در مرورگر",
+  "آماده برای فاز public profile در آینده",
 ];
 
 const futureAreas = [
   "چارت واقعی و Rule Engine",
-  "داشبورد شخصی و Mood Tracking",
-  "سازگاری رابطه و Couple Mode",
-  "Astro Wiki و SEO کنترل‌شده",
+  "Public profile با consent",
+  "SEO کنترل‌شده برای صفحات عمومی",
+  "AI Naturalization در فاز جداگانه",
 ];
 
 export default function Home() {
   return (
     <section className="grid home-page">
-      <div className="hero">
+      <div className="hero hero-polished">
         <div>
-          <span className="badge">نسخه MVP فارسی Astro Clean</span>
+          <span className="badge">نسخه local reports MVP</span>
 
-          <h1>چارت تولد و تحلیل نمادین، ساده و شخصی</h1>
+          <h1>چارت تولد، گزارش شخصی و یادداشت‌های نمادین در یک فضای ساده</h1>
 
           <p>
-            Astro Clean یک تجربه فارسی برای ساخت چارت تولد، دریافت گزارش‌های
-            شخصی و دنبال کردن مسیر خودشناسی نمادین است. این نسخه هنوز ساده است،
-            اما از همین ابتدا حس یک محصول واقعی و قابل توسعه را دارد.
+            Astro Clean یک تجربه فارسی برای ساخت گزارش نمادین چارت تولد است.
+            این نسخه روی گزارش‌های ذخیره‌شده، داشبورد شخصی، علاقه‌مندی‌ها،
+            یادداشت‌ها و شفافیت داده تمرکز دارد.
           </p>
 
           <SafetyDisclaimer compact />
 
           <div className="actions">
             <Link className="button" href="/chart">
-              ساخت اولین چارت
+              ساخت اولین گزارش
             </Link>
 
-            <Link className="button secondary" href="/roadmap">
-              دیدن نقشه راه
+            <Link className="button secondary" href="/reports">
+              دیدن گزارش‌ها
+            </Link>
+
+            <Link className="button secondary" href="/privacy">
+              حریم داده
             </Link>
           </div>
         </div>
 
-        <div className="card hero-card">
-          <span className="badge">نمونه خروجی MVP</span>
+        <div className="card hero-card polished-hero-card">
+          <span className="badge">دموی فعلی محصول</span>
 
-          <h2>گزارش شخصی تو</h2>
+          <h2>از فرم تولد تا صفحه گزارش</h2>
 
           <p>
-            خورشید، ماه و رایزینگ به شکل mock ساخته می‌شوند و بعد با چند قانون
-            ساده، یک متن فارسی نرم و قابل خواندن نمایش داده می‌شود.
+            گزارش ساخته می‌شود، ذخیره می‌شود، مستقیم وارد صفحه جزئیات می‌شوی و
+            می‌توانی برای آن یادداشت بنویسی یا خروجی JSON بگیری.
           </p>
 
           <div className="mini-card">
-            <strong>هدف فعلی</strong>
-            <span>محصول قابل دیدن، تمیز و دوست‌داشتنی</span>
+            <strong>وضعیت فعلی</strong>
+            <span>Frontend MVP آماده دمو</span>
           </div>
         </div>
+      </div>
+
+      <div className="trust-strip">
+        {trustItems.map((item) => (
+          <span key={item}>{item}</span>
+        ))}
       </div>
 
       <div className="card">
         <span className="section-label">مسیر دمو</span>
 
-        <h2>در کمتر از یک دقیقه محصول را تست کن</h2>
+        <h2>در کمتر از چند دقیقه مسیر اصلی محصول را تست کن</h2>
 
-        <div className="demo-flow">
+        <div className="demo-flow polished-demo-flow">
           {demoSteps.map((step, index) => (
-            <div className="demo-step" key={step}>
+            <div className="demo-step" key={step.title}>
               <span>{(index + 1).toLocaleString("fa-IR")}</span>
-              <p>{step}</p>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
             </div>
           ))}
         </div>
@@ -104,8 +134,12 @@ export default function Home() {
             شروع دمو
           </Link>
 
+          <Link className="button secondary" href="/dashboard">
+            دیدن داشبورد
+          </Link>
+
           <Link className="button secondary" href="/admin">
-            ریست داده‌های دمو
+            مدیریت داده‌های دمو
           </Link>
         </div>
       </div>
@@ -115,7 +149,7 @@ export default function Home() {
 
         <div className="grid grid-3">
           {mvpFeatures.map((feature) => (
-            <article className="card" key={feature.title}>
+            <article className="card feature-card-polished" key={feature.title}>
               <h2>{feature.title}</h2>
               <p>{feature.description}</p>
             </article>
@@ -123,16 +157,19 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="card">
-        <span className="section-label">چشم‌انداز آینده</span>
+      <div className="card home-next-card">
+        <div>
+          <span className="section-label">چشم‌انداز آینده</span>
 
-        <h2>کوچک شروع می‌کنیم، ولی مسیر را درست می‌چینیم</h2>
+          <h2>بعد از نسخه دمو، مسیر public و SEO را کنترل‌شده باز می‌کنیم</h2>
 
-        <p>
-          Astro Clean قرار نیست فقط یک فرم ساده بماند. بعد از پایدار شدن MVP،
-          می‌توانیم مرحله‌به‌مرحله سراغ چارت واقعی، داشبورد، پروفایل اجتماعی،
-          محتوای SEO، گیمیفیکیشن و AI Naturalization برویم.
-        </p>
+          <p>
+            مرحله بعدی می‌تواند شامل public account، صفحات قابل ایندکس با رضایت
+            کاربر، keyword generation کنترل‌شده و eventually موتور واقعی چارت
+            باشد. اما این‌ها باید بعد از privacy، consent و کیفیت محتوا طراحی
+            شوند.
+          </p>
+        </div>
 
         <div className="tag-list">
           {futureAreas.map((area) => (
