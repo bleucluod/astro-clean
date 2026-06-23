@@ -1,6 +1,5 @@
 ﻿import type { AstrologyReport, BirthInput, MockChart } from "@/types/astro";
-import { astrologySafetyNote } from "./safety";
-import { createInterpretations, createSummary } from "./rule-engine";
+import { createReportContent } from "./rule-engine";
 import { getZodiacByIndex } from "./zodiac";
 
 function sumText(text: string): number {
@@ -33,14 +32,13 @@ export function createMockChart(input: BirthInput): MockChart {
 
 export function createMockReport(input: BirthInput): AstrologyReport {
   const chart = createMockChart(input);
+  const reportContent = createReportContent(chart);
 
   return {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     input,
     chart,
-    summary: createSummary(chart),
-    interpretations: createInterpretations(chart),
-    safetyNote: astrologySafetyNote,
+    ...reportContent,
   };
 }
