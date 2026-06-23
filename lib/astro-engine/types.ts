@@ -45,9 +45,17 @@ export type EngineInsight = {
   };
 };
 
+export type EngineProfile = {
+  elements: Record<AstroElement, number>;
+  modalities: Record<AstroModality, number>;
+  dominantElement: AstroElement | null;
+  dominantModality: AstroModality | null;
+};
+
 export type EngineResult = {
   version: "engine-v0";
   generatedAt: string;
+  profile: EngineProfile;
   insights: EngineInsight[];
   safetyNote: string;
 };

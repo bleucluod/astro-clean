@@ -1358,3 +1358,12 @@ textarea {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+
+.engine-profile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
