@@ -8,6 +8,22 @@ type ReportCardProps = {
   report: AstrologyReport;
 };
 
+function parseInterpretation(item: string) {
+  const separatorIndex = item.indexOf(": ");
+
+  if (separatorIndex === -1) {
+    return {
+      title: "",
+      body: item,
+    };
+  }
+
+  return {
+    title: item.slice(0, separatorIndex),
+    body: item.slice(separatorIndex + 2),
+  };
+}
+
 export function ReportCard({ report }: ReportCardProps) {
   const [copyMessage, setCopyMessage] = useState("");
 
@@ -66,10 +82,21 @@ export function ReportCard({ report }: ReportCardProps) {
 
       <p>{report.summary}</p>
 
-      <div className="report-list">
-        {report.interpretations.map((item) => (
-          <p key={item}>• {item}</p>
-        ))}
+      <div className="report-list insight-list">
+        {report.interpretations.map((item) => {
+          const insight = parseInterpretation(item);
+
+          return (
+            <article className="mini-card insight-card" key={item}>
+              <div className="insight-card-header">
+                <span className="badge">Engine v0</span>
+                {insight.title ? <strong>{insight.title}</strong> : null}
+              </div>
+
+              <p>{insight.body}</p>
+            </article>
+          );
+        })}
       </div>
 
       <div className="actions">

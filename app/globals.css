@@ -1297,3 +1297,25 @@ textarea {
     padding: 14px;
   }
 }
+
+
+.insight-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.insight-card {
+  align-items: stretch;
+}
+
+.insight-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.insight-card p {
+  margin: 0;
+}
