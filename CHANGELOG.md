@@ -200,3 +200,11 @@ Frontend MVP polish release.
 - Deployment status card in Admin
 - Quick links to sitemap and robots from Admin
 - Public SEO inactive status in Admin
+
+## v0.1.4 — Public Domain
+
+### Added
+
+- Connected the project to the public domain `halleus.ir`.
+- Verified Cloudflare DNS, Render hosting, HTTPS, sitemap, and robots routes.
+- Added public-domain release notes.

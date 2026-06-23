@@ -274,3 +274,9 @@ The Admin page includes a deployment status card showing:
 - backend status
 
 Public indexed account/report pages are still intentionally not active.
+
+## Public domain
+
+Astro Clean is now available at:
+
+https://halleus.ir
