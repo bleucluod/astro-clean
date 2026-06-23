@@ -1332,3 +1332,29 @@ textarea {
   color: var(--muted);
   font-size: 0.78rem;
 }
+
+
+.engine-overview {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 1.25rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.04);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.engine-overview > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.engine-overview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
