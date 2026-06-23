@@ -1,3 +1,5 @@
+import type { EngineResult } from "@/lib/astro-engine";
+
 ﻿export type ZodiacKey =
   | "aries"
   | "taurus"
@@ -42,4 +44,5 @@ export type AstrologyReport = {
   summary: string;
   interpretations: string[];
   safetyNote: string;
+  engineResult?: EngineResult;
 };

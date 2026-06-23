@@ -8,6 +8,13 @@ type ReportCardProps = {
   report: AstrologyReport;
 };
 
+type RenderableInsight = {
+  id: string;
+  title: string;
+  body: string;
+  badge: string;
+};
+
 function parseInterpretation(item: string) {
   const separatorIndex = item.indexOf(": ");
 
@@ -22,6 +29,28 @@ function parseInterpretation(item: string) {
     title: item.slice(0, separatorIndex),
     body: item.slice(separatorIndex + 2),
   };
+}
+
+function getRenderableInsights(report: AstrologyReport): RenderableInsight[] {
+  if (report.engineResult?.insights?.length) {
+    return report.engineResult.insights.map((insight) => ({
+      id: insight.id,
+      title: insight.title,
+      body: insight.summary,
+      badge: report.engineResult?.version ?? "engine-v0",
+    }));
+  }
+
+  return report.interpretations.map((item) => {
+    const insight = parseInterpretation(item);
+
+    return {
+      id: item,
+      title: insight.title,
+      body: insight.body,
+      badge: "legacy",
+    };
+  });
 }
 
 export function ReportCard({ report }: ReportCardProps) {
@@ -83,20 +112,16 @@ export function ReportCard({ report }: ReportCardProps) {
       <p>{report.summary}</p>
 
       <div className="report-list insight-list">
-        {report.interpretations.map((item) => {
-          const insight = parseInterpretation(item);
+        {getRenderableInsights(report).map((insight) => (
+          <article className="mini-card insight-card" key={insight.id}>
+            <div className="insight-card-header">
+              <span className="badge">{insight.badge}</span>
+              {insight.title ? <strong>{insight.title}</strong> : null}
+            </div>
 
-          return (
-            <article className="mini-card insight-card" key={item}>
-              <div className="insight-card-header">
-                <span className="badge">Engine v0</span>
-                {insight.title ? <strong>{insight.title}</strong> : null}
-              </div>
-
-              <p>{insight.body}</p>
-            </article>
-          );
-        })}
+            <p>{insight.body}</p>
+          </article>
+        ))}
       </div>
 
       <div className="actions">
