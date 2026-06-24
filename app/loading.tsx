@@ -1,7 +1,7 @@
 ﻿export default function Loading() {
   return (
     <section className="card loading-state">
-      <span className="badge">Astro Clean</span>
+      <span className="badge">Halleus</span>
 
       <h1>در حال آماده‌سازی تجربه تو...</h1>
 

@@ -2,9 +2,9 @@
 import { ProfileForm } from "@/components/ProfileForm";
 
 export const metadata: Metadata = {
-  title: "پروفایل کاربر | Astro Clean",
+  title: "پروفایل کاربر | Halleus",
   description:
-    "پروفایل ساده کاربر در Astro Clean برای نام، بیوگرافی و حالت حریم خصوصی در نسخه MVP.",
+    "پروفایل ساده کاربر در Halleus برای نام، بیوگرافی و حالت حریم خصوصی در نسخه MVP.",
 };
 
 export default function ProfilePage() {

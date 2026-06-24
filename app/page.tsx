@@ -3,9 +3,9 @@ import Link from "next/link";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 
 export const metadata: Metadata = {
-  title: "Astro Clean | چارت تولد و گزارش نمادین فارسی",
+  title: "Halleus | چارت تولد و گزارش نمادین فارسی",
   description:
-    "Astro Clean یک فضای فارسی برای ساخت چارت تولد، دریافت گزارش نمادین، ذخیره گزارش‌ها و مرور مسیر شخصی است.",
+    "Halleus یک فضای فارسی برای ساخت چارت تولد، دریافت گزارش نمادین، ذخیره گزارش‌ها و مرور مسیر شخصی است.",
 };
 
 const mvpFeatures = [
@@ -22,7 +22,7 @@ const mvpFeatures = [
   {
     title: "شفاف، آرام و بدون ادعای قطعی",
     description:
-      "Astro Clean آسترولوژی را به عنوان زبان نمادین و خودشناسانه ارائه می‌کند؛ نه پیش‌بینی قطعی و نه توصیه تخصصی.",
+      "Halleus آسترولوژی را به عنوان زبان نمادین و خودشناسانه ارائه می‌کند؛ نه پیش‌بینی قطعی و نه توصیه تخصصی.",
   },
 ];
 
@@ -64,12 +64,12 @@ export default function Home() {
     <section className="grid home-page">
       <div className="hero hero-polished">
         <div>
-          <span className="badge">Astro Clean Preview</span>
+          <span className="badge">Halleus Preview</span>
 
-          <h1>چارت تولد فارسی، با گزارش‌هایی که می‌شود به آن‌ها برگشت</h1>
+          <h1>چارت تولد فارسی، ساده و قابل مرور</h1>
 
           <p>
-            Astro Clean برای کسی ساخته شده که می‌خواهد چارت تولدش را به زبان
+            Halleus برای کسی ساخته شده که می‌خواهد چارت تولدش را به زبان
             فارسی، ساده و قابل نگهداری ببیند؛ گزارشی نمادین بسازد، آن را ذخیره
             کند، روی برداشت‌هایش یادداشت بگذارد و بعداً دوباره مرورش کند.
           </p>

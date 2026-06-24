@@ -2,9 +2,9 @@
 import { ChartForm } from "@/components/ChartForm";
 
 export const metadata: Metadata = {
-  title: "ساخت چارت تولد | Astro Clean",
+  title: "ساخت چارت تولد | Halleus",
   description:
-    "فرم ساخت چارت تولد در Astro Clean برای دریافت تحلیل نمادین فارسی بر اساس تاریخ، ساعت و محل تولد.",
+    "فرم ساخت چارت تولد در Halleus برای دریافت تحلیل نمادین فارسی بر اساس تاریخ، ساعت و محل تولد.",
 };
 
 export default function ChartPage() {

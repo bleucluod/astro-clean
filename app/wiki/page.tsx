@@ -5,7 +5,7 @@ import { wikiTopics } from "@/lib/config/wiki";
 export const metadata: Metadata = {
   title: "Astro Wiki | آسترو ویکی فارسی",
   description:
-    "آسترو ویکی Astro Clean پایه‌ای سبک برای محتوای آموزشی فارسی درباره سیارات، خانه‌ها، رایزینگ‌ها و اصطلاحات آسترولوژی.",
+    "آسترو ویکی Halleus پایه‌ای سبک برای محتوای آموزشی فارسی درباره سیارات، خانه‌ها، رایزینگ‌ها و اصطلاحات آسترولوژی.",
 };
 
 export default function WikiPage() {

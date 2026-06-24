@@ -8,9 +8,9 @@ type ReportDetailPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "جزئیات گزارش | Astro Clean",
+  title: "جزئیات گزارش | Halleus",
   description:
-    "نمایش جزئیات یک گزارش ذخیره‌شده چارت تولد در Astro Clean.",
+    "نمایش جزئیات یک گزارش ذخیره‌شده چارت تولد در Halleus.",
 };
 
 export default async function ReportDetailPage({

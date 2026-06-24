@@ -11,7 +11,7 @@ export function AppShell({ children }: AppShellProps) {
     <>
       <header>
         <nav>
-          <Link href="/">Astro Clean</Link>
+          <Link href="/">Halleus</Link>
 
           <NavLinks />
         </nav>
@@ -21,7 +21,7 @@ export function AppShell({ children }: AppShellProps) {
 
       <footer className="site-footer">
         <div>
-          <strong>Astro Clean</strong>
+          <strong>Halleus</strong>
           <p>
             تحلیل‌ها در این محصول برای سرگرمی، خودشناسی و تفسیر نمادین هستند؛
             نه پیش‌بینی قطعی یا توصیه پزشکی، مالی و حقوقی.

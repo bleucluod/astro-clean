@@ -281,3 +281,17 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added a city datalist to the chart form.
 - Attached selected city metadata to newly generated reports.
 - Added a manual UI text guide for future Persian label cleanup.
+
+## v0.1.17 - Homepage visual polish
+
+- Added scoped homepage visual polish without changing page structure.
+- Improved hero presentation, trust strip, demo steps, feature cards, and next-step section.
+- Kept this batch CSS-only for safer visual iteration.
+
+
+## v0.1.18 - Halleus homepage brand polish
+
+- Updated public-facing brand references from Astro Clean to Halleus.
+- Normalized public URL references toward halleus.ir.
+- Reduced the homepage hero headline scale.
+- Kept the page structure unchanged.

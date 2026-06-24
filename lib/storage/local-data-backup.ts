@@ -81,7 +81,7 @@ export function restoreLocalDataBackup(value: unknown): RestoreResult {
   if (!isLocalDataBackup(value)) {
     return {
       ok: false,
-      message: "فایل انتخاب‌شده با فرمت بکاپ Astro Clean سازگار نیست.",
+      message: "فایل انتخاب‌شده با فرمت بکاپ Halleus سازگار نیست.",
     };
   }
 

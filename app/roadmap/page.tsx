@@ -3,21 +3,21 @@ import Link from "next/link";
 import { roadmapItems } from "@/lib/config/roadmap";
 
 export const metadata: Metadata = {
-  title: "نقشه راه محصول | Astro Clean",
+  title: "نقشه راه محصول | Halleus",
   description:
-    "نقشه راه Astro Clean از MVP ساده تا اکوسیستم فارسی آسترولوژی شخصی، اجتماعی، محتوایی و SEO محور.",
+    "نقشه راه Halleus از MVP ساده تا اکوسیستم فارسی آسترولوژی شخصی، اجتماعی، محتوایی و SEO محور.",
 };
 
 export default function RoadmapPage() {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">نقشه راه Astro Clean</span>
+        <span className="badge">نقشه راه Halleus</span>
 
         <h1>از MVP ساده تا اکوسیستم آسترولوژی شخصی</h1>
 
         <p>
-          Astro Clean را از یک محصول کوچک و قابل دیدن شروع می‌کنیم. هدف فعلی
+          Halleus را از یک محصول کوچک و قابل دیدن شروع می‌کنیم. هدف فعلی
           ساخت تجربه‌ای تمیز و قابل لمس است، نه معماری سنگین یا قابلیت‌های
           enterprise.
         </p>
@@ -51,7 +51,7 @@ export default function RoadmapPage() {
       <div className="card">
         <h2>اصل اخلاقی محصول</h2>
         <p>
-          تحلیل‌ها در Astro Clean به عنوان تفسیر نمادین، سرگرمی و خودشناسی
+          تحلیل‌ها در Halleus به عنوان تفسیر نمادین، سرگرمی و خودشناسی
           ارائه می‌شوند. محصول نباید پیش‌بینی قطعی یا توصیه پزشکی، مالی، حقوقی
           یا تصمیم‌گیری جدی ارائه کند.
         </p>

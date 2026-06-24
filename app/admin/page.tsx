@@ -7,9 +7,9 @@ import { LocalDataStatusCard } from "@/components/LocalDataStatusCard";
 import { MvpStatusCard } from "@/components/MvpStatusCard";
 
 export const metadata: Metadata = {
-  title: "ادمین MVP | Astro Clean",
+  title: "ادمین MVP | Halleus",
   description:
-    "نمای داخلی وضعیت MVP، فیچر فلگ‌ها و ابزارهای دمو در Astro Clean.",
+    "نمای داخلی وضعیت MVP، فیچر فلگ‌ها و ابزارهای دمو در Halleus.",
 };
 
 export default function AdminPage() {

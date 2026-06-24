@@ -97,7 +97,7 @@ export function DashboardSummary() {
       <div className="card">
         <span className="badge">Dashboard</span>
 
-        <h1>مرکز کنترل شخصی Astro Clean</h1>
+        <h1>مرکز کنترل شخصی Halleus</h1>
 
         <p>
           این داشبورد خلاصه‌ای از گزارش‌های ذخیره‌شده، علاقه‌مندی‌ها و

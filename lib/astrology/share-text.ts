@@ -2,8 +2,8 @@
 
 function formatReportTitle(report: AstrologyReport): string {
   return report.input.name
-    ? `گزارش Astro Clean برای ${report.input.name}`
-    : "گزارش Astro Clean";
+    ? `گزارش Halleus برای ${report.input.name}`
+    : "گزارش Halleus";
 }
 
 function formatBirthLine(report: AstrologyReport): string {
@@ -35,6 +35,6 @@ export function createShareText(report: AstrologyReport): string {
     "یادآوری:",
     "این متن یک برداشت نمادین و تفسیری است، نه پیش‌بینی قطعی یا توصیه تخصصی.",
     "",
-    "ساخته‌شده با Astro Clean",
+    "ساخته‌شده با Halleus",
   ].join("\n");
 }

@@ -2,7 +2,7 @@
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "حریم داده | Astro Clean",
+  title: "حریم داده | Halleus",
   description:
     "توضیح شفاف درباره ذخیره داده‌ها، localStorage و محدودیت‌های حریم خصوصی در نسخه MVP آسترو کلین.",
 };
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
         <h1>حریم داده در نسخه MVP</h1>
 
         <p>
-          Astro Clean در این نسخه یک MVP فرانت‌اندی است. یعنی داده‌هایی مثل
+          Halleus در این نسخه یک MVP فرانت‌اندی است. یعنی داده‌هایی مثل
           گزارش‌ها و پروفایل، فعلاً روی مرورگر همین دستگاه ذخیره می‌شوند و به
           سرور، دیتابیس یا حساب کاربری ارسال نمی‌شوند.
         </p>
@@ -98,7 +98,7 @@ export default function PrivacyPage() {
         <p>
           برای پاک کردن گزارش‌ها، ریست پروفایل، ریست کامل داده‌های دمو یا گرفتن
           بکاپ JSON، وارد صفحه Admin شو. چون داده‌ها محلی هستند، پاک کردن
-          localStorage مرورگر هم می‌تواند داده‌های Astro Clean را حذف کند.
+          localStorage مرورگر هم می‌تواند داده‌های Halleus را حذف کند.
         </p>
 
         <div className="actions">
