@@ -481,3 +481,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Connected generated report saving to chart engine metadata attachment.
 - Added visible chart engine report badge.
 - Added chart engine integration documentation and checker.
+
+## v0.1.40 - Real chart engine decision
+
+- Added real chart engine decision types.
+- Added selected MVP path for the real calculation strategy.
+- Added public engine decision page.
+- Added provider comparison documentation.
+- Added real chart engine decision checker.

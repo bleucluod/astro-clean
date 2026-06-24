@@ -316,3 +316,17 @@ Updated estimates:
 | Real calculation readiness | 35% |
 | Report generation flow | 70% |
 | Commercial MVP overall | 70% |
+
+
+## Real chart engine decision update
+
+Halleus now has a documented decision for the real chart engine MVP path: Astronomy Engine plus a Halleus astrology layer, with Swiss Ephemeris and external APIs documented as future/alternative paths.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Real chart engine decision | 75% |
+| Real calculation readiness | 42% |
+| Engine provider clarity | 70% |
+| Commercial MVP overall | 71% |

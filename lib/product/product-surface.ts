@@ -61,6 +61,12 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
     status: "preview",
   },
   {
+    href: "/engine/decision",
+    label: "تصمیم موتور واقعی",
+    description: "مقایسه مسیرهای محاسبه واقعی چارت و انتخاب مسیر MVP.",
+    status: "preview",
+  },
+  {
     href: "/quality",
     label: "کیفیت گزارش",
     description: "استاندارد لحن، بخش‌ها و ایمنی برای گزارش‌های آینده.",
