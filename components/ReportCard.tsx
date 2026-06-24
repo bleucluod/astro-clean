@@ -56,14 +56,6 @@ function parseInterpretation(item: string) {
   };
 }
 
-function formatEngineDate(value?: string) {
-  if (!value) {
-    return "";
-  }
-
-  return new Date(value).toLocaleDateString("fa-IR");
-}
-
 function getRenderableInsights(report: AstrologyReport): RenderableInsight[] {
   if (report.engineResult?.insights?.length) {
     return report.engineResult.insights.map((insight) => ({
@@ -147,24 +139,6 @@ export function ReportCard({ report }: ReportCardProps) {
       </div>
 
       <p>{report.summary}</p>
-
-      {report.engineResult ? (
-        <div className="engine-overview">
-          <div>
-            <span className="badge">{report.engineResult.version}</span>
-            <strong>???? ??? ????? ?????</strong>
-          </div>
-
-          <div className="engine-overview-grid">
-            <span>
-              ????? ?????????: {report.engineResult.insights.length}
-            </span>
-            <span>
-              ????? ?????: {formatEngineDate(report.engineResult.generatedAt)}
-            </span>
-          </div>
-        </div>
-      ) : null}
 
       <div className="report-list insight-list">
         {getRenderableInsights(report).map((insight) => (
