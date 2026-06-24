@@ -227,3 +227,12 @@ Frontend MVP polish release.
 ## Recovery lesson
 
 Large automated patches against TSX and Persian text are high-risk. Future UI edits must be small, inspected, and tested locally before push.
+
+## v0.1.11 - Report output v1
+
+- Improved the visual structure of report cards.
+- Separated summary and symbolic interpretation sections.
+- Numbered report interpretations for easier reading.
+- Improved plain-text report sharing.
+- Added single-report TXT export.
+- Kept report language symbolic and non-deterministic.

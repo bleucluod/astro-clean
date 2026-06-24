@@ -2,39 +2,55 @@
 
 function formatReportTitle(report: AstrologyReport): string {
   return report.input.name
-    ? `گزارش Astro Clean برای ${report.input.name}`
-    : "گزارش Astro Clean";
+    ? `Ú¯Ø²Ø§Ø±Ø´ Astro Clean Ø¨Ø±Ø§ÛŒ ${report.input.name}`
+    : "Ú¯Ø²Ø§Ø±Ø´ Astro Clean";
 }
 
 function formatBirthLine(report: AstrologyReport): string {
-  return `تولد: ${report.input.birthDate}، ساعت ${report.input.birthTime}، ${report.input.birthCity}، ${report.input.birthCountry}`;
+  return `ØªÙˆÙ„Ø¯: ${report.input.birthDate}ØŒ Ø³Ø§Ø¹Øª ${report.input.birthTime}ØŒ ${report.input.birthCity}ØŒ ${report.input.birthCountry}`;
 }
 
 function formatChartLine(report: AstrologyReport): string {
-  return `نشانه‌های اصلی: خورشید در ${report.chart.sunSign.faName}، ماه در ${report.chart.moonSign.faName}، رایزینگ ${report.chart.risingSign.faName}`;
+  return `Ù†Ø´Ø§Ù†Ù‡â€ŒÙ‡Ø§ÛŒ Ø§ØµÙ„ÛŒ: Ø®ÙˆØ±Ø´ÛŒØ¯ Ø¯Ø± ${report.chart.sunSign.faName}ØŒ Ù…Ø§Ù‡ Ø¯Ø± ${report.chart.moonSign.faName}ØŒ Ø±Ø§ÛŒØ²ÛŒÙ†Ú¯ ${report.chart.risingSign.faName}`;
 }
 
-export function createShareText(report: AstrologyReport): string {
-  const interpretations = report.interpretations
-    .slice(0, 4)
+function formatInterpretations(report: AstrologyReport): string {
+  return report.interpretations
     .map((item, index) => `${index + 1}. ${item}`)
     .join("\n");
+}
 
-  return [
+export function createReportText(
+  report: AstrologyReport,
+  note = "",
+): string {
+  const noteText = note.trim();
+
+  const lines = [
     formatReportTitle(report),
     "",
     formatBirthLine(report),
     formatChartLine(report),
     "",
-    "خلاصه:",
+    "Ø®Ù„Ø§ØµÙ‡:",
     report.summary,
     "",
-    "برداشت‌های نمادین:",
-    interpretations,
+    "Ø¨Ø±Ø¯Ø§Ø´Øªâ€ŒÙ‡Ø§ÛŒ Ù†Ù…Ø§Ø¯ÛŒÙ†:",
+    formatInterpretations(report),
     "",
-    "یادآوری:",
-    "این متن یک برداشت نمادین و تفسیری است، نه پیش‌بینی قطعی یا توصیه تخصصی.",
-    "",
-    "ساخته‌شده با Astro Clean",
-  ].join("\n");
+    "ÛŒØ§Ø¯Ø¢ÙˆØ±ÛŒ:",
+    report.safetyNote,
+  ];
+
+  if (noteText) {
+    lines.push("", "ÛŒØ§Ø¯Ø¯Ø§Ø´Øª Ø´Ø®ØµÛŒ:", noteText);
+  }
+
+  lines.push("", "Ø³Ø§Ø®ØªÙ‡â€ŒØ´Ø¯Ù‡ Ø¨Ø§ Astro Clean");
+
+  return lines.join("\n");
+}
+
+export function createShareText(report: AstrologyReport): string {
+  return createReportText(report);
 }
