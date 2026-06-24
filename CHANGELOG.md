@@ -321,3 +321,13 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added report record helpers for future database-backed reports.
 - Added storage architecture and database schema draft docs.
 - Kept this batch UI-free so product behavior stays stable.
+
+
+## v0.1.21 - Storage adapter implementation
+
+- Added local ReportRepository implementation.
+- Added repository facade for future database driver switching.
+- Added database repository placeholder.
+- Added report-record migration helpers.
+- Added missing note storage helper exports when needed.
+- Kept this batch UI-free so current behavior stays stable.

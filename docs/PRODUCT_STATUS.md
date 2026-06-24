@@ -51,3 +51,17 @@ Target after this milestone:
 | Storage architecture | 35% |
 | Database readiness | 15% |
 | Account readiness | 10% |
+
+## Storage adapter implementation update
+
+Storage Adapter Implementation v1 adds the first real repository implementation.
+
+The app can now move toward repository-backed UI without changing user-facing behavior.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Storage architecture | 55% |
+| Database readiness | 25% |
+| Account readiness | 12% |
