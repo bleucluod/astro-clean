@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
+import { createShareText } from "@/lib/astrology/share-text";
 import {
   clearFavoriteReportIds,
   loadFavoriteReportIds,
@@ -23,6 +24,96 @@ import type { AstrologyReport } from "@/types/astro";
 
 type SortMode = "newest" | "oldest";
 type ReportFilterMode = "all" | "favorites";
+
+type ReportsArchivePayload = {
+  app: "astro-clean";
+  type: "reports-archive";
+  version: 1;
+  exportedAt: string;
+  filterMode: ReportFilterMode;
+  sortMode: SortMode;
+  searchTerm: string;
+  reports: AstrologyReport[];
+  notes: Record<string, string>;
+};
+
+function downloadArchiveFile(
+  fileName: string,
+  data: string,
+  mimeType: string,
+) {
+  const blob = new Blob([data], {
+    type: mimeType,
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+function createArchiveFileName(extension: "json" | "txt") {
+  return `astro-clean-reports-${new Date().toISOString().slice(0, 10)}.${extension}`;
+}
+
+function createReportsNotesSubset(
+  reports: AstrologyReport[],
+  reportNotes: ReportNotesMap,
+) {
+  return Object.fromEntries(
+    reports
+      .map((report) => [report.id, reportNotes[report.id]?.trim() ?? ""])
+      .filter(([, note]) => note),
+  );
+}
+
+function createReportsArchivePayload(
+  reports: AstrologyReport[],
+  reportNotes: ReportNotesMap,
+  filterMode: ReportFilterMode,
+  sortMode: SortMode,
+  searchTerm: string,
+): ReportsArchivePayload {
+  return {
+    app: "astro-clean",
+    type: "reports-archive",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    filterMode,
+    sortMode,
+    searchTerm,
+    reports,
+    notes: createReportsNotesSubset(reports, reportNotes),
+  };
+}
+
+function createReportsArchiveText(
+  reports: AstrologyReport[],
+  reportNotes: ReportNotesMap,
+) {
+  return reports
+    .map((report, index) => {
+      const lines = [
+        `# ${index + 1}`,
+        createShareText(report),
+      ];
+
+      const note = reportNotes[report.id]?.trim();
+
+      if (note) {
+        lines.push("", "Note:", note);
+      }
+
+      return lines.join("\n");
+    })
+    .join("\n\n---\n\n");
+}
 
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
@@ -125,6 +216,46 @@ export function ReportsList() {
     setSearchInput("");
     setFilterMode("all");
     setMessage("همه گزارش‌ها و علاقه‌مندی‌ها پاک شدند.");
+  }
+
+  function handleExportVisibleText() {
+    if (visibleReports.length === 0) {
+      setMessage("No reports to export.");
+      return;
+    }
+
+    downloadArchiveFile(
+      createArchiveFileName("txt"),
+      createReportsArchiveText(visibleReports, reportNotes),
+      "text/plain;charset=utf-8",
+    );
+
+    setMessage("TXT export created.");
+  }
+
+  function handleExportVisibleJson() {
+    if (visibleReports.length === 0) {
+      setMessage("No reports to export.");
+      return;
+    }
+
+    downloadArchiveFile(
+      createArchiveFileName("json"),
+      JSON.stringify(
+        createReportsArchivePayload(
+          visibleReports,
+          reportNotes,
+          filterMode,
+          sortMode,
+          searchTerm,
+        ),
+        null,
+        2,
+      ),
+      "application/json;charset=utf-8",
+    );
+
+    setMessage("JSON export created.");
   }
 
   if (!isReady) {
@@ -234,6 +365,24 @@ export function ReportsList() {
           >
             پاک کردن همه گزارش‌ها
           </button>
+
+          <div className="reports-export-actions">
+            <button
+              className="button secondary"
+              type="button"
+              onClick={handleExportVisibleText}
+            >
+              Export visible TXT
+            </button>
+
+            <button
+              className="button secondary"
+              type="button"
+              onClick={handleExportVisibleJson}
+            >
+              Export visible JSON
+            </button>
+          </div>
         </div>
 
         {message ? <p className="success-message">{message}</p> : null}

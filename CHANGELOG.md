@@ -245,3 +245,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Converted interpretations into numbered insight cards.
 - Added TXT export for single reports.
 - Kept UTF-8 safety checks in the batch workflow.
+
+
+## v0.1.13 - Reports UX v2
+
+- Added visible-list TXT export for reports.
+- Added visible-list JSON export for reports.
+- Reused the existing share text generator for archive text output.
+- Added archive payload metadata for backup and future import work.
+- Kept this batch ASCII-only to protect Persian UTF-8 content.
