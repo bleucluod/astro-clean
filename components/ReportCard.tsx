@@ -16,9 +16,9 @@ export function ReportCard({ report }: ReportCardProps) {
 
     try {
       await navigator.clipboard.writeText(shareText);
-      setCopyMessage("Ù…ØªÙ† Ø§Ø´ØªØ±Ø§Ú©â€ŒÚ¯Ø°Ø§Ø±ÛŒ Ú©Ù¾ÛŒ Ø´Ø¯.");
+      setCopyMessage("متن اشتراک‌گذاری کپی شد.");
     } catch {
-      setCopyMessage("Ú©Ù¾ÛŒ Ø®ÙˆØ¯Ú©Ø§Ø± Ù…Ù…Ú©Ù† Ù†Ø´Ø¯. Ù…ØªÙ† Ø±Ø§ Ø¯Ø³ØªÛŒ Ú©Ù¾ÛŒ Ú©Ù†.");
+      setCopyMessage("کپی خودکار ممکن نشد. متن را دستی کپی کن.");
     }
   }
 
@@ -26,11 +26,11 @@ export function ReportCard({ report }: ReportCardProps) {
     <article className="card report-card">
       <div className="report-header">
         <div>
-          <span className="badge">Ú¯Ø²Ø§Ø±Ø´ Ù†Ù…Ø§Ø¯ÛŒÙ†</span>
+          <span className="badge">گزارش نمادین</span>
           <h2>
             {report.input.name
-              ? `Ú¯Ø²Ø§Ø±Ø´ ${report.input.name}`
-              : "Ú¯Ø²Ø§Ø±Ø´ Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯"}
+              ? `گزارش ${report.input.name}`
+              : "گزارش چارت تولد"}
           </h2>
         </div>
 
@@ -43,57 +43,44 @@ export function ReportCard({ report }: ReportCardProps) {
         <span>{report.input.birthDate}</span>
         <span>{report.input.birthTime}</span>
         <span>
-          {report.input.birthCity}ØŒ {report.input.birthCountry}
+          {report.input.birthCity}، {report.input.birthCountry}
         </span>
       </div>
 
       <div className="grid grid-3">
         <div className="mini-card">
-          <strong>Ø®ÙˆØ±Ø´ÛŒØ¯</strong>
+          <strong>خورشید</strong>
           <span>{report.chart.sunSign.faName}</span>
         </div>
 
         <div className="mini-card">
-          <strong>Ù…Ø§Ù‡</strong>
+          <strong>ماه</strong>
           <span>{report.chart.moonSign.faName}</span>
         </div>
 
         <div className="mini-card">
-          <strong>Ø±Ø§ÛŒØ²ÛŒÙ†Ú¯</strong>
+          <strong>رایزینگ</strong>
           <span>{report.chart.risingSign.faName}</span>
         </div>
       </div>
 
-      <section className="report-section">
-        <span className="badge">Ø®Ù„Ø§ØµÙ‡</span>
-        <p>{report.summary}</p>
-      </section>
+      <p>{report.summary}</p>
 
-      <section className="report-section">
-        <span className="badge">Ø¨Ø±Ø¯Ø§Ø´Øªâ€ŒÙ‡Ø§ÛŒ Ù†Ù…Ø§Ø¯ÛŒÙ†</span>
-
-        <div className="report-list">
-          {report.interpretations.map((item, index) => (
-            <div className="mini-card report-insight" key={item}>
-              <strong>{index + 1}</strong>
-              <p>{item}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="report-list">
+        {report.interpretations.map((item) => (
+          <p key={item}>• {item}</p>
+        ))}
+      </div>
 
       <div className="actions">
         <button className="button secondary" onClick={handleCopyShareText}>
-          Ú©Ù¾ÛŒ Ù…ØªÙ† Ø§Ø´ØªØ±Ø§Ú©â€ŒÚ¯Ø°Ø§Ø±ÛŒ
+          کپی متن اشتراک‌گذاری
         </button>
       </div>
 
       {copyMessage ? <p className="success-message">{copyMessage}</p> : null}
 
-      <div className="notice report-notice">
-        <strong>ÛŒØ§Ø¯Ø¢ÙˆØ±ÛŒ Ù†Ù…Ø§Ø¯ÛŒÙ†</strong>
-        <p>{report.safetyNote}</p>
-      </div>
+      <p className="notice">{report.safetyNote}</p>
     </article>
   );
 }
