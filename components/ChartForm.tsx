@@ -13,8 +13,8 @@ const initialForm: BirthInput = {
   name: "",
   birthDate: "",
   birthTime: "",
-  birthCity: "",
-  birthCountry: "",
+  birthCity: "تهران",
+  birthCountry: "ایران",
 };
 
 function notifyLocalDataChanged() {
