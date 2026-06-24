@@ -1,8 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 import { createReportV2PlainText } from "@/lib/report-output/report-v2-export";
+import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
+import {
+  getReportV2Metrics,
+  getReportV2SectionSummary,
+} from "@/lib/report-output/report-v2-metrics";
 import type { ReportOutputSection } from "@/types/report-output";
 
 type ReportWithSections = {
@@ -49,6 +53,7 @@ function createDownloadFileName() {
 
 export function ReportV2Sections({ report }: ReportV2SectionsProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
   const enhancedReport = useMemo(() => {
     if (!report || typeof report !== "object") {
@@ -57,6 +62,12 @@ export function ReportV2Sections({ report }: ReportV2SectionsProps) {
 
     return enhanceReportOutputV2(report as Record<string, unknown>);
   }, [report]);
+
+  const metrics = useMemo(() => getReportV2Metrics(enhancedReport), [enhancedReport]);
+  const sectionSummary = useMemo(
+    () => getReportV2SectionSummary(enhancedReport),
+    [enhancedReport],
+  );
 
   if (!enhancedReport) {
     return null;
@@ -70,6 +81,9 @@ export function ReportV2Sections({ report }: ReportV2SectionsProps) {
   }
 
   const plainText = createReportV2PlainText(enhancedReport);
+  const visibleSections = activeSectionId
+    ? sections.filter((section) => section.id === activeSectionId)
+    : sections;
 
   async function copyText() {
     try {
@@ -126,8 +140,41 @@ export function ReportV2Sections({ report }: ReportV2SectionsProps) {
 
       <div className="tag-list">
         <span>Version: {sectionedReport.outputVersion ?? "v2-sectioned-preview"}</span>
-        <span>Quality score: {sectionedReport.outputQuality?.score ?? "preview"}</span>
-        <span>Sections: {sections.length.toLocaleString("fa-IR")}</span>
+        <span>Quality score: {metrics.qualityScore ?? "preview"}</span>
+        <span>Sections: {metrics.sectionCount.toLocaleString("fa-IR")}</span>
+        <span>Words: {metrics.wordCount.toLocaleString("fa-IR")}</span>
+        <span>Reading: {metrics.readingMinutes.toLocaleString("fa-IR")} دقیقه</span>
+      </div>
+
+      <div className="report-preview-list">
+        <div className="report-preview-row">
+          <span>فهرست بخش‌ها</span>
+          <small>
+            برای تمرکز روی یک بخش، همان بخش را انتخاب کن؛ برای برگشت، نمایش همه
+            را بزن.
+          </small>
+        </div>
+
+        <div className="actions">
+          <button
+            className="button secondary"
+            onClick={() => setActiveSectionId(null)}
+            type="button"
+          >
+            نمایش همه
+          </button>
+
+          {sectionSummary.map((section) => (
+            <button
+              className="button secondary"
+              key={section.id}
+              onClick={() => setActiveSectionId(section.id)}
+              type="button"
+            >
+              {section.title}
+            </button>
+          ))}
+        </div>
       </div>
 
       {sectionedReport.outputQuality?.warnings &&
@@ -143,7 +190,7 @@ export function ReportV2Sections({ report }: ReportV2SectionsProps) {
       ) : null}
 
       <div className="home-step-list">
-        {sections.map((section, index) => (
+        {visibleSections.map((section, index) => (
           <div key={section.id}>
             <strong>
               {(index + 1).toLocaleString("fa-IR")}. {section.title}

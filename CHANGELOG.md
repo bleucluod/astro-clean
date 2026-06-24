@@ -448,3 +448,10 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added copy-to-clipboard action for sectioned report output.
 - Improved visible report utility for new and existing reports.
 - Added report output V2 actions documentation and checker.
+
+## v0.1.36 - Report output V2 readability
+
+- Added report output V2 metrics.
+- Added section selector for sectioned report output.
+- Added word count, reading time, section count, and quality score display.
+- Added report output V2 readability documentation and checker.

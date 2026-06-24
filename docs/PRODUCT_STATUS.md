@@ -260,3 +260,17 @@ Updated estimates:
 | Report export usefulness | 70% |
 | Demo readiness | 82% |
 | Commercial MVP overall | 64% |
+
+
+## Report output V2 readability update
+
+Report Output V2 now shows section count, word count, reading time, quality score, and a section selector.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Visible report experience | 72% |
+| Report readability | 68% |
+| Demo readiness | 84% |
+| Commercial MVP overall | 65% |
