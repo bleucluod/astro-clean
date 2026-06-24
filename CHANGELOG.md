@@ -263,3 +263,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added a project health script.
 - Added a combined project check command.
 - Updated the pre-deploy checklist with the safer command.
+
+
+## v0.1.15 - Reports backup import
+
+- Added full reports JSON export.
+- Added JSON import for report backups.
+- Added import guards for single-report and archive payloads.
+- Added duplicate protection during import.
+- Kept this batch ASCII-only to protect Persian UTF-8 content.

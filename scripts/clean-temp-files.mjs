@@ -13,12 +13,10 @@ const tempFiles = [
   "fix-engine-mojibake.js",
 ];
 
-let removed = 0;
 
 for (const file of tempFiles) {
   try {
     await rm(file, { force: true });
-    removed += 1;
   } catch {
     // ignore
   }

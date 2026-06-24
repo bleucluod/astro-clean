@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import { createShareText } from "@/lib/astrology/share-text";
@@ -19,6 +19,7 @@ import {
   clearReports,
   deleteReport,
   loadReports,
+  saveReport,
 } from "@/lib/storage/reports-storage";
 import type { AstrologyReport } from "@/types/astro";
 
@@ -123,6 +124,53 @@ function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isReportLike(value: unknown): value is AstrologyReport {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const input = value.input;
+  const chart = value.chart;
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.createdAt === "string" &&
+    isRecord(input) &&
+    isRecord(chart) &&
+    typeof value.summary === "string" &&
+    Array.isArray(value.interpretations) &&
+    typeof value.safetyNote === "string"
+  );
+}
+
+function extractReportsFromImportPayload(payload: unknown): AstrologyReport[] {
+  if (Array.isArray(payload)) {
+    return payload.filter(isReportLike);
+  }
+
+  if (isReportLike(payload)) {
+    return [payload];
+  }
+
+  if (!isRecord(payload)) {
+    return [];
+  }
+
+  if (Array.isArray(payload.reports)) {
+    return payload.reports.filter(isReportLike);
+  }
+
+  if (isReportLike(payload.report)) {
+    return [payload.report];
+  }
+
+  return [];
+}
+
 function reportMatchesSearch(
   report: AstrologyReport,
   reportNote: string,
@@ -216,6 +264,74 @@ export function ReportsList() {
     setSearchInput("");
     setFilterMode("all");
     setMessage("همه گزارش‌ها و علاقه‌مندی‌ها پاک شدند.");
+  }
+
+  function handleExportAllJson() {
+    if (reports.length === 0) {
+      setMessage("No reports to export.");
+      return;
+    }
+
+    downloadArchiveFile(
+      createArchiveFileName("json"),
+      JSON.stringify(
+        createReportsArchivePayload(
+          reports,
+          reportNotes,
+          "all",
+          sortMode,
+          "",
+        ),
+        null,
+        2,
+      ),
+      "application/json;charset=utf-8",
+    );
+
+    setMessage("Full JSON export created.");
+  }
+
+  async function handleImportReports(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(await file.text()) as unknown;
+      const importedReports = extractReportsFromImportPayload(payload);
+
+      if (importedReports.length === 0) {
+        setMessage("No valid reports found.");
+        return;
+      }
+
+      const existingIds = new Set(loadReports().map((report) => report.id));
+      let importedCount = 0;
+
+      for (const report of importedReports) {
+        if (existingIds.has(report.id)) {
+          continue;
+        }
+
+        saveReport(report);
+        existingIds.add(report.id);
+        importedCount += 1;
+      }
+
+      notifyLocalDataChanged();
+      refreshReports();
+
+      setMessage(
+        importedCount > 0
+          ? `Imported ${importedCount.toLocaleString("en-US")} report(s).`
+          : "No new reports imported.",
+      );
+    } catch {
+      setMessage("Import failed.");
+    }
   }
 
   function handleExportVisibleText() {
@@ -365,6 +481,25 @@ export function ReportsList() {
           >
             پاک کردن همه گزارش‌ها
           </button>
+
+          <div className="reports-backup-actions">
+            <button
+              className="button secondary"
+              type="button"
+              onClick={handleExportAllJson}
+            >
+              Export all JSON
+            </button>
+
+            <label className="button secondary reports-file-button">
+              Import JSON
+              <input
+                type="file"
+                accept="application/json,.json"
+                onChange={handleImportReports}
+              />
+            </label>
+          </div>
 
           <div className="reports-export-actions">
             <button
