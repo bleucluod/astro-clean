@@ -10,12 +10,13 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "clean:temp": "node scripts/clean-temp-files.mjs",
     "health": "node scripts/project-health.mjs",
-    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:storage && pnpm run check:account && pnpm run check:account-ui && pnpm run check:database && pnpm run check:auth-readiness && pnpm lint && pnpm build",
+    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:storage && pnpm run check:account && pnpm run check:account-ui && pnpm run check:database && pnpm run check:auth-readiness && pnpm run check:billing && pnpm lint && pnpm build",
     "check:storage": "node scripts/check-storage-foundation.mjs",
     "check:account": "node scripts/check-account-foundation.mjs",
     "check:account-ui": "node scripts/check-account-ui-readiness.mjs",
     "check:database": "node scripts/check-database-readiness.mjs",
-    "check:auth-readiness": "node scripts/check-auth-readiness.mjs"
+    "check:auth-readiness": "node scripts/check-auth-readiness.mjs",
+    "check:billing": "node scripts/check-billing-readiness.mjs"
   },
   "dependencies": {
     "next": "16.2.9",

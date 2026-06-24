@@ -149,3 +149,17 @@ Updated estimates:
 | Account readiness | 50% |
 | Database readiness | 60% |
 | Commercial MVP overall | 49% |
+
+
+## Billing and pricing readiness update
+
+Billing now has plan definitions, feature gates, payment driver contracts, readiness checks, and a public pricing page.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Billing readiness | 42% |
+| Payment readiness | 18% |
+| SaaS packaging | 45% |
+| Commercial MVP overall | 51% |

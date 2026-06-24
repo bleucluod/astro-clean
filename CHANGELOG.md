@@ -382,3 +382,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added local-preview to account migration helpers.
 - Added auth readiness, provider decision, and migration documentation.
 - Added auth readiness checker and wired it into project checks.
+
+## v0.1.28 - Billing and pricing readiness
+
+- Added billing and subscription types.
+- Added billing plan catalog and feature gate helpers.
+- Added payment driver contract and preview payment driver.
+- Added billing readiness report.
+- Added public pricing page.
+- Added billing readiness checker and documentation.
