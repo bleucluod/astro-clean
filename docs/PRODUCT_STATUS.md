@@ -93,3 +93,17 @@ Updated estimates:
 | Account readiness | 18% |
 | Repository-backed UI | 55% |
 | Commercial MVP overall | 41% |
+
+
+## Account and database foundation update
+
+Account foundations are now represented as typed contracts and preview repositories.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Account readiness | 28% |
+| Database readiness | 42% |
+| Product configuration | 70% |
+| Commercial MVP overall | 43% |

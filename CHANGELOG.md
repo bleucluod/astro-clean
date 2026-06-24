@@ -349,3 +349,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added a storage foundation checker.
 - Added the storage checker to project health checks.
 - Added storage UI completion documentation.
+
+## v0.1.24 - Account and database foundation
+
+- Added Halleus brand and domain config.
+- Added account/session/profile/plan entitlement types.
+- Added preview account repository and account repository contract.
+- Added account and environment documentation.
+- Added account foundation checker and wired it into project checks.
