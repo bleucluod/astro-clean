@@ -37,3 +37,17 @@ The location foundation is no longer just a small city preview. The user-provide
 3. Add real chart calculation path.
 4. Add account-based saved reports.
 5. Add paid report layers only after the report quality is high enough.
+
+## Storage foundation update
+
+The next durable milestone is Storage Adapter v1.
+
+This creates the product contract that will let local preview storage become database-backed account storage later.
+
+Target after this milestone:
+
+| Area | Progress |
+| --- | ---: |
+| Storage architecture | 35% |
+| Database readiness | 15% |
+| Account readiness | 10% |

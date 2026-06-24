@@ -313,3 +313,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added city display names that include province names to reduce duplicate city ambiguity.
 - Connected the chart form datalist to the full city list.
 - Added dataset and product status docs.
+
+
+## v0.1.20 - Storage foundation
+
+- Added provider-neutral storage types and report repository contract.
+- Added report record helpers for future database-backed reports.
+- Added storage architecture and database schema draft docs.
+- Kept this batch UI-free so product behavior stays stable.
