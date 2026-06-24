@@ -65,13 +65,13 @@ function polishSection(section: ReportOutputSection): ReportOutputSection {
   };
 }
 
-export function enhanceReportOutputV3<TReport extends GenericReport>(
-  report: TReport,
-): TReport & ReportOutputV3 {
-  const existing = report as TReport & Partial<ReportOutputV3>;
+export function enhanceReportOutputV3(
+  report: GenericReport,
+): GenericReport & ReportOutputV3 {
+  const existing = report as GenericReport & Partial<ReportOutputV3>;
 
   if (existing.outputV3Version === "v3-persian-sectioned-preview") {
-    return existing as TReport & ReportOutputV3;
+    return existing as GenericReport & ReportOutputV3;
   }
 
   const v2Report = enhanceReportOutputV2(report) as EnhancedV2Report;

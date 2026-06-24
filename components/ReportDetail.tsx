@@ -10,6 +10,7 @@ import type { AstrologyReport } from "@/types/astro";
 
 import { ReportV2Sections } from "@/components/ReportV2Sections";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
+import { ChartEngineReportBadge } from "@/components/ChartEngineReportBadge";
 type ReportDetailProps = {
   reportId: string;
 };
@@ -140,6 +141,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     return (
       <section className="grid">
         
+      <ChartEngineReportBadge report={report} />
       <ReportV3Experience report={report} />
       <ReportV2Sections report={report} />
 <div className="card">

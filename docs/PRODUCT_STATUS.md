@@ -302,3 +302,17 @@ Updated estimates:
 | Report experience V3 | 58% |
 | Demo readiness | 87% |
 | Commercial MVP overall | 68% |
+
+
+## Chart engine integration path update
+
+Generated reports now pass through the chart engine metadata path before saving. The active engine is fixture-based and ready for product flow validation.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Chart engine integration path | 62% |
+| Real calculation readiness | 35% |
+| Report generation flow | 70% |
+| Commercial MVP overall | 70% |

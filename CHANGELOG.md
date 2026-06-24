@@ -472,3 +472,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added visible ReportV3Experience component.
 - Connected report detail to V3 display.
 - Added report experience V3 documentation and checker.
+
+## v0.1.39 - Chart engine integration path
+
+- Added fixture chart engine.
+- Switched chart engine factory to fixture engine.
+- Added chart engine report metadata.
+- Connected generated report saving to chart engine metadata attachment.
+- Added visible chart engine report badge.
+- Added chart engine integration documentation and checker.
