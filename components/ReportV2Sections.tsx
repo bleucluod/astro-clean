@@ -1,4 +1,8 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
+import { createReportV2PlainText } from "@/lib/report-output/report-v2-export";
 import type { ReportOutputSection } from "@/types/report-output";
 
 type ReportWithSections = {
@@ -37,17 +41,56 @@ function getSectionIntro(kind: string) {
   }
 }
 
+function createDownloadFileName() {
+  const datePart = new Date().toISOString().slice(0, 10);
+
+  return `halleus-report-v2-${datePart}.txt`;
+}
+
 export function ReportV2Sections({ report }: ReportV2SectionsProps) {
-  if (!report || typeof report !== "object") {
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+
+  const enhancedReport = useMemo(() => {
+    if (!report || typeof report !== "object") {
+      return null;
+    }
+
+    return enhanceReportOutputV2(report as Record<string, unknown>);
+  }, [report]);
+
+  if (!enhancedReport) {
     return null;
   }
 
-  const enhancedReport = enhanceReportOutputV2(report as Record<string, unknown>);
   const sectionedReport = enhancedReport as ReportWithSections;
   const sections = sectionedReport.interpretationSections ?? [];
 
   if (!Array.isArray(sections) || sections.length === 0) {
     return null;
+  }
+
+  const plainText = createReportV2PlainText(enhancedReport);
+
+  async function copyText() {
+    try {
+      await navigator.clipboard.writeText(plainText);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+  }
+
+  function downloadText() {
+    const blob = new Blob([plainText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = createDownloadFileName();
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -60,6 +103,26 @@ export function ReportV2Sections({ report }: ReportV2SectionsProps) {
         این نسخه خروجی را به بخش‌های روشن تقسیم می‌کند تا گزارش قابل خواندن‌تر،
         قابل exportتر و آماده اتصال به موتور واقعی چارت باشد.
       </p>
+
+      <div className="actions">
+        <button className="button" onClick={downloadText} type="button">
+          دانلود TXT نسخه V2
+        </button>
+
+        <button className="button secondary" onClick={copyText} type="button">
+          کپی متن V2
+        </button>
+      </div>
+
+      {copyState === "copied" ? (
+        <p className="form-hint">متن نسخه V2 کپی شد.</p>
+      ) : null}
+
+      {copyState === "failed" ? (
+        <p className="form-hint">
+          کپی مستقیم ممکن نشد. از دانلود TXT استفاده کن.
+        </p>
+      ) : null}
 
       <div className="tag-list">
         <span>Version: {sectionedReport.outputVersion ?? "v2-sectioned-preview"}</span>

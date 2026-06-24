@@ -441,3 +441,10 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added fallback enhancement so existing reports can render V2 sections.
 - Added V2 plain text export helper.
 - Added report output V2 UX documentation and checker.
+
+## v0.1.35 - Report output V2 actions
+
+- Added TXT download action for sectioned report output.
+- Added copy-to-clipboard action for sectioned report output.
+- Improved visible report utility for new and existing reports.
+- Added report output V2 actions documentation and checker.

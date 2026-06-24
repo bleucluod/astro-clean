@@ -246,3 +246,17 @@ Updated estimates:
 | Report output V2 readiness | 62% |
 | Demo readiness | 78% |
 | Commercial MVP overall | 63% |
+
+
+## Report output V2 actions update
+
+Report Output V2 now supports TXT download and copy actions directly from the report detail experience.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Visible report experience | 66% |
+| Report export usefulness | 70% |
+| Demo readiness | 82% |
+| Commercial MVP overall | 64% |
