@@ -274,3 +274,17 @@ Updated estimates:
 | Report readability | 68% |
 | Demo readiness | 84% |
 | Commercial MVP overall | 65% |
+
+
+## Persian language system update
+
+Halleus now has a centralized Persian language layer, controlled Finglish phrase map, copy registry, language readiness report, and a public language page.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Persianization foundation | 62% |
+| Product copy consistency | 55% |
+| UTF-8 safety readiness | 82% |
+| Commercial MVP overall | 66% |

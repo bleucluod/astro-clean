@@ -455,3 +455,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added section selector for sectioned report output.
 - Added word count, reading time, section count, and quality score display.
 - Added report output V2 readability documentation and checker.
+
+## v0.1.37 - Persian language system
+
+- Added language types and readiness report.
+- Added controlled Finglish phrase map and converter foundation.
+- Added Persian product copy registry.
+- Added public language system page.
+- Added product surface language link.
+- Added Persian language system documentation and checker.
