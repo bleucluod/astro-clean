@@ -17,6 +17,8 @@ const initialForm: BirthInput = {
   birthCountry: "ایران",
 };
 
+const todayIsoDate = new Date().toISOString().slice(0, 10);
+
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
@@ -37,7 +39,14 @@ export function ChartForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextReport = createMockReport(form);
+    const normalizedForm: BirthInput = {
+      ...form,
+      name: (form.name ?? "").trim(),
+      birthCity: form.birthCity.trim() || initialForm.birthCity,
+      birthCountry: initialForm.birthCountry,
+    };
+
+    const nextReport = createMockReport(normalizedForm);
 
     saveReport(nextReport);
     notifyLocalDataChanged();
@@ -69,6 +78,7 @@ export function ChartForm() {
           <label className="field">
             <span>نام اختیاری</span>
             <input
+              autoComplete="name"
               value={form.name}
               onChange={(event) => updateField("name", event.target.value)}
               placeholder="مثلاً آراز"
@@ -80,6 +90,8 @@ export function ChartForm() {
             <input
               required
               type="date"
+              max={todayIsoDate}
+              autoComplete="bday"
               value={form.birthDate}
               onChange={(event) => updateField("birthDate", event.target.value)}
             />
@@ -99,6 +111,7 @@ export function ChartForm() {
             <span>شهر تولد</span>
             <input
               required
+              autoComplete="address-level2"
               value={form.birthCity}
               onChange={(event) => updateField("birthCity", event.target.value)}
               placeholder="مثلاً تهران"
@@ -110,6 +123,7 @@ export function ChartForm() {
             <input
               required
               readOnly
+              autoComplete="country-name"
               value={form.birthCountry}
               onChange={(event) =>
                 updateField("birthCountry", event.target.value)
