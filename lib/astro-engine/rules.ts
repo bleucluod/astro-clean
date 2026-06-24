@@ -28,16 +28,16 @@ const pointWeights: Record<EngineChartPoint, number> = {
 };
 
 const elementThemes: Record<AstroElement, string> = {
-  fire: "انرژی آتشی می‌تواند در زبان نمادین به حرکت، شروع، شهامت و بیان مستقیم اشاره کند.",
-  earth: "انرژی خاکی می‌تواند در زبان نمادین به ثبات، بدن، عمل‌گرایی و نیاز به امنیت اشاره کند.",
-  air: "انرژی هوایی می‌تواند در زبان نمادین به فکر، ارتباط، مشاهده و جابه‌جایی ذهنی اشاره کند.",
-  water: "انرژی آبی می‌تواند در زبان نمادین به احساس، حافظه، همدلی و پردازش درونی اشاره کند.",
+  fire: "Ø§Ù†Ø±Ú˜ÛŒ Ø¢ØªØ´ÛŒ Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¯Ø± Ø²Ø¨Ø§Ù† Ù†Ù…Ø§Ø¯ÛŒÙ† Ø¨Ù‡ Ø­Ø±Ú©ØªØŒ Ø´Ø±ÙˆØ¹ØŒ Ø´Ù‡Ø§Ù…Øª Ùˆ Ø¨ÛŒØ§Ù† Ù…Ø³ØªÙ‚ÛŒÙ… Ø§Ø´Ø§Ø±Ù‡ Ú©Ù†Ø¯.",
+  earth: "Ø§Ù†Ø±Ú˜ÛŒ Ø®Ø§Ú©ÛŒ Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¯Ø± Ø²Ø¨Ø§Ù† Ù†Ù…Ø§Ø¯ÛŒÙ† Ø¨Ù‡ Ø«Ø¨Ø§ØªØŒ Ø¨Ø¯Ù†ØŒ Ø¹Ù…Ù„â€ŒÚ¯Ø±Ø§ÛŒÛŒ Ùˆ Ù†ÛŒØ§Ø² Ø¨Ù‡ Ø§Ù…Ù†ÛŒØª Ø§Ø´Ø§Ø±Ù‡ Ú©Ù†Ø¯.",
+  air: "Ø§Ù†Ø±Ú˜ÛŒ Ù‡ÙˆØ§ÛŒÛŒ Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¯Ø± Ø²Ø¨Ø§Ù† Ù†Ù…Ø§Ø¯ÛŒÙ† Ø¨Ù‡ ÙÚ©Ø±ØŒ Ø§Ø±ØªØ¨Ø§Ø·ØŒ Ù…Ø´Ø§Ù‡Ø¯Ù‡ Ùˆ Ø¬Ø§Ø¨Ù‡â€ŒØ¬Ø§ÛŒÛŒ Ø°Ù‡Ù†ÛŒ Ø§Ø´Ø§Ø±Ù‡ Ú©Ù†Ø¯.",
+  water: "Ø§Ù†Ø±Ú˜ÛŒ Ø¢Ø¨ÛŒ Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¯Ø± Ø²Ø¨Ø§Ù† Ù†Ù…Ø§Ø¯ÛŒÙ† Ø¨Ù‡ Ø§Ø­Ø³Ø§Ø³ØŒ Ø­Ø§ÙØ¸Ù‡ØŒ Ù‡Ù…Ø¯Ù„ÛŒ Ùˆ Ù¾Ø±Ø¯Ø§Ø²Ø´ Ø¯Ø±ÙˆÙ†ÛŒ Ø§Ø´Ø§Ø±Ù‡ Ú©Ù†Ø¯.",
 };
 
 const modalityThemes: Record<AstroModality, string> = {
-  cardinal: "کیفیت آغازگر می‌تواند به میل به شروع کردن، جهت دادن و حرکت دادن فضا اشاره کند.",
-  fixed: "کیفیت ثابت می‌تواند به پایداری، تمرکز، مقاومت در برابر تغییر و حفظ انرژی اشاره کند.",
-  mutable: "کیفیت منعطف می‌تواند به سازگاری، تغییر زاویه دید و حرکت میان چند حالت اشاره کند.",
+  cardinal: "Ú©ÛŒÙÛŒØª Ø¢ØºØ§Ø²Ú¯Ø± Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¨Ù‡ Ù…ÛŒÙ„ Ø¨Ù‡ Ø´Ø±ÙˆØ¹ Ú©Ø±Ø¯Ù†ØŒ Ø¬Ù‡Øª Ø¯Ø§Ø¯Ù† Ùˆ Ø­Ø±Ú©Øª Ø¯Ø§Ø¯Ù† ÙØ¶Ø§ Ø§Ø´Ø§Ø±Ù‡ Ú©Ù†Ø¯.",
+  fixed: "Ú©ÛŒÙÛŒØª Ø«Ø§Ø¨Øª Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¨Ù‡ Ù¾Ø§ÛŒØ¯Ø§Ø±ÛŒØŒ ØªÙ…Ø±Ú©Ø²ØŒ Ù…Ù‚Ø§ÙˆÙ…Øª Ø¯Ø± Ø¨Ø±Ø§Ø¨Ø± ØªØºÛŒÛŒØ± Ùˆ Ø­ÙØ¸ Ø§Ù†Ø±Ú˜ÛŒ Ø§Ø´Ø§Ø±Ù‡ Ú©Ù†Ø¯.",
+  mutable: "Ú©ÛŒÙÛŒØª Ù…Ù†Ø¹Ø·Ù Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¨Ù‡ Ø³Ø§Ø²Ú¯Ø§Ø±ÛŒØŒ ØªØºÛŒÛŒØ± Ø²Ø§ÙˆÛŒÙ‡ Ø¯ÛŒØ¯ Ùˆ Ø­Ø±Ú©Øª Ù…ÛŒØ§Ù† Ú†Ù†Ø¯ Ø­Ø§Ù„Øª Ø§Ø´Ø§Ø±Ù‡ Ú©Ù†Ø¯.",
 };
 
 function getChartSigns(chart: EngineChartInput): ZodiacSymbolProfile[] {
@@ -57,8 +57,8 @@ function makePointInsight(
     id: `engine-v0-${point}-${sign.key}`,
     category: pointCategories[point],
     tone: "reflective",
-    title: `${pointLabel} در ${sign.faName}`,
-    summary: `${pointLabel} در ${sign.faName} به شکل نمادین می‌تواند این الگو را پررنگ کند: ${sign.symbolicSummary} این برداشت قطعی یا علمی نیست و بیشتر برای خودشناسی تفسیری استفاده می‌شود.`,
+    title: `${pointLabel} Ø¯Ø± ${sign.faName}`,
+    summary: `${pointLabel} Ø¯Ø± ${sign.faName} Ø¨Ù‡ Ø´Ú©Ù„ Ù†Ù…Ø§Ø¯ÛŒÙ† Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø§ÛŒÙ† Ø§Ù„Ú¯Ùˆ Ø±Ø§ Ù¾Ø±Ø±Ù†Ú¯ Ú©Ù†Ø¯: ${sign.symbolicSummary} Ø§ÛŒÙ† Ø¨Ø±Ø¯Ø§Ø´Øª Ù‚Ø·Ø¹ÛŒ ÛŒØ§ Ø¹Ù„Ù…ÛŒ Ù†ÛŒØ³Øª Ùˆ Ø¨ÛŒØ´ØªØ± Ø¨Ø±Ø§ÛŒ Ø®ÙˆØ¯Ø´Ù†Ø§Ø³ÛŒ ØªÙØ³ÛŒØ±ÛŒ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯.`,
     keywords: sign.keywords,
     weight: pointWeights[point],
     source: {
@@ -119,9 +119,9 @@ function makeElementBalanceInsight(chart: EngineChartInput): EngineInsight | nul
     id: `engine-v0-balance-element-${dominantElement}`,
     category: "balance",
     tone: "supportive",
-    title: `تأکید عنصر ${elementLabels[dominantElement]}`,
-    summary: `${elementThemes[dominantElement]} این فقط یک جمع‌بندی نمادین از چند نقطه اصلی چارت است، نه نتیجه‌گیری قطعی درباره شخصیت.`,
-    keywords: [elementLabels[dominantElement], "تعادل", "الگوی غالب"],
+    title: `ØªØ£Ú©ÛŒØ¯ Ø¹Ù†ØµØ± ${elementLabels[dominantElement]}`,
+    summary: `${elementThemes[dominantElement]} Ø§ÛŒÙ† ÙÙ‚Ø· ÛŒÚ© Ø¬Ù…Ø¹â€ŒØ¨Ù†Ø¯ÛŒ Ù†Ù…Ø§Ø¯ÛŒÙ† Ø§Ø² Ú†Ù†Ø¯ Ù†Ù‚Ø·Ù‡ Ø§ØµÙ„ÛŒ Ú†Ø§Ø±Øª Ø§Ø³ØªØŒ Ù†Ù‡ Ù†ØªÛŒØ¬Ù‡â€ŒÚ¯ÛŒØ±ÛŒ Ù‚Ø·Ø¹ÛŒ Ø¯Ø±Ø¨Ø§Ø±Ù‡ Ø´Ø®ØµÛŒØª.`,
+    keywords: [elementLabels[dominantElement], "ØªØ¹Ø§Ø¯Ù„", "Ø§Ù„Ú¯ÙˆÛŒ ØºØ§Ù„Ø¨"],
     weight: 60,
     source: {
       rule: "dominant-element",
@@ -146,9 +146,9 @@ function makeModalityBalanceInsight(chart: EngineChartInput): EngineInsight | nu
     id: `engine-v0-balance-modality-${dominantModality}`,
     category: "growth",
     tone: "reflective",
-    title: `کیفیت ${modalityLabels[dominantModality]}`,
-    summary: `${modalityThemes[dominantModality]} این متن برای نگاه تفسیری و نمادین است و نباید به عنوان پیش‌بینی یا حکم قطعی خوانده شود.`,
-    keywords: [modalityLabels[dominantModality], "ریتم", "الگوی رفتاری"],
+    title: `Ú©ÛŒÙÛŒØª ${modalityLabels[dominantModality]}`,
+    summary: `${modalityThemes[dominantModality]} Ø§ÛŒÙ† Ù…ØªÙ† Ø¨Ø±Ø§ÛŒ Ù†Ú¯Ø§Ù‡ ØªÙØ³ÛŒØ±ÛŒ Ùˆ Ù†Ù…Ø§Ø¯ÛŒÙ† Ø§Ø³Øª Ùˆ Ù†Ø¨Ø§ÛŒØ¯ Ø¨Ù‡ Ø¹Ù†ÙˆØ§Ù† Ù¾ÛŒØ´â€ŒØ¨ÛŒÙ†ÛŒ ÛŒØ§ Ø­Ú©Ù… Ù‚Ø·Ø¹ÛŒ Ø®ÙˆØ§Ù†Ø¯Ù‡ Ø´ÙˆØ¯.`,
+    keywords: [modalityLabels[dominantModality], "Ø±ÛŒØªÙ…", "Ø§Ù„Ú¯ÙˆÛŒ Ø±ÙØªØ§Ø±ÛŒ"],
     weight: 50,
     source: {
       rule: "dominant-modality",
@@ -179,6 +179,6 @@ export function generateEngineResult(chart: EngineChartInput): EngineResult {
     generatedAt: new Date().toISOString(),
     insights: generateStructuredInsights(chart),
     safetyNote:
-      "این خروجی یک برداشت نمادین و تفسیری از چارت است و نباید به عنوان حقیقت علمی، پیش‌بینی قطعی یا توصیه پزشکی، حقوقی و مالی استفاده شود.",
+      "Ø§ÛŒÙ† Ø®Ø±ÙˆØ¬ÛŒ ÛŒÚ© Ø¨Ø±Ø¯Ø§Ø´Øª Ù†Ù…Ø§Ø¯ÛŒÙ† Ùˆ ØªÙØ³ÛŒØ±ÛŒ Ø§Ø² Ú†Ø§Ø±Øª Ø§Ø³Øª Ùˆ Ù†Ø¨Ø§ÛŒØ¯ Ø¨Ù‡ Ø¹Ù†ÙˆØ§Ù† Ø­Ù‚ÛŒÙ‚Øª Ø¹Ù„Ù…ÛŒØŒ Ù¾ÛŒØ´â€ŒØ¨ÛŒÙ†ÛŒ Ù‚Ø·Ø¹ÛŒ ÛŒØ§ ØªÙˆØµÛŒÙ‡ Ù¾Ø²Ø´Ú©ÛŒØŒ Ø­Ù‚ÙˆÙ‚ÛŒ Ùˆ Ù…Ø§Ù„ÛŒ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ø´ÙˆØ¯.",
   };
 }
