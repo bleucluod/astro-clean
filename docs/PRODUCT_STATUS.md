@@ -65,3 +65,17 @@ Updated estimates:
 | Storage architecture | 55% |
 | Database readiness | 25% |
 | Account readiness | 12% |
+
+## Repository-backed reports update
+
+The reports list and report detail now use the report repository facade instead of direct localStorage calls.
+
+Current behavior remains local-preview storage, but the UI path is now closer to a future database-backed account model.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Storage architecture | 65% |
+| Database readiness | 30% |
+| Account readiness | 15% |

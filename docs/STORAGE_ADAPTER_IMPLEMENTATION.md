@@ -25,3 +25,12 @@ That will allow this path:
 Refactor one page at a time to use the repository layer.
 
 Start with the reports list, then report detail, then chart creation.
+
+## Repository-backed reports
+
+The first UI surfaces now call the repository layer:
+
+- reports list
+- report detail
+
+This keeps the current local-preview behavior while reducing direct localStorage coupling in product UI.

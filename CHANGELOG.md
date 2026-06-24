@@ -331,3 +331,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added report-record migration helpers.
 - Added missing note storage helper exports when needed.
 - Kept this batch UI-free so current behavior stays stable.
+
+
+## v0.1.22 - Repository-backed reports
+
+- Moved reports list reads, deletes, favorites, clear, import, and export toward the repository layer.
+- Moved report detail loading and note saving toward the repository layer.
+- Preserved the current UI and local-preview behavior.
+- Kept backward-compatible import support for older report JSON payloads.

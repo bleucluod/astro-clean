@@ -1,42 +1,34 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import { createShareText } from "@/lib/astrology/share-text";
-import {
-  clearFavoriteReportIds,
-  loadFavoriteReportIds,
-  toggleFavoriteReportId,
-} from "@/lib/storage/favorite-reports-storage";
-import {
-  deleteReportNote,
-  loadReportNotes,
-  type ReportNotesMap,
-} from "@/lib/storage/report-notes-storage";
-import {
-  clearReports,
-  deleteReport,
-  loadReports,
-  saveReport,
-} from "@/lib/storage/reports-storage";
+import { decodeReportRecords } from "@/lib/storage/report-record-migration";
+import { createReportRecord } from "@/lib/storage/report-records";
+import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
+import type { ReportRecord } from "@/types/storage";
 
 type SortMode = "newest" | "oldest";
 type ReportFilterMode = "all" | "favorites";
+type ReportNotesMap = Record<string, string>;
 
 type ReportsArchivePayload = {
-  app: "astro-clean";
+  app: "halleus";
   type: "reports-archive";
-  version: 1;
+  version: 2;
   exportedAt: string;
   filterMode: ReportFilterMode;
   sortMode: SortMode;
   searchTerm: string;
   reports: AstrologyReport[];
   notes: Record<string, string>;
+  records: ReportRecord[];
 };
+
+const reportRepository = getReportRepository();
 
 function downloadArchiveFile(
   fileName: string,
@@ -60,7 +52,7 @@ function downloadArchiveFile(
 }
 
 function createArchiveFileName(extension: "json" | "txt") {
-  return `astro-clean-reports-${new Date().toISOString().slice(0, 10)}.${extension}`;
+  return `halleus-reports-${new Date().toISOString().slice(0, 10)}.${extension}`;
 }
 
 function createReportsNotesSubset(
@@ -77,20 +69,29 @@ function createReportsNotesSubset(
 function createReportsArchivePayload(
   reports: AstrologyReport[],
   reportNotes: ReportNotesMap,
+  favoriteReportIds: string[],
   filterMode: ReportFilterMode,
   sortMode: SortMode,
   searchTerm: string,
 ): ReportsArchivePayload {
   return {
-    app: "astro-clean",
+    app: "halleus",
     type: "reports-archive",
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     filterMode,
     sortMode,
     searchTerm,
     reports,
     notes: createReportsNotesSubset(reports, reportNotes),
+    records: reports.map((report) =>
+      createReportRecord(report, {
+        favorite: favoriteReportIds.includes(report.id),
+        note: reportNotes[report.id],
+        source: "local-preview",
+        visibility: "private",
+      }),
+    ),
   };
 }
 
@@ -117,6 +118,7 @@ function createReportsArchiveText(
 }
 
 function notifyLocalDataChanged() {
+  window.dispatchEvent(new Event("halleus-data-changed"));
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
 
@@ -171,6 +173,20 @@ function extractReportsFromImportPayload(payload: unknown): AstrologyReport[] {
   return [];
 }
 
+function createReportNotesMap(records: ReportRecord[]) {
+  const notes: ReportNotesMap = {};
+
+  for (const record of records) {
+    const note = record.note?.trim();
+
+    if (note) {
+      notes[record.id] = note;
+    }
+  }
+
+  return notes;
+}
+
 function reportMatchesSearch(
   report: AstrologyReport,
   reportNote: string,
@@ -221,46 +237,52 @@ export function ReportsList() {
     return filteredReports;
   }, [favoriteReportIds, filterMode, reportNotes, reports, searchTerm, sortMode]);
 
-  function refreshReports() {
-    setReports(loadReports());
-    setFavoriteReportIds(loadFavoriteReportIds());
-    setReportNotes(loadReportNotes());
+  async function refreshReports() {
+    const records = await reportRepository.listReports();
+
+    setReports(records.map((record) => record.report));
+    setFavoriteReportIds(
+      records.filter((record) => record.favorite).map((record) => record.id),
+    );
+    setReportNotes(createReportNotesMap(records));
     setIsReady(true);
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(refreshReports, 0);
+    const timer = window.setTimeout(() => {
+      void refreshReports();
+    }, 0);
 
     return () => {
       window.clearTimeout(timer);
     };
   }, []);
 
-  function handleToggleFavorite(reportId: string) {
-    const isNowFavorite = toggleFavoriteReportId(reportId);
-    refreshReports();
+  async function handleToggleFavorite(reportId: string) {
+    const shouldBeFavorite = !favoriteReportIds.includes(reportId);
+
+    await reportRepository.setFavorite(reportId, shouldBeFavorite);
+    await refreshReports();
     notifyLocalDataChanged();
-    setMessage(isNowFavorite ? "گزارش ستاره‌دار شد." : "گزارش از علاقه‌مندی‌ها حذف شد.");
+    setMessage(
+      shouldBeFavorite
+        ? "گزارش ستاره‌دار شد."
+        : "گزارش از علاقه‌مندی‌ها حذف شد.",
+    );
   }
 
-  function handleDeleteReport(reportId: string) {
-    deleteReport(reportId);
-    deleteReportNote(reportId);
-
-    if (favoriteReportIds.includes(reportId)) {
-      toggleFavoriteReportId(reportId);
-    }
+  async function handleDeleteReport(reportId: string) {
+    await reportRepository.deleteReport(reportId);
 
     notifyLocalDataChanged();
-    refreshReports();
+    await refreshReports();
     setMessage("گزارش انتخاب‌شده حذف شد.");
   }
 
-  function handleClearReports() {
-    clearReports();
-    clearFavoriteReportIds();
+  async function handleClearReports() {
+    await reportRepository.clearReports();
     notifyLocalDataChanged();
-    refreshReports();
+    await refreshReports();
     setSearchInput("");
     setFilterMode("all");
     setMessage("همه گزارش‌ها و علاقه‌مندی‌ها پاک شدند.");
@@ -278,6 +300,7 @@ export function ReportsList() {
         createReportsArchivePayload(
           reports,
           reportNotes,
+          favoriteReportIds,
           "all",
           sortMode,
           "",
@@ -301,32 +324,30 @@ export function ReportsList() {
 
     try {
       const payload = JSON.parse(await file.text()) as unknown;
-      const importedReports = extractReportsFromImportPayload(payload);
+      let importedRecords = decodeReportRecords(payload);
 
-      if (importedReports.length === 0) {
+      if (importedRecords.length === 0) {
+        importedRecords = extractReportsFromImportPayload(payload).map((report) =>
+          createReportRecord(report, {
+            source: "local-preview",
+            visibility: "private",
+          }),
+        );
+      }
+
+      if (importedRecords.length === 0) {
         setMessage("No valid reports found.");
         return;
       }
 
-      const existingIds = new Set(loadReports().map((report) => report.id));
-      let importedCount = 0;
-
-      for (const report of importedReports) {
-        if (existingIds.has(report.id)) {
-          continue;
-        }
-
-        saveReport(report);
-        existingIds.add(report.id);
-        importedCount += 1;
-      }
+      const result = await reportRepository.importReports(importedRecords);
 
       notifyLocalDataChanged();
-      refreshReports();
+      await refreshReports();
 
       setMessage(
-        importedCount > 0
-          ? `Imported ${importedCount.toLocaleString("en-US")} report(s).`
+        result.imported > 0
+          ? `Imported ${result.imported.toLocaleString("en-US")} report(s).`
           : "No new reports imported.",
       );
     } catch {
@@ -361,6 +382,7 @@ export function ReportsList() {
         createReportsArchivePayload(
           visibleReports,
           reportNotes,
+          favoriteReportIds,
           filterMode,
           sortMode,
           searchTerm,

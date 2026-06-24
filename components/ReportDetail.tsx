@@ -1,23 +1,21 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import { createShareText } from "@/lib/astrology/share-text";
-import { loadFavoriteReportIds } from "@/lib/storage/favorite-reports-storage";
-import {
-  loadReportNote,
-  saveReportNote,
-} from "@/lib/storage/report-notes-storage";
-import { loadReports } from "@/lib/storage/reports-storage";
+import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
 
 type ReportDetailProps = {
   reportId: string;
 };
 
+const reportRepository = getReportRepository();
+
 function notifyLocalDataChanged() {
+  window.dispatchEvent(new Event("halleus-data-changed"));
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
 
@@ -37,7 +35,6 @@ function downloadJsonFile(fileName: string, data: unknown) {
 
   URL.revokeObjectURL(url);
 }
-
 
 function downloadTextFile(fileName: string, data: string) {
   const blob = new Blob([data], {
@@ -64,26 +61,38 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    function loadReport() {
-      const savedReports = loadReports();
-      const selectedReport =
-        savedReports.find((item) => item.id === reportId) ?? null;
+    let isActive = true;
 
-      setReport(selectedReport);
-      setNote(loadReportNote(reportId));
-      setIsFavorite(loadFavoriteReportIds().includes(reportId));
+    async function loadReport() {
+      const selectedRecord = await reportRepository.getReport(reportId);
+
+      if (!isActive) {
+        return;
+      }
+
+      setReport(selectedRecord?.report ?? null);
+      setNote(selectedRecord?.note ?? "");
+      setIsFavorite(selectedRecord?.favorite ?? false);
       setIsReady(true);
     }
 
-    const timer = window.setTimeout(loadReport, 0);
+    const timer = window.setTimeout(() => {
+      void loadReport();
+    }, 0);
 
     return () => {
+      isActive = false;
       window.clearTimeout(timer);
     };
   }, [reportId]);
 
-  function handleSaveNote() {
-    saveReportNote(reportId, note);
+  async function handleSaveNote() {
+    const updatedRecord = await reportRepository.setNote(reportId, note);
+
+    if (updatedRecord) {
+      setNote(updatedRecord.note ?? "");
+    }
+
     notifyLocalDataChanged();
     setMessage(note.trim() ? "یادداشت ذخیره شد." : "یادداشت پاک شد.");
   }
@@ -93,10 +102,10 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       return;
     }
 
-    downloadJsonFile(`astro-clean-report-${report.id.slice(0, 8)}.json`, {
-      app: "astro-clean",
+    downloadJsonFile(`halleus-report-${report.id.slice(0, 8)}.json`, {
+      app: "halleus",
       type: "single-report",
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       report,
       note,
@@ -118,7 +127,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     }
 
     downloadTextFile(
-      `astro-clean-report-${report.id.slice(0, 8)}.txt`,
+      `halleus-report-${report.id.slice(0, 8)}.txt`,
       textLines.join("\n"),
     );
 
@@ -159,9 +168,8 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
         <h1>جزئیات گزارش ذخیره‌شده</h1>
 
         <p>
-          این صفحه گزارش را از localStorage همین مرورگر می‌خواند. در نسخه‌های
-          بعدی، اگر backend و حساب کاربری اضافه شود، این نوع صفحه می‌تواند به
-          لینک دائمی و قابل اشتراک تبدیل شود.
+          این صفحه گزارش را از storage layer محصول می‌خواند. فعلاً driver محلی
+          فعال است، اما مسیر برای backend و حساب کاربری آماده‌تر شده است.
         </p>
 
         <div className="actions">
@@ -187,8 +195,8 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
         <h2>یادداشت من درباره این گزارش</h2>
 
         <p>
-          این یادداشت فقط در مرورگر همین دستگاه ذخیره می‌شود و فعلاً به هیچ
-          سروری ارسال نمی‌شود.
+          این یادداشت فعلاً در storage محلی همین دستگاه ذخیره می‌شود و در فاز
+          حساب کاربری می‌تواند به storage دیتابیس منتقل شود.
         </p>
 
         <label className="field">
