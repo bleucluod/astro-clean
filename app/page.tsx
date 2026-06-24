@@ -1,62 +1,62 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 
 export const metadata: Metadata = {
-  title: "Astro Clean | چارت تولد و تحلیل نمادین فارسی",
+  title: "Astro Clean | چارت تولد و گزارش نمادین فارسی",
   description:
-    "Astro Clean یک پلتفرم فارسی برای ساخت چارت تولد، گزارش شخصی و تجربه نمادین آسترولوژی است.",
+    "Astro Clean یک فضای فارسی برای ساخت چارت تولد، دریافت گزارش نمادین، ذخیره گزارش‌ها و مرور مسیر شخصی است.",
 };
 
 const mvpFeatures = [
   {
-    title: "گزارش شخصی ذخیره‌شده",
+    title: "گزارش تولد قابل نگهداری",
     description:
-      "گزارش‌ها در مرورگر ذخیره می‌شوند و می‌توانی بعداً دوباره آن‌ها را ببینی، جستجو کنی یا یادداشت اضافه کنی.",
+      "بعد از وارد کردن اطلاعات تولد، یک گزارش نمادین فارسی می‌سازی که می‌توانی ذخیره‌اش کنی، دوباره بخوانی و با یادداشت شخصی کامل‌ترش کنی.",
   },
   {
-    title: "آرشیو، علاقه‌مندی و یادداشت",
+    title: "آرشیو شخصی گزارش‌ها",
     description:
-      "برای هر گزارش صفحه جزئیات، یادداشت شخصی، ستاره‌دار کردن و خروجی JSON تکی داریم.",
+      "گزارش‌هایت را جستجو کن، موارد مهم را ستاره‌دار کن، برایشان یادداشت بنویس و هر وقت خواستی خروجی بگیر.",
   },
   {
-    title: "شفافیت داده",
+    title: "شفاف، آرام و بدون ادعای قطعی",
     description:
-      "این نسخه هنوز backend ندارد؛ داده‌ها فعلاً فقط روی مرورگر همین دستگاه ذخیره می‌شوند.",
+      "Astro Clean آسترولوژی را به عنوان زبان نمادین و خودشناسانه ارائه می‌کند؛ نه پیش‌بینی قطعی و نه توصیه تخصصی.",
   },
 ];
 
 const demoSteps = [
   {
-    title: "ساخت چارت mock",
-    description: "اطلاعات تولد را وارد کن و یک گزارش نمادین فارسی بساز.",
+    title: "اطلاعات تولد را وارد کن",
+    description: "نام، تاریخ، ساعت و شهر تولد را ثبت کن تا مسیر گزارش شروع شود.",
   },
   {
-    title: "رفتن به جزئیات گزارش",
-    description: "بعد از ساخت، مستقیم وارد صفحه اختصاصی همان گزارش می‌شوی.",
+    title: "گزارش نمادین را بخوان",
+    description: "خلاصه، نشانه‌های اصلی و برداشت‌های تفسیری را در یک صفحه مرتب ببین.",
   },
   {
-    title: "یادداشت و علاقه‌مندی",
-    description: "گزارش‌های مهم را ستاره‌دار کن و برایشان یادداشت بنویس.",
+    title: "گزارش‌های مهم را نگه دار",
+    description: "گزارش‌ها را ستاره‌دار کن، روی آن‌ها یادداشت بگذار و بعداً برگرد.",
   },
   {
-    title: "مدیریت داده محلی",
-    description: "از Admin می‌توانی backup بگیری یا داده‌های دمو را پاک کنی.",
+    title: "برای نسخه کامل آماده شو",
+    description: "این نسخه پایه، مسیر موتور واقعی چارت، حساب کاربری و ذخیره امن‌تر را آماده می‌کند.",
   },
 ];
 
 const trustItems = [
-  "تفسیر نمادین، نه پیش‌بینی قطعی",
-  "بدون توصیه پزشکی، مالی یا حقوقی",
-  "ذخیره محلی در مرورگر",
-  "آماده برای فاز public profile در آینده",
+  "تجربه فارسی و ساده",
+  "گزارش نمادین، نه حکم قطعی",
+  "تمرکز روی privacy و کنترل داده",
+  "آماده برای حساب کاربری و دیتابیس",
 ];
 
 const futureAreas = [
-  "چارت واقعی و Rule Engine",
-  "Public profile با consent",
-  "SEO کنترل‌شده برای صفحات عمومی",
-  "AI Naturalization در فاز جداگانه",
+  "موتور واقعی چارت تولد",
+  "اکانت و ذخیره امن گزارش‌ها",
+  "گزارش‌های عمیق‌تر و قابل اشتراک",
+  "متن طبیعی‌تر با لایه هوشمند کنترل‌شده",
 ];
 
 export default function Home() {
@@ -64,25 +64,25 @@ export default function Home() {
     <section className="grid home-page">
       <div className="hero hero-polished">
         <div>
-          <span className="badge">نسخه local reports MVP</span>
+          <span className="badge">Astro Clean Preview</span>
 
-          <h1>چارت تولد، گزارش شخصی و یادداشت‌های نمادین در یک فضای ساده</h1>
+          <h1>چارت تولد فارسی، با گزارش‌هایی که می‌شود به آن‌ها برگشت</h1>
 
           <p>
-            Astro Clean یک تجربه فارسی برای ساخت گزارش نمادین چارت تولد است.
-            این نسخه روی گزارش‌های ذخیره‌شده، داشبورد شخصی، علاقه‌مندی‌ها،
-            یادداشت‌ها و شفافیت داده تمرکز دارد.
+            Astro Clean برای کسی ساخته شده که می‌خواهد چارت تولدش را به زبان
+            فارسی، ساده و قابل نگهداری ببیند؛ گزارشی نمادین بسازد، آن را ذخیره
+            کند، روی برداشت‌هایش یادداشت بگذارد و بعداً دوباره مرورش کند.
           </p>
 
           <SafetyDisclaimer compact />
 
           <div className="actions">
             <Link className="button" href="/chart">
-              ساخت اولین گزارش
+              ساخت گزارش تولد
             </Link>
 
             <Link className="button secondary" href="/reports">
-              دیدن گزارش‌ها
+              آرشیو گزارش‌ها
             </Link>
 
             <Link className="button secondary" href="/privacy">
@@ -92,18 +92,18 @@ export default function Home() {
         </div>
 
         <div className="card hero-card polished-hero-card">
-          <span className="badge">دموی فعلی محصول</span>
+          <span className="badge">مسیر اصلی محصول</span>
 
-          <h2>از فرم تولد تا صفحه گزارش</h2>
+          <h2>از تولد تا گزارش قابل مرور</h2>
 
           <p>
-            گزارش ساخته می‌شود، ذخیره می‌شود، مستقیم وارد صفحه جزئیات می‌شوی و
-            می‌توانی برای آن یادداشت بنویسی یا خروجی JSON بگیری.
+            فرم تولد را پر می‌کنی، گزارش ساخته می‌شود، در آرشیو می‌ماند و هر
+            بار می‌توانی با یادداشت، علاقه‌مندی و خروجی گرفتن به آن برگردی.
           </p>
 
           <div className="mini-card">
             <strong>وضعیت فعلی</strong>
-            <span>Frontend MVP آماده دمو</span>
+            <span>نسخه نمایشی قابل استفاده برای تست مسیر محصول</span>
           </div>
         </div>
       </div>
@@ -115,9 +115,9 @@ export default function Home() {
       </div>
 
       <div className="card">
-        <span className="section-label">مسیر دمو</span>
+        <span className="section-label">چطور کار می‌کند</span>
 
-        <h2>در کمتر از چند دقیقه مسیر اصلی محصول را تست کن</h2>
+        <h2>یک مسیر کوتاه از اطلاعات تولد تا آرشیو شخصی</h2>
 
         <div className="demo-flow polished-demo-flow">
           {demoSteps.map((step, index) => (
@@ -131,21 +131,21 @@ export default function Home() {
 
         <div className="actions">
           <Link className="button" href="/chart">
-            شروع دمو
+            شروع ساخت گزارش
           </Link>
 
           <Link className="button secondary" href="/dashboard">
-            دیدن داشبورد
+            داشبورد من
           </Link>
 
           <Link className="button secondary" href="/admin">
-            مدیریت داده‌های دمو
+            مدیریت داده‌ها
           </Link>
         </div>
       </div>
 
       <div>
-        <span className="section-label">قابلیت‌های فعلی MVP</span>
+        <span className="section-label">چیزی که الان می‌توانی تست کنی</span>
 
         <div className="grid grid-3">
           {mvpFeatures.map((feature) => (
@@ -159,15 +159,15 @@ export default function Home() {
 
       <div className="card home-next-card">
         <div>
-          <span className="section-label">چشم‌انداز آینده</span>
+          <span className="section-label">مسیر بعدی محصول</span>
 
-          <h2>بعد از نسخه دمو، مسیر public و SEO را کنترل‌شده باز می‌کنیم</h2>
+          <h2>این صفحه فقط دمو نیست؛ پایه نسخه حساب‌دار و دیتابیس‌دار است</h2>
 
           <p>
-            مرحله بعدی می‌تواند شامل public account، صفحات قابل ایندکس با رضایت
-            کاربر، keyword generation کنترل‌شده و eventually موتور واقعی چارت
-            باشد. اما این‌ها باید بعد از privacy، consent و کیفیت محتوا طراحی
-            شوند.
+            امروز گزارش‌ها برای تست سریع در مرورگر می‌مانند، اما ساختار محصول
+            برای مسیر جدی‌تر آماده می‌شود: شهر و زمان دقیق‌تر، موتور واقعی چارت،
+            حساب کاربری، ذخیره امن گزارش‌ها و در نهایت گزارش‌های عمیق‌تر و
+            قابل اشتراک.
           </p>
         </div>
 
