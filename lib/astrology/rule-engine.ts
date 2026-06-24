@@ -1,12 +1,11 @@
 ﻿import type { MockChart } from "@/types/astro";
-import type { EngineChartInput, EngineInsight, EngineResult } from "@/lib/astro-engine";
+import type { EngineChartInput, EngineInsight } from "@/lib/astro-engine";
 import { generateEngineResult } from "@/lib/astro-engine";
 
 export type EngineReportContent = {
   summary: string;
   interpretations: string[];
   safetyNote: string;
-  engineResult: EngineResult;
 };
 
 export function createEngineChartInput(chart: MockChart): EngineChartInput {
@@ -43,7 +42,6 @@ export function createReportContent(chart: MockChart): EngineReportContent {
   const engineResult = generateEngineResult(createEngineChartInput(chart));
 
   return {
-    engineResult,
     summary: createSummary(chart),
     interpretations: engineResult.insights.map(formatInsight),
     safetyNote: engineResult.safetyNote,
