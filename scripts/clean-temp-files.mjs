@@ -1,6 +1,10 @@
 import { rm } from "node:fs/promises";
 
 const tempFiles = [
+  "astro_clean_homepage_visual_polish_v1.js",
+  "halleus_homepage_brand_scale_v1.js",
+  "halleus_product_foundation_v1.js",
+  "astro_clean_locations_v1_continue.js",
   "astro_clean_report_output_v1.ps1",
   "astro_clean_report_layout_safe.js",
   "astro_clean_report_ui_export_safe.js",

@@ -295,3 +295,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Normalized public URL references toward halleus.ir.
 - Reduced the homepage hero headline scale.
 - Kept the page structure unchanged.
+
+
+## v0.1.19 - Product foundation
+
+- Finished the first Halleus product foundation pass.
+- Added/resumed Iran city location data.
+- Added optional location metadata to birth input.
+- Connected the chart form to the city datalist.
+- Added a product status document with current progress estimates.
