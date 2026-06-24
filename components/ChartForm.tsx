@@ -109,6 +109,7 @@ export function ChartForm() {
             <span>کشور</span>
             <input
               required
+              readOnly
               value={form.birthCountry}
               onChange={(event) =>
                 updateField("birthCountry", event.target.value)
