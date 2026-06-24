@@ -4,7 +4,6 @@
   EngineChartInput,
   EngineChartPoint,
   EngineInsight,
-  EngineProfile,
   EngineResult,
   InsightCategory,
   ZodiacSymbolProfile,
@@ -212,36 +211,6 @@ function makeModalityBalanceInsight(chart: EngineChartInput): EngineInsight | nu
   };
 }
 
-
-function createEngineProfile(chart: EngineChartInput): EngineProfile {
-  const signs = getChartSigns(chart);
-
-  const elements: Record<AstroElement, number> = {
-    fire: 0,
-    earth: 0,
-    air: 0,
-    water: 0,
-  };
-
-  const modalities: Record<AstroModality, number> = {
-    cardinal: 0,
-    fixed: 0,
-    mutable: 0,
-  };
-
-  for (const sign of signs) {
-    elements[sign.element] += 1;
-    modalities[sign.modality] += 1;
-  }
-
-  return {
-    elements,
-    modalities,
-    dominantElement: findDominantElement(signs),
-    dominantModality: findDominantModality(signs),
-  };
-}
-
 export function generateStructuredInsights(chart: EngineChartInput): EngineInsight[] {
   const pointInsights = (Object.entries(chart) as Array<
     [EngineChartPoint, EngineChartInput[EngineChartPoint]]
@@ -264,7 +233,6 @@ export function generateEngineResult(chart: EngineChartInput): EngineResult {
   return {
     version: "engine-v0",
     generatedAt: new Date().toISOString(),
-    profile: createEngineProfile(chart),
     insights: generateStructuredInsights(chart),
     safetyNote:
       "این خروجی یک برداشت نمادین و تفسیری از چارت است و نباید به عنوان حقیقت علمی، پیش‌بینی قطعی یا توصیه پزشکی، حقوقی و مالی استفاده شود.",

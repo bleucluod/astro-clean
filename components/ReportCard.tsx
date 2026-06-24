@@ -18,27 +18,6 @@ type RenderableInsight = {
   sourceRule?: string;
 };
 
-function getEngineElementLabel(element?: string | null) {
-  const labels: Record<string, string> = {
-    fire: "آتش",
-    earth: "خاک",
-    air: "هوا",
-    water: "آب",
-  };
-
-  return element ? labels[element] ?? element : "نامشخص";
-}
-
-function getEngineModalityLabel(modality?: string | null) {
-  const labels: Record<string, string> = {
-    cardinal: "آغازگر",
-    fixed: "ثابت",
-    mutable: "منعطف",
-  };
-
-  return modality ? labels[modality] ?? modality : "نامشخص";
-}
-
 function getInsightCategoryLabel(category?: string) {
   const labels: Record<string, string> = {
     identity: "\u0647\u0648\u06CC\u062A",
@@ -184,19 +163,6 @@ export function ReportCard({ report }: ReportCardProps) {
               ????? ?????: {formatEngineDate(report.engineResult.generatedAt)}
             </span>
           </div>
-
-          {report.engineResult.profile ? (
-            <div className="engine-profile-grid">
-              <span>
-                عنصر غالب:{" "}
-                {getEngineElementLabel(report.engineResult.profile.dominantElement)}
-              </span>
-              <span>
-                کیفیت غالب:{" "}
-                {getEngineModalityLabel(report.engineResult.profile.dominantModality)}
-              </span>
-            </div>
-          ) : null}
         </div>
       ) : null}
 
