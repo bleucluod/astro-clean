@@ -135,3 +135,17 @@ Updated estimates:
 | Account readiness | 42% |
 | Storage architecture | 80% |
 | Commercial MVP overall | 47% |
+
+
+## Auth readiness update
+
+Auth readiness now has typed driver contracts, preview driver, provider options, and local-to-account migration helpers.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Auth readiness | 45% |
+| Account readiness | 50% |
+| Database readiness | 60% |
+| Commercial MVP overall | 49% |

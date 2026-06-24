@@ -373,3 +373,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added initial Postgres-compatible schema draft and development seed placeholder.
 - Added database readiness checker and wired it into project checks.
 - Added database readiness and migration runbook documentation.
+
+## v0.1.27 - Auth readiness and migration prep
+
+- Added auth provider and auth driver types.
+- Added preview auth driver and auth driver factory.
+- Added auth readiness report and provider options.
+- Added local-preview to account migration helpers.
+- Added auth readiness, provider decision, and migration documentation.
+- Added auth readiness checker and wired it into project checks.
