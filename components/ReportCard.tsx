@@ -13,32 +13,7 @@ type RenderableInsight = {
   title: string;
   body: string;
   badge: string;
-  category?: string;
-  tone?: string;
-  sourceRule?: string;
 };
-
-function getInsightCategoryLabel(category?: string) {
-  const labels: Record<string, string> = {
-    identity: "\u0647\u0648\u06CC\u062A",
-    emotion: "\u0627\u062D\u0633\u0627\u0633",
-    "social-mask": "\u0637\u0627\u0644\u0639",
-    balance: "\u062A\u0639\u0627\u062F\u0644",
-    growth: "\u0631\u0634\u062F",
-  };
-
-  return category ? labels[category] ?? category : "";
-}
-
-function getInsightToneLabel(tone?: string) {
-  const labels: Record<string, string> = {
-    reflective: "\u062A\u0623\u0645\u0644\u06CC",
-    supportive: "\u062D\u0645\u0627\u06CC\u062A\u06CC",
-    cautionary: "\u0627\u062D\u062A\u06CC\u0627\u0637\u06CC",
-  };
-
-  return tone ? labels[tone] ?? tone : "";
-}
 
 function parseInterpretation(item: string) {
   const separatorIndex = item.indexOf(": ");
@@ -63,9 +38,6 @@ function getRenderableInsights(report: AstrologyReport): RenderableInsight[] {
       title: insight.title,
       body: insight.summary,
       badge: report.engineResult?.version ?? "engine-v0",
-      category: insight.category,
-      tone: insight.tone,
-      sourceRule: insight.source.rule,
     }));
   }
 
@@ -77,7 +49,6 @@ function getRenderableInsights(report: AstrologyReport): RenderableInsight[] {
       title: insight.title,
       body: insight.body,
       badge: "legacy",
-      category: "legacy",
     };
   });
 }
@@ -144,28 +115,11 @@ export function ReportCard({ report }: ReportCardProps) {
         {getRenderableInsights(report).map((insight) => (
           <article className="mini-card insight-card" key={insight.id}>
             <div className="insight-card-header">
-              <div className="insight-card-badges">
-                <span className="badge">{insight.badge}</span>
-                {insight.category ? (
-                  <span className="pill">
-                    {getInsightCategoryLabel(insight.category)}
-                  </span>
-                ) : null}
-                {insight.tone ? (
-                  <span className="pill">{getInsightToneLabel(insight.tone)}</span>
-                ) : null}
-              </div>
-
+              <span className="badge">{insight.badge}</span>
               {insight.title ? <strong>{insight.title}</strong> : null}
             </div>
 
             <p>{insight.body}</p>
-
-            {insight.sourceRule ? (
-              <small className="insight-source">
-                \u0642\u0627\u0639\u062F\u0647: {insight.sourceRule}
-              </small>
-            ) : null}
           </article>
         ))}
       </div>

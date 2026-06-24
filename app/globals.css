@@ -1319,16 +1319,3 @@ textarea {
 .insight-card p {
   margin: 0;
 }
-
-
-.insight-card-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  align-items: center;
-}
-
-.insight-source {
-  color: var(--muted);
-  font-size: 0.78rem;
-}
