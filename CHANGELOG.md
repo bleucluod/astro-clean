@@ -434,3 +434,10 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added report V2 section renderer.
 - Connected new report generation to V2 sectioned preview output.
 - Added report output V2 documentation and checker.
+
+## v0.1.34 - Report output V2 UX polish
+
+- Improved V2 report section renderer.
+- Added fallback enhancement so existing reports can render V2 sections.
+- Added V2 plain text export helper.
+- Added report output V2 UX documentation and checker.

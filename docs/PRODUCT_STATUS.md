@@ -232,3 +232,17 @@ Updated estimates:
 | Report composition readiness | 55% |
 | Mock replacement readiness | 48% |
 | Commercial MVP overall | 61% |
+
+
+## Report output V2 UX polish update
+
+Report Output V2 now renders sectioned previews for existing and new reports, with a safer display component and export helper.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Visible report experience | 58% |
+| Report output V2 readiness | 62% |
+| Demo readiness | 78% |
+| Commercial MVP overall | 63% |
