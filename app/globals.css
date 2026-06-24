@@ -13,10 +13,7 @@ body {
     radial-gradient(circle at top right, rgba(128, 90, 213, 0.18), transparent 32rem),
     linear-gradient(180deg, #fbf8ff 0%, #f7f2ff 45%, #ffffff 100%);
   color: #24143d;
-  font-family:
-    Arial,
-    "Segoe UI",
-    sans-serif;
+  font-family: "Segoe UI", "Vazirmatn", "Noto Sans Arabic", "Noto Sans", Tahoma, Arial, sans-serif;
 }
 
 a {
