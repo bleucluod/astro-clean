@@ -190,3 +190,17 @@ Updated estimates:
 | Mock replacement readiness | 28% |
 | Report quality foundation | 32% |
 | Commercial MVP overall | 55% |
+
+
+## Report quality foundation update
+
+Report quality now has section blueprints, tone rules, safety checks, quality checker, style guide, and a public quality page.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Report quality foundation | 55% |
+| Interpretation readiness | 42% |
+| Mock replacement readiness | 35% |
+| Commercial MVP overall | 57% |

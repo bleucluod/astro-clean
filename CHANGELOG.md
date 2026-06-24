@@ -408,3 +408,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added engine readiness page.
 - Added chart engine foundation and strategy documentation.
 - Added chart engine foundation checker and wired it into project checks.
+
+## v0.1.31 - Report quality foundation
+
+- Added report quality types and section blueprint.
+- Added Halleus report tone profile and safety rules.
+- Added report quality checker and report blueprint.
+- Added public report quality page.
+- Added interpretation style guide and report quality documentation.
+- Added report quality checker script and wired it into project checks.

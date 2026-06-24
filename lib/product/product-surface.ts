@@ -60,6 +60,12 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
     description: "وضعیت زیرساخت جایگزینی mock با محاسبه واقعی.",
     status: "preview",
   },
+  {
+    href: "/quality",
+    label: "کیفیت گزارش",
+    description: "استاندارد لحن، بخش‌ها و safety برای گزارش‌های آینده.",
+    status: "preview",
+  },
 ];
 
 export function getProductSurfaceLinks() {
