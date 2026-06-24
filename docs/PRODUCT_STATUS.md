@@ -330,3 +330,17 @@ Updated estimates:
 | Real calculation readiness | 42% |
 | Engine provider clarity | 70% |
 | Commercial MVP overall | 71% |
+
+
+## Astronomy engine prototype update
+
+Halleus now has an optional astronomy-engine prototype adapter. When the package is installed, the chart engine path can calculate geocentric ecliptic longitudes for Sun, Moon, and visible planets, while keeping fixture fallback.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Real calculation prototype | 45% |
+| Chart engine implementation | 52% |
+| Engine fallback safety | 80% |
+| Commercial MVP overall | 73% |

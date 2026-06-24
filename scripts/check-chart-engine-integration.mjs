@@ -14,7 +14,7 @@ const requiredFiles = [
 
 const requiredContent = [
   ["lib/chart-engine/fixture-chart-engine.ts", "createFixtureChartEngine"],
-  ["lib/chart-engine/chart-engine-factory.ts", "createFixtureChartEngine"],
+  ["lib/chart-engine/chart-engine-factory.ts", "getChartEngineDriver"],
   ["types/chart-engine-report.ts", "ChartEngineReportMetadata"],
   ["lib/chart-engine/report-engine-metadata.ts", "attachChartEngineMetadata"],
   ["lib/storage/report-write-service.ts", "attachChartEngineMetadata"],

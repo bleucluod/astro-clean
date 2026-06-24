@@ -489,3 +489,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added public engine decision page.
 - Added provider comparison documentation.
 - Added real chart engine decision checker.
+
+## v0.1.41 - Astronomy engine prototype
+
+- Added optional astronomy-engine package loader.
+- Added zodiac longitude mapping.
+- Added Astronomy Engine prototype driver with fixture fallback.
+- Added real engine prototype page.
+- Added prototype documentation and checker.

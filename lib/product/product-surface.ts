@@ -67,6 +67,12 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
     status: "preview",
   },
   {
+    href: "/engine/real",
+    label: "نمونه موتور واقعی",
+    description: "نمونه اولیه اتصال astronomy-engine به مسیر گزارش.",
+    status: "preview",
+  },
+  {
     href: "/quality",
     label: "کیفیت گزارش",
     description: "استاندارد لحن، بخش‌ها و ایمنی برای گزارش‌های آینده.",
