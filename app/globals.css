@@ -1367,3 +1367,15 @@ textarea {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+
+.field-note {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+
+.field input[readonly] {
+  cursor: not-allowed;
+  opacity: 0.82;
+}
