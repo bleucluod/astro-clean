@@ -121,3 +121,17 @@ Updated estimates:
 | Dashboard usefulness | 55% |
 | Database readiness | 45% |
 | Commercial MVP overall | 45% |
+
+
+## Database readiness update
+
+Database readiness now has a provider-neutral contract, schema draft, row mapper, env example, and runbook.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Database readiness | 58% |
+| Account readiness | 42% |
+| Storage architecture | 80% |
+| Commercial MVP overall | 47% |

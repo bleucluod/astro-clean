@@ -364,3 +364,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Rebuilt profile as a preview account and entitlement surface.
 - Connected dashboard/profile to storage query and account repository foundations.
 - Added account UI readiness documentation.
+
+## v0.1.26 - Database readiness foundation
+
+- Added runtime environment helper.
+- Added database driver contract and not-configured driver.
+- Added report database row mapper.
+- Added initial Postgres-compatible schema draft and development seed placeholder.
+- Added database readiness checker and wired it into project checks.
+- Added database readiness and migration runbook documentation.
