@@ -236,3 +236,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Converted interpretation lines into numbered insight cards.
 - Improved the visual treatment of the symbolic notice.
 - Avoided adding new Persian UI strings through scripts.
+
+
+## v0.1.12 - Report UI and text export
+
+- Improved report card layout without injecting new Persian UI strings.
+- Added a dedicated summary container.
+- Converted interpretations into numbered insight cards.
+- Added TXT export for single reports.
+- Kept UTF-8 safety checks in the batch workflow.

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
+import { createShareText } from "@/lib/astrology/share-text";
 import { loadFavoriteReportIds } from "@/lib/storage/favorite-reports-storage";
 import {
   loadReportNote,
@@ -23,6 +24,24 @@ function notifyLocalDataChanged() {
 function downloadJsonFile(fileName: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: "application/json",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+
+function downloadTextFile(fileName: string, data: string) {
+  const blob = new Blob([data], {
+    type: "text/plain;charset=utf-8",
   });
 
   const url = URL.createObjectURL(blob);
@@ -85,6 +104,25 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     });
 
     setMessage("خروجی JSON گزارش ساخته شد.");
+  }
+
+  function handleExportTextReport() {
+    if (!report) {
+      return;
+    }
+
+    const textLines = [createShareText(report)];
+
+    if (note.trim()) {
+      textLines.push("", "Note:", note.trim());
+    }
+
+    downloadTextFile(
+      `astro-clean-report-${report.id.slice(0, 8)}.txt`,
+      textLines.join("\n"),
+    );
+
+    setMessage("TXT export created.");
   }
 
   if (!isReady) {
@@ -194,6 +232,14 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
         <div className="actions">
           <button className="button" type="button" onClick={handleExportReport}>
             گرفتن خروجی JSON این گزارش
+          </button>
+
+          <button
+            className="button secondary"
+            type="button"
+            onClick={handleExportTextReport}
+          >
+            Export TXT
           </button>
         </div>
       </section>
