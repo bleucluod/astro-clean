@@ -1,116 +1,69 @@
-﻿import type { Metadata } from "next";
 import Link from "next/link";
-
-export const metadata: Metadata = {
-  title: "حریم داده | Halleus",
-  description:
-    "توضیح شفاف درباره ذخیره داده‌ها، localStorage و محدودیت‌های حریم خصوصی در نسخه MVP آسترو کلین.",
-};
-
-const dataItems = [
-  {
-    title: "گزارش‌ها",
-    description:
-      "گزارش‌های ساخته‌شده فعلاً فقط در مرورگر همین دستگاه ذخیره می‌شوند.",
-  },
-  {
-    title: "پروفایل",
-    description:
-      "نام نمایشی، توضیح کوتاه و تنظیم حریم خصوصی فعلاً در localStorage ذخیره می‌شود.",
-  },
-  {
-    title: "بکاپ JSON",
-    description:
-      "از بخش Admin می‌توانی از داده‌های محلی خروجی JSON بگیری یا بکاپ قبلی را وارد کنی.",
-  },
-];
-
-const notIncludedItems = [
-  "اکانت واقعی کاربر نداریم",
-  "دیتابیس نداریم",
-  "backend نداریم",
-  "پرداخت و اشتراک نداریم",
-  "AI integration نداریم",
-  "ارسال داده به سرور انجام نمی‌شود",
-];
 
 export default function PrivacyPage() {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">Data & Privacy</span>
+        <span className="badge">Local Preview Privacy</span>
 
-        <h1>حریم داده در نسخه MVP</h1>
-
-        <p>
-          Halleus در این نسخه یک MVP فرانت‌اندی است. یعنی داده‌هایی مثل
-          گزارش‌ها و پروفایل، فعلاً روی مرورگر همین دستگاه ذخیره می‌شوند و به
-          سرور، دیتابیس یا حساب کاربری ارسال نمی‌شوند.
-        </p>
+        <h1>حریم داده در Halleus</h1>
 
         <p>
-          این صفحه برای شفافیت محصول ساخته شده است؛ نه به عنوان متن حقوقی
-          رسمی. قبل از deploy واقعی، متن حریم خصوصی باید با شرایط نهایی محصول
-          بازبینی شود.
+          Halleus فعلاً در حالت public preview است. در این حالت، گزارش‌ها و
+          یادداشت‌های تو روی مرورگر همین دستگاه ذخیره می‌شوند و هنوز backend،
+          حساب کاربری یا دیتابیس production فعال نیست.
         </p>
 
         <div className="actions">
-          <Link className="button" href="/admin">
-            مدیریت داده‌های محلی
-          </Link>
-
-          <Link className="button secondary" href="/chart">
-            ساخت چارت mock
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid grid-3">
-        {dataItems.map((item) => (
-          <article className="card" key={item.title}>
-            <h2>{item.title}</h2>
-            <p>{item.description}</p>
-          </article>
-        ))}
-      </div>
-
-      <div className="card">
-        <span className="section-label">چیزهایی که فعلاً وجود ندارند</span>
-
-        <h2>محدوده فنی MVP</h2>
-
-        <p>
-          نبودن این موارد عمدی است تا MVP سبک، قابل تست و قابل تغییر بماند.
-        </p>
-
-        <div className="tag-list">
-          {notIncludedItems.map((item) => (
-            <span key={item}>{item}</span>
-          ))}
-        </div>
-      </div>
-
-      <div className="card">
-        <span className="section-label">کنترل کاربر</span>
-
-        <h2>چطور داده‌ها را پاک یا منتقل کنم؟</h2>
-
-        <p>
-          برای پاک کردن گزارش‌ها، ریست پروفایل، ریست کامل داده‌های دمو یا گرفتن
-          بکاپ JSON، وارد صفحه Admin شو. چون داده‌ها محلی هستند، پاک کردن
-          localStorage مرورگر هم می‌تواند داده‌های Halleus را حذف کند.
-        </p>
-
-        <div className="actions">
-          <Link className="button" href="/admin">
-            رفتن به Admin
+          <Link className="button" href="/chart">
+            ساخت گزارش
           </Link>
 
           <Link className="button secondary" href="/reports">
-            دیدن گزارش‌ها
+            مدیریت گزارش‌ها
           </Link>
         </div>
       </div>
+
+      <section className="card">
+        <span className="badge">چه چیزی ذخیره می‌شود؟</span>
+
+        <h2>داده‌های local preview</h2>
+
+        <div className="home-step-list">
+          <div>
+            <strong>گزارش‌ها</strong>
+            <span>گزارش‌های ساخته‌شده فعلاً در local storage مرورگر می‌مانند.</span>
+          </div>
+
+          <div>
+            <strong>یادداشت و علاقه‌مندی</strong>
+            <span>یادداشت‌ها و ستاره‌دارها هم روی همین مرورگر ذخیره می‌شوند.</span>
+          </div>
+
+          <div>
+            <strong>Export و Import</strong>
+            <span>می‌توانی گزارش‌ها را خروجی بگیری و بعداً دوباره وارد کنی.</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
+        <span className="badge">Account Later</span>
+
+        <h2>وقتی حساب کاربری اضافه شود</h2>
+
+        <p>
+          بعد از فعال شدن auth و database، گزارش‌ها می‌توانند به حساب کاربری
+          وصل شوند. تا آن زمان، پرداخت واقعی و ذخیره‌سازی ابری فعال نمی‌شود.
+        </p>
+
+        <div className="tag-list">
+          <span>Auth: آماده‌سازی شده، فعال نیست</span>
+          <span>Database: آماده‌سازی شده، فعال نیست</span>
+          <span>Payment: آماده‌سازی شده، فعال نیست</span>
+        </div>
+      </section>
     </section>
   );
 }

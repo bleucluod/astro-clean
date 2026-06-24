@@ -391,3 +391,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added billing readiness report.
 - Added public pricing page.
 - Added billing readiness checker and documentation.
+
+## v0.1.29 - Product surface cleanup
+
+- Added central product surface link map.
+- Added product map page.
+- Reworked privacy, roadmap, and wiki pages around the Halleus preview stage.
+- Added product surface documentation and checker.
+- Wired product surface checks into project checks.

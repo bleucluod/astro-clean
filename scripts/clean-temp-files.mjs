@@ -1,6 +1,11 @@
 import { rm } from "node:fs/promises";
 
 const tempFiles = [
+  "storage-ui-snapshots.zip",
+  "report-detail-page-snapshot.txt",
+  "report-detail-snapshot.txt",
+  "reports-list-snapshot.txt",
+  "halleus_product_surface_cleanup_v1.js",
   "halleus_billing_pricing_readiness_v1.js",
   "halleus_auth_readiness_migration_v1.js",
   "halleus_database_readiness_foundation_v1.js",

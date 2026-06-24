@@ -1,61 +1,88 @@
-﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { roadmapItems } from "@/lib/config/roadmap";
 
-export const metadata: Metadata = {
-  title: "نقشه راه محصول | Halleus",
-  description:
-    "نقشه راه Halleus از MVP ساده تا اکوسیستم فارسی آسترولوژی شخصی، اجتماعی، محتوایی و SEO محور.",
-};
+const phases = [
+  {
+    title: "Preview محصول",
+    status: "انجام شده",
+    description: "homepage، ساخت گزارش، آرشیو، export/import، dashboard و profile preview.",
+  },
+  {
+    title: "Foundation پایدار",
+    status: "در حال تکمیل",
+    description: "storage، account، auth، database و billing contractها و checkerها.",
+  },
+  {
+    title: "چارت واقعی",
+    status: "قدم مهم بعدی",
+    description: "جایگزینی mock engine با مسیر محاسبه واقعی و گزارش‌های باکیفیت‌تر.",
+  },
+  {
+    title: "حساب کاربری و دیتابیس",
+    status: "بعد از تصمیم provider",
+    description: "انتخاب auth/database و اتصال گزارش‌ها به user واقعی.",
+  },
+  {
+    title: "پرداخت و پلن‌ها",
+    status: "بعد از auth/database",
+    description: "فعال‌سازی پرداخت فقط وقتی کیفیت گزارش و ذخیره‌سازی حساب آماده شد.",
+  },
+];
 
 export default function RoadmapPage() {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">نقشه راه Halleus</span>
+        <span className="badge">Halleus Roadmap</span>
 
-        <h1>از MVP ساده تا اکوسیستم آسترولوژی شخصی</h1>
-
-        <p>
-          Halleus را از یک محصول کوچک و قابل دیدن شروع می‌کنیم. هدف فعلی
-          ساخت تجربه‌ای تمیز و قابل لمس است، نه معماری سنگین یا قابلیت‌های
-          enterprise.
-        </p>
+        <h1>نقشه راه Halleus</h1>
 
         <p>
-          مسیر آینده به شکلی طراحی می‌شود که منطق نجومی، قانون‌های تفسیری،
-          لایه ارائه فارسی و در آینده AI از هم جدا بمانند.
+          مسیر محصول از public preview به MVP تجاری باید مرحله‌ای و قابل برگشت
+          باشد. هر مرحله باید پایه‌ای بسازد که در مراحل بعدی دوباره دور ریخته
+          نشود.
         </p>
 
         <div className="actions">
-          <Link className="button" href="/chart">
-            ساخت چارت mock
+          <Link className="button" href="/product">
+            نقشه محصول
           </Link>
 
-          <Link className="button secondary" href="/wiki">
-            دیدن Astro Wiki
+          <Link className="button secondary" href="/pricing">
+            پلن‌ها
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-3">
-        {roadmapItems.map((item) => (
-          <article className="card" key={item.title}>
-            <span className="badge">{item.phase}</span>
-            <h2>{item.title}</h2>
-            <p>{item.description}</p>
-          </article>
-        ))}
-      </div>
+      <section className="card">
+        <span className="badge">Phases</span>
 
-      <div className="card">
-        <h2>اصل اخلاقی محصول</h2>
+        <h2>فازهای اصلی</h2>
+
+        <div className="home-step-list">
+          {phases.map((phase, index) => (
+            <div key={phase.title}>
+              <strong>
+                {(index + 1).toLocaleString("fa-IR")}. {phase.title}
+              </strong>
+              <span>
+                {phase.status} · {phase.description}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <span className="badge">Next Product Decision</span>
+
+        <h2>تصمیم بعدی</h2>
+
         <p>
-          تحلیل‌ها در Halleus به عنوان تفسیر نمادین، سرگرمی و خودشناسی
-          ارائه می‌شوند. محصول نباید پیش‌بینی قطعی یا توصیه پزشکی، مالی، حقوقی
-          یا تصمیم‌گیری جدی ارائه کند.
+          از اینجا به بعد، مهم‌ترین تصمیم فنی انتخاب مسیر auth/database است.
+          پیشنهاد فعلی: Supabase برای سرعت و یکپارچگی، یا Auth.js + Postgres
+          برای انعطاف بیشتر.
         </p>
-      </div>
+      </section>
     </section>
   );
 }

@@ -1,52 +1,82 @@
-﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { wikiTopics } from "@/lib/config/wiki";
 
-export const metadata: Metadata = {
-  title: "Astro Wiki | آسترو ویکی فارسی",
-  description:
-    "آسترو ویکی Halleus پایه‌ای سبک برای محتوای آموزشی فارسی درباره سیارات، خانه‌ها، رایزینگ‌ها و اصطلاحات آسترولوژی.",
-};
+const entries = [
+  {
+    term: "گزارش نمادین",
+    description:
+      "متنی تفسیری و سنتی که برای self-reflection طراحی شده، نه پیش‌بینی قطعی یا ادعای علمی.",
+  },
+  {
+    term: "Local preview",
+    description:
+      "حالت فعلی محصول که داده‌ها را در مرورگر همین دستگاه نگه می‌دارد.",
+  },
+  {
+    term: "Repository-backed storage",
+    description:
+      "یعنی UI مستقیم با localStorage حرف نمی‌زند و از یک لایه ذخیره‌سازی قابل تعویض استفاده می‌کند.",
+  },
+  {
+    term: "Preview account",
+    description:
+      "مدل اکانت موقت که قبل از فعال شدن auth واقعی، ساختار محصول را آماده نگه می‌دارد.",
+  },
+  {
+    term: "Feature gate",
+    description:
+      "قاعده‌ای برای اینکه هر پلن به چه قابلیت‌هایی دسترسی داشته باشد.",
+  },
+];
 
 export default function WikiPage() {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">Astro Wiki</span>
+        <span className="badge">Halleus Wiki</span>
 
-        <h1>پایه سبک برای محتوای آموزشی و SEO</h1>
-
-        <p>
-          Astro Wiki در آینده محل محتوای آموزشی، طبیعی و قابل ایندکس خواهد بود.
-          فعلاً فقط چند موضوع پایه را نشان می‌دهیم تا مسیر SEO از روز اول در
-          ساختار محصول دیده شود، بدون اینکه وارد تولید انبوه صفحه شویم.
-        </p>
+        <h1>راهنمای Halleus</h1>
 
         <p>
-          متن‌های این بخش باید فارسی روان، بومی‌سازی‌شده و کنترل‌شده باشند؛ نه
-          ترجمه ماشینی یا محتوای بی‌کیفیت programmatic.
+          این راهنما اصطلاحات محصول را توضیح می‌دهد تا مسیر preview، گزارش‌ها،
+          اکانت و پرداخت روشن باشد.
         </p>
 
         <div className="actions">
-          <Link className="button" href="/roadmap">
-            دیدن نقشه راه
+          <Link className="button" href="/product">
+            نقشه محصول
           </Link>
 
-          <Link className="button secondary" href="/chart">
-            ساخت چارت mock
+          <Link className="button secondary" href="/privacy">
+            حریم داده
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-3">
-        {wikiTopics.map((topic) => (
-          <article className="card" key={topic.slug}>
-            <span className="badge">موضوع آموزشی</span>
-            <h2>{topic.title}</h2>
-            <p>{topic.description}</p>
-          </article>
-        ))}
-      </div>
+      <section className="card">
+        <span className="badge">Glossary</span>
+
+        <h2>واژه‌نامه کوتاه</h2>
+
+        <div className="home-step-list">
+          {entries.map((entry) => (
+            <div key={entry.term}>
+              <strong>{entry.term}</strong>
+              <span>{entry.description}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <span className="badge">Safety Note</span>
+
+        <h2>یادآوری مهم</h2>
+
+        <p>
+          Halleus برای نگاه نمادین، سنتی و تفسیری ساخته می‌شود. گزارش‌ها نباید
+          جای تصمیم پزشکی، حقوقی، مالی یا تصمیم قطعی زندگی را بگیرند.
+        </p>
+      </section>
     </section>
   );
 }

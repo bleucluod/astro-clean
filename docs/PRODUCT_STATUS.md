@@ -163,3 +163,16 @@ Updated estimates:
 | Payment readiness | 18% |
 | SaaS packaging | 45% |
 | Commercial MVP overall | 51% |
+
+
+## Product surface cleanup update
+
+The public product surface now has a coherent product map, roadmap, privacy page, wiki, and surface checker.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Public product surface | 78% |
+| Demo readiness | 72% |
+| Commercial MVP overall | 53% |
