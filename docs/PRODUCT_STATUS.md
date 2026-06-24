@@ -107,3 +107,17 @@ Updated estimates:
 | Database readiness | 42% |
 | Product configuration | 70% |
 | Commercial MVP overall | 43% |
+
+
+## Profile and dashboard account readiness update
+
+Dashboard and profile now use the account/storage foundation instead of acting like isolated placeholder pages.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Account readiness | 38% |
+| Dashboard usefulness | 55% |
+| Database readiness | 45% |
+| Commercial MVP overall | 45% |

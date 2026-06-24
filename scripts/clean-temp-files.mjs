@@ -1,6 +1,7 @@
 import { rm } from "node:fs/promises";
 
 const tempFiles = [
+  "halleus_profile_dashboard_account_readiness_v1.js",
   "halleus_account_db_foundation_v1.js",
   "halleus_storage_ui_completion_v1.js",
   "halleus_repository_backed_reports_v1.js",

@@ -357,3 +357,10 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added preview account repository and account repository contract.
 - Added account and environment documentation.
 - Added account foundation checker and wired it into project checks.
+
+## v0.1.25 - Profile and dashboard account readiness
+
+- Rebuilt dashboard as an account-ready preview surface.
+- Rebuilt profile as a preview account and entitlement surface.
+- Connected dashboard/profile to storage query and account repository foundations.
+- Added account UI readiness documentation.
