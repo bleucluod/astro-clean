@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:encoding": "node scripts/check-encoding.mjs",
+    "clean:temp": "node scripts/clean-temp-files.mjs",
+    "health": "node scripts/project-health.mjs",
+    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm lint && pnpm build"
   },
   "dependencies": {
     "next": "16.2.9",

@@ -57,3 +57,12 @@ After push:
 Production URL:
 
 - https://halleus.ir
+
+
+## Automated project checks
+
+Run this before every production push:
+
+- pnpm run check:project
+
+This command cleans temporary batch files, runs the encoding guard, runs lint, and builds the app.

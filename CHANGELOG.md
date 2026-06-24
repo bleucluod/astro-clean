@@ -254,3 +254,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Reused the existing share text generator for archive text output.
 - Added archive payload metadata for backup and future import work.
 - Kept this batch ASCII-only to protect Persian UTF-8 content.
+
+
+## v0.1.14 - Dev safety checks
+
+- Added an encoding guard script.
+- Added a temporary batch-file cleanup script.
+- Added a project health script.
+- Added a combined project check command.
+- Updated the pre-deploy checklist with the safer command.
