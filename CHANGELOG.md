@@ -304,3 +304,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added optional location metadata to birth input.
 - Connected the chart form to the city datalist.
 - Added a product status document with current progress estimates.
+
+
+## v0.1.19 - Full Iran city dataset
+
+- Replaced the small city preview with the full user-provided Iran city dataset.
+- Added 897 city/location records with coordinates and Asia/Tehran timezone metadata.
+- Added city display names that include province names to reduce duplicate city ambiguity.
+- Connected the chart form datalist to the full city list.
+- Added dataset and product status docs.

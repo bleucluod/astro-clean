@@ -11,6 +11,7 @@ import type { AstrologyReport, BirthInput } from "@/types/astro";
 import {
   IRAN_CITY_OPTIONS,
   findIranCityByName,
+  getIranCityDisplayName,
 } from "@/lib/locations/iran-cities";
 
 const initialForm: BirthInput = {
@@ -133,8 +134,7 @@ export function ChartForm() {
             {IRAN_CITY_OPTIONS.map((city) => (
               <option
                 key={city.id}
-                value={city.faName}
-                label={city.enName + " - " + city.provinceFaName}
+                value={getIranCityDisplayName(city)}
               />
             ))}
           </datalist>
