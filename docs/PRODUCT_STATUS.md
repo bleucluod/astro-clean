@@ -218,3 +218,17 @@ Updated estimates:
 | Report composition readiness | 46% |
 | Mock replacement readiness | 42% |
 | Commercial MVP overall | 59% |
+
+
+## Report output V2 integration update
+
+New reports are now enhanced with sectioned preview output and report detail can render V2 sections.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Visible report experience | 45% |
+| Report composition readiness | 55% |
+| Mock replacement readiness | 48% |
+| Commercial MVP overall | 61% |

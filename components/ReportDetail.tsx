@@ -8,6 +8,7 @@ import { createShareText } from "@/lib/astrology/share-text";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
 
+import { ReportV2Sections } from "@/components/ReportV2Sections";
 type ReportDetailProps = {
   reportId: string;
 };
@@ -137,7 +138,9 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
   if (!isReady) {
     return (
       <section className="grid">
-        <div className="card">
+        
+      <ReportV2Sections report={report} />
+<div className="card">
           <span className="badge">در حال خواندن</span>
           <h1>در حال بارگذاری گزارش</h1>
           <p>گزارش ذخیره‌شده از مرورگر خوانده می‌شود.</p>

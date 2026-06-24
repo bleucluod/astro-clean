@@ -15,6 +15,7 @@ import {
 import { saveGeneratedReport } from "@/lib/storage/report-write-service";
 
 
+import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 const initialForm: BirthInput = {
   name: "",
   birthDate: "",
@@ -59,7 +60,7 @@ export function ChartForm() {
       birthTimezone: selectedCity?.timezone,
     };
 
-    const nextReport = createMockReport(normalizedForm);
+    const nextReport = enhanceReportOutputV2(createMockReport(normalizedForm));
 
     await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();

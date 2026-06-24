@@ -426,3 +426,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added public interpretation pipeline page.
 - Added report composition pipeline documentation.
 - Added interpretation foundation checker and wired it into project checks.
+
+## v0.1.33 - Report output V2 integration
+
+- Added sectioned report output types.
+- Added report output V2 enhancer.
+- Added report V2 section renderer.
+- Connected new report generation to V2 sectioned preview output.
+- Added report output V2 documentation and checker.
