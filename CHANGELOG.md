@@ -227,3 +227,12 @@ Frontend MVP polish release.
 ## Recovery lesson
 
 Large automated patches against TSX and Persian text are high-risk. Future UI edits must be small, inspected, and tested locally before push.
+
+
+## v0.1.11 - Report layout polish
+
+- Improved report card visual structure.
+- Added a dedicated summary section.
+- Converted interpretation lines into numbered insight cards.
+- Improved the visual treatment of the symbolic notice.
+- Avoided adding new Persian UI strings through scripts.

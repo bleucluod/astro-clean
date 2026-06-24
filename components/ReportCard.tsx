@@ -64,11 +64,16 @@ export function ReportCard({ report }: ReportCardProps) {
         </div>
       </div>
 
-      <p>{report.summary}</p>
+      <section className="report-section report-summary">
+        <p>{report.summary}</p>
+      </section>
 
-      <div className="report-list">
-        {report.interpretations.map((item) => (
-          <p key={item}>• {item}</p>
+      <div className="report-list report-insight-list">
+        {report.interpretations.map((item, index) => (
+          <div className="mini-card report-insight" key={item}>
+            <strong>{index + 1}</strong>
+            <p>{item}</p>
+          </div>
         ))}
       </div>
 
@@ -80,7 +85,9 @@ export function ReportCard({ report }: ReportCardProps) {
 
       {copyMessage ? <p className="success-message">{copyMessage}</p> : null}
 
-      <p className="notice">{report.safetyNote}</p>
+      <div className="notice report-notice">
+        <p>{report.safetyNote}</p>
+      </div>
     </article>
   );
 }
