@@ -464,3 +464,11 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added public language system page.
 - Added product surface language link.
 - Added Persian language system documentation and checker.
+
+## v0.1.38 - Report experience V3
+
+- Added Report Output V3 types and enhancer.
+- Added Report V3 plain text export.
+- Added visible ReportV3Experience component.
+- Connected report detail to V3 display.
+- Added report experience V3 documentation and checker.

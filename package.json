@@ -10,7 +10,7 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "clean:temp": "node scripts/clean-temp-files.mjs",
     "health": "node scripts/project-health.mjs",
-    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:language-system && pnpm run check:storage && pnpm run check:account && pnpm run check:account-ui && pnpm run check:database && pnpm run check:auth-readiness && pnpm run check:billing && pnpm run check:product-surface && pnpm run check:chart-engine && pnpm run check:report-quality && pnpm run check:interpretation && pnpm run check:report-output-v2 && pnpm run check:report-output-v2-ux && pnpm run check:report-output-v2-actions && pnpm run check:report-output-v2-readability && pnpm lint && pnpm build",
+    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:language-system && pnpm run check:storage && pnpm run check:account && pnpm run check:account-ui && pnpm run check:database && pnpm run check:auth-readiness && pnpm run check:billing && pnpm run check:product-surface && pnpm run check:chart-engine && pnpm run check:report-quality && pnpm run check:interpretation && pnpm run check:report-output-v2 && pnpm run check:report-output-v2-ux && pnpm run check:report-output-v2-actions && pnpm run check:report-output-v2-readability && pnpm run check:report-experience-v3 && pnpm lint && pnpm build",
     "check:storage": "node scripts/check-storage-foundation.mjs",
     "check:account": "node scripts/check-account-foundation.mjs",
     "check:account-ui": "node scripts/check-account-ui-readiness.mjs",
@@ -25,7 +25,8 @@
     "check:report-output-v2-ux": "node scripts/check-report-output-v2-ux.mjs",
     "check:report-output-v2-actions": "node scripts/check-report-output-v2-actions.mjs",
     "check:report-output-v2-readability": "node scripts/check-report-output-v2-readability.mjs",
-    "check:language-system": "node scripts/check-language-system.mjs"
+    "check:language-system": "node scripts/check-language-system.mjs",
+    "check:report-experience-v3": "node scripts/check-report-experience-v3.mjs"
   },
   "dependencies": {
     "next": "16.2.9",

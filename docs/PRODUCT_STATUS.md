@@ -288,3 +288,17 @@ Updated estimates:
 | Product copy consistency | 55% |
 | UTF-8 safety readiness | 82% |
 | Commercial MVP overall | 66% |
+
+
+## Report experience V3 update
+
+Report detail now has a Persian V3 experience layer with polished section titles, V3 TXT export, copy action, reading summary, and safer disclaimer.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Visible report experience | 80% |
+| Report experience V3 | 58% |
+| Demo readiness | 87% |
+| Commercial MVP overall | 68% |

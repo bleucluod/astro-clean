@@ -9,6 +9,7 @@ import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
 
 import { ReportV2Sections } from "@/components/ReportV2Sections";
+import { ReportV3Experience } from "@/components/ReportV3Experience";
 type ReportDetailProps = {
   reportId: string;
 };
@@ -139,6 +140,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     return (
       <section className="grid">
         
+      <ReportV3Experience report={report} />
       <ReportV2Sections report={report} />
 <div className="card">
           <span className="badge">در حال خواندن</span>
