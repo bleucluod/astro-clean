@@ -13,8 +13,8 @@ const initialForm: BirthInput = {
   name: "",
   birthDate: "",
   birthTime: "",
-  birthCity: "\u062A\u0647\u0631\u0627\u0646",
-  birthCountry: "\u0627\u06CC\u0631\u0627\u0646",
+  birthCity: "",
+  birthCountry: "",
 };
 
 function notifyLocalDataChanged() {
@@ -54,7 +54,7 @@ export function ChartForm() {
         <div>
           <span className="badge">فرم MVP</span>
 
-          <h1>\u0633\u0627\u062E\u062A \u06AF\u0632\u0627\u0631\u0634 \u0686\u0627\u0631\u062A \u062A\u0648\u0644\u062F</h1>
+          <h1>ساخت چارت تولد mock</h1>
 
           <p>
             اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. بعد از
@@ -67,25 +67,53 @@ export function ChartForm() {
 
         <div className="form-grid">
           <label className="field">
-            <span>\u06A9\u0634\u0648\u0631</span>
+            <span>نام اختیاری</span>
             <input
-              required
-              readOnly
-              value={form.birthCountry}
-              aria-label="\u06A9\u0634\u0648\u0631"
+              value={form.name}
+              onChange={(event) => updateField("name", event.target.value)}
+              placeholder="مثلاً آراز"
             />
-            <small className="field-note">
-              \u0646\u0633\u062E\u0647 \u0641\u0639\u0644\u06CC \u0641\u0642\u0637 \u0628\u0631\u0627\u06CC \u0627\u06CC\u0631\u0627\u0646 \u062A\u0646\u0638\u06CC\u0645 \u0634\u062F\u0647 \u0627\u0633\u062A.
-            </small>
           </label>
 
           <label className="field">
-            <span>\u0634\u0647\u0631 \u062A\u0648\u0644\u062F</span>
+            <span>تاریخ تولد</span>
+            <input
+              required
+              type="date"
+              value={form.birthDate}
+              onChange={(event) => updateField("birthDate", event.target.value)}
+            />
+          </label>
+
+          <label className="field">
+            <span>ساعت تولد</span>
+            <input
+              required
+              type="time"
+              value={form.birthTime}
+              onChange={(event) => updateField("birthTime", event.target.value)}
+            />
+          </label>
+
+          <label className="field">
+            <span>شهر تولد</span>
             <input
               required
               value={form.birthCity}
               onChange={(event) => updateField("birthCity", event.target.value)}
-              placeholder="\u0645\u062B\u0644\u0627\u064B \u062A\u0647\u0631\u0627\u0646"
+              placeholder="مثلاً تهران"
+            />
+          </label>
+
+          <label className="field">
+            <span>کشور</span>
+            <input
+              required
+              value={form.birthCountry}
+              onChange={(event) =>
+                updateField("birthCountry", event.target.value)
+              }
+              placeholder="مثلاً ایران"
             />
           </label>
         </div>
