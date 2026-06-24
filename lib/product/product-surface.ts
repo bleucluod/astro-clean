@@ -54,6 +54,12 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
     description: "راهنمای مفهومی Halleus و گزارش‌های نمادین.",
     status: "preview",
   },
+  {
+    href: "/engine",
+    label: "موتور چارت",
+    description: "وضعیت زیرساخت جایگزینی mock با محاسبه واقعی.",
+    status: "preview",
+  },
 ];
 
 export function getProductSurfaceLinks() {

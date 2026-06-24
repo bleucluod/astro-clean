@@ -176,3 +176,17 @@ Updated estimates:
 | Public product surface | 78% |
 | Demo readiness | 72% |
 | Commercial MVP overall | 53% |
+
+
+## Chart engine foundation update
+
+Chart engine readiness now has typed contracts, preview driver, fixtures, strategy docs, and an engine readiness page.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Chart engine readiness | 35% |
+| Mock replacement readiness | 28% |
+| Report quality foundation | 32% |
+| Commercial MVP overall | 55% |

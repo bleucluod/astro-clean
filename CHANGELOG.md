@@ -399,3 +399,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Reworked privacy, roadmap, and wiki pages around the Halleus preview stage.
 - Added product surface documentation and checker.
 - Wired product surface checks into project checks.
+
+## v0.1.30 - Chart engine foundation
+
+- Added chart engine input/result/readiness types.
+- Added chart engine driver contract and mock preview engine.
+- Added deterministic chart engine fixtures.
+- Added engine readiness page.
+- Added chart engine foundation and strategy documentation.
+- Added chart engine foundation checker and wired it into project checks.
