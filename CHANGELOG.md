@@ -339,3 +339,13 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Moved report detail loading and note saving toward the repository layer.
 - Preserved the current UI and local-preview behavior.
 - Kept backward-compatible import support for older report JSON payloads.
+
+
+## v0.1.23 - Storage UI completion
+
+- Added storage event helper.
+- Added report write and query services.
+- Connected chart creation to the repository-backed save path.
+- Added a storage foundation checker.
+- Added the storage checker to project health checks.
+- Added storage UI completion documentation.

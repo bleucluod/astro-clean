@@ -79,3 +79,17 @@ Updated estimates:
 | Storage architecture | 65% |
 | Database readiness | 30% |
 | Account readiness | 15% |
+
+## Storage UI completion update
+
+The report creation path now uses the storage service/repository layer.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Storage architecture | 75% |
+| Database readiness | 38% |
+| Account readiness | 18% |
+| Repository-backed UI | 55% |
+| Commercial MVP overall | 41% |

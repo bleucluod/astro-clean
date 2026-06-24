@@ -10,7 +10,8 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "clean:temp": "node scripts/clean-temp-files.mjs",
     "health": "node scripts/project-health.mjs",
-    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm lint && pnpm build"
+    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:storage && pnpm lint && pnpm build",
+    "check:storage": "node scripts/check-storage-foundation.mjs"
   },
   "dependencies": {
     "next": "16.2.9",

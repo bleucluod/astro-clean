@@ -34,3 +34,9 @@ The first UI surfaces now call the repository layer:
 - report detail
 
 This keeps the current local-preview behavior while reducing direct localStorage coupling in product UI.
+
+## Chart creation storage path
+
+Chart creation now saves generated reports through `saveGeneratedReport`.
+
+This keeps local-preview behavior while preparing the generated report flow for future database-backed storage.

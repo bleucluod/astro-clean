@@ -6,13 +6,14 @@ import { type FormEvent, useState } from "react";
 import { ReportCard } from "@/components/ReportCard";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { createMockReport } from "@/lib/astrology/mock-engine";
-import { saveReport } from "@/lib/storage/reports-storage";
 import type { AstrologyReport, BirthInput } from "@/types/astro";
 import {
   IRAN_CITY_OPTIONS,
   findIranCityByName,
   getIranCityDisplayName,
 } from "@/lib/locations/iran-cities";
+import { saveGeneratedReport } from "@/lib/storage/report-write-service";
+
 
 const initialForm: BirthInput = {
   name: "",
@@ -41,7 +42,7 @@ export function ChartForm() {
     }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const normalizedCityName = form.birthCity.trim() || initialForm.birthCity;
@@ -60,7 +61,7 @@ export function ChartForm() {
 
     const nextReport = createMockReport(normalizedForm);
 
-    saveReport(nextReport);
+    await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();
 
     setReport(nextReport);
