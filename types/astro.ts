@@ -26,6 +26,10 @@ export type BirthInput = {
   birthTime: string;
   birthCity: string;
   birthCountry: string;
+  birthCityId?: string;
+  birthLatitude?: number;
+  birthLongitude?: number;
+  birthTimezone?: string;
 };
 
 export type MockChart = {

@@ -272,3 +272,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added import guards for single-report and archive payloads.
 - Added duplicate protection during import.
 - Kept this batch ASCII-only to protect Persian UTF-8 content.
+
+
+## v0.1.16 - Locations v1
+
+- Added an Iran city location dataset with city ids, names, province names, coordinates, and timezone ids.
+- Added optional birth location metadata to BirthInput.
+- Added a city datalist to the chart form.
+- Attached selected city metadata to newly generated reports.
+- Added a manual UI text guide for future Persian label cleanup.

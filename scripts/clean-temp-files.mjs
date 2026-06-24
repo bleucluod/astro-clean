@@ -5,6 +5,7 @@ const tempFiles = [
   "astro_clean_report_layout_safe.js",
   "astro_clean_report_ui_export_safe.js",
   "astro_clean_reports_v2_aggressive_safe.js",
+  "astro_clean_locations_v1.js",
   "astro_clean_form_ux_batch.ps1",
   "astro_clean_product_docs_batch.ps1",
   "apply_report_tools_v1.js",

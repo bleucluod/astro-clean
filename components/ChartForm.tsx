@@ -8,6 +8,10 @@ import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { createMockReport } from "@/lib/astrology/mock-engine";
 import { saveReport } from "@/lib/storage/reports-storage";
 import type { AstrologyReport, BirthInput } from "@/types/astro";
+import {
+  IRAN_CITY_OPTIONS,
+  findIranCityByName,
+} from "@/lib/locations/iran-cities";
 
 const initialForm: BirthInput = {
   name: "",
@@ -39,11 +43,18 @@ export function ChartForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const normalizedCityName = form.birthCity.trim() || initialForm.birthCity;
+    const selectedCity = findIranCityByName(normalizedCityName);
+
     const normalizedForm: BirthInput = {
       ...form,
       name: (form.name ?? "").trim(),
-      birthCity: form.birthCity.trim() || initialForm.birthCity,
+      birthCity: selectedCity?.faName ?? normalizedCityName,
       birthCountry: initialForm.birthCountry,
+      birthCityId: selectedCity?.id,
+      birthLatitude: selectedCity?.latitude,
+      birthLongitude: selectedCity?.longitude,
+      birthTimezone: selectedCity?.timezone,
     };
 
     const nextReport = createMockReport(normalizedForm);
@@ -115,8 +126,18 @@ export function ChartForm() {
               value={form.birthCity}
               onChange={(event) => updateField("birthCity", event.target.value)}
               placeholder="مثلاً تهران"
-            />
+            
+              list="iran-city-options"/>
           </label>
+          <datalist id="iran-city-options">
+            {IRAN_CITY_OPTIONS.map((city) => (
+              <option
+                key={city.id}
+                value={city.faName}
+                label={city.enName + " - " + city.provinceFaName}
+              />
+            ))}
+          </datalist>
 
           <label className="field">
             <span>کشور</span>
