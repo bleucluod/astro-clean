@@ -417,3 +417,12 @@ Large automated patches against TSX and Persian text are high-risk. Future UI ed
 - Added public report quality page.
 - Added interpretation style guide and report quality documentation.
 - Added report quality checker script and wired it into project checks.
+
+## v0.1.32 - Interpretation modules foundation
+
+- Added interpretation types and module blueprints.
+- Added interpretation driver contract and mock interpretation driver.
+- Added sample interpretation preview.
+- Added public interpretation pipeline page.
+- Added report composition pipeline documentation.
+- Added interpretation foundation checker and wired it into project checks.

@@ -66,6 +66,12 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
     description: "استاندارد لحن، بخش‌ها و safety برای گزارش‌های آینده.",
     status: "preview",
   },
+  {
+    href: "/interpretation",
+    label: "تفسیر گزارش",
+    description: "ماژول‌های ترکیب گزارش و pipeline تفسیر آینده.",
+    status: "preview",
+  },
 ];
 
 export function getProductSurfaceLinks() {

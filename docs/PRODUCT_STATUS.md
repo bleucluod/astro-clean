@@ -204,3 +204,17 @@ Updated estimates:
 | Interpretation readiness | 42% |
 | Mock replacement readiness | 35% |
 | Commercial MVP overall | 57% |
+
+
+## Interpretation modules foundation update
+
+Interpretation readiness now has module blueprints, driver contracts, sample preview, composition docs, and an interpretation page.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Interpretation readiness | 52% |
+| Report composition readiness | 46% |
+| Mock replacement readiness | 42% |
+| Commercial MVP overall | 59% |
