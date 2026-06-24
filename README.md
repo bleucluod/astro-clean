@@ -280,3 +280,55 @@ Public indexed account/report pages are still intentionally not active.
 Astro Clean is now available at:
 
 https://halleus.ir
+
+## Product status
+
+Astro Clean is a Persian-first astrology MVP focused on symbolic birth-chart interpretation.
+
+Current production URL:
+
+- https://halleus.ir
+
+Current MVP scope:
+
+- Public landing page
+- Mock birth chart form
+- Local report generation
+- Local report list
+- Symbolic interpretation engine v0
+- Public roadmap and wiki pages
+- SEO basics: metadata, sitemap, robots
+- Custom domain through Cloudflare and Render
+
+Important constraint:
+
+Astro Clean does not present astrology as scientific certainty. All outputs should remain symbolic, interpretive, and reflective. The app must not provide medical, legal, financial, or deterministic advice.
+
+## Current architecture
+
+The app currently uses:
+
+- Next.js App Router
+- TypeScript
+- LocalStorage for saved reports
+- Simple symbolic astrology engine
+- Render deployment from GitHub main branch
+- Cloudflare DNS for halleus.ir
+
+Future architecture should keep these layers separate:
+
+1. Raw astrology data
+2. Rule engine
+3. Interpretation and presentation layer
+4. Future AI naturalization layer
+
+## Stable recovery tags
+
+Known stable tags:
+
+- v0.1.5-stable-recovery
+- v0.1.6-iran-form-defaults
+
+## Development rule
+
+Use small, inspectable UI edits. Avoid large automated TSX rewrites, especially when Persian text is involved.

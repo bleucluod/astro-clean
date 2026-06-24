@@ -208,3 +208,22 @@ Frontend MVP polish release.
 - Connected the project to the public domain `halleus.ir`.
 - Verified Cloudflare DNS, Render hosting, HTTPS, sitemap, and robots routes.
 - Added public-domain release notes.
+
+## v0.1.6 - Iran form defaults
+
+- Set chart form default city to Tehran.
+- Set chart form default country to Iran.
+- Kept the UI layout unchanged to avoid unnecessary risk.
+- Verified production deployment on halleus.ir.
+
+## v0.1.5 - Stable recovery
+
+- Recovered production after unstable UI and encoding patches.
+- Reapplied stable Persian UTF-8 engine text fixes.
+- Removed temporary stash from failed repair attempt.
+- Added recovery documentation and next-step planning.
+- Confirmed the public site is stable again.
+
+## Recovery lesson
+
+Large automated patches against TSX and Persian text are high-risk. Future UI edits must be small, inspected, and tested locally before push.
