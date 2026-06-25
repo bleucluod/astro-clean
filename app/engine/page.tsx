@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getChartEngineFixtures } from "@/lib/chart-engine/chart-engine-fixtures";
 import { getChartEngineReadinessReport } from "@/lib/chart-engine/chart-engine-readiness";
+import { EngineMvpNavigationPanel } from "../../components/EngineMvpNavigationPanel";
 
 export default function EnginePage() {
   const readiness = getChartEngineReadinessReport();
@@ -8,6 +9,7 @@ export default function EnginePage() {
 
   return (
     <section className="grid">
+      <EngineMvpNavigationPanel />
       <div className="card">
         <span className="badge">Halleus Engine</span>
 
