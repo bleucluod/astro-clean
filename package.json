@@ -10,7 +10,7 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "clean:temp": "node scripts/clean-temp-files.mjs",
     "health": "node scripts/project-health.mjs",
-    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:language-system && pnpm run check:storage && pnpm run check:account && pnpm run check:account-ui && pnpm run check:database && pnpm run check:auth-readiness && pnpm run check:billing && pnpm run check:product-surface && pnpm run check:chart-engine && pnpm run check:chart-engine-integration && pnpm run check:real-chart-engine-decision && pnpm run check:astronomy-engine-prototype && pnpm run check:timezone-readiness && pnpm run check:zodiac-qa-fixtures && pnpm run check:report-quality && pnpm run check:interpretation && pnpm run check:report-output-v2 && pnpm run check:report-output-v2-ux && pnpm run check:report-output-v2-actions && pnpm run check:report-output-v2-readability && pnpm run check:report-experience-v3 && pnpm lint && pnpm build",
+    "check:project": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:language-system && pnpm run check:storage && pnpm run check:account && pnpm run check:account-ui && pnpm run check:database && pnpm run check:auth-readiness && pnpm run check:billing && pnpm run check:product-surface && pnpm run check:chart-engine && pnpm run check:chart-engine-integration && pnpm run check:real-chart-engine-decision && pnpm run check:astronomy-engine-prototype && pnpm run check:timezone-readiness && pnpm run check:zodiac-qa-fixtures && pnpm run check:house-aspect-layer && pnpm run check:report-quality && pnpm run check:interpretation && pnpm run check:report-output-v2 && pnpm run check:report-output-v2-ux && pnpm run check:report-output-v2-actions && pnpm run check:report-output-v2-readability && pnpm run check:report-experience-v3 && pnpm lint && pnpm build",
     "check:storage": "node scripts/check-storage-foundation.mjs",
     "check:account": "node scripts/check-account-foundation.mjs",
     "check:account-ui": "node scripts/check-account-ui-readiness.mjs",
@@ -31,7 +31,8 @@
     "check:real-chart-engine-decision": "node scripts/check-real-chart-engine-decision.mjs",
     "check:astronomy-engine-prototype": "node scripts/check-astronomy-engine-prototype.mjs",
     "check:timezone-readiness": "node scripts/check-timezone-readiness.mjs",
-    "check:zodiac-qa-fixtures": "node scripts/check-zodiac-qa-fixtures.mjs"
+    "check:zodiac-qa-fixtures": "node scripts/check-zodiac-qa-fixtures.mjs",
+    "check:house-aspect-layer": "node scripts/check-house-aspect-layer.mjs"
   },
   "dependencies": {
     "astronomy-engine": "2.1.19",
