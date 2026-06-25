@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 const requiredFiles = [
   "src/lib/report-output/real-chart-report-copy.ts",
+  "src/lib/report-output/real-chart-copy-library.ts",
   "app/engine/report-preview/page.tsx",
   "scripts/check-real-chart-report-preview.mjs",
 ];
@@ -13,13 +14,29 @@ const copyExports = [
   "buildPlacementCopy",
   "buildAspectCopy",
   "buildLimitationsCopy",
+  "buildCopyLibraryTransparencyBlock",
   "getPointLabel",
   "getSignLabel",
 ];
 
+const libraryExports = [
+  "REAL_CHART_COPY_LIBRARY_VERSION",
+  "POINT_COPY_LIBRARY",
+  "SIGN_COPY_LIBRARY",
+  "HOUSE_COPY_LIBRARY",
+  "ASPECT_COPY_LIBRARY",
+  "getPointCopyEntry",
+  "getSignCopyEntry",
+  "getHouseCopyEntry",
+  "getAspectCopyEntry",
+  "getCopyLibraryStats",
+];
+
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const copySource = readFileSync(requiredFiles[0], "utf8");
-const pageSource = readFileSync(requiredFiles[1], "utf8");
+const librarySource = readFileSync(requiredFiles[1], "utf8");
+const pageSource = readFileSync(requiredFiles[2], "utf8");
+const combinedReportSource = `${copySource}\n${librarySource}`;
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
 const checkReports = packageJson.scripts?.["check:reports"] ?? "";
 const failures = [];
@@ -41,15 +58,30 @@ for (const exportName of copyExports) {
   }
 }
 
+for (const exportName of libraryExports) {
+  if (
+    !librarySource.includes(`export function ${exportName}`) &&
+    !librarySource.includes(`export const ${exportName}`)
+  ) {
+    failures.push(`Missing real chart copy library export: ${exportName}`);
+  }
+}
+
 for (const marker of [
-  "در زبان نمادین",
-  "جایگزین تصمیم پزشکی، حقوقی یا مالی",
   "حمل",
   "حوت",
+  "خانه‌ی ۱۲",
+  "هم‌نشینی",
+  "چالش سازنده",
+  "جایگزین تصمیم پزشکی، حقوقی یا مالی",
 ]) {
-  if (!copySource.includes(marker)) {
-    failures.push(`Real chart report copy missing marker: ${marker}`);
+  if (!combinedReportSource.includes(marker)) {
+    failures.push(`Real chart report copy/library missing marker: ${marker}`);
   }
+}
+
+if (!copySource.includes("./real-chart-copy-library")) {
+  failures.push("real-chart-report-copy must consume real-chart-copy-library.");
 }
 
 for (const marker of [
@@ -88,4 +120,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Real chart report preview check passed for 3 files.");
+console.log("Real chart report preview check passed for 4 files.");
