@@ -3,6 +3,14 @@ import Link from "next/link";
 export const MVP_NAVIGATION_POLISH_VERSION = "0.1.52" as const;
 
 const ENGINE_MVP_LINKS = [
+      {
+        href: "/engine/real-chart",
+        eyebrow: "Real chart",
+        title: "چارت واقعی‌تر و قابل دیدن",
+        description:
+          "ورودی تولد را به محاسبه‌ی astronomy-engine، چارت، bridge panel و متن فارسی گزارش وصل می‌کند.",
+        cta: "محاسبه چارت",
+      },
   {
     href: "/engine/report-flow",
     eyebrow: "MVP flow",
