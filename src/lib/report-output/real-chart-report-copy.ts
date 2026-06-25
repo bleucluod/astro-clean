@@ -3,8 +3,15 @@ import type {
   ChartReportEnrichment,
   ChartReportPlacementSummary,
 } from "./chart-enrichment";
+import {
+  getAspectCopyEntry,
+  getCopyLibraryStats,
+  getHouseCopyEntry,
+  getPointCopyEntry,
+  getSignCopyEntry,
+} from "./real-chart-copy-library";
 
-export const REAL_CHART_REPORT_COPY_VERSION = "0.1.49" as const;
+export const REAL_CHART_REPORT_COPY_VERSION = "0.1.50" as const;
 
 export type RealChartReportCopyBlock = {
   id: string;
@@ -13,52 +20,20 @@ export type RealChartReportCopyBlock = {
   sourceKeys: string[];
 };
 
-const SIGN_LABELS: Record<string, string> = {
-  aries: "حمل",
-  taurus: "ثور",
-  gemini: "جوزا",
-  cancer: "سرطان",
-  leo: "اسد",
-  virgo: "سنبله",
-  libra: "میزان",
-  scorpio: "عقرب",
-  sagittarius: "قوس",
-  capricorn: "جدی",
-  aquarius: "دلو",
-  pisces: "حوت",
-  unknown: "نامشخص",
-};
-
-const POINT_LABELS: Record<string, string> = {
-  sun: "خورشید",
-  moon: "ماه",
-  mercury: "عطارد",
-  venus: "زهره",
-  mars: "مریخ",
-  jupiter: "مشتری",
-  saturn: "زحل",
-};
-
-const ASPECT_LABELS: Record<string, string> = {
-  conjunction: "هم‌نشینی",
-  sextile: "هماهنگی نرم",
-  square: "چالش سازنده",
-  trine: "جریان طبیعی",
-  opposition: "کشش دو قطبی",
-};
-
 export function buildRealChartReportCopy(
   enrichment: ChartReportEnrichment,
 ): RealChartReportCopyBlock[] {
   const blocks: RealChartReportCopyBlock[] = [
     buildReadinessCopy(enrichment),
-    ...enrichment.placements.slice(0, 4).map(buildPlacementCopy),
-    ...enrichment.aspects.slice(0, 3).map(buildAspectCopy),
+    ...enrichment.placements.slice(0, 5).map(buildPlacementCopy),
+    ...enrichment.aspects.slice(0, 4).map(buildAspectCopy),
   ];
 
   if (enrichment.limitations.length > 0) {
     blocks.push(buildLimitationsCopy(enrichment.limitations));
   }
+
+  blocks.push(buildCopyLibraryTransparencyBlock());
 
   return blocks;
 }
@@ -71,7 +46,7 @@ export function buildReadinessCopy(
       id: "real-chart-ready-copy",
       title: "چارت آماده‌ی غنی‌سازی گزارش است",
       body:
-        "داده‌های اصلی چارت برای ساختن یک گزارش نمادین و قابل‌فهم آماده‌اند. این یعنی متن گزارش می‌تواند از جایگاه‌ها، خانه‌ها و جنبه‌ها الهام بگیرد؛ بدون اینکه ادعای قطعیت یا پیش‌بینی قطعی داشته باشد.",
+        "داده‌های اصلی چارت برای ساختن یک گزارش نمادین و قابل‌فهم آماده‌اند. متن گزارش می‌تواند از جایگاه‌ها، خانه‌ها و جنبه‌ها الهام بگیرد؛ بدون اینکه ادعای قطعیت، تشخیص یا پیش‌بینی قطعی داشته باشد.",
       sourceKeys: [enrichment.readinessLabel],
     };
   }
@@ -81,7 +56,7 @@ export function buildReadinessCopy(
       id: "real-chart-partial-copy",
       title: "چارت در وضعیت آزمایشی است",
       body:
-        "بخشی از داده‌های چارت آماده شده، اما هنوز برای تفسیر کامل کافی نیست. در این حالت، گزارش باید محتاط، نمادین و شفاف باقی بماند و محدودیت‌های داده را پنهان نکند.",
+        "بخشی از داده‌های چارت آماده شده، اما هنوز برای تفسیر کامل کافی نیست. در این حالت گزارش باید محتاط، نمادین و شفاف باقی بماند و محدودیت‌های داده را پنهان نکند.",
       sourceKeys: [enrichment.readinessLabel],
     };
   }
@@ -98,36 +73,34 @@ export function buildReadinessCopy(
 export function buildPlacementCopy(
   placement: ChartReportPlacementSummary,
 ): RealChartReportCopyBlock {
-  const pointLabel = getPointLabel(placement.id, placement.label);
-  const signLabel = getSignLabel(placement.signId);
-  const houseText =
-    placement.house === null ? "خانه‌ی نامشخص" : `خانه‌ی ${placement.house}`;
+  const point = getPointCopyEntry(placement.id);
+  const sign = getSignCopyEntry(placement.signId);
+  const house = getHouseCopyEntry(placement.house);
 
   return {
     id: `placement-copy-${placement.id}`,
-    title: `${pointLabel} در ${signLabel}`,
+    title: `${point.labelFa} در ${sign.labelFa}`,
     body:
-      `در زبان نمادین چارت، ${pointLabel} در ${signLabel} می‌تواند یک تم قابل تأمل بسازد. ` +
-      `قرار گرفتن آن در ${houseText} نشان می‌دهد این انرژی بیشتر در همان حوزه‌ی تجربه‌ی فردی دیده می‌شود. ` +
-      "این جمله حکم قطعی نیست؛ فقط یک نقطه‌ی شروع برای خواندن شخصی و آرام گزارش است.",
-    sourceKeys: [placement.summaryKey],
+      `${point.copy} ${sign.copy} ${house.copy} ` +
+      "این ترکیب باید مثل یک تم قابل‌تأمل خوانده شود، نه حکم قطعی درباره‌ی شخصیت یا آینده.",
+    sourceKeys: [placement.summaryKey, ...point.keywords, ...sign.keywords, ...house.keywords],
   };
 }
 
 export function buildAspectCopy(
   aspect: ChartReportAspectSummary,
 ): RealChartReportCopyBlock {
-  const pointA = getPointLabel(aspect.pointA, aspect.pointA);
-  const pointB = getPointLabel(aspect.pointB, aspect.pointB);
-  const aspectLabel = ASPECT_LABELS[aspect.id] ?? aspect.id;
+  const pointA = getPointCopyEntry(aspect.pointA);
+  const pointB = getPointCopyEntry(aspect.pointB);
+  const aspectEntry = getAspectCopyEntry(aspect.id);
 
   return {
     id: `aspect-copy-${aspect.pointA}-${aspect.id}-${aspect.pointB}`,
-    title: `${pointA} و ${pointB}: ${aspectLabel}`,
+    title: `${pointA.labelFa} و ${pointB.labelFa}: ${aspectEntry.labelFa}`,
     body:
-      `رابطه‌ی ${aspectLabel} میان ${pointA} و ${pointB} می‌تواند یک گفت‌وگوی درونی یا الگوی تکرارشونده را برجسته کند. ` +
-      "در گزارش Halleus، این بخش باید به‌جای پیش‌بینی قطعی، به زبان تأملی و قابل لمس نوشته شود.",
-    sourceKeys: [aspect.summaryKey],
+      `${aspectEntry.copy} در این رابطه، ${pointA.labelFa} و ${pointB.labelFa} مثل دو صدای متفاوت در یک گفت‌وگوی درونی دیده می‌شوند. ` +
+      "متن باید به کاربر کمک کند الگو را ببیند، بدون اینکه او را بترساند یا محدود کند.",
+    sourceKeys: [aspect.summaryKey, ...aspectEntry.keywords],
   };
 }
 
@@ -141,10 +114,28 @@ export function buildLimitationsCopy(limitations: string[]): RealChartReportCopy
   };
 }
 
+export function buildCopyLibraryTransparencyBlock(): RealChartReportCopyBlock {
+  const stats = getCopyLibraryStats();
+
+  return {
+    id: "copy-library-transparency",
+    title: "پایه‌ی محتوایی این نسخه",
+    body:
+      `این نسخه از ${stats.pointCount} نقطه، ${stats.signCount} برج، ${stats.houseCount} خانه و ${stats.aspectCount} جنبه‌ی اصلی برای ساخت متن نمادین استفاده می‌کند. ` +
+      "هدف، ساختن گزارش انسانی‌تر و قابل‌فهم‌تر است؛ نه ادعای علمی یا قطعیت کامل.",
+    sourceKeys: [
+      `points:${stats.pointCount}`,
+      `signs:${stats.signCount}`,
+      `houses:${stats.houseCount}`,
+      `aspects:${stats.aspectCount}`,
+    ],
+  };
+}
+
 export function getPointLabel(pointId: string, fallback: string): string {
-  return POINT_LABELS[pointId] ?? fallback;
+  return getPointCopyEntry(pointId).labelFa || fallback;
 }
 
 export function getSignLabel(signId: string): string {
-  return SIGN_LABELS[signId] ?? signId;
+  return getSignCopyEntry(signId).labelFa;
 }
