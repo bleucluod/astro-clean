@@ -2,327 +2,678 @@
 
 Last updated: 2026-06-26
 
-This file is the handoff source of truth for continuing the Halleus project in any future ChatGPT session or with any other assistant. It should be updated after every successful batch or whenever the workflow rules change.
+This file is the handoff source of truth for continuing the Halleus project in future ChatGPT sessions. It must track product vision, technical workflow, and release/deployment state. Do not treat local progress, GitHub progress, Render deployment, and the public site as the same thing.
 
-## 1. Project identity
+## 1. Current authority rules
 
-- Project name: Halleus
-- Local Windows path: `C:\Projects\astro-clean`
-- GitHub repo: `https://github.com/bleucluod/astro-clean.git`
-- Branch: `main`
-- Package manager: `pnpm`
-- Stack: Next.js App Router, TypeScript, React, `astronomy-engine`
-- Deploy target: Render / `halleus.ir`
-
-## 2. Product goal
-
-Halleus is a Persian birth-chart and birth-report platform with a soft, human, product-oriented tone. It is intended for non-technical Persian-speaking users.
-
-MVP goal:
-
-1. User enters birth information.
-2. User receives a Persian birth-chart report.
-3. Report is saved locally for now.
-4. User can read saved reports.
-5. User has a manual path to order a fuller paid version before online payment/backend are added.
-
-## 3. Current stable Git baseline before this context-file batch
-
-The last known clean product checkpoint before adding this handoff file was:
+Current local repository identity:
 
 ```text
-49d8cc7 (HEAD -> main, tag: v0.1.70-jalali-birth-date-input, origin/main, origin/HEAD) Add Jalali birth date input
-6d4d2e6 (tag: v0.1.69-order-entry-links) Link manual order entry points
-d8e6a0b (tag: v0.1.68-manual-order-request-shell) Add manual order request page
-d473394 (tag: v0.1.67-sales-navigation-polish) Polish sales navigation
-d2491bf (tag: v0.1.66-paid-mvp-shell) Add paid MVP shell
+repo: C:\Projects\astro-clean
+branch: main
+package manager: pnpm
+brand: Halleus
+domain identity: Halleus.ir
 ```
 
-`git status --short` was clean before the attempted `v0.1.71-report-order-context` runner. After the failed repair runner, tracked files were restored and the remaining status was only untracked helper/context files:
+Verified local state from the latest provided git output:
 
 ```text
-?? _halleus_071_report_order_context.txt
-?? halleus-071-patch.cjs
-?? halleus-071-repair-patch.cjs
-?? halleus-071-report-order-context-repair.ps1
-?? halleus-071-report-order-context.ps1
+Local HEAD: a0deb31 / v0.1.76-site-chrome-navigation-fix
+Previous local milestone: 0c8bfd7 / v0.1.75-site-chrome-minimal-ui-cleanup
+GitHub origin/main: c0cf764 / v0.1.74-chart-page-minimal-product-polish
+Branch relation: main is ahead of origin/main by 2 commits
+Render state: unknown until verified
+Public/live state: unknown until verified
 ```
 
-This handoff-file batch may add a commit like:
+Important rule:
 
 ```text
-Add Halleus project handoff context
+Local commit/tag state, GitHub push state, Render deploy state, and public/live production state must be tracked separately.
 ```
 
-Do not treat that commit as a product milestone. The next product milestone can still be `v0.1.71-report-order-context` unless a later context update says otherwise.
+A local commit is not live. A GitHub push is not a Render deploy. `Halleus.ir` is the domain identity, not proof that the latest version is deployed.
 
-## 4. Recent completed product milestones
+## 2. Product origin
+
+Halleus started as a Persian-first birth chart and birth-report product for non-technical Persian-speaking users.
+
+The original need was to avoid generic horoscope, fortune-telling, copied astrology text, and raw technical chart tables. The product should let a user enter birth information and receive a personal, readable, calm, Persian report that feels written for them.
+
+The ideal user is:
+
+```text
+Persian-speaking
+non-technical
+interested in astrology, self-discovery, personality, relationships, and life patterns
+likely mobile-first
+wants a soft, clear, human report instead of generic daily horoscope content
+```
+
+The intended user journey is:
+
+```text
+landing/product entry
+→ /chart
+→ Jalali birth date + time + birth city
+→ report generation
+→ saved report detail
+→ report history
+→ optional fuller report order
+```
+
+Halleus must not feel like:
+
+```text
+daily horoscope
+fortune telling
+deterministic prediction
+debug/lab interface
+generic astrology blog
+medical/legal/financial advice
+```
+
+Halleus should feel like:
+
+```text
+Persian-first
+minimal
+private
+calm
+premium-light
+reflective
+trustworthy
+self-discovery oriented
+product-grade
+```
+
+## 3. Final product vision
+
+Halleus is intended to become a Persian personalized astrology/self-discovery platform centered on birth reports.
+
+The final product is a combination of:
+
+```text
+personalized Persian birth report generation
+saved report detail and history
+manual or paid fuller-report ordering
+future account/dashboard/history
+future admin/operations for orders
+future backend/payment/database
+future richer chart engine and interpretation layer
+```
+
+The primary output is a Persian birth report that is readable, human, non-deterministic, saved, and worth revisiting.
+
+The paid value is not generic text. The user pays for:
+
+```text
+a fuller report
+deeper interpretation
+better writing
+more coherent structure
+personalization based on the saved report
+possibly export/account/history features later
+```
+
+## 4. Product ideas added during development
+
+These ideas became part of the product direction during the project:
+
+```text
+Jalali date picker for Persian users
+Iran-first birth city flow / city data where available
+internal Gregorian ISO birthDate storage
+internal birthCountry: "ایران" while hiding country from UI
+real engine snapshot / real chart direction
+real-engine-native report writing direction
+manual order path for a fuller report
+report history/detail as part of the core flow
+dashboard/admin/operations as future product areas
+local/GitHub/Render/live state tracking as required release discipline
+```
+
+## 5. MVP definition
+
+A launchable MVP should include:
+
+```text
+clear landing or product entry
+/chart with Jalali birth-date UX
+birth time and birth city flow
+internal BirthInput.birthDate stored as Gregorian ISO YYYY-MM-DD
+internal birthCountry: "ایران" preserved while country UI stays hidden
+working chart/report generation
+saved report detail
+report history or access to saved reports
+manual path to order a fuller report
+pricing/product explanation
+basic privacy/data explanation
+clean Persian UI without mojibake
+minimal but reliable header/footer navigation
+GitHub pushed state
+Render deployed state
+public URL verified
+domain status documented
+```
+
+Not required for first MVP launch:
+
+```text
+real online payment
+full auth/account system
+production database
+complete admin order management
+email notifications
+PDF/export
+advanced SEO/content library
+complete professional astrology layers
+```
+
+## 6. Completed local milestones
 
 ### v0.1.68-manual-order-request-shell
 
-Completed, committed, tagged, and pushed.
+Completed earlier.
 
-Added:
+Product meaning:
 
-- New `/order` route.
-- Manual order request page.
-- `components/ManualOrderRequestForm.tsx`.
-- Base CSS for manual order flow.
-- Form prepares and copies order text only.
-- No real backend or payment.
-- Build passed.
+```text
+Created /order and ManualOrderRequestForm.
+Manual order text can be prepared/copied.
+No real backend or payment.
+```
 
 ### v0.1.69-order-entry-links
 
-Completed, committed, tagged, and pushed.
+Completed earlier.
 
-Added:
+Product meaning:
 
-- `/order` linked into sales/product/pricing surfaces.
-- Manual order path became discoverable.
-- Build passed.
+```text
+Made /order discoverable from sales/product/pricing surfaces.
+```
 
 ### v0.1.70-jalali-birth-date-input
 
-Completed, committed, tagged, and pushed.
+Completed earlier.
 
-Added:
+Product meaning:
 
-- `/chart` birth-date input changed from Gregorian date picker to Jalali/Persian text input.
-- User enters dates like `۱۳۷۸/۰۵/۲۱`.
-- Internal `birthDate` contract remains Gregorian ISO `YYYY-MM-DD`.
-- Real engine and save flow remained intact.
-- Added `lib/date/jalali.ts`.
-- Added `scripts/check-jalali-birth-date-input.mjs`.
-- Added package script `check:jalali-birth-date-input`.
-- Passed targeted checks and `pnpm build`.
-
-Important contract:
-
-- `BirthInput.birthDate` must remain Gregorian ISO `YYYY-MM-DD` internally.
-- Jalali is UI/input-facing only for now.
-- Do not change real-engine or storage contract to Jalali.
-
-## 5. Current product flow after v0.1.70
-
-1. User opens `/chart`.
-2. User enters Jalali birth date, birth time, and city.
-3. UI converts Jalali birth date to Gregorian ISO for internal state.
-4. Real engine uses `/api/engine/real-chart`.
-5. Report is generated and saved.
-6. User is routed to `/reports/[reportId]`.
-7. User can read saved report.
-8. User can find manual order flow through `/order`, product/pricing, and sales navigation.
-
-Important routes:
-
-- `/chart`: report generation with Jalali birth-date UI.
-- `/reports`: saved report archive.
-- `/reports/[reportId]`: report detail.
-- `/product`: product explanation.
-- `/pricing`: pricing/manual order entry.
-- `/order`: manual order request form.
-- `/privacy`: data/privacy explanation.
-
-## 6. Current file findings for report/order area
-
-These findings came from the context collected before the failed `v0.1.71-report-order-context` attempt.
-
-### `app/reports/[reportId]/page.tsx`
-
-Current structure:
-
-- Server route imports `ReportDetail`.
-- `params` is typed as a Promise containing `reportId`.
-- It awaits params and renders:
-
-```tsx
-return <ReportDetail reportId={reportId} />;
+```text
+/chart accepted Jalali/Persian birth date input.
+Internal BirthInput.birthDate stayed Gregorian ISO YYYY-MM-DD.
 ```
 
-### `components/ReportDetail.tsx`
+### v0.1.71-report-order-context
 
-Current structure:
+Completed earlier.
 
-- Client component.
-- Imports `Link`, React state/effect, `EmptyState`, `ReportCard`, share text, and `getReportRepository`.
-- Uses:
+Product meaning:
 
-```ts
-const reportRepository = getReportRepository();
+```text
+Report detail/order context started linking the report experience to the manual order path.
 ```
 
-- Loads a report with:
+### v0.1.72-sales-copy-polish
 
-```ts
-const selectedRecord = await reportRepository.getReport(reportId);
-setReport(selectedRecord?.report ?? null);
-setNote(selectedRecord?.note ?? "");
-setIsFavorite(selectedRecord?.favorite ?? false);
+Completed earlier.
+
+Product meaning:
+
+```text
+Sales copy was polished.
 ```
 
-- Has export JSON, export TXT, notes, empty state, and detail card.
-- Renders `ReportCard report={report}`.
-- This is the safest place to add a CTA to `/order?reportId=...` because it has both `reportId` and the loaded `report`.
-- Avoid touching `ReportCard` unless necessary; it is marker-sensitive and has many checks attached.
+### v0.1.73-chart-date-picker-country-cleanup
 
-### `components/ReportCard.tsx`
+Completed locally and later pushed state must be checked separately.
 
-Current structure:
+Product meaning:
 
-- Client component.
-- Receives `report: AstrologyReport`.
-- Uses `createShareText`.
-- Contains product/report UI markers used by checks, including:
-  - `report-product-card`
-  - `report-product-hero`
-  - `report-core-card`
-  - `report-calculation-section`
-  - `report-aspect-card`
-  - `report.realEngine?.aspects`
-  - `aspect.narrative`
-  - `PLANET_LABELS_FA`
-  - `SIGN_LABELS_FA`
-
-Do not casually rewrite this file.
-
-### `app/order/page.tsx`
-
-Current structure before the failed patch:
-
-- Server component.
-- Imports `Metadata`, `Link`, and `ManualOrderRequestForm`.
-- Does not read query params yet.
-- Renders:
-
-```tsx
-<ManualOrderRequestForm />
+```text
+Jalali birth date moved from text input to simple year/month/day picker.
+Country field was removed from chart UI.
+Internal birthCountry: "ایران" was preserved.
+BirthInput.birthDate remains Gregorian ISO YYYY-MM-DD.
+Targeted checks and build passed.
 ```
 
-For report-order context, this page should read `searchParams.reportId` and pass it to the form as a prop.
+### v0.1.74-chart-page-minimal-product-polish
 
-### `components/ManualOrderRequestForm.tsx`
+Completed locally and is the current GitHub origin/main according to latest git output.
 
-Current structure before the failed patch:
+Product meaning:
 
-- Client component.
-- No props yet.
-- Internal state type:
-
-```ts
-type ManualOrderForm = {
-  name: string;
-  contact: string;
-  plan: (typeof planOptions)[number];
-  reportLink: string;
-  notes: string;
-};
+```text
+/chart became more minimal and product-like.
+ChartForm and surrounding copy/layout were polished.
+Report creation, saving, and report detail flow were preserved.
+Targeted checks and build passed.
 ```
 
-- `initialForm.reportLink` is empty.
-- `requestText` is built with `useMemo` and copied with `navigator.clipboard.writeText(requestText)`.
-- No backend, no payment, no submit-to-server.
+### v0.1.75-site-chrome-minimal-ui-cleanup
 
-For report-order context:
+Completed locally according to latest git output:
 
-- Add prop `initialReportId?: string`.
-- Initialize `reportLink` from `initialReportId`.
-- Optional but useful: inside the client component, use `getReportRepository().getReport(initialReportId)` to load local report details and include name/date/time/city in request preview.
-- Because `/order` is server-side, any localStorage/report repository read must happen in the client form, not in `app/order/page.tsx`.
-
-### Storage and types
-
-`types/astro.ts` includes:
-
-```ts
-export type BirthInput = {
-  name?: string;
-  birthDate: string;
-  birthTime: string;
-  birthCity: string;
-  birthCountry: string;
-  birthCityId?: string;
-  birthLatitude?: number;
-  birthLongitude?: number;
-  birthTimezone?: string;
-};
-
-export type AstrologyReport = {
-  id: string;
-  createdAt: string;
-  input: BirthInput;
-  chart: MockChart;
-  realEngine?: RealEngineReportSnapshot;
-  summary: string;
-  interpretations: string[];
-  safetyNote: string;
-};
+```text
+0c8bfd7 / v0.1.75-site-chrome-minimal-ui-cleanup
 ```
 
-Storage findings:
+Product meaning:
 
-- `lib/storage/report-write-service.ts` saves via `getReportRepository().saveReport(reportWithEngine)` and notifies local data changes.
-- `lib/storage/report-repository.ts` currently returns `localReportRepository`.
-- `lib/storage/reports-storage.ts` still has lower-level localStorage helpers (`loadReports`, `saveReport`, `deleteReport`, `clearReports`).
-- Prefer the repository API used by `ReportDetail`, not old direct storage helpers, unless exact current context says otherwise.
+```text
+Site chrome/header/footer was made more minimal.
+```
 
-## 7. Failed `v0.1.71-report-order-context` runner attempts
+Feedback/problem:
 
-Two runner attempts failed because the patchers used brittle markers inside `ManualOrderRequestForm.tsx`.
+```text
+Important previous routes became harder to access from the UI.
+The brand appeared incorrectly as HHalleus instead of Halleus.
+```
 
-### First failure
+Therefore, v0.1.75 is a completed local milestone but not a final UI direction by itself. It required a navigation/brand fix.
 
-Command:
+### v0.1.76-site-chrome-navigation-fix
+
+Completed locally according to latest git output:
+
+```text
+a0deb31 / v0.1.76-site-chrome-navigation-fix
+```
+
+Product meaning:
+
+```text
+Fixed the site chrome/navigation feedback from v0.1.75.
+Restored access to important routes in footer/navigation.
+Corrected the visible brand direction back to Halleus.
+Updated context-related notes.
+```
+
+Release warning:
+
+```text
+As of latest git output, v0.1.75 and v0.1.76 are local only.
+origin/main is still c0cf764 / v0.1.74.
+Do not call v0.1.75 or v0.1.76 live until pushed and deployed.
+```
+
+## 7. Current product state
+
+Current local HEAD:
+
+```text
+a0deb31 / v0.1.76-site-chrome-navigation-fix
+```
+
+Current GitHub origin/main from latest git output:
+
+```text
+c0cf764 / v0.1.74-chart-page-minimal-product-polish
+```
+
+Known working locally from v0.1.73-v0.1.76 context:
+
+```text
+/chart works locally
+Jalali date picker works
+BirthInput.birthDate remains Gregorian ISO
+birthCountry: "ایران" is preserved internally
+country UI is removed
+chart page has been polished
+report generation works locally
+report detail works locally
+site chrome was cleaned and then navigation/brand feedback was fixed locally
+```
+
+Known or likely from earlier product work, but verify before relying on it:
+
+```text
+/order route
+manual order shell
+report-to-order context
+pricing/product pages
+local saved reports/history
+admin route/foundation
+```
+
+Known uncertain:
+
+```text
+whether a0deb31 is pushed to GitHub
+whether v0.1.75 and v0.1.76 tags are pushed to GitHub
+Render deploy state
+public/live production state
+Halleus.ir domain connection state
+current public route behavior
+whether /order stores, sends, or only displays/copies manual order context
+current production data/privacy posture
+```
+
+## 8. Local vs GitHub vs Render state
+
+Every meaningful batch must record these separately.
+
+### Local state
+
+Latest known local state:
+
+```text
+Local HEAD: a0deb31
+Local tag at HEAD: v0.1.76-site-chrome-navigation-fix
+Branch: main
+Branch status: ahead of origin/main by 2 commits
+Tracked status: clean according to latest git output; only untracked runner/helper files were present
+```
+
+### GitHub state
+
+Latest known GitHub state:
+
+```text
+origin/main: c0cf764 / v0.1.74-chart-page-minimal-product-polish
+v0.1.75 pushed: unknown / likely not pushed if origin/main is still v0.1.74
+v0.1.76 pushed: unknown / likely not pushed if origin/main is still v0.1.74
+```
+
+Must verify with:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\halleus-071-report-order-context.ps1
+git ls-remote --heads origin main
+git ls-remote --tags origin v0.1.75-site-chrome-minimal-ui-cleanup
+git ls-remote --tags origin v0.1.76-site-chrome-navigation-fix
 ```
 
-Failure:
+### Render state
+
+Latest known Render state:
 
 ```text
-Error: ManualOrderRequestForm insert position after reportLink not found.
+Render service name: unknown
+Connected GitHub repo: unknown
+Auto-deploy enabled: unknown
+Latest Render deploy commit: unknown
+Latest Render deploy status: unknown
+Render public URL: unknown
 ```
 
-It partially modified:
+### Public/live state
+
+Latest known public/live state:
 
 ```text
- M app/order/page.tsx
- M components/ReportDetail.tsx
+Public URL: unknown
+Custom domain: Halleus.ir is identity, connection unknown
+Halleus.ir connected: unknown
+SSL/domain status: unknown
+Last production QA date: unknown
+Observed deployed version/commit: unknown
 ```
 
-### Repair runner failure
+Required public smoke routes after deployment:
 
-Command:
+```text
+/
+/chart
+/reports
+/product
+/pricing
+/order
+/privacy
+```
+
+Never call a feature live only because it works locally. Never call a GitHub push deployed until Render is verified. Never treat Halleus.ir as connected to the latest app until domain and public route QA are verified.
+
+## 9. Deployment rules
+
+Before saying a version is live:
+
+```text
+1. Confirm local git status is clean.
+2. Confirm intended local commit/tag.
+3. Push main to GitHub.
+4. Push every relevant release tag.
+5. Confirm origin/main matches local HEAD.
+6. Confirm release tags exist on origin.
+7. Confirm Render is connected to the correct GitHub repo.
+8. Confirm Render deployed the intended commit successfully.
+9. Open the public Render URL.
+10. Smoke test important public routes.
+11. Confirm Halleus.ir only if domain/DNS/SSL are verified.
+12. Record all results in this context file.
+```
+
+Useful commands:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\halleus-071-report-order-context-repair.ps1
+git status --short
+git log --oneline --decorate -8
+git branch -vv
+git ls-remote --heads origin main
+git ls-remote --tags origin v0.1.75-site-chrome-minimal-ui-cleanup
+git ls-remote --tags origin v0.1.76-site-chrome-navigation-fix
 ```
 
-Failure:
+After this context batch succeeds, expected push plan:
+
+```powershell
+git push origin main
+git push origin v0.1.75-site-chrome-minimal-ui-cleanup
+git push origin v0.1.76-site-chrome-navigation-fix
+git push origin v0.1.77-project-context-product-deployment-state
+```
+
+If a later audit shows tags already exist remotely, do not force-push unless the user intentionally rewrote the tag.
+
+## 10. Progress model
+
+Progress must be tracked by axis, not one vague percentage. Local progress and public/live progress must stay separate.
+
+Current rough estimates after local v0.1.76, before GitHub/Render verification:
 
 ```text
-Error: ManualOrderRequestForm state block marker not found.
+Product vision clarity: 80%
+Core chart/report flow: 75-85% local / live unknown
+Report quality/value: 35-55%
+UI/brand maturity: 55-65% local / live unknown
+Sales/order flow: 35-50% local / live unknown
+Admin/operations: 15-25%
+Data/privacy readiness: 35-45%
+Deployment/GitHub/Render readiness: low/unknown until audit
+Public launch readiness: local 25-45% / live unknown
+Business readiness: 25-35%
+Engineering reliability: 55-65%
 ```
 
-The repair runner restored tracked files back to `HEAD`. Remaining files were untracked helper/context files only.
+Use ranges when confidence is limited. Do not inflate progress because a feature exists locally.
 
-Lesson:
+Percentages should only be updated after real milestones:
 
-- Do not build another marker-heavy patcher for this batch.
-- Next implementation should use full-file replacement for `ManualOrderRequestForm.tsx` and possibly `app/order/page.tsx`, or a very small and verified patch on exact current file content.
-- If a runner modifies files before failing, it must always rollback tracked files before exiting unless a commit has already succeeded.
+```text
+checks/build pass
+commit/tag success
+GitHub push verified
+Render deploy verified
+public smoke test verified
+feature moves from demo/shell to product flow
+context updated with new state
+```
 
-## 8. Working rules for future assistants
+## 11. Roadmap priorities
 
-Language:
+Recommended near-term order after this context update:
 
-- Respond in Persian unless the user explicitly asks for English.
+### 1. Push local work to GitHub
 
-User workflow:
+Goal:
 
-- User downloads a ZIP, extracts it elsewhere, and copies the runner/helper files into `C:\Projects\astro-clean`.
-- Runner must work when executed from repo root:
+```text
+Move local a0deb31 / v0.1.76 and all relevant tags to GitHub.
+```
+
+Do this only after the context update succeeds and the working tree is clean.
+
+### 2. GitHub/Render/public state verification
+
+Goal:
+
+```text
+Verify what is local, what is pushed to GitHub, what Render deployed, and what public users can see.
+```
+
+Type:
+
+```text
+deployment-related audit/docs
+```
+
+Possible files:
+
+```text
+docs/HALLEUS_PROJECT_CONTEXT.md
+docs/DEPLOYMENT_STATE.md or docs/RELEASE_STATUS.md if needed
+scripts/check-deployment-state-context.mjs
+package.json if a check is added
+```
+
+Avoid product feature changes.
+
+### 3. Report value/readability polish
+
+Goal:
+
+```text
+Make report output feel more valuable, readable, and paid-product-worthy.
+Reduce debug/demo feel.
+Improve structure and copy.
+```
+
+Avoid changing chart input or site chrome in the same batch.
+
+### 4. Manual order capture/admin readiness
+
+Goal:
+
+```text
+Move manual order from copy-only or shell toward a process-ready request flow.
+Keep payment/backend optional for now.
+Clarify where a request goes and how it can be reviewed.
+```
+
+Avoid mixing this with report quality or chrome redesign.
+
+### 5. Deployment/domain hardening
+
+Goal:
+
+```text
+If Render deploy is healthy, verify or configure Halleus.ir, DNS, SSL, and public smoke QA.
+```
+
+Do not change product code in the same batch.
+
+## 12. UI and brand rules
+
+Brand:
+
+```text
+Halleus
+```
+
+Domain identity:
+
+```text
+Halleus.ir
+```
+
+Domain identity does not mean domain is connected or live.
+
+Preferred UI feel:
+
+```text
+minimal
+Persian-first
+calm
+private
+premium but simple
+human
+trustworthy
+self-discovery oriented
+not generic horoscope
+not dev/demo
+```
+
+Avoid public UI wording like:
+
+```text
+Paid MVP Shell
+Manual order MVP
+Product Map
+Payment Readiness
+Stage
+Provider
+Payments blocked
+Preview
+mock
+debug
+pipeline
+driver
+engine internals
+```
+
+Avoid claims that are:
+
+```text
+deterministic
+medical
+legal
+financial
+scientific certainty
+fortune-telling
+```
+
+Header/footer rules:
+
+```text
+Keep them minimal.
+Keep important product routes discoverable.
+Do not expose admin as primary public navigation.
+Do not remove route discoverability in the name of minimalism.
+Do not change route paths because of Halleus.ir.
+```
+
+Important public routes:
+
+```text
+/
+/chart
+/reports
+/product
+/pricing
+/order
+/privacy
+```
+
+Less prominent/internal routes:
+
+```text
+/dashboard
+/profile
+/roadmap
+/wiki
+/quality
+/engine/*
+/admin
+```
+
+## 13. Runner and workflow rules
+
+The user prefers product-oriented batches, but runners must be reliable and single-purpose.
+
+Execution format:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\runner-name.ps1
@@ -330,412 +681,66 @@ powershell -ExecutionPolicy Bypass -File .\runner-name.ps1
 
 Runner rules:
 
-- Keep runners small and single-purpose.
-- Before each batch, collect exact current file context for touched files.
-- Do not guess file structure.
-- Avoid fragile markers, especially in files with Persian/mojibake text or frequently changed UI.
-- Prefer full-file replacement for client forms/pages when the file is short and exact current content is known.
-- Avoid nested PowerShell -> embedded JS -> TSX/template quoting.
-- Use external helper files in ZIP when needed.
-- PS1 should mostly orchestrate; complex patch logic should live in a separate `.cjs` file.
-- Fail fast.
-- If any step fails before a successful commit, restore tracked files touched by that runner.
-- Do not create tags until after a successful commit.
-- Do not rollback after a successful commit/tag.
-- Handle empty git outputs safely.
-- Allow the runner itself and known helper files to be untracked.
-- Do not ignore unknown dangerous untracked files if they look relevant to source changes.
-
-Checks:
-
-- Use targeted checks for touched areas.
-- Run `pnpm build` only when TypeScript/runtime risk exists.
-- Reserve full `check:project` for grouped milestones/pre-deploy.
-- For doc-only/context changes, `pnpm run check:encoding` is enough unless source code changes.
-
-PowerShell notes:
-
-- If the prompt becomes `>>`, a quote is probably open. Press `Ctrl+C`.
-- If git opens pager with `(END)`, press `q`.
-- Windows `LF will be replaced by CRLF` warning is not an error.
-
-## 9. Next product batch still desired
-
-### Planned product milestone
-
-`v0.1.71-report-order-context`
-
-Product goal:
-
-- Add a CTA in report detail: `سفارش نسخه کامل‌تر این گزارش`.
-- Link to `/order?reportId=<report.id>`.
-- Make `/order` read `reportId` and pass it to `ManualOrderRequestForm`.
-- Make the manual order form include the report id in the prepared order text.
-- If safe, load report details client-side and include:
-  - report id
-  - name from `report.input.name`
-  - birth date from `report.input.birthDate`
-  - birth time from `report.input.birthTime`
-  - city/country from `report.input.birthCity` / `birthCountry`
-- Do not add backend or payment.
-- Do not change the internal `birthDate` contract.
-
-Suggested implementation approach after this context file exists:
-
-1. Ask user for exact current content of:
-   - `components/ManualOrderRequestForm.tsx`
-   - `app/order/page.tsx`
-   - `components/ReportDetail.tsx`
-   - `package.json`
-2. Use full-file replacement for `ManualOrderRequestForm.tsx` if needed.
-3. Use a tiny verified replacement for `ReportDetail` actions area or add a small order CTA card after `ReportCard`.
-4. Add `scripts/check-report-order-context.mjs`.
-5. Add `check:report-order-context` to `package.json`.
-6. Run:
-
-```powershell
-pnpm run check:report-order-context
-pnpm run check:report-detail-product-ui
-pnpm run check:real-report-save-flow
-pnpm run check:encoding
-pnpm build
+```text
+Run from repo root only.
+PowerShell should orchestrate only.
+Complex patch logic should live in a small .cjs helper.
+Avoid embedded Persian in PowerShell.
+If Persian must be in .ps1, the file must be UTF-8 with BOM.
+Avoid raw SHA guards as the main guard on Windows because CRLF/LF can create false failures.
+Use branch/baseline/clean-tree/semantic guards instead.
+Avoid marker-heavy patches.
+Avoid large expected text blocks.
+Avoid complex JS template literals with project text, backticks, or ${...}.
+Before building a runner, extract/upload only needed files.
+Allow the runner’s own known untracked files only.
+Fail on unexpected dirty tracked files.
+Use -LiteralPath for paths with brackets, such as app/reports/[reportId]/page.tsx.
+Use JSON parsing for package.json.
+Run targeted checks.
+Run check:encoding when Persian text changes.
+Run pnpm build when TypeScript/UI risk exists.
+Do not run unrelated legacy checks for focused batches.
+Do not run full check:project on every small batch unless it is a milestone/predeploy checkpoint.
 ```
 
-7. Commit:
+Failure rules:
 
 ```text
-Link reports to manual order context
+Fail fast.
+If failure happens before commit, restore touched tracked files.
+Remove new files created by the runner.
+Do not commit.
+Do not tag.
+Do not push.
+After successful commit/tag, do not rollback automatically.
 ```
 
-8. Tag:
+Known runner incident lessons:
 
 ```text
-v0.1.71-report-order-context
+Direct .ps1 execution can fail because scripts are not signed.
+Use powershell -ExecutionPolicy Bypass -File .\runner.ps1.
+Do not call .Trim() on possibly null native command output such as git tag --list.
+UTF-8 without BOM can corrupt Persian text in Windows PowerShell 5.1.
+Avoid embedding Persian in PowerShell; if unavoidable, use UTF-8 with BOM.
+Keep UI batches small and avoid mixing chart, sales copy, global CSS, and navigation in one batch.
 ```
 
-## 10. Update protocol for this file
-
-After every successful batch, update this file in the same commit or a nearby commit with:
-
-- new Git commit hash and tag
-- changed files
-- checks run
-- product behavior changed
-- known risks or deferred work
-- next planned batch
-
-This file exists so future chats should not need to ask the user to reconstruct history from memory.
-
----
-
-## 2026-06-26 - v0.1.71 recovery note
-
-After commit `511b6a5 Add Halleus project handoff context`, three attempted runners for `v0.1.71-report-order-context` failed before any product commit/tag was created.
-
-Failed attempts:
-
-1. Initial `halleus-071-report-order-context` runner:
-   - Partially modified `app/order/page.tsx` and `components/ReportDetail.tsx`.
-   - Failed with:
-     - `ManualOrderRequestForm insert position after reportLink not found.`
-   - Tracked files were later restored.
-
-2. Repair `halleus-071-report-order-context-repair` runner:
-   - Restored tracked files first.
-   - Failed with:
-     - `ManualOrderRequestForm state block marker not found.`
-   - Tracked files were restored.
-
-3. Safe `halleus-071-safe-report-order-context` runner:
-   - Intended to use full-file replacement for `app/order/page.tsx` and `components/ManualOrderRequestForm.tsx`.
-   - Still used a structural marker for `components/ReportDetail.tsx`.
-   - Failed with:
-     - `ReportDetail actions block marker not found.`
-   - Tracked files were restored.
-
-Current rule after these failures:
-
-- Do not create another product runner until exact file context is gathered again from the live repo.
-- Do not rely on brittle text markers in Persian/mojibake-heavy files.
-- Prefer full-file replacement for small/medium files.
-- If a small patch is still needed, it must be based on fresh line-numbered context from the current repo.
-- The next `v0.1.71-report-order-context` attempt must also update this file.
-- Before the next attempt, collect advice/context from previous Halleus chats using the prompt prepared in chat 4.
-
-Planned target remains:
-
-- Add a report detail CTA to `/order?reportId=<report.id>`.
-- Let `/order` pass `reportId` into `ManualOrderRequestForm`.
-- Let the manual order text include at least the report id, and if safe, report name/birth date/birth time/birth city from local storage/repository.
-- Do not add backend/payment.
-- Avoid touching `ReportCard` unless absolutely necessary.
-
----
-
-## 2026-06-26 - v0.1.71-report-order-context
-
-Product batch `v0.1.71-report-order-context` links saved reports to the manual order flow.
-
-Implemented behavior:
-
-- `app/reports/[reportId]/page.tsx` renders the existing `ReportDetail` and a new independent `ReportOrderCta`.
-- `components/ReportOrderCta.tsx` links to `/order?reportId=<encoded report id>`.
-- `app/order/page.tsx` reads `searchParams.reportId` and passes it to `ManualOrderRequestForm` as `initialReportId`.
-- `components/ManualOrderRequestForm.tsx` pre-fills the report id and, on the client, uses the local report repository to include available report context in the copied order text.
-- The form remains copy-only. No backend, payment, or server submission was added.
-- `ReportCard.tsx` and `ReportDetail.tsx` were intentionally not changed in this batch.
-
-Reliability note:
-
-- This implementation was built from fresh exact file context and SHA-256 hashes after the failed marker-based attempts.
-- The runner used hash guards before replacing files.
-- Avoid marker-heavy patching in future report/order TSX files unless fresh context is available.
-
-Checks used:
-
-- `pnpm run check:report-order-context`
-- `pnpm run check:report-detail-product-ui`
-- `pnpm run check:real-report-save-flow`
-- `pnpm run check:encoding`
-- `pnpm build`
-
----
-
-## 2026-06-26 - v0.1.72-sales-copy-polish
-
-Product batch `v0.1.72-sales-copy-polish` softens the public sales copy without changing report generation, storage, engine behavior, backend, or payment.
-
-Implemented behavior:
-
-- Polished sales copy across home, product, pricing, order, and report-order CTA surfaces.
-- Kept the manual order model transparent: no online payment, no backend submission, and copy-only order text.
-- Kept the report-order context from `v0.1.71`: report detail still links to `/order?reportId=<encoded report id>`.
-- Kept `ReportDetail.tsx`, `ReportCard.tsx`, engine, storage, and chart flow untouched.
-- Added `scripts/check-sales-copy-polish.mjs` and package script `check:sales-copy-polish`.
-
-Reliability note:
-
-- This batch used exact current file context and SHA-256 hash guards before replacement.
-- Continue to avoid marker-heavy patches in larger TSX files unless fresh context is available.
-
-Checks used:
-
-- `pnpm run check:sales-copy-polish`
-- `pnpm run check:sales-navigation-polish`
-- `pnpm run check:product-surface`
-- `pnpm run check:paid-mvp-shell`
-- `pnpm run check:report-order-context`
-- `pnpm run check:encoding`
-- `pnpm build`
-
-Next planned product checkpoint:
-
-- `v0.1.73-predeploy-product-checkpoint`
-
----
-
-## 2026-06-26 - v0.1.73-chart-date-picker-country-cleanup
-
-Product batch `v0.1.73-chart-date-picker-country-cleanup` keeps the chart form focused on the existing chart flow while making birth date entry less error-prone.
-
-Implemented behavior:
-
-- `components/ChartForm.tsx` now uses a simple Jalali picker made of year, month, and day selects instead of a free-text Jalali date input.
-- The selected Jalali date is still parsed through `parseJalaliDateInput` before submit.
-- The internal `BirthInput.birthDate` contract remains Gregorian ISO `YYYY-MM-DD` after normalization.
-- The visible country field was removed from the chart form UI.
-- The internal `birthCountry` value remains `ایران` in the initial form and normalized submit payload because engine/storage still expect it.
-- No sales, order, pricing, product, report detail, report card, page shell, or global style files were changed.
-
-Changed files:
-
-- `components/ChartForm.tsx`
-- `scripts/check-jalali-birth-date-input.mjs`
-- `docs/HALLEUS_PROJECT_CONTEXT.md`
-
-Checks used:
-
-- `pnpm run check:jalali-birth-date-input`
-- `pnpm run check:chart-final-submit-flow`
-- `pnpm run check:chart-form-real-engine-bridge`
-- `pnpm run check:encoding`
-- `pnpm build`
-
-Reliability note:
-
-- This batch intentionally avoided `check:sales-copy-polish`.
-- The runner did not use raw SHA guards.
-- The runner restores tracked files and skips commit/tag if any step fails before completion.
-
-Next planned product checkpoint:
-
-- `v0.1.74-predeploy-product-checkpoint`
-### Runner incident log for v0.1.73
-
-This incident belongs to `v0.1.73-chart-date-picker-country-cleanup` and should be kept as a permanent runner rule for future Halleus batches.
-
-What failed before the successful runner:
-
-1. **Execution policy failure on Windows PowerShell**
-   - Running `.
-unner.ps1` directly can fail with: `cannot be loaded. The file ... is not digitally signed`.
-   - Future instructions should start with an explicit one-run bypass command:
-     - `powershell -ExecutionPolicy Bypass -File .\halleus-073.ps1`
-   - Do not tell the user to run unsigned `.ps1` files directly.
-
-2. **Null-valued expression in runner tag checks**
-   - The fixed runner must never call `.Trim()` directly on output that can be `$null`.
-   - Native command helpers should normalize empty output to `""` first, then trim.
-   - This specifically matters for commands such as `git tag --list <tag>` when no tag is returned.
-
-3. **Persian text corruption in `.ps1` runners**
-   - Windows PowerShell 5.1 can misread Persian text in `.ps1` files saved as UTF-8 without BOM.
-   - Symptom: product logic may be correct, but checks fail only on Persian UI markers such as:
-     - `ساخت گزارش و مشاهده جزئیات`
-     - `مسیر ساده ساخت گزارش`
-     - `محاسبه پشت صحنه`
-   - Fix: any `.ps1` runner that embeds Persian text must be saved as UTF-8 with BOM, or the runner should avoid embedding Persian text directly in PowerShell.
-
-Final successful state:
-
-- The BOM-fixed runner passed:
-  - `pnpm run check:jalali-birth-date-input`
-  - `pnpm run check:chart-final-submit-flow`
-  - `pnpm run check:chart-form-real-engine-bridge`
-  - `pnpm run check:encoding`
-  - `pnpm build`
-- The successful commit before this context amendment was `94d12b0` with subject `Clean chart date picker and country field`.
-- The product tag remains `v0.1.73-chart-date-picker-country-cleanup`.
-
-Permanent rule:
-
-- Future Halleus runners should be simple, fail-fast, and runnable with `powershell -ExecutionPolicy Bypass -File ...`.
-- Do not use raw SHA guards.
-- Do not use large brittle expected blocks.
-- Do not embed Persian text in PowerShell unless the `.ps1` is definitely UTF-8 with BOM.
-
-
----
-
-## 2026-06-26 - v0.1.74-chart-page-minimal-product-polish
-
-Product batch `v0.1.74-chart-page-minimal-product-polish` keeps the chart engine and report save flow unchanged while making `/chart` feel more like a minimal product start page.
-
-Implemented behavior:
-
-- `app/chart/page.tsx` still renders `ChartForm` directly so the existing final submit flow contract stays intact.
-- The chart page metadata was polished to describe the page as the start of report creation.
-- `components/ChartForm.tsx` now opens with a clearer product intro before the form.
-- The form copy explains that the visible date input is Jalali, while the internal engine value remains Gregorian ISO after normalization.
-- The form copy explains that country is not asked in the UI and remains internally set to Iran for the current engine/storage contract.
-- A short "what you get" section was added to clarify the output: calculated chart data, Persian report text, and saved report detail.
-- Existing submit behavior, report saving, real-engine request, fallback safe save flow, and report detail redirect were preserved.
-- No engine, storage, report detail, order, pricing, product, home page, or global style files were changed.
-
-Changed files:
-
-- `app/chart/page.tsx`
-- `components/ChartForm.tsx`
-- `scripts/check-chart-page-product-polish.mjs`
-- `package.json`
-- `docs/HALLEUS_PROJECT_CONTEXT.md`
-
-Checks used:
-
-- `pnpm run check:chart-page-product-polish`
-- `pnpm run check:jalali-birth-date-input`
-- `pnpm run check:chart-final-submit-flow`
-- `pnpm run check:chart-form-real-engine-bridge`
-- `pnpm run check:encoding`
-- `pnpm build`
-
-Reliability note:
-
-- The runner kept PowerShell as orchestration only and applied product text through a Node `.cjs` helper.
-- The runner was intended to be executed with `powershell -ExecutionPolicy Bypass -File .\\halleus-074-chart-page-product-polish.ps1`.
-- The runner did not embed Persian text inside PowerShell.
-- The runner restores tracked files and removes the newly added check script if any pre-commit step fails.
-- This batch intentionally avoided `check:sales-copy-polish`, `check:product-surface`, `check:report-order-context`, and `check:project`.
-
----
-
-## 2026-06-26 - v0.1.75-site-chrome-minimal-ui-cleanup
-
-Product batch `v0.1.75-site-chrome-minimal-ui-cleanup` removes the temporary sales-path chrome from the global shell and makes the site frame feel closer to the final minimal product.
-
-Implemented behavior:
-
-- Removed the secondary sales-path strip from the global header.
-- Removed the noisy global navigation labels from the shell header.
-- Replaced the header with a minimal Halleus brand mark and one short start CTA to `/chart`.
-- Reworked the footer into a quiet product note plus a privacy link instead of a placeholder-style product-link grid.
-- Simplified the global page background and softened card shadows without changing page-specific product flows.
-- Retired `check:sales-navigation-polish` from `check:project` and `check:core` in favor of the new site chrome check.
-- No chart submit flow, engine, storage, report detail, product, pricing, or order logic was changed.
-
-Changed files:
-
-- `components/AppShell.tsx`
-- `app/globals.css`
-- `scripts/check-site-chrome-minimal-ui.mjs`
-- `package.json`
-- `docs/HALLEUS_PROJECT_CONTEXT.md`
-
-Checks used:
-
-- `pnpm run check:site-chrome-minimal-ui`
-- `pnpm run check:encoding`
-- `pnpm build`
-
-Reliability note:
-
-- The runner keeps PowerShell as orchestration only and applies UI text through a Node `.cjs` helper.
-- The runner should be executed with `powershell -ExecutionPolicy Bypass -File .\halleus-075-site-chrome-minimal-ui-cleanup.ps1`.
-- The runner does not embed Persian text inside PowerShell.
-- The runner restores tracked files and removes the newly added check script if any pre-commit step fails.
-
----
-
-## 2026-06-26 - v0.1.76-site-chrome-navigation-fix
-
-Follow-up fix after `v0.1.75-site-chrome-minimal-ui-cleanup`. The previous chrome cleanup made the shell cleaner, but it removed too much access from the UI and the header brand could visually read as `HHalleus` because the standalone `H` mark sat next to the wordmark.
-
-Implemented behavior:
-
-- Header brand is plain `Halleus`; the extra `H` brand mark was removed so it no longer reads as `HHalleus`.
-- Header keeps local relative routing; the brand link still points to `/` and the CTA still points to `/chart`.
-- Footer now restores quiet access links for the important app paths: `/chart`, `/product`, `/pricing`, `/order`, `/reports`, `/dashboard`, `/admin`, and `/privacy`.
-- Footer mentions the public brand/domain as plain product identity: `Halleus.ir`. Do not replace local app hrefs with the production domain inside the Next.js app shell.
-- The site chrome check was updated so footer navigation can include product/order/report labels without reintroducing the old noisy header strip.
-
-Changed files:
-
-- `components/AppShell.tsx`
-- `app/globals.css`
-- `scripts/check-site-chrome-minimal-ui.mjs`
-- `docs/HALLEUS_PROJECT_CONTEXT.md`
-
-Checks used:
-
-- `pnpm run check:site-chrome-minimal-ui`
-- `pnpm run check:encoding`
-- `pnpm build`
-
-### Current product progress estimate
-
-These are rough planning estimates, not analytics or formal QA metrics. Use them to decide what to build next, not as a launch guarantee.
-
-- Local clickable MVP: approximately 65%. The user can start a chart flow, generate/save a report, revisit reports, see product/pricing/order surfaces, and use internal admin/dashboard routes.
-- Public paid-product readiness: approximately 35%. The product story, chart flow, report detail, pricing/order surfaces, and manual-order context exist, but payments, production persistence, emails, account/security polish, and real operational workflows are still incomplete.
-- UI/brand maturity: approximately 45%. The chart page and global chrome are cleaner, but most secondary pages still need consistent final-product polish.
-- Astrology/report value: approximately 55%. The real-engine bridge and report flow exist, but interpretation depth, sample quality, and upgrade/paywall packaging still need more product work.
-- Sales/order MVP: approximately 40%. Pricing/order/manual request context exists, but capture, admin handling, notifications, and payment are not production-grade yet.
-- Admin/operations: approximately 25%. Admin/dashboard routes exist, but they are not yet a reliable operational back office.
-- Engineering reliability: approximately 70%. Targeted checks, build, encoding checks, tags, and the handoff context are working, but runner batches must stay small and grounded in live files.
-
-Recommended near-term roadmap:
-
-1. Keep UI batches small: polish one surface at a time rather than redesigning the whole site.
-2. Next high-leverage product work should likely be manual order request capture + simple admin review, because that turns the sales/order path into a usable MVP workflow.
-3. Do not touch engine/storage/report internals unless the batch goal explicitly requires it.
-4. Continue updating this context after every successful batch and after every runner incident.
+## 14. Open uncertainties
+
+These must be verified explicitly before being treated as true:
+
+```text
+Is a0deb31 pushed to GitHub?
+Are tags v0.1.75, v0.1.76, and v0.1.77 pushed to GitHub?
+What is origin/main after push?
+Is Render connected to the GitHub repo?
+Is Render auto-deploy enabled?
+What commit is currently deployed on Render?
+What is the current public Render URL?
+Is Halleus.ir connected and live?
+Which routes are currently visible in header/footer on the public site?
+Does /order currently store, send, or only display/copy manual order context?
+What is the current production data/privacy posture?
+```
