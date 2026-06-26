@@ -613,3 +613,46 @@ Permanent rule:
 - Do not use raw SHA guards.
 - Do not use large brittle expected blocks.
 - Do not embed Persian text in PowerShell unless the `.ps1` is definitely UTF-8 with BOM.
+
+
+---
+
+## 2026-06-26 - v0.1.74-chart-page-minimal-product-polish
+
+Product batch `v0.1.74-chart-page-minimal-product-polish` keeps the chart engine and report save flow unchanged while making `/chart` feel more like a minimal product start page.
+
+Implemented behavior:
+
+- `app/chart/page.tsx` still renders `ChartForm` directly so the existing final submit flow contract stays intact.
+- The chart page metadata was polished to describe the page as the start of report creation.
+- `components/ChartForm.tsx` now opens with a clearer product intro before the form.
+- The form copy explains that the visible date input is Jalali, while the internal engine value remains Gregorian ISO after normalization.
+- The form copy explains that country is not asked in the UI and remains internally set to Iran for the current engine/storage contract.
+- A short "what you get" section was added to clarify the output: calculated chart data, Persian report text, and saved report detail.
+- Existing submit behavior, report saving, real-engine request, fallback safe save flow, and report detail redirect were preserved.
+- No engine, storage, report detail, order, pricing, product, home page, or global style files were changed.
+
+Changed files:
+
+- `app/chart/page.tsx`
+- `components/ChartForm.tsx`
+- `scripts/check-chart-page-product-polish.mjs`
+- `package.json`
+- `docs/HALLEUS_PROJECT_CONTEXT.md`
+
+Checks used:
+
+- `pnpm run check:chart-page-product-polish`
+- `pnpm run check:jalali-birth-date-input`
+- `pnpm run check:chart-final-submit-flow`
+- `pnpm run check:chart-form-real-engine-bridge`
+- `pnpm run check:encoding`
+- `pnpm build`
+
+Reliability note:
+
+- The runner kept PowerShell as orchestration only and applied product text through a Node `.cjs` helper.
+- The runner was intended to be executed with `powershell -ExecutionPolicy Bypass -File .\\halleus-074-chart-page-product-polish.ps1`.
+- The runner did not embed Persian text inside PowerShell.
+- The runner restores tracked files and removes the newly added check script if any pre-commit step fails.
+- This batch intentionally avoided `check:sales-copy-polish`, `check:product-surface`, `check:report-order-context`, and `check:project`.

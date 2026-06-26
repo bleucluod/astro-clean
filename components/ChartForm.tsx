@@ -307,16 +307,45 @@ export function ChartForm() {
 
   return (
     <div className="grid chart-page">
+      <section className="card">
+        <span className="badge">شروع گزارش تولد</span>
+
+        <h1>گزارش تولد فارسی، از همین فرم ساده</h1>
+
+        <p>
+          اطلاعات تولد را مرحله‌به‌مرحله وارد کن تا Halleus چارت تولد را محاسبه کند، متن فارسی
+          گزارش را بسازد و نتیجه را در صفحه جزئیات ذخیره‌شده نشان بدهد. این مسیر برای شروع
+          ساده طراحی شده: تاریخ شمسی، ساعت تولد و شهر تولد کافی است.
+        </p>
+
+        <div className="grid grid-3">
+          <div className="mini-card">
+            <strong>تاریخ شمسی</strong>
+            <span>سال، ماه و روز را از picker انتخاب کن.</span>
+          </div>
+
+          <div className="mini-card">
+            <strong>بدون انتخاب کشور</strong>
+            <span>در این نسخه، محاسبه برای ایران تنظیم شده است.</span>
+          </div>
+
+          <div className="mini-card">
+            <strong>خروجی ذخیره‌شده</strong>
+            <span>بعد از submit مستقیم به صفحه گزارش می‌روی.</span>
+          </div>
+        </div>
+      </section>
+
       <form className="card form" onSubmit={handleSubmit}>
         <div>
-          <span className="badge">ساخت گزارش تولد</span>
+          <span className="badge">فرم ساخت گزارش</span>
 
-          <h1>ساخت چارت تولد</h1>
+          <h2>اطلاعات تولد</h2>
 
           <p>
-            اطلاعات تولد را وارد کن تا Halleus چارت را محاسبه کند، متن فارسی گزارش را بسازد و
-            نتیجه را در صفحه جزئیات ذخیره‌شده نشان بدهد. محاسبه دقیق‌تر پشت صحنه انجام می‌شود؛
-            تو فقط فرم را کامل می‌کنی و گزارش نهایی را می‌خوانی.
+            فرم را کامل کن و دکمه ساخت گزارش را بزن. تاریخ تولد در UI شمسی است، اما برای
+            engine داخلی به Gregorian ISO تبدیل می‌شود. کشور در UI پرسیده نمی‌شود و مقدار داخلی
+            آن برای سازگاری فعلی روی ایران می‌ماند.
           </p>
 
           <SafetyDisclaimer compact />
@@ -411,6 +440,9 @@ export function ChartForm() {
               placeholder="مثلاً تهران"
               list="iran-city-options"
             />
+            <small className="field-hint">
+              فعلاً شهرهای ایران پشتیبانی می‌شوند و کشور به‌صورت داخلی ایران ثبت می‌شود.
+            </small>
           </label>
           <datalist id="iran-city-options">
             {IRAN_CITY_OPTIONS.map((city) => (
@@ -447,7 +479,30 @@ export function ChartForm() {
         {saveMessage ? <p className="success-message">{saveMessage}</p> : null}
       </form>
 
-      <div className="card chart-final-flow-card">
+      <section className="card">
+        <span className="badge">چه چیزی می‌گیری؟</span>
+
+        <h2>یک گزارش قابل خواندن، نه فقط داده خام</h2>
+
+        <div className="grid grid-3">
+          <div className="mini-card">
+            <strong>چارت محاسبه‌شده</strong>
+            <span>داده‌های پایه برای ساخت گزارش تولد.</span>
+          </div>
+
+          <div className="mini-card">
+            <strong>متن فارسی گزارش</strong>
+            <span>خروجی آماده خواندن در صفحه جزئیات.</span>
+          </div>
+
+          <div className="mini-card">
+            <strong>ذخیره برای ادامه مسیر</strong>
+            <span>گزارش ساخته‌شده در بخش گزارش‌ها می‌ماند.</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="card chart-final-flow-card">
         <span className="badge">مسیر ساده ساخت گزارش</span>
 
         <h2>از فرم تا گزارش، در یک قدم</h2>
@@ -473,7 +528,7 @@ export function ChartForm() {
             <span>صفحه جزئیات</span>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

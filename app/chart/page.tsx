@@ -4,7 +4,7 @@ import { ChartForm } from "@/components/ChartForm";
 export const metadata: Metadata = {
   title: "ساخت گزارش تولد | Halleus",
   description:
-    "فرم ساخت گزارش تولد در Halleus؛ کاربر تاریخ، ساعت و شهر تولد را وارد می‌کند و گزارش فارسی ذخیره‌شده دریافت می‌کند.",
+    "صفحه شروع ساخت گزارش تولد در Halleus؛ تاریخ شمسی، ساعت و شهر تولد را وارد می‌کنی و گزارش فارسی ذخیره‌شده می‌گیری.",
 };
 
 export default function ChartPage() {
