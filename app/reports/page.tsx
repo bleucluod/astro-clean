@@ -1,12 +1,39 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ReportsList } from "@/components/ReportsList";
 
 export const metadata: Metadata = {
   title: "گزارش‌های ذخیره‌شده | Halleus",
   description:
-    "مشاهده و مدیریت گزارش‌های ذخیره‌شده چارت تولد در Halleus.",
+    "مشاهده و مدیریت گزارش‌های ذخیره‌شده چارت تولد در Halleus؛ بعد از ساخت گزارش می‌توانی مسیر پلن‌ها و سفارش دستی را هم بررسی کنی.",
 };
 
 export default function ReportsPage() {
-  return <ReportsList />;
+  return (
+    <section className="grid reports-sales-shell">
+      <div className="card reports-sales-cta">
+        <div>
+          <span className="badge">گزارش‌های ذخیره‌شده</span>
+          <h1>گزارش‌هایی که ساختی را مرور کن</h1>
+          <p>
+            این صفحه نقطه بعد از ساخت گزارش است: می‌توانی گزارش‌ها را بخوانی،
+            برگردی، یادداشت اضافه کنی و اگر نسخه کامل‌تر خواستی، مسیر پلن‌ها و
+            سفارش دستی را بررسی کنی.
+          </p>
+        </div>
+
+        <div className="actions">
+          <Link className="button" href="/chart">
+            ساخت گزارش جدید
+          </Link>
+
+          <Link className="button secondary" href="/pricing">
+            دیدن پلن‌ها
+          </Link>
+        </div>
+      </div>
+
+      <ReportsList />
+    </section>
+  );
 }

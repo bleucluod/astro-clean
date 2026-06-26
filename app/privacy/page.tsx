@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function PrivacyPage() {
   return (
-    <section className="grid">
+    <section className="grid privacy-sales-shell">
       <div className="card">
         <span className="badge">Local Preview Privacy</span>
 
@@ -22,8 +22,31 @@ export default function PrivacyPage() {
           <Link className="button secondary" href="/reports">
             مدیریت گزارش‌ها
           </Link>
+
+          <Link className="button secondary" href="/pricing">
+            پلن‌ها و سفارش دستی
+          </Link>
         </div>
       </div>
+
+      <section className="card privacy-sales-note">
+        <span className="section-label">اعتماد قبل از سفارش</span>
+
+        <h2>قبل از پرداخت آنلاین، مسیر داده باید روشن بماند</h2>
+
+        <p>
+          چون پرداخت آنلاین هنوز فعال نیست، سفارش اولیه به‌صورت دستی انجام
+          می‌شود. همین صفحه باید برای کاربر روشن کند که داده‌ها فعلاً کجا
+          می‌مانند، چه چیزی هنوز production نیست و چرا قبل از payment provider
+          باید auth و database آماده شوند.
+        </p>
+
+        <div className="tag-list">
+          <span>Storage: مرورگر کاربر</span>
+          <span>Auth: فعال نیست</span>
+          <span>Payment: سفارش دستی</span>
+        </div>
+      </section>
 
       <section className="card">
         <span className="badge">چه چیزی ذخیره می‌شود؟</span>

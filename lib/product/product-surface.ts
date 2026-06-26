@@ -92,6 +92,34 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
   },
 ];
 
+
+export const SALES_NAVIGATION_LINKS = [
+  {
+    href: "/chart",
+    label: "ساخت گزارش",
+  },
+  {
+    href: "/product",
+    label: "محصول",
+  },
+  {
+    href: "/pricing",
+    label: "پلن‌ها",
+  },
+  {
+    href: "/reports",
+    label: "گزارش‌ها",
+  },
+  {
+    href: "/privacy",
+    label: "حریم داده",
+  },
+] as const;
+
+export function getSalesNavigationLinks() {
+  return SALES_NAVIGATION_LINKS;
+}
+
 export function getProductSurfaceLinks() {
   return PRODUCT_SURFACE_LINKS;
 }
