@@ -8,11 +8,9 @@ const checkProject = packageJson.scripts?.["check:project"] ?? "";
 
 for (const marker of [
   "/api/engine/real-chart",
-  "requestRealEnginePreview",
-  "handlePreviewRealEngine",
-  "RealEngineBridgePreview",
-  "پیش‌نمایش real engine",
-  "محاسبه واقعی‌تر با همین فرم",
+  "requestRealEngineReportData",
+  "RealEngineRequestState",
+  "isRealEngineLoading",
   "IRAN_CITY_OPTIONS",
   "findIranCityByName",
   "getIranCityDisplayName",
@@ -21,9 +19,21 @@ for (const marker of [
   "birthTimezone",
   "createMockReport",
   "saveGeneratedReport",
+  "router.push(`/reports/${nextReport.id}`)",
 ]) {
   if (!chartFormSource.includes(marker)) {
-    failures.push(`ChartForm real engine bridge missing marker: ${marker}`);
+    failures.push(`ChartForm real engine final bridge missing marker: ${marker}`);
+  }
+}
+
+for (const removedMarker of [
+  "requestRealEnginePreview",
+  "handlePreviewRealEngine",
+  "RealEngineBridgePreview",
+  "پیش‌نمایش real engine",
+]) {
+  if (chartFormSource.includes(removedMarker)) {
+    failures.push(`ChartForm still has preview bridge marker: ${removedMarker}`);
   }
 }
 
@@ -32,7 +42,7 @@ if (!chartFormSource.includes("type RealChartApiResponse")) {
 }
 
 if (!chartFormSource.includes('status: "ready"')) {
-  failures.push("ChartForm must expose a ready state for real engine preview.");
+  failures.push("ChartForm must track a ready state for real engine submit flow.");
 }
 
 if (!chartPageSource.includes("return <ChartForm />")) {
@@ -68,4 +78,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Chart form real engine bridge check passed for 2 files.");
+console.log("Chart form real engine bridge check passed for final submit flow.");

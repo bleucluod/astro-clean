@@ -22,10 +22,11 @@ for (const marker of [
   "attachRealEngineSnapshotToReport",
   "realEngineResult",
   "realEngine:",
-  "داده real engine هم داخل گزارش ذخیره شد",
-  "snapshot جایگاه‌های واقعی‌تر",
   "/api/engine/real-chart",
+  "requestRealEngineReportData",
   "saveGeneratedReport(nextReport)",
+  "enrichReportWithRealEngineCopy",
+  "router.push(`/reports/${nextReport.id}`)",
 ]) {
   if (!chartFormSource.includes(marker)) {
     failures.push(`ChartForm missing real report save marker: ${marker}`);
@@ -34,15 +35,33 @@ for (const marker of [
 
 for (const marker of [
   "report.realEngine",
-  "real engine snapshot",
-  "داده واقعی‌تر ذخیره‌شده",
-  "report.realEngine.placements",
-  "ASC approx",
+  "report-calculation-section",
+  "report.realEngine?.aspects",
+  "report-aspect-card",
   "PLANET_LABELS_FA",
   "SIGN_LABELS_FA",
 ]) {
   if (!reportCardSource.includes(marker)) {
-    failures.push(`ReportCard missing real engine display marker: ${marker}`);
+    failures.push(`ReportCard missing product real engine display marker: ${marker}`);
+  }
+}
+
+if (
+  !reportCardSource.includes("report.realEngine.placements") &&
+  !reportCardSource.includes("report.realEngine?.placements") &&
+  !reportCardSource.includes("shownPlacements")
+) {
+  failures.push("ReportCard missing real engine placements display marker.");
+}
+
+for (const removedMarker of [
+  "real engine snapshot",
+  "ASC approx",
+  "شهر engine",
+  "UTC</strong>",
+]) {
+  if (reportCardSource.includes(removedMarker)) {
+    failures.push(`ReportCard still has debug-like marker: ${removedMarker}`);
   }
 }
 
@@ -65,4 +84,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Real report save flow check passed for 3 files.");
+console.log("Real report save flow check passed for product report UI.");
