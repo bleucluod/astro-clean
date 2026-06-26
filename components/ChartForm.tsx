@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,9 +13,8 @@ import {
   getIranCityDisplayName,
 } from "@/lib/locations/iran-cities";
 import { saveGeneratedReport } from "@/lib/storage/report-write-service";
-
-
 import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
+
 const initialForm: BirthInput = {
   name: "",
   birthDate: "",
@@ -26,6 +25,84 @@ const initialForm: BirthInput = {
 
 const todayIsoDate = new Date().toISOString().slice(0, 10);
 
+type IranCityOption = (typeof IRAN_CITY_OPTIONS)[number];
+
+type RealEnginePlacement = {
+  id: string;
+  label: string;
+  longitude: number;
+  signId: string;
+  degreeInSign: number;
+  method: string;
+};
+
+type RealChartApiResponse = {
+  ok: boolean;
+  error?: string;
+  realChart?: {
+    utcIso: string;
+    ascendantLongitude: number;
+    calculationNotes: string[];
+    placements: RealEnginePlacement[];
+  };
+};
+
+type RealEngineBridgeState =
+  | {
+      status: "idle";
+      message: string;
+    }
+  | {
+      status: "loading";
+      message: string;
+    }
+  | {
+      status: "ready";
+      message: string;
+      cityLabel: string;
+      utcIso: string;
+      ascendantLongitude: number;
+      placements: RealEnginePlacement[];
+    }
+  | {
+      status: "error";
+      message: string;
+    };
+
+const initialRealEngineBridge: RealEngineBridgeState = {
+  status: "idle",
+  message:
+    "همین فرم و همین شهرها می‌توانند قبل از ساخت گزارش، engine واقعی‌تر را هم صدا بزنند.",
+};
+
+const PLANET_LABELS_FA: Record<string, string> = {
+  sun: "خورشید",
+  moon: "ماه",
+  mercury: "عطارد",
+  venus: "زهره",
+  mars: "مریخ",
+  jupiter: "مشتری",
+  saturn: "زحل",
+  uranus: "اورانوس",
+  neptune: "نپتون",
+  pluto: "پلوتو",
+};
+
+const SIGN_LABELS_FA: Record<string, string> = {
+  aries: "حمل",
+  taurus: "ثور",
+  gemini: "جوزا",
+  cancer: "سرطان",
+  leo: "اسد",
+  virgo: "سنبله",
+  libra: "میزان",
+  scorpio: "عقرب",
+  sagittarius: "قوس",
+  capricorn: "جدی",
+  aquarius: "دلو",
+  pisces: "حوت",
+};
+
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
@@ -35,6 +112,10 @@ export function ChartForm() {
   const [form, setForm] = useState<BirthInput>(initialForm);
   const [report, setReport] = useState<AstrologyReport | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
+  const [realEngineBridge, setRealEngineBridge] =
+    useState<RealEngineBridgeState>(initialRealEngineBridge);
+
+  const isRealEngineLoading = realEngineBridge.status === "loading";
 
   function updateField(field: keyof BirthInput, value: string) {
     setForm((current) => ({
@@ -43,11 +124,17 @@ export function ChartForm() {
     }));
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  function normalizeBirthForm() {
     const normalizedCityName = form.birthCity.trim() || initialForm.birthCity;
     const selectedCity = findIranCityByName(normalizedCityName);
+    const fallbackCity =
+      findIranCityByName(initialForm.birthCity) ?? IRAN_CITY_OPTIONS[0];
+
+    if (!fallbackCity) {
+      throw new Error("لیست شهرها برای محاسبه real engine در دسترس نیست.");
+    }
+
+    const engineCity = selectedCity ?? fallbackCity;
 
     const normalizedForm: BirthInput = {
       ...form,
@@ -60,13 +147,117 @@ export function ChartForm() {
       birthTimezone: selectedCity?.timezone,
     };
 
+    return {
+      normalizedForm,
+      engineCity,
+    };
+  }
+
+  async function requestRealEnginePreview(
+    normalizedForm: BirthInput,
+    engineCity: IranCityOption,
+    mode: "preview" | "submit",
+  ) {
+    setRealEngineBridge({
+      status: "loading",
+      message:
+        mode === "preview"
+          ? "در حال محاسبه real engine با همین تاریخ، ساعت و شهر..."
+          : "در حال اتصال ورودی فرم به real engine قبل از ساخت گزارش...",
+    });
+
+    try {
+      const response = await fetch("/api/engine/real-chart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: normalizedForm.name || "Halleus User",
+          birthDate: normalizedForm.birthDate,
+          birthTime: normalizedForm.birthTime,
+          timezone: engineCity.timezone,
+          placeName: getIranCityDisplayName(engineCity),
+          latitude: engineCity.latitude,
+          longitude: engineCity.longitude,
+        }),
+      });
+
+      const payload = (await response.json()) as RealChartApiResponse;
+
+      if (!response.ok || !payload.ok || !payload.realChart) {
+        throw new Error(
+          payload.error ?? "Real engine نتوانست چارت را از این ورودی بسازد.",
+        );
+      }
+
+      setRealEngineBridge({
+        status: "ready",
+        message:
+          mode === "preview"
+            ? "Real engine با همین فرم و شهر انتخاب‌شده پاسخ داد."
+            : "Real engine قبل از ساخت گزارش از همین ورودی صدا زده شد.",
+        cityLabel: getIranCityDisplayName(engineCity),
+        utcIso: payload.realChart.utcIso,
+        ascendantLongitude: payload.realChart.ascendantLongitude,
+        placements: payload.realChart.placements,
+      });
+
+      return payload;
+    } catch (error) {
+      setRealEngineBridge({
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Real engine در این مرحله پاسخ نداد.",
+      });
+
+      throw error;
+    }
+  }
+
+  async function handlePreviewRealEngine() {
+    setSaveMessage("");
+
+    if (!form.birthDate || !form.birthTime) {
+      setRealEngineBridge({
+        status: "error",
+        message:
+          "برای پیش‌نمایش real engine، اول تاریخ تولد و ساعت تولد را وارد کن.",
+      });
+      return;
+    }
+
+    try {
+      const { normalizedForm, engineCity } = normalizeBirthForm();
+      await requestRealEnginePreview(normalizedForm, engineCity, "preview");
+    } catch {
+      // The visible bridge state already contains the useful error message.
+    }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaveMessage("");
+
+    const { normalizedForm, engineCity } = normalizeBirthForm();
+
+    try {
+      await requestRealEnginePreview(normalizedForm, engineCity, "submit");
+    } catch {
+      // Keep the old safe save flow alive while the real report pipeline is being merged.
+    }
+
     const nextReport = enhanceReportOutputV2(createMockReport(normalizedForm));
 
     await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();
 
     setReport(nextReport);
-    setSaveMessage("گزارش ساخته و ذخیره شد. در حال انتقال به صفحه جزئیات...");
+    setSaveMessage(
+      "گزارش ساخته و ذخیره شد. ورودی همین فرم به real engine هم وصل شده است. در حال انتقال به صفحه جزئیات...",
+    );
 
     router.push(`/reports/${nextReport.id}`);
   }
@@ -77,12 +268,12 @@ export function ChartForm() {
         <div>
           <span className="badge">فرم MVP</span>
 
-          <h1>ساخت چارت تولد mock</h1>
+          <h1>ساخت چارت تولد</h1>
 
           <p>
-            اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. بعد از
-            ساخت گزارش، مستقیم وارد صفحه جزئیات همان گزارش می‌شوی و می‌توانی
-            یادداشت شخصی هم اضافه کنی.
+            اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. همین
+            فرم حالا می‌تواند real engine را هم با تاریخ، ساعت و شهر انتخاب‌شده
+            صدا بزند؛ ذخیره گزارش هنوز با مسیر امن MVP انجام می‌شود.
           </p>
 
           <SafetyDisclaimer compact />
@@ -129,15 +320,12 @@ export function ChartForm() {
               value={form.birthCity}
               onChange={(event) => updateField("birthCity", event.target.value)}
               placeholder="مثلاً تهران"
-            
-              list="iran-city-options"/>
+              list="iran-city-options"
+            />
           </label>
           <datalist id="iran-city-options">
             {IRAN_CITY_OPTIONS.map((city) => (
-              <option
-                key={city.id}
-                value={getIranCityDisplayName(city)}
-              />
+              <option key={city.id} value={getIranCityDisplayName(city)} />
             ))}
           </datalist>
 
@@ -161,6 +349,17 @@ export function ChartForm() {
             ساخت گزارش و رفتن به جزئیات
           </button>
 
+          <button
+            className="button secondary"
+            type="button"
+            disabled={isRealEngineLoading}
+            onClick={handlePreviewRealEngine}
+          >
+            {isRealEngineLoading
+              ? "در حال محاسبه..."
+              : "پیش‌نمایش real engine"}
+          </button>
+
           <Link className="button secondary" href="/reports">
             دیدن گزارش‌های ذخیره‌شده
           </Link>
@@ -170,7 +369,10 @@ export function ChartForm() {
       </form>
 
       {report ? (
-        <ReportCard report={report} />
+        <div className="grid">
+          <ReportCard report={report} />
+          <RealEngineBridgePreview preview={realEngineBridge} />
+        </div>
       ) : (
         <div className="card">
           <span className="badge">پیش‌نمایش خروجی</span>
@@ -178,29 +380,92 @@ export function ChartForm() {
           <h2>گزارش اینجا ساخته می‌شود</h2>
 
           <p>
-            بعد از ثبت فرم، Halleus یک چارت mock شامل نشانه‌های اصلی می‌سازد،
-            گزارش را در مرورگر ذخیره می‌کند و تو را به صفحه جزئیات همان گزارش
-            می‌برد.
+            بعد از ثبت فرم، Halleus فعلاً گزارش ذخیره‌شونده را با مسیر امن MVP
+            می‌سازد؛ اما همین فرم حالا می‌تواند real engine را هم با شهرهای
+            واقعی ایران صدا بزند.
           </p>
 
           <div className="grid grid-3">
             <div className="mini-card">
-              <strong>ساخت</strong>
-              <span>mock</span>
+              <strong>فرم</strong>
+              <span>اصلی</span>
             </div>
 
             <div className="mini-card">
-              <strong>ذخیره</strong>
-              <span>local</span>
+              <strong>شهرها</strong>
+              <span>حفظ‌شده</span>
             </div>
 
             <div className="mini-card">
-              <strong>جزئیات</strong>
-              <span>فعال</span>
+              <strong>engine</strong>
+              <span>bridge</span>
             </div>
           </div>
+
+          <RealEngineBridgePreview preview={realEngineBridge} />
         </div>
       )}
     </div>
   );
+}
+
+function RealEngineBridgePreview({
+  preview,
+}: {
+  preview: RealEngineBridgeState;
+}) {
+  const ready = preview.status === "ready";
+  const placements = ready ? preview.placements.slice(0, 6) : [];
+
+  return (
+    <div className="mini-card">
+      <strong>محاسبه واقعی‌تر با همین فرم</strong>
+      <span>{preview.message}</span>
+
+      {preview.status === "loading" ? (
+        <p>در حال ارسال تاریخ، ساعت و شهر به real engine...</p>
+      ) : null}
+
+      {preview.status === "error" ? (
+        <p className="success-message">{preview.message}</p>
+      ) : null}
+
+      {ready ? (
+        <div className="grid">
+          <div className="grid grid-3">
+            <div className="mini-card">
+              <strong>شهر engine</strong>
+              <span>{preview.cityLabel}</span>
+            </div>
+
+            <div className="mini-card">
+              <strong>ASC approx</strong>
+              <span>{formatDegree(preview.ascendantLongitude)}</span>
+            </div>
+
+            <div className="mini-card">
+              <strong>UTC</strong>
+              <span>{preview.utcIso}</span>
+            </div>
+          </div>
+
+          <div className="grid">
+            {placements.map((placement) => (
+              <div className="mini-card" key={placement.id}>
+                <strong>{PLANET_LABELS_FA[placement.id] ?? placement.label}</strong>
+                <span>
+                  {SIGN_LABELS_FA[placement.signId] ?? placement.signId} —{" "}
+                  {formatDegree(placement.degreeInSign)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function formatDegree(value: number) {
+  return `${value.toFixed(2)}°`;
 }
