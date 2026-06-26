@@ -19,31 +19,35 @@ export default function PricingPage() {
   const readiness = getBillingReadinessReport();
 
   return (
-    <section className="grid">
-      <div className="card">
-        <span className="badge">Halleus Pricing</span>
+    <section className="grid paid-mvp-pricing-shell">
+      <div className="card paid-hero">
+        <div>
+          <span className="badge">Halleus Pricing</span>
+          <span className="badge paid-soft-badge">Manual order MVP</span>
 
-        <h1>پلن‌ها و مسیر پرداخت</h1>
+          <h1>پلن‌ها و سفارش دستی گزارش Halleus</h1>
 
-        <p>
-          پرداخت واقعی هنوز فعال نیست. این صفحه ساختار پلن‌ها را نشان می‌دهد تا
-          قبل از اتصال payment provider، مدل محصول و محدودیت‌ها روشن باشد.
-        </p>
+          <p>
+            پرداخت آنلاین هنوز فعال نیست. این صفحه قیمت‌گذاری و محدودیت‌ها را
+            شفاف می‌کند تا قبل از اتصال payment provider، مدل فروش و ارزش محصول
+            با کاربر واقعی تست شود.
+          </p>
 
-        <div className="actions">
-          <Link className="button" href="/chart">
-            تست رایگان
-          </Link>
+          <div className="actions">
+            <Link className="button" href="/chart">
+              ساخت گزارش نمونه
+            </Link>
 
-          <Link className="button secondary" href="/profile">
-            وضعیت اکانت
-          </Link>
+            <Link className="button secondary" href="/product">
+              توضیح محصول
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className="feature-grid">
+      <div className="feature-grid paid-plan-grid">
         {plans.map((plan) => (
-          <article className="card feature-card-polished" key={plan.slug}>
+          <article className="card feature-card-polished paid-plan-card" key={plan.slug}>
             <span className="badge">{plan.name}</span>
 
             <h2>{formatPrice(plan.monthlyPrice)}</h2>
@@ -53,9 +57,7 @@ export default function PricingPage() {
             <div className="tag-list">
               <span>گزارش ذخیره‌شده: {formatLimit(plan.limits.savedReports)}</span>
               <span>خروجی ماهانه: {formatLimit(plan.limits.exportsPerMonth)}</span>
-              <span>
-                گزارش پیشرفته: {formatLimit(plan.limits.advancedReports)}
-              </span>
+              <span>گزارش پیشرفته: {formatLimit(plan.limits.advancedReports)}</span>
             </div>
 
             <ul className="feature-list">
@@ -63,25 +65,60 @@ export default function PricingPage() {
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
+
+            <div className="actions">
+              <Link className="button secondary" href="/chart">
+                شروع با گزارش نمونه
+              </Link>
+            </div>
           </article>
         ))}
       </div>
 
-      <section className="card">
-        <span className="badge">Payment Readiness</span>
+      <section className="card manual-order-flow">
+        <span className="section-label">Manual order flow</span>
 
-        <h2>وضعیت پرداخت</h2>
+        <h2>برای MVP، سفارش و پرداخت بیرون از سایت تأیید می‌شود</h2>
 
         <p>
-          پرداخت تا وقتی auth، database و کیفیت گزارش واقعی آماده نشوند فعال
-          نمی‌شود.
+          تا وقتی auth، database و کیفیت گزارش کامل‌تر آماده نشده‌اند، payment
+          provider فعال نمی‌شود. کاربر می‌تواند پلن را ببیند و سفارش اولیه به
+          صورت دستی هماهنگ شود.
         </p>
 
-        <div className="tag-list">
+        <div className="tag-list payment-disabled">
           <span>Stage: {readiness.stage}</span>
           <span>Provider: {readiness.provider}</span>
           <span>Payments: {readiness.canEnablePayments ? "ready" : "blocked"}</span>
         </div>
+
+        <div className="home-step-list">
+          <div>
+            <strong>۱. ساخت نمونه</strong>
+            <span>اول کاربر گزارش پایه را در /chart می‌سازد و ارزش محصول را می‌بیند.</span>
+          </div>
+
+          <div>
+            <strong>۲. انتخاب پلن</strong>
+            <span>پلن‌ها اینجا شفاف‌اند، اما پرداخت داخل سایت هنوز فعال نیست.</span>
+          </div>
+
+          <div>
+            <strong>۳. تحویل دستی</strong>
+            <span>بعد از هماهنگی و تأیید دستی، نسخه کامل‌تر در همین مسیر محصول تحویل می‌شود.</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
+        <span className="badge">Payment Readiness</span>
+
+        <h2>وضعیت اتصال پرداخت</h2>
+
+        <p>
+          این بخش هنوز از billing readiness فعلی استفاده می‌کند تا روشن باشد چه
+          چیزهایی قبل از فعال‌سازی پرداخت آنلاین باید آماده شوند.
+        </p>
 
         <div className="home-step-list">
           {readiness.recommendedNextSteps.map((step, index) => (

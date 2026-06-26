@@ -3,75 +3,67 @@ import Link from "next/link";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 
 export const metadata: Metadata = {
-  title: "Halleus | چارت تولد و گزارش نمادین فارسی",
+  title: "Halleus | گزارش تولد فارسی و قابل سفارش",
   description:
-    "Halleus یک فضای فارسی برای ساخت چارت تولد، دریافت گزارش نمادین، ذخیره گزارش‌ها و مرور مسیر شخصی است.",
+    "Halleus یک تجربه فارسی برای ساخت گزارش تولد، خواندن چارت نمادین، ذخیره گزارش و آماده‌سازی سفارش دستی نسخه کامل است.",
 };
 
-const mvpFeatures = [
+const paidHighlights = [
   {
-    title: "گزارش تولد قابل نگهداری",
+    title: "گزارش تولد آماده خواندن",
     description:
-      "بعد از وارد کردن اطلاعات تولد، یک گزارش نمادین فارسی می‌سازی که می‌توانی ذخیره‌اش کنی، دوباره بخوانی و با یادداشت شخصی کامل‌ترش کنی.",
+      "کاربر فقط تاریخ، ساعت و شهر تولد را وارد می‌کند؛ Halleus گزارش فارسی را می‌سازد، ذخیره می‌کند و به صفحه جزئیات می‌برد.",
   },
   {
-    title: "آرشیو شخصی گزارش‌ها",
+    title: "متن فارسی نرم و قابل اشتراک",
     description:
-      "گزارش‌هایت را جستجو کن، موارد مهم را ستاره‌دار کن، برایشان یادداشت بنویس و هر وقت خواستی خروجی بگیر.",
+      "گزارش به زبان انسانی نوشته می‌شود؛ با تأکید بر خودشناسی، نه پیش‌بینی قطعی یا توصیه تخصصی.",
   },
   {
-    title: "شفاف، آرام و بدون ادعای قطعی",
+    title: "آماده برای فروش دستی",
     description:
-      "Halleus آسترولوژی را به عنوان زبان نمادین و خودشناسانه ارائه می‌کند؛ نه پیش‌بینی قطعی و نه توصیه تخصصی.",
+      "قبل از اتصال payment provider، مسیر محصول، قیمت‌گذاری و سفارش دستی شفاف می‌شود تا بتوانی با کاربر واقعی تست کنی.",
   },
 ];
 
-const demoSteps = [
+const trustPillars = [
+  "محاسبه پشت صحنه با real engine",
+  "زبان فارسی و غیرقطعی",
+  "ذخیره گزارش در مرورگر",
+  "مسیر پرداخت هنوز دستی و شفاف",
+];
+
+const flowSteps = [
   {
     title: "اطلاعات تولد را وارد کن",
-    description: "نام، تاریخ، ساعت و شهر تولد را ثبت کن تا مسیر گزارش شروع شود.",
+    description:
+      "نام اختیاری، تاریخ، ساعت و شهر تولد را ثبت کن؛ فعلاً شهرهای ایران برای تجربه دقیق‌تر پشتیبانی می‌شوند.",
   },
   {
-    title: "گزارش نمادین را بخوان",
-    description: "خلاصه، نشانه‌های اصلی و برداشت‌های تفسیری را در یک صفحه مرتب ببین.",
+    title: "گزارش ساخته می‌شود",
+    description:
+      "فرم اصلی پشت صحنه real engine را صدا می‌زند و اگر پاسخ بگیرد، گزارش با جایگاه‌های واقعی‌تر ساخته می‌شود.",
   },
   {
-    title: "گزارش‌های مهم را نگه دار",
-    description: "گزارش‌ها را ستاره‌دار کن، روی آن‌ها یادداشت بگذار و بعداً برگرد.",
+    title: "جزئیات را بخوان و ذخیره کن",
+    description:
+      "گزارش در آرشیو می‌ماند، می‌توانی بعداً برگردی، یادداشت اضافه کنی و متن اشتراک‌گذاری را کپی کنی.",
   },
-  {
-    title: "برای نسخه کامل آماده شو",
-    description: "این نسخه پایه، مسیر موتور واقعی چارت، حساب کاربری و ذخیره امن‌تر را آماده می‌کند.",
-  },
-];
-
-const trustItems = [
-  "تجربه فارسی و ساده",
-  "گزارش نمادین، نه حکم قطعی",
-  "تمرکز روی privacy و کنترل داده",
-  "آماده برای حساب کاربری و دیتابیس",
-];
-
-const futureAreas = [
-  "موتور واقعی چارت تولد",
-  "اکانت و ذخیره امن گزارش‌ها",
-  "گزارش‌های عمیق‌تر و قابل اشتراک",
-  "متن طبیعی‌تر با لایه هوشمند کنترل‌شده",
 ];
 
 export default function Home() {
   return (
-    <section className="grid home-page">
-      <div className="hero hero-polished">
+    <section className="grid home-page paid-mvp-landing">
+      <div className="hero hero-polished paid-hero">
         <div>
-          <span className="badge">Halleus Preview</span>
+          <span className="badge">Halleus Paid MVP Shell</span>
 
-          <h1>چارت تولد فارسی، ساده و قابل مرور</h1>
+          <h1>گزارش تولد فارسی، آماده خواندن و قابل سفارش</h1>
 
           <p>
-            Halleus برای کسی ساخته شده که می‌خواهد چارت تولدش را به زبان
-            فارسی، ساده و قابل نگهداری ببیند؛ گزارشی نمادین بسازد، آن را ذخیره
-            کند، روی برداشت‌هایش یادداشت بگذارد و بعداً دوباره مرورش کند.
+            Halleus برای کسی ساخته شده که می‌خواهد چارت تولدش را به زبان فارسی،
+            آرام و قابل نگهداری بخواند. نسخه فعلی مسیر اصلی محصول را آماده کرده:
+            ساخت گزارش، ذخیره، صفحه جزئیات و یک shell روشن برای فروش دستی نسخه کامل.
           </p>
 
           <SafetyDisclaimer compact />
@@ -81,46 +73,62 @@ export default function Home() {
               ساخت گزارش تولد
             </Link>
 
-            <Link className="button secondary" href="/reports">
-              آرشیو گزارش‌ها
+            <Link className="button secondary" href="/pricing">
+              دیدن پلن‌ها
             </Link>
 
-            <Link className="button secondary" href="/privacy">
-              حریم داده
+            <Link className="button secondary" href="/product">
+              مسیر محصول
             </Link>
           </div>
         </div>
 
-        <div className="card hero-card polished-hero-card">
-          <span className="badge">مسیر اصلی محصول</span>
+        <div className="card hero-card polished-hero-card paid-hero-card">
+          <span className="badge">نسخه قابل تست فروش</span>
 
-          <h2>از تولد تا گزارش قابل مرور</h2>
+          <h2>از فرم تولد تا سفارش دستی</h2>
 
           <p>
-            فرم تولد را پر می‌کنی، گزارش ساخته می‌شود، در آرشیو می‌ماند و هر
-            بار می‌توانی با یادداشت، علاقه‌مندی و خروجی گرفتن به آن برگردی.
+            پرداخت آنلاین هنوز فعال نیست؛ اما صفحه‌ها، پیام‌ها و CTAها طوری
+            چیده شده‌اند که بتوانی ارزش محصول را توضیح بدهی، قیمت را نشان بدهی
+            و سفارش‌های اولیه را دستی بگیری.
           </p>
 
           <div className="mini-card">
-            <strong>وضعیت فعلی</strong>
-            <span>نسخه نمایشی قابل استفاده برای تست مسیر محصول</span>
+            <strong>مسیر اصلی</strong>
+            <span>/chart → /reports/[reportId] → /pricing</span>
           </div>
         </div>
       </div>
 
-      <div className="trust-strip">
-        {trustItems.map((item) => (
+      <div className="trust-strip paid-trust-strip">
+        {trustPillars.map((item) => (
           <span key={item}>{item}</span>
         ))}
       </div>
 
-      <div className="card">
+      <section className="card paid-section">
+        <span className="section-label">پیشنهاد فعلی محصول</span>
+
+        <h2>یک گزارش تولد فارسی برای خواندن دوباره، نه فقط یک خروجی لحظه‌ای</h2>
+
+        <div className="grid grid-3">
+          {paidHighlights.map((item) => (
+            <article className="mini-card paid-value-card" key={item.title}>
+              <strong>{item.title}</strong>
+              <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="card paid-section">
         <span className="section-label">چطور کار می‌کند</span>
 
-        <h2>یک مسیر کوتاه از اطلاعات تولد تا آرشیو شخصی</h2>
+        <h2>مسیر کوتاه کاربر</h2>
 
         <div className="demo-flow polished-demo-flow">
-          {demoSteps.map((step, index) => (
+          {flowSteps.map((step, index) => (
             <div className="demo-step" key={step.title}>
               <span>{(index + 1).toLocaleString("fa-IR")}</span>
               <h3>{step.title}</h3>
@@ -134,49 +142,35 @@ export default function Home() {
             شروع ساخت گزارش
           </Link>
 
-          <Link className="button secondary" href="/dashboard">
-            داشبورد من
-          </Link>
-
-          <Link className="button secondary" href="/admin">
-            مدیریت داده‌ها
+          <Link className="button secondary" href="/reports">
+            دیدن گزارش‌های ذخیره‌شده
           </Link>
         </div>
-      </div>
+      </section>
 
-      <div>
-        <span className="section-label">چیزی که الان می‌توانی تست کنی</span>
-
-        <div className="grid grid-3">
-          {mvpFeatures.map((feature) => (
-            <article className="card feature-card-polished" key={feature.title}>
-              <h2>{feature.title}</h2>
-              <p>{feature.description}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-
-      <div className="card home-next-card">
+      <section className="card paid-manual-order">
         <div>
-          <span className="section-label">مسیر بعدی محصول</span>
+          <span className="section-label">فروش دستی قبل از پرداخت آنلاین</span>
 
-          <h2>این صفحه فقط دمو نیست؛ پایه نسخه حساب‌دار و دیتابیس‌دار است</h2>
+          <h2>برای MVP، اول سفارش دستی؛ بعد payment provider</h2>
 
           <p>
-            امروز گزارش‌ها برای تست سریع در مرورگر می‌مانند، اما ساختار محصول
-            برای مسیر جدی‌تر آماده می‌شود: شهر و زمان دقیق‌تر، موتور واقعی چارت،
-            حساب کاربری، ذخیره امن گزارش‌ها و در نهایت گزارش‌های عمیق‌تر و
-            قابل اشتراک.
+            در این مرحله هدف این نیست که پرداخت آنلاین را زود وصل کنیم. هدف این
+            است که پیشنهاد، پلن‌ها، اعتمادسازی و مسیر سفارش واضح باشند تا بعداً
+            provider واقعی بدون بازنویسی محصول اضافه شود.
           </p>
         </div>
 
-        <div className="tag-list">
-          {futureAreas.map((area) => (
-            <span key={area}>{area}</span>
-          ))}
+        <div className="actions">
+          <Link className="button" href="/pricing">
+            بررسی پلن‌ها
+          </Link>
+
+          <Link className="button secondary" href="/privacy">
+            حریم داده
+          </Link>
         </div>
-      </div>
+      </section>
     </section>
   );
 }

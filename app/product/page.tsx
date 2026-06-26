@@ -7,49 +7,107 @@ const statusLabels = {
   planned: "بعداً",
 } as const;
 
+const paidDeliverables = [
+  "گزارش تولد فارسی با خلاصه، سه ستون اصلی و روابط مهم سیاره‌ها",
+  "صفحه جزئیات قابل بازگشت و قابل کپی برای اشتراک‌گذاری",
+  "آرشیو گزارش‌ها برای مرور، ستاره‌دار کردن و یادداشت شخصی",
+  "مسیر سفارش دستی برای نسخه کامل، بدون فعال‌سازی پرداخت آنلاین",
+];
+
+const manualOrderSteps = [
+  "کاربر گزارش رایگان/نمونه را در /chart می‌سازد.",
+  "در /pricing پلن مناسب را می‌بیند.",
+  "در MVP سفارش و پرداخت خارج از سایت و دستی انجام می‌شود.",
+  "بعد از تأیید دستی، گزارش کامل‌تر می‌تواند در همین مسیر محصول تحویل شود.",
+];
+
 export default function ProductPage() {
   const links = getProductSurfaceLinks();
+  const featuredLinks = links.filter((item) =>
+    ["/chart", "/reports", "/pricing", "/privacy"].includes(item.href),
+  );
 
   return (
-    <section className="grid">
-      <div className="card">
-        <span className="badge">Halleus Product Map</span>
+    <section className="grid paid-mvp-product-shell">
+      <div className="card paid-hero">
+        <div>
+          <span className="badge">Halleus Product Map</span>
+          <span className="badge paid-soft-badge">Paid MVP Shell</span>
 
-        <h1>نقشه محصول Halleus</h1>
+          <h1>محصول Halleus: گزارش تولد فارسی با مسیر سفارش دستی</h1>
 
-        <p>
-          این صفحه مسیرهای اصلی محصول را یک‌جا نشان می‌دهد: از ساخت گزارش و
-          آرشیو تا پروفایل، پلن‌ها، حریم داده و نقشه راه. هدف این است که سطح
-          محصول مثل یک سرویس واقعی و قابل رشد دیده شود، نه مجموعه‌ای از صفحه‌های
-          جدا.
-        </p>
+          <p>
+            این صفحه هنوز نقشه محصول را نگه می‌دارد، اما تمرکز نسخه فعلی روی
+            یک پیشنهاد قابل فروش است: کاربر گزارش تولد فارسی می‌سازد، خروجی را
+            می‌خواند و اگر نسخه کامل‌تر بخواهد، از مسیر قیمت‌گذاری و سفارش دستی
+            جلو می‌رود.
+          </p>
 
-        <div className="actions">
-          <Link className="button" href="/chart">
-            شروع با ساخت گزارش
-          </Link>
+          <div className="actions">
+            <Link className="button" href="/chart">
+              ساخت گزارش
+            </Link>
 
-          <Link className="button secondary" href="/pricing">
-            دیدن پلن‌ها
-          </Link>
+            <Link className="button secondary" href="/pricing">
+              دیدن پلن‌ها و سفارش دستی
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className="feature-grid">
-        {links.map((item) => (
-          <article className="card feature-card-polished" key={item.href}>
-            <span className="badge">{statusLabels[item.status]}</span>
+      <section className="card paid-section">
+        <span className="section-label">تحویل MVP</span>
 
-            <h2>{item.label}</h2>
+        <h2>در این نسخه کاربر چه چیزی می‌گیرد؟</h2>
 
-            <p>{item.description}</p>
+        <div className="paid-checklist">
+          {paidDeliverables.map((item) => (
+            <div key={item}>
+              <strong>✓</strong>
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
-            <Link className="button secondary" href={item.href}>
-              باز کردن
-            </Link>
-          </article>
-        ))}
-      </div>
+      <section className="card manual-order-flow">
+        <span className="section-label">Manual order flow</span>
+
+        <h2>پرداخت واقعی هنوز فعال نیست؛ سفارش اولیه دستی است</h2>
+
+        <p>
+          این مسیر عمداً payment provider را فعال نمی‌کند. در عوض، محصول را برای
+          تست فروش آماده می‌کند: توضیح روشن، پلن قابل فهم، CTA و تحویل دستی.
+        </p>
+
+        <div className="home-step-list">
+          {manualOrderSteps.map((step, index) => (
+            <div key={step}>
+              <strong>{(index + 1).toLocaleString("fa-IR")}. مرحله</strong>
+              <span>{step}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <span className="section-label">مسیرهای مهم محصول</span>
+
+        <h2>لینک‌های زنده برای تست فروش</h2>
+
+        <div className="feature-grid">
+          {featuredLinks.map((item) => (
+            <article className="mini-card paid-surface-link" key={item.href}>
+              <span className="badge">{statusLabels[item.status]}</span>
+              <strong>{item.label}</strong>
+              <p>{item.description}</p>
+              <Link className="button secondary" href={item.href}>
+                باز کردن
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="card">
         <span className="badge">Product Principle</span>
@@ -57,26 +115,10 @@ export default function ProductPage() {
         <h2>قاعده ادامه مسیر</h2>
 
         <p>
-          هر بخش جدید باید طوری ساخته شود که بعداً دوباره از صفر بازنویسی نشود:
-          اول contract، بعد implementation، بعد اتصال UI، بعد provider واقعی.
+          اول ارزش محصول و flow فروش روشن می‌شود؛ بعد auth، database و payment
+          provider اضافه می‌شوند. این ترتیب کمک می‌کند چیزی که می‌سازی دوباره
+          از صفر بازنویسی نشود.
         </p>
-
-        <div className="home-step-list">
-          <div>
-            <strong>۱. Foundation</strong>
-            <span>نوع‌ها، contractها، docs و checkerها.</span>
-          </div>
-
-          <div>
-            <strong>۲. Preview implementation</strong>
-            <span>نسخه امن local/preview بدون ریسک production.</span>
-          </div>
-
-          <div>
-            <strong>۳. Provider implementation</strong>
-            <span>اتصال واقعی دیتابیس، auth یا payment بعد از تصمیم نهایی.</span>
-          </div>
-        </div>
       </section>
     </section>
   );
