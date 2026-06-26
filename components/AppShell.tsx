@@ -5,15 +5,23 @@ type AppShellProps = {
   children: ReactNode;
 };
 
+const footerLinks = [
+  { href: "/chart", label: "ساخت گزارش" },
+  { href: "/product", label: "محصول" },
+  { href: "/pricing", label: "پلن‌ها" },
+  { href: "/order", label: "سفارش دستی" },
+  { href: "/reports", label: "گزارش‌ها" },
+  { href: "/dashboard", label: "داشبورد" },
+  { href: "/admin", label: "پنل ادمین" },
+  { href: "/privacy", label: "حریم خصوصی" },
+] as const;
+
 export function AppShell({ children }: AppShellProps) {
   return (
     <>
       <header className="site-header">
         <nav className="site-nav" aria-label="ناوبری اصلی">
           <Link href="/" className="site-brand" aria-label="Halleus">
-            <span className="site-brand-mark" aria-hidden="true">
-              H
-            </span>
             <span>Halleus</span>
           </Link>
 
@@ -27,16 +35,20 @@ export function AppShell({ children }: AppShellProps) {
 
       <footer className="site-footer">
         <div className="footer-inner">
-          <div>
+          <div className="footer-brand-block">
             <strong>Halleus</strong>
             <p className="footer-note">
-              محصولی آرام و مینیمال برای تفسیر نمادین چارت تولد.
+              Halleus.ir — تجربه‌ای مینیمال برای ساخت و نگهداری گزارش‌های چارت تولد.
             </p>
           </div>
 
-          <Link href="/privacy" className="footer-link">
-            حریم خصوصی
-          </Link>
+          <nav className="footer-links" aria-label="دسترسی‌های سریع">
+            {footerLinks.map((link) => (
+              <Link key={link.href} href={link.href} className="footer-link">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </footer>
     </>

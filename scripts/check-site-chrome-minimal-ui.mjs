@@ -6,46 +6,64 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 const failures = [];
 
-const forbiddenShellMarkers = [
+const obsoleteGlobalChromeMarkers = [
   "مسیر سریع فروش",
-  "گزارش نمونه",
-  "توضیح محصول",
-  "پلن‌ها",
-  "سفارش دستی",
-  "گزارش‌ها",
+  "گزارش نمونه، توضیح محصول",
   "حریم داده",
-  "ساخت گزارش",
   "NavLinks",
   "getSalesNavigationLinks",
   "shell-sales-nav",
   "footer-sales-links",
   "footer-grid",
+  "HHalleus",
+  "site-brand-mark",
 ];
 
-for (const marker of forbiddenShellMarkers) {
+for (const marker of obsoleteGlobalChromeMarkers) {
   if (appShell.includes(marker)) {
     failures.push(`AppShell still contains obsolete marker: ${marker}`);
   }
 }
 
-for (const marker of [".shell-sales-nav", ".footer-sales-links", ".footer-grid"]) {
+for (const marker of [".shell-sales-nav", ".footer-sales-links", ".footer-grid", ".site-brand-mark"]) {
   if (globals.includes(marker)) {
     failures.push(`globals.css still contains obsolete chrome selector: ${marker}`);
   }
 }
 
 for (const marker of [
+  "<span>Halleus</span>",
   "site-header",
   "site-nav",
   "site-brand",
   "site-nav-cta",
   "/chart",
   "footer-inner",
+  "footer-brand-block",
   "footer-note",
+  "footer-links",
   "footer-link",
+  "Halleus.ir",
 ]) {
   if (!appShell.includes(marker)) {
-    failures.push(`AppShell missing minimal chrome marker: ${marker}`);
+    failures.push(`AppShell missing site chrome marker: ${marker}`);
+  }
+}
+
+const requiredFooterRoutes = [
+  ["/chart", "ساخت گزارش"],
+  ["/product", "محصول"],
+  ["/pricing", "پلن‌ها"],
+  ["/order", "سفارش دستی"],
+  ["/reports", "گزارش‌ها"],
+  ["/dashboard", "داشبورد"],
+  ["/admin", "پنل ادمین"],
+  ["/privacy", "حریم خصوصی"],
+];
+
+for (const [href, label] of requiredFooterRoutes) {
+  if (!appShell.includes(`href: "${href}"`) || !appShell.includes(`label: "${label}"`)) {
+    failures.push(`Footer access links missing ${label} -> ${href}`);
   }
 }
 
@@ -53,14 +71,15 @@ for (const marker of [
   ".site-header",
   ".site-nav",
   ".site-brand",
-  ".site-brand-mark",
   ".site-nav-cta",
   ".footer-inner",
+  ".footer-brand-block",
   ".footer-note",
+  ".footer-links",
   ".footer-link",
 ]) {
   if (!globals.includes(marker)) {
-    failures.push(`globals.css missing minimal chrome selector: ${marker}`);
+    failures.push(`globals.css missing site chrome selector: ${marker}`);
   }
 }
 

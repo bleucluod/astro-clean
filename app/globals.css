@@ -41,23 +41,10 @@ a {
 .site-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   color: #2d203a;
   font-size: 18px;
   font-weight: 900;
   letter-spacing: -0.02em;
-}
-
-.site-brand-mark {
-  display: inline-grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border-radius: 12px;
-  background: #241b2f;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 900;
 }
 
 .site-nav-cta {
@@ -345,10 +332,14 @@ select {
 .footer-inner {
   border-top: 1px solid rgba(36, 27, 47, 0.08);
   padding-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 24px;
+}
+
+.footer-brand-block {
+  min-width: 0;
 }
 
 .site-footer strong {
@@ -363,10 +354,23 @@ select {
   line-height: 1.9;
 }
 
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 14px;
+  max-width: 520px;
+}
+
 .footer-link {
   color: #4c1d95;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 800;
+  opacity: 0.86;
+}
+
+.footer-link:hover {
+  opacity: 1;
 }
 
 .home-page {
@@ -2102,8 +2106,11 @@ textarea {
 
 @media (max-width: 760px) {
   .footer-inner {
-    align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
   }
 }
 

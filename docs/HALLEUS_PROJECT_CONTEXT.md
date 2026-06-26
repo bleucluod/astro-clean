@@ -693,3 +693,49 @@ Reliability note:
 - The runner should be executed with `powershell -ExecutionPolicy Bypass -File .\halleus-075-site-chrome-minimal-ui-cleanup.ps1`.
 - The runner does not embed Persian text inside PowerShell.
 - The runner restores tracked files and removes the newly added check script if any pre-commit step fails.
+
+---
+
+## 2026-06-26 - v0.1.76-site-chrome-navigation-fix
+
+Follow-up fix after `v0.1.75-site-chrome-minimal-ui-cleanup`. The previous chrome cleanup made the shell cleaner, but it removed too much access from the UI and the header brand could visually read as `HHalleus` because the standalone `H` mark sat next to the wordmark.
+
+Implemented behavior:
+
+- Header brand is plain `Halleus`; the extra `H` brand mark was removed so it no longer reads as `HHalleus`.
+- Header keeps local relative routing; the brand link still points to `/` and the CTA still points to `/chart`.
+- Footer now restores quiet access links for the important app paths: `/chart`, `/product`, `/pricing`, `/order`, `/reports`, `/dashboard`, `/admin`, and `/privacy`.
+- Footer mentions the public brand/domain as plain product identity: `Halleus.ir`. Do not replace local app hrefs with the production domain inside the Next.js app shell.
+- The site chrome check was updated so footer navigation can include product/order/report labels without reintroducing the old noisy header strip.
+
+Changed files:
+
+- `components/AppShell.tsx`
+- `app/globals.css`
+- `scripts/check-site-chrome-minimal-ui.mjs`
+- `docs/HALLEUS_PROJECT_CONTEXT.md`
+
+Checks used:
+
+- `pnpm run check:site-chrome-minimal-ui`
+- `pnpm run check:encoding`
+- `pnpm build`
+
+### Current product progress estimate
+
+These are rough planning estimates, not analytics or formal QA metrics. Use them to decide what to build next, not as a launch guarantee.
+
+- Local clickable MVP: approximately 65%. The user can start a chart flow, generate/save a report, revisit reports, see product/pricing/order surfaces, and use internal admin/dashboard routes.
+- Public paid-product readiness: approximately 35%. The product story, chart flow, report detail, pricing/order surfaces, and manual-order context exist, but payments, production persistence, emails, account/security polish, and real operational workflows are still incomplete.
+- UI/brand maturity: approximately 45%. The chart page and global chrome are cleaner, but most secondary pages still need consistent final-product polish.
+- Astrology/report value: approximately 55%. The real-engine bridge and report flow exist, but interpretation depth, sample quality, and upgrade/paywall packaging still need more product work.
+- Sales/order MVP: approximately 40%. Pricing/order/manual request context exists, but capture, admin handling, notifications, and payment are not production-grade yet.
+- Admin/operations: approximately 25%. Admin/dashboard routes exist, but they are not yet a reliable operational back office.
+- Engineering reliability: approximately 70%. Targeted checks, build, encoding checks, tags, and the handoff context are working, but runner batches must stay small and grounded in live files.
+
+Recommended near-term roadmap:
+
+1. Keep UI batches small: polish one surface at a time rather than redesigning the whole site.
+2. Next high-leverage product work should likely be manual order request capture + simple admin review, because that turns the sales/order path into a usable MVP workflow.
+3. Do not touch engine/storage/report internals unless the batch goal explicitly requires it.
+4. Continue updating this context after every successful batch and after every runner incident.
