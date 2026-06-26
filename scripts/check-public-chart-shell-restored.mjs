@@ -2,24 +2,37 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const failures = [];
-const chartPath = "app/chart/page.tsx";
-const currentChart = readFileSync(chartPath, "utf8");
-const previousChart = execFileSync(
-  "git",
-  ["show", "v0.1.56-real-chart-aspect-panel:app/chart/page.tsx"],
-  { encoding: "utf8" },
+const legacyPath = "app/chart/LegacyChartShell.tsx";
+const pagePath = "app/chart/page.tsx";
+const legacySource = normalize(readFileSync(legacyPath, "utf8"));
+const pageSource = normalize(readFileSync(pagePath, "utf8"));
+const baselineChart = normalize(
+  execFileSync("git", ["show", "v0.1.58-restore-public-chart-shell:app/chart/page.tsx"], {
+    encoding: "utf8",
+  }),
 );
 
-if (currentChart !== previousChart) {
-  failures.push("app/chart/page.tsx does not match the pre-057 public chart shell.");
+if (legacySource !== baselineChart) {
+  failures.push("LegacyChartShell does not exactly match the restored public chart shell from v0.1.58.");
 }
 
-if (currentChart.includes("RealChartWorkbenchClient")) {
-  failures.push("app/chart/page.tsx still imports the full real chart workbench.");
+for (const marker of [
+  'import LegacyChartShell from "./LegacyChartShell"',
+  'import { PublicChartRealEngineUpgrade } from "../../components/PublicChartRealEngineUpgrade"',
+  "<LegacyChartShell />",
+  "<PublicChartRealEngineUpgrade />",
+]) {
+  if (!pageSource.includes(marker)) {
+    failures.push(`app/chart/page.tsx missing wrapper marker: ${marker}`);
+  }
 }
 
-if (currentChart.includes("engine واقعی‌تر Halleus")) {
-  failures.push("app/chart/page.tsx still contains the 057 replacement hero copy.");
+if (pageSource.includes("import { RealChartWorkbenchClient")) {
+  failures.push("app/chart/page.tsx directly imports the full real chart workbench.");
+}
+
+if (pageSource.includes("engine واقعی‌تر Halleus")) {
+  failures.push("app/chart/page.tsx contains the 057 replacement hero copy.");
 }
 
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
@@ -53,3 +66,7 @@ if (failures.length > 0) {
 }
 
 console.log("Public chart shell restore check passed.");
+
+function normalize(value) {
+  return value.replace(/\r\n/g, "\n").trimEnd() + "\n";
+}
