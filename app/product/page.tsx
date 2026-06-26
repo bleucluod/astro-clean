@@ -17,14 +17,16 @@ const paidDeliverables = [
 const manualOrderSteps = [
   "کاربر گزارش رایگان/نمونه را در /chart می‌سازد.",
   "در /pricing پلن مناسب را می‌بیند.",
-  "در MVP سفارش و پرداخت خارج از سایت و دستی انجام می‌شود.",
+  "از /order متن سفارش دستی را آماده و کپی می‌کند.",
   "بعد از تأیید دستی، گزارش کامل‌تر می‌تواند در همین مسیر محصول تحویل شود.",
 ];
 
 export default function ProductPage() {
   const links = getProductSurfaceLinks();
   const featuredLinks = links.filter((item) =>
-    ["/chart", "/reports", "/pricing", "/privacy"].includes(item.href),
+    ["/chart", "/reports", "/pricing", "/order", "/privacy"].includes(
+      item.href,
+    ),
   );
 
   return (
@@ -49,7 +51,11 @@ export default function ProductPage() {
             </Link>
 
             <Link className="button secondary" href="/pricing">
-              دیدن پلن‌ها و سفارش دستی
+              دیدن پلن‌ها
+            </Link>
+
+            <Link className="button secondary" href="/order">
+              شروع سفارش دستی
             </Link>
           </div>
         </div>

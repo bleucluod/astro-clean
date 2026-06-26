@@ -36,6 +36,13 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
     description: "مدل قیمت‌گذاری و آمادگی پرداخت، بدون پرداخت واقعی.",
     status: "preview",
   },
+    {
+    href: "/order",
+    label: "سفارش دستی",
+    description:
+      "آماده‌سازی متن سفارش و هماهنگی دستی پیش از فعال شدن پرداخت آنلاین.",
+    status: "live",
+  },
   {
     href: "/privacy",
     label: "حریم داده",
@@ -105,6 +112,10 @@ export const SALES_NAVIGATION_LINKS = [
   {
     href: "/pricing",
     label: "پلن‌ها",
+  },
+    {
+    href: "/order",
+    label: "سفارش دستی",
   },
   {
     href: "/reports",

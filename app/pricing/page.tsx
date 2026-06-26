@@ -41,13 +41,20 @@ export default function PricingPage() {
             <Link className="button secondary" href="/product">
               توضیح محصول
             </Link>
+
+            <Link className="button secondary" href="/order">
+              ثبت سفارش دستی
+            </Link>
           </div>
         </div>
       </div>
 
       <div className="feature-grid paid-plan-grid">
         {plans.map((plan) => (
-          <article className="card feature-card-polished paid-plan-card" key={plan.slug}>
+          <article
+            className="card feature-card-polished paid-plan-card"
+            key={plan.slug}
+          >
             <span className="badge">{plan.name}</span>
 
             <h2>{formatPrice(plan.monthlyPrice)}</h2>
@@ -57,7 +64,9 @@ export default function PricingPage() {
             <div className="tag-list">
               <span>گزارش ذخیره‌شده: {formatLimit(plan.limits.savedReports)}</span>
               <span>خروجی ماهانه: {formatLimit(plan.limits.exportsPerMonth)}</span>
-              <span>گزارش پیشرفته: {formatLimit(plan.limits.advancedReports)}</span>
+              <span>
+                گزارش پیشرفته: {formatLimit(plan.limits.advancedReports)}
+              </span>
             </div>
 
             <ul className="feature-list">
@@ -67,8 +76,8 @@ export default function PricingPage() {
             </ul>
 
             <div className="actions">
-              <Link className="button secondary" href="/chart">
-                شروع با گزارش نمونه
+              <Link className="button secondary" href="/order">
+                ثبت سفارش دستی
               </Link>
             </div>
           </article>
@@ -89,23 +98,32 @@ export default function PricingPage() {
         <div className="tag-list payment-disabled">
           <span>Stage: {readiness.stage}</span>
           <span>Provider: {readiness.provider}</span>
-          <span>Payments: {readiness.canEnablePayments ? "ready" : "blocked"}</span>
+          <span>
+            Payments: {readiness.canEnablePayments ? "ready" : "blocked"}
+          </span>
         </div>
 
         <div className="home-step-list">
           <div>
             <strong>۱. ساخت نمونه</strong>
-            <span>اول کاربر گزارش پایه را در /chart می‌سازد و ارزش محصول را می‌بیند.</span>
+            <span>
+              اول کاربر گزارش پایه را در /chart می‌سازد و ارزش محصول را می‌بیند.
+            </span>
           </div>
 
           <div>
             <strong>۲. انتخاب پلن</strong>
-            <span>پلن‌ها اینجا شفاف‌اند، اما پرداخت داخل سایت هنوز فعال نیست.</span>
+            <span>
+              پلن‌ها اینجا شفاف‌اند، اما پرداخت داخل سایت هنوز فعال نیست.
+            </span>
           </div>
 
           <div>
-            <strong>۳. تحویل دستی</strong>
-            <span>بعد از هماهنگی و تأیید دستی، نسخه کامل‌تر در همین مسیر محصول تحویل می‌شود.</span>
+            <strong>۳. ثبت سفارش دستی</strong>
+            <span>
+              کاربر از /order متن سفارش را آماده می‌کند تا هماهنگی پرداخت و
+              تحویل خارج از سایت انجام شود.
+            </span>
           </div>
         </div>
       </section>

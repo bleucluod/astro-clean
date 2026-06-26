@@ -48,8 +48,9 @@ export function AppShell({ children }: AppShellProps) {
             <strong>مسیر محصول</strong>
             <Link href="/chart">ساخت گزارش</Link>
             <Link href="/product">توضیح محصول</Link>
-            <Link href="/pricing">پلن‌ها و سفارش دستی</Link>
-            <Link href="/privacy">حریم داده</Link>
+            <Link href="/pricing">پلن‌ها</Link>
+<Link href="/order">سفارش دستی</Link>
+<Link href="/privacy">حریم داده</Link>
           </div>
         </div>
       </footer>
