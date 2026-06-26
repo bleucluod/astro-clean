@@ -1,4 +1,4 @@
-﻿import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 function readFile(path) {
   if (!existsSync(path)) {
@@ -42,7 +42,7 @@ for (const aspectId of [
 
 assertIncludes(
   aspects,
-  "calculateRealEngineReportAspects",
+  "calculateRealEngineAspects",
   "lib/astrology/real-engine-aspects.ts",
 );
 assertIncludes(aspects, "narrative", "lib/astrology/real-engine-aspects.ts");
@@ -51,7 +51,7 @@ assertIncludes(aspects, "orb", "lib/astrology/real-engine-aspects.ts");
 
 assertIncludes(
   writer,
-  "calculateRealEngineReportAspects",
+  "calculateRealEngineAspects",
   "lib/astrology/real-engine-report-writer.ts",
 );
 assertIncludesAny(
