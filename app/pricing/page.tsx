@@ -25,12 +25,12 @@ export default function PricingPage() {
           <span className="badge">Halleus Pricing</span>
           <span className="badge paid-soft-badge">Manual order MVP</span>
 
-          <h1>پلن‌ها و سفارش دستی گزارش Halleus</h1>
+          <h1>پلن‌ها برای کامل‌تر کردن گزارش تولد Halleus</h1>
 
           <p>
-            پرداخت آنلاین هنوز فعال نیست. این صفحه قیمت‌گذاری و محدودیت‌ها را
-            شفاف می‌کند تا قبل از اتصال payment provider، مدل فروش و ارزش محصول
-            با کاربر واقعی تست شود.
+            پرداخت آنلاین هنوز فعال نیست. این صفحه کمک می‌کند کاربر تفاوت پلن‌ها
+            را بفهمد، گزارش نمونه‌اش را مبنا قرار بدهد و سفارش نسخه کامل‌تر را
+            به‌صورت دستی و شفاف شروع کند.
           </p>
 
           <div className="actions">
@@ -91,8 +91,8 @@ export default function PricingPage() {
 
         <p>
           تا وقتی auth، database و کیفیت گزارش کامل‌تر آماده نشده‌اند، payment
-          provider فعال نمی‌شود. کاربر می‌تواند پلن را ببیند و سفارش اولیه به
-          صورت دستی هماهنگ شود.
+          provider فعال نمی‌شود. کاربر فعلاً پلن را می‌بیند، متن سفارش را آماده
+          می‌کند و هماهنگی پرداخت و تحویل خارج از سایت انجام می‌شود.
         </p>
 
         <div className="tag-list payment-disabled">
@@ -121,8 +121,7 @@ export default function PricingPage() {
           <div>
             <strong>۳. ثبت سفارش دستی</strong>
             <span>
-              کاربر از /order متن سفارش را آماده می‌کند تا هماهنگی پرداخت و
-              تحویل خارج از سایت انجام شود.
+              کاربر از صفحه گزارش یا /order متن سفارش را با شناسه گزارش آماده می‌کند.
             </span>
           </div>
         </div>

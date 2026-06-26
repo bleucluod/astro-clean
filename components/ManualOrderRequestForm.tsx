@@ -109,7 +109,7 @@ export function ManualOrderRequestForm({
       setLinkedReport(report);
       setReportLookupMessage(
         report
-          ? "گزارش نمونه از همین مرورگر پیدا شد و اطلاعاتش به متن سفارش اضافه شد."
+          ? "گزارش نمونه در همین مرورگر پیدا شد و اطلاعاتش به متن سفارش اضافه شد."
           : "شناسه گزارش به سفارش اضافه شد، اما جزئیات آن در storage همین مرورگر پیدا نشد.",
       );
     }
@@ -126,13 +126,13 @@ export function ManualOrderRequestForm({
     const lines = [
       "درخواست سفارش دستی Halleus",
       "",
-      `نام: ${form.name.trim() || "—"}`,
+      `نام سفارش‌دهنده: ${form.name.trim() || "—"}`,
       `راه ارتباطی: ${form.contact.trim() || "—"}`,
       `پلن انتخابی: ${form.plan}`,
       `لینک یا شناسه گزارش نمونه: ${reportId || "—"}`,
       ...formatReportContext(linkedReport, reportId),
       "",
-      "توضیحات:",
+      "توضیحات سفارش:",
       form.notes.trim() || "—",
     ];
 
@@ -161,11 +161,11 @@ export function ManualOrderRequestForm({
     <section className="card manual-order-form-card">
       <span className="section-label">فرم آماده‌سازی سفارش</span>
 
-      <h2>اطلاعات سفارش را آماده کن</h2>
+      <h2>متن سفارش نسخه کامل‌تر را آماده کن</h2>
 
       <p>
-        این فرم فقط برای ساختن متن سفارش است. اطلاعات اینجا به جایی ارسال
-        نمی‌شود.
+        این فرم چیزی را ارسال نمی‌کند؛ فقط متن مرتب سفارش را می‌سازد. اگر از صفحه
+        گزارش آمده باشی، شناسه همان گزارش به متن سفارش اضافه می‌شود.
       </p>
 
       {reportLookupMessage ? (
@@ -212,7 +212,7 @@ export function ManualOrderRequestForm({
           <input
             value={form.reportLink}
             onChange={(event) => updateField("reportLink", event.target.value)}
-            placeholder="اگر گزارش نمونه ساختی، لینک یا شناسه‌اش را اینجا بگذار"
+            placeholder="اگر از صفحه گزارش آمده باشی، این بخش خودکار پر می‌شود"
           />
         </label>
 
@@ -222,7 +222,7 @@ export function ManualOrderRequestForm({
             rows={5}
             value={form.notes}
             onChange={(event) => updateField("notes", event.target.value)}
-            placeholder="مثلاً می‌خواهم گزارش کامل‌تر، قابل خواندن و قابل اشتراک باشد."
+            placeholder="مثلاً می‌خواهم همین گزارش کامل‌تر، منسجم‌تر و قابل تحویل آماده شود."
           />
         </label>
       </div>

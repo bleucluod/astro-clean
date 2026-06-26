@@ -499,3 +499,36 @@ Checks used:
 - `pnpm run check:encoding`
 - `pnpm build`
 
+---
+
+## 2026-06-26 - v0.1.72-sales-copy-polish
+
+Product batch `v0.1.72-sales-copy-polish` softens the public sales copy without changing report generation, storage, engine behavior, backend, or payment.
+
+Implemented behavior:
+
+- Polished sales copy across home, product, pricing, order, and report-order CTA surfaces.
+- Kept the manual order model transparent: no online payment, no backend submission, and copy-only order text.
+- Kept the report-order context from `v0.1.71`: report detail still links to `/order?reportId=<encoded report id>`.
+- Kept `ReportDetail.tsx`, `ReportCard.tsx`, engine, storage, and chart flow untouched.
+- Added `scripts/check-sales-copy-polish.mjs` and package script `check:sales-copy-polish`.
+
+Reliability note:
+
+- This batch used exact current file context and SHA-256 hash guards before replacement.
+- Continue to avoid marker-heavy patches in larger TSX files unless fresh context is available.
+
+Checks used:
+
+- `pnpm run check:sales-copy-polish`
+- `pnpm run check:sales-navigation-polish`
+- `pnpm run check:product-surface`
+- `pnpm run check:paid-mvp-shell`
+- `pnpm run check:report-order-context`
+- `pnpm run check:encoding`
+- `pnpm build`
+
+Next planned product checkpoint:
+
+- `v0.1.73-predeploy-product-checkpoint`
+
