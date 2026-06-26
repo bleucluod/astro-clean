@@ -6,6 +6,7 @@ import { type FormEvent, useState } from "react";
 import { ReportCard } from "@/components/ReportCard";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { createMockReport } from "@/lib/astrology/mock-engine";
+import { enrichReportWithRealEngineCopy } from "@/lib/astrology/real-engine-report-writer";
 import type {
   AstrologyReport,
   BirthInput,
@@ -271,7 +272,7 @@ export function ChartForm() {
     setReport(nextReport);
     setSaveMessage(
       nextReport.realEngine
-        ? "گزارش ساخته و ذخیره شد. داده real engine هم داخل گزارش ذخیره شد. در حال انتقال به صفحه جزئیات..."
+        ? "گزارش ساخته و ذخیره شد. داده real engine هم داخل گزارش ذخیره شد و snapshot جایگاه‌های واقعی‌تر برای صفحه جزئیات آماده است. متن real-engine-native ساخته شد. در حال انتقال به صفحه جزئیات..."
         : "گزارش ساخته و ذخیره شد. real engine در این لحظه پاسخ نداد، اما مسیر امن MVP حفظ شد. در حال انتقال به صفحه جزئیات...",
     );
 
@@ -288,9 +289,9 @@ export function ChartForm() {
 
           <p>
             اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. همین
-            فرم حالا می‌تواند real engine را هم با تاریخ، ساعت و شهر انتخاب‌شده
-            صدا بزند؛ اگر engine پاسخ بدهد، داده‌های واقعی‌تر داخل گزارش
-            ذخیره‌شده هم ثبت می‌شود.
+            فرم حالا real engine را با تاریخ، ساعت و شهر انتخاب‌شده صدا می‌زند
+            و اگر engine پاسخ بدهد، متن گزارش هم با همان placementهای واقعی‌تر
+            نوشته می‌شود.
           </p>
 
           <SafetyDisclaimer compact />
@@ -397,9 +398,9 @@ export function ChartForm() {
           <h2>گزارش اینجا ساخته می‌شود</h2>
 
           <p>
-            بعد از ثبت فرم، Halleus گزارش ذخیره‌شونده را می‌سازد؛ حالا اگر
-            real engine پاسخ بدهد، snapshot جایگاه‌های واقعی‌تر هم همراه گزارش
-            ذخیره می‌شود.
+            بعد از ثبت فرم، Halleus اگر real engine پاسخ بدهد، متن summary و
+            interpretationها را با placementهای واقعی‌تر می‌نویسد؛ اگر نه، مسیر
+            امن MVP هنوز گزارش قابل ذخیره می‌سازد.
           </p>
 
           <div className="grid grid-3">
@@ -414,8 +415,8 @@ export function ChartForm() {
             </div>
 
             <div className="mini-card">
-              <strong>گزارش</strong>
-              <span>real snapshot</span>
+              <strong>متن گزارش</strong>
+              <span>real engine</span>
             </div>
           </div>
 
@@ -443,13 +444,16 @@ function attachRealEngineSnapshotToReport(
     ascendantLongitude: payload.realChart.ascendantLongitude,
     placements: payload.realChart.placements,
     note:
-      "این snapshot از real engine با همان ورودی فرم اصلی ساخته شده است. گزارش متنی هنوز در حال مهاجرت مرحله‌ای از mock به engine واقعی‌تر است.",
+      "این snapshot از real engine با همان ورودی فرم اصلی ساخته شده است. متن summary و interpretationهای این گزارش از placementهای واقعی‌تر ساخته شده‌اند.",
   };
 
-  return {
-    ...report,
+  return enrichReportWithRealEngineCopy(
+    {
+      ...report,
+      realEngine,
+    },
     realEngine,
-  };
+  );
 }
 
 function RealEngineBridgePreview({
