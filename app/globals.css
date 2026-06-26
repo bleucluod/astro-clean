@@ -2186,3 +2186,22 @@ textarea {
   background: #fffdf7;
   border: 1px solid rgba(189, 139, 54, 0.16);
 }
+
+/* Jalali birth date input */
+
+.field-hint {
+  color: #7b6d92;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.form-error-message {
+  margin-top: 14px;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #fff7ed;
+  border: 1px solid rgba(194, 65, 12, 0.18);
+  color: #9a3412;
+  font-weight: 900;
+}

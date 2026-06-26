@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
+import { parseJalaliDateInput } from "@/lib/date/jalali";
 import { createMockReport } from "@/lib/astrology/mock-engine";
 import { enrichReportWithRealEngineCopy } from "@/lib/astrology/real-engine-report-writer";
 import type {
@@ -27,7 +28,6 @@ const initialForm: BirthInput = {
   birthCountry: "ایران",
 };
 
-const todayIsoDate = new Date().toISOString().slice(0, 10);
 
 type IranCityOption = (typeof IRAN_CITY_OPTIONS)[number];
 
@@ -69,6 +69,10 @@ function notifyLocalDataChanged() {
 export function ChartForm() {
   const router = useRouter();
   const [form, setForm] = useState<BirthInput>(initialForm);
+  const [birthDateInput, setBirthDateInput] = useState("");
+  const [birthDateMessage, setBirthDateMessage] = useState(
+    "تاریخ تولد را به شمسی وارد کن؛ مثلا ۱۳۷۸/۰۵/۲۱.",
+  );
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =
     useState<RealEngineRequestState>(initialRealEngineRequest);
@@ -83,6 +87,16 @@ export function ChartForm() {
   }
 
   function normalizeBirthForm() {
+    const parsedBirthDate = parseJalaliDateInput(birthDateInput);
+
+    if (!parsedBirthDate.ok) {
+      throw new Error(parsedBirthDate.message);
+    }
+
+    setBirthDateMessage(
+      `تاریخ شمسی ${parsedBirthDate.normalizedJalali} برای محاسبه به ${parsedBirthDate.gregorianIso} تبدیل شد.`,
+    );
+
     const normalizedCityName = form.birthCity.trim() || initialForm.birthCity;
     const selectedCity = findIranCityByName(normalizedCityName);
     const fallbackCity =
@@ -97,6 +111,7 @@ export function ChartForm() {
     const normalizedForm: BirthInput = {
       ...form,
       name: (form.name ?? "").trim(),
+      birthDate: parsedBirthDate.gregorianIso,
       birthCity: selectedCity?.faName ?? normalizedCityName,
       birthCountry: initialForm.birthCountry,
       birthCityId: selectedCity?.id,
@@ -168,7 +183,22 @@ export function ChartForm() {
     event.preventDefault();
     setSaveMessage("");
 
-    const { normalizedForm, engineCity } = normalizeBirthForm();
+    let normalizedBirth: ReturnType<typeof normalizeBirthForm>;
+
+    try {
+      normalizedBirth = normalizeBirthForm();
+    } catch (error) {
+      setRealEngineRequest({
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "تاریخ تولد شمسی برای ساخت گزارش کامل نشد.",
+      });
+      return;
+    }
+
+    const { normalizedForm, engineCity } = normalizedBirth;
     let realEngineResult: RealChartApiResponse | null = null;
 
     try {
@@ -228,15 +258,32 @@ export function ChartForm() {
           </label>
 
           <label className="field">
-            <span>تاریخ تولد</span>
+            <span>تاریخ تولد شمسی</span>
             <input
               required
-              type="date"
-              max={todayIsoDate}
+              type="text"
+              inputMode="numeric"
               autoComplete="bday"
-              value={form.birthDate}
-              onChange={(event) => updateField("birthDate", event.target.value)}
+              value={birthDateInput}
+              onBlur={() => {
+                const parsedBirthDate = parseJalaliDateInput(birthDateInput);
+
+                setBirthDateMessage(
+                  parsedBirthDate.ok
+                    ? `تاریخ شمسی ${parsedBirthDate.normalizedJalali} برای محاسبه به ${parsedBirthDate.gregorianIso} تبدیل می‌شود.`
+                    : parsedBirthDate.message,
+                );
+              }}
+              onChange={(event) => {
+                setBirthDateInput(event.target.value);
+                updateField("birthDate", "");
+                setBirthDateMessage(
+                  "تاریخ تولد را به شمسی وارد کن؛ مثلا ۱۳۷۸/۰۵/۲۱.",
+                );
+              }}
+              placeholder="۱۳۷۸/۰۵/۲۱"
             />
+            <small className="field-hint">{birthDateMessage}</small>
           </label>
 
           <label className="field">
@@ -293,8 +340,17 @@ export function ChartForm() {
           </Link>
         </div>
 
-        {realEngineRequest.status === "loading" ? (
-          <p className="success-message">{realEngineRequest.message}</p>
+        {realEngineRequest.status === "loading" ||
+        realEngineRequest.status === "error" ? (
+          <p
+            className={
+              realEngineRequest.status === "error"
+                ? "form-error-message"
+                : "success-message"
+            }
+          >
+            {realEngineRequest.message}
+          </p>
         ) : null}
 
         {saveMessage ? <p className="success-message">{saveMessage}</p> : null}
