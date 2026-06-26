@@ -85,10 +85,21 @@ for (const marker of [
   "محاسبه چارت واقعی‌تر",
   "ChartReportBridgePanel",
   "متن گزارش بر اساس همین چارت",
-  "شفافیت فنی",
+  "شفافیت محاسبه",
 ]) {
   if (!clientSource.includes(marker)) {
     failures.push(`Real chart workbench client missing marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "RealChartWheel",
+  "PlanetPlacementCard",
+  "چارت محاسبه شد",
+  "جایگاه‌های اصلی",
+]) {
+  if (!clientSource.includes(marker)) {
+    failures.push(`Real chart workbench client missing product UI marker: ${marker}`);
   }
 }
 

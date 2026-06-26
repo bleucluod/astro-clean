@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
+import { RealChartWheel } from "./RealChartWheel";
 
 type RealChartWorkbenchForm = {
   name: string;
@@ -13,6 +14,15 @@ type RealChartWorkbenchForm = {
   longitude: string;
 };
 
+type RealChartPlacement = {
+  id: string;
+  label: string;
+  longitude: number;
+  signId: string;
+  degreeInSign: number;
+  method: string;
+};
+
 type RealChartWorkbenchResponse = {
   ok: boolean;
   error?: string;
@@ -21,14 +31,7 @@ type RealChartWorkbenchResponse = {
     utcIso: string;
     ascendantLongitude: number;
     calculationNotes: string[];
-    placements: Array<{
-      id: string;
-      label: string;
-      longitude: number;
-      signId: string;
-      degreeInSign: number;
-      method: string;
-    }>;
+    placements: RealChartPlacement[];
   };
   copyBlocks?: Array<{
     id: string;
@@ -62,6 +65,19 @@ const SIGN_LABELS: Record<string, string> = {
   capricorn: "جدی",
   aquarius: "دلو",
   pisces: "حوت",
+};
+
+const PLANET_LABELS_FA: Record<string, string> = {
+  sun: "خورشید",
+  moon: "ماه",
+  mercury: "عطارد",
+  venus: "زهره",
+  mars: "مریخ",
+  jupiter: "مشتری",
+  saturn: "زحل",
+  uranus: "اورانوس",
+  neptune: "نپتون",
+  pluto: "پلوتو",
 };
 
 export function RealChartWorkbenchClient() {
@@ -108,48 +124,63 @@ export function RealChartWorkbenchClient() {
     }
   }
 
+  const primaryPlacements = result?.realChart?.placements.slice(0, 6) ?? [];
+  const secondaryPlacements = result?.realChart?.placements.slice(6) ?? [];
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-[#E7D8C7] bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div className="space-y-8">
+      <section className="rounded-[2rem] border border-[#E7D8C7] bg-white p-5 shadow-sm">
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
               Real chart workbench
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-[#3E2F25]">
+            <h2 className="mt-2 text-3xl font-bold text-[#3E2F25]">
               چارت واقعی‌تر با astronomy-engine
             </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-8 text-[#6B5A4C]">
-              این صفحه اولین خروجی قابل دیدن از engine واقعی‌تر است. جایگاه
-              سیاره‌ها با astronomy-engine و Earth-centered ecliptic coordinates
-              محاسبه می‌شود. Ascendant و خانه‌ها فعلاً scaffolding تقریبی هستند
-              تا UI و report pipeline کامل دیده شود.
+            <p className="mt-3 max-w-3xl text-sm leading-8 text-[#6B5A4C]">
+              اینجا دیگر فقط preview نیست: داده تولد وارد می‌شود، engine موقعیت
+              سیاره‌ها را حساب می‌کند، نتیجه به report bridge وصل می‌شود و متن
+              فارسی گزارش از همان چارت ساخته می‌شود.
             </p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <ProductPill title="Real calculation" body="سیاره‌ها از API واقعی engine می‌آیند." />
+              <ProductPill title="Report-ready" body="خروجی به متن فارسی وصل است." />
+              <ProductPill title="Next hardening" body="خانه‌ها و ASC هنوز approximate هستند." />
+            </div>
           </div>
 
-          <div className="rounded-full border border-[#D8C2AA] bg-[#FFF9F2] px-4 py-2 text-sm font-semibold text-[#6A4B35]">
-            v0.1.54
+          <div className="rounded-[1.75rem] border border-[#EFE2D2] bg-[#FFF9F2] p-4">
+            <p className="text-sm font-bold text-[#4A382C]">ورودی سریع تست</p>
+            <p className="mt-1 text-xs leading-6 text-[#7A695A]">
+              برای تست سریع می‌توانی همین مقدارهای پیش‌فرض Baku را نگه داری.
+            </p>
+
+            <div className="mt-4 grid gap-3">
+              <WorkbenchInput label="نام" value={form.name} onChange={(value) => updateField("name", value)} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <WorkbenchInput label="تاریخ تولد" type="date" value={form.birthDate} onChange={(value) => updateField("birthDate", value)} />
+                <WorkbenchInput label="ساعت تولد" type="time" value={form.birthTime} onChange={(value) => updateField("birthTime", value)} />
+              </div>
+              <WorkbenchInput label="Timezone" value={form.timezone} onChange={(value) => updateField("timezone", value)} />
+              <WorkbenchInput label="محل تولد" value={form.placeName} onChange={(value) => updateField("placeName", value)} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <WorkbenchInput label="Latitude" value={form.latitude} onChange={(value) => updateField("latitude", value)} />
+                <WorkbenchInput label="Longitude" value={form.longitude} onChange={(value) => updateField("longitude", value)} />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={generateRealChart}
+              disabled={isLoading}
+              className="mt-5 w-full rounded-full bg-[#3E2F25] px-5 py-3 text-sm font-bold text-[#FFF9F2] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoading ? "در حال محاسبه..." : "محاسبه چارت واقعی‌تر"}
+            </button>
           </div>
         </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <WorkbenchInput label="نام" value={form.name} onChange={(value) => updateField("name", value)} />
-          <WorkbenchInput label="تاریخ تولد" type="date" value={form.birthDate} onChange={(value) => updateField("birthDate", value)} />
-          <WorkbenchInput label="ساعت تولد" type="time" value={form.birthTime} onChange={(value) => updateField("birthTime", value)} />
-          <WorkbenchInput label="Timezone" value={form.timezone} onChange={(value) => updateField("timezone", value)} />
-          <WorkbenchInput label="محل تولد" value={form.placeName} onChange={(value) => updateField("placeName", value)} />
-          <WorkbenchInput label="Latitude" value={form.latitude} onChange={(value) => updateField("latitude", value)} />
-          <WorkbenchInput label="Longitude" value={form.longitude} onChange={(value) => updateField("longitude", value)} />
-        </div>
-
-        <button
-          type="button"
-          onClick={generateRealChart}
-          disabled={isLoading}
-          className="mt-5 rounded-full bg-[#3E2F25] px-5 py-3 text-sm font-bold text-[#FFF9F2] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isLoading ? "در حال محاسبه..." : "محاسبه چارت واقعی‌تر"}
-        </button>
       </section>
 
       {result?.ok === false ? (
@@ -160,80 +191,93 @@ export function RealChartWorkbenchClient() {
 
       {result?.ok && result.realChart ? (
         <>
-          <section className="rounded-3xl border border-[#E7D8C7] bg-[#FFF9F2] p-5 shadow-sm">
-            <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
-                  Calculated chart
-                </p>
-                <h2 className="mt-2 text-2xl font-bold text-[#3E2F25]">
-                  خروجی محاسبه‌شده
-                </h2>
-                <p className="mt-2 text-sm leading-8 text-[#6B5A4C]">
-                  UTC: {result.realChart.utcIso} — ASC approx:{" "}
-                  {formatChartDegree(result.realChart.ascendantLongitude)}
-                </p>
-              </div>
+          <section className="rounded-[2rem] border border-[#E7D8C7] bg-[#3E2F25] p-5 text-[#FFF9F2] shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D9B58C]">
+              Calculation complete
+            </p>
+            <h2 className="mt-2 text-2xl font-bold">چارت محاسبه شد</h2>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <ResultMetric label="UTC" value={result.realChart.utcIso} />
+              <ResultMetric
+                label="ASC approx"
+                value={formatChartDegree(result.realChart.ascendantLongitude)}
+              />
+              <ResultMetric
+                label="Placements"
+                value={`${result.realChart.placements.length} bodies`}
+              />
             </div>
+          </section>
 
-            <div className="mt-5 overflow-hidden rounded-2xl border border-[#ECDCCB] bg-white">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-[#F5E9DA] text-[#4A382C]">
-                  <tr>
-                    <th className="px-4 py-3">Body</th>
-                    <th className="px-4 py-3">Sign</th>
-                    <th className="px-4 py-3">Degree</th>
-                    <th className="px-4 py-3">Longitude</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.realChart.placements.map((placement) => (
-                    <tr key={placement.id} className="border-t border-[#F0E3D4]">
-                      <td className="px-4 py-3 font-semibold text-[#3E2F25]">
-                        {placement.label}
-                      </td>
-                      <td className="px-4 py-3 text-[#6B5A4C]">
-                        {SIGN_LABELS[placement.signId] ?? placement.signId}
-                      </td>
-                      <td className="px-4 py-3 text-[#6B5A4C]">
-                        {formatChartDegree(placement.degreeInSign)}
-                      </td>
-                      <td className="px-4 py-3 text-[#6B5A4C]">
-                        {formatChartDegree(placement.longitude)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <RealChartWheel
+              placements={result.realChart.placements}
+              ascendantLongitude={result.realChart.ascendantLongitude}
+            />
 
-            <div className="mt-5 rounded-2xl border border-[#ECDCCB] bg-white p-4">
-              <p className="text-sm font-bold text-[#4A382C]">شفافیت فنی</p>
-              <ul className="mt-2 space-y-2 text-sm leading-7 text-[#6B5A4C]">
-                {result.realChart.calculationNotes.map((note) => (
-                  <li key={note}>• {note}</li>
+            <section className="rounded-[2rem] border border-[#E7D8C7] bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
+                Planet cards
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-[#3E2F25]">
+                جایگاه‌های اصلی
+              </h2>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                {primaryPlacements.map((placement) => (
+                  <PlanetPlacementCard key={placement.id} placement={placement} />
                 ))}
-              </ul>
+              </div>
+
+              <details className="mt-4 rounded-2xl border border-[#EFE2D2] bg-[#FFF9F2] p-4">
+                <summary className="cursor-pointer text-sm font-bold text-[#4A382C]">
+                  سیاره‌های بیرونی و جزئیات بیشتر
+                </summary>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {secondaryPlacements.map((placement) => (
+                    <PlanetPlacementCard key={placement.id} placement={placement} compact />
+                  ))}
+                </div>
+              </details>
+            </section>
+          </div>
+
+          <section className="rounded-[2rem] border border-[#E7D8C7] bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
+              Technical transparency
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-[#3E2F25]">
+              شفافیت محاسبه
+            </h2>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {result.realChart.calculationNotes.map((note) => (
+                <div
+                  key={note}
+                  className="rounded-2xl border border-[#EFE2D2] bg-[#FFF9F2] p-4 text-sm leading-8 text-[#6B5A4C]"
+                >
+                  {note}
+                </div>
+              ))}
             </div>
           </section>
 
           <ChartReportBridgePanel report={result.report} />
 
-          <section className="rounded-3xl border border-[#E7D8C7] bg-white p-5 shadow-sm">
+          <section className="rounded-[2rem] border border-[#E7D8C7] bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
               Real chart report copy
             </p>
             <h2 className="mt-2 text-2xl font-bold text-[#3E2F25]">
               متن گزارش بر اساس همین چارت
             </h2>
-            <div className="mt-5 space-y-4">
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
               {result.copyBlocks?.map((block) => (
                 <article
                   key={block.id}
-                  className="rounded-2xl border border-[#EFE2D2] bg-[#FFF9F2] p-4"
+                  className="rounded-[1.5rem] border border-[#EFE2D2] bg-[#FFF9F2] p-5"
                 >
                   <h3 className="font-bold text-[#4A382C]">{block.title}</h3>
-                  <p className="mt-2 text-sm leading-8 text-[#6B5A4C]">{block.body}</p>
+                  <p className="mt-3 text-sm leading-8 text-[#6B5A4C]">{block.body}</p>
                 </article>
               ))}
             </div>
@@ -241,6 +285,77 @@ export function RealChartWorkbenchClient() {
         </>
       ) : null}
     </div>
+  );
+}
+
+function ProductPill({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-[#EFE2D2] bg-[#FFF9F2] p-3">
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#9A6B45]">
+        {title}
+      </p>
+      <p className="mt-2 text-xs leading-6 text-[#6B5A4C]">{body}</p>
+    </div>
+  );
+}
+
+function ResultMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-[#D9B58C]/30 bg-[#FFF9F2]/10 p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#D9B58C]">
+        {label}
+      </p>
+      <p className="mt-2 break-words text-sm font-semibold text-[#FFF9F2]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function PlanetPlacementCard({
+  placement,
+  compact = false,
+}: {
+  placement: RealChartPlacement;
+  compact?: boolean;
+}) {
+  const signLabel = SIGN_LABELS[placement.signId] ?? placement.signId;
+
+  return (
+    <article className="rounded-[1.5rem] border border-[#EFE2D2] bg-[#FFF9F2] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#9A6B45]">
+            {placement.label}
+          </p>
+          <h3 className="mt-1 text-lg font-bold text-[#3E2F25]">
+            {PLANET_LABELS_FA[placement.id] ?? placement.label}
+          </h3>
+        </div>
+        <span className="rounded-full border border-[#D8C2AA] bg-white px-3 py-1 text-xs font-bold text-[#6A4B35]">
+          {signLabel}
+        </span>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+        <div className="rounded-2xl bg-white p-3">
+          <p className="text-xs text-[#8A6A51]">درجه در برج</p>
+          <p className="mt-1 font-bold text-[#3E2F25]">
+            {formatChartDegree(placement.degreeInSign)}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white p-3">
+          <p className="text-xs text-[#8A6A51]">Longitude</p>
+          <p className="mt-1 font-bold text-[#3E2F25]">
+            {formatChartDegree(placement.longitude)}
+          </p>
+        </div>
+      </div>
+      {!compact ? (
+        <p className="mt-3 text-xs leading-6 text-[#7A695A]">
+          این جایگاه به متن گزارش و bridge panel متصل است.
+        </p>
+      ) : null}
+    </article>
   );
 }
 
