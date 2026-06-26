@@ -28,6 +28,40 @@ const initialForm: BirthInput = {
   birthCountry: "ایران",
 };
 
+const JALALI_MONTH_OPTIONS = [
+  { value: "01", label: "فروردین" },
+  { value: "02", label: "اردیبهشت" },
+  { value: "03", label: "خرداد" },
+  { value: "04", label: "تیر" },
+  { value: "05", label: "مرداد" },
+  { value: "06", label: "شهریور" },
+  { value: "07", label: "مهر" },
+  { value: "08", label: "آبان" },
+  { value: "09", label: "آذر" },
+  { value: "10", label: "دی" },
+  { value: "11", label: "بهمن" },
+  { value: "12", label: "اسفند" },
+];
+
+const JALALI_DAY_OPTIONS = Array.from({ length: 31 }, (_, index) =>
+  String(index + 1).padStart(2, "0"),
+);
+
+const JALALI_YEAR_OPTIONS = Array.from({ length: 101 }, (_, index) =>
+  String(1405 - index),
+);
+
+type JalaliBirthDateParts = {
+  year: string;
+  month: string;
+  day: string;
+};
+
+const initialJalaliBirthDateParts: JalaliBirthDateParts = {
+  year: "",
+  month: "",
+  day: "",
+};
 
 type IranCityOption = (typeof IRAN_CITY_OPTIONS)[number];
 
@@ -62,6 +96,14 @@ const initialRealEngineRequest: RealEngineRequestState = {
     "Halleus هنگام ساخت گزارش، محاسبه دقیق‌تر چارت را در پس‌زمینه انجام می‌دهد.",
 };
 
+function getSelectedJalaliDateInput(parts: JalaliBirthDateParts) {
+  if (!parts.year || !parts.month || !parts.day) {
+    return "";
+  }
+
+  return `${parts.year}/${parts.month}/${parts.day}`;
+}
+
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
@@ -69,9 +111,11 @@ function notifyLocalDataChanged() {
 export function ChartForm() {
   const router = useRouter();
   const [form, setForm] = useState<BirthInput>(initialForm);
-  const [birthDateInput, setBirthDateInput] = useState("");
+  const [birthDateParts, setBirthDateParts] = useState<JalaliBirthDateParts>(
+    initialJalaliBirthDateParts,
+  );
   const [birthDateMessage, setBirthDateMessage] = useState(
-    "تاریخ تولد را به شمسی وارد کن؛ مثلا ۱۳۷۸/۰۵/۲۱.",
+    "تاریخ تولد شمسی را با انتخاب سال، ماه و روز کامل کن.",
   );
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =
@@ -86,8 +130,40 @@ export function ChartForm() {
     }));
   }
 
+  function updateBirthDatePart(field: keyof JalaliBirthDateParts, value: string) {
+    const nextBirthDateParts = {
+      ...birthDateParts,
+      [field]: value,
+    };
+    const selectedJalaliBirthDate = getSelectedJalaliDateInput(nextBirthDateParts);
+
+    setBirthDateParts(nextBirthDateParts);
+    updateField("birthDate", "");
+
+    if (!selectedJalaliBirthDate) {
+      setBirthDateMessage(
+        "تاریخ تولد شمسی را با انتخاب سال، ماه و روز کامل کن.",
+      );
+      return;
+    }
+
+    const parsedBirthDate = parseJalaliDateInput(selectedJalaliBirthDate);
+
+    setBirthDateMessage(
+      parsedBirthDate.ok
+        ? `تاریخ شمسی ${parsedBirthDate.normalizedJalali} برای محاسبه به ${parsedBirthDate.gregorianIso} تبدیل می‌شود.`
+        : parsedBirthDate.message,
+    );
+  }
+
   function normalizeBirthForm() {
-    const parsedBirthDate = parseJalaliDateInput(birthDateInput);
+    const selectedJalaliBirthDate = getSelectedJalaliDateInput(birthDateParts);
+
+    if (!selectedJalaliBirthDate) {
+      throw new Error("تاریخ تولد شمسی را با انتخاب سال، ماه و روز کامل کن.");
+    }
+
+    const parsedBirthDate = parseJalaliDateInput(selectedJalaliBirthDate);
 
     if (!parsedBirthDate.ok) {
       throw new Error(parsedBirthDate.message);
@@ -259,30 +335,59 @@ export function ChartForm() {
 
           <label className="field">
             <span>تاریخ تولد شمسی</span>
-            <input
-              required
-              type="text"
-              inputMode="numeric"
-              autoComplete="bday"
-              value={birthDateInput}
-              onBlur={() => {
-                const parsedBirthDate = parseJalaliDateInput(birthDateInput);
+            <div
+              className="grid grid-3"
+              role="group"
+              aria-label="انتخاب تاریخ تولد شمسی"
+            >
+              <select
+                required
+                value={birthDateParts.year}
+                onChange={(event) =>
+                  updateBirthDatePart("year", event.target.value)
+                }
+                aria-label="سال تولد شمسی"
+              >
+                <option value="">سال</option>
+                {JALALI_YEAR_OPTIONS.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
 
-                setBirthDateMessage(
-                  parsedBirthDate.ok
-                    ? `تاریخ شمسی ${parsedBirthDate.normalizedJalali} برای محاسبه به ${parsedBirthDate.gregorianIso} تبدیل می‌شود.`
-                    : parsedBirthDate.message,
-                );
-              }}
-              onChange={(event) => {
-                setBirthDateInput(event.target.value);
-                updateField("birthDate", "");
-                setBirthDateMessage(
-                  "تاریخ تولد را به شمسی وارد کن؛ مثلا ۱۳۷۸/۰۵/۲۱.",
-                );
-              }}
-              placeholder="۱۳۷۸/۰۵/۲۱"
-            />
+              <select
+                required
+                value={birthDateParts.month}
+                onChange={(event) =>
+                  updateBirthDatePart("month", event.target.value)
+                }
+                aria-label="ماه تولد شمسی"
+              >
+                <option value="">ماه</option>
+                {JALALI_MONTH_OPTIONS.map((month) => (
+                  <option key={month.value} value={month.value}>
+                    {month.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                required
+                value={birthDateParts.day}
+                onChange={(event) =>
+                  updateBirthDatePart("day", event.target.value)
+                }
+                aria-label="روز تولد شمسی"
+              >
+                <option value="">روز</option>
+                {JALALI_DAY_OPTIONS.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
             <small className="field-hint">{birthDateMessage}</small>
           </label>
 
@@ -312,20 +417,6 @@ export function ChartForm() {
               <option key={city.id} value={getIranCityDisplayName(city)} />
             ))}
           </datalist>
-
-          <label className="field">
-            <span>کشور</span>
-            <input
-              required
-              readOnly
-              autoComplete="country-name"
-              value={form.birthCountry}
-              onChange={(event) =>
-                updateField("birthCountry", event.target.value)
-              }
-              placeholder="مثلاً ایران"
-            />
-          </label>
         </div>
 
         <div className="actions">

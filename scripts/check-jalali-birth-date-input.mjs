@@ -8,16 +8,21 @@ const checkProject = packageJson.scripts?.["check:project"] ?? "";
 
 for (const marker of [
   'import { parseJalaliDateInput } from "@/lib/date/jalali";',
-  "birthDateInput",
-  "setBirthDateMessage",
-  "parseJalaliDateInput(birthDateInput)",
+  "JALALI_YEAR_OPTIONS",
+  "JALALI_MONTH_OPTIONS",
+  "JALALI_DAY_OPTIONS",
+  "birthDateParts",
+  "getSelectedJalaliDateInput(birthDateParts)",
+  "parseJalaliDateInput(selectedJalaliBirthDate)",
   "birthDate: parsedBirthDate.gregorianIso",
-  'placeholder="۱۳۷۸/۰۵/۲۱"',
-  'inputMode="numeric"',
-  "تاریخ تولد را به شمسی وارد کن",
+  "تاریخ تولد شمسی را با انتخاب سال، ماه و روز",
+  "aria-label=\"سال تولد شمسی\"",
+  "aria-label=\"ماه تولد شمسی\"",
+  "aria-label=\"روز تولد شمسی\"",
+  "<select",
 ]) {
   if (!chartFormSource.includes(marker)) {
-    failures.push(`ChartForm missing Jalali input marker: ${marker}`);
+    failures.push(`ChartForm missing Jalali date picker marker: ${marker}`);
   }
 }
 
@@ -34,13 +39,29 @@ for (const marker of [
   }
 }
 
+for (const marker of [
+  'birthCountry: "ایران"',
+  "birthCountry: initialForm.birthCountry",
+]) {
+  if (!chartFormSource.includes(marker)) {
+    failures.push(`ChartForm must keep internal Iran birthCountry marker: ${marker}`);
+  }
+}
+
 for (const forbiddenMarker of [
   'type="date"',
   "max={todayIsoDate}",
   "const todayIsoDate",
+  "birthDateInput",
+  'placeholder="۱۳۷۸/۰۵/۲۱"',
+  'inputMode="numeric"',
+  "<span>کشور</span>",
+  'autoComplete="country-name"',
+  'value={form.birthCountry}',
+  'updateField("birthCountry"',
 ]) {
   if (chartFormSource.includes(forbiddenMarker)) {
-    failures.push(`ChartForm still has Gregorian browser date marker: ${forbiddenMarker}`);
+    failures.push(`ChartForm still has removed date/country UI marker: ${forbiddenMarker}`);
   }
 }
 
@@ -56,11 +77,11 @@ if (!checkProject.includes("pnpm run check:jalali-birth-date-input")) {
 }
 
 if (failures.length > 0) {
-  console.error("Jalali birth date input check failed:");
+  console.error("Jalali birth date picker and country cleanup check failed:");
   for (const failure of failures) {
     console.error(`- ${failure}`);
   }
   process.exit(1);
 }
 
-console.log("Jalali birth date input check passed.");
+console.log("Jalali birth date picker and country cleanup check passed.");

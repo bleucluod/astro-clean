@@ -532,3 +532,84 @@ Next planned product checkpoint:
 
 - `v0.1.73-predeploy-product-checkpoint`
 
+---
+
+## 2026-06-26 - v0.1.73-chart-date-picker-country-cleanup
+
+Product batch `v0.1.73-chart-date-picker-country-cleanup` keeps the chart form focused on the existing chart flow while making birth date entry less error-prone.
+
+Implemented behavior:
+
+- `components/ChartForm.tsx` now uses a simple Jalali picker made of year, month, and day selects instead of a free-text Jalali date input.
+- The selected Jalali date is still parsed through `parseJalaliDateInput` before submit.
+- The internal `BirthInput.birthDate` contract remains Gregorian ISO `YYYY-MM-DD` after normalization.
+- The visible country field was removed from the chart form UI.
+- The internal `birthCountry` value remains `ایران` in the initial form and normalized submit payload because engine/storage still expect it.
+- No sales, order, pricing, product, report detail, report card, page shell, or global style files were changed.
+
+Changed files:
+
+- `components/ChartForm.tsx`
+- `scripts/check-jalali-birth-date-input.mjs`
+- `docs/HALLEUS_PROJECT_CONTEXT.md`
+
+Checks used:
+
+- `pnpm run check:jalali-birth-date-input`
+- `pnpm run check:chart-final-submit-flow`
+- `pnpm run check:chart-form-real-engine-bridge`
+- `pnpm run check:encoding`
+- `pnpm build`
+
+Reliability note:
+
+- This batch intentionally avoided `check:sales-copy-polish`.
+- The runner did not use raw SHA guards.
+- The runner restores tracked files and skips commit/tag if any step fails before completion.
+
+Next planned product checkpoint:
+
+- `v0.1.74-predeploy-product-checkpoint`
+### Runner incident log for v0.1.73
+
+This incident belongs to `v0.1.73-chart-date-picker-country-cleanup` and should be kept as a permanent runner rule for future Halleus batches.
+
+What failed before the successful runner:
+
+1. **Execution policy failure on Windows PowerShell**
+   - Running `.
+unner.ps1` directly can fail with: `cannot be loaded. The file ... is not digitally signed`.
+   - Future instructions should start with an explicit one-run bypass command:
+     - `powershell -ExecutionPolicy Bypass -File .\halleus-073.ps1`
+   - Do not tell the user to run unsigned `.ps1` files directly.
+
+2. **Null-valued expression in runner tag checks**
+   - The fixed runner must never call `.Trim()` directly on output that can be `$null`.
+   - Native command helpers should normalize empty output to `""` first, then trim.
+   - This specifically matters for commands such as `git tag --list <tag>` when no tag is returned.
+
+3. **Persian text corruption in `.ps1` runners**
+   - Windows PowerShell 5.1 can misread Persian text in `.ps1` files saved as UTF-8 without BOM.
+   - Symptom: product logic may be correct, but checks fail only on Persian UI markers such as:
+     - `ساخت گزارش و مشاهده جزئیات`
+     - `مسیر ساده ساخت گزارش`
+     - `محاسبه پشت صحنه`
+   - Fix: any `.ps1` runner that embeds Persian text must be saved as UTF-8 with BOM, or the runner should avoid embedding Persian text directly in PowerShell.
+
+Final successful state:
+
+- The BOM-fixed runner passed:
+  - `pnpm run check:jalali-birth-date-input`
+  - `pnpm run check:chart-final-submit-flow`
+  - `pnpm run check:chart-form-real-engine-bridge`
+  - `pnpm run check:encoding`
+  - `pnpm build`
+- The successful commit before this context amendment was `94d12b0` with subject `Clean chart date picker and country field`.
+- The product tag remains `v0.1.73-chart-date-picker-country-cleanup`.
+
+Permanent rule:
+
+- Future Halleus runners should be simple, fail-fast, and runnable with `powershell -ExecutionPolicy Bypass -File ...`.
+- Do not use raw SHA guards.
+- Do not use large brittle expected blocks.
+- Do not embed Persian text in PowerShell unless the `.ps1` is definitely UTF-8 with BOM.
