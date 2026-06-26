@@ -47,6 +47,29 @@ export type RealEngineReportPlacement = {
   method: string;
 };
 
+export type RealEngineReportAspectKind =
+  | "conjunction"
+  | "sextile"
+  | "square"
+  | "trine"
+  | "opposition";
+
+export type RealEngineReportAspect = {
+  id: string;
+  firstPlanetId: string;
+  firstPlanetLabel: string;
+  secondPlanetId: string;
+  secondPlanetLabel: string;
+  aspectId: RealEngineReportAspectKind;
+  aspectLabel: string;
+  glyph: string;
+  angle: number;
+  separation: number;
+  orb: number;
+  meaning: string;
+  narrative: string;
+};
+
 export type RealEngineReportSnapshot = {
   version: "real-engine-preview-v1";
   generatedAt: string;
@@ -54,6 +77,7 @@ export type RealEngineReportSnapshot = {
   utcIso: string;
   ascendantLongitude: number;
   placements: RealEngineReportPlacement[];
+  aspects?: RealEngineReportAspect[];
   note: string;
 };
 

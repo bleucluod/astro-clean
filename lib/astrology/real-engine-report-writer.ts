@@ -1,9 +1,14 @@
 import type {
   AstrologyReport,
+  RealEngineReportAspect,
   RealEngineReportPlacement,
   RealEngineReportSnapshot,
   ZodiacKey,
 } from "@/types/astro";
+import {
+  calculateRealEngineAspects,
+  formatAspectDegree,
+} from "@/lib/astrology/real-engine-aspects";
 
 type SignCopy = {
   faName: string;
@@ -171,6 +176,15 @@ export function enrichReportWithRealEngineCopy(
   const venus = findPlacement(realEngine, "venus");
   const mars = findPlacement(realEngine, "mars");
   const risingSign = signFromLongitude(realEngine.ascendantLongitude);
+  const aspects = (
+    realEngine.aspects?.length
+      ? realEngine.aspects
+      : calculateRealEngineAspects(realEngine.placements)
+  ).slice(0, 8);
+  const realEngineWithAspects: RealEngineReportSnapshot = {
+    ...realEngine,
+    aspects,
+  };
 
   const summary = buildRealEngineSummary({
     name: report.input.name,
@@ -186,12 +200,13 @@ export function enrichReportWithRealEngineCopy(
     buildOptionalPlacementText(mercury, "mercury"),
     buildOptionalPlacementText(venus, "venus"),
     buildOptionalPlacementText(mars, "mars"),
-    buildIntegrationText(realEngine),
+    buildAspectOverviewText(aspects),
+    buildIntegrationText(realEngineWithAspects),
   ].filter(Boolean) as string[];
 
   return {
     ...report,
-    realEngine,
+    realEngine: realEngineWithAspects,
     summary,
     interpretations,
   };
@@ -254,6 +269,26 @@ function buildRisingText(signKey: ZodiacKey, longitude: number) {
   return `رایزینگ تقریبی تو در ${sign.faName} است (${formatDegree(longitude)} روی دایره چارت). رایزینگ درباره «اولین تماس تو با جهان» حرف می‌زند: اینکه چطور وارد فضاها می‌شوی، چطور دیده می‌شوی و بدنت با موقعیت‌های تازه چه ریتمی می‌گیرد. با ${sign.faName}، ورود تو رنگ ${sign.energy} دارد.`;
 }
 
+function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
+  if (aspects.length === 0) {
+    return undefined;
+  }
+
+  const strongest = aspects.slice(0, 3);
+  const aspectLead = strongest
+    .map(
+      (aspect) =>
+        `${aspect.firstPlanetLabel} ${aspect.glyph} ${aspect.secondPlanetLabel} (${aspect.aspectLabel}، orb ${formatAspectDegree(
+          aspect.orb,
+        )})`,
+    )
+    .join("؛ ");
+
+  const firstNarrative = strongest[0]?.narrative;
+
+  return `روابط سیاره‌ها در این چارت نشان می‌دهند کدام بخش‌های شخصیت با هم گفت‌وگو، حمایت یا اصطکاک سازنده دارند. برجسته‌ترین رابطه‌ها: ${aspectLead}. ${firstNarrative ?? ""}`.trim();
+}
+
 function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
   const visiblePlacements = realEngine.placements
     .slice(0, 6)
@@ -265,7 +300,13 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
     })
     .join("، ");
 
-  return `جمع‌بندی real engine: ${visiblePlacements}. این‌ها ستون‌های اولیه گزارش‌اند. فعلاً متن بر اساس placementهای اصلی نوشته شده؛ در قدم بعدی، aspectها و رابطه بین سیاره‌ها هم وارد narrative می‌شوند تا گزارش از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر تبدیل شود.`;
+  const aspectCount = realEngine.aspects?.length ?? 0;
+  const aspectSummary =
+    aspectCount > 0
+      ? ` در لایه روابط سیاره‌ها هم ${aspectCount} ارتباط اصلی ذخیره شده که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند.`
+      : " در این نسخه، تمرکز اصلی روی جایگاه‌های واقعی‌تر سیاره‌هاست و لایه روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
+
+  return `جمع‌بندی چارت: ${visiblePlacements}. این‌ها ستون‌های اولیه گزارش‌اند و متن Halleus از همین داده‌های real engine ساخته شده است.${aspectSummary}`;
 }
 
 function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {

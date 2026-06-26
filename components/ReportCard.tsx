@@ -38,6 +38,7 @@ const SIGN_LABELS_FA: Record<string, string> = {
 
 export function ReportCard({ report }: ReportCardProps) {
   const [copyMessage, setCopyMessage] = useState("");
+  const realEngineAspects = report.realEngine?.aspects ?? [];
 
   async function handleCopyShareText() {
     const shareText = createShareText(report);
@@ -125,6 +126,33 @@ export function ReportCard({ report }: ReportCardProps) {
                   {SIGN_LABELS_FA[placement.signId] ?? placement.signId} —{" "}
                   {formatDegree(placement.degreeInSign)}
                 </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {realEngineAspects.length > 0 ? (
+        <section className="report-section">
+          <span className="badge">روابط سیاره‌ها</span>
+          <h3>روابط مهم بین سیاره‌ها</h3>
+          <p>
+            این بخش نشان می‌دهد کدام سیاره‌ها در چارت با هم حمایت، فشار یا
+            گفت‌وگوی درونی می‌سازند.
+          </p>
+
+          <div className="grid">
+            {realEngineAspects.slice(0, 5).map((aspect) => (
+              <div className="mini-card report-insight" key={aspect.id}>
+                <strong>
+                  {aspect.firstPlanetLabel}{" "}
+                  <span aria-hidden="true">{aspect.glyph}</span>{" "}
+                  {aspect.secondPlanetLabel}
+                </strong>
+                <span>
+                  {aspect.aspectLabel} — orb {formatDegree(aspect.orb)}
+                </span>
+                <p>{aspect.narrative}</p>
               </div>
             ))}
           </div>
