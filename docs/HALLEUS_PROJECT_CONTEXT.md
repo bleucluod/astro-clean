@@ -470,3 +470,32 @@ Planned target remains:
 - Do not add backend/payment.
 - Avoid touching `ReportCard` unless absolutely necessary.
 
+---
+
+## 2026-06-26 - v0.1.71-report-order-context
+
+Product batch `v0.1.71-report-order-context` links saved reports to the manual order flow.
+
+Implemented behavior:
+
+- `app/reports/[reportId]/page.tsx` renders the existing `ReportDetail` and a new independent `ReportOrderCta`.
+- `components/ReportOrderCta.tsx` links to `/order?reportId=<encoded report id>`.
+- `app/order/page.tsx` reads `searchParams.reportId` and passes it to `ManualOrderRequestForm` as `initialReportId`.
+- `components/ManualOrderRequestForm.tsx` pre-fills the report id and, on the client, uses the local report repository to include available report context in the copied order text.
+- The form remains copy-only. No backend, payment, or server submission was added.
+- `ReportCard.tsx` and `ReportDetail.tsx` were intentionally not changed in this batch.
+
+Reliability note:
+
+- This implementation was built from fresh exact file context and SHA-256 hashes after the failed marker-based attempts.
+- The runner used hash guards before replacing files.
+- Avoid marker-heavy patching in future report/order TSX files unless fresh context is available.
+
+Checks used:
+
+- `pnpm run check:report-order-context`
+- `pnpm run check:report-detail-product-ui`
+- `pnpm run check:real-report-save-flow`
+- `pnpm run check:encoding`
+- `pnpm build`
+

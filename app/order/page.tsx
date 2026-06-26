@@ -2,13 +2,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ManualOrderRequestForm } from "@/components/ManualOrderRequestForm";
 
+type OrderPageProps = {
+  searchParams?: Promise<{
+    reportId?: string | string[];
+  }>;
+};
+
 export const metadata: Metadata = {
   title: "درخواست سفارش دستی | Halleus",
   description:
     "درخواست سفارش دستی گزارش کامل Halleus پیش از فعال شدن پرداخت آنلاین.",
 };
 
-export default function OrderPage() {
+function normalizeReportId(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
+
+export default async function OrderPage({ searchParams }: OrderPageProps) {
+  const params = await searchParams;
+  const initialReportId = normalizeReportId(params?.reportId).trim();
+
   return (
     <section className="grid manual-order-page">
       <div className="card manual-order-hero">
@@ -33,7 +50,7 @@ export default function OrderPage() {
         </div>
       </div>
 
-      <ManualOrderRequestForm />
+      <ManualOrderRequestForm initialReportId={initialReportId} />
 
       <section className="card">
         <span className="section-label">شفافیت سفارش</span>
