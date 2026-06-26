@@ -656,3 +656,40 @@ Reliability note:
 - The runner did not embed Persian text inside PowerShell.
 - The runner restores tracked files and removes the newly added check script if any pre-commit step fails.
 - This batch intentionally avoided `check:sales-copy-polish`, `check:product-surface`, `check:report-order-context`, and `check:project`.
+
+---
+
+## 2026-06-26 - v0.1.75-site-chrome-minimal-ui-cleanup
+
+Product batch `v0.1.75-site-chrome-minimal-ui-cleanup` removes the temporary sales-path chrome from the global shell and makes the site frame feel closer to the final minimal product.
+
+Implemented behavior:
+
+- Removed the secondary sales-path strip from the global header.
+- Removed the noisy global navigation labels from the shell header.
+- Replaced the header with a minimal Halleus brand mark and one short start CTA to `/chart`.
+- Reworked the footer into a quiet product note plus a privacy link instead of a placeholder-style product-link grid.
+- Simplified the global page background and softened card shadows without changing page-specific product flows.
+- Retired `check:sales-navigation-polish` from `check:project` and `check:core` in favor of the new site chrome check.
+- No chart submit flow, engine, storage, report detail, product, pricing, or order logic was changed.
+
+Changed files:
+
+- `components/AppShell.tsx`
+- `app/globals.css`
+- `scripts/check-site-chrome-minimal-ui.mjs`
+- `package.json`
+- `docs/HALLEUS_PROJECT_CONTEXT.md`
+
+Checks used:
+
+- `pnpm run check:site-chrome-minimal-ui`
+- `pnpm run check:encoding`
+- `pnpm build`
+
+Reliability note:
+
+- The runner keeps PowerShell as orchestration only and applies UI text through a Node `.cjs` helper.
+- The runner should be executed with `powershell -ExecutionPolicy Bypass -File .\halleus-075-site-chrome-minimal-ui-cleanup.ps1`.
+- The runner does not embed Persian text inside PowerShell.
+- The runner restores tracked files and removes the newly added check script if any pre-commit step fails.

@@ -1,57 +1,42 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { NavLinks } from "@/components/NavLinks";
-import { getSalesNavigationLinks } from "@/lib/product/product-surface";
 
 type AppShellProps = {
   children: ReactNode;
 };
 
 export function AppShell({ children }: AppShellProps) {
-  const salesLinks = getSalesNavigationLinks();
-
   return (
     <>
-      <header>
-        <nav>
-          <Link href="/">Halleus</Link>
+      <header className="site-header">
+        <nav className="site-nav" aria-label="ناوبری اصلی">
+          <Link href="/" className="site-brand" aria-label="Halleus">
+            <span className="site-brand-mark" aria-hidden="true">
+              H
+            </span>
+            <span>Halleus</span>
+          </Link>
 
-          <NavLinks />
+          <Link href="/chart" className="site-nav-cta">
+            شروع
+          </Link>
         </nav>
-
-        <div className="shell-sales-nav">
-          <span>مسیر سریع فروش: گزارش نمونه، توضیح محصول، پلن‌ها و سفارش دستی</span>
-
-          <div>
-            {salesLinks.map((item) => (
-              <Link href={item.href} key={item.href}>
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
       </header>
 
       <main>{children}</main>
 
       <footer className="site-footer">
-        <div className="footer-grid">
+        <div className="footer-inner">
           <div>
             <strong>Halleus</strong>
-            <p>
-              تحلیل‌ها در این محصول برای سرگرمی، خودشناسی و تفسیر نمادین هستند؛
-              نه پیش‌بینی قطعی یا توصیه پزشکی، مالی و حقوقی.
+            <p className="footer-note">
+              محصولی آرام و مینیمال برای تفسیر نمادین چارت تولد.
             </p>
           </div>
 
-          <div className="footer-sales-links">
-            <strong>مسیر محصول</strong>
-            <Link href="/chart">ساخت گزارش</Link>
-            <Link href="/product">توضیح محصول</Link>
-            <Link href="/pricing">پلن‌ها</Link>
-<Link href="/order">سفارش دستی</Link>
-<Link href="/privacy">حریم داده</Link>
-          </div>
+          <Link href="/privacy" className="footer-link">
+            حریم خصوصی
+          </Link>
         </div>
       </footer>
     </>
