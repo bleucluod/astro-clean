@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
+import { RealChartAspectPanel } from "./RealChartAspectPanel";
 import { RealChartWheel } from "./RealChartWheel";
 
 type RealChartWorkbenchForm = {
@@ -146,8 +147,8 @@ export function RealChartWorkbenchClient() {
 
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <ProductPill title="Real calculation" body="سیاره‌ها از API واقعی engine می‌آیند." />
+              <ProductPill title="Aspect-aware" body="روابط اصلی سیاره‌ها هم محاسبه می‌شود." />
               <ProductPill title="Report-ready" body="خروجی به متن فارسی وصل است." />
-              <ProductPill title="Next hardening" body="خانه‌ها و ASC هنوز approximate هستند." />
             </div>
           </div>
 
@@ -241,6 +242,8 @@ export function RealChartWorkbenchClient() {
               </details>
             </section>
           </div>
+
+          <RealChartAspectPanel placements={result.realChart.placements} />
 
           <section className="rounded-[2rem] border border-[#E7D8C7] bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
