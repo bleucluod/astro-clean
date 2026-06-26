@@ -425,3 +425,48 @@ After every successful batch, update this file in the same commit or a nearby co
 - next planned batch
 
 This file exists so future chats should not need to ask the user to reconstruct history from memory.
+
+---
+
+## 2026-06-26 - v0.1.71 recovery note
+
+After commit `511b6a5 Add Halleus project handoff context`, three attempted runners for `v0.1.71-report-order-context` failed before any product commit/tag was created.
+
+Failed attempts:
+
+1. Initial `halleus-071-report-order-context` runner:
+   - Partially modified `app/order/page.tsx` and `components/ReportDetail.tsx`.
+   - Failed with:
+     - `ManualOrderRequestForm insert position after reportLink not found.`
+   - Tracked files were later restored.
+
+2. Repair `halleus-071-report-order-context-repair` runner:
+   - Restored tracked files first.
+   - Failed with:
+     - `ManualOrderRequestForm state block marker not found.`
+   - Tracked files were restored.
+
+3. Safe `halleus-071-safe-report-order-context` runner:
+   - Intended to use full-file replacement for `app/order/page.tsx` and `components/ManualOrderRequestForm.tsx`.
+   - Still used a structural marker for `components/ReportDetail.tsx`.
+   - Failed with:
+     - `ReportDetail actions block marker not found.`
+   - Tracked files were restored.
+
+Current rule after these failures:
+
+- Do not create another product runner until exact file context is gathered again from the live repo.
+- Do not rely on brittle text markers in Persian/mojibake-heavy files.
+- Prefer full-file replacement for small/medium files.
+- If a small patch is still needed, it must be based on fresh line-numbered context from the current repo.
+- The next `v0.1.71-report-order-context` attempt must also update this file.
+- Before the next attempt, collect advice/context from previous Halleus chats using the prompt prepared in chat 4.
+
+Planned target remains:
+
+- Add a report detail CTA to `/order?reportId=<report.id>`.
+- Let `/order` pass `reportId` into `ManualOrderRequestForm`.
+- Let the manual order text include at least the report id, and if safe, report name/birth date/birth time/birth city from local storage/repository.
+- Do not add backend/payment.
+- Avoid touching `ReportCard` unless absolutely necessary.
+
