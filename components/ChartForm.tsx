@@ -6,7 +6,11 @@ import { type FormEvent, useState } from "react";
 import { ReportCard } from "@/components/ReportCard";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { createMockReport } from "@/lib/astrology/mock-engine";
-import type { AstrologyReport, BirthInput } from "@/types/astro";
+import type {
+  AstrologyReport,
+  BirthInput,
+  RealEngineReportSnapshot,
+} from "@/types/astro";
 import {
   IRAN_CITY_OPTIONS,
   findIranCityByName,
@@ -31,7 +35,7 @@ type RealEnginePlacement = {
   id: string;
   label: string;
   longitude: number;
-  signId: string;
+  signId: RealEngineReportSnapshot["placements"][number]["signId"];
   degreeInSign: number;
   method: string;
 };
@@ -242,21 +246,33 @@ export function ChartForm() {
     setSaveMessage("");
 
     const { normalizedForm, engineCity } = normalizeBirthForm();
+    let realEngineResult: RealChartApiResponse | null = null;
 
     try {
-      await requestRealEnginePreview(normalizedForm, engineCity, "submit");
+      realEngineResult = await requestRealEnginePreview(
+        normalizedForm,
+        engineCity,
+        "submit",
+      );
     } catch {
       // Keep the old safe save flow alive while the real report pipeline is being merged.
     }
 
-    const nextReport = enhanceReportOutputV2(createMockReport(normalizedForm));
+    const baseReport = enhanceReportOutputV2(createMockReport(normalizedForm));
+    const nextReport = attachRealEngineSnapshotToReport(
+      baseReport,
+      realEngineResult,
+      engineCity,
+    );
 
     await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();
 
     setReport(nextReport);
     setSaveMessage(
-      "گزارش ساخته و ذخیره شد. ورودی همین فرم به real engine هم وصل شده است. در حال انتقال به صفحه جزئیات...",
+      nextReport.realEngine
+        ? "گزارش ساخته و ذخیره شد. داده real engine هم داخل گزارش ذخیره شد. در حال انتقال به صفحه جزئیات..."
+        : "گزارش ساخته و ذخیره شد. real engine در این لحظه پاسخ نداد، اما مسیر امن MVP حفظ شد. در حال انتقال به صفحه جزئیات...",
     );
 
     router.push(`/reports/${nextReport.id}`);
@@ -273,7 +289,8 @@ export function ChartForm() {
           <p>
             اطلاعات تولد را وارد کن تا یک گزارش نمادین فارسی ساخته شود. همین
             فرم حالا می‌تواند real engine را هم با تاریخ، ساعت و شهر انتخاب‌شده
-            صدا بزند؛ ذخیره گزارش هنوز با مسیر امن MVP انجام می‌شود.
+            صدا بزند؛ اگر engine پاسخ بدهد، داده‌های واقعی‌تر داخل گزارش
+            ذخیره‌شده هم ثبت می‌شود.
           </p>
 
           <SafetyDisclaimer compact />
@@ -380,9 +397,9 @@ export function ChartForm() {
           <h2>گزارش اینجا ساخته می‌شود</h2>
 
           <p>
-            بعد از ثبت فرم، Halleus فعلاً گزارش ذخیره‌شونده را با مسیر امن MVP
-            می‌سازد؛ اما همین فرم حالا می‌تواند real engine را هم با شهرهای
-            واقعی ایران صدا بزند.
+            بعد از ثبت فرم، Halleus گزارش ذخیره‌شونده را می‌سازد؛ حالا اگر
+            real engine پاسخ بدهد، snapshot جایگاه‌های واقعی‌تر هم همراه گزارش
+            ذخیره می‌شود.
           </p>
 
           <div className="grid grid-3">
@@ -397,8 +414,8 @@ export function ChartForm() {
             </div>
 
             <div className="mini-card">
-              <strong>engine</strong>
-              <span>bridge</span>
+              <strong>گزارش</strong>
+              <span>real snapshot</span>
             </div>
           </div>
 
@@ -407,6 +424,32 @@ export function ChartForm() {
       )}
     </div>
   );
+}
+
+function attachRealEngineSnapshotToReport(
+  report: AstrologyReport,
+  payload: RealChartApiResponse | null,
+  engineCity: IranCityOption,
+): AstrologyReport {
+  if (!payload?.ok || !payload.realChart) {
+    return report;
+  }
+
+  const realEngine: RealEngineReportSnapshot = {
+    version: "real-engine-preview-v1",
+    generatedAt: new Date().toISOString(),
+    cityLabel: getIranCityDisplayName(engineCity),
+    utcIso: payload.realChart.utcIso,
+    ascendantLongitude: payload.realChart.ascendantLongitude,
+    placements: payload.realChart.placements,
+    note:
+      "این snapshot از real engine با همان ورودی فرم اصلی ساخته شده است. گزارش متنی هنوز در حال مهاجرت مرحله‌ای از mock به engine واقعی‌تر است.",
+  };
+
+  return {
+    ...report,
+    realEngine,
+  };
 }
 
 function RealEngineBridgePreview({

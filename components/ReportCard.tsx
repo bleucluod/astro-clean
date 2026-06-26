@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { createShareText } from "@/lib/astrology/share-text";
@@ -6,6 +6,34 @@ import type { AstrologyReport } from "@/types/astro";
 
 type ReportCardProps = {
   report: AstrologyReport;
+};
+
+const PLANET_LABELS_FA: Record<string, string> = {
+  sun: "خورشید",
+  moon: "ماه",
+  mercury: "عطارد",
+  venus: "زهره",
+  mars: "مریخ",
+  jupiter: "مشتری",
+  saturn: "زحل",
+  uranus: "اورانوس",
+  neptune: "نپتون",
+  pluto: "پلوتو",
+};
+
+const SIGN_LABELS_FA: Record<string, string> = {
+  aries: "حمل",
+  taurus: "ثور",
+  gemini: "جوزا",
+  cancer: "سرطان",
+  leo: "اسد",
+  virgo: "سنبله",
+  libra: "میزان",
+  scorpio: "عقرب",
+  sagittarius: "قوس",
+  capricorn: "جدی",
+  aquarius: "دلو",
+  pisces: "حوت",
 };
 
 export function ReportCard({ report }: ReportCardProps) {
@@ -26,7 +54,9 @@ export function ReportCard({ report }: ReportCardProps) {
     <article className="card report-card">
       <div className="report-header">
         <div>
-          <span className="badge">گزارش نمادین</span>
+          <span className="badge">
+            {report.realEngine ? "گزارش نمادین + real engine" : "گزارش نمادین"}
+          </span>
           <h2>
             {report.input.name
               ? `گزارش ${report.input.name}`
@@ -64,6 +94,43 @@ export function ReportCard({ report }: ReportCardProps) {
         </div>
       </div>
 
+      {report.realEngine ? (
+        <section className="report-section">
+          <span className="badge">real engine snapshot</span>
+          <h3>داده واقعی‌تر ذخیره‌شده</h3>
+          <p>{report.realEngine.note}</p>
+
+          <div className="grid grid-3">
+            <div className="mini-card">
+              <strong>شهر engine</strong>
+              <span>{report.realEngine.cityLabel}</span>
+            </div>
+
+            <div className="mini-card">
+              <strong>ASC approx</strong>
+              <span>{formatDegree(report.realEngine.ascendantLongitude)}</span>
+            </div>
+
+            <div className="mini-card">
+              <strong>UTC</strong>
+              <span>{report.realEngine.utcIso}</span>
+            </div>
+          </div>
+
+          <div className="grid">
+            {report.realEngine.placements.slice(0, 6).map((placement) => (
+              <div className="mini-card" key={placement.id}>
+                <strong>{PLANET_LABELS_FA[placement.id] ?? placement.label}</strong>
+                <span>
+                  {SIGN_LABELS_FA[placement.signId] ?? placement.signId} —{" "}
+                  {formatDegree(placement.degreeInSign)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="report-section report-summary">
         <p>{report.summary}</p>
       </section>
@@ -90,4 +157,8 @@ export function ReportCard({ report }: ReportCardProps) {
       </div>
     </article>
   );
+}
+
+function formatDegree(value: number) {
+  return `${value.toFixed(2)}°`;
 }

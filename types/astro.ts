@@ -1,4 +1,4 @@
-﻿export type ZodiacKey =
+export type ZodiacKey =
   | "aries"
   | "taurus"
   | "gemini"
@@ -38,11 +38,31 @@ export type MockChart = {
   risingSign: ZodiacSign;
 };
 
+export type RealEngineReportPlacement = {
+  id: string;
+  label: string;
+  longitude: number;
+  signId: ZodiacKey;
+  degreeInSign: number;
+  method: string;
+};
+
+export type RealEngineReportSnapshot = {
+  version: "real-engine-preview-v1";
+  generatedAt: string;
+  cityLabel: string;
+  utcIso: string;
+  ascendantLongitude: number;
+  placements: RealEngineReportPlacement[];
+  note: string;
+};
+
 export type AstrologyReport = {
   id: string;
   createdAt: string;
   input: BirthInput;
   chart: MockChart;
+  realEngine?: RealEngineReportSnapshot;
   summary: string;
   interpretations: string[];
   safetyNote: string;
