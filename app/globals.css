@@ -1703,3 +1703,255 @@ textarea {
     max-inline-size: 100%;
   }
 }
+
+
+/* Report detail product UI v0.1.64 */
+.report-product-card {
+  gap: clamp(1.15rem, 2vw, 1.65rem);
+  overflow: hidden;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.report-product-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+  gap: clamp(1rem, 2.5vw, 1.6rem);
+  align-items: stretch;
+  padding: clamp(1.1rem, 3vw, 1.7rem);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.22), transparent 32%),
+    linear-gradient(135deg, rgba(45, 31, 74, 0.96), rgba(91, 43, 191, 0.9));
+  color: #ffffff;
+  box-shadow: 0 24px 70px rgba(48, 32, 82, 0.18);
+}
+
+.report-product-hero h2 {
+  color: #ffffff;
+  font-size: clamp(1.8rem, 4vw, 3.25rem);
+  letter-spacing: -0.045em;
+  line-height: 1.18;
+  margin: 0 0 0.85rem;
+}
+
+.report-product-hero p {
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0;
+  max-width: 58ch;
+}
+
+.report-product-badge {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.report-product-meta-card {
+  display: grid;
+  align-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.report-product-meta-card .pill {
+  width: fit-content;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.report-product-birth-details span {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.report-section-heading {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.report-section-heading h3 {
+  color: #34224f;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  margin: 0;
+}
+
+.report-section-heading p {
+  margin: 0;
+  max-width: 72ch;
+}
+
+.report-core-grid,
+.report-calculation-grid,
+.report-aspect-grid,
+.report-placement-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.report-core-grid,
+.report-calculation-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.report-core-card {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 230px;
+  padding: 1.15rem;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(91, 43, 191, 0.12), transparent 36%),
+    #ffffff;
+  border: 1px solid rgba(91, 43, 191, 0.11);
+  box-shadow: 0 18px 48px rgba(48, 32, 82, 0.065);
+}
+
+.report-core-card span {
+  color: #7b6d92;
+  font-weight: 900;
+}
+
+.report-core-card strong {
+  color: #5b2bbf;
+  font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+  line-height: 1.55;
+}
+
+.report-core-card p {
+  margin: 0;
+}
+
+.report-calculation-section,
+.report-aspect-section,
+.report-product-summary {
+  padding: clamp(1rem, 2vw, 1.25rem);
+  border-radius: 26px;
+  background: #fbf8ff;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+}
+
+.report-calculation-grid .mini-card span {
+  font-size: 1rem;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.report-placement-details {
+  padding: 1rem;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+}
+
+.report-placement-details summary {
+  cursor: pointer;
+  color: #4c1d95;
+  font-weight: 900;
+}
+
+.report-placement-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.report-placement-grid .mini-card span {
+  font-size: 0.98rem;
+}
+
+.report-aspect-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.report-aspect-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+  box-shadow: 0 14px 38px rgba(48, 32, 82, 0.05);
+}
+
+.report-aspect-card strong {
+  display: block;
+  color: #34224f;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.report-aspect-card span {
+  color: #7b6d92;
+  font-weight: 900;
+}
+
+.report-aspect-card p {
+  margin: 0;
+}
+
+.report-product-summary {
+  background:
+    radial-gradient(circle at 95% 0%, rgba(91, 43, 191, 0.1), transparent 30%),
+    #fffdf7;
+  border-color: rgba(189, 139, 54, 0.16);
+}
+
+.report-product-insight-list {
+  gap: 1rem;
+}
+
+.report-product-insight-list .report-insight {
+  grid-template-columns: auto 1fr;
+  background: #ffffff;
+}
+
+.report-product-insight-list .report-insight strong {
+  background: #efe7ff;
+  color: #5b2bbf;
+}
+
+.report-product-actions {
+  justify-content: flex-start;
+}
+
+.report-product-notice {
+  background: #fffaf0;
+  border: 1px solid rgba(189, 139, 54, 0.18);
+}
+
+@media (max-width: 920px) {
+  .report-product-hero,
+  .report-core-grid,
+  .report-calculation-grid,
+  .report-aspect-grid,
+  .report-placement-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-core-card {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .report-product-card {
+    padding: 1rem;
+  }
+
+  .report-product-hero {
+    border-radius: 22px;
+    padding: 1rem;
+  }
+
+  .report-product-hero h2 {
+    font-size: 1.75rem;
+  }
+
+  .report-product-actions .button {
+    width: 100%;
+  }
+}
+
+/* End report detail product UI v0.1.64 */
