@@ -12,6 +12,7 @@ import { ReportV2Sections } from "@/components/ReportV2Sections";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
 import { ChartEngineReportBadge } from "@/components/ChartEngineReportBadge";
 import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
+
 type ReportDetailProps = {
   reportId: string;
 };
@@ -141,16 +142,15 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
   if (!isReady) {
     return (
       <section className="grid">
-        
-      <ChartEngineReportBadge report={report} />
+        <div className="card">
+          <span className="badge">در حال آماده‌سازی</span>
 
-      <ChartReportBridgePanel report={report} />
-      <ReportV3Experience report={report} />
-      <ReportV2Sections report={report} />
-<div className="card">
-          <span className="badge">در حال خواندن</span>
-          <h1>در حال بارگذاری گزارش</h1>
-          <p>گزارش ذخیره‌شده از مرورگر خوانده می‌شود.</p>
+          <h1>گزارش تو در حال باز شدن است</h1>
+
+          <p>
+            Halleus نسخه ذخیره‌شده گزارش را آماده می‌کند تا بتوانی دوباره آن
+            را بخوانی، یادداشت اضافه کنی و مسیر بعدی را انتخاب کنی.
+          </p>
         </div>
       </section>
     );
@@ -173,39 +173,76 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">گزارش ذخیره‌شده</span>
+        <span className="badge">گزارش آماده‌ی مرور</span>
 
-        <h1>جزئیات گزارش تو</h1>
+        <h1>گزارش چارت تولد تو آماده است</h1>
 
         <p>
-          این صفحه نسخه ذخیره‌شده گزارش تو را نشان می‌دهد؛ جایی برای خواندن
-          دوباره، یادداشت‌برداری و ادامه دادن مسیر گزارش کامل‌تر.
+          اینجا صفحه‌ی مرور گزارش توست؛ می‌توانی برداشت‌های اصلی را بخوانی،
+          یادداشت شخصی اضافه کنی، نسخه پشتیبان بگیری و اگر خواستی برای گزارش
+          کامل‌تر اقدام کنی.
         </p>
 
         <div className="actions">
+          <Link className="button" href="#report-reading">
+            خواندن گزارش
+          </Link>
+
+          <Link className="button secondary" href="#personal-note">
+            نوشتن یادداشت
+          </Link>
+
           <Link className="button secondary" href="/reports">
-            بازگشت به گزارش‌ها
-          </Link>
-
-          <Link className="button secondary" href="/dashboard">
-            رفتن به داشبورد
-          </Link>
-
-          <Link className="button" href="/chart">
-            ساخت گزارش جدید
+            همه گزارش‌ها
           </Link>
         </div>
       </div>
 
-      <ReportCard report={report} />
+      <div id="report-reading">
+        <ReportCard report={report} />
+      </div>
 
-      <section className="card report-note-card">
-        <span className="badge">یادداشت شخصی</span>
+      <ChartEngineReportBadge report={report} />
 
-        <h2>یادداشت من درباره این گزارش</h2>
+      <ChartReportBridgePanel report={report} />
+
+      <ReportV3Experience report={report} />
+
+      <ReportV2Sections report={report} />
+
+      <section className="card">
+        <span className="badge">قدم بعدی</span>
+
+        <h2>از این گزارش چه استفاده‌ای می‌کنی؟</h2>
 
         <p>
-          این یادداشت برای مرور شخصی تو کنار همین گزارش نگه داشته می‌شود.
+          اگر این گزارش برایت معنی‌دار بود، می‌توانی آن را ذخیره کنی، بعداً
+          دوباره بخوانی، یا برای دریافت خوانش کامل‌تر و انسانی‌تر سفارش بدهی.
+        </p>
+
+        <div className="actions">
+          <Link className="button" href="/order">
+            سفارش گزارش کامل‌تر
+          </Link>
+
+          <Link className="button secondary" href="/pricing">
+            دیدن پلن‌ها
+          </Link>
+
+          <Link className="button secondary" href="/chart">
+            ساخت گزارش جدید
+          </Link>
+        </div>
+      </section>
+
+      <section className="card report-note-card" id="personal-note">
+        <span className="badge">یادداشت شخصی</span>
+
+        <h2>برداشت خودت را کنار گزارش نگه دار</h2>
+
+        <p>
+          این یادداشت فقط برای مرور شخصی تو کنار همین گزارش نگه داشته می‌شود؛
+          مثل جایی برای ثبت حس، سوال یا نکته‌ای که بعداً می‌خواهی به آن برگردی.
         </p>
 
         <label className="field">
@@ -236,19 +273,18 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       </section>
 
       <section className="card">
-        <span className="badge">خروجی و پشتیبان</span>
+        <span className="badge">نگهداری گزارش</span>
 
-        <h2>خروجی تکی این گزارش</h2>
+        <h2>یک نسخه برای خودت داشته باش</h2>
 
         <p>
-          می‌توانی فقط همین گزارش را همراه یادداشت و وضعیت علاقه‌مندی به صورت
-          فایل پشتیبان بگیری. این قابلیت برای نگهداری نسخه شخصی، پشتیبانی یا
-          انتقال گزارش در نسخه‌های بعدی مفید است.
+          می‌توانی همین گزارش را همراه یادداشت و وضعیت علاقه‌مندی به صورت فایل
+          پشتیبان نگه داری، یا یک نسخه متنی ساده برای مرور و اشتراک شخصی بگیری.
         </p>
 
         <div className="actions">
           <button className="button" type="button" onClick={handleExportReport}>
-            گرفتن فایل پشتیبان این گزارش
+            گرفتن فایل پشتیبان
           </button>
 
           <button
@@ -256,7 +292,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
             type="button"
             onClick={handleExportTextReport}
           >
-            گرفتن خروجی متنی
+            گرفتن نسخه متنی
           </button>
         </div>
       </section>
