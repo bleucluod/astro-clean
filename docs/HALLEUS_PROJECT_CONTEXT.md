@@ -16,19 +16,19 @@ brand: Halleus
 domain identity: Halleus.ir
 ```
 
-Verified release state from the latest provided git/GitHub/public checks:
+Latest verified local/GitHub state from the latest user-provided terminal output in this project chat:
 
 ```text
-Local HEAD: e8418ee / v0.1.77-project-context-product-deployment-state
-GitHub origin/main: e8418ee / v0.1.77-project-context-product-deployment-state
-Pushed tags verified on origin:
-- v0.1.75-site-chrome-minimal-ui-cleanup
-- v0.1.76-site-chrome-navigation-fix
-- v0.1.77-project-context-product-deployment-state
+Local HEAD: 974864e / v0.1.80-report-detail-product-polish
+GitHub origin/main: 974864e / v0.1.80-report-detail-product-polish
+Latest pushed tag: v0.1.80-report-detail-product-polish
+Previous pushed tag: v0.1.79-report-detail-copy-cleanup
 Branch relation: main is synced with origin/main
-Working tree: clean in the latest provided git status output
-Public/live state: public site opened and showed the latest changes according to user verification
-Render state: likely deployed because public site showed latest changes, but exact Render dashboard commit has not been recorded yet
+Build before v0.1.80 commit: pnpm build passed
+Encoding before v0.1.80 commit: pnpm run check:encoding passed
+Working tree after push: no tracked changes were shown in the latest successful push output
+Public/live state: previously visually verified by user after earlier push/deploy; not re-verified after v0.1.80 in this context
+Render state: public evidence previously suggested deployment succeeded, but exact Render dashboard commit is still not recorded
 ```
 
 Important rule:
@@ -39,13 +39,49 @@ Local commit/tag state, GitHub push state, Render deploy state, and public/live 
 
 A local commit is not live. A GitHub push is not a Render deploy. `Halleus.ir` is the domain identity, not proof that the latest version is deployed.
 
-Current verified status summary:
+Authority order for every future Halleus response:
 
 ```text
-Local: verified through e8418ee / v0.1.77
-GitHub: verified through e8418ee / v0.1.77
-Public/live: visually verified by user after push/deploy
-Render: public evidence suggests deployment succeeded; exact dashboard deploy commit still should be recorded when available
+1. Current user-provided terminal output from the active conversation
+2. Current uploaded live files from C:\Projects\astro-clean
+3. docs/HALLEUS_PROJECT_CONTEXT.md
+4. Saved project memory / previous chat summaries
+5. General model memory
+```
+
+Never reverse this order. If the context file says one commit but current git output says another, current git output wins.
+
+### Mandatory Safety Gate before every coding batch
+
+Before generating any code, patch, runner, downloadable artifact, or terminal command that changes files, the assistant must provide a Safety Gate with:
+
+```text
+Current known HEAD:
+Current known latest tag:
+Files inspected live:
+Files allowed to change:
+Files explicitly forbidden:
+Apply method:
+Checks to run:
+Commit/tag/push plan:
+Rollback/restore plan:
+Relevant failure-ledger risks for this batch:
+```
+
+If any field cannot be filled from current evidence, stop and ask for the missing live file, git output, or route/component context. Do not guess.
+
+### Executable workflow rules
+
+```text
+No stale-context coding.
+No code changes from remembered structure.
+No large inline scripts in chat.
+No root-level payload/source-like folders before build.
+No generated JS template literals containing project text/backticks/${...}.
+No regex replacement across multiline JSX attributes or JSX text.
+No automatic commit/tag/push in apply scripts.
+No plain git diff inside scripts; use git --no-pager diff or write a diff file.
+After two sequential runner/apply failures, stop. Diagnose, reduce scope, and request exact live files before any new attempt.
 ```
 
 ## 2. Product origin
@@ -346,30 +382,76 @@ The context was updated to record that GitHub is verified through v0.1.77 and th
 Exact Render dashboard commit is still not recorded unless separately verified.
 ```
 
+
+### v0.1.79-report-detail-copy-cleanup
+
+Completed and pushed:
+
+```text
+a848ef6 / v0.1.79-report-detail-copy-cleanup
+```
+
+Product meaning:
+
+```text
+Cleaned report detail user-facing copy.
+Reduced technical/MVP wording on the saved report detail page.
+Changed only components/ReportDetail.tsx.
+check:encoding and pnpm build passed before commit.
+Tag and main were pushed to origin.
+```
+
+Important incident note:
+
+```text
+Earlier v0.1.79 report-readability attempts failed and were rolled back.
+Only a848ef6 / v0.1.79-report-detail-copy-cleanup is the successful v0.1.79 milestone.
+```
+
+### v0.1.80-report-detail-product-polish
+
+Completed and pushed:
+
+```text
+974864e / v0.1.80-report-detail-product-polish
+```
+
+Product meaning:
+
+```text
+Made the report detail page feel more like a product page.
+Improved hero/reading flow/CTA structure.
+Added clearer next-step ordering path.
+Moved note and backup/export into more natural product sections.
+Changed only components/ReportDetail.tsx.
+check:encoding and pnpm build passed before commit.
+Tag and main were pushed to origin.
+```
+
+
 ## 7. Current product state
 
 Current verified local and GitHub HEAD:
 
 ```text
-e8418ee / v0.1.77-project-context-product-deployment-state
+974864e / v0.1.80-report-detail-product-polish
 ```
 
 Current release-sync status:
 
 ```text
-Local main: e8418ee
-GitHub origin/main: e8418ee
-Tag v0.1.75-site-chrome-minimal-ui-cleanup: pushed to origin
-Tag v0.1.76-site-chrome-navigation-fix: pushed to origin
-Tag v0.1.77-project-context-product-deployment-state: pushed to origin
-Public site: opened and showed latest changes according to user verification
-Render: likely deployed, but exact Render dashboard commit is not yet recorded
+Local main: 974864e
+GitHub origin/main: 974864e
+Latest pushed tag: v0.1.80-report-detail-product-polish
+Previous pushed tag: v0.1.79-report-detail-copy-cleanup
+Public site: previously opened and showed latest changes according to user verification before v0.1.80; public smoke after v0.1.80 is still needed
+Render: likely auto-deployed if connected, but exact Render dashboard commit is not recorded
 ```
 
-Known working or recently verified:
+Known working or recently verified locally:
 
 ```text
-/chart works locally from previous checks
+/chart works from previous checks
 Jalali date picker works
 BirthInput.birthDate remains Gregorian ISO
 birthCountry: "ایران" is preserved internally
@@ -377,9 +459,10 @@ country UI is removed
 chart page has been polished
 report generation works locally
 report detail works locally
-site chrome was cleaned and then navigation/brand feedback was fixed
-GitHub is synced through e8418ee / v0.1.77
-public site visually showed the latest changes after push/deploy
+report detail copy cleanup passed build in v0.1.79
+report detail product polish passed build in v0.1.80
+site chrome was cleaned and navigation/brand feedback was fixed through v0.1.76
+GitHub is synced through 974864e / v0.1.80
 ```
 
 Known or likely from earlier product work, but verify before relying on it for launch claims:
@@ -398,7 +481,7 @@ Known uncertain:
 ```text
 exact Render dashboard latest deploy commit
 whether Halleus.ir custom domain is connected to the latest Render deploy
-full public smoke-test results for every route
+full public smoke-test results after v0.1.80
 whether /order stores, sends, or only displays/copies manual order context
 current production data/privacy posture
 mobile UI quality
@@ -414,11 +497,11 @@ Every meaningful batch must record these separately.
 Latest verified local state:
 
 ```text
-Local HEAD: e8418ee
-Local tag at HEAD: v0.1.77-project-context-product-deployment-state
+Local HEAD: 974864e
+Local tag at HEAD: v0.1.80-report-detail-product-polish
 Branch: main
-Branch status: synced with origin/main in the latest provided branch output
-Tracked status: clean in the latest provided git status output
+Branch status: synced with origin/main in the latest provided git output
+Tracked status: clean after push according to latest successful workflow; re-run git status before any new batch
 ```
 
 ### GitHub state
@@ -426,20 +509,18 @@ Tracked status: clean in the latest provided git status output
 Latest verified GitHub state:
 
 ```text
-origin/main: e8418ee / v0.1.77-project-context-product-deployment-state
-v0.1.75 pushed: yes
-v0.1.76 pushed: yes
-v0.1.77 pushed: yes
-GitHub state: verified through v0.1.77
+origin/main: 974864e / v0.1.80-report-detail-product-polish
+v0.1.79 pushed: yes
+v0.1.80 pushed: yes
+GitHub state: verified through v0.1.80
 ```
 
-Verification output already provided by the user showed:
+Latest provided push/log output showed:
 
 ```text
-refs/heads/main = e8418ee12f252b041275e890ac3b5429ae2a7602
-refs/tags/v0.1.75-site-chrome-minimal-ui-cleanup = 0c8bfd769cdb33dc1e7ec866165d482174176f47
-refs/tags/v0.1.76-site-chrome-navigation-fix = a0deb31db9244665fd4a5f785795db912919571a
-refs/tags/v0.1.77-project-context-product-deployment-state = e8418ee12f252b041275e890ac3b5429ae2a7602
+974864e (HEAD -> main, tag: v0.1.80-report-detail-product-polish, origin/main, origin/HEAD) Polish report detail product experience
+a848ef6 (tag: v0.1.79-report-detail-copy-cleanup) Clean up report detail copy
+89f485d (tag: v0.1.78-release-state-public-verification) Document release and public verification state
 ```
 
 ### Render state
@@ -451,15 +532,15 @@ Render service name: not recorded in context yet
 Connected GitHub repo: not recorded in context yet
 Auto-deploy enabled: likely, but not recorded from dashboard
 Latest Render deploy commit: not recorded from dashboard
-Latest Render deploy status: public site showed latest changes, but dashboard status not recorded
+Latest Render deploy status: public site showed latest changes earlier, but dashboard status not recorded
 Render public URL: not recorded in context yet
 ```
 
 Interpretation:
 
 ```text
-The public site showing the latest changes strongly suggests Render/public deployment succeeded after the GitHub push.
-However, do not mark exact Render commit as verified until Render dashboard or deployment logs show the commit, ideally e8418ee.
+The public site showing earlier changes suggests Render/public deployment can succeed.
+However, do not mark exact Render commit as verified until Render dashboard or deployment logs show the commit, ideally 974864e after v0.1.80.
 ```
 
 ### Public/live state
@@ -471,8 +552,9 @@ Public URL: not recorded in context yet
 Custom domain: Halleus.ir is identity; connection status still needs exact confirmation if used as the public URL
 Halleus.ir connected: unknown until checked explicitly
 SSL/domain status: unknown until checked explicitly
-Last production QA date: 2026-06-27 user visually confirmed latest changes appeared
-Observed deployed version/commit: latest changes appeared; exact commit not visible from public site
+Last production QA date: 2026-06-27 user visually confirmed earlier latest changes appeared
+Observed deployed version/commit: exact commit not visible from public site
+Public smoke after v0.1.80: still open
 ```
 
 Required public smoke routes before a launch claim:
@@ -540,7 +622,7 @@ If a later audit shows tags already exist remotely, do not force-push unless the
 
 Progress must be tracked by axis, not one vague percentage. Local progress and public/live progress must stay separate.
 
-Current rough estimates after local v0.1.76, before GitHub/Render verification:
+Current rough estimates after pushed v0.1.80, before exact Render/public-v0.1.80 verification:
 
 ```text
 Product vision clarity: 80%
@@ -550,8 +632,8 @@ UI/brand maturity: 55-65% local / live unknown
 Sales/order flow: 35-50% local / live unknown
 Admin/operations: 15-25%
 Data/privacy readiness: 35-45%
-Deployment/GitHub/Render readiness: low/unknown until audit
-Public launch readiness: local 25-45% / live unknown
+Deployment/GitHub readiness: GitHub verified through v0.1.80 / Render exact deploy still unknown
+Public launch readiness: local 35-50% / live after v0.1.80 still unverified
 Business readiness: 25-35%
 Engineering reliability: 55-65%
 ```
@@ -572,7 +654,7 @@ context updated with new state
 
 ## 11. Roadmap priorities
 
-Recommended near-term order after v0.1.78:
+Recommended near-term order after v0.1.80:
 
 ### 1. Finish public smoke verification
 
@@ -817,10 +899,11 @@ Keep UI batches small and avoid mixing chart, sales copy, global CSS, and naviga
 Resolved since the previous context update:
 
 ```text
-e8418ee / v0.1.77 is pushed to GitHub.
-origin/main is e8418ee.
-Tags v0.1.75, v0.1.76, and v0.1.77 are pushed to GitHub.
-The public site opened and showed the latest changes according to user verification.
+v0.1.79-report-detail-copy-cleanup is committed, tagged, and pushed.
+v0.1.80-report-detail-product-polish is committed, tagged, and pushed.
+origin/main is 974864e.
+Latest pushed tag is v0.1.80-report-detail-product-polish.
+The public site previously opened and showed earlier latest changes according to user verification.
 ```
 
 Still open and should be verified explicitly before stronger launch claims:
@@ -832,10 +915,10 @@ Is Render auto-deploy enabled?
 What is the current public Render URL?
 Is Halleus.ir connected to the deployed app?
 Does Halleus.ir have working SSL/domain status?
-Which public routes have been smoke-tested after v0.1.77?
+Which public routes have been smoke-tested after v0.1.80?
 Are all key routes discoverable from header/footer/public UI?
 Does /chart create a report successfully on the public site?
-Does public report detail open successfully?
+Does public report detail open successfully after v0.1.80?
 Does /reports show saved reports or at least fail gracefully on public?
 Does /order currently store, send, or only display/copy manual order context?
 What is the current production data/privacy posture?
@@ -843,3 +926,964 @@ How good is report value/readability from a real generated sample?
 How usable is the current UI on mobile?
 ```
 
+## Halleus Failure Ledger and Batch Safety Rules
+
+This section is operational, not background reading. The assistant must consult it before every future Halleus batch. If a proposed plan repeats a known failure pattern, stop and change the plan before writing code.
+
+Every failed batch, broken runner, UI formatting issue, build/check failure, stale-context mistake, or local workflow mistake must be recorded with:
+
+```text
+Error:
+Where/Version:
+Cause:
+Fixed / Rolled back / Still open:
+Prevention rule:
+Files or systems involved:
+```
+
+### Current hard stop rules
+
+```text
+1. Safety Gate first. No Safety Gate, no code.
+2. Two failures maximum. After two sequential failures in the same batch, stop, diagnose, reduce scope, and request live files.
+3. No runner may commit, tag, or push.
+4. Commit/tag/push only after apply + relevant checks + build have passed.
+5. Live git output and live uploaded files beat this context file.
+6. Large inline code in ChatGPT is banned for Halleus.
+7. Plain git diff is banned inside scripts.
+8. Root-level payload/source-like folders before build are banned.
+```
+
+### Merged known failure patterns
+
+#### 1. Persian encoding and mojibake failures
+
+Error:
+Persian UI text became garbled/mojibake with characters like `Ø`, `Ù`, `Û`, `Ú`, `â€`, or `�`.
+
+Where/Version:
+Seen around product surface work (`lib/product/product-surface.ts`), ChartForm/context outputs, PowerShell runner output, and several Persian UI/file-writing batches.
+
+Cause:
+Unsafe PowerShell writes, clipboard/context encoding ambiguity, or console rendering. `Set-Content` and non-BOM PowerShell files are especially risky for Persian-heavy text.
+
+Fixed / Rolled back / Still open:
+Some file corruption was fixed with UTF-8/base64-safe runners and `pnpm run check:encoding`. Console-only mojibake did not require rollback. Semantic/context mojibake remains a risk.
+
+Prevention rule:
+Do not use unsafe `Set-Content` for Persian-heavy files. Prefer UTF-8 Node writes, full-file replacement, or artifact-based files. Run `pnpm run check:encoding` after Persian text changes. Probe suspect files with `Select-String -Pattern "Ø|Ù|Û|â€|�"` when context looks suspicious. Keep PowerShell runner messages mostly ASCII.
+
+Files or systems involved:
+PowerShell, Node helpers, `scripts/check-encoding.mjs`, `lib/product/product-surface.ts`, `components/ChartForm.tsx`, product/order pages.
+
+#### 2. Product surface syntax/build failure
+
+Error:
+Build failed after product surface links were added because `PRODUCT_SURFACE_LINKS` had malformed syntax / duplicate comma.
+
+Where/Version:
+Chart engine foundation / product surface update around `v0.1.30-chart-engine-foundation`.
+
+Cause:
+Brittle text patching of an array without validating exact syntax.
+
+Fixed / Rolled back / Still open:
+Fixed in later UTF-8/product-surface repair.
+
+Prevention rule:
+When modifying arrays, prefer full-file replacement or syntax-aware minimal patch. Always run TypeScript/build before commit.
+
+Files or systems involved:
+`lib/product/product-surface.ts`, TypeScript, `pnpm build`.
+
+#### 3. Report V2 null runtime crash
+
+Error:
+Runtime crash: `Cannot read properties of null (reading 'interpretationSections')`.
+
+Where/Version:
+Report Output V2 integration around `v0.1.33-report-output-v2-integration`.
+
+Cause:
+`ReportV2Sections` assumed `report` was always a valid object.
+
+Fixed / Rolled back / Still open:
+Fixed with null/object guard.
+
+Prevention rule:
+Report UI components must tolerate missing, legacy, or null reports. Guard before accessing fields.
+
+Files or systems involved:
+`components/ReportV2Sections.tsx`, `components/ReportDetail.tsx`.
+
+#### 4. Report V3 generic return TypeScript error
+
+Error:
+TypeScript build failed because `TReport & ReportOutputV3` could not be guaranteed assignable to every possible subtype of `TReport`.
+
+Where/Version:
+Report Experience V3 around `v0.1.38` / before `v0.1.39`.
+
+Cause:
+Over-generic enhancer return type.
+
+Fixed / Rolled back / Still open:
+Fixed by adjusting return type.
+
+Prevention rule:
+Do not over-genericize report enhancers. Return `GenericReport & AddedMetadataType` unless the original subtype is preserved with certainty.
+
+Files or systems involved:
+`lib/report-output/report-v3.ts`, `types/report-output-v3.ts`.
+
+#### 5. Real chart / public chart route replacement regression
+
+Error:
+`/chart` was replaced too aggressively with real chart workbench/lab UI.
+
+Where/Version:
+`v0.1.57-public-chart-real-engine`.
+
+Cause:
+Public `/chart` was connected directly to `RealChartWorkbenchClient`, overwriting the public chart shell and city/form experience.
+
+Fixed / Rolled back / Still open:
+Fixed in `v0.1.58-restore-public-chart-shell`, then properly merged through `v0.1.60-chart-form-real-engine-bridge`.
+
+Prevention rule:
+Never replace public `/chart` with `/engine/real-chart` or lab/workbench UI. Integrate real engine into the existing public `ChartForm` flow.
+
+Files or systems involved:
+`app/chart/page.tsx`, `components/RealChartWorkbenchClient.tsx`, `components/ChartForm.tsx`, `/engine/real-chart`.
+
+#### 6. v0.1.59 chart upgrade marker failures
+
+Error:
+Runners could not inject an upgrade section because they searched for `</main>` or a parenthesized `return (...)` structure that did not exist.
+
+Where/Version:
+`v0.1.59-public-chart-real-engine-upgrade`, `v0.1.59b-public-chart-upgrade-injection`.
+
+Cause:
+Patch assumed generic React/Next layout markers instead of inspecting the actual file.
+
+Fixed / Rolled back / Still open:
+Rolled back/superseded. Untracked helper files were left in some attempts.
+
+Prevention rule:
+Do not patch React/Next pages by generic layout markers. Inspect route ownership first or use full-file replacement.
+
+Files or systems involved:
+`app/chart/page.tsx`, `components/PublicChartRealEngineUpgrade.tsx`, check scripts.
+
+#### 7. Runner continued after patch failure into missing script/checks
+
+Error:
+Runner tried to run package scripts that did not exist after patch failure.
+
+Where/Version:
+`v0.1.59-public-chart-real-engine-upgrade`; also seen in later v0.1.73-style runners.
+
+Cause:
+Patch/package update failed but runner continued.
+
+Fixed / Rolled back / Still open:
+Superseded by fail-fast rule.
+
+Prevention rule:
+Every command wrapper must throw on non-zero exit. Do not run checks if patch/package insertion failed.
+
+Files or systems involved:
+PowerShell runners, `package.json`, check scripts.
+
+#### 8. Temporary wrapper complexity before finding the real merge point
+
+Error:
+Temporary wrapper approach added route/component complexity before identifying the correct integration point.
+
+Where/Version:
+`v0.1.59c-public-chart-legacy-shell`.
+
+Cause:
+Created `app/chart/LegacyChartShell.tsx` and wrapped the old page before discovering `/chart` only rendered `ChartForm`.
+
+Fixed / Rolled back / Still open:
+Fixed in `v0.1.60-chart-form-real-engine-bridge`; temporary files deleted.
+
+Prevention rule:
+Before wrapping/duplicating a page, inspect route ownership. If a page only renders a component, integrate at that component.
+
+Files or systems involved:
+`app/chart/page.tsx`, `app/chart/LegacyChartShell.tsx`, `components/ChartForm.tsx`.
+
+#### 9. Byte-for-byte checker failed after valid semantic change
+
+Error:
+`check:public-chart-shell-restored` failed despite valid semantic route behavior.
+
+Where/Version:
+Initial `v0.1.60-chart-form-real-engine-bridge`.
+
+Cause:
+Checker compared `app/chart/page.tsx` byte-for-byte against an old tag.
+
+Fixed / Rolled back / Still open:
+Fixed in `v0.1.60b` by using semantic markers.
+
+Prevention rule:
+Checks should validate durable contracts/behavior, not exact old snapshots unless exact restoration is the goal.
+
+Files or systems involved:
+`scripts/check-public-chart-shell-restored.mjs`, `app/chart/page.tsx`, `components/ChartForm.tsx`.
+
+#### 10. Stale chart/report check markers
+
+Error:
+Checks failed because they expected old exact UI copy or old function/implementation markers.
+
+Where/Version:
+`check:chart-engine-integration` after astronomy prototype; `check:real-report-save-flow` in `v0.1.62`; `check:chart-final-submit-flow`, `check:jalali-birth-date-input`, `check:sales-copy-polish`; function mismatch risk around `calculateRealEngineAspects`.
+
+Cause:
+Check scripts validated implementation details or long Persian UI copy instead of stable contracts.
+
+Fixed / Rolled back / Still open:
+Fixed per case, but general risk remains.
+
+Prevention rule:
+Checks should prefer exported function names, type names, route behavior, stable component names, package script existence, and short durable markers. Avoid long Persian copy, import order, JSX shape, old byte snapshots, and stale helper names.
+
+Files or systems involved:
+`scripts/check-chart-engine-integration.mjs`, `scripts/check-real-report-save-flow.mjs`, `scripts/check-chart-final-submit-flow.mjs`, `scripts/check-sales-copy-polish.mjs`, `scripts/check-jalali-birth-date-input.mjs`, real engine/chart/report files.
+
+#### 11. Dependency install before checker architecture update
+
+Error:
+`astronomy-engine@2.1.19` was installed and lock/package changed, but `check:project` failed due to stale checker.
+
+Where/Version:
+Astronomy Engine prototype / proposed `v0.1.41-astronomy-engine-prototype`.
+
+Cause:
+Dependency and code path changed before related checks were updated.
+
+Fixed / Rolled back / Still open:
+Final status in that chat was uncertain.
+
+Prevention rule:
+When replacing implementation paths, update related check scripts in the same batch. Do not commit dependency changes until full relevant check passes.
+
+Files or systems involved:
+`package.json`, `pnpm-lock.yaml`, chart-engine factory/check scripts.
+
+#### 12. v0.1.68 oversized runner and nested JS/TSX quoting failures
+
+Error:
+Runner 068 failed with syntax errors such as `Unexpected identifier '$'`, `Invalid or unexpected token`, and PowerShell parser issue `$LASTEXITCODE:`.
+
+Where/Version:
+Initial `v0.1.68-manual-order-request-and-jalali-date-shell` attempts.
+
+Cause:
+Nested PowerShell → JS → TSX template literals, `${...}` interpolation, quoting, and PowerShell variable parsing.
+
+Fixed / Rolled back / Still open:
+Rolled back. Work split into `v0.1.68-manual-order-request-shell`, `v0.1.69-order-entry-links`, `v0.1.70-jalali-birth-date-input`.
+
+Prevention rule:
+No nested generated PowerShell/JS/TSX template patch runners. If JS helper is needed, make it external and syntax-check it before packaging. Keep batches single-purpose.
+
+Files or systems involved:
+`halleus-068*.ps1`, `patch-068*.cjs`, `/order`, `ChartForm`, sales nav, package scripts.
+
+#### 13. Runner commit/tag after patch failure and wrong tag placement
+
+Error:
+Runner 068 continued after patch failure, attempted `git add` for missing files, and created tag `v0.1.68-manual-order-request-jalali-date` on previous commit `d473394 / v0.1.67`.
+
+Where/Version:
+Initial 068 runner.
+
+Cause:
+No fail-fast and no “new commit actually exists” guard.
+
+Fixed / Rolled back / Still open:
+Wrong tag removed/cleaned up later.
+
+Prevention rule:
+If patch/check/build fails, stop. If `git commit` says nothing to commit, do not tag. Before tag, verify HEAD changed to expected commit.
+
+Files or systems involved:
+Git, runners, `components/ManualOrderRequestForm.tsx`, `/order`.
+
+#### 14. Null `.Trim()` / PowerShell scalar/null fragility
+
+Error:
+PowerShell runner failed with `You cannot call a method on a null-valued expression` on `.Trim()`.
+
+Where/Version:
+`halleus-068a-manual-order-request-shell.ps1`; general runner rule later.
+
+Cause:
+`git tag --list` returned null/empty output.
+
+Fixed / Rolled back / Still open:
+Avoided by abandoning runner and using safer creation.
+
+Prevention rule:
+Never call `.Trim()` directly on possibly null command output. Cast safely/default to empty first. Prefer Node runners for complex logic.
+
+Files or systems involved:
+PowerShell, Git tag checks.
+
+#### 15. Manual editing friction and wrong file paste
+
+Error:
+User could not find insertion points or pasted product page content into pricing page.
+
+Where/Version:
+`v0.1.69-order-entry-links`.
+
+Cause:
+Manual marker-based instructions over long Persian JSX files were too fragile and tiring.
+
+Fixed / Rolled back / Still open:
+Fixed by providing full replacement content for the specific file.
+
+Prevention rule:
+For long Persian JSX, use full-file replacement or line-numbered exact patches with clear file names. Do not ask user to find ambiguous markers repeatedly.
+
+Files or systems involved:
+`app/product/page.tsx`, `app/pricing/page.tsx`, `app/reports/page.tsx`.
+
+#### 16. VS Code Problems stale import warning
+
+Error:
+VS Code showed `Cannot find module '@/components/ManualOrderRequestForm'` though build passed.
+
+Where/Version:
+After manual `/order` creation in `v0.1.68`.
+
+Cause:
+Likely stale TypeScript server cache.
+
+Fixed / Rolled back / Still open:
+Resolved/ignored after build passed.
+
+Prevention rule:
+If VS Code Problems conflicts with `pnpm build`, treat build as source of truth and restart TS Server / Reload Window.
+
+Files or systems involved:
+VS Code TypeScript server, `/order`, `ManualOrderRequestForm`.
+
+#### 17. Duplicate tag creation attempt
+
+Error:
+Git said tag already exists.
+
+Where/Version:
+After successful `v0.1.69-order-entry-links`.
+
+Cause:
+User reran tag command.
+
+Fixed / Rolled back / Still open:
+No action needed.
+
+Prevention rule:
+Check `git tag --list "<tag>"` before tagging. If tag exists at correct HEAD, do not recreate.
+
+Files or systems involved:
+Git tags.
+
+#### 18. v0.1.70 ChartForm full rewrite broke old marker checks
+
+Error:
+Jalali check passed, but `check:chart-final-submit-flow` failed due to missing old markers such as `ساخت گزارش و مشاهده جزئیات`, `مسیر ساده ساخت گزارش`, and `محاسبه پشت صحنه`.
+
+Where/Version:
+Initial `v0.1.70-jalali-birth-date-input`.
+
+Cause:
+Runner rewrote whole `ChartForm` and removed marker-sensitive legacy copy.
+
+Fixed / Rolled back / Still open:
+Rolled back. `070b` used limited patch and preserved old markers.
+
+Prevention rule:
+Before UI rewrite, read related check scripts. Either preserve old markers or update checks semantically in the same batch.
+
+Files or systems involved:
+`components/ChartForm.tsx`, `scripts/check-chart-final-submit-flow.mjs`.
+
+#### 19. v0.1.71 Report/order context marker failures and partial patches
+
+Error:
+Repeated failures:
+- `ManualOrderRequestForm insert position after reportLink not found`
+- `ManualOrderRequestForm state block marker not found`
+- `ReportDetail actions block marker not found`
+- partial patch risk before failure
+
+Where/Version:
+`v0.1.71-report-order-context` attempts.
+
+Cause:
+Runners guessed live file structure and used brittle JSX/string markers in `ManualOrderRequestForm.tsx` and `ReportDetail.tsx`.
+
+Fixed / Rolled back / Still open:
+Tracked files restored. Later project moved beyond this with other completed releases; old failed attempts are not milestones.
+
+Prevention rule:
+Do not patch `ManualOrderRequestForm.tsx` or `ReportDetail.tsx` from remembered markers. Inspect exact live files with line numbers. Validate all preconditions before writing any file. Prefer full-file replacement or a new independent component rendered from a route-level file after inspection. Avoid touching `ReportCard` unless necessary.
+
+Files or systems involved:
+`components/ManualOrderRequestForm.tsx`, `components/ReportDetail.tsx`, `app/order/page.tsx`, `app/reports/[reportId]/page.tsx`.
+
+#### 20. v0.1.73 large UI runner failures
+
+Error:
+Repeated failures in `v0.1.73-minimal-product-ui-polish`:
+- hash mismatch for `app/globals.css`
+- hash mismatch for `components/ChartForm.tsx`
+- hash mismatch for `app/page.tsx`
+- missing script/check after failed patch
+- marker-heavy Jalali and chart-flow checks failed
+- unrelated sales-copy checks failed
+- check script printed “passed” before throwing later
+
+Where/Version:
+v0.1.73 large UI polish repair sequence.
+
+Cause:
+Raw SHA guards on Windows, stale context, broad mixed-concern batch, unrelated checks, and marker-heavy check scripts.
+
+Fixed / Rolled back / Still open:
+Rolled back. Later completed as focused `v0.1.73-chart-date-picker-country-cleanup`.
+
+Prevention rule:
+Do not use raw SHA as primary guard on Windows. If multiple hash mismatches occur, stop and change strategy. Keep batches product-oriented but single-purpose. Run only relevant checks. Check scripts must print “passed” only after all assertions.
+
+Files or systems involved:
+`app/globals.css`, `app/page.tsx`, `components/ChartForm.tsx`, product/pricing/order pages, `package.json`, docs, check scripts.
+
+#### 21. v0.1.73 JS template literal / expected block failures
+
+Error:
+Chart-only runner failed with `ReferenceError: chart is not defined` and later “missing expected block” for `ChartForm`.
+
+Where/Version:
+`v0.1.73-chart-date-picker-cleanup`, `v0.1.73-chart-date-picker-only`.
+
+Cause:
+Generated `.cjs` used template literal containing project text/backticks/`${...}`-like content; later used a large expected oldText block from stale context.
+
+Fixed / Rolled back / Still open:
+Rolled back in that chat. Later completed after exact live context.
+
+Prevention rule:
+Avoid complex JS template literals and large expected-block replacements. Use live extracted files and smaller replacements or full-file replacement.
+
+Files or systems involved:
+`halleus-073-chart-patch.cjs`, `components/ChartForm.tsx`, docs append text.
+
+#### 22. v0.1.75 UI chrome/product regression
+
+Error:
+Site chrome cleanup hid important routes and brand appeared as `HHalleus`.
+
+Where/Version:
+`v0.1.75-site-chrome-minimal-ui-cleanup`.
+
+Cause:
+Over-minimalization removed route discoverability and introduced brand duplication/typo.
+
+Fixed / Rolled back / Still open:
+Fixed by `v0.1.76-site-chrome-navigation-fix`.
+
+Prevention rule:
+Chrome/nav batches must verify brand exactly `Halleus`, not `HHalleus`, and preserve discoverability of key routes: `/`, `/chart`, `/reports`, `/product`, `/pricing`, `/order`, `/privacy`. Do not expose admin/engine/quality as primary public navigation.
+
+Files or systems involved:
+Header/footer/site chrome/layout/navigation components.
+
+#### 23. Local/GitHub/Render/Public state confusion
+
+Error:
+Project context mixed local commit/tag progress with GitHub pushed state, Render deployment, and public/live behavior.
+
+Where/Version:
+After v0.1.74 and multiple handoffs.
+
+Cause:
+Context focused on local technical progress and did not track deployment states separately.
+
+Fixed / Rolled back / Still open:
+Partially fixed in context updates; still must be actively maintained.
+
+Prevention rule:
+Always track separately:
+- Local HEAD/tag/clean status
+- GitHub origin/main and remote tags
+- Render service/deploy commit/status
+- Public URL/domain smoke QA
+
+Files or systems involved:
+`docs/HALLEUS_PROJECT_CONTEXT.md`, Git, GitHub, Render, Halleus.ir.
+
+#### 24. Docs-only commit vs product tag ambiguity
+
+Error:
+Context/doc commit changed latest local commit while latest product tag remained older.
+
+Where/Version:
+After `511b6a5 Add Halleus project handoff context`.
+
+Cause:
+Docs-only commit had no product tag, so “latest commit” and “latest product release” diverged.
+
+Fixed / Rolled back / Still open:
+Tracking rule added.
+
+Prevention rule:
+Record latest local commit, latest product tag, whether commit is docs-only, and whether a product release tag exists.
+
+Files or systems involved:
+Git log/tags, `docs/HALLEUS_PROJECT_CONTEXT.md`.
+
+#### 25. Root/untracked files and repo hygiene
+
+Error:
+Plan files, runner files, helper scripts, ZIPs, context files, and temp folders remained untracked.
+
+Where/Version:
+Across mega batches, v0.1.68, v0.1.70, v0.1.73, v0.1.79, v0.1.80.
+
+Cause:
+Runner cleanup incomplete, user copied artifacts into repo root, and some plan files were not under `docs/`.
+
+Fixed / Rolled back / Still open:
+Often cleaned manually.
+
+Prevention rule:
+Always run `git status --short` before commit. Commit only intended project files. Remove runner/zip/helper/temp files. Planning docs must be moved to `docs/` or deleted. Runners should self-clean known helper files where safe.
+
+Files or systems involved:
+Repo root, `.ps1`, `.cjs`, `.zip`, `_halleus_*`, `.halleus-runner-backups/`, `scripts/clean-temp-files.mjs`.
+
+#### 26. Downloads path vs repo root confusion
+
+Error:
+Downloaded ZIPs and runners were not always in repo root.
+
+Where/Version:
+General Windows workflow.
+
+Cause:
+User downloads elsewhere and copies/extracts into `C:\Projects\astro-clean`.
+
+Fixed / Rolled back / Still open:
+Standard command pattern established.
+
+Prevention rule:
+Instructions must start with `cd C:\Projects\astro-clean`. If extraction is needed, make destination explicit. The user usually copies only the runner into repo root, so future artifacts must account for that or clearly say to extract the whole ZIP.
+
+Files or systems involved:
+PowerShell, Downloads folder, repo root.
+
+#### 27. PowerShell continuation prompt confusion
+
+Error:
+PowerShell prompt became `>>`.
+
+Where/Version:
+General workflow.
+
+Cause:
+Unclosed quote/parenthesis/here-string or normal multiline continuation.
+
+Fixed / Rolled back / Still open:
+Operational rule documented.
+
+Prevention rule:
+If prompt stays at `>>` and no output appears, press `Ctrl+C`. If command output already appeared, it may have been normal continuation.
+
+Files or systems involved:
+PowerShell terminal.
+
+#### 28. Git pager confusion
+
+Error:
+Git output opened pager and showed `(END)` or made terminal look stuck.
+
+Where/Version:
+General Git workflow; happened again in v0.1.80 apply script.
+
+Cause:
+Plain `git diff` or long git output entered pager.
+
+Fixed / Rolled back / Still open:
+User pressed `q`.
+
+Prevention rule:
+If Git shows `(END)`, press `q`. In scripts use `git --no-pager diff`, `git --no-pager diff --stat`, or write diff to file.
+
+Files or systems involved:
+Git CLI, terminal pager.
+
+#### 29. LF/CRLF warnings
+
+Error:
+Git warns `LF will be replaced by CRLF`.
+
+Where/Version:
+Many Windows commits including v0.1.60, v0.1.70, v0.1.79, v0.1.80.
+
+Cause:
+Windows Git line-ending normalization.
+
+Fixed / Rolled back / Still open:
+Not a failure by itself.
+
+Prevention rule:
+Do not treat LF/CRLF warnings as errors unless `git diff --check`, encoding check, or build fails. Avoid raw byte hash guards that are CRLF-sensitive.
+
+Files or systems involved:
+Git on Windows, source files.
+
+#### 30. PowerShell execution policy
+
+Error:
+Direct `.ps1` execution can be blocked by script signing/execution policy.
+
+Where/Version:
+General runner workflow.
+
+Cause:
+Windows PowerShell execution policy blocks unsigned scripts.
+
+Fixed / Rolled back / Still open:
+Documented standard execution pattern.
+
+Prevention rule:
+Run from repo root using `powershell -ExecutionPolicy Bypass -File .\runner-name.ps1`.
+
+Files or systems involved:
+PowerShell, Windows execution policy.
+
+#### 31. Bracket path wildcard issue
+
+Error:
+PowerShell failed reading path with `[reportId]`.
+
+Where/Version:
+Report detail inspection.
+
+Cause:
+PowerShell treated brackets as wildcard syntax.
+
+Fixed / Rolled back / Still open:
+Use `-LiteralPath`.
+
+Prevention rule:
+For paths containing brackets, always use `-LiteralPath`, for example:
+`Get-Content -LiteralPath ".\app\reports\[reportId]\page.tsx" -Raw`.
+
+Files or systems involved:
+PowerShell, `app/reports/[reportId]/page.tsx`.
+
+#### 32. Raw SHA guards false-fail on Windows
+
+Error:
+Hash guards failed repeatedly for files that were not semantically wrong.
+
+Where/Version:
+v0.1.73 and general runner lessons.
+
+Cause:
+Stale hashes and CRLF/LF conversion.
+
+Fixed / Rolled back / Still open:
+Workflow changed.
+
+Prevention rule:
+Do not use raw SHA as the main guard on Windows unless generated from exact live files immediately before the runner. Prefer baseline commit, clean tracked tree, allowed untracked list, and semantic guards.
+
+Files or systems involved:
+Windows Git, runners, line endings.
+
+#### 33. ChatGPT generated runners from memory/stale context
+
+Error:
+Generated patches/ZIPs assumed file structure that did not match the live repo.
+
+Where/Version:
+Visible in v0.1.59, v0.1.68, v0.1.71, v0.1.73, v0.1.79.
+
+Cause:
+Assistant tried to move fast from remembered structure instead of inspecting live files.
+
+Fixed / Rolled back / Still open:
+Standing workflow risk.
+
+Prevention rule:
+Before any batch touching active UI/form/detail files, collect exact live files, line numbers where needed, git status, and relevant check scripts. No code from memory.
+
+Files or systems involved:
+`ChartForm`, `ReportDetail`, `ManualOrderRequestForm`, route files, runners.
+
+#### 34. Too many corrective micro-batches slowed progress
+
+Error:
+Project velocity collapsed due to repeated repair runners and small corrective batches.
+
+Where/Version:
+v0.1.57-v0.1.62, v0.1.68-v0.1.73, v0.1.79.
+
+Cause:
+Wrong integration paths, brittle runners/checks, and assistant over-repairing isolated errors instead of changing strategy.
+
+Fixed / Rolled back / Still open:
+Partially fixed by Safety Gate and stop-after-2-failures rule.
+
+Prevention rule:
+Prefer product-level but single-purpose batches. Use small safety fixes only when a runner actually fails. After repeated failure, stop and reduce scope.
+
+Files or systems involved:
+Workflow, generated runners, checks.
+
+#### 35. v0.1.79 failed report-readability runner committed/tagged after failed checks/build
+
+Error:
+Initial v0.1.79 report-readability runner committed/tagged despite:
+- `check:report-experience-v3` failed with missing marker
+- `pnpm build` failed due to report output version/type mismatch
+
+Where/Version:
+Initial `v0.1.79-report-value-readability-polish`.
+
+Cause:
+Runner was not transaction-safe and touched report output types/schema while trying to polish report readability.
+
+Fixed / Rolled back / Still open:
+Rolled back. Bad tag/commit removed/reset. Stable base restored to `v0.1.78 / 89f485d`.
+
+Prevention rule:
+No runner may commit/tag/push automatically. Report copy/product polish must not touch report output schemas/types unless explicitly scoped.
+
+Files or systems involved:
+Git, `components/ReportV3Experience.tsx`, `lib/report-output/report-v2.ts`, report output types.
+
+#### 36. v0.1.79 fix runners failed due to PowerShell/JS/type/check issues
+
+Error:
+Fix runners failed due to:
+- bad PowerShell/git helper
+- generated JS template-literal syntax error
+- TypeScript label union mismatch
+- marker check mismatch
+
+Where/Version:
+`v0.1.79` fix attempts v1-v4.
+
+Cause:
+Complex repair automation and touching schema/type-sensitive files.
+
+Fixed / Rolled back / Still open:
+Rolled back. Not milestones.
+
+Prevention rule:
+Do not keep patching schema/type files during UI/readability polish. Use small full-file or artifact apply only after inspecting live files.
+
+Files or systems involved:
+PowerShell, generated `.cjs`, `lib/report-output/report-v3.ts`, check scripts.
+
+#### 37. Root-level payload compiled by Next/TypeScript
+
+Error:
+Build failed on `./payload/components/ReportDetail.tsx` with missing import.
+
+Where/Version:
+First `v0.1.79-report-detail-copy-cleanup` runner.
+
+Cause:
+Runner left `payload/` inside repo root. Next/TypeScript compiled it.
+
+Fixed / Rolled back / Still open:
+Removed `payload/`; build passed.
+
+Prevention rule:
+Never leave `payload/`, copied TS/TSX, or source-like temp folders inside repo root before build.
+
+Files or systems involved:
+`payload/components/ReportDetail.tsx`, Next.js build.
+
+#### 38. v0.1.79 apply-only replacement failed on missing expected text
+
+Error:
+`Missing expected text for replacement: ReportDetail replacement 6`.
+
+Where/Version:
+`v0.1.79-report-detail-copy-cleanup-apply-only`.
+
+Cause:
+Exact replacement string did not match live file.
+
+Fixed / Rolled back / Still open:
+Restore worked. No commit/tag.
+
+Prevention rule:
+Do not use multi-string replacement for copy polish without exact live content. Prefer full-file replacement from inspected current file.
+
+Files or systems involved:
+`components/ReportDetail.tsx`, apply `.cjs`.
+
+#### 39. Regex replacement broke JSX
+
+Error:
+Next build failed with TSX parse error: `Expected '</', got 'ident'`.
+
+Where/Version:
+Direct report-detail cleanup attempt in chat 5.
+
+Cause:
+Regex replacement crossed JSX attribute/string boundaries.
+
+Fixed / Rolled back / Still open:
+Backup restore worked. Later full-file approach succeeded.
+
+Prevention rule:
+No regex across JSX attributes or multiline JSX. Use validated full-file replacement.
+
+Files or systems involved:
+`components/ReportDetail.tsx`, Next parser.
+
+#### 40. Long inline ChatGPT code block rendered unsafely
+
+Error:
+Large inline PowerShell/TSX code showed as mixed/raw text in ChatGPT UI and was unsafe to copy.
+
+Where/Version:
+During v0.1.80 product polish preparation.
+
+Cause:
+ChatGPT UI formatting failure with long code response.
+
+Fixed / Rolled back / Still open:
+Workflow switched to downloadable artifact.
+
+Prevention rule:
+No large inline code blocks for Halleus. Use artifacts for large changes and short terminal commands only.
+
+Files or systems involved:
+ChatGPT UI, PowerShell, TSX full-file replacement.
+
+#### 41. Assistant suggested stopping after recovery while user needed progress
+
+Error:
+Assistant said project could be closed after restoring stable state, despite user needing real progress.
+
+Where/Version:
+After repeated v0.1.79 failures.
+
+Cause:
+Assistant over-prioritized stability and ignored time/progress frustration.
+
+Fixed / Rolled back / Still open:
+Corrected by continuing with safer v0.1.79 and v0.1.80 workflows.
+
+Prevention rule:
+After recovery, propose one safe, concrete progress step unless the user explicitly wants to stop.
+
+Files or systems involved:
+Workflow/product planning.
+
+#### 42. Context state became stale after v0.1.79/v0.1.80
+
+Error:
+Context still described older state while repo had advanced.
+
+Where/Version:
+After pushed `v0.1.79` and `v0.1.80`.
+
+Cause:
+Context update lagged behind Git state.
+
+Fixed / Rolled back / Still open:
+This update is intended to fix it.
+
+Prevention rule:
+After successful pushed milestones, update context or mark it stale. Live git output wins over context.
+
+Files or systems involved:
+`docs/HALLEUS_PROJECT_CONTEXT.md`, Git log, GitHub origin/main.
+
+### Successful recovery patterns to reuse
+
+#### Pattern A: Apply-only, then build, then commit/tag/push separately
+
+Used successfully for:
+
+```text
+v0.1.79-report-detail-copy-cleanup
+commit: a848ef6
+scope: components/ReportDetail.tsx only
+```
+
+Rule:
+
+```text
+Apply changes without commit/tag/push.
+Run encoding/build checks.
+Only after success, commit and tag manually.
+Push main and tag separately.
+```
+
+#### Pattern B: Downloadable artifact instead of long inline code
+
+Used successfully for:
+
+```text
+v0.1.80-report-detail-product-polish
+commit: 974864e
+scope: components/ReportDetail.tsx only
+```
+
+Rule:
+
+```text
+For larger edits, use a downloadable apply artifact.
+Do not paste full-file TSX or long PowerShell into chat.
+Artifact must not leave source-like payload inside root before build.
+```
+
+### Required batch protocol
+
+For every future Halleus batch:
+
+```text
+1. Safety Gate first.
+2. Inspect current live files first.
+3. State exact scope and excluded files.
+4. Apply without commit/tag/push.
+5. Run only relevant checks plus pnpm build when TypeScript/runtime risk exists.
+6. Commit and tag only after checks/build pass.
+7. Push only after local commit/tag is confirmed.
+8. If any step fails, restore or rollback, stop, and update this ledger before retrying.
+```
+
+### Current hard rules
+
+```text
+No guessing from remembered structure.
+No large inline scripts in chat.
+No root-level payload before build.
+No brittle marker-heavy patching.
+No generated JS template literals containing project text.
+No regex replacement across JSX attributes.
+No automatic commit/tag/push in apply scripts.
+No plain git diff in scripts.
+No raw SHA primary guards on Windows unless generated from exact live files immediately before use.
+Keep product polish batches away from engine/types/output schema unless explicitly planned.
+After two sequential failures, stop and reduce scope.
+```
