@@ -28,7 +28,39 @@ assertIncludes(
   "app/page.tsx",
   "از گزارش نمونه تا سفارش نسخه کامل‌تر",
 );
-assertIncludes("app/page.tsx", "/chart → /reports/[reportId] → /order");
+assertIncludes(
+  "app/page.tsx",
+  "درخواست نسخه کامل‌تر با اطلاعات همین گزارش",
+);
+assertIncludes(
+  "app/page.tsx",
+  "گزارش تو یک نقطه شروع است",
+);
+assertIncludes(
+  "app/page.tsx",
+  "یک گزارش تولد برای خواندن، نگه داشتن و برگشتن به خودت",
+);
+
+assertNotIncludes("app/page.tsx", "Halleus Paid MVP Shell", "internal MVP badge");
+assertNotIncludes("app/page.tsx", "Paid MVP", "internal paid MVP wording");
+assertNotIncludes("app/page.tsx", "نسخه قابل تست فروش", "test-sales wording");
+assertNotIncludes("app/page.tsx", "real engine", "engine wording");
+assertNotIncludes(
+  "app/page.tsx",
+  "/chart → /reports/[reportId] → /order",
+  "visible route pipeline",
+);
+assertNotIncludes(
+  "app/page.tsx",
+  "فروش دستی قبل از پرداخت آنلاین",
+  "manual-payment staging copy",
+);
+assertNotIncludes(
+  "app/page.tsx",
+  "پرداخت آنلاین هنوز فعال نیست",
+  "payment-disabled homepage copy",
+);
+assertNotIncludes("app/page.tsx", "payment provider", "payment provider wording");
 
 assertIncludes(
   "app/product/page.tsx",
@@ -69,10 +101,6 @@ assertIncludes(
   "docs/HALLEUS_PROJECT_CONTEXT.md",
   "v0.1.72-sales-copy-polish",
 );
-assertIncludes(
-  "docs/HALLEUS_PROJECT_CONTEXT.md",
-  "Polished sales copy across home, product, pricing, order, and report-order CTA surfaces.",
-);
 
 const packageJson = JSON.parse(read("package.json"));
 
@@ -87,7 +115,6 @@ if (!packageJson.scripts?.["check:project"]?.includes("check:sales-copy-polish")
   throw new Error("check:project does not include check:sales-copy-polish");
 }
 
-assertNotIncludes("app/page.tsx", "shell روشن برای فروش دستی", "old internal shell copy");
 assertNotIncludes("app/product/page.tsx", "این صفحه هنوز نقشه محصول را نگه می‌دارد", "old product map copy");
 
 console.log("sales copy polish check passed");
