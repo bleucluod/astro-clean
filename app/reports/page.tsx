@@ -5,7 +5,10 @@ import { ReportsList } from "@/components/ReportsList";
 export const metadata: Metadata = {
   title: "گزارش‌های ذخیره‌شده | Halleus",
   description:
-    "مشاهده و مدیریت گزارش‌های ذخیره‌شده چارت تولد در Halleus؛ بعد از ساخت گزارش می‌توانی مسیر پلن‌ها و سفارش دستی را هم بررسی کنی.",
+    "مشاهده و مدیریت گزارش‌های ذخیره‌شده چارت تولد در Halleus؛ بعد از ساخت گزارش می‌توانی مسیر نسخه کامل‌تر را هم بررسی کنی.",
+  alternates: {
+    canonical: "/reports",
+  },
 };
 
 export default function ReportsPage() {

@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getProductSurfaceLinks } from "@/lib/product/product-surface";
+
+export const metadata: Metadata = {
+  title: "محصول Halleus | مسیر گزارش تولد فارسی",
+  description:
+    "Halleus مسیر ساخت گزارش تولد فارسی، نگهداری گزارش و درخواست نسخه کامل‌تر را در یک تجربه ساده و فارسی کنار هم می‌آورد.",
+  alternates: {
+    canonical: "/product",
+  },
+};
 
 const statusLabels = {
   live: "فعال",

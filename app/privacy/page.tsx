@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "حریم داده و نگهداری گزارش | Halleus",
+  description:
+    "در Halleus گزارش‌های تولد فعلاً روی مرورگر همین دستگاه ذخیره می‌شوند؛ این صفحه توضیح می‌دهد داده‌ها کجا می‌مانند و کاربر چه انتظاری داشته باشد.",
+  alternates: {
+    canonical: "/privacy",
+  },
+};
 
 export default function PrivacyPage() {
   return (

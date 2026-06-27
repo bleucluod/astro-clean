@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Halleus | گزارش تولد فارسی و قابل سفارش",
   description:
     "Halleus چارت تولد را به یک گزارش فارسی، آرام و قابل مرور تبدیل می‌کند؛ از ساخت گزارش تا نگهداری و درخواست نسخه کامل‌تر.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 const valueCards = [

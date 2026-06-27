@@ -9,9 +9,12 @@ type OrderPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "درخواست سفارش دستی | Halleus",
+  title: "درخواست نسخه کامل‌تر گزارش | Halleus",
   description:
-    "درخواست سفارش دستی نسخه کامل‌تر گزارش Halleus پیش از فعال شدن پرداخت آنلاین.",
+    "در Halleus می‌توانی بعد از ساخت گزارش تولد، درخواست نسخه کامل‌تر و انسانی‌تر همان گزارش را آماده کنی.",
+  alternates: {
+    canonical: "/order",
+  },
 };
 
 function normalizeReportId(value: string | string[] | undefined) {

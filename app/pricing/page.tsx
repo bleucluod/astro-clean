@@ -1,6 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicBillingPlans } from "@/lib/billing/billing-plans";
 import { getBillingReadinessReport } from "@/lib/billing/billing-readiness";
+
+export const metadata: Metadata = {
+  title: "پلن‌ها و گزارش کامل‌تر | Halleus",
+  description:
+    "گزینه‌های دریافت گزارش کامل‌تر Halleus را ببین؛ از گزارش اولیه تا مسیر سفارش نسخه عمیق‌تر و خواندنی‌تر.",
+  alternates: {
+    canonical: "/pricing",
+  },
+};
 
 function formatLimit(value: number | "unlimited") {
   return value === "unlimited" ? "نامحدود" : value.toLocaleString("fa-IR");

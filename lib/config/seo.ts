@@ -1,20 +1,21 @@
-﻿export const siteConfig = {
+export const siteConfig = {
   name: "Halleus",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  title: "Halleus | تحلیل نمادین چارت تولد",
+  url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://halleus.ir").replace(
+    /\/$/,
+    "",
+  ),
+  title: "Halleus | گزارش تولد فارسی و خودشناسی نمادین",
   description:
-    "Halleus یک تجربه فارسی برای ساخت چارت تولد، گزارش‌های شخصی و مسیر آینده آسترولوژی نمادین است.",
+    "Halleus چارت تولد را به گزارش فارسی، آرام و قابل مرور تبدیل می‌کند؛ از ساخت گزارش تا نگهداری و درخواست نسخه کامل‌تر.",
   locale: "fa_IR",
 };
 
 export const seoRoutes = [
-  "",
-  "/chart",
-  "/dashboard",
-  "/reports",
-  "/profile",
-  "/admin",
-  "/roadmap",
-  "/wiki",
-  "/privacy",
-];
+  { path: "", priority: 1, changeFrequency: "weekly" },
+  { path: "/chart", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/product", priority: 0.85, changeFrequency: "weekly" },
+  { path: "/pricing", priority: 0.75, changeFrequency: "monthly" },
+  { path: "/order", priority: 0.65, changeFrequency: "monthly" },
+  { path: "/privacy", priority: 0.6, changeFrequency: "monthly" },
+  { path: "/reports", priority: 0.55, changeFrequency: "weekly" },
+] as const;
