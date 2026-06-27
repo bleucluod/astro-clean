@@ -1,6 +1,6 @@
 # Halleus Project Context
 
-Last updated: 2026-06-26
+Last updated: 2026-06-27
 
 This file is the handoff source of truth for continuing the Halleus project in future ChatGPT sessions. It must track product vision, technical workflow, and release/deployment state. Do not treat local progress, GitHub progress, Render deployment, and the public site as the same thing.
 
@@ -16,15 +16,19 @@ brand: Halleus
 domain identity: Halleus.ir
 ```
 
-Verified local state from the latest provided git output:
+Verified release state from the latest provided git/GitHub/public checks:
 
 ```text
-Local HEAD: a0deb31 / v0.1.76-site-chrome-navigation-fix
-Previous local milestone: 0c8bfd7 / v0.1.75-site-chrome-minimal-ui-cleanup
-GitHub origin/main: c0cf764 / v0.1.74-chart-page-minimal-product-polish
-Branch relation: main is ahead of origin/main by 2 commits
-Render state: unknown until verified
-Public/live state: unknown until verified
+Local HEAD: e8418ee / v0.1.77-project-context-product-deployment-state
+GitHub origin/main: e8418ee / v0.1.77-project-context-product-deployment-state
+Pushed tags verified on origin:
+- v0.1.75-site-chrome-minimal-ui-cleanup
+- v0.1.76-site-chrome-navigation-fix
+- v0.1.77-project-context-product-deployment-state
+Branch relation: main is synced with origin/main
+Working tree: clean in the latest provided git status output
+Public/live state: public site opened and showed the latest changes according to user verification
+Render state: likely deployed because public site showed latest changes, but exact Render dashboard commit has not been recorded yet
 ```
 
 Important rule:
@@ -34,6 +38,15 @@ Local commit/tag state, GitHub push state, Render deploy state, and public/live 
 ```
 
 A local commit is not live. A GitHub push is not a Render deploy. `Halleus.ir` is the domain identity, not proof that the latest version is deployed.
+
+Current verified status summary:
+
+```text
+Local: verified through e8418ee / v0.1.77
+GitHub: verified through e8418ee / v0.1.77
+Public/live: visually verified by user after push/deploy
+Render: public evidence suggests deployment succeeded; exact dashboard deploy commit still should be recorded when available
+```
 
 ## 2. Product origin
 
@@ -293,32 +306,70 @@ Corrected the visible brand direction back to Halleus.
 Updated context-related notes.
 ```
 
-Release warning:
+Release update:
 
 ```text
-As of latest git output, v0.1.75 and v0.1.76 are local only.
-origin/main is still c0cf764 / v0.1.74.
-Do not call v0.1.75 or v0.1.76 live until pushed and deployed.
+v0.1.75 and v0.1.76 are no longer local-only. Both tags were verified on origin after the later push.
+```
+
+### v0.1.77-project-context-product-deployment-state
+
+Completed locally and pushed to GitHub according to latest verification:
+
+```text
+e8418ee / v0.1.77-project-context-product-deployment-state
+```
+
+Product meaning:
+
+```text
+Updated docs/HALLEUS_PROJECT_CONTEXT.md so product vision, MVP definition, local/GitHub/Render/public release state, progress model, deployment rules, and workflow rules are tracked as one source of truth.
+```
+
+Release meaning:
+
+```text
+Local main and origin/main were later verified at e8418ee.
+Tag v0.1.77-project-context-product-deployment-state was verified on origin.
+The public site was reported by the user as showing the latest changes.
+```
+
+### v0.1.78-release-state-public-verification
+
+Completed by the context update that carries this section.
+
+Product meaning:
+
+```text
+No product UI or app logic changed.
+The context was updated to record that GitHub is verified through v0.1.77 and the public site visually showed the latest changes.
+Exact Render dashboard commit is still not recorded unless separately verified.
 ```
 
 ## 7. Current product state
 
-Current local HEAD:
+Current verified local and GitHub HEAD:
 
 ```text
-a0deb31 / v0.1.76-site-chrome-navigation-fix
+e8418ee / v0.1.77-project-context-product-deployment-state
 ```
 
-Current GitHub origin/main from latest git output:
+Current release-sync status:
 
 ```text
-c0cf764 / v0.1.74-chart-page-minimal-product-polish
+Local main: e8418ee
+GitHub origin/main: e8418ee
+Tag v0.1.75-site-chrome-minimal-ui-cleanup: pushed to origin
+Tag v0.1.76-site-chrome-navigation-fix: pushed to origin
+Tag v0.1.77-project-context-product-deployment-state: pushed to origin
+Public site: opened and showed latest changes according to user verification
+Render: likely deployed, but exact Render dashboard commit is not yet recorded
 ```
 
-Known working locally from v0.1.73-v0.1.76 context:
+Known working or recently verified:
 
 ```text
-/chart works locally
+/chart works locally from previous checks
 Jalali date picker works
 BirthInput.birthDate remains Gregorian ISO
 birthCountry: "ایران" is preserved internally
@@ -326,10 +377,12 @@ country UI is removed
 chart page has been polished
 report generation works locally
 report detail works locally
-site chrome was cleaned and then navigation/brand feedback was fixed locally
+site chrome was cleaned and then navigation/brand feedback was fixed
+GitHub is synced through e8418ee / v0.1.77
+public site visually showed the latest changes after push/deploy
 ```
 
-Known or likely from earlier product work, but verify before relying on it:
+Known or likely from earlier product work, but verify before relying on it for launch claims:
 
 ```text
 /order route
@@ -343,14 +396,13 @@ admin route/foundation
 Known uncertain:
 
 ```text
-whether a0deb31 is pushed to GitHub
-whether v0.1.75 and v0.1.76 tags are pushed to GitHub
-Render deploy state
-public/live production state
-Halleus.ir domain connection state
-current public route behavior
+exact Render dashboard latest deploy commit
+whether Halleus.ir custom domain is connected to the latest Render deploy
+full public smoke-test results for every route
 whether /order stores, sends, or only displays/copies manual order context
 current production data/privacy posture
+mobile UI quality
+current paid-report value/readability quality
 ```
 
 ## 8. Local vs GitHub vs Render state
@@ -359,32 +411,35 @@ Every meaningful batch must record these separately.
 
 ### Local state
 
-Latest known local state:
+Latest verified local state:
 
 ```text
-Local HEAD: a0deb31
-Local tag at HEAD: v0.1.76-site-chrome-navigation-fix
+Local HEAD: e8418ee
+Local tag at HEAD: v0.1.77-project-context-product-deployment-state
 Branch: main
-Branch status: ahead of origin/main by 2 commits
-Tracked status: clean according to latest git output; only untracked runner/helper files were present
+Branch status: synced with origin/main in the latest provided branch output
+Tracked status: clean in the latest provided git status output
 ```
 
 ### GitHub state
 
-Latest known GitHub state:
+Latest verified GitHub state:
 
 ```text
-origin/main: c0cf764 / v0.1.74-chart-page-minimal-product-polish
-v0.1.75 pushed: unknown / likely not pushed if origin/main is still v0.1.74
-v0.1.76 pushed: unknown / likely not pushed if origin/main is still v0.1.74
+origin/main: e8418ee / v0.1.77-project-context-product-deployment-state
+v0.1.75 pushed: yes
+v0.1.76 pushed: yes
+v0.1.77 pushed: yes
+GitHub state: verified through v0.1.77
 ```
 
-Must verify with:
+Verification output already provided by the user showed:
 
-```powershell
-git ls-remote --heads origin main
-git ls-remote --tags origin v0.1.75-site-chrome-minimal-ui-cleanup
-git ls-remote --tags origin v0.1.76-site-chrome-navigation-fix
+```text
+refs/heads/main = e8418ee12f252b041275e890ac3b5429ae2a7602
+refs/tags/v0.1.75-site-chrome-minimal-ui-cleanup = 0c8bfd769cdb33dc1e7ec866165d482174176f47
+refs/tags/v0.1.76-site-chrome-navigation-fix = a0deb31db9244665fd4a5f785795db912919571a
+refs/tags/v0.1.77-project-context-product-deployment-state = e8418ee12f252b041275e890ac3b5429ae2a7602
 ```
 
 ### Render state
@@ -392,12 +447,19 @@ git ls-remote --tags origin v0.1.76-site-chrome-navigation-fix
 Latest known Render state:
 
 ```text
-Render service name: unknown
-Connected GitHub repo: unknown
-Auto-deploy enabled: unknown
-Latest Render deploy commit: unknown
-Latest Render deploy status: unknown
-Render public URL: unknown
+Render service name: not recorded in context yet
+Connected GitHub repo: not recorded in context yet
+Auto-deploy enabled: likely, but not recorded from dashboard
+Latest Render deploy commit: not recorded from dashboard
+Latest Render deploy status: public site showed latest changes, but dashboard status not recorded
+Render public URL: not recorded in context yet
+```
+
+Interpretation:
+
+```text
+The public site showing the latest changes strongly suggests Render/public deployment succeeded after the GitHub push.
+However, do not mark exact Render commit as verified until Render dashboard or deployment logs show the commit, ideally e8418ee.
 ```
 
 ### Public/live state
@@ -405,15 +467,15 @@ Render public URL: unknown
 Latest known public/live state:
 
 ```text
-Public URL: unknown
-Custom domain: Halleus.ir is identity, connection unknown
-Halleus.ir connected: unknown
-SSL/domain status: unknown
-Last production QA date: unknown
-Observed deployed version/commit: unknown
+Public URL: not recorded in context yet
+Custom domain: Halleus.ir is identity; connection status still needs exact confirmation if used as the public URL
+Halleus.ir connected: unknown until checked explicitly
+SSL/domain status: unknown until checked explicitly
+Last production QA date: 2026-06-27 user visually confirmed latest changes appeared
+Observed deployed version/commit: latest changes appeared; exact commit not visible from public site
 ```
 
-Required public smoke routes after deployment:
+Required public smoke routes before a launch claim:
 
 ```text
 /
@@ -425,7 +487,13 @@ Required public smoke routes after deployment:
 /privacy
 ```
 
-Never call a feature live only because it works locally. Never call a GitHub push deployed until Render is verified. Never treat Halleus.ir as connected to the latest app until domain and public route QA are verified.
+Recommended public smoke flow:
+
+```text
+/chart → create a test report → report detail opens → user can reach /order → /reports does not crash
+```
+
+Never call a feature live only because it works locally. Never call a GitHub push deployed until Render or public behavior is verified. Never treat Halleus.ir as connected to the latest app until domain and public route QA are verified.
 
 ## 9. Deployment rules
 
@@ -504,42 +572,52 @@ context updated with new state
 
 ## 11. Roadmap priorities
 
-Recommended near-term order after this context update:
+Recommended near-term order after v0.1.78:
 
-### 1. Push local work to GitHub
-
-Goal:
-
-```text
-Move local a0deb31 / v0.1.76 and all relevant tags to GitHub.
-```
-
-Do this only after the context update succeeds and the working tree is clean.
-
-### 2. GitHub/Render/public state verification
+### 1. Finish public smoke verification
 
 Goal:
 
 ```text
-Verify what is local, what is pushed to GitHub, what Render deployed, and what public users can see.
+Confirm the public site behaves correctly as a user-facing MVP shell.
 ```
 
-Type:
+Check these routes:
 
 ```text
-deployment-related audit/docs
+/
+/chart
+/reports
+/product
+/pricing
+/order
+/privacy
 ```
 
-Possible files:
+Check this core flow:
 
 ```text
-docs/HALLEUS_PROJECT_CONTEXT.md
-docs/DEPLOYMENT_STATE.md or docs/RELEASE_STATUS.md if needed
-scripts/check-deployment-state-context.mjs
-package.json if a check is added
+/chart → create a test report → report detail opens → user can reach /order → /reports does not crash
 ```
 
-Avoid product feature changes.
+Also check:
+
+```text
+Brand is Halleus, not HHalleus.
+Important routes are discoverable.
+No dev/MVP/debug wording is visible to normal users.
+Mobile layout is usable.
+```
+
+### 2. Record exact Render deployment details when available
+
+Goal:
+
+```text
+Record Render service name, latest deploy status, latest deployed commit, public URL, and custom domain status.
+```
+
+Do not change product code in this batch unless the public smoke test reveals a specific product bug.
 
 ### 3. Report value/readability polish
 
@@ -549,9 +627,10 @@ Goal:
 Make report output feel more valuable, readable, and paid-product-worthy.
 Reduce debug/demo feel.
 Improve structure and copy.
+Make the value of a fuller report clearer.
 ```
 
-Avoid changing chart input or site chrome in the same batch.
+Avoid changing chart input, site chrome, or deployment docs in the same batch.
 
 ### 4. Manual order capture/admin readiness
 
@@ -565,15 +644,21 @@ Clarify where a request goes and how it can be reviewed.
 
 Avoid mixing this with report quality or chrome redesign.
 
-### 5. Deployment/domain hardening
+### 5. Pricing/product trust polish
 
 Goal:
 
 ```text
-If Render deploy is healthy, verify or configure Halleus.ir, DNS, SSL, and public smoke QA.
+Clarify what the free/base report gives, what the fuller report adds, why it is worth ordering, and how the manual process works.
 ```
 
-Do not change product code in the same batch.
+### 6. Privacy/data clarity
+
+Goal:
+
+```text
+Make production-facing data behavior understandable: what is stored, where it is stored, what is local/browser-based, and what the user should expect.
+```
 
 ## 12. UI and brand rules
 
@@ -729,18 +814,32 @@ Keep UI batches small and avoid mixing chart, sales copy, global CSS, and naviga
 
 ## 14. Open uncertainties
 
-These must be verified explicitly before being treated as true:
+Resolved since the previous context update:
 
 ```text
-Is a0deb31 pushed to GitHub?
-Are tags v0.1.75, v0.1.76, and v0.1.77 pushed to GitHub?
-What is origin/main after push?
-Is Render connected to the GitHub repo?
+e8418ee / v0.1.77 is pushed to GitHub.
+origin/main is e8418ee.
+Tags v0.1.75, v0.1.76, and v0.1.77 are pushed to GitHub.
+The public site opened and showed the latest changes according to user verification.
+```
+
+Still open and should be verified explicitly before stronger launch claims:
+
+```text
+What exact commit is currently deployed in Render dashboard?
+What is the Render service name?
 Is Render auto-deploy enabled?
-What commit is currently deployed on Render?
 What is the current public Render URL?
-Is Halleus.ir connected and live?
-Which routes are currently visible in header/footer on the public site?
+Is Halleus.ir connected to the deployed app?
+Does Halleus.ir have working SSL/domain status?
+Which public routes have been smoke-tested after v0.1.77?
+Are all key routes discoverable from header/footer/public UI?
+Does /chart create a report successfully on the public site?
+Does public report detail open successfully?
+Does /reports show saved reports or at least fail gracefully on public?
 Does /order currently store, send, or only display/copy manual order context?
 What is the current production data/privacy posture?
+How good is report value/readability from a real generated sample?
+How usable is the current UI on mobile?
 ```
+
