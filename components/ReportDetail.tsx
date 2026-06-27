@@ -116,7 +116,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       isFavorite,
     });
 
-    setMessage("خروجی JSON گزارش ساخته شد.");
+    setMessage("فایل پشتیبان گزارش ساخته شد.");
   }
 
   function handleExportTextReport() {
@@ -127,7 +127,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     const textLines = [createShareText(report)];
 
     if (note.trim()) {
-      textLines.push("", "Note:", note.trim());
+      textLines.push("", "یادداشت:", note.trim());
     }
 
     downloadTextFile(
@@ -135,7 +135,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       textLines.join("\n"),
     );
 
-    setMessage("TXT export created.");
+    setMessage("خروجی متنی ساخته شد.");
   }
 
   if (!isReady) {
@@ -162,7 +162,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
         <EmptyState
           badge="گزارش پیدا نشد"
           title="این گزارش پیدا نشد"
-          description="این گزارش ممکن است پاک شده باشد، یا در مرورگر دیگری ساخته شده باشد. چون MVP فعلاً backend ندارد، گزارش‌ها فقط در همین مرورگر ذخیره می‌شوند."
+          description="این گزارش ممکن است پاک شده باشد یا روی مرورگر/دستگاه دیگری ساخته شده باشد."
           actionHref="/reports"
           actionLabel="بازگشت به گزارش‌ها"
         />
@@ -173,13 +173,13 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">Report Detail</span>
+        <span className="badge">گزارش ذخیره‌شده</span>
 
-        <h1>جزئیات گزارش ذخیره‌شده</h1>
+        <h1>جزئیات گزارش تو</h1>
 
         <p>
-          این صفحه گزارش را از storage layer محصول می‌خواند. فعلاً driver محلی
-          فعال است، اما مسیر برای backend و حساب کاربری آماده‌تر شده است.
+          این صفحه نسخه ذخیره‌شده گزارش تو را نشان می‌دهد؛ جایی برای خواندن
+          دوباره، یادداشت‌برداری و ادامه دادن مسیر گزارش کامل‌تر.
         </p>
 
         <div className="actions">
@@ -205,8 +205,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
         <h2>یادداشت من درباره این گزارش</h2>
 
         <p>
-          این یادداشت فعلاً در storage محلی همین دستگاه ذخیره می‌شود و در فاز
-          حساب کاربری می‌تواند به storage دیتابیس منتقل شود.
+          این یادداشت برای مرور شخصی تو کنار همین گزارش نگه داشته می‌شود.
         </p>
 
         <label className="field">
@@ -237,19 +236,19 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       </section>
 
       <section className="card">
-        <span className="badge">Single Export</span>
+        <span className="badge">خروجی و پشتیبان</span>
 
         <h2>خروجی تکی این گزارش</h2>
 
         <p>
-          می‌توانی فقط همین گزارش را به همراه یادداشت و وضعیت علاقه‌مندی به صورت
-          JSON خروجی بگیری. این قابلیت برای backup، پشتیبانی و نسخه‌های بعدی
-          public profile مفید است.
+          می‌توانی فقط همین گزارش را همراه یادداشت و وضعیت علاقه‌مندی به صورت
+          فایل پشتیبان بگیری. این قابلیت برای نگهداری نسخه شخصی، پشتیبانی یا
+          انتقال گزارش در نسخه‌های بعدی مفید است.
         </p>
 
         <div className="actions">
           <button className="button" type="button" onClick={handleExportReport}>
-            گرفتن خروجی JSON این گزارش
+            گرفتن فایل پشتیبان این گزارش
           </button>
 
           <button
@@ -257,7 +256,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
             type="button"
             onClick={handleExportTextReport}
           >
-            Export TXT
+            گرفتن خروجی متنی
           </button>
         </div>
       </section>
