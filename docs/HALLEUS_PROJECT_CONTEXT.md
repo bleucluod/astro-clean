@@ -16,20 +16,23 @@ brand: Halleus
 domain identity: Halleus.ir
 ```
 
-Latest verified local/GitHub state from the latest user-provided terminal output in this project chat:
+Latest verified local/GitHub state from the latest user-provided terminal output before this v0.1.82 rule update:
 
 ```text
-Local HEAD: 974864e / v0.1.80-report-detail-product-polish
-GitHub origin/main: 974864e / v0.1.80-report-detail-product-polish
-Latest pushed tag: v0.1.80-report-detail-product-polish
-Previous pushed tag: v0.1.79-report-detail-copy-cleanup
+Local HEAD: 42ae1a4 / v0.1.81-context-failure-ledger-merge
+GitHub origin/main: 42ae1a4 / v0.1.81-context-failure-ledger-merge
+Latest pushed tag: v0.1.81-context-failure-ledger-merge
+Previous pushed tag: v0.1.80-report-detail-product-polish
+Latest product-code milestone: 974864e / v0.1.80-report-detail-product-polish
 Branch relation: main is synced with origin/main
-Build before v0.1.80 commit: pnpm build passed
-Encoding before v0.1.80 commit: pnpm run check:encoding passed
-Working tree after push: no tracked changes were shown in the latest successful push output
-Public/live state: previously visually verified by user after earlier push/deploy; not re-verified after v0.1.80 in this context
+Build before v0.1.80 product commit: pnpm build passed
+Encoding before v0.1.81 context commit: pnpm run check:encoding passed
+Working tree after v0.1.81 push: no tracked changes were shown in the latest successful push output
+Public/live state: previously visually verified by user after earlier push/deploy; not re-verified after v0.1.80/v0.1.81 in this context
 Render state: public evidence previously suggested deployment succeeded, but exact Render dashboard commit is still not recorded
 ```
+
+If this file is later updated by a docs-only commit such as `v0.1.82-safety-gate-always-on-rule`, the exact new commit hash must be taken from live git output after commit/push. Live git output always beats this recorded paragraph.
 
 Important rule:
 
@@ -69,6 +72,17 @@ Relevant failure-ledger risks for this batch:
 ```
 
 If any field cannot be filled from current evidence, stop and ask for the missing live file, git output, or route/component context. Do not guess.
+
+Always-on rule:
+
+```text
+Treat "Safety Gate first." as an implicit standing instruction for every Halleus coding/project batch, even when the user does not repeat it.
+If the assistant is about to provide code, a runner, a downloadable artifact, or terminal commands that modify files, the response must start with the Safety Gate.
+If the Safety Gate cannot be filled from current live evidence, the assistant must ask for the missing git output or files instead of proceeding.
+If the assistant skips the Safety Gate, the correct user response is simply: Safety Gate first.
+```
+
+This rule exists because the user should not have to remember and re-state the safety protocol every time.
 
 ### Executable workflow rules
 
@@ -428,10 +442,36 @@ check:encoding and pnpm build passed before commit.
 Tag and main were pushed to origin.
 ```
 
+### v0.1.81-context-failure-ledger-merge
+
+Completed and pushed:
+
+```text
+42ae1a4 / v0.1.81-context-failure-ledger-merge
+```
+
+Project/process meaning:
+
+```text
+Merged the Halleus failure ledger and batch safety rules into docs/HALLEUS_PROJECT_CONTEXT.md.
+Recorded repeated runner, PowerShell, Git, Next/TypeScript, encoding, UI formatting, and workflow failures from the project chats.
+Added the mandatory Safety Gate, authority order, stop-after-2-failures rule, and failure-ledger operating rules.
+Docs-only change.
+check:encoding and git diff --check passed before commit.
+Tag and main were pushed to origin.
+```
+
+
 
 ## 7. Current product state
 
-Current verified local and GitHub HEAD:
+Current verified local and GitHub HEAD before this v0.1.82 rule update:
+
+```text
+42ae1a4 / v0.1.81-context-failure-ledger-merge
+```
+
+Latest product-code milestone:
 
 ```text
 974864e / v0.1.80-report-detail-product-polish
@@ -440,11 +480,12 @@ Current verified local and GitHub HEAD:
 Current release-sync status:
 
 ```text
-Local main: 974864e
-GitHub origin/main: 974864e
-Latest pushed tag: v0.1.80-report-detail-product-polish
-Previous pushed tag: v0.1.79-report-detail-copy-cleanup
-Public site: previously opened and showed latest changes according to user verification before v0.1.80; public smoke after v0.1.80 is still needed
+Local main: 42ae1a4
+GitHub origin/main: 42ae1a4
+Latest pushed tag: v0.1.81-context-failure-ledger-merge
+Previous pushed tag: v0.1.80-report-detail-product-polish
+Latest product-code tag: v0.1.80-report-detail-product-polish
+Public site: previously opened and showed latest changes according to user verification before v0.1.80; public smoke after v0.1.80/v0.1.81 is still needed
 Render: likely auto-deployed if connected, but exact Render dashboard commit is not recorded
 ```
 
@@ -462,7 +503,8 @@ report detail works locally
 report detail copy cleanup passed build in v0.1.79
 report detail product polish passed build in v0.1.80
 site chrome was cleaned and navigation/brand feedback was fixed through v0.1.76
-GitHub is synced through 974864e / v0.1.80
+GitHub is synced through 42ae1a4 / v0.1.81 for docs/process state
+latest product-code milestone is 974864e / v0.1.80
 ```
 
 Known or likely from earlier product work, but verify before relying on it for launch claims:
@@ -497,8 +539,9 @@ Every meaningful batch must record these separately.
 Latest verified local state:
 
 ```text
-Local HEAD: 974864e
-Local tag at HEAD: v0.1.80-report-detail-product-polish
+Local HEAD: 42ae1a4
+Local tag at HEAD: v0.1.81-context-failure-ledger-merge
+Latest product-code tag: v0.1.80-report-detail-product-polish
 Branch: main
 Branch status: synced with origin/main in the latest provided git output
 Tracked status: clean after push according to latest successful workflow; re-run git status before any new batch
@@ -509,16 +552,18 @@ Tracked status: clean after push according to latest successful workflow; re-run
 Latest verified GitHub state:
 
 ```text
-origin/main: 974864e / v0.1.80-report-detail-product-polish
+origin/main: 42ae1a4 / v0.1.81-context-failure-ledger-merge
 v0.1.79 pushed: yes
 v0.1.80 pushed: yes
-GitHub state: verified through v0.1.80
+v0.1.81 pushed: yes
+GitHub state: verified through v0.1.81
 ```
 
 Latest provided push/log output showed:
 
 ```text
-974864e (HEAD -> main, tag: v0.1.80-report-detail-product-polish, origin/main, origin/HEAD) Polish report detail product experience
+42ae1a4 (HEAD -> main, tag: v0.1.81-context-failure-ledger-merge, origin/main, origin/HEAD) Merge Halleus failure ledger and safety rules
+974864e (tag: v0.1.80-report-detail-product-polish) Polish report detail product experience
 a848ef6 (tag: v0.1.79-report-detail-copy-cleanup) Clean up report detail copy
 89f485d (tag: v0.1.78-release-state-public-verification) Document release and public verification state
 ```
@@ -944,7 +989,7 @@ Files or systems involved:
 ### Current hard stop rules
 
 ```text
-1. Safety Gate first. No Safety Gate, no code.
+1. Safety Gate first is always-on and implicit. The user does not need to repeat it. No Safety Gate, no code.
 2. Two failures maximum. After two sequential failures in the same batch, stop, diagnose, reduce scope, and request live files.
 3. No runner may commit, tag, or push.
 4. Commit/tag/push only after apply + relevant checks + build have passed.
@@ -1859,7 +1904,7 @@ Artifact must not leave source-like payload inside root before build.
 
 ### Required batch protocol
 
-For every future Halleus batch:
+For every future Halleus batch, even if the user does not explicitly say "Safety Gate first.":
 
 ```text
 1. Safety Gate first.
