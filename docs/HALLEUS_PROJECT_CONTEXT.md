@@ -1,6 +1,6 @@
 # Halleus Project Context
 
-Last updated: 2026-06-27
+Last updated: 2026-06-28
 
 This file is the handoff source of truth for continuing the Halleus project in future ChatGPT sessions. It must track product vision, technical workflow, and release/deployment state. Do not treat local progress, GitHub progress, Render deployment, and the public site as the same thing.
 
@@ -16,23 +16,22 @@ brand: Halleus
 domain identity: Halleus.ir
 ```
 
-Latest verified local/GitHub state from the latest user-provided terminal output before this v0.1.82 rule update:
+Latest verified local/GitHub state from the latest user-provided terminal output before this v0.1.85 docs update:
 
 ```text
-Local HEAD: 42ae1a4 / v0.1.81-context-failure-ledger-merge
-GitHub origin/main: 42ae1a4 / v0.1.81-context-failure-ledger-merge
-Latest pushed tag: v0.1.81-context-failure-ledger-merge
-Previous pushed tag: v0.1.80-report-detail-product-polish
-Latest product-code milestone: 974864e / v0.1.80-report-detail-product-polish
+Local HEAD: 159986a / v0.1.84-technical-seo-baseline
+GitHub origin/main: 159986a / v0.1.84-technical-seo-baseline
+Latest pushed tag: v0.1.84-technical-seo-baseline
+Previous pushed tag: v0.1.83-homepage-product-polish
+Latest product-code milestone: 159986a / v0.1.84-technical-seo-baseline
 Branch relation: main is synced with origin/main
-Build before v0.1.80 product commit: pnpm build passed
-Encoding before v0.1.81 context commit: pnpm run check:encoding passed
-Working tree after v0.1.81 push: no tracked changes were shown in the latest successful push output
-Public/live state: previously visually verified by user after earlier push/deploy; not re-verified after v0.1.80/v0.1.81 in this context
-Render state: public evidence previously suggested deployment succeeded, but exact Render dashboard commit is still not recorded
+Checks before v0.1.84 commit: check:encoding, git diff --check, and pnpm build passed
+Working tree after v0.1.84 push: clean; git status --short returned no output
+Public/live state: not re-verified after v0.1.84; Render/public domain verification remains open
+Render state: exact Render dashboard commit is still not recorded
 ```
 
-If this file is later updated by a docs-only commit such as `v0.1.82-safety-gate-always-on-rule`, the exact new commit hash must be taken from live git output after commit/push. Live git output always beats this recorded paragraph.
+If this file is later updated by a docs-only commit, the exact new commit hash must be taken from live git output after commit/push. Live git output always beats this recorded paragraph.
 
 Important rule:
 
@@ -461,32 +460,109 @@ check:encoding and git diff --check passed before commit.
 Tag and main were pushed to origin.
 ```
 
+### v0.1.82-safety-gate-always-on-rule
+
+Completed and pushed:
+
+```text
+1230637 / v0.1.82-safety-gate-always-on-rule
+```
+
+Project/process meaning:
+
+```text
+Made Safety Gate first an always-on and implicit Halleus rule.
+Recorded that the user does not need to repeat Safety Gate first.
+Established no Safety Gate, no code as a standing project rule.
+Docs-only change in docs/HALLEUS_PROJECT_CONTEXT.md.
+check:encoding and git diff --check passed before commit.
+Tag and main were pushed to origin.
+```
+
+### v0.1.83-homepage-product-polish
+
+Completed and pushed:
+
+```text
+4769fbf / v0.1.83-homepage-product-polish
+```
+
+Product meaning:
+
+```text
+Polished the homepage toward a more product-facing first impression.
+Changed app/page.tsx and scripts/check-sales-copy-polish.mjs.
+Removed or reduced visible MVP/test-sales/real-engine feel from the homepage copy.
+Clarified the basic product path: create a report, read it, return to it, and request a fuller version.
+check:sales-copy-polish, check:encoding, git diff --check, and pnpm build passed before commit.
+Tag and main were pushed to origin.
+```
+
+Open product note:
+
+```text
+User still did not feel the homepage had a fully real product feel after v0.1.83.
+The next homepage improvement should add proof/value/sample elements, not only prettier copy.
+```
+
+### v0.1.84-technical-seo-baseline
+
+Completed and pushed:
+
+```text
+159986a / v0.1.84-technical-seo-baseline
+```
+
+SEO/product meaning:
+
+```text
+Added the first technical SEO baseline.
+Updated public-page metadata/canonical coverage for homepage, chart, product, pricing, order, privacy, and reports pages.
+Updated sitemap behavior so public product-focused routes are prioritized and internal/dev routes are not treated as sitemap targets.
+Updated lib/config/seo.ts so the fallback site URL is production-oriented instead of localhost.
+Changed app/chart/page.tsx, app/layout.tsx, app/order/page.tsx, app/page.tsx, app/pricing/page.tsx, app/privacy/page.tsx, app/product/page.tsx, app/reports/page.tsx, app/sitemap.ts, and lib/config/seo.ts.
+check:encoding, git diff --check, and pnpm build passed before commit.
+Tag and main were pushed to origin.
+```
+
+Still open after v0.1.84:
+
+```text
+Verify Render dashboard latest deploy commit.
+Verify public domain and custom domain status.
+Open /robots.txt and /sitemap.xml on the real public URL.
+Verify that public canonical URLs point to the intended domain.
+Set up/verify Google Search Console when the public URL/domain is settled.
+Submit sitemap after public URL verification.
+Decide final noindex/internal-route policy for admin/dashboard/engine/profile/quality/wiki/roadmap routes.
+```
+
 
 
 ## 7. Current product state
 
-Current verified local and GitHub HEAD before this v0.1.82 rule update:
+Current verified local and GitHub HEAD before this v0.1.85 docs update:
 
 ```text
-42ae1a4 / v0.1.81-context-failure-ledger-merge
+159986a / v0.1.84-technical-seo-baseline
 ```
 
 Latest product-code milestone:
 
 ```text
-974864e / v0.1.80-report-detail-product-polish
+159986a / v0.1.84-technical-seo-baseline
 ```
 
 Current release-sync status:
 
 ```text
-Local main: 42ae1a4
-GitHub origin/main: 42ae1a4
-Latest pushed tag: v0.1.81-context-failure-ledger-merge
-Previous pushed tag: v0.1.80-report-detail-product-polish
-Latest product-code tag: v0.1.80-report-detail-product-polish
-Public site: previously opened and showed latest changes according to user verification before v0.1.80; public smoke after v0.1.80/v0.1.81 is still needed
-Render: likely auto-deployed if connected, but exact Render dashboard commit is not recorded
+Local main: 159986a
+GitHub origin/main: 159986a
+Latest pushed tag: v0.1.84-technical-seo-baseline
+Previous pushed tag: v0.1.83-homepage-product-polish
+Latest product-code tag: v0.1.84-technical-seo-baseline
+Public site: not re-verified after v0.1.84; public smoke and SEO URL checks are still needed
+Render: likely auto-deploys if connected, but exact Render dashboard commit is not recorded
 ```
 
 Known working or recently verified locally:
@@ -503,8 +579,10 @@ report detail works locally
 report detail copy cleanup passed build in v0.1.79
 report detail product polish passed build in v0.1.80
 site chrome was cleaned and navigation/brand feedback was fixed through v0.1.76
-GitHub is synced through 42ae1a4 / v0.1.81 for docs/process state
-latest product-code milestone is 974864e / v0.1.80
+GitHub is synced through 159986a / v0.1.84 for technical SEO baseline state
+latest product-code milestone is 159986a / v0.1.84
+homepage was polished in v0.1.83 but still needs proof/sample/value work to feel like a real product
+technical SEO baseline was added in v0.1.84 but public Render/domain/Search Console verification is still open
 ```
 
 Known or likely from earlier product work, but verify before relying on it for launch claims:
@@ -523,7 +601,10 @@ Known uncertain:
 ```text
 exact Render dashboard latest deploy commit
 whether Halleus.ir custom domain is connected to the latest Render deploy
-full public smoke-test results after v0.1.80
+full public smoke-test results after v0.1.84
+whether /robots.txt and /sitemap.xml work on the public URL
+whether canonical URLs point to the final domain
+whether Search Console has been verified and sitemap submitted
 whether /order stores, sends, or only displays/copies manual order context
 current production data/privacy posture
 mobile UI quality
@@ -539,12 +620,12 @@ Every meaningful batch must record these separately.
 Latest verified local state:
 
 ```text
-Local HEAD: 42ae1a4
-Local tag at HEAD: v0.1.81-context-failure-ledger-merge
-Latest product-code tag: v0.1.80-report-detail-product-polish
+Local HEAD: 159986a
+Local tag at HEAD: v0.1.84-technical-seo-baseline
+Latest product-code tag: v0.1.84-technical-seo-baseline
 Branch: main
 Branch status: synced with origin/main in the latest provided git output
-Tracked status: clean after push according to latest successful workflow; re-run git status before any new batch
+Tracked status: clean after v0.1.84 push; git status --short returned no output
 ```
 
 ### GitHub state
@@ -552,20 +633,22 @@ Tracked status: clean after push according to latest successful workflow; re-run
 Latest verified GitHub state:
 
 ```text
-origin/main: 42ae1a4 / v0.1.81-context-failure-ledger-merge
+origin/main: 159986a / v0.1.84-technical-seo-baseline
 v0.1.79 pushed: yes
 v0.1.80 pushed: yes
 v0.1.81 pushed: yes
-GitHub state: verified through v0.1.81
+v0.1.82 pushed: yes
+v0.1.83 pushed: yes
+v0.1.84 pushed: yes
+GitHub state: verified through v0.1.84
 ```
 
 Latest provided push/log output showed:
 
 ```text
-42ae1a4 (HEAD -> main, tag: v0.1.81-context-failure-ledger-merge, origin/main, origin/HEAD) Merge Halleus failure ledger and safety rules
-974864e (tag: v0.1.80-report-detail-product-polish) Polish report detail product experience
-a848ef6 (tag: v0.1.79-report-detail-copy-cleanup) Clean up report detail copy
-89f485d (tag: v0.1.78-release-state-public-verification) Document release and public verification state
+159986a (HEAD -> main, tag: v0.1.84-technical-seo-baseline, origin/main, origin/HEAD) Add technical SEO baseline
+4769fbf (tag: v0.1.83-homepage-product-polish) Polish homepage product experience
+1230637 (tag: v0.1.82-safety-gate-always-on-rule) Make Halleus Safety Gate always-on
 ```
 
 ### Render state
@@ -585,7 +668,7 @@ Interpretation:
 
 ```text
 The public site showing earlier changes suggests Render/public deployment can succeed.
-However, do not mark exact Render commit as verified until Render dashboard or deployment logs show the commit, ideally 974864e after v0.1.80.
+However, do not mark exact Render commit as verified until Render dashboard or deployment logs show the commit, ideally 159986a after v0.1.84.
 ```
 
 ### Public/live state
@@ -599,7 +682,8 @@ Halleus.ir connected: unknown until checked explicitly
 SSL/domain status: unknown until checked explicitly
 Last production QA date: 2026-06-27 user visually confirmed earlier latest changes appeared
 Observed deployed version/commit: exact commit not visible from public site
-Public smoke after v0.1.80: still open
+Public smoke after v0.1.84: still open
+SEO public URL checks after v0.1.84: still open
 ```
 
 Required public smoke routes before a launch claim:
@@ -667,20 +751,23 @@ If a later audit shows tags already exist remotely, do not force-push unless the
 
 Progress must be tracked by axis, not one vague percentage. Local progress and public/live progress must stay separate.
 
-Current rough estimates after pushed v0.1.80, before exact Render/public-v0.1.80 verification:
+Current rough estimates after pushed v0.1.84, before exact Render/public-v0.1.84 verification:
 
 ```text
-Product vision clarity: 80%
+Product vision clarity: 80-85%
 Core chart/report flow: 75-85% local / live unknown
-Report quality/value: 35-55%
+Report quality/value: 45-60%
 UI/brand maturity: 55-65% local / live unknown
+Homepage conversion/product feel: 40-50%; user still wants it to feel more like a real product
+Technical SEO baseline: 55-65% local / public verification open
+SEO ranking/content readiness: 20-35%
 Sales/order flow: 35-50% local / live unknown
 Admin/operations: 15-25%
 Data/privacy readiness: 35-45%
-Deployment/GitHub readiness: GitHub verified through v0.1.80 / Render exact deploy still unknown
-Public launch readiness: local 35-50% / live after v0.1.80 still unverified
+Deployment/GitHub readiness: GitHub verified through v0.1.84 / Render exact deploy still unknown
+Public launch readiness: local 40-55% / live after v0.1.84 still unverified
 Business readiness: 25-35%
-Engineering reliability: 55-65%
+Engineering reliability: 60-70%
 ```
 
 Use ranges when confidence is limited. Do not inflate progress because a feature exists locally.
@@ -699,9 +786,51 @@ context updated with new state
 
 ## 11. Roadmap priorities
 
-Recommended near-term order after v0.1.80:
+Recommended near-term order after v0.1.84:
 
-### 1. Finish public smoke verification
+### 1. Create Halleus Idea Garden doc
+
+Goal:
+
+```text
+Create docs/HALLEUS_IDEA_GARDEN.md as a seed bank for product ideas gathered from Halleus project chats.
+Track which ideas are untouched, touched, shipped, deferred, or risky.
+```
+
+Initial seeds must include:
+
+```text
+Core birth report
+Jalali-first Persian UX
+Saved reports/history
+Report Detail as Product Moment
+Fuller report manual order
+Pricing/product/privacy pages
+Technical SEO baseline
+Render/GitHub/public state tracking
+Astrology engine layer
+Account/dashboard/admin/payment later platform ideas
+Sky Pulse / حال‌وهوای آسمان امروز
+```
+
+Sky Pulse definition:
+
+```text
+Homepage should eventually show today’s date, Jalali date, leap-year note when relevant, and a compact monthly/weekly/daily astrology weather preview.
+It should summarize important transits, their short effects, how to use the energy, what not to do, and point users toward a fuller personal chart report.
+Do not hardcode fake real-time transits as factual; start with a date/status card, then design a real transit model.
+```
+
+### 2. Render/public SEO verification
+
+Goal:
+
+```text
+Confirm that the v0.1.84 technical SEO baseline is actually deployed and visible on the public URL.
+Check /robots.txt, /sitemap.xml, canonical URLs, and important public routes on the real domain or Render URL.
+```
+
+### 3. Finish public smoke verification
 
 Goal:
 
@@ -736,7 +865,7 @@ No dev/MVP/debug wording is visible to normal users.
 Mobile layout is usable.
 ```
 
-### 2. Record exact Render deployment details when available
+### 4. Record exact Render deployment details when available
 
 Goal:
 
@@ -746,7 +875,7 @@ Record Render service name, latest deploy status, latest deployed commit, public
 
 Do not change product code in this batch unless the public smoke test reveals a specific product bug.
 
-### 3. Report value/readability polish
+### 5. Report value/readability polish
 
 Goal:
 
@@ -759,7 +888,7 @@ Make the value of a fuller report clearer.
 
 Avoid changing chart input, site chrome, or deployment docs in the same batch.
 
-### 4. Manual order capture/admin readiness
+### 6. Manual order capture/admin readiness
 
 Goal:
 
@@ -771,7 +900,7 @@ Clarify where a request goes and how it can be reviewed.
 
 Avoid mixing this with report quality or chrome redesign.
 
-### 5. Pricing/product trust polish
+### 7. Pricing/product trust polish
 
 Goal:
 
@@ -779,7 +908,7 @@ Goal:
 Clarify what the free/base report gives, what the fuller report adds, why it is worth ordering, and how the manual process works.
 ```
 
-### 6. Privacy/data clarity
+### 8. Privacy/data clarity
 
 Goal:
 
