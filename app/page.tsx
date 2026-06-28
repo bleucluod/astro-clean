@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { SkyPulseDateCard } from "@/components/SkyPulseDateCard";
+import { HomepageProductProof } from "@/components/HomepageProductProof";
 
 export const metadata: Metadata = {
   title: "Halleus | گزارش تولد فارسی و قابل سفارش",
@@ -138,6 +139,8 @@ export default function Home() {
       </div>
 
       <SkyPulseDateCard />
+
+      <HomepageProductProof />
 
       <section className="card paid-section">
         <span className="section-label">ارزش اصلی Halleus</span>
