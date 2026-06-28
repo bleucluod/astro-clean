@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
+import { SkyPulseDateCard } from "@/components/SkyPulseDateCard";
 
 export const metadata: Metadata = {
   title: "Halleus | گزارش تولد فارسی و قابل سفارش",
@@ -135,6 +136,8 @@ export default function Home() {
           <span key={item}>{item}</span>
         ))}
       </div>
+
+      <SkyPulseDateCard />
 
       <section className="card paid-section">
         <span className="section-label">ارزش اصلی Halleus</span>
