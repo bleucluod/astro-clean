@@ -2061,3 +2061,382 @@ No raw SHA primary guards on Windows unless generated from exact live files imme
 Keep product polish batches away from engine/types/output schema unless explicitly planned.
 After two sequential failures, stop and reduce scope.
 ```
+## Halleus ChatGPT Workflow Guardrails — v0.1.94 Recovery Addendum
+
+### Current state after recovery
+
+Repo: `C:\Projects\astro-clean`
+Branch: `main`
+Current clean HEAD: `3ab098b`
+Current tag at HEAD: `v0.1.93-report-generation-contract`
+Remote state: `origin/main` and `origin/HEAD` point to `3ab098b`
+Working tree after recovery: clean; `git status --short` returned no output.
+
+Recent log:
+
+```text
+3ab098b (HEAD -> main, tag: v0.1.93-report-generation-contract, origin/main, origin/HEAD) Add report generation contract types
+4a010b1 (tag: v0.1.92-report-engine-unification-plan) Add report engine unification plan
+dcda684 (tag: v0.1.91-engine-reality-audit) Add engine reality audit
+```
+
+### Active authority files
+
+The assistant must treat these files as active project authority before any Halleus batch:
+
+```text
+docs/HALLEUS_PROJECT_CONTEXT.md
+docs/HALLEUS_IDEA_GARDEN.md
+docs/HALLEUS_ENGINE_REALITY_AUDIT.md
+docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md
+types/report-generation.ts
+```
+
+Live terminal output beats docs for current git/file state. The docs define workflow rules, product direction, known failures, and intended roadmap. Do not replace these files with generic beginner coding rules.
+
+### Intended next batch before failure
+
+Next planned batch:
+
+```text
+v0.1.94-report-generation-service-scaffold
+```
+
+Intended files only:
+
+```text
+lib/report-generation/report-generation-service.ts
+lib/report-generation/index.ts
+```
+
+Intended goal:
+
+```text
+- scaffold report generation service on top of types/report-generation.ts
+- separate mock/fallback vs real-engine path clearly
+- no UI change
+- no public report route
+- no wiki
+- no SEO indexing route
+- no payment/private logic
+- no commit/tag/push inside runner
+```
+
+### v0.1.94 failed attempt: README overwrite incident
+
+The assistant produced an artifact ZIP for `v0.1.94-report-generation-service-scaffold` that contained a root-level `README.md`.
+
+The user extracted/copied the artifact inside:
+
+```text
+C:\Projects\astro-clean
+```
+
+That root-level artifact `README.md` overwrote/modified the real tracked project `README.md`.
+
+Runner preflight then failed correctly:
+
+```text
+Tracked dirty files:
+ M README.md
+
+FAILED: Tracked working tree is dirty. Commit/stash/restore before running.
+```
+
+Diff inspection confirmed that the real project README was replaced by artifact instruction text:
+
+```text
+# Halleus v0.1.94 report generation service scaffold
+Apply-only artifact. No commit/tag/push.
+...
+```
+
+The real project README originally started with:
+
+```text
+# Astro Clean
+Astro Clean یک MVP فارسی‌زبان برای تجربه آسترولوژی نمادین است.
+...
+```
+
+Recovery was completed:
+
+```text
+- README diff inspected
+- overwritten README backed up to %TEMP%
+- README restored with git restore -- README.md
+- temporary v0.1.94 context ZIP and scaffold runner removed from repo root
+- final git status --short returned no output
+```
+
+Intended v0.1.94 files were not applied. No commit/tag/push was created.
+
+### Failure Ledger entry
+
+Error:
+Artifact ZIP overwrote/modified tracked root README.md before runner preflight.
+
+Where/Version:
+v0.1.94-report-generation-service-scaffold retry attempt after v0.1.93-report-generation-contract at HEAD `3ab098b`.
+
+Cause:
+Artifact ZIP contained a root-level `README.md`. User extracted/copied ZIP contents into `C:\Projects\astro-clean`, which modified the repository's tracked `README.md`. Runner correctly failed because tracked working tree was dirty.
+
+Fixed / Rolled back / Still open:
+Fixed by inspecting the README diff, backing up overwritten README to `%TEMP%`, restoring `README.md` with `git restore -- README.md`, and removing temporary v0.1.94 context ZIP and scaffold runner from repo root. Intended v0.1.94 files were not applied, and no commit/tag/push was created.
+
+Prevention rule:
+Halleus artifacts must never include root-level `README.md`, `package.json`, `docs/*`, source folders, or source-like payload files unless they are explicit intended targets. Prefer a single uniquely named `.ps1` with embedded base64 content. If helper docs are required, use a uniquely named `.txt` under a namespaced artifact folder, never `README.md`. Runner preflight must fail on tracked dirty files and allow only known untracked runner/context ZIP files. Before commit, runner/ZIP/temp artifacts must be removed and `git status --short` must show only intended project files.
+
+Files or systems involved:
+`README.md`, artifact ZIP packaging, PowerShell runner preflight, Git working tree cleanliness, `C:\Projects\astro-clean`.
+
+### Secondary workflow communication failure
+
+A later instruction tried to run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\halleus-094-context-failure-ledger-apply.ps1
+```
+
+but the file did not exist in repo root. It was only available as a sandbox/download artifact and had not been copied into `C:\Projects\astro-clean`.
+
+Prevention rule:
+When providing a downloadable artifact, explicitly say:
+
+```text
+Download the artifact.
+Copy the .ps1 into C:\Projects\astro-clean.
+Then run the command.
+```
+
+Never assume sandbox links already exist in the repository root.
+
+### Correct artifact pattern for Halleus
+
+Preferred artifact shape:
+
+```text
+halleus-094-report-generation-service-scaffold-apply.ps1
+```
+
+The artifact should be a single uniquely named `.ps1` file.
+
+If a ZIP is unavoidable, ZIP root must contain only:
+
+```text
+halleus-094-report-generation-service-scaffold-apply.ps1
+```
+
+or a namespaced non-source folder:
+
+```text
+_halleus_artifacts/v0.1.94/halleus-094-report-generation-service-scaffold-apply.ps1
+_halleus_artifacts/v0.1.94/HALLEUS_ARTIFACT_NOTES_v0.1.94.txt
+```
+
+Forbidden artifact contents unless they are explicit intended targets:
+
+```text
+README.md
+package.json
+docs/*
+payload/
+components/
+lib/
+app/
+src/
+types/
+*.ts
+*.tsx
+*.js
+*.mjs
+*.cjs
+```
+
+If helper instructions are needed, put them in the chat response. Do not include a root-level README.
+
+### Correct runner preflight rules
+
+Runner preflight must:
+
+```text
+- confirm current HEAD/tag if applicable
+- fail on any tracked dirty file
+- allow only known untracked runner/current ZIP files
+- fail on unrelated untracked source-like files
+- fail on root-level payload/source folders
+- write only explicitly allowed target files
+- never commit/tag/push
+```
+
+Known allowed untracked files for v0.1.94 retry may include:
+
+```text
+halleus-094-*.ps1
+halleus-v0.1.94-*.zip
+```
+
+For v0.1.94 retry, intended new files are only:
+
+```text
+lib/report-generation/report-generation-service.ts
+lib/report-generation/index.ts
+```
+
+Before commit, remove runner/ZIP/temp artifacts. Then `git status --short` must show only intended project files.
+
+### Correct context ZIP request pattern
+
+When requesting context for a batch, ask for exact live files only. Do not ask for whole repo unless absolutely necessary.
+
+For v0.1.94 retry, inspect:
+
+```text
+docs/HALLEUS_PROJECT_CONTEXT.md
+docs/HALLEUS_IDEA_GARDEN.md
+docs/HALLEUS_ENGINE_REALITY_AUDIT.md
+docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md
+types/report-generation.ts
+components/ChartForm.tsx
+app/api/engine/real-chart/route.ts
+lib/astrology
+lib/report-output
+lib/reports
+src/lib/chart
+src/lib/report-output
+types
+package.json
+```
+
+The assistant must not infer current file structure from memory.
+
+### Correct downloadable runner instructions
+
+If providing a downloadable runner, the assistant must say:
+
+```text
+Download the .ps1.
+Copy it into C:\Projects\astro-clean.
+Run:
+
+cd C:\Projects\astro-clean
+powershell -ExecutionPolicy Bypass -File .\halleus-094-report-generation-service-scaffold-apply.ps1
+```
+
+If the artifact is a ZIP, the assistant must state exactly what should be extracted and where. For Halleus, avoid ZIPs for small runner batches and prefer a single `.ps1`.
+
+### Keeping Idea Garden involved
+
+Product ideas, roadmap decisions, SEO strategy, public/private report strategy, keyword cluster decisions, and wiki plans belong in:
+
+```text
+docs/HALLEUS_IDEA_GARDEN.md
+```
+
+Before implementing any product idea, the assistant must check whether it is already present in Idea Garden. If the idea is new or materially changed, update Idea Garden in a docs-only batch before implementation or include a clearly planned docs update.
+
+Key active Idea Garden directions:
+
+```text
+- Public Free Reports as SEO Surface
+- Paid Private Reports
+- Public Cohort Report Pages
+- Persian Keyword Cluster Research
+- Wiki-to-Report SEO Funnel
+- Public Report Privacy and Consent System
+- Sky Pulse / Astro Weather
+```
+
+Search Console and active indexing are deferred until the engine and content base are stronger.
+
+### Avoiding repeated bug loops
+
+If a runner/check fails:
+
+```text
+1. Stop.
+2. Do not rerun blindly.
+3. Inspect git status.
+4. Inspect targeted diff.
+5. Restore only known accidental files.
+6. Backup before restoring overwritten tracked files.
+7. If the same batch fails twice, reduce scope.
+8. If artifact/runner strategy caused the failure, fix the strategy before retrying the product batch.
+9. Do not commit/tag/push after failed checks.
+```
+
+### Product progress vs workflow recovery
+
+Do not count workflow cleanup as product progress.
+
+Examples:
+
+```text
+README restore = workflow recovery, not product progress
+Failure Ledger update = workflow hygiene, not product progress
+v0.1.94 service scaffold = product/architecture progress only if files are applied, checks pass, and commit/tag/push happen
+```
+
+The assistant must not claim progress unless the relevant code/docs/check/commit/tag/push/public verification actually happened.
+
+### Next recommended step
+
+Before retrying v0.1.94, perform a docs-only context update that adds this guardrail/failure-ledger entry to `docs/HALLEUS_PROJECT_CONTEXT.md`.
+
+Recommended next batch:
+
+```text
+v0.1.94a-context-runner-guardrails
+```
+
+Allowed file:
+
+```text
+docs/HALLEUS_PROJECT_CONTEXT.md
+```
+
+Forbidden files:
+
+```text
+README.md
+package.json
+app/*
+components/*
+lib/*
+src/*
+types/*
+scripts/*
+docs/HALLEUS_IDEA_GARDEN.md unless explicitly updating product ideas
+```
+
+After guardrails are committed, retry the original product batch:
+
+```text
+v0.1.94-report-generation-service-scaffold
+```
+
+Allowed files for retry:
+
+```text
+lib/report-generation/report-generation-service.ts
+lib/report-generation/index.ts
+```
+
+Artifact shape for retry:
+
+```text
+single uniquely named .ps1
+embedded base64 UTF-8 no BOM
+no ZIP README
+no payload in repo root
+no commit/tag/push inside runner
+```
+
+Required checks for retry:
+
+```text
+pnpm run check:encoding
+git --no-pager diff --check
+pnpm build
+```
