@@ -11,6 +11,7 @@
 - Current commit when this garden was created: `209bfe6`
 - Latest completed product/code milestone before this garden: `v0.1.84-technical-seo-baseline`
 - This document starts the garden only. It does not change app code, SEO code, astrology logic, reports, or routes.
+- Latest garden update planned after `v0.1.89-homepage-product-proof`: add public/free report SEO strategy, paid/private report strategy, keyword-cluster research, and wiki-to-report growth funnel as seeds only.
 
 ## How to read seed status
 
@@ -50,6 +51,12 @@ Before developing any seed, decide:
 | Multilingual / Content / SEO Ecosystem | deferred | high | high | later growth | start only after Persian product has proof |
 | Admin-controlled Feature Flags | touched conceptually | high | medium | platform foundation | keep features toggleable as product grows |
 | Sky Pulse / Astro Weather | new / untouched / risky | very high | medium-high | homepage engagement | start with date card, not full transit engine |
+| Public Free Reports as SEO Surface | new / risky | very high | high | SEO growth + free tier | design consent, nickname, slug, and indexability rules before code |
+| Paid Private Reports | new / risky | very high | medium-high | monetization + trust | define private/noindex report behavior and paid upgrade promise |
+| Public Cohort Report Pages | new / risky | very high | medium | safer SEO growth | design non-personal pages like Dey-born users in Shiraz |
+| Persian Keyword Cluster Research | new / untouched | very high | medium | content/SEO foundation | do live keyword research before writing wiki/report templates |
+| Wiki-to-Report SEO Funnel | new / untouched | very high | medium | growth | map each wiki cluster to chart/report CTAs and public report templates |
+| Public Report Privacy and Consent System | new / risky | very high | high | trust/compliance | require explicit public-share consent, nickname, and unpublish rules |
 
 ---
 
@@ -311,24 +318,199 @@ Do not do yet:
 
 ---
 
+### 17. Public Free Reports as SEO Surface
+
+- Status: `new / risky`
+- Product value: `very high`
+- SEO value: `very high`
+- Stage: `growth + free tier strategy`
+
+Free reports can become public, indexable SEO surfaces instead of only private one-off outputs. The free tier may require the user to publish/share an indexable version of the report, while the paid tier can unlock private/noindex reports and deeper personalization.
+
+Core idea:
+- Free report: public, indexable, nickname allowed, SEO-friendly.
+- Paid report: private option, noindex/private by default, deeper and more personal.
+- Public page examples:
+  - birth chart report for Dey-born users in Shiraz.
+  - astrology report for a nickname, with sensitive details minimized.
+  - cohort pages such as Dey-born users in Shiraz, not tied to one individual.
+
+Product rationale:
+- Turns each free report into a possible long-tail organic entry point.
+- Gives the user value without payment while giving Halleus public content surface.
+- Creates a natural paid upgrade: privacy + depth + fuller reading.
+
+Privacy/consent requirements:
+- The free flow must explicitly say that the generated free report will be public and indexable.
+- The user must be able to use a nickname instead of a real name.
+- Do not expose sensitive personal details unnecessarily.
+- Consider hiding or generalizing exact birth time on public pages.
+- Provide unpublish/delete instructions before relying on this at scale.
+- Never make a report public by surprise.
+
+Next smallest step:
+- Design the public/private report data contract and consent copy before any public route is created.
+
+Do not do yet:
+- Do not index user-generated reports before consent/privacy/product language is clear.
+- Do not create public report URLs before engine quality and report structure are more trustworthy.
+
+### 18. Paid Private Reports
+
+- Status: `new / risky`
+- Product value: `very high`
+- Stage: `monetization + trust`
+
+The paid tier should make privacy and depth part of the value proposition.
+
+Paid/private behavior:
+- Private report option.
+- Noindex/private status for paid/private reports.
+- More detailed interpretation than the public/free version.
+- Clearer personal sections and less SEO-shaped text.
+- Potential manual order bridge until payment/backend exists.
+
+Next smallest step:
+- Define report visibility states: `public_free`, `private_paid`, `unlisted`, `draft`, `unpublished`.
+
+Do not do yet:
+- Do not implement payment/private storage before the report model and consent UX are designed.
+
+### 19. Public Cohort Report Pages
+
+- Status: `new / risky`
+- Product value: `very high`
+- SEO value: `very high`
+- Stage: `safer SEO growth`
+
+A safer alternative or companion to individual public reports: generate pages around cohorts instead of one person's report.
+
+Examples:
+- گزارش چارت تولد دی‌ماهی‌ها در شیراز
+- تحلیل کلی متولدین فروردین در تهران
+- چارت تولد با تاکید روی شهر تولد و ماه تولد
+- راهنمای خواندن گزارش چارت تولد برای متولدین یک ماه
+
+Why this matters:
+- Cohort pages can target long-tail keywords without exposing one person's full report.
+- They can link into `/chart` as a personalized next step.
+- They can become part of the wiki/content system.
+
+Next smallest step:
+- Design URL and title patterns for cohort pages separately from individual report pages.
+
+Do not do yet:
+- Do not auto-generate thin/duplicate pages at scale.
+- Do not create pages that feel like spam or keyword stuffing.
+
+### 20. Persian Keyword Cluster Research
+
+- Status: `new / untouched`
+- Product value: `very high`
+- Stage: `content and SEO foundation`
+
+Before serious indexing or wiki scaling, Halleus needs live keyword research around Persian astrology, birth chart, transit, zodiac, houses, planets, and report intent.
+
+Research goals:
+- Find Persian long-tail clusters.
+- Separate informational intent from report-generation intent.
+- Map each cluster to a page type:
+  - wiki article
+  - public cohort page
+  - public free report template
+  - chart/report CTA page
+- Use keywords naturally inside report and wiki copy.
+- Avoid keyword stuffing.
+
+Important rule:
+- Do not invent "latest Google clusters" from memory. This must be a live research batch using current search results, search suggestions, and competitor/content patterns.
+
+Next smallest step:
+- Run a dedicated keyword research batch and produce a cluster map before writing large wiki content.
+
+Do not do yet:
+- Do not publish a large wiki cluster based only on assumptions.
+
+### 21. Wiki-to-Report SEO Funnel
+
+- Status: `new / untouched`
+- Product value: `very high`
+- Stage: `growth architecture`
+
+Wiki content should not be isolated. Each article should connect to the report product.
+
+Funnel examples:
+- Article: خانه هفتم در چارت تولد -> CTA to relationship section in personal report.
+- Article: ونوس در چارت تولد -> CTA to love/values reading.
+- Article: مرکوری رتروگرید -> CTA to Sky Pulse and personal timing.
+- Article: چارت تولد چیست -> CTA directly to `/chart`.
+
+Next smallest step:
+- Design article template with internal links, product CTA blocks, and related-report links.
+
+Do not do yet:
+- Do not write many articles before the template and keyword map exist.
+
+### 22. Public Report Privacy and Consent System
+
+- Status: `new / risky`
+- Product value: `very high`
+- Stage: `trust foundation`
+
+Public/free SEO reports require explicit consent and strong user-facing language.
+
+Required UX concepts:
+- Public/free choice explained before submit.
+- Nickname field instead of real-name requirement.
+- "This report may be public and indexable" checkbox.
+- Paid/private alternative explained clearly.
+- Unpublish/delete request path.
+- No accidental indexing of private reports.
+
+Next smallest step:
+- Draft the consent copy and report visibility states before route/code work.
+
+Do not do yet:
+- Do not build public indexable user pages until this seed is designed and accepted.
+
+
 ## Suggested next sequence
 
-1. `v0.1.87-homepage-sky-pulse-date-card`
-   - Add a small living date card to the homepage.
-   - Show today/Jalali/leap-year-aware copy.
-   - No real transit claims yet.
+1. `v0.1.90-idea-garden-public-report-seo`
+   - Record public/free report SEO strategy, paid/private report strategy, consent risk, keyword-cluster research, and wiki-to-report funnel in this garden.
+   - Docs only.
 
-2. `v0.1.88-sky-pulse-transit-model`
-   - Define a safe data model for future transit summaries.
-   - Keep calculations/source separate from copy.
+2. `v0.1.91-engine-reality-audit`
+   - Audit what the astrology/report engine actually calculates now.
+   - Separate real computed data from copy/naturalization.
+   - Identify gaps: houses, aspects, degrees, retrograde, timezone/city accuracy, public report readiness.
 
-3. `v0.1.89-homepage-real-product-proof`
-   - Add proof/sample/value to the homepage.
-   - Clarify free vs fuller report.
-   - Make homepage feel like a real product.
+3. `v0.1.92-report-visibility-and-seo-model`
+   - Design report visibility states: public free, private paid, unlisted, unpublished.
+   - Design consent copy, nickname behavior, noindex/private behavior, and public slug fields.
+   - No public route yet.
 
-4. Render/public SEO verification
-   - Verify deployed URL, `/robots.txt`, `/sitemap.xml`, canonical URLs, and Search Console readiness.
+4. `v0.1.93-public-report-url-and-cohort-plan`
+   - Design URL patterns for public reports and cohort pages.
+   - Compare individual public report pages vs safer cohort pages like Dey-born users in Shiraz.
+   - Define sitemap/noindex rules.
+
+5. `v0.1.94-persian-keyword-cluster-research`
+   - Live keyword research for Persian astrology/search intent.
+   - Produce cluster map for wiki, public report templates, and chart/report CTAs.
+   - Do not rely on memory for "latest Google clusters."
+
+6. `v0.1.95-wiki-content-system`
+   - Build article data model, wiki index, article template, internal linking, and CTA blocks.
+   - Keep it cluster-driven.
+
+7. `v0.1.96-engine-depth-foundation`
+   - Make the report engine deeper before scaling public/indexable reports.
+   - Improve report structure around computed placements/aspects/houses if available.
+
+8. `v0.1.97-public-free-report-prototype`
+   - First public/free report prototype with explicit consent and nickname.
+   - Not before report visibility and privacy rules are accepted.
 
 ## Not implemented yet
 
@@ -338,6 +520,13 @@ The following are ideas only at the time this file was created:
 - Real transit calculation
 - Personalized transit report section
 - Search Console verification/submission
+- Public/free indexable report pages
+- Paid/private report mode
+- Public report consent system
+- Public cohort pages such as month/city pages
+- Persian keyword cluster research
+- Wiki-to-report SEO funnel
+- Large wiki content cluster
 - Real payment/backend/account system
 - Full admin system
 - PDF/export/email notifications
