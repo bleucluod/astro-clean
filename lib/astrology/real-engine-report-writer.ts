@@ -12,6 +12,7 @@ import {
 
 type SignCopy = {
   faName: string;
+  enName: string;
   energy: string;
   gift: string;
   growth: string;
@@ -41,72 +42,84 @@ const SIGN_ORDER: ZodiacKey[] = [
 const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   aries: {
     faName: "حمل",
+    enName: "Aries",
     energy: "شروع‌کننده، مستقیم و پرحرارت",
     gift: "جرئت شروع کردن و جلو بردن چیزهایی که هنوز شکل نگرفته‌اند",
     growth: "تمرین مکث، شنیدن و کامل‌کردن مسیر بعد از موج اول انگیزه",
   },
   taurus: {
     faName: "ثور",
+    enName: "Taurus",
     energy: "آرام، بدن‌مند و ثبات‌ساز",
     gift: "ساختن امنیت، لذت و ریتمی که واقعاً دوام می‌آورد",
     growth: "رها کردن چسبندگی به چیزی که فقط از روی عادت امن به نظر می‌رسد",
   },
   gemini: {
     faName: "جوزا",
+    enName: "Gemini",
     energy: "کنجکاو، ذهنی و ارتباطی",
     gift: "دیدن چند زاویه هم‌زمان و تبدیل تجربه به کلمه، ایده و گفتگو",
     growth: "عمیق‌تر ماندن با یک مسیر به‌جای پریدن سریع بین احتمال‌ها",
   },
   cancer: {
     faName: "سرطان",
+    enName: "Cancer",
     energy: "حساس، حافظه‌محور و مراقبت‌گر",
     gift: "ساختن حس خانه، تعلق و پیوند عاطفی واقعی",
     growth: "مرزبندی احساسی تا مراقبت تبدیل به فرسودگی یا وابستگی نشود",
   },
   leo: {
     faName: "اسد",
+    enName: "Leo",
     energy: "گرم، نمایان و خلاق",
     gift: "تاباندن حضور، شادی و بیان شخصی به محیط اطراف",
     growth: "درخشش بدون نیاز دائمی به تأیید بیرونی",
   },
   virgo: {
     faName: "سنبله",
+    enName: "Virgo",
     energy: "دقیق، اصلاح‌گر و خدمت‌محور",
     gift: "دیدن جزئیات مهم و بهتر کردن چیزها به شکل عملی",
     growth: "کمتر سخت گرفتن به خود و پذیرفتن اینکه کامل بودن همیشه لازم نیست",
   },
   libra: {
     faName: "میزان",
+    enName: "Libra",
     energy: "رابطه‌محور، زیباشناس و تعادل‌جو",
     gift: "دیدن دو طرف ماجرا و ساختن هماهنگی بین آدم‌ها و انتخاب‌ها",
     growth: "تصمیم گرفتن حتی وقتی همه را نمی‌شود راضی نگه داشت",
   },
   scorpio: {
     faName: "عقرب",
+    enName: "Scorpio",
     energy: "عمیق، شدید و دگرگون‌کننده",
     gift: "دیدن حقیقت‌های پنهان و عبور از سطح به لایه‌های واقعی‌تر",
     growth: "اعتماد کردن، نرم شدن و رها کردن کنترل وقتی رابطه امن است",
   },
   sagittarius: {
     faName: "قوس",
+    enName: "Sagittarius",
     energy: "جستجوگر، آزاد و معناطلب",
     gift: "دیدن افق بزرگ‌تر و تبدیل تجربه به بینش، مسیر و ایمان شخصی",
     growth: "زمین‌گیر کردن الهام‌ها در عمل و توجه به جزئیات مسیر",
   },
   capricorn: {
     faName: "جدی",
+    enName: "Capricorn",
     energy: "ساختارمند، مسئول و بلندمدت",
     gift: "ساختن چیزی جدی، قابل اتکا و مرحله‌به‌مرحله",
     growth: "اجازه دادن به نرمی، بازی و استراحت کنار مسئولیت",
   },
   aquarius: {
     faName: "دلو",
+    enName: "Aquarius",
     energy: "مستقل، آینده‌نگر و متفاوت",
     gift: "دیدن الگوهای تازه و آوردن ایده‌هایی که از زمان خود جلوترند",
     growth: "وصل ماندن به بدن و رابطه، نه فقط ایده و فاصله ذهنی",
   },
   pisces: {
     faName: "حوت",
+    enName: "Pisces",
     energy: "شهودی، خیال‌پرداز و مرزناپذیر",
     gift: "حس کردن لایه‌های نامرئی و آوردن مهربانی، هنر و معنا",
     growth: "مرزبندی، وضوح و تبدیل الهام به انتخاب‌های روزمره",
@@ -229,10 +242,10 @@ function buildRealEngineSummary({
   const rising = SIGN_COPY[risingSign];
 
   if (sunSign && moonSign) {
-    return `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است. خورشید تو در ${sunSign.faName}، ماه تو در ${moonSign.faName} و رایزینگ تقریبی تو در ${rising.faName} قرار دارد. ترکیب کلی چارت، شخصیتی را نشان می‌دهد که از یک طرف با انرژی ${sunSign.energy} حرکت می‌کند و از طرف دیگر برای امنیت درونی به کیفیت ${moonSign.energy} نیاز دارد. رایزینگ ${rising.faName} هم نحوه ورود تو به موقعیت‌ها و اولین تصویری که از خودت نشان می‌دهی را رنگ‌آمیزی می‌کند.`;
+    return `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است. خورشید تو در ${formatSignLabel(sunSign)}، ماه تو در ${formatSignLabel(moonSign)} و رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد. ترکیب کلی چارت، شخصیتی را نشان می‌دهد که از یک طرف با انرژی ${sunSign.energy} حرکت می‌کند و از طرف دیگر برای امنیت درونی به کیفیت ${moonSign.energy} نیاز دارد. رایزینگ ${formatSignLabel(rising)} هم نحوه ورود تو به موقعیت‌ها و اولین تصویری که از خودت نشان می‌دهی را رنگ‌آمیزی می‌کند.`;
   }
 
-  return `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است. داده‌های اصلی چارت در snapshot ذخیره شده‌اند و رایزینگ تقریبی تو در ${rising.faName} قرار دارد. متن گزارش بر اساس همین داده‌ها ساخته شده و در نسخه‌های بعدی با لایه‌های خانه‌ها و aspectها عمیق‌تر می‌شود.`;
+  return `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است. داده‌های اصلی چارت در snapshot ذخیره شده‌اند و رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد. متن گزارش بر اساس همین داده‌ها ساخته شده و در نسخه‌های بعدی با لایه‌های خانه‌ها و aspectها عمیق‌تر می‌شود.`;
 }
 
 function buildCorePlacementText(
@@ -246,7 +259,7 @@ function buildCorePlacementText(
   const planet = PLANET_COPY[planetId];
   const sign = SIGN_COPY[placement.signId];
 
-  return `${planet.faName}، یعنی ${planet.title}، در ${formatPlacement(placement)} قرار دارد. این جایگاه نشان می‌دهد که ${planet.role}. کیفیت ${sign.faName} این بخش از تو را ${sign.energy} می‌کند. هدیه این جایگاه ${sign.gift} است؛ و مسیر رشدش این است: ${sign.growth}.`;
+  return `${planet.faName}، یعنی ${planet.title}، در ${formatPlacement(placement)} قرار دارد. این جایگاه نشان می‌دهد که ${planet.role}. کیفیت ${formatSignLabel(sign)} این بخش از تو را ${sign.energy} می‌کند. هدیه این جایگاه ${sign.gift} است؛ و مسیر رشدش این است: ${sign.growth}.`;
 }
 
 function buildOptionalPlacementText(
@@ -260,13 +273,13 @@ function buildOptionalPlacementText(
   const planet = PLANET_COPY[planetId];
   const sign = SIGN_COPY[placement.signId];
 
-  return `${planet.faName} در ${formatPlacement(placement)} نشسته است. در لایه ${planet.title}، این یعنی ${planet.role}. وقتی این بخش با انرژی ${sign.faName} کار می‌کند، نقطه قوت اصلی‌اش ${sign.gift} است و چالش طبیعی‌اش ${sign.growth}.`;
+  return `${planet.faName} در ${formatPlacement(placement)} نشسته است. در لایه ${planet.title}، این یعنی ${planet.role}. وقتی این بخش با انرژی ${formatSignLabel(sign)} کار می‌کند، نقطه قوت اصلی‌اش ${sign.gift} است و چالش طبیعی‌اش ${sign.growth}.`;
 }
 
 function buildRisingText(signKey: ZodiacKey, longitude: number) {
   const sign = SIGN_COPY[signKey];
 
-  return `رایزینگ تقریبی تو در ${sign.faName} است (${formatDegree(longitude)} روی دایره چارت). رایزینگ درباره «اولین تماس تو با جهان» حرف می‌زند: اینکه چطور وارد فضاها می‌شوی، چطور دیده می‌شوی و بدنت با موقعیت‌های تازه چه ریتمی می‌گیرد. با ${sign.faName}، ورود تو رنگ ${sign.energy} دارد.`;
+  return `رایزینگ تقریبی تو در ${formatSignLabel(sign)} است (${formatDegree(longitude)} روی دایره چارت). رایزینگ درباره «اولین تماس تو با جهان» حرف می‌زند: اینکه چطور وارد فضاها می‌شوی، چطور دیده می‌شوی و بدنت با موقعیت‌های تازه چه ریتمی می‌گیرد. با ${formatSignLabel(sign)}، ورود تو رنگ ${sign.energy} دارد.`;
 }
 
 function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
@@ -294,9 +307,9 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
     .slice(0, 6)
     .map((placement) => {
       const planet = PLANET_COPY[placement.id]?.faName ?? placement.label;
-      const sign = SIGN_COPY[placement.signId]?.faName ?? placement.signId;
+      const sign = SIGN_COPY[placement.signId];
 
-      return `${planet} در ${sign}`;
+      return `${planet} در ${sign ? formatSignLabel(sign) : placement.signId}`;
     })
     .join("، ");
 
@@ -314,9 +327,13 @@ function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {
 }
 
 function formatPlacement(placement: RealEngineReportPlacement) {
-  return `${SIGN_COPY[placement.signId].faName}، درجه ${formatDegree(
+  return `${formatSignLabel(SIGN_COPY[placement.signId])}، درجه ${formatDegree(
     placement.degreeInSign,
   )}`;
+}
+
+function formatSignLabel(sign: SignCopy) {
+  return `${sign.faName} (${sign.enName})`;
 }
 
 function formatDegree(value: number) {
