@@ -1,3 +1,6 @@
+import { ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
+import type { ZodiacKey } from "@/types/astro";
+
 export type RealChartWheelPlacement = {
   id: string;
   label: string;
@@ -12,19 +15,19 @@ type RealChartWheelProps = {
   ascendantLongitude: number;
 };
 
-const WHEEL_SIGNS = [
-  { id: "aries", label: "حمل", glyph: "♈" },
-  { id: "taurus", label: "ثور", glyph: "♉" },
-  { id: "gemini", label: "جوزا", glyph: "♊" },
-  { id: "cancer", label: "سرطان", glyph: "♋" },
-  { id: "leo", label: "اسد", glyph: "♌" },
-  { id: "virgo", label: "سنبله", glyph: "♍" },
-  { id: "libra", label: "میزان", glyph: "♎" },
-  { id: "scorpio", label: "عقرب", glyph: "♏" },
-  { id: "sagittarius", label: "قوس", glyph: "♐" },
-  { id: "capricorn", label: "جدی", glyph: "♑" },
-  { id: "aquarius", label: "دلو", glyph: "♒" },
-  { id: "pisces", label: "حوت", glyph: "♓" },
+const WHEEL_SIGNS: Array<{ id: ZodiacKey; glyph: string }> = [
+  { id: "aries", glyph: "?" },
+  { id: "taurus", glyph: "?" },
+  { id: "gemini", glyph: "?" },
+  { id: "cancer", glyph: "?" },
+  { id: "leo", glyph: "?" },
+  { id: "virgo", glyph: "?" },
+  { id: "libra", glyph: "?" },
+  { id: "scorpio", glyph: "?" },
+  { id: "sagittarius", glyph: "?" },
+  { id: "capricorn", glyph: "?" },
+  { id: "aquarius", glyph: "?" },
+  { id: "pisces", glyph: "?" },
 ];
 
 const PLANET_GLYPHS: Record<string, string> = {
@@ -102,12 +105,21 @@ export function RealChartWheel({
                 </text>
                 <text
                   x={labelPoint.x}
-                  y={labelPoint.y + 14}
+                  y={labelPoint.y + 10}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   className="fill-[#8A6A51] text-[8px] font-semibold"
                 >
-                  {sign.label}
+                  {ZODIAC_LABELS[sign.id].faName}
+                </text>
+                <text
+                  x={labelPoint.x}
+                  y={labelPoint.y + 22}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="fill-[#9A6B45] text-[6px] font-semibold"
+                >
+                  {ZODIAC_LABELS[sign.id].enName}
                 </text>
               </g>
             );
