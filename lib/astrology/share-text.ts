@@ -1,4 +1,9 @@
-﻿import type { AstrologyReport } from "@/types/astro";
+import {
+  formatZodiacLabel,
+  formatZodiacSign,
+  zodiacSignFromLongitude,
+} from "@/lib/astrology/zodiac-labels";
+import type { AstrologyReport } from "@/types/astro";
 
 function formatReportTitle(report: AstrologyReport): string {
   return report.input.name
@@ -11,7 +16,23 @@ function formatBirthLine(report: AstrologyReport): string {
 }
 
 function formatChartLine(report: AstrologyReport): string {
-  return `نشانه‌های اصلی: خورشید در ${report.chart.sunSign.faName}، ماه در ${report.chart.moonSign.faName}، رایزینگ ${report.chart.risingSign.faName}`;
+  const sun = report.realEngine?.placements.find((placement) => placement.id === "sun");
+  const moon = report.realEngine?.placements.find((placement) => placement.id === "moon");
+  const rising = report.realEngine
+    ? zodiacSignFromLongitude(report.realEngine.ascendantLongitude)
+    : undefined;
+
+  const sunLabel = sun
+    ? formatZodiacLabel(sun.signId)
+    : formatZodiacSign(report.chart.sunSign);
+  const moonLabel = moon
+    ? formatZodiacLabel(moon.signId)
+    : formatZodiacSign(report.chart.moonSign);
+  const risingLabel = rising
+    ? formatZodiacLabel(rising)
+    : formatZodiacSign(report.chart.risingSign);
+
+  return `نشانه‌های اصلی: خورشید در ${sunLabel}، ماه در ${moonLabel}، رایزینگ ${risingLabel}`;
 }
 
 export function createShareText(report: AstrologyReport): string {
