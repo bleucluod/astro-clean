@@ -11,7 +11,7 @@ import {
   getSignCopyEntry,
 } from "./real-chart-copy-library";
 
-export const REAL_CHART_REPORT_COPY_VERSION = "0.1.100" as const;
+export const REAL_CHART_REPORT_COPY_VERSION = "0.1.101" as const;
 
 export type RealChartReportCopyBlock = {
   id: string;
@@ -114,20 +114,44 @@ function formatDegreeKey(value: number): string {
   return rounded.toFixed(1);
 }
 
+function formatOrbLabel(value: number): string {
+  const rounded = Number.isFinite(value) ? Math.round(value * 10) / 10 : 0;
+
+  return `${rounded}${String.fromCharCode(176)}`;
+}
+
+function formatOrbKey(value: number): string {
+  const rounded = Number.isFinite(value) ? Math.round(value * 10) / 10 : 0;
+
+  return rounded.toFixed(1);
+}
+
 export function buildAspectCopy(
   aspect: ChartReportAspectSummary,
 ): RealChartReportCopyBlock {
   const pointA = getPointCopyEntry(aspect.pointA);
   const pointB = getPointCopyEntry(aspect.pointB);
   const aspectEntry = getAspectCopyEntry(aspect.id);
+  const aspectDataLine = [
+    `${pointA.labelFa}:`,
+    aspectEntry.labelFa,
+    `${pointB.labelFa}.`,
+    `orb:${formatOrbKey(aspect.orb)}`,
+    `polarity:${aspect.polarity}`,
+  ].join(` `);
 
   return {
     id: `aspect-copy-${aspect.pointA}-${aspect.id}-${aspect.pointB}`,
-    title: `${pointA.labelFa} و ${pointB.labelFa}: ${aspectEntry.labelFa}`,
+    title: `${pointA.labelFa} و ${pointB.labelFa}: ${aspectEntry.labelFa} · ${formatOrbLabel(aspect.orb)}`,
     body:
-      `${aspectEntry.copy} در این رابطه، ${pointA.labelFa} و ${pointB.labelFa} مثل دو صدای متفاوت در یک گفت‌وگوی درونی دیده می‌شوند. ` +
+      `${aspectEntry.copy} ${aspectDataLine} در این رابطه، ${pointA.labelFa} و ${pointB.labelFa} مثل دو صدای متفاوت در یک گفت‌وگوی درونی دیده می‌شوند. ` +
       "متن باید به کاربر کمک کند الگو را ببیند، بدون اینکه او را بترساند یا محدود کند.",
-    sourceKeys: [aspect.summaryKey, ...aspectEntry.keywords],
+    sourceKeys: [
+      aspect.summaryKey,
+      `orb:${formatOrbKey(aspect.orb)}`,
+      `polarity:${aspect.polarity}`,
+      ...aspectEntry.keywords,
+    ],
   };
 }
 
