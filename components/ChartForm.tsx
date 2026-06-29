@@ -12,6 +12,7 @@ import type {
   BirthInput,
   RealEngineReportSnapshot,
 } from "@/types/astro";
+import type { GeneratedReportContract } from "@/types/report-generation";
 import {
   IRAN_CITY_OPTIONS,
   findIranCityByName,
@@ -82,6 +83,13 @@ type RealChartApiResponse = {
     ascendantLongitude: number;
     calculationNotes: string[];
     placements: RealEnginePlacement[];
+  } | null;
+  report?: AstrologyReport | null;
+  reportGeneration?: GeneratedReportContract | null;
+  fallback?: {
+    used: boolean;
+    reason: string | null;
+    safeUserMessage: string | null;
   };
 };
 
@@ -230,15 +238,24 @@ export function ChartForm() {
 
       const payload = (await response.json()) as RealChartApiResponse;
 
-      if (!response.ok || !payload.ok || !payload.realChart) {
+      if (!response.ok && !payload.report) {
         throw new Error(
           payload.error ?? "محاسبه دقیق چارت برای این ورودی کامل نشد.",
         );
       }
 
+      if (!payload.report && !payload.realChart) {
+        throw new Error(
+          payload.error ?? "سرویس گزارش در این لحظه خروجی قابل ذخیره نداد.",
+        );
+      }
+
       setRealEngineRequest({
         status: "ready",
-        message: "محاسبه چارت کامل شد و گزارش در حال ذخیره شدن است.",
+        message: payload.realChart
+          ? "محاسبه چارت کامل شد و گزارش سرویس در حال ذخیره شدن است."
+          : payload.fallback?.safeUserMessage ??
+            "گزارش با مسیر امن fallback ساخته شد و در حال ذخیره شدن است.",
       });
 
       return payload;
@@ -286,20 +303,17 @@ export function ChartForm() {
       // Keep the safe report save flow alive if the deeper chart calculation is unavailable.
     }
 
-    const baseReport = enhanceReportOutputV2(createMockReport(normalizedForm));
-    const nextReport = attachRealEngineSnapshotToReport(
-      baseReport,
-      realEngineResult,
-      engineCity,
-    );
+    const nextReport =
+      realEngineResult?.report ??
+      buildLocalFallbackReport(normalizedForm, realEngineResult, engineCity);
 
     await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();
 
     setSaveMessage(
       nextReport.realEngine
-        ? "گزارش تولد ساخته و ذخیره شد. تا چند لحظه دیگر صفحه جزئیات باز می‌شود."
-        : "گزارش تولد ساخته و ذخیره شد. اگر محاسبه دقیق در این لحظه کامل نشد، Halleus مسیر امن ذخیره گزارش را حفظ کرد. تا چند لحظه دیگر صفحه جزئیات باز می‌شود.",
+        ? "گزارش تولد با سرویس تولید گزارش ساخته و ذخیره شد. تا چند لحظه دیگر صفحه جزئیات باز می‌شود."
+        : "گزارش تولد با مسیر امن fallback ساخته و ذخیره شد. تا چند لحظه دیگر صفحه جزئیات باز می‌شود.",
     );
 
     router.push(`/reports/${nextReport.id}`);
@@ -531,6 +545,16 @@ export function ChartForm() {
       </section>
     </div>
   );
+}
+
+function buildLocalFallbackReport(
+  normalizedForm: BirthInput,
+  payload: RealChartApiResponse | null,
+  engineCity: IranCityOption,
+): AstrologyReport {
+  const baseReport = enhanceReportOutputV2(createMockReport(normalizedForm));
+
+  return attachRealEngineSnapshotToReport(baseReport, payload, engineCity);
 }
 
 function attachRealEngineSnapshotToReport(
