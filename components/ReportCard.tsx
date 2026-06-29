@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { createShareText } from "@/lib/astrology/share-text";
+import {
+  formatZodiacLabel,
+  formatZodiacSign,
+  normalizeLongitude,
+  zodiacSignFromLongitude,
+} from "@/lib/astrology/zodiac-labels";
 import type { AstrologyReport, RealEngineReportPlacement } from "@/types/astro";
 
 type ReportCardProps = {
@@ -21,37 +27,6 @@ const PLANET_LABELS_FA: Record<string, string> = {
   pluto: "پلوتو",
 };
 
-const SIGN_LABELS_FA = {
-  aries: "حمل",
-  taurus: "ثور",
-  gemini: "جوزا",
-  cancer: "سرطان",
-  leo: "اسد",
-  virgo: "سنبله",
-  libra: "میزان",
-  scorpio: "عقرب",
-  sagittarius: "قوس",
-  capricorn: "جدی",
-  aquarius: "دلو",
-  pisces: "حوت",
-} as const;
-
-const SIGN_ORDER = [
-  "aries",
-  "taurus",
-  "gemini",
-  "cancer",
-  "leo",
-  "virgo",
-  "libra",
-  "scorpio",
-  "sagittarius",
-  "capricorn",
-  "aquarius",
-  "pisces",
-] as const;
-
-type SignKey = keyof typeof SIGN_LABELS_FA;
 
 type CoreCard = {
   id: string;
@@ -153,7 +128,7 @@ export function ReportCard({ report }: ReportCardProps) {
 
             <div className="mini-card">
               <strong>رایزینگ تقریبی</strong>
-              <span>{formatDegree(report.realEngine.ascendantLongitude)}</span>
+              <span>{formatRisingFromLongitude(report.realEngine.ascendantLongitude)}</span>
             </div>
 
             <div className="mini-card">
@@ -250,7 +225,7 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
   const sun = findPlacement(report, "sun");
   const moon = findPlacement(report, "moon");
   const risingSign = report.realEngine
-    ? signFromLongitude(report.realEngine.ascendantLongitude)
+    ? zodiacSignFromLongitude(report.realEngine.ascendantLongitude)
     : report.chart.risingSign.key;
   const risingDegree = report.realEngine
     ? normalizeLongitude(report.realEngine.ascendantLongitude) % 30
@@ -261,7 +236,7 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
       id: "sun",
       title: "خورشید",
       eyebrow: "هویت و مسیر رشد",
-      value: sun ? formatPlacement(sun) : report.chart.sunSign.faName,
+      value: sun ? formatPlacement(sun) : formatZodiacSign(report.chart.sunSign),
       description:
         "خورشید نشان می‌دهد کجا حس زنده بودن، اعتمادبه‌نفس و جهت اصلی زندگی پررنگ‌تر می‌شود.",
     },
@@ -269,7 +244,7 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
       id: "moon",
       title: "ماه",
       eyebrow: "نیاز احساسی",
-      value: moon ? formatPlacement(moon) : report.chart.moonSign.faName,
+      value: moon ? formatPlacement(moon) : formatZodiacSign(report.chart.moonSign),
       description:
         "ماه درباره امنیت درونی، واکنش‌های احساسی و چیزی حرف می‌زند که دل تو برای آرام شدن لازم دارد.",
     },
@@ -279,8 +254,8 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
       eyebrow: "ورود به جهان",
       value:
         risingDegree === undefined
-          ? SIGN_LABELS_FA[risingSign]
-          : `${SIGN_LABELS_FA[risingSign]}، درجه ${formatDegree(risingDegree)}`,
+          ? formatZodiacLabel(risingSign)
+          : `${formatZodiacLabel(risingSign)}، درجه ${formatDegree(risingDegree)}`,
       description:
         "رایزینگ رنگ اولین برخورد تو با موقعیت‌ها، بدن، فضاهای تازه و تصویری را که از خودت نشان می‌دهی مشخص می‌کند.",
     },
@@ -296,9 +271,22 @@ function getPlanetLabel(id: string, fallback: string) {
 }
 
 function formatPlacement(placement: RealEngineReportPlacement) {
-  return `${SIGN_LABELS_FA[placement.signId]}، درجه ${formatDegree(
+  return `${formatZodiacLabel(placement.signId)}، درجه ${formatDegree(
     placement.degreeInSign,
   )}`;
+}
+
+function formatRisingFromLongitude(longitude: number) {
+  const signId = zodiacSignFromLongitude(longitude);
+
+  return formatPlacement({
+    id: "rising",
+    label: "rising",
+    longitude,
+    signId,
+    degreeInSign: normalizeLongitude(longitude) % 30,
+    method: "computed",
+  });
 }
 
 function formatDegree(value: number) {
@@ -311,15 +299,4 @@ function formatShortUtc(utcIso: string) {
   }
 
   return utcIso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
-}
-
-function signFromLongitude(longitude: number): SignKey {
-  const normalized = normalizeLongitude(longitude);
-  const index = Math.floor(normalized / 30) % SIGN_ORDER.length;
-
-  return SIGN_ORDER[index];
-}
-
-function normalizeLongitude(longitude: number) {
-  return ((longitude % 360) + 360) % 360;
 }
