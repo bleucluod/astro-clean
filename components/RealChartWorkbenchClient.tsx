@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { ZodiacKey } from "@/types/astro";
+import { formatZodiacLabel, ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
 import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
 import { RealChartAspectPanel } from "./RealChartAspectPanel";
 import { RealChartWheel } from "./RealChartWheel";
@@ -51,21 +53,6 @@ const DEFAULT_FORM: RealChartWorkbenchForm = {
   placeName: "Baku",
   latitude: "40.4093",
   longitude: "49.8671",
-};
-
-const SIGN_LABELS: Record<string, string> = {
-  aries: "حمل",
-  taurus: "ثور",
-  gemini: "جوزا",
-  cancer: "سرطان",
-  leo: "اسد",
-  virgo: "سنبله",
-  libra: "میزان",
-  scorpio: "عقرب",
-  sagittarius: "قوس",
-  capricorn: "جدی",
-  aquarius: "دلو",
-  pisces: "حوت",
 };
 
 const PLANET_LABELS_FA: Record<string, string> = {
@@ -315,6 +302,12 @@ function ResultMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function formatWorkbenchZodiacLabel(signId: string): string {
+  return signId in ZODIAC_LABELS
+    ? formatZodiacLabel(signId as ZodiacKey)
+    : signId;
+}
+
 function PlanetPlacementCard({
   placement,
   compact = false,
@@ -322,7 +315,7 @@ function PlanetPlacementCard({
   placement: RealChartPlacement;
   compact?: boolean;
 }) {
-  const signLabel = SIGN_LABELS[placement.signId] ?? placement.signId;
+  const signLabel = formatWorkbenchZodiacLabel(placement.signId);
 
   return (
     <article className="rounded-[1.5rem] border border-[#EFE2D2] bg-[#FFF9F2] p-4">
