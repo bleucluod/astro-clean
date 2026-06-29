@@ -1,3 +1,6 @@
+import type { ZodiacKey } from "@/types/astro";
+import { formatZodiacLabel, ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
+
 import {
   buildReportRealChartBridge,
   getReportRealChartBridgeDescription,
@@ -37,7 +40,9 @@ export function ChartReportBridgePanel({ report }: ChartReportBridgePanelProps) 
           <BridgeList
             title="جایگاه‌های برجسته"
             items={bridge.placementHighlights.map((placement) => {
-              const sign = placement.signId ?? "نامشخص";
+              const sign = placement.signId
+                ? formatBridgeZodiacLabel(placement.signId)
+                : "نامشخص";
               const house =
                 placement.house === null ? "خانه نامشخص" : `خانه ${placement.house}`;
 
@@ -89,6 +94,12 @@ function BridgeStatusPill({ bridge }: { bridge: ReportRealChartBridge }) {
       {label}
     </div>
   );
+}
+
+function formatBridgeZodiacLabel(signId: string): string {
+  return signId in ZODIAC_LABELS
+    ? formatZodiacLabel(signId as ZodiacKey)
+    : signId;
 }
 
 function BridgeList({ title, items }: { title: string; items: string[] }) {
