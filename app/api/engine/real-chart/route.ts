@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { generateReportContract } from "@/lib/report-generation";
 import type { BirthInput, RealEngineReportSnapshot } from "@/types/astro";
-import type { GeneratedReportContract } from "@/types/report-generation";
+import type {
+  GeneratedReportContract,
+  ReportCalculationSource,
+} from "@/types/report-generation";
 
 export const runtime = "nodejs";
 
@@ -12,6 +15,25 @@ type LegacyRealChartPayload = {
   ascendantLongitude: number;
   calculationNotes: string[];
   placements: RealEngineReportSnapshot["placements"];
+};
+
+type ReportOutputQualityLike = {
+  warnings?: string[];
+  [key: string]: unknown;
+};
+
+type RouteReportResponse = NonNullable<GeneratedReportContract["report"]> & {
+  title: string;
+  subjectName: string | null;
+  calculationSource: ReportCalculationSource;
+  outputQuality?: ReportOutputQualityLike;
+};
+
+type RouteReportGenerationResponse = GeneratedReportContract & {
+  title: string;
+  reportTitle: string;
+  calculationSource: ReportCalculationSource;
+  report: RouteReportResponse | null;
 };
 
 export async function POST(request: Request) {
@@ -38,6 +60,13 @@ export async function POST(request: Request) {
     const contract = generation.contract;
     const realChart = buildLegacyRealChartPayload(contract);
     const hasRealChart = realChart !== null;
+    const report = buildRouteReportResponse(contract);
+    const reportTitle = report?.title ?? buildReportTitle(contract);
+    const reportGeneration = buildRouteReportGenerationResponse(
+      contract,
+      report,
+      reportTitle,
+    );
 
     return NextResponse.json({
       ok: hasRealChart,
@@ -48,8 +77,8 @@ export async function POST(request: Request) {
       realChart,
       chartReportEnrichment: contract.engineData.chartReportEnrichment,
       copyBlocks: contract.engineData.copyBlocks,
-      report: contract.report,
-      reportGeneration: contract,
+      report,
+      reportGeneration,
       fallback: contract.fallback,
     });
   } catch (error) {
@@ -103,6 +132,93 @@ function buildLegacyRealChartPayload(
     ],
     placements: snapshot.placements,
   };
+}
+
+function buildRouteReportResponse(
+  contract: GeneratedReportContract,
+): RouteReportResponse | null {
+  if (!contract.report) {
+    return null;
+  }
+
+  const title = buildReportTitle(contract);
+
+  return {
+    ...contract.report,
+    title,
+    subjectName: readString(contract.input.name),
+    calculationSource: contract.engineData.source,
+    outputQuality: buildRouteOutputQuality(contract),
+  };
+}
+
+function buildRouteReportGenerationResponse(
+  contract: GeneratedReportContract,
+  report: RouteReportResponse | null,
+  title: string,
+): RouteReportGenerationResponse {
+  return {
+    ...contract,
+    title,
+    reportTitle: title,
+    calculationSource: contract.engineData.source,
+    report,
+  };
+}
+
+function buildReportTitle(contract: GeneratedReportContract): string {
+  const name = readString(contract.input.name);
+  const city = readString(contract.input.birthCity);
+
+  if (name && city) {
+    return `گزارش چارت تولد ${name} - ${city}`;
+  }
+
+  if (name) {
+    return `گزارش چارت تولد ${name}`;
+  }
+
+  if (city) {
+    return `گزارش چارت تولد - ${city}`;
+  }
+
+  return "گزارش چارت تولد Halleus";
+}
+
+function buildRouteOutputQuality(
+  contract: GeneratedReportContract,
+): ReportOutputQualityLike | undefined {
+  const outputQuality = (
+    contract.report as { outputQuality?: ReportOutputQualityLike } | null
+  )?.outputQuality;
+
+  if (!outputQuality) {
+    return undefined;
+  }
+
+  const warnings = Array.isArray(outputQuality.warnings)
+    ? outputQuality.warnings.filter((warning) => !isOutdatedOutputWarning(warning))
+    : [];
+
+  if (contract.engineData.realEngineSnapshot) {
+    warnings.push(
+      "Real chart placements are active through the report generation service; house and ascendant data remain preview/hardening layers.",
+    );
+  }
+
+  return {
+    ...outputQuality,
+    warnings,
+  };
+}
+
+function isOutdatedOutputWarning(value: string): boolean {
+  const normalized = value.toLowerCase();
+
+  return (
+    normalized.includes("real chart placements are not active yet") ||
+    normalized.includes("real chart placements are not active")
+  );
 }
 
 function readString(value: unknown): string | null {
