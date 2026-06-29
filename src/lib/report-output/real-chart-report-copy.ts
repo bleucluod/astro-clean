@@ -11,7 +11,7 @@ import {
   getSignCopyEntry,
 } from "./real-chart-copy-library";
 
-export const REAL_CHART_REPORT_COPY_VERSION = "0.1.50" as const;
+export const REAL_CHART_REPORT_COPY_VERSION = "0.1.100" as const;
 
 export type RealChartReportCopyBlock = {
   id: string;
@@ -76,15 +76,42 @@ export function buildPlacementCopy(
   const point = getPointCopyEntry(placement.id);
   const sign = getSignCopyEntry(placement.signId);
   const house = getHouseCopyEntry(placement.house);
+  const placementDataLine = [
+    `${point.labelFa}:`,
+    formatDegreeLabel(placement.degreeWithinSign),
+    sign.labelFa,
+    `/`,
+    `${house.labelFa}.`,
+  ].join(` `);
 
   return {
     id: `placement-copy-${placement.id}`,
-    title: `${point.labelFa} در ${sign.labelFa}`,
+    title: `${point.labelFa} در ${sign.labelFa} · ${formatDegreeLabel(placement.degreeWithinSign)} · ${house.labelFa}`,
     body:
-      `${point.copy} ${sign.copy} ${house.copy} ` +
+      `${point.copy} ${sign.copy} ${house.copy} ${placementDataLine} ` +
       "این ترکیب باید مثل یک تم قابل‌تأمل خوانده شود، نه حکم قطعی درباره‌ی شخصیت یا آینده.",
-    sourceKeys: [placement.summaryKey, ...point.keywords, ...sign.keywords, ...house.keywords],
+    sourceKeys: [
+      placement.summaryKey,
+      `degree:${formatDegreeKey(placement.degreeWithinSign)}`,
+      house.id,
+      `tone:${point.tone}:${sign.tone}:${house.tone}`,
+      ...point.keywords,
+      ...sign.keywords,
+      ...house.keywords,
+    ],
   };
+}
+
+function formatDegreeLabel(value: number): string {
+  const rounded = Number.isFinite(value) ? Math.round(value * 10) / 10 : 0;
+
+  return `${rounded}${String.fromCharCode(176)}`;
+}
+
+function formatDegreeKey(value: number): string {
+  const rounded = Number.isFinite(value) ? Math.round(value * 10) / 10 : 0;
+
+  return rounded.toFixed(1);
 }
 
 export function buildAspectCopy(
