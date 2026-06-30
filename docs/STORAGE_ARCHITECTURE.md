@@ -80,3 +80,18 @@ Optional later table when users can save multiple birth profiles.
 ## Rule
 
 Do not build paid features until account storage and real chart calculation exist.
+
+
+## v0.1.106 storage path correction
+
+The next storage step is not full account storage.
+
+The safe MVP path is:
+
+1. Keep local preview storage working.
+2. Add database persistence behind the existing repository/driver contracts.
+3. Save report snapshots with versions and private/noindex visibility.
+4. Read report detail from database only after write/read checks pass.
+5. Add account/profile migration later.
+
+This keeps the project scalable because old report snapshots remain readable even after report generation improves.

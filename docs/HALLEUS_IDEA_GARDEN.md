@@ -37,7 +37,7 @@ Before developing any seed, decide:
 |---|---:|---:|---:|---:|---|
 | Core Birth Report | touched | very high | medium | core | keep improving report clarity and reliability |
 | Jalali-first Persian UX | touched | very high | medium | core | keep chart form simple and Persian-first |
-| Saved Reports / Report History | touched | high | medium | core | make return-to-report behavior feel trustworthy |
+| Saved Reports / Report History | touched | high | medium | core | move from local-only history to server-saved report snapshots |
 | Report Detail as Product Moment | touched | very high | medium | MVP polish | add stronger proof/value and clearer next step |
 | Fuller Report Manual Order | touched | high | medium | monetization bridge | keep order path simple until real payment/backend |
 | Product / Pricing / Privacy Pages | touched | medium-high | low-medium | trust/sales | make copy concrete and user-facing |
@@ -45,7 +45,7 @@ Before developing any seed, decide:
 | Render / GitHub / Public State Tracking | touched | very high | low | ops | keep local/GitHub/Render/public states separate |
 | Astrology Engine Layer | touched / risky | very high | high | post-MVP depth | design stable data contracts before more UI promises |
 | Iran City Dataset | touched | high | medium | birth data foundation | verify completeness and future DB integration |
-| Storage Adapter v1 | deferred | high | medium-high | post-local-storage | design after core local flow stays stable |
+| Storage Adapter v1 | touched | high | medium-high | database MVP | keep repository contract stable while adding server persistence |
 | Account / Dashboard / Admin / Payment | deferred | high | high | post-MVP | do not start before product flow and payment plan are clear |
 | Email Notifications / PDF Export | deferred | medium-high | medium | post-MVP | keep as future retention/export features |
 | Multilingual / Content / SEO Ecosystem | deferred | high | high | later growth | start only after Persian product has proof |
@@ -103,7 +103,7 @@ Next smallest step:
 - Improve the user's sense that reports are preserved and can be revisited.
 
 Do not do yet:
-- Do not add accounts/database until local report flow remains stable.
+- Do not add full accounts/auth/public report database complexity before server-saved report persistence is working.
 
 ### 4. Report Detail as Product Moment
 
@@ -531,3 +531,34 @@ The following are ideas only at the time this file was created:
 - Full admin system
 - PDF/export/email notifications
 
+
+
+---
+
+## v0.1.106 Database MVP decision
+
+Decision:
+
+```text
+Proceed with Database MVP as server-saved report persistence.
+Do not treat this as the final user profile, auth, payment, or public report schema.
+The first database implementation should store versioned report snapshots and keep reports private/noindex by default.
+Manual fuller-report requests can be persisted after report save/read works.
+Public/indexable report behavior remains blocked until explicit consent UX and public/private route design are accepted.
+```
+
+Reason:
+
+```text
+The local report flow is stable enough to justify persistence work.
+Persistence is now more launch-critical than more UI/report-copy polish.
+A snapshot-first database model keeps the project scalable while report depth and profile design continue evolving.
+```
+
+Next smallest step:
+
+- Choose and implement the database connection/driver behind the existing contracts.
+
+Do not do yet:
+
+- Do not implement final profiles/accounts/payment/public reports in the first database batch.

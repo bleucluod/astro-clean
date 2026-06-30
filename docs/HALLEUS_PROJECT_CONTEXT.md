@@ -1,6 +1,6 @@
 # Halleus Project Context
 
-Last updated: 2026-06-28
+Last updated: 2026-06-30
 
 This file is the handoff source of truth for continuing the Halleus project in future ChatGPT sessions. It must track product vision, technical workflow, and release/deployment state. Do not treat local progress, GitHub progress, Render deployment, and the public site as the same thing.
 
@@ -2501,3 +2501,48 @@ For Persian-heavy report copy, avoid complex generated encoded fragments and rep
 
 Files or systems involved:
 `lib/report-output/report-v3.ts`, PowerShell, Node stdin patches, ZIP apply runner, `scripts/check-encoding.mjs`, `pnpm build`, Git diff rendering.
+
+
+## v0.1.106 Database MVP Contract
+
+This checkpoint locks the next product path toward public beta without starting a database implementation yet.
+
+Known live state before this contract:
+
+```text
+HEAD: 58df621
+Tag: v0.1.105a-workflow-ledger-report-section-salvage
+Working tree from database context ZIP: clean before the ZIP itself was created
+Database foundation already exists: migration draft, database driver contract, not-configured driver, row mapper, repository placeholder, and storage docs.
+Active app still uses local preview storage through the repository layer.
+```
+
+Locked decision:
+
+```text
+Database MVP is not the final user profile model.
+Database MVP is server-side persistence for versioned report snapshots.
+The next implementation path must preserve the existing repository contract and avoid rewriting report UI.
+The report output should be saved as snapshots with outputVersion / contractVersion metadata so later report engines do not break older reports.
+User accounts, auth, payment, public/indexable report routes, and final birth profile normalization remain out of scope until server-saved reports work.
+No user report may become public or indexable without explicit consent and a future public/private visibility UX.
+```
+
+Allowed next sequence:
+
+```text
+v0.1.107: inspect env/provider files and choose DB connection approach
+v0.1.108: implement database driver/client behind existing contracts
+v0.1.109: save generated reports to database in a controlled beta path
+v0.1.110: read report detail from database while preserving local fallback
+v0.1.111: persist manual fuller-report order requests
+```
+
+Scope guard:
+
+```text
+Do not implement auth/profile/payment/public report SEO in the same batch as database persistence.
+Do not normalize report sections into many tables yet.
+Do not run or alter production migrations before provider/auth strategy is chosen.
+Do not replace local preview behavior until database read/write is verified.
+```
