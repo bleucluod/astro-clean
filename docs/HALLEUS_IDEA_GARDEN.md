@@ -600,3 +600,22 @@ Why:
 ```text
 This creates a narrow bridge between generated reports and database storage while keeping the product flow stable.
 ```
+
+
+---
+
+## v0.1.111 Guarded beta API note
+
+Decision:
+
+```text
+Add a disabled-by-default guarded beta API route for server report persistence.
+Do not connect the active report UI to the route yet.
+Do not add auth/profile/payment/public reports in this API batch.
+```
+
+Why:
+
+```text
+This creates a testable server save/read surface while preserving the local-first product flow.
+```

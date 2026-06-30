@@ -2633,3 +2633,45 @@ Next safe step:
 Add a guarded beta API route or server action that calls the server persistence service only when database config and a beta user id are explicitly available.
 Keep `/chart`, `/reports`, and `/reports/[reportId]` local-first until the route is verified.
 ```
+
+
+## v0.1.111 Guarded Beta Report Persistence API
+
+This checkpoint adds the first guarded beta API surface for database-backed report persistence without changing the public/local product flow.
+
+Done:
+
+```text
+Added `app/api/reports/beta/route.ts`.
+Added disabled-by-default beta persistence env flags to `.env.example` and `lib/config/env.ts`.
+The beta route requires database config, explicit `HALLEUS_ENABLE_BETA_PERSISTENCE=true`, and a configured beta user id.
+POST can save a generated report through the server persistence service.
+GET can list report summaries or read one report record by report id.
+Readiness checks now include the guarded beta API route and env markers.
+```
+
+Scope guard:
+
+```text
+No UI was connected to the route.
+No auth/profile/payment/public report behavior was added.
+No `.env` secret was read, printed, staged, or modified.
+The active browser flow remains local-first until the API route is manually verified.
+```
+
+#### v0.1.111 runner untracked route guard failure
+
+Error:
+The v0.1.111 apply runner patched the guarded beta API files successfully but stopped before checks because its status guard expected the untracked route directory form instead of the exact untracked file path.
+
+Cause:
+Git reported `?? app/api/reports/beta/route.ts`, while the runner expected `?? app/api/reports/`.
+
+Fixed / Rolled back / Still open:
+Fixed by stopping, diagnosing with git status/diff and a corrected marker probe. No commit/tag/push happened before diagnosis.
+
+Prevention rule:
+For new nested files, runner status guards must allow the exact file path Git reports, not only the parent directory.
+
+Files or systems involved:
+PowerShell runner status guard, Git untracked path reporting, app/api/reports/beta/route.ts.

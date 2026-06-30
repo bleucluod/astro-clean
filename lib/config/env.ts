@@ -6,12 +6,18 @@ export type HalleusRuntimeEnv = {
   databaseUrl?: string;
   authSecret?: string;
   paymentProvider?: string;
+  betaPersistenceEnabled: boolean;
+  betaPersistenceUserId?: string;
 };
 
 function getOptionalEnv(name: string) {
   const value = process.env[name]?.trim();
 
   return value ? value : undefined;
+}
+
+function isEnabledEnv(name: string) {
+  return getOptionalEnv(name)?.toLowerCase() === "true";
 }
 
 export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
@@ -21,6 +27,8 @@ export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
     databaseUrl: getOptionalEnv("DATABASE_URL"),
     authSecret: getOptionalEnv("AUTH_SECRET"),
     paymentProvider: getOptionalEnv("PAYMENT_PROVIDER"),
+    betaPersistenceEnabled: isEnabledEnv("HALLEUS_ENABLE_BETA_PERSISTENCE"),
+    betaPersistenceUserId: getOptionalEnv("HALLEUS_BETA_PERSISTENCE_USER_ID"),
   };
 }
 

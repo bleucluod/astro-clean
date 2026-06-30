@@ -76,3 +76,17 @@ Current lock:
 - `listServerReportSummaries({ userId })` returns report summaries through the database repository.
 - The active browser UI still uses local preview storage.
 - No public route, auth/profile model, migration, payment, or public report visibility was added in this checkpoint.
+
+
+## v0.1.111 Guarded beta API checkpoint
+
+A disabled-by-default guarded beta API route now exists for server report persistence.
+
+Current lock:
+
+- Route: `app/api/reports/beta/route.ts`.
+- The route stays disabled unless `DATABASE_URL`, `HALLEUS_ENABLE_BETA_PERSISTENCE=true`, and `HALLEUS_BETA_PERSISTENCE_USER_ID` are configured.
+- `POST` accepts `{ report }` and saves through `saveServerGeneratedReport`.
+- `GET` lists summaries or reads one report by `?reportId=`.
+- Active `/chart`, `/reports`, and `/reports/[reportId]` still use local preview storage.
+- This checkpoint does not add auth, profile accounts, public/indexable reports, payment, migration changes, or UI wiring.
