@@ -15,6 +15,7 @@ const requiredFiles = [
   ".env.example",
   "docs/DATABASE_READINESS.md",
   "docs/DATABASE_MIGRATION_RUNBOOK.md",
+  "docs/BETA_API_VERIFICATION_RUNBOOK.md",
 ];
 
 const requiredContent = [
@@ -38,6 +39,9 @@ const requiredContent = [
   ["database/migrations/0001_initial_schema.sql", "halleus_reports"],
   ["database/migrations/0001_initial_schema.sql", "halleus_birth_profiles"],
   [".env.example", "NEXT_PUBLIC_HALLEUS_SITE_URL=https://halleus.ir"],
+  ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "HALLEUS_ENABLE_BETA_PERSISTENCE=true"],
+  ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "Invoke-RestMethod"],
+  ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "Do not switch `/chart`, `/reports`, or `/reports/[reportId]` to database storage"],
 ];
 
 let failed = false;

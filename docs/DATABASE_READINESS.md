@@ -90,3 +90,16 @@ Current lock:
 - `GET` lists summaries or reads one report by `?reportId=`.
 - Active `/chart`, `/reports`, and `/reports/[reportId]` still use local preview storage.
 - This checkpoint does not add auth, profile accounts, public/indexable reports, payment, migration changes, or UI wiring.
+
+
+## v0.1.112 Beta API verification runbook checkpoint
+
+A manual verification runbook now exists for the guarded beta report persistence API.
+
+Current lock:
+
+- Runbook: `docs/BETA_API_VERIFICATION_RUNBOOK.md`.
+- The runbook verifies disabled mode, enabled local/staging save, enabled read-by-id, and enabled list behavior.
+- It explicitly forbids printing or sharing `.env` secrets and real user birth data.
+- Active `/chart`, `/reports`, and `/reports/[reportId]` still use local preview storage.
+- UI database wiring remains blocked until the runbook passes against local/staging database config.

@@ -2675,3 +2675,43 @@ For new nested files, runner status guards must allow the exact file path Git re
 
 Files or systems involved:
 PowerShell runner status guard, Git untracked path reporting, app/api/reports/beta/route.ts.
+
+
+## v0.1.112 Beta API Verification Runbook
+
+This checkpoint documents how to verify the guarded beta report persistence API before connecting any product UI to database storage.
+
+Done:
+
+```text
+Added `docs/BETA_API_VERIFICATION_RUNBOOK.md`.
+The runbook includes disabled-mode checks, enabled local/staging save/read/list checks, pass criteria, and failure handling.
+The runbook explicitly blocks sharing `.env` secrets or real user birth data.
+Database readiness checks now require the beta API verification runbook.
+No app route, UI, storage behavior, database migration, package, or `.env` behavior changed.
+```
+
+Next safe step:
+
+```text
+Run the beta API verification runbook against a local or staging database.
+If it passes, add a guarded/manual beta UI save path or a non-secret smoke test in a later batch.
+Do not switch active report history/detail to database storage before verification.
+```
+
+#### v0.1.112 runbook Persian sample mojibake failure
+
+Error:
+The v0.1.112 runbook runner created the beta API verification runbook but stopped before checks because the synthetic Persian sample inside the PowerShell-to-Node patch became question-mark mojibake.
+
+Cause:
+Persian text was embedded through a PowerShell runner and Node stdin path that did not preserve those sample strings safely.
+
+Fixed / Rolled back / Still open:
+Fixed by stopping before commit/tag/push, diagnosing exact lines, and replacing the synthetic test sample with English-only non-sensitive test data. The rest of the docs/check patch had no mojibake.
+
+Prevention rule:
+Do not embed Persian sample data in generated PowerShell/Node runners. Use English synthetic data or UTF-8 file artifacts with targeted probes.
+
+Files or systems involved:
+docs/BETA_API_VERIFICATION_RUNBOOK.md, PowerShell runner, Node stdin patch, encoding probe.

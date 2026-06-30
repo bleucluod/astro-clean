@@ -619,3 +619,21 @@ Why:
 ```text
 This creates a testable server save/read surface while preserving the local-first product flow.
 ```
+
+
+---
+
+## v0.1.112 Beta API verification note
+
+Decision:
+
+```text
+Before UI database wiring, add and follow a beta API verification runbook.
+The runbook must use local/staging data only and must not expose secrets or real user birth data.
+```
+
+Why:
+
+```text
+This keeps the Database MVP path scalable and avoids switching the user-facing flow before server persistence is actually verified.
+```
