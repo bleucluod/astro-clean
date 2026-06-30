@@ -2610,3 +2610,26 @@ Next safe step:
 v0.1.110 should add a controlled server persistence route or service that can save a generated report through the database repository when a beta user id and database config are available.
 Do not switch the browser UI to database storage until that save/read path is verified.
 ```
+
+
+## v0.1.110 Server Persistence Service
+
+This checkpoint adds the first controlled server persistence service for reports without switching the active product UI away from local preview storage.
+
+Done:
+
+```text
+Added `lib/storage/server-report-persistence.ts`.
+Added `saveServerGeneratedReport({ userId, report })` for database-backed report saves.
+Added `getServerStoredReport({ userId, reportId })` for database-backed report reads.
+Added `listServerReportSummaries({ userId })` for database-backed report history summaries.
+Extended database readiness checks to require the server persistence service.
+No app route, UI, auth, profile, payment, migration, public report, or `.env` behavior changed.
+```
+
+Next safe step:
+
+```text
+Add a guarded beta API route or server action that calls the server persistence service only when database config and a beta user id are explicitly available.
+Keep `/chart`, `/reports`, and `/reports/[reportId]` local-first until the route is verified.
+```

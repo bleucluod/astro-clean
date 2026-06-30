@@ -63,3 +63,16 @@ Current lock:
 - This checkpoint does not switch report creation, report list, or report detail to database storage.
 - The database repository is ready for controlled server persistence routes/services in the next batch.
 - Reports remain private by default and imported reports are forced to account/private storage.
+
+
+## v0.1.110 Server persistence service checkpoint
+
+A controlled server persistence service now exists behind the database repository.
+
+Current lock:
+
+- `saveServerGeneratedReport({ userId, report })` saves a generated report through the database repository.
+- `getServerStoredReport({ userId, reportId })` reads one saved report record through the database repository.
+- `listServerReportSummaries({ userId })` returns report summaries through the database repository.
+- The active browser UI still uses local preview storage.
+- No public route, auth/profile model, migration, payment, or public report visibility was added in this checkpoint.

@@ -581,3 +581,22 @@ Why:
 ```text
 The core flow needs server persistence, but the browser product flow should remain stable until a controlled server save/read path is verified.
 ```
+
+
+---
+
+## v0.1.110 Server persistence service note
+
+Decision:
+
+```text
+Continue Database MVP by adding a controlled server persistence service before touching the active UI.
+Do not add auth/profile/payment/public reports in this service batch.
+Do not replace local report history until the server save/read path is explicitly verified.
+```
+
+Why:
+
+```text
+This creates a narrow bridge between generated reports and database storage while keeping the product flow stable.
+```
