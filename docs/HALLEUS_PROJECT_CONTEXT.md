@@ -2440,3 +2440,44 @@ pnpm run check:encoding
 git --no-pager diff --check
 pnpm build
 ```
+
+
+#### 34. v0.1.103 final report narrative copy workflow failures
+
+Error:
+The first v0.1.103 product-facing copy patch partially applied and then failed because the download button regex did not match the live JSX shape.
+
+Where/Version:
+v0.1.103 final report narrative copy batch, while editing `components/ReportV3Experience.tsx`, `lib/report-output/report-v3.ts`, and `lib/report-output/report-v3-export.ts`.
+
+Cause:
+The patch used a regex for a multiline JSX button block that was more brittle than the live component structure. Earlier live grep showed the relevant lines, but the replacement still assumed exact formatting.
+
+Fixed / Rolled back / Still open:
+Fixed by stopping immediately, inspecting `git status --short`, `git --no-pager diff --name-status`, and targeted grep output, then applying a smaller repair patch. No commit/tag/push occurred until encoding, diff, build, visible-label grep, and targeted diff passed.
+
+Prevention rule:
+Do not use regex replacement across multiline JSX blocks for UI copy polish. For JSX copy changes, prefer exact current-line replacements from live grep, full-file replacement after inspection, or smaller single-string replacements. If a patch fails after partially writing files, stop and diagnose before retrying.
+
+Files or systems involved:
+`components/ReportV3Experience.tsx`, `lib/report-output/report-v3.ts`, `lib/report-output/report-v3-export.ts`, Node stdin patch, PowerShell.
+
+#### 35. v0.1.103 visible-label guard false positive
+
+Error:
+The old-visible-V3-label guard failed after the repair patch even though user-facing old labels had been removed.
+
+Where/Version:
+v0.1.103 final report narrative copy repair/check step.
+
+Cause:
+The guard searched too broadly for `V3`, so it matched internal identifiers and function names such as `ReportV3Experience`, `createReportV3PlainText`, and `reportV3Summary` instead of only visible UI/export labels.
+
+Fixed / Rolled back / Still open:
+Fixed by replacing the broad guard with a targeted visible-label grep for `Report Output V3`, `???? V3`, `TXT ???? V3`, and `??? ??? V3`. Checks passed, visual diff was reviewed, then commit/tag/push completed.
+
+Prevention rule:
+Visible-label guards must target exact user-facing strings only. Do not treat internal identifiers, exported function names, type names, or schema keys as visible UI copy failures. When validating removal of debug labels, grep only the specific visible strings being removed.
+
+Files or systems involved:
+`components/ReportV3Experience.tsx`, `lib/report-output/report-v3-export.ts`, PowerShell grep guard, Node stdin patch.
