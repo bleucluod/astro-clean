@@ -248,3 +248,109 @@ This is not an auth/profile system.
 GET/list behavior remains read-only.
 Active UI still uses local storage.
 ```
+
+
+## v0.1.120 Staging/Render beta DB verification checkpoint
+
+Purpose:
+
+```text
+Verify that the guarded beta DB persistence flow can be tested on a staging/Render deployment without treating it as production-ready persistence.
+```
+
+State boundary:
+
+```text
+A local commit is not a Render deploy.
+A GitHub push is not a Render deploy.
+A Render deploy is not verified until the Render dashboard or deploy logs show the intended commit.
+A public URL is not verified until the route behavior is smoke-tested on that URL.
+```
+
+Required Render/staging facts to record before claiming pass:
+
+```text
+Render service name
+Render deploy status
+latest deployed commit
+staging or public Render URL
+custom domain status, if Halleus.ir is used for this test
+whether auto-deploy is enabled
+```
+
+Required staging env keys, without printing values:
+
+```text
+DATABASE_URL
+HALLEUS_ENABLE_BETA_PERSISTENCE=true
+HALLEUS_BETA_PERSISTENCE_USER_ID
+NEXT_PUBLIC_HALLEUS_ENABLE_BETA_DB_SAVE_UI=true
+```
+
+Do not paste or screenshot secret values. It is safe to record only whether each key is present.
+
+Safe staging preflight:
+
+```powershell
+node scripts/check-beta-api-preflight.mjs --require-env
+node scripts/check-beta-api-preflight.mjs --check-db
+```
+
+Expected staging preflight behavior:
+
+```text
+env keys are reported as present/not true/missing without printing values
+database connection is verified without printing DATABASE_URL
+required tables are checked before HTTP/UI verification
+```
+
+Staging HTTP/API smoke test shape:
+
+```text
+GET /api/reports/beta returns ok true and summaries array when enabled.
+POST /api/reports/beta with synthetic report data returns ok true and reportRecord.id.
+GET /api/reports/beta?reportId=<synthetic-or-beta-report-id> returns the saved report.
+GET /api/reports/beta list includes the saved report summary.
+```
+
+Staging guarded UI smoke test shape:
+
+```text
+/reports remains the default local report archive view.
+/reports?source=beta-db opens the guarded beta database archive.
+/reports/<reportId>?source=beta-db opens a saved beta DB report.
+/reports/<localReportId> with the beta flag enabled shows the manual beta DB save panel.
+The beta panel displays save/load status messages near the button.
+```
+
+Pass criteria:
+
+```text
+Render deployed commit matches the intended Git commit.
+Staging env is present without values being printed.
+Preflight passes with --require-env and --check-db.
+API save/read/list pass with synthetic or beta-only data.
+Guarded UI archive/read/save path passes on the staging/public Render URL.
+Default local report flow remains unchanged.
+No real user birth data or secrets are printed/shared.
+```
+
+Failure handling:
+
+```text
+Stop.
+Do not mark staging verified.
+Do not enable production beta persistence.
+Capture only status code, redacted error, route, and deploy commit.
+Separate diagnosis into deploy state, env state, migration/table state, API guard state, and UI state.
+```
+
+Explicit non-goals:
+
+```text
+This is not auth.
+This is not paid/private reports.
+This is not public/indexable reports.
+This is not a production database launch.
+This does not change the active repository away from local storage.
+```

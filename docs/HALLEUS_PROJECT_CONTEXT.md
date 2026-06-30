@@ -2845,3 +2845,56 @@ After a marker failure, do not retry broadly. Check `git status --short`, inspec
 
 Files or systems involved:
 `components/ReportsList.tsx`, `app/reports/page.tsx`, PowerShell/Node apply patch workflow.
+
+
+## v0.1.120 Staging/Render Beta DB Verification Runbook
+
+This checkpoint documents the next staging verification gate for the guarded beta DB flow.
+
+Current verified state before v0.1.120:
+
+```text
+Local/GitHub HEAD: 1e7adc2
+Latest pushed tag: v0.1.119-beta-db-status-messages
+Local beta DB flow verified:
+- save report to DB
+- read single DB report
+- list beta DB archive summaries
+- open DB report from archive
+- show beta save/load status near the beta panel
+Default local report flow remains active.
+```
+
+Added/updated docs:
+
+```text
+docs/BETA_API_VERIFICATION_RUNBOOK.md now includes a v0.1.120 Staging/Render beta DB verification checkpoint.
+docs/HALLEUS_IDEA_GARDEN.md records the staging beta DB verification decision.
+```
+
+Still not verified:
+
+```text
+Render service name
+Render auto-deploy setting
+Render latest deployed commit
+Render deploy status
+Render public URL
+Halleus.ir custom domain connection status
+staging DATABASE_URL presence
+staging beta env presence
+staging migration/table state
+staging /api/reports/beta behavior
+staging /reports?source=beta-db behavior
+```
+
+Scope lock:
+
+```text
+This is docs/runbook only.
+No source/runtime files changed.
+No deploy action was performed.
+No Render dashboard state was changed.
+No production beta persistence was enabled.
+Do not claim the beta DB flow is deployed until Render/public URL verification passes.
+```

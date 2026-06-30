@@ -693,3 +693,22 @@ Why:
 Local verification proved the persistence path works, but a fresh database can fail on report save if the configured beta user does not exist.
 The narrow bootstrap keeps beta verification simple without weakening the future privacy/auth model.
 ```
+
+
+---
+
+## v0.1.120 Staging beta DB verification note
+
+Decision:
+
+```text
+Before treating the guarded beta DB flow as staging-ready, record Render service/deploy facts and run a staging-safe beta verification checklist.
+Keep the DB flow guarded and local-first by default.
+Do not treat GitHub push as deployed or staging-verified.
+```
+
+Why:
+
+```text
+The local beta DB flow is now usable for save/read/archive checks, but the project still needs proof that the same guarded path works on the actual deployed environment without exposing secrets or real user data.
+```
