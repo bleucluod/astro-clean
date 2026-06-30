@@ -16,7 +16,17 @@ type ReportDetailProps = {
   reportId: string;
 };
 
+type BetaDatabaseSaveResponse = {
+  ok?: boolean;
+  error?: string;
+  reportRecord?: {
+    id?: string;
+  };
+};
+
 const reportRepository = getReportRepository();
+const isBetaDatabaseSaveUiEnabled =
+  process.env.NEXT_PUBLIC_HALLEUS_ENABLE_BETA_DB_SAVE_UI === "true";
 
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("halleus-data-changed"));
@@ -63,6 +73,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [message, setMessage] = useState("");
+  const [isBetaDatabaseSaving, setIsBetaDatabaseSaving] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -138,6 +149,43 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     setMessage("خروجی متنی ساخته شد.");
   }
 
+
+  async function handleBetaDatabaseSave() {
+    if (!report || isBetaDatabaseSaving) {
+      return;
+    }
+
+    setIsBetaDatabaseSaving(true);
+    setMessage("Saving beta database copy...");
+
+    try {
+      const response = await fetch("/api/reports/beta", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ report }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | BetaDatabaseSaveResponse
+        | null;
+
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error ?? "Beta database save failed.");
+      }
+
+      setMessage(
+        `Beta database copy saved: ${payload.reportRecord?.id ?? report.id}`,
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Beta database save failed.",
+      );
+    } finally {
+      setIsBetaDatabaseSaving(false);
+    }
+  }
   if (!isReady) {
     return (
       <section className="grid">
@@ -206,6 +254,32 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       <ChartReportBridgePanel report={report} />
 
       <ReportV3Experience report={report} />
+
+      {isBetaDatabaseSaveUiEnabled ? (
+        <section className="card">
+          <span className="badge">Beta database save</span>
+
+          <h2>Manual server persistence check</h2>
+
+          <p>
+            This hidden beta action saves the current local report through the
+            guarded server database route for local or staging verification.
+          </p>
+
+          <div className="actions">
+            <button
+              className="button secondary"
+              disabled={isBetaDatabaseSaving}
+              type="button"
+              onClick={handleBetaDatabaseSave}
+            >
+              {isBetaDatabaseSaving
+                ? "Saving beta copy..."
+                : "Save beta database copy"}
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="card">
         <span className="badge">قدم بعدی</span>

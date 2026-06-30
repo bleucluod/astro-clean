@@ -2801,3 +2801,27 @@ This does not make reports public/indexable.
 This does not change database migrations.
 GET/list remain read-only; only POST performs beta user bootstrap before save.
 ```
+
+## v0.1.116 Workflow Failure Ledger
+
+Error:
+Multiple v0.1.116 runner attempts failed before the final minimal exact-line apply.
+
+Where/Version:
+v0.1.116 manual beta DB save UI batch.
+
+Cause:
+The failed attempts used guessed or over-broad markers instead of exact verified live file lines. One failure targeted an exact ReportDetail handler block that did not match live content. Another targeted an ambiguous readiness-check marker. Another assumed an .env.example marker shape without proving it immediately before write.
+
+Fixed / Rolled back / Still open:
+Rolled back to clean v0.1.115 state after failed attempts. Final progress resumed only after exact live line inspection and a minimal two-file apply.
+
+Prevention rule:
+After any failed runner or marker failure, stop implementation, clean untracked artifacts, inspect exact live files/status, prove markers immediately before write, and reduce scope. Do not generate runners or patches from remembered structure or guessed markers.
+
+Files or systems involved:
+.env.example
+components/ReportDetail.tsx
+scripts/check-database-readiness.mjs
+docs/HALLEUS_PROJECT_CONTEXT.md
+PowerShell/Node patch runners
