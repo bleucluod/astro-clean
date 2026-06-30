@@ -86,8 +86,8 @@ export function enhanceReportOutputV3(
     outputV3Version: "v3-persian-sectioned-preview",
     reportV3Summary: {
       version: "v3-persian-sectioned-preview",
-      title: `گزارش نمادین ${name}`,
-      subtitle: `نسخه خواناتر و فارسی‌تر برای تولد در ${birthCity}`,
+      title: `روایت کلی چارت ${name}`,
+      subtitle: `این خوانش برای تولد در ${birthCity} ساخته شده تا الگوهای اصلی چارت را آرام‌تر و انسانی‌تر دنبال کنی.`,
       sectionCount: sections.length,
       wordCount,
       readingMinutes: Math.max(1, Math.ceil(wordCount / 180)),

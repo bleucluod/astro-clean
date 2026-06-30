@@ -67,32 +67,25 @@ export function ReportV3Experience({ report }: ReportV3ExperienceProps) {
 
       <div className="actions">
         <button className="button" onClick={downloadText} type="button">
-          دانلود TXT نسخه V3
+          دانلود متن گزارش
         </button>
 
         <button className="button secondary" onClick={copyText} type="button">
-          کپی متن V3
+          کپی متن گزارش
         </button>
       </div>
 
       {copyState === "copied" ? (
-        <p className="form-hint">متن نسخه V3 کپی شد.</p>
+        <p className="form-hint">متن گزارش کپی شد.</p>
       ) : null}
 
       {copyState === "failed" ? (
         <p className="form-hint">
-          کپی مستقیم ممکن نشد. از دانلود TXT استفاده کن.
+          کپی مستقیم ممکن نشد. از دانلود متن گزارش استفاده کن.
         </p>
       ) : null}
 
       <div className="tag-list">
-        <span>{enhancedReport.reportV3Summary.qualityLabel}</span>
-        <span>
-          {enhancedReport.reportV3Summary.sectionCount.toLocaleString("fa-IR")} بخش
-        </span>
-        <span>
-          {enhancedReport.reportV3Summary.wordCount.toLocaleString("fa-IR")} کلمه
-        </span>
         <span>
           حدود {enhancedReport.reportV3Summary.readingMinutes.toLocaleString("fa-IR")} دقیقه مطالعه
         </span>
@@ -100,9 +93,9 @@ export function ReportV3Experience({ report }: ReportV3ExperienceProps) {
 
       <div className="report-preview-list">
         <div className="report-preview-row">
-          <span>تمرکز روی بخش‌ها</span>
+          <span>بخش‌های خوانش</span>
           <small>
-            برای خواندن سریع‌تر می‌توانی فقط یک بخش را ببینی یا دوباره همه را باز کنی.
+            برای خواندن آرام‌تر می‌توانی یک بخش را بخوانی یا دوباره باز کنی.
           </small>
         </div>
 

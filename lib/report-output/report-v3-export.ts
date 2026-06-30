@@ -12,7 +12,7 @@ export function createReportV3PlainText(report: unknown) {
 
   lines.push(enhancedReport.reportV3Summary.title);
   lines.push(enhancedReport.reportV3Summary.subtitle);
-  lines.push("Halleus Report Output V3");
+  lines.push("خوانش نهایی گزارش Halleus");
   lines.push("");
 
   for (const section of enhancedReport.reportV3Sections) {
@@ -24,8 +24,7 @@ export function createReportV3PlainText(report: unknown) {
   lines.push("## یادآوری");
   lines.push(enhancedReport.reportV3Disclaimer);
   lines.push("");
-  lines.push(`Reading minutes: ${enhancedReport.reportV3Summary.readingMinutes}`);
-  lines.push(`Word count: ${enhancedReport.reportV3Summary.wordCount}`);
+  lines.push(`حدود ${enhancedReport.reportV3Summary.readingMinutes} دقیقه مطالعه`);
 
   return lines.join("\n");
 }
