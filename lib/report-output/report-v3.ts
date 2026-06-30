@@ -5,6 +5,7 @@ import type { ReportOutputV3 } from "@/types/report-output-v3";
 type GenericReport = Record<string, unknown>;
 
 type EnhancedV2Report = GenericReport & {
+  outputVersion?: string;
   interpretationSections?: ReportOutputSection[];
   outputQuality?: {
     score?: number;
@@ -32,7 +33,14 @@ function getInputValue(report: GenericReport, key: string, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
 }
 
-function polishSection(section: ReportOutputSection): ReportOutputSection {
+type PolishSectionOptions = {
+  isSectionedPreview: boolean;
+};
+
+function polishSection(
+  section: ReportOutputSection,
+  options: PolishSectionOptions,
+): ReportOutputSection {
   const titleMap: Record<string, string> = {
     overview: "نمای کلی گزارش",
     identity: "هویت و الگوی اصلی",
@@ -41,7 +49,26 @@ function polishSection(section: ReportOutputSection): ReportOutputSection {
     career: "کار، انگیزه و مسیر رشد",
     growth: "رشد شخصی",
     "reflection-prompts": "پرسش‌های تأملی",
-    disclaimer: "یادآوری مهم",
+    disclaimer: "یادآوری",
+  };
+
+  const productBodyMap: Record<string, string> = {
+    overview:
+      "این خوانش یک تصویر کلی از چارت می‌دهد تا گزارش از حالت داده خام خارج شود و به چند الگوی قابل لمس تبدیل شود. به جای اینکه نتیجه را قطعی بداند، کمک می‌کند آرام‌تر ببینی کدام بخش‌های زندگی، نیاز به توجه، مرزبندی یا انتخاب آگاهانه دارند.",
+    identity:
+      "در این بخش، تمرکز روی شیوه حضور، تصمیم‌گیری و جهت‌گیری درونی است. متن می‌خواهد نشان دهد کدام الگوی اصلی چارت می‌تواند در انتخاب‌ها، اعتماد به خود و شکل دادن به مسیر شخصی دیده شود.",
+    "emotional-pattern":
+      "اینجا گزارش به ریتم احساسی و نیازهای درونی نزدیک می‌شود: چه چیزهایی به تو حس امنیت می‌دهند، کجا ممکن است احساس‌ها واکنش نشان بدهند، و چطور می‌توانی با خودت مهربان‌تر و روشن‌تر برخورد کنی.",
+    relationships:
+      "این بخش رابطه‌ها را از زاویه نزدیکی، مرز و گفت‌وگو می‌خواند. هدف این نیست که درباره یک رابطه حکم بدهد؛ هدف این است که الگوی نزدیک شدن، نیاز به صمیمیت و سبک ارتباطی روشن‌تر دیده شود.",
+    career:
+      "در این قسمت، کار و مسیر رشد به عنوان جایی دیده می‌شود که انگیزه، معنا و توان شخصی باید با هم هماهنگ شوند. متن کمک می‌کند بفهمی چه نوع حرکت یا مسئولیتی می‌تواند با ریتم درونی‌ات سازگارتر باشد.",
+    growth:
+      "این بخش گزارش را به چند نقطه عملی‌پذیر و آرام تبدیل می‌کند: چه چیزی را می‌توانی بهتر ببینی، کجا لازم است با خودت صادق‌تر باشی، و کدام انتخاب کوچک می‌تواند حس وضوح بیشتری به هفته یا فصل پیش رو بدهد.",
+    "reflection-prompts":
+      "برای ادامه خوانش، با این پرسش‌ها آرام جلو برو: کدام بخش بیشتر به تجربه فعلی من نزدیک است؟ کجا به مرز روشن‌تر نیاز دارم؟ چه انتخاب کوچکی می‌تواند این هفته مرا به خودم نزدیک‌تر کند؟",
+    disclaimer:
+      "این گزارش برای تأمل شخصی و شناخت نمادین است. قرار نیست جای تصمیم پزشکی، حقوقی، مالی یا تصمیم قطعی زندگی را بگیرد.",
   };
 
   const prefixMap: Record<string, string> = {
@@ -57,11 +84,16 @@ function polishSection(section: ReportOutputSection): ReportOutputSection {
 
   const title = titleMap[section.kind] ?? section.title;
   const prefix = prefixMap[section.kind] ?? "این بخش برای خوانایی بهتر بازنویسی شده است.";
+  const productBody = productBodyMap[section.kind];
+  const body =
+    options.isSectionedPreview && productBody
+      ? productBody
+      : [prefix, section.body].filter(Boolean).join(" ").trim();
 
   return {
     ...section,
     title,
-    body: `${prefix} ${section.body}`,
+    body,
   };
 }
 
@@ -75,7 +107,14 @@ export function enhanceReportOutputV3(
   }
 
   const v2Report = enhanceReportOutputV2(report) as EnhancedV2Report;
-  const sections = (v2Report.interpretationSections ?? []).map(polishSection);
+  const isSectionedPreview =
+    v2Report.outputVersion === "v2-sectioned-preview" ||
+    v2Report.outputQuality?.warnings?.some((warning) =>
+      warning.toLowerCase().includes("sectioned preview"),
+    ) === true;
+  const sections = (v2Report.interpretationSections ?? [])
+    .filter((section) => section.kind !== "disclaimer")
+    .map((section) => polishSection(section, { isSectionedPreview }));
   const wordCount = sections.reduce((total, section) => total + countWords(section.body), 0);
   const score = v2Report.outputQuality?.score ?? 0;
   const name = getInputValue(v2Report, "name", "گزارش Halleus");
