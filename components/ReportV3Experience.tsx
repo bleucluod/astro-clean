@@ -59,7 +59,7 @@ export function ReportV3Experience({ report }: ReportV3ExperienceProps) {
 
   return (
     <section className="card">
-      <span className="badge">Report Output V3</span>
+      <span className="badge">خوانش نهایی گزارش</span>
 
       <h2>{enhancedReport.reportV3Summary.title}</h2>
 

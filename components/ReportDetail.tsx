@@ -8,7 +8,6 @@ import { createShareText } from "@/lib/astrology/share-text";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
 
-import { ReportV2Sections } from "@/components/ReportV2Sections";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
 import { ChartEngineReportBadge } from "@/components/ChartEngineReportBadge";
 import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
@@ -207,8 +206,6 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       <ChartReportBridgePanel report={report} />
 
       <ReportV3Experience report={report} />
-
-      <ReportV2Sections report={report} />
 
       <section className="card">
         <span className="badge">قدم بعدی</span>
