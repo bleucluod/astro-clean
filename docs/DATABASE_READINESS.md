@@ -103,3 +103,16 @@ Current lock:
 - It explicitly forbids printing or sharing `.env` secrets and real user birth data.
 - Active `/chart`, `/reports`, and `/reports/[reportId]` still use local preview storage.
 - UI database wiring remains blocked until the runbook passes against local/staging database config.
+
+
+## v0.1.113 Safe beta API preflight checkpoint
+
+A safe non-secret preflight script now exists for beta API verification.
+
+Current lock:
+
+- Script: `scripts/check-beta-api-preflight.mjs`.
+- Default mode validates beta API structure and env presence without failing on missing env.
+- `--require-env` fails when beta persistence env is not configured.
+- `--check-db` verifies local/staging database connectivity and required table names without printing `DATABASE_URL`.
+- No UI, route behavior, migration, package, or `.env` behavior changed.

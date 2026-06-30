@@ -50,6 +50,37 @@ HALLEUS_BETA_PERSISTENCE_USER_ID=beta-preview-user
 
 Do not enable this route for production users until auth/profile/privacy design exists.
 
+## Safe preflight script
+
+Before running the HTTP checks, use the safe preflight script. It does not print `.env` values.
+
+Structure-only mode is safe to run without configured secrets:
+
+```powershell
+node scripts/check-beta-api-preflight.mjs
+```
+
+After local/staging env values are configured in your terminal, require the env shape:
+
+```powershell
+node scripts/check-beta-api-preflight.mjs --require-env
+```
+
+After the migration has been applied to a local/staging database, verify connection and required table names without printing the database URL:
+
+```powershell
+node scripts/check-beta-api-preflight.mjs --check-db
+```
+
+Expected safety behavior:
+
+```text
+DATABASE_URL value is never printed
+HALLEUS_BETA_PERSISTENCE_USER_ID value is never printed
+missing env makes --require-env fail before API verification
+missing tables make --check-db fail before API verification
+```
+
 ## Disabled-mode check
 
 With `HALLEUS_ENABLE_BETA_PERSISTENCE=false` or without `DATABASE_URL`, the route must not become an active public persistence surface.

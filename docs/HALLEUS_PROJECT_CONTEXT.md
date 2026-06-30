@@ -2715,3 +2715,27 @@ Do not embed Persian sample data in generated PowerShell/Node runners. Use Engli
 
 Files or systems involved:
 docs/BETA_API_VERIFICATION_RUNBOOK.md, PowerShell runner, Node stdin patch, encoding probe.
+
+
+## v0.1.113 Safe Beta API Preflight Script
+
+This checkpoint adds a safe preflight script before manual beta API verification.
+
+Done:
+
+```text
+Added `scripts/check-beta-api-preflight.mjs`.
+Updated the beta API verification runbook to require structure/env/database preflight before HTTP checks.
+Updated database readiness checks to include the preflight script.
+The uploaded preflight context showed `.env` is not present locally, so real beta API verification is still blocked until local/staging env setup exists.
+```
+
+Safety lock:
+
+```text
+The preflight script never prints DATABASE_URL or HALLEUS_BETA_PERSISTENCE_USER_ID values.
+Default mode can run without secrets and exits successfully when structure is valid.
+`--require-env` is for env-shape gating.
+`--check-db` is for local/staging DB table verification after migration setup.
+No product UI is connected to database storage yet.
+```

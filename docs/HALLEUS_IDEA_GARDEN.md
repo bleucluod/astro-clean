@@ -637,3 +637,21 @@ Why:
 ```text
 This keeps the Database MVP path scalable and avoids switching the user-facing flow before server persistence is actually verified.
 ```
+
+
+---
+
+## v0.1.113 Safe beta API preflight note
+
+Decision:
+
+```text
+Add a safe preflight script before running beta API verification against local/staging database config.
+Do not connect UI to database storage until preflight and runbook pass.
+```
+
+Why:
+
+```text
+The project needs proof that env, migration, and table readiness are correct without exposing secrets or real user data.
+```

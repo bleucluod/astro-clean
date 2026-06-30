@@ -16,6 +16,7 @@ const requiredFiles = [
   "docs/DATABASE_READINESS.md",
   "docs/DATABASE_MIGRATION_RUNBOOK.md",
   "docs/BETA_API_VERIFICATION_RUNBOOK.md",
+  "scripts/check-beta-api-preflight.mjs",
 ];
 
 const requiredContent = [
@@ -42,6 +43,10 @@ const requiredContent = [
   ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "HALLEUS_ENABLE_BETA_PERSISTENCE=true"],
   ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "Invoke-RestMethod"],
   ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "Do not switch `/chart`, `/reports`, or `/reports/[reportId]` to database storage"],
+  ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "node scripts/check-beta-api-preflight.mjs --check-db"],
+  ["scripts/check-beta-api-preflight.mjs", "--require-env"],
+  ["scripts/check-beta-api-preflight.mjs", "--check-db"],
+  ["scripts/check-beta-api-preflight.mjs", "database URL was not printed"],
 ];
 
 let failed = false;
