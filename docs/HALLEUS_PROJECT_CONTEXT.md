@@ -2474,7 +2474,7 @@ Cause:
 The guard searched too broadly for `V3`, so it matched internal identifiers and function names such as `ReportV3Experience`, `createReportV3PlainText`, and `reportV3Summary` instead of only visible UI/export labels.
 
 Fixed / Rolled back / Still open:
-Fixed by replacing the broad guard with a targeted visible-label grep for `Report Output V3`, `???? V3`, `TXT ???? V3`, and `??? ??? V3`. Checks passed, visual diff was reviewed, then commit/tag/push completed.
+Fixed by replacing the broad guard with a targeted visible-label grep for exact old user-facing strings: the English debug label plus the old Persian V3 download/copy/action labels. Checks passed, visual diff was reviewed, then commit/tag/push completed.
 
 Prevention rule:
 Visible-label guards must target exact user-facing strings only. Do not treat internal identifiers, exported function names, type names, or schema keys as visible UI copy failures. When validating removal of debug labels, grep only the specific visible strings being removed.
