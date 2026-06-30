@@ -673,3 +673,23 @@ Why:
 ```text
 The project now has proof that the server persistence path can store and read report snapshots through the database, while keeping the public/local product flow stable.
 ```
+
+
+---
+
+## v0.1.115 FK-safe beta persistence note
+
+Decision:
+
+```text
+For the guarded beta API only, bootstrap the configured beta persistence user before saving a report.
+Do not treat this as account/auth/profile implementation.
+Keep active UI database wiring blocked until a separate guarded step.
+```
+
+Why:
+
+```text
+Local verification proved the persistence path works, but a fresh database can fail on report save if the configured beta user does not exist.
+The narrow bootstrap keeps beta verification simple without weakening the future privacy/auth model.
+```

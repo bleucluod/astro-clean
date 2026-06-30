@@ -6,6 +6,7 @@ const requiredFiles = [
   "lib/database/report-row-mapper.ts",
   "lib/database/not-configured-driver.ts",
   "lib/database/postgres-report-database-driver.ts",
+  "lib/database/beta-persistence-user.ts",
   "lib/database/report-database-driver.ts",
   "lib/storage/database-report-repository.ts",
   "lib/storage/server-report-persistence.ts",
@@ -27,12 +28,15 @@ const requiredContent = [
   ["lib/database/report-row-mapper.ts", "fromDatabaseReportRow"],
   ["lib/database/postgres-report-database-driver.ts", "createPostgresReportDatabaseDriver"],
   ["lib/database/postgres-report-database-driver.ts", "sql.json"],
+  ["lib/database/beta-persistence-user.ts", "ensureBetaPersistenceUser"],
+  ["lib/database/beta-persistence-user.ts", "Beta Persistence User"],
   ["lib/storage/database-report-repository.ts", "createDatabaseReportRepository"],
   ["lib/storage/database-report-repository.ts", "driver.upsertReport"],
   ["lib/storage/server-report-persistence.ts", "saveServerGeneratedReport"],
   ["lib/storage/server-report-persistence.ts", "createServerReportPersistenceRepository"],
   ["app/api/reports/beta/route.ts", "betaPersistenceGuard"],
   ["app/api/reports/beta/route.ts", "saveServerGeneratedReport"],
+  ["app/api/reports/beta/route.ts", "ensureBetaPersistenceUser"],
   ["app/api/reports/beta/route.ts", "listServerReportSummaries"],
   ["lib/config/env.ts", "HALLEUS_ENABLE_BETA_PERSISTENCE"],
   ["lib/config/env.ts", "HALLEUS_BETA_PERSISTENCE_USER_ID"],
@@ -49,6 +53,7 @@ const requiredContent = [
   ["scripts/check-beta-api-preflight.mjs", "database URL was not printed"],
   ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "## Local Docker verification checkpoint"],
   ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "Fresh local databases need the synthetic beta user"],
+  ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "## v0.1.115 FK-safe beta persistence checkpoint"],
 ];
 
 let failed = false;

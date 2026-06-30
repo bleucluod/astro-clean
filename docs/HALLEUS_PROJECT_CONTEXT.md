@@ -2776,3 +2776,28 @@ The first Docker image pull for `postgres:16-alpine` returned a transient 403; a
 The first beta API POST returned 500 because `halleus_reports.user_id` has a foreign key to `halleus_users.id`; inserting the synthetic beta user fixed the local verification path.
 PowerShell/Docker table output can visually merge columns when pasted; use Docker `--format` for clean status output.
 ```
+
+
+## v0.1.115 FK-safe Beta Persistence User Bootstrap
+
+This checkpoint fixes the beta persistence FK setup path discovered during local DB verification.
+
+Done:
+
+```text
+Added `lib/database/beta-persistence-user.ts`.
+Updated `POST /api/reports/beta` to call `ensureBetaPersistenceUser` before saving a report.
+Updated readiness checks and runbook docs for the FK-safe beta save path.
+The helper only inserts/updates the configured `HALLEUS_BETA_PERSISTENCE_USER_ID` after the beta route guard passes.
+```
+
+Scope lock:
+
+```text
+This is not auth.
+This is not a profile system.
+This is not active UI database wiring.
+This does not make reports public/indexable.
+This does not change database migrations.
+GET/list remain read-only; only POST performs beta user bootstrap before save.
+```

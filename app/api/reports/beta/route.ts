@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { ensureBetaPersistenceUser } from "@/lib/database/beta-persistence-user";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import {
   getServerStoredReport,
@@ -13,7 +14,7 @@ export const runtime = "nodejs";
 type BetaApiBody = Record<string, unknown>;
 
 type BetaPersistenceGuard =
-  | { ok: true; userId: string }
+  | { ok: true; databaseUrl: string; userId: string }
   | { ok: false; status: number; error: string };
 
 function betaPersistenceGuard(): BetaPersistenceGuard {
@@ -43,7 +44,11 @@ function betaPersistenceGuard(): BetaPersistenceGuard {
     };
   }
 
-  return { ok: true, userId: env.betaPersistenceUserId };
+  return {
+    ok: true,
+    databaseUrl: env.databaseUrl,
+    userId: env.betaPersistenceUserId,
+  };
 }
 
 function errorResponse(status: number, error: string) {
@@ -125,6 +130,11 @@ export async function POST(request: Request) {
     if (!isAstrologyReport(report)) {
       return errorResponse(400, "Request body must include a valid report.");
     }
+
+    await ensureBetaPersistenceUser({
+      databaseUrl: guard.databaseUrl,
+      userId: guard.userId,
+    });
 
     const reportRecord = await saveServerGeneratedReport({
       userId: guard.userId,

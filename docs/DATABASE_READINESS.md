@@ -139,3 +139,17 @@ Still locked:
 - No active UI route is connected to database storage yet.
 - No production/staging database has been verified yet.
 - No auth/profile/payment/public report behavior was added.
+
+
+## v0.1.115 FK-safe beta persistence checkpoint
+
+The guarded beta API now bootstraps its configured beta persistence user before saving a report.
+
+Current lock:
+
+- Helper: `lib/database/beta-persistence-user.ts`.
+- `POST /api/reports/beta` calls `ensureBetaPersistenceUser` before `saveServerGeneratedReport`.
+- The route must still pass the existing beta guard: `DATABASE_URL`, `HALLEUS_ENABLE_BETA_PERSISTENCE=true`, and `HALLEUS_BETA_PERSISTENCE_USER_ID`.
+- The helper inserts or updates only the configured beta user id in `halleus_users`.
+- This avoids the local/staging FK failure seen when `halleus_reports.user_id` points to a missing user.
+- This does not add auth, profiles, payment, public reports, UI database wiring, or migration changes.
