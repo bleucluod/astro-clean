@@ -2546,3 +2546,45 @@ Do not normalize report sections into many tables yet.
 Do not run or alter production migrations before provider/auth strategy is chosen.
 Do not replace local preview behavior until database read/write is verified.
 ```
+
+
+## v0.1.108 Postgres Driver Contract Implementation
+
+This checkpoint implements the first real database driver behind the existing database contract without switching product UI away from local preview storage.
+
+Done:
+
+```text
+Added `postgres` as the server database client dependency.
+Added `lib/database/postgres-report-database-driver.ts`.
+Updated `getReportDatabaseDriver()` to return the Postgres driver only when `DATABASE_URL` exists.
+Kept the not-configured driver as the safe fallback.
+Extended database readiness checks to require the Postgres driver file and markers.
+Updated database readiness docs.
+```
+
+Scope guard:
+
+```text
+No app UI was wired to database storage in this checkpoint.
+No migration was changed or run.
+No `.env` secret was read, printed, staged, or modified.
+The active app remains on local preview storage until database persistence is tested in later batches.
+```
+
+#### v0.1.108 runner marker probe quoting failure
+
+Error:
+The v0.1.108 apply runner completed source patching, dependency install, readiness, encoding, diff check, and build successfully, but failed at the final marker probe.
+
+Cause:
+The inline Node probe in the PowerShell runner had broken quote escaping around the package marker. The source changes were verified separately with a here-string Node probe.
+
+Fixed / Rolled back / Still open:
+Fixed by stopping, diagnosing with git status and a corrected marker probe, then continuing only after all source markers passed. No commit/tag/push happened before diagnosis.
+
+Prevention rule:
+For inline Node probes in PowerShell, prefer here-string probes or JSON-safe scripts instead of dense one-line command strings with nested quotes.
+
+Files or systems involved:
+PowerShell runner, Node marker probe, package.json, Postgres driver batch.

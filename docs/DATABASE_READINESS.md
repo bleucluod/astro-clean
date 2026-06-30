@@ -37,3 +37,16 @@ Current lock:
 - Store versioned report snapshots first.
 - Keep all database-saved reports private/noindex until explicit public consent UX exists.
 - Do not start auth, payment, public/indexable report routes, or profile normalization in the first persistence batch.
+
+
+## v0.1.108 Postgres driver checkpoint
+
+A Postgres report database driver now exists behind the existing database contract.
+
+Current lock:
+
+- If `DATABASE_URL` is missing, Halleus still returns the not-configured driver.
+- If `DATABASE_URL` is present, `getReportDatabaseDriver()` returns the Postgres driver.
+- Product UI and active local preview storage are not wired to database persistence yet.
+- The driver supports report list/get/upsert/delete for the existing `halleus_reports` foundation table.
+- This step does not run migrations and does not read `.env` secrets in checks.
