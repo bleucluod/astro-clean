@@ -2481,3 +2481,23 @@ Visible-label guards must target exact user-facing strings only. Do not treat in
 
 Files or systems involved:
 `components/ReportV3Experience.tsx`, `lib/report-output/report-v3-export.ts`, PowerShell grep guard, Node stdin patch.
+
+#### 36. v0.1.105 report section body salvage failures
+
+Error:
+The v0.1.105 final report section body batch had multiple failed patch attempts before the final commit. The first product patch passed code checks/build but the visual diff revealed Persian copy artifacts. Follow-up substring/base64 fixes failed because markers did not match the live file exactly. One guard also failed because a line had already been corrected.
+
+Where/Version:
+v0.1.105 final report section body work on `lib/report-output/report-v3.ts`, after `v0.1.104a-workflow-ledger-copy-fix` and before commit `3f3225a / v0.1.105-final-report-section-bodies`.
+
+Cause:
+The patch tried to generate and repair Persian product copy through encoded string fragments and substring markers. Some artifacts were visible only in review and were not caught by `check:encoding`, `git diff --check`, or `pnpm build`. Raw terminal diff also made RTL Persian spacing look unreliable, so final verification required exact Node string probes.
+
+Fixed / Rolled back / Still open:
+Fixed without rollback. The final committed state was verified by `pnpm run check:encoding`, `git --no-pager diff --check`, `pnpm build`, clean status after commit, and a Node probe proving the bad joined Persian markers were absent while the corrected spaced forms were present. No v0.1.105 code was committed until these checks and probes passed.
+
+Prevention rule:
+For Persian-heavy report copy, avoid complex generated encoded fragments and repeated substring repair attempts. Prefer full current-line replacement from inspected live lines, or a small UTF-8/BOM artifact with visually reviewed text. Treat `check:encoding` and build as necessary but not sufficient; always run a targeted string probe for common Persian spacing artifacts before commit. If raw `git diff` appears to show RTL spacing issues, verify with JSON/string probes before deciding whether the file is actually wrong.
+
+Files or systems involved:
+`lib/report-output/report-v3.ts`, PowerShell, Node stdin patches, ZIP apply runner, `scripts/check-encoding.mjs`, `pnpm build`, Git diff rendering.
