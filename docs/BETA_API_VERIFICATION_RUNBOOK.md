@@ -117,6 +117,12 @@ $list.ok
 $list.summaries.Count
 ```
 
+Before saving a report in a fresh local database, insert the synthetic beta user expected by `HALLEUS_BETA_PERSISTENCE_USER_ID`. This avoids a foreign-key failure in `halleus_reports.user_id`.
+
+```powershell
+docker exec halleus-postgres-local psql -U halleus_local -d halleus_local -v ON_ERROR_STOP=1 -c "insert into public.halleus_users (id, email, display_name, provider, status, plan, created_at, updated_at) values ('beta-preview-user', null, 'Beta Preview User', 'local', 'active', 'personal', now(), now()) on conflict (id) do update set updated_at = excluded.updated_at;"
+```
+
 Then save a synthetic report. Do not use real user birth data for this test.
 
 ```powershell
@@ -197,3 +203,30 @@ or add a verified route smoke test that does not require secrets
 ```
 
 Do not switch `/chart`, `/reports`, or `/reports/[reportId]` to database storage in the same step as the first manual verification.
+
+
+## Local Docker verification checkpoint
+
+v0.1.114 was verified against a local Docker Postgres database without exposing `.env.local` values.
+
+Verified shape:
+
+```text
+Docker container: halleus-postgres-local
+Image: postgres:16-alpine
+Migration created halleus_users, halleus_reports, and halleus_birth_profiles.
+Synthetic beta user count: 1
+POST /api/reports/beta saved beta-test-report-001.
+GET /api/reports/beta?reportId=beta-test-report-001 returned the same report id.
+GET /api/reports/beta returned one summary.
+Local halleus_reports row count: 1.
+Tracked git files remained clean; `.env.local` remained ignored.
+```
+
+Observed local setup notes:
+
+```text
+Docker Desktop daemon must be running before Docker commands work.
+Docker image pulls can fail transiently; retry only after checking Docker state.
+Fresh local databases need the synthetic beta user before saving a report because halleus_reports.user_id has a foreign key to halleus_users.id.
+```

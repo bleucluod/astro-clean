@@ -47,6 +47,8 @@ const requiredContent = [
   ["scripts/check-beta-api-preflight.mjs", "--require-env"],
   ["scripts/check-beta-api-preflight.mjs", "--check-db"],
   ["scripts/check-beta-api-preflight.mjs", "database URL was not printed"],
+  ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "## Local Docker verification checkpoint"],
+  ["docs/BETA_API_VERIFICATION_RUNBOOK.md", "Fresh local databases need the synthetic beta user"],
 ];
 
 let failed = false;

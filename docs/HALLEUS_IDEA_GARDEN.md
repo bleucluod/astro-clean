@@ -655,3 +655,21 @@ Why:
 ```text
 The project needs proof that env, migration, and table readiness are correct without exposing secrets or real user data.
 ```
+
+
+---
+
+## v0.1.114 Local beta API verification note
+
+Decision:
+
+```text
+Treat the guarded beta report persistence API as locally verified after Docker Postgres migration, preflight, POST save, GET read, and list all passed with synthetic data.
+Continue to block active UI database wiring until a separate guarded step designs the user-facing/manual beta save path.
+```
+
+Why:
+
+```text
+The project now has proof that the server persistence path can store and read report snapshots through the database, while keeping the public/local product flow stable.
+```

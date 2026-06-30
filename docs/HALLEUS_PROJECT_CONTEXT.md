@@ -2739,3 +2739,40 @@ Default mode can run without secrets and exits successfully when structure is va
 `--check-db` is for local/staging DB table verification after migration setup.
 No product UI is connected to database storage yet.
 ```
+
+
+## v0.1.114 Local Beta API Verification
+
+This checkpoint records the first successful end-to-end local database verification for the guarded beta report persistence API.
+
+Verified:
+
+```text
+Local Docker Postgres was started as `halleus-postgres-local` using `postgres:16-alpine`.
+The existing migration created the required user/report/birth-profile tables and indexes.
+A local ignored `.env.local` existed for local-only verification; its values were not printed, committed, copied, or uploaded.
+The beta preflight script passed `--require-env` and `--check-db` against the local database without printing secrets.
+A synthetic user `beta-preview-user` was inserted because report rows require an existing `halleus_users.id`.
+The beta API saved synthetic report `beta-test-report-001` via POST, read it back by report id via GET, and listed one summary.
+The local database row count for `halleus_reports` was 1.
+Tracked files remained clean during verification.
+```
+
+Scope lock:
+
+```text
+This is local verification only.
+No UI was connected to database storage.
+No production/staging database has been verified.
+No auth/profile/payment/public report behavior was added.
+Do not treat this as launch-ready persistence until the next guarded UI/server-action step is designed and checked.
+```
+
+Failure notes from v0.1.114:
+
+```text
+Docker CLI existed before the Docker Desktop daemon was running, so initial Docker commands failed with a daemon connection error.
+The first Docker image pull for `postgres:16-alpine` returned a transient 403; after Docker was ready, a later pull succeeded.
+The first beta API POST returned 500 because `halleus_reports.user_id` has a foreign key to `halleus_users.id`; inserting the synthetic beta user fixed the local verification path.
+PowerShell/Docker table output can visually merge columns when pasted; use Docker `--format` for clean status output.
+```

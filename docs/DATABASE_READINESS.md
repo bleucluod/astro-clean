@@ -116,3 +116,26 @@ Current lock:
 - `--require-env` fails when beta persistence env is not configured.
 - `--check-db` verifies local/staging database connectivity and required table names without printing `DATABASE_URL`.
 - No UI, route behavior, migration, package, or `.env` behavior changed.
+
+
+## v0.1.114 Local beta API verification checkpoint
+
+The guarded beta report persistence API has been verified against a local Docker Postgres database.
+
+Verified:
+
+- Docker Postgres local container was running on port `54329`.
+- Existing migration created required tables and indexes.
+- `node scripts/check-beta-api-preflight.mjs --require-env` passed with local-only session env.
+- `node scripts/check-beta-api-preflight.mjs --check-db` passed without printing `DATABASE_URL`.
+- `POST /api/reports/beta` saved synthetic report `beta-test-report-001` after inserting synthetic local user `beta-preview-user`.
+- `GET /api/reports/beta?reportId=beta-test-report-001` returned the same report id.
+- `GET /api/reports/beta` returned one summary.
+- Local `halleus_reports` row count was `1`.
+- Tracked git files remained clean and `.env.local` remained ignored.
+
+Still locked:
+
+- No active UI route is connected to database storage yet.
+- No production/staging database has been verified yet.
+- No auth/profile/payment/public report behavior was added.
