@@ -9,11 +9,22 @@ import { decodeReportRecords } from "@/lib/storage/report-record-migration";
 import { createReportRecord } from "@/lib/storage/report-records";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
-import type { ReportRecord } from "@/types/storage";
+import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
 
 type SortMode = "newest" | "oldest";
 type ReportFilterMode = "all" | "favorites";
 type ReportNotesMap = Record<string, string>;
+type ReportsListSource = "local" | "beta-db";
+
+type ReportsListProps = {
+  reportSource?: ReportsListSource;
+};
+
+type BetaDatabaseListResponse = {
+  ok?: boolean;
+  error?: string;
+  summaries?: ReportRecordSummary[];
+};
 
 type ReportsArchivePayload = {
   app: "halleus";
@@ -201,8 +212,33 @@ function reportMatchesSearch(
   return searchableText.includes(searchTerm);
 }
 
-export function ReportsList() {
+function databaseSummaryMatchesSearch(
+  summary: ReportRecordSummary,
+  searchTerm: string,
+) {
+  if (!searchTerm) {
+    return true;
+  }
+
+  const searchableText = [
+    summary.id,
+    summary.name ?? "",
+    summary.birthDate,
+    summary.birthTime,
+    summary.birthCity,
+    summary.birthCountry,
+    summary.visibility,
+    summary.source,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return searchableText.includes(searchTerm);
+}
+
+export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   const [reports, setReports] = useState<AstrologyReport[]>([]);
+  const [databaseSummaries, setDatabaseSummaries] = useState<ReportRecordSummary[]>([]);
   const [favoriteReportIds, setFavoriteReportIds] = useState<string[]>([]);
   const [reportNotes, setReportNotes] = useState<ReportNotesMap>({});
   const [isReady, setIsReady] = useState(false);
@@ -212,12 +248,15 @@ export function ReportsList() {
   const [filterMode, setFilterMode] = useState<ReportFilterMode>("all");
 
   const searchTerm = normalizeSearchText(searchInput);
+  const isBetaDatabaseSource = reportSource === "beta-db";
 
-  const favoriteCount = reports.filter((report) =>
-    favoriteReportIds.includes(report.id),
-  ).length;
+  const favoriteCount = isBetaDatabaseSource
+    ? databaseSummaries.filter((summary) => summary.favorite).length
+    : reports.filter((report) => favoriteReportIds.includes(report.id)).length;
 
-  const notesCount = reports.filter((report) => reportNotes[report.id]).length;
+  const notesCount = isBetaDatabaseSource
+    ? databaseSummaries.filter((summary) => summary.hasNote).length
+    : reports.filter((report) => reportNotes[report.id]).length;
 
   const visibleReports = useMemo(() => {
     const filteredReports = reports.filter((report) => {
@@ -237,7 +276,52 @@ export function ReportsList() {
     return filteredReports;
   }, [favoriteReportIds, filterMode, reportNotes, reports, searchTerm, sortMode]);
 
+  const visibleDatabaseSummaries = useMemo(() => {
+    const filteredSummaries = databaseSummaries.filter((summary) => {
+      const matchesFavoriteFilter = filterMode === "all" || summary.favorite;
+
+      return matchesFavoriteFilter && databaseSummaryMatchesSearch(summary, searchTerm);
+    });
+
+    return [...filteredSummaries].sort((a, b) => {
+      const aTime = new Date(a.createdAt).getTime();
+      const bTime = new Date(b.createdAt).getTime();
+
+      return sortMode === "oldest" ? aTime - bTime : bTime - aTime;
+    });
+  }, [databaseSummaries, filterMode, searchTerm, sortMode]);
+
   async function refreshReports() {
+    if (isBetaDatabaseSource) {
+      const response = await fetch("/api/reports/beta");
+      const payload = (await response.json().catch(() => null)) as
+        | BetaDatabaseListResponse
+        | null;
+
+      if (!response.ok || !payload?.ok || !Array.isArray(payload.summaries)) {
+        setDatabaseSummaries([]);
+        setReports([]);
+        setFavoriteReportIds([]);
+        setReportNotes({});
+        setIsReady(true);
+        setMessage(payload?.error ?? "Beta database archive failed to load.");
+        return;
+      }
+
+      setDatabaseSummaries(payload.summaries);
+      setReports([]);
+      setFavoriteReportIds(
+        payload.summaries
+          .filter((summary) => summary.favorite)
+          .map((summary) => summary.id),
+      );
+      setReportNotes({});
+      setMessage(`Loaded ${payload.summaries.length.toLocaleString("en-US")} beta database report(s).`);
+      setIsReady(true);
+      return;
+    }
+
+    setDatabaseSummaries([]);
     const records = await reportRepository.listReports();
 
     setReports(records.map((record) => record.report));
@@ -256,7 +340,7 @@ export function ReportsList() {
     return () => {
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [reportSource]);
 
   async function handleToggleFavorite(reportId: string) {
     const shouldBeFavorite = !favoriteReportIds.includes(reportId);
@@ -402,6 +486,160 @@ export function ReportsList() {
         <span className="badge">در حال خواندن</span>
         <h1>گزارش‌ها در حال بارگذاری هستند</h1>
         <p>گزارش‌های ذخیره‌شده از مرورگر خوانده می‌شوند.</p>
+      </section>
+    );
+  }
+
+  if (isBetaDatabaseSource) {
+    if (databaseSummaries.length === 0) {
+      return (
+        <EmptyState
+          badge="Beta database archive"
+          title="No beta database reports found"
+          description="Save a beta database copy from a report detail page, then return to this guarded archive."
+          actionHref="/reports"
+          actionLabel="Back to local reports"
+        />
+      );
+    }
+
+    return (
+      <section className="grid">
+        <div className="card">
+          <span className="badge">Beta database archive</span>
+
+          <h1>Beta database report archive</h1>
+
+          <p>
+            This guarded view reads saved beta database summaries. Open a report
+            to load the full saved copy from the database.
+          </p>
+
+          <div className="reports-toolbar">
+            <label className="field">
+              <span>Search beta database summaries</span>
+              <input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Name, city, country, report id..."
+              />
+            </label>
+
+            <label className="field">
+              <span>Sort</span>
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+              >
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="filter-tabs">
+            <button
+              className={filterMode === "all" ? "filter-tab active" : "filter-tab"}
+              type="button"
+              onClick={() => setFilterMode("all")}
+            >
+              All beta DB reports
+            </button>
+
+            <button
+              className={
+                filterMode === "favorites" ? "filter-tab active" : "filter-tab"
+              }
+              type="button"
+              onClick={() => setFilterMode("favorites")}
+            >
+              Favorites ({favoriteCount.toLocaleString("en-US")})
+            </button>
+          </div>
+
+          <div className="reports-summary-row">
+            <span>
+              Showing {visibleDatabaseSummaries.length.toLocaleString("en-US")} of {" "}
+              {databaseSummaries.length.toLocaleString("en-US")} beta DB reports ? {" "}
+              {notesCount.toLocaleString("en-US")} note(s)
+            </span>
+
+            {searchInput ? (
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => setSearchInput("")}
+              >
+                Clear search
+              </button>
+            ) : null}
+          </div>
+
+          <div className="actions">
+            <Link className="button" href="/reports">
+              Back to local reports
+            </Link>
+
+            <Link className="button secondary" href="/chart">
+              Create new report
+            </Link>
+          </div>
+
+          {message ? <p className="success-message">{message}</p> : null}
+        </div>
+
+        {visibleDatabaseSummaries.length === 0 ? (
+          <div className="card">
+            <span className="badge">No results</span>
+
+            <h2>No beta database report matched this filter</h2>
+
+            <p>Clear search or switch back to all beta DB reports.</p>
+
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => {
+                setSearchInput("");
+                setFilterMode("all");
+              }}
+            >
+              Show all beta DB reports
+            </button>
+          </div>
+        ) : null}
+
+        {visibleDatabaseSummaries.map((summary) => (
+          <article className="card" key={summary.id}>
+            <span className="badge">Beta database copy</span>
+
+            <h2>{summary.name ? `Report for ${summary.name}` : "Saved beta database report"}</h2>
+
+            <div className="birth-details">
+              <span>{summary.birthDate}</span>
+              <span>{summary.birthTime}</span>
+              <span>
+                {summary.birthCity}, {summary.birthCountry}
+              </span>
+            </div>
+
+            <p>
+              Saved {new Date(summary.createdAt).toLocaleDateString("fa-IR")} ? {" "}
+              {summary.visibility} ? {summary.source}
+              {summary.hasNote ? " ? note" : ""}
+              {summary.favorite ? " ? favorite" : ""}
+            </p>
+
+            <div className="actions">
+              <Link
+                className="button"
+                href={`/reports/${summary.id}?source=beta-db`}
+              >
+                Open beta database report
+              </Link>
+            </div>
+          </article>
+        ))}
       </section>
     );
   }

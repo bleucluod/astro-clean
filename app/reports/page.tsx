@@ -11,7 +11,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ReportsPage() {
+type ReportsPageProps = {
+  searchParams?: Promise<{
+    source?: string | string[];
+  }>;
+};
+
+export default async function ReportsPage({ searchParams }: ReportsPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawSource = Array.isArray(resolvedSearchParams.source)
+    ? resolvedSearchParams.source[0]
+    : resolvedSearchParams.source;
+  const reportSource = rawSource === "beta-db" ? "beta-db" : "local";
   return (
     <section className="grid reports-sales-shell">
       <div className="card reports-sales-cta">
@@ -36,7 +47,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <ReportsList />
+      <ReportsList reportSource={reportSource} />
     </section>
   );
 }

@@ -2825,3 +2825,23 @@ components/ReportDetail.tsx
 scripts/check-database-readiness.mjs
 docs/HALLEUS_PROJECT_CONTEXT.md
 PowerShell/Node patch runners
+
+## v0.1.118 Workflow Failure Ledger
+
+Error:
+Guarded beta DB report archive apply failed before writing because the render-branch marker was too broad.
+
+Where/Version:
+v0.1.118 guarded beta DB report archive view.
+
+Cause:
+The first patch searched for a generic `if (reports.length === 0) {` marker using substring matching. It matched more than one location, so the script stopped with `Expected 1 match for beta database render branch, found 2`.
+
+Fixed / Rolled back / Still open:
+Fixed. The failed apply wrote no files. Status was checked, the duplicated marker location was diagnosed, and the apply was narrowed to exact-line guarded insertion before the local empty-state render branch.
+
+Prevention rule:
+After a marker failure, do not retry broadly. Check `git status --short`, inspect exact duplicate marker locations, then use exact-line markers or reduce scope.
+
+Files or systems involved:
+`components/ReportsList.tsx`, `app/reports/page.tsx`, PowerShell/Node apply patch workflow.
