@@ -14,13 +14,26 @@ import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
 
 type ReportDetailProps = {
   reportId: string;
+  reportSource?: ReportDetailSource;
 };
+
+type ReportDetailSource = "local" | "beta-db";
 
 type BetaDatabaseSaveResponse = {
   ok?: boolean;
   error?: string;
   reportRecord?: {
     id?: string;
+  };
+};
+
+type BetaDatabaseReadResponse = {
+  ok?: boolean;
+  error?: string;
+  reportRecord?: {
+    report?: AstrologyReport;
+    note?: string | null;
+    favorite?: boolean | null;
   };
 };
 
@@ -67,7 +80,7 @@ function downloadTextFile(fileName: string, data: string) {
   URL.revokeObjectURL(url);
 }
 
-export function ReportDetail({ reportId }: ReportDetailProps) {
+export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailProps) {
   const [report, setReport] = useState<AstrologyReport | null>(null);
   const [note, setNote] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
@@ -79,6 +92,34 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
     let isActive = true;
 
     async function loadReport() {
+      if (reportSource === "beta-db") {
+        if (!isBetaDatabaseSaveUiEnabled) {
+          throw new Error("Beta database read UI is disabled.");
+        }
+
+        const response = await fetch(
+          `/api/reports/beta?reportId=${encodeURIComponent(reportId)}`,
+        );
+        const payload = (await response.json().catch(() => null)) as
+          | BetaDatabaseReadResponse
+          | null;
+
+        if (!response.ok || !payload?.ok || !payload.reportRecord?.report) {
+          throw new Error(payload?.error ?? "Beta database report was not found.");
+        }
+
+        if (!isActive) {
+          return;
+        }
+
+        setReport(payload.reportRecord.report);
+        setNote(payload.reportRecord.note ?? "");
+        setIsFavorite(payload.reportRecord.favorite ?? false);
+        setMessage(`Loaded beta database report: ${reportId}`);
+        setIsReady(true);
+        return;
+      }
+
       const selectedRecord = await reportRepository.getReport(reportId);
 
       if (!isActive) {
@@ -99,7 +140,7 @@ export function ReportDetail({ reportId }: ReportDetailProps) {
       isActive = false;
       window.clearTimeout(timer);
     };
-  }, [reportId]);
+  }, [reportId, reportSource]);
 
   async function handleSaveNote() {
     const updatedRecord = await reportRepository.setNote(reportId, note);

@@ -6,6 +6,9 @@ type ReportDetailPageProps = {
   params: Promise<{
     reportId: string;
   }>;
+  searchParams?: Promise<{
+    source?: string | string[];
+  }>;
 };
 
 export const metadata: Metadata = {
@@ -16,12 +19,18 @@ export const metadata: Metadata = {
 
 export default async function ReportDetailPage({
   params,
+  searchParams,
 }: ReportDetailPageProps) {
   const { reportId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawSource = Array.isArray(resolvedSearchParams.source)
+    ? resolvedSearchParams.source[0]
+    : resolvedSearchParams.source;
+  const reportSource = rawSource === "beta-db" ? "beta-db" : "local";
 
   return (
     <>
-      <ReportDetail reportId={reportId} />
+      <ReportDetail reportId={reportId} reportSource={reportSource} />
       <ReportOrderCta reportId={reportId} />
     </>
   );
