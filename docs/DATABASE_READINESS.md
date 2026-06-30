@@ -50,3 +50,16 @@ Current lock:
 - Product UI and active local preview storage are not wired to database persistence yet.
 - The driver supports report list/get/upsert/delete for the existing `halleus_reports` foundation table.
 - This step does not run migrations and does not read `.env` secrets in checks.
+
+
+## v0.1.109 Database repository checkpoint
+
+The database report repository now implements the existing `ReportRepository` contract behind the Postgres driver.
+
+Current lock:
+
+- `createDatabaseReportRepository({ userId })` requires an explicit user id.
+- Active product UI still uses local preview storage through `getReportRepository()`.
+- This checkpoint does not switch report creation, report list, or report detail to database storage.
+- The database repository is ready for controlled server persistence routes/services in the next batch.
+- Reports remain private by default and imported reports are forced to account/private storage.

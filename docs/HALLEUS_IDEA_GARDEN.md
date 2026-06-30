@@ -562,3 +562,22 @@ Next smallest step:
 Do not do yet:
 
 - Do not implement final profiles/accounts/payment/public reports in the first database batch.
+
+
+---
+
+## v0.1.109 Database repository implementation note
+
+Decision:
+
+```text
+Continue Database MVP by implementing the database repository behind the existing storage contract.
+Do not switch active UI storage to database yet.
+Do not add profiles/auth/payment/public reports in this repository batch.
+```
+
+Why:
+
+```text
+The core flow needs server persistence, but the browser product flow should remain stable until a controlled server save/read path is verified.
+```

@@ -2588,3 +2588,25 @@ For inline Node probes in PowerShell, prefer here-string probes or JSON-safe scr
 
 Files or systems involved:
 PowerShell runner, Node marker probe, package.json, Postgres driver batch.
+
+
+## v0.1.109 Database Repository Implementation
+
+This checkpoint replaces the database repository placeholder with a real repository factory while preserving the local preview product flow.
+
+Done:
+
+```text
+Implemented `createDatabaseReportRepository({ userId })` in `lib/storage/database-report-repository.ts`.
+The repository delegates list/get/save/delete/note/favorite/import/export operations to the database driver.
+The active `getReportRepository()` path remains local-only.
+No UI, route, migration, auth, payment, public report, or `.env` behavior changed.
+Database readiness checks now require the database repository implementation.
+```
+
+Next safe step:
+
+```text
+v0.1.110 should add a controlled server persistence route or service that can save a generated report through the database repository when a beta user id and database config are available.
+Do not switch the browser UI to database storage until that save/read path is verified.
+```
