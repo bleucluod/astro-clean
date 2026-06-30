@@ -86,6 +86,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
   const [isFavorite, setIsFavorite] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [message, setMessage] = useState("");
+  const [betaDatabaseMessage, setBetaDatabaseMessage] = useState("");
   const [isBetaDatabaseSaving, setIsBetaDatabaseSaving] = useState(false);
 
   useEffect(() => {
@@ -116,6 +117,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
         setNote(payload.reportRecord.note ?? "");
         setIsFavorite(payload.reportRecord.favorite ?? false);
         setMessage(`Loaded beta database report: ${reportId}`);
+        setBetaDatabaseMessage(`Loaded beta database report: ${reportId}`);
         setIsReady(true);
         return;
       }
@@ -198,6 +200,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
 
     setIsBetaDatabaseSaving(true);
     setMessage("Saving beta database copy...");
+    setBetaDatabaseMessage("Saving beta database copy...");
 
     try {
       const response = await fetch("/api/reports/beta", {
@@ -216,13 +219,17 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
         throw new Error(payload?.error ?? "Beta database save failed.");
       }
 
-      setMessage(
-        `Beta database copy saved: ${payload.reportRecord?.id ?? report.id}`,
-      );
+      const savedReportId = payload.reportRecord?.id ?? report.id;
+      const successMessage = `Beta database copy saved: ${savedReportId}`;
+
+      setMessage(successMessage);
+      setBetaDatabaseMessage(successMessage);
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Beta database save failed.",
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : "Beta database save failed.";
+
+      setMessage(errorMessage);
+      setBetaDatabaseMessage(errorMessage);
     } finally {
       setIsBetaDatabaseSaving(false);
     }
@@ -319,6 +326,10 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
                 : "Save beta database copy"}
             </button>
           </div>
+
+          {betaDatabaseMessage ? (
+            <p className="success-message">{betaDatabaseMessage}</p>
+          ) : null}
         </section>
       ) : null}
 
