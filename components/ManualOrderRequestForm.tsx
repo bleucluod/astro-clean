@@ -125,6 +125,8 @@ export function ManualOrderRequestForm({
     const reportId = form.reportLink.trim();
     const lines = [
       "درخواست سفارش دستی Halleus",
+      "نوع مسیر: هماهنگی دستی؛ بدون پرداخت آنلاین یا ارسال خودکار داخل سایت",
+      "مرحله بعد: این متن برای بررسی و تأیید زمان/هزینه نسخه کامل‌تر ارسال می‌شود.",
       "",
       `نام سفارش‌دهنده: ${form.name.trim() || "—"}`,
       `راه ارتباطی: ${form.contact.trim() || "—"}`,
@@ -134,6 +136,8 @@ export function ManualOrderRequestForm({
       "",
       "توضیحات سفارش:",
       form.notes.trim() || "—",
+      "",
+      "یادآوری: این متن فقط درخواست اولیه است و شروع سفارش بعد از تأیید دستی انجام می‌شود.",
     ];
 
     return lines.join("\n");
@@ -151,7 +155,7 @@ export function ManualOrderRequestForm({
 
     try {
       await navigator.clipboard.writeText(requestText);
-      setCopyMessage("متن سفارش کپی شد. حالا می‌توانی آن را برای هماهنگی دستی ارسال کنی.");
+      setCopyMessage("متن سفارش کپی شد. حالا آن را از راه ارتباطی هماهنگ‌شده بفرست و منتظر تأیید زمان/هزینه بمان.");
     } catch {
       setCopyMessage("کپی خودکار انجام نشد. متن سفارش را دستی انتخاب و کپی کن.");
     }
@@ -165,7 +169,8 @@ export function ManualOrderRequestForm({
 
       <p>
         این فرم چیزی را ارسال نمی‌کند؛ فقط متن مرتب سفارش را می‌سازد. اگر از صفحه
-        گزارش آمده باشی، شناسه همان گزارش به متن سفارش اضافه می‌شود.
+        گزارش آمده باشی، شناسه همان گزارش به متن سفارش اضافه می‌شود. بعد از کپی،
+        متن را برای هماهنگی دستی می‌فرستی و جزئیات زمان/هزینه جداگانه تأیید می‌شود.
       </p>
 
       {reportLookupMessage ? (
@@ -228,13 +233,13 @@ export function ManualOrderRequestForm({
       </div>
 
       <div className="manual-order-preview">
-        <strong>متن آماده سفارش</strong>
+        <strong>متن آماده سفارش برای ارسال دستی</strong>
         <pre>{requestText}</pre>
       </div>
 
       <div className="actions">
         <button className="button" type="button" onClick={handleCopyRequest}>
-          کپی متن سفارش
+          کپی متن سفارش برای ارسال دستی
         </button>
       </div>
 

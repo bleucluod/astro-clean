@@ -3013,3 +3013,62 @@ Avoid over-investing in Render beyond staging proof.
 Use this staging pass as confidence that the database code path works.
 Next product/deploy planning should prioritize finishing the user-facing product and evaluating an Iranian hosting path for the final deployment.
 ```
+
+
+## v0.1.123 Manual Order Process Readiness
+
+This checkpoint improves the manual order bridge without adding payment, backend order storage, auth, or database write behavior.
+
+Product change:
+
+```text
+/order now explains the post-copy manual order steps:
+1. copy the prepared order text,
+2. send it through the coordinated manual contact path,
+3. confirm timing, cost, and scope before work starts.
+```
+
+Report order context compatibility:
+
+```text
+v0.1.123 keeps the existing report-to-order bridge intact:
+- app/reports/[reportId]/page.tsx renders ReportOrderCta.
+- ReportOrderCta links a report to /order?reportId=...
+- app/order/page.tsx renders ManualOrderRequestForm with initialReportId.
+```
+
+Manual order form change:
+
+```text
+The generated order text now states that the path is manual, does not include online payment or automatic submission, and needs separate confirmation before work begins.
+The preview title, copy button, and copy success message now make the next manual step clearer.
+```
+
+Workflow failure notes:
+
+```text
+The first v0.1.123 attempt failed before writing because cleanup used Remove-Item -LiteralPath with a wildcard pattern. Prevention: do not use -LiteralPath with wildcard patterns; inspect exact artifact filenames first, then delete confirmed filenames exactly.
+
+The second v0.1.123 attempt failed before writing because the order page patch used a guessed full Persian section marker. Prevention: after marker failure, inspect live files with Node JSON/string probes and patch only from live-verified structural markers.
+
+The third v0.1.123 attempt failed before writing because raw Persian literals inside a pasted PowerShell/Node here-string were unsafe for exact matching in the terminal path. Prevention: do not rely on raw Persian text copied into terminal runners for markers; use ASCII structural markers plus Unicode-escaped inserted text or a UTF-8 artifact runner.
+
+The fourth v0.1.123 attempt wrote the intended files, then stopped at pnpm run check:report-order-context because HALLEUS_PROJECT_CONTEXT.md did not include the ReportOrderCta marker required by the existing check script. Prevention: inspect relevant check scripts before choosing docs markers for product-flow changes.
+```
+
+Boundary:
+
+```text
+No backend order submission was added.
+No payment flow was added.
+No database order table was added.
+No real user data is collected server-side by this change.
+This is a product-readiness polish step for the commercial MVP bridge.
+```
+
+Hosting note:
+
+```text
+Do not move to Iranian hosting before the user-facing product and order flow are convincing enough.
+Render remains a staging/proof surface for now.
+```

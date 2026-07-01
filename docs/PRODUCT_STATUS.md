@@ -344,3 +344,16 @@ Updated estimates:
 | Chart engine implementation | 52% |
 | Engine fallback safety | 80% |
 | Commercial MVP overall | 73% |
+
+
+## Manual order process-readiness update
+
+The manual order bridge now explains what happens after the user copies the order request, and the generated request text is clearer about manual coordination, confirmation, and the absence of automatic payment/submission.
+
+Updated estimates:
+
+| Area | Progress |
+| --- | ---: |
+| Manual order readiness | 62% |
+| Conversion bridge | 58% |
+| Commercial MVP overall | 74% |

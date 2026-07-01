@@ -752,3 +752,26 @@ Boundary:
 ```text
 The staging beta DB pass does not enable production persistence, public/indexable reports, paid/private report ownership, auth, or billing.
 ```
+
+
+---
+
+## v0.1.123 Manual order process-readiness note
+
+Decision:
+
+```text
+Improve the manual order bridge before starting another infrastructure/hosting phase. The order path should feel process-ready even while payment and backend order intake remain intentionally manual.
+```
+
+Why:
+
+```text
+The database path is now proven in staging, but the commercial bottleneck is the user journey from report to order. A clearer manual order process reduces launch risk faster than moving hosting providers immediately.
+```
+
+Boundary:
+
+```text
+This is not payment, auth, backend order storage, or production DB persistence. It is a small MVP conversion/readiness step.
+```

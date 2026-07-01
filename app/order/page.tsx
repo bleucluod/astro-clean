@@ -56,6 +56,23 @@ export default async function OrderPage({ searchParams }: OrderPageProps) {
       <ManualOrderRequestForm initialReportId={initialReportId} />
 
       <section className="card">
+        <span className="section-label">بعد از کپی متن سفارش</span>
+
+        <h2>مسیر سفارش فعلاً دستی و شفاف است</h2>
+
+        <ol>
+          <li>متن آماده سفارش را کپی کن و شناسه گزارش نمونه را همراهش نگه دار.</li>
+          <li>متن را از راه ارتباطی هماهنگ‌شده برای بررسی دستی ارسال کن.</li>
+          <li>زمان، هزینه و محدوده نسخه کامل‌تر قبل از شروع کار تأیید می‌شود.</li>
+        </ol>
+
+        <p>
+          این مرحله هنوز پرداخت آنلاین یا ارسال خودکار ندارد؛ هدفش این است که
+          درخواست مشتری قابل‌پیگیری، منظم و آماده هماهنگی باشد.
+        </p>
+      </section>
+
+      <section className="card">
         <span className="section-label">شفافیت سفارش</span>
 
         <h2>اینجا اطلاعاتی به سرور ارسال نمی‌شود</h2>
