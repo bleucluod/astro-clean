@@ -11,8 +11,6 @@ const footerLinks = [
   { href: "/pricing", label: "پلن‌ها" },
   { href: "/order", label: "سفارش دستی" },
   { href: "/reports", label: "گزارش‌ها" },
-  { href: "/dashboard", label: "داشبورد" },
-  { href: "/admin", label: "پنل ادمین" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 

@@ -56,8 +56,6 @@ const requiredFooterRoutes = [
   ["/pricing", "پلن‌ها"],
   ["/order", "سفارش دستی"],
   ["/reports", "گزارش‌ها"],
-  ["/dashboard", "داشبورد"],
-  ["/admin", "پنل ادمین"],
   ["/privacy", "حریم خصوصی"],
 ];
 
