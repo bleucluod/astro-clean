@@ -729,3 +729,26 @@ Why:
 ```text
 This keeps deployment progress honest: Render deploy can be verified independently, while database readiness still requires a visible database service, env configuration, migration/table proof, and beta API/UI smoke tests.
 ```
+
+
+---
+
+## v0.1.122 Staging DB pass and hosting direction note
+
+Decision:
+
+```text
+Treat Render as a staging verification surface for the beta database path, not as the final hosting commitment. The beta DB code path is now proven through migration, API save/read/list, and guarded UI read/archive on https://halleus.ir.
+```
+
+Product direction:
+
+```text
+Move faster toward finishing the user-facing Halleus product and evaluate an Iranian hosting path for final deployment. Do not keep expanding Render-specific infrastructure unless it directly reduces launch risk or verifies a critical product path.
+```
+
+Boundary:
+
+```text
+The staging beta DB pass does not enable production persistence, public/indexable reports, paid/private report ownership, auth, or billing.
+```

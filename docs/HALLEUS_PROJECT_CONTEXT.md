@@ -2941,3 +2941,75 @@ Next gated step:
 If continuing DB staging work, create or identify a Render Postgres service, configure staging env keys without printing values, apply migrations, then run the v0.1.120 staging beta DB verification checklist.
 If continuing public deployment verification, smoke-test the Render URL and Halleus.ir routes separately without mixing that with DB enablement.
 ```
+
+
+## v0.1.122 Render Staging Beta DB Smoke Pass
+
+This checkpoint records the first successful Render staging beta database smoke test on the public primary domain.
+
+Verified staging infrastructure:
+
+```text
+Render Postgres service: halleus-staging-postgres
+Database: halleus_staging
+Database user observed in read-only check: halleus_staging_user
+PostgreSQL major version: 16
+Render app primary URL used for verification: https://halleus.ir
+```
+
+Verified migration state:
+
+```text
+Migration file applied: database/migrations/0001_initial_schema.sql
+Created/verified tables:
+- halleus_users
+- halleus_birth_profiles
+- halleus_reports
+Migration result: MIGRATION_OK
+```
+
+Verified API smoke test on https://halleus.ir/api/reports/beta:
+
+```text
+Initial GET list: ok true, summaries count 0
+Synthetic POST: ok true
+Synthetic report id: beta-staging-smoke-20260701183712
+GET by reportId: ok true, same report id returned
+GET list after save: ok true, summaries count 1
+Saved report found in list summaries: yes
+```
+
+Verified guarded UI smoke test on https://halleus.ir:
+
+```text
+/reports?source=beta-db opened and was visible.
+/reports/beta-staging-smoke-20260701183712?source=beta-db opened and was visible.
+```
+
+Known caveats:
+
+```text
+Local external preflight scripts/check-beta-api-preflight.mjs --check-db failed with ECONNRESET after migration, but the deployed Render app API path passed through the primary domain.
+astro-clean-98ug.onrender.com was intermittently unreachable from the local terminal/browser, while https://halleus.ir worked and Render reported it as the primary URL.
+The Render free Postgres instance has an expiration warning for July 31, 2026 unless upgraded.
+```
+
+State boundary:
+
+```text
+Render staging beta DB API path is verified.
+Guarded beta DB archive/read UI path is verified.
+This is not production DB launch.
+This is not public/indexable report persistence.
+This is not the paid/private report model.
+The active default report flow remains local/default unless explicitly routed through beta-db guards.
+No real user birth data or secrets were printed or shared.
+```
+
+Next direction:
+
+```text
+Avoid over-investing in Render beyond staging proof.
+Use this staging pass as confidence that the database code path works.
+Next product/deploy planning should prioritize finishing the user-facing product and evaluating an Iranian hosting path for the final deployment.
+```

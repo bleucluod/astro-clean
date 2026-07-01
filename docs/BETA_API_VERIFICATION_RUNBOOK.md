@@ -354,3 +354,51 @@ This is not public/indexable reports.
 This is not a production database launch.
 This does not change the active repository away from local storage.
 ```
+
+
+## v0.1.122 Render staging beta DB smoke pass
+
+Observed staging environment:
+
+```text
+Primary verification URL: https://halleus.ir
+Render Postgres service: halleus-staging-postgres
+Database: halleus_staging
+PostgreSQL major version: 16
+Required env keys were configured without printing values.
+```
+
+Migration result:
+
+```text
+database/migrations/0001_initial_schema.sql was applied to Render Postgres.
+Required tables existed after migration:
+- halleus_users
+- halleus_birth_profiles
+- halleus_reports
+```
+
+API smoke result:
+
+```text
+GET /api/reports/beta returned ok true and an empty summaries array before the smoke save.
+POST /api/reports/beta with synthetic data returned ok true.
+Saved synthetic report id: beta-staging-smoke-20260701183712
+GET /api/reports/beta?reportId=beta-staging-smoke-20260701183712 returned ok true and the same report id.
+GET /api/reports/beta after save returned ok true and included one matching summary.
+```
+
+Guarded UI smoke result:
+
+```text
+/reports?source=beta-db opened and was visible.
+/reports/beta-staging-smoke-20260701183712?source=beta-db opened and was visible.
+```
+
+Caveats:
+
+```text
+scripts/check-beta-api-preflight.mjs --check-db failed locally with ECONNRESET after migration, so the local external DB preflight was not recorded as passed.
+The app-level API path on https://halleus.ir passed, which verifies the deployed service's internal DB connection path.
+This remains a staging/beta verification only.
+```
