@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const statusLabels = {
   live: "فعال",
-  preview: "Preview",
+  preview: "در حال تکمیل",
   planned: "بعداً",
 } as const;
 
@@ -43,8 +43,8 @@ export default function ProductPage() {
     <section className="grid paid-mvp-product-shell">
       <div className="card paid-hero">
         <div>
-          <span className="badge">Halleus Product Map</span>
-          <span className="badge paid-soft-badge">Paid MVP Shell</span>
+          <span className="badge">مسیر محصول Halleus</span>
+          <span className="badge paid-soft-badge">گزارش و سفارش کامل‌تر</span>
 
           <h1>Halleus یک مسیر ساده از گزارش تولد تا سفارش نسخه کامل‌تر است</h1>
 
@@ -71,7 +71,7 @@ export default function ProductPage() {
       </div>
 
       <section className="card paid-section">
-        <span className="section-label">تحویل MVP</span>
+        <span className="section-label">آنچه کاربر دریافت می‌کند</span>
 
         <h2>در این نسخه کاربر چه چیزی می‌گیرد؟</h2>
 
@@ -86,14 +86,14 @@ export default function ProductPage() {
       </section>
 
       <section className="card manual-order-flow">
-        <span className="section-label">Manual order flow</span>
+        <span className="section-label">مسیر سفارش دستی</span>
 
         <h2>پرداخت واقعی هنوز فعال نیست؛ سفارش اولیه دستی و شفاف است</h2>
 
         <p>
-          این مسیر عمداً payment provider را فعال نمی‌کند. در عوض، محصول را برای
-          تست فروش آماده می‌کند: گزارش نمونه، توضیح روشن، پلن قابل فهم، CTA مرتبط
-          با همان گزارش و تحویل دستی.
+          این مسیر هنوز پرداخت آنلاین انجام نمی‌دهد. در عوض، کاربر اول گزارش
+          نمونه و توضیح پلن‌ها را می‌بیند؛ بعد اگر خواست، با شناسه همان گزارش
+          درخواست نسخه کامل‌تر را برای هماهنگی دستی آماده می‌کند.
         </p>
 
         <div className="home-step-list">
@@ -109,7 +109,7 @@ export default function ProductPage() {
       <section className="card">
         <span className="section-label">مسیرهای مهم محصول</span>
 
-        <h2>لینک‌های زنده برای تست فروش</h2>
+        <h2>مسیرهای اصلی تجربه Halleus</h2>
 
         <div className="feature-grid">
           {featuredLinks.map((item) => (
@@ -126,14 +126,14 @@ export default function ProductPage() {
       </section>
 
       <section className="card">
-        <span className="badge">Product Principle</span>
+        <span className="badge">اصل ادامه مسیر</span>
 
-        <h2>قاعده ادامه مسیر</h2>
+        <h2>ادامه محصول باید از ارزش گزارش شروع شود</h2>
 
         <p>
-          اول ارزش محصول و flow فروش روشن می‌شود؛ بعد auth، database و payment
-          provider اضافه می‌شوند. این ترتیب کمک می‌کند چیزی که ساخته می‌شود دوباره
-          از صفر بازنویسی نشود.
+          اول باید گزارش اولیه، سفارش کامل‌تر و تجربه کاربر روشن بمانند. بعد از
+          اینکه ارزش گزارش برای کاربر ثابت شد، حساب کاربری، ذخیره‌سازی ابری و
+          پرداخت آنلاین با کمترین بازکاری اضافه می‌شوند.
         </p>
       </section>
     </section>

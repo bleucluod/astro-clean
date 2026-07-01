@@ -67,18 +67,51 @@ assertIncludes(
   "Halleus یک مسیر ساده از گزارش تولد تا سفارش نسخه کامل‌تر است",
 );
 assertIncludes("app/product/page.tsx", "شناسه همان گزارش");
-assertIncludes("app/product/page.tsx", "Manual order flow");
+assertIncludes("app/product/page.tsx", "مسیر سفارش دستی");
+assertIncludes("app/product/page.tsx", "مسیر محصول Halleus");
+assertIncludes("app/product/page.tsx", "گزارش و سفارش کامل‌تر");
 
 assertIncludes(
   "app/pricing/page.tsx",
   "پلن‌ها برای کامل‌تر کردن گزارش تولد Halleus",
 );
 assertIncludes("app/pricing/page.tsx", "شناسه گزارش آماده می‌کند");
-assertIncludes("app/pricing/page.tsx", "Manual order MVP");
+assertIncludes("app/pricing/page.tsx", "سفارش دستی و شفاف");
+assertIncludes("app/pricing/page.tsx", "آمادگی پرداخت آنلاین");
+
+assertIncludes("app/privacy/page.tsx", "حریم داده و گزارش‌ها");
+assertIncludes("app/privacy/page.tsx", "حساب کاربری در مرحله بعد");
+assertIncludes("app/privacy/page.tsx", "داده‌هایی که روی همین مرورگر می‌مانند");
+
+for (const publicPage of [
+  "app/product/page.tsx",
+  "app/pricing/page.tsx",
+  "app/privacy/page.tsx",
+]) {
+  for (const [marker, label] of [
+    ["Halleus Product Map", "internal product-map wording"],
+    ["Paid MVP Shell", "internal paid-MVP wording"],
+    ["تحویل MVP", "internal MVP delivery label"],
+    ["Manualorder MVP", "internal manual-order MVP wording"],
+    ["Manual order MVP", "internal manual-order MVP wording"],
+    ["Payment Readiness", "internal payment-readiness wording"],
+    ["Stage:", "internal stage label"],
+    ["Payments:", "internal payments label"],
+    ["payment provider", "payment-provider wording"],
+    ["Local Preview Privacy", "internal privacy badge"],
+    ["public preview", "internal public-preview wording"],
+    ["local preview", "internal local-preview wording"],
+    ["backend", "internal backend wording"],
+    ["production", "internal production wording"],
+    ["flow فروش", "mixed internal flow wording"],
+  ]) {
+    assertNotIncludes(publicPage, marker, label);
+  }
+}
 
 assertIncludes(
   "app/order/page.tsx",
-  "درخواست سفارش دستی نسخه کامل‌تر گزارش Halleus",
+  "سفارش نسخه کامل‌تر گزارش Halleus",
 );
 assertIncludes("app/order/page.tsx", "initialReportId");
 assertIncludes("app/order/page.tsx", "searchParams");
@@ -99,7 +132,7 @@ assertIncludes("components/ReportOrderCta.tsx", "encodeURIComponent(reportId)");
 
 assertIncludes(
   "docs/HALLEUS_PROJECT_CONTEXT.md",
-  "v0.1.72-sales-copy-polish",
+  "v0.1.124 public footer/internal-route alignment",
 );
 
 const packageJson = JSON.parse(read("package.json"));

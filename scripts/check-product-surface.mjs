@@ -11,8 +11,8 @@ const requiredFiles = [
 
 const requiredContent = [
   ["lib/product/product-surface.ts", "PRODUCT_SURFACE_LINKS"],
-  ["app/product/page.tsx", "Halleus Product Map"],
-  ["app/privacy/page.tsx", "Local Preview Privacy"],
+  ["app/product/page.tsx", "مسیر محصول Halleus"],
+  ["app/privacy/page.tsx", "حریم داده و گزارش‌ها"],
   ["app/roadmap/page.tsx", "Halleus Roadmap"],
   ["app/wiki/page.tsx", "Halleus Wiki"],
   ["docs/PRODUCT_SURFACE_CLEANUP.md", "public product surface"],

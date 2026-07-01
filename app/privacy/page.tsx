@@ -14,14 +14,13 @@ export default function PrivacyPage() {
   return (
     <section className="grid privacy-sales-shell">
       <div className="card">
-        <span className="badge">Local Preview Privacy</span>
+        <span className="badge">حریم داده و گزارش‌ها</span>
 
         <h1>حریم داده در Halleus</h1>
 
         <p>
-          Halleus فعلاً در حالت public preview است. در این حالت، گزارش‌ها و
-          یادداشت‌های تو روی مرورگر همین دستگاه ذخیره می‌شوند و هنوز backend،
-          حساب کاربری یا دیتابیس production فعال نیست.
+          در وضعیت فعلی، گزارش‌ها و یادداشت‌های تو روی مرورگر همین دستگاه ذخیره
+          می‌شوند. حساب کاربری و ذخیره‌سازی ابری هنوز فعال نیستند.
         </p>
 
         <div className="actions">
@@ -46,27 +45,26 @@ export default function PrivacyPage() {
 
         <p>
           چون پرداخت آنلاین هنوز فعال نیست، سفارش اولیه به‌صورت دستی انجام
-          می‌شود. همین صفحه باید برای کاربر روشن کند که داده‌ها فعلاً کجا
-          می‌مانند، چه چیزی هنوز production نیست و چرا قبل از payment provider
-          باید auth و database آماده شوند.
+          می‌شود. این صفحه روشن می‌کند داده‌ها فعلاً کجا می‌مانند و چرا قبل از
+          حساب کاربری، ذخیره‌سازی ابری و پرداخت آنلاین باید مسیر اعتماد شفاف باشد.
         </p>
 
         <div className="tag-list">
-          <span>Storage: مرورگر کاربر</span>
-          <span>Auth: فعال نیست</span>
-          <span>Payment: سفارش دستی</span>
+          <span>ذخیره‌سازی: مرورگر کاربر</span>
+          <span>حساب کاربری: فعال نیست</span>
+          <span>سفارش: سفارش دستی</span>
         </div>
       </section>
 
       <section className="card">
         <span className="badge">چه چیزی ذخیره می‌شود؟</span>
 
-        <h2>داده‌های local preview</h2>
+        <h2>داده‌هایی که روی همین مرورگر می‌مانند</h2>
 
         <div className="home-step-list">
           <div>
             <strong>گزارش‌ها</strong>
-            <span>گزارش‌های ساخته‌شده فعلاً در local storage مرورگر می‌مانند.</span>
+            <span>گزارش‌های ساخته‌شده فعلاً در حافظه همین مرورگر می‌مانند.</span>
           </div>
 
           <div>
@@ -75,26 +73,26 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <strong>Export و Import</strong>
+            <strong>خروجی و ورود دوباره</strong>
             <span>می‌توانی گزارش‌ها را خروجی بگیری و بعداً دوباره وارد کنی.</span>
           </div>
         </div>
       </section>
 
       <section className="card">
-        <span className="badge">Account Later</span>
+        <span className="badge">حساب کاربری در مرحله بعد</span>
 
         <h2>وقتی حساب کاربری اضافه شود</h2>
 
         <p>
-          بعد از فعال شدن auth و database، گزارش‌ها می‌توانند به حساب کاربری
-          وصل شوند. تا آن زمان، پرداخت واقعی و ذخیره‌سازی ابری فعال نمی‌شود.
+          بعد از فعال شدن حساب کاربری و ذخیره‌سازی ابری، گزارش‌ها می‌توانند به
+          حساب تو وصل شوند. تا آن زمان پرداخت آنلاین و نگهداری ابری فعال نیست.
         </p>
 
         <div className="tag-list">
-          <span>Auth: آماده‌سازی شده، فعال نیست</span>
-          <span>Database: آماده‌سازی شده، فعال نیست</span>
-          <span>Payment: آماده‌سازی شده، فعال نیست</span>
+          <span>حساب کاربری: مرحله بعد</span>
+          <span>ذخیره‌سازی ابری: مرحله بعد</span>
+          <span>پرداخت آنلاین: مستلزم شفاف شدن مسیر داده</span>
         </div>
       </section>
     </section>

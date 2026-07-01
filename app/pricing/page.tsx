@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicBillingPlans } from "@/lib/billing/billing-plans";
-import { getBillingReadinessReport } from "@/lib/billing/billing-readiness";
 
 export const metadata: Metadata = {
   title: "پلن‌ها و گزارش کامل‌تر | Halleus",
@@ -26,14 +25,13 @@ function formatPrice(value: number) {
 
 export default function PricingPage() {
   const plans = getPublicBillingPlans();
-  const readiness = getBillingReadinessReport();
 
   return (
     <section className="grid paid-mvp-pricing-shell">
       <div className="card paid-hero">
         <div>
-          <span className="badge">Halleus Pricing</span>
-          <span className="badge paid-soft-badge">Manual order MVP</span>
+          <span className="badge">پلن‌های Halleus</span>
+          <span className="badge paid-soft-badge">سفارش دستی و شفاف</span>
 
           <h1>پلن‌ها برای کامل‌تر کردن گزارش تولد Halleus</h1>
 
@@ -95,22 +93,20 @@ export default function PricingPage() {
       </div>
 
       <section className="card manual-order-flow">
-        <span className="section-label">Manual order flow</span>
+        <span className="section-label">مسیر سفارش دستی</span>
 
-        <h2>برای MVP، سفارش و پرداخت بیرون از سایت تأیید می‌شود</h2>
+        <h2>سفارش و پرداخت فعلاً بیرون از سایت هماهنگ می‌شود</h2>
 
         <p>
-          تا وقتی auth، database و کیفیت گزارش کامل‌تر آماده نشده‌اند، payment
-          provider فعال نمی‌شود. کاربر فعلاً پلن را می‌بیند، متن سفارش را آماده
-          می‌کند و هماهنگی پرداخت و تحویل خارج از سایت انجام می‌شود.
+          با وجود اینکه کیفیت گزارش کامل‌تر و مسیر تحویل به اندازه کافی روشن نشده،
+          پرداخت آنلاین فعال نمی‌شود. کاربر فعلاً پلن را می‌بیند، متن سفارش را
+          آماده می‌کند و هماهنگی پرداخت و تحویل خارج از سایت انجام می‌شود.
         </p>
 
         <div className="tag-list payment-disabled">
-          <span>Stage: {readiness.stage}</span>
-          <span>Provider: {readiness.provider}</span>
-          <span>
-            Payments: {readiness.canEnablePayments ? "ready" : "blocked"}
-          </span>
+          <span>وضعیت: هماهنگی دستی</span>
+          <span>پرداخت آنلاین فعلاً فعال نیست</span>
+          <span>تحویل: بعد از تأیید زمان و هزینه</span>
         </div>
 
         <div className="home-step-list">
@@ -138,22 +134,30 @@ export default function PricingPage() {
       </section>
 
       <section className="card">
-        <span className="badge">Payment Readiness</span>
+        <span className="badge">آمادگی پرداخت آنلاین</span>
 
-        <h2>وضعیت اتصال پرداخت</h2>
+        <h2>قبل از اتصال پرداخت چه چیزهایی باید روشن شود؟</h2>
 
         <p>
-          این بخش هنوز از billing readiness فعلی استفاده می‌کند تا روشن باشد چه
-          چیزهایی قبل از فعال‌سازی پرداخت آنلاین باید آماده شوند.
+          اتصال پرداخت وقتی معنی دارد که گزارش کامل‌تر، محدوده تحویل و نگهداری
+          امن گزارش‌ها برای کاربر شفاف باشد.
         </p>
 
         <div className="home-step-list">
-          {readiness.recommendedNextSteps.map((step, index) => (
-            <div key={step}>
-              <strong>{(index + 1).toLocaleString("fa-IR")}. قدم بعدی</strong>
-              <span>{step}</span>
-            </div>
-          ))}
+          <div>
+            <strong>۱. کیفیت گزارش کامل‌تر</strong>
+            <span>محدوده، عمق و نمونه خروجی گزارش باید قابل توضیح باشد.</span>
+          </div>
+
+          <div>
+            <strong>۲. حساب کاربری و نگهداری گزارش</strong>
+            <span>کاربر باید بداند گزارش پرداختی کجا نگهداری می‌شود.</span>
+          </div>
+
+          <div>
+            <strong>۳. روش پرداخت مناسب</strong>
+            <span>روش پرداخت باید با مسیر کاربران فارسی‌زبان هماهنگ باشد.</span>
+          </div>
         </div>
       </section>
     </section>
