@@ -3072,3 +3072,44 @@ Hosting note:
 Do not move to Iranian hosting before the user-facing product and order flow are convincing enough.
 Render remains a staging/proof surface for now.
 ```
+
+
+## v0.1.124 Navigation Workflow Recovery Notes
+
+Status:
+
+```text
+No v0.1.124 product commit was created yet.
+All failed v0.1.124 attempts were rolled back.
+Current clean baseline after rollback is v0.1.123 at commit 52a2afd.
+```
+
+Failures recorded:
+
+```text
+1. The first v0.1.124 context ZIP attempt failed because PowerShell Compress-Archive hit a file-lock error on a copied temp file. Prevention: after archive failure, stop, inspect exact temp folders and ZIPs, clean only confirmed exact artifact paths, and prefer tar.exe -a -cf for context bundles.
+
+2. The first navigation cleanup attempt removed /dashboard and /admin from components/AppShell.tsx, but pnpm run check:site-chrome-minimal-ui failed because scripts/check-site-chrome-minimal-ui.mjs explicitly required those footer links. Prevention: existing check scripts are authority until the inspected product decision changes them; update UI, check, and docs together when the decision changes.
+
+3. The next v0.1.124 footer alignment runner wrote intended files but failed at git --no-pager diff --check because a full-file AppShell rewrite introduced trailing whitespace across the JSX file. Prevention: avoid full-file rewrites for small JSX edits; prefer minimal line edits preserving existing whitespace, or sanitize only the touched file before checks.
+
+4. The assistant suggested skipping v0.1.124 after repeated runner failures. Prevention: do not skip a planned phase merely because a runner failed. Roll back the failed attempt, preserve the phase, and re-enter with smaller inspected steps.
+```
+
+Decision boundary:
+
+```text
+The product direction is that admin/internal routes should not be promoted as primary public navigation.
+However, /dashboard and /admin removal from the public footer must be implemented only in a scoped batch that also aligns the inspected site-chrome check and records the decision.
+Do not touch sitemap, robots, product-surface, auth, payment, database, or Render settings unless separately inspected and explicitly scoped.
+```
+
+Safe next approach:
+
+```text
+Continue v0.1.124 with a minimal line-edit batch:
+- remove only the /dashboard and /admin footer link lines from components/AppShell.tsx,
+- remove only the matching requiredFooterRoutes entries from scripts/check-site-chrome-minimal-ui.mjs,
+- add small docs/status notes,
+- run check:encoding, diff --check, check:site-chrome-minimal-ui, and build before commit.
+```

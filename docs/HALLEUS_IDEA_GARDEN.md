@@ -775,3 +775,34 @@ Boundary:
 ```text
 This is not payment, auth, backend order storage, or production DB persistence. It is a small MVP conversion/readiness step.
 ```
+
+
+---
+
+## v0.1.124 Public footer/internal route decision
+
+Decision:
+
+```text
+Public footer navigation should focus on user-facing product routes. Dashboard/admin can remain accessible routes, but they should not be promoted as primary public footer links.
+```
+
+Reason:
+
+```text
+Halleus is moving from technical staging toward a user-facing commercial MVP. Public navigation should guide a normal visitor through chart, product, pricing, report, order, and privacy paths, not internal/admin operations.
+```
+
+Implementation boundary:
+
+```text
+This decision does not delete /dashboard or /admin.
+This decision does not add auth, noindex, sitemap changes, or route protection.
+Any footer change must align the existing site-chrome check in the same scoped batch.
+```
+
+Workflow note:
+
+```text
+Do not abandon the v0.1.124 navigation phase because a runner failed. Continue with smaller inspected line edits after rollback.
+```
