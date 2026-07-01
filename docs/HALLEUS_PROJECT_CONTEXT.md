@@ -1,4 +1,4 @@
-# Halleus Project Context
+﻿# Halleus Project Context
 
 Last updated: 2026-07-02
 
@@ -490,6 +490,7 @@ Byte-for-byte route checker failed after valid semantic change.
 Stale UI copy markers broke valid changes.
 Broad visible-label grep matched internal V3 identifiers.
 check:site-chrome-minimal-ui required /dashboard and /admin while product direction wanted them removed from public footer.
+v0.1.126 fixed runner ran check:real-report-save-flow outside the scoped bridge patch and failed on stale ReportCard marker SIGN_LABELS_FA.
 ```
 
 Prevention:
@@ -499,6 +500,8 @@ Checks should validate durable product contracts.
 Update checks in the same batch when inspected product direction changes.
 Visible-label guards must only check exact user-facing labels.
 Before changing UI that has a check, inspect the check script first.
+Runners must not include broad cross-component checks unless the touched files are in scope.
+If a guard checks an old implementation marker, allow the current stable alternative after inspecting the live file.
 ```
 
 ### G. Product/UI regressions
@@ -568,7 +571,9 @@ v0.1.120: staging beta DB verification runbook.
 v0.1.121: Render deploy state recorded.
 v0.1.122: Render staging beta DB smoke passed on https://halleus.ir.
 v0.1.123: manual order process readiness completed and pushed.
-v0.1.124: navigation workflow recovery and decision; product implementation still pending.
+v0.1.124: navigation workflow recovery and decision; public footer/internal route alignment completed in v0.1.124b.
+v0.1.125: public wording cleanup completed.
+v0.1.126: report generation context bridge completed.
 ```
 
 ## 13. Open questions before stronger launch claims

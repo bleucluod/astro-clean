@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+﻿import { readFileSync } from "node:fs";
 
 const failures = [];
 const typesSource = readFileSync("types/astro.ts", "utf8");
@@ -39,11 +39,19 @@ for (const marker of [
   "report.realEngine?.aspects",
   "report-aspect-card",
   "PLANET_LABELS_FA",
-  "SIGN_LABELS_FA",
 ]) {
   if (!reportCardSource.includes(marker)) {
     failures.push(`ReportCard missing product real engine display marker: ${marker}`);
   }
+}
+
+if (
+  !reportCardSource.includes("SIGN_LABELS_FA") &&
+  !reportCardSource.includes("formatZodiacLabel")
+) {
+  failures.push(
+    "ReportCard missing product zodiac label display marker: SIGN_LABELS_FA or formatZodiacLabel",
+  );
 }
 
 if (
