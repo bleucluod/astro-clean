@@ -37,10 +37,22 @@ export function buildReportRealChartBridge(report: unknown): ReportRealChartBrid
   const engineMetadata = asRecord(reportObject?.engineMetadata);
   const fallbackPlacements = readPlacementArray(
     readPath(reportObject, ["normalizedChart", "placements"]),
-  ).concat(readPlacementArray(readPath(engineMetadata, ["placements"])));
+  )
+    .concat(readPlacementArray(readPath(engineMetadata, ["placements"])))
+    .concat(readPlacementArray(readPath(reportObject, ["realEngine", "placements"])))
+    .concat(
+      readPlacementArray(
+        readPath(engineMetadata, ["realEngineSnapshot", "placements"]),
+      ),
+    );
   const fallbackAspects = readAspectArray(
     readPath(reportObject, ["normalizedChart", "aspects"]),
-  ).concat(readAspectArray(readPath(engineMetadata, ["aspects"])));
+  )
+    .concat(readAspectArray(readPath(engineMetadata, ["aspects"])))
+    .concat(readAspectArray(readPath(reportObject, ["realEngine", "aspects"])))
+    .concat(
+      readAspectArray(readPath(engineMetadata, ["realEngineSnapshot", "aspects"])),
+    );
 
   const placementHighlights = readPlacementArray(enrichment?.placements);
   const aspectHighlights = readAspectArray(enrichment?.aspects);
@@ -193,11 +205,22 @@ function readAspectArray(value: unknown): ReportRealChartBridgeAspect[] {
         return null;
       }
 
-      const id = readString(object.id) ?? "aspect";
-      const pointA = readString(object.pointA) ?? "point-a";
-      const pointB = readString(object.pointB) ?? "point-b";
+      const aspectId =
+        readString(object.aspectId) ?? readString(object.id) ?? "aspect";
+      const id = readString(object.aspectLabel) ?? aspectId;
+      const pointA =
+        readString(object.pointA) ??
+        readString(object.firstPlanetLabel) ??
+        readString(object.firstPlanetId) ??
+        "point-a";
+      const pointB =
+        readString(object.pointB) ??
+        readString(object.secondPlanetLabel) ??
+        readString(object.secondPlanetId) ??
+        "point-b";
       const summaryKey =
-        readString(object.summaryKey) ?? `aspect:${pointA}:${id}:${pointB}`;
+        readString(object.summaryKey) ??
+        ["aspect", pointA, aspectId, pointB].join(":");
 
       return {
         id,

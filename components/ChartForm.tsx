@@ -84,6 +84,8 @@ type RealChartApiResponse = {
     calculationNotes: string[];
     placements: RealEnginePlacement[];
   } | null;
+  chartReportEnrichment?: unknown;
+  copyBlocks?: unknown[];
   report?: AstrologyReport | null;
   reportGeneration?: GeneratedReportContract | null;
   fallback?: {
@@ -91,6 +93,14 @@ type RealChartApiResponse = {
     reason: string | null;
     safeUserMessage: string | null;
   };
+};
+
+type ReportWithGenerationContext = AstrologyReport & {
+  chartReportEnrichment?: unknown;
+  normalizedChart?: unknown;
+  copyBlocks?: unknown[];
+  reportGenerationStatus?: string;
+  engineMetadata?: Record<string, unknown>;
 };
 
 type RealEngineRequestState = {
@@ -303,9 +313,11 @@ export function ChartForm() {
       // Keep the safe report save flow alive if the deeper chart calculation is unavailable.
     }
 
-    const nextReport =
-      realEngineResult?.report ??
-      buildLocalFallbackReport(normalizedForm, realEngineResult, engineCity);
+    const nextReport = buildReportForSave(
+      normalizedForm,
+      realEngineResult,
+      engineCity,
+    );
 
     await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();
@@ -545,6 +557,54 @@ export function ChartForm() {
       </section>
     </div>
   );
+}
+
+function buildReportForSave(
+  normalizedForm: BirthInput,
+  payload: RealChartApiResponse | null,
+  engineCity: IranCityOption,
+): AstrologyReport {
+  if (payload?.report) {
+    return attachReportGenerationContext(payload.report, payload);
+  }
+
+  return buildLocalFallbackReport(normalizedForm, payload, engineCity);
+}
+
+function attachReportGenerationContext(
+  report: AstrologyReport,
+  payload: RealChartApiResponse,
+): AstrologyReport {
+  const generation = payload.reportGeneration;
+
+  if (!generation) {
+    return report;
+  }
+
+  const engineData = generation.engineData;
+  const chartReportEnrichment =
+    engineData.chartReportEnrichment ?? payload.chartReportEnrichment ?? null;
+  const normalizedChart = engineData.normalizedChart ?? null;
+  const copyBlocks = engineData.copyBlocks ?? payload.copyBlocks ?? [];
+
+  return {
+    ...report,
+    chartReportEnrichment,
+    normalizedChart,
+    copyBlocks,
+    reportGenerationStatus: generation.status,
+    engineMetadata: {
+      source: engineData.source,
+      status: generation.status,
+      generatedAt: generation.generatedAt,
+      realEngineSnapshot: engineData.realEngineSnapshot ?? report.realEngine ?? null,
+      chartReportEnrichment,
+      normalizedChart,
+      copyBlocks,
+      limitations: engineData.limitations,
+      warnings: engineData.warnings,
+    },
+  } as ReportWithGenerationContext;
 }
 
 function buildLocalFallbackReport(

@@ -40,7 +40,16 @@ for (const exportName of bridgeExports) {
   }
 }
 
-for (const marker of ["ready", "partial", "pending", "chartReportEnrichment", "normalizedChart"]) {
+for (const marker of [
+  "ready",
+  "partial",
+  "pending",
+  "chartReportEnrichment",
+  "normalizedChart",
+  '["realEngine", "placements"]',
+  '["realEngine", "aspects"]',
+  '["realEngineSnapshot", "placements"]',
+]) {
   if (!bridgeSource.includes(marker)) {
     failures.push(`Bridge source missing marker: ${marker}`);
   }
