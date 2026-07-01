@@ -2898,3 +2898,46 @@ No Render dashboard state was changed.
 No production beta persistence was enabled.
 Do not claim the beta DB flow is deployed until Render/public URL verification passes.
 ```
+
+
+## v0.1.121 Render Deploy State Record
+
+This checkpoint records the latest verified Render deployment facts without changing runtime code or enabling staging database persistence.
+
+Verified Render facts:
+
+```text
+Render service/project observed: astro-clean / My project
+Latest Render deploy status: live
+Latest deployed commit: fb9c697
+Deploy message: Add staging beta DB verification runbook
+Auto-deploy: on commit
+Public Render URL: https://astro-clean-98ug.onrender.com/
+Custom domain observed/listed: halleus.ir
+```
+
+Database/staging facts:
+
+```text
+Postgres/database service: no visible Postgres service in the Render project overview.
+Remote beta API check from local PowerShell to https://astro-clean-98ug.onrender.com/api/reports/beta returned no response / unable to connect to the remote server.
+Staging beta DB persistence is not verified.
+Production/public DB persistence is not enabled.
+```
+
+State boundary:
+
+```text
+GitHub push through fb9c697 is verified.
+Render deploy through fb9c697 is now recorded as live from dashboard observation.
+This does not verify staging database env, migrations, or beta API behavior.
+This does not prove Halleus.ir fully routes to the latest app until public domain route checks are separately performed.
+Do not claim beta DB is staging-ready until a visible database service/env/migration/API smoke test passes.
+```
+
+Next gated step:
+
+```text
+If continuing DB staging work, create or identify a Render Postgres service, configure staging env keys without printing values, apply migrations, then run the v0.1.120 staging beta DB verification checklist.
+If continuing public deployment verification, smoke-test the Render URL and Halleus.ir routes separately without mixing that with DB enablement.
+```

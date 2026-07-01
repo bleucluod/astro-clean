@@ -712,3 +712,20 @@ Why:
 ```text
 The local beta DB flow is now usable for save/read/archive checks, but the project still needs proof that the same guarded path works on the actual deployed environment without exposing secrets or real user data.
 ```
+
+
+---
+
+## v0.1.121 Render deploy state note
+
+Decision:
+
+```text
+Record Render deploy state separately from GitHub state: fb9c697 is observed live on Render for the astro-clean service/project, but staging DB persistence remains unverified because no visible Postgres service was found and the remote beta API check did not connect.
+```
+
+Why:
+
+```text
+This keeps deployment progress honest: Render deploy can be verified independently, while database readiness still requires a visible database service, env configuration, migration/table proof, and beta API/UI smoke tests.
+```
