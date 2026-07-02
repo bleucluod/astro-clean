@@ -60,8 +60,8 @@ export function ReportCard({ report }: ReportCardProps) {
         <div className="report-product-hero-copy">
           <span className="badge report-product-badge">
             {report.realEngine
-              ? "گزارش محاسبه‌شده Halleus"
-              : "گزارش نمادین Halleus"}
+              ? "گزارش محاسبه‌شده هالیوس"
+              : "گزارش نمادین هالیوس"}
           </span>
 
           <h2>

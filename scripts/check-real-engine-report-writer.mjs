@@ -48,8 +48,17 @@ for (const marker of [
   "پرسش تأملی: زهره",
   "پرسش تأملی: مریخ",
   "برای خواندن این گزارش",
+  "هالیوس",
 ]) {
   assertIncludes(writer, marker, "lib/astrology/real-engine-report-writer.ts");
+}
+
+for (const forbiddenMarker of ["Halleus"]) {
+  if (writer.includes(forbiddenMarker)) {
+    throw new Error(
+      `lib/astrology/real-engine-report-writer.ts still contains English brand marker in Persian report text: ${forbiddenMarker}`,
+    );
+  }
 }
 
 for (const marker of [

@@ -137,7 +137,7 @@ export function enhanceReportOutputV3(
   const score = isRealEngineReportText
     ? Math.max(v2Report.outputQuality?.score ?? 0, 88)
     : v2Report.outputQuality?.score ?? 0;
-  const name = getInputValue(v2Report, "name", "گزارش Halleus");
+  const name = getInputValue(v2Report, "name", "گزارش هالیوس");
   const birthCity = getInputValue(v2Report, "birthCity", "شهر تولد");
 
   return {

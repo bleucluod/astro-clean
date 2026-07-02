@@ -583,7 +583,8 @@ v0.1.130: visible report-depth batch completed for longer Sun, Moon, Rising, and
 v0.1.131: chart data-confidence batch completed so approximate equal-house/ascendant scaffolding is not treated as final-ready report data.
 v0.1.132: personal-planets report-depth batch completed for richer Mercury, Venus, and Mars planet-in-sign text without relying on approximate houses.
 v0.1.133: aspect-depth batch completed so real-engine aspect relationships read as meaningful inner dynamics, not a short list of angular contacts.
-v0.1.134: planned as final report-structure batch to improve reading order, section framing, rising visibility, and final synthesis without changing calculations or UI.
+v0.1.134: final report-structure batch completed to improve reading order, section framing, rising visibility, and final synthesis without changing calculations or UI.
+v0.1.135: planned as report-quality pass for Persian-facing brand consistency, report copy guardrails, and final readability checks before stronger MVP readiness claims.
 ```
 
 ## 13. Open questions before stronger launch claims
@@ -662,3 +663,11 @@ Minimal scoped approach:
 - Keep the existing section IDs/kinds stable while improving reading order, intro/closing framing, rising visibility, and final synthesis.
 - Do not change aspect math, orb rules, shared report types, routes, storage, payment, SEO, public/private policy, or house/ascendant confidence logic in this batch.
 - Product goal: make the report feel less like separate paragraphs and more like a guided Persian reading with overview, identity, emotional pattern, relationships, action path, synthesis, and final reflection.
+
+## v0.1.135 report-quality-pass scope note
+
+- v0.1.135 is scoped to Persian-facing report quality guardrails, not adding new astrology calculations or changing report structure.
+- Use the Persian brand spelling `هالیوس` in Persian user-facing/report text; keep lowercase `halleus` only for file names, event names, and internal identifiers.
+- Keep this batch focused on report surfaces and guards: generated real-engine report writer, V3 report fallback copy, report card/detail copy, and report quality checks.
+- Do not change aspect math, orb rules, shared report types, routes, storage, payment, SEO, public/private policy, or house/ascendant confidence logic in this batch.
+- Product goal: reduce English-brand leakage in Persian text and make this rule enforceable before the final report QA pass.
