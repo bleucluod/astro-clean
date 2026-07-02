@@ -29,6 +29,10 @@ for (const marker of [
   "real-engine-reflection-prompts",
   "SIGN_COPY",
   "PLANET_COPY",
+  "CORE_PLACEMENT_STORY",
+  "این بخش فقط یک برچسب شخصیتی نیست",
+  "پرسش تأملی",
+  "برای خواندن این گزارش",
 ]) {
   assertIncludes(writer, marker, "lib/astrology/real-engine-report-writer.ts");
 }

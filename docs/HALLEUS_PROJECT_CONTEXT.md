@@ -578,6 +578,8 @@ v0.1.125: public wording cleanup completed.
 v0.1.126: report generation context bridge completed.
 v0.1.127: ReportCard zodiac marker guard cleanup completed.
 v0.1.128: first visible report-text quality improvement; saved real-engine reports now drive V3 Persian report sections instead of falling back to generic sectioned preview copy.
+v0.1.129: Report V3 experience guard aligned with the current Persian badge marker.
+v0.1.130: planned as the first visible report-depth batch for longer Sun, Moon, Rising, and integration text in generated real-engine reports.
 ```
 
 ## 13. Open questions before stronger launch claims
@@ -617,3 +619,10 @@ Minimal scoped approach:
 ## v0.1.129 workflow note
 
 - v0.1.129 first guard-cleanup runner failed before patch because it used a guessed stale-marker guard; diagnosis confirmed scripts/check-report-experience-v3.mjs still required Report Output V3 while components/ReportV3Experience.tsx shows the Persian badge marker. Prevention: inspect exact check-file marker lines before emitting guard cleanup runners.
+
+
+## v0.1.130 report-depth scope note
+
+- v0.1.130 is scoped to visible report depth in `lib/astrology/real-engine-report-writer.ts`, not UI polish or another infrastructure-only batch.
+- First visible target: make fresh generated reports noticeably richer in the Sun, Moon, Rising, and integration sections while keeping the tone Persian, calm, self-discovery oriented, and non-deterministic.
+- Keep astrology calculations, storage, routes, payment, SEO, and public/private report policy out of this batch unless separately inspected and scoped.
