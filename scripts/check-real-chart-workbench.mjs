@@ -17,7 +17,9 @@ const requiredExports = [
   "makeAstronomyTime",
   "getAstronomyBody",
   "zonedDateTimeToUtc",
+  "calculateAscendantLongitude",
   "calculateApproximateAscendantLongitude",
+  "calculateMeanObliquityDegrees",
   "getZodiacSignForLongitude",
   "normalizeLongitude",
   "formatChartDegree",
@@ -53,7 +55,10 @@ for (const marker of [
   "GeoVector",
   "Ecliptic",
   "zonedDateTimeToUtc",
-  "calculateApproximateAscendantLongitude",
+  "calculateAscendantLongitude",
+  "calculateMeanObliquityDegrees",
+  "SiderealTime",
+  "astronomy-engine-local-sidereal-time",
   "astronomy-engine-prototype",
   "outer-planet",
   "Earth-centered",
@@ -69,9 +74,10 @@ if (engineSource.includes("EclipticLongitude")) {
 
 for (const marker of [
   'runtime = "nodejs"',
-  "buildRealChartWorkbenchResult",
-  "buildChartReportEnrichment",
-  "buildRealChartReportCopy",
+  "generateReportContract",
+  "buildLegacyRealChartPayload",
+  "chartReportEnrichment",
+  "reportGeneration",
   "NextResponse.json",
 ]) {
   if (!apiSource.includes(marker)) {
@@ -132,17 +138,23 @@ const astronomy = await import("astronomy-engine");
 const hasGeoVector = typeof astronomy.GeoVector === "function";
 const hasEcliptic = typeof astronomy.Ecliptic === "function";
 const hasBodySun = Boolean(astronomy.Body?.Sun);
+const hasSiderealTime = typeof astronomy.SiderealTime === "function";
 
-if (!hasGeoVector || !hasEcliptic || !hasBodySun) {
-  failures.push("astronomy-engine GeoVector, Ecliptic, or Body.Sun is not available.");
+if (!hasGeoVector || !hasEcliptic || !hasBodySun || !hasSiderealTime) {
+  failures.push("astronomy-engine GeoVector, Ecliptic, Body.Sun, or SiderealTime is not available.");
 } else {
   const time = new astronomy.AstroTime(new Date(Date.UTC(1994, 1, 20, 18, 10, 0)));
   const vector = astronomy.GeoVector(astronomy.Body.Sun, time, true);
   const ecliptic = astronomy.Ecliptic(vector);
   const sunLongitude = Number(ecliptic.elon);
+  const siderealHours = Number(astronomy.SiderealTime(time));
 
   if (!Number.isFinite(sunLongitude)) {
     failures.push("astronomy-engine did not return a finite Earth-centered Sun longitude.");
+  }
+
+  if (!Number.isFinite(siderealHours)) {
+    failures.push("astronomy-engine did not return a finite sidereal time.");
   }
 }
 

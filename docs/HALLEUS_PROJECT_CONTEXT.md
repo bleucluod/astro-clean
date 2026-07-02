@@ -680,3 +680,6 @@ Minimal scoped approach:
 - The sample QA check builds real-engine snapshots through the current report writer and verifies section count, section length, aspect language, Persian-facing brand copy, forbidden spacing tokens, and approximate rising disclosure.
 - Do not use this batch to change report prose unless sample QA output identifies a concrete failure in generated text.
 - Next report step remains final readiness guard after reviewing sample QA output.
+## v0.1.137 workflow recovery note
+
+- The first real ascendant/house foundation runner failed because it touched route, report-generation, shared types, engine code, and checks in one batch, and continued into checks after a missing-marker apply failure. Prevention: split the work into v0.1.137a real ascendant core, v0.1.137b house metadata, and v0.1.137c report-generation/report wording; apply runners must abort immediately when the apply script fails.

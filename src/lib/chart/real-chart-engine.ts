@@ -5,7 +5,7 @@ import {
   type NormalizedChartPointInput,
 } from "./normalized-chart";
 
-export const REAL_CHART_WORKBENCH_VERSION = "0.1.54" as const;
+export const REAL_CHART_WORKBENCH_VERSION = "0.1.137a" as const;
 
 export type RealChartBirthInput = {
   name?: string;
@@ -32,6 +32,7 @@ export type RealChartWorkbenchResult = {
   input: RealChartBirthInput;
   utcIso: string;
   ascendantLongitude: number;
+  ascendantMethod: "astronomy-engine-local-sidereal-time";
   calculationNotes: string[];
   placements: RealChartCalculatedPlacement[];
   normalizedChart: NormalizedChart;
@@ -76,7 +77,8 @@ export function buildRealChartWorkbenchResult(
   const input = normalizeRealChartBirthInput(rawInput);
   const utcDate = zonedDateTimeToUtc(input.birthDate, input.birthTime, input.timezone);
   const astroTime = makeAstronomyTime(utcDate);
-  const ascendantLongitude = calculateApproximateAscendantLongitude(
+  const ascendantLongitude = calculateAscendantLongitude(
+    astroTime,
     utcDate,
     input.latitude,
     input.longitude,
@@ -107,12 +109,14 @@ export function buildRealChartWorkbenchResult(
     input,
     utcIso: utcDate.toISOString(),
     ascendantLongitude,
+    ascendantMethod: "astronomy-engine-local-sidereal-time",
     placements,
     normalizedChart,
     calculationNotes: [
       "Planetary positions are calculated from an Earth-centered vector and converted to the ecliptic plane with astronomy-engine.",
       "Timezone conversion uses the JavaScript Intl timezone database.",
-      "Ascendant and houses are approximate equal-house scaffolding until final house-system hardening.",
+      "Ascendant is calculated from astronomy-engine SiderealTime, birth latitude/longitude, and tropical obliquity.",
+      "Houses remain equal-house scaffolding until the dedicated house-system foundation batch.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",
     ],
   };
@@ -223,22 +227,20 @@ export function zonedDateTimeToUtc(
   return new Date(guessUtc);
 }
 
-export function calculateApproximateAscendantLongitude(
+export function calculateAscendantLongitude(
+  astroTime: Astronomy.AstroTime,
   utcDate: Date,
   latitude: number,
   longitude: number,
 ): number {
-  const julianDay = utcDate.getTime() / 86400000 + 2440587.5;
-  const daysSinceJ2000 = julianDay - 2451545.0;
-  const centuriesSinceJ2000 = daysSinceJ2000 / 36525;
-  const gmst = normalizeLongitude(
-    280.46061837 +
-      360.98564736629 * daysSinceJ2000 +
-      0.000387933 * centuriesSinceJ2000 ** 2 -
-      centuriesSinceJ2000 ** 3 / 38710000,
-  );
-  const localSiderealDegrees = normalizeLongitude(gmst + longitude);
-  const obliquity = 23.439291 - 0.0130042 * centuriesSinceJ2000;
+  const siderealHours = Number(Astronomy.SiderealTime(astroTime));
+
+  if (!Number.isFinite(siderealHours)) {
+    throw new Error("astronomy-engine did not return a finite sidereal time.");
+  }
+
+  const localSiderealDegrees = normalizeLongitude(siderealHours * 15 + longitude);
+  const obliquity = calculateMeanObliquityDegrees(utcDate);
   const theta = degreesToRadians(localSiderealDegrees);
   const epsilon = degreesToRadians(obliquity);
   const phi = degreesToRadians(latitude);
@@ -250,6 +252,27 @@ export function calculateApproximateAscendantLongitude(
   );
 
   return normalizeLongitude(ascendant);
+}
+
+export function calculateApproximateAscendantLongitude(
+  utcDate: Date,
+  latitude: number,
+  longitude: number,
+): number {
+  return calculateAscendantLongitude(makeAstronomyTime(utcDate), utcDate, latitude, longitude);
+}
+
+export function calculateMeanObliquityDegrees(utcDate: Date): number {
+  const julianDay = utcDate.getTime() / 86400000 + 2440587.5;
+  const daysSinceJ2000 = julianDay - 2451545.0;
+  const centuriesSinceJ2000 = daysSinceJ2000 / 36525;
+
+  return (
+    23.439291 -
+    0.0130042 * centuriesSinceJ2000 -
+    1.64e-7 * centuriesSinceJ2000 ** 2 +
+    5.04e-7 * centuriesSinceJ2000 ** 3
+  );
 }
 
 export function getZodiacSignForLongitude(longitude: number): {
