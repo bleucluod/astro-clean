@@ -584,7 +584,8 @@ v0.1.131: chart data-confidence batch completed so approximate equal-house/ascen
 v0.1.132: personal-planets report-depth batch completed for richer Mercury, Venus, and Mars planet-in-sign text without relying on approximate houses.
 v0.1.133: aspect-depth batch completed so real-engine aspect relationships read as meaningful inner dynamics, not a short list of angular contacts.
 v0.1.134: final report-structure batch completed to improve reading order, section framing, rising visibility, and final synthesis without changing calculations or UI.
-v0.1.135: planned as report-quality pass for Persian-facing brand consistency, report copy guardrails, and final readability checks before stronger MVP readiness claims.
+v0.1.135: report-quality pass completed for Persian-facing brand consistency, report copy guardrails, and final readability checks before stronger MVP readiness claims.
+v0.1.136: report sample QA guard added to exercise generated real-engine report samples before final readiness claims.
 ```
 
 ## 13. Open questions before stronger launch claims
@@ -671,3 +672,11 @@ Minimal scoped approach:
 - Keep this batch focused on report surfaces and guards: generated real-engine report writer, V3 report fallback copy, report card/detail copy, and report quality checks.
 - Do not change aspect math, orb rules, shared report types, routes, storage, payment, SEO, public/private policy, or house/ascendant confidence logic in this batch.
 - Product goal: reduce English-brand leakage in Persian text and make this rule enforceable before the final report QA pass.
+
+
+## v0.1.136 report-sample-qa scope note
+
+- v0.1.136 is scoped to executable QA for generated real-engine report samples, not new astrology calculations, UI redesign, SEO, storage, payment, or public/private policy.
+- The sample QA check builds real-engine snapshots through the current report writer and verifies section count, section length, aspect language, Persian-facing brand copy, forbidden spacing tokens, and approximate rising disclosure.
+- Do not use this batch to change report prose unless sample QA output identifies a concrete failure in generated text.
+- Next report step remains final readiness guard after reviewing sample QA output.
