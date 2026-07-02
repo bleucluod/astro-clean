@@ -272,6 +272,77 @@ const PERSONAL_PLANET_STORY: Record<
   },
 };
 
+type AspectStory = {
+  theme: string;
+  supportSignal: string;
+  growthSignal: string;
+  integration: string;
+  reflection: string;
+};
+
+const ASPECT_STORY: Record<RealEngineReportAspect["aspectId"], AspectStory> = {
+  conjunction: {
+    theme:
+      "هم‌نشینی مثل این است که دو بخش شخصیت در یک اتاق مشترک حرف بزنند؛ صداها جدا هستند، اما اثرشان روی هم می‌افتد و یک هسته پررنگ‌تر می‌سازند.",
+    supportSignal:
+      "وقتی آگاهانه زندگی شود، این رابطه می‌تواند تمرکز، شدت و حس جهت‌دار بودن ایجاد کند.",
+    growthSignal:
+      "چالش طبیعی‌اش این است که یکی از دو نیرو ممکن است دیگری را بیش از حد رنگ کند و انتخاب‌های تو از حالت آزاد به حالت واکنشی نزدیک شود.",
+    integration:
+      "راه یکپارچه‌تر این است که قبل از عمل، از خودت بپرسی کدام صدا واقعاً در حال هدایت است و کدام صدا فقط همراه شده است.",
+    reflection:
+      "پرسش تأملی: این دو بخش وقتی با هم فعال می‌شوند، تو را به تمرکز نزدیک‌تر می‌کنند یا به فشار؟",
+  },
+  sextile: {
+    theme:
+      "فرصت نرم نشان می‌دهد دو بخش شخصیت می‌توانند بدون اجبار زیاد با هم همکاری کنند، اما این همکاری معمولاً نیاز به انتخاب آگاهانه دارد.",
+    supportSignal:
+      "وقتی از آن استفاده کنی، این رابطه می‌تواند راه‌حل، یادگیری و حرکت آرام بسازد.",
+    growthSignal:
+      "چالش طبیعی‌اش این است که چون تنش زیادی ندارد، ممکن است نادیده گرفته شود و به جای توان فعال، فقط یک امکان خام بماند.",
+    integration:
+      "راه یکپارچه‌تر این است که این استعداد را کوچک اما عملی وارد روزمره کنی؛ با یک گفت‌وگو، یک تمرین یا یک تصمیم ساده.",
+    reflection:
+      "پرسش تأملی: کدام فرصت کوچک در این رابطه هست که اگر فعالش کنی، زندگی‌ات کمی روان‌تر می‌شود؟",
+  },
+  square: {
+    theme:
+      "چالش سازنده یعنی دو بخش شخصیت با ریتم‌های متفاوت به هم فشار می‌آورند؛ این فشار همیشه بد نیست، اما اگر دیده نشود می‌تواند فرسوده‌کننده شود.",
+    supportSignal:
+      "وقتی آگاهانه هدایت شود، این رابطه می‌تواند اراده، بلوغ و توان عمل بسازد.",
+    growthSignal:
+      "چالش طبیعی‌اش این است که ممکن است یکی از دو نیاز را سرکوب کنی یا مدام بین آن‌ها نوسان داشته باشی.",
+    integration:
+      "راه یکپارچه‌تر این است که تنش را به مسئله قابل حل تبدیل کنی: نه جنگ درونی، نه انکار، بلکه تنظیم قدم‌به‌قدم.",
+    reflection:
+      "پرسش تأملی: این اصطکاک از تو چه مهارتی می‌خواهد که هنوز در حال ساختنش هستی؟",
+  },
+  trine: {
+    theme:
+      "جریان هماهنگ یعنی دو بخش شخصیت راحت‌تر به هم راه می‌دهند و ممکن است حس استعداد طبیعی یا حمایت درونی بسازند.",
+    supportSignal:
+      "وقتی آگاهانه استفاده شود، این رابطه می‌تواند اعتماد، روانی و حس طبیعی بودن مسیر را بیشتر کند.",
+    growthSignal:
+      "چالش طبیعی‌اش این است که چون راحت است، ممکن است تنبل یا ناخودآگاه بماند و به جای رشد فعال، فقط به عادت تبدیل شود.",
+    integration:
+      "راه یکپارچه‌تر این است که این روانی را قدر بدانی، اما آن را به انتخاب، تمرین و مسئولیت تبدیل کنی.",
+    reflection:
+      "پرسش تأملی: کدام توان طبیعی را آن‌قدر عادی می‌دانی که شاید ارزش واقعی‌اش را کم می‌بینی؟",
+  },
+  opposition: {
+    theme:
+      "قطبیت آگاه‌کننده یعنی دو بخش شخصیت روبه‌روی هم می‌ایستند تا تو یاد بگیری هیچ سر طیف را کامل حذف نکنی.",
+    supportSignal:
+      "وقتی آگاهانه زندگی شود، این رابطه می‌تواند نگاه دوطرفه، بلوغ رابطه‌ای و قدرت انتخاب میان دو نیاز متفاوت بسازد.",
+    growthSignal:
+      "چالش طبیعی‌اش این است که ممکن است یکی از دو بخش را به دیگران نسبت بدهی یا فقط یک طرف را درست بدانی.",
+    integration:
+      "راه یکپارچه‌تر این است که به جای انتخاب یکی علیه دیگری، ببینی هر دو قطب چه نیازی را نمایندگی می‌کنند.",
+    reflection:
+      "پرسش تأملی: کدام دو نیاز در تو روبه‌روی هم ایستاده‌اند و چه گفت‌وگویی بین آن‌ها لازم است؟",
+  },
+};
+
 export function enrichReportWithRealEngineCopy(
   report: AstrologyReport,
   realEngine: RealEngineReportSnapshot,
@@ -335,7 +406,6 @@ export function enrichReportWithRealEngineCopy(
     summary,
     interpretations,
     interpretationSections,
-
   } as AstrologyReport;
 }
 
@@ -458,19 +528,72 @@ function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
     return undefined;
   }
 
-  const strongest = aspects.slice(0, 3);
-  const aspectLead = strongest
-    .map(
-      (aspect) =>
-        `${aspect.firstPlanetLabel} ${aspect.glyph} ${aspect.secondPlanetLabel} (${aspect.aspectLabel}، orb ${formatAspectDegree(
-          aspect.orb,
-        )})`,
-    )
-    .join("؛ ");
+  const strongest = aspects.slice(0, 4);
+  const aspectLead = strongest.map(formatAspectLead).join("؛ ");
+  const detailText = strongest.map(buildAspectDetailText).join(" ");
+  const reflectionText = buildAspectReflectionText(strongest);
 
-  const firstNarrative = strongest[0]?.narrative;
+  return [
+    "روابط سیاره‌ها در این چارت نشان می‌دهند کدام بخش‌های شخصیت فقط جداگانه کار نمی‌کنند، بلکه با هم گفت‌وگو، حمایت یا اصطکاک سازنده دارند.",
+    `در این نسخه، تمرکز روی ${strongest.length} ارتباط برجسته‌تر است: ${aspectLead}.`,
+    detailText,
+    reflectionText,
+  ].join(" ");
+}
 
-  return `روابط سیاره‌ها در این چارت نشان می‌دهند کدام بخش‌های شخصیت با هم گفت‌وگو، حمایت یا اصطکاک سازنده دارند. برجسته‌ترین رابطه‌ها: ${aspectLead}. ${firstNarrative ?? ""}`.trim();
+function formatAspectLead(aspect: RealEngineReportAspect): string {
+  return `${aspect.firstPlanetLabel} ${aspect.glyph} ${aspect.secondPlanetLabel} (${aspect.aspectLabel}، orb ${formatAspectDegree(
+    aspect.orb,
+  )})`;
+}
+
+function buildAspectDetailText(aspect: RealEngineReportAspect): string {
+  const story = ASPECT_STORY[aspect.aspectId];
+
+  return [
+    `${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel} در الگوی ${aspect.aspectLabel} قرار گرفته‌اند.`,
+    `زاویه واقعی این رابطه ${formatAspectDegree(aspect.separation)} است و با فاصله ${formatAspectDegree(
+      aspect.orb,
+    )} از زاویه دقیق، جزو ارتباط‌های مهم این چارت دیده می‌شود.`,
+    story.theme,
+    aspect.meaning,
+    story.supportSignal,
+    story.growthSignal,
+    story.integration,
+    story.reflection,
+  ].join(" ");
+}
+
+function buildAspectReflectionText(aspects: RealEngineReportAspect[]): string {
+  const tensionCount = aspects.filter((aspect) =>
+    aspect.aspectId === "square" || aspect.aspectId === "opposition",
+  ).length;
+  const flowCount = aspects.filter((aspect) =>
+    aspect.aspectId === "sextile" || aspect.aspectId === "trine",
+  ).length;
+  const conjunctionCount = aspects.filter(
+    (aspect) => aspect.aspectId === "conjunction",
+  ).length;
+
+  const signals = [
+    tensionCount > 0
+      ? `${tensionCount} رابطه تنشی/قطبی نشان می‌دهد بخشی از رشد از راه تنظیم تعارض‌های درونی ساخته می‌شود.`
+      : null,
+    flowCount > 0
+      ? `${flowCount} رابطه نرم/هماهنگ نشان می‌دهد بعضی توانایی‌ها با فشار کمتر در دسترس‌اند، اما هنوز نیاز به استفاده آگاهانه دارند.`
+      : null,
+    conjunctionCount > 0
+      ? `${conjunctionCount} هم‌نشینی نشان می‌دهد بعضی نیروها در چارت تو صدای مشترک و پررنگ‌تری پیدا می‌کنند.`
+      : null,
+  ].filter(Boolean);
+
+  return [
+    "جمع‌بندی رابطه‌های سیاره‌ای:",
+    signals.length > 0
+      ? signals.join(" ")
+      : "این روابط بیشتر به عنوان نشانه‌های گفت‌وگوی درونی خوانده می‌شوند، نه حکم قطعی درباره شخصیت.",
+    "پرسش تأملی: اگر این روابط را مثل یک گفت‌وگوی درونی ببینی، کدام بخش نیاز به همکاری بیشتر دارد و کدام بخش نیاز به مرزبندی روشن‌تر؟",
+  ].join(" ");
 }
 
 function buildIntegrationText(realEngine: RealEngineReportSnapshot) {

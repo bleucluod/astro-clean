@@ -581,7 +581,8 @@ v0.1.128: first visible report-text quality improvement; saved real-engine repor
 v0.1.129: Report V3 experience guard aligned with the current Persian badge marker.
 v0.1.130: visible report-depth batch completed for longer Sun, Moon, Rising, and integration text in generated real-engine reports.
 v0.1.131: chart data-confidence batch completed so approximate equal-house/ascendant scaffolding is not treated as final-ready report data.
-v0.1.132: planned as Mercury, Venus, and Mars report-depth batch for richer personal-planet text without relying on approximate houses.
+v0.1.132: personal-planets report-depth batch completed for richer Mercury, Venus, and Mars planet-in-sign text without relying on approximate houses.
+v0.1.133: planned as aspect-depth batch so real-engine aspect relationships read as meaningful inner dynamics, not a short list of angular contacts.
 ```
 
 ## 13. Open questions before stronger launch claims
@@ -645,3 +646,11 @@ Minimal scoped approach:
 
 - v0.1.132 first personal-planets runner failed at pnpm build after scoped checks passed because the runner removed the existing `as AstrologyReport` return cast while `interpretationSections` is still carried as a V3 bridge field outside the current `AstrologyReport` type. Prevention: preserve existing bridge casts unless widening the shared report type is explicitly scoped and inspected.
 - v0.1.132 follow-up build failure showed `outputQuality` was also outside the current `AstrologyReport` type. Prevention: keep report-depth batches focused on text generation and do not reintroduce bridge/type fields unless a shared type migration is separately scoped.
+
+## v0.1.133 aspect-depth scope note
+
+- v0.1.133 is scoped to visible aspect interpretation depth in `lib/astrology/real-engine-report-writer.ts` and its guard.
+- Keep this batch on already-calculated real-engine aspect relationships: conjunction, sextile, square, trine, and opposition.
+- Do not change aspect calculation math, orb rules, shared report types, UI components, routes, storage, payment, SEO, or house/ascendant logic in this batch.
+- Product goal: make aspect text explain support, tension, integration, and reflection prompts so the generated report feels more complete without overclaiming precision.
+- v0.1.133 first aspect-depth runner failed at `git --no-pager diff --check` because `docs/HALLEUS_PROJECT_CONTEXT.md` had a blank line at EOF. Prevention: runners that append context notes must trim trailing whitespace and end with exactly one newline.
