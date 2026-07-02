@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 
 const requiredFiles = [
   "types/report-output-v3.ts",
@@ -13,7 +13,7 @@ const requiredContent = [
   ["types/report-output-v3.ts", "ReportOutputV3"],
   ["lib/report-output/report-v3.ts", "enhanceReportOutputV3"],
   ["lib/report-output/report-v3-export.ts", "createReportV3PlainText"],
-  ["components/ReportV3Experience.tsx", "Report Output V3"],
+  ["components/ReportV3Experience.tsx", "خوانش نهایی گزارش"],
   ["components/ReportDetail.tsx", "ReportV3Experience"],
   ["docs/REPORT_EXPERIENCE_V3.md", "visible product-value step"],
 ];

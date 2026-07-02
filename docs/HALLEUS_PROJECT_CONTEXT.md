@@ -1,4 +1,4 @@
-﻿# Halleus Project Context
+# Halleus Project Context
 
 Last updated: 2026-07-02
 
@@ -614,3 +614,6 @@ Minimal scoped approach:
 5. Run check:encoding, git --no-pager diff --check, check:site-chrome-minimal-ui, and pnpm build.
 6. Commit/tag/push only after checks pass.
 ```
+## v0.1.129 workflow note
+
+- v0.1.129 first guard-cleanup runner failed before patch because it used a guessed stale-marker guard; diagnosis confirmed scripts/check-report-experience-v3.mjs still required Report Output V3 while components/ReportV3Experience.tsx shows the Persian badge marker. Prevention: inspect exact check-file marker lines before emitting guard cleanup runners.
