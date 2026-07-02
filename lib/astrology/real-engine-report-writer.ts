@@ -1,6 +1,7 @@
 import type {
   AstrologyReport,
   RealEngineReportAspect,
+  RealEngineReportHouseContext,
   RealEngineReportPlacement,
   RealEngineReportSnapshot,
   ZodiacKey,
@@ -368,11 +369,17 @@ export function enrichReportWithRealEngineCopy(
     sun,
     moon,
     risingSign,
+    houseContext: realEngine.houseContext,
   });
 
   const sunText = buildCorePlacementText(sun, "sun");
   const moonText = buildCorePlacementText(moon, "moon");
-  const risingText = buildRisingText(risingSign, realEngine.ascendantLongitude);
+  const risingText = buildRisingText(
+    risingSign,
+    realEngine.ascendantLongitude,
+    realEngine.houseContext,
+  );
+  const houseText = buildHouseContextText(realEngine.houseContext, risingSign);
   const mercuryText = buildOptionalPlacementText(mercury, "mercury");
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
@@ -382,6 +389,7 @@ export function enrichReportWithRealEngineCopy(
     sunText,
     moonText,
     risingText,
+    houseText,
     mercuryText,
     venusText,
     marsText,
@@ -393,6 +401,7 @@ export function enrichReportWithRealEngineCopy(
     sunText,
     moonText,
     risingText,
+    houseText,
     mercuryText,
     venusText,
     marsText,
@@ -414,6 +423,7 @@ type RealEngineSectionTextInput = {
   sunText?: string;
   moonText?: string;
   risingText?: string;
+  houseText?: string;
   mercuryText?: string;
   venusText?: string;
   marsText?: string;
@@ -426,30 +436,33 @@ function buildRealEngineSummary({
   sun,
   moon,
   risingSign,
+  houseContext,
 }: {
   name: string;
   sun: RealEngineReportPlacement | undefined;
   moon: RealEngineReportPlacement | undefined;
   risingSign: ZodiacKey;
+  houseContext?: RealEngineReportHouseContext;
 }) {
   const displayName = name ? `${name}، ` : "";
   const sunSign = sun ? SIGN_COPY[sun.signId] : null;
   const moonSign = moon ? SIGN_COPY[moon.signId] : null;
   const rising = SIGN_COPY[risingSign];
+  const risingDescriptor = buildRisingDescriptor(houseContext);
 
   if (sunSign && moonSign) {
     return [
       `${displayName}این گزارش با محاسبه واقعی‌تر هالیوس ساخته شده است و به جای یک توضیح عمومی، از سه ستون اصلی چارت شروع می‌کند: خورشید، ماه و رایزینگ.`,
       `خورشید تو در ${formatSignLabel(sunSign)} قرار دارد؛ یعنی مسیر هویت و اعتمادبه‌نفس با کیفیت ${sunSign.energy} رنگ می‌گیرد.`,
       `ماه تو در ${formatSignLabel(moonSign)} است؛ جایی که امنیت عاطفی و واکنش‌های غریزی به انرژی ${moonSign.energy} نزدیک می‌شوند.`,
-      `رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد و نشان می‌دهد در برخورد اول با جهان، چه ریتم و تصویری از تو جلوتر دیده می‌شود.`,
+      `${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد و نشان می‌دهد در برخورد اول با جهان، چه ریتم و تصویری از تو جلوتر دیده می‌شود.`,
       "این خوانش حکم قطعی درباره شخصیت نیست؛ یک نقشه تأملی است تا ببینی کدام بخش‌ها واقعاً با تجربه تو هم‌صدا هستند و کجاها نیاز به مشاهده بیشتر دارند.",
     ].join(" ");
   }
 
   return [
     `${displayName}این گزارش با محاسبه واقعی‌تر هالیوس ساخته شده است.`,
-    `داده‌های اصلی چارت در snapshot ذخیره شده‌اند و رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد.`,
+    `داده‌های اصلی چارت در snapshot ذخیره شده‌اند و ${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد.`,
     "متن گزارش بر اساس همین داده‌ها ساخته شده و در نسخه‌های بعدی با لایه‌های خانه‌ها، aspectها و روایت‌های عمیق‌تر کامل‌تر می‌شود.",
   ].join(" ");
 }
@@ -509,18 +522,60 @@ function buildOptionalPlacementText(
   ].join(" ");
 }
 
-function buildRisingText(signKey: ZodiacKey, longitude: number) {
+function buildRisingText(
+  signKey: ZodiacKey,
+  longitude: number,
+  houseContext?: RealEngineReportHouseContext,
+) {
   const sign = SIGN_COPY[signKey];
   const signLabel = formatSignLabel(sign);
+  const risingDescriptor = buildRisingDescriptor(houseContext);
 
   return [
-    `رایزینگ تقریبی تو در ${signLabel} است (${formatDegree(longitude)} روی دایره چارت).`,
+    `${risingDescriptor} تو در ${signLabel} است (${formatDegree(longitude)} روی دایره چارت).`,
     "رایزینگ درباره «اولین تماس تو با جهان» حرف می‌زند: اینکه چطور وارد فضاها می‌شوی، چطور دیده می‌شوی و بدنت با موقعیت‌های تازه چه ریتمی می‌گیرد.",
     `با ${signLabel}، ورود تو رنگ ${sign.energy} دارد؛ یعنی قبل از اینکه دیگران لایه‌های عمیق‌ترت را ببینند، معمولاً این کیفیت در رفتار، نگاه یا شیوه پاسخ دادنت جلوتر دیده می‌شود.`,
     `هدیه این رایزینگ ${sign.gift} است و وقتی آگاهانه زندگی شود، می‌تواند به تو کمک کند موقعیت‌های تازه را با اعتماد بیشتری شروع کنی.`,
     `چالش رشد آن هم ${sign.growth} است؛ یعنی تصویر بیرونی تو وقتی سالم‌تر می‌شود که فقط ماسک محافظ نباشد و به نیازهای واقعی خورشید و ماهت هم جا بدهد.`,
     "پرسش تأملی: در برخوردهای تازه، کدام بخش از این رایزینگ به تو کمک می‌کند و کدام بخش ممکن است پشت یک عادت دفاعی پنهان شده باشد؟",
   ].join(" ");
+}
+
+function buildHouseContextText(
+  houseContext: RealEngineReportHouseContext | undefined,
+  risingSign: ZodiacKey,
+) {
+  if (!isCalculatedWholeSignHouseContext(houseContext)) {
+    return undefined;
+  }
+
+  const sign = SIGN_COPY[risingSign];
+  const signLabel = formatSignLabel(sign);
+
+  return [
+    "خانه‌های این گزارش با سیستم Whole Sign و بر پایه رایزینگ محاسبه‌شده خوانده می‌شوند.",
+    `در این روش، نشانه ${signLabel} دروازه خانه اول است و هر نشانه بعدی یک خانه کامل از چارت را می‌سازد.`,
+    `برای تو، خانه اول با کیفیت ${sign.energy} شروع می‌شود؛ بنابراین شیوه ورود، بدن، تصویر بیرونی و شروع‌های شخصی با همین ریتم رنگ می‌گیرند.`,
+    "در این نسخه، خانه‌ها برای جهت‌گیری تفسیری استفاده می‌شوند: اینکه انرژی سیاره‌ها بیشتر در کدام میدان زندگی دیده می‌شود، نه برای حکم قطعی درباره رویدادها.",
+  ].join(" ");
+}
+
+function buildRisingDescriptor(
+  houseContext: RealEngineReportHouseContext | undefined,
+) {
+  return isCalculatedWholeSignHouseContext(houseContext)
+    ? "رایزینگ محاسبه‌شده"
+    : "رایزینگ تقریبی";
+}
+
+function isCalculatedWholeSignHouseContext(
+  houseContext: RealEngineReportHouseContext | undefined,
+): boolean {
+  return (
+    houseContext?.appliedSystem === "whole-sign" &&
+    houseContext.confidence === "calculated-ascendant" &&
+    houseContext.ascendantMethod === "astronomy-engine-local-sidereal-time"
+  );
 }
 
 function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
@@ -629,7 +684,11 @@ function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {
 function buildRealEngineInterpretationSections(
   input: RealEngineSectionTextInput,
 ): ReportOutputSection[] {
-  const identityBody = joinSectionBody(input.sunText, input.risingText);
+  const identityBody = joinSectionBody(
+    input.sunText,
+    input.risingText,
+    input.houseText,
+  );
   const relationshipBody = joinSectionBody(input.venusText, input.aspectText);
   const careerBody = joinSectionBody(input.mercuryText, input.marsText);
   const fallbackBody =
@@ -771,11 +830,8 @@ function buildRealEngineReflectionPrompts(input: RealEngineSectionTextInput): st
   return [prompts.join(" "), closing].join(" ");
 }
 
-function joinSectionBody(
-  first: string | undefined,
-  second: string | undefined,
-): string {
-  return [first, second].filter(Boolean).join(" ");
+function joinSectionBody(...parts: Array<string | undefined>): string {
+  return parts.filter(Boolean).join(" ");
 }
 
 function formatPlacement(placement: RealEngineReportPlacement) {

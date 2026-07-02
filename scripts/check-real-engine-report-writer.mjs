@@ -19,7 +19,8 @@ for (const marker of [
   "buildRealEngineSummary",
   "buildCorePlacementText(sun, \"sun\")",
   "buildCorePlacementText(moon, \"moon\")",
-  "buildRisingText(risingSign, realEngine.ascendantLongitude)",
+  "buildRisingText(",
+  "buildHouseContextText(realEngine.houseContext, risingSign)",
   "buildOptionalPlacementText(mercury, \"mercury\")",
   "buildOptionalPlacementText(venus, \"venus\")",
   "buildOptionalPlacementText(mars, \"mars\")",
@@ -30,6 +31,9 @@ for (const marker of [
   "نقشه راه خوانش",
   "تمرین پایانی برای خواندن گزارش",
   "خورشید و رایزینگ را کنار هم بخوان",
+  "خانه‌های این گزارش با سیستم Whole Sign",
+  "رایزینگ محاسبه‌شده",
+  "isCalculatedWholeSignHouseContext",
   "real-engine-overview",
   "real-engine-reflection-prompts",
   "SIGN_COPY",
@@ -72,6 +76,7 @@ for (const marker of [
 for (const marker of [
   "RealEngineReportPlacement",
   "RealEngineReportSnapshot",
+  "RealEngineReportHouseContext",
   "RealEngineReportAspect",
 ]) {
   assertIncludes(types, marker, "types/astro.ts");

@@ -4,6 +4,7 @@ import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 import type {
   AstrologyReport,
   BirthInput,
+  RealEngineReportHouseContext,
   RealEngineReportPlacement,
   RealEngineReportSnapshot,
   ZodiacKey,
@@ -162,6 +163,7 @@ export function buildRealEngineSnapshot(
   realChart: RealChartWorkbenchResult,
   input: BirthInput,
   generatedAt: string,
+  chartReportEnrichment: ChartReportEnrichment | null = null,
 ): RealEngineReportSnapshot {
   return {
     version: "real-engine-preview-v1",
@@ -169,9 +171,28 @@ export function buildRealEngineSnapshot(
     cityLabel: input.birthCity,
     utcIso: realChart.utcIso,
     ascendantLongitude: realChart.ascendantLongitude,
+    ...(chartReportEnrichment
+      ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }
+      : {}),
     placements: realChart.placements.map(toRealEnginePlacement),
     note:
       "این داده محاسبه‌شده از مسیر report generation service ساخته شده و تا قبل از اتصال کامل public/private reports، به‌عنوان preview ذخیره می‌شود.",
+  };
+}
+
+function toRealEngineReportHouseContext(
+  chartReportEnrichment: ChartReportEnrichment,
+): RealEngineReportHouseContext {
+  const houseContext = chartReportEnrichment.houseContext;
+
+  return {
+    requestedSystem: houseContext.requestedSystem,
+    appliedSystem: houseContext.appliedSystem,
+    confidence: houseContext.confidence,
+    ascendantMethod: houseContext.ascendantMethod,
+    ascendantLongitude: houseContext.ascendantLongitude,
+    firstHouseCuspLongitude: houseContext.firstHouseCuspLongitude,
+    limitation: houseContext.limitation,
   };
 }
 
@@ -227,6 +248,7 @@ function buildRealChartContract({
     realChart,
     request.input,
     generatedAt,
+    chartReportEnrichment,
   );
   const report = enrichReportWithRealEngineCopy(
     {
@@ -240,10 +262,15 @@ function buildRealChartContract({
     ...chartReportEnrichment.limitations,
     ...realChart.calculationNotes,
   ];
-  const warnings = [
-    warning,
-    "House and ascendant data are still preview/hardening layers, not final paid-report guarantees.",
-  ].filter((item): item is string => Boolean(item));
+  const houseReadinessWarning =
+    chartReportEnrichment.houseContext.appliedSystem === "whole-sign" &&
+    chartReportEnrichment.houseContext.confidence === "calculated-ascendant" &&
+    chartReportEnrichment.status === "ready"
+      ? "Whole-sign house context is active for this report; final paid-report guarantees still require broader sample review."
+      : "House and ascendant data are still preview/hardening layers, not final paid-report guarantees.";
+  const warnings = [warning, houseReadinessWarning].filter(
+    (item): item is string => Boolean(item),
+  );
 
   return {
     contractVersion: REPORT_GENERATION_CONTRACT_VERSION,

@@ -70,12 +70,30 @@ export type RealEngineReportAspect = {
   narrative: string;
 };
 
+export type RealEngineReportHouseContext = {
+  requestedSystem: "whole-sign" | "equal-house" | "placeholder";
+  appliedSystem: "whole-sign" | "equal-house" | "placeholder";
+  confidence:
+    | "calculated-ascendant"
+    | "provided-ascendant"
+    | "scaffold"
+    | "placeholder";
+  ascendantMethod:
+    | "astronomy-engine-local-sidereal-time"
+    | "provided"
+    | "unknown";
+  ascendantLongitude: number | null;
+  firstHouseCuspLongitude: number;
+  limitation: string | null;
+};
+
 export type RealEngineReportSnapshot = {
   version: "real-engine-preview-v1";
   generatedAt: string;
   cityLabel: string;
   utcIso: string;
   ascendantLongitude: number;
+  houseContext?: RealEngineReportHouseContext;
   placements: RealEngineReportPlacement[];
   aspects?: RealEngineReportAspect[];
   note: string;
