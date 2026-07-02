@@ -5,6 +5,7 @@ import {
   buildAspectSummaryKey,
   getChartReportEnrichmentStatus,
   hasReportReadyChartEnrichment,
+  toHouseContextSummary,
 } from "./chart-enrichment";
 
 export type ChartReportEnrichmentQaFixture = {
@@ -60,12 +61,75 @@ export const chartReportEnrichmentQaFixtures: ChartReportEnrichmentQaFixture[] =
         failures.push("Expected enrichment to be report-ready.");
       }
 
+      if (enrichment.houseContext.confidence !== "provided-ascendant") {
+        failures.push(`Expected provided Ascendant house confidence, received ${enrichment.houseContext.confidence}`);
+      }
+
       if (enrichment.placements.length !== 3) {
         failures.push(`Expected 3 placement summaries, got ${enrichment.placements.length}`);
       }
 
       if (enrichment.sections.length !== 3) {
         failures.push(`Expected 3 enrichment sections, got ${enrichment.sections.length}`);
+      }
+
+      return failures;
+    },
+  },
+  {
+    id: "calculated-ascendant-house-metadata-enrichment",
+    assert: () => {
+      const failures: string[] = [];
+      const chart = buildNormalizedChart({
+        source: "astronomy-engine-prototype",
+        time: {
+          date: "1994-02-20",
+          time: "22:10",
+          timezone: "Asia/Baku",
+          placeName: "Baku",
+        },
+        house: {
+          system: "equal-house",
+          firstHouseCuspLongitude: 47,
+          ascendantLongitude: 47,
+          ascendantMethod: "astronomy-engine-local-sidereal-time",
+        },
+        placements: [
+          {
+            id: "sun",
+            label: "Sun",
+            pointType: "luminary",
+            longitude: 10,
+          },
+          {
+            id: "moon",
+            label: "Moon",
+            pointType: "luminary",
+            longitude: 70,
+          },
+        ],
+      });
+      const enrichment = buildChartReportEnrichment(chart);
+      const houseSummary = toHouseContextSummary(chart);
+
+      if (enrichment.status !== "partial") {
+        failures.push(`Expected calculated equal-house metadata to stay partial, received ${enrichment.status}`);
+      }
+
+      if (enrichment.houseContext.confidence !== "calculated-ascendant") {
+        failures.push(`Expected calculated Ascendant confidence, received ${enrichment.houseContext.confidence}`);
+      }
+
+      if (houseSummary.ascendantMethod !== "astronomy-engine-local-sidereal-time") {
+        failures.push(`Expected SiderealTime ascendant method, received ${houseSummary.ascendantMethod}`);
+      }
+
+      if (!enrichment.limitations.some((limitation) => limitation.includes("calculated Ascendant longitude"))) {
+        failures.push("Expected calculated equal-house limitation to be visible.");
+      }
+
+      if (hasReportReadyChartEnrichment(enrichment)) {
+        failures.push("Calculated equal-house metadata must not be treated as report-ready yet.");
       }
 
       return failures;
@@ -112,6 +176,10 @@ export const chartReportEnrichmentQaFixtures: ChartReportEnrichmentQaFixture[] =
 
       if (hasReportReadyChartEnrichment(enrichment)) {
         failures.push("Approximate equal-house enrichment must not be treated as report-ready.");
+      }
+
+      if (enrichment.houseContext.confidence !== "scaffold") {
+        failures.push(`Expected scaffold house confidence, received ${enrichment.houseContext.confidence}`);
       }
 
       if (!enrichment.limitations.some((limitation) => limitation.includes("current ascendant scaffold"))) {

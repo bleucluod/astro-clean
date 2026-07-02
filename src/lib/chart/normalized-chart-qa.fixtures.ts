@@ -6,6 +6,8 @@ import {
   normalizeHouseContext,
   toAspectPlacements,
   type BuildNormalizedChartInput,
+  type NormalizedAscendantMethod,
+  type NormalizedHouseConfidence,
 } from "./normalized-chart";
 
 export type NormalizedChartQaFixture = {
@@ -15,6 +17,8 @@ export type NormalizedChartQaFixture = {
   expectedHasReadyHouses: boolean;
   expectedReadinessLabel: string;
   expectedAspectIds: MajorAspectId[];
+  expectedHouseConfidence: NormalizedHouseConfidence;
+  expectedAscendantMethod: NormalizedAscendantMethod;
 };
 
 export const normalizedChartQaFixtures: NormalizedChartQaFixture[] = [
@@ -63,6 +67,46 @@ export const normalizedChartQaFixtures: NormalizedChartQaFixture[] = [
     expectedHasReadyHouses: true,
     expectedReadinessLabel: "ready-for-report-enrichment",
     expectedAspectIds: ["sextile", "square", "opposition"],
+    expectedHouseConfidence: "provided-ascendant",
+    expectedAscendantMethod: "provided",
+  },
+  {
+    id: "calculated-ascendant-equal-house-chart",
+    input: {
+      source: "astronomy-engine-prototype",
+      time: {
+        date: "1994-02-20",
+        time: "22:10",
+        timezone: "Asia/Baku",
+        placeName: "Baku",
+      },
+      house: {
+        system: "equal-house",
+        firstHouseCuspLongitude: 47,
+        ascendantLongitude: 47,
+        ascendantMethod: "astronomy-engine-local-sidereal-time",
+      },
+      placements: [
+        {
+          id: "sun",
+          label: "Sun",
+          pointType: "luminary",
+          longitude: 10,
+        },
+        {
+          id: "moon",
+          label: "Moon",
+          pointType: "luminary",
+          longitude: 70,
+        },
+      ],
+    },
+    expectedPlacementCount: 2,
+    expectedHasReadyHouses: true,
+    expectedReadinessLabel: "partial-chart-ready",
+    expectedAspectIds: ["sextile"],
+    expectedHouseConfidence: "calculated-ascendant",
+    expectedAscendantMethod: "astronomy-engine-local-sidereal-time",
   },
   {
     id: "approximate-equal-house-chart",
@@ -98,6 +142,8 @@ export const normalizedChartQaFixtures: NormalizedChartQaFixture[] = [
     expectedHasReadyHouses: true,
     expectedReadinessLabel: "partial-chart-ready",
     expectedAspectIds: ["sextile"],
+    expectedHouseConfidence: "scaffold",
+    expectedAscendantMethod: "unknown",
   },
   {
     id: "placeholder-house-chart",
@@ -131,6 +177,8 @@ export const normalizedChartQaFixtures: NormalizedChartQaFixture[] = [
     expectedHasReadyHouses: false,
     expectedReadinessLabel: "partial-chart-ready",
     expectedAspectIds: ["conjunction"],
+    expectedHouseConfidence: "placeholder",
+    expectedAscendantMethod: "unknown",
   },
   {
     id: "empty-manual-chart",
@@ -147,6 +195,8 @@ export const normalizedChartQaFixtures: NormalizedChartQaFixture[] = [
     expectedHasReadyHouses: false,
     expectedReadinessLabel: "not-ready",
     expectedAspectIds: [],
+    expectedHouseConfidence: "placeholder",
+    expectedAscendantMethod: "unknown",
   },
 ];
 
@@ -170,13 +220,40 @@ export function runNormalizedChartQaFixtures(): string[] {
       );
     }
 
+    if (chart.houseContext.confidence !== fixture.expectedHouseConfidence) {
+      failures.push(
+        `${fixture.id}: house confidence ${chart.houseContext.confidence} !== ${fixture.expectedHouseConfidence}`,
+      );
+    }
+
+    if (chart.houseContext.ascendantMethod !== fixture.expectedAscendantMethod) {
+      failures.push(
+        `${fixture.id}: ascendant method ${chart.houseContext.ascendantMethod} !== ${fixture.expectedAscendantMethod}`,
+      );
+    }
+
+    if (chart.quality.houseConfidence !== fixture.expectedHouseConfidence) {
+      failures.push(
+        `${fixture.id}: quality house confidence ${chart.quality.houseConfidence} !== ${fixture.expectedHouseConfidence}`,
+      );
+    }
+
     if (
       fixture.id === "approximate-equal-house-chart" &&
       !chart.quality.limitations.some((limitation) =>
         limitation.includes("current ascendant scaffold"),
       )
     ) {
-      failures.push("approximate equal-house chart should carry a confidence limitation");
+      failures.push("approximate equal-house chart should carry a scaffold limitation");
+    }
+
+    if (
+      fixture.id === "calculated-ascendant-equal-house-chart" &&
+      !chart.quality.limitations.some((limitation) =>
+        limitation.includes("calculated Ascendant longitude"),
+      )
+    ) {
+      failures.push("calculated equal-house chart should carry a transitional house limitation");
     }
 
     if (readinessLabel !== fixture.expectedReadinessLabel) {

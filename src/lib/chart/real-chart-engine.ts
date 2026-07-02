@@ -5,7 +5,7 @@ import {
   type NormalizedChartPointInput,
 } from "./normalized-chart";
 
-export const REAL_CHART_WORKBENCH_VERSION = "0.1.137a" as const;
+export const REAL_CHART_WORKBENCH_VERSION = "0.1.137b" as const;
 
 export type RealChartBirthInput = {
   name?: string;
@@ -95,6 +95,8 @@ export function buildRealChartWorkbenchResult(
     house: {
       system: "equal-house",
       firstHouseCuspLongitude: ascendantLongitude,
+      ascendantLongitude,
+      ascendantMethod: "astronomy-engine-local-sidereal-time",
     },
     placements: placements.map((placement) => ({
       id: placement.id,
@@ -116,7 +118,7 @@ export function buildRealChartWorkbenchResult(
       "Planetary positions are calculated from an Earth-centered vector and converted to the ecliptic plane with astronomy-engine.",
       "Timezone conversion uses the JavaScript Intl timezone database.",
       "Ascendant is calculated from astronomy-engine SiderealTime, birth latitude/longitude, and tropical obliquity.",
-      "Houses remain equal-house scaffolding until the dedicated house-system foundation batch.",
+      "Houses remain an equal-house transitional layer derived from the calculated Ascendant until dedicated house-system hardening.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",
     ],
   };

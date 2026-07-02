@@ -5,7 +5,7 @@ import {
   type NormalizedChartPlacement,
 } from "../chart/normalized-chart";
 
-export const CHART_REPORT_ENRICHMENT_VERSION = "0.1.47" as const;
+export const CHART_REPORT_ENRICHMENT_VERSION = "0.1.137b" as const;
 
 export type ChartReportEnrichmentStatus = "ready" | "partial" | "blocked";
 
@@ -35,11 +35,22 @@ export type ChartReportEnrichmentSection = {
   summaryKeys: string[];
 };
 
+export type ChartReportHouseContextSummary = {
+  requestedSystem: NormalizedChart["houseContext"]["requestedSystem"];
+  appliedSystem: NormalizedChart["houseContext"]["appliedSystem"];
+  confidence: NormalizedChart["houseContext"]["confidence"];
+  ascendantMethod: NormalizedChart["houseContext"]["ascendantMethod"];
+  ascendantLongitude: number | null;
+  firstHouseCuspLongitude: number;
+  limitation: string | null;
+};
+
 export type ChartReportEnrichment = {
   version: typeof CHART_REPORT_ENRICHMENT_VERSION;
   status: ChartReportEnrichmentStatus;
   source: NormalizedChart["source"];
   readinessLabel: string;
+  houseContext: ChartReportHouseContextSummary;
   placements: ChartReportPlacementSummary[];
   aspects: ChartReportAspectSummary[];
   sections: ChartReportEnrichmentSection[];
@@ -58,6 +69,7 @@ export function buildChartReportEnrichment(
     status,
     source: chart.source,
     readinessLabel: getChartReadinessLabel(chart),
+    houseContext: toHouseContextSummary(chart),
     placements,
     aspects,
     sections: buildChartReportEnrichmentSections(status, placements, aspects),
@@ -81,6 +93,22 @@ export function getChartReportEnrichmentStatus(
   }
 
   return "partial";
+}
+
+export function toHouseContextSummary(
+  chart: NormalizedChart,
+): ChartReportHouseContextSummary {
+  const houseContext = chart.houseContext;
+
+  return {
+    requestedSystem: houseContext.requestedSystem,
+    appliedSystem: houseContext.appliedSystem,
+    confidence: houseContext.confidence,
+    ascendantMethod: houseContext.ascendantMethod,
+    ascendantLongitude: houseContext.ascendantLongitude,
+    firstHouseCuspLongitude: houseContext.firstHouseCuspLongitude,
+    limitation: houseContext.limitation,
+  };
 }
 
 export function toPlacementSummary(

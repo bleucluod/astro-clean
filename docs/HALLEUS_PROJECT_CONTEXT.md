@@ -683,3 +683,10 @@ Minimal scoped approach:
 ## v0.1.137 workflow recovery note
 
 - The first real ascendant/house foundation runner failed because it touched route, report-generation, shared types, engine code, and checks in one batch, and continued into checks after a missing-marker apply failure. Prevention: split the work into v0.1.137a real ascendant core, v0.1.137b house metadata, and v0.1.137c report-generation/report wording; apply runners must abort immediately when the apply script fails.
+
+## v0.1.137b house-metadata-foundation scope note
+
+- v0.1.137b is scoped to house metadata and confidence propagation, not report prose, UI redesign, route rewrites, storage, SEO, payment, or public/private policy.
+- The real chart workbench now marks the Ascendant method as `astronomy-engine-local-sidereal-time` in normalized house input so equal-house output can distinguish calculated-Ascendant metadata from older scaffolded fixtures.
+- Equal-house house placement remains partial until dedicated house-system hardening; do not treat this batch as final paid-report house readiness.
+- Next engine step should choose whether to promote whole-sign houses from the calculated Ascendant or implement a stronger house-system layer before changing generated report wording.

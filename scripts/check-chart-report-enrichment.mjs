@@ -16,10 +16,12 @@ const requiredExports = [
   "buildPlacementSummaryKey",
   "buildAspectSummaryKey",
   "hasReportReadyChartEnrichment",
+  "toHouseContextSummary",
 ];
 
 const requiredFixtureIds = [
   "ready-chart-enrichment",
+  "calculated-ascendant-house-metadata-enrichment",
   "equal-house-approximate-enrichment",
   "partial-chart-enrichment",
   "blocked-chart-enrichment",
@@ -68,6 +70,16 @@ if (!source.includes("../chart/normalized-chart")) {
 
 if (!source.includes("chart.quality.limitations.length === 0")) {
   failures.push("Ready chart enrichment must require zero limitations.");
+}
+
+for (const marker of [
+  "houseContext",
+  "toHouseContextSummary",
+  "calculated Ascendant longitude",
+]) {
+  if (!source.includes(marker) && !fixtureSource.includes(marker)) {
+    failures.push(`Missing chart enrichment house metadata marker: ${marker}`);
+  }
 }
 
 if (!fixtureSource.includes("runChartReportEnrichmentQaFixtures")) {

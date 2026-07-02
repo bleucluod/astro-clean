@@ -59,6 +59,8 @@ for (const marker of [
   "calculateMeanObliquityDegrees",
   "SiderealTime",
   "astronomy-engine-local-sidereal-time",
+  "ascendantMethod",
+  "Houses remain an equal-house transitional layer",
   "astronomy-engine-prototype",
   "outer-planet",
   "Earth-centered",

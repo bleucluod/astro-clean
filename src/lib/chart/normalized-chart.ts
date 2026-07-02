@@ -25,7 +25,7 @@ import {
   sortAspectsByOrb,
 } from "./aspects";
 
-export const NORMALIZED_CHART_VERSION = "0.1.46" as const;
+export const NORMALIZED_CHART_VERSION = "0.1.137b" as const;
 
 export type NormalizedChartSource =
   | "astronomy-engine-prototype"
@@ -47,10 +47,22 @@ export type NormalizedChartPointInput = AspectPlacement & {
   pointType?: NormalizedChartPointType;
 };
 
+export type NormalizedAscendantMethod =
+  | "astronomy-engine-local-sidereal-time"
+  | "provided"
+  | "unknown";
+
+export type NormalizedHouseConfidence =
+  | "calculated-ascendant"
+  | "provided-ascendant"
+  | "scaffold"
+  | "placeholder";
+
 export type NormalizedHouseInput = {
   system?: HouseSystemId | null;
   ascendantLongitude?: number | null;
   firstHouseCuspLongitude?: number | null;
+  ascendantMethod?: NormalizedAscendantMethod | null;
 };
 
 export type NormalizedHouseContext = {
@@ -59,6 +71,9 @@ export type NormalizedHouseContext = {
   housesReady: boolean;
   ascendantLongitude: number | null;
   firstHouseCuspLongitude: number;
+  ascendantMethod: NormalizedAscendantMethod;
+  confidence: NormalizedHouseConfidence;
+  readinessNote: string;
   limitation: string | null;
 };
 
@@ -77,6 +92,7 @@ export type NormalizedChartQuality = {
   aspectCount: number;
   hasTimezone: boolean;
   hasReadyHouses: boolean;
+  houseConfidence: NormalizedHouseConfidence;
   limitations: string[];
 };
 
@@ -170,6 +186,8 @@ export function normalizeHouseContext(
     Number.isFinite(input.ascendantLongitude)
   ) {
     const ascendantLongitude = normalizeEclipticLongitude(input.ascendantLongitude);
+    const ascendantMethod = normalizeHouseAscendantMethod(input.ascendantMethod, true);
+    const confidence = getHouseConfidence(requestedSystem, ascendantMethod);
 
     return {
       requestedSystem,
@@ -177,6 +195,9 @@ export function normalizeHouseContext(
       housesReady: true,
       ascendantLongitude,
       firstHouseCuspLongitude: getWholeSignFirstHouseCusp(ascendantLongitude),
+      ascendantMethod,
+      confidence,
+      readinessNote: buildHouseReadinessNote("whole-sign", confidence),
       limitation: null,
     };
   }
@@ -189,19 +210,28 @@ export function normalizeHouseContext(
     const firstHouseCuspLongitude = normalizeEclipticLongitude(
       input.firstHouseCuspLongitude,
     );
+    const ascendantLongitudeInput = input?.ascendantLongitude;
+    const hasAscendantLongitude =
+      typeof ascendantLongitudeInput === "number" &&
+      Number.isFinite(ascendantLongitudeInput);
+    const ascendantMethod = normalizeHouseAscendantMethod(
+      input?.ascendantMethod,
+      hasAscendantLongitude,
+    );
+    const confidence = getHouseConfidence(requestedSystem, ascendantMethod);
 
     return {
       requestedSystem,
       appliedSystem: "equal-house",
       housesReady: true,
-      ascendantLongitude:
-        typeof input.ascendantLongitude === "number" &&
-        Number.isFinite(input.ascendantLongitude)
-          ? normalizeEclipticLongitude(input.ascendantLongitude)
-          : null,
+      ascendantLongitude: hasAscendantLongitude
+        ? normalizeEclipticLongitude(ascendantLongitudeInput)
+        : null,
       firstHouseCuspLongitude,
-      limitation:
-        "Equal-house houses are calculated from the current ascendant scaffold; treat house placement as approximate until house-system hardening is complete.",
+      ascendantMethod,
+      confidence,
+      readinessNote: buildHouseReadinessNote("equal-house", confidence),
+      limitation: buildEqualHouseLimitation(ascendantMethod),
     };
   }
 
@@ -211,9 +241,76 @@ export function normalizeHouseContext(
     housesReady: false,
     ascendantLongitude: null,
     firstHouseCuspLongitude: 0,
+    ascendantMethod: "unknown",
+    confidence: "placeholder",
+    readinessNote:
+      "Placeholder houses are applied only until birth place and house calculation are production-ready.",
     limitation:
       "House context is not production-ready yet. Placeholder houses are applied until birth place and house calculation are finalized.",
   };
+}
+
+function normalizeHouseAscendantMethod(
+  method: NormalizedAscendantMethod | null | undefined,
+  hasAscendantLongitude: boolean,
+): NormalizedAscendantMethod {
+  if (method === "astronomy-engine-local-sidereal-time") {
+    return method;
+  }
+
+  return hasAscendantLongitude ? "provided" : "unknown";
+}
+
+function getHouseConfidence(
+  system: HouseSystemId,
+  ascendantMethod: NormalizedAscendantMethod,
+): NormalizedHouseConfidence {
+  if (system === "placeholder") {
+    return "placeholder";
+  }
+
+  if (system === "whole-sign") {
+    return ascendantMethod === "astronomy-engine-local-sidereal-time"
+      ? "calculated-ascendant"
+      : "provided-ascendant";
+  }
+
+  return ascendantMethod === "astronomy-engine-local-sidereal-time"
+    ? "calculated-ascendant"
+    : "scaffold";
+}
+
+function buildEqualHouseLimitation(
+  ascendantMethod: NormalizedAscendantMethod,
+): string {
+  if (ascendantMethod === "astronomy-engine-local-sidereal-time") {
+    return "Equal-house houses are derived from the calculated Ascendant longitude; keep house placement partial until dedicated house-system hardening is complete.";
+  }
+
+  return "Equal-house houses are calculated from the current ascendant scaffold; treat house placement as approximate until house-system hardening is complete.";
+}
+
+function buildHouseReadinessNote(
+  system: HouseSystemId,
+  confidence: NormalizedHouseConfidence,
+): string {
+  if (system === "whole-sign" && confidence === "calculated-ascendant") {
+    return "Whole-sign houses are anchored to a calculated Ascendant sign.";
+  }
+
+  if (system === "whole-sign") {
+    return "Whole-sign houses are anchored to a supplied Ascendant sign.";
+  }
+
+  if (system === "equal-house" && confidence === "calculated-ascendant") {
+    return "Equal-house houses are anchored to the calculated Ascendant longitude, but remain partial until house-system hardening.";
+  }
+
+  if (system === "equal-house") {
+    return "Equal-house houses are scaffolded from a supplied first-house cusp and remain partial.";
+  }
+
+  return "Placeholder houses are not report-ready.";
 }
 
 export function buildHousesForContext(
@@ -247,6 +344,7 @@ export function buildNormalizedChartQuality(
     aspectCount: aspects.length,
     hasTimezone: time.readiness === "ready",
     hasReadyHouses: houseContext.housesReady,
+    houseConfidence: houseContext.confidence,
     limitations,
   };
 }

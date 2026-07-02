@@ -22,6 +22,7 @@ const requiredExports = [
 const requiredFixtureIds = [
   "ready-whole-sign-chart",
   "approximate-equal-house-chart",
+  "calculated-ascendant-equal-house-chart",
   "placeholder-house-chart",
   "empty-manual-chart",
 ];
@@ -72,7 +73,18 @@ if (!source.includes("ready-for-report-enrichment")) {
 }
 
 if (!source.includes("current ascendant scaffold")) {
-  failures.push("Missing explicit equal-house/ascendant confidence limitation.");
+  failures.push("Missing explicit scaffold equal-house/ascendant confidence limitation.");
+}
+
+for (const marker of [
+  "ascendantMethod",
+  "houseContext.confidence",
+  "houseConfidence",
+  "calculated Ascendant longitude",
+]) {
+  if (!source.includes(marker) && !fixtureSource.includes(marker)) {
+    failures.push(`Missing house metadata marker: ${marker}`);
+  }
 }
 
 if (!source.includes("chart.quality.limitations.length === 0")) {
