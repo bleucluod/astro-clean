@@ -77,6 +77,68 @@ export const chartReportEnrichmentQaFixtures: ChartReportEnrichmentQaFixture[] =
     },
   },
   {
+    id: "calculated-whole-sign-house-enrichment",
+    assert: () => {
+      const failures: string[] = [];
+      const chart = buildNormalizedChart({
+        source: "astronomy-engine-prototype",
+        time: {
+          date: "1994-02-20",
+          time: "22:10",
+          timezone: "Asia/Baku",
+          placeName: "Baku",
+        },
+        house: {
+          system: "whole-sign",
+          ascendantLongitude: 47,
+          ascendantMethod: "astronomy-engine-local-sidereal-time",
+        },
+        placements: [
+          {
+            id: "sun",
+            label: "Sun",
+            pointType: "luminary",
+            longitude: 10,
+          },
+          {
+            id: "moon",
+            label: "Moon",
+            pointType: "luminary",
+            longitude: 70,
+          },
+        ],
+      });
+      const enrichment = buildChartReportEnrichment(chart);
+      const houseSummary = toHouseContextSummary(chart);
+
+      if (enrichment.status !== "ready") {
+        failures.push(`Expected calculated whole-sign metadata to be ready, received ${enrichment.status}`);
+      }
+
+      if (!hasReportReadyChartEnrichment(enrichment)) {
+        failures.push("Calculated whole-sign house context should be report-ready.");
+      }
+
+      if (enrichment.houseContext.appliedSystem !== "whole-sign") {
+        failures.push(`Expected whole-sign applied system, received ${enrichment.houseContext.appliedSystem}`);
+      }
+
+      if (enrichment.houseContext.confidence !== "calculated-ascendant") {
+        failures.push(`Expected calculated Ascendant confidence, received ${enrichment.houseContext.confidence}`);
+      }
+
+      if (houseSummary.ascendantMethod !== "astronomy-engine-local-sidereal-time") {
+        failures.push(`Expected SiderealTime ascendant method, received ${houseSummary.ascendantMethod}`);
+      }
+
+      if (enrichment.limitations.length !== 0) {
+        failures.push(`Expected no calculated whole-sign limitations, received ${enrichment.limitations.join("; ")}`);
+      }
+
+      return failures;
+    },
+  },
+  {
     id: "calculated-ascendant-house-metadata-enrichment",
     assert: () => {
       const failures: string[] = [];

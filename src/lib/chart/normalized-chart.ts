@@ -25,7 +25,7 @@ import {
   sortAspectsByOrb,
 } from "./aspects";
 
-export const NORMALIZED_CHART_VERSION = "0.1.137b" as const;
+export const NORMALIZED_CHART_VERSION = "0.1.138b" as const;
 
 export type NormalizedChartSource =
   | "astronomy-engine-prototype"

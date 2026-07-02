@@ -21,6 +21,7 @@ const requiredExports = [
 
 const requiredFixtureIds = [
   "ready-whole-sign-chart",
+  "calculated-ascendant-whole-sign-chart",
   "approximate-equal-house-chart",
   "calculated-ascendant-equal-house-chart",
   "placeholder-house-chart",
@@ -81,6 +82,7 @@ for (const marker of [
   "houseContext.confidence",
   "houseConfidence",
   "calculated Ascendant longitude",
+  "calculated-ascendant-whole-sign-chart",
 ]) {
   if (!source.includes(marker) && !fixtureSource.includes(marker)) {
     failures.push(`Missing house metadata marker: ${marker}`);

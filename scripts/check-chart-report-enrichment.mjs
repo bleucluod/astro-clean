@@ -21,6 +21,7 @@ const requiredExports = [
 
 const requiredFixtureIds = [
   "ready-chart-enrichment",
+  "calculated-whole-sign-house-enrichment",
   "calculated-ascendant-house-metadata-enrichment",
   "equal-house-approximate-enrichment",
   "partial-chart-enrichment",
@@ -76,6 +77,7 @@ for (const marker of [
   "houseContext",
   "toHouseContextSummary",
   "calculated Ascendant longitude",
+  "calculated-whole-sign-house-enrichment",
 ]) {
   if (!source.includes(marker) && !fixtureSource.includes(marker)) {
     failures.push(`Missing chart enrichment house metadata marker: ${marker}`);

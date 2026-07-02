@@ -695,3 +695,10 @@ Minimal scoped approach:
 - v0.1.138 was split after two marker-heavy runner failures. Prevention: change only the active real chart workbench house system first, then update normalization/enrichment fixtures separately.
 - v0.1.138a promotes the active real chart workbench to whole-sign houses anchored to the calculated Ascendant sign.
 - This batch does not change generated report prose, route behavior, UI, storage, SEO, payment, public/private policy, normalized fixtures, or chart-enrichment fixtures.
+
+## v0.1.138b whole-sign-readiness-guards scope note
+
+- v0.1.138b is scoped to executable readiness guards for whole-sign houses anchored to the calculated Ascendant sign.
+- The active workbench already emits whole-sign house input; this batch verifies normalized chart and chart enrichment treat calculated whole-sign context as report-enrichment-ready.
+- Older equal-house scaffold/transitional fixtures remain partial and must not become report-ready in this batch.
+- This batch does not change generated report prose, route behavior, report-generation service, UI, storage, SEO, payment, or public/private policy.

@@ -71,6 +71,43 @@ export const normalizedChartQaFixtures: NormalizedChartQaFixture[] = [
     expectedAscendantMethod: "provided",
   },
   {
+    id: "calculated-ascendant-whole-sign-chart",
+    input: {
+      source: "astronomy-engine-prototype",
+      time: {
+        date: "1994-02-20",
+        time: "22:10",
+        timezone: "Asia/Baku",
+        placeName: "Baku",
+      },
+      house: {
+        system: "whole-sign",
+        ascendantLongitude: 47,
+        ascendantMethod: "astronomy-engine-local-sidereal-time",
+      },
+      placements: [
+        {
+          id: "sun",
+          label: "Sun",
+          pointType: "luminary",
+          longitude: 10,
+        },
+        {
+          id: "moon",
+          label: "Moon",
+          pointType: "luminary",
+          longitude: 70,
+        },
+      ],
+    },
+    expectedPlacementCount: 2,
+    expectedHasReadyHouses: true,
+    expectedReadinessLabel: "ready-for-report-enrichment",
+    expectedAspectIds: ["sextile"],
+    expectedHouseConfidence: "calculated-ascendant",
+    expectedAscendantMethod: "astronomy-engine-local-sidereal-time",
+  },
+  {
     id: "calculated-ascendant-equal-house-chart",
     input: {
       source: "astronomy-engine-prototype",
@@ -254,6 +291,13 @@ export function runNormalizedChartQaFixtures(): string[] {
       )
     ) {
       failures.push("calculated equal-house chart should carry a transitional house limitation");
+    }
+
+    if (
+      fixture.id === "calculated-ascendant-whole-sign-chart" &&
+      chart.quality.limitations.length !== 0
+    ) {
+      failures.push("calculated whole-sign chart should not carry house confidence limitations");
     }
 
     if (readinessLabel !== fixture.expectedReadinessLabel) {

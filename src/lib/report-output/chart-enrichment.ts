@@ -5,7 +5,7 @@ import {
   type NormalizedChartPlacement,
 } from "../chart/normalized-chart";
 
-export const CHART_REPORT_ENRICHMENT_VERSION = "0.1.137b" as const;
+export const CHART_REPORT_ENRICHMENT_VERSION = "0.1.138b" as const;
 
 export type ChartReportEnrichmentStatus = "ready" | "partial" | "blocked";
 
