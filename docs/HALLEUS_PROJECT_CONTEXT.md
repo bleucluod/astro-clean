@@ -690,3 +690,8 @@ Minimal scoped approach:
 - The real chart workbench now marks the Ascendant method as `astronomy-engine-local-sidereal-time` in normalized house input so equal-house output can distinguish calculated-Ascendant metadata from older scaffolded fixtures.
 - Equal-house house placement remains partial until dedicated house-system hardening; do not treat this batch as final paid-report house readiness.
 - Next engine step should choose whether to promote whole-sign houses from the calculated Ascendant or implement a stronger house-system layer before changing generated report wording.
+## v0.1.138a active-whole-sign-workbench scope note
+
+- v0.1.138 was split after two marker-heavy runner failures. Prevention: change only the active real chart workbench house system first, then update normalization/enrichment fixtures separately.
+- v0.1.138a promotes the active real chart workbench to whole-sign houses anchored to the calculated Ascendant sign.
+- This batch does not change generated report prose, route behavior, UI, storage, SEO, payment, public/private policy, normalized fixtures, or chart-enrichment fixtures.
