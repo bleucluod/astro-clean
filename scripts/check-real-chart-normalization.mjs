@@ -21,6 +21,7 @@ const requiredExports = [
 
 const requiredFixtureIds = [
   "ready-whole-sign-chart",
+  "approximate-equal-house-chart",
   "placeholder-house-chart",
   "empty-manual-chart",
 ];
@@ -68,6 +69,14 @@ for (const requiredImport of [
 
 if (!source.includes("ready-for-report-enrichment")) {
   failures.push("Missing ready-for-report-enrichment readiness label.");
+}
+
+if (!source.includes("current ascendant scaffold")) {
+  failures.push("Missing explicit equal-house/ascendant confidence limitation.");
+}
+
+if (!source.includes("chart.quality.limitations.length === 0")) {
+  failures.push("Ready chart label must require zero limitations.");
 }
 
 if (!fixtureSource.includes("runNormalizedChartQaFixtures")) {

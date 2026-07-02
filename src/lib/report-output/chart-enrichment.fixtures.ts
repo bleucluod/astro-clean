@@ -72,6 +72,56 @@ export const chartReportEnrichmentQaFixtures: ChartReportEnrichmentQaFixture[] =
     },
   },
   {
+    id: "equal-house-approximate-enrichment",
+    assert: () => {
+      const failures: string[] = [];
+      const chart = buildNormalizedChart({
+        source: "astronomy-engine-prototype",
+        time: {
+          date: "1994-02-20",
+          time: "22:10",
+          timezone: "Asia/Baku",
+          placeName: "Baku",
+        },
+        house: {
+          system: "equal-house",
+          firstHouseCuspLongitude: 47,
+          ascendantLongitude: 47,
+        },
+        placements: [
+          {
+            id: "sun",
+            label: "Sun",
+            pointType: "luminary",
+            longitude: 10,
+          },
+          {
+            id: "moon",
+            label: "Moon",
+            pointType: "luminary",
+            longitude: 70,
+          },
+        ],
+      });
+      const status = getChartReportEnrichmentStatus(chart);
+      const enrichment = buildChartReportEnrichment(chart);
+
+      if (status !== "partial" || enrichment.status !== "partial") {
+        failures.push(`Expected approximate equal-house status to be partial, received ${status}/${enrichment.status}`);
+      }
+
+      if (hasReportReadyChartEnrichment(enrichment)) {
+        failures.push("Approximate equal-house enrichment must not be treated as report-ready.");
+      }
+
+      if (!enrichment.limitations.some((limitation) => limitation.includes("current ascendant scaffold"))) {
+        failures.push("Expected approximate equal-house limitation to be visible.");
+      }
+
+      return failures;
+    },
+  },
+  {
     id: "partial-chart-enrichment",
     assert: () => {
       const failures: string[] = [];

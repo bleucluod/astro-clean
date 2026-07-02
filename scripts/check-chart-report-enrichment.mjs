@@ -20,6 +20,7 @@ const requiredExports = [
 
 const requiredFixtureIds = [
   "ready-chart-enrichment",
+  "equal-house-approximate-enrichment",
   "partial-chart-enrichment",
   "blocked-chart-enrichment",
   "summary-key-builders",
@@ -63,6 +64,10 @@ for (const status of ["ready", "partial", "blocked"]) {
 
 if (!source.includes("../chart/normalized-chart")) {
   failures.push("Chart report enrichment must consume normalized chart data.");
+}
+
+if (!source.includes("chart.quality.limitations.length === 0")) {
+  failures.push("Ready chart enrichment must require zero limitations.");
 }
 
 if (!fixtureSource.includes("runChartReportEnrichmentQaFixtures")) {

@@ -72,7 +72,11 @@ export function getChartReportEnrichmentStatus(
     return "blocked";
   }
 
-  if (chart.quality.hasTimezone && chart.quality.hasReadyHouses) {
+  if (
+    chart.quality.hasTimezone &&
+    chart.quality.hasReadyHouses &&
+    chart.quality.limitations.length === 0
+  ) {
     return "ready";
   }
 

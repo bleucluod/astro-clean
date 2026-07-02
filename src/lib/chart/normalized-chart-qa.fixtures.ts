@@ -65,6 +65,41 @@ export const normalizedChartQaFixtures: NormalizedChartQaFixture[] = [
     expectedAspectIds: ["sextile", "square", "opposition"],
   },
   {
+    id: "approximate-equal-house-chart",
+    input: {
+      source: "astronomy-engine-prototype",
+      time: {
+        date: "1994-02-20",
+        time: "22:10",
+        timezone: "Asia/Baku",
+        placeName: "Baku",
+      },
+      house: {
+        system: "equal-house",
+        firstHouseCuspLongitude: 47,
+        ascendantLongitude: 47,
+      },
+      placements: [
+        {
+          id: "sun",
+          label: "Sun",
+          pointType: "luminary",
+          longitude: 10,
+        },
+        {
+          id: "moon",
+          label: "Moon",
+          pointType: "luminary",
+          longitude: 70,
+        },
+      ],
+    },
+    expectedPlacementCount: 2,
+    expectedHasReadyHouses: true,
+    expectedReadinessLabel: "partial-chart-ready",
+    expectedAspectIds: ["sextile"],
+  },
+  {
     id: "placeholder-house-chart",
     input: {
       source: "astronomy-engine-prototype",
@@ -133,6 +168,15 @@ export function runNormalizedChartQaFixtures(): string[] {
       failures.push(
         `${fixture.id}: ready houses ${chart.quality.hasReadyHouses} !== ${fixture.expectedHasReadyHouses}`,
       );
+    }
+
+    if (
+      fixture.id === "approximate-equal-house-chart" &&
+      !chart.quality.limitations.some((limitation) =>
+        limitation.includes("current ascendant scaffold"),
+      )
+    ) {
+      failures.push("approximate equal-house chart should carry a confidence limitation");
     }
 
     if (readinessLabel !== fixture.expectedReadinessLabel) {

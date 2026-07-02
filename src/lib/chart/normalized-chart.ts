@@ -200,7 +200,8 @@ export function normalizeHouseContext(
           ? normalizeEclipticLongitude(input.ascendantLongitude)
           : null,
       firstHouseCuspLongitude,
-      limitation: null,
+      limitation:
+        "Equal-house houses are calculated from the current ascendant scaffold; treat house placement as approximate until house-system hardening is complete.",
     };
   }
 
@@ -268,7 +269,11 @@ export function getNormalizedPlacementById(
 }
 
 export function getChartReadinessLabel(chart: NormalizedChart): string {
-  if (chart.quality.hasTimezone && chart.quality.hasReadyHouses) {
+  if (
+    chart.quality.hasTimezone &&
+    chart.quality.hasReadyHouses &&
+    chart.quality.limitations.length === 0
+  ) {
     return "ready-for-report-enrichment";
   }
 
