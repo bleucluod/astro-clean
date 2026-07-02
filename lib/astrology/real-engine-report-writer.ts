@@ -9,6 +9,7 @@ import {
   calculateRealEngineAspects,
   formatAspectDegree,
 } from "@/lib/astrology/real-engine-aspects";
+import type { ReportOutputSection } from "@/types/report-output";
 
 type SignCopy = {
   faName: string;
@@ -206,24 +207,136 @@ export function enrichReportWithRealEngineCopy(
     risingSign,
   });
 
+  const sunText = buildCorePlacementText(sun, "sun");
+  const moonText = buildCorePlacementText(moon, "moon");
+  const risingText = buildRisingText(risingSign, realEngine.ascendantLongitude);
+  const mercuryText = buildOptionalPlacementText(mercury, "mercury");
+  const venusText = buildOptionalPlacementText(venus, "venus");
+  const marsText = buildOptionalPlacementText(mars, "mars");
+  const aspectText = buildAspectOverviewText(aspects);
+  const integrationText = buildIntegrationText(realEngineWithAspects);
   const interpretations = [
-    buildCorePlacementText(sun, "sun"),
-    buildCorePlacementText(moon, "moon"),
-    buildRisingText(risingSign, realEngine.ascendantLongitude),
-    buildOptionalPlacementText(mercury, "mercury"),
-    buildOptionalPlacementText(venus, "venus"),
-    buildOptionalPlacementText(mars, "mars"),
-    buildAspectOverviewText(aspects),
-    buildIntegrationText(realEngineWithAspects),
+    sunText,
+    moonText,
+    risingText,
+    mercuryText,
+    venusText,
+    marsText,
+    aspectText,
+    integrationText,
   ].filter(Boolean) as string[];
+  const interpretationSections = buildRealEngineInterpretationSections({
+    summary,
+    sunText,
+    moonText,
+    risingText,
+    mercuryText,
+    venusText,
+    marsText,
+    aspectText,
+    integrationText,
+  });
 
   return {
     ...report,
     realEngine: realEngineWithAspects,
     summary,
     interpretations,
-  };
+    interpretationSections,
+  } as AstrologyReport;
 }
+
+
+type RealEngineSectionTextInput = {
+  summary: string;
+  sunText?: string;
+  moonText?: string;
+  risingText?: string;
+  mercuryText?: string;
+  venusText?: string;
+  marsText?: string;
+  aspectText?: string;
+  integrationText?: string;
+};
+
+function buildRealEngineInterpretationSections(
+  input: RealEngineSectionTextInput,
+): ReportOutputSection[] {
+  const relationshipBody = joinSectionBody(input.venusText, input.aspectText);
+  const careerBody = joinSectionBody(input.mercuryText, input.marsText);
+  const growthBody = joinSectionBody(input.integrationText, input.aspectText);
+  const fallbackBody =
+    input.integrationText ??
+    input.summary ??
+    "این بخش از گزارش بر اساس داده‌های محاسبه‌شده چارت نوشته شده و باید نمادین، آرام و غیرقطعی خوانده شود.";
+
+  return [
+    {
+      id: "real-engine-overview",
+      kind: "overview",
+      title: "نمای کلی چارت واقعی‌تر",
+      body: input.summary,
+    },
+    {
+      id: "real-engine-identity",
+      kind: "identity",
+      title: "هویت، حضور و مسیر اصلی",
+      body: input.sunText ?? fallbackBody,
+    },
+    {
+      id: "real-engine-emotional-pattern",
+      kind: "emotional-pattern",
+      title: "ریتم عاطفی و امنیت درونی",
+      body: input.moonText ?? fallbackBody,
+    },
+    {
+      id: "real-engine-relationships",
+      kind: "relationships",
+      title: "رابطه، ارزش و گفت‌وگوی درونی",
+      body: relationshipBody || input.venusText || input.aspectText || fallbackBody,
+    },
+    {
+      id: "real-engine-career",
+      kind: "career",
+      title: "ذهن، حرکت و مسیر رشد",
+      body: careerBody || input.mercuryText || input.marsText || fallbackBody,
+    },
+    {
+      id: "real-engine-growth",
+      kind: "growth",
+      title: "جمع‌بندی رشد شخصی",
+      body: growthBody || fallbackBody,
+    },
+    {
+      id: "real-engine-reflection-prompts",
+      kind: "reflection-prompts",
+      title: "پرسش‌های تأملی بر اساس همین چارت",
+      body: buildRealEngineReflectionPrompts(input),
+    },
+  ];
+}
+
+function buildRealEngineReflectionPrompts(input: RealEngineSectionTextInput): string {
+  const prompts = [
+    "کدام جمله از خوانش خورشید بیشتر به حس مسیر و هویت تو نزدیک است؟",
+    "نیاز عاطفی ماه در این گزارش کجا به تجربه روزمره تو شباهت دارد؟",
+    "در رابطه‌ها یا تصمیم‌ها، کدام گفت‌وگوی درونی را می‌توانی آرام‌تر و آگاهانه‌تر ببینی؟",
+  ];
+  const closing =
+    input.integrationText || input.aspectText
+      ? "این پرسش‌ها برای تأمل‌اند، نه برای گرفتن حکم قطعی از چارت."
+      : "اگر بخشی هنوز مبهم است، آن را به‌عنوان دعوت به مشاهده آرام‌تر نگه دار.";
+
+  return `${prompts.join(" ")} ${closing}`;
+}
+
+function joinSectionBody(
+  first: string | undefined,
+  second: string | undefined,
+): string {
+  return [first, second].filter(Boolean).join(" ");
+}
+
 
 function buildRealEngineSummary({
   name,

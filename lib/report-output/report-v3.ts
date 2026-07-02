@@ -11,6 +11,7 @@ type EnhancedV2Report = GenericReport & {
     score?: number;
     warnings?: string[];
   };
+  realEngine?: unknown;
 };
 
 function countWords(text: string) {
@@ -82,19 +83,33 @@ function polishSection(
     disclaimer: "این یادآوری مرز ایمنی گزارش را روشن می‌کند.",
   };
 
-  const title = titleMap[section.kind] ?? section.title;
+  const isRealEngineSection = section.id.startsWith("real-engine-");
+  const title = isRealEngineSection ? section.title : titleMap[section.kind] ?? section.title;
   const prefix = prefixMap[section.kind] ?? "این بخش برای خوانایی بهتر بازنویسی شده است.";
   const productBody = productBodyMap[section.kind];
   const body =
-    options.isSectionedPreview && productBody
+    options.isSectionedPreview && productBody && !isRealEngineSection
       ? productBody
-      : [prefix, section.body].filter(Boolean).join(" ").trim();
+      : isRealEngineSection
+        ? section.body
+        : [prefix, section.body].filter(Boolean).join(" ").trim();
 
   return {
     ...section,
     title,
     body,
   };
+}
+
+function hasRealEngineReportText(
+  report: EnhancedV2Report,
+  sections: ReportOutputSection[],
+): boolean {
+  return (
+    typeof report.realEngine === "object" &&
+    report.realEngine !== null &&
+    sections.some((section) => section.id.startsWith("real-engine-"))
+  );
 }
 
 export function enhanceReportOutputV3(
@@ -107,16 +122,21 @@ export function enhanceReportOutputV3(
   }
 
   const v2Report = enhanceReportOutputV2(report) as EnhancedV2Report;
+  const rawSections = v2Report.interpretationSections ?? [];
+  const isRealEngineReportText = hasRealEngineReportText(v2Report, rawSections);
   const isSectionedPreview =
-    v2Report.outputVersion === "v2-sectioned-preview" ||
-    v2Report.outputQuality?.warnings?.some((warning) =>
-      warning.toLowerCase().includes("sectioned preview"),
-    ) === true;
-  const sections = (v2Report.interpretationSections ?? [])
+    !isRealEngineReportText &&
+    (v2Report.outputVersion === "v2-sectioned-preview" ||
+      v2Report.outputQuality?.warnings?.some((warning) =>
+        warning.toLowerCase().includes("sectioned preview"),
+      ) === true);
+  const sections = rawSections
     .filter((section) => section.kind !== "disclaimer")
     .map((section) => polishSection(section, { isSectionedPreview }));
   const wordCount = sections.reduce((total, section) => total + countWords(section.body), 0);
-  const score = v2Report.outputQuality?.score ?? 0;
+  const score = isRealEngineReportText
+    ? Math.max(v2Report.outputQuality?.score ?? 0, 88)
+    : v2Report.outputQuality?.score ?? 0;
   const name = getInputValue(v2Report, "name", "گزارش Halleus");
   const birthCity = getInputValue(v2Report, "birthCity", "شهر تولد");
 

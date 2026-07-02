@@ -12,6 +12,7 @@ function assertIncludes(content, marker, label) {
 
 const writer = read("lib/astrology/real-engine-report-writer.ts");
 const types = read("types/astro.ts");
+const reportV3 = read("lib/report-output/report-v3.ts");
 
 for (const marker of [
   "enrichReportWithRealEngineCopy",
@@ -23,6 +24,9 @@ for (const marker of [
   "buildOptionalPlacementText(venus, \"venus\")",
   "buildOptionalPlacementText(mars, \"mars\")",
   "buildIntegrationText(realEngineWithAspects)",
+  "buildRealEngineInterpretationSections",
+  "real-engine-overview",
+  "real-engine-reflection-prompts",
   "SIGN_COPY",
   "PLANET_COPY",
 ]) {
@@ -43,6 +47,16 @@ for (const marker of [
   "RealEngineReportAspect",
 ]) {
   assertIncludes(types, marker, "types/astro.ts");
+}
+
+
+for (const marker of [
+  "hasRealEngineReportText",
+  "section.id.startsWith(\"real-engine-\")",
+  "!isRealEngineReportText",
+  "Math.max(v2Report.outputQuality?.score ?? 0, 88)",
+]) {
+  assertIncludes(reportV3, marker, "lib/report-output/report-v3.ts");
 }
 
 console.log("real engine report writer check passed");

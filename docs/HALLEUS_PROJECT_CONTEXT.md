@@ -380,6 +380,7 @@ Persian mojibake such as Ø, Ù, Û, Ú, â€ or �.
 Persian samples becoming question marks.
 Raw Persian markers in pasted PowerShell/Node here-strings failing to match live UTF-8 files.
 Console output showing mojibake while Node could read the file correctly.
+v0.1.128 first report-text runner wrote mojibake into real-engine-report-writer.ts and report-v3.ts because raw Persian here-strings were interpreted by Windows PowerShell before writing UTF-8.
 ```
 
 Prevention:
@@ -389,6 +390,7 @@ Avoid Persian raw text inside pasted terminal runners for exact matching.
 Use ASCII structural markers plus Unicode escapes or a UTF-8 artifact.
 Use Node JSON/string probes for Persian file inspection.
 Run check:encoding after Persian changes.
+For runners that must write Persian full-file content, use an ASCII-only runner that writes pre-encoded UTF-8 bytes, or otherwise prove Windows PowerShell will not reinterpret raw Persian source text.
 Treat check:encoding and build as necessary but not sufficient for Persian spacing/copy quality.
 ```
 
@@ -574,6 +576,8 @@ v0.1.123: manual order process readiness completed and pushed.
 v0.1.124: navigation workflow recovery and decision; public footer/internal route alignment completed in v0.1.124b.
 v0.1.125: public wording cleanup completed.
 v0.1.126: report generation context bridge completed.
+v0.1.127: ReportCard zodiac marker guard cleanup completed.
+v0.1.128: first visible report-text quality improvement; saved real-engine reports now drive V3 Persian report sections instead of falling back to generic sectioned preview copy.
 ```
 
 ## 13. Open questions before stronger launch claims
