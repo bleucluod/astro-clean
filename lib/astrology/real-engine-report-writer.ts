@@ -80,50 +80,50 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
     faName: "سنبله",
     enName: "Virgo",
     energy: "دقیق، اصلاح‌گر و خدمت‌محور",
-    gift: "دیدن جزئیات مهم و بهتر کردن چیزها به شکل عملی",
-    growth: "کمتر سخت گرفتن به خود و پذیرفتن اینکه کامل بودن همیشه لازم نیست",
+    gift: "دیدن جزئیات، بهتر کردن سیستم‌ها و مراقبت عملی از چیزی که مهم است",
+    growth: "مهربانی با نقص‌ها و رها کردن کنترل افراطی",
   },
   libra: {
     faName: "میزان",
     enName: "Libra",
-    energy: "رابطه‌محور، زیباشناس و تعادل‌جو",
-    gift: "دیدن دو طرف ماجرا و ساختن هماهنگی بین آدم‌ها و انتخاب‌ها",
-    growth: "تصمیم گرفتن حتی وقتی همه را نمی‌شود راضی نگه داشت",
+    energy: "رابطه‌محور، هماهنگ و زیبایی‌جو",
+    gift: "دیدن تعادل، انصاف و ظرافت در رابطه‌ها و انتخاب‌ها",
+    growth: "تصمیم گرفتن بدون گم شدن در رضایت دیگران",
   },
   scorpio: {
     faName: "عقرب",
     enName: "Scorpio",
-    energy: "عمیق، شدید و دگرگون‌کننده",
-    gift: "دیدن حقیقت‌های پنهان و عبور از سطح به لایه‌های واقعی‌تر",
-    growth: "اعتماد کردن، نرم شدن و رها کردن کنترل وقتی رابطه امن است",
+    energy: "عمیق، متمرکز و دگرگون‌کننده",
+    gift: "دیدن لایه‌های پنهان، وفاداری عمیق و توان عبور از بحران",
+    growth: "اعتماد، رها کردن کنترل و تبدیل شدت احساس به آگاهی",
   },
   sagittarius: {
     faName: "قوس",
     enName: "Sagittarius",
-    energy: "جستجوگر، آزاد و معناطلب",
-    gift: "دیدن افق بزرگ‌تر و تبدیل تجربه به بینش، مسیر و ایمان شخصی",
-    growth: "زمین‌گیر کردن الهام‌ها در عمل و توجه به جزئیات مسیر",
+    energy: "جست‌وجوگر، صریح و افق‌گشا",
+    gift: "دیدن معنای بزرگ‌تر و حرکت به سمت تجربه، دانش و آزادی",
+    growth: "تبدیل شوق و باور به تعهد، دقت و مسئولیت در کلام",
   },
   capricorn: {
     faName: "جدی",
     enName: "Capricorn",
-    energy: "ساختارمند، مسئول و بلندمدت",
-    gift: "ساختن چیزی جدی، قابل اتکا و مرحله‌به‌مرحله",
-    growth: "اجازه دادن به نرمی، بازی و استراحت کنار مسئولیت",
+    energy: "ساختارمند، مسئول و هدف‌محور",
+    gift: "ساختن چیزی ماندگار، قابل اعتماد و جدی گرفتن مسیر رشد",
+    growth: "نرم‌تر کردن سخت‌گیری و اجازه دادن به حمایت، احساس و استراحت",
   },
   aquarius: {
     faName: "دلو",
     enName: "Aquarius",
-    energy: "مستقل، آینده‌نگر و متفاوت",
-    gift: "دیدن الگوهای تازه و آوردن ایده‌هایی که از زمان خود جلوترند",
-    growth: "وصل ماندن به بدن و رابطه، نه فقط ایده و فاصله ذهنی",
+    energy: "آزاد، آینده‌نگر و متفاوت",
+    gift: "دیدن الگوهای تازه، استقلال فکری و ارتباط با جمع‌های معنادار",
+    growth: "حاضر ماندن در احساس و رابطه، نه فقط ایده و فاصله",
   },
   pisces: {
     faName: "حوت",
     enName: "Pisces",
-    energy: "شهودی، خیال‌پرداز و مرزناپذیر",
-    gift: "حس کردن لایه‌های نامرئی و آوردن مهربانی، هنر و معنا",
-    growth: "مرزبندی، وضوح و تبدیل الهام به انتخاب‌های روزمره",
+    energy: "حساس، شهودی و خیال‌پرداز",
+    gift: "همدلی، الهام و دیدن پیوندهای نامرئی بین آدم‌ها و تجربه‌ها",
+    growth: "مرزبندی، واقع‌سنجی و تبدیل رؤیا به مراقبت عملی",
   },
 };
 
@@ -215,6 +215,63 @@ const CORE_PLACEMENT_STORY: Record<"sun" | "moon", CorePlacementStory> = {
   },
 };
 
+type PersonalPlanetStory = {
+  opening: string;
+  everydaySignal: string;
+  relationshipSignal: string;
+  shadowSignal: string;
+  integration: string;
+  reflection: string;
+};
+
+const PERSONAL_PLANET_STORY: Record<
+  "mercury" | "venus" | "mars",
+  PersonalPlanetStory
+> = {
+  mercury: {
+    opening:
+      "عطارد فقط درباره هوش یا سرعت ذهن نیست؛ نشان می‌دهد تجربه را چطور نام‌گذاری می‌کنی، چطور سؤال می‌پرسی و وقتی چیزی مبهم است چگونه دنبال معنا می‌گردی.",
+    everydaySignal:
+      "در روزمره، این جایگاه می‌تواند در سبک تصمیم‌گیری، شیوه پیام دادن، نوع یادگیری و اینکه هنگام اضطراب زیاد حرف می‌زنی یا در خودت فرو می‌روی دیده شود.",
+    relationshipSignal:
+      "در رابطه‌ها، عطارد کیفیت گفت‌وگو را رنگ می‌کند: اینکه چطور سوءتفاهم را روشن می‌کنی، چه چیزهایی را راحت می‌گویی و کدام فکرها را برای خودت نگه می‌داری.",
+    shadowSignal:
+      "سایه طبیعی این لایه زمانی فعال می‌شود که ذهن بخواهد همه چیز را کنترل کند، بیش از حد توضیح بدهد، یا آن‌قدر بین احتمال‌ها بچرخد که حس و تصمیم عقب بماند.",
+    integration:
+      "راه یکپارچه‌تر این است که ذهن را به جای قاضی نهایی، مثل مترجم تجربه ببینی؛ ابزاری برای واضح‌تر کردن حس، نه ابزاری برای فرار از حس.",
+    reflection:
+      "پرسش تأملی: عطارد تو وقتی آرام‌تر و صادق‌تر حرف می‌زند، چه فکری را می‌تواند ساده‌تر و انسانی‌تر بیان کند؟",
+  },
+  venus: {
+    opening:
+      "زهره درباره رابطه، ارزش و لذت حرف می‌زند؛ جایی که می‌فهمی چه چیزی برایت زیبا، امن، دلپذیر یا واقعاً ارزشمند است.",
+    everydaySignal:
+      "در روزمره، این جایگاه می‌تواند در سلیقه، خرج کردن، انتخاب آدم‌ها، شکل صمیمیت و چیزهایی دیده شود که به تو حس دوست‌داشتنی بودن می‌دهند.",
+    relationshipSignal:
+      "در رابطه‌ها، زهره نشان می‌دهد چگونه جذب می‌شوی، چگونه محبت را نشان می‌دهی و در برابر نزدیکی، توجه یا فاصله چه واکنشی داری.",
+    shadowSignal:
+      "سایه طبیعی این لایه زمانی دیده می‌شود که برای حفظ صلح از نیاز خودت بگذری، ارزش خودت را از واکنش دیگران بگیری، یا لذت را با امنیت اشتباه بگیری.",
+    integration:
+      "راه سالم‌تر این است که ارزش را فقط در تأیید بیرونی نبینی؛ ببینی چه انتخاب‌هایی رابطه را هم لطیف‌تر می‌کنند و هم راستگوتر.",
+    reflection:
+      "پرسش تأملی: زهره تو برای اینکه رابطه و لذت را واقعی‌تر تجربه کند، کجا باید بیشتر انتخاب کند و کمتر فقط سازگار شود؟",
+  },
+  mars: {
+    opening:
+      "مریخ درباره میل، حرکت، خشم و جرئت عمل است؛ بخشی از تو که می‌خواهد چیزی را آغاز کند، از خواسته‌اش دفاع کند یا از حالت سکون بیرون بیاید.",
+    everydaySignal:
+      "در روزمره، این جایگاه می‌تواند در انرژی کار، واکنش به مانع، نحوه رقابت، سرعت شروع کردن و شکل برخورد با فشار دیده شود.",
+    relationshipSignal:
+      "در رابطه‌ها، مریخ نشان می‌دهد چطور مرز می‌گذاری، چگونه خواسته را مستقیم یا غیرمستقیم بیان می‌کنی و وقتی خشم یا میل بالا می‌آید چه الگویی فعال می‌شود.",
+    shadowSignal:
+      "سایه طبیعی این لایه یا به شکل عجله، تندی و دفاع بیش از حد دیده می‌شود، یا به شکل خاموش کردن خشم تا جایی که انرژی درونی سنگین و فرسوده شود.",
+    integration:
+      "راه یکپارچه‌تر این است که میل و خشم را دشمن ندانی؛ آن‌ها را زودتر بشنوی، مسئولانه‌تر بیان کنی و به حرکت‌های کوچک اما واقعی تبدیلشان کنی.",
+    reflection:
+      "پرسش تأملی: مریخ تو این هفته برای دفاع سالم از خواسته‌ات به چه اقدام کوچک، روشن و بدون خشونتی نیاز دارد؟",
+  },
+};
+
 export function enrichReportWithRealEngineCopy(
   report: AstrologyReport,
   realEngine: RealEngineReportSnapshot,
@@ -236,7 +293,7 @@ export function enrichReportWithRealEngineCopy(
   };
 
   const summary = buildRealEngineSummary({
-    name: report.input.name,
+    name: report.input.name ?? "",
     sun,
     moon,
     risingSign,
@@ -278,9 +335,9 @@ export function enrichReportWithRealEngineCopy(
     summary,
     interpretations,
     interpretationSections,
+
   } as AstrologyReport;
 }
-
 
 type RealEngineSectionTextInput = {
   summary: string;
@@ -291,8 +348,160 @@ type RealEngineSectionTextInput = {
   venusText?: string;
   marsText?: string;
   aspectText?: string;
-  integrationText?: string;
+  integrationText: string;
 };
+
+function buildRealEngineSummary({
+  name,
+  sun,
+  moon,
+  risingSign,
+}: {
+  name: string;
+  sun: RealEngineReportPlacement | undefined;
+  moon: RealEngineReportPlacement | undefined;
+  risingSign: ZodiacKey;
+}) {
+  const displayName = name ? `${name}، ` : "";
+  const sunSign = sun ? SIGN_COPY[sun.signId] : null;
+  const moonSign = moon ? SIGN_COPY[moon.signId] : null;
+  const rising = SIGN_COPY[risingSign];
+
+  if (sunSign && moonSign) {
+    return [
+      `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است و به جای یک توضیح عمومی، از سه ستون اصلی چارت شروع می‌کند: خورشید، ماه و رایزینگ.`,
+      `خورشید تو در ${formatSignLabel(sunSign)} قرار دارد؛ یعنی مسیر هویت و اعتمادبه‌نفس با کیفیت ${sunSign.energy} رنگ می‌گیرد.`,
+      `ماه تو در ${formatSignLabel(moonSign)} است؛ جایی که امنیت عاطفی و واکنش‌های غریزی به انرژی ${moonSign.energy} نزدیک می‌شوند.`,
+      `رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد و نشان می‌دهد در برخورد اول با جهان، چه ریتم و تصویری از تو جلوتر دیده می‌شود.`,
+      "این خوانش حکم قطعی درباره شخصیت نیست؛ یک نقشه تأملی است تا ببینی کدام بخش‌ها واقعاً با تجربه تو هم‌صدا هستند و کجاها نیاز به مشاهده بیشتر دارند.",
+    ].join(" ");
+  }
+
+  return [
+    `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است.`,
+    `داده‌های اصلی چارت در snapshot ذخیره شده‌اند و رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد.`,
+    "متن گزارش بر اساس همین داده‌ها ساخته شده و در نسخه‌های بعدی با لایه‌های خانه‌ها، aspectها و روایت‌های عمیق‌تر کامل‌تر می‌شود.",
+  ].join(" ");
+}
+
+function buildCorePlacementText(
+  placement: RealEngineReportPlacement | undefined,
+  planetId: "sun" | "moon",
+) {
+  if (!placement) {
+    return undefined;
+  }
+
+  const planet = PLANET_COPY[planetId];
+  const sign = SIGN_COPY[placement.signId];
+  const story = CORE_PLACEMENT_STORY[planetId];
+  const placementLabel = formatPlacement(placement);
+  const signLabel = formatSignLabel(sign);
+
+  return [
+    `${planet.faName}، یعنی ${planet.title}، در ${placementLabel} قرار دارد.`,
+    `در زبان نمادین Halleus، این جایگاه با ${planet.role} ارتباط دارد.`,
+    `${story.opening}`,
+    `کیفیت ${signLabel} این بخش را ${sign.energy} می‌کند؛ بنابراین هدیه طبیعی آن ${sign.gift} است.`,
+    `${story.everydaySignal}`,
+    `مسیر رشد این نشانه این است: ${sign.growth}.`,
+    `${story.shadowSignal}`,
+    `${story.integration}`,
+    `${story.reflection}`,
+  ].join(" ");
+}
+
+function buildOptionalPlacementText(
+  placement: RealEngineReportPlacement | undefined,
+  planetId: "mercury" | "venus" | "mars",
+) {
+  if (!placement) {
+    return undefined;
+  }
+
+  const planet = PLANET_COPY[planetId];
+  const sign = SIGN_COPY[placement.signId];
+  const story = PERSONAL_PLANET_STORY[planetId];
+  const placementLabel = formatPlacement(placement);
+  const signLabel = formatSignLabel(sign);
+
+  return [
+    `${planet.faName}، یعنی ${planet.title}، در ${placementLabel} قرار دارد.`,
+    `این لایه درباره ${planet.role} است، اما در گزارش Halleus فقط به یک جمله کوتاه خلاصه نمی‌شود.`,
+    `${story.opening}`,
+    `کیفیت ${signLabel} این بخش را ${sign.energy} می‌کند؛ بنابراین نقطه قوت اصلی آن ${sign.gift} است.`,
+    `${story.everydaySignal}`,
+    `${story.relationshipSignal}`,
+    `چالش رشد این نشانه در این لایه چنین است: ${sign.growth}.`,
+    `${story.shadowSignal}`,
+    `${story.integration}`,
+    `${story.reflection}`,
+  ].join(" ");
+}
+
+function buildRisingText(signKey: ZodiacKey, longitude: number) {
+  const sign = SIGN_COPY[signKey];
+  const signLabel = formatSignLabel(sign);
+
+  return [
+    `رایزینگ تقریبی تو در ${signLabel} است (${formatDegree(longitude)} روی دایره چارت).`,
+    "رایزینگ درباره «اولین تماس تو با جهان» حرف می‌زند: اینکه چطور وارد فضاها می‌شوی، چطور دیده می‌شوی و بدنت با موقعیت‌های تازه چه ریتمی می‌گیرد.",
+    `با ${signLabel}، ورود تو رنگ ${sign.energy} دارد؛ یعنی قبل از اینکه دیگران لایه‌های عمیق‌ترت را ببینند، معمولاً این کیفیت در رفتار، نگاه یا شیوه پاسخ دادنت جلوتر دیده می‌شود.`,
+    `هدیه این رایزینگ ${sign.gift} است و وقتی آگاهانه زندگی شود، می‌تواند به تو کمک کند موقعیت‌های تازه را با اعتماد بیشتری شروع کنی.`,
+    `چالش رشد آن هم ${sign.growth} است؛ یعنی تصویر بیرونی تو وقتی سالم‌تر می‌شود که فقط ماسک محافظ نباشد و به نیازهای واقعی خورشید و ماهت هم جا بدهد.`,
+    "پرسش تأملی: در برخوردهای تازه، کدام بخش از این رایزینگ به تو کمک می‌کند و کدام بخش ممکن است پشت یک عادت دفاعی پنهان شده باشد؟",
+  ].join(" ");
+}
+
+function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
+  if (aspects.length === 0) {
+    return undefined;
+  }
+
+  const strongest = aspects.slice(0, 3);
+  const aspectLead = strongest
+    .map(
+      (aspect) =>
+        `${aspect.firstPlanetLabel} ${aspect.glyph} ${aspect.secondPlanetLabel} (${aspect.aspectLabel}، orb ${formatAspectDegree(
+          aspect.orb,
+        )})`,
+    )
+    .join("؛ ");
+
+  const firstNarrative = strongest[0]?.narrative;
+
+  return `روابط سیاره‌ها در این چارت نشان می‌دهند کدام بخش‌های شخصیت با هم گفت‌وگو، حمایت یا اصطکاک سازنده دارند. برجسته‌ترین رابطه‌ها: ${aspectLead}. ${firstNarrative ?? ""}`.trim();
+}
+
+function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
+  const visiblePlacements = realEngine.placements
+    .slice(0, 6)
+    .map((placement) => {
+      const planet = PLANET_COPY[placement.id]?.faName ?? placement.label;
+      const sign = SIGN_COPY[placement.signId];
+
+      return `${planet} در ${formatSignLabel(sign)}`;
+    })
+    .join("، ");
+
+  const aspectCount = realEngine.aspects?.length ?? 0;
+  const aspectSummary =
+    aspectCount > 0
+      ? ` در لایه روابط سیاره‌ها هم ${aspectCount} ارتباط اصلی ذخیره شده که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند.`
+      : " در این نسخه، تمرکز اصلی روی جایگاه‌های واقعی‌تر سیاره‌هاست و لایه روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
+
+  return [
+    `جمع‌بندی چارت: ${visiblePlacements}.`,
+    "این‌ها ستون‌های اولیه گزارش‌اند و متن Halleus از همین داده‌های real engine ساخته شده است.",
+    "برای خواندن این گزارش، بهتر است خورشید را مثل مسیر آگاهانه، ماه را مثل نیاز عاطفی و رایزینگ را مثل دروازه ورود به جهان ببینی.",
+    "وقتی این سه لایه با هم خوانده شوند، گزارش از فهرست جایگاه‌ها به یک روایت شخصی‌تر نزدیک می‌شود: چه چیزی در تو روشن می‌شود، چه چیزی تو را آرام می‌کند، و چگونه خودت را به جهان نشان می‌دهی.",
+    aspectSummary.trim(),
+  ].join(" ");
+}
+
+function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {
+  return snapshot.placements.find((placement) => placement.id === id);
+}
 
 function buildRealEngineInterpretationSections(
   input: RealEngineSectionTextInput,
@@ -355,7 +564,8 @@ function buildRealEngineReflectionPrompts(input: RealEngineSectionTextInput): st
   const prompts = [
     "کدام جمله از خوانش خورشید بیشتر به حس مسیر و هویت تو نزدیک است؟",
     "نیاز عاطفی ماه در این گزارش کجا به تجربه روزمره تو شباهت دارد؟",
-    "در رابطه‌ها یا تصمیم‌ها، کدام گفت‌وگوی درونی را می‌توانی آرام‌تر و آگاهانه‌تر ببینی؟",
+    "عطارد، زهره یا مریخ کدام گفت‌وگوی درونی را درباره ذهن، رابطه یا عمل روشن‌تر می‌کند؟",
+    "در رابطه‌ها یا تصمیم‌ها، کدام الگو را می‌توانی آرام‌تر و آگاهانه‌تر ببینی؟",
   ];
   const closing =
     input.integrationText || input.aspectText
@@ -372,162 +582,23 @@ function joinSectionBody(
   return [first, second].filter(Boolean).join(" ");
 }
 
-
-function buildRealEngineSummary({
-  name,
-  sun,
-  moon,
-  risingSign,
-}: {
-  name?: string;
-  sun?: RealEngineReportPlacement;
-  moon?: RealEngineReportPlacement;
-  risingSign: ZodiacKey;
-}) {
-  const displayName = name?.trim() ? `${name.trim()}، ` : "";
-  const sunSign = sun ? SIGN_COPY[sun.signId] : undefined;
-  const moonSign = moon ? SIGN_COPY[moon.signId] : undefined;
-  const rising = SIGN_COPY[risingSign];
-
-  if (sunSign && moonSign) {
-    return [
-      `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است و به جای یک توضیح عمومی، از سه ستون اصلی چارت شروع می‌کند: خورشید، ماه و رایزینگ.`,
-      `خورشید تو در ${formatSignLabel(sunSign)} قرار دارد؛ یعنی مسیر هویت و اعتمادبه‌نفس با کیفیت ${sunSign.energy} رنگ می‌گیرد.`,
-      `ماه تو در ${formatSignLabel(moonSign)} است؛ جایی که امنیت عاطفی و واکنش‌های غریزی به انرژی ${moonSign.energy} نزدیک می‌شوند.`,
-      `رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد و نشان می‌دهد در برخورد اول با جهان، چه ریتم و تصویری از تو جلوتر دیده می‌شود.`,
-      "این خوانش حکم قطعی درباره شخصیت نیست؛ یک نقشه تأملی است تا ببینی کدام بخش‌ها واقعاً با تجربه تو هم‌صدا هستند و کجاها نیاز به مشاهده بیشتر دارند.",
-    ].join(" ");
-  }
-
-  return [
-    `${displayName}این گزارش با محاسبه واقعی‌تر Halleus ساخته شده است.`,
-    `داده‌های اصلی چارت در snapshot ذخیره شده‌اند و رایزینگ تقریبی تو در ${formatSignLabel(rising)} قرار دارد.`,
-    "متن گزارش بر اساس همین داده‌ها ساخته شده و در نسخه‌های بعدی با لایه‌های خانه‌ها، aspectها و روایت‌های عمیق‌تر کامل‌تر می‌شود.",
-  ].join(" ");
-}
-
-function buildCorePlacementText(
-  placement: RealEngineReportPlacement | undefined,
-  planetId: "sun" | "moon",
-) {
-  if (!placement) {
-    return undefined;
-  }
-
-  const planet = PLANET_COPY[planetId];
-  const sign = SIGN_COPY[placement.signId];
-  const story = CORE_PLACEMENT_STORY[planetId];
-  const placementLabel = formatPlacement(placement);
-  const signLabel = formatSignLabel(sign);
-
-  return [
-    `${planet.faName}، یعنی ${planet.title}، در ${placementLabel} قرار دارد.`,
-    `در زبان نمادین Halleus، این جایگاه با ${planet.role} ارتباط دارد.`,
-    `${story.opening}`,
-    `کیفیت ${signLabel} این بخش را ${sign.energy} می‌کند؛ بنابراین هدیه طبیعی آن ${sign.gift} است.`,
-    `${story.everydaySignal}`,
-    `مسیر رشد این نشانه این است: ${sign.growth}.`,
-    `${story.shadowSignal}`,
-    `${story.integration}`,
-    `${story.reflection}`,
-  ].join(" ");
-}
-
-function buildOptionalPlacementText(
-  placement: RealEngineReportPlacement | undefined,
-  planetId: "mercury" | "venus" | "mars",
-) {
-  if (!placement) {
-    return undefined;
-  }
-
-  const planet = PLANET_COPY[planetId];
-  const sign = SIGN_COPY[placement.signId];
-
-  return `${planet.faName} در ${formatPlacement(placement)} نشسته است. در لایه ${planet.title}، این یعنی ${planet.role}. وقتی این بخش با انرژی ${formatSignLabel(sign)} کار می‌کند، نقطه قوت اصلی‌اش ${sign.gift} است و چالش طبیعی‌اش ${sign.growth}.`;
-}
-
-function buildRisingText(signKey: ZodiacKey, longitude: number) {
-  const sign = SIGN_COPY[signKey];
-  const signLabel = formatSignLabel(sign);
-
-  return [
-    `رایزینگ تقریبی تو در ${signLabel} است (${formatDegree(longitude)} روی دایره چارت).`,
-    "رایزینگ درباره «اولین تماس تو با جهان» حرف می‌زند: اینکه چطور وارد فضاها می‌شوی، چطور دیده می‌شوی و بدنت با موقعیت‌های تازه چه ریتمی می‌گیرد.",
-    `با ${signLabel}، ورود تو رنگ ${sign.energy} دارد؛ یعنی قبل از اینکه دیگران لایه‌های عمیق‌ترت را ببینند، معمولاً این کیفیت در رفتار، نگاه یا شیوه پاسخ دادنت جلوتر دیده می‌شود.`,
-    `هدیه این رایزینگ ${sign.gift} است و وقتی آگاهانه زندگی شود، می‌تواند به تو کمک کند موقعیت‌های تازه را با اعتماد بیشتری شروع کنی.`,
-    `چالش رشد آن هم ${sign.growth} است؛ یعنی تصویر بیرونی تو وقتی سالم‌تر می‌شود که فقط ماسک محافظ نباشد و به نیازهای واقعی خورشید و ماهت هم جا بدهد.`,
-    "پرسش تأملی: در برخوردهای تازه، کدام بخش از این رایزینگ به تو کمک می‌کند و کدام بخش ممکن است پشت یک عادت دفاعی پنهان شده باشد؟",
-  ].join(" ");
-}
-
-function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
-  if (aspects.length === 0) {
-    return undefined;
-  }
-
-  const strongest = aspects.slice(0, 3);
-  const aspectLead = strongest
-    .map(
-      (aspect) =>
-        `${aspect.firstPlanetLabel} ${aspect.glyph} ${aspect.secondPlanetLabel} (${aspect.aspectLabel}، orb ${formatAspectDegree(
-          aspect.orb,
-        )})`,
-    )
-    .join("؛ ");
-
-  const firstNarrative = strongest[0]?.narrative;
-
-  return `روابط سیاره‌ها در این چارت نشان می‌دهند کدام بخش‌های شخصیت با هم گفت‌وگو، حمایت یا اصطکاک سازنده دارند. برجسته‌ترین رابطه‌ها: ${aspectLead}. ${firstNarrative ?? ""}`.trim();
-}
-
-function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
-  const visiblePlacements = realEngine.placements
-    .slice(0, 6)
-    .map((placement) => {
-      const planet = PLANET_COPY[placement.id]?.faName ?? placement.label;
-      const sign = SIGN_COPY[placement.signId];
-
-      return `${planet} در ${sign ? formatSignLabel(sign) : placement.signId}`;
-    })
-    .join("، ");
-
-  const aspectCount = realEngine.aspects?.length ?? 0;
-  const aspectSummary =
-    aspectCount > 0
-      ? ` در لایه روابط سیاره‌ها هم ${aspectCount} ارتباط اصلی ذخیره شده که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند.`
-      : " در این نسخه، تمرکز اصلی روی جایگاه‌های واقعی‌تر سیاره‌هاست و لایه روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
-
-  return [
-    `جمع‌بندی چارت: ${visiblePlacements}.`,
-    "این‌ها ستون‌های اولیه گزارش‌اند و متن Halleus از همین داده‌های real engine ساخته شده است.",
-    "برای خواندن این گزارش، بهتر است خورشید را مثل مسیر آگاهانه، ماه را مثل نیاز عاطفی و رایزینگ را مثل دروازه ورود به جهان ببینی.",
-    "وقتی این سه لایه با هم خوانده شوند، گزارش از فهرست جایگاه‌ها به یک روایت شخصی‌تر نزدیک می‌شود: چه چیزی در تو روشن می‌شود، چه چیزی تو را آرام می‌کند، و چگونه خودت را به جهان نشان می‌دهی.",
-    aspectSummary.trim(),
-  ].join(" ");
-}
-
-function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {
-  return snapshot.placements.find((placement) => placement.id === id);
-}
-
 function formatPlacement(placement: RealEngineReportPlacement) {
-  return `${formatSignLabel(SIGN_COPY[placement.signId])}، درجه ${formatDegree(
-    placement.degreeInSign,
-  )}`;
+  const sign = SIGN_COPY[placement.signId];
+
+  return `${formatSignLabel(sign)}، درجه ${formatDegree(placement.longitude)}`;
 }
 
 function formatSignLabel(sign: SignCopy) {
   return `${sign.faName} (${sign.enName})`;
 }
 
-function formatDegree(value: number) {
-  return `${value.toFixed(2)}°`;
+function formatDegree(longitude: number) {
+  return `${longitude.toFixed(1)}°`;
 }
 
 function signFromLongitude(longitude: number): ZodiacKey {
   const normalized = ((longitude % 360) + 360) % 360;
   const index = Math.floor(normalized / 30) % SIGN_ORDER.length;
 
-  return SIGN_ORDER[index];
+  return SIGN_ORDER[index] ?? "aries";
 }

@@ -580,7 +580,8 @@ v0.1.127: ReportCard zodiac marker guard cleanup completed.
 v0.1.128: first visible report-text quality improvement; saved real-engine reports now drive V3 Persian report sections instead of falling back to generic sectioned preview copy.
 v0.1.129: Report V3 experience guard aligned with the current Persian badge marker.
 v0.1.130: visible report-depth batch completed for longer Sun, Moon, Rising, and integration text in generated real-engine reports.
-v0.1.131: planned as a core chart data-confidence batch so approximate equal-house/ascendant scaffolding is not treated as final-ready report data.
+v0.1.131: chart data-confidence batch completed so approximate equal-house/ascendant scaffolding is not treated as final-ready report data.
+v0.1.132: planned as Mercury, Venus, and Mars report-depth batch for richer personal-planet text without relying on approximate houses.
 ```
 
 ## 13. Open questions before stronger launch claims
@@ -633,3 +634,14 @@ Minimal scoped approach:
 - v0.1.131 is scoped to chart data confidence, not adding more interpretive text.
 - The real chart route has useful astronomy-engine planetary longitudes and timezone conversion, but equal-house and ascendant remain scaffolded/approximate until house-system hardening.
 - Fresh reports should not label equal-house/ascendant scaffold data as fully report-ready when confidence limitations are present.
+
+## v0.1.132 personal-planets report-depth scope note
+
+- v0.1.132 is scoped to visible Mercury, Venus, and Mars report depth in `lib/astrology/real-engine-report-writer.ts`.
+- Keep this batch on planet-in-sign interpretation only; do not use approximate house placement or ascendant scaffold data for personal-planet claims.
+- The product priority after v0.1.131 is to finish the core generated report before SEO, wiki, public/private model, pricing polish, or unrelated UI work.
+
+## v0.1.132 workflow note
+
+- v0.1.132 first personal-planets runner failed at pnpm build after scoped checks passed because the runner removed the existing `as AstrologyReport` return cast while `interpretationSections` is still carried as a V3 bridge field outside the current `AstrologyReport` type. Prevention: preserve existing bridge casts unless widening the shared report type is explicitly scoped and inspected.
+- v0.1.132 follow-up build failure showed `outputQuality` was also outside the current `AstrologyReport` type. Prevention: keep report-depth batches focused on text generation and do not reintroduce bridge/type fields unless a shared type migration is separately scoped.

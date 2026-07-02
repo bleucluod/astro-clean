@@ -30,8 +30,13 @@ for (const marker of [
   "SIGN_COPY",
   "PLANET_COPY",
   "CORE_PLACEMENT_STORY",
+  "PERSONAL_PLANET_STORY",
   "این بخش فقط یک برچسب شخصیتی نیست",
+  "این لایه درباره",
   "پرسش تأملی",
+  "پرسش تأملی: عطارد",
+  "پرسش تأملی: زهره",
+  "پرسش تأملی: مریخ",
   "برای خواندن این گزارش",
 ]) {
   assertIncludes(writer, marker, "lib/astrology/real-engine-report-writer.ts");
