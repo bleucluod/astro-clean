@@ -629,9 +629,9 @@ function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {
 function buildRealEngineInterpretationSections(
   input: RealEngineSectionTextInput,
 ): ReportOutputSection[] {
+  const identityBody = joinSectionBody(input.sunText, input.risingText);
   const relationshipBody = joinSectionBody(input.venusText, input.aspectText);
   const careerBody = joinSectionBody(input.mercuryText, input.marsText);
-  const growthBody = joinSectionBody(input.integrationText, input.aspectText);
   const fallbackBody =
     input.integrationText ??
     input.summary ??
@@ -641,61 +641,134 @@ function buildRealEngineInterpretationSections(
     {
       id: "real-engine-overview",
       kind: "overview",
-      title: "نمای کلی چارت واقعی‌تر",
-      body: input.summary,
+      title: "نقشه راه خوانش",
+      body: buildStructuredSectionBody({
+        opening:
+          "این بخش مثل نقشه راه گزارش است؛ قبل از ورود به جزئیات، ستون‌های اصلی خوانش را کنار هم می‌گذارد.",
+        body: input.summary,
+        closing:
+          "برای خواندن ادامه گزارش، هر بخش را نه به عنوان حکم قطعی، بلکه مثل یک زاویه مشاهده و گفت‌وگو با خودت ببین.",
+      }),
     },
     {
       id: "real-engine-identity",
       kind: "identity",
-      title: "هویت، حضور و مسیر اصلی",
-      body: input.sunText ?? fallbackBody,
+      title: "هویت، حضور و شیوه ورود به جهان",
+      body: buildStructuredSectionBody({
+        opening:
+          "این فصل از مسیر درونی شروع می‌کند و بعد به شیوه‌ای می‌رسد که جهان در برخورد اول از تو می‌بیند.",
+        body: identityBody || input.sunText || input.risingText || fallbackBody,
+        closing:
+          "خورشید و رایزینگ را کنار هم بخوان: یکی از مسیر آگاهانه و حس هویت می‌گوید، دیگری از دروازه ورود تو به موقعیت‌ها.",
+      }),
     },
     {
       id: "real-engine-emotional-pattern",
       kind: "emotional-pattern",
       title: "ریتم عاطفی و امنیت درونی",
-      body: input.moonText ?? fallbackBody,
+      body: buildStructuredSectionBody({
+        opening:
+          "اینجا گزارش از لایه بیرونی فاصله می‌گیرد و به نیازهای آرام‌تر، واکنش‌های احساسی و شیوه امن شدن نزدیک می‌شود.",
+        body: input.moonText ?? fallbackBody,
+        closing:
+          "این بخش را آرام‌تر بخوان؛ ماه معمولاً بیشتر از اینکه جواب فوری بدهد، نیاز پنهان یا ریتم مراقبت را نشان می‌دهد.",
+      }),
     },
     {
       id: "real-engine-relationships",
       kind: "relationships",
-      title: "رابطه، ارزش و گفت‌وگوی درونی",
-      body: relationshipBody || input.venusText || input.aspectText || fallbackBody,
+      title: "رابطه، ارزش و گفت‌وگوی سیاره‌ها",
+      body: buildStructuredSectionBody({
+        opening:
+          "این فصل رابطه را فقط به معنای عشق یا جذب نمی‌گیرد؛ درباره ارزش، صمیمیت، مرز و گفت‌وگوی میان نیروهای درونی است.",
+        body: relationshipBody || input.venusText || input.aspectText || fallbackBody,
+        closing:
+          "اگر این فصل طولانی‌تر است، آن را در دو لایه بخوان: اول زهره و شیوه ارزش‌گذاری، بعد aspectها و گفت‌وگوی بخش‌های مختلف شخصیت.",
+      }),
     },
     {
       id: "real-engine-career",
       kind: "career",
-      title: "ذهن، حرکت و مسیر رشد",
-      body: careerBody || input.mercuryText || input.marsText || fallbackBody,
+      title: "ذهن، حرکت و مسیر عمل",
+      body: buildStructuredSectionBody({
+        opening:
+          "اینجا گزارش روی تصمیم، بیان، انرژی حرکت و شیوه تبدیل نیت به عمل تمرکز می‌کند.",
+        body: careerBody || input.mercuryText || input.marsText || fallbackBody,
+        closing:
+          "عطارد و مریخ را کنار هم بخوان: یکی نشان می‌دهد چطور معنا می‌سازی و حرف می‌زنی، دیگری نشان می‌دهد چطور حرکت می‌کنی.",
+      }),
     },
     {
       id: "real-engine-growth",
       kind: "growth",
-      title: "جمع‌بندی رشد شخصی",
-      body: growthBody || fallbackBody,
+      title: "جمع‌بندی و مسیر یکپارچه‌سازی",
+      body: buildStructuredSectionBody({
+        opening:
+          "این فصل قرار نیست دوباره همه جزئیات را تکرار کند؛ کارش این است که نخ‌های اصلی گزارش را به یک مسیر قابل‌خواندن وصل کند.",
+        body: input.integrationText || fallbackBody,
+        closing: buildFinalSynthesisClosing(input),
+      }),
     },
     {
       id: "real-engine-reflection-prompts",
       kind: "reflection-prompts",
-      title: "پرسش‌های تأملی بر اساس همین چارت",
+      title: "تمرین پایانی برای خواندن گزارش",
       body: buildRealEngineReflectionPrompts(input),
     },
   ];
 }
 
+type StructuredSectionBodyInput = {
+  opening: string;
+  body: string | undefined;
+  closing?: string;
+};
+
+function buildStructuredSectionBody({
+  opening,
+  body,
+  closing,
+}: StructuredSectionBodyInput): string {
+  return [opening, body, closing]
+    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+    .join(" ");
+}
+
+function buildFinalSynthesisClosing(input: RealEngineSectionTextInput): string {
+  const threads = [
+    input.sunText && input.risingText
+      ? "هویت و رایزینگ نشان می‌دهند درون و بیرون گزارش باید با هم خوانده شوند."
+      : null,
+    input.mercuryText && input.marsText
+      ? "ذهن و عمل نشان می‌دهند وضوح فقط در فکر نیست؛ در قدم بعدی هم دیده می‌شود."
+      : null,
+    input.venusText && input.aspectText
+      ? "زهره و aspectها کمک می‌کنند رابطه را هم به عنوان انتخاب بیرونی و هم گفت‌وگوی درونی ببینی."
+      : null,
+  ].filter(Boolean);
+
+  return [
+    threads.length > 0
+      ? threads.join(" ")
+      : "برای یکپارچه‌سازی، از بخشی شروع کن که بیشترین شباهت را به تجربه فعلی تو دارد.",
+    "جمع‌بندی نهایی Halleus این است: چارت قرار نیست جای تو تصمیم بگیرد؛ فقط چند زاویه برای دیدن خودت با آرامش و صداقت بیشتر باز می‌کند.",
+  ].join(" ");
+}
+
 function buildRealEngineReflectionPrompts(input: RealEngineSectionTextInput): string {
   const prompts = [
-    "کدام جمله از خوانش خورشید بیشتر به حس مسیر و هویت تو نزدیک است؟",
-    "نیاز عاطفی ماه در این گزارش کجا به تجربه روزمره تو شباهت دارد؟",
-    "عطارد، زهره یا مریخ کدام گفت‌وگوی درونی را درباره ذهن، رابطه یا عمل روشن‌تر می‌کند؟",
-    "در رابطه‌ها یا تصمیم‌ها، کدام الگو را می‌توانی آرام‌تر و آگاهانه‌تر ببینی؟",
+    "۱) از بخش هویت شروع کن: کدام جمله واقعاً به حس مسیر و حضور تو نزدیک است؟",
+    "۲) بعد سراغ ماه برو: کدام نیاز عاطفی را بهتر است زودتر و مهربان‌تر بشناسی؟",
+    "۳) عطارد، زهره و مریخ را مثل سه ابزار روزمره بخوان: فکر، ارزش و عمل کجا با هم هماهنگ‌اند و کجا نه؟",
+    "۴) aspectها را مثل گفت‌وگوی درونی ببین: کدام رابطه حمایت می‌سازد و کدام رابطه مهارت تازه می‌خواهد؟",
+    "۵) یک انتخاب کوچک برای این هفته بردار؛ چیزی که گزارش را از متن به تجربه قابل مشاهده تبدیل کند.",
   ];
   const closing =
     input.integrationText || input.aspectText
-      ? "این پرسش‌ها برای تأمل‌اند، نه برای گرفتن حکم قطعی از چارت."
+      ? "این تمرین پایانی برای تأمل است، نه برای گرفتن حکم قطعی از چارت."
       : "اگر بخشی هنوز مبهم است، آن را به‌عنوان دعوت به مشاهده آرام‌تر نگه دار.";
 
-  return `${prompts.join(" ")} ${closing}`;
+  return [prompts.join(" "), closing].join(" ");
 }
 
 function joinSectionBody(

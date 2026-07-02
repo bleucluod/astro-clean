@@ -582,7 +582,8 @@ v0.1.129: Report V3 experience guard aligned with the current Persian badge mark
 v0.1.130: visible report-depth batch completed for longer Sun, Moon, Rising, and integration text in generated real-engine reports.
 v0.1.131: chart data-confidence batch completed so approximate equal-house/ascendant scaffolding is not treated as final-ready report data.
 v0.1.132: personal-planets report-depth batch completed for richer Mercury, Venus, and Mars planet-in-sign text without relying on approximate houses.
-v0.1.133: planned as aspect-depth batch so real-engine aspect relationships read as meaningful inner dynamics, not a short list of angular contacts.
+v0.1.133: aspect-depth batch completed so real-engine aspect relationships read as meaningful inner dynamics, not a short list of angular contacts.
+v0.1.134: planned as final report-structure batch to improve reading order, section framing, rising visibility, and final synthesis without changing calculations or UI.
 ```
 
 ## 13. Open questions before stronger launch claims
@@ -654,3 +655,10 @@ Minimal scoped approach:
 - Do not change aspect calculation math, orb rules, shared report types, UI components, routes, storage, payment, SEO, or house/ascendant logic in this batch.
 - Product goal: make aspect text explain support, tension, integration, and reflection prompts so the generated report feels more complete without overclaiming precision.
 - v0.1.133 first aspect-depth runner failed at `git --no-pager diff --check` because `docs/HALLEUS_PROJECT_CONTEXT.md` had a blank line at EOF. Prevention: runners that append context notes must trim trailing whitespace and end with exactly one newline.
+
+## v0.1.134 final-report-structure scope note
+
+- v0.1.134 is scoped to the structure of generated real-engine report sections, not adding new astrology calculations or changing UI.
+- Keep the existing section IDs/kinds stable while improving reading order, intro/closing framing, rising visibility, and final synthesis.
+- Do not change aspect math, orb rules, shared report types, routes, storage, payment, SEO, public/private policy, or house/ascendant confidence logic in this batch.
+- Product goal: make the report feel less like separate paragraphs and more like a guided Persian reading with overview, identity, emotional pattern, relationships, action path, synthesis, and final reflection.
