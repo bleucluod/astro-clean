@@ -5,10 +5,13 @@ import type {
   AstrologyReport,
   BirthInput,
   RealEngineReportAngle,
+  RealEngineReportAngleId,
   RealEngineReportAngles,
   RealEngineReportCalculationQuality,
   RealEngineReportDeferredCalculation,
+  RealEngineReportHouse,
   RealEngineReportHouseContext,
+  RealEngineReportHouseNumber,
   RealEngineReportPlacement,
   RealEngineReportRetrogradeStatus,
   RealEngineReportSnapshot,
@@ -42,7 +45,7 @@ import {
 } from "../../src/lib/report-output/chart-enrichment";
 import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart-report-copy";
 
-export const REPORT_GENERATION_SERVICE_VERSION = "0.1.156" as const;
+export const REPORT_GENERATION_SERVICE_VERSION = "0.1.157" as const;
 
 type SectionedAstrologyReport = AstrologyReport & {
   interpretationSections: ReportOutputSection[];
@@ -178,6 +181,7 @@ export function buildRealEngineSnapshot(
     utcIso: realChart.utcIso,
     ascendantLongitude: realChart.ascendantLongitude,
     houseSystem: chartReportEnrichment?.houseContext.appliedSystem ?? "whole-sign",
+    houses: toRealEngineReportHouses(realChart, chartReportEnrichment),
     angles: toRealEngineReportAngles(realChart),
     calculationQuality: toRealEngineReportCalculationQuality(
       realChart,
@@ -219,19 +223,104 @@ function toRealEngineReportHouseContext(
   };
 }
 
+function toRealEngineReportHouses(
+  realChart: RealChartWorkbenchResult,
+  chartReportEnrichment: ChartReportEnrichment | null,
+): RealEngineReportHouse[] {
+  const houses = realChart.houses.length > 0
+    ? realChart.houses
+    : realChart.normalizedChart.houses;
+  const houseContext =
+    chartReportEnrichment?.houseContext ?? realChart.normalizedChart.houseContext;
+
+  return houses.map((house) => ({
+    number: house.number as RealEngineReportHouseNumber,
+    signId: toZodiacKey(house.signId),
+    cuspLongitude: normalizeReportLongitude(house.cuspLongitude),
+    degreeInSign: getReportDegreeInSign(house.cuspLongitude),
+    system: house.system,
+    method: toRealEngineReportHouseMethod(house.system),
+    reliability:
+      house.system === "whole-sign" &&
+      houseContext.confidence === "calculated-ascendant"
+        ? "calculated"
+        : house.system === "placeholder"
+          ? "placeholder"
+          : "preview",
+    planetIds: realChart.placements
+      .filter(
+        (placement) =>
+          getHouseNumberForLongitude(placement.longitude, realChart) === house.number,
+      )
+      .map((placement) => placement.id),
+    angleIds: getAngleIdsForHouse(house.number, realChart),
+    limitation:
+      house.system === "whole-sign"
+        ? "Whole sign house derived from the calculated Ascendant sign; not a Placidus cusp."
+        : "House method is not production-grade Placidus.",
+  }));
+}
+
+function toRealEngineReportHouseMethod(
+  system: RealEngineReportHouse["system"],
+): RealEngineReportHouse["method"] {
+  if (system === "whole-sign") {
+    return "whole-sign-from-ascendant";
+  }
+
+  if (system === "equal-house") {
+    return "equal-house-from-ascendant";
+  }
+
+  if (system === "placidus") {
+    return "placidus-calculated";
+  }
+
+  return "placeholder";
+}
+
+function getAngleIdsForHouse(
+  houseNumber: RealEngineReportHouseNumber,
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportAngleId[] {
+  return Object.values(realChart.angles)
+    .filter((angle) => getHouseNumberForLongitude(angle.longitude, realChart) === houseNumber)
+    .map((angle) => angle.id as RealEngineReportAngleId);
+}
+
+function getHouseNumberForLongitude(
+  longitude: number,
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportHouseNumber | null {
+  const houses = realChart.houses.length > 0
+    ? realChart.houses
+    : realChart.normalizedChart.houses;
+
+  const matchingHouse = houses.find((house) => {
+    const distanceFromCusp = normalizeReportLongitude(
+      longitude - house.cuspLongitude,
+    );
+
+    return distanceFromCusp >= 0 && distanceFromCusp < 30;
+  });
+
+  return (matchingHouse?.number ?? null) as RealEngineReportHouseNumber | null;
+}
+
 function toRealEngineReportAngles(
   realChart: RealChartWorkbenchResult,
 ): RealEngineReportAngles {
   return {
-    asc: toRealEngineReportAngle(realChart.angles.asc),
-    dsc: toRealEngineReportAngle(realChart.angles.dsc),
-    mc: toRealEngineReportAngle(realChart.angles.mc),
-    ic: toRealEngineReportAngle(realChart.angles.ic),
+    asc: toRealEngineReportAngle(realChart.angles.asc, realChart),
+    dsc: toRealEngineReportAngle(realChart.angles.dsc, realChart),
+    mc: toRealEngineReportAngle(realChart.angles.mc, realChart),
+    ic: toRealEngineReportAngle(realChart.angles.ic, realChart),
   };
 }
 
 function toRealEngineReportAngle(
   angle: RealChartCalculatedAngle,
+  realChart: RealChartWorkbenchResult,
 ): RealEngineReportAngle {
   return {
     id: angle.id,
@@ -242,9 +331,19 @@ function toRealEngineReportAngle(
     method: angle.method,
     source: angle.source,
     reliability: angle.reliability,
-    house: null,
+    house: getHouseNumberForLongitude(angle.longitude, realChart),
     limitation: angle.limitation,
   };
+}
+
+function normalizeReportLongitude(longitude: number): number {
+  const normalized = longitude % 360;
+
+  return normalized < 0 ? normalized + 360 : normalized;
+}
+
+function getReportDegreeInSign(longitude: number): number {
+  return normalizeReportLongitude(longitude) % 30;
 }
 
 function toRealEngineReportCalculationQuality(

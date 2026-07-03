@@ -4,8 +4,9 @@ import {
   type NormalizedChart,
   type NormalizedChartPointInput,
 } from "./normalized-chart";
+import type { ChartHouse } from "./houses";
 
-export const REAL_CHART_WORKBENCH_VERSION = "0.1.156" as const;
+export const REAL_CHART_WORKBENCH_VERSION = "0.1.157" as const;
 
 export type RealChartBirthInput = {
   name?: string;
@@ -60,6 +61,7 @@ export type RealChartWorkbenchResult = {
   ascendantMethod: "astronomy-engine-local-sidereal-time";
   midheavenLongitude: number;
   angles: RealChartCalculatedAngles;
+  houses: ChartHouse[];
   calculationNotes: string[];
   placements: RealChartCalculatedPlacement[];
   normalizedChart: NormalizedChart;
@@ -149,6 +151,7 @@ export function buildRealChartWorkbenchResult(
     ascendantMethod: "astronomy-engine-local-sidereal-time",
     midheavenLongitude,
     angles,
+    houses: normalizedChart.houses,
     placements,
     normalizedChart,
     calculationNotes: [
