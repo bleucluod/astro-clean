@@ -346,6 +346,8 @@ const samples = [
   },
 ];
 
+const PRODUCT_POLISH_GUARD = "v0.1.162-product-polish";
+
 const requiredSectionIds = [
   "real-engine-overview",
   "real-engine-identity",
@@ -461,6 +463,15 @@ for (const sample of samples) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing house/angles marker ${marker}`);
     }
+  }
+
+  if (!combined.includes("جدول کامل ۱۲ خانه")) {
+    failures.push(`${sample.id}: missing polished house-table handoff copy`);
+  }
+
+  const technicalSnapshotMentions = (combined.match(/snapshot/g) ?? []).length;
+  if (technicalSnapshotMentions > 4) {
+    failures.push(`${sample.id}: too many user-facing snapshot mentions (${technicalSnapshotMentions})`);
   }
 
 

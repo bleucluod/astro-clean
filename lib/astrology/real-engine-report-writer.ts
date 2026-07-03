@@ -730,7 +730,7 @@ function buildRealEngineSummary({
 
   return [
     `${displayName}این خوانش هالیوس${cityPhrase} از روی چارت محاسبه‌شده تو ساخته شده است و آن را مثل یک زبان نمادین برای تأمل می‌خواند، نه یک حکم قطعی درباره آینده یا شخصیت.`,
-    `داده‌های اصلی چارت در snapshot ذخیره شده‌اند و ${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد.`,
+    `داده‌های اصلی چارت در داده محاسبه‌شده ذخیره شده‌اند و ${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد.`,
     "متن گزارش از همین داده‌های محاسبه‌شده ساخته شده است؛ آن را مثل دعوتی برای دیدن الگوها بخوان، نه جایگزین مشاهده، گفت‌وگو یا تصمیم شخصی.",
   ].join(" ");
 }
@@ -875,11 +875,11 @@ function buildHouseAnglesText(realEngine: RealEngineReportSnapshot): string | un
 
   const houseSystemText =
     houses.length === 12
-      ? "خانه‌های این گزارش بر اساس سیستم Whole Sign کامل شده‌اند؛ یعنی خانه اول از نشان رایزینگ آغاز می‌شود و هر نشان بعدی یک خانه کامل را می‌سازد."
-      : "در این نسخه هنوز آرایه کامل ۱۲ خانه در snapshot ذخیره نشده است، پس خانه‌ها فقط با احتیاط خوانده می‌شوند.";
+      ? "خانه‌های این گزارش با سیستم Whole Sign ساخته شده‌اند؛ جدول کامل در کارت گزارش آمده و متن خوانش فقط نقاط پررنگ‌تر را برجسته می‌کند."
+      : "در این نسخه هنوز آرایه کامل ۱۲ خانه در داده محاسبه‌شده ذخیره نشده است، پس خانه‌ها فقط با احتیاط خوانده می‌شوند.";
   const anglesText = angles.length > 0 ? buildAnglesNarrative(angles) : undefined;
   const ascDscText = realEngine.angles?.asc && realEngine.angles?.dsc
-    ? "محور ASC/DSC پیوند میان «من چگونه وارد جهان می‌شوم» و «در رابطه چه چیزی روبه‌روی من می‌ایستد» را نشان می‌دهد."
+    ? "محور ASC/DSC پیوند میان شیوه ورود تو به جهان و آینه رابطه با دیگری را نشان می‌دهد."
     : undefined;
   const mcIcText = realEngine.angles?.mc && realEngine.angles?.ic
     ? "محور MC/IC مسیر بیرونی و ریشه درونی را جدا از شماره خانه‌ها می‌خواند؛ MC لزوماً با خانه ۱۰ یکی نیست و IC هم فقط نام دیگر خانه ۴ نیست."
@@ -908,7 +908,7 @@ function buildRetrogradeText(realEngine: RealEngineReportSnapshot): string | und
 
   if (planetLabels.length === 0) {
     return [
-      "در snapshot این گزارش، برای سیاره‌های محاسبه‌شده حرکت برگشتی ثبت نشده است.",
+      "در داده محاسبه‌شده این گزارش، برای سیاره‌های محاسبه‌شده حرکت برگشتی ثبت نشده است.",
       baseMethod,
       "این نبودنِ retrograde را نباید به معنای ساده بودن کامل چارت خواند؛ خانه‌ها، محورها و aspectها همچنان لایه‌های اصلی گفت‌وگوی درونی را می‌سازند.",
       deferredPoints,
@@ -916,10 +916,9 @@ function buildRetrogradeText(realEngine: RealEngineReportSnapshot): string | und
   }
 
   return [
-    `در snapshot این گزارش، ${planetLabels.join("، ")} با حرکت برگشتی ثبت شده‌اند.`,
+    `در داده محاسبه‌شده این گزارش، ${planetLabels.join("، ")} با حرکت برگشتی ثبت شده‌اند.`,
     baseMethod,
-    "در خوانش نمادین، retrograde بیشتر به معنای بازنگری، درونی‌تر شدن یا برگشتن توجه به یک موضوع است؛ نه نشانه ضعف یا اتفاق قطعی.",
-    "بهتر است این سیاره‌ها را مثل بخش‌هایی ببینی که قبل از حرکت بیرونی، نیاز دارند چند بار درون خودت مرور و بازنویسی شوند.",
+    "در خوانش نمادین، retrograde بیشتر به معنای بازنگری و درونی‌تر شدن توجه است؛ نه نشانه ضعف یا اتفاق قطعی.",
     deferredPoints,
   ].join(" ");
 }
@@ -940,17 +939,17 @@ function buildNatalAccuracyText(realEngine: RealEngineReportSnapshot): string | 
   const lilithStatus = realEngine.lilith?.status ?? "not-calculated";
   const nodesText =
     nodesStatus === "calculated"
-      ? "گره‌های ماه در snapshot محاسبه شده‌اند و می‌توانند در خوانش بعدی وارد شوند."
+      ? "گره‌های ماه در داده محاسبه‌شده ثبت شده‌اند و می‌توانند در خوانش بعدی وارد شوند."
       : "گره‌های ماه هنوز محاسبه نمی‌شوند و تا انتخاب منبع ephemeris و تعریف Mean/True Node وارد نتیجه‌گیری نمی‌شوند.";
   const lilithText =
     lilithStatus === "calculated"
-      ? "لیلیت در snapshot محاسبه شده است و می‌تواند در خوانش بعدی وارد شود."
+      ? "لیلیت در داده محاسبه‌شده ثبت شده است و می‌تواند در خوانش بعدی وارد شود."
       : "لیلیت هنوز محاسبه نمی‌شود؛ قبل از نمایش باید تصمیم Mean Lilith یا True Lilith و منبع محاسبه روشن شود.";
 
   return [
-    "دقت این گزارش به سه چیز تکیه دارد: ساعت تولد، timezone و مختصات شهر تولد.",
-    "اگر ساعت تولد تقریبی یا نامطمئن باشد، خانه‌ها، رایزینگ، MC/IC و حتی نمونه‌گیری حرکت برگشتی باید با زبان محتاط‌تر خوانده شوند.",
-    "در این نسخه، timezone و مرزهای نزدیک نیمه‌شب با QA جداگانه نگهبانی می‌شوند تا گزارش در تغییر روز یا شهر اشتباه claim نکند.",
+    "دقت این گزارش به ساعت تولد، timezone و مختصات شهر تولد تکیه دارد.",
+    "اگر ساعت تولد تقریبی باشد، خانه‌ها، رایزینگ، MC/IC و نمونه‌گیری حرکت برگشتی باید محتاط‌تر خوانده شوند.",
+    "مرزهای نزدیک نیمه‌شب با QA جداگانه نگهبانی می‌شوند تا گزارش در تغییر روز یا شهر اشتباه claim نکند.",
     nodesText,
     lilithText,
     limitationText,
@@ -1001,18 +1000,31 @@ function buildWholeSignHouseNarrative(
   houses: RealEngineReportHouse[],
   placements: RealEngineReportPlacement[],
 ): string {
-  const houseStarts = houses
-    .map((house) => `خانه ${toPersianNumber(house.number)} از ${formatSignLabel(SIGN_COPY[house.signId])}`)
-    .join("؛ ");
+  const firstHouse = houses.find((house) => house.number === 1);
+  const fourthHouse = houses.find((house) => house.number === 4);
+  const seventhHouse = houses.find((house) => house.number === 7);
+  const tenthHouse = houses.find((house) => house.number === 10);
+  const formatHouseStart = (label: string, house: RealEngineReportHouse | undefined) =>
+    house ? `${label} از ${formatSignLabel(SIGN_COPY[house.signId])}` : undefined;
+  const axisHighlights = [
+    formatHouseStart("خانه ۱", firstHouse),
+    formatHouseStart("خانه ۴", fourthHouse),
+    formatHouseStart("خانه ۷", seventhHouse),
+    formatHouseStart("خانه ۱۰", tenthHouse),
+  ].filter((part): part is string => Boolean(part));
   const activeHouses = houses
     .map((house) => buildActiveHouseNarrative(house, placements))
     .filter((part): part is string => Boolean(part));
+  const visibleActiveHouses = activeHouses.slice(0, 4);
+  const extraActiveCount = Math.max(0, activeHouses.length - visibleActiveHouses.length);
 
   return [
-    `نقشه شروع خانه‌ها: ${houseStarts}.`,
-    activeHouses.length > 0
-      ? `خانه‌های فعال‌تر این چارت از نظر سیاره‌ها و محورها: ${activeHouses.join(" ")}`
-      : "در snapshot فعلی، خانه‌ها ذخیره شده‌اند اما سیاره شاخصی برای برجسته‌کردن یک خانه خاص ثبت نشده است.",
+    axisHighlights.length > 0
+      ? `در متن خوانش، به جای تکرار فهرست کامل ۱۲ خانه، محورهای خانه‌ای خلاصه می‌شوند: ${axisHighlights.join("؛ ")}. جدول کامل ۱۲ خانه در کارت گزارش و چارت دایره‌ای آمده است.`
+      : "جدول کامل ۱۲ خانه در کارت گزارش و چارت دایره‌ای آمده است؛ متن خوانش فقط خانه‌های پررنگ‌تر را برجسته می‌کند.",
+    visibleActiveHouses.length > 0
+      ? `خانه‌های فعال‌تر این چارت از نظر سیاره‌ها و محورها: ${visibleActiveHouses.join(" ")}${extraActiveCount > 0 ? ` و ${toPersianNumber(extraActiveCount)} خانه فعال دیگر که در جدول کامل دیده می‌شوند.` : ""}`
+      : "در داده محاسبه‌شده فعلی، خانه‌ها ذخیره شده‌اند اما سیاره شاخصی برای برجسته‌کردن یک خانه خاص ثبت نشده است.",
   ].join(" ");
 }
 
@@ -1198,7 +1210,7 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
       : " در این نسخه، تمرکز اصلی روی جایگاه‌های واقعی‌تر سیاره‌هاست و لایه روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
   const houseSummary =
     realEngine.houses?.length === 12
-      ? " در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در snapshot گزارش ذخیره شده‌اند."
+      ? " در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در داده محاسبه‌شده گزارش ذخیره شده‌اند."
       : " لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که snapshot داده واقعی کافی داشته باشد.";
   const motionSummary =
     realEngine.retrogrades?.status === "calculated"
@@ -1252,7 +1264,7 @@ function buildRealEngineInterpretationSections(
         body: buildStructuredSectionBody({
           opening: buildEvidenceOpening(
             input.houseAnglesEvidence,
-            "این فصل نقشه خانه‌ها و محورهای اصلی را به زبان انسانی وارد گزارش می‌کند؛ یعنی داده‌های تازه snapshot فقط در پشت صحنه نمی‌مانند.",
+            "این فصل نقشه خانه‌ها و محورهای اصلی را به زبان انسانی وارد گزارش می‌کند؛ یعنی داده‌های تازه محاسبه‌شده فقط در پشت صحنه نمی‌مانند.",
           ),
           body: input.houseAnglesText,
           closing:
@@ -1284,7 +1296,7 @@ function buildRealEngineInterpretationSections(
         title: "دقت تولد و مرزهای محاسبه",
         body: buildStructuredSectionBody({
           opening:
-            "این فصل مرز دقت گزارش را روشن می‌کند؛ چون گزارش کامل فقط زمانی قابل اعتماد است که داده تولد، timezone و مختصات شهر با همان سخت‌گیری snapshot خوانده شوند.",
+            "این فصل مرز دقت گزارش را روشن می‌کند؛ چون گزارش کامل فقط زمانی قابل اعتماد است که داده تولد، timezone و مختصات شهر با همان سخت‌گیری داده محاسبه‌شده خوانده شوند.",
           body: input.natalAccuracyText,
           closing:
             "این مرزگذاری برای کم‌کردن ارزش گزارش نیست؛ برای این است که هالیوس به جای متن زیبا اما نامطمئن، گزارش صادقانه و قابل اعتماد بسازد.",
@@ -1299,15 +1311,12 @@ function buildRealEngineInterpretationSections(
       title: "نقشه راه خوانش",
       body: buildStructuredSectionBody({
         opening:
-          "این بخش مثل آستانه ورود به گزارش است؛ قبل از جزئیات، سه ستون اصلی خوانش را کنار هم می‌گذارد تا چارت مثل یک زبان نمادین و قابل گفت‌وگو دیده شود.",
+          "این بخش ورودی کوتاه گزارش است؛ اول سه ستون اصلی را کنار هم می‌گذارد و بعد لایه‌های خانه، محور، motion و دقت را در جای خواناتر خودش باز می‌کند.",
         body: input.summary,
         closing:
-          "برای خواندن ادامه گزارش، هر بخش را نه به عنوان حکم قطعی، بلکه مثل یک زاویه مشاهده و گفت‌وگو با خودت ببین.",
+          "برای خواندن ادامه گزارش، هر بخش را مثل یک زاویه مشاهده ببین؛ بخش‌های فنی‌تر بعد از روایت اصلی آمده‌اند تا متن سنگین نشود.",
       }),
     },
-    houseAnglesSection,
-    motionSection,
-    natalAccuracySection,
     {
       id: "real-engine-identity",
       kind: "identity",
@@ -1364,6 +1373,9 @@ function buildRealEngineInterpretationSections(
           "عطارد و مریخ را کنار هم بخوان: یکی نشان می‌دهد چطور معنا می‌سازی و حرف می‌زنی، دیگری نشان می‌دهد چطور حرکت می‌کنی.",
       }),
     },
+    houseAnglesSection,
+    motionSection,
+    natalAccuracySection,
     {
       id: "real-engine-growth",
       kind: "growth",

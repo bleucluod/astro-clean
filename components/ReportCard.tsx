@@ -202,9 +202,9 @@ export function ReportCard({ report }: ReportCardProps) {
           </h2>
 
           <p>
-            این کارت خلاصه شخصی چارت توست: ورودی تولد، سه ستون اصلی، رایزینگ
-            محاسبه‌شده، جایگاه‌های اصلی و روابط مهم سیاره‌ها را قبل از ورود به
-            خوانش نهایی نشان می‌دهد.
+            این کارت خلاصه شخصی چارت توست: اول ستون‌های اصلی را نشان می‌دهد و
+            بخش‌های جزئی‌تر مثل خانه‌ها، motion و دقت تولد را در پنل‌های جدا می‌گذارد
+            تا گزارش کامل باشد اما شلوغ و گیج‌کننده نشود.
           </p>
         </div>
 
@@ -294,16 +294,16 @@ export function ReportCard({ report }: ReportCardProps) {
           </div>
 
           {accuracySummary ? (
-            <details className="report-placement-details report-accuracy-section" open>
+            <details className="report-placement-details report-accuracy-section report-polish-advanced-panel">
               <summary>دقت تولد و مرزهای محاسبه</summary>
               <p>
-                این بخش برای شفافیت است: خانه‌ها، محورها و motion فقط وقتی جدی خوانده
-                می‌شوند که ساعت تولد، timezone و مختصات شهر قابل اعتماد باشند. گره‌های
-                ماه و لیلیت تا وقتی منبع واقعی‌شان سخت‌گیرانه نشود، نمایش داده نمی‌شوند.
+                این پنل مرز اعتماد گزارش را روشن می‌کند: اگر ساعت تولد یا شهر دقیق
+                نباشد، خانه‌ها، محورها و motion باید محتاط‌تر خوانده شوند. گره‌های ماه
+                و لیلیت تا وقتی منبع واقعی‌شان سخت‌گیرانه نشود، نمایش داده نمی‌شوند.
               </p>
               <div className="report-placement-grid">
                 <div className="mini-card">
-                  <strong>کیفیت snapshot</strong>
+                  <strong>کیفیت محاسبه</strong>
                   <span>{accuracySummary.statusLabel}</span>
                   <span>{accuracySummary.houseLabel}</span>
                   <span>{accuracySummary.angleLabel}</span>
@@ -354,7 +354,7 @@ export function ReportCard({ report }: ReportCardProps) {
           </details>
 
           {report.realEngine?.retrogrades?.status === "calculated" ? (
-            <details className="report-placement-details report-motion-section" open>
+            <details className="report-placement-details report-motion-section report-polish-advanced-panel">
               <summary>حرکت برگشتی سیاره‌ها</summary>
               <p>
                 این بخش از داده motion محاسبه‌شده در real engine می‌آید. گره‌های ماه و
@@ -419,7 +419,7 @@ export function ReportCard({ report }: ReportCardProps) {
           ) : null}
 
           {houseRows.length === 12 ? (
-            <details className="report-placement-details report-house-grid" open>
+            <details className="report-placement-details report-house-grid report-polish-advanced-panel">
               <summary>راهنمای ۱۲ خانه Whole Sign</summary>
               <p>
                 خانه‌های این گزارش با سیستم {formatHouseSystemLabel(report.realEngine.houseSystem)}
@@ -443,7 +443,7 @@ export function ReportCard({ report }: ReportCardProps) {
           ) : null}
 
           {chartBalance ? (
-            <details className="report-placement-details" open>
+            <details className="report-placement-details report-polish-advanced-panel">
               <summary>انرژی کلی چارت</summary>
               <div className="report-placement-grid">
                 <div className="mini-card">
