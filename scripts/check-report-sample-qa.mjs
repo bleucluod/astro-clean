@@ -129,13 +129,14 @@ const signs = {
   },
 };
 
-function placement(id, signId, degreeInSign, label = id) {
+function placement(id, signId, degreeInSign, label = id, house = null) {
   return {
     id,
     label,
     longitude: signStarts[signId] + degreeInSign,
     signId,
     degreeInSign,
+    house,
     method: "v0.1.136-sample-qa-fixture",
   };
 }
@@ -192,12 +193,12 @@ const samples = [
       cityLabel: "تهران، ایران",
       ascendantLongitude: 142.4,
       placements: [
-        placement("sun", "aries", 12.4, "خورشید"),
-        placement("moon", "leo", 12.1, "ماه"),
-        placement("mercury", "gemini", 12.0, "عطارد"),
-        placement("venus", "libra", 12.2, "زهره"),
-        placement("mars", "cancer", 12.0, "مریخ"),
-        placement("jupiter", "capricorn", 12.6, "مشتری"),
+        placement("sun", "aries", 12.4, "خورشید", 9),
+        placement("moon", "leo", 12.1, "ماه", 1),
+        placement("mercury", "gemini", 12.0, "عطارد", 11),
+        placement("venus", "libra", 12.2, "زهره", 3),
+        placement("mars", "cancer", 12.0, "مریخ", 12),
+        placement("jupiter", "capricorn", 12.6, "مشتری", 6),
       ],
     }),
     expectedAnyAspectWords: ["جریان هماهنگ", "فرصت نرم", "قطبیت آگاه‌کننده", "چالش سازنده"],
@@ -223,11 +224,11 @@ const samples = [
       cityLabel: "تبریز، ایران",
       ascendantLongitude: 281.5,
       placements: [
-        placement("sun", "pisces", 8.3, "خورشید"),
-        placement("moon", "cancer", 8.0, "ماه"),
-        placement("mercury", "pisces", 10.2, "عطارد"),
-        placement("venus", "capricorn", 8.1, "زهره"),
-        placement("mars", "gemini", 7.8, "مریخ"),
+        placement("sun", "pisces", 8.3, "خورشید", 3),
+        placement("moon", "cancer", 8.0, "ماه", 7),
+        placement("mercury", "pisces", 10.2, "عطارد", 3),
+        placement("venus", "capricorn", 8.1, "زهره", 1),
+        placement("mars", "gemini", 7.8, "مریخ", 6),
       ],
     }),
     expectedAnyAspectWords: ["هم‌نشینی", "جریان هماهنگ", "چالش سازنده"],
@@ -307,6 +308,14 @@ for (const sample of samples) {
 
   if (!combined.includes("هالیوس")) {
     failures.push(`${sample.id}: report does not include Persian brand spelling`);
+  }
+
+  if (!combined.includes("از نظر خانه‌ها")) {
+    failures.push(`${sample.id}: report does not include planet-in-house interpretation language`);
+  }
+
+  if (!combined.includes("خانه ۱") && !combined.includes("خانه ۹")) {
+    failures.push(`${sample.id}: report does not include Persian house-number wording`);
   }
 
   for (const pattern of forbiddenTextPatterns) {

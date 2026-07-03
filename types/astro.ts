@@ -44,6 +44,7 @@ export type RealEngineReportPlacement = {
   longitude: number;
   signId: ZodiacKey;
   degreeInSign: number;
+  house?: number | null;
   method: string;
 };
 

@@ -174,7 +174,9 @@ export function buildRealEngineSnapshot(
     ...(chartReportEnrichment
       ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }
       : {}),
-    placements: realChart.placements.map(toRealEnginePlacement),
+    placements: realChart.placements.map((placement) =>
+      toRealEnginePlacement(placement, chartReportEnrichment),
+    ),
     note:
       "این داده محاسبه‌شده از مسیر report generation service ساخته شده و تا قبل از اتصال کامل public/private reports، به‌عنوان preview ذخیره می‌شود.",
   };
@@ -399,13 +401,24 @@ function getRealChartGenerationStatus(
 
 function toRealEnginePlacement(
   placement: RealChartCalculatedPlacement,
+  chartReportEnrichment: ChartReportEnrichment | null = null,
 ): RealEngineReportPlacement {
+  const enrichmentPlacement = chartReportEnrichment?.placements.find(
+    (summary) => summary.id === placement.id,
+  );
+  const house =
+    typeof enrichmentPlacement?.house === "number" &&
+    Number.isFinite(enrichmentPlacement.house)
+      ? enrichmentPlacement.house
+      : null;
+
   return {
     id: placement.id,
     label: placement.label,
     longitude: placement.longitude,
     signId: toZodiacKey(placement.signId),
     degreeInSign: placement.degreeInSign,
+    house,
     method: placement.method,
   };
 }

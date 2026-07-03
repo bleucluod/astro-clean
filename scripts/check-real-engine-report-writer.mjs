@@ -12,6 +12,7 @@ function assertIncludes(content, marker, label) {
 
 const writer = read("lib/astrology/real-engine-report-writer.ts");
 const types = read("types/astro.ts");
+const service = read("lib/report-generation/report-generation-service.ts");
 const reportV3 = read("lib/report-output/report-v3.ts");
 
 for (const marker of [
@@ -41,6 +42,11 @@ for (const marker of [
   "CORE_PLACEMENT_STORY",
   "PERSONAL_PLANET_STORY",
   "ASPECT_STORY",
+  "HOUSE_COPY",
+  "buildPlanetHouseSentence",
+  "formatHouseSuffix",
+  "toPersianNumber",
+  "از نظر خانه‌ها",
   "buildAspectDetailText",
   "buildAspectReflectionText",
   "این بخش فقط یک برچسب شخصیتی نیست",
@@ -74,7 +80,16 @@ for (const marker of [
 }
 
 for (const marker of [
+  "toRealEnginePlacement(placement, chartReportEnrichment)",
+  "chartReportEnrichment?.placements.find",
+  "house,",
+]) {
+  assertIncludes(service, marker, "lib/report-generation/report-generation-service.ts");
+}
+
+for (const marker of [
   "RealEngineReportPlacement",
+  "house?: number | null",
   "RealEngineReportSnapshot",
   "RealEngineReportHouseContext",
   "RealEngineReportAspect",

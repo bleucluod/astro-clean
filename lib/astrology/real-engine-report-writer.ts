@@ -26,6 +26,12 @@ type PlanetCopy = {
   role: string;
 };
 
+type HouseCopy = {
+  field: string;
+  gift: string;
+  growth: string;
+};
+
 const SIGN_ORDER: ZodiacKey[] = [
   "aries",
   "taurus",
@@ -178,6 +184,69 @@ const PLANET_COPY: Record<string, PlanetCopy> = {
     faName: "پلوتو",
     title: "عمق و دگرگونی",
     role: "شدت، قدرت پنهان و مسیرهایی که تو را از درون بازسازی می‌کنند",
+  },
+};
+
+const HOUSE_COPY: Record<number, HouseCopy> = {
+  1: {
+    field: "بدن، تصویر بیرونی، شروع‌های شخصی و شیوه ورود به موقعیت‌ها",
+    gift: "حضور روشن‌تر و شروع کردن از جایگاهی که با ریتم خودت هماهنگ‌تر است",
+    growth: "این است که واکنش اول را بشناسی و آن را به انتخاب آگاهانه‌تر تبدیل کنی",
+  },
+  2: {
+    field: "امنیت، ارزش شخصی، بدن، پول و چیزهایی که حس ثبات می‌سازند",
+    gift: "ساختن رابطه سالم‌تر با ارزش، منابع و آرامش بدن‌مند",
+    growth: "این است که امنیت را فقط از بیرون نخواهی و ارزش خودت را آهسته‌تر اما واقعی‌تر بسازی",
+  },
+  3: {
+    field: "فکر، یادگیری، کلام، خواهر و برادرها، همسایه‌ها و رفت‌وآمدهای نزدیک",
+    gift: "تبدیل تجربه به زبان، مشاهده و ارتباط روشن‌تر",
+    growth: "این است که ذهن را از پراکندگی به فهم قابل استفاده نزدیک‌تر کنی",
+  },
+  4: {
+    field: "خانه، ریشه، خانواده، حافظه و جای امن درونی",
+    gift: "شناخت ریشه‌ها و ساختن پناهی که فقط بیرونی نیست",
+    growth: "این است که گذشته را ببینی بی‌آنکه در آن زندانی بمانی",
+  },
+  5: {
+    field: "خلاقیت، عشق، بازی، دیده‌شدن و بیان شخصی",
+    gift: "زنده‌تر کردن شادی، آفرینش و جرئت نمایش چیزی که از دل می‌آید",
+    growth: "این است که بیان خودت را به جای نمایش برای تأیید، به تجربه‌ای صادق‌تر تبدیل کنی",
+  },
+  6: {
+    field: "کار روزمره، بدن، مراقبت، عادت‌ها و کیفیت خدمت",
+    gift: "بهتر کردن زندگی از راه نظم‌های کوچک و مراقبت عملی",
+    growth: "این است که اصلاح را با سخت‌گیری اشتباه نگیری و به بدن و ریتمت هم گوش بدهی",
+  },
+  7: {
+    field: "رابطه یک‌به‌یک، شراکت، آینه‌های نزدیک و گفت‌وگوی برابر",
+    gift: "دیدن خودت از راه رابطه و ساختن تعادل در انتخاب‌های مشترک",
+    growth: "این است که در رابطه نه گم شوی و نه از نزدیکی فرار کنی",
+  },
+  8: {
+    field: "اعتماد، صمیمیت عمیق، ترس‌ها، منابع مشترک و دگرگونی روانی",
+    gift: "توان دیدن لایه‌های پنهان و تبدیل بحران به شناخت عمیق‌تر",
+    growth: "این است که شدت احساس را به آگاهی، مرز و اعتماد تدریجی تبدیل کنی",
+  },
+  9: {
+    field: "معنا، سفر، آموزش، باورها، جهان‌بینی و افق‌های دورتر",
+    gift: "گسترش نگاه و پیدا کردن معنایی که تجربه‌ها را به مسیر تبدیل می‌کند",
+    growth: "این است که باور را با دقت، تجربه و مسئولیت همراه کنی",
+  },
+  10: {
+    field: "مسیر اجتماعی، مسئولیت، اعتبار، کار جدی و چیزی که در جهان ساخته می‌شود",
+    gift: "ساختن حضور قابل اعتماد و تبدیل توان درونی به اثر بیرونی",
+    growth: "این است که موفقیت را فقط با فشار یا تصویر بیرونی تعریف نکنی",
+  },
+  11: {
+    field: "دوستی‌ها، شبکه‌ها، جمع‌ها، آینده‌سازی و حس تعلق اجتماعی",
+    gift: "وصل کردن مسیر فردی به جمع‌های معنادار و چشم‌اندازهای بزرگ‌تر",
+    growth: "این است که در جمع حضور داشته باشی بی‌آنکه صدای شخصی‌ات کم‌رنگ شود",
+  },
+  12: {
+    field: "تنهایی، ناخودآگاه، رؤیا، رهاسازی و چیزهایی که پشت صحنه عمل می‌کنند",
+    gift: "شنیدن لایه‌های آرام‌تر روان و تبدیل تنهایی به مراقبت و الهام",
+    growth: "این است که فرار، ابهام یا سکوت را با حضور آگاهانه‌تر جایگزین کنی",
   },
 };
 
@@ -480,18 +549,22 @@ function buildCorePlacementText(
   const story = CORE_PLACEMENT_STORY[planetId];
   const placementLabel = formatPlacement(placement);
   const signLabel = formatSignLabel(sign);
+  const houseSentence = buildPlanetHouseSentence(placement, planetId);
 
   return [
     `${planet.faName}، یعنی ${planet.title}، در ${placementLabel} قرار دارد.`,
     `در زبان نمادین هالیوس، این جایگاه با ${planet.role} ارتباط دارد.`,
     `${story.opening}`,
     `کیفیت ${signLabel} این بخش را ${sign.energy} می‌کند؛ بنابراین هدیه طبیعی آن ${sign.gift} است.`,
+    houseSentence,
     `${story.everydaySignal}`,
     `مسیر رشد این نشانه این است: ${sign.growth}.`,
     `${story.shadowSignal}`,
     `${story.integration}`,
     `${story.reflection}`,
-  ].join(" ");
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(" ");
 }
 
 function buildOptionalPlacementText(
@@ -507,19 +580,52 @@ function buildOptionalPlacementText(
   const story = PERSONAL_PLANET_STORY[planetId];
   const placementLabel = formatPlacement(placement);
   const signLabel = formatSignLabel(sign);
+  const houseSentence = buildPlanetHouseSentence(placement, planetId);
 
   return [
     `${planet.faName}، یعنی ${planet.title}، در ${placementLabel} قرار دارد.`,
     `این لایه درباره ${planet.role} است، اما در گزارش هالیوس فقط به یک جمله کوتاه خلاصه نمی‌شود.`,
     `${story.opening}`,
     `کیفیت ${signLabel} این بخش را ${sign.energy} می‌کند؛ بنابراین نقطه قوت اصلی آن ${sign.gift} است.`,
+    houseSentence,
     `${story.everydaySignal}`,
     `${story.relationshipSignal}`,
     `چالش رشد این نشانه در این لایه چنین است: ${sign.growth}.`,
     `${story.shadowSignal}`,
     `${story.integration}`,
     `${story.reflection}`,
-  ].join(" ");
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(" ");
+}
+
+function buildPlanetHouseSentence(
+  placement: RealEngineReportPlacement,
+  planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
+): string | undefined {
+  const houseNumber = placement.house;
+  const house =
+    typeof houseNumber === "number" && Number.isFinite(houseNumber)
+      ? HOUSE_COPY[houseNumber]
+      : undefined;
+
+  if (!house) {
+    return undefined;
+  }
+
+  const planet = PLANET_COPY[planetId];
+  const resolvedHouseNumber =
+    typeof houseNumber === "number" && Number.isFinite(houseNumber)
+      ? houseNumber
+      : null;
+
+  if (resolvedHouseNumber === null) {
+    return undefined;
+  }
+
+  const formattedHouse = toPersianNumber(resolvedHouseNumber);
+
+  return `از نظر خانه‌ها، ${planet.faName} در خانه ${formattedHouse} قرار گرفته است؛ یعنی موضوع ${planet.title} بیشتر از مسیر ${house.field} دیده می‌شود. هدیه این خانه ${house.gift} است و مسیر رشدش ${house.growth}.`;
 }
 
 function buildRisingText(
@@ -658,7 +764,7 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
       const planet = PLANET_COPY[placement.id]?.faName ?? placement.label;
       const sign = SIGN_COPY[placement.signId];
 
-      return `${planet} در ${formatSignLabel(sign)}`;
+      return `${planet} در ${formatSignLabel(sign)}${formatHouseSuffix(placement)}`;
     })
     .join("، ");
 
@@ -838,6 +944,29 @@ function formatPlacement(placement: RealEngineReportPlacement) {
   const sign = SIGN_COPY[placement.signId];
 
   return `${formatSignLabel(sign)}، درجه ${formatDegree(placement.longitude)}`;
+}
+
+function formatHouseSuffix(placement: RealEngineReportPlacement): string {
+  return typeof placement.house === "number" && Number.isFinite(placement.house)
+    ? `، خانه ${toPersianNumber(placement.house)}`
+    : "";
+}
+
+function toPersianNumber(value: number): string {
+  const digits: Record<string, string> = {
+    "0": "۰",
+    "1": "۱",
+    "2": "۲",
+    "3": "۳",
+    "4": "۴",
+    "5": "۵",
+    "6": "۶",
+    "7": "۷",
+    "8": "۸",
+    "9": "۹",
+  };
+
+  return String(value).replace(/[0-9]/g, (digit) => digits[digit] ?? digit);
 }
 
 function formatSignLabel(sign: SignCopy) {
