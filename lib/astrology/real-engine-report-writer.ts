@@ -461,6 +461,11 @@ export function enrichReportWithRealEngineCopy(
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
   const aspectText = buildAspectOverviewText(aspects);
+  const sunAspectText = buildPlanetAspectText("sun", PLANET_COPY.sun.faName, aspects);
+  const moonAspectText = buildPlanetAspectText("moon", PLANET_COPY.moon.faName, aspects);
+  const mercuryAspectText = buildPlanetAspectText("mercury", PLANET_COPY.mercury.faName, aspects);
+  const venusAspectText = buildPlanetAspectText("venus", PLANET_COPY.venus.faName, aspects);
+  const marsAspectText = buildPlanetAspectText("mars", PLANET_COPY.mars.faName, aspects);
   const integrationText = buildIntegrationText(realEngineWithAspects);
   const sectionEvidence = buildRealEngineSectionEvidence({
     sun,
@@ -473,12 +478,17 @@ export function enrichReportWithRealEngineCopy(
   });
   const interpretations = [
     sunText,
+    sunAspectText,
     moonText,
+    moonAspectText,
     risingText,
     houseText,
     mercuryText,
+    mercuryAspectText,
     venusText,
+    venusAspectText,
     marsText,
+    marsAspectText,
     aspectText,
     integrationText,
   ].filter(Boolean) as string[];
@@ -492,6 +502,11 @@ export function enrichReportWithRealEngineCopy(
     venusText,
     marsText,
     aspectText,
+    sunAspectText,
+    moonAspectText,
+    mercuryAspectText,
+    venusAspectText,
+    marsAspectText,
     integrationText,
     ...sectionEvidence,
   });
@@ -533,6 +548,11 @@ type RealEngineSectionTextInput = {
   venusText?: string;
   marsText?: string;
   aspectText?: string;
+  sunAspectText?: string;
+  moonAspectText?: string;
+  mercuryAspectText?: string;
+  venusAspectText?: string;
+  marsAspectText?: string;
   integrationText: string;
   identityEvidence?: string;
   emotionalEvidence?: string;
@@ -793,19 +813,70 @@ function isCalculatedWholeSignHouseContext(
   );
 }
 
+function buildPlanetAspectText(
+  planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
+  planetLabel: string,
+  aspects: RealEngineReportAspect[],
+): string | undefined {
+  const planetAspects = aspects.filter(
+    (aspect) => aspect.firstPlanetId === planetId || aspect.secondPlanetId === planetId,
+  );
+
+  if (planetAspects.length === 0) {
+    return undefined;
+  }
+
+  const details = planetAspects.map((aspect) =>
+    formatPlanetAspectDetail(planetId, aspect),
+  );
+
+  return [
+    `زاویه‌های مهم ${planetLabel} با سیاره‌های دیگر هم به خوانش این بخش جهت می‌دهند؛ چون نشان می‌دهند این سیاره در خلأ کار نمی‌کند و با کدام نیروهای چارت گفت‌وگو دارد.`,
+    ...details,
+  ].join(" ");
+}
+
+function formatPlanetAspectDetail(
+  planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
+  aspect: RealEngineReportAspect,
+): string {
+  const otherPlanetLabel =
+    aspect.firstPlanetId === planetId ? aspect.secondPlanetLabel : aspect.firstPlanetLabel;
+  const tone = getPlanetAspectTone(aspect);
+
+  return [
+    `با ${otherPlanetLabel}: ${aspect.aspectLabel}، زاویه واقعی ${formatAspectDegree(
+      aspect.separation,
+    )} و فاصله از زاویه دقیق ${formatAspectDegree(aspect.orb)}.`,
+    tone,
+  ].join(" ");
+}
+
+function getPlanetAspectTone(aspect: RealEngineReportAspect): string {
+  if (aspect.aspectId === "square" || aspect.aspectId === "opposition") {
+    return "در تجربه روزمره، این رابطه بیشتر جایی حس می‌شود که دو نیاز یا دو ریتم درونی هم‌زمان فعال می‌شوند و لازم است به جای فشار آوردن، سهم هر دو طرف را واضح‌تر ببینی.";
+  }
+
+  if (aspect.aspectId === "sextile" || aspect.aspectId === "trine") {
+    return "در تجربه روزمره، این رابطه می‌تواند مثل یک توان طبیعی یا مسیر همکاری عمل کند؛ اما وقتی مفیدتر می‌شود که آگاهانه به انتخاب، تمرین یا گفت‌وگو تبدیلش کنی.";
+  }
+
+  return "در تجربه روزمره، این هم‌نشینی معمولاً صدای این دو نیرو را به هم نزدیک‌تر می‌کند؛ پس بهتر است ببینی کجا یکی از آن‌ها زیادی بلند می‌شود و دیگری را زیر سایه می‌برد.";
+}
+
 function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
   if (aspects.length === 0) {
     return undefined;
   }
 
-  const strongest = aspects.slice(0, 4);
+  const strongest = aspects;
   const aspectLead = strongest.map(formatAspectLead).join("؛ ");
   const detailText = strongest.map(buildAspectDetailText).join(" ");
   const reflectionText = buildAspectReflectionText(strongest);
 
   return [
     "روابط سیاره‌ها در این چارت نشان می‌دهند کدام بخش‌های شخصیت فقط جداگانه کار نمی‌کنند، بلکه با هم گفت‌وگو، حمایت یا اصطکاک سازنده دارند.",
-    `در این نسخه، تمرکز روی ${strongest.length} ارتباط برجسته‌تر است: ${aspectLead}.`,
+        `در این نسخه، همه ${toPersianNumber(strongest.length)} ارتباط محاسبه‌شده این چارت وارد خوانش می‌شود: ${aspectLead}.`,
     detailText,
     reflectionText,
   ].join(" ");
@@ -900,11 +971,21 @@ function buildRealEngineInterpretationSections(
 ): ReportOutputSection[] {
   const identityBody = joinSectionBody(
     input.sunText,
+    input.sunAspectText,
     input.risingText,
     input.houseText,
   );
-  const relationshipBody = joinSectionBody(input.venusText, input.aspectText);
-  const careerBody = joinSectionBody(input.mercuryText, input.marsText);
+  const relationshipBody = joinSectionBody(
+    input.venusText,
+    input.venusAspectText,
+    input.aspectText,
+  );
+  const careerBody = joinSectionBody(
+    input.mercuryText,
+    input.mercuryAspectText,
+    input.marsText,
+    input.marsAspectText,
+  );
   const fallbackBody =
     input.integrationText ??
     input.summary ??
@@ -946,7 +1027,7 @@ function buildRealEngineInterpretationSections(
           input.emotionalEvidence,
           "اینجا گزارش از لایه بیرونی فاصله می‌گیرد و به ریتم‌های آرام‌تر نزدیک می‌شود: نیازهای احساسی، واکنش‌های بی‌واسطه و راه‌هایی که امنیت درونی ساخته می‌شود.",
         ),
-        body: input.moonText ?? fallbackBody,
+        body: joinSectionBody(input.moonText, input.moonAspectText) || fallbackBody,
         closing:
           "این بخش را آرام‌تر بخوان؛ ماه معمولاً بیشتر از اینکه جواب فوری بدهد، نیاز پنهان یا ریتم مراقبت را نشان می‌دهد.",
       }),
