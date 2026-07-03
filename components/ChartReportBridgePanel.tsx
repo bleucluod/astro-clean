@@ -13,6 +13,28 @@ type ChartReportBridgePanelProps = {
   report: unknown;
 };
 
+const BRIDGE_POINT_LABELS_FA: Record<string, string> = {
+  sun: "خورشید",
+  moon: "ماه",
+  mercury: "عطارد",
+  venus: "زهره",
+  mars: "مریخ",
+  jupiter: "مشتری",
+  saturn: "زحل",
+  uranus: "اورانوس",
+  neptune: "نپتون",
+  pluto: "پلوتو",
+  ascendant: "رایزینگ",
+};
+
+const BRIDGE_ASPECT_LABELS_FA: Record<string, string> = {
+  conjunction: "هم‌نشینی",
+  opposition: "مقابله",
+  square: "چالش",
+  trine: "هماهنگی",
+  sextile: "فرصت",
+};
+
 export function ChartReportBridgePanel({ report }: ChartReportBridgePanelProps) {
   const bridge = buildReportRealChartBridge(report);
   const hasData = hasReportRealChartBridgeData(bridge);
@@ -22,7 +44,7 @@ export function ChartReportBridgePanel({ report }: ChartReportBridgePanelProps) 
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
-            Real chart bridge
+            جایگاه‌ها و جنبه‌های چارت
           </p>
           <h2 className="mt-2 text-xl font-bold text-[#3E2F25]">
             {getReportRealChartBridgeTitle(bridge)}
@@ -43,19 +65,21 @@ export function ChartReportBridgePanel({ report }: ChartReportBridgePanelProps) 
               const sign = placement.signId
                 ? formatBridgeZodiacLabel(placement.signId)
                 : "نامشخص";
-              const house =
-                placement.house === null ? "خانه نامشخص" : `خانه ${placement.house}`;
+              const house = formatBridgeHouseLabel(placement.house);
+              const label = formatBridgePointLabel(placement.label || placement.id);
 
-              return `${placement.label}: ${sign}، ${house}`;
+              return `${label}: ${sign}، ${house}`;
             })}
           />
           <BridgeList
             title="جنبه‌های برجسته"
             items={bridge.aspectHighlights.map((aspect) => {
               const orb =
-                aspect.orb === null ? "" : `، orb ${aspect.orb.toFixed(2)}°`;
+                aspect.orb === null ? "" : `، اورب ${formatBridgeOrb(aspect.orb)}°`;
 
-              return `${aspect.pointA} ${aspect.id} ${aspect.pointB}${orb}`;
+              return `${formatBridgePointLabel(aspect.pointA)} ${formatBridgeAspectLabel(
+                aspect.id,
+              )} ${formatBridgePointLabel(aspect.pointB)}${orb}`;
             })}
           />
         </div>
@@ -94,6 +118,29 @@ function BridgeStatusPill({ bridge }: { bridge: ReportRealChartBridge }) {
       {label}
     </div>
   );
+}
+
+function formatBridgePointLabel(value: string): string {
+  const key = value.trim().toLowerCase();
+
+  return BRIDGE_POINT_LABELS_FA[key] ?? value;
+}
+
+function formatBridgeAspectLabel(value: string): string {
+  const key = value.trim().toLowerCase();
+
+  return BRIDGE_ASPECT_LABELS_FA[key] ?? value;
+}
+
+function formatBridgeHouseLabel(house: number | null): string {
+  return house === null ? "خانه نامشخص" : `خانه ${house.toLocaleString("fa-IR")}`;
+}
+
+function formatBridgeOrb(value: number): string {
+  return value.toLocaleString("fa-IR", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
 }
 
 function formatBridgeZodiacLabel(signId: string): string {

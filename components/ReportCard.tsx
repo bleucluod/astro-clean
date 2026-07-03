@@ -127,7 +127,7 @@ export function ReportCard({ report }: ReportCardProps) {
             </div>
 
             <div className="mini-card">
-              <strong>رایزینگ تقریبی</strong>
+              <strong>رایزینگ محاسبه‌شده</strong>
               <span>{formatRisingFromLongitude(report.realEngine.ascendantLongitude)}</span>
             </div>
 

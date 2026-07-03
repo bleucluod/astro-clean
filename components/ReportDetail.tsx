@@ -9,7 +9,6 @@ import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
 
 import { ReportV3Experience } from "@/components/ReportV3Experience";
-import { ChartEngineReportBadge } from "@/components/ChartEngineReportBadge";
 import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
 
 type ReportDetailProps = {
@@ -95,7 +94,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     async function loadReport() {
       if (reportSource === "beta-db") {
         if (!isBetaDatabaseSaveUiEnabled) {
-          throw new Error("Beta database read UI is disabled.");
+          throw new Error("خواندن نسخه آزمایشی سرور غیرفعال است.");
         }
 
         const response = await fetch(
@@ -106,7 +105,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
           | null;
 
         if (!response.ok || !payload?.ok || !payload.reportRecord?.report) {
-          throw new Error(payload?.error ?? "Beta database report was not found.");
+          throw new Error(payload?.error ?? "گزارش آزمایشی سرور پیدا نشد.");
         }
 
         if (!isActive) {
@@ -116,8 +115,8 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
         setReport(payload.reportRecord.report);
         setNote(payload.reportRecord.note ?? "");
         setIsFavorite(payload.reportRecord.favorite ?? false);
-        setMessage(`Loaded beta database report: ${reportId}`);
-        setBetaDatabaseMessage(`Loaded beta database report: ${reportId}`);
+        setMessage(`گزارش آزمایشی سرور باز شد: ${reportId}`);
+        setBetaDatabaseMessage(`گزارش آزمایشی سرور باز شد: ${reportId}`);
         setIsReady(true);
         return;
       }
@@ -199,8 +198,8 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     }
 
     setIsBetaDatabaseSaving(true);
-    setMessage("Saving beta database copy...");
-    setBetaDatabaseMessage("Saving beta database copy...");
+    setMessage("در حال ذخیره نسخه آزمایشی سرور...");
+    setBetaDatabaseMessage("در حال ذخیره نسخه آزمایشی سرور...");
 
     try {
       const response = await fetch("/api/reports/beta", {
@@ -216,17 +215,17 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
         | null;
 
       if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.error ?? "Beta database save failed.");
+        throw new Error(payload?.error ?? "ذخیره نسخه آزمایشی سرور ناموفق بود.");
       }
 
       const savedReportId = payload.reportRecord?.id ?? report.id;
-      const successMessage = `Beta database copy saved: ${savedReportId}`;
+      const successMessage = `نسخه آزمایشی سرور ذخیره شد: ${savedReportId}`;
 
       setMessage(successMessage);
       setBetaDatabaseMessage(successMessage);
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Beta database save failed.";
+        error instanceof Error ? error.message : "ذخیره نسخه آزمایشی سرور ناموفق بود.";
 
       setMessage(errorMessage);
       setBetaDatabaseMessage(errorMessage);
@@ -297,7 +296,6 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
         <ReportCard report={report} />
       </div>
 
-      <ChartEngineReportBadge report={report} />
 
       <ChartReportBridgePanel report={report} />
 
@@ -305,13 +303,13 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
 
       {isBetaDatabaseSaveUiEnabled ? (
         <section className="card">
-          <span className="badge">Beta database save</span>
+          <span className="badge">ذخیره آزمایشی</span>
 
-          <h2>Manual server persistence check</h2>
+          <h2>بررسی ذخیره سرور</h2>
 
           <p>
-            This hidden beta action saves the current local report through the
-            guarded server database route for local or staging verification.
+            این بخش فقط برای تست داخلی فعال می‌شود و کمک می‌کند نسخه محلی گزارش
+            از مسیر محافظت‌شده سرور ذخیره و بررسی شود.
           </p>
 
           <div className="actions">
@@ -322,8 +320,8 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
               onClick={handleBetaDatabaseSave}
             >
               {isBetaDatabaseSaving
-                ? "Saving beta copy..."
-                : "Save beta database copy"}
+                ? "در حال ذخیره..."
+                : "ذخیره نسخه آزمایشی"}
             </button>
           </div>
 

@@ -58,7 +58,9 @@ for (const marker of [
 for (const marker of [
   "ChartReportBridgePanel",
   "buildReportRealChartBridge",
-  "Real chart bridge",
+  "جایگاه‌ها و جنبه‌های چارت",
+  "formatBridgePointLabel",
+  "formatBridgeAspectLabel",
   "گزارش‌های قدیمی",
 ]) {
   if (!componentSource.includes(marker)) {
