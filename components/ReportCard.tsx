@@ -99,7 +99,7 @@ export function ReportCard({ report }: ReportCardProps) {
       <section className="report-section report-core-section">
         <div className="report-section-heading">
           <span className="section-label">سه ستون اصلی</span>
-          <h3>خورشید، ماه، رایزینگ و فاز ماه تولد</h3>
+          <h3>سه ستون اصلی و فاز ماه تولد</h3>
           <p>
             این سه کارت، خلاصه‌ترین تصویر از هویت، نیاز احساسی و شیوه ورود تو به
             جهان را نشان می‌دهند.
@@ -128,10 +128,10 @@ export function ReportCard({ report }: ReportCardProps) {
         <section className="report-section report-calculation-section">
           <div className="report-section-heading">
             <span className="section-label">جزئیات محاسبه</span>
-            <h3>داده‌های واقعی‌تر ذخیره‌شده</h3>
+            <h3>پشتوانه محاسبه این گزارش</h3>
             <p>
-              این بخش به‌جای نمایش خام و آزمایشگاهی، فقط اطلاعات قابل فهم محاسبه
-              را نگه می‌دارد تا بدانی این گزارش با چه ورودی و چه جایگاه‌هایی ساخته شده است.
+              این چند مورد نشان می‌دهد گزارش با کدام شهر، رایزینگ و زمان تبدیل‌شده
+              ساخته شده است؛ فقط برای شفافیت، نه برای درگیر کردن تو با جزئیات فنی.
             </p>
           </div>
 
@@ -152,7 +152,7 @@ export function ReportCard({ report }: ReportCardProps) {
             </div>
           </div>
 
-          <details className="report-placement-details">
+          <details className="report-placement-details" open>
             <summary>مشاهده جایگاه‌های اصلی</summary>
             <div className="report-placement-grid">
               {shownPlacements.map((placement) => (
@@ -219,17 +219,21 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
       id: "sun",
       title: "خورشید",
       eyebrow: "هویت و مسیر رشد",
-      value: sun ? formatPlacement(sun) : formatZodiacSign(report.chart.sunSign),
+      value: sun
+        ? formatPlacementHeadline("خورشید", sun)
+        : `خورشید در ${formatZodiacSign(report.chart.sunSign)}`,
       description:
-        "خورشید نشان می‌دهد کجا حس زنده بودن، اعتمادبه‌نفس و جهت اصلی زندگی پررنگ‌تر می‌شود.",
+        "یعنی خورشید اینجای چارت نشان می‌دهد کجا حس زنده بودن، اعتمادبه‌نفس و جهت اصلی زندگی پررنگ‌تر می‌شود.",
     },
     {
       id: "moon",
       title: "ماه",
       eyebrow: "نیاز احساسی",
-      value: moon ? formatPlacement(moon) : formatZodiacSign(report.chart.moonSign),
+      value: moon
+        ? formatPlacementHeadline("ماه", moon)
+        : `ماه در ${formatZodiacSign(report.chart.moonSign)}`,
       description:
-        "ماه درباره امنیت درونی، واکنش‌های احساسی و چیزی حرف می‌زند که دل تو برای آرام شدن لازم دارد.",
+        "یعنی ماه اینجای چارت از امنیت درونی، واکنش‌های احساسی و چیزی می‌گوید که دل تو برای آرام شدن لازم دارد.",
     },
     {
       id: "rising",
@@ -237,10 +241,10 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
       eyebrow: "ورود به جهان",
       value:
         risingDegree === undefined
-          ? formatZodiacLabel(risingSign)
-          : `${formatZodiacLabel(risingSign)}، درجه ${formatDegree(risingDegree)}`,
+          ? `رایزینگ در ${formatZodiacLabel(risingSign)}`
+          : `رایزینگ در ${formatZodiacLabel(risingSign)}، درجه ${formatDegree(risingDegree)}`,
       description:
-        "رایزینگ رنگ اولین برخورد تو با موقعیت‌ها، بدن، فضاهای تازه و تصویری را که از خودت نشان می‌دهی مشخص می‌کند.",
+        "یعنی رایزینگ رنگ اولین برخورد تو با موقعیت‌ها، بدن، فضاهای تازه و تصویری را که از خودت نشان می‌دهی مشخص می‌کند.",
     },
   ];
 }
@@ -255,6 +259,12 @@ function getPlanetLabel(id: string, fallback: string) {
 
 function formatPlacement(placement: RealEngineReportPlacement) {
   return `${formatZodiacLabel(placement.signId)}، درجه ${formatDegree(
+    placement.degreeInSign,
+  )}`;
+}
+
+function formatPlacementHeadline(label: string, placement: RealEngineReportPlacement) {
+  return `${label} در ${formatZodiacLabel(placement.signId)}، درجه ${formatDegree(
     placement.degreeInSign,
   )}`;
 }
@@ -315,7 +325,7 @@ const BIRTH_MOON_PHASES: BirthMoonPhaseCopy[] = [
   {
     from: 67.5,
     to: 112.5,
-    title: "تربیع اول",
+    title: "نیم‌ماه افزاینده",
     interpretation:
       "این فاز با تصمیم، واکنش روشن‌تر و نیاز به حرکت خوانده می‌شود؛ انگار احساسات می‌خواهند شکل عملی پیدا کنند.",
   },
@@ -343,9 +353,9 @@ const BIRTH_MOON_PHASES: BirthMoonPhaseCopy[] = [
   {
     from: 247.5,
     to: 292.5,
-    title: "تربیع آخر",
+    title: "نیم‌ماه کاهنده",
     interpretation:
-      "تربیع آخر ریتم بازنگری، سبک کردن بارهای قدیمی و انتخاب دوباره از جای پخته‌تر را نشان می‌دهد.",
+      "نیم‌ماه کاهنده ریتم بازنگری، سبک کردن بارهای قدیمی و انتخاب دوباره از جای پخته‌تر را نشان می‌دهد.",
   },
   {
     from: 292.5,
