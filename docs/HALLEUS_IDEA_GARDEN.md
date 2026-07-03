@@ -822,3 +822,57 @@ Do not abandon the v0.1.124 navigation phase because a runner failed. Continue w
 - برای رویدادها، سیستم می‌تواند توضیح دهد در آن لحظه نشانه‌ها، سیاره‌ها، خانه‌ها یا ترنزیت‌های مهم کجا بودند و چه الگویی ساخته‌اند.
 - نمونه‌های آینده: مقایسه چارت تولد با چارت یک زلزله/انقلاب/شروع کسب‌وکار، بررسی اینکه چه ترنزیت‌هایی فعال بودند، چه زمانی الگوهای مشابه دوباره نزدیک می‌شوند، و آیا یک الگو در نسبت با چارت تولد کاربر حس تقویت، فشار یا ضعف می‌سازد.
 - مقایسه دو چارت و تحلیل ترنزیت/رویداد احتمالاً باید بعداً به عنوان قابلیت پیشرفته یا غیررایگان بررسی شود، نه در MVP اولیه.
+
+## Report detail depth roadmap added after v0.1.145
+
+Source user review: a real report detail sample showed that Halleus now has the right product surface, but the report should expose more of the computed chart in a clearer, more astrology-native way before public/SEO scaling.
+
+Implementation sequence:
+1. Report card quick UX/copy pass:
+   - Make the three core cards read as direct placements first: "Sun in Aquarius", "Moon in Taurus", "Rising Virgo".
+   - Keep the explanatory sentence under each card, but make the title easier to scan.
+   - Add a Moon-phase card in the same language family and avoid Arabic-feeling wording when a natural Persian phrasing is better.
+   - Rewrite or remove machine-like "stored realer data" copy in calculation details.
+
+2. Main placements panel:
+   - Default the main placements panel open, while still allowing the user to collapse it.
+   - Show retrograde status when the engine provides it.
+   - Audit and then add outer/extended points if the engine can compute them: Neptune, Pluto, Lilith / Black Moon, North Node, South Node.
+
+3. Houses and planet-in-house sections:
+   - Add a dedicated house-cusp section showing where each house starts by sign and degree.
+   - Clearly mark the angles: ASC / house 1, DSC / house 7, IC / house 4, MC / house 10.
+   - Add a separate planet-in-house section showing every available planet/point in its house, including North Node if present.
+
+4. Overall chart balance:
+   - Add a compact chart-energy summary: element counts (fire, earth, air, water), modality counts (cardinal, fixed, mutable), and polarity counts (masculine/feminine), based on the selected placement set.
+
+5. Aspect UX and interpretation:
+   - Show all saved/calculated aspects in the report UI, not only the first five.
+   - For each aspect card, foreground the aspect angle in user-friendly language, such as the exact angle or the standard aspect degree, rather than leading with orb.
+   - Replace vague phrases such as "soft opportunity" or "harmonious flow" with clearer Persian wording and explain where the user might actually feel the support, tension, or overuse pattern.
+
+6. Final reading evidence labels:
+   - Before each final-reading section, add a compact evidence label such as "Sun in Aquarius, house 6" or "Moon in Taurus, house 9", then show the section title smaller.
+   - Expand the prose so placements are read as planet + sign + house, not only planet + sign.
+   - Eventually include per-planet aspect detail so, for example, the Sun section can mention the Sun's own major relationships to other planets.
+
+7. Zodiac aliases for Persian SEO:
+   - Keep existing traditional Persian/Arabic zodiac names, but add common Persian aliases for SEO and user recognition:
+     Aries: Hamal / Ghooch.
+     Gemini: Jowza / Dogholoo.
+     Cancer: Saratan / Kharchang.
+     Virgo: Sonboleh / Khosheh.
+     Sagittarius: Ghos / Kamandar.
+     Pisces: Hoot / Mahi.
+   - Do not replace the current labels; add aliases in a controlled display/copy layer.
+
+8. Natal chart wheel:
+   - Add a report chart wheel only after the data contract supports it reliably.
+   - The wheel should show zodiac signs, house divisions, planet/point positions, aspect lines, North/South Nodes, ASC, DSC, IC, and MC.
+   - This is a larger milestone and should not be mixed with copy polish or panel cleanup.
+
+Do not implement yet:
+- Do not fake retrograde, Lilith, Nodes, MC/IC/DSC, or a complete chart wheel if the engine does not yet provide reliable data.
+- Do not start public/indexable report scaling before the report data surface and consent model are clearer.
+- Do not combine all of this into one UI batch.
