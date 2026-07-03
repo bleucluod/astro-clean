@@ -1,5 +1,6 @@
 "use client";
 
+import { RealChartWheel } from "./RealChartWheel";
 import {
   formatZodiacLabel,
   formatZodiacSign,
@@ -278,6 +279,18 @@ export function ReportCard({ report }: ReportCardProps) {
               <strong>زمان تبدیل‌شده</strong>
               <span>{formatShortUtc(report.realEngine.utcIso)}</span>
             </div>
+          </div>
+
+          <div className="report-chart-wheel-structure">
+            <RealChartWheel
+              placements={shownPlacements}
+              ascendantLongitude={report.realEngine.ascendantLongitude}
+              houses={report.realEngine.houses}
+              angles={report.realEngine.angles}
+              aspects={realEngineAspects}
+              retrogradePlanetIds={Array.from(retrogradePlanetIds)}
+              houseSystem={report.realEngine.houseSystem}
+            />
           </div>
 
           <details className="report-placement-details" open>
