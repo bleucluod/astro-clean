@@ -487,6 +487,7 @@ export function enrichReportWithRealEngineCopy(
   );
   const houseText = buildHouseContextText(realEngine.houseContext, risingSign);
   const houseAnglesText = buildHouseAnglesText(realEngineWithAspects);
+  const retrogradeText = buildRetrogradeText(realEngineWithAspects);
   const mercuryText = buildOptionalPlacementText(mercury, "mercury");
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
@@ -507,6 +508,8 @@ export function enrichReportWithRealEngineCopy(
     aspectCount: aspects.length,
     houseCount: realEngineWithAspects.houses?.length ?? 0,
     hasAngles: hasCompleteAngles(realEngineWithAspects.angles),
+    retrogradeStatus: realEngineWithAspects.retrogrades?.status,
+    retrogradePlanetCount: realEngineWithAspects.retrogrades?.planetIds.length ?? 0,
   });
   const interpretations = [
     sunText,
@@ -516,6 +519,7 @@ export function enrichReportWithRealEngineCopy(
     risingText,
     houseText,
     houseAnglesText,
+    retrogradeText,
     mercuryText,
     mercuryAspectText,
     venusText,
@@ -532,6 +536,7 @@ export function enrichReportWithRealEngineCopy(
     risingText,
     houseText,
     houseAnglesText,
+    retrogradeText,
     mercuryText,
     venusText,
     marsText,
@@ -561,6 +566,7 @@ type RealEngineSectionEvidence = {
   careerEvidence?: string;
   growthEvidence?: string;
   houseAnglesEvidence?: string;
+  motionEvidence?: string;
 };
 
 type RealEngineSectionEvidenceInput = {
@@ -573,6 +579,8 @@ type RealEngineSectionEvidenceInput = {
   aspectCount: number;
   houseCount: number;
   hasAngles: boolean;
+  retrogradeStatus?: string;
+  retrogradePlanetCount: number;
 };
 
 type RealEngineSectionTextInput = {
@@ -582,6 +590,7 @@ type RealEngineSectionTextInput = {
   risingText?: string;
   houseText?: string;
   houseAnglesText?: string;
+  retrogradeText?: string;
   mercuryText?: string;
   venusText?: string;
   marsText?: string;
@@ -598,6 +607,7 @@ type RealEngineSectionTextInput = {
   careerEvidence?: string;
   growthEvidence?: string;
   houseAnglesEvidence?: string;
+  motionEvidence?: string;
 };
 
 function buildRealEngineSectionEvidence({
@@ -610,6 +620,8 @@ function buildRealEngineSectionEvidence({
   aspectCount,
   houseCount,
   hasAngles,
+  retrogradeStatus,
+  retrogradePlanetCount,
 }: RealEngineSectionEvidenceInput): RealEngineSectionEvidence {
   const risingEvidence = `رایزینگ در ${formatSignLabel(SIGN_COPY[risingSign])}`;
 
@@ -635,6 +647,15 @@ function buildRealEngineSectionEvidence({
     houseAnglesEvidence: joinEvidenceLabels(
       houseCount === 12 ? "۱۲ خانه Whole Sign محاسبه‌شده" : undefined,
       hasAngles ? "ASC/DSC/MC/IC در snapshot" : undefined,
+    ),
+    motionEvidence: joinEvidenceLabels(
+      retrogradeStatus === "calculated" ? "حرکت برگشتی محاسبه‌شده" : undefined,
+      retrogradeStatus === "calculated" && retrogradePlanetCount > 0
+        ? `${toPersianNumber(retrogradePlanetCount)} سیاره برگشتی`
+        : retrogradeStatus === "calculated"
+          ? "بدون سیاره برگشتی در snapshot"
+          : undefined,
+      "گره‌های ماه و لیلیت هنوز deferred هستند",
     ),
   };
 }
@@ -864,6 +885,39 @@ function buildHouseAnglesText(realEngine: RealEngineReportSnapshot): string | un
   return [houseSystemText, anglesText, ascDscText, mcIcText, housesText]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .join(" ");
+}
+
+function buildRetrogradeText(realEngine: RealEngineReportSnapshot): string | undefined {
+  const retrogrades = realEngine.retrogrades;
+
+  if (retrogrades?.status !== "calculated") {
+    return undefined;
+  }
+
+  const planetLabels = retrogrades.planetIds
+    .map((planetId) => PLANET_COPY[planetId]?.faName ?? planetId)
+    .filter((label): label is string => Boolean(label));
+  const baseMethod =
+    "در این نسخه، حرکت برگشتی از مقایسه جایگاه ظاهری سیاره‌ها در دایره بروج، پیش و پس از لحظه تولد، به دست می‌آید.";
+  const deferredPoints =
+    "گره‌های ماه و لیلیت هنوز عمداً وارد خوانش نشده‌اند، چون تعریف نقطه و منبع محاسباتی آن‌ها باید جداگانه سخت‌گیرانه شود.";
+
+  if (planetLabels.length === 0) {
+    return [
+      "در snapshot این گزارش، برای سیاره‌های محاسبه‌شده حرکت برگشتی ثبت نشده است.",
+      baseMethod,
+      "این نبودنِ retrograde را نباید به معنای ساده بودن کامل چارت خواند؛ خانه‌ها، محورها و aspectها همچنان لایه‌های اصلی گفت‌وگوی درونی را می‌سازند.",
+      deferredPoints,
+    ].join(" ");
+  }
+
+  return [
+    `در snapshot این گزارش، ${planetLabels.join("، ")} با حرکت برگشتی ثبت شده‌اند.`,
+    baseMethod,
+    "در خوانش نمادین، retrograde بیشتر به معنای بازنگری، درونی‌تر شدن یا برگشتن توجه به یک موضوع است؛ نه نشانه ضعف یا اتفاق قطعی.",
+    "بهتر است این سیاره‌ها را مثل بخش‌هایی ببینی که قبل از حرکت بیرونی، نیاز دارند چند بار درون خودت مرور و بازنویسی شوند.",
+    deferredPoints,
+  ].join(" ");
 }
 
 function getSortedReportHouses(houses: RealEngineReportHouse[] | undefined): RealEngineReportHouse[] {
@@ -1107,6 +1161,10 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
     realEngine.houses?.length === 12
       ? " در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در snapshot گزارش ذخیره شده‌اند."
       : " لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که snapshot داده واقعی کافی داشته باشد.";
+  const motionSummary =
+    realEngine.retrogrades?.status === "calculated"
+      ? " لایه motion نیز وضعیت حرکت برگشتی سیاره‌ها را از real engine دریافت می‌کند، در حالی که گره‌های ماه و لیلیت هنوز عمداً deferred مانده‌اند."
+      : " لایه motion فقط وقتی وارد گزارش می‌شود که محاسبه واقعی داشته باشد.";
 
   return [
     `جمع‌بندی چارت: ${visiblePlacements}.`,
@@ -1115,6 +1173,7 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
     "وقتی این سه لایه با هم خوانده شوند، گزارش از فهرست جایگاه‌ها به یک روایت شخصی‌تر نزدیک می‌شود: چه چیزی در تو روشن می‌شود، چه چیزی تو را آرام می‌کند، و چگونه خودت را به جهان نشان می‌دهی.",
     aspectSummary.trim(),
     houseSummary.trim(),
+    motionSummary.trim(),
   ].join(" ");
 }
 
@@ -1162,6 +1221,22 @@ function buildRealEngineInterpretationSections(
         }),
       }
     : null;
+  const motionSection: ReportOutputSection | null = input.retrogradeText
+    ? {
+        id: "real-engine-motion-special-points",
+        kind: "overview",
+        title: "حرکت برگشتی و نقاط ویژه",
+        body: buildStructuredSectionBody({
+          opening: buildEvidenceOpening(
+            input.motionEvidence,
+            "این فصل لایه motion را وارد گزارش می‌کند و هم‌زمان مرز داده واقعی را روشن نگه می‌دارد.",
+          ),
+          body: input.retrogradeText,
+          closing:
+            "حرکت برگشتی را مثل دعوت به بازنگری بخوان؛ گره‌های ماه و لیلیت تا وقتی داده واقعی و تعریف روشن نداشته باشند وارد نتیجه‌گیری نمی‌شوند.",
+        }),
+      }
+    : null;
 
   return ([
     {
@@ -1177,6 +1252,7 @@ function buildRealEngineInterpretationSections(
       }),
     },
     houseAnglesSection,
+    motionSection,
     {
       id: "real-engine-identity",
       kind: "identity",

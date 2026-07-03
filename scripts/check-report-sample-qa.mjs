@@ -190,11 +190,27 @@ function makeSnapshot({ cityLabel, ascendantLongitude, placements }) {
       status: "partial",
       houseSystemStatus: "calculated",
       anglesStatus: "calculated",
-      retrogradeStatus: "not-calculated",
+      retrogradeStatus: "calculated",
       nodesStatus: "not-calculated",
       lilithStatus: "not-calculated",
       limitations: ["sample QA fixture"],
       warnings: [],
+    },
+    retrogrades: {
+      status: "calculated",
+      method: "v0.1.159-sample-qa-motion-fixture",
+      planetIds: ["mercury"],
+      limitation: "Sample QA fixture: Mercury is marked retrograde so the motion section is covered.",
+    },
+    lunarNodes: {
+      status: "not-calculated",
+      method: "lunar-nodes",
+      limitation: "Sample QA fixture keeps lunar nodes deferred.",
+    },
+    lilith: {
+      status: "not-calculated",
+      method: "black-moon-lilith",
+      limitation: "Sample QA fixture keeps Black Moon Lilith deferred.",
     },
     placements,
     note:
@@ -337,6 +353,7 @@ const requiredSectionIds = [
   "real-engine-relationships",
   "real-engine-career",
   "real-engine-growth",
+  "real-engine-motion-special-points",
   "real-engine-reflection-prompts",
 ];
 
@@ -439,7 +456,7 @@ for (const sample of samples) {
     failures.push(`${sample.id}: missing house/angles interpretation section`);
   }
 
-  for (const marker of ["محور ASC/DSC", "محور MC/IC", "۱۲ خانه Whole Sign"]) {
+  for (const marker of ["محور ASC/DSC", "محور MC/IC", "۱۲ خانه Whole Sign", "حرکت برگشتی", "گره‌های ماه", "لیلیت"]) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing house/angles marker ${marker}`);
     }

@@ -161,6 +161,7 @@ export function ReportCard({ report }: ReportCardProps) {
   const realEngineAspects = report.realEngine?.aspects ?? [];
   const coreCards = buildCoreCards(report);
   const shownPlacements = report.realEngine?.placements ?? [];
+  const retrogradePlanetIds = getRetrogradePlanetIds(report);
   const planetHouseRows = shownPlacements
     .map(buildPlanetHouseRow)
     .filter((row): row is PlanetHouseRow => row !== null);
@@ -286,10 +287,39 @@ export function ReportCard({ report }: ReportCardProps) {
                 <div className="mini-card" key={placement.id}>
                   <strong>{getPlanetLabel(placement.id, placement.label)}</strong>
                   <span>{formatPlacement(placement)}</span>
+                  {retrogradePlanetIds.has(placement.id) ? <span>حرکت برگشتی / Retrograde</span> : null}
                 </div>
               ))}
             </div>
           </details>
+
+          {report.realEngine?.retrogrades?.status === "calculated" ? (
+            <details className="report-placement-details report-motion-section" open>
+              <summary>حرکت برگشتی سیاره‌ها</summary>
+              <p>
+                این بخش از داده motion محاسبه‌شده در real engine می‌آید. گره‌های ماه و
+                لیلیت هنوز عمداً deferred هستند و تا وقتی منبع واقعی‌شان سخت‌گیرانه نشود
+                در گزارش نمایش داده نمی‌شوند.
+              </p>
+              <div className="report-placement-grid">
+                <div className="mini-card">
+                  <strong>وضعیت retrograde</strong>
+                  <span>
+                    {retrogradePlanetIds.size > 0
+                      ? `سیاره‌های برگشتی: ${joinPersianList(
+                          Array.from(retrogradePlanetIds).map((planetId) =>
+                            getPlanetLabel(planetId, planetId),
+                          ),
+                        )}`
+                      : "در این چارت سیاره برگشتی از میان سیاره‌های محاسبه‌شده ثبت نشده است."}
+                  </span>
+                  {report.realEngine.retrogrades.limitation ? (
+                    <span>{report.realEngine.retrogrades.limitation}</span>
+                  ) : null}
+                </div>
+              </div>
+            </details>
+          ) : null}
 
           {planetHouseRows.length > 0 ? (
             <details className="report-placement-details" open>
@@ -457,6 +487,16 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
 
 function findPlacement(report: AstrologyReport, id: string) {
   return report.realEngine?.placements.find((placement) => placement.id === id);
+}
+
+function getRetrogradePlanetIds(report: AstrologyReport): Set<string> {
+  const retrogrades = report.realEngine?.retrogrades;
+
+  if (retrogrades?.status !== "calculated" || !Array.isArray(retrogrades.planetIds)) {
+    return new Set();
+  }
+
+  return new Set(retrogrades.planetIds.filter((planetId) => typeof planetId === "string" && planetId.length > 0));
 }
 
 function buildAngleRows(report: AstrologyReport): AngleSummaryRow[] {

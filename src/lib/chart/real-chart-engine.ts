@@ -6,7 +6,7 @@ import {
 } from "./normalized-chart";
 import type { ChartHouse } from "./houses";
 
-export const REAL_CHART_WORKBENCH_VERSION = "0.1.157" as const;
+export const REAL_CHART_WORKBENCH_VERSION = "0.1.159" as const;
 
 export type RealChartBirthInput = {
   name?: string;
@@ -18,6 +18,15 @@ export type RealChartBirthInput = {
   longitude: number;
 };
 
+export type RealChartPlanetMotionStatus = "direct" | "retrograde" | "stationary";
+
+export type RealChartCalculatedMotion = {
+  status: RealChartPlanetMotionStatus;
+  arcDegreesPerDay: number;
+  sampleWindowHours: number;
+  method: "astronomy-engine-geocentric-ecliptic-daily-motion";
+};
+
 export type RealChartCalculatedPlacement = {
   id: string;
   label: string;
@@ -26,6 +35,7 @@ export type RealChartCalculatedPlacement = {
   signId: string;
   degreeInSign: number;
   method: "astronomy-engine-geocentric";
+  motion: RealChartCalculatedMotion;
 };
 
 export type RealChartAngleId = "asc" | "dsc" | "mc" | "ic";
@@ -64,6 +74,7 @@ export type RealChartWorkbenchResult = {
   houses: ChartHouse[];
   calculationNotes: string[];
   placements: RealChartCalculatedPlacement[];
+  retrogradePlanetIds: string[];
   normalizedChart: NormalizedChart;
 };
 
@@ -121,7 +132,7 @@ export function buildRealChartWorkbenchResult(
     ascendantLongitude,
     midheavenLongitude,
   });
-  const placements = calculateRealChartPlacements(astroTime);
+  const placements = calculateRealChartPlacements(astroTime, utcDate);
   const normalizedChart = buildNormalizedChart({
     source: "astronomy-engine-prototype",
     time: {
@@ -153,6 +164,9 @@ export function buildRealChartWorkbenchResult(
     angles,
     houses: normalizedChart.houses,
     placements,
+    retrogradePlanetIds: placements
+      .filter((placement) => placement.motion.status === "retrograde")
+      .map((placement) => placement.id),
     normalizedChart,
     calculationNotes: [
       "Planetary positions are calculated from an Earth-centered vector and converted to the ecliptic plane with astronomy-engine.",
@@ -161,6 +175,8 @@ export function buildRealChartWorkbenchResult(
       "Midheaven is calculated independently from local sidereal time and tropical obliquity; it is not treated as the 10th house cusp.",
       "Descendant and IC are derived as exact oppositions from Ascendant and Midheaven.",
       "Houses use the whole-sign system anchored to the calculated Ascendant sign.",
+      "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around the birth time.",
+      "Lunar nodes and Black Moon Lilith are still deferred until their point definitions and ephemeris sources are hardened.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",
     ],
   };
@@ -182,6 +198,7 @@ export function normalizeRealChartBirthInput(
 
 export function calculateRealChartPlacements(
   astroTime: Astronomy.AstroTime,
+  utcDate: Date = new Date(),
 ): RealChartCalculatedPlacement[] {
   return REAL_CHART_BODY_CONFIGS.map((bodyConfig) => {
     const longitude = calculateBodyGeocentricLongitude(bodyConfig.body, astroTime);
@@ -195,6 +212,7 @@ export function calculateRealChartPlacements(
       signId: sign.signId,
       degreeInSign: sign.degreeInSign,
       method: "astronomy-engine-geocentric",
+      motion: calculateBodyApparentMotion(bodyConfig.body, utcDate),
     };
   });
 }
@@ -212,6 +230,55 @@ export function calculateBodyGeocentricLongitude(
   }
 
   return normalizeLongitude(longitude);
+}
+
+export function calculateBodyApparentMotion(
+  body: Astronomy.Body,
+  utcDate: Date,
+): RealChartCalculatedMotion {
+  const sampleWindowHours = 24;
+  const beforeTime = makeAstronomyTime(
+    new Date(utcDate.getTime() - sampleWindowHours * 60 * 60 * 1000),
+  );
+  const afterTime = makeAstronomyTime(
+    new Date(utcDate.getTime() + sampleWindowHours * 60 * 60 * 1000),
+  );
+  const beforeLongitude = calculateBodyGeocentricLongitude(body, beforeTime);
+  const afterLongitude = calculateBodyGeocentricLongitude(body, afterTime);
+  const sampledArc = getSignedLongitudeDelta(beforeLongitude, afterLongitude);
+  const sampleDays = (sampleWindowHours * 2) / 24;
+  const arcDegreesPerDay = sampledArc / sampleDays;
+  const stationaryThreshold = 0.0001;
+  const status: RealChartPlanetMotionStatus =
+    Math.abs(arcDegreesPerDay) <= stationaryThreshold
+      ? "stationary"
+      : arcDegreesPerDay < 0
+        ? "retrograde"
+        : "direct";
+
+  return {
+    status,
+    arcDegreesPerDay,
+    sampleWindowHours,
+    method: "astronomy-engine-geocentric-ecliptic-daily-motion",
+  };
+}
+
+export function getSignedLongitudeDelta(
+  fromLongitude: number,
+  toLongitude: number,
+): number {
+  const rawDelta = normalizeLongitude(toLongitude) - normalizeLongitude(fromLongitude);
+
+  if (rawDelta > 180) {
+    return rawDelta - 360;
+  }
+
+  if (rawDelta < -180) {
+    return rawDelta + 360;
+  }
+
+  return rawDelta;
 }
 
 export function makeAstronomyTime(utcDate: Date): Astronomy.AstroTime {

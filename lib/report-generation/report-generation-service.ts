@@ -45,7 +45,7 @@ import {
 } from "../../src/lib/report-output/chart-enrichment";
 import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart-report-copy";
 
-export const REPORT_GENERATION_SERVICE_VERSION = "0.1.157" as const;
+export const REPORT_GENERATION_SERVICE_VERSION = "0.1.159" as const;
 
 type SectionedAstrologyReport = AstrologyReport & {
   interpretationSections: ReportOutputSection[];
@@ -187,7 +187,7 @@ export function buildRealEngineSnapshot(
       realChart,
       chartReportEnrichment,
     ),
-    retrogrades: buildNotCalculatedRetrogradeStatus(),
+    retrogrades: buildCalculatedRetrogradeStatus(realChart),
     lunarNodes: buildDeferredCalculation(
       "lunar-nodes",
       "Lunar node calculation is deferred until the ephemeris source is hardened.",
@@ -357,12 +357,12 @@ function toRealEngineReportCalculationQuality(
         ? "calculated"
         : "preview",
     anglesStatus: realChart.angles ? "calculated" : "preview",
-    retrogradeStatus: "not-calculated",
+    retrogradeStatus: "calculated",
     nodesStatus: "not-calculated",
     lilithStatus: "not-calculated",
     limitations: [
       ...(chartReportEnrichment?.limitations ?? []),
-      "Retrograde motion is not calculated yet.",
+      "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around birth time; exact station periods should be read gently.",
       "Lunar nodes are not calculated yet.",
       "Black Moon Lilith is not calculated yet.",
     ],
@@ -373,12 +373,23 @@ function toRealEngineReportCalculationQuality(
   };
 }
 
-function buildNotCalculatedRetrogradeStatus(): RealEngineReportRetrogradeStatus {
+function buildCalculatedRetrogradeStatus(
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportRetrogradeStatus {
+  const planetIds = Array.isArray(realChart.retrogradePlanetIds)
+    ? realChart.retrogradePlanetIds
+    : realChart.placements
+        .filter((placement) => placement.motion?.status === "retrograde")
+        .map((placement) => placement.id);
+
   return {
-    status: "not-calculated",
-    method: null,
-    planetIds: [],
-    limitation: "Retrograde motion is deferred until the ephemeris velocity layer is hardened.",
+    status: "calculated",
+    method: "astronomy-engine-geocentric-ecliptic-daily-motion",
+    planetIds,
+    limitation:
+      planetIds.length > 0
+        ? "Retrograde planets are identified from apparent geocentric ecliptic motion around birth time; close station periods should be read gently."
+        : "No retrograde planet was detected from apparent geocentric ecliptic motion around birth time.",
   };
 }
 
