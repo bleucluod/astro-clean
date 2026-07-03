@@ -28,6 +28,67 @@ const PLANET_LABELS_FA: Record<string, string> = {
 
 const PERSIAN_NUMBER_FORMATTER = new Intl.NumberFormat("fa-IR");
 
+const REPORT_CARD_SAFETY_NOTE = "این گزارش یک خوانش نمادین و تأملی از چارت است؛ برای تصمیم‌های تخصصی زندگی، از مشورت با متخصص همان حوزه کمک بگیر.";
+
+const CHART_ELEMENT_ORDER = ["fire", "earth", "air", "water"] as const;
+const CHART_MODALITY_ORDER = ["cardinal", "fixed", "mutable"] as const;
+const CHART_POLARITY_ORDER = ["masculine", "feminine"] as const;
+
+type ChartElementKey = (typeof CHART_ELEMENT_ORDER)[number];
+type ChartModalityKey = (typeof CHART_MODALITY_ORDER)[number];
+type ChartPolarityKey = (typeof CHART_POLARITY_ORDER)[number];
+
+type ZodiacBalanceMeta = {
+  element: ChartElementKey;
+  modality: ChartModalityKey;
+  polarity: ChartPolarityKey;
+};
+
+type ChartBalanceItem = {
+  id: string;
+  label: string;
+  count: number;
+};
+
+type ChartBalanceSummary = {
+  elements: ChartBalanceItem[];
+  modalities: ChartBalanceItem[];
+  polarities: ChartBalanceItem[];
+};
+
+const SIGN_BALANCE: Record<string, ZodiacBalanceMeta> = {
+  aries: { element: "fire", modality: "cardinal", polarity: "masculine" },
+  taurus: { element: "earth", modality: "fixed", polarity: "feminine" },
+  gemini: { element: "air", modality: "mutable", polarity: "masculine" },
+  cancer: { element: "water", modality: "cardinal", polarity: "feminine" },
+  leo: { element: "fire", modality: "fixed", polarity: "masculine" },
+  virgo: { element: "earth", modality: "mutable", polarity: "feminine" },
+  libra: { element: "air", modality: "cardinal", polarity: "masculine" },
+  scorpio: { element: "water", modality: "fixed", polarity: "feminine" },
+  sagittarius: { element: "fire", modality: "mutable", polarity: "masculine" },
+  capricorn: { element: "earth", modality: "cardinal", polarity: "feminine" },
+  aquarius: { element: "air", modality: "fixed", polarity: "masculine" },
+  pisces: { element: "water", modality: "mutable", polarity: "feminine" },
+};
+
+const CHART_ELEMENT_LABELS: Record<ChartElementKey, string> = {
+  fire: "آتش",
+  earth: "زمین",
+  air: "هوا",
+  water: "آب",
+};
+
+const CHART_MODALITY_LABELS: Record<ChartModalityKey, string> = {
+  cardinal: "کاردینال",
+  fixed: "ثابت",
+  mutable: "متغیر",
+};
+
+const CHART_POLARITY_LABELS: Record<ChartPolarityKey, string> = {
+  masculine: "مذکر",
+  feminine: "مونث",
+};
+
 type CoreCard = {
   id: string;
   title: string;
@@ -55,7 +116,8 @@ export function ReportCard({ report }: ReportCardProps) {
   const planetHouseRows = shownPlacements
     .map(buildPlanetHouseRow)
     .filter((row): row is PlanetHouseRow => row !== null);
-  const shownAspects = realEngineAspects.slice(0, 5);
+  const chartBalance = buildChartBalance(shownPlacements);
+  const shownAspects = realEngineAspects;
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
 
@@ -193,6 +255,26 @@ export function ReportCard({ report }: ReportCardProps) {
               </div>
             </details>
           ) : null}
+
+          {chartBalance ? (
+            <details className="report-placement-details" open>
+              <summary>انرژی کلی چارت</summary>
+              <div className="report-placement-grid">
+                <div className="mini-card">
+                  <strong>عنصرها</strong>
+                  <span>{formatBalanceLine(chartBalance.elements)}</span>
+                </div>
+                <div className="mini-card">
+                  <strong>کیفیت‌ها</strong>
+                  <span>{formatBalanceLine(chartBalance.modalities)}</span>
+                </div>
+                <div className="mini-card">
+                  <strong>قطبیت</strong>
+                  <span>{formatBalanceLine(chartBalance.polarities)}</span>
+                </div>
+              </div>
+            </details>
+          ) : null}
         </section>
       ) : null}
 
@@ -216,9 +298,7 @@ export function ReportCard({ report }: ReportCardProps) {
                     <span aria-hidden="true">{aspect.glyph}</span>{" "}
                     {aspect.secondPlanetLabel}
                   </strong>
-                  <span>
-                    {aspect.aspectLabel} · اورب {formatDegree(aspect.orb)}
-                  </span>
+                  <span>{formatAspectAngleSummary(aspect)}</span>
                 </div>
                 <p>{aspect.narrative}</p>
               </article>
@@ -228,7 +308,7 @@ export function ReportCard({ report }: ReportCardProps) {
       ) : null}
 
       <div className="notice report-notice report-product-notice">
-        <p>{report.safetyNote}</p>
+        <p>{REPORT_CARD_SAFETY_NOTE}</p>
       </div>
     </article>
   );
@@ -281,6 +361,68 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
 
 function findPlacement(report: AstrologyReport, id: string) {
   return report.realEngine?.placements.find((placement) => placement.id === id);
+}
+
+function buildChartBalance(placements: RealEngineReportPlacement[]): ChartBalanceSummary | null {
+  const elementCounts = createBalanceCountMap(CHART_ELEMENT_ORDER);
+  const modalityCounts = createBalanceCountMap(CHART_MODALITY_ORDER);
+  const polarityCounts = createBalanceCountMap(CHART_POLARITY_ORDER);
+  let countedPlacements = 0;
+
+  placements.forEach((placement) => {
+    const balanceMeta = SIGN_BALANCE[placement.signId];
+
+    if (!balanceMeta) {
+      return;
+    }
+
+    countedPlacements += 1;
+    elementCounts[balanceMeta.element] += 1;
+    modalityCounts[balanceMeta.modality] += 1;
+    polarityCounts[balanceMeta.polarity] += 1;
+  });
+
+  if (countedPlacements === 0) {
+    return null;
+  }
+
+  return {
+    elements: formatBalanceItems(elementCounts, CHART_ELEMENT_ORDER, CHART_ELEMENT_LABELS),
+    modalities: formatBalanceItems(modalityCounts, CHART_MODALITY_ORDER, CHART_MODALITY_LABELS),
+    polarities: formatBalanceItems(polarityCounts, CHART_POLARITY_ORDER, CHART_POLARITY_LABELS),
+  };
+}
+
+function createBalanceCountMap<T extends string>(order: readonly T[]) {
+  return Object.fromEntries(order.map((id) => [id, 0])) as Record<T, number>;
+}
+
+function formatBalanceItems<T extends string>(
+  counts: Record<T, number>,
+  order: readonly T[],
+  labels: Record<T, string>,
+): ChartBalanceItem[] {
+  return order.map((id) => ({
+    id,
+    label: labels[id],
+    count: counts[id],
+  }));
+}
+
+function formatBalanceLine(items: ChartBalanceItem[]) {
+  return joinPersianList(
+    items.map((item) => `${formatPersianNumber(item.count)} ${item.label}`),
+  );
+}
+
+function formatAspectAngleSummary(aspect: { aspectLabel: string; angle?: number | null; orb: number }) {
+  const exactAngle =
+    typeof aspect.angle === "number" && Number.isFinite(aspect.angle) ? formatDegree(aspect.angle) : null;
+  const orbLabel = formatDegree(aspect.orb);
+
+  return exactAngle
+    ? `${aspect.aspectLabel} · زاویه واقعی ${exactAngle} · فاصله از زاویه دقیق (اورب) ${orbLabel}`
+    : `${aspect.aspectLabel} · فاصله از زاویه دقیق (اورب) ${orbLabel}`;
 }
 
 function buildPlanetHouseRow(placement: RealEngineReportPlacement): PlanetHouseRow | null {
