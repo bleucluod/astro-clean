@@ -488,6 +488,7 @@ export function enrichReportWithRealEngineCopy(
   const houseText = buildHouseContextText(realEngine.houseContext, risingSign);
   const houseAnglesText = buildHouseAnglesText(realEngineWithAspects);
   const retrogradeText = buildRetrogradeText(realEngineWithAspects);
+  const natalAccuracyText = buildNatalAccuracyText(realEngineWithAspects);
   const mercuryText = buildOptionalPlacementText(mercury, "mercury");
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
@@ -520,6 +521,7 @@ export function enrichReportWithRealEngineCopy(
     houseText,
     houseAnglesText,
     retrogradeText,
+    natalAccuracyText,
     mercuryText,
     mercuryAspectText,
     venusText,
@@ -537,6 +539,7 @@ export function enrichReportWithRealEngineCopy(
     houseText,
     houseAnglesText,
     retrogradeText,
+    natalAccuracyText,
     mercuryText,
     venusText,
     marsText,
@@ -591,6 +594,7 @@ type RealEngineSectionTextInput = {
   houseText?: string;
   houseAnglesText?: string;
   retrogradeText?: string;
+  natalAccuracyText?: string;
   mercuryText?: string;
   venusText?: string;
   marsText?: string;
@@ -920,6 +924,41 @@ function buildRetrogradeText(realEngine: RealEngineReportSnapshot): string | und
   ].join(" ");
 }
 
+function buildNatalAccuracyText(realEngine: RealEngineReportSnapshot): string | undefined {
+  const quality = realEngine.calculationQuality;
+
+  if (!quality) {
+    return undefined;
+  }
+
+  const limitationText = [...(quality.limitations ?? []), ...(quality.warnings ?? [])]
+    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    .slice(0, 5)
+    .join(" ");
+
+  const nodesStatus = realEngine.lunarNodes?.status ?? "not-calculated";
+  const lilithStatus = realEngine.lilith?.status ?? "not-calculated";
+  const nodesText =
+    nodesStatus === "calculated"
+      ? "گره‌های ماه در snapshot محاسبه شده‌اند و می‌توانند در خوانش بعدی وارد شوند."
+      : "گره‌های ماه هنوز محاسبه نمی‌شوند و تا انتخاب منبع ephemeris و تعریف Mean/True Node وارد نتیجه‌گیری نمی‌شوند.";
+  const lilithText =
+    lilithStatus === "calculated"
+      ? "لیلیت در snapshot محاسبه شده است و می‌تواند در خوانش بعدی وارد شود."
+      : "لیلیت هنوز محاسبه نمی‌شود؛ قبل از نمایش باید تصمیم Mean Lilith یا True Lilith و منبع محاسبه روشن شود.";
+
+  return [
+    "دقت این گزارش به سه چیز تکیه دارد: ساعت تولد، timezone و مختصات شهر تولد.",
+    "اگر ساعت تولد تقریبی یا نامطمئن باشد، خانه‌ها، رایزینگ، MC/IC و حتی نمونه‌گیری حرکت برگشتی باید با زبان محتاط‌تر خوانده شوند.",
+    "در این نسخه، timezone و مرزهای نزدیک نیمه‌شب با QA جداگانه نگهبانی می‌شوند تا گزارش در تغییر روز یا شهر اشتباه claim نکند.",
+    nodesText,
+    lilithText,
+    limitationText,
+  ]
+    .filter((part) => part.trim().length > 0)
+    .join(" ");
+}
+
 function getSortedReportHouses(houses: RealEngineReportHouse[] | undefined): RealEngineReportHouse[] {
   if (!Array.isArray(houses)) {
     return [];
@@ -1238,6 +1277,21 @@ function buildRealEngineInterpretationSections(
       }
     : null;
 
+  const natalAccuracySection: ReportOutputSection | null = input.natalAccuracyText
+    ? {
+        id: "real-engine-natal-accuracy",
+        kind: "overview",
+        title: "دقت تولد و مرزهای محاسبه",
+        body: buildStructuredSectionBody({
+          opening:
+            "این فصل مرز دقت گزارش را روشن می‌کند؛ چون گزارش کامل فقط زمانی قابل اعتماد است که داده تولد، timezone و مختصات شهر با همان سخت‌گیری snapshot خوانده شوند.",
+          body: input.natalAccuracyText,
+          closing:
+            "این مرزگذاری برای کم‌کردن ارزش گزارش نیست؛ برای این است که هالیوس به جای متن زیبا اما نامطمئن، گزارش صادقانه و قابل اعتماد بسازد.",
+        }),
+      }
+    : null;
+
   return ([
     {
       id: "real-engine-overview",
@@ -1253,6 +1307,7 @@ function buildRealEngineInterpretationSections(
     },
     houseAnglesSection,
     motionSection,
+    natalAccuracySection,
     {
       id: "real-engine-identity",
       kind: "identity",

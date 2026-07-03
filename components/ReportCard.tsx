@@ -158,6 +158,17 @@ type PlacementWithHouse = RealEngineReportPlacement & {
   houseNumber?: number | null;
 };
 
+type AccuracySummary = {
+  statusLabel: string;
+  houseLabel: string;
+  angleLabel: string;
+  motionLabel: string;
+  nodesLabel: string;
+  lilithLabel: string;
+  limitations: string[];
+  warnings: string[];
+};
+
 export function ReportCard({ report }: ReportCardProps) {
   const realEngineAspects = report.realEngine?.aspects ?? [];
   const coreCards = buildCoreCards(report);
@@ -172,6 +183,7 @@ export function ReportCard({ report }: ReportCardProps) {
   const shownAspects = realEngineAspects;
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
+  const accuracySummary = buildAccuracySummary(report);
 
   return (
     <article className="card report-card report-product-card">
@@ -280,6 +292,41 @@ export function ReportCard({ report }: ReportCardProps) {
               <span>{formatShortUtc(report.realEngine.utcIso)}</span>
             </div>
           </div>
+
+          {accuracySummary ? (
+            <details className="report-placement-details report-accuracy-section" open>
+              <summary>دقت تولد و مرزهای محاسبه</summary>
+              <p>
+                این بخش برای شفافیت است: خانه‌ها، محورها و motion فقط وقتی جدی خوانده
+                می‌شوند که ساعت تولد، timezone و مختصات شهر قابل اعتماد باشند. گره‌های
+                ماه و لیلیت تا وقتی منبع واقعی‌شان سخت‌گیرانه نشود، نمایش داده نمی‌شوند.
+              </p>
+              <div className="report-placement-grid">
+                <div className="mini-card">
+                  <strong>کیفیت snapshot</strong>
+                  <span>{accuracySummary.statusLabel}</span>
+                  <span>{accuracySummary.houseLabel}</span>
+                  <span>{accuracySummary.angleLabel}</span>
+                  <span>{accuracySummary.motionLabel}</span>
+                </div>
+                <div className="mini-card">
+                  <strong>نقاط ویژه هنوز قفل‌شده</strong>
+                  <span>{accuracySummary.nodesLabel}</span>
+                  <span>{accuracySummary.lilithLabel}</span>
+                </div>
+                <div className="mini-card">
+                  <strong>یادآوری دقت تولد</strong>
+                  <span>اگر ساعت تولد تقریبی باشد، خانه‌ها و محورهای چارت باید با احتیاط بیشتری خوانده شوند.</span>
+                  {accuracySummary.limitations.slice(0, 2).map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                  {accuracySummary.warnings.slice(0, 1).map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            </details>
+          ) : null}
 
           <div className="report-chart-wheel-structure">
             <RealChartWheel
@@ -451,6 +498,66 @@ export function ReportCard({ report }: ReportCardProps) {
       </div>
     </article>
   );
+}
+
+function buildAccuracySummary(report: AstrologyReport): AccuracySummary | null {
+  const realEngine = report.realEngine;
+  const quality = realEngine?.calculationQuality;
+
+  if (!realEngine || !quality) {
+    return null;
+  }
+
+  return {
+    statusLabel: `وضعیت کلی: ${formatCalculationQualityStatus(quality.status)}`,
+    houseLabel: `خانه‌ها: ${formatReliabilityStatus(quality.houseSystemStatus)}`,
+    angleLabel: `محورها: ${formatReliabilityStatus(quality.anglesStatus)}`,
+    motionLabel: `حرکت برگشتی: ${formatReliabilityStatus(quality.retrogradeStatus)}`,
+    nodesLabel: formatDeferredPointStatus("گره‌های ماه", realEngine.lunarNodes?.status, quality.nodesStatus),
+    lilithLabel: formatDeferredPointStatus("لیلیت", realEngine.lilith?.status, quality.lilithStatus),
+    limitations: Array.isArray(quality.limitations) ? quality.limitations : [],
+    warnings: Array.isArray(quality.warnings) ? quality.warnings : [],
+  };
+}
+
+function formatDeferredPointStatus(
+  label: string,
+  deferredStatus: string | undefined,
+  qualityStatus: string | undefined,
+): string {
+  if (deferredStatus === "calculated" || qualityStatus === "calculated") {
+    return `${label}: محاسبه‌شده`;
+  }
+
+  if (deferredStatus === "blocked" || qualityStatus === "not-calculated") {
+    return `${label}: هنوز عمداً محاسبه/نمایش داده نمی‌شود`;
+  }
+
+  return `${label}: در حالت hardening`;
+}
+
+function formatCalculationQualityStatus(status: string): string {
+  const labels: Record<string, string> = {
+    complete: "کامل",
+    partial: "جزئی/در حال تکمیل",
+    preview: "پیش‌نمایش",
+    blocked: "مسدود",
+  };
+
+  return labels[status] ?? status;
+}
+
+function formatReliabilityStatus(status: string): string {
+  const labels: Record<string, string> = {
+    "production-grade": "production-grade",
+    calculated: "محاسبه‌شده",
+    derived: "مشتق‌شده",
+    preview: "پیش‌نمایش",
+    placeholder: "placeholder",
+    "not-calculated": "محاسبه‌نشده",
+  };
+
+  return labels[status] ?? status;
 }
 
 function buildCoreCards(report: AstrologyReport): CoreCard[] {

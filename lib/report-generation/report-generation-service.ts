@@ -45,7 +45,7 @@ import {
 } from "../../src/lib/report-output/chart-enrichment";
 import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart-report-copy";
 
-export const REPORT_GENERATION_SERVICE_VERSION = "0.1.159" as const;
+export const REPORT_GENERATION_SERVICE_VERSION = "0.1.161" as const;
 
 type SectionedAstrologyReport = AstrologyReport & {
   interpretationSections: ReportOutputSection[];
@@ -190,11 +190,11 @@ export function buildRealEngineSnapshot(
     retrogrades: buildCalculatedRetrogradeStatus(realChart),
     lunarNodes: buildDeferredCalculation(
       "lunar-nodes",
-      "Lunar node calculation is deferred until the ephemeris source is hardened.",
+      "Lunar node calculation is deferred and must stay hidden until a hardened node ephemeris source and mean/true node definition are chosen.",
     ),
     lilith: buildDeferredCalculation(
       "black-moon-lilith",
-      "Black Moon Lilith calculation is deferred until the point definition and ephemeris source are hardened.",
+      "Black Moon Lilith calculation is deferred and must stay hidden until the Mean/True Lilith decision and ephemeris source are hardened.",
     ),
     ...(chartReportEnrichment
       ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }
@@ -365,10 +365,13 @@ function toRealEngineReportCalculationQuality(
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around birth time; exact station periods should be read gently.",
       "Lunar nodes are not calculated yet.",
       "Black Moon Lilith is not calculated yet.",
+      "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time should be labeled before paid/private reports.",
+      "Timezone and midnight boundary handling is covered by natal accuracy hardening checks.",
     ],
     warnings: [
       "ASC and MC are calculated from local sidereal time; DSC and IC are derived as direct oppositions.",
       "MC is stored as an independent angle and must not be treated as the 10th house cusp.",
+      "If the birth time is estimated or missing, houses, angles, retrograde sampling, and final report language must stay in preview/hardening mode.",
     ],
   };
 }

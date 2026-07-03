@@ -6,7 +6,7 @@ import {
 } from "./normalized-chart";
 import type { ChartHouse } from "./houses";
 
-export const REAL_CHART_WORKBENCH_VERSION = "0.1.159" as const;
+export const REAL_CHART_WORKBENCH_VERSION = "0.1.161" as const;
 
 export type RealChartBirthInput = {
   name?: string;
@@ -177,6 +177,8 @@ export function buildRealChartWorkbenchResult(
       "Houses use the whole-sign system anchored to the calculated Ascendant sign.",
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around the birth time.",
       "Lunar nodes and Black Moon Lilith are still deferred until their point definitions and ephemeris sources are hardened.",
+      "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time must be disclosed before paid/private reports.",
+      "Timezone and midnight-boundary behavior is guarded by natal accuracy hardening checks before the report claims production-grade precision.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",
     ],
   };

@@ -9,7 +9,7 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const failures = [];
 
 for (const marker of [
-  'REAL_CHART_WORKBENCH_VERSION = "0.1.159"',
+  'REAL_CHART_WORKBENCH_VERSION = "0.1.161"',
   "RealChartCalculatedMotion",
   "calculateBodyApparentMotion",
   "getSignedLongitudeDelta",
@@ -22,7 +22,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  'REPORT_GENERATION_SERVICE_VERSION = "0.1.159"',
+  'REPORT_GENERATION_SERVICE_VERSION = "0.1.161"',
   "buildCalculatedRetrogradeStatus",
   'retrogradeStatus: "calculated"',
   "buildDeferredCalculation",

@@ -11,7 +11,7 @@ const checkEngine = packageJson.scripts?.["check:engine"] ?? "";
 
 for (const marker of [
   'import type { ChartHouse } from "./houses";',
-  'REAL_CHART_WORKBENCH_VERSION = "0.1.159"',
+  "REAL_CHART_WORKBENCH_VERSION",
   "houses: ChartHouse[]",
   "houses: normalizedChart.houses",
 ]) {
@@ -21,7 +21,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  'REPORT_GENERATION_SERVICE_VERSION = "0.1.159"',
+  "REPORT_GENERATION_SERVICE_VERSION",
   "houses: toRealEngineReportHouses(realChart, chartReportEnrichment)",
   "function toRealEngineReportHouses",
   "function getHouseNumberForLongitude",
