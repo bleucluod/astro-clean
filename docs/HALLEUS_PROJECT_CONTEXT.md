@@ -376,7 +376,7 @@ The old file repeated many single-incident entries. This compact ledger groups t
 Errors seen:
 
 ```text
-Persian mojibake such as Ø, Ù, Û, Ú, â€ or �.
+Persian mojibake such as Ã˜, Ã™, Ã›, Ãš, Ã¢â‚¬ or ï¿½.
 Persian samples becoming question marks.
 Raw Persian markers in pasted PowerShell/Node here-strings failing to match live UTF-8 files.
 Console output showing mojibake while Node could read the file correctly.
@@ -668,7 +668,7 @@ Minimal scoped approach:
 ## v0.1.135 report-quality-pass scope note
 
 - v0.1.135 is scoped to Persian-facing report quality guardrails, not adding new astrology calculations or changing report structure.
-- Use the Persian brand spelling `هالیوس` in Persian user-facing/report text; keep lowercase `halleus` only for file names, event names, and internal identifiers.
+- Use the Persian brand spelling `Ù‡Ø§Ù„ÛŒÙˆØ³` in Persian user-facing/report text; keep lowercase `halleus` only for file names, event names, and internal identifiers.
 - Keep this batch focused on report surfaces and guards: generated real-engine report writer, V3 report fallback copy, report card/detail copy, and report quality checks.
 - Do not change aspect math, orb rules, shared report types, routes, storage, payment, SEO, public/private policy, or house/ascendant confidence logic in this batch.
 - Product goal: reduce English-brand leakage in Persian text and make this rule enforceable before the final report QA pass.
@@ -702,3 +702,7 @@ Minimal scoped approach:
 - The active workbench already emits whole-sign house input; this batch verifies normalized chart and chart enrichment treat calculated whole-sign context as report-enrichment-ready.
 - Older equal-house scaffold/transitional fixtures remain partial and must not become report-ready in this batch.
 - This batch does not change generated report prose, route behavior, report-generation service, UI, storage, SEO, payment, or public/private policy.
+
+## v0.1.143 workflow note
+
+- The first exact-age/birthday-countdown runner failed before editing because it used a brittle multiline JSX insertion marker for the birth-detail card in `components/ReportCard.tsx`. Diagnosis showed the live file had the intended birth-details area, but the exact expected block did not match current formatting. Prevention: for small JSX insertions, prefer inspected current-line or line-based anchors over large multiline `oldText` blocks; after a marker miss, inspect the live nearby lines before emitting a fix-forward runner.
