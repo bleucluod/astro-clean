@@ -72,7 +72,8 @@
     "check:natal-accuracy-hardening": "node scripts/check-natal-accuracy-hardening.mjs",
     "check:full-report-product-polish": "node scripts/check-full-report-product-polish.mjs",
     "check:special-points-real-source": "node scripts/check-special-points-real-source.mjs",
-    "check:special-points-source-decision": "node scripts/check-special-points-source-decision.mjs"
+    "check:special-points-source-decision": "node scripts/check-special-points-source-decision.mjs",
+    "check:true-mean-node-probe": "node scripts/check-true-mean-node-probe.mjs"
   },
   "dependencies": {
     "astronomy-engine": "2.1.19",

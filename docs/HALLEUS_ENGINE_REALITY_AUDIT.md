@@ -447,3 +447,22 @@ Do not implement yet:
 - Do not install a new ephemeris dependency in a product batch without an explicit dependency/license/deployment gate.
 - Do not expose Nodes/Lilith in public reports as decorative or guessed content.
 - Do not let the desire for a complete report override source reality.
+
+## v0.1.165 true vs mean node probe
+
+Probe result after the v0.1.165 context review:
+
+- `astronomy-engine` stays useful for Sun, Moon, planets, ecliptic conversion, sidereal time, houses/angles support, and event search.
+- The inspected `astronomy-engine` API exposes `SearchMoonNode` / `NextMoonNode` for event times when the Moon crosses the ecliptic plane. It does not expose a direct natal True Node or Mean Node ecliptic longitude API.
+- Do not infer natal True Node longitude from `SearchMoonNode` event times.
+- Swiss Ephemeris wrappers remain research-only for now; do not add `swisseph`, `sweph`, or `swiss-ephemeris` to runtime dependencies in this path.
+- Mean Lunar Node is not fake. It is a documented mean-orbit model and can be implemented with a small formula, but it must be labeled honestly as Mean Node, not True/Osculating Node.
+- True/Osculating Node remains deferred until Halleus accepts a validated source that returns natal longitude directly or implements a separately validated osculating-node calculation.
+
+Mean Node implementation decision:
+
+- Implement Mean Lunar Nodes before True Node.
+- Use the J2000 mean longitude of the Moon ascending node formula in code comments and checks: `Omega = 125.04452 - 1934.136261*T + 0.0020708*T^2 + T^3/450000` degrees, normalized to 0..360.
+- Store North Node as a calculated ecliptic longitude with method `mean-lunar-node-j2000-meeus-formula`.
+- Store South Node only as the exact opposition of North Node: `South Node = normalize(North Node + 180)`.
+- Keep Black Moon Lilith deferred; this probe does not decide Mean Lilith vs True/Osculating Lilith.

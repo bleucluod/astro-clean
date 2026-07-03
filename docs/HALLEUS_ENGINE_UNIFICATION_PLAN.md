@@ -516,3 +516,28 @@ Next valid sequence:
 3. Fill `realEngine.lunarNodes` only after checks pass.
 4. Then add ReportCard, writer, and wheel support for Nodes.
 5. Decide Mean Lilith vs True Lilith before any Lilith implementation.
+
+## v0.1.165 true vs mean node implementation path
+
+Node source decision:
+
+- The next implementation milestone should be a Node-only Mean Lunar Node implementation, not a combined Nodes/Lilith batch.
+- This is a practical source decision, not a downgrade: Mean Lunar Node is a real, disclosed calculation model; it is just not the same as True/Osculating Node.
+- True/Osculating Node should stay deferred until a validated source or dependency gate exists.
+
+Build sequence for the next code batch:
+
+1. Widen shared node types so `realEngine.lunarNodes` can represent calculated Mean North/South Node data instead of only a deferred calculation.
+2. Add `calculateMeanNorthNodeLongitude(date)` near the real chart engine utilities with a code comment for the J2000 formula.
+3. Add node output to the real chart workbench result without touching Lilith.
+4. Convert Mean North/South Node into the saved `realEngine` snapshot with method `mean-lunar-node-j2000-meeus-formula`.
+5. Set `calculationQuality.nodesStatus` to `calculated` only when both North and South Node longitudes exist.
+6. Add QA fixtures that verify normalization, exact 180-degree South Node opposition, method label, and that Lilith remains deferred.
+7. Only after the snapshot is real, expose a small ReportCard/writer section labeled Mean Lunar Node.
+
+Do not do in the next Node implementation:
+
+- Do not call the Mean Node simply North Node without model disclosure.
+- Do not implement or show True Node from `SearchMoonNode` event helpers.
+- Do not add Swiss Ephemeris runtime dependencies in the same batch.
+- Do not unblock Lilith until Mean/True Lilith is separately chosen and sourced.

@@ -936,3 +936,18 @@ Product direction for complete reports:
 - Do not add a heavy ephemeris dependency just to make the report look complete.
 - Do not delay the paid/private/public model forever waiting for Lilith; the complete report can move forward with Nodes first and Lilith later.
 - Public copy should not claim Nodes/Lilith are available until the report UI/writer/wheel actually consume real snapshot fields.
+
+## v0.1.165 product decision: Mean Lunar Node first
+
+Product decision:
+
+- Halleus may ship Lunar Nodes first using a transparent Mean Lunar Node model.
+- Public/user-facing copy must label this honestly as Mean North Node / Mean South Node, or Persian equivalent, until True/Osculating Node is implemented.
+- South Node should be described as the exact opposition of the calculated Mean North Node.
+- This is acceptable for the MVP report because Mean and True Node differences are usually small enough that they should not block all Node work, but users should not be misled about the model.
+- Lilith remains separate and lower priority; do not bundle it with Mean Node implementation.
+
+Product guard:
+
+- Do not market Halleus as supporting True Node until the engine stores a validated True/Osculating Node longitude.
+- Do not mention Lilith availability in public copy until the report UI/writer/wheel consume real Lilith snapshot fields.
