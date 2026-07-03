@@ -439,3 +439,48 @@ Future public/private SEO fields have a safe placeholder model.
 No user data is made public.
 No report-generation implementation is changed yet.
 ```
+
+## v0.1.154 full report completion blueprint alignment
+
+The report-engine unification path should now treat the complete natal report as the primary product foundation. Public/free SEO reports, paid/private packaging, wiki growth, and chart-wheel polish should wait until the canonical report data surface is reliable enough.
+
+Canonical sequence:
+
+```text
+Data contract -> engine calculation -> snapshot storage -> QA checks -> report prose -> report UI -> chart wheel
+```
+
+Target canonical snapshot fields:
+
+```text
+chartMeta
+birthData
+timeContext
+placements
+houses
+angles
+aspects
+retrogrades
+lunarNodes
+lilith
+calculationQuality
+limitations
+```
+
+House/axis direction:
+- Whole Sign is the default serious MVP house system because it is a real astrological system, works well for clear Persian report prose, and can be hardened before advanced house-system options.
+- ASC and MC must be calculated from birth time, location, timezone, and date.
+- DSC should derive from ASC + 180 degrees, with method metadata.
+- IC should derive from MC + 180 degrees, with method metadata.
+- MC/IC must remain independent angle data; do not collapse them into house 10/house 4 assumptions.
+- Placidus or other advanced systems can be added later only after validated calculation support and QA fixtures exist.
+
+Implementation rules:
+- Shared types should be widened before UI consumes new fields.
+- The engine should fill the canonical snapshot before writer/UI/chart wheel read from it.
+- QA should fail when a user-facing section claims a data layer that the snapshot does not provide.
+- Missing birth time should degrade gracefully and hide/limit houses and angles rather than inventing them.
+- The saved report path should stop depending on mock-first report generation before public/indexable report promises are made.
+
+Immediate next buildable step after this blueprint:
+- v0.1.155 complete natal chart data contract, scoped to shared types and static guards, with no UI promises yet.

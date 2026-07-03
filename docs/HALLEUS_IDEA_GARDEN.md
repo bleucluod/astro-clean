@@ -876,3 +876,44 @@ Do not implement yet:
 - Do not fake retrograde, Lilith, Nodes, MC/IC/DSC, or a complete chart wheel if the engine does not yet provide reliable data.
 - Do not start public/indexable report scaling before the report data surface and consent model are clearer.
 - Do not combine all of this into one UI batch.
+
+## Full report completion blueprint added after v0.1.153
+
+Product decision: the complete Halleus birth report is the heart of the product. Future report work should start from real data contracts and engine output before UI polish, public SEO scaling, or paid/private packaging.
+
+Complete report means a saved report can explain the user's natal chart from one canonical real-engine snapshot, with explicit calculation quality and limitations. A section may appear in the user-facing report only when the required data exists in the snapshot.
+
+Required layers for a complete report:
+1. Birth data quality: birth date, birth time, city, timezone, coordinates, and clear handling of missing or uncertain birth time.
+2. Real chart positions: planets/points with longitude, zodiac sign, degree, and display labels.
+3. Houses and angles: house system, 12 houses/cusps, ASC, DSC, MC, and IC. MC/IC must be stored as independent angles and must not be assumed to equal house 10/house 4 in every system.
+4. Aspect map: calculated major aspects with angle, orb, participating planets, and interpretation hooks.
+5. Chart balance: elements, modalities, and polarity from the selected placement set.
+6. Extended factors: retrograde status, lunar nodes, Lilith/Black Moon, and later optional points only after real calculation support exists.
+7. Interpretation evidence: every prose section should be traceable to placements, houses, angles, aspects, or explicit quality/limitation data.
+8. Product surfaces: ReportCard, final report writer, and chart wheel should consume the same canonical snapshot instead of re-deriving or guessing.
+
+Recommended implementation path:
+1. Complete natal chart data contract.
+2. House system decision and limits: Whole Sign default for the serious MVP, Placidus/advanced systems later after validation.
+3. Real ASC and MC calculation, then DSC and IC derivation with method metadata.
+4. Whole Sign 12-house engine output anchored to the calculated Ascendant sign.
+5. Natal chart QA fixtures for Tehran, Shiraz, Tabriz, near-midnight births, timezone boundary cases, and missing birth time.
+6. Canonical realEngine snapshot that stores placements, houses, angles, aspects, retrogrades, nodes, Lilith, quality, and limitations.
+7. Full report writer: planet + sign + house + aspects, then houses, axes, balance, retrogrades/nodes/Lilith when available, and final synthesis.
+8. Full ReportCard data sections and real chart wheel only after the snapshot is complete enough to support their claims.
+
+Non-negotiables:
+- Do not fake DSC, IC, MC, house cusps, retrograde, nodes, Lilith, or chart-wheel details.
+- Do not label scaffolded/approximate house data as production-grade.
+- Do not publish indexable user report pages before report reliability and explicit public consent are ready.
+- Do not let poetic copy hide missing calculation data; limitations should be visible and calm.
+
+Near-term version intent:
+- v0.1.155: complete natal chart data contract.
+- v0.1.156: house-system decision and contract hardening.
+- v0.1.157: real angles engine path.
+- v0.1.158: Whole Sign 12-house engine output.
+- v0.1.159: natal chart QA fixtures.
+- v0.1.160: canonical realEngine snapshot.
+- v0.1.161+: full house/axis prose, retrogrades, nodes, Lilith, full UI sections, and chart wheel foundation.
