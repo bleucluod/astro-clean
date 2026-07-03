@@ -71,9 +71,100 @@ export type RealEngineReportAspect = {
   narrative: string;
 };
 
+export type RealEngineHouseSystem =
+  | "whole-sign"
+  | "equal-house"
+  | "placidus"
+  | "placeholder";
+
+export type RealEngineReportDataReliability =
+  | "production-grade"
+  | "calculated"
+  | "derived"
+  | "preview"
+  | "placeholder"
+  | "not-calculated";
+
+export type RealEngineReportAngleId = "asc" | "dsc" | "mc" | "ic";
+
+export type RealEngineReportHouseNumber =
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12;
+
+export type RealEngineReportAngle = {
+  id: RealEngineReportAngleId;
+  label: string;
+  longitude: number;
+  signId: ZodiacKey;
+  degreeInSign: number;
+  method: string;
+  source: "calculated" | "derived-opposition" | "provided" | "unknown";
+  reliability: RealEngineReportDataReliability;
+  house?: RealEngineReportHouseNumber | null;
+  limitation: string | null;
+};
+
+export type RealEngineReportAngles = {
+  asc?: RealEngineReportAngle;
+  dsc?: RealEngineReportAngle;
+  mc?: RealEngineReportAngle;
+  ic?: RealEngineReportAngle;
+};
+
+export type RealEngineReportHouse = {
+  number: RealEngineReportHouseNumber;
+  signId: ZodiacKey;
+  cuspLongitude: number;
+  degreeInSign: number;
+  system: RealEngineHouseSystem;
+  method:
+    | "whole-sign-from-ascendant"
+    | "equal-house-from-ascendant"
+    | "placidus-calculated"
+    | "placeholder";
+  reliability: RealEngineReportDataReliability;
+  planetIds: string[];
+  angleIds: RealEngineReportAngleId[];
+  limitation: string | null;
+};
+
+export type RealEngineReportDeferredCalculation = {
+  status: "not-calculated" | "calculated" | "blocked";
+  method: string | null;
+  limitation: string | null;
+};
+
+export type RealEngineReportRetrogradeStatus = {
+  status: "not-calculated" | "calculated" | "blocked";
+  method: string | null;
+  planetIds: string[];
+  limitation: string | null;
+};
+
+export type RealEngineReportCalculationQuality = {
+  status: "complete" | "partial" | "preview" | "blocked";
+  houseSystemStatus: RealEngineReportDataReliability;
+  anglesStatus: RealEngineReportDataReliability;
+  retrogradeStatus: RealEngineReportDataReliability;
+  nodesStatus: RealEngineReportDataReliability;
+  lilithStatus: RealEngineReportDataReliability;
+  limitations: string[];
+  warnings: string[];
+};
+
 export type RealEngineReportHouseContext = {
-  requestedSystem: "whole-sign" | "equal-house" | "placeholder";
-  appliedSystem: "whole-sign" | "equal-house" | "placeholder";
+  requestedSystem: RealEngineHouseSystem;
+  appliedSystem: RealEngineHouseSystem;
   confidence:
     | "calculated-ascendant"
     | "provided-ascendant"
@@ -95,6 +186,13 @@ export type RealEngineReportSnapshot = {
   utcIso: string;
   ascendantLongitude: number;
   houseContext?: RealEngineReportHouseContext;
+  houseSystem?: RealEngineHouseSystem;
+  houses?: RealEngineReportHouse[];
+  angles?: RealEngineReportAngles;
+  calculationQuality?: RealEngineReportCalculationQuality;
+  retrogrades?: RealEngineReportRetrogradeStatus;
+  lunarNodes?: RealEngineReportDeferredCalculation;
+  lilith?: RealEngineReportDeferredCalculation;
   placements: RealEngineReportPlacement[];
   aspects?: RealEngineReportAspect[];
   note: string;

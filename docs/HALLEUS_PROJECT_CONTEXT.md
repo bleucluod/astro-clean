@@ -714,3 +714,7 @@ Minimal scoped approach:
 ## v0.1.148 rollback workflow note
 
 - The first report data panels runner for v0.1.148 attempted too many ReportCard JSX changes at once: expanded placements, house rows, planet-in-house rows, and calculation copy/panel layout. The runner passed encoding and focused UI checks but failed build with a JSX parse error near the inserted house rows. Two quick fix-forward attempts did not resolve the JSX structure cleanly, so the batch was rolled back by restoring components/ReportCard.tsx and deleting the untracked runner; build then passed again at v0.1.147. Prevention: for report data panels, do not combine multiple new JSX sections in one runner. Add one panel at a time, inspect the exact containing JSX block before patching, prefer full replacement of the smallest safe enclosing block over inserting adjacent sibling sections after a closing section tag, and stop to rollback after repeated JSX parse failures instead of continuing fix-forward attempts.
+
+## v0.1.155 workflow note
+
+- The first complete natal chart data contract runner failed at `pnpm build` because it created `_halleus_backup_v0155_*/types/*.ts` inside the repo, and Next.js typechecked those backup TypeScript files. The runner restored the tracked target files and the cleanup removed the untracked backup and runner. Prevention: runners must not create source-like backup files or folders inside the repo; use temp-dir backups outside `C:\Projects\astro-clean` or non-source/ignored backup payloads, and clean them after restore or success.

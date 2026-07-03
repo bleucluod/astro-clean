@@ -8,7 +8,7 @@ import type {
   ReportOutputSection,
 } from "./report-output";
 
-export const REPORT_GENERATION_CONTRACT_VERSION = "0.1.93" as const;
+export const REPORT_GENERATION_CONTRACT_VERSION = "0.1.155" as const;
 
 export type ReportGenerationContractVersion =
   typeof REPORT_GENERATION_CONTRACT_VERSION;
