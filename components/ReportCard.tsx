@@ -42,6 +42,7 @@ export function ReportCard({ report }: ReportCardProps) {
   const shownPlacements = report.realEngine?.placements.slice(0, 8) ?? [];
   const shownAspects = realEngineAspects.slice(0, 5);
   const birthTimeSummary = buildBirthTimeSummary(report);
+  const birthMoonPhase = buildBirthMoonPhaseSummary(report);
 
   return (
     <article className="card report-card report-product-card">
@@ -98,7 +99,7 @@ export function ReportCard({ report }: ReportCardProps) {
       <section className="report-section report-core-section">
         <div className="report-section-heading">
           <span className="section-label">سه ستون اصلی</span>
-          <h3>خورشید، ماه و رایزینگ</h3>
+          <h3>خورشید، ماه، رایزینگ و فاز ماه تولد</h3>
           <p>
             این سه کارت، خلاصه‌ترین تصویر از هویت، نیاز احساسی و شیوه ورود تو به
             جهان را نشان می‌دهند.
@@ -113,6 +114,13 @@ export function ReportCard({ report }: ReportCardProps) {
               <p>{card.description}</p>
             </article>
           ))}
+          {birthMoonPhase ? (
+            <article className="report-core-card report-moon-phase-card" aria-label="فاز ماه تولد">
+              <span>{birthMoonPhase.angleLabel}</span>
+              <strong>فاز ماه تولد: {birthMoonPhase.title}</strong>
+              <p>{birthMoonPhase.interpretation}</p>
+            </article>
+          ) : null}
         </div>
       </section>
 
@@ -276,6 +284,78 @@ function formatShortUtc(utcIso: string) {
   return utcIso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
 }
 
+type BirthMoonPhaseSummary = {
+  title: string;
+  angleLabel: string;
+  interpretation: string;
+};
+
+type BirthMoonPhaseCopy = {
+  from: number;
+  to: number;
+  title: string;
+  interpretation: string;
+};
+
+const BIRTH_MOON_PHASES: BirthMoonPhaseCopy[] = [
+  {
+    from: 337.5,
+    to: 22.5,
+    title: "ماه نو",
+    interpretation:
+      "در زبان نمادین هالیوس، این فاز ریتم شروع‌های آرام، گوش دادن به نیت‌های پنهان و ساختن از سکوت را پررنگ می‌کند.",
+  },
+  {
+    from: 22.5,
+    to: 67.5,
+    title: "هلال افزاینده",
+    interpretation:
+      "این ریتم از تاریکی بیرون می‌آید؛ یعنی ساختن اعتماد، امتحان کردن قدم‌های کوچک و مراقبت از چیزی تازه.",
+  },
+  {
+    from: 67.5,
+    to: 112.5,
+    title: "تربیع اول",
+    interpretation:
+      "این فاز با تصمیم، واکنش روشن‌تر و نیاز به حرکت خوانده می‌شود؛ انگار احساسات می‌خواهند شکل عملی پیدا کنند.",
+  },
+  {
+    from: 112.5,
+    to: 157.5,
+    title: "کوژ افزاینده",
+    interpretation:
+      "ریتم این فاز درباره کامل‌تر کردن، اصلاح کردن و آماده شدن برای دیده شدن است.",
+  },
+  {
+    from: 157.5,
+    to: 202.5,
+    title: "بدر",
+    interpretation:
+      "ماه کامل نماد آگاهی عاطفی، بازتاب روشن‌تر و دیدن نیازهایی است که معمولاً در رابطه با جهان آشکار می‌شوند.",
+  },
+  {
+    from: 202.5,
+    to: 247.5,
+    title: "کوژ کاهنده",
+    interpretation:
+      "این فاز با معنا کردن تجربه‌ها، بخشیدن، توضیح دادن و تبدیل احساس به فهم آرام‌تر پیوند دارد.",
+  },
+  {
+    from: 247.5,
+    to: 292.5,
+    title: "تربیع آخر",
+    interpretation:
+      "تربیع آخر ریتم بازنگری، سبک کردن بارهای قدیمی و انتخاب دوباره از جای پخته‌تر را نشان می‌دهد.",
+  },
+  {
+    from: 292.5,
+    to: 337.5,
+    title: "هلال کاهنده",
+    interpretation:
+      "این فاز نماد خلوت، رهاسازی و شنیدن صدای درونی قبل از شروع چرخه بعدی است.",
+  },
+];
+
 type DurationParts = {
   years: number;
   months: number;
@@ -298,6 +378,38 @@ type BirthTimeSummary = {
   exactAge: string;
   nextBirthday: string;
 };
+
+function buildBirthMoonPhaseSummary(report: AstrologyReport): BirthMoonPhaseSummary | null {
+  const sun = findPlacement(report, "sun");
+  const moon = findPlacement(report, "moon");
+
+  if (!sun || !moon) {
+    return null;
+  }
+
+  const phaseAngle = normalizeLongitude(moon.longitude - sun.longitude);
+  const phase = getBirthMoonPhaseCopy(phaseAngle);
+
+  if (!phase) {
+    return null;
+  }
+
+  return {
+    title: phase.title,
+    angleLabel: `زاویه ماه با خورشید: ${formatDegree(phaseAngle)}`,
+    interpretation: phase.interpretation,
+  };
+}
+
+function getBirthMoonPhaseCopy(phaseAngle: number) {
+  return BIRTH_MOON_PHASES.find((phase) => {
+    if (phase.from > phase.to) {
+      return phaseAngle >= phase.from || phaseAngle < phase.to;
+    }
+
+    return phaseAngle >= phase.from && phaseAngle < phase.to;
+  });
+}
 
 function buildBirthTimeSummary(report: AstrologyReport): BirthTimeSummary | null {
   const birthDateParts = parseBirthDateParts(report.input.birthDate);
