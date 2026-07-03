@@ -814,3 +814,11 @@ Do not abandon the v0.1.124 navigation phase because a runner failed. Continue w
 - `untouched` — Rising-sign wiki cluster: create Persian wiki pages for rising-sign interpretation for every zodiac sign, including a general rising-sign overview and internally linked sign-by-sign pages.
 - `untouched` — Ancient-knowledge framing: where natural, describe astrology as an old symbolic/ancient interpretive tradition without making scientific, medical, legal, or deterministic claims.
 - `deferred` — Paid version is not needed yet. Short-term product can stay free-first; later limits may be usage-based, such as a daily report cap or storage limitations, rather than an immediate paid/private model.
+
+### ایده آینده — مقایسه دو چارت، چارت رویداد و سازگاری/هم‌زمانی
+- در آینده هالیوس فقط برای انسان گزارش نمی‌سازد؛ گزارش می‌تواند برای یک رویداد، لحظه تاریخی، شروع رابطه، شروع پروژه، زلزله، انقلاب صنعتی یا هر لحظه معنی‌دار ساخته شود.
+- باید امکان مقایسه دو چارت وجود داشته باشد: مثلاً دو تولد برای رابطه/ازدواج، یا چارت تولد یک فرد با چارت یک رویداد تاریخی.
+- خروجی مقایسه باید نقاط اشتراک، نقاط تنش، نقاط قوت، نقاط حساس و پرسش‌های تأملی را نشان دهد؛ نه حکم قطعی بدهد.
+- برای رویدادها، سیستم می‌تواند توضیح دهد در آن لحظه نشانه‌ها، سیاره‌ها، خانه‌ها یا ترنزیت‌های مهم کجا بودند و چه الگویی ساخته‌اند.
+- نمونه‌های آینده: مقایسه چارت تولد با چارت یک زلزله/انقلاب/شروع کسب‌وکار، بررسی اینکه چه ترنزیت‌هایی فعال بودند، چه زمانی الگوهای مشابه دوباره نزدیک می‌شوند، و آیا یک الگو در نسبت با چارت تولد کاربر حس تقویت، فشار یا ضعف می‌سازد.
+- مقایسه دو چارت و تحلیل ترنزیت/رویداد احتمالاً باید بعداً به عنوان قابلیت پیشرفته یا غیررایگان بررسی شود، نه در MVP اولیه.
