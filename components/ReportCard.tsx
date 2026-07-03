@@ -39,7 +39,7 @@ type CoreCard = {
 export function ReportCard({ report }: ReportCardProps) {
   const realEngineAspects = report.realEngine?.aspects ?? [];
   const coreCards = buildCoreCards(report);
-  const shownPlacements = report.realEngine?.placements.slice(0, 8) ?? [];
+  const shownPlacements = report.realEngine?.placements ?? [];
   const shownAspects = realEngineAspects.slice(0, 5);
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
