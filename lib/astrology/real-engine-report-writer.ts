@@ -15,6 +15,7 @@ import type { ReportOutputSection } from "@/types/report-output";
 type SignCopy = {
   faName: string;
   enName: string;
+  aliases?: string[];
   energy: string;
   gift: string;
   growth: string;
@@ -51,6 +52,7 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   aries: {
     faName: "حمل",
     enName: "Aries",
+    aliases: ["قوچ"],
     energy: "شروع‌کننده، مستقیم و پرحرارت",
     gift: "جرئت شروع کردن و جلو بردن چیزهایی که هنوز شکل نگرفته‌اند",
     growth: "تمرین مکث، شنیدن و کامل‌کردن مسیر بعد از موج اول انگیزه",
@@ -65,6 +67,7 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   gemini: {
     faName: "جوزا",
     enName: "Gemini",
+    aliases: ["دوقلو"],
     energy: "کنجکاو، ذهنی و ارتباطی",
     gift: "دیدن چند زاویه هم‌زمان و تبدیل تجربه به کلمه، ایده و گفتگو",
     growth: "عمیق‌تر ماندن با یک مسیر به‌جای پریدن سریع بین احتمال‌ها",
@@ -72,6 +75,7 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   cancer: {
     faName: "سرطان",
     enName: "Cancer",
+    aliases: ["خرچنگ"],
     energy: "حساس، حافظه‌محور و مراقبت‌گر",
     gift: "ساختن حس خانه، تعلق و پیوند عاطفی واقعی",
     growth: "مرزبندی احساسی تا مراقبت تبدیل به فرسودگی یا وابستگی نشود",
@@ -86,6 +90,7 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   virgo: {
     faName: "سنبله",
     enName: "Virgo",
+    aliases: ["خوشه"],
     energy: "دقیق، اصلاح‌گر و خدمت‌محور",
     gift: "دیدن جزئیات، بهتر کردن سیستم‌ها و مراقبت عملی از چیزی که مهم است",
     growth: "مهربانی با نقص‌ها و رها کردن کنترل افراطی",
@@ -107,6 +112,7 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   sagittarius: {
     faName: "قوس",
     enName: "Sagittarius",
+    aliases: ["کماندار"],
     energy: "جست‌وجوگر، صریح و افق‌گشا",
     gift: "دیدن معنای بزرگ‌تر و حرکت به سمت تجربه، دانش و آزادی",
     growth: "تبدیل شوق و باور به تعهد، دقت و مسئولیت در کلام",
@@ -128,6 +134,7 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   pisces: {
     faName: "حوت",
     enName: "Pisces",
+    aliases: ["ماهی"],
     energy: "حساس، شهودی و خیال‌پرداز",
     gift: "همدلی، الهام و دیدن پیوندهای نامرئی بین آدم‌ها و تجربه‌ها",
     growth: "مرزبندی، واقع‌سنجی و تبدیل رؤیا به مراقبت عملی",
@@ -435,6 +442,7 @@ export function enrichReportWithRealEngineCopy(
 
   const summary = buildRealEngineSummary({
     name: report.input.name ?? "",
+    cityLabel: realEngine.cityLabel,
     sun,
     moon,
     risingSign,
@@ -454,6 +462,15 @@ export function enrichReportWithRealEngineCopy(
   const marsText = buildOptionalPlacementText(mars, "mars");
   const aspectText = buildAspectOverviewText(aspects);
   const integrationText = buildIntegrationText(realEngineWithAspects);
+  const sectionEvidence = buildRealEngineSectionEvidence({
+    sun,
+    moon,
+    risingSign,
+    mercury,
+    venus,
+    mars,
+    aspectCount: aspects.length,
+  });
   const interpretations = [
     sunText,
     moonText,
@@ -476,6 +493,7 @@ export function enrichReportWithRealEngineCopy(
     marsText,
     aspectText,
     integrationText,
+    ...sectionEvidence,
   });
 
   return {
@@ -486,6 +504,24 @@ export function enrichReportWithRealEngineCopy(
     interpretationSections,
   } as AstrologyReport;
 }
+
+type RealEngineSectionEvidence = {
+  identityEvidence?: string;
+  emotionalEvidence?: string;
+  relationshipEvidence?: string;
+  careerEvidence?: string;
+  growthEvidence?: string;
+};
+
+type RealEngineSectionEvidenceInput = {
+  sun: RealEngineReportPlacement | undefined;
+  moon: RealEngineReportPlacement | undefined;
+  risingSign: ZodiacKey;
+  mercury: RealEngineReportPlacement | undefined;
+  venus: RealEngineReportPlacement | undefined;
+  mars: RealEngineReportPlacement | undefined;
+  aspectCount: number;
+};
 
 type RealEngineSectionTextInput = {
   summary: string;
@@ -498,41 +534,114 @@ type RealEngineSectionTextInput = {
   marsText?: string;
   aspectText?: string;
   integrationText: string;
+  identityEvidence?: string;
+  emotionalEvidence?: string;
+  relationshipEvidence?: string;
+  careerEvidence?: string;
+  growthEvidence?: string;
 };
+
+function buildRealEngineSectionEvidence({
+  sun,
+  moon,
+  risingSign,
+  mercury,
+  venus,
+  mars,
+  aspectCount,
+}: RealEngineSectionEvidenceInput): RealEngineSectionEvidence {
+  const risingEvidence = `رایزینگ در ${formatSignLabel(SIGN_COPY[risingSign])}`;
+
+  return {
+    identityEvidence: joinEvidenceLabels(
+      buildPlacementEvidenceLabel(sun, "sun"),
+      risingEvidence,
+    ),
+    emotionalEvidence: buildPlacementEvidenceLabel(moon, "moon"),
+    relationshipEvidence: joinEvidenceLabels(
+      buildPlacementEvidenceLabel(venus, "venus"),
+      aspectCount > 0 ? `روابط سیاره‌ها: ${toPersianNumber(aspectCount)} جنبه` : undefined,
+    ),
+    careerEvidence: joinEvidenceLabels(
+      buildPlacementEvidenceLabel(mercury, "mercury"),
+      buildPlacementEvidenceLabel(mars, "mars"),
+    ),
+    growthEvidence: joinEvidenceLabels(
+      buildPlacementEvidenceLabel(sun, "sun"),
+      buildPlacementEvidenceLabel(moon, "moon"),
+      risingEvidence,
+    ),
+  };
+}
+
+function buildPlacementEvidenceLabel(
+  placement: RealEngineReportPlacement | undefined,
+  planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
+): string | undefined {
+  if (!placement) {
+    return undefined;
+  }
+
+  const planet = PLANET_COPY[planetId];
+
+  return `${planet.faName} در ${formatPlacementWithHouse(placement)}`;
+}
+
+function joinEvidenceLabels(...labels: Array<string | undefined>): string | undefined {
+  const filteredLabels = labels.filter(
+    (label): label is string => typeof label === "string" && label.trim().length > 0,
+  );
+
+  if (filteredLabels.length === 0) {
+    return undefined;
+  }
+
+  return `پشتوانه این بخش: ${filteredLabels.join("؛ ")}`;
+}
+
+function buildEvidenceOpening(evidence: string | undefined, opening: string): string {
+  return evidence ? `${evidence}. ${opening}` : opening;
+}
 
 function buildRealEngineSummary({
   name,
+  cityLabel,
   sun,
   moon,
   risingSign,
   houseContext,
 }: {
   name: string;
+  cityLabel?: string;
   sun: RealEngineReportPlacement | undefined;
   moon: RealEngineReportPlacement | undefined;
   risingSign: ZodiacKey;
   houseContext?: RealEngineReportHouseContext;
 }) {
   const displayName = name ? `${name}، ` : "";
+  const cityPhrase = cityLabel ? ` برای تولد در ${cityLabel}` : "";
   const sunSign = sun ? SIGN_COPY[sun.signId] : null;
   const moonSign = moon ? SIGN_COPY[moon.signId] : null;
+  const sunHouseSuffix = sun ? formatHouseSuffix(sun) : "";
+  const moonHouseSuffix = moon ? formatHouseSuffix(moon) : "";
   const rising = SIGN_COPY[risingSign];
   const risingDescriptor = buildRisingDescriptor(houseContext);
 
   if (sunSign && moonSign) {
     return [
-      `${displayName}این گزارش با محاسبه واقعی‌تر هالیوس ساخته شده است؛ اما زبان آن زبان حکم و پیش‌گویی نیست، زبان نمادین و سنت کهن خواندن آسمان است. از سه ستون اصلی چارت شروع می‌کنیم: خورشید، ماه و رایزینگ.`,
-      `خورشید تو در ${formatSignLabel(sunSign)} قرار دارد؛ یعنی مسیر هویت و اعتمادبه‌نفس با کیفیت ${sunSign.energy} رنگ می‌گیرد.`,
-      `ماه تو در ${formatSignLabel(moonSign)} است؛ جایی که امنیت عاطفی و واکنش‌های غریزی به انرژی ${moonSign.energy} نزدیک می‌شوند.`,
+      `${displayName}این خوانش هالیوس${cityPhrase} از روی چارت محاسبه‌شده تو ساخته شده است؛ زبانش زبان حکم و پیش‌گویی نیست، بلکه زبان نمادین و سنت کهن خواندن آسمان است.`,
+      "از سه ستون اصلی چارت شروع می‌کنیم: خورشید، ماه و رایزینگ؛ بعد هر بخش را با خانه‌ها و روابط سیاره‌ها به تجربه روزمره نزدیک‌تر می‌کنیم.",
+      `خورشید تو در ${formatSignLabel(sunSign)}${sunHouseSuffix} قرار دارد؛ یعنی مسیر هویت و اعتمادبه‌نفس با کیفیت ${sunSign.energy} رنگ می‌گیرد.`,
+      `ماه تو در ${formatSignLabel(moonSign)}${moonHouseSuffix} است؛ جایی که امنیت عاطفی و واکنش‌های غریزی به انرژی ${moonSign.energy} نزدیک می‌شوند.`,
       `${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد و نشان می‌دهد در برخورد اول با جهان، چه ریتم و تصویری از تو جلوتر دیده می‌شود.`,
       "این خوانش ادعای علمی یا حکم قطعی درباره شخصیت نیست؛ یک نقشه تأملی است تا ببینی کدام نمادها با تجربه تو هم‌صدا هستند و کجاها نیاز به مشاهده بیشتر دارند.",
     ].join(" ");
   }
 
   return [
-    `${displayName}این گزارش با محاسبه واقعی‌تر هالیوس ساخته شده است و چارت را مثل یک زبان نمادین برای تأمل می‌خواند، نه یک حکم قطعی درباره آینده یا شخصیت.`,
+    `${displayName}این خوانش هالیوس${cityPhrase} از روی چارت محاسبه‌شده تو ساخته شده است و آن را مثل یک زبان نمادین برای تأمل می‌خواند، نه یک حکم قطعی درباره آینده یا شخصیت.`,
     `داده‌های اصلی چارت در snapshot ذخیره شده‌اند و ${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد.`,
-    "متن گزارش بر اساس همین داده‌ها ساخته شده و در نسخه‌های بعدی با لایه‌های خانه‌ها، aspectها و روایت‌های عمیق‌تر کامل‌تر می‌شود؛ همیشه آن را به‌عنوان دعوت به مشاهده بخوان، نه جایگزین تصمیم شخصی.",
+    "متن گزارش از همین داده‌های محاسبه‌شده ساخته شده است؛ آن را مثل دعوتی برای دیدن الگوها بخوان، نه جایگزین مشاهده، گفت‌وگو یا تصمیم شخصی.",
   ].join(" ");
 }
 
@@ -547,7 +656,7 @@ function buildCorePlacementText(
   const planet = PLANET_COPY[planetId];
   const sign = SIGN_COPY[placement.signId];
   const story = CORE_PLACEMENT_STORY[planetId];
-  const placementLabel = formatPlacement(placement);
+  const placementLabel = formatPlacementWithHouse(placement);
   const signLabel = formatSignLabel(sign);
   const houseSentence = buildPlanetHouseSentence(placement, planetId);
 
@@ -578,7 +687,7 @@ function buildOptionalPlacementText(
   const planet = PLANET_COPY[planetId];
   const sign = SIGN_COPY[placement.signId];
   const story = PERSONAL_PLANET_STORY[planetId];
-  const placementLabel = formatPlacement(placement);
+  const placementLabel = formatPlacementWithHouse(placement);
   const signLabel = formatSignLabel(sign);
   const houseSentence = buildPlanetHouseSentence(placement, planetId);
 
@@ -625,7 +734,7 @@ function buildPlanetHouseSentence(
 
   const formattedHouse = toPersianNumber(resolvedHouseNumber);
 
-  return `از نظر خانه‌ها، ${planet.faName} در خانه ${formattedHouse} قرار گرفته است؛ یعنی موضوع ${planet.title} بیشتر از مسیر ${house.field} دیده می‌شود. هدیه این خانه ${house.gift} است و مسیر رشدش ${house.growth}.`;
+  return `از نظر خانه‌ها، ${planet.faName} در ${formatPlacementWithHouse(placement)} قرار گرفته است؛ یعنی موضوع ${planet.title} بیشتر از مسیر ${house.field} دیده می‌شود. هدیه خانه ${formattedHouse} ${house.gift} است و مسیر رشدش ${house.growth}.`;
 }
 
 function buildRisingText(
@@ -759,7 +868,6 @@ function buildAspectReflectionText(aspects: RealEngineReportAspect[]): string {
 
 function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
   const visiblePlacements = realEngine.placements
-    .slice(0, 6)
     .map((placement) => {
       const planet = PLANET_COPY[placement.id]?.faName ?? placement.label;
       const sign = SIGN_COPY[placement.signId];
@@ -820,8 +928,10 @@ function buildRealEngineInterpretationSections(
       kind: "identity",
       title: "هویت، حضور و شیوه ورود به جهان",
       body: buildStructuredSectionBody({
-        opening:
+        opening: buildEvidenceOpening(
+          input.identityEvidence,
           "این فصل از مسیر درونی شروع می‌کند و بعد به شیوه‌ای می‌رسد که در نخستین برخوردها از تو دیده می‌شود؛ مثل پیوند میان نور درونی و دروازه ورود به جهان.",
+        ),
         body: identityBody || input.sunText || input.risingText || fallbackBody,
         closing:
           "خورشید و رایزینگ را کنار هم بخوان: یکی از مسیر آگاهانه و حس هویت می‌گوید، دیگری از دروازه ورود تو به موقعیت‌ها.",
@@ -832,8 +942,10 @@ function buildRealEngineInterpretationSections(
       kind: "emotional-pattern",
       title: "ریتم عاطفی و امنیت درونی",
       body: buildStructuredSectionBody({
-        opening:
+        opening: buildEvidenceOpening(
+          input.emotionalEvidence,
           "اینجا گزارش از لایه بیرونی فاصله می‌گیرد و به ریتم‌های آرام‌تر نزدیک می‌شود: نیازهای احساسی، واکنش‌های بی‌واسطه و راه‌هایی که امنیت درونی ساخته می‌شود.",
+        ),
         body: input.moonText ?? fallbackBody,
         closing:
           "این بخش را آرام‌تر بخوان؛ ماه معمولاً بیشتر از اینکه جواب فوری بدهد، نیاز پنهان یا ریتم مراقبت را نشان می‌دهد.",
@@ -844,8 +956,10 @@ function buildRealEngineInterpretationSections(
       kind: "relationships",
       title: "رابطه، ارزش و گفت‌وگوی سیاره‌ها",
       body: buildStructuredSectionBody({
-        opening:
+        opening: buildEvidenceOpening(
+          input.relationshipEvidence,
           "این فصل رابطه را فقط به معنای عشق یا جذب نمی‌گیرد؛ درباره ارزش، صمیمیت، مرز و گفت‌وگوی میان نیروهای درونی است.",
+        ),
         body: relationshipBody || input.venusText || input.aspectText || fallbackBody,
         closing:
           "اگر این فصل طولانی‌تر است، آن را در دو لایه بخوان: اول زهره و شیوه ارزش‌گذاری، بعد aspectها و گفت‌وگوی بخش‌های مختلف شخصیت.",
@@ -856,8 +970,10 @@ function buildRealEngineInterpretationSections(
       kind: "career",
       title: "ذهن، حرکت و مسیر عمل",
       body: buildStructuredSectionBody({
-        opening:
+        opening: buildEvidenceOpening(
+          input.careerEvidence,
           "اینجا گزارش روی تصمیم، بیان، انرژی حرکت و شیوه تبدیل نیت به عمل تمرکز می‌کند.",
+        ),
         body: careerBody || input.mercuryText || input.marsText || fallbackBody,
         closing:
           "عطارد و مریخ را کنار هم بخوان: یکی نشان می‌دهد چطور معنا می‌سازی و حرف می‌زنی، دیگری نشان می‌دهد چطور حرکت می‌کنی.",
@@ -868,8 +984,10 @@ function buildRealEngineInterpretationSections(
       kind: "growth",
       title: "جمع‌بندی و مسیر یکپارچه‌سازی",
       body: buildStructuredSectionBody({
-        opening:
+        opening: buildEvidenceOpening(
+          input.growthEvidence,
           "این فصل قرار نیست دوباره همه جزئیات را تکرار کند؛ کارش این است که نخ‌های اصلی گزارش را به یک مسیر قابل‌خواندن وصل کند.",
+        ),
         body: input.integrationText || fallbackBody,
         closing: buildFinalSynthesisClosing(input),
       }),
@@ -943,7 +1061,11 @@ function joinSectionBody(...parts: Array<string | undefined>): string {
 function formatPlacement(placement: RealEngineReportPlacement) {
   const sign = SIGN_COPY[placement.signId];
 
-  return `${formatSignLabel(sign)}، درجه ${formatDegree(placement.longitude)}`;
+  return `${formatSignLabel(sign)}، درجه ${formatDegree(placement.degreeInSign)}`;
+}
+
+function formatPlacementWithHouse(placement: RealEngineReportPlacement): string {
+  return `${formatPlacement(placement)}${formatHouseSuffix(placement)}`;
 }
 
 function formatHouseSuffix(placement: RealEngineReportPlacement): string {
@@ -970,7 +1092,11 @@ function toPersianNumber(value: number): string {
 }
 
 function formatSignLabel(sign: SignCopy) {
-  return `${sign.faName} (${sign.enName})`;
+  const faLabel = sign.aliases?.length
+    ? `${sign.faName} / ${sign.aliases.join(" / ")}`
+    : sign.faName;
+
+  return `${faLabel} (${sign.enName})`;
 }
 
 function formatDegree(longitude: number) {
