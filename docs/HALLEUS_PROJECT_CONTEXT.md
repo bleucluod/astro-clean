@@ -706,3 +706,7 @@ Minimal scoped approach:
 ## v0.1.143 workflow note
 
 - The first exact-age/birthday-countdown runner failed before editing because it used a brittle multiline JSX insertion marker for the birth-detail card in `components/ReportCard.tsx`. Diagnosis showed the live file had the intended birth-details area, but the exact expected block did not match current formatting. Prevention: for small JSX insertions, prefer inspected current-line or line-based anchors over large multiline `oldText` blocks; after a marker miss, inspect the live nearby lines before emitting a fix-forward runner.
+
+## v0.1.145 workflow note
+
+- The first two report-text ancient-framing runners failed before editing because they used Persian/string replacement logic through PowerShell and brittle summary markers. Diagnosis confirmed the live UTF-8 files were valid, while PowerShell terminal rendering showed mojibake and could not be trusted for exact Persian markers. The successful fix used a PowerShell wrapper only to launch Node; Node read and wrote UTF-8 files directly, decoded Persian replacement payloads safely, used structural anchors, validated match counts before writing, and then ran focused report checks plus build. Prevention: never use Persian text printed by PowerShell/terminal as an exact replacement marker; never put raw Persian replacement markers inside PowerShell patch logic; for Persian report-text patches, use Node UTF-8 with structural anchors and encoded payloads, and stop after the first marker miss instead of emitting another guessed runner.
