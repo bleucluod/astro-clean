@@ -379,3 +379,27 @@ legacy metadata path
 ```
 
 Only after that should Halleus design public/free/private SEO report pages.
+
+## v0.1.153 house and axes data audit
+
+Current real report snapshot data supports a limited house display, not a full axes/cusp system yet.
+
+Confirmed available data:
+- `RealEngineReportSnapshot.ascendantLongitude` exists and can support ASC/rising display.
+- `RealEngineReportSnapshot.houseContext` may include requested/applied system, confidence, ascendant method, ascendant longitude, and first house cusp longitude.
+- `RealEngineReportPlacement.house` exists and already supports planet-in-house display.
+
+Confirmed missing or not reliable enough for UI promises:
+- No stable array of 12 real house cusps exists in the public report snapshot contract.
+- No stable DSC, IC, or MC fields exist in the report snapshot contract.
+- No production-grade house system hardening is complete yet; previous docs still treat houses/axes as approximate scaffolding.
+- RealChartWheel currently renders zodiac/placements/aspect lines and ASC, but not reliable DSC/IC/MC or full house divisions.
+
+Allowed next UI step:
+- A small "house guide" section may show Whole Sign-style house starts derived from the available ascendant/first-house context, but it must be labeled as a house guide / applied system preview, not as precise production-grade cusps.
+- ASC can be shown because ascendantLongitude exists.
+- DSC, IC, and MC should stay hidden until the engine/data contract provides reliable fields.
+
+Do not implement yet:
+- Do not fake DSC, IC, MC, Lilith, nodes, retrograde, or precise cusp arrays.
+- Do not build a full chart wheel that claims complete axes/house precision before the data contract is hardened.
