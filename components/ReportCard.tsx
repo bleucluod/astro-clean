@@ -36,10 +36,25 @@ type CoreCard = {
   description: string;
 };
 
+type PlanetHouseRow = {
+  id: string;
+  planetLabel: string;
+  houseLabel: string;
+  placementLabel: string;
+};
+
+type PlacementWithHouse = RealEngineReportPlacement & {
+  house?: number | null;
+  houseNumber?: number | null;
+};
+
 export function ReportCard({ report }: ReportCardProps) {
   const realEngineAspects = report.realEngine?.aspects ?? [];
   const coreCards = buildCoreCards(report);
   const shownPlacements = report.realEngine?.placements ?? [];
+  const planetHouseRows = shownPlacements
+    .map(buildPlanetHouseRow)
+    .filter((row): row is PlanetHouseRow => row !== null);
   const shownAspects = realEngineAspects.slice(0, 5);
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
@@ -163,6 +178,21 @@ export function ReportCard({ report }: ReportCardProps) {
               ))}
             </div>
           </details>
+
+          {planetHouseRows.length > 0 ? (
+            <details className="report-placement-details" open>
+              <summary>سیاره‌ها در خانه‌ها</summary>
+              <div className="report-placement-grid">
+                {planetHouseRows.map((item) => (
+                  <div className="mini-card" key={`house-${item.id}`}>
+                    <strong>{item.planetLabel}</strong>
+                    <span>{item.houseLabel}</span>
+                    <span>{item.placementLabel}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
         </section>
       ) : null}
 
@@ -251,6 +281,35 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
 
 function findPlacement(report: AstrologyReport, id: string) {
   return report.realEngine?.placements.find((placement) => placement.id === id);
+}
+
+function buildPlanetHouseRow(placement: RealEngineReportPlacement): PlanetHouseRow | null {
+  const houseNumber = getPlacementHouseNumber(placement);
+
+  if (houseNumber === null) {
+    return null;
+  }
+
+  return {
+    id: placement.id,
+    planetLabel: getPlanetLabel(placement.id, placement.label),
+    houseLabel: `خانه ${formatPersianNumber(houseNumber)}`,
+    placementLabel: formatPlacement(placement),
+  };
+}
+
+function getPlacementHouseNumber(placement: RealEngineReportPlacement): number | null {
+  const maybePlacement = placement as PlacementWithHouse;
+  const rawHouseNumber =
+    typeof maybePlacement.houseNumber === "number" ? maybePlacement.houseNumber : maybePlacement.house;
+
+  if (typeof rawHouseNumber !== "number" || !Number.isFinite(rawHouseNumber)) {
+    return null;
+  }
+
+  const houseNumber = Math.trunc(rawHouseNumber);
+
+  return houseNumber >= 1 && houseNumber <= 12 ? houseNumber : null;
 }
 
 function getPlanetLabel(id: string, fallback: string) {
