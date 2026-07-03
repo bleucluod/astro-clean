@@ -26,6 +26,8 @@ const PLANET_LABELS_FA: Record<string, string> = {
 };
 
 
+const PERSIAN_NUMBER_FORMATTER = new Intl.NumberFormat("fa-IR");
+
 type CoreCard = {
   id: string;
   title: string;
@@ -39,6 +41,7 @@ export function ReportCard({ report }: ReportCardProps) {
   const coreCards = buildCoreCards(report);
   const shownPlacements = report.realEngine?.placements.slice(0, 8) ?? [];
   const shownAspects = realEngineAspects.slice(0, 5);
+  const birthTimeSummary = buildBirthTimeSummary(report);
 
   return (
     <article className="card report-card report-product-card">
@@ -72,6 +75,13 @@ export function ReportCard({ report }: ReportCardProps) {
               {report.input.birthCity}، {report.input.birthCountry}
             </span>
           </div>
+
+          {birthTimeSummary ? (
+            <div className="birth-details report-product-birth-details" aria-label="سن و تولد">
+              <span>سن دقیق: {birthTimeSummary.exactAge}</span>
+              <span>تا تولد بعدی: {birthTimeSummary.nextBirthday}</span>
+            </div>
+          ) : null}
 
           <div className="actions report-product-card-actions">
             <a className="button secondary" href="/reports">
@@ -264,4 +274,235 @@ function formatShortUtc(utcIso: string) {
   }
 
   return utcIso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+}
+
+type DurationParts = {
+  years: number;
+  months: number;
+  days: number;
+  hours: number;
+};
+
+type BirthDateParts = {
+  year: number;
+  month: number;
+  day: number;
+};
+
+type BirthTimeParts = {
+  hour: number;
+  minute: number;
+};
+
+type BirthTimeSummary = {
+  exactAge: string;
+  nextBirthday: string;
+};
+
+function buildBirthTimeSummary(report: AstrologyReport): BirthTimeSummary | null {
+  const birthDateParts = parseBirthDateParts(report.input.birthDate);
+
+  if (!birthDateParts) {
+    return null;
+  }
+
+  const birthTimeParts = parseBirthTimeParts(report.input.birthTime);
+  const now = new Date();
+  const birthMoment = parseBirthMoment(report, birthDateParts, birthTimeParts);
+
+  if (!birthMoment || birthMoment.getTime() > now.getTime()) {
+    return null;
+  }
+
+  const nextBirthday = getNextBirthdayDate(now, birthDateParts, birthTimeParts);
+
+  return {
+    exactAge: formatDurationParts(diffCalendarParts(birthMoment, now), "کمتر از یک ساعت"),
+    nextBirthday: formatDurationParts(diffCalendarParts(now, nextBirthday), "تولد امروز است"),
+  };
+}
+
+function parseBirthMoment(
+  report: AstrologyReport,
+  birthDateParts: BirthDateParts,
+  birthTimeParts: BirthTimeParts,
+) {
+  if (report.realEngine?.utcIso) {
+    const utcBirthMoment = new Date(report.realEngine.utcIso);
+
+    if (!Number.isNaN(utcBirthMoment.getTime())) {
+      return utcBirthMoment;
+    }
+  }
+
+  const localBirthMoment = new Date(
+    birthDateParts.year,
+    birthDateParts.month - 1,
+    birthDateParts.day,
+    birthTimeParts.hour,
+    birthTimeParts.minute,
+    0,
+    0,
+  );
+
+  if (Number.isNaN(localBirthMoment.getTime())) {
+    return null;
+  }
+
+  return localBirthMoment;
+}
+
+function parseBirthDateParts(value: string): BirthDateParts | null {
+  const normalizedValue = normalizeNumberText(value).trim();
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(normalizedValue);
+
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsedDate = new Date(year, month - 1, day);
+
+  if (
+    Number.isNaN(parsedDate.getTime()) ||
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return { year, month, day };
+}
+
+function parseBirthTimeParts(value: string): BirthTimeParts {
+  const normalizedValue = normalizeNumberText(value).trim();
+  const match = /^(\d{1,2}):(\d{2})/.exec(normalizedValue);
+
+  if (!match) {
+    return { hour: 0, minute: 0 };
+  }
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    return { hour: 0, minute: 0 };
+  }
+
+  return { hour, minute };
+}
+
+function getNextBirthdayDate(
+  now: Date,
+  birthDateParts: BirthDateParts,
+  birthTimeParts: BirthTimeParts,
+) {
+  let nextBirthday = createBirthdayDate(now.getFullYear(), birthDateParts, birthTimeParts);
+
+  if (nextBirthday.getTime() <= now.getTime()) {
+    nextBirthday = createBirthdayDate(now.getFullYear() + 1, birthDateParts, birthTimeParts);
+  }
+
+  return nextBirthday;
+}
+
+function createBirthdayDate(
+  year: number,
+  birthDateParts: BirthDateParts,
+  birthTimeParts: BirthTimeParts,
+) {
+  const birthday = new Date(
+    year,
+    birthDateParts.month - 1,
+    birthDateParts.day,
+    birthTimeParts.hour,
+    birthTimeParts.minute,
+    0,
+    0,
+  );
+
+  if (birthday.getMonth() !== birthDateParts.month - 1) {
+    return new Date(year, 1, 28, birthTimeParts.hour, birthTimeParts.minute, 0, 0);
+  }
+
+  return birthday;
+}
+
+function diffCalendarParts(from: Date, to: Date): DurationParts {
+  let years = to.getFullYear() - from.getFullYear();
+  let months = to.getMonth() - from.getMonth();
+  let days = to.getDate() - from.getDate();
+  let hours = to.getHours() - from.getHours();
+  let minutes = to.getMinutes() - from.getMinutes();
+
+  if (minutes < 0) {
+    hours -= 1;
+    minutes += 60;
+  }
+
+  if (hours < 0) {
+    days -= 1;
+    hours += 24;
+  }
+
+  if (days < 0) {
+    months -= 1;
+    days += new Date(to.getFullYear(), to.getMonth(), 0).getDate();
+  }
+
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  return { years, months, days, hours };
+}
+
+function formatDurationParts(parts: DurationParts, emptyLabel: string) {
+  const formattedParts = [
+    { value: parts.years, label: "سال" },
+    { value: parts.months, label: "ماه" },
+    { value: parts.days, label: "روز" },
+    { value: parts.hours, label: "ساعت" },
+  ]
+    .filter((part) => part.value > 0)
+    .map((part) => `${formatPersianNumber(part.value)} ${part.label}`);
+
+  if (formattedParts.length === 0) {
+    return emptyLabel;
+  }
+
+  return joinPersianList(formattedParts);
+}
+
+function joinPersianList(parts: string[]) {
+  if (parts.length <= 1) {
+    return parts[0] ?? "";
+  }
+
+  return `${parts.slice(0, -1).join("، ")} و ${parts[parts.length - 1]}`;
+}
+
+function formatPersianNumber(value: number) {
+  return PERSIAN_NUMBER_FORMATTER.format(value);
+}
+
+function normalizeNumberText(value: string) {
+  const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+  const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+
+  return value.replace(/[۰-۹٠-٩]/g, (digit) => {
+    const persianIndex = persianDigits.indexOf(digit);
+
+    if (persianIndex >= 0) {
+      return String(persianIndex);
+    }
+
+    const arabicIndex = arabicDigits.indexOf(digit);
+
+    return arabicIndex >= 0 ? String(arabicIndex) : digit;
+  });
 }
