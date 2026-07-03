@@ -35,6 +35,7 @@
     "check:zodiac-qa-fixtures": "node scripts/check-zodiac-qa-fixtures.mjs",
     "check:house-aspect-layer": "node scripts/check-house-aspect-layer.mjs",
     "check:real-engine-houses": "node scripts/check-real-engine-houses.mjs",
+    "check:house-angles-report-experience": "node scripts/check-house-angles-report-experience.mjs",
     "check:core": "pnpm run clean:temp && pnpm run check:encoding && pnpm run check:language-system && pnpm run check:product-surface && pnpm run check:paid-mvp-shell && pnpm run check:site-chrome-minimal-ui",
     "check:engine": "pnpm run check:chart-engine && pnpm run check:chart-engine-integration && pnpm run check:real-chart-engine-decision && pnpm run check:astronomy-engine-prototype && pnpm run check:timezone-readiness && pnpm run check:zodiac-qa-fixtures && pnpm run check:house-aspect-layer && pnpm run check:real-engine-houses && pnpm run check:real-chart-normalization",
     "check:reports": "pnpm run check:report-quality && pnpm run check:interpretation && pnpm run check:report-output-v2 && pnpm run check:report-output-v2-ux && pnpm run check:report-output-v2-actions && pnpm run check:report-output-v2-readability && pnpm run check:report-experience-v3 && pnpm run check:report-sample-qa && pnpm run check:chart-report-enrichment && pnpm run check:report-real-chart-bridge && pnpm run check:real-chart-report-preview && pnpm run check:real-chart-copy-library && pnpm run check:chart-form-report-flow && pnpm run check:real-aspect-narrative && pnpm run check:report-detail-product-ui",

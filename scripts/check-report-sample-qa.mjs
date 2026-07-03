@@ -62,6 +62,21 @@ require.extensions[".ts"] = function compileTypeScript(module, filename) {
 
 const { enrichReportWithRealEngineCopy } = require("../lib/astrology/real-engine-report-writer.ts");
 
+const signOrder = [
+  "aries",
+  "taurus",
+  "gemini",
+  "cancer",
+  "leo",
+  "virgo",
+  "libra",
+  "scorpio",
+  "sagittarius",
+  "capricorn",
+  "aquarius",
+  "pisces",
+];
+
 const signStarts = {
   aries: 0,
   taurus: 30,
@@ -159,16 +174,96 @@ function makeBaseReport(id, input, chartSigns) {
 }
 
 function makeSnapshot({ cityLabel, ascendantLongitude, placements }) {
+  const angles = makeAngles(ascendantLongitude);
+  const houses = makeWholeSignHouses(ascendantLongitude, placements, angles);
+
   return {
     version: "real-engine-preview-v1",
     generatedAt: "2026-07-02T12:00:00.000Z",
     cityLabel,
     utcIso: "1992-08-12T07:30:00.000Z",
     ascendantLongitude,
+    houseSystem: "whole-sign",
+    houses,
+    angles,
+    calculationQuality: {
+      status: "partial",
+      houseSystemStatus: "calculated",
+      anglesStatus: "calculated",
+      retrogradeStatus: "not-calculated",
+      nodesStatus: "not-calculated",
+      lilithStatus: "not-calculated",
+      limitations: ["sample QA fixture"],
+      warnings: [],
+    },
     placements,
     note:
-      "نمونه QA برای خواندن خروجی واقعی گزارش؛ house و ascendant همچنان باید با احتیاط و به شکل تقریبی خوانده شوند.",
+      "نمونه QA برای خواندن خروجی واقعی گزارش؛ خانه‌ها و محورهای اصلی در fixture ذخیره شده‌اند تا متن گزارش کامل‌تر تست شود.",
   };
+}
+
+function makeAngles(ascendantLongitude) {
+  const asc = makeAngle("asc", "ASC / رایزینگ", ascendantLongitude, ascendantLongitude, "calculated", "calculated");
+  const dsc = makeAngle("dsc", "DSC / نقطه روبه‌رو", ascendantLongitude + 180, ascendantLongitude, "derived-opposition", "derived");
+  const mc = makeAngle("mc", "MC / میانه آسمان", ascendantLongitude + 92, ascendantLongitude, "calculated", "calculated");
+  const ic = makeAngle("ic", "IC / ریشه آسمان", ascendantLongitude + 272, ascendantLongitude, "derived-opposition", "derived");
+
+  return { asc, dsc, mc, ic };
+}
+
+function makeAngle(id, label, longitude, ascendantLongitude, source, reliability) {
+  const normalized = normalizeLongitude(longitude);
+  const ascSign = signOrder[Math.floor(normalizeLongitude(ascendantLongitude) / 30) % 12];
+  const signId = signOrder[Math.floor(normalized / 30) % 12];
+
+  return {
+    id,
+    label,
+    longitude: normalized,
+    signId,
+    degreeInSign: normalized % 30,
+    method: "v0.1.158-sample-qa-fixture",
+    source,
+    reliability,
+    house: getWholeSignHouseNumber(signId, ascSign),
+    limitation: null,
+  };
+}
+
+function makeWholeSignHouses(ascendantLongitude, placements, angles) {
+  const ascSign = signOrder[Math.floor(normalizeLongitude(ascendantLongitude) / 30) % 12];
+  const ascSignIndex = signOrder.indexOf(ascSign);
+
+  return Array.from({ length: 12 }, (_, index) => {
+    const number = index + 1;
+    const signId = signOrder[(ascSignIndex + index) % 12];
+    const angleIds = Object.values(angles)
+      .filter((angle) => getWholeSignHouseNumber(angle.signId, ascSign) === number)
+      .map((angle) => angle.id);
+
+    return {
+      number,
+      signId,
+      cuspLongitude: signStarts[signId],
+      degreeInSign: 0,
+      system: "whole-sign",
+      method: "whole-sign-from-ascendant",
+      reliability: "calculated",
+      planetIds: placements.filter((item) => item.house === number).map((item) => item.id),
+      angleIds,
+      limitation: null,
+    };
+  });
+}
+
+function getWholeSignHouseNumber(signId, ascSignId) {
+  const signIndex = signOrder.indexOf(signId);
+  const ascIndex = signOrder.indexOf(ascSignId);
+  return ((signIndex - ascIndex + 12) % 12) + 1;
+}
+
+function normalizeLongitude(value) {
+  return ((value % 360) + 360) % 360;
 }
 
 const samples = [
@@ -280,6 +375,8 @@ for (const sample of samples) {
   const ids = sections.map((section) => section.id);
   const totalWords = sections.reduce((sum, section) => sum + wordCount(section.body), 0);
   const aspectCount = enriched.realEngine?.aspects?.length ?? 0;
+  const housesCount = enriched.realEngine?.houses?.length ?? 0;
+  const hasAnglesSection = ids.includes("real-engine-houses-angles");
 
   if (!Array.isArray(sections) || sections.length < requiredSectionIds.length) {
     failures.push(`${sample.id}: expected at least ${requiredSectionIds.length} generated sections, got ${sections.length}`);
@@ -332,6 +429,20 @@ for (const sample of samples) {
 
   if (aspectCount < 3) {
     failures.push(`${sample.id}: expected at least 3 calculated aspects, got ${aspectCount}`);
+  }
+
+  if (housesCount !== 12) {
+    failures.push(`${sample.id}: expected 12 real engine houses, got ${housesCount}`);
+  }
+
+  if (!hasAnglesSection) {
+    failures.push(`${sample.id}: missing house/angles interpretation section`);
+  }
+
+  for (const marker of ["محور ASC/DSC", "محور MC/IC", "۱۲ خانه Whole Sign"]) {
+    if (!combined.includes(marker)) {
+      failures.push(`${sample.id}: missing house/angles marker ${marker}`);
+    }
   }
 
 

@@ -1,6 +1,10 @@
 import type {
   AstrologyReport,
+  RealEngineReportAngle,
+  RealEngineReportAngleId,
+  RealEngineReportAngles,
   RealEngineReportAspect,
+  RealEngineReportHouse,
   RealEngineReportHouseContext,
   RealEngineReportPlacement,
   RealEngineReportSnapshot,
@@ -191,6 +195,31 @@ const PLANET_COPY: Record<string, PlanetCopy> = {
     faName: "پلوتو",
     title: "عمق و دگرگونی",
     role: "شدت، قدرت پنهان و مسیرهایی که تو را از درون بازسازی می‌کنند",
+  },
+};
+
+const WRITER_ANGLE_ORDER: RealEngineReportAngleId[] = ["asc", "dsc", "mc", "ic"];
+
+const ANGLE_COPY: Record<RealEngineReportAngleId, { faName: string; axis: string; meaning: string }> = {
+  asc: {
+    faName: "ASC / رایزینگ",
+    axis: "محور ASC/DSC",
+    meaning: "دروازه ورود تو به جهان، بدن، تصویر اولیه و شیوه شروع کردن موقعیت‌ها",
+  },
+  dsc: {
+    faName: "DSC / نقطه روبه‌رو",
+    axis: "محور ASC/DSC",
+    meaning: "آینه رابطه، شراکت و کیفیتی که در دیگری پررنگ‌تر دیده می‌شود",
+  },
+  mc: {
+    faName: "MC / میانه آسمان",
+    axis: "محور MC/IC",
+    meaning: "مسیر بیرونی، اعتبار، جهت اجتماعی و چیزی که در جهان ساخته می‌شود",
+  },
+  ic: {
+    faName: "IC / ریشه آسمان",
+    axis: "محور MC/IC",
+    meaning: "ریشه درونی، خانه، گذشته و جایی که احساس بنیاد روانی ساخته می‌شود",
   },
 };
 
@@ -457,6 +486,7 @@ export function enrichReportWithRealEngineCopy(
     realEngine.houseContext,
   );
   const houseText = buildHouseContextText(realEngine.houseContext, risingSign);
+  const houseAnglesText = buildHouseAnglesText(realEngineWithAspects);
   const mercuryText = buildOptionalPlacementText(mercury, "mercury");
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
@@ -475,6 +505,8 @@ export function enrichReportWithRealEngineCopy(
     venus,
     mars,
     aspectCount: aspects.length,
+    houseCount: realEngineWithAspects.houses?.length ?? 0,
+    hasAngles: hasCompleteAngles(realEngineWithAspects.angles),
   });
   const interpretations = [
     sunText,
@@ -483,6 +515,7 @@ export function enrichReportWithRealEngineCopy(
     moonAspectText,
     risingText,
     houseText,
+    houseAnglesText,
     mercuryText,
     mercuryAspectText,
     venusText,
@@ -498,6 +531,7 @@ export function enrichReportWithRealEngineCopy(
     moonText,
     risingText,
     houseText,
+    houseAnglesText,
     mercuryText,
     venusText,
     marsText,
@@ -526,6 +560,7 @@ type RealEngineSectionEvidence = {
   relationshipEvidence?: string;
   careerEvidence?: string;
   growthEvidence?: string;
+  houseAnglesEvidence?: string;
 };
 
 type RealEngineSectionEvidenceInput = {
@@ -536,6 +571,8 @@ type RealEngineSectionEvidenceInput = {
   venus: RealEngineReportPlacement | undefined;
   mars: RealEngineReportPlacement | undefined;
   aspectCount: number;
+  houseCount: number;
+  hasAngles: boolean;
 };
 
 type RealEngineSectionTextInput = {
@@ -544,6 +581,7 @@ type RealEngineSectionTextInput = {
   moonText?: string;
   risingText?: string;
   houseText?: string;
+  houseAnglesText?: string;
   mercuryText?: string;
   venusText?: string;
   marsText?: string;
@@ -559,6 +597,7 @@ type RealEngineSectionTextInput = {
   relationshipEvidence?: string;
   careerEvidence?: string;
   growthEvidence?: string;
+  houseAnglesEvidence?: string;
 };
 
 function buildRealEngineSectionEvidence({
@@ -569,6 +608,8 @@ function buildRealEngineSectionEvidence({
   venus,
   mars,
   aspectCount,
+  houseCount,
+  hasAngles,
 }: RealEngineSectionEvidenceInput): RealEngineSectionEvidence {
   const risingEvidence = `رایزینگ در ${formatSignLabel(SIGN_COPY[risingSign])}`;
 
@@ -590,6 +631,10 @@ function buildRealEngineSectionEvidence({
       buildPlacementEvidenceLabel(sun, "sun"),
       buildPlacementEvidenceLabel(moon, "moon"),
       risingEvidence,
+    ),
+    houseAnglesEvidence: joinEvidenceLabels(
+      houseCount === 12 ? "۱۲ خانه Whole Sign محاسبه‌شده" : undefined,
+      hasAngles ? "ASC/DSC/MC/IC در snapshot" : undefined,
     ),
   };
 }
@@ -795,6 +840,112 @@ function buildHouseContextText(
   ].join(" ");
 }
 
+function buildHouseAnglesText(realEngine: RealEngineReportSnapshot): string | undefined {
+  const houses = getSortedReportHouses(realEngine.houses);
+  const angles = getOrderedReportAngles(realEngine.angles);
+
+  if (houses.length !== 12 && angles.length === 0) {
+    return undefined;
+  }
+
+  const houseSystemText =
+    houses.length === 12
+      ? "خانه‌های این گزارش بر اساس سیستم Whole Sign کامل شده‌اند؛ یعنی خانه اول از نشان رایزینگ آغاز می‌شود و هر نشان بعدی یک خانه کامل را می‌سازد."
+      : "در این نسخه هنوز آرایه کامل ۱۲ خانه در snapshot ذخیره نشده است، پس خانه‌ها فقط با احتیاط خوانده می‌شوند.";
+  const anglesText = angles.length > 0 ? buildAnglesNarrative(angles) : undefined;
+  const ascDscText = realEngine.angles?.asc && realEngine.angles?.dsc
+    ? "محور ASC/DSC پیوند میان «من چگونه وارد جهان می‌شوم» و «در رابطه چه چیزی روبه‌روی من می‌ایستد» را نشان می‌دهد."
+    : undefined;
+  const mcIcText = realEngine.angles?.mc && realEngine.angles?.ic
+    ? "محور MC/IC مسیر بیرونی و ریشه درونی را جدا از شماره خانه‌ها می‌خواند؛ MC لزوماً با خانه ۱۰ یکی نیست و IC هم فقط نام دیگر خانه ۴ نیست."
+    : undefined;
+  const housesText = houses.length === 12 ? buildWholeSignHouseNarrative(houses, realEngine.placements) : undefined;
+
+  return [houseSystemText, anglesText, ascDscText, mcIcText, housesText]
+    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+    .join(" ");
+}
+
+function getSortedReportHouses(houses: RealEngineReportHouse[] | undefined): RealEngineReportHouse[] {
+  if (!Array.isArray(houses)) {
+    return [];
+  }
+
+  return houses
+    .filter((house) => house.system === "whole-sign" && house.reliability === "calculated")
+    .slice()
+    .sort((first, second) => first.number - second.number);
+}
+
+function getOrderedReportAngles(angles: RealEngineReportAngles | undefined): RealEngineReportAngle[] {
+  if (!angles) {
+    return [];
+  }
+
+  return WRITER_ANGLE_ORDER.map((id) => angles[id]).filter(
+    (angle): angle is RealEngineReportAngle => Boolean(angle),
+  );
+}
+
+function hasCompleteAngles(angles: RealEngineReportAngles | undefined): boolean {
+  return Boolean(angles?.asc && angles.dsc && angles.mc && angles.ic);
+}
+
+function buildAnglesNarrative(angles: RealEngineReportAngle[]): string {
+  const details = angles.map((angle) => {
+    const copy = ANGLE_COPY[angle.id];
+    const sign = SIGN_COPY[angle.signId];
+    const houseSuffix = typeof angle.house === "number" ? `، خانه ${toPersianNumber(angle.house)}` : "";
+    const sourceLabel = angle.source === "derived-opposition" ? "مشتق‌شده از محور مقابل" : "محاسبه‌شده";
+
+    return `${copy.faName}: ${formatSignLabel(sign)}، درجه ${formatDegree(angle.degreeInSign)}${houseSuffix}؛ ${sourceLabel}. ${copy.meaning}`;
+  });
+
+  return `محورهای اصلی ذخیره‌شده در snapshot چنین‌اند: ${details.join(" ")}`;
+}
+
+function buildWholeSignHouseNarrative(
+  houses: RealEngineReportHouse[],
+  placements: RealEngineReportPlacement[],
+): string {
+  const houseStarts = houses
+    .map((house) => `خانه ${toPersianNumber(house.number)} از ${formatSignLabel(SIGN_COPY[house.signId])}`)
+    .join("؛ ");
+  const activeHouses = houses
+    .map((house) => buildActiveHouseNarrative(house, placements))
+    .filter((part): part is string => Boolean(part));
+
+  return [
+    `نقشه شروع خانه‌ها: ${houseStarts}.`,
+    activeHouses.length > 0
+      ? `خانه‌های فعال‌تر این چارت از نظر سیاره‌ها و محورها: ${activeHouses.join(" ")}`
+      : "در snapshot فعلی، خانه‌ها ذخیره شده‌اند اما سیاره شاخصی برای برجسته‌کردن یک خانه خاص ثبت نشده است.",
+  ].join(" ");
+}
+
+function buildActiveHouseNarrative(
+  house: RealEngineReportHouse,
+  placements: RealEngineReportPlacement[],
+): string | undefined {
+  const copy = HOUSE_COPY[house.number];
+  const planetIds = Array.isArray(house.planetIds)
+    ? house.planetIds
+    : placements.filter((placement) => placement.house === house.number).map((placement) => placement.id);
+  const angleLabels = (Array.isArray(house.angleIds) ? house.angleIds : [])
+    .map((angleId) => ANGLE_COPY[angleId]?.faName)
+    .filter((label): label is string => Boolean(label));
+  const planetLabels = planetIds
+    .map((planetId) => PLANET_COPY[planetId]?.faName ?? planetId)
+    .filter(Boolean);
+  const focusLabels = [...planetLabels, ...angleLabels];
+
+  if (focusLabels.length === 0 || !copy) {
+    return undefined;
+  }
+
+  return `خانه ${toPersianNumber(house.number)} با ${focusLabels.join("، ")} پررنگ شده است؛ میدان آن ${copy.field} است و هدیه‌اش ${copy.gift}.`;
+}
+
 function buildRisingDescriptor(
   houseContext: RealEngineReportHouseContext | undefined,
 ) {
@@ -952,6 +1103,10 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
     aspectCount > 0
       ? ` در لایه روابط سیاره‌ها هم ${aspectCount} ارتباط اصلی ذخیره شده که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند.`
       : " در این نسخه، تمرکز اصلی روی جایگاه‌های واقعی‌تر سیاره‌هاست و لایه روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
+  const houseSummary =
+    realEngine.houses?.length === 12
+      ? " در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در snapshot گزارش ذخیره شده‌اند."
+      : " لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که snapshot داده واقعی کافی داشته باشد.";
 
   return [
     `جمع‌بندی چارت: ${visiblePlacements}.`,
@@ -959,6 +1114,7 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
     "برای خواندن این گزارش، بهتر است خورشید را مثل مسیر آگاهانه، ماه را مثل نیاز عاطفی و رایزینگ را مثل دروازه ورود به جهان ببینی.",
     "وقتی این سه لایه با هم خوانده شوند، گزارش از فهرست جایگاه‌ها به یک روایت شخصی‌تر نزدیک می‌شود: چه چیزی در تو روشن می‌شود، چه چیزی تو را آرام می‌کند، و چگونه خودت را به جهان نشان می‌دهی.",
     aspectSummary.trim(),
+    houseSummary.trim(),
   ].join(" ");
 }
 
@@ -990,8 +1146,24 @@ function buildRealEngineInterpretationSections(
     input.integrationText ??
     input.summary ??
     "این بخش از گزارش بر اساس داده‌های محاسبه‌شده چارت نوشته شده و باید نمادین، آرام و غیرقطعی خوانده شود.";
+  const houseAnglesSection: ReportOutputSection | null = input.houseAnglesText
+    ? {
+        id: "real-engine-houses-angles",
+        kind: "overview",
+        title: "خانه‌ها و محورهای چارت",
+        body: buildStructuredSectionBody({
+          opening: buildEvidenceOpening(
+            input.houseAnglesEvidence,
+            "این فصل نقشه خانه‌ها و محورهای اصلی را به زبان انسانی وارد گزارش می‌کند؛ یعنی داده‌های تازه snapshot فقط در پشت صحنه نمی‌مانند.",
+          ),
+          body: input.houseAnglesText,
+          closing:
+            "خانه‌ها را مثل میدان‌های زندگی بخوان و محورهای ASC/DSC و MC/IC را مثل دو خط اصلی جهت‌گیری؛ هیچ‌کدام حکم قطعی درباره رویدادها نیستند.",
+        }),
+      }
+    : null;
 
-  return [
+  return ([
     {
       id: "real-engine-overview",
       kind: "overview",
@@ -1004,6 +1176,7 @@ function buildRealEngineInterpretationSections(
           "برای خواندن ادامه گزارش، هر بخش را نه به عنوان حکم قطعی، بلکه مثل یک زاویه مشاهده و گفت‌وگو با خودت ببین.",
       }),
     },
+    houseAnglesSection,
     {
       id: "real-engine-identity",
       kind: "identity",
@@ -1079,7 +1252,7 @@ function buildRealEngineInterpretationSections(
       title: "تمرین پایانی برای خواندن گزارش",
       body: buildRealEngineReflectionPrompts(input),
     },
-  ];
+  ].filter((section): section is ReportOutputSection => section !== null));
 }
 
 type StructuredSectionBodyInput = {

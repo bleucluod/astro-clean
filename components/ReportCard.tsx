@@ -6,7 +6,12 @@ import {
   normalizeLongitude,
   zodiacSignFromLongitude,
 } from "@/lib/astrology/zodiac-labels";
-import type { AstrologyReport, RealEngineReportPlacement } from "@/types/astro";
+import type {
+  AstrologyReport,
+  RealEngineReportAngle,
+  RealEngineReportHouse,
+  RealEngineReportPlacement,
+} from "@/types/astro";
 
 type ReportCardProps = {
   report: AstrologyReport;
@@ -25,6 +30,30 @@ const PLANET_LABELS_FA: Record<string, string> = {
   pluto: "پلوتو",
 };
 
+const ANGLE_ORDER = ["asc", "dsc", "mc", "ic"] as const;
+type ReportAngleId = (typeof ANGLE_ORDER)[number];
+
+const ANGLE_UI_COPY: Record<ReportAngleId, { title: string; axis: string }> = {
+  asc: { title: "ASC / رایزینگ", axis: "محور من و شیوه ورود به جهان" },
+  dsc: { title: "DSC / نقطه روبه‌رو", axis: "محور رابطه، آینه‌های نزدیک و دیگری" },
+  mc: { title: "MC / میانه آسمان", axis: "مسیر بیرونی، اعتبار و جهتی که در جهان ساخته می‌شود" },
+  ic: { title: "IC / ریشه آسمان", axis: "ریشه درونی، خانه، گذشته و جای امن روان" },
+};
+
+const HOUSE_FIELD_UI_LABELS: Record<number, string> = {
+  1: "بدن، تصویر بیرونی و شروع‌های شخصی",
+  2: "ارزش، امنیت و منابع",
+  3: "ذهن، یادگیری و ارتباط نزدیک",
+  4: "خانه، ریشه و امنیت درونی",
+  5: "خلاقیت، عشق و بیان شخصی",
+  6: "کار روزمره، بدن و مراقبت",
+  7: "رابطه یک‌به‌یک و شراکت",
+  8: "اعتماد، صمیمیت عمیق و دگرگونی",
+  9: "معنا، سفر و جهان‌بینی",
+  10: "مسیر اجتماعی، مسئولیت و اثر بیرونی",
+  11: "دوستی‌ها، جمع‌ها و آینده‌سازی",
+  12: "خلوت، ناخودآگاه و رهاسازی",
+};
 
 const PERSIAN_NUMBER_FORMATTER = new Intl.NumberFormat("fa-IR");
 
@@ -104,6 +133,25 @@ type PlanetHouseRow = {
   placementLabel: string;
 };
 
+type AngleSummaryRow = {
+  id: string;
+  title: string;
+  positionLabel: string;
+  axisLabel: string;
+  houseLabel: string | null;
+  sourceLabel: string | null;
+};
+
+type HouseSummaryRow = {
+  id: string;
+  title: string;
+  signLabel: string;
+  cuspLabel: string;
+  fieldLabel: string;
+  planetsLabel: string;
+  anglesLabel: string;
+};
+
 type PlacementWithHouse = RealEngineReportPlacement & {
   house?: number | null;
   houseNumber?: number | null;
@@ -116,6 +164,8 @@ export function ReportCard({ report }: ReportCardProps) {
   const planetHouseRows = shownPlacements
     .map(buildPlanetHouseRow)
     .filter((row): row is PlanetHouseRow => row !== null);
+  const angleRows = buildAngleRows(report);
+  const houseRows = buildHouseRows(report, shownPlacements);
   const chartBalance = buildChartBalance(shownPlacements);
   const shownAspects = realEngineAspects;
   const birthTimeSummary = buildBirthTimeSummary(report);
@@ -256,6 +306,52 @@ export function ReportCard({ report }: ReportCardProps) {
             </details>
           ) : null}
 
+          {angleRows.length > 0 ? (
+            <details className="report-placement-details report-house-angle-section" open>
+              <summary>محورهای اصلی چارت</summary>
+              <p>
+                این بخش فقط وقتی نمایش داده می‌شود که ASC، DSC، MC و IC در snapshot
+                واقعی گزارش ذخیره شده باشند. MC/IC اینجا محور مستقل چارت‌اند، نه
+                مترادف ساده خانه ۱۰ و ۴.
+              </p>
+              <div className="report-placement-grid">
+                {angleRows.map((item) => (
+                  <div className="mini-card" key={item.id}>
+                    <strong>{item.title}</strong>
+                    <span>{item.positionLabel}</span>
+                    <span>{item.axisLabel}</span>
+                    {item.houseLabel ? <span>{item.houseLabel}</span> : null}
+                    {item.sourceLabel ? <span>{item.sourceLabel}</span> : null}
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
+
+          {houseRows.length === 12 ? (
+            <details className="report-placement-details report-house-grid" open>
+              <summary>راهنمای ۱۲ خانه Whole Sign</summary>
+              <p>
+                خانه‌های این گزارش با سیستم {formatHouseSystemLabel(report.realEngine.houseSystem)}
+                و از روی رایزینگ محاسبه‌شده ساخته شده‌اند. این جدول میدان‌های زندگی
+                را نشان می‌دهد؛ سیاره‌ها و محورهای هر خانه فقط از داده ذخیره‌شده
+                real engine خوانده می‌شوند.
+              </p>
+              <div className="report-placement-grid">
+                {houseRows.map((item) => (
+                  <div className="mini-card" key={item.id}>
+                    <strong>{item.title}</strong>
+                    <span>{item.signLabel}</span>
+                    <span>{item.cuspLabel}</span>
+                    <span>{item.fieldLabel}</span>
+                    <span>{item.planetsLabel}</span>
+                    <span>{item.anglesLabel}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
+
           {chartBalance ? (
             <details className="report-placement-details" open>
               <summary>انرژی کلی چارت</summary>
@@ -361,6 +457,125 @@ function buildCoreCards(report: AstrologyReport): CoreCard[] {
 
 function findPlacement(report: AstrologyReport, id: string) {
   return report.realEngine?.placements.find((placement) => placement.id === id);
+}
+
+function buildAngleRows(report: AstrologyReport): AngleSummaryRow[] {
+  const angles = report.realEngine?.angles;
+
+  if (!angles) {
+    return [];
+  }
+
+  return ANGLE_ORDER.map((id) => angles[id])
+    .filter((angle): angle is RealEngineReportAngle => isValidReportAngle(angle))
+    .map((angle) => {
+      const copy = ANGLE_UI_COPY[angle.id as ReportAngleId];
+      const positionLabel = `${formatZodiacLabel(angle.signId)}، درجه ${formatDegree(
+        angle.degreeInSign,
+      )}`;
+      const houseLabel = typeof angle.house === "number" ? `در خانه ${formatPersianNumber(angle.house)}` : null;
+
+      return {
+        id: angle.id,
+        title: copy.title,
+        positionLabel,
+        axisLabel: copy.axis,
+        houseLabel,
+        sourceLabel: formatAngleSourceLabel(angle),
+      };
+    });
+}
+
+function isValidReportAngle(angle: RealEngineReportAngle | undefined): angle is RealEngineReportAngle {
+  return Boolean(
+    angle &&
+      ANGLE_ORDER.includes(angle.id as ReportAngleId) &&
+      typeof angle.longitude === "number" &&
+      Number.isFinite(angle.longitude) &&
+      typeof angle.degreeInSign === "number" &&
+      Number.isFinite(angle.degreeInSign),
+  );
+}
+
+function buildHouseRows(
+  report: AstrologyReport,
+  placements: RealEngineReportPlacement[],
+): HouseSummaryRow[] {
+  const houses = report.realEngine?.houses ?? [];
+
+  if (houses.length !== 12) {
+    return [];
+  }
+
+  const placementLabelsById = new Map(
+    placements.map((placement) => [placement.id, getPlanetLabel(placement.id, placement.label)]),
+  );
+
+  return houses
+    .filter(isValidReportHouse)
+    .sort((first, second) => first.number - second.number)
+    .map((house) => {
+      const explicitPlanetIds = Array.isArray(house.planetIds) ? house.planetIds : [];
+      const fallbackPlanetIds = placements
+        .filter((placement) => getPlacementHouseNumber(placement) === house.number)
+        .map((placement) => placement.id);
+      const planetLabels = Array.from(new Set([...explicitPlanetIds, ...fallbackPlanetIds]))
+        .map((planetId) => placementLabelsById.get(planetId) ?? PLANET_LABELS_FA[planetId] ?? planetId)
+        .filter(Boolean);
+      const angleLabels = (Array.isArray(house.angleIds) ? house.angleIds : [])
+        .map((angleId) => ANGLE_UI_COPY[angleId as ReportAngleId]?.title)
+        .filter((label): label is string => Boolean(label));
+
+      return {
+        id: `house-${house.number}`,
+        title: `خانه ${formatPersianNumber(house.number)}`,
+        signLabel: `شروع در ${formatZodiacLabel(house.signId)}`,
+        cuspLabel: `درجه شروع: ${formatDegree(house.degreeInSign)}`,
+        fieldLabel: HOUSE_FIELD_UI_LABELS[house.number] ?? "میدان زندگی",
+        planetsLabel: planetLabels.length > 0 ? `سیاره‌ها: ${joinPersianList(planetLabels)}` : "سیاره شاخصی در این خانه ذخیره نشده",
+        anglesLabel: angleLabels.length > 0 ? `محورها: ${joinPersianList(angleLabels)}` : "محور اصلی در این خانه ذخیره نشده",
+      };
+    });
+}
+
+function isValidReportHouse(house: RealEngineReportHouse): house is RealEngineReportHouse {
+  return (
+    typeof house.number === "number" &&
+    house.number >= 1 &&
+    house.number <= 12 &&
+    typeof house.cuspLongitude === "number" &&
+    Number.isFinite(house.cuspLongitude) &&
+    typeof house.degreeInSign === "number" &&
+    Number.isFinite(house.degreeInSign)
+  );
+}
+
+function formatAngleSourceLabel(angle: RealEngineReportAngle) {
+  if (angle.source === "derived-opposition") {
+    return "مشتق‌شده از محور مقابل";
+  }
+
+  if (angle.reliability === "calculated" || angle.source === "calculated") {
+    return "محاسبه‌شده از زمان و مکان تولد";
+  }
+
+  return angle.limitation ?? null;
+}
+
+function formatHouseSystemLabel(system: string | undefined) {
+  if (system === "whole-sign") {
+    return "Whole Sign";
+  }
+
+  if (system === "placidus") {
+    return "Placidus";
+  }
+
+  if (system === "equal-house") {
+    return "Equal House";
+  }
+
+  return "سیستم ذخیره‌شده در گزارش";
 }
 
 function buildChartBalance(placements: RealEngineReportPlacement[]): ChartBalanceSummary | null {
