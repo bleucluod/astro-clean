@@ -4,8 +4,13 @@ import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 import type {
   AstrologyReport,
   BirthInput,
+  RealEngineReportAngle,
+  RealEngineReportAngles,
+  RealEngineReportCalculationQuality,
+  RealEngineReportDeferredCalculation,
   RealEngineReportHouseContext,
   RealEngineReportPlacement,
+  RealEngineReportRetrogradeStatus,
   RealEngineReportSnapshot,
   ZodiacKey,
 } from "@/types/astro";
@@ -27,6 +32,7 @@ import type { NormalizedChart } from "../../src/lib/chart/normalized-chart";
 import {
   buildRealChartWorkbenchResult,
   type RealChartBirthInput,
+  type RealChartCalculatedAngle,
   type RealChartCalculatedPlacement,
   type RealChartWorkbenchResult,
 } from "../../src/lib/chart/real-chart-engine";
@@ -36,7 +42,7 @@ import {
 } from "../../src/lib/report-output/chart-enrichment";
 import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart-report-copy";
 
-export const REPORT_GENERATION_SERVICE_VERSION = "0.1.94" as const;
+export const REPORT_GENERATION_SERVICE_VERSION = "0.1.156" as const;
 
 type SectionedAstrologyReport = AstrologyReport & {
   interpretationSections: ReportOutputSection[];
@@ -171,6 +177,21 @@ export function buildRealEngineSnapshot(
     cityLabel: input.birthCity,
     utcIso: realChart.utcIso,
     ascendantLongitude: realChart.ascendantLongitude,
+    houseSystem: chartReportEnrichment?.houseContext.appliedSystem ?? "whole-sign",
+    angles: toRealEngineReportAngles(realChart),
+    calculationQuality: toRealEngineReportCalculationQuality(
+      realChart,
+      chartReportEnrichment,
+    ),
+    retrogrades: buildNotCalculatedRetrogradeStatus(),
+    lunarNodes: buildDeferredCalculation(
+      "lunar-nodes",
+      "Lunar node calculation is deferred until the ephemeris source is hardened.",
+    ),
+    lilith: buildDeferredCalculation(
+      "black-moon-lilith",
+      "Black Moon Lilith calculation is deferred until the point definition and ephemeris source are hardened.",
+    ),
     ...(chartReportEnrichment
       ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }
       : {}),
@@ -195,6 +216,81 @@ function toRealEngineReportHouseContext(
     ascendantLongitude: houseContext.ascendantLongitude,
     firstHouseCuspLongitude: houseContext.firstHouseCuspLongitude,
     limitation: houseContext.limitation,
+  };
+}
+
+function toRealEngineReportAngles(
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportAngles {
+  return {
+    asc: toRealEngineReportAngle(realChart.angles.asc),
+    dsc: toRealEngineReportAngle(realChart.angles.dsc),
+    mc: toRealEngineReportAngle(realChart.angles.mc),
+    ic: toRealEngineReportAngle(realChart.angles.ic),
+  };
+}
+
+function toRealEngineReportAngle(
+  angle: RealChartCalculatedAngle,
+): RealEngineReportAngle {
+  return {
+    id: angle.id,
+    label: angle.label,
+    longitude: angle.longitude,
+    signId: toZodiacKey(angle.signId),
+    degreeInSign: angle.degreeInSign,
+    method: angle.method,
+    source: angle.source,
+    reliability: angle.reliability,
+    house: null,
+    limitation: angle.limitation,
+  };
+}
+
+function toRealEngineReportCalculationQuality(
+  realChart: RealChartWorkbenchResult,
+  chartReportEnrichment: ChartReportEnrichment | null,
+): RealEngineReportCalculationQuality {
+  return {
+    status: "partial",
+    houseSystemStatus:
+      chartReportEnrichment?.houseContext.confidence === "calculated-ascendant"
+        ? "calculated"
+        : "preview",
+    anglesStatus: realChart.angles ? "calculated" : "preview",
+    retrogradeStatus: "not-calculated",
+    nodesStatus: "not-calculated",
+    lilithStatus: "not-calculated",
+    limitations: [
+      ...(chartReportEnrichment?.limitations ?? []),
+      "Retrograde motion is not calculated yet.",
+      "Lunar nodes are not calculated yet.",
+      "Black Moon Lilith is not calculated yet.",
+    ],
+    warnings: [
+      "ASC and MC are calculated from local sidereal time; DSC and IC are derived as direct oppositions.",
+      "MC is stored as an independent angle and must not be treated as the 10th house cusp.",
+    ],
+  };
+}
+
+function buildNotCalculatedRetrogradeStatus(): RealEngineReportRetrogradeStatus {
+  return {
+    status: "not-calculated",
+    method: null,
+    planetIds: [],
+    limitation: "Retrograde motion is deferred until the ephemeris velocity layer is hardened.",
+  };
+}
+
+function buildDeferredCalculation(
+  method: string,
+  limitation: string,
+): RealEngineReportDeferredCalculation {
+  return {
+    status: "not-calculated",
+    method,
+    limitation,
   };
 }
 

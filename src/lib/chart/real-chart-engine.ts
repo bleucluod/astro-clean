@@ -5,7 +5,7 @@ import {
   type NormalizedChartPointInput,
 } from "./normalized-chart";
 
-export const REAL_CHART_WORKBENCH_VERSION = "0.1.138a" as const;
+export const REAL_CHART_WORKBENCH_VERSION = "0.1.156" as const;
 
 export type RealChartBirthInput = {
   name?: string;
@@ -27,12 +27,39 @@ export type RealChartCalculatedPlacement = {
   method: "astronomy-engine-geocentric";
 };
 
+export type RealChartAngleId = "asc" | "dsc" | "mc" | "ic";
+
+export type RealChartCalculatedAngle = {
+  id: RealChartAngleId;
+  label: string;
+  longitude: number;
+  signId: string;
+  degreeInSign: number;
+  method:
+    | "astronomy-engine-local-sidereal-time-ascendant"
+    | "astronomy-engine-local-sidereal-time-midheaven"
+    | "derived-opposition-from-ascendant"
+    | "derived-opposition-from-midheaven";
+  source: "calculated" | "derived-opposition";
+  reliability: "calculated" | "derived";
+  limitation: string | null;
+};
+
+export type RealChartCalculatedAngles = {
+  asc: RealChartCalculatedAngle;
+  dsc: RealChartCalculatedAngle;
+  mc: RealChartCalculatedAngle;
+  ic: RealChartCalculatedAngle;
+};
+
 export type RealChartWorkbenchResult = {
   version: typeof REAL_CHART_WORKBENCH_VERSION;
   input: RealChartBirthInput;
   utcIso: string;
   ascendantLongitude: number;
   ascendantMethod: "astronomy-engine-local-sidereal-time";
+  midheavenLongitude: number;
+  angles: RealChartCalculatedAngles;
   calculationNotes: string[];
   placements: RealChartCalculatedPlacement[];
   normalizedChart: NormalizedChart;
@@ -83,6 +110,15 @@ export function buildRealChartWorkbenchResult(
     input.latitude,
     input.longitude,
   );
+  const midheavenLongitude = calculateMidheavenLongitude(
+    astroTime,
+    utcDate,
+    input.longitude,
+  );
+  const angles = buildRealChartAngles({
+    ascendantLongitude,
+    midheavenLongitude,
+  });
   const placements = calculateRealChartPlacements(astroTime);
   const normalizedChart = buildNormalizedChart({
     source: "astronomy-engine-prototype",
@@ -111,12 +147,16 @@ export function buildRealChartWorkbenchResult(
     utcIso: utcDate.toISOString(),
     ascendantLongitude,
     ascendantMethod: "astronomy-engine-local-sidereal-time",
+    midheavenLongitude,
+    angles,
     placements,
     normalizedChart,
     calculationNotes: [
       "Planetary positions are calculated from an Earth-centered vector and converted to the ecliptic plane with astronomy-engine.",
       "Timezone conversion uses the JavaScript Intl timezone database.",
       "Ascendant is calculated from astronomy-engine SiderealTime, birth latitude/longitude, and tropical obliquity.",
+      "Midheaven is calculated independently from local sidereal time and tropical obliquity; it is not treated as the 10th house cusp.",
+      "Descendant and IC are derived as exact oppositions from Ascendant and Midheaven.",
       "Houses use the whole-sign system anchored to the calculated Ascendant sign.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",
     ],
@@ -253,6 +293,112 @@ export function calculateAscendantLongitude(
   );
 
   return normalizeLongitude(ascendant + 180);
+}
+
+export function calculateMidheavenLongitude(
+  astroTime: Astronomy.AstroTime,
+  utcDate: Date,
+  longitude: number,
+): number {
+  const siderealHours = Number(Astronomy.SiderealTime(astroTime));
+
+  if (!Number.isFinite(siderealHours)) {
+    throw new Error("astronomy-engine did not return a finite sidereal time for Midheaven.");
+  }
+
+  const localSiderealDegrees = normalizeLongitude(siderealHours * 15 + longitude);
+  const obliquity = calculateMeanObliquityDegrees(utcDate);
+  const theta = degreesToRadians(localSiderealDegrees);
+  const epsilon = degreesToRadians(obliquity);
+  const midheaven = radiansToDegrees(
+    Math.atan2(Math.sin(theta), Math.cos(theta) * Math.cos(epsilon)),
+  );
+
+  return normalizeLongitude(midheaven);
+}
+
+export function calculateOppositeAngleLongitude(longitude: number): number {
+  return normalizeLongitude(longitude + 180);
+}
+
+export function buildRealChartAngles({
+  ascendantLongitude,
+  midheavenLongitude,
+}: {
+  ascendantLongitude: number;
+  midheavenLongitude: number;
+}): RealChartCalculatedAngles {
+  return {
+    asc: buildRealChartAngle({
+      id: "asc",
+      label: "Ascendant",
+      longitude: ascendantLongitude,
+      method: "astronomy-engine-local-sidereal-time-ascendant",
+      source: "calculated",
+      reliability: "calculated",
+      limitation: null,
+    }),
+    dsc: buildRealChartAngle({
+      id: "dsc",
+      label: "Descendant",
+      longitude: calculateOppositeAngleLongitude(ascendantLongitude),
+      method: "derived-opposition-from-ascendant",
+      source: "derived-opposition",
+      reliability: "derived",
+      limitation: "Derived as the exact opposition of the calculated Ascendant.",
+    }),
+    mc: buildRealChartAngle({
+      id: "mc",
+      label: "Midheaven",
+      longitude: midheavenLongitude,
+      method: "astronomy-engine-local-sidereal-time-midheaven",
+      source: "calculated",
+      reliability: "calculated",
+      limitation: "Calculated as an independent Midheaven angle, not as the 10th house cusp.",
+    }),
+    ic: buildRealChartAngle({
+      id: "ic",
+      label: "Imum Coeli",
+      longitude: calculateOppositeAngleLongitude(midheavenLongitude),
+      method: "derived-opposition-from-midheaven",
+      source: "derived-opposition",
+      reliability: "derived",
+      limitation: "Derived as the exact opposition of the calculated Midheaven.",
+    }),
+  };
+}
+
+function buildRealChartAngle({
+  id,
+  label,
+  longitude,
+  method,
+  source,
+  reliability,
+  limitation,
+}: {
+  id: RealChartAngleId;
+  label: string;
+  longitude: number;
+  method: RealChartCalculatedAngle["method"];
+  source: RealChartCalculatedAngle["source"];
+  reliability: RealChartCalculatedAngle["reliability"];
+  limitation: string | null;
+}): RealChartCalculatedAngle {
+  const normalizedLongitude = normalizeLongitude(longitude);
+  const sign = getZodiacSignForLongitude(normalizedLongitude);
+
+  return {
+    id,
+    label,
+    longitude: normalizedLongitude,
+    signId: sign.signId,
+    degreeInSign: sign.degreeInSign,
+    method,
+    source,
+    reliability,
+    limitation,
+  };
 }
 
 export function calculateApproximateAscendantLongitude(
