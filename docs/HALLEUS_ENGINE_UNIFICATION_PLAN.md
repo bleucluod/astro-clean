@@ -484,3 +484,17 @@ Implementation rules:
 
 Immediate next buildable step after this blueprint:
 - v0.1.155 complete natal chart data contract, scoped to shared types and static guards, with no UI promises yet.
+
+## v0.1.163 special points implementation gate
+
+Nodes and Lilith are gated behind a real source milestone.
+
+Next valid implementation sequence:
+
+1. Select a validated source for natal North Node longitude and document its method.
+2. Store North Node as a real ecliptic longitude and South Node as North Node + 180 degrees.
+3. Decide whether Halleus uses Mean Lilith or True Lilith; do not mix labels.
+4. Add source-level QA fixtures before UI/writer output.
+5. Only then expose Nodes/Lilith in snapshot, ReportCard, report writer, and chart wheel.
+
+The current astronomy-engine event helpers are useful audit clues but are not sufficient as a natal report point source.

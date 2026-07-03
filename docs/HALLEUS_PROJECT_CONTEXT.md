@@ -718,3 +718,10 @@ Minimal scoped approach:
 ## v0.1.155 workflow note
 
 - The first complete natal chart data contract runner failed at `pnpm build` because it created `_halleus_backup_v0155_*/types/*.ts` inside the repo, and Next.js typechecked those backup TypeScript files. The runner restored the tracked target files and the cleanup removed the untracked backup and runner. Prevention: runners must not create source-like backup files or folders inside the repo; use temp-dir backups outside `C:\Projects\astro-clean` or non-source/ignored backup payloads, and clean them after restore or success.
+
+## Workflow failure - v0.1.163 runner template literal syntax
+
+Error: the first v0.1.163 runner failed before patching because the generated Node patch script contained an unescaped nested template literal around the astronomy-engine check text.
+Where: v0.1.163 special points real source audit pack.
+Fixed: fix1 rewrites the generated patch/check content without nested JavaScript template literals and keeps backup/restore outside the repo.
+Prevention: for generated Node scripts embedded in PowerShell here-strings, avoid nested backtick template strings unless they are escaped or base64 encoded. Prefer plain string concatenation or line arrays.

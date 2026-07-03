@@ -917,3 +917,12 @@ Near-term version intent:
 - v0.1.159: natal chart QA fixtures.
 - v0.1.160: canonical realEngine snapshot.
 - v0.1.161+: full house/axis prose, retrogrades, nodes, Lilith, full UI sections, and chart wheel foundation.
+
+## v0.1.163 product guard: real special points only
+
+North Node, South Node, and Lilith are desirable for the complete Halleus report, but they must not appear as decorative or guessed content.
+
+Product rule:
+- Show Nodes/Lilith only after the engine has real natal point longitudes, QA fixtures, and a documented source method.
+- Lilith needs an explicit Mean Lilith versus True Lilith decision before implementation.
+- Until then, keep these fields deferred/hidden and avoid SEO/report claims that mention them as available.

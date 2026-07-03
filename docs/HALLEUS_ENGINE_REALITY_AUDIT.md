@@ -403,3 +403,23 @@ Allowed next UI step:
 Do not implement yet:
 - Do not fake DSC, IC, MC, Lilith, nodes, retrograde, or precise cusp arrays.
 - Do not build a full chart wheel that claims complete axes/house precision before the data contract is hardened.
+
+## v0.1.163 special points real source audit
+
+Current source audit for lunar nodes and Lilith/Black Moon points:
+
+- The inspected astronomy-engine package exposes event-search helpers such as SearchMoonNode / NextMoonNode and SearchLunarApsis / NextLunarApsis.
+- These APIs describe event times for lunar node crossings or lunar apsides. They are not a stable natal chart API for a North Node longitude, South Node longitude, Mean Lilith, or True Lilith at the birth moment.
+- A node crossing event must not be treated as the natal North Node point.
+- A lunar apsis event must not be treated as a Mean/True Black Moon Lilith point.
+- Therefore realEngine.lunarNodes and realEngine.lilith must remain deferred/hidden until Halleus has a validated source and QA fixtures for actual natal point longitudes.
+
+Allowed future implementation path:
+- Add or derive a validated ecliptic longitude source for North Node.
+- Derive South Node only as the exact opposition of a validated North Node.
+- Choose and document Mean Lilith or True Lilith before any Lilith UI/writer output.
+- Add snapshot fields, QA fixtures, ReportCard, writer, and wheel support only after the source is real.
+
+Do not implement yet:
+- Do not fake North Node, South Node, or Lilith from event-search APIs.
+- Do not show Nodes/Lilith in public reports, writer prose, or chart wheel until real point data exists.
