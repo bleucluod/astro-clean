@@ -926,3 +926,13 @@ Product rule:
 - Show Nodes/Lilith only after the engine has real natal point longitudes, QA fixtures, and a documented source method.
 - Lilith needs an explicit Mean Lilith versus True Lilith decision before implementation.
 - Until then, keep these fields deferred/hidden and avoid SEO/report claims that mention them as available.
+
+## v0.1.164 product decision: special points source path
+
+Product direction for complete reports:
+
+- North Node and South Node are still desirable for the complete Halleus report, but only after real natal longitude support exists.
+- Lilith is desirable but lower priority than Nodes because it needs a Mean Lilith versus True Lilith decision and separate validation.
+- Do not add a heavy ephemeris dependency just to make the report look complete.
+- Do not delay the paid/private/public model forever waiting for Lilith; the complete report can move forward with Nodes first and Lilith later.
+- Public copy should not claim Nodes/Lilith are available until the report UI/writer/wheel actually consume real snapshot fields.

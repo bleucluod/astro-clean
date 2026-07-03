@@ -498,3 +498,21 @@ Next valid implementation sequence:
 5. Only then expose Nodes/Lilith in snapshot, ReportCard, report writer, and chart wheel.
 
 The current astronomy-engine event helpers are useful audit clues but are not sufficient as a natal report point source.
+
+## v0.1.164 special points source decision
+
+Special points now have a concrete implementation decision:
+
+- The current runtime engine remains `astronomy-engine`.
+- No Swiss Ephemeris wrapper is approved for runtime use yet.
+- Nodes should be implemented before Lilith because South Node can be derived from a validated North Node opposition, while Lilith needs an explicit Mean/True decision.
+- The next buildable implementation milestone should be a Node-only hidden source spike with fixtures, not UI copy.
+- Lilith remains a separate milestone and must not share labels or assumptions with lunar apsis event APIs.
+
+Next valid sequence:
+
+1. Add a documented North Node longitude source behind checks.
+2. Add fixtures for at least a few known dates and longitude bounds.
+3. Fill `realEngine.lunarNodes` only after checks pass.
+4. Then add ReportCard, writer, and wheel support for Nodes.
+5. Decide Mean Lilith vs True Lilith before any Lilith implementation.

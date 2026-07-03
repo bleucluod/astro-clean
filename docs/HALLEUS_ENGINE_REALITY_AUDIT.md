@@ -423,3 +423,27 @@ Allowed future implementation path:
 Do not implement yet:
 - Do not fake North Node, South Node, or Lilith from event-search APIs.
 - Do not show Nodes/Lilith in public reports, writer prose, or chart wheel until real point data exists.
+
+## v0.1.164 special points source decision
+
+Decision after the v0.1.164 source review:
+
+- Keep `astronomy-engine` as the approved runtime astronomy dependency for the current Halleus engine path.
+- Do not add Swiss Ephemeris wrapper dependencies to the product runtime in this batch.
+- Treat `swisseph` and `sweph` as research candidates only until license, deployment, binary/runtime, and API stability risks are reviewed.
+- Do not use `SearchMoonNode`, `NextMoonNode`, `SearchLunarApsis`, or `NextLunarApsis` as substitutes for natal North Node, South Node, Mean Lilith, or True Lilith longitude.
+- Keep `realEngine.lunarNodes` and `realEngine.lilith` deferred/hidden until actual natal point longitudes are produced by a validated source.
+
+Preferred implementation order:
+
+1. Nodes first, Lilith later.
+2. Implement a hidden North Node source spike only after the formula/source and QA fixtures are documented in code/checks.
+3. Store South Node only as the exact opposition of a validated North Node longitude.
+4. Add ReportCard, writer, and chart wheel exposure only after the snapshot carries real node data.
+5. Keep Lilith deferred until Halleus chooses Mean Lilith or True Lilith and validates its source separately.
+
+Do not implement yet:
+
+- Do not install a new ephemeris dependency in a product batch without an explicit dependency/license/deployment gate.
+- Do not expose Nodes/Lilith in public reports as decorative or guessed content.
+- Do not let the desire for a complete report override source reality.
