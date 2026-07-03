@@ -252,7 +252,7 @@ export function calculateAscendantLongitude(
     ),
   );
 
-  return normalizeLongitude(ascendant);
+  return normalizeLongitude(ascendant + 180);
 }
 
 export function calculateApproximateAscendantLongitude(

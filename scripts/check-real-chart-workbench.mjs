@@ -161,6 +161,70 @@ if (!hasGeoVector || !hasEcliptic || !hasBodySun || !hasSiderealTime) {
   }
 }
 
+// tehran-noon-ascendant-guard
+const { readFileSync: readAscendantGuardFile } = await import("node:fs");
+const realChartEngineSourceForAscendantGuard = readAscendantGuardFile(
+  "src/lib/chart/real-chart-engine.ts",
+  "utf8",
+);
+
+if (!realChartEngineSourceForAscendantGuard.includes("return normalizeLongitude(ascendant + 180);")) {
+  failures.push(
+    "Ascendant calculation should correct the raw horizon formula by 180 degrees so the report uses the Ascendant, not the opposite Descendant point.",
+  );
+}
+
+function guardNormalizeLongitude(value) {
+  return ((value % 360) + 360) % 360;
+}
+
+function guardDegreesToRadians(degrees) {
+  return (degrees * Math.PI) / 180;
+}
+
+function guardRadiansToDegrees(radians) {
+  return (radians * 180) / Math.PI;
+}
+
+function guardCalculateAscendantLongitude(astroTime, latitude, longitude) {
+  const siderealHours = Number(astronomy.SiderealTime(astroTime));
+
+  if (!Number.isFinite(siderealHours)) {
+    return Number.NaN;
+  }
+
+  const localSiderealDegrees = guardNormalizeLongitude(siderealHours * 15 + longitude);
+  const theta = guardDegreesToRadians(localSiderealDegrees);
+  const epsilon = guardDegreesToRadians(23.4363);
+  const phi = guardDegreesToRadians(latitude);
+  const rawHorizonPoint = guardRadiansToDegrees(
+    Math.atan2(
+      -Math.cos(theta),
+      Math.sin(theta) * Math.cos(epsilon) + Math.tan(phi) * Math.sin(epsilon),
+    ),
+  );
+
+  return guardNormalizeLongitude(rawHorizonPoint + 180);
+}
+
+if (hasSiderealTime) {
+  const tehranNoonTime = new astronomy.AstroTime(
+    new Date(Date.UTC(2023, 9, 7, 8, 30, 0)),
+  );
+  const tehranAscendant = guardCalculateAscendantLongitude(
+    tehranNoonTime,
+    35.6892,
+    51.3890,
+  );
+
+  if (!(tehranAscendant >= 260 && tehranAscendant <= 275)) {
+    failures.push(
+      "Tehran 2023-10-07 12:00 local ascendant guard expected Sagittarius range 260-275 degrees, received " +
+        tehranAscendant.toFixed(2) +
+        ".",
+    );
+  }
+}
 if (failures.length > 0) {
   console.error("Real chart workbench check failed:");
   for (const failure of failures) {
