@@ -58,10 +58,12 @@ for (const marker of [
 for (const marker of [
   "ChartReportBridgePanel",
   "buildReportRealChartBridge",
-  "جایگاه‌ها و جنبه‌های چارت",
+  "report-bridge-summary-card",
+  "BridgeList",
   "formatBridgePointLabel",
   "formatBridgeAspectLabel",
-  "گزارش‌های قدیمی",
+  "formatBridgeHouseLabel",
+  "formatBridgeOrb",
 ]) {
   if (!componentSource.includes(marker)) {
     failures.push(`Bridge panel missing marker: ${marker}`);

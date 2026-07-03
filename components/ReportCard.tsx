@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { createShareText } from "@/lib/astrology/share-text";
 import {
   formatZodiacLabel,
   formatZodiacSign,
@@ -37,22 +35,10 @@ type CoreCard = {
 };
 
 export function ReportCard({ report }: ReportCardProps) {
-  const [copyMessage, setCopyMessage] = useState("");
   const realEngineAspects = report.realEngine?.aspects ?? [];
   const coreCards = buildCoreCards(report);
   const shownPlacements = report.realEngine?.placements.slice(0, 8) ?? [];
   const shownAspects = realEngineAspects.slice(0, 5);
-
-  async function handleCopyShareText() {
-    const shareText = createShareText(report);
-
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setCopyMessage("متن اشتراک‌گذاری کپی شد.");
-    } catch {
-      setCopyMessage("کپی خودکار ممکن نشد. متن را دستی کپی کن.");
-    }
-  }
 
   return (
     <article className="card report-card report-product-card">
@@ -71,8 +57,9 @@ export function ReportCard({ report }: ReportCardProps) {
           </h2>
 
           <p>
-            این صفحه خوانش ذخیره‌شده توست؛ ترکیبی از جایگاه‌های اصلی، روابط مهم
-            سیاره‌ها و متن فارسی نرم که برای خواندن دوباره و اشتراک‌گذاری آماده شده است.
+            این کارت خلاصه شخصی چارت توست: ورودی تولد، سه ستون اصلی، رایزینگ
+            محاسبه‌شده، جایگاه‌های اصلی و روابط مهم سیاره‌ها را قبل از ورود به
+            خوانش نهایی نشان می‌دهد.
           </p>
         </div>
 
@@ -84,6 +71,16 @@ export function ReportCard({ report }: ReportCardProps) {
             <span>
               {report.input.birthCity}، {report.input.birthCountry}
             </span>
+          </div>
+
+          <div className="actions report-product-card-actions">
+            <a className="button secondary" href="/reports">
+              گزارش‌های من
+            </a>
+
+            <a className="button secondary" href="#personal-note">
+              یادداشت کوتاه
+            </a>
           </div>
         </div>
       </header>
@@ -157,7 +154,7 @@ export function ReportCard({ report }: ReportCardProps) {
             <span className="section-label">روابط سیاره‌ها</span>
             <h3>روابط مهم بین سیاره‌ها</h3>
             <p>
-              aspectها نشان می‌دهند کدام بخش‌های چارت با هم جریان، حمایت، فشار یا
+              جنبه‌ها نشان می‌دهند کدام بخش‌های چارت با هم جریان، حمایت، فشار یا
               گفت‌وگوی درونی می‌سازند.
             </p>
           </div>
@@ -172,7 +169,7 @@ export function ReportCard({ report }: ReportCardProps) {
                     {aspect.secondPlanetLabel}
                   </strong>
                   <span>
-                    {aspect.aspectLabel} · orb {formatDegree(aspect.orb)}
+                    {aspect.aspectLabel} · اورب {formatDegree(aspect.orb)}
                   </span>
                 </div>
                 <p>{aspect.narrative}</p>
@@ -181,38 +178,6 @@ export function ReportCard({ report }: ReportCardProps) {
           </div>
         </section>
       ) : null}
-
-      <section className="report-section report-summary report-product-summary">
-        <div className="report-section-heading">
-          <span className="section-label">خوانش کلی</span>
-          <h3>تصویر کلی چارت</h3>
-        </div>
-        <p>{report.summary}</p>
-      </section>
-
-      <section className="report-section">
-        <div className="report-section-heading">
-          <span className="section-label">لایه‌های تفسیر</span>
-          <h3>جزئیات خوانش فارسی</h3>
-        </div>
-
-        <div className="report-list report-insight-list report-product-insight-list">
-          {report.interpretations.map((item, index) => (
-            <div className="mini-card report-insight" key={item}>
-              <strong>{index + 1}</strong>
-              <p>{item}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="actions report-product-actions">
-        <button className="button secondary" onClick={handleCopyShareText}>
-          کپی متن اشتراک‌گذاری
-        </button>
-      </div>
-
-      {copyMessage ? <p className="success-message">{copyMessage}</p> : null}
 
       <div className="notice report-notice report-product-notice">
         <p>{report.safetyNote}</p>

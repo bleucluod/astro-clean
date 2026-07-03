@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
-import { createShareText } from "@/lib/astrology/share-text";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import type { AstrologyReport } from "@/types/astro";
 
@@ -17,14 +15,6 @@ type ReportDetailProps = {
 };
 
 type ReportDetailSource = "local" | "beta-db";
-
-type BetaDatabaseSaveResponse = {
-  ok?: boolean;
-  error?: string;
-  reportRecord?: {
-    id?: string;
-  };
-};
 
 type BetaDatabaseReadResponse = {
   ok?: boolean;
@@ -45,48 +35,12 @@ function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
 
-function downloadJsonFile(fileName: string, data: unknown) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json",
-  });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  URL.revokeObjectURL(url);
-}
-
-function downloadTextFile(fileName: string, data: string) {
-  const blob = new Blob([data], {
-    type: "text/plain;charset=utf-8",
-  });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  URL.revokeObjectURL(url);
-}
 
 export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailProps) {
   const [report, setReport] = useState<AstrologyReport | null>(null);
   const [note, setNote] = useState("");
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [message, setMessage] = useState("");
-  const [betaDatabaseMessage, setBetaDatabaseMessage] = useState("");
-  const [isBetaDatabaseSaving, setIsBetaDatabaseSaving] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -114,9 +68,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
 
         setReport(payload.reportRecord.report);
         setNote(payload.reportRecord.note ?? "");
-        setIsFavorite(payload.reportRecord.favorite ?? false);
         setMessage(`گزارش آزمایشی سرور باز شد: ${reportId}`);
-        setBetaDatabaseMessage(`گزارش آزمایشی سرور باز شد: ${reportId}`);
         setIsReady(true);
         return;
       }
@@ -129,7 +81,6 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
 
       setReport(selectedRecord?.report ?? null);
       setNote(selectedRecord?.note ?? "");
-      setIsFavorite(selectedRecord?.favorite ?? false);
       setIsReady(true);
     }
 
@@ -154,85 +105,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     setMessage(note.trim() ? "یادداشت ذخیره شد." : "یادداشت پاک شد.");
   }
 
-  function handleExportReport() {
-    if (!report) {
-      return;
-    }
 
-    downloadJsonFile(`halleus-report-${report.id.slice(0, 8)}.json`, {
-      app: "halleus",
-      type: "single-report",
-      version: 2,
-      exportedAt: new Date().toISOString(),
-      report,
-      note,
-      isFavorite,
-    });
-
-    setMessage("فایل پشتیبان گزارش ساخته شد.");
-  }
-
-  function handleExportTextReport() {
-    if (!report) {
-      return;
-    }
-
-    const textLines = [createShareText(report)];
-
-    if (note.trim()) {
-      textLines.push("", "یادداشت:", note.trim());
-    }
-
-    downloadTextFile(
-      `halleus-report-${report.id.slice(0, 8)}.txt`,
-      textLines.join("\n"),
-    );
-
-    setMessage("خروجی متنی ساخته شد.");
-  }
-
-
-  async function handleBetaDatabaseSave() {
-    if (!report || isBetaDatabaseSaving) {
-      return;
-    }
-
-    setIsBetaDatabaseSaving(true);
-    setMessage("در حال ذخیره نسخه آزمایشی سرور...");
-    setBetaDatabaseMessage("در حال ذخیره نسخه آزمایشی سرور...");
-
-    try {
-      const response = await fetch("/api/reports/beta", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ report }),
-      });
-
-      const payload = (await response.json().catch(() => null)) as
-        | BetaDatabaseSaveResponse
-        | null;
-
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.error ?? "ذخیره نسخه آزمایشی سرور ناموفق بود.");
-      }
-
-      const savedReportId = payload.reportRecord?.id ?? report.id;
-      const successMessage = `نسخه آزمایشی سرور ذخیره شد: ${savedReportId}`;
-
-      setMessage(successMessage);
-      setBetaDatabaseMessage(successMessage);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "ذخیره نسخه آزمایشی سرور ناموفق بود.";
-
-      setMessage(errorMessage);
-      setBetaDatabaseMessage(errorMessage);
-    } finally {
-      setIsBetaDatabaseSaving(false);
-    }
-  }
   if (!isReady) {
     return (
       <section className="grid">
@@ -266,155 +139,56 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
 
   return (
     <section className="grid">
-      <div className="card">
-        <span className="badge">گزارش آماده‌ی مرور</span>
+      <ReportCard report={report} />
 
-        <h1>گزارش چارت تولد تو آماده است</h1>
-
-        <p>
-          اینجا صفحه‌ی مرور گزارش توست؛ می‌توانی برداشت‌های اصلی را بخوانی،
-          یادداشت شخصی اضافه کنی، نسخه پشتیبان بگیری و اگر خواستی برای گزارش
-          کامل‌تر اقدام کنی.
-        </p>
-
-        <div className="actions">
-          <Link className="button" href="#report-reading">
-            خواندن گزارش
-          </Link>
-
-          <Link className="button secondary" href="#personal-note">
-            نوشتن یادداشت
-          </Link>
-
-          <Link className="button secondary" href="/reports">
-            همه گزارش‌ها
-          </Link>
-        </div>
+      <div className="report-final-reading-anchor" id="final-reading">
+        <ReportV3Experience report={report} />
       </div>
 
-      <div id="report-reading">
-        <ReportCard report={report} />
-      </div>
-
-
-      <ChartReportBridgePanel report={report} />
-
-      <ReportV3Experience report={report} />
-
-      {isBetaDatabaseSaveUiEnabled ? (
-        <section className="card">
-          <span className="badge">ذخیره آزمایشی</span>
-
-          <h2>بررسی ذخیره سرور</h2>
-
+      <section className="card report-bottom-summary-panel" id="personal-note">
+        <div className="report-section-heading">
+          <span className="badge">پشتوانه گزارش</span>
+          <h2>خلاصه محاسبه و یادداشت</h2>
           <p>
-            این بخش فقط برای تست داخلی فعال می‌شود و کمک می‌کند نسخه محلی گزارش
-            از مسیر محافظت‌شده سرور ذخیره و بررسی شود.
+            سه کارت کوتاه برای مرور سریع: جایگاه‌های برجسته، جنبه‌های برجسته و
+            یک یادداشت کوچک که کنار همین گزارش در پنل می‌ماند.
           </p>
-
-          <div className="actions">
-            <button
-              className="button secondary"
-              disabled={isBetaDatabaseSaving}
-              type="button"
-              onClick={handleBetaDatabaseSave}
-            >
-              {isBetaDatabaseSaving
-                ? "در حال ذخیره..."
-                : "ذخیره نسخه آزمایشی"}
-            </button>
-          </div>
-
-          {betaDatabaseMessage ? (
-            <p className="success-message">{betaDatabaseMessage}</p>
-          ) : null}
-        </section>
-      ) : null}
-
-      <section className="card">
-        <span className="badge">قدم بعدی</span>
-
-        <h2>از این گزارش چه استفاده‌ای می‌کنی؟</h2>
-
-        <p>
-          اگر این گزارش برایت معنی‌دار بود، می‌توانی آن را ذخیره کنی، بعداً
-          دوباره بخوانی، یا برای دریافت خوانش کامل‌تر و انسانی‌تر سفارش بدهی.
-        </p>
-
-        <div className="actions">
-          <Link className="button" href="/order">
-            سفارش گزارش کامل‌تر
-          </Link>
-
-          <Link className="button secondary" href="/pricing">
-            دیدن پلن‌ها
-          </Link>
-
-          <Link className="button secondary" href="/chart">
-            ساخت گزارش جدید
-          </Link>
-        </div>
-      </section>
-
-      <section className="card report-note-card" id="personal-note">
-        <span className="badge">یادداشت شخصی</span>
-
-        <h2>برداشت خودت را کنار گزارش نگه دار</h2>
-
-        <p>
-          این یادداشت فقط برای مرور شخصی تو کنار همین گزارش نگه داشته می‌شود؛
-          مثل جایی برای ثبت حس، سوال یا نکته‌ای که بعداً می‌خواهی به آن برگردی.
-        </p>
-
-        <label className="field">
-          <span>یادداشت</span>
-          <textarea
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder="مثلاً: این گزارش را بعد از یک تصمیم مهم دوباره بخوانم..."
-            rows={6}
-          />
-        </label>
-
-        <div className="actions">
-          <button className="button" type="button" onClick={handleSaveNote}>
-            ذخیره یادداشت
-          </button>
-
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => setNote("")}
-          >
-            خالی کردن متن
-          </button>
         </div>
 
-        {message ? <p className="success-message">{message}</p> : null}
-      </section>
+        <div className="report-calculation-grid report-bottom-summary-grid">
+          <ChartReportBridgePanel report={report} />
 
-      <section className="card">
-        <span className="badge">نگهداری گزارش</span>
+          <article className="mini-card report-note-card report-note-card-mini">
+            <span className="section-label">یادداشت</span>
+            <h3>یادداشت کوتاه</h3>
+            <p>یک برداشت کوتاه کنار همین گزارش نگه دار.</p>
 
-        <h2>یک نسخه برای خودت داشته باش</h2>
+            <label className="field">
+              <span>متن یادداشت</span>
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="مثلاً: آخر هفته دوباره بخوانم..."
+                rows={2}
+              />
+            </label>
 
-        <p>
-          می‌توانی همین گزارش را همراه یادداشت و وضعیت علاقه‌مندی به صورت فایل
-          پشتیبان نگه داری، یا یک نسخه متنی ساده برای مرور و اشتراک شخصی بگیری.
-        </p>
+            <div className="actions">
+              <button className="button" type="button" onClick={handleSaveNote}>
+                ذخیره در پنل
+              </button>
 
-        <div className="actions">
-          <button className="button" type="button" onClick={handleExportReport}>
-            گرفتن فایل پشتیبان
-          </button>
+              <button
+                className="button secondary"
+                type="button"
+                onClick={() => setNote("")}
+              >
+                پاک کردن
+              </button>
+            </div>
 
-          <button
-            className="button secondary"
-            type="button"
-            onClick={handleExportTextReport}
-          >
-            گرفتن نسخه متنی
-          </button>
+            {message ? <p className="success-message">{message}</p> : null}
+          </article>
         </div>
       </section>
     </section>

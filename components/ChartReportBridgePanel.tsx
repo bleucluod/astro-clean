@@ -3,10 +3,7 @@ import { formatZodiacLabel, ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels"
 
 import {
   buildReportRealChartBridge,
-  getReportRealChartBridgeDescription,
-  getReportRealChartBridgeTitle,
   hasReportRealChartBridgeData,
-  type ReportRealChartBridge,
 } from "../src/lib/report-output/report-real-chart-bridge";
 
 type ChartReportBridgePanelProps = {
@@ -39,84 +36,48 @@ export function ChartReportBridgePanel({ report }: ChartReportBridgePanelProps) 
   const bridge = buildReportRealChartBridge(report);
   const hasData = hasReportRealChartBridgeData(bridge);
 
-  return (
-    <section className="rounded-3xl border border-[#E7D8C7] bg-[#FFF9F2] p-5 shadow-sm">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
-            جایگاه‌ها و جنبه‌های چارت
-          </p>
-          <h2 className="mt-2 text-xl font-bold text-[#3E2F25]">
-            {getReportRealChartBridgeTitle(bridge)}
-          </h2>
-          <p className="mt-2 text-sm leading-7 text-[#6B5A4C]">
-            {getReportRealChartBridgeDescription(bridge)}
-          </p>
-        </div>
-
-        <BridgeStatusPill bridge={bridge} />
-      </div>
-
-      {hasData ? (
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <BridgeList
-            title="جایگاه‌های برجسته"
-            items={bridge.placementHighlights.map((placement) => {
-              const sign = placement.signId
-                ? formatBridgeZodiacLabel(placement.signId)
-                : "نامشخص";
-              const house = formatBridgeHouseLabel(placement.house);
-              const label = formatBridgePointLabel(placement.label || placement.id);
-
-              return `${label}: ${sign}، ${house}`;
-            })}
-          />
-          <BridgeList
-            title="جنبه‌های برجسته"
-            items={bridge.aspectHighlights.map((aspect) => {
-              const orb =
-                aspect.orb === null ? "" : `، اورب ${formatBridgeOrb(aspect.orb)}°`;
-
-              return `${formatBridgePointLabel(aspect.pointA)} ${formatBridgeAspectLabel(
-                aspect.id,
-              )} ${formatBridgePointLabel(aspect.pointB)}${orb}`;
-            })}
-          />
-        </div>
-      ) : (
-        <p className="mt-5 rounded-2xl bg-white/70 p-4 text-sm leading-7 text-[#7A695A]">
-          هنوز placement یا aspect ذخیره‌شده‌ای برای این گزارش پیدا نشد. این برای
-          گزارش‌های قدیمی طبیعی است و بعد از اتصال کامل فرم تولد به engine، این بخش
-          پرتر می‌شود.
+  if (!hasData) {
+    return (
+      <article className="mini-card report-bridge-summary-card">
+        <span className="section-label">پشتوانه محاسباتی</span>
+        <h3>در حال تکمیل</h3>
+        <p>
+          هنوز جایگاه یا جنبه ذخیره‌شده‌ای برای این گزارش پیدا نشد. با تکمیل
+          مسیر محاسبه، این بخش دقیق‌تر می‌شود.
         </p>
-      )}
-
-      {bridge.limitations.length > 0 ? (
-        <div className="mt-4 rounded-2xl border border-[#ECDCCB] bg-white/70 p-4">
-          <p className="text-sm font-semibold text-[#5B4636]">محدودیت فعلی</p>
-          <ul className="mt-2 list-disc space-y-1 pr-5 text-sm leading-7 text-[#7A695A]">
-            {bridge.limitations.map((limitation) => (
-              <li key={limitation}>{limitation}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function BridgeStatusPill({ bridge }: { bridge: ReportRealChartBridge }) {
-  const label =
-    bridge.status === "ready"
-      ? "آماده"
-      : bridge.status === "partial"
-        ? "آزمایشی"
-        : "در انتظار داده";
+      </article>
+    );
+  }
 
   return (
-    <div className="rounded-full border border-[#D8C2AA] bg-white px-4 py-2 text-sm font-semibold text-[#6A4B35]">
-      {label}
-    </div>
+    <>
+      <BridgeList
+        title="جایگاه‌های برجسته"
+        description="خلاصه جایگاه‌ها و خانه‌هایی که خوانش از آن‌ها استفاده کرده است."
+        items={bridge.placementHighlights.map((placement) => {
+          const sign = placement.signId
+            ? formatBridgeZodiacLabel(placement.signId)
+            : "نامشخص";
+          const house = formatBridgeHouseLabel(placement.house);
+          const label = formatBridgePointLabel(placement.label || placement.id);
+
+          return `${label}: ${sign}، ${house}`;
+        })}
+      />
+
+      <BridgeList
+        title="جنبه‌های برجسته"
+        description="روابط مهم سیاره‌ها که به گفت‌وگوی درونی چارت شکل می‌دهند."
+        items={bridge.aspectHighlights.map((aspect) => {
+          const orb =
+            aspect.orb === null ? "" : `، اورب ${formatBridgeOrb(aspect.orb)}°`;
+
+          return `${formatBridgePointLabel(aspect.pointA)} ${formatBridgeAspectLabel(
+            aspect.id,
+          )} ${formatBridgePointLabel(aspect.pointB)}${orb}`;
+        })}
+      />
+    </>
   );
 }
 
@@ -149,10 +110,21 @@ function formatBridgeZodiacLabel(signId: string): string {
     : signId;
 }
 
-function BridgeList({ title, items }: { title: string; items: string[] }) {
+function BridgeList({
+  title,
+  description,
+  items,
+}: {
+  title: string;
+  description: string;
+  items: string[];
+}) {
   return (
-    <div className="rounded-2xl bg-white/75 p-4">
-      <p className="font-semibold text-[#4A382C]">{title}</p>
+    <article className="mini-card report-bridge-summary-card">
+      <span className="section-label">پشتوانه محاسباتی</span>
+      <h3>{title}</h3>
+      <p>{description}</p>
+
       {items.length > 0 ? (
         <ul className="mt-3 space-y-2 text-sm leading-7 text-[#6B5A4C]">
           {items.map((item) => (
@@ -164,6 +136,6 @@ function BridgeList({ title, items }: { title: string; items: string[] }) {
           هنوز داده‌ای برای این بخش ذخیره نشده.
         </p>
       )}
-    </div>
+    </article>
   );
 }

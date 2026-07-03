@@ -806,3 +806,11 @@ Workflow note:
 ```text
 Do not abandon the v0.1.124 navigation phase because a runner failed. Continue with smaller inspected line edits after rollback.
 ```
+## Seeds added after v0.1.141 report-page cleanup
+
+- `touched` — Report detail should feel like a personal product reading, not a wiki/article page. Keep the product-style chart card near the top: name, birth city, birth date/time, three core placements, calculated rising, main placements, and major aspects. Hide internal/debug blocks and avoid making copy/download/export the primary path.
+- `untouched` — Moon phase and current Moon position: homepage can later show the current Moon position/phase as a living daily moment, while birth reports can include the natal Moon phase and a soft interpretation of its symbolic influence on everyday rhythms.
+- `untouched` — Exact age layer in reports: calculate precise age from birth moment, such as years/days/hours, plus time remaining until next birthday. This should be reflective and useful, not gimmicky.
+- `untouched` — Rising-sign wiki cluster: create Persian wiki pages for rising-sign interpretation for every zodiac sign, including a general rising-sign overview and internally linked sign-by-sign pages.
+- `untouched` — Ancient-knowledge framing: where natural, describe astrology as an old symbolic/ancient interpretive tradition without making scientific, medical, legal, or deterministic claims.
+- `deferred` — Paid version is not needed yet. Short-term product can stay free-first; later limits may be usage-based, such as a daily report cap or storage limitations, rather than an immediate paid/private model.
