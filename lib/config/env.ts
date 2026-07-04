@@ -14,6 +14,7 @@ export type HalleusRuntimeEnv = {
   supabaseAuthStubEnabled: boolean;
   supabaseLoginEnabled: boolean;
   accountStorageEnabled: boolean;
+  accountReportSaveEnabled: boolean;
 };
 
 function getOptionalEnv(name: string) {
@@ -41,6 +42,7 @@ export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
     supabaseAuthStubEnabled: isEnabledEnv("HALLEUS_ENABLE_SUPABASE_AUTH_STUB"),
     supabaseLoginEnabled: isEnabledEnv("NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN"),
     accountStorageEnabled: isEnabledEnv("HALLEUS_ENABLE_ACCOUNT_STORAGE"),
+    accountReportSaveEnabled: isEnabledEnv("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE"),
   };
 }
 
@@ -80,4 +82,17 @@ export function canUseAccountStorage() {
   const env = getHalleusRuntimeEnv();
 
   return env.accountStorageEnabled && hasDatabaseConfig() && hasAuthConfig();
+}
+
+export function canUseAccountReportSavePath() {
+  const env = getHalleusRuntimeEnv();
+
+  return (
+    env.accountReportSaveEnabled &&
+    env.accountStorageEnabled &&
+    canUseRealSupabaseLogin() &&
+    hasDatabaseConfig() &&
+    hasAuthConfig() &&
+    hasSupabaseServerConfig()
+  );
 }

@@ -65,8 +65,9 @@ export default function ProfilePage() {
         <h1>پروفایل و وضعیت اکانت</h1>
 
         <p>
-          این صفحه حالا shell ورود واقعی Supabase را دارد؛ اگر env آماده باشد،
-          کاربر می‌تواند با ایمیل و رمز وارد شود. ذخیره گزارش روی account هنوز خاموش است.
+          این صفحه shell ورود واقعی Supabase را دارد؛ اگر env آماده باشد،
+          کاربر می‌تواند با ایمیل و رمز وارد شود. از v0.1.184 ذخیره گزارش روی account
+          فقط برای گزارش تازه، با user id معتبر و local-preview fallback guard شده است.
         </p>
 
         <div className="actions">
@@ -145,8 +146,8 @@ export default function ProfilePage() {
         <h2>بعد از login واقعی چه مانده؟</h2>
 
         <p>
-          حالا ورود Supabase به‌صورت guard شده آماده است. قدم بعدی این است که گزارش‌های
-          local-preview با review و backup به user واقعی وصل شوند.
+          حالا ورود Supabase و ذخیره گزارش تازه به user id به‌صورت guard شده آماده‌اند.
+          قدم بعدی این است که گزارش‌های local-preview با review و backup به حساب واقعی منتقل شوند.
         </p>
 
         <div className="home-step-list">
@@ -156,8 +157,8 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <strong>۲. اتصال reports به user</strong>
-            <span>گزارش‌ها به جای مرورگر، به user id وصل می‌شوند.</span>
+            <strong>۲. اتصال گزارش تازه به user</strong>
+            <span>گزارش تازه با env کامل به user id وصل می‌شود، اما local-preview حذف نمی‌شود.</span>
           </div>
 
           <div>

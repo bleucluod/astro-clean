@@ -108,3 +108,16 @@ Guard:
 - migration execution remains disabled.
 - local-preview reports must not be deleted.
 - public/indexable reports remain disabled.
+
+## v0.1.184 — User-owned account report save path
+
+Status:
+- New report saves can create a user-owned account copy when login, storage flags, database, and Supabase server auth are all configured.
+- The account save path verifies the Supabase bearer token server-side before using the user id.
+- The local-preview save remains the safe fallback.
+
+Guard:
+- account saves are private/noindex.
+- migration execution remains disabled.
+- local-preview reports must not be deleted.
+- public/indexable reports remain disabled.

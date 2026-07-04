@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserAuthClient, getSupabaseBrowserLoginConfig } from "@/lib/auth/supabase-browser-client";
+import { getAccountReportSaveClientConfig } from "@/lib/storage/account-report-save-client";
 import { mapSupabaseSessionToHalleusSession } from "@/lib/auth/supabase-session-mapper";
 import type { AuthSession } from "@/types/account";
 
@@ -13,6 +14,7 @@ function formatUserLabel(session: AuthSession | null) {
 
 export function SupabaseAuthPanel() {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
+  const accountSaveConfig = useMemo(() => getAccountReportSaveClientConfig(), []);
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [session, setSession] = useState<AuthSession | null>(null);
   const [email, setEmail] = useState("");
@@ -141,12 +143,12 @@ export function SupabaseAuthPanel() {
       <h2>ورود واقعی با ایمیل و رمز</h2>
 
       <p>
-        این بخش login واقعی Supabase را به‌صورت guard شده اضافه می‌کند. ذخیره
-        گزارش روی account و migration واقعی هنوز خاموش است.
+        این بخش login واقعی Supabase را به‌صورت guard شده نگه می‌دارد. از v0.1.184
+        ذخیره گزارش روی account فقط با session معتبر، storage flag و env کامل فعال می‌شود.
       </p>
 
       <p className="file-hint">
-        ذخیره گزارش روی account و migration واقعی هنوز خاموش است.
+        مسیر v0.1.184: account report save path guard شده است؛ گزارش‌ها private/noindex می‌مانند و migration واقعی هنوز خاموش است.
       </p>
 
       {!config.canUseRealSupabaseLogin ? (
@@ -159,6 +161,11 @@ export function SupabaseAuthPanel() {
           <div>
             <strong>Flag</strong>
             <span>NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=true</span>
+          </div>
+
+          <div>
+            <strong>Account save flag</strong>
+            <span>NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=true</span>
           </div>
 
           <div>
@@ -187,7 +194,11 @@ export function SupabaseAuthPanel() {
 
           <div>
             <strong>Report save</strong>
-            <span>local-preview</span>
+            <span>
+              {accountSaveConfig.canAttemptAccountReportSave
+                ? "account-save guarded + local-preview fallback"
+                : "local-preview"}
+            </span>
           </div>
         </div>
       ) : null}

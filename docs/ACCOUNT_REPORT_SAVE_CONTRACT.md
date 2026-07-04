@@ -54,3 +54,33 @@ Dashboard may show migration readiness:
 - safe next action: export JSON first
 
 This is a preflight surface only; it must not write account records.
+
+## v0.1.184 user-owned account report save path
+
+New report saves may write an account copy only when all guards pass:
+
+```text
+activeSaveMode: local-preview-with-account-copy
+futureSaveMode: account-storage
+canSaveToAccount: guarded by env/session/storage
+defaultVisibility: private
+indexingPolicy: noindex
+```
+
+Required guards:
+- `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=true`
+- `NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=true`
+- `HALLEUS_ENABLE_ACCOUNT_STORAGE=true`
+- `DATABASE_URL`
+- `AUTH_SECRET`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- verified Supabase bearer token
+
+Preservation rules:
+- The browser local-preview save remains the fallback.
+- Account records are owned by the authenticated Supabase user id.
+- Account reports stay private/noindex.
+- Migration still disabled; this path saves new reports only.
+- Never delete browser-local reports after account save.

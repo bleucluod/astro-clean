@@ -52,8 +52,8 @@ for (const token of [
   "AccountReportSaveContract",
   "activeSaveMode: \"local-preview\"",
   "futureSaveMode: \"account-storage\"",
-  "canSaveToAccount: false",
-  "assertAccountReportWritesStillDisabled",
+  "canSaveToAccount: boolean",
+  "assertAccountReportSavePathReady",
   "Never delete browser-local reports until account import succeeds.",
 ]) {
   mustContain(saveContract, token, "account report save contract");
@@ -104,7 +104,7 @@ for (const token of [
 for (const token of [
   "activeSaveMode: local-preview",
   "futureSaveMode: account-storage",
-  "canSaveToAccount: false",
+  "canSaveToAccount: guarded by env/session/storage",
   "Migration preflight UI",
   "This is a preflight surface only",
 ]) {
@@ -116,7 +116,7 @@ for (const token of [
   "v0.1.183",
   "account report save contract",
   "migration preflight",
-  "canSaveToAccount: false",
+  "canSaveToAccount",
 ]) {
   mustContain(migrationDoc + decisionDoc + context + ideaGarden, token, "docs");
 }
@@ -125,7 +125,6 @@ mustContain(persistentRepo, "canWriteAccountReports: false", "persistent reposit
 mustContain(packageJson, '"@supabase/supabase-js"', "package.json");
 
 for (const forbidden of [
-  "canSaveToAccount: true",
   "canStartAccountMigration: true",
   "canWriteAccountReports: true",
   "delete local-preview reports after import",

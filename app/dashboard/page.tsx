@@ -138,12 +138,12 @@ export default function DashboardPage() {
       <section className="card account-ready-lifecycle-card">
         <span className="badge">از مرورگر تا اکانت</span>
 
-        <h2>حساب کاربری واقعی هنوز فعال نشده برای ذخیره گزارش</h2>
+        <h2>مسیر ذخیره حساب guard شده است؛ migration هنوز فعال نشده</h2>
 
         <p>
-          این پنل عمداً ادعای login یا دیتابیس فعال نمی‌کند. کار فعلی این است
-          که تجربه کاربر شبیه پنل واقعی شود و بعد در مرحله بعد گزارش‌ها از
-          مرورگر به حساب کاربری منتقل شوند.
+          حساب کاربری واقعی هنوز فعال نشده برای migration، اما از v0.1.184
+          گزارش تازه می‌تواند با login معتبر و env کامل به user id ذخیره شود.
+          local-preview همچنان fallback امن است.
         </p>
 
         <div className="home-step-list">
@@ -153,8 +153,8 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <strong>۲. قدم بعد</strong>
-            <span>انتخاب auth و ذخیره پایدار برای user واقعی.</span>
+            <strong>۲. ذخیره گزارش تازه</strong>
+            <span>اگر login و storage env کامل باشد، گزارش تازه به user id هم ذخیره می‌شود.</span>
           </div>
 
           <div>
@@ -228,7 +228,7 @@ export default function DashboardPage() {
         <p>
           تصمیم فنی-محصولی این مرحله این است که حساب کاربری و گزارش‌های پایدار
           از مسیر Supabase Auth + Supabase/Postgres جلو بروند؛ اما هنوز login
-          واقعی یا database write فعال نشده است؛ وضعیت این تصمیم فعلاً selected-not-enabled است.
+          واقعی guard شده‌اند؛ database write فقط برای مسیر account report save و با env کامل فعال می‌شود. public/indexable و migration هنوز خاموش‌اند.
         </p>
 
         <div className="profile-grid">
@@ -279,6 +279,11 @@ export default function DashboardPage() {
           <div>
             <strong>Can save to account</strong>
             <span>{String(accountSaveContract.canSaveToAccount)}</span>
+          </div>
+
+          <div>
+            <strong>Account save path</strong>
+            <span>{accountSaveContract.accountSaveReadiness.stage}</span>
           </div>
 
           <div>
@@ -339,6 +344,10 @@ export default function DashboardPage() {
           <button className="button secondary" type="button" disabled>
             مهاجرت به حساب هنوز غیرفعال است
           </button>
+
+          <Link className="button secondary" href="/chart">
+            تست ذخیره گزارش تازه
+          </Link>
         </div>
       </section>
       <LocalDataBackupPanel />

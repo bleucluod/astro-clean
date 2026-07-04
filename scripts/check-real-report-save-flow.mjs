@@ -1,4 +1,4 @@
-﻿import { readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
 const failures = [];
 const typesSource = readFileSync("types/astro.ts", "utf8");
@@ -24,9 +24,9 @@ for (const marker of [
   "realEngine:",
   "/api/engine/real-chart",
   "requestRealEngineReportData",
-  "saveGeneratedReport(nextReport)",
+  "saveGeneratedReportWithAccountFallback(nextReport)",
   "enrichReportWithRealEngineCopy",
-  "router.push(`/reports/${nextReport.id}`)",
+  "router.push(`/reports/${saveResult.localRecord.id}`)",
 ]) {
   if (!chartFormSource.includes(marker)) {
     failures.push(`ChartForm missing real report save marker: ${marker}`);

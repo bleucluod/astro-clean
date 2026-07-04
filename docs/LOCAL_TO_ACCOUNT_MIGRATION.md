@@ -82,3 +82,18 @@ Still blocked:
 - No local-preview deletion.
 - No account report writes.
 - No public/indexable migration.
+
+## v0.1.184 user-owned account save checkpoint
+
+What changed:
+- New report saves have a guarded user-owned account report save path.
+- The server verifies the Supabase bearer token and stores the account copy under that user id.
+- The local-preview save remains available as fallback.
+
+Still blocked:
+- migration still disabled
+- local-preview deletion still disabled
+- public/indexable reports still disabled
+- payment and SEO still untouched
+
+This does not import old browser-local reports yet; it only adds a guarded path for newly generated reports.

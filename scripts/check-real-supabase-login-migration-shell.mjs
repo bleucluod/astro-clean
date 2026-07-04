@@ -72,6 +72,7 @@ for (const token of [
   "NEXT_PUBLIC_SUPABASE_URL=",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY=",
   "HALLEUS_ENABLE_ACCOUNT_STORAGE=false",
+  "NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=false",
 ]) {
   mustContain(envExample, token, ".env.example");
 }
@@ -91,7 +92,8 @@ for (const token of [
   "signOut",
   "onAuthStateChange",
   "NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN",
-  "ذخیره گزارش روی account و migration واقعی هنوز خاموش است",
+  "account report save path guard شده است",
+  "migration واقعی هنوز خاموش است",
 ]) {
   mustContain(authPanel, token, "auth panel");
 }
@@ -130,7 +132,7 @@ for (const token of [
 for (const token of [
   "SupabaseAuthPanel",
   "shell ورود واقعی Supabase",
-  "ذخیره گزارش روی account هنوز خاموش است",
+  "ذخیره گزارش روی account",
 ]) {
   mustContain(profile, token, "profile page");
 }
@@ -139,7 +141,7 @@ for (const token of [
   "SupabaseAuthPanel",
   "LocalDataBackupPanel",
   "createAccountMigrationReviewModel",
-  "حساب کاربری واقعی هنوز فعال نشده",
+  "migration هنوز فعال نشده",
   "Would import",
   "Can execute",
 ]) {
@@ -162,7 +164,7 @@ for (const token of [
 }
 
 for (const token of [
-  "canSaveToAccount: false",
+  "canSaveToAccount: boolean",
   "canStartAccountMigration: false",
 ]) {
   mustContain(saveContract + migrationPreflight, token, "save/migration guard");
@@ -178,8 +180,6 @@ for (const token of [
 }
 
 for (const forbidden of [
-  "HALLEUS_ENABLE_ACCOUNT_STORAGE=true",
-  "canSaveToAccount: true",
   "canStartAccountMigration: true",
   "canExecuteMigration: true",
   "canWriteAccountReports: true",

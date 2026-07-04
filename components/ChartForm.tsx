@@ -18,7 +18,7 @@ import {
   findIranCityByName,
   getIranCityDisplayName,
 } from "@/lib/locations/iran-cities";
-import { saveGeneratedReport } from "@/lib/storage/report-write-service";
+import { saveGeneratedReportWithAccountFallback } from "@/lib/storage/account-report-save-client";
 import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 
 const initialForm: BirthInput = {
@@ -369,11 +369,24 @@ export function ChartForm() {
       engineCity,
     );
 
-    await saveGeneratedReport(nextReport);
+    const saveResult = await saveGeneratedReportWithAccountFallback(nextReport);
     notifyLocalDataChanged();
 
-    setSaveMessage("گزارش ساخته شد؛ در حال باز شدن صفحه گزارش.");
-    router.push(`/reports/${nextReport.id}`);
+    if (saveResult.accountStatus === "account-saved") {
+      setSaveMessage(
+        "گزارش خصوصی در حساب ذخیره شد؛ نسخه local-preview هم برای fallback باقی ماند.",
+      );
+    } else if (saveResult.accountStatus === "not-authenticated") {
+      setSaveMessage(
+        "گزارش روی همین دستگاه ذخیره شد؛ برای ذخیره حساب، اول وارد شو.",
+      );
+    } else {
+      setSaveMessage(
+        "گزارش روی همین دستگاه ذخیره شد؛ ذخیره حساب فعلاً guard شده یا کامل نیست.",
+      );
+    }
+
+    router.push(`/reports/${saveResult.localRecord.id}`);
   }
 
   return (

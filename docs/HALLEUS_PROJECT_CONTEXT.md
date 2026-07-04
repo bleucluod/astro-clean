@@ -1091,3 +1091,29 @@ Fixed:
 
 Prevention:
 - For nullable browser clients used in nested async functions, assign a narrowed constant after the null guard before entering closures.
+
+## v0.1.184 — User-owned account report save path
+
+Scope:
+- Add guarded user-owned account report save path for newly generated reports.
+- Verify Supabase bearer token server-side and save account reports under the authenticated user id.
+- Keep local-preview fallback and keep all saved reports private/noindex.
+- Keep migration execution disabled and never delete browser-local reports in this batch.
+
+Required env for local testing:
+- `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=true`
+- `NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=true`
+- `HALLEUS_ENABLE_ACCOUNT_STORAGE=true`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
+- `AUTH_SECRET`
+
+Out of scope:
+- old local-to-account migration
+- deleting local reports
+- public/indexable reports
+- SEO launch
+- payment
+- hosting migration

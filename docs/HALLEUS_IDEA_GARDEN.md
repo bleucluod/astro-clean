@@ -1186,3 +1186,14 @@ Not now:
 - No migration execution.
 - No public/indexable reports.
 - No payment gating or SEO launch.
+
+## v0.1.184 seed update — Saved Reports / Report History
+
+Status update:
+- Saved Reports / Report History moves closer to account-backed storage through a guarded user-owned account report save path.
+- This is not public report SEO and not local-to-account migration.
+- New saves may create an account copy only with login, storage flags, database config, and server Supabase verification.
+- The local-preview fallback remains, and reports stay private/noindex.
+
+Next smallest step:
+- After verifying account saves locally, add an explicit migration execution flow with backup, imported/skipped counts, and user confirmation.
