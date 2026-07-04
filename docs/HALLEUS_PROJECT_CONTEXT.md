@@ -851,3 +851,23 @@ Product notes:
 - The homepage preview is a general sample of report structure and tone; a user's real report is still generated after birth data and chart calculation.
 - The preview must not imply public/indexable reports, paid checkout, or deterministic prediction.
 - Continue to avoid "گره‌های ماه" in user-facing copy; use "دست‌های ماه".
+
+## v0.1.176 — Chart creation flow polish
+
+Status:
+- Partial runner failure was caused by a broken base64 docs append after product files were written.
+- The chart creation flow is being polished as an app-like input surface, not a long explanatory/test page.
+
+Product changes:
+- Keep the form compact and app-like.
+- Put optional-name guidance inside the name input.
+- Default birth date entry to Jalali while allowing Gregorian entry.
+- Remove extra explanatory copy under the birth date controls.
+- Improve the birth time row and add an explicit unknown-time option.
+- Keep birth city empty by default instead of pre-filling Tehran.
+- Limit city suggestions to a small focused list after the user types.
+
+Do not include in this batch:
+- Report engine math changes.
+- Report writer changes.
+- Payment, SEO/indexing, public reports, hosting, or user account lifecycle.

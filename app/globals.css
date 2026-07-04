@@ -3102,3 +3102,199 @@ textarea {
   }
 }
 /* End real report preview sample block v0.1.175 */
+
+
+/* Chart creation flow polish v0.1.176 */
+.chart-app-flow-page {
+  width: min(980px, 100%);
+  margin-inline: auto;
+  gap: 20px;
+}
+
+.chart-app-hero,
+.chart-form-card {
+  border: 1px solid rgba(92, 57, 143, 0.12);
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.08), transparent 38%),
+    rgba(255, 255, 255, 0.9);
+  box-shadow: 0 22px 70px rgba(49, 29, 78, 0.08);
+}
+
+.chart-app-hero {
+  display: grid;
+  gap: 18px;
+}
+
+.chart-app-hero-content {
+  display: grid;
+  gap: 8px;
+}
+
+.chart-app-hero-content h1,
+.chart-form-header h2 {
+  margin: 0;
+}
+
+.chart-app-hero-content p {
+  max-width: 680px;
+  margin: 0;
+}
+
+.chart-app-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chart-app-chip-row span {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(91, 43, 191, 0.08);
+  color: #5b2bbf;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.chart-form-header {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(260px, 1.05fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.chart-form-header .section-label {
+  margin-bottom: 8px;
+}
+
+.chart-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.field-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.date-mode-switch {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 999px;
+  background: #f4eefb;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+}
+
+.date-mode-button,
+.time-unknown-button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  color: #5f5175;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.date-mode-button {
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: transparent;
+}
+
+.date-mode-button.is-active,
+.time-unknown-button.is-active {
+  background: #5b2bbf;
+  color: #ffffff;
+}
+
+.birth-date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.time-choice-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.time-choice-row input {
+  min-height: 48px;
+}
+
+.time-unknown-button {
+  border-radius: 16px;
+  padding: 0 16px;
+  background: #f4eefb;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  white-space: nowrap;
+}
+
+.time-unknown-button:not(.is-active):hover,
+.date-mode-button:not(.is-active):hover {
+  background: rgba(91, 43, 191, 0.1);
+  color: #4c1d95;
+}
+
+.field input:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.chart-form-actions {
+  margin-top: 0;
+  align-items: center;
+}
+
+.chart-form-actions .button {
+  min-height: 48px;
+}
+
+.chart-form-card .safety-disclaimer.compact {
+  margin: 0;
+}
+
+.chart-form-card .field-hint {
+  margin: 0;
+  color: #7b6d92;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+@media (max-width: 860px) {
+  .chart-form-header,
+  .chart-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .field-title-row,
+  .time-choice-row {
+    grid-template-columns: 1fr;
+  }
+
+  .date-mode-switch,
+  .time-unknown-button {
+    width: 100%;
+  }
+
+  .date-mode-button {
+    flex: 1;
+  }
+
+  .birth-date-picker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-form-actions {
+    display: grid;
+  }
+}

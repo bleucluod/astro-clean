@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import { createMockReport } from "@/lib/astrology/mock-engine";
@@ -25,7 +25,7 @@ const initialForm: BirthInput = {
   name: "",
   birthDate: "",
   birthTime: "",
-  birthCity: "تهران",
+  birthCity: "",
   birthCountry: "ایران",
 };
 
@@ -51,6 +51,12 @@ const JALALI_DAY_OPTIONS = Array.from({ length: 31 }, (_, index) =>
 const JALALI_YEAR_OPTIONS = Array.from({ length: 101 }, (_, index) =>
   String(1405 - index),
 );
+
+const UNKNOWN_BIRTH_TIME = "12:00";
+const MAX_CITY_SUGGESTIONS = 5;
+
+type BirthDateMode = "jalali" | "gregorian";
+type BirthTimeMode = "known" | "unknown";
 
 type JalaliBirthDateParts = {
   year: string;
@@ -110,8 +116,7 @@ type RealEngineRequestState = {
 
 const initialRealEngineRequest: RealEngineRequestState = {
   status: "idle",
-  message:
-    "Halleus هنگام ساخت گزارش، محاسبه دقیق‌تر چارت را در پس‌زمینه انجام می‌دهد.",
+  message: "آماده ساخت گزارش تولد هستیم.",
 };
 
 function getSelectedJalaliDateInput(parts: JalaliBirthDateParts) {
@@ -122,6 +127,14 @@ function getSelectedJalaliDateInput(parts: JalaliBirthDateParts) {
   return `${parts.year}/${parts.month}/${parts.day}`;
 }
 
+function isGregorianDateInput(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function normalizeCitySearch(value: string) {
+  return value.trim().toLocaleLowerCase("fa-IR");
+}
+
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
@@ -129,17 +142,32 @@ function notifyLocalDataChanged() {
 export function ChartForm() {
   const router = useRouter();
   const [form, setForm] = useState<BirthInput>(initialForm);
+  const [dateMode, setDateMode] = useState<BirthDateMode>("jalali");
   const [birthDateParts, setBirthDateParts] = useState<JalaliBirthDateParts>(
     initialJalaliBirthDateParts,
   );
-  const [birthDateMessage, setBirthDateMessage] = useState(
-    "تاریخ تولد شمسی را با انتخاب سال، ماه و روز کامل کن.",
-  );
+  const [gregorianBirthDate, setGregorianBirthDate] = useState("");
+  const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>("known");
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =
     useState<RealEngineRequestState>(initialRealEngineRequest);
 
   const isRealEngineLoading = realEngineRequest.status === "loading";
+
+  const citySuggestions = useMemo(() => {
+    const query = normalizeCitySearch(form.birthCity);
+
+    if (!query) {
+      return [];
+    }
+
+    return IRAN_CITY_OPTIONS.filter((city) => {
+      const cityName = normalizeCitySearch(city.faName);
+      const cityDisplayName = normalizeCitySearch(getIranCityDisplayName(city));
+
+      return cityName.includes(query) || cityDisplayName.includes(query);
+    }).slice(0, MAX_CITY_SUGGESTIONS);
+  }, [form.birthCity]);
 
   function updateField(field: keyof BirthInput, value: string) {
     setForm((current) => ({
@@ -148,75 +176,100 @@ export function ChartForm() {
     }));
   }
 
+  function updateDateMode(nextMode: BirthDateMode) {
+    setDateMode(nextMode);
+    setSaveMessage("");
+  }
+
   function updateBirthDatePart(field: keyof JalaliBirthDateParts, value: string) {
     const nextBirthDateParts = {
       ...birthDateParts,
       [field]: value,
     };
-    const selectedJalaliBirthDate = getSelectedJalaliDateInput(nextBirthDateParts);
 
     setBirthDateParts(nextBirthDateParts);
     updateField("birthDate", "");
+  }
 
-    if (!selectedJalaliBirthDate) {
-      setBirthDateMessage(
-        "تاریخ تولد شمسی را با انتخاب سال، ماه و روز کامل کن.",
-      );
-      return;
+  function updateGregorianBirthDate(value: string) {
+    setGregorianBirthDate(value);
+    updateField("birthDate", value);
+  }
+
+  function updateBirthTimeMode(nextMode: BirthTimeMode) {
+    setBirthTimeMode(nextMode);
+
+    if (nextMode === "unknown") {
+      updateField("birthTime", "");
     }
-
-    const parsedBirthDate = parseJalaliDateInput(selectedJalaliBirthDate);
-
-    setBirthDateMessage(
-      parsedBirthDate.ok
-        ? `تاریخ شمسی ${parsedBirthDate.normalizedJalali} برای محاسبه به ${parsedBirthDate.gregorianIso} تبدیل می‌شود.`
-        : parsedBirthDate.message,
-    );
   }
 
   function normalizeBirthForm() {
-    const selectedJalaliBirthDate = getSelectedJalaliDateInput(birthDateParts);
+    let normalizedBirthDate = "";
 
-    if (!selectedJalaliBirthDate) {
-      throw new Error("تاریخ تولد شمسی را با انتخاب سال، ماه و روز کامل کن.");
+    if (dateMode === "jalali") {
+      const selectedJalaliBirthDate = getSelectedJalaliDateInput(birthDateParts);
+
+      if (!selectedJalaliBirthDate) {
+        throw new Error("تاریخ تولد را کامل کن.");
+      }
+
+      const parsedBirthDate = parseJalaliDateInput(selectedJalaliBirthDate);
+
+      if (!parsedBirthDate.ok) {
+        throw new Error(parsedBirthDate.message);
+      }
+
+      normalizedBirthDate = parsedBirthDate.gregorianIso;
+    } else {
+      const selectedGregorianBirthDate = gregorianBirthDate.trim();
+
+      if (!selectedGregorianBirthDate) {
+        throw new Error("تاریخ میلادی تولد را وارد کن.");
+      }
+
+      if (!isGregorianDateInput(selectedGregorianBirthDate)) {
+        throw new Error("تاریخ میلادی باید کامل باشد.");
+      }
+
+      normalizedBirthDate = selectedGregorianBirthDate;
     }
 
-    const parsedBirthDate = parseJalaliDateInput(selectedJalaliBirthDate);
+    const normalizedCityName = form.birthCity.trim();
 
-    if (!parsedBirthDate.ok) {
-      throw new Error(parsedBirthDate.message);
+    if (!normalizedCityName) {
+      throw new Error("شهر تولد را بنویس یا از پیشنهادها انتخاب کن.");
     }
 
-    setBirthDateMessage(
-      `تاریخ شمسی ${parsedBirthDate.normalizedJalali} برای محاسبه به ${parsedBirthDate.gregorianIso} تبدیل شد.`,
-    );
-
-    const normalizedCityName = form.birthCity.trim() || initialForm.birthCity;
     const selectedCity = findIranCityByName(normalizedCityName);
-    const fallbackCity =
-      findIranCityByName(initialForm.birthCity) ?? IRAN_CITY_OPTIONS[0];
 
-    if (!fallbackCity) {
-      throw new Error("لیست شهرها برای محاسبه چارت در دسترس نیست.");
+    if (!selectedCity) {
+      throw new Error("فعلاً این شهر در فهرست ایران پیدا نشد. یکی از پیشنهادهای کوتاه را انتخاب کن.");
     }
 
-    const engineCity = selectedCity ?? fallbackCity;
+    const normalizedBirthTime =
+      birthTimeMode === "unknown" ? UNKNOWN_BIRTH_TIME : form.birthTime.trim();
+
+    if (!normalizedBirthTime) {
+      throw new Error("ساعت تولد را وارد کن یا گزینه «نمی‌دانم» را بزن.");
+    }
 
     const normalizedForm: BirthInput = {
       ...form,
       name: (form.name ?? "").trim(),
-      birthDate: parsedBirthDate.gregorianIso,
-      birthCity: selectedCity?.faName ?? normalizedCityName,
+      birthDate: normalizedBirthDate,
+      birthTime: normalizedBirthTime,
+      birthCity: selectedCity.faName,
       birthCountry: initialForm.birthCountry,
-      birthCityId: selectedCity?.id,
-      birthLatitude: selectedCity?.latitude,
-      birthLongitude: selectedCity?.longitude,
-      birthTimezone: selectedCity?.timezone,
+      birthCityId: selectedCity.id,
+      birthLatitude: selectedCity.latitude,
+      birthLongitude: selectedCity.longitude,
+      birthTimezone: selectedCity.timezone,
     };
 
     return {
       normalizedForm,
-      engineCity,
+      engineCity: selectedCity,
     };
   }
 
@@ -226,7 +279,7 @@ export function ChartForm() {
   ) {
     setRealEngineRequest({
       status: "loading",
-      message: "در حال محاسبه چارت و آماده‌سازی متن گزارش...",
+      message: "چارت تولد در حال محاسبه است...",
     });
 
     try {
@@ -250,7 +303,7 @@ export function ChartForm() {
 
       if (!response.ok && !payload.report) {
         throw new Error(
-          payload.error ?? "محاسبه دقیق چارت برای این ورودی کامل نشد.",
+          payload.error ?? "محاسبه چارت برای این ورودی کامل نشد.",
         );
       }
 
@@ -262,10 +315,7 @@ export function ChartForm() {
 
       setRealEngineRequest({
         status: "ready",
-        message: payload.realChart
-          ? "محاسبه چارت کامل شد و گزارش سرویس در حال ذخیره شدن است."
-          : payload.fallback?.safeUserMessage ??
-            "گزارش با مسیر امن fallback ساخته شد و در حال ذخیره شدن است.",
+        message: "چارت آماده شد؛ گزارش در حال باز شدن است.",
       });
 
       return payload;
@@ -296,7 +346,7 @@ export function ChartForm() {
         message:
           error instanceof Error
             ? error.message
-            : "تاریخ تولد شمسی برای ساخت گزارش کامل نشد.",
+            : "اطلاعات تولد برای ساخت گزارش کامل نیست.",
       });
       return;
     }
@@ -322,138 +372,182 @@ export function ChartForm() {
     await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();
 
-    setSaveMessage(
-      nextReport.realEngine
-        ? "گزارش تولد با سرویس تولید گزارش ساخته و ذخیره شد. تا چند لحظه دیگر صفحه جزئیات باز می‌شود."
-        : "گزارش تولد با مسیر امن fallback ساخته و ذخیره شد. تا چند لحظه دیگر صفحه جزئیات باز می‌شود.",
-    );
-
+    setSaveMessage("گزارش ساخته شد و در حال باز شدن است.");
     router.push(`/reports/${nextReport.id}`);
   }
 
   return (
-    <div className="grid chart-page">
-      <section className="card">
-        <span className="badge">شروع گزارش تولد</span>
+    <div className="grid chart-page chart-app-flow-page">
+      <section className="card chart-app-hero">
+        <span className="badge">ساخت گزارش تولد</span>
 
-        <h1>گزارش تولد فارسی، از همین فرم ساده</h1>
+        <div className="chart-app-hero-content">
+          <h1>گزارش تولدت را بساز</h1>
+          <p>
+            تاریخ، ساعت و شهر تولد را وارد کن؛ Halleus چارت را محاسبه می‌کند و
+            گزارش فارسی را در صفحه جزئیات باز می‌کند.
+          </p>
+        </div>
 
-        <p>
-          اطلاعات تولد را مرحله‌به‌مرحله وارد کن تا Halleus چارت تولد را محاسبه کند، متن فارسی
-          گزارش را بسازد و نتیجه را در صفحه جزئیات ذخیره‌شده نشان بدهد. این مسیر برای شروع
-          ساده طراحی شده: تاریخ شمسی، ساعت تولد و شهر تولد کافی است.
-        </p>
-
-        <div className="grid grid-3">
-          <div className="mini-card">
-            <strong>تاریخ شمسی</strong>
-            <span>سال، ماه و روز را از picker انتخاب کن.</span>
-          </div>
-
-          <div className="mini-card">
-            <strong>بدون انتخاب کشور</strong>
-            <span>در این نسخه، محاسبه برای ایران تنظیم شده است.</span>
-          </div>
-
-          <div className="mini-card">
-            <strong>خروجی ذخیره‌شده</strong>
-            <span>بعد از submit مستقیم به صفحه گزارش می‌روی.</span>
-          </div>
+        <div className="chart-app-chip-row" aria-label="ویژگی‌های مسیر ساخت گزارش">
+          <span>چارت واقعی</span>
+          <span>متن فارسی</span>
+          <span>ذخیره خصوصی</span>
         </div>
       </section>
 
-      <form className="card form" onSubmit={handleSubmit}>
-        <div>
-          <span className="badge">فرم ساخت گزارش</span>
-
-          <h2>اطلاعات تولد</h2>
-
-          <p>
-            فرم را کامل کن و دکمه ساخت گزارش را بزن. تاریخ تولد در UI شمسی است، اما برای
-            engine داخلی به Gregorian ISO تبدیل می‌شود. کشور در UI پرسیده نمی‌شود و مقدار داخلی
-            آن برای سازگاری فعلی روی ایران می‌ماند.
-          </p>
+      <form className="card form chart-form-card" onSubmit={handleSubmit}>
+        <div className="chart-form-header">
+          <div>
+            <span className="section-label">اطلاعات تولد</span>
+            <h2>فقط داده‌های لازم</h2>
+          </div>
 
           <SafetyDisclaimer compact />
         </div>
 
-        <div className="form-grid">
+        <div className="form-grid chart-form-grid">
           <label className="field">
-            <span>نام اختیاری</span>
+            <span>نام</span>
             <input
               autoComplete="name"
               value={form.name}
               onChange={(event) => updateField("name", event.target.value)}
-              placeholder="مثلاً آراز"
+              placeholder="نامت را بنویس — اختیاری"
             />
           </label>
 
-          <label className="field">
-            <span>تاریخ تولد شمسی</span>
-            <div
-              className="grid grid-3"
-              role="group"
-              aria-label="انتخاب تاریخ تولد شمسی"
-            >
-              <select
-                required
-                value={birthDateParts.year}
-                onChange={(event) =>
-                  updateBirthDatePart("year", event.target.value)
-                }
-                aria-label="سال تولد شمسی"
-              >
-                <option value="">سال</option>
-                {JALALI_YEAR_OPTIONS.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+          <div className="field field-wide">
+            <div className="field-title-row">
+              <span>تاریخ تولد</span>
 
-              <select
-                required
-                value={birthDateParts.month}
-                onChange={(event) =>
-                  updateBirthDatePart("month", event.target.value)
-                }
-                aria-label="ماه تولد شمسی"
-              >
-                <option value="">ماه</option>
-                {JALALI_MONTH_OPTIONS.map((month) => (
-                  <option key={month.value} value={month.value}>
-                    {month.label}
-                  </option>
-                ))}
-              </select>
+              <div className="date-mode-switch" aria-label="نوع تاریخ تولد">
+                <button
+                  type="button"
+                  className={
+                    dateMode === "jalali"
+                      ? "date-mode-button is-active"
+                      : "date-mode-button"
+                  }
+                  aria-pressed={dateMode === "jalali"}
+                  onClick={() => updateDateMode("jalali")}
+                >
+                  شمسی
+                </button>
 
-              <select
-                required
-                value={birthDateParts.day}
-                onChange={(event) =>
-                  updateBirthDatePart("day", event.target.value)
-                }
-                aria-label="روز تولد شمسی"
-              >
-                <option value="">روز</option>
-                {JALALI_DAY_OPTIONS.map((day) => (
-                  <option key={day} value={day}>
-                    {day}
-                  </option>
-                ))}
-              </select>
+                <button
+                  type="button"
+                  className={
+                    dateMode === "gregorian"
+                      ? "date-mode-button is-active"
+                      : "date-mode-button"
+                  }
+                  aria-pressed={dateMode === "gregorian"}
+                  onClick={() => updateDateMode("gregorian")}
+                >
+                  میلادی
+                </button>
+              </div>
             </div>
-            <small className="field-hint">{birthDateMessage}</small>
-          </label>
+
+            {dateMode === "jalali" ? (
+              <div
+                className="birth-date-picker-grid"
+                role="group"
+                aria-label="انتخاب تاریخ تولد شمسی"
+              >
+                <select
+                  required
+                  value={birthDateParts.year}
+                  onChange={(event) =>
+                    updateBirthDatePart("year", event.target.value)
+                  }
+                  aria-label="سال تولد شمسی"
+                >
+                  <option value="">سال</option>
+                  {JALALI_YEAR_OPTIONS.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  required
+                  value={birthDateParts.month}
+                  onChange={(event) =>
+                    updateBirthDatePart("month", event.target.value)
+                  }
+                  aria-label="ماه تولد شمسی"
+                >
+                  <option value="">ماه</option>
+                  {JALALI_MONTH_OPTIONS.map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  required
+                  value={birthDateParts.day}
+                  onChange={(event) =>
+                    updateBirthDatePart("day", event.target.value)
+                  }
+                  aria-label="روز تولد شمسی"
+                >
+                  <option value="">روز</option>
+                  {JALALI_DAY_OPTIONS.map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <input
+                required
+                type="date"
+                value={gregorianBirthDate}
+                onChange={(event) => updateGregorianBirthDate(event.target.value)}
+                aria-label="تاریخ تولد میلادی"
+              />
+            )}
+          </div>
 
           <label className="field">
             <span>ساعت تولد</span>
-            <input
-              required
-              type="time"
-              value={form.birthTime}
-              onChange={(event) => updateField("birthTime", event.target.value)}
-            />
+            <div className="time-choice-row">
+              <input
+                required={birthTimeMode === "known"}
+                type="time"
+                value={birthTimeMode === "known" ? form.birthTime : ""}
+                disabled={birthTimeMode === "unknown"}
+                onChange={(event) => updateField("birthTime", event.target.value)}
+                aria-label="ساعت تولد"
+              />
+
+              <button
+                type="button"
+                className={
+                  birthTimeMode === "unknown"
+                    ? "time-unknown-button is-active"
+                    : "time-unknown-button"
+                }
+                aria-pressed={birthTimeMode === "unknown"}
+                onClick={() =>
+                  updateBirthTimeMode(
+                    birthTimeMode === "unknown" ? "known" : "unknown",
+                  )
+                }
+              >
+                نمی‌دانم
+              </button>
+            </div>
+
+            {birthTimeMode === "unknown" ? (
+              <small className="field-hint">با ساعت میانی روز شروع می‌کنیم.</small>
+            ) : null}
           </label>
 
           <label className="field">
@@ -463,29 +557,27 @@ export function ChartForm() {
               autoComplete="address-level2"
               value={form.birthCity}
               onChange={(event) => updateField("birthCity", event.target.value)}
-              placeholder="مثلاً تهران"
-              list="iran-city-options"
+              placeholder="شهر تولد را بنویس"
+              list={citySuggestions.length > 0 ? "iran-city-options" : undefined}
             />
-            <small className="field-hint">
-              فعلاً شهرهای ایران پشتیبانی می‌شوند و کشور به‌صورت داخلی ایران ثبت می‌شود.
-            </small>
           </label>
-          <datalist id="iran-city-options">
-            {IRAN_CITY_OPTIONS.map((city) => (
-              <option key={city.id} value={getIranCityDisplayName(city)} />
-            ))}
-          </datalist>
+
+          {citySuggestions.length > 0 ? (
+            <datalist id="iran-city-options">
+              {citySuggestions.map((city) => (
+                <option key={city.id} value={getIranCityDisplayName(city)} />
+              ))}
+            </datalist>
+          ) : null}
         </div>
 
-        <div className="actions">
+        <div className="actions chart-form-actions">
           <button className="button" type="submit" disabled={isRealEngineLoading}>
-            {isRealEngineLoading
-              ? "در حال ساخت گزارش..."
-              : "ساخت گزارش و مشاهده جزئیات"}
+            {isRealEngineLoading ? "در حال ساخت..." : "ساخت گزارش"}
           </button>
 
           <Link className="button secondary" href="/reports">
-            دیدن گزارش‌های ذخیره‌شده
+            گزارش‌های من
           </Link>
         </div>
 
@@ -504,57 +596,6 @@ export function ChartForm() {
 
         {saveMessage ? <p className="success-message">{saveMessage}</p> : null}
       </form>
-
-      <section className="card">
-        <span className="badge">چه چیزی می‌گیری؟</span>
-
-        <h2>یک گزارش قابل خواندن، نه فقط داده خام</h2>
-
-        <div className="grid grid-3">
-          <div className="mini-card">
-            <strong>چارت محاسبه‌شده</strong>
-            <span>داده‌های پایه برای ساخت گزارش تولد.</span>
-          </div>
-
-          <div className="mini-card">
-            <strong>متن فارسی گزارش</strong>
-            <span>خروجی آماده خواندن در صفحه جزئیات.</span>
-          </div>
-
-          <div className="mini-card">
-            <strong>ذخیره برای ادامه مسیر</strong>
-            <span>گزارش ساخته‌شده در بخش گزارش‌ها می‌ماند.</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="card chart-final-flow-card">
-        <span className="badge">مسیر ساده ساخت گزارش</span>
-
-        <h2>از فرم تا گزارش، در یک قدم</h2>
-
-        <p>
-          این صفحه دیگر پیش‌نمایش آزمایشگاهی نشان نمی‌دهد. گزارش اصلی بعد از ثبت فرم ساخته، ذخیره
-          و در صفحه جزئیات باز می‌شود تا تجربه کاربر شبیه یک محصول نهایی باشد.
-        </p>
-
-        <div className="grid grid-3">
-          <div className="mini-card">
-            <strong>۱. ورود اطلاعات</strong>
-            <span>تاریخ، ساعت، شهر</span>
-          </div>
-
-          <div className="mini-card">
-            <strong>۲. محاسبه پشت صحنه</strong>
-            <span>چارت و متن فارسی</span>
-          </div>
-
-          <div className="mini-card">
-            <strong>۳. گزارش ذخیره‌شده</strong>
-            <span>صفحه جزئیات</span>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

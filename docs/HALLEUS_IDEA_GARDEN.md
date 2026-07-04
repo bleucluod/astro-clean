@@ -1065,3 +1065,17 @@ Decision:
 Next later surfaces:
 - A fuller sample report page can come later after the homepage preview proves useful.
 - Public/indexable report examples still require explicit consent and indexing strategy before implementation.
+
+## v0.1.176 Idea Garden update — App-like chart creation flow
+
+Decision:
+- The chart creation page should feel like a focused product form, not a test/demo surface.
+- Keep the visible form compact: only the data needed for a real birth chart/report should remain prominent.
+- Name is optional and should be communicated inside the field.
+- Birth date should default to Jalali, with Gregorian as an alternate entry mode.
+- Birth time should have a clear unknown-time option.
+- Birth city should not be prefilled with Tehran; suggestions should be short and focused after typing.
+- Do not add payment, SEO/indexing, public report sharing, or account lifecycle work in this batch.
+
+Later:
+- User-location and richer place search can be improved after the core creation flow feels trustworthy.
