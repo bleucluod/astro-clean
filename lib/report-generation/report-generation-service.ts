@@ -12,6 +12,8 @@ import type {
   RealEngineReportHouse,
   RealEngineReportHouseContext,
   RealEngineReportHouseNumber,
+  RealEngineReportLunarNodePoint,
+  RealEngineReportLunarNodes,
   RealEngineReportPlacement,
   RealEngineReportRetrogradeStatus,
   RealEngineReportSnapshot,
@@ -36,6 +38,7 @@ import {
   buildRealChartWorkbenchResult,
   type RealChartBirthInput,
   type RealChartCalculatedAngle,
+  type RealChartCalculatedLunarNode,
   type RealChartCalculatedPlacement,
   type RealChartWorkbenchResult,
 } from "../../src/lib/chart/real-chart-engine";
@@ -45,7 +48,7 @@ import {
 } from "../../src/lib/report-output/chart-enrichment";
 import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart-report-copy";
 
-export const REPORT_GENERATION_SERVICE_VERSION = "0.1.161" as const;
+export const REPORT_GENERATION_SERVICE_VERSION = "0.1.166" as const;
 
 type SectionedAstrologyReport = AstrologyReport & {
   interpretationSections: ReportOutputSection[];
@@ -188,10 +191,7 @@ export function buildRealEngineSnapshot(
       chartReportEnrichment,
     ),
     retrogrades: buildCalculatedRetrogradeStatus(realChart),
-    lunarNodes: buildDeferredCalculation(
-      "lunar-nodes",
-      "Lunar node calculation is deferred and must stay hidden until a hardened node ephemeris source and mean/true node definition are chosen.",
-    ),
+    lunarNodes: buildCalculatedLunarNodes(realChart),
     lilith: buildDeferredCalculation(
       "black-moon-lilith",
       "Black Moon Lilith calculation is deferred and must stay hidden until the Mean/True Lilith decision and ephemeris source are hardened.",
@@ -358,12 +358,12 @@ function toRealEngineReportCalculationQuality(
         : "preview",
     anglesStatus: realChart.angles ? "calculated" : "preview",
     retrogradeStatus: "calculated",
-    nodesStatus: "not-calculated",
+    nodesStatus: realChart.lunarNodes?.status === "calculated" ? "calculated" : "not-calculated",
     lilithStatus: "not-calculated",
     limitations: [
       ...(chartReportEnrichment?.limitations ?? []),
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around birth time; exact station periods should be read gently.",
-      "Lunar nodes are not calculated yet.",
+      "Mean Lunar Node is calculated with the J2000 Meeus-style mean node formula; True/Osculating Node remains deferred.",
       "Black Moon Lilith is not calculated yet.",
       "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time should be labeled before paid/private reports.",
       "Timezone and midnight boundary handling is covered by natal accuracy hardening checks.",
@@ -393,6 +393,39 @@ function buildCalculatedRetrogradeStatus(
       planetIds.length > 0
         ? "Retrograde planets are identified from apparent geocentric ecliptic motion around birth time; close station periods should be read gently."
         : "No retrograde planet was detected from apparent geocentric ecliptic motion around birth time.",
+  };
+}
+
+function buildCalculatedLunarNodes(
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportLunarNodes {
+  const nodes = realChart.lunarNodes;
+
+  return {
+    status: "calculated",
+    method: nodes.method,
+    nodeType: nodes.nodeType,
+    northNode: toRealEngineReportLunarNodePoint(nodes.northNode, realChart),
+    southNode: toRealEngineReportLunarNodePoint(nodes.southNode, realChart),
+    limitation: nodes.limitation,
+  };
+}
+
+function toRealEngineReportLunarNodePoint(
+  node: RealChartCalculatedLunarNode,
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportLunarNodePoint {
+  return {
+    id: node.id,
+    label: node.label,
+    longitude: node.longitude,
+    signId: toZodiacKey(node.signId),
+    degreeInSign: node.degreeInSign,
+    house: getHouseNumberForLongitude(node.longitude, realChart),
+    method: node.method,
+    source: node.source,
+    reliability: node.source === "calculated" ? "calculated" : "derived",
+    limitation: node.limitation,
   };
 }
 

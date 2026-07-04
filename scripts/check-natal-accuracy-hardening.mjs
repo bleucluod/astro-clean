@@ -76,7 +76,7 @@ const {
 const failures = [];
 
 for (const marker of [
-  'REAL_CHART_WORKBENCH_VERSION = "0.1.161"',
+  'REAL_CHART_WORKBENCH_VERSION = "0.1.166"',
   "Natal accuracy depends on exact civil birth time",
   "midnight-boundary behavior",
 ]) {
@@ -86,10 +86,11 @@ for (const marker of [
 }
 
 for (const marker of [
-  'REPORT_GENERATION_SERVICE_VERSION = "0.1.161"',
+  'REPORT_GENERATION_SERVICE_VERSION = "0.1.166"',
   "Natal accuracy depends on exact civil birth time",
   "uncertain birth time should be labeled",
-  "mean/true node definition",
+  "Mean Lunar Node is calculated",
+  "True/Osculating Node remains deferred",
   "Mean/True Lilith decision",
 ]) {
   if (!serviceSource.includes(marker)) {
@@ -207,8 +208,11 @@ for (const fixture of [
     failures.push(`${fixture.name}: missing retrogradePlanetIds array`);
   }
   const notes = result.calculationNotes.join(" ");
-  if (!notes.includes("Lunar nodes and Black Moon Lilith are still deferred")) {
-    failures.push(`${fixture.name}: missing nodes/lilith deferred note`);
+  if (!notes.includes("Mean lunar nodes are calculated")) {
+    failures.push(`${fixture.name}: missing Mean lunar nodes calculation note`);
+  }
+  if (!result.lunarNodes || result.lunarNodes.status !== "calculated") {
+    failures.push(`${fixture.name}: missing calculated Mean Lunar Nodes`);
   }
 }
 

@@ -53,12 +53,14 @@ for (const forbidden of ["swisseph", "sweph", "swiss-ephemeris"]) {
 }
 
 requireIncludes("lib/report-generation/report-generation-service.ts", [
-  "nodesStatus: \"not-calculated\"",
-  "lunarNodes: buildDeferredCalculation",
+  "nodesStatus: realChart.lunarNodes?.status === \"calculated\" ? \"calculated\" : \"not-calculated\"",
+  "lunarNodes: buildCalculatedLunarNodes",
 ]);
 
 requireIncludes("src/lib/chart/real-chart-engine.ts", [
-  "Lunar nodes and Black Moon Lilith are still deferred",
+  "calculateMeanNorthLunarNodeLongitude",
+  "mean-lunar-node-j2000-meeus-formula",
+  "True/Osculating Node remains deferred",
 ]);
 
 if (failures.length > 0) {

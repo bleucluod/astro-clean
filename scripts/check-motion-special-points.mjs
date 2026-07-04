@@ -9,7 +9,7 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const failures = [];
 
 for (const marker of [
-  'REAL_CHART_WORKBENCH_VERSION = "0.1.161"',
+  'REAL_CHART_WORKBENCH_VERSION = "0.1.166"',
   "RealChartCalculatedMotion",
   "calculateBodyApparentMotion",
   "getSignedLongitudeDelta",
@@ -22,11 +22,11 @@ for (const marker of [
 }
 
 for (const marker of [
-  'REPORT_GENERATION_SERVICE_VERSION = "0.1.161"',
+  'REPORT_GENERATION_SERVICE_VERSION = "0.1.166"',
   "buildCalculatedRetrogradeStatus",
   'retrogradeStatus: "calculated"',
   "buildDeferredCalculation",
-  "Lunar nodes are not calculated yet.",
+  "Mean Lunar Node is calculated",
   "Black Moon Lilith is not calculated yet.",
 ]) {
   if (!serviceSource.includes(marker)) {

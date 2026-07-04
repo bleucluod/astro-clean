@@ -144,6 +144,37 @@ export type RealEngineReportDeferredCalculation = {
   limitation: string | null;
 };
 
+export type RealEngineReportLunarNodeId = "north-node" | "south-node";
+
+export type RealEngineReportLunarNodeMethod =
+  | "mean-lunar-node-j2000-meeus-formula";
+
+export type RealEngineReportLunarNodePoint = {
+  id: RealEngineReportLunarNodeId;
+  label: string;
+  longitude: number;
+  signId: ZodiacKey;
+  degreeInSign: number;
+  house?: RealEngineReportHouseNumber | null;
+  method: RealEngineReportLunarNodeMethod;
+  source: "calculated" | "derived-opposition";
+  reliability: RealEngineReportDataReliability;
+  limitation: string | null;
+};
+
+export type RealEngineReportCalculatedLunarNodes = {
+  status: "calculated";
+  method: RealEngineReportLunarNodeMethod;
+  nodeType: "mean";
+  northNode: RealEngineReportLunarNodePoint;
+  southNode: RealEngineReportLunarNodePoint;
+  limitation: string | null;
+};
+
+export type RealEngineReportLunarNodes =
+  | RealEngineReportDeferredCalculation
+  | RealEngineReportCalculatedLunarNodes;
+
 export type RealEngineReportRetrogradeStatus = {
   status: "not-calculated" | "calculated" | "blocked";
   method: string | null;
@@ -191,7 +222,7 @@ export type RealEngineReportSnapshot = {
   angles?: RealEngineReportAngles;
   calculationQuality?: RealEngineReportCalculationQuality;
   retrogrades?: RealEngineReportRetrogradeStatus;
-  lunarNodes?: RealEngineReportDeferredCalculation;
+  lunarNodes?: RealEngineReportLunarNodes;
   lilith?: RealEngineReportDeferredCalculation;
   placements: RealEngineReportPlacement[];
   aspects?: RealEngineReportAspect[];
