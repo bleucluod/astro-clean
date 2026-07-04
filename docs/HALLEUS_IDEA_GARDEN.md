@@ -1079,3 +1079,15 @@ Decision:
 
 Later:
 - User-location and richer place search can be improved after the core creation flow feels trustworthy.
+
+## Near-term UI polish notes after v0.1.176
+
+Small product polish items to include in the next suitable UI batch:
+
+- Header CTA: remove the secondary line `شروع رایگان` under `ساخت گزارش تولد` so the header action stays compact and less oversized.
+- Global page utility: add a small fixed `پرش به بالا` button at the bottom-left of the viewport on both desktop and mobile. It should stay subtle, app-like, and not compete with the main CTA.
+
+Scope:
+- These are UI polish items only.
+- Do not turn them into a broad navigation redesign.
+- Do not start payment, SEO/indexing, public report sharing, hosting, or report engine work for these items.
