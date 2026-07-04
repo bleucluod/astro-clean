@@ -116,7 +116,7 @@ type RealEngineRequestState = {
 
 const initialRealEngineRequest: RealEngineRequestState = {
   status: "idle",
-  message: "آماده ساخت گزارش تولد هستیم.",
+  message: "فرم آماده است.",
 };
 
 function getSelectedJalaliDateInput(parts: JalaliBirthDateParts) {
@@ -279,7 +279,7 @@ export function ChartForm() {
   ) {
     setRealEngineRequest({
       status: "loading",
-      message: "چارت تولد در حال محاسبه است...",
+      message: "چارت تولد در حال محاسبه است؛ گزارش بعد از ذخیره باز می‌شود.",
     });
 
     try {
@@ -315,7 +315,7 @@ export function ChartForm() {
 
       setRealEngineRequest({
         status: "ready",
-        message: "چارت آماده شد؛ گزارش در حال باز شدن است.",
+        message: "چارت آماده شد؛ گزارش در حال ذخیره و باز شدن است.",
       });
 
       return payload;
@@ -372,7 +372,7 @@ export function ChartForm() {
     await saveGeneratedReport(nextReport);
     notifyLocalDataChanged();
 
-    setSaveMessage("گزارش ساخته شد و در حال باز شدن است.");
+    setSaveMessage("گزارش ساخته شد؛ در حال باز شدن صفحه گزارش.");
     router.push(`/reports/${nextReport.id}`);
   }
 
@@ -382,16 +382,17 @@ export function ChartForm() {
         <span className="badge">ساخت گزارش تولد</span>
 
         <div className="chart-app-hero-content">
-          <h1>گزارش تولدت را بساز</h1>
+          <h1>اطلاعات تولد</h1>
           <p>
-            تاریخ، ساعت و شهر تولد را وارد کن؛ Halleus چارت را محاسبه می‌کند و
-            گزارش فارسی را در صفحه جزئیات باز می‌کند.
+            چند داده اصلی کافی است؛ هالیوس چارت را می‌خواند و گزارش فارسی را
+            همان‌جا برایت باز می‌کند.
           </p>
         </div>
 
         <div className="chart-app-chip-row" aria-label="ویژگی‌های مسیر ساخت گزارش">
           <span>چارت واقعی</span>
-          <span>متن فارسی</span>
+          <span>شمسی یا میلادی</span>
+          <span>ساعت نامعلوم</span>
           <span>ذخیره خصوصی</span>
         </div>
       </section>
@@ -400,7 +401,7 @@ export function ChartForm() {
         <div className="chart-form-header">
           <div>
             <span className="section-label">اطلاعات تولد</span>
-            <h2>فقط داده‌های لازم</h2>
+            <h2>ورودی‌های اصلی</h2>
           </div>
 
           <SafetyDisclaimer compact />
@@ -517,8 +518,9 @@ export function ChartForm() {
 
           <label className="field">
             <span>ساعت تولد</span>
-            <div className="time-choice-row">
+            <div className="time-choice-row time-choice-row-mobile">
               <input
+                className="birth-time-input"
                 required={birthTimeMode === "known"}
                 type="time"
                 value={birthTimeMode === "known" ? form.birthTime : ""}
@@ -546,7 +548,9 @@ export function ChartForm() {
             </div>
 
             {birthTimeMode === "unknown" ? (
-              <small className="field-hint">با ساعت میانی روز شروع می‌کنیم.</small>
+              <small className="field-hint">
+                اگر ساعت دقیق را نمی‌دانی، با ساعت میانی روز شروع می‌کنیم.
+              </small>
             ) : null}
           </label>
 
@@ -558,43 +562,60 @@ export function ChartForm() {
               value={form.birthCity}
               onChange={(event) => updateField("birthCity", event.target.value)}
               placeholder="شهر تولد را بنویس"
-              list={citySuggestions.length > 0 ? "iran-city-options" : undefined}
             />
           </label>
 
           {citySuggestions.length > 0 ? (
-            <datalist id="iran-city-options">
+            <div
+              className="city-suggestion-chips"
+              aria-label="پیشنهادهای شهر تولد"
+            >
               {citySuggestions.map((city) => (
-                <option key={city.id} value={getIranCityDisplayName(city)} />
+                <button
+                  key={city.id}
+                  type="button"
+                  className="city-suggestion-chip"
+                  onClick={() => updateField("birthCity", city.faName)}
+                >
+                  {getIranCityDisplayName(city)}
+                </button>
               ))}
-            </datalist>
+            </div>
           ) : null}
         </div>
 
         <div className="actions chart-form-actions">
           <button className="button" type="submit" disabled={isRealEngineLoading}>
-            {isRealEngineLoading ? "در حال ساخت..." : "ساخت گزارش"}
+            {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت و باز کردن گزارش"}
           </button>
 
           <Link className="button secondary" href="/reports">
-            گزارش‌های من
+            گزارش‌ها
           </Link>
         </div>
 
-        {realEngineRequest.status === "loading" ||
-        realEngineRequest.status === "error" ? (
-          <p
+        {realEngineRequest.status !== "idle" ? (
+          <div
             className={
               realEngineRequest.status === "error"
-                ? "form-error-message"
-                : "success-message"
+                ? "chart-form-status is-error"
+                : "chart-form-status is-progress"
             }
+            role="status"
           >
-            {realEngineRequest.message}
-          </p>
+            <strong>
+              {realEngineRequest.status === "error" ? "نیاز به اصلاح ورودی" : "در حال انجام"}
+            </strong>
+            <span>{realEngineRequest.message}</span>
+          </div>
         ) : null}
 
-        {saveMessage ? <p className="success-message">{saveMessage}</p> : null}
+        {saveMessage ? (
+          <div className="chart-form-status is-success" role="status">
+            <strong>گزارش آماده شد</strong>
+            <span>{saveMessage}</span>
+          </div>
+        ) : null}
       </form>
     </div>
   );

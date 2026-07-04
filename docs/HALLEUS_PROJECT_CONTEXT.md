@@ -885,3 +885,41 @@ Product changes:
 
 Do not include in this batch:
 - Payment, SEO/indexing, public report pages, hosting migration, report engine math, or report writer changes.
+
+## v0.1.178 — Chart flow mobile QA + final input polish
+
+Status:
+- Runner failed during docs append after writing product files because of a broken base64 payload.
+- The fix-forward scope is limited to completing docs, cleaning the runner artifact, and running checks.
+
+Product changes:
+- Keep the chart form compact and app-like on mobile.
+- Make the time picker and `نمی‌دانم` control sit closer together.
+- Replace browser datalist city suggestions with controlled suggestion chips.
+- Keep city suggestions short and focused.
+- Improve loading, error, and success feedback without bringing back long explanatory copy.
+- Preserve the real report save flow and redirect behavior.
+
+Do not include in this batch:
+- Report engine math changes.
+- Report writer changes.
+- Homepage, product, privacy, reports-list, payment, SEO/indexing, public reports, or hosting work.
+
+## v0.1.178 failure ledger — runner syntax/base64/regression-token
+
+Error:
+- First apply runner failed before execution because of a broken PowerShell string/block terminator.
+- Fixed runner partially wrote product files, then failed during docs append because of a broken base64 payload.
+- First fix-forward failed `check-chart-creation-flow-polish` because the older regression check still required the visible token `چارت واقعی`.
+
+Fixed:
+- Removed broken runner artifacts.
+- Confirmed the first parser failure made no product changes.
+- Completed missing docs append without runner/base64.
+- Restored the `چارت واقعی` chip instead of weakening the regression check.
+- Re-ran encoding, diff check, real report save flow, chart creation flow polish, chart mobile QA, and build.
+
+Prevention:
+- Avoid large base64 docs payloads in runners.
+- Prefer tiny direct fix-forward commands after two runner failures.
+- Preserve existing regression-check tokens unless intentionally updating the check and product copy together.

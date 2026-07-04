@@ -3431,3 +3431,159 @@ html {
     white-space: nowrap;
   }
 }
+
+/* Chart flow mobile QA + final input polish v0.1.178 */
+.chart-app-flow-page {
+  gap: 16px;
+}
+
+.chart-app-hero {
+  padding: clamp(1.2rem, 3vw, 1.7rem);
+}
+
+.chart-app-hero .badge {
+  margin-bottom: 0;
+  width: fit-content;
+}
+
+.chart-app-hero-content h1 {
+  font-size: clamp(2rem, 7vw, 3.6rem);
+}
+
+.chart-app-hero-content p {
+  max-width: 620px;
+}
+
+.chart-form-card {
+  gap: 18px;
+}
+
+.time-choice-row-mobile {
+  grid-template-columns: minmax(0, 1fr) minmax(98px, auto);
+  align-items: center;
+}
+
+.birth-time-input {
+  direction: ltr;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.city-suggestion-chips {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.city-suggestion-chip {
+  border: 1px solid rgba(91, 43, 191, 0.14);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #4c1d95;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 10px 26px rgba(36, 27, 47, 0.06);
+}
+
+.city-suggestion-chip:hover {
+  background: #f4eefb;
+}
+
+.chart-form-status {
+  display: grid;
+  gap: 4px;
+  border-radius: 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  background: rgba(244, 238, 251, 0.72);
+  color: #4b3b66;
+}
+
+.chart-form-status strong {
+  color: #2d203a;
+  font-size: 0.92rem;
+}
+
+.chart-form-status span {
+  color: #6b5a7d;
+  line-height: 1.8;
+}
+
+.chart-form-status.is-error {
+  border-color: rgba(194, 65, 12, 0.18);
+  background: rgba(255, 247, 237, 0.88);
+}
+
+.chart-form-status.is-error strong {
+  color: #9a3412;
+}
+
+.chart-form-status.is-success {
+  border-color: rgba(22, 163, 74, 0.16);
+  background: rgba(240, 253, 244, 0.84);
+}
+
+.chart-form-status.is-success strong {
+  color: #166534;
+}
+
+@media (max-width: 640px) {
+  .chart-app-flow-page {
+    gap: 12px;
+  }
+
+  .chart-app-hero,
+  .chart-form-card {
+    border-radius: 22px;
+    padding: 18px;
+  }
+
+  .chart-app-chip-row {
+    gap: 6px;
+  }
+
+  .chart-app-chip-row span {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .chart-form-header {
+    gap: 12px;
+  }
+
+  .field-title-row {
+    gap: 8px;
+  }
+
+  .date-mode-switch {
+    width: 100%;
+  }
+
+  .time-choice-row-mobile {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .time-unknown-button {
+    min-height: 48px;
+    padding-inline: 12px;
+  }
+
+  .chart-form-actions .button {
+    width: 100%;
+  }
+
+  .city-suggestion-chips {
+    gap: 7px;
+  }
+
+  .city-suggestion-chip {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+}

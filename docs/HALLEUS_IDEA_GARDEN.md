@@ -1098,3 +1098,14 @@ Decision:
 - Product and Privacy pages should describe the real current state: free-first, private-first, report-quality focused, and not public/indexable without explicit consent.
 - Reports list should feel like a return surface, not a lab archive.
 - Keep this batch away from payment, SEO/indexing, public report sharing, hosting, full transit Sky Pulse, and report engine/writer changes.
+
+## v0.1.178 Idea Garden update — Chart flow mobile QA
+
+Decision:
+- Treat the chart creation page as a core app surface that must feel usable on mobile before moving to larger growth work.
+- Keep the form compact, keep Jalali-first date entry, preserve Gregorian as an alternate mode, and keep the unknown-time path visible.
+- City search should use short controlled suggestions instead of a noisy browser autocomplete surface.
+- Loading, error, and success states should feel like product feedback, not debug output.
+
+Later:
+- Richer place search, user account lifecycle, and public/private report publishing remain separate future surfaces.
