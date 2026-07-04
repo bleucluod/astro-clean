@@ -33,13 +33,17 @@ export function AppShell({ children }: AppShellProps) {
           <div className="site-nav-actions">
             <Link href="/chart" className="site-nav-cta">
               <span className="site-nav-cta-main">ساخت گزارش تولد</span>
-              <span className="site-nav-cta-sub">شروع رایگان</span>
             </Link>
           </div>
         </nav>
       </header>
 
-      <main>{children}</main>
+      <main id="top">{children}</main>
+
+      <a className="back-to-top-button" href="#top" aria-label="پرش به بالای صفحه">
+        <span aria-hidden="true">↑</span>
+        <span>پرش به بالا</span>
+      </a>
 
       <footer className="site-footer">
         <div className="footer-inner">

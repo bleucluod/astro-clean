@@ -1091,3 +1091,10 @@ Scope:
 - These are UI polish items only.
 - Do not turn them into a broad navigation redesign.
 - Do not start payment, SEO/indexing, public report sharing, hosting, or report engine work for these items.
+## v0.1.177 Idea Garden update — Trust, return flow, and global UI polish
+
+Decision:
+- Merge Product page alignment, Privacy page alignment, Reports list return-flow polish, header CTA cleanup, and the small back-to-top utility into one speed-focused UI/trust batch.
+- Product and Privacy pages should describe the real current state: free-first, private-first, report-quality focused, and not public/indexable without explicit consent.
+- Reports list should feel like a return surface, not a lab archive.
+- Keep this batch away from payment, SEO/indexing, public report sharing, hosting, full transit Sky Pulse, and report engine/writer changes.

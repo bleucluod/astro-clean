@@ -5,7 +5,7 @@ import { ReportsList } from "@/components/ReportsList";
 export const metadata: Metadata = {
   title: "گزارش‌های ذخیره‌شده | Halleus",
   description:
-    "مشاهده و مرور گزارش‌های ذخیره‌شده چارت تولد در Halleus؛ گزارش‌ها فعلاً رایگان و خصوصی می‌مانند تا تجربه خواندن کامل‌تر شود.",
+    "بازگشت به گزارش‌های تولد ساخته‌شده در Halleus؛ گزارش‌ها فعلاً خصوصی و روی همین دستگاه نگه داشته می‌شوند.",
   alternates: {
     canonical: "/reports",
   },
@@ -23,17 +23,16 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
   const reportSource = rawSource === "beta-db" ? "beta-db" : "local";
+
   return (
-    <section className="grid reports-sales-shell">
-      <div className="card reports-sales-cta">
+    <section className="grid reports-sales-shell reports-return-shell">
+      <div className="card reports-sales-cta reports-return-hero">
         <div>
-          <span className="badge">گزارش‌های ذخیره‌شده</span>
-          <h1>گزارش‌هایی که ساختی را آرام‌تر مرور کن</h1>
+          <span className="badge">گزارش‌های من</span>
+          <h1>هر گزارشی که ساختی، از همین‌جا دوباره پیدا می‌شود</h1>
           <p>
-            این صفحه نقطه برگشت به گزارش‌هاست: می‌توانی خوانش کامل را ادامه
-            بدهی، گزارش‌ها را جستجو کنی، یادداشت اضافه کنی و هر وقت خواستی
-            گزارش تازه بسازی. هالیوس فعلاً رایگان، خصوصی و آماده‌سازی‌شده برای
-            تست محصول است؛ نه فروش، نه ایندکس عمومی.
+            این صفحه نقطه برگشت به گزارش‌هاست: گزارش تولدت را باز کن، یادداشتت
+            را ببین، گزارش‌های مهم را ستاره‌دار کن یا خوانش تازه‌ای بساز.
           </p>
         </div>
 
@@ -43,7 +42,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </Link>
 
           <Link className="button secondary" href="/privacy">
-            حریم خصوصی گزارش‌ها
+            حریم داده‌ها
           </Link>
         </div>
       </div>

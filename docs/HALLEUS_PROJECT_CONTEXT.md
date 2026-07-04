@@ -871,3 +871,17 @@ Do not include in this batch:
 - Report engine math changes.
 - Report writer changes.
 - Payment, SEO/indexing, public reports, hosting, or user account lifecycle.
+## v0.1.177 — Trust, Return Flow & Global UI Polish
+
+Status:
+- Combined speed-focused batch for trust pages, reports return flow, and small global UI polish.
+
+Product changes:
+- Align `/product` with the current free, private-first birth report product instead of paid/order wording.
+- Align `/privacy` with birth data use, local/private report storage, and future public/indexable consent rules.
+- Polish `/reports` as the return point for saved reports, with calmer copy and better empty state.
+- Remove the `شروع رایگان` subline from the header CTA so the action stays compact.
+- Add a small fixed `پرش به بالا` utility at the bottom-left of the viewport on desktop and mobile.
+
+Do not include in this batch:
+- Payment, SEO/indexing, public report pages, hosting migration, report engine math, or report writer changes.

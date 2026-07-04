@@ -304,7 +304,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         setFavoriteReportIds([]);
         setReportNotes({});
         setIsReady(true);
-        setMessage(payload?.error ?? "Beta database archive failed to load.");
+        setMessage(payload?.error ?? "آرشیو دیتابیس بتا بارگذاری نشد.");
         return;
       }
 
@@ -316,7 +316,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
           .map((summary) => summary.id),
       );
       setReportNotes({});
-      setMessage(`Loaded ${payload.summaries.length.toLocaleString("en-US")} beta database report(s).`);
+      setMessage(`تعداد ${payload.summaries.length.toLocaleString("fa-IR")} گزارش دیتابیس بتا خوانده شد.`);
       setIsReady(true);
       return;
     }
@@ -374,7 +374,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
   function handleExportAllJson() {
     if (reports.length === 0) {
-      setMessage("No reports to export.");
+      setMessage("گزارشی برای خروجی گرفتن وجود ندارد.");
       return;
     }
 
@@ -395,7 +395,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       "application/json;charset=utf-8",
     );
 
-    setMessage("Full JSON export created.");
+    setMessage("خروجی کامل JSON آماده شد.");
   }
 
   async function handleImportReports(event: ChangeEvent<HTMLInputElement>) {
@@ -420,7 +420,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       }
 
       if (importedRecords.length === 0) {
-        setMessage("No valid reports found.");
+        setMessage("فایل انتخاب‌شده گزارشی قابل خواندن نداشت.");
         return;
       }
 
@@ -431,17 +431,17 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
       setMessage(
         result.imported > 0
-          ? `Imported ${result.imported.toLocaleString("en-US")} report(s).`
-          : "No new reports imported.",
+          ? `تعداد ${result.imported.toLocaleString("fa-IR")} گزارش وارد شد.`
+          : "گزارش تازه‌ای برای وارد کردن پیدا نشد.",
       );
     } catch {
-      setMessage("Import failed.");
+      setMessage("وارد کردن فایل انجام نشد.");
     }
   }
 
   function handleExportVisibleText() {
     if (visibleReports.length === 0) {
-      setMessage("No reports to export.");
+      setMessage("گزارشی برای خروجی گرفتن وجود ندارد.");
       return;
     }
 
@@ -451,12 +451,12 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       "text/plain;charset=utf-8",
     );
 
-    setMessage("TXT export created.");
+    setMessage("خروجی متنی گزارش‌های نمایش‌داده‌شده آماده شد.");
   }
 
   function handleExportVisibleJson() {
     if (visibleReports.length === 0) {
-      setMessage("No reports to export.");
+      setMessage("گزارشی برای خروجی گرفتن وجود ندارد.");
       return;
     }
 
@@ -477,15 +477,15 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       "application/json;charset=utf-8",
     );
 
-    setMessage("JSON export created.");
+    setMessage("خروجی JSON گزارش‌های نمایش‌داده‌شده آماده شد.");
   }
 
   if (!isReady) {
     return (
       <section className="card">
-        <span className="badge">در حال خواندن</span>
-        <h1>گزارش‌ها در حال بارگذاری هستند</h1>
-        <p>گزارش‌های ذخیره‌شده از مرورگر خوانده می‌شوند.</p>
+        <span className="badge">در حال آماده‌سازی</span>
+        <h1>گزارش‌ها در حال خواندن هستند</h1>
+        <p>هالیوس گزارش‌های خصوصی ذخیره‌شده روی همین دستگاه را پیدا می‌کند.</p>
       </section>
     );
   }
@@ -647,11 +647,11 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   if (reports.length === 0) {
     return (
       <EmptyState
-        badge="آرشیو خالی"
+        badge="شروع آرام"
         title="هنوز گزارشی ذخیره نشده"
-        description="از صفحه چارت شروع کن و اولین گزارش mock خودت را بساز."
+        description="از ساخت گزارش تولد شروع کن؛ هالیوس گزارش را خصوصی و روی همین دستگاه نگه می‌دارد."
         actionHref="/chart"
-        actionLabel="ساخت اولین گزارش"
+        actionLabel="ساخت اولین گزارش تولد"
       />
     );
   }
@@ -659,15 +659,21 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">گزارش‌های ذخیره‌شده</span>
+        <span className="badge">گزارش‌های خصوصی</span>
 
-        <h1>آرشیو گزارش‌های تو</h1>
+        <h1>گزارش‌های تو</h1>
 
         <p>
-          این گزارش‌ها فعلاً فقط در مرورگر همین دستگاه ذخیره شده‌اند. می‌توانی
-          جستجو کنی، ترتیب نمایش را عوض کنی، گزارش‌های مهم را ستاره‌دار کنی و
-          برای هر گزارش یادداشت شخصی بنویسی.
+          اینجا برای برگشت سریع به خوانش‌های قبلی است. گزارش‌ها فعلاً روی همین
+          دستگاه می‌مانند؛ می‌توانی جستجو کنی، گزارش‌های مهم را ستاره‌دار کنی
+          و هر وقت خواستی گزارش تازه بسازی.
         </p>
+
+        <div className="report-lifecycle-strip" aria-label="وضعیت گزارش‌ها">
+          <span>خصوصی روی همین دستگاه</span>
+          <span>قابل جستجو و ستاره‌دار</span>
+          <span>آماده خروجی گرفتن</span>
+        </div>
 
         <div className="reports-toolbar">
           <label className="field">
@@ -748,11 +754,11 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportAllJson}
             >
-              Export all JSON
+              خروجی کامل JSON
             </button>
 
             <label className="button secondary reports-file-button">
-              Import JSON
+              وارد کردن JSON
               <input
                 type="file"
                 accept="application/json,.json"
@@ -767,7 +773,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportVisibleText}
             >
-              Export visible TXT
+              خروجی متنی نمایش‌داده‌شده
             </button>
 
             <button
@@ -775,7 +781,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportVisibleJson}
             >
-              Export visible JSON
+              خروجی JSON نمایش‌داده‌شده
             </button>
           </div>
         </div>
@@ -787,11 +793,11 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         <div className="card">
           <span className="badge">بدون نتیجه</span>
 
-          <h2>گزارشی با این فیلتر پیدا نشد</h2>
+          <h2>گزارشی با این جستجو پیدا نشد</h2>
 
           <p>
-            عبارت جستجو را کوتاه‌تر کن، فیلتر علاقه‌مندی‌ها را بردار، یا یک
-            گزارش را ستاره‌دار کن.
+            عبارت جستجو را کوتاه‌تر کن، فیلتر علاقه‌مندی‌ها را بردار، یا از
+            ساخت گزارش جدید شروع کن.
           </p>
 
           <button

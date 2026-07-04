@@ -3298,3 +3298,136 @@ textarea {
     display: grid;
   }
 }
+
+/* Trust, return flow, and global UI polish v0.1.177 */
+html {
+  scroll-behavior: smooth;
+}
+
+.site-nav-cta {
+  min-height: 42px;
+  padding: 9px 15px;
+}
+
+.site-nav-cta-main {
+  line-height: 1;
+}
+
+.back-to-top-button {
+  position: fixed;
+  left: clamp(0.75rem, 2vw, 1.25rem);
+  bottom: clamp(0.75rem, 2vw, 1.25rem);
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(91, 43, 191, 0.16);
+  border-radius: 999px;
+  padding: 0.55rem 0.72rem;
+  background: rgba(255, 255, 255, 0.86);
+  color: #4c1d95;
+  box-shadow: 0 18px 42px rgba(36, 27, 47, 0.14);
+  backdrop-filter: blur(16px);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.back-to-top-button span:first-child {
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: #5b2bbf;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.trust-page-shell,
+.reports-return-shell {
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.trust-hero-card,
+.reports-return-hero {
+  overflow: hidden;
+  position: relative;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(124, 58, 237, 0.12), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(250, 247, 255, 0.9));
+}
+
+.trust-hero-card h1,
+.reports-return-hero h1 {
+  max-width: 820px;
+}
+
+.trust-principle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.trust-principle-card,
+.trust-note-card,
+.trust-flow-card {
+  min-height: 100%;
+}
+
+.trust-principle-card h2,
+.trust-note-card h2,
+.trust-flow-card h2 {
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+}
+
+.trust-step-list strong,
+.report-lifecycle-strip span {
+  white-space: nowrap;
+}
+
+.trust-tag-list,
+.report-lifecycle-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.trust-tag-list span,
+.report-lifecycle-strip span {
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  border-radius: 999px;
+  padding: 0.62rem 0.85rem;
+  background: rgba(255, 255, 255, 0.72);
+  color: #5f5277;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.report-lifecycle-strip {
+  margin-top: 1rem;
+}
+
+.reports-return-shell .reports-toolbar {
+  margin-top: 1.2rem;
+}
+
+@media (max-width: 900px) {
+  .trust-principle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .back-to-top-button {
+    padding: 0.48rem;
+  }
+
+  .back-to-top-button span:last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}

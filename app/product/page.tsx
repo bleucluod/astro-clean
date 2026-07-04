@@ -1,139 +1,96 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getProductSurfaceLinks } from "@/lib/product/product-surface";
 
 export const metadata: Metadata = {
-  title: "محصول Halleus | مسیر گزارش تولد فارسی",
+  title: "محصول Halleus | گزارش تولد فارسی و خصوصی",
   description:
-    "Halleus مسیر ساخت گزارش تولد فارسی، نگهداری گزارش و درخواست نسخه کامل‌تر را در یک تجربه ساده و فارسی کنار هم می‌آورد.",
+    "Halleus یک تجربه فارسی برای ساخت و خواندن گزارش تولد است؛ رایگان، خصوصی و متمرکز بر خودشناسی نمادین.",
   alternates: {
     canonical: "/product",
   },
 };
 
-const statusLabels = {
-  live: "فعال",
-  preview: "در حال تکمیل",
-  planned: "بعداً",
-} as const;
+const productValues = [
+  {
+    title: "چارت تولد واقعی‌تر",
+    text: "هالیوس از داده تولد، زمان و شهر برای ساخت چارت و خواندن فارسی استفاده می‌کند؛ نه از متن‌های عمومی و یکسان برای همه.",
+  },
+  {
+    title: "گزارش قابل خواندن",
+    text: "خروجی فقط جدول سیاره‌ها نیست؛ نخ‌های اصلی، خانه‌ها، جنبه‌ها و دست‌های ماه در یک روایت آرام کنار هم می‌آیند.",
+  },
+  {
+    title: "خصوصی در وضعیت فعلی",
+    text: "گزارش‌ها فعلاً برای مرور شخصی ساخته می‌شوند و مسیر عمومی یا indexable بدون رضایت روشن کاربر فعال نیست.",
+  },
+] as const;
 
-const paidDeliverables = [
-  "گزارش تولد فارسی با خلاصه، سه ستون اصلی و روابط مهم سیاره‌ها",
-  "صفحه جزئیات قابل بازگشت، قابل کپی و آماده برای سفارش نسخه کامل‌تر",
-  "آرشیو گزارش‌ها برای مرور، ستاره‌دار کردن و یادداشت شخصی",
-  "مسیر سفارش دستی که شناسه گزارش نمونه را همراه درخواست نگه می‌دارد",
-];
-
-const manualOrderSteps = [
-  "کاربر گزارش نمونه را در /chart می‌سازد.",
-  "در صفحه جزئیات گزارش، CTA سفارش نسخه کامل‌تر را می‌بیند.",
-  "از /order متن سفارش دستی با شناسه همان گزارش آماده و کپی می‌شود.",
-  "بعد از هماهنگی دستی، نسخه کامل‌تر می‌تواند بر اساس همان گزارش آماده شود.",
-];
+const flowSteps = [
+  "تاریخ، ساعت و شهر تولد را وارد می‌کنی.",
+  "هالیوس چارت را محاسبه و گزارش فارسی را آماده می‌کند.",
+  "گزارش را می‌خوانی، ذخیره می‌کنی و بعداً از صفحه گزارش‌ها برمی‌گردی.",
+] as const;
 
 export default function ProductPage() {
-  const links = getProductSurfaceLinks();
-  const featuredLinks = links.filter((item) =>
-    ["/chart", "/reports", "/pricing", "/order", "/privacy"].includes(
-      item.href,
-    ),
-  );
-
   return (
-    <section className="grid paid-mvp-product-shell">
-      <div className="card paid-hero">
-        <div>
-          <span className="badge">مسیر محصول Halleus</span>
-          <span className="badge paid-soft-badge">گزارش و سفارش کامل‌تر</span>
+    <section className="grid trust-page-shell product-trust-page">
+      <div className="card trust-hero-card">
+        <span className="badge">مسیر محصول Halleus</span>
 
-          <h1>Halleus یک مسیر ساده از گزارش تولد تا سفارش نسخه کامل‌تر است</h1>
+        <h1>هالیوس چارت تولد را به یک خوانش فارسی، آرام و شخصی تبدیل می‌کند</h1>
 
-          <p>
-            کاربر ابتدا گزارش تولد فارسی می‌سازد و آن را در صفحه جزئیات می‌خواند.
-            اگر نسخه کامل‌تر بخواهد، همان گزارش به فرم سفارش دستی وصل می‌شود تا
-            درخواستش دقیق‌تر، قابل پیگیری‌تر و بدون ورود دوباره اطلاعات باشد.
-          </p>
+        <p>
+          هالیوس برای کسی ساخته شده که می‌خواهد از داده تولدش یک گزارش قابل
+          خواندن بگیرد: نه فال روزانه، نه پیش‌بینی قطعی، نه صفحه آزمایشگاهی.
+          تمرکز فعلی روی کیفیت گزارش، تجربه ساخت چارت و برگشت راحت به گزارش‌هاست.
+        </p>
 
-          <div className="actions">
-            <Link className="button" href="/chart">
-              ساخت گزارش نمونه
-            </Link>
+        <div className="actions">
+          <Link className="button" href="/chart">
+            ساخت گزارش تولد
+          </Link>
 
-            <Link className="button secondary" href="/pricing">
-              دیدن پلن‌ها
-            </Link>
+          <Link className="button secondary" href="/reports">
+            دیدن گزارش‌های من
+          </Link>
 
-            <Link className="button secondary" href="/order">
-              شروع سفارش دستی
-            </Link>
-          </div>
+          <Link className="button secondary" href="/privacy">
+            حریم داده‌ها
+          </Link>
         </div>
       </div>
 
-      <section className="card paid-section">
-        <span className="section-label">آنچه کاربر دریافت می‌کند</span>
-
-        <h2>در این نسخه کاربر چه چیزی می‌گیرد؟</h2>
-
-        <div className="paid-checklist">
-          {paidDeliverables.map((item) => (
-            <div key={item}>
-              <strong>✓</strong>
-              <span>{item}</span>
-            </div>
-          ))}
-        </div>
+      <section className="trust-principle-grid">
+        {productValues.map((item) => (
+          <article className="card trust-principle-card" key={item.title}>
+            <span className="section-label">هالیوس چیست؟</span>
+            <h2>{item.title}</h2>
+            <p>{item.text}</p>
+          </article>
+        ))}
       </section>
 
-      <section className="card manual-order-flow">
-        <span className="section-label">مسیر سفارش دستی</span>
+      <section className="card trust-flow-card">
+        <span className="section-label">مسیر کاربر</span>
+        <h2>از تولد تا گزارش، در سه قدم کوتاه</h2>
 
-        <h2>پرداخت واقعی هنوز فعال نیست؛ سفارش اولیه دستی و شفاف است</h2>
-
-        <p>
-          این مسیر هنوز پرداخت آنلاین انجام نمی‌دهد. در عوض، کاربر اول گزارش
-          نمونه و توضیح پلن‌ها را می‌بیند؛ بعد اگر خواست، با شناسه همان گزارش
-          درخواست نسخه کامل‌تر را برای هماهنگی دستی آماده می‌کند.
-        </p>
-
-        <div className="home-step-list">
-          {manualOrderSteps.map((step, index) => (
+        <div className="home-step-list trust-step-list">
+          {flowSteps.map((step, index) => (
             <div key={step}>
-              <strong>{(index + 1).toLocaleString("fa-IR")}. مرحله</strong>
+              <strong>{(index + 1).toLocaleString("fa-IR")}. قدم</strong>
               <span>{step}</span>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="card">
-        <span className="section-label">مسیرهای مهم محصول</span>
-
-        <h2>مسیرهای اصلی تجربه Halleus</h2>
-
-        <div className="feature-grid">
-          {featuredLinks.map((item) => (
-            <article className="mini-card paid-surface-link" key={item.href}>
-              <span className="badge">{statusLabels[item.status]}</span>
-              <strong>{item.label}</strong>
-              <p>{item.description}</p>
-              <Link className="button secondary" href={item.href}>
-                باز کردن
-              </Link>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="card">
-        <span className="badge">اصل ادامه مسیر</span>
-
-        <h2>ادامه محصول باید از ارزش گزارش شروع شود</h2>
-
+      <section className="card trust-note-card">
+        <span className="badge">مرز خوانش</span>
+        <h2>زبان هالیوس نمادین و تأملی است</h2>
         <p>
-          اول باید گزارش اولیه، سفارش کامل‌تر و تجربه کاربر روشن بمانند. بعد از
-          اینکه ارزش گزارش برای کاربر ثابت شد، حساب کاربری، ذخیره‌سازی ابری و
-          پرداخت آنلاین با کمترین بازکاری اضافه می‌شوند.
+          گزارش‌ها برای خودشناسی، سرگرمی جدی و نگاه نمادین به الگوهای چارت
+          نوشته می‌شوند. تصمیم‌های پزشکی، مالی، حقوقی یا زندگی جدی باید بر پایه
+          مشورت تخصصی و مسئولیت شخصی گرفته شوند.
         </p>
       </section>
     </section>
