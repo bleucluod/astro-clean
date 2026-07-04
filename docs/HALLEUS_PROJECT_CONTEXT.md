@@ -966,3 +966,38 @@ Implementation added:
 - Decision doc for persistent reports/auth.
 - Auth readiness updated from undecided to selected-not-enabled.
 - Guard check for the persistent reports/auth decision.
+
+
+## v0.1.181 — Supabase auth stub and persistent repository prep
+
+Status:
+- Added Supabase auth driver stub and persistent report repository prep.
+- Active product mode remains local-preview.
+- Real login remains disabled.
+- Account report writes remain disabled.
+
+Implementation:
+- Added guarded env switches for Supabase auth stub and account storage.
+- Added Supabase auth driver stub without installing a Supabase client package.
+- Updated auth readiness so `canEnableRealLogin` remains false.
+- Added persistent repository readiness prep without changing the active local repository.
+- Added guard check for auth/repository prep.
+
+Not included:
+- No real auth driver.
+- No package install.
+- No production database writes.
+- No migration execution.
+- No payment, SEO/indexing, public reports, hosting, report engine, or report writer work.
+
+## v0.1.181 failure note — docs token mismatch
+
+Error:
+- `check-supabase-auth-repository-prep` failed because docs did not contain the exact required phrase `persistent report repository prep`.
+
+Fixed:
+- Added the exact phrase to the persistent reports/auth decision doc.
+- Kept product code unchanged.
+
+Prevention:
+- When adding new guard checks, keep required docs tokens aligned with the actual docs wording or add an explicit note.

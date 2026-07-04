@@ -8,6 +8,11 @@ export type HalleusRuntimeEnv = {
   paymentProvider?: string;
   betaPersistenceEnabled: boolean;
   betaPersistenceUserId?: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+  supabaseServiceRoleKey?: string;
+  supabaseAuthStubEnabled: boolean;
+  accountStorageEnabled: boolean;
 };
 
 function getOptionalEnv(name: string) {
@@ -29,6 +34,11 @@ export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
     paymentProvider: getOptionalEnv("PAYMENT_PROVIDER"),
     betaPersistenceEnabled: isEnabledEnv("HALLEUS_ENABLE_BETA_PERSISTENCE"),
     betaPersistenceUserId: getOptionalEnv("HALLEUS_BETA_PERSISTENCE_USER_ID"),
+    supabaseUrl: getOptionalEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    supabaseAnonKey: getOptionalEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    supabaseServiceRoleKey: getOptionalEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    supabaseAuthStubEnabled: isEnabledEnv("HALLEUS_ENABLE_SUPABASE_AUTH_STUB"),
+    accountStorageEnabled: isEnabledEnv("HALLEUS_ENABLE_ACCOUNT_STORAGE"),
   };
 }
 
@@ -38,4 +48,28 @@ export function hasDatabaseConfig() {
 
 export function hasAuthConfig() {
   return Boolean(getHalleusRuntimeEnv().authSecret);
+}
+
+export function hasSupabasePublicConfig() {
+  const env = getHalleusRuntimeEnv();
+
+  return Boolean(env.supabaseUrl && env.supabaseAnonKey);
+}
+
+export function hasSupabaseServerConfig() {
+  const env = getHalleusRuntimeEnv();
+
+  return Boolean(env.supabaseUrl && env.supabaseAnonKey && env.supabaseServiceRoleKey);
+}
+
+export function canUseSupabaseAuthStub() {
+  const env = getHalleusRuntimeEnv();
+
+  return env.supabaseAuthStubEnabled && hasSupabasePublicConfig();
+}
+
+export function canUseAccountStorage() {
+  const env = getHalleusRuntimeEnv();
+
+  return env.accountStorageEnabled && hasDatabaseConfig() && hasAuthConfig();
 }

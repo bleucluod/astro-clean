@@ -95,3 +95,16 @@ The safe MVP path is:
 5. Add account/profile migration later.
 
 This keeps the project scalable because old report snapshots remain readable even after report generation improves.
+
+
+## v0.1.181 storage architecture checkpoint
+
+Decision:
+- Keep local-preview as the active repository.
+- Prepare account-storage readiness separately.
+- Account reports require a real Supabase user id, database config, auth config, and migration review.
+
+Not active:
+- No account report writes.
+- No local-preview deletion after migration.
+- No public/indexable report storage.

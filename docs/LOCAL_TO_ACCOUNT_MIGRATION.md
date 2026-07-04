@@ -38,3 +38,13 @@ Migration guard:
 - Imported reports must stay private/noindex.
 - Local reports must not be deleted until account import succeeds.
 - Export backup should stay available before migration.
+
+
+## v0.1.181 migration preflight checkpoint
+
+Before migration can run:
+- Real Supabase auth must create a stable user id.
+- Account storage must be explicitly enabled.
+- The user must review local report counts.
+- Imported reports must stay private/noindex.
+- Local-preview reports must remain available until account import succeeds.

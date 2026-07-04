@@ -40,3 +40,15 @@ This keeps the current local-preview behavior while reducing direct localStorage
 Chart creation now saves generated reports through `saveGeneratedReport`.
 
 This keeps local-preview behavior while preparing the generated report flow for future database-backed storage.
+
+
+## v0.1.181 persistent repository prep checkpoint
+
+What changed:
+- Persistent report repository readiness is now represented separately from active report storage.
+- Active report storage remains local-preview.
+- Account storage is prepared as a future mode, but account writes remain disabled.
+
+Guard:
+- `HALLEUS_ENABLE_ACCOUNT_STORAGE=false` by default.
+- Do not replace `getReportRepository()` until auth/session ownership and migration review are implemented.

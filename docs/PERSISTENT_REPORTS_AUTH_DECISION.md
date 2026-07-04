@@ -56,3 +56,25 @@ hosting migration
 This is a private-report foundation step.
 
 Do not use this decision to start SEO, public report pages, payment, or public/indexable user-generated reports.
+
+
+## v0.1.181 — Supabase auth stub and repository prep
+
+Status:
+- Supabase remains the selected direction, but real login is still off.
+- The auth driver stub exists only to wire contracts safely.
+- Persistent report repository prep exists only to describe account-storage readiness.
+- Active storage remains local-preview.
+
+Implementation:
+- Add guarded env switches:
+  - `HALLEUS_ENABLE_SUPABASE_AUTH_STUB=false`
+  - `HALLEUS_ENABLE_ACCOUNT_STORAGE=false`
+- Add `lib/auth/supabase-auth-driver.ts` as a stub that never creates real sessions.
+- Keep `getAuthDriver()` on preview unless the guarded stub flag and public Supabase config exist.
+- Add persistent repository readiness prep without replacing `getReportRepository()`.
+
+Rule:
+- Do not install Supabase client or write account reports in this batch.
+Note:
+- This batch includes persistent report repository prep only; account report writes remain disabled.

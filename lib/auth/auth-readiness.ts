@@ -1,4 +1,9 @@
-import { hasAuthConfig, hasDatabaseConfig } from "@/lib/config/env";
+import {
+  hasAuthConfig,
+  hasDatabaseConfig,
+  hasSupabasePublicConfig,
+  hasSupabaseServerConfig,
+} from "@/lib/config/env";
 import type {
   AuthProviderOption,
   AuthReadinessReport,
@@ -72,15 +77,24 @@ export function getAuthReadinessReport(): AuthReadinessReport {
     recommendedNextSteps.push("Configure the auth/session secret outside Git.");
   }
 
-  recommendedNextSteps.push("Implement the Supabase auth driver behind the AuthDriver contract.");
-  recommendedNextSteps.push("Connect report records to authenticated Supabase user ids.");
-  recommendedNextSteps.push("Build local-preview to account migration UI.");
+  if (!hasSupabasePublicConfig()) {
+    blockers.push("Supabase public URL/anon key are not configured.");
+    recommendedNextSteps.push("Configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY outside Git.");
+  }
+
+  if (!hasSupabaseServerConfig()) {
+    recommendedNextSteps.push("Configure SUPABASE_SERVICE_ROLE_KEY only for server-side account migration and never expose it to the client.");
+  }
+
+  recommendedNextSteps.push("Use the Supabase auth driver stub for contract wiring only.");
+  recommendedNextSteps.push("Keep getAuthDriver on preview unless HALLEUS_ENABLE_SUPABASE_AUTH_STUB=true and public Supabase config exists.");
+  recommendedNextSteps.push("Connect report records to authenticated Supabase user ids after migration UI exists.");
   recommendedNextSteps.push("Keep reports private/noindex until explicit public consent exists.");
 
   return {
     stage: blockers.length === 0 ? "staging" : "provider-selected",
     provider: "supabase",
-    canEnableRealLogin: blockers.length === 0,
+    canEnableRealLogin: false,
     blockers,
     recommendedNextSteps,
   };

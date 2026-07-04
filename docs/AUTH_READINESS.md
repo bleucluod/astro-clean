@@ -29,3 +29,17 @@ This keeps the product path clean:
 3. real account session
 4. report records attached to user id
 5. local preview reports migrated into the account
+
+
+## v0.1.181 auth driver stub checkpoint
+
+What changed:
+- A Supabase auth driver stub exists behind the auth driver contract.
+- The stub returns preview/local sessions and unavailable sign-in results.
+- `canEnableRealLogin` stays false.
+- `getAuthDriver()` still falls back to preview unless guarded stub config is explicitly enabled.
+
+What did not change:
+- No real login.
+- No Supabase client package.
+- No production session creation.

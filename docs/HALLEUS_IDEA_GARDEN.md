@@ -1139,3 +1139,19 @@ Not now:
 - No payment gating.
 - No SEO/public report launch.
 - No hosting migration.
+
+
+## v0.1.181 Idea Garden update — Supabase auth stub and repository prep
+
+Decision:
+- Prepare Supabase Auth and account-storage contracts without activating them.
+- Keep local-preview reports as the working user experience.
+- Keep real account writes blocked until migration UX and real session ownership are ready.
+- Treat this as product foundation, not an auth launch.
+
+Not now:
+- No real login.
+- No Supabase client package install.
+- No database write switch.
+- No public/indexable reports.
+- No payment gating or SEO launch.
