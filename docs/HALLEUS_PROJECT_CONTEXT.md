@@ -831,3 +831,23 @@ Boundaries:
 Workflow note:
 - This batch is UI/copy polish over inspected homepage/header/CSS files.
 - Keep v0.1.173 Moon Pulse checks passing while adding the new homepage visual polish check.
+## v0.1.175 — Real Report Preview / Sample Block
+
+Status: completed locally by runner pending checks/commit.
+
+Purpose:
+- Turn the homepage report preview from generic product proof into a more concrete sample of the real Halleus report structure.
+- Keep the preview public-facing and product-quality without starting SEO/indexing/public report consent/payment.
+- Align the preview language with the current report writer layers: three core threads, houses, aspects, Moon Hands, retrogrades, synthesis and reflection prompts.
+
+Scope:
+- Updated `components/HomepageProductProof.tsx`.
+- Added `lib/report-preview/homepage-report-preview.ts`.
+- Updated homepage future-module copy so report preview is no longer described as future work.
+- Added visual CSS for the real report preview block.
+- Added `scripts/check-real-report-preview-homepage.mjs`.
+
+Product notes:
+- The homepage preview is a general sample of report structure and tone; a user's real report is still generated after birth data and chart calculation.
+- The preview must not imply public/indexable reports, paid checkout, or deterministic prediction.
+- Continue to avoid "گره‌های ماه" in user-facing copy; use "دست‌های ماه".

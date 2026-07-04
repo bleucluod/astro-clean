@@ -2918,3 +2918,187 @@ textarea {
   }
 }
 /* End homepage visual QA + app feel polish v0.1.174 */
+/* Real report preview sample block v0.1.175 */
+.real-report-preview-shell {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(91, 43, 191, 0.13);
+  background:
+    radial-gradient(circle at 8% 10%, rgba(124, 58, 237, 0.1), transparent 30%),
+    radial-gradient(circle at 92% 16%, rgba(217, 181, 140, 0.18), transparent 26%),
+    rgba(255, 255, 255, 0.96);
+}
+
+.real-report-preview-shell::before {
+  content: "";
+  position: absolute;
+  inset: 28px 24px auto auto;
+  width: 116px;
+  height: 116px;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 58% 42%, rgba(91, 43, 191, 0.16), transparent 34%),
+    rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.report-preview-heading,
+.report-preview-showcase-grid,
+.report-preview-trust-row {
+  position: relative;
+  z-index: 1;
+}
+
+.report-preview-showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.report-preview-excerpt-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.report-preview-excerpt-card {
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  border-radius: 28px;
+  padding: clamp(18px, 2.4vw, 24px);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 48px rgba(48, 32, 82, 0.06);
+}
+
+.report-preview-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.report-preview-index {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  border-radius: 16px;
+  background: #f5efff;
+  color: #5b2bbf;
+  font-weight: 950;
+}
+
+.report-preview-excerpt-card h3,
+.report-preview-meta-card h3 {
+  margin: 0 0 10px;
+  color: #34224f;
+  font-size: clamp(20px, 2.5vw, 26px);
+  line-height: 1.65;
+}
+
+.report-preview-excerpt-card p,
+.report-preview-meta-card p {
+  margin: 0;
+  color: #5f536d;
+  line-height: 2;
+}
+
+.report-preview-evidence {
+  display: grid;
+  gap: 4px;
+  margin-top: 16px;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(248, 245, 255, 0.72);
+}
+
+.report-preview-evidence strong,
+.report-preview-layer strong,
+.report-preview-trust-card strong {
+  color: #4c1d95;
+  font-weight: 950;
+}
+
+.report-preview-evidence span,
+.report-preview-layer span {
+  color: #665774;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.report-preview-excerpt-card blockquote {
+  margin: 14px 0 0;
+  border-right: 3px solid rgba(91, 43, 191, 0.28);
+  padding: 8px 14px 8px 0;
+  color: #4d3d62;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 2;
+}
+
+.report-preview-meta-card {
+  position: sticky;
+  top: 110px;
+  border: 1px solid rgba(91, 43, 191, 0.14);
+  border-radius: 30px;
+  padding: clamp(18px, 2.5vw, 26px);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(249, 245, 255, 0.9));
+  box-shadow: 0 22px 58px rgba(48, 32, 82, 0.08);
+}
+
+.report-preview-layer-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.report-preview-layer {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.report-preview-actions {
+  margin-top: 20px;
+}
+
+.report-preview-trust-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.report-preview-trust-card {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+@media (max-width: 960px) {
+  .report-preview-showcase-grid,
+  .report-preview-trust-row {
+    grid-template-columns: 1fr;
+  }
+
+  .report-preview-meta-card {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .report-preview-card-head {
+    align-items: flex-start;
+  }
+
+  .report-preview-actions .button {
+    width: 100%;
+  }
+}
+/* End real report preview sample block v0.1.175 */

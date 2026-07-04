@@ -1053,3 +1053,15 @@ Implementation direction:
 
 Reason:
 - This reduces demo-feeling and protects product trust without expanding risky scope.
+
+## v0.1.175 Idea Garden update — Real report preview as a product surface
+
+Decision:
+- Move the homepage report preview from a future placeholder into an active product surface.
+- The preview should show the shape of a real Halleus reading: core threads, houses, aspects, Moon Hands, synthesis, and a reflective question.
+- Keep the preview general and non-indexable for now; do not start public report SEO, public/private consent, payment, or report sharing in this batch.
+- The preview should reduce uncertainty for first-time users before they enter birth data, while staying aligned with the real report engine and writer direction.
+
+Next later surfaces:
+- A fuller sample report page can come later after the homepage preview proves useful.
+- Public/indexable report examples still require explicit consent and indexing strategy before implementation.
