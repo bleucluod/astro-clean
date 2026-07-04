@@ -519,23 +519,23 @@ export function enrichReportWithRealEngineCopy(
   });
   const interpretations = [
     sunText,
-    sunAspectText,
     moonText,
-    moonAspectText,
     risingText,
+    mercuryText,
+    venusText,
+    marsText,
+    sunAspectText,
+    moonAspectText,
+    mercuryAspectText,
+    venusAspectText,
+    marsAspectText,
     houseText,
     houseAnglesText,
-    retrogradeText,
     lunarNodeText,
-    natalAccuracyText,
-    mercuryText,
-    mercuryAspectText,
-    venusText,
-    venusAspectText,
-    marsText,
-    marsAspectText,
+    retrogradeText,
     aspectText,
     integrationText,
+    natalAccuracyText,
   ].filter(Boolean) as string[];
   const interpretationSections = buildRealEngineInterpretationSections({
     summary,
@@ -662,18 +662,18 @@ function buildRealEngineSectionEvidence({
     ),
     houseAnglesEvidence: joinEvidenceLabels(
       houseCount === 12 ? "۱۲ خانه Whole Sign محاسبه‌شده" : undefined,
-      hasAngles ? "ASC/DSC/MC/IC در snapshot" : undefined,
+      hasAngles ? "ASC/DSC/MC/IC در داده گزارش" : undefined,
     ),
     motionEvidence: joinEvidenceLabels(
       retrogradeStatus === "calculated" ? "حرکت برگشتی محاسبه‌شده" : undefined,
       retrogradeStatus === "calculated" && retrogradePlanetCount > 0
         ? `${toPersianNumber(retrogradePlanetCount)} سیاره برگشتی`
         : retrogradeStatus === "calculated"
-          ? "بدون سیاره برگشتی در snapshot"
+          ? "بدون سیاره برگشتی در داده گزارش"
           : undefined,
       isCalculatedLunarNodes(lunarNodes)
         ? "دست‌های ماه: Mean Lunar Node محاسبه‌شده"
-        : "دست‌های ماه و لیلیت هنوز deferred هستند",
+        : "دست‌های ماه و لیلیت هنوز عمداً بیرون از خوانش مانده‌اند",
     ),
     lunarNodeEvidence: buildLunarNodeEvidenceLabel(lunarNodes),
   };
@@ -743,7 +743,7 @@ function buildRealEngineSummary({
   if (sunSign && moonSign) {
     return [
       `${displayName}این خوانش هالیوس${cityPhrase} از روی چارت محاسبه‌شده تو ساخته شده است؛ زبانش زبان حکم و پیش‌گویی نیست، بلکه زبان نمادین و سنت کهن خواندن آسمان است.`,
-      "از سه ستون اصلی چارت شروع می‌کنیم: خورشید، ماه و رایزینگ؛ بعد هر بخش را با خانه‌ها و روابط سیاره‌ها به تجربه روزمره نزدیک‌تر می‌کنیم.",
+      "مسیر خواندن از سه ستون اصلی شروع می‌شود: خورشید، ماه و رایزینگ. بعد آرام‌آرام به ذهن، رابطه، حرکت، خانه‌ها، دست‌های ماه و یادداشت‌های دقت می‌رسیم تا گزارش شبیه فهرست خام داده‌ها نباشد.",
       `خورشید تو در ${formatSignLabel(sunSign)}${sunHouseSuffix} قرار دارد؛ یعنی مسیر هویت و اعتمادبه‌نفس با کیفیت ${sunSign.energy} رنگ می‌گیرد.`,
       `ماه تو در ${formatSignLabel(moonSign)}${moonHouseSuffix} است؛ جایی که امنیت عاطفی و واکنش‌های غریزی به انرژی ${moonSign.energy} نزدیک می‌شوند.`,
       `${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد و نشان می‌دهد در برخورد اول با جهان، چه ریتم و تصویری از تو جلوتر دیده می‌شود.`,
@@ -753,7 +753,7 @@ function buildRealEngineSummary({
 
   return [
     `${displayName}این خوانش هالیوس${cityPhrase} از روی چارت محاسبه‌شده تو ساخته شده است و آن را مثل یک زبان نمادین برای تأمل می‌خواند، نه یک حکم قطعی درباره آینده یا شخصیت.`,
-    `داده‌های اصلی چارت در داده محاسبه‌شده ذخیره شده‌اند و ${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد.`,
+    `داده‌های اصلی چارت آماده‌اند و ${risingDescriptor} تو در ${formatSignLabel(rising)} قرار دارد.`,
     "متن گزارش از همین داده‌های محاسبه‌شده ساخته شده است؛ آن را مثل دعوتی برای دیدن الگوها بخوان، نه جایگزین مشاهده، گفت‌وگو یا تصمیم شخصی.",
   ].join(" ");
 }
@@ -899,7 +899,7 @@ function buildHouseAnglesText(realEngine: RealEngineReportSnapshot): string | un
   const houseSystemText =
     houses.length === 12
       ? "خانه‌های این گزارش با سیستم Whole Sign ساخته شده‌اند؛ جدول کامل در کارت گزارش آمده و متن خوانش فقط نقاط پررنگ‌تر را برجسته می‌کند."
-      : "در این نسخه هنوز آرایه کامل ۱۲ خانه در داده محاسبه‌شده ذخیره نشده است، پس خانه‌ها فقط با احتیاط خوانده می‌شوند.";
+      : "در این نسخه هنوز جدول کامل ۱۲ خانه در خروجی گزارش آماده نیست، پس خانه‌ها فقط با احتیاط خوانده می‌شوند.";
   const anglesText = angles.length > 0 ? buildAnglesNarrative(angles) : undefined;
   const ascDscText = realEngine.angles?.asc && realEngine.angles?.dsc
     ? "محور ASC/DSC پیوند میان شیوه ورود تو به جهان و آینه رابطه با دیگری را نشان می‌دهد."
@@ -928,13 +928,13 @@ function buildRetrogradeText(realEngine: RealEngineReportSnapshot): string | und
     "در این نسخه، حرکت برگشتی از مقایسه جایگاه ظاهری سیاره‌ها در دایره بروج، پیش و پس از لحظه تولد، به دست می‌آید.";
   const deferredPoints = isCalculatedLunarNodes(realEngine.lunarNodes)
     ? "دست‌های ماه با مدل Mean Lunar Node در فصل جداگانه گزارش آمده‌اند؛ لیلیت هنوز عمداً وارد خوانش نشده است."
-    : "دست‌های ماه و لیلیت هنوز عمداً وارد خوانش نشده‌اند، چون تعریف نقطه و منبع محاسباتی آن‌ها باید جداگانه سخت‌گیرانه شود.";
+    : "دست‌های ماه و لیلیت هنوز عمداً وارد خوانش نشده‌اند، چون تعریف نقطه و منبع محاسباتی آن‌ها باید جداگانه روشن و سخت‌گیرانه شود.";
 
   if (planetLabels.length === 0) {
     return [
       "در داده محاسبه‌شده این گزارش، برای سیاره‌های محاسبه‌شده حرکت برگشتی ثبت نشده است.",
       baseMethod,
-      "این نبودنِ retrograde را نباید به معنای ساده بودن کامل چارت خواند؛ خانه‌ها، محورها و aspectها همچنان لایه‌های اصلی گفت‌وگوی درونی را می‌سازند.",
+      "این نبودنِ retrograde را نباید به معنای ساده بودن کامل چارت خواند؛ خانه‌ها، محورها و روابط سیاره‌ها همچنان لایه‌های اصلی گفت‌وگوی درونی را می‌سازند.",
       deferredPoints,
     ].join(" ");
   }
@@ -956,6 +956,7 @@ function buildLunarNodeText(realEngine: RealEngineReportSnapshot): string | unde
 
   return [
     "دست‌های ماه در این گزارش با مدل Mean Lunar Node خوانده می‌شوند؛ بنابراین این بخش ادعای True/Osculating Node ندارد.",
+    "این بخش را مثل یک راهنمای رشد بخوان: نه برای تعیین سرنوشت، بلکه برای دیدن کشش میان عادت آشنا و تمرین تازه.",
     formatLunarNodeNarrativePoint(lunarNodes.northNode),
     formatLunarNodeNarrativePoint(lunarNodes.southNode),
     "دست شمالی ماه را مثل جهت تمرین تازه، رشد آگاهانه و دعوتی بخوان که ممکن است اول کمی ناآشنا باشد.",
@@ -1068,7 +1069,7 @@ function buildAnglesNarrative(angles: RealEngineReportAngle[]): string {
     return `${copy.faName}: ${formatSignLabel(sign)}، درجه ${formatDegree(angle.degreeInSign)}${houseSuffix}؛ ${sourceLabel}. ${copy.meaning}`;
   });
 
-  return `محورهای اصلی ذخیره‌شده در snapshot چنین‌اند: ${details.join(" ")}`;
+  return `محورهای اصلی این چارت چنین‌اند: ${details.join(" ")}`;
 }
 
 function buildWholeSignHouseNarrative(
@@ -1281,22 +1282,22 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
   const aspectCount = realEngine.aspects?.length ?? 0;
   const aspectSummary =
     aspectCount > 0
-      ? ` در لایه روابط سیاره‌ها هم ${aspectCount} ارتباط اصلی ذخیره شده که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند.`
-      : " در این نسخه، تمرکز اصلی روی جایگاه‌های واقعی‌تر سیاره‌هاست و لایه روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
+      ? ` در لایه روابط سیاره‌ها هم ${aspectCount} ارتباط اصلی دیده می‌شود که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند.`
+      : " در این نسخه، تمرکز اصلی روی جایگاه‌های محاسبه‌شده سیاره‌هاست و روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
   const houseSummary =
     realEngine.houses?.length === 12
-      ? " در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در داده محاسبه‌شده گزارش ذخیره شده‌اند."
-      : " لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که snapshot داده واقعی کافی داشته باشد.";
+      ? " در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در داده محاسبه‌شده گزارش آمده‌اند."
+      : " لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که داده محاسبه‌شده کافی داشته باشد.";
   const motionSummary =
     realEngine.retrogrades?.status === "calculated"
       ? isCalculatedLunarNodes(realEngine.lunarNodes)
-        ? " لایه motion وضعیت حرکت برگشتی سیاره‌ها را از real engine دریافت می‌کند و دست‌های ماه نیز با برچسب Mean Lunar Node در گزارش جداگانه خوانده می‌شوند."
-        : " لایه motion وضعیت حرکت برگشتی سیاره‌ها را از real engine دریافت می‌کند، در حالی که دست‌های ماه و لیلیت هنوز عمداً deferred مانده‌اند."
-      : " لایه motion فقط وقتی وارد گزارش می‌شود که محاسبه واقعی داشته باشد.";
+        ? " لایه حرکت، وضعیت برگشتی سیاره‌ها را از داده محاسبه‌شده می‌خواند و دست‌های ماه نیز با برچسب Mean Lunar Node در فصل جداگانه آمده‌اند."
+        : " لایه حرکت، وضعیت برگشتی سیاره‌ها را از داده محاسبه‌شده می‌خواند، در حالی که دست‌های ماه و لیلیت هنوز عمداً بیرون از نتیجه‌گیری مانده‌اند."
+      : " لایه حرکت فقط وقتی وارد گزارش می‌شود که محاسبه واقعی داشته باشد.";
 
   return [
     `جمع‌بندی چارت: ${visiblePlacements}.`,
-    "این‌ها ستون‌های اولیه گزارش‌اند و متن هالیوس از همین داده‌های real engine ساخته شده است.",
+    "این‌ها ستون‌های اولیه گزارش‌اند و متن هالیوس از همین داده‌های محاسبه‌شده ساخته شده است.",
     "برای خواندن این گزارش، بهتر است خورشید را مثل مسیر آگاهانه، ماه را مثل نیاز عاطفی و رایزینگ را مثل دروازه ورود به جهان ببینی.",
     "وقتی این سه لایه با هم خوانده شوند، گزارش از فهرست جایگاه‌ها به یک روایت شخصی‌تر نزدیک می‌شود: چه چیزی در تو روشن می‌شود، چه چیزی تو را آرام می‌کند، و چگونه خودت را به جهان نشان می‌دهی.",
     aspectSummary.trim(),
@@ -1332,7 +1333,7 @@ function buildRealEngineInterpretationSections(
   const fallbackBody =
     input.integrationText ??
     input.summary ??
-    "این بخش از گزارش بر اساس داده‌های محاسبه‌شده چارت نوشته شده و باید نمادین، آرام و غیرقطعی خوانده شود.";
+    "این بخش از گزارش بر اساس داده‌های محاسبه‌شده چارت نوشته شده و بهتر است نمادین، آرام و غیرقطعی خوانده شود.";
   const houseAnglesSection: ReportOutputSection | null = input.houseAnglesText
     ? {
         id: "real-engine-houses-angles",
@@ -1341,7 +1342,7 @@ function buildRealEngineInterpretationSections(
         body: buildStructuredSectionBody({
           opening: buildEvidenceOpening(
             input.houseAnglesEvidence,
-            "این فصل نقشه خانه‌ها و محورهای اصلی را به زبان انسانی وارد گزارش می‌کند؛ یعنی داده‌های تازه محاسبه‌شده فقط در پشت صحنه نمی‌مانند.",
+            "این فصل نقشه خانه‌ها و محورهای اصلی را به زبان انسانی وارد گزارش می‌کند؛ یعنی محاسبات فقط در پشت صحنه نمی‌مانند و به تجربه قابل خواندن تبدیل می‌شوند.",
           ),
           body: input.houseAnglesText,
           closing:
@@ -1353,15 +1354,15 @@ function buildRealEngineInterpretationSections(
     ? {
         id: "real-engine-motion-special-points",
         kind: "overview",
-        title: "حرکت برگشتی و نقاط ویژه",
+        title: "بازنگری، حرکت برگشتی و نقاط ویژه",
         body: buildStructuredSectionBody({
           opening: buildEvidenceOpening(
             input.motionEvidence,
-            "این فصل لایه motion را وارد گزارش می‌کند و هم‌زمان مرز داده واقعی را روشن نگه می‌دارد.",
+            "این فصل لایه حرکت را وارد گزارش می‌کند و هم‌زمان مرز داده محاسبه‌شده را روشن نگه می‌دارد.",
           ),
           body: input.retrogradeText,
           closing:
-            "حرکت برگشتی را مثل دعوت به بازنگری بخوان؛ نقاط ویژه را هم فقط وقتی وارد نتیجه‌گیری کن که خود گزارش داده واقعی و برچسب مدل محاسبه را نشان می‌دهد.",
+            "حرکت برگشتی را مثل دعوت به بازنگری بخوان؛ نقاط ویژه را هم فقط وقتی وارد نتیجه‌گیری کن که خود گزارش داده محاسبه‌شده و برچسب مدل محاسبه را نشان می‌دهد.",
         }),
       }
     : null;
@@ -1386,13 +1387,13 @@ function buildRealEngineInterpretationSections(
     ? {
         id: "real-engine-natal-accuracy",
         kind: "overview",
-        title: "دقت تولد و مرزهای محاسبه",
+        title: "دقت تولد و روش خواندن گزارش",
         body: buildStructuredSectionBody({
           opening:
-            "این فصل مرز دقت گزارش را روشن می‌کند؛ چون گزارش کامل فقط زمانی قابل اعتماد است که داده تولد، timezone و مختصات شهر با همان سخت‌گیری داده محاسبه‌شده خوانده شوند.",
+            "این فصل مرز دقت گزارش را روشن می‌کند؛ چون گزارش کامل فقط زمانی قابل اعتماد است که ساعت تولد، منطقه زمانی و مختصات شهر با همان سخت‌گیری داده محاسبه‌شده خوانده شوند.",
           body: input.natalAccuracyText,
           closing:
-            "این مرزگذاری برای کم‌کردن ارزش گزارش نیست؛ برای این است که هالیوس به جای متن زیبا اما نامطمئن، گزارش صادقانه و قابل اعتماد بسازد.",
+            "این مرزگذاری برای کم‌کردن ارزش گزارش نیست؛ برای این است که هالیوس به جای متن زیبا اما نامطمئن، خوانشی صادقانه و قابل اعتماد بسازد.",
         }),
       }
     : null;
@@ -1404,10 +1405,10 @@ function buildRealEngineInterpretationSections(
       title: "نقشه راه خوانش",
       body: buildStructuredSectionBody({
         opening:
-          "این بخش ورودی کوتاه گزارش است؛ اول سه ستون اصلی را کنار هم می‌گذارد و بعد لایه‌های خانه، محور، motion و دقت را در جای خواناتر خودش باز می‌کند.",
+          "این بخش ورودی کوتاه گزارش است؛ اول سه ستون اصلی را کنار هم می‌گذارد و بعد ذهن، رابطه، عمل، خانه‌ها، دست‌های ماه و مرزهای دقت را در جای خواناتر خودش باز می‌کند.",
         body: input.summary,
         closing:
-          "برای خواندن ادامه گزارش، هر بخش را مثل یک زاویه مشاهده ببین؛ بخش‌های فنی‌تر بعد از روایت اصلی آمده‌اند تا متن سنگین نشود.",
+          "برای خواندن ادامه گزارش، هر بخش را مثل یک زاویه مشاهده ببین؛ یادداشت‌های روش و دقت بعد از روایت اصلی آمده‌اند تا متن سنگین نشود.",
       }),
     },
     {
@@ -1467,9 +1468,8 @@ function buildRealEngineInterpretationSections(
       }),
     },
     houseAnglesSection,
-    motionSection,
     lunarNodeSection,
-    natalAccuracySection,
+    motionSection,
     {
       id: "real-engine-growth",
       kind: "growth",
@@ -1483,6 +1483,7 @@ function buildRealEngineInterpretationSections(
         closing: buildFinalSynthesisClosing(input),
       }),
     },
+    natalAccuracySection,
     {
       id: "real-engine-reflection-prompts",
       kind: "reflection-prompts",
@@ -1534,8 +1535,9 @@ function buildRealEngineReflectionPrompts(input: RealEngineSectionTextInput): st
     "۱) از بخش هویت شروع کن: کدام جمله واقعاً به حس مسیر و حضور تو نزدیک است؟",
     "۲) بعد سراغ ماه برو: کدام نیاز عاطفی را بهتر است زودتر و مهربان‌تر بشناسی؟",
     "۳) عطارد، زهره و مریخ را مثل سه ابزار روزمره بخوان: فکر، ارزش و عمل کجا با هم هماهنگ‌اند و کجا نه؟",
-    "۴) aspectها را مثل گفت‌وگوی درونی ببین: کدام رابطه حمایت می‌سازد و کدام رابطه مهارت تازه می‌خواهد؟",
-    "۵) یک انتخاب کوچک برای این هفته بردار؛ چیزی که گزارش را از متن به تجربه قابل مشاهده تبدیل کند.",
+    "۴) دست‌های ماه را مثل نسبت میان عادت آشنا و تمرین تازه بخوان؛ کدام دعوت کوچک برای رشد دیده می‌شود؟",
+    "۵) روابط سیاره‌ها را مثل گفت‌وگوی درونی ببین: کدام رابطه حمایت می‌سازد و کدام رابطه مهارت تازه می‌خواهد؟",
+    "۶) یک انتخاب کوچک برای این هفته بردار؛ چیزی که گزارش را از متن به تجربه قابل مشاهده تبدیل کند.",
   ];
   const closing =
     input.integrationText || input.aspectText

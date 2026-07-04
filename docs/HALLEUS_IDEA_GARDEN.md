@@ -961,3 +961,12 @@ Product wording decision:
 - Keep the model disclosure honest: this is Mean Lunar Node, not True/Osculating Node.
 - South Node should keep being explained as the exact opposition of the calculated Mean North Node.
 - Lilith remains deferred and must not be bundled into this copy change.
+
+## v0.1.168 product note: full report reading polish
+
+Product decision:
+
+- The next report milestone should make the complete report easier to read as a guided Persian self-discovery experience, not a list of calculation facts.
+- Keep the report order human-first: identity and emotional rhythm before denser method/accuracy notes.
+- Technical honesty remains important, but user-facing copy should explain method limits in calm Persian instead of exposing unnecessary internal words like `snapshot`, `real engine`, or `motion`.
+- This is still report-depth work, not monetization, payment, public/private consent, SEO, wiki, Sky Pulse, or admin/content studio work.

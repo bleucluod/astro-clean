@@ -13,8 +13,9 @@ const requiredMarkers = [
   ["components/ReportCard.tsx", reportCard, "کیفیت محاسبه"],
   ["lib/astrology/real-engine-report-writer.ts", writer, "به جای تکرار فهرست کامل ۱۲ خانه"],
   ["lib/astrology/real-engine-report-writer.ts", writer, "جدول کامل ۱۲ خانه در کارت گزارش و چارت دایره‌ای آمده است"],
-  ["lib/astrology/real-engine-report-writer.ts", writer, "بخش‌های فنی‌تر بعد از روایت اصلی آمده‌اند"],
+  ["lib/astrology/real-engine-report-writer.ts", writer, "یادداشت‌های روش و دقت بعد از روایت اصلی آمده‌اند"],
   ["scripts/check-report-sample-qa.mjs", sampleQa, "v0.1.162-product-polish"],
+  ["scripts/check-report-sample-qa.mjs", sampleQa, "v0.1.168-reading-polish"],
   ["scripts/check-report-sample-qa.mjs", sampleQa, "too many user-facing snapshot mentions"],
 ];
 

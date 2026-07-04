@@ -732,3 +732,18 @@ Prevention: for generated Node scripts embedded in PowerShell here-strings, avoi
 - User-facing copy should say "دست‌های ماه" instead of "گره‌های ماه"; code identifiers can stay `lunarNodes`.
 - Keep technical honesty: Mean Lunar Node only, no True/Osculating Node claim, South Node as Mean North Node + 180°, and Lilith deferred.
 - Do not change engine math, shared node types, payment/public/private policy, SEO, Sky Pulse, or Lilith in this batch.
+
+## v0.1.168 full-report-reading-polish scope note
+
+- v0.1.168 is scoped to making the full report read more like a guided Persian product report and less like a technical dump.
+- Allowed surface: report writer prose, report-reading order, focused report checks, and compact context/idea notes.
+- Keep engine math/types unchanged. Do not add True Node, Lilith, payments, public/private consent, SEO, Sky Pulse, or admin/content studio work in this batch.
+- User-facing copy should avoid unnecessary English technical leakage such as `snapshot`, `real engine`, or `motion` when a Persian phrase can be honest and calmer.
+
+## Workflow failure - unsigned PowerShell runner and corrupted Next cache
+
+Error: Direct `.ps1` execution can fail on Windows with "not digitally signed" when the local execution policy blocks scripts.
+Fixed / prevention: Halleus runner commands should use a temporary process-level bypass, not a system policy change: `powershell -NoProfile -ExecutionPolicy Bypass -File ".\<runner>.ps1"`.
+
+Error: v0.1.167b initially failed `pnpm build` because generated Next cache contained corrupted `.next/dev/types/routes.d.ts` text (`xtends AppRoutes`).
+Fixed / prevention: confirm `.next` is ignored with `git check-ignore -v .next`, delete `.next`, then rerun build. Treat this as generated-cache recovery, not source rollback, only when the failure is clearly inside ignored `.next`.

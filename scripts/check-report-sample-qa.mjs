@@ -347,6 +347,7 @@ const samples = [
 ];
 
 const PRODUCT_POLISH_GUARD = "v0.1.162-product-polish";
+const READING_POLISH_GUARD = "v0.1.168-reading-polish";
 
 const requiredSectionIds = [
   "real-engine-overview",
@@ -470,7 +471,7 @@ for (const sample of samples) {
   }
 
   const technicalSnapshotMentions = (combined.match(/snapshot/g) ?? []).length;
-  if (technicalSnapshotMentions > 4) {
+  if (technicalSnapshotMentions > 0) {
     failures.push(`${sample.id}: too many user-facing snapshot mentions (${technicalSnapshotMentions})`);
   }
 
