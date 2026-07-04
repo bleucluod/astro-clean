@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  createAccountMigrationPreflight,
+  describeAccountMigrationPreflight,
+} from "@/lib/account/account-migration-preflight";
+import { getAccountReportSaveContract } from "@/lib/account/account-report-save-contract";
 import { persistentReportsDecision } from "@/lib/account/persistent-report-decision";
 import { getPreviewSession } from "@/lib/account/preview-session";
 import { listReportSummaries } from "@/lib/storage/report-query-service";
@@ -67,6 +72,14 @@ export default function DashboardPage() {
     };
   }, [reports]);
 
+  const accountSaveContract = useMemo(
+    () => getAccountReportSaveContract(session ?? undefined, reports.length),
+    [reports.length, session],
+  );
+  const migrationPreflight = useMemo(
+    () => createAccountMigrationPreflight(reports),
+    [reports],
+  );
   const latestReports = useMemo(() => reports.slice(0, 5), [reports]);
 
   if (!isReady) {
@@ -232,6 +245,71 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      <section className="card">
+        <span className="badge">پیش‌پرواز مهاجرت</span>
+
+        <h2>مسیر ذخیره روی حساب آماده‌سازی شده</h2>
+
+        <p>
+          {describeAccountMigrationPreflight(migrationPreflight)} قبل از هر
+          مهاجرت واقعی باید خروجی JSON بگیری، login واقعی فعال شود، و شمارش
+          imported/skipped را تأیید کنی.
+        </p>
+
+        <div className="profile-grid">
+          <div>
+            <strong>Active save</strong>
+            <span>{accountSaveContract.activeSaveMode}</span>
+          </div>
+
+          <div>
+            <strong>Future save</strong>
+            <span>{accountSaveContract.futureSaveMode}</span>
+          </div>
+
+          <div>
+            <strong>Can save to account</strong>
+            <span>{String(accountSaveContract.canSaveToAccount)}</span>
+          </div>
+
+          <div>
+            <strong>Migration</strong>
+            <span>{migrationPreflight.stage}</span>
+          </div>
+        </div>
+
+        <div className="profile-grid">
+          <div>
+            <strong>Local reports</strong>
+            <span>{migrationPreflight.localReportCount.toLocaleString("fa-IR")}</span>
+          </div>
+
+          <div>
+            <strong>Migratable</strong>
+            <span>{migrationPreflight.migratableCount.toLocaleString("fa-IR")}</span>
+          </div>
+
+          <div>
+            <strong>Notes</strong>
+            <span>{migrationPreflight.noteCount.toLocaleString("fa-IR")}</span>
+          </div>
+
+          <div>
+            <strong>Favorites</strong>
+            <span>{migrationPreflight.favoriteCount.toLocaleString("fa-IR")}</span>
+          </div>
+        </div>
+
+        <div className="actions">
+          <Link className="button secondary" href="/reports">
+            گرفتن خروجی JSON از گزارش‌ها
+          </Link>
+
+          <button className="button secondary" type="button" disabled>
+            مهاجرت به حساب هنوز غیرفعال است
+          </button>
+        </div>
+      </section>
       <section className="card">
         <span className="badge">آخرین گزارش‌ها</span>
 

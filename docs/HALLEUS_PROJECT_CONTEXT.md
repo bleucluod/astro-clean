@@ -1001,3 +1001,26 @@ Fixed:
 
 Prevention:
 - When adding new guard checks, keep required docs tokens aligned with the actual docs wording or add an explicit note.
+
+
+## v0.1.182 — Account report save contract and migration preflight
+
+Status:
+- Added account report save contract.
+- Added account migration preflight logic.
+- Dashboard now shows local-preview migration readiness.
+- Active save mode remains local-preview.
+- Account saves and migration execution remain disabled.
+
+Implementation:
+- `lib/account/account-report-save-contract.ts`
+- `lib/account/account-migration-preflight.ts`
+- `docs/ACCOUNT_REPORT_SAVE_CONTRACT.md`
+- `scripts/check-account-save-contract-migration-preflight.mjs`
+
+Not included:
+- No real login.
+- No account report writes.
+- No database migration execution.
+- No local-preview deletion.
+- No public reports, payment, SEO/indexing, hosting, engine, or report writer work.

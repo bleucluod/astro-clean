@@ -78,3 +78,18 @@ Rule:
 - Do not install Supabase client or write account reports in this batch.
 Note:
 - This batch includes persistent report repository prep only; account report writes remain disabled.
+
+
+## v0.1.182 — Account report save contract and migration preflight
+
+Status:
+- Account report save contract is now explicit.
+- Migration preflight is visible on the dashboard.
+- Active save mode remains local-preview.
+- Account report writes remain disabled.
+
+Guard:
+- `canSaveToAccount: false`.
+- `canStartAccountMigration: false`.
+- `canWriteAccountReports: false`.
+- Browser-local reports must not be deleted after preflight.

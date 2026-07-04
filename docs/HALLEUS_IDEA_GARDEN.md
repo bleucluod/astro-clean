@@ -1155,3 +1155,19 @@ Not now:
 - No database write switch.
 - No public/indexable reports.
 - No payment gating or SEO launch.
+
+
+## v0.1.182 Idea Garden update — account save contract and migration preflight
+
+Decision:
+- Make the account report save path explicit before enabling any real writes.
+- Show migration preflight in dashboard so users understand how local-preview reports will move to accounts later.
+- Keep export/backup as the only safe user action before migration is implemented.
+- Preserve private/noindex as the default for all future account reports.
+
+Not now:
+- No real login.
+- No database write switch.
+- No migration execution.
+- No public/indexable reports.
+- No payment gating or SEO launch.

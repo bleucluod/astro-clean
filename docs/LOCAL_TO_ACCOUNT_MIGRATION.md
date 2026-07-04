@@ -48,3 +48,23 @@ Before migration can run:
 - The user must review local report counts.
 - Imported reports must stay private/noindex.
 - Local-preview reports must remain available until account import succeeds.
+
+
+## v0.1.182 migration preflight UI
+
+What changed:
+- Dashboard shows local report counts before any account migration.
+- Preflight includes migratable count, favorites, notes, and private report count.
+- The only safe action remains exporting JSON from reports.
+
+Still blocked:
+- No account import.
+- No local-preview deletion.
+- No public/indexable migration.
+- No real database write.
+
+Required before migration:
+- Real Supabase login with stable user id.
+- Account storage explicitly enabled.
+- Imported/skipped counts confirmed by the user.
+- Backup/export available before import.
