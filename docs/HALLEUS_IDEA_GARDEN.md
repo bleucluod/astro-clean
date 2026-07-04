@@ -951,3 +951,13 @@ Product guard:
 
 - Do not market Halleus as supporting True Node until the engine stores a validated True/Osculating Node longitude.
 - Do not mention Lilith availability in public copy until the report UI/writer/wheel consume real Lilith snapshot fields.
+
+## v0.1.167b product wording: Moon Hands
+
+Product wording decision:
+
+- Persian user-facing copy should call Lunar Nodes "دست‌های ماه" rather than "گره‌های ماه".
+- Technical identifiers may stay `lunarNodes`, because the copy decision is product language rather than a schema rename.
+- Keep the model disclosure honest: this is Mean Lunar Node, not True/Osculating Node.
+- South Node should keep being explained as the exact opposition of the calculated Mean North Node.
+- Lilith remains deferred and must not be bundled into this copy change.

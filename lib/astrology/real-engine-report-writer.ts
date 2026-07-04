@@ -3,9 +3,12 @@ import type {
   RealEngineReportAngle,
   RealEngineReportAngleId,
   RealEngineReportAngles,
+  RealEngineReportCalculatedLunarNodes,
   RealEngineReportAspect,
   RealEngineReportHouse,
   RealEngineReportHouseContext,
+  RealEngineReportLunarNodePoint,
+  RealEngineReportLunarNodes,
   RealEngineReportPlacement,
   RealEngineReportSnapshot,
   ZodiacKey,
@@ -488,6 +491,7 @@ export function enrichReportWithRealEngineCopy(
   const houseText = buildHouseContextText(realEngine.houseContext, risingSign);
   const houseAnglesText = buildHouseAnglesText(realEngineWithAspects);
   const retrogradeText = buildRetrogradeText(realEngineWithAspects);
+  const lunarNodeText = buildLunarNodeText(realEngineWithAspects);
   const natalAccuracyText = buildNatalAccuracyText(realEngineWithAspects);
   const mercuryText = buildOptionalPlacementText(mercury, "mercury");
   const venusText = buildOptionalPlacementText(venus, "venus");
@@ -511,6 +515,7 @@ export function enrichReportWithRealEngineCopy(
     hasAngles: hasCompleteAngles(realEngineWithAspects.angles),
     retrogradeStatus: realEngineWithAspects.retrogrades?.status,
     retrogradePlanetCount: realEngineWithAspects.retrogrades?.planetIds.length ?? 0,
+    lunarNodes: realEngineWithAspects.lunarNodes,
   });
   const interpretations = [
     sunText,
@@ -521,6 +526,7 @@ export function enrichReportWithRealEngineCopy(
     houseText,
     houseAnglesText,
     retrogradeText,
+    lunarNodeText,
     natalAccuracyText,
     mercuryText,
     mercuryAspectText,
@@ -539,6 +545,7 @@ export function enrichReportWithRealEngineCopy(
     houseText,
     houseAnglesText,
     retrogradeText,
+    lunarNodeText,
     natalAccuracyText,
     mercuryText,
     venusText,
@@ -570,6 +577,7 @@ type RealEngineSectionEvidence = {
   growthEvidence?: string;
   houseAnglesEvidence?: string;
   motionEvidence?: string;
+  lunarNodeEvidence?: string;
 };
 
 type RealEngineSectionEvidenceInput = {
@@ -584,6 +592,7 @@ type RealEngineSectionEvidenceInput = {
   hasAngles: boolean;
   retrogradeStatus?: string;
   retrogradePlanetCount: number;
+  lunarNodes?: RealEngineReportLunarNodes;
 };
 
 type RealEngineSectionTextInput = {
@@ -594,6 +603,7 @@ type RealEngineSectionTextInput = {
   houseText?: string;
   houseAnglesText?: string;
   retrogradeText?: string;
+  lunarNodeText?: string;
   natalAccuracyText?: string;
   mercuryText?: string;
   venusText?: string;
@@ -612,6 +622,7 @@ type RealEngineSectionTextInput = {
   growthEvidence?: string;
   houseAnglesEvidence?: string;
   motionEvidence?: string;
+  lunarNodeEvidence?: string;
 };
 
 function buildRealEngineSectionEvidence({
@@ -626,6 +637,7 @@ function buildRealEngineSectionEvidence({
   hasAngles,
   retrogradeStatus,
   retrogradePlanetCount,
+  lunarNodes,
 }: RealEngineSectionEvidenceInput): RealEngineSectionEvidence {
   const risingEvidence = `رایزینگ در ${formatSignLabel(SIGN_COPY[risingSign])}`;
 
@@ -659,9 +671,20 @@ function buildRealEngineSectionEvidence({
         : retrogradeStatus === "calculated"
           ? "بدون سیاره برگشتی در snapshot"
           : undefined,
-      "گره‌های ماه و لیلیت هنوز deferred هستند",
+      isCalculatedLunarNodes(lunarNodes)
+        ? "دست‌های ماه: Mean Lunar Node محاسبه‌شده"
+        : "دست‌های ماه و لیلیت هنوز deferred هستند",
     ),
+    lunarNodeEvidence: buildLunarNodeEvidenceLabel(lunarNodes),
   };
+}
+
+function buildLunarNodeEvidenceLabel(lunarNodes: RealEngineReportLunarNodes | undefined): string | undefined {
+  if (!isCalculatedLunarNodes(lunarNodes)) {
+    return undefined;
+  }
+
+  return "دست‌های ماه: Mean Lunar Node محاسبه‌شده";
 }
 
 function buildPlacementEvidenceLabel(
@@ -903,8 +926,9 @@ function buildRetrogradeText(realEngine: RealEngineReportSnapshot): string | und
     .filter((label): label is string => Boolean(label));
   const baseMethod =
     "در این نسخه، حرکت برگشتی از مقایسه جایگاه ظاهری سیاره‌ها در دایره بروج، پیش و پس از لحظه تولد، به دست می‌آید.";
-  const deferredPoints =
-    "گره‌های ماه و لیلیت هنوز عمداً وارد خوانش نشده‌اند، چون تعریف نقطه و منبع محاسباتی آن‌ها باید جداگانه سخت‌گیرانه شود.";
+  const deferredPoints = isCalculatedLunarNodes(realEngine.lunarNodes)
+    ? "دست‌های ماه با مدل Mean Lunar Node در فصل جداگانه گزارش آمده‌اند؛ لیلیت هنوز عمداً وارد خوانش نشده است."
+    : "دست‌های ماه و لیلیت هنوز عمداً وارد خوانش نشده‌اند، چون تعریف نقطه و منبع محاسباتی آن‌ها باید جداگانه سخت‌گیرانه شود.";
 
   if (planetLabels.length === 0) {
     return [
@@ -923,6 +947,57 @@ function buildRetrogradeText(realEngine: RealEngineReportSnapshot): string | und
   ].join(" ");
 }
 
+function buildLunarNodeText(realEngine: RealEngineReportSnapshot): string | undefined {
+  const lunarNodes = realEngine.lunarNodes;
+
+  if (!isCalculatedLunarNodes(lunarNodes)) {
+    return undefined;
+  }
+
+  return [
+    "دست‌های ماه در این گزارش با مدل Mean Lunar Node خوانده می‌شوند؛ بنابراین این بخش ادعای True/Osculating Node ندارد.",
+    formatLunarNodeNarrativePoint(lunarNodes.northNode),
+    formatLunarNodeNarrativePoint(lunarNodes.southNode),
+    "دست شمالی ماه را مثل جهت تمرین تازه، رشد آگاهانه و دعوتی بخوان که ممکن است اول کمی ناآشنا باشد.",
+    "دست جنوبی ماه از دست شمالی ماه + ۱۸۰° مشتق شده و بیشتر از الگوی آشنا، عادت قدیمی و جایی می‌گوید که بازگشت به آن آسان‌تر است.",
+    "این فصل پیش‌گویی یا حکم کارمایی قطعی نیست؛ فقط یک لایه تأملی برای دیدن نسبت میان راحتی قدیمی و تمرین تازه است.",
+  ].join(" ");
+}
+
+function formatLunarNodeNarrativePoint(node: RealEngineReportLunarNodePoint): string {
+  const sign = SIGN_COPY[node.signId];
+  const handLabel = node.id === "north-node" ? "دست شمالی ماه" : "دست جنوبی ماه";
+  const houseSuffix = typeof node.house === "number" ? `، خانه ${toPersianNumber(node.house)}` : "";
+  const sourceLabel = node.source === "derived-opposition"
+    ? "این نقطه از مخالفت دقیق با Mean North Node ساخته شده است."
+    : "این نقطه با فرمول Mean Lunar Node محاسبه شده است.";
+
+  return `${handLabel}: ${formatSignLabel(sign)}، درجه ${formatDegree(node.degreeInSign)}${houseSuffix}. ${sourceLabel}`;
+}
+
+function isCalculatedLunarNodes(
+  lunarNodes: RealEngineReportLunarNodes | undefined,
+): lunarNodes is RealEngineReportCalculatedLunarNodes {
+  return Boolean(
+    lunarNodes &&
+      lunarNodes.status === "calculated" &&
+      "northNode" in lunarNodes &&
+      "southNode" in lunarNodes &&
+      lunarNodes.nodeType === "mean" &&
+      isValidLunarNodePoint(lunarNodes.northNode) &&
+      isValidLunarNodePoint(lunarNodes.southNode),
+  );
+}
+
+function isValidLunarNodePoint(node: RealEngineReportLunarNodePoint): boolean {
+  return (
+    typeof node.longitude === "number" &&
+    Number.isFinite(node.longitude) &&
+    typeof node.degreeInSign === "number" &&
+    Number.isFinite(node.degreeInSign)
+  );
+}
+
 function buildNatalAccuracyText(realEngine: RealEngineReportSnapshot): string | undefined {
   const quality = realEngine.calculationQuality;
 
@@ -939,8 +1014,8 @@ function buildNatalAccuracyText(realEngine: RealEngineReportSnapshot): string | 
   const lilithStatus = realEngine.lilith?.status ?? "not-calculated";
   const nodesText =
     nodesStatus === "calculated"
-      ? "گره‌های ماه در داده محاسبه‌شده ثبت شده‌اند و می‌توانند در خوانش بعدی وارد شوند."
-      : "گره‌های ماه هنوز محاسبه نمی‌شوند و تا انتخاب منبع ephemeris و تعریف Mean/True Node وارد نتیجه‌گیری نمی‌شوند.";
+      ? "دست‌های ماه با برچسب Mean Lunar Node در داده محاسبه‌شده ثبت شده‌اند؛ این ادعای True Node نیست."
+      : "دست‌های ماه هنوز محاسبه نمی‌شوند و تا انتخاب منبع ephemeris و تعریف Mean/True Node وارد نتیجه‌گیری نمی‌شوند.";
   const lilithText =
     lilithStatus === "calculated"
       ? "لیلیت در داده محاسبه‌شده ثبت شده است و می‌تواند در خوانش بعدی وارد شود."
@@ -1214,7 +1289,9 @@ function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
       : " لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که snapshot داده واقعی کافی داشته باشد.";
   const motionSummary =
     realEngine.retrogrades?.status === "calculated"
-      ? " لایه motion نیز وضعیت حرکت برگشتی سیاره‌ها را از real engine دریافت می‌کند، در حالی که گره‌های ماه و لیلیت هنوز عمداً deferred مانده‌اند."
+      ? isCalculatedLunarNodes(realEngine.lunarNodes)
+        ? " لایه motion وضعیت حرکت برگشتی سیاره‌ها را از real engine دریافت می‌کند و دست‌های ماه نیز با برچسب Mean Lunar Node در گزارش جداگانه خوانده می‌شوند."
+        : " لایه motion وضعیت حرکت برگشتی سیاره‌ها را از real engine دریافت می‌کند، در حالی که دست‌های ماه و لیلیت هنوز عمداً deferred مانده‌اند."
       : " لایه motion فقط وقتی وارد گزارش می‌شود که محاسبه واقعی داشته باشد.";
 
   return [
@@ -1284,7 +1361,23 @@ function buildRealEngineInterpretationSections(
           ),
           body: input.retrogradeText,
           closing:
-            "حرکت برگشتی را مثل دعوت به بازنگری بخوان؛ گره‌های ماه و لیلیت تا وقتی داده واقعی و تعریف روشن نداشته باشند وارد نتیجه‌گیری نمی‌شوند.",
+            "حرکت برگشتی را مثل دعوت به بازنگری بخوان؛ نقاط ویژه را هم فقط وقتی وارد نتیجه‌گیری کن که خود گزارش داده واقعی و برچسب مدل محاسبه را نشان می‌دهد.",
+        }),
+      }
+    : null;
+  const lunarNodeSection: ReportOutputSection | null = input.lunarNodeText
+    ? {
+        id: "real-engine-lunar-nodes",
+        kind: "overview",
+        title: "دست‌های ماه",
+        body: buildStructuredSectionBody({
+          opening: buildEvidenceOpening(
+            input.lunarNodeEvidence,
+            "این فصل دست‌های ماه را به عنوان یک لایه رشد و بازگشت وارد گزارش می‌کند، اما مدل محاسبه را پنهان نمی‌کند.",
+          ),
+          body: input.lunarNodeText,
+          closing:
+            "دست‌های ماه را کنار خورشید، ماه و رایزینگ بخوان؛ نه به عنوان حکم سرنوشت، بلکه مثل جهتی برای مشاهده عادت‌های قدیمی و تمرین تازه.",
         }),
       }
     : null;
@@ -1375,6 +1468,7 @@ function buildRealEngineInterpretationSections(
     },
     houseAnglesSection,
     motionSection,
+    lunarNodeSection,
     natalAccuracySection,
     {
       id: "real-engine-growth",

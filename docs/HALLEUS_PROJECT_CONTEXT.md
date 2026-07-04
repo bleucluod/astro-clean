@@ -725,3 +725,10 @@ Error: the first v0.1.163 runner failed before patching because the generated No
 Where: v0.1.163 special points real source audit pack.
 Fixed: fix1 rewrites the generated patch/check content without nested JavaScript template literals and keeps backup/restore outside the repo.
 Prevention: for generated Node scripts embedded in PowerShell here-strings, avoid nested backtick template strings unless they are escaped or base64 encoded. Prefer plain string concatenation or line arrays.
+
+## v0.1.167b moon-hands-copy scope note
+
+- v0.1.167b is scoped to Persian-facing report copy for calculated Mean Lunar Nodes: generated writer prose, ReportCard labels, and focused checks.
+- User-facing copy should say "دست‌های ماه" instead of "گره‌های ماه"; code identifiers can stay `lunarNodes`.
+- Keep technical honesty: Mean Lunar Node only, no True/Osculating Node claim, South Node as Mean North Node + 180°, and Lilith deferred.
+- Do not change engine math, shared node types, payment/public/private policy, SEO, Sky Pulse, or Lilith in this batch.

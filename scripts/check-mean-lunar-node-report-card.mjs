@@ -6,9 +6,9 @@ const requiredMarkers = [
   'type LunarNodeSummaryRow',
   'const lunarNodeRows = buildLunarNodeRows(report);',
   'report-lunar-node-section',
-  'گره‌های ماه Mean Lunar Node',
+  'دست‌های ماه Mean Lunar Node',
   'Mean Lunar Node / محاسبه میانگین',
-  'Opposition from Mean North Node / گره شمالی + ۱۸۰°',
+  'Opposition from Mean North Node / دست شمالی + ۱۸۰°',
   'function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummaryRow[]',
   'function isCalculatedLunarNodes(',
   'lunarNodes.status === "calculated"',
@@ -21,6 +21,9 @@ const forbiddenMarkers = [
   'لیلیت محاسبه‌شده',
   'Black Moon Lilith محاسبه',
   'true-lunar-node',
+  'گره‌های ماه',
+  'گره شمالی ماه',
+  'گره جنوبی ماه',
 ];
 
 const failures = [];

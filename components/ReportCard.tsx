@@ -311,7 +311,7 @@ export function ReportCard({ report }: ReportCardProps) {
               <summary>دقت تولد و مرزهای محاسبه</summary>
               <p>
                 این پنل مرز اعتماد گزارش را روشن می‌کند: اگر ساعت تولد یا شهر دقیق
-                نباشد، خانه‌ها، محورها و motion باید محتاط‌تر خوانده شوند. گره‌های ماه
+                نباشد، خانه‌ها، محورها و motion باید محتاط‌تر خوانده شوند. دست‌های ماه
                 در این نسخه به‌صورت Mean Lunar Node نمایش داده می‌شوند و لیلیت همچنان deferred است.
               </p>
               <div className="report-placement-grid">
@@ -370,7 +370,7 @@ export function ReportCard({ report }: ReportCardProps) {
             <details className="report-placement-details report-motion-section report-polish-advanced-panel">
               <summary>حرکت برگشتی سیاره‌ها</summary>
               <p>
-                این بخش از داده motion محاسبه‌شده در real engine می‌آید. گره‌های ماه با label
+                این بخش از داده motion محاسبه‌شده در real engine می‌آید. دست‌های ماه با label
                 صادقانه Mean Lunar Node نمایش داده می‌شوند؛ True Node و لیلیت هنوز ادعا نمی‌شوند.
               </p>
               <div className="report-placement-grid">
@@ -395,10 +395,10 @@ export function ReportCard({ report }: ReportCardProps) {
 
           {lunarNodeRows.length > 0 ? (
             <details className="report-placement-details report-lunar-node-section report-polish-advanced-panel" open>
-              <summary>گره‌های ماه Mean Lunar Node</summary>
+              <summary>دست‌های ماه Mean Lunar Node</summary>
               <p>
-                این بخش گره شمالی و جنوبی را با مدل Mean Lunar Node نشان می‌دهد. گره جنوبی
-                از گره شمالی + ۱۸۰° مشتق شده است؛ True Node و لیلیت همچنان ادعا نمی‌شوند.
+                این بخش دست شمالی و جنوبی ماه را با مدل Mean Lunar Node نشان می‌دهد. دست جنوبی
+                از دست شمالی + ۱۸۰° مشتق شده است؛ True Node و لیلیت همچنان ادعا نمی‌شوند.
               </p>
               <div className="report-placement-grid">
                 {lunarNodeRows.map((node) => (
@@ -546,7 +546,7 @@ function buildAccuracySummary(report: AstrologyReport): AccuracySummary | null {
     houseLabel: `خانه‌ها: ${formatReliabilityStatus(quality.houseSystemStatus)}`,
     angleLabel: `محورها: ${formatReliabilityStatus(quality.anglesStatus)}`,
     motionLabel: `حرکت برگشتی: ${formatReliabilityStatus(quality.retrogradeStatus)}`,
-    nodesLabel: formatDeferredPointStatus("گره‌های ماه", realEngine.lunarNodes?.status, quality.nodesStatus),
+    nodesLabel: formatDeferredPointStatus("دست‌های ماه", realEngine.lunarNodes?.status, quality.nodesStatus),
     lilithLabel: formatDeferredPointStatus("لیلیت", realEngine.lilith?.status, quality.lilithStatus),
     limitations: Array.isArray(quality.limitations) ? quality.limitations : [],
     warnings: Array.isArray(quality.warnings) ? quality.warnings : [],
@@ -663,13 +663,13 @@ function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummaryRow[] {
     .filter(isValidLunarNodePoint)
     .map((node) => ({
       id: node.id,
-      title: node.id === "north-node" ? "گره شمالی ماه" : "گره جنوبی ماه",
+      title: node.id === "north-node" ? "دست شمالی ماه" : "دست جنوبی ماه",
       positionLabel: `${formatZodiacLabel(node.signId)}، درجه ${formatDegree(node.degreeInSign)}`,
       houseLabel: typeof node.house === "number" ? `در خانه ${formatPersianNumber(node.house)}` : null,
       sourceLabel:
         node.id === "north-node"
           ? "Mean Lunar Node / محاسبه میانگین"
-          : "Opposition from Mean North Node / گره شمالی + ۱۸۰°",
+          : "Opposition from Mean North Node / دست شمالی + ۱۸۰°",
       meaning:
         node.id === "north-node"
           ? "مسیر رشد، تمرین تازه و جهتی که روح به سمت آن کشیده می‌شود."

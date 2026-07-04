@@ -459,7 +459,7 @@ for (const sample of samples) {
     failures.push(`${sample.id}: missing house/angles interpretation section`);
   }
 
-  for (const marker of ["محور ASC/DSC", "محور MC/IC", "۱۲ خانه Whole Sign", "حرکت برگشتی", "گره‌های ماه", "لیلیت", "دقت تولد", "ساعت تولد"]) {
+  for (const marker of ["محور ASC/DSC", "محور MC/IC", "۱۲ خانه Whole Sign", "حرکت برگشتی", "دست‌های ماه", "لیلیت", "دقت تولد", "ساعت تولد"]) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing house/angles marker ${marker}`);
     }
