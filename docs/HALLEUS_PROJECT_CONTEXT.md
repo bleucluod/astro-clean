@@ -923,3 +923,24 @@ Prevention:
 - Avoid large base64 docs payloads in runners.
 - Prefer tiny direct fix-forward commands after two runner failures.
 - Preserve existing regression-check tokens unless intentionally updating the check and product copy together.
+
+## v0.1.179 — Account-ready reports dashboard and lifecycle
+
+Status:
+- Merged report lifecycle, account-ready dashboard, and user return-flow copy into one product batch.
+- This is not real auth/database work yet. It prepares the product surface before persistent accounts.
+
+Product changes:
+- `/dashboard` now acts as the user-facing panel for returning to private reports.
+- `/reports` and `/dashboard` are aligned: reports are still local/private, but the product path now clearly points toward persistent accounts.
+- Navigation and footer include the dashboard as a real app surface.
+- Reports list copy explains that the local private library is the base for future account storage.
+- No SEO/indexing, payment, public reports, auth provider, database migration, or report engine changes were started.
+
+Next:
+- Choose the persistent account/storage implementation and connect reports to a real user id.
+- Plan local-preview report migration into a user account after auth/storage is selected.
+
+Failure note:
+- The apply runner wrote product files and CSS, then failed during docs append because of a broken base64 payload.
+- Fix-forward completed the missing docs append directly without a new runner.

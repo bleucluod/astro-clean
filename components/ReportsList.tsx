@@ -649,7 +649,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <EmptyState
         badge="شروع آرام"
         title="هنوز گزارشی ذخیره نشده"
-        description="از ساخت گزارش تولد شروع کن؛ هالیوس گزارش را خصوصی و روی همین دستگاه نگه می‌دارد."
+        description="از ساخت گزارش تولد شروع کن؛ هالیوس گزارش را خصوصی و روی همین دستگاه نگه می‌دارد و بعد همین گزارش در پنل کاربری دیده می‌شود."
         actionHref="/chart"
         actionLabel="ساخت اولین گزارش تولد"
       />
@@ -665,14 +665,15 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
         <p>
           اینجا برای برگشت سریع به خوانش‌های قبلی است. گزارش‌ها فعلاً روی همین
-          دستگاه می‌مانند؛ می‌توانی جستجو کنی، گزارش‌های مهم را ستاره‌دار کنی
-          و هر وقت خواستی گزارش تازه بسازی.
+          دستگاه می‌مانند، اما همین کتابخانه پایه پنل کاربری و ذخیره پایدار
+          بعدی خواهد بود.
         </p>
 
         <div className="report-lifecycle-strip" aria-label="وضعیت گزارش‌ها">
           <span>خصوصی روی همین دستگاه</span>
           <span>قابل جستجو و ستاره‌دار</span>
           <span>آماده خروجی گرفتن</span>
+          <span>آماده اتصال به حساب کاربری</span>
         </div>
 
         <div className="reports-toolbar">
@@ -738,6 +739,10 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         <div className="actions">
           <Link className="button" href="/chart">
             ساخت گزارش جدید
+          </Link>
+
+          <Link className="button secondary" href="/dashboard">
+            رفتن به پنل کاربری
           </Link>
 
           <button

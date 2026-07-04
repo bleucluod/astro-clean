@@ -1109,3 +1109,17 @@ Decision:
 
 Later:
 - Richer place search, user account lifecycle, and public/private report publishing remain separate future surfaces.
+
+## v0.1.179 Idea Garden update — Account-ready reports dashboard
+
+Decision:
+- Move user-facing report lifecycle toward a real panel before implementing auth/database.
+- Treat `/dashboard` as the future home for saved reports, account state, and migration guidance.
+- Keep the current storage honest: local-preview, private, noindex, and browser-bound.
+- Persistent reports, auth provider selection, and local-to-account migration are the next product foundation after this dashboard/lifecycle surface.
+
+Not now:
+- No public/indexable reports.
+- No payment gating.
+- No SEO launch.
+- No real auth or database migration until provider/storage choice is explicit.

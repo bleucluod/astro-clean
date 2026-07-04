@@ -73,7 +73,7 @@ export default function DashboardPage() {
       <section className="grid">
         <div className="card">
           <span className="badge">Dashboard</span>
-          <h1>در حال آماده‌سازی داشبورد</h1>
+          <h1>در حال آماده‌سازی پنل کاربری</h1>
           <p>گزارش‌ها و وضعیت preview account خوانده می‌شوند.</p>
         </div>
       </section>
@@ -81,16 +81,23 @@ export default function DashboardPage() {
   }
 
   return (
-    <section className="grid">
-      <div className="card">
+    <section className="grid account-ready-dashboard">
+      <div className="card account-ready-dashboard-hero">
         <span className="badge">Halleus Dashboard</span>
 
-        <h1>داشبورد Halleus</h1>
+        <h1>پنل کاربری Halleus</h1>
 
         <p>
-          این داشبورد فعلاً با preview account و local storage کار می‌کند، اما
-          ساختارش برای اتصال به حساب کاربری و دیتابیس آماده شده است.
+          اینجا مرکز برگشت به گزارش‌هاست. در این نسخه گزارش‌ها هنوز روی همین
+          مرورگر ذخیره می‌شوند، اما مسیر محصول برای حساب کاربری واقعی و ذخیره
+          پایدار آماده شده است.
         </p>
+
+        <div className="account-ready-status-strip" aria-label="وضعیت حساب و گزارش‌ها">
+          <span>فعلاً: local-preview</span>
+          <span>پیش‌فرض: خصوصی و noindex</span>
+          <span>بعدی: اتصال به حساب کاربری</span>
+        </div>
 
         <div className="actions">
           <Link className="button" href="/chart">
@@ -98,37 +105,49 @@ export default function DashboardPage() {
           </Link>
 
           <Link className="button secondary" href="/reports">
-            رفتن به آرشیو
+            کتابخانه گزارش‌ها
           </Link>
 
-          <Link className="button secondary" href="/profile">
-            وضعیت اکانت
+          <Link className="button secondary" href="/privacy">
+            حریم داده‌ها
           </Link>
         </div>
       </div>
 
-      <div className="card">
-        <span className="badge">وضعیت ذخیره‌سازی</span>
+      <section className="card account-ready-lifecycle-card">
+        <span className="badge">از مرورگر تا اکانت</span>
 
-        <h2>مسیر فعلی محصول</h2>
+        <h2>حساب کاربری واقعی هنوز فعال نشده</h2>
 
         <p>
-          Driver فعال هنوز local-preview است. یعنی داده‌ها روی همین مرورگر
-          ذخیره می‌شوند، ولی مسیر repository برای دیتابیس آماده شده است.
+          این پنل عمداً ادعای login یا دیتابیس فعال نمی‌کند. کار فعلی این است
+          که تجربه کاربر شبیه پنل واقعی شود و بعد در مرحله بعد گزارش‌ها از
+          مرورگر به حساب کاربری منتقل شوند.
         </p>
 
-        <div className="tag-list">
-          <span>Storage: local-preview</span>
-          <span>Account: preview</span>
-          <span>Plan: {session?.user.plan ?? "preview"}</span>
+        <div className="home-step-list">
+          <div>
+            <strong>۱. الان</strong>
+            <span>گزارش‌ها خصوصی‌اند و در همین مرورگر نگه داشته می‌شوند.</span>
+          </div>
+
+          <div>
+            <strong>۲. قدم بعد</strong>
+            <span>انتخاب auth و ذخیره پایدار برای user واقعی.</span>
+          </div>
+
+          <div>
+            <strong>۳. مهاجرت</strong>
+            <span>گزارش‌های local-preview به حساب کاربر منتقل می‌شوند.</span>
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="feature-grid">
         <article className="card feature-card-polished">
           <span className="badge">گزارش‌ها</span>
           <h2>{stats.totalCount.toLocaleString("fa-IR")}</h2>
-          <p>گزارش ذخیره‌شده در preview account این مرورگر.</p>
+          <p>گزارش ذخیره‌شده در کتابخانه خصوصی همین مرورگر.</p>
         </article>
 
         <article className="card feature-card-polished">
@@ -151,6 +170,34 @@ export default function DashboardPage() {
       </div>
 
       <section className="card">
+        <span className="badge">اکانت preview</span>
+
+        <h2>وضعیت ذخیره‌سازی فعلی</h2>
+
+        <div className="profile-grid">
+          <div>
+            <strong>Storage</strong>
+            <span>local-preview</span>
+          </div>
+
+          <div>
+            <strong>Account</strong>
+            <span>{session?.user.status ?? "preview"}</span>
+          </div>
+
+          <div>
+            <strong>Plan</strong>
+            <span>{session?.user.plan ?? "preview"}</span>
+          </div>
+
+          <div>
+            <strong>Visibility</strong>
+            <span>private / noindex</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
         <span className="badge">آخرین گزارش‌ها</span>
 
         <h2>آخرین فعالیت‌ها</h2>
@@ -159,7 +206,7 @@ export default function DashboardPage() {
           <>
             <p>
               هنوز گزارشی در این مرورگر ذخیره نشده. از ساخت اولین گزارش شروع
-              کن.
+              کن؛ بعد همین پنل نقطه برگشت تو می‌شود.
             </p>
 
             <Link className="button" href="/chart">

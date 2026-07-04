@@ -3587,3 +3587,62 @@ html {
     font-size: 12px;
   }
 }
+
+/* Account-ready reports dashboard and lifecycle v0.1.179 */
+.account-ready-dashboard {
+  gap: 18px;
+}
+
+.account-ready-dashboard-hero,
+.account-ready-lifecycle-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.account-ready-dashboard-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -18% -42% auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 999px;
+  background: rgba(91, 43, 191, 0.08);
+  pointer-events: none;
+}
+
+.account-ready-dashboard-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.account-ready-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.account-ready-status-strip span {
+  border: 1px solid rgba(91, 43, 191, 0.14);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(244, 238, 251, 0.76);
+  color: #4c1d95;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.account-ready-lifecycle-card .home-step-list {
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .account-ready-dashboard {
+    gap: 12px;
+  }
+
+  .account-ready-status-strip span {
+    width: 100%;
+    text-align: center;
+  }
+}

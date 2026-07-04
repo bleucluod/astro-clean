@@ -9,6 +9,7 @@ type AppShellProps = {
 const footerLinks = [
   { href: "/chart", label: "ساخت گزارش تولد" },
   { href: "/reports", label: "گزارش‌ها" },
+  { href: "/dashboard", label: "پنل کاربری" },
   { href: "/product", label: "محصول" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
