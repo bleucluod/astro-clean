@@ -747,3 +747,11 @@ Fixed / prevention: Halleus runner commands should use a temporary process-level
 
 Error: v0.1.167b initially failed `pnpm build` because generated Next cache contained corrupted `.next/dev/types/routes.d.ts` text (`xtends AppRoutes`).
 Fixed / prevention: confirm `.next` is ignored with `git check-ignore -v .next`, delete `.next`, then rerun build. Treat this as generated-cache recovery, not source rollback, only when the failure is clearly inside ignored `.next`.
+
+## v0.1.169 report-synthesis-human-reading scope note
+
+- v0.1.169 is scoped to generated report synthesis: make the final growth/integration layer read like a human chart picture, not a loose list of sections.
+- Allowed surface: `lib/astrology/real-engine-report-writer.ts`, focused report QA/check scripts, and compact product-context notes.
+- Keep engine math/types unchanged. Do not add True Node, Lilith, payments, public/private consent implementation, SEO launch, Search Console, hosting migration, Sky Pulse, or admin/content studio work in this batch.
+- Product decision folded into report work: Halleus remains Render-hosted, free, noindex, and not ready for Google acquisition until report quality and core website pages are ready.
+- The next useful product work after synthesis should stay on report depth, report page UX, homepage product story, preview/sample, and save/share lifecycle before indexing.

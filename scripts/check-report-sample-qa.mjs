@@ -348,6 +348,7 @@ const samples = [
 
 const PRODUCT_POLISH_GUARD = "v0.1.162-product-polish";
 const READING_POLISH_GUARD = "v0.1.168-reading-polish";
+const SYNTHESIS_READING_GUARD = "v0.1.169-report-synthesis";
 
 const requiredSectionIds = [
   "real-engine-overview",
@@ -439,6 +440,12 @@ for (const sample of samples) {
   for (const pattern of forbiddenTextPatterns) {
     if (pattern.test(combined)) {
       failures.push(`${sample.id}: forbidden copy pattern present: ${pattern}`);
+    }
+  }
+
+  for (const marker of ["سه نخ اصلی این چارت", "تصویر کلی این چارت", "کشمکش و استعداد", "تمرین رشد"]) {
+    if (!combined.includes(marker)) {
+      failures.push(`${sample.id}: missing synthesis marker ${marker}`);
     }
   }
 

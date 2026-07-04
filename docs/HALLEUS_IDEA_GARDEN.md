@@ -970,3 +970,13 @@ Product decision:
 - Keep the report order human-first: identity and emotional rhythm before denser method/accuracy notes.
 - Technical honesty remains important, but user-facing copy should explain method limits in calm Persian instead of exposing unnecessary internal words like `snapshot`, `real engine`, or `motion`.
 - This is still report-depth work, not monetization, payment, public/private consent, SEO, wiki, Sky Pulse, or admin/content studio work.
+
+## v0.1.169 product note: report synthesis before acquisition
+
+Product decision:
+
+- The next product priority is report synthesis: the generated report should show a coherent picture from Sun, Moon, Rising, aspects, houses, Moon Hands, and accuracy limits.
+- همه چیز فعلاً رایگان و noindex می‌ماند؛ paid report, Search Console, SEO launch, public/indexable reports, and Iranian hosting migration are deferred.
+- Render is acceptable for current development/testing because the product is intentionally not ready for indexing yet.
+- Do not treat 100 unique/day, Iranian hosting, or monetization as active milestones until the report and core website pages are strong enough for public acquisition.
+- Website work should come after the report feels usable: homepage story, report preview, privacy/consent language, and report lifecycle before indexing.

@@ -758,6 +758,85 @@ function buildRealEngineSummary({
   ].join(" ");
 }
 
+
+function buildCoreSynthesisThread(
+  sun: RealEngineReportPlacement | undefined,
+  moon: RealEngineReportPlacement | undefined,
+  risingSign: ZodiacKey,
+): string {
+  const rising = SIGN_COPY[risingSign];
+
+  if (!sun || !moon) {
+    return [
+      "سه نخ اصلی این چارت از رایزینگ " + formatSignLabel(rising) + " شروع می‌شود و با جایگاه‌های محاسبه‌شده سیاره‌ها کامل‌تر خوانده می‌شود.",
+      "تصویر کلی این چارت را باید آهسته ساخت: اول ببین جهان تو را از کدام دروازه می‌بیند، بعد ببین کدام نیازها و انتخاب‌ها این تصویر را کامل‌تر می‌کنند.",
+    ].join(" ");
+  }
+
+  const sunSign = SIGN_COPY[sun.signId];
+  const moonSign = SIGN_COPY[moon.signId];
+
+  return [
+    "سه نخ اصلی این چارت از خورشید در " + formatPlacementWithHouse(sun) + "، ماه در " + formatPlacementWithHouse(moon) + " و رایزینگ " + formatSignLabel(rising) + " ساخته می‌شود.",
+    "خورشید با کیفیت " + sunSign.energy + " مسیر روشن‌شدن هویت را نشان می‌دهد؛ ماه با کیفیت " + moonSign.energy + " زبان امنیت عاطفی را می‌سازد؛ رایزینگ " + formatSignLabel(rising) + " هم شیوه ورود به جهان را رنگ می‌دهد.",
+    "تصویر کلی این چارت وقتی زنده‌تر می‌شود که این سه را جداگانه نخوانی: یکی می‌گوید چه چیزی در تو روشن می‌شود، یکی می‌گوید چه چیزی تو را آرام می‌کند، و یکی نشان می‌دهد جهان در برخورد اول کدام ریتم را از تو می‌بیند.",
+  ].join(" ");
+}
+
+function buildAspectSynthesisThread(aspects: RealEngineReportAspect[]): string {
+  const tensionCount = aspects.filter((aspect) =>
+    aspect.aspectId === "square" || aspect.aspectId === "opposition",
+  ).length;
+  const flowCount = aspects.filter((aspect) =>
+    aspect.aspectId === "sextile" || aspect.aspectId === "trine",
+  ).length;
+  const conjunctionCount = aspects.filter(
+    (aspect) => aspect.aspectId === "conjunction",
+  ).length;
+
+  if (aspects.length === 0) {
+    return "در لایه کشمکش و استعداد، این نسخه بیشتر از جایگاه‌های اصلی شروع می‌کند؛ هر aspect محاسبه‌شده بعدی باید فقط وقتی وارد روایت شود که داده کافی داشته باشد.";
+  }
+
+  const signals = [
+    tensionCount > 0
+      ? toPersianNumber(tensionCount) + " نشانه تنش یا قطبیت، تمرین رشد را از راه تنظیم دو نیاز متفاوت نشان می‌دهد"
+      : null,
+    flowCount > 0
+      ? toPersianNumber(flowCount) + " نشانه روانی یا حمایت، استعدادهایی را نشان می‌دهد که اگر آگاهانه استفاده شوند هدر نمی‌روند"
+      : null,
+    conjunctionCount > 0
+      ? toPersianNumber(conjunctionCount) + " هم‌نشینی، صدای بعضی نیروهای درونی را پررنگ‌تر می‌کند"
+      : null,
+  ].filter(Boolean);
+
+  return [
+    "در لایه کشمکش و استعداد، aspectها کمک می‌کنند گزارش فقط درباره جایگاه‌های جدا نباشد.",
+    signals.length > 0
+      ? signals.join("؛ ") + "."
+      : "این روابط بیشتر مثل گفت‌وگوی درونی خوانده می‌شوند تا حکم قطعی درباره شخصیت.",
+    "تمرین رشد این است که ببینی کدام نیرو باید نرم‌تر همکاری کند و کدام نیرو نیاز به مرز، تمرین یا زمان دارد.",
+  ].join(" ");
+}
+
+function buildHouseSynthesisThread(realEngine: RealEngineReportSnapshot): string {
+  const activeHouses = Array.from(
+    new Set(
+      realEngine.placements
+        .map((placement) => placement.house)
+        .filter((house): house is number => typeof house === "number" && Number.isFinite(house)),
+    ),
+  ).sort((first, second) => first - second);
+
+  if (activeHouses.length === 0) {
+    return "از نظر میدان‌های زندگی، خانه‌ها فقط وقتی وارد جمع‌بندی می‌شوند که جایگاه محاسبه‌شده و قابل توضیح داشته باشند.";
+  }
+
+  const shownHouses = activeHouses.slice(0, 4).map((house) => "خانه " + toPersianNumber(house)).join("، ");
+  const extra = activeHouses.length > 4 ? " و چند خانه دیگر" : "";
+
+  return "از نظر میدان‌های زندگی، تمرکز اولیه در " + shownHouses + extra + " دیده می‌شود؛ یعنی تصویر کلی فقط از نشانه‌ها ساخته نمی‌شود، بلکه از جایی هم ساخته می‌شود که هر نیرو در زندگی روزمره فعال می‌شود.";
+}
 function buildCorePlacementText(
   placement: RealEngineReportPlacement | undefined,
   planetId: "sun" | "moon",
@@ -1270,39 +1349,45 @@ function buildAspectReflectionText(aspects: RealEngineReportAspect[]): string {
 }
 
 function buildIntegrationText(realEngine: RealEngineReportSnapshot) {
+  const sun = findPlacement(realEngine, "sun");
+  const moon = findPlacement(realEngine, "moon");
+  const risingSign = signFromLongitude(realEngine.ascendantLongitude);
   const visiblePlacements = realEngine.placements
     .map((placement) => {
       const planet = PLANET_COPY[placement.id]?.faName ?? placement.label;
       const sign = SIGN_COPY[placement.signId];
 
-      return `${planet} در ${formatSignLabel(sign)}${formatHouseSuffix(placement)}`;
+      return planet + " در " + formatSignLabel(sign) + formatHouseSuffix(placement);
     })
     .join("، ");
 
   const aspectCount = realEngine.aspects?.length ?? 0;
   const aspectSummary =
     aspectCount > 0
-      ? ` در لایه روابط سیاره‌ها هم ${aspectCount} ارتباط اصلی دیده می‌شود که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند.`
-      : " در این نسخه، تمرکز اصلی روی جایگاه‌های محاسبه‌شده سیاره‌هاست و روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
+      ? "در لایه روابط سیاره‌ها هم " + toPersianNumber(aspectCount) + " ارتباط اصلی دیده می‌شود که گزارش را از فهرست جایگاه‌ها به یک خوانش پیوسته‌تر نزدیک می‌کند."
+      : "در این نسخه، تمرکز اصلی روی جایگاه‌های محاسبه‌شده سیاره‌هاست و روابط سیاره‌ها وقتی داده کافی داشته باشد به گزارش اضافه می‌شود.";
   const houseSummary =
     realEngine.houses?.length === 12
-      ? " در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در داده محاسبه‌شده گزارش آمده‌اند."
-      : " لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که داده محاسبه‌شده کافی داشته باشد.";
+      ? "در لایه خانه‌ها نیز ۱۲ خانه Whole Sign و محورهای ASC/DSC/MC/IC در داده محاسبه‌شده گزارش آمده‌اند."
+      : "لایه خانه‌ها فقط وقتی وارد خوانش کامل می‌شود که داده محاسبه‌شده کافی داشته باشد.";
   const motionSummary =
     realEngine.retrogrades?.status === "calculated"
       ? isCalculatedLunarNodes(realEngine.lunarNodes)
-        ? " لایه حرکت، وضعیت برگشتی سیاره‌ها را از داده محاسبه‌شده می‌خواند و دست‌های ماه نیز با برچسب Mean Lunar Node در فصل جداگانه آمده‌اند."
-        : " لایه حرکت، وضعیت برگشتی سیاره‌ها را از داده محاسبه‌شده می‌خواند، در حالی که دست‌های ماه و لیلیت هنوز عمداً بیرون از نتیجه‌گیری مانده‌اند."
-      : " لایه حرکت فقط وقتی وارد گزارش می‌شود که محاسبه واقعی داشته باشد.";
+        ? "لایه حرکت، وضعیت برگشتی سیاره‌ها را از داده محاسبه‌شده می‌خواند و دست‌های ماه نیز با برچسب Mean Lunar Node در فصل جداگانه آمده‌اند."
+        : "لایه حرکت، وضعیت برگشتی سیاره‌ها را از داده محاسبه‌شده می‌خواند، در حالی که دست‌های ماه و لیلیت هنوز عمداً بیرون از نتیجه‌گیری مانده‌اند."
+      : "لایه حرکت فقط وقتی وارد گزارش می‌شود که محاسبه واقعی داشته باشد.";
 
   return [
-    `جمع‌بندی چارت: ${visiblePlacements}.`,
+    buildCoreSynthesisThread(sun, moon, risingSign),
+    buildAspectSynthesisThread(realEngine.aspects ?? []),
+    buildHouseSynthesisThread(realEngine),
+    "جمع‌بندی چارت: " + visiblePlacements + ".",
     "این‌ها ستون‌های اولیه گزارش‌اند و متن هالیوس از همین داده‌های محاسبه‌شده ساخته شده است.",
     "برای خواندن این گزارش، بهتر است خورشید را مثل مسیر آگاهانه، ماه را مثل نیاز عاطفی و رایزینگ را مثل دروازه ورود به جهان ببینی.",
     "وقتی این سه لایه با هم خوانده شوند، گزارش از فهرست جایگاه‌ها به یک روایت شخصی‌تر نزدیک می‌شود: چه چیزی در تو روشن می‌شود، چه چیزی تو را آرام می‌کند، و چگونه خودت را به جهان نشان می‌دهی.",
-    aspectSummary.trim(),
-    houseSummary.trim(),
-    motionSummary.trim(),
+    aspectSummary,
+    houseSummary,
+    motionSummary,
   ].join(" ");
 }
 
@@ -1405,7 +1490,7 @@ function buildRealEngineInterpretationSections(
       title: "نقشه راه خوانش",
       body: buildStructuredSectionBody({
         opening:
-          "این بخش ورودی کوتاه گزارش است؛ اول سه ستون اصلی را کنار هم می‌گذارد و بعد ذهن، رابطه، عمل، خانه‌ها، دست‌های ماه و مرزهای دقت را در جای خواناتر خودش باز می‌کند.",
+          "این بخش ورودی کوتاه گزارش است؛ اول سه نخ اصلی چارت را کنار هم می‌گذارد و بعد ذهن، رابطه، عمل، خانه‌ها، دست‌های ماه و مرزهای دقت را در جای خواناتر خودش باز می‌کند.",
         body: input.summary,
         closing:
           "برای خواندن ادامه گزارش، هر بخش را مثل یک زاویه مشاهده ببین؛ یادداشت‌های روش و دقت بعد از روایت اصلی آمده‌اند تا متن سنگین نشود.",
@@ -1477,7 +1562,7 @@ function buildRealEngineInterpretationSections(
       body: buildStructuredSectionBody({
         opening: buildEvidenceOpening(
           input.growthEvidence,
-          "این فصل قرار نیست دوباره همه جزئیات را تکرار کند؛ کارش این است که نخ‌های اصلی گزارش را به یک مسیر قابل‌خواندن وصل کند.",
+          "این فصل قرار نیست دوباره همه جزئیات را تکرار کند؛ کارش این است که سه نخ اصلی، کشمکش‌ها، استعدادها و تمرین رشد را به یک مسیر قابل‌خواندن وصل کند.",
         ),
         body: input.integrationText || fallbackBody,
         closing: buildFinalSynthesisClosing(input),
@@ -1537,7 +1622,7 @@ function buildRealEngineReflectionPrompts(input: RealEngineSectionTextInput): st
     "۳) عطارد، زهره و مریخ را مثل سه ابزار روزمره بخوان: فکر، ارزش و عمل کجا با هم هماهنگ‌اند و کجا نه؟",
     "۴) دست‌های ماه را مثل نسبت میان عادت آشنا و تمرین تازه بخوان؛ کدام دعوت کوچک برای رشد دیده می‌شود؟",
     "۵) روابط سیاره‌ها را مثل گفت‌وگوی درونی ببین: کدام رابطه حمایت می‌سازد و کدام رابطه مهارت تازه می‌خواهد؟",
-    "۶) یک انتخاب کوچک برای این هفته بردار؛ چیزی که گزارش را از متن به تجربه قابل مشاهده تبدیل کند.",
+    "۶) از سه نخ اصلی گزارش یک انتخاب کوچک برای این هفته بردار؛ چیزی که متن را به تجربه قابل مشاهده تبدیل کند.",
   ];
   const closing =
     input.integrationText || input.aspectText
