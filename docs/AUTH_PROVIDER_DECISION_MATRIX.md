@@ -1,6 +1,6 @@
 # Halleus Auth Provider Decision Matrix
 
-No provider is selected yet.
+v0.1.180 selected direction: Supabase Auth + Supabase/Postgres. Auth.js remains a fallback option; Clerk remains deferred.
 
 ## Recommended shortlist
 

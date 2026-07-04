@@ -1,6 +1,6 @@
 # Halleus Auth and Database Decision Notes
 
-No provider is selected in this phase.
+Provider direction selected in v0.1.180: Supabase Auth + Supabase/Postgres. This is selected-not-enabled; real login and production writes are still off.
 
 ## Requirements
 

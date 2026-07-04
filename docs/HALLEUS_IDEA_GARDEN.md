@@ -1123,3 +1123,19 @@ Not now:
 - No payment gating.
 - No SEO launch.
 - No real auth or database migration until provider/storage choice is explicit.
+
+
+## v0.1.180 Idea Garden update — persistent reports/auth decision
+
+Decision:
+- Supabase-first is the selected direction for account-backed private reports.
+- Keep local-preview as the active product mode until real auth/storage are implemented and verified.
+- All migrated reports must remain private/noindex by default.
+- Public/indexable report sharing remains a separate future consent system.
+
+Not now:
+- No real login UI.
+- No production database write switch.
+- No payment gating.
+- No SEO/public report launch.
+- No hosting migration.

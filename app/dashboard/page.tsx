@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { persistentReportsDecision } from "@/lib/account/persistent-report-decision";
 import { getPreviewSession } from "@/lib/account/preview-session";
 import { listReportSummaries } from "@/lib/storage/report-query-service";
 import type { AuthSession } from "@/types/account";
@@ -193,6 +194,40 @@ export default function DashboardPage() {
           <div>
             <strong>Visibility</strong>
             <span>private / noindex</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
+        <span className="badge">تصمیم ذخیره پایدار</span>
+
+        <h2>مسیر بعدی: Supabase-first</h2>
+
+        <p>
+          تصمیم فنی-محصولی این مرحله این است که حساب کاربری و گزارش‌های پایدار
+          از مسیر Supabase Auth + Supabase/Postgres جلو بروند؛ اما هنوز login
+          واقعی یا database write فعال نشده است؛ وضعیت این تصمیم فعلاً selected-not-enabled است.
+        </p>
+
+        <div className="profile-grid">
+          <div>
+            <strong>Auth</strong>
+            <span>{persistentReportsDecision.authProvider}</span>
+          </div>
+
+          <div>
+            <strong>Storage</strong>
+            <span>{persistentReportsDecision.storageProvider}</span>
+          </div>
+
+          <div>
+            <strong>Stage</strong>
+            <span>{persistentReportsDecision.stage}</span>
+          </div>
+
+          <div>
+            <strong>Default</strong>
+            <span>{persistentReportsDecision.defaultVisibility} / {persistentReportsDecision.indexingPolicy}</span>
           </div>
         </div>
       </section>

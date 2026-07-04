@@ -16,7 +16,7 @@ This phase prepares authentication without enabling real login yet.
 
 Halleus still uses preview/local mode.
 
-Real login is intentionally not enabled until the database/auth direction is selected.
+Real login is intentionally not enabled yet. The database/auth direction is now selected as Supabase Auth + Supabase/Postgres, but the implementation remains selected-not-enabled until secrets, driver wiring, and migration review exist.
 
 ## Why this matters
 

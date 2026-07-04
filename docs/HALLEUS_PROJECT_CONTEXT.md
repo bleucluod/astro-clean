@@ -944,3 +944,25 @@ Next:
 Failure note:
 - The apply runner wrote product files and CSS, then failed during docs append because of a broken base64 payload.
 - Fix-forward completed the missing docs append directly without a new runner.
+
+
+## v0.1.180 — Persistent reports/auth decision
+
+Status:
+- Selected Supabase-first as the next persistent reports/auth direction.
+- This is selected-not-enabled: no real login, no production database writes, no public reports, no payment, and no hosting migration.
+
+Product/technical decision:
+- Auth direction: Supabase Auth.
+- Storage direction: Supabase/Postgres-compatible report storage.
+- Current active product mode: local-preview.
+- Current default report visibility: private/noindex.
+- Local-preview reports must migrate only after explicit user review and successful account import.
+
+Implementation added:
+- Persistent reports decision contract.
+- Dashboard decision card.
+- Supabase env placeholders in `.env.example`.
+- Decision doc for persistent reports/auth.
+- Auth readiness updated from undecided to selected-not-enabled.
+- Guard check for the persistent reports/auth decision.

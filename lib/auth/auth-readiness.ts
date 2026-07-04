@@ -7,19 +7,20 @@ import type {
 export const AUTH_PROVIDER_OPTIONS: AuthProviderOption[] = [
   {
     provider: "supabase",
-    status: "recommended",
+    status: "selected",
     strengths: [
       "Auth and Postgres can live in one platform.",
       "Useful when database and account storage should ship together.",
-      "Good fit for a fast account-backed MVP.",
+      "Good fit for a fast account-backed MVP after local-preview is stable.",
     ],
     tradeoffs: [
-      "Platform coupling is higher.",
+      "Platform coupling is higher than Auth.js plus a separate database.",
       "Migration strategy should be documented before production users exist.",
     ],
     bestWhen: [
       "You want fewer moving pieces.",
       "You want auth and database readiness to move together.",
+      "You want report ownership and account storage to ship in one foundation.",
     ],
   },
   {
@@ -63,21 +64,22 @@ export function getAuthReadinessReport(): AuthReadinessReport {
 
   if (!hasDatabaseConfig()) {
     blockers.push("DATABASE_URL is not configured.");
-    recommendedNextSteps.push("Choose and configure the database provider.");
+    recommendedNextSteps.push("Configure the Supabase/Postgres database URL outside Git.");
   }
 
   if (!hasAuthConfig()) {
     blockers.push("AUTH_SECRET is not configured.");
-    recommendedNextSteps.push("Choose the auth provider and configure session secrets.");
+    recommendedNextSteps.push("Configure the auth/session secret outside Git.");
   }
 
-  recommendedNextSteps.push("Implement the selected auth driver.");
-  recommendedNextSteps.push("Connect report records to authenticated user ids.");
+  recommendedNextSteps.push("Implement the Supabase auth driver behind the AuthDriver contract.");
+  recommendedNextSteps.push("Connect report records to authenticated Supabase user ids.");
   recommendedNextSteps.push("Build local-preview to account migration UI.");
+  recommendedNextSteps.push("Keep reports private/noindex until explicit public consent exists.");
 
   return {
-    stage: "preview-only",
-    provider: "preview",
+    stage: blockers.length === 0 ? "staging" : "provider-selected",
+    provider: "supabase",
     canEnableRealLogin: blockers.length === 0,
     blockers,
     recommendedNextSteps,
