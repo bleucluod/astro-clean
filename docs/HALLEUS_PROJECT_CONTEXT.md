@@ -769,3 +769,21 @@ Fixed / prevention: confirm `.next` is ignored with `git check-ignore -v .next`,
 - Allowed surface: report detail/list page copy, lightweight reading guide panels, focused UI check, and compact context/idea notes.
 - Keep engine math/types and generated writer prose unchanged. Do not add homepage work, SEO/indexing, Search Console, payment, hosting migration, save/share lifecycle, public consent implementation, True Node, or Lilith in this batch.
 - Product direction: long reports need a reading path, anchors, private/free/noindex reassurance, and a softer next step before acquisition work.
+
+## v0.1.172 Homepage Architecture + Product Story Shell
+
+Status: implemented in `v0.1.172-homepage-architecture-product-story-shell`.
+
+What changed:
+- Homepage shifted away from paid/order-first copy and toward a scalable free-first product story.
+- Header and footer now promote public user-facing routes instead of internal/admin routes.
+- Homepage has stable slots for hero, report value, how-it-works, report preview, Sky Pulse, Moon phase, trust/privacy, future modules, FAQ, and CTA.
+- Sky Pulse remains honest: date/pulse card first, no fake transit engine.
+- Moon phase is represented as a prepared future slot, not as a fake active calculation.
+
+Boundaries:
+- No SEO/indexing launch.
+- No payment or paid/private implementation.
+- No hosting migration.
+- No engine math/type changes.
+- No True Node or Lilith work.

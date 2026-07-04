@@ -42,16 +42,16 @@ export function SkyPulseDateCard() {
   const snapshot = pulse?.snapshot;
 
   return (
-    <section className="card paid-section" aria-labelledby="sky-pulse-title">
+    <section className="card paid-section" id="sky-pulse" aria-labelledby="sky-pulse-title">
       <div>
-        <span className="section-label">نبض امروز Halleus</span>
+        <span className="section-label">نبض آسمان امروز</span>
 
-        <h2 id="sky-pulse-title">یک نگاه زنده به امروز، قبل از گزارش شخصی</h2>
+        <h2 id="sky-pulse-title">یک کارت زنده برای امروز، بدون ادعای ترنزیت واقعی</h2>
 
         <p>
-          Sky Pulse حال‌وهوای امروز را از تقویم زنده و ریتم ماه می‌سازد؛ خلاصه، قابل
-          استفاده و غیرقطعی. ترنزیت‌های واقعی هنوز به این کارت وصل نشده‌اند، اما
-          جایگاهشان آماده شده تا بعداً فقط مهم‌ترین‌ها را نشان بدهیم.
+          Sky Pulse فعلاً از تاریخ زنده و ریتم تقویم شروع می‌کند تا homepage حس
+          زنده‌تری داشته باشد. ترنزیت‌ها و فاز ماه واقعی فقط وقتی فعال می‌شوند
+          که منبع محاسبه قابل اعتماد داشته باشیم.
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export function SkyPulseDateCard() {
 
         {pulse ? (
           <GuidanceCard
-            label="حال ماه"
+            label="ریتم ماهانه تقویم"
             title={pulse.monthPulse.title}
             description={pulse.monthPulse.description}
             use={pulse.monthPulse.use}
@@ -74,9 +74,9 @@ export function SkyPulseDateCard() {
           />
         ) : (
           <article className="mini-card paid-value-card">
-            <span className="badge">حال ماه</span>
+            <span className="badge">ریتم ماهانه تقویم</span>
             <strong>در حال آماده‌سازی</strong>
-            <p>ریتم ماه پس از خواندن تاریخ امروز نمایش داده می‌شود.</p>
+            <p>ریتم ماهانه پس از خواندن تاریخ امروز نمایش داده می‌شود.</p>
           </article>
         )}
 
@@ -121,9 +121,8 @@ export function SkyPulseDateCard() {
         <div>
           <strong>خلاصه عمومی اینجاست؛ خوانش شخصی در گزارش تولد شروع می‌شود.</strong>
           <p>
-            این کارت برای بازگشت روزانه به Halleus طراحی شده، اما تصمیم اصلی محصول این
-            است: اول گزارش تولدت را بساز، بعد حال‌وهوای عمومی را کنار چارت شخصی خودت
-            بخوان.
+            این کارت برای آینده homepage نگه داشته می‌شود، اما فعلاً نباید جای
+            گزارش شخصی یا محاسبه واقعی ترنزیت را بگیرد.
           </p>
         </div>
 
@@ -132,7 +131,7 @@ export function SkyPulseDateCard() {
             ساخت گزارش تولد
           </Link>
           <Link className="button secondary" href="/product">
-            ببین Sky Pulse کجای محصول است
+            جایگاه Sky Pulse در محصول
           </Link>
         </div>
       </div>

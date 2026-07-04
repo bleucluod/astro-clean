@@ -998,3 +998,25 @@ Product decision:
 - Add a lightweight reading guide, anchors to the full reading and note area, and calmer free/private/noindex copy on report pages.
 - Keep this as report-page UX only; homepage story, preview/sample pages, save/share lifecycle, SEO/indexing, payment, and hosting decisions remain separate later surfaces.
 - Do not turn the page into a sales flow while Halleus is still free, private/noindex, and product-readiness focused.
+
+## v0.1.172 Homepage architecture decision
+
+Decision:
+
+```text
+Homepage should be scalable from the current free-first/no-index product state into the later SEO/Sky Pulse/public-report era without being rewritten from scratch.
+```
+
+Implementation direction:
+
+```text
+Use a modular homepage shell with public-facing header/footer, product hero, report value grid, how-it-works, report preview slot, Sky Pulse teaser, Moon phase teaser, trust/privacy, future modules, FAQ, and CTA.
+```
+
+Current boundaries:
+
+```text
+Sky Pulse can appear as a date/pulse card and future slot, not as a fake full transit engine.
+Moon phase can appear as a prepared slot, not as an active result until real calculation exists.
+Paid report, indexing, Search Console, public reports, and hosting migration remain deferred.
+```

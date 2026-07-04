@@ -1,16 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { NavLinks } from "@/components/NavLinks";
 
 type AppShellProps = {
   children: ReactNode;
 };
 
 const footerLinks = [
-  { href: "/chart", label: "ساخت گزارش" },
-  { href: "/product", label: "محصول" },
-  { href: "/pricing", label: "پلن‌ها" },
-  { href: "/order", label: "سفارش دستی" },
+  { href: "/chart", label: "ساخت گزارش تولد" },
   { href: "/reports", label: "گزارش‌ها" },
+  { href: "/product", label: "محصول" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 
@@ -23,8 +22,10 @@ export function AppShell({ children }: AppShellProps) {
             <span>Halleus</span>
           </Link>
 
+          <NavLinks />
+
           <Link href="/chart" className="site-nav-cta">
-            شروع
+            ساخت گزارش
           </Link>
         </nav>
       </header>
@@ -36,7 +37,8 @@ export function AppShell({ children }: AppShellProps) {
           <div className="footer-brand-block">
             <strong>Halleus</strong>
             <p className="footer-note">
-              Halleus.ir — تجربه‌ای مینیمال برای ساخت و نگهداری گزارش‌های چارت تولد.
+              هالیوس یک تجربه فارسی برای ساخت و خواندن گزارش چارت تولد است؛
+              فعلاً free-first، خصوصی و در حال آماده‌سازی برای محصول عمومی بهتر.
             </p>
           </div>
 

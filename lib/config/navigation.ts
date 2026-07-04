@@ -1,38 +1,22 @@
-﻿export const navItems = [
+export const navItems = [
   {
     href: "/",
     label: "خانه",
   },
   {
     href: "/chart",
-    label: "چارت",
-  },
-  {
-    href: "/dashboard",
-    label: "داشبورد",
+    label: "چارت تولد",
   },
   {
     href: "/reports",
     label: "گزارش‌ها",
   },
   {
-    href: "/profile",
-    label: "پروفایل",
-  },
-  {
-    href: "/roadmap",
-    label: "نقشه راه",
-  },
-  {
-    href: "/wiki",
-    label: "ویکی",
+    href: "/product",
+    label: "محصول",
   },
   {
     href: "/privacy",
-    label: "حریم داده",
+    label: "حریم خصوصی",
   },
-  {
-    href: "/admin",
-    label: "ادمین",
-  },
-];
+] as const;
