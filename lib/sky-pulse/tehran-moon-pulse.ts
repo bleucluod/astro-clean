@@ -202,7 +202,7 @@ export function buildTehranMoonPulse(date: Date = new Date()): TehranMoonPulseRe
       faLabel: "تهران",
       timezone: TEHRAN_TIME_ZONE,
       note: "خوانش امروز با زمان و افق تهران تنظیم شده است.",
-      futureNote: "نسخه شهرهای دیگر بعداً بر اساس موقعیت کاربر اضافه می‌شود.",
+      futureNote: "انتخاب شهرهای دیگر بعداً بر اساس موقعیت کاربر به تجربه اضافه می‌شود.",
     },
     dates: {
       jalaliDate: formatInTehran(date, "persian"),

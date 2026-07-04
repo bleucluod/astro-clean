@@ -48,7 +48,7 @@ const reportFeatureCards = [
     status: "در مسیر",
     title: "فاز ماه تولد",
     description:
-      "فاز ماه امروز روی صفحه اصلی واقعی می‌شود؛ فاز ماه تولد بعداً با همین مرز صداقت وارد گزارش شخصی خواهد شد.",
+      "فاز ماه امروز روی صفحه اصلی واقعی شده است؛ فاز ماه تولد بعداً با همین مرز صداقت وارد گزارش شخصی خواهد شد.",
   },
 ];
 
@@ -71,7 +71,7 @@ const howItWorks = [
   {
     title: "بعداً به گزارش برگرد",
     description:
-      "گزارش‌ها فعلاً در مسیر خصوصی و آزمایشی نگه داشته می‌شوند تا بتوانی آرام‌تر بخوانی و مرور کنی.",
+      "گزارش‌ها در مسیر خصوصی نگه داشته می‌شوند تا بتوانی آرام‌تر بخوانی و دوباره مرور کنی.",
   },
 ];
 
@@ -87,9 +87,9 @@ const trustCards = [
       "هالیوس برای تأمل و خودشناسی است؛ جایگزین مشورت تخصصی یا تصمیم‌گیری جدی نمی‌شود.",
   },
   {
-    title: "خصوصی تا وقتی آماده انتشار شود",
+    title: "خصوصی تا زمان رضایت روشن",
     description:
-      "در این مرحله گزارش‌ها برای انتشار عمومی ساخته نشده‌اند. هر مدل public/indexable بعداً باید با رضایت روشن کاربر طراحی شود.",
+      "در وضعیت فعلی گزارش‌ها عمومی و قابل ایندکس نیستند. هر مدل انتشار عمومی بعداً باید با رضایت روشن کاربر طراحی شود.",
   },
 ];
 
@@ -120,12 +120,12 @@ const faqItems = [
   {
     question: "نبض آسمان امروز بر اساس کجاست؟",
     answer:
-      "فعلاً با زمان و افق تهران تنظیم می‌شود. نسخه شهرهای دیگر بعداً بر اساس موقعیت کاربر اضافه خواهد شد.",
+      "فعلاً با زمان و افق تهران تنظیم می‌شود. انتخاب شهرهای دیگر بعداً بر اساس موقعیت کاربر اضافه خواهد شد.",
   },
   {
     question: "آیا گزارش من عمومی یا قابل ایندکس می‌شود؟",
     answer:
-      "نه در وضعیت فعلی. گزارش‌ها برای مسیر خصوصی/آزمایشی ساخته می‌شوند و هر انتشار عمومی بعداً باید با رضایت روشن طراحی شود.",
+      "نه در وضعیت فعلی. گزارش‌ها برای مسیر خصوصی ساخته می‌شوند و هر انتشار عمومی بعداً باید با رضایت روشن طراحی شود.",
   },
   {
     question: "اگر ساعت تولدم دقیق نباشد چه؟",
@@ -138,12 +138,15 @@ export default function Home() {
   return (
     <section className="grid home-page homepage-product-shell">
       <div className="hero hero-polished paid-hero homepage-hero">
-        <div>
-          <span className="badge">هالیوس برای چارت تولد فارسی</span>
+        <div className="homepage-hero-copy">
+          <div className="hero-eyebrow-row">
+            <span className="badge">هالیوس برای چارت تولد فارسی</span>
+            <span className="live-pill">نبض ماه امروز فعال است</span>
+          </div>
 
           <h1>هالیوس؛ تولد تو فقط یک تاریخ نیست</h1>
 
-          <p>
+          <p className="hero-lede">
             چارت تولدت را به زبان فارسی بخوان؛ گزارشی برای دیدن الگوهای شخصی،
             رابطه‌ها، مسیر رشد و ریتم درونی‌ات. کنار آن، نبض امروز هم با ماه
             اکنون و فاز ماه تازه می‌شود.
@@ -151,7 +154,7 @@ export default function Home() {
 
           <SafetyDisclaimer compact />
 
-          <div className="actions">
+          <div className="actions home-hero-actions">
             <Link className="button" href="/chart">
               گزارش تولدم را بساز
             </Link>
@@ -176,29 +179,38 @@ export default function Home() {
             برگشتن به محصول است: تاریخ امروز، ماه اکنون، فاز ماه و یک تمرین کوتاه.
           </p>
 
-          <div className="mini-card">
-            <strong>فعلاً دقیقاً چه چیزی فعال است؟</strong>
-            <p>
-              گزارش تولد فارسی، صفحه خواندن گزارش، مسیر خصوصی تست محصول، و کارت
-              واقعی ماه امروز بر اساس زمان و افق تهران.
-            </p>
+          <div className="home-kpi-row" aria-label="وضعیت فعال هالیوس">
+            <span>
+              <strong>واقعی</strong>
+              محاسبه چارت
+            </span>
+            <span>
+              <strong>زنده</strong>
+              نبض ماه
+            </span>
+            <span>
+              <strong>خصوصی</strong>
+              مسیر گزارش
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="trust-strip paid-trust-strip" aria-label="وضعیت فعلی محصول">
+      <div className="trust-strip paid-trust-strip home-status-strip" aria-label="وضعیت فعلی محصول">
         <span>فعلاً رایگان</span>
-        <span>private-first</span>
+        <span>مسیر خصوصی گزارش</span>
         <span>گزارش بر پایه چارت واقعی</span>
         <span>ماه امروز با افق تهران</span>
       </div>
 
       <SkyPulseDateCard />
 
-      <section className="card paid-section" aria-labelledby="what-is-halleus">
-        <span className="section-label">هالیوس چیست؟</span>
+      <section className="card paid-section home-section-card" aria-labelledby="what-is-halleus">
+        <div className="home-section-heading">
+          <span className="section-label">هالیوس چیست؟</span>
 
-        <h2 id="what-is-halleus">یک خوانش فارسی از چارت تولد، برای خودشناسی</h2>
+          <h2 id="what-is-halleus">یک خوانش فارسی از چارت تولد، برای خودشناسی</h2>
+        </div>
 
         <p>
           هالیوس چارت تولدت را به یک گزارش فارسی و قابل خواندن تبدیل می‌کند؛
@@ -207,12 +219,14 @@ export default function Home() {
         </p>
       </section>
 
-      <section className="card paid-section" aria-labelledby="report-features">
-        <span className="section-label">در گزارش چه می‌بینی؟</span>
+      <section className="card paid-section home-section-card" aria-labelledby="report-features">
+        <div className="home-section-heading">
+          <span className="section-label">در گزارش چه می‌بینی؟</span>
 
-        <h2 id="report-features">گزارش از چند لایه ساخته می‌شود، نه از یک متن کلی</h2>
+          <h2 id="report-features">گزارش از چند لایه ساخته می‌شود، نه از یک متن کلی</h2>
+        </div>
 
-        <div className="grid grid-3">
+        <div className="grid grid-3 home-feature-grid">
           {reportFeatureCards.map((item) => (
             <article className="mini-card paid-value-card feature-card-polished" key={item.title}>
               <span className="badge">{item.status}</span>
@@ -223,12 +237,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="card paid-section" aria-labelledby="how-it-works">
-        <span className="section-label">مسیر استفاده</span>
+      <section className="card paid-section home-section-card" aria-labelledby="how-it-works">
+        <div className="home-section-heading">
+          <span className="section-label">مسیر استفاده</span>
 
-        <h2 id="how-it-works">از تولد تا گزارش، با یک مسیر روشن</h2>
+          <h2 id="how-it-works">از تولد تا گزارش، با یک مسیر روشن</h2>
+        </div>
 
-        <div className="demo-flow polished-demo-flow">
+        <div className="demo-flow polished-demo-flow home-step-flow">
           {howItWorks.map((step, index) => (
             <div className="demo-step" key={step.title}>
               <span>{(index + 1).toLocaleString("fa-IR")}</span>
@@ -251,12 +267,14 @@ export default function Home() {
 
       <HomepageProductProof />
 
-      <section className="card paid-section" aria-labelledby="trust-privacy">
-        <span className="section-label">اعتماد و حریم خصوصی</span>
+      <section className="card paid-section home-section-card" aria-labelledby="trust-privacy">
+        <div className="home-section-heading">
+          <span className="section-label">اعتماد و حریم خصوصی</span>
 
-        <h2 id="trust-privacy">هالیوس باید قابل اعتماد بماند، حتی وقتی شاعرانه حرف می‌زند</h2>
+          <h2 id="trust-privacy">هالیوس باید قابل اعتماد بماند، حتی وقتی شاعرانه حرف می‌زند</h2>
+        </div>
 
-        <div className="grid grid-3">
+        <div className="grid grid-3 home-feature-grid">
           {trustCards.map((item) => (
             <article className="mini-card paid-value-card" key={item.title}>
               <strong>{item.title}</strong>
@@ -266,12 +284,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="card paid-section" aria-labelledby="future-modules">
-        <span className="section-label">جایگاه‌های بعدی</span>
+      <section className="card paid-section home-section-card" aria-labelledby="future-modules">
+        <div className="home-section-heading">
+          <span className="section-label">در مسیر</span>
 
-        <h2 id="future-modules">معماری صفحه اصلی برای رشد بعدی آماده می‌ماند</h2>
+          <h2 id="future-modules">قابلیت‌های بعدی آرام و واقعی اضافه می‌شوند</h2>
+        </div>
 
-        <div className="grid grid-3">
+        <div className="grid grid-3 home-feature-grid">
           {futureModules.map((item) => (
             <article className="mini-card paid-value-card" key={item.title}>
               <strong>{item.title}</strong>
@@ -281,17 +301,22 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="card paid-section home-faq-section" aria-labelledby="home-faq">
-        <span className="section-label">پرسش‌های کوتاه</span>
+      <section className="card paid-section home-faq-section home-section-card" aria-labelledby="home-faq">
+        <div className="home-section-heading">
+          <span className="section-label">پرسش‌های کوتاه</span>
 
-        <h2 id="home-faq">قبل از ساخت گزارش، این چند نکته را بدان</h2>
+          <h2 id="home-faq">قبل از ساخت گزارش، این چند نکته را بدان</h2>
+        </div>
 
         <div className="home-faq-list">
-          {faqItems.map((item) => (
-            <article className="home-faq-item" key={item.question}>
-              <h3>{item.question}</h3>
+          {faqItems.map((item, index) => (
+            <details className="home-faq-item" key={item.question} open={index === 0}>
+              <summary>
+                <span>{item.question}</span>
+                <span aria-hidden="true">+</span>
+              </summary>
               <p>{item.answer}</p>
-            </article>
+            </details>
           ))}
         </div>
       </section>
@@ -304,7 +329,7 @@ export default function Home() {
 
           <p>
             هالیوس قرار نیست تو را به پرداخت، انتشار عمومی یا تصمیم فوری هل بدهد.
-            فعلاً بهترین قدم این است که گزارش تولدت را بسازی و ببینی زبان محصول
+            فعلاً بهترین قدم این است که گزارش تولدت را بسازی و ببینی زبان هالیوس
             چقدر با تو ارتباط می‌گیرد.
           </p>
         </div>

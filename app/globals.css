@@ -2497,3 +2497,424 @@ textarea {
   }
 }
 /* End homepage real Tehran Moon Pulse + product polish v0.1.173 */
+
+/* Homepage visual QA + app feel polish v0.1.174 */
+.site-header {
+  border-bottom: 0;
+  background:
+    linear-gradient(180deg, rgba(251, 250, 248, 0.94), rgba(251, 250, 248, 0.7));
+  padding: 10px 0 0;
+}
+
+.site-nav {
+  width: min(1120px, calc(100% - 32px));
+  min-height: 74px;
+  padding: 10px 12px;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 50px rgba(37, 24, 62, 0.08);
+}
+
+.site-brand-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 16px;
+}
+
+.nav-link-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid rgba(91, 43, 191, 0.08);
+  border-radius: 999px;
+  background: rgba(248, 245, 255, 0.72);
+}
+
+.site-nav-links a,
+.site-nav-links .nav-link {
+  padding: 10px 14px;
+}
+
+.site-nav-links .nav-link.active,
+.site-nav-links a[aria-current="page"] {
+  background: #ffffff;
+  color: #4c1d95;
+  box-shadow: 0 10px 26px rgba(91, 43, 191, 0.12);
+}
+
+.site-nav-cta {
+  display: grid;
+  gap: 1px;
+  min-width: 150px;
+  padding: 10px 18px;
+  text-align: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #5b2bbf, #7c3aed);
+  box-shadow: 0 18px 38px rgba(91, 43, 191, 0.18);
+}
+
+.site-nav-cta:hover {
+  color: #ffffff;
+  border-color: rgba(91, 43, 191, 0.24);
+}
+
+.site-nav-cta-main {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.site-nav-cta-sub {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.78;
+}
+
+.homepage-product-shell {
+  gap: 40px;
+}
+
+.homepage-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(22px, 4vw, 42px);
+  background:
+    radial-gradient(circle at 12% 16%, rgba(124, 58, 237, 0.16), transparent 28%),
+    radial-gradient(circle at 86% 20%, rgba(230, 185, 128, 0.18), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(249, 245, 255, 0.92));
+}
+
+.homepage-hero::after {
+  content: "";
+  position: absolute;
+  inset: 22px auto auto 26px;
+  width: 128px;
+  height: 128px;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 65% 35%, rgba(91, 43, 191, 0.16), transparent 32%),
+    rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+
+.homepage-hero-copy,
+.homepage-hero-card {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-eyebrow-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(22, 101, 52, 0.12);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(240, 253, 244, 0.86);
+  color: #166534;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.hero-lede {
+  max-width: 720px;
+  font-size: 17px;
+}
+
+.home-hero-actions {
+  margin-top: 26px;
+}
+
+.homepage-hero-card {
+  border-color: rgba(91, 43, 191, 0.14);
+  background:
+    radial-gradient(circle at top left, rgba(91, 43, 191, 0.1), transparent 36%),
+    rgba(255, 255, 255, 0.88);
+}
+
+.home-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.home-kpi-row span {
+  display: grid;
+  gap: 2px;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #6a5a7c;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.7;
+}
+
+.home-kpi-row strong {
+  color: #4c1d95;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.home-status-strip {
+  justify-content: center;
+  border-radius: 24px;
+  padding: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(249, 245, 255, 0.88));
+}
+
+.home-section-card {
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.home-section-heading {
+  display: grid;
+  gap: 2px;
+  max-width: 760px;
+  margin-bottom: 22px;
+}
+
+.home-section-heading .section-label {
+  margin-bottom: 6px;
+}
+
+.home-section-heading p {
+  margin-bottom: 0;
+}
+
+.home-feature-grid {
+  gap: 18px;
+}
+
+.mini-card .badge {
+  width: fit-content;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.moon-pulse-section {
+  padding: clamp(22px, 3vw, 34px);
+}
+
+.moon-pulse-dashboard {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+.moon-pulse-primary {
+  min-height: 100%;
+  border-color: rgba(91, 43, 191, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(91, 43, 191, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.9);
+}
+
+.moon-pulse-primary > strong {
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.45;
+}
+
+.moon-pulse-action-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.moon-pulse-action-row span {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(91, 43, 191, 0.1);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #625272;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.8;
+}
+
+.moon-pulse-action-row strong {
+  color: #4c1d95;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.moon-pulse-date-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: 100%;
+}
+
+.moon-pulse-date-row span {
+  align-content: center;
+  min-height: 96px;
+  color: #352646;
+  font-size: 14px;
+}
+
+.moon-pulse-feature {
+  min-height: 188px;
+}
+
+.moon-pulse-location {
+  max-width: 280px;
+}
+
+.home-faq-list {
+  gap: 14px;
+}
+
+.home-faq-item {
+  padding: 0;
+  overflow: hidden;
+}
+
+.home-faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  color: #34224f;
+  font-size: 17px;
+  font-weight: 950;
+  cursor: pointer;
+  list-style: none;
+}
+
+.home-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-faq-item summary span:last-child {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: #f3edff;
+  color: #5b2bbf;
+  font-weight: 950;
+}
+
+.home-faq-item[open] {
+  border-color: rgba(91, 43, 191, 0.18);
+  box-shadow: 0 18px 42px rgba(48, 32, 82, 0.07);
+}
+
+.home-faq-item[open] summary span:last-child {
+  transform: rotate(45deg);
+}
+
+.home-faq-item p {
+  padding: 0 20px 18px;
+}
+
+.home-step-flow .demo-step {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 1080px) {
+  .site-nav {
+    grid-template-columns: auto minmax(0, 1fr);
+    border-radius: 30px;
+  }
+
+  .site-nav-actions {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .site-nav-actions .site-nav-cta {
+    width: 100%;
+  }
+}
+
+@media (max-width: 960px) {
+  .site-header {
+    padding-top: 8px;
+  }
+
+  .site-nav {
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .nav-link-track {
+    justify-content: flex-start;
+  }
+
+  .moon-pulse-dashboard,
+  .moon-pulse-action-row,
+  .home-kpi-row {
+    grid-template-columns: 1fr;
+  }
+
+  .moon-pulse-location {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-nav {
+    width: min(100% - 20px, 1120px);
+    border-radius: 24px;
+  }
+
+  .site-brand {
+    width: 100%;
+  }
+
+  .nav-link-track {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: thin;
+  }
+
+  .site-nav-links a,
+  .site-nav-links .nav-link {
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+
+  .homepage-hero::after {
+    opacity: 0.45;
+  }
+
+  .moon-pulse-date-row {
+    grid-template-columns: 1fr;
+  }
+
+  .home-faq-item summary {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .home-faq-item p {
+    padding: 0 16px 16px;
+  }
+}
+/* End homepage visual QA + app feel polish v0.1.174 */

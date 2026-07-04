@@ -32,7 +32,8 @@ export function AppShell({ children }: AppShellProps) {
 
           <div className="site-nav-actions">
             <Link href="/chart" className="site-nav-cta">
-              ساخت گزارش تولد
+              <span className="site-nav-cta-main">ساخت گزارش تولد</span>
+              <span className="site-nav-cta-sub">شروع رایگان</span>
             </Link>
           </div>
         </nav>
@@ -46,7 +47,7 @@ export function AppShell({ children }: AppShellProps) {
             <strong>Halleus</strong>
             <p className="footer-note">
               هالیوس تجربه‌ای فارسی برای خواندن چارت تولد است؛ فعلاً رایگان،
-              private-first و متمرکز بر کیفیت گزارش و تجربه خواندن.
+              خصوصی و متمرکز بر کیفیت گزارش و تجربه خواندن.
             </p>
           </div>
 

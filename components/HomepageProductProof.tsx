@@ -33,22 +33,22 @@ const productProofCards = [
       "لحن گزارش برای کاربر فارسی‌زبان طراحی می‌شود: قابل خواندن، بدون اصطلاحات سنگین و بدون حکم قطعی.",
   },
   {
-    title: "خصوصی و free-first",
+    title: "خصوصی تا زمان انتخاب روشن",
     description:
-      "تمرکز فعلی روی کیفیت تجربه است. انتشار عمومی، SEO و مدل پولی بعد از آماده‌تر شدن محصول بررسی می‌شوند.",
+      "تمرکز فعلی روی کیفیت تجربه است. انتشار عمومی، SEO و مدل پولی بعد از آماده‌تر شدن مسیر اصلی بررسی می‌شوند.",
   },
 ];
 
 const proofSteps = [
   "اول جنس زبان گزارش را در چند کارت کوتاه می‌بینی.",
   "بعد گزارش تولدت را می‌سازی و در مسیر خصوصی می‌خوانی.",
-  "وقتی product آماده‌تر شد، نمونه کامل و مسیرهای عمومی جداگانه اضافه می‌شوند.",
+  "وقتی هالیوس آماده‌تر شد، نمونه کامل و مسیرهای عمومی جداگانه اضافه می‌شوند.",
 ];
 
 export function HomepageProductProof() {
   return (
-    <section className="card paid-section" id="report-preview" aria-labelledby="homepage-product-proof-title">
-      <div>
+    <section className="card paid-section home-section-card" id="report-preview" aria-labelledby="homepage-product-proof-title">
+      <div className="home-section-heading">
         <span className="section-label">نمونه و اعتماد</span>
 
         <h2 id="homepage-product-proof-title">
@@ -62,7 +62,7 @@ export function HomepageProductProof() {
         </p>
       </div>
 
-      <div className="grid grid-3">
+      <div className="grid grid-3 home-feature-grid">
         {reportPreviewBlocks.map((item) => (
           <article className="mini-card paid-value-card product-preview-card" key={item.title}>
             <span className="badge">{item.label}</span>
@@ -95,7 +95,7 @@ export function HomepageProductProof() {
         </div>
       </div>
 
-      <div className="grid grid-3">
+      <div className="grid grid-3 home-feature-grid">
         {productProofCards.map((item) => (
           <article className="mini-card paid-value-card" key={item.title}>
             <strong>{item.title}</strong>
@@ -104,14 +104,14 @@ export function HomepageProductProof() {
         ))}
       </div>
 
-      <div className="demo-flow polished-demo-flow">
+      <div className="demo-flow polished-demo-flow home-step-flow">
         {proofSteps.map((step, index) => (
           <div className="demo-step" key={step}>
             <span>{(index + 1).toLocaleString("fa-IR")}</span>
             <h3>{step}</h3>
             <p>
-              مسیر صفحه اصلی باید همین‌قدر روشن بماند: اول ارزش محصول، بعد
-              ساخت گزارش، بعد توسعه آرام قابلیت‌های بعدی.
+              مسیر صفحه اصلی روشن می‌ماند: اول ارزش گزارش، بعد ساخت چارت، بعد
+              توسعه آرام قابلیت‌های بعدی.
             </p>
           </div>
         ))}

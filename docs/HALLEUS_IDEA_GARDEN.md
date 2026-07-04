@@ -1038,3 +1038,18 @@ Deferred:
 
 Reason:
 - This removes demo-feeling placeholders while keeping the product honest and scoped.
+
+## v0.1.174 Idea Garden update — Homepage app-feel polish before new features
+
+Decision:
+- After shipping the real Tehran Moon Pulse, the next priority is visual/product polish rather than adding a new feature.
+- The homepage should feel like a real Persian astrology app: clearer header spacing, stronger CTA hierarchy, app-like daily card, polished FAQ, and less internal/demo wording.
+- Existing real features should be visually completed before adding more roadmap promises.
+
+Implementation direction:
+- Use visual polish and copy cleanup only.
+- Keep Sky Pulse scope as Tehran Moon Pulse.
+- Keep user-location Moon Pulse, full transit ranking, personalized daily pulse, payment, SEO/indexing, hosting, and public report consent as later work.
+
+Reason:
+- This reduces demo-feeling and protects product trust without expanding risky scope.

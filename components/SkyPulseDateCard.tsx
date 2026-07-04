@@ -32,8 +32,8 @@ function MoonPulseErrorCard() {
   return (
     <article className="mini-card paid-value-card moon-pulse-card">
       <span className="badge">خوانش امروز</span>
-      <strong>فعلاً نتوانستیم نبض امروز را بخوانیم</strong>
-      <p>گزارش تولد همچنان در دسترس است؛ کارت روزانه را بعداً دوباره امتحان کن.</p>
+      <strong>فعلاً نبض امروز را آرام نگه می‌داریم</strong>
+      <p>گزارش تولد همچنان در دسترس است؛ کارت روزانه را کمی بعد دوباره امتحان کن.</p>
     </article>
   );
 }
@@ -90,8 +90,8 @@ export function SkyPulseDateCard() {
         </div>
 
         <div className="moon-pulse-location">
-          <span>تهران</span>
-          <p>خوانش امروز با زمان و افق تهران تنظیم شده است.</p>
+          <span>تنظیم با افق تهران</span>
+          <p>خوانش امروز با زمان تهران هماهنگ شده است.</p>
         </div>
       </div>
 
@@ -121,19 +121,42 @@ export function SkyPulseDateCard() {
 
       {data ? (
         <>
-          <div className="moon-pulse-date-row" aria-label="تاریخ امروز">
-            <span>
-              <strong>شمسی</strong>
-              {data.dates.jalaliDate}
-            </span>
-            <span>
-              <strong>میلادی</strong>
-              {data.dates.gregorianDate}
-            </span>
-            <span>
-              <strong>قمری</strong>
-              {data.dates.hijriDate}
-            </span>
+          <div className="moon-pulse-dashboard">
+            <article className="mini-card paid-value-card moon-pulse-card moon-pulse-primary">
+              <span className="badge">نبض کوتاه</span>
+              <strong>{data.guidance.title}</strong>
+              <p>{data.guidance.description}</p>
+
+              <div className="moon-pulse-action-row">
+                <span>
+                  <strong>استفاده کن</strong>
+                  {data.guidance.use}
+                </span>
+                <span>
+                  <strong>آرام‌تر</strong>
+                  {data.guidance.avoid}
+                </span>
+              </div>
+            </article>
+
+            <div className="moon-pulse-date-row" aria-label="تاریخ امروز">
+              <span>
+                <strong>شمسی</strong>
+                {data.dates.jalaliDate}
+              </span>
+              <span>
+                <strong>میلادی</strong>
+                {data.dates.gregorianDate}
+              </span>
+              <span>
+                <strong>قمری</strong>
+                {data.dates.hijriDate}
+              </span>
+              <span>
+                <strong>ساعت تهران</strong>
+                {data.dates.localTime}
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-3 moon-pulse-grid">
@@ -157,26 +180,6 @@ export function SkyPulseDateCard() {
             </article>
 
             <article className="mini-card paid-value-card moon-pulse-card moon-pulse-feature">
-              <span className="badge">نبض کوتاه</span>
-              <strong>{data.guidance.title}</strong>
-              <p>{data.guidance.description}</p>
-            </article>
-          </div>
-
-          <div className="moon-pulse-guidance">
-            <article className="mini-card paid-value-card">
-              <span className="badge">امروز با این ریتم</span>
-              <strong>استفاده کن</strong>
-              <p>{data.guidance.use}</p>
-            </article>
-
-            <article className="mini-card paid-value-card">
-              <span className="badge">با خودت مهربان‌تر</span>
-              <strong>کمتر درگیرش شو</strong>
-              <p>{data.guidance.avoid}</p>
-            </article>
-
-            <article className="mini-card paid-value-card">
               <span className="badge">گام بعدی</span>
               <strong>خوانش شخصی‌تر با گزارش تولد</strong>
               <p>

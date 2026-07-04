@@ -807,3 +807,27 @@ Safety / product honesty:
 Workflow note:
 - `.mjs` checks must use ESM imports, not CommonJS `require`.
 - Runners must allow their own current `.ps1` as a temporary untracked artifact during patch-scope verification, then remove it before commit.
+
+## v0.1.174 — Homepage Visual QA + App Feel Polish
+
+Status: planned/applied in this batch.
+
+Product change:
+- Polish the homepage after the real Tehran Moon Pulse batch so it feels more like a real app and less like a demo surface.
+- Improve header spacing, active nav styling, CTA hierarchy, hero rhythm, section headings, Moon Pulse dashboard layout, and FAQ interaction.
+- Keep the dynamic `/api/sky-pulse/today` scope unchanged: Tehran Moon Pulse only, not a full transit engine.
+- Keep the homepage free-first, private, noindex-aligned, and honest about symbolic/self-reflection use.
+
+Boundaries:
+- No report engine math changes.
+- No report writer changes.
+- No SEO/indexing launch.
+- No payment or paid/private implementation.
+- No hosting migration.
+- No public report consent implementation.
+- No user-location Moon Pulse yet.
+- No full transit ranking or personal daily pulse.
+
+Workflow note:
+- This batch is UI/copy polish over inspected homepage/header/CSS files.
+- Keep v0.1.173 Moon Pulse checks passing while adding the new homepage visual polish check.
