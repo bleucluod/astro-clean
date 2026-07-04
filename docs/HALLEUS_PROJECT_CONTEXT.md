@@ -1024,3 +1024,70 @@ Not included:
 - No database migration execution.
 - No local-preview deletion.
 - No public reports, payment, SEO/indexing, hosting, engine, or report writer work.
+
+
+## v0.1.183 — Real Supabase login shell and migration review shell
+
+Status:
+- Added `@supabase/supabase-js`.
+- Added real Supabase email/password login shell.
+- Added browser Supabase client config guarded by `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=false`.
+- Added profile/dashboard login UI.
+- Added migration review shell and backup-before-migration UI.
+- Account report writes remain disabled.
+- Migration execution remains disabled.
+
+Activation for local/manual test:
+- Set `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=true`.
+- Set `NEXT_PUBLIC_SUPABASE_URL`.
+- Set `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+Not included:
+- No account report writes.
+- No local-to-account import execution.
+- No deletion of local-preview reports.
+- No public reports, payment, SEO/indexing, hosting, engine, or report writer work.
+
+## v0.1.183 failure note — stale auth readiness token
+
+Error:
+- `check-persistent-reports-auth-decision` failed because `lib/auth/auth-readiness.ts` changed wording around the required Supabase/Postgres database URL recommendation.
+
+Fixed:
+- Restored the exact required regression-check tokens while keeping the real Supabase login shell work.
+
+Prevention:
+- When changing readiness copy, preserve existing check tokens or update all dependent checks in the same batch.
+
+## v0.1.183 failure note — auth panel flag token
+
+Error:
+- `check-real-supabase-login-migration-shell` failed because `components/SupabaseAuthPanel.tsx` did not contain the literal token `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN`.
+
+Fixed:
+- Added an explicit UI note for the guarded login flag.
+
+Prevention:
+- New UI checks should either look for user-visible activation copy or require explicit literal tokens in the files they validate.
+
+## v0.1.183 failure note — auth panel wrapped guard sentence
+
+Error:
+- `check-real-supabase-login-migration-shell` failed because the required Persian guard sentence was split across JSX lines in `components/SupabaseAuthPanel.tsx`.
+
+Fixed:
+- Added the exact sentence as a separate visible hint.
+
+Prevention:
+- Do not require long Persian UI sentences as exact single-line tokens unless the UI intentionally renders that exact sentence.
+
+## v0.1.183 failure note — nullable Supabase client
+
+Error:
+- `pnpm build` failed because `components/SupabaseAuthPanel.tsx` used `client.auth` inside an async closure where TypeScript still treated `client` as possibly null.
+
+Fixed:
+- Added a non-null `authClient` constant after the null guard and used it inside the effect closure.
+
+Prevention:
+- For nullable browser clients used in nested async functions, assign a narrowed constant after the null guard before entering closures.

@@ -24,6 +24,7 @@ export type AuthProviderOption = {
 
 export type AuthSignInRequest = {
   email?: string;
+  password?: string;
   redirectTo?: string;
   provider?: AuthProviderSlug;
 };

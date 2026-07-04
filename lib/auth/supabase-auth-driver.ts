@@ -1,84 +1,99 @@
 import { getPreviewSession } from "@/lib/account/preview-session";
-import type {
-  AuthDriver,
-  AuthSignInRequest,
-  AuthSignInResult,
-} from "@/types/auth";
+import type { AuthDriver, AuthSignInResult } from "@/types/auth";
+import { getSupabaseBrowserAuthClient } from "./supabase-browser-client";
+import { mapSupabaseSessionToHalleusSession } from "./supabase-session-mapper";
 
-export type SupabaseAuthDriverStubOptions = {
-  siteUrl: string;
-  supabaseUrl?: string;
-  supabaseAnonKey?: string;
-};
-
-export type SupabaseAuthDriverStubReadiness = {
-  provider: "supabase";
-  stage: "stub-only";
-  canCreateRealSession: false;
-  missingConfig: string[];
-  message: string;
-};
-
-function getMissingConfig(options: SupabaseAuthDriverStubOptions) {
-  const missingConfig: string[] = [];
-
-  if (!options.supabaseUrl) {
-    missingConfig.push("NEXT_PUBLIC_SUPABASE_URL");
-  }
-
-  if (!options.supabaseAnonKey) {
-    missingConfig.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  }
-
-  return missingConfig;
-}
-
-function createSupabaseUnavailableResult(
-  request: AuthSignInRequest = {},
-): AuthSignInResult {
+function unavailable(message: string, redirectTo?: string): AuthSignInResult {
   return {
     ok: false,
-    message:
-      "Supabase auth driver stub is prepared, but real login is not enabled yet.",
-    redirectTo: request.redirectTo,
+    message,
+    redirectTo,
   };
 }
 
-export function getSupabaseAuthDriverStubReadiness(
-  options: SupabaseAuthDriverStubOptions,
-): SupabaseAuthDriverStubReadiness {
-  return {
-    provider: "supabase",
-    stage: "stub-only",
-    canCreateRealSession: false,
-    missingConfig: getMissingConfig(options),
-    message:
-      "Supabase Auth is selected and wired as a stub only; it must not create real sessions yet.",
-  };
-}
-
-export function createSupabaseAuthDriverStub(
-  options: SupabaseAuthDriverStubOptions,
-): AuthDriver {
-  void options;
-
+export function createSupabaseAuthDriver(): AuthDriver {
   return {
     provider: "supabase",
 
     async getSession() {
-      return getPreviewSession();
+      if (typeof window === "undefined") {
+        return getPreviewSession();
+      }
+
+      const client = getSupabaseBrowserAuthClient();
+
+      if (!client) {
+        return getPreviewSession();
+      }
+
+      const { data, error } = await client.auth.getSession();
+
+      if (error) {
+        return getPreviewSession();
+      }
+
+      return mapSupabaseSessionToHalleusSession(data.session) ?? getPreviewSession();
     },
 
     async signIn(request) {
-      return createSupabaseUnavailableResult(request);
+      if (typeof window === "undefined") {
+        return unavailable("Supabase login must run in the browser.", request.redirectTo);
+      }
+
+      const client = getSupabaseBrowserAuthClient();
+
+      if (!client) {
+        return unavailable(
+          "Supabase login is prepared, but public env config or the login flag is missing.",
+          request.redirectTo,
+        );
+      }
+
+      if (!request.email || !request.password) {
+        return unavailable("Email and password are required.", request.redirectTo);
+      }
+
+      const { error } = await client.auth.signInWithPassword({
+        email: request.email,
+        password: request.password,
+      });
+
+      if (error) {
+        return unavailable(error.message, request.redirectTo);
+      }
+
+      return {
+        ok: true,
+        message: "Supabase login succeeded.",
+        redirectTo: request.redirectTo,
+      };
     },
 
     async signOut() {
+      if (typeof window === "undefined") {
+        return {
+          ok: true,
+          message: "Server-side sign out is not used in the browser login shell.",
+        };
+      }
+
+      const client = getSupabaseBrowserAuthClient();
+
+      if (!client) {
+        return {
+          ok: true,
+          message: "Supabase login is not configured; preview session remains local.",
+        };
+      }
+
+      const { error } = await client.auth.signOut();
+
       return {
-        ok: true,
-        message:
-          "Supabase auth stub does not manage real sessions yet; preview session remains local.",
+        ok: !error,
+        message: error?.message ?? "Supabase session signed out.",
       };
     },
   };
 }
+
+export const createSupabaseAuthDriverStub = createSupabaseAuthDriver;

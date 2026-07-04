@@ -93,3 +93,18 @@ Guard:
 - `canStartAccountMigration: false`.
 - `canWriteAccountReports: false`.
 - Browser-local reports must not be deleted after preflight.
+
+
+## v0.1.183 — Real Supabase login shell and migration review shell
+
+Status:
+- Added real Supabase login shell for email/password.
+- Login requires `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=true` plus public Supabase env config.
+- Added migration review shell and backup reminder before any account import.
+- Active report save remains local-preview.
+
+Guard:
+- account report writes remain disabled.
+- migration execution remains disabled.
+- local-preview reports must not be deleted.
+- public/indexable reports remain disabled.

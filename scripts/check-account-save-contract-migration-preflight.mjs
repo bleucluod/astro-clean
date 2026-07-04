@@ -2,8 +2,10 @@ import fs from "node:fs";
 
 const requiredFiles = [
   "app/dashboard/page.tsx",
+  "components/LocalDataBackupPanel.tsx",
   "lib/account/account-report-save-contract.ts",
   "lib/account/account-migration-preflight.ts",
+  "lib/account/account-migration-review.ts",
   "lib/storage/persistent-report-repository.ts",
   "docs/ACCOUNT_REPORT_SAVE_CONTRACT.md",
   "docs/LOCAL_TO_ACCOUNT_MIGRATION.md",
@@ -22,8 +24,10 @@ for (const file of requiredFiles) {
 const read = (file) => fs.readFileSync(file, "utf8");
 
 const dashboard = read("app/dashboard/page.tsx");
+const backupPanel = read("components/LocalDataBackupPanel.tsx");
 const saveContract = read("lib/account/account-report-save-contract.ts");
 const migrationPreflight = read("lib/account/account-migration-preflight.ts");
+const migrationReview = read("lib/account/account-migration-review.ts");
 const persistentRepo = read("lib/storage/persistent-report-repository.ts");
 const contractDoc = read("docs/ACCOUNT_REPORT_SAVE_CONTRACT.md");
 const migrationDoc = read("docs/LOCAL_TO_ACCOUNT_MIGRATION.md");
@@ -67,19 +71,34 @@ for (const token of [
 }
 
 for (const token of [
+  "AccountMigrationReviewModel",
+  "canExecuteMigration: false",
+  "requiresUserConfirmation: true",
+  "Do not delete browser-local reports until account import succeeds.",
+]) {
+  mustContain(migrationReview, token, "migration review");
+}
+
+for (const token of [
   "getAccountReportSaveContract",
   "createAccountMigrationPreflight",
-  "describeAccountMigrationPreflight",
+  "createAccountMigrationReviewModel",
+  "LocalDataBackupPanel",
   "پیش‌پرواز مهاجرت",
   "مهاجرت به حساب هنوز غیرفعال است",
   "Can save to account",
-  "getting output",
+  "Can execute",
+  "گرفتن خروجی JSON از گزارش‌ها",
 ]) {
-  if (token === "getting output") {
-    mustContain(dashboard, "گرفتن خروجی JSON از گزارش‌ها", "dashboard");
-  } else {
-    mustContain(dashboard, token, "dashboard");
-  }
+  mustContain(dashboard, token, "dashboard");
+}
+
+for (const token of [
+  "Backup before migration",
+  "خروجی امن داده‌های local-preview",
+  "account import واقعی را اجرا نمی‌کند",
+]) {
+  mustContain(backupPanel, token, "local backup panel");
 }
 
 for (const token of [
@@ -94,6 +113,7 @@ for (const token of [
 
 for (const token of [
   "v0.1.182",
+  "v0.1.183",
   "account report save contract",
   "migration preflight",
   "canSaveToAccount: false",
@@ -102,16 +122,15 @@ for (const token of [
 }
 
 mustContain(persistentRepo, "canWriteAccountReports: false", "persistent repository prep");
+mustContain(packageJson, '"@supabase/supabase-js"', "package.json");
 
-for (const stale of [
-  "@supabase/supabase-js",
-  "createClient(",
+for (const forbidden of [
   "canSaveToAccount: true",
   "canStartAccountMigration: true",
   "canWriteAccountReports: true",
   "delete local-preview reports after import",
 ]) {
-  mustNotContain(packageJson + saveContract + migrationPreflight + persistentRepo + dashboard, stale, "v0.1.182 account save/migration");
+  mustNotContain(saveContract + migrationPreflight + migrationReview + persistentRepo + dashboard, forbidden, "v0.1.183 account save/migration");
 }
 
 console.log("Account report save contract and migration preflight check passed.");

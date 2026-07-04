@@ -1,4 +1,5 @@
 import {
+  canUseRealSupabaseLogin,
   hasAuthConfig,
   hasDatabaseConfig,
   hasSupabasePublicConfig,
@@ -16,6 +17,7 @@ export const AUTH_PROVIDER_OPTIONS: AuthProviderOption[] = [
     strengths: [
       "Auth and Postgres can live in one platform.",
       "Useful when database and account storage should ship together.",
+      "Email/password login can be tested through the guarded Supabase login shell.",
       "Good fit for a fast account-backed MVP after local-preview is stable.",
     ],
     tradeoffs: [
@@ -67,6 +69,13 @@ export function getAuthReadinessReport(): AuthReadinessReport {
   const blockers: string[] = [];
   const recommendedNextSteps: string[] = [];
 
+  if (!hasSupabasePublicConfig()) {
+    blockers.push("Supabase public URL/anon key are not configured.");
+    recommendedNextSteps.push("Configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY outside Git.");
+  }
+
+  recommendedNextSteps.push("Set NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=true only in the environment where login should be tested.");
+
   if (!hasDatabaseConfig()) {
     blockers.push("DATABASE_URL is not configured.");
     recommendedNextSteps.push("Configure the Supabase/Postgres database URL outside Git.");
@@ -77,24 +86,18 @@ export function getAuthReadinessReport(): AuthReadinessReport {
     recommendedNextSteps.push("Configure the auth/session secret outside Git.");
   }
 
-  if (!hasSupabasePublicConfig()) {
-    blockers.push("Supabase public URL/anon key are not configured.");
-    recommendedNextSteps.push("Configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY outside Git.");
-  }
-
   if (!hasSupabaseServerConfig()) {
     recommendedNextSteps.push("Configure SUPABASE_SERVICE_ROLE_KEY only for server-side account migration and never expose it to the client.");
   }
 
-  recommendedNextSteps.push("Use the Supabase auth driver stub for contract wiring only.");
-  recommendedNextSteps.push("Keep getAuthDriver on preview unless HALLEUS_ENABLE_SUPABASE_AUTH_STUB=true and public Supabase config exists.");
-  recommendedNextSteps.push("Connect report records to authenticated Supabase user ids after migration UI exists.");
+  recommendedNextSteps.push("Use the Supabase auth driver for email/password login only after public env config is present.");
+  recommendedNextSteps.push("Keep account report writes disabled until migration review is implemented.");
   recommendedNextSteps.push("Keep reports private/noindex until explicit public consent exists.");
 
   return {
     stage: blockers.length === 0 ? "staging" : "provider-selected",
     provider: "supabase",
-    canEnableRealLogin: false,
+    canEnableRealLogin: canUseRealSupabaseLogin(),
     blockers,
     recommendedNextSteps,
   };

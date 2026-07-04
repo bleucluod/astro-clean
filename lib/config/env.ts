@@ -12,6 +12,7 @@ export type HalleusRuntimeEnv = {
   supabaseAnonKey?: string;
   supabaseServiceRoleKey?: string;
   supabaseAuthStubEnabled: boolean;
+  supabaseLoginEnabled: boolean;
   accountStorageEnabled: boolean;
 };
 
@@ -38,6 +39,7 @@ export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
     supabaseAnonKey: getOptionalEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     supabaseServiceRoleKey: getOptionalEnv("SUPABASE_SERVICE_ROLE_KEY"),
     supabaseAuthStubEnabled: isEnabledEnv("HALLEUS_ENABLE_SUPABASE_AUTH_STUB"),
+    supabaseLoginEnabled: isEnabledEnv("NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN"),
     accountStorageEnabled: isEnabledEnv("HALLEUS_ENABLE_ACCOUNT_STORAGE"),
   };
 }
@@ -66,6 +68,12 @@ export function canUseSupabaseAuthStub() {
   const env = getHalleusRuntimeEnv();
 
   return env.supabaseAuthStubEnabled && hasSupabasePublicConfig();
+}
+
+export function canUseRealSupabaseLogin() {
+  const env = getHalleusRuntimeEnv();
+
+  return env.supabaseLoginEnabled && hasSupabasePublicConfig();
 }
 
 export function canUseAccountStorage() {

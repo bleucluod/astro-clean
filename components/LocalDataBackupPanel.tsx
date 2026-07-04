@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { ChangeEvent } from "react";
 import { useRef, useState } from "react";
@@ -9,10 +9,11 @@ import {
 
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
+  window.dispatchEvent(new Event("halleus-data-changed"));
 }
 
 function downloadJsonFile(data: unknown) {
-  const fileName = `astro-clean-backup-${new Date()
+  const fileName = `halleus-local-backup-${new Date()
     .toISOString()
     .slice(0, 10)}.json`;
 
@@ -39,7 +40,7 @@ export function LocalDataBackupPanel() {
   function handleExport() {
     const backup = createLocalDataBackup();
     downloadJsonFile(backup);
-    setMessage("فایل بکاپ JSON ساخته شد.");
+    setMessage("فایل بکاپ JSON ساخته شد. این فایل را قبل از migration واقعی نگه دار.");
   }
 
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
@@ -68,14 +69,14 @@ export function LocalDataBackupPanel() {
 
   return (
     <section className="card">
-      <span className="badge">Local Backup</span>
+      <span className="badge">Backup before migration</span>
 
-      <h2>خروجی و ورودی داده‌های محلی</h2>
+      <h2>خروجی امن داده‌های local-preview</h2>
 
       <p>
-        چون این MVP هنوز backend و دیتابیس ندارد، گزارش‌ها و پروفایل فقط در
-        مرورگر ذخیره می‌شوند. از این بخش می‌توانی یک بکاپ JSON بگیری یا بکاپ
-        قبلی را دوباره وارد کنی.
+        قبل از هر migration واقعی به account، باید از گزارش‌های local-preview
+        خروجی JSON داشته باشی. وارد کردن بکاپ هنوز فقط برای بازیابی local است و
+        account import واقعی را اجرا نمی‌کند.
       </p>
 
       <div className="actions">
@@ -88,7 +89,7 @@ export function LocalDataBackupPanel() {
           type="button"
           onClick={() => inputRef.current?.click()}
         >
-          وارد کردن بکاپ
+          وارد کردن بکاپ local
         </button>
       </div>
 
@@ -102,7 +103,7 @@ export function LocalDataBackupPanel() {
 
       <p className="file-hint">
         وارد کردن بکاپ، گزارش‌ها و پروفایل فعلی localStorage را با محتوای فایل
-        جایگزین می‌کند.
+        جایگزین می‌کند. این کار migration به account نیست.
       </p>
 
       {message ? <p className="success-message">{message}</p> : null}

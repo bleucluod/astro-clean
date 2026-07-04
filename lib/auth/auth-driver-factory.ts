@@ -1,30 +1,30 @@
 import { getPersistentReportsDecision } from "@/lib/account/persistent-report-decision";
 import {
+  canUseRealSupabaseLogin,
   canUseSupabaseAuthStub,
   getHalleusRuntimeEnv,
 } from "@/lib/config/env";
 import type { AuthDriver } from "@/types/auth";
 import { createPreviewAuthDriver } from "./preview-auth-driver";
-import { createSupabaseAuthDriverStub } from "./supabase-auth-driver";
+import { createSupabaseAuthDriver } from "./supabase-auth-driver";
 
 export function getPreparedSupabaseAuthDriverStub(): AuthDriver {
-  const env = getHalleusRuntimeEnv();
+  return createSupabaseAuthDriver();
+}
 
-  return createSupabaseAuthDriverStub({
-    siteUrl: env.siteUrl,
-    supabaseUrl: env.supabaseUrl,
-    supabaseAnonKey: env.supabaseAnonKey,
-  });
+export function getPreparedSupabaseAuthDriver(): AuthDriver {
+  return createSupabaseAuthDriver();
 }
 
 export function getAuthDriver(): AuthDriver {
   const decision = getPersistentReportsDecision();
+  void getHalleusRuntimeEnv();
 
   if (
     decision.authProvider === "supabase" &&
-    canUseSupabaseAuthStub()
+    (canUseRealSupabaseLogin() || canUseSupabaseAuthStub())
   ) {
-    return getPreparedSupabaseAuthDriverStub();
+    return getPreparedSupabaseAuthDriver();
   }
 
   return createPreviewAuthDriver();

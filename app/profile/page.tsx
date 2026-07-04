@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { useEffect, useMemo, useState } from "react";
 import { getAccountRepository } from "@/lib/account/account-repository";
 import { getPlanEntitlement } from "@/lib/account/entitlements";
@@ -64,8 +65,8 @@ export default function ProfilePage() {
         <h1>پروفایل و وضعیت اکانت</h1>
 
         <p>
-          این صفحه هنوز login واقعی ندارد. فعلاً preview account فعال است تا
-          ساختار محصول، storage و planها قبل از اتصال auth واقعی آماده شوند.
+          این صفحه حالا shell ورود واقعی Supabase را دارد؛ اگر env آماده باشد،
+          کاربر می‌تواند با ایمیل و رمز وارد شود. ذخیره گزارش روی account هنوز خاموش است.
         </p>
 
         <div className="actions">
@@ -82,6 +83,8 @@ export default function ProfilePage() {
           </Link>
         </div>
       </div>
+
+      <SupabaseAuthPanel />
 
       <section className="card">
         <span className="badge">Preview Account</span>
@@ -139,11 +142,11 @@ export default function ProfilePage() {
       <section className="card">
         <span className="badge">Next Account Phase</span>
 
-        <h2>قبل از login واقعی چه مانده؟</h2>
+        <h2>بعد از login واقعی چه مانده؟</h2>
 
         <p>
-          حالا مدل اکانت و entitlement داریم. قدم بعدی این است که auth provider
-          انتخاب شود و بعد گزارش‌های local preview به user واقعی migrate شوند.
+          حالا ورود Supabase به‌صورت guard شده آماده است. قدم بعدی این است که گزارش‌های
+          local-preview با review و backup به user واقعی وصل شوند.
         </p>
 
         <div className="home-step-list">

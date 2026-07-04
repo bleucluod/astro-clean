@@ -5,6 +5,8 @@ const requiredFiles = [
   "lib/config/env.ts",
   "lib/auth/auth-driver-factory.ts",
   "lib/auth/supabase-auth-driver.ts",
+  "lib/auth/supabase-browser-client.ts",
+  "lib/auth/supabase-session-mapper.ts",
   "lib/auth/auth-readiness.ts",
   "lib/storage/persistent-report-repository.ts",
   "lib/account/persistent-report-decision.ts",
@@ -29,7 +31,9 @@ const read = (file) => fs.readFileSync(file, "utf8");
 const envExample = read(".env.example");
 const envConfig = read("lib/config/env.ts");
 const authFactory = read("lib/auth/auth-driver-factory.ts");
-const supabaseStub = read("lib/auth/supabase-auth-driver.ts");
+const supabaseDriver = read("lib/auth/supabase-auth-driver.ts");
+const browserClient = read("lib/auth/supabase-browser-client.ts");
+const sessionMapper = read("lib/auth/supabase-session-mapper.ts");
 const authReadiness = read("lib/auth/auth-readiness.ts");
 const repoPrep = read("lib/storage/persistent-report-repository.ts");
 const decision = read("lib/account/persistent-report-decision.ts");
@@ -57,6 +61,7 @@ const mustNotContain = (text, token, label) => {
 for (const token of [
   "HALLEUS_ENABLE_SUPABASE_AUTH_STUB=false",
   "HALLEUS_ENABLE_ACCOUNT_STORAGE=false",
+  "NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=false",
   "NEXT_PUBLIC_SUPABASE_URL=",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY=",
 ]) {
@@ -64,40 +69,53 @@ for (const token of [
 }
 
 for (const token of [
-  "supabaseAuthStubEnabled",
-  "accountStorageEnabled",
+  "supabaseLoginEnabled",
+  "canUseRealSupabaseLogin",
   "hasSupabasePublicConfig",
   "hasSupabaseServerConfig",
-  "canUseSupabaseAuthStub",
   "canUseAccountStorage",
 ]) {
   mustContain(envConfig, token, "env config");
 }
 
 for (const token of [
-  "createSupabaseAuthDriverStub",
-  "getPreparedSupabaseAuthDriverStub",
-  "canUseSupabaseAuthStub",
+  "createSupabaseAuthDriver",
+  "getPreparedSupabaseAuthDriver",
+  "canUseRealSupabaseLogin",
   "return createPreviewAuthDriver();",
 ]) {
   mustContain(authFactory, token, "auth driver factory");
 }
 
 for (const token of [
-  "SupabaseAuthDriverStubReadiness",
-  "stage: \"stub-only\"",
-  "canCreateRealSession: false",
-  "real login is not enabled yet",
-  "return getPreviewSession();",
+  "signInWithPassword",
+  "getSupabaseBrowserAuthClient",
+  "mapSupabaseSessionToHalleusSession",
+  "createSupabaseAuthDriverStub",
 ]) {
-  mustContain(supabaseStub, token, "Supabase auth driver stub");
+  mustContain(supabaseDriver, token, "Supabase auth driver");
 }
 
 for (const token of [
-  "hasSupabasePublicConfig",
-  "hasSupabaseServerConfig",
-  "canEnableRealLogin: false",
-  "Use the Supabase auth driver stub for contract wiring only.",
+  "createClient",
+  "NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN",
+  "getSupabaseBrowserLoginConfig",
+  "persistSession: true",
+]) {
+  mustContain(browserClient, token, "Supabase browser client");
+}
+
+for (const token of [
+  "mapSupabaseSessionToHalleusSession",
+  'provider: "email"',
+  'status: "active"',
+]) {
+  mustContain(sessionMapper, token, "Supabase session mapper");
+}
+
+for (const token of [
+  "canEnableRealLogin: canUseRealSupabaseLogin()",
+  "Use the Supabase auth driver for email/password login only after public env config is present.",
   'stage: blockers.length === 0 ? "staging" : "provider-selected"',
 ]) {
   mustContain(authReadiness, token, "auth readiness");
@@ -105,8 +123,6 @@ for (const token of [
 
 for (const token of [
   "PersistentReportRepositoryPrep",
-  "activeRepositoryMode: persistentReportsDecision.activeStorageMode",
-  "preparedRepositoryMode: \"account-storage\"",
   "canWriteAccountReports: false",
   "assertAccountStorageStillDisabled",
 ]) {
@@ -123,24 +139,21 @@ for (const token of [
 
 for (const token of [
   "v0.1.181",
-  "Supabase auth driver stub",
-  "persistent report repository prep",
-  "HALLEUS_ENABLE_SUPABASE_AUTH_STUB=false",
+  "v0.1.183",
+  "Supabase auth driver",
+  "real Supabase login shell",
   "HALLEUS_ENABLE_ACCOUNT_STORAGE=false",
 ]) {
-  mustContain(decisionDoc + authDoc + storageAdapter + storageArchitecture + migrationDoc, token, "docs");
+  mustContain(decisionDoc + authDoc + storageAdapter + storageArchitecture + migrationDoc + context + ideaGarden, token, "docs");
 }
 
-mustContain(context, "v0.1.181", "project context");
-mustContain(ideaGarden, "v0.1.181", "idea garden");
+mustContain(packageJson, '"@supabase/supabase-js"', "package.json");
 
-for (const stale of [
-  "@supabase/supabase-js",
-  "createClient(",
-  "canEnableRealLogin: true",
+for (const forbidden of [
   "canWriteAccountReports: true",
+  "HALLEUS_ENABLE_ACCOUNT_STORAGE=true",
 ]) {
-  mustNotContain(packageJson + supabaseStub + repoPrep + authReadiness, stale, "v0.1.181 prep");
+  mustNotContain(packageJson + supabaseDriver + repoPrep + authReadiness + envExample, forbidden, "v0.1.183 Supabase prep");
 }
 
-console.log("Supabase auth stub and persistent repository prep check passed.");
+console.log("Supabase auth/repository prep check passed for real login shell.");

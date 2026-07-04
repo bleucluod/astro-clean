@@ -1171,3 +1171,18 @@ Not now:
 - No migration execution.
 - No public/indexable reports.
 - No payment gating or SEO launch.
+
+
+## v0.1.183 Idea Garden update — real login shell and migration review
+
+Decision:
+- Combine real Supabase email/password login shell with migration review/backup shell.
+- Keep account report writes blocked until user-owned storage is implemented.
+- Keep migration execution blocked until imported/skipped review and backup flow are complete.
+- Keep private/noindex as the default for future account reports.
+
+Not now:
+- No account report write path.
+- No migration execution.
+- No public/indexable reports.
+- No payment gating or SEO launch.

@@ -68,3 +68,17 @@ Required before migration:
 - Account storage explicitly enabled.
 - Imported/skipped counts confirmed by the user.
 - Backup/export available before import.
+
+
+## v0.1.183 migration review shell
+
+What changed:
+- Dashboard now has a migration review shell with would-import and would-skip counts.
+- Backup/export is shown as the required safe step before migration.
+- Supabase email/password login can be tested when public env config and the guarded login flag are set.
+
+Still blocked:
+- No account report import.
+- No local-preview deletion.
+- No account report writes.
+- No public/indexable migration.

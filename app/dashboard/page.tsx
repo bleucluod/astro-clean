@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { LocalDataBackupPanel } from "@/components/LocalDataBackupPanel";
+import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { useEffect, useMemo, useState } from "react";
 import {
   createAccountMigrationPreflight,
   describeAccountMigrationPreflight,
 } from "@/lib/account/account-migration-preflight";
 import { getAccountReportSaveContract } from "@/lib/account/account-report-save-contract";
+import { createAccountMigrationReviewModel } from "@/lib/account/account-migration-review";
 import { persistentReportsDecision } from "@/lib/account/persistent-report-decision";
 import { getPreviewSession } from "@/lib/account/preview-session";
 import { listReportSummaries } from "@/lib/storage/report-query-service";
@@ -80,6 +83,10 @@ export default function DashboardPage() {
     () => createAccountMigrationPreflight(reports),
     [reports],
   );
+  const migrationReview = useMemo(
+    () => createAccountMigrationReviewModel(migrationPreflight),
+    [migrationPreflight],
+  );
   const latestReports = useMemo(() => reports.slice(0, 5), [reports]);
 
   if (!isReady) {
@@ -110,7 +117,7 @@ export default function DashboardPage() {
         <div className="account-ready-status-strip" aria-label="وضعیت حساب و گزارش‌ها">
           <span>فعلاً: local-preview</span>
           <span>پیش‌فرض: خصوصی و noindex</span>
-          <span>بعدی: اتصال به حساب کاربری</span>
+          <span>بعدی: ورود Supabase با ایمیل</span>
         </div>
 
         <div className="actions">
@@ -131,7 +138,7 @@ export default function DashboardPage() {
       <section className="card account-ready-lifecycle-card">
         <span className="badge">از مرورگر تا اکانت</span>
 
-        <h2>حساب کاربری واقعی هنوز فعال نشده</h2>
+        <h2>حساب کاربری واقعی هنوز فعال نشده برای ذخیره گزارش</h2>
 
         <p>
           این پنل عمداً ادعای login یا دیتابیس فعال نمی‌کند. کار فعلی این است
@@ -182,6 +189,8 @@ export default function DashboardPage() {
           <p>گزارش‌های private در مدل ذخیره‌سازی فعلی.</p>
         </article>
       </div>
+
+      <SupabaseAuthPanel />
 
       <section className="card">
         <span className="badge">اکانت preview</span>
@@ -300,6 +309,28 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <div className="profile-grid">
+          <div>
+            <strong>Review status</strong>
+            <span>{migrationReview.status}</span>
+          </div>
+
+          <div>
+            <strong>Would import</strong>
+            <span>{migrationReview.wouldImportCount.toLocaleString("fa-IR")}</span>
+          </div>
+
+          <div>
+            <strong>Would skip</strong>
+            <span>{migrationReview.wouldSkipCount.toLocaleString("fa-IR")}</span>
+          </div>
+
+          <div>
+            <strong>Can execute</strong>
+            <span>{String(migrationReview.canExecuteMigration)}</span>
+          </div>
+        </div>
+
         <div className="actions">
           <Link className="button secondary" href="/reports">
             گرفتن خروجی JSON از گزارش‌ها
@@ -310,6 +341,8 @@ export default function DashboardPage() {
           </button>
         </div>
       </section>
+      <LocalDataBackupPanel />
+
       <section className="card">
         <span className="badge">آخرین گزارش‌ها</span>
 
