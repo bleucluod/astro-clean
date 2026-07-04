@@ -5,7 +5,7 @@ import { ReportsList } from "@/components/ReportsList";
 export const metadata: Metadata = {
   title: "گزارش‌های ذخیره‌شده | Halleus",
   description:
-    "مشاهده و مدیریت گزارش‌های ذخیره‌شده چارت تولد در Halleus؛ بعد از ساخت گزارش می‌توانی مسیر نسخه کامل‌تر را هم بررسی کنی.",
+    "مشاهده و مرور گزارش‌های ذخیره‌شده چارت تولد در Halleus؛ گزارش‌ها فعلاً رایگان و خصوصی می‌مانند تا تجربه خواندن کامل‌تر شود.",
   alternates: {
     canonical: "/reports",
   },
@@ -28,11 +28,12 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       <div className="card reports-sales-cta">
         <div>
           <span className="badge">گزارش‌های ذخیره‌شده</span>
-          <h1>گزارش‌هایی که ساختی را مرور کن</h1>
+          <h1>گزارش‌هایی که ساختی را آرام‌تر مرور کن</h1>
           <p>
-            این صفحه نقطه بعد از ساخت گزارش است: می‌توانی گزارش‌ها را بخوانی،
-            برگردی، یادداشت اضافه کنی و اگر نسخه کامل‌تر خواستی، مسیر پلن‌ها و
-            سفارش دستی را بررسی کنی.
+            این صفحه نقطه برگشت به گزارش‌هاست: می‌توانی خوانش کامل را ادامه
+            بدهی، گزارش‌ها را جستجو کنی، یادداشت اضافه کنی و هر وقت خواستی
+            گزارش تازه بسازی. هالیوس فعلاً رایگان، خصوصی و آماده‌سازی‌شده برای
+            تست محصول است؛ نه فروش، نه ایندکس عمومی.
           </p>
         </div>
 
@@ -41,8 +42,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             ساخت گزارش جدید
           </Link>
 
-          <Link className="button secondary" href="/pricing">
-            دیدن پلن‌ها
+          <Link className="button secondary" href="/privacy">
+            حریم خصوصی گزارش‌ها
           </Link>
         </div>
       </div>

@@ -762,3 +762,10 @@ Fixed / prevention: confirm `.next` is ignored with `git check-ignore -v .next`,
 - Allowed surface: report writer prose, focused report QA/check scripts, and compact context/idea notes.
 - Keep engine math/types unchanged. Do not add True Node, Lilith, payments, public/private consent implementation, SEO launch, Search Console, hosting migration, Sky Pulse, homepage work, or report-page UI in this batch.
 - Product direction: combine similar report-copy improvements in one safe bundle, but keep UI/page/acquisition work in separate batches.
+
+## v0.1.171 report-page-reading-ux scope note
+
+- v0.1.171 is scoped to report-page reading UX now that generated reports are longer and more humanized.
+- Allowed surface: report detail/list page copy, lightweight reading guide panels, focused UI check, and compact context/idea notes.
+- Keep engine math/types and generated writer prose unchanged. Do not add homepage work, SEO/indexing, Search Console, payment, hosting migration, save/share lifecycle, public consent implementation, True Node, or Lilith in this batch.
+- Product direction: long reports need a reading path, anchors, private/free/noindex reassurance, and a softer next step before acquisition work.

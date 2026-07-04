@@ -26,15 +26,56 @@ type BetaDatabaseReadResponse = {
   };
 };
 
+type ReportReadingStats = {
+  displayName: string;
+  aspectCount: number;
+  houseCount: number;
+  placementCount: number;
+  hasRealEngine: boolean;
+};
+
 const reportRepository = getReportRepository();
 const isBetaDatabaseSaveUiEnabled =
   process.env.NEXT_PUBLIC_HALLEUS_ENABLE_BETA_DB_SAVE_UI === "true";
+
+const REPORT_READING_STEPS = [
+  {
+    label: "۱",
+    title: "اول نقشه را ببین",
+    description:
+      "کارت بالای صفحه، سه ستون اصلی، چرخ چارت و پشتوانه محاسبه را خلاصه می‌کند؛ قبل از متن بلند، این بخش را مثل نقشه راه بخوان.",
+  },
+  {
+    label: "۲",
+    title: "بعد وارد خوانش کامل شو",
+    description:
+      "از تصویر کلی، خورشید/ماه/طالع، خانه‌ها و جنبه‌ها عبور کن؛ لازم نیست همه چیز را در یک نشست تمام کنی.",
+  },
+  {
+    label: "۳",
+    title: "در پایان یک برداشت نگه دار",
+    description:
+      "بعد از خواندن، فقط یک جمله یا سؤال شخصی را در یادداشت ذخیره کن تا گزارش از متن بلند به یک نقطه قابل برگشت تبدیل شود.",
+  },
+] as const;
 
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("halleus-data-changed"));
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
 
+function buildReportReadingStats(report: AstrologyReport): ReportReadingStats {
+  const displayName = report.input.name?.trim() || "این گزارش";
+  const realEngine = report.realEngine;
+
+  return {
+    displayName,
+    aspectCount: realEngine?.aspects?.length ?? 0,
+    houseCount: realEngine?.houses?.length ?? 0,
+    placementCount: realEngine?.placements?.length ?? 0,
+    hasRealEngine: Boolean(realEngine),
+  };
+}
 
 export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailProps) {
   const [report, setReport] = useState<AstrologyReport | null>(null);
@@ -105,7 +146,6 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     setMessage(note.trim() ? "یادداشت ذخیره شد." : "یادداشت پاک شد.");
   }
 
-
   if (!isReady) {
     return (
       <section className="grid">
@@ -140,6 +180,8 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
   return (
     <section className="grid">
       <ReportCard report={report} />
+
+      <ReportReadingGuide report={report} />
 
       <div className="report-final-reading-anchor" id="final-reading">
         <ReportV3Experience report={report} />
@@ -191,6 +233,101 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
           </article>
         </div>
       </section>
+
+      <ReportNextStepPanel />
+    </section>
+  );
+}
+
+function ReportReadingGuide({ report }: { report: AstrologyReport }) {
+  const stats = buildReportReadingStats(report);
+  const aspectLabel = stats.aspectCount > 0
+    ? `${stats.aspectCount.toLocaleString("fa-IR")} جنبه محاسبه‌شده`
+    : "جنبه‌های اصلی در صورت وجود نمایش داده می‌شوند";
+  const houseLabel = stats.houseCount > 0
+    ? `${stats.houseCount.toLocaleString("fa-IR")} خانه Whole Sign`
+    : "خانه‌ها وابسته به دقت ساعت و مکان تولد هستند";
+  const placementLabel = stats.placementCount > 0
+    ? `${stats.placementCount.toLocaleString("fa-IR")} جایگاه سیاره‌ای/نقطه‌ای`
+    : "جایگاه‌ها در گزارش کامل توضیح داده می‌شوند";
+
+  return (
+    <section className="card report-reading-guide" id="reading-guide" aria-labelledby="report-reading-guide-title">
+      <div className="report-section-heading">
+        <span className="badge">راهنمای خواندن</span>
+        <h2 id="report-reading-guide-title">مسیر پیشنهادی خواندن گزارش</h2>
+        <p>
+          گزارش {stats.displayName} بلند و لایه‌لایه است. لازم نیست آن را مثل
+          یک مقاله خطی بخوانی؛ اول نقشه را ببین، بعد وارد خوانش کامل شو و در
+          پایان فقط یک برداشت شخصی را نگه دار.
+        </p>
+      </div>
+
+      <div className="report-calculation-grid">
+        {REPORT_READING_STEPS.map((step) => (
+          <article className="mini-card" key={step.label}>
+            <span className="section-label">قدم {step.label}</span>
+            <h3>{step.title}</h3>
+            <p>{step.description}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="report-calculation-grid mt-4">
+        <article className="mini-card">
+          <span className="section-label">پشتوانه خوانش</span>
+          <h3>{stats.hasRealEngine ? "چارت محاسبه‌شده" : "پیش‌نمایش محدود"}</h3>
+          <p>{placementLabel}</p>
+        </article>
+
+        <article className="mini-card">
+          <span className="section-label">خانه‌ها</span>
+          <h3>میدان‌های زندگی</h3>
+          <p>{houseLabel}</p>
+        </article>
+
+        <article className="mini-card">
+          <span className="section-label">جنبه‌ها</span>
+          <h3>گفت‌وگوی درونی چارت</h3>
+          <p>{aspectLabel}</p>
+        </article>
+      </div>
+
+      <div className="actions mt-4">
+        <a className="button" href="#final-reading">
+          شروع خواندن گزارش کامل
+        </a>
+
+        <a className="button secondary" href="#personal-note">
+          رفتن به یادداشت
+        </a>
+      </div>
+    </section>
+  );
+}
+
+function ReportNextStepPanel() {
+  return (
+    <section className="card report-next-step-panel" aria-labelledby="report-next-step-title">
+      <div className="report-section-heading">
+        <span className="badge">بعد از خواندن</span>
+        <h2 id="report-next-step-title">با گزارش چطور ادامه بدهی؟</h2>
+        <p>
+          اگر گزارش سنگین بود، یک بار دیگر فقط راهنمای خواندن و یادداشتت را
+          مرور کن. هالیوس فعلاً رایگان و noindex است؛ هدف این نسخه، بهتر کردن
+          تجربه خواندن گزارش و تست محصول است، نه فروش یا ایندکس عمومی.
+        </p>
+      </div>
+
+      <div className="actions">
+        <a className="button" href="/chart">
+          ساخت گزارش تازه
+        </a>
+
+        <a className="button secondary" href="/reports">
+          بازگشت به گزارش‌ها
+        </a>
+      </div>
     </section>
   );
 }

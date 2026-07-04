@@ -989,3 +989,12 @@ Product decision:
 - The current priority is making aspects, houses, repetition handling, and report endings feel more human, Persian-first, and useful for self-reflection.
 - Keep homepage/story, Report Page UX, preview/sample pages, save/share lifecycle, SEO/indexing, payment, and hosting migration as later separate product surfaces.
 - Do not make the report sound more complete by hiding limitations or claiming True Node/Lilith support.
+
+## v0.1.171 product note: report page reading UX
+
+Product decision:
+
+- After report synthesis/depth batches, the report page should help users read a long Persian report instead of simply stacking the chart card, full text, and note panel.
+- Add a lightweight reading guide, anchors to the full reading and note area, and calmer free/private/noindex copy on report pages.
+- Keep this as report-page UX only; homepage story, preview/sample pages, save/share lifecycle, SEO/indexing, payment, and hosting decisions remain separate later surfaces.
+- Do not turn the page into a sales flow while Halleus is still free, private/noindex, and product-readiness focused.
