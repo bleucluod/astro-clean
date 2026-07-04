@@ -349,6 +349,9 @@ const samples = [
 const PRODUCT_POLISH_GUARD = "v0.1.162-product-polish";
 const READING_POLISH_GUARD = "v0.1.168-reading-polish";
 const SYNTHESIS_READING_GUARD = "v0.1.169-report-synthesis";
+void SYNTHESIS_READING_GUARD;
+const DEPTH_HUMANIZATION_GUARD = "v0.1.170-report-depth-humanization";
+void DEPTH_HUMANIZATION_GUARD;
 
 const requiredSectionIds = [
   "real-engine-overview",
@@ -443,7 +446,16 @@ for (const sample of samples) {
     }
   }
 
-  for (const marker of ["سه نخ اصلی این چارت", "تصویر کلی این چارت", "کشمکش و استعداد", "تمرین رشد"]) {
+  for (const marker of [
+    "سه نخ اصلی این چارت",
+    "تصویر کلی این چارت",
+    "کشمکش و استعداد",
+    "تمرین رشد",
+    "در زبان ساده",
+    "پرسش خانه",
+    "اولویت خواندن جنبه‌ها",
+    "میدان زندگی این خانه",
+  ]) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing synthesis marker ${marker}`);
     }

@@ -980,3 +980,12 @@ Product decision:
 - Render is acceptable for current development/testing because the product is intentionally not ready for indexing yet.
 - Do not treat 100 unique/day, Iranian hosting, or monetization as active milestones until the report and core website pages are strong enough for public acquisition.
 - Website work should come after the report feels usable: homepage story, report preview, privacy/consent language, and report lifecycle before indexing.
+
+## v0.1.170 product note: report depth humanization bundle
+
+Product decision:
+
+- Similar report-depth copy improvements may be bundled when they touch the same writer/check surface and reduce repeated tiny batches.
+- The current priority is making aspects, houses, repetition handling, and report endings feel more human, Persian-first, and useful for self-reflection.
+- Keep homepage/story, Report Page UX, preview/sample pages, save/share lifecycle, SEO/indexing, payment, and hosting migration as later separate product surfaces.
+- Do not make the report sound more complete by hiding limitations or claiming True Node/Lilith support.

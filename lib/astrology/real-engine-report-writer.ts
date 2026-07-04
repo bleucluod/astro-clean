@@ -926,7 +926,12 @@ function buildPlanetHouseSentence(
 
   const formattedHouse = toPersianNumber(resolvedHouseNumber);
 
-  return `از نظر خانه‌ها، ${planet.faName} در ${formatPlacementWithHouse(placement)} قرار گرفته است؛ یعنی موضوع ${planet.title} بیشتر از مسیر ${house.field} دیده می‌شود. هدیه خانه ${formattedHouse} ${house.gift} است و مسیر رشدش ${house.growth}.`;
+  return [
+    `از نظر خانه‌ها، ${planet.faName} در ${formatPlacementWithHouse(placement)} فقط یک جایگاه روی نقشه نیست؛ خانه ${formattedHouse} می‌گوید موضوع ${planet.title} در کدام میدان زندگی بیشتر دیده می‌شود.`,
+    `میدان زندگی این خانه ${house.field} است؛ پس این سیاره معمولاً در تجربه‌های همین بخش خودش را نشان می‌دهد، نه فقط در توصیف کلی شخصیت.`,
+    `هدیه خانه ${formattedHouse} ${house.gift} است و مسیر رشدش ${house.growth}.`,
+    `پرسش خانه ${formattedHouse}: اگر این بخش از زندگی کمی آگاهانه‌تر شود، کدام رفتار کوچک می‌تواند به حس طبیعی‌تر و انسانی‌تر این سیاره کمک کند؟`,
+  ].join(" ");
 }
 
 function buildRisingText(
@@ -1203,7 +1208,14 @@ function buildActiveHouseNarrative(
     return undefined;
   }
 
-  return `خانه ${toPersianNumber(house.number)} با ${focusLabels.join("، ")} پررنگ شده است؛ میدان آن ${copy.field} است و هدیه‌اش ${copy.gift}.`;
+  const houseLabel = toPersianNumber(house.number);
+
+  return [
+    `خانه ${houseLabel} با ${focusLabels.join("، ")} پررنگ شده است؛ یعنی میدان ${copy.field} در این چارت فقط پس‌زمینه نیست و می‌تواند بیشتر دیده شود.`,
+    `هدیه این خانه ${copy.gift} است.`,
+    `تمرین انسانی این خانه ${copy.growth}.`,
+    `پرسش خانه ${houseLabel}: این میدان زندگی الان بیشتر به امنیت نیاز دارد، به بیان روشن‌تر، یا به یک مرز مهربان‌تر؟`,
+  ].join(" ");
 }
 
 function buildRisingDescriptor(
@@ -1242,7 +1254,8 @@ function buildPlanetAspectText(
   );
 
   return [
-    `زاویه‌های مهم ${planetLabel} با سیاره‌های دیگر هم به خوانش این بخش جهت می‌دهند؛ چون نشان می‌دهند این سیاره در خلأ کار نمی‌کند و با کدام نیروهای چارت گفت‌وگو دارد.`,
+    `زاویه‌های مهم ${planetLabel} با سیاره‌های دیگر نشان می‌دهند این بخش از شخصیت تنها کار نمی‌کند؛ هر رابطه یک گفت‌وگوی درونی می‌سازد که می‌تواند حمایت، اصطکاک یا تمرکز بیاورد.`,
+    "برای خواندن انسانی جنبه‌ها، اول به حس روزمره رابطه توجه کن و بعد عدد orb را فقط مثل نشانه شدت و نزدیکی آن بخوان.",
     ...details,
   ].join(" ");
 }
@@ -1254,13 +1267,27 @@ function formatPlanetAspectDetail(
   const otherPlanetLabel =
     aspect.firstPlanetId === planetId ? aspect.secondPlanetLabel : aspect.firstPlanetLabel;
   const tone = getPlanetAspectTone(aspect);
+  const bridge = getAspectPlainLanguageBridge(aspect);
 
   return [
     `با ${otherPlanetLabel}: ${aspect.aspectLabel}، زاویه واقعی ${formatAspectDegree(
       aspect.separation,
     )} و فاصله از زاویه دقیق ${formatAspectDegree(aspect.orb)}.`,
+    bridge,
     tone,
   ].join(" ");
+}
+
+function getAspectPlainLanguageBridge(aspect: RealEngineReportAspect): string {
+  if (aspect.aspectId === "square" || aspect.aspectId === "opposition") {
+    return "در زبان ساده، این رابطه بیشتر شبیه کشش میان دو نیاز زنده است؛ نه برای ترساندن، بلکه برای دیدن اینکه کجا باید ریتم، مرز یا اولویت روشن‌تر شود.";
+  }
+
+  if (aspect.aspectId === "sextile" || aspect.aspectId === "trine") {
+    return "در زبان ساده، این رابطه شبیه مسیری است که اگر به آن توجه کنی، می‌تواند همکاری، استعداد یا روانی بیشتری وارد تجربه روزمره کند.";
+  }
+
+  return "در زبان ساده، این هم‌نشینی دو صدا را به هم نزدیک می‌کند؛ گاهی تمرکز می‌آورد و گاهی لازم است تشخیص بدهی کدام صدا دارد بیشتر هدایت می‌کند.";
 }
 
 function getPlanetAspectTone(aspect: RealEngineReportAspect): string {
@@ -1280,33 +1307,47 @@ function buildAspectOverviewText(aspects: RealEngineReportAspect[]) {
     return undefined;
   }
 
-  const strongest = aspects;
+  const strongest = [...aspects].sort((first, second) => first.orb - second.orb);
   const aspectLead = strongest.map(formatAspectLead).join("؛ ");
+  const priorityText = buildAspectPriorityText(strongest);
   const detailText = strongest.map(buildAspectDetailText).join(" ");
   const reflectionText = buildAspectReflectionText(strongest);
 
   return [
     "روابط سیاره‌ها در این چارت نشان می‌دهند کدام بخش‌های شخصیت فقط جداگانه کار نمی‌کنند، بلکه با هم گفت‌وگو، حمایت یا اصطکاک سازنده دارند.",
-        `در این نسخه، همه ${toPersianNumber(strongest.length)} ارتباط محاسبه‌شده این چارت وارد خوانش می‌شود: ${aspectLead}.`,
+    `در این نسخه، همه ${toPersianNumber(strongest.length)} ارتباط محاسبه‌شده این چارت وارد خوانش می‌شود: ${aspectLead}.`,
+    priorityText,
     detailText,
     reflectionText,
   ].join(" ");
 }
 
 function formatAspectLead(aspect: RealEngineReportAspect): string {
-  return `${aspect.firstPlanetLabel} ${aspect.glyph} ${aspect.secondPlanetLabel} (${aspect.aspectLabel}، orb ${formatAspectDegree(
+  return `${aspect.firstPlanetLabel} ${aspect.glyph} ${aspect.secondPlanetLabel} (${aspect.aspectLabel}، فاصله ${formatAspectDegree(
     aspect.orb,
-  )})`;
+  )} از زاویه دقیق)`;
+}
+
+function buildAspectPriorityText(aspects: RealEngineReportAspect[]): string {
+  const closest = aspects.slice(0, 3).map((aspect) => `${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel}`);
+
+  if (closest.length === 0) {
+    return "اولویت خواندن جنبه‌ها از رابطه‌هایی شروع می‌شود که در داده محاسبه‌شده نزدیک‌تر و پررنگ‌تر هستند.";
+  }
+
+  return `اولویت خواندن جنبه‌ها از نزدیک‌ترین رابطه‌ها شروع می‌شود: ${closest.join("، ")}. بعد از آن می‌توانی سراغ رابطه‌های نرم‌تر یا حاشیه‌ای‌تر بروی تا گزارش شلوغ و هم‌وزن نشود.`;
 }
 
 function buildAspectDetailText(aspect: RealEngineReportAspect): string {
   const story = ASPECT_STORY[aspect.aspectId];
+  const bridge = getAspectPlainLanguageBridge(aspect);
 
   return [
     `${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel} در الگوی ${aspect.aspectLabel} قرار گرفته‌اند.`,
     `زاویه واقعی این رابطه ${formatAspectDegree(aspect.separation)} است و با فاصله ${formatAspectDegree(
       aspect.orb,
     )} از زاویه دقیق، جزو ارتباط‌های مهم این چارت دیده می‌شود.`,
+    bridge,
     story.theme,
     aspect.meaning,
     story.supportSignal,
@@ -1329,13 +1370,13 @@ function buildAspectReflectionText(aspects: RealEngineReportAspect[]): string {
 
   const signals = [
     tensionCount > 0
-      ? `${tensionCount} رابطه تنشی/قطبی نشان می‌دهد بخشی از رشد از راه تنظیم تعارض‌های درونی ساخته می‌شود.`
+      ? `${toPersianNumber(tensionCount)} رابطه تنشی/قطبی نشان می‌دهد بخشی از رشد از راه تنظیم تعارض‌های درونی ساخته می‌شود.`
       : null,
     flowCount > 0
-      ? `${flowCount} رابطه نرم/هماهنگ نشان می‌دهد بعضی توانایی‌ها با فشار کمتر در دسترس‌اند، اما هنوز نیاز به استفاده آگاهانه دارند.`
+      ? `${toPersianNumber(flowCount)} رابطه نرم/هماهنگ نشان می‌دهد بعضی توانایی‌ها با فشار کمتر در دسترس‌اند، اما هنوز نیاز به استفاده آگاهانه دارند.`
       : null,
     conjunctionCount > 0
-      ? `${conjunctionCount} هم‌نشینی نشان می‌دهد بعضی نیروها در چارت تو صدای مشترک و پررنگ‌تری پیدا می‌کنند.`
+      ? `${toPersianNumber(conjunctionCount)} هم‌نشینی نشان می‌دهد بعضی نیروها در چارت تو صدای مشترک و پررنگ‌تری پیدا می‌کنند.`
       : null,
   ].filter(Boolean);
 
@@ -1344,6 +1385,7 @@ function buildAspectReflectionText(aspects: RealEngineReportAspect[]): string {
     signals.length > 0
       ? signals.join(" ")
       : "این روابط بیشتر به عنوان نشانه‌های گفت‌وگوی درونی خوانده می‌شوند، نه حکم قطعی درباره شخصیت.",
+    "در پایان جنبه‌ها، مهم این نیست که هر زاویه را جدا حفظ کنی؛ مهم این است که بفهمی کدام گفت‌وگوی درونی بیشتر به همکاری، صبر یا مرز نیاز دارد.",
     "پرسش تأملی: اگر این روابط را مثل یک گفت‌وگوی درونی ببینی، کدام بخش نیاز به همکاری بیشتر دارد و کدام بخش نیاز به مرزبندی روشن‌تر؟",
   ].join(" ");
 }
@@ -1611,6 +1653,7 @@ function buildFinalSynthesisClosing(input: RealEngineSectionTextInput): string {
     threads.length > 0
       ? threads.join(" ")
       : "برای یکپارچه‌سازی، از بخشی شروع کن که بیشترین شباهت را به تجربه فعلی تو دارد.",
+    "برای کم کردن تکرار، فقط یک جمله از خانه‌ها و یک جمله از جنبه‌ها انتخاب کن و ببین این دو در زندگی روزمره کجا به هم می‌رسند.",
     "جمع‌بندی نهایی هالیوس این است: چارت قرار نیست جای تو تصمیم بگیرد؛ فقط چند زاویه برای دیدن خودت با آرامش و صداقت بیشتر باز می‌کند.",
   ].join(" ");
 }
@@ -1621,8 +1664,9 @@ function buildRealEngineReflectionPrompts(input: RealEngineSectionTextInput): st
     "۲) بعد سراغ ماه برو: کدام نیاز عاطفی را بهتر است زودتر و مهربان‌تر بشناسی؟",
     "۳) عطارد، زهره و مریخ را مثل سه ابزار روزمره بخوان: فکر، ارزش و عمل کجا با هم هماهنگ‌اند و کجا نه؟",
     "۴) دست‌های ماه را مثل نسبت میان عادت آشنا و تمرین تازه بخوان؛ کدام دعوت کوچک برای رشد دیده می‌شود؟",
-    "۵) روابط سیاره‌ها را مثل گفت‌وگوی درونی ببین: کدام رابطه حمایت می‌سازد و کدام رابطه مهارت تازه می‌خواهد؟",
-    "۶) از سه نخ اصلی گزارش یک انتخاب کوچک برای این هفته بردار؛ چیزی که متن را به تجربه قابل مشاهده تبدیل کند.",
+    "۵) روابط سیاره‌ها را مثل گفت‌وگوی درونی ببین و در زبان ساده بنویس: آیا این رابطه حمایت می‌سازد، کشش می‌آورد، یا مهارت تازه می‌خواهد؟",
+    "۶) از خانه‌های پررنگ گزارش یک میدان زندگی انتخاب کن و ببین کدام رفتار کوچک می‌تواند آن را قابل مشاهده‌تر کند.",
+    "۷) از سه نخ اصلی گزارش یک انتخاب کوچک برای این هفته بردار؛ چیزی که متن را به تجربه قابل مشاهده تبدیل کند.",
   ];
   const closing =
     input.integrationText || input.aspectText
