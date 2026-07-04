@@ -787,3 +787,23 @@ Boundaries:
 - No hosting migration.
 - No engine math/type changes.
 - No True Node or Lilith work.
+
+## v0.1.173 — Real Tehran Moon Pulse + Homepage Polish
+
+Status: planned/applied in this batch.
+
+Product change:
+- Homepage should no longer treat Sky Pulse / Moon phase as placeholder-only.
+- The homepage daily card now starts with a real, lightweight Moon Pulse: current Moon sign, Moon phase, illumination, and Persian guidance.
+- The daily card is dynamic through `/api/sky-pulse/today`, so the card can refresh without making the whole homepage dynamic.
+- Current location scope is Tehran: the public copy should say this softly as “خوانش امروز با زمان و افق تهران تنظیم شده است.”
+- User-location Moon Pulse, richer transit ranking, and personal daily pulse remain future Idea Garden work.
+
+Safety / product honesty:
+- This is not a full transit engine and must not claim precise daily prediction.
+- Homepage copy should be inspiring but neutral: symbolic self-reflection, not deterministic advice.
+- Medical, financial, legal, and serious life decisions must not be positioned as outputs of Halleus.
+
+Workflow note:
+- `.mjs` checks must use ESM imports, not CommonJS `require`.
+- Runners must allow their own current `.ps1` as a temporary untracked artifact during patch-scope verification, then remove it before commit.

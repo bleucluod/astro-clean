@@ -19,14 +19,22 @@ export function AppShell({ children }: AppShellProps) {
       <header className="site-header">
         <nav className="site-nav" aria-label="ناوبری اصلی">
           <Link href="/" className="site-brand" aria-label="Halleus">
-            <span>Halleus</span>
+            <span className="site-brand-mark">✦</span>
+            <span className="site-brand-copy">
+              <strong>Halleus</strong>
+              <small>هالیوس</small>
+            </span>
           </Link>
 
-          <NavLinks />
+          <div className="site-nav-links" aria-label="صفحه‌های اصلی">
+            <NavLinks />
+          </div>
 
-          <Link href="/chart" className="site-nav-cta">
-            ساخت گزارش
-          </Link>
+          <div className="site-nav-actions">
+            <Link href="/chart" className="site-nav-cta">
+              ساخت گزارش تولد
+            </Link>
+          </div>
         </nav>
       </header>
 
@@ -37,8 +45,8 @@ export function AppShell({ children }: AppShellProps) {
           <div className="footer-brand-block">
             <strong>Halleus</strong>
             <p className="footer-note">
-              هالیوس یک تجربه فارسی برای ساخت و خواندن گزارش چارت تولد است؛
-              فعلاً free-first، خصوصی و در حال آماده‌سازی برای محصول عمومی بهتر.
+              هالیوس تجربه‌ای فارسی برای خواندن چارت تولد است؛ فعلاً رایگان،
+              private-first و متمرکز بر کیفیت گزارش و تجربه خواندن.
             </p>
           </div>
 

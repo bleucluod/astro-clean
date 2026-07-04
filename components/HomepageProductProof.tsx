@@ -9,9 +9,9 @@ const reportPreviewBlocks = [
   },
   {
     label: "نمونه عمق",
-    title: "از خانه و جنبه تا زندگی روزمره",
+    title: "خانه و جنبه در زندگی روزمره",
     description:
-      "هر بخش تلاش می‌کند بگوید این الگو در کدام میدان زندگی، رابطه یا تصمیم‌گیری خودش را نشان می‌دهد.",
+      "هر بخش تلاش می‌کند بگوید این الگو در رابطه، کار، بدن، خانه یا تصمیم‌های کوچک خودش را کجا نشان می‌دهد.",
   },
   {
     label: "نمونه جمع‌بندی",
@@ -35,14 +35,14 @@ const productProofCards = [
   {
     title: "خصوصی و free-first",
     description:
-      "تمرکز فعلی روی کیفیت محصول است. پرداخت، SEO و گزارش عمومی زمانی مطرح می‌شوند که تجربه اصلی آماده‌تر باشد.",
+      "تمرکز فعلی روی کیفیت تجربه است. انتشار عمومی، SEO و مدل پولی بعد از آماده‌تر شدن محصول بررسی می‌شوند.",
   },
 ];
 
 const proofSteps = [
-  "نمونه زبان گزارش را قبل از ورود جدی‌تر می‌بینی.",
-  "گزارش تولدت را می‌سازی و در مسیر خصوصی می‌خوانی.",
-  "بعداً فاز ماه، Sky Pulse و مسیرهای عمومی فقط با داده و رضایت واقعی اضافه می‌شوند.",
+  "اول جنس زبان گزارش را در چند کارت کوتاه می‌بینی.",
+  "بعد گزارش تولدت را می‌سازی و در مسیر خصوصی می‌خوانی.",
+  "وقتی product آماده‌تر شد، نمونه کامل و مسیرهای عمومی جداگانه اضافه می‌شوند.",
 ];
 
 export function HomepageProductProof() {
@@ -52,18 +52,19 @@ export function HomepageProductProof() {
         <span className="section-label">نمونه و اعتماد</span>
 
         <h2 id="homepage-product-proof-title">
-          قبل از ساخت گزارش، ببین هالیوس چه جور خوانشی می‌سازد
+          قبل از ساخت گزارش، جنس خوانش هالیوس را ببین
         </h2>
 
         <p>
-          هدف homepage فقط معرفی نیست؛ باید به کاربر نشان بدهد گزارش هالیوس
-          از چه جنسی است: شخصی، فارسی، قابل برگشت و صادق درباره محدودیت‌ها.
+          این بخش یک preview سبک از زبان گزارش است؛ نه جایگزین گزارش کامل، بلکه
+          نشانه‌ای از اینکه هالیوس چارت را چطور به یک روایت فارسی و قابل مرور
+          تبدیل می‌کند.
         </p>
       </div>
 
       <div className="grid grid-3">
         {reportPreviewBlocks.map((item) => (
-          <article className="mini-card paid-value-card" key={item.title}>
+          <article className="mini-card paid-value-card product-preview-card" key={item.title}>
             <span className="badge">{item.label}</span>
             <strong>{item.title}</strong>
             <p>{item.description}</p>
@@ -71,15 +72,16 @@ export function HomepageProductProof() {
         ))}
       </div>
 
-      <div className="card paid-manual-order home-next-card">
+      <div className="card home-sample-card">
         <div>
-          <span className="section-label">نمونه گزارش</span>
+          <span className="section-label">نمونه کوتاه</span>
 
-          <h3>در این مرحله نمونه کامل جدا نداریم، اما جای آن در معماری صفحه آماده است.</h3>
+          <h3>«گزارش از یک تصویر کلی شروع می‌کند، نه از فهرست خشک جایگاه‌ها.»</h3>
 
           <p>
-            وقتی گزارش‌ها کمی بیشتر تثبیت شوند، همین بخش می‌تواند به نمونه گزارش
-            واقعی یا preview مستقل وصل شود؛ بدون اینکه ساختار homepage عوض شود.
+            مثلاً به‌جای اینکه فقط بگوید ماه در کدام نشانه است، تلاش می‌کند
+            نشان دهد نیاز احساسی، ریتم درونی و میدان‌های مهم زندگی چگونه کنار هم
+            دیده می‌شوند.
           </p>
         </div>
 
@@ -88,7 +90,7 @@ export function HomepageProductProof() {
             ساخت گزارش تولد
           </Link>
           <Link className="button secondary" href="/reports">
-            گزارش‌های ذخیره‌شده
+            گزارش‌های من
           </Link>
         </div>
       </div>
@@ -108,8 +110,8 @@ export function HomepageProductProof() {
             <span>{(index + 1).toLocaleString("fa-IR")}</span>
             <h3>{step}</h3>
             <p>
-              این مسیر کمک می‌کند صفحه اصلی scalable بماند: امروز ساده و صادق،
-              فردا آماده برای preview، consent و SEO وقتی محصول واقعاً آماده شد.
+              مسیر صفحه اصلی باید همین‌قدر روشن بماند: اول ارزش محصول، بعد
+              ساخت گزارش، بعد توسعه آرام قابلیت‌های بعدی.
             </p>
           </div>
         ))}

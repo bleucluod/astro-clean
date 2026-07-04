@@ -7,7 +7,7 @@ import { SkyPulseDateCard } from "@/components/SkyPulseDateCard";
 export const metadata: Metadata = {
   title: "Halleus | گزارش تولد فارسی و نبض آسمان",
   description:
-    "Halleus چارت تولد را به یک گزارش فارسی، انسانی و قابل مرور تبدیل می‌کند؛ فعلاً رایگان، خصوصی و در حال آماده‌سازی برای تجربه عمومی بهتر.",
+    "Halleus چارت تولد را به یک گزارش فارسی، انسانی و قابل مرور تبدیل می‌کند و نبض امروز را با ماه اکنون و فاز ماه نشان می‌دهد.",
   alternates: {
     canonical: "/",
   },
@@ -45,10 +45,10 @@ const reportFeatureCards = [
       "گزارش وضعیت برگشتی‌ها و دست‌های ماه را با صداقت فنی و بدون ادعای True Node توضیح می‌دهد.",
   },
   {
-    status: "آماده‌سازی",
+    status: "در مسیر",
     title: "فاز ماه تولد",
     description:
-      "جای این لایه در زبان محصول مشخص است، اما فقط وقتی وارد گزارش می‌شود که محاسبه واقعی و قابل اعتماد داشته باشیم.",
+      "فاز ماه امروز روی صفحه اصلی واقعی می‌شود؛ فاز ماه تولد بعداً با همین مرز صداقت وارد گزارش شخصی خواهد شد.",
   },
 ];
 
@@ -64,14 +64,14 @@ const howItWorks = [
       "گزارش به جای فهرست خام، یک خوانش انسانی از الگوهای اصلی چارت به تو می‌دهد.",
   },
   {
-    title: "بعداً به آن برگرد",
+    title: "نبض امروز را ببین",
     description:
-      "گزارش‌ها فعلاً در مسیر خصوصی و آزمایشی نگه داشته می‌شوند تا بتوانی آرام‌تر بخوانی و مرور کنی.",
+      "در صفحه اصلی، ماه اکنون و فاز ماه هر روز با زمان و افق تهران تازه می‌شود.",
   },
   {
-    title: "وقتی آماده شد، عمومی یا پولی را جدا انتخاب می‌کنیم",
+    title: "بعداً به گزارش برگرد",
     description:
-      "هالیوس فعلاً رایگان و no-index می‌ماند؛ انتشار عمومی، SEO و مدل پولی بعد از آماده شدن محصول بررسی می‌شوند.",
+      "گزارش‌ها فعلاً در مسیر خصوصی و آزمایشی نگه داشته می‌شوند تا بتوانی آرام‌تر بخوانی و مرور کنی.",
   },
 ];
 
@@ -82,12 +82,12 @@ const trustCards = [
       "گزارش از داده تولد و خروجی چارت ساخته می‌شود. اگر ساعت یا شهر تولد دقیق نباشد، بعضی بخش‌ها با احتیاط خوانده می‌شوند.",
   },
   {
-    title: "خودشناسی، نه حکم قطعی",
+    title: "زبان نمادین، نه حکم قطعی",
     description:
-      "هالیوس برای تأمل و زبان نمادین است؛ پیشگویی قطعی، تشخیص پزشکی/روانی یا دستور تصمیم‌گیری نیست.",
+      "هالیوس برای تأمل و خودشناسی است؛ جایگزین مشورت تخصصی یا تصمیم‌گیری جدی نمی‌شود.",
   },
   {
-    title: "خصوصی و بدون ایندکس عمومی",
+    title: "خصوصی تا وقتی آماده انتشار شود",
     description:
       "در این مرحله گزارش‌ها برای انتشار عمومی ساخته نشده‌اند. هر مدل public/indexable بعداً باید با رضایت روشن کاربر طراحی شود.",
   },
@@ -95,14 +95,14 @@ const trustCards = [
 
 const futureModules = [
   {
-    title: "نبض آسمان / Sky Pulse",
+    title: "نبض آسمان دقیق‌تر",
     description:
-      "کارت زنده امروز از تاریخ و ریتم تقویم شروع می‌شود و بعداً فقط با منبع واقعی به ترنزیت‌های مهم وصل خواهد شد.",
+      "نسخه امروز با ماه و فاز ماه شروع شده است؛ ترنزیت‌های روز و موقعیت کاربر در مراحل بعدی و با منبع قابل اعتماد اضافه می‌شوند.",
   },
   {
-    title: "فاز ماه و ریتم ماه",
+    title: "فاز ماه تولد در گزارش",
     description:
-      "فاز ماه امروز و فاز ماه تولد در نقشه آینده هستند؛ بدون محاسبه واقعی، فقط جایگاهشان در محصول نشان داده می‌شود.",
+      "بعد از تثبیت محاسبه روزانه، فاز ماه تولد می‌تواند کنار ماه تولد و ریتم احساسی وارد گزارش شخصی شود.",
   },
   {
     title: "نمونه گزارش و محتوای فارسی",
@@ -115,29 +115,29 @@ const faqItems = [
   {
     question: "آیا هالیوس فال روزانه است؟",
     answer:
-      "نه. هالیوس از چارت تولد و زبان نمادین آسترولوژی برای خودشناسی استفاده می‌کند. Sky Pulse هم فعلاً یک کارت سبک روزانه است، نه پیشگویی قطعی.",
+      "نه. هالیوس از چارت تولد و زبان نمادین آسترولوژی برای خودشناسی استفاده می‌کند. نبض امروز هم یک خوانش کوتاه از ماه اکنون و فاز ماه است، نه پیش‌بینی قطعی.",
+  },
+  {
+    question: "نبض آسمان امروز بر اساس کجاست؟",
+    answer:
+      "فعلاً با زمان و افق تهران تنظیم می‌شود. نسخه شهرهای دیگر بعداً بر اساس موقعیت کاربر اضافه خواهد شد.",
   },
   {
     question: "آیا گزارش من عمومی یا قابل ایندکس می‌شود؟",
     answer:
-      "نه در وضعیت فعلی. سایت هنوز no-index است و گزارش‌ها برای مسیر خصوصی/آزمایشی ساخته می‌شوند. هر انتشار عمومی بعداً باید با رضایت روشن طراحی شود.",
+      "نه در وضعیت فعلی. گزارش‌ها برای مسیر خصوصی/آزمایشی ساخته می‌شوند و هر انتشار عمومی بعداً باید با رضایت روشن طراحی شود.",
   },
   {
     question: "اگر ساعت تولدم دقیق نباشد چه؟",
     answer:
       "بخش‌هایی مثل طالع، خانه‌ها و زاویه‌ها به ساعت و شهر تولد حساس‌اند. گزارش باید این محدودیت را صادقانه نشان دهد.",
   },
-  {
-    question: "آیا هالیوس رایگان است؟",
-    answer:
-      "فعلاً بله. تمرکز الان روی کیفیت گزارش، تجربه خواندن و صفحه‌های اصلی محصول است؛ نه پرداخت، SEO یا عمومی‌سازی.",
-  },
 ];
 
 export default function Home() {
   return (
     <section className="grid home-page homepage-product-shell">
-      <div className="hero hero-polished paid-hero">
+      <div className="hero hero-polished paid-hero homepage-hero">
         <div>
           <span className="badge">هالیوس برای چارت تولد فارسی</span>
 
@@ -145,8 +145,8 @@ export default function Home() {
 
           <p>
             چارت تولدت را به زبان فارسی بخوان؛ گزارشی برای دیدن الگوهای شخصی،
-            رابطه‌ها، مسیر رشد و ریتم درونی‌ات. فعلاً رایگان، خصوصی و در حال
-            کامل‌تر شدن.
+            رابطه‌ها، مسیر رشد و ریتم درونی‌ات. کنار آن، نبض امروز هم با ماه
+            اکنون و فاز ماه تازه می‌شود.
           </p>
 
           <SafetyDisclaimer compact />
@@ -156,32 +156,31 @@ export default function Home() {
               گزارش تولدم را بساز
             </Link>
 
-            <Link className="button secondary" href="#report-preview">
-              نمونه گزارش را ببین
-            </Link>
-
             <Link className="button secondary" href="#sky-pulse">
               نبض آسمان امروز
+            </Link>
+
+            <Link className="button secondary" href="#report-preview">
+              نمونه خوانش
             </Link>
           </div>
         </div>
 
-        <div className="card hero-card polished-hero-card paid-hero-card">
-          <span className="badge">محصول زنده، بدون ادعای قطعی</span>
+        <div className="card hero-card polished-hero-card paid-hero-card homepage-hero-card">
+          <span className="badge">امروز با ماه شروع کن</span>
 
-          <h2>اول گزارش تولد؛ بعد نبض آسمان و لایه‌های آینده</h2>
+          <h2>گزارش تولد برای شناخت عمیق‌تر؛ نبض ماه برای برگشت روزانه</h2>
 
           <p>
-            مسیر اصلی هالیوس از گزارش تولد شروع می‌شود. Sky Pulse، فاز ماه و
-            محتوای فارسی هم در همین معماری جا دارند، اما بدون ترنزیت جعلی یا
-            وعده‌ای که هنوز آماده نیست.
+            مسیر اصلی هالیوس گزارش تولد است. کارت روزانه فقط یک درِ آرام برای
+            برگشتن به محصول است: تاریخ امروز، ماه اکنون، فاز ماه و یک تمرین کوتاه.
           </p>
 
           <div className="mini-card">
-            <strong>الان چه چیزی آماده‌تر است؟</strong>
+            <strong>فعلاً دقیقاً چه چیزی فعال است؟</strong>
             <p>
-              گزارش تولد فارسی، صفحه خواندن گزارش، ذخیره محلی و مسیر خصوصی تست
-              محصول. SEO، پرداخت و گزارش عمومی فعلاً عقب‌ترند.
+              گزارش تولد فارسی، صفحه خواندن گزارش، مسیر خصوصی تست محصول، و کارت
+              واقعی ماه امروز بر اساس زمان و افق تهران.
             </p>
           </div>
         </div>
@@ -189,10 +188,12 @@ export default function Home() {
 
       <div className="trust-strip paid-trust-strip" aria-label="وضعیت فعلی محصول">
         <span>فعلاً رایگان</span>
-        <span>خصوصی و no-index</span>
+        <span>private-first</span>
         <span>گزارش بر پایه چارت واقعی</span>
-        <span>بدون ترنزیت جعلی</span>
+        <span>ماه امروز با افق تهران</span>
       </div>
+
+      <SkyPulseDateCard />
 
       <section className="card paid-section" aria-labelledby="what-is-halleus">
         <span className="section-label">هالیوس چیست؟</span>
@@ -213,7 +214,7 @@ export default function Home() {
 
         <div className="grid grid-3">
           {reportFeatureCards.map((item) => (
-            <article className="mini-card paid-value-card" key={item.title}>
+            <article className="mini-card paid-value-card feature-card-polished" key={item.title}>
               <span className="badge">{item.status}</span>
               <strong>{item.title}</strong>
               <p>{item.description}</p>
@@ -225,7 +226,7 @@ export default function Home() {
       <section className="card paid-section" aria-labelledby="how-it-works">
         <span className="section-label">مسیر استفاده</span>
 
-        <h2 id="how-it-works">از تولد تا گزارش، بدون مسیر شلوغ</h2>
+        <h2 id="how-it-works">از تولد تا گزارش، با یک مسیر روشن</h2>
 
         <div className="demo-flow polished-demo-flow">
           {howItWorks.map((step, index) => (
@@ -249,40 +250,6 @@ export default function Home() {
       </section>
 
       <HomepageProductProof />
-
-      <SkyPulseDateCard />
-
-      <section className="card paid-section" aria-labelledby="moon-phase-home">
-        <span className="section-label">ماه اکنون و فاز ماه</span>
-
-        <h2 id="moon-phase-home">جای فاز ماه از همین حالا در محصول مشخص است</h2>
-
-        <p>
-          فاز ماه امروز و فاز ماه تولد هر دو برای هالیوس مهم‌اند، اما تا وقتی
-          محاسبه واقعی و قابل اعتماد نداریم، آن‌ها را به عنوان نتیجه فعال نشان
-          نمی‌دهیم. این بخش فقط slot آینده را آماده می‌کند.
-        </p>
-
-        <div className="grid grid-3">
-          <article className="mini-card paid-value-card">
-            <span className="badge">آینده نزدیک</span>
-            <strong>فاز ماه امروز</strong>
-            <p>برای homepage و بازگشت روزانه؛ فقط بعد از اتصال به محاسبه واقعی ماه.</p>
-          </article>
-
-          <article className="mini-card paid-value-card">
-            <span className="badge">گزارش تولد</span>
-            <strong>فاز ماه تولد</strong>
-            <p>برای اضافه شدن به گزارش شخصی، کنار ماه تولد و ریتم احساسی کاربر.</p>
-          </article>
-
-          <article className="mini-card paid-value-card">
-            <span className="badge">مرز صداقت</span>
-            <strong>بدون نمایش جعلی</strong>
-            <p>تا وقتی داده واقعی نداریم، متن فاز ماه فقط وعده آماده‌سازی است، نه نتیجه فعال.</p>
-          </article>
-        </div>
-      </section>
 
       <section className="card paid-section" aria-labelledby="trust-privacy">
         <span className="section-label">اعتماد و حریم خصوصی</span>
@@ -314,17 +281,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="card paid-section" aria-labelledby="home-faq">
+      <section className="card paid-section home-faq-section" aria-labelledby="home-faq">
         <span className="section-label">پرسش‌های کوتاه</span>
 
         <h2 id="home-faq">قبل از ساخت گزارش، این چند نکته را بدان</h2>
 
-        <div className="home-step-list">
+        <div className="home-faq-list">
           {faqItems.map((item) => (
-            <div key={item.question}>
-              <strong>{item.question}</strong>
-              <span>{item.answer}</span>
-            </div>
+            <article className="home-faq-item" key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </article>
           ))}
         </div>
       </section>

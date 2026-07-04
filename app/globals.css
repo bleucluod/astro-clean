@@ -2174,3 +2174,326 @@ textarea {
   color: #9a3412;
   font-weight: 900;
 }
+
+/* Homepage real Tehran Moon Pulse + product polish v0.1.173 */
+.site-nav {
+  min-height: 68px;
+  padding: 12px 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+}
+
+.site-brand {
+  gap: 10px;
+  min-width: max-content;
+}
+
+.site-brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #5b2bbf, #2d203a);
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(91, 43, 191, 0.18);
+}
+
+.site-brand-copy {
+  display: grid;
+  gap: 1px;
+  line-height: 1.1;
+}
+
+.site-brand-copy strong {
+  color: #23182f;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.site-brand-copy small {
+  color: #7a7088;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.site-nav-links {
+  min-width: 0;
+  justify-self: center;
+}
+
+.site-nav-links,
+.site-nav-links > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.site-nav-links a,
+.site-nav-links .nav-link {
+  border-radius: 999px;
+  padding: 9px 12px;
+  color: #4f435f;
+  font-size: 14px;
+  font-weight: 850;
+  white-space: nowrap;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.site-nav-links a:hover,
+.site-nav-links .nav-link:hover {
+  background: #f3edff;
+  color: #4c1d95;
+  transform: translateY(-1px);
+}
+
+.site-nav-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+}
+
+.site-nav-cta {
+  min-width: max-content;
+  padding: 10px 16px;
+  background: #ffffff;
+}
+
+.homepage-product-shell {
+  gap: 36px;
+}
+
+.homepage-hero {
+  border-radius: 34px;
+  padding: 28px;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  box-shadow: 0 28px 90px rgba(37, 24, 62, 0.08);
+}
+
+.homepage-hero-card {
+  min-height: 100%;
+}
+
+.safety-disclaimer {
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  background: linear-gradient(135deg, rgba(255, 253, 247, 0.96), rgba(247, 241, 255, 0.9));
+  color: #55436a;
+}
+
+.safety-disclaimer strong {
+  color: #4c1d95;
+}
+
+.moon-pulse-section {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(91, 43, 191, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(91, 43, 191, 0.1), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(250, 247, 255, 0.9));
+}
+
+.moon-pulse-section::after {
+  content: "";
+  position: absolute;
+  inset: auto -70px -100px auto;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background: rgba(91, 43, 191, 0.08);
+  pointer-events: none;
+}
+
+.moon-pulse-header {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, auto);
+  gap: 18px;
+  align-items: start;
+}
+
+.moon-pulse-location {
+  border: 1px solid rgba(91, 43, 191, 0.14);
+  border-radius: 22px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 16px 36px rgba(48, 32, 82, 0.06);
+}
+
+.moon-pulse-location span {
+  color: #4c1d95;
+  font-weight: 950;
+}
+
+.moon-pulse-location p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.moon-pulse-date-row {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.moon-pulse-date-row span {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(91, 43, 191, 0.12);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #3f3155;
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+.moon-pulse-date-row strong {
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.moon-pulse-grid,
+.moon-pulse-guidance {
+  position: relative;
+  z-index: 1;
+}
+
+.moon-pulse-card {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.moon-pulse-feature {
+  min-height: 210px;
+}
+
+.moon-pulse-guidance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.moon-pulse-note {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #6a5a7c;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.home-sample-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border-color: rgba(91, 43, 191, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(91, 43, 191, 0.08), transparent 34%),
+    #ffffff;
+}
+
+.product-preview-card {
+  min-height: 190px;
+}
+
+.home-faq-section {
+  background:
+    radial-gradient(circle at top left, rgba(91, 43, 191, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.94);
+}
+
+.home-faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.home-faq-item {
+  border: 1px solid rgba(91, 43, 191, 0.11);
+  border-radius: 22px;
+  padding: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(48, 32, 82, 0.05);
+}
+
+.home-faq-item h3 {
+  margin: 0 0 8px;
+  color: #34224f;
+  font-size: 17px;
+}
+
+.home-faq-item p {
+  margin: 0;
+  color: #635573;
+  line-height: 1.9;
+}
+
+@media (max-width: 960px) {
+  .site-nav {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .site-brand,
+  .site-nav-actions {
+    justify-self: stretch;
+  }
+
+  .site-nav-actions .site-nav-cta {
+    width: 100%;
+  }
+
+  .site-nav-links {
+    justify-self: stretch;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .site-nav-links,
+  .site-nav-links > div {
+    justify-content: flex-start;
+  }
+
+  .moon-pulse-header,
+  .moon-pulse-date-row,
+  .moon-pulse-guidance,
+  .home-sample-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .homepage-hero {
+    padding: 18px;
+    border-radius: 26px;
+  }
+
+  .site-nav {
+    width: min(100% - 24px, 1120px);
+  }
+
+  main {
+    width: min(100% - 24px, 1120px);
+  }
+
+  .moon-pulse-date-row span {
+    padding: 10px 12px;
+  }
+}
+/* End homepage real Tehran Moon Pulse + product polish v0.1.173 */

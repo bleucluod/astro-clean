@@ -1020,3 +1020,21 @@ Sky Pulse can appear as a date/pulse card and future slot, not as a fake full tr
 Moon phase can appear as a prepared slot, not as an active result until real calculation exists.
 Paid report, indexing, Search Console, public reports, and hosting migration remain deferred.
 ```
+
+## v0.1.173 Idea Garden update — Tehran Moon Pulse now, user location later
+
+Decision:
+- Start Sky Pulse with a real lightweight Moon Pulse instead of a placeholder.
+- The current homepage implementation should use the existing real chart/astronomy engine for Sun/Moon longitude, Moon sign, Moon phase, and illumination.
+- The first public scope is Tehran only. Copy should present it gracefully as a Tehran-tuned reading, not as a broken limitation.
+- Show Jalali, Gregorian, and Hijri dates in the daily card.
+
+Deferred:
+- User location based Moon Pulse.
+- Full daily transit engine.
+- Transit importance ranking.
+- Personalized daily pulse from the natal chart.
+- Natal Moon phase inside the full report.
+
+Reason:
+- This removes demo-feeling placeholders while keeping the product honest and scoped.
