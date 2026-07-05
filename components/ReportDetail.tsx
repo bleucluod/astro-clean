@@ -267,6 +267,8 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
 
       <ReportTrustPanel report={report} reportSource={reportSource} />
 
+      <ReportHumanReadingMode report={report} />
+
       <div className="report-final-reading-anchor" id="final-reading">
         <ReportV3Experience report={report} />
       </div>
@@ -402,6 +404,49 @@ function ReportReadingGuide({ report }: { report: AstrologyReport }) {
         <a className="button secondary" href="#personal-note">
           رفتن به یادداشت
         </a>
+      </div>
+    </section>
+  );
+}
+
+function ReportHumanReadingMode({ report }: { report: AstrologyReport }) {
+  const stats = buildReportReadingStats(report);
+  const readingLabel = stats.hasRealEngine ? "خوانش کامل محاسبه‌شده" : "خوانش محدود و محتاط";
+
+  return (
+    <section className="card report-human-reading-mode" aria-labelledby="report-human-reading-mode-title">
+      <div className="report-section-heading">
+        <span className="badge">ریتم خواندن</span>
+        <h2 id="report-human-reading-mode-title">گزارش را یک‌باره تمام نکن</h2>
+        <p>
+          این گزارش برای مرور آرام ساخته شده است. اول تصویر کلی را بگیر، بعد فقط یک فصل نزدیک به تجربه امروزت را بخوان و در پایان یک جمله را به یادداشت تبدیل کن.
+        </p>
+      </div>
+
+      <div className="report-human-reading-mode-grid">
+        <article className="mini-card">
+          <span className="section-label">حالت خواندن</span>
+          <h3>{readingLabel}</h3>
+          <p>
+            اگر متن بلند شد، از نقشه راه و ترکیب نخستین شروع کن؛ لازم نیست همه خانه‌ها و جنبه‌ها را در یک نشست بخوانی.
+          </p>
+        </article>
+
+        <article className="mini-card">
+          <span className="section-label">تمرکز امروز</span>
+          <h3>یک جمله، نه همه گزارش</h3>
+          <p>
+            از هر فصل فقط یک جمله نزدیک به تجربه‌ات را نگه دار. گزارش وقتی ارزشمندتر می‌شود که به مشاهده روزمره وصل شود.
+          </p>
+        </article>
+
+        <article className="mini-card">
+          <span className="section-label">پشتوانه</span>
+          <h3>{stats.aspectCount.toLocaleString("fa-IR")} جنبه و {stats.houseCount.toLocaleString("fa-IR")} خانه</h3>
+          <p>
+            عددها فقط برای اعتمادند؛ معنی اصلی در این است که کدام الگو برای تو قابل مشاهده و قابل تمرین می‌شود.
+          </p>
+        </article>
       </div>
     </section>
   );

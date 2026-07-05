@@ -3871,3 +3871,35 @@ h3,
     font-size: 12px;
   }
 }
+
+/* Report Humanization v0.1.199 */
+.report-human-reading-mode {
+  border-color: rgba(185, 137, 69, 0.2);
+  background: linear-gradient(135deg, rgba(255, 250, 243, 0.96), rgba(255, 255, 255, 0.92));
+}
+
+.report-human-reading-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.report-human-reading-mode .mini-card {
+  min-height: 100%;
+}
+
+.report-final-reading-anchor p,
+.report-final-reading-anchor li,
+.report-final-reading-anchor article {
+  line-height: 2.05;
+}
+
+.report-final-reading-anchor p {
+  white-space: pre-line;
+}
+
+@media (max-width: 820px) {
+  .report-human-reading-mode-grid {
+    grid-template-columns: 1fr;
+  }
+}

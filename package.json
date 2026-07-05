@@ -90,7 +90,8 @@
     "check:report-detail-ux-trust-qa": "node scripts/check-report-detail-ux-trust-qa.mjs",
     "check:beta-readiness-smoke": "node scripts/check-beta-readiness-smoke.mjs",
     "check:core-ux-typography": "node scripts/check-core-ux-typography.mjs",
-    "check:core-surface-cleanup": "node scripts/check-core-surface-cleanup.mjs"
+    "check:core-surface-cleanup": "node scripts/check-core-surface-cleanup.mjs",
+    "check:report-humanization-reading-experience": "node scripts/check-report-humanization-reading-experience.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

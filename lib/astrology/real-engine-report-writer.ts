@@ -1553,6 +1553,20 @@ function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {
   return snapshot.placements.find((placement) => placement.id === id);
 }
 
+function buildReportHumanReadingRhythmText(input: RealEngineSectionTextInput): string {
+  const hasSynthesis = Boolean(input.firstSynthesisText || input.integrationText);
+  const rhythm = hasSynthesis
+    ? "اول فقط ترکیب نخستین و جمع‌بندی را بخوان؛ بعد اگر جمله‌ای تکان خورد، به فصل همان موضوع برگرد."
+    : "اول فقط نقشه راه و یک فصل نزدیک به تجربه امروزت را بخوان؛ لازم نیست گزارش را یک‌باره تمام کنی.";
+
+  return [
+    "این گزارش قرار نیست مثل یک متن امتحانی از ابتدا تا انتها بلعیده شود. آن را مثل یک گفت‌وگوی آرام با چارت بخوان: اول تصویر کلی، بعد یک فصل نزدیک‌تر، و در پایان فقط یک جمله قابل برگشت.",
+    rhythm,
+    "هر جا متن از سیاره، خانه یا جنبه حرف می‌زند، آن را به زبان زندگی ترجمه کن: این نشانه در رفتار روزمره، رابطه، تصمیم یا نیاز عاطفی من چه شکلی پیدا می‌کند؟",
+    "اگر بخشی دقیقاً به تجربه تو نخورد، آن را رد یا تأویل قطعی نکن؛ فعلاً مثل یک چراغ کم‌نور نگه دار و ببین در زمان کدام لایه‌اش معنا پیدا می‌کند.",
+  ].join("\n\n");
+}
+
 function buildRealEngineInterpretationSections(
   input: RealEngineSectionTextInput,
 ): ReportOutputSection[] {
@@ -1586,7 +1600,14 @@ function buildRealEngineInterpretationSections(
         input.growthEvidence,
         "این بخش گزارش را از فهرست جایگاه‌ها یک قدم جلوتر می‌برد و یک تصویر اولیه از نخ‌های اصلی، کشش مرکزی، زبان رشد و تمرین این هفته می‌سازد.",
       ),
+      readerCue:
+          "این بخش را مثل خلاصه شخصیت نخوان؛ آن را مثل نخ راهنما برای ادامه گزارش نگه دار.",
+
       body: input.firstSynthesisText,
+
+      reflection:
+          "کدام جمله این بخش بیشتر شبیه تجربه این روزهای توست؟",
+
       closing:
         "این ترکیب نخستین حکم قطعی نیست؛ فقط یک قاب کاربردی است تا ادامه گزارش را با تمرکز و آرامش بیشتری بخوانی.",
     }),
@@ -1668,6 +1689,12 @@ function buildRealEngineInterpretationSections(
           "برای خواندن ادامه گزارش، اول ترکیب نخستین را بخوان و بعد هر بخش را مثل یک زاویه مشاهده ببین؛ یادداشت‌های روش و دقت بعد از روایت اصلی آمده‌اند تا متن سنگین نشود.",
       }),
     },
+    {
+      id: "real-engine-reading-rhythm",
+      kind: "overview",
+      title: "ریتم انسانی خواندن گزارش",
+      body: buildReportHumanReadingRhythmText(input),
+    },
     firstSynthesisSection,
     {
       id: "real-engine-identity",
@@ -1678,7 +1705,14 @@ function buildRealEngineInterpretationSections(
           input.identityEvidence,
           "این فصل از مسیر درونی شروع می‌کند و بعد به شیوه‌ای می‌رسد که در نخستین برخوردها از تو دیده می‌شود؛ مثل پیوند میان نور درونی و دروازه ورود به جهان.",
         ),
+        readerCue:
+          "اینجا دنبال برچسب شخصیتی نباش؛ ببین حضور تو در شروع‌ها و انتخاب‌ها چه ریتمی دارد.",
+
         body: identityBody || input.sunText || input.risingText || fallbackBody,
+
+        reflection:
+          "در کدام موقعیت، بین حس درونی و تصویری که نشان می‌دهی فاصله می‌افتد؟",
+
         closing:
           "خورشید و رایزینگ را کنار هم بخوان: یکی از مسیر آگاهانه و حس هویت می‌گوید، دیگری از دروازه ورود تو به موقعیت‌ها.",
       }),
@@ -1692,7 +1726,14 @@ function buildRealEngineInterpretationSections(
           input.emotionalEvidence,
           "اینجا گزارش از لایه بیرونی فاصله می‌گیرد و به ریتم‌های آرام‌تر نزدیک می‌شود: نیازهای احساسی، واکنش‌های بی‌واسطه و راه‌هایی که امنیت درونی ساخته می‌شود.",
         ),
+        readerCue:
+          "این فصل را آرام‌تر بخوان؛ ماه بیشتر از جواب، نیاز و ریتم مراقبت را نشان می‌دهد.",
+
         body: joinSectionBody(input.moonText, input.moonAspectText) || fallbackBody,
+
+        reflection:
+          "کدام نیاز عاطفی را معمولاً دیرتر از چیزی که لازم است جدی می‌گیری؟",
+
         closing:
           "این بخش را آرام‌تر بخوان؛ ماه معمولاً بیشتر از اینکه جواب فوری بدهد، نیاز پنهان یا ریتم مراقبت را نشان می‌دهد.",
       }),
@@ -1706,7 +1747,14 @@ function buildRealEngineInterpretationSections(
           input.relationshipEvidence,
           "این فصل رابطه را فقط به معنای عشق یا جذب نمی‌گیرد؛ درباره ارزش، صمیمیت، مرز و گفت‌وگوی میان نیروهای درونی است.",
         ),
+        readerCue:
+          "این بخش را فقط عاشقانه نخوان؛ رابطه در هالیوس یعنی ارزش، مرز، انتخاب و آینه‌های نزدیک.",
+
         body: relationshipBody || input.venusText || input.aspectText || fallbackBody,
+
+        reflection:
+          "در رابطه‌ها بیشتر دنبال هماهنگی می‌روی یا صداقت با نیاز واقعی خودت؟",
+
         closing:
           "اگر این فصل طولانی‌تر است، آن را در دو لایه بخوان: اول زهره و شیوه ارزش‌گذاری، بعد aspectها و گفت‌وگوی بخش‌های مختلف شخصیت.",
       }),
@@ -1720,7 +1768,14 @@ function buildRealEngineInterpretationSections(
           input.careerEvidence,
           "اینجا گزارش روی تصمیم، بیان، انرژی حرکت و شیوه تبدیل نیت به عمل تمرکز می‌کند.",
         ),
+        readerCue:
+          "اینجا تمرکز روی شغل به معنای محدود نیست؛ روی فکر، تصمیم، حرکت و تبدیل نیت به عمل است.",
+
         body: careerBody || input.mercuryText || input.marsText || fallbackBody,
+
+        reflection:
+          "کدام فکر اگر کوچک‌تر و عملی‌تر شود، می‌تواند همین هفته حرکت بسازد؟",
+
         closing:
           "عطارد و مریخ را کنار هم بخوان: یکی نشان می‌دهد چطور معنا می‌سازی و حرف می‌زنی، دیگری نشان می‌دهد چطور حرکت می‌کنی.",
       }),
@@ -1737,7 +1792,14 @@ function buildRealEngineInterpretationSections(
           input.growthEvidence,
           "این فصل قرار نیست دوباره همه جزئیات را تکرار کند؛ کارش این است که سه نخ اصلی، کشمکش‌ها، استعدادها و تمرین رشد را به یک مسیر قابل‌خواندن وصل کند.",
         ),
+        readerCue:
+          "این فصل برای جمع کردن همه جزئیات نیست؛ برای انتخاب یک نخ قابل زندگی کردن است.",
+
         body: input.integrationText || fallbackBody,
+
+        reflection:
+          "از کل گزارش فقط یک تمرین کوچک را برای این هفته انتخاب کن.",
+
         closing: buildFinalSynthesisClosing(input),
       }),
     },
@@ -1753,18 +1815,25 @@ function buildRealEngineInterpretationSections(
 
 type StructuredSectionBodyInput = {
   opening: string;
+  readerCue?: string;
   body: string | undefined;
+  reflection?: string;
   closing?: string;
 };
 
 function buildStructuredSectionBody({
   opening,
+  readerCue,
   body,
+  reflection,
   closing,
 }: StructuredSectionBodyInput): string {
-  return [opening, body, closing]
+  const readerCueText = readerCue ? `چطور بخوانی: ${readerCue}` : undefined;
+  const reflectionText = reflection ? `یک مکث کوتاه: ${reflection}` : undefined;
+
+  return [opening, readerCueText, body, reflectionText, closing]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
-    .join(" ");
+    .join("\n\n");
 }
 
 function buildFinalSynthesisClosing(input: RealEngineSectionTextInput): string {
