@@ -88,7 +88,8 @@
     "check:supabase-browser-env-config": "node scripts/check-supabase-browser-env-config.mjs",
     "check:report-depth-first-synthesis": "node scripts/check-report-depth-first-synthesis.mjs",
     "check:report-detail-ux-trust-qa": "node scripts/check-report-detail-ux-trust-qa.mjs",
-    "check:beta-readiness-smoke": "node scripts/check-beta-readiness-smoke.mjs"
+    "check:beta-readiness-smoke": "node scripts/check-beta-readiness-smoke.mjs",
+    "check:core-ux-typography": "node scripts/check-core-ux-typography.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

@@ -3646,3 +3646,92 @@ html {
     text-align: center;
   }
 }
+
+/* Core UX Typography v0.1.198a */
+@font-face {
+  font-family: "Dana";
+  src: url("/fonts/dana/dana-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Dana";
+  src: url("/fonts/dana/dana-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Dana";
+  src: url("/fonts/dana/dana-demibold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Dana";
+  src: url("/fonts/dana/dana-bold.woff2") format("woff2");
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-ui: "Dana", "Segoe UI", "Vazirmatn", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+  --halleus-ink: #241b2f;
+  --halleus-muted: #65586f;
+  --halleus-cream: #fffaf3;
+  --halleus-line-soft: rgba(70, 48, 35, 0.1);
+  --halleus-gold-soft: rgba(185, 137, 69, 0.16);
+}
+
+body {
+  font-family: var(--font-ui);
+  background: linear-gradient(180deg, #fffaf3 0%, #ffffff 48%, #fbf4ea 100%);
+  color: var(--halleus-ink);
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+p {
+  color: var(--halleus-muted);
+  line-height: 1.9;
+}
+
+h1 {
+  line-height: 1.15;
+}
+
+h2,
+h3,
+.button,
+.badge,
+.pill,
+.site-nav-links a,
+.site-nav-links .nav-link {
+  font-family: var(--font-ui);
+}
+
+.card {
+  border-color: var(--halleus-line-soft);
+  box-shadow: 0 18px 52px rgba(65, 42, 26, 0.06);
+}
+
+.badge,
+.pill {
+  background: #f8efe4;
+  color: #7a4f17;
+}
+
+.button {
+  font-weight: 800;
+}
+
+.button.secondary {
+  background: #f7f0e6;
+  color: #3d2c4f;
+}
