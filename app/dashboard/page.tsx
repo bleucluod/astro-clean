@@ -117,7 +117,7 @@ export default function DashboardPage() {
         <div className="account-ready-status-strip" aria-label="وضعیت حساب و گزارش‌ها">
           <span>فعلاً: local-preview</span>
           <span>پیش‌فرض: خصوصی و noindex</span>
-          <span>بعدی: ورود Supabase با ایمیل</span>
+          <span>ورود: username + mobile + password</span>
         </div>
 
         <div className="actions">
@@ -126,7 +126,11 @@ export default function DashboardPage() {
           </Link>
 
           <Link className="button secondary" href="/reports">
-            کتابخانه گزارش‌ها
+            کتابخانه local
+          </Link>
+
+          <Link className="button secondary" href="/reports?source=account">
+            گزارش‌های account
           </Link>
 
           <Link className="button secondary" href="/privacy">
@@ -138,11 +142,11 @@ export default function DashboardPage() {
       <section className="card account-ready-lifecycle-card">
         <span className="badge">از مرورگر تا اکانت</span>
 
-        <h2>مسیر ذخیره حساب guard شده است؛ migration هنوز فعال نشده</h2>
+        <h2>مسیر ذخیره حساب guard شده است؛ migration هنوز فعال نشده و فعلاً اولویت ندارد</h2>
 
         <p>
-          حساب کاربری واقعی هنوز فعال نشده برای migration، اما از v0.1.184
-          گزارش تازه می‌تواند با login معتبر و env کامل به user id ذخیره شود.
+          حساب کاربری واقعی با username انتخابی و موبایل وارد مرحله تست شده است.
+          گزارش تازه می‌تواند با login معتبر و env کامل به user id ذخیره شود و
           local-preview همچنان fallback امن است.
         </p>
 
@@ -158,8 +162,8 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <strong>۳. مهاجرت</strong>
-            <span>گزارش‌های local-preview به حساب کاربر منتقل می‌شوند.</span>
+            <strong>۳. تست account reports</strong>
+            <span>بعد از ساخت گزارش، نسخه account را در /reports?source=account ببین؛ migration فعلاً deferred است.</span>
           </div>
         </div>
       </section>

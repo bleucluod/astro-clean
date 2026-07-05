@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserAuthClient, getSupabaseBrowserLoginConfig } from "@/lib/auth/supabase-browser-client";
 import { getAccountReportSaveClientConfig } from "@/lib/storage/account-report-save-client";
+import { getAccountReportReadClientConfig } from "@/lib/storage/account-report-read-client";
 import { mapSupabaseSessionToHalleusSession } from "@/lib/auth/supabase-session-mapper";
 import type { AuthSession } from "@/types/account";
 
@@ -27,6 +29,7 @@ function cleanPhone(value: string) {
 export function SupabaseAuthPanel() {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
   const accountSaveConfig = useMemo(() => getAccountReportSaveClientConfig(), []);
+  const accountReadConfig = useMemo(() => getAccountReportReadClientConfig(), []);
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [session, setSession] = useState<AuthSession | null>(null);
   const [username, setUsername] = useState("");
@@ -36,6 +39,16 @@ export function SupabaseAuthPanel() {
   const [message, setMessage] = useState("");
   const [isBusy, setIsBusy] = useState(false);
   const [isReady, setIsReady] = useState(false);
+
+  const realAccountFlowPublicReady =
+    config.canUseRealSupabaseLogin &&
+    accountSaveConfig.canAttemptAccountReportSave &&
+    accountReadConfig.canAttemptAccountReportRead;
+  const realAccountFlowPublicBlockers = [
+    ...config.missingConfig,
+    ...accountSaveConfig.missingConfig,
+    ...accountReadConfig.missingConfig,
+  ];
 
   useEffect(() => {
     const client = getSupabaseBrowserAuthClient();
@@ -177,6 +190,46 @@ export function SupabaseAuthPanel() {
       <p className="file-hint">
         مسیر v0.1.184: account report save path guard شده است؛ گزارش‌ها private/noindex می‌مانند و migration واقعی هنوز خاموش است.
       </p>
+
+      <div className="home-step-list" aria-label="Real Supabase Account Flow Test">
+        <div>
+          <strong>Real Supabase Account Flow Test</strong>
+          <span>
+            مسیر تست: signup با نام کاربری + موبایل → login → ساخت گزارش → account save → دیدن در /reports?source=account.
+          </span>
+        </div>
+
+        <div>
+          <strong>وضعیت public flags</strong>
+          <span>
+            {realAccountFlowPublicReady
+              ? "login/save/read public flags آماده‌اند."
+              : realAccountFlowPublicBlockers.join(" · ")}
+          </span>
+        </div>
+
+        <div>
+          <strong>server env خصوصی</strong>
+          <span>
+            DATABASE_URL، AUTH_SECRET و SUPABASE_SERVICE_ROLE_KEY باید فقط در .env.local/Render باشند و در UI مقدارشان نمایش داده نمی‌شود.
+          </span>
+        </div>
+
+        <div>
+          <strong>شناسه کاربر</strong>
+          <span>username انتخابی کاربر است؛ موبایل جمع‌آوری می‌شود اما username نیست؛ email فقط secondary/optional است.</span>
+        </div>
+      </div>
+
+      <div className="actions">
+        <Link className="button secondary" href="/chart">
+          تست ساخت گزارش
+        </Link>
+
+        <Link className="button secondary" href="/reports?source=account">
+          تست account reports
+        </Link>
+      </div>
 
       {!config.canUseRealSupabaseLogin ? (
         <div className="home-step-list">

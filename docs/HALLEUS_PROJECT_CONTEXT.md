@@ -1161,3 +1161,13 @@ Failure/recovery note:
 - Local-preview reports remain available and are not deleted.
 - Local-to-account migration remains deferred and is not executed.
 - Public/indexable reports, SEO, payment, hosting, and engine work remain out of scope.
+
+
+## v0.1.188 Real Supabase Account Flow Test Readiness
+
+- Real account flow readiness was added as a guarded test surface, not as a launch or migration step.
+- Manual test path: signup with username + mobile + password, login, create report, save account copy, then open `/reports?source=account` and `/reports/[reportId]?source=account`.
+- Username is the user-chosen identifier; mobile is collected but is not the username; email is optional/secondary.
+- Required local test env names are documented without secrets: `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN`, `NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE`, `HALLEUS_ENABLE_ACCOUNT_STORAGE`, `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+- `docs/REAL_ACCOUNT_FLOW_TEST_RUNBOOK.md` is the manual test checklist.
+- Migration remains deferred and local reports are not deleted. Public/indexable reports, SEO, payment, hosting, and engine work remain untouched.

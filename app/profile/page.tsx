@@ -66,8 +66,8 @@ export default function ProfilePage() {
 
         <p>
           این صفحه shell ورود واقعی Supabase را دارد؛ اگر env آماده باشد،
-          کاربر می‌تواند با ایمیل و رمز وارد شود. از v0.1.184 ذخیره گزارش روی account
-          فقط برای گزارش تازه، با user id معتبر و local-preview fallback guard شده است.
+          کاربر با نام کاربری انتخابی، موبایل و رمز وارد می‌شود. ایمیل secondary/optional است و
+          ذخیره گزارش روی account فقط برای گزارش تازه، با user id معتبر و local-preview fallback guard شده است.
         </p>
 
         <div className="actions">
@@ -76,7 +76,11 @@ export default function ProfilePage() {
           </Link>
 
           <Link className="button secondary" href="/reports">
-            آرشیو گزارش‌ها
+            آرشیو local
+          </Link>
+
+          <Link className="button secondary" href="/reports?source=account">
+            گزارش‌های account
           </Link>
 
           <Link className="button secondary" href="/privacy">
@@ -146,14 +150,14 @@ export default function ProfilePage() {
         <h2>بعد از login واقعی چه مانده؟</h2>
 
         <p>
-          حالا ورود Supabase و ذخیره گزارش تازه به user id به‌صورت guard شده آماده‌اند.
-          قدم بعدی این است که گزارش‌های local-preview با review و backup به حساب واقعی منتقل شوند.
+          حالا ورود Supabase، ذخیره گزارش تازه به user id و خواندن گزارش‌های account به‌صورت guard شده آماده‌اند.
+          قدم نزدیک بعدی تست واقعی flow است؛ migration گزارش‌های local فعلاً deferred و غیرضروری است.
         </p>
 
         <div className="home-step-list">
           <div>
-            <strong>۱. انتخاب auth provider</strong>
-            <span>مثلاً Auth.js، Supabase Auth یا Clerk.</span>
+            <strong>۱. مدل auth فعلی</strong>
+            <span>Supabase با username انتخابی، موبایل و رمز؛ ایمیل یوزرنیم نیست.</span>
           </div>
 
           <div>
@@ -162,8 +166,8 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <strong>۳. migration از preview</strong>
-            <span>گزارش‌های فعلی کاربر به اکانت منتقل می‌شوند.</span>
+            <strong>۳. تست واقعی اکانت</strong>
+            <span>signup → login → ساخت گزارش → ذخیره account → دیدن در /reports?source=account.</span>
           </div>
         </div>
       </section>

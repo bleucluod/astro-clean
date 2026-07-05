@@ -1230,3 +1230,12 @@ Decision: account report list/read UI should come before any local migration wor
 - The UI must keep account reports private/noindex.
 - Migration from local-preview to account is deferred because the product has not had real users yet.
 - Do not use this step to start SEO, public report pages, payment, hosting migration, or broader engine work.
+
+
+### v0.1.188 real account flow test readiness
+
+- Account testing should focus on the real new-user flow: username + mobile signup, login, create report, account save, account reports list/read.
+- Mobile is valuable customer/contact/auth data but must not become the username.
+- Email remains optional/secondary.
+- Local-to-account migration is deferred because the website has not had real users yet.
+- Keep account reports private/noindex and do not start public SEO report surfaces from this account-readiness work.
