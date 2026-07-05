@@ -1197,3 +1197,18 @@ Status update:
 
 Next smallest step:
 - After verifying account saves locally, add an explicit migration execution flow with backup, imported/skipped counts, and user confirmation.
+
+
+## v0.1.185 seed update - account report read foundation
+
+Decision:
+- Continue the Saved Reports / Report History path by adding a small account report read foundation first.
+- This supports future account report list/detail UI without introducing migration or deletion risk.
+- Keep local-preview fallback as the safe visible experience until account reads are wired and verified.
+
+Not now:
+- No local-to-account migration execution.
+- No deletion of browser-local reports.
+- No public/indexable reports.
+- No SEO launch.
+- No payment gating.

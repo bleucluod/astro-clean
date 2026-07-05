@@ -1117,3 +1117,27 @@ Out of scope:
 - SEO launch
 - payment
 - hosting migration
+
+
+## v0.1.185 restart note - account report read foundation
+
+Scope:
+- Add the account report read client foundation for listing and opening user-owned account reports.
+- Reuse the guarded `/api/reports/account` GET path added in v0.1.184.
+- Keep the actual UI integration small and separate after this foundation is checked.
+
+Still out of scope:
+- migration execution
+- delete browser-local reports
+- public/indexable reports
+- SEO launch
+- payment
+- hosting migration
+- engine/report-depth work
+
+Failure/recovery note:
+- The first v0.1.185 Account Reports E2E runner produced encoding/check failures after a large UI batch and should not be committed.
+- The second v0.1.185 runner had a PowerShell parse failure.
+- The first reduced account-read foundation runner generated an invalid JavaScript temp file.
+- Recovery returned the repo to clean v0.1.184 at commit `3929576`.
+- Prevention: keep v0.1.185 restarted scope small, avoid raw Persian in PowerShell, avoid generated nested JS regex/template tricks, and hard-fail on the first failed check.

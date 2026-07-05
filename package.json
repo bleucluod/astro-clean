@@ -17,6 +17,7 @@
     "check:database": "node scripts/check-database-readiness.mjs",
     "check:auth-readiness": "node scripts/check-auth-readiness.mjs",
     "check:user-owned-account-save-path": "node scripts/check-user-owned-account-save-path.mjs",
+    "check:account-report-read-path": "node scripts/check-account-report-read-path.mjs",
     "check:billing": "node scripts/check-billing-readiness.mjs",
     "check:product-surface": "node scripts/check-product-surface.mjs",
     "check:chart-engine": "node scripts/check-chart-engine-foundation.mjs",
