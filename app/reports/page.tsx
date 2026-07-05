@@ -5,7 +5,7 @@ import { ReportsList } from "@/components/ReportsList";
 export const metadata: Metadata = {
   title: "گزارش‌های ذخیره‌شده | Halleus",
   description:
-    "بازگشت به گزارش‌های تولد ساخته‌شده در Halleus؛ گزارش‌ها خصوصی می‌مانند و می‌توانند از local-preview یا حساب کاربری خوانده شوند.",
+    "بازگشت به گزارش‌های تولد ساخته‌شده در Halleus؛ گزارش‌های جدید فعلاً public/noindex ذخیره می‌شوند و از local-preview یا حساب کاربری خوانده می‌شوند.",
   alternates: {
     canonical: "/reports",
   },
@@ -35,12 +35,12 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </span>
           <h1>
             {isAccountSource
-              ? "گزارش‌های خصوصی ذخیره‌شده در حساب"
-              : "کتابخانه خصوصی گزارش‌های تو"}
+              ? "گزارش‌های public/noindex ذخیره‌شده در حساب"
+              : "کتابخانه گزارش‌های تو"}
           </h1>
           <p>
             {isAccountSource
-              ? "اینجا گزارش‌هایی را می‌بینی که بعد از ورود با username/password در حساب ذخیره شده‌اند. این گزارش‌ها private/noindex می‌مانند و public/indexable نمی‌شوند."
+              ? "اینجا گزارش‌هایی را می‌بینی که بعد از ورود با username/password در حساب ذخیره شده‌اند. گزارش‌های جدید فعلاً public/noindex هستند و indexable نمی‌شوند."
               : "این صفحه نقطه برگشت به گزارش‌هاست؛ هر گزارشی که ساختی از همین‌جا پیدا می‌شود: گزارش تولدت را باز کن، یادداشتت را ببین، گزارش‌های مهم را ستاره‌دار کن یا از پنل کاربری مسیر بعدی حساب و ذخیره پایدار را دنبال کن."}
           </p>
         </div>

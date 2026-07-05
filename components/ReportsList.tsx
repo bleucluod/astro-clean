@@ -104,7 +104,7 @@ function createReportsArchivePayload(
         favorite: favoriteReportIds.includes(report.id),
         note: reportNotes[report.id],
         source: "local-preview",
-        visibility: "private",
+        visibility: "public",
       }),
     ),
   };
@@ -325,7 +325,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             title="هنوز گزارشی در حساب پیدا نشد"
             description={
               message ||
-              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه را با ذخیره اکانتی بساز. گزارش‌های اکانتی private/noindex می‌مانند."
+              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. گزارش‌های جدید فعلاً public/noindex ذخیره می‌شوند."
             }
             actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
             actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
@@ -362,7 +362,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
           <h1>گزارش‌های ذخیره‌شده در حساب</h1>
 
           <p>
-            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های account private/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
+            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های جدید فعلاً public/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
           </p>
 
           <div className="reports-toolbar">
@@ -620,7 +620,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         importedRecords = extractReportsFromImportPayload(payload).map((report) =>
           createReportRecord(report, {
             source: "local-preview",
-            visibility: "private",
+            visibility: "public",
           }),
         );
       }
@@ -691,7 +691,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <section className="card">
         <span className="badge">در حال آماده‌سازی</span>
         <h1>گزارش‌ها در حال خواندن هستند</h1>
-        <p>هالیوس گزارش‌های خصوصی ذخیره‌شده روی همین دستگاه را پیدا می‌کند.</p>
+        <p>هالیوس گزارش‌های public/noindex ذخیره‌شده روی همین دستگاه را پیدا می‌کند.</p>
       </section>
     );
   }
@@ -705,7 +705,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             title="هنوز گزارشی در حساب پیدا نشد"
             description={
               message ||
-              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه را با ذخیره اکانتی بساز. گزارش‌های اکانتی private/noindex می‌مانند."
+              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. گزارش‌های جدید فعلاً public/noindex ذخیره می‌شوند."
             }
             actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
             actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
@@ -742,7 +742,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
           <h1>گزارش‌های ذخیره‌شده در حساب</h1>
 
           <p>
-            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های account private/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
+            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های جدید فعلاً public/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
           </p>
 
           <div className="reports-toolbar">
@@ -1037,7 +1037,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <EmptyState
         badge="شروع آرام"
         title="هنوز گزارشی ذخیره نشده"
-        description="از ساخت گزارش تولد شروع کن؛ هالیوس گزارش را خصوصی و روی همین دستگاه نگه می‌دارد و بعد همین گزارش در پنل کاربری دیده می‌شود."
+        description="از ساخت گزارش تولد شروع کن؛ هالیوس گزارش را فعلاً public/noindex ذخیره می‌کند و بعد همین گزارش در پنل کاربری دیده می‌شود."
         actionHref="/chart"
         actionLabel="ساخت اولین گزارش تولد"
       />
@@ -1047,7 +1047,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">گزارش‌های خصوصی</span>
+        <span className="badge">گزارش‌های public/noindex</span>
 
         <h1>گزارش‌های تو</h1>
 
@@ -1058,7 +1058,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         </p>
 
         <div className="report-lifecycle-strip" aria-label="وضعیت گزارش‌ها">
-          <span>خصوصی روی همین دستگاه</span>
+          <span>public/noindex تا تصمیم بعدی</span>
           <span>قابل جستجو و ستاره‌دار</span>
           <span>آماده خروجی گرفتن</span>
           <span>آماده اتصال به حساب کاربری</span>

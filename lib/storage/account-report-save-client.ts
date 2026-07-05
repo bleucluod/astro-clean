@@ -129,7 +129,7 @@ export async function saveGeneratedReportWithAccountFallback(
       localRecord,
       accountRecord: payload.reportRecord,
       accountStatus: "account-saved",
-      accountMessage: "Report was saved to the signed-in account and kept in local-preview fallback.",
+      accountMessage: "Report was saved to the signed-in account as public/noindex and kept in local-preview fallback.",
     };
   } catch (error) {
     return {

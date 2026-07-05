@@ -32,7 +32,7 @@ function createLocalReportRecord(report: AstrologyReport): ReportRecord {
     favorite: isFavorite(report.id),
     note: loadReportNotes()[report.id],
     source: "local-preview",
-    visibility: "private",
+    visibility: "public",
   });
 }
 

@@ -29,7 +29,7 @@ export function createReportRecord(
     updatedAt: timestamp,
     favorite: options.favorite ?? false,
     note: options.note,
-    visibility: options.visibility ?? "private",
+    visibility: options.visibility ?? "public",
     source: options.source ?? "local-preview",
   };
 }

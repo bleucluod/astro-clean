@@ -374,7 +374,7 @@ export function ChartForm() {
 
     if (saveResult.accountStatus === "account-saved") {
       setSaveMessage(
-        "گزارش خصوصی در حساب ذخیره شد؛ نسخه local-preview هم برای fallback باقی ماند.",
+        "گزارش public/noindex در حساب ذخیره شد؛ نسخه local-preview هم برای fallback باقی ماند.",
       );
     } else if (saveResult.accountStatus === "not-authenticated") {
       setSaveMessage(
@@ -406,7 +406,7 @@ export function ChartForm() {
           <span>چارت واقعی</span>
           <span>شمسی یا میلادی</span>
           <span>ساعت نامعلوم</span>
-          <span>ذخیره خصوصی</span>
+          <span>ذخیره public/noindex</span>
         </div>
       </section>
 
