@@ -5,7 +5,7 @@ import { ReportsList } from "@/components/ReportsList";
 export const metadata: Metadata = {
   title: "گزارش‌های ذخیره‌شده | Halleus",
   description:
-    "بازگشت به گزارش‌های تولد ساخته‌شده در Halleus؛ گزارش‌ها فعلاً خصوصی و روی همین دستگاه نگه داشته می‌شوند و برای اتصال به حساب کاربری آماده می‌شوند.",
+    "بازگشت به گزارش‌های تولد ساخته‌شده در Halleus؛ گزارش‌ها خصوصی می‌مانند و می‌توانند از local-preview یا حساب کاربری خوانده شوند.",
   alternates: {
     canonical: "/reports",
   },
@@ -22,7 +22,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const rawSource = Array.isArray(resolvedSearchParams.source)
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
-  const reportSource = rawSource === "beta-db" ? "beta-db" : "local";
+  const reportSource =
+    rawSource === "account" ? "account" : rawSource === "beta-db" ? "beta-db" : "local";
 
   return (
     <section className="grid reports-sales-shell reports-return-shell">

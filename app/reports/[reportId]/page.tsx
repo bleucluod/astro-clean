@@ -26,7 +26,8 @@ export default async function ReportDetailPage({
   const rawSource = Array.isArray(resolvedSearchParams.source)
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
-  const reportSource = rawSource === "beta-db" ? "beta-db" : "local";
+  const reportSource =
+    rawSource === "account" ? "account" : rawSource === "beta-db" ? "beta-db" : "local";
 
   return (
     <>

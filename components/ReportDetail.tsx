@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import { getReportRepository } from "@/lib/storage/report-repository";
+import { getAccountReportRecord } from "@/lib/storage/account-report-read-client";
 import type { AstrologyReport } from "@/types/astro";
 
 import { ReportV3Experience } from "@/components/ReportV3Experience";
@@ -14,7 +15,7 @@ type ReportDetailProps = {
   reportSource?: ReportDetailSource;
 };
 
-type ReportDetailSource = "local" | "beta-db";
+type ReportDetailSource = "local" | "beta-db" | "account";
 
 type BetaDatabaseReadResponse = {
   ok?: boolean;
@@ -87,6 +88,28 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     let isActive = true;
 
     async function loadReport() {
+      if (reportSource === "account") {
+        const result = await getAccountReportRecord(reportId);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (result.status !== "account-read-ready" || !result.reportRecord?.report) {
+          setReport(null);
+          setNote("");
+          setMessage(result.message);
+          setIsReady(true);
+          return;
+        }
+
+        setReport(result.reportRecord.report);
+        setNote(result.reportRecord.note ?? "");
+        setMessage(`نسخه اکانتی گزارش باز شد: ${reportId}`);
+        setIsReady(true);
+        return;
+      }
+
       if (reportSource === "beta-db") {
         if (!isBetaDatabaseSaveUiEnabled) {
           throw new Error("خواندن نسخه آزمایشی سرور غیرفعال است.");
@@ -136,6 +159,11 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
   }, [reportId, reportSource]);
 
   async function handleSaveNote() {
+    if (reportSource === "account") {
+      setMessage("یادداشت نسخه اکانتی فعلاً فقط خواندنی است؛ ویرایش یادداشت اکانتی در batch بعدی اضافه می‌شود.");
+      return;
+    }
+
     const updatedRecord = await reportRepository.setNote(reportId, note);
 
     if (updatedRecord) {
@@ -169,7 +197,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
         <EmptyState
           badge="گزارش پیدا نشد"
           title="این گزارش پیدا نشد"
-          description="این گزارش ممکن است پاک شده باشد یا روی مرورگر/دستگاه دیگری ساخته شده باشد."
+          description={message || "این گزارش ممکن است پاک شده باشد، در حساب فعلی نباشد، یا روی مرورگر/دستگاه دیگری ساخته شده باشد."}
           actionHref="/reports"
           actionLabel="بازگشت به گزارش‌ها"
         />
@@ -177,9 +205,21 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     );
   }
 
+  const isAccountReportSource = reportSource === "account";
+
   return (
     <section className="grid">
       <ReportCard report={report} />
+
+      {isAccountReportSource ? (
+        <section className="card">
+          <span className="badge">Account report</span>
+          <h2>نسخه ذخیره‌شده در حساب</h2>
+          <p>
+            این گزارش از account storage خوانده شده و private/noindex است. ویرایش یادداشت اکانتی در این نسخه read-only مانده و migration یا حذف local reports انجام نمی‌شود.
+          </p>
+        </section>
+      ) : null}
 
       <ReportReadingGuide report={report} />
 
@@ -212,18 +252,25 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="مثلاً: آخر هفته دوباره بخوانم..."
                 rows={2}
+                disabled={isAccountReportSource}
               />
             </label>
 
             <div className="actions">
-              <button className="button" type="button" onClick={handleSaveNote}>
-                ذخیره در پنل
+              <button
+                className="button"
+                type="button"
+                onClick={handleSaveNote}
+                disabled={isAccountReportSource}
+              >
+                {isAccountReportSource ? "یادداشت اکانتی read-only است" : "ذخیره در پنل"}
               </button>
 
               <button
                 className="button secondary"
                 type="button"
                 onClick={() => setNote("")}
+                disabled={isAccountReportSource}
               >
                 پاک کردن
               </button>

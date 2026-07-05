@@ -1152,3 +1152,12 @@ Failure/recovery note:
 - For the near-term guarded Supabase shell, username + mobile + password is the product direction; SMS/OTP can stay deferred until provider/cost/deliverability are ready.
 - Account report save/read foundations remain private/noindex.
 - Local-to-account migration is deferred because the site has not had real users yet.
+## v0.1.187 Account Reports UI Integration
+
+- Added the guarded account reports UI path on top of the v0.1.185 read foundation.
+- `/reports?source=account` is the account report list surface.
+- `/reports/[reportId]?source=account` opens the saved account copy through the account read client.
+- Account reports remain private/noindex.
+- Local-preview reports remain available and are not deleted.
+- Local-to-account migration remains deferred and is not executed.
+- Public/indexable reports, SEO, payment, hosting, and engine work remain out of scope.

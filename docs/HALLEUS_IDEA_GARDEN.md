@@ -1221,3 +1221,12 @@ Not now:
 - Guardrail: mobile is not the username, and email is optional/secondary rather than the user-facing identifier.
 - Near-term path: keep account report save/read private/noindex and continue UI work before migration.
 - Migration note: local-to-account migration is deferred because Halleus has not had real users yet.
+## Account reports UI integration
+
+Decision: account report list/read UI should come before any local migration work.
+
+- `/reports?source=account` may show saved account reports for the signed-in user.
+- `/reports/[reportId]?source=account` may open the private saved account copy.
+- The UI must keep account reports private/noindex.
+- Migration from local-preview to account is deferred because the product has not had real users yet.
+- Do not use this step to start SEO, public report pages, payment, hosting migration, or broader engine work.

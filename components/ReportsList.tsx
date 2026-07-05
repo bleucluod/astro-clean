@@ -8,13 +8,17 @@ import { createShareText } from "@/lib/astrology/share-text";
 import { decodeReportRecords } from "@/lib/storage/report-record-migration";
 import { createReportRecord } from "@/lib/storage/report-records";
 import { getReportRepository } from "@/lib/storage/report-repository";
+import {
+  getAccountReportReadClientConfig,
+  listAccountReportSummaries,
+} from "@/lib/storage/account-report-read-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
 
 type SortMode = "newest" | "oldest";
 type ReportFilterMode = "all" | "favorites";
 type ReportNotesMap = Record<string, string>;
-type ReportsListSource = "local" | "beta-db";
+type ReportsListSource = "local" | "beta-db" | "account";
 
 type ReportsListProps = {
   reportSource?: ReportsListSource;
@@ -249,12 +253,15 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
   const searchTerm = normalizeSearchText(searchInput);
   const isBetaDatabaseSource = reportSource === "beta-db";
+  const isAccountSource = reportSource === "account";
+  const isRemoteSummarySource = isBetaDatabaseSource || isAccountSource;
+  const accountReadConfig = useMemo(() => getAccountReportReadClientConfig(), []);
 
-  const favoriteCount = isBetaDatabaseSource
+  const favoriteCount = isRemoteSummarySource
     ? databaseSummaries.filter((summary) => summary.favorite).length
     : reports.filter((report) => favoriteReportIds.includes(report.id)).length;
 
-  const notesCount = isBetaDatabaseSource
+  const notesCount = isRemoteSummarySource
     ? databaseSummaries.filter((summary) => summary.hasNote).length
     : reports.filter((report) => reportNotes[report.id]).length;
 
@@ -292,7 +299,206 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   }, [databaseSummaries, filterMode, searchTerm, sortMode]);
 
   async function refreshReports() {
-    if (isBetaDatabaseSource) {
+    if (isAccountSource) {
+      const result = await listAccountReportSummaries();
+
+      setDatabaseSummaries(result.summaries);
+      setReports([]);
+      setFavoriteReportIds(
+        result.summaries
+          .filter((summary) => summary.favorite)
+          .map((summary) => summary.id),
+      );
+      setReportNotes({});
+      setIsReady(true);
+      setMessage(result.message);
+
+      return;
+    }
+
+    if (isAccountSource) {
+    if (databaseSummaries.length === 0) {
+      return (
+        <section className="grid">
+          <EmptyState
+            badge="گزارش‌های حساب"
+            title="هنوز گزارشی در حساب پیدا نشد"
+            description={
+              message ||
+              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه را با ذخیره اکانتی بساز. گزارش‌های اکانتی private/noindex می‌مانند."
+            }
+            actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
+            actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
+          />
+
+          {!accountReadConfig.canAttemptAccountReportRead ? (
+            <div className="card">
+              <span className="badge">Account read guard</span>
+
+              <h2>خواندن گزارش‌های حساب هنوز کامل فعال نیست</h2>
+
+              <p>
+                برای account reports UI باید login و account report save/read flagها فعال باشند. این مسیر migration اجرا نمی‌کند و local reports را حذف نمی‌کند.
+              </p>
+
+              {accountReadConfig.missingConfig.length > 0 ? (
+                <ul>
+                  {accountReadConfig.missingConfig.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      );
+    }
+
+    return (
+      <section className="grid">
+        <div className="card">
+          <span className="badge">Account reports</span>
+
+          <h1>گزارش‌های ذخیره‌شده در حساب</h1>
+
+          <p>
+            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های account private/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
+          </p>
+
+          <div className="reports-toolbar">
+            <label className="field">
+              <span>جستجو در گزارش‌های حساب</span>
+              <input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="نام، شهر، کشور یا شناسه گزارش..."
+              />
+            </label>
+
+            <label className="field">
+              <span>مرتب‌سازی</span>
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+              >
+                <option value="newest">جدیدترین اول</option>
+                <option value="oldest">قدیمی‌ترین اول</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="filter-tabs">
+            <button
+              className={filterMode === "all" ? "filter-tab active" : "filter-tab"}
+              type="button"
+              onClick={() => setFilterMode("all")}
+            >
+              همه گزارش‌های حساب
+            </button>
+
+            <button
+              className={
+                filterMode === "favorites" ? "filter-tab active" : "filter-tab"
+              }
+              type="button"
+              onClick={() => setFilterMode("favorites")}
+            >
+              علاقه‌مندی‌ها ({favoriteCount.toLocaleString("fa-IR")})
+            </button>
+          </div>
+
+          <div className="reports-summary-row">
+            <span>
+              نمایش {visibleDatabaseSummaries.length.toLocaleString("fa-IR")} از{" "}
+              {databaseSummaries.length.toLocaleString("fa-IR")} گزارش اکانتی ·{" "}
+              {notesCount.toLocaleString("fa-IR")} یادداشت
+            </span>
+
+            {searchInput ? (
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => setSearchInput("")}
+              >
+                پاک کردن جستجو
+              </button>
+            ) : null}
+          </div>
+
+          <div className="actions">
+            <Link className="button" href="/chart">
+              ساخت گزارش جدید
+            </Link>
+
+            <Link className="button secondary" href="/reports">
+              گزارش‌های local-preview
+            </Link>
+
+            <Link className="button secondary" href="/profile">
+              حساب کاربری
+            </Link>
+          </div>
+
+          {message ? <p className="success-message">{message}</p> : null}
+        </div>
+
+        {visibleDatabaseSummaries.length === 0 ? (
+          <div className="card">
+            <span className="badge">بدون نتیجه</span>
+
+            <h2>گزارشی با این جستجو پیدا نشد</h2>
+
+            <p>جستجو را پاک کن یا فیلتر علاقه‌مندی‌ها را بردار.</p>
+
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => {
+                setSearchInput("");
+                setFilterMode("all");
+              }}
+            >
+              نمایش همه گزارش‌های حساب
+            </button>
+          </div>
+        ) : null}
+
+        {visibleDatabaseSummaries.map((summary) => (
+          <article className="card" key={summary.id}>
+            <span className="badge">Account copy</span>
+
+            <h2>{summary.name ? `گزارش ${summary.name}` : "گزارش ذخیره‌شده در حساب"}</h2>
+
+            <div className="birth-details">
+              <span>{summary.birthDate}</span>
+              <span>{summary.birthTime}</span>
+              <span>
+                {summary.birthCity}, {summary.birthCountry}
+              </span>
+            </div>
+
+            <p>
+              ذخیره‌شده در {new Date(summary.createdAt).toLocaleDateString("fa-IR")} ·{" "}
+              {summary.visibility} · {summary.source}
+              {summary.hasNote ? " · یادداشت دارد" : ""}
+              {summary.favorite ? " · علاقه‌مندی" : ""}
+            </p>
+
+            <div className="actions">
+              <Link
+                className="button"
+                href={`/reports/${summary.id}?source=account`}
+              >
+                باز کردن گزارش اکانتی
+              </Link>
+            </div>
+          </article>
+        ))}
+      </section>
+    );
+  }
+
+  if (isBetaDatabaseSource) {
       const response = await fetch("/api/reports/beta");
       const payload = (await response.json().catch(() => null)) as
         | BetaDatabaseListResponse
@@ -486,6 +692,188 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         <span className="badge">در حال آماده‌سازی</span>
         <h1>گزارش‌ها در حال خواندن هستند</h1>
         <p>هالیوس گزارش‌های خصوصی ذخیره‌شده روی همین دستگاه را پیدا می‌کند.</p>
+      </section>
+    );
+  }
+
+  if (isAccountSource) {
+    if (databaseSummaries.length === 0) {
+      return (
+        <section className="grid">
+          <EmptyState
+            badge="گزارش‌های حساب"
+            title="هنوز گزارشی در حساب پیدا نشد"
+            description={
+              message ||
+              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه را با ذخیره اکانتی بساز. گزارش‌های اکانتی private/noindex می‌مانند."
+            }
+            actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
+            actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
+          />
+
+          {!accountReadConfig.canAttemptAccountReportRead ? (
+            <div className="card">
+              <span className="badge">Account read guard</span>
+
+              <h2>خواندن گزارش‌های حساب هنوز کامل فعال نیست</h2>
+
+              <p>
+                برای account reports UI باید login و account report save/read flagها فعال باشند. این مسیر migration اجرا نمی‌کند و local reports را حذف نمی‌کند.
+              </p>
+
+              {accountReadConfig.missingConfig.length > 0 ? (
+                <ul>
+                  {accountReadConfig.missingConfig.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      );
+    }
+
+    return (
+      <section className="grid">
+        <div className="card">
+          <span className="badge">Account reports</span>
+
+          <h1>گزارش‌های ذخیره‌شده در حساب</h1>
+
+          <p>
+            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های account private/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
+          </p>
+
+          <div className="reports-toolbar">
+            <label className="field">
+              <span>جستجو در گزارش‌های حساب</span>
+              <input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="نام، شهر، کشور یا شناسه گزارش..."
+              />
+            </label>
+
+            <label className="field">
+              <span>مرتب‌سازی</span>
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+              >
+                <option value="newest">جدیدترین اول</option>
+                <option value="oldest">قدیمی‌ترین اول</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="filter-tabs">
+            <button
+              className={filterMode === "all" ? "filter-tab active" : "filter-tab"}
+              type="button"
+              onClick={() => setFilterMode("all")}
+            >
+              همه گزارش‌های حساب
+            </button>
+
+            <button
+              className={
+                filterMode === "favorites" ? "filter-tab active" : "filter-tab"
+              }
+              type="button"
+              onClick={() => setFilterMode("favorites")}
+            >
+              علاقه‌مندی‌ها ({favoriteCount.toLocaleString("fa-IR")})
+            </button>
+          </div>
+
+          <div className="reports-summary-row">
+            <span>
+              نمایش {visibleDatabaseSummaries.length.toLocaleString("fa-IR")} از{" "}
+              {databaseSummaries.length.toLocaleString("fa-IR")} گزارش اکانتی ·{" "}
+              {notesCount.toLocaleString("fa-IR")} یادداشت
+            </span>
+
+            {searchInput ? (
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => setSearchInput("")}
+              >
+                پاک کردن جستجو
+              </button>
+            ) : null}
+          </div>
+
+          <div className="actions">
+            <Link className="button" href="/chart">
+              ساخت گزارش جدید
+            </Link>
+
+            <Link className="button secondary" href="/reports">
+              گزارش‌های local-preview
+            </Link>
+
+            <Link className="button secondary" href="/profile">
+              حساب کاربری
+            </Link>
+          </div>
+
+          {message ? <p className="success-message">{message}</p> : null}
+        </div>
+
+        {visibleDatabaseSummaries.length === 0 ? (
+          <div className="card">
+            <span className="badge">بدون نتیجه</span>
+
+            <h2>گزارشی با این جستجو پیدا نشد</h2>
+
+            <p>جستجو را پاک کن یا فیلتر علاقه‌مندی‌ها را بردار.</p>
+
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => {
+                setSearchInput("");
+                setFilterMode("all");
+              }}
+            >
+              نمایش همه گزارش‌های حساب
+            </button>
+          </div>
+        ) : null}
+
+        {visibleDatabaseSummaries.map((summary) => (
+          <article className="card" key={summary.id}>
+            <span className="badge">Account copy</span>
+
+            <h2>{summary.name ? `گزارش ${summary.name}` : "گزارش ذخیره‌شده در حساب"}</h2>
+
+            <div className="birth-details">
+              <span>{summary.birthDate}</span>
+              <span>{summary.birthTime}</span>
+              <span>
+                {summary.birthCity}, {summary.birthCountry}
+              </span>
+            </div>
+
+            <p>
+              ذخیره‌شده در {new Date(summary.createdAt).toLocaleDateString("fa-IR")} ·{" "}
+              {summary.visibility} · {summary.source}
+              {summary.hasNote ? " · یادداشت دارد" : ""}
+              {summary.favorite ? " · علاقه‌مندی" : ""}
+            </p>
+
+            <div className="actions">
+              <Link
+                className="button"
+                href={`/reports/${summary.id}?source=account`}
+              >
+                باز کردن گزارش اکانتی
+              </Link>
+            </div>
+          </article>
+        ))}
       </section>
     );
   }
