@@ -92,6 +92,33 @@ export default function ProfilePage() {
       <SupabaseAuthPanel />
 
       <section className="card">
+        <span className="badge">Account Identity Snapshot</span>
+
+        <h2>قانون شناسه و اطلاعات مشتری</h2>
+
+        <p>
+          برای تست اکانت واقعی، username شناسه انتخابی کاربر است؛ موبایل برای ارتباط و تست account flow نگه داشته می‌شود و username نیست؛ ایمیل optional/secondary می‌ماند.
+        </p>
+
+        <div className="home-step-list">
+          <div>
+            <strong>Username</strong>
+            <span>شناسه نمایشی و قابل انتخاب کاربر؛ از موبایل یا ایمیل ساخته نمی‌شود.</span>
+          </div>
+
+          <div>
+            <strong>Mobile</strong>
+            <span>داده ضروری مشتری و ورود guard شده؛ موبایل یوزرنیم نیست.</span>
+          </div>
+
+          <div>
+            <strong>Account reports</strong>
+            <span>بعد از ساخت گزارش تازه، نسخه account در /reports?source=account دیده می‌شود.</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
         <span className="badge">Preview Account</span>
 
         <h2>اکانت فعلی</h2>

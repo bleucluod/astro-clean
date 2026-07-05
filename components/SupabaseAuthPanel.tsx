@@ -256,31 +256,45 @@ export function SupabaseAuthPanel() {
       ) : null}
 
       {config.canUseRealSupabaseLogin && isReady && session ? (
-        <div className="profile-grid">
-          <div>
-            <strong>وضعیت</strong>
-            <span>وارد شده</span>
+        <>
+          <div className="profile-grid">
+            <div>
+              <strong>وضعیت</strong>
+              <span>وارد شده</span>
+            </div>
+
+            <div>
+              <strong>نام کاربری</strong>
+              <span>{formatUserLabel(session)}</span>
+            </div>
+
+            <div>
+              <strong>User ID</strong>
+              <span>{session.user.id}</span>
+            </div>
+
+            <div>
+              <strong>Report save</strong>
+              <span>
+                {accountSaveConfig.canAttemptAccountReportSave
+                  ? "account-save guarded + local-preview fallback"
+                  : "local-preview"}
+              </span>
+            </div>
           </div>
 
-          <div>
-            <strong>نام کاربری</strong>
-            <span>{formatUserLabel(session)}</span>
-          </div>
+          <div className="home-step-list" aria-label="Logged-in account next steps">
+            <div>
+              <strong>Logged-in account next steps</strong>
+              <span>ساخت گزارش بعدی در /chart و دیدن account reports در /reports?source=account.</span>
+            </div>
 
-          <div>
-            <strong>User ID</strong>
-            <span>{session.user.id}</span>
+            <div>
+              <strong>حریم</strong>
+              <span>گزارش‌های account همچنان private/noindex هستند و local reports حذف نمی‌شوند.</span>
+            </div>
           </div>
-
-          <div>
-            <strong>Report save</strong>
-            <span>
-              {accountSaveConfig.canAttemptAccountReportSave
-                ? "account-save guarded + local-preview fallback"
-                : "local-preview"}
-            </span>
-          </div>
-        </div>
+        </>
       ) : null}
 
       {config.canUseRealSupabaseLogin && isReady && !session ? (

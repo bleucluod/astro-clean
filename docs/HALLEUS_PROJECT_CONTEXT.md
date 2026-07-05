@@ -1171,3 +1171,13 @@ Failure/recovery note:
 - Required local test env names are documented without secrets: `NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN`, `NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE`, `HALLEUS_ENABLE_ACCOUNT_STORAGE`, `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
 - `docs/REAL_ACCOUNT_FLOW_TEST_RUNBOOK.md` is the manual test checklist.
 - Migration remains deferred and local reports are not deleted. Public/indexable reports, SEO, payment, hosting, and engine work remain untouched.
+
+## v0.1.189 Account Dashboard/Profile Polish
+
+- Added a small account-flow cockpit to dashboard/profile for manual real-account testing.
+- The polish keeps username as the user-chosen identifier.
+- Mobile is required customer/contact data but is not the username.
+- The visible next steps stay focused on `/profile`, `/chart`, and `/reports?source=account`.
+- Account reports remain private/noindex.
+- Migration remains deferred; local reports are not deleted.
+- Public/indexable reports, SEO, payment, hosting, and engine work remain untouched.

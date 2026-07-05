@@ -49,3 +49,11 @@ SUPABASE_SERVICE_ROLE_KEY=...
 - No migration executes.
 - No local report deletion happens.
 - No public/indexable reports are created.
+
+## v0.1.189 dashboard/profile polish checklist
+
+- Open `/profile` and confirm the Account Identity Snapshot is visible.
+- Confirm the copy says username is chosen by the user and mobile is not the username.
+- Open `/dashboard` and confirm the Account Flow Cockpit links to `/profile`, `/chart`, and `/reports?source=account`.
+- Sign in, create a report, save it, and return to `/reports?source=account`.
+- Confirm no migration action is offered as an active path.

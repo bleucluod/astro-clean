@@ -197,6 +197,49 @@ export default function DashboardPage() {
       <SupabaseAuthPanel />
 
       <section className="card">
+        <span className="badge">Account Flow Cockpit</span>
+
+        <h2>تست سریع اکانت واقعی</h2>
+
+        <p>
+          این کارت برای تست دستی v0.1.189 است: username انتخابی کاربر است،
+          موبایل داده اجباری مشتری است اما username نیست، و گزارش‌های account
+          از مسیر private/noindex دیده می‌شوند.
+        </p>
+
+        <div className="home-step-list">
+          <div>
+            <strong>۱. ساخت حساب</strong>
+            <span>در /profile یا همین پنل، با username + mobile + password تست کن.</span>
+          </div>
+
+          <div>
+            <strong>۲. ساخت و ذخیره گزارش</strong>
+            <span>از /chart یک گزارش تازه بساز؛ اگر env کامل باشد account copy هم ذخیره می‌شود.</span>
+          </div>
+
+          <div>
+            <strong>۳. خواندن account reports</strong>
+            <span>بعد از ذخیره، لیست خصوصی را در /reports?source=account باز کن.</span>
+          </div>
+        </div>
+
+        <div className="actions">
+          <Link className="button secondary" href="/profile">
+            تست ورود و ثبت‌نام
+          </Link>
+
+          <Link className="button secondary" href="/chart">
+            ساخت گزارش تست
+          </Link>
+
+          <Link className="button secondary" href="/reports?source=account">
+            دیدن account reports
+          </Link>
+        </div>
+      </section>
+
+      <section className="card">
         <span className="badge">اکانت preview</span>
 
         <h2>وضعیت ذخیره‌سازی فعلی</h2>

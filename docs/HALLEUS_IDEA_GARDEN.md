@@ -1239,3 +1239,10 @@ Decision: account report list/read UI should come before any local migration wor
 - Email remains optional/secondary.
 - Local-to-account migration is deferred because the website has not had real users yet.
 - Keep account reports private/noindex and do not start public SEO report surfaces from this account-readiness work.
+
+### v0.1.189 account dashboard/profile polish
+
+- Keep the near-term account UX centered on username + mobile signup, account save, and account reports list/read.
+- Dashboard/profile should explain the real-account test path without starting migration work.
+- Username remains user-chosen; mobile is collected but is not the username.
+- Continue to keep account reports private/noindex and defer public SEO report surfaces.
