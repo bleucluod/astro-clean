@@ -39,6 +39,27 @@ const reportRepository = getReportRepository();
 const isBetaDatabaseSaveUiEnabled =
   process.env.NEXT_PUBLIC_HALLEUS_ENABLE_BETA_DB_SAVE_UI === "true";
 
+const REPORT_QUICK_READING_MAP = [
+  {
+    label: "شروع",
+    title: "خورشید، ماه، رایزینگ",
+    description:
+      "اول سه ستون اصلی را پیدا کن: هویت، نیاز عاطفی و شیوه ورود تو به جهان. این بخش سریع‌ترین راه برای گرفتن حس کلی گزارش است.",
+  },
+  {
+    label: "عمق",
+    title: "خانه‌ها، سیاره‌ها و جنبه‌ها",
+    description:
+      "بعد سراغ میدان‌های زندگی و گفت‌وگوی درونی چارت برو؛ اینجا گزارش از توصیف عمومی به خوانش شخصی‌تر نزدیک می‌شود.",
+  },
+  {
+    label: "برگشت",
+    title: "یک جمله را نگه دار",
+    description:
+      "در پایان فقط یک برداشت، سؤال یا تمرین را یادداشت کن. لازم نیست همه گزارش را یک‌باره حفظ یا حل کنی.",
+  },
+] as const;
+
 const REPORT_READING_STEPS = [
   {
     label: "۱",
@@ -57,6 +78,27 @@ const REPORT_READING_STEPS = [
     title: "در پایان یک برداشت نگه دار",
     description:
       "بعد از خواندن، فقط یک جمله یا سؤال شخصی را در یادداشت ذخیره کن تا گزارش از متن بلند به یک نقطه قابل برگشت تبدیل شود.",
+  },
+] as const;
+
+const REPORT_TRUST_SIGNALS = [
+  {
+    label: "حریم خصوصی",
+    title: "Private / noindex",
+    description:
+      "این نسخه برای خواندن شخصی طراحی شده است و گزارش‌ها عمومی یا indexable منتشر نمی‌شوند مگر در آینده با رضایت صریح کاربر.",
+  },
+  {
+    label: "پشتوانه",
+    title: "چارت محاسبه‌شده",
+    description:
+      "وقتی real engine فعال باشد، جایگاه‌ها، خانه‌ها و جنبه‌ها از داده چارت محاسبه‌شده خوانده می‌شوند؛ پیش‌نمایش محدود هم جداگانه مشخص می‌شود.",
+  },
+  {
+    label: "مرز معنا",
+    title: "زبان نمادین، نه حکم قطعی",
+    description:
+      "هالیوس برای خودشناسی و تأمل است؛ جایگزین مشورت تخصصی در تصمیم‌های پزشکی، مالی، حقوقی یا زندگی نیست.",
   },
 ] as const;
 
@@ -223,6 +265,8 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
 
       <ReportReadingGuide report={report} />
 
+      <ReportTrustPanel report={report} reportSource={reportSource} />
+
       <div className="report-final-reading-anchor" id="final-reading">
         <ReportV3Experience report={report} />
       </div>
@@ -241,17 +285,17 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
           <ChartReportBridgePanel report={report} />
 
           <article className="mini-card report-note-card report-note-card-mini">
-            <span className="section-label">یادداشت</span>
-            <h3>یادداشت کوتاه</h3>
-            <p>یک برداشت کوتاه کنار همین گزارش نگه دار.</p>
+            <span className="section-label">یادداشت قابل برگشت</span>
+            <h3>یک برداشت را برای بعد نگه دار</h3>
+            <p>از کل گزارش فقط یک جمله، سؤال یا تمرین را اینجا ذخیره کن.</p>
 
             <label className="field">
               <span>متن یادداشت</span>
               <textarea
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="مثلاً: آخر هفته دوباره بخوانم..."
-                rows={2}
+                placeholder="مثلاً: این هفته به رابطه خورشید و ماه خودم برگردم..."
+                rows={3}
                 disabled={isAccountReportSource}
               />
             </label>
@@ -301,16 +345,26 @@ function ReportReadingGuide({ report }: { report: AstrologyReport }) {
   return (
     <section className="card report-reading-guide" id="reading-guide" aria-labelledby="report-reading-guide-title">
       <div className="report-section-heading">
-        <span className="badge">راهنمای خواندن</span>
-        <h2 id="report-reading-guide-title">مسیر پیشنهادی خواندن گزارش</h2>
+        <span className="badge">نقشه سریع خواندن</span>
+        <h2 id="report-reading-guide-title">از کجای گزارش شروع کنی؟</h2>
         <p>
-          گزارش {stats.displayName} بلند و لایه‌لایه است. لازم نیست آن را مثل
-          یک مقاله خطی بخوانی؛ اول نقشه را ببین، بعد وارد خوانش کامل شو و در
-          پایان فقط یک برداشت شخصی را نگه دار.
+          گزارش {stats.displayName} بلند و لایه‌لایه است. این نقشه سریع کمک
+          می‌کند اول ستون‌های اصلی را ببینی، بعد سراغ عمق بروی و در پایان
+          فقط یک برداشت شخصی را نگه داری.
         </p>
       </div>
 
       <div className="report-calculation-grid">
+        {REPORT_QUICK_READING_MAP.map((item) => (
+          <article className="mini-card" key={item.label}>
+            <span className="section-label">{item.label}</span>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="report-calculation-grid mt-4">
         {REPORT_READING_STEPS.map((step) => (
           <article className="mini-card" key={step.label}>
             <span className="section-label">قدم {step.label}</span>
@@ -353,6 +407,64 @@ function ReportReadingGuide({ report }: { report: AstrologyReport }) {
   );
 }
 
+function ReportTrustPanel({
+  report,
+  reportSource,
+}: {
+  report: AstrologyReport;
+  reportSource: ReportDetailSource;
+}) {
+  const stats = buildReportReadingStats(report);
+  const sourceLabel = reportSource === "account"
+    ? "نسخه ذخیره‌شده در حساب"
+    : reportSource === "beta-db"
+      ? "نسخه آزمایشی سرور"
+      : "نسخه ذخیره‌شده روی همین مرورگر";
+
+  return (
+    <section className="card report-trust-panel" aria-labelledby="report-trust-title">
+      <div className="report-section-heading">
+        <span className="badge">سه چراغ اعتماد</span>
+        <h2 id="report-trust-title">قبل از خواندن، بدان این گزارش چه هست و چه نیست</h2>
+        <p>
+          این بخش برای شفافیت است: گزارش از کجا آمده، چقدر به چارت محاسبه‌شده
+          تکیه دارد و مرزهای خوانش نمادین هالیوس کجاست.
+        </p>
+      </div>
+
+      <div className="report-calculation-grid">
+        {REPORT_TRUST_SIGNALS.map((signal) => (
+          <article className="mini-card" key={signal.label}>
+            <span className="section-label">{signal.label}</span>
+            <h3>{signal.title}</h3>
+            <p>{signal.description}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="report-calculation-grid mt-4">
+        <article className="mini-card">
+          <span className="section-label">منبع گزارش</span>
+          <h3>{sourceLabel}</h3>
+          <p>
+            {stats.hasRealEngine
+              ? "این گزارش با داده real engine نمایش داده می‌شود و برای مرور شخصی آماده است."
+              : "این گزارش پیش‌نمایش محدود است؛ اگر داده چارت کامل نباشد، متن هم با احتیاط خوانده می‌شود."}
+          </p>
+        </article>
+
+        <article className="mini-card">
+          <span className="section-label">مسیر بعدی</span>
+          <h3>Save/account بدون اجبار</h3>
+          <p>
+            اگر گزارش را می‌خواهی نگه داری، مسیر حساب کاربری برای ذخیره و
+            برگشتن به گزارش است؛ انتشار عمومی هنوز بخشی از این نسخه نیست.
+          </p>
+        </article>
+      </div>
+    </section>
+  );
+}
 function ReportNextStepPanel() {
   return (
     <section className="card report-next-step-panel" aria-labelledby="report-next-step-title">
