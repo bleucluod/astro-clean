@@ -40,12 +40,6 @@ export function AppShell({ children }: AppShellProps) {
           <div className="site-nav-links" aria-label="صفحه‌های اصلی">
             <NavLinks />
           </div>
-
-          <div className="site-nav-actions">
-            <Link href="/chart" className="site-nav-cta">
-              <span className="site-nav-cta-main">ساخت گزارش تولد</span>
-            </Link>
-          </div>
         </nav>
       </header>
 
@@ -57,7 +51,7 @@ export function AppShell({ children }: AppShellProps) {
       </a>
 
       <footer className="site-footer">
-        <div className="footer-inner">
+        <div className="footer-inner footer-inner-clean">
           <div className="footer-brand-block">
             <Image
               src="/halleus-logo/emblem-transparent.png"

@@ -122,7 +122,7 @@ export function RealChartWheel({
           viewBox="0 0 400 400"
           role="img"
           aria-label="Real chart wheel with zodiac signs, houses, axes, aspects, and planet placements"
-          className="h-auto w-full max-w-[520px]"
+          className="h-auto w-full max-w-[500px]"
         >
           <circle cx="200" cy="200" r="184" fill="#FFFDF8" stroke="#D8C2AA" strokeWidth="2" />
           <circle cx="200" cy="200" r="150" fill="#FFF9F2" stroke="#E8D8C6" strokeWidth="1.5" />
@@ -151,7 +151,7 @@ export function RealChartWheel({
                   y={labelPoint.y}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#8A5A3A] text-[8px] font-bold"
+                  className="fill-[#8A5A3A] text-[5px] font-bold"
                 >
                   {"H" + house.number}
                 </text>
@@ -194,7 +194,7 @@ export function RealChartWheel({
                   y={labelPoint.y - 5}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#6A4B35] text-[17px] font-bold"
+                  className="fill-[#6A4B35] text-[14px] font-bold"
                 >
                   {sign.glyph}
                 </text>
@@ -203,18 +203,9 @@ export function RealChartWheel({
                   y={labelPoint.y + 10}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#8A6A51] text-[8px] font-semibold"
+                  className="fill-[#8A6A51] text-[5px] font-semibold"
                 >
                   {ZODIAC_LABELS[sign.id].faName}
-                </text>
-                <text
-                  x={labelPoint.x}
-                  y={labelPoint.y + 22}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="fill-[#9A6B45] text-[6px] font-semibold"
-                >
-                  {ZODIAC_LABELS[sign.id].enName}
                 </text>
               </g>
             );
@@ -240,7 +231,7 @@ export function RealChartWheel({
                   y={labelPoint.y}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#3E2F25] text-[9px] font-bold"
+                  className="fill-[#3E2F25] text-[5px] font-bold"
                 >
                   {angle.label}
                 </text>
@@ -277,7 +268,7 @@ export function RealChartWheel({
                   y={marker.y + 1}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#FFF9F2] text-[12px] font-bold"
+                  className="fill-[#FFF9F2] text-[5px] font-bold"
                 >
                   {PLANET_GLYPHS[placement.id] ?? placement.label.slice(0, 1)}
                 </text>
@@ -287,7 +278,7 @@ export function RealChartWheel({
                     y={marker.y - 10}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className="fill-[#7A3F2A] text-[7px] font-black"
+                    className="retrograde-glyph fill-[#7A3F2A] text-[5px] font-black"
                   >
                     R
                   </text>
@@ -300,7 +291,7 @@ export function RealChartWheel({
             x="200"
             y="190"
             textAnchor="middle"
-            className="fill-[#3E2F25] text-[13px] font-bold"
+            className="fill-[#3E2F25] text-[11px] font-bold"
           >
             Halleus
           </text>
@@ -308,7 +299,7 @@ export function RealChartWheel({
             x="200"
             y="210"
             textAnchor="middle"
-            className="fill-[#8A6A51] text-[9px] font-semibold"
+            className="fill-[#8A6A51] text-[5px] font-semibold"
           >
             real chart snapshot
           </text>

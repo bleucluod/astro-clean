@@ -3735,3 +3735,139 @@ h3,
   background: #f7f0e6;
   color: #3d2c4f;
 }
+
+/* Core Surface Cleanup v0.1.198b */
+.site-nav {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+}
+
+.site-brand-mark {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  color: inherit !important;
+}
+
+.site-brand-logo-emblem {
+  filter: drop-shadow(0 8px 18px rgba(185, 137, 69, 0.18));
+}
+
+.site-nav-actions {
+  display: none !important;
+}
+
+.site-nav-links {
+  justify-content: end;
+}
+
+.site-nav-links a,
+.site-nav-links .nav-link {
+  border-radius: 999px;
+  padding: 9px 12px;
+}
+
+.site-nav-links a[href="/order"],
+.site-nav-links .nav-link[href="/order"] {
+  display: none !important;
+}
+
+.site-footer {
+  padding-block: 28px;
+}
+
+.footer-inner-clean,
+.footer-inner {
+  grid-template-columns: 1fr !important;
+  gap: 12px;
+}
+
+.footer-links,
+.footer-quick-links,
+.footer-nav {
+  display: none !important;
+}
+
+.footer-brand-block {
+  max-width: 760px;
+}
+
+.core-surface-dashboard {
+  width: min(860px, 100%);
+  margin-inline: auto;
+  gap: 16px;
+}
+
+.core-surface-dashboard .card {
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.core-surface-dashboard .card p {
+  max-width: 68ch;
+}
+
+.core-surface-dashboard .home-step-list,
+.core-surface-dashboard .account-ready-lifecycle-card,
+.core-surface-dashboard .account-migration-card,
+.core-surface-dashboard .migration-status-card {
+  display: none !important;
+}
+
+.core-surface-dashboard .actions {
+  gap: 10px;
+}
+
+.report-detail-shell,
+.report-detail-layout,
+.report-final-reading-anchor {
+  scroll-margin-top: 108px;
+}
+
+.report-final-reading-anchor .prose,
+.report-final-reading-anchor p {
+  line-height: 2;
+}
+
+.report-trust-panel,
+.report-reading-guide {
+  border-color: rgba(185, 137, 69, 0.18);
+}
+
+.report-real-chart-wheel-structure {
+  background: #fffaf3 !important;
+  border-color: rgba(185, 137, 69, 0.22) !important;
+  box-shadow: 0 18px 52px rgba(65, 42, 26, 0.06) !important;
+}
+
+.report-real-chart-wheel-structure svg {
+  overflow: visible;
+}
+
+.retrograde-glyph {
+  paint-order: stroke;
+  stroke: #fff7ed;
+  stroke-width: 2px;
+  letter-spacing: 0;
+}
+
+@media (max-width: 960px) {
+  .site-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .site-nav-links {
+    justify-content: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-nav-links {
+    gap: 6px;
+  }
+
+  .site-nav-links a,
+  .site-nav-links .nav-link {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}

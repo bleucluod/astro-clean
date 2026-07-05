@@ -91,18 +91,19 @@ export default function DashboardPage() {
 
   if (!isReady) {
     return (
-      <section className="grid">
+      <section className="grid core-surface-dashboard">
         <div className="card">
           <span className="badge">Dashboard</span>
           <h1>در حال آماده‌سازی پنل کاربری</h1>
           <p>گزارش‌های local و مسیر حساب آماده می‌شوند.</p>
         </div>
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
     );
   }
 
   return (
-    <section className="grid account-ready-dashboard">
+    <section className="grid core-surface-dashboard account-ready-dashboard">
       <div className="card account-ready-dashboard-hero">
         <span className="badge">Halleus Dashboard</span>
 
@@ -165,7 +166,8 @@ export default function DashboardPage() {
             <span>بعد از local pass، فقط اتصال نسخه deployed را چک کن؛ این مرحله feature جدید یا SEO نیست.</span>
           </div>
         </div>
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
       <section className="card account-ready-lifecycle-card">
         <span className="badge">از مرورگر تا اکانت</span>
 
@@ -193,7 +195,8 @@ export default function DashboardPage() {
             <span>بعد از ساخت گزارش، نسخه account را در /reports?source=account ببین؛ migration فعلاً deferred است.</span>
           </div>
         </div>
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
 
       <div className="feature-grid">
         <article className="card feature-card-polished">
@@ -264,7 +267,8 @@ export default function DashboardPage() {
             دیدن account reports
           </Link>
         </div>
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
 
       <section className="card">
         <span className="badge">وضعیت ذخیره‌سازی</span>
@@ -292,7 +296,8 @@ export default function DashboardPage() {
             <span>private / noindex</span>
           </div>
         </div>
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
 
       <section className="card">
         <span className="badge">تصمیم ذخیره پایدار</span>
@@ -326,7 +331,8 @@ export default function DashboardPage() {
             <span>{persistentReportsDecision.defaultVisibility} / {persistentReportsDecision.indexingPolicy}</span>
           </div>
         </div>
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
 
       <section className="card">
         <span className="badge">پیش‌پرواز مهاجرت</span>
@@ -423,7 +429,8 @@ export default function DashboardPage() {
             تست ذخیره گزارش تازه
           </Link>
         </div>
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
       <LocalDataBackupPanel />
 
       <section className="card">
@@ -459,7 +466,9 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
-      </section>
+      <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
+    </section>
+    <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
     </section>
   );
 }
