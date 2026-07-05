@@ -1189,3 +1189,16 @@ Failure/recovery note:
 - Supabase signup metadata now records that username is user-chosen and phone is not the username.
 - Server account bootstrap now preserves phone provider semantics instead of forcing email provider for phone accounts.
 - Still no migration, local report deletion, public/indexable reports, SEO, payment, hosting, or engine work.
+
+## v0.1.191 logo/favicon asset application
+
+- Applied the current Halleus sun-gold logo/favicon package as the active site brand asset set.
+- Header and footer brand marks should use the approved sun emblem from `public/halleus-logo/emblem-transparent.png`.
+- Next metadata should explicitly point at the new favicon and apple-touch icon assets.
+- This is a brand-asset batch only; it must not change account/auth/report engine/payment/SEO/public-report behavior.
+- Follow-up account work remains the username/password account bridge after fresh live status/context because logo/favicon work may run concurrently with other chats.
+
+Failure prevention:
+- Do not rely on brittle AppShell marker patches without inspecting the current live file.
+- Keep apply artifacts to a single `.ps1` runner and embed binary assets safely.
+- Do not include source-like files at the artifact ZIP root.

@@ -1250,3 +1250,11 @@ Decision: account report list/read UI should come before any local migration wor
 ## v0.1.190 real account flow lock
 
 Decision: lock the near-term account model as username + mobile + password, where username is user-chosen, mobile is required customer/contact/auth data in E.164 format, and email remains optional/secondary. Mobile must not become the username.
+
+## Seed update — Halleus sun-gold logo/favicon package
+
+Status: touched
+
+- Use the approved sun-gold Halleus logo/favicon package as the current site brand asset source.
+- The brand mark should support the Persian-first product identity without changing the core roadmap.
+- Logo/favicon batches are brand polish only and must not interrupt the near account path: username/password account bridge, real smoke tests, then report-depth improvements.

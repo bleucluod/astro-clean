@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { NavLinks } from "@/components/NavLinks";
@@ -19,8 +20,17 @@ export function AppShell({ children }: AppShellProps) {
     <>
       <header className="site-header">
         <nav className="site-nav" aria-label="ناوبری اصلی">
-          <Link href="/" className="site-brand" aria-label="Halleus">
-            <span className="site-brand-mark">✦</span>
+          <Link href="/" className="site-brand" aria-label="Halleus | هالیوس">
+            <span className="site-brand-mark" aria-hidden="true">
+              <Image
+                src="/halleus-logo/emblem-transparent.png"
+                alt=""
+                width={36}
+                height={36}
+                priority
+                className="site-brand-logo-emblem"
+              />
+            </span>
             <span className="site-brand-copy">
               <strong>Halleus</strong>
               <small>هالیوس</small>
@@ -49,6 +59,13 @@ export function AppShell({ children }: AppShellProps) {
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-brand-block">
+            <Image
+              src="/halleus-logo/emblem-transparent.png"
+              alt=""
+              width={32}
+              height={32}
+              className="footer-brand-logo"
+            />
             <strong>Halleus</strong>
             <p className="footer-note">
               هالیوس تجربه‌ای فارسی برای خواندن چارت تولد است؛ فعلاً رایگان،

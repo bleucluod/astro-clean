@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { AppShell } from "@/components/AppShell";
 import { siteConfig } from "@/lib/config/seo";
 import "./globals.css";
@@ -8,6 +8,28 @@ export const metadata: Metadata = {
   applicationName: siteConfig.name,
   title: siteConfig.title,
   description: siteConfig.description,
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      {
+        url: "/halleus-logo/favicon-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/halleus-logo/favicon-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+  },
   alternates: {
     canonical: "/",
   },
