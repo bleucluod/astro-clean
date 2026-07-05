@@ -1236,3 +1236,25 @@ Scope:
 
 Workflow note:
 - This is account/profile/dashboard polish after real account smoke test, not new account infrastructure.
+
+## v0.1.195 Report Depth + First Synthesis
+
+Scope:
+- Make the next report batch a product-value batch, not another account or infrastructure batch.
+- Combine report depth and first synthesis in one milestone so the generated report feels more personal, Persian-first, and usable.
+- Add a first synthesis layer that names the main personality threads, the central chart tension, the growth language, and a short reflection practice.
+- Keep technical honesty: Mean Lunar Node only, South Node as Mean North Node + 180°, Lilith deferred, and no deterministic claims.
+- Keep account stability reactive only; fix account/save only if this report work exposes a real bug.
+
+Out of scope:
+- auth/account/schema changes
+- Supabase/env changes
+- SEO/public/indexable reports
+- payment
+- hosting/deploy
+- migrations
+
+Implementation note:
+- This batch should touch report writer/checks/docs/package only and should run with `pnpm run check:encoding`, `git --no-pager diff --check`, `pnpm run check:report-depth-first-synthesis`, report writer/sample QA guards, and `pnpm build`.
+- The v0.1.195 context ZIP may remain untracked before apply and must be allowed or removed before commit.
+- Target behavior: Report Depth + First Synthesis without auth/account/schema/SEO/payment/deploy changes.

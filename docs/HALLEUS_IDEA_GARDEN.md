@@ -1297,3 +1297,21 @@ UX constraints:
 - Email stays optional/secondary.
 - Account reports stay private/noindex.
 - Local reports are not deleted and local-to-account migration stays deferred.
+
+## v0.1.195 product note: Report Depth + First Synthesis
+
+Product decision:
+- Bundle report depth and first synthesis into one larger value-focused milestone instead of spending separate tiny batches on each.
+- The next report improvement should make the generated reading feel more personal, Persian-first, and useful: stronger Sun/Moon/Rising interpretation, clearer house/planet/aspect language, and a first synthesis layer.
+- The first synthesis layer should include main personality threads, central chart tension, growth language, and one short weekly reflection practice.
+- Account stability remains reactive only; the completed account foundation should not expand unless a real report/save bug appears.
+- Keep reports private/noindex by default and do not start SEO, public/indexable reports, payment, hosting/deploy, Sky Pulse, wiki/content studio, or admin work in this milestone.
+
+Roadmap decision after this note:
+```text
+v0.1.195 — Report Depth + First Synthesis
+v0.1.196 — Report Detail UX + Trust QA
+v0.1.197 — Beta Readiness + Deploy Smoke
+v0.1.198 — Private/Public Consent Design
+After that — Persian SEO Strategy, Paid Private Reports, Wiki/Content Studio/Admin, then Sky Pulse only with a real transit source.
+```

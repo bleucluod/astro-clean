@@ -352,9 +352,12 @@ const SYNTHESIS_READING_GUARD = "v0.1.169-report-synthesis";
 void SYNTHESIS_READING_GUARD;
 const DEPTH_HUMANIZATION_GUARD = "v0.1.170-report-depth-humanization";
 void DEPTH_HUMANIZATION_GUARD;
+const FIRST_SYNTHESIS_GUARD = "v0.1.195-report-depth-first-synthesis";
+void FIRST_SYNTHESIS_GUARD;
 
 const requiredSectionIds = [
   "real-engine-overview",
+  "real-engine-first-synthesis",
   "real-engine-identity",
   "real-engine-emotional-pattern",
   "real-engine-relationships",
@@ -420,7 +423,7 @@ for (const sample of samples) {
     }
   }
 
-  if (totalWords < 700) {
+  if (totalWords < 850) {
     failures.push(`${sample.id}: total generated section text is too short (${totalWords} words)`);
   }
 
@@ -451,6 +454,10 @@ for (const sample of samples) {
     "تصویر کلی این چارت",
     "کشمکش و استعداد",
     "تمرین رشد",
+    "نخ‌های اصلی شخصیت",
+    "تنش مرکزی چارت",
+    "زبان رشد",
+    "تمرین تأملی کوتاه برای این هفته",
     "در زبان ساده",
     "پرسش خانه",
     "اولویت خواندن جنبه‌ها",

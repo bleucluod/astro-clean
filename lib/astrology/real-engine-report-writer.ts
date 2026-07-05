@@ -502,6 +502,7 @@ export function enrichReportWithRealEngineCopy(
   const mercuryAspectText = buildPlanetAspectText("mercury", PLANET_COPY.mercury.faName, aspects);
   const venusAspectText = buildPlanetAspectText("venus", PLANET_COPY.venus.faName, aspects);
   const marsAspectText = buildPlanetAspectText("mars", PLANET_COPY.mars.faName, aspects);
+  const firstSynthesisText = buildFirstSynthesisText(realEngineWithAspects);
   const integrationText = buildIntegrationText(realEngineWithAspects);
   const sectionEvidence = buildRealEngineSectionEvidence({
     sun,
@@ -534,6 +535,7 @@ export function enrichReportWithRealEngineCopy(
     lunarNodeText,
     retrogradeText,
     aspectText,
+    firstSynthesisText,
     integrationText,
     natalAccuracyText,
   ].filter(Boolean) as string[];
@@ -556,6 +558,7 @@ export function enrichReportWithRealEngineCopy(
     mercuryAspectText,
     venusAspectText,
     marsAspectText,
+    firstSynthesisText,
     integrationText,
     ...sectionEvidence,
   });
@@ -614,6 +617,7 @@ type RealEngineSectionTextInput = {
   mercuryAspectText?: string;
   venusAspectText?: string;
   marsAspectText?: string;
+  firstSynthesisText: string;
   integrationText: string;
   identityEvidence?: string;
   emotionalEvidence?: string;
@@ -836,6 +840,118 @@ function buildHouseSynthesisThread(realEngine: RealEngineReportSnapshot): string
   const extra = activeHouses.length > 4 ? " و چند خانه دیگر" : "";
 
   return "از نظر میدان‌های زندگی، تمرکز اولیه در " + shownHouses + extra + " دیده می‌شود؛ یعنی تصویر کلی فقط از نشانه‌ها ساخته نمی‌شود، بلکه از جایی هم ساخته می‌شود که هر نیرو در زندگی روزمره فعال می‌شود.";
+}
+
+function buildFirstSynthesisText(realEngine: RealEngineReportSnapshot): string {
+  const sun = findPlacement(realEngine, "sun");
+  const moon = findPlacement(realEngine, "moon");
+  const mercury = findPlacement(realEngine, "mercury");
+  const venus = findPlacement(realEngine, "venus");
+  const mars = findPlacement(realEngine, "mars");
+  const risingSign = signFromLongitude(realEngine.ascendantLongitude);
+  const aspects = realEngine.aspects ?? [];
+
+  return [
+    buildSynthesisPersonalityThreads(sun, moon, risingSign),
+    buildSynthesisCentralTension(aspects),
+    buildSynthesisGrowthLanguage({ sun, moon, mercury, venus, mars, risingSign }),
+    buildSynthesisWeeklyPractice(realEngine, aspects),
+  ].join(" ");
+}
+
+function buildSynthesisPersonalityThreads(
+  sun: RealEngineReportPlacement | undefined,
+  moon: RealEngineReportPlacement | undefined,
+  risingSign: ZodiacKey,
+): string {
+  const rising = SIGN_COPY[risingSign];
+
+  if (!sun || !moon) {
+    return "نخ‌های اصلی شخصیت: در این نسخه، رایزینگ " + formatSignLabel(rising) + " نقطه شروع تصویر بیرونی است و جایگاه‌های محاسبه‌شده بعدی باید آهسته کنار آن خوانده شوند.";
+  }
+
+  const sunSign = SIGN_COPY[sun.signId];
+  const moonSign = SIGN_COPY[moon.signId];
+
+  return [
+    "نخ‌های اصلی شخصیت: خورشید در " + formatPlacementWithHouse(sun) + " نشان می‌دهد هویت آگاهانه از راه " + sunSign.gift + " روشن‌تر می‌شود.",
+    "ماه در " + formatPlacementWithHouse(moon) + " می‌گوید امنیت عاطفی وقتی پایدارتر می‌شود که به ریتم " + moonSign.energy + " احترام بگذاری.",
+    "رایزینگ " + formatSignLabel(rising) + " هم دروازه ورود تو به جهان را با کیفیت " + rising.energy + " رنگ می‌زند؛ پس این سه نخ را مثل یک تصویر واحد بخوان، نه سه برچسب جدا.",
+  ].join(" ");
+}
+
+function buildSynthesisCentralTension(aspects: RealEngineReportAspect[]): string {
+  const centralAspect = aspects.find((aspect) =>
+    aspect.aspectId === "square" || aspect.aspectId === "opposition",
+  ) ?? aspects[0];
+
+  if (!centralAspect) {
+    return "تنش مرکزی چارت: در داده فعلی، aspect پررنگی برای نام‌گذاری یک کشش مرکزی دیده نمی‌شود؛ بنابراین بهتر است تنش اصلی را از اختلاف میان نیازهای خورشید، ماه و رایزینگ مشاهده کنی، نه از یک حکم قطعی.";
+  }
+
+  const isTension =
+    centralAspect.aspectId === "square" || centralAspect.aspectId === "opposition";
+  const bridge = isTension
+    ? "این کشش می‌تواند موتور رشد باشد، به شرطی که هیچ‌کدام از دو نیاز حذف نشود."
+    : "این رابطه نرم‌تر است، اما اگر ناخودآگاه بماند ممکن است استعدادش دیده نشود یا به عادت تبدیل شود.";
+
+  return [
+    "تنش مرکزی چارت: نزدیک‌ترین گفت‌وگوی قابل توجه میان " + centralAspect.firstPlanetLabel + " و " + centralAspect.secondPlanetLabel + " در الگوی " + centralAspect.aspectLabel + " دیده می‌شود.",
+    bridge,
+    "پرسش انسانی این بخش این است: این دو صدا در زندگی روزمره کجا هم‌زمان فعال می‌شوند و چه توافق کوچک‌تری لازم دارند؟",
+  ].join(" ");
+}
+
+type SynthesisGrowthLanguageInput = {
+  sun: RealEngineReportPlacement | undefined;
+  moon: RealEngineReportPlacement | undefined;
+  mercury: RealEngineReportPlacement | undefined;
+  venus: RealEngineReportPlacement | undefined;
+  mars: RealEngineReportPlacement | undefined;
+  risingSign: ZodiacKey;
+};
+
+function buildSynthesisGrowthLanguage({
+  sun,
+  moon,
+  mercury,
+  venus,
+  mars,
+  risingSign,
+}: SynthesisGrowthLanguageInput): string {
+  const growthParts = [
+    sun ? "خورشید: " + SIGN_COPY[sun.signId].growth : null,
+    moon ? "ماه: " + SIGN_COPY[moon.signId].growth : null,
+    "رایزینگ: " + SIGN_COPY[risingSign].growth,
+  ].filter(Boolean);
+  const tools = [
+    mercury ? "عطارد برای روشن‌تر حرف زدن" : null,
+    venus ? "زهره برای شناخت ارزش و مرز رابطه" : null,
+    mars ? "مریخ برای تبدیل نیت به قدم عملی" : null,
+  ].filter(Boolean);
+
+  return [
+    "زبان رشد: این چارت رشد را با شعارهای کلی توضیح نمی‌دهد؛ از تمرین‌های کوچک و قابل مشاهده شروع می‌کند.",
+    growthParts.length > 0 ? growthParts.join("؛ ") + "." : "اولین تمرین رشد، مشاهده آرام‌تر واکنش‌ها پیش از تصمیم است.",
+    tools.length > 0
+      ? "ابزارهای روزمره این رشد در این گزارش چنین دیده می‌شوند: " + tools.join("، ") + "."
+      : "ابزارهای روزمره این رشد باید از همان بخشی انتخاب شوند که در متن گزارش بیشتر با تجربه تو هم‌صداست.",
+  ].join(" ");
+}
+
+function buildSynthesisWeeklyPractice(
+  realEngine: RealEngineReportSnapshot,
+  aspects: RealEngineReportAspect[],
+): string {
+  const activeHouse = realEngine.placements.find((placement) =>
+    typeof placement.house === "number" && Number.isFinite(placement.house),
+  )?.house;
+  const housePhrase = activeHouse ? "خانه " + toPersianNumber(activeHouse) : "یکی از میدان‌های پررنگ گزارش";
+  const aspectPhrase = aspects[0]
+    ? "گفت‌وگوی " + aspects[0].firstPlanetLabel + " و " + aspects[0].secondPlanetLabel
+    : "سه نخ خورشید، ماه و رایزینگ";
+
+  return "تمرین تأملی کوتاه برای این هفته: یک موقعیت کوچک از " + housePhrase + " انتخاب کن و ببین " + aspectPhrase + " در آن موقعیت چه چیزی از تو می‌خواهد؛ فقط یک جمله بنویس، نه تصمیم بزرگ و نه پیش‌گویی.";
 }
 function buildCorePlacementText(
   placement: RealEngineReportPlacement | undefined,
@@ -1461,6 +1577,20 @@ function buildRealEngineInterpretationSections(
     input.integrationText ??
     input.summary ??
     "این بخش از گزارش بر اساس داده‌های محاسبه‌شده چارت نوشته شده و بهتر است نمادین، آرام و غیرقطعی خوانده شود.";
+  const firstSynthesisSection: ReportOutputSection = {
+    id: "real-engine-first-synthesis",
+    kind: "overview",
+    title: "ترکیب نخستین: نخ‌ها، تنش و زبان رشد",
+    body: buildStructuredSectionBody({
+      opening: buildEvidenceOpening(
+        input.growthEvidence,
+        "این بخش گزارش را از فهرست جایگاه‌ها یک قدم جلوتر می‌برد و یک تصویر اولیه از نخ‌های اصلی، کشش مرکزی، زبان رشد و تمرین این هفته می‌سازد.",
+      ),
+      body: input.firstSynthesisText,
+      closing:
+        "این ترکیب نخستین حکم قطعی نیست؛ فقط یک قاب کاربردی است تا ادامه گزارش را با تمرکز و آرامش بیشتری بخوانی.",
+    }),
+  };
   const houseAnglesSection: ReportOutputSection | null = input.houseAnglesText
     ? {
         id: "real-engine-houses-angles",
@@ -1535,9 +1665,10 @@ function buildRealEngineInterpretationSections(
           "این بخش ورودی کوتاه گزارش است؛ اول سه نخ اصلی چارت را کنار هم می‌گذارد و بعد ذهن، رابطه، عمل، خانه‌ها، دست‌های ماه و مرزهای دقت را در جای خواناتر خودش باز می‌کند.",
         body: input.summary,
         closing:
-          "برای خواندن ادامه گزارش، هر بخش را مثل یک زاویه مشاهده ببین؛ یادداشت‌های روش و دقت بعد از روایت اصلی آمده‌اند تا متن سنگین نشود.",
+          "برای خواندن ادامه گزارش، اول ترکیب نخستین را بخوان و بعد هر بخش را مثل یک زاویه مشاهده ببین؛ یادداشت‌های روش و دقت بعد از روایت اصلی آمده‌اند تا متن سنگین نشود.",
       }),
     },
+    firstSynthesisSection,
     {
       id: "real-engine-identity",
       kind: "identity",
