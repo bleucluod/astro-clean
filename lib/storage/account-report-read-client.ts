@@ -55,13 +55,20 @@ type AccountReportAccessTokenResult =
       blockers: string[];
     };
 
-function getPublicEnv(name: string) {
-  const value = process.env[name]?.trim();
+const accountReportReadPublicEnv = {
+  NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE:
+    process.env.NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE,
+} as const;
+
+type AccountReportReadPublicEnvName = keyof typeof accountReportReadPublicEnv;
+
+function getPublicEnv(name: AccountReportReadPublicEnvName) {
+  const value = accountReportReadPublicEnv[name]?.trim();
 
   return value ? value : undefined;
 }
 
-function isPublicFlagEnabled(name: string) {
+function isPublicFlagEnabled(name: AccountReportReadPublicEnvName) {
   return getPublicEnv(name)?.toLowerCase() === "true";
 }
 

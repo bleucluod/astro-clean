@@ -83,7 +83,8 @@
     "check:dashboard-profile-polish": "node scripts/check-dashboard-profile-polish.mjs",
     "check:real-account-flow-lock": "node scripts/check-real-account-flow-lock.mjs",
     "check:logo-favicon-assets": "node scripts/check-logo-favicon-assets.mjs",
-    "check:username-password-account-bridge": "node scripts/check-username-password-account-bridge.mjs"
+    "check:username-password-account-bridge": "node scripts/check-username-password-account-bridge.mjs",
+    "check:supabase-browser-env-config": "node scripts/check-supabase-browser-env-config.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

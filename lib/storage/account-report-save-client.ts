@@ -29,13 +29,20 @@ type AccountReportSaveResponse = {
   blockers?: string[];
 };
 
-function getPublicEnv(name: string) {
-  const value = process.env[name]?.trim();
+const accountReportSavePublicEnv = {
+  NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE:
+    process.env.NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE,
+} as const;
+
+type AccountReportSavePublicEnvName = keyof typeof accountReportSavePublicEnv;
+
+function getPublicEnv(name: AccountReportSavePublicEnvName) {
+  const value = accountReportSavePublicEnv[name]?.trim();
 
   return value ? value : undefined;
 }
 
-function isPublicFlagEnabled(name: string) {
+function isPublicFlagEnabled(name: AccountReportSavePublicEnvName) {
   return getPublicEnv(name)?.toLowerCase() === "true";
 }
 

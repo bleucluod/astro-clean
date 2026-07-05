@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -12,13 +12,21 @@ export type SupabaseBrowserLoginConfig = {
 
 let browserClient: SupabaseClient | null = null;
 
-function getPublicEnv(name: string) {
-  const value = process.env[name]?.trim();
+const publicSupabaseLoginEnv = {
+  NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN: process.env.NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN,
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+} as const;
+
+type PublicSupabaseLoginEnvName = keyof typeof publicSupabaseLoginEnv;
+
+function getPublicEnv(name: PublicSupabaseLoginEnvName) {
+  const value = publicSupabaseLoginEnv[name]?.trim();
 
   return value ? value : undefined;
 }
 
-function isPublicFlagEnabled(name: string) {
+function isPublicFlagEnabled(name: PublicSupabaseLoginEnvName) {
   return getPublicEnv(name)?.toLowerCase() === "true";
 }
 
