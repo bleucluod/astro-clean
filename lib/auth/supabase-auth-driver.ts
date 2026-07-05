@@ -49,14 +49,19 @@ export function createSupabaseAuthDriver(): AuthDriver {
         );
       }
 
-      if (!request.email || !request.password) {
-        return unavailable("Email and password are required.", request.redirectTo);
+      if (!request.password || (!request.phone && !request.email)) {
+        return unavailable("Phone or secondary email and password are required.", request.redirectTo);
       }
 
-      const { error } = await client.auth.signInWithPassword({
-        email: request.email,
-        password: request.password,
-      });
+      const { error } = request.phone
+        ? await client.auth.signInWithPassword({
+            phone: request.phone,
+            password: request.password,
+          })
+        : await client.auth.signInWithPassword({
+            email: request.email ?? "",
+            password: request.password,
+          });
 
       if (error) {
         return unavailable(error.message, request.redirectTo);

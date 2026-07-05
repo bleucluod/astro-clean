@@ -76,7 +76,8 @@
     "check:special-points-real-source": "node scripts/check-special-points-real-source.mjs",
     "check:special-points-source-decision": "node scripts/check-special-points-source-decision.mjs",
     "check:true-mean-node-probe": "node scripts/check-true-mean-node-probe.mjs",
-    "check:mean-lunar-nodes": "node scripts/check-mean-lunar-nodes.mjs"
+    "check:mean-lunar-nodes": "node scripts/check-mean-lunar-nodes.mjs",
+    "check:username-phone-auth-shell": "node scripts/check-username-phone-auth-shell.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

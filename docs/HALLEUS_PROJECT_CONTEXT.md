@@ -1141,3 +1141,14 @@ Failure/recovery note:
 - The first reduced account-read foundation runner generated an invalid JavaScript temp file.
 - Recovery returned the repo to clean v0.1.184 at commit `3929576`.
 - Prevention: keep v0.1.185 restarted scope small, avoid raw Persian in PowerShell, avoid generated nested JS regex/template tricks, and hard-fail on the first failed check.
+
+## v0.1.186 auth direction note — username + mobile shell
+
+- Account identity direction changed from email-first to username-first.
+- The user-facing identifier should be a user-chosen username.
+- mobile-required: Mobile phone should be collected from the beginning as required customer/contact data.
+- Mobile is not the username.
+- Email is optional/secondary and must not be treated as the username.
+- For the near-term guarded Supabase shell, username + mobile + password is the product direction; SMS/OTP can stay deferred until provider/cost/deliverability are ready.
+- Account report save/read foundations remain private/noindex.
+- Local-to-account migration is deferred because the site has not had real users yet.

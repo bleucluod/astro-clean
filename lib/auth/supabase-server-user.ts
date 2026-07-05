@@ -22,8 +22,13 @@ function readBearerToken(authorizationHeader: string | null) {
 
 function getUserDisplayName(user: User) {
   const metadata = user.user_metadata;
+  const username = metadata?.username;
   const fullName = metadata?.full_name;
   const name = metadata?.name;
+
+  if (typeof username === "string" && username.trim()) {
+    return username.trim();
+  }
 
   if (typeof fullName === "string" && fullName.trim()) {
     return fullName.trim();

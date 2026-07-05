@@ -23,6 +23,8 @@ export type AuthProviderOption = {
 };
 
 export type AuthSignInRequest = {
+  username?: string;
+  phone?: string;
   email?: string;
   password?: string;
   redirectTo?: string;

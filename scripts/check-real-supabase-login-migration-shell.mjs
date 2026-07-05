@@ -100,7 +100,8 @@ for (const token of [
 
 for (const token of [
   "mapSupabaseSessionToHalleusSession",
-  'provider: "email"',
+  'provider: user.phone ? "phone" : "email"',
+  'source: user.phone ? "phone" : "email"',
   'status: "active"',
 ]) {
   mustContain(sessionMapper, token, "session mapper");

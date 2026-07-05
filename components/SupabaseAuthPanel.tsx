@@ -9,7 +9,19 @@ import type { AuthSession } from "@/types/account";
 type AuthMode = "sign-in" | "sign-up";
 
 function formatUserLabel(session: AuthSession | null) {
-  return session?.user.email || session?.user.id || "کاربر واردشده";
+  return session?.user.displayName || session?.user.email || session?.user.id || "کاربر واردشده";
+}
+
+function cleanUsername(value: string) {
+  return value
+    .trim()
+    .replace(/^@+/, "")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+}
+
+function cleanPhone(value: string) {
+  return value.trim().replace(/[\s-]/g, "");
 }
 
 export function SupabaseAuthPanel() {
@@ -17,7 +29,9 @@ export function SupabaseAuthPanel() {
   const accountSaveConfig = useMemo(() => getAccountReportSaveClientConfig(), []);
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [session, setSession] = useState<AuthSession | null>(null);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [secondaryEmail, setSecondaryEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [isBusy, setIsBusy] = useState(false);
@@ -72,8 +86,17 @@ export function SupabaseAuthPanel() {
       return;
     }
 
-    if (!email.trim() || password.length < 6) {
-      setMessage("ایمیل معتبر و رمز حداقل ۶ کاراکتری وارد کن.");
+    const normalizedPhone = cleanPhone(phone);
+    const normalizedUsername = cleanUsername(username);
+    const optionalEmail = secondaryEmail.trim();
+
+    if (!normalizedPhone || password.length < 6) {
+      setMessage("شماره موبایل و رمز حداقل ۶ کاراکتری وارد کن.");
+      return;
+    }
+
+    if (mode === "sign-up" && normalizedUsername.length < 3) {
+      setMessage("نام کاربری انتخابی باید حداقل ۳ کاراکتر باشد.");
       return;
     }
 
@@ -84,14 +107,19 @@ export function SupabaseAuthPanel() {
       const result =
         mode === "sign-up"
           ? await client.auth.signUp({
-              email: email.trim(),
+              phone: normalizedPhone,
               password,
               options: {
-                emailRedirectTo: `${window.location.origin}/profile`,
+                data: {
+                  username: normalizedUsername,
+                  phone: normalizedPhone,
+                  secondary_email: optionalEmail || null,
+                  auth_model: "username_phone_password",
+                },
               },
             })
           : await client.auth.signInWithPassword({
-              email: email.trim(),
+              phone: normalizedPhone,
               password,
             });
 
@@ -103,7 +131,7 @@ export function SupabaseAuthPanel() {
       setSession(mapSupabaseSessionToHalleusSession(result.data.session ?? null));
       setMessage(
         mode === "sign-up"
-          ? "ثبت‌نام انجام شد. اگر تأیید ایمیل در Supabase فعال باشد، ایمیل را بررسی کن."
+          ? "ثبت‌نام انجام شد. اگر تأیید موبایل در Supabase فعال باشد، کد یا پیامک را بررسی کن."
           : "ورود انجام شد.",
       );
     } finally {
@@ -138,13 +166,12 @@ export function SupabaseAuthPanel() {
 
   return (
     <section className="card">
-      <span className="badge">Supabase Login</span>
+      <span className="badge">Username + Mobile Auth</span>
 
-      <h2>ورود واقعی با ایمیل و رمز</h2>
+      <h2>حساب با نام کاربری، موبایل و رمز</h2>
 
       <p>
-        این بخش login واقعی Supabase را به‌صورت guard شده نگه می‌دارد. از v0.1.184
-        ذخیره گزارش روی account فقط با session معتبر، storage flag و env کامل فعال می‌شود.
+        مدل حساب هالیوس از این نسخه email-as-username نیست. نام کاربری را خود کاربر انتخاب می‌کند؛ موبایل برای ارتباط و ورود guard شده جمع‌آوری می‌شود و یوزرنیم نیست.
       </p>
 
       <p className="file-hint">
@@ -169,8 +196,8 @@ export function SupabaseAuthPanel() {
           </div>
 
           <div>
-            <strong>حفاظت داده</strong>
-            <span>تا قبل از migration واقعی، گزارش‌ها همچنان local-preview می‌مانند.</span>
+            <strong>مدل شناسه</strong>
+            <span>نام کاربری انتخابی برای نمایش است؛ موبایل یوزرنیم نیست و ایمیل اختیاری/ثانویه می‌ماند.</span>
           </div>
         </div>
       ) : null}
@@ -183,7 +210,7 @@ export function SupabaseAuthPanel() {
           </div>
 
           <div>
-            <strong>ایمیل</strong>
+            <strong>نام کاربری</strong>
             <span>{formatUserLabel(session)}</span>
           </div>
 
@@ -205,18 +232,48 @@ export function SupabaseAuthPanel() {
 
       {config.canUseRealSupabaseLogin && isReady && !session ? (
         <form className="form-grid" onSubmit={handleSubmit}>
+          {mode === "sign-up" ? (
+            <label className="field">
+              <span>نام کاربری</span>
+              <input
+                autoComplete="username"
+                dir="ltr"
+                minLength={3}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="halleus-name"
+                type="text"
+                value={username}
+              />
+            </label>
+          ) : null}
+
           <label className="field">
-            <span>ایمیل</span>
+            <span>شماره موبایل</span>
             <input
-              autoComplete="email"
+              autoComplete="tel"
               dir="ltr"
-              inputMode="email"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              type="email"
-              value={email}
+              inputMode="tel"
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="+989121234567"
+              type="tel"
+              value={phone}
             />
           </label>
+
+          {mode === "sign-up" ? (
+            <label className="field">
+              <span>ایمیل اختیاری</span>
+              <input
+                autoComplete="email"
+                dir="ltr"
+                inputMode="email"
+                onChange={(event) => setSecondaryEmail(event.target.value)}
+                placeholder="برای ارتباط یا رسید، اختیاری"
+                type="email"
+                value={secondaryEmail}
+              />
+            </label>
+          ) : null}
 
           <label className="field">
             <span>رمز عبور</span>
@@ -230,6 +287,10 @@ export function SupabaseAuthPanel() {
               value={password}
             />
           </label>
+
+          <p className="file-hint">
+            موبایل برای ورود/ارتباط استفاده می‌شود، اما نام کاربری همان شناسه انتخابی کاربر است؛ ایمیل یوزرنیم نیست.
+          </p>
 
           <div className="actions">
             <button

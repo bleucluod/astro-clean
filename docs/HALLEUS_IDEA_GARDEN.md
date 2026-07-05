@@ -1212,3 +1212,12 @@ Not now:
 - No public/indexable reports.
 - No SEO launch.
 - No payment gating.
+
+## Seed update — username-first account identity
+
+- Status: touched / near-term account foundation.
+- Decision: account signup should ask for a user-chosen username and a mobile phone number.
+- mobile-required: collect phone numbers from the beginning for customer/contact value.
+- Guardrail: mobile is not the username, and email is optional/secondary rather than the user-facing identifier.
+- Near-term path: keep account report save/read private/noindex and continue UI work before migration.
+- Migration note: local-to-account migration is deferred because Halleus has not had real users yet.
