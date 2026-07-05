@@ -120,4 +120,94 @@ for (const filePath of ["app/globals.css", "components/RealChartWheel.tsx"]) {
     }
   }
 }
+
+const targetedPaletteRepairTokens = [
+  "#2F4052",
+  "#52657A",
+  "#EEF6FF",
+  "#E5F0FB",
+  "#AEBBCC",
+  "#7F8C9B",
+  "#6F7D8C",
+];
+
+for (const token of targetedPaletteRepairTokens) {
+  assertIncludes(css, token, "Targeted Palette Repair v0.1.200a token");
+}
+
+assertIncludes(css, "Halleus Targeted Palette Repair v0.1.200a", "targeted palette repair marker");
+assertIncludes(css, ".date-mode-button.is-active", "visible date toggle active state");
+assertIncludes(css, ".time-unknown-button.is-active", "visible time unknown active state");
+assertIncludes(css, ".report-product-hero", "light report hero repair");
+assertIncludes(css, ".chart-form-card", "chart form contrast repair");
+
+const noBcccdcTextColor = /(^|[{\s;])color\s*:\s*#BCCCDC\b/i;
+if (noBcccdcTextColor.test(css)) {
+  throw new Error("Targeted Palette Repair v0.1.200a should not use #BCCCDC as a text color.");
+}
+
+[
+  "background: #BCCCDC",
+  "text-[#BCCCDC]",
+  "#efe7ff",
+  "#f4eefb",
+  "rgba(91, 43, 191",
+  "rgba(124, 58, 237",
+  "rgba(167, 139, 250"
+].forEach((token) => assertNotIncludes(css.toLowerCase(), token.toLowerCase(), "targeted palette repair"));
+
+assertIncludes(css, "Halleus v0.1.200a final tint cleanup", "final tint cleanup marker");
+
+[
+  "#fff9f2",
+  "#fbf8ff",
+  "#faf7ff",
+  "#f3edff",
+  "#7b6d92",
+  "#5f5277",
+  "#9a6b45",
+  "rgba(250, 247, 255",
+  "rgba(249, 245, 255",
+  "rgba(248, 245, 255",
+  "rgba(244, 238, 251",
+  "rgba(91, 70, 137",
+  "rgb(91, 70, 137",
+  "rgba(21, 23, 43",
+  "rgba(41, 31, 68",
+  "rgba(73, 50, 98"
+].forEach((token) => assertNotIncludes(css.toLowerCase(), token.toLowerCase(), "final tint cleanup"));
+
+const noLegacyBcccdcBackgroundClassInSource = /bg-\[#BCCCDC\]/i;
+const sourceFilesForBcccdcBackgroundGuard = [
+  "app/page.tsx",
+  "app/chart/page.tsx",
+  "app/reports/page.tsx",
+  "components/AppShell.tsx",
+  "components/ChartForm.tsx",
+  "components/ChartReportBridgePanel.tsx",
+  "components/ReportDetail.tsx",
+  "components/RealChartWheel.tsx",
+];
+
+for (const filePath of sourceFilesForBcccdcBackgroundGuard) {
+  const source = read(filePath);
+  if (noLegacyBcccdcBackgroundClassInSource.test(source)) {
+    throw new Error(`Source file should not use bg-[#BCCCDC] as a surface: ${filePath}`);
+  }
+}
+
+assertIncludes(css, "Halleus v0.1.200a homepage card and wheel visibility polish", "homepage card and wheel visibility polish marker");
+assertIncludes(css, ".home-kpi-row small", "homepage kpi subtitle visibility");
+assertIncludes(css, ".back-to-top-button", "back to top cool color repair");
+assertIncludes(css, 'text[class*="fill-[#F8FAFC]"]', "chart wheel planet label visibility");
+
+[
+  "#166534",
+  "#1f7a4c",
+  "#dcfce7",
+  "#f0fff7",
+  "rgba(22, 101, 52",
+  "rgba(22, 163, 74",
+  "rgba(240, 253, 244"
+].forEach((token) => assertNotIncludes(css.toLowerCase(), token.toLowerCase(), "homepage/card/wheel visual polish"));
 console.log("Official cool palette check passed.");

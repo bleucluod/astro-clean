@@ -126,13 +126,13 @@ function BridgeList({
       <p>{description}</p>
 
       {items.length > 0 ? (
-        <ul className="mt-3 space-y-2 text-sm leading-7 text-[#6B5A4C]">
+        <ul className="mt-3 space-y-2 text-sm leading-7 text-[#3A4A5C]">
           {items.map((item) => (
             <li key={item}>• {item}</li>
           ))}
         </ul>
       ) : (
-        <p className="mt-3 text-sm leading-7 text-[#8A7767]">
+        <p className="mt-3 text-sm leading-7 text-[#52657A]">
           هنوز داده‌ای برای این بخش ذخیره نشده.
         </p>
       )}
