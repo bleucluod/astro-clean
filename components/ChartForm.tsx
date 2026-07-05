@@ -410,6 +410,32 @@ export function ChartForm() {
         </div>
       </section>
 
+      <section className="card" aria-labelledby="beta-readiness-smoke-title">
+        <span className="badge">Beta readiness smoke</span>
+        <h2 id="beta-readiness-smoke-title">مسیر تست بتا قبل از ساخت گزارش</h2>
+        <p>
+          این نسخه برای تست محدود آماده می‌شود: گزارش بساز، صفحه جزئیات را
+          بخوان، اگر وارد حساب هستی ذخیره account را چک کن و در پایان از
+          dashboard یا reports دوباره برگرد.
+        </p>
+
+        <div className="home-step-list" data-check="BETA_READINESS_SMOKE">
+          <div>
+            <strong>۱. ساخت</strong>
+            <span>از همین فرم گزارش را بساز؛ اگر محاسبه real chart کامل نشد، fallback امن هنوز گزارش را باز می‌کند.</span>
+          </div>
+
+          <div>
+            <strong>۲. خواندن</strong>
+            <span>صفحه جزئیات باید نقشه سریع خواندن، سه چراغ اعتماد و یادداشت قابل برگشت را نشان بدهد.</span>
+          </div>
+
+          <div>
+            <strong>۳. برگشت</strong>
+            <span>بعد از خواندن، برگشت به dashboard، local reports و account reports باید واضح باشد.</span>
+          </div>
+        </div>
+      </section>
       <form className="card form chart-form-card" onSubmit={handleSubmit}>
         <div className="chart-form-header">
           <div>
@@ -599,7 +625,7 @@ export function ChartForm() {
 
         <div className="actions chart-form-actions">
           <button className="button" type="submit" disabled={isRealEngineLoading}>
-            {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت و باز کردن گزارش"}
+            {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت، ذخیره و باز کردن گزارش"}
           </button>
 
           <Link className="button secondary" href="/reports">

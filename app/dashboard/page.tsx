@@ -139,6 +139,33 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <section className="card account-ready-lifecycle-card" aria-labelledby="beta-readiness-dashboard-title">
+        <span className="badge">Beta readiness</span>
+
+        <h2 id="beta-readiness-dashboard-title">چک‌لیست مسیر بتا</h2>
+
+        <p>
+          قبل از deploy smoke، مسیر local باید مثل یک کاربر واقعی دیده شود:
+          ورود، ساخت گزارش، خواندن جزئیات، ذخیره حساب و برگشت به گزارش‌ها.
+        </p>
+
+        <div className="home-step-list" data-check="BETA_READINESS_DASHBOARD">
+          <div>
+            <strong>۱. Local smoke</strong>
+            <span>از /chart گزارش بساز و مطمئن شو صفحه جزئیات باز می‌شود.</span>
+          </div>
+
+          <div>
+            <strong>۲. Account smoke</strong>
+            <span>اگر وارد حساب هستی، نسخه account را در /reports?source=account ببین.</span>
+          </div>
+
+          <div>
+            <strong>۳. Deploy smoke</strong>
+            <span>بعد از local pass، فقط اتصال نسخه deployed را چک کن؛ این مرحله feature جدید یا SEO نیست.</span>
+          </div>
+        </div>
+      </section>
       <section className="card account-ready-lifecycle-card">
         <span className="badge">از مرورگر تا اکانت</span>
 

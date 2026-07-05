@@ -87,7 +87,8 @@
     "check:username-password-account-bridge": "node scripts/check-username-password-account-bridge.mjs",
     "check:supabase-browser-env-config": "node scripts/check-supabase-browser-env-config.mjs",
     "check:report-depth-first-synthesis": "node scripts/check-report-depth-first-synthesis.mjs",
-    "check:report-detail-ux-trust-qa": "node scripts/check-report-detail-ux-trust-qa.mjs"
+    "check:report-detail-ux-trust-qa": "node scripts/check-report-detail-ux-trust-qa.mjs",
+    "check:beta-readiness-smoke": "node scripts/check-beta-readiness-smoke.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
