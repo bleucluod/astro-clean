@@ -22,6 +22,7 @@ export type AccountIdentityValidationResult =
 
 const USERNAME_PATTERN = /^[a-z0-9][a-z0-9_-]{2,31}$/;
 const E164_PHONE_PATTERN = /^\+[1-9]\d{7,14}$/;
+const USERNAME_BRIDGE_EMAIL_DOMAIN = "auth.halleus.example";
 
 export function normalizeAccountUsername(value: string) {
   return value
@@ -47,6 +48,30 @@ export function isValidAccountPhone(value: string) {
   return E164_PHONE_PATTERN.test(normalizeAccountPhone(value));
 }
 
+export function createSupabaseUsernameBridgeEmail(username: string) {
+  const normalizedUsername = normalizeAccountUsername(username);
+
+  return `${normalizedUsername}@${USERNAME_BRIDGE_EMAIL_DOMAIN}`;
+}
+
+export function isSupabaseUsernameBridgeEmail(value: string | undefined | null) {
+  return Boolean(
+    value?.toLowerCase().endsWith(`@${USERNAME_BRIDGE_EMAIL_DOMAIN}`),
+  );
+}
+
+export function extractUsernameFromSupabaseBridgeEmail(
+  value: string | undefined | null,
+) {
+  if (!isSupabaseUsernameBridgeEmail(value)) {
+    return undefined;
+  }
+
+  const [username] = value?.split("@") ?? [];
+
+  return username || undefined;
+}
+
 export function validateAccountIdentityInput({
   mode,
   username,
@@ -56,7 +81,17 @@ export function validateAccountIdentityInput({
   const normalizedUsername = normalizeAccountUsername(username);
   const normalizedPhone = normalizeAccountPhone(phone);
 
-  if (!isValidAccountPhone(normalizedPhone)) {
+  if (!isValidAccountUsername(normalizedUsername)) {
+    return {
+      ok: false,
+      normalizedUsername,
+      normalizedPhone,
+      message:
+        "نام کاربری باید ۳ تا ۳۲ کاراکتر انگلیسی/عددی باشد و می‌تواند خط تیره یا زیرخط داشته باشد.",
+    };
+  }
+
+  if (mode === "sign-up" && !isValidAccountPhone(normalizedPhone)) {
     return {
       ok: false,
       normalizedUsername,
@@ -74,15 +109,6 @@ export function validateAccountIdentityInput({
     };
   }
 
-  if (mode === "sign-up" && !isValidAccountUsername(normalizedUsername)) {
-    return {
-      ok: false,
-      normalizedUsername,
-      normalizedPhone,
-      message: "نام کاربری باید ۳ تا ۳۲ کاراکتر انگلیسی/عددی باشد و می‌تواند خط تیره یا زیرخط داشته باشد.",
-    };
-  }
-
   return {
     ok: true,
     normalizedUsername,
@@ -94,6 +120,8 @@ export const accountIdentityRules = {
   usernameRule:
     "Username is user-chosen and must not be derived from mobile or email.",
   phoneRule:
-    "Mobile phone is collected in E.164 format for customer/contact/auth data, but it is not the username.",
+    "Mobile phone is collected in E.164 format for customer/contact data, but it is not the username.",
   emailRule: "Email is optional/secondary and must not become the username.",
+  supabaseBridgeRule:
+    "Supabase Auth uses a deterministic private bridge email derived from username only; this credential is not the user's email.",
 };

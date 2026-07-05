@@ -1,5 +1,9 @@
-﻿import type { Session } from "@supabase/supabase-js";
+import type { Session } from "@supabase/supabase-js";
 import type { AuthSession, UserProfile } from "@/types/account";
+import {
+  extractUsernameFromSupabaseBridgeEmail,
+  isSupabaseUsernameBridgeEmail,
+} from "./account-identity-normalization";
 
 function getStringMetadataValue(metadata: Record<string, unknown> | undefined, key: string) {
   const value = metadata?.[key];
@@ -17,14 +21,20 @@ export function mapSupabaseSessionToHalleusSession(
   }
 
   const metadata = user.user_metadata as Record<string, unknown> | undefined;
-  const username = getStringMetadataValue(metadata, "username");
+  const username =
+    getStringMetadataValue(metadata, "username") ??
+    extractUsernameFromSupabaseBridgeEmail(user.email);
   const secondaryEmail = getStringMetadataValue(metadata, "secondary_email");
+  const mobilePhone =
+    getStringMetadataValue(metadata, "mobile_phone") ??
+    getStringMetadataValue(metadata, "phone");
+  const isBridgeEmail = isSupabaseUsernameBridgeEmail(user.email);
   const timestamp = user.created_at || new Date().toISOString();
   const profile: UserProfile = {
     id: user.id,
-    email: user.email ?? secondaryEmail,
+    email: secondaryEmail ?? (isBridgeEmail ? undefined : user.email),
     displayName: username,
-    provider: user.phone ? "phone" : "email",
+    provider: mobilePhone ? "phone" : "email",
     status: "active",
     plan: "personal",
     createdAt: timestamp,
@@ -34,6 +44,6 @@ export function mapSupabaseSessionToHalleusSession(
   return {
     user: profile,
     isAuthenticated: true,
-    source: user.phone ? "phone" : "email",
+    source: mobilePhone ? "phone" : "email",
   };
 }

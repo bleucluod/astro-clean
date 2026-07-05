@@ -1258,3 +1258,24 @@ Status: touched
 - Use the approved sun-gold Halleus logo/favicon package as the current site brand asset source.
 - The brand mark should support the Persian-first product identity without changing the core roadmap.
 - Logo/favicon batches are brand polish only and must not interrupt the near account path: username/password account bridge, real smoke tests, then report-depth improvements.
+
+## v0.1.192 Idea Garden update — username/password account bridge
+
+Decision:
+- Keep the product-facing account model username-first.
+- Signup should collect username + mobile + password.
+- Login should use username + password.
+- Mobile is required customer/contact data at signup, but it must not become the username or the login identifier.
+- Email remains optional/secondary.
+
+Implementation note:
+- Supabase Auth can be bridged internally with a deterministic private credential derived from username, but that credential is not the user's email and should not appear in UI.
+- Account reports remain private/noindex with local-preview fallback.
+
+Not now:
+- No local-to-account migration execution.
+- No deletion of browser-local reports.
+- No public/indexable reports.
+- No SEO launch.
+- No payment or hosting work.
+- No report engine/report-depth work in this batch.

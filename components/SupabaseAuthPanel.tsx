@@ -6,7 +6,10 @@ import { getSupabaseBrowserAuthClient, getSupabaseBrowserLoginConfig } from "@/l
 import { getAccountReportSaveClientConfig } from "@/lib/storage/account-report-save-client";
 import { getAccountReportReadClientConfig } from "@/lib/storage/account-report-read-client";
 import { mapSupabaseSessionToHalleusSession } from "@/lib/auth/supabase-session-mapper";
-import { validateAccountIdentityInput } from "@/lib/auth/account-identity-normalization";
+import {
+  createSupabaseUsernameBridgeEmail,
+  validateAccountIdentityInput,
+} from "@/lib/auth/account-identity-normalization";
 import type { AuthSession } from "@/types/account";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -104,6 +107,7 @@ export function SupabaseAuthPanel() {
 
     const normalizedPhone = identity.normalizedPhone;
     const normalizedUsername = identity.normalizedUsername;
+    const bridgeEmail = createSupabaseUsernameBridgeEmail(normalizedUsername);
 
     setIsBusy(true);
     setMessage("");
@@ -112,7 +116,7 @@ export function SupabaseAuthPanel() {
       const result =
         mode === "sign-up"
           ? await client.auth.signUp({
-              phone: normalizedPhone,
+              email: bridgeEmail,
               password,
               options: {
                 data: {
@@ -120,14 +124,16 @@ export function SupabaseAuthPanel() {
                   phone: normalizedPhone,
                   mobile_phone: normalizedPhone,
                   secondary_email: optionalEmail || null,
-                  auth_model: "username_phone_password",
+                  auth_model: "username_password_bridge",
+                  bridge_credential_kind: "private_username_email",
                   username_is_user_chosen: true,
                   phone_is_not_username: true,
+                  email_is_secondary: true,
                 },
               },
             })
           : await client.auth.signInWithPassword({
-              phone: normalizedPhone,
+              email: bridgeEmail,
               password,
             });
 
@@ -141,8 +147,8 @@ export function SupabaseAuthPanel() {
         mode === "sign-up"
           ? result.data.session
             ? "ثبت‌نام و ورود انجام شد؛ حالا یک گزارش تست بساز و account save را بررسی کن."
-            : "ثبت‌نام ثبت شد؛ اگر پروژه Supabase phone confirmation می‌خواهد، کد تأیید موبایل را کامل کن و بعد وارد شو."
-          : "ورود انجام شد؛ حالا یک گزارش تست بساز و account save را بررسی کن.",
+            : "ثبت‌نام ثبت شد؛ اگر Email confirmation در Supabase روشن باشد، برای تست این پل username/password باید آن را در محیط تست خاموش کنی."
+          : "ورود با نام کاربری و رمز انجام شد؛ حالا یک گزارش تست بساز و account save را بررسی کن.",
       );
     } finally {
       setIsBusy(false);
@@ -176,23 +182,23 @@ export function SupabaseAuthPanel() {
 
   return (
     <section className="card">
-      <span className="badge">Username + Mobile Auth</span>
+      <span className="badge">Username Password Account Bridge</span>
 
-      <h2>حساب با نام کاربری، موبایل و رمز</h2>
+      <h2>ورود با نام کاربری و رمز</h2>
 
       <p>
-        مدل حساب هالیوس از این نسخه email-as-username نیست. نام کاربری را خود کاربر انتخاب می‌کند؛ موبایل برای ارتباط و ورود guard شده جمع‌آوری می‌شود و یوزرنیم نیست.
+        مدل حساب هالیوس از این نسخه با نام کاربری انتخابی و رمز وارد می‌شود. موبایل هنگام ثبت‌نام جمع‌آوری می‌شود، اما یوزرنیم نیست؛ ایمیل هم فقط secondary/optional می‌ماند.
       </p>
 
       <p className="file-hint">
-        مسیر v0.1.184: account report save path guard شده است؛ گزارش‌ها private/noindex می‌مانند و migration واقعی هنوز خاموش است.
+        Supabase Auth پشت‌صحنه با یک credential خصوصی ساخته‌شده از username کار می‌کند؛ این credential ایمیل واقعی کاربر نیست و در UI نمایش داده نمی‌شود.
       </p>
 
       <div className="home-step-list" aria-label="Real Supabase Account Flow Test">
         <div>
           <strong>Real Supabase Account Flow Test</strong>
           <span>
-            مسیر تست: signup با نام کاربری + موبایل → login → ساخت گزارش → account save → دیدن در /reports?source=account.
+            مسیر تست: signup با نام کاربری + موبایل + رمز → logout → login با نام کاربری + رمز → ساخت گزارش → account save → دیدن در /reports?source=account.
           </span>
         </div>
 
@@ -214,7 +220,7 @@ export function SupabaseAuthPanel() {
 
         <div>
           <strong>شناسه کاربر</strong>
-          <span>username انتخابی کاربر است؛ موبایل جمع‌آوری می‌شود اما username نیست؛ email فقط secondary/optional است.</span>
+          <span>username انتخابی کاربر است؛ login با username/password انجام می‌شود؛ موبایل جمع‌آوری می‌شود اما username نیست.</span>
         </div>
       </div>
 
@@ -247,7 +253,7 @@ export function SupabaseAuthPanel() {
 
           <div>
             <strong>مدل شناسه</strong>
-            <span>نام کاربری انتخابی برای نمایش است؛ موبایل یوزرنیم نیست و ایمیل اختیاری/ثانویه می‌ماند.</span>
+            <span>نام کاربری انتخابی برای login است؛ موبایل یوزرنیم نیست و ایمیل اختیاری/ثانویه می‌ماند.</span>
           </div>
         </div>
       ) : null}
@@ -296,34 +302,34 @@ export function SupabaseAuthPanel() {
 
       {config.canUseRealSupabaseLogin && isReady && !session ? (
         <form className="form-grid" onSubmit={handleSubmit}>
+          <label className="field">
+            <span>نام کاربری</span>
+            <input
+              autoComplete="username"
+              dir="ltr"
+              minLength={3}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="halleus-name"
+              type="text"
+              value={username}
+            />
+          </label>
+
           {mode === "sign-up" ? (
             <label className="field">
-              <span>نام کاربری</span>
+              <span>شماره موبایل</span>
               <input
-                autoComplete="username"
+                autoComplete="tel"
                 dir="ltr"
-                minLength={3}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="halleus-name"
-                type="text"
-                value={username}
+                inputMode="tel"
+                onChange={(event) => setPhone(event.target.value)}
+                placeholder="+989121234567"
+                title="شماره موبایل را با فرمت E.164 مثل +989121234567 وارد کن."
+                type="tel"
+                value={phone}
               />
             </label>
           ) : null}
-
-          <label className="field">
-            <span>شماره موبایل</span>
-            <input
-              autoComplete="tel"
-              dir="ltr"
-              inputMode="tel"
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="+989121234567"
-              title="شماره موبایل را با فرمت E.164 مثل +989121234567 وارد کن."
-              type="tel"
-              value={phone}
-            />
-          </label>
 
           {mode === "sign-up" ? (
             <label className="field">
@@ -354,7 +360,7 @@ export function SupabaseAuthPanel() {
           </label>
 
           <p className="file-hint">
-            موبایل با فرمت E.164 مثل +989121234567 برای ورود/ارتباط استفاده می‌شود، اما نام کاربری همان شناسه انتخابی کاربر است؛ ایمیل یوزرنیم نیست.
+            در ورود فقط نام کاربری و رمز لازم است. موبایل هنگام ثبت‌نام با فرمت E.164 مثل +989121234567 گرفته می‌شود، اما username نیست.
           </p>
 
           <div className="actions">

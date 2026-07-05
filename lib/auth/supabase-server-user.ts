@@ -1,6 +1,10 @@
 import { createClient, type User } from "@supabase/supabase-js";
 
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
+import {
+  extractUsernameFromSupabaseBridgeEmail,
+  isSupabaseUsernameBridgeEmail,
+} from "./account-identity-normalization";
 
 export type VerifiedSupabaseAccountUser = {
   id: string;
@@ -22,25 +26,52 @@ function readBearerToken(authorizationHeader: string | null) {
   return token || null;
 }
 
+function getStringMetadataValue(metadata: Record<string, unknown> | undefined, key: string) {
+  const value = metadata?.[key];
+
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 function getUserDisplayName(user: User) {
-  const metadata = user.user_metadata;
-  const username = metadata?.username;
-  const fullName = metadata?.full_name;
-  const name = metadata?.name;
+  const metadata = user.user_metadata as Record<string, unknown> | undefined;
+  const username = getStringMetadataValue(metadata, "username");
+  const fullName = getStringMetadataValue(metadata, "full_name");
+  const name = getStringMetadataValue(metadata, "name");
 
-  if (typeof username === "string" && username.trim()) {
-    return username.trim();
+  if (username) {
+    return username;
   }
 
-  if (typeof fullName === "string" && fullName.trim()) {
-    return fullName.trim();
+  if (fullName) {
+    return fullName;
   }
 
-  if (typeof name === "string" && name.trim()) {
-    return name.trim();
+  if (name) {
+    return name;
   }
 
-  return undefined;
+  return extractUsernameFromSupabaseBridgeEmail(user.email);
+}
+
+function getUserAccountEmail(user: User) {
+  const metadata = user.user_metadata as Record<string, unknown> | undefined;
+  const secondaryEmail = getStringMetadataValue(metadata, "secondary_email");
+
+  if (secondaryEmail) {
+    return secondaryEmail;
+  }
+
+  return isSupabaseUsernameBridgeEmail(user.email) ? undefined : user.email;
+}
+
+function getUserAccountPhone(user: User) {
+  const metadata = user.user_metadata as Record<string, unknown> | undefined;
+
+  return (
+    user.phone ??
+    getStringMetadataValue(metadata, "mobile_phone") ??
+    getStringMetadataValue(metadata, "phone")
+  );
 }
 
 export async function getSupabaseUserFromAuthorizationHeader(
@@ -71,11 +102,13 @@ export async function getSupabaseUserFromAuthorizationHeader(
     throw new Error(error?.message ?? "Supabase user token could not be verified.");
   }
 
+  const phone = getUserAccountPhone(data.user);
+
   return {
     id: data.user.id,
-    email: data.user.email,
-    phone: data.user.phone,
+    email: getUserAccountEmail(data.user),
+    phone,
     displayName: getUserDisplayName(data.user),
-    provider: data.user.phone ? "phone" : "email",
+    provider: phone ? "phone" : "email",
   };
 }

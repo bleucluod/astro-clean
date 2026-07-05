@@ -1202,3 +1202,21 @@ Failure prevention:
 - Do not rely on brittle AppShell marker patches without inspecting the current live file.
 - Keep apply artifacts to a single `.ps1` runner and embed binary assets safely.
 - Do not include source-like files at the artifact ZIP root.
+
+## v0.1.192 Username Password Account Bridge
+
+- Account login now targets username + password instead of mobile + password.
+- Signup keeps username + mobile + password, with optional/secondary email.
+- Supabase Auth is bridged behind the scenes with a deterministic private credential derived from username; this bridge credential is not the user's email and is not shown in UI.
+- Mobile remains required at signup for customer/contact data, but it is not the username and not the login identifier.
+- Browser and server session mapping hide the private bridge credential and preserve the user-facing username/secondary email semantics.
+- Account save/read UI remains private/noindex with local-preview fallback.
+- No local-to-account migration, no local deletion, no public/indexable reports, no SEO, no payment, no hosting, and no report engine work.
+
+Failure prevention:
+- Do not implement username login by making phone the username.
+- Do not expose or persist the private Supabase bridge credential as the user's real email.
+- Keep Supabase email confirmation disabled in the test project if using the private username bridge credential for manual smoke tests.Workflow failure ledger:
+- Initial v0.1.192 assistant artifact was incorrectly provided as a loose .ps1 and failed PowerShell parsing around an inline doc here-string before touching tracked files.
+- Fix: use v0.1.192a as a ZIP artifact whose root contains only the runner .ps1; keep the PowerShell wrapper parse-safe and move patch payload execution into a generated temp Node script outside the repo.
+- Prevention: Halleus apply artifacts must be ZIP-only, syntax-safe before handoff, and must not rely on inline PowerShell here-strings for long docs/content.

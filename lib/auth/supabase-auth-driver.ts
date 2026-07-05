@@ -1,5 +1,9 @@
 import { getPreviewSession } from "@/lib/account/preview-session";
 import type { AuthDriver, AuthSignInResult } from "@/types/auth";
+import {
+  createSupabaseUsernameBridgeEmail,
+  validateAccountIdentityInput,
+} from "./account-identity-normalization";
 import { getSupabaseBrowserAuthClient } from "./supabase-browser-client";
 import { mapSupabaseSessionToHalleusSession } from "./supabase-session-mapper";
 
@@ -49,19 +53,21 @@ export function createSupabaseAuthDriver(): AuthDriver {
         );
       }
 
-      if (!request.password || (!request.phone && !request.email)) {
-        return unavailable("Phone or secondary email and password are required.", request.redirectTo);
+      const identity = validateAccountIdentityInput({
+        mode: "sign-in",
+        username: request.username ?? "",
+        phone: "",
+        password: request.password ?? "",
+      });
+
+      if (!identity.ok) {
+        return unavailable(identity.message, request.redirectTo);
       }
 
-      const { error } = request.phone
-        ? await client.auth.signInWithPassword({
-            phone: request.phone,
-            password: request.password,
-          })
-        : await client.auth.signInWithPassword({
-            email: request.email ?? "",
-            password: request.password,
-          });
+      const { error } = await client.auth.signInWithPassword({
+        email: createSupabaseUsernameBridgeEmail(identity.normalizedUsername),
+        password: request.password ?? "",
+      });
 
       if (error) {
         return unavailable(error.message, request.redirectTo);
@@ -69,7 +75,7 @@ export function createSupabaseAuthDriver(): AuthDriver {
 
       return {
         ok: true,
-        message: "Supabase login succeeded.",
+        message: "Supabase username/password login succeeded.",
         redirectTo: request.redirectTo,
       };
     },
