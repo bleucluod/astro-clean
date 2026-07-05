@@ -1246,3 +1246,7 @@ Decision: account report list/read UI should come before any local migration wor
 - Dashboard/profile should explain the real-account test path without starting migration work.
 - Username remains user-chosen; mobile is collected but is not the username.
 - Continue to keep account reports private/noindex and defer public SEO report surfaces.
+
+## v0.1.190 real account flow lock
+
+Decision: lock the near-term account model as username + mobile + password, where username is user-chosen, mobile is required customer/contact/auth data in E.164 format, and email remains optional/secondary. Mobile must not become the username.

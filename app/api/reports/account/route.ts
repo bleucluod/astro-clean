@@ -137,6 +137,7 @@ export async function POST(request: Request) {
       userId: user.id,
       email: user.email,
       displayName: user.displayName,
+      provider: user.provider,
     });
 
     const reportRecord = await saveServerGeneratedReport({

@@ -5,6 +5,7 @@ export type EnsureAccountPersistenceUserInput = {
   userId: string;
   email?: string;
   displayName?: string;
+  provider?: "email" | "phone";
 };
 
 function normalizeRequiredValue(value: string, label: string) {
@@ -28,11 +29,13 @@ export async function ensureAccountPersistenceUser({
   userId,
   email,
   displayName,
+  provider = "email",
 }: EnsureAccountPersistenceUserInput) {
   const normalizedDatabaseUrl = normalizeRequiredValue(databaseUrl, "databaseUrl");
   const normalizedUserId = normalizeRequiredValue(userId, "userId");
   const normalizedEmail = normalizeOptionalValue(email);
   const normalizedDisplayName = normalizeOptionalValue(displayName);
+  const normalizedProvider = provider === "phone" ? "phone" : "email";
   const sql = postgres(normalizedDatabaseUrl, {
     max: 1,
     idle_timeout: 5,
@@ -56,7 +59,7 @@ export async function ensureAccountPersistenceUser({
         ${normalizedUserId},
         ${normalizedEmail},
         ${normalizedDisplayName},
-        'email',
+        ${normalizedProvider},
         'active',
         'personal',
         now(),
@@ -65,7 +68,7 @@ export async function ensureAccountPersistenceUser({
       on conflict (id) do update set
         email = coalesce(excluded.email, halleus_users.email),
         display_name = coalesce(excluded.display_name, halleus_users.display_name),
-        provider = 'email',
+        provider = excluded.provider,
         status = 'active',
         updated_at = excluded.updated_at
     `;

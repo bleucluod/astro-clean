@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 
 const requiredFiles = [
   ".env.example",
@@ -115,7 +115,9 @@ for (const token of [
   "ensureAccountPersistenceUser",
   "insert into halleus_users",
   "on conflict (id) do update",
-  "'email'",
+  'provider?: "email" | "phone"',
+  'provider = "email"',
+  "normalizedProvider",
 ]) {
   mustContain(accountUser, token, "account persistence user");
 }

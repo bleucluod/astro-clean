@@ -80,7 +80,8 @@
     "check:mean-lunar-nodes": "node scripts/check-mean-lunar-nodes.mjs",
     "check:username-phone-auth-shell": "node scripts/check-username-phone-auth-shell.mjs",
     "check:real-account-flow-readiness": "node scripts/check-real-account-flow-readiness.mjs",
-    "check:dashboard-profile-polish": "node scripts/check-dashboard-profile-polish.mjs"
+    "check:dashboard-profile-polish": "node scripts/check-dashboard-profile-polish.mjs",
+    "check:real-account-flow-lock": "node scripts/check-real-account-flow-lock.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

@@ -6,6 +6,7 @@ import { getSupabaseBrowserAuthClient, getSupabaseBrowserLoginConfig } from "@/l
 import { getAccountReportSaveClientConfig } from "@/lib/storage/account-report-save-client";
 import { getAccountReportReadClientConfig } from "@/lib/storage/account-report-read-client";
 import { mapSupabaseSessionToHalleusSession } from "@/lib/auth/supabase-session-mapper";
+import { validateAccountIdentityInput } from "@/lib/auth/account-identity-normalization";
 import type { AuthSession } from "@/types/account";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -14,17 +15,6 @@ function formatUserLabel(session: AuthSession | null) {
   return session?.user.displayName || session?.user.email || session?.user.id || "کاربر واردشده";
 }
 
-function cleanUsername(value: string) {
-  return value
-    .trim()
-    .replace(/^@+/, "")
-    .replace(/\s+/g, "-")
-    .toLowerCase();
-}
-
-function cleanPhone(value: string) {
-  return value.trim().replace(/[\s-]/g, "");
-}
 
 export function SupabaseAuthPanel() {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
@@ -99,19 +89,21 @@ export function SupabaseAuthPanel() {
       return;
     }
 
-    const normalizedPhone = cleanPhone(phone);
-    const normalizedUsername = cleanUsername(username);
+    const identity = validateAccountIdentityInput({
+      mode,
+      username,
+      phone,
+      password,
+    });
     const optionalEmail = secondaryEmail.trim();
 
-    if (!normalizedPhone || password.length < 6) {
-      setMessage("شماره موبایل و رمز حداقل ۶ کاراکتری وارد کن.");
+    if (!identity.ok) {
+      setMessage(identity.message);
       return;
     }
 
-    if (mode === "sign-up" && normalizedUsername.length < 3) {
-      setMessage("نام کاربری انتخابی باید حداقل ۳ کاراکتر باشد.");
-      return;
-    }
+    const normalizedPhone = identity.normalizedPhone;
+    const normalizedUsername = identity.normalizedUsername;
 
     setIsBusy(true);
     setMessage("");
@@ -126,8 +118,11 @@ export function SupabaseAuthPanel() {
                 data: {
                   username: normalizedUsername,
                   phone: normalizedPhone,
+                  mobile_phone: normalizedPhone,
                   secondary_email: optionalEmail || null,
                   auth_model: "username_phone_password",
+                  username_is_user_chosen: true,
+                  phone_is_not_username: true,
                 },
               },
             })
@@ -144,8 +139,10 @@ export function SupabaseAuthPanel() {
       setSession(mapSupabaseSessionToHalleusSession(result.data.session ?? null));
       setMessage(
         mode === "sign-up"
-          ? "ثبت‌نام انجام شد. اگر تأیید موبایل در Supabase فعال باشد، کد یا پیامک را بررسی کن."
-          : "ورود انجام شد.",
+          ? result.data.session
+            ? "ثبت‌نام و ورود انجام شد؛ حالا یک گزارش تست بساز و account save را بررسی کن."
+            : "ثبت‌نام ثبت شد؛ اگر پروژه Supabase phone confirmation می‌خواهد، کد تأیید موبایل را کامل کن و بعد وارد شو."
+          : "ورود انجام شد؛ حالا یک گزارش تست بساز و account save را بررسی کن.",
       );
     } finally {
       setIsBusy(false);
@@ -322,6 +319,7 @@ export function SupabaseAuthPanel() {
               inputMode="tel"
               onChange={(event) => setPhone(event.target.value)}
               placeholder="+989121234567"
+              title="شماره موبایل را با فرمت E.164 مثل +989121234567 وارد کن."
               type="tel"
               value={phone}
             />
@@ -356,7 +354,7 @@ export function SupabaseAuthPanel() {
           </label>
 
           <p className="file-hint">
-            موبایل برای ورود/ارتباط استفاده می‌شود، اما نام کاربری همان شناسه انتخابی کاربر است؛ ایمیل یوزرنیم نیست.
+            موبایل با فرمت E.164 مثل +989121234567 برای ورود/ارتباط استفاده می‌شود، اما نام کاربری همان شناسه انتخابی کاربر است؛ ایمیل یوزرنیم نیست.
           </p>
 
           <div className="actions">

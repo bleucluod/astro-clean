@@ -1181,3 +1181,11 @@ Failure/recovery note:
 - Account reports remain private/noindex.
 - Migration remains deferred; local reports are not deleted.
 - Public/indexable reports, SEO, payment, hosting, and engine work remain untouched.
+
+## v0.1.190 Real Account Flow Lock
+
+- Tightened the real account flow around username + mobile signup without making mobile the username.
+- Added shared account identity normalization for username and E.164 mobile validation.
+- Supabase signup metadata now records that username is user-chosen and phone is not the username.
+- Server account bootstrap now preserves phone provider semantics instead of forcing email provider for phone accounts.
+- Still no migration, local report deletion, public/indexable reports, SEO, payment, hosting, or engine work.

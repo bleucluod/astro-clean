@@ -5,7 +5,9 @@ import { getHalleusRuntimeEnv } from "@/lib/config/env";
 export type VerifiedSupabaseAccountUser = {
   id: string;
   email?: string;
+  phone?: string;
   displayName?: string;
+  provider: "email" | "phone";
 };
 
 function readBearerToken(authorizationHeader: string | null) {
@@ -72,6 +74,8 @@ export async function getSupabaseUserFromAuthorizationHeader(
   return {
     id: data.user.id,
     email: data.user.email,
+    phone: data.user.phone,
     displayName: getUserDisplayName(data.user),
+    provider: data.user.phone ? "phone" : "email",
   };
 }

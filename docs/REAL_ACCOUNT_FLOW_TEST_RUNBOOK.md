@@ -57,3 +57,13 @@ SUPABASE_SERVICE_ROLE_KEY=...
 - Open `/dashboard` and confirm the Account Flow Cockpit links to `/profile`, `/chart`, and `/reports?source=account`.
 - Sign in, create a report, save it, and return to `/reports?source=account`.
 - Confirm no migration action is offered as an active path.
+
+
+## v0.1.190 real account flow lock checklist
+
+- Confirm signup rejects a username shorter than 3 characters or a username outside the guarded handle pattern.
+- Confirm mobile entry uses E.164 format, for example `+989121234567`.
+- Confirm signup metadata includes `username`, `mobile_phone`, `username_is_user_chosen`, and `phone_is_not_username`.
+- Confirm Supabase confirmation-required signup shows a pending-confirmation message instead of pretending the user is signed in.
+- Confirm server account bootstrap stores the account provider as `phone` when Supabase returns a phone identity.
+- Confirm account reports remain private/noindex and local-preview fallback remains available.

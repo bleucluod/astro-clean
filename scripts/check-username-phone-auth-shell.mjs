@@ -5,6 +5,7 @@ const requiredFiles = [
   "lib/auth/supabase-auth-driver.ts",
   "lib/auth/supabase-session-mapper.ts",
   "lib/auth/supabase-server-user.ts",
+  "lib/auth/account-identity-normalization.ts",
   "types/auth.ts",
   "docs/HALLEUS_PROJECT_CONTEXT.md",
   "docs/HALLEUS_IDEA_GARDEN.md",
@@ -23,6 +24,7 @@ const authPanel = read("components/SupabaseAuthPanel.tsx");
 const authDriver = read("lib/auth/supabase-auth-driver.ts");
 const sessionMapper = read("lib/auth/supabase-session-mapper.ts");
 const serverUser = read("lib/auth/supabase-server-user.ts");
+const identityRules = read("lib/auth/account-identity-normalization.ts");
 const typesAuth = read("types/auth.ts");
 const docs = [
   read("docs/HALLEUS_PROJECT_CONTEXT.md"),
@@ -46,9 +48,10 @@ for (const token of [
   "username",
   "phone",
   "secondaryEmail",
-  "cleanUsername",
-  "cleanPhone",
+  "validateAccountIdentityInput",
+  "phone_is_not_username",
   "auth_model: \"username_phone_password\"",
+  "username_is_user_chosen",
   "client.auth.signUp",
   "phone: normalizedPhone",
   "client.auth.signInWithPassword",
@@ -61,6 +64,17 @@ for (const token of [
   "migration واقعی هنوز خاموش است",
 ]) {
   mustContain("SupabaseAuthPanel", authPanel, token);
+}
+
+
+
+for (const token of [
+  "normalizeAccountUsername",
+  "normalizeAccountPhone",
+  "validateAccountIdentityInput",
+  "E164_PHONE_PATTERN",
+]) {
+  mustContain("account identity normalization", identityRules, token);
 }
 
 for (const token of [
@@ -94,6 +108,8 @@ for (const token of [
 for (const token of [
   "metadata?.username",
   "displayName: getUserDisplayName",
+  "phone?: string",
+  "provider: data.user.phone ? \"phone\" : \"email\"",
 ]) {
   mustContain("server user", serverUser, token);
 }
