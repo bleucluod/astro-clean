@@ -38,10 +38,10 @@ const ANGLE_ORDER = ["asc", "dsc", "mc", "ic"] as const;
 type ReportAngleId = (typeof ANGLE_ORDER)[number];
 
 const ANGLE_UI_COPY: Record<ReportAngleId, { title: string; axis: string }> = {
-  asc: { title: "ASC / رایزینگ", axis: "محور من و شیوه ورود به جهان" },
-  dsc: { title: "DSC / نقطه روبه‌رو", axis: "محور رابطه، آینه‌های نزدیک و دیگری" },
-  mc: { title: "MC / میانه آسمان", axis: "مسیر بیرونی، اعتبار و جهتی که در جهان ساخته می‌شود" },
-  ic: { title: "IC / ریشه آسمان", axis: "ریشه درونی، خانه، گذشته و جای امن روان" },
+  asc: { title: "رایزینگ", axis: "محور من و شیوه ورود به جهان" },
+  dsc: { title: "نقطه روبه‌رو", axis: "محور رابطه، آینه‌های نزدیک و دیگری" },
+  mc: { title: "میانه آسمان", axis: "مسیر بیرونی، اعتبار و جهتی که در جهان ساخته می‌شود" },
+  ic: { title: "ریشه آسمان", axis: "ریشه درونی، خانه، گذشته و جای امن روان" },
 };
 
 const HOUSE_FIELD_UI_LABELS: Record<number, string> = {
@@ -193,7 +193,8 @@ export function ReportCard({ report }: ReportCardProps) {
   const angleRows = buildAngleRows(report);
   const houseRows = buildHouseRows(report, shownPlacements);
   const chartBalance = buildChartBalance(shownPlacements);
-  const shownAspects = realEngineAspects;
+  const shownAspects = realEngineAspects.slice(0, 5);
+  const hiddenAspectCount = Math.max(0, realEngineAspects.length - shownAspects.length);
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
   const accuracySummary = buildAccuracySummary(report);
@@ -215,9 +216,8 @@ export function ReportCard({ report }: ReportCardProps) {
           </h2>
 
           <p>
-            این کارت خلاصه شخصی چارت توست: اول ستون‌های اصلی را نشان می‌دهد و
-            بخش‌های جزئی‌تر مثل خانه‌ها، motion و دقت تولد را در پنل‌های جدا می‌گذارد
-            تا گزارش کامل باشد اما شلوغ و گیج‌کننده نشود.
+            این کارت فقط جهت‌گیری اولیه می‌دهد: سه ستون اصلی، چرخ چارت و یک پشتوانه بسته برای داده‌های دقیق.
+            روایت اصلی پایین صفحه می‌آید و جزئیات فنی جلوی خواندن را نمی‌گیرند.
           </p>
         </div>
 
@@ -281,65 +281,14 @@ export function ReportCard({ report }: ReportCardProps) {
       {report.realEngine ? (
         <section className="report-section report-calculation-section">
           <div className="report-section-heading">
-            <span className="section-label">جزئیات محاسبه</span>
-            <h3>پشتوانه محاسبه این گزارش</h3>
+            <span className="section-label">چرخ چارت</span>
+            <h3>چارت تولد محاسبه‌شده</h3>
             <p>
-              این چند مورد نشان می‌دهد گزارش با کدام شهر، رایزینگ و زمان تبدیل‌شده
-              ساخته شده است؛ فقط برای شفافیت، نه برای درگیر کردن تو با جزئیات فنی.
+              این چرخ برای دیدن نقشه کلی است، نه برای خواندن همه عددها.
+              جایگاه‌ها، خانه‌ها، محورها و چند رابطه برجسته اینجا خلاصه شده‌اند؛
+              داده‌های دقیق‌تر در پنل پشتوانه بسته مانده‌اند.
             </p>
           </div>
-
-          <div className="report-calculation-grid">
-            <div className="mini-card">
-              <strong>شهر محاسبه</strong>
-              <span>{report.realEngine.cityLabel}</span>
-            </div>
-
-            <div className="mini-card">
-              <strong>رایزینگ محاسبه‌شده</strong>
-              <span>{formatRisingFromLongitude(report.realEngine.ascendantLongitude)}</span>
-            </div>
-
-            <div className="mini-card">
-              <strong>زمان تبدیل‌شده</strong>
-              <span>{formatShortUtc(report.realEngine.utcIso)}</span>
-            </div>
-          </div>
-
-          {accuracySummary ? (
-            <details className="report-placement-details report-accuracy-section report-polish-advanced-panel">
-              <summary>دقت تولد و مرزهای محاسبه</summary>
-              <p>
-                این پنل مرز اعتماد گزارش را روشن می‌کند: اگر ساعت تولد یا شهر دقیق
-                نباشد، خانه‌ها، محورها و motion باید محتاط‌تر خوانده شوند. دست‌های ماه
-                در این نسخه به‌صورت Mean Lunar Node نمایش داده می‌شوند و لیلیت همچنان deferred است.
-              </p>
-              <div className="report-placement-grid">
-                <div className="mini-card">
-                  <strong>کیفیت محاسبه</strong>
-                  <span>{accuracySummary.statusLabel}</span>
-                  <span>{accuracySummary.houseLabel}</span>
-                  <span>{accuracySummary.angleLabel}</span>
-                  <span>{accuracySummary.motionLabel}</span>
-                </div>
-                <div className="mini-card">
-                  <strong>وضعیت نقاط ویژه</strong>
-                  <span>{accuracySummary.nodesLabel}</span>
-                  <span>{accuracySummary.lilithLabel}</span>
-                </div>
-                <div className="mini-card">
-                  <strong>یادآوری دقت تولد</strong>
-                  <span>اگر ساعت تولد تقریبی باشد، خانه‌ها و محورهای چارت باید با احتیاط بیشتری خوانده شوند.</span>
-                  {accuracySummary.limitations.slice(0, 2).map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                  {accuracySummary.warnings.slice(0, 1).map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                </div>
-              </div>
-            </details>
-          ) : null}
 
           <div className="report-chart-wheel-structure">
             <RealChartWheel
@@ -347,35 +296,50 @@ export function ReportCard({ report }: ReportCardProps) {
               ascendantLongitude={report.realEngine.ascendantLongitude}
               houses={report.realEngine.houses}
               angles={report.realEngine.angles}
-              aspects={realEngineAspects}
+              aspects={shownAspects}
               retrogradePlanetIds={Array.from(retrogradePlanetIds)}
               houseSystem={report.realEngine.houseSystem}
             />
           </div>
 
-          <details className="report-placement-details" open>
-            <summary>مشاهده جایگاه‌های اصلی</summary>
-            <div className="report-placement-grid">
-              {shownPlacements.map((placement) => (
-                <div className="mini-card" key={placement.id}>
-                  <strong>{getPlanetLabel(placement.id, placement.label)}</strong>
-                  <span>{formatPlacement(placement)}</span>
-                  {retrogradePlanetIds.has(placement.id) ? <span>حرکت برگشتی / Retrograde</span> : null}
-                </div>
-              ))}
-            </div>
-          </details>
+          <details className="report-placement-details report-polish-advanced-panel">
+            <summary>پشتوانه محاسبه و داده‌های دقیق</summary>
+            <p>
+              این بخش برای شفافیت است. اگر فقط می‌خواهی گزارش را مثل یک روایت بخوانی،
+              لازم نیست همه کارت‌های فنی را باز کنی.
+            </p>
 
-          {report.realEngine?.retrogrades?.status === "calculated" ? (
-            <details className="report-placement-details report-motion-section report-polish-advanced-panel">
-              <summary>حرکت برگشتی سیاره‌ها</summary>
-              <p>
-                این بخش از داده motion محاسبه‌شده در real engine می‌آید. دست‌های ماه با label
-                صادقانه Mean Lunar Node نمایش داده می‌شوند؛ True Node و لیلیت هنوز ادعا نمی‌شوند.
-              </p>
-              <div className="report-placement-grid">
+            <div className="report-placement-grid">
+              <div className="mini-card">
+                <strong>شهر و زمان محاسبه</strong>
+                <span>{report.realEngine.cityLabel}</span>
+                <span>زمان مرجع محاسبه: {formatShortUtc(report.realEngine.utcIso)}</span>
+              </div>
+
+              <div className="mini-card">
+                <strong>رایزینگ</strong>
+                <span>{formatRisingFromLongitude(report.realEngine.ascendantLongitude)}</span>
+                <span>روش خانه‌ها: {formatHouseSystemLabel(report.realEngine.houseSystem)}</span>
+              </div>
+
+              {accuracySummary ? (
                 <div className="mini-card">
-                  <strong>وضعیت retrograde</strong>
+                  <strong>مرز دقت</strong>
+                  <span>{accuracySummary.statusLabel}</span>
+                  <span>{accuracySummary.houseLabel}</span>
+                  <span>{accuracySummary.angleLabel}</span>
+                  <span>{accuracySummary.motionLabel}</span>
+                  <span>{accuracySummary.nodesLabel}</span>
+                  <span>{accuracySummary.lilithLabel}</span>
+                  {accuracySummary.limitations.slice(0, 1).map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              ) : null}
+
+              {report.realEngine.retrogrades?.status === "calculated" ? (
+                <div className="mini-card">
+                  <strong>حرکت برگشتی</strong>
                   <span>
                     {retrogradePlanetIds.size > 0
                       ? `سیاره‌های برگشتی: ${joinPersianList(
@@ -383,117 +347,99 @@ export function ReportCard({ report }: ReportCardProps) {
                             getPlanetLabel(planetId, planetId),
                           ),
                         )}`
-                      : "در این چارت سیاره برگشتی از میان سیاره‌های محاسبه‌شده ثبت نشده است."}
+                      : "برای سیاره‌های محاسبه‌شده حرکت برگشتی ثبت نشده است."}
                   </span>
                   {report.realEngine.retrogrades.limitation ? (
-                    <span>{report.realEngine.retrogrades.limitation}</span>
+                    <span>{sanitizeVisibleEngineCopy(report.realEngine.retrogrades.limitation)}</span>
                   ) : null}
                 </div>
-              </div>
-            </details>
-          ) : null}
+              ) : null}
+            </div>
 
-          {lunarNodeRows.length > 0 ? (
-            <details className="report-placement-details report-lunar-node-section report-polish-advanced-panel" open>
-              <summary>دست‌های ماه Mean Lunar Node</summary>
-              <p>
-                این بخش دست شمالی و جنوبی ماه را با مدل Mean Lunar Node نشان می‌دهد. دست جنوبی
-                از دست شمالی + ۱۸۰° مشتق شده است؛ True Node و لیلیت همچنان ادعا نمی‌شوند.
-              </p>
-              <div className="report-placement-grid">
-                {lunarNodeRows.map((node) => (
-                  <div className="mini-card" key={node.id}>
-                    <strong>{node.title}</strong>
-                    <span>{node.positionLabel}</span>
-                    {node.houseLabel ? <span>{node.houseLabel}</span> : null}
-                    <span>{node.sourceLabel}</span>
-                    <span>{node.meaning}</span>
-                  </div>
-                ))}
-              </div>
-            </details>
-          ) : null}
-
-          {planetHouseRows.length > 0 ? (
-            <details className="report-placement-details" open>
-              <summary>سیاره‌ها در خانه‌ها</summary>
-              <div className="report-placement-grid">
-                {planetHouseRows.map((item) => (
-                  <div className="mini-card" key={`house-${item.id}`}>
-                    <strong>{item.planetLabel}</strong>
-                    <span>{item.houseLabel}</span>
-                    <span>{item.placementLabel}</span>
-                  </div>
-                ))}
-              </div>
-            </details>
-          ) : null}
-
-          {angleRows.length > 0 ? (
-            <details className="report-placement-details report-house-angle-section" open>
-              <summary>محورهای اصلی چارت</summary>
-              <p>
-                این بخش فقط وقتی نمایش داده می‌شود که ASC، DSC، MC و IC در snapshot
-                واقعی گزارش ذخیره شده باشند. MC/IC اینجا محور مستقل چارت‌اند، نه
-                مترادف ساده خانه ۱۰ و ۴.
-              </p>
-              <div className="report-placement-grid">
-                {angleRows.map((item) => (
-                  <div className="mini-card" key={item.id}>
-                    <strong>{item.title}</strong>
-                    <span>{item.positionLabel}</span>
-                    <span>{item.axisLabel}</span>
-                    {item.houseLabel ? <span>{item.houseLabel}</span> : null}
-                    {item.sourceLabel ? <span>{item.sourceLabel}</span> : null}
-                  </div>
-                ))}
-              </div>
-            </details>
-          ) : null}
-
-          {houseRows.length === 12 ? (
-            <details className="report-placement-details report-house-grid report-polish-advanced-panel">
-              <summary>راهنمای ۱۲ خانه Whole Sign</summary>
-              <p>
-                خانه‌های این گزارش با سیستم {formatHouseSystemLabel(report.realEngine.houseSystem)}
-                و از روی رایزینگ محاسبه‌شده ساخته شده‌اند. این جدول میدان‌های زندگی
-                را نشان می‌دهد؛ سیاره‌ها و محورهای هر خانه فقط از داده ذخیره‌شده
-                real engine خوانده می‌شوند.
-              </p>
-              <div className="report-placement-grid">
-                {houseRows.map((item) => (
-                  <div className="mini-card" key={item.id}>
-                    <strong>{item.title}</strong>
-                    <span>{item.signLabel}</span>
-                    <span>{item.cuspLabel}</span>
-                    <span>{item.fieldLabel}</span>
-                    <span>{item.planetsLabel}</span>
-                    <span>{item.anglesLabel}</span>
-                  </div>
-                ))}
-              </div>
-            </details>
-          ) : null}
-
-          {chartBalance ? (
-            <details className="report-placement-details report-polish-advanced-panel">
-              <summary>انرژی کلی چارت</summary>
-              <div className="report-placement-grid">
-                <div className="mini-card">
-                  <strong>عنصرها</strong>
-                  <span>{formatBalanceLine(chartBalance.elements)}</span>
+            {lunarNodeRows.length > 0 ? (
+              <>
+                <h4>دست‌های ماه با مدل میانگین</h4>
+                <div className="report-placement-grid">
+                  {lunarNodeRows.map((node) => (
+                    <div className="mini-card" key={node.id}>
+                      <strong>{node.title}</strong>
+                      <span>{node.positionLabel}</span>
+                      {node.houseLabel ? <span>{node.houseLabel}</span> : null}
+                      <span>{node.sourceLabel}</span>
+                      <span>{node.meaning}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="mini-card">
-                  <strong>کیفیت‌ها</strong>
-                  <span>{formatBalanceLine(chartBalance.modalities)}</span>
+              </>
+            ) : null}
+
+            {angleRows.length > 0 ? (
+              <>
+                <h4>محورهای اصلی</h4>
+                <div className="report-placement-grid">
+                  {angleRows.map((item) => (
+                    <div className="mini-card" key={item.id}>
+                      <strong>{item.title}</strong>
+                      <span>{item.positionLabel}</span>
+                      <span>{item.axisLabel}</span>
+                      {item.houseLabel ? <span>{item.houseLabel}</span> : null}
+                    </div>
+                  ))}
                 </div>
-                <div className="mini-card">
-                  <strong>قطبیت</strong>
-                  <span>{formatBalanceLine(chartBalance.polarities)}</span>
+              </>
+            ) : null}
+
+            {planetHouseRows.length > 0 ? (
+              <>
+                <h4>جایگاه‌ها در خانه‌ها</h4>
+                <div className="report-placement-grid">
+                  {planetHouseRows.map((item) => (
+                    <div className="mini-card" key={`house-${item.id}`}>
+                      <strong>{item.planetLabel}</strong>
+                      <span>{item.houseLabel}</span>
+                      <span>{item.placementLabel}</span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </details>
-          ) : null}
+              </>
+            ) : null}
+
+            {houseRows.length === 12 ? (
+              <>
+                <h4>۱۲ خانه</h4>
+                <div className="report-placement-grid">
+                  {houseRows.map((item) => (
+                    <div className="mini-card" key={item.id}>
+                      <strong>{item.title}</strong>
+                      <span>{item.signLabel}</span>
+                      <span>{item.fieldLabel}</span>
+                      <span>{item.planetsLabel}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+
+            {chartBalance ? (
+              <>
+                <h4>انرژی کلی چارت</h4>
+                <div className="report-placement-grid">
+                  <div className="mini-card">
+                    <strong>عنصرها</strong>
+                    <span>{formatBalanceLine(chartBalance.elements)}</span>
+                  </div>
+                  <div className="mini-card">
+                    <strong>کیفیت‌ها</strong>
+                    <span>{formatBalanceLine(chartBalance.modalities)}</span>
+                  </div>
+                  <div className="mini-card">
+                    <strong>قطبیت</strong>
+                    <span>{formatBalanceLine(chartBalance.polarities)}</span>
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </details>
         </section>
       ) : null}
 
@@ -503,8 +449,8 @@ export function ReportCard({ report }: ReportCardProps) {
             <span className="section-label">روابط سیاره‌ها</span>
             <h3>روابط مهم بین سیاره‌ها</h3>
             <p>
-              جنبه‌ها نشان می‌دهند کدام بخش‌های چارت با هم جریان، حمایت، فشار یا
-              گفت‌وگوی درونی می‌سازند.
+              اینجا فقط نزدیک‌ترین رابطه‌های سیاره‌ای نمایش داده می‌شود تا روایت اصلی شلوغ نشود.
+              بقیه داده‌ها در پشتوانه محاسبه باقی می‌مانند.
             </p>
           </div>
 
@@ -523,6 +469,12 @@ export function ReportCard({ report }: ReportCardProps) {
               </article>
             ))}
           </div>
+
+          {hiddenAspectCount > 0 ? (
+            <p className="report-muted-note">
+              {hiddenAspectCount.toLocaleString("fa-IR")} رابطه سیاره‌ای دیگر فقط در پشتوانه داده نگه داشته شده‌اند.
+            </p>
+          ) : null}
         </section>
       ) : null}
 
@@ -548,9 +500,105 @@ function buildAccuracySummary(report: AstrologyReport): AccuracySummary | null {
     motionLabel: `حرکت برگشتی: ${formatReliabilityStatus(quality.retrogradeStatus)}`,
     nodesLabel: formatDeferredPointStatus("دست‌های ماه", realEngine.lunarNodes?.status, quality.nodesStatus),
     lilithLabel: formatDeferredPointStatus("لیلیت", realEngine.lilith?.status, quality.lilithStatus),
-    limitations: Array.isArray(quality.limitations) ? quality.limitations : [],
-    warnings: Array.isArray(quality.warnings) ? quality.warnings : [],
+    limitations: Array.isArray(quality.limitations)
+      ? sanitizeVisibleEngineCopyList(quality.limitations)
+      : [],
+    warnings: Array.isArray(quality.warnings)
+      ? sanitizeVisibleEngineCopyList(quality.warnings)
+      : [],
   };
+}
+
+
+const VISIBLE_ENGINE_COPY_REPLACEMENTS = [
+  {
+    needle: "Retrograde motion is calculated",
+    value:
+      "حرکت برگشتی از تغییر جایگاه ظاهری سیاره‌ها نزدیک زمان تولد محاسبه می‌شود؛ اگر سیاره نزدیک ایستایی باشد، خوانش باید ملایم و محتاط باشد.",
+  },
+  {
+    needle: "Mean Lunar Node is calculated",
+    value:
+      "دست‌های ماه در این نسخه با مدل میانگین محاسبه می‌شوند؛ مدل نوسانی/واقعی فعلاً وارد خوانش نشده است.",
+  },
+  {
+    needle: "Black Moon Lilith is not calculated",
+    value:
+      "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.",
+  },
+  {
+    needle: "Natal accuracy depends",
+    value:
+      "دقت گزارش تولد به ساعت رسمی تولد، منطقه زمانی و مختصات شهر وابسته است؛ اگر ساعت تولد قطعی نباشد، خوانش خانه‌ها و محورها باید با احتیاط بیشتری انجام شود.",
+  },
+  {
+    needle: "Timezone and midnight boundary handling",
+    value:
+      "مرزهای تغییر روز و تبدیل زمان در پشتوانه محاسباتی کنترل می‌شوند.",
+  },
+  {
+    needle: "ASC and MC are calculated",
+    value:
+      "رایزینگ و میانه آسمان از زمان و مکان تولد محاسبه می‌شوند؛ نقطه روبه‌رو و ریشه آسمان از محور مقابل به دست می‌آیند.",
+  },
+  {
+    needle: "MC is stored as an independent angle",
+    value:
+      "میانه آسمان یک محور مستقل در چارت است و نباید با خانه دهم یکی گرفته شود.",
+  },
+  {
+    needle: "If the birth time is estimated",
+    value:
+      "اگر ساعت تولد تقریبی یا نامشخص باشد، خانه‌ها، محورها، حرکت برگشتی و زبان نهایی گزارش باید محتاطانه‌تر خوانده شوند.",
+  },
+  {
+    needle: "Retrograde planets are identified",
+    value:
+      "سیاره‌های برگشتی از حرکت ظاهری آن‌ها نزدیک زمان تولد تشخیص داده شده‌اند؛ اگر سیاره نزدیک ایستایی باشد، خوانش باید ملایم باشد.",
+  },
+  {
+    needle: "No retrograde planet was detected",
+    value:
+      "در زمان تولد، برای سیاره‌های محاسبه‌شده حرکت برگشتی ثبت نشده است.",
+  },
+] as const;
+
+function sanitizeVisibleEngineCopyList(items: string[]): string[] {
+  return items
+    .map((item) => sanitizeVisibleEngineCopy(item))
+    .filter((item): item is string => Boolean(item));
+}
+
+function sanitizeVisibleEngineCopy(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const text = value.trim();
+  const replacement = VISIBLE_ENGINE_COPY_REPLACEMENTS.find((item) =>
+    text.includes(item.needle),
+  );
+
+  if (replacement) {
+    return replacement.value;
+  }
+
+  const localized = text
+    .replaceAll("timezone", "منطقه زمانی")
+    .replaceAll("Timezone", "منطقه زمانی")
+    .replaceAll("retrograde", "حرکت برگشتی")
+    .replaceAll("Retrograde", "حرکت برگشتی")
+    .replaceAll("Mean Lunar Node", "دست‌های ماه با مدل میانگین")
+    .replaceAll("True/Osculating Node", "مدل نوسانی/واقعی دست‌های ماه")
+    .replaceAll("True Node", "مدل واقعی دست‌های ماه")
+    .replaceAll("Black Moon Lilith", "لیلیت")
+    .replaceAll("Lilith", "لیلیت");
+
+  if (/[A-Za-z]{3,}/.test(localized)) {
+    return "این یادداشت فنی در پشتوانه محاسبه نگه داشته شده است؛ برای خوانش، ساعت تولد، شهر و منطقه زمانی را با دقت وارد کن.";
+  }
+
+  return localized;
 }
 
 function formatDeferredPointStatus(
@@ -566,7 +614,7 @@ function formatDeferredPointStatus(
     return `${label}: هنوز عمداً محاسبه/نمایش داده نمی‌شود`;
   }
 
-  return `${label}: در حالت hardening`;
+  return `${label}: در حال تکمیل`;
 }
 
 function formatCalculationQualityStatus(status: string): string {
@@ -582,11 +630,11 @@ function formatCalculationQualityStatus(status: string): string {
 
 function formatReliabilityStatus(status: string): string {
   const labels: Record<string, string> = {
-    "production-grade": "production-grade",
+    "production-grade": "آماده خوانش دقیق",
     calculated: "محاسبه‌شده",
     derived: "مشتق‌شده",
     preview: "پیش‌نمایش",
-    placeholder: "placeholder",
+    placeholder: "در حال تکمیل",
     "not-calculated": "محاسبه‌نشده",
   };
 
@@ -668,8 +716,8 @@ function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummaryRow[] {
       houseLabel: typeof node.house === "number" ? `در خانه ${formatPersianNumber(node.house)}` : null,
       sourceLabel:
         node.id === "north-node"
-          ? "Mean Lunar Node / محاسبه میانگین"
-          : "Opposition from Mean North Node / دست شمالی + ۱۸۰°",
+          ? "محاسبه با مدل میانگین"
+          : "به دست آمده از دست شمالی + ۱۸۰°",
       meaning:
         node.id === "north-node"
           ? "مسیر رشد، تمرین تازه و جهتی که روح به سمت آن کشیده می‌شود."
@@ -803,15 +851,15 @@ function formatAngleSourceLabel(angle: RealEngineReportAngle) {
 
 function formatHouseSystemLabel(system: string | undefined) {
   if (system === "whole-sign") {
-    return "Whole Sign";
+    return "روش نشانه کامل";
   }
 
   if (system === "placidus") {
-    return "Placidus";
+    return "پلاسیدوس";
   }
 
   if (system === "equal-house") {
-    return "Equal House";
+    return "روش خانه برابر";
   }
 
   return "سیستم ذخیره‌شده در گزارش";
@@ -870,13 +918,31 @@ function formatBalanceLine(items: ChartBalanceItem[]) {
 }
 
 function formatAspectAngleSummary(aspect: { aspectLabel: string; angle?: number | null; orb: number }) {
+  const aspectLabel = formatAspectTypeLabel(aspect.aspectLabel);
   const exactAngle =
     typeof aspect.angle === "number" && Number.isFinite(aspect.angle) ? formatDegree(aspect.angle) : null;
   const orbLabel = formatDegree(aspect.orb);
 
   return exactAngle
-    ? `${aspect.aspectLabel} · زاویه واقعی ${exactAngle} · فاصله از زاویه دقیق (اورب) ${orbLabel}`
-    : `${aspect.aspectLabel} · فاصله از زاویه دقیق (اورب) ${orbLabel}`;
+    ? `${aspectLabel} · زاویه واقعی ${exactAngle} · فاصله از زاویه دقیق (اورب) ${orbLabel}`
+    : `${aspectLabel} · فاصله از زاویه دقیق (اورب) ${orbLabel}`;
+}
+
+function formatAspectTypeLabel(label: string): string {
+  const labels: Record<string, string> = {
+    conjunction: "هم‌نشینی",
+    Conjunction: "هم‌نشینی",
+    opposition: "روبه‌رویی",
+    Opposition: "روبه‌رویی",
+    square: "چالش ۹۰ درجه",
+    Square: "چالش ۹۰ درجه",
+    trine: "هماهنگی ۱۲۰ درجه",
+    Trine: "هماهنگی ۱۲۰ درجه",
+    sextile: "فرصت ۶۰ درجه",
+    Sextile: "فرصت ۶۰ درجه",
+  };
+
+  return labels[label] ?? label;
 }
 
 function buildPlanetHouseRow(placement: RealEngineReportPlacement): PlanetHouseRow | null {

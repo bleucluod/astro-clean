@@ -194,7 +194,7 @@ export function buildRealEngineSnapshot(
     lunarNodes: buildCalculatedLunarNodes(realChart),
     lilith: buildDeferredCalculation(
       "black-moon-lilith",
-      "Black Moon Lilith calculation is deferred and must stay hidden until the Mean/True Lilith decision and ephemeris source are hardened.",
+      "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.",
     ),
     ...(chartReportEnrichment
       ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }
@@ -256,8 +256,8 @@ function toRealEngineReportHouses(
     angleIds: getAngleIdsForHouse(house.number, realChart),
     limitation:
       house.system === "whole-sign"
-        ? "Whole sign house derived from the calculated Ascendant sign; not a Placidus cusp."
-        : "House method is not production-grade Placidus.",
+        ? "خانه با روش نشانه کامل از رایزینگ محاسبه‌شده ساخته شده است؛ این روش با سرخانه‌های پلاسیدوس یکی نیست."
+        : "روش خانه در این نسخه هنوز برای خوانش دقیق کامل نشده است.",
   }));
 }
 
@@ -362,16 +362,12 @@ function toRealEngineReportCalculationQuality(
     lilithStatus: "not-calculated",
     limitations: [
       ...(chartReportEnrichment?.limitations ?? []),
-      "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around birth time; exact station periods should be read gently.",
-      "Mean Lunar Node is calculated with the J2000 Meeus-style mean node formula; True/Osculating Node remains deferred.",
-      "Black Moon Lilith is not calculated yet.",
-      "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time should be labeled before paid/private reports.",
-      "Timezone and midnight boundary handling is covered by natal accuracy hardening checks.",
+      "حرکت برگشتی از تغییر جایگاه ظاهری سیاره‌ها نزدیک زمان تولد محاسبه می‌شود؛ اگر سیاره نزدیک ایستایی باشد، خوانش باید ملایم و محتاط باشد.",
+      "دست‌های ماه در این نسخه با مدل میانگین محاسبه می‌شوند؛ مدل نوسانی/واقعی فعلاً وارد خوانش نشده است.",
+      "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.",
     ],
     warnings: [
-      "ASC and MC are calculated from local sidereal time; DSC and IC are derived as direct oppositions.",
-      "MC is stored as an independent angle and must not be treated as the 10th house cusp.",
-      "If the birth time is estimated or missing, houses, angles, retrograde sampling, and final report language must stay in preview/hardening mode.",
+      "اگر ساعت تولد تقریبی یا نامشخص باشد، خانه‌ها، محورها، حرکت برگشتی و زبان نهایی گزارش باید محتاطانه‌تر خوانده شوند.",
     ],
   };
 }
@@ -391,8 +387,8 @@ function buildCalculatedRetrogradeStatus(
     planetIds,
     limitation:
       planetIds.length > 0
-        ? "Retrograde planets are identified from apparent geocentric ecliptic motion around birth time; close station periods should be read gently."
-        : "No retrograde planet was detected from apparent geocentric ecliptic motion around birth time.",
+        ? "سیاره‌های برگشتی از حرکت ظاهری آن‌ها نزدیک زمان تولد تشخیص داده شده‌اند؛ اگر سیاره نزدیک ایستایی باشد، خوانش باید ملایم باشد."
+        : "در زمان تولد، برای سیاره‌های محاسبه‌شده حرکت برگشتی ثبت نشده است.",
   };
 }
 
@@ -462,11 +458,11 @@ export function buildDefaultReportVisibility(
       required: requiresPublicConsent,
       copyVersion: "visibility-consent-not-yet-active",
       userFacingSummary:
-        "Requested visibility is recorded, but public indexing is disabled until explicit consent, slugs, and storage rules are implemented.",
+        "درخواست نوع نمایش فقط ذخیره شده است؛ انتشار عمومی تا زمان رضایت صریح، مسیر امن و قوانین ذخیره‌سازی فعال نمی‌شود.",
     },
     notes: [
       ...visibility.notes,
-      "Visibility request is metadata only in v0.1.94; public routes and paid privacy rules are not active yet.",
+      "درخواست نوع نمایش فعلاً فقط داده کمکی است؛ مسیر عمومی و مدل خصوصی/پرداختی هنوز فعال نیست.",
     ],
   };
 }
@@ -611,7 +607,7 @@ function resolveRealChartAttempt(
       ok: false,
       realChart: null,
       warning:
-        "Real chart generation skipped because timezone or coordinates are missing.",
+        "ساخت چارت واقعی انجام نشد چون منطقه زمانی یا مختصات شهر کامل نیست.",
     };
   }
 

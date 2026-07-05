@@ -72,16 +72,16 @@ const PLANET_GLYPHS: Record<string, string> = {
 };
 
 const ANGLE_LABELS: Record<RealEngineReportAngle["id"], string> = {
-  asc: "ASC",
-  dsc: "DSC",
-  mc: "MC",
-  ic: "IC",
+  asc: "رایزینگ",
+  dsc: "روبه‌رو",
+  mc: "میانه آسمان",
+  ic: "ریشه آسمان",
 };
 
 const HOUSE_SYSTEM_LABELS: Record<string, string> = {
-  "whole-sign": "Whole Sign",
-  "equal-house": "Equal House",
-  placidus: "Placidus",
+  "whole-sign": "روش نشانه کامل",
+  "equal-house": "روش خانه برابر",
+  placidus: "پلاسیدوس",
   placeholder: "در حال تکمیل",
 };
 
@@ -96,7 +96,7 @@ export function RealChartWheel({
 }: RealChartWheelProps) {
   const wheelHouses = buildWheelHouses(houses);
   const wheelAngles = buildWheelAngles(angles, ascendantLongitude);
-  const aspectLines = buildAspectLines(placements, aspects ?? []);
+  const aspectLines = buildAspectLines(placements, aspects ?? []).slice(0, 5);
   const retrogradeSet = new Set(retrogradePlanetIds ?? []);
   const houseSystemLabel = formatHouseSystemLabel(houseSystem);
 
@@ -105,15 +105,14 @@ export function RealChartWheel({
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#64748B]">
-            Real chart wheel
+            چارت محاسبه‌شده
           </p>
           <h2 className="mt-2 text-2xl font-bold text-[#243447]">
-            چرخ واقعی چارت
+            چرخ چارت تولد
           </h2>
         </div>
         <p className="text-sm leading-7 text-[#64748B]">
-          این چرخ از snapshot واقعی گزارش ساخته می‌شود: سیاره‌ها، خانه‌های Whole Sign،
-          محورهای ASC/DSC/MC/IC و خطوط aspect.
+          نمای فشرده‌ای از جایگاه‌ها، خانه‌ها، محورهای اصلی و چند رابطه برجسته.
         </p>
       </div>
 
@@ -121,7 +120,7 @@ export function RealChartWheel({
         <svg
           viewBox="0 0 400 400"
           role="img"
-          aria-label="Real chart wheel with zodiac signs, houses, axes, aspects, and planet placements"
+          aria-label="چرخ چارت تولد با نشان‌ها، خانه‌ها، محورهای اصلی، روابط سیاره‌ای و جایگاه سیاره‌ها"
           className="h-auto w-full max-w-[500px]"
         >
           <circle cx="200" cy="200" r="184" fill="#F8FAFC" stroke="#BCCCDC" strokeWidth="2" />
@@ -280,7 +279,7 @@ export function RealChartWheel({
                     dominantBaseline="middle"
                     className="retrograde-glyph fill-[#9AA6B2] text-[5px] font-black"
                   >
-                    R
+                    ↺
                   </text>
                 ) : null}
               </g>
@@ -301,29 +300,16 @@ export function RealChartWheel({
             textAnchor="middle"
             className="fill-[#64748B] text-[5px] font-semibold"
           >
-            real chart snapshot
+            داده ذخیره‌شده
           </text>
         </svg>
       </div>
 
-      <div className="mt-4 grid gap-2 text-xs text-[#64748B] md:grid-cols-3">
-        <div className="rounded-2xl bg-white p-3">
-          <span className="font-bold text-[#243447]">خانه‌ها:</span>{" "}
-          {wheelHouses.length === 12
-            ? "۱۲ خانه از داده Whole Sign ذخیره‌شده آمده‌اند."
-            : "خانه‌ها فقط وقتی نمایش داده می‌شوند که snapshot کامل باشد."}
-        </div>
-        <div className="rounded-2xl bg-white p-3">
-          <span className="font-bold text-[#243447]">محورها:</span>{" "}
-          {wheelAngles.length > 1
-            ? "ASC/DSC/MC/IC از snapshot واقعی خوانده شده‌اند."
-            : "فقط ASC در این snapshot قابل نمایش است."}
-        </div>
-        <div className="rounded-2xl bg-white p-3">
-          <span className="font-bold text-[#243447]">سیستم:</span>{" "}
-          {houseSystemLabel}، با خطوط aspect و نشان R برای retrograde.
-        </div>
-      </div>
+      <p className="mt-4 rounded-2xl bg-white p-3 text-xs leading-6 text-[#64748B]">
+        <span className="font-bold text-[#243447]">راهنما:</span>{" "}
+        خانه‌ها با {houseSystemLabel} نمایش داده شده‌اند؛ علامت ↺ کنار سیاره یعنی حرکت برگشتی.
+        جزئیات فنی کامل در پنل پشتوانه محاسبه آمده است.
+      </p>
     </section>
   );
 }
@@ -350,7 +336,7 @@ function buildWheelAngles(
   } else if (isFiniteLongitude(fallbackAscendantLongitude)) {
     rows.push({
       id: "asc",
-      label: "ASC",
+      label: "رایزینگ",
       longitude: normalizeLongitude(fallbackAscendantLongitude),
       source: "ascendantLongitude",
       house: null,
@@ -427,7 +413,7 @@ function normalizeLongitude(longitude: number): number {
 
 function formatHouseSystemLabel(system: string | undefined): string {
   if (!system) {
-    return "Whole Sign";
+    return "روش نشانه کامل";
   }
 
   return HOUSE_SYSTEM_LABELS[system] ?? system;
