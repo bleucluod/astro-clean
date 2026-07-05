@@ -51,7 +51,7 @@ export default function ProfilePage() {
         <div className="card">
           <span className="badge">Profile</span>
           <h1>در حال آماده‌سازی پروفایل</h1>
-          <p>وضعیت preview account خوانده می‌شود.</p>
+          <p>وضعیت حساب و گزارش‌های ذخیره‌شده آماده می‌شود.</p>
         </div>
       </section>
     );
@@ -62,12 +62,12 @@ export default function ProfilePage() {
       <div className="card">
         <span className="badge">Halleus Profile</span>
 
-        <h1>پروفایل و وضعیت اکانت</h1>
+        <h1>پروفایل حساب هالیوس</h1>
 
         <p>
-          این صفحه shell ورود واقعی Supabase را دارد؛ اگر env آماده باشد،
-          کاربر با نام کاربری انتخابی، موبایل و رمز وارد می‌شود. ایمیل secondary/optional است و
-          ذخیره گزارش روی account فقط برای گزارش تازه، با user id معتبر و local-preview fallback guard شده است.
+          اینجا جای مدیریت ورود، شناسه کاربری و مسیر برگشت به گزارش‌های خصوصی است.
+          ورود واقعی با username/password آماده شده؛ موبایل برای اطلاعات حساب نگه
+          داشته می‌شود و ایمیل optional/secondary است.
         </p>
 
         <div className="actions">
@@ -76,7 +76,7 @@ export default function ProfilePage() {
           </Link>
 
           <Link className="button secondary" href="/reports">
-            آرشیو local
+            گزارش‌های همین مرورگر
           </Link>
 
           <Link className="button secondary" href="/reports?source=account">
@@ -97,7 +97,7 @@ export default function ProfilePage() {
         <h2>قانون شناسه و اطلاعات مشتری</h2>
 
         <p>
-          برای تست اکانت واقعی، username شناسه انتخابی کاربر است؛ موبایل برای ارتباط و تست account flow نگه داشته می‌شود و username نیست؛ ایمیل optional/secondary می‌ماند.
+          username شناسه انتخابی کاربر است و برای ورود استفاده می‌شود. موبایل برای ارتباط و تست account flow نگه داشته می‌شود، اما username نیست؛ ایمیل optional/secondary می‌ماند.
         </p>
 
         <div className="home-step-list">
@@ -108,7 +108,7 @@ export default function ProfilePage() {
 
           <div>
             <strong>Mobile</strong>
-            <span>داده ضروری مشتری و ورود guard شده؛ موبایل یوزرنیم نیست.</span>
+            <span>داده ضروری مشتری و اطلاعات ارتباطی حساب؛ موبایل یوزرنیم نیست.</span>
           </div>
 
           <div>
@@ -119,9 +119,9 @@ export default function ProfilePage() {
       </section>
 
       <section className="card">
-        <span className="badge">Preview Account</span>
+        <span className="badge">Account Snapshot</span>
 
-        <h2>اکانت فعلی</h2>
+        <h2>وضعیت فعلی حساب</h2>
 
         <div className="profile-grid">
           <div>
@@ -172,13 +172,13 @@ export default function ProfilePage() {
       </section>
 
       <section className="card">
-        <span className="badge">Next Account Phase</span>
+        <span className="badge">Account Next Step</span>
 
-        <h2>بعد از login واقعی چه مانده؟</h2>
+        <h2>مسیر حساب بعد از smoke test</h2>
 
         <p>
-          حالا ورود Supabase، ذخیره گزارش تازه به user id و خواندن گزارش‌های account به‌صورت guard شده آماده‌اند.
-          قدم نزدیک بعدی تست واقعی flow است؛ migration گزارش‌های local فعلاً deferred و غیرضروری است.
+          ورود Supabase، ذخیره گزارش تازه به user id و خواندن گزارش‌های account به‌صورت guard شده آماده‌اند.
+          قدم بعدی این است که تجربه کاربری حساب ساده و قابل اعتماد بماند؛ migration گزارش‌های local فعلاً deferred و غیرضروری است.
         </p>
 
         <div className="home-step-list">
@@ -193,8 +193,8 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <strong>۳. تست واقعی اکانت</strong>
-            <span>signup → login → ساخت گزارش → ذخیره account → دیدن در /reports?source=account.</span>
+            <strong>۳. flow واقعی اکانت</strong>
+            <span>signup → logout → login → ساخت گزارش → ذخیره account → دیدن در /reports?source=account.</span>
           </div>
         </div>
       </section>

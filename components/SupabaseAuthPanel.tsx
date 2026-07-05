@@ -18,6 +18,21 @@ function formatUserLabel(session: AuthSession | null) {
   return session?.user.displayName || session?.user.email || session?.user.id || "کاربر واردشده";
 }
 
+function describeAuthError(message: string) {
+  if (/invalid login credentials/i.test(message)) {
+    return "نام کاربری یا رمز درست نیست. اگر تازه حساب ساخته‌ای، مطمئن شو همین username را وارد می‌کنی.";
+  }
+
+  if (/already registered|already exists|user already/i.test(message)) {
+    return "این نام کاربری قبلاً گرفته شده. یک username دیگر امتحان کن.";
+  }
+
+  if (/password/i.test(message)) {
+    return "رمز عبور باید معتبر باشد؛ حداقل ۶ کاراکتر وارد کن.";
+  }
+
+  return message;
+}
 
 export function SupabaseAuthPanel() {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
@@ -42,6 +57,7 @@ export function SupabaseAuthPanel() {
     ...accountSaveConfig.missingConfig,
     ...accountReadConfig.missingConfig,
   ];
+  const isSignUp = mode === "sign-up";
 
   useEffect(() => {
     const client = getSupabaseBrowserAuthClient();
@@ -138,17 +154,17 @@ export function SupabaseAuthPanel() {
             });
 
       if (result.error) {
-        setMessage(result.error.message);
+        setMessage(describeAuthError(result.error.message));
         return;
       }
 
       setSession(mapSupabaseSessionToHalleusSession(result.data.session ?? null));
       setMessage(
-        mode === "sign-up"
+        isSignUp
           ? result.data.session
-            ? "ثبت‌نام و ورود انجام شد؛ حالا یک گزارش تست بساز و account save را بررسی کن."
-            : "ثبت‌نام ثبت شد؛ اگر Email confirmation در Supabase روشن باشد، برای تست این پل username/password باید آن را در محیط تست خاموش کنی."
-          : "ورود با نام کاربری و رمز انجام شد؛ حالا یک گزارش تست بساز و account save را بررسی کن.",
+            ? "حساب ساخته شد و وارد شدی. قدم بعدی: یک گزارش تازه بساز و آن را در حساب ذخیره کن."
+            : "ثبت‌نام ثبت شد؛ اگر تأیید ایمیل در Supabase روشن باشد، برای تست local باید آن را خاموش کنی."
+          : "وارد شدی. حالا می‌توانی گزارش تازه بسازی، ذخیره کنی و در گزارش‌های حساب ببینی.",
       );
     } finally {
       setIsBusy(false);
@@ -184,43 +200,46 @@ export function SupabaseAuthPanel() {
     <section className="card">
       <span className="badge">Username Password Account Bridge</span>
 
-      <h2>ورود با نام کاربری و رمز</h2>
+      <h2>ورود و ثبت‌نام در هالیوس</h2>
 
       <p>
-        مدل حساب هالیوس از این نسخه با نام کاربری انتخابی و رمز وارد می‌شود. موبایل هنگام ثبت‌نام جمع‌آوری می‌شود، اما یوزرنیم نیست؛ ایمیل هم فقط secondary/optional می‌ماند.
+        برای برگشتن به گزارش‌ها، یک نام کاربری انتخاب می‌کنی و با همان نام کاربری
+        و رمز وارد می‌شوی. موبایل فقط برای اطلاعات حساب و ارتباط ضروری نگه داشته
+        می‌شود؛ موبایل username نیست و ایمیل هم اختیاری/ثانویه می‌ماند.
       </p>
 
       <p className="file-hint">
-        Supabase Auth پشت‌صحنه با یک credential خصوصی ساخته‌شده از username کار می‌کند؛ این credential ایمیل واقعی کاربر نیست و در UI نمایش داده نمی‌شود.
+        این فرم همان Username Password Account Bridge است: کاربر فقط username/password
+        را می‌بیند و credential خصوصی Supabase پشت‌صحنه می‌ماند.
       </p>
 
       <div className="home-step-list" aria-label="Real Supabase Account Flow Test">
         <div>
           <strong>Real Supabase Account Flow Test</strong>
           <span>
-            مسیر تست: signup با نام کاربری + موبایل + رمز → logout → login با نام کاربری + رمز → ساخت گزارش → account save → دیدن در /reports?source=account.
+            مسیر کاربر: ثبت‌نام با username + mobile + password، خروج، ورود دوباره با username + password، ساخت گزارش، ذخیره در حساب و دیدن در /reports?source=account.
           </span>
         </div>
 
         <div>
-          <strong>وضعیت public flags</strong>
+          <strong>وضعیت اتصال حساب</strong>
           <span>
             {realAccountFlowPublicReady
-              ? "login/save/read public flags آماده‌اند."
+              ? "ورود، ذخیره و خواندن گزارش‌های حساب در این محیط آماده‌اند."
               : realAccountFlowPublicBlockers.join(" · ")}
           </span>
         </div>
 
         <div>
-          <strong>server env خصوصی</strong>
+          <strong>حریم و secretها</strong>
           <span>
-            DATABASE_URL، AUTH_SECRET و SUPABASE_SERVICE_ROLE_KEY باید فقط در .env.local/Render باشند و در UI مقدارشان نمایش داده نمی‌شود.
+            مقدار DATABASE_URL، AUTH_SECRET و SUPABASE_SERVICE_ROLE_KEY فقط در env می‌ماند و هیچ‌وقت در UI نمایش داده نمی‌شود.
           </span>
         </div>
 
         <div>
           <strong>شناسه کاربر</strong>
-          <span>username انتخابی کاربر است؛ login با username/password انجام می‌شود؛ موبایل جمع‌آوری می‌شود اما username نیست.</span>
+          <span>username انتخابی کاربر است؛ login با username/password انجام می‌شود؛ موبایل داده اجباری مشتری است اما username نیست.</span>
         </div>
       </div>
 
@@ -237,7 +256,7 @@ export function SupabaseAuthPanel() {
       {!config.canUseRealSupabaseLogin ? (
         <div className="home-step-list">
           <div>
-            <strong>برای فعال‌سازی در محیط تست</strong>
+            <strong>برای فعال‌سازی ورود واقعی</strong>
             <span>{config.missingConfig.join(" · ")}</span>
           </div>
 
@@ -360,7 +379,9 @@ export function SupabaseAuthPanel() {
           </label>
 
           <p className="file-hint">
-            در ورود فقط نام کاربری و رمز لازم است. موبایل هنگام ثبت‌نام با فرمت E.164 مثل +989121234567 گرفته می‌شود، اما username نیست.
+            {isSignUp
+              ? "برای ساخت حساب، username یکتا، موبایل با فرمت +989121234567 و رمز لازم است. ایمیل اختیاری است."
+              : "برای ورود فقط نام کاربری و رمز لازم است. موبایل هنگام ثبت‌نام گرفته می‌شود، اما username نیست."}
           </p>
 
           <div className="actions">
@@ -369,7 +390,7 @@ export function SupabaseAuthPanel() {
               disabled={isBusy}
               type="submit"
             >
-              {mode === "sign-up" ? "ثبت‌نام" : "ورود"}
+              {isSignUp ? "ساخت حساب و ورود" : "ورود به حساب"}
             </button>
 
             <button
@@ -378,7 +399,7 @@ export function SupabaseAuthPanel() {
               onClick={() => setMode(mode === "sign-in" ? "sign-up" : "sign-in")}
               type="button"
             >
-              {mode === "sign-in" ? "ساخت حساب جدید" : "قبلاً حساب دارم"}
+              {mode === "sign-in" ? "حساب ندارم؛ ثبت‌نام" : "قبلاً حساب دارم؛ ورود"}
             </button>
           </div>
         </form>

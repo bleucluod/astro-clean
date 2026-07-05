@@ -1279,3 +1279,21 @@ Not now:
 - No SEO launch.
 - No payment or hosting work.
 - No report engine/report-depth work in this batch.
+
+
+### Account UX polish after real account smoke test
+
+- Status: `touched`
+- Product value: `high`
+- Stage: `post-account-smoke polish`
+- Target milestone: `v0.1.194 Account UX Polish`
+
+After the real account smoke test passed, the next small product step is account/profile/dashboard polish after real account smoke test: make signup/login/profile/dashboard feel calmer and more user-facing without changing auth logic, storage logic, schema, payment, SEO, public reports, or report engine.
+
+UX constraints:
+- Login copy should say `username + password`.
+- Signup copy should say `username + mobile + password`.
+- Mobile is customer/contact/account data and is not the username.
+- Email stays optional/secondary.
+- Account reports stay private/noindex.
+- Local reports are not deleted and local-to-account migration stays deferred.

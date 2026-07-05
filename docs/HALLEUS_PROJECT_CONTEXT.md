@@ -1220,3 +1220,19 @@ Failure prevention:
 - Initial v0.1.192 assistant artifact was incorrectly provided as a loose .ps1 and failed PowerShell parsing around an inline doc here-string before touching tracked files.
 - Fix: use v0.1.192a as a ZIP artifact whose root contains only the runner .ps1; keep the PowerShell wrapper parse-safe and move patch payload execution into a generated temp Node script outside the repo.
 - Prevention: Halleus apply artifacts must be ZIP-only, syntax-safe before handoff, and must not rely on inline PowerShell here-strings for long docs/content.
+
+
+## v0.1.194 Account UX Polish
+
+Planned scoped account/profile/dashboard polish after the real account smoke test passed in `v0.1.193`.
+
+Scope:
+- Keep auth/save/read logic unchanged.
+- Make account signup/login/profile/dashboard copy more user-facing.
+- Clarify that login is `username + password`, signup collects `username + mobile + password`, mobile is not username, and email remains optional/secondary.
+- Clarify that account reports remain private/noindex and local reports are not deleted.
+- Keep public/indexable reports, SEO, payment, hosting, report engine, and local-to-account migration out of scope.
+- Add a focused `check:account-ux-polish` guard.
+
+Workflow note:
+- This is account/profile/dashboard polish after real account smoke test, not new account infrastructure.

@@ -24,18 +24,24 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     : resolvedSearchParams.source;
   const reportSource =
     rawSource === "account" ? "account" : rawSource === "beta-db" ? "beta-db" : "local";
+  const isAccountSource = reportSource === "account";
 
   return (
     <section className="grid reports-sales-shell reports-return-shell">
       <div className="card reports-sales-cta reports-return-hero">
         <div>
-          <span className="badge">گزارش‌های من</span>
-          <h1>کتابخانه خصوصی گزارش‌های تو</h1>
+          <span className="badge">
+            {isAccountSource ? "گزارش‌های account" : "گزارش‌های من"}
+          </span>
+          <h1>
+            {isAccountSource
+              ? "گزارش‌های خصوصی ذخیره‌شده در حساب"
+              : "کتابخانه خصوصی گزارش‌های تو"}
+          </h1>
           <p>
-            این صفحه نقطه برگشت به گزارش‌هاست؛ هر گزارشی که ساختی از همین‌جا
-            پیدا می‌شود: گزارش تولدت را باز کن، یادداشتت را ببین، گزارش‌های
-            مهم را ستاره‌دار کن یا از پنل کاربری مسیر بعدی حساب و ذخیره پایدار
-            را دنبال کن.
+            {isAccountSource
+              ? "اینجا گزارش‌هایی را می‌بینی که بعد از ورود با username/password در حساب ذخیره شده‌اند. این گزارش‌ها private/noindex می‌مانند و public/indexable نمی‌شوند."
+              : "این صفحه نقطه برگشت به گزارش‌هاست؛ هر گزارشی که ساختی از همین‌جا پیدا می‌شود: گزارش تولدت را باز کن، یادداشتت را ببین، گزارش‌های مهم را ستاره‌دار کن یا از پنل کاربری مسیر بعدی حساب و ذخیره پایدار را دنبال کن."}
           </p>
         </div>
 
@@ -46,6 +52,13 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
 
           <Link className="button secondary" href="/dashboard">
             پنل کاربری
+          </Link>
+
+          <Link
+            className="button secondary"
+            href={isAccountSource ? "/reports" : "/reports?source=account"}
+          >
+            {isAccountSource ? "دیدن گزارش‌های همین مرورگر" : "دیدن گزارش‌های account"}
           </Link>
 
           <Link className="button secondary" href="/privacy">

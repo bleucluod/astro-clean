@@ -95,7 +95,7 @@ export default function DashboardPage() {
         <div className="card">
           <span className="badge">Dashboard</span>
           <h1>در حال آماده‌سازی پنل کاربری</h1>
-          <p>گزارش‌ها و وضعیت preview account خوانده می‌شوند.</p>
+          <p>گزارش‌های local و مسیر حساب آماده می‌شوند.</p>
         </div>
       </section>
     );
@@ -109,15 +109,15 @@ export default function DashboardPage() {
         <h1>پنل کاربری Halleus</h1>
 
         <p>
-          اینجا مرکز برگشت به گزارش‌هاست. در این نسخه گزارش‌ها هنوز روی همین
-          مرورگر ذخیره می‌شوند، اما مسیر محصول برای حساب کاربری واقعی و ذخیره
-          پایدار آماده شده است.
+          اینجا مرکز برگشت به گزارش‌ها، ورود به حساب و ادامه مسیر شخصی توست.
+          گزارش‌های همین مرورگر و گزارش‌های account جدا دیده می‌شوند؛ پیش‌فرض
+          همه‌چیز همچنان خصوصی و noindex است.
         </p>
 
         <div className="account-ready-status-strip" aria-label="وضعیت حساب و گزارش‌ها">
-          <span>فعلاً: local-preview</span>
+          <span>اکانت واقعی: smoke test پاس شده</span>
           <span>پیش‌فرض: خصوصی و noindex</span>
-          <span>ورود: username + mobile + password</span>
+          <span>ورود: username + password</span>
         </div>
 
         <div className="actions">
@@ -142,27 +142,27 @@ export default function DashboardPage() {
       <section className="card account-ready-lifecycle-card">
         <span className="badge">از مرورگر تا اکانت</span>
 
-        <h2>مسیر ذخیره حساب guard شده است؛ migration هنوز فعال نشده و فعلاً اولویت ندارد</h2>
+        <h2>مسیر ذخیره حساب آماده است؛ migration گزارش‌های قدیمی هنوز لازم نیست</h2>
 
         <p>
-          حساب کاربری واقعی با username انتخابی و موبایل وارد مرحله تست شده است.
-          گزارش تازه می‌تواند با login معتبر و env کامل به user id ذخیره شود و
-          local-preview همچنان fallback امن است.
+          حساب کاربری واقعی با username انتخابی و موبایل تست شده است. گزارش تازه
+          با login معتبر و env کامل به user id ذخیره می‌شود و local-preview همچنان
+          fallback امن می‌ماند.
         </p>
 
         <div className="home-step-list">
           <div>
             <strong>۱. الان</strong>
-            <span>گزارش‌ها خصوصی‌اند و در همین مرورگر نگه داشته می‌شوند.</span>
+            <span>گزارش‌های جدید می‌توانند در account ذخیره شوند؛ گزارش‌های local هم حذف نمی‌شوند.</span>
           </div>
 
           <div>
             <strong>۲. ذخیره گزارش تازه</strong>
-            <span>اگر login و storage env کامل باشد، گزارش تازه به user id هم ذخیره می‌شود.</span>
+            <span>بعد از ورود، گزارش تازه به حساب وصل می‌شود و در account reports دیده می‌شود.</span>
           </div>
 
           <div>
-            <strong>۳. تست account reports</strong>
+            <strong>۳. account reports</strong>
             <span>بعد از ساخت گزارش، نسخه account را در /reports?source=account ببین؛ migration فعلاً deferred است.</span>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
         <h2>تست سریع اکانت واقعی</h2>
 
         <p>
-          این کارت برای تست دستی v0.1.189 است: username انتخابی کاربر است،
+          این کارت مسیر واقعی حساب را کوتاه و روشن نگه می‌دارد: username انتخابی کاربر است،
           موبایل داده اجباری مشتری است اما username نیست، و گزارش‌های account
           از مسیر private/noindex دیده می‌شوند.
         </p>
@@ -210,12 +210,12 @@ export default function DashboardPage() {
         <div className="home-step-list">
           <div>
             <strong>۱. ساخت حساب</strong>
-            <span>در /profile یا همین پنل، با username + mobile + password تست کن.</span>
+            <span>در /profile یا همین پنل، با username + mobile + password ثبت‌نام کن.</span>
           </div>
 
           <div>
             <strong>۲. ساخت و ذخیره گزارش</strong>
-            <span>از /chart یک گزارش تازه بساز؛ اگر env کامل باشد account copy هم ذخیره می‌شود.</span>
+            <span>از /chart یک گزارش تازه بساز؛ account copy کنار نسخه local ذخیره می‌شود.</span>
           </div>
 
           <div>
@@ -240,9 +240,9 @@ export default function DashboardPage() {
       </section>
 
       <section className="card">
-        <span className="badge">اکانت preview</span>
+        <span className="badge">وضعیت ذخیره‌سازی</span>
 
-        <h2>وضعیت ذخیره‌سازی فعلی</h2>
+        <h2>local و account کنار هم</h2>
 
         <div className="profile-grid">
           <div>
@@ -270,12 +270,12 @@ export default function DashboardPage() {
       <section className="card">
         <span className="badge">تصمیم ذخیره پایدار</span>
 
-        <h2>مسیر بعدی: Supabase-first</h2>
+        <h2>مسیر بعدی: Supabase-first، ولی private by default</h2>
 
         <p>
           تصمیم فنی-محصولی این مرحله این است که حساب کاربری و گزارش‌های پایدار
-          از مسیر Supabase Auth + Supabase/Postgres جلو بروند؛ اما هنوز login
-          واقعی guard شده‌اند؛ database write فقط برای مسیر account report save و با env کامل فعال می‌شود. public/indexable و migration هنوز خاموش‌اند.
+          از مسیر Supabase Auth + Supabase/Postgres جلو بروند. database write فقط
+          برای مسیر account report save و با env کامل فعال است؛ public/indexable و migration هنوز خاموش‌اند.
         </p>
 
         <div className="profile-grid">
@@ -304,12 +304,12 @@ export default function DashboardPage() {
       <section className="card">
         <span className="badge">پیش‌پرواز مهاجرت</span>
 
-        <h2>مسیر ذخیره روی حساب آماده‌سازی شده</h2>
+        <h2>migration گزارش‌های قدیمی هنوز مرحله بعدی نیست</h2>
 
         <p>
           {describeAccountMigrationPreflight(migrationPreflight)} قبل از هر
-          مهاجرت واقعی باید خروجی JSON بگیری، login واقعی فعال شود، و شمارش
-          imported/skipped را تأیید کنی.
+          مهاجرت واقعی باید خروجی JSON بگیری و شمارش imported/skipped را تأیید کنی.
+          فعلاً گزارش تازه از مسیر account ذخیره می‌شود و local reports حذف نمی‌شوند.
         </p>
 
         <div className="profile-grid">
