@@ -31,7 +31,7 @@ const packageJson = JSON.parse(read("package.json"));
 assertIncludes(css, "Core UX Typography v0.1.198a", "typography marker");
 assertIncludes(css, 'font-family: "Dana"', "Dana font-face");
 assertIncludes(css, "--font-ui", "Dana font variable");
-assertIncludes(css, "#fffaf3", "warmer background palette");
+assertIncludes(css, "#F8FAFC", "official cool background palette");
 assertIncludes(css, "font-size: 15px", "base font scale");
 
 assertIncludes(

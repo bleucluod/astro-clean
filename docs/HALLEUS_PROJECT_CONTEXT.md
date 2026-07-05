@@ -1258,3 +1258,22 @@ Implementation note:
 - This batch should touch report writer/checks/docs/package only and should run with `pnpm run check:encoding`, `git --no-pager diff --check`, `pnpm run check:report-depth-first-synthesis`, report writer/sample QA guards, and `pnpm build`.
 - The v0.1.195 context ZIP may remain untracked before apply and must be allowed or removed before commit.
 - Target behavior: Report Depth + First Synthesis without auth/account/schema/SEO/payment/deploy changes.
+
+## Halleus Official Cool Palette v0.1.200
+
+The official Halleus visual direction is now locked to a bright, cool, sky-like, calm, trustworthy palette. The product should feel like a modern Persian-first astrology/self-discovery tool, not a fortune-telling, tarot, dark mystical, or warm/gold occult site.
+
+Core palette:
+- Main background: `#F8FAFC`
+- Soft panel/surface: `#D9EAFD`
+- Borders/dividers/detail lines: `#BCCCDC`
+- Brand/action/active state: `#9AA6B2`
+- Main readable text: `#243447`
+- Secondary text: `#3A4A5C`
+- Muted text: `#64748B`
+
+Rules:
+- Avoid warm cream, yellow, gold, beige, orange, yellow-tinted palettes, mystical purple, heavy navy, and pure black as a dominant UI color.
+- Do not use `#9AA6B2` for long body text; use `#243447`, `#3A4A5C`, and `#64748B` for readability.
+- Header, hero, dashboard, reports, forms, footer, and astrology visuals should stay bright, clean, cool, minimal, and trustworthy.
+- Astrology visuals should be modern line-art: main lines `#9AA6B2`, minor lines `#BCCCDC`, and soft halo/surface accents `#D9EAFD`.

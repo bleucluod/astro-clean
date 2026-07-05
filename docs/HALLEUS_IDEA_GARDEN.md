@@ -1315,3 +1315,18 @@ v0.1.197 — Beta Readiness + Deploy Smoke
 v0.1.198 — Private/Public Consent Design
 After that — Persian SEO Strategy, Paid Private Reports, Wiki/Content Studio/Admin, then Sky Pulse only with a real transit source.
 ```
+
+## Official Cool Palette Direction v0.1.200
+
+Decision: Halleus now uses a cool, bright, trustworthy, sky-like visual system.
+
+Use:
+- `#F8FAFC` as the dominant background.
+- `#D9EAFD` for soft panels and calm surface separation.
+- `#BCCCDC` for borders, inactive details, dividers, input borders, and minor chart lines.
+- `#9AA6B2` for logo, primary actions, active states, important links, key icons, and chart main lines.
+- `#243447`, `#3A4A5C`, and `#64748B` for readable text hierarchy.
+
+Avoid warm cream, gold, beige, orange, yellow-tinted accents, dark mystical purple, heavy navy, pure black, and any styling that makes Halleus look like fortune-telling, tarot, magic, or a dark occult product.
+
+Implementation priority: keep the whole website visually consistent with this palette before moving into public/private consent, SEO, or wiki work.

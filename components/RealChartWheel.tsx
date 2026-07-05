@@ -101,17 +101,17 @@ export function RealChartWheel({
   const houseSystemLabel = formatHouseSystemLabel(houseSystem);
 
   return (
-    <section className="report-real-chart-wheel-structure rounded-[2rem] border border-[#E7D8C7] bg-[#FFF9F2] p-5 shadow-sm">
+    <section className="report-real-chart-wheel-structure rounded-[2rem] border border-[#BCCCDC] bg-[#F8FAFC] p-5 shadow-sm">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A6B45]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#64748B]">
             Real chart wheel
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-[#3E2F25]">
+          <h2 className="mt-2 text-2xl font-bold text-[#243447]">
             چرخ واقعی چارت
           </h2>
         </div>
-        <p className="text-sm leading-7 text-[#7A695A]">
+        <p className="text-sm leading-7 text-[#64748B]">
           این چرخ از snapshot واقعی گزارش ساخته می‌شود: سیاره‌ها، خانه‌های Whole Sign،
           محورهای ASC/DSC/MC/IC و خطوط aspect.
         </p>
@@ -124,10 +124,10 @@ export function RealChartWheel({
           aria-label="Real chart wheel with zodiac signs, houses, axes, aspects, and planet placements"
           className="h-auto w-full max-w-[500px]"
         >
-          <circle cx="200" cy="200" r="184" fill="#FFFDF8" stroke="#D8C2AA" strokeWidth="2" />
-          <circle cx="200" cy="200" r="150" fill="#FFF9F2" stroke="#E8D8C6" strokeWidth="1.5" />
-          <circle cx="200" cy="200" r="112" fill="#FFFDF8" stroke="#EFE2D2" strokeWidth="1" />
-          <circle cx="200" cy="200" r="68" fill="#F8EFE5" stroke="#EFE2D2" strokeWidth="1" />
+          <circle cx="200" cy="200" r="184" fill="#F8FAFC" stroke="#BCCCDC" strokeWidth="2" />
+          <circle cx="200" cy="200" r="150" fill="#F8FAFC" stroke="#BCCCDC" strokeWidth="1.5" />
+          <circle cx="200" cy="200" r="112" fill="#F8FAFC" stroke="#D9EAFD" strokeWidth="1" />
+          <circle cx="200" cy="200" r="68" fill="#D9EAFD" stroke="#D9EAFD" strokeWidth="1" />
 
           {wheelHouses.map((house) => {
             const cuspStart = polarPoint(house.cuspLongitude, 68);
@@ -141,7 +141,7 @@ export function RealChartWheel({
                   y1={cuspStart.y}
                   x2={cuspEnd.x}
                   y2={cuspEnd.y}
-                  stroke="#B99776"
+                  stroke="#9AA6B2"
                   strokeDasharray="4 4"
                   strokeWidth="1.2"
                   opacity="0.85"
@@ -151,7 +151,7 @@ export function RealChartWheel({
                   y={labelPoint.y}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#8A5A3A] text-[5px] font-bold"
+                  className="fill-[#3A4A5C] text-[5px] font-bold"
                 >
                   {"H" + house.number}
                 </text>
@@ -166,7 +166,7 @@ export function RealChartWheel({
               y1={line.y1}
               x2={line.x2}
               y2={line.y2}
-              stroke="#B68A5F"
+              stroke="#9AA6B2"
               strokeWidth="1"
               opacity="0.35"
               aria-label={line.label}
@@ -186,7 +186,7 @@ export function RealChartWheel({
                   y1={lineStart.y}
                   x2={lineEnd.x}
                   y2={lineEnd.y}
-                  stroke="#E4D2BE"
+                  stroke="#BCCCDC"
                   strokeWidth="1"
                 />
                 <text
@@ -194,7 +194,7 @@ export function RealChartWheel({
                   y={labelPoint.y - 5}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#6A4B35] text-[14px] font-bold"
+                  className="fill-[#3A4A5C] text-[14px] font-bold"
                 >
                   {sign.glyph}
                 </text>
@@ -203,7 +203,7 @@ export function RealChartWheel({
                   y={labelPoint.y + 10}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#8A6A51] text-[5px] font-semibold"
+                  className="fill-[#64748B] text-[5px] font-semibold"
                 >
                   {ZODIAC_LABELS[sign.id].faName}
                 </text>
@@ -223,7 +223,7 @@ export function RealChartWheel({
                   y1={start.y}
                   x2={end.x}
                   y2={end.y}
-                  stroke="#4A3428"
+                  stroke="#243447"
                   strokeWidth={angle.id === "asc" || angle.id === "mc" ? "2.6" : "1.8"}
                 />
                 <text
@@ -231,7 +231,7 @@ export function RealChartWheel({
                   y={labelPoint.y}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#3E2F25] text-[5px] font-bold"
+                  className="fill-[#243447] text-[5px] font-bold"
                 >
                   {angle.label}
                 </text>
@@ -251,7 +251,7 @@ export function RealChartWheel({
                   y1={anchor.y}
                   x2={marker.x}
                   y2={marker.y}
-                  stroke="#C8A884"
+                  stroke="#9AA6B2"
                   strokeWidth="1"
                   opacity="0.8"
                 />
@@ -259,8 +259,8 @@ export function RealChartWheel({
                   cx={marker.x}
                   cy={marker.y}
                   r="12"
-                  fill="#3E2F25"
-                  stroke="#D9B58C"
+                  fill="#243447"
+                  stroke="#9AA6B2"
                   strokeWidth="1.5"
                 />
                 <text
@@ -268,7 +268,7 @@ export function RealChartWheel({
                   y={marker.y + 1}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#FFF9F2] text-[5px] font-bold"
+                  className="fill-[#F8FAFC] text-[5px] font-bold"
                 >
                   {PLANET_GLYPHS[placement.id] ?? placement.label.slice(0, 1)}
                 </text>
@@ -278,7 +278,7 @@ export function RealChartWheel({
                     y={marker.y - 10}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className="retrograde-glyph fill-[#7A3F2A] text-[5px] font-black"
+                    className="retrograde-glyph fill-[#9AA6B2] text-[5px] font-black"
                   >
                     R
                   </text>
@@ -291,7 +291,7 @@ export function RealChartWheel({
             x="200"
             y="190"
             textAnchor="middle"
-            className="fill-[#3E2F25] text-[11px] font-bold"
+            className="fill-[#243447] text-[11px] font-bold"
           >
             Halleus
           </text>
@@ -299,28 +299,28 @@ export function RealChartWheel({
             x="200"
             y="210"
             textAnchor="middle"
-            className="fill-[#8A6A51] text-[5px] font-semibold"
+            className="fill-[#64748B] text-[5px] font-semibold"
           >
             real chart snapshot
           </text>
         </svg>
       </div>
 
-      <div className="mt-4 grid gap-2 text-xs text-[#6B5A4C] md:grid-cols-3">
+      <div className="mt-4 grid gap-2 text-xs text-[#64748B] md:grid-cols-3">
         <div className="rounded-2xl bg-white p-3">
-          <span className="font-bold text-[#4A382C]">خانه‌ها:</span>{" "}
+          <span className="font-bold text-[#243447]">خانه‌ها:</span>{" "}
           {wheelHouses.length === 12
             ? "۱۲ خانه از داده Whole Sign ذخیره‌شده آمده‌اند."
             : "خانه‌ها فقط وقتی نمایش داده می‌شوند که snapshot کامل باشد."}
         </div>
         <div className="rounded-2xl bg-white p-3">
-          <span className="font-bold text-[#4A382C]">محورها:</span>{" "}
+          <span className="font-bold text-[#243447]">محورها:</span>{" "}
           {wheelAngles.length > 1
             ? "ASC/DSC/MC/IC از snapshot واقعی خوانده شده‌اند."
             : "فقط ASC در این snapshot قابل نمایش است."}
         </div>
         <div className="rounded-2xl bg-white p-3">
-          <span className="font-bold text-[#4A382C]">سیستم:</span>{" "}
+          <span className="font-bold text-[#243447]">سیستم:</span>{" "}
           {houseSystemLabel}، با خطوط aspect و نشان R برای retrograde.
         </div>
       </div>
