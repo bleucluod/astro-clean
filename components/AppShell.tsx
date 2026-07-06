@@ -19,7 +19,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <>
       <header className="site-header">
-        <nav className="site-nav" aria-label="ناوبری اصلی">
+        <nav className="site-nav site-nav-app" aria-label="ناوبری اصلی">
           <Link href="/" className="site-brand" aria-label="Halleus | هالیوس">
             <span className="site-brand-mark" aria-hidden="true">
               <Image
@@ -40,6 +40,26 @@ export function AppShell({ children }: AppShellProps) {
           <div className="site-nav-links" aria-label="صفحه‌های اصلی">
             <NavLinks />
           </div>
+
+          <Link className="site-header-cta" href="/chart">
+            گزارش تولدم را بساز
+          </Link>
+
+          <details className="site-mobile-menu">
+            <summary aria-label="باز کردن منوی سایت">
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+            </summary>
+
+            <div className="site-mobile-menu-panel" aria-label="منوی موبایل">
+              <NavLinks />
+
+              <Link className="site-mobile-menu-cta" href="/chart">
+                گزارش تولدم را بساز
+              </Link>
+            </div>
+          </details>
         </nav>
       </header>
 

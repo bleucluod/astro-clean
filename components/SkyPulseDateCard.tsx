@@ -20,8 +20,8 @@ type PulseState =
 
 function MoonPulseLoadingCard() {
   return (
-    <article className="mini-card paid-value-card moon-pulse-card">
-      <span className="badge">در حال خواندن آسمان امروز</span>
+    <article className="moon-widget-state">
+      <span className="section-label">در حال خواندن آسمان امروز</span>
       <strong>نبض روز در حال آماده شدن است</strong>
       <p>کارت امروز از محاسبه واقعی خورشید و ماه ساخته می‌شود.</p>
     </article>
@@ -30,8 +30,8 @@ function MoonPulseLoadingCard() {
 
 function MoonPulseErrorCard() {
   return (
-    <article className="mini-card paid-value-card moon-pulse-card">
-      <span className="badge">خوانش امروز</span>
+    <article className="moon-widget-state">
+      <span className="section-label">خوانش امروز</span>
       <strong>فعلاً نبض امروز را آرام نگه می‌داریم</strong>
       <p>گزارش تولد همچنان در دسترس است؛ کارت روزانه را کمی بعد دوباره امتحان کن.</p>
     </article>
@@ -76,132 +76,61 @@ export function SkyPulseDateCard() {
   const data = pulse.data;
 
   return (
-    <section className="card paid-section moon-pulse-section" id="sky-pulse" aria-labelledby="sky-pulse-title">
-      <div className="moon-pulse-header">
-        <div>
-          <span className="section-label">نبض آسمان امروز</span>
-
-          <h2 id="sky-pulse-title">ماه اکنون، فاز ماه و تاریخ امروز</h2>
-
-          <p>
-            این کارت هر روز از محاسبه واقعی خورشید و ماه تازه می‌شود؛ یک خوانش
-            کوتاه برای شروع روز، نه پیش‌بینی قطعی یا جایگزین گزارش تولد.
-          </p>
-        </div>
-
-        <div className="moon-pulse-location">
-          <span>تنظیم با افق تهران</span>
-          <p>خوانش امروز با زمان تهران هماهنگ شده است.</p>
-        </div>
+    <section className="moon-pulse-section sky-pulse-widget" id="sky-pulse" aria-labelledby="sky-pulse-title">
+      <div className="sky-pulse-widget-head">
+        <span className="section-label">نبض آسمان امروز</span>
+        <h2 id="sky-pulse-title">ماه اکنون، فاز ماه و تاریخ امروز</h2>
       </div>
 
-      {pulse.status === "loading" ? (
-        <div className="grid grid-3">
-          <MoonPulseLoadingCard />
-          <MoonPulseLoadingCard />
-          <MoonPulseLoadingCard />
-        </div>
-      ) : null}
+      {pulse.status === "loading" ? <MoonPulseLoadingCard /> : null}
 
       {pulse.status === "error" ? (
-        <div className="grid grid-3">
+        <div className="moon-widget-error-grid">
           <MoonPulseErrorCard />
-          <article className="mini-card paid-value-card moon-pulse-card">
-            <span className="badge">مسیر جایگزین</span>
+          <article>
             <strong>گزارش تولد آماده است</strong>
             <p>خوانش شخصی‌تر از چارت تولدت شروع می‌شود.</p>
-          </article>
-          <article className="mini-card paid-value-card moon-pulse-card">
-            <span className="badge">آرام و صادق</span>
-            <strong>بدون نتیجه ساختگی</strong>
-            <p>اگر محاسبه امروز کامل نشود، هالیوس نتیجه جعلی نشان نمی‌دهد.</p>
           </article>
         </div>
       ) : null}
 
       {data ? (
         <>
-          <div className="moon-pulse-dashboard">
-            <article className="mini-card paid-value-card moon-pulse-card moon-pulse-primary">
-              <span className="badge">نبض کوتاه</span>
-              <strong>{data.guidance.title}</strong>
-              <p>{data.guidance.description}</p>
-
-              <div className="moon-pulse-action-row">
-                <span>
-                  <strong>استفاده کن</strong>
-                  {data.guidance.use}
-                </span>
-                <span>
-                  <strong>آرام‌تر</strong>
-                  {data.guidance.avoid}
-                </span>
-              </div>
-            </article>
-
-            <div className="moon-pulse-date-row" aria-label="تاریخ امروز">
-              <span>
-                <strong>شمسی</strong>
-                {data.dates.jalaliDate}
-              </span>
-              <span>
-                <strong>میلادی</strong>
-                {data.dates.gregorianDate}
-              </span>
-              <span>
-                <strong>قمری</strong>
-                {data.dates.hijriDate}
-              </span>
-              <span>
-                <strong>ساعت تهران</strong>
-                {data.dates.localTime}
-              </span>
-            </div>
+          <div className="sky-pulse-date-line" aria-label="تاریخ امروز">
+            <span>امروز {data.dates.jalaliDate}</span>
           </div>
 
-          <div className="grid grid-3 moon-pulse-grid">
-            <article className="mini-card paid-value-card moon-pulse-card moon-pulse-feature">
-              <span className="badge">ماه اکنون</span>
-              <strong>
-                ماه در {data.moon.moonSignLabel}، {data.moon.moonDegree}
-              </strong>
-              <p>
-                خورشید اکنون در {data.moon.sunSignLabel} خوانده می‌شود. این جایگاه‌ها از محاسبه فعلی هالیوس ساخته شده‌اند.
-              </p>
-            </article>
-
-            <article className="mini-card paid-value-card moon-pulse-card moon-pulse-feature">
-              <span className="badge">فاز ماه</span>
+          <div className="sky-pulse-moon-grid">
+            <article>
+              <span aria-hidden="true" className="moon-phase-icon">◐</span>
+              <small>فاز ماه</small>
               <strong>{data.moon.phaseName}</strong>
-              <p>
-                {data.moon.illuminationLabel}؛ فاصله زاویه‌ای ماه و خورشید حدود{" "}
-                {data.moon.phaseAngle.toLocaleString("fa-IR")} درجه است.
-              </p>
+              <p>{data.moon.illuminationLabel}</p>
             </article>
 
-            <article className="mini-card paid-value-card moon-pulse-card moon-pulse-feature">
-              <span className="badge">گام بعدی</span>
-              <strong>خوانش شخصی‌تر با گزارش تولد</strong>
-              <p>
-                این کارت عمومی است. برای خواندن الگوهای شخصی، گزارش تولدت را از
-                چارت واقعی بساز.
-              </p>
+            <article>
+              <span aria-hidden="true" className="moon-now-icon">☽</span>
+              <small>ماه اکنون</small>
+              <strong>ماه در {data.moon.moonSignLabel}</strong>
+              <p>{data.moon.moonDegree}</p>
             </article>
           </div>
 
-          <p className="moon-pulse-note">
-            {data.location.note} {data.location.futureNote}
-          </p>
+          <div className="sky-pulse-guidance">
+            <strong>{data.guidance.title}</strong>
+            <p>{data.guidance.description}</p>
+          </div>
+
+          <div className="sky-pulse-meta">
+            <span>تنظیم با افق تهران</span>
+            <span>{data.dates.localTime}</span>
+          </div>
         </>
       ) : null}
 
-      <div className="actions">
-        <Link className="button" href="/chart">
-          ساخت گزارش تولد
-        </Link>
-        <Link className="button secondary" href="#home-faq">
-          پرسش‌های کوتاه
-        </Link>
+      <div className="sky-pulse-widget-actions">
+        <Link href="/chart">ساخت گزارش تولد</Link>
+        <Link href="#home-faq">پرسش‌های کوتاه</Link>
       </div>
     </section>
   );
