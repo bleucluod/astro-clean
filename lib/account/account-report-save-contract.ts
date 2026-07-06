@@ -16,10 +16,13 @@ export type AccountReportSaveContractStage =
 
 export type AccountReportSaveContract = {
   stage: AccountReportSaveContractStage;
-  activeSaveMode: "local-preview" | "local-preview-with-account-copy";
+  activeSaveMode:
+    | "local-preview"
+    | "local-preview-with-public-server-copy"
+    | "local-preview-with-account-copy";
   futureSaveMode: "account-storage";
   canSaveToAccount: boolean;
-  defaultVisibility: "private";
+  defaultVisibility: "public";
   indexingPolicy: "noindex";
   localReportCount: number;
   repositoryPrep: PersistentReportRepositoryPrep;
@@ -52,21 +55,21 @@ export function getAccountReportSaveContract(
     activeSaveMode: accountSaveReadiness.activeSaveMode,
     futureSaveMode: "account-storage",
     canSaveToAccount,
-    defaultVisibility: "private",
+    defaultVisibility: "public",
     indexingPolicy: "noindex",
     localReportCount,
     repositoryPrep,
     accountSaveReadiness,
     blockers: [...new Set(blockers)],
     requiredBeforeEnable: [
-      "Enable real Supabase auth and stable user ids.",
-      "Enable account storage only with DATABASE_URL, AUTH_SECRET, and SUPABASE_SERVICE_ROLE_KEY.",
-      "Route new report saves through a user-owned repository.",
-      "Keep local-preview fallback available until account saves are verified.",
+      "Enable real Supabase auth and stable user ids for user-owned account saves.",
+      "Allow public/noindex server report copies when DATABASE_URL is configured.",
+      "Route signed-in account saves through a user-owned repository.",
+      "Keep local-preview fallback available until server saves are verified.",
       "Keep migration execution disabled until backup and review are confirmed.",
     ],
     preservationRules: [
-      "Keep migrated reports private/noindex.",
+      "Keep saved reports public/noindex unless a later consent model changes this.",
       "Preserve report ids when possible.",
       "Preserve notes, favorites, createdAt, updatedAt, and report JSON.",
       "Never delete browser-local reports until account import succeeds.",

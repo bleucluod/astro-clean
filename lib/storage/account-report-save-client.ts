@@ -16,6 +16,7 @@ export type AccountReportSaveResult = {
   accountRecord: ReportRecord | null;
   accountStatus:
     | "account-saved"
+    | "public-saved"
     | "account-disabled"
     | "not-authenticated"
     | "account-skipped";
@@ -68,45 +69,38 @@ export async function saveGeneratedReportWithAccountFallback(
   const localRecord = await saveGeneratedReport(report);
   const config = getAccountReportSaveClientConfig();
 
-  if (!config.canAttemptAccountReportSave) {
+  if (!config.enabled) {
     return {
       localRecord,
       accountRecord: null,
       accountStatus: "account-disabled",
-      accountMessage: "Account report save is disabled; local-preview fallback was used.",
+      accountMessage: "Server report save is disabled; local-preview fallback was used.",
     };
   }
 
+  let accessToken: string | undefined;
+  let authErrorMessage: string | undefined;
   const client = getSupabaseBrowserAuthClient();
 
-  if (!client) {
-    return {
-      localRecord,
-      accountRecord: null,
-      accountStatus: "account-disabled",
-      accountMessage: "Supabase login client is not configured; local-preview fallback was used.",
-    };
-  }
+  if (client && config.canAttemptAccountReportSave) {
+    const { data, error } = await client.auth.getSession();
 
-  const { data, error } = await client.auth.getSession();
-  const accessToken = data.session?.access_token;
-
-  if (error || !accessToken) {
-    return {
-      localRecord,
-      accountRecord: null,
-      accountStatus: "not-authenticated",
-      accountMessage: error?.message ?? "User is not signed in; local-preview fallback was used.",
-    };
+    accessToken = data.session?.access_token;
+    authErrorMessage = error?.message;
   }
 
   try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
     const response = await fetch("/api/reports/account", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         report: localRecord.report,
       }),
@@ -119,17 +113,21 @@ export async function saveGeneratedReportWithAccountFallback(
       return {
         localRecord,
         accountRecord: null,
-        accountStatus: "account-skipped",
+        accountStatus: accessToken ? "account-skipped" : "not-authenticated",
         accountMessage:
-          payload?.error ?? "Account report save did not complete; local-preview fallback was used.",
+          payload?.error ??
+          authErrorMessage ??
+          "Server report save did not complete; local-preview fallback was used.",
       };
     }
 
     return {
       localRecord,
       accountRecord: payload.reportRecord,
-      accountStatus: "account-saved",
-      accountMessage: "Report was saved to the signed-in account as public/noindex and kept in local-preview fallback.",
+      accountStatus: accessToken ? "account-saved" : "public-saved",
+      accountMessage: accessToken
+        ? "Report was saved to the signed-in account as public/noindex and kept in local-preview fallback."
+        : "Report was saved as a public/noindex server report and kept in local-preview fallback.",
     };
   } catch (error) {
     return {
@@ -139,7 +137,7 @@ export async function saveGeneratedReportWithAccountFallback(
       accountMessage:
         error instanceof Error
           ? error.message
-          : "Account report save failed; local-preview fallback was used.",
+          : "Server report save failed; local-preview fallback was used.",
     };
   }
 }

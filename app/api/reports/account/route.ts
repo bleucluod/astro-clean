@@ -16,6 +16,10 @@ export const runtime = "nodejs";
 
 type AccountReportApiBody = Record<string, unknown>;
 
+const PUBLIC_REPORT_OWNER_USER_ID = "00000000-0000-4000-8000-000000000207";
+const PUBLIC_REPORT_OWNER_EMAIL = "public-reports@halleus.local";
+const PUBLIC_REPORT_OWNER_DISPLAY_NAME = "Halleus Public Reports";
+
 type AccountReportSaveGuard =
   | { ok: true; databaseUrl: string }
   | { ok: false; status: number; error: string; blockers: string[] };
@@ -47,6 +51,24 @@ function publicReportReadGuard(): AccountReportSaveGuard {
       ok: false,
       status: 503,
       error: "Public report read path is not configured.",
+      blockers: ["DATABASE_URL is missing."],
+    };
+  }
+
+  return {
+    ok: true,
+    databaseUrl: env.databaseUrl,
+  };
+}
+
+function publicReportWriteGuard(): AccountReportSaveGuard {
+  const env = getHalleusRuntimeEnv();
+
+  if (!hasDatabaseConfig() || !env.databaseUrl) {
+    return {
+      ok: false,
+      status: 503,
+      error: "Public report save path is not configured.",
       blockers: ["DATABASE_URL is missing."],
     };
   }
@@ -163,6 +185,46 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authorizationHeader = request.headers.get("authorization");
+  const body = (await request.json()) as AccountReportApiBody;
+  const report = body.report;
+
+  if (!isAstrologyReport(report)) {
+    return errorResponse(400, "Request body must include a valid report.");
+  }
+
+  if (!authorizationHeader) {
+    const guard = publicReportWriteGuard();
+
+    if (!guard.ok) {
+      return errorResponse(guard.status, guard.error, guard.blockers);
+    }
+
+    try {
+      await ensureAccountPersistenceUser({
+        databaseUrl: guard.databaseUrl,
+        userId: PUBLIC_REPORT_OWNER_USER_ID,
+        email: PUBLIC_REPORT_OWNER_EMAIL,
+        displayName: PUBLIC_REPORT_OWNER_DISPLAY_NAME,
+        provider: "email",
+      });
+
+      const reportRecord = await saveServerGeneratedReport({
+        userId: PUBLIC_REPORT_OWNER_USER_ID,
+        report,
+      });
+
+      return NextResponse.json({ ok: true, reportRecord });
+    } catch (error) {
+      return errorResponse(
+        500,
+        error instanceof Error
+          ? error.message
+          : "Public report persistence save failed.",
+      );
+    }
+  }
+
   const guard = accountReportSaveGuard();
 
   if (!guard.ok) {
@@ -171,12 +233,6 @@ export async function POST(request: Request) {
 
   try {
     const user = await readAuthenticatedAccountUser(request);
-    const body = (await request.json()) as AccountReportApiBody;
-    const report = body.report;
-
-    if (!isAstrologyReport(report)) {
-      return errorResponse(400, "Request body must include a valid report.");
-    }
 
     await ensureAccountPersistenceUser({
       databaseUrl: guard.databaseUrl,

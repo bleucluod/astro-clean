@@ -14,8 +14,8 @@ export type AccountReportSaveReadinessStage =
 
 export type AccountReportSaveReadiness = {
   stage: AccountReportSaveReadinessStage;
-  activeSaveMode: "local-preview" | "local-preview-with-account-copy";
-  accountSaveMode: "user-owned-account-storage";
+  activeSaveMode: "local-preview" | "local-preview-with-public-server-copy" | "local-preview-with-account-copy";
+  accountSaveMode: "public-server-storage" | "user-owned-account-storage";
   canSaveToAccount: boolean;
   defaultVisibility: "public";
   indexingPolicy: "noindex";
@@ -75,16 +75,20 @@ export function getAccountReportSaveReadiness(
     stage: canSaveToAccount ? "account-save-enabled" : "blocked",
     activeSaveMode: canSaveToAccount
       ? "local-preview-with-account-copy"
-      : "local-preview",
-    accountSaveMode: "user-owned-account-storage",
+      : hasDatabaseConfig()
+        ? "local-preview-with-public-server-copy"
+        : "local-preview",
+    accountSaveMode: canSaveToAccount
+      ? "user-owned-account-storage"
+      : "public-server-storage",
     canSaveToAccount,
     defaultVisibility: "public",
     indexingPolicy: "noindex",
     userId,
     blockers,
     rules: [
-      "New account report saves require a verified Supabase bearer token.",
-      "Account report records must use the authenticated Supabase user id.",
+      "New generated reports can save a public/noindex server copy without a Supabase session when DATABASE_URL is configured.",
+      "Signed-in account report records use the authenticated Supabase user id; guest public report records use a guarded system owner.",
       "Saved account reports are public/noindex by default while indexable publishing remains disabled.",
       "Keep local-preview fallback and do not delete browser-local reports.",
       "Local-to-account migration execution remains disabled.",
