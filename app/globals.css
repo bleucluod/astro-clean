@@ -5683,3 +5683,758 @@ main {
     text-align: center;
   }
 }
+
+/* Halleus Chart Reference Redesign v0.1.204 */
+.chart-reference-page {
+  --chart-navy: #0f2462;
+  --chart-text: #20315f;
+  --chart-muted: #657197;
+  --chart-blue: #5260d8;
+  --chart-blue-deep: #3646bd;
+  --chart-line: rgba(101, 117, 196, 0.18);
+  --chart-line-strong: rgba(82, 96, 216, 0.34);
+  --chart-shadow: 0 28px 88px rgba(35, 48, 112, 0.11);
+  --chart-card-shadow: 0 18px 48px rgba(35, 48, 112, 0.08);
+  position: relative;
+  left: 50%;
+  width: min(1540px, calc(100vw - 64px));
+  margin: 0 0 clamp(24px, 4vw, 54px);
+  transform: translateX(-50%);
+  color: var(--chart-text);
+}
+
+.chart-reference-page *,
+.chart-reference-page *::before,
+.chart-reference-page *::after {
+  box-sizing: border-box;
+}
+
+.chart-reference-shell {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(390px, 0.56fr) minmax(520px, 0.7fr);
+  min-height: min(760px, calc(100vh - 158px));
+  border: 1px solid var(--chart-line);
+  border-radius: clamp(30px, 3.2vw, 44px);
+  background:
+    radial-gradient(circle at 82% 10%, rgba(238, 240, 255, 0.9), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 255, 0.92));
+  box-shadow: var(--chart-shadow);
+}
+
+.chart-reference-visual {
+  position: relative;
+  min-height: 100%;
+  padding: clamp(18px, 2.4vw, 28px);
+}
+
+.chart-reference-sky {
+  position: sticky;
+  top: 116px;
+  overflow: hidden;
+  min-height: min(700px, calc(100vh - 190px));
+  height: calc(100% - 0px);
+  border-radius: clamp(24px, 3vw, 36px);
+  background:
+    radial-gradient(circle at 26% 48%, rgba(255, 255, 255, 0.92) 0 2.8%, rgba(246, 216, 160, 0.72) 4%, transparent 8%),
+    radial-gradient(circle at 30% 48%, rgba(82, 96, 216, 0.26), transparent 34%),
+    linear-gradient(150deg, #dce8ff 0%, #b4c8ff 52%, #edf3ff 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.68),
+    0 24px 64px rgba(64, 78, 196, 0.16);
+}
+
+.chart-reference-sky::before,
+.chart-reference-sky::after,
+.chart-reference-orbit {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 999px;
+}
+
+.chart-reference-sky::before {
+  width: 620px;
+  height: 620px;
+  right: -22%;
+  top: 18%;
+}
+
+.chart-reference-sky::after {
+  width: 420px;
+  height: 420px;
+  right: -4%;
+  top: 30%;
+}
+
+.chart-reference-orbit-a {
+  width: 740px;
+  height: 310px;
+  right: -34%;
+  top: 34%;
+  transform: rotate(-18deg);
+}
+
+.chart-reference-orbit-b {
+  width: 680px;
+  height: 280px;
+  right: -34%;
+  top: 43%;
+  transform: rotate(16deg);
+}
+
+.chart-reference-orbit-c {
+  width: 540px;
+  height: 540px;
+  right: 2%;
+  top: 23%;
+  opacity: 0.65;
+}
+
+.chart-reference-crescent {
+  position: absolute;
+  top: 18%;
+  right: 53%;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: clamp(68px, 7vw, 112px);
+  transform: rotate(-20deg);
+  text-shadow: 0 12px 26px rgba(255, 255, 255, 0.5);
+}
+
+.chart-reference-sun {
+  position: absolute;
+  right: 19%;
+  top: 45%;
+  width: clamp(70px, 6vw, 105px);
+  height: clamp(70px, 6vw, 105px);
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff8d7, #f5d893 56%, rgba(245, 216, 147, 0));
+  box-shadow: 0 0 52px rgba(255, 241, 188, 0.96);
+}
+
+.chart-reference-star,
+.chart-reference-sign {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.75);
+}
+
+.chart-reference-star-a {
+  top: 14%;
+  right: 26%;
+  font-size: 20px;
+}
+
+.chart-reference-star-b {
+  top: 72%;
+  right: 70%;
+  font-size: 18px;
+}
+
+.chart-reference-sign {
+  font-size: clamp(26px, 2.4vw, 42px);
+  font-weight: 900;
+}
+
+.chart-reference-sign-a { right: 12%; top: 28%; }
+.chart-reference-sign-b { right: 30%; top: 24%; }
+.chart-reference-sign-c { right: 49%; top: 38%; }
+.chart-reference-sign-d { right: 18%; top: 57%; }
+.chart-reference-sign-e { right: 37%; top: 66%; }
+.chart-reference-sign-f { right: 58%; top: 60%; }
+
+.chart-reference-content {
+  display: grid;
+  align-content: center;
+  gap: clamp(16px, 2vw, 22px);
+  padding: clamp(28px, 4vw, 58px) clamp(28px, 4.8vw, 76px) clamp(24px, 4vw, 50px);
+}
+
+.chart-reference-heading {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.chart-reference-mobile-brand {
+  display: none;
+}
+
+.chart-reference-heading h1 {
+  margin: 0;
+  color: var(--chart-navy);
+  font-size: clamp(46px, 4.8vw, 74px);
+  line-height: 1.18;
+  font-weight: 950;
+  letter-spacing: -0.055em;
+}
+
+.chart-reference-heading p {
+  margin: 0;
+  color: var(--chart-blue);
+  font-size: clamp(18px, 1.8vw, 25px);
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+.chart-heading-separator {
+  display: grid;
+  width: min(260px, 74%);
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  color: var(--chart-blue);
+  font-size: 20px;
+  margin-top: 6px;
+}
+
+.chart-heading-separator::before,
+.chart-heading-separator::after {
+  content: "";
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(82, 96, 216, 0.32), transparent);
+}
+
+.chart-reference-note .safety-disclaimer.compact {
+  margin: 0;
+  border: 1px solid var(--chart-line) !important;
+  border-radius: 22px !important;
+  padding: 16px 18px !important;
+  background: rgba(255, 255, 255, 0.66) !important;
+  color: var(--chart-text) !important;
+  box-shadow: var(--chart-card-shadow) !important;
+  text-align: center;
+}
+
+.chart-reference-form {
+  display: grid;
+  gap: 20px;
+  border: 1px solid var(--chart-line);
+  border-radius: clamp(24px, 2.5vw, 34px);
+  padding: clamp(22px, 3vw, 34px);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--chart-card-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.chart-form-fields {
+  display: grid;
+  gap: clamp(18px, 2.1vw, 24px);
+}
+
+.chart-field {
+  display: grid;
+  gap: 10px;
+  color: var(--chart-navy);
+  font-weight: 900;
+}
+
+.chart-field-full {
+  grid-column: 1 / -1;
+}
+
+.chart-field-label,
+.chart-field-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-field-title-row {
+  justify-content: space-between;
+}
+
+.chart-field-label > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--chart-line);
+  border-radius: 999px;
+  background: rgba(238, 240, 255, 0.74);
+  color: var(--chart-blue);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.chart-field input,
+.chart-field select,
+.birth-date-picker-grid select,
+.birth-time-input {
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid var(--chart-line);
+  border-radius: 16px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--chart-navy);
+  outline: none;
+  font: inherit;
+  font-weight: 850;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.chart-field input::placeholder {
+  color: rgba(32, 49, 95, 0.58);
+}
+
+.chart-field input:focus,
+.chart-field select:focus,
+.birth-date-picker-grid select:focus,
+.birth-time-input:focus {
+  border-color: var(--chart-line-strong);
+  box-shadow: 0 0 0 5px rgba(82, 96, 216, 0.09);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.date-mode-switch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(108px, 1fr));
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--chart-line);
+  border-radius: 12px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.date-mode-button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 0;
+  padding: 0 18px;
+  background: transparent;
+  color: var(--chart-blue);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+}
+
+.date-mode-button.is-active {
+  background: linear-gradient(135deg, var(--chart-blue), var(--chart-blue-deep));
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(64, 78, 196, 0.18);
+}
+
+.birth-date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.birth-date-picker-grid label {
+  display: grid;
+  gap: 8px;
+  color: var(--chart-navy);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.chart-time-layout {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.36fr) minmax(0, 0.64fr);
+  gap: 18px;
+  align-items: end;
+}
+
+.time-unknown-button {
+  min-height: 58px;
+  border: 1px solid var(--chart-line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--chart-navy);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+}
+
+.time-unknown-button::before {
+  content: "";
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  border: 2px solid rgba(82, 96, 216, 0.36);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.time-unknown-button.is-active {
+  border-color: var(--chart-blue);
+  background: rgba(238, 240, 255, 0.96);
+  color: var(--chart-blue-deep);
+}
+
+.time-unknown-button.is-active::before {
+  background: var(--chart-blue);
+  box-shadow: inset 0 0 0 5px #ffffff;
+}
+
+.birth-time-input {
+  direction: ltr;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.birth-time-input:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.field-hint {
+  color: var(--chart-muted);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.8;
+}
+
+.chart-city-field {
+  margin-top: 2px;
+}
+
+.city-suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: -8px;
+}
+
+.city-suggestion-chip {
+  border: 1px solid var(--chart-line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--chart-blue-deep);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 10px 26px rgba(35, 48, 112, 0.06);
+}
+
+.chart-form-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.34fr);
+  gap: 18px;
+  margin-top: 2px;
+}
+
+.chart-reference-page .button {
+  min-height: 62px;
+  border-radius: 16px !important;
+  padding: 13px 20px !important;
+  font-size: clamp(15px, 1.35vw, 18px);
+  font-weight: 950;
+}
+
+.chart-submit-button {
+  gap: 10px;
+  background: linear-gradient(135deg, var(--chart-blue), var(--chart-blue-deep)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 18px 38px rgba(64, 78, 196, 0.24) !important;
+}
+
+.chart-reports-link {
+  gap: 10px;
+  border: 1px solid var(--chart-line-strong) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  color: var(--chart-blue-deep) !important;
+}
+
+.chart-form-status {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--chart-line);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(238, 240, 255, 0.72);
+  color: var(--chart-text);
+  line-height: 1.8;
+}
+
+.chart-form-status strong {
+  color: var(--chart-navy);
+  font-size: 14px;
+}
+
+.chart-form-status span {
+  color: var(--chart-muted);
+}
+
+.chart-form-status.is-error {
+  border-color: rgba(194, 65, 12, 0.2);
+  background: rgba(255, 247, 237, 0.76);
+}
+
+.chart-form-status.is-error strong {
+  color: #9a3412;
+}
+
+.chart-form-status.is-success {
+  border-color: rgba(82, 96, 216, 0.22);
+  background: rgba(238, 240, 255, 0.82);
+}
+
+@media (max-width: 1120px) {
+  .chart-reference-page {
+    width: min(100%, calc(100vw - 28px));
+  }
+
+  .chart-reference-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-reference-visual {
+    min-height: 340px;
+    padding: 0;
+  }
+
+  .chart-reference-sky {
+    position: relative;
+    top: auto;
+    min-height: 340px;
+    height: 340px;
+    border-radius: 0 0 34px 34px;
+  }
+
+  .chart-reference-content {
+    margin-top: -130px;
+    padding-top: 0;
+  }
+
+  .chart-reference-heading {
+    min-height: 120px;
+    justify-content: center;
+  }
+
+  .chart-reference-heading h1,
+  .chart-reference-heading p,
+  .chart-heading-separator {
+    color: var(--chart-navy) !important;
+    text-shadow: 0 2px 16px rgba(255, 255, 255, 0.65);
+  }
+
+  .chart-reference-note,
+  .chart-reference-form {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .chart-reference-page {
+    left: 0;
+    width: min(100%, calc(100vw - 16px));
+    margin-inline: auto;
+    transform: none;
+  }
+
+  .chart-reference-shell {
+    overflow: hidden;
+    min-height: 0;
+    border-radius: 30px;
+  }
+
+  .chart-reference-visual {
+    min-height: 300px;
+  }
+
+  .chart-reference-sky {
+    min-height: 300px;
+    height: 300px;
+  }
+
+  .chart-reference-sky::before {
+    width: 360px;
+    height: 360px;
+    right: -18%;
+    top: 22%;
+  }
+
+  .chart-reference-sky::after {
+    width: 250px;
+    height: 250px;
+    right: 3%;
+    top: 34%;
+  }
+
+  .chart-reference-orbit-a,
+  .chart-reference-orbit-b {
+    width: 430px;
+    height: 190px;
+    right: -26%;
+  }
+
+  .chart-reference-orbit-c {
+    width: 310px;
+    height: 310px;
+    right: -2%;
+  }
+
+  .chart-reference-crescent {
+    top: 12%;
+    right: 56%;
+    font-size: 58px;
+  }
+
+  .chart-reference-sun {
+    right: 23%;
+    top: 42%;
+    width: 64px;
+    height: 64px;
+  }
+
+  .chart-reference-sign {
+    font-size: 24px;
+  }
+
+  .chart-reference-content {
+    gap: 14px;
+    margin-top: -124px;
+    padding: 0 14px 18px;
+  }
+
+  .chart-reference-mobile-brand {
+    display: inline-flex;
+    justify-self: end;
+    color: var(--chart-navy);
+    font-size: 25px;
+    font-weight: 950;
+    letter-spacing: -0.05em;
+  }
+
+  .chart-reference-heading {
+    align-items: center;
+    justify-items: end;
+    min-height: 118px;
+    text-align: right;
+  }
+
+  .chart-reference-heading h1 {
+    font-size: clamp(40px, 13vw, 58px);
+  }
+
+  .chart-reference-heading p {
+    font-size: 22px;
+  }
+
+  .chart-heading-separator {
+    justify-self: center;
+    width: 60%;
+  }
+
+  .chart-reference-note .safety-disclaimer.compact {
+    border-radius: 18px !important;
+    padding: 14px !important;
+    text-align: right;
+  }
+
+  .chart-reference-form {
+    gap: 18px;
+    border-radius: 26px;
+    padding: 18px 14px;
+  }
+
+  .chart-form-fields {
+    gap: 19px;
+  }
+
+  .chart-field {
+    gap: 10px;
+  }
+
+  .chart-field-label {
+    font-size: 17px;
+  }
+
+  .chart-field-label > span {
+    width: 32px;
+    height: 32px;
+  }
+
+  .chart-field input,
+  .chart-field select,
+  .birth-date-picker-grid select,
+  .birth-time-input,
+  .time-unknown-button {
+    min-height: 60px;
+    border-radius: 14px;
+    font-size: 17px;
+  }
+
+  .chart-field-title-row {
+    display: grid;
+    gap: 12px;
+  }
+
+  .date-mode-switch {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: 12px;
+  }
+
+  .date-mode-button {
+    min-height: 56px;
+    font-size: 16px;
+  }
+
+  .birth-date-picker-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .birth-date-picker-grid label {
+    font-size: 13px;
+  }
+
+  .chart-time-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .time-unknown-button {
+    text-align: right;
+  }
+
+  .chart-form-actions {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .chart-reference-page .button {
+    width: 100%;
+    min-height: 62px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 420px) {
+  .chart-reference-page {
+    width: min(100%, calc(100vw - 12px));
+  }
+
+  .chart-reference-content {
+    padding-inline: 10px;
+  }
+
+  .chart-reference-form {
+    padding-inline: 12px;
+  }
+
+  .birth-date-picker-grid {
+    gap: 8px;
+  }
+
+  .birth-date-picker-grid select {
+    padding-inline: 8px;
+    font-size: 15px;
+  }
+}

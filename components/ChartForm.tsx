@@ -374,7 +374,7 @@ export function ChartForm() {
 
     if (saveResult.accountStatus === "account-saved") {
       setSaveMessage(
-        "گزارش public/noindex در حساب ذخیره شد؛ نسخه local-preview هم برای fallback باقی ماند.",
+        "گزارش در حساب ذخیره شد؛ نسخه دستگاه هم برای اطمینان باقی ماند.",
       );
     } else if (saveResult.accountStatus === "not-authenticated") {
       setSaveMessage(
@@ -382,7 +382,7 @@ export function ChartForm() {
       );
     } else {
       setSaveMessage(
-        "گزارش روی همین دستگاه ذخیره شد؛ ذخیره حساب فعلاً guard شده یا کامل نیست.",
+        "گزارش روی همین دستگاه ذخیره شد؛ ذخیره حساب فعلاً کامل نیست.",
       );
     }
 
@@ -390,273 +390,281 @@ export function ChartForm() {
   }
 
   return (
-    <div className="grid chart-page chart-app-flow-page">
-      <section className="card chart-app-hero">
-        <span className="badge">ساخت گزارش تولد</span>
+    <section className="chart-reference-page" aria-labelledby="chart-form-title">
+      <div className="chart-reference-shell">
+        <aside className="chart-reference-visual" aria-hidden="true">
+          <div className="chart-reference-sky">
+            <span className="chart-reference-crescent">☾</span>
+            <span className="chart-reference-star chart-reference-star-a">✦</span>
+            <span className="chart-reference-star chart-reference-star-b">✧</span>
+            <span className="chart-reference-orbit chart-reference-orbit-a" />
+            <span className="chart-reference-orbit chart-reference-orbit-b" />
+            <span className="chart-reference-orbit chart-reference-orbit-c" />
+            <span className="chart-reference-sun" />
+            <span className="chart-reference-sign chart-reference-sign-a">♏</span>
+            <span className="chart-reference-sign chart-reference-sign-b">♒</span>
+            <span className="chart-reference-sign chart-reference-sign-c">♉</span>
+            <span className="chart-reference-sign chart-reference-sign-d">♋</span>
+            <span className="chart-reference-sign chart-reference-sign-e">♍</span>
+            <span className="chart-reference-sign chart-reference-sign-f">♐</span>
+          </div>
+        </aside>
 
-        <div className="chart-app-hero-content">
-          <h1>اطلاعات تولد</h1>
-          <p>
-            چند داده اصلی کافی است؛ هالیوس چارت را می‌خواند و گزارش فارسی را
-            همان‌جا برایت باز می‌کند.
-          </p>
-        </div>
+        <div className="chart-reference-content">
+          <header className="chart-reference-heading">
+            <span className="chart-reference-mobile-brand">هالیوس</span>
+            <h1 id="chart-form-title">اطلاعات تولد</h1>
+            <p>ورودی‌های اصلی</p>
+            <span className="chart-heading-separator" aria-hidden="true">
+              ✦
+            </span>
+          </header>
 
-        <div className="chart-app-chip-row" aria-label="ویژگی‌های مسیر ساخت گزارش">
-          <span>چارت واقعی</span>
-          <span>شمسی یا میلادی</span>
-          <span>ساعت نامعلوم</span>
-          <span>ذخیره public/noindex</span>
-        </div>
-      </section>
-
-      <section className="card" aria-labelledby="beta-readiness-smoke-title">
-        <span className="badge">Beta readiness smoke</span>
-        <h2 id="beta-readiness-smoke-title">مسیر تست بتا قبل از ساخت گزارش</h2>
-        <p>
-          این نسخه برای تست محدود آماده می‌شود: گزارش بساز، صفحه جزئیات را
-          بخوان، اگر وارد حساب هستی ذخیره account را چک کن و در پایان از
-          dashboard یا reports دوباره برگرد.
-        </p>
-
-        <div className="home-step-list" data-check="BETA_READINESS_SMOKE">
-          <div>
-            <strong>۱. ساخت</strong>
-            <span>از همین فرم گزارش را بساز؛ اگر محاسبه real chart کامل نشد، fallback امن هنوز گزارش را باز می‌کند.</span>
+          <div className="chart-reference-note">
+            <SafetyDisclaimer compact />
           </div>
 
-          <div>
-            <strong>۲. خواندن</strong>
-            <span>صفحه جزئیات باید نقشه سریع خواندن، سه چراغ اعتماد و یادداشت قابل برگشت را نشان بدهد.</span>
-          </div>
+          <form className="chart-reference-form" onSubmit={handleSubmit}>
+            <div className="chart-form-fields">
+              <label className="chart-field chart-field-full">
+                <span className="chart-field-label">
+                  <span aria-hidden="true">♙</span>
+                  نام
+                </span>
+                <input
+                  autoComplete="name"
+                  value={form.name}
+                  onChange={(event) => updateField("name", event.target.value)}
+                  placeholder="مثال: آرمان"
+                />
+              </label>
 
-          <div>
-            <strong>۳. برگشت</strong>
-            <span>بعد از خواندن، برگشت به dashboard، local reports و account reports باید واضح باشد.</span>
-          </div>
-        </div>
-      </section>
-      <form className="card form chart-form-card" onSubmit={handleSubmit}>
-        <div className="chart-form-header">
-          <div>
-            <span className="section-label">اطلاعات تولد</span>
-            <h2>ورودی‌های اصلی</h2>
-          </div>
+              <div className="chart-field chart-field-full">
+                <div className="chart-field-title-row">
+                  <span className="chart-field-label">
+                    <span aria-hidden="true">▣</span>
+                    تاریخ تولد
+                  </span>
 
-          <SafetyDisclaimer compact />
-        </div>
+                  <div className="date-mode-switch" aria-label="نوع تاریخ تولد">
+                    <button
+                      type="button"
+                      className={
+                        dateMode === "jalali"
+                          ? "date-mode-button is-active"
+                          : "date-mode-button"
+                      }
+                      aria-pressed={dateMode === "jalali"}
+                      onClick={() => updateDateMode("jalali")}
+                    >
+                      شمسی
+                    </button>
 
-        <div className="form-grid chart-form-grid">
-          <label className="field">
-            <span>نام</span>
-            <input
-              autoComplete="name"
-              value={form.name}
-              onChange={(event) => updateField("name", event.target.value)}
-              placeholder="نامت را بنویس — اختیاری"
-            />
-          </label>
+                    <button
+                      type="button"
+                      className={
+                        dateMode === "gregorian"
+                          ? "date-mode-button is-active"
+                          : "date-mode-button"
+                      }
+                      aria-pressed={dateMode === "gregorian"}
+                      onClick={() => updateDateMode("gregorian")}
+                    >
+                      میلادی
+                    </button>
+                  </div>
+                </div>
 
-          <div className="field field-wide">
-            <div className="field-title-row">
-              <span>تاریخ تولد</span>
+                {dateMode === "jalali" ? (
+                  <div
+                    className="birth-date-picker-grid"
+                    role="group"
+                    aria-label="انتخاب تاریخ تولد شمسی"
+                  >
+                    <label>
+                      <span>سال</span>
+                      <select
+                        required
+                        value={birthDateParts.year}
+                        onChange={(event) =>
+                          updateBirthDatePart("year", event.target.value)
+                        }
+                        aria-label="سال تولد شمسی"
+                      >
+                        <option value="">سال</option>
+                        {JALALI_YEAR_OPTIONS.map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-              <div className="date-mode-switch" aria-label="نوع تاریخ تولد">
-                <button
-                  type="button"
-                  className={
-                    dateMode === "jalali"
-                      ? "date-mode-button is-active"
-                      : "date-mode-button"
-                  }
-                  aria-pressed={dateMode === "jalali"}
-                  onClick={() => updateDateMode("jalali")}
-                >
-                  شمسی
-                </button>
+                    <label>
+                      <span>ماه</span>
+                      <select
+                        required
+                        value={birthDateParts.month}
+                        onChange={(event) =>
+                          updateBirthDatePart("month", event.target.value)
+                        }
+                        aria-label="ماه تولد شمسی"
+                      >
+                        <option value="">ماه</option>
+                        {JALALI_MONTH_OPTIONS.map((month) => (
+                          <option key={month.value} value={month.value}>
+                            {month.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-                <button
-                  type="button"
-                  className={
-                    dateMode === "gregorian"
-                      ? "date-mode-button is-active"
-                      : "date-mode-button"
-                  }
-                  aria-pressed={dateMode === "gregorian"}
-                  onClick={() => updateDateMode("gregorian")}
-                >
-                  میلادی
-                </button>
+                    <label>
+                      <span>روز</span>
+                      <select
+                        required
+                        value={birthDateParts.day}
+                        onChange={(event) =>
+                          updateBirthDatePart("day", event.target.value)
+                        }
+                        aria-label="روز تولد شمسی"
+                      >
+                        <option value="">روز</option>
+                        {JALALI_DAY_OPTIONS.map((day) => (
+                          <option key={day} value={day}>
+                            {Number(day).toLocaleString("fa-IR")}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ) : (
+                  <input
+                    required
+                    type="date"
+                    value={gregorianBirthDate}
+                    onChange={(event) => updateGregorianBirthDate(event.target.value)}
+                    aria-label="تاریخ تولد میلادی"
+                  />
+                )}
               </div>
+
+              <div className="chart-field chart-field-full">
+                <div className="chart-field-title-row">
+                  <span className="chart-field-label">
+                    <span aria-hidden="true">◷</span>
+                    ساعت تولد
+                  </span>
+                </div>
+
+                <div className="chart-time-layout">
+                  <button
+                    type="button"
+                    className={
+                      birthTimeMode === "unknown"
+                        ? "time-unknown-button is-active"
+                        : "time-unknown-button"
+                    }
+                    aria-pressed={birthTimeMode === "unknown"}
+                    onClick={() =>
+                      updateBirthTimeMode(
+                        birthTimeMode === "unknown" ? "known" : "unknown",
+                      )
+                    }
+                  >
+                    نمی‌دانم
+                  </button>
+
+                  <input
+                    className="birth-time-input"
+                    required={birthTimeMode === "known"}
+                    type="time"
+                    value={birthTimeMode === "known" ? form.birthTime : ""}
+                    disabled={birthTimeMode === "unknown"}
+                    onChange={(event) => updateField("birthTime", event.target.value)}
+                    aria-label="ساعت تولد"
+                  />
+                </div>
+
+                {birthTimeMode === "unknown" ? (
+                  <small className="field-hint">
+                    اگر ساعت دقیق را نمی‌دانی، با ساعت میانی روز شروع می‌کنیم.
+                  </small>
+                ) : null}
+              </div>
+
+              <label className="chart-field chart-field-full chart-city-field">
+                <span className="chart-field-label">
+                  <span aria-hidden="true">⌖</span>
+                  شهر تولد
+                </span>
+                <input
+                  required
+                  autoComplete="address-level2"
+                  value={form.birthCity}
+                  onChange={(event) => updateField("birthCity", event.target.value)}
+                  placeholder="تهران"
+                />
+              </label>
+
+              {citySuggestions.length > 0 ? (
+                <div
+                  className="city-suggestion-chips"
+                  aria-label="پیشنهادهای شهر تولد"
+                >
+                  {citySuggestions.map((city) => (
+                    <button
+                      key={city.id}
+                      type="button"
+                      className="city-suggestion-chip"
+                      onClick={() => updateField("birthCity", city.faName)}
+                    >
+                      {getIranCityDisplayName(city)}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
-            {dateMode === "jalali" ? (
-              <div
-                className="birth-date-picker-grid"
-                role="group"
-                aria-label="انتخاب تاریخ تولد شمسی"
-              >
-                <select
-                  required
-                  value={birthDateParts.year}
-                  onChange={(event) =>
-                    updateBirthDatePart("year", event.target.value)
-                  }
-                  aria-label="سال تولد شمسی"
-                >
-                  <option value="">سال</option>
-                  {JALALI_YEAR_OPTIONS.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  required
-                  value={birthDateParts.month}
-                  onChange={(event) =>
-                    updateBirthDatePart("month", event.target.value)
-                  }
-                  aria-label="ماه تولد شمسی"
-                >
-                  <option value="">ماه</option>
-                  {JALALI_MONTH_OPTIONS.map((month) => (
-                    <option key={month.value} value={month.value}>
-                      {month.label}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  required
-                  value={birthDateParts.day}
-                  onChange={(event) =>
-                    updateBirthDatePart("day", event.target.value)
-                  }
-                  aria-label="روز تولد شمسی"
-                >
-                  <option value="">روز</option>
-                  {JALALI_DAY_OPTIONS.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <input
-                required
-                type="date"
-                value={gregorianBirthDate}
-                onChange={(event) => updateGregorianBirthDate(event.target.value)}
-                aria-label="تاریخ تولد میلادی"
-              />
-            )}
-          </div>
-
-          <label className="field">
-            <span>ساعت تولد</span>
-            <div className="time-choice-row time-choice-row-mobile">
-              <input
-                className="birth-time-input"
-                required={birthTimeMode === "known"}
-                type="time"
-                value={birthTimeMode === "known" ? form.birthTime : ""}
-                disabled={birthTimeMode === "unknown"}
-                onChange={(event) => updateField("birthTime", event.target.value)}
-                aria-label="ساعت تولد"
-              />
-
-              <button
-                type="button"
-                className={
-                  birthTimeMode === "unknown"
-                    ? "time-unknown-button is-active"
-                    : "time-unknown-button"
-                }
-                aria-pressed={birthTimeMode === "unknown"}
-                onClick={() =>
-                  updateBirthTimeMode(
-                    birthTimeMode === "unknown" ? "known" : "unknown",
-                  )
-                }
-              >
-                نمی‌دانم
+            <div className="chart-form-actions">
+              <button className="button chart-submit-button" type="submit" disabled={isRealEngineLoading}>
+                <span aria-hidden="true">✦</span>
+                {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت، ذخیره و باز کردن گزارش"}
               </button>
+
+              <Link className="button secondary chart-reports-link" href="/reports">
+                <span aria-hidden="true">▤</span>
+                گزارش‌ها
+              </Link>
             </div>
 
-            {birthTimeMode === "unknown" ? (
-              <small className="field-hint">
-                اگر ساعت دقیق را نمی‌دانی، با ساعت میانی روز شروع می‌کنیم.
-              </small>
+            {realEngineRequest.status !== "idle" ? (
+              <div
+                className={
+                  realEngineRequest.status === "error"
+                    ? "chart-form-status is-error"
+                    : "chart-form-status is-progress"
+                }
+                role="status"
+                aria-live="polite"
+              >
+                <strong>
+                  {realEngineRequest.status === "error" ? "نیاز به اصلاح ورودی" : "در حال انجام"}
+                </strong>
+                <span>{realEngineRequest.message}</span>
+              </div>
             ) : null}
-          </label>
 
-          <label className="field">
-            <span>شهر تولد</span>
-            <input
-              required
-              autoComplete="address-level2"
-              value={form.birthCity}
-              onChange={(event) => updateField("birthCity", event.target.value)}
-              placeholder="شهر تولد را بنویس"
-            />
-          </label>
-
-          {citySuggestions.length > 0 ? (
-            <div
-              className="city-suggestion-chips"
-              aria-label="پیشنهادهای شهر تولد"
-            >
-              {citySuggestions.map((city) => (
-                <button
-                  key={city.id}
-                  type="button"
-                  className="city-suggestion-chip"
-                  onClick={() => updateField("birthCity", city.faName)}
-                >
-                  {getIranCityDisplayName(city)}
-                </button>
-              ))}
-            </div>
-          ) : null}
+            {saveMessage ? (
+              <div className="chart-form-status is-success" role="status" aria-live="polite">
+                <strong>گزارش آماده شد</strong>
+                <span>{saveMessage}</span>
+              </div>
+            ) : null}
+          </form>
         </div>
-
-        <div className="actions chart-form-actions">
-          <button className="button" type="submit" disabled={isRealEngineLoading}>
-            {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت، ذخیره و باز کردن گزارش"}
-          </button>
-
-          <Link className="button secondary" href="/reports">
-            گزارش‌ها
-          </Link>
-        </div>
-
-        {realEngineRequest.status !== "idle" ? (
-          <div
-            className={
-              realEngineRequest.status === "error"
-                ? "chart-form-status is-error"
-                : "chart-form-status is-progress"
-            }
-            role="status"
-          >
-            <strong>
-              {realEngineRequest.status === "error" ? "نیاز به اصلاح ورودی" : "در حال انجام"}
-            </strong>
-            <span>{realEngineRequest.message}</span>
-          </div>
-        ) : null}
-
-        {saveMessage ? (
-          <div className="chart-form-status is-success" role="status">
-            <strong>گزارش آماده شد</strong>
-            <span>{saveMessage}</span>
-          </div>
-        ) : null}
-      </form>
-    </div>
+      </div>
+    </section>
   );
 }
 
