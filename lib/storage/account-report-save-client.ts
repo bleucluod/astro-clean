@@ -49,16 +49,19 @@ function isPublicFlagEnabled(name: AccountReportSavePublicEnvName) {
 
 export function getAccountReportSaveClientConfig(): AccountReportSaveClientConfig {
   const loginConfig = getSupabaseBrowserLoginConfig();
-  const enabled = isPublicFlagEnabled("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE");
+  const accountSaveFlagEnabled = isPublicFlagEnabled(
+    "NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE",
+  );
   const missingConfig = [...loginConfig.missingConfig];
 
-  if (!enabled) {
+  if (!accountSaveFlagEnabled) {
     missingConfig.push("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=true");
   }
 
   return {
-    enabled,
-    canAttemptAccountReportSave: enabled && loginConfig.canUseRealSupabaseLogin,
+    enabled: true,
+    canAttemptAccountReportSave:
+      accountSaveFlagEnabled && loginConfig.canUseRealSupabaseLogin,
     missingConfig: [...new Set(missingConfig)],
   };
 }
@@ -68,15 +71,6 @@ export async function saveGeneratedReportWithAccountFallback(
 ): Promise<AccountReportSaveResult> {
   const localRecord = await saveGeneratedReport(report);
   const config = getAccountReportSaveClientConfig();
-
-  if (!config.enabled) {
-    return {
-      localRecord,
-      accountRecord: null,
-      accountStatus: "account-disabled",
-      accountMessage: "Server report save is disabled; local-preview fallback was used.",
-    };
-  }
 
   let accessToken: string | undefined;
   let authErrorMessage: string | undefined;

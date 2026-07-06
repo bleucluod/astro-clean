@@ -376,21 +376,25 @@ export function ChartForm() {
       setSaveMessage(
         "گزارش در حساب ذخیره شد؛ نسخه دستگاه هم برای اطمینان باقی ماند.",
       );
-    } else if (saveResult.accountStatus === "public-saved") {
+      router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`);
+      return;
+    }
+
+    if (saveResult.accountStatus === "public-saved" && saveResult.accountRecord) {
       setSaveMessage(
         "گزارش با لینک عمومی ذخیره شد؛ نسخه دستگاه هم برای اطمینان باقی ماند.",
       );
-    } else if (saveResult.accountStatus === "not-authenticated") {
-      setSaveMessage(
-        "گزارش روی همین دستگاه ذخیره شد؛ ذخیره عمومی سرور کامل نشد.",
-      );
-    } else {
-      setSaveMessage(
-        "گزارش روی همین دستگاه ذخیره شد؛ ذخیره سرور فعلاً کامل نیست.",
-      );
+      router.push(`/reports/${saveResult.accountRecord.id}`);
+      return;
     }
 
-    router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`);
+    setRealEngineRequest({
+      status: "error",
+      message: `ذخیره عمومی سرور کامل نشد: ${saveResult.accountMessage}`,
+    });
+    setSaveMessage(
+      "گزارش روی همین دستگاه ذخیره شد، اما لینک عمومی ساخته نشد. لطفاً کمی بعد دوباره تلاش کن.",
+    );
   }
 
   return (
