@@ -11,7 +11,7 @@ body {
   min-height: 100vh;
   background: linear-gradient(180deg, #F8FAFC 0%, #ffffff 52%, #F8FAFC 100%);
   color: #243447;
-  font-family: "Segoe UI", "Vazirmatn", "Noto Sans Arabic", "Noto Sans", Tahoma, Arial, sans-serif;
+  font-family: var(--font-persian);
 }
 
 a {
@@ -6437,4 +6437,101 @@ main {
     padding-inline: 8px;
     font-size: 15px;
   }
+}
+
+/* Halleus Global Vazirmatn Typography v0.1.205 */
+:root {
+  --font-persian: var(--font-vazirmatn), "Vazirmatn", "Segoe UI", "Noto Sans Arabic", "Noto Sans", Tahoma, Arial, sans-serif;
+}
+
+html,
+body {
+  font-family: var(--font-persian);
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  letter-spacing: -0.01em;
+}
+
+p,
+li,
+input,
+textarea,
+select,
+button,
+small,
+label,
+summary,
+details {
+  font-family: var(--font-persian);
+}
+
+p,
+li {
+  font-weight: 400;
+}
+
+input,
+textarea,
+select {
+  font-weight: 500;
+}
+
+button,
+.button,
+label,
+summary,
+.site-nav-links a,
+.site-nav-links .nav-link,
+.site-header-cta,
+.site-mobile-menu-cta,
+.footer-link,
+.section-label,
+.home-brand-kicker,
+.chart-field-label,
+.date-mode-button,
+.time-unknown-button,
+.city-suggestion-chip {
+  font-weight: 600;
+}
+
+strong,
+b,
+.site-brand-copy strong,
+.site-brand-copy small,
+.home-icon-tile strong,
+.home-layer-card strong,
+.home-step-card strong,
+.home-trust-item strong,
+.home-path-list strong,
+.sky-pulse-moon-grid strong,
+.chart-form-status strong {
+  font-weight: 700;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.homepage-redesign h1,
+.homepage-redesign h2,
+.chart-reference-heading h1,
+.chart-reference-heading p {
+  font-family: var(--font-persian);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.hero-lede,
+.home-section-heading p,
+.home-final-cta p,
+.chart-form-status span,
+.field-hint {
+  font-weight: 400;
 }

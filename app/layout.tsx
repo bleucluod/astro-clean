@@ -1,7 +1,15 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
+import { Vazirmatn } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
 import { siteConfig } from "@/lib/config/seo";
 import "./globals.css";
+
+const vazirmatn = Vazirmatn({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-vazirmatn",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -58,7 +66,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl">
+    <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body>
         <AppShell>{children}</AppShell>
       </body>
