@@ -184,6 +184,56 @@ export async function listAccountReportSummaries(): Promise<AccountReportListRes
   }
 }
 
+export async function getPublicReportRecord(
+  reportId: string,
+): Promise<AccountReportDetailResult> {
+  const normalizedReportId = reportId.trim();
+
+  if (!normalizedReportId) {
+    return {
+      status: "account-read-failed",
+      reportRecord: null,
+      message: "A report id is required before reading a public report.",
+      blockers: ["Missing report id."],
+    };
+  }
+
+  try {
+    const response = await fetch(
+      `/api/reports/account?reportId=${encodeURIComponent(normalizedReportId)}`,
+    );
+    const payload = (await response.json().catch(() => null)) as
+      | AccountReportDetailResponse
+      | null;
+
+    if (!response.ok || !payload?.ok || !payload.reportRecord) {
+      return {
+        status: "account-read-failed",
+        reportRecord: null,
+        message: payload?.error ?? "Public report could not be loaded.",
+        blockers: payload?.blockers ?? [],
+      };
+    }
+
+    return {
+      status: "account-read-ready",
+      reportRecord: payload.reportRecord,
+      message: "Public report loaded.",
+      blockers: [],
+    };
+  } catch (error) {
+    return {
+      status: "account-read-failed",
+      reportRecord: null,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Public report could not be loaded.",
+      blockers: [],
+    };
+  }
+}
+
 export async function getAccountReportRecord(
   reportId: string,
 ): Promise<AccountReportDetailResult> {

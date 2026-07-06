@@ -17,7 +17,7 @@ export type AccountReportSaveReadiness = {
   activeSaveMode: "local-preview" | "local-preview-with-account-copy";
   accountSaveMode: "user-owned-account-storage";
   canSaveToAccount: boolean;
-  defaultVisibility: "private";
+  defaultVisibility: "public";
   indexingPolicy: "noindex";
   userId?: string;
   blockers: string[];
@@ -78,14 +78,14 @@ export function getAccountReportSaveReadiness(
       : "local-preview",
     accountSaveMode: "user-owned-account-storage",
     canSaveToAccount,
-    defaultVisibility: "private",
+    defaultVisibility: "public",
     indexingPolicy: "noindex",
     userId,
     blockers,
     rules: [
       "New account report saves require a verified Supabase bearer token.",
       "Account report records must use the authenticated Supabase user id.",
-      "Saved account reports stay private/noindex by default.",
+      "Saved account reports are public/noindex by default while indexable publishing remains disabled.",
       "Keep local-preview fallback and do not delete browser-local reports.",
       "Local-to-account migration execution remains disabled.",
     ],

@@ -27,6 +27,10 @@ export function createNotConfiguredDatabaseDriver(): ReportDatabaseDriver {
       return null;
     },
 
+    async getPublicReportById() {
+      return null;
+    },
+
     async upsertReport(_userId: string, record: ReportRecord) {
       return record;
     },

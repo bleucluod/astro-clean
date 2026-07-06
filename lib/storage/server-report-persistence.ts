@@ -1,6 +1,7 @@
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
 import { createDatabaseReportRepository } from "@/lib/storage/database-report-repository";
+import { getReportDatabaseDriver } from "@/lib/database/report-database-driver";
 import { summarizeReportRecord } from "@/lib/storage/report-records";
 
 export type ServerReportPersistenceOptions = {
@@ -60,4 +61,18 @@ export async function listServerReportSummaries({
   const records = await repository.listReports();
 
   return records.map(summarizeReportRecord);
+}
+
+export type GetPublicServerReportInput = {
+  reportId: string;
+};
+
+export async function getPublicServerStoredReport({
+  reportId,
+}: GetPublicServerReportInput): Promise<ReportRecord | null> {
+  const driver = getReportDatabaseDriver();
+
+  return driver.getPublicReportById(
+    normalizeServerPersistenceId(reportId, "reportId"),
+  );
 }

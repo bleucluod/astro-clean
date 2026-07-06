@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportCard } from "@/components/ReportCard";
 import { getReportRepository } from "@/lib/storage/report-repository";
-import { getAccountReportRecord } from "@/lib/storage/account-report-read-client";
+import { getAccountReportRecord, getPublicReportRecord } from "@/lib/storage/account-report-read-client";
 import type { AstrologyReport } from "@/types/astro";
 
 import { ReportV3Experience } from "@/components/ReportV3Experience";
@@ -14,7 +14,7 @@ type ReportDetailProps = {
   reportSource?: ReportDetailSource;
 };
 
-type ReportDetailSource = "local" | "beta-db" | "account";
+type ReportDetailSource = "local" | "beta-db" | "account" | "public";
 
 type BetaDatabaseReadResponse = {
   ok?: boolean;
@@ -118,6 +118,38 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     let isActive = true;
 
     async function loadReport() {
+      if (reportSource === "public") {
+        const result = await getPublicReportRecord(reportId);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (result.status === "account-read-ready" && result.reportRecord?.report) {
+          setReport(sanitizeReportVisibleCopy(result.reportRecord.report));
+          setNote("");
+          setMessage(`لینک عمومی گزارش باز شد: ${reportId}`);
+          setIsReady(true);
+          return;
+        }
+
+        const selectedRecord = await reportRepository.getReport(reportId);
+
+        if (!isActive) {
+          return;
+        }
+
+        setReport(selectedRecord?.report ? sanitizeReportVisibleCopy(selectedRecord.report) : null);
+        setNote(selectedRecord?.note ?? "");
+        setMessage(
+          selectedRecord?.report
+            ? "نسخه همین مرورگر باز شد؛ لینک عمومی سرور برای این گزارش پیدا نشد."
+            : result.message,
+        );
+        setIsReady(true);
+        return;
+      }
+
       if (reportSource === "account") {
         const result = await getAccountReportRecord(reportId);
 
@@ -189,8 +221,8 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
   }, [reportId, reportSource]);
 
   async function handleSaveNote() {
-    if (reportSource === "account") {
-      setMessage("یادداشت نسخه اکانتی فعلاً فقط خواندنی است؛ ویرایش یادداشت اکانتی در batch بعدی اضافه می‌شود.");
+    if (reportSource === "account" || reportSource === "public") {
+      setMessage("یادداشت گزارش‌های عمومی/اکانتی فعلاً فقط خواندنی است؛ ویرایش یادداشت اکانتی در batch بعدی اضافه می‌شود.");
       return;
     }
 
@@ -235,18 +267,24 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     );
   }
 
-  const isAccountReportSource = reportSource === "account";
+  const isReadOnlyReportSource = reportSource === "account" || reportSource === "public";
 
   return (
     <section className="grid">
       <ReportCard report={report} />
 
-      {isAccountReportSource ? (
+      {isReadOnlyReportSource ? (
         <section className="card">
-          <span className="badge">گزارش حساب</span>
-          <h2>نسخه ذخیره‌شده در حساب</h2>
+          <span className="badge">
+            {reportSource === "public" ? "لینک عمومی" : "گزارش حساب"}
+          </span>
+          <h2>
+            {reportSource === "public"
+              ? "نسخه قابل مشاهده با لینک"
+              : "نسخه ذخیره‌شده در حساب"}
+          </h2>
           <p>
-            این گزارش از فضای ذخیره‌سازی حساب خوانده شده و فعلاً public/noindex نگه داشته می‌شود؛ یعنی برای تست محصول public است، اما وارد ایندکس نمی‌شود. ویرایش یادداشت حساب در این نسخه فقط خواندنی است و گزارش‌های محلی حذف یا جابه‌جا نمی‌شوند.
+            این گزارش public/noindex است؛ یعنی هرکسی که لینک مستقیم را داشته باشد می‌تواند متن گزارش را ببیند، اما صفحه برای ایندکس عمومی آماده نشده است. یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند و گزارش‌های محلی حذف یا جابه‌جا نمی‌شوند.
           </p>
         </section>
       ) : null}
@@ -278,7 +316,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="مثلاً: این هفته فقط به نیاز ماه خودم توجه کنم..."
                 rows={3}
-                disabled={isAccountReportSource}
+                disabled={isReadOnlyReportSource}
               />
             </label>
 
@@ -287,16 +325,16 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
                 className="button"
                 type="button"
                 onClick={handleSaveNote}
-                disabled={isAccountReportSource}
+                disabled={isReadOnlyReportSource}
               >
-                {isAccountReportSource ? "یادداشت حساب فعلاً فقط خواندنی است" : "ذخیره یادداشت"}
+                {isReadOnlyReportSource ? "یادداشت این نسخه فعلاً فقط خواندنی است" : "ذخیره یادداشت"}
               </button>
 
               <button
                 className="button secondary"
                 type="button"
                 onClick={() => setNote("")}
-                disabled={isAccountReportSource}
+                disabled={isReadOnlyReportSource}
               >
                 پاک کردن
               </button>
@@ -328,11 +366,13 @@ function ReportProductFocusPanel({
   reportSource: ReportDetailSource;
 }) {
   const stats = buildReportReadingStats(report);
-  const sourceLabel = reportSource === "account"
-    ? "نسخه ذخیره‌شده در حساب"
-    : reportSource === "beta-db"
-      ? "نسخه آزمایشی سرور"
-      : "نسخه ذخیره‌شده روی همین مرورگر";
+  const sourceLabel = reportSource === "public"
+    ? "نسخه عمومی قابل مشاهده با لینک"
+    : reportSource === "account"
+      ? "نسخه ذخیره‌شده در حساب"
+      : reportSource === "beta-db"
+        ? "نسخه آزمایشی سرور"
+        : "نسخه ذخیره‌شده روی همین مرورگر";
   const calculationLabel = stats.hasRealEngine
     ? `${stats.placementCount.toLocaleString("fa-IR")} جایگاه، ${stats.houseCount.toLocaleString("fa-IR")} خانه و ${stats.aspectCount.toLocaleString("fa-IR")} رابطه سیاره‌ای`
     : "خوانش محدود و محتاط";

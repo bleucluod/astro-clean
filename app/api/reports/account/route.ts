@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { getAccountReportSaveReadiness } from "@/lib/account/account-report-save-readiness";
-import { getHalleusRuntimeEnv } from "@/lib/config/env";
+import { getHalleusRuntimeEnv, hasDatabaseConfig } from "@/lib/config/env";
 import { ensureAccountPersistenceUser } from "@/lib/database/account-persistence-user";
 import { getSupabaseUserFromAuthorizationHeader } from "@/lib/auth/supabase-server-user";
 import {
+  getPublicServerStoredReport,
   getServerStoredReport,
   listServerReportSummaries,
   saveServerGeneratedReport,
@@ -29,6 +30,24 @@ function accountReportSaveGuard(): AccountReportSaveGuard {
       status: 503,
       error: "Account report save path is not configured.",
       blockers: readiness.blockers,
+    };
+  }
+
+  return {
+    ok: true,
+    databaseUrl: env.databaseUrl,
+  };
+}
+
+function publicReportReadGuard(): AccountReportSaveGuard {
+  const env = getHalleusRuntimeEnv();
+
+  if (!hasDatabaseConfig() || !env.databaseUrl) {
+    return {
+      ok: false,
+      status: 503,
+      error: "Public report read path is not configured.",
+      blockers: ["DATABASE_URL is missing."],
     };
   }
 
@@ -79,6 +98,35 @@ async function readAuthenticatedAccountUser(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const reportId = readString(url.searchParams.get("reportId"));
+  const authorizationHeader = request.headers.get("authorization");
+
+  if (reportId && !authorizationHeader) {
+    const guard = publicReportReadGuard();
+
+    if (!guard.ok) {
+      return errorResponse(guard.status, guard.error, guard.blockers);
+    }
+
+    try {
+      const reportRecord = await getPublicServerStoredReport({ reportId });
+
+      if (!reportRecord) {
+        return errorResponse(404, "Public report was not found.");
+      }
+
+      return NextResponse.json({ ok: true, reportRecord });
+    } catch (error) {
+      return errorResponse(
+        500,
+        error instanceof Error
+          ? error.message
+          : "Public report read failed.",
+      );
+    }
+  }
+
   const guard = accountReportSaveGuard();
 
   if (!guard.ok) {
@@ -87,8 +135,6 @@ export async function GET(request: Request) {
 
   try {
     const user = await readAuthenticatedAccountUser(request);
-    const url = new URL(request.url);
-    const reportId = readString(url.searchParams.get("reportId"));
 
     if (reportId) {
       const reportRecord = await getServerStoredReport({

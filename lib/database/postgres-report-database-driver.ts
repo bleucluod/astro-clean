@@ -123,6 +123,27 @@ export function createPostgresReportDatabaseDriver(
       return row ? fromDatabaseReportRow(normalizeRow(row)) : null;
     },
 
+    async getPublicReportById(reportId: string) {
+      const rows = await sql`
+        select
+          id,
+          user_id,
+          report_json,
+          null::text as note,
+          favorite,
+          visibility,
+          created_at::text as created_at,
+          updated_at::text as updated_at
+        from halleus_reports
+        where id = ${reportId} and visibility = 'public'
+        limit 1
+      `;
+
+      const row = rows[0];
+
+      return row ? fromDatabaseReportRow(normalizeRow(row)) : null;
+    },
+
     async upsertReport(userId: string, record: ReportRecord) {
       const row = toDatabaseReportRow(userId, record);
 

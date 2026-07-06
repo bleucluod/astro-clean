@@ -11,6 +11,7 @@ export type ReportDatabaseDriver = {
   healthCheck(): Promise<DatabaseHealthStatus>;
   listReportsByUser(userId: string): Promise<ReportRecord[]>;
   getReportById(userId: string, reportId: string): Promise<ReportRecord | null>;
+  getPublicReportById(reportId: string): Promise<ReportRecord | null>;
   upsertReport(userId: string, record: ReportRecord): Promise<ReportRecord>;
   deleteReport(userId: string, reportId: string): Promise<void>;
 };

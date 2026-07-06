@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   title: "جزئیات گزارش | Halleus",
   description:
     "نمایش جزئیات یک گزارش ذخیره‌شده چارت تولد در Halleus.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function ReportDetailPage({
@@ -27,7 +31,13 @@ export default async function ReportDetailPage({
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
   const reportSource =
-    rawSource === "account" ? "account" : rawSource === "beta-db" ? "beta-db" : "local";
+    rawSource === "account"
+      ? "account"
+      : rawSource === "beta-db"
+        ? "beta-db"
+        : rawSource === "local"
+          ? "local"
+          : "public";
 
   return (
     <>
