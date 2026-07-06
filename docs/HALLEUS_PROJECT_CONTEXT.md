@@ -1277,3 +1277,10 @@ Rules:
 - Do not use `#9AA6B2` for long body text; use `#243447`, `#3A4A5C`, and `#64748B` for readability.
 - Header, hero, dashboard, reports, forms, footer, and astrology visuals should stay bright, clean, cool, minimal, and trustworthy.
 - Astrology visuals should be modern line-art: main lines `#9AA6B2`, minor lines `#BCCCDC`, and soft halo/surface accents `#D9EAFD`.
+
+## v0.1.211 Report Detail Redesign Failure Ledger
+
+Workflow failure ledger:
+- Several report-detail redesign runners failed before commit/tag/push: one runner had a Windows path normalization bug, one produced mojibake in Persian-heavy `ReportDetail.tsx`, one reached a TypeScript narrowing failure, and the simplified runner still detected mojibake after write.
+- Fix: abandon Persian-heavy PowerShell payload runners for this redesign and use a direct UTF-8 git patch workflow instead.
+- Prevention: for Persian-heavy UI changes, prefer a reviewed `.patch` applied by `git apply` from clean repo state; avoid raw Persian payloads inside PowerShell runners and stop after the first encoding failure.

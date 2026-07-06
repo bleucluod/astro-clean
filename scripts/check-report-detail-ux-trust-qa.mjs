@@ -19,14 +19,12 @@ const reportDetail = read(reportDetailPath);
 const packageJson = JSON.parse(read(packagePath));
 
 [
-  "REPORT_QUICK_READING_MAP",
-  "نقشه سریع خواندن",
-  "سه چراغ اعتماد",
-  "Private / noindex",
-  "زبان نمادین، نه حکم قطعی",
-  "Save/account بدون اجبار",
-  "یک برداشت را برای بعد نگه دار",
-  "ReportTrustPanel",
+  "یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند",
+  "نسخه همین مرورگر باز شد؛ لینک عمومی سرور برای این گزارش پیدا نشد.",
+  "public / noindex",
+  "محلی / مرورگر",
+  "فقط خواندنی",
+  "این گزارش ممکن است پاک شده باشد",
 ].forEach((token) => assertIncludes(reportDetail, token, "ReportDetail UX/trust copy"));
 
 assertIncludes(

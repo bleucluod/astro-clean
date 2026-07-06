@@ -26,11 +26,19 @@ for (const marker of [
   "requestRealEngineReportData",
   "saveGeneratedReportWithAccountFallback(nextReport)",
   "enrichReportWithRealEngineCopy",
-  "router.push(`/reports/${saveResult.localRecord.id}`)",
 ]) {
   if (!chartFormSource.includes(marker)) {
     failures.push(`ChartForm missing real report save marker: ${marker}`);
   }
+}
+
+
+if (
+  !chartFormSource.includes("router.push(`/reports/${saveResult.localRecord.id}`)") &&
+  !chartFormSource.includes("router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`)") &&
+  !chartFormSource.includes("router.push(`/reports/${saveResult.accountRecord.id}`)")
+) {
+  failures.push("ChartForm missing report-detail navigation after save.");
 }
 
 for (const marker of [
