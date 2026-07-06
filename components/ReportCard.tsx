@@ -193,7 +193,7 @@ export function ReportCard({ report }: ReportCardProps) {
   const angleRows = buildAngleRows(report);
   const houseRows = buildHouseRows(report, shownPlacements);
   const chartBalance = buildChartBalance(shownPlacements);
-  const shownAspects = realEngineAspects.slice(0, 5);
+  const shownAspects = realEngineAspects.slice(0, 8);
   const hiddenAspectCount = Math.max(0, realEngineAspects.length - shownAspects.length);
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
@@ -449,7 +449,7 @@ export function ReportCard({ report }: ReportCardProps) {
             <span className="section-label">روابط سیاره‌ها</span>
             <h3>روابط مهم بین سیاره‌ها</h3>
             <p>
-              اینجا فقط نزدیک‌ترین رابطه‌های سیاره‌ای نمایش داده می‌شود تا روایت اصلی شلوغ نشود.
+              اینجا رابطه‌هایی نمایش داده می‌شوند که از نظر وزن چارت مهم‌ترند: نورها، حاکم چارت، خانه‌های فعال، hard aspectها و بعد اورب.
               بقیه داده‌ها در پشتوانه محاسبه باقی می‌مانند.
             </p>
           </div>
@@ -917,15 +917,27 @@ function formatBalanceLine(items: ChartBalanceItem[]) {
   );
 }
 
-function formatAspectAngleSummary(aspect: { aspectLabel: string; angle?: number | null; orb: number }) {
+function formatAspectAngleSummary(aspect: {
+  aspectLabel: string;
+  angle?: number | null;
+  separation?: number | null;
+  orb: number;
+}) {
   const aspectLabel = formatAspectTypeLabel(aspect.aspectLabel);
-  const exactAngle =
+  const patternAngle =
     typeof aspect.angle === "number" && Number.isFinite(aspect.angle) ? formatDegree(aspect.angle) : null;
+  const realAngle =
+    typeof aspect.separation === "number" && Number.isFinite(aspect.separation)
+      ? formatDegree(aspect.separation)
+      : null;
   const orbLabel = formatDegree(aspect.orb);
 
-  return exactAngle
-    ? `${aspectLabel} · زاویه واقعی ${exactAngle} · فاصله از زاویه دقیق (اورب) ${orbLabel}`
-    : `${aspectLabel} · فاصله از زاویه دقیق (اورب) ${orbLabel}`;
+  return [
+    aspectLabel,
+    patternAngle ? `زاویه الگو: ${patternAngle}` : null,
+    realAngle ? `زاویه واقعی: ${realAngle}` : null,
+    `اورب: ${orbLabel}`,
+  ].filter(Boolean).join(" · ");
 }
 
 function formatAspectTypeLabel(label: string): string {
