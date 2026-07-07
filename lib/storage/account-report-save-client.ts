@@ -30,6 +30,36 @@ type AccountReportSaveResponse = {
   blockers?: string[];
 };
 
+function createSafeAccountReportSaveMessage(message?: string) {
+  const normalizedMessage = message?.trim() ?? "";
+  const lowerMessage = normalizedMessage.toLowerCase();
+  const looksLikeNetworkTimeout =
+    lowerMessage.includes("connect_timeout") ||
+    lowerMessage.includes("timeout") ||
+    lowerMessage.includes("pooler") ||
+    lowerMessage.includes("supabase") ||
+    lowerMessage.includes("failed to fetch") ||
+    lowerMessage.includes("network");
+
+  if (looksLikeNetworkTimeout) {
+    return "ذخیره آنلاین موقتاً پاسخ نداد؛ نسخه همین دستگاه استفاده شد.";
+  }
+
+  if (!normalizedMessage) {
+    return "ذخیره آنلاین کامل نشد؛ نسخه همین دستگاه استفاده شد.";
+  }
+
+  if (
+    lowerMessage.includes("not configured") ||
+    lowerMessage.includes("disabled") ||
+    lowerMessage.includes("missing")
+  ) {
+    return "ذخیره آنلاین در این محیط کامل فعال نیست؛ نسخه همین دستگاه استفاده شد.";
+  }
+
+  return "ذخیره آنلاین کامل نشد؛ نسخه همین دستگاه استفاده شد.";
+}
+
 const accountReportSavePublicEnv = {
   NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE:
     process.env.NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE,
@@ -108,10 +138,9 @@ export async function saveGeneratedReportWithAccountFallback(
         localRecord,
         accountRecord: null,
         accountStatus: accessToken ? "account-skipped" : "not-authenticated",
-        accountMessage:
-          payload?.error ??
-          authErrorMessage ??
-          "Server report save did not complete; local-preview fallback was used.",
+        accountMessage: createSafeAccountReportSaveMessage(
+          payload?.error ?? authErrorMessage,
+        ),
       };
     }
 
@@ -128,10 +157,9 @@ export async function saveGeneratedReportWithAccountFallback(
       localRecord,
       accountRecord: null,
       accountStatus: "account-skipped",
-      accountMessage:
-        error instanceof Error
-          ? error.message
-          : "Server report save failed; local-preview fallback was used.",
+      accountMessage: createSafeAccountReportSaveMessage(
+        error instanceof Error ? error.message : undefined,
+      ),
     };
   }
 }

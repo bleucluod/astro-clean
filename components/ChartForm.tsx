@@ -139,6 +139,28 @@ function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
 
+function buildReportSaveFallbackMessage(message: string) {
+  const normalizedMessage = message.trim();
+  const lowerMessage = normalizedMessage.toLowerCase();
+  const looksLikeNetworkTimeout =
+    lowerMessage.includes("connect_timeout") ||
+    lowerMessage.includes("timeout") ||
+    lowerMessage.includes("pooler") ||
+    lowerMessage.includes("supabase") ||
+    lowerMessage.includes("failed to fetch") ||
+    lowerMessage.includes("network");
+
+  if (looksLikeNetworkTimeout) {
+    return "گزارش ساخته شد، اما ذخیره آنلاین موقتاً پاسخ نداد. نسخه همین دستگاه باز می‌شود.";
+  }
+
+  if (!normalizedMessage) {
+    return "گزارش ساخته شد، اما ذخیره آنلاین کامل نشد. نسخه همین دستگاه باز می‌شود.";
+  }
+
+  return "گزارش ساخته شد، اما ذخیره آنلاین کامل نشد. نسخه همین دستگاه باز می‌شود.";
+}
+
 export function ChartForm() {
   const router = useRouter();
   const [form, setForm] = useState<BirthInput>(initialForm);
@@ -279,7 +301,7 @@ export function ChartForm() {
   ) {
     setRealEngineRequest({
       status: "loading",
-      message: "چارت تولد در حال محاسبه است؛ گزارش بعد از ذخیره باز می‌شود.",
+      message: "چارت تولد در حال محاسبه است؛ گزارش مستقیم بعد از آماده شدن باز می‌شود.",
     });
 
     try {
@@ -315,7 +337,7 @@ export function ChartForm() {
 
       setRealEngineRequest({
         status: "ready",
-        message: "چارت آماده شد؛ گزارش در حال ذخیره و باز شدن است.",
+        message: "چارت آماده شد؛ گزارش مستقیم باز می‌شود.",
       });
 
       return payload;
@@ -388,13 +410,16 @@ export function ChartForm() {
       return;
     }
 
+    const fallbackMessage = buildReportSaveFallbackMessage(saveResult.accountMessage);
+
     setRealEngineRequest({
-      status: "error",
-      message: `ذخیره عمومی سرور کامل نشد: ${saveResult.accountMessage}`,
+      status: "ready",
+      message: fallbackMessage,
     });
     setSaveMessage(
-      "گزارش روی همین دستگاه ذخیره شد، اما لینک عمومی ساخته نشد. لطفاً کمی بعد دوباره تلاش کن.",
+      "گزارش روی همین دستگاه آماده شد؛ اگر ذخیره آنلاین دیر پاسخ داد، همین نسخه را می‌بینی.",
     );
+    router.push(`/reports/${saveResult.localRecord.id}`);
   }
 
   return (

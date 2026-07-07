@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 const failures = [];
 const typesSource = readFileSync("types/astro.ts", "utf8");
 const chartFormSource = readFileSync("components/ChartForm.tsx", "utf8");
+const reportDetailSource = readFileSync("components/ReportDetail.tsx", "utf8");
+const accountSaveClientSource = readFileSync("lib/storage/account-report-save-client.ts", "utf8");
 const reportCardSource = readFileSync("components/ReportCard.tsx", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
@@ -25,6 +27,9 @@ for (const marker of [
   "/api/engine/real-chart",
   "requestRealEngineReportData",
   "saveGeneratedReportWithAccountFallback(nextReport)",
+  "buildReportSaveFallbackMessage",
+  "router.push(`/reports/${saveResult.localRecord.id}`)",
+  "ذخیره آنلاین موقتاً پاسخ نداد",
   "enrichReportWithRealEngineCopy",
 ]) {
   if (!chartFormSource.includes(marker)) {
@@ -39,6 +44,24 @@ if (
   !chartFormSource.includes("router.push(`/reports/${saveResult.accountRecord.id}`)")
 ) {
   failures.push("ChartForm missing report-detail navigation after save.");
+}
+
+for (const marker of [
+  "createSafeAccountReportSaveMessage",
+  "ذخیره آنلاین موقتاً پاسخ نداد",
+  "نسخه همین دستگاه استفاده شد",
+]) {
+  if (!accountSaveClientSource.includes(marker)) {
+    failures.push(`Account report save client missing safe fallback marker: ${marker}`);
+  }
+}
+
+if (chartFormSource.includes("ذخیره عمومی سرور کامل نشد:")) {
+  failures.push("ChartForm still exposes raw public server save failure copy.");
+}
+
+if (reportDetailSource.includes("window.setTimeout")) {
+  failures.push("ReportDetail still defers report loading through a timer.");
 }
 
 for (const marker of [

@@ -669,13 +669,10 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
       setIsReady(true);
     }
 
-    const timer = window.setTimeout(() => {
-      void loadReport();
-    }, 0);
+    void loadReport();
 
     return () => {
       isActive = false;
-      window.clearTimeout(timer);
     };
   }, [reportId, reportSource]);
 

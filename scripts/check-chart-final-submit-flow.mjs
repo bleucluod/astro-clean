@@ -13,6 +13,9 @@ const requiredChartMarkers = [
   "attachRealEngineSnapshotToReport",
   "saveGeneratedReportWithAccountFallback(nextReport)",
   "router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`)",
+  "router.push(`/reports/${saveResult.localRecord.id}`)",
+  "buildReportSaveFallbackMessage",
+  "ذخیره آنلاین موقتاً پاسخ نداد",
   "disabled={isRealEngineLoading}",
   "IRAN_CITY_OPTIONS",
   "findIranCityByName",
@@ -61,6 +64,7 @@ const forbiddenChartMarkers = [
   "مسیر امن MVP",
   "مثال: آرمان",
   "ساخت، ذخیره و باز کردن گزارش",
+  "ذخیره عمومی سرور کامل نشد:",
 ];
 
 for (const marker of forbiddenChartMarkers) {
