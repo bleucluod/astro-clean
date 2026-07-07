@@ -447,6 +447,12 @@ for (const sample of samples) {
     }
   }
 
+  for (const fragment of [".؛", "؛.", "؟."]) {
+    if (combined.includes(fragment)) {
+      failures.push(`${sample.id}: awkward punctuation sequence present: ${fragment}`);
+    }
+  }
+
   for (const marker of [
     "ستون فقرات چارت",
     "نخ‌های اصلی شخصیت",

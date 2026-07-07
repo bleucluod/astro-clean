@@ -37,6 +37,8 @@ for (const marker of [
   "buildFinalSynthesisClosing",
   "buildSynthesisPersonalityThreads",
   "buildSynthesisGrowthLanguage",
+  "trimSentenceEnd(buildPlacementGrowthPractice",
+  "!CORE_SPINE_IDS.has(chartSpine.chartRulerId)",
   "buildChartPracticeList",
   "buildActiveHousesText",
   "buildChartRulerText",

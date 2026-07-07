@@ -1728,13 +1728,16 @@ function buildSynthesisGrowthLanguage({
   risingSign,
   chartSpine,
 }: SynthesisGrowthLanguageInput): string {
+  const chartRulerGrowth =
+    chartSpine.chartRulerPlacement && !CORE_SPINE_IDS.has(chartSpine.chartRulerId)
+      ? "حاکم چارت: " +
+        trimSentenceEnd(buildPlacementGrowthPractice(chartSpine.chartRulerId, chartSpine.chartRulerPlacement))
+      : null;
   const growthParts = [
-    sun ? buildPlacementGrowthPractice("sun", sun) : null,
-    moon ? buildPlacementGrowthPractice("moon", moon) : null,
-    "رایزینگ: " + SIGN_COPY[risingSign].growth,
-    chartSpine.chartRulerPlacement
-      ? "حاکم چارت: " + buildPlacementGrowthPractice(chartSpine.chartRulerId, chartSpine.chartRulerPlacement)
-      : null,
+    sun ? trimSentenceEnd(buildPlacementGrowthPractice("sun", sun)) : null,
+    moon ? trimSentenceEnd(buildPlacementGrowthPractice("moon", moon)) : null,
+    "رایزینگ: " + trimSentenceEnd(SIGN_COPY[risingSign].growth),
+    chartRulerGrowth,
   ].filter(Boolean);
   const tools = [
     mercury ? "عطارد برای روشن‌تر کردن زبان و تصمیم" : null,
@@ -1749,6 +1752,10 @@ function buildSynthesisGrowthLanguage({
       ? "ابزارهای روزمره این رشد در این گزارش چنین دیده می‌شوند: " + tools.join("، ") + "."
       : "ابزارهای روزمره این رشد باید از همان بخشی انتخاب شوند که در متن گزارش بیشتر با تجربه تو هم‌صداست.",
   ].join(" ");
+}
+
+function trimSentenceEnd(text: string): string {
+  return text.replace(/[.؟!]+$/u, "").trim();
 }
 
 function buildSynthesisWeeklyPractice(
