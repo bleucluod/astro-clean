@@ -1644,9 +1644,25 @@ function buildFirstSynthesisText(
   realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
 ): string {
+  const sun = findPlacement(realEngine, "sun");
+  const moon = findPlacement(realEngine, "moon");
+  const mercury = findPlacement(realEngine, "mercury");
+  const venus = findPlacement(realEngine, "venus");
+  const mars = findPlacement(realEngine, "mars");
+
   return [
     buildChartSpineOpeningText(realEngine, chartSpine),
+    buildSynthesisPersonalityThreads(sun, moon, chartSpine.risingSign),
     buildSynthesisCentralTension(chartSpine.centralAspects),
+    buildSynthesisGrowthLanguage({
+      sun,
+      moon,
+      mercury,
+      venus,
+      mars,
+      risingSign: chartSpine.risingSign,
+      chartSpine,
+    }),
     buildSynthesisWeeklyPractice(chartSpine),
   ]
     .filter((part) => part.trim().length > 0)
@@ -1668,7 +1684,7 @@ function buildSynthesisPersonalityThreads(
   const moonSign = SIGN_COPY[moon.signId];
 
   return [
-    "سه ستون اصلی هنوز مهم‌اند، اما نقطه شروع کل روایت نیستند.",
+    "نخ‌های اصلی شخصیت: سه ستون اصلی هنوز مهم‌اند، اما نقطه شروع کل روایت نیستند.",
     "خورشید در " + formatPlacementWithHouse(sun) + " نشان می‌دهد هویت آگاهانه از راه " + sunSign.gift + " روشن‌تر می‌شود.",
     "ماه در " + formatPlacementWithHouse(moon) + " می‌گوید امنیت عاطفی وقتی پایدارتر می‌شود که به ریتم " + moonSign.energy + " احترام بگذاری.",
     "رایزینگ " + formatSignLabel(rising) + " هم دروازه ورود تو به جهان را با کیفیت " + rising.energy + " رنگ می‌زند؛ این سه ستون باید زیر نور حاکم چارت و خانه‌های فعال خوانده شوند.",
@@ -1690,7 +1706,7 @@ function buildSynthesisCentralTension(aspects: RealEngineReportAspect[]): string
     ? "این رابطه بیشتر شبیه یک تمرین رشد است: دو نیاز هم‌زمان فعال‌اند و هیچ‌کدام نباید کامل حذف شوند."
     : "این رابطه می‌تواند یک توان طبیعی باشد، اما فقط وقتی زنده می‌شود که به انتخاب روزمره تبدیل شود.";
 
-  return `یکی از رابطه‌های مهم چارت میان ${centralAspect.firstPlanetLabel} و ${centralAspect.secondPlanetLabel} است. ${tone}`;
+  return `تنش مرکزی چارت: یکی از رابطه‌های مهم چارت میان ${centralAspect.firstPlanetLabel} و ${centralAspect.secondPlanetLabel} است. ${tone}`;
 }
 
 type SynthesisGrowthLanguageInput = {
@@ -1812,7 +1828,7 @@ function buildPlanetHouseSentence(
   const planet = PLANET_COPY[planetId];
   const formattedHouse = toPersianNumber(houseNumber);
 
-  return `خانه ${formattedHouse} نشان می‌دهد موضوع ${planet.title} بیشتر در میدان ${house.field} دیده می‌شود.`;
+  return `از نظر خانه‌ها، خانه ${formattedHouse} نشان می‌دهد موضوع ${planet.title} بیشتر در میدان ${house.field} دیده می‌شود.`;
 }
 
 function buildPlacementGrowthPractice(
@@ -2512,6 +2528,12 @@ function buildRealEngineInterpretationSections(
     input.lunarNodeText,
     input.retrogradeText,
   );
+  const activeHouseBody = joinSectionBody(
+    input.activeHouseText,
+    input.houseText,
+    input.houseAnglesText,
+    input.natalAccuracyText,
+  );
   const fallbackBody =
     input.integrationText ??
     input.summary ??
@@ -2528,14 +2550,14 @@ function buildRealEngineInterpretationSections(
         }),
       }
     : null;
-  const activeHouseSection: ReportOutputSection | null = input.activeHouseText
+  const activeHouseSection: ReportOutputSection | null = activeHouseBody
     ? {
         id: "real-engine-active-houses",
         kind: "growth",
-        title: "خانه‌های فعال",
+        title: "خانه‌های فعال، محورها و دقت تولد",
         body: buildStructuredSectionBody({
-          opening: "در این بخش فقط خانه‌هایی آمده‌اند که در چارت وزن بیشتری دارند و در زندگی روزمره بیشتر لمس می‌شوند.",
-          body: input.activeHouseText,
+          opening: "در این بخش خانه‌هایی آمده‌اند که در چارت وزن بیشتری دارند؛ محورها و دقت تولد هم کمک می‌کنند این میدان‌های زندگی با احتیاط و زمینه درست خوانده شوند.",
+          body: activeHouseBody,
         }),
       }
     : null;

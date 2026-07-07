@@ -356,16 +356,14 @@ const FIRST_SYNTHESIS_GUARD = "v0.1.195-report-depth-first-synthesis";
 void FIRST_SYNTHESIS_GUARD;
 
 const requiredSectionIds = [
-  "real-engine-overview",
   "real-engine-first-synthesis",
-  "real-engine-identity",
-  "real-engine-emotional-pattern",
-  "real-engine-relationships",
-  "real-engine-career",
-  "real-engine-growth",
-  "real-engine-motion-special-points",
-  "real-engine-natal-accuracy",
-  "real-engine-reflection-prompts",
+  "real-engine-core-pattern",
+  "real-engine-chart-ruler",
+  "real-engine-active-houses",
+  "real-engine-daily-life",
+  "real-engine-node-axis",
+  "real-engine-balance",
+  "real-engine-personal-summary",
 ];
 
 const forbiddenTextPatterns = [
@@ -404,7 +402,7 @@ for (const sample of samples) {
   const totalWords = sections.reduce((sum, section) => sum + wordCount(section.body), 0);
   const aspectCount = enriched.realEngine?.aspects?.length ?? 0;
   const housesCount = enriched.realEngine?.houses?.length ?? 0;
-  const hasAnglesSection = ids.includes("real-engine-houses-angles");
+  const housesSection = sections.find((section) => section.id === "real-engine-active-houses");
 
   if (!Array.isArray(sections) || sections.length < requiredSectionIds.length) {
     failures.push(`${sample.id}: expected at least ${requiredSectionIds.length} generated sections, got ${sections.length}`);
@@ -450,21 +448,19 @@ for (const sample of samples) {
   }
 
   for (const marker of [
-    "سه نخ اصلی این چارت",
-    "تصویر کلی این چارت",
-    "کشمکش و استعداد",
-    "تمرین رشد",
+    "ستون فقرات چارت",
     "نخ‌های اصلی شخصیت",
     "تنش مرکزی چارت",
     "زبان رشد",
-    "تمرین تأملی کوتاه برای این هفته",
-    "در زبان ساده",
-    "پرسش خانه",
-    "اولویت خواندن جنبه‌ها",
-    "میدان زندگی این خانه",
+    "تمرین کوچک این هفته",
+    "رابطه‌های سیاره‌ای",
+    "گفت‌وگوی درونی",
+    "سه تمرین کوچک این چارت",
+    "خانه‌های فعال",
+    "دقت تولد",
   ]) {
     if (!combined.includes(marker)) {
-      failures.push(`${sample.id}: missing synthesis marker ${marker}`);
+      failures.push(`${sample.id}: missing current V3 synthesis marker ${marker}`);
     }
   }
 
@@ -482,11 +478,20 @@ for (const sample of samples) {
     failures.push(`${sample.id}: expected 12 real engine houses, got ${housesCount}`);
   }
 
-  if (!hasAnglesSection) {
-    failures.push(`${sample.id}: missing house/angles interpretation section`);
+  if (!housesSection) {
+    failures.push(`${sample.id}: missing active houses section for house/angles/natal accuracy copy`);
   }
 
-  for (const marker of ["محور ASC/DSC", "محور MC/IC", "۱۲ خانه Whole Sign", "حرکت برگشتی", "دست‌های ماه", "لیلیت", "دقت تولد", "ساعت تولد"]) {
+  for (const marker of [
+    "محور رایزینگ و نقطه روبه‌رو",
+    "محور میانه آسمان و ریشه آسمان",
+    "خانه‌های این گزارش با روش نشانه کامل",
+    "حرکت برگشتی",
+    "دست‌های ماه",
+    "لیلیت",
+    "دقت این گزارش به ساعت تولد",
+    "ساعت تولد",
+  ]) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing house/angles marker ${marker}`);
     }
