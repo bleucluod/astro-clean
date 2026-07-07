@@ -198,26 +198,26 @@ export function SupabaseAuthPanel() {
 
   return (
     <section className="card">
-      <span className="badge">Username Password Account Bridge</span>
+      <span className="badge">حساب کاربری هالیوس</span>
 
-      <h2>ورود و ثبت‌نام در هالیوس</h2>
+      <h2>ورود برای برگشت امن به گزارش‌های بعدی</h2>
 
       <p>
-        برای برگشتن به گزارش‌ها، یک نام کاربری انتخاب می‌کنی و با همان نام کاربری
-        و رمز وارد می‌شوی. موبایل فقط برای اطلاعات حساب و ارتباط ضروری نگه داشته
-        می‌شود؛ موبایل username نیست و ایمیل هم اختیاری/ثانویه می‌ماند.
+        حساب هالیوس برای این است که گزارش‌های بعدی فقط به همین مرورگر وابسته
+        نمانند. ثبت‌نام با username + mobile + password انجام می‌شود و ورود با
+        username + password؛ موبایل اطلاعات حساب است، نه نام کاربری.
       </p>
 
       <p className="file-hint">
-        این فرم همان Username Password Account Bridge است: کاربر فقط username/password
-        را می‌بیند و credential خصوصی Supabase پشت‌صحنه می‌ماند.
+        فعلاً ثبت‌نام داخل صفحه ساخت چارت اضافه نمی‌شود. اول مسیر حساب، گزارش‌های
+        حساب و مالکیت گزارش باید شفاف و پایدار بماند.
       </p>
 
       <div className="home-step-list" aria-label="Real Supabase Account Flow Test">
         <div>
-          <strong>Real Supabase Account Flow Test</strong>
+          <strong>مسیر حساب</strong>
           <span>
-            مسیر کاربر: ثبت‌نام با username + mobile + password، خروج، ورود دوباره با username + password، ساخت گزارش، ذخیره در حساب و دیدن در /reports?source=account.
+            اول وارد حساب شو، بعد گزارش تازه بساز و نسخه حساب را جدا از گزارش‌های همین مرورگر در /reports?source=account ببین.
           </span>
         </div>
 
@@ -231,9 +231,9 @@ export function SupabaseAuthPanel() {
         </div>
 
         <div>
-          <strong>حریم و secretها</strong>
+          <strong>حریم گزارش</strong>
           <span>
-            مقدار DATABASE_URL، AUTH_SECRET و SUPABASE_SERVICE_ROLE_KEY فقط در env می‌ماند و هیچ‌وقت در UI نمایش داده نمی‌شود.
+            گزارش‌های حساب private/noindex می‌مانند؛ این مرحله public/indexable یا پرداخت را فعال نمی‌کند.
           </span>
         </div>
 
@@ -245,18 +245,18 @@ export function SupabaseAuthPanel() {
 
       <div className="actions">
         <Link className="button secondary" href="/chart">
-          تست ساخت گزارش
+          ساخت گزارش جدید
         </Link>
 
         <Link className="button secondary" href="/reports?source=account">
-          تست account reports
+          دیدن گزارش‌های حساب
         </Link>
       </div>
 
       {!config.canUseRealSupabaseLogin ? (
         <div className="home-step-list">
           <div>
-            <strong>برای فعال‌سازی ورود واقعی</strong>
+            <strong>برای فعال‌شدن حساب واقعی</strong>
             <span>{config.missingConfig.join(" · ")}</span>
           </div>
 
@@ -296,7 +296,7 @@ export function SupabaseAuthPanel() {
             </div>
 
             <div>
-              <strong>Report save</strong>
+              <strong>ذخیره گزارش</strong>
               <span>
                 {accountSaveConfig.canAttemptAccountReportSave
                   ? "account-save guarded + local-preview fallback"
@@ -307,8 +307,8 @@ export function SupabaseAuthPanel() {
 
           <div className="home-step-list" aria-label="Logged-in account next steps">
             <div>
-              <strong>Logged-in account next steps</strong>
-              <span>ساخت گزارش بعدی در /chart و دیدن account reports در /reports?source=account.</span>
+              <strong>قدم بعدی</strong>
+              <span>یک گزارش تازه در /chart بساز و بعد نسخه حساب را در /reports?source=account ببین.</span>
             </div>
 
             <div>
@@ -380,7 +380,7 @@ export function SupabaseAuthPanel() {
 
           <p className="file-hint">
             {isSignUp
-              ? "برای ساخت حساب، username یکتا، موبایل با فرمت +989121234567 و رمز لازم است. ایمیل اختیاری است."
+              ? "برای ساخت حساب، username یکتا، موبایل با فرمت +989121234567 و رمز لازم است. ایمیل اختیاری است و پرداختی فعال نمی‌شود."
               : "برای ورود فقط نام کاربری و رمز لازم است. موبایل هنگام ثبت‌نام گرفته می‌شود، اما username نیست."}
           </p>
 

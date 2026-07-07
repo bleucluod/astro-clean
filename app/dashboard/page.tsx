@@ -110,15 +110,15 @@ export default function DashboardPage() {
         <h1>پنل کاربری Halleus</h1>
 
         <p>
-          اینجا مرکز برگشت به گزارش‌ها، ورود به حساب و ادامه مسیر شخصی توست.
-          گزارش‌های همین مرورگر و گزارش‌های account جدا دیده می‌شوند؛ پیش‌فرض
-          همه‌چیز همچنان خصوصی و noindex است.
+          اینجا مرکز برگشت به گزارش‌ها و ورود به حساب است. گزارش‌های همین مرورگر
+          و گزارش‌های حساب جدا دیده می‌شوند تا مالکیت گزارش روشن بماند؛ پیش‌فرض
+          همچنان private/noindex است.
         </p>
 
         <div className="account-ready-status-strip" aria-label="وضعیت حساب و گزارش‌ها">
-          <span>اکانت واقعی: smoke test پاس شده</span>
-          <span>پیش‌فرض: خصوصی و noindex</span>
           <span>ورود: username + password</span>
+          <span>ثبت‌نام: username + mobile + password</span>
+          <span>گزارش حساب: private/noindex</span>
         </div>
 
         <div className="actions">
@@ -141,29 +141,29 @@ export default function DashboardPage() {
       </div>
 
       <section className="card account-ready-lifecycle-card" aria-labelledby="beta-readiness-dashboard-title">
-        <span className="badge">Beta readiness</span>
+        <span className="badge">Account readiness</span>
 
-        <h2 id="beta-readiness-dashboard-title">چک‌لیست مسیر بتا</h2>
+        <h2 id="beta-readiness-dashboard-title">مسیر حساب بدون ثبت‌نام داخل چارت</h2>
 
         <p>
-          قبل از deploy smoke، مسیر local باید مثل یک کاربر واقعی دیده شود:
-          ورود، ساخت گزارش، خواندن جزئیات، ذخیره حساب و برگشت به گزارش‌ها.
+          این مرحله فقط راه ورود، ثبت‌نام و برگشت به گزارش‌های حساب را روشن می‌کند.
+          ثبت‌نام inline داخل /chart، migration گزارش‌های قدیمی و پرداخت هنوز وارد این batch نمی‌شوند.
         </p>
 
         <div className="home-step-list" data-check="BETA_READINESS_DASHBOARD">
           <div>
-            <strong>۱. Local smoke</strong>
-            <span>از /chart گزارش بساز و مطمئن شو صفحه جزئیات باز می‌شود.</span>
+            <strong>۱. گزارش local</strong>
+            <span>از /chart گزارش بساز و مطمئن شو صفحه جزئیات از همین مرورگر باز می‌شود.</span>
           </div>
 
           <div>
-            <strong>۲. Account smoke</strong>
-            <span>اگر وارد حساب هستی، نسخه account را در /reports?source=account ببین.</span>
+            <strong>۲. حساب کاربری</strong>
+            <span>از /profile یا همین پنل وارد شو؛ username برای ورود است و موبایل username نیست.</span>
           </div>
 
           <div>
-            <strong>۳. Deploy smoke</strong>
-            <span>بعد از local pass، فقط اتصال نسخه deployed را چک کن؛ این مرحله feature جدید یا SEO نیست.</span>
+            <strong>۳. گزارش‌های حساب</strong>
+            <span>نسخه حساب را جدا از local در /reports?source=account ببین؛ همه‌چیز private/noindex می‌ماند.</span>
           </div>
         </div>
       <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
@@ -171,28 +171,28 @@ export default function DashboardPage() {
       <section className="card account-ready-lifecycle-card">
         <span className="badge">از مرورگر تا اکانت</span>
 
-        <h2>مسیر ذخیره حساب آماده است؛ migration گزارش‌های قدیمی هنوز لازم نیست</h2>
+        <h2>اول مالکیت حساب را روشن می‌کنیم؛ migration گزارش‌های قدیمی هنوز لازم نیست</h2>
 
         <p>
-          حساب کاربری واقعی با username انتخابی و موبایل تست شده است. گزارش تازه
-          با login معتبر و env کامل به user id ذخیره می‌شود و local-preview همچنان
-          fallback امن می‌ماند.
+          حساب کاربری با username انتخابی، موبایل اجباری و رمز عبور تعریف شده است.
+          هدف این کارت این است که کاربر بداند گزارش‌های local و account یکی نیستند
+          و مسیر حساب برای گزارش‌های بعدی جدا و private/noindex می‌ماند.
         </p>
 
         <div className="home-step-list">
           <div>
             <strong>۱. الان</strong>
-            <span>گزارش‌های جدید می‌توانند در account ذخیره شوند؛ گزارش‌های local هم حذف نمی‌شوند.</span>
+            <span>حساب برای ورود، مالکیت و برگشت به گزارش‌های بعدی توضیح داده می‌شود؛ inline signup داخل /chart نداریم.</span>
           </div>
 
           <div>
-            <strong>۲. ذخیره گزارش تازه</strong>
-            <span>بعد از ورود، گزارش تازه به حساب وصل می‌شود و در account reports دیده می‌شود.</span>
+            <strong>۲. گزارش تازه</strong>
+            <span>کاربر بعد از ورود از /chart گزارش تازه می‌سازد و اگر مسیر account آماده باشد نسخه حساب جدا دیده می‌شود.</span>
           </div>
 
           <div>
-            <strong>۳. account reports</strong>
-            <span>بعد از ساخت گزارش، نسخه account را در /reports?source=account ببین؛ migration فعلاً deferred است.</span>
+            <strong>۳. گزارش‌های حساب</strong>
+            <span>گزارش‌های حساب در /reports?source=account خوانده می‌شوند؛ migration فعلاً deferred است.</span>
           </div>
         </div>
       <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
@@ -227,25 +227,25 @@ export default function DashboardPage() {
       <SupabaseAuthPanel />
 
       <section className="card">
-        <span className="badge">Account Flow Cockpit</span>
+        <span className="badge">راهنمای حساب</span>
 
-        <h2>تست سریع اکانت واقعی</h2>
+        <h2>حساب برای ذخیره و برگشت به گزارش‌های بعدی</h2>
 
         <p>
-          این کارت مسیر واقعی حساب را کوتاه و روشن نگه می‌دارد: username انتخابی کاربر است،
-          موبایل داده اجباری مشتری است اما username نیست، و گزارش‌های account
-          از مسیر private/noindex دیده می‌شوند.
+          این کارت مسیر حساب را کوتاه و روشن نگه می‌دارد: username انتخابی کاربر
+          است، موبایل داده حساب است اما username نیست، و گزارش‌های account از
+          مسیر private/noindex دیده می‌شوند.
         </p>
 
         <div className="home-step-list">
           <div>
             <strong>۱. ساخت حساب</strong>
-            <span>در /profile یا همین پنل، با username + mobile + password ثبت‌نام کن.</span>
+            <span>در /profile یا همین پنل، با username + mobile + password ثبت‌نام کن؛ داخل /chart فرم ثبت‌نام اضافه نشده است.</span>
           </div>
 
           <div>
-            <strong>۲. ساخت و ذخیره گزارش</strong>
-            <span>از /chart یک گزارش تازه بساز؛ account copy کنار نسخه local ذخیره می‌شود.</span>
+            <strong>۲. ساخت گزارش بعدی</strong>
+            <span>از /chart یک گزارش تازه بساز؛ نسخه local باقی می‌ماند و مسیر account جدا بررسی می‌شود.</span>
           </div>
 
           <div>
@@ -256,15 +256,15 @@ export default function DashboardPage() {
 
         <div className="actions">
           <Link className="button secondary" href="/profile">
-            تست ورود و ثبت‌نام
+            ورود و ثبت‌نام
           </Link>
 
           <Link className="button secondary" href="/chart">
-            ساخت گزارش تست
+            ساخت گزارش جدید
           </Link>
 
           <Link className="button secondary" href="/reports?source=account">
-            دیدن account reports
+            دیدن گزارش‌های حساب
           </Link>
         </div>
       <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />
@@ -302,12 +302,12 @@ export default function DashboardPage() {
       <section className="card">
         <span className="badge">تصمیم ذخیره پایدار</span>
 
-        <h2>مسیر بعدی: Supabase-first، ولی private by default</h2>
+        <h2>مسیر بعدی: حساب پایدار، private by default</h2>
 
         <p>
           تصمیم فنی-محصولی این مرحله این است که حساب کاربری و گزارش‌های پایدار
-          از مسیر Supabase Auth + Supabase/Postgres جلو بروند. database write فقط
-          برای مسیر account report save و با env کامل فعال است؛ public/indexable و migration هنوز خاموش‌اند.
+          از مسیر Supabase Auth + Supabase/Postgres جلو بروند، اما public/indexable،
+          پرداخت و migration گزارش‌های قدیمی هنوز خاموش‌اند.
         </p>
 
         <div className="profile-grid">
@@ -342,7 +342,7 @@ export default function DashboardPage() {
         <p>
           {describeAccountMigrationPreflight(migrationPreflight)} قبل از هر
           مهاجرت واقعی باید خروجی JSON بگیری و شمارش imported/skipped را تأیید کنی.
-          فعلاً گزارش تازه از مسیر account ذخیره می‌شود و local reports حذف نمی‌شوند.
+          فعلاً تمرکز روی گزارش‌های تازه و مسیر حساب است و local reports حذف نمی‌شوند.
         </p>
 
         <div className="profile-grid">
@@ -426,7 +426,7 @@ export default function DashboardPage() {
           </button>
 
           <Link className="button secondary" href="/chart">
-            تست ذخیره گزارش تازه
+            ساخت گزارش تازه بعد از ورود
           </Link>
         </div>
       <span className="core-surface-dashboard-marker" aria-hidden="true" hidden />

@@ -565,7 +565,15 @@ function getPublicLinkMessage(reportSource: ReportDetailSource, message: string)
     return "این گزارش public/noindex است؛ هرکسی که لینک مستقیم را داشته باشد می‌تواند گزارش را ببیند، اما یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند.";
   }
 
-  return message || "نسخه همین مرورگر باز شد؛ لینک عمومی سرور برای این گزارش پیدا نشد.";
+  if (reportSource === "account") {
+    return message || "این نسخه از حساب فعلی خوانده شده است؛ گزارش حساب private/noindex می‌ماند و یادداشت‌های شخصی اینجا فقط خواندنی است.";
+  }
+
+  if (reportSource === "beta-db") {
+    return message || "این نسخه از آرشیو آزمایشی سرور خوانده شده است.";
+  }
+
+  return message || "نسخه همین مرورگر باز شد؛ برای گزارش‌های بعدی می‌توانی وارد حساب شوی تا مسیر برگشت جدا داشته باشی.";
 }
 
 export function ReportDetail({
@@ -725,7 +733,7 @@ export function ReportDetail({
   const energyRows = buildEnergyRows(placements);
   const retrogradePlanetIds = report ? getRetrogradePlanetIds(report) : [];
   const isReadOnlyReportSource = reportSource === "account" || reportSource === "public";
-  const orderHref = `/order?reportId=${encodeURIComponent(reportId)}`;
+  const reportsHref = reportSource === "account" ? "/reports?source=account" : "/reports";
 
   if (!isReady) {
     return (
@@ -750,7 +758,7 @@ export function ReportDetail({
             message ||
             "این گزارش ممکن است پاک شده باشد، در حساب فعلی نباشد، یا روی مرورگر/دستگاه دیگری ساخته شده باشد."
           }
-          actionHref="/reports"
+          actionHref={reportsHref}
           actionLabel="بازگشت به گزارش‌ها"
         />
       </section>
@@ -760,7 +768,7 @@ export function ReportDetail({
   return (
     <section className="grid report-detail-reader-page">
       <div className="report-detail-back-row">
-        <Link className="button secondary" href="/reports">
+        <Link className="button secondary" href={reportsHref}>
           بازگشت به گزارش‌ها
         </Link>
       </div>
@@ -1056,13 +1064,13 @@ export function ReportDetail({
         <div>
           <span className="section-label">ادامه مسیر</span>
           <h2>بعد از این گزارش</h2>
-          <p>اگر خواستی مقایسه کنی، یک گزارش تازه بساز؛ اگر فقط می‌خواهی برگردی، از صفحه گزارش‌ها ادامه بده.</p>
+          <p>اگر خواستی مقایسه کنی، یک گزارش تازه بساز. برای اینکه گزارش‌های بعدی فقط به همین مرورگر وابسته نباشند، از مسیر حساب وارد شو و بعد گزارش‌های حساب را جدا ببین.</p>
         </div>
         <div className="actions">
           <Link className="button" href="/chart">ساخت گزارش تازه</Link>
-          <Link className="button secondary" href="/reports">بازگشت به گزارش‌ها</Link>
-          <Link className="button" href={orderHref}>سفارش نسخه کامل‌تر این گزارش</Link>
-          <Link className="button secondary" href="/pricing">دیدن پلن‌ها</Link>
+          <Link className="button secondary" href={reportsHref}>بازگشت به گزارش‌ها</Link>
+          <Link className="button secondary" href="/profile">ورود یا ثبت‌نام برای گزارش‌های بعدی</Link>
+          <Link className="button secondary" href="/dashboard">پنل کاربری</Link>
         </div>
       </section>
     </section>

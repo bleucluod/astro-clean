@@ -316,189 +316,8 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       return;
     }
 
-    if (isAccountSource) {
-    if (databaseSummaries.length === 0) {
-      return (
-        <section className="grid">
-          <EmptyState
-            badge="گزارش‌های حساب"
-            title="هنوز گزارشی در حساب پیدا نشد"
-            description={
-              message ||
-              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. گزارش‌های جدید فعلاً public/noindex ذخیره می‌شوند."
-            }
-            actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
-            actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
-          />
 
-          {!accountReadConfig.canAttemptAccountReportRead ? (
-            <div className="card">
-              <span className="badge">Account read guard</span>
-
-              <h2>خواندن گزارش‌های حساب هنوز کامل فعال نیست</h2>
-
-              <p>
-                برای account reports UI باید login و account report save/read flagها فعال باشند. این مسیر migration اجرا نمی‌کند و local reports را حذف نمی‌کند.
-              </p>
-
-              {accountReadConfig.missingConfig.length > 0 ? (
-                <ul>
-                  {accountReadConfig.missingConfig.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          ) : null}
-        </section>
-      );
-    }
-
-    return (
-      <section className="grid">
-        <div className="card">
-          <span className="badge">Account reports</span>
-
-          <h1>گزارش‌های ذخیره‌شده در حساب</h1>
-
-          <p>
-            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های جدید فعلاً public/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
-          </p>
-
-          <div className="reports-toolbar">
-            <label className="field">
-              <span>جستجو در گزارش‌های حساب</span>
-              <input
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="نام، شهر، کشور یا شناسه گزارش..."
-              />
-            </label>
-
-            <label className="field">
-              <span>مرتب‌سازی</span>
-              <select
-                value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
-              >
-                <option value="newest">جدیدترین اول</option>
-                <option value="oldest">قدیمی‌ترین اول</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="filter-tabs">
-            <button
-              className={filterMode === "all" ? "filter-tab active" : "filter-tab"}
-              type="button"
-              onClick={() => setFilterMode("all")}
-            >
-              همه گزارش‌های حساب
-            </button>
-
-            <button
-              className={
-                filterMode === "favorites" ? "filter-tab active" : "filter-tab"
-              }
-              type="button"
-              onClick={() => setFilterMode("favorites")}
-            >
-              علاقه‌مندی‌ها ({favoriteCount.toLocaleString("fa-IR")})
-            </button>
-          </div>
-
-          <div className="reports-summary-row">
-            <span>
-              نمایش {visibleDatabaseSummaries.length.toLocaleString("fa-IR")} از{" "}
-              {databaseSummaries.length.toLocaleString("fa-IR")} گزارش اکانتی ·{" "}
-              {notesCount.toLocaleString("fa-IR")} یادداشت
-            </span>
-
-            {searchInput ? (
-              <button
-                className="text-button"
-                type="button"
-                onClick={() => setSearchInput("")}
-              >
-                پاک کردن جستجو
-              </button>
-            ) : null}
-          </div>
-
-          <div className="actions">
-            <Link className="button" href="/chart">
-              ساخت گزارش جدید
-            </Link>
-
-            <Link className="button secondary" href="/reports">
-              گزارش‌های local-preview
-            </Link>
-
-            <Link className="button secondary" href="/profile">
-              حساب کاربری
-            </Link>
-          </div>
-
-          {message ? <p className="success-message">{message}</p> : null}
-        </div>
-
-        {visibleDatabaseSummaries.length === 0 ? (
-          <div className="card">
-            <span className="badge">بدون نتیجه</span>
-
-            <h2>گزارشی با این جستجو پیدا نشد</h2>
-
-            <p>جستجو را پاک کن یا فیلتر علاقه‌مندی‌ها را بردار.</p>
-
-            <button
-              className="button secondary"
-              type="button"
-              onClick={() => {
-                setSearchInput("");
-                setFilterMode("all");
-              }}
-            >
-              نمایش همه گزارش‌های حساب
-            </button>
-          </div>
-        ) : null}
-
-        {visibleDatabaseSummaries.map((summary) => (
-          <article className="card" key={summary.id}>
-            <span className="badge">Account copy</span>
-
-            <h2>{summary.name ? `گزارش ${summary.name}` : "گزارش ذخیره‌شده در حساب"}</h2>
-
-            <div className="birth-details">
-              <span>{summary.birthDate}</span>
-              <span>{summary.birthTime}</span>
-              <span>
-                {summary.birthCity}, {summary.birthCountry}
-              </span>
-            </div>
-
-            <p>
-              ذخیره‌شده در {new Date(summary.createdAt).toLocaleDateString("fa-IR")} ·{" "}
-              {summary.visibility} · {summary.source}
-              {summary.hasNote ? " · یادداشت دارد" : ""}
-              {summary.favorite ? " · علاقه‌مندی" : ""}
-            </p>
-
-            <div className="actions">
-              <Link
-                className="button"
-                href={`/reports/${summary.id}?source=account`}
-              >
-                باز کردن گزارش اکانتی
-              </Link>
-            </div>
-          </article>
-        ))}
-      </section>
-    );
-  }
-
-  if (isBetaDatabaseSource) {
+    if (isBetaDatabaseSource) {
       const response = await fetch("/api/reports/beta");
       const payload = (await response.json().catch(() => null)) as
         | BetaDatabaseListResponse
@@ -691,7 +510,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <section className="card">
         <span className="badge">در حال آماده‌سازی</span>
         <h1>گزارش‌ها در حال خواندن هستند</h1>
-        <p>هالیوس گزارش‌های public/noindex ذخیره‌شده روی همین دستگاه را پیدا می‌کند.</p>
+        <p>هالیوس گزارش‌های همین مرورگر یا نسخه‌های حساب را جداگانه پیدا می‌کند.</p>
       </section>
     );
   }
@@ -705,7 +524,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             title="هنوز گزارشی در حساب پیدا نشد"
             description={
               message ||
-              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. گزارش‌های جدید فعلاً public/noindex ذخیره می‌شوند."
+              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. نسخه حساب فقط برای کاربر واردشده خوانده می‌شود و private/noindex می‌ماند."
             }
             actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
             actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
@@ -718,7 +537,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               <h2>خواندن گزارش‌های حساب هنوز کامل فعال نیست</h2>
 
               <p>
-                برای account reports UI باید login و account report save/read flagها فعال باشند. این مسیر migration اجرا نمی‌کند و local reports را حذف نمی‌کند.
+                برای دیدن گزارش‌های حساب باید ورود و خواندن account reports فعال باشد. این مسیر migration اجرا نمی‌کند و گزارش‌های local را حذف نمی‌کند.
               </p>
 
               {accountReadConfig.missingConfig.length > 0 ? (
@@ -739,10 +558,10 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         <div className="card">
           <span className="badge">Account reports</span>
 
-          <h1>گزارش‌های ذخیره‌شده در حساب</h1>
+          <h1>گزارش‌های وصل‌شده به حساب</h1>
 
           <p>
-            این نما گزارش‌هایی را نشان می‌دهد که با حساب واردشده ذخیره شده‌اند. گزارش‌های جدید فعلاً public/noindex هستند؛ migration و حذف گزارش‌های local در این نسخه انجام نمی‌شود.
+            این نما فقط گزارش‌هایی را نشان می‌دهد که به حساب فعلی وصل‌اند. هدف این مرحله روشن کردن مالکیت گزارش است؛ نسخه حساب private/noindex می‌ماند و migration گزارش‌های local هنوز انجام نمی‌شود.
           </p>
 
           <div className="reports-toolbar">
@@ -790,7 +609,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
           <div className="reports-summary-row">
             <span>
               نمایش {visibleDatabaseSummaries.length.toLocaleString("fa-IR")} از{" "}
-              {databaseSummaries.length.toLocaleString("fa-IR")} گزارش اکانتی ·{" "}
+              {databaseSummaries.length.toLocaleString("fa-IR")} گزارش حساب ·{" "}
               {notesCount.toLocaleString("fa-IR")} یادداشت
             </span>
 
@@ -1047,21 +866,21 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">گزارش‌های public/noindex</span>
+        <span className="badge">گزارش‌های همین مرورگر</span>
 
-        <h1>گزارش‌های تو</h1>
+        <h1>کتابخانه local-preview</h1>
 
         <p>
-          اینجا برای برگشت سریع به خوانش‌های قبلی است. گزارش‌ها فعلاً روی همین
-          دستگاه می‌مانند، اما همین کتابخانه پایه پنل کاربری و ذخیره پایدار
-          بعدی خواهد بود.
+          اینجا برای برگشت سریع به خوانش‌های قبلی روی همین مرورگر است. حساب
+          کاربری مسیر جداگانه‌ای برای مالکیت و برگشت امن به گزارش‌های بعدی
+          می‌سازد؛ گزارش‌های local در این مرحله migrate یا حذف نمی‌شوند.
         </p>
 
         <div className="report-lifecycle-strip" aria-label="وضعیت گزارش‌ها">
-          <span>public/noindex تا تصمیم بعدی</span>
+          <span>local-preview روی همین مرورگر</span>
           <span>قابل جستجو و ستاره‌دار</span>
           <span>آماده خروجی گرفتن</span>
-          <span>آماده اتصال به حساب کاربری</span>
+          <span>حساب جدا و private/noindex</span>
         </div>
 
         <div className="reports-toolbar">
@@ -1133,6 +952,10 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             رفتن به پنل کاربری
           </Link>
 
+
+          <Link className="button secondary" href="/reports?source=account">
+            دیدن گزارش‌های حساب
+          </Link>
           <button
             className="button secondary"
             type="button"
