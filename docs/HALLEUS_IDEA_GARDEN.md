@@ -386,10 +386,10 @@ Do not do yet:
 A safer alternative or companion to individual public reports: generate pages around cohorts instead of one person's report.
 
 Examples:
-- گزارش چارت تولد دی‌ماهی‌ها در شیراز
-- تحلیل کلی متولدین فروردین در تهران
-- چارت تولد با تاکید روی شهر تولد و ماه تولد
-- راهنمای خواندن گزارش چارت تولد برای متولدین یک ماه
+- Ú¯Ø²Ø§Ø±Ø´ Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ Ø¯ÛŒâ€ŒÙ…Ø§Ù‡ÛŒâ€ŒÙ‡Ø§ Ø¯Ø± Ø´ÛŒØ±Ø§Ø²
+- ØªØ­Ù„ÛŒÙ„ Ú©Ù„ÛŒ Ù…ØªÙˆÙ„Ø¯ÛŒÙ† ÙØ±ÙˆØ±Ø¯ÛŒÙ† Ø¯Ø± ØªÙ‡Ø±Ø§Ù†
+- Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ Ø¨Ø§ ØªØ§Ú©ÛŒØ¯ Ø±ÙˆÛŒ Ø´Ù‡Ø± ØªÙˆÙ„Ø¯ Ùˆ Ù…Ø§Ù‡ ØªÙˆÙ„Ø¯
+- Ø±Ø§Ù‡Ù†Ù…Ø§ÛŒ Ø®ÙˆØ§Ù†Ø¯Ù† Ú¯Ø²Ø§Ø±Ø´ Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ Ø¨Ø±Ø§ÛŒ Ù…ØªÙˆÙ„Ø¯ÛŒÙ† ÛŒÚ© Ù…Ø§Ù‡
 
 Why this matters:
 - Cohort pages can target long-tail keywords without exposing one person's full report.
@@ -440,10 +440,10 @@ Do not do yet:
 Wiki content should not be isolated. Each article should connect to the report product.
 
 Funnel examples:
-- Article: خانه هفتم در چارت تولد -> CTA to relationship section in personal report.
-- Article: ونوس در چارت تولد -> CTA to love/values reading.
-- Article: مرکوری رتروگرید -> CTA to Sky Pulse and personal timing.
-- Article: چارت تولد چیست -> CTA directly to `/chart`.
+- Article: Ø®Ø§Ù†Ù‡ Ù‡ÙØªÙ… Ø¯Ø± Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ -> CTA to relationship section in personal report.
+- Article: ÙˆÙ†ÙˆØ³ Ø¯Ø± Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ -> CTA to love/values reading.
+- Article: Ù…Ø±Ú©ÙˆØ±ÛŒ Ø±ØªØ±ÙˆÚ¯Ø±ÛŒØ¯ -> CTA to Sky Pulse and personal timing.
+- Article: Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ Ú†ÛŒØ³Øª -> CTA directly to `/chart`.
 
 Next smallest step:
 - Design article template with internal links, product CTA blocks, and related-report links.
@@ -815,13 +815,13 @@ Do not abandon the v0.1.124 navigation phase because a runner failed. Continue w
 - `untouched` — Ancient-knowledge framing: where natural, describe astrology as an old symbolic/ancient interpretive tradition without making scientific, medical, legal, or deterministic claims.
 - `deferred` — Paid version is not needed yet. Short-term product can stay free-first; later limits may be usage-based, such as a daily report cap or storage limitations, rather than an immediate paid/private model.
 
-### ایده آینده — مقایسه دو چارت، چارت رویداد و سازگاری/هم‌زمانی
-- در آینده هالیوس فقط برای انسان گزارش نمی‌سازد؛ گزارش می‌تواند برای یک رویداد، لحظه تاریخی، شروع رابطه، شروع پروژه، زلزله، انقلاب صنعتی یا هر لحظه معنی‌دار ساخته شود.
-- باید امکان مقایسه دو چارت وجود داشته باشد: مثلاً دو تولد برای رابطه/ازدواج، یا چارت تولد یک فرد با چارت یک رویداد تاریخی.
-- خروجی مقایسه باید نقاط اشتراک، نقاط تنش، نقاط قوت، نقاط حساس و پرسش‌های تأملی را نشان دهد؛ نه حکم قطعی بدهد.
-- برای رویدادها، سیستم می‌تواند توضیح دهد در آن لحظه نشانه‌ها، سیاره‌ها، خانه‌ها یا ترنزیت‌های مهم کجا بودند و چه الگویی ساخته‌اند.
-- نمونه‌های آینده: مقایسه چارت تولد با چارت یک زلزله/انقلاب/شروع کسب‌وکار، بررسی اینکه چه ترنزیت‌هایی فعال بودند، چه زمانی الگوهای مشابه دوباره نزدیک می‌شوند، و آیا یک الگو در نسبت با چارت تولد کاربر حس تقویت، فشار یا ضعف می‌سازد.
-- مقایسه دو چارت و تحلیل ترنزیت/رویداد احتمالاً باید بعداً به عنوان قابلیت پیشرفته یا غیررایگان بررسی شود، نه در MVP اولیه.
+### Ø§ÛŒØ¯Ù‡ Ø¢ÛŒÙ†Ø¯Ù‡ — Ù…Ù‚Ø§ÛŒØ³Ù‡ Ø¯Ùˆ Ú†Ø§Ø±ØªØŒ Ú†Ø§Ø±Øª Ø±ÙˆÛŒØ¯Ø§Ø¯ Ùˆ Ø³Ø§Ø²Ú¯Ø§Ø±ÛŒ/Ù‡Ù…â€ŒØ²Ù…Ø§Ù†ÛŒ
+- Ø¯Ø± Ø¢ÛŒÙ†Ø¯Ù‡ Ù‡Ø§Ù„ÛŒÙˆØ³ ÙÙ‚Ø· Ø¨Ø±Ø§ÛŒ Ø§Ù†Ø³Ø§Ù† Ú¯Ø²Ø§Ø±Ø´ Ù†Ù…ÛŒâ€ŒØ³Ø§Ø²Ø¯Ø› Ú¯Ø²Ø§Ø±Ø´ Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ Ø¨Ø±Ø§ÛŒ ÛŒÚ© Ø±ÙˆÛŒØ¯Ø§Ø¯ØŒ Ù„Ø­Ø¸Ù‡ ØªØ§Ø±ÛŒØ®ÛŒØŒ Ø´Ø±ÙˆØ¹ Ø±Ø§Ø¨Ø·Ù‡ØŒ Ø´Ø±ÙˆØ¹ Ù¾Ø±ÙˆÚ˜Ù‡ØŒ Ø²Ù„Ø²Ù„Ù‡ØŒ Ø§Ù†Ù‚Ù„Ø§Ø¨ ØµÙ†Ø¹ØªÛŒ ÛŒØ§ Ù‡Ø± Ù„Ø­Ø¸Ù‡ Ù…Ø¹Ù†ÛŒâ€ŒØ¯Ø§Ø± Ø³Ø§Ø®ØªÙ‡ Ø´ÙˆØ¯.
+- Ø¨Ø§ÛŒØ¯ Ø§Ù…Ú©Ø§Ù† Ù…Ù‚Ø§ÛŒØ³Ù‡ Ø¯Ùˆ Ú†Ø§Ø±Øª ÙˆØ¬ÙˆØ¯ Ø¯Ø§Ø´ØªÙ‡ Ø¨Ø§Ø´Ø¯: Ù…Ø«Ù„Ø§Ù‹ Ø¯Ùˆ ØªÙˆÙ„Ø¯ Ø¨Ø±Ø§ÛŒ Ø±Ø§Ø¨Ø·Ù‡/Ø§Ø²Ø¯ÙˆØ§Ø¬ØŒ ÛŒØ§ Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ ÛŒÚ© ÙØ±Ø¯ Ø¨Ø§ Ú†Ø§Ø±Øª ÛŒÚ© Ø±ÙˆÛŒØ¯Ø§Ø¯ ØªØ§Ø±ÛŒØ®ÛŒ.
+- Ø®Ø±ÙˆØ¬ÛŒ Ù…Ù‚Ø§ÛŒØ³Ù‡ Ø¨Ø§ÛŒØ¯ Ù†Ù‚Ø§Ø· Ø§Ø´ØªØ±Ø§Ú©ØŒ Ù†Ù‚Ø§Ø· ØªÙ†Ø´ØŒ Ù†Ù‚Ø§Ø· Ù‚ÙˆØªØŒ Ù†Ù‚Ø§Ø· Ø­Ø³Ø§Ø³ Ùˆ Ù¾Ø±Ø³Ø´â€ŒÙ‡Ø§ÛŒ ØªØ£Ù…Ù„ÛŒ Ø±Ø§ Ù†Ø´Ø§Ù† Ø¯Ù‡Ø¯Ø› Ù†Ù‡ Ø­Ú©Ù… Ù‚Ø·Ø¹ÛŒ Ø¨Ø¯Ù‡Ø¯.
+- Ø¨Ø±Ø§ÛŒ Ø±ÙˆÛŒØ¯Ø§Ø¯Ù‡Ø§ØŒ Ø³ÛŒØ³ØªÙ… Ù…ÛŒâ€ŒØªÙˆØ§Ù†Ø¯ ØªÙˆØ¶ÛŒØ­ Ø¯Ù‡Ø¯ Ø¯Ø± Ø¢Ù† Ù„Ø­Ø¸Ù‡ Ù†Ø´Ø§Ù†Ù‡â€ŒÙ‡Ø§ØŒ Ø³ÛŒØ§Ø±Ù‡â€ŒÙ‡Ø§ØŒ Ø®Ø§Ù†Ù‡â€ŒÙ‡Ø§ ÛŒØ§ ØªØ±Ù†Ø²ÛŒØªâ€ŒÙ‡Ø§ÛŒ Ù…Ù‡Ù… Ú©Ø¬Ø§ Ø¨ÙˆØ¯Ù†Ø¯ Ùˆ Ú†Ù‡ Ø§Ù„Ú¯ÙˆÛŒÛŒ Ø³Ø§Ø®ØªÙ‡â€ŒØ§Ù†Ø¯.
+- Ù†Ù…ÙˆÙ†Ù‡â€ŒÙ‡Ø§ÛŒ Ø¢ÛŒÙ†Ø¯Ù‡: Ù…Ù‚Ø§ÛŒØ³Ù‡ Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ Ø¨Ø§ Ú†Ø§Ø±Øª ÛŒÚ© Ø²Ù„Ø²Ù„Ù‡/Ø§Ù†Ù‚Ù„Ø§Ø¨/Ø´Ø±ÙˆØ¹ Ú©Ø³Ø¨â€ŒÙˆÚ©Ø§Ø±ØŒ Ø¨Ø±Ø±Ø³ÛŒ Ø§ÛŒÙ†Ú©Ù‡ Ú†Ù‡ ØªØ±Ù†Ø²ÛŒØªâ€ŒÙ‡Ø§ÛŒÛŒ ÙØ¹Ø§Ù„ Ø¨ÙˆØ¯Ù†Ø¯ØŒ Ú†Ù‡ Ø²Ù…Ø§Ù†ÛŒ Ø§Ù„Ú¯ÙˆÙ‡Ø§ÛŒ Ù…Ø´Ø§Ø¨Ù‡ Ø¯ÙˆØ¨Ø§Ø±Ù‡ Ù†Ø²Ø¯ÛŒÚ© Ù…ÛŒâ€ŒØ´ÙˆÙ†Ø¯ØŒ Ùˆ Ø¢ÛŒØ§ ÛŒÚ© Ø§Ù„Ú¯Ùˆ Ø¯Ø± Ù†Ø³Ø¨Øª Ø¨Ø§ Ú†Ø§Ø±Øª ØªÙˆÙ„Ø¯ Ú©Ø§Ø±Ø¨Ø± Ø­Ø³ ØªÙ‚ÙˆÛŒØªØŒ ÙØ´Ø§Ø± ÛŒØ§ Ø¶Ø¹Ù Ù…ÛŒâ€ŒØ³Ø§Ø²Ø¯.
+- Ù…Ù‚Ø§ÛŒØ³Ù‡ Ø¯Ùˆ Ú†Ø§Ø±Øª Ùˆ ØªØ­Ù„ÛŒÙ„ ØªØ±Ù†Ø²ÛŒØª/Ø±ÙˆÛŒØ¯Ø§Ø¯ Ø§Ø­ØªÙ…Ø§Ù„Ø§Ù‹ Ø¨Ø§ÛŒØ¯ Ø¨Ø¹Ø¯Ø§Ù‹ Ø¨Ù‡ Ø¹Ù†ÙˆØ§Ù† Ù‚Ø§Ø¨Ù„ÛŒØª Ù¾ÛŒØ´Ø±ÙØªÙ‡ ÛŒØ§ ØºÛŒØ±Ø±Ø§ÛŒÚ¯Ø§Ù† Ø¨Ø±Ø±Ø³ÛŒ Ø´ÙˆØ¯ØŒ Ù†Ù‡ Ø¯Ø± MVP Ø§ÙˆÙ„ÛŒÙ‡.
 
 ## Report detail depth roadmap added after v0.1.145
 
@@ -956,7 +956,7 @@ Product guard:
 
 Product wording decision:
 
-- Persian user-facing copy should call Lunar Nodes "دست‌های ماه" rather than "گره‌های ماه".
+- Persian user-facing copy should call Lunar Nodes "Ø¯Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ù…Ø§Ù‡" rather than "Ú¯Ø±Ù‡â€ŒÙ‡Ø§ÛŒ Ù…Ø§Ù‡".
 - Technical identifiers may stay `lunarNodes`, because the copy decision is product language rather than a schema rename.
 - Keep the model disclosure honest: this is Mean Lunar Node, not True/Osculating Node.
 - South Node should keep being explained as the exact opposition of the calculated Mean North Node.
@@ -976,7 +976,7 @@ Product decision:
 Product decision:
 
 - The next product priority is report synthesis: the generated report should show a coherent picture from Sun, Moon, Rising, aspects, houses, Moon Hands, and accuracy limits.
-- همه چیز فعلاً رایگان و noindex می‌ماند؛ paid report, Search Console, SEO launch, public/indexable reports, and Iranian hosting migration are deferred.
+- Ù‡Ù…Ù‡ Ú†ÛŒØ² ÙØ¹Ù„Ø§Ù‹ Ø±Ø§ÛŒÚ¯Ø§Ù† Ùˆ noindex Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯Ø› paid report, Search Console, SEO launch, public/indexable reports, and Iranian hosting migration are deferred.
 - Render is acceptable for current development/testing because the product is intentionally not ready for indexing yet.
 - Do not treat 100 unique/day, Iranian hosting, or monetization as active milestones until the report and core website pages are strong enough for public acquisition.
 - Website work should come after the report feels usable: homepage story, report preview, privacy/consent language, and report lifecycle before indexing.
@@ -1084,8 +1084,8 @@ Later:
 
 Small product polish items to include in the next suitable UI batch:
 
-- Header CTA: remove the secondary line `شروع رایگان` under `ساخت گزارش تولد` so the header action stays compact and less oversized.
-- Global page utility: add a small fixed `پرش به بالا` button at the bottom-left of the viewport on both desktop and mobile. It should stay subtle, app-like, and not compete with the main CTA.
+- Header CTA: remove the secondary line `Ø´Ø±ÙˆØ¹ Ø±Ø§ÛŒÚ¯Ø§Ù†` under `Ø³Ø§Ø®Øª Ú¯Ø²Ø§Ø±Ø´ ØªÙˆÙ„Ø¯` so the header action stays compact and less oversized.
+- Global page utility: add a small fixed `Ù¾Ø±Ø´ Ø¨Ù‡ Ø¨Ø§Ù„Ø§` button at the bottom-left of the viewport on both desktop and mobile. It should stay subtle, app-like, and not compete with the main CTA.
 
 Scope:
 - These are UI polish items only.
@@ -1366,7 +1366,7 @@ Not now:
 
 Decision:
 - Resume report value work in a smaller, guard-safe form after the v0.1.223 rollback and v0.1.223a QA alignment.
-- Add chapter-level summaries to the real-engine report narrative so each section has a faster entry point before the existing `چطور بخوانی` and `برای تأمل` cues.
+- Add chapter-level summaries to the real-engine report narrative so each section has a faster entry point before the existing `Ú†Ø·ÙˆØ± Ø¨Ø®ÙˆØ§Ù†ÛŒ` and `Ø¨Ø±Ø§ÛŒ ØªØ£Ù…Ù„` cues.
 - Preserve the current weekly-practice markers used by sample QA instead of renaming headings or changing the report contract.
 - Treat this as a report-value improvement, not a new account, payment, SEO, or content-system milestone.
 
@@ -1390,3 +1390,11 @@ Decision:
 Non-goals:
 - No payment, pricing, checkout, public/indexable SEO report model, or old local-to-account migration.
 - No report narrative rewrite in this batch.
+
+## v0.1.225 — Inline signup prompt inside chart
+
+Decision:
+- Add an optional sign-in/sign-up panel inside the chart page, but keep chart generation independent from account creation.
+- If the user ignores the panel, the report still generates and opens through the existing local/private fallback.
+- If the user signs in before generating, the existing account save bridge can keep the report as account/private/noindex.
+- No payment, pricing, checkout, database schema, auth driver, or public/indexable SEO consent mechanics are introduced here.

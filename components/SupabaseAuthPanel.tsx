@@ -209,8 +209,9 @@ export function SupabaseAuthPanel() {
       </p>
 
       <p className="file-hint">
-        فعلاً ثبت‌نام داخل صفحه ساخت چارت اضافه نمی‌شود. اول مسیر حساب، گزارش‌های
-        حساب و مالکیت گزارش باید شفاف و پایدار بماند.
+        ثبت‌نام داخل صفحه ساخت چارت اختیاری است. اگر وارد نشوی، گزارش همچنان
+        ساخته و به‌صورت local/private باز می‌شود؛ اگر وارد شوی، ذخیره حساب هم تلاش
+        می‌شود.
       </p>
 
       <div className="home-step-list" aria-label="Real Supabase Account Flow Test">

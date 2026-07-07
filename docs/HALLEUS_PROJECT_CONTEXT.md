@@ -376,7 +376,7 @@ The old file repeated many single-incident entries. This compact ledger groups t
 Errors seen:
 
 ```text
-Persian mojibake such as Ã˜, Ã™, Ã›, Ãš, Ã¢â‚¬ or ï¿½.
+Persian mojibake such as ÃƒËœ, Ãƒâ„¢, Ãƒâ€º, ÃƒÅ¡, ÃƒÂ¢Ã¢â€šÂ¬ or Ã¯Â¿Â½.
 Persian samples becoming question marks.
 Raw Persian markers in pasted PowerShell/Node here-strings failing to match live UTF-8 files.
 Console output showing mojibake while Node could read the file correctly.
@@ -668,7 +668,7 @@ Minimal scoped approach:
 ## v0.1.135 report-quality-pass scope note
 
 - v0.1.135 is scoped to Persian-facing report quality guardrails, not adding new astrology calculations or changing report structure.
-- Use the Persian brand spelling `Ù‡Ø§Ù„ÛŒÙˆØ³` in Persian user-facing/report text; keep lowercase `halleus` only for file names, event names, and internal identifiers.
+- Use the Persian brand spelling `Ã™â€¡Ã˜Â§Ã™â€žÃ›Å’Ã™Ë†Ã˜Â³` in Persian user-facing/report text; keep lowercase `halleus` only for file names, event names, and internal identifiers.
 - Keep this batch focused on report surfaces and guards: generated real-engine report writer, V3 report fallback copy, report card/detail copy, and report quality checks.
 - Do not change aspect math, orb rules, shared report types, routes, storage, payment, SEO, public/private policy, or house/ascendant confidence logic in this batch.
 - Product goal: reduce English-brand leakage in Persian text and make this rule enforceable before the final report QA pass.
@@ -729,8 +729,8 @@ Prevention: for generated Node scripts embedded in PowerShell here-strings, avoi
 ## v0.1.167b moon-hands-copy scope note
 
 - v0.1.167b is scoped to Persian-facing report copy for calculated Mean Lunar Nodes: generated writer prose, ReportCard labels, and focused checks.
-- User-facing copy should say "دست‌های ماه" instead of "گره‌های ماه"; code identifiers can stay `lunarNodes`.
-- Keep technical honesty: Mean Lunar Node only, no True/Osculating Node claim, South Node as Mean North Node + 180°, and Lilith deferred.
+- User-facing copy should say "Ø¯Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ù…Ø§Ù‡" instead of "Ú¯Ø±Ù‡â€ŒÙ‡Ø§ÛŒ Ù…Ø§Ù‡"; code identifiers can stay `lunarNodes`.
+- Keep technical honesty: Mean Lunar Node only, no True/Osculating Node claim, South Node as Mean North Node + 180Â°, and Lilith deferred.
 - Do not change engine math, shared node types, payment/public/private policy, SEO, Sky Pulse, or Lilith in this batch.
 
 ## v0.1.168 full-report-reading-polish scope note
@@ -796,7 +796,7 @@ Product change:
 - Homepage should no longer treat Sky Pulse / Moon phase as placeholder-only.
 - The homepage daily card now starts with a real, lightweight Moon Pulse: current Moon sign, Moon phase, illumination, and Persian guidance.
 - The daily card is dynamic through `/api/sky-pulse/today`, so the card can refresh without making the whole homepage dynamic.
-- Current location scope is Tehran: the public copy should say this softly as “خوانش امروز با زمان و افق تهران تنظیم شده است.”
+- Current location scope is Tehran: the public copy should say this softly as â€œØ®ÙˆØ§Ù†Ø´ Ø§Ù…Ø±ÙˆØ² Ø¨Ø§ Ø²Ù…Ø§Ù† Ùˆ Ø§ÙÙ‚ ØªÙ‡Ø±Ø§Ù† ØªÙ†Ø¸ÛŒÙ… Ø´Ø¯Ù‡ Ø§Ø³Øª.â€
 - User-location Moon Pulse, richer transit ranking, and personal daily pulse remain future Idea Garden work.
 
 Safety / product honesty:
@@ -850,7 +850,7 @@ Scope:
 Product notes:
 - The homepage preview is a general sample of report structure and tone; a user's real report is still generated after birth data and chart calculation.
 - The preview must not imply public/indexable reports, paid checkout, or deterministic prediction.
-- Continue to avoid "گره‌های ماه" in user-facing copy; use "دست‌های ماه".
+- Continue to avoid "Ú¯Ø±Ù‡â€ŒÙ‡Ø§ÛŒ Ù…Ø§Ù‡" in user-facing copy; use "Ø¯Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ù…Ø§Ù‡".
 
 ## v0.1.176 — Chart creation flow polish
 
@@ -880,8 +880,8 @@ Product changes:
 - Align `/product` with the current free, private-first birth report product instead of paid/order wording.
 - Align `/privacy` with birth data use, local/private report storage, and future public/indexable consent rules.
 - Polish `/reports` as the return point for saved reports, with calmer copy and better empty state.
-- Remove the `شروع رایگان` subline from the header CTA so the action stays compact.
-- Add a small fixed `پرش به بالا` utility at the bottom-left of the viewport on desktop and mobile.
+- Remove the `Ø´Ø±ÙˆØ¹ Ø±Ø§ÛŒÚ¯Ø§Ù†` subline from the header CTA so the action stays compact.
+- Add a small fixed `Ù¾Ø±Ø´ Ø¨Ù‡ Ø¨Ø§Ù„Ø§` utility at the bottom-left of the viewport on desktop and mobile.
 
 Do not include in this batch:
 - Payment, SEO/indexing, public report pages, hosting migration, report engine math, or report writer changes.
@@ -894,7 +894,7 @@ Status:
 
 Product changes:
 - Keep the chart form compact and app-like on mobile.
-- Make the time picker and `نمی‌دانم` control sit closer together.
+- Make the time picker and `Ù†Ù…ÛŒâ€ŒØ¯Ø§Ù†Ù…` control sit closer together.
 - Replace browser datalist city suggestions with controlled suggestion chips.
 - Keep city suggestions short and focused.
 - Improve loading, error, and success feedback without bringing back long explanatory copy.
@@ -910,13 +910,13 @@ Do not include in this batch:
 Error:
 - First apply runner failed before execution because of a broken PowerShell string/block terminator.
 - Fixed runner partially wrote product files, then failed during docs append because of a broken base64 payload.
-- First fix-forward failed `check-chart-creation-flow-polish` because the older regression check still required the visible token `چارت واقعی`.
+- First fix-forward failed `check-chart-creation-flow-polish` because the older regression check still required the visible token `Ú†Ø§Ø±Øª ÙˆØ§Ù‚Ø¹ÛŒ`.
 
 Fixed:
 - Removed broken runner artifacts.
 - Confirmed the first parser failure made no product changes.
 - Completed missing docs append without runner/base64.
-- Restored the `چارت واقعی` chip instead of weakening the regression check.
+- Restored the `Ú†Ø§Ø±Øª ÙˆØ§Ù‚Ø¹ÛŒ` chip instead of weakening the regression check.
 - Re-ran encoding, diff check, real report save flow, chart creation flow polish, chart mobile QA, and build.
 
 Prevention:
@@ -1243,7 +1243,7 @@ Scope:
 - Make the next report batch a product-value batch, not another account or infrastructure batch.
 - Combine report depth and first synthesis in one milestone so the generated report feels more personal, Persian-first, and usable.
 - Add a first synthesis layer that names the main personality threads, the central chart tension, the growth language, and a short reflection practice.
-- Keep technical honesty: Mean Lunar Node only, South Node as Mean North Node + 180°, Lilith deferred, and no deterministic claims.
+- Keep technical honesty: Mean Lunar Node only, South Node as Mean North Node + 180Â°, Lilith deferred, and no deterministic claims.
 - Keep account stability reactive only; fix account/save only if this report work exposes a real bug.
 
 Out of scope:
@@ -1388,7 +1388,7 @@ Prevention:
 Product/code note:
 - This batch intentionally did not rewrite report narrative copy.
 - It added a small guard to keep the existing report writer and sample QA expectations aligned before the larger report-value/synthesis upgrade resumes.
-- The current report writer must keep both weekly-practice markers used by sample QA: `تمرین کوچک این هفته` and `سه تمرین کوچک این چارت`.
+- The current report writer must keep both weekly-practice markers used by sample QA: `ØªÙ…Ø±ÛŒÙ† Ú©ÙˆÚ†Ú© Ø§ÛŒÙ† Ù‡ÙØªÙ‡` and `Ø³Ù‡ ØªÙ…Ø±ÛŒÙ† Ú©ÙˆÚ†Ú© Ø§ÛŒÙ† Ú†Ø§Ø±Øª`.
 - The next report-value upgrade must preserve these markers or deliberately update both writer output and QA in one inspected batch.
 
 Checks:
@@ -1425,8 +1425,8 @@ Prevention:
 
 Product/code note:
 - This batch resumed report value work after v0.1.223a by making a smaller, QA-safe synthesis upgrade.
-- It adds `chapterSummary` support inside the real-engine report writer so generated report sections can include a short `خلاصه فصل` line before the existing reading cue.
-- The batch preserves the existing weekly-practice QA markers: `تمرین کوچک این هفته` and `سه تمرین کوچک این چارت`.
+- It adds `chapterSummary` support inside the real-engine report writer so generated report sections can include a short `Ø®Ù„Ø§ØµÙ‡ ÙØµÙ„` line before the existing reading cue.
+- The batch preserves the existing weekly-practice QA markers: `ØªÙ…Ø±ÛŒÙ† Ú©ÙˆÚ†Ú© Ø§ÛŒÙ† Ù‡ÙØªÙ‡` and `Ø³Ù‡ ØªÙ…Ø±ÛŒÙ† Ú©ÙˆÚ†Ú© Ø§ÛŒÙ† Ú†Ø§Ø±Øª`.
 - It does not rewrite the large narrative engine, change report section ids, or touch account/auth/payment/SEO/UI flows.
 
 Checks:
@@ -1464,3 +1464,23 @@ Guardrails:
 - No public/indexable report model was introduced.
 - No inline signup inside `/chart`.
 - No auth driver, database schema, report engine, or migration changes.
+
+## v0.1.225 — Inline Signup Prompt Inside Chart
+
+Product/code note:
+- Added an optional account panel inside the chart page so users can sign in or sign up before generating a report.
+- The chart form remains non-blocking: report generation, local/private fallback, account/private/noindex save attempts, and public/noindex fallback keep their existing behavior.
+- Supabase auth driver, database schema, storage contract, payment, pricing, checkout, SEO indexing, and public/indexable consent mechanics were not changed.
+- The account panel copy now says inline chart signup is optional instead of saying it is not added yet.
+
+Checks:
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `node scripts/check-save-report-to-account-bridge.mjs`
+- `node scripts/check-consent-sharing-clarity.mjs`
+- `node scripts/check-inline-signup-chart-prompt.mjs`
+- `pnpm build`
+### Workflow failure - v0.1.225 diff whitespace guard (2026-07-07)
+- Failure: the first v0.1.225 runner stopped at git --no-pager diff --check because docs had new blank lines at EOF.
+- Fix: trim trailing blank lines before rerunning guards and build.
+- Prevention: runners that write docs must normalize EOF blank lines before checks.
