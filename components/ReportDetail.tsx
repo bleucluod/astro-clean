@@ -29,6 +29,8 @@ import type {
 type ReportDetailProps = {
   reportId: string;
   reportSource?: ReportDetailSource;
+  initialReport?: AstrologyReport | null;
+  initialMessage?: string;
 };
 
 type ReportDetailSource = "local" | "beta-db" | "account" | "public";
@@ -566,17 +568,32 @@ function getPublicLinkMessage(reportSource: ReportDetailSource, message: string)
   return message || "نسخه همین مرورگر باز شد؛ لینک عمومی سرور برای این گزارش پیدا نشد.";
 }
 
-export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailProps) {
-  const [report, setReport] = useState<AstrologyReport | null>(null);
+export function ReportDetail({
+  reportId,
+  reportSource = "local",
+  initialReport = null,
+  initialMessage = "",
+}: ReportDetailProps) {
+  const [report, setReport] = useState<AstrologyReport | null>(() =>
+    initialReport ? sanitizeReportVisibleCopy(initialReport) : null,
+  );
   const [note, setNote] = useState("");
-  const [isReady, setIsReady] = useState(false);
-  const [message, setMessage] = useState("");
+  const [isReady, setIsReady] = useState(() => Boolean(initialReport));
+  const [message, setMessage] = useState(initialMessage);
   const [activeSection, setActiveSection] = useState("final-reading");
 
   useEffect(() => {
     let isActive = true;
 
     async function loadReport() {
+      if (reportSource === "public" && initialReport) {
+        setReport(sanitizeReportVisibleCopy(initialReport));
+        setNote("");
+        setMessage(initialMessage || `لینک عمومی گزارش آماده است: ${reportId}`);
+        setIsReady(true);
+        return;
+      }
+
       if (reportSource === "public") {
         const result = await getPublicReportRecord(reportId);
 
@@ -674,7 +691,7 @@ export function ReportDetail({ reportId, reportSource = "local" }: ReportDetailP
     return () => {
       isActive = false;
     };
-  }, [reportId, reportSource]);
+  }, [initialMessage, initialReport, reportId, reportSource]);
 
   async function handleSaveNote() {
     if (reportSource === "account" || reportSource === "public") {

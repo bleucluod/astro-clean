@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { ReportDetail } from "@/components/ReportDetail";
+import { getPublicServerStoredReport } from "@/lib/storage/server-report-persistence";
+import type { AstrologyReport } from "@/types/astro";
+
+type ReportDetailSource = "local" | "beta-db" | "account" | "public";
 
 type ReportDetailPageProps = {
   params: Promise<{
@@ -9,6 +13,8 @@ type ReportDetailPageProps = {
     source?: string | string[];
   }>;
 };
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "جزئیات گزارش | Halleus",
@@ -20,6 +26,42 @@ export const metadata: Metadata = {
   },
 };
 
+function resolveReportSource(rawSource: string | undefined): ReportDetailSource {
+  if (rawSource === "account") {
+    return "account";
+  }
+
+  if (rawSource === "beta-db") {
+    return "beta-db";
+  }
+
+  if (rawSource === "local") {
+    return "local";
+  }
+
+  return "public";
+}
+
+async function readInitialPublicReport({
+  reportId,
+  reportSource,
+}: {
+  reportId: string;
+  reportSource: ReportDetailSource;
+}): Promise<AstrologyReport | null> {
+  if (reportSource !== "public") {
+    return null;
+  }
+
+  try {
+    const reportRecord = await getPublicServerStoredReport({ reportId });
+
+    return reportRecord?.report ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function ReportDetailPage({
   params,
   searchParams,
@@ -29,14 +71,20 @@ export default async function ReportDetailPage({
   const rawSource = Array.isArray(resolvedSearchParams.source)
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
-  const reportSource =
-    rawSource === "account"
-      ? "account"
-      : rawSource === "beta-db"
-        ? "beta-db"
-        : rawSource === "local"
-          ? "local"
-          : "public";
+  const reportSource = resolveReportSource(rawSource);
+  const initialPublicReport = await readInitialPublicReport({
+    reportId,
+    reportSource,
+  });
 
-  return <ReportDetail reportId={reportId} reportSource={reportSource} />;
+  return (
+    <ReportDetail
+      reportId={reportId}
+      reportSource={reportSource}
+      initialReport={initialPublicReport}
+      initialMessage={
+        initialPublicReport ? `لینک عمومی گزارش آماده است: ${reportId}` : ""
+      }
+    />
+  );
 }

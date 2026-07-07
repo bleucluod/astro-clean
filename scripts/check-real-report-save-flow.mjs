@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const failures = [];
 const typesSource = readFileSync("types/astro.ts", "utf8");
 const chartFormSource = readFileSync("components/ChartForm.tsx", "utf8");
+const reportDetailPageSource = readFileSync("app/reports/[reportId]/page.tsx", "utf8");
 const reportDetailSource = readFileSync("components/ReportDetail.tsx", "utf8");
 const accountSaveClientSource = readFileSync("lib/storage/account-report-save-client.ts", "utf8");
 const reportCardSource = readFileSync("components/ReportCard.tsx", "utf8");
@@ -53,6 +54,28 @@ for (const marker of [
 ]) {
   if (!accountSaveClientSource.includes(marker)) {
     failures.push(`Account report save client missing safe fallback marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "getPublicServerStoredReport",
+  "readInitialPublicReport",
+  "initialReport={initialPublicReport}",
+  'export const dynamic = "force-dynamic"',
+]) {
+  if (!reportDetailPageSource.includes(marker)) {
+    failures.push(`Report detail page missing direct public open marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "initialReport?: AstrologyReport | null",
+  "useState<AstrologyReport | null>(() =>",
+  'if (reportSource === "public" && initialReport)',
+  "لینک عمومی گزارش آماده است",
+]) {
+  if (!reportDetailSource.includes(marker)) {
+    failures.push(`ReportDetail missing direct public report hydration marker: ${marker}`);
   }
 }
 
