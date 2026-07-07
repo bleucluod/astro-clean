@@ -18,8 +18,9 @@ for (const marker of [
   "birthLongitude",
   "birthTimezone",
   "createMockReport",
-  "saveGeneratedReport",
-  "router.push(`/reports/${nextReport.id}`)",
+  "saveGeneratedReportWithAccountFallback(nextReport)",
+  "router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`)",
+  "router.push(`/reports/${saveResult.accountRecord.id}`)",
 ]) {
   if (!chartFormSource.includes(marker)) {
     failures.push(`ChartForm real engine final bridge missing marker: ${marker}`);

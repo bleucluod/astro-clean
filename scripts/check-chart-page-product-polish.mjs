@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const failures = [];
 const chartPage = readFileSync("app/chart/page.tsx", "utf8");
 const chartForm = readFileSync("components/ChartForm.tsx", "utf8");
+const css = readFileSync("app/globals.css", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
 
@@ -16,24 +17,22 @@ for (const marker of [
 }
 
 for (const marker of [
-  "شروع گزارش تولد",
-  "گزارش تولد فارسی، از همین فرم ساده",
-  "تاریخ شمسی، ساعت تولد و شهر تولد کافی است",
-  "فرم ساخت گزارش",
-  "تاریخ تولد در UI شمسی است",
-  "کشور در UI پرسیده نمی‌شود",
-  "فعلاً شهرهای ایران پشتیبانی می‌شوند",
-  "چه چیزی می‌گیری؟",
-  "یک گزارش قابل خواندن، نه فقط داده خام",
-  "چارت محاسبه‌شده",
-  "متن فارسی گزارش",
-  "ذخیره برای ادامه مسیر",
-  "مسیر ساده ساخت گزارش",
-  "محاسبه پشت صحنه",
-  "ساخت گزارش و مشاهده جزئیات",
+  "اطلاعات تولد",
+  "ورودی‌های اصلی",
+  "نام یا نیک‌نیم خود را وارد کنید",
+  "تاریخ تولد",
+  "شمسی",
+  "میلادی",
+  "ساعت تولد",
+  "نمی‌دانم",
+  "اگر ساعت دقیق را نمی‌دانی",
+  "نام شهر تولد را وارد کنید",
+  "اگر شهر شما در فهرست نیست، نزدیک‌ترین شهر را انتخاب کنید",
+  "پیشنهادهای شهر تولد",
+  "ساخت گزارش",
 ]) {
   if (!chartForm.includes(marker)) {
-    failures.push("ChartForm missing minimal product polish marker: " + marker);
+    failures.push("ChartForm missing current product polish marker: " + marker);
   }
 }
 
@@ -41,7 +40,7 @@ for (const marker of [
   "createMockReport(normalizedForm)",
   "enhanceReportOutputV2",
   "requestRealEngineReportData",
-  "saveGeneratedReport(nextReport)",
+  "saveGeneratedReportWithAccountFallback(nextReport)",
   "router.push(",
   "/reports/",
   "birthCountry: initialForm.birthCountry",
@@ -51,7 +50,23 @@ for (const marker of [
   }
 }
 
+for (const marker of [
+  ".chart-reference-page",
+  "margin: 0 auto",
+  ".chart-reference-form",
+  ".chart-time-title-row",
+  ".city-suggestion-chips",
+  "scrollbar-width: none",
+]) {
+  if (!css.includes(marker)) {
+    failures.push("Chart form CSS missing current product polish marker: " + marker);
+  }
+}
+
 for (const forbiddenMarker of [
+  "مثال: آرمان",
+  "ساخت، ذخیره و باز کردن گزارش",
+  "placeholder=\"تهران\"",
   "app/globals.css",
   "ManualOrderRequestForm",
   "ReportOrderCta",
@@ -60,7 +75,7 @@ for (const forbiddenMarker of [
   "check:product-surface",
 ]) {
   if (chartForm.includes(forbiddenMarker) || chartPage.includes(forbiddenMarker)) {
-    failures.push("Chart polish should not introduce out-of-scope marker: " + forbiddenMarker);
+    failures.push("Chart polish should not include stale/out-of-scope marker: " + forbiddenMarker);
   }
 }
 
@@ -76,7 +91,7 @@ if (!checkProject.includes("pnpm run check:chart-page-product-polish")) {
 }
 
 if (failures.length > 0) {
-  console.error("Chart page product polish check failed:");
+  console.error("Chart page minimal product polish check failed:");
   for (const failure of failures) {
     console.error("- " + failure);
   }

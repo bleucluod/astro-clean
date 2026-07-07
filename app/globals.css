@@ -5642,10 +5642,8 @@ main {
   --chart-shadow: 0 28px 88px rgba(35, 48, 112, 0.11);
   --chart-card-shadow: 0 18px 48px rgba(35, 48, 112, 0.08);
   position: relative;
-  left: 50%;
-  width: min(1540px, calc(100vw - 64px));
-  margin: 0 0 clamp(24px, 4vw, 54px);
-  transform: translateX(-50%);
+  width: min(1180px, calc(100vw - 48px));
+  margin: 0 auto clamp(24px, 4vw, 54px);
   color: var(--chart-text);
 }
 
@@ -5659,7 +5657,7 @@ main {
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(390px, 0.56fr) minmax(520px, 0.7fr);
+  grid-template-columns: minmax(340px, 0.52fr) minmax(0, 0.68fr);
   min-height: min(760px, calc(100vh - 158px));
   border: 1px solid var(--chart-line);
   border-radius: clamp(30px, 3.2vw, 44px);
@@ -5791,6 +5789,7 @@ main {
 .chart-reference-sign-f { right: 58%; top: 60%; }
 
 .chart-reference-content {
+  min-width: 0;
   display: grid;
   align-content: center;
   gap: clamp(16px, 2vw, 22px);
@@ -5855,6 +5854,7 @@ main {
 }
 
 .chart-reference-form {
+  min-width: 0;
   display: grid;
   gap: 20px;
   border: 1px solid var(--chart-line);
@@ -5866,11 +5866,13 @@ main {
 }
 
 .chart-form-fields {
+  min-width: 0;
   display: grid;
   gap: clamp(18px, 2.1vw, 24px);
 }
 
 .chart-field {
+  min-width: 0;
   display: grid;
   gap: 10px;
   color: var(--chart-navy);
@@ -5910,6 +5912,8 @@ main {
 .birth-date-picker-grid select,
 .birth-time-input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 58px;
   border: 1px solid var(--chart-line);
   border-radius: 16px;
@@ -5976,6 +5980,7 @@ main {
 }
 
 .birth-date-picker-grid label {
+  min-width: 0;
   display: grid;
   gap: 8px;
   color: var(--chart-navy);
@@ -5983,11 +5988,11 @@ main {
   font-weight: 900;
 }
 
-.chart-time-layout {
-  display: grid;
-  grid-template-columns: minmax(130px, 0.36fr) minmax(0, 0.64fr);
-  gap: 18px;
-  align-items: end;
+.chart-time-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
 }
 
 .time-unknown-button {
@@ -5999,6 +6004,12 @@ main {
   cursor: pointer;
   font: inherit;
   font-weight: 950;
+}
+
+.time-unknown-inline {
+  min-height: 44px;
+  padding: 0 14px;
+  white-space: nowrap;
 }
 
 .time-unknown-button::before {
@@ -6046,14 +6057,30 @@ main {
   margin-top: 2px;
 }
 
+.chart-city-label {
+  display: grid;
+  gap: 10px;
+}
+
 .city-suggestion-chips {
   display: flex;
-  flex-wrap: wrap;
+  min-height: 46px;
+  align-items: center;
   gap: 8px;
-  margin-top: -8px;
+  margin-top: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+
+.city-suggestion-chips::-webkit-scrollbar {
+  display: none;
 }
 
 .city-suggestion-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
   border: 1px solid var(--chart-line);
   border-radius: 999px;
   padding: 8px 12px;
@@ -6321,6 +6348,17 @@ main {
     gap: 12px;
   }
 
+  .chart-time-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .time-unknown-inline {
+    min-height: 42px;
+    padding-inline: 12px;
+  }
+
   .date-mode-switch {
     width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6341,13 +6379,13 @@ main {
     font-size: 13px;
   }
 
-  .chart-time-layout {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
   .time-unknown-button {
     text-align: right;
+  }
+
+  .city-suggestion-chips {
+    min-height: 44px;
+    flex-wrap: nowrap;
   }
 
   .chart-form-actions {

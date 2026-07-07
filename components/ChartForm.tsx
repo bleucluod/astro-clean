@@ -238,13 +238,13 @@ export function ChartForm() {
     const normalizedCityName = form.birthCity.trim();
 
     if (!normalizedCityName) {
-      throw new Error("شهر تولد را بنویس یا از پیشنهادها انتخاب کن.");
+      throw new Error("نام شهر تولد را وارد کن و از پیشنهادها انتخاب کن.");
     }
 
     const selectedCity = findIranCityByName(normalizedCityName);
 
     if (!selectedCity) {
-      throw new Error("فعلاً این شهر در فهرست ایران پیدا نشد. یکی از پیشنهادهای کوتاه را انتخاب کن.");
+      throw new Error("فعلاً این شهر در فهرست ایران پیدا نشد. نزدیک‌ترین شهر پیشنهادی را انتخاب کن.");
     }
 
     const normalizedBirthTime =
@@ -443,7 +443,7 @@ export function ChartForm() {
                   autoComplete="name"
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
-                  placeholder="مثال: آرمان"
+                  placeholder="نام یا نیک‌نیم خود را وارد کنید"
                 />
               </label>
 
@@ -558,20 +558,18 @@ export function ChartForm() {
               </div>
 
               <div className="chart-field chart-field-full">
-                <div className="chart-field-title-row">
+                <div className="chart-field-title-row chart-time-title-row">
                   <span className="chart-field-label">
                     <span aria-hidden="true">◷</span>
                     ساعت تولد
                   </span>
-                </div>
 
-                <div className="chart-time-layout">
                   <button
                     type="button"
                     className={
                       birthTimeMode === "unknown"
-                        ? "time-unknown-button is-active"
-                        : "time-unknown-button"
+                        ? "time-unknown-button time-unknown-inline is-active"
+                        : "time-unknown-button time-unknown-inline"
                     }
                     aria-pressed={birthTimeMode === "unknown"}
                     onClick={() =>
@@ -582,17 +580,17 @@ export function ChartForm() {
                   >
                     نمی‌دانم
                   </button>
-
-                  <input
-                    className="birth-time-input"
-                    required={birthTimeMode === "known"}
-                    type="time"
-                    value={birthTimeMode === "known" ? form.birthTime : ""}
-                    disabled={birthTimeMode === "unknown"}
-                    onChange={(event) => updateField("birthTime", event.target.value)}
-                    aria-label="ساعت تولد"
-                  />
                 </div>
+
+                <input
+                  className="birth-time-input"
+                  required={birthTimeMode === "known"}
+                  type="time"
+                  value={birthTimeMode === "known" ? form.birthTime : ""}
+                  disabled={birthTimeMode === "unknown"}
+                  onChange={(event) => updateField("birthTime", event.target.value)}
+                  aria-label="ساعت تولد"
+                />
 
                 {birthTimeMode === "unknown" ? (
                   <small className="field-hint">
@@ -601,23 +599,32 @@ export function ChartForm() {
                 ) : null}
               </div>
 
-              <label className="chart-field chart-field-full chart-city-field">
-                <span className="chart-field-label">
-                  <span aria-hidden="true">⌖</span>
-                  شهر تولد
-                </span>
-                <input
-                  required
-                  autoComplete="address-level2"
-                  value={form.birthCity}
-                  onChange={(event) => updateField("birthCity", event.target.value)}
-                  placeholder="تهران"
-                />
-              </label>
+              <div className="chart-field chart-field-full chart-city-field">
+                <label className="chart-city-label">
+                  <span className="chart-field-label">
+                    <span aria-hidden="true">⌖</span>
+                    شهر تولد
+                  </span>
+                  <input
+                    required
+                    autoComplete="address-level2"
+                    value={form.birthCity}
+                    onChange={(event) => updateField("birthCity", event.target.value)}
+                    placeholder="نام شهر تولد را وارد کنید"
+                    aria-describedby="birth-city-hint"
+                  />
+                </label>
 
-              {citySuggestions.length > 0 ? (
+                <small id="birth-city-hint" className="field-hint">
+                  نام شهر تولد را وارد کنید و از گزینه‌ها انتخاب کنید. اگر شهر شما در فهرست نیست، نزدیک‌ترین شهر را انتخاب کنید.
+                </small>
+
                 <div
-                  className="city-suggestion-chips"
+                  className={
+                    citySuggestions.length > 0
+                      ? "city-suggestion-chips has-suggestions"
+                      : "city-suggestion-chips"
+                  }
                   aria-label="پیشنهادهای شهر تولد"
                 >
                   {citySuggestions.map((city) => (
@@ -631,13 +638,13 @@ export function ChartForm() {
                     </button>
                   ))}
                 </div>
-              ) : null}
+              </div>
             </div>
 
             <div className="chart-form-actions">
               <button className="button chart-submit-button" type="submit" disabled={isRealEngineLoading}>
                 <span aria-hidden="true">✦</span>
-                {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت، ذخیره و باز کردن گزارش"}
+                {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت گزارش"}
               </button>
 
               <Link className="button secondary chart-reports-link" href="/reports">
