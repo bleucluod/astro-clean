@@ -113,6 +113,15 @@ export async function saveGeneratedReportWithAccountFallback(
     authErrorMessage = error?.message;
   }
 
+  if (client && config.canAttemptAccountReportSave && authErrorMessage && !accessToken) {
+    return {
+      localRecord,
+      accountRecord: null,
+      accountStatus: "account-skipped",
+      accountMessage: createSafeAccountReportSaveMessage(authErrorMessage),
+    };
+  }
+
   try {
     const headers: HeadersInit = {
       "Content-Type": "application/json",

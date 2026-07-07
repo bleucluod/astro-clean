@@ -14,8 +14,6 @@ import type { AstrologyReport } from "@/types/astro";
 
 export const runtime = "nodejs";
 
-type AccountReportApiBody = Record<string, unknown>;
-
 const PUBLIC_REPORT_OWNER_USER_ID = "00000000-0000-4000-8000-000000000207";
 const PUBLIC_REPORT_OWNER_EMAIL = "public-reports@halleus.local";
 const PUBLIC_REPORT_OWNER_DISPLAY_NAME = "Halleus Public Reports";
@@ -186,7 +184,19 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const authorizationHeader = request.headers.get("authorization");
-  const body = (await request.json()) as AccountReportApiBody;
+
+  let body: unknown;
+
+  try {
+    body = await request.json();
+  } catch {
+    return errorResponse(400, "Request body must be valid JSON.");
+  }
+
+  if (!isRecord(body)) {
+    return errorResponse(400, "Request body must be a JSON object.");
+  }
+
   const report = body.report;
 
   if (!isAstrologyReport(report)) {

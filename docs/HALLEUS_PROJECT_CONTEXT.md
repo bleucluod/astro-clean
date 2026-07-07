@@ -1342,3 +1342,44 @@ Prevention:
 - Keep auth/account work diagnosis-only or split into smaller inspected changes.
 - Do not embed raw Persian markers in PowerShell/Node replacement runners. Use ASCII structural markers and escaped UTF-8 payload strings for Persian report text.
 - Stop after two failures in the same batch and return to a clean repo before continuing product work.
+
+
+## v0.1.222 — Save Report To Account Bridge
+
+Product/code note:
+- Hardened the existing save-generated-report bridge instead of rebuilding it.
+- Local report save remains first and must keep report generation/opening safe if account/server persistence fails.
+- Signed-in account saves continue through the bearer-token path and remain user-owned/private/noindex by default.
+- If Supabase session retrieval errors before an access token exists, the client now keeps the local fallback and skips account persistence instead of silently downgrading that attempt to an unauthenticated public save.
+- The unauthenticated public/noindex server-report fallback remains available for the existing public direct-open path.
+- The account POST route now returns a controlled 400 response for malformed JSON or non-object request bodies.
+
+Checks:
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `node scripts/check-save-report-to-account-bridge.mjs`
+- `pnpm build`
+
+Scope boundaries:
+- No auth driver, database schema, chart inline signup, payment, pricing, checkout, SEO/indexing, or report engine rewrite changes.
+
+## Failure Ledger — v0.1.222 context and SHA-guard attempts
+
+Date: 2026-07-07
+Base: v0.1.221-account-ux-report-ownership / abb2236263710e58a1f35607a01703cd77beb9b1
+
+What failed:
+- The first v0.1.222 context ZIP command used `[System.IO.Path]::GetRelativePath(...)`, which was unavailable in the user's Windows PowerShell/.NET environment. It produced only a 22-byte bad ZIP and touched no tracked files.
+- The first v0.1.222 implementation runner failed before writing tracked files because its SHA guard compared the archive/blob hash for `lib/storage/account-report-save-client.ts` with the working-tree file hash. The runner expected `6A90ED6E0C9EFE6A2EB4B71FE52AD7BC83F8075B573B18D8F076AC0F5F9FF5B8`, while the live working-tree file hash was `D675897D1B609F27E8BC12F0CAB6E5294F31F188B09811564D04AB19B919832A`.
+
+Rollback:
+- Removed `halleus-apply-v0.1.222-save-report-to-account-bridge.ps1`.
+- Removed `halleus-v0.1.222-save-bridge-context-20260707.zip`.
+- Removed `halleus-v0.1.222-storage-context-20260707.zip`.
+- Confirmed `git status --short --untracked-files=all` was clean before resuming.
+
+Prevention:
+- Do not rely on `[System.IO.Path]::GetRelativePath(...)` in context ZIP commands for this project. Prefer `git archive`, `tar.exe -a -cf`, or tested Windows-compatible relative path logic.
+- Do not compare `git archive` LF blob hashes with `Get-FileHash` working-tree hashes on Windows; CRLF normalization can create false mismatches.
+- After a SHA guard mismatch, stop, clean artifacts, and re-sync exact live context before regenerating a runner.
+- Keep save/account bridge changes small and diagnosis-first; do not mix them with inline signup, payment, SEO, or report narrative work.

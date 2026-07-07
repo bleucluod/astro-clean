@@ -1330,3 +1330,20 @@ Use:
 Avoid warm cream, gold, beige, orange, yellow-tinted accents, dark mystical purple, heavy navy, pure black, and any styling that makes Halleus look like fortune-telling, tarot, magic, or a dark occult product.
 
 Implementation priority: keep the whole website visually consistent with this palette before moving into public/private consent, SEO, or wiki work.
+
+
+## v0.1.222 Idea Garden update — account save bridge hardening
+
+Decision:
+- Continue the account-backed report lifecycle by hardening the existing save-generated-report bridge rather than introducing a broader account or migration redesign.
+- The report save flow should stay local-first: generation/opening must still work even if account or server persistence fails.
+- When a signed-in save has a Supabase session retrieval error before an access token exists, keep the local fallback and skip account persistence instead of silently treating that attempt as an unauthenticated public save.
+- Preserve the existing public/noindex fallback path for direct-open report URLs, but do not present it as user-owned account storage.
+- Account-owned reports remain private/noindex by default.
+
+Not now:
+- No local-to-account migration execution.
+- No inline signup inside `/chart`.
+- No auth driver or database schema change.
+- No public/indexable report SEO launch.
+- Payment remains paused: no pricing, checkout, paid/private implementation, or monetization mechanics.
