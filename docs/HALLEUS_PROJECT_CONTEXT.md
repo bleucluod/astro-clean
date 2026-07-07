@@ -1484,3 +1484,46 @@ Checks:
 - Failure: the first v0.1.225 runner stopped at git --no-pager diff --check because docs had new blank lines at EOF.
 - Fix: trim trailing blank lines before rerunning guards and build.
 - Prevention: runners that write docs must normalize EOF blank lines before checks.
+
+## v0.1.225a - Handoff and Workflow Reset
+
+Date: 2026-07-07
+Base: v0.1.225-inline-signup-chart-prompt / 6eb5ac547caed7c30c7bb507320eccd0a104327e
+
+Purpose:
+- This is a docs-only handoff/reset after the long v0.1.221-v0.1.225 account/report/consent/signup sequence.
+- The project reached a product checkpoint after optional inline chart signup. Do not keep creating automatic feature milestones without a product QA observation.
+- The next chat should continue from this checkpoint in the same concise recovery style: exact live context first, compact Safety Gate, small scoped changes, no broad roadmap loops, and no repeated failure patterns.
+
+Current real state:
+- v0.1.221 completed account UX/report ownership clarification.
+- v0.1.222 completed the save-generated-report-to-account bridge and protected local-first fallback behavior.
+- v0.1.223a aligned report QA before value work resumed.
+- v0.1.223b added the first safe report value/synthesis lite layer through chapter summaries.
+- v0.1.224 clarified local/private, account private/noindex, and public/noindex sharing states.
+- v0.1.225 added optional inline sign-in/sign-up inside the chart page without blocking report generation.
+- Payment, pricing, checkout, paid/private implementation, SEO/indexable reports, Sky Pulse, wiki/content, and admin remain paused unless the user explicitly reactivates them.
+
+Failures and fixes from this chat to carry forward:
+- v0.1.222 context ZIP failure: `[System.IO.Path]::GetRelativePath(...)` was not available in the user's Windows PowerShell/.NET environment and produced a bad 22-byte ZIP. Use `tar.exe -a -cf`, `git archive`, or tested Windows-compatible relative path logic instead.
+- v0.1.222 SHA guard failure: a runner compared LF archive/blob hashes with CRLF working-tree hashes and failed before writing files. Do not use raw SHA guards across archive/worktree boundaries on Windows.
+- v0.1.223 report-value failure: the broad runner broke sample QA by missing a required weekly-practice marker; a quick fix introduced mojibake; recovery still failed marker alignment. After report failures, split work into QA alignment first, then narrative changes.
+- v0.1.225 diff check failure: the first inline-signup runner stopped because docs had extra blank lines at EOF. Any runner that writes docs must trim trailing blank lines and write one final newline before `git --no-pager diff --check`.
+- v0.1.225 guard marker failure: a docs marker changed from `v0.1.222 - Save Report To Account Bridge` semantics into mojibake around the dash (`Ã¢â‚¬â€`), causing `scripts/check-save-report-to-account-bridge.mjs` and dependent guards to fail. Avoid fragile non-ASCII punctuation markers in guards where possible; if existing guards require exact text, write files with explicit UTF-8 no BOM and inspect the exact marker after apply.
+- Interactive terminal issue: long pasted PowerShell snippets with quotes/braces can leave PowerShell in continuation mode, and snippets containing `exit` can close the terminal. For future chat instructions, use short line-by-line diagnostics or a `.ps1` runner; never put `exit` in interactive snippets. Use `throw`/`return` instead.
+
+Chat-weight and loop-prevention rules for the next chat:
+- Do not restate the whole roadmap after every milestone. Answer from the latest tag and only what changed since the last checkpoint.
+- Do not start a new implementation batch automatically after a successful tag. Ask for or use concrete product QA observations first.
+- Keep Safety Gates compact but complete enough to show HEAD, tag, status, inspected files, allowed/forbidden files, checks, commit/tag/push plan, rollback, and relevant failure risks.
+- Prefer small focused context ZIPs over broad repo dumps. Do not ask the user to paste long Persian-heavy files or long logs.
+- If a command fails, stop. Diagnose with `git status --short --untracked-files=all` and targeted diffs. Do not retry blindly.
+- If two failures happen in the same batch, reduce scope to diagnosis or workflow recovery only.
+- Split checks: quick guards first, `pnpm build` separately. Do not paste huge combined terminal blocks.
+- Use `git --no-pager diff`, never plain `git diff`.
+- Before commit, remove runner/context ZIP/temp artifacts and confirm `git status --short` shows only intended tracked files.
+
+Checkpoint-first next step:
+- The next useful action is a product QA checkpoint, not another automatic code batch.
+- QA should test anonymous chart generation, report opening, optional signup prompt behavior, login/signup, account report save, dashboard/reports visibility, local/private fallback, public/noindex language, and perceived report value.
+- Choose the next real milestone only from that QA: report synthesis, report detail reading UX, account save repair, or public/private consent foundation.

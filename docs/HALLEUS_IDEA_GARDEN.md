@@ -1398,3 +1398,37 @@ Decision:
 - If the user ignores the panel, the report still generates and opens through the existing local/private fallback.
 - If the user signs in before generating, the existing account save bridge can keep the report as account/private/noindex.
 - No payment, pricing, checkout, database schema, auth driver, or public/indexable SEO consent mechanics are introduced here.
+
+## v0.1.225a Idea Garden update - product checkpoint before more milestones
+
+Decision:
+- After v0.1.225, Halleus should pause automatic feature batching and move to a product QA checkpoint.
+- The recent sequence already covered account ownership UX, save-to-account bridge, report QA alignment, report value-lite chapter summaries, consent/sharing clarity, and optional inline chart signup.
+- The next milestone must be selected from real product observations rather than continuing a version loop.
+
+Next-chat operating style:
+- Continue in the same concise recovery style established at the end of the v0.1.225 chat.
+- Use compact Safety Gates, exact live status, and small context ZIPs.
+- Avoid broad roadmap restatements, long terminal snippets, and automatic follow-on milestones.
+- If the user asks where the project stands, answer from the latest tag and what changed since the last checkpoint, not from an old roadmap.
+- Keep chat weight low: summarize, do not replay; ask for targeted outputs only; avoid long pasted files/logs.
+
+Product QA checkpoint should answer:
+- Can an anonymous user generate a chart and open a report?
+- Does the optional signup prompt help without blocking the chart flow?
+- Can a signed-in user save a report to account private/noindex storage?
+- Do dashboard and reports pages show saved reports clearly?
+- Do local/private, account private/noindex, and public/noindex states remain understandable?
+- Does the generated report feel personal enough to be the core product value?
+
+Possible next milestone depends on QA:
+- If the report feels shallow: report synthesis second safe slice.
+- If the reading experience feels hard to use: report detail reading UX polish.
+- If account persistence fails: account save real-flow QA repair.
+- If sharing/privacy is confusing: public/private consent foundation.
+
+Not now:
+- No payment, pricing, checkout, paid/private report implementation, or monetization mechanics.
+- No public/indexable SEO launch before explicit consent design is real.
+- No Persian SEO/wiki/content system until report value and consent are strong enough.
+- No Sky Pulse until a real transit source is ready.
