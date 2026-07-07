@@ -1289,3 +1289,38 @@ Workflow failure ledger:
 Product QA note:
 - Removed the duplicate report-detail order CTA render from `app/reports/[reportId]/page.tsx` because `ReportDetail` now owns the simple reader page's bottom next-actions card.
 - Kept `ReportOrderCta` intact for future reuse.
+
+## Failure Ledger — v0.1.213 aborted report QA guard-sync attempt
+
+Date: 2026-07-07
+Base: v0.1.212-report-detail-cta-polish / 257516628a70ee5fdea438711e6ca9894a9e898b
+
+What failed:
+- The v0.1.213 report sample QA / trust-pass batch became marker-chasing instead of a controlled product fix.
+- An initial patch did not apply to scripts/check-report-sample-qa.mjs because the patch context did not match the live file.
+- Subsequent fixes repeatedly chased missing markers in scripts/check-real-engine-report-writer.mjs rather than first inspecting and synchronizing the complete guard contract.
+- A PowerShell batch using brittle replacement logic failed with "Cannot replace reflection prompts block".
+- A later guard-marker batch added a marker block but still failed on another writer guard marker, proving the approach was incomplete.
+- The batch consumed too much time, created frustration, and was rolled back.
+
+Root cause:
+- The assistant attempted to patch guard expectations without first extracting the full list of required markers from scripts/check-real-engine-report-writer.mjs and comparing it against lib/astrology/real-engine-report-writer.ts.
+- The assistant continued after repeated failures instead of stopping and switching to diagnosis.
+- The workflow drifted into marker-chasing instead of a single grounded guard-sync plan.
+
+Rollback:
+- Restored docs/HALLEUS_PROJECT_CONTEXT.md.
+- Restored lib/astrology/real-engine-report-writer.ts.
+- Restored scripts/check-real-engine-report-writer.mjs.
+- Restored scripts/check-report-output-v2.mjs.
+- Restored scripts/check-report-sample-qa.mjs.
+- Removed v0.1.213 temporary runner/helper artifacts.
+- Final clean state returned to v0.1.212-report-detail-cta-polish.
+
+Prevention:
+- Before any future report QA guard-sync, inspect the full guard file and list every required marker first.
+- Do not issue partial marker fixes.
+- Do not use brittle text replacement runners for Persian-heavy report writer changes.
+- Do not continue after two failures in the same batch.
+- If checks reveal stale guards, update the guard contract as a whole or stop with diagnosis.
+- Prefer one small, fully grounded change over repeated patch/rerun cycles.
