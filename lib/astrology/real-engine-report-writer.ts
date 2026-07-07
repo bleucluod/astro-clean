@@ -1400,7 +1400,7 @@ function buildRealEngineSectionEvidence({
         ),
     chartRulerEvidence: joinEvidenceLabels(chartRulerEvidence),
     activeHouseEvidence: joinEvidenceLabels(activeHouseEvidence),
-    balanceEvidence: "پشتوانه این بخش: عنصرها و کیفیت‌ها از جایگاه‌های ذخیره‌شده محاسبه شده‌اند",
+    balanceEvidence: "نشانه‌های محاسبه‌شده این بخش: عنصرها و کیفیت‌ها از جایگاه‌های ذخیره‌شده محاسبه شده‌اند",
     houseAnglesEvidence: joinEvidenceLabels(
       houseCount === 12 ? "۱۲ خانه با روش نشانه کامل محاسبه‌شده" : undefined,
       hasAngles ? "رایزینگ، نقطه روبه‌رو، میانه آسمان و ریشه آسمان در داده گزارش" : undefined,
@@ -1454,7 +1454,7 @@ function joinEvidenceLabels(...labels: Array<string | undefined>): string | unde
     return undefined;
   }
 
-  return `پشتوانه این بخش: ${filteredLabels.join("؛ ")}`;
+  return `نشانه‌های محاسبه‌شده این بخش: ${filteredLabels.join("؛ ")}`;
 }
 
 function buildEvidenceOpening(evidence: string | undefined, opening: string): string {
@@ -2545,8 +2545,10 @@ function buildRealEngineInterpretationSections(
         kind: "identity",
         title: "حاکم چارت",
         body: buildStructuredSectionBody({
+          readerCue: "حاکم چارت را مثل ریتم پشت‌صحنه تصمیم‌ها بخوان، نه حکم قطعی شخصیت.",
           opening: "حاکم چارت نشان می‌دهد کدام نیرو پشت بسیاری از شروع‌ها، واکنش‌ها و انتخاب‌های روزمره پررنگ‌تر است.",
           body: input.chartRulerText,
+          reflection: "این نیرو بیشتر کجا کمک می‌کند شروع کنی و کجا ممکن است تو را به تکرار یک عادت بکشاند؟",
         }),
       }
     : null;
@@ -2556,8 +2558,10 @@ function buildRealEngineInterpretationSections(
         kind: "growth",
         title: "خانه‌های فعال، محورها و دقت تولد",
         body: buildStructuredSectionBody({
+          readerCue: "خانه‌های فعال را مثل صحنه‌های زندگی بخوان؛ جایی که موضوعات چارت بیشتر دیده و تجربه می‌شوند.",
           opening: "در این بخش خانه‌هایی آمده‌اند که در چارت وزن بیشتری دارند؛ محورها و دقت تولد هم کمک می‌کنند این میدان‌های زندگی با احتیاط و زمینه درست خوانده شوند.",
           body: activeHouseBody,
+          reflection: "این روزها کدام میدان زندگی بیشتر توجه تو را می‌خواهد و چه کار کوچکی آن را روشن‌تر می‌کند؟",
         }),
       }
     : null;
@@ -2567,8 +2571,10 @@ function buildRealEngineInterpretationSections(
         kind: "growth",
         title: "دست‌های ماه و مسیر رشد",
         body: buildStructuredSectionBody({
+          readerCue: "دست‌های ماه را مثل مسیر تمرین بخوان؛ از الگوی آشنا به سمت رفتاری که هنوز تازه است.",
           opening: "دست‌های ماه مسیر رشد را به زبان حرکت از الگوی آشنا به تمرین تازه توضیح می‌دهند.",
           body: nodeMotionBody,
+          reflection: "کدام واکنش برایت آشنا و امن است، و کدام رفتار کوچک می‌تواند رشد تازه‌ای بسازد؟",
         }),
       }
     : null;
@@ -2578,8 +2584,10 @@ function buildRealEngineInterpretationSections(
         kind: "overview",
         title: "عنصرها، کیفیت‌ها و ریتم کلی",
         body: buildStructuredSectionBody({
+          readerCue: "عنصرها و کیفیت‌ها را برای شناخت ریتم انرژی بخوان، نه برای برچسب زدن به خودت.",
           opening: "عنصرها و کیفیت‌ها نشان می‌دهند انرژی چارت از چه راه‌هایی راحت‌تر بیان می‌شود و کجا به تمرین آرام‌تری نیاز دارد.",
           body: input.balanceText,
+          reflection: "برای ادامه دادن، بیشتر به شروع، انعطاف، ثبات، یا رها کردن یک فشار قدیمی نیاز داری؟",
         }),
       }
     : null;
@@ -2590,8 +2598,10 @@ function buildRealEngineInterpretationSections(
       kind: "overview",
       title: "خلاصه انسانی و ستون فقرات چارت",
       body: buildStructuredSectionBody({
+          readerCue: "این فصل را مثل نقشه راه بخوان؛ لازم نیست همه جزئیات را حفظ کنی، فقط نخ اصلی را پیدا کن.",
         opening: input.summary,
         body: input.firstSynthesisText,
+          reflection: "کدام جمله از این خلاصه بیشتر شبیه تجربه واقعی توست و کدام بخش هنوز نیاز به زمان دارد؟",
       }),
     },
     {
@@ -2599,8 +2609,10 @@ function buildRealEngineInterpretationSections(
       kind: "identity",
       title: "سه ستون اصلی: خورشید، ماه، رایزینگ",
       body: buildStructuredSectionBody({
+          readerCue: "خورشید، ماه و رایزینگ را جداگانه نخوان؛ ببین هویت، نیاز عاطفی و شیوه ورود تو چطور با هم کار می‌کنند.",
         opening: "خورشید، ماه و رایزینگ تصویر اولیه را می‌سازند؛ اما در این گزارش زیر نور حاکم چارت و خانه‌های فعال خوانده می‌شوند.",
         body: coreBody || fallbackBody,
+          reflection: "وقتی بین خواسته، احساس و ظاهر بیرونی‌ات فاصله می‌افتد، معمولاً کدام بخش زودتر صدا بلند می‌کند؟",
       }),
     },
     chartRulerSection,
@@ -2610,8 +2622,10 @@ function buildRealEngineInterpretationSections(
       kind: "relationships",
       title: "ذهن، رابطه، عمل و روابط مهم سیاره‌ای",
       body: buildStructuredSectionBody({
+          readerCue: "عطارد، زهره، مریخ و رابطه‌های سیاره‌ای را مثل ابزارهای روزمره بخوان: فکر، انتخاب، رابطه و عمل.",
         opening: "اینجا فقط چند رابطه و جایگاه مهم آمده‌اند؛ هدف متن کوتاه‌تر اما دقیق‌تر است.",
         body: dailyBody || fallbackBody,
+          reflection: "در یک موقعیت واقعی، کدام ابزار زودتر فعال می‌شود و کدام ابزار نیاز دارد آرام‌تر و آگاهانه‌تر استفاده شود؟",
       }),
     },
     nodeMotionSection,
@@ -2621,9 +2635,11 @@ function buildRealEngineInterpretationSections(
       kind: "growth",
       title: "جمع‌بندی و سه تمرین کوچک",
       body: buildStructuredSectionBody({
+          readerCue: "این فصل را برای انتخاب یک قدم کوچک بخوان؛ قرار نیست همه گزارش را به برنامه تبدیل کنی.",
         opening:
           "جمع‌بندی قرار نیست فهرست جایگاه‌ها را تکرار کند؛ فقط نخ انسانی گزارش را نگه می‌دارد.",
         body: input.integrationText || fallbackBody,
+          reflection: "از کل گزارش فقط یک تمرین را برای این هفته نگه دار؛ کدام تمرین هم واقعی است و هم قابل ادامه؟",
         closing: buildFinalSynthesisClosing(input),
       }),
     },
@@ -2640,13 +2656,15 @@ type StructuredSectionBodyInput = {
 
 function buildStructuredSectionBody({
   opening,
+  readerCue,
   body,
   reflection,
   closing,
 }: StructuredSectionBodyInput): string {
+  const readerCueText = readerCue ? `چطور بخوانی: ${readerCue}` : undefined;
   const reflectionText = reflection ? `برای تأمل: ${reflection}` : undefined;
 
-  return [opening, body, reflectionText, closing]
+  return [opening, readerCueText, body, reflectionText, closing]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .map(sanitizeUserFacingReportText)
     .join("\n\n");

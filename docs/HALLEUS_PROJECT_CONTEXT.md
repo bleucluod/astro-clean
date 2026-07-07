@@ -1324,3 +1324,21 @@ Prevention:
 - Do not continue after two failures in the same batch.
 - If checks reveal stale guards, update the guard contract as a whole or stop with diagnosis.
 - Prefer one small, fully grounded change over repeated patch/rerun cycles.
+
+## Failure Ledger — v0.1.219 aborted chart-inline-account and narrative marker attempts
+
+Date: 2026-07-07
+Base: v0.1.218-public-report-direct-open / b99cfa45848fb578c54d176da012f35064945ee9
+
+What failed:
+- The chart-inline-account runner grew too large for an auth-sensitive batch and failed after a stale account UX guard, then a malformed JS string in scripts/check-chart-final-submit-flow.mjs. The batch was rolled back cleanly.
+- The first report-narrative-depth runner used Persian-heavy replacement markers that became mojibake in the generated apply script. It failed before modifying source files and the artifacts were removed.
+
+Rollback:
+- Restored app/globals.css, components/ChartForm.tsx, scripts/check-account-ux-polish.mjs, and scripts/check-chart-final-submit-flow.mjs for the account attempt.
+- Removed the failed narrative context/runner artifacts after confirming only untracked files remained.
+
+Prevention:
+- Keep auth/account work diagnosis-only or split into smaller inspected changes.
+- Do not embed raw Persian markers in PowerShell/Node replacement runners. Use ASCII structural markers and escaped UTF-8 payload strings for Persian report text.
+- Stop after two failures in the same batch and return to a clean repo before continuing product work.
