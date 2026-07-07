@@ -2554,6 +2554,7 @@ function buildRealEngineInterpretationSections(
         body: buildStructuredSectionBody({
           readerCue: "حاکم چارت را مثل ریتم پشت‌صحنه تصمیم‌ها بخوان، نه حکم قطعی شخصیت.",
           opening: "حاکم چارت نشان می‌دهد کدام نیرو پشت بسیاری از شروع‌ها، واکنش‌ها و انتخاب‌های روزمره پررنگ‌تر است.",
+          chapterSummary: "این فصل ریتم پشت‌صحنه چارت را کوتاه می‌کند: چه نیرویی شروع‌ها را رنگ می‌دهد و کجا باید آرام‌تر هدایت شود.",
           body: input.chartRulerText,
           reflection: "این نیرو بیشتر کجا کمک می‌کند شروع کنی و کجا ممکن است تو را به تکرار یک عادت بکشاند؟",
         }),
@@ -2567,6 +2568,7 @@ function buildRealEngineInterpretationSections(
         body: buildStructuredSectionBody({
           readerCue: "خانه‌های فعال را مثل صحنه‌های زندگی بخوان؛ جایی که موضوعات چارت بیشتر دیده و تجربه می‌شوند.",
           opening: "در این بخش خانه‌هایی آمده‌اند که در چارت وزن بیشتری دارند؛ محورها و دقت تولد هم کمک می‌کنند این میدان‌های زندگی با احتیاط و زمینه درست خوانده شوند.",
+          chapterSummary: "این فصل جایگاه‌های محاسبه‌شده را به صحنه‌های زندگی وصل می‌کند تا گزارش فقط درباره شخصیت نماند.",
           body: activeHouseBody,
           reflection: "این روزها کدام میدان زندگی بیشتر توجه تو را می‌خواهد و چه کار کوچکی آن را روشن‌تر می‌کند؟",
         }),
@@ -2580,6 +2582,7 @@ function buildRealEngineInterpretationSections(
         body: buildStructuredSectionBody({
           readerCue: "دست‌های ماه را مثل مسیر تمرین بخوان؛ از الگوی آشنا به سمت رفتاری که هنوز تازه است.",
           opening: "دست‌های ماه مسیر رشد را به زبان حرکت از الگوی آشنا به تمرین تازه توضیح می‌دهند.",
+          chapterSummary: "این فصل تفاوت میان عادت امن و رفتار تازه را نشان می‌دهد؛ نه به‌عنوان حکم، بلکه به‌عنوان مسیر تمرین.",
           body: nodeMotionBody,
           reflection: "کدام واکنش برایت آشنا و امن است، و کدام رفتار کوچک می‌تواند رشد تازه‌ای بسازد؟",
         }),
@@ -2593,6 +2596,7 @@ function buildRealEngineInterpretationSections(
         body: buildStructuredSectionBody({
           readerCue: "عنصرها و کیفیت‌ها را برای شناخت ریتم انرژی بخوان، نه برای برچسب زدن به خودت.",
           opening: "عنصرها و کیفیت‌ها نشان می‌دهند انرژی چارت از چه راه‌هایی راحت‌تر بیان می‌شود و کجا به تمرین آرام‌تری نیاز دارد.",
+          chapterSummary: "این فصل ریتم کلی انرژی را خلاصه می‌کند: چه چیزی روان‌تر است و کجا تنظیم آگاهانه‌تر لازم می‌شود.",
           body: input.balanceText,
           reflection: "برای ادامه دادن، بیشتر به شروع، انعطاف، ثبات، یا رها کردن یک فشار قدیمی نیاز داری؟",
         }),
@@ -2607,6 +2611,7 @@ function buildRealEngineInterpretationSections(
       body: buildStructuredSectionBody({
           readerCue: "این فصل را مثل نقشه راه بخوان؛ لازم نیست همه جزئیات را حفظ کنی، فقط نخ اصلی را پیدا کن.",
         opening: input.summary,
+        chapterSummary: "این فصل نخ اصلی گزارش را جلو می‌آورد تا رایزینگ، حاکم چارت، خانه‌های فعال و تنش مرکزی جدا از هم خوانده نشوند.",
         body: input.firstSynthesisText,
           reflection: "کدام جمله از این خلاصه بیشتر شبیه تجربه واقعی توست و کدام بخش هنوز نیاز به زمان دارد؟",
       }),
@@ -2618,6 +2623,7 @@ function buildRealEngineInterpretationSections(
       body: buildStructuredSectionBody({
           readerCue: "خورشید، ماه و رایزینگ را جداگانه نخوان؛ ببین هویت، نیاز عاطفی و شیوه ورود تو چطور با هم کار می‌کنند.",
         opening: "خورشید، ماه و رایزینگ تصویر اولیه را می‌سازند؛ اما در این گزارش زیر نور حاکم چارت و خانه‌های فعال خوانده می‌شوند.",
+        chapterSummary: "این فصل سه ستون اصلی را به هم وصل می‌کند: خواسته روشن، نیاز عاطفی و شیوه ورود به جهان.",
         body: coreBody || fallbackBody,
           reflection: "وقتی بین خواسته، احساس و ظاهر بیرونی‌ات فاصله می‌افتد، معمولاً کدام بخش زودتر صدا بلند می‌کند؟",
       }),
@@ -2631,6 +2637,7 @@ function buildRealEngineInterpretationSections(
       body: buildStructuredSectionBody({
           readerCue: "عطارد، زهره، مریخ و رابطه‌های سیاره‌ای را مثل ابزارهای روزمره بخوان: فکر، انتخاب، رابطه و عمل.",
         opening: "اینجا فقط چند رابطه و جایگاه مهم آمده‌اند؛ هدف متن کوتاه‌تر اما دقیق‌تر است.",
+        chapterSummary: "این فصل ابزارهای روزمره را کنار رابطه‌های سیاره‌ای می‌گذارد تا فکر، انتخاب، رابطه و عمل جدا از هم نمانند.",
         body: dailyBody || fallbackBody,
           reflection: "در یک موقعیت واقعی، کدام ابزار زودتر فعال می‌شود و کدام ابزار نیاز دارد آرام‌تر و آگاهانه‌تر استفاده شود؟",
       }),
@@ -2645,6 +2652,7 @@ function buildRealEngineInterpretationSections(
           readerCue: "این فصل را برای انتخاب یک قدم کوچک بخوان؛ قرار نیست همه گزارش را به برنامه تبدیل کنی.",
         opening:
           "جمع‌بندی قرار نیست فهرست جایگاه‌ها را تکرار کند؛ فقط نخ انسانی گزارش را نگه می‌دارد.",
+        chapterSummary: "این فصل خروجی عملی گزارش است: یک نخ انسانی، چند تمرین کوچک و راهی آرام برای ادامه دادن.",
         body: input.integrationText || fallbackBody,
           reflection: "از کل گزارش فقط یک تمرین را برای این هفته نگه دار؛ کدام تمرین هم واقعی است و هم قابل ادامه؟",
         closing: buildFinalSynthesisClosing(input),
@@ -2655,6 +2663,7 @@ function buildRealEngineInterpretationSections(
 
 type StructuredSectionBodyInput = {
   opening: string;
+  chapterSummary?: string;
   readerCue?: string;
   body: string | undefined;
   reflection?: string;
@@ -2663,15 +2672,17 @@ type StructuredSectionBodyInput = {
 
 function buildStructuredSectionBody({
   opening,
+  chapterSummary,
   readerCue,
   body,
   reflection,
   closing,
 }: StructuredSectionBodyInput): string {
+  const chapterSummaryText = chapterSummary ? `خلاصه فصل: ${chapterSummary}` : undefined;
   const readerCueText = readerCue ? `چطور بخوانی: ${readerCue}` : undefined;
   const reflectionText = reflection ? `برای تأمل: ${reflection}` : undefined;
 
-  return [opening, readerCueText, body, reflectionText, closing]
+  return [opening, chapterSummaryText, readerCueText, body, reflectionText, closing]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .map(sanitizeUserFacingReportText)
     .join("\n\n");

@@ -1419,3 +1419,26 @@ Prevention:
 - Split report work after failed checks: first align QA/guards, then attempt report narrative upgrades.
 - Preserve existing sample QA markers unless both writer output and QA are intentionally updated together.
 - Avoid quick Persian text patches in PowerShell after a failed report runner; use full-file UTF-8 replacement from inspected files or ASCII/code-anchored changes only.
+
+
+## v0.1.223b — Report Value + Synthesis Lite
+
+Product/code note:
+- This batch resumed report value work after v0.1.223a by making a smaller, QA-safe synthesis upgrade.
+- It adds `chapterSummary` support inside the real-engine report writer so generated report sections can include a short `خلاصه فصل` line before the existing reading cue.
+- The batch preserves the existing weekly-practice QA markers: `تمرین کوچک این هفته` and `سه تمرین کوچک این چارت`.
+- It does not rewrite the large narrative engine, change report section ids, or touch account/auth/payment/SEO/UI flows.
+
+Checks:
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `node scripts/check-report-qa-alignment.mjs`
+- `node scripts/check-report-value-synthesis-lite.mjs`
+- `pnpm build`
+
+Scope boundaries:
+- No account/auth/database changes.
+- No chart inline signup.
+- No payment, pricing, checkout, paid/private implementation, or monetization mechanics.
+- No public/indexable report SEO launch.
+- No Sky Pulse or wiki/content implementation.

@@ -1360,3 +1360,19 @@ Not now:
 - No chart inline signup.
 - No public/indexable report SEO launch.
 - No payment, pricing, checkout, paid/private implementation, or monetization mechanics.
+
+
+## v0.1.223b Idea Garden update — report value synthesis lite
+
+Decision:
+- Resume report value work in a smaller, guard-safe form after the v0.1.223 rollback and v0.1.223a QA alignment.
+- Add chapter-level summaries to the real-engine report narrative so each section has a faster entry point before the existing `چطور بخوانی` and `برای تأمل` cues.
+- Preserve the current weekly-practice markers used by sample QA instead of renaming headings or changing the report contract.
+- Treat this as a report-value improvement, not a new account, payment, SEO, or content-system milestone.
+
+Not now:
+- No broad rewrite of the report writer.
+- No account/auth/database change.
+- No chart inline signup.
+- No public/indexable report SEO launch.
+- No payment, pricing, checkout, paid/private implementation, or monetization mechanics.
