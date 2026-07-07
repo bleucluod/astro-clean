@@ -524,7 +524,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             title="هنوز گزارشی در حساب پیدا نشد"
             description={
               message ||
-              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. نسخه حساب فقط برای کاربر واردشده خوانده می‌شود و private/noindex می‌ماند."
+              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. نسخه حساب فقط برای کاربر واردشده خوانده می‌شود، private/noindex می‌ماند و لینک عمومی جدا از حساب است."
             }
             actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
             actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
@@ -856,7 +856,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <EmptyState
         badge="شروع آرام"
         title="هنوز گزارشی ذخیره نشده"
-        description="از ساخت گزارش تولد شروع کن؛ هالیوس گزارش را فعلاً public/noindex ذخیره می‌کند و بعد همین گزارش در پنل کاربری دیده می‌شود."
+        description="از ساخت گزارش تولد شروع کن؛ نسخه local/private همین مرورگر برای برگشت سریع ساخته می‌شود. اگر وارد حساب باشی، نسخه حساب جدا و private/noindex هم بررسی می‌شود."
         actionHref="/chart"
         actionLabel="ساخت اولین گزارش تولد"
       />
@@ -873,13 +873,13 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         <p>
           اینجا برای برگشت سریع به خوانش‌های قبلی روی همین مرورگر است. حساب
           کاربری مسیر جداگانه‌ای برای مالکیت و برگشت امن به گزارش‌های بعدی
-          می‌سازد؛ گزارش‌های local در این مرحله migrate یا حذف نمی‌شوند.
+          می‌سازد؛ گزارش‌های local در این مرحله migrate یا حذف نمی‌شوند و لینک عمومی فقط مسیر public/noindex جداست.
         </p>
 
         <div className="report-lifecycle-strip" aria-label="وضعیت گزارش‌ها">
           <span>local-preview روی همین مرورگر</span>
           <span>قابل جستجو و ستاره‌دار</span>
-          <span>آماده خروجی گرفتن</span>
+          <span>اشتراک عمومی فقط با لینک noindex</span>
           <span>حساب جدا و private/noindex</span>
         </div>
 

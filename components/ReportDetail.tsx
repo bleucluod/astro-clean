@@ -562,18 +562,30 @@ function getReportTitle(report: AstrologyReport) {
 
 function getPublicLinkMessage(reportSource: ReportDetailSource, message: string) {
   if (reportSource === "public") {
-    return "این گزارش public/noindex است؛ هرکسی که لینک مستقیم را داشته باشد می‌تواند گزارش را ببیند، اما یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند.";
+    return "این گزارش public/noindex است؛ هرکسی که لینک مستقیم را داشته باشد می‌تواند گزارش را ببیند، اما noindex یعنی این صفحه برای ایندکس عمومی آماده نشده و یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند.";
   }
 
   if (reportSource === "account") {
-    return message || "این نسخه از حساب فعلی خوانده شده است؛ گزارش حساب private/noindex می‌ماند و یادداشت‌های شخصی اینجا فقط خواندنی است.";
+    return message || "این نسخه از حساب فعلی خوانده شده است؛ گزارش حساب private/noindex می‌ماند، با حساب فعلی خوانده می‌شود و یادداشت‌های شخصی اینجا فقط خواندنی است.";
   }
 
   if (reportSource === "beta-db") {
-    return message || "این نسخه از آرشیو آزمایشی سرور خوانده شده است.";
+    return message || "این نسخه از آرشیو آزمایشی سرور خوانده شده است؛ این مسیر برای اشتراک عمومی یا ایندکس نیست.";
   }
 
-  return message || "نسخه همین مرورگر باز شد؛ برای گزارش‌های بعدی می‌توانی وارد حساب شوی تا مسیر برگشت جدا داشته باشی.";
+  return message || "نسخه local/private همین مرورگر باز شد؛ این نسخه عمومی نیست. برای گزارش‌های بعدی می‌توانی وارد حساب شوی تا نسخه حساب جدا و private/noindex داشته باشی.";
+}
+
+function getNextActionMessage(reportSource: ReportDetailSource) {
+  if (reportSource === "account") {
+    return "این گزارش از حساب فعلی خوانده شده و private/noindex می‌ماند. برای مقایسه، یک گزارش تازه بساز؛ نسخه local همچنان جداست و گزارش‌های حساب را از مسیر حساب ببین.";
+  }
+
+  if (reportSource === "public") {
+    return "این لینک public/noindex فقط با لینک مستقیم قابل دیدن است و جای private/account report را نمی‌گیرد. برای گزارش‌های بعدی که به حساب خودت وصل بمانند، وارد حساب شو و بعد گزارش تازه بساز.";
+  }
+
+  return "این نسخه local/private روی همین مرورگر است. برای اینکه گزارش‌های بعدی فقط به این دستگاه وابسته نباشند، وارد حساب شو و بعد گزارش تازه بساز تا نسخه حساب جدا و private/noindex هم بررسی شود.";
 }
 
 export function ReportDetail({
@@ -902,8 +914,8 @@ export function ReportDetail({
         </article>
 
         <article className="card report-detail-quick-card">
-          <span className="section-label">لینک عمومی</span>
-          <h2>لینک عمومی</h2>
+          <span className="section-label">وضعیت اشتراک و حریم</span>
+          <h2>وضعیت اشتراک گزارش</h2>
           <span className="pill">{getSourceBadge(reportSource)}</span>
           <p>{getPublicLinkMessage(reportSource, message)}</p>
           {reportSource === "public" ? (
@@ -1064,7 +1076,7 @@ export function ReportDetail({
         <div>
           <span className="section-label">ادامه مسیر</span>
           <h2>بعد از این گزارش</h2>
-          <p>اگر خواستی مقایسه کنی، یک گزارش تازه بساز. برای اینکه گزارش‌های بعدی فقط به همین مرورگر وابسته نباشند، از مسیر حساب وارد شو و بعد گزارش‌های حساب را جدا ببین.</p>
+          <p>{getNextActionMessage(reportSource)}</p>
         </div>
         <div className="actions">
           <Link className="button" href="/chart">ساخت گزارش تازه</Link>

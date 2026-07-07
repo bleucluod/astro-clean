@@ -1442,3 +1442,25 @@ Scope boundaries:
 - No payment, pricing, checkout, paid/private implementation, or monetization mechanics.
 - No public/indexable report SEO launch.
 - No Sky Pulse or wiki/content implementation.
+
+
+## v0.1.224 — Consent / Sharing Clarity + Post-Report Account Prompt
+
+Product/code note:
+- Clarified report lifecycle language after account save bridge: local/private browser copy, account private/noindex copy, and public/noindex direct-link copy are separate states.
+- Report detail now labels sharing/privacy state directly and keeps the post-report prompt focused on account save for future reports, not inline signup inside `/chart`.
+- Chart submit save messages now distinguish account private/noindex save, public/noindex direct link, and local/private fallback.
+- Reports list empty/local/account copy now avoids implying local reports are automatically public.
+
+Checks:
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `node scripts/check-save-report-to-account-bridge.mjs`
+- `node scripts/check-consent-sharing-clarity.mjs`
+- `pnpm build`
+
+Guardrails:
+- Payment/pricing/order remains paused.
+- No public/indexable report model was introduced.
+- No inline signup inside `/chart`.
+- No auth driver, database schema, report engine, or migration changes.

@@ -151,14 +151,14 @@ function buildReportSaveFallbackMessage(message: string) {
     lowerMessage.includes("network");
 
   if (looksLikeNetworkTimeout) {
-    return "گزارش ساخته شد، اما ذخیره آنلاین موقتاً پاسخ نداد. نسخه همین دستگاه باز می‌شود.";
+    return "گزارش ساخته شد، اما ذخیره حساب یا لینک noindex موقتاً پاسخ نداد. نسخه private همین دستگاه باز می‌شود.";
   }
 
   if (!normalizedMessage) {
-    return "گزارش ساخته شد، اما ذخیره آنلاین کامل نشد. نسخه همین دستگاه باز می‌شود.";
+    return "گزارش ساخته شد، اما ذخیره حساب یا لینک noindex کامل نشد. نسخه private همین دستگاه باز می‌شود.";
   }
 
-  return "گزارش ساخته شد، اما ذخیره آنلاین کامل نشد. نسخه همین دستگاه باز می‌شود.";
+    return "گزارش ساخته شد، اما ذخیره حساب یا لینک noindex کامل نشد. نسخه private همین دستگاه باز می‌شود.";
 }
 
 export function ChartForm() {
@@ -396,7 +396,7 @@ export function ChartForm() {
 
     if (saveResult.accountStatus === "account-saved") {
       setSaveMessage(
-        "گزارش در حساب ذخیره شد؛ نسخه دستگاه هم برای اطمینان باقی ماند.",
+        "گزارش در حساب ذخیره شد؛ نسخه حساب private/noindex است و نسخه دستگاه هم برای اطمینان باقی ماند.",
       );
       router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`);
       return;
@@ -404,7 +404,7 @@ export function ChartForm() {
 
     if (saveResult.accountStatus === "public-saved" && saveResult.accountRecord) {
       setSaveMessage(
-        "گزارش با لینک عمومی ذخیره شد؛ نسخه دستگاه هم برای اطمینان باقی ماند.",
+        "گزارش با لینک public/noindex ذخیره شد؛ هرکس لینک مستقیم را داشته باشد می‌تواند آن را ببیند و نسخه دستگاه هم باقی ماند.",
       );
       router.push(`/reports/${saveResult.accountRecord.id}`);
       return;
@@ -417,7 +417,7 @@ export function ChartForm() {
       message: fallbackMessage,
     });
     setSaveMessage(
-      "گزارش روی همین دستگاه آماده شد؛ اگر ذخیره آنلاین دیر پاسخ داد، همین نسخه را می‌بینی.",
+      "گزارش روی همین دستگاه آماده شد؛ این نسخه local/private است و اگر ذخیره حساب یا لینک noindex دیر پاسخ داد، همین نسخه را می‌بینی.",
     );
     router.push(`/reports/${saveResult.localRecord.id}`);
   }

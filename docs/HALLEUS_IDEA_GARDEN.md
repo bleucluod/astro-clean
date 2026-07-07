@@ -1376,3 +1376,17 @@ Not now:
 - No chart inline signup.
 - No public/indexable report SEO launch.
 - No payment, pricing, checkout, paid/private implementation, or monetization mechanics.
+
+
+## Implemented decision — v0.1.224 consent/sharing clarity
+
+Status: implemented in `v0.1.224-consent-sharing-clarity`.
+
+Decision:
+- Treat report lifecycle language as three separate user-facing states: local/private browser copy, account private/noindex copy, and public/noindex direct-link copy.
+- Public/noindex is not the same as private: anyone with the direct link can view it, but it is not an indexable public-report SEO model.
+- The post-report prompt should invite account use for future saved reports without embedding inline signup into `/chart`.
+
+Non-goals:
+- No payment, pricing, checkout, public/indexable SEO report model, or old local-to-account migration.
+- No report narrative rewrite in this batch.
