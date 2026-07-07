@@ -9,11 +9,11 @@ const failures = [];
 
 const requiredMarkers = [
   ["components/ReportCard.tsx", reportCard, "report-polish-advanced-panel"],
-  ["components/ReportCard.tsx", reportCard, "کامل باشد اما شلوغ و گیج‌کننده نشود"],
-  ["components/ReportCard.tsx", reportCard, "کیفیت محاسبه"],
-  ["lib/astrology/real-engine-report-writer.ts", writer, "به جای تکرار فهرست کامل ۱۲ خانه"],
-  ["lib/astrology/real-engine-report-writer.ts", writer, "جدول کامل ۱۲ خانه در کارت گزارش و چارت دایره‌ای آمده است"],
-  ["lib/astrology/real-engine-report-writer.ts", writer, "یادداشت‌های روش و دقت بعد از روایت اصلی آمده‌اند"],
+  ["components/ReportCard.tsx", reportCard, "پشتوانه محاسبه و داده‌های دقیق"],
+  ["components/ReportCard.tsx", reportCard, "اگر فقط می‌خواهی گزارش را مثل یک روایت بخوانی"],
+  ["lib/astrology/real-engine-report-writer.ts", writer, "خانه‌های این گزارش با روش نشانه کامل ساخته شده‌اند"],
+  ["lib/astrology/real-engine-report-writer.ts", writer, "جدول کامل در پشتوانه محاسبه آمده"],
+  ["lib/astrology/real-engine-report-writer.ts", writer, "متن خوانش فقط نقاط پررنگ‌تر را برجسته می‌کند"],
   ["scripts/check-report-sample-qa.mjs", sampleQa, "v0.1.162-product-polish"],
   ["scripts/check-report-sample-qa.mjs", sampleQa, "v0.1.168-reading-polish"],
   ["scripts/check-report-sample-qa.mjs", sampleQa, "too many user-facing snapshot mentions"],

@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 const requiredFiles = [
   "src/lib/report-output/report-real-chart-bridge.ts",
   "components/ChartReportBridgePanel.tsx",
-  "components/ReportDetail.tsx",
+  "components/ChartFormReportFlowClient.tsx",
+  "components/RealChartWorkbenchClient.tsx",
   "scripts/check-report-real-chart-bridge.mjs",
 ];
 
@@ -18,7 +19,8 @@ const bridgeExports = [
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const bridgeSource = readFileSync(requiredFiles[0], "utf8");
 const componentSource = readFileSync(requiredFiles[1], "utf8");
-const detailSource = readFileSync(requiredFiles[2], "utf8");
+const flowSource = readFileSync(requiredFiles[2], "utf8");
+const workbenchSource = readFileSync(requiredFiles[3], "utf8");
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
 const checkReports = packageJson.scripts?.["check:reports"] ?? "";
 const failures = [];
@@ -70,8 +72,12 @@ for (const marker of [
   }
 }
 
-if (!detailSource.includes("ChartReportBridgePanel")) {
-  failures.push("ReportDetail is not wired to ChartReportBridgePanel.");
+if (!flowSource.includes("ChartReportBridgePanel")) {
+  failures.push("ChartFormReportFlowClient is not wired to ChartReportBridgePanel.");
+}
+
+if (!workbenchSource.includes("ChartReportBridgePanel")) {
+  failures.push("RealChartWorkbenchClient is not wired to ChartReportBridgePanel.");
 }
 
 if (
@@ -97,4 +103,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Report real chart bridge check passed for 4 files.");
+console.log("Report real chart bridge check passed for 5 files.");

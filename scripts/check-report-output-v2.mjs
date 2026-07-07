@@ -14,7 +14,7 @@ const requiredContent = [
   ["lib/report-output/report-v2.ts", "enhanceReportOutputV2"],
   ["components/ReportV2Sections.tsx", "Report Output V2"],
   ["components/ChartForm.tsx", "enhanceReportOutputV2"],
-  ["components/ReportDetail.tsx", "ReportV2Sections"],
+  ["components/ReportDetail.tsx", "ReportV3Experience"],
   ["docs/REPORT_OUTPUT_V2_INTEGRATION.md", "sectioned report output"],
 ];
 
@@ -44,4 +44,4 @@ if (failed) {
   process.exit(1);
 }
 
-console.log(`Report output V2 check passed for ${requiredFiles.length} files.`);
+console.log(`Report output V2/V3 bridge check passed for ${requiredFiles.length} files.`);

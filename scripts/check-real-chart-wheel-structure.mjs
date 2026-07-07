@@ -7,15 +7,14 @@ const failures = [];
 
 for (const marker of [
   "report-real-chart-wheel-structure",
-  "Real chart wheel",
-  "چرخ واقعی چارت",
+  "چارت محاسبه‌شده",
+  "چرخ چارت تولد",
+  "محورهای اصلی",
+  "روش نشانه کامل",
   "buildWheelHouses",
   "buildWheelAngles",
   "buildAspectLines",
-  "ASC/DSC/MC/IC",
-  "Whole Sign",
   "retrogradePlanetIds",
-  "real chart snapshot",
 ]) {
   if (!wheel.includes(marker)) {
     failures.push("RealChartWheel.tsx missing marker: " + marker);
@@ -36,7 +35,7 @@ for (const marker of [
   "report-chart-wheel-structure",
   "houses={report.realEngine.houses}",
   "angles={report.realEngine.angles}",
-  "aspects={realEngineAspects}",
+  "aspects={shownAspects}",
   "retrogradePlanetIds={Array.from(retrogradePlanetIds)}",
 ]) {
   if (!reportCard.includes(marker)) {
