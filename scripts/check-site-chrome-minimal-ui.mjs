@@ -1,43 +1,40 @@
 import { readFileSync } from "node:fs";
 
 const appShell = readFileSync("components/AppShell.tsx", "utf8");
+const siteHeader = readFileSync("components/SiteHeader.tsx", "utf8");
 const globals = readFileSync("app/globals.css", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 const failures = [];
 
-const obsoleteGlobalChromeMarkers = [
+const obsoleteAppShellMarkers = [
   "مسیر سریع فروش",
   "گزارش نمونه، توضیح محصول",
   "حریم داده",
-  "NavLinks",
   "getSalesNavigationLinks",
   "shell-sales-nav",
   "footer-sales-links",
   "footer-grid",
   "HHalleus",
-  "site-brand-mark",
+  "import { NavLinks }",
+  "site-mobile-menu",
 ];
 
-for (const marker of obsoleteGlobalChromeMarkers) {
+for (const marker of obsoleteAppShellMarkers) {
   if (appShell.includes(marker)) {
     failures.push(`AppShell still contains obsolete marker: ${marker}`);
   }
 }
 
-for (const marker of [".shell-sales-nav", ".footer-sales-links", ".footer-grid", ".site-brand-mark"]) {
+for (const marker of [".shell-sales-nav", ".footer-sales-links", ".footer-grid", ".site-mobile-menu"]) {
   if (globals.includes(marker)) {
     failures.push(`globals.css still contains obsolete chrome selector: ${marker}`);
   }
 }
 
 for (const marker of [
-  "<span>Halleus</span>",
-  "site-header",
-  "site-nav",
-  "site-brand",
-  "site-nav-cta",
-  "/chart",
+  "SiteHeader",
+  "site-footer",
   "footer-inner",
   "footer-brand-block",
   "footer-note",
@@ -47,6 +44,23 @@ for (const marker of [
 ]) {
   if (!appShell.includes(marker)) {
     failures.push(`AppShell missing site chrome marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  '"use client"',
+  "lastScrollYRef",
+  "HEADER_HIDE_OFFSET",
+  "site-header-hidden",
+  "site-header-visible",
+  "site-header-scrolled",
+  "site-nav-scroll-row",
+  "site-header-cta",
+  "NavLinks",
+  "ساخت گزارش",
+]) {
+  if (!siteHeader.includes(marker)) {
+    failures.push(`SiteHeader missing header behavior marker: ${marker}`);
   }
 }
 
@@ -66,15 +80,19 @@ for (const [href, label] of requiredFooterRoutes) {
 }
 
 for (const marker of [
-  ".site-header",
-  ".site-nav",
-  ".site-brand",
+  ".site-header-hidden",
+  ".site-header-visible",
+  ".site-header-scrolled",
+  ".site-nav-scroll-row",
+  ".site-brand-copy",
   ".site-nav-cta",
   ".footer-inner",
   ".footer-brand-block",
   ".footer-note",
   ".footer-links",
   ".footer-link",
+  "overflow-x: auto",
+  "grid-template-columns: auto minmax(0, 1fr)",
 ]) {
   if (!globals.includes(marker)) {
     failures.push(`globals.css missing site chrome selector: ${marker}`);
