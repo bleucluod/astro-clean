@@ -1347,3 +1347,16 @@ Not now:
 - No auth driver or database schema change.
 - No public/indexable report SEO launch.
 - Payment remains paused: no pricing, checkout, paid/private implementation, or monetization mechanics.
+## v0.1.223a Idea Garden update — report QA alignment before value upgrade
+
+Decision:
+- Before the larger report-value/synthesis upgrade resumes, keep a small QA-alignment milestone that protects the current report writer contract.
+- The report writer and sample QA should agree on the weekly-practice markers used by generated reports.
+- The next value upgrade should be allowed to improve synthesis, chapter summaries, and reflection prompts, but not by silently breaking existing report QA expectations.
+
+Not now:
+- No rewrite of report narrative copy in this alignment batch.
+- No account/auth/database change.
+- No chart inline signup.
+- No public/indexable report SEO launch.
+- No payment, pricing, checkout, paid/private implementation, or monetization mechanics.

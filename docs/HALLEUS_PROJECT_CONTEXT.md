@@ -1383,3 +1383,39 @@ Prevention:
 - Do not compare `git archive` LF blob hashes with `Get-FileHash` working-tree hashes on Windows; CRLF normalization can create false mismatches.
 - After a SHA guard mismatch, stop, clean artifacts, and re-sync exact live context before regenerating a runner.
 - Keep save/account bridge changes small and diagnosis-first; do not mix them with inline signup, payment, SEO, or report narrative work.
+## v0.1.223a — Report QA Alignment
+
+Product/code note:
+- This batch intentionally did not rewrite report narrative copy.
+- It added a small guard to keep the existing report writer and sample QA expectations aligned before the larger report-value/synthesis upgrade resumes.
+- The current report writer must keep both weekly-practice markers used by sample QA: `تمرین کوچک این هفته` and `سه تمرین کوچک این چارت`.
+- The next report-value upgrade must preserve these markers or deliberately update both writer output and QA in one inspected batch.
+
+Checks:
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `node scripts/check-report-qa-alignment.mjs`
+
+Scope boundaries:
+- No report writer rewrite, no account/auth/database change, no chart inline signup, no payment, no SEO/indexing, no Sky Pulse, and no wiki/content implementation.
+
+## Failure Ledger — v0.1.223 report-value rollback
+
+Date: 2026-07-07
+Base: v0.1.222-save-report-to-account-bridge / 4f287fdd3d1084533b3b7515e3f3474b4e22ce4a
+
+What failed:
+- The first v0.1.223 report-value runner changed report writer output and added a new report-value guard, but `scripts/check-report-sample-qa.mjs` failed because a required weekly-practice marker was missing from generated sample reports.
+- A follow-up fix runner introduced mojibake into `lib/astrology/real-engine-report-writer.ts`, causing `pnpm run check:encoding` to fail.
+- A recovery runner fixed encoding, but sample QA still failed because writer output and marker expectations were not aligned.
+- No commit, tag, or push was created from the failed v0.1.223 attempts.
+
+Rollback:
+- Restored `docs/HALLEUS_IDEA_GARDEN.md`, `docs/HALLEUS_PROJECT_CONTEXT.md`, and `lib/astrology/real-engine-report-writer.ts` from HEAD.
+- Removed the failed v0.1.223 apply/fix/recovery runners, context ZIP, and untracked guard script.
+- Confirmed `git status --short --untracked-files=all` was clean at v0.1.222 before resuming.
+
+Prevention:
+- Split report work after failed checks: first align QA/guards, then attempt report narrative upgrades.
+- Preserve existing sample QA markers unless both writer output and QA are intentionally updated together.
+- Avoid quick Persian text patches in PowerShell after a failed report runner; use full-file UTF-8 replacement from inspected files or ASCII/code-anchored changes only.
