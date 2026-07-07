@@ -1284,3 +1284,8 @@ Workflow failure ledger:
 - Several report-detail redesign runners failed before commit/tag/push: one runner had a Windows path normalization bug, one produced mojibake in Persian-heavy `ReportDetail.tsx`, one reached a TypeScript narrowing failure, and the simplified runner still detected mojibake after write.
 - Fix: abandon Persian-heavy PowerShell payload runners for this redesign and use a direct UTF-8 git patch workflow instead.
 - Prevention: for Persian-heavy UI changes, prefer a reviewed `.patch` applied by `git apply` from clean repo state; avoid raw Persian payloads inside PowerShell runners and stop after the first encoding failure.
+## v0.1.212 Report Detail QA Polish Note
+
+Product QA note:
+- Removed the duplicate report-detail order CTA render from `app/reports/[reportId]/page.tsx` because `ReportDetail` now owns the simple reader page's bottom next-actions card.
+- Kept `ReportOrderCta` intact for future reuse.

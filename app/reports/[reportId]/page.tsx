@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ReportDetail } from "@/components/ReportDetail";
-import { ReportOrderCta } from "@/components/ReportOrderCta";
 
 type ReportDetailPageProps = {
   params: Promise<{
@@ -39,10 +38,5 @@ export default async function ReportDetailPage({
           ? "local"
           : "public";
 
-  return (
-    <>
-      <ReportDetail reportId={reportId} reportSource={reportSource} />
-      <ReportOrderCta reportId={reportId} />
-    </>
-  );
+  return <ReportDetail reportId={reportId} reportSource={reportSource} />;
 }
