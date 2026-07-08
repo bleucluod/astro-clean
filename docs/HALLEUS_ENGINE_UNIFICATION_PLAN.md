@@ -614,3 +614,11 @@ Next engine work:
 - The harness does not approve realChart output, report generation, chart-wheel display, transit, or public SEO claims.
 - No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
 - External/offline reference fixtures are still required before adapter or engine output approval.
+
+## v0.1.240 Lilith internal adapter
+
+- The self-built osculating Lilith probe now has an internal adapter named `calculateLocalOsculatingBlackMoonLilith`.
+- The adapter wraps the validated probe result into a reusable internal shape with source, method, model, longitude, and safety metadata.
+- The adapter is internal adapter only and is not approved for realChart output, report generation, chart-wheel display, transit, or public SEO claims.
+- No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
+- External/offline reference fixtures remain required before engine output approval.
