@@ -1471,3 +1471,11 @@ Next engine work:
 - Dark Moon/Waldemath Lilith is out of scope and must not be conflated with Black Moon Lilith.
 - No Lilith transit or report/UI claim is approved by this decision contract.
 - No external API, Swiss Ephemeris runtime dependency, or fake Lilith label is approved for this step.
+
+## v0.1.236 Lilith source feasibility probe
+
+- Current local runtime source is astronomy-engine@2.1.19.
+- No approved production Black Moon Lilith longitude source exists yet.
+- SearchLunarApsis and NextLunarApsis are event-time helpers, not natal Black Moon Lilith longitude sources.
+- Do not approximate Black Moon Lilith from lunar apsis events or reuse lunar-node vector code under a Lilith label.
+- Black Moon Lilith remains deferred and not-calculated until a separate source/fixture batch proves one model.

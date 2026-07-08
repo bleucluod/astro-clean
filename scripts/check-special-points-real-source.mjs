@@ -20,6 +20,7 @@ const plan = read("docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md");
 const garden = read("docs/HALLEUS_IDEA_GARDEN.md");
 const pkg = JSON.parse(read("package.json"));
 const lilithContract = read("src/lib/chart/lilith-model-decision-contract.ts");
+const lilithSourceFeasibility = read("src/lib/chart/lilith-source-feasibility-probe.ts");
 
 requireIncludes("engine reality audit", audit, [
   "v0.1.163 special points real source audit",
@@ -49,6 +50,10 @@ if (pkg.scripts?.["check:lilith-model-decision-contract"] !== "node scripts/chec
   failures.push("package.json missing check:lilith-model-decision-contract script");
 }
 
+if (pkg.scripts?.["check:lilith-source-feasibility-probe"] !== "node scripts/check-lilith-source-feasibility-probe.mjs") {
+  failures.push("package.json missing check:lilith-source-feasibility-probe script");
+}
+
 const astronomyDtsPath = "node_modules/astronomy-engine/astronomy.d.ts";
 if (exists(astronomyDtsPath)) {
   const dts = read(astronomyDtsPath);
@@ -73,6 +78,14 @@ requireIncludes("Lilith model decision contract", lilithContract, [
   '"true-osculating-black-moon-lilith"',
   '"dark-moon-lilith-waldemath"',
   "No Lilith production output, UI claim, report claim, or transit use is approved by this contract.",
+]);
+
+requireIncludes("Lilith source feasibility probe", lilithSourceFeasibility, [
+  'LILITH_SOURCE_FEASIBILITY_STATUS = "no-approved-production-source"',
+  'LILITH_SOURCE_FEASIBILITY_RUNTIME = "astronomy-engine@2.1.19"',
+  "SearchLunarApsis",
+  "NextLunarApsis",
+  "event-time helpers, not natal Black Moon Lilith longitude sources",
 ]);
 
 if (exists("src/lib/chart/real-chart-engine.ts")) {
