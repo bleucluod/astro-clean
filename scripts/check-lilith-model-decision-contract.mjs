@@ -32,6 +32,11 @@ assert(
   packageJson.scripts?.["check:lilith-model-decision-contract"] === "node scripts/check-lilith-model-decision-contract.mjs",
   "package.json missing check:lilith-model-decision-contract script",
 );
+assert(
+  packageJson.scripts?.["check:lilith-self-built-osculating-decision"] ===
+    "node scripts/check-lilith-self-built-osculating-decision.mjs",
+  "package.json missing check:lilith-self-built-osculating-decision script",
+);
 for (const scriptName of ["check:engine", "check:project"]) {
   assert(
     packageJson.scripts?.[scriptName]?.includes("pnpm run check:lilith-model-decision-contract"),
@@ -61,6 +66,10 @@ assertIncludes("Lilith model decision contract", contract, [
   '"dark-moon-lilith-waldemath"',
   "Mean Black Moon Lilith and True/Osculating Black Moon Lilith are candidate models only.",
   "No Lilith production output, UI claim, report claim, or transit use is approved by this contract.",
+  'LILITH_PREFERRED_NEXT_MODEL_ID = "true-osculating-black-moon-lilith"',
+  'LILITH_PREFERRED_NEXT_PATH = "self-built-local-osculating-probe-from-moon-state-vector"',
+  'LILITH_EXTERNAL_API_POLICY = "forbidden"',
+  "The preferred next path is a self-built local True/Osculating Black Moon Lilith probe from Moon state vectors.",
   "assertLilithModelDecisionContractIsSafe",
 ]);
 assertNotIncludes("Lilith model decision contract", contract, [

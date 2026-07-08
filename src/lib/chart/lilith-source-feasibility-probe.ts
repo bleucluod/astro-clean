@@ -26,8 +26,8 @@ export const LILITH_SOURCE_FEASIBILITY_REJECTED_SUBSTITUTES = [
 ] as const;
 
 export const LILITH_SOURCE_FEASIBILITY_REQUIRED_BEFORE_OUTPUT = [
-  "select either Mean Black Moon Lilith or True/Osculating Black Moon Lilith",
-  "identify a source that produces an actual natal Black Moon Lilith longitude",
+  "select True/Osculating Black Moon Lilith as the first self-built probe model",
+  "derive a local osculating lunar apogee longitude from Moon position and velocity state vectors",
   "add offline reference fixtures before any engine output",
   "keep ReportCard, report writer, and chart wheel deferred until calculated longitude data exists",
 ] as const;
@@ -55,6 +55,8 @@ export const LILITH_SOURCE_FEASIBILITY_NOTES = [
   "SearchLunarApsis and NextLunarApsis are event-time helpers, not natal Black Moon Lilith longitude sources.",
   "Do not approximate Black Moon Lilith from lunar apsis events or reuse lunar-node vector code under a Lilith label.",
   "This probe keeps Black Moon Lilith deferred and not-calculated until a separate source/fixture batch proves one model.",
+  "The preferred next path is self-built True/Osculating Black Moon Lilith from Moon state vectors, not a new runtime dependency.",
+  "Mean Black Moon Lilith remains later-only until a public/permissive mean-apogee formula is selected.",
 ] as const;
 
 export function getLilithSourceFeasibilityProbe(): LilithSourceFeasibilityProbe {

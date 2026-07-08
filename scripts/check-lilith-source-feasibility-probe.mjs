@@ -32,6 +32,11 @@ assert(
   packageJson.scripts?.["check:lilith-source-feasibility-probe"] === "node scripts/check-lilith-source-feasibility-probe.mjs",
   "package.json missing check:lilith-source-feasibility-probe script",
 );
+assert(
+  packageJson.scripts?.["check:lilith-self-built-osculating-decision"] ===
+    "node scripts/check-lilith-self-built-osculating-decision.mjs",
+  "package.json missing check:lilith-self-built-osculating-decision script",
+);
 for (const scriptName of ["check:engine", "check:project"]) {
   assert(
     packageJson.scripts?.[scriptName]?.includes("pnpm run check:lilith-source-feasibility-probe"),
@@ -64,6 +69,9 @@ assertIncludes("Lilith source feasibility probe", probe, [
   "NextLunarApsis",
   "event-time helpers, not natal Black Moon Lilith longitude sources",
   "Do not approximate Black Moon Lilith from lunar apsis events",
+  "select True/Osculating Black Moon Lilith as the first self-built probe model",
+  "derive a local osculating lunar apogee longitude from Moon position and velocity state vectors",
+  "The preferred next path is self-built True/Osculating Black Moon Lilith from Moon state vectors, not a new runtime dependency.",
   "assertLilithSourceFeasibilityIsSafe",
 ]);
 assertNotIncludes("Lilith source feasibility probe", probe, [

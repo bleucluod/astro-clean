@@ -54,6 +54,10 @@ if (pkg.scripts?.["check:lilith-source-feasibility-probe"] !== "node scripts/che
   failures.push("package.json missing check:lilith-source-feasibility-probe script");
 }
 
+if (pkg.scripts?.["check:lilith-self-built-osculating-decision"] !== "node scripts/check-lilith-self-built-osculating-decision.mjs") {
+  failures.push("package.json missing check:lilith-self-built-osculating-decision script");
+}
+
 for (const depName of ["swisseph", "sweph", "swiss-ephemeris", "astrologia"]) {
   if (pkg.dependencies?.[depName] || pkg.optionalDependencies?.[depName]) {
     failures.push("unapproved special-points runtime dependency present: " + depName);
@@ -75,6 +79,16 @@ requireIncludes("Lilith source feasibility probe", lilithSourceFeasibility, [
   "SearchLunarApsis",
   "NextLunarApsis",
   "event-time helpers, not natal Black Moon Lilith longitude sources",
+]);
+
+const lilithSelfBuiltDecision = read("src/lib/chart/lilith-self-built-osculating-decision.ts");
+requireIncludes("Lilith self-built osculating decision", lilithSelfBuiltDecision, [
+  'LILITH_SELF_BUILT_OSCULATING_DECISION_VERSION = "v0.1.237"',
+  'LILITH_SELF_BUILT_OSCULATING_MODEL_ID = "true-osculating-black-moon-lilith"',
+  'LILITH_SELF_BUILT_OSCULATING_API_POLICY = "no-external-api"',
+  'LILITH_SELF_BUILT_OSCULATING_RUNTIME_DEPENDENCY_POLICY = "no-new-lilith-runtime-dependency"',
+  "geocentric Moon position state vector",
+  "derive the apogee direction as the exact opposite of the periapsis direction",
 ]);
 
 if (exists("src/lib/chart/real-chart-engine.ts")) {

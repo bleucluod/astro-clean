@@ -3,6 +3,9 @@ export const LILITH_MODEL_DECISION_STATUS = "deferred-source-decision" as const;
 export const LILITH_MODEL_DECISION_SCOPE = "black-moon-lilith-only" as const;
 export const LILITH_PRODUCTION_OUTPUT_STATUS = "not-calculated" as const;
 export const LILITH_RUNTIME_SOURCE_POLICY = "no-new-runtime-ephemeris-dependency" as const;
+export const LILITH_PREFERRED_NEXT_MODEL_ID = "true-osculating-black-moon-lilith" as const;
+export const LILITH_PREFERRED_NEXT_PATH = "self-built-local-osculating-probe-from-moon-state-vector" as const;
+export const LILITH_EXTERNAL_API_POLICY = "forbidden" as const;
 
 export const LILITH_CANDIDATE_MODEL_IDS = [
   "mean-black-moon-lilith",
@@ -49,6 +52,8 @@ export const LILITH_MODEL_DECISION_NOTES = [
   "Dark Moon/Waldemath Lilith is out of scope and must not be conflated with Black Moon Lilith.",
   "No Lilith production output, UI claim, report claim, or transit use is approved by this contract.",
   "No external API or new Swiss Ephemeris runtime dependency is approved for Lilith in this contract.",
+  "The preferred next path is a self-built local True/Osculating Black Moon Lilith probe from Moon state vectors.",
+  "Mean Black Moon Lilith remains a later candidate only if a public/permissive formula is selected and validated.",
 ] as const;
 
 export function getLilithModelDecisionContract(): LilithModelDecisionContract {
