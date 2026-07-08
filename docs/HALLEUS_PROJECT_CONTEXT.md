@@ -1631,3 +1631,10 @@ Next engine work:
 - The UI copy keeps Lilith scoped as a local self-built osculating lunar-apogee data point, not Mean Lilith, asteroid 1181 Lilith, Dark Moon, or Waldemath Lilith.
 - The report writer narrative remains gated for a separate milestone; v0.1.243 does not add a Lilith interpretation paragraph or chart-wheel point.
 - No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
+
+## v0.1.244 Lilith narrative/trust QA
+
+- Lilith report UI remains a limited technical data card and is not promoted into a full interpretation paragraph yet.
+- The report writer narrative remains gated until a separate milestone defines safe Persian Lilith reading copy.
+- Mean Lilith, asteroid 1181 Lilith, Dark Moon/Waldemath Lilith, API claims, Swiss runtime claims, and fatalistic Lilith copy remain forbidden.
+- No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
