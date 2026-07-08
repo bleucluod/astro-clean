@@ -126,7 +126,6 @@ const lilithClaimMarkers = [
 ];
 
 for (const relativePath of [
-  "components/ReportCard.tsx",
   "components/RealChartWheel.tsx",
   "lib/astrology/real-engine-report-writer.ts",
 ]) {
@@ -141,9 +140,12 @@ for (const relativePath of [
 
 if (exists("components/ReportCard.tsx")) {
   const reportCard = read("components/ReportCard.tsx");
-  requireIncludes("ReportCard deferred Lilith handling", reportCard, [
+  requireIncludes("ReportCard limited calculated Lilith handling", reportCard, [
     "lilithLabel: formatDeferredPointStatus",
     "Black Moon Lilith is not calculated",
+    "function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null",
+    "لیلیت نوسانی/واقعی محلی",
+    "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
   ]);
 }
 

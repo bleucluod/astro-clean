@@ -563,3 +563,10 @@ Next engine work:
 - `lilithStatus is now calculated in report data` when `realChart.lilith` is calculated, while `approvedForReportOutput` remains false.
 - ReportCard and report narrative remain deferred; this milestone is data bridge only and does not add user-facing Lilith UI or narrative copy.
 - No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
+
+## v0.1.243 Lilith report/UI sync
+
+- ReportCard now shows a limited technical Lilith card when calculated report data includes Local True/Osculating Black Moon Lilith.
+- The UI copy keeps Lilith scoped as a local self-built osculating lunar-apogee data point, not Mean Lilith, asteroid 1181 Lilith, Dark Moon, or Waldemath Lilith.
+- The report writer narrative remains gated for a separate milestone; v0.1.243 does not add a Lilith interpretation paragraph or chart-wheel point.
+- No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.

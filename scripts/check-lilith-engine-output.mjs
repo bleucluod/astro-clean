@@ -147,7 +147,6 @@ assertIncludes("Lilith probe remains self-built", probe, [
 ]);
 
 for (const relativePath of [
-  "components/ReportCard.tsx",
   "components/RealChartWheel.tsx",
   "lib/astrology/real-engine-report-writer.ts",
 ]) {
@@ -158,6 +157,21 @@ for (const relativePath of [
     "calculateLocalOsculatingBlackMoonLilith",
     "guarded-engine-output-approved",
     "Local True/Osculating Black Moon Lilith",
+    "production-lilith",
+  ]);
+}
+
+if (exists("components/ReportCard.tsx")) {
+  const reportCard = read("components/ReportCard.tsx");
+  assertIncludes("ReportCard limited Lilith UI output", reportCard, [
+    "function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null",
+    "لیلیت نوسانی/واقعی محلی",
+    "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+  ]);
+  assertNotIncludes("ReportCard must not call Lilith engine internals", reportCard, [
+    "calculateRealChartLilith",
+    "calculateLocalOsculatingBlackMoonLilith",
+    "guarded-engine-output-approved",
     "production-lilith",
   ]);
 }

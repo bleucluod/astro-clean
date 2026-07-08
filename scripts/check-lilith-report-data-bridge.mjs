@@ -88,28 +88,31 @@ assertIncludes("real chart engine remains guarded source", engine, [
   "report/UI output remains disabled",
 ]);
 
-for (const relativePath of [
-  "components/ReportCard.tsx",
-  "lib/astrology/real-engine-report-writer.ts",
-]) {
-  const text = read(relativePath);
-  assertNotIncludes(`${relativePath} must not show Lilith UI/narrative yet`, text, [
-    "Local True/Osculating Black Moon Lilith",
-    'lilith.status === "calculated"',
-    'lilith?.status === "calculated"',
-    "Lilith is now available",
-    "Mean Black Moon Lilith",
-    "True Black Moon Lilith",
-    "production-lilith",
-  ]);
-}
+const reportCard = read("components/ReportCard.tsx");
+assertIncludes("ReportCard limited Lilith UI sync", reportCard, [
+  "buildLilithRow(report)",
+  "لیلیت نوسانی/واقعی محلی",
+  "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+  "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
+  "محاسبه محلی از بردار مکان و سرعت ماه؛ بدون API، بدون اجرای Swiss و بدون وابستگی تازه",
+]);
+assertNotIncludes("ReportCard forbidden Lilith overclaims", reportCard, [
+  "Mean Black Moon Lilith",
+  "True Black Moon Lilith",
+  "Lilith is now available",
+  "production-lilith",
+  "calculateRealChartLilith",
+  "calculateLocalOsculatingBlackMoonLilith",
+]);
 
-if (exists("components/ReportCard.tsx")) {
-  assertIncludes("ReportCard deferred Lilith handling remains", read("components/ReportCard.tsx"), [
-    "lilithLabel: formatDeferredPointStatus",
-    "Black Moon Lilith is not calculated",
-  ]);
-}
+const writer = read("lib/astrology/real-engine-report-writer.ts");
+assertNotIncludes("report writer must not add Lilith narrative yet", writer, [
+  "Mean Black Moon Lilith",
+  "True Black Moon Lilith",
+  "Lilith is now available",
+  "production-lilith",
+  "calculateRealChartLilith",
+]);
 
 const docs = [
   "docs/HALLEUS_PROJECT_CONTEXT.md",
@@ -126,6 +129,11 @@ for (const [index, doc] of docs.entries()) {
     "lilithStatus is now calculated in report data",
     "ReportCard and report narrative remain deferred",
     "No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.",
+  ]);
+  assertIncludes(`Lilith report UI sync docs ${index + 1}`, doc, [
+    "v0.1.243 Lilith report/UI sync",
+    "ReportCard now shows a limited technical Lilith card",
+    "The report writer narrative remains gated for a separate milestone",
   ]);
 }
 

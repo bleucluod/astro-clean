@@ -10,6 +10,7 @@ import {
 import type {
   AstrologyReport,
   RealEngineReportAngle,
+  RealEngineReportCalculatedLilith,
   RealEngineReportCalculatedLunarNodes,
   RealEngineReportHouse,
   RealEngineReportLunarNodePoint,
@@ -165,6 +166,16 @@ type LunarNodeSummaryRow = {
   meaning: string;
 };
 
+type LilithSummaryRow = {
+  id: string;
+  title: string;
+  positionLabel: string;
+  houseLabel: string | null;
+  sourceLabel: string;
+  reportGateLabel: string;
+  modelNote: string;
+};
+
 type PlacementWithHouse = RealEngineReportPlacement & {
   house?: number | null;
   houseNumber?: number | null;
@@ -187,6 +198,7 @@ export function ReportCard({ report }: ReportCardProps) {
   const shownPlacements = report.realEngine?.placements ?? [];
   const retrogradePlanetIds = getRetrogradePlanetIds(report);
   const lunarNodeRows = buildLunarNodeRows(report);
+  const lilithRow = buildLilithRow(report);
   const planetHouseRows = shownPlacements
     .map(buildPlanetHouseRow)
     .filter((row): row is PlanetHouseRow => row !== null);
@@ -373,6 +385,24 @@ export function ReportCard({ report }: ReportCardProps) {
               </>
             ) : null}
 
+
+
+            {lilithRow ? (
+              <>
+                <h4>لیلیت نوسانی/واقعی محلی</h4>
+                <div className="report-placement-grid">
+                  <div className="mini-card" key={lilithRow.id}>
+                    <strong>{lilithRow.title}</strong>
+                    <span>{lilithRow.positionLabel}</span>
+                    {lilithRow.houseLabel ? <span>{lilithRow.houseLabel}</span> : null}
+                    <span>{lilithRow.sourceLabel}</span>
+                    <span>{lilithRow.reportGateLabel}</span>
+                    <span>{lilithRow.modelNote}</span>
+                  </div>
+                </div>
+              </>
+            ) : null}
+
             {angleRows.length > 0 ? (
               <>
                 <h4>محورهای اصلی</h4>
@@ -520,6 +550,11 @@ const VISIBLE_ENGINE_COPY_REPLACEMENTS = [
     needle: "Local True/Osculating lunar nodes are calculated",
     value:
       "دست‌های ماه در این نسخه با مدل نوسانی/واقعی محلی محاسبه می‌شوند؛ منبع خارجی یا Swiss runtime استفاده نشده است.",
+  },
+  {
+    needle: "Local True/Osculating Black Moon Lilith is calculated",
+    value:
+      "لیلیت نوسانی/واقعی محلی از بردار مکان و سرعت ماه محاسبه شده و فعلاً به صورت داده محدود در پشتوانه گزارش نمایش داده می‌شود؛ روایت تفسیری آن جداگانه فعال می‌شود.",
   },
   {
     needle: "Black Moon Lilith is not calculated",
@@ -725,6 +760,44 @@ function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummaryRow[] {
           ? "مسیر رشد، تمرین تازه و جهتی که روح به سمت آن کشیده می‌شود."
           : "الگوی آشنا، عادت‌های قدیمی و نقطه‌ای که راحت‌تر به آن برمی‌گردی.",
     }));
+}
+
+
+function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null {
+  const lilith = report.realEngine?.lilith;
+
+  if (!isCalculatedLilith(lilith)) {
+    return null;
+  }
+
+  return {
+    id: lilith.id,
+    title: "لیلیت نوسانی/واقعی محلی",
+    positionLabel: `${formatZodiacLabel(lilith.signId)}، درجه ${formatDegree(lilith.degreeInSign)}`,
+    houseLabel: typeof lilith.house === "number" ? `در خانه ${formatPersianNumber(lilith.house)}` : null,
+    sourceLabel: "محاسبه محلی از بردار مکان و سرعت ماه؛ بدون API، بدون اجرای Swiss و بدون وابستگی تازه",
+    reportGateLabel: lilith.approvedForReportOutput
+      ? "آماده نمایش در گزارش"
+      : "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+    modelNote: "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
+  };
+}
+
+function isCalculatedLilith(
+  lilith: NonNullable<AstrologyReport["realEngine"]>["lilith"] | undefined,
+): lilith is RealEngineReportCalculatedLilith {
+  return Boolean(
+    lilith &&
+      lilith.status === "calculated" &&
+      "id" in lilith &&
+      lilith.id === "black-moon-lilith" &&
+      "lilithType" in lilith &&
+      lilith.lilithType === "local-true-osculating-black-moon-lilith" &&
+      typeof lilith.longitude === "number" &&
+      Number.isFinite(lilith.longitude) &&
+      typeof lilith.degreeInSign === "number" &&
+      Number.isFinite(lilith.degreeInSign),
+  );
 }
 
 function isCalculatedLunarNodes(

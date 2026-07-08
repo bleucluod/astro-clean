@@ -178,7 +178,6 @@ assertNotIncludes("real chart engine must not consume Lilith validation", engine
 ]);
 
 for (const relativePath of [
-  "components/ReportCard.tsx",
   "components/RealChartWheel.tsx",
   "lib/astrology/real-engine-report-writer.ts",
 ]) {
@@ -189,6 +188,22 @@ for (const relativePath of [
     "validateLilithOsculatingProbeHarness",
     "buildCalculatedLilith",
     'lilith.status === "calculated"',
+    "production-lilith",
+    "local-lilith-production",
+  ]);
+}
+
+if (exists("components/ReportCard.tsx")) {
+  const reportCard = read("components/ReportCard.tsx");
+  assertIncludes("ReportCard limited Lilith UI sync", reportCard, [
+    "function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null",
+    'lilith.status === "calculated"',
+    "لیلیت نوسانی/واقعی محلی",
+    "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+  ]);
+  assertNotIncludes("ReportCard must not call validation/probe directly", reportCard, [
+    "calculateLilithOsculatingProbe",
+    "validateLilithOsculatingProbeHarness",
     "production-lilith",
     "local-lilith-production",
   ]);
