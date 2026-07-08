@@ -1540,3 +1540,11 @@ Next engine work:
 - The report writer narrative remains gated until a separate milestone defines safe Persian Lilith reading copy.
 - Mean Lilith, asteroid 1181 Lilith, Dark Moon/Waldemath Lilith, API claims, Swiss runtime claims, and fatalistic Lilith copy remain forbidden.
 - No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
+
+## v0.1.245 Transit rules contract
+
+- Sky Pulse's next real transit direction is a sky-only daily transit contract, not personalized natal-to-transit output yet.
+- Phase-one bodies are Sun, Moon, Mercury, Venus, Mars, Jupiter, and Saturn; lunar nodes, Lilith transits, houses, angles, Uranus, Neptune, and Pluto remain deferred.
+- Phase-one aspects are conjunction, opposition, trine, square, and sextile with bounded orbs; unbounded or ad-hoc transit aspects remain forbidden.
+- Daily pulse boundaries use a target-timezone local calendar day with Asia/Tehran as the initial contract timezone; natal-to-transit remains deferred until birth-data consent, timezone, and privacy paths are guarded.
+- No transit calculation, Sky Pulse runtime replacement, report narrative, dependency, API, or SEO claim is approved yet.
