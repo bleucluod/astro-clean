@@ -1527,3 +1527,13 @@ Checkpoint-first next step:
 - The next useful action is a product QA checkpoint, not another automatic code batch.
 - QA should test anonymous chart generation, report opening, optional signup prompt behavior, login/signup, account report save, dashboard/reports visibility, local/private fallback, public/noindex language, and perceived report value.
 - Choose the next real milestone only from that QA: report synthesis, report detail reading UX, account save repair, or public/private consent foundation.
+
+## v0.1.228 true node vector validation harness
+
+- Scope: engine-source validation only. No UI, report copy, account, SEO, payment, pricing, checkout, or product-surface changes.
+- Baseline entering this batch: `v0.1.227-true-node-vector-probe` at `48c9a732a235e1b8c14d1141a38b7a6a7aebb315`.
+- This batch keeps Mean Node as the product output and adds a validation guard for the vector candidate only.
+- The candidate uses Astronomy Engine GeoMoonState position+velocity and ecliptic-frame rotation to derive a candidate osculating node.
+- The candidate must remain out of `types/astro.ts`, `src/lib/chart/real-chart-engine.ts`, UI, report writer, and saved report output until independent reference fixtures pass.
+- Workflow failure ledger: v0.1.226 first attempts failed because guards used brittle report-copy markers and broad UI scans; v0.1.227 initial ESM/CommonJS probe failure happened because `.mjs` import style was not inspected first.
+- Prevention: inspect live import style before writing .mjs scripts, avoid Persian/copy markers in guards, keep guards structural, and keep source probes diagnostic until validated.

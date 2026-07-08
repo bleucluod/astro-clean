@@ -466,3 +466,12 @@ Mean Node implementation decision:
 - Store North Node as a calculated ecliptic longitude with method `mean-lunar-node-j2000-meeus-formula`.
 - Store South Node only as the exact opposition of North Node: `South Node = normalize(North Node + 180)`.
 - Keep Black Moon Lilith deferred; this probe does not decide Mean Lilith vs True/Osculating Lilith.
+
+## v0.1.228 true node vector validation harness
+
+- Status: validation harness only; not product integration.
+- Method C is executable as a candidate osculating node only: use Astronomy Engine GeoMoonState position plus velocity, rotate into ecliptic frames, and derive the instantaneous lunar orbital plane from the angular-momentum vector.
+- The guard `check:true-node-vector-validation` validates finite fixture output, exact candidate South Node opposition, conservative lunar-inclination sanity, node-event geometry alignment, and the continued product boundary.
+- SearchMoonNode remains event-time context only. It must not be used as a natal True/Osculating Node longitude source.
+- The harness does not promote nodeType beyond mean, does not add a True/Osculating Node method to product types, and does not change real chart output.
+- Next gate: compare the candidate against independent True/Osculating Node reference fixtures before any engine/type/UI/report integration.

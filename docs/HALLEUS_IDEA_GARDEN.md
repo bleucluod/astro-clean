@@ -1432,3 +1432,10 @@ Not now:
 - No public/indexable SEO launch before explicit consent design is real.
 - No Persian SEO/wiki/content system until report value and consent are strong enough.
 - No Sky Pulse until a real transit source is ready.
+
+## v0.1.228 product decision: True Node vector candidate stays gated
+
+- Halleus can explore Method C for True/Osculating Lunar Node because the vector candidate is executable without adding Swiss Ephemeris or another runtime dependency.
+- The candidate osculating node remains a validation harness, not a product feature.
+- Mean Node remains the product output until independent True/Osculating Node reference fixtures pass.
+- Do not market, display, store, or write True/Osculating Node values from the vector candidate until the fixture gate is complete.

@@ -541,3 +541,12 @@ Do not do in the next Node implementation:
 - Do not implement or show True Node from `SearchMoonNode` event helpers.
 - Do not add Swiss Ephemeris runtime dependencies in the same batch.
 - Do not unblock Lilith until Mean/True Lilith is separately chosen and sourced.
+
+## v0.1.228 true node vector validation path
+
+- Merge the feasibility probe into a validation harness before any product output changes.
+- Add `check:true-node-vector-validation` to keep the vector candidate executable and bounded.
+- Keep Mean Lunar Node as the only product lunar-node output for now.
+- Do not integrate True/Osculating Node into real chart output until independent fixtures pass.
+- Do not change South Node semantics in product output; current South Node remains derived from the approved Mean North Node + 180.
+- If independent fixtures fail or remain unavailable, keep True/Osculating Node deferred.
