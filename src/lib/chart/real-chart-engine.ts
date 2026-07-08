@@ -9,6 +9,13 @@ import {
   LOCAL_TRUE_NODE_CANDIDATE_METHOD,
   calculateLocalTrueNodeCandidate,
 } from "./local-true-node-candidate";
+import {
+  LILITH_INTERNAL_ADAPTER_METHOD,
+  LILITH_INTERNAL_ADAPTER_MODEL_ID,
+  LILITH_INTERNAL_ADAPTER_SOURCE,
+  calculateLocalOsculatingBlackMoonLilith,
+  type LilithInternalAdapterResult,
+} from "./lilith-internal-adapter";
 
 export const REAL_CHART_WORKBENCH_VERSION = "0.1.166" as const;
 
@@ -65,6 +72,23 @@ export type RealChartCalculatedLunarNodes = {
   limitation: string | null;
 };
 
+export type RealChartCalculatedLilith = {
+  status: "calculated";
+  id: "black-moon-lilith";
+  label: "Local True/Osculating Black Moon Lilith";
+  longitude: number;
+  signId: string;
+  degreeInSign: number;
+  method: typeof LILITH_INTERNAL_ADAPTER_METHOD;
+  modelId: typeof LILITH_INTERNAL_ADAPTER_MODEL_ID;
+  lilithType: "local-true-osculating-black-moon-lilith";
+  source: typeof LILITH_INTERNAL_ADAPTER_SOURCE;
+  frame: LilithInternalAdapterResult["frame"];
+  reliability: "guarded-engine-output";
+  approvedForReportOutput: false;
+  limitation: string | null;
+};
+
 export type RealChartAngleId = "asc" | "dsc" | "mc" | "ic";
 
 export type RealChartCalculatedAngle = {
@@ -103,6 +127,7 @@ export type RealChartWorkbenchResult = {
   placements: RealChartCalculatedPlacement[];
   retrogradePlanetIds: string[];
   lunarNodes: RealChartCalculatedLunarNodes;
+  lilith: RealChartCalculatedLilith;
   normalizedChart: NormalizedChart;
 };
 
@@ -162,6 +187,7 @@ export function buildRealChartWorkbenchResult(
   });
   const placements = calculateRealChartPlacements(astroTime, utcDate);
   const lunarNodes = calculateLocalTrueLunarNodes(utcDate);
+  const lilith = calculateRealChartLilith(utcDate);
   const normalizedChart = buildNormalizedChart({
     source: "astronomy-engine-prototype",
     time: {
@@ -197,6 +223,7 @@ export function buildRealChartWorkbenchResult(
       .filter((placement) => placement.motion.status === "retrograde")
       .map((placement) => placement.id),
     lunarNodes,
+    lilith,
     normalizedChart,
     calculationNotes: [
       "Planetary positions are calculated from an Earth-centered vector and converted to the ecliptic plane with astronomy-engine.",
@@ -207,7 +234,7 @@ export function buildRealChartWorkbenchResult(
       "Houses use the whole-sign system anchored to the calculated Ascendant sign.",
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around the birth time.",
       "Local True/Osculating lunar nodes are calculated from Astronomy Engine GeoMoonState and the instantaneous lunar orbital plane; no external API or Swiss runtime dependency is used.",
-      "Black Moon Lilith is still deferred until the Mean/True Lilith definition and ephemeris source are hardened.",
+      "Local True/Osculating Black Moon Lilith is calculated from the guarded self-built Moon state-vector adapter; report/UI output remains disabled until a separate report sync gate is approved.",
       "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time must be disclosed before paid/private reports.",
       "Timezone and midnight-boundary behavior is guarded by natal accuracy hardening checks before the report claims production-grade precision.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",
@@ -290,6 +317,30 @@ export function calculateLocalTrueLunarNodes(utcDate: Date): RealChartCalculated
     }),
     limitation:
       "Halleus production lunar nodes use the local True/Osculating model from Astronomy Engine GeoMoonState. Mean Lunar Node remains available as a fallback helper.",
+  };
+}
+
+export function calculateRealChartLilith(utcDate: Date): RealChartCalculatedLilith {
+  const adapterResult = calculateLocalOsculatingBlackMoonLilith(utcDate);
+  const normalizedLongitude = normalizeLongitude(adapterResult.longitude);
+  const sign = getZodiacSignForLongitude(normalizedLongitude);
+
+  return {
+    status: "calculated",
+    id: "black-moon-lilith",
+    label: "Local True/Osculating Black Moon Lilith",
+    longitude: normalizedLongitude,
+    signId: sign.signId,
+    degreeInSign: sign.degreeInSign,
+    method: LILITH_INTERNAL_ADAPTER_METHOD,
+    modelId: LILITH_INTERNAL_ADAPTER_MODEL_ID,
+    lilithType: "local-true-osculating-black-moon-lilith",
+    source: LILITH_INTERNAL_ADAPTER_SOURCE,
+    frame: adapterResult.frame,
+    reliability: "guarded-engine-output",
+    approvedForReportOutput: false,
+    limitation:
+      "Calculated locally from the self-built True/Osculating Black Moon Lilith adapter. Report/UI output remains gated until the report sync milestone.",
   };
 }
 

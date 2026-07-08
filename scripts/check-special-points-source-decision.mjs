@@ -99,6 +99,12 @@ if (exists("src/lib/chart/real-chart-engine.ts")) {
     "LOCAL_TRUE_NODE_CANDIDATE_METHOD",
     "nodeType: \"local-true-osculating\"",
   ]);
+  requireIncludes("guarded real chart Lilith output", engine, [
+    "calculateRealChartLilith",
+    "Local True/Osculating Black Moon Lilith",
+    "approvedForReportOutput: false",
+    "report/UI output remains disabled",
+  ]);
   for (const marker of ["SearchMoonNode", "NextMoonNode", "SearchLunarApsis", "NextLunarApsis"]) {
     if (engine.includes(marker)) {
       failures.push("real chart engine must not use astronomy event helper as natal special-point source: " + marker);

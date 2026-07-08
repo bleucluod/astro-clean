@@ -159,17 +159,20 @@ assertIncludes("Lilith source feasibility still deferred", sourceFeasibility, [
 ]);
 
 const engine = read("src/lib/chart/real-chart-engine.ts");
-assertIncludes("real chart engine still defers Lilith", engine, [
-  "Black Moon Lilith is still deferred",
-  "Mean/True Lilith definition",
+assertIncludes("real chart engine consumes guarded Lilith adapter only", engine, [
+  "calculateRealChartLilith",
+  "calculateLocalOsculatingBlackMoonLilith",
+  "Local True/Osculating Black Moon Lilith",
+  "approvedForReportOutput: false",
+  "report/UI output remains disabled",
 ]);
-assertNotIncludes("real chart engine must not consume Lilith probe", engine, [
-  "calculateLilithOsculatingProbe",
-  "calculateLilithOsculatingProbeFromState",
+assertNotIncludes("real chart engine must not consume raw Lilith probe or expose reports", engine, [
+  "calculateLilithOsculatingProbe(",
+  "calculateLilithOsculatingProbeFromState(",
   "LILITH_OSCULATING_PROBE_STATUS",
   "buildCalculatedLilith",
-  'lilith.status === "calculated"',
   "production-lilith",
+  "approvedForReportOutput: true",
 ]);
 
 const service = exists("lib/report-generation/report-generation-service.ts")

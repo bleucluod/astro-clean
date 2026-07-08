@@ -54,7 +54,7 @@ const AU_KM = 149597870.7;
 const SECONDS_PER_DAY = 86400;
 const MU_AU3_DAY2 = EARTH_MOON_GM_KM3_S2 * SECONDS_PER_DAY ** 2 / AU_KM ** 3;
 
-function calculateAdapterSanity(isoDate) {
+function calculateLilithSanity(isoDate) {
   const utcDate = new Date(isoDate);
   const eqjState = Astronomy.GeoMoonState(utcDate);
   const state = Astronomy.RotateState(Astronomy.Rotation_EQJ_ECT(utcDate), eqjState);
@@ -71,25 +71,20 @@ function calculateAdapterSanity(isoDate) {
   };
   const eccentricity = vectorLength(eccentricityVector);
   const perigeeLongitude = normalizeLongitude(radToDeg(Math.atan2(eccentricityVector.y, eccentricityVector.x)));
-  const apogeeLongitude = normalizeLongitude(perigeeLongitude + 180);
-  return {
-    longitude: apogeeLongitude,
-    apogeeLongitude,
-    perigeeLongitude,
-    eccentricity,
-    angularMomentumLength,
-  };
+  const longitude = normalizeLongitude(perigeeLongitude + 180);
+
+  return { longitude, perigeeLongitude, eccentricity, angularMomentumLength };
 }
 
 const packageJson = JSON.parse(read("package.json"));
 assert(
-  packageJson.scripts?.["check:lilith-internal-adapter"] === "node scripts/check-lilith-internal-adapter.mjs",
-  "package.json missing check:lilith-internal-adapter script",
+  packageJson.scripts?.["check:lilith-engine-output"] === "node scripts/check-lilith-engine-output.mjs",
+  "package.json missing check:lilith-engine-output script",
 );
 for (const scriptName of ["check:engine", "check:project"]) {
   assert(
-    packageJson.scripts?.[scriptName]?.includes("pnpm run check:lilith-internal-adapter"),
-    `${scriptName} does not include check:lilith-internal-adapter`,
+    packageJson.scripts?.[scriptName]?.includes("pnpm run check:lilith-engine-output"),
+    `${scriptName} does not include check:lilith-engine-output`,
   );
 }
 
@@ -101,77 +96,83 @@ for (const depName of ["swisseph", "pyswisseph", "sweph", "swiss-ephemeris", "as
   );
 }
 
-const adapterPath = "src/lib/chart/lilith-internal-adapter.ts";
-assert(exists(adapterPath), "Lilith internal adapter file is missing");
-const adapter = exists(adapterPath) ? read(adapterPath) : "";
-assertIncludes("Lilith internal adapter", adapter, [
+const adapter = read("src/lib/chart/lilith-internal-adapter.ts");
+assertIncludes("Lilith internal adapter engine output approval", adapter, [
   'LILITH_INTERNAL_ADAPTER_VERSION = "v0.1.241"',
   'LILITH_INTERNAL_ADAPTER_STATUS = "guarded-engine-output-approved"',
-  'LILITH_INTERNAL_ADAPTER_SCOPE = "self-built-osculating-black-moon-lilith-internal-adapter"',
-  'LILITH_INTERNAL_ADAPTER_METHOD =',
   'LILITH_INTERNAL_ADAPTER_APPROVED_FOR_ENGINE_OUTPUT = true',
   'LILITH_INTERNAL_ADAPTER_APPROVED_FOR_REPORT_OUTPUT = false',
   "calculateLocalOsculatingBlackMoonLilith",
-  "assertLilithInternalAdapterCanRun",
-  "assertLilithInternalAdapterResultIsSafe",
-  "validateLilithOsculatingProbeHarness",
-  "calculateLilithOsculatingProbe",
-  "assertLilithOsculatingProbeResultIsSafe",
-  "const longitude = normalizeLilithOsculatingProbeLongitude(probe.apogeeLongitude)",
-  "longitude,",
-  "report generation calculated Lilith",
   "Report generation, chart wheel display, transit, and public SEO claims remain gated.",
 ]);
-assertNotIncludes("Lilith internal adapter", adapter, [
-  "SearchLunarApsis",
-  "NextLunarApsis",
-  "swe_calc",
-  "SE_MEAN_APOG",
-  "SE_OSCU_APOG",
+assertNotIncludes("Lilith internal adapter report output", adapter, [
   "approvedForReportOutput: true",
-]);
-
-const probe = read("src/lib/chart/lilith-osculating-probe.ts");
-assertIncludes("Lilith probe dependency", probe, [
-  'LILITH_OSCULATING_PROBE_STATUS = "probe-only-not-approved-for-output"',
-  "calculateLilithOsculatingProbe",
-  "assertLilithOsculatingProbeResultIsSafe",
-]);
-
-const validation = read("src/lib/chart/lilith-validation-harness.ts");
-assertIncludes("Lilith validation dependency", validation, [
-  'LILITH_VALIDATION_HARNESS_STATUS = "validation-harness-not-approved-for-output"',
-  "validateLilithOsculatingProbeHarness",
-  "External/offline reference fixtures are still required before report output, chart wheel display, transit, or public SEO claims.",
+  "production-lilith",
+  "buildCalculatedLilith",
 ]);
 
 const engine = read("src/lib/chart/real-chart-engine.ts");
-assertIncludes("real chart engine consumes guarded Lilith adapter", engine, [
+assertIncludes("real chart engine Lilith output", engine, [
   "./lilith-internal-adapter",
-  "calculateLocalOsculatingBlackMoonLilith",
+  "RealChartCalculatedLilith",
+  "lilith: RealChartCalculatedLilith",
   "calculateRealChartLilith",
-  "Local True/Osculating Black Moon Lilith",
+  "calculateLocalOsculatingBlackMoonLilith",
+  'status: "calculated"',
+  'id: "black-moon-lilith"',
+  'label: "Local True/Osculating Black Moon Lilith"',
+  'lilithType: "local-true-osculating-black-moon-lilith"',
+  'reliability: "guarded-engine-output"',
   "approvedForReportOutput: false",
+  "report/UI output remains disabled",
 ]);
-assertNotIncludes("real chart engine must not expose Lilith to reports", engine, [
+assertNotIncludes("real chart engine forbidden Lilith shortcuts", engine, [
+  "SearchLunarApsis",
+  "NextLunarApsis",
+  "calculateMeanLilith",
+  "calculateTrueLilith",
   "buildCalculatedLilith",
   "approvedForReportOutput: true",
   "production-lilith",
+  "swisseph",
+  "swe_calc",
+]);
+
+const probe = read("src/lib/chart/lilith-osculating-probe.ts");
+assertIncludes("Lilith probe remains self-built", probe, [
+  "GeoMoonState",
+  "RotateState",
+  "Rotation_EQJ_ECT",
+  "self-built-osculating-lunar-apogee-from-moon-position-velocity",
 ]);
 
 for (const relativePath of [
   "components/ReportCard.tsx",
   "components/RealChartWheel.tsx",
   "lib/astrology/real-engine-report-writer.ts",
-  "lib/report-generation/report-generation-service.ts",
 ]) {
   if (!exists(relativePath)) continue;
   const text = read(relativePath);
-  assertNotIncludes(relativePath, text, [
-    "lilith-internal-adapter",
-    "buildCalculatedLilith",
-    "approvedForReportOutput: true",
+  assertNotIncludes(`${relativePath} report/UI Lilith output`, text, [
+    "calculateRealChartLilith",
+    "calculateLocalOsculatingBlackMoonLilith",
+    "guarded-engine-output-approved",
+    "Local True/Osculating Black Moon Lilith",
     "production-lilith",
+  ]);
+}
+
+if (exists("lib/report-generation/report-generation-service.ts")) {
+  const service = read("lib/report-generation/report-generation-service.ts");
+  assertIncludes("report generation service still gates Lilith", service, [
+    'lilithStatus: "not-calculated"',
+    '"black-moon-lilith"',
+  ]);
+  assertNotIncludes("report generation service must not consume engine Lilith yet", service, [
+    "realChart.lilith",
+    "calculateRealChartLilith",
+    "buildCalculatedLilith",
+    'lilith.status === "calculated"',
   ]);
 }
 
@@ -182,12 +183,12 @@ const docs = [
   "docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md",
 ].map((file) => read(file));
 
-for (const [index, text] of docs.entries()) {
-  assertIncludes(`Lilith adapter docs ${index + 1}`, text, [
-    "v0.1.240 Lilith internal adapter",
+for (const [index, doc] of docs.entries()) {
+  assertIncludes(`Lilith engine output docs ${index + 1}`, doc, [
     "v0.1.241 Lilith guarded engine output",
-    "calculateLocalOsculatingBlackMoonLilith",
+    "realChart.lilith",
     "calculateRealChartLilith",
+    "Local True/Osculating Black Moon Lilith",
     "report/UI output remains disabled",
     "No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.",
   ]);
@@ -201,23 +202,26 @@ const sanityFixtures = [
   "2035-06-01T00:00:00.000Z",
 ];
 
-for (const isoDate of sanityFixtures) {
-  const result = calculateAdapterSanity(isoDate);
-  assert(Number.isFinite(result.longitude) && result.longitude >= 0 && result.longitude < 360, `adapter sanity longitude out of range for ${isoDate}`);
-  assert(Math.abs(result.longitude - result.apogeeLongitude) <= 1e-9, `adapter sanity longitude must equal apogee for ${isoDate}`);
-  const expectedApogee = normalizeLongitude(result.perigeeLongitude + 180);
-  const opposition = Math.abs(normalizeLongitude(expectedApogee - result.apogeeLongitude));
-  assert(Math.min(opposition, 360 - opposition) <= 1e-9, `adapter sanity opposition failed for ${isoDate}`);
-  assert(result.eccentricity > 0.001 && result.eccentricity < 0.2, `adapter sanity eccentricity failed for ${isoDate}`);
-  assert(result.angularMomentumLength > 0, `adapter sanity angular momentum failed for ${isoDate}`);
+if (typeof Astronomy.GeoMoonState !== "function") fail("Astronomy Engine GeoMoonState runtime API is missing");
+if (typeof Astronomy.RotateState !== "function") fail("Astronomy Engine RotateState runtime API is missing");
+if (typeof Astronomy.Rotation_EQJ_ECT !== "function") fail("Astronomy Engine Rotation_EQJ_ECT runtime API is missing");
+
+if (failures.length === 0) {
+  for (const isoDate of sanityFixtures) {
+    const result = calculateLilithSanity(isoDate);
+    assert(Number.isFinite(result.longitude) && result.longitude >= 0 && result.longitude < 360, `engine Lilith sanity longitude out of range for ${isoDate}`);
+    const expectedApogee = normalizeLongitude(result.perigeeLongitude + 180);
+    const opposition = Math.abs(normalizeLongitude(expectedApogee - result.longitude));
+    assert(Math.min(opposition, 360 - opposition) <= 1e-9, `engine Lilith sanity opposition failed for ${isoDate}`);
+    assert(result.eccentricity > 0.001 && result.eccentricity < 0.2, `engine Lilith sanity eccentricity failed for ${isoDate}`);
+    assert(result.angularMomentumLength > 0, `engine Lilith sanity angular momentum failed for ${isoDate}`);
+  }
 }
 
 if (failures.length > 0) {
-  console.error("Lilith internal adapter check failed:");
-  for (const failure of failures) {
-    console.error(`- ${failure}`);
-  }
+  console.error("Lilith engine output check failed:");
+  for (const failure of failures) console.error("- " + failure);
   process.exit(1);
 }
 
-console.log(`Lilith internal adapter check passed for ${sanityFixtures.length} sanity fixtures.`);
+console.log(`Lilith engine output check passed for ${sanityFixtures.length} sanity fixtures.`);

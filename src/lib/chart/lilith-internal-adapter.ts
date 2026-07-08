@@ -17,14 +17,14 @@ import {
   validateLilithOsculatingProbeHarness,
 } from "./lilith-validation-harness";
 
-export const LILITH_INTERNAL_ADAPTER_VERSION = "v0.1.240" as const;
-export const LILITH_INTERNAL_ADAPTER_STATUS = "internal-adapter-not-approved-for-engine-output" as const;
+export const LILITH_INTERNAL_ADAPTER_VERSION = "v0.1.241" as const;
+export const LILITH_INTERNAL_ADAPTER_STATUS = "guarded-engine-output-approved" as const;
 export const LILITH_INTERNAL_ADAPTER_SCOPE = "self-built-osculating-black-moon-lilith-internal-adapter" as const;
 export const LILITH_INTERNAL_ADAPTER_METHOD =
   "local-osculating-black-moon-lilith-from-validated-probe" as const;
 export const LILITH_INTERNAL_ADAPTER_MODEL_ID = LILITH_OSCULATING_PROBE_MODEL_ID;
 export const LILITH_INTERNAL_ADAPTER_SOURCE = LILITH_OSCULATING_PROBE_SOURCE;
-export const LILITH_INTERNAL_ADAPTER_APPROVED_FOR_ENGINE_OUTPUT = false as const;
+export const LILITH_INTERNAL_ADAPTER_APPROVED_FOR_ENGINE_OUTPUT = true as const;
 export const LILITH_INTERNAL_ADAPTER_APPROVED_FOR_REPORT_OUTPUT = false as const;
 
 export const LILITH_INTERNAL_ADAPTER_REQUIRED_GATES = [
@@ -36,7 +36,6 @@ export const LILITH_INTERNAL_ADAPTER_REQUIRED_GATES = [
 ] as const;
 
 export const LILITH_INTERNAL_ADAPTER_FORBIDDEN_USES = [
-  "realChart.lilith calculated output",
   "report generation calculated Lilith",
   "ReportCard calculated Lilith",
   "chart wheel Lilith point",
@@ -45,11 +44,11 @@ export const LILITH_INTERNAL_ADAPTER_FORBIDDEN_USES = [
 ] as const;
 
 export const LILITH_INTERNAL_ADAPTER_LIMITATIONS = [
-  "Internal adapter only; not approved for realChart output.",
+  "Internal adapter is approved only for guarded realChart engine output.",
   "Wraps the validated probe shape without changing the probe calculation.",
   "Keeps Black Moon Lilith as True/Osculating, not Mean Lilith.",
   "Keeps Dark Moon/Waldemath and asteroid 1181 Lilith out of scope.",
-  "Requires external/offline reference fixtures before engine output approval.",
+  "Report generation, chart wheel display, transit, and public SEO claims remain gated.",
 ] as const;
 
 export type LilithInternalAdapterResult = {
@@ -122,12 +121,12 @@ export function calculateLocalOsculatingBlackMoonLilith(utcDate: Date): LilithIn
 }
 
 export function assertLilithInternalAdapterResultIsSafe(result: LilithInternalAdapterResult): void {
-  if (result.status !== "internal-adapter-not-approved-for-engine-output") {
-    throw new Error("Lilith internal adapter status must remain non-production.");
+  if (result.status !== "guarded-engine-output-approved") {
+    throw new Error("Lilith internal adapter status must approve only guarded engine output.");
   }
 
-  if (result.approvedForEngineOutput !== false || result.approvedForReportOutput !== false) {
-    throw new Error("Lilith internal adapter must not approve engine or report output.");
+  if (result.approvedForEngineOutput !== true || result.approvedForReportOutput !== false) {
+    throw new Error("Lilith internal adapter must approve engine output and keep report output disabled.");
   }
 
   if (result.probeApprovedForProductionOutput !== false || result.validationApprovedForProductionOutput !== false) {

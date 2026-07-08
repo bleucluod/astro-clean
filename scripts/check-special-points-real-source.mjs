@@ -109,10 +109,18 @@ if (exists("src/lib/chart/real-chart-engine.ts")) {
       failures.push("real chart engine must not derive natal special-point longitudes from event helper: " + marker);
     }
   }
-  requireIncludes("real chart engine Lilith gate", engine, [
-    "Black Moon Lilith is still deferred",
-    "Mean/True Lilith definition",
+  requireIncludes("real chart engine guarded Lilith gate", engine, [
+    "calculateRealChartLilith",
+    "calculateLocalOsculatingBlackMoonLilith",
+    "Local True/Osculating Black Moon Lilith",
+    "approvedForReportOutput: false",
+    "report/UI output remains disabled",
   ]);
+  for (const marker of ["buildCalculatedLilith", "production-lilith", "approvedForReportOutput: true"]) {
+    if (engine.includes(marker)) {
+      failures.push("real chart engine must not expose Lilith to report/UI yet: " + marker);
+    }
+  }
 }
 
 const lilithClaimMarkers = [

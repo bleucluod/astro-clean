@@ -125,7 +125,7 @@ assertIncludes("Lilith validation harness", harness, [
   "buildLilithValidationDailySweepRows",
   "validateLilithOsculatingProbeHarness",
   "lilithValidationAngularDeltaDegrees",
-  "External/offline reference fixtures are still required before adapter or engine output approval.",
+  "External/offline reference fixtures are still required before report output, chart wheel display, transit, or public SEO claims.",
 ]);
 assertNotIncludes("Lilith validation harness", harness, [
   "fetch(",
@@ -163,16 +163,17 @@ assertIncludes("Lilith source feasibility remains not approved", sourceFeasibili
 ]);
 
 const engine = read("src/lib/chart/real-chart-engine.ts");
-assertIncludes("real chart engine still defers Lilith", engine, [
-  "Black Moon Lilith is still deferred",
-  "Mean/True Lilith definition",
+assertIncludes("real chart engine guarded Lilith output gate", engine, [
+  "calculateRealChartLilith",
+  "Local True/Osculating Black Moon Lilith",
+  "approvedForReportOutput: false",
+  "report/UI output remains disabled",
 ]);
 assertNotIncludes("real chart engine must not consume Lilith validation", engine, [
   "calculateLilithOsculatingProbe",
   "validateLilithOsculatingProbeHarness",
   "buildLilithValidationFixtureRows",
   "buildCalculatedLilith",
-  'lilith.status === "calculated"',
   "production-lilith",
 ]);
 

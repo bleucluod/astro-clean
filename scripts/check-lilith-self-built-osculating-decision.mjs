@@ -102,9 +102,11 @@ assertIncludes("Lilith source feasibility self-built path", feasibility, [
 ]);
 
 const engine = read("src/lib/chart/real-chart-engine.ts");
-assertIncludes("real chart engine still defers Lilith", engine, [
-  "Black Moon Lilith is still deferred",
-  "Mean/True Lilith definition",
+assertIncludes("real chart engine guarded Lilith output gate", engine, [
+  "calculateRealChartLilith",
+  "Local True/Osculating Black Moon Lilith",
+  "approvedForReportOutput: false",
+  "report/UI output remains disabled",
 ]);
 assertNotIncludes("real chart engine Lilith output", engine, [
   "calculateOsculatingLilith",

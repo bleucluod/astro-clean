@@ -156,9 +156,9 @@ export function validateLilithOsculatingProbeHarness(): LilithValidationHarnessS
     dailySweepCount: dailyRows.length,
     maxDailyLongitudeDelta,
     limitations: [
-      "Validation harness only; not approved for realChart output, report generation, chart wheel display, transit, or public SEO claims.",
+      "Validation harness supports guarded realChart engine output only; report generation, chart wheel display, transit, and public SEO claims remain disabled.",
       "Checks local osculating Lilith probe normalization, opposition geometry, eccentricity range, fixture diversity, and daily continuity.",
-      "External/offline reference fixtures are still required before adapter or engine output approval.",
+      "External/offline reference fixtures are still required before report output, chart wheel display, transit, or public SEO claims.",
     ],
   };
 }
