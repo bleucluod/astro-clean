@@ -1585,3 +1585,11 @@ Next engine work:
 - The next buildable milestone is a probe-only local osculating Lilith calculator from Moon position and velocity state vectors; it must derive the apogee direction from the osculating orbit and keep the value internal until fixtures and sanity guards pass.
 - Mean Black Moon Lilith remains later-only until a public/permissive formula is selected and validated; Dark Moon/Waldemath Lilith and asteroid 1181 Lilith remain out of scope.
 - Black Moon Lilith remains deferred and not-calculated; no engine output, report/UI claim, chart-wheel placement, transit, or public SEO claim is approved yet.
+
+## v0.1.238 self-built osculating Lilith probe
+
+- A probe-only local calculator now derives a candidate True/Osculating Black Moon Lilith apogee longitude from Moon position and velocity state vectors.
+- The probe uses the existing astronomy-engine GeoMoonState plus ecliptic-of-date rotation and a two-body osculating eccentricity-vector method.
+- The value remains internal and not approved for realChart output, report generation, chart wheel display, transit, or public SEO claims.
+- No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
+- Offline reference fixtures are still required before any production output approval.
