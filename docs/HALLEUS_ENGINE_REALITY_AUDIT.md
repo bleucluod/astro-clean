@@ -585,3 +585,12 @@ Next engine work:
 - Phase-one aspects are conjunction, opposition, trine, square, and sextile with bounded orbs; unbounded or ad-hoc transit aspects remain forbidden.
 - Daily pulse boundaries use a target-timezone local calendar day with Asia/Tehran as the initial contract timezone; natal-to-transit remains deferred until birth-data consent, timezone, and privacy paths are guarded.
 - No transit calculation, Sky Pulse runtime replacement, report narrative, dependency, API, or SEO claim is approved yet.
+
+## v0.1.246 Transit product scope sync
+
+- Sky Pulse product scope is now both public and personal: public homepage Sky Pulse and personal report transit are both planned, while runtime transit calculation remains gated.
+- The launch scope is free and no-login supported for both public daily sky pulse and user-entered birth-data personal transit previews; paid/private transit segmentation remains later-only.
+- Iran launch uses Asia/Tehran only for homepage and personal report transit boundaries; user-selectable or user-location timezones remain deferred until a later non-Iran expansion.
+- Phase-one transit bodies are Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto; lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred special points.
+- Transit copy should be technical plus inspirational Persian copy and remain compatible with SEO phrases such as آسمان امروز, ترنزیت امروز, ترنزیت روزانه, ترنزیت امروز برای چارت تولد, and تأثیر آسمان امروز روی چارت تولد.
+- No transit calculation, Sky Pulse runtime replacement, report narrative, dependency, API, or paid/private split is approved yet.

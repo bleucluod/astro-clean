@@ -1,6 +1,6 @@
-export const TRANSIT_RULES_CONTRACT_VERSION = "v0.1.245-transit-rules-contract" as const;
+export const TRANSIT_RULES_CONTRACT_VERSION = "v0.1.246-transit-product-scope-sync" as const;
 
-export const TRANSIT_RULES_CONTRACT_STATUS = "rules-contract-only" as const;
+export const TRANSIT_RULES_CONTRACT_STATUS = "product-scope-contract-only" as const;
 
 export const TRANSIT_RULES_APPROVAL = {
   skyPulseRealTransitRuntime: false,
@@ -12,18 +12,24 @@ export const TRANSIT_RULES_APPROVAL = {
 } as const;
 
 export const TRANSIT_RULES_SCOPE = {
-  phaseOneMode: "sky-only-daily-transit-contract" as const,
-  deferredMode: "natal-to-transit-personalized-pulse" as const,
+  publicHomepageMode: "public-sky-only-daily-pulse" as const,
+  personalReportMode: "personal-natal-to-transit-daily-pulse" as const,
+  launchAccessModel: "free-and-no-login-supported" as const,
   skyPulseCurrentRuntime: "tehran-moon-pulse-placeholder" as const,
-  requiredNextMilestone: "transit-calculation-probe-before-sky-pulse-runtime" as const,
+  requiredNextMilestone: "sky-only-transit-calculation-probe-before-runtime" as const,
+  requiredFollowingMilestone: "personal-natal-to-transit-probe-after-sky-only-foundation" as const,
 } as const;
 
 export const TRANSIT_RULES_TIME_POLICY = {
-  defaultPulseTimeZone: "Asia/Tehran" as const,
-  dailyBoundary: "target-timezone-local-calendar-day" as const,
+  launchAudienceRegion: "iran" as const,
+  homepagePulseTimeZone: "Asia/Tehran" as const,
+  personalReportTimeZone: "Asia/Tehran" as const,
+  userSelectableTimeZoneApproved: false,
+  userLocationTimeZoneDeferred: true,
+  dailyBoundary: "tehran-local-calendar-day" as const,
   canonicalSampleTime: "12:00:00" as const,
-  userBirthTimezoneRequiredBeforeNatalTransit: true,
-  noUtcOnlyDailyPulse: true,
+  noUserFacingUtcCopy: true,
+  noNonIranLaunchTimezoneClaim: true,
 } as const;
 
 export const TRANSIT_RULES_PLANET_POLICY = {
@@ -35,11 +41,11 @@ export const TRANSIT_RULES_PLANET_POLICY = {
     "mars",
     "jupiter",
     "saturn",
-  ] as const,
-  deferredBodies: [
     "uranus",
     "neptune",
     "pluto",
+  ] as const,
+  deferredSpecialPoints: [
     "lunar-nodes",
     "black-moon-lilith",
     "houses",
@@ -47,6 +53,7 @@ export const TRANSIT_RULES_PLANET_POLICY = {
   ] as const,
   noLilithTransitInPhaseOne: true,
   noNodeTransitInPhaseOne: true,
+  noHouseOrAngleTransitInPhaseOne: true,
 } as const;
 
 export const TRANSIT_RULES_ASPECT_POLICY = {
@@ -63,12 +70,32 @@ export const TRANSIT_RULES_ASPECT_POLICY = {
   noUnboundedOrbs: true,
 } as const;
 
+export const TRANSIT_RULES_COPY_POLICY = {
+  tone: "technical-plus-inspirational" as const,
+  homepagePersianSeoPhrases: [
+    "آسمان امروز",
+    "ترنزیت امروز",
+    "وضعیت آسمان امروز",
+    "ترنزیت روزانه",
+    "حال و هوای آسمان امروز",
+  ] as const,
+  personalPersianSeoPhrases: [
+    "ترنزیت امروز برای چارت تولد",
+    "تأثیر آسمان امروز روی چارت تولد",
+    "ترنزیت امروز بر اساس تاریخ تولد",
+    "وضعیت امروز چارت تولد من",
+  ] as const,
+  noFatalisticTransitCopy: true,
+  noHardcodedSeoLandingClaimBeforeRuntime: true,
+} as const;
+
 export const TRANSIT_RULES_OUTPUT_BOUNDARIES = {
   noHardcodedSkyPulseClaim: true,
-  noPersonalizedNatalTransitUntilConsentAndBirthDataPath: true,
-  noPaidPrivateTransitSplitUntilReportPrivacyModel: true,
-  noTransitSeoClaimUntilPublicConsentModel: true,
+  noTransitCalculationBeforeProbe: true,
+  noPersonalizedNatalTransitRuntimeBeforeProbe: true,
+  noPaidPrivateTransitSplitAtLaunch: true,
   noReportNarrativeClaimBeforeProbeAndGuards: true,
+  noDependencyOrApiTransitSource: true,
 } as const;
 
 export function getTransitRulesContract() {
@@ -80,6 +107,7 @@ export function getTransitRulesContract() {
     timePolicy: TRANSIT_RULES_TIME_POLICY,
     planetPolicy: TRANSIT_RULES_PLANET_POLICY,
     aspectPolicy: TRANSIT_RULES_ASPECT_POLICY,
+    copyPolicy: TRANSIT_RULES_COPY_POLICY,
     outputBoundaries: TRANSIT_RULES_OUTPUT_BOUNDARIES,
   } as const;
 }

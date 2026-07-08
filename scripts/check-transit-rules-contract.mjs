@@ -21,19 +21,25 @@ function excludesAll(label, text, markers) {
 
 const contract = read("src/lib/chart/transit-rules-contract.ts");
 includesAll("transit rules contract", contract, [
-  'TRANSIT_RULES_CONTRACT_VERSION = "v0.1.245-transit-rules-contract"',
-  'TRANSIT_RULES_CONTRACT_STATUS = "rules-contract-only"',
+  'TRANSIT_RULES_CONTRACT_VERSION = "v0.1.246-transit-product-scope-sync"',
+  'TRANSIT_RULES_CONTRACT_STATUS = "product-scope-contract-only"',
   "skyPulseRealTransitRuntime: false",
   "natalToTransitRuntime: false",
   "externalTransitApi: false",
   "newTransitRuntimeDependency: false",
-  'phaseOneMode: "sky-only-daily-transit-contract"',
-  'deferredMode: "natal-to-transit-personalized-pulse"',
-  'defaultPulseTimeZone: "Asia/Tehran"',
-  'dailyBoundary: "target-timezone-local-calendar-day"',
-  'canonicalSampleTime: "12:00:00"',
-  "userBirthTimezoneRequiredBeforeNatalTransit: true",
-  "noUtcOnlyDailyPulse: true",
+  'publicHomepageMode: "public-sky-only-daily-pulse"',
+  'personalReportMode: "personal-natal-to-transit-daily-pulse"',
+  'launchAccessModel: "free-and-no-login-supported"',
+  'requiredNextMilestone: "sky-only-transit-calculation-probe-before-runtime"',
+  'requiredFollowingMilestone: "personal-natal-to-transit-probe-after-sky-only-foundation"',
+  'launchAudienceRegion: "iran"',
+  'homepagePulseTimeZone: "Asia/Tehran"',
+  'personalReportTimeZone: "Asia/Tehran"',
+  "userSelectableTimeZoneApproved: false",
+  "userLocationTimeZoneDeferred: true",
+  'dailyBoundary: "tehran-local-calendar-day"',
+  "noUserFacingUtcCopy: true",
+  "noNonIranLaunchTimezoneClaim: true",
   '"sun"',
   '"moon"',
   '"mercury"',
@@ -41,6 +47,9 @@ includesAll("transit rules contract", contract, [
   '"mars"',
   '"jupiter"',
   '"saturn"',
+  '"uranus"',
+  '"neptune"',
+  '"pluto"',
   '"conjunction"',
   '"opposition"',
   '"trine"',
@@ -48,9 +57,18 @@ includesAll("transit rules contract", contract, [
   '"sextile"',
   "noLilithTransitInPhaseOne: true",
   "noNodeTransitInPhaseOne: true",
+  "noHouseOrAngleTransitInPhaseOne: true",
+  'tone: "technical-plus-inspirational"',
+  '"آسمان امروز"',
+  '"ترنزیت امروز"',
+  '"ترنزیت روزانه"',
+  '"ترنزیت امروز برای چارت تولد"',
+  '"تأثیر آسمان امروز روی چارت تولد"',
   "noHardcodedSkyPulseClaim: true",
-  "noPersonalizedNatalTransitUntilConsentAndBirthDataPath: true",
-  "noReportNarrativeClaimBeforeProbeAndGuards: true",
+  "noTransitCalculationBeforeProbe: true",
+  "noPersonalizedNatalTransitRuntimeBeforeProbe: true",
+  "noPaidPrivateTransitSplitAtLaunch: true",
+  "noDependencyOrApiTransitSource: true",
   "getTransitRulesContract",
 ]);
 excludesAll("transit rules contract", contract, [
@@ -58,6 +76,8 @@ excludesAll("transit rules contract", contract, [
   "skyPulseRealTransitRuntime: true",
   "externalTransitApi: true",
   "newTransitRuntimeDependency: true",
+  'defaultPulseTimeZone: "Asia/Tehran"',
+  'deferredMode: "natal-to-transit-personalized-pulse"',
 ]);
 
 const skyPulseRoute = read("app/api/sky-pulse/today/route.ts");
@@ -69,7 +89,8 @@ excludesAll("Sky Pulse route must not claim real transit yet", skyPulseRoute, [
   "calculateTransit",
   "natalToTransit",
   "TRANSIT_RULES_CONTRACT_STATUS",
-  "sky-only-daily-transit-contract",
+  "public-sky-only-daily-pulse",
+  "personal-natal-to-transit-daily-pulse",
 ]);
 
 const packageJson = JSON.parse(read("package.json"));
@@ -95,7 +116,8 @@ for (const file of forbiddenRuntimeFiles) {
   excludesAll(`${file} transit runtime`, text, [
     "calculateTransit",
     "natalToTransit",
-    "sky-only-daily-transit-contract",
+    "public-sky-only-daily-pulse",
+    "personal-natal-to-transit-daily-pulse",
     "TRANSIT_RULES_CONTRACT_VERSION",
   ]);
 }
@@ -108,12 +130,18 @@ const docs = [
 ].map((file) => [file, read(file)]);
 for (const [file, text] of docs) {
   includesAll(file, text, [
-    "v0.1.245 Transit rules contract",
-    "sky-only daily transit contract",
-    "natal-to-transit remains deferred",
-    "Asia/Tehran",
-    "conjunction, opposition, trine, square, and sextile",
-    "No transit calculation, Sky Pulse runtime replacement, report narrative, dependency, API, or SEO claim is approved yet",
+    "v0.1.246 Transit product scope sync",
+    "public homepage Sky Pulse and personal report transit are both planned",
+    "launch scope is free and no-login supported",
+    "Iran launch uses Asia/Tehran only",
+    "user-selectable or user-location timezones remain deferred",
+    "Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto",
+    "technical plus inspirational Persian copy",
+    "آسمان امروز",
+    "ترنزیت امروز",
+    "ترنزیت روزانه",
+    "ترنزیت امروز برای چارت تولد",
+    "No transit calculation, Sky Pulse runtime replacement, report narrative, dependency, API, or paid/private split is approved yet",
   ]);
 }
 
