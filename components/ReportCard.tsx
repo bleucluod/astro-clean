@@ -358,7 +358,7 @@ export function ReportCard({ report }: ReportCardProps) {
 
             {lunarNodeRows.length > 0 ? (
               <>
-                <h4>دست‌های ماه با مدل میانگین</h4>
+                <h4>دست‌های ماه با مدل نوسانی/واقعی محلی</h4>
                 <div className="report-placement-grid">
                   {lunarNodeRows.map((node) => (
                     <div className="mini-card" key={node.id}>
@@ -517,9 +517,9 @@ const VISIBLE_ENGINE_COPY_REPLACEMENTS = [
       "حرکت برگشتی از تغییر جایگاه ظاهری سیاره‌ها نزدیک زمان تولد محاسبه می‌شود؛ اگر سیاره نزدیک ایستایی باشد، خوانش باید ملایم و محتاط باشد.",
   },
   {
-    needle: "Mean Lunar Node is calculated",
+    needle: "Local True/Osculating lunar nodes are calculated",
     value:
-      "دست‌های ماه در این نسخه با مدل میانگین محاسبه می‌شوند؛ مدل نوسانی/واقعی فعلاً وارد خوانش نشده است.",
+      "دست‌های ماه در این نسخه با مدل نوسانی/واقعی محلی محاسبه می‌شوند؛ منبع خارجی یا Swiss runtime استفاده نشده است.",
   },
   {
     needle: "Black Moon Lilith is not calculated",
@@ -589,7 +589,7 @@ function sanitizeVisibleEngineCopy(value: string | null | undefined): string | n
     .replaceAll("retrograde", "حرکت برگشتی")
     .replaceAll("Retrograde", "حرکت برگشتی")
     .replaceAll("Mean Lunar Node", "دست‌های ماه با مدل میانگین")
-    .replaceAll("True/Osculating Node", "مدل نوسانی/واقعی دست‌های ماه")
+    .replaceAll("True/Osculating Node", "دست‌های ماه با مدل نوسانی/واقعی محلی")
     .replaceAll("True Node", "مدل واقعی دست‌های ماه")
     .replaceAll("Black Moon Lilith", "لیلیت")
     .replaceAll("Lilith", "لیلیت");
@@ -715,9 +715,11 @@ function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummaryRow[] {
       positionLabel: `${formatZodiacLabel(node.signId)}، درجه ${formatDegree(node.degreeInSign)}`,
       houseLabel: typeof node.house === "number" ? `در خانه ${formatPersianNumber(node.house)}` : null,
       sourceLabel:
-        node.id === "north-node"
-          ? "محاسبه با مدل میانگین"
-          : "به دست آمده از دست شمالی + ۱۸۰°",
+        node.id === "south-node"
+          ? "به دست آمده از دست شمالی + ۱۸۰°"
+          : lunarNodes.nodeType === "local-true-osculating"
+            ? "محاسبه با مدل نوسانی/واقعی محلی"
+            : "محاسبه با مدل میانگین",
       meaning:
         node.id === "north-node"
           ? "مسیر رشد، تمرین تازه و جهتی که روح به سمت آن کشیده می‌شود."
@@ -733,7 +735,7 @@ function isCalculatedLunarNodes(
       lunarNodes.status === "calculated" &&
       "northNode" in lunarNodes &&
       "southNode" in lunarNodes &&
-      lunarNodes.nodeType === "mean",
+      (lunarNodes.nodeType === "mean" || lunarNodes.nodeType === "local-true-osculating"),
   );
 }
 

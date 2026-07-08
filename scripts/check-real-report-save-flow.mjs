@@ -30,7 +30,7 @@ for (const marker of [
   "saveGeneratedReportWithAccountFallback(nextReport)",
   "buildReportSaveFallbackMessage",
   "router.push(`/reports/${saveResult.localRecord.id}`)",
-  "ذخیره آنلاین موقتاً پاسخ نداد",
+  "ذخیره حساب یا لینک noindex موقتاً پاسخ نداد",
   "enrichReportWithRealEngineCopy",
 ]) {
   if (!chartFormSource.includes(marker)) {

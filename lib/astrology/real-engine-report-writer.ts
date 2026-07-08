@@ -1135,7 +1135,7 @@ function buildNodeAxisSpinePhrase(
   );
 
   return [
-    `دست‌های ماه با مدل میانگین از دست جنوبی ${formatSignLabel(SIGN_COPY[lunarNodes.southNode.signId])} در ${southHouse} به سمت دست شمالی ${formatSignLabel(SIGN_COPY[lunarNodes.northNode.signId])} در ${northHouse} خوانده می‌شوند.`,
+    `دست‌های ماه با مدل نوسانی/واقعی محلی از دست جنوبی ${formatSignLabel(SIGN_COPY[lunarNodes.southNode.signId])} در ${southHouse} به سمت دست شمالی ${formatSignLabel(SIGN_COPY[lunarNodes.northNode.signId])} در ${northHouse} خوانده می‌شوند.`,
     overlap.length > 0
       ? `چون این محور با ${joinPersianList(overlap)} هم‌پوشانی دارد، مسیر رشد در متن اصلی هم پررنگ است.`
       : undefined,
@@ -1413,7 +1413,7 @@ function buildRealEngineSectionEvidence({
           ? "بدون سیاره برگشتی در داده گزارش"
           : undefined,
       isCalculatedLunarNodes(lunarNodes)
-        ? "دست‌های ماه با مدل میانگین محاسبه‌شده"
+        ? "دست‌های ماه با مدل نوسانی/واقعی محلی محاسبه‌شده"
         : "دست‌های ماه و لیلیت هنوز عمداً بیرون از خوانش مانده‌اند",
     ),
     lunarNodeEvidence: buildLunarNodeEvidenceLabel(lunarNodes),
@@ -1425,7 +1425,7 @@ function buildLunarNodeEvidenceLabel(lunarNodes: RealEngineReportLunarNodes | un
     return undefined;
   }
 
-  return "دست‌های ماه با مدل میانگین محاسبه‌شده";
+  return "دست‌های ماه با مدل نوسانی/واقعی محلی محاسبه‌شده";
 }
 
 function buildPlacementEvidenceLabel(
@@ -1954,7 +1954,7 @@ function buildRetrogradeText(
   const method =
     "حرکت برگشتی از مقایسه جایگاه ظاهری سیاره‌ها نزدیک لحظه تولد به دست می‌آید و اگر سیاره نزدیک ایستایی باشد، باید ملایم‌تر خوانده شود.";
   const nodeBoundary = isCalculatedLunarNodes(realEngine.lunarNodes)
-    ? "دست‌های ماه جداگانه با مدل Mean Node آمده‌اند و لیلیت در این نسخه وارد خوانش نشده است."
+    ? "دست‌های ماه با مدل نوسانی/واقعی محلی آمده‌اند و لیلیت در این نسخه وارد خوانش نشده است."
     : "دست‌های ماه و لیلیت فقط وقتی وارد خوانش می‌شوند که مدل و منبع محاسبه روشن باشد.";
 
   if (planetLabels.length === 0) {
@@ -2006,7 +2006,7 @@ function buildLunarNodeText(
   const overlapText = chartSpine ? buildNodeAxisSpinePhrase(lunarNodes, chartSpine) : undefined;
 
   return [
-    "دست‌های ماه در این گزارش با مدل میانگین خوانده می‌شوند.",
+    "دست‌های ماه در این گزارش با مدل نوسانی/واقعی محلی خوانده می‌شوند.",
     axisSentence,
     overlapText,
     boundaryWarning,
@@ -2058,7 +2058,7 @@ function buildMeanNodeBoundaryWarning(
   );
 
   return nearBoundary
-    ? "چون Mean Node نزدیک مرز نشانه یا خانه ثبت شده است، با مدل True/Osculating Node ممکن است خوانش نشانه/خانه کمی جابه‌جا شود؛ پس این بخش باید ملایم و احتمالی خوانده شود."
+    ? "چون یکی از دست‌های ماه نزدیک مرز نشانه یا خانه ثبت شده است، این بخش باید ملایم و احتمالی خوانده شود."
     : undefined;
 }
 
@@ -2069,7 +2069,9 @@ function formatLunarNodeNarrativePoint(node: RealEngineReportLunarNodePoint): st
   const houseSuffix = typeof node.house === "number" ? `، خانه ${toPersianNumber(node.house)}` : "";
   const sourceLabel = node.source === "derived-opposition"
     ? "بر پایه محور مقابل دست شمالی خوانده می‌شود."
-    : "با مدل میانگین محاسبه شده است.";
+    : node.method === "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date"
+      ? "با مدل نوسانی/واقعی محلی محاسبه شده است."
+      : "با مدل میانگین محاسبه شده است.";
 
   return `${handLabel}: ${formatSignLabel(sign)}، درجه ${formatDegree(node.degreeInSign)}${houseSuffix}. ${sourceLabel}`;
 }
@@ -2082,7 +2084,7 @@ function isCalculatedLunarNodes(
       lunarNodes.status === "calculated" &&
       "northNode" in lunarNodes &&
       "southNode" in lunarNodes &&
-      lunarNodes.nodeType === "mean" &&
+      (lunarNodes.nodeType === "mean" || lunarNodes.nodeType === "local-true-osculating") &&
       isValidLunarNodePoint(lunarNodes.northNode) &&
       isValidLunarNodePoint(lunarNodes.southNode),
   );
@@ -2113,7 +2115,7 @@ function buildNatalAccuracyText(realEngine: RealEngineReportSnapshot): string | 
   const lilithStatus = realEngine.lilith?.status ?? "not-calculated";
   const nodesText =
     nodesStatus === "calculated"
-      ? "دست‌های ماه با مدل میانگین در داده محاسبه‌شده ثبت شده‌اند."
+      ? "دست‌های ماه با مدل نوسانی/واقعی محلی در داده محاسبه‌شده ثبت شده‌اند."
       : "دست‌های ماه تا روشن شدن مدل و منبع محاسبه وارد نتیجه‌گیری نمی‌شوند.";
   const lilithText =
     lilithStatus === "calculated"
