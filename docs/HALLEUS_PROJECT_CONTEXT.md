@@ -1593,3 +1593,11 @@ Next engine work:
 - The value remains internal and not approved for realChart output, report generation, chart wheel display, transit, or public SEO claims.
 - No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
 - Offline reference fixtures are still required before any production output approval.
+
+## v0.1.239 Lilith validation harness
+
+- The self-built osculating Lilith probe now has a validation-only harness.
+- The harness checks fixture diversity, normalized longitudes, apogee/perigee opposition, eccentricity sanity, angular momentum sanity, and daily continuity.
+- The harness does not approve realChart output, report generation, chart-wheel display, transit, or public SEO claims.
+- No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.
+- External/offline reference fixtures are still required before adapter or engine output approval.
