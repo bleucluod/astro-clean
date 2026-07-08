@@ -1,23 +1,36 @@
 import { NextResponse } from "next/server";
 import { buildTehranMoonPulse } from "@/lib/sky-pulse/tehran-moon-pulse";
+import {
+  calculateSkyPulseHomepageTransit,
+  getTehranTransitLocalDate,
+} from "@/src/lib/chart/sky-only-transit-probe";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
   try {
-    const pulse = buildTehranMoonPulse(new Date());
+    const now = new Date();
+    const localDate = getTehranTransitLocalDate(now);
+    const pulse = buildTehranMoonPulse(now);
+    const transit = calculateSkyPulseHomepageTransit(localDate);
 
-    return NextResponse.json(pulse, {
-      headers: {
-        "Cache-Control": "no-store, max-age=0",
+    return NextResponse.json(
+      {
+        ...pulse,
+        transit,
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    );
   } catch (error) {
     return NextResponse.json(
       {
-        error: "tehran_moon_pulse_failed",
-        message: error instanceof Error ? error.message : "Moon pulse calculation failed.",
+        error: "sky_pulse_today_failed",
+        message: error instanceof Error ? error.message : "Sky Pulse calculation failed.",
       },
       {
         status: 500,

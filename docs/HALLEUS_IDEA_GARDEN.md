@@ -1565,3 +1565,10 @@ Next engine work:
 - The probe is not wired to the homepage Sky Pulse route, report narrative, chart wheel, API, dependency, account, payment, paid/private model, or personalized natal-to-transit runtime.
 - Lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred special points for transit.
 - Public homepage Sky Pulse and personal report transit remain planned as free and no-login supported for the Iran/Tehran launch, with Persian SEO wording such as آسمان امروز, ترنزیت امروز, ترنزیت روزانه, ترنزیت امروز برای چارت تولد, and تأثیر آسمان امروز روی چارت تولد.
+
+## v0.1.248 Sky Pulse homepage API bridge
+
+- Public homepage Sky Pulse advanced from probe done to data bridge done: `/api/sky-pulse/today` now includes real sky-only transit calculation data from `src/lib/chart/sky-only-transit-probe.ts` while preserving the existing homepage response shape.
+- The bridge remains Iran/Tehran-only, free/no-login, public sky-only, and does not start natal-to-transit, report narrative, account, payment, API dependency, user-location, or non-Iran timezone work.
+- Persian interpretation copy is still the next layer; the API bridge exposes real calculation data without adding deterministic, scary, fake, or horoscope-like daily claims.
+- Stage status: Foundation done, Probe done, Data bridge done; User-visible interpretation/UI polish/hardening still remain for v0.1.249-v0.1.251.
