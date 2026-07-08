@@ -21,8 +21,9 @@ function excludesAll(label, text, markers) {
 
 const contract = read("src/lib/chart/transit-rules-contract.ts");
 includesAll("transit rules contract", contract, [
-  'TRANSIT_RULES_CONTRACT_VERSION = "v0.1.246-transit-product-scope-sync"',
-  'TRANSIT_RULES_CONTRACT_STATUS = "product-scope-contract-only"',
+  'TRANSIT_RULES_CONTRACT_VERSION = "v0.1.247-sky-only-transit-calculation-probe"',
+  'TRANSIT_RULES_CONTRACT_STATUS = "sky-only-calculation-probe-approved-runtime-gated"',
+  "skyOnlyTransitCalculationProbe: true",
   "skyPulseRealTransitRuntime: false",
   "natalToTransitRuntime: false",
   "externalTransitApi: false",
@@ -30,8 +31,8 @@ includesAll("transit rules contract", contract, [
   'publicHomepageMode: "public-sky-only-daily-pulse"',
   'personalReportMode: "personal-natal-to-transit-daily-pulse"',
   'launchAccessModel: "free-and-no-login-supported"',
-  'requiredNextMilestone: "sky-only-transit-calculation-probe-before-runtime"',
-  'requiredFollowingMilestone: "personal-natal-to-transit-probe-after-sky-only-foundation"',
+  'requiredNextMilestone: "homepage-sky-pulse-real-bridge-after-probe-qa"',
+  'requiredFollowingMilestone: "personal-natal-to-transit-probe-after-homepage-foundation"',
   'launchAudienceRegion: "iran"',
   'homepagePulseTimeZone: "Asia/Tehran"',
   'personalReportTimeZone: "Asia/Tehran"',
@@ -65,7 +66,8 @@ includesAll("transit rules contract", contract, [
   '"ترنزیت امروز برای چارت تولد"',
   '"تأثیر آسمان امروز روی چارت تولد"',
   "noHardcodedSkyPulseClaim: true",
-  "noTransitCalculationBeforeProbe: true",
+  "skyOnlyTransitCalculationProbeOnly: true",
+  "noTransitRuntimeBeforeProbeBridge: true",
   "noPersonalizedNatalTransitRuntimeBeforeProbe: true",
   "noPaidPrivateTransitSplitAtLaunch: true",
   "noDependencyOrApiTransitSource: true",
@@ -73,6 +75,8 @@ includesAll("transit rules contract", contract, [
 ]);
 excludesAll("transit rules contract", contract, [
   "approvedForProduction: true",
+  'TRANSIT_RULES_CONTRACT_VERSION = "v0.1.246-transit-product-scope-sync"',
+  "noTransitCalculationBeforeProbe: true",
   "skyPulseRealTransitRuntime: true",
   "externalTransitApi: true",
   "newTransitRuntimeDependency: true",
@@ -142,6 +146,11 @@ for (const [file, text] of docs) {
     "ترنزیت روزانه",
     "ترنزیت امروز برای چارت تولد",
     "No transit calculation, Sky Pulse runtime replacement, report narrative, dependency, API, or paid/private split is approved yet",
+    "v0.1.247 Sky-only transit calculation probe",
+    "probe-only sky transit calculator",
+    "Asia/Tehran local noon",
+    "conjunction, opposition, trine, square, and sextile with bounded orbs",
+    "not wired to the homepage Sky Pulse route",
   ]);
 }
 

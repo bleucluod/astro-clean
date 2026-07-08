@@ -1,8 +1,9 @@
-export const TRANSIT_RULES_CONTRACT_VERSION = "v0.1.246-transit-product-scope-sync" as const;
+export const TRANSIT_RULES_CONTRACT_VERSION = "v0.1.247-sky-only-transit-calculation-probe" as const;
 
-export const TRANSIT_RULES_CONTRACT_STATUS = "product-scope-contract-only" as const;
+export const TRANSIT_RULES_CONTRACT_STATUS = "sky-only-calculation-probe-approved-runtime-gated" as const;
 
 export const TRANSIT_RULES_APPROVAL = {
+  skyOnlyTransitCalculationProbe: true,
   skyPulseRealTransitRuntime: false,
   natalToTransitRuntime: false,
   reportTransitNarrative: false,
@@ -16,8 +17,8 @@ export const TRANSIT_RULES_SCOPE = {
   personalReportMode: "personal-natal-to-transit-daily-pulse" as const,
   launchAccessModel: "free-and-no-login-supported" as const,
   skyPulseCurrentRuntime: "tehran-moon-pulse-placeholder" as const,
-  requiredNextMilestone: "sky-only-transit-calculation-probe-before-runtime" as const,
-  requiredFollowingMilestone: "personal-natal-to-transit-probe-after-sky-only-foundation" as const,
+  requiredNextMilestone: "homepage-sky-pulse-real-bridge-after-probe-qa" as const,
+  requiredFollowingMilestone: "personal-natal-to-transit-probe-after-homepage-foundation" as const,
 } as const;
 
 export const TRANSIT_RULES_TIME_POLICY = {
@@ -91,7 +92,8 @@ export const TRANSIT_RULES_COPY_POLICY = {
 
 export const TRANSIT_RULES_OUTPUT_BOUNDARIES = {
   noHardcodedSkyPulseClaim: true,
-  noTransitCalculationBeforeProbe: true,
+  skyOnlyTransitCalculationProbeOnly: true,
+  noTransitRuntimeBeforeProbeBridge: true,
   noPersonalizedNatalTransitRuntimeBeforeProbe: true,
   noPaidPrivateTransitSplitAtLaunch: true,
   noReportNarrativeClaimBeforeProbeAndGuards: true,

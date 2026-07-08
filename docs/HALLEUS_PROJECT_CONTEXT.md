@@ -1655,3 +1655,11 @@ Next engine work:
 - Phase-one transit bodies are Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto; lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred special points.
 - Transit copy should be technical plus inspirational Persian copy and remain compatible with SEO phrases such as آسمان امروز, ترنزیت امروز, ترنزیت روزانه, ترنزیت امروز برای چارت تولد, and تأثیر آسمان امروز روی چارت تولد.
 - No transit calculation, Sky Pulse runtime replacement, report narrative, dependency, API, or paid/private split is approved yet.
+
+## v0.1.247 Sky-only transit calculation probe
+
+- A probe-only sky transit calculator now samples the Iran-launch daily Sky Pulse at Asia/Tehran local noon and converts that local day boundary through the existing timezone conversion helper.
+- The probe calculates local astronomy-engine geocentric ecliptic longitudes for Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto, then finds phase-one aspects: conjunction, opposition, trine, square, and sextile with bounded orbs.
+- The probe is not wired to the homepage Sky Pulse route, report narrative, chart wheel, API, dependency, account, payment, paid/private model, or personalized natal-to-transit runtime.
+- Lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred special points for transit.
+- Public homepage Sky Pulse and personal report transit remain planned as free and no-login supported for the Iran/Tehran launch, with Persian SEO wording such as آسمان امروز, ترنزیت امروز, ترنزیت روزانه, ترنزیت امروز برای چارت تولد, and تأثیر آسمان امروز روی چارت تولد.
