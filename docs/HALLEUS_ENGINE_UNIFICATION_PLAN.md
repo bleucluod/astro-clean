@@ -574,3 +574,11 @@ QA state:
 Next engine work:
 - Lilith requires a separate model/source decision before any output.
 - Transit requires a separate rules/source contract before Sky Pulse can claim real transit interpretation.
+
+## v0.1.235 Lilith model decision contract
+
+- Black Moon Lilith remains deferred and not-calculated in production output.
+- Mean Black Moon Lilith and True/Osculating Black Moon Lilith are candidate models only until a separate source/validation batch selects and proves one model.
+- Dark Moon/Waldemath Lilith is out of scope and must not be conflated with Black Moon Lilith.
+- No Lilith transit or report/UI claim is approved by this decision contract.
+- No external API, Swiss Ephemeris runtime dependency, or fake Lilith label is approved for this step.

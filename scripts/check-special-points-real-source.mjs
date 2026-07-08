@@ -19,6 +19,7 @@ const audit = read("docs/HALLEUS_ENGINE_REALITY_AUDIT.md");
 const plan = read("docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md");
 const garden = read("docs/HALLEUS_IDEA_GARDEN.md");
 const pkg = JSON.parse(read("package.json"));
+const lilithContract = read("src/lib/chart/lilith-model-decision-contract.ts");
 
 requireIncludes("engine reality audit", audit, [
   "v0.1.163 special points real source audit",
@@ -44,6 +45,10 @@ if (pkg.scripts?.["check:special-points-real-source"] !== "node scripts/check-sp
   failures.push("package.json missing check:special-points-real-source script");
 }
 
+if (pkg.scripts?.["check:lilith-model-decision-contract"] !== "node scripts/check-lilith-model-decision-contract.mjs") {
+  failures.push("package.json missing check:lilith-model-decision-contract script");
+}
+
 const astronomyDtsPath = "node_modules/astronomy-engine/astronomy.d.ts";
 if (exists(astronomyDtsPath)) {
   const dts = read(astronomyDtsPath);
@@ -60,6 +65,15 @@ for (const depName of ["swisseph", "sweph", "swiss-ephemeris", "astrologia"]) {
     failures.push("unapproved runtime special-points dependency present: " + depName);
   }
 }
+
+requireIncludes("Lilith model decision contract", lilithContract, [
+  'LILITH_MODEL_DECISION_STATUS = "deferred-source-decision"',
+  'LILITH_MODEL_DECISION_SCOPE = "black-moon-lilith-only"',
+  '"mean-black-moon-lilith"',
+  '"true-osculating-black-moon-lilith"',
+  '"dark-moon-lilith-waldemath"',
+  "No Lilith production output, UI claim, report claim, or transit use is approved by this contract.",
+]);
 
 if (exists("src/lib/chart/real-chart-engine.ts")) {
   const engine = read("src/lib/chart/real-chart-engine.ts");
@@ -83,6 +97,8 @@ const lilithClaimMarkers = [
   "lilith?.status === \"calculated\"",
   "Mean Black Moon Lilith",
   "True Black Moon Lilith",
+  "local-lilith-production",
+  "production-lilith",
 ];
 
 for (const relativePath of [
