@@ -1670,3 +1670,18 @@ Next engine work:
 - The bridge remains Iran/Tehran-only, free/no-login, public sky-only, and does not start natal-to-transit, report narrative, account, payment, API dependency, user-location, or non-Iran timezone work.
 - Persian interpretation copy is still the next layer; the API bridge exposes real calculation data without adding deterministic, scary, fake, or horoscope-like daily claims.
 - Stage status: Foundation done, Probe done, Data bridge done; User-visible interpretation/UI polish/hardening still remain for v0.1.249-v0.1.251.
+
+## v0.1.249 Sky Pulse Persian interpretation layer
+
+- Public homepage Sky Pulse advanced from data bridge done to user-visible interpretation foundation: `/api/sky-pulse/today` now exposes `transit.interpretation` built from the real sky-only transit result.
+- The Persian layer reads calculated bodies and aspects, then returns technical + inspirational copy with SEO wording such as آسمان امروز, ترنزیت امروز, ترنزیت روزانه, وضعیت آسمان امروز, and حال و هوای آسمان امروز.
+- The interpretation stays public, free/no-login, Iran/Tehran-only, and sky-only; it does not start natal-to-transit, report narrative, account, payment, user-location, non-Iran timezone, houses, angles, lunar nodes, or Lilith transits.
+- When no bounded aspect is available, the layer must not invent a daily claim; it returns a guarded no-aspect summary instead.
+- Stage status: Foundation done, Probe done, Data bridge done, User-visible interpretation foundation done; Homepage UI polish and Public QA/hardening still remain for v0.1.250-v0.1.251.
+
+## v0.1.249 workflow failure note
+
+- Failure: `check-sky-pulse-persian-interpretation` failed because the version-marker guard was brittle around CRLF/LF line endings, even though the source marker existed.
+- Workflow failure: the first fix-forward command used bash heredoc syntax (`python - <<'PY'`), which is invalid in Windows PowerShell and did not run.
+- Fix: normalize CRLF to LF inside the guard before string assertions and fix the `&&pnpm` spacing typo in `package.json`.
+- Prevention: do not use bash heredoc in Halleus PowerShell workflows; use a patch or PowerShell-compatible temp script.

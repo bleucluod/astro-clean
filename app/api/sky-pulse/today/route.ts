@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildTehranMoonPulse } from "@/lib/sky-pulse/tehran-moon-pulse";
+import { buildSkyPulsePersianInterpretation } from "@/lib/sky-pulse/sky-pulse-persian-interpretation";
 import {
   calculateSkyPulseHomepageTransit,
   getTehranTransitLocalDate,
@@ -14,11 +15,15 @@ export async function GET() {
     const localDate = getTehranTransitLocalDate(now);
     const pulse = buildTehranMoonPulse(now);
     const transit = calculateSkyPulseHomepageTransit(localDate);
+    const interpretation = buildSkyPulsePersianInterpretation(transit);
 
     return NextResponse.json(
       {
         ...pulse,
-        transit,
+        transit: {
+          ...transit,
+          interpretation,
+        },
       },
       {
         headers: {

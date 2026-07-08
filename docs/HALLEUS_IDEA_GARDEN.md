@@ -1572,3 +1572,11 @@ Next engine work:
 - The bridge remains Iran/Tehran-only, free/no-login, public sky-only, and does not start natal-to-transit, report narrative, account, payment, API dependency, user-location, or non-Iran timezone work.
 - Persian interpretation copy is still the next layer; the API bridge exposes real calculation data without adding deterministic, scary, fake, or horoscope-like daily claims.
 - Stage status: Foundation done, Probe done, Data bridge done; User-visible interpretation/UI polish/hardening still remain for v0.1.249-v0.1.251.
+
+## v0.1.249 Sky Pulse Persian interpretation layer
+
+- Sky Pulse / Astro Weather moved forward without resetting roadmap: contract, product scope, calculation probe, and homepage API bridge were already done; this milestone adds the Persian interpretation layer on top of the real sky-only transit output.
+- The interpretation is technical + inspirational Persian copy for public homepage Sky Pulse and keeps SEO wording aligned with آسمان امروز, ترنزیت امروز, ترنزیت روزانه, وضعیت آسمان امروز, and حال و هوای آسمان امروز.
+- The layer must remain non-fatalistic, non-scary, non-deterministic, and must not create fake daily claims when no valid aspect exists.
+- This is still public/free/no-login and Iran/Tehran-only. It does not start personal natal-to-transit, paid/private segmentation, user-location, report narrative, full SEO pages, houses, angles, lunar nodes, or Lilith transits.
+- Next smallest step: v0.1.250 should polish homepage display of this existing API content without changing calculation scope.
