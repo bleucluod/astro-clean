@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { TehranMoonPulseResponse } from "@/lib/sky-pulse/tehran-moon-pulse";
+import type { SkyPulsePersianInterpretationLayer } from "@/lib/sky-pulse/sky-pulse-persian-interpretation";
+
+type SkyPulseHomepageResponse = TehranMoonPulseResponse & {
+  transit?: {
+    interpretation?: SkyPulsePersianInterpretationLayer;
+  };
+};
 
 type PulseState =
   | {
@@ -11,7 +18,7 @@ type PulseState =
     }
   | {
       status: "ready";
-      data: TehranMoonPulseResponse;
+      data: SkyPulseHomepageResponse;
     }
   | {
       status: "error";
@@ -23,7 +30,7 @@ function MoonPulseLoadingCard() {
     <article className="moon-widget-state">
       <span className="section-label">در حال خواندن آسمان امروز</span>
       <strong>نبض روز در حال آماده شدن است</strong>
-      <p>کارت امروز از محاسبه واقعی خورشید و ماه ساخته می‌شود.</p>
+      <p>کارت امروز از محاسبه واقعی خورشید، ماه و جنبه‌های ترنزیت روزانه تهران ساخته می‌شود.</p>
     </article>
   );
 }
@@ -54,7 +61,7 @@ export function SkyPulseDateCard() {
           throw new Error("Sky Pulse request failed.");
         }
 
-        const data = (await response.json()) as TehranMoonPulseResponse;
+        const data = (await response.json()) as SkyPulseHomepageResponse;
 
         if (!cancelled) {
           setPulse({ status: "ready", data });
@@ -74,12 +81,14 @@ export function SkyPulseDateCard() {
   }, []);
 
   const data = pulse.data;
+  const interpretation = data?.transit?.interpretation ?? null;
+  const primaryAspects = interpretation?.primaryAspects.slice(0, 2) ?? [];
 
   return (
     <section className="moon-pulse-section sky-pulse-widget" id="sky-pulse" aria-labelledby="sky-pulse-title">
       <div className="sky-pulse-widget-head">
         <span className="section-label">نبض آسمان امروز</span>
-        <h2 id="sky-pulse-title">ماه اکنون، فاز ماه و تاریخ امروز</h2>
+        <h2 id="sky-pulse-title">آسمان امروز؛ ماه، فاز ماه و ترنزیت روزانه تهران</h2>
       </div>
 
       {pulse.status === "loading" ? <MoonPulseLoadingCard /> : null}
@@ -125,6 +134,50 @@ export function SkyPulseDateCard() {
             <span>تنظیم با افق تهران</span>
             <span>{data.dates.localTime}</span>
           </div>
+          {interpretation ? (
+            <div className="sky-pulse-interpretation-panel" aria-label="خوانش ترنزیت امروز">
+              <div className="sky-pulse-interpretation-kicker">
+                <span>آسمان امروز</span>
+                <span>رایگان و بدون لاگین</span>
+                <span>تهران / ایران</span>
+              </div>
+
+              <article className="sky-pulse-interpretation-card">
+                <small>ترنزیت امروز</small>
+                <strong>{interpretation.title}</strong>
+                <p>{interpretation.summary}</p>
+              </article>
+
+              <article className="sky-pulse-interpretation-card soft">
+                <small>حال و هوای آسمان امروز</small>
+                <p>{interpretation.skyMood}</p>
+              </article>
+
+              {primaryAspects.length > 0 ? (
+                <div className="sky-pulse-aspect-list" aria-label="aspectهای برجسته امروز">
+                  {primaryAspects.map((aspect) => (
+                    <article key={aspect.id}>
+                      <small>جنبه محاسبه‌شده</small>
+                      <strong>{aspect.title}</strong>
+                      <p>{aspect.inspiration}</p>
+                      <p>{aspect.reflection}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <article className="sky-pulse-no-aspect-note">
+                  <small>بدون جنبه اصلی نزدیک</small>
+                  <p>امروز Halleus به‌جای ساختن ادعای مصنوعی، نبود جنبه نزدیک را هم به‌عنوان داده واقعی نشان می‌دهد.</p>
+                </article>
+              )}
+
+              <div className="sky-pulse-technical-note">
+                <span>{interpretation.technicalTrustNote}</span>
+                <span>{interpretation.publicScopeNote}</span>
+              </div>
+            </div>
+          ) : null}
+
         </>
       ) : null}
 

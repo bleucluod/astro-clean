@@ -1580,3 +1580,10 @@ Next engine work:
 - The layer must remain non-fatalistic, non-scary, non-deterministic, and must not create fake daily claims when no valid aspect exists.
 - This is still public/free/no-login and Iran/Tehran-only. It does not start personal natal-to-transit, paid/private segmentation, user-location, report narrative, full SEO pages, houses, angles, lunar nodes, or Lilith transits.
 - Next smallest step: v0.1.250 should polish homepage display of this existing API content without changing calculation scope.
+
+## v0.1.250 Homepage Sky Pulse UI polish
+
+- Sky Pulse / Astro Weather moved forward without roadmap reset: contract, product scope, calculation probe, homepage API bridge, and Persian interpretation layer were already done; this milestone makes the interpretation visible in the homepage card.
+- The homepage copy now names آسمان امروز and ترنزیت روزانه تهران more clearly while keeping the reading technical + inspirational, public/free/no-login, and Iran/Tehran-only.
+- The UI must not imply personal natal-to-transit, paid/private segmentation, user-location, houses, angles, lunar nodes, Lilith transits, or a fake daily claim.
+- Next smallest step: v0.1.251 should harden public Sky Pulse with guards for fake/hardcoded copy, Tehran-only scope, no-login/free status, SEO wording, and visible route/UI integration.

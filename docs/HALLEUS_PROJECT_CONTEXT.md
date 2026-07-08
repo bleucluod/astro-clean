@@ -1685,3 +1685,11 @@ Next engine work:
 - Workflow failure: the first fix-forward command used bash heredoc syntax (`python - <<'PY'`), which is invalid in Windows PowerShell and did not run.
 - Fix: normalize CRLF to LF inside the guard before string assertions and fix the `&&pnpm` spacing typo in `package.json`.
 - Prevention: do not use bash heredoc in Halleus PowerShell workflows; use a patch or PowerShell-compatible temp script.
+
+## v0.1.250 Homepage Sky Pulse UI polish
+
+- Public homepage Sky Pulse advanced from user-visible interpretation foundation to homepage UI polish: `SkyPulseDateCard` now surfaces `transit.interpretation` from the existing `/api/sky-pulse/today` payload.
+- The card keeps the original moon/phase date data visible, then adds Persian interpretation summary, حال و هوای آسمان امروز, calculated primary aspects, technical trust note, and public scope note.
+- The UI remains public, free/no-login, Iran/Tehran-only, and sky-only; it does not start natal-to-transit, report narrative, account, payment, user-location, non-Iran timezone, or new dependencies.
+- When no valid aspect is available, the homepage keeps the no-fake-copy state instead of inventing a daily claim.
+- Stage status: Foundation done, Probe done, Data bridge done, User-visible interpretation done, Homepage UI polish done; Public Sky Pulse QA/hardening remains for v0.1.251.
