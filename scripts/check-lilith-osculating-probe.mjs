@@ -179,14 +179,14 @@ const service = exists("lib/report-generation/report-generation-service.ts")
   ? read("lib/report-generation/report-generation-service.ts")
   : "";
 if (service.length > 0) {
-  assertIncludes("report generation service still defers Lilith", service, [
-    '"black-moon-lilith"',
-    'lilithStatus: "not-calculated"',
+  assertIncludes("report generation service bridges only guarded engine Lilith data", service, [
+    "lilith: buildCalculatedLilith(realChart)",
+    'lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated"',
   ]);
-  assertNotIncludes("report generation service must not consume Lilith probe", service, [
+  assertNotIncludes("report generation service must not consume Lilith probe directly", service, [
     "calculateLilithOsculatingProbe",
-    "buildCalculatedLilith",
-    'lilith.status === "calculated"',
+    "validateLilithOsculatingProbeHarness",
+    "approvedForReportOutput: true",
     "production-lilith",
   ]);
 }

@@ -12,6 +12,7 @@ import type {
   RealEngineReportHouse,
   RealEngineReportHouseContext,
   RealEngineReportHouseNumber,
+  RealEngineReportCalculatedLilith,
   RealEngineReportLunarNodePoint,
   RealEngineReportLunarNodes,
   RealEngineReportPlacement,
@@ -38,6 +39,7 @@ import {
   buildRealChartWorkbenchResult,
   type RealChartBirthInput,
   type RealChartCalculatedAngle,
+  type RealChartCalculatedLilith,
   type RealChartCalculatedLunarNode,
   type RealChartCalculatedPlacement,
   type RealChartWorkbenchResult,
@@ -192,10 +194,7 @@ export function buildRealEngineSnapshot(
     ),
     retrogrades: buildCalculatedRetrogradeStatus(realChart),
     lunarNodes: buildCalculatedLunarNodes(realChart),
-    lilith: buildDeferredCalculation(
-      "black-moon-lilith",
-      "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.",
-    ),
+    lilith: buildCalculatedLilith(realChart),
     ...(chartReportEnrichment
       ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }
       : {}),
@@ -359,12 +358,12 @@ function toRealEngineReportCalculationQuality(
     anglesStatus: realChart.angles ? "calculated" : "preview",
     retrogradeStatus: "calculated",
     nodesStatus: realChart.lunarNodes?.status === "calculated" ? "calculated" : "not-calculated",
-    lilithStatus: "not-calculated",
+    lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated",
     limitations: [
       ...(chartReportEnrichment?.limitations ?? []),
       "حرکت برگشتی از تغییر جایگاه ظاهری سیاره‌ها نزدیک زمان تولد محاسبه می‌شود؛ اگر سیاره نزدیک ایستایی باشد، خوانش باید ملایم و محتاط باشد.",
       "دست‌های ماه در این نسخه با مدل نوسانی/واقعی محلی محاسبه می‌شوند؛ منبع خارجی یا Swiss runtime استفاده نشده است.",
-      "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.",
+      "لیلیت نوسانی/واقعی محلی در داده گزارش ذخیره می‌شود، اما تا مرحله جداگانه UI/narrative وارد خوانش کاربر نمی‌شود.",
     ],
     warnings: [
       "اگر ساعت تولد تقریبی یا نامشخص باشد، خانه‌ها، محورها، حرکت برگشتی و زبان نهایی گزارش باید محتاطانه‌تر خوانده شوند.",
@@ -422,6 +421,36 @@ function toRealEngineReportLunarNodePoint(
     source: node.source,
     reliability: node.source === "calculated" ? "calculated" : "derived",
     limitation: node.limitation,
+  };
+}
+
+function buildCalculatedLilith(
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportCalculatedLilith {
+  const lilith = realChart.lilith;
+
+  return toRealEngineReportLilith(lilith, realChart);
+}
+
+function toRealEngineReportLilith(
+  lilith: RealChartCalculatedLilith,
+  realChart: RealChartWorkbenchResult,
+): RealEngineReportCalculatedLilith {
+  return {
+    status: "calculated",
+    id: lilith.id,
+    label: lilith.label,
+    longitude: normalizeReportLongitude(lilith.longitude),
+    signId: toZodiacKey(lilith.signId),
+    degreeInSign: lilith.degreeInSign,
+    house: getHouseNumberForLongitude(lilith.longitude, realChart),
+    method: lilith.method,
+    modelId: lilith.modelId,
+    lilithType: lilith.lilithType,
+    source: lilith.source,
+    reliability: "calculated",
+    approvedForReportOutput: lilith.approvedForReportOutput,
+    limitation: lilith.limitation,
   };
 }
 

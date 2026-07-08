@@ -163,7 +163,6 @@ for (const relativePath of [
   "components/ReportCard.tsx",
   "components/RealChartWheel.tsx",
   "lib/astrology/real-engine-report-writer.ts",
-  "lib/report-generation/report-generation-service.ts",
 ]) {
   if (!exists(relativePath)) continue;
   const text = read(relativePath);
@@ -186,6 +185,7 @@ for (const [index, text] of docs.entries()) {
   assertIncludes(`Lilith adapter docs ${index + 1}`, text, [
     "v0.1.240 Lilith internal adapter",
     "v0.1.241 Lilith guarded engine output",
+    "v0.1.242 Lilith report data bridge",
     "calculateLocalOsculatingBlackMoonLilith",
     "calculateRealChartLilith",
     "report/UI output remains disabled",

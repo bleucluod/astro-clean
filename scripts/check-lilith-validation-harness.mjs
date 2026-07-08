@@ -181,7 +181,6 @@ for (const relativePath of [
   "components/ReportCard.tsx",
   "components/RealChartWheel.tsx",
   "lib/astrology/real-engine-report-writer.ts",
-  "lib/report-generation/report-generation-service.ts",
 ]) {
   if (!exists(relativePath)) continue;
   const text = read(relativePath);
@@ -192,6 +191,20 @@ for (const relativePath of [
     'lilith.status === "calculated"',
     "production-lilith",
     "local-lilith-production",
+  ]);
+}
+
+if (exists("lib/report-generation/report-generation-service.ts")) {
+  const service = read("lib/report-generation/report-generation-service.ts");
+  assertIncludes("report generation service bridges validated engine Lilith data", service, [
+    "lilith: buildCalculatedLilith(realChart)",
+    'lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated"',
+  ]);
+  assertNotIncludes("report generation service must not call validation harness directly", service, [
+    "validateLilithOsculatingProbeHarness",
+    "calculateLilithOsculatingProbe",
+    "approvedForReportOutput: true",
+    "production-lilith",
   ]);
 }
 

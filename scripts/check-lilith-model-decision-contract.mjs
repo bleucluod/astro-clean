@@ -99,14 +99,15 @@ assertNotIncludes("real chart engine", engine, [
 ]);
 
 const service = read("lib/report-generation/report-generation-service.ts");
-assertIncludes("report generation service Lilith defer gate", service, [
-  '"black-moon-lilith"',
-  "lilithStatus: \"not-calculated\"",
-  "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.",
+assertIncludes("report generation service Lilith data bridge gate", service, [
+  "lilith: buildCalculatedLilith(realChart)",
+  'lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated"',
+  "approvedForReportOutput: lilith.approvedForReportOutput",
+  "لیلیت نوسانی/واقعی محلی در داده گزارش ذخیره می‌شود، اما تا مرحله جداگانه UI/narrative وارد خوانش کاربر نمی‌شود.",
 ]);
 assertNotIncludes("report generation service", service, [
-  "buildCalculatedLilith",
-  'lilith.status === "calculated"',
+  "approvedForReportOutput: true",
+  "production-lilith",
 ]);
 
 const reportCard = read("components/ReportCard.tsx");

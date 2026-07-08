@@ -133,13 +133,15 @@ assertNotIncludes("real chart engine", engine, [
 const service = exists("lib/report-generation/report-generation-service.ts")
   ? read("lib/report-generation/report-generation-service.ts")
   : "";
-assertIncludes("report generation service Lilith defer gate", service, [
-  '"black-moon-lilith"',
-  'lilithStatus: "not-calculated"',
+assertIncludes("report generation service guarded Lilith data bridge", service, [
+  "lilith: buildCalculatedLilith(realChart)",
+  'lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated"',
+  "function buildCalculatedLilith(",
+  "approvedForReportOutput: lilith.approvedForReportOutput",
 ]);
-assertNotIncludes("report generation service", service, [
-  "buildCalculatedLilith",
-  'lilith.status === "calculated"',
+assertNotIncludes("report generation service Lilith report-output approval", service, [
+  "approvedForReportOutput: true",
+  "production-lilith",
 ]);
 
 for (const relativePath of [

@@ -164,15 +164,15 @@ for (const relativePath of [
 
 if (exists("lib/report-generation/report-generation-service.ts")) {
   const service = read("lib/report-generation/report-generation-service.ts");
-  assertIncludes("report generation service still gates Lilith", service, [
-    'lilithStatus: "not-calculated"',
-    '"black-moon-lilith"',
+  assertIncludes("report generation service bridges guarded Lilith data", service, [
+    "lilith: buildCalculatedLilith(realChart)",
+    'lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated"',
+    "approvedForReportOutput: lilith.approvedForReportOutput",
   ]);
-  assertNotIncludes("report generation service must not consume engine Lilith yet", service, [
-    "realChart.lilith",
+  assertNotIncludes("report generation service must not expose Lilith UI/narrative yet", service, [
     "calculateRealChartLilith",
-    "buildCalculatedLilith",
-    'lilith.status === "calculated"',
+    "approvedForReportOutput: true",
+    "production-lilith",
   ]);
 }
 

@@ -176,6 +176,30 @@ export type RealEngineReportLunarNodes =
   | RealEngineReportDeferredCalculation
   | RealEngineReportCalculatedLunarNodes;
 
+export type RealEngineReportLilithMethod =
+  "local-osculating-black-moon-lilith-from-validated-probe";
+
+export type RealEngineReportCalculatedLilith = {
+  status: "calculated";
+  id: "black-moon-lilith";
+  label: "Local True/Osculating Black Moon Lilith";
+  longitude: number;
+  signId: ZodiacKey;
+  degreeInSign: number;
+  house?: RealEngineReportHouseNumber | null;
+  method: RealEngineReportLilithMethod;
+  modelId: "true-osculating-black-moon-lilith";
+  lilithType: "local-true-osculating-black-moon-lilith";
+  source: "astronomy-engine-geomoonstate-local-state-vector";
+  reliability: RealEngineReportDataReliability;
+  approvedForReportOutput: false;
+  limitation: string | null;
+};
+
+export type RealEngineReportLilith =
+  | RealEngineReportDeferredCalculation
+  | RealEngineReportCalculatedLilith;
+
 export type RealEngineReportRetrogradeStatus = {
   status: "not-calculated" | "calculated" | "blocked";
   method: string | null;
@@ -224,7 +248,7 @@ export type RealEngineReportSnapshot = {
   calculationQuality?: RealEngineReportCalculationQuality;
   retrogrades?: RealEngineReportRetrogradeStatus;
   lunarNodes?: RealEngineReportLunarNodes;
-  lilith?: RealEngineReportDeferredCalculation;
+  lilith?: RealEngineReportLilith;
   placements: RealEngineReportPlacement[];
   aspects?: RealEngineReportAspect[];
   note: string;
