@@ -1537,3 +1537,9 @@ Checkpoint-first next step:
 - The candidate must remain out of `types/astro.ts`, `src/lib/chart/real-chart-engine.ts`, UI, report writer, and saved report output until independent reference fixtures pass.
 - Workflow failure ledger: v0.1.226 first attempts failed because guards used brittle report-copy markers and broad UI scans; v0.1.227 initial ESM/CommonJS probe failure happened because `.mjs` import style was not inspected first.
 - Prevention: inspect live import style before writing .mjs scripts, avoid Persian/copy markers in guards, keep guards structural, and keep source probes diagnostic until validated.
+
+## v0.1.230 local True Node internal adapter
+
+Implemented a local-only internal adapter milestone for the True/Osculating Node candidate without changing production chart output.
+Workflow reminder: this batch was prepared from a scoped live context ZIP; avoid guessed package anchors, inline node -e mutations, and generated nested template scripts.
+Mean Node remains the production output. True/Osculating Node remains disabled/internal until reference and approval gates pass.

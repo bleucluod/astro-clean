@@ -1439,3 +1439,9 @@ Not now:
 - The candidate osculating node remains a validation harness, not a product feature.
 - Mean Node remains the product output until independent True/Osculating Node reference fixtures pass.
 - Do not market, display, store, or write True/Osculating Node values from the vector candidate until the fixture gate is complete.
+
+## v0.1.230 product decision: True Node helper remains internal
+
+Halleus can calculate a local True/Osculating Node candidate internally, but it should remain invisible to public reports and product UI until approval.
+No external API or runtime Swiss Ephemeris dependency should be introduced for this candidate path.
+Production-facing astrology should continue to say Mean Node until the True Node model is independently validated and intentionally promoted.

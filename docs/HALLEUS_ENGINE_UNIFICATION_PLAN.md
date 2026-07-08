@@ -550,3 +550,9 @@ Do not do in the next Node implementation:
 - Do not integrate True/Osculating Node into real chart output until independent fixtures pass.
 - Do not change South Node semantics in product output; current South Node remains derived from the approved Mean North Node + 180.
 - If independent fixtures fail or remain unavailable, keep True/Osculating Node deferred.
+
+## v0.1.230 local True Node disabled adapter path
+
+The next True Node work should build from the local internal adapter rather than duplicating vector math in product paths.
+Keep the adapter behind a disabled/internal gate until offline reference fixtures and an approval contract are available.
+Do not connect the adapter to birth chart output, report writer output, chart wheel labels, or shared report types in this milestone.

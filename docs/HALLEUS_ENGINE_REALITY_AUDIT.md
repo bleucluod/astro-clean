@@ -475,3 +475,10 @@ Mean Node implementation decision:
 - SearchMoonNode remains event-time context only. It must not be used as a natal True/Osculating Node longitude source.
 - The harness does not promote nodeType beyond mean, does not add a True/Osculating Node method to product types, and does not change real chart output.
 - Next gate: compare the candidate against independent True/Osculating Node reference fixtures before any engine/type/UI/report integration.
+
+## v0.1.230 local True Node internal adapter
+
+Halleus now has a local-only internal adapter for a disabled True/Osculating Node candidate.
+The adapter uses Astronomy Engine GeoMoonState position and velocity, rotates the lunar state into the ecliptic frame, and derives the candidate node from the instantaneous lunar orbital plane.
+This is not product output: the real chart engine and report types continue to expose Mean Lunar Node only.
+The adapter must not use runtime Swiss Ephemeris, external APIs, SearchMoonNode as a longitude source, or any public nodeType=true promotion.
