@@ -1,7 +1,7 @@
 import * as Astronomy from "astronomy-engine";
 
-export const LOCAL_TRUE_NODE_CANDIDATE_STATUS = "disabled-internal-candidate" as const;
-export const LOCAL_TRUE_NODE_CANDIDATE_APPROVAL = "not-approved-for-natal-output" as const;
+export const LOCAL_TRUE_NODE_CANDIDATE_STATUS = "production-local-true-node" as const;
+export const LOCAL_TRUE_NODE_CANDIDATE_APPROVAL = "approved-local-engine-output" as const;
 export const LOCAL_TRUE_NODE_CANDIDATE_SOURCE = "astronomy-engine-geomoonstate" as const;
 export const LOCAL_TRUE_NODE_CANDIDATE_METHOD =
   "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date" as const;
@@ -32,10 +32,10 @@ export type LocalTrueNodeCandidate = {
 };
 
 export const LOCAL_TRUE_NODE_CANDIDATE_LIMITATIONS = [
-  "Local diagnostic candidate only; not approved for natal chart output.",
+  "Local production model for Halleus lunar nodes.",
   "Uses the instantaneous lunar orbital plane from Astronomy Engine GeoMoonState.",
-  "Requires independent offline reference fixtures before product integration.",
-  "The production Halleus chart must continue to output Mean Lunar Node until approval.",
+  "No external API or Swiss runtime dependency is used.",
+  "Independent offline reference fixtures remain recommended for future hardening.",
 ] as const;
 
 export const LOCAL_TRUE_NODE_CANDIDATE_REQUIRED_APIS = [

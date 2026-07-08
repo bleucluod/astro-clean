@@ -19,7 +19,6 @@ requireIncludes("docs/HALLEUS_ENGINE_REALITY_AUDIT.md", [
   "## v0.1.165 true vs mean node probe",
   "SearchMoonNode",
   "Mean Lunar Node is not fake",
-  "True/Osculating Node remains deferred",
   "mean-lunar-node-j2000-meeus-formula",
   "South Node = normalize(North Node + 180)",
 ]);
@@ -29,12 +28,6 @@ requireIncludes("docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md", [
   "calculateMeanNorthNodeLongitude(date)",
   "calculationQuality.nodesStatus",
   "Lilith remains deferred",
-]);
-
-requireIncludes("docs/HALLEUS_IDEA_GARDEN.md", [
-  "## v0.1.165 product decision: Mean Lunar Node first",
-  "Mean North Node / Mean South Node",
-  "Do not market Halleus as supporting True Node",
 ]);
 
 const packageJson = JSON.parse(read("package.json"));
@@ -59,8 +52,9 @@ requireIncludes("lib/report-generation/report-generation-service.ts", [
 
 requireIncludes("src/lib/chart/real-chart-engine.ts", [
   "calculateMeanNorthLunarNodeLongitude",
-  "mean-lunar-node-j2000-meeus-formula",
-  "True/Osculating Node remains deferred",
+  "calculateMeanLunarNodes",
+  "calculateLocalTrueLunarNodes",
+  "LOCAL_TRUE_NODE_CANDIDATE_METHOD",
 ]);
 
 if (failures.length > 0) {

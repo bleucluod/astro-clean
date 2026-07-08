@@ -52,11 +52,11 @@ for (const depName of ["swisseph", "sweph", "swiss-ephemeris", "astrologia"]) {
 
 if (exists("src/lib/chart/real-chart-engine.ts")) {
   const engine = read("src/lib/chart/real-chart-engine.ts");
-  requireIncludes("approved Mean Node implementation", engine, [
+  requireIncludes("approved local True/Osculating Node implementation", engine, [
+    "calculateLocalTrueLunarNodes",
     "calculateMeanLunarNodes",
-    "calculateMeanNorthLunarNodeLongitude",
-    "mean-lunar-node-j2000-meeus-formula",
-    "nodeType: \"mean\"",
+    "LOCAL_TRUE_NODE_CANDIDATE_METHOD",
+    "nodeType: \"local-true-osculating\"",
   ]);
   for (const marker of ["SearchMoonNode", "NextMoonNode", "SearchLunarApsis", "NextLunarApsis"]) {
     if (engine.includes(marker)) {

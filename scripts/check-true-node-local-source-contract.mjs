@@ -40,6 +40,8 @@ function assertNotIncludes(label, text, markers) {
   }
 }
 
+const localMethod = "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date";
+
 const packageJson = JSON.parse(read("package.json"));
 assert(
   packageJson.dependencies?.["astronomy-engine"] === "2.1.19",
@@ -73,7 +75,7 @@ assert(fixtures.length >= 5, "local True Node contract should keep at least five
 assert(nodeSearchStarts.length >= 3, "local True Node contract should keep at least three node-event sanity starts");
 
 for (const iso of fixtures) {
-  assertFinite(`mean node fixture ${iso}`, calculateMeanNorthLunarNodeLongitude(new Date(iso)));
+  assertFinite(`mean node fallback fixture ${iso}`, calculateMeanNorthLunarNodeLongitude(new Date(iso)));
 }
 
 for (const row of buildFixtureRows()) {
@@ -92,7 +94,7 @@ for (const row of buildFixtureRows()) {
   );
   assert(
     Math.abs(row.ectDeltaVsMean) < 5,
-    `${row.iso} local candidate delta versus Mean Node is too large for a gated candidate: ${row.ectDeltaVsMean}`,
+    `${row.iso} local candidate delta versus Mean Node is too large for a local production model: ${row.ectDeltaVsMean}`,
   );
 }
 
@@ -113,7 +115,6 @@ assertIncludes("probe script", probe, [
   "GeoMoonState",
   "Rotation_EQJ_ECT",
   "calculateCandidateFromState",
-  "candidate osculating node, not an approved product value",
   "Validation gate: pnpm run check:true-node-vector-validation.",
 ]);
 assertNotIncludes("probe script", probe, [
@@ -127,15 +128,27 @@ assertNotIncludes("probe script", probe, [
   'nodeType: "true"',
 ]);
 
+const localAdapter = read("src/lib/chart/local-true-node-candidate.ts");
+assertIncludes("local adapter", localAdapter, [
+  'LOCAL_TRUE_NODE_CANDIDATE_STATUS = "production-local-true-node"',
+  'LOCAL_TRUE_NODE_CANDIDATE_APPROVAL = "approved-local-engine-output"',
+  "calculateLocalTrueNodeCandidate",
+  localMethod,
+]);
+assertNotIncludes("local adapter", localAdapter, [
+  "fetch(",
+  "swisseph",
+  "SE_TRUE_NODE",
+]);
+
 const realChartEngine = read("src/lib/chart/real-chart-engine.ts");
 assertIncludes("real chart engine", realChartEngine, [
+  "calculateLocalTrueLunarNodes",
   "calculateMeanLunarNodes",
   "calculateMeanNorthLunarNodeLongitude",
-  'nodeType: "mean"',
-  "mean-lunar-node-j2000-meeus-formula",
+  'nodeType: "local-true-osculating"',
 ]);
 assertNotIncludes("real chart engine", realChartEngine, [
-  "calculateTrueLunarNodes",
   'nodeType: "true"',
   "true-lunar-node",
   "osculating-lunar-node",
@@ -145,8 +158,8 @@ assertNotIncludes("real chart engine", realChartEngine, [
 
 const astroTypes = read("types/astro.ts");
 assertIncludes("astro types", astroTypes, [
-  'nodeType: "mean"',
-  "mean-lunar-node-j2000-meeus-formula",
+  'nodeType: "mean" | "local-true-osculating"',
+  localMethod,
 ]);
 assertNotIncludes("astro types", astroTypes, [
   'nodeType: "true"',

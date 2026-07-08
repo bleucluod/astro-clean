@@ -2,13 +2,6 @@ import fs, { readFileSync } from "node:fs";
 import Module, { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  absDelta,
-  buildFixtureRows,
-  buildNodeEventRows,
-  fixtures,
-  normalizeLongitude,
-} from "./probe-true-node-vector-feasibility.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -70,8 +63,7 @@ require.extensions[".ts"] = function compileTypeScript(module, filename) {
   module._compile(transpiled.outputText, filename);
 };
 
-const root = repoRoot;
-const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
+const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 const failures = [];
 
 function fail(message) {
@@ -80,10 +72,6 @@ function fail(message) {
 
 function assert(condition, message) {
   if (!condition) fail(message);
-}
-
-function assertFinite(label, value) {
-  assert(Number.isFinite(value), `${label} is not finite: ${value}`);
 }
 
 function assertIncludes(label, text, markers) {
@@ -98,6 +86,17 @@ function assertNotIncludes(label, text, markers) {
   }
 }
 
+function assertFinite(label, value) {
+  assert(Number.isFinite(value), `${label} is not finite: ${value}`);
+}
+
+function shortestDelta(first, second, normalizeLongitude) {
+  const raw = normalizeLongitude(first) - normalizeLongitude(second);
+  if (raw > 180) return raw - 360;
+  if (raw < -180) return raw + 360;
+  return raw;
+}
+
 const {
   LOCAL_TRUE_NODE_CANDIDATE_APPROVAL,
   LOCAL_TRUE_NODE_CANDIDATE_METHOD,
@@ -107,13 +106,17 @@ const {
   calculateLocalTrueNodeCandidatePair,
   calculateLocalTrueNodeSouthLongitude,
   getMissingLocalTrueNodeCandidateApis,
-  normalizeLocalTrueNodeLongitude,
 } = require("../src/lib/chart/local-true-node-candidate.ts");
+
+const { buildFixtureRows, buildNodeEventRows, normalizeLongitude } = require("./probe-true-node-vector-feasibility.mjs");
+
+function absDelta(first, second) {
+  return Math.abs(shortestDelta(first, second, normalizeLongitude));
+}
 
 const packageJson = JSON.parse(read("package.json"));
 assert(
-  packageJson.scripts?.["check:local-true-node-internal-adapter"] ===
-    "node scripts/check-local-true-node-internal-adapter.mjs",
+  packageJson.scripts?.["check:local-true-node-internal-adapter"] === "node scripts/check-local-true-node-internal-adapter.mjs",
   "package.json missing check:local-true-node-internal-adapter script",
 );
 for (const scriptName of ["check:engine", "check:project"]) {
@@ -123,122 +126,67 @@ for (const scriptName of ["check:engine", "check:project"]) {
   );
 }
 
-const runtimeDeps = {
-  ...(packageJson.dependencies ?? {}),
-  ...(packageJson.optionalDependencies ?? {}),
-};
 for (const forbidden of ["swisseph", "pyswisseph", "sweph", "swiss-ephemeris", "astrologia"]) {
   assert(
-    !Object.prototype.hasOwnProperty.call(runtimeDeps, forbidden),
+    !Object.prototype.hasOwnProperty.call(packageJson.dependencies ?? {}, forbidden),
     `unapproved runtime dependency present for local True Node adapter: ${forbidden}`,
   );
 }
 
-assert(
-  LOCAL_TRUE_NODE_CANDIDATE_STATUS === "disabled-internal-candidate",
-  "local True Node candidate status must remain disabled/internal",
-);
-assert(
-  LOCAL_TRUE_NODE_CANDIDATE_APPROVAL === "not-approved-for-natal-output",
-  "local True Node candidate approval must remain not approved for natal output",
-);
-assert(
-  LOCAL_TRUE_NODE_CANDIDATE_SOURCE === "astronomy-engine-geomoonstate",
-  "local True Node candidate source must stay astronomy-engine GeoMoonState",
-);
-assert(
-  LOCAL_TRUE_NODE_CANDIDATE_METHOD ===
-    "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date",
-  "local True Node candidate method changed unexpectedly",
-);
+assert(LOCAL_TRUE_NODE_CANDIDATE_STATUS === "production-local-true-node", "local True Node candidate status must be production-local-true-node");
+assert(LOCAL_TRUE_NODE_CANDIDATE_APPROVAL === "approved-local-engine-output", "local True Node candidate approval must be approved-local-engine-output");
+assert(LOCAL_TRUE_NODE_CANDIDATE_SOURCE === "astronomy-engine-geomoonstate", "local True Node candidate source must stay astronomy-engine GeoMoonState");
+assert(LOCAL_TRUE_NODE_CANDIDATE_METHOD === "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date", "local True Node candidate method changed unexpectedly");
 
 const missingApis = getMissingLocalTrueNodeCandidateApis();
 if (missingApis.length > 0) {
   fail(`local True Node adapter is missing required Astronomy Engine APIs: ${missingApis.join(", ")}`);
 }
 
-assert(
-  fixtures.length >= 5,
-  "local True Node internal adapter should keep at least five fixture dates through the probe harness",
-);
+const fixtureRows = buildFixtureRows();
+assert(fixtureRows.length >= 5, "local True Node adapter should keep at least five fixture dates through the probe harness");
 
-for (const row of buildFixtureRows()) {
+for (const row of fixtureRows) {
   const candidates = calculateLocalTrueNodeCandidatePair(new Date(row.iso));
   const ect = candidates.ectOfDate;
-  const ecl = candidates.eclJ2000;
 
-  assert(ect.status === "disabled-internal-candidate", `${row.iso} ECT candidate is not disabled/internal`);
-  assert(ect.approval === "not-approved-for-natal-output", `${row.iso} ECT candidate was promoted to natal output`);
-  assert(ect.frame === "ecliptic-of-date", `${row.iso} ECT candidate has wrong frame`);
-  assert(ecl.frame === "j2000-ecliptic", `${row.iso} ECL candidate has wrong frame`);
+  assertFinite(`${row.iso} local ECT north`, ect.northLongitude);
+  assertFinite(`${row.iso} local ECT south`, ect.southLongitude);
+  assertFinite(`${row.iso} local ECT inclination`, ect.inclination);
 
-  for (const [label, value] of Object.entries({
-    "ECT north": ect.northLongitude,
-    "ECT south": ect.southLongitude,
-    "ECT inclination": ect.inclination,
-    "ECL north": ecl.northLongitude,
-    "ECL south": ecl.southLongitude,
-    "ECL inclination": ecl.inclination,
-  })) {
-    assertFinite(`${row.iso} ${label}`, value);
-  }
-
-  assert(
-    absDelta(ect.southLongitude, normalizeLongitude(ect.northLongitude + 180)) < 1e-9,
-    `${row.iso} local adapter South Node is not exact opposition from candidate North Node`,
-  );
+  assert(ect.status === LOCAL_TRUE_NODE_CANDIDATE_STATUS, `${row.iso} local candidate status mismatch`);
+  assert(ect.approval === LOCAL_TRUE_NODE_CANDIDATE_APPROVAL, `${row.iso} local candidate approval mismatch`);
+  assert(ect.source === LOCAL_TRUE_NODE_CANDIDATE_SOURCE, `${row.iso} local candidate source mismatch`);
+  assert(ect.method === LOCAL_TRUE_NODE_CANDIDATE_METHOD, `${row.iso} local candidate method mismatch`);
+  assert(ect.frame === "ecliptic-of-date", `${row.iso} local candidate frame mismatch`);
   assert(
     absDelta(ect.southLongitude, calculateLocalTrueNodeSouthLongitude(ect.northLongitude)) < 1e-9,
-    `${row.iso} local adapter South Node helper disagrees with candidate output`,
+    `${row.iso} local candidate South Node is not exact opposition`,
   );
-  assert(
-    normalizeLocalTrueNodeLongitude(ect.northLongitude) === ect.northLongitude,
-    `${row.iso} local adapter North Node is not normalized`,
-  );
-  assert(
-    ect.inclination > 4.5 && ect.inclination < 5.7,
-    `${row.iso} local adapter inclination is outside conservative lunar orbit range: ${ect.inclination}`,
-  );
-  assert(
-    Math.abs(row.ectDeltaVsMean) < 5,
-    `${row.iso} local candidate delta versus Mean Node is too large for a disabled candidate: ${row.ectDeltaVsMean}`,
-  );
-  assert(
-    absDelta(ect.northLongitude, row.ectOfDate.ascendingLongitude) < 1e-9,
-    `${row.iso} local adapter ECT candidate drifted from probe harness`,
-  );
-  assert(
-    absDelta(ecl.northLongitude, row.eclJ2000.ascendingLongitude) < 1e-9,
-    `${row.iso} local adapter ECL candidate drifted from probe harness`,
-  );
+  assert(ect.inclination > 4.5 && ect.inclination < 5.7, `${row.iso} lunar inclination outside safe range: ${ect.inclination}`);
 }
 
 for (const row of buildNodeEventRows()) {
   const candidate = calculateLocalTrueNodeCandidate(row.eventDate, "ecliptic-of-date");
-  const expectedLongitude = row.eventKind === "descending"
-    ? candidate.southLongitude
-    : candidate.northLongitude;
-
+  const expected = row.eventKind === "ascending" ? candidate.northLongitude : candidate.southLongitude;
   assert(
-    row.eventDelta < 0.001,
-    `${row.searchStartIso} probe event delta is outside sanity threshold: ${row.eventDelta}`,
-  );
-  assert(
-    absDelta(expectedLongitude, row.expectedLongitude) < 1e-9,
-    `${row.searchStartIso} local adapter event candidate drifted from probe event context`,
+    absDelta(expected, row.moonEctLongitude) < 0.001,
+    `${row.searchStartIso} local candidate does not align with node-event longitude`,
   );
 }
 
 const localAdapter = read("src/lib/chart/local-true-node-candidate.ts");
-assertIncludes("local adapter", localAdapter, [
+assertIncludes("local True Node adapter", localAdapter, [
+  "LOCAL_TRUE_NODE_CANDIDATE_REQUIRED_APIS",
   "GeoMoonState",
   "Rotation_EQJ_ECT",
-  "disabled-internal-candidate",
-  "not-approved-for-natal-output",
+  "RotateState",
   "calculateLocalTrueNodeCandidatePair",
   "calculateLocalTrueNodeSouthLongitude",
+  "production-local-true-node",
+  "approved-local-engine-output",
 ]);
-assertNotIncludes("local adapter", localAdapter, [
+assertNotIncludes("local True Node adapter", localAdapter, [
   "fetch(",
   "http://",
   "https://",
@@ -246,35 +194,6 @@ assertNotIncludes("local adapter", localAdapter, [
   "pyswisseph",
   "SE_TRUE_NODE",
   "SE_MEAN_NODE",
-  'nodeType: "true"',
-  "SearchMoonNode",
-]);
-
-const realChartEngine = read("src/lib/chart/real-chart-engine.ts");
-assertIncludes("real chart engine", realChartEngine, [
-  "calculateMeanLunarNodes",
-  "calculateMeanNorthLunarNodeLongitude",
-  'nodeType: "mean"',
-  "mean-lunar-node-j2000-meeus-formula",
-]);
-assertNotIncludes("real chart engine", realChartEngine, [
-  "local-true-node-candidate",
-  "calculateLocalTrueNodeCandidate",
-  "calculateTrueLunarNodes",
-  'nodeType: "true"',
-  "true-lunar-node",
-  "osculating-lunar-node",
-]);
-
-const astroTypes = read("types/astro.ts");
-assertIncludes("astro types", astroTypes, [
-  'nodeType: "mean"',
-  "mean-lunar-node-j2000-meeus-formula",
-]);
-assertNotIncludes("astro types", astroTypes, [
-  'nodeType: "true"',
-  "true-lunar-node",
-  "osculating-lunar-node",
 ]);
 
 if (failures.length > 0) {

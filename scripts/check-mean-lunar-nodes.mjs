@@ -1,8 +1,9 @@
-import { readFileSync } from "node:fs";
+import fs, { readFileSync } from "node:fs";
 import Module, { createRequire } from "node:module";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = process.cwd();
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const originalResolveFilename = Module._resolveFilename;
 
@@ -62,106 +63,96 @@ require.extensions[".ts"] = function compileTypeScript(module, filename) {
   module._compile(transpiled.outputText, filename);
 };
 
+const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 const failures = [];
-const read = (filePath) => readFileSync(filePath, "utf8");
-const packageJson = JSON.parse(read("package.json"));
 
-function requireIncludes(filePath, markers) {
-  const text = read(filePath);
+function fail(message) {
+  failures.push(message);
+}
+
+function assert(condition, message) {
+  if (!condition) fail(message);
+}
+
+function assertIncludes(label, text, markers) {
   for (const marker of markers) {
-    if (!text.includes(marker)) {
-      failures.push(`${filePath} is missing Mean Lunar Nodes marker: ${marker}`);
-    }
+    assert(text.includes(marker), `${label} is missing marker: ${marker}`);
   }
 }
 
-requireIncludes("types/astro.ts", [
-  "RealEngineReportLunarNodes",
-  "RealEngineReportCalculatedLunarNodes",
-  "RealEngineReportLunarNodePoint",
-  "mean-lunar-node-j2000-meeus-formula",
-]);
-
-requireIncludes("src/lib/chart/real-chart-engine.ts", [
-  'REAL_CHART_WORKBENCH_VERSION = "0.1.166"',
-  "calculateMeanLunarNodes",
-  "calculateMeanNorthLunarNodeLongitude",
-  "mean-lunar-node-j2000-meeus-formula",
-  "True/Osculating Node remains deferred",
-  "lunarNodes,",
-]);
-
-requireIncludes("lib/report-generation/report-generation-service.ts", [
-  'REPORT_GENERATION_SERVICE_VERSION = "0.1.166"',
-  "buildCalculatedLunarNodes",
-  "lunarNodes: buildCalculatedLunarNodes(realChart)",
-  "buildDeferredCalculation(",
-  '"black-moon-lilith"',
-  'nodesStatus: realChart.lunarNodes?.status === "calculated" ? "calculated" : "not-calculated"',
-  'lilithStatus: "not-calculated"',
-]);
-
-if (packageJson.scripts?.["check:mean-lunar-nodes"] !== "node scripts/check-mean-lunar-nodes.mjs") {
-  failures.push("package.json missing check:mean-lunar-nodes script");
-}
-
-for (const scriptName of ["check:project", "check:engine"]) {
-  const value = packageJson.scripts?.[scriptName] ?? "";
-  if (!value.includes("pnpm run check:mean-lunar-nodes")) {
-    failures.push(`${scriptName} does not run check:mean-lunar-nodes`);
+function assertNotIncludes(label, text, markers) {
+  for (const marker of markers) {
+    assert(!text.includes(marker), `${label} must not include marker: ${marker}`);
   }
 }
 
-const runtimeDeps = {
-  ...(packageJson.dependencies ?? {}),
-  ...(packageJson.optionalDependencies ?? {}),
-};
-for (const forbidden of ["swisseph", "sweph", "swiss-ephemeris"]) {
-  if (Object.prototype.hasOwnProperty.call(runtimeDeps, forbidden)) {
-    failures.push("Forbidden runtime ephemeris dependency added for Mean Lunar Nodes: " + forbidden);
-  }
+function assertFinite(label, value) {
+  assert(Number.isFinite(value), `${label} is not finite: ${value}`);
 }
 
-const {
-  buildRealChartWorkbenchResult,
-  calculateMeanLunarNodes,
-  calculateMeanNorthLunarNodeLongitude,
-  normalizeLongitude,
-} = require("../src/lib/chart/real-chart-engine.ts");
-const { generateReportContract } = require("../lib/report-generation/report-generation-service.ts");
-
-function shortestDelta(first, second) {
+function shortestDelta(first, second, normalizeLongitude) {
   const raw = normalizeLongitude(first) - normalizeLongitude(second);
   if (raw > 180) return raw - 360;
   if (raw < -180) return raw + 360;
   return raw;
 }
 
+const packageJson = JSON.parse(read("package.json"));
+const localMethod = "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date";
+
+assert(
+  packageJson.scripts?.["check:mean-lunar-nodes"] === "node scripts/check-mean-lunar-nodes.mjs",
+  "package.json missing check:mean-lunar-nodes script",
+);
+for (const scriptName of ["check:project", "check:engine"]) {
+  const value = packageJson.scripts?.[scriptName] ?? "";
+  assert(value.includes("pnpm run check:mean-lunar-nodes"), `${scriptName} does not run check:mean-lunar-nodes`);
+}
+
+for (const forbidden of ["swisseph", "sweph", "swiss-ephemeris"]) {
+  assert(
+    !Object.prototype.hasOwnProperty.call(packageJson.dependencies ?? {}, forbidden),
+    "Forbidden runtime ephemeris dependency added for lunar nodes: " + forbidden,
+  );
+}
+
+const {
+  buildRealChartWorkbenchResult,
+  calculateLocalTrueLunarNodes,
+  calculateMeanLunarNodes,
+  calculateMeanNorthLunarNodeLongitude,
+  normalizeLongitude,
+} = require("../src/lib/chart/real-chart-engine.ts");
+const { generateReportContract } = require("../lib/report-generation/report-generation-service.ts");
+
 for (const fixture of [
   new Date(Date.UTC(1992, 7, 12, 7, 30, 0)),
   new Date(Date.UTC(1998, 1, 3, 3, 10, 0)),
   new Date(Date.UTC(2026, 6, 4, 0, 0, 0)),
 ]) {
-  const north = calculateMeanNorthLunarNodeLongitude(fixture);
-  const nodes = calculateMeanLunarNodes(fixture);
-  if (!Number.isFinite(north) || north < 0 || north >= 360) {
-    failures.push(`Mean North Lunar Node longitude out of range for ${fixture.toISOString()}: ${north}`);
-  }
-  if (nodes.status !== "calculated" || nodes.method !== "mean-lunar-node-j2000-meeus-formula") {
-    failures.push(`Mean Lunar Nodes metadata wrong for ${fixture.toISOString()}`);
-  }
-  if (nodes.nodeType !== "mean") {
-    failures.push(`Mean Lunar Nodes nodeType is not mean for ${fixture.toISOString()}`);
-  }
-  const opposition = Math.abs(shortestDelta(nodes.southNode.longitude, nodes.northNode.longitude + 180));
-  if (opposition > 0.000001) {
-    failures.push(`South Node is not exact opposition for ${fixture.toISOString()}: ${opposition}`);
-  }
+  const meanNorth = calculateMeanNorthLunarNodeLongitude(fixture);
+  const meanNodes = calculateMeanLunarNodes(fixture);
+  const localNodes = calculateLocalTrueLunarNodes(fixture);
+
+  assertFinite(`Mean North Lunar Node longitude ${fixture.toISOString()}`, meanNorth);
+  assert(meanNorth >= 0 && meanNorth < 360, `Mean North Lunar Node longitude out of range for ${fixture.toISOString()}: ${meanNorth}`);
+  assert(meanNodes.status === "calculated", `Mean Lunar Nodes status wrong for ${fixture.toISOString()}`);
+  assert(meanNodes.method === "mean-lunar-node-j2000-meeus-formula", `Mean Lunar Nodes method wrong for ${fixture.toISOString()}`);
+  assert(meanNodes.nodeType === "mean", `Mean Lunar Nodes fallback nodeType is not mean for ${fixture.toISOString()}`);
+
+  assert(localNodes.status === "calculated", `Local True Nodes status wrong for ${fixture.toISOString()}`);
+  assert(localNodes.method === localMethod, `Local True Nodes method wrong for ${fixture.toISOString()}`);
+  assert(localNodes.nodeType === "local-true-osculating", `Local True Nodes nodeType wrong for ${fixture.toISOString()}`);
+
+  const meanOpposition = Math.abs(shortestDelta(meanNodes.southNode.longitude, meanNodes.northNode.longitude + 180, normalizeLongitude));
+  const localOpposition = Math.abs(shortestDelta(localNodes.southNode.longitude, localNodes.northNode.longitude + 180, normalizeLongitude));
+  assert(meanOpposition <= 0.000001, `Mean South Node is not exact opposition for ${fixture.toISOString()}: ${meanOpposition}`);
+  assert(localOpposition <= 0.000001, `Local True South Node is not exact opposition for ${fixture.toISOString()}: ${localOpposition}`);
 }
 
 for (const fixture of [
   {
-    name: "Tehran Mean Node fixture",
+    name: "Tehran Local True Node fixture",
     birthDate: "1992-08-12",
     birthTime: "11:00",
     timezone: "Asia/Tehran",
@@ -170,7 +161,7 @@ for (const fixture of [
     longitude: 51.389,
   },
   {
-    name: "Baku Mean Node fixture",
+    name: "Baku Local True Node fixture",
     birthDate: "1994-02-20",
     birthTime: "22:10",
     timezone: "Asia/Baku",
@@ -180,20 +171,15 @@ for (const fixture of [
   },
 ]) {
   const result = buildRealChartWorkbenchResult(fixture);
-  if (result.lunarNodes?.status !== "calculated") {
-    failures.push(`${fixture.name}: workbench did not calculate Mean Lunar Nodes`);
-  }
-  if (result.lunarNodes?.nodeType !== "mean") {
-    failures.push(`${fixture.name}: workbench lunar node type is not mean`);
-  }
-  if (!result.lunarNodes?.northNode || !result.lunarNodes?.southNode) {
-    failures.push(`${fixture.name}: missing north/south Mean Lunar Node points`);
-  }
+  assert(result.lunarNodes?.status === "calculated", `${fixture.name}: workbench did not calculate lunar nodes`);
+  assert(result.lunarNodes?.nodeType === "local-true-osculating", `${fixture.name}: workbench lunar node type is not local-true-osculating`);
+  assert(result.lunarNodes?.method === localMethod, `${fixture.name}: workbench lunar node method mismatch`);
+  assert(Boolean(result.lunarNodes?.northNode && result.lunarNodes?.southNode), `${fixture.name}: missing north/south lunar node points`);
 }
 
 const generated = generateReportContract({
   input: {
-    name: "Mean Node QA",
+    name: "Local True Node QA",
     birthDate: "1992-08-12",
     birthTime: "11:00",
     birthCity: "Tehran",
@@ -205,35 +191,36 @@ const generated = generateReportContract({
 });
 
 if (!generated.ok) {
-  failures.push("generateReportContract failed for Mean Lunar Node fixture: " + generated.message);
+  fail("generateReportContract failed for Local True Node fixture: " + generated.message);
 } else {
   const snapshot = generated.contract.engineData.realEngineSnapshot;
-  if (snapshot?.lunarNodes?.status !== "calculated") {
-    failures.push("realEngineSnapshot.lunarNodes is not calculated");
-  }
-  if (snapshot?.lunarNodes?.nodeType !== "mean") {
-    failures.push("realEngineSnapshot.lunarNodes.nodeType is not mean");
-  }
-  if (snapshot?.lunarNodes?.method !== "mean-lunar-node-j2000-meeus-formula") {
-    failures.push("realEngineSnapshot.lunarNodes.method is not the approved Mean Node method");
-  }
-  if (snapshot?.calculationQuality?.nodesStatus !== "calculated") {
-    failures.push("calculationQuality.nodesStatus is not calculated");
-  }
-  if (snapshot?.calculationQuality?.lilithStatus !== "not-calculated") {
-    failures.push("calculationQuality.lilithStatus must remain not-calculated");
-  }
-  if (snapshot?.lilith?.status !== "not-calculated") {
-    failures.push("Lilith must remain deferred while Mean Lunar Nodes are introduced");
-  }
+  assert(snapshot?.lunarNodes?.status === "calculated", "realEngineSnapshot.lunarNodes is not calculated");
+  assert(snapshot?.lunarNodes?.nodeType === "local-true-osculating", "realEngineSnapshot.lunarNodes.nodeType is not local-true-osculating");
+  assert(snapshot?.lunarNodes?.method === localMethod, "realEngineSnapshot.lunarNodes.method is not local True/Osculating method");
+  assert(snapshot?.calculationQuality?.nodesStatus === "calculated", "calculationQuality.nodesStatus is not calculated");
+  assert(snapshot?.calculationQuality?.lilithStatus === "not-calculated", "calculationQuality.lilithStatus must remain not-calculated");
+  assert(snapshot?.lilith?.status === "not-calculated", "Lilith must remain deferred while lunar nodes are integrated");
 }
 
+const engine = read("src/lib/chart/real-chart-engine.ts");
+assertIncludes("real chart engine", engine, [
+  "calculateLocalTrueLunarNodes",
+  "calculateMeanLunarNodes",
+  "calculateMeanNorthLunarNodeLongitude",
+  "LOCAL_TRUE_NODE_CANDIDATE_METHOD",
+]);
+
+const astroTypes = read("types/astro.ts");
+assertIncludes("astro types", astroTypes, [
+  "RealEngineReportLunarNodes",
+  'nodeType: "mean" | "local-true-osculating"',
+  localMethod,
+]);
+
 if (failures.length > 0) {
-  console.error("Mean Lunar Nodes check failed:");
-  for (const failure of failures) {
-    console.error("- " + failure);
-  }
+  console.error("Lunar Nodes check failed:");
+  for (const failure of failures) console.error("- " + failure);
   process.exit(1);
 }
 
-console.log("Mean Lunar Nodes check passed.");
+console.log("Lunar Nodes check passed.");

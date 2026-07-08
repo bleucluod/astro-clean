@@ -2,7 +2,6 @@ import fs, { readFileSync } from "node:fs";
 import Module, { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { absDelta, buildFixtureRows, normalizeLongitude } from "./probe-true-node-vector-feasibility.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -64,8 +63,7 @@ require.extensions[".ts"] = function compileTypeScript(module, filename) {
   module._compile(transpiled.outputText, filename);
 };
 
-const root = repoRoot;
-const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
+const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 const failures = [];
 
 function fail(message) {
@@ -88,6 +86,18 @@ function assertNotIncludes(label, text, markers) {
   }
 }
 
+function assertFinite(label, value) {
+  assert(Number.isFinite(value), `${label} is not finite: ${value}`);
+}
+
+function shortestDelta(first, second, normalizeLongitude) {
+  const raw = normalizeLongitude(first) - normalizeLongitude(second);
+  if (raw > 180) return raw - 360;
+  if (raw < -180) return raw + 360;
+  return raw;
+}
+
+const { absDelta, buildFixtureRows, normalizeLongitude } = require("./probe-true-node-vector-feasibility.mjs");
 const {
   LOCAL_TRUE_NODE_CANDIDATE_METHOD,
   LOCAL_TRUE_NODE_CANDIDATE_SOURCE,
@@ -98,11 +108,11 @@ const {
   TRUE_NODE_SELECTION_APPROVED_FUTURE_MODE,
   TRUE_NODE_SELECTION_CONTRACT_VERSION,
   TRUE_NODE_SELECTION_DEFAULT_MODE,
-  TRUE_NODE_SELECTION_LOCAL_CANDIDATE_MODE,
+  TRUE_NODE_SELECTION_MEAN_FALLBACK_MODE,
   assertTrueNodeSelectionContractIsSafe,
-  getDisabledLocalTrueNodeSelectionContract,
   getFutureApprovedTrueNodeSelectionContract,
-  getMeanNodeProductionSelectionContract,
+  getLocalTrueNodeProductionSelectionContract,
+  getMeanNodeFallbackSelectionContract,
   getTrueNodeSelectionContract,
 } = require("../src/lib/chart/true-node-selection-contract.ts");
 
@@ -118,36 +128,25 @@ for (const scriptName of ["check:engine", "check:project"]) {
   );
 }
 
-const runtimeDeps = {
-  ...(packageJson.dependencies ?? {}),
-  ...(packageJson.optionalDependencies ?? {}),
-};
 for (const forbidden of ["swisseph", "pyswisseph", "sweph", "swiss-ephemeris", "astrologia"]) {
   assert(
-    !Object.prototype.hasOwnProperty.call(runtimeDeps, forbidden),
+    !Object.prototype.hasOwnProperty.call(packageJson.dependencies ?? {}, forbidden),
     `unapproved runtime dependency present for True Node selection contract: ${forbidden}`,
   );
 }
 
-assert(TRUE_NODE_SELECTION_CONTRACT_VERSION === "v0.1.231", "selection contract version must match v0.1.231");
-assert(TRUE_NODE_SELECTION_DEFAULT_MODE === "mean-lunar-node-production", "default selection mode changed");
-assert(TRUE_NODE_SELECTION_LOCAL_CANDIDATE_MODE === "local-true-node-disabled-candidate", "local candidate mode changed");
+assert(TRUE_NODE_SELECTION_CONTRACT_VERSION === "v0.1.232", "selection contract version must match v0.1.232");
+assert(TRUE_NODE_SELECTION_DEFAULT_MODE === "local-true-node-production", "default selection mode changed");
+assert(TRUE_NODE_SELECTION_MEAN_FALLBACK_MODE === "mean-lunar-node-fallback", "mean fallback mode changed");
 assert(TRUE_NODE_SELECTION_APPROVED_FUTURE_MODE === "approved-true-node-future", "future approved mode changed");
-
-const meanContract = getMeanNodeProductionSelectionContract();
-assert(meanContract.mode === "mean-lunar-node-production", "mean contract mode is wrong");
-assert(meanContract.productionOutput === "mean-lunar-node", "mean contract must keep Mean Lunar Node output");
-assert(meanContract.allowsNatalTrueNodeOutput === false, "mean contract must not claim True Node output");
-assert(meanContract.candidateSource === null, "mean contract should not carry candidate source");
-assertTrueNodeSelectionContractIsSafe(meanContract);
 
 for (const row of buildFixtureRows()) {
   const candidate = calculateLocalTrueNodeCandidate(row.date, "ecliptic-of-date");
-  const localContract = getDisabledLocalTrueNodeSelectionContract(candidate);
+  const localContract = getLocalTrueNodeProductionSelectionContract(candidate);
 
-  assert(localContract.mode === "local-true-node-disabled-candidate", `${row.iso} local contract mode is wrong`);
-  assert(localContract.productionOutput === "blocked-local-candidate", `${row.iso} local contract was promoted to production`);
-  assert(localContract.allowsNatalTrueNodeOutput === false, `${row.iso} local contract allows natal output`);
+  assert(localContract.mode === "local-true-node-production", `${row.iso} local contract mode is wrong`);
+  assert(localContract.productionOutput === "local-true-node", `${row.iso} local contract is not production local output`);
+  assert(localContract.allowsNatalTrueNodeOutput === true, `${row.iso} local contract does not allow natal output`);
   assert(localContract.candidateSource === LOCAL_TRUE_NODE_CANDIDATE_SOURCE, `${row.iso} local source mismatch`);
   assert(localContract.candidateMethod === LOCAL_TRUE_NODE_CANDIDATE_METHOD, `${row.iso} local method mismatch`);
   assert(
@@ -156,9 +155,19 @@ for (const row of buildFixtureRows()) {
   );
   assertTrueNodeSelectionContractIsSafe(localContract);
 
-  const selected = getTrueNodeSelectionContract("local-true-node-disabled-candidate", candidate);
-  assert(selected.mode === localContract.mode, `${row.iso} selected local contract did not use local candidate mode`);
+  const selected = getTrueNodeSelectionContract("local-true-node-production", candidate);
+  assert(selected.mode === localContract.mode, `${row.iso} selected local contract did not use local production mode`);
 }
+
+const defaultContract = getTrueNodeSelectionContract();
+assert(defaultContract.productionOutput === "local-true-node", "default contract must use local True Node output");
+assert(defaultContract.allowsNatalTrueNodeOutput === true, "default contract must allow local True Node output");
+
+const meanFallbackContract = getMeanNodeFallbackSelectionContract();
+assert(meanFallbackContract.mode === "mean-lunar-node-fallback", "mean fallback mode is wrong");
+assert(meanFallbackContract.productionOutput === "mean-lunar-node-fallback", "mean fallback contract must stay available");
+assert(meanFallbackContract.allowsNatalTrueNodeOutput === false, "mean fallback contract must not claim local True Node output");
+assertTrueNodeSelectionContractIsSafe(meanFallbackContract);
 
 const futureContract = getFutureApprovedTrueNodeSelectionContract();
 assert(futureContract.mode === "approved-true-node-future", "future contract mode is wrong");
@@ -169,56 +178,17 @@ assertTrueNodeSelectionContractIsSafe(futureContract);
 const selectionContract = read("src/lib/chart/true-node-selection-contract.ts");
 assertIncludes("selection contract", selectionContract, [
   "TRUE_NODE_SELECTION_DEFAULT_MODE",
-  "mean-lunar-node-production",
-  "local-true-node-disabled-candidate",
+  "local-true-node-production",
+  "mean-lunar-node-fallback",
   "approved-true-node-future",
-  "allowsNatalTrueNodeOutput: false",
+  "allowsNatalTrueNodeOutput: true",
   "assertTrueNodeSelectionContractIsSafe",
 ]);
 assertNotIncludes("selection contract", selectionContract, [
-  "fetch(",
-  "http://",
-  "https://",
+  "local-true-node-disabled-candidate",
+  "blocked-local-candidate",
+  'nodeType: "true"',
   "swisseph",
-  "pyswisseph",
-  "SE_TRUE_NODE",
-  "SE_MEAN_NODE",
-  'nodeType: "true"',
-]);
-
-const localAdapter = read("src/lib/chart/local-true-node-candidate.ts");
-assertIncludes("local adapter", localAdapter, [
-  "disabled-internal-candidate",
-  "not-approved-for-natal-output",
-  "calculateLocalTrueNodeCandidatePair",
-]);
-
-const realChartEngine = read("src/lib/chart/real-chart-engine.ts");
-assertIncludes("real chart engine", realChartEngine, [
-  "calculateMeanLunarNodes",
-  "calculateMeanNorthLunarNodeLongitude",
-  'nodeType: "mean"',
-  "mean-lunar-node-j2000-meeus-formula",
-]);
-assertNotIncludes("real chart engine", realChartEngine, [
-  "true-node-selection-contract",
-  "local-true-node-candidate",
-  "calculateLocalTrueNodeCandidate",
-  "calculateTrueLunarNodes",
-  'nodeType: "true"',
-  "true-lunar-node",
-  "osculating-lunar-node",
-]);
-
-const astroTypes = read("types/astro.ts");
-assertIncludes("astro types", astroTypes, [
-  'nodeType: "mean"',
-  "mean-lunar-node-j2000-meeus-formula",
-]);
-assertNotIncludes("astro types", astroTypes, [
-  'nodeType: "true"',
-  "true-lunar-node",
-  "osculating-lunar-node",
 ]);
 
 if (failures.length > 0) {

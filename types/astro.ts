@@ -147,7 +147,8 @@ export type RealEngineReportDeferredCalculation = {
 export type RealEngineReportLunarNodeId = "north-node" | "south-node";
 
 export type RealEngineReportLunarNodeMethod =
-  | "mean-lunar-node-j2000-meeus-formula";
+  | "mean-lunar-node-j2000-meeus-formula"
+  | "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date";
 
 export type RealEngineReportLunarNodePoint = {
   id: RealEngineReportLunarNodeId;
@@ -165,7 +166,7 @@ export type RealEngineReportLunarNodePoint = {
 export type RealEngineReportCalculatedLunarNodes = {
   status: "calculated";
   method: RealEngineReportLunarNodeMethod;
-  nodeType: "mean";
+  nodeType: "mean" | "local-true-osculating";
   northNode: RealEngineReportLunarNodePoint;
   southNode: RealEngineReportLunarNodePoint;
   limitation: string | null;

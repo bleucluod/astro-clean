@@ -5,6 +5,10 @@ import {
   type NormalizedChartPointInput,
 } from "./normalized-chart";
 import type { ChartHouse } from "./houses";
+import {
+  LOCAL_TRUE_NODE_CANDIDATE_METHOD,
+  calculateLocalTrueNodeCandidate,
+} from "./local-true-node-candidate";
 
 export const REAL_CHART_WORKBENCH_VERSION = "0.1.166" as const;
 
@@ -46,16 +50,16 @@ export type RealChartCalculatedLunarNode = {
   longitude: number;
   signId: string;
   degreeInSign: number;
-  method: "mean-lunar-node-j2000-meeus-formula";
-  nodeType: "mean";
+  method: "mean-lunar-node-j2000-meeus-formula" | typeof LOCAL_TRUE_NODE_CANDIDATE_METHOD;
+  nodeType: "mean" | "local-true-osculating";
   source: "calculated" | "derived-opposition";
   limitation: string | null;
 };
 
 export type RealChartCalculatedLunarNodes = {
   status: "calculated";
-  method: "mean-lunar-node-j2000-meeus-formula";
-  nodeType: "mean";
+  method: "mean-lunar-node-j2000-meeus-formula" | typeof LOCAL_TRUE_NODE_CANDIDATE_METHOD;
+  nodeType: "mean" | "local-true-osculating";
   northNode: RealChartCalculatedLunarNode;
   southNode: RealChartCalculatedLunarNode;
   limitation: string | null;
@@ -157,7 +161,7 @@ export function buildRealChartWorkbenchResult(
     midheavenLongitude,
   });
   const placements = calculateRealChartPlacements(astroTime, utcDate);
-  const lunarNodes = calculateMeanLunarNodes(utcDate);
+  const lunarNodes = calculateLocalTrueLunarNodes(utcDate);
   const normalizedChart = buildNormalizedChart({
     source: "astronomy-engine-prototype",
     time: {
@@ -202,7 +206,7 @@ export function buildRealChartWorkbenchResult(
       "Descendant and IC are derived as exact oppositions from Ascendant and Midheaven.",
       "Houses use the whole-sign system anchored to the calculated Ascendant sign.",
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around the birth time.",
-      "Mean lunar nodes are calculated with the J2000 Meeus-style mean node formula; True/Osculating Node remains deferred until a stronger ephemeris source is approved.",
+      "Local True/Osculating lunar nodes are calculated from Astronomy Engine GeoMoonState and the instantaneous lunar orbital plane; no external API or Swiss runtime dependency is used.",
       "Black Moon Lilith is still deferred until the Mean/True Lilith definition and ephemeris source are hardened.",
       "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time must be disclosed before paid/private reports.",
       "Timezone and midnight-boundary behavior is guarded by natal accuracy hardening checks before the report claims production-grade precision.",
@@ -261,6 +265,34 @@ export function calculateBodyGeocentricLongitude(
   return normalizeLongitude(longitude);
 }
 
+export function calculateLocalTrueLunarNodes(utcDate: Date): RealChartCalculatedLunarNodes {
+  const candidate = calculateLocalTrueNodeCandidate(utcDate, "ecliptic-of-date");
+
+  return {
+    status: "calculated",
+    method: LOCAL_TRUE_NODE_CANDIDATE_METHOD,
+    nodeType: "local-true-osculating",
+    northNode: buildLocalTrueLunarNode({
+      id: "north-node",
+      label: "Local True/Osculating North Lunar Node",
+      longitude: candidate.northLongitude,
+      source: "calculated",
+      limitation:
+        "Calculated locally from Astronomy Engine GeoMoonState as an instantaneous lunar orbital plane node; no external API or Swiss runtime dependency is used.",
+    }),
+    southNode: buildLocalTrueLunarNode({
+      id: "south-node",
+      label: "Local True/Osculating South Lunar Node",
+      longitude: candidate.southLongitude,
+      source: "derived-opposition",
+      limitation:
+        "Derived as the exact opposition of the selected local True/Osculating North Lunar Node.",
+    }),
+    limitation:
+      "Halleus production lunar nodes use the local True/Osculating model from Astronomy Engine GeoMoonState. Mean Lunar Node remains available as a fallback helper.",
+  };
+}
+
 export function calculateMeanLunarNodes(utcDate: Date): RealChartCalculatedLunarNodes {
   const northLongitude = calculateMeanNorthLunarNodeLongitude(utcDate);
   const southLongitude = calculateOppositeAngleLongitude(northLongitude);
@@ -301,6 +333,35 @@ export function calculateMeanNorthLunarNodeLongitude(utcDate: Date): number {
     centuriesSinceJ2000 ** 4 / 60616000;
 
   return normalizeLongitude(meanNodeLongitude);
+}
+
+function buildLocalTrueLunarNode({
+  id,
+  label,
+  longitude,
+  source,
+  limitation,
+}: {
+  id: RealChartCalculatedLunarNodeId;
+  label: string;
+  longitude: number;
+  source: RealChartCalculatedLunarNode["source"];
+  limitation: string | null;
+}): RealChartCalculatedLunarNode {
+  const normalizedLongitude = normalizeLongitude(longitude);
+  const sign = getZodiacSignForLongitude(normalizedLongitude);
+
+  return {
+    id,
+    label,
+    longitude: normalizedLongitude,
+    signId: sign.signId,
+    degreeInSign: sign.degreeInSign,
+    method: LOCAL_TRUE_NODE_CANDIDATE_METHOD,
+    nodeType: "local-true-osculating",
+    source,
+    limitation,
+  };
 }
 
 function buildMeanLunarNode({

@@ -6,24 +6,24 @@ import {
   type LocalTrueNodeCandidate,
 } from "./local-true-node-candidate";
 
-export const TRUE_NODE_SELECTION_CONTRACT_VERSION = "v0.1.231" as const;
-export const TRUE_NODE_SELECTION_DEFAULT_MODE = "mean-lunar-node-production" as const;
-export const TRUE_NODE_SELECTION_LOCAL_CANDIDATE_MODE = "local-true-node-disabled-candidate" as const;
+export const TRUE_NODE_SELECTION_CONTRACT_VERSION = "v0.1.232" as const;
+export const TRUE_NODE_SELECTION_DEFAULT_MODE = "local-true-node-production" as const;
+export const TRUE_NODE_SELECTION_MEAN_FALLBACK_MODE = "mean-lunar-node-fallback" as const;
 export const TRUE_NODE_SELECTION_APPROVED_FUTURE_MODE = "approved-true-node-future" as const;
 
 export type TrueNodeSelectionMode =
   | typeof TRUE_NODE_SELECTION_DEFAULT_MODE
-  | typeof TRUE_NODE_SELECTION_LOCAL_CANDIDATE_MODE
+  | typeof TRUE_NODE_SELECTION_MEAN_FALLBACK_MODE
   | typeof TRUE_NODE_SELECTION_APPROVED_FUTURE_MODE;
 
 export type TrueNodeSelectionOutput =
-  | "mean-lunar-node"
-  | "blocked-local-candidate"
+  | "local-true-node"
+  | "mean-lunar-node-fallback"
   | "blocked-future-approval";
 
 export type TrueNodeSelectionApproval =
-  | "production-mean-only"
   | typeof LOCAL_TRUE_NODE_CANDIDATE_APPROVAL
+  | "production-mean-fallback"
   | "future-approval-required";
 
 export type TrueNodeSelectionContract = {
@@ -39,38 +39,38 @@ export type TrueNodeSelectionContract = {
 };
 
 export const TRUE_NODE_SELECTION_CONTRACT_NOTES = [
-  "The Halleus production natal chart remains Mean Lunar Node by default.",
-  "The local True/Osculating Node helper is disabled and internal until approval.",
-  "No external API, Swiss runtime dependency, UI output, or report copy is enabled by this contract.",
-  "South Node for any future approved True Node model must derive from the selected North Node plus 180 degrees.",
+  "The Halleus production natal chart uses the local True/Osculating Lunar Node model.",
+  "The local True/Osculating Node model is calculated from Astronomy Engine GeoMoonState.",
+  "No external API, Swiss runtime dependency, UI rewrite, or report copy rewrite is enabled by this contract.",
+  "South Node derives from the selected North Node plus 180 degrees.",
 ] as const;
 
-export function getMeanNodeProductionSelectionContract(): TrueNodeSelectionContract {
-  return {
-    version: TRUE_NODE_SELECTION_CONTRACT_VERSION,
-    mode: TRUE_NODE_SELECTION_DEFAULT_MODE,
-    productionOutput: "mean-lunar-node",
-    approval: "production-mean-only",
-    allowsNatalTrueNodeOutput: false,
-    candidateSource: null,
-    candidateMethod: null,
-    candidateStatus: null,
-    notes: TRUE_NODE_SELECTION_CONTRACT_NOTES,
-  };
-}
-
-export function getDisabledLocalTrueNodeSelectionContract(
+export function getLocalTrueNodeProductionSelectionContract(
   candidate?: LocalTrueNodeCandidate,
 ): TrueNodeSelectionContract {
   return {
     version: TRUE_NODE_SELECTION_CONTRACT_VERSION,
-    mode: TRUE_NODE_SELECTION_LOCAL_CANDIDATE_MODE,
-    productionOutput: "blocked-local-candidate",
+    mode: TRUE_NODE_SELECTION_DEFAULT_MODE,
+    productionOutput: "local-true-node",
     approval: LOCAL_TRUE_NODE_CANDIDATE_APPROVAL,
-    allowsNatalTrueNodeOutput: false,
+    allowsNatalTrueNodeOutput: true,
     candidateSource: candidate?.source ?? LOCAL_TRUE_NODE_CANDIDATE_SOURCE,
     candidateMethod: candidate?.method ?? LOCAL_TRUE_NODE_CANDIDATE_METHOD,
     candidateStatus: candidate?.status ?? LOCAL_TRUE_NODE_CANDIDATE_STATUS,
+    notes: TRUE_NODE_SELECTION_CONTRACT_NOTES,
+  };
+}
+
+export function getMeanNodeFallbackSelectionContract(): TrueNodeSelectionContract {
+  return {
+    version: TRUE_NODE_SELECTION_CONTRACT_VERSION,
+    mode: TRUE_NODE_SELECTION_MEAN_FALLBACK_MODE,
+    productionOutput: "mean-lunar-node-fallback",
+    approval: "production-mean-fallback",
+    allowsNatalTrueNodeOutput: false,
+    candidateSource: null,
+    candidateMethod: null,
+    candidateStatus: null,
     notes: TRUE_NODE_SELECTION_CONTRACT_NOTES,
   };
 }
@@ -94,36 +94,46 @@ export function getTrueNodeSelectionContract(
   candidate?: LocalTrueNodeCandidate,
 ): TrueNodeSelectionContract {
   if (mode === TRUE_NODE_SELECTION_DEFAULT_MODE) {
-    return getMeanNodeProductionSelectionContract();
+    return getLocalTrueNodeProductionSelectionContract(candidate);
   }
 
-  if (mode === TRUE_NODE_SELECTION_LOCAL_CANDIDATE_MODE) {
-    return getDisabledLocalTrueNodeSelectionContract(candidate);
+  if (mode === TRUE_NODE_SELECTION_MEAN_FALLBACK_MODE) {
+    return getMeanNodeFallbackSelectionContract();
   }
 
   return getFutureApprovedTrueNodeSelectionContract();
 }
 
 export function assertTrueNodeSelectionContractIsSafe(contract: TrueNodeSelectionContract): void {
-  if (contract.mode !== TRUE_NODE_SELECTION_DEFAULT_MODE && contract.allowsNatalTrueNodeOutput) {
-    throw new Error("Internal True Node selection contract must not allow natal output before approval.");
-  }
+  if (contract.mode === TRUE_NODE_SELECTION_DEFAULT_MODE) {
+    if (contract.productionOutput !== "local-true-node") {
+      throw new Error("Default True Node selection contract must use local True/Osculating Node output.");
+    }
 
-  if (contract.mode === TRUE_NODE_SELECTION_DEFAULT_MODE && contract.productionOutput !== "mean-lunar-node") {
-    throw new Error("Default True Node selection contract must keep Mean Lunar Node as production output.");
-  }
-
-  if (contract.mode === TRUE_NODE_SELECTION_LOCAL_CANDIDATE_MODE) {
-    if (contract.productionOutput !== "blocked-local-candidate") {
-      throw new Error("Local True Node candidate must remain blocked from production output.");
+    if (!contract.allowsNatalTrueNodeOutput) {
+      throw new Error("Default True Node selection contract must allow the approved local natal output.");
     }
 
     if (contract.candidateSource !== LOCAL_TRUE_NODE_CANDIDATE_SOURCE) {
-      throw new Error("Local True Node candidate source changed unexpectedly.");
+      throw new Error("Default True Node selection contract source changed unexpectedly.");
     }
 
     if (contract.candidateMethod !== LOCAL_TRUE_NODE_CANDIDATE_METHOD) {
-      throw new Error("Local True Node candidate method changed unexpectedly.");
+      throw new Error("Default True Node selection contract method changed unexpectedly.");
     }
+
+    return;
+  }
+
+  if (contract.mode === TRUE_NODE_SELECTION_MEAN_FALLBACK_MODE) {
+    if (contract.productionOutput !== "mean-lunar-node-fallback" || contract.allowsNatalTrueNodeOutput) {
+      throw new Error("Mean Lunar Node selection must remain a non-True-Node fallback.");
+    }
+
+    return;
+  }
+
+  if (contract.mode === TRUE_NODE_SELECTION_APPROVED_FUTURE_MODE && contract.allowsNatalTrueNodeOutput) {
+    throw new Error("Future True Node approval mode must remain blocked until a separate approval batch.");
   }
 }
