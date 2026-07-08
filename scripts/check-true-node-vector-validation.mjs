@@ -59,8 +59,8 @@ if (missingApis.length > 0) {
   fail(`Astronomy Engine is missing required vector probe APIs: ${missingApis.join(", ")}`);
 }
 
-assert(fixtures.length >= 5, "true-node vector probe should keep at least five date fixtures");
-assert(nodeSearchStarts.length >= 3, "true-node vector validation should keep at least three node-event sanity starts");
+assert(fixtures.length >= 12, "true-node vector probe should keep at least twelve date fixtures");
+assert(nodeSearchStarts.length >= 6, "true-node vector validation should keep at least six node-event sanity starts");
 
 for (const iso of fixtures) {
   assertFinite(`mean node fixture ${iso}`, calculateMeanNorthLunarNodeLongitude(new Date(iso)));

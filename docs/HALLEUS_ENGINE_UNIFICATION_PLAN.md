@@ -556,3 +556,21 @@ Do not do in the next Node implementation:
 The next True Node work should build from the local internal adapter rather than duplicating vector math in product paths.
 Keep the adapter behind a disabled/internal gate until offline reference fixtures and an approval contract are available.
 Do not connect the adapter to birth chart output, report writer output, chart wheel labels, or shared report types in this milestone.
+## v0.1.234 complete local True Node hardening
+
+Current Node state:
+- Halleus production lunar-node output is local True/Osculating.
+- The local True/Osculating model uses Astronomy Engine GeoMoonState position plus velocity and the ecliptic-of-date frame.
+- South Node is derived as exact opposition of the selected North Node.
+- Mean Lunar Node remains fallback/helper only.
+- Lilith remains deferred and not-calculated.
+- transit remains out of scope.
+- No Swiss runtime dependency or external API is approved for Node output.
+
+QA state:
+- The Node probe keeps 12 date fixtures and 6 node-event sanity starts.
+- The complete-local-true-node-hardening guard verifies engine output, report/UI sync, docs state, no external API, and no Swiss runtime dependency.
+
+Next engine work:
+- Lilith requires a separate model/source decision before any output.
+- Transit requires a separate rules/source contract before Sky Pulse can claim real transit interpretation.

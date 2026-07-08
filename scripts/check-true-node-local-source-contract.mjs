@@ -71,8 +71,8 @@ if (missingApis.length > 0) {
   fail(`Astronomy Engine is missing required local vector APIs: ${missingApis.join(", ")}`);
 }
 
-assert(fixtures.length >= 5, "local True Node contract should keep at least five date fixtures");
-assert(nodeSearchStarts.length >= 3, "local True Node contract should keep at least three node-event sanity starts");
+assert(fixtures.length >= 12, "local True Node contract should keep at least twelve date fixtures");
+assert(nodeSearchStarts.length >= 6, "local True Node contract should keep at least six node-event sanity starts");
 
 for (const iso of fixtures) {
   assertFinite(`mean node fallback fixture ${iso}`, calculateMeanNorthLunarNodeLongitude(new Date(iso)));

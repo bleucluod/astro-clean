@@ -144,7 +144,7 @@ if (missingApis.length > 0) {
 }
 
 const fixtureRows = buildFixtureRows();
-assert(fixtureRows.length >= 5, "local True Node adapter should keep at least five fixture dates through the probe harness");
+assert(fixtureRows.length >= 12, "local True Node adapter should keep at least twelve fixture dates through the probe harness");
 
 for (const row of fixtureRows) {
   const candidates = calculateLocalTrueNodeCandidatePair(new Date(row.iso));
@@ -166,7 +166,10 @@ for (const row of fixtureRows) {
   assert(ect.inclination > 4.5 && ect.inclination < 5.7, `${row.iso} lunar inclination outside safe range: ${ect.inclination}`);
 }
 
-for (const row of buildNodeEventRows()) {
+const nodeEventRows = buildNodeEventRows();
+assert(nodeEventRows.length >= 6, "local True Node adapter should keep at least six node-event sanity starts");
+
+for (const row of nodeEventRows) {
   const candidate = calculateLocalTrueNodeCandidate(row.eventDate, "ecliptic-of-date");
   const expected = row.eventKind === "ascending" ? candidate.northLongitude : candidate.southLongitude;
   assert(

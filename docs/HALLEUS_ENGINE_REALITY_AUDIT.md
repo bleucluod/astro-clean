@@ -482,3 +482,21 @@ Halleus now has a local-only internal adapter for a disabled True/Osculating Nod
 The adapter uses Astronomy Engine GeoMoonState position and velocity, rotates the lunar state into the ecliptic frame, and derives the candidate node from the instantaneous lunar orbital plane.
 This is not product output: the real chart engine and report types continue to expose Mean Lunar Node only.
 The adapter must not use runtime Swiss Ephemeris, external APIs, SearchMoonNode as a longitude source, or any public nodeType=true promotion.
+## v0.1.234 complete local True Node hardening
+
+Current Node state:
+- Halleus production lunar-node output is local True/Osculating.
+- The local True/Osculating model uses Astronomy Engine GeoMoonState position plus velocity and the ecliptic-of-date frame.
+- South Node is derived as exact opposition of the selected North Node.
+- Mean Lunar Node remains fallback/helper only.
+- Lilith remains deferred and not-calculated.
+- transit remains out of scope.
+- No Swiss runtime dependency or external API is approved for Node output.
+
+QA state:
+- The Node probe keeps 12 date fixtures and 6 node-event sanity starts.
+- The complete-local-true-node-hardening guard verifies engine output, report/UI sync, docs state, no external API, and no Swiss runtime dependency.
+
+Next engine work:
+- Lilith requires a separate model/source decision before any output.
+- Transit requires a separate rules/source contract before Sky Pulse can claim real transit interpretation.
