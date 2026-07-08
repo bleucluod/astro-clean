@@ -1587,3 +1587,10 @@ Next engine work:
 - The homepage copy now names آسمان امروز and ترنزیت روزانه تهران more clearly while keeping the reading technical + inspirational, public/free/no-login, and Iran/Tehran-only.
 - The UI must not imply personal natal-to-transit, paid/private segmentation, user-location, houses, angles, lunar nodes, Lilith transits, or a fake daily claim.
 - Next smallest step: v0.1.251 should harden public Sky Pulse with guards for fake/hardcoded copy, Tehran-only scope, no-login/free status, SEO wording, and visible route/UI integration.
+
+## v0.1.251 Public Sky Pulse QA hardening
+
+- Public Sky Pulse / Astro Weather has completed the first visible public path: real Tehran sky-only calculation, homepage API bridge, Persian interpretation, homepage UI, and hardening guard.
+- The hardened scope remains عمومی، رایگان و بدون لاگین، فقط ایران/تهران، with SEO wording around آسمان امروز، ترنزیت امروز، ترنزیت روزانه، وضعیت آسمان امروز، and حال و هوای آسمان امروز.
+- The QA guard protects against fake/hardcoded daily claims, personal natal-to-transit drift, payment/account gating, user-location expansion, and scary/deterministic copy.
+- Stage status: User-visible, hardened public Sky Pulse. Next smallest product path after this is the locked roadmap item for personal transit contract, not broad SEO/indexing or payment work.

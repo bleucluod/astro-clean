@@ -1693,3 +1693,11 @@ Next engine work:
 - The UI remains public, free/no-login, Iran/Tehran-only, and sky-only; it does not start natal-to-transit, report narrative, account, payment, user-location, non-Iran timezone, or new dependencies.
 - When no valid aspect is available, the homepage keeps the no-fake-copy state instead of inventing a daily claim.
 - Stage status: Foundation done, Probe done, Data bridge done, User-visible interpretation done, Homepage UI polish done; Public Sky Pulse QA/hardening remains for v0.1.251.
+
+## v0.1.251 Public Sky Pulse QA hardening
+
+- Public homepage Sky Pulse is now recorded as user-visible and hardened after contract, product scope, calculation probe, homepage API bridge, Persian interpretation, and homepage UI polish.
+- Hardening guard verifies the public route stays request-time, no-store, Tehran/Iran-only, free/no-login, and wired to the real sky-only transit bridge plus Persian interpretation layer.
+- Guard coverage keeps the homepage UI synced with `transit.interpretation`, visible technical trust copy, visible free/no-login and تهران / ایران scope, SEO wording, and the no-fake-copy fallback when no close aspect exists.
+- The milestone does not start natal-to-transit, report narrative, account, payment, user-location, non-Iran timezone, Search Console/indexing, houses, angles, lunar nodes, or Lilith transits.
+- Stage status: User-visible, hardened public Sky Pulse. Next roadmap step can move to personal transit only after this public Sky Pulse path remains clean.
