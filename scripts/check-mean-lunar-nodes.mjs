@@ -94,9 +94,11 @@ requireIncludes("src/lib/chart/real-chart-engine.ts", [
 requireIncludes("lib/report-generation/report-generation-service.ts", [
   'REPORT_GENERATION_SERVICE_VERSION = "0.1.166"',
   "buildCalculatedLunarNodes",
+  "lunarNodes: buildCalculatedLunarNodes(realChart)",
+  "buildDeferredCalculation(",
+  '"black-moon-lilith"',
   'nodesStatus: realChart.lunarNodes?.status === "calculated" ? "calculated" : "not-calculated"',
-  "Mean Lunar Node is calculated",
-  "Black Moon Lilith is not calculated yet.",
+  'lilithStatus: "not-calculated"',
 ]);
 
 if (packageJson.scripts?.["check:mean-lunar-nodes"] !== "node scripts/check-mean-lunar-nodes.mjs") {
@@ -148,6 +150,9 @@ for (const fixture of [
   if (nodes.status !== "calculated" || nodes.method !== "mean-lunar-node-j2000-meeus-formula") {
     failures.push(`Mean Lunar Nodes metadata wrong for ${fixture.toISOString()}`);
   }
+  if (nodes.nodeType !== "mean") {
+    failures.push(`Mean Lunar Nodes nodeType is not mean for ${fixture.toISOString()}`);
+  }
   const opposition = Math.abs(shortestDelta(nodes.southNode.longitude, nodes.northNode.longitude + 180));
   if (opposition > 0.000001) {
     failures.push(`South Node is not exact opposition for ${fixture.toISOString()}: ${opposition}`);
@@ -178,6 +183,9 @@ for (const fixture of [
   if (result.lunarNodes?.status !== "calculated") {
     failures.push(`${fixture.name}: workbench did not calculate Mean Lunar Nodes`);
   }
+  if (result.lunarNodes?.nodeType !== "mean") {
+    failures.push(`${fixture.name}: workbench lunar node type is not mean`);
+  }
   if (!result.lunarNodes?.northNode || !result.lunarNodes?.southNode) {
     failures.push(`${fixture.name}: missing north/south Mean Lunar Node points`);
   }
@@ -203,8 +211,17 @@ if (!generated.ok) {
   if (snapshot?.lunarNodes?.status !== "calculated") {
     failures.push("realEngineSnapshot.lunarNodes is not calculated");
   }
+  if (snapshot?.lunarNodes?.nodeType !== "mean") {
+    failures.push("realEngineSnapshot.lunarNodes.nodeType is not mean");
+  }
+  if (snapshot?.lunarNodes?.method !== "mean-lunar-node-j2000-meeus-formula") {
+    failures.push("realEngineSnapshot.lunarNodes.method is not the approved Mean Node method");
+  }
   if (snapshot?.calculationQuality?.nodesStatus !== "calculated") {
     failures.push("calculationQuality.nodesStatus is not calculated");
+  }
+  if (snapshot?.calculationQuality?.lilithStatus !== "not-calculated") {
+    failures.push("calculationQuality.lilithStatus must remain not-calculated");
   }
   if (snapshot?.lilith?.status !== "not-calculated") {
     failures.push("Lilith must remain deferred while Mean Lunar Nodes are introduced");
