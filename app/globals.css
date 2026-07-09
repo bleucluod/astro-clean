@@ -7319,3 +7319,249 @@ h6,
     line-height: 2.05;
   }
 }
+
+
+/* Report detail simple app redesign v0.1.272a */
+.report-detail-page {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.report-detail-section-chips {
+  position: sticky;
+  top: 72px;
+  z-index: 24;
+  margin-block: 18px 24px;
+  padding: 10px 0 14px;
+  background: linear-gradient(180deg, rgba(244, 247, 251, 0.96), rgba(244, 247, 251, 0.78));
+  backdrop-filter: blur(16px);
+}
+
+.report-detail-section-chip-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-inline: 2px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.report-detail-section-chips button {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(154, 166, 178, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: #3A4A5C;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.report-detail-section-chips button.active {
+  background: #243447;
+  border-color: #243447;
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(36, 52, 71, 0.16);
+}
+
+.report-detail-app-main-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  max-width: 880px;
+  margin-inline: auto;
+}
+
+.report-detail-section-card,
+.report-detail-primary-reading-card,
+.report-detail-quick-card,
+.report-detail-technical-card,
+.report-detail-next-actions {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(154, 166, 178, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(223, 233, 249, 0.42), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.96));
+  box-shadow: 0 20px 50px rgba(36, 52, 71, 0.08);
+}
+
+.report-detail-primary-reading-card,
+.report-detail-live-facts-card,
+.report-detail-pillars-card,
+.report-detail-live-placements-card,
+.report-detail-live-aspects-card,
+.report-detail-live-special-points-card,
+.report-detail-live-personal-transit-card,
+.report-detail-quick-card,
+.report-detail-technical-card {
+  padding: clamp(18px, 2.8vw, 30px);
+}
+
+.report-detail-app-main-stack :is(
+  .report-detail-pillars-grid,
+  .report-detail-quick-card-grid,
+  .report-detail-card-list-2,
+  .report-detail-card-list,
+  .report-detail-key-value-list,
+  .report-detail-birth-grid,
+  .report-detail-technical-stack,
+  .report-detail-data-grid,
+  .report-detail-live-facts-grid,
+  .report-detail-placement-grid,
+  .report-detail-aspect-grid,
+  .report-detail-special-points-grid,
+  .report-detail-transit-grid
+) {
+  display: grid;
+  grid-template-columns: 1fr !important;
+  gap: 14px;
+}
+
+.report-detail-app-main-stack :is(
+  .mini-card,
+  .report-detail-pillar-card,
+  .report-detail-data-row,
+  .report-detail-key-value,
+  .report-detail-birth-item
+) {
+  min-width: 0;
+  max-width: 100%;
+  padding: 16px;
+  border-radius: 22px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.report-detail-app-main-stack :is(h2, h3, h4, strong, span, p, li, div) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.report-detail-app-main-stack :is(p, li) {
+  line-height: 2.08;
+  text-align: right;
+}
+
+.report-detail-app-main-stack :is(h2, h3, h4) {
+  line-height: 1.55;
+  margin-top: 0;
+}
+
+.report-final-reading-card,
+.report-reading-section-list,
+.report-reading-section-card {
+  max-width: 100%;
+}
+
+.report-final-reading-card {
+  padding: 0;
+  box-shadow: none;
+  border: 0;
+  background: transparent;
+}
+
+.report-reading-section-list {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+}
+
+.report-reading-section-card {
+  min-width: 0;
+  padding: clamp(16px, 2.2vw, 24px);
+  border-radius: 24px;
+  border: 1px solid rgba(154, 166, 178, 0.12);
+  background: rgba(255, 255, 255, 0.84);
+  overflow-wrap: anywhere;
+}
+
+.report-reading-section-card p,
+.report-final-reading-card > .form-hint,
+.report-detail-live-personal-transit-card p,
+.report-detail-quick-card p,
+.report-detail-technical-card p,
+.report-notice p {
+  margin: 0;
+  color: #3A4A5C;
+  line-height: 2.12;
+  font-size: clamp(1rem, 1.55vw, 1.08rem);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.report-detail-pillars-grid {
+  grid-template-columns: 1fr !important;
+}
+
+.report-detail-quick-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 880px;
+  margin: 18px auto 0;
+}
+
+.report-detail-chart-frame,
+.report-detail-chart-frame-hero,
+.report-detail-chart-placeholder {
+  overflow: hidden;
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+@media (min-width: 980px) {
+  .report-detail-app-main-stack .report-detail-pillars-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .report-detail-quick-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .report-detail-page {
+    padding-inline: 0;
+  }
+
+  .report-detail-section-chips {
+    top: 58px;
+    margin-inline: -4px;
+    padding-inline: 4px;
+  }
+
+  .report-detail-section-card,
+  .report-detail-primary-reading-card,
+  .report-detail-quick-card,
+  .report-detail-technical-card,
+  .report-detail-next-actions {
+    border-radius: 24px;
+  }
+
+  .report-detail-primary-reading-card,
+  .report-detail-live-facts-card,
+  .report-detail-pillars-card,
+  .report-detail-live-placements-card,
+  .report-detail-live-aspects-card,
+  .report-detail-live-special-points-card,
+  .report-detail-live-personal-transit-card,
+  .report-detail-quick-card,
+  .report-detail-technical-card {
+    padding: 18px;
+  }
+
+  .report-detail-app-main-stack :is(p, li),
+  .report-reading-section-card p,
+  .report-final-reading-card > .form-hint,
+  .report-detail-live-personal-transit-card p,
+  .report-detail-quick-card p,
+  .report-detail-technical-card p,
+  .report-notice p {
+    line-height: 2.05;
+  }
+}

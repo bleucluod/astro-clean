@@ -1730,3 +1730,8 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Accepted: when readability blocks the live report product moment, scoped /reports/[reportId] app UI polish may be prioritized before deeper report-engine roadmap work.
 - Scope: cleaner reading cards, stronger section separation, mobile-first Persian readability, app-like quick section chips, and no fake astrology data.
 - This does not reopen Sky Pulse on report pages and does not change the public/free vs paid/private consent model.
+
+## Report Detail Simple App Redesign
+- Accepted: when the live report page still feels crowded or unreadable, a bigger layout correction can be shipped after smaller polish passes.
+- Scope: one readable main stack for the report, cleaner app-like navigation chips, full-width readable narrative cards, stacked technical story cards, and mobile-first Persian readability.
+- Guardrail: the redesign must stay on the live report detail surface and must not become a generic site redesign or change the public/private roadmap.

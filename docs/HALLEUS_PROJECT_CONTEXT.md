@@ -1875,3 +1875,16 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - No engine math, transit calculation, account/payment, SEO/indexing, public/private consent, Sky Pulse, or ReportCard live-path changes are included.
 - Personal Transit remains honest and stored-report-only: no browser geolocation, no localStorage location inference, and no synthetic currentResidence.
 - Failure ledger: the first v0.1.271 runner failed before applying because it checked a Persian literal in a PowerShell-generated Node script and the marker mojibaked on Windows. Prevention: v0.1.271a runner uses ASCII/code-level guards only and leaves Persian JSX text untouched.
+
+## v0.1.272a report detail simple app redesign
+- Scope: reduced redesign of the live /reports/[reportId] reading surface after the first v0.1.272 runner failed on an exact layout anchor.
+- The live report body is converted from a dense main-reader grid into a single readable app stack, with wrapped section chips and broad CSS guards against squeezed Persian text inside nested cards/grids.
+- Files intentionally touched: components/ReportDetail.tsx, app/globals.css, package.json, docs, and a new guard script.
+- No ReportV3Experience JSX rewrite in this reduced batch. No engine math, transit calculation, account/payment, SEO/indexing, or public/private consent changes.
+- Personal Transit remains stored-report-only and honest: no browser geolocation, no localStorage residence inference, and no synthetic current residence.
+- Failure ledger: the first v0.1.272 runner failed before applying because a too-exact block anchor did not match the local live file. Prevention: v0.1.272a uses local diagnostic class anchors and reduced class-based transforms.
+
+## v0.1.272b stale UI guard sync
+- Scope: guard-only sync after the v0.1.272a app-stack redesign applied but stale UI guards still required the pre-redesign dense reader grid and narrative-card markers.
+- Fix: scripts/check-report-detail-product-ui.mjs and scripts/check-report-detail-app-ui-polish.mjs now accept the simple app-stack report detail layout while still guarding the live ReportDetail route, ReportV3Experience, section anchors, stored-report-only Personal Transit, and no browser/current-location inference.
+- Prevention: future visual redesigns must update the UI guard contract in the same batch instead of preserving stale layout markers.

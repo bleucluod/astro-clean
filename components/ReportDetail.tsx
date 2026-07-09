@@ -894,6 +894,7 @@ export function ReportDetail({
       </section>
 
       <nav className="report-detail-section-chips" aria-label="دسترسی سریع بخش‌های گزارش">
+        <div className="report-detail-section-chip-scroll">
         {[
           ["final-reading", "روایت اصلی"],
           ["quick-facts", "اطلاعات سریع"],
@@ -916,22 +917,23 @@ export function ReportDetail({
             {label}
           </button>
         ))}
+        </div>
       </nav>
 
-      <div className="report-detail-main-reader-grid">
-        <div className="report-final-reading-anchor report-detail-narrative-card" id="final-reading">
+      <div className="report-detail-app-main-stack">
+        <section className="card report-detail-section-card report-detail-primary-reading-card" id="final-reading">
           <ReportV3Experience report={report} />
-        </div>
+        </section>
 
         <section
-          className="card report-detail-live-facts-card"
+          className="card report-detail-section-card report-detail-live-facts-card"
           id="quick-facts"
           data-report-live-structure-facts={REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION}
         >
           <ReportDetailFactsPanel report={report} />
         </section>
 
-        <section className="card report-detail-pillars-card" id="core-pillars">
+        <section className="card report-detail-section-card report-detail-pillars-card" id="core-pillars">
           <span className="section-label">سه ستون اصلی</span>
           <h2>سه ستون اصلی و فاز ماه تولد</h2>
           <div className="report-detail-pillars-grid">
@@ -945,7 +947,7 @@ export function ReportDetail({
           </div>
         </section>
         <section
-          className="card report-detail-live-placements-card"
+          className="card report-detail-section-card report-detail-live-placements-card"
           id="planet-placements"
           data-report-live-placements-aspects={REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION}
         >
@@ -953,7 +955,7 @@ export function ReportDetail({
         </section>
 
         <section
-          className="card report-detail-live-aspects-card"
+          className="card report-detail-section-card report-detail-live-aspects-card"
           id="aspect-relationships"
           data-report-live-placements-aspects={REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION}
         >
@@ -961,7 +963,7 @@ export function ReportDetail({
         </section>
 
         <section
-          className="card report-detail-live-special-points-card"
+          className="card report-detail-section-card report-detail-live-special-points-card"
           id="special-points"
           data-report-live-lilith-nodes={REPORT_DETAIL_LIVE_LILITH_NODES_VERSION}
         >
@@ -969,7 +971,7 @@ export function ReportDetail({
         </section>
 
         <section
-          className="card report-detail-live-personal-transit-card"
+          className="card report-detail-section-card report-detail-live-personal-transit-card"
           id="personal-transit"
           data-report-live-personal-transit={REPORT_DETAIL_LIVE_PERSONAL_TRANSIT_VERSION}
         >
