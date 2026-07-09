@@ -1723,3 +1723,4 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - This step is limited to live report structure + facts; Lilith deep narrative, personal transit, placements, and aspects remain separate reconciliation steps.
 - v0.1.267: Live report placements/aspects bridge is now wired through ReportDetail for /reports/[reportId]; Lilith deep narrative is now live in ReportDetail; personal transit remains explicitly not live yet.
 - v0.1.268: Lilith deep narrative is now live in ReportDetail for /reports/[reportId] through ReportSpecialPointsNarrativeSection; lunar-node narrative remains live through the writer and the live special-points bridge. Personal transit is not live yet.
+- v0.1.269: Personal transit is now live in ReportDetail via engineData.personalTransitReportData only; if stored report data is missing, the live report shows a missing-state and does not default to Tehran or infer current residence.

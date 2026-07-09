@@ -716,7 +716,7 @@ Audit note: writer-side lunar nodes can describe local True/Osculating nodes, bu
 - Added a live report feature reconciliation guard after the v0.1.265b path audit.
 - ReportCard is not the live /reports/[reportId] surface; live report detail must be judged through app/reports/[reportId]/page.tsx -> ReportDetail -> ReportV3Experience/report-v3/writer.
 - Lilith deep narrative is now live in ReportDetail on /reports/[reportId]; the existing special-points component is parked until a live bridge is added.
-- Personal transit is not live yet on /reports/[reportId]; the existing transit component is parked until a real live bridge with current-residence handling is added.
+- Personal transit is now live in ReportDetail on /reports/[reportId] via engineData.personalTransitReportData only; missing stored transit data shows a no-hidden-Tehran missing-state.
 - Fixed the live technical lunar-node heading so missing node data no longer falls back to a Mean label.
 - Prevention: future report milestones must include a live-path guard proving the feature renders through ReportDetail or explicitly mark it as non-live/legacy.
 
@@ -727,3 +727,4 @@ Audit note: writer-side lunar nodes can describe local True/Osculating nodes, bu
 - This step is limited to live report structure + facts; Lilith deep narrative, personal transit, placements, and aspects remain separate reconciliation steps.
 - v0.1.267: Live report placements/aspects bridge is now wired through ReportDetail for /reports/[reportId]; Lilith deep narrative is now live in ReportDetail; personal transit remains explicitly not live yet.
 - v0.1.268: Lilith deep narrative is now live in ReportDetail for /reports/[reportId] through ReportSpecialPointsNarrativeSection; lunar-node narrative remains live through the writer and the live special-points bridge. Personal transit is not live yet.
+- v0.1.269: Personal transit is now live in ReportDetail via engineData.personalTransitReportData only; if stored report data is missing, the live report shows a missing-state and does not default to Tehran or infer current residence.

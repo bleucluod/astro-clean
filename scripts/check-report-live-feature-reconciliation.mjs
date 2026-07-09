@@ -28,7 +28,6 @@ const ideaGarden = read("docs/HALLEUS_IDEA_GARDEN.md");
 const nonLiveComponents = [
   ["ReportCard", reportCard],
   ["ReportSynthesisSection", synthesisSection],
-  ["PersonalTransitReportSection", personalTransitSection],
 ];
 
 assert(routePage.includes("ReportDetail"), "Live report route must render ReportDetail.");
@@ -59,7 +58,11 @@ assert(reportDetail.includes("v0.1.268-live-report-lilith-nodes"), "ReportDetail
 assert(placementSections.includes("export function ReportPlanetPlacementSections"), "ReportPlanetPlacementSections must exist for the live placements bridge.");
 assert(aspectSections.includes("export function ReportAspectRelationshipSections"), "ReportAspectRelationshipSections must exist for the live aspects bridge.");
 assert(specialPointsSection.includes("export function ReportSpecialPointsNarrativeSection"), "Special points narrative component must exist for the live Lilith/nodes bridge.");
-assert(personalTransitSection.includes("export function PersonalTransitReportSection"), "Personal transit component exists but is not live in /reports/[reportId].");
+assert(personalTransitSection.includes("export function PersonalTransitReportSection"), "Personal transit component must exist for the live personal transit bridge.");
+assert(reportDetail.includes("<PersonalTransitReportSection data={personalTransitReportData} />"), "PersonalTransitReportSection must now render in /reports/[reportId].");
+assert(reportDetail.includes("engineData?.personalTransitReportData"), "ReportDetail must read personal transit only from engineData.personalTransitReportData.");
+assert(reportDetail.includes("v0.1.269-live-report-personal-transit"), "ReportDetail missing v0.1.269 live personal transit marker.");
+assert(reportDetail.includes("تهران را پیش‌فرض نمی‌گیرد"), "ReportDetail must keep a no-hidden-Tehran missing-state for personal transit.");
 
 assert(reportDetail.includes('return "داده محاسبه‌شده ناموجود";'), "Missing lunar-node data must not fall back to Mean label.");
 assert(reportDetail.includes('return "دست‌های ماه";'), "Missing lunar-node data must use a neutral technical heading.");
@@ -70,7 +73,7 @@ assert(projectContext.includes("v0.1.267"), "Project context must record v0.1.26
 assert(projectContext.includes("v0.1.268"), "Project context must record v0.1.268 live Lilith/nodes.");
 assert(projectContext.includes("ReportCard is not the live /reports/[reportId] surface"), "Project context must warn that ReportCard is not the live report detail path.");
 assert(projectContext.includes("Lilith deep narrative is now live in ReportDetail"), "Project context must record Lilith deep narrative as live in ReportDetail.");
-assert(projectContext.includes("Personal transit is not live yet"), "Project context must record personal transit as not live yet.");
+assert(projectContext.includes("Personal transit is now live in ReportDetail"), "Project context must record personal transit as live in ReportDetail.");
 assert(ideaGarden.includes("live report feature reconciliation"), "Idea Garden must keep the reconciliation roadmap visible.");
 
 console.log("Report live feature reconciliation guard passed.");

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 
 function read(file) {
-  return fs.readFileSync(file, "utf8");
+  return fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
 }
 
 function assert(condition, message) {
@@ -33,7 +33,7 @@ assert(writer.includes("buildLunarNodeText"), "Writer must keep live lunar-node 
 assert(writer.includes("local-true-osculating"), "Writer must preserve local True/Osculating node language.");
 assert(projectContext.includes("v0.1.268"), "Project context must record v0.1.268.");
 assert(projectContext.includes("Lilith deep narrative is now live in ReportDetail"), "Project context must say Lilith deep narrative is live in ReportDetail.");
-assert(projectContext.includes("Personal transit is not live yet"), "Project context must still mark personal transit as not live.");
+assert(projectContext.includes("Personal transit is now live in ReportDetail"), "Project context must record v0.1.269 personal transit live status.");
 assert(ideaGarden.includes("live report feature reconciliation"), "Idea Garden must keep the live report reconciliation roadmap visible.");
 
 console.log("Report live Lilith/nodes guard passed.");

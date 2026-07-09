@@ -8,6 +8,7 @@ import { ReportDetailFactsPanel } from "@/components/ReportDetailFactsPanel";
 import { ReportPlanetPlacementSections } from "@/components/ReportPlanetPlacementSections";
 import { ReportAspectRelationshipSections } from "@/components/ReportAspectRelationshipSections";
 import { ReportSpecialPointsNarrativeSection } from "@/components/ReportSpecialPointsNarrativeSection";
+import { PersonalTransitReportSection } from "@/components/PersonalTransitReportSection";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
@@ -29,6 +30,7 @@ import type {
   RealEngineReportLunarNodes,
   RealEngineReportPlacement,
 } from "@/types/astro";
+import type { PersonalTransitReportDataBridge } from "@/src/lib/report-output/personal-transit-report-data-bridge";
 
 type ReportDetailProps = {
   reportId: string;
@@ -95,6 +97,16 @@ type EnergySummary = {
   value: string;
 };
 
+type ReportWithPersonalTransitEngineData = AstrologyReport & {
+  engineData?: {
+    personalTransitReportData?: PersonalTransitReportDataBridge | null;
+  } | null;
+};
+
+function getPersonalTransitReportData(report: AstrologyReport): PersonalTransitReportDataBridge | null {
+  return (report as ReportWithPersonalTransitEngineData).engineData?.personalTransitReportData ?? null;
+}
+
 const reportRepository = getReportRepository();
 const isBetaDatabaseSaveUiEnabled =
   process.env.NEXT_PUBLIC_HALLEUS_ENABLE_BETA_DB_SAVE_UI === "true";
@@ -107,6 +119,8 @@ const REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION =
   "v0.1.267-live-report-placements-aspects" as const;
 const REPORT_DETAIL_LIVE_LILITH_NODES_VERSION =
   "v0.1.268-live-report-lilith-nodes" as const;
+const REPORT_DETAIL_LIVE_PERSONAL_TRANSIT_VERSION =
+  "v0.1.269-live-report-personal-transit" as const;
 
 const PLANET_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
@@ -779,6 +793,10 @@ export function ReportDetail({
   const lunarNodes = report ? buildLunarNodeRows(report) : [];
   const energyRows = buildEnergyRows(placements);
   const retrogradePlanetIds = report ? getRetrogradePlanetIds(report) : [];
+  const personalTransitReportData = useMemo(
+    () => (report ? getPersonalTransitReportData(report) : null),
+    [report],
+  );
   const isReadOnlyReportSource = reportSource === "account" || reportSource === "public";
   const reportsHref = reportSource === "account" ? "/reports?source=account" : "/reports";
 
@@ -883,6 +901,7 @@ export function ReportDetail({
           ["planet-placements", "جایگاه‌ها"],
           ["aspect-relationships", "روابط"],
           ["special-points", "لیلیت و دست‌های ماه"],
+          ["personal-transit", "آسمان امروز"],
           ["chart-wheel", "چرخ چارت"],
           ["technical-tables", "جدول‌ها"],
           ["technical-details", "جزئیات"],
@@ -947,6 +966,24 @@ export function ReportDetail({
           data-report-live-lilith-nodes={REPORT_DETAIL_LIVE_LILITH_NODES_VERSION}
         >
           <ReportSpecialPointsNarrativeSection report={report} />
+        </section>
+
+        <section
+          className="card report-detail-live-personal-transit-card"
+          id="personal-transit"
+          data-report-live-personal-transit={REPORT_DETAIL_LIVE_PERSONAL_TRANSIT_VERSION}
+        >
+          {personalTransitReportData ? (
+            <PersonalTransitReportSection data={personalTransitReportData} />
+          ) : (
+            <div className="notice report-notice">
+              <strong>آسمان امروز برای این گزارش هنوز داده‌ی شخصی ذخیره‌شده ندارد.</strong>
+              <p>
+                این بخش فقط وقتی فعال می‌شود که داده‌ی ترنزیت شخصی داخل خود گزارش موجود باشد.
+                هالیوس برای این بخش تهران را پیش‌فرض نمی‌گیرد و از مرورگر یا محل فعلی حدس نمی‌زند.
+              </p>
+            </div>
+          )}
         </section>
       </div>
 
