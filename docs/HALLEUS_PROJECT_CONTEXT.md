@@ -1869,3 +1869,9 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Workflow failure note for v0.1.269: the first personal-transit live attempt failed because it used a stale replacement anchor, touched the transit component unnecessarily, and used an over-broad browser-location guard; prevention is to keep the live bridge limited to ReportDetail, leave PersonalTransitReportSection unchanged, and scope the guard to the transit data reader.
 - v0.1.270: Final live report QA/cleanup confirms /reports/[reportId] uses ReportDetail rather than ReportCard and has live narrative, quick facts, placements, aspects, Lilith/nodes, and personal-transit bridge sections. No new engine/transit calculation was added.
 - Workflow failure note for v0.1.270 closure: v0.1.269 exposed runner false-positive risk and over-broad guard checks; prevention is to make final QA guard-only/docs-only, require the new guard to pass before commit, and scope browser-location checks to the personal-transit bridge rather than the whole ReportDetail file.
+
+## v0.1.271a report detail app UI polish and runner failure note
+- Scope: live /reports/[reportId] readability polish only. The patch improves app-like card separation, section spacing, Persian reading line-height, chip navigation behavior, mobile-safe grids, and overflow wrapping.
+- No engine math, transit calculation, account/payment, SEO/indexing, public/private consent, Sky Pulse, or ReportCard live-path changes are included.
+- Personal Transit remains honest and stored-report-only: no browser geolocation, no localStorage location inference, and no synthetic currentResidence.
+- Failure ledger: the first v0.1.271 runner failed before applying because it checked a Persian literal in a PowerShell-generated Node script and the marker mojibaked on Windows. Prevention: v0.1.271a runner uses ASCII/code-level guards only and leaves Persian JSX text untouched.

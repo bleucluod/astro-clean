@@ -1725,3 +1725,8 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - v0.1.268: Lilith deep narrative is now live in ReportDetail for /reports/[reportId] through ReportSpecialPointsNarrativeSection; lunar-node narrative remains live through the writer and the live special-points bridge. Personal transit was still not live at that milestone; current status is live as of v0.1.269.
 - v0.1.269: Personal transit is now live in ReportDetail via engineData.personalTransitReportData only; if stored report data is missing, the live report shows a missing-state and does not default to Tehran or infer current residence.
 - v0.1.270: Final live report QA/cleanup confirms /reports/[reportId] uses ReportDetail rather than ReportCard and has live narrative, quick facts, placements, aspects, Lilith/nodes, and personal-transit bridge sections. No new engine/transit calculation was added.
+
+## Report Detail App UI Polish Queue
+- Accepted: when readability blocks the live report product moment, scoped /reports/[reportId] app UI polish may be prioritized before deeper report-engine roadmap work.
+- Scope: cleaner reading cards, stronger section separation, mobile-first Persian readability, app-like quick section chips, and no fake astrology data.
+- This does not reopen Sky Pulse on report pages and does not change the public/free vs paid/private consent model.
