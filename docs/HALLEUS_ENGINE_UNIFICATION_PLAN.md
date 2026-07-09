@@ -694,3 +694,12 @@ Next engine work:
 - If current residence is missing, the probe returns a missing-current-residence state rather than inventing personal precision.
 - Phase one remains free/no-login, Iran current residence only, and uses Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto with conjunction, opposition, trine, square, and sextile. Lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred.
 - Stage status: Personal Transit is now calculation probe done; no report data bridge and no visible report section yet. Next: v0.1.254 Personal transit report data bridge.
+
+## v0.1.254 Personal transit report data bridge
+
+- Personal Transit advanced from calculation probe to report data bridge without resetting the roadmap.
+- The bridge adds `personalTransitReportData` at `engineData.personalTransitReportData` as the report-data slot for personal transit output, while keeping the visible report section deferred to `v0.1.255`.
+- The source remains the real natal-to-transit calculation probe: natal data comes from birth place, birth time, timezone, and coordinates; transit context comes from current residence / current living location.
+- No silent Tehran default is allowed for personal reports. If current residence is missing, the bridge keeps a missing-current-residence state instead of inventing personal precision.
+- This milestone does not change Homepage/Public Sky Pulse, does not add report UI, does not add account/payment/private logic, and does not add a new API or dependency.
+- Stage status: Contract done, Calculation probe done, Data bridge done; First visible report section remains for `v0.1.255`.

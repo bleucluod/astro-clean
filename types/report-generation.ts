@@ -7,6 +7,7 @@ import type {
   ReportOutputQuality,
   ReportOutputSection,
 } from "./report-output";
+import type { PersonalTransitReportDataBridge } from "../src/lib/report-output/personal-transit-report-data-bridge";
 
 export const REPORT_GENERATION_CONTRACT_VERSION = "0.1.155" as const;
 
@@ -70,6 +71,7 @@ export type GeneratedReportEngineData<TNormalizedChart = unknown> = {
   realEngineSnapshot: RealEngineReportSnapshot | null;
   normalizedChart: TNormalizedChart | null;
   chartReportEnrichment: unknown | null;
+  personalTransitReportData?: PersonalTransitReportDataBridge | null;
   copyBlocks: unknown[];
   limitations: string[];
   warnings: string[];

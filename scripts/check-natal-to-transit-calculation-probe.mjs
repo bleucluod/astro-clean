@@ -112,15 +112,15 @@ excludesAll("natal-to-transit calculation probe", probe, [
   "countryCode?:",
 ]);
 
-includesAll("contract must be synced to v0.1.253", contract, [
-  'personalTransitStage: "calculation-probe"',
+includesAll("contract must preserve probe policy after v0.1.254", contract, [
+  'personalTransitStage: "data-bridge"',
   "currentResidenceCorrectionDone: true",
   "calculationProbeDone: true",
   'transitLocationSource: "user-current-residence"',
   '"birth-place-for-natal-current-residence-for-transit"',
   "noSilentTehranDefaultForPersonalTransit: true",
   'completedMilestone: "v0.1.253-natal-to-transit-calculation-probe"',
-  'nextMilestone: "v0.1.254-personal-transit-report-data-bridge"',
+  'nextMilestone: "v0.1.255-personal-transit-first-visible-report-section"',
 ]);
 
 excludesAll("Sky Pulse route must remain unchanged by personal transit", skyPulseRoute, [

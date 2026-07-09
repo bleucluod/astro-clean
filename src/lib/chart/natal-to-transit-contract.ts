@@ -7,7 +7,7 @@ export const NATAL_TO_TRANSIT_CONTRACT_VERSION =
   "v0.1.252-natal-to-transit-contract" as const;
 
 export const NATAL_TO_TRANSIT_CONTRACT_STATUS =
-  "contract-synced-with-calculation-probe" as const;
+  "contract-synced-with-report-data-bridge" as const;
 
 export const NATAL_TO_TRANSIT_CONTRACT_MODE =
   "personal-report-daily-natal-to-transit" as const;
@@ -26,12 +26,12 @@ export type NatalToTransitAspectId = SkyOnlyTransitAspectId;
 
 export const NATAL_TO_TRANSIT_STAGE_POLICY = {
   publicSkyPulseStage: "user-visible-and-hardened",
-  personalTransitStage: "calculation-probe" satisfies NatalToTransitMilestoneStage,
+  personalTransitStage: "data-bridge" satisfies NatalToTransitMilestoneStage,
   scopeDecisionDone: true,
   contractDone: true,
   currentResidenceCorrectionDone: true,
   calculationProbeDone: true,
-  dataBridgeDone: false,
+  dataBridgeDone: true,
   userVisibleDone: false,
   hardenedDone: false,
 } as const;
@@ -111,7 +111,8 @@ export const NATAL_TO_TRANSIT_DATA_POLICY = {
   mustUseCalculatedNatalChartPositions: true,
   noStaticDailyPersonalClaim: true,
   noPersonalTransitFromSkyOnlyAspectAlone: true,
-  noReportDataBridgeBeforeProbe: true,
+  reportDataBridgeAfterProbe: true,
+  personalTransitReportDataPath: "engineData.personalTransitReportData",
   noVisibleReportSectionBeforeDataBridge: true,
   requiresCurrentResidenceInput: true,
   noSilentTehranDefaultForPersonalTransit: true,
@@ -145,7 +146,7 @@ export const NATAL_TO_TRANSIT_APPROVAL = {
   contractApproved: true,
   calculationProbeApproved: true,
   runtimeApproved: false,
-  reportDataBridgeApproved: false,
+  reportDataBridgeApproved: true,
   visibleReportSectionApproved: false,
   homepageRouteChangeApproved: false,
   accountPaymentChangeApproved: false,
@@ -155,12 +156,22 @@ export const NATAL_TO_TRANSIT_APPROVAL = {
   userLocationOrNonIranTimezoneApproved: false,
 } as const;
 
+export const NATAL_TO_TRANSIT_COMPLETED_MILESTONE_HISTORY = {
+  calculationProbe: {
+    completedMilestone: "v0.1.253-natal-to-transit-calculation-probe",
+    preservedAfterDataBridge: true,
+  },
+  reportDataBridge: {
+    completedMilestone: "v0.1.254-personal-transit-report-data-bridge",
+  },
+} as const;
+
 export const NATAL_TO_TRANSIT_NEXT_STEPS = {
-  completedMilestone: "v0.1.253-natal-to-transit-calculation-probe",
+  completedMilestone: "v0.1.254-personal-transit-report-data-bridge",
   completedMilestonePurpose:
-    "calculate bounded aspects between a real natal chart and the current sky for the user current residence without adding report UI",
-  nextMilestone: "v0.1.254-personal-transit-report-data-bridge",
-  followingMilestone: "v0.1.255-personal-transit-first-visible-report-section",
+    "bridge natal-to-transit probe output into generated report data without adding visible report UI",
+  nextMilestone: "v0.1.255-personal-transit-first-visible-report-section",
+  followingMilestone: "post-v0.1.255-report-depth-and-synthesis",
   visibleMilestone: "v0.1.255-personal-transit-first-visible-report-section",
 } as const;
 
