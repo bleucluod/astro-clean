@@ -28,8 +28,6 @@ const ideaGarden = read("docs/HALLEUS_IDEA_GARDEN.md");
 const nonLiveComponents = [
   ["ReportCard", reportCard],
   ["ReportSynthesisSection", synthesisSection],
-  ["ReportPlanetPlacementSections", placementSections],
-  ["ReportAspectRelationshipSections", aspectSections],
   ["ReportSpecialPointsNarrativeSection", specialPointsSection],
   ["PersonalTransitReportSection", personalTransitSection],
 ];
@@ -54,8 +52,11 @@ assert(factsPanel.includes("export function ReportDetailFactsPanel"), "ReportDet
 assert(reportDetail.includes("ReportDetailFactsPanel"), "ReportDetailFactsPanel must now be imported by the live ReportDetail path.");
 assert(reportDetail.includes("<ReportDetailFactsPanel report={report} />"), "ReportDetailFactsPanel must now render in /reports/[reportId].");
 assert(reportDetail.includes("v0.1.266-live-report-structure-facts"), "ReportDetail missing v0.1.266 live structure/facts marker.");
-assert(placementSections.includes("export function ReportPlanetPlacementSections"), "ReportPlanetPlacementSections exists but is not live in /reports/[reportId].");
-assert(aspectSections.includes("export function ReportAspectRelationshipSections"), "ReportAspectRelationshipSections exists but is not live in /reports/[reportId].");
+assert(reportDetail.includes("<ReportPlanetPlacementSections report={report} />"), "ReportPlanetPlacementSections must now render in /reports/[reportId].");
+assert(reportDetail.includes("<ReportAspectRelationshipSections report={report} />"), "ReportAspectRelationshipSections must now render in /reports/[reportId].");
+assert(reportDetail.includes("v0.1.267-live-report-placements-aspects"), "ReportDetail missing v0.1.267 live placements/aspects marker.");
+assert(placementSections.includes("export function ReportPlanetPlacementSections"), "ReportPlanetPlacementSections must exist for the live placements bridge.");
+assert(aspectSections.includes("export function ReportAspectRelationshipSections"), "ReportAspectRelationshipSections must exist for the live aspects bridge.");
 assert(specialPointsSection.includes("export function ReportSpecialPointsNarrativeSection"), "Special points narrative component exists but is not live in /reports/[reportId].");
 assert(personalTransitSection.includes("export function PersonalTransitReportSection"), "Personal transit component exists but is not live in /reports/[reportId].");
 
@@ -64,6 +65,7 @@ assert(reportDetail.includes('return "دست‌های ماه";'), "Missing lunar
 
 assert(projectContext.includes("v0.1.265d"), "Project context must record v0.1.265d live feature reconciliation.");
 assert(projectContext.includes("v0.1.266"), "Project context must record v0.1.266 live report structure/facts.");
+assert(projectContext.includes("v0.1.267"), "Project context must record v0.1.267 live placements/aspects.");
 assert(projectContext.includes("ReportCard is not the live /reports/[reportId] surface"), "Project context must warn that ReportCard is not the live report detail path.");
 assert(projectContext.includes("Lilith deep narrative is not live yet"), "Project context must record Lilith deep narrative as not live yet.");
 assert(projectContext.includes("Personal transit is not live yet"), "Project context must record personal transit as not live yet.");
