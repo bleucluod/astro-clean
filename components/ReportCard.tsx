@@ -3,6 +3,7 @@
 import { RealChartWheel } from "./RealChartWheel";
 import { ReportDetailFactsPanel } from "./ReportDetailFactsPanel";
 import { ReportPlanetPlacementSections } from "./ReportPlanetPlacementSections";
+import { ReportAspectRelationshipSections } from "./ReportAspectRelationshipSections";
 import { PersonalTransitReportSection } from "./PersonalTransitReportSection"; import { ReportSynthesisSection } from "./ReportSynthesisSection";
 import {
   formatZodiacLabel,
@@ -486,6 +487,8 @@ export function ReportCard({ report }: ReportCardProps) {
       ) : null}
 
       <ReportPlanetPlacementSections report={report} />
+
+      <ReportAspectRelationshipSections report={report} />
 
       {shownAspects.length > 0 ? (
         <section className="report-section report-aspect-section">

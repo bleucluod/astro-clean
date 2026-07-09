@@ -738,3 +738,9 @@ Next engine work:
 Added a visible report-detail layer for standalone planet placement sections before aspect relationship prose. The scope is presentation/narrative only: no astrology calculation changes, no transit math changes, and no medical claims. Placement copy may include for-dummies examples, positive/challenge traits, interests, and symbolic anatomy/health language only when clearly framed as non-diagnostic.
 
 Next report-detail batches should add standalone aspect relationship sections, then deepen natal-vs-transit comparison and Lilith / lunar-node narrative.
+
+## v0.1.260 Standalone aspect relationship sections
+
+- Added a componentized report-detail layer for standalone aspect relationship cards after the individual planet-placement sections and before the older compact aspect summary.
+- The page now has a visible, user-friendly relationship reading for priority natal aspects with headings such as Sun sextile Moon / 60-degree style relationships, simple explanations, helpful side, growth side, and orb/trust copy.
+- The batch does not change astrology calculation, transit calculation, Sky Pulse, account/payment, SEO/indexing, or medical/fatalistic claims.
