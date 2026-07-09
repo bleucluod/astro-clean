@@ -7,6 +7,7 @@ import { RealChartWheel } from "@/components/RealChartWheel";
 import { ReportDetailFactsPanel } from "@/components/ReportDetailFactsPanel";
 import { ReportPlanetPlacementSections } from "@/components/ReportPlanetPlacementSections";
 import { ReportAspectRelationshipSections } from "@/components/ReportAspectRelationshipSections";
+import { ReportSpecialPointsNarrativeSection } from "@/components/ReportSpecialPointsNarrativeSection";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
@@ -104,6 +105,8 @@ const REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION =
   "v0.1.266-live-report-structure-facts" as const;
 const REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION =
   "v0.1.267-live-report-placements-aspects" as const;
+const REPORT_DETAIL_LIVE_LILITH_NODES_VERSION =
+  "v0.1.268-live-report-lilith-nodes" as const;
 
 const PLANET_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
@@ -879,6 +882,7 @@ export function ReportDetail({
           ["core-pillars", "سه ستون اصلی"],
           ["planet-placements", "جایگاه‌ها"],
           ["aspect-relationships", "روابط"],
+          ["special-points", "لیلیت و دست‌های ماه"],
           ["chart-wheel", "چرخ چارت"],
           ["technical-tables", "جدول‌ها"],
           ["technical-details", "جزئیات"],
@@ -935,6 +939,14 @@ export function ReportDetail({
           data-report-live-placements-aspects={REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION}
         >
           <ReportAspectRelationshipSections report={report} />
+        </section>
+
+        <section
+          className="card report-detail-live-special-points-card"
+          id="special-points"
+          data-report-live-lilith-nodes={REPORT_DETAIL_LIVE_LILITH_NODES_VERSION}
+        >
+          <ReportSpecialPointsNarrativeSection report={report} />
         </section>
       </div>
 
