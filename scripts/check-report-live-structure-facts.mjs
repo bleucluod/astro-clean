@@ -1,7 +1,7 @@
 import fs from "node:fs";
 
 function read(file) {
-  return fs.readFileSync(file, "utf8");
+  return fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
 }
 
 function assert(condition, message) {
