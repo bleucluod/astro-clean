@@ -774,3 +774,10 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - Technical chart data remains available under `جزئیات فنی چارت` instead of interrupting the main reading path.
 - No engine math, Lilith/Node calculation, transit calculation, account/payment, or SEO behavior changed.
 - Marker: report structure order polish
+
+## v0.1.265 Report Trust Safety Language QA
+- report trust safety language qa
+- User choice: keep safety language very light and show it once for the whole report page, not repeated inside every narrative card.
+- Product copy rule: the page-level note says the report is for inspiration/reflection, not prediction or a final ruling; interpretation and use stay with the reader.
+- Scope: copy and guards only; no astrology engine math, transit calculation, report order rollback, public/private model, account/payment, or SEO behavior changed.
+

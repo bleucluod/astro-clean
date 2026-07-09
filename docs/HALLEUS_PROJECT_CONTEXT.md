@@ -1836,3 +1836,10 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - Failure ledger: report pages exposed a hydration mismatch in SVG line/circle/text coordinate attributes after the report structure polish made chart-wheel rendering more visible. Prevention is to stabilize SSR/client SVG numeric output at the component boundary.
 <!-- RealChartWheel hydration stability fix -->
 <!-- real chart wheel hydration stability -->
+
+## v0.1.265 Report Trust Safety Language QA
+- report trust safety language qa
+- User choice: keep safety language very light and show it once for the whole report page, not repeated inside every narrative card.
+- Product copy rule: the page-level note says the report is for inspiration/reflection, not prediction or a final ruling; interpretation and use stay with the reader.
+- Scope: copy and guards only; no astrology engine math, transit calculation, report order rollback, public/private model, account/payment, or SEO behavior changed.
+

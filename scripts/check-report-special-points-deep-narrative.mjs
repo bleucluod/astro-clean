@@ -46,10 +46,9 @@ for (const marker of [
   "True/Osculating",
   "Mean",
   "local-true-osculating-black-moon-lilith",
+  "این برچسب فقط مدل محاسبه را شفاف می‌کند",
   "سیارک ۱۱۸۱",
   "دارک‌مون/والدماث",
-  "نه حکم قطعی",
-  "حکم قطعی روان‌شناختی یا پزشکی نمی‌دهد",
 ]) {
   assert(component.includes(marker), `Missing component marker: ${marker}`);
 }

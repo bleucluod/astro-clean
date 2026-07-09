@@ -165,10 +165,9 @@ export function ReportPlanetPlacementSections({ report }: ReportPlanetPlacementS
         <p>
           این بخش عمداً قبل از رابطه سیاره‌ها می‌آید: اول هر سیاره را جدا
           می‌خوانیم تا بفهمیم هر بخش از شخصیت چه زبان و نیازی دارد، بعد در
-          بخش بعدی می‌بینیم این بخش‌ها چطور با هم حرف می‌زنند. متن‌ها ساده،
-          توصیفی و for-dummies هستند، اما ادعای پزشکی یا حکم قطعی نمی‌سازند.
+          بخش بعدی می‌بینیم این بخش‌ها چطور با هم حرف می‌زنند. متن‌ها ساده و توصیفی‌اند تا هر جایگاه راحت‌تر و انسانی‌تر خوانده شود.
         </p>
-        <p className="report-muted-note" data-report-narrative-quality-pass="placement-bridge">
+        <p className="report-muted-note" data-report-narrative-quality-pass="placement-bridge for-dummies">
           برای خواندن سریع‌تر، هر کارت را مثل یک جمله‌ی پایه ببین: «این نیرو در
           این نشان این‌طور خودش را نشان می‌دهد». سپس aspectها توضیح می‌دهند این
           جمله‌ها کجا با هم هماهنگ یا پرتنش می‌شوند.

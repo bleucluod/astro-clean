@@ -91,7 +91,7 @@ export function ReportSynthesisSection({
           {" "}{formatPersianNumber(houseCount)} خانه، {formatPersianNumber(lunarNodeCount)}
           نقطه از دست‌های ماه و {hasLilith ? "لیلیت محاسبه‌شده" : "لیلیتِ بدون روایت کامل"}
           کمک می‌کنند بفهمیم این ویژگی‌ها در کدام میدان زندگی فعال‌تر می‌شوند،
-          بدون اینکه خوانش را قطعی یا ترسناک کنیم.
+          و کدام زمینه‌های زندگی را پررنگ‌تر ببینیم.
         </p>
       </div>
 

@@ -76,7 +76,11 @@ const HOUSE_FIELD_UI_LABELS: Record<number, string> = {
 
 const PERSIAN_NUMBER_FORMATTER = new Intl.NumberFormat("fa-IR");
 
-const REPORT_CARD_SAFETY_NOTE = "این گزارش یک خوانش نمادین و تأملی از چارت است؛ برای تصمیم‌های تخصصی زندگی، از مشورت با متخصص همان حوزه کمک بگیر.";
+const REPORT_TRUST_SAFETY_LANGUAGE_VERSION =
+  "v0.1.265-report-trust-safety-language-qa" as const;
+
+const REPORT_CARD_SAFETY_NOTE =
+  "این گزارش برای الهام و تأمل است، نه پیش‌گویی یا حکم قطعی؛ اینکه چه برداشتی از آن می‌گیری و چطور از آن استفاده می‌کنی، با خودِ توست.";
 
 const CHART_ELEMENT_ORDER = ["fire", "earth", "air", "water"] as const;
 const CHART_MODALITY_ORDER = ["cardinal", "fixed", "mutable"] as const;
@@ -546,7 +550,11 @@ export function ReportCard({ report }: ReportCardProps) {
         </section>
       ) : null}
 
-      <div className="notice report-notice report-product-notice" id="personal-note">
+      <div
+        className="notice report-notice report-product-notice"
+        id="personal-note"
+        data-report-trust-safety-language-qa={REPORT_TRUST_SAFETY_LANGUAGE_VERSION}
+      >
         <p>{REPORT_CARD_SAFETY_NOTE}</p>
       </div>
     </article>

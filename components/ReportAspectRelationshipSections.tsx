@@ -82,8 +82,7 @@ export function ReportAspectRelationshipSections({ report }: ReportAspectRelatio
         <p>
           بعد از جایگاه‌های تکی، این بخش نشان می‌دهد همان نیروها چگونه با هم
           حرف می‌زنند: بعضی رابطه‌ها روان‌ترند، بعضی اصطکاک می‌سازند، و بعضی
-          موضوع را پررنگ‌تر می‌کنند. اورب فقط نشانه نزدیکی تماس است؛ متن‌ها
-          قرار نیست حکم قطعی بسازند.
+          موضوع را پررنگ‌تر می‌کنند. اورب هم فقط نشان می‌دهد این تماس چقدر نزدیک و پررنگ است.
         </p>
         <p className="report-muted-note" data-report-narrative-quality-pass="aspect-bridge">
           اگر placementها «واژه‌های» چارت باشند، aspectها «دستور زبان» آن هستند:
