@@ -1686,3 +1686,10 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - Lilith trust copy states that this point is not Mean Lilith, asteroid 1181, or Waldemath/Dark Moon, and that the text is symbolic rather than medical, deterministic, or frightening.
 - No astrology calculation, transit calculation, Sky Pulse, account/payment/private model, or SEO/indexing behavior changed.
 <!-- report special points deep narrative -->
+
+## v0.1.263 Report narrative quality pass
+- Added a narrative-quality pass across the report reading components so the detail page feels less like disconnected cards and more like a guided reading path.
+- The synthesis section now explains how to move from core cards to placements, aspect relationships, special points, and personal transit as one layered report.
+- Placement, aspect, Lilith/Nodes, and Personal Transit sections now include bridge copy that connects each layer to the previous and next layer while keeping non-fatalistic, non-medical trust boundaries.
+- This is report-detail narrative work only: no astrology calculation, transit math, Sky Pulse, account/payment/private, SEO/indexing, or broad redesign changes.
+<!-- report narrative quality pass -->

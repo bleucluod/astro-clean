@@ -1810,3 +1810,10 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - v0.1.262 exposed a stale check-mean-lunar-nodes guard that still required Lilith to remain deferred/not-calculated after Lilith engine and report integration had already become real.
 - Fix: sync the guard to the current calculated Lilith status while preserving local True/Osculating lunar-node assertions.
 - Prevention: when a formerly deferred special point becomes integrated, update older guards that used deferral as a safety expectation.
+
+## v0.1.263 Report narrative quality pass
+- Added a narrative-quality pass across the report reading components so the detail page feels less like disconnected cards and more like a guided reading path.
+- The synthesis section now explains how to move from core cards to placements, aspect relationships, special points, and personal transit as one layered report.
+- Placement, aspect, Lilith/Nodes, and Personal Transit sections now include bridge copy that connects each layer to the previous and next layer while keeping non-fatalistic, non-medical trust boundaries.
+- This is report-detail narrative work only: no astrology calculation, transit math, Sky Pulse, account/payment/private, SEO/indexing, or broad redesign changes.
+<!-- report narrative quality pass -->

@@ -80,7 +80,15 @@ export function ReportAspectRelationshipSections({ report }: ReportAspectRelatio
         <span className="report-eyebrow">رابطه سیاره‌ها</span>
         <h3>ارتباط سیاره‌ها به زبان ساده</h3>
         <p>
-          بعد از جایگاه‌های تکی، این بخش نشان می‌دهد سیاره‌ها چگونه با هم حرف می‌زنند. این خوانش، رابطه‌ها را به زبان ساده‌تر باز می‌کند و اورب را فقط به‌عنوان نشانه شدت نسبی در نظر می‌گیرد.
+          بعد از جایگاه‌های تکی، این بخش نشان می‌دهد همان نیروها چگونه با هم
+          حرف می‌زنند: بعضی رابطه‌ها روان‌ترند، بعضی اصطکاک می‌سازند، و بعضی
+          موضوع را پررنگ‌تر می‌کنند. اورب فقط نشانه نزدیکی تماس است؛ متن‌ها
+          قرار نیست حکم قطعی بسازند.
+        </p>
+        <p className="report-muted-note" data-report-narrative-quality-pass="aspect-bridge">
+          اگر placementها «واژه‌های» چارت باشند، aspectها «دستور زبان» آن هستند:
+          اینجا می‌فهمی چرا دو ویژگی ممکن است همدیگر را تقویت کنند یا از تو
+          انتخاب آگاهانه بخواهند.
         </p>
       </div>
 
@@ -119,7 +127,7 @@ export function ReportAspectRelationshipSections({ report }: ReportAspectRelatio
 
       {hiddenAspectCount > 0 ? (
         <p className="report-muted">
-          {formatPersianNumber(hiddenAspectCount)} رابطه‌ی دیگر هم در داده محاسبه شده، اما برای خوانایی صفحه فقط رابطه‌های اولویت‌دار اینجا باز شده‌اند.
+          {formatPersianNumber(hiddenAspectCount)} رابطه‌ی دیگر هم در داده محاسبه شده، اما برای خوانایی صفحه فقط رابطه‌های اولویت‌دار اینجا باز شده‌اند؛ هدف این بخش عمق خواندن است، نه طولانی کردن فهرست.
         </p>
       ) : null}
     </section>
