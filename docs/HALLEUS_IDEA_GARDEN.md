@@ -1621,3 +1621,11 @@ Next engine work:
 - No silent Tehran default is allowed for personal reports. If current residence is missing, the bridge keeps a missing-current-residence state instead of inventing personal precision.
 - This milestone does not change Homepage/Public Sky Pulse, does not add report UI, does not add account/payment/private logic, and does not add a new API or dependency.
 - Stage status: Contract done, Calculation probe done, Data bridge done; First visible report section remains for `v0.1.255`.
+
+## v0.1.255 Personal Transit First Visible Report Section
+
+- Personal Transit advanced from report data bridge to the first visible report section without changing Homepage/Public Sky Pulse, calculation math, account, payment, privacy, API, or dependency scope.
+- ReportCard now reads personal transit from engineData.personalTransitReportData and renders a guarded section titled آسمان امروز نسبت به چارت تولد تو when report data exists.
+- The visible section preserves the corrected location policy: natal data comes from birth place and birth time, while transit context comes from current residence / current living location. There is no silent Tehran default for personal reports.
+- If current residence is missing, the section shows a missing-current-residence state instead of inventing personal precision or fake daily claims.
+- Stage status: Contract done, Calculation probe done, Data bridge done, First visible report section done; next locked step is post-v0.1.255-report-depth-and-synthesis.

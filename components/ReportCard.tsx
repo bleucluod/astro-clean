@@ -1,6 +1,7 @@
 "use client";
 
 import { RealChartWheel } from "./RealChartWheel";
+import { PersonalTransitReportSection } from "./PersonalTransitReportSection";
 import {
   formatZodiacLabel,
   formatZodiacSign,
@@ -17,9 +18,17 @@ import type {
   RealEngineReportLunarNodes,
   RealEngineReportPlacement,
 } from "@/types/astro";
+import type { PersonalTransitReportDataBridge } from "@/src/lib/report-output/personal-transit-report-data-bridge";
 
 type ReportCardProps = {
   report: AstrologyReport;
+};
+
+type ReportWithPersonalTransitData = AstrologyReport & {
+  engineData?: {
+    personalTransitReportData?: PersonalTransitReportDataBridge | null;
+  } | null;
+  personalTransitReportData?: PersonalTransitReportDataBridge | null;
 };
 
 const PLANET_LABELS_FA: Record<string, string> = {
@@ -210,6 +219,7 @@ export function ReportCard({ report }: ReportCardProps) {
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
   const accuracySummary = buildAccuracySummary(report);
+  const personalTransitReportData = getPersonalTransitReportData(report);
 
   return (
     <article className="card report-card report-product-card">
@@ -508,10 +518,22 @@ export function ReportCard({ report }: ReportCardProps) {
         </section>
       ) : null}
 
+      <PersonalTransitReportSection data={personalTransitReportData} />
+
       <div className="notice report-notice report-product-notice">
         <p>{REPORT_CARD_SAFETY_NOTE}</p>
       </div>
     </article>
+  );
+}
+
+function getPersonalTransitReportData(report: AstrologyReport): PersonalTransitReportDataBridge | null {
+  const candidate = report as ReportWithPersonalTransitData;
+
+  return (
+    candidate.engineData?.personalTransitReportData ??
+    candidate.personalTransitReportData ??
+    null
   );
 }
 

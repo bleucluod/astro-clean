@@ -7,7 +7,7 @@ export const NATAL_TO_TRANSIT_CONTRACT_VERSION =
   "v0.1.252-natal-to-transit-contract" as const;
 
 export const NATAL_TO_TRANSIT_CONTRACT_STATUS =
-  "contract-synced-with-report-data-bridge" as const;
+  "contract-synced-with-visible-report-section" as const;
 
 export const NATAL_TO_TRANSIT_CONTRACT_MODE =
   "personal-report-daily-natal-to-transit" as const;
@@ -26,13 +26,13 @@ export type NatalToTransitAspectId = SkyOnlyTransitAspectId;
 
 export const NATAL_TO_TRANSIT_STAGE_POLICY = {
   publicSkyPulseStage: "user-visible-and-hardened",
-  personalTransitStage: "data-bridge" satisfies NatalToTransitMilestoneStage,
+  personalTransitStage: "user-visible" satisfies NatalToTransitMilestoneStage,
   scopeDecisionDone: true,
   contractDone: true,
   currentResidenceCorrectionDone: true,
   calculationProbeDone: true,
   dataBridgeDone: true,
-  userVisibleDone: false,
+  userVisibleDone: true,
   hardenedDone: false,
 } as const;
 
@@ -113,7 +113,7 @@ export const NATAL_TO_TRANSIT_DATA_POLICY = {
   noPersonalTransitFromSkyOnlyAspectAlone: true,
   reportDataBridgeAfterProbe: true,
   personalTransitReportDataPath: "engineData.personalTransitReportData",
-  noVisibleReportSectionBeforeDataBridge: true,
+  visibleReportSectionAfterDataBridge: true,
   requiresCurrentResidenceInput: true,
   noSilentTehranDefaultForPersonalTransit: true,
 } as const;
@@ -147,7 +147,7 @@ export const NATAL_TO_TRANSIT_APPROVAL = {
   calculationProbeApproved: true,
   runtimeApproved: false,
   reportDataBridgeApproved: true,
-  visibleReportSectionApproved: false,
+  visibleReportSectionApproved: true,
   homepageRouteChangeApproved: false,
   accountPaymentChangeApproved: false,
   externalTransitApiApproved: false,
@@ -162,16 +162,19 @@ export const NATAL_TO_TRANSIT_COMPLETED_MILESTONE_HISTORY = {
     preservedAfterDataBridge: true,
   },
   reportDataBridge: {
-    completedMilestone: "v0.1.254-personal-transit-report-data-bridge",
+    completedMilestone: "v0.1.255-personal-transit-first-visible-report-section",
+  },
+  visibleReportSection: {
+    completedMilestone: "v0.1.255-personal-transit-first-visible-report-section",
   },
 } as const;
 
 export const NATAL_TO_TRANSIT_NEXT_STEPS = {
   completedMilestone: "v0.1.254-personal-transit-report-data-bridge",
   completedMilestonePurpose:
-    "bridge natal-to-transit probe output into generated report data without adding visible report UI",
-  nextMilestone: "v0.1.255-personal-transit-first-visible-report-section",
-  followingMilestone: "post-v0.1.255-report-depth-and-synthesis",
+    "show the first guarded personal transit section inside the report from engineData.personalTransitReportData",
+  nextMilestone: "post-v0.1.255-report-depth-and-synthesis",
+  followingMilestone: "public-private-consent-and-seo-after-core-report-depth",
   visibleMilestone: "v0.1.255-personal-transit-first-visible-report-section",
 } as const;
 
@@ -187,6 +190,7 @@ export type NatalToTransitContract = {
   accessPolicy: typeof NATAL_TO_TRANSIT_ACCESS_POLICY;
   copyPolicy: typeof NATAL_TO_TRANSIT_COPY_POLICY;
   approval: typeof NATAL_TO_TRANSIT_APPROVAL;
+  completedMilestoneHistory: typeof NATAL_TO_TRANSIT_COMPLETED_MILESTONE_HISTORY;
   nextSteps: typeof NATAL_TO_TRANSIT_NEXT_STEPS;
 };
 
@@ -203,6 +207,7 @@ export function getNatalToTransitContract(): NatalToTransitContract {
     accessPolicy: NATAL_TO_TRANSIT_ACCESS_POLICY,
     copyPolicy: NATAL_TO_TRANSIT_COPY_POLICY,
     approval: NATAL_TO_TRANSIT_APPROVAL,
+    completedMilestoneHistory: NATAL_TO_TRANSIT_COMPLETED_MILESTONE_HISTORY,
     nextSteps: NATAL_TO_TRANSIT_NEXT_STEPS,
   };
 }

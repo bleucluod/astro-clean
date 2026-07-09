@@ -1734,3 +1734,17 @@ Next engine work:
 - Failure: `check:natal-to-transit-calculation-probe` still required the historical `v0.1.253-natal-to-transit-calculation-probe` marker after v0.1.254 advanced `NATAL_TO_TRANSIT_NEXT_STEPS.completedMilestone`.
 - Fix: preserve the v0.1.253 calculation-probe milestone in a separate completed milestone history while keeping v0.1.254 as the current completed milestone.
 - Prevention: staged guards should check historical milestone history, not only the mutable current next-steps block.
+
+## v0.1.255 Personal Transit First Visible Report Section
+
+- Personal Transit advanced from report data bridge to the first visible report section without changing Homepage/Public Sky Pulse, calculation math, account, payment, privacy, API, or dependency scope.
+- ReportCard now reads personal transit from engineData.personalTransitReportData and renders a guarded section titled آسمان امروز نسبت به چارت تولد تو when report data exists.
+- The visible section preserves the corrected location policy: natal data comes from birth place and birth time, while transit context comes from current residence / current living location. There is no silent Tehran default for personal reports.
+- If current residence is missing, the section shows a missing-current-residence state instead of inventing personal precision or fake daily claims.
+- Stage status: Contract done, Calculation probe done, Data bridge done, First visible report section done; next locked step is post-v0.1.255-report-depth-and-synthesis.
+
+## v0.1.255 workflow failure note
+
+- Failure: two patch attempts failed before this reduced runner: the first patch was corrupt, and the second patch did not apply to components/ReportCard.tsx because the GitHub/raw context did not match the local formatted file.
+- Fix: switched to an inspected micro-context and a PowerShell-compatible scoped runner that edits only the allowed report UI, contract, guards, package scripts, and authority docs.
+- Prevention: when GitHub/raw output collapses TSX or omits local formatting, use a small local context ZIP before generating JSX patches.
