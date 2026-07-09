@@ -1770,3 +1770,11 @@ Next engine work:
 - Failure: two v0.1.257 UI apply runners failed before changing tracked files. The first used a marker that did not match the local `ReportCard.tsx`; the second had a temporary CJS syntax error caused by nested template interpolation and Persian/mojibake risk.
 - Fix: stop the UI batch, clean artifacts, keep the repository clean, and split the work into an audit-only `v0.1.257a` before any report UI changes.
 - Prevention: avoid Persian literals and nested template literals in temp CJS runners; do not edit `ReportCard.tsx` with broad string replacements; prefer componentized UI batches with tiny import/render changes only after the inventory guard is committed.
+
+## v0.1.258 Report detail visible facts panel
+
+- Added a componentized visible facts panel for report detail pages without rewriting the fragile `components/ReportCard.tsx` body.
+- The panel surfaces standalone Moon sign, retrograde/motion facts, and house cusp degree/sign rows from existing report/engine data.
+- This milestone intentionally avoids new astrology calculations, transit math changes, health/medical claims, account/payment/privacy work, SEO/indexing work, or broad report redesign.
+- `ReportCard.tsx` is only allowed a minimal import/render connection for this batch; future report-detail UI must continue to be componentized.
+

@@ -652,3 +652,10 @@ Next engine work:
 - Current gap: these hooks are not yet all surfaced with the depth and order the user expects. Known gaps include inline motion in the placements-in-houses table, standalone Moon sign, visible house cusp degree/sign rows, standalone planet-placement prose before aspect prose, standalone aspect relationship prose, and deeper natal-vs-transit comparison.
 - This audit intentionally does not claim the report detail page is complete. It records the inventory so later UI batches can be smaller and safer.
 - Health/anatomy report copy remains a narrative/content requirement only with strict non-medical wording. It must not be treated as a calculation guarantee or medical claim.
+
+## v0.1.258 Report detail visible facts panel
+
+- Existing real-engine outputs for Moon placement, retrograde status, and house cusp degree/sign are now surfaced by a separate report-detail facts component.
+- No engine calculation was changed in this milestone; the batch only exposes already-available report/engine fields.
+- Known remaining gaps: inline motion inside the existing placements-in-houses table, standalone planet placement prose, standalone aspect relationship prose, deeper natal-vs-transit comparison, and deeper Lilith/Lunar Nodes narrative.
+

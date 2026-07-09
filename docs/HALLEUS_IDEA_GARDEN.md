@@ -1651,3 +1651,10 @@ Next engine work:
   - Placement explanations should be understandable for non-experts and may include positive/challenging traits, interests, examples, and symbolic anatomy/health correlations where appropriate.
 - Guardrail: do not force details without real/supportable data. Health/anatomy copy must stay symbolic and non-diagnostic; no disease prediction or medical certainty.
 - This milestone is audit/guard only. UI implementation is deferred to smaller componentized batches after this guard.
+
+## v0.1.258 Report detail visible facts panel
+
+- Report-detail completion now begins with visible, user-friendly facts that make existing engine data easier to find.
+- Added the direction that report pages should surface standalone Moon sign, retrograde/motion status, and each house cusp's degree/sign before deeper placement/aspect narrative batches.
+- This supports the user's requested report-page roadmap while keeping medical/anatomy language out of this facts-only batch. Any future anatomy/health wording must remain symbolic, non-diagnostic, and only appear where the interpretation layer can support it.
+

@@ -726,3 +726,10 @@ Next engine work:
 - The next implementation direction should be componentized: add separate report-detail components for placement table completion, standalone placements, aspect relationship prose, house cusp display, and natal-vs-transit comparison, then connect each to `ReportCard.tsx` with the smallest possible import/render change.
 - Do not broaden the engine or transit math in this phase. The goal is to expose and explain existing engine/report outputs honestly before starting SEO, public/private report expansion, or premium/payment work.
 - Previous `ReportCard.tsx` string-replacement failures are now treated as a workflow risk. Avoid broad replacements in that file.
+
+## v0.1.258 Report detail visible facts panel
+
+- Report-depth work now follows a componentized UI path: add focused report-detail components first, then connect them to `ReportCard.tsx` with the smallest possible import/render change.
+- The first componentized visible facts panel covers Moon sign, retrograde/motion facts, and house cusp degree/sign rows.
+- Next report-detail batches should add standalone placement sections and aspect relationship sections as separate components rather than broad string replacement inside `ReportCard.tsx`.
+

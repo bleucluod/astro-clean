@@ -1,6 +1,7 @@
 "use client";
 
 import { RealChartWheel } from "./RealChartWheel";
+import { ReportDetailFactsPanel } from "./ReportDetailFactsPanel";
 import { PersonalTransitReportSection } from "./PersonalTransitReportSection"; import { ReportSynthesisSection } from "./ReportSynthesisSection";
 import {
   formatZodiacLabel,
@@ -517,6 +518,8 @@ export function ReportCard({ report }: ReportCardProps) {
           ) : null}
         </section>
       ) : null}
+
+      <ReportDetailFactsPanel report={report} />
 
       <PersonalTransitReportSection data={personalTransitReportData} />
 
