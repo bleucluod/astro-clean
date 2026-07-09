@@ -7,7 +7,7 @@ export const NATAL_TO_TRANSIT_CONTRACT_VERSION =
   "v0.1.252-natal-to-transit-contract" as const;
 
 export const NATAL_TO_TRANSIT_CONTRACT_STATUS =
-  "contract-only-no-calculation-runtime" as const;
+  "contract-synced-with-calculation-probe" as const;
 
 export const NATAL_TO_TRANSIT_CONTRACT_MODE =
   "personal-report-daily-natal-to-transit" as const;
@@ -26,10 +26,11 @@ export type NatalToTransitAspectId = SkyOnlyTransitAspectId;
 
 export const NATAL_TO_TRANSIT_STAGE_POLICY = {
   publicSkyPulseStage: "user-visible-and-hardened",
-  personalTransitStage: "foundation-contract" satisfies NatalToTransitMilestoneStage,
+  personalTransitStage: "calculation-probe" satisfies NatalToTransitMilestoneStage,
   scopeDecisionDone: true,
   contractDone: true,
-  calculationProbeDone: false,
+  currentResidenceCorrectionDone: true,
+  calculationProbeDone: true,
   dataBridgeDone: false,
   userVisibleDone: false,
   hardenedDone: false,
@@ -37,11 +38,19 @@ export const NATAL_TO_TRANSIT_STAGE_POLICY = {
 
 export const NATAL_TO_TRANSIT_TIME_POLICY = {
   launchAudienceRegion: "iran",
-  personalReportTimeZone: "Asia/Tehran",
-  dailyBoundary: "tehran-local-calendar-day",
-  currentSkySamplePolicy: "reuse-public-sky-pulse-tehran-local-day",
-  userSelectableTimeZoneApproved: false,
-  userLocationTimeZoneDeferred: true,
+  publicHomepagePulseTimeZone: "Asia/Tehran",
+  natalChartLocationSource: "user-birth-place-and-birth-time",
+  transitLocationSource: "user-current-residence",
+  personalTransitLocationPolicy:
+    "birth-place-for-natal-current-residence-for-transit",
+  currentResidenceInputRequired: true,
+  currentResidenceTimeZonePolicy: "iran-current-residence-timezone-for-launch",
+  dailyBoundary: "current-residence-local-calendar-day",
+  currentSkySamplePolicy: "current-residence-local-day-sample",
+  noSilentTehranDefaultForPersonalTransit: true,
+  missingCurrentResidencePolicy:
+    "return-missing-current-residence-state-before-personal-precision",
+  nonIranCurrentResidenceDeferred: true,
   noNonIranLaunchTimezoneClaim: true,
 } as const;
 
@@ -104,6 +113,8 @@ export const NATAL_TO_TRANSIT_DATA_POLICY = {
   noPersonalTransitFromSkyOnlyAspectAlone: true,
   noReportDataBridgeBeforeProbe: true,
   noVisibleReportSectionBeforeDataBridge: true,
+  requiresCurrentResidenceInput: true,
+  noSilentTehranDefaultForPersonalTransit: true,
 } as const;
 
 export const NATAL_TO_TRANSIT_ACCESS_POLICY = {
@@ -132,7 +143,7 @@ export const NATAL_TO_TRANSIT_COPY_POLICY = {
 
 export const NATAL_TO_TRANSIT_APPROVAL = {
   contractApproved: true,
-  calculationProbeApproved: false,
+  calculationProbeApproved: true,
   runtimeApproved: false,
   reportDataBridgeApproved: false,
   visibleReportSectionApproved: false,
@@ -140,14 +151,16 @@ export const NATAL_TO_TRANSIT_APPROVAL = {
   accountPaymentChangeApproved: false,
   externalTransitApiApproved: false,
   newRuntimeDependencyApproved: false,
+  currentResidenceProbeApproved: true,
   userLocationOrNonIranTimezoneApproved: false,
 } as const;
 
 export const NATAL_TO_TRANSIT_NEXT_STEPS = {
-  nextMilestone: "v0.1.253-natal-to-transit-calculation-probe",
-  nextMilestonePurpose:
-    "calculate bounded aspects between the real current Tehran sky and a real natal chart snapshot without adding report UI",
-  followingMilestone: "v0.1.254-personal-transit-report-data-bridge",
+  completedMilestone: "v0.1.253-natal-to-transit-calculation-probe",
+  completedMilestonePurpose:
+    "calculate bounded aspects between a real natal chart and the current sky for the user current residence without adding report UI",
+  nextMilestone: "v0.1.254-personal-transit-report-data-bridge",
+  followingMilestone: "v0.1.255-personal-transit-first-visible-report-section",
   visibleMilestone: "v0.1.255-personal-transit-first-visible-report-section",
 } as const;
 

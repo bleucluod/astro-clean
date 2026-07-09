@@ -1603,3 +1603,12 @@ Next engine work:
 - Phase-one personal transit scope compares calculated current sky transit bodies to calculated natal chart bodies for Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto using conjunction, opposition, trine, square, and sextile with bounded orbs.
 - Lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred. The contract forbids fake static personal daily claims, scary/fatalistic copy, external transit APIs, new runtime dependencies, account/payment gating, user-location expansion, and public homepage route changes.
 - Stage status: Personal Transit is contract-only / foundation done. Next smallest step is v0.1.253 natal-to-transit calculation probe; v0.1.254 remains report data bridge; v0.1.255 remains first visible report section.
+
+## v0.1.253 Natal-to-transit calculation probe
+
+- Personal Transit advanced from contract to calculation probe without changing Homepage/Public Sky Pulse, report UI, report data bridge, account, payment, or SEO routes.
+- Product correction synced: homepage Sky Pulse can remain Tehran-only, but personal report transits must compare the user's natal chart from birth place/time with the current sky for the user's current residence. There is no silent Tehran default for personal reports.
+- The probe uses explicit birth place, birth time, timezone, and coordinates for natal placements, and explicit Iran current residence place/timezone/coordinates for the current transit context.
+- If current residence is missing, the probe returns a missing-current-residence state rather than inventing personal precision.
+- Phase one remains free/no-login, Iran current residence only, and uses Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto with conjunction, opposition, trine, square, and sextile. Lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred.
+- Stage status: Personal Transit is now calculation probe done; no report data bridge and no visible report section yet. Next: v0.1.254 Personal transit report data bridge.
