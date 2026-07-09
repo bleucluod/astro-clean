@@ -1777,4 +1777,3 @@ Next engine work:
 - The panel surfaces standalone Moon sign, retrograde/motion facts, and house cusp degree/sign rows from existing report/engine data.
 - This milestone intentionally avoids new astrology calculations, transit math changes, health/medical claims, account/payment/privacy work, SEO/indexing work, or broad report redesign.
 - `ReportCard.tsx` is only allowed a minimal import/render connection for this batch; future report-detail UI must continue to be componentized.
-

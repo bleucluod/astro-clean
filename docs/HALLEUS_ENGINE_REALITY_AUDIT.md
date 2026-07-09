@@ -658,4 +658,3 @@ Next engine work:
 - Existing real-engine outputs for Moon placement, retrograde status, and house cusp degree/sign are now surfaced by a separate report-detail facts component.
 - No engine calculation was changed in this milestone; the batch only exposes already-available report/engine fields.
 - Known remaining gaps: inline motion inside the existing placements-in-houses table, standalone planet placement prose, standalone aspect relationship prose, deeper natal-vs-transit comparison, and deeper Lilith/Lunar Nodes narrative.
-

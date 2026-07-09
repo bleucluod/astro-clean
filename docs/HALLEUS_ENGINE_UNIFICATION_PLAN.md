@@ -732,4 +732,3 @@ Next engine work:
 - Report-depth work now follows a componentized UI path: add focused report-detail components first, then connect them to `ReportCard.tsx` with the smallest possible import/render change.
 - The first componentized visible facts panel covers Moon sign, retrograde/motion facts, and house cusp degree/sign rows.
 - Next report-detail batches should add standalone placement sections and aspect relationship sections as separate components rather than broad string replacement inside `ReportCard.tsx`.
-

@@ -1657,4 +1657,3 @@ Next engine work:
 - Report-detail completion now begins with visible, user-friendly facts that make existing engine data easier to find.
 - Added the direction that report pages should surface standalone Moon sign, retrograde/motion status, and each house cusp's degree/sign before deeper placement/aspect narrative batches.
 - This supports the user's requested report-page roadmap while keeping medical/anatomy language out of this facts-only batch. Any future anatomy/health wording must remain symbolic, non-diagnostic, and only appear where the interpretation layer can support it.
-
