@@ -1594,3 +1594,12 @@ Next engine work:
 - The hardened scope remains عمومی، رایگان و بدون لاگین، فقط ایران/تهران، with SEO wording around آسمان امروز، ترنزیت امروز، ترنزیت روزانه، وضعیت آسمان امروز، and حال و هوای آسمان امروز.
 - The QA guard protects against fake/hardcoded daily claims, personal natal-to-transit drift, payment/account gating, user-location expansion, and scary/deterministic copy.
 - Stage status: User-visible, hardened public Sky Pulse. Next smallest product path after this is the locked roadmap item for personal transit contract, not broad SEO/indexing or payment work.
+
+## v0.1.252 Natal-to-transit contract
+
+- Public/Homepage Sky Pulse is already user-visible and hardened; this milestone continues the locked roadmap into Personal Transit instead of resetting Sky Pulse.
+- Personal Transit advanced from scope decision to foundation contract only: the product label is آسمان امروز نسبت به چارت تولد تو, with SEO wording including ترنزیت امروز برای چارت تولد and تأثیر آسمان امروز روی چارت تولد.
+- The contract remains free/no-login and Iran/Tehran-only for launch. It requires user-entered birth input and a real natal chart before any personal transit reading, but this milestone adds no calculation probe, no report data bridge, and no visible report section.
+- Phase-one personal transit scope compares calculated current sky transit bodies to calculated natal chart bodies for Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto using conjunction, opposition, trine, square, and sextile with bounded orbs.
+- Lunar nodes, Black Moon Lilith transits, houses, and angles remain deferred. The contract forbids fake static personal daily claims, scary/fatalistic copy, external transit APIs, new runtime dependencies, account/payment gating, user-location expansion, and public homepage route changes.
+- Stage status: Personal Transit is contract-only / foundation done. Next smallest step is v0.1.253 natal-to-transit calculation probe; v0.1.254 remains report data bridge; v0.1.255 remains first visible report section.
