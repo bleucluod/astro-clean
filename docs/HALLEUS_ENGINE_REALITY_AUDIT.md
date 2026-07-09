@@ -719,3 +719,9 @@ Audit note: writer-side lunar nodes can describe local True/Osculating nodes, bu
 - Personal transit is not live yet on /reports/[reportId]; the existing transit component is parked until a real live bridge with current-residence handling is added.
 - Fixed the live technical lunar-node heading so missing node data no longer falls back to a Mean label.
 - Prevention: future report milestones must include a live-path guard proving the feature renders through ReportDetail or explicitly mark it as non-live/legacy.
+
+## v0.1.266 live report structure + facts
+
+- v0.1.266 brings the quick facts panel into the live /reports/[reportId] path through ReportDetail, not ReportCard.
+- ReportDetailFactsPanel is now live for moon sign, retrograde status, and house cusp facts.
+- This step is limited to live report structure + facts; Lilith deep narrative, personal transit, placements, and aspects remain separate reconciliation steps.

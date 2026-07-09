@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { RealChartWheel } from "@/components/RealChartWheel";
+import { ReportDetailFactsPanel } from "@/components/ReportDetailFactsPanel";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
@@ -97,6 +98,8 @@ const isBetaDatabaseSaveUiEnabled =
 
 const REPORT_DETAIL_LIVE_PATH_REALITY_VERSION =
   "v0.1.265b-report-detail-live-path-reality" as const;
+const REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION =
+  "v0.1.266-live-report-structure-facts" as const;
 
 const PLANET_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
@@ -868,6 +871,7 @@ export function ReportDetail({
       <nav className="report-detail-section-chips" aria-label="دسترسی سریع بخش‌های گزارش">
         {[
           ["final-reading", "روایت اصلی"],
+          ["quick-facts", "اطلاعات سریع"],
           ["core-pillars", "سه ستون اصلی"],
           ["chart-wheel", "چرخ چارت"],
           ["technical-tables", "جدول‌ها"],
@@ -889,6 +893,14 @@ export function ReportDetail({
         <div className="report-final-reading-anchor report-detail-narrative-card" id="final-reading">
           <ReportV3Experience report={report} />
         </div>
+
+        <section
+          className="card report-detail-live-facts-card"
+          id="quick-facts"
+          data-report-live-structure-facts={REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION}
+        >
+          <ReportDetailFactsPanel report={report} />
+        </section>
 
         <section className="card report-detail-pillars-card" id="core-pillars">
           <span className="section-label">سه ستون اصلی</span>

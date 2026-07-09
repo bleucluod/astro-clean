@@ -1715,3 +1715,9 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Roadmap correction: report-depth work must now prioritize the live /reports/[reportId] path, not the older ReportCard/preview path.
 - Live report feature reconciliation sequence: guard/reality cleanup, structure + facts, placements + aspects, Lilith + Nodes, Personal Transit, then final sample QA.
 - Lilith deep narrative and Personal Transit remain product goals, but they must not be claimed live until ReportDetail renders them or report-v3/writer exposes them in the live path.
+
+## v0.1.266 live report structure + facts
+
+- v0.1.266 brings the quick facts panel into the live /reports/[reportId] path through ReportDetail, not ReportCard.
+- ReportDetailFactsPanel is now live for moon sign, retrograde status, and house cusp facts.
+- This step is limited to live report structure + facts; Lilith deep narrative, personal transit, placements, and aspects remain separate reconciliation steps.
