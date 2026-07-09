@@ -706,3 +706,7 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - User choice: keep safety language very light and show it once for the whole report page, not repeated inside every narrative card.
 - Product copy rule: the page-level note says the report is for inspiration/reflection, not prediction or a final ruling; interpretation and use stay with the reader.
 - Scope: copy and guards only; no astrology engine math, transit calculation, report order rollback, public/private model, account/payment, or SEO behavior changed.
+
+## v0.1.265b live path lunar-node sync
+
+Audit note: writer-side lunar nodes can describe local True/Osculating nodes, but the live `ReportDetail` technical table previously accepted only `nodeType === "mean"` and hardcoded the heading as Mean. `v0.1.265b` syncs the live technical table to accept `local-true-osculating` and label the visible model dynamically.

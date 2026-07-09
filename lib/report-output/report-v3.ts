@@ -4,6 +4,9 @@ import type { ReportOutputV3 } from "@/types/report-output-v3";
 
 type GenericReport = Record<string, unknown>;
 
+const REPORT_TRUST_SAFETY_NOTE =
+  "این گزارش برای الهام و تأمل است، نه پیش‌گویی یا حکم قطعی؛ اینکه چه برداشتی از آن می‌گیری و چطور از آن استفاده می‌کنی، با خودِ توست.";
+
 type EnhancedV2Report = GenericReport & {
   outputVersion?: string;
   interpretationSections?: ReportOutputSection[];
@@ -16,6 +19,30 @@ type EnhancedV2Report = GenericReport & {
 
 function countWords(text: string) {
   return text.trim().split(/\s+/u).filter(Boolean).length;
+}
+
+function softenRepeatedTrustSafetySentences(text: string) {
+  return text
+    .replace(/\s*این خوانش نمادین و غیرقطعی است؛ هدفش این است که چند الگوی قابل لمس را روشن‌تر کند، نه اینکه برای زندگی حکم قطعی بدهد\.?/gu, "")
+    .replace(/\s*این گزارش هالیوس([^.]*)برای خودشناسی نمادین است، نه حکم قطعی یا پیش‌گویی\.?/gu, " این گزارش هالیوس$1برای خودشناسی و دیدن آرام‌تر چند الگوی اصلی ساخته شده است.")
+    .replace(/\s*این گزارش هالیوس([^.]*)باید نمادین، آرام و غیرقطعی خوانده شود\.?/gu, " این گزارش هالیوس$1برای دیدن آرام‌تر چند الگوی اصلی ساخته شده است.")
+    .replace(/\s*این تمرین کوتاه برای تأمل است، نه برای گرفتن حکم قطعی از چارت\.?/gu, " این تمرین کوتاه برای تأمل آرام‌تر است.")
+    .replace(/\s*این عددها حکم قطعی درباره شخصیت نیستند؛ فقط نشان می‌دهند انرژی چارت از چه مسیرهایی راحت‌تر بیان می‌شود\.?/gu, " این عددها فقط نشان می‌دهند انرژی چارت از چه مسیرهایی راحت‌تر بیان می‌شود.")
+    .replace(/\s*این روابط بیشتر مثل گفت‌وگوی درونی خوانده می‌شوند تا حکم قطعی درباره شخصیت\.?/gu, " این روابط بیشتر مثل گفت‌وگوی درونی خوانده می‌شوند.")
+    .replace(/\s*این رابطه‌ها بیشتر مثل گفت‌وگوی درونی خوانده می‌شوند، نه حکم قطعی درباره شخصیت\.?/gu, " این رابطه‌ها بیشتر مثل گفت‌وگوی درونی خوانده می‌شوند.")
+    .replace(/، نه حکم قطعی شخصیت/gu, "")
+    .replace(/حکم قطعی/gu, "برچسب ثابت")
+    .replace(/پیش‌گویی/gu, "پیش‌بینی")
+    .replace(/نمادین و غیرقطعی/gu, "نمادین و آرام")
+    .replace(/[ \t]{2,}/gu, " ")
+    .trim();
+}
+
+function softenReportSection(section: ReportOutputSection): ReportOutputSection {
+  return {
+    ...section,
+    body: softenRepeatedTrustSafetySentences(section.body),
+  };
 }
 
 function getInputValue(report: GenericReport, key: string, fallback: string) {
@@ -68,8 +95,7 @@ function polishSection(
       "این بخش گزارش را به چند نقطه عملی‌پذیر و آرام تبدیل می‌کند: چه چیزی را می‌توانی بهتر ببینی، کجا لازم است با خودت صادق‌تر باشی، و کدام انتخاب کوچک می‌تواند حس وضوح بیشتری به هفته یا فصل پیش رو بدهد.",
     "reflection-prompts":
       "برای ادامه خوانش، با این پرسش‌ها آرام جلو برو: کدام بخش بیشتر به تجربه فعلی من نزدیک است؟ کجا به مرز روشن‌تر نیاز دارم؟ چه انتخاب کوچکی می‌تواند این هفته مرا به خودم نزدیک‌تر کند؟",
-    disclaimer:
-      "این گزارش برای تأمل شخصی و شناخت نمادین است. قرار نیست جای تصمیم پزشکی، حقوقی، مالی یا تصمیم قطعی زندگی را بگیرد.",
+    disclaimer: REPORT_TRUST_SAFETY_NOTE,
   };
 
   const prefixMap: Record<string, string> = {
@@ -117,8 +143,21 @@ export function enhanceReportOutputV3(
 ): GenericReport & ReportOutputV3 {
   const existing = report as GenericReport & Partial<ReportOutputV3>;
 
-  if (existing.outputV3Version === "v3-persian-sectioned-preview") {
+  if (
+    existing.outputV3Version === "v3-persian-sectioned-preview" &&
+    existing.reportV3Disclaimer === REPORT_TRUST_SAFETY_NOTE
+  ) {
     return existing as GenericReport & ReportOutputV3;
+  }
+
+  if (existing.outputV3Version === "v3-persian-sectioned-preview") {
+    return {
+      ...existing,
+      reportV3Sections: Array.isArray(existing.reportV3Sections)
+        ? existing.reportV3Sections.map(softenReportSection)
+        : [],
+      reportV3Disclaimer: REPORT_TRUST_SAFETY_NOTE,
+    } as GenericReport & ReportOutputV3;
   }
 
   const v2Report = enhanceReportOutputV2(report) as EnhancedV2Report;
@@ -132,7 +171,8 @@ export function enhanceReportOutputV3(
       ) === true);
   const sections = rawSections
     .filter((section) => section.kind !== "disclaimer")
-    .map((section) => polishSection(section, { isSectionedPreview }));
+    .map((section) => polishSection(section, { isSectionedPreview }))
+    .map(softenReportSection);
   const wordCount = sections.reduce((total, section) => total + countWords(section.body), 0);
   const score = isRealEngineReportText
     ? Math.max(v2Report.outputQuality?.score ?? 0, 88)
@@ -154,7 +194,6 @@ export function enhanceReportOutputV3(
         score >= 80 ? "آماده بازبینی" : score >= 60 ? "آزمایشی" : "نیازمند بازبینی",
     },
     reportV3Sections: sections,
-    reportV3Disclaimer:
-      "این گزارش نمادین و تأملی است و جایگزین تصمیم پزشکی، حقوقی، مالی یا تصمیم قطعی زندگی نیست.",
+    reportV3Disclaimer: REPORT_TRUST_SAFETY_NOTE,
   };
 }

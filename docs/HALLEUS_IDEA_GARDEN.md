@@ -1705,3 +1705,7 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - User choice: keep safety language very light and show it once for the whole report page, not repeated inside every narrative card.
 - Product copy rule: the page-level note says the report is for inspiration/reflection, not prediction or a final ruling; interpretation and use stay with the reader.
 - Scope: copy and guards only; no astrology engine math, transit calculation, report order rollback, public/private model, account/payment, or SEO behavior changed.
+
+## v0.1.265b live report detail route source
+
+Product note: the current user-visible report detail page is `/reports/[reportId]` and its live render path is `ReportDetail -> ReportV3Experience -> report-v3`, not `ReportCard`. Future report UX, trust copy, Lilith, lunar-node, and transit work must target/guard that live path before it is considered product-visible.

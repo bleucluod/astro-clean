@@ -95,6 +95,9 @@ const reportRepository = getReportRepository();
 const isBetaDatabaseSaveUiEnabled =
   process.env.NEXT_PUBLIC_HALLEUS_ENABLE_BETA_DB_SAVE_UI === "true";
 
+const REPORT_DETAIL_LIVE_PATH_REALITY_VERSION =
+  "v0.1.265b-report-detail-live-path-reality" as const;
+
 const PLANET_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
   moon: "ماه",
@@ -486,8 +489,20 @@ function isCalculatedLunarNodes(
       lunarNodes.status === "calculated" &&
       "northNode" in lunarNodes &&
       "southNode" in lunarNodes &&
-      lunarNodes.nodeType === "mean",
+      (lunarNodes.nodeType === "mean" || lunarNodes.nodeType === "local-true-osculating"),
   );
+}
+
+function getLunarNodeModelLabel(lunarNodes: RealEngineReportLunarNodes | undefined) {
+  if (isCalculatedLunarNodes(lunarNodes) && lunarNodes.nodeType === "local-true-osculating") {
+    return "مدل نوسانی/واقعی محلی";
+  }
+
+  return "مدل میانگین";
+}
+
+function getLunarNodeTechnicalTitle(lunarNodes: RealEngineReportLunarNodes | undefined) {
+  return `دست‌های ماه با ${getLunarNodeModelLabel(lunarNodes)}`;
 }
 
 function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummary[] {
@@ -497,6 +512,8 @@ function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummary[] {
     return [];
   }
 
+  const modelLabel = getLunarNodeModelLabel(lunarNodes);
+
   return [lunarNodes.northNode, lunarNodes.southNode].map((node) => ({
     id: node.id,
     title: node.id === "north-node" ? "دست شمالی ماه" : "دست جنوبی ماه",
@@ -504,8 +521,8 @@ function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummary[] {
     house: typeof node.house === "number" ? `خانه ${formatPersianNumber(node.house)}` : "خانه ثبت نشده",
     meaning:
       node.id === "north-node"
-        ? "مدل میانگین؛ جهت تمرین تازه و مسیر رشد."
-        : "از دست شمالی + ۱۸۰° به دست آمده؛ الگوی آشنا و نقطه برگشت.",
+        ? `${modelLabel}؛ جهت تمرین تازه و مسیر رشد.`
+        : `${modelLabel}؛ الگوی آشنا و نقطه برگشت.`,
   }));
 }
 
@@ -749,7 +766,10 @@ export function ReportDetail({
 
   if (!isReady) {
     return (
-      <section className="grid report-detail-reader-page">
+      <section
+      className="grid report-detail-reader-page"
+      data-report-detail-live-path-reality={REPORT_DETAIL_LIVE_PATH_REALITY_VERSION}
+    >
         <div className="report-detail-skeleton-card" aria-hidden="true" />
         <div className="report-detail-skeleton-grid" aria-hidden="true">
           <span />
@@ -762,7 +782,10 @@ export function ReportDetail({
 
   if (!report) {
     return (
-      <section className="grid report-detail-reader-page">
+      <section
+      className="grid report-detail-reader-page"
+      data-report-detail-live-path-reality={REPORT_DETAIL_LIVE_PATH_REALITY_VERSION}
+    >
         <EmptyState
           badge="گزارش پیدا نشد"
           title="این گزارش پیدا نشد"
@@ -778,7 +801,10 @@ export function ReportDetail({
   }
 
   return (
-    <section className="grid report-detail-reader-page">
+    <section
+      className="grid report-detail-reader-page"
+      data-report-detail-live-path-reality={REPORT_DETAIL_LIVE_PATH_REALITY_VERSION}
+    >
       <div className="report-detail-back-row">
         <Link className="button secondary" href={reportsHref}>
           بازگشت به گزارش‌ها
@@ -805,7 +831,7 @@ export function ReportDetail({
           </div>
           <h1 id="report-detail-title">{getReportTitle(report)}</h1>
           <p>
-            این کارت فقط جهت‌گیری اولیه می‌دهد: سه ستون اصلی، چرخ چارت و یک پشتوانه بسته برای داده‌های دقیق. روایت اصلی را بالا بخوان و جزئیات فنی را هر زمان خواستی ببین.
+            این صفحه روایت اصلی گزارش، سه ستون، چرخ چارت و پشتوانه محاسبه را یک‌جا نگه می‌دارد. اول خوانش نهایی را بخوان؛ هر وقت خواستی، جزئیات فنی را از بخش‌های پایین‌تر باز کن.
           </p>
         </div>
 
@@ -1012,7 +1038,7 @@ export function ReportDetail({
             </article>
 
             <article className="report-detail-technical-card">
-              <h3>دست‌های ماه با مدل میانگین</h3>
+              <h3>{getLunarNodeTechnicalTitle(report.realEngine.lunarNodes)}</h3>
               <div className="report-detail-card-list report-detail-card-list-2">
                 {lunarNodes.length > 0 ? (
                   lunarNodes.map((node) => (
