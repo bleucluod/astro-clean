@@ -498,10 +498,18 @@ function getLunarNodeModelLabel(lunarNodes: RealEngineReportLunarNodes | undefin
     return "مدل نوسانی/واقعی محلی";
   }
 
-  return "مدل میانگین";
+  if (isCalculatedLunarNodes(lunarNodes) && lunarNodes.nodeType === "mean") {
+    return "مدل میانگین";
+  }
+
+  return "داده محاسبه‌شده ناموجود";
 }
 
 function getLunarNodeTechnicalTitle(lunarNodes: RealEngineReportLunarNodes | undefined) {
+  if (!isCalculatedLunarNodes(lunarNodes)) {
+    return "دست‌های ماه";
+  }
+
   return `دست‌های ماه با ${getLunarNodeModelLabel(lunarNodes)}`;
 }
 

@@ -45,6 +45,15 @@ assert(
 );
 
 assert(
+  reportDetail.includes('return "داده محاسبه‌شده ناموجود";'),
+  "ReportDetail must not default missing lunar-node data to Mean.",
+);
+assert(
+  reportDetail.includes('if (!isCalculatedLunarNodes(lunarNodes)) {\n    return "دست‌های ماه";\n  }'),
+  "ReportDetail must use a neutral lunar-node title when calculated node data is missing.",
+);
+
+assert(
   reportV3Experience.includes("enhancedReport.reportV3Disclaimer"),
   "ReportV3Experience must render the reportV3 disclaimer on the live page.",
 );

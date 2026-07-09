@@ -1709,3 +1709,9 @@ Next report-detail batches should add standalone aspect relationship sections, t
 ## v0.1.265b live report detail route source
 
 Product note: the current user-visible report detail page is `/reports/[reportId]` and its live render path is `ReportDetail -> ReportV3Experience -> report-v3`, not `ReportCard`. Future report UX, trust copy, Lilith, lunar-node, and transit work must target/guard that live path before it is considered product-visible.
+
+## v0.1.265d - live report feature reconciliation
+
+- Roadmap correction: report-depth work must now prioritize the live /reports/[reportId] path, not the older ReportCard/preview path.
+- Live report feature reconciliation sequence: guard/reality cleanup, structure + facts, placements + aspects, Lilith + Nodes, Personal Transit, then final sample QA.
+- Lilith deep narrative and Personal Transit remain product goals, but they must not be claimed live until ReportDetail renders them or report-v3/writer exposes them in the live path.
