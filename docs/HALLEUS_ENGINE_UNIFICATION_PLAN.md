@@ -768,3 +768,9 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - Placement, aspect, Lilith/Nodes, and Personal Transit sections now include bridge copy that connects each layer to the previous and next layer while keeping non-fatalistic, non-medical trust boundaries.
 - This is report-detail narrative work only: no astrology calculation, transit math, Sky Pulse, account/payment/private, SEO/indexing, or broad redesign changes.
 <!-- report narrative quality pass -->
+
+## v0.1.264 Report Structure Order Polish
+- Applied the selected app-like report order: synthesis, quick facts, personal transit, core cards, planet placements, aspect relationships, special points, and technical chart details at the end.
+- Technical chart data remains available under `جزئیات فنی چارت` instead of interrupting the main reading path.
+- No engine math, Lilith/Node calculation, transit calculation, account/payment, or SEO behavior changed.
+- Marker: report structure order polish

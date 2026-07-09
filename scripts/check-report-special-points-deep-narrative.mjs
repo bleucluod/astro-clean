@@ -31,9 +31,9 @@ assert(
   "ReportCard must import and render ReportSpecialPointsNarrativeSection.",
 );
 assert(
-  reportCard.indexOf("<ReportSpecialPointsNarrativeSection report={report} />") <
-    reportCard.indexOf("<ReportPlanetPlacementSections report={report} />"),
-  "Special points narrative must appear before standalone planet placement sections.",
+  reportCard.indexOf("<ReportPlanetPlacementSections report={report} />") <
+    reportCard.indexOf("<ReportSpecialPointsNarrativeSection report={report} />"),
+  "Standalone planet placement sections must appear before special points narrative in the v0.1.264 app-like report order.",
 );
 
 for (const marker of [

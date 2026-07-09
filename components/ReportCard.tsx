@@ -5,7 +5,8 @@ import { ReportDetailFactsPanel } from "./ReportDetailFactsPanel";
 import { ReportPlanetPlacementSections } from "./ReportPlanetPlacementSections";
 import { ReportAspectRelationshipSections } from "./ReportAspectRelationshipSections";
 import { ReportSpecialPointsNarrativeSection } from "./ReportSpecialPointsNarrativeSection";
-import { PersonalTransitReportSection } from "./PersonalTransitReportSection"; import { ReportSynthesisSection } from "./ReportSynthesisSection";
+import { PersonalTransitReportSection } from "./PersonalTransitReportSection";
+import { ReportSynthesisSection } from "./ReportSynthesisSection";
 import {
   formatZodiacLabel,
   formatZodiacSign,
@@ -242,8 +243,8 @@ export function ReportCard({ report }: ReportCardProps) {
           </h2>
 
           <p>
-            این کارت فقط جهت‌گیری اولیه می‌دهد: سه ستون اصلی، چرخ چارت و یک پشتوانه بسته برای داده‌های دقیق.
-            روایت اصلی پایین صفحه می‌آید و جزئیات فنی جلوی خواندن را نمی‌گیرند.
+            این صفحه مثل یک مسیر خواندن اپلیکیشنی چیده شده است: اول روایت و نکته‌های کاربردی،
+            بعد لایه‌های عمیق‌تر، و در پایان جزئیات فنی چارت برای بررسی دقیق‌تر.
           </p>
         </div>
 
@@ -270,11 +271,25 @@ export function ReportCard({ report }: ReportCardProps) {
             </a>
 
             <a className="button secondary" href="#personal-note">
-              یادداشت کوتاه
+              یادداشت ایمنی
             </a>
           </div>
         </div>
       </header>
+
+      <ReportSynthesisSection
+        coreCards={coreCards}
+        aspectCount={realEngineAspects.length}
+        shownAspectCount={shownAspects.length}
+        houseCount={houseRows.length}
+        lunarNodeCount={lunarNodeRows.length}
+        hasLilith={Boolean(lilithRow)}
+        personalTransitStatus={personalTransitReportData?.status ?? null}
+      />
+
+      <ReportDetailFactsPanel report={report} />
+
+      <PersonalTransitReportSection data={personalTransitReportData} />
 
       <section className="report-section report-core-section">
         <div className="report-section-heading">
@@ -304,15 +319,59 @@ export function ReportCard({ report }: ReportCardProps) {
         </div>
       </section>
 
-      {report.realEngine ? (
-        <section className="report-section report-calculation-section">
+      <ReportPlanetPlacementSections report={report} />
+
+      <ReportAspectRelationshipSections report={report} />
+
+      {shownAspects.length > 0 ? (
+        <section className="report-section report-aspect-section">
           <div className="report-section-heading">
-            <span className="section-label">چرخ چارت</span>
-            <h3>چارت تولد محاسبه‌شده</h3>
+            <span className="section-label">روابط سیاره‌ها</span>
+            <h3>روابط مهم بین سیاره‌ها</h3>
             <p>
-              این چرخ برای دیدن نقشه کلی است، نه برای خواندن همه عددها.
-              جایگاه‌ها، خانه‌ها، محورها و چند رابطه برجسته اینجا خلاصه شده‌اند؛
-              داده‌های دقیق‌تر در پنل پشتوانه بسته مانده‌اند.
+              اینجا رابطه‌هایی نمایش داده می‌شوند که از نظر وزن چارت مهم‌ترند: نورها، حاکم چارت، خانه‌های فعال، رابطه‌های تنشی و بعد اورب.
+              بقیه داده‌ها در پشتوانه محاسبه باقی می‌مانند.
+            </p>
+          </div>
+
+          <div className="report-aspect-grid">
+            {shownAspects.map((aspect) => (
+              <article className="report-aspect-card" key={aspect.id}>
+                <div>
+                  <strong>
+                    {aspect.firstPlanetLabel}{" "}
+                    <span aria-hidden="true">{aspect.glyph}</span>{" "}
+                    {aspect.secondPlanetLabel}
+                  </strong>
+                  <span>{formatAspectAngleSummary(aspect)}</span>
+                </div>
+                <p>{aspect.narrative}</p>
+              </article>
+            ))}
+          </div>
+
+          {hiddenAspectCount > 0 ? (
+            <p className="report-muted-note">
+              {hiddenAspectCount.toLocaleString("fa-IR")} رابطه سیاره‌ای دیگر فقط در پشتوانه داده نگه داشته شده‌اند.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      <ReportSpecialPointsNarrativeSection report={report} />
+
+      {report.realEngine ? (
+        <section
+          className="report-section report-calculation-section report-technical-details-section"
+          data-report-structure-order-polish="v0.1.264-report-structure-order-polish"
+        >
+          <div className="report-section-heading">
+            <span className="section-label">جزئیات فنی چارت</span>
+            <h3>جزئیات فنی چارت</h3>
+            <p>
+              این قسمت پشتوانه محاسبه است: چرخ چارت، خانه‌ها، محورها، درجه‌ها و داده‌های خام.
+              مسیر اصلی گزارش بالاتر آمده تا خواندن مثل یک اپلیکیشن روان شروع شود؛
+              اینجا برای زمانی است که می‌خواهی جزئیات فنی را دقیق‌تر بررسی کنی.
             </p>
           </div>
 
@@ -329,7 +388,7 @@ export function ReportCard({ report }: ReportCardProps) {
           </div>
 
           <details className="report-placement-details report-polish-advanced-panel">
-            <summary>پشتوانه محاسبه و داده‌های دقیق</summary>
+            <summary>باز کردن داده‌های دقیق، خانه‌ها و جدول‌های پشتوانه</summary>
             <p>
               این بخش برای شفافیت است. اگر فقط می‌خواهی گزارش را مثل یک روایت بخوانی،
               لازم نیست همه کارت‌های فنی را باز کنی.
@@ -487,63 +546,8 @@ export function ReportCard({ report }: ReportCardProps) {
         </section>
       ) : null}
 
-      <ReportSpecialPointsNarrativeSection report={report} />
-
-      <ReportPlanetPlacementSections report={report} />
-
-      <ReportAspectRelationshipSections report={report} />
-
-      {shownAspects.length > 0 ? (
-        <section className="report-section report-aspect-section">
-          <div className="report-section-heading">
-            <span className="section-label">روابط سیاره‌ها</span>
-            <h3>روابط مهم بین سیاره‌ها</h3>
-            <p>
-              اینجا رابطه‌هایی نمایش داده می‌شوند که از نظر وزن چارت مهم‌ترند: نورها، حاکم چارت، خانه‌های فعال، رابطه‌های تنشی و بعد اورب.
-              بقیه داده‌ها در پشتوانه محاسبه باقی می‌مانند.
-            </p>
-          </div>
-
-          <div className="report-aspect-grid">
-            {shownAspects.map((aspect) => (
-              <article className="report-aspect-card" key={aspect.id}>
-                <div>
-                  <strong>
-                    {aspect.firstPlanetLabel}{" "}
-                    <span aria-hidden="true">{aspect.glyph}</span>{" "}
-                    {aspect.secondPlanetLabel}
-                  </strong>
-                  <span>{formatAspectAngleSummary(aspect)}</span>
-                </div>
-                <p>{aspect.narrative}</p>
-              </article>
-            ))}
-          </div>
-
-          {hiddenAspectCount > 0 ? (
-            <p className="report-muted-note">
-              {hiddenAspectCount.toLocaleString("fa-IR")} رابطه سیاره‌ای دیگر فقط در پشتوانه داده نگه داشته شده‌اند.
-            </p>
-          ) : null}
-        </section>
-      ) : null}
-
-      <ReportDetailFactsPanel report={report} />
-
-      <PersonalTransitReportSection data={personalTransitReportData} />
-
-      <div className="notice report-notice report-product-notice">
-        <p><ReportSynthesisSection
-        coreCards={coreCards}
-        aspectCount={realEngineAspects.length}
-        shownAspectCount={shownAspects.length}
-        houseCount={houseRows.length}
-        lunarNodeCount={lunarNodeRows.length}
-        hasLilith={Boolean(lilithRow)}
-        personalTransitStatus={personalTransitReportData?.status ?? null}
-      />
-
-      {REPORT_CARD_SAFETY_NOTE}</p>
+      <div className="notice report-notice report-product-notice" id="personal-note">
+        <p>{REPORT_CARD_SAFETY_NOTE}</p>
       </div>
     </article>
   );
