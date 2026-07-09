@@ -198,8 +198,14 @@ if (!generated.ok) {
   assert(snapshot?.lunarNodes?.nodeType === "local-true-osculating", "realEngineSnapshot.lunarNodes.nodeType is not local-true-osculating");
   assert(snapshot?.lunarNodes?.method === localMethod, "realEngineSnapshot.lunarNodes.method is not local True/Osculating method");
   assert(snapshot?.calculationQuality?.nodesStatus === "calculated", "calculationQuality.nodesStatus is not calculated");
-  assert(snapshot?.calculationQuality?.lilithStatus === "not-calculated", "calculationQuality.lilithStatus must remain not-calculated");
-  assert(snapshot?.lilith?.status === "not-calculated", "Lilith must remain deferred while lunar nodes are integrated");
+  assert(
+  snapshot?.calculationQuality?.lilithStatus === "calculated",
+  "calculationQuality.lilithStatus must reflect the calculated Lilith engine output",
+);
+assert(
+  snapshot?.lilith?.status === "calculated",
+  "Lilith must remain calculated while lunar nodes stay integrated",
+);
 }
 
 const engine = read("src/lib/chart/real-chart-engine.ts");

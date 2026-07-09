@@ -1797,3 +1797,16 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - This remains report-detail work only: no Sky Pulse reset, no account/payment/private model work, and no SEO/indexing implementation.
 
 <!-- personal transit comparison depth -->
+
+
+## v0.1.262 Report Special Points Deep Narrative
+- Added a componentized report-detail narrative section for Lilith and the lunar nodes / دست‌های ماه.
+- This is the report special points deep narrative batch: Lilith and Nodes now get a deeper, human, non-fatalistic reading rather than remaining only technical rows.
+- The section keeps Mean Node and True/Osculating Node labels separate and keeps the local True/Osculating Black Moon Lilith model explicit.
+- Lilith trust copy states that this point is not Mean Lilith, asteroid 1181, or Waldemath/Dark Moon, and that the text is symbolic rather than medical, deterministic, or frightening.
+- No astrology calculation, transit calculation, Sky Pulse, account/payment/private model, or SEO/indexing behavior changed.
+<!-- report special points deep narrative -->
+## Workflow note — v0.1.262 stale mean-lunar-nodes guard fix
+- v0.1.262 exposed a stale check-mean-lunar-nodes guard that still required Lilith to remain deferred/not-calculated after Lilith engine and report integration had already become real.
+- Fix: sync the guard to the current calculated Lilith status while preserving local True/Osculating lunar-node assertions.
+- Prevention: when a formerly deferred special point becomes integrated, update older guards that used deferral as a safety expectation.
