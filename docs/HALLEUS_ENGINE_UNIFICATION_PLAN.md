@@ -780,4 +780,3 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - User choice: keep safety language very light and show it once for the whole report page, not repeated inside every narrative card.
 - Product copy rule: the page-level note says the report is for inspiration/reflection, not prediction or a final ruling; interpretation and use stay with the reader.
 - Scope: copy and guards only; no astrology engine math, transit calculation, report order rollback, public/private model, account/payment, or SEO behavior changed.
-
