@@ -1669,3 +1669,11 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - Added a componentized report-detail layer for standalone aspect relationship cards after the individual planet-placement sections and before the older compact aspect summary.
 - The page now has a visible, user-friendly relationship reading for priority natal aspects with headings such as Sun sextile Moon / 60-degree style relationships, simple explanations, helpful side, growth side, and orb/trust copy.
 - The batch does not change astrology calculation, transit calculation, Sky Pulse, account/payment, SEO/indexing, or medical/fatalistic claims.
+
+## v0.1.261 Personal Transit Comparison Depth
+- Added a deeper visible personal transit comparison section for natal chart vs today, using the existing `engineData.personalTransitReportData` bridge rather than changing transit math.
+- The section keeps current residence as required for personal transit and preserves the no silent Tehran default rule.
+- The UI now explains ready, missing-current-residence, and partial-no-aspects states with more useful interpretation, orb/trust copy, and non-fatalistic language.
+- This remains report-detail work only: no Sky Pulse reset, no account/payment/private model work, and no SEO/indexing implementation.
+
+<!-- personal transit comparison depth -->
