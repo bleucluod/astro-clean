@@ -732,3 +732,9 @@ Next engine work:
 - Report-depth work now follows a componentized UI path: add focused report-detail components first, then connect them to `ReportCard.tsx` with the smallest possible import/render change.
 - The first componentized visible facts panel covers Moon sign, retrograde/motion facts, and house cusp degree/sign rows.
 - Next report-detail batches should add standalone placement sections and aspect relationship sections as separate components rather than broad string replacement inside `ReportCard.tsx`.
+
+## v0.1.259 Standalone planet placement sections
+
+Added a visible report-detail layer for standalone planet placement sections before aspect relationship prose. The scope is presentation/narrative only: no astrology calculation changes, no transit math changes, and no medical claims. Placement copy may include for-dummies examples, positive/challenge traits, interests, and symbolic anatomy/health language only when clearly framed as non-diagnostic.
+
+Next report-detail batches should add standalone aspect relationship sections, then deepen natal-vs-transit comparison and Lilith / lunar-node narrative.

@@ -1657,3 +1657,9 @@ Next engine work:
 - Report-detail completion now begins with visible, user-friendly facts that make existing engine data easier to find.
 - Added the direction that report pages should surface standalone Moon sign, retrograde/motion status, and each house cusp's degree/sign before deeper placement/aspect narrative batches.
 - This supports the user's requested report-page roadmap while keeping medical/anatomy language out of this facts-only batch. Any future anatomy/health wording must remain symbolic, non-diagnostic, and only appear where the interpretation layer can support it.
+
+## v0.1.259 Standalone planet placement sections
+
+Added a visible report-detail layer for standalone planet placement sections before aspect relationship prose. The scope is presentation/narrative only: no astrology calculation changes, no transit math changes, and no medical claims. Placement copy may include for-dummies examples, positive/challenge traits, interests, and symbolic anatomy/health language only when clearly framed as non-diagnostic.
+
+Next report-detail batches should add standalone aspect relationship sections, then deepen natal-vs-transit comparison and Lilith / lunar-node narrative.

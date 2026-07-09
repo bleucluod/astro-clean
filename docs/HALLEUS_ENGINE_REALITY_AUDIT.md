@@ -658,3 +658,9 @@ Next engine work:
 - Existing real-engine outputs for Moon placement, retrograde status, and house cusp degree/sign are now surfaced by a separate report-detail facts component.
 - No engine calculation was changed in this milestone; the batch only exposes already-available report/engine fields.
 - Known remaining gaps: inline motion inside the existing placements-in-houses table, standalone planet placement prose, standalone aspect relationship prose, deeper natal-vs-transit comparison, and deeper Lilith/Lunar Nodes narrative.
+
+## v0.1.259 Standalone planet placement sections
+
+Added a visible report-detail layer for standalone planet placement sections before aspect relationship prose. The scope is presentation/narrative only: no astrology calculation changes, no transit math changes, and no medical claims. Placement copy may include for-dummies examples, positive/challenge traits, interests, and symbolic anatomy/health language only when clearly framed as non-diagnostic.
+
+Next report-detail batches should add standalone aspect relationship sections, then deepen natal-vs-transit comparison and Lilith / lunar-node narrative.
