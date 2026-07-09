@@ -719,3 +719,10 @@ Next engine work:
 - The section connects the three core cards, calculated aspect count, active technical report data, and the personal transit visible section without changing calculation math.
 - It keeps the report honest: no fake daily claim, no silent Tehran default, no account/payment/private logic, and no homepage/Public Sky Pulse change.
 - Scope: first pass only. Deeper narrative synthesis, richer chart-spine prose, and premium-feel report depth remain after this milestone.
+
+## v0.1.257a Report detail inventory audit
+
+- Report-depth work is now split into an audit-first path before more UI mutation.
+- The next implementation direction should be componentized: add separate report-detail components for placement table completion, standalone placements, aspect relationship prose, house cusp display, and natal-vs-transit comparison, then connect each to `ReportCard.tsx` with the smallest possible import/render change.
+- Do not broaden the engine or transit math in this phase. The goal is to expose and explain existing engine/report outputs honestly before starting SEO, public/private report expansion, or premium/payment work.
+- Previous `ReportCard.tsx` string-replacement failures are now treated as a workflow risk. Avoid broad replacements in that file.

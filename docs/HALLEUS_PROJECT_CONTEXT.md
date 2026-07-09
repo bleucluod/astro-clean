@@ -1756,3 +1756,17 @@ Next engine work:
 - The section connects the three core cards, calculated aspect count, active technical report data, and the personal transit visible section without changing calculation math.
 - It keeps the report honest: no fake daily claim, no silent Tehran default, no account/payment/private logic, and no homepage/Public Sky Pulse change.
 - Scope: first pass only. Deeper narrative synthesis, richer chart-spine prose, and premium-feel report depth remain after this milestone.
+
+## v0.1.257a Report detail inventory audit
+
+- Scope reduced after the failed v0.1.257 UI runners: this milestone does not edit `components/ReportCard.tsx` or any UI/runtime file.
+- Added a report-detail inventory guard that records what the current report page already exposes and what must still be brought into report details.
+- Locked the next report-detail completion requirements: inline retrograde/motion in the placements-in-houses table, standalone Moon sign, visible house cusp degree/sign, standalone planet-placement sections before aspect sections, standalone aspect relationship sections, deeper natal-vs-today transit comparison, and deeper Lilith / Lunar Nodes narrative.
+- User-facing placement explanations may include for-dummies details such as positive/challenging traits, interests, examples, and symbolic anatomy/health correlations only when astrologically appropriate. They must not become medical diagnosis, disease prediction, fear copy, or unsupported certainty.
+- No Sky Pulse foundation, transit math, account/payment/privacy, SEO/indexing, dependency, API, or broad redesign change is included.
+
+## v0.1.257 workflow failure note
+
+- Failure: two v0.1.257 UI apply runners failed before changing tracked files. The first used a marker that did not match the local `ReportCard.tsx`; the second had a temporary CJS syntax error caused by nested template interpolation and Persian/mojibake risk.
+- Fix: stop the UI batch, clean artifacts, keep the repository clean, and split the work into an audit-only `v0.1.257a` before any report UI changes.
+- Prevention: avoid Persian literals and nested template literals in temp CJS runners; do not edit `ReportCard.tsx` with broad string replacements; prefer componentized UI batches with tiny import/render changes only after the inventory guard is committed.

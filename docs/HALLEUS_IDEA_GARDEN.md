@@ -1637,3 +1637,17 @@ Next engine work:
 - The section connects the three core cards, calculated aspect count, active technical report data, and the personal transit visible section without changing calculation math.
 - It keeps the report honest: no fake daily claim, no silent Tehran default, no account/payment/private logic, and no homepage/Public Sky Pulse change.
 - Scope: first pass only. Deeper narrative synthesis, richer chart-spine prose, and premium-feel report depth remain after this milestone.
+
+## v0.1.257a Report detail inventory audit
+
+- Product decision: the next active product work is report-detail completion. Every real engine/report feature already built should either be visible in the report detail page or explicitly tracked as deferred.
+- Required report-detail items now tracked:
+  - The placements-in-houses table must show motion/retrograde inline, for example Saturn in a house with retrograde status beside it.
+  - A clear standalone Moon sign / `neshan-e mah-e tavalod` entry must be added.
+  - The report must deepen natal chart vs today's/transit chart comparison without silently defaulting personal transit location to Tehran.
+  - Each house should show which sign and degree it starts from when the available house/cusp data is honest enough to display.
+  - Standalone planet-placement sections must appear before planet relationship/aspect sections, with headings such as Sun in Sagittarius or Moon in Aquarius.
+  - Standalone aspect relationship sections must follow placement sections, with headings such as Sun sextile Moon.
+  - Placement explanations should be understandable for non-experts and may include positive/challenging traits, interests, examples, and symbolic anatomy/health correlations where appropriate.
+- Guardrail: do not force details without real/supportable data. Health/anatomy copy must stay symbolic and non-diagnostic; no disease prediction or medical certainty.
+- This milestone is audit/guard only. UI implementation is deferred to smaller componentized batches after this guard.

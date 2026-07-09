@@ -645,3 +645,10 @@ Next engine work:
 - The section connects the three core cards, calculated aspect count, active technical report data, and the personal transit visible section without changing calculation math.
 - It keeps the report honest: no fake daily claim, no silent Tehran default, no account/payment/private logic, and no homepage/Public Sky Pulse change.
 - Scope: first pass only. Deeper narrative synthesis, richer chart-spine prose, and premium-feel report depth remain after this milestone.
+
+## v0.1.257a Report detail inventory audit
+
+- Current report detail reality after v0.1.256: the report page has hooks for real placements, aspects, retrograde source data, birth Moon phase, house rows with cusp labels, Lunar Nodes, Lilith, Personal Transit, and the first synthesis section.
+- Current gap: these hooks are not yet all surfaced with the depth and order the user expects. Known gaps include inline motion in the placements-in-houses table, standalone Moon sign, visible house cusp degree/sign rows, standalone planet-placement prose before aspect prose, standalone aspect relationship prose, and deeper natal-vs-transit comparison.
+- This audit intentionally does not claim the report detail page is complete. It records the inventory so later UI batches can be smaller and safer.
+- Health/anatomy report copy remains a narrative/content requirement only with strict non-medical wording. It must not be treated as a calculation guarantee or medical claim.
