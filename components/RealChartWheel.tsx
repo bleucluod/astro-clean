@@ -423,7 +423,12 @@ function polarPoint(longitude: number, radius: number): { x: number; y: number }
   const angle = ((normalizeLongitude(longitude) - 90) * Math.PI) / 180;
 
   return {
-    x: 200 + radius * Math.cos(angle),
-    y: 200 + radius * Math.sin(angle),
+    x: toHydrationStableWheelCoordinate(200 + radius * Math.cos(angle)),
+    y: toHydrationStableWheelCoordinate(200 + radius * Math.sin(angle)),
   };
+}
+
+function toHydrationStableWheelCoordinate(value: number): number {
+  // v0.1.264a-real-chart-wheel-hydration-stability
+  return Number(value.toFixed(4));
 }

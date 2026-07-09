@@ -1828,3 +1828,11 @@ Next report-detail batches should add standalone aspect relationship sections, t
 - The v0.1.262 special-points guard still required Lilith/Nodes to appear before standalone placement/aspect sections.
 - Fix: sync the guard to the new approved order instead of reverting the user-approved page structure.
 - Prevention: when a later structure/order milestone intentionally changes section order, update older order guards in the same batch.
+
+## v0.1.264a RealChartWheel Hydration Stability
+- Fix: rounded RealChartWheel SVG coordinates to a stable fixed precision before rendering, preventing server/client hydration mismatches caused by tiny floating-point serialization differences.
+- Scope: targeted chart-wheel rendering only; no astrology engine math, report order, transit calculation, public/private model, or SEO behavior changed.
+- Guard: added `check:real-chart-wheel-hydration-stability` and wired it into report/project checks.
+- Failure ledger: report pages exposed a hydration mismatch in SVG line/circle/text coordinate attributes after the report structure polish made chart-wheel rendering more visible. Prevention is to stabilize SSR/client SVG numeric output at the component boundary.
+<!-- RealChartWheel hydration stability fix -->
+<!-- real chart wheel hydration stability -->
