@@ -1748,3 +1748,11 @@ Next engine work:
 - Failure: two patch attempts failed before this reduced runner: the first patch was corrupt, and the second patch did not apply to components/ReportCard.tsx because the GitHub/raw context did not match the local formatted file.
 - Fix: switched to an inspected micro-context and a PowerShell-compatible scoped runner that edits only the allowed report UI, contract, guards, package scripts, and authority docs.
 - Prevention: when GitHub/raw output collapses TSX or omits local formatting, use a small local context ZIP before generating JSX patches.
+
+## v0.1.256 Report depth/synthesis first pass
+
+- Report depth/synthesis phase started after Public Sky Pulse and the Personal Transit first visible report section were completed.
+- This milestone adds a first visible synthesis layer to the report reading experience: روایت ترکیبی گزارش.
+- The section connects the three core cards, calculated aspect count, active technical report data, and the personal transit visible section without changing calculation math.
+- It keeps the report honest: no fake daily claim, no silent Tehran default, no account/payment/private logic, and no homepage/Public Sky Pulse change.
+- Scope: first pass only. Deeper narrative synthesis, richer chart-spine prose, and premium-feel report depth remain after this milestone.

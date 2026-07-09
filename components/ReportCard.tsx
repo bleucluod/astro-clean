@@ -1,7 +1,7 @@
 "use client";
 
 import { RealChartWheel } from "./RealChartWheel";
-import { PersonalTransitReportSection } from "./PersonalTransitReportSection";
+import { PersonalTransitReportSection } from "./PersonalTransitReportSection"; import { ReportSynthesisSection } from "./ReportSynthesisSection";
 import {
   formatZodiacLabel,
   formatZodiacSign,
@@ -521,7 +521,17 @@ export function ReportCard({ report }: ReportCardProps) {
       <PersonalTransitReportSection data={personalTransitReportData} />
 
       <div className="notice report-notice report-product-notice">
-        <p>{REPORT_CARD_SAFETY_NOTE}</p>
+        <p><ReportSynthesisSection
+        coreCards={coreCards}
+        aspectCount={realEngineAspects.length}
+        shownAspectCount={shownAspects.length}
+        houseCount={houseRows.length}
+        lunarNodeCount={lunarNodeRows.length}
+        hasLilith={Boolean(lilithRow)}
+        personalTransitStatus={personalTransitReportData?.status ?? null}
+      />
+
+      {REPORT_CARD_SAFETY_NOTE}</p>
       </div>
     </article>
   );

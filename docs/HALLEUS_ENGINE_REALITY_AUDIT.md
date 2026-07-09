@@ -637,3 +637,11 @@ Next engine work:
 - The visible section preserves the corrected location policy: natal data comes from birth place and birth time, while transit context comes from current residence / current living location. There is no silent Tehran default for personal reports.
 - If current residence is missing, the section shows a missing-current-residence state instead of inventing personal precision or fake daily claims.
 - Stage status: Contract done, Calculation probe done, Data bridge done, First visible report section done; next locked step is post-v0.1.255-report-depth-and-synthesis.
+
+## v0.1.256 Report depth/synthesis first pass
+
+- Report depth/synthesis phase started after Public Sky Pulse and the Personal Transit first visible report section were completed.
+- This milestone adds a first visible synthesis layer to the report reading experience: روایت ترکیبی گزارش.
+- The section connects the three core cards, calculated aspect count, active technical report data, and the personal transit visible section without changing calculation math.
+- It keeps the report honest: no fake daily claim, no silent Tehran default, no account/payment/private logic, and no homepage/Public Sky Pulse change.
+- Scope: first pass only. Deeper narrative synthesis, richer chart-spine prose, and premium-feel report depth remain after this milestone.
