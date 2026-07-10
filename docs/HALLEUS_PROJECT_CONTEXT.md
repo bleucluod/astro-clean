@@ -1934,3 +1934,9 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Replaced visible indexable/private-first wording with user-facing privacy/search language.
 - Kept engine, auth, storage, payment, SEO implementation, report logic, and consent implementation unchanged.
 - Extended check:user-facing-copy-detox with scoped Homepage/Product/Privacy assertions only.
+
+## v0.1.280 guard stabilization
+- Scope: guard/workflow stabilization only for scripts/check-user-facing-copy-detox.mjs.
+- Converted the accumulated copy-detox check into clearer scoped helpers while preserving prior account shell, dashboard/profile, reports/detail, pricing/order, and homepage/product/privacy expectations.
+- Kept UI/source, report engine, Sky Pulse calculation, auth/storage/payment/API/schema/SEO, and consent implementation unchanged.
+- Workflow failure recorded: the failed v0.1.280/v0.1.280b Sky Pulse copy attempts used unsafe Persian exact matching or large JSX replacement and caused rollback. Prevention: inspect exact target components before patching, avoid large JSX replacement runners, and keep copy guards scoped to visible-copy risks rather than implementation identifiers.
