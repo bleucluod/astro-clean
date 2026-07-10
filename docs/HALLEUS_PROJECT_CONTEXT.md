@@ -1908,3 +1908,9 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Removed user-facing implementation/status language from the account panel: raw account query links, env flags, User ID, private/noindex wording, account-save/local-preview status, and public/indexable/payment disclaimers.
 - Kept auth logic, storage config reads, account save/read behavior, report engine, payment, SEO, schema, and consent implementation unchanged.
 - Added focused guard: check:user-facing-copy-detox.
+
+## v0.1.276 user-facing copy detox dashboard profile
+- Scope: copy/UI-surface cleanup for Dashboard and Profile.
+- Removed user-facing project-status language from these pages: local-preview/private-noindex/account route/migration/readiness/Supabase/Postgres/provider/plan entitlement/debug status copy.
+- Kept account/auth/storage/report logic and APIs unchanged; this batch only reshapes dashboard/profile user-facing copy and hides implementation status from the user surface.
+- Extended check:user-facing-copy-detox to cover Dashboard and Profile alongside the account panel/footer.

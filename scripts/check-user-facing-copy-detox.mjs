@@ -11,6 +11,8 @@ function assert(condition, message) {
 }
 
 const batchFiles = [
+  "app/dashboard/page.tsx",
+  "app/profile/page.tsx",
   "components/SupabaseAuthPanel.tsx",
   "components/AppShell.tsx",
 ];
@@ -33,6 +35,11 @@ const forbiddenVisibleTokens = [
   "NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE",
   "/reports?source=account",
   "Supabase Auth + Supabase/Postgres",
+  "Account readiness",
+  "Account Identity Snapshot",
+  "Plan Entitlements",
+  "Account Next Step",
+  "Database storage",
   "User ID",
   "E.164",
 ];
@@ -43,6 +50,7 @@ function lineLooksImplementationOnly(line) {
   return (
     trimmed.startsWith("import ") ||
     trimmed.startsWith("from ") ||
+    trimmed.startsWith("export default function ") ||
     trimmed.startsWith("export function ") ||
     trimmed.startsWith("const config =") ||
     trimmed.startsWith("const accountSaveConfig =") ||
@@ -77,14 +85,22 @@ for (const file of batchFiles) {
   }
 }
 
+const dashboard = read("app/dashboard/page.tsx");
+const profile = read("app/profile/page.tsx");
 const authPanel = read("components/SupabaseAuthPanel.tsx");
 const appShell = read("components/AppShell.tsx");
 
+assert(dashboard.includes("dashboard-copy-detox-marker"), "Dashboard copy detox marker is missing.");
+assert(profile.includes("profile-copy-detox-marker"), "Profile copy detox marker is missing.");
 assert(authPanel.includes("account-ready-copy-detox-marker"), "Auth panel copy detox marker is missing.");
+assert(!dashboard.includes("persistentReportsDecision"), "Dashboard still imports/displays persistent report decision status.");
+assert(!dashboard.includes("createAccountMigrationPreflight"), "Dashboard still imports migration preflight.");
+assert(!dashboard.includes("LocalDataBackupPanel"), "Dashboard still foregrounds backup/admin panel.");
+assert(!profile.includes("getPlanEntitlement"), "Profile still imports plan entitlement/status UI.");
+assert(!profile.includes("session?.source"), "Profile still displays provider/source.");
 assert(!authPanel.includes("realAccountFlowPublicBlockers"), "Auth panel still exposes blocker/status flow model.");
-assert(!authPanel.includes("session.user.id}</span>"), "Auth panel still displays raw user id.");
+assert(!authPanel.includes("session.user.id}"), "Auth panel still displays raw user id.");
 assert(!authPanel.includes('href="/reports?source=account"'), "Auth panel still links to raw account query route.");
 assert(!appShell.includes("فعلاً رایگان"), "Footer still uses temporary/defensive copy.");
-assert(appShell.includes("footer-note"), "Footer note structure missing.");
 
-console.log("User-facing copy detox account-shell guard passed.");
+console.log("User-facing copy detox dashboard/profile guard passed.");

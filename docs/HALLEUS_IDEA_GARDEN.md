@@ -1750,3 +1750,9 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Accepted: public/user-facing Halleus pages should speak like a calm Persian product, not a developer dashboard or roadmap/status report.
 - First small cleanup targets the account panel and footer copy only.
 - Guardrail: copy detox must not change engine calculation, auth logic, storage repository/schema, payment, SEO launch, or public/private consent implementation.
+
+## User-Facing Copy Detox - Dashboard/Profile
+- Accepted: Dashboard and Profile should feel like user pages, not an account migration/status cockpit.
+- Dashboard should focus on greeting, saved reports, creating a new report, report privacy, and recent reports.
+- Profile should focus on login status, account name, saved reports, privacy, and quick return to reports.
+- Guardrail: do not change auth logic, storage repository/schema, report generation, payment, SEO launch, or public/private consent implementation.
