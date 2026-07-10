@@ -54,22 +54,22 @@ for (const marker of [
 for (const marker of [
   "aspect-bridge",
   "دستور زبان",
-  "هدف این بخش عمق خواندن است",
+  "انتخاب آگاهانه بخواهند",
 ]) {
   assert(aspects.includes(marker), `ReportAspectRelationshipSections missing narrative marker: ${marker}`);
 }
 
 for (const marker of [
   "special-points-bridge",
-  "نه به‌عنوان یک داستان جدا و اغراق‌شده",
-  "کنار placementها و aspectها",
+  "یک داستان جدا، قطعی یا اغراق‌شده",
+  "کنار جایگاه‌ها و رابطه‌های سیاره‌ای",
 ]) {
   assert(specialPoints.includes(marker), `ReportSpecialPointsNarrativeSection missing narrative marker: ${marker}`);
 }
 
 for (const marker of [
-  "ترنزیت قرار نیست یک گزارش جدا باشد",
-  "کنار placementها، aspectها و special points بخوان",
+  "این بخش آسمانی را که هنگام ساخت گزارش ثبت شده",
+  "سیاره‌ای و نقاط ویژه بخوان",
   "هالیوس تهران را بی‌اجازه جایگزین محل فعلی نمی‌کند",
 ]) {
   assert(personalTransit.includes(marker), `PersonalTransitReportSection missing narrative marker: ${marker}`);

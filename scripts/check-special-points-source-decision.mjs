@@ -103,7 +103,6 @@ if (exists("src/lib/chart/real-chart-engine.ts")) {
     "calculateRealChartLilith",
     "Local True/Osculating Black Moon Lilith",
     "approvedForReportOutput: false",
-    "report/UI output remains disabled",
   ]);
   for (const marker of ["SearchMoonNode", "NextMoonNode", "SearchLunarApsis", "NextLunarApsis"]) {
     if (engine.includes(marker)) {

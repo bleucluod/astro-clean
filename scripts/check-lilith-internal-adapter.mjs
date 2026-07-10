@@ -188,7 +188,8 @@ for (const [index, text] of docs.entries()) {
     "v0.1.242 Lilith report data bridge",
     "calculateLocalOsculatingBlackMoonLilith",
     "calculateRealChartLilith",
-    "report/UI output remains disabled",
+    "approvedForReportOutput",
+    "cannot enter personality, relationship, growth, synthesis, or practice narrative",
     "No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.",
   ]);
 }

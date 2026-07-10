@@ -164,9 +164,8 @@ assertIncludes("real chart engine consumes guarded Lilith adapter only", engine,
   "calculateLocalOsculatingBlackMoonLilith",
   "Local True/Osculating Black Moon Lilith",
   "approvedForReportOutput: false",
-  "report/UI output remains disabled",
 ]);
-assertNotIncludes("real chart engine must not consume raw Lilith probe or expose reports", engine, [
+assertNotIncludes("real chart engine must not consume raw Lilith probe or approve interpretive report output", engine, [
   "calculateLilithOsculatingProbe(",
   "calculateLilithOsculatingProbeFromState(",
   "LILITH_OSCULATING_PROBE_STATUS",

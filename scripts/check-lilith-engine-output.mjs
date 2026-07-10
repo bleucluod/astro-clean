@@ -124,7 +124,6 @@ assertIncludes("real chart engine Lilith output", engine, [
   'lilithType: "local-true-osculating-black-moon-lilith"',
   'reliability: "guarded-engine-output"',
   "approvedForReportOutput: false",
-  "report/UI output remains disabled",
 ]);
 assertNotIncludes("real chart engine forbidden Lilith shortcuts", engine, [
   "SearchLunarApsis",
@@ -166,7 +165,7 @@ if (exists("components/ReportCard.tsx")) {
   assertIncludes("ReportCard limited Lilith UI output", reportCard, [
     "function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null",
     "لیلیت نوسانی/واقعی محلی",
-    "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+    "نمایش محدود داده؛ روایت تفسیری این گزارش فعال نیست",
   ]);
   assertNotIncludes("ReportCard must not call Lilith engine internals", reportCard, [
     "calculateRealChartLilith",
@@ -203,7 +202,8 @@ for (const [index, doc] of docs.entries()) {
     "realChart.lilith",
     "calculateRealChartLilith",
     "Local True/Osculating Black Moon Lilith",
-    "report/UI output remains disabled",
+    "approvedForReportOutput",
+    "cannot enter personality, relationship, growth, synthesis, or practice narrative",
     "No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.",
   ]);
 }

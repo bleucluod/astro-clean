@@ -114,11 +114,10 @@ if (exists("src/lib/chart/real-chart-engine.ts")) {
     "calculateLocalOsculatingBlackMoonLilith",
     "Local True/Osculating Black Moon Lilith",
     "approvedForReportOutput: false",
-    "report/UI output remains disabled",
   ]);
   for (const marker of ["buildCalculatedLilith", "production-lilith", "approvedForReportOutput: true"]) {
     if (engine.includes(marker)) {
-      failures.push("real chart engine must not expose Lilith to report/UI yet: " + marker);
+      failures.push("real chart engine must not approve Lilith for interpretive report output: " + marker);
     }
   }
 }

@@ -62,7 +62,7 @@ for (const chip of [
   '["planet-placements", "جایگاه‌ها"]',
   '["aspect-relationships", "روابط"]',
   '["special-points", "لیلیت و دست‌های ماه"]',
-  '["personal-transit", "آسمان امروز"]',
+  '["personal-transit", "آسمان زمان گزارش"]',
 ]) {
   assert(reportDetail.includes(chip), `ReportDetail missing live report chip: ${chip}`);
 }
@@ -71,7 +71,7 @@ assert(reportDetail.includes("v0.1.265b-report-detail-live-path-reality"), "Miss
 assert(reportDetail.includes("v0.1.266-live-report-structure-facts"), "Missing live facts marker.");
 assert(reportDetail.includes("v0.1.267-live-report-placements-aspects"), "Missing live placements/aspects marker.");
 assert(reportDetail.includes("v0.1.268-live-report-lilith-nodes"), "Missing live Lilith/nodes marker.");
-assert(reportDetail.includes("v0.1.269-live-report-personal-transit"), "Missing live personal transit marker.");
+assert(reportDetail.includes("v0.1.288-report-special-points-transit-final-qa"), "Missing v0.1.288 personal transit trust marker.");
 
 assert(reportDetail.includes("<ReportDetailFactsPanel report={report} />"), "Quick facts component must render live.");
 assert(reportDetail.includes("<ReportPlanetPlacementSections report={report} />"), "Placements component must render live.");

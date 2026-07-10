@@ -2100,3 +2100,28 @@ Verification rule:
 
 - Run the new cross-section consistency guard, synthesis-depth guard, report writer/sample/narrative guards, live aspect/report QA, copy detox, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build`.
 - Apply through exact full-file writes guarded by old Git blobs and new SHA-256 hashes. Runner must not commit, tag, or push.
+
+## v0.1.288 report special-points/transit final QA
+
+Report Cleanup Batch 5 closes the five-batch report-quality roadmap with a trust pass over special points and saved personal transits.
+
+- A stored transit snapshot keeps `transitLocalDate`, `sampleLocalTime`, and `currentResidenceUtcIso`; reopening an old report does not relabel or recalculate it as today.
+- The visible transit section names the report-time sky, shows the stored date when available, keeps the no-silent-Tehran rule, and avoids deterministic prediction language.
+- The Lilith technical position remains visible, but while `approvedForReportOutput` is false it cannot enter personality, relationship, growth, synthesis, or practice narrative.
+- The model-aware lunar-node path preserves Mean versus local True/Osculating labels and uses generic sign/house evidence instead of fixture-specific branches.
+- No astrology calculation, Placidus logic, aspect/orb policy, Node/Lilith/transit math, external API, Swiss runtime dependency, auth, payment, SEO, storage policy, or public/private consent behavior changes in this batch.
+- This section supersedes earlier roadmap wording that described Lilith deep narrative as generally live; the live surface now exposes node narrative plus a technical Lilith boundary unless report approval is explicitly true.
+
+## v0.1.288a workflow failure note
+
+- Failure: the first v0.1.288 runner passed the complete 52-check report suite plus the Lilith model, probe, and validation checks, then stopped at `check:lilith-internal-adapter` because that guard required the stale exact sentence `interpretive narrative remains disabled` in all four authority docs.
+- Diagnosis: the authority docs already carried the stronger current contract through `approvedForReportOutput` and the explicit rule that Lilith cannot enter personality, relationship, growth, synthesis, or practice narrative while report approval is false. Runtime calculation and validation were not implicated.
+- Fix: align the adapter guard to those stable semantic markers, then rerun the failed guard, the remaining Lilith/source checks, the complete report suite, encoding, diff-check, focused TypeScript, and the full production build.
+- Prevention: docs guards must validate stable model flags and prohibited/allowed surfaces instead of depending on one replaceable prose sentence.
+
+## v0.1.288b comprehensive guard-repair note
+
+- Failure: the first repair aligned `check:lilith-internal-adapter`, but the next check stopped at `check:lilith-engine-output`; a complete read-only search then found 10 remaining stale prose assertions across nine Lilith/source guards.
+- Diagnosis: those guards mixed stable code contracts with the replaceable sentence `interpretive narrative remains disabled`. The runtime still kept `approvedForReportOutput: false`, technical Lilith data remained visible, and the report narrative exclusion contract was already covered by model-aware UI/writer guards.
+- Fix: remove the replaceable runtime-prose assertion from source-oriented guards, require `approvedForReportOutput` plus the explicit prohibited narrative surfaces in authority-doc checks, preserve the repaired adapter guard, and rerun the complete report/Lilith/source/build chain from the beginning.
+- Prevention: after any authority wording change, search the full guard directory for the retired marker before building a repair runner; after two failures in one batch, switch to one comprehensive guarded repair rather than sequential single-check fixes.

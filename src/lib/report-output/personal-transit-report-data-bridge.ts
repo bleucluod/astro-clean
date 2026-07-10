@@ -10,10 +10,10 @@ import {
 import { NATAL_TO_TRANSIT_COPY_POLICY } from "../chart/natal-to-transit-contract";
 
 export const PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_VERSION =
-  "v0.1.254-personal-transit-report-data-bridge" as const;
+  "v0.1.288-personal-transit-trust-boundary" as const;
 
 export const PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_STATUS =
-  "report-data-bridge-not-visible-ui" as const;
+  "report-data-bridge-visible-report-section" as const;
 
 export type PersonalTransitReportDataBridgeStatus =
   | "ready"
@@ -45,19 +45,22 @@ export type PersonalTransitReportDataBridge = {
   source: typeof PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_STATUS;
   sourceProbeVersion: typeof NATAL_TO_TRANSIT_CALCULATION_PROBE_VERSION;
   reportDataPath: "engineData.personalTransitReportData";
-  stage: "data-bridge";
-  userVisible: false;
+  stage: "visible-report-section";
+  userVisible: true;
   reportDataBridgeApproval: true;
-  visibleReportSectionApproval: false;
+  visibleReportSectionApproval: true;
   currentResidenceRequired: true;
   noSilentTehranDefaultForPersonalTransit: true;
   publicLabel: typeof NATAL_TO_TRANSIT_COPY_POLICY.publicLabel;
   seoPhrases: typeof NATAL_TO_TRANSIT_COPY_POLICY.seoPhrases;
+  transitLocalDate: string | null;
+  sampleLocalTime: string | null;
+  currentResidenceUtcIso: string | null;
   location: PersonalTransitReportDataBridgeLocationSummary;
   aspectHighlights: PersonalTransitReportDataBridgeAspectSummary[];
   limitations: string[];
   notes: string[];
-  nextMilestone: "v0.1.255-personal-transit-first-visible-report-section";
+  nextMilestone: "post-v0.1.288-personal-transit-refresh";
 };
 
 export function buildPersonalTransitReportDataBridge(
@@ -85,14 +88,17 @@ function buildReadyReportData(
     source: PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_STATUS,
     sourceProbeVersion: probeResult.version,
     reportDataPath: "engineData.personalTransitReportData",
-    stage: "data-bridge",
-    userVisible: false,
+    stage: "visible-report-section",
+    userVisible: true,
     reportDataBridgeApproval: true,
-    visibleReportSectionApproval: false,
+    visibleReportSectionApproval: true,
     currentResidenceRequired: true,
     noSilentTehranDefaultForPersonalTransit: true,
     publicLabel: NATAL_TO_TRANSIT_COPY_POLICY.publicLabel,
     seoPhrases: NATAL_TO_TRANSIT_COPY_POLICY.seoPhrases,
+    transitLocalDate: probeResult.localDate,
+    sampleLocalTime: probeResult.sampleLocalTime,
+    currentResidenceUtcIso: probeResult.currentResidenceUtcIso,
     location: {
       birthPlaceName: probeResult.locationContext.birthPlaceName,
       birthTimezone: probeResult.locationContext.birthTimezone,
@@ -105,16 +111,16 @@ function buildReadyReportData(
     },
     aspectHighlights: probeResult.aspects.slice(0, 8).map(toAspectSummary),
     limitations: [
-      "Personal transit data is bridged into report data, but visible report UI remains deferred to v0.1.255.",
-      "Phase one uses calculated natal bodies and calculated current-residence transit bodies only; houses, angles, lunar nodes, and Lilith transits remain deferred.",
+      "The stored personal-transit snapshot belongs to transitLocalDate/sampleLocalTime and must not be relabeled as today on later report views.",
+      "Phase one uses calculated natal bodies and calculated current-residence transit bodies only; houses, angles, lunar nodes, and Lilith transits remain outside this comparison.",
     ],
     notes: [
-      "Report data bridge only: do not show a personal transit section before the next milestone.",
+      "The visible report section reads this stored bridge; it does not recalculate when an older report is opened.",
       "Natal chart uses the user birth place/time; transit context uses the user current residence.",
       "No silent Tehran default is allowed for personal reports.",
       `Probe status: ${NATAL_TO_TRANSIT_CALCULATION_PROBE_STATUS}`,
     ],
-    nextMilestone: "v0.1.255-personal-transit-first-visible-report-section",
+    nextMilestone: "post-v0.1.288-personal-transit-refresh",
   };
 }
 
@@ -127,14 +133,17 @@ function buildMissingResidenceReportData(
     source: PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_STATUS,
     sourceProbeVersion: probeResult.version,
     reportDataPath: "engineData.personalTransitReportData",
-    stage: "data-bridge",
-    userVisible: false,
+    stage: "visible-report-section",
+    userVisible: true,
     reportDataBridgeApproval: true,
-    visibleReportSectionApproval: false,
+    visibleReportSectionApproval: true,
     currentResidenceRequired: true,
     noSilentTehranDefaultForPersonalTransit: true,
     publicLabel: NATAL_TO_TRANSIT_COPY_POLICY.publicLabel,
     seoPhrases: NATAL_TO_TRANSIT_COPY_POLICY.seoPhrases,
+    transitLocalDate: null,
+    sampleLocalTime: null,
+    currentResidenceUtcIso: null,
     location: {
       birthPlaceName: null,
       birthTimezone: null,
@@ -149,9 +158,9 @@ function buildMissingResidenceReportData(
       "The bridge must not silently use Tehran for personal reports when current residence is missing.",
     ],
     notes: probeResult.notes.concat([
-      "Report data bridge stores a missing-current-residence state instead of inventing personal transit claims.",
+      "The visible report section stores a missing-current-residence state instead of inventing personal transit claims.",
     ]),
-    nextMilestone: "v0.1.255-personal-transit-first-visible-report-section",
+    nextMilestone: "post-v0.1.288-personal-transit-refresh",
   };
 }
 

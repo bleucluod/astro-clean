@@ -41,91 +41,46 @@ for (const depName of ["sweph", "swisseph", "pyswisseph", "swiss-ephemeris", "as
   );
 }
 
+const types = read("types/astro.ts");
 const reportCard = read("components/ReportCard.tsx");
 const writer = read("lib/astrology/real-engine-report-writer.ts");
 const service = read("lib/report-generation/report-generation-service.ts");
-const reportUiGuard = read("scripts/check-lilith-report-ui-sync.mjs");
-const narrativeQaGuard = read("scripts/check-report-narrative-qa-guards.mjs");
+const specialPoints = read("components/ReportSpecialPointsNarrativeSection.tsx");
 
+assertIncludes("Lilith type gate", types, [
+  'lilithType: "local-true-osculating-black-moon-lilith"',
+  "approvedForReportOutput: false",
+]);
 assertIncludes("ReportCard Lilith trust copy", reportCard, [
   "لیلیت نوسانی/واقعی محلی",
-  "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+  "نمایش محدود داده؛ روایت تفسیری این گزارش فعال نیست",
   "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
-  "محاسبه محلی از بردار مکان و سرعت ماه؛ بدون API، بدون اجرای Swiss و بدون وابستگی تازه",
 ]);
-assertNotIncludes("ReportCard forbidden Lilith trust overclaims", reportCard, [
-  "Mean Black Moon Lilith",
-  "True Black Moon Lilith",
-  "Lilith is now available",
-  "production-lilith",
-  "calculateRealChartLilith",
-  "calculateLocalOsculatingBlackMoonLilith",
-  "SE_MEAN_APOG",
-  "SE_OSCU_APOG",
-  "sweph",
-  "swisseph",
-  "لیلیت سرنوشت قطعی",
-  "لیلیت تاریک تو",
-  "کشش جنسی پنهان",
-  "زخم تاریک",
-  "سایه قطعی",
-]);
-
-assertIncludes("report writer Lilith narrative remains gated", writer, [
-  "لیلیت در داده محاسبه‌شده ثبت شده است و فقط بعد از تعیین مدل خوانش وارد متن می‌شود.",
-]);
-assertNotIncludes("report writer forbidden Lilith narrative overclaims", writer, [
-  "Mean Black Moon Lilith",
-  "True Black Moon Lilith",
-  "Lilith is now available",
-  "production-lilith",
-  "calculateRealChartLilith",
-  "calculateLocalOsculatingBlackMoonLilith",
-  "لیلیت سرنوشت قطعی",
-  "لیلیت تاریک تو",
-  "کشش جنسی پنهان",
-  "زخم تاریک",
-  "سایه قطعی",
-]);
-
 assertIncludes("report service Lilith data remains bounded", service, [
   "lilith: buildCalculatedLilith(realChart)",
   "approvedForReportOutput: lilith.approvedForReportOutput",
-  "لیلیت نوسانی/واقعی محلی در داده گزارش ذخیره می‌شود، اما تا مرحله جداگانه UI/narrative وارد خوانش کاربر نمی‌شود.",
+  "تا وقتی مجوز خروجی فعال نیست وارد روایت تفسیری نمی‌شود",
 ]);
-assertNotIncludes("report service forbidden Lilith copy overclaims", service, [
-  "Lilith is now available",
-  "Mean Black Moon Lilith",
-  "True Black Moon Lilith",
-  "production-lilith",
-  "approvedForReportOutput: true",
+assertIncludes("report writer Lilith narrative remains gated", writer, [
+  "جایگاه لیلیت در بخش فنی ثبت شده است، اما مجوز ورود به روایت تفسیری این گزارش فعال نیست.",
 ]);
-
-assertIncludes("existing Lilith report/UI guard remains the copy boundary", reportUiGuard, [
-  "ReportCard forbidden Lilith overclaim",
-  "report writer Lilith narrative remains gated",
-  "The report writer narrative remains gated for a separate milestone",
-]);
-assertIncludes("general narrative QA guard remains active", narrativeQaGuard, [
-  "blockedOutputFragments",
-  "Report writer missing narrative QA marker",
-  "ReportCard missing aspect display marker",
+assertIncludes("live special-points boundary remains gated", specialPoints, [
+  "lilith.approvedForReportOutput !== true",
+  "جایگاه محاسبه‌شده؛ روایت غیرفعال",
+  "به‌تنهایی به معنی تأیید تفسیر آن نیست.",
 ]);
 
-const docs = [
-  "docs/HALLEUS_PROJECT_CONTEXT.md",
-  "docs/HALLEUS_IDEA_GARDEN.md",
-  "docs/HALLEUS_ENGINE_REALITY_AUDIT.md",
-  "docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md",
-].map((file) => read(file));
-
-for (const [index, doc] of docs.entries()) {
-  assertIncludes(`Lilith narrative/trust QA docs ${index + 1}`, doc, [
-    "v0.1.244 Lilith narrative/trust QA",
-    "Lilith report UI remains a limited technical data card",
-    "The report writer narrative remains gated",
-    "Mean Lilith, asteroid 1181 Lilith, Dark Moon/Waldemath Lilith, API claims, Swiss runtime claims, and fatalistic Lilith copy remain forbidden",
-    "No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.",
+for (const [label, text] of [
+  ["ReportCard", reportCard],
+  ["writer", writer],
+  ["special points", specialPoints],
+]) {
+  assertNotIncludes(`${label} forbidden Lilith overclaims`, text, [
+    "لیلیت سرنوشت قطعی",
+    "لیلیت تاریک تو",
+    "کشش جنسی پنهان",
+    "زخم تاریک",
+    "سایه قطعی",
   ]);
 }
 

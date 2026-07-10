@@ -5,9 +5,7 @@ function read(file) {
 }
 
 function assert(condition, message) {
-  if (!condition) {
-    throw new Error(message);
-  }
+  if (!condition) throw new Error(message);
 }
 
 const routePage = read("app/reports/[reportId]/page.tsx");
@@ -22,18 +20,17 @@ assert(routePage.includes("ReportDetail"), "Live report route must render Report
 assert(reportDetail.includes('from "@/components/ReportSpecialPointsNarrativeSection"'), "ReportDetail must import ReportSpecialPointsNarrativeSection.");
 assert(reportDetail.includes("<ReportSpecialPointsNarrativeSection report={report} />"), "ReportDetail must render ReportSpecialPointsNarrativeSection.");
 assert(reportDetail.includes("special-points"), "ReportDetail must expose the special-points anchor/chip.");
-assert(reportDetail.includes("v0.1.268-live-report-lilith-nodes"), "ReportDetail missing v0.1.268 live Lilith/nodes marker.");
 assert(specialPoints.includes("export function ReportSpecialPointsNarrativeSection"), "Special points narrative section must exist.");
 assert(specialPoints.includes("buildLunarNodeCards"), "Special points section must build lunar-node cards.");
-assert(specialPoints.includes("buildLilithCard"), "Special points section must build Lilith card.");
+assert(specialPoints.includes("buildLilithNarrativeCard"), "Special points section must keep an explicit approved-only Lilith narrative branch.");
+assert(specialPoints.includes("lilith.approvedForReportOutput !== true"), "Lilith narrative must be blocked when report approval is false.");
+assert(specialPoints.includes("buildLilithBoundaryCard"), "Special points section must show a technical Lilith boundary card.");
 assert(specialPoints.includes("local-true-osculating-black-moon-lilith"), "Special points section must preserve local Lilith source marker.");
 assert(!reconciliation.includes('["ReportSpecialPointsNarrativeSection", specialPointsSection]'), "Reconciliation guard must not count special points as non-live.");
 assert(reconciliation.includes("<ReportSpecialPointsNarrativeSection report={report} />"), "Reconciliation guard must assert live special points rendering.");
 assert(writer.includes("buildLunarNodeText"), "Writer must keep live lunar-node narrative text.");
-assert(writer.includes("local-true-osculating"), "Writer must preserve local True/Osculating node language.");
-assert(projectContext.includes("v0.1.268"), "Project context must record v0.1.268.");
-assert(projectContext.includes("Lilith deep narrative is now live in ReportDetail"), "Project context must say Lilith deep narrative is live in ReportDetail.");
-assert(projectContext.includes("Personal transit is now live in ReportDetail"), "Project context must record v0.1.269 personal transit live status.");
-assert(ideaGarden.includes("live report feature reconciliation"), "Idea Garden must keep the live report reconciliation roadmap visible.");
+assert(writer.includes("getLunarNodeModelLabel"), "Writer must preserve model-aware lunar-node language.");
+assert(projectContext.includes("v0.1.288 report special-points/transit final QA"), "Project context must record v0.1.288 final QA.");
+assert(ideaGarden.includes("Report Cleanup Batch 5"), "Idea Garden must record Report Cleanup Batch 5.");
 
 console.log("Report live Lilith/nodes guard passed.");

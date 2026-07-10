@@ -46,8 +46,20 @@ type NarrativeCard = {
   trust: string;
 };
 
+type LilithBoundaryCard = {
+  id: string;
+  title: string;
+  position: string;
+  source: string;
+  status: string;
+  boundary: string;
+};
+
 const SPECIAL_POINTS_DEEP_NARRATIVE_VERSION =
   "v0.1.262-report-special-points-deep-narrative" as const;
+
+const SPECIAL_POINTS_FINAL_QA_VERSION =
+  "v0.1.288-report-special-points-transit-final-qa" as const;
 
 export function ReportSpecialPointsNarrativeSection({
   report,
@@ -56,10 +68,14 @@ export function ReportSpecialPointsNarrativeSection({
 }) {
   const engine = (report as SpecialPointReport).realEngine ?? null;
   const lunarNodeCards = buildLunarNodeCards(engine?.lunarNodes ?? null);
-  const lilithCard = buildLilithCard(engine?.lilith ?? null);
-  const cards = [...lunarNodeCards, ...(lilithCard ? [lilithCard] : [])];
+  const lilithNarrativeCard = buildLilithNarrativeCard(engine?.lilith ?? null);
+  const lilithBoundaryCard = buildLilithBoundaryCard(engine?.lilith ?? null);
+  const narrativeCards = [
+    ...lunarNodeCards,
+    ...(lilithNarrativeCard ? [lilithNarrativeCard] : []),
+  ];
 
-  if (cards.length === 0) {
+  if (narrativeCards.length === 0 && !lilithBoundaryCard) {
     return null;
   }
 
@@ -67,49 +83,66 @@ export function ReportSpecialPointsNarrativeSection({
     <section
       className="report-section report-special-points-narrative-section"
       data-special-points-deep-narrative={SPECIAL_POINTS_DEEP_NARRATIVE_VERSION}
-      aria-label="روایت لیلیت و دست‌های ماه"
+      data-special-points-final-qa={SPECIAL_POINTS_FINAL_QA_VERSION}
+      aria-label="روایت دست‌های ماه و مرز خوانش لیلیت"
     >
       <div className="report-section-heading">
-        <span className="report-kicker">لیلیت و دست‌های ماه</span>
-        <h2>نقاط حساس چارت در کنار روایت اصلی</h2>
+        <span className="report-kicker">دست‌های ماه و لیلیت</span>
+        <h2>مسیر رشد و مرزهای خوانش نقاط ویژه</h2>
         <p>
-          این بخش لیلیت و دست‌های ماه را بعد از ستون‌های اصلی و رابطه سیاره‌ها
-          می‌خواند؛ یعنی آن‌ها را جدا از بقیه چارت بزرگ نمی‌کند. نقششان این است
-          که لایه‌های رشد، عادت، مرز و حساسیت را روشن‌تر کنند و کنار بقیه‌ی چارت معنا بگیرند.
+          دست‌های ماه در این بخش مثل یک محور تمرین خوانده می‌شوند: الگویی که
+          آشناست و جهتی که می‌تواند تجربه‌ی تازه‌تری بسازد. لیلیت فقط وقتی وارد
+          روایت می‌شود که مجوز خوانش آن در خود داده‌ی گزارش فعال باشد؛ محاسبه‌ی
+          یک جایگاه به‌تنهایی به معنی تأیید تفسیر آن نیست.
         </p>
         <p className="report-muted-note" data-report-narrative-quality-pass="special-points-bridge">
-          دست‌های ماه مسیر آشنا/مسیر رشد را نشان می‌دهند و لیلیت با مرز، سایه و
-          میل خام کار دارد؛ هر دو باید کنار placementها و aspectها خوانده شوند،
-          نه به‌عنوان یک داستان جدا و اغراق‌شده.
+          این نقاط کنار جایگاه‌ها و رابطه‌های سیاره‌ای معنا می‌گیرند و نباید به
+          یک داستان جدا، قطعی یا اغراق‌شده درباره شخصیت تبدیل شوند.
         </p>
       </div>
 
-      <div className="report-aspect-grid report-special-points-grid">
-        {cards.map((card) => (
-          <article className="report-aspect-card" key={card.id}>
-            <span className="report-kicker">{card.source}</span>
-            <h3>{card.title}</h3>
-            <p className="report-muted-note">{card.position}</p>
-            <p>{card.theme}</p>
-            <ul>
-              <li>
-                <strong>سمت کمک‌کننده:</strong> {card.helpful}
-              </li>
-              <li>
-                <strong>سمت رشدی:</strong> {card.growth}
-              </li>
-              <li>
-                <strong>اعتماد و مرز خوانش:</strong> {card.trust}
-              </li>
-            </ul>
-          </article>
-        ))}
-      </div>
+      {narrativeCards.length > 0 ? (
+        <div className="report-aspect-grid report-special-points-grid">
+          {narrativeCards.map((card) => (
+            <article className="report-aspect-card" key={card.id}>
+              <span className="report-kicker">{card.source}</span>
+              <h3>{card.title}</h3>
+              <p className="report-muted-note">{card.position}</p>
+              <p>{card.theme}</p>
+              <ul>
+                <li>
+                  <strong>سمت کمک‌کننده:</strong> {card.helpful}
+                </li>
+                <li>
+                  <strong>سمت رشدی:</strong> {card.growth}
+                </li>
+                <li>
+                  <strong>اعتماد و مرز خوانش:</strong> {card.trust}
+                </li>
+              </ul>
+            </article>
+          ))}
+        </div>
+      ) : null}
+
+      {lilithBoundaryCard ? (
+        <article className="notice report-notice report-special-point-boundary-card">
+          <span className="report-kicker">{lilithBoundaryCard.source}</span>
+          <h3>{lilithBoundaryCard.title}</h3>
+          <p>{lilithBoundaryCard.position}</p>
+          <p>
+            <strong>وضعیت:</strong> {lilithBoundaryCard.status}
+          </p>
+          <p>
+            <strong>مرز خوانش:</strong> {lilithBoundaryCard.boundary}
+          </p>
+        </article>
+      ) : null}
 
       <p className="report-muted-note">
-        برای دست‌های ماه، اگر مدل True/Osculating فعال باشد با مدل Mean قاطی
-        نمی‌شود. برای لیلیت هم منظور همین مدل محلی Black Moon Lilith
-        نوسانی/واقعی است؛ نه لیلیت میانگین، نه سیارک ۱۱۸۱، و نه دارک‌مون/والدماث.
+        مدل نوسانی/واقعی دست‌های ماه با مدل میانگین یکی نیست. لیلیت محاسبه‌شده‌ی
+        این نسخه نیز لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست. تفاوت
+        مدل‌ها در داده حفظ می‌شود و هیچ‌کدام بی‌اجازه جای دیگری را نمی‌گیرد.
       </p>
     </section>
   );
@@ -136,50 +169,69 @@ function buildLunarNodeCards(
       position: formatPointPosition(lunarNodes.northNode),
       source,
       theme:
-        "دست شمالی ماه معمولاً جایی را نشان می‌دهد که زندگی از تو تمرین تازه می‌خواهد؛ جایی که شاید اولش غریبه باشد، اما با تکرار، حس رشد می‌سازد.",
+        "دست شمالی ماه در این مدل جهتی را نشان می‌دهد که ممکن است ابتدا ناآشنا باشد و با تجربه‌ی تدریجی به یک مهارت تازه تبدیل شود.",
       helpful:
-        "به جای اینکه دنبال نسخه کامل و بی‌نقص خودت باشی، این نقطه را مثل مسیر تمرین بخوان: قدم‌های کوچک، انتخاب‌های تکرارشونده و جرئت تجربه کردن.",
+        "این نقطه را مثل مسیر تمرین بخوان: یک انتخاب کوچک، تکرارشونده و قابل مشاهده، نه تصویری کامل و بی‌نقص از آینده.",
       growth:
-        "چالش این نقطه معمولاً این است که چون تازه و ناآشناست، آدم ممکن است عقب بکشد. رشد از جایی شروع می‌شود که آرام‌آرام به این جهت نزدیک می‌شوی.",
+        "چالش طبیعی این است که بخش ناآشنا زود کنار گذاشته شود. رشد یعنی نزدیک شدن تدریجی به این جهت، بدون انکار توانایی‌های قبلی.",
       trust:
-        "این کارت مدل محاسبه را جداگانه برچسب می‌زند تا Mean و True/Osculating با هم قاطی نشوند و مسیر رشد در زمینه‌ی کل چارت خوانده شود.",
+        `این کارت از ${source} استفاده می‌کند و مدل را جداگانه نگه می‌دارد تا محور میانگین و محور نوسانی/واقعی با هم قاطی نشوند.`,
     },
     {
       id: "south-node-deep-narrative",
       title: "دست جنوبی ماه: الگوی آشنا",
       position: formatPointPosition(lunarNodes.southNode),
-      source: source + "؛ نقطه مقابل دست شمالی",
+      source: `${source}؛ نقطه‌ی مقابل دست شمالی`,
       theme:
-        "دست جنوبی ماه بیشتر از عادتی حرف می‌زند که بلدش هستی؛ بخشی از تو که راحت‌تر به آن برمی‌گردد، حتی وقتی دیگر همه جواب‌ها آنجا نیست.",
+        "دست جنوبی ماه بیشتر از الگو، مهارت یا واکنشی می‌گوید که آشناتر است و در فشارها راحت‌تر به آن برمی‌گردی.",
       helpful:
-        "این نقطه می‌تواند مهارت قدیمی و حافظه روانی تو باشد. لازم نیست حذف شود؛ بهتر است آگاهانه استفاده شود، نه اینکه فرمان اصلی زندگی را بگیرد.",
+        "این نقطه می‌تواند یک توانایی قدیمی باشد. لازم نیست حذف شود؛ بهتر است آگاهانه به کار گرفته شود و همه‌ی تصمیم‌ها را به تنهایی هدایت نکند.",
       growth:
-        "چالش وقتی شروع می‌شود که الگوی آشنا تبدیل به پناهگاه همیشگی شود. اینجا رشد یعنی احترام به گذشته، بدون گیر کردن در گذشته.",
+        "چالش وقتی شروع می‌شود که الگوی آشنا به تنها پناهگاه تبدیل شود. مسیر رشد احترام به گذشته است، بدون ماندن همیشگی در همان پاسخ.",
       trust:
-        "دست جنوبی از محور ماه خوانده می‌شود و در این گزارش به‌عنوان نقطه مقابل دست شمالی توضیح داده می‌شود، نه به‌عنوان یک محاسبه جدا و مبهم.",
+        "دست جنوبی در این داده از محور مقابل دست شمالی به دست آمده و محاسبه‌ی مستقل یا مدل مبهم دیگری نیست.",
     },
   ];
 }
 
-function buildLilithCard(lilith: SpecialPointLilith | null): NarrativeCard | null {
-  if (!isCalculatedLilith(lilith)) {
+function buildLilithNarrativeCard(
+  lilith: SpecialPointLilith | null,
+): NarrativeCard | null {
+  if (!isCalculatedLilith(lilith) || lilith.approvedForReportOutput !== true) {
     return null;
   }
 
   return {
-    id: "lilith-deep-narrative",
-    title: "لیلیت: مرز، سایه و میل خام",
+    id: "lilith-approved-narrative",
+    title: "لیلیت: مرز و حساسیت",
     position: formatPointPosition(lilith),
-    source: "Black Moon Lilith نوسانی/واقعی محلی",
+    source: "لیلیت سیاه‌ماه با مدل نوسانی/واقعی محلی",
     theme:
-      "لیلیت در این خوانش جایی را نشان می‌دهد که حساسیت به کنترل، شرم، طردشدن یا میل خام می‌تواند پررنگ‌تر باشد. این نقطه برای دیدن مرزهای روانی و صدای سرکوب‌شده در زمینه‌ی کل چارت است.",
+      "وقتی مجوز خوانش فعال باشد، این نقطه فقط به‌عنوان یک لایه‌ی مکمل درباره مرز، حساسیت و میل خام خوانده می‌شود؛ نه هویت کامل یا حکم قطعی.",
     helpful:
-      "وقتی آگاهانه خوانده شود، لیلیت می‌تواند به تو کمک کند بفهمی کجا لازم است مرز روشن‌تر، صداقت بیشتر یا رابطه سالم‌تری با خشم و میل داشته باشی.",
+      "از این نقطه برای دیدن موقعیت‌هایی استفاده کن که در آن‌ها مرز روشن‌تر یا صداقت بیشتری با خواسته‌ها لازم است.",
     growth:
-      "چالش لیلیت این است که آدم یا آن را پنهان می‌کند، یا اغراق‌آمیز زندگی‌اش می‌کند. خوانش سالم یعنی دیدن سایه بدون تبدیل آن به هویت کامل.",
-    trust: lilith.approvedForReportOutput
-      ? "این نقطه با مدل محلی True/Osculating Black Moon Lilith وارد گزارش شده است؛ نه لیلیت میانگین، نه سیارک ۱۱۸۱، نه دارک‌مون/والدماث. این برچسب فقط مدل محاسبه را شفاف می‌کند."
-      : "محاسبه لیلیت موجود است، اما اگر gate گزارش محدود باشد، این متن در حد داده و اعتماد محاسباتی خوانده می‌شود.",
+      "چالش این است که حساسیت یا میل به برچسب ثابت تبدیل شود. خوانش سالم آن را در کنار کل چارت و تجربه‌ی واقعی نگه می‌دارد.",
+    trust:
+      "مجوز ورود این مدل به روایت در خود داده‌ی گزارش فعال است و مدل آن از لیلیت میانگین، سیارک ۱۱۸۱ و دارک‌مون/والدماث جدا نگه داشته می‌شود.",
+  };
+}
+
+function buildLilithBoundaryCard(
+  lilith: SpecialPointLilith | null,
+): LilithBoundaryCard | null {
+  if (!isCalculatedLilith(lilith) || lilith.approvedForReportOutput === true) {
+    return null;
+  }
+
+  return {
+    id: "lilith-technical-boundary",
+    title: "لیلیت نوسانی/واقعی محلی",
+    position: formatPointPosition(lilith),
+    source: "جایگاه محاسبه‌شده؛ روایت غیرفعال",
+    status: "جایگاه برای شفافیت فنی نمایش داده می‌شود، اما مجوز ورود به روایت تفسیری فعال نیست.",
+    boundary:
+      "این نقطه در جمع‌بندی شخصیت، رابطه، مسیر رشد یا تمرین‌های گزارش استفاده نمی‌شود. فعال‌شدن روایت به تصمیم و اعتبارسنجی جداگانه نیاز دارد.",
   };
 }
 
@@ -210,24 +262,24 @@ function formatPointPosition(point: SpecialPointNode | SpecialPointLilith): stri
     : "نشان نامشخص";
   const degreeLabel =
     typeof point.degreeInSign === "number"
-      ? "درجه " + formatPersianNumber(point.degreeInSign)
+      ? `درجه ${formatPersianNumber(point.degreeInSign)}`
       : "درجه نامشخص";
   const houseLabel =
-    typeof point.house === "number" ? "خانه " + formatPersianNumber(point.house) : null;
+    typeof point.house === "number" ? `خانه ${formatPersianNumber(point.house)}` : null;
 
   return [signLabel, degreeLabel, houseLabel].filter(Boolean).join("، ");
 }
 
 function formatNodeSource(nodeType: string | undefined): string {
   if (nodeType === "local-true-osculating") {
-    return "دست‌های ماه با مدل True/Osculating محلی";
+    return "دست‌های ماه با مدل نوسانی/واقعی محلی";
   }
 
   if (nodeType === "mean") {
-    return "دست‌های ماه با مدل Mean";
+    return "دست‌های ماه با مدل میانگین";
   }
 
-  return "دست‌های ماه با مدل مشخص‌شده در موتور گزارش";
+  return "دست‌های ماه با مدل ثبت‌شده در گزارش";
 }
 
 function formatPersianNumber(value: number): string {

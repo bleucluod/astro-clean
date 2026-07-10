@@ -70,7 +70,7 @@ assertIncludes("report generation service Lilith data bridge", service, [
   "const lilith = realChart.lilith",
   "approvedForReportOutput: lilith.approvedForReportOutput",
   "getHouseNumberForLongitude(lilith.longitude, realChart)",
-  "لیلیت نوسانی/واقعی محلی در داده گزارش ذخیره می‌شود، اما تا مرحله جداگانه UI/narrative وارد خوانش کاربر نمی‌شود.",
+  "جایگاه لیلیت نوسانی/واقعی محلی در داده و بخش فنی گزارش ذخیره می‌شود، اما تا وقتی مجوز خروجی فعال نیست وارد روایت تفسیری نمی‌شود.",
 ]);
 assertNotIncludes("report generation service forbidden Lilith shortcuts", service, [
   "calculateMeanLilith",
@@ -85,14 +85,13 @@ assertIncludes("real chart engine remains guarded source", engine, [
   "calculateRealChartLilith",
   "Local True/Osculating Black Moon Lilith",
   "approvedForReportOutput: false",
-  "report/UI output remains disabled",
 ]);
 
 const reportCard = read("components/ReportCard.tsx");
 assertIncludes("ReportCard limited Lilith UI sync", reportCard, [
   "buildLilithRow(report)",
   "لیلیت نوسانی/واقعی محلی",
-  "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+  "نمایش محدود داده؛ روایت تفسیری این گزارش فعال نیست",
   "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
   "محاسبه محلی از بردار مکان و سرعت ماه؛ بدون API، بدون اجرای Swiss و بدون وابستگی تازه",
 ]);
@@ -106,7 +105,10 @@ assertNotIncludes("ReportCard forbidden Lilith overclaims", reportCard, [
 ]);
 
 const writer = read("lib/astrology/real-engine-report-writer.ts");
-assertNotIncludes("report writer must not add Lilith narrative yet", writer, [
+assertIncludes("report writer must keep the Lilith narrative boundary", writer, [
+  "جایگاه لیلیت در بخش فنی ثبت شده است، اما مجوز ورود به روایت تفسیری این گزارش فعال نیست.",
+]);
+assertNotIncludes("report writer must not add forbidden Lilith narrative", writer, [
   "Mean Black Moon Lilith",
   "True Black Moon Lilith",
   "Lilith is now available",

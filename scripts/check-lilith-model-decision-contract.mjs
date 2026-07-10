@@ -89,7 +89,6 @@ assertIncludes("real chart engine guarded Lilith output gate", engine, [
   "calculateRealChartLilith",
   "Local True/Osculating Black Moon Lilith",
   "approvedForReportOutput: false",
-  "report/UI output remains disabled",
 ]);
 assertNotIncludes("real chart engine", engine, [
   "calculateMeanLilith",
@@ -103,7 +102,7 @@ assertIncludes("report generation service Lilith data bridge gate", service, [
   "lilith: buildCalculatedLilith(realChart)",
   'lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated"',
   "approvedForReportOutput: lilith.approvedForReportOutput",
-  "لیلیت نوسانی/واقعی محلی در داده گزارش ذخیره می‌شود، اما تا مرحله جداگانه UI/narrative وارد خوانش کاربر نمی‌شود.",
+  "جایگاه لیلیت نوسانی/واقعی محلی در داده و بخش فنی گزارش ذخیره می‌شود، اما تا وقتی مجوز خروجی فعال نیست وارد روایت تفسیری نمی‌شود.",
 ]);
 assertNotIncludes("report generation service", service, [
   "approvedForReportOutput: true",

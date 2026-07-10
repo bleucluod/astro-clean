@@ -65,7 +65,7 @@ for (const marker of [
   "const allAspects = mergeRealEngineAspectInventory",
   "aspects: allAspects",
   "aspectHighlights,",
-  "buildAspectOverviewText(aspectHighlights",
+  "buildAspectOverviewText(synthesisPlan, realEngineWithAspects)",
 ]) {
   if (!writerSource.includes(marker)) {
     failures.push(`writer missing inventory/highlight marker: ${marker}`);

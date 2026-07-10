@@ -63,11 +63,11 @@ for (const oldPhrase of [
 }
 
 assert(
-  read(files.specialPoints).includes("این برچسب فقط مدل محاسبه را شفاف می‌کند"),
+  read(files.specialPoints).includes("مدل‌ها در داده حفظ می‌شود"),
   "Special points copy should keep model transparency without repeating safety disclaimers.",
 );
 assert(
-  read(files.personalTransit).includes("چراغ‌های کوچک توجه"),
+  read(files.personalTransit).includes("هر کارت فقط یک نشانه‌ی موقت برای توجه است"),
   "Personal transit copy should use light observational language.",
 );
 

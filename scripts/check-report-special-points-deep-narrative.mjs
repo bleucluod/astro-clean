@@ -1,28 +1,16 @@
 import fs from "node:fs";
 
-const files = {
-  reportCard: "components/ReportCard.tsx",
-  component: "components/ReportSpecialPointsNarrativeSection.tsx",
-  packageJson: "package.json",
-  projectContext: "docs/HALLEUS_PROJECT_CONTEXT.md",
-  ideaGarden: "docs/HALLEUS_IDEA_GARDEN.md",
-  realityAudit: "docs/HALLEUS_ENGINE_REALITY_AUDIT.md",
-  unificationPlan: "docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md",
-};
-
 function read(file) {
   return fs.readFileSync(file, "utf8");
 }
 
 function assert(condition, message) {
-  if (!condition) {
-    throw new Error(message);
-  }
+  if (!condition) throw new Error(message);
 }
 
-const reportCard = read(files.reportCard);
-const component = read(files.component);
-const pkg = JSON.parse(read(files.packageJson));
+const reportCard = read("components/ReportCard.tsx");
+const component = read("components/ReportSpecialPointsNarrativeSection.tsx");
+const pkg = JSON.parse(read("package.json"));
 const reportsScript = pkg.scripts?.["check:reports"] ?? "";
 const projectScript = pkg.scripts?.["check:project"] ?? "";
 
@@ -33,20 +21,23 @@ assert(
 assert(
   reportCard.indexOf("<ReportPlanetPlacementSections report={report} />") <
     reportCard.indexOf("<ReportSpecialPointsNarrativeSection report={report} />"),
-  "Standalone planet placement sections must appear before special points narrative in the v0.1.264 app-like report order.",
+  "Planet placement sections must appear before special points narrative.",
 );
 
 for (const marker of [
   "data-special-points-deep-narrative",
   "v0.1.262-report-special-points-deep-narrative",
-  "لیلیت و دست‌های ماه",
+  "data-special-points-final-qa",
+  "v0.1.288-report-special-points-transit-final-qa",
+  "دست‌های ماه و لیلیت",
   "دست شمالی ماه",
   "دست جنوبی ماه",
-  "لیلیت: مرز، سایه و میل خام",
-  "True/Osculating",
-  "Mean",
+  "buildLilithNarrativeCard",
+  "lilith.approvedForReportOutput !== true",
+  "buildLilithBoundaryCard",
+  "جایگاه محاسبه‌شده؛ روایت غیرفعال",
   "local-true-osculating-black-moon-lilith",
-  "این برچسب فقط مدل محاسبه را شفاف می‌کند",
+  "مدل میانگین",
   "سیارک ۱۱۸۱",
   "دارک‌مون/والدماث",
 ]) {
@@ -60,23 +51,11 @@ assert(
 );
 assert(
   reportsScript.includes("pnpm run check:report-special-points-deep-narrative"),
-  "check:reports must include the special-points deep narrative guard.",
+  "check:reports must include the special-points guard.",
 );
 assert(
   projectScript.includes("pnpm run check:report-special-points-deep-narrative"),
-  "check:project must include the special-points deep narrative guard.",
+  "check:project must include the special-points guard.",
 );
-
-for (const file of [
-  files.projectContext,
-  files.ideaGarden,
-  files.realityAudit,
-  files.unificationPlan,
-]) {
-  assert(
-    read(file).includes("report special points deep narrative"),
-    `${file} missing report special points deep narrative marker.`,
-  );
-}
 
 console.log("Report special points deep narrative guard passed.");

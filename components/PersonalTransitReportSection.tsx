@@ -74,6 +74,9 @@ const PERSONAL_TRANSIT_VISIBLE_SECTION_VERSION =
 const PERSONAL_TRANSIT_COMPARISON_DEPTH_VERSION =
   "v0.1.261-personal-transit-comparison-depth" as const;
 
+const PERSONAL_TRANSIT_FINAL_QA_VERSION =
+  "v0.1.288-report-special-points-transit-final-qa" as const;
+
 export function PersonalTransitReportSection({
   data,
 }: {
@@ -91,22 +94,27 @@ export function PersonalTransitReportSection({
     data.location.currentResidencePlaceName ?? "محل زندگی فعلی ثبت نشده";
   const currentResidenceIsRequired =
     data.currentResidenceRequired && data.location.currentResidenceRequired;
+  const transitDateLabel = formatTransitLocalDate(data.transitLocalDate);
+  const transitMomentLabel = formatTransitMoment(
+    data.transitLocalDate,
+    data.sampleLocalTime,
+  );
 
   return (
     <section
       className="report-section report-personal-transit-section"
       data-personal-transit-visible-section={PERSONAL_TRANSIT_VISIBLE_SECTION_VERSION}
       data-personal-transit-comparison-depth={PERSONAL_TRANSIT_COMPARISON_DEPTH_VERSION}
+      data-personal-transit-final-qa={PERSONAL_TRANSIT_FINAL_QA_VERSION}
     >
       <div className="report-section-heading">
-        <span className="report-kicker">آسمان امروز نسبت به چارت تولد تو</span>
-        <h2>ترنزیت امروز برای چارت تولد</h2>
+        <span className="report-kicker">آسمان زمان ساخت گزارش نسبت به چارت تولد تو</span>
+        <h2>ترنزیت ثبت‌شده برای چارت تولد</h2>
         <p>
-          این بخش آسمان امروز را روی همان چارت تولدی می‌گذارد که بالاتر خواندی:
-          یعنی ترنزیت قرار نیست یک گزارش جدا باشد، بلکه می‌گوید امروز کدام
-          placement، رابطه یا الگوی تولدی روشن‌تر می‌شود. چارت تولد از محل تولد
-          و زمان تولد می‌آید، اما ترنزیت شخصی باید با محل زندگی فعلی خوانده شود؛
-          هالیوس تهران را بی‌اجازه جایگزین محل فعلی نمی‌کند.
+          این بخش آسمانی را که هنگام ساخت گزارش ثبت شده روی همان چارت تولد می‌گذارد.
+          بنابراین وقتی گزارش را بعداً باز می‌کنی، داده‌ی قدیمی با برچسب «امروز» نمایش
+          داده نمی‌شود. چارت تولد از محل و زمان تولد می‌آید و زمان ترنزیت از محل زندگی
+          فعلی؛ هالیوس تهران را بی‌اجازه جایگزین محل فعلی نمی‌کند.
         </p>
       </div>
 
@@ -120,7 +128,7 @@ export function PersonalTransitReportSection({
         </article>
 
         <article className="report-mini-card">
-          <span>مبنای ترنزیت امروز</span>
+          <span>مبنای ترنزیت گزارش</span>
           <strong>{currentResidence}</strong>
           {data.location.currentResidenceTimezone ? (
             <small>{data.location.currentResidenceTimezone}</small>
@@ -129,11 +137,17 @@ export function PersonalTransitReportSection({
         </article>
 
         <article className="report-mini-card">
+          <span>زمان محاسبه</span>
+          <strong>{transitMomentLabel}</strong>
+          <small>این زمان همراه گزارش ذخیره شده و با بازکردن دوباره تازه‌سازی نمی‌شود.</small>
+        </article>
+
+        <article className="report-mini-card">
           <span>وضعیت خوانش</span>
           <strong>{formatStatusLabel(data.status)}</strong>
           <small>
             {currentResidenceIsRequired
-              ? "محل زندگی فعلی برای دقت این بخش ضروری است."
+              ? "محل زندگی فعلی برای تعیین زمان محلی این بخش ضروری است."
               : "داده‌ی محل فعلی برای این خوانش ضروری اعلام نشده است."}
           </small>
         </article>
@@ -141,11 +155,11 @@ export function PersonalTransitReportSection({
 
       {isMissingResidence ? (
         <div className="notice report-notice">
-          <strong>مقایسه‌ی چارت تولد و چارت امروز هنوز کامل نیست.</strong>
+          <strong>مقایسه‌ی شخصی آسمان و چارت تولد هنوز ساخته نشده است.</strong>
           <p>
-            برای خواندن دقیق این بخش، محل زندگی فعلی لازم است. تا وقتی این داده
-            را نگرفته‌ایم، Halleus ادعای شخصی درباره آسمان امروز نمی‌سازد و از
-            تهران به‌عنوان پیش‌فرض پنهان استفاده نمی‌کند.
+            برای تعیین زمان محلی این بخش، محل زندگی فعلی لازم است. تا وقتی این داده
+            را نگرفته‌ایم، هالیوس ادعای شخصی درباره ترنزیت نمی‌سازد و از تهران
+            به‌عنوان پیش‌فرض پنهان استفاده نمی‌کند.
           </p>
         </div>
       ) : null}
@@ -153,18 +167,19 @@ export function PersonalTransitReportSection({
       {!isMissingResidence && hasAspects ? (
         <div className="report-personal-transit-depth">
           <div className="report-section-heading compact">
-            <span className="report-kicker">مقایسه‌ی چارت تولد و چارت امروز</span>
-            <h3>امروز کدام بخش‌های چارت تولد تو روشن‌تر می‌شود؟</h3>
+            <span className="report-kicker">مقایسه‌ی چارت تولد و آسمان ثبت‌شده</span>
+            <h3>در {transitDateLabel} کدام بخش‌های چارت تولد پررنگ‌تر بوده‌اند؟</h3>
             <p>
-              این کارت‌ها می‌گویند آسمان امروز روی کدام الگوی تولدی فشار/فرصت/توجه
-              می‌آورد. آن‌ها را کنار placementها، aspectها و special points بخوان؛
-              این کارت‌ها را مثل چراغ‌های کوچک توجه بخوان، کنار بقیه بخش‌های گزارش.
+              این کارت‌ها نشان می‌دهند آسمان ثبت‌شده روی کدام الگوی تولدی فشار،
+              فرصت یا توجه بیشتری آورده است. آن‌ها را کنار جایگاه‌ها، رابطه‌های
+              سیاره‌ای و نقاط ویژه بخوان؛ هر کارت فقط یک نشانه‌ی موقت برای توجه است،
+              نه پیش‌بینی قطعی.
             </p>
           </div>
 
           <div className="report-aspect-grid report-personal-transit-grid">
             {topAspects.map((aspect) => {
-              const insight = buildTransitInsight(aspect);
+              const insight = buildTransitInsight(aspect, transitDateLabel);
 
               return (
                 <article className="report-aspect-card" key={aspect.id}>
@@ -196,36 +211,39 @@ export function PersonalTransitReportSection({
 
       {!isMissingResidence && !hasAspects ? (
         <div className="notice report-notice">
-          <strong>تماس نزدیک قابل گزارش پیدا نشد.</strong>
+          <strong>تماس نزدیک قابل گزارش در {transitDateLabel} پیدا نشد.</strong>
           <p>
-            در محدوده aspectهای اصلی و orbهای تعریف‌شده، تماس نزدیک قابل گزارش
-            پیدا نشد. این یعنی امروز نباید نشانه مصنوعی بسازیم؛ نبود aspect
-            نزدیک هم یک داده محاسباتی است.
+            در محدوده رابطه‌های اصلی و اورب‌های تعریف‌شده، تماس نزدیکی پیدا نشد.
+            نبود رابطه‌ی نزدیک هم یک نتیجه‌ی محاسباتی است و نباید با نشانه‌ی مصنوعی
+            جایگزین شود.
           </p>
         </div>
       ) : null}
 
       <p className="report-muted-note">
-        این خوانش فقط از خورشید، ماه، عطارد، زهره، مریخ، مشتری، زحل، اورانوس،
-        نپتون و پلوتو استفاده می‌کند. دست‌های ماه، لیلیت، خانه‌ها و زاویه‌ها
-        برای ترنزیت شخصی هنوز deferred هستند.
+        این مقایسه فقط از خورشید، ماه، عطارد، زهره، مریخ، مشتری، زحل، اورانوس،
+        نپتون و پلوتو استفاده می‌کند. دست‌های ماه، لیلیت، خانه‌ها و زاویه‌ها در
+        این نسخه وارد مقایسه‌ی ترنزیتی نشده‌اند.
       </p>
     </section>
   );
 }
 
-function buildTransitInsight(aspect: PersonalTransitReportDataBridgeAspectSummary) {
+function buildTransitInsight(
+  aspect: PersonalTransitReportDataBridgeAspectSummary,
+  transitDateLabel: string,
+) {
   const transitFocus =
-    TRANSIT_BODY_FOCUS_FA[aspect.transitBody] ?? "جریان امروز";
+    TRANSIT_BODY_FOCUS_FA[aspect.transitBody] ?? "جریان زمان گزارش";
   const natalField =
     NATAL_BODY_FIELD_FA[aspect.natalBody] ?? "یکی از الگوهای چارت تولد";
   const aspectTone =
     ASPECT_TONE_FA[aspect.aspect] ?? "تماس قابل مشاهده بین دو بخش چارت";
 
   return {
-    focus: `${getBodyLabel(aspect.transitBody)} امروز می‌تواند ${transitFocus} را به ${natalField} وصل کند. کیفیت این تماس بیشتر شبیه ${aspectTone} است.`,
-    helpful: `از این تماس برای دیدن واضح‌تر ${natalField} استفاده کن و آن را با آرامش و فاصله‌ی کافی نگاه کنی.`,
-    growth: `اگر این بخش سنگین حس شد، آن را به‌عنوان دعوت به تنظیم ریتم، مرز و انتخاب آگاهانه بخوان و برایش ریتم تازه‌ای پیدا کن.`,
+    focus: `${getBodyLabel(aspect.transitBody)} در ${transitDateLabel} می‌توانسته ${transitFocus} را به ${natalField} وصل کند. کیفیت این تماس بیشتر شبیه ${aspectTone} بوده است.`,
+    helpful: `از این تماس برای مرور روشن‌تر ${natalField} استفاده کن؛ آن را به یک تجربه‌ی همان بازه وصل کن، نه به پیش‌بینی آینده.`,
+    growth: "اگر این بخش سنگین بوده، آن را به‌عنوان دعوتی موقت برای تنظیم ریتم، مرز و انتخاب آگاهانه بخوان؛ نه حکم ثابت درباره زندگی.",
   };
 }
 
@@ -244,14 +262,48 @@ function formatAspectTitle(
 
 function formatStatusLabel(status: PersonalTransitReportDataBridge["status"]): string {
   if (status === "ready") {
-    return "داده ترنزیت شخصی آماده است";
+    return "داده‌ی ترنزیت ذخیره‌شده آماده است";
   }
 
   if (status === "partial-no-aspects") {
-    return "داده آماده است، aspect نزدیک پیدا نشده";
+    return "داده آماده است؛ رابطه‌ی نزدیک پیدا نشده";
   }
 
   return "محل زندگی فعلی لازم است";
+}
+
+function formatTransitMoment(
+  localDate: string | null | undefined,
+  sampleLocalTime: string | null | undefined,
+): string {
+  const dateLabel = formatTransitLocalDate(localDate);
+  const timeLabel = formatLocalTime(sampleLocalTime);
+
+  return timeLabel ? `${dateLabel}، ساعت ${timeLabel}` : dateLabel;
+}
+
+function formatTransitLocalDate(localDate: string | null | undefined): string {
+  if (!localDate || !/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
+    return "زمان ساخت گزارش";
+  }
+
+  const [year, month, day] = localDate.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function formatLocalTime(sampleLocalTime: string | null | undefined): string | null {
+  if (!sampleLocalTime || !/^\d{2}:\d{2}$/.test(sampleLocalTime)) {
+    return null;
+  }
+
+  return sampleLocalTime.replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 }
 
 function getBodyLabel(body: string): string {

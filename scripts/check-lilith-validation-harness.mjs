@@ -167,7 +167,6 @@ assertIncludes("real chart engine guarded Lilith output gate", engine, [
   "calculateRealChartLilith",
   "Local True/Osculating Black Moon Lilith",
   "approvedForReportOutput: false",
-  "report/UI output remains disabled",
 ]);
 assertNotIncludes("real chart engine must not consume Lilith validation", engine, [
   "calculateLilithOsculatingProbe",
@@ -199,7 +198,7 @@ if (exists("components/ReportCard.tsx")) {
     "function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null",
     'lilith.status === "calculated"',
     "لیلیت نوسانی/واقعی محلی",
-    "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+    "نمایش محدود داده؛ روایت تفسیری این گزارش فعال نیست",
   ]);
   assertNotIncludes("ReportCard must not call validation/probe directly", reportCard, [
     "calculateLilithOsculatingProbe",

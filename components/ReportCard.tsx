@@ -456,7 +456,7 @@ export function ReportCard({ report }: ReportCardProps) {
 
             {lunarNodeRows.length > 0 ? (
               <>
-                <h4>دست‌های ماه با مدل نوسانی/واقعی محلی</h4>
+                <h4>{getLunarNodeSectionTitle(report.realEngine.lunarNodes)}</h4>
                 <div className="report-placement-grid">
                   {lunarNodeRows.map((node) => (
                     <div className="mini-card" key={node.id}>
@@ -628,7 +628,7 @@ const VISIBLE_ENGINE_COPY_REPLACEMENTS = [
   {
     needle: "Local True/Osculating Black Moon Lilith is calculated",
     value:
-      "لیلیت نوسانی/واقعی محلی از بردار مکان و سرعت ماه محاسبه شده و فعلاً به صورت داده محدود در پشتوانه گزارش نمایش داده می‌شود؛ روایت تفسیری آن جداگانه فعال می‌شود.",
+      "لیلیت نوسانی/واقعی محلی از بردار مکان و سرعت ماه محاسبه شده و فقط به صورت داده‌ی فنی نمایش داده می‌شود؛ روایت تفسیری آن در این گزارش فعال نیست.",
   },
   {
     needle: "Black Moon Lilith is not calculated",
@@ -831,11 +831,24 @@ function buildLunarNodeRows(report: AstrologyReport): LunarNodeSummaryRow[] {
             : "محاسبه با مدل میانگین",
       meaning:
         node.id === "north-node"
-          ? "مسیر رشد، تمرین تازه و جهتی که روح به سمت آن کشیده می‌شود."
-          : "الگوی آشنا، عادت‌های قدیمی و نقطه‌ای که راحت‌تر به آن برمی‌گردی.",
+          ? "مسیر رشد، تمرین تازه و جهتی که در این مدل نیاز به تجربه‌ی بیشتری دارد."
+          : "الگوی آشنا، مهارت‌های قدیمی و عادتی که بهتر است آگاهانه استفاده شود.",
     }));
 }
 
+function getLunarNodeSectionTitle(
+  lunarNodes: RealEngineReportLunarNodes | undefined,
+): string {
+  if (isCalculatedLunarNodes(lunarNodes) && lunarNodes.nodeType === "mean") {
+    return "دست‌های ماه با مدل میانگین";
+  }
+
+  if (isCalculatedLunarNodes(lunarNodes) && lunarNodes.nodeType === "local-true-osculating") {
+    return "دست‌های ماه با مدل نوسانی/واقعی محلی";
+  }
+
+  return "دست‌های ماه";
+}
 
 function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null {
   const lilith = report.realEngine?.lilith;
@@ -852,7 +865,7 @@ function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null {
     sourceLabel: "محاسبه محلی از بردار مکان و سرعت ماه؛ بدون API، بدون اجرای Swiss و بدون وابستگی تازه",
     reportGateLabel: lilith.approvedForReportOutput
       ? "آماده نمایش در گزارش"
-      : "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+      : "نمایش محدود داده؛ روایت تفسیری این گزارش فعال نیست",
     modelNote: "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
   };
 }

@@ -5,12 +5,8 @@ const repoRoot = process.cwd();
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 const failures = [];
 
-function fail(message) {
-  failures.push(message);
-}
-
 function assert(condition, message) {
-  if (!condition) fail(message);
+  if (!condition) failures.push(message);
 }
 
 function assertIncludes(label, text, markers) {
@@ -37,39 +33,42 @@ for (const scriptName of ["check:reports", "check:project"]) {
 
 const reportCard = read("components/ReportCard.tsx");
 assertIncludes("ReportCard lunar node copy", reportCard, [
+  "getLunarNodeSectionTitle",
   "دست‌های ماه با مدل نوسانی/واقعی محلی",
+  "دست‌های ماه با مدل میانگین",
   "lunarNodes.nodeType === \"local-true-osculating\"",
+  "lunarNodes.nodeType === \"mean\"",
   "(lunarNodes.nodeType === \"mean\" || lunarNodes.nodeType === \"local-true-osculating\")",
 ]);
 assertNotIncludes("ReportCard lunar node copy", reportCard, [
-  "<h4>دست‌های ماه با مدل میانگین</h4>",
-  "دست‌های ماه در این نسخه با مدل میانگین محاسبه می‌شوند؛ مدل نوسانی/واقعی فعلاً وارد خوانش نشده است.",
-  "lunarNodes.nodeType === \"mean\",",
-]);
-
-const reportService = read("lib/report-generation/report-generation-service.ts");
-assertIncludes("report generation service node copy", reportService, [
-  "دست‌های ماه در این نسخه با مدل نوسانی/واقعی محلی محاسبه می‌شوند؛ منبع خارجی یا Swiss runtime استفاده نشده است.",
-]);
-assertNotIncludes("report generation service node copy", reportService, [
-  "دست‌های ماه در این نسخه با مدل میانگین محاسبه می‌شوند؛ مدل نوسانی/واقعی فعلاً وارد خوانش نشده است.",
+  "روح به سمت آن کشیده می‌شود",
+  "سرنوشت قطعی",
 ]);
 
 const writer = read("lib/astrology/real-engine-report-writer.ts");
 assertIncludes("real engine report writer node copy", writer, [
-  "دست‌های ماه با مدل نوسانی/واقعی محلی",
-  "دست‌های ماه در این گزارش با مدل نوسانی/واقعی محلی خوانده می‌شوند.",
-  "با مدل نوسانی/واقعی محلی محاسبه شده است.",
+  "getLunarNodeModelLabel",
+  "مدل میانگین",
+  "مدل نوسانی/واقعی محلی",
+  "دست جنوبی",
+  "دست شمالی",
+  "این محور حکم قطعی درباره گذشته یا آینده نیست",
   "(lunarNodes.nodeType === \"mean\" || lunarNodes.nodeType === \"local-true-osculating\")",
 ]);
 assertNotIncludes("real engine report writer node copy", writer, [
-  "دست‌های ماه با مدل میانگین از دست جنوبی",
-  "دست‌های ماه جداگانه با مدل Mean Node آمده‌اند",
-  "دست‌های ماه در این گزارش با مدل میانگین خوانده می‌شوند.",
-  "چون Mean Node نزدیک مرز",
-  "با مدل True/Osculating Node ممکن است",
-  "دست‌های ماه با مدل میانگین در داده محاسبه‌شده ثبت شده‌اند.",
-  "lunarNodes.nodeType === \"mean\" &&",
+  'lunarNodes.northNode.signId === "libra"',
+  'lunarNodes.northNode.signId === "leo"',
+  "روح به سمت آن کشیده می‌شود",
+  "سرنوشت قطعی",
+]);
+
+const specialPoints = read("components/ReportSpecialPointsNarrativeSection.tsx");
+assertIncludes("special-points model-aware node copy", specialPoints, [
+  "formatNodeSource",
+  'nodeType === "local-true-osculating"',
+  'nodeType === "mean"',
+  "دست‌های ماه با مدل نوسانی/واقعی محلی",
+  "دست‌های ماه با مدل میانگین",
 ]);
 
 const engine = read("src/lib/chart/real-chart-engine.ts");

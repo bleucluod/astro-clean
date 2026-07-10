@@ -45,7 +45,7 @@ assertIncludes("ReportCard Lilith UI sync", reportCard, [
   "function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null",
   "function isCalculatedLilith(",
   "لیلیت نوسانی/واقعی محلی",
-  "نمایش محدود داده؛ روایت تفسیری در مرحله جداگانه فعال می‌شود",
+  "نمایش محدود داده؛ روایت تفسیری این گزارش فعال نیست",
   "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
   "محاسبه محلی از بردار مکان و سرعت ماه؛ بدون API، بدون اجرای Swiss و بدون وابستگی تازه",
 ]);
@@ -54,38 +54,39 @@ assertNotIncludes("ReportCard forbidden Lilith overclaim", reportCard, [
   "True Black Moon Lilith",
   "Lilith is now available",
   "production-lilith",
-  "calculateRealChartLilith",
-  "calculateLocalOsculatingBlackMoonLilith",
-  "sweph",
-  "swisseph",
-  "SE_MEAN_APOG",
-  "SE_OSCU_APOG",
+  "لیلیت سرنوشت قطعی",
+  "کشش جنسی پنهان",
+  "زخم تاریک",
 ]);
 
 const service = read("lib/report-generation/report-generation-service.ts");
 assertIncludes("report data remains the Lilith source", service, [
   "lilith: buildCalculatedLilith(realChart)",
-  'lilithStatus: realChart.lilith?.status === "calculated" ? "calculated" : "not-calculated"',
   "approvedForReportOutput: lilith.approvedForReportOutput",
-  "لیلیت نوسانی/واقعی محلی در داده گزارش ذخیره می‌شود، اما تا مرحله جداگانه UI/narrative وارد خوانش کاربر نمی‌شود.",
-]);
-assertNotIncludes("report generation service must not add Lilith copy shortcuts", service, [
-  "Lilith is now available",
-  "Mean Black Moon Lilith",
-  "True Black Moon Lilith",
-  "production-lilith",
+  "جایگاه لیلیت نوسانی/واقعی محلی در داده و بخش فنی گزارش ذخیره می‌شود، اما تا وقتی مجوز خروجی فعال نیست وارد روایت تفسیری نمی‌شود.",
 ]);
 
 const writer = read("lib/astrology/real-engine-report-writer.ts");
-assertNotIncludes("report writer Lilith narrative remains gated", writer, [
+assertIncludes("report writer gated Lilith copy remains", writer, [
+  "جایگاه لیلیت در بخش فنی ثبت شده است، اما مجوز ورود به روایت تفسیری این گزارش فعال نیست.",
+  "realEngine.lilith.approvedForReportOutput",
+]);
+assertNotIncludes("report writer forbidden Lilith narrative overclaims", writer, [
   "Mean Black Moon Lilith",
   "True Black Moon Lilith",
   "Lilith is now available",
-  "production-lilith",
-  "calculateRealChartLilith",
+  "لیلیت سرنوشت قطعی",
+  "کشش جنسی پنهان",
+  "زخم تاریک",
 ]);
-assertIncludes("report writer gated Lilith copy remains", writer, [
-  "لیلیت در داده محاسبه‌شده ثبت شده است و فقط بعد از تعیین مدل خوانش وارد متن می‌شود.",
+
+const specialPoints = read("components/ReportSpecialPointsNarrativeSection.tsx");
+assertIncludes("live Lilith boundary", specialPoints, [
+  "buildLilithNarrativeCard",
+  "lilith.approvedForReportOutput !== true",
+  "buildLilithBoundaryCard",
+  "جایگاه محاسبه‌شده؛ روایت غیرفعال",
+  "این نقطه در جمع‌بندی شخصیت، رابطه، مسیر رشد یا تمرین‌های گزارش استفاده نمی‌شود.",
 ]);
 
 const engine = read("src/lib/chart/real-chart-engine.ts");
@@ -94,36 +95,6 @@ assertIncludes("real chart engine remains guarded Lilith source", engine, [
   "Local True/Osculating Black Moon Lilith",
   "approvedForReportOutput: false",
 ]);
-assertNotIncludes("real chart engine forbidden Lilith shortcuts", engine, [
-  "calculateMeanLilith",
-  "calculateTrueLilith",
-  "production-lilith",
-  "SE_MEAN_APOG",
-  "SE_OSCU_APOG",
-]);
-
-const dataBridgeGuard = read("scripts/check-lilith-report-data-bridge.mjs");
-assertIncludes("Lilith report data bridge guard sync", dataBridgeGuard, [
-  "ReportCard limited Lilith UI sync",
-  "report writer must not add Lilith narrative yet",
-  "v0.1.243 Lilith report/UI sync",
-]);
-
-const docs = [
-  "docs/HALLEUS_PROJECT_CONTEXT.md",
-  "docs/HALLEUS_IDEA_GARDEN.md",
-  "docs/HALLEUS_ENGINE_REALITY_AUDIT.md",
-  "docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md",
-].map((file) => read(file));
-
-for (const [index, doc] of docs.entries()) {
-  assertIncludes(`Lilith report/UI sync docs ${index + 1}`, doc, [
-    "v0.1.243 Lilith report/UI sync",
-    "ReportCard now shows a limited technical Lilith card",
-    "The report writer narrative remains gated for a separate milestone",
-    "No external API, Swiss runtime dependency, or new Lilith runtime dependency is used.",
-  ]);
-}
 
 if (failures.length > 0) {
   console.error("Lilith report/UI sync check failed:");

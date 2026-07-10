@@ -113,7 +113,9 @@ for (const marker of [
   'aspect.aspectId === "opposition"',
   'isAspectBetween(aspect, "moon", "uranus")',
   'isAspectBetween(aspect, "moon", "saturn")',
-  "دست‌های ماه در این گزارش با مدل نوسانی/واقعی محلی خوانده می‌شوند.",
+  "getLunarNodeModelLabel",
+  "مدل میانگین",
+  "مدل نوسانی/واقعی محلی",
 ]) {
   if (!writerSource.includes(marker)) {
     failures.push(`Report writer missing fewer-but-better narrative marker: ${marker}`);

@@ -3,10 +3,12 @@ import type {
   RealEngineReportAngle,
   RealEngineReportAngleId,
   RealEngineReportAngles,
+  RealEngineReportCalculatedLilith,
   RealEngineReportCalculatedLunarNodes,
   RealEngineReportAspect,
   RealEngineReportHouse,
   RealEngineReportHouseContext,
+  RealEngineReportLilith,
   RealEngineReportLunarNodePoint,
   RealEngineReportLunarNodes,
   RealEngineReportPlacement,
@@ -1180,9 +1182,16 @@ function buildNodeAxisSpinePhrase(
     return undefined;
   }
 
-  const northHouse = isReportHouseNumber(lunarNodes.northNode.house) ? `خانه ${toPersianNumber(lunarNodes.northNode.house)}` : "خانه نامشخص";
-  const southHouse = isReportHouseNumber(lunarNodes.southNode.house) ? `خانه ${toPersianNumber(lunarNodes.southNode.house)}` : "خانه نامشخص";
-  const activeHouseNumbers = new Set<ReportHouseNumber>(chartSpine.activeHouses.map((activeHouse) => activeHouse.house.number));
+  const modelLabel = getLunarNodeModelLabel(lunarNodes);
+  const northHouse = isReportHouseNumber(lunarNodes.northNode.house)
+    ? `خانه ${toPersianNumber(lunarNodes.northNode.house)}`
+    : "خانه نامشخص";
+  const southHouse = isReportHouseNumber(lunarNodes.southNode.house)
+    ? `خانه ${toPersianNumber(lunarNodes.southNode.house)}`
+    : "خانه نامشخص";
+  const activeHouseNumbers = new Set<ReportHouseNumber>(
+    chartSpine.activeHouses.map((activeHouse) => activeHouse.house.number),
+  );
   const overlap = [lunarNodes.northNode.house, lunarNodes.southNode.house].flatMap((house) =>
     isReportHouseNumber(house) && activeHouseNumbers.has(house)
       ? [`خانه ${toPersianNumber(house)}`]
@@ -1190,7 +1199,7 @@ function buildNodeAxisSpinePhrase(
   );
 
   return [
-    `دست‌های ماه با مدل نوسانی/واقعی محلی از دست جنوبی ${formatSignLabel(SIGN_COPY[lunarNodes.southNode.signId])} در ${southHouse} به سمت دست شمالی ${formatSignLabel(SIGN_COPY[lunarNodes.northNode.signId])} در ${northHouse} خوانده می‌شوند.`,
+    `دست‌های ماه با ${modelLabel} از دست جنوبی ${formatSignLabel(SIGN_COPY[lunarNodes.southNode.signId])} در ${southHouse} به سمت دست شمالی ${formatSignLabel(SIGN_COPY[lunarNodes.northNode.signId])} در ${northHouse} خوانده می‌شوند.`,
     overlap.length > 0
       ? `چون این محور با ${joinPersianList(overlap)} هم‌پوشانی دارد، مسیر رشد در متن اصلی هم پررنگ است.`
       : undefined,
@@ -1464,7 +1473,7 @@ function buildRealEngineSectionEvidence({
           ? "بدون سیاره برگشتی در داده گزارش"
           : undefined,
       isCalculatedLunarNodes(lunarNodes)
-        ? "دست‌های ماه با مدل نوسانی/واقعی محلی محاسبه‌شده"
+        ? buildLunarNodeEvidenceLabel(lunarNodes)
         : "دست‌های ماه و لیلیت هنوز عمداً بیرون از خوانش مانده‌اند",
     ),
     lunarNodeEvidence: buildLunarNodeEvidenceLabel(lunarNodes),
@@ -1476,7 +1485,7 @@ function buildLunarNodeEvidenceLabel(lunarNodes: RealEngineReportLunarNodes | un
     return undefined;
   }
 
-  return "دست‌های ماه با مدل نوسانی/واقعی محلی محاسبه‌شده";
+  return `دست‌های ماه با ${getLunarNodeModelLabel(lunarNodes)} محاسبه‌شده`;
 }
 
 function buildPlacementEvidenceLabel(
@@ -2070,7 +2079,7 @@ function buildRetrogradeText(
   const method =
     "حرکت برگشتی از مقایسه جایگاه ظاهری سیاره‌ها نزدیک لحظه تولد به دست می‌آید و اگر سیاره نزدیک ایستایی باشد، باید ملایم‌تر خوانده شود.";
   const nodeBoundary = isCalculatedLunarNodes(realEngine.lunarNodes)
-    ? "دست‌های ماه با مدل نوسانی/واقعی محلی آمده‌اند و لیلیت در این نسخه وارد خوانش نشده است."
+    ? `دست‌های ماه با ${getLunarNodeModelLabel(realEngine.lunarNodes)} آمده‌اند و لیلیت فقط در بخش فنی نمایش داده می‌شود؛ روایت لیلیت در این نسخه فعال نیست.`
     : "دست‌های ماه و لیلیت فقط وقتی وارد خوانش می‌شوند که مدل و منبع محاسبه روشن باشد.";
 
   if (planetLabels.length === 0) {
@@ -2110,7 +2119,8 @@ function buildLunarNodeText(
     return undefined;
   }
 
-  const boundaryWarning = buildMeanNodeBoundaryWarning(lunarNodes);
+  const modelLabel = getLunarNodeModelLabel(lunarNodes);
+  const boundaryWarning = buildLunarNodeBoundaryWarning(lunarNodes);
   const northHouse = isReportHouseNumber(lunarNodes.northNode.house)
     ? HOUSE_COPY[lunarNodes.northNode.house]
     : undefined;
@@ -2122,7 +2132,7 @@ function buildLunarNodeText(
   const overlapText = chartSpine ? buildNodeAxisSpinePhrase(lunarNodes, chartSpine) : undefined;
 
   return [
-    "دست‌های ماه در این گزارش با مدل نوسانی/واقعی محلی خوانده می‌شوند.",
+    `دست‌های ماه در این گزارش با ${modelLabel} خوانده می‌شوند.`,
     axisSentence,
     overlapText,
     boundaryWarning,
@@ -2144,29 +2154,13 @@ function buildLunarNodeAxisHumanSentence(
   const southHouseText = isReportHouseNumber(lunarNodes.southNode.house)
     ? `خانه ${toPersianNumber(lunarNodes.southNode.house)}`
     : "خانه نامشخص";
+  const southField = southHouse ? ` در میدان ${southHouse.field}` : "";
+  const northField = northHouse ? ` در میدان ${northHouse.field}` : "";
 
-  if (
-    lunarNodes.northNode.signId === "libra" &&
-    lunarNodes.northNode.house === 2 &&
-    lunarNodes.southNode.signId === "aries" &&
-    lunarNodes.southNode.house === 8
-  ) {
-    return "دست جنوبی در حمل خانه ۸ از الگویی آشنا می‌گوید: واکنش سریع، دفاع، فشار یا تنش در اعتماد و صمیمیت. دست شمالی در میزان خانه ۲ تمرین تازه‌تری پیشنهاد می‌کند: ساختن ارزش شخصی، امنیت بدن‌مند، رابطه سالم‌تر با پول و بیان متعادل‌تر خواسته‌ها.";
-  }
-
-  if (
-    lunarNodes.northNode.signId === "leo" &&
-    lunarNodes.northNode.house === 2 &&
-    lunarNodes.southNode.signId === "aquarius" &&
-    lunarNodes.southNode.house === 8
-  ) {
-    return "دست جنوبی در دلو خانه ۸ نشان می‌دهد الگوی آشنا می‌تواند فاصله ذهنی، تحلیل بحران، استقلال افراطی در صمیمیت یا گیر کردن در شدت‌های روانی باشد. دست شمالی در اسد خانه ۲ مسیر تازه‌تری پیشنهاد می‌کند: برگشتن به بدن، ارزش شخصی، دیده‌شدن گرم‌تر، ساختن منابع خود و پرسیدن اینکه «من چه می‌خواهم؟»";
-  }
-
-  return `مسیر رشد از الگوی آشنای دست جنوبی در ${southSign}، ${southHouseText}${southHouse ? `، میدان ${southHouse.field}` : ""} به سمت تمرین تازه دست شمالی در ${northSign}، ${northHouseText}${northHouse ? `، میدان ${northHouse.field}` : ""} حرکت می‌کند.`;
+  return `دست جنوبی در ${southSign}، ${southHouseText}${southField} الگویی آشنا یا مهارتی قدیمی را نشان می‌دهد؛ دست شمالی در ${northSign}، ${northHouseText}${northField} جهت تمرینی تازه را پیشنهاد می‌کند. این محور حکم قطعی درباره گذشته یا آینده نیست و بهتر است با تجربه‌ی واقعی زندگی سنجیده شود.`;
 }
 
-function buildMeanNodeBoundaryWarning(
+function buildLunarNodeBoundaryWarning(
   lunarNodes: RealEngineReportCalculatedLunarNodes,
 ): string | undefined {
   const nearBoundary = [lunarNodes.northNode, lunarNodes.southNode].some((node) =>
@@ -2174,7 +2168,7 @@ function buildMeanNodeBoundaryWarning(
   );
 
   return nearBoundary
-    ? "چون یکی از دست‌های ماه نزدیک مرز نشانه یا خانه ثبت شده است، این بخش باید ملایم و احتمالی خوانده شود."
+    ? "چون یکی از دست‌های ماه نزدیک مرز نشانه ثبت شده است، این بخش باید ملایم و احتمالی خوانده شود."
     : undefined;
 }
 
@@ -2206,6 +2200,30 @@ function isCalculatedLunarNodes(
   );
 }
 
+function getLunarNodeModelLabel(
+  lunarNodes: RealEngineReportCalculatedLunarNodes,
+): string {
+  return lunarNodes.nodeType === "mean"
+    ? "مدل میانگین"
+    : "مدل نوسانی/واقعی محلی";
+}
+
+function isCalculatedLilith(
+  lilith: RealEngineReportLilith | undefined,
+): lilith is RealEngineReportCalculatedLilith {
+  if (
+    !lilith ||
+    lilith.status !== "calculated" ||
+    !("id" in lilith) ||
+    lilith.id !== "black-moon-lilith" ||
+    !("approvedForReportOutput" in lilith)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 function isValidLunarNodePoint(node: RealEngineReportLunarNodePoint): boolean {
   return (
     typeof node.longitude === "number" &&
@@ -2227,15 +2245,14 @@ function buildNatalAccuracyText(realEngine: RealEngineReportSnapshot): string | 
     .slice(0, 2)
     .join(" ");
 
-  const nodesStatus = realEngine.lunarNodes?.status ?? "not-calculated";
-  const lilithStatus = realEngine.lilith?.status ?? "not-calculated";
-  const nodesText =
-    nodesStatus === "calculated"
-      ? "دست‌های ماه با مدل نوسانی/واقعی محلی در داده محاسبه‌شده ثبت شده‌اند."
-      : "دست‌های ماه تا روشن شدن مدل و منبع محاسبه وارد نتیجه‌گیری نمی‌شوند.";
+  const nodesText = isCalculatedLunarNodes(realEngine.lunarNodes)
+    ? `دست‌های ماه با ${getLunarNodeModelLabel(realEngine.lunarNodes)} در داده ثبت شده‌اند.`
+    : "دست‌های ماه تا روشن شدن مدل و منبع محاسبه وارد نتیجه‌گیری نمی‌شوند.";
   const lilithText =
-    lilithStatus === "calculated"
-      ? "لیلیت در داده محاسبه‌شده ثبت شده است و فقط بعد از تعیین مدل خوانش وارد متن می‌شود."
+    isCalculatedLilith(realEngine.lilith)
+      ? realEngine.lilith.approvedForReportOutput
+        ? "لیلیت محاسبه شده و مجوز ورود به روایت این گزارش را دارد."
+        : "جایگاه لیلیت در بخش فنی ثبت شده است، اما مجوز ورود به روایت تفسیری این گزارش فعال نیست."
       : "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.";
 
   return [

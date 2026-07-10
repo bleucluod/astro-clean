@@ -120,7 +120,7 @@ const REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION =
 const REPORT_DETAIL_LIVE_LILITH_NODES_VERSION =
   "v0.1.268-live-report-lilith-nodes" as const;
 const REPORT_DETAIL_LIVE_PERSONAL_TRANSIT_VERSION =
-  "v0.1.269-live-report-personal-transit" as const;
+  "v0.1.288-report-special-points-transit-final-qa" as const;
 
 const PLANET_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
@@ -926,7 +926,7 @@ export function ReportDetail({
           ["planet-placements", "جایگاه‌ها"],
           ["aspect-relationships", "روابط"],
           ["special-points", "لیلیت و دست‌های ماه"],
-          ["personal-transit", "آسمان امروز"],
+          ["personal-transit", "آسمان زمان گزارش"],
           ["chart-wheel", "چرخ چارت"],
           ["technical-tables", "جدول‌ها"],
           ["technical-details", "جزئیات"],
@@ -1003,10 +1003,10 @@ export function ReportDetail({
             <PersonalTransitReportSection data={personalTransitReportData} />
           ) : (
             <div className="notice report-notice">
-              <strong>آسمان امروز برای این گزارش هنوز داده‌ی شخصی ذخیره‌شده ندارد.</strong>
+              <strong>آسمان زمان گزارش هنوز داده‌ی شخصی ذخیره‌شده ندارد.</strong>
               <p>
-                این بخش فقط وقتی فعال می‌شود که داده‌ی ترنزیت شخصی داخل خود گزارش موجود باشد.
-                هالیوس برای این بخش تهران را پیش‌فرض نمی‌گیرد و از مرورگر یا محل فعلی حدس نمی‌زند.
+                این بخش فقط وقتی فعال می‌شود که داده‌ی ترنزیت شخصی همراه خود گزارش ذخیره شده باشد.
+                هالیوس تهران را پیش‌فرض نمی‌گیرد، از مرورگر محل را حدس نمی‌زند و هنگام بازکردن گزارش قدیمی داده‌ی تازه‌ای جایگزین نمی‌کند.
               </p>
             </div>
           )}

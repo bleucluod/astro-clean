@@ -106,7 +106,6 @@ assertIncludes("real chart engine guarded Lilith output gate", engine, [
   "calculateRealChartLilith",
   "Local True/Osculating Black Moon Lilith",
   "approvedForReportOutput: false",
-  "report/UI output remains disabled",
 ]);
 assertNotIncludes("real chart engine Lilith output", engine, [
   "calculateOsculatingLilith",

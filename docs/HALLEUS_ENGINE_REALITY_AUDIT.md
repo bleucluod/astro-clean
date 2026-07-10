@@ -786,3 +786,14 @@ Current verified runtime reality at baseline 146083e:
 - The closing explicitly states that it preserves the opening thread and uses the evidence-backed primary house.
 - Sample QA enforces eight sections, cross-section role continuity, shared practice wording, no technical angle detail in the main daily-life chapter, and a 1,450-word ceiling.
 - No astrology calculation, aspect/orb policy, Placidus, Node/Lilith, or transit logic changed.
+
+## v0.1.288 report special-points/transit final QA
+
+Report Cleanup Batch 5 closes the five-batch report-quality roadmap with a trust pass over special points and saved personal transits.
+
+- A stored transit snapshot keeps `transitLocalDate`, `sampleLocalTime`, and `currentResidenceUtcIso`; reopening an old report does not relabel or recalculate it as today.
+- The visible transit section names the report-time sky, shows the stored date when available, keeps the no-silent-Tehran rule, and avoids deterministic prediction language.
+- The Lilith technical position remains visible, but while `approvedForReportOutput` is false it cannot enter personality, relationship, growth, synthesis, or practice narrative.
+- The model-aware lunar-node path preserves Mean versus local True/Osculating labels and uses generic sign/house evidence instead of fixture-specific branches.
+- No astrology calculation, Placidus logic, aspect/orb policy, Node/Lilith/transit math, external API, Swiss runtime dependency, auth, payment, SEO, storage policy, or public/private consent behavior changes in this batch.
+- This section supersedes earlier roadmap wording that described Lilith deep narrative as generally live; the live surface now exposes node narrative plus a technical Lilith boundary unless report approval is explicitly true.
