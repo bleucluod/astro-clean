@@ -1756,3 +1756,9 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Dashboard should focus on greeting, saved reports, creating a new report, report privacy, and recent reports.
 - Profile should focus on login status, account name, saved reports, privacy, and quick return to reports.
 - Guardrail: do not change auth logic, storage repository/schema, report generation, payment, SEO launch, or public/private consent implementation.
+
+## User-Facing Copy Detox - Reports/ReportDetail
+- Accepted: Reports and ReportDetail should read like a calm report library and reading page, not a database/archive/status surface.
+- Reports should foreground saved reports, search, favorites, notes, and gentle backup actions.
+- ReportDetail should show access/privacy in human language, not public/noindex/private/account/local-preview labels.
+- Guardrail: do not change report calculation, report engine, storage repository/schema/API behavior, payment, SEO launch, or consent implementation.

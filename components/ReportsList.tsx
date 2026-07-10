@@ -15,7 +15,7 @@ import {
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
 
-type SortMode = "newest" | "oldest";
+type مرتب‌سازیMode = "newest" | "oldest";
 type ReportFilterMode = "all" | "favorites";
 type ReportNotesMap = Record<string, string>;
 type ReportsListSource = "local" | "beta-db" | "account";
@@ -36,7 +36,7 @@ type ReportsArchivePayload = {
   version: 2;
   exportedAt: string;
   filterMode: ReportFilterMode;
-  sortMode: SortMode;
+  sortMode: مرتب‌سازیMode;
   searchTerm: string;
   reports: AstrologyReport[];
   notes: Record<string, string>;
@@ -86,7 +86,7 @@ function createReportsArchivePayload(
   reportNotes: ReportNotesMap,
   favoriteReportIds: string[],
   filterMode: ReportFilterMode,
-  sortMode: SortMode,
+  sortMode: مرتب‌سازیMode,
   searchTerm: string,
 ): ReportsArchivePayload {
   return {
@@ -248,7 +248,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   const [isReady, setIsReady] = useState(false);
   const [message, setMessage] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [sortMode, setمرتب‌سازیMode] = useState<مرتب‌سازیMode>("newest");
   const [filterMode, setFilterMode] = useState<ReportFilterMode>("all");
 
   const searchTerm = normalizeSearchText(searchInput);
@@ -420,7 +420,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       "application/json;charset=utf-8",
     );
 
-    setMessage("خروجی کامل JSON آماده شد.");
+    setMessage("فایل پشتیبان همه گزارش‌ها آماده شد.");
   }
 
   async function handleImportReports(event: ChangeEvent<HTMLInputElement>) {
@@ -502,7 +502,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       "application/json;charset=utf-8",
     );
 
-    setMessage("خروجی JSON گزارش‌های نمایش‌داده‌شده آماده شد.");
+    setMessage("فایل پشتیبان گزارش‌های نمایش‌داده‌شده آماده شد.");
   }
 
   if (!isReady) {
@@ -510,7 +510,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <section className="card">
         <span className="badge">در حال آماده‌سازی</span>
         <h1>گزارش‌ها در حال خواندن هستند</h1>
-        <p>هالیوس گزارش‌های همین مرورگر یا نسخه‌های حساب را جداگانه پیدا می‌کند.</p>
+        <p>هالیوس گزارش‌های ذخیره‌شده را آماده می‌کند تا دوباره به خوانش‌های قبلی برگردی.</p>
       </section>
     );
   }
@@ -524,7 +524,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             title="هنوز گزارشی در حساب پیدا نشد"
             description={
               message ||
-              "برای دیدن گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. نسخه حساب فقط برای کاربر واردشده خوانده می‌شود، private/noindex می‌ماند و لینک عمومی جدا از حساب است."
+              "برای گزارش‌های حساب، وارد حساب شو و یک گزارش تازه بساز. گزارش‌های حساب برای برگشت ساده‌تر به خوانش‌های بعدی نگه داشته می‌شوند."
             }
             actionHref={accountReadConfig.canAttemptAccountReportRead ? "/chart" : "/profile"}
             actionLabel={accountReadConfig.canAttemptAccountReportRead ? "ساخت گزارش جدید" : "رفتن به حساب"}
@@ -532,12 +532,12 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
           {!accountReadConfig.canAttemptAccountReportRead ? (
             <div className="card">
-              <span className="badge">Account read guard</span>
+              <span className="badge">گزارش‌های حساب</span>
 
-              <h2>خواندن گزارش‌های حساب هنوز کامل فعال نیست</h2>
+              <h2>برای گزارش‌های حساب، وارد حساب شو</h2>
 
               <p>
-                برای دیدن گزارش‌های حساب باید ورود و خواندن account reports فعال باشد. این مسیر migration اجرا نمی‌کند و گزارش‌های local را حذف نمی‌کند.
+                گزارش‌های حساب بعد از ورود در دسترس قرار می‌گیرند. گزارش‌هایی که روی همین دستگاه داری، جداگانه باقی می‌مانند.
               </p>
 
               {accountReadConfig.missingConfig.length > 0 ? (
@@ -556,12 +556,12 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
     return (
       <section className="grid">
         <div className="card">
-          <span className="badge">Account reports</span>
+          <span className="badge">گزارش‌های حساب</span>
 
           <h1>گزارش‌های وصل‌شده به حساب</h1>
 
           <p>
-            این نما فقط گزارش‌هایی را نشان می‌دهد که به حساب فعلی وصل‌اند. هدف این مرحله روشن کردن مالکیت گزارش است؛ نسخه حساب private/noindex می‌ماند و migration گزارش‌های local هنوز انجام نمی‌شود.
+            اینجا گزارش‌هایی را می‌بینی که به حساب فعلی تو وصل هستند. برای ساخت گزارش تازه یا برگشت به خوانش‌های قبلی، از همین صفحه شروع کن.
           </p>
 
           <div className="reports-toolbar">
@@ -578,7 +578,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               <span>مرتب‌سازی</span>
               <select
                 value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
+                onChange={(event) => setمرتب‌سازیMode(event.target.value as مرتب‌سازیMode)}
               >
                 <option value="newest">جدیدترین اول</option>
                 <option value="oldest">قدیمی‌ترین اول</option>
@@ -630,7 +630,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             </Link>
 
             <Link className="button secondary" href="/reports">
-              گزارش‌های local-preview
+              گزارش‌های این دستگاه
             </Link>
 
             <Link className="button secondary" href="/profile">
@@ -664,7 +664,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
         {visibleDatabaseSummaries.map((summary) => (
           <article className="card" key={summary.id}>
-            <span className="badge">Account copy</span>
+            <span className="badge">گزارش حساب</span>
 
             <h2>{summary.name ? `گزارش ${summary.name}` : "گزارش ذخیره‌شده در حساب"}</h2>
 
@@ -678,8 +678,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
             <p>
               ذخیره‌شده در {new Date(summary.createdAt).toLocaleDateString("fa-IR")} ·{" "}
-              {summary.visibility} · {summary.source}
-              {summary.hasNote ? " · یادداشت دارد" : ""}
+              {summary.hasNote ? "یادداشت دارد" : "آماده خواندن"}
               {summary.favorite ? " · علاقه‌مندی" : ""}
             </p>
 
@@ -688,7 +687,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
                 className="button"
                 href={`/reports/${summary.id}?source=account`}
               >
-                باز کردن گزارش اکانتی
+                باز کردن گزارش
               </Link>
             </div>
           </article>
@@ -701,11 +700,11 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
     if (databaseSummaries.length === 0) {
       return (
         <EmptyState
-          badge="Beta database archive"
-          title="No beta database reports found"
-          description="Save a beta database copy from a report detail page, then return to this guarded archive."
+          badge="بخش داخلی"
+          title="گزارشی در این بخش پیدا نشد"
+          description="برای گزارش‌های معمولی به کتابخانه گزارش‌ها برگرد."
           actionHref="/reports"
-          actionLabel="Back to local reports"
+          actionLabel="بازگشت به گزارش‌ها"
         />
       );
     }
@@ -713,33 +712,32 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
     return (
       <section className="grid">
         <div className="card">
-          <span className="badge">Beta database archive</span>
+          <span className="badge">بخش داخلی</span>
 
-          <h1>Beta database report archive</h1>
+          <h1>گزارش‌های داخلی</h1>
 
           <p>
-            This guarded view reads saved beta database summaries. Open a report
-            to load the full saved copy from the database.
+            این بخش برای بررسی داخلی نگه داشته شده است. برای تجربه معمولی، به کتابخانه گزارش‌ها برگرد.
           </p>
 
           <div className="reports-toolbar">
             <label className="field">
-              <span>Search beta database summaries</span>
+              <span>جستجو در گزارش‌ها</span>
               <input
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Name, city, country, report id..."
+                placeholder="نام، شهر یا شناسه گزارش..."
               />
             </label>
 
             <label className="field">
-              <span>Sort</span>
+              <span>مرتب‌سازی</span>
               <select
                 value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
+                onChange={(event) => setمرتب‌سازیMode(event.target.value as مرتب‌سازیMode)}
               >
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
+                <option value="newest">جدیدترین اول</option>
+                <option value="oldest">قدیمی‌ترین اول</option>
               </select>
             </label>
           </div>
@@ -750,7 +748,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={() => setFilterMode("all")}
             >
-              All beta DB reports
+              همه گزارش‌ها
             </button>
 
             <button
@@ -760,15 +758,15 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={() => setFilterMode("favorites")}
             >
-              Favorites ({favoriteCount.toLocaleString("en-US")})
+              علاقه‌مندی‌ها ({favoriteCount.toLocaleString("fa-IR")})
             </button>
           </div>
 
           <div className="reports-summary-row">
             <span>
-              Showing {visibleDatabaseSummaries.length.toLocaleString("en-US")} of {" "}
-              {databaseSummaries.length.toLocaleString("en-US")} beta DB reports ? {" "}
-              {notesCount.toLocaleString("en-US")} note(s)
+              نمایش {visibleDatabaseSummaries.length.toLocaleString("fa-IR")} از {" "}
+              {databaseSummaries.length.toLocaleString("fa-IR")} گزارش · {" "}
+              {notesCount.toLocaleString("fa-IR")} یادداشت
             </span>
 
             {searchInput ? (
@@ -777,18 +775,18 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
                 type="button"
                 onClick={() => setSearchInput("")}
               >
-                Clear search
+                پاک کردن جستجو
               </button>
             ) : null}
           </div>
 
           <div className="actions">
             <Link className="button" href="/reports">
-              Back to local reports
+              بازگشت به گزارش‌ها
             </Link>
 
             <Link className="button secondary" href="/chart">
-              Create new report
+              ساخت گزارش جدید
             </Link>
           </div>
 
@@ -797,11 +795,11 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
         {visibleDatabaseSummaries.length === 0 ? (
           <div className="card">
-            <span className="badge">No results</span>
+            <span className="badge">بدون نتیجه</span>
 
-            <h2>No beta database report matched this filter</h2>
+            <h2>گزارشی با این جستجو پیدا نشد</h2>
 
-            <p>Clear search or switch back to all beta DB reports.</p>
+            <p>پاک کردن جستجو or switch back to all beta DB reports.</p>
 
             <button
               className="button secondary"
@@ -811,16 +809,16 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
                 setFilterMode("all");
               }}
             >
-              Show all beta DB reports
+              نمایش همه گزارش‌ها
             </button>
           </div>
         ) : null}
 
         {visibleDatabaseSummaries.map((summary) => (
           <article className="card" key={summary.id}>
-            <span className="badge">Beta database copy</span>
+            <span className="badge">گزارش داخلی</span>
 
-            <h2>{summary.name ? `Report for ${summary.name}` : "Saved beta database report"}</h2>
+            <h2>{summary.name ? `گزارش ${summary.name}` : "گزارش ذخیره‌شده"}</h2>
 
             <div className="birth-details">
               <span>{summary.birthDate}</span>
@@ -831,10 +829,9 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             </div>
 
             <p>
-              Saved {new Date(summary.createdAt).toLocaleDateString("fa-IR")} ? {" "}
-              {summary.visibility} ? {summary.source}
-              {summary.hasNote ? " ? note" : ""}
-              {summary.favorite ? " ? favorite" : ""}
+              ذخیره‌شده در {new Date(summary.createdAt).toLocaleDateString("fa-IR")}
+              {summary.hasNote ? " · یادداشت دارد" : ""}
+              {summary.favorite ? " · علاقه‌مندی" : ""}
             </p>
 
             <div className="actions">
@@ -842,7 +839,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
                 className="button"
                 href={`/reports/${summary.id}?source=beta-db`}
               >
-                Open beta database report
+                باز کردن گزارش
               </Link>
             </div>
           </article>
@@ -856,7 +853,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <EmptyState
         badge="شروع آرام"
         title="هنوز گزارشی ذخیره نشده"
-        description="از ساخت گزارش تولد شروع کن؛ نسخه local/private همین مرورگر برای برگشت سریع ساخته می‌شود. اگر وارد حساب باشی، نسخه حساب جدا و private/noindex هم بررسی می‌شود."
+        description="از ساخت گزارش تولد شروع کن؛ بعد همین‌جا می‌توانی دوباره به خوانش‌های قبلی برگردی."
         actionHref="/chart"
         actionLabel="ساخت اولین گزارش تولد"
       />
@@ -866,21 +863,19 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   return (
     <section className="grid">
       <div className="card">
-        <span className="badge">گزارش‌های همین مرورگر</span>
+        <span className="badge">گزارش‌های من</span>
 
-        <h1>کتابخانه local-preview</h1>
+        <h1>کتابخانه گزارش‌ها</h1>
 
         <p>
-          اینجا برای برگشت سریع به خوانش‌های قبلی روی همین مرورگر است. حساب
-          کاربری مسیر جداگانه‌ای برای مالکیت و برگشت امن به گزارش‌های بعدی
-          می‌سازد؛ گزارش‌های local در این مرحله migrate یا حذف نمی‌شوند و لینک عمومی فقط مسیر public/noindex جداست.
+          اینجا برای برگشت سریع به خوانش‌های قبلی است. می‌توانی گزارش‌ها را جستجو کنی، ستاره‌دار کنی، یادداشت بگذاری یا یک گزارش تازه بسازی.
         </p>
 
         <div className="report-lifecycle-strip" aria-label="وضعیت گزارش‌ها">
-          <span>local-preview روی همین مرورگر</span>
+          <span>روی همین دستگاه</span>
           <span>قابل جستجو و ستاره‌دار</span>
-          <span>اشتراک عمومی فقط با لینک noindex</span>
-          <span>حساب جدا و private/noindex</span>
+          <span>برگشت ساده به خوانش‌ها</span>
+          <span>حریم گزارش‌ها</span>
         </div>
 
         <div className="reports-toolbar">
@@ -897,7 +892,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
             <span>مرتب‌سازی</span>
             <select
               value={sortMode}
-              onChange={(event) => setSortMode(event.target.value as SortMode)}
+              onChange={(event) => setمرتب‌سازیMode(event.target.value as مرتب‌سازیMode)}
             >
               <option value="newest">جدیدترین اول</option>
               <option value="oldest">قدیمی‌ترین اول</option>
@@ -949,12 +944,12 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
           </Link>
 
           <Link className="button secondary" href="/dashboard">
-            رفتن به پنل کاربری
+            رفتن به پنل من
           </Link>
 
 
           <Link className="button secondary" href="/reports?source=account">
-            دیدن گزارش‌های حساب
+            گزارش‌های حساب
           </Link>
           <button
             className="button secondary"
@@ -970,11 +965,11 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportAllJson}
             >
-              خروجی کامل JSON
+              دریافت فایل پشتیبان
             </button>
 
             <label className="button secondary reports-file-button">
-              وارد کردن JSON
+              بازگردانی فایل پشتیبان
               <input
                 type="file"
                 accept="application/json,.json"
@@ -989,7 +984,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportVisibleText}
             >
-              خروجی متنی نمایش‌داده‌شده
+              دریافت متن گزارش‌ها
             </button>
 
             <button
@@ -997,7 +992,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportVisibleJson}
             >
-              خروجی JSON نمایش‌داده‌شده
+              دریافت فایل گزارش‌های نمایش‌داده‌شده
             </button>
           </div>
         </div>

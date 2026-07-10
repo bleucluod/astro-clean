@@ -589,18 +589,18 @@ function buildEnergyRows(placements: RealEngineReportPlacement[]): EnergySummary
 
 function getSourceBadge(reportSource: ReportDetailSource) {
   if (reportSource === "public") {
-    return "public / noindex";
+    return "لینک مستقیم";
   }
 
   if (reportSource === "account") {
-    return "خصوصی / حساب";
+    return "گزارش حساب";
   }
 
   if (reportSource === "beta-db") {
-    return "نسخه آزمایشی سرور";
+    return "گزارش داخلی";
   }
 
-  return "محلی / مرورگر";
+  return "روی همین دستگاه";
 }
 
 function getReportTitle(report: AstrologyReport) {
@@ -611,30 +611,30 @@ function getReportTitle(report: AstrologyReport) {
 
 function getPublicLinkMessage(reportSource: ReportDetailSource, message: string) {
   if (reportSource === "public") {
-    return "این گزارش public/noindex است؛ هرکسی که لینک مستقیم را داشته باشد می‌تواند گزارش را ببیند، اما noindex یعنی این صفحه برای ایندکس عمومی آماده نشده و یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند.";
+    return "این گزارش با لینک مستقیم باز شده است. هر کسی که این لینک را داشته باشد می‌تواند متن گزارش را ببیند؛ یادداشت‌های شخصی نمایش داده نمی‌شوند.";
   }
 
   if (reportSource === "account") {
-    return message || "این نسخه از حساب فعلی خوانده شده است؛ گزارش حساب private/noindex می‌ماند، با حساب فعلی خوانده می‌شود و یادداشت‌های شخصی اینجا فقط خواندنی است.";
+    return message || "این گزارش از حساب فعلی خوانده شده است. یادداشت‌های شخصی در این نما فقط خواندنی هستند.";
   }
 
   if (reportSource === "beta-db") {
-    return message || "این نسخه از آرشیو آزمایشی سرور خوانده شده است؛ این مسیر برای اشتراک عمومی یا ایندکس نیست.";
+    return message || "این گزارش از بخش داخلی خوانده شده است.";
   }
 
-  return message || "نسخه local/private همین مرورگر باز شد؛ این نسخه عمومی نیست. برای گزارش‌های بعدی می‌توانی وارد حساب شوی تا نسخه حساب جدا و private/noindex داشته باشی.";
+  return message || "این گزارش روی همین دستگاه پیدا شد و آماده خواندن است.";
 }
 
 function getNextActionMessage(reportSource: ReportDetailSource) {
   if (reportSource === "account") {
-    return "این گزارش از حساب فعلی خوانده شده و private/noindex می‌ماند. برای مقایسه، یک گزارش تازه بساز؛ نسخه local همچنان جداست و گزارش‌های حساب را از مسیر حساب ببین.";
+    return "برای مقایسه یا شروع دوباره، یک گزارش تازه بساز یا به کتابخانه گزارش‌ها برگرد.";
   }
 
   if (reportSource === "public") {
-    return "این لینک public/noindex فقط با لینک مستقیم قابل دیدن است و جای private/account report را نمی‌گیرد. برای گزارش‌های بعدی که به حساب خودت وصل بمانند، وارد حساب شو و بعد گزارش تازه بساز.";
+    return "این گزارش با لینک مستقیم باز شده است. برای گزارش‌های بعدی، می‌توانی وارد حساب شوی و بعد گزارش تازه بسازی.";
   }
 
-  return "این نسخه local/private روی همین مرورگر است. برای اینکه گزارش‌های بعدی فقط به این دستگاه وابسته نباشند، وارد حساب شو و بعد گزارش تازه بساز تا نسخه حساب جدا و private/noindex هم بررسی شود.";
+  return "این گزارش روی همین دستگاه پیدا شده است. برای گزارش‌های بعدی، می‌توانی وارد حساب شوی و بعد گزارش تازه بسازی.";
 }
 
 export function ReportDetail({
@@ -658,7 +658,7 @@ export function ReportDetail({
       if (reportSource === "public" && initialReport) {
         setReport(sanitizeReportVisibleCopy(initialReport));
         setNote("");
-        setMessage(initialMessage || `لینک عمومی گزارش آماده است: ${reportId}`);
+        setMessage(initialMessage || "گزارش آماده است.");
         setIsReady(true);
         return;
       }
@@ -673,7 +673,7 @@ export function ReportDetail({
         if (result.status === "account-read-ready" && result.reportRecord?.report) {
           setReport(sanitizeReportVisibleCopy(result.reportRecord.report));
           setNote("");
-          setMessage(`لینک عمومی گزارش باز شد: ${reportId}`);
+          setMessage("گزارش آماده است.");
           setIsReady(true);
           return;
         }
@@ -688,7 +688,7 @@ export function ReportDetail({
         setNote(selectedRecord?.note ?? "");
         setMessage(
           selectedRecord?.report
-            ? "نسخه همین مرورگر باز شد؛ لینک عمومی سرور برای این گزارش پیدا نشد."
+            ? "گزارش روی همین دستگاه پیدا شد."
             : result.message,
         );
         setIsReady(true);
@@ -712,14 +712,14 @@ export function ReportDetail({
 
         setReport(sanitizeReportVisibleCopy(result.reportRecord.report));
         setNote(result.reportRecord.note ?? "");
-        setMessage(`نسخه اکانتی گزارش باز شد: ${reportId}`);
+        setMessage("گزارش حساب آماده است.");
         setIsReady(true);
         return;
       }
 
       if (reportSource === "beta-db") {
         if (!isBetaDatabaseSaveUiEnabled) {
-          throw new Error("خواندن نسخه آزمایشی سرور غیرفعال است.");
+          throw new Error("خواندن این بخش داخلی در دسترس نیست.");
         }
 
         const response = await fetch(
@@ -730,7 +730,7 @@ export function ReportDetail({
           | null;
 
         if (!response.ok || !payload?.ok || !payload.reportRecord?.report) {
-          throw new Error(payload?.error ?? "گزارش آزمایشی سرور پیدا نشد.");
+          throw new Error(payload?.error ?? "گزارش پیدا نشد.");
         }
 
         if (!isActive) {
@@ -739,7 +739,7 @@ export function ReportDetail({
 
         setReport(sanitizeReportVisibleCopy(payload.reportRecord.report));
         setNote(payload.reportRecord.note ?? "");
-        setMessage(`گزارش آزمایشی سرور باز شد: ${reportId}`);
+        setMessage("گزارش آماده است.");
         setIsReady(true);
         return;
       }
@@ -764,7 +764,7 @@ export function ReportDetail({
 
   async function handleSaveNote() {
     if (reportSource === "account" || reportSource === "public") {
-      setMessage("یادداشت گزارش‌های عمومی/اکانتی فعلاً فقط خواندنی است؛ یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند.");
+      setMessage("یادداشت این گزارش در این نما فقط خواندنی است.");
       return;
     }
 
@@ -798,7 +798,7 @@ export function ReportDetail({
     [report],
   );
   const isReadOnlyReportSource = reportSource === "account" || reportSource === "public";
-  const reportsHref = reportSource === "account" ? "/reports?source=account" : "/reports";
+  const reportsHref = "/reports";
 
   if (!isReady) {
     return (
@@ -867,7 +867,7 @@ export function ReportDetail({
           </div>
           <h1 id="report-detail-title">{getReportTitle(report)}</h1>
           <p>
-            این صفحه روایت اصلی گزارش، سه ستون، چرخ چارت و پشتوانه محاسبه را یک‌جا نگه می‌دارد. اول خوانش نهایی را بخوان؛ هر وقت خواستی، جزئیات فنی را از بخش‌های پایین‌تر باز کن.
+            این صفحه روایت اصلی گزارش، سه ستون، چرخ چارت و جزئیات لازم را یک‌جا نگه می‌دارد. اول خوانش نهایی را بخوان؛ هر وقت خواستی، بخش‌های پایین‌تر را باز کن.
           </p>
         </div>
 
@@ -992,9 +992,9 @@ export function ReportDetail({
       <section className="report-detail-quick-card-grid" aria-label="گام‌های سریع بعد از روایت">
         <article className="card report-detail-quick-card" id="technical-tables">
           <span className="section-label">جدول‌ها</span>
-          <h2>دسترسی سریع به جدول‌ها و داده‌های فنی</h2>
+          <h2>دسترسی سریع به جدول‌ها</h2>
           <p>
-            جایگاه‌ها، خانه‌ها، محورها، دست‌های ماه، روابط سیاره‌ای و پشتوانه محاسبه اینجا جمع شده‌اند.
+            جایگاه‌ها، خانه‌ها، محورها، دست‌های ماه و روابط سیاره‌ای اینجا جمع شده‌اند.
           </p>
           <button className="button secondary" type="button" onClick={() => scrollToSection("technical-details")}>
             مشاهده همه بخش‌ها
@@ -1005,7 +1005,7 @@ export function ReportDetail({
           <span className="section-label">یادداشت شخصی</span>
           <h2>یادداشت شخصی</h2>
           {reportSource === "public" ? (
-            <p>یادداشت‌های شخصی در لینک عمومی نمایش داده نمی‌شوند.</p>
+            <p>یادداشت‌های شخصی در این نما نمایش داده نمی‌شوند.</p>
           ) : (
             <>
               <label className="field">
@@ -1032,8 +1032,8 @@ export function ReportDetail({
         </article>
 
         <article className="card report-detail-quick-card">
-          <span className="section-label">وضعیت اشتراک و حریم</span>
-          <h2>وضعیت اشتراک گزارش</h2>
+          <span className="section-label">حریم گزارش</span>
+          <h2>دسترسی به این گزارش</h2>
           <span className="pill">{getSourceBadge(reportSource)}</span>
           <p>{getPublicLinkMessage(reportSource, message)}</p>
           {reportSource === "public" ? (
@@ -1054,9 +1054,9 @@ export function ReportDetail({
       <section className="card report-detail-technical-sections" id="technical-details">
         <div className="report-section-heading">
           <span className="section-label">پشتوانه</span>
-          <h2>جزئیات فنی و پشتوانه محاسبه</h2>
+          <h2>جزئیات و پشتوانه محاسبه</h2>
           <p>
-            این بخش برای شفافیت است. اگر فقط می‌خواهی گزارش را مثل یک روایت بخوانی، لازم نیست همه داده‌های فنی را دنبال کنی.
+            این بخش برای شفافیت است. اگر فقط می‌خواهی گزارش را مثل یک روایت بخوانی، لازم نیست همه جدول‌ها را دنبال کنی.
           </p>
         </div>
 

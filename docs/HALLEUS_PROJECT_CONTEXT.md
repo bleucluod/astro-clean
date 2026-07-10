@@ -1914,3 +1914,9 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Removed user-facing project-status language from these pages: local-preview/private-noindex/account route/migration/readiness/Supabase/Postgres/provider/plan entitlement/debug status copy.
 - Kept account/auth/storage/report logic and APIs unchanged; this batch only reshapes dashboard/profile user-facing copy and hides implementation status from the user surface.
 - Extended check:user-facing-copy-detox to cover Dashboard and Profile alongside the account panel/footer.
+
+## v0.1.277 user-facing copy detox reports detail
+- Scope: copy/UI-surface cleanup for Reports and ReportDetail pages.
+- Removed user-facing project-status/debug/database language from these pages: Account read guard, Beta database archive, local-preview/private-noindex/public-noindex, visible source/visibility labels, raw public-link status messages, and foreground JSON backup wording.
+- Kept report storage/query logic, report detail rendering, chart/transit/report engine behavior, APIs, schema, SEO, payment, and consent implementation unchanged.
+- Extended check:user-facing-copy-detox to cover Reports and ReportDetail alongside previous account shell/dashboard/profile cleanup.

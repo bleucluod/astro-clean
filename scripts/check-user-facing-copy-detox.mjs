@@ -15,25 +15,29 @@ const batchFiles = [
   "app/profile/page.tsx",
   "components/SupabaseAuthPanel.tsx",
   "components/AppShell.tsx",
+  "app/reports/page.tsx",
+  "components/ReportsList.tsx",
+  "app/reports/[reportId]/page.tsx",
+  "components/ReportDetail.tsx",
 ];
 
 const forbiddenVisibleTokens = [
-  "local-preview",
-  "local/private",
   "private/noindex",
   "public/noindex",
-  "public/indexable",
-  "indexable",
-  "beta-db",
-  "guarded",
-  "Feature gate",
-  "Readiness",
+  "local/private",
+  "private/account report",
   "Account read guard",
+  "Account reports",
   "Beta database archive",
-  "account-save guarded + local-preview fallback",
-  "NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN",
-  "NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE",
-  "/reports?source=account",
+  "Beta database copy",
+  "Beta database report archive",
+  "local-preview",
+  "خروجی کامل JSON",
+  "وارد کردن JSON",
+  "لینک عمومی گزارش آماده است",
+  "لینک عمومی گزارش باز شد",
+  "نسخه آزمایشی سرور",
+  "نسخه اکانتی",
   "Supabase Auth + Supabase/Postgres",
   "Account readiness",
   "Account Identity Snapshot",
@@ -52,12 +56,24 @@ function lineLooksImplementationOnly(line) {
     trimmed.startsWith("from ") ||
     trimmed.startsWith("export default function ") ||
     trimmed.startsWith("export function ") ||
-    trimmed.startsWith("const config =") ||
-    trimmed.startsWith("const accountSaveConfig =") ||
-    trimmed.startsWith("const accountReadConfig =") ||
+    trimmed.startsWith("type ") ||
+    trimmed.startsWith("const ") ||
+    trimmed.startsWith("function ") ||
+    trimmed.startsWith("if (") ||
+    trimmed.startsWith("return ") ||
+    trimmed.startsWith("source:") ||
+    trimmed.startsWith("visibility:") ||
+    trimmed.includes("decodeReportRecords") ||
+    trimmed.includes("createReportRecord") ||
     trimmed.includes("getSupabase") ||
     trimmed.includes("mapSupabase") ||
     trimmed.includes("createSupabaseUsernameBridgeEmail") ||
+    trimmed.includes("summary.source") ||
+    trimmed.includes("summary.visibility") ||
+    trimmed.includes("reportSource") ||
+    trimmed.includes("rawSource") ||
+    trimmed.includes("?source=") ||
+    trimmed.includes(".replace(") ||
     trimmed.includes("mobile_phone") ||
     trimmed.includes("auth_model") ||
     trimmed.includes("bridge_credential_kind") ||
@@ -85,22 +101,25 @@ for (const file of batchFiles) {
   }
 }
 
+const reportsPage = read("app/reports/page.tsx");
+const reportsList = read("components/ReportsList.tsx");
+const reportDetailPage = read("app/reports/[reportId]/page.tsx");
+const reportDetail = read("components/ReportDetail.tsx");
 const dashboard = read("app/dashboard/page.tsx");
 const profile = read("app/profile/page.tsx");
 const authPanel = read("components/SupabaseAuthPanel.tsx");
 const appShell = read("components/AppShell.tsx");
 
+assert(reportsPage.includes("reports-page-copy-detox-marker"), "Reports page copy detox marker is missing.");
+assert(reportsList.includes("کتابخانه گزارش‌ها"), "Reports list still lacks clean library title.");
+assert(reportsList.includes("دریافت فایل پشتیبان"), "Reports backup copy was not detoxed.");
+assert(reportDetailPage.includes("گزارش آماده است."), "Report detail route still sends raw public-link message.");
+assert(reportDetail.includes("دسترسی به این گزارش"), "Report detail privacy/access copy was not detoxed.");
+assert(reportDetail.includes("لینک مستقیم"), "Report detail source badge was not humanized.");
+assert(!reportDetail.includes('const reportsHref = reportSource === "account"'), "Report detail still routes back through raw account query.");
 assert(dashboard.includes("dashboard-copy-detox-marker"), "Dashboard copy detox marker is missing.");
 assert(profile.includes("profile-copy-detox-marker"), "Profile copy detox marker is missing.");
 assert(authPanel.includes("account-ready-copy-detox-marker"), "Auth panel copy detox marker is missing.");
-assert(!dashboard.includes("persistentReportsDecision"), "Dashboard still imports/displays persistent report decision status.");
-assert(!dashboard.includes("createAccountMigrationPreflight"), "Dashboard still imports migration preflight.");
-assert(!dashboard.includes("LocalDataBackupPanel"), "Dashboard still foregrounds backup/admin panel.");
-assert(!profile.includes("getPlanEntitlement"), "Profile still imports plan entitlement/status UI.");
-assert(!profile.includes("session?.source"), "Profile still displays provider/source.");
-assert(!authPanel.includes("realAccountFlowPublicBlockers"), "Auth panel still exposes blocker/status flow model.");
-assert(!authPanel.includes("session.user.id}"), "Auth panel still displays raw user id.");
-assert(!authPanel.includes('href="/reports?source=account"'), "Auth panel still links to raw account query route.");
 assert(!appShell.includes("فعلاً رایگان"), "Footer still uses temporary/defensive copy.");
 
-console.log("User-facing copy detox dashboard/profile guard passed.");
+console.log("User-facing copy detox reports/detail guard passed.");

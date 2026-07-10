@@ -83,7 +83,7 @@ export default async function ReportDetailPage({
       reportSource={reportSource}
       initialReport={initialPublicReport}
       initialMessage={
-        initialPublicReport ? `لینک عمومی گزارش آماده است: ${reportId}` : ""
+        initialPublicReport ? "گزارش آماده است." : ""
       }
     />
   );
