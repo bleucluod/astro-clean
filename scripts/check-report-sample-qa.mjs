@@ -427,8 +427,8 @@ for (const sample of samples) {
     failures.push(`${sample.id}: total generated section text is too short (${totalWords} words)`);
   }
 
-  if (totalWords > 2700) {
-    failures.push(`${sample.id}: main narrative is too long after cleanup (${totalWords} words)`);
+  if (totalWords > 1550) {
+    failures.push(`${sample.id}: main narrative is too long after synthesis depth pass (${totalWords} words)`);
   }
 
   if (!combined.includes("رایزینگ تقریبی")) {
@@ -459,8 +459,10 @@ for (const sample of samples) {
   for (const marker of [
     "نخ اصلی این چارت",
     "سه ستون اصلی",
-    "تنش مرکزی چارت",
-    "تمرین کوچک این هفته",
+    "کشمکش اصلی:",
+    "منبع همراه:",
+    "ترجمهٔ روزمره:",
+    "تمرین این هفته:",
     "رابطه‌های سیاره‌ای",
     "گفت‌وگوی درونی",
     "سه تمرین کوچک این چارت",
@@ -469,6 +471,10 @@ for (const sample of samples) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing current V3 synthesis marker ${marker}`);
     }
+  }
+
+  if (combined.includes("دو نیاز هم‌زمان فعال‌اند و هیچ‌کدام نباید کامل حذف شوند")) {
+    failures.push(`${sample.id}: old generic central-tension sentence is still present`);
   }
 
   if (!sample.expectedAnyAspectWords.some((word) => combined.includes(word))) {

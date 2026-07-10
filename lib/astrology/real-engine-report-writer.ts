@@ -24,6 +24,10 @@ import {
   selectNarrativeAspectHighlights,
   type RealEngineAspectSelectionContext,
 } from "@/lib/astrology/real-engine-aspect-selection";
+import {
+  buildRealEngineSynthesisPlan,
+  type RealEngineSynthesisPlan,
+} from "@/lib/astrology/real-engine-synthesis";
 import type { ReportOutputSection } from "@/types/report-output";
 
 type SignCopy = {
@@ -208,6 +212,32 @@ const PLANET_COPY: Record<string, PlanetCopy> = {
   },
 };
 
+const PLANET_SYNTHESIS_NEED: Record<string, string> = {
+  sun: "هویت، جهت و حق انتخاب روشن",
+  moon: "امنیت عاطفی، ریتم بدن و نیاز به تعلق",
+  mercury: "فهم، نام‌گذاری و تصمیم‌گیری",
+  venus: "ارزش، نزدیکی و انتخاب رابطه‌ای",
+  mars: "میل، مرز و اقدام مستقیم",
+  jupiter: "رشد، معنا و اعتماد به افق بزرگ‌تر",
+  saturn: "مرز، مسئولیت و ساختن چیزی بادوام",
+  uranus: "آزادی، تغییر و حق متفاوت بودن",
+  neptune: "الهام، حساسیت و مرزبندی با ابهام",
+  pluto: "قدرت، عمق و دگرگونی درونی",
+};
+
+const PLANET_SYNTHESIS_NEED_SHORT: Record<string, string> = {
+  sun: "هویت و جهت",
+  moon: "امنیت عاطفی",
+  mercury: "فهم و تصمیم",
+  venus: "ارزش و نزدیکی",
+  mars: "میل و اقدام",
+  jupiter: "معنا و گسترش",
+  saturn: "مرز و مسئولیت",
+  uranus: "آزادی و تغییر",
+  neptune: "الهام و حساسیت",
+  pluto: "قدرت و دگرگونی",
+};
+
 const WRITER_ANGLE_ORDER: RealEngineReportAngleId[] = ["asc", "dsc", "mc", "ic"];
 
 const ANGLE_COPY: Record<RealEngineReportAngleId, { faName: string; axis: string; meaning: string }> = {
@@ -294,6 +324,21 @@ const HOUSE_COPY: Record<number, HouseCopy> = {
     gift: "شنیدن لایه‌های آرام‌تر روان و تبدیل تنهایی به مراقبت و الهام",
     growth: "این است که فرار، ابهام یا سکوت را با حضور آگاهانه‌تر جایگزین کنی",
   },
+};
+
+const HOUSE_SYNTHESIS_FIELD: Record<number, string> = {
+  1: "بدن، حضور و شروع",
+  2: "امنیت، ارزش و منابع",
+  3: "فکر، کلام و یادگیری",
+  4: "خانه، ریشه و امنیت درونی",
+  5: "خلاقیت، عشق و بیان شخصی",
+  6: "کار روزمره، بدن و عادت‌ها",
+  7: "رابطه نزدیک و شراکت",
+  8: "اعتماد، صمیمیت و دگرگونی",
+  9: "معنا، باور و افق‌های دورتر",
+  10: "مسیر اجتماعی و مسئولیت",
+  11: "جمع، دوستی و آینده‌سازی",
+  12: "خلوت، ناخودآگاه و رهاسازی",
 };
 
 
@@ -584,6 +629,12 @@ export function enrichReportWithRealEngineCopy(
     aspectHighlights,
   };
   const chartSpine = buildChartSpine(realEngineWithAspects, aspectHighlights);
+  const synthesisPlan = buildRealEngineSynthesisPlan({
+    aspects: aspectHighlights,
+    placements: realEngineWithAspects.placements,
+    chartRulerId: chartSpine.chartRulerId,
+    activeHouseNumbers: chartSpine.activeHouses.map((activeHouse) => activeHouse.house.number),
+  });
   const risingSign = chartSpine.risingSign;
 
   const summary = sanitizeUserFacingReportText(buildRealEngineSummary({
@@ -623,8 +674,16 @@ export function enrichReportWithRealEngineCopy(
   const mercuryAspectText = buildPlanetAspectText("mercury", PLANET_COPY.mercury.faName, aspectHighlights);
   const venusAspectText = buildPlanetAspectText("venus", PLANET_COPY.venus.faName, aspectHighlights);
   const marsAspectText = buildPlanetAspectText("mars", PLANET_COPY.mars.faName, aspectHighlights);
-  const firstSynthesisText = buildFirstSynthesisText(realEngineWithAspects, chartSpine);
-  const integrationText = buildIntegrationText(realEngineWithAspects, chartSpine);
+  const firstSynthesisText = buildFirstSynthesisText(
+    realEngineWithAspects,
+    chartSpine,
+    synthesisPlan,
+  );
+  const integrationText = buildIntegrationText(
+    realEngineWithAspects,
+    chartSpine,
+    synthesisPlan,
+  );
   const sectionEvidence = buildRealEngineSectionEvidence({
     sun,
     moon,
@@ -1161,25 +1220,20 @@ function buildChartRulerRoleSentence(
   planetId: string,
   placement?: RealEngineReportPlacement,
 ): string {
-  if (planetId === "mercury" && placement?.signId === "aquarius" && placement.house === 6) {
-    return "اینجا ذهن سریع، الگوگیر و آینده‌نگر در میدان کار روزمره، بدن، مهارت و حل مسئله فعال می‌شود. هدیه‌اش ساختن سیستم و دیدن راه‌حل تازه است؛ خطرش این است که فکر بیش از حد، اصلاح‌گری افراطی یا فاصله گرفتن از احساس، بدن را خسته کند. تمرینش تبدیل ایده به تصمیم ساده، سیستم قابل اجرا و مراقبت واقعی است.";
+  const planet = PLANET_COPY[planetId];
+  const need = PLANET_SYNTHESIS_NEED[planetId] ?? planet?.role ?? "ریتم تصمیم و شروع";
+
+  if (!placement) {
+    return `چون جایگاه ${getPlanetLabel(planetId)} در دادهٔ ذخیره‌شده حاضر نیست، نقش حاکم چارت فقط در حد ${need} نگه داشته می‌شود و تفسیر خانه یا نشانه به آن اضافه نمی‌شود.`;
   }
 
-  if (planetId === "moon" && placement?.signId === "aquarius" && placement.house === 8) {
-    return "اینجا ظاهر مراقبت‌گر رایزینگ با یک دنیای احساسی عمیق، مستقل و حساس به کنترل یا وابستگی روبه‌رو می‌شود. صمیمیت، اعتماد، ترس، منابع مشترک و مرز در نزدیکی میدان اصلی‌اند. تمرینش این است که احساس قبل از واکنش شناخته شود و اعتماد به‌جای قطع ناگهانی یا تحلیل طولانی، تدریجی ساخته شود.";
-  }
+  const sign = SIGN_COPY[placement.signId];
+  const houseField = isReportHouseNumber(placement.house)
+    ? HOUSE_SYNTHESIS_FIELD[placement.house]
+    : undefined;
+  const fieldPhrase = houseField ? ` در میدان ${houseField}` : "";
 
-  const sentences: Record<string, string> = {
-    moon: "وقتی ماه حاکم چارت است، نیاز عاطفی، حافظه بدن و ریتم امنیت روی شروع‌ها، رابطه با نزدیکی و تصمیم‌های روزمره اثر بیشتری می‌گذارد.",
-    mercury: "وقتی عطارد حاکم چارت است، ذهن، زبان، مشاهده و تصمیم‌گیری مسیر اصلی تجربه را می‌سازند؛ تمرینش این است که فکر به زبان ساده و عمل قابل اجرا تبدیل شود.",
-    venus: "وقتی زهره حاکم چارت است، ارزش، رابطه، زیبایی و کیفیت رضایت درونی به ستون اصلی خوانش تبدیل می‌شود.",
-    mars: "وقتی مریخ حاکم چارت است، میل، دفاع، جرئت عمل و شیوه برخورد با فشار موتور مهم چارت می‌شود و باید با مرز و جهت روشن خوانده شود.",
-    sun: "وقتی خورشید حاکم چارت است، دیده‌شدن، خلاقیت و انتخاب آگاهانه در مرکز خوانش قرار می‌گیرد.",
-    jupiter: "وقتی مشتری حاکم چارت است، معنا، افق، یادگیری و نسبت با رشد و اعتماد در مرکز تجربه قرار می‌گیرد.",
-    saturn: "وقتی زحل حاکم چارت است، زمان، مرز، مسئولیت و ساختن چیزی قابل اتکا ستون اصلی روایت می‌شود.",
-  };
-
-  return sentences[planetId] ?? "حاکم چارت نشان می‌دهد کدام نیرو در پشت صحنه بسیاری از انتخاب‌ها و شروع‌ها نقش مرکزی‌تری دارد.";
+  return `${getPlanetLabel(planetId)} به‌عنوان حاکم چارت، ${need} را با کیفیت ${sign.energy}${fieldPhrase} به ریتم اصلی انتخاب‌ها وصل می‌کند. توان این جایگاه از ${sign.gift} می‌آید؛ تمرینش این است که ${trimSentenceEnd(sign.growth)}${isReportHouseNumber(placement.house) ? ` و در خانه ${toPersianNumber(placement.house)}، ${trimSentenceEnd(HOUSE_COPY[placement.house].growth)}` : ""}.`;
 }
 
 function buildActiveHousesText(chartSpine: ChartSpine): string | undefined {
@@ -1511,23 +1565,27 @@ function buildRealEngineSummary({
 
 function buildChartSpineHumanSummary(chartSpine: ChartSpine): string {
   const rising = SIGN_COPY[chartSpine.risingSign];
+  const rulerLabel = getPlanetLabel(chartSpine.chartRulerId);
   const rulerPlacement = chartSpine.chartRulerPlacement;
-  const rulerHouse = isReportHouseNumber(rulerPlacement?.house)
-    ? HOUSE_COPY[rulerPlacement.house]
-    : undefined;
-  const activeHousePhrase = chartSpine.activeHouses.length > 0
-    ? `بخش پررنگ زندگی بیشتر در ${joinPersianList(chartSpine.activeHouses.slice(0, 3).map((activeHouse) => `خانه ${toPersianNumber(activeHouse.house.number)}`))} دیده می‌شود`
-    : "بخش پررنگ زندگی از ترکیب سه ستون اصلی خوانده می‌شود";
+  const topHouse = chartSpine.activeHouses[0]?.house.number;
 
-  if (chartSpine.chartRulerId === "mercury" && rulerPlacement?.signId === "aquarius" && rulerPlacement.house === 6) {
-    return "ذهن این چارت سریع، الگوگیر و آینده‌نگر است و در میدان کار روزمره، بدن، مهارت و حل مسئله فعال می‌شود؛ ایده زمانی آرام‌تر می‌شود که به سیستم قابل اجرا و مراقبت واقعی تبدیل شود.";
+  if (!rulerPlacement) {
+    const housePhrase = topHouse
+      ? `خانه ${toPersianNumber(topHouse)}، یعنی ${HOUSE_SYNTHESIS_FIELD[topHouse]}`
+      : "میدان‌های فعال چارت";
+
+    return `رایزینگ ${formatSignLabel(rising)} شیوه ورود را با کیفیت ${rising.energy} رنگ می‌زند. ${rulerLabel} حاکم چارت است، اما جایگاهش در دادهٔ این گزارش ذخیره نشده؛ بنابراین جمع‌بندی عملی از ${housePhrase} شروع می‌شود و درباره حاکم چارت ادعای اضافه نمی‌سازد.`;
   }
 
-  if (chartSpine.chartRulerId === "moon" && rulerPlacement?.signId === "aquarius" && rulerPlacement.house === 8) {
-    return "ورودی چارت نرم و مراقبت‌گر است، اما در عمق، احساسات در میدان صمیمیت، اعتماد و فشار روانی مستقل، سریع و گاهی ناگهانی عمل می‌کنند؛ نزدیکی برای این چارت هم کشش به عمق دارد و هم نیاز به آزادی و مرز.";
-  }
+  const rulerSign = SIGN_COPY[rulerPlacement.signId];
+  const housePhrase = isReportHouseNumber(rulerPlacement.house)
+    ? `در میدان ${HOUSE_SYNTHESIS_FIELD[rulerPlacement.house]}`
+    : "در میدان خانه‌ای نامشخص";
+  const activeHousePhrase = topHouse
+    ? `خانه ${toPersianNumber(topHouse)} (${HOUSE_SYNTHESIS_FIELD[topHouse]}) پررنگ‌ترین صحنهٔ تمرین است`
+    : "خانهٔ غالبی برای تمرین ثبت نشده است";
 
-  return `رایزینگ ${formatSignLabel(rising)} ورود تو به جهان را با کیفیت ${rising.energy} رنگ می‌زند؛ حاکم چارت${rulerPlacement ? ` در ${formatPlacementWithHouse(rulerPlacement)}` : ""}${rulerHouse ? ` این کیفیت را به میدان ${rulerHouse.field} می‌برد` : ""}. ${activeHousePhrase}.`;
+  return `رایزینگ ${formatSignLabel(rising)} شیوه ورود را با کیفیت ${rising.energy} رنگ می‌زند؛ ${rulerLabel} در ${formatSignHouseLabel(rulerPlacement)} هم ${PLANET_SYNTHESIS_NEED[chartSpine.chartRulerId] ?? PLANET_COPY[chartSpine.chartRulerId]?.role ?? "ریتم تصمیم"} را با کیفیت ${rulerSign.energy} ${housePhrase} هدایت می‌کند. ${activeHousePhrase}.`;
 }
 
 function buildNodeAxisSummaryPhrase(
@@ -1655,55 +1713,103 @@ function buildHouseSynthesisThread(
 }
 
 function buildFirstSynthesisText(
-  _realEngine: RealEngineReportSnapshot,
+  realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
+  synthesisPlan: RealEngineSynthesisPlan,
 ): string {
   return [
-    buildSynthesisCentralTension(chartSpine.centralAspects),
-    buildSynthesisWeeklyPractice(chartSpine),
+    buildSynthesisChallengeThread(synthesisPlan.primaryChallenge, realEngine),
+    buildSynthesisSupportThread(synthesisPlan.primarySupport, realEngine),
+    buildSynthesisDailyBridgeThread(synthesisPlan.dailyBridge, realEngine),
+    buildSynthesisWeeklyPractice(realEngine, chartSpine, synthesisPlan),
   ]
-    .filter((part) => part.trim().length > 0)
+    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .join("\n\n");
 }
 
-function buildSynthesisPersonalityThreads(
-  sun: RealEngineReportPlacement | undefined,
-  moon: RealEngineReportPlacement | undefined,
-  risingSign: ZodiacKey,
-): string {
-  const rising = SIGN_COPY[risingSign];
-
-  if (!sun || !moon) {
-    return "نخ‌های اصلی شخصیت: در این نسخه، رایزینگ " + formatSignLabel(rising) + " نقطه شروع تصویر بیرونی است و جایگاه‌های محاسبه‌شده بعدی باید آهسته کنار آن خوانده شوند.";
+function buildSynthesisChallengeThread(
+  aspect: RealEngineReportAspect | undefined,
+  realEngine: RealEngineReportSnapshot,
+): string | undefined {
+  if (!aspect) {
+    return undefined;
   }
 
-  const sunSign = SIGN_COPY[sun.signId];
-  const moonSign = SIGN_COPY[moon.signId];
-
-  return [
-    "نخ‌های اصلی شخصیت: سه ستون اصلی هنوز مهم‌اند، اما نقطه شروع کل روایت نیستند.",
-    "خورشید در " + formatPlacementWithHouse(sun) + " نشان می‌دهد هویت آگاهانه از راه " + sunSign.gift + " روشن‌تر می‌شود.",
-    "ماه در " + formatPlacementWithHouse(moon) + " می‌گوید امنیت عاطفی وقتی پایدارتر می‌شود که به ریتم " + moonSign.energy + " احترام بگذاری.",
-    "رایزینگ " + formatSignLabel(rising) + " هم دروازه ورود تو به جهان را با کیفیت " + rising.energy + " رنگ می‌زند؛ این سه ستون باید زیر نور حاکم چارت و خانه‌های فعال خوانده شوند.",
-  ].join(" ");
+  const label = aspect.aspectId === "conjunction" ? "تمرکز اصلی" : "کشمکش اصلی";
+  return `${label}: ${buildSynthesisAspectBridge(aspect, realEngine)}`;
 }
 
-function buildSynthesisCentralTension(aspects: RealEngineReportAspect[]): string {
-  const centralAspect = aspects.find((aspect) =>
-    aspect.aspectId === "opposition" || aspect.aspectId === "square",
-  ) ?? aspects[0];
-
-  if (!centralAspect) {
-    return "تنش مرکزی چارت بیشتر از نسبت رایزینگ، حاکم چارت و خانه‌های فعال فهمیده می‌شود؛ یعنی باید دید کدام میدان زندگی بیشترین واکنش، تکرار یا نیاز به مرز را می‌سازد.";
+function buildSynthesisSupportThread(
+  aspect: RealEngineReportAspect | undefined,
+  realEngine: RealEngineReportSnapshot,
+): string | undefined {
+  if (!aspect) {
+    return undefined;
   }
 
-  const isTension =
-    centralAspect.aspectId === "square" || centralAspect.aspectId === "opposition";
-  const tone = isTension
-    ? "این رابطه بیشتر شبیه یک تمرین رشد است: دو نیاز هم‌زمان فعال‌اند و هیچ‌کدام نباید کامل حذف شوند."
-    : "این رابطه می‌تواند یک توان طبیعی باشد، اما فقط وقتی زنده می‌شود که به انتخاب روزمره تبدیل شود.";
+  return `منبع همراه: ${buildSynthesisAspectBridge(aspect, realEngine)}`;
+}
 
-  return `تنش مرکزی چارت: یکی از رابطه‌های مهم چارت میان ${centralAspect.firstPlanetLabel} و ${centralAspect.secondPlanetLabel} است. ${tone}`;
+function buildSynthesisDailyBridgeThread(
+  aspect: RealEngineReportAspect | undefined,
+  realEngine: RealEngineReportSnapshot,
+): string | undefined {
+  if (!aspect) {
+    return undefined;
+  }
+
+  return `ترجمهٔ روزمره: ${buildSynthesisAspectBridge(aspect, realEngine)}`;
+}
+
+function buildSynthesisAspectBridge(
+  aspect: RealEngineReportAspect,
+  realEngine: RealEngineReportSnapshot,
+): string {
+  const first = buildSynthesisParticipantPhrase(
+    aspect.firstPlanetId,
+    findPlacement(realEngine, aspect.firstPlanetId),
+  );
+  const second = buildSynthesisParticipantPhrase(
+    aspect.secondPlanetId,
+    findPlacement(realEngine, aspect.secondPlanetId),
+  );
+
+  if (aspect.aspectId === "opposition") {
+    return `${first} و ${second} دو سر یک محورند. برای هر دو نیاز زمان و زبان جدا بساز؛ یکی نباید جای دیگری را بگیرد.`;
+  }
+
+  if (aspect.aspectId === "square") {
+    return `${first} و ${second} اصطکاک می‌سازند. فشار را به یک مسئلهٔ قابل حل تبدیل کن تا صدای یکی دیگری را خاموش نکند.`;
+  }
+
+  if (aspect.aspectId === "conjunction") {
+    return `${first} و ${second} هم‌زمان فعال می‌شوند. قدرتشان در تمرکز است؛ تمرینشان تشخیص نیروی هدایت‌کننده در هر موقعیت.`;
+  }
+
+  if (aspect.aspectId === "trine") {
+    return `${first} و ${second} طبیعی‌تر همکاری می‌کنند. توان آسان را آگاهانه به مهارت یا مسئولیت تبدیل کن.`;
+  }
+
+  return `${first} و ${second} فرصت همکاری دارند. یک انتخاب کوچک این امکان را به ابزار واقعی تبدیل می‌کند.`;
+}
+
+function buildSynthesisParticipantPhrase(
+  planetId: string,
+  placement: RealEngineReportPlacement | undefined,
+): string {
+  const planetLabel = getPlanetLabel(planetId);
+  const need = PLANET_SYNTHESIS_NEED_SHORT[planetId] ?? PLANET_COPY[planetId]?.title ?? "یک نیاز مهم";
+
+  if (!placement) {
+    return `${planetLabel} (${need})`;
+  }
+
+  const sign = SIGN_COPY[placement.signId];
+  const field = isReportHouseNumber(placement.house)
+    ? ` در میدان ${HOUSE_SYNTHESIS_FIELD[placement.house]}`
+    : "";
+
+  return `${planetLabel} ${sign.faName}${field} (${need})`;
 }
 
 type SynthesisGrowthLanguageInput = {
@@ -1756,20 +1862,36 @@ function trimSentenceEnd(text: string): string {
 }
 
 function buildSynthesisWeeklyPractice(
+  _realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
+  synthesisPlan: RealEngineSynthesisPlan,
 ): string {
-  if (chartSpine.chartRulerId === "mercury") {
-    return "تمرین کوچک این هفته: یک فکر، برنامه یا روتین را ساده‌تر کن و آن را به یک قدم قابل اجرا تبدیل کن.";
+  const challenge = synthesisPlan.primaryChallenge;
+
+  if (challenge) {
+    const firstPlanet = getPlanetLabel(challenge.firstPlanetId);
+    const secondPlanet = getPlanetLabel(challenge.secondPlanetId);
+    const firstNeed = PLANET_SYNTHESIS_NEED[challenge.firstPlanetId] ?? firstPlanet;
+    const secondNeed = PLANET_SYNTHESIS_NEED[challenge.secondPlanetId] ?? secondPlanet;
+
+    return `تمرین این هفته: وقتی ${firstPlanet} و ${secondPlanet} هم‌زمان فشار می‌سازند، «${firstNeed}» و «${secondNeed}» را در دو جمله جدا بنویس؛ بعد قدمی بردار که هیچ‌کدام را حذف نکند.`;
   }
 
-  if (chartSpine.chartRulerId === "moon") {
-    return "تمرین کوچک این هفته: وقتی احساس سریع بالا می‌آید، قبل از توضیح دادن یا فاصله گرفتن، فقط نام احساس را پیدا کن.";
+  const support = synthesisPlan.primarySupport;
+  if (support) {
+    const firstPlanet = getPlanetLabel(support.firstPlanetId);
+    const secondPlanet = getPlanetLabel(support.secondPlanetId);
+
+    return `تمرین این هفته: یک موقعیت کوچک انتخاب کن و توان ${firstPlanet} و ${secondPlanet} را آگاهانه کنار هم به کار بگیر؛ چیزی که آسان است باید به انتخاب قابل مشاهده تبدیل شود.`;
   }
 
-  const activeHouse = chartSpine.activeHouses[0]?.house.number;
-  const housePhrase = activeHouse ? "خانه " + toPersianNumber(activeHouse) : "یکی از میدان‌های پررنگ گزارش";
+  const activeHouse = synthesisPlan.primaryHouseNumber ?? chartSpine.activeHouses[0]?.house.number;
+  if (activeHouse && HOUSE_COPY[activeHouse]) {
+    const growth = trimSentenceEnd(HOUSE_COPY[activeHouse].growth).replace(/^این است که /u, "");
+    return `تمرین این هفته: در خانه ${toPersianNumber(activeHouse)}، یعنی ${HOUSE_SYNTHESIS_FIELD[activeHouse]}، یک رفتار کوچک انتخاب کن تا ${growth}.`;
+  }
 
-  return "تمرین کوچک این هفته: یک موقعیت از " + housePhrase + " انتخاب کن و به جای تصمیم بزرگ، فقط یک انتخاب قابل مشاهده انجام بده.";
+  return "تمرین این هفته: یک واکنش تکراری را انتخاب کن، نیاز پشت آن را نام ببر و فقط یک قدم قابل مشاهده بردار.";
 }
 
 function buildCorePlacementText(
@@ -2505,10 +2627,11 @@ function buildAspectReflectionText(aspects: RealEngineReportAspect[]): string {
 function buildIntegrationText(
   realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
+  synthesisPlan: RealEngineSynthesisPlan,
 ) {
   return [
     buildChartSpineHumanSummary(chartSpine),
-    buildChartPracticeList(chartSpine, realEngine),
+    buildChartPracticeList(chartSpine, realEngine, synthesisPlan),
   ]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .join(" ");
@@ -2516,25 +2639,57 @@ function buildIntegrationText(
 
 function buildChartPracticeList(
   chartSpine: ChartSpine,
-  _realEngine: RealEngineReportSnapshot,
+  realEngine: RealEngineReportSnapshot,
+  synthesisPlan: RealEngineSynthesisPlan,
 ): string {
   const practices: string[] = [];
+  const challenge = synthesisPlan.primaryChallenge;
+  const support = synthesisPlan.primarySupport;
+  const dailyBridge = synthesisPlan.dailyBridge;
 
-  if (chartSpine.chartRulerId === "mercury") {
-    practices.push("یک روتین کوچک را ساده‌تر کن، نه کامل‌تر");
-    practices.push("یک خواسته مالی، بدنی یا شخصی را بدون توضیح اضافه بیان کن");
-    practices.push("قبل از اصلاح کردن چیزی، بپرس: «الان مراقبت لازم است یا کنترل؟»");
-  } else if (chartSpine.chartRulerId === "moon") {
-    practices.push("وقتی در صمیمیت واکنش سریع می‌آید، قبل از توضیح یا فاصله گرفتن، نام احساس را پیدا کن");
-    practices.push("یک کار کوچک برای بدن، پول، ارزش شخصی یا یک خواسته مشخص انجام بده");
-    practices.push("در یک رابطه امن، یک نیاز را ساده و بدون تحلیل طولانی بگو");
-  } else {
-    practices.push("یک انتخاب کوچک را از دل خانه فعال اول انجام بده");
-    practices.push("یک نیاز را روشن‌تر و کوتاه‌تر بیان کن");
-    practices.push("یک روتین را به جای کامل‌تر کردن، قابل ادامه‌تر کن");
+  if (challenge) {
+    const firstPlanet = getPlanetLabel(challenge.firstPlanetId);
+    const secondPlanet = getPlanetLabel(challenge.secondPlanetId);
+    practices.push(`در یک موقعیت واقعی، نیاز ${firstPlanet} و نیاز ${secondPlanet} را جداگانه نام ببر و بعد تصمیم بگیر`);
   }
 
-  return `سه تمرین کوچک این چارت: ${practices.map((practice, index) => `${toPersianNumber(index + 1)}) ${practice}`).join("؛ ")}.`;
+  if (support) {
+    const firstPlanet = getPlanetLabel(support.firstPlanetId);
+    const secondPlanet = getPlanetLabel(support.secondPlanetId);
+    practices.push(`یک کار کوچک پیدا کن که توان ${firstPlanet} و ${secondPlanet} را هم‌زمان به کار بگیرد`);
+  }
+
+  if (dailyBridge) {
+    const first = findPlacement(realEngine, dailyBridge.firstPlanetId);
+    const second = findPlacement(realEngine, dailyBridge.secondPlanetId);
+    const fields = [first?.house, second?.house]
+      .filter(isReportHouseNumber)
+      .map((house) => HOUSE_SYNTHESIS_FIELD[house]);
+    const uniqueFields = Array.from(new Set(fields));
+    const fieldPhrase = uniqueFields.length > 1
+      ? ` میان ${joinPersianList(uniqueFields)}`
+      : uniqueFields.length === 1
+        ? ` در ${uniqueFields[0]}`
+        : "";
+    practices.push(`یک گفت‌وگو یا تصمیم روزمره${fieldPhrase} را کوتاه‌تر، روشن‌تر و قابل پیگیری‌تر کن`);
+  }
+
+  const activeHouse = synthesisPlan.primaryHouseNumber ?? chartSpine.activeHouses[0]?.house.number;
+  if (practices.length < 3 && activeHouse && HOUSE_COPY[activeHouse]) {
+    const growth = trimSentenceEnd(HOUSE_COPY[activeHouse].growth).replace(/^این است که /u, "");
+    practices.push(`در خانه ${toPersianNumber(activeHouse)} فقط یک قدم بردار تا ${growth}`);
+  }
+
+  if (practices.length === 0) {
+    practices.push("یک واکنش تکراری را پیش از عمل نام‌گذاری کن");
+    practices.push("یک نیاز را کوتاه و مستقیم بیان کن");
+    practices.push("یک انتخاب کوچک را به‌جای تصمیم بزرگ امتحان کن");
+  }
+
+  return `سه تمرین کوچک این چارت: ${practices
+    .slice(0, 3)
+    .map((practice, index) => `${toPersianNumber(index + 1)}) ${practice}`)
+    .join("؛ ")}.`;
 }
 
 function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {

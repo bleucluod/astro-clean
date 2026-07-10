@@ -105,7 +105,9 @@ for (const marker of [
 for (const marker of [
   "slice(0, 4)",
   "slice(0, 5)",
-  "buildChartPracticeList(chartSpine, realEngine)",
+  "buildChartPracticeList(chartSpine, realEngine, synthesisPlan)",
+  "buildRealEngineSynthesisPlan",
+  "buildSynthesisAspectBridge",
   'isAspectBetween(aspect, "mars", "saturn")',
   'aspect.aspectId === "opposition"',
   'isAspectBetween(aspect, "moon", "uranus")',

@@ -846,3 +846,13 @@ After this migration passes, resume report-completion Batch 2 on top of the cano
 4. Use highlights in prose and relationship cards, but show every calculated aspect in the technical report table.
 5. Preserve old snapshots that have only `aspects` by deriving a bounded fallback highlight list at read time.
 6. Do not change aspect definitions, orb ceilings, planetary calculation, house calculation, Nodes/Lilith, or transit logic in this batch.
+
+## v0.1.286 synthesis-depth contract
+
+1. Consume only the bounded `aspectHighlights` layer for main-reading synthesis; never overwrite or trim the full technical `aspects` inventory.
+2. Build one deterministic plan containing a primary challenge, a distinct support/resource, a daily-life bridge, and the leading active house when those inputs exist.
+3. Ground every generated synthesis thread in actual planet participants, signs, and house fields; do not use named-person or single-fixture branches.
+4. Reuse the same plan for the opening weekly practice and final three-practice summary so the reading remains coherent rather than additive.
+5. Preserve eight sections and enforce a 1,550-word sample ceiling.
+6. Keep aspect definitions/orbs, Placidus, Nodes/Lilith, transits, storage, auth, payment, SEO, and public/private consent out of scope.
+7. Run the synthesis-depth guard plus existing report/live/copy/encoding/diff/build checks before release.

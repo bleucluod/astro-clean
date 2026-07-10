@@ -1821,3 +1821,12 @@ Product direction changed before report-completion Batch 2:
 - Selection order must respect very tight orb first, then chart-ruler/core relevance, dynamic/harmonious balance, active houses, and participant diversity. Orb is important but is not the only narrative weight.
 - A known 1999 Hamadan validation fixture must retain Mercury–Neptune, Mars–Saturn, and Mars–Uranus among tight/high-value highlights while preserving every valid major aspect in the technical inventory.
 - This batch changes selection and synthesis only; it does not change planetary longitudes, major-aspect definitions/orb ceilings, Placidus calculation, Nodes/Lilith, or transits.
+
+## v0.1.286 deeper interpretation layer
+
+- Report-cleanup Batch 3 is accepted as an evidence-backed synthesis layer, not a request for more placement paragraphs.
+- The opening reading should distinguish a primary challenge, a usable support/resource, and a daily-life bridge when the chart contains enough evidence.
+- Each thread must be grounded in the selected aspect participants, their signs, and their active house fields; generic advice without chart evidence is not enough.
+- Opening and closing practices should come from the same synthesis plan so the report does not introduce unrelated advice at the end.
+- Keep the report at eight main sections and under the strengthened 1,550-word sample ceiling.
+- Guardrail: do not reopen aspect math/orbs, Placidus, Nodes/Lilith, transits, public/private consent, SEO, payment, or broad UI redesign in this batch.

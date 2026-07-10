@@ -766,3 +766,13 @@ Current verified runtime reality at baseline 146083e:
 - The corrected contract keeps `aspects` as the complete orb-sorted major-aspect inventory and adds `aspectHighlights` as a separate six-item narrative selection.
 - Narrative scoring now combines normalized orb closeness, very-tight-orb protection, Sun/Moon and chart-ruler relevance, personal planets, dynamic aspects, active houses, and diversity pressure.
 - Major-aspect angles and orb ceilings remain unchanged; this is a selection/storage correction, not new astrology math.
+
+## v0.1.286 synthesis-depth reality
+
+- The report writer now has a separate pure synthesis planner above `aspectHighlights`; it does not calculate or redefine aspects.
+- The planner deterministically chooses a primary dynamic challenge, a distinct harmonious support when available, and a distinct daily-life bridge involving Mercury, Venus, or Mars.
+- Writer output names the actual planets, signs, and concise house fields supporting each thread, then derives the weekly and closing practices from those same selections.
+- The old generic sentence about two simultaneous needs and person-specific Mercury/Aquarius/house-6 branches are removed.
+- The full technical aspect inventory and six narrative highlights remain unchanged from v0.1.285.
+- Sample narrative reality remains eight sections and is guarded at no more than 1,550 words; the current fixtures are 1,544 and 1,440 words.
+- No planetary, aspect-orb, house, Node/Lilith, or transit calculation changed.

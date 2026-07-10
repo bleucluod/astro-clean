@@ -2052,3 +2052,28 @@ Apply/verification rule:
 - Protect tight relationships and add chart-ruler/core/active-house/diversity weighting without changing the five major aspect definitions or their orb ceilings.
 - Validation includes the 1999-12-12 19:05 Hamadan fixture: full inventory contains 15 major aspects, and highlights include Mercury–Neptune sextile, Mars–Saturn square, Mars–Uranus conjunction, and Moon–Saturn square.
 - Required checks: new selection guard, report sample QA, narrative cleanup/QA, live aspect UI guards, encoding, diff-check, focused TypeScript, and full production build.
+
+## v0.1.286 report synthesis depth scope
+
+Baseline before apply:
+
+- HEAD: `6cdc2080e1c305f57b0f2e90561ae79ffd65e8c1`
+- Tag: `v0.1.285-report-aspect-selection-synthesis`
+- Branch: `main`
+- Working tree: clean
+
+Scope:
+
+- Complete report-cleanup Batch 3 by adding a pure synthesis planner above the six narrative aspect highlights created in v0.1.285.
+- Select three distinct evidence roles when the chart supports them: primary challenge, primary support/resource, and a daily-life bridge involving Mercury, Venus, or Mars.
+- Render those roles through the actual participating planets, signs, and concise house fields instead of the old generic central-tension sentence.
+- Derive the weekly practice and closing practice list from the same selected evidence so the opening and ending stay coherent.
+- Remove person-specific Mercury/Aquarius/house-6 and chart-ruler practice branches; synthesis must be reusable across charts.
+- Keep the main reading at eight sections and strengthen the sample ceiling to 1,550 words. Current sample QA is 1,544 words for the aspect-rich fixture and 1,440 for the minimal fixture.
+- Keep the complete technical aspect inventory and the six narrative highlights from v0.1.285 unchanged.
+- Do not change planetary calculation, aspect definitions/orb ceilings, Placidus, Nodes/Lilith, transits, report storage, auth, payment, SEO, or public/private consent.
+
+Verification rule:
+
+- Run the new deterministic synthesis-depth guard, report writer/sample/narrative guards, live aspect/report QA, user-facing copy detox, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build` before commit/tag/push.
+- Apply through exact full-file writes guarded by old Git blobs and new SHA-256 hashes. The runner must not commit, tag, or push.
