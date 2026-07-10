@@ -17,6 +17,13 @@ import {
   calculateRealEngineAspects,
   formatAspectDegree,
 } from "@/lib/astrology/real-engine-aspects";
+import {
+  REPORT_ASPECT_HIGHLIGHT_LIMIT,
+  mergeRealEngineAspectInventory,
+  rankRealEngineAspects,
+  selectNarrativeAspectHighlights,
+  type RealEngineAspectSelectionContext,
+} from "@/lib/astrology/real-engine-aspect-selection";
 import type { ReportOutputSection } from "@/types/report-output";
 
 type SignCopy = {
@@ -387,7 +394,6 @@ const POLARITY_LABELS: Record<ChartPolarityKey, string> = {
   feminine: "مونث",
 };
 
-const PERSONAL_PLANET_IDS = new Set(["sun", "moon", "mercury", "venus", "mars"]);
 const CORE_SPINE_IDS = new Set(["sun", "moon"]);
 
 
@@ -564,15 +570,20 @@ export function enrichReportWithRealEngineCopy(
   const venus = findPlacement(realEngine, "venus");
   const mars = findPlacement(realEngine, "mars");
   const rawAspects = calculateRealEngineAspects(realEngine.placements);
-  const fallbackAspects = realEngine.aspects ?? [];
-  const aspectCandidates = rawAspects.length >= fallbackAspects.length ? rawAspects : fallbackAspects;
-  const chartSpineDraft = buildChartSpine(realEngine, aspectCandidates);
-  const aspects = prioritizeRealEngineAspects(aspectCandidates, chartSpineDraft, realEngine).slice(0, 5);
+  const storedAspects = realEngine.aspects ?? [];
+  const allAspects = mergeRealEngineAspectInventory(rawAspects, storedAspects);
+  const chartSpineDraft = buildChartSpine(realEngine, allAspects);
+  const aspectHighlights = selectNarrativeAspectHighlights(
+    allAspects,
+    buildAspectSelectionContext(chartSpineDraft, realEngine),
+    REPORT_ASPECT_HIGHLIGHT_LIMIT,
+  );
   const realEngineWithAspects: RealEngineReportSnapshot = {
     ...realEngine,
-    aspects,
+    aspects: allAspects,
+    aspectHighlights,
   };
-  const chartSpine = buildChartSpine(realEngineWithAspects, aspects);
+  const chartSpine = buildChartSpine(realEngineWithAspects, aspectHighlights);
   const risingSign = chartSpine.risingSign;
 
   const summary = sanitizeUserFacingReportText(buildRealEngineSummary({
@@ -606,12 +617,12 @@ export function enrichReportWithRealEngineCopy(
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
   const dailyLifeSynthesisText = buildDailyLifeSynthesisThread(mercury, venus, mars);
-  const aspectText = buildAspectOverviewText(aspects, chartSpine, realEngineWithAspects);
-  const sunAspectText = buildPlanetAspectText("sun", PLANET_COPY.sun.faName, aspects);
-  const moonAspectText = buildPlanetAspectText("moon", PLANET_COPY.moon.faName, aspects);
-  const mercuryAspectText = buildPlanetAspectText("mercury", PLANET_COPY.mercury.faName, aspects);
-  const venusAspectText = buildPlanetAspectText("venus", PLANET_COPY.venus.faName, aspects);
-  const marsAspectText = buildPlanetAspectText("mars", PLANET_COPY.mars.faName, aspects);
+  const aspectText = buildAspectOverviewText(aspectHighlights, chartSpine, realEngineWithAspects);
+  const sunAspectText = buildPlanetAspectText("sun", PLANET_COPY.sun.faName, aspectHighlights);
+  const moonAspectText = buildPlanetAspectText("moon", PLANET_COPY.moon.faName, aspectHighlights);
+  const mercuryAspectText = buildPlanetAspectText("mercury", PLANET_COPY.mercury.faName, aspectHighlights);
+  const venusAspectText = buildPlanetAspectText("venus", PLANET_COPY.venus.faName, aspectHighlights);
+  const marsAspectText = buildPlanetAspectText("mars", PLANET_COPY.mars.faName, aspectHighlights);
   const firstSynthesisText = buildFirstSynthesisText(realEngineWithAspects, chartSpine);
   const integrationText = buildIntegrationText(realEngineWithAspects, chartSpine);
   const sectionEvidence = buildRealEngineSectionEvidence({
@@ -621,7 +632,7 @@ export function enrichReportWithRealEngineCopy(
     mercury,
     venus,
     mars,
-    aspectCount: aspects.length,
+    aspectCount: aspectHighlights.length,
     houseCount: realEngineWithAspects.houses?.length ?? 0,
     houseContext: realEngineWithAspects.houseContext,
     hasAngles: hasCompleteAngles(realEngineWithAspects.angles),
@@ -1002,49 +1013,24 @@ function prioritizeRealEngineAspects(
   chartSpine: ChartSpine,
   realEngine: RealEngineReportSnapshot,
 ): RealEngineReportAspect[] {
-  const uniqueAspects = new Map<string, RealEngineReportAspect>();
-
-  for (const aspect of aspects) {
-    uniqueAspects.set(aspect.id, aspect);
-  }
-
-  return Array.from(uniqueAspects.values()).sort((first, second) => {
-    const firstScore = scoreAspectForChartSpine(first, chartSpine, realEngine);
-    const secondScore = scoreAspectForChartSpine(second, chartSpine, realEngine);
-
-    return secondScore - firstScore || first.orb - second.orb;
-  });
+  return rankRealEngineAspects(
+    aspects,
+    buildAspectSelectionContext(chartSpine, realEngine),
+  );
 }
 
-function scoreAspectForChartSpine(
-  aspect: RealEngineReportAspect,
+function buildAspectSelectionContext(
   chartSpine: ChartSpine,
   realEngine: RealEngineReportSnapshot,
-): number {
-  const participants = [aspect.firstPlanetId, aspect.secondPlanetId];
-  const hasHardAspect = aspect.aspectId === "square" || aspect.aspectId === "opposition";
-  const hasCore = participants.some((planetId) => CORE_SPINE_IDS.has(planetId));
-  const hasChartRuler = participants.includes(chartSpine.chartRulerId);
-  const hasPersonal = participants.some((planetId) => PERSONAL_PLANET_IDS.has(planetId));
-  const hasOuterOnly = participants.every((planetId) =>
-    ["jupiter", "saturn", "uranus", "neptune", "pluto"].includes(planetId),
-  );
-  const activeHouseNumbers = new Set<ReportHouseNumber>(chartSpine.activeHouses.map((activeHouse) => activeHouse.house.number));
-  const activeHouseHits = participants.filter((planetId) => {
-    const placement = findPlacement(realEngine, planetId);
-    return isReportHouseNumber(placement?.house) && activeHouseNumbers.has(placement.house);
-  }).length;
-
-  return [
-    hasCore ? 80 : 0,
-    hasChartRuler ? 70 : 0,
-    hasHardAspect ? 62 : 0,
-    hasPersonal ? 25 : 0,
-    aspect.aspectId === "conjunction" ? 18 : 0,
-    activeHouseHits * 12,
-    Math.max(0, 15 - aspect.orb),
-    hasOuterOnly && !hasHardAspect ? -35 : 0,
-  ].reduce((total, score) => total + score, 0);
+): RealEngineAspectSelectionContext {
+  return {
+    chartRulerId: chartSpine.chartRulerId,
+    activeHouseNumbers: chartSpine.activeHouses.map((activeHouse) => activeHouse.house.number),
+    placements: realEngine.placements.map((placement) => ({
+      id: placement.id,
+      house: placement.house ?? null,
+    })),
+  };
 }
 
 function aspectHasParticipant(aspect: RealEngineReportAspect, planetId: string): boolean {

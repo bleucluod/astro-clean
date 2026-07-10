@@ -402,6 +402,7 @@ for (const sample of samples) {
   const ids = sections.map((section) => section.id);
   const totalWords = sections.reduce((sum, section) => sum + wordCount(section.body), 0);
   const aspectCount = enriched.realEngine?.aspects?.length ?? 0;
+  const aspectHighlightCount = enriched.realEngine?.aspectHighlights?.length ?? 0;
   const housesCount = enriched.realEngine?.houses?.length ?? 0;
   const housesSection = sections.find((section) => section.id === "real-engine-active-houses");
 
@@ -480,6 +481,14 @@ for (const sample of samples) {
     failures.push(`${sample.id}: expected at least 3 calculated aspects, got ${aspectCount}`);
   }
 
+  if (aspectHighlightCount < 1 || aspectHighlightCount > 6) {
+    failures.push(`${sample.id}: expected 1-6 separate narrative aspect highlights, got ${aspectHighlightCount}`);
+  }
+
+  if (aspectHighlightCount > aspectCount) {
+    failures.push(`${sample.id}: narrative aspect highlights exceed the full aspect inventory`);
+  }
+
   if (housesCount !== 12) {
     failures.push(`${sample.id}: expected 12 real engine houses, got ${housesCount}`);
   }
@@ -529,6 +538,7 @@ for (const sample of samples) {
     sections: sections.length,
     words: totalWords,
     aspects: aspectCount,
+    aspectHighlights: aspectHighlightCount,
   });
 }
 
@@ -543,6 +553,6 @@ if (failures.length > 0) {
 console.log("Report sample QA passed:");
 for (const metric of metrics) {
   console.log(
-    `- ${metric.id}: ${metric.sections} sections, ${metric.words} words, ${metric.aspects} aspects`,
+    `- ${metric.id}: ${metric.sections} sections, ${metric.words} words, ${metric.aspects} aspects, ${metric.aspectHighlights} narrative highlights`,
   );
 }

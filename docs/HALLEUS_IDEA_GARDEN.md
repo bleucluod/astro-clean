@@ -1813,3 +1813,11 @@ Product direction changed before report-completion Batch 2:
 - When Placidus is unavailable at the polar limit or the solver does not converge, Halleus keeps signs, planets, aspects, and angles but omits all house assignments and displays an explicit no-fallback message.
 - No Porphyry, Whole Sign, Equal House, or placeholder house numbers may leak into a fresh unavailable Placidus report.
 - This migration completes the prerequisite for resuming report-completion Batch 2; it does not change aspect scoring, Nodes/Lilith math, transits, auth, payment, SEO, or public/private consent.
+
+## v0.1.285 aspect inventory and narrative selection
+
+- Keep the complete calculated major-aspect inventory in the canonical report snapshot and technical report table. Do not overwrite it with a short narrative subset.
+- Store a separate `aspectHighlights` list for the six relationships used by the human reading, chart-wheel emphasis, and relationship cards.
+- Selection order must respect very tight orb first, then chart-ruler/core relevance, dynamic/harmonious balance, active houses, and participant diversity. Orb is important but is not the only narrative weight.
+- A known 1999 Hamadan validation fixture must retain Mercury–Neptune, Mars–Saturn, and Mars–Uranus among tight/high-value highlights while preserving every valid major aspect in the technical inventory.
+- This batch changes selection and synthesis only; it does not change planetary longitudes, major-aspect definitions/orb ceilings, Placidus calculation, Nodes/Lilith, or transits.

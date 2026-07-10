@@ -269,6 +269,7 @@ export type RealEngineReportSnapshot = {
   lilith?: RealEngineReportLilith;
   placements: RealEngineReportPlacement[];
   aspects?: RealEngineReportAspect[];
+  aspectHighlights?: RealEngineReportAspect[];
   note: string;
 };
 

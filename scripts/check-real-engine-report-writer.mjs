@@ -80,7 +80,9 @@ for (const forbiddenMarker of ["Halleus"]) {
 
 for (const marker of [
   "calculateRealEngineAspects(realEngine.placements)",
-  "buildAspectOverviewText(aspects, chartSpine, realEngineWithAspects)",
+  "buildAspectOverviewText(aspectHighlights, chartSpine, realEngineWithAspects)",
+  "aspects: allAspects",
+  "aspectHighlights,",
   "realEngine: realEngineWithAspects",
 ]) {
   assertIncludes(writer, marker, "lib/astrology/real-engine-report-writer.ts");

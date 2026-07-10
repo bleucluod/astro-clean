@@ -837,3 +837,12 @@ The next batch is v0.1.284c. It must consume this candidate through one canonica
 6. Run the dedicated migration guard, prior Placidus guards, report/UI guards, encoding, diff-check, focused TypeScript, and full production build before commit.
 
 After this migration passes, resume report-completion Batch 2 on top of the canonical Placidus result.
+
+## v0.1.285 aspect inventory/selection contract
+
+1. Recalculate/merge the complete major-aspect inventory from canonical placements, deduplicate by planet pair plus aspect kind, and store it in `realEngine.aspects` sorted by orb.
+2. Derive at most six `realEngine.aspectHighlights` separately for narrative and wheel emphasis.
+3. Protect very tight aspects (orb <= 1.5°) before filling remaining slots with chart-spine relevance and participant-diversity scoring.
+4. Use highlights in prose and relationship cards, but show every calculated aspect in the technical report table.
+5. Preserve old snapshots that have only `aspects` by deriving a bounded fallback highlight list at read time.
+6. Do not change aspect definitions, orb ceilings, planetary calculation, house calculation, Nodes/Lilith, or transit logic in this batch.

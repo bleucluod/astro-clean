@@ -2043,3 +2043,12 @@ Apply/verification rule:
 - Build from exact `95385b7` Git blobs and use full-file writes guarded by old blob hashes and new SHA-256 hashes.
 - Run all focused Placidus/runtime/report/UI guards, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build`.
 - Runner must not commit, tag, or push.
+
+## v0.1.285 report aspect selection scope
+
+- Resume report-completion Batch 2 after the Placidus migration.
+- Fix the data-model problem where the report writer overwrote the full aspect inventory with five narrative picks.
+- Add a separate six-item narrative highlight layer while keeping all valid calculated major aspects saved and visible in the technical table.
+- Protect tight relationships and add chart-ruler/core/active-house/diversity weighting without changing the five major aspect definitions or their orb ceilings.
+- Validation includes the 1999-12-12 19:05 Hamadan fixture: full inventory contains 15 major aspects, and highlights include Mercury–Neptune sextile, Mars–Saturn square, Mars–Uranus conjunction, and Moon–Saturn square.
+- Required checks: new selection guard, report sample QA, narrative cleanup/QA, live aspect UI guards, encoding, diff-check, focused TypeScript, and full production build.

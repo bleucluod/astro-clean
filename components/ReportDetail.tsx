@@ -809,6 +809,7 @@ export function ReportDetail({
   const stats = useMemo(() => (report ? buildReportReadingStats(report) : null), [report]);
   const placements = report?.realEngine?.placements ?? [];
   const aspects = report?.realEngine?.aspects ?? [];
+  const aspectHighlights = report?.realEngine?.aspectHighlights ?? aspects.slice(0, 6);
   const houses = report?.realEngine?.houses ?? [];
   const angles = report ? buildAngleRows(report) : [];
   const lunarNodes = report ? buildLunarNodeRows(report) : [];
@@ -901,7 +902,7 @@ export function ReportDetail({
                 ascendantLongitude={report.realEngine.ascendantLongitude}
                 houses={report.realEngine.houses}
                 angles={report.realEngine.angles}
-                aspects={aspects.slice(0, 8)}
+                aspects={aspectHighlights.slice(0, 8)}
                 retrogradePlanetIds={retrogradePlanetIds}
                 houseSystem={report.realEngine.houseSystem}
                 houseAvailability={report.realEngine.houseContext?.availability}
@@ -1093,7 +1094,7 @@ export function ReportDetail({
                   ascendantLongitude={report.realEngine.ascendantLongitude}
                   houses={report.realEngine.houses}
                   angles={report.realEngine.angles}
-                  aspects={aspects.slice(0, 8)}
+                  aspects={aspectHighlights.slice(0, 8)}
                   retrogradePlanetIds={retrogradePlanetIds}
                   houseSystem={report.realEngine.houseSystem}
                   houseAvailability={report.realEngine.houseContext?.availability}
@@ -1213,9 +1214,12 @@ export function ReportDetail({
             </article>
 
             <article className="report-detail-technical-card">
-              <h3>روابط مهم بین سیاره‌ها</h3>
+              <h3>همه روابط محاسبه‌شده بین سیاره‌ها</h3>
+              <p className="report-muted-note">
+                این جدول فهرست کامل روابط اصلی محاسبه‌شده را نگه می‌دارد؛ کارت‌های روایی بالاتر فقط موارد اولویت‌دار را باز می‌کنند.
+              </p>
               <div className="report-detail-card-list">
-                {aspects.slice(0, 10).map((aspect: RealEngineReportAspect) => (
+                {aspects.map((aspect: RealEngineReportAspect) => (
                   <div className="report-detail-data-row" key={aspect.id}>
                     <strong>{aspect.firstPlanetLabel} {aspect.glyph} {aspect.secondPlanetLabel}</strong>
                     <span>{aspect.aspectLabel} · زاویه الگو {formatDegree(aspect.angle)} · زاویه واقعی {formatDegree(aspect.separation)} · اورب {formatDegree(aspect.orb)}</span>

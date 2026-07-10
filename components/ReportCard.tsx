@@ -212,6 +212,7 @@ type AccuracySummary = {
 
 export function ReportCard({ report }: ReportCardProps) {
   const realEngineAspects = report.realEngine?.aspects ?? [];
+  const aspectHighlights = report.realEngine?.aspectHighlights ?? realEngineAspects.slice(0, 6);
   const coreCards = buildCoreCards(report);
   const shownPlacements = report.realEngine?.placements ?? [];
   const retrogradePlanetIds = getRetrogradePlanetIds(report);
@@ -223,8 +224,9 @@ export function ReportCard({ report }: ReportCardProps) {
   const angleRows = buildAngleRows(report);
   const houseRows = buildHouseRows(report, shownPlacements);
   const chartBalance = buildChartBalance(shownPlacements);
-  const shownAspects = realEngineAspects.slice(0, 8);
-  const hiddenAspectCount = Math.max(0, realEngineAspects.length - shownAspects.length);
+  const shownAspects = aspectHighlights.slice(0, 8);
+  const shownAspectIds = new Set(shownAspects.map((aspect) => aspect.id));
+  const hiddenAspectCount = realEngineAspects.filter((aspect) => !shownAspectIds.has(aspect.id)).length;
   const birthTimeSummary = buildBirthTimeSummary(report);
   const birthMoonPhase = buildBirthMoonPhaseSummary(report);
   const accuracySummary = buildAccuracySummary(report);
@@ -334,7 +336,7 @@ export function ReportCard({ report }: ReportCardProps) {
             <h3>روابط مهم بین سیاره‌ها</h3>
             <p>
               اینجا رابطه‌هایی نمایش داده می‌شوند که از نظر وزن چارت مهم‌ترند: نورها، حاکم چارت، خانه‌های فعال، رابطه‌های تنشی و بعد اورب.
-              بقیه داده‌ها در پشتوانه محاسبه باقی می‌مانند.
+              فهرست کامل روابط در جدول فنی پایین صفحه باقی می‌ماند.
             </p>
           </div>
 
@@ -356,7 +358,7 @@ export function ReportCard({ report }: ReportCardProps) {
 
           {hiddenAspectCount > 0 ? (
             <p className="report-muted-note">
-              {hiddenAspectCount.toLocaleString("fa-IR")} رابطه سیاره‌ای دیگر فقط در پشتوانه داده نگه داشته شده‌اند.
+              {hiddenAspectCount.toLocaleString("fa-IR")} رابطه سیاره‌ای دیگر در جدول کامل محاسبات پایین صفحه قابل بررسی‌اند.
             </p>
           ) : null}
         </section>

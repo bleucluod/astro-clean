@@ -67,8 +67,12 @@ const ASPECT_META_BY_KIND: Record<AspectMeta["kind"], AspectMeta> = {
 
 export function ReportAspectRelationshipSections({ report }: ReportAspectRelationshipSectionsProps) {
   const aspects = ((report.realEngine?.aspects ?? []) as unknown[]) as AspectLike[];
-  const shownAspects = aspects.slice(0, 8);
-  const hiddenAspectCount = Math.max(0, aspects.length - shownAspects.length);
+  const storedHighlights = ((report.realEngine?.aspectHighlights ?? []) as unknown[]) as AspectLike[];
+  const shownAspects = (storedHighlights.length > 0 ? storedHighlights : aspects.slice(0, 6)).slice(0, 8);
+  const shownAspectIds = new Set(shownAspects.map((aspect, index) => getAspectKey(aspect, index)));
+  const hiddenAspectCount = aspects.filter(
+    (aspect, index) => !shownAspectIds.has(getAspectKey(aspect, index)),
+  ).length;
 
   if (shownAspects.length === 0) {
     return null;
@@ -126,7 +130,7 @@ export function ReportAspectRelationshipSections({ report }: ReportAspectRelatio
 
       {hiddenAspectCount > 0 ? (
         <p className="report-muted">
-          {formatPersianNumber(hiddenAspectCount)} رابطه‌ی دیگر هم در داده محاسبه شده، اما برای خوانایی صفحه فقط رابطه‌های اولویت‌دار اینجا باز شده‌اند؛ هدف این بخش عمق خواندن است، نه طولانی کردن فهرست.
+          {formatPersianNumber(hiddenAspectCount)} رابطه‌ی دیگر هم محاسبه شده و در جدول فنی کامل پایین صفحه دیده می‌شود؛ اینجا فقط رابطه‌های روایی اولویت‌دار باز شده‌اند.
         </p>
       ) : null}
     </section>

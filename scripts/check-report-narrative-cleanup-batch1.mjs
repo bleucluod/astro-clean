@@ -34,7 +34,8 @@ assert(writer.includes("buildChartSpineHumanSummary(chartSpine)"), "The opening 
 assert(writer.includes("mercuryVenusShareField"), "Daily-life synthesis must merge repeated Mercury/Venus fields generically.");
 assert(writer.includes("buildHouseAnglesText(realEngineWithAspects)"), "Full house/angle data generation must remain.");
 assert(writer.includes("buildNatalAccuracyText(realEngineWithAspects)"), "Natal accuracy generation must remain.");
-assert(writer.includes("prioritizeRealEngineAspects(aspectCandidates, chartSpineDraft, realEngine).slice(0, 5)"), "Aspect scoring/selection must remain unchanged in Batch 1.");
+assert(writer.includes("selectNarrativeAspectHighlights"), "Later aspect-selection work must keep the Batch 1 narrative bounded through a separate highlight layer.");
+assert(writer.includes("REPORT_ASPECT_HIGHLIGHT_LIMIT"), "Narrative aspect highlights must remain explicitly bounded after Batch 1.");
 assert(sampleQa.includes("totalWords > 2700"), "Sample QA must enforce a 15-minute narrative ceiling at 180 words/minute.");
 assert(packageJson.scripts?.["check:report-narrative-cleanup-batch1"] === "node scripts/check-report-narrative-cleanup-batch1.mjs", "package.json must expose the Batch 1 guard.");
 assert(packageJson.scripts?.["check:reports"]?.includes("check:report-narrative-cleanup-batch1"), "check:reports must include the Batch 1 guard.");

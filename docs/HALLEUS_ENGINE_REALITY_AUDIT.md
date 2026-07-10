@@ -759,3 +759,10 @@ Current verified runtime reality at baseline 146083e:
 - Polar-circle and non-convergence results expose `availability: unavailable`, keep report houses empty, and set placement/angle/Node/Lilith house fields to `null`.
 - The chart wheel, report card, detail page, and narrative writer explain the unavailable state and do not show fake house spokes or tables.
 - No Swiss Ephemeris runtime dependency or silent fallback was added.
+
+## v0.1.285 aspect-selection reality
+
+- Previous writer behavior replaced the full aspect map with five narrative aspects, so valid calculated relationships could disappear from saved report/UI data even though the calculation layer found them.
+- The corrected contract keeps `aspects` as the complete orb-sorted major-aspect inventory and adds `aspectHighlights` as a separate six-item narrative selection.
+- Narrative scoring now combines normalized orb closeness, very-tight-orb protection, Sun/Moon and chart-ruler relevance, personal planets, dynamic aspects, active houses, and diversity pressure.
+- Major-aspect angles and orb ceilings remain unchanged; this is a selection/storage correction, not new astrology math.
