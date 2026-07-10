@@ -8,7 +8,13 @@ export const HOUSE_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 export type HouseNumber = (typeof HOUSE_NUMBERS)[number];
 
-export type HouseSystemId = "whole-sign" | "equal-house" | "placeholder";
+export type HouseSystemId =
+  | "whole-sign"
+  | "equal-house"
+  | "placidus"
+  | "placeholder";
+
+export const PLACIDUS_HOUSE_CONTRACT_VERSION = "0.1.284a" as const;
 
 export type ChartHouse = {
   number: HouseNumber;
@@ -51,8 +57,111 @@ export function buildEqualHouseCusps(firstHouseCuspLongitude: number): ChartHous
   return buildHouseCusps(firstHouseCuspLongitude, "equal-house");
 }
 
+export function buildPlacidusHouses(
+  cuspLongitudes: readonly number[],
+): ChartHouse[] {
+  if (cuspLongitudes.length !== HOUSE_NUMBERS.length) {
+    throw new Error(
+      `Expected 12 Placidus cusps. Received: ${cuspLongitudes.length}`,
+    );
+  }
+
+  const normalizedCusps = cuspLongitudes.map((cuspLongitude, index) => {
+    if (!Number.isFinite(cuspLongitude)) {
+      throw new TypeError(
+        `Expected finite Placidus cusp at index ${index}. Received: ${cuspLongitude}`,
+      );
+    }
+
+    return normalizeEclipticLongitude(cuspLongitude);
+  });
+
+  const totalSpan = normalizedCusps.reduce((sum, cuspLongitude, index) => {
+    const nextCusp = normalizedCusps[(index + 1) % normalizedCusps.length];
+    const span = normalizeEclipticLongitude(nextCusp - cuspLongitude);
+
+    if (span <= 0) {
+      throw new Error(`Invalid Placidus cusp order at house ${index + 1}.`);
+    }
+
+    return sum + span;
+  }, 0);
+
+  if (Math.abs(totalSpan - 360) > 0.000001) {
+    throw new Error(
+      `Placidus cusps must complete exactly one zodiac cycle. Received span: ${totalSpan}`,
+    );
+  }
+
+  return HOUSE_NUMBERS.map((number, index) => {
+    const cuspLongitude = normalizedCusps[index];
+    const sign = getTropicalZodiacSignFromLongitude(cuspLongitude);
+
+    return {
+      number,
+      cuspLongitude,
+      signId: sign.id,
+      system: "placidus",
+    };
+  });
+}
+
 export function buildPlaceholderHouses(): ChartHouse[] {
   return buildHouseCusps(0, "placeholder");
+}
+
+export function getHouseNumberFromCusps(
+  longitude: number,
+  houses: readonly ChartHouse[],
+): HouseNumber {
+  assertHouseCoverage([...houses]);
+
+  const orderedHouses = [...houses].sort((left, right) => left.number - right.number);
+  const normalizedLongitude = normalizeEclipticLongitude(longitude);
+
+  for (let index = 0; index < orderedHouses.length; index += 1) {
+    const currentHouse = orderedHouses[index];
+    const nextHouse = orderedHouses[(index + 1) % orderedHouses.length];
+    const span = normalizeEclipticLongitude(
+      nextHouse.cuspLongitude - currentHouse.cuspLongitude,
+    );
+    const distanceFromCusp = normalizeEclipticLongitude(
+      normalizedLongitude - currentHouse.cuspLongitude,
+    );
+
+    if (distanceFromCusp < span) {
+      return currentHouse.number;
+    }
+  }
+
+  throw new Error(
+    `Could not assign longitude ${normalizedLongitude} to supplied house cusps.`,
+  );
+}
+
+export function assignHouseToCusps(
+  longitude: number,
+  houses: readonly ChartHouse[],
+  system: HouseSystemId = "placidus",
+): HouseAssignment {
+  const house = getHouseNumberFromCusps(longitude, houses);
+  const matchedHouse = houses.find((candidate) => candidate.number === house);
+
+  if (!matchedHouse) {
+    throw new Error(`Missing cusp for assigned house ${house}.`);
+  }
+
+  const normalizedLongitude = normalizeEclipticLongitude(longitude);
+  const cuspLongitude = normalizeEclipticLongitude(matchedHouse.cuspLongitude);
+
+  return {
+    house,
+    system,
+    cuspLongitude,
+    distanceFromCusp: normalizeEclipticLongitude(
+      normalizedLongitude - cuspLongitude,
+    ),
+  };
 }
 
 export function getHouseNumberFromLongitude(
@@ -98,7 +207,12 @@ export function getHouseCuspLongitude(
 }
 
 export function isSupportedHouseSystem(system: string): system is HouseSystemId {
-  return system === "whole-sign" || system === "equal-house" || system === "placeholder";
+  return (
+    system === "whole-sign" ||
+    system === "equal-house" ||
+    system === "placidus" ||
+    system === "placeholder"
+  );
 }
 
 export function describeHouseSystem(system: HouseSystemId): string {
@@ -108,6 +222,10 @@ export function describeHouseSystem(system: HouseSystemId): string {
 
   if (system === "equal-house") {
     return "Equal house foundation. Uses 30-degree houses from a supplied first-house cusp.";
+  }
+
+  if (system === "placidus") {
+    return "Placidus house contract. Uses a validated array of twelve unequal house cusps.";
   }
 
   return "Placeholder houses. Used only until birth place and house calculation are production-ready.";

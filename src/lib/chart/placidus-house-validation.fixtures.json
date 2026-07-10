@@ -1,0 +1,91 @@
+{
+  "version": "0.1.284a",
+  "status": "reference-contract-only",
+  "note": "Validates unequal cusp storage and house assignment only. It does not independently calculate Placidus cusps or activate the runtime.",
+  "references": [
+    {
+      "id": "haleh-hamadan-1999-12-12-1905",
+      "source": "user-provided Cafe Astrology Placidus report",
+      "birth": {
+        "date": "1999-12-12",
+        "time": "19:05",
+        "timezone": "Asia/Tehran",
+        "latitude": 34.87,
+        "longitude": 48.53
+      },
+      "ascendantLongitude": 108.183333,
+      "midheavenLongitude": 3.466667,
+      "cuspLongitudes": [
+        108.183333,
+        129.4,
+        153.65,
+        183.466667,
+        219.016667,
+        255.683333,
+        288.183333,
+        309.4,
+        333.65,
+        3.466667,
+        39.016667,
+        75.683333
+      ],
+      "placements": [
+        {
+          "id": "sun",
+          "longitude": 260.166667,
+          "expectedHouse": 6
+        },
+        {
+          "id": "moon",
+          "longitude": 311.283333,
+          "expectedHouse": 8
+        },
+        {
+          "id": "mercury",
+          "longitude": 242.183333,
+          "expectedHouse": 5
+        },
+        {
+          "id": "venus",
+          "longitude": 217.85,
+          "expectedHouse": 4
+        },
+        {
+          "id": "mars",
+          "longitude": 312.6,
+          "expectedHouse": 8
+        },
+        {
+          "id": "jupiter",
+          "longitude": 25.133333,
+          "expectedHouse": 10
+        },
+        {
+          "id": "saturn",
+          "longitude": 41.133333,
+          "expectedHouse": 11
+        },
+        {
+          "id": "uranus",
+          "longitude": 313.916667,
+          "expectedHouse": 8
+        },
+        {
+          "id": "neptune",
+          "longitude": 302.566667,
+          "expectedHouse": 7
+        },
+        {
+          "id": "pluto",
+          "longitude": 250.75,
+          "expectedHouse": 5
+        },
+        {
+          "id": "north-node",
+          "longitude": 124.583333,
+          "expectedHouse": 1
+        }
+      ]
+    }
+  ]
+}

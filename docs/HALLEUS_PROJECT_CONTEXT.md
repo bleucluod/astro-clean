@@ -1963,3 +1963,32 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Workflow failure ledger: two earlier read-only `node -e` inspection commands failed because PowerShell stripped nested JavaScript quoting. Prevention: do not use multiline JavaScript through `node -e` in VS Code PowerShell; use a uniquely named runner with a temporary UTF-8 script file, avoid Persian matching in PowerShell, and read GitHub-accessible source directly instead of asking the user to paste it.
 
 - Workflow failure ledger: the first v0.1.283 apply runner called pnpm run check:report-value-synthesis-lite, but that package script does not exist. The runner stopped correctly before commit, tag, or push. Fix/prevention: verify every pnpm run target against the live package.json before runner generation; when a check file exists without a package script, invoke it directly with Node.
+
+## v0.1.284a Placidus contract scope
+
+Baseline before apply:
+
+- HEAD: 146083e
+- Tag: v0.1.283-report-narrative-cleanup-batch1
+- Branch: main
+- Working tree: clean except known untracked failed runners
+
+Scope:
+
+- Add `placidus` as a hidden house-system contract with twelve supplied unequal cusps.
+- Add cusp-aware planet/point house assignment and one numeric reference fixture for Haleh, Hamadan, 1999-12-12 19:05.
+- Keep `src/lib/chart/real-chart-engine.ts` on Whole Sign in this batch.
+- Add a focused guard that prevents accidental runtime activation or an unapproved Swiss Ephemeris dependency.
+- Do not change report prose, report UI, chart wheel, aspect scoring, nodes, Lilith, transits, storage, auth, SEO, or payment.
+
+Next step after checks and commit is a local Placidus cusp calculator candidate with independent validation fixtures, not the report migration itself.
+
+Workflow failure ledger:
+
+- The first v0.1.284a runner compared Windows repository paths as raw strings. PowerShell returned a backslash path while Git returned a forward-slash path, so the runner stopped before backup or apply. Prevention: normalize both paths and compare case-insensitively.
+- The reconstructed r1 runner corrupted its embedded payload and left a standalone PowerShell finally token. It stopped before backup or apply. Prevention: do not rewrite an embedded Base64 payload in place; generate replacement runners from the intact source and validate the generated script structure before delivery.
+- The r2 runner used an unverified single-line marker for a multi-line TypeScript type and stopped after the first edit in `houses.ts`. Prevention: build patches from the exact live commit, run them on a clean clone, and complete all required checks before delivery.
+- Sandbox validation found `check-real-engine-houses.mjs` was already stale on untouched baseline `146083e`: it required an English sentence that had been replaced by current report house logic. Fix/prevention: guard stable code contracts (`whole-sign-from-ascendant` and `placidus-calculated`) instead of user-facing copy.
+- The r3 runner embedded a textual patch without preserving the final newline, so `git apply --check` rejected it as corrupt before apply. Fix/prevention: verify exact patch bytes and terminal newline, not only patch content.
+- The r4 runner was tested against a Windows `git archive` ZIP whose exported text had CRLF bytes, while the real checkout and HEAD blobs used LF. It therefore passed against the wrong byte baseline and failed preflight locally. Fix/prevention: derive baseline files from Git object blobs (`git cat-file` / exact HEAD hashes), verify those hashes against the live checkout, and prefer full-file writes guarded by old/new hashes over context patches for this recovery batch.
+- The r5 full-file runner applied the intended Placidus contract and passed focused guards, but the production build exposed a stale report snapshot type: `NormalizedHouseConfidence` included `provided-cusps` while `RealEngineReportHouseContext.confidence` did not. Fix/prevention: synchronize `types/astro.ts` with the normalized house-confidence contract and guard that union in `check:placidus-house-contract` before running the full build.

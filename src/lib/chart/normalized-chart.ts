@@ -12,8 +12,10 @@ import {
   type ChartHouse,
   type HouseAssignment,
   type HouseSystemId,
+  assignHouseToCusps,
   assignHouseToLongitude,
   buildEqualHouseCusps,
+  buildPlacidusHouses,
   buildPlaceholderHouses,
   buildWholeSignHouses,
   getWholeSignFirstHouseCusp,
@@ -25,7 +27,7 @@ import {
   sortAspectsByOrb,
 } from "./aspects";
 
-export const NORMALIZED_CHART_VERSION = "0.1.138b" as const;
+export const NORMALIZED_CHART_VERSION = "0.1.284a" as const;
 
 export type NormalizedChartSource =
   | "astronomy-engine-prototype"
@@ -55,6 +57,7 @@ export type NormalizedAscendantMethod =
 export type NormalizedHouseConfidence =
   | "calculated-ascendant"
   | "provided-ascendant"
+  | "provided-cusps"
   | "scaffold"
   | "placeholder";
 
@@ -62,6 +65,7 @@ export type NormalizedHouseInput = {
   system?: HouseSystemId | null;
   ascendantLongitude?: number | null;
   firstHouseCuspLongitude?: number | null;
+  cuspLongitudes?: readonly number[] | null;
   ascendantMethod?: NormalizedAscendantMethod | null;
 };
 
@@ -71,6 +75,7 @@ export type NormalizedHouseContext = {
   housesReady: boolean;
   ascendantLongitude: number | null;
   firstHouseCuspLongitude: number;
+  cuspLongitudes: number[] | null;
   ascendantMethod: NormalizedAscendantMethod;
   confidence: NormalizedHouseConfidence;
   readinessNote: string;
@@ -126,6 +131,7 @@ export function buildNormalizedChart(
     input.placements,
     houseContext.firstHouseCuspLongitude,
     houseContext.appliedSystem,
+    houses,
   );
   const aspects = sortAspectsByOrb(
     calculateMajorAspects(toAspectPlacements(placements), input.aspectOrbScale ?? 1),
@@ -147,8 +153,17 @@ export function normalizeChartPlacement(
   placement: NormalizedChartPointInput,
   firstHouseCuspLongitude: number,
   houseSystem: HouseSystemId,
+  houses?: readonly ChartHouse[],
 ): NormalizedChartPlacement {
   const normalizedLongitude = normalizeEclipticLongitude(placement.longitude);
+  const house =
+    houseSystem === "placidus"
+      ? assignHouseToCusps(normalizedLongitude, houses ?? [], houseSystem)
+      : assignHouseToLongitude(
+          normalizedLongitude,
+          firstHouseCuspLongitude,
+          houseSystem,
+        );
 
   return {
     id: placement.id,
@@ -157,11 +172,7 @@ export function normalizeChartPlacement(
     longitude: placement.longitude,
     normalizedLongitude,
     zodiac: getZodiacPosition(normalizedLongitude),
-    house: assignHouseToLongitude(
-      normalizedLongitude,
-      firstHouseCuspLongitude,
-      houseSystem,
-    ),
+    house,
   };
 }
 
@@ -169,9 +180,15 @@ export function normalizeChartPlacements(
   placements: NormalizedChartPointInput[],
   firstHouseCuspLongitude: number,
   houseSystem: HouseSystemId,
+  houses?: readonly ChartHouse[],
 ): NormalizedChartPlacement[] {
   return placements.map((placement) =>
-    normalizeChartPlacement(placement, firstHouseCuspLongitude, houseSystem),
+    normalizeChartPlacement(
+      placement,
+      firstHouseCuspLongitude,
+      houseSystem,
+      houses,
+    ),
   );
 }
 
@@ -179,6 +196,41 @@ export function normalizeHouseContext(
   input?: NormalizedHouseInput,
 ): NormalizedHouseContext {
   const requestedSystem = input?.system ?? "placeholder";
+
+  if (
+    requestedSystem === "placidus" &&
+    Array.isArray(input?.cuspLongitudes) &&
+    input.cuspLongitudes.length === 12 &&
+    input.cuspLongitudes.every((cuspLongitude) => Number.isFinite(cuspLongitude))
+  ) {
+    const houses = buildPlacidusHouses(input.cuspLongitudes);
+    const cuspLongitudes = houses.map((house) => house.cuspLongitude);
+    const ascendantLongitudeInput = input.ascendantLongitude;
+    const hasAscendantLongitude =
+      typeof ascendantLongitudeInput === "number" &&
+      Number.isFinite(ascendantLongitudeInput);
+    const ascendantLongitude = hasAscendantLongitude
+      ? normalizeEclipticLongitude(ascendantLongitudeInput)
+      : cuspLongitudes[0];
+    const ascendantMethod = normalizeHouseAscendantMethod(
+      input.ascendantMethod,
+      true,
+    );
+
+    return {
+      requestedSystem,
+      appliedSystem: "placidus",
+      housesReady: true,
+      ascendantLongitude,
+      firstHouseCuspLongitude: cuspLongitudes[0],
+      cuspLongitudes,
+      ascendantMethod,
+      confidence: "provided-cusps",
+      readinessNote: buildHouseReadinessNote("placidus", "provided-cusps"),
+      limitation:
+        "Placidus cusps are supplied reference data; production cusp calculation is not active yet.",
+    };
+  }
 
   if (
     requestedSystem === "whole-sign" &&
@@ -195,6 +247,7 @@ export function normalizeHouseContext(
       housesReady: true,
       ascendantLongitude,
       firstHouseCuspLongitude: getWholeSignFirstHouseCusp(ascendantLongitude),
+      cuspLongitudes: null,
       ascendantMethod,
       confidence,
       readinessNote: buildHouseReadinessNote("whole-sign", confidence),
@@ -228,6 +281,7 @@ export function normalizeHouseContext(
         ? normalizeEclipticLongitude(ascendantLongitudeInput)
         : null,
       firstHouseCuspLongitude,
+      cuspLongitudes: null,
       ascendantMethod,
       confidence,
       readinessNote: buildHouseReadinessNote("equal-house", confidence),
@@ -241,12 +295,15 @@ export function normalizeHouseContext(
     housesReady: false,
     ascendantLongitude: null,
     firstHouseCuspLongitude: 0,
+    cuspLongitudes: null,
     ascendantMethod: "unknown",
     confidence: "placeholder",
     readinessNote:
       "Placeholder houses are applied only until birth place and house calculation are production-ready.",
     limitation:
-      "House context is not production-ready yet. Placeholder houses are applied until birth place and house calculation are finalized.",
+      requestedSystem === "placidus"
+        ? "Placidus requires exactly twelve finite, cyclically ordered cusp longitudes."
+        : "House context is not production-ready yet. Placeholder houses are applied until birth place and house calculation are finalized.",
   };
 }
 
@@ -273,6 +330,10 @@ function getHouseConfidence(
     return ascendantMethod === "astronomy-engine-local-sidereal-time"
       ? "calculated-ascendant"
       : "provided-ascendant";
+  }
+
+  if (system === "placidus") {
+    return "provided-cusps";
   }
 
   return ascendantMethod === "astronomy-engine-local-sidereal-time"
@@ -302,6 +363,10 @@ function buildHouseReadinessNote(
     return "Whole-sign houses are anchored to a supplied Ascendant sign.";
   }
 
+  if (system === "placidus") {
+    return "Placidus houses use supplied validation cusps; the production cusp calculator remains gated.";
+  }
+
   if (system === "equal-house" && confidence === "calculated-ascendant") {
     return "Equal-house houses are anchored to the calculated Ascendant longitude, but remain partial until house-system hardening.";
   }
@@ -322,6 +387,13 @@ export function buildHousesForContext(
 
   if (houseContext.appliedSystem === "equal-house") {
     return buildEqualHouseCusps(houseContext.firstHouseCuspLongitude);
+  }
+
+  if (
+    houseContext.appliedSystem === "placidus" &&
+    houseContext.cuspLongitudes
+  ) {
+    return buildPlacidusHouses(houseContext.cuspLongitudes);
   }
 
   return buildPlaceholderHouses();

@@ -26,7 +26,9 @@ for (const marker of [
   "function toRealEngineReportHouses",
   "function getHouseNumberForLongitude",
   "getAngleIdsForHouse",
-  "Whole sign house derived from the calculated Ascendant sign; not a Placidus cusp.",
+  'house.system === "whole-sign"',
+  'return "whole-sign-from-ascendant";',
+  'return "placidus-calculated";',
   "house: getHouseNumberForLongitude(angle.longitude, realChart)",
 ]) {
   if (!serviceSource.includes(marker)) {

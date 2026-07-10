@@ -803,3 +803,14 @@ Workflow rule reinforced: report-engine/report-narrative claims must be checked 
 - v0.1.268: Lilith deep narrative is now live in ReportDetail for /reports/[reportId] through ReportSpecialPointsNarrativeSection; lunar-node narrative remains live through the writer and the live special-points bridge. Personal transit was still not live at that milestone; current status is live as of v0.1.269.
 - v0.1.269: Personal transit is now live in ReportDetail via engineData.personalTransitReportData only; if stored report data is missing, the live report shows a missing-state and does not default to Tehran or infer current residence.
 - v0.1.270: Final live report QA/cleanup confirms /reports/[reportId] uses ReportDetail rather than ReportCard and has live narrative, quick facts, placements, aspects, Lilith/nodes, and personal-transit bridge sections. No new engine/transit calculation was added.
+
+## v0.1.284a Placidus migration sequence
+
+The earlier Whole Sign default is superseded for future newly generated reports, but the migration must follow the canonical engine order:
+
+1. v0.1.284a: accept and validate twelve unequal Placidus cusps in the house/normalized-chart contract while keeping runtime Whole Sign.
+2. v0.1.284b: implement a local Placidus cusp candidate from birth time, latitude, longitude, local sidereal time, and obliquity; validate against multiple independent fixtures and define polar failure behavior.
+3. v0.1.284c: switch fresh runtime snapshots to Placidus, propagate the applied system through storage/report/wheel/table surfaces, and preserve old Whole Sign snapshots without silent migration.
+4. Resume report-completion Batch 2 only after the runtime, snapshot, writer, UI, and QA consume one canonical Placidus result.
+
+No Swiss Ephemeris package may enter runtime until the project explicitly accepts its license and deployment consequences.

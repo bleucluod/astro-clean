@@ -230,6 +230,7 @@ export type RealEngineReportHouseContext = {
   confidence:
     | "calculated-ascendant"
     | "provided-ascendant"
+    | "provided-cusps"
     | "scaffold"
     | "placeholder";
   ascendantMethod:

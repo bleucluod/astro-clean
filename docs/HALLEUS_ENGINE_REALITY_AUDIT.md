@@ -729,3 +729,14 @@ Audit note: writer-side lunar nodes can describe local True/Osculating nodes, bu
 - v0.1.268: Lilith deep narrative is now live in ReportDetail for /reports/[reportId] through ReportSpecialPointsNarrativeSection; lunar-node narrative remains live through the writer and the live special-points bridge. Personal transit was still not live at that milestone; current status is live as of v0.1.269.
 - v0.1.269: Personal transit is now live in ReportDetail via engineData.personalTransitReportData only; if stored report data is missing, the live report shows a missing-state and does not default to Tehran or infer current residence.
 - v0.1.270: Final live report QA/cleanup confirms /reports/[reportId] uses ReportDetail rather than ReportCard and has live narrative, quick facts, placements, aspects, Lilith/nodes, and personal-transit bridge sections. No new engine/transit calculation was added.
+
+## v0.1.284a Placidus runtime reality
+
+Current verified runtime reality at baseline 146083e:
+
+- The active real chart workbench still sends `system: "whole-sign"` to normalized chart generation.
+- The current house layer supports Whole Sign, Equal House, and placeholder calculations from a single 30-degree sequence.
+- It does not yet calculate unequal Placidus cusps.
+- v0.1.284a introduces a hidden Placidus cusp contract and validates house assignment against the user-provided Haleh/Cafe Astrology reference.
+- The reference contract is not proof of an independent Placidus calculator and must not change user-facing reports.
+- Swiss Ephemeris remains a validation/reference candidate only; no runtime wrapper is approved in this batch because licensing and deployment must be decided explicitly.

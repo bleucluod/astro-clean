@@ -1786,3 +1786,14 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Accepted sequence after v0.1.282: (1) main-narrative cleanup and repetition reduction, (2) astrology weighting/aspect selection, (3) deeper interpretation layer, (4) information architecture/table merging, and (5) transit/Lilith/lunar-node final QA.
 - v0.1.283 is Batch 1 only: main narrative becomes shorter and more human, top active houses stay in the reading, and complete technical data remains in the lower report-detail/facts surfaces.
 - Guardrail: Batch 1 must not hardcode named sample charts or change calculation, aspect scoring, transit grouping, Lilith/Node models, auth, payment, public/private consent, SEO/indexing, wiki, or infrastructure.
+
+## v0.1.284a Placidus migration contract
+
+Product direction changed before report-completion Batch 2:
+
+- This decision supersedes the earlier Whole Sign default for newly generated Halleus reports.
+- The target default house system is Placidus after a local calculator, independent reference fixtures, polar-limit behavior, and report/UI synchronization pass validation.
+- Whole Sign remains a supported legacy/alternative contract and identifies already-saved snapshots; old reports must not be silently reinterpreted.
+- v0.1.284a adds only unequal-cusp storage and placement assignment from supplied validation cusps. It does not switch the production runtime.
+- Do not add a Swiss Ephemeris runtime dependency without an explicit licensing and deployment decision.
+- Report-completion Batches 2-5 remain paused until the Placidus engine source is validated and the runtime migration is complete.
