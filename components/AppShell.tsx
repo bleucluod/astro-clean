@@ -40,8 +40,7 @@ export function AppShell({ children }: AppShellProps) {
             />
             <strong>Halleus</strong>
             <p className="footer-note">
-              هالیوس تجربه‌ای فارسی برای خواندن چارت تولد در Halleus.ir است؛
-              فعلاً رایگان، خصوصی و متمرکز بر کیفیت گزارش و تجربه خواندن.
+              هالیوس تجربه‌ای فارسی و آرام برای ساخت و خواندن گزارش تولد است.
             </p>
           </div>
 

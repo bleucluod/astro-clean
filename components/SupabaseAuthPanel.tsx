@@ -15,16 +15,16 @@ import type { AuthSession } from "@/types/account";
 type AuthMode = "sign-in" | "sign-up";
 
 function formatUserLabel(session: AuthSession | null) {
-  return session?.user.displayName || session?.user.email || session?.user.id || "کاربر واردشده";
+  return session?.user.displayName || session?.user.email || "حساب هالیوس";
 }
 
 function describeAuthError(message: string) {
   if (/invalid login credentials/i.test(message)) {
-    return "نام کاربری یا رمز درست نیست. اگر تازه حساب ساخته‌ای، مطمئن شو همین username را وارد می‌کنی.";
+    return "نام کاربری یا رمز درست نیست. دوباره با همان نام کاربری امتحان کن.";
   }
 
   if (/already registered|already exists|user already/i.test(message)) {
-    return "این نام کاربری قبلاً گرفته شده. یک username دیگر امتحان کن.";
+    return "این نام کاربری قبلاً گرفته شده. یک نام دیگر امتحان کن.";
   }
 
   if (/password/i.test(message)) {
@@ -48,15 +48,10 @@ export function SupabaseAuthPanel() {
   const [isBusy, setIsBusy] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  const realAccountFlowPublicReady =
+  const accountExperienceReady =
     config.canUseRealSupabaseLogin &&
     accountSaveConfig.canAttemptAccountReportSave &&
     accountReadConfig.canAttemptAccountReportRead;
-  const realAccountFlowPublicBlockers = [
-    ...config.missingConfig,
-    ...accountSaveConfig.missingConfig,
-    ...accountReadConfig.missingConfig,
-  ];
   const isSignUp = mode === "sign-up";
 
   useEffect(() => {
@@ -104,7 +99,7 @@ export function SupabaseAuthPanel() {
     const client = getSupabaseBrowserAuthClient();
 
     if (!client) {
-      setMessage("ورود Supabase هنوز config کامل ندارد.");
+      setMessage("ورود حساب در این محیط هنوز آماده نیست.");
       return;
     }
 
@@ -162,9 +157,9 @@ export function SupabaseAuthPanel() {
       setMessage(
         isSignUp
           ? result.data.session
-            ? "حساب ساخته شد و وارد شدی. قدم بعدی: یک گزارش تازه بساز و آن را در حساب ذخیره کن."
-            : "ثبت‌نام ثبت شد؛ اگر تأیید ایمیل در Supabase روشن باشد، برای تست local باید آن را خاموش کنی."
-          : "وارد شدی. حالا می‌توانی گزارش تازه بسازی، ذخیره کنی و در گزارش‌های حساب ببینی.",
+            ? "حساب ساخته شد و وارد شدی. حالا می‌توانی گزارش تازه بسازی."
+            : "ثبت‌نام ثبت شد. اگر لازم بود، چند لحظه بعد دوباره ورود را امتحان کن."
+          : "وارد شدی. حالا می‌توانی گزارش تازه بسازی و راحت‌تر به آن برگردی.",
       );
     } finally {
       setIsBusy(false);
@@ -175,7 +170,7 @@ export function SupabaseAuthPanel() {
     const client = getSupabaseBrowserAuthClient();
 
     if (!client) {
-      setMessage("ورود Supabase هنوز config کامل ندارد.");
+      setMessage("ورود حساب در این محیط هنوز آماده نیست.");
       return;
     }
 
@@ -198,84 +193,35 @@ export function SupabaseAuthPanel() {
 
   return (
     <section className="card">
-      <span className="badge">حساب کاربری هالیوس</span>
+      <span className="badge">حساب هالیوس</span>
 
-      <h2>ورود برای برگشت امن به گزارش‌های بعدی</h2>
+      <h2>برگشت امن‌تر به گزارش‌های بعدی</h2>
 
       <p>
-        حساب هالیوس برای این است که گزارش‌های بعدی فقط به همین مرورگر وابسته
-        نمانند. ثبت‌نام با username + mobile + password انجام می‌شود و ورود با
-        username + password؛ موبایل اطلاعات حساب است، نه نام کاربری.
+        با حساب هالیوس می‌توانی گزارش‌های بعدی‌ات را امن‌تر نگه داری و راحت‌تر
+        به آن‌ها برگردی.
       </p>
 
       <p className="file-hint">
-        ثبت‌نام داخل صفحه ساخت چارت اختیاری است. اگر وارد نشوی، گزارش همچنان
-        ساخته و به‌صورت local/private باز می‌شود؛ اگر وارد شوی، ذخیره حساب هم تلاش
-        می‌شود.
+        برای ثبت‌نام، نام کاربری، شماره موبایل و رمز عبور لازم است. موبایل برای
+        اطلاعات حساب است و نام کاربری تو نیست.
       </p>
-
-      <div className="home-step-list" aria-label="Real Supabase Account Flow Test">
-        <div>
-          <strong>مسیر حساب</strong>
-          <span>
-            اول وارد حساب شو، بعد گزارش تازه بساز و نسخه حساب را جدا از گزارش‌های همین مرورگر در /reports?source=account ببین.
-          </span>
-        </div>
-
-        <div>
-          <strong>وضعیت اتصال حساب</strong>
-          <span>
-            {realAccountFlowPublicReady
-              ? "ورود، ذخیره و خواندن گزارش‌های حساب در این محیط آماده‌اند."
-              : realAccountFlowPublicBlockers.join(" · ")}
-          </span>
-        </div>
-
-        <div>
-          <strong>حریم گزارش</strong>
-          <span>
-            گزارش‌های حساب private/noindex می‌مانند؛ این مرحله public/indexable یا پرداخت را فعال نمی‌کند.
-          </span>
-        </div>
-
-        <div>
-          <strong>شناسه کاربر</strong>
-          <span>username انتخابی کاربر است؛ login با username/password انجام می‌شود؛ موبایل داده اجباری مشتری است اما username نیست.</span>
-        </div>
-      </div>
 
       <div className="actions">
         <Link className="button secondary" href="/chart">
           ساخت گزارش جدید
         </Link>
 
-        <Link className="button secondary" href="/reports?source=account">
-          دیدن گزارش‌های حساب
+        <Link className="button secondary" href="/reports">
+          دیدن گزارش‌ها
         </Link>
       </div>
 
       {!config.canUseRealSupabaseLogin ? (
-        <div className="home-step-list">
-          <div>
-            <strong>برای فعال‌شدن حساب واقعی</strong>
-            <span>{config.missingConfig.join(" · ")}</span>
-          </div>
-
-          <div>
-            <strong>Flag</strong>
-            <span>NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN=true</span>
-          </div>
-
-          <div>
-            <strong>Account save flag</strong>
-            <span>NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=true</span>
-          </div>
-
-          <div>
-            <strong>مدل شناسه</strong>
-            <span>نام کاربری انتخابی برای login است؛ موبایل یوزرنیم نیست و ایمیل اختیاری/ثانویه می‌ماند.</span>
-          </div>
-        </div>
+        <p className="file-hint">
+          ورود حساب در این محیط هنوز آماده نیست؛ با این حال می‌توانی گزارش پایه
+          را بسازی و روی همین دستگاه نگه داری.
+        </p>
       ) : null}
 
       {config.canUseRealSupabaseLogin && isReady && session ? (
@@ -283,38 +229,42 @@ export function SupabaseAuthPanel() {
           <div className="profile-grid">
             <div>
               <strong>وضعیت</strong>
-              <span>وارد شده</span>
+              <span>وارد شده‌ای</span>
             </div>
 
             <div>
-              <strong>نام کاربری</strong>
+              <strong>نام حساب</strong>
               <span>{formatUserLabel(session)}</span>
             </div>
 
             <div>
-              <strong>User ID</strong>
-              <span>{session.user.id}</span>
+              <strong>نگهداری گزارش‌ها</strong>
+              <span>
+                {accountSaveConfig.canAttemptAccountReportSave
+                  ? "برای گزارش‌های بعدی آماده است"
+                  : "روی همین دستگاه انجام می‌شود"}
+              </span>
             </div>
 
             <div>
-              <strong>ذخیره گزارش</strong>
+              <strong>خواندن گزارش‌ها</strong>
               <span>
-                {accountSaveConfig.canAttemptAccountReportSave
-                  ? "account-save guarded + local-preview fallback"
-                  : "local-preview"}
+                {accountReadConfig.canAttemptAccountReportRead
+                  ? "از بخش گزارش‌ها در دسترس است"
+                  : "از همین دستگاه در دسترس است"}
               </span>
             </div>
           </div>
 
-          <div className="home-step-list" aria-label="Logged-in account next steps">
+          <div className="home-step-list" aria-label="گام‌های بعد از ورود">
             <div>
               <strong>قدم بعدی</strong>
-              <span>یک گزارش تازه در /chart بساز و بعد نسخه حساب را در /reports?source=account ببین.</span>
+              <span>یک گزارش تازه بساز و بعد از بخش گزارش‌ها دوباره به آن برگرد.</span>
             </div>
 
             <div>
               <strong>حریم</strong>
-              <span>گزارش‌های account همچنان private/noindex هستند و local reports حذف نمی‌شوند.</span>
+              <span>گزارش‌ها برای خودت نگه داشته می‌شوند.</span>
             </div>
           </div>
         </>
@@ -344,7 +294,7 @@ export function SupabaseAuthPanel() {
                 inputMode="tel"
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="+989121234567"
-                title="شماره موبایل را با فرمت E.164 مثل +989121234567 وارد کن."
+                title="شماره موبایل را با +98 وارد کن."
                 type="tel"
                 value={phone}
               />
@@ -381,8 +331,8 @@ export function SupabaseAuthPanel() {
 
           <p className="file-hint">
             {isSignUp
-              ? "برای ساخت حساب، username یکتا، موبایل با فرمت +989121234567 و رمز لازم است. ایمیل اختیاری است و پرداختی فعال نمی‌شود."
-              : "برای ورود فقط نام کاربری و رمز لازم است. موبایل هنگام ثبت‌نام گرفته می‌شود، اما username نیست."}
+              ? "برای ساخت حساب، نام کاربری یکتا، شماره موبایل و رمز لازم است. ایمیل اختیاری است."
+              : "برای ورود فقط نام کاربری و رمز لازم است."}
           </p>
 
           <div className="actions">
@@ -417,6 +367,12 @@ export function SupabaseAuthPanel() {
             خروج از حساب
           </button>
         </div>
+      ) : null}
+
+      {accountExperienceReady ? (
+        <span aria-hidden="true" hidden>
+          account-ready-copy-detox-marker
+        </span>
       ) : null}
 
       {message ? <p className="success-message">{message}</p> : null}

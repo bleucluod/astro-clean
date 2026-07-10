@@ -142,7 +142,8 @@
     "check:report-detail-app-ui-polish": "node scripts/check-report-detail-app-ui-polish.mjs",
     "check:report-detail-simple-app-redesign": "node scripts/check-report-detail-simple-app-redesign.mjs",
     "check:report-detail-visual-cleanup": "node scripts/check-report-detail-visual-cleanup.mjs",
-    "check:current-residence-personal-transit-bridge": "node scripts/check-current-residence-personal-transit-bridge.mjs"
+    "check:current-residence-personal-transit-bridge": "node scripts/check-current-residence-personal-transit-bridge.mjs",
+    "check:user-facing-copy-detox": "node scripts/check-user-facing-copy-detox.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

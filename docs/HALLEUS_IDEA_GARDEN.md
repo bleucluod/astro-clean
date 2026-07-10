@@ -1745,3 +1745,8 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Accepted: the report form should collect current residence separately from birth city so personal transit data can be stored inside generated reports.
 - Scope: current residence city, timezone, and coordinates feed engineData.personalTransitReportData through the existing natal-to-transit probe/bridge.
 - Guardrail: no silent Tehran fallback, no birth-city fallback, no browser geolocation, no localStorage/window.location inference, and no change to public/private consent behavior.
+
+## User-Facing Copy Detox
+- Accepted: public/user-facing Halleus pages should speak like a calm Persian product, not a developer dashboard or roadmap/status report.
+- First small cleanup targets the account panel and footer copy only.
+- Guardrail: copy detox must not change engine calculation, auth logic, storage repository/schema, payment, SEO launch, or public/private consent implementation.

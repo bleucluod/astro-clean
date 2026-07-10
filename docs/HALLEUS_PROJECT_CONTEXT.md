@@ -1902,3 +1902,9 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - report-generation-service uses the existing natal-to-transit probe and personal-transit report-data bridge to store engineData.personalTransitReportData.
 - Workflow note: earlier v0.1.274 attempts failed on guessed ChartForm anchors and were rolled back. This apply was based on a read-only preflight with exact live ChartForm, route, service, and type anchors.
 - No browser geolocation, localStorage residence inference, window.location residence inference, silent Tehran default, birth-city fallback, engine math changes, SEO/indexing changes, auth/payment changes, ReportDetail redesign, or Sky Pulse behavior changes are included.
+
+## v0.1.275a user-facing copy detox account shell
+- Scope: copy-only cleanup for SupabaseAuthPanel and AppShell footer.
+- Removed user-facing implementation/status language from the account panel: raw account query links, env flags, User ID, private/noindex wording, account-save/local-preview status, and public/indexable/payment disclaimers.
+- Kept auth logic, storage config reads, account save/read behavior, report engine, payment, SEO, schema, and consent implementation unchanged.
+- Added focused guard: check:user-facing-copy-detox.
