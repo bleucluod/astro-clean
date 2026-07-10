@@ -5,7 +5,7 @@ import { getPublicBillingPlans } from "@/lib/billing/billing-plans";
 export const metadata: Metadata = {
   title: "پلن‌ها و گزارش کامل‌تر | Halleus",
   description:
-    "گزینه‌های دریافت گزارش کامل‌تر Halleus را ببین؛ از گزارش اولیه تا مسیر سفارش نسخه عمیق‌تر و خواندنی‌تر.",
+    "گزینه‌های دریافت گزارش کامل‌تر هالیوس را ببین؛ از گزارش پایه رایگان تا درخواست نسخه کامل‌تر.",
   alternates: {
     canonical: "/pricing",
   },
@@ -20,38 +20,38 @@ function formatPrice(value: number) {
     return "رایگان";
   }
 
-  return `$${value.toLocaleString("en-US")}`;
+  return "هماهنگی دستی";
 }
 
 export default function PricingPage() {
   const plans = getPublicBillingPlans();
 
   return (
-    <section className="grid paid-mvp-pricing-shell">
+    <section className="grid paid-mvp-pricing-shell pricing-copy-detox-marker">
       <div className="card paid-hero">
         <div>
-          <span className="badge">پلن‌های Halleus</span>
-          <span className="badge paid-soft-badge">سفارش دستی و شفاف</span>
+          <span className="badge">پلن‌های هالیوس</span>
+          <span className="badge paid-soft-badge">رایگان تا کامل‌تر</span>
 
-          <h1>پلن‌ها برای کامل‌تر کردن گزارش تولد Halleus</h1>
+          <h1>گزارش تولد را از نسخه پایه شروع کن</h1>
 
           <p>
-            پرداخت آنلاین هنوز فعال نیست. این صفحه کمک می‌کند کاربر تفاوت پلن‌ها
-            را بفهمد، گزارش نمونه‌اش را مبنا قرار بدهد و سفارش نسخه کامل‌تر را
-            به‌صورت دستی و شفاف شروع کند.
+            می‌توانی گزارش پایه را رایگان بسازی. اگر بعد از خواندن گزارش خواستی
+            نسخه‌ای کامل‌تر و منسجم‌تر داشته باشی، درخواستت را به‌صورت دستی
+            آماده می‌کنی تا درباره محدوده، زمان و هزینه هماهنگ شود.
           </p>
 
           <div className="actions">
             <Link className="button" href="/chart">
-              ساخت گزارش نمونه
+              ساخت گزارش پایه
             </Link>
 
             <Link className="button secondary" href="/product">
-              توضیح محصول
+              آشنایی با هالیوس
             </Link>
 
             <Link className="button secondary" href="/order">
-              ثبت سفارش دستی
+              درخواست نسخه کامل‌تر
             </Link>
           </div>
         </div>
@@ -70,10 +70,14 @@ export default function PricingPage() {
             <p>{plan.description}</p>
 
             <div className="tag-list">
-              <span>گزارش ذخیره‌شده: {formatLimit(plan.limits.savedReports)}</span>
-              <span>خروجی ماهانه: {formatLimit(plan.limits.exportsPerMonth)}</span>
               <span>
-                گزارش پیشرفته: {formatLimit(plan.limits.advancedReports)}
+                گزارش‌های قابل نگهداری: {formatLimit(plan.limits.savedReports)}
+              </span>
+              <span>
+                خروجی‌های قابل دریافت: {formatLimit(plan.limits.exportsPerMonth)}
+              </span>
+              <span>
+                گزارش کامل‌تر: {formatLimit(plan.limits.advancedReports)}
               </span>
             </div>
 
@@ -85,7 +89,7 @@ export default function PricingPage() {
 
             <div className="actions">
               <Link className="button secondary" href="/order">
-                ثبت سفارش دستی
+                درخواست این مسیر
               </Link>
             </div>
           </article>
@@ -93,70 +97,74 @@ export default function PricingPage() {
       </div>
 
       <section className="card manual-order-flow">
-        <span className="section-label">مسیر سفارش دستی</span>
+        <span className="section-label">چطور شروع می‌شود؟</span>
 
-        <h2>سفارش و پرداخت فعلاً بیرون از سایت هماهنگ می‌شود</h2>
+        <h2>اول گزارش پایه، بعد درخواست نسخه کامل‌تر</h2>
 
         <p>
-          با وجود اینکه کیفیت گزارش کامل‌تر و مسیر تحویل به اندازه کافی روشن نشده،
-          پرداخت آنلاین فعال نمی‌شود. کاربر فعلاً پلن را می‌بیند، متن سفارش را
-          آماده می‌کند و هماهنگی پرداخت و تحویل خارج از سایت انجام می‌شود.
+          بهترین مسیر این است که اول گزارش پایه‌ات را بسازی و بخوانی. اگر حس کردی
+          به خوانشی عمیق‌تر، منسجم‌تر یا قابل ارائه نیاز داری، متن درخواستت را
+          آماده می‌کنی و بعد جزئیات به‌صورت دستی هماهنگ می‌شود.
         </p>
 
         <div className="tag-list payment-disabled">
-          <span>وضعیت: هماهنگی دستی</span>
-          <span>پرداخت آنلاین فعلاً فعال نیست</span>
-          <span>تحویل: بعد از تأیید زمان و هزینه</span>
+          <span>شروع: رایگان</span>
+          <span>نسخه کامل‌تر: با هماهنگی</span>
+          <span>تحویل: بعد از تأیید زمان و محدوده</span>
         </div>
 
         <div className="home-step-list">
           <div>
-            <strong>۱. ساخت نمونه</strong>
+            <strong>۱. ساخت گزارش پایه</strong>
+            <span>از صفحه ساخت گزارش شروع کن و خروجی اولیه را بخوان.</span>
+          </div>
+
+          <div>
+            <strong>۲. انتخاب مسیر کامل‌تر</strong>
             <span>
-              اول کاربر گزارش پایه را در /chart می‌سازد و ارزش محصول را می‌بیند.
+              اگر به خوانش کامل‌تر نیاز داشتی، یکی از مسیرهای این صفحه را انتخاب
+              کن.
             </span>
           </div>
 
           <div>
-            <strong>۲. انتخاب پلن</strong>
+            <strong>۳. آماده‌سازی درخواست</strong>
             <span>
-              پلن‌ها اینجا شفاف‌اند، اما پرداخت داخل سایت هنوز فعال نیست.
-            </span>
-          </div>
-
-          <div>
-            <strong>۳. ثبت سفارش دستی</strong>
-            <span>
-              کاربر از صفحه گزارش یا /order متن سفارش را با شناسه گزارش آماده می‌کند.
+              متن سفارش را آماده کن تا درباره زمان، هزینه و محدوده هماهنگ شود.
             </span>
           </div>
         </div>
       </section>
 
       <section className="card">
-        <span className="badge">آمادگی پرداخت آنلاین</span>
+        <span className="badge">شفافیت قبل از سفارش</span>
 
-        <h2>قبل از اتصال پرداخت چه چیزهایی باید روشن شود؟</h2>
+        <h2>قبل از شروع، محدوده گزارش روشن می‌شود</h2>
 
         <p>
-          اتصال پرداخت وقتی معنی دارد که گزارش کامل‌تر، محدوده تحویل و نگهداری
-          امن گزارش‌ها برای کاربر شفاف باشد.
+          نسخه کامل‌تر فقط وقتی شروع می‌شود که بدانیم چه نوع خوانشی می‌خواهی،
+          چه مقدار جزئیات لازم داری و متن نهایی باید برای چه استفاده‌ای آماده شود.
         </p>
 
         <div className="home-step-list">
           <div>
-            <strong>۱. کیفیت گزارش کامل‌تر</strong>
-            <span>محدوده، عمق و نمونه خروجی گزارش باید قابل توضیح باشد.</span>
+            <strong>عمق خوانش</strong>
+            <span>
+              مشخص می‌کنی گزارش بیشتر برای شناخت شخصی، مرور رابطه یا تصمیم‌گیری
+              آرام لازم است.
+            </span>
           </div>
 
           <div>
-            <strong>۲. حساب کاربری و نگهداری گزارش</strong>
-            <span>کاربر باید بداند گزارش پرداختی کجا نگهداری می‌شود.</span>
+            <strong>قالب تحویل</strong>
+            <span>پیش از شروع، درباره شکل و محدوده متن نهایی توافق می‌شود.</span>
           </div>
 
           <div>
-            <strong>۳. روش پرداخت مناسب</strong>
-            <span>روش پرداخت باید با مسیر کاربران فارسی‌زبان هماهنگ باشد.</span>
+            <strong>حریم گزارش</strong>
+            <span>
+              گزارش تولد تو برای خودت می‌ماند مگر اینکه خودت خلافش را انتخاب کنی.
+            </span>
           </div>
         </div>
       </section>

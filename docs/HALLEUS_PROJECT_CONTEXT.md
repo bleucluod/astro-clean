@@ -1920,3 +1920,10 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Removed user-facing project-status/debug/database language from these pages: Account read guard, Beta database archive, local-preview/private-noindex/public-noindex, visible source/visibility labels, raw public-link status messages, and foreground JSON backup wording.
 - Kept report storage/query logic, report detail rendering, chart/transit/report engine behavior, APIs, schema, SEO, payment, and consent implementation unchanged.
 - Extended check:user-facing-copy-detox to cover Reports and ReportDetail alongside previous account shell/dashboard/profile cleanup.
+
+## v0.1.278 user-facing copy detox pricing order
+- Scope: copy/UI-surface cleanup for Pricing, Order, ManualOrderRequestForm, and visible billing-plan copy.
+- Removed payment/backend/storage/status wording, dollar-style visible pricing, local-preview/mock/client-workflow plan copy, and order-form storage wording from user-facing surfaces.
+- Kept payment implementation, billing data shape, auth/storage/report APIs, schema, SEO, and consent implementation unchanged.
+- Extended check:user-facing-copy-detox with scoped Pricing/Order checks. The guard avoids global matching of terms such as Preview/Personal/Professional because those can appear in implementation identifiers.
+- Workflow note: earlier v0.1.278 attempts were fully rolled back before this retry. This successful retry used a read-only preflight first and ASCII structural markers only.

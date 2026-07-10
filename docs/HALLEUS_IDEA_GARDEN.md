@@ -1762,3 +1762,9 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Reports should foreground saved reports, search, favorites, notes, and gentle backup actions.
 - ReportDetail should show access/privacy in human language, not public/noindex/private/account/local-preview labels.
 - Guardrail: do not change report calculation, report engine, storage repository/schema/API behavior, payment, SEO launch, or consent implementation.
+
+## User-Facing Copy Detox - Pricing/Order
+- Accepted: Pricing and Order should describe the current manual fuller-report path in calm product language, not as payment/backend/storage implementation status.
+- Pricing should foreground free report creation and optional manual request for a fuller version.
+- Order should make clear that the form prepares copyable text and does not send or store information in the site.
+- Guardrail: do not implement payment, change billing schema, alter report storage/API behavior, or start SEO/public consent work in this copy cleanup.

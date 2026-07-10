@@ -44,7 +44,7 @@ function formatReportContext(report: AstrologyReport | null, reportId: string) {
           "",
           "اطلاعات گزارش نمونه:",
           `شناسه گزارش: ${reportId}`,
-          "جزئیات گزارش در همین مرورگر پیدا نشد. اگر گزارش را در مرورگر دیگری ساخته‌ای، همین شناسه را برای پیگیری دستی بفرست.",
+          "جزئیات این گزارش در این دستگاه پیدا نشد. اگر گزارش را جای دیگری ساخته‌ای، همین شناسه را برای پیگیری بفرست.",
         ]
       : [];
   }
@@ -109,8 +109,8 @@ export function ManualOrderRequestForm({
       setLinkedReport(report);
       setReportLookupMessage(
         report
-          ? "گزارش نمونه در همین مرورگر پیدا شد و اطلاعاتش به متن سفارش اضافه شد."
-          : "شناسه گزارش به سفارش اضافه شد، اما جزئیات آن در storage همین مرورگر پیدا نشد.",
+          ? "گزارش نمونه در همین دستگاه پیدا شد و اطلاعاتش به متن سفارش اضافه شد."
+          : "شناسه گزارش به سفارش اضافه شد، اما جزئیات آن در این دستگاه پیدا نشد.",
       );
     }
 
@@ -124,9 +124,9 @@ export function ManualOrderRequestForm({
   const requestText = useMemo(() => {
     const reportId = form.reportLink.trim();
     const lines = [
-      "درخواست سفارش دستی Halleus",
-      "نوع مسیر: هماهنگی دستی؛ بدون پرداخت آنلاین یا ارسال خودکار داخل سایت",
-      "مرحله بعد: این متن برای بررسی و تأیید زمان/هزینه نسخه کامل‌تر ارسال می‌شود.",
+      "درخواست نسخه کامل‌تر گزارش هالیوس",
+      "روش هماهنگی: دستی",
+      "مرحله بعد: بررسی درخواست و تأیید زمان، هزینه و محدوده نسخه کامل‌تر.",
       "",
       `نام سفارش‌دهنده: ${form.name.trim() || "—"}`,
       `راه ارتباطی: ${form.contact.trim() || "—"}`,
@@ -137,7 +137,7 @@ export function ManualOrderRequestForm({
       "توضیحات سفارش:",
       form.notes.trim() || "—",
       "",
-      "یادآوری: این متن فقط درخواست اولیه است و شروع سفارش بعد از تأیید دستی انجام می‌شود.",
+      "یادآوری: این متن فقط برای شروع گفت‌وگو و هماهنگی سفارش است.",
     ];
 
     return lines.join("\n");
@@ -155,22 +155,23 @@ export function ManualOrderRequestForm({
 
     try {
       await navigator.clipboard.writeText(requestText);
-      setCopyMessage("متن سفارش کپی شد. حالا آن را از راه ارتباطی هماهنگ‌شده بفرست و منتظر تأیید زمان/هزینه بمان.");
+      setCopyMessage(
+        "متن سفارش کپی شد. حالا آن را از راه ارتباطی هماهنگ‌شده بفرست و منتظر تأیید زمان و هزینه بمان.",
+      );
     } catch {
       setCopyMessage("کپی خودکار انجام نشد. متن سفارش را دستی انتخاب و کپی کن.");
     }
   }
 
   return (
-    <section className="card manual-order-form-card">
+    <section className="card manual-order-form-card manual-order-copy-detox-marker">
       <span className="section-label">فرم آماده‌سازی سفارش</span>
 
       <h2>متن سفارش نسخه کامل‌تر را آماده کن</h2>
 
       <p>
-        این فرم چیزی را ارسال نمی‌کند؛ فقط متن مرتب سفارش را می‌سازد. اگر از صفحه
-        گزارش آمده باشی، شناسه همان گزارش به متن سفارش اضافه می‌شود. بعد از کپی،
-        متن را برای هماهنگی دستی می‌فرستی و جزئیات زمان/هزینه جداگانه تأیید می‌شود.
+        این فرم چیزی را ارسال یا ذخیره نمی‌کند؛ فقط متن مرتب سفارش را می‌سازد.
+        اگر از صفحه گزارش آمده باشی، شناسه همان گزارش به متن سفارش اضافه می‌شود.
       </p>
 
       {reportLookupMessage ? (
@@ -233,13 +234,13 @@ export function ManualOrderRequestForm({
       </div>
 
       <div className="manual-order-preview">
-        <strong>متن آماده سفارش برای ارسال دستی</strong>
+        <strong>متن آماده سفارش برای کپی‌کردن</strong>
         <pre>{requestText}</pre>
       </div>
 
       <div className="actions">
         <button className="button" type="button" onClick={handleCopyRequest}>
-          کپی متن سفارش برای ارسال دستی
+          کپی متن سفارش
         </button>
       </div>
 

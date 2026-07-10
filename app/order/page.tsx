@@ -11,7 +11,7 @@ type OrderPageProps = {
 export const metadata: Metadata = {
   title: "درخواست نسخه کامل‌تر گزارش | Halleus",
   description:
-    "در Halleus می‌توانی بعد از ساخت گزارش تولد، درخواست نسخه کامل‌تر و انسانی‌تر همان گزارش را آماده کنی.",
+    "در هالیوس می‌توانی بعد از ساخت گزارش تولد، درخواست نسخه کامل‌تر همان گزارش را آماده کنی.",
   alternates: {
     canonical: "/order",
   },
@@ -30,21 +30,20 @@ export default async function OrderPage({ searchParams }: OrderPageProps) {
   const initialReportId = normalizeReportId(params?.reportId).trim();
 
   return (
-    <section className="grid manual-order-page">
+    <section className="grid manual-order-page order-copy-detox-marker">
       <div className="card manual-order-hero">
-        <span className="badge">درخواست سفارش دستی</span>
+        <span className="badge">درخواست نسخه کامل‌تر</span>
 
-        <h1>سفارش نسخه کامل‌تر گزارش Halleus</h1>
+        <h1>متن سفارش گزارش کامل‌تر را آماده کن</h1>
 
         <p>
-          این صفحه پرداخت آنلاین انجام نمی‌دهد. فقط کمک می‌کند درخواستت را مرتب
-          آماده کنی، شناسه گزارش نمونه را همراهش نگه داری و متن سفارش را برای
-          هماهنگی دستی کپی کنی.
+          برای نسخه کامل‌تر، متن درخواستت را آماده کن و برای هماهنگی دستی بفرست.
+          اگر از صفحه گزارش آمده باشی، شناسه همان گزارش در متن سفارش می‌ماند.
         </p>
 
         <div className="actions">
           <Link className="button" href="/chart">
-            اول گزارش نمونه بساز
+            ساخت گزارش پایه
           </Link>
 
           <Link className="button secondary" href="/pricing">
@@ -58,7 +57,7 @@ export default async function OrderPage({ searchParams }: OrderPageProps) {
       <section className="card">
         <span className="section-label">بعد از کپی متن سفارش</span>
 
-        <h2>مسیر سفارش فعلاً دستی و شفاف است</h2>
+        <h2>هماهنگی سفارش قدم‌به‌قدم انجام می‌شود</h2>
 
         <ol>
           <li>متن آماده سفارش را کپی کن و شناسه گزارش نمونه را همراهش نگه دار.</li>
@@ -67,26 +66,25 @@ export default async function OrderPage({ searchParams }: OrderPageProps) {
         </ol>
 
         <p>
-          این مرحله هنوز پرداخت آنلاین یا ارسال خودکار ندارد؛ هدفش این است که
-          درخواست مشتری قابل‌پیگیری، منظم و آماده هماهنگی باشد.
+          این فرم چیزی را در سایت ثبت نمی‌کند؛ فقط کمک می‌کند درخواستت مرتب،
+          قابل‌کپی و آماده هماهنگی باشد.
         </p>
       </section>
 
       <section className="card">
         <span className="section-label">شفافیت سفارش</span>
 
-        <h2>اینجا اطلاعاتی به سرور ارسال نمی‌شود</h2>
+        <h2>اطلاعات این فرم در سایت ذخیره یا ارسال نمی‌شود</h2>
 
         <p>
-          فرم سفارش فعلاً فقط متن درخواست را آماده می‌کند. پرداخت آنلاین فعال
-          نیست، اطلاعات فرم ذخیره یا ارسال نمی‌شود و هماهنگی سفارش خارج از سایت
-          انجام می‌شود.
+          متن سفارش فقط روی همین صفحه آماده می‌شود. بعد از کپی، خودت آن را از
+          راه ارتباطی دلخواه می‌فرستی و جزئیات سفارش جداگانه تأیید می‌شود.
         </p>
 
         <div className="tag-list">
-          <span>Payment: دستی</span>
-          <span>Backend: فعال نیست</span>
-          <span>Storage: ارسال نمی‌شود</span>
+          <span>قابل کپی</span>
+          <span>بدون ارسال خودکار</span>
+          <span>با هماهنگی دستی</span>
         </div>
       </section>
     </section>
