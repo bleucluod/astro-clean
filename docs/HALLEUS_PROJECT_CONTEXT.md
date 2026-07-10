@@ -2017,3 +2017,29 @@ Apply/verification rule:
 - Build the runner only from exact `f727f8b` Git blob content.
 - Use full-file writes guarded by old Git blob hashes and new SHA-256 hashes; do not use text markers or `git apply`.
 - Run the calculator guard, v0.1.284a guards, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build` before commit/tag/push.
+
+## v0.1.284c Placidus runtime migration scope
+
+Baseline before apply:
+
+- HEAD: `95385b7e4626f23f226e69aad0c76a92139acf28`
+- Tag: `v0.1.284b-local-placidus-calculator`
+- Branch: `main`
+- Working tree: clean
+
+Scope:
+
+- Activate the local Placidus calculator for newly generated runtime charts.
+- Pass twelve unequal calculated cusps through normalized chart, report enrichment, snapshot v2, report writer, chart wheel, and technical tables.
+- Replace fixed 30-degree report assignment with cusp-aware assignment.
+- Preserve `real-engine-preview-v1` and stored Whole Sign snapshots without silent recalculation.
+- For polar-circle or solver non-convergence, retain signs, planets, aspects, and axes while returning no report houses and no house assignments; show explicit no-fallback copy in writer and UI.
+- Add a dedicated executable migration guard and synchronize the earlier Placidus, workbench, house, and wheel guards.
+- Keep aspect scoring, Nodes/Lilith calculation, transits, auth/storage/payment, SEO, and public/private consent unchanged.
+- Do not add Swiss Ephemeris as a runtime dependency.
+
+Apply/verification rule:
+
+- Build from exact `95385b7` Git blobs and use full-file writes guarded by old blob hashes and new SHA-256 hashes.
+- Run all focused Placidus/runtime/report/UI guards, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build`.
+- Runner must not commit, tag, or push.

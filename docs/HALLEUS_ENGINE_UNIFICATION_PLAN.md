@@ -826,3 +826,14 @@ v0.1.284b completes the local calculator-candidate stage without activating it:
 5. Keep Swiss Ephemeris outside runtime unless licensing and deployment are explicitly approved.
 
 The next batch is v0.1.284c. It must consume this candidate through one canonical runtime adapter, preserve legacy Whole Sign snapshots, and prove end-to-end report/UI consistency before report-completion Batch 2 resumes.
+
+## v0.1.284c runtime/report/UI migration contract
+
+1. Fresh runtime requests Placidus from the local calculator and uses one validated cusp array through normalization, report generation, writer, wheel, and tables.
+2. New snapshots use `real-engine-preview-v2`; the type contract continues accepting `real-engine-preview-v1` for stored Whole Sign reports.
+3. Unequal-house assignment must use ordered cusp intervals, never a fixed 30-degree assumption.
+4. If the calculator returns `polar-circle` or `non-convergence`, keep planetary positions, aspects, and axes, but expose no house number and apply no alternate system.
+5. UI and narrative must name Placidus when ready, explain no-fallback unavailability when blocked, and label legacy Whole Sign snapshots without rewriting them.
+6. Run the dedicated migration guard, prior Placidus guards, report/UI guards, encoding, diff-check, focused TypeScript, and full production build before commit.
+
+After this migration passes, resume report-completion Batch 2 on top of the canonical Placidus result.

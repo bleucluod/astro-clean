@@ -6,6 +6,10 @@ import {
 } from "./normalized-chart";
 import type { ChartHouse } from "./houses";
 import {
+  calculatePlacidusHouseCuspsFromUtc,
+  type PlacidusHouseCalculatorResult,
+} from "./placidus-house-calculator";
+import {
   LOCAL_TRUE_NODE_CANDIDATE_METHOD,
   calculateLocalTrueNodeCandidate,
 } from "./local-true-node-candidate";
@@ -17,7 +21,7 @@ import {
   type LilithInternalAdapterResult,
 } from "./lilith-internal-adapter";
 
-export const REAL_CHART_WORKBENCH_VERSION = "0.1.166" as const;
+export const REAL_CHART_WORKBENCH_VERSION = "0.1.284c" as const;
 
 export type RealChartBirthInput = {
   name?: string;
@@ -123,6 +127,7 @@ export type RealChartWorkbenchResult = {
   midheavenLongitude: number;
   angles: RealChartCalculatedAngles;
   houses: ChartHouse[];
+  houseCalculation: PlacidusHouseCalculatorResult;
   calculationNotes: string[];
   placements: RealChartCalculatedPlacement[];
   retrogradePlanetIds: string[];
@@ -188,6 +193,11 @@ export function buildRealChartWorkbenchResult(
   const placements = calculateRealChartPlacements(astroTime, utcDate);
   const lunarNodes = calculateLocalTrueLunarNodes(utcDate);
   const lilith = calculateRealChartLilith(utcDate);
+  const houseCalculation = calculatePlacidusHouseCuspsFromUtc({
+    utcDate,
+    latitudeDegrees: input.latitude,
+    longitudeDegrees: input.longitude,
+  });
   const normalizedChart = buildNormalizedChart({
     source: "astronomy-engine-prototype",
     time: {
@@ -196,11 +206,23 @@ export function buildRealChartWorkbenchResult(
       timezone: input.timezone,
       placeName: input.placeName,
     },
-    house: {
-      system: "whole-sign",
-      ascendantLongitude,
-      ascendantMethod: "astronomy-engine-local-sidereal-time",
-    },
+    house:
+      houseCalculation.status === "calculated"
+        ? {
+            system: "placidus",
+            ascendantLongitude,
+            ascendantMethod: "astronomy-engine-local-sidereal-time",
+            cuspLongitudes: houseCalculation.cuspLongitudes,
+            cuspSource: "local-placidus-calculator",
+            calculationMethod: houseCalculation.method,
+          }
+        : {
+            system: "placidus",
+            ascendantLongitude,
+            ascendantMethod: "astronomy-engine-local-sidereal-time",
+            unavailableReason: houseCalculation.reason,
+            calculationMethod: houseCalculation.method,
+          },
     placements: placements.map((placement) => ({
       id: placement.id,
       label: placement.label,
@@ -217,7 +239,10 @@ export function buildRealChartWorkbenchResult(
     ascendantMethod: "astronomy-engine-local-sidereal-time",
     midheavenLongitude,
     angles,
-    houses: normalizedChart.houses,
+    houses: normalizedChart.houseContext.housesReady
+      ? normalizedChart.houses
+      : [],
+    houseCalculation,
     placements,
     retrogradePlanetIds: placements
       .filter((placement) => placement.motion.status === "retrograde")
@@ -231,7 +256,11 @@ export function buildRealChartWorkbenchResult(
       "Ascendant is calculated from astronomy-engine SiderealTime, birth latitude/longitude, and tropical obliquity.",
       "Midheaven is calculated independently from local sidereal time and tropical obliquity; it is not treated as the 10th house cusp.",
       "Descendant and IC are derived as exact oppositions from Ascendant and Midheaven.",
-      "Houses use the whole-sign system anchored to the calculated Ascendant sign.",
+      houseCalculation.status === "calculated"
+        ? "خانه‌ها با محاسبه‌گر محلی پلاسیدوس و دوازده سرخانهٔ نامساوی اعتبارسنجی‌شده محاسبه می‌شوند."
+        : houseCalculation.reason === "polar-circle"
+          ? "خانه‌های پلاسیدوس در محدودهٔ قطبی محاسبه‌گر در دسترس نیستند و هیچ روش خانهٔ جایگزینی اعمال نشده است."
+          : "حل‌گر محلی پلاسیدوس همگرا نشد و هیچ روش خانهٔ جایگزینی اعمال نشده است.",
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around the birth time.",
       "Local True/Osculating lunar nodes are calculated from Astronomy Engine GeoMoonState and the instantaneous lunar orbital plane; no external API or Swiss runtime dependency is used.",
       "Local True/Osculating Black Moon Lilith is calculated from the guarded self-built Moon state-vector adapter; report/UI output remains disabled until a separate report sync gate is approved.",

@@ -15,6 +15,9 @@ for (const marker of [
   "buildWheelAngles",
   "buildAspectLines",
   "retrogradePlanetIds",
+  "houseAvailability",
+  "houseUnavailableReason",
+  "هیچ روش جایگزینی پنهانی اعمال نشده است",
 ]) {
   if (!wheel.includes(marker)) {
     failures.push("RealChartWheel.tsx missing marker: " + marker);

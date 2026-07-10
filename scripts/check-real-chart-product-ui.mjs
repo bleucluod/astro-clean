@@ -39,10 +39,10 @@ for (const marker of [
   "RealChartWheelPlacement",
   "WHEEL_SIGNS",
   "PLANET_GLYPHS",
-  "Chart wheel",
-  "ASC",
+  "چرخ چارت تولد",
+  "رایزینگ",
   "Halleus",
-  "real chart workbench",
+  "چارت محاسبه‌شده",
 ]) {
   if (!wheelSource.includes(marker)) {
     failures.push(`Real chart wheel missing marker: ${marker}`);

@@ -224,12 +224,21 @@ export type RealEngineReportCalculationQuality = {
   warnings: string[];
 };
 
+export type RealEngineReportHouseAvailability = "ready" | "unavailable";
+
+export type RealEngineReportHouseUnavailableReason =
+  | "polar-circle"
+  | "non-convergence";
+
 export type RealEngineReportHouseContext = {
   requestedSystem: RealEngineHouseSystem;
   appliedSystem: RealEngineHouseSystem;
+  availability?: RealEngineReportHouseAvailability;
+  unavailableReason?: RealEngineReportHouseUnavailableReason | null;
   confidence:
     | "calculated-ascendant"
     | "provided-ascendant"
+    | "calculated-cusps"
     | "provided-cusps"
     | "scaffold"
     | "placeholder";
@@ -239,11 +248,13 @@ export type RealEngineReportHouseContext = {
     | "unknown";
   ascendantLongitude: number | null;
   firstHouseCuspLongitude: number;
+  cuspLongitudes?: number[] | null;
+  calculationMethod?: string | null;
   limitation: string | null;
 };
 
 export type RealEngineReportSnapshot = {
-  version: "real-engine-preview-v1";
+  version: "real-engine-preview-v1" | "real-engine-preview-v2";
   generatedAt: string;
   cityLabel: string;
   utcIso: string;

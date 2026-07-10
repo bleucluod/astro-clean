@@ -623,6 +623,7 @@ export function enrichReportWithRealEngineCopy(
     mars,
     aspectCount: aspects.length,
     houseCount: realEngineWithAspects.houses?.length ?? 0,
+    houseContext: realEngineWithAspects.houseContext,
     hasAngles: hasCompleteAngles(realEngineWithAspects.angles),
     retrogradeStatus: realEngineWithAspects.retrogrades?.status,
     retrogradePlanetCount: realEngineWithAspects.retrogrades?.planetIds.length ?? 0,
@@ -741,6 +742,7 @@ type RealEngineSectionEvidenceInput = {
   mars: RealEngineReportPlacement | undefined;
   aspectCount: number;
   houseCount: number;
+  houseContext?: RealEngineReportHouseContext;
   hasAngles: boolean;
   retrogradeStatus?: string;
   retrogradePlanetCount: number;
@@ -1363,6 +1365,7 @@ function buildRealEngineSectionEvidence({
   mars,
   aspectCount,
   houseCount,
+  houseContext,
   hasAngles,
   retrogradeStatus,
   retrogradePlanetCount,
@@ -1408,7 +1411,7 @@ function buildRealEngineSectionEvidence({
     activeHouseEvidence: joinEvidenceLabels(activeHouseEvidence),
     balanceEvidence: "نشانه‌های محاسبه‌شده این بخش: عنصرها و کیفیت‌ها از جایگاه‌های ذخیره‌شده محاسبه شده‌اند",
     houseAnglesEvidence: joinEvidenceLabels(
-      houseCount === 12 ? "۱۲ خانه با روش نشانه کامل محاسبه‌شده" : undefined,
+      buildHouseEvidenceLabel(houseContext, houseCount),
       hasAngles ? "رایزینگ، نقطه روبه‌رو، میانه آسمان و ریشه آسمان در داده گزارش" : undefined,
     ),
     motionEvidence: joinEvidenceLabels(
@@ -1906,11 +1909,21 @@ function buildHouseContextText(
   houseContext: RealEngineReportHouseContext | undefined,
   _risingSign: ZodiacKey,
 ) {
-  if (!isCalculatedWholeSignHouseContext(houseContext)) {
-    return undefined;
+  if (isUnavailablePlacidusHouseContext(houseContext)) {
+    return houseContext.unavailableReason === "polar-circle"
+      ? "برای این عرض جغرافیایی، خانه‌های پلاسیدوس در دسترس نیستند؛ هالیوس هیچ روش خانه جایگزینی را پنهانی اعمال نکرده و خوانش خانه‌ها را کنار گذاشته است."
+      : "حل‌گر محلی پلاسیدوس برای این چارت همگرا نشد؛ هالیوس هیچ روش خانه جایگزینی را پنهانی اعمال نکرده و خوانش خانه‌ها را کنار گذاشته است.";
   }
 
-  return "خانه‌ها با روش نشانه کامل خوانده شده‌اند؛ جزئیات کامل پایین صفحه آمده است.";
+  if (isCalculatedPlacidusHouseContext(houseContext)) {
+    return "خانه‌ها با روش پلاسیدوس و دوازده سرخانه نامساویِ محاسبه‌شده خوانده شده‌اند؛ جزئیات کامل پایین صفحه آمده است.";
+  }
+
+  if (isCalculatedWholeSignHouseContext(houseContext)) {
+    return "این گزارش قدیمی، خانه‌های ذخیره‌شده با روش نشانه کامل را بدون بازنویسی حفظ کرده است.";
+  }
+
+  return undefined;
 }
 
 
@@ -1924,8 +1937,12 @@ function buildHouseAnglesText(realEngine: RealEngineReportSnapshot): string | un
 
   const houseSystemText =
     houses.length === 12
-      ? "خانه‌های این گزارش با روش نشانه کامل ساخته شده‌اند؛ جدول کامل در پشتوانه محاسبه آمده و متن خوانش فقط نقاط پررنگ‌تر را برجسته می‌کند."
-      : "در این نسخه هنوز جدول کامل ۱۲ خانه در خروجی گزارش آماده نیست، پس خانه‌ها فقط با احتیاط خوانده می‌شوند.";
+      ? realEngine.houseSystem === "placidus"
+        ? "خانه‌های این گزارش با روش پلاسیدوس و سرخانه‌های نامساوی محاسبه شده‌اند؛ جدول کامل در پشتوانه محاسبه آمده و متن خوانش فقط نقاط پررنگ‌تر را برجسته می‌کند."
+        : "این نسخهٔ ذخیره‌شدهٔ قدیمی، خانه‌های روش نشانه کامل را همان‌طور که ثبت شده‌اند حفظ می‌کند؛ جدول کامل در پشتوانه محاسبه آمده و متن خوانش فقط نقاط پررنگ‌تر را برجسته می‌کند."
+      : isUnavailablePlacidusHouseContext(realEngine.houseContext)
+        ? "خانه‌های پلاسیدوس برای این چارت در دسترس نیستند و هیچ روش جایگزین پنهانی اعمال نشده است؛ محورها و جایگاه‌های نشانه‌ای همچنان قابل خواندن‌اند."
+        : "در این نسخه جدول کامل ۱۲ خانه در خروجی گزارش آماده نیست، پس خانه‌ها وارد خوانش نمی‌شوند.";
   const anglesText = angles.length > 0 ? buildAnglesNarrative(angles) : undefined;
   const ascDscText = realEngine.angles?.asc && realEngine.angles?.dsc
     ? "محور رایزینگ و نقطه روبه‌رو پیوند میان شیوه ورود تو به جهان و آینه رابطه با دیگری را نشان می‌دهد."
@@ -1933,7 +1950,7 @@ function buildHouseAnglesText(realEngine: RealEngineReportSnapshot): string | un
   const mcIcText = realEngine.angles?.mc && realEngine.angles?.ic
     ? "محور میانه آسمان و ریشه آسمان مسیر بیرونی و ریشه درونی را جدا از شماره خانه‌ها می‌خواند."
     : undefined;
-  const housesText = houses.length === 12 ? buildWholeSignHouseNarrative(houses, realEngine.placements) : undefined;
+  const housesText = houses.length === 12 ? buildHouseNarrative(houses, realEngine.placements) : undefined;
 
   return [houseSystemText, anglesText, ascDscText, mcIcText, housesText]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
@@ -2144,7 +2161,11 @@ function getSortedReportHouses(houses: RealEngineReportHouse[] | undefined): Rea
   }
 
   return houses
-    .filter((house) => house.system === "whole-sign" && house.reliability === "calculated")
+    .filter(
+      (house) =>
+        (house.system === "whole-sign" || house.system === "placidus") &&
+        house.reliability === "calculated",
+    )
     .slice()
     .sort((first, second) => first.number - second.number);
 }
@@ -2176,7 +2197,7 @@ function buildAnglesNarrative(angles: RealEngineReportAngle[]): string {
   return `محورهای اصلی این چارت چنین‌اند: ${details.join(" ")}`;
 }
 
-function buildWholeSignHouseNarrative(
+function buildHouseNarrative(
   houses: RealEngineReportHouse[],
   placements: RealEngineReportPlacement[],
 ): string {
@@ -2239,14 +2260,54 @@ function buildActiveHouseNarrative(
 function buildRisingDescriptor(
   houseContext: RealEngineReportHouseContext | undefined,
 ) {
-  return isCalculatedWholeSignHouseContext(houseContext)
+  return houseContext?.ascendantMethod === "astronomy-engine-local-sidereal-time" &&
+    typeof houseContext.ascendantLongitude === "number" &&
+    Number.isFinite(houseContext.ascendantLongitude)
     ? "رایزینگ محاسبه‌شده"
     : "رایزینگ تقریبی";
 }
 
+function buildHouseEvidenceLabel(
+  houseContext: RealEngineReportHouseContext | undefined,
+  houseCount: number,
+): string | undefined {
+  if (houseCount === 12 && isCalculatedPlacidusHouseContext(houseContext)) {
+    return "۱۲ خانه با روش پلاسیدوس و سرخانه‌های نامساوی محاسبه‌شده";
+  }
+
+  if (houseCount === 12 && isCalculatedWholeSignHouseContext(houseContext)) {
+    return "۱۲ خانه ذخیره‌شده با روش نشانه کامل";
+  }
+
+  if (isUnavailablePlacidusHouseContext(houseContext)) {
+    return "خانه‌های پلاسیدوس در دسترس نیستند و روش جایگزین پنهانی اعمال نشده است";
+  }
+
+  return undefined;
+}
+
+function isCalculatedPlacidusHouseContext(
+  houseContext: RealEngineReportHouseContext | undefined,
+): houseContext is RealEngineReportHouseContext {
+  return (
+    houseContext?.appliedSystem === "placidus" &&
+    houseContext.availability !== "unavailable" &&
+    houseContext.confidence === "calculated-cusps"
+  );
+}
+
+function isUnavailablePlacidusHouseContext(
+  houseContext: RealEngineReportHouseContext | undefined,
+): houseContext is RealEngineReportHouseContext {
+  return (
+    houseContext?.requestedSystem === "placidus" &&
+    houseContext.availability === "unavailable"
+  );
+}
+
 function isCalculatedWholeSignHouseContext(
   houseContext: RealEngineReportHouseContext | undefined,
-): boolean {
+): houseContext is RealEngineReportHouseContext {
   return (
     houseContext?.appliedSystem === "whole-sign" &&
     houseContext.confidence === "calculated-ascendant" &&

@@ -13,7 +13,8 @@ for (const marker of [
   'import type { ChartHouse } from "./houses";',
   "REAL_CHART_WORKBENCH_VERSION",
   "houses: ChartHouse[]",
-  "houses: normalizedChart.houses",
+  "normalizedChart.houseContext.housesReady",
+  "houseCalculation: PlacidusHouseCalculatorResult",
 ]) {
   if (!engineSource.includes(marker)) {
     failures.push("real-chart-engine.ts missing marker: " + marker);
@@ -26,9 +27,11 @@ for (const marker of [
   "function toRealEngineReportHouses",
   "function getHouseNumberForLongitude",
   "getAngleIdsForHouse",
-  'house.system === "whole-sign"',
+  'house.system === "placidus"',
   'return "whole-sign-from-ascendant";',
   'return "placidus-calculated";',
+  "getHouseNumberFromCusps",
+  "if (!houseContext.housesReady)",
   "house: getHouseNumberForLongitude(angle.longitude, realChart)",
 ]) {
   if (!serviceSource.includes(marker)) {

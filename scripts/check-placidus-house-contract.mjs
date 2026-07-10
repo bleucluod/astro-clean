@@ -52,32 +52,42 @@ for (const marker of [
 
 for (const marker of [
   "cuspLongitudes",
+  '"calculated-cusps"',
   '"provided-cusps"',
   'appliedSystem: "placidus"',
+  'availability: "unavailable"',
   "buildPlacidusHouses",
   "assignHouseToCusps",
-  "production cusp calculation is not active",
+  "هیچ روش خانهٔ جایگزینی پنهانی اعمال نشده است",
 ]) {
   if (!normalizedSource.includes(marker)) {
     failures.push("normalized-chart.ts missing marker: " + marker);
   }
 }
 
-if (
-  !reportTypesSource.includes("export type RealEngineReportHouseContext") ||
-  !reportTypesSource.includes('| "provided-cusps"')
-) {
-  failures.push(
-    "types/astro.ts must keep provided-cusps in RealEngineReportHouseContext confidence.",
-  );
+for (const marker of [
+  "export type RealEngineReportHouseContext",
+  '| "calculated-cusps"',
+  '| "provided-cusps"',
+  'version: "real-engine-preview-v1" | "real-engine-preview-v2"',
+]) {
+  if (!reportTypesSource.includes(marker)) {
+    failures.push("types/astro.ts missing migration marker: " + marker);
+  }
 }
 
-if (!realEngineSource.includes('system: "whole-sign"')) {
-  failures.push("The active runtime must remain whole-sign during v0.1.284a.");
+for (const marker of [
+  "calculatePlacidusHouseCuspsFromUtc",
+  'system: "placidus"',
+  'cuspSource: "local-placidus-calculator"',
+]) {
+  if (!realEngineSource.includes(marker)) {
+    failures.push("Active Placidus runtime missing marker: " + marker);
+  }
 }
 
-if (realEngineSource.includes('system: "placidus"')) {
-  failures.push("v0.1.284a must not activate Placidus in the runtime engine.");
+if (realEngineSource.includes('system: "whole-sign"')) {
+  failures.push("Fresh runtime charts must not silently use Whole Sign after v0.1.284c.");
 }
 
 if (fixture.version !== "0.1.284a") {
@@ -207,7 +217,7 @@ if (failures.length > 0) {
 }
 
 console.log("Placidus house contract check passed.");
-console.log("- active runtime remains whole-sign");
+console.log("- active runtime uses local Placidus while legacy Whole Sign snapshots remain typed");
 console.log("- unequal cusp contract is available");
 console.log("- Haleh reference assignments match Placidus cusps");
 console.log("- no Swiss Ephemeris runtime dependency was added");

@@ -35,6 +35,7 @@ import {
   type ReportGenerationStatus,
 } from "@/types/report-generation";
 import type { NormalizedChart } from "../../src/lib/chart/normalized-chart";
+import { getHouseNumberFromCusps } from "../../src/lib/chart/houses";
 import {
   buildRealChartWorkbenchResult,
   type RealChartBirthInput,
@@ -55,7 +56,7 @@ import {
 import { buildPersonalTransitReportDataBridge } from "../../src/lib/report-output/personal-transit-report-data-bridge";
 import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart-report-copy";
 
-export const REPORT_GENERATION_SERVICE_VERSION = "0.1.166" as const;
+export const REPORT_GENERATION_SERVICE_VERSION = "0.1.284c" as const;
 
 type SectionedAstrologyReport = AstrologyReport & {
   interpretationSections: ReportOutputSection[];
@@ -185,12 +186,14 @@ export function buildRealEngineSnapshot(
   chartReportEnrichment: ChartReportEnrichment | null = null,
 ): RealEngineReportSnapshot {
   return {
-    version: "real-engine-preview-v1",
+    version: "real-engine-preview-v2",
     generatedAt,
     cityLabel: input.birthCity,
     utcIso: realChart.utcIso,
     ascendantLongitude: realChart.ascendantLongitude,
-    houseSystem: chartReportEnrichment?.houseContext.appliedSystem ?? "whole-sign",
+    houseSystem:
+      chartReportEnrichment?.houseContext.requestedSystem ??
+      realChart.normalizedChart.houseContext.requestedSystem,
     houses: toRealEngineReportHouses(realChart, chartReportEnrichment),
     angles: toRealEngineReportAngles(realChart),
     calculationQuality: toRealEngineReportCalculationQuality(
@@ -219,10 +222,14 @@ function toRealEngineReportHouseContext(
   return {
     requestedSystem: houseContext.requestedSystem,
     appliedSystem: houseContext.appliedSystem,
+    availability: houseContext.availability,
+    unavailableReason: houseContext.unavailableReason,
     confidence: houseContext.confidence,
     ascendantMethod: houseContext.ascendantMethod,
     ascendantLongitude: houseContext.ascendantLongitude,
     firstHouseCuspLongitude: houseContext.firstHouseCuspLongitude,
+    cuspLongitudes: houseContext.cuspLongitudes,
+    calculationMethod: houseContext.calculationMethod,
     limitation: houseContext.limitation,
   };
 }
@@ -231,11 +238,16 @@ function toRealEngineReportHouses(
   realChart: RealChartWorkbenchResult,
   chartReportEnrichment: ChartReportEnrichment | null,
 ): RealEngineReportHouse[] {
+  const houseContext =
+    chartReportEnrichment?.houseContext ?? realChart.normalizedChart.houseContext;
+
+  if (!houseContext.housesReady) {
+    return [];
+  }
+
   const houses = realChart.houses.length > 0
     ? realChart.houses
     : realChart.normalizedChart.houses;
-  const houseContext =
-    chartReportEnrichment?.houseContext ?? realChart.normalizedChart.houseContext;
 
   return houses.map((house) => ({
     number: house.number as RealEngineReportHouseNumber,
@@ -245,8 +257,10 @@ function toRealEngineReportHouses(
     system: house.system,
     method: toRealEngineReportHouseMethod(house.system),
     reliability:
-      house.system === "whole-sign" &&
-      houseContext.confidence === "calculated-ascendant"
+      (house.system === "whole-sign" &&
+        houseContext.confidence === "calculated-ascendant") ||
+      (house.system === "placidus" &&
+        houseContext.confidence === "calculated-cusps")
         ? "calculated"
         : house.system === "placeholder"
           ? "placeholder"
@@ -259,9 +273,11 @@ function toRealEngineReportHouses(
       .map((placement) => placement.id),
     angleIds: getAngleIdsForHouse(house.number, realChart),
     limitation:
-      house.system === "whole-sign"
-        ? "خانه با روش نشانه کامل از رایزینگ محاسبه‌شده ساخته شده است؛ این روش با سرخانه‌های پلاسیدوس یکی نیست."
-        : "روش خانه در این نسخه هنوز برای خوانش دقیق کامل نشده است.",
+      house.system === "placidus"
+        ? "سرخانه با محاسبهٔ محلی پلاسیدوس و سرخانه‌های نامساوی ساخته شده است."
+        : house.system === "whole-sign"
+          ? "این خانه از نسخهٔ ذخیره‌شدهٔ قدیمی روش نشانه کامل حفظ شده است."
+          : "روش خانه در این نسخه هنوز برای خوانش دقیق کامل نشده است.",
   }));
 }
 
@@ -296,19 +312,24 @@ function getHouseNumberForLongitude(
   longitude: number,
   realChart: RealChartWorkbenchResult,
 ): RealEngineReportHouseNumber | null {
+  const houseContext = realChart.normalizedChart.houseContext;
+
+  if (!houseContext.housesReady) {
+    return null;
+  }
+
   const houses = realChart.houses.length > 0
     ? realChart.houses
     : realChart.normalizedChart.houses;
 
-  const matchingHouse = houses.find((house) => {
-    const distanceFromCusp = normalizeReportLongitude(
-      longitude - house.cuspLongitude,
-    );
+  if (houses.length !== 12) {
+    return null;
+  }
 
-    return distanceFromCusp >= 0 && distanceFromCusp < 30;
-  });
-
-  return (matchingHouse?.number ?? null) as RealEngineReportHouseNumber | null;
+  return getHouseNumberFromCusps(
+    normalizeReportLongitude(longitude),
+    houses,
+  ) as RealEngineReportHouseNumber;
 }
 
 function toRealEngineReportAngles(
@@ -357,9 +378,12 @@ function toRealEngineReportCalculationQuality(
   return {
     status: "partial",
     houseSystemStatus:
-      chartReportEnrichment?.houseContext.confidence === "calculated-ascendant"
-        ? "calculated"
-        : "preview",
+      chartReportEnrichment?.houseContext.availability === "unavailable"
+        ? "not-calculated"
+        : chartReportEnrichment?.houseContext.confidence === "calculated-ascendant" ||
+            chartReportEnrichment?.houseContext.confidence === "calculated-cusps"
+          ? "calculated"
+          : "preview",
     anglesStatus: realChart.angles ? "calculated" : "preview",
     retrogradeStatus: "calculated",
     nodesStatus: realChart.lunarNodes?.status === "calculated" ? "calculated" : "not-calculated",
@@ -541,11 +565,16 @@ function buildRealChartContract({
     ...realChart.calculationNotes,
   ];
   const houseReadinessWarning =
-    chartReportEnrichment.houseContext.appliedSystem === "whole-sign" &&
-    chartReportEnrichment.houseContext.confidence === "calculated-ascendant" &&
-    chartReportEnrichment.status === "ready"
-      ? "Whole-sign house context is active for this report; final paid-report guarantees still require broader sample review."
-      : "House and ascendant data are still preview/hardening layers, not final paid-report guarantees.";
+    chartReportEnrichment.houseContext.availability === "unavailable"
+      ? "خانه‌های پلاسیدوس برای این چارت در دسترس نیستند و هیچ روش خانهٔ جایگزینی اعمال نشده است؛ جایگاه‌های سیاره‌ای، روابط و محورها همچنان در دسترس‌اند."
+      : chartReportEnrichment.houseContext.appliedSystem === "placidus" &&
+          chartReportEnrichment.houseContext.confidence === "calculated-cusps" &&
+          chartReportEnrichment.status === "ready"
+        ? "سرخانه‌های محلی پلاسیدوس برای این گزارش فعال‌اند؛ تضمین نهایی گزارش پولی هنوز به بررسی نمونه‌های گسترده‌تر نیاز دارد."
+        : chartReportEnrichment.houseContext.appliedSystem === "whole-sign" &&
+            chartReportEnrichment.houseContext.confidence === "calculated-ascendant"
+          ? "این نسخهٔ ذخیره‌شدهٔ قدیمی، خانه‌های روش نشانه کامل را بدون تغییر حفظ می‌کند."
+          : "داده‌های خانه و رایزینگ هنوز در مرحلهٔ سخت‌گیری و بازبینی‌اند و تضمین نهایی گزارش پولی محسوب نمی‌شوند.";
   const warnings = [warning, houseReadinessWarning].filter(
     (item): item is string => Boolean(item),
   );

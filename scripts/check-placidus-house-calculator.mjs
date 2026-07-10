@@ -315,12 +315,19 @@ if (calculator) {
   }
 }
 
-if (!realEngineSource.includes('system: "whole-sign"')) {
-  failures.push("The active runtime must remain Whole Sign in v0.1.284b.");
+for (const marker of [
+  "calculatePlacidusHouseCuspsFromUtc",
+  'system: "placidus"',
+  'cuspSource: "local-placidus-calculator"',
+  "unavailableReason: houseCalculation.reason",
+]) {
+  if (!realEngineSource.includes(marker)) {
+    failures.push("v0.1.284c runtime migration missing marker: " + marker);
+  }
 }
 
-if (realEngineSource.includes('system: "placidus"')) {
-  failures.push("v0.1.284b must not activate Placidus in the runtime engine.");
+if (realEngineSource.includes('system: "whole-sign"')) {
+  failures.push("Fresh runtime charts must not silently fall back to Whole Sign after v0.1.284c.");
 }
 
 if (
@@ -384,4 +391,4 @@ console.log("- four external numeric reference cases match");
 console.log("- 42 deterministic non-polar stress cases converge");
 console.log("- northern, southern, equatorial, and near-polar cases are covered");
 console.log("- polar-circle inputs return unavailable with no silent fallback");
-console.log("- active runtime remains Whole Sign");
+console.log("- active runtime requests local Placidus with explicit unavailable handling");

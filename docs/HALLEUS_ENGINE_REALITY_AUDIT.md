@@ -749,3 +749,13 @@ Current verified runtime reality at baseline 146083e:
 - Four external numeric fixtures cover Hamadan, Quito, Sydney, and Reykjavik. Two additional fixtures prove explicit polar-circle unavailability in both hemispheres.
 - The candidate does not silently fall back to another house system and does not add Swiss Ephemeris or another house-calculation dependency.
 - Runtime reality is unchanged: `real-chart-engine.ts` still requests Whole Sign and no user-facing report consumes the calculator yet.
+
+## v0.1.284c Placidus runtime reality
+
+- `real-chart-engine.ts` now calls the local Placidus semi-arc calculator for fresh natal charts and passes its twelve unequal cusps into the normalized chart.
+- Calculated cusps are marked `calculated-cusps`; report house assignment uses cusp-to-cusp spans rather than fixed 30-degree windows.
+- Fresh report snapshots are version `real-engine-preview-v2` and identify Placidus as the requested house system.
+- Legacy `real-engine-preview-v1` Whole Sign snapshots remain valid and are displayed as stored; no historical report is recalculated implicitly.
+- Polar-circle and non-convergence results expose `availability: unavailable`, keep report houses empty, and set placement/angle/Node/Lilith house fields to `null`.
+- The chart wheel, report card, detail page, and narrative writer explain the unavailable state and do not show fake house spokes or tables.
+- No Swiss Ephemeris runtime dependency or silent fallback was added.

@@ -388,6 +388,8 @@ export function ReportCard({ report }: ReportCardProps) {
               aspects={shownAspects}
               retrogradePlanetIds={Array.from(retrogradePlanetIds)}
               houseSystem={report.realEngine.houseSystem}
+              houseAvailability={report.realEngine.houseContext?.availability}
+              houseUnavailableReason={report.realEngine.houseContext?.unavailableReason}
             />
           </div>
 
@@ -408,7 +410,12 @@ export function ReportCard({ report }: ReportCardProps) {
               <div className="mini-card">
                 <strong>رایزینگ</strong>
                 <span>{formatRisingFromLongitude(report.realEngine.ascendantLongitude)}</span>
-                <span>روش خانه‌ها: {formatHouseSystemLabel(report.realEngine.houseSystem)}</span>
+                <span>
+                  روش خانه‌ها: {formatHouseSystemLabel(
+                    report.realEngine.houseSystem,
+                    report.realEngine.houseContext?.availability,
+                  )}
+                </span>
               </div>
 
               {accuracySummary ? (
@@ -494,6 +501,15 @@ export function ReportCard({ report }: ReportCardProps) {
                   ))}
                 </div>
               </>
+            ) : null}
+
+            {report.realEngine.houseContext?.availability === "unavailable" ? (
+              <div className="notice report-notice">
+                <strong>خانه‌های پلاسیدوس برای این چارت نمایش داده نمی‌شوند.</strong>
+                <p>
+                  هالیوس هیچ روش خانه جایگزینی را پنهانی اعمال نکرده است؛ جایگاه‌های نشانه‌ای، محورها و روابط سیاره‌ای همچنان محاسبه‌شده باقی می‌مانند.
+                </p>
+              </div>
             ) : null}
 
             {planetHouseRows.length > 0 ? (
@@ -980,13 +996,18 @@ function formatAngleSourceLabel(angle: RealEngineReportAngle) {
   return angle.limitation ?? null;
 }
 
-function formatHouseSystemLabel(system: string | undefined) {
+function formatHouseSystemLabel(
+  system: string | undefined,
+  availability?: "ready" | "unavailable",
+) {
   if (system === "whole-sign") {
-    return "روش نشانه کامل";
+    return "روش نشانه کامل — نسخهٔ ذخیره‌شدهٔ قدیمی";
   }
 
   if (system === "placidus") {
-    return "پلاسیدوس";
+    return availability === "unavailable"
+      ? "پلاسیدوس — خانه‌ها در دسترس نیستند"
+      : "پلاسیدوس";
   }
 
   if (system === "equal-house") {

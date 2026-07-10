@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { ZodiacKey } from "@/types/astro";
+import type {
+  RealEngineReportAngles,
+  RealEngineReportHouse,
+  ZodiacKey,
+} from "@/types/astro";
 import { formatZodiacLabel, ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
 import { ChartReportBridgePanel } from "./ChartReportBridgePanel";
 import { RealChartAspectPanel } from "./RealChartAspectPanel";
@@ -35,6 +39,15 @@ type RealChartWorkbenchResponse = {
     ascendantLongitude: number;
     calculationNotes: string[];
     placements: RealChartPlacement[];
+    houses: RealEngineReportHouse[];
+    angles: RealEngineReportAngles;
+    normalizedChart: {
+      houseContext: {
+        requestedSystem: string;
+        availability: "ready" | "unavailable";
+        unavailableReason: "polar-circle" | "non-convergence" | null;
+      };
+    };
   };
   copyBlocks?: Array<{
     id: string;
@@ -201,6 +214,11 @@ export function RealChartWorkbenchClient() {
             <RealChartWheel
               placements={result.realChart.placements}
               ascendantLongitude={result.realChart.ascendantLongitude}
+              houses={result.realChart.houses}
+              angles={result.realChart.angles}
+              houseSystem={result.realChart.normalizedChart.houseContext.requestedSystem}
+              houseAvailability={result.realChart.normalizedChart.houseContext.availability}
+              houseUnavailableReason={result.realChart.normalizedChart.houseContext.unavailableReason}
             />
 
             <section className="rounded-[2rem] border border-[#E7D8C7] bg-white p-5 shadow-sm">

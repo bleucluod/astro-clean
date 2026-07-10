@@ -1805,3 +1805,11 @@ Product direction changed before report-completion Batch 2:
 - The polar policy is explicit: at or beyond `90° - obliquity`, Placidus returns `unavailable: polar-circle`. Halleus must not silently substitute Porphyry, Whole Sign, Equal House, or another system.
 - The active chart/report runtime remains Whole Sign in v0.1.284b. Fresh-report migration, snapshot versioning, saved-report compatibility, and user-facing unavailable-state handling remain v0.1.284c work.
 - Swiss Ephemeris remains validation-only and is not added as a runtime dependency. Report-completion Batches 2-5 remain paused until v0.1.284c completes the canonical migration.
+
+## v0.1.284c Placidus runtime migration
+
+- Fresh Halleus charts and reports use the validated local Placidus calculator as the canonical house source.
+- Newly generated report snapshots use `real-engine-preview-v2`; `real-engine-preview-v1` remains readable so saved Whole Sign reports are not silently reinterpreted.
+- When Placidus is unavailable at the polar limit or the solver does not converge, Halleus keeps signs, planets, aspects, and angles but omits all house assignments and displays an explicit no-fallback message.
+- No Porphyry, Whole Sign, Equal House, or placeholder house numbers may leak into a fresh unavailable Placidus report.
+- This migration completes the prerequisite for resuming report-completion Batch 2; it does not change aspect scoring, Nodes/Lilith math, transits, auth, payment, SEO, or public/private consent.

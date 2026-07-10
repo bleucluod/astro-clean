@@ -244,6 +244,27 @@ function formatPersianNumber(value: number) {
   return PERSIAN_NUMBER_FORMATTER.format(value);
 }
 
+function formatReportHouseSystemLabel(
+  system: string | undefined,
+  availability: "ready" | "unavailable" | undefined,
+): string {
+  if (system === "placidus") {
+    return availability === "unavailable"
+      ? "پلاسیدوس — خانه‌ها در دسترس نیستند"
+      : "پلاسیدوس";
+  }
+
+  if (system === "whole-sign") {
+    return "روش نشانه کامل — نسخهٔ ذخیره‌شدهٔ قدیمی";
+  }
+
+  if (system === "equal-house") {
+    return "روش خانه برابر";
+  }
+
+  return "در حال تکمیل";
+}
+
 function formatDegree(value: number | null | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "—";
@@ -883,6 +904,8 @@ export function ReportDetail({
                 aspects={aspects.slice(0, 8)}
                 retrogradePlanetIds={retrogradePlanetIds}
                 houseSystem={report.realEngine.houseSystem}
+                houseAvailability={report.realEngine.houseContext?.availability}
+                houseUnavailableReason={report.realEngine.houseContext?.unavailableReason}
               />
             </div>
           ) : (
@@ -1073,6 +1096,8 @@ export function ReportDetail({
                   aspects={aspects.slice(0, 8)}
                   retrogradePlanetIds={retrogradePlanetIds}
                   houseSystem={report.realEngine.houseSystem}
+                  houseAvailability={report.realEngine.houseContext?.availability}
+                  houseUnavailableReason={report.realEngine.houseContext?.unavailableReason}
                 />
               </div>
             </article>
@@ -1082,7 +1107,7 @@ export function ReportDetail({
               <div className="report-detail-key-value-list report-detail-key-value-list-compact">
                 <div className="report-detail-key-value"><span>شهر محاسبه</span><strong>{report.realEngine.cityLabel}</strong></div>
                 <div className="report-detail-key-value"><span>زمان مرجع</span><strong>{report.realEngine.utcIso}</strong></div>
-                <div className="report-detail-key-value"><span>روش خانه‌ها</span><strong>{report.realEngine.houseSystem ?? "در حال تکمیل"}</strong></div>
+                <div className="report-detail-key-value"><span>روش خانه‌ها</span><strong>{formatReportHouseSystemLabel(report.realEngine.houseSystem, report.realEngine.houseContext?.availability)}</strong></div>
                 <div className="report-detail-key-value"><span>جایگاه‌ها</span><strong>{formatPersianNumber(placements.length)}</strong></div>
                 <div className="report-detail-key-value"><span>خانه‌ها</span><strong>{formatPersianNumber(houses.length)}</strong></div>
                 <div className="report-detail-key-value"><span>روابط سیاره‌ای</span><strong>{formatPersianNumber(aspects.length)}</strong></div>
@@ -1104,15 +1129,32 @@ export function ReportDetail({
 
             <article className="report-detail-technical-card">
               <h3>۱۲ خانه</h3>
-              <div className="report-detail-card-list report-detail-card-list-2">
-                {houses.map((house: RealEngineReportHouse) => (
-                  <div className="report-detail-data-row" key={house.number}>
-                    <strong>خانه {formatPersianNumber(house.number)}</strong>
-                    <span>{formatZodiacLabel(house.signId)}، درجه {formatDegree(house.degreeInSign)}</span>
-                    <span>{HOUSE_FIELD_LABELS[house.number] ?? "معنای این خانه در حال تکمیل است"}</span>
-                  </div>
-                ))}
-              </div>
+              {houses.length === 12 ? (
+                <div className="report-detail-card-list report-detail-card-list-2">
+                  {houses.map((house: RealEngineReportHouse) => (
+                    <div className="report-detail-data-row" key={house.number}>
+                      <strong>خانه {formatPersianNumber(house.number)}</strong>
+                      <span>{formatZodiacLabel(house.signId)}، درجه {formatDegree(house.degreeInSign)}</span>
+                      <span>{HOUSE_FIELD_LABELS[house.number] ?? "معنای این خانه در حال تکمیل است"}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : report.realEngine.houseSystem === "placidus" &&
+                report.realEngine.houseContext?.availability === "unavailable" ? (
+                <div className="notice report-notice">
+                  <strong>خانه‌های پلاسیدوس برای این چارت در دسترس نیستند.</strong>
+                  <p>
+                    هیچ روش خانه جایگزینی اعمال نشده است؛ بنابراین این جدول عمداً خالی مانده و داده جعلی نمایش داده نمی‌شود.
+                  </p>
+                </div>
+              ) : (
+                <div className="notice report-notice">
+                  <strong>جدول خانه‌ها در این گزارش کامل ذخیره نشده است.</strong>
+                  <p>
+                    برای جلوگیری از نمایش داده ناقص، فقط اطلاعاتی نشان داده می‌شود که واقعاً در نسخهٔ ذخیره‌شده وجود دارد.
+                  </p>
+                </div>
+              )}
             </article>
 
             <article className="report-detail-technical-card">

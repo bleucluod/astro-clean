@@ -24,6 +24,8 @@ type RealChartWheelProps = {
   aspects?: RealEngineReportAspect[];
   retrogradePlanetIds?: string[];
   houseSystem?: string;
+  houseAvailability?: "ready" | "unavailable";
+  houseUnavailableReason?: "polar-circle" | "non-convergence" | null;
 };
 
 type WheelAngle = {
@@ -93,12 +95,21 @@ export function RealChartWheel({
   aspects,
   retrogradePlanetIds,
   houseSystem,
+  houseAvailability,
+  houseUnavailableReason,
 }: RealChartWheelProps) {
   const wheelHouses = buildWheelHouses(houses);
   const wheelAngles = buildWheelAngles(angles, ascendantLongitude);
   const aspectLines = buildAspectLines(placements, aspects ?? []).slice(0, 5);
   const retrogradeSet = new Set(retrogradePlanetIds ?? []);
   const houseSystemLabel = formatHouseSystemLabel(houseSystem);
+  const housesAreReady = wheelHouses.length === 12 && houseAvailability !== "unavailable";
+  const houseGuideText = buildHouseGuideText({
+    housesAreReady,
+    houseSystemLabel,
+    houseSystem,
+    houseUnavailableReason,
+  });
 
   return (
     <section className="report-real-chart-wheel-structure rounded-[2rem] border border-[#BCCCDC] bg-[#F8FAFC] p-5 shadow-sm">
@@ -112,7 +123,9 @@ export function RealChartWheel({
           </h2>
         </div>
         <p className="text-sm leading-7 text-[#64748B]">
-          نمای فشرده‌ای از جایگاه‌ها، خانه‌ها، محورهای اصلی و چند رابطه برجسته.
+          {housesAreReady
+            ? "نمای فشرده‌ای از جایگاه‌ها، خانه‌ها، محورهای اصلی و چند رابطه برجسته."
+            : "نمای فشرده‌ای از جایگاه‌ها، محورهای اصلی و چند رابطه برجسته؛ خطوط خانه فقط وقتی داده معتبر داشته باشند نمایش داده می‌شوند."}
         </p>
       </div>
 
@@ -307,7 +320,7 @@ export function RealChartWheel({
 
       <p className="mt-4 rounded-2xl bg-white p-3 text-xs leading-6 text-[#64748B]">
         <span className="font-bold text-[#243447]">راهنما:</span>{" "}
-        خانه‌ها با {houseSystemLabel} نمایش داده شده‌اند؛ علامت ↺ کنار سیاره یعنی حرکت برگشتی.
+        {houseGuideText} علامت ↺ کنار سیاره یعنی حرکت برگشتی.
         جزئیات فنی کامل در پنل پشتوانه محاسبه آمده است.
       </p>
     </section>
@@ -413,10 +426,36 @@ function normalizeLongitude(longitude: number): number {
 
 function formatHouseSystemLabel(system: string | undefined): string {
   if (!system) {
-    return "روش نشانه کامل";
+    return "در حال تکمیل";
   }
 
   return HOUSE_SYSTEM_LABELS[system] ?? system;
+}
+
+function buildHouseGuideText({
+  housesAreReady,
+  houseSystemLabel,
+  houseSystem,
+  houseUnavailableReason,
+}: {
+  housesAreReady: boolean;
+  houseSystemLabel: string;
+  houseSystem: string | undefined;
+  houseUnavailableReason: "polar-circle" | "non-convergence" | null | undefined;
+}): string {
+  if (housesAreReady) {
+    return `خانه‌ها با ${houseSystemLabel} نمایش داده شده‌اند؛`;
+  }
+
+  if (houseSystem === "placidus" && houseUnavailableReason === "polar-circle") {
+    return "در این عرض جغرافیایی، خانه‌های پلاسیدوس نمایش داده نمی‌شوند و هیچ روش جایگزینی پنهانی اعمال نشده است؛";
+  }
+
+  if (houseSystem === "placidus" && houseUnavailableReason === "non-convergence") {
+    return "حل‌گر پلاسیدوس برای این چارت همگرا نشد؛ خانه‌ها نمایش داده نمی‌شوند و هیچ روش جایگزینی پنهانی اعمال نشده است؛";
+  }
+
+  return "خانه‌ها فقط زمانی نمایش داده می‌شوند که ۱۲ سرخانه معتبر در گزارش ذخیره شده باشد؛";
 }
 
 function polarPoint(longitude: number, radius: number): { x: number; y: number } {

@@ -5,7 +5,7 @@ import {
   type NormalizedChartPlacement,
 } from "../chart/normalized-chart";
 
-export const CHART_REPORT_ENRICHMENT_VERSION = "0.1.138b" as const;
+export const CHART_REPORT_ENRICHMENT_VERSION = "0.1.284c" as const;
 
 export type ChartReportEnrichmentStatus = "ready" | "partial" | "blocked";
 
@@ -38,10 +38,15 @@ export type ChartReportEnrichmentSection = {
 export type ChartReportHouseContextSummary = {
   requestedSystem: NormalizedChart["houseContext"]["requestedSystem"];
   appliedSystem: NormalizedChart["houseContext"]["appliedSystem"];
+  availability: NormalizedChart["houseContext"]["availability"];
+  unavailableReason: NormalizedChart["houseContext"]["unavailableReason"];
+  housesReady: boolean;
   confidence: NormalizedChart["houseContext"]["confidence"];
   ascendantMethod: NormalizedChart["houseContext"]["ascendantMethod"];
   ascendantLongitude: number | null;
   firstHouseCuspLongitude: number;
+  cuspLongitudes: number[] | null;
+  calculationMethod: string | null;
   limitation: string | null;
 };
 
@@ -60,7 +65,9 @@ export type ChartReportEnrichment = {
 export function buildChartReportEnrichment(
   chart: NormalizedChart,
 ): ChartReportEnrichment {
-  const placements = chart.placements.map(toPlacementSummary);
+  const placements = chart.placements.map((placement) =>
+    toPlacementSummary(placement, chart.houseContext.housesReady),
+  );
   const aspects = chart.aspects.map(toAspectSummary);
   const status = getChartReportEnrichmentStatus(chart);
 
@@ -103,20 +110,26 @@ export function toHouseContextSummary(
   return {
     requestedSystem: houseContext.requestedSystem,
     appliedSystem: houseContext.appliedSystem,
+    availability: houseContext.availability,
+    unavailableReason: houseContext.unavailableReason,
+    housesReady: houseContext.housesReady,
     confidence: houseContext.confidence,
     ascendantMethod: houseContext.ascendantMethod,
     ascendantLongitude: houseContext.ascendantLongitude,
     firstHouseCuspLongitude: houseContext.firstHouseCuspLongitude,
+    cuspLongitudes: houseContext.cuspLongitudes,
+    calculationMethod: houseContext.calculationMethod,
     limitation: houseContext.limitation,
   };
 }
 
 export function toPlacementSummary(
   placement: NormalizedChartPlacement,
+  housesReady = true,
 ): ChartReportPlacementSummary {
   const signId = readZodiacSignId(placement);
   const degreeWithinSign = readDegreeWithinSign(placement);
-  const houseNumber = readHouseNumber(placement);
+  const houseNumber = housesReady ? readHouseNumber(placement) : null;
 
   return {
     id: placement.id,

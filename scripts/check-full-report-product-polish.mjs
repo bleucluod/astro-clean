@@ -9,9 +9,9 @@ const failures = [];
 
 const requiredMarkers = [
   ["components/ReportCard.tsx", reportCard, "report-polish-advanced-panel"],
-  ["components/ReportCard.tsx", reportCard, "پشتوانه محاسبه و داده‌های دقیق"],
+  ["components/ReportCard.tsx", reportCard, "جزئیات فنی چارت"],
   ["components/ReportCard.tsx", reportCard, "اگر فقط می‌خواهی گزارش را مثل یک روایت بخوانی"],
-  ["lib/astrology/real-engine-report-writer.ts", writer, "خانه‌های این گزارش با روش نشانه کامل ساخته شده‌اند"],
+  ["lib/astrology/real-engine-report-writer.ts", writer, "خانه‌های این گزارش با روش پلاسیدوس و سرخانه‌های نامساوی محاسبه شده‌اند"],
   ["lib/astrology/real-engine-report-writer.ts", writer, "جدول کامل در پشتوانه محاسبه آمده"],
   ["lib/astrology/real-engine-report-writer.ts", writer, "متن خوانش فقط نقاط پررنگ‌تر را برجسته می‌کند"],
   ["scripts/check-report-sample-qa.mjs", sampleQa, "v0.1.162-product-polish"],
