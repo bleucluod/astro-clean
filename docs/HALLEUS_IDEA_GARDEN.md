@@ -1740,3 +1740,8 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Accepted: when full app-shell rewrites are too risky, the live report page may receive CSS-only cleanup for concrete visual blockers.
 - Scope: hide noisy section chips, stop sticky/frozen card behavior, and reduce birth-card noise without changing real report data or the live component path.
 - Guardrail: this must not become another app-shell rewrite and must not touch engine, transit, SEO, auth, payment, or public/private behavior.
+
+## Current Residence Personal Transit Bridge
+- Accepted: the report form should collect current residence separately from birth city so personal transit data can be stored inside generated reports.
+- Scope: current residence city, timezone, and coordinates feed engineData.personalTransitReportData through the existing natal-to-transit probe/bridge.
+- Guardrail: no silent Tehran fallback, no birth-city fallback, no browser geolocation, no localStorage/window.location inference, and no change to public/private consent behavior.

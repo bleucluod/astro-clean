@@ -48,6 +48,11 @@ import {
   buildChartReportEnrichment,
   type ChartReportEnrichment,
 } from "../../src/lib/report-output/chart-enrichment";
+import {
+  calculateNatalToTransitProbe,
+  type NatalToTransitCurrentResidenceInput,
+} from "../../src/lib/chart/natal-to-transit-calculation-probe";
+import { buildPersonalTransitReportDataBridge } from "../../src/lib/report-output/personal-transit-report-data-bridge";
 import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart-report-copy";
 
 export const REPORT_GENERATION_SERVICE_VERSION = "0.1.166" as const;
@@ -519,6 +524,10 @@ function buildRealChartContract({
     generatedAt,
     chartReportEnrichment,
   );
+  const personalTransitReportData = buildPersonalTransitReportData(
+    request.input,
+    generatedAt,
+  );
   const report = enrichReportWithRealEngineCopy(
     {
       ...baseReport,
@@ -557,6 +566,7 @@ function buildRealChartContract({
       copyBlocks,
       limitations,
       warnings,
+      personalTransitReportData,
     },
     interpretationSections: report.interpretationSections,
     outputQuality: report.outputQuality,
@@ -613,6 +623,50 @@ function buildFallbackContract({
         "Halleus kept a safe preview report instead of blocking the report flow.",
     },
   };
+}
+
+function buildPersonalTransitReportData(
+  input: BirthInput,
+  generatedAt: string,
+) {
+  const probeResult = calculateNatalToTransitProbe({
+    birthInput: buildRealChartBirthInput(input),
+    currentResidence: buildCurrentResidenceInput(input),
+    currentLocalDate: getCurrentTransitLocalDate(generatedAt),
+  });
+
+  return buildPersonalTransitReportDataBridge(probeResult);
+}
+
+function buildCurrentResidenceInput(
+  input: BirthInput,
+): NatalToTransitCurrentResidenceInput | null {
+  if (
+    !hasText(input.currentResidenceCity) ||
+    !hasText(input.currentResidenceTimezone) ||
+    typeof input.currentResidenceLatitude !== "number" ||
+    !Number.isFinite(input.currentResidenceLatitude) ||
+    typeof input.currentResidenceLongitude !== "number" ||
+    !Number.isFinite(input.currentResidenceLongitude)
+  ) {
+    return null;
+  }
+
+  return {
+    placeName: input.currentResidenceCity,
+    countryCode: "IR",
+    timezone: input.currentResidenceTimezone,
+    latitude: input.currentResidenceLatitude,
+    longitude: input.currentResidenceLongitude,
+  };
+}
+
+function getCurrentTransitLocalDate(generatedAt: string): string {
+  const isoDate = generatedAt.slice(0, 10);
+
+  return /^\d{4}-\d{2}-\d{2}$/.test(isoDate)
+    ? isoDate
+    : new Date().toISOString().slice(0, 10);
 }
 
 function buildBaseReport(input: BirthInput): SectionedAstrologyReport {

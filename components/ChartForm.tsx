@@ -107,6 +107,9 @@ type ReportWithGenerationContext = AstrologyReport & {
   normalizedChart?: unknown;
   copyBlocks?: unknown[];
   reportGenerationStatus?: string;
+  engineData?: {
+    personalTransitReportData?: GeneratedReportContract["engineData"]["personalTransitReportData"] | null;
+  };
   engineMetadata?: Record<string, unknown>;
 };
 
@@ -119,6 +122,17 @@ const initialRealEngineRequest: RealEngineRequestState = {
   status: "idle",
   message: "فرم آماده است.",
 };
+
+function makeFaLabel(codes: number[]) {
+  return String.fromCharCode(...codes);
+}
+
+const CURRENT_RESIDENCE_LABEL = makeFaLabel([1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
+const CURRENT_RESIDENCE_PLACEHOLDER = makeFaLabel([1606,1575,1605,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,1740,1583]);
+const CURRENT_RESIDENCE_SUGGESTIONS_LABEL = makeFaLabel([1662,1740,1588,1606,1607,1575,1583,1607,1575,1740,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
+const CURRENT_RESIDENCE_HINT = makeFaLabel([1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,32,1608,32,1575,1586,32,1662,1740,1588,1606,1607,1575,1583,1607,1575,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
+const CURRENT_RESIDENCE_NOT_FOUND_MESSAGE = makeFaLabel([1601,1593,1604,1575,1611,32,1575,1740,1606,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1583,1585,32,1601,1607,1585,1587,1578,32,1575,1740,1585,1575,1606,32,1662,1740,1583,1575,32,1606,1588,1583,46]);
+const CURRENT_RESIDENCE_REQUIRED_MESSAGE = makeFaLabel([1576,1585,1575,1740,32,1570,1587,1605,1575,1606,32,1575,1605,1585,1608,1586,1548,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1607,1605,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
 
 function getSelectedJalaliDateInput(parts: JalaliBirthDateParts) {
   if (!parts.year || !parts.month || !parts.day) {
@@ -175,6 +189,8 @@ export function ChartForm() {
   const [realEngineRequest, setRealEngineRequest] =
     useState<RealEngineRequestState>(initialRealEngineRequest);
 
+  const [currentResidenceCity, setCurrentResidenceCity] = useState("");
+
   const isRealEngineLoading = realEngineRequest.status === "loading";
 
   const citySuggestions = useMemo(() => {
@@ -191,6 +207,25 @@ export function ChartForm() {
       return cityName.includes(query) || cityDisplayName.includes(query);
     }).slice(0, MAX_CITY_SUGGESTIONS);
   }, [form.birthCity]);
+
+  const currentResidenceSuggestions = useMemo(() => {
+    const query = normalizeCitySearch(currentResidenceCity);
+
+    if (!query) {
+      return [];
+    }
+
+    return IRAN_CITY_OPTIONS.filter((city) => {
+      const cityName = normalizeCitySearch(city.faName);
+      const cityDisplayName = normalizeCitySearch(getIranCityDisplayName(city));
+
+      return cityName.includes(query) || cityDisplayName.includes(query);
+    }).slice(0, MAX_CITY_SUGGESTIONS);
+  }, [currentResidenceCity]);
+
+  function updateCurrentResidenceCity(value: string) {
+    setCurrentResidenceCity(value);
+  }
 
   function updateField(field: keyof BirthInput, value: string) {
     setForm((current) => ({
@@ -270,6 +305,20 @@ export function ChartForm() {
       throw new Error("فعلاً این شهر در فهرست ایران پیدا نشد. نزدیک‌ترین شهر پیشنهادی را انتخاب کن.");
     }
 
+    const normalizedCurrentResidenceCityName = currentResidenceCity.trim();
+
+    if (!normalizedCurrentResidenceCityName) {
+      throw new Error(CURRENT_RESIDENCE_REQUIRED_MESSAGE);
+    }
+
+    const selectedCurrentResidenceCity = findIranCityByName(
+      normalizedCurrentResidenceCityName,
+    );
+
+    if (!selectedCurrentResidenceCity) {
+      throw new Error(CURRENT_RESIDENCE_NOT_FOUND_MESSAGE);
+    }
+
     const normalizedBirthTime =
       birthTimeMode === "unknown" ? UNKNOWN_BIRTH_TIME : form.birthTime.trim();
 
@@ -288,6 +337,12 @@ export function ChartForm() {
       birthLatitude: selectedCity.latitude,
       birthLongitude: selectedCity.longitude,
       birthTimezone: selectedCity.timezone,
+      currentResidenceCity: selectedCurrentResidenceCity.faName,
+      currentResidenceCountry: initialForm.birthCountry,
+      currentResidenceCityId: selectedCurrentResidenceCity.id,
+      currentResidenceLatitude: selectedCurrentResidenceCity.latitude,
+      currentResidenceLongitude: selectedCurrentResidenceCity.longitude,
+      currentResidenceTimezone: selectedCurrentResidenceCity.timezone,
     };
 
     return {
@@ -319,6 +374,12 @@ export function ChartForm() {
           placeName: getIranCityDisplayName(engineCity),
           latitude: engineCity.latitude,
           longitude: engineCity.longitude,
+          currentResidencePlaceName: normalizedForm.currentResidenceCity,
+          currentResidenceCountry: normalizedForm.currentResidenceCountry,
+          currentResidenceCityId: normalizedForm.currentResidenceCityId,
+          currentResidenceLatitude: normalizedForm.currentResidenceLatitude,
+          currentResidenceLongitude: normalizedForm.currentResidenceLongitude,
+          currentResidenceTimezone: normalizedForm.currentResidenceTimezone,
         }),
       });
 
@@ -685,6 +746,38 @@ export function ChartForm() {
               </div>
             </div>
 
+            <label className="form-field">
+              <span>{CURRENT_RESIDENCE_LABEL}</span>
+              <input
+                value={currentResidenceCity}
+                onChange={(event) => updateCurrentResidenceCity(event.target.value)}
+                placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
+                aria-describedby="current-residence-city-hint"
+              />
+              <small id="current-residence-city-hint">
+                {CURRENT_RESIDENCE_HINT}
+              </small>
+            </label>
+
+            <div
+              className={
+                currentResidenceSuggestions.length > 0
+                  ? "city-suggestion-chips has-suggestions"
+                  : "city-suggestion-chips"
+              }
+              aria-label={CURRENT_RESIDENCE_SUGGESTIONS_LABEL}
+            >
+              {currentResidenceSuggestions.map((city) => (
+                <button
+                  key={city.id}
+                  type="button"
+                  onClick={() => updateCurrentResidenceCity(city.faName)}
+                >
+                  {getIranCityDisplayName(city)}
+                </button>
+              ))}
+            </div>
+
             <div className="chart-form-actions">
               <button className="button chart-submit-button" type="submit" disabled={isRealEngineLoading}>
                 <span aria-hidden="true">✦</span>
@@ -761,6 +854,9 @@ function attachReportGenerationContext(
     normalizedChart,
     copyBlocks,
     reportGenerationStatus: generation.status,
+    engineData: {
+      personalTransitReportData: engineData.personalTransitReportData ?? null,
+    },
     engineMetadata: {
       source: engineData.source,
       status: generation.status,

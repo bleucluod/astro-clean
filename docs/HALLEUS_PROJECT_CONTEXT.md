@@ -1894,3 +1894,11 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - This batch does not rewrite ReportDetail.tsx and does not inject Persian/Unicode JSX.
 - Fixes: hides the noisy horizontal section chip toolbar, prevents the three-pillars card from sticky/frozen behavior, and hides the fourth birth-card row that corresponds to the hour-status noise in the current birth-data order.
 - No engine, transit, SEO, auth, payment, public/private consent, ReportCard, or ReportV3Experience behavior is changed.
+
+## v0.1.274 current residence personal transit bridge
+- Scope: wires current residence into the live report generation path so ReportDetail can receive engineData.personalTransitReportData instead of showing the missing-state for new reports.
+- ChartForm now collects a current residence city separately from birth city and passes its coordinates/timezone to the real-chart API.
+- The real-chart route maps currentResidence fields into BirthInput.
+- report-generation-service uses the existing natal-to-transit probe and personal-transit report-data bridge to store engineData.personalTransitReportData.
+- Workflow note: earlier v0.1.274 attempts failed on guessed ChartForm anchors and were rolled back. This apply was based on a read-only preflight with exact live ChartForm, route, service, and type anchors.
+- No browser geolocation, localStorage residence inference, window.location residence inference, silent Tehran default, birth-city fallback, engine math changes, SEO/indexing changes, auth/payment changes, ReportDetail redesign, or Sky Pulse behavior changes are included.

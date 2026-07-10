@@ -27,6 +27,9 @@ type RouteReportResponse = NonNullable<GeneratedReportContract["report"]> & {
   subjectName: string | null;
   calculationSource: ReportCalculationSource;
   outputQuality?: ReportOutputQualityLike;
+  engineData?: {
+    personalTransitReportData?: GeneratedReportContract["engineData"]["personalTransitReportData"] | null;
+  };
 };
 
 type RouteReportGenerationResponse = GeneratedReportContract & {
@@ -111,6 +114,20 @@ function buildBirthInputFromRequest(body: RealChartRouteBody): BirthInput {
       readNumber(body.longitude) ?? readNumber(body.birthLongitude),
     birthTimezone:
       readString(body.timezone) ?? readString(body.birthTimezone) ?? undefined,
+    currentResidenceCity:
+      readString(body.currentResidencePlaceName) ??
+      readString(body.currentResidenceCity) ??
+      undefined,
+    currentResidenceCountry:
+      readString(body.currentResidenceCountry) ?? undefined,
+    currentResidenceCityId:
+      readString(body.currentResidenceCityId) ?? undefined,
+    currentResidenceLatitude:
+      readNumber(body.currentResidenceLatitude) ?? undefined,
+    currentResidenceLongitude:
+      readNumber(body.currentResidenceLongitude) ?? undefined,
+    currentResidenceTimezone:
+      readString(body.currentResidenceTimezone) ?? undefined,
   };
 }
 
@@ -148,6 +165,10 @@ function buildRouteReportResponse(
     title,
     subjectName: readString(contract.input.name),
     calculationSource: contract.engineData.source,
+    engineData: {
+      personalTransitReportData:
+        contract.engineData.personalTransitReportData ?? null,
+    },
     outputQuality: buildRouteOutputQuality(contract),
   };
 }
