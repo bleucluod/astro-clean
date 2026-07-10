@@ -1797,3 +1797,11 @@ Product direction changed before report-completion Batch 2:
 - v0.1.284a adds only unequal-cusp storage and placement assignment from supplied validation cusps. It does not switch the production runtime.
 - Do not add a Swiss Ephemeris runtime dependency without an explicit licensing and deployment decision.
 - Report-completion Batches 2-5 remain paused until the Placidus engine source is validated and the runtime migration is complete.
+
+## v0.1.284b local Placidus calculator candidate
+
+- The local calculator candidate implements the Placidian semi-arc definition with a numerical root solver; it is not a port or runtime wrapper of Swiss Ephemeris.
+- Validation covers northern mid-latitude, southern mid-latitude, near-equator, and high-latitude-below-limit charts against external numeric reference outputs.
+- The polar policy is explicit: at or beyond `90° - obliquity`, Placidus returns `unavailable: polar-circle`. Halleus must not silently substitute Porphyry, Whole Sign, Equal House, or another system.
+- The active chart/report runtime remains Whole Sign in v0.1.284b. Fresh-report migration, snapshot versioning, saved-report compatibility, and user-facing unavailable-state handling remain v0.1.284c work.
+- Swiss Ephemeris remains validation-only and is not added as a runtime dependency. Report-completion Batches 2-5 remain paused until v0.1.284c completes the canonical migration.

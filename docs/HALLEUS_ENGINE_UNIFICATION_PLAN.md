@@ -814,3 +814,15 @@ The earlier Whole Sign default is superseded for future newly generated reports,
 4. Resume report-completion Batch 2 only after the runtime, snapshot, writer, UI, and QA consume one canonical Placidus result.
 
 No Swiss Ephemeris package may enter runtime until the project explicitly accepts its license and deployment consequences.
+
+## v0.1.284b calculator completion contract
+
+v0.1.284b completes the local calculator-candidate stage without activating it:
+
+1. Use one pure local implementation of the Placidian temporal semi-arc equations and numerical root solving.
+2. Validate UTC-to-GMST, local sidereal time, mean obliquity, Ascendant, Midheaven, and all twelve cusps against multiple external numeric fixtures.
+3. Treat `abs(latitude) >= 90 - obliquity` as explicitly unavailable and never silently replace Placidus with another house system.
+4. Keep the active workbench/runtime on Whole Sign until v0.1.284c synchronizes calculation, snapshot schema/versioning, saved-report compatibility, report writer, chart wheel, tables, and unavailable-state UX.
+5. Keep Swiss Ephemeris outside runtime unless licensing and deployment are explicitly approved.
+
+The next batch is v0.1.284c. It must consume this candidate through one canonical runtime adapter, preserve legacy Whole Sign snapshots, and prove end-to-end report/UI consistency before report-completion Batch 2 resumes.

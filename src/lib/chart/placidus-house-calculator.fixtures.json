@@ -1,0 +1,128 @@
+{
+  "version": "0.1.284b",
+  "status": "calculator-validation-only",
+  "method": "local-placidus-semi-arc-root-solver",
+  "note": "Numeric references validate the local calculator only. They do not activate Placidus in the runtime.",
+  "referenceSource": "Expected cusp values were generated offline with Swiss Ephemeris 2.10.03 houses_armc using the exact listed local sidereal time and mean obliquity. Swiss Ephemeris is not a Halleus runtime dependency and no Swiss source code is included.",
+  "toleranceDegrees": 1e-06,
+  "references": [
+    {
+      "id": "haleh-hamadan-1999-12-12-1905",
+      "coverage": "existing user Cafe Astrology reference; northern mid-latitude",
+      "utcIso": "1999-12-12T15:35:00.000Z",
+      "latitudeDegrees": 34.87,
+      "longitudeDegrees": 48.53,
+      "expectedLocalSiderealTimeDegrees": 3.174833653243013,
+      "expectedObliquityDegrees": 23.4392980675537,
+      "expectedAscendantLongitude": 108.18539270735188,
+      "expectedMidheavenLongitude": 3.459711925372483,
+      "expectedCuspLongitudes": [
+        108.18539270735188,
+        129.4079233076972,
+        153.65718710427325,
+        183.4597119253725,
+        219.02653728393167,
+        255.6836668484279,
+        288.1853927073519,
+        309.4079233076972,
+        333.65718710427325,
+        3.459711925372483,
+        39.02653728393166,
+        75.68366684842788
+      ]
+    },
+    {
+      "id": "quito-equator-2000-01-01-1200",
+      "coverage": "near-equator reference",
+      "utcIso": "2000-01-01T12:00:00.000Z",
+      "latitudeDegrees": -0.1807,
+      "longitudeDegrees": -78.4678,
+      "expectedLocalSiderealTimeDegrees": 201.99281837,
+      "expectedObliquityDegrees": 23.439291,
+      "expectedAscendantLongitude": 290.40047090792586,
+      "expectedMidheavenLongitude": 203.7593467112545,
+      "expectedCuspLongitudes": [
+        290.40047090792586,
+        319.6092004156304,
+        351.2872194206406,
+        23.75934671125449,
+        54.37953634855688,
+        82.69360570141116,
+        110.40047090792586,
+        139.6092004156304,
+        171.2872194206406,
+        203.7593467112545,
+        234.37953634855688,
+        262.6936057014112
+      ]
+    },
+    {
+      "id": "sydney-south-1985-06-15-0430",
+      "coverage": "southern mid-latitude reference",
+      "utcIso": "1985-06-15T04:30:00.000Z",
+      "latitudeDegrees": -33.8688,
+      "longitudeDegrees": 151.2093,
+      "expectedLocalSiderealTimeDegrees": 122.1174546787638,
+      "expectedObliquityDegrees": 23.441182723339704,
+      "expectedAscendantLongitude": 226.1877682042291,
+      "expectedMidheavenLongitude": 119.9383600337232,
+      "expectedCuspLongitudes": [
+        226.1877682042291,
+        254.22261006724557,
+        277.0755465811848,
+        299.9383600337232,
+        327.05549128363805,
+        2.862885357338938,
+        46.1877682042291,
+        74.22261006724555,
+        97.0755465811848,
+        119.9383600337232,
+        147.05549128363805,
+        182.86288535733894
+      ]
+    },
+    {
+      "id": "reykjavik-near-polar-2024-01-01-0000",
+      "coverage": "high latitude below the polar limit",
+      "utcIso": "2024-01-01T00:00:00.000Z",
+      "latitudeDegrees": 64.1466,
+      "longitudeDegrees": -21.9426,
+      "expectedLocalSiderealTimeDegrees": 78.21002992680073,
+      "expectedObliquityDegrees": 23.436170167538577,
+      "expectedAscendantLongitude": 173.22121798783556,
+      "expectedMidheavenLongitude": 79.15861481218663,
+      "expectedCuspLongitudes": [
+        173.22121798783556,
+        192.4083328630724,
+        219.67681672663025,
+        259.1586148121866,
+        301.8811868241477,
+        331.7414798073536,
+        353.2212179878356,
+        12.4083328630724,
+        39.67681672663024,
+        79.15861481218663,
+        121.88118682414766,
+        151.7414798073536
+      ]
+    }
+  ],
+  "polarCases": [
+    {
+      "id": "tromso-polar-unavailable",
+      "utcIso": "2024-01-01T00:00:00.000Z",
+      "latitudeDegrees": 69.6492,
+      "longitudeDegrees": 18.9553,
+      "expectedStatus": "unavailable",
+      "expectedReason": "polar-circle"
+    },
+    {
+      "id": "antarctic-polar-unavailable",
+      "utcIso": "2024-01-01T00:00:00.000Z",
+      "latitudeDegrees": -70.0,
+      "longitudeDegrees": 45.0,
+      "expectedStatus": "unavailable",
+      "expectedReason": "polar-circle"
+    }
+  ]
+}

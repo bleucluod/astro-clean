@@ -740,3 +740,12 @@ Current verified runtime reality at baseline 146083e:
 - v0.1.284a introduces a hidden Placidus cusp contract and validates house assignment against the user-provided Haleh/Cafe Astrology reference.
 - The reference contract is not proof of an independent Placidus calculator and must not change user-facing reports.
 - Swiss Ephemeris remains a validation/reference candidate only; no runtime wrapper is approved in this batch because licensing and deployment must be decided explicitly.
+
+## v0.1.284b Placidus calculator reality
+
+- A local pure TypeScript Placidus cusp candidate now exists in `src/lib/chart/placidus-house-calculator.ts`.
+- It derives Julian day, Greenwich mean sidereal time, local sidereal time, and mean obliquity from a UTC birth instant and longitude, then solves the four intermediate Placidian cusps from semi-diurnal and semi-nocturnal arc equations.
+- The remaining cusps are exact oppositions; calculated results are rejected if the cusp cycle, root residual, or convergence contract fails.
+- Four external numeric fixtures cover Hamadan, Quito, Sydney, and Reykjavik. Two additional fixtures prove explicit polar-circle unavailability in both hemispheres.
+- The candidate does not silently fall back to another house system and does not add Swiss Ephemeris or another house-calculation dependency.
+- Runtime reality is unchanged: `real-chart-engine.ts` still requests Whole Sign and no user-facing report consumes the calculator yet.

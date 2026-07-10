@@ -1992,3 +1992,28 @@ Workflow failure ledger:
 - The r3 runner embedded a textual patch without preserving the final newline, so `git apply --check` rejected it as corrupt before apply. Fix/prevention: verify exact patch bytes and terminal newline, not only patch content.
 - The r4 runner was tested against a Windows `git archive` ZIP whose exported text had CRLF bytes, while the real checkout and HEAD blobs used LF. It therefore passed against the wrong byte baseline and failed preflight locally. Fix/prevention: derive baseline files from Git object blobs (`git cat-file` / exact HEAD hashes), verify those hashes against the live checkout, and prefer full-file writes guarded by old/new hashes over context patches for this recovery batch.
 - The r5 full-file runner applied the intended Placidus contract and passed focused guards, but the production build exposed a stale report snapshot type: `NormalizedHouseConfidence` included `provided-cusps` while `RealEngineReportHouseContext.confidence` did not. Fix/prevention: synchronize `types/astro.ts` with the normalized house-confidence contract and guard that union in `check:placidus-house-contract` before running the full build.
+
+## v0.1.284b local Placidus calculator scope
+
+Baseline before apply:
+
+- HEAD: `f727f8b169dc082557ebb1cfe987569e442bd644`
+- Tag: `v0.1.284a-placidus-house-contract`
+- Branch: `main`
+- Working tree: clean
+
+Scope:
+
+- Add a pure TypeScript local Placidus calculator based on temporal semi-arc equations and numerical root solving.
+- Add four external numeric reference fixtures: Hamadan, Quito, Sydney, and Reykjavik.
+- Add explicit northern and southern polar-circle unavailable fixtures with no silent fallback.
+- Add a focused executable guard that transpiles and runs the actual calculator implementation, checks every cusp, checks root residuals/oppositions, and proves the runtime remains Whole Sign.
+- Add the focused guard to `check:project` and `check:engine`.
+- Do not change `real-chart-engine.ts`, normalized runtime input, report writer/UI, chart wheel, storage/snapshot schema, aspect scoring, nodes, Lilith, transits, auth, SEO, payment, or public/private consent.
+- Do not add a Swiss Ephemeris runtime dependency. External Swiss numeric outputs are fixture references only; the Halleus implementation is local and independent.
+
+Apply/verification rule:
+
+- Build the runner only from exact `f727f8b` Git blob content.
+- Use full-file writes guarded by old Git blob hashes and new SHA-256 hashes; do not use text markers or `git apply`.
+- Run the calculator guard, v0.1.284a guards, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build` before commit/tag/push.
