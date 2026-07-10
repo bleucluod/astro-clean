@@ -1773,3 +1773,11 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Accepted: Homepage should foreground current report value instead of roadmap/future feature promises.
 - Product and Privacy should explain public/search visibility in user language, not indexable/private-first wording.
 - Guardrail: do not implement SEO indexing, public report consent, auth/storage/payment behavior, or report engine changes in this copy cleanup.
+
+## Internal Route Exposure Policy
+- Accepted: internal/dev routes may remain accessible during development, but they must not be treated as primary public product surfaces.
+- Internal/dev route group for now: /admin, /engine/*, /quality/mvp-checkpoint, /roadmap, and the current /wiki implementation because it still behaves like a technical glossary/content placeholder rather than a real public wiki.
+- Public-ish support routes for later cleanup: /quality, /interpretation, and /language.
+- Guardrail: do not spend broad copy-polish batches on internal/dev routes while the report page still needs product-value work.
+- Guardrail: do not implement SEO indexing, public route deletion, route protection, auth gating, sitemap/noindex behavior, or wiki content system in this policy batch.
+- Next active sequence: report page first, then wiki.

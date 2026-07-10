@@ -178,4 +178,7 @@ assertExcludes("components/SkyPulseDateCard.tsx", "\u062a\u0631\u0646\u0632\u06c
 assertExcludes("components/SkyPulseDateCard.tsx", "sky-only", "Sky Pulse homepage still exposes sky-only wording.");
 assertExcludes("components/SkyPulseDateCard.tsx", "timezone", "Sky Pulse homepage still exposes timezone wording.");
 assertExcludes("components/SkyPulseDateCard.tsx", "natal-to-transit", "Sky Pulse homepage still exposes natal-to-transit wording.");
+assertIncludes("docs/HALLEUS_IDEA_GARDEN.md", "Internal Route Exposure Policy", "Internal route exposure policy is missing.");
+assertIncludes("docs/HALLEUS_IDEA_GARDEN.md", "Next active sequence: report page first, then wiki.", "Report-page-before-wiki sequence is missing.");
+assertIncludes("docs/HALLEUS_PROJECT_CONTEXT.md", "v0.1.282 internal route exposure policy", "Project context missing v0.1.282 internal route exposure policy note.");
 console.log("User-facing copy detox guard passed.");

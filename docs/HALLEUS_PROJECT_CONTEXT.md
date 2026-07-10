@@ -1946,3 +1946,10 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Replaced raw technical Sky Pulse labels and rendered notes with calmer user-facing language.
 - Kept Sky Pulse calculation, API response shape, transit source, report engine, auth/storage/payment/schema/SEO, and consent implementation unchanged.
 - Guardrail: do not use large JSX replacement runners for SkyPulseDateCard; future fixes must inspect the full component and make small visible-copy changes only.
+
+## v0.1.282 internal route exposure policy
+- Scope: docs/guard policy only for internal/dev route exposure after the user-facing copy detox sequence.
+- Route audit classified /admin, /engine/*, /quality/mvp-checkpoint, /roadmap, and the current /wiki implementation as internal/dev or not-yet-public-growth surfaces.
+- /quality, /interpretation, and /language remain public-ish support routes that can be humanized later, but they are not the next product priority.
+- No app route, component, engine, auth/storage/payment/API/schema/SEO, report logic, wiki implementation, or public consent behavior changed.
+- Product sequence locked after this policy batch: report page first, then wiki.
