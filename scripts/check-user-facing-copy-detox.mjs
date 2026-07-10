@@ -140,6 +140,9 @@ const pricing = read("app/pricing/page.tsx");
 const order = read("app/order/page.tsx");
 const manualOrder = read("components/ManualOrderRequestForm.tsx");
 const billingPlans = read("lib/billing/billing-plans.ts");
+const home = read("app/page.tsx");
+const product = read("app/product/page.tsx");
+const privacy = read("app/privacy/page.tsx");
 
 assert(dashboard.includes("dashboard-copy-detox-marker"), "Dashboard copy detox marker is missing.");
 assert(profile.includes("profile-copy-detox-marker"), "Profile copy detox marker is missing.");
@@ -164,4 +167,14 @@ assert(!billingPlans.includes("local preview"), "Billing plan visible copy still
 assert(!billingPlans.includes("mock"), "Billing plan visible copy still uses mock.");
 assert(!billingPlans.includes("client workflow"), "Billing plan visible copy still uses client workflow.");
 
-console.log("User-facing copy detox pricing/order guard passed.");
+assert(home.includes("currentFocusItems"), "Homepage current focus copy is missing.");
+assert(!home.includes("futureModules"), "Homepage still exposes futureModules roadmap framing.");
+assert(!home.includes("future-modules"), "Homepage still uses future-modules public section id.");
+assert(!home.includes("local preview"), "Homepage still exposes local preview wording.");
+assert(!product.includes("indexable"), "Product page still exposes indexable wording.");
+assert(product.includes("product-copy-detox-marker"), "Product page copy detox marker is missing.");
+assert(!privacy.includes("indexable"), "Privacy page still exposes indexable wording.");
+assert(!privacy.includes("private-first"), "Privacy page still exposes private-first wording.");
+assert(privacy.includes("privacy-copy-detox-marker"), "Privacy page copy detox marker is missing.");
+
+console.log("User-facing copy detox homepage/product/privacy guard passed.");

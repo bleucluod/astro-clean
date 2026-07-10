@@ -21,7 +21,7 @@ const productValues = [
   },
   {
     title: "خصوصی در وضعیت فعلی",
-    text: "گزارش‌ها فعلاً برای مرور شخصی ساخته می‌شوند و مسیر عمومی یا indexable بدون رضایت روشن کاربر فعال نیست.",
+    text: "گزارش‌ها فعلاً برای مرور شخصی ساخته می‌شوند و مسیر عمومی یا قابل پیدا شدن در گوگل بدون رضایت روشن کاربر فعال نیست.",
   },
 ] as const;
 
@@ -33,7 +33,7 @@ const flowSteps = [
 
 export default function ProductPage() {
   return (
-    <section className="grid trust-page-shell product-trust-page">
+    <section className="grid trust-page-shell product-trust-page product-copy-detox-marker">
       <div className="card trust-hero-card">
         <span className="badge">مسیر محصول Halleus</span>
 

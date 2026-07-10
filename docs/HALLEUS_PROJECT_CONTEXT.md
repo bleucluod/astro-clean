@@ -1927,3 +1927,10 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Kept payment implementation, billing data shape, auth/storage/report APIs, schema, SEO, and consent implementation unchanged.
 - Extended check:user-facing-copy-detox with scoped Pricing/Order checks. The guard avoids global matching of terms such as Preview/Personal/Professional because those can appear in implementation identifiers.
 - Workflow note: earlier v0.1.278 attempts were fully rolled back before this retry. This successful retry used a read-only preflight first and ASCII structural markers only.
+
+## v0.1.279 user-facing copy detox homepage product privacy
+- Scope: copy/UI-surface cleanup for Homepage, Product, and Privacy.
+- Reframed homepage future/roadmap module copy into current product focus copy.
+- Replaced visible indexable/private-first wording with user-facing privacy/search language.
+- Kept engine, auth, storage, payment, SEO implementation, report logic, and consent implementation unchanged.
+- Extended check:user-facing-copy-detox with scoped Homepage/Product/Privacy assertions only.
