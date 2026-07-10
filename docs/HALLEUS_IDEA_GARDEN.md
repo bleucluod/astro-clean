@@ -1851,3 +1851,20 @@ Report Cleanup Batch 5 closes the five-batch report-quality roadmap with a trust
 - The model-aware lunar-node path preserves Mean versus local True/Osculating labels and uses generic sign/house evidence instead of fixture-specific branches.
 - No astrology calculation, Placidus logic, aspect/orb policy, Node/Lilith/transit math, external API, Swiss runtime dependency, auth, payment, SEO, storage policy, or public/private consent behavior changes in this batch.
 - This section supersedes earlier roadmap wording that described Lilith deep narrative as generally live; the live surface now exposes node narrative plus a technical Lilith boundary unless report approval is explicitly true.
+
+## v0.1.289 wiki content foundation
+
+Decision:
+
+- Replace the internal product glossary at `/wiki` with a Persian-first astrology learning surface.
+- Build a reusable article data model, Wiki index, dynamic article template, category map, related-article links, and a calm CTA back to `/chart`.
+- Start with exactly four foundational Persian articles: birth-chart basics, Sun/Moon/Rising, houses, and major aspects.
+- Keep Wiki pages `noindex/follow` and outside the sitemap during this foundation batch. Scaling and index activation must follow live Persian keyword research and explicit content QA.
+- Add a visible `/wiki` entry to the public header navigation so the foundation is reachable without exposing internal routes.
+
+Product boundary:
+
+- This batch is content-system foundation, not a large SEO publication batch.
+- Do not generate thin sign-by-sign, house-by-house, city/month cohort, or public-report pages yet.
+- Do not change report visibility, consent, public/private behavior, report engine calculations, Sky Pulse, auth, payment, or storage.
+- Future Wiki expansion must preserve internal linking and connect informational articles to the personal report flow without keyword stuffing.

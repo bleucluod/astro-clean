@@ -1,81 +1,174 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { wikiArticles, wikiCategories } from "@/lib/wiki/wiki-content";
+import styles from "./wiki.module.css";
 
-const entries = [
+export const metadata: Metadata = {
+  title: "ویکی آسترولوژی هالیوس | راهنمای فارسی چارت تولد",
+  description:
+    "راهنمای فارسی و مرحله‌به‌مرحله برای فهم چارت تولد، خورشید و ماه و طالع، خانه‌ها و جنبه‌های اصلی.",
+  alternates: {
+    canonical: "/wiki",
+  },
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
+
+const readingSteps = [
   {
-    term: "گزارش نمادین",
-    description:
-      "متنی تفسیری و سنتی که برای self-reflection طراحی شده، نه پیش‌بینی قطعی یا ادعای علمی.",
+    number: "۱",
+    title: "از پایه شروع کن",
+    text: "اول بفهم هر لایهٔ چارت چه سؤال متفاوتی را جواب می‌دهد.",
   },
   {
-    term: "Local preview",
-    description:
-      "حالت فعلی محصول که داده‌ها را در مرورگر همین دستگاه نگه می‌دارد.",
+    number: "۲",
+    title: "میان مقاله‌ها حرکت کن",
+    text: "لینک‌های مرتبط کمک می‌کنند مفهوم‌ها را جدا و پراکنده نبینی.",
   },
   {
-    term: "Repository-backed storage",
-    description:
-      "یعنی UI مستقیم با localStorage حرف نمی‌زند و از یک لایه ذخیره‌سازی قابل تعویض استفاده می‌کند.",
+    number: "۳",
+    title: "در چارت خودت ببین",
+    text: "بعد از یادگیری مفهوم، جایگاه واقعی آن را در گزارش شخصی بررسی کن.",
   },
-  {
-    term: "Preview account",
-    description:
-      "مدل اکانت موقت که قبل از فعال شدن auth واقعی، ساختار محصول را آماده نگه می‌دارد.",
-  },
-  {
-    term: "Feature gate",
-    description:
-      "قاعده‌ای برای اینکه هر پلن به چه قابلیت‌هایی دسترسی داشته باشد.",
-  },
-];
+] as const;
 
 export default function WikiPage() {
   return (
-    <section className="grid">
-      <div className="card">
-        <span className="badge">Halleus Wiki</span>
-
-        <h1>راهنمای Halleus</h1>
-
-        <p>
-          این راهنما اصطلاحات محصول را توضیح می‌دهد تا مسیر preview، گزارش‌ها،
-          اکانت و پرداخت روشن باشد.
-        </p>
-
-        <div className="actions">
-          <Link className="button" href="/product">
-            نقشه محصول
-          </Link>
-
-          <Link className="button secondary" href="/privacy">
-            حریم داده
-          </Link>
+    <section className={styles.page} data-product-surface="Halleus Wiki">
+      <section className={styles.hero}>
+        <div className={styles.heroGlow} aria-hidden="true" />
+        <div className={styles.heroContent}>
+          <span className={styles.eyebrow}>ویکی هالیوس</span>
+          <h1 className={styles.heroTitle}>
+            آسترولوژی را روشن، فارسی و بدون جمله‌های مبهم یاد بگیر
+          </h1>
+          <p className={styles.heroText}>
+            این ویکی برای فهمیدن منطق چارت تولد ساخته شده است: هر سیاره چه
+            نقشی دارد، خانه‌ها کدام میدان زندگی را نشان می‌دهند و جنبه‌ها
+            چگونه بخش‌های مختلف چارت را به هم وصل می‌کنند.
+          </p>
+          <div className={styles.heroActions}>
+            <Link className={styles.primaryButton} href="/wiki/birth-chart-basics">
+              از چارت تولد شروع کن
+            </Link>
+            <Link className={styles.secondaryButton} href="/chart">
+              ساخت گزارش شخصی
+            </Link>
+          </div>
         </div>
-      </div>
+        <div className={styles.heroSummary}>
+          <span>شروع مجموعه</span>
+          <strong>{wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ پایه</strong>
+          <p>مقاله‌های کوتاه، به‌هم‌پیوسته و قابل استفاده کنار گزارش تولد.</p>
+        </div>
+      </section>
 
-      <section className="card">
-        <span className="badge">Glossary</span>
+      <section className={styles.section} aria-labelledby="wiki-start-title">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>از اینجا شروع کن</span>
+            <h2 id="wiki-start-title">چهار مفهوم اصلی برای خواندن چارت</h2>
+          </div>
+          <p>
+            این چهار مقاله ستون‌های پایه‌اند؛ مقاله‌های بعدی روی همین زبان مشترک
+            ساخته می‌شوند.
+          </p>
+        </div>
 
-        <h2>واژه‌نامه کوتاه</h2>
+        <div className={styles.articleGrid}>
+          {wikiArticles.map((article) => {
+            const category = wikiCategories.find(
+              (item) => item.id === article.categoryId,
+            );
 
-        <div className="home-step-list">
-          {entries.map((entry) => (
-            <div key={entry.term}>
-              <strong>{entry.term}</strong>
-              <span>{entry.description}</span>
+            return (
+              <article className={styles.articleCard} key={article.slug}>
+                <div className={styles.articleTopline}>
+                  <span className={styles.categoryPill}>{category?.label}</span>
+                  <span className={styles.articleMeta}>
+                    {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
+                  </span>
+                </div>
+                <h3>{article.shortTitle}</h3>
+                <p>{article.summary}</p>
+                <Link className={styles.articleLink} href={`/wiki/${article.slug}`}>
+                  خواندن مقاله
+                  <span aria-hidden="true">←</span>
+                </Link>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="wiki-map-title">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>نقشهٔ ویکی</span>
+            <h2 id="wiki-map-title">مجموعه‌ای که مرحله‌به‌مرحله رشد می‌کند</h2>
+          </div>
+          <p>
+            فعلاً فقط مقاله‌های بنیادی منتشر شده‌اند؛ دسته‌های بعدی پس از تحقیق
+            محتوایی و بررسی کیفیت اضافه می‌شوند.
+          </p>
+        </div>
+
+        <div className={styles.categoryGrid}>
+          {wikiCategories.map((category) => {
+            const articleCount = wikiArticles.filter(
+              (article) => article.categoryId === category.id,
+            ).length;
+
+            return (
+              <div className={styles.categoryCard} key={category.id}>
+                <div>
+                  <h3>{category.label}</h3>
+                  <p>{category.description}</p>
+                </div>
+                <span className={styles.categoryStatus}>
+                  {articleCount > 0
+                    ? `${articleCount.toLocaleString("fa-IR")} مقاله`
+                    : "در صف ساخت"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="wiki-use-title">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>روش استفاده</span>
+            <h2 id="wiki-use-title">از تعریف ساده تا مشاهده در چارت خودت</h2>
+          </div>
+        </div>
+        <div className={styles.guideGrid}>
+          {readingSteps.map((step) => (
+            <div className={styles.guideStep} key={step.number}>
+              <span>{step.number}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="card">
-        <span className="badge">Safety Note</span>
-
-        <h2>یادآوری مهم</h2>
-
-        <p>
-          Halleus برای نگاه نمادین، سنتی و تفسیری ساخته می‌شود. گزارش‌ها نباید
-          جای تصمیم پزشکی، حقوقی، مالی یا تصمیم قطعی زندگی را بگیرند.
-        </p>
+      <section className={styles.safetyCard}>
+        <div>
+          <span className={styles.sectionKicker}>مرز خوانش</span>
+          <h2>زبان ویکی نمادین و تفسیری است</h2>
+          <p>
+            این مقاله‌ها برای یادگیری سنت آسترولوژی و خودشناسی نمادین نوشته
+            شده‌اند. آن‌ها جای تشخیص پزشکی، مشاورهٔ حقوقی یا مالی و تصمیم قطعی
+            زندگی را نمی‌گیرند.
+          </p>
+        </div>
+        <Link className={styles.secondaryButton} href="/product">
+          هالیوس چگونه کار می‌کند؟
+        </Link>
       </section>
     </section>
   );

@@ -8,6 +8,10 @@ export const navItems = [
     label: "گزارش‌ها",
   },
   {
+    href: "/wiki",
+    label: "ویکی",
+  },
+  {
     href: "/dashboard",
     label: "پنل",
   },

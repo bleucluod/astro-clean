@@ -2125,3 +2125,26 @@ Report Cleanup Batch 5 closes the five-batch report-quality roadmap with a trust
 - Diagnosis: those guards mixed stable code contracts with the replaceable sentence `interpretive narrative remains disabled`. The runtime still kept `approvedForReportOutput: false`, technical Lilith data remained visible, and the report narrative exclusion contract was already covered by model-aware UI/writer guards.
 - Fix: remove the replaceable runtime-prose assertion from source-oriented guards, require `approvedForReportOutput` plus the explicit prohibited narrative surfaces in authority-doc checks, preserve the repaired adapter guard, and rerun the complete report/Lilith/source/build chain from the beginning.
 - Prevention: after any authority wording change, search the full guard directory for the retired marker before building a repair runner; after two failures in one batch, switch to one comprehensive guarded repair rather than sequential single-check fixes.
+
+## v0.1.289 wiki content foundation
+
+Scope:
+
+- Replace the existing five-entry internal glossary at `/wiki` with a user-facing Persian astrology Wiki home.
+- Add `lib/wiki/wiki-content.ts` as the first reusable taxonomy/article source with four foundational Persian articles.
+- Add `app/wiki/[slug]/page.tsx` as a static dynamic-route article template with metadata, related links, summary points, report CTA, and safety framing.
+- Add `app/wiki/wiki.module.css` for a responsive Wiki-specific reading system without changing global product styling.
+- Add `/wiki` to `lib/config/navigation.ts` so the learning surface is reachable from public header navigation.
+- Add `scripts/check-wiki-content-foundation.mjs` to guard the article inventory, template, internal links, noindex boundary, and absence of the old internal glossary.
+
+Boundary:
+
+- Wiki index and article pages remain `noindex/follow` and are not added to `lib/config/seo.ts` or the sitemap in this batch.
+- No sitemap or public-report indexing change, keyword-cluster publication, cohort generation, report engine change, auth/payment/storage change, or broad site redesign is allowed.
+- Live Persian keyword research and explicit indexing approval remain prerequisites for scaling beyond the four foundational articles.
+
+Verification:
+
+- Run `node scripts/check-wiki-content-foundation.mjs`.
+- Run `pnpm run check:site-chrome-minimal-ui`, `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
+- Apply through exact full-file writes guarded against the expected HEAD Git blobs. Runner must not commit, tag, or push.
