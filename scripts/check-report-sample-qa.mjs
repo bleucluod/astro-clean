@@ -60,6 +60,7 @@ require.extensions[".ts"] = function compileTypeScript(module, filename) {
   module._compile(transpiled.outputText, filename);
 };
 
+const writerSource = fs.readFileSync("lib/astrology/real-engine-report-writer.ts", "utf8");
 const { enrichReportWithRealEngineCopy } = require("../lib/astrology/real-engine-report-writer.ts");
 
 const signOrder = [
@@ -425,6 +426,10 @@ for (const sample of samples) {
     failures.push(`${sample.id}: total generated section text is too short (${totalWords} words)`);
   }
 
+  if (totalWords > 2700) {
+    failures.push(`${sample.id}: main narrative is too long after cleanup (${totalWords} words)`);
+  }
+
   if (!combined.includes("رایزینگ تقریبی")) {
     failures.push(`${sample.id}: report does not disclose approximate rising language`);
   }
@@ -433,9 +438,6 @@ for (const sample of samples) {
     failures.push(`${sample.id}: report does not include Persian brand spelling`);
   }
 
-  if (!combined.includes("از نظر خانه‌ها")) {
-    failures.push(`${sample.id}: report does not include planet-in-house interpretation language`);
-  }
 
   if (!combined.includes("خانه ۱") && !combined.includes("خانه ۹")) {
     failures.push(`${sample.id}: report does not include Persian house-number wording`);
@@ -454,16 +456,14 @@ for (const sample of samples) {
   }
 
   for (const marker of [
-    "ستون فقرات چارت",
-    "نخ‌های اصلی شخصیت",
+    "نخ اصلی این چارت",
+    "سه ستون اصلی",
     "تنش مرکزی چارت",
-    "زبان رشد",
     "تمرین کوچک این هفته",
     "رابطه‌های سیاره‌ای",
     "گفت‌وگوی درونی",
     "سه تمرین کوچک این چارت",
     "خانه‌های فعال",
-    "دقت تولد",
   ]) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing current V3 synthesis marker ${marker}`);
@@ -485,26 +485,37 @@ for (const sample of samples) {
   }
 
   if (!housesSection) {
-    failures.push(`${sample.id}: missing active houses section for house/angles/natal accuracy copy`);
+    failures.push(`${sample.id}: missing active houses section`);
   }
 
-  for (const marker of [
-    "محور رایزینگ و نقطه روبه‌رو",
-    "محور میانه آسمان و ریشه آسمان",
-    "خانه‌های این گزارش با روش نشانه کامل",
-    "حرکت برگشتی",
-    "دست‌های ماه",
-    "لیلیت",
-    "دقت این گزارش به ساعت تولد",
-    "ساعت تولد",
-  ]) {
+  for (const marker of ["حرکت برگشتی", "دست‌های ماه", "لیلیت"]) {
     if (!combined.includes(marker)) {
-      failures.push(`${sample.id}: missing house/angles marker ${marker}`);
+      failures.push(`${sample.id}: missing preserved report marker ${marker}`);
     }
   }
 
-  if (!combined.includes("جدول کامل ۱۲ خانه")) {
-    failures.push(`${sample.id}: missing polished house-table handoff copy`);
+  if (housesSection) {
+    for (const forbidden of [
+      "محور رایزینگ و نقطه روبه‌رو",
+      "محور میانه آسمان و ریشه آسمان",
+      "جدول کامل ۱۲ خانه",
+      "دقت این گزارش به ساعت تولد",
+    ]) {
+      if (housesSection.body.includes(forbidden)) {
+        failures.push(`${sample.id}: active-house narrative still exposes technical marker ${forbidden}`);
+      }
+    }
+  }
+
+  for (const marker of [
+    "function buildHouseAnglesText",
+    "function buildNatalAccuracyText",
+    "buildHouseAnglesText(realEngineWithAspects)",
+    "buildNatalAccuracyText(realEngineWithAspects)",
+  ]) {
+    if (!writerSource.includes(marker)) {
+      failures.push(`${sample.id}: technical report data path is missing ${marker}`);
+    }
   }
 
   const technicalSnapshotMentions = (combined.match(/snapshot/g) ?? []).length;

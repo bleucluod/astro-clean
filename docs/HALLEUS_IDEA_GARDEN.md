@@ -1781,3 +1781,8 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Guardrail: do not spend broad copy-polish batches on internal/dev routes while the report page still needs product-value work.
 - Guardrail: do not implement SEO indexing, public route deletion, route protection, auth gating, sitemap/noindex behavior, or wiki content system in this policy batch.
 - Next active sequence: report page first, then wiki.
+
+## Report narrative cleanup five-batch path
+- Accepted sequence after v0.1.282: (1) main-narrative cleanup and repetition reduction, (2) astrology weighting/aspect selection, (3) deeper interpretation layer, (4) information architecture/table merging, and (5) transit/Lilith/lunar-node final QA.
+- v0.1.283 is Batch 1 only: main narrative becomes shorter and more human, top active houses stay in the reading, and complete technical data remains in the lower report-detail/facts surfaces.
+- Guardrail: Batch 1 must not hardcode named sample charts or change calculation, aspect scoring, transit grouping, Lilith/Node models, auth, payment, public/private consent, SEO/indexing, wiki, or infrastructure.

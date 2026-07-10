@@ -1953,3 +1953,13 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - /quality, /interpretation, and /language remain public-ish support routes that can be humanized later, but they are not the next product priority.
 - No app route, component, engine, auth/storage/payment/API/schema/SEO, report logic, wiki implementation, or public consent behavior changed.
 - Product sequence locked after this policy batch: report page first, then wiki.
+
+## v0.1.283 report narrative cleanup Batch 1
+- Scope: shorten and humanize the live `/reports/[reportId]` main narrative without changing chart calculation, aspect scoring, technical tables, chart wheel, Lilith/Nodes calculation, Personal Transit, privacy, auth, payment, SEO, or wiki.
+- The live writer keeps one general reading guide, keeps chapter summaries/guides only for active houses and lunar nodes, limits the narrative to the top four active houses, and removes the full ASC/DSC/MC/IC and natal-accuracy explanation from the main reading while preserving those calculated data paths for the technical/report-detail surfaces.
+- Three pillars and Mercury/Venus/Mars now use concise synthesis inside the main narrative; full placements and technical facts remain available lower on the report page.
+- Arad and Arian QA targets keep their core chart spines through reusable synthesis paths; Batch 1 adds no person-specific chart branches and does not change aspect prioritization.
+- Reading-length QA adds a maximum 2,700-word section budget, corresponding to no more than about 15 minutes at the existing 180 words/minute calculation.
+- Workflow failure ledger: two earlier read-only `node -e` inspection commands failed because PowerShell stripped nested JavaScript quoting. Prevention: do not use multiline JavaScript through `node -e` in VS Code PowerShell; use a uniquely named runner with a temporary UTF-8 script file, avoid Persian matching in PowerShell, and read GitHub-accessible source directly instead of asking the user to paste it.
+
+- Workflow failure ledger: the first v0.1.283 apply runner called pnpm run check:report-value-synthesis-lite, but that package script does not exist. The runner stopped correctly before commit, tag, or push. Fix/prevention: verify every pnpm run target against the live package.json before runner generation; when a check file exists without a package script, invoke it directly with Node.

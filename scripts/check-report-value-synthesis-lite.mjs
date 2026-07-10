@@ -22,10 +22,10 @@ function assertNotIncludes(content, marker, label) {
   }
 }
 
-function assertMinCount(content, marker, minimum, label) {
+function assertExactCount(content, marker, expected, label) {
   const count = content.split(marker).length - 1;
-  if (count < minimum) {
-    fail(`${label} expected at least ${minimum} occurrences of ${marker}, found ${count}`);
+  if (count !== expected) {
+    fail(`${label} expected exactly ${expected} occurrences of ${marker}, found ${count}`);
   }
 }
 
@@ -37,7 +37,7 @@ for (const marker of [
   "chapterSummary?: string",
   "chapterSummaryText",
   "خلاصه فصل:",
-  "return [opening, chapterSummaryText, readerCueText, body, reflectionText, closing]",
+  "return [readerCueText, opening, chapterSummaryText, body, reflectionText, closing]",
   "real-engine-first-synthesis",
   "real-engine-personal-summary",
   "تمرین کوچک این هفته",
@@ -46,7 +46,8 @@ for (const marker of [
   assertIncludes(writer, marker, "real-engine-report-writer");
 }
 
-assertMinCount(writer, "chapterSummary:", 8, "real-engine-report-writer");
+assertExactCount(writer, "chapterSummary:", 2, "real-engine-report-writer");
+assertExactCount(writer, "readerCue:", 3, "real-engine-report-writer");
 
 for (const marker of [
   "v0.1.223b",

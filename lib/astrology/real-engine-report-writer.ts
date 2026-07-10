@@ -588,6 +588,7 @@ export function enrichReportWithRealEngineCopy(
 
   const sunText = buildCorePlacementText(sun, "sun");
   const moonText = buildCorePlacementText(moon, "moon");
+  const coreSynthesisText = buildCoreSynthesisThread(sun, moon, risingSign);
   const risingText = buildRisingText(
     risingSign,
     chartSpine.ascendantDegreeInSign,
@@ -604,6 +605,7 @@ export function enrichReportWithRealEngineCopy(
   const mercuryText = buildOptionalPlacementText(mercury, "mercury");
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
+  const dailyLifeSynthesisText = buildDailyLifeSynthesisThread(mercury, venus, mars);
   const aspectText = buildAspectOverviewText(aspects, chartSpine, realEngineWithAspects);
   const sunAspectText = buildPlanetAspectText("sun", PLANET_COPY.sun.faName, aspects);
   const moonAspectText = buildPlanetAspectText("moon", PLANET_COPY.moon.faName, aspects);
@@ -636,6 +638,7 @@ export function enrichReportWithRealEngineCopy(
     summary,
     sunText,
     moonText,
+    coreSynthesisText,
     risingText,
     chartRulerText,
     activeHouseText,
@@ -648,6 +651,7 @@ export function enrichReportWithRealEngineCopy(
     mercuryText,
     venusText,
     marsText,
+    dailyLifeSynthesisText,
     aspectText,
     sunAspectText,
     moonAspectText,
@@ -748,6 +752,7 @@ type RealEngineSectionTextInput = {
   summary: string;
   sunText?: string;
   moonText?: string;
+  coreSynthesisText?: string;
   risingText?: string;
   houseText?: string;
   houseAnglesText?: string;
@@ -760,6 +765,7 @@ type RealEngineSectionTextInput = {
   mercuryText?: string;
   venusText?: string;
   marsText?: string;
+  dailyLifeSynthesisText?: string;
   aspectText?: string;
   sunAspectText?: string;
   moonAspectText?: string;
@@ -1487,35 +1493,31 @@ function buildRealEngineSummary({
 
   if (chartSpine) {
     const rulerPlacement = chartSpine.chartRulerPlacement;
-    const topHouses = chartSpine.activeHouses
-      .slice(0, 3)
-      .map((activeHouse) => `خانه ${toPersianNumber(activeHouse.house.number)}`);
     const rulerPhrase = rulerPlacement
-      ? `${getPlanetLabel(chartSpine.chartRulerId)} در ${formatPlacementWithHouse(rulerPlacement)}`
+      ? `${getPlanetLabel(chartSpine.chartRulerId)} در ${formatSignHouseLabel(rulerPlacement)}`
       : getPlanetLabel(chartSpine.chartRulerId);
-    const nodeHint = buildNodeAxisSummaryPhrase(chartSpine, lunarNodes);
+    const topHouses = chartSpine.activeHouses
+      .slice(0, 4)
+      .map((activeHouse) => `خانه ${toPersianNumber(activeHouse.house.number)}`);
 
     return [
-      `${displayName}این گزارش هالیوس${cityPhrase} از یک نخ مرکزی شروع می‌شود: ${risingDescriptor} ${formatSignLabel(rising)}، حاکم چارت ${rulerPhrase}${topHouses.length > 0 ? `، و تمرکز روی ${joinPersianList(topHouses)}` : ""}.`,
-      buildChartSpineHumanSummary(chartSpine),
-      nodeHint,
-      "این خوانش نمادین و غیرقطعی است؛ هدفش این است که چند الگوی قابل لمس را روشن‌تر کند، نه اینکه برای زندگی حکم قطعی بدهد.",
+      `${displayName}این خوانش هالیوس${cityPhrase} با ${risingDescriptor} ${rising.faName} و حاکم چارت، ${rulerPhrase}، شروع می‌شود.`,
+      sun && moon ? buildCoreSynthesisThread(sun, moon, risingSign) : undefined,
+      topHouses.length > 0 ? `میدان‌های پررنگ‌تر این چارت ${joinPersianList(topHouses)} هستند.` : undefined,
+      buildNodeAxisSummaryPhrase(chartSpine, lunarNodes),
     ]
       .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
-      .join(" ");
+      .join("\n");
   }
 
   if (sun && moon) {
     return [
-      `${displayName}این گزارش هالیوس${cityPhrase} از چارت محاسبه‌شده ساخته شده و برای خودشناسی نمادین است، نه حکم قطعی یا پیش‌گویی.`,
-      `قاب اصلی گزارش این است: خورشید در ${formatPlacementWithHouse(sun)}، ماه در ${formatPlacementWithHouse(moon)} و ${risingDescriptor} در ${formatSignLabel(rising)}.`,
-    ].join(" ");
+      `${displayName}این خوانش هالیوس${cityPhrase} از سه ستون اصلی چارت شروع می‌شود.`,
+      buildCoreSynthesisThread(sun, moon, risingSign),
+    ].join("\n");
   }
 
-  return [
-    `${displayName}این گزارش هالیوس${cityPhrase} از داده محاسبه‌شده ساخته شده و باید نمادین، آرام و غیرقطعی خوانده شود.`,
-    `${risingDescriptor} در ${formatSignLabel(rising)} نقطه شروع قاب بیرونی گزارش است.`,
-  ].join(" ");
+  return `${displayName}این خوانش هالیوس${cityPhrase} از ${risingDescriptor} ${rising.faName} شروع می‌شود.`;
 }
 
 function buildChartSpineHumanSummary(chartSpine: ChartSpine): string {
@@ -1565,20 +1567,43 @@ function buildCoreSynthesisThread(
   const rising = SIGN_COPY[risingSign];
 
   if (!sun || !moon) {
-    return [
-      "سه نخ اصلی این چارت از رایزینگ " + formatSignLabel(rising) + " شروع می‌شود و با جایگاه‌های محاسبه‌شده سیاره‌ها کامل‌تر خوانده می‌شود.",
-      "تصویر کلی این چارت را باید آهسته ساخت: اول ببین جهان تو را از کدام دروازه می‌بیند، بعد ببین کدام نیازها و انتخاب‌ها این تصویر را کامل‌تر می‌کنند.",
-    ].join(" ");
+    return `رایزینگ ${rising.faName} شیوه ورود به جهان را شکل می‌دهد و جایگاه‌های محاسبه‌شده بعدی این تصویر را کامل‌تر می‌کنند.`;
   }
 
   const sunSign = SIGN_COPY[sun.signId];
   const moonSign = SIGN_COPY[moon.signId];
 
-  return [
-    "سه نخ اصلی این چارت از خورشید در " + formatPlacementWithHouse(sun) + "، ماه در " + formatPlacementWithHouse(moon) + " و رایزینگ " + formatSignLabel(rising) + " ساخته می‌شود.",
-    "خورشید با کیفیت " + sunSign.energy + " مسیر روشن‌شدن هویت را نشان می‌دهد؛ ماه با کیفیت " + moonSign.energy + " زبان امنیت عاطفی را می‌سازد؛ رایزینگ " + formatSignLabel(rising) + " هم شیوه ورود به جهان را رنگ می‌دهد.",
-    "تصویر کلی این چارت وقتی زنده‌تر می‌شود که این سه را جداگانه نخوانی: یکی می‌گوید چه چیزی در تو روشن می‌شود، یکی می‌گوید چه چیزی تو را آرام می‌کند، و یکی نشان می‌دهد جهان در برخورد اول کدام ریتم را از تو می‌بیند.",
-  ].join(" ");
+  return `خورشید ${formatSignHouseLabel(sun)} مسیر هویت را با ${sunSign.gift} پیوند می‌دهد؛ ماه ${formatSignHouseLabel(moon)} زبان امنیت عاطفی را با ریتم ${moonSign.energy} می‌سازد؛ رایزینگ ${rising.faName} هم شیوه ورود به جهان را با کیفیت ${rising.energy} شکل می‌دهد.`;
+}
+
+function buildDailyLifeSynthesisThread(
+  mercury: RealEngineReportPlacement | undefined,
+  venus: RealEngineReportPlacement | undefined,
+  mars: RealEngineReportPlacement | undefined,
+): string | undefined {
+  const parts: string[] = [];
+  const mercuryVenusShareField =
+    mercury &&
+    venus &&
+    mercury.signId === venus.signId &&
+    mercury.house === venus.house;
+
+  if (mercuryVenusShareField) {
+    parts.push(`عطارد و زهره در ${formatSignHouseLabel(mercury)} فکر، انتخاب و زبان نزدیکی را در یک میدان مشترک فعال می‌کنند`);
+  } else {
+    if (mercury) {
+      parts.push(`عطارد ${formatSignHouseLabel(mercury)} شیوه فکر و تصمیم را نشان می‌دهد`);
+    }
+    if (venus) {
+      parts.push(`زهره ${formatSignHouseLabel(venus)} زبان ارزش، انتخاب و نزدیکی را رنگ می‌زند`);
+    }
+  }
+
+  if (mars) {
+    parts.push(`مریخ ${formatSignHouseLabel(mars)} ریتم عمل، خواستن و برخورد با فشار را نشان می‌دهد`);
+  }
+
+  return parts.length > 0 ? `${parts.join("؛ ")}.` : undefined;
 }
 
 function buildAspectSynthesisThread(aspects: RealEngineReportAspect[]): string {
@@ -1641,28 +1666,11 @@ function buildHouseSynthesisThread(
 }
 
 function buildFirstSynthesisText(
-  realEngine: RealEngineReportSnapshot,
+  _realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
 ): string {
-  const sun = findPlacement(realEngine, "sun");
-  const moon = findPlacement(realEngine, "moon");
-  const mercury = findPlacement(realEngine, "mercury");
-  const venus = findPlacement(realEngine, "venus");
-  const mars = findPlacement(realEngine, "mars");
-
   return [
-    buildChartSpineOpeningText(realEngine, chartSpine),
-    buildSynthesisPersonalityThreads(sun, moon, chartSpine.risingSign),
     buildSynthesisCentralTension(chartSpine.centralAspects),
-    buildSynthesisGrowthLanguage({
-      sun,
-      moon,
-      mercury,
-      venus,
-      mars,
-      risingSign: chartSpine.risingSign,
-      chartSpine,
-    }),
     buildSynthesisWeeklyPractice(chartSpine),
   ]
     .filter((part) => part.trim().length > 0)
@@ -1872,7 +1880,7 @@ function buildPlacementGrowthPractice(
   }
 
   if (house) {
-    return `تمرین این جایگاه این است که ${planetPhrase} با کیفیت ${sign.energy} در میدان ${house.field} به یک انتخاب کوچک و قابل زندگی تبدیل شود.`;
+    return `تمرین این جایگاه این است که ${planetPhrase} با کیفیت ${sign.energy} در میدان ${house.field} به رفتاری روشن و قابل مشاهده نزدیک شود.`;
   }
 
   return `تمرین این جایگاه این است که ${planetPhrase} با کیفیت ${sign.energy} به رفتار ساده و قابل مشاهده تبدیل شود.`;
@@ -1896,16 +1904,13 @@ function buildRisingText(
 
 function buildHouseContextText(
   houseContext: RealEngineReportHouseContext | undefined,
-  risingSign: ZodiacKey,
+  _risingSign: ZodiacKey,
 ) {
   if (!isCalculatedWholeSignHouseContext(houseContext)) {
     return undefined;
   }
 
-  const sign = SIGN_COPY[risingSign];
-  const signLabel = formatSignLabel(sign);
-
-  return `خانه‌های این گزارش با روش نشانه کامل و بر پایه رایزینگ ${signLabel} خوانده می‌شوند؛ یعنی متن فقط نشانه‌ها را نمی‌گوید، بلکه نشان می‌دهد هر نیرو در کدام میدان زندگی فعال‌تر می‌شود.`;
+  return "خانه‌ها با روش نشانه کامل خوانده شده‌اند؛ جزئیات کامل پایین صفحه آمده است.";
 }
 
 
@@ -2454,27 +2459,10 @@ function buildIntegrationText(
   realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
 ) {
-  const sun = findPlacement(realEngine, "sun");
-  const moon = findPlacement(realEngine, "moon");
-  const nodeThread = buildNodeAxisSummaryPhrase(chartSpine, realEngine.lunarNodes);
-  const rulerThread = buildChartSpineHumanSummary(chartSpine);
-  const topHouses = chartSpine.activeHouses
-    .slice(0, 3)
-    .map((activeHouse) => `خانه ${toPersianNumber(activeHouse.house.number)}`);
-
-  const core = [
-    rulerThread,
-    sun && moon
-      ? `خورشید در ${formatPlacementWithHouse(sun)} و ماه در ${formatPlacementWithHouse(moon)} نشان می‌دهند هویت آگاهانه و امنیت عاطفی باید در کنار رایزینگ و حاکم چارت خوانده شوند.`
-      : undefined,
-    topHouses.length > 0
-      ? `اگر کل چارت را به چند میدان برگردانیم، ${joinPersianList(topHouses)} جاهایی‌اند که رشد بیشتر در آن‌ها لمس می‌شود.`
-      : undefined,
-    nodeThread,
+  return [
+    buildChartSpineHumanSummary(chartSpine),
     buildChartPracticeList(chartSpine, realEngine),
-  ];
-
-  return core
+  ]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .join(" ");
 }
@@ -2522,15 +2510,13 @@ function buildReportHumanReadingRhythmText(input: RealEngineSectionTextInput): s
 function buildRealEngineInterpretationSections(
   input: RealEngineSectionTextInput,
 ): ReportOutputSection[] {
-  const coreBody = joinSectionBody(
+  const coreBody = input.coreSynthesisText ?? joinSectionBody(
     input.sunText,
     input.moonText,
     input.risingText,
   );
   const dailyBody = joinSectionBody(
-    input.mercuryText,
-    input.venusText,
-    input.marsText,
+    input.dailyLifeSynthesisText,
     input.aspectText,
   );
   const nodeMotionBody = joinSectionBody(
@@ -2540,13 +2526,11 @@ function buildRealEngineInterpretationSections(
   const activeHouseBody = joinSectionBody(
     input.activeHouseText,
     input.houseText,
-    input.houseAnglesText,
-    input.natalAccuracyText,
   );
   const fallbackBody =
     input.integrationText ??
     input.summary ??
-    "این بخش از گزارش بر اساس داده‌های محاسبه‌شده چارت نوشته شده و بهتر است نمادین، آرام و غیرقطعی خوانده شود.";
+    "این بخش از گزارش بر اساس داده‌های محاسبه‌شده چارت نوشته شده و بهتر است آرام و غیرقطعی خوانده شود.";
 
   const chartRulerSection: ReportOutputSection | null = input.chartRulerText
     ? {
@@ -2554,9 +2538,7 @@ function buildRealEngineInterpretationSections(
         kind: "identity",
         title: "حاکم چارت",
         body: buildStructuredSectionBody({
-          readerCue: "حاکم چارت را مثل ریتم پشت‌صحنه تصمیم‌ها بخوان، نه حکم قطعی شخصیت.",
-          opening: "حاکم چارت نشان می‌دهد کدام نیرو پشت بسیاری از شروع‌ها، واکنش‌ها و انتخاب‌های روزمره پررنگ‌تر است.",
-          chapterSummary: "این فصل ریتم پشت‌صحنه چارت را کوتاه می‌کند: چه نیرویی شروع‌ها را رنگ می‌دهد و کجا باید آرام‌تر هدایت شود.",
+          opening: "حاکم چارت ریتم پشت‌صحنه بسیاری از شروع‌ها، واکنش‌ها و انتخاب‌های روزمره را نشان می‌دهد.",
           body: input.chartRulerText,
           reflection: "این نیرو بیشتر کجا کمک می‌کند شروع کنی و کجا ممکن است تو را به تکرار یک عادت بکشاند؟",
         }),
@@ -2566,11 +2548,11 @@ function buildRealEngineInterpretationSections(
     ? {
         id: "real-engine-active-houses",
         kind: "growth",
-        title: "خانه‌های فعال، محورها و دقت تولد",
+        title: "خانه‌های فعال",
         body: buildStructuredSectionBody({
           readerCue: "خانه‌های فعال را مثل صحنه‌های زندگی بخوان؛ جایی که موضوعات چارت بیشتر دیده و تجربه می‌شوند.",
-          opening: "در این بخش خانه‌هایی آمده‌اند که در چارت وزن بیشتری دارند؛ محورها و دقت تولد هم کمک می‌کنند این میدان‌های زندگی با احتیاط و زمینه درست خوانده شوند.",
-          chapterSummary: "این فصل جایگاه‌های محاسبه‌شده را به صحنه‌های زندگی وصل می‌کند تا گزارش فقط درباره شخصیت نماند.",
+          opening: "در روایت اصلی فقط خانه‌هایی آمده‌اند که در این چارت وزن بیشتری دارند.",
+          chapterSummary: "این فصل نیروهای اصلی چارت را به چند میدان واقعی زندگی وصل می‌کند.",
           body: activeHouseBody,
           reflection: "این روزها کدام میدان زندگی بیشتر توجه تو را می‌خواهد و چه کار کوچکی آن را روشن‌تر می‌کند؟",
         }),
@@ -2584,7 +2566,7 @@ function buildRealEngineInterpretationSections(
         body: buildStructuredSectionBody({
           readerCue: "دست‌های ماه را مثل مسیر تمرین بخوان؛ از الگوی آشنا به سمت رفتاری که هنوز تازه است.",
           opening: "دست‌های ماه مسیر رشد را به زبان حرکت از الگوی آشنا به تمرین تازه توضیح می‌دهند.",
-          chapterSummary: "این فصل تفاوت میان عادت امن و رفتار تازه را نشان می‌دهد؛ نه به‌عنوان حکم، بلکه به‌عنوان مسیر تمرین.",
+          chapterSummary: "این فصل تفاوت میان عادت امن و رفتار تازه را نشان می‌دهد.",
           body: nodeMotionBody,
           reflection: "کدام واکنش برایت آشنا و امن است، و کدام رفتار کوچک می‌تواند رشد تازه‌ای بسازد؟",
         }),
@@ -2596,9 +2578,7 @@ function buildRealEngineInterpretationSections(
         kind: "overview",
         title: "عنصرها، کیفیت‌ها و ریتم کلی",
         body: buildStructuredSectionBody({
-          readerCue: "عنصرها و کیفیت‌ها را برای شناخت ریتم انرژی بخوان، نه برای برچسب زدن به خودت.",
-          opening: "عنصرها و کیفیت‌ها نشان می‌دهند انرژی چارت از چه راه‌هایی راحت‌تر بیان می‌شود و کجا به تمرین آرام‌تری نیاز دارد.",
-          chapterSummary: "این فصل ریتم کلی انرژی را خلاصه می‌کند: چه چیزی روان‌تر است و کجا تنظیم آگاهانه‌تر لازم می‌شود.",
+          opening: "عنصرها و کیفیت‌ها ریتم کلی انرژی را نشان می‌دهند؛ نه یک برچسب ثابت برای شخصیت.",
           body: input.balanceText,
           reflection: "برای ادامه دادن، بیشتر به شروع، انعطاف، ثبات، یا رها کردن یک فشار قدیمی نیاز داری؟",
         }),
@@ -2609,25 +2589,22 @@ function buildRealEngineInterpretationSections(
     {
       id: "real-engine-first-synthesis",
       kind: "overview",
-      title: "خلاصه انسانی و ستون فقرات چارت",
+      title: "نخ اصلی این چارت",
       body: buildStructuredSectionBody({
-          readerCue: "این فصل را مثل نقشه راه بخوان؛ لازم نیست همه جزئیات را حفظ کنی، فقط نخ اصلی را پیدا کن.",
+        readerCue: "اول این خلاصه را بخوان؛ لازم نیست همه جزئیات را حفظ کنی، فقط نخ اصلی را پیدا کن.",
         opening: input.summary,
-        chapterSummary: "این فصل نخ اصلی گزارش را جلو می‌آورد تا رایزینگ، حاکم چارت، خانه‌های فعال و تنش مرکزی جدا از هم خوانده نشوند.",
         body: input.firstSynthesisText,
-          reflection: "کدام جمله از این خلاصه بیشتر شبیه تجربه واقعی توست و کدام بخش هنوز نیاز به زمان دارد؟",
+        reflection: "کدام جمله از این خلاصه بیشتر شبیه تجربه واقعی توست و کدام بخش هنوز نیاز به زمان دارد؟",
       }),
     },
     {
       id: "real-engine-core-pattern",
       kind: "identity",
-      title: "سه ستون اصلی: خورشید، ماه، رایزینگ",
+      title: "سه ستون اصلی",
       body: buildStructuredSectionBody({
-          readerCue: "خورشید، ماه و رایزینگ را جداگانه نخوان؛ ببین هویت، نیاز عاطفی و شیوه ورود تو چطور با هم کار می‌کنند.",
-        opening: "خورشید، ماه و رایزینگ تصویر اولیه را می‌سازند؛ اما در این گزارش زیر نور حاکم چارت و خانه‌های فعال خوانده می‌شوند.",
-        chapterSummary: "این فصل سه ستون اصلی را به هم وصل می‌کند: خواسته روشن، نیاز عاطفی و شیوه ورود به جهان.",
-        body: coreBody || fallbackBody,
-          reflection: "وقتی بین خواسته، احساس و ظاهر بیرونی‌ات فاصله می‌افتد، معمولاً کدام بخش زودتر صدا بلند می‌کند؟",
+        opening: coreBody || fallbackBody,
+        body: undefined,
+        reflection: "وقتی بین خواسته، احساس و ظاهر بیرونی‌ات فاصله می‌افتد، معمولاً کدام بخش زودتر صدا بلند می‌کند؟",
       }),
     },
     chartRulerSection,
@@ -2635,13 +2612,11 @@ function buildRealEngineInterpretationSections(
     {
       id: "real-engine-daily-life",
       kind: "relationships",
-      title: "ذهن، رابطه، عمل و روابط مهم سیاره‌ای",
+      title: "ذهن، رابطه، عمل و روابط مهم",
       body: buildStructuredSectionBody({
-          readerCue: "عطارد، زهره، مریخ و رابطه‌های سیاره‌ای را مثل ابزارهای روزمره بخوان: فکر، انتخاب، رابطه و عمل.",
-        opening: "اینجا فقط چند رابطه و جایگاه مهم آمده‌اند؛ هدف متن کوتاه‌تر اما دقیق‌تر است.",
-        chapterSummary: "این فصل ابزارهای روزمره را کنار رابطه‌های سیاره‌ای می‌گذارد تا فکر، انتخاب، رابطه و عمل جدا از هم نمانند.",
+        opening: "عطارد، زهره و مریخ ابزارهای روزمره فکر، انتخاب، نزدیکی و عمل را نشان می‌دهند.",
         body: dailyBody || fallbackBody,
-          reflection: "در یک موقعیت واقعی، کدام ابزار زودتر فعال می‌شود و کدام ابزار نیاز دارد آرام‌تر و آگاهانه‌تر استفاده شود؟",
+        reflection: "در یک موقعیت واقعی، کدام ابزار زودتر فعال می‌شود و کدام ابزار به مکث بیشتری نیاز دارد؟",
       }),
     },
     nodeMotionSection,
@@ -2651,12 +2626,9 @@ function buildRealEngineInterpretationSections(
       kind: "growth",
       title: "جمع‌بندی و سه تمرین کوچک",
       body: buildStructuredSectionBody({
-          readerCue: "این فصل را برای انتخاب یک قدم کوچک بخوان؛ قرار نیست همه گزارش را به برنامه تبدیل کنی.",
-        opening:
-          "جمع‌بندی قرار نیست فهرست جایگاه‌ها را تکرار کند؛ فقط نخ انسانی گزارش را نگه می‌دارد.",
-        chapterSummary: "این فصل خروجی عملی گزارش است: یک نخ انسانی، چند تمرین کوچک و راهی آرام برای ادامه دادن.",
-        body: input.integrationText || fallbackBody,
-          reflection: "از کل گزارش فقط یک تمرین را برای این هفته نگه دار؛ کدام تمرین هم واقعی است و هم قابل ادامه؟",
+        opening: input.integrationText || fallbackBody,
+        body: undefined,
+        reflection: "از کل گزارش فقط یک تمرین را برای این هفته نگه دار؛ کدام تمرین هم واقعی است و هم قابل ادامه؟",
         closing: buildFinalSynthesisClosing(input),
       }),
     },
@@ -2684,7 +2656,7 @@ function buildStructuredSectionBody({
   const readerCueText = readerCue ? `چطور بخوانی: ${readerCue}` : undefined;
   const reflectionText = reflection ? `برای تأمل: ${reflection}` : undefined;
 
-  return [opening, chapterSummaryText, readerCueText, body, reflectionText, closing]
+  return [readerCueText, opening, chapterSummaryText, body, reflectionText, closing]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .map(sanitizeUserFacingReportText)
     .join("\n\n");
@@ -2724,6 +2696,15 @@ function joinPersianList(items: string[]): string {
 
 function joinSectionBody(...parts: Array<string | undefined>): string {
   return parts.filter(Boolean).join(" ");
+}
+
+function formatSignHouseLabel(placement: RealEngineReportPlacement): string {
+  const sign = SIGN_COPY[placement.signId];
+  const house = isReportHouseNumber(placement.house)
+    ? ` خانه ${toPersianNumber(placement.house)}`
+    : "";
+
+  return `${sign.faName}${house}`;
 }
 
 function formatPlacement(placement: RealEngineReportPlacement) {
