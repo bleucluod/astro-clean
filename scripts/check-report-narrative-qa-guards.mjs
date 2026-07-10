@@ -104,7 +104,8 @@ for (const marker of [
 
 for (const marker of [
   "slice(0, 4)",
-  "slice(0, 5)",
+  "getRealEngineSynthesisRoles(synthesisPlan)",
+  "buildSynthesisRoleContinuation",
   "buildChartPracticeList(chartSpine, realEngine, synthesisPlan)",
   "buildRealEngineSynthesisPlan",
   "buildSynthesisAspectBridge",

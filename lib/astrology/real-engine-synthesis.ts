@@ -13,6 +13,16 @@ export type RealEngineSynthesisPlanInput = {
   activeHouseNumbers: number[];
 };
 
+export type RealEngineSynthesisRoleId =
+  | "challenge"
+  | "support"
+  | "daily-bridge";
+
+export type RealEngineSynthesisRole = {
+  id: RealEngineSynthesisRoleId;
+  aspect: RealEngineReportAspect;
+};
+
 export type RealEngineSynthesisPlan = {
   primaryChallenge?: RealEngineReportAspect;
   primarySupport?: RealEngineReportAspect;
@@ -63,17 +73,49 @@ export function buildRealEngineSynthesisPlan({
     return participants.some((id) => DAILY_PLANET_IDS.has(id));
   });
 
-  return {
+  const selectedAspects = [primaryChallenge, primarySupport, dailyBridge].filter(
+    (aspect): aspect is RealEngineReportAspect => Boolean(aspect),
+  );
+  const selectedParticipantHouses = selectedAspects.flatMap((aspect) =>
+    getParticipants(aspect)
+      .map((planetId) => placementHouseById.get(planetId))
+      .filter(isHouseNumber),
+  );
+  const primaryHouseNumber =
+    selectedParticipantHouses.find((house) => activeHouses.has(house)) ??
+    activeHouseNumbers[0] ??
+    selectedParticipantHouses[0] ??
+    null;
+  const plan: RealEngineSynthesisPlan = {
     primaryChallenge,
     primarySupport,
     dailyBridge,
-    primaryHouseNumber: activeHouseNumbers[0] ?? null,
-    evidenceAspectIds: [
-      primaryChallenge?.id,
-      primarySupport?.id,
-      dailyBridge?.id,
-    ].filter((id): id is string => typeof id === "string"),
+    primaryHouseNumber,
+    evidenceAspectIds: [],
   };
+
+  return {
+    ...plan,
+    evidenceAspectIds: getRealEngineSynthesisRoles(plan).map(
+      (role) => role.aspect.id,
+    ),
+  };
+}
+
+export function getRealEngineSynthesisRoles(
+  plan: RealEngineSynthesisPlan,
+): RealEngineSynthesisRole[] {
+  return [
+    plan.primaryChallenge
+      ? { id: "challenge" as const, aspect: plan.primaryChallenge }
+      : undefined,
+    plan.primarySupport
+      ? { id: "support" as const, aspect: plan.primarySupport }
+      : undefined,
+    plan.dailyBridge
+      ? { id: "daily-bridge" as const, aspect: plan.dailyBridge }
+      : undefined,
+  ].filter((role): role is RealEngineSynthesisRole => Boolean(role));
 }
 
 function getSynthesisRelevance(
@@ -108,4 +150,8 @@ function getParticipants(aspect: RealEngineReportAspect): string[] {
 
 function isDynamicAspect(aspect: RealEngineReportAspect): boolean {
   return aspect.aspectId === "square" || aspect.aspectId === "opposition";
+}
+
+function isHouseNumber(value: number | null | undefined): value is number {
+  return typeof value === "number" && value >= 1 && value <= 12;
 }

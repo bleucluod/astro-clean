@@ -2077,3 +2077,26 @@ Verification rule:
 
 - Run the new deterministic synthesis-depth guard, report writer/sample/narrative guards, live aspect/report QA, user-facing copy detox, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build` before commit/tag/push.
 - Apply through exact full-file writes guarded by old Git blobs and new SHA-256 hashes. The runner must not commit, tag, or push.
+
+## v0.1.287 report cross-section consistency scope
+
+Baseline before apply:
+
+- HEAD: `f167c3a4be0fb913c23d8ce57f543fd12b1fc974`
+- Tag: `v0.1.286-report-synthesis-depth`
+- Branch: `main`
+- Working tree: clean
+
+Scope:
+
+- Complete report-cleanup Batch 4 by making the opening, daily-life chapter, and final summary reuse one ordered synthesis role list.
+- Continue only the selected challenge, support, and daily bridge in the main daily-life narrative; keep exact angle/orb detail in the technical table.
+- Use one shared practice builder for the opening weekly practice and final three-practice list, with the first practice reused verbatim.
+- Anchor the closing house summary to selected synthesis evidence when possible.
+- Preserve eight sections and reduce the sample ceiling from 1,550 to 1,450 words.
+- Keep aspect math/orbs, Placidus, Nodes/Lilith, transits, storage, auth, payment, SEO, public/private consent, and broad UI redesign unchanged.
+
+Verification rule:
+
+- Run the new cross-section consistency guard, synthesis-depth guard, report writer/sample/narrative guards, live aspect/report QA, copy detox, encoding, `git --no-pager diff --check`, focused TypeScript, and full `pnpm build`.
+- Apply through exact full-file writes guarded by old Git blobs and new SHA-256 hashes. Runner must not commit, tag, or push.

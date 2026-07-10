@@ -856,3 +856,14 @@ After this migration passes, resume report-completion Batch 2 on top of the cano
 5. Preserve eight sections and enforce a 1,550-word sample ceiling.
 6. Keep aspect definitions/orbs, Placidus, Nodes/Lilith, transits, storage, auth, payment, SEO, and public/private consent out of scope.
 7. Run the synthesis-depth guard plus existing report/live/copy/encoding/diff/build checks before release.
+
+## v0.1.287 cross-section consistency contract
+
+1. Derive one ordered role list from the existing synthesis plan: challenge, support, then daily-life bridge.
+2. Reuse those roles in the opening synthesis, the daily-life chapter, and the final practice summary.
+3. Keep exact angle/orb data out of the main reading and preserve it in the full technical relationship table.
+4. Generate the weekly practice and final three-practice list through one shared helper; the first practice must match verbatim.
+5. Prefer a selected-evidence active house as the closing anchor before falling back to the top active house.
+6. Preserve eight sections and enforce a 1,450-word sample ceiling.
+7. Keep calculation, aspect definitions/orbs, Placidus, Nodes/Lilith, transits, storage/auth/payment/SEO/consent, and broad UI redesign out of scope.
+8. Run the new cross-section consistency guard plus existing synthesis/report/live/copy/encoding/diff/build checks before release.

@@ -1830,3 +1830,13 @@ Product direction changed before report-completion Batch 2:
 - Opening and closing practices should come from the same synthesis plan so the report does not introduce unrelated advice at the end.
 - Keep the report at eight main sections and under the strengthened 1,550-word sample ceiling.
 - Guardrail: do not reopen aspect math/orbs, Placidus, Nodes/Lilith, transits, public/private consent, SEO, payment, or broad UI redesign in this batch.
+
+## v0.1.287 cross-section consistency layer
+
+- Report-cleanup Batch 4 is accepted as a coherence pass, not a request for more chapters or more aspect paragraphs.
+- Opening synthesis, daily-life interpretation, and final practices must use the same ordered challenge/support/daily-bridge roles.
+- The daily-life chapter should continue those three roles in practical language; exact angle/orb detail stays in the technical relationship table.
+- The first weekly practice must reappear unchanged inside the final three-practice summary, so the ending does not introduce unrelated advice.
+- The primary house in the closing summary should come from selected synthesis evidence when possible, rather than an unrelated top-house fallback.
+- Keep eight main sections and reduce the sample ceiling to 1,450 words.
+- Guardrail: do not change aspect detection/orbs, Placidus, Nodes/Lilith, transits, storage, auth, payment, SEO, consent, or broad UI structure.

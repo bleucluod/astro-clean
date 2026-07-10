@@ -384,6 +384,37 @@ function wordCount(text) {
   return text.trim().split(/\s+/u).filter(Boolean).length;
 }
 
+function assertCrossSectionConsistency(sampleId, sections, failures) {
+  const firstSection = sections.find((section) => section.id === "real-engine-first-synthesis");
+  const dailySection = sections.find((section) => section.id === "real-engine-daily-life");
+  const summarySection = sections.find((section) => section.id === "real-engine-personal-summary");
+
+  if (!firstSection || !dailySection || !summarySection) {
+    failures.push(`${sampleId}: cross-section consistency cannot be checked because a required section is missing`);
+    return;
+  }
+
+  const weeklyPracticeMatch = firstSection.body.match(/تمرین این هفته: ([^\n.]+(?:\.[^\n]*)?)(?:\n|$)/u);
+  const weeklyPractice = weeklyPracticeMatch?.[1]?.replace(/[.؟!]+$/u, "").trim();
+  if (!weeklyPractice || !summarySection.body.includes(weeklyPractice)) {
+    failures.push(`${sampleId}: final summary does not reuse the same weekly practice`);
+  }
+
+  for (const marker of ["ادامهٔ کشمکش اصلی", "ادامهٔ منبع همراه", "ادامهٔ ترجمهٔ روزمره"]) {
+    if (!dailySection.body.includes(marker)) {
+      failures.push(`${sampleId}: daily-life section missing synthesis role continuation ${marker}`);
+    }
+  }
+
+  if (dailySection.body.includes("زاویه الگو:") || dailySection.body.includes("زاویه واقعی:")) {
+    failures.push(`${sampleId}: daily-life narrative still exposes technical angle detail`);
+  }
+
+  if (!summarySection.body.includes("جمع‌بندی همان نخ آغاز گزارش را نگه می‌دارد")) {
+    failures.push(`${sampleId}: final summary does not explicitly preserve the opening thread`);
+  }
+}
+
 const failures = [];
 const metrics = [];
 
@@ -406,6 +437,8 @@ for (const sample of samples) {
   const housesCount = enriched.realEngine?.houses?.length ?? 0;
   const housesSection = sections.find((section) => section.id === "real-engine-active-houses");
 
+  assertCrossSectionConsistency(sample.id, sections, failures);
+
   if (!Array.isArray(sections) || sections.length < requiredSectionIds.length) {
     failures.push(`${sample.id}: expected at least ${requiredSectionIds.length} generated sections, got ${sections.length}`);
   }
@@ -427,7 +460,7 @@ for (const sample of samples) {
     failures.push(`${sample.id}: total generated section text is too short (${totalWords} words)`);
   }
 
-  if (totalWords > 1550) {
+  if (totalWords > 1450) {
     failures.push(`${sample.id}: main narrative is too long after synthesis depth pass (${totalWords} words)`);
   }
 
@@ -477,10 +510,8 @@ for (const sample of samples) {
     failures.push(`${sample.id}: old generic central-tension sentence is still present`);
   }
 
-  if (!sample.expectedAnyAspectWords.some((word) => combined.includes(word))) {
-    failures.push(
-      `${sample.id}: expected at least one major aspect language marker, checked: ${sample.expectedAnyAspectWords.join(", ")}`,
-    );
+  if (!["کشمکش اصلی", "منبع همراه", "ترجمهٔ روزمره"].every((word) => combined.includes(word))) {
+    failures.push(`${sample.id}: main narrative is missing one or more synthesis role labels`);
   }
 
   if (aspectCount < 3) {

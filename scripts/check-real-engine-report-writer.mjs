@@ -42,6 +42,8 @@ for (const marker of [
   "trimSentenceEnd(buildPlacementGrowthPractice",
   "!CORE_SPINE_IDS.has(chartSpine.chartRulerId)",
   "buildChartPracticeList",
+  "buildSynthesisPracticeItems",
+  "getRealEngineSynthesisRoles",
   "buildActiveHousesText",
   "buildChartRulerText",
   "buildChartSpine",
@@ -85,7 +87,7 @@ for (const forbiddenMarker of ["Halleus"]) {
 
 for (const marker of [
   "calculateRealEngineAspects(realEngine.placements)",
-  "buildAspectOverviewText(aspectHighlights, chartSpine, realEngineWithAspects)",
+  "buildAspectOverviewText(synthesisPlan, realEngineWithAspects)",
   "aspects: allAspects",
   "aspectHighlights,",
   "realEngine: realEngineWithAspects",

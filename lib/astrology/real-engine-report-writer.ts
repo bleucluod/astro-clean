@@ -26,7 +26,9 @@ import {
 } from "@/lib/astrology/real-engine-aspect-selection";
 import {
   buildRealEngineSynthesisPlan,
+  getRealEngineSynthesisRoles,
   type RealEngineSynthesisPlan,
+  type RealEngineSynthesisRole,
 } from "@/lib/astrology/real-engine-synthesis";
 import type { ReportOutputSection } from "@/types/report-output";
 
@@ -668,7 +670,7 @@ export function enrichReportWithRealEngineCopy(
   const venusText = buildOptionalPlacementText(venus, "venus");
   const marsText = buildOptionalPlacementText(mars, "mars");
   const dailyLifeSynthesisText = buildDailyLifeSynthesisThread(mercury, venus, mars);
-  const aspectText = buildAspectOverviewText(aspectHighlights, chartSpine, realEngineWithAspects);
+  const aspectText = buildAspectOverviewText(synthesisPlan, realEngineWithAspects);
   const sunAspectText = buildPlanetAspectText("sun", PLANET_COPY.sun.faName, aspectHighlights);
   const moonAspectText = buildPlanetAspectText("moon", PLANET_COPY.moon.faName, aspectHighlights);
   const mercuryAspectText = buildPlanetAspectText("mercury", PLANET_COPY.mercury.faName, aspectHighlights);
@@ -1563,18 +1565,21 @@ function buildRealEngineSummary({
   return `${displayName}این خوانش هالیوس${cityPhrase} از ${risingDescriptor} ${rising.faName} شروع می‌شود.`;
 }
 
-function buildChartSpineHumanSummary(chartSpine: ChartSpine): string {
+function buildChartSpineHumanSummary(
+  chartSpine: ChartSpine,
+  primaryHouseNumber?: number | null,
+): string {
   const rising = SIGN_COPY[chartSpine.risingSign];
   const rulerLabel = getPlanetLabel(chartSpine.chartRulerId);
   const rulerPlacement = chartSpine.chartRulerPlacement;
-  const topHouse = chartSpine.activeHouses[0]?.house.number;
+  const topHouse = primaryHouseNumber ?? chartSpine.activeHouses[0]?.house.number;
 
   if (!rulerPlacement) {
     const housePhrase = topHouse
       ? `خانه ${toPersianNumber(topHouse)}، یعنی ${HOUSE_SYNTHESIS_FIELD[topHouse]}`
       : "میدان‌های فعال چارت";
 
-    return `رایزینگ ${formatSignLabel(rising)} شیوه ورود را با کیفیت ${rising.energy} رنگ می‌زند. ${rulerLabel} حاکم چارت است، اما جایگاهش در دادهٔ این گزارش ذخیره نشده؛ بنابراین جمع‌بندی عملی از ${housePhrase} شروع می‌شود و درباره حاکم چارت ادعای اضافه نمی‌سازد.`;
+    return `جمع‌بندی همان نخ آغاز گزارش را نگه می‌دارد. رایزینگ ${formatSignLabel(rising)} شیوه ورود را با کیفیت ${rising.energy} رنگ می‌زند. ${rulerLabel} حاکم چارت است، اما جایگاهش در دادهٔ این گزارش ذخیره نشده؛ بنابراین جمع‌بندی عملی از ${housePhrase} شروع می‌شود و درباره حاکم چارت ادعای اضافه نمی‌سازد.`;
   }
 
   const rulerSign = SIGN_COPY[rulerPlacement.signId];
@@ -1585,7 +1590,7 @@ function buildChartSpineHumanSummary(chartSpine: ChartSpine): string {
     ? `خانه ${toPersianNumber(topHouse)} (${HOUSE_SYNTHESIS_FIELD[topHouse]}) پررنگ‌ترین صحنهٔ تمرین است`
     : "خانهٔ غالبی برای تمرین ثبت نشده است";
 
-  return `رایزینگ ${formatSignLabel(rising)} شیوه ورود را با کیفیت ${rising.energy} رنگ می‌زند؛ ${rulerLabel} در ${formatSignHouseLabel(rulerPlacement)} هم ${PLANET_SYNTHESIS_NEED[chartSpine.chartRulerId] ?? PLANET_COPY[chartSpine.chartRulerId]?.role ?? "ریتم تصمیم"} را با کیفیت ${rulerSign.energy} ${housePhrase} هدایت می‌کند. ${activeHousePhrase}.`;
+  return `جمع‌بندی همان نخ آغاز گزارش را نگه می‌دارد. رایزینگ ${formatSignLabel(rising)} شیوه ورود را با کیفیت ${rising.energy} رنگ می‌زند؛ ${rulerLabel} در ${formatSignHouseLabel(rulerPlacement)} هم ${PLANET_SYNTHESIS_NEED[chartSpine.chartRulerId] ?? PLANET_COPY[chartSpine.chartRulerId]?.role ?? "ریتم تصمیم"} را با کیفیت ${rulerSign.energy} ${housePhrase} هدایت می‌کند. ${activeHousePhrase}.`;
 }
 
 function buildNodeAxisSummaryPhrase(
@@ -1862,36 +1867,17 @@ function trimSentenceEnd(text: string): string {
 }
 
 function buildSynthesisWeeklyPractice(
-  _realEngine: RealEngineReportSnapshot,
+  realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
   synthesisPlan: RealEngineSynthesisPlan,
 ): string {
-  const challenge = synthesisPlan.primaryChallenge;
+  const [firstPractice] = buildSynthesisPracticeItems(
+    realEngine,
+    chartSpine,
+    synthesisPlan,
+  );
 
-  if (challenge) {
-    const firstPlanet = getPlanetLabel(challenge.firstPlanetId);
-    const secondPlanet = getPlanetLabel(challenge.secondPlanetId);
-    const firstNeed = PLANET_SYNTHESIS_NEED[challenge.firstPlanetId] ?? firstPlanet;
-    const secondNeed = PLANET_SYNTHESIS_NEED[challenge.secondPlanetId] ?? secondPlanet;
-
-    return `تمرین این هفته: وقتی ${firstPlanet} و ${secondPlanet} هم‌زمان فشار می‌سازند، «${firstNeed}» و «${secondNeed}» را در دو جمله جدا بنویس؛ بعد قدمی بردار که هیچ‌کدام را حذف نکند.`;
-  }
-
-  const support = synthesisPlan.primarySupport;
-  if (support) {
-    const firstPlanet = getPlanetLabel(support.firstPlanetId);
-    const secondPlanet = getPlanetLabel(support.secondPlanetId);
-
-    return `تمرین این هفته: یک موقعیت کوچک انتخاب کن و توان ${firstPlanet} و ${secondPlanet} را آگاهانه کنار هم به کار بگیر؛ چیزی که آسان است باید به انتخاب قابل مشاهده تبدیل شود.`;
-  }
-
-  const activeHouse = synthesisPlan.primaryHouseNumber ?? chartSpine.activeHouses[0]?.house.number;
-  if (activeHouse && HOUSE_COPY[activeHouse]) {
-    const growth = trimSentenceEnd(HOUSE_COPY[activeHouse].growth).replace(/^این است که /u, "");
-    return `تمرین این هفته: در خانه ${toPersianNumber(activeHouse)}، یعنی ${HOUSE_SYNTHESIS_FIELD[activeHouse]}، یک رفتار کوچک انتخاب کن تا ${growth}.`;
-  }
-
-  return "تمرین این هفته: یک واکنش تکراری را انتخاب کن، نیاز پشت آن را نام ببر و فقط یک قدم قابل مشاهده بردار.";
+  return `تمرین این هفته: ${firstPractice}.`;
 }
 
 function buildCorePlacementText(
@@ -2484,26 +2470,56 @@ function getPlanetAspectTone(aspect: RealEngineReportAspect): string {
 
 
 function buildAspectOverviewText(
-  aspects: RealEngineReportAspect[],
-  chartSpine?: ChartSpine,
-  realEngine?: RealEngineReportSnapshot,
+  synthesisPlan: RealEngineSynthesisPlan,
+  realEngine: RealEngineReportSnapshot,
 ) {
-  if (aspects.length === 0) {
+  const roles = getRealEngineSynthesisRoles(synthesisPlan);
+
+  if (roles.length === 0) {
     return undefined;
   }
 
-  const strongest = aspects.slice(0, 5);
-  const details = strongest.map((aspect) =>
-    buildHumanAspectNarrative(aspect, realEngine, chartSpine),
+  const details = roles.map((role) =>
+    buildSynthesisRoleContinuation(role, realEngine),
   );
 
   return [
-    "رابطه‌های سیاره‌ای اینجا به‌عنوان گفت‌وگوی درونی خوانده می‌شوند؛ فقط رابطه‌هایی آمده‌اند که به نورها، حاکم چارت، خانه‌های فعال یا مسیر رشد وصل‌ترند.",
+    "در این فصل همان رابطه‌های سیاره‌ای نخ اصلی به‌عنوان گفت‌وگوی درونی دنبال می‌شوند؛ جزئیات کامل همهٔ رابطه‌های محاسبه‌شده در جدول فنی گزارش باقی مانده است.",
     ...details,
-    buildAspectReflectionText(strongest),
+    buildAspectReflectionText(roles.map((role) => role.aspect)),
   ]
     .filter((part): part is string => Boolean(part))
     .join("\n\n");
+}
+
+function buildSynthesisRoleContinuation(
+  role: RealEngineSynthesisRole,
+  realEngine: RealEngineReportSnapshot,
+): string {
+  const aspect = role.aspect;
+  const firstLabel = getPlanetLabel(aspect.firstPlanetId);
+  const secondLabel = getPlanetLabel(aspect.secondPlanetId);
+  const first = findPlacement(realEngine, aspect.firstPlanetId);
+  const second = findPlacement(realEngine, aspect.secondPlanetId);
+  const fields = [first?.house, second?.house]
+    .filter(isReportHouseNumber)
+    .map((house) => HOUSE_SYNTHESIS_FIELD[house]);
+  const uniqueFields = Array.from(new Set(fields));
+  const fieldPhrase = uniqueFields.length > 1
+    ? ` میان ${joinPersianList(uniqueFields.map((field) => `میدان ${field}`))}`
+    : uniqueFields.length === 1
+      ? ` در میدان ${uniqueFields[0]}`
+      : "";
+
+  if (role.id === "challenge") {
+    return `ادامهٔ کشمکش اصلی: رابطهٔ ${firstLabel} و ${secondLabel}${fieldPhrase} همان فشار محوری آغاز گزارش را به انتخاب‌های روزمره می‌آورد. وقتی یکی زودتر عمل می‌کند، نیاز دیگری را پیش از تصمیم نام ببر.`;
+  }
+
+  if (role.id === "support") {
+    return `ادامهٔ منبع همراه: رابطهٔ ${firstLabel} و ${secondLabel}${fieldPhrase} راهی برای تنظیم فشار اصلی می‌سازد. یک کار کوچک که هر دو توان را به کار بگیرد، این حمایت را قابل مشاهده می‌کند.`;
+  }
+
+  return `ادامهٔ ترجمهٔ روزمره: رابطهٔ ${firstLabel} و ${secondLabel}${fieldPhrase} جایی است که نخ اصلی به گفت‌وگو، مرز یا عمل تبدیل می‌شود. تصمیم را کوتاه، روشن و قابل پیگیری نگه دار.`;
 }
 
 function buildHumanAspectNarrative(
@@ -2630,7 +2646,10 @@ function buildIntegrationText(
   synthesisPlan: RealEngineSynthesisPlan,
 ) {
   return [
-    buildChartSpineHumanSummary(chartSpine),
+    buildChartSpineHumanSummary(
+      chartSpine,
+      synthesisPlan.primaryHouseNumber,
+    ),
     buildChartPracticeList(chartSpine, realEngine, synthesisPlan),
   ]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
@@ -2642,6 +2661,23 @@ function buildChartPracticeList(
   realEngine: RealEngineReportSnapshot,
   synthesisPlan: RealEngineSynthesisPlan,
 ): string {
+  const practices = buildSynthesisPracticeItems(
+    realEngine,
+    chartSpine,
+    synthesisPlan,
+  );
+
+  return `سه تمرین کوچک این چارت: ${practices
+    .slice(0, 3)
+    .map((practice, index) => `${toPersianNumber(index + 1)}) ${practice}`)
+    .join("؛ ")}.`;
+}
+
+function buildSynthesisPracticeItems(
+  realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
+  synthesisPlan: RealEngineSynthesisPlan,
+): string[] {
   const practices: string[] = [];
   const challenge = synthesisPlan.primaryChallenge;
   const support = synthesisPlan.primarySupport;
@@ -2680,16 +2716,20 @@ function buildChartPracticeList(
     practices.push(`در خانه ${toPersianNumber(activeHouse)} فقط یک قدم بردار تا ${growth}`);
   }
 
-  if (practices.length === 0) {
-    practices.push("یک واکنش تکراری را پیش از عمل نام‌گذاری کن");
-    practices.push("یک نیاز را کوتاه و مستقیم بیان کن");
-    practices.push("یک انتخاب کوچک را به‌جای تصمیم بزرگ امتحان کن");
+  const fallbacks = [
+    "یک واکنش تکراری را پیش از عمل نام‌گذاری کن",
+    "یک نیاز را کوتاه و مستقیم بیان کن",
+    "یک انتخاب کوچک را به‌جای تصمیم بزرگ امتحان کن",
+  ];
+
+  for (const fallback of fallbacks) {
+    if (practices.length >= 3) {
+      break;
+    }
+    practices.push(fallback);
   }
 
-  return `سه تمرین کوچک این چارت: ${practices
-    .slice(0, 3)
-    .map((practice, index) => `${toPersianNumber(index + 1)}) ${practice}`)
-    .join("؛ ")}.`;
+  return Array.from(new Set(practices)).slice(0, 3);
 }
 
 function findPlacement(snapshot: RealEngineReportSnapshot, id: string) {

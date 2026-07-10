@@ -57,7 +57,10 @@ require.extensions[".ts"] = function compileTypeScript(module, filename) {
   module._compile(transpiled.outputText, filename);
 };
 
-const { buildRealEngineSynthesisPlan } = require("../lib/astrology/real-engine-synthesis.ts");
+const {
+  buildRealEngineSynthesisPlan,
+  getRealEngineSynthesisRoles,
+} = require("../lib/astrology/real-engine-synthesis.ts");
 const writerSource = fs.readFileSync("lib/astrology/real-engine-report-writer.ts", "utf8");
 const plannerSource = fs.readFileSync("lib/astrology/real-engine-synthesis.ts", "utf8");
 const sampleQaSource = fs.readFileSync("scripts/check-report-sample-qa.mjs", "utf8");
@@ -121,7 +124,16 @@ if (plan.dailyBridge?.id !== "venus-square-mars") {
 }
 
 if (plan.primaryHouseNumber !== 9) {
-  failures.push(`expected first active house as primary house, got ${plan.primaryHouseNumber}`);
+  failures.push(`expected selected evidence to anchor primary house 9, got ${plan.primaryHouseNumber}`);
+}
+
+const roles = getRealEngineSynthesisRoles(plan);
+if (roles.map((role) => role.id).join(",") !== "challenge,support,daily-bridge") {
+  failures.push(`unexpected synthesis role order: ${roles.map((role) => role.id).join(",")}`);
+}
+
+if (roles.map((role) => role.aspect.id).join(",") !== plan.evidenceAspectIds.join(",")) {
+  failures.push("role order and evidenceAspectIds diverged");
 }
 
 if (new Set(plan.evidenceAspectIds).size !== plan.evidenceAspectIds.length) {
@@ -153,6 +165,9 @@ for (const marker of [
   "buildSynthesisDailyBridgeThread",
   "buildSynthesisAspectBridge",
   "buildSynthesisWeeklyPractice",
+  "buildSynthesisPracticeItems",
+  "buildSynthesisRoleContinuation",
+  "جمع‌بندی همان نخ آغاز گزارش را نگه می‌دارد",
   "کشمکش اصلی",
   "منبع همراه",
   "ترجمهٔ روزمره",
@@ -168,6 +183,8 @@ for (const marker of [
   "primarySupport",
   "dailyBridge",
   "evidenceAspectIds",
+  "getRealEngineSynthesisRoles",
+  "selectedParticipantHouses",
   "getSynthesisRelevance",
 ]) {
   if (!plannerSource.includes(marker)) {
@@ -190,7 +207,7 @@ for (const marker of [
   "منبع همراه:",
   "ترجمهٔ روزمره:",
   "تمرین این هفته:",
-  "totalWords > 1550",
+  "totalWords > 1450",
 ]) {
   if (!sampleQaSource.includes(marker)) {
     failures.push(`sample QA missing synthesis-depth acceptance marker: ${marker}`);
@@ -219,4 +236,4 @@ console.log("Report synthesis depth check passed.");
 console.log("- primary challenge, support, and daily bridge are selected deterministically");
 console.log("- synthesis uses actual planet roles, signs, and house fields");
 console.log("- old generic tension sentence and person-specific branches are blocked");
-console.log("- report sample QA keeps the main narrative under 1550 words");
+console.log("- report sample QA keeps the main narrative under 1450 words");
