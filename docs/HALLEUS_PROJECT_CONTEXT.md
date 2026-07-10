@@ -1940,3 +1940,9 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Converted the accumulated copy-detox check into clearer scoped helpers while preserving prior account shell, dashboard/profile, reports/detail, pricing/order, and homepage/product/privacy expectations.
 - Kept UI/source, report engine, Sky Pulse calculation, auth/storage/payment/API/schema/SEO, and consent implementation unchanged.
 - Workflow failure recorded: the failed v0.1.280/v0.1.280b Sky Pulse copy attempts used unsafe Persian exact matching or large JSX replacement and caused rollback. Prevention: inspect exact target components before patching, avoid large JSX replacement runners, and keep copy guards scoped to visible-copy risks rather than implementation identifiers.
+
+## v0.1.281 homepage Sky Pulse copy detox
+- Scope: user-facing copy cleanup for the homepage Sky Pulse card only.
+- Replaced raw technical Sky Pulse labels and rendered notes with calmer user-facing language.
+- Kept Sky Pulse calculation, API response shape, transit source, report engine, auth/storage/payment/schema/SEO, and consent implementation unchanged.
+- Guardrail: do not use large JSX replacement runners for SkyPulseDateCard; future fixes must inspect the full component and make small visible-copy changes only.

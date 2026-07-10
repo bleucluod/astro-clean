@@ -85,7 +85,7 @@ export function SkyPulseDateCard() {
   const primaryAspects = interpretation?.primaryAspects.slice(0, 2) ?? [];
 
   return (
-    <section className="moon-pulse-section sky-pulse-widget" id="sky-pulse" aria-labelledby="sky-pulse-title">
+    <section className="moon-pulse-section sky-pulse-widget sky-pulse-copy-detox-marker" id="sky-pulse" aria-labelledby="sky-pulse-title">
       <div className="sky-pulse-widget-head">
         <span className="section-label">نبض آسمان امروز</span>
         <h2 id="sky-pulse-title">آسمان امروز؛ ماه، فاز ماه و ترنزیت روزانه تهران</h2>
@@ -135,7 +135,7 @@ export function SkyPulseDateCard() {
             <span>{data.dates.localTime}</span>
           </div>
           {interpretation ? (
-            <div className="sky-pulse-interpretation-panel" aria-label="خوانش ترنزیت امروز">
+            <div className="sky-pulse-interpretation-panel" aria-label="خوانش عمومی آسمان امروز">
               <div className="sky-pulse-interpretation-kicker">
                 <span>آسمان امروز</span>
                 <span>رایگان و بدون لاگین</span>
@@ -143,7 +143,7 @@ export function SkyPulseDateCard() {
               </div>
 
               <article className="sky-pulse-interpretation-card">
-                <small>ترنزیت امروز</small>
+                <small>نگاه کوتاه</small>
                 <strong>{interpretation.title}</strong>
                 <p>{interpretation.summary}</p>
               </article>
@@ -154,10 +154,10 @@ export function SkyPulseDateCard() {
               </article>
 
               {primaryAspects.length > 0 ? (
-                <div className="sky-pulse-aspect-list" aria-label="aspectهای برجسته امروز">
+                <div className="sky-pulse-aspect-list" aria-label="نکته‌های برجسته امروز">
                   {primaryAspects.map((aspect) => (
                     <article key={aspect.id}>
-                      <small>جنبه محاسبه‌شده</small>
+                      <small>نکته امروز</small>
                       <strong>{aspect.title}</strong>
                       <p>{aspect.inspiration}</p>
                       <p>{aspect.reflection}</p>
@@ -172,8 +172,8 @@ export function SkyPulseDateCard() {
               )}
 
               <div className="sky-pulse-technical-note">
-                <span>{interpretation.technicalTrustNote}</span>
-                <span>{interpretation.publicScopeNote}</span>
+                <span>این بخش یک خوانش عمومی از آسمان امروز است و جای گزارش تولد شخصی را نمی‌گیرد.</span>
+                <span>برای خوانش دقیق‌تر، گزارش تولدت را بساز.</span>
               </div>
             </div>
           ) : null}

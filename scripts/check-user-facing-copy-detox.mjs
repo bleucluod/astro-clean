@@ -169,4 +169,13 @@ assertIncludes("app/privacy/page.tsx", "privacy-copy-detox-marker", "Privacy pag
 assertExcludes("app/privacy/page.tsx", "indexable", "Privacy page still exposes indexable wording.");
 assertExcludes("app/privacy/page.tsx", "private-first", "Privacy page still exposes private-first wording.");
 
+assertIncludes("components/SkyPulseDateCard.tsx", "sky-pulse-copy-detox-marker", "Sky Pulse copy detox marker is missing.");
+assertExcludes("components/SkyPulseDateCard.tsx", "interpretation.technicalTrustNote", "Sky Pulse homepage raw technical note is still rendered.");
+assertExcludes("components/SkyPulseDateCard.tsx", "interpretation.publicScopeNote", "Sky Pulse homepage raw public scope note is still rendered.");
+assertExcludes("components/SkyPulseDateCard.tsx", "\u062c\u0646\u0628\u0647 \u0645\u062d\u0627\u0633\u0628\u0647\u200c\u0634\u062f\u0647", "Sky Pulse homepage still exposes computed-aspect wording.");
+assertExcludes("components/SkyPulseDateCard.tsx", "aspect\u0647\u0627\u06cc", "Sky Pulse homepage still exposes aspect wording.");
+assertExcludes("components/SkyPulseDateCard.tsx", "\u062a\u0631\u0646\u0632\u06cc\u062a \u0627\u0645\u0631\u0648\u0632", "Sky Pulse homepage still exposes transit wording.");
+assertExcludes("components/SkyPulseDateCard.tsx", "sky-only", "Sky Pulse homepage still exposes sky-only wording.");
+assertExcludes("components/SkyPulseDateCard.tsx", "timezone", "Sky Pulse homepage still exposes timezone wording.");
+assertExcludes("components/SkyPulseDateCard.tsx", "natal-to-transit", "Sky Pulse homepage still exposes natal-to-transit wording.");
 console.log("User-facing copy detox guard passed.");
