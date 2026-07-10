@@ -1888,3 +1888,9 @@ Fix/prevention: `v0.1.265b` adds a live-path guard for `ReportDetail`, moves the
 - Scope: guard-only sync after the v0.1.272a app-stack redesign applied but stale UI guards still required the pre-redesign dense reader grid and narrative-card markers.
 - Fix: scripts/check-report-detail-product-ui.mjs and scripts/check-report-detail-app-ui-polish.mjs now accept the simple app-stack report detail layout while still guarding the live ReportDetail route, ReportV3Experience, section anchors, stored-report-only Personal Transit, and no browser/current-location inference.
 - Prevention: future visual redesigns must update the UI guard contract in the same batch instead of preserving stale layout markers.
+
+## v0.1.273 report detail CSS-only visual cleanup
+- Scope: CSS-only cleanup after failed app-shell attempts were rolled back.
+- This batch does not rewrite ReportDetail.tsx and does not inject Persian/Unicode JSX.
+- Fixes: hides the noisy horizontal section chip toolbar, prevents the three-pillars card from sticky/frozen behavior, and hides the fourth birth-card row that corresponds to the hour-status noise in the current birth-data order.
+- No engine, transit, SEO, auth, payment, public/private consent, ReportCard, or ReportV3Experience behavior is changed.

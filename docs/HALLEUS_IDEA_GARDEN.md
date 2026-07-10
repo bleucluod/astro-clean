@@ -1735,3 +1735,8 @@ Product note: the current user-visible report detail page is `/reports/[reportId
 - Accepted: when the live report page still feels crowded or unreadable, a bigger layout correction can be shipped after smaller polish passes.
 - Scope: one readable main stack for the report, cleaner app-like navigation chips, full-width readable narrative cards, stacked technical story cards, and mobile-first Persian readability.
 - Guardrail: the redesign must stay on the live report detail surface and must not become a generic site redesign or change the public/private roadmap.
+
+## Report Detail CSS-only Visual Cleanup
+- Accepted: when full app-shell rewrites are too risky, the live report page may receive CSS-only cleanup for concrete visual blockers.
+- Scope: hide noisy section chips, stop sticky/frozen card behavior, and reduce birth-card noise without changing real report data or the live component path.
+- Guardrail: this must not become another app-shell rewrite and must not touch engine, transit, SEO, auth, payment, or public/private behavior.

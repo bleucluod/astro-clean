@@ -7565,3 +7565,51 @@ h6,
     line-height: 2.05;
   }
 }
+
+
+/* Report detail CSS-only visual cleanup v0.1.273 */
+.report-detail-section-chips {
+  display: none !important;
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
+}
+
+.report-detail-pillars-card {
+  position: static !important;
+  top: auto !important;
+}
+
+.report-detail-birth-card .report-detail-key-value-list > .report-detail-key-value:nth-child(4) {
+  display: none !important;
+}
+
+.report-detail-hero-simple {
+  align-items: stretch;
+  gap: clamp(16px, 2.4vw, 28px);
+  margin-bottom: clamp(18px, 2.6vw, 28px);
+}
+
+.report-detail-birth-card,
+.report-detail-chart-card,
+.report-detail-hero-copy-simple {
+  min-width: 0;
+}
+
+.report-detail-birth-card .report-detail-key-value-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.report-detail-birth-card .report-detail-key-value {
+  min-width: 0;
+}
+
+.report-detail-app-main-stack {
+  margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .report-detail-birth-card .report-detail-key-value-list {
+    grid-template-columns: 1fr;
+  }
+}
