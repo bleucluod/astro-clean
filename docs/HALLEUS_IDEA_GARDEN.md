@@ -1942,3 +1942,10 @@ Product and trust boundary:
 - Homepage content must reflect the real current product: birth-chart report, public Tehran Sky Pulse, private-report boundary, and the live fifteen-article Persian Wiki.
 - Do not add invented user counts, fictional products, unsupported forecasts, fake pricing states, or capabilities that are only visible in the visual mockup.
 - Keep report engine, chart calculation, auth behavior, payment, sitemap/indexing, public/private consent, and internal route policy unchanged in this visual batch.
+
+## v0.1.295 Homepage Sky Pulse compact presentation
+- The homepage Sky Pulse card must work as a quick daily glance, not as a full technical interpretation surface.
+- Keep the date, moon phase/current sign, one guidance block, one short sky-mood sentence, and at most two aspect highlights.
+- Remove public/free/login/location badges, technical trust copy, duplicated summary/sky-mood phrasing, repeated aspect paragraphs, and the secondary FAQ action from the homepage card.
+- Simplify user-facing aspect labels while leaving calculation, API response, interpretation source, Tehran scope, and non-fatalistic policy unchanged.
+- Longer technical and SEO-oriented interpretation may remain in source/data layers, but it must not dominate the homepage UI.

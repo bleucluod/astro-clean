@@ -25,12 +25,69 @@ type PulseState =
       data: null;
     };
 
+type SkyPulseAspect =
+  SkyPulsePersianInterpretationLayer["primaryAspects"][number];
+
+const ASPECT_TITLE_PREFIXES = [
+  ["هم‌نشینی ", "تمرکز میان "],
+  ["تسهیل ", "فرصت میان "],
+  ["چالش زاویه‌ای ", "کشش میان "],
+  ["هماهنگی روان ", "هماهنگی میان "],
+  ["رویارویی ", "تعادل میان "],
+] as const;
+
+function simplifyAspectTitle(title: string): string {
+  for (const [technicalPrefix, userFacingPrefix] of ASPECT_TITLE_PREFIXES) {
+    if (title.startsWith(technicalPrefix)) {
+      return `${userFacingPrefix}${title.slice(technicalPrefix.length)}`;
+    }
+  }
+
+  return title;
+}
+
+function buildCompactAspectNotes(aspects: SkyPulseAspect[]) {
+  const seenNotes = new Set<string>();
+
+  return aspects.slice(0, 2).map((aspect) => {
+    const note =
+      [aspect.reflection, aspect.avoid]
+        .map((candidate) => candidate.trim())
+        .find(
+          (candidate) =>
+            candidate.length > 0 && !seenNotes.has(candidate),
+        ) ?? null;
+
+    if (note) {
+      seenNotes.add(note);
+    }
+
+    return {
+      id: aspect.id,
+      title: simplifyAspectTitle(aspect.title),
+      note,
+    };
+  });
+}
+
+function buildCompactMood(aspects: SkyPulseAspect[]): string {
+  const leadAspect = aspects[0];
+
+  if (!leadAspect) {
+    return "امروز آسمان آرام‌تر است؛ لازم نیست برای هر نشانه معنای بزرگی بسازی.";
+  }
+
+  return `${simplifyAspectTitle(
+    leadAspect.title,
+  )} پررنگ‌تر است؛ آرام پیش برو و به تغییرهای کوچک توجه کن.`;
+}
+
 function MoonPulseLoadingCard() {
   return (
     <article className="moon-widget-state">
-      <span className="section-label">در حال خواندن آسمان امروز</span>
-      <strong>نبض روز در حال آماده شدن است</strong>
-      <p>کارت امروز از محاسبه واقعی خورشید، ماه و جنبه‌های ترنزیت روزانه تهران ساخته می‌شود.</p>
+      <span className="section-label">آسمان امروز</span>
+      <strong>خوانش امروز در حال آماده شدن است</strong>
+      <p>چند لحظه صبر کن.</p>
     </article>
   );
 }
@@ -38,15 +95,18 @@ function MoonPulseLoadingCard() {
 function MoonPulseErrorCard() {
   return (
     <article className="moon-widget-state">
-      <span className="section-label">خوانش امروز</span>
-      <strong>فعلاً نبض امروز را آرام نگه می‌داریم</strong>
-      <p>گزارش تولد همچنان در دسترس است؛ کارت روزانه را کمی بعد دوباره امتحان کن.</p>
+      <span className="section-label">آسمان امروز</span>
+      <strong>خوانش امروز فعلاً در دسترس نیست</strong>
+      <p>کمی بعد دوباره امتحان کن.</p>
     </article>
   );
 }
 
 export function SkyPulseDateCard() {
-  const [pulse, setPulse] = useState<PulseState>({ status: "loading", data: null });
+  const [pulse, setPulse] = useState<PulseState>({
+    status: "loading",
+    data: null,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -83,12 +143,18 @@ export function SkyPulseDateCard() {
   const data = pulse.data;
   const interpretation = data?.transit?.interpretation ?? null;
   const primaryAspects = interpretation?.primaryAspects.slice(0, 2) ?? [];
+  const compactAspectNotes = buildCompactAspectNotes(primaryAspects);
+  const compactMood = buildCompactMood(primaryAspects);
 
   return (
-    <section className="moon-pulse-section sky-pulse-widget sky-pulse-copy-detox-marker" id="sky-pulse" aria-labelledby="sky-pulse-title">
+    <section
+      className="moon-pulse-section sky-pulse-widget sky-pulse-copy-detox-marker"
+      id="sky-pulse"
+      aria-labelledby="sky-pulse-title"
+    >
       <div className="sky-pulse-widget-head">
         <span className="section-label">نبض آسمان امروز</span>
-        <h2 id="sky-pulse-title">آسمان امروز؛ ماه، فاز ماه و ترنزیت روزانه تهران</h2>
+        <h2 id="sky-pulse-title">ماه و حال‌وهوای امروز</h2>
       </div>
 
       {pulse.status === "loading" ? <MoonPulseLoadingCard /> : null}
@@ -98,7 +164,7 @@ export function SkyPulseDateCard() {
           <MoonPulseErrorCard />
           <article>
             <strong>گزارش تولد آماده است</strong>
-            <p>خوانش شخصی‌تر از چارت تولدت شروع می‌شود.</p>
+            <p>برای خوانش شخصی‌تر، از چارت تولدت شروع کن.</p>
           </article>
         </div>
       ) : null}
@@ -111,14 +177,18 @@ export function SkyPulseDateCard() {
 
           <div className="sky-pulse-moon-grid">
             <article>
-              <span aria-hidden="true" className="moon-phase-icon">◐</span>
+              <span aria-hidden="true" className="moon-phase-icon">
+                ◐
+              </span>
               <small>فاز ماه</small>
               <strong>{data.moon.phaseName}</strong>
               <p>{data.moon.illuminationLabel}</p>
             </article>
 
             <article>
-              <span aria-hidden="true" className="moon-now-icon">☽</span>
+              <span aria-hidden="true" className="moon-now-icon">
+                ☽
+              </span>
               <small>ماه اکنون</small>
               <strong>ماه در {data.moon.moonSignLabel}</strong>
               <p>{data.moon.moonDegree}</p>
@@ -130,60 +200,43 @@ export function SkyPulseDateCard() {
             <p>{data.guidance.description}</p>
           </div>
 
-          <div className="sky-pulse-meta">
-            <span>تنظیم با افق تهران</span>
-            <span>{data.dates.localTime}</span>
-          </div>
           {interpretation ? (
-            <div className="sky-pulse-interpretation-panel" aria-label="خوانش عمومی آسمان امروز">
-              <div className="sky-pulse-interpretation-kicker">
-                <span>آسمان امروز</span>
-                <span>رایگان و بدون لاگین</span>
-                <span>تهران / ایران</span>
-              </div>
-
-              <article className="sky-pulse-interpretation-card">
-                <small>نگاه کوتاه</small>
-                <strong>{interpretation.title}</strong>
-                <p>{interpretation.summary}</p>
-              </article>
-
+            <div
+              className="sky-pulse-interpretation-panel sky-pulse-compact-panel"
+              aria-label="خوانش کوتاه آسمان امروز"
+            >
               <article className="sky-pulse-interpretation-card soft">
-                <small>حال و هوای آسمان امروز</small>
-                <p>{interpretation.skyMood}</p>
+                <small>حال‌وهوای امروز</small>
+                <p>{compactMood}</p>
               </article>
 
-              {primaryAspects.length > 0 ? (
-                <div className="sky-pulse-aspect-list" aria-label="نکته‌های برجسته امروز">
-                  {primaryAspects.map((aspect) => (
+              {compactAspectNotes.length > 0 ? (
+                <div
+                  className="sky-pulse-aspect-list sky-pulse-compact-aspect-list"
+                  aria-label="نکته‌های امروز"
+                >
+                  {compactAspectNotes.map((aspect) => (
                     <article key={aspect.id}>
-                      <small>نکته امروز</small>
                       <strong>{aspect.title}</strong>
-                      <p>{aspect.inspiration}</p>
-                      <p>{aspect.reflection}</p>
+                      {aspect.note ? <p>{aspect.note}</p> : null}
                     </article>
                   ))}
                 </div>
               ) : (
                 <article className="sky-pulse-no-aspect-note">
-                  <small>بدون جنبه اصلی نزدیک</small>
-                  <p>امروز Halleus به‌جای ساختن ادعای مصنوعی، نبود جنبه نزدیک را هم به‌عنوان داده واقعی نشان می‌دهد.</p>
+                  <p>
+                    امروز نشانه برجسته‌ای دیده نمی‌شود؛ چیزی را بزرگ‌تر از
+                    اندازه‌اش نکن.
+                  </p>
                 </article>
               )}
-
-              <div className="sky-pulse-technical-note">
-                <span>این بخش یک خوانش عمومی از آسمان امروز است و جای گزارش تولد شخصی را نمی‌گیرد.</span>
-                <span>برای خوانش دقیق‌تر، گزارش تولدت را بساز.</span>
-              </div>
             </div>
           ) : null}
-
         </>
       ) : null}
 
       <div className="sky-pulse-widget-actions">
         <Link href="/chart">ساخت گزارش تولد</Link>
-        <Link href="#home-faq">پرسش‌های کوتاه</Link>
       </div>
     </section>
   );

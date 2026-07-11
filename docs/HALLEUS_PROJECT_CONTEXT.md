@@ -2292,3 +2292,31 @@ Checks:
 - Manual recovery then passed the homepage redesign guard, site-chrome guard, product-surface guard, encoding check, git diff check, and full production build.
 - Workflow prevention: after two failures in one batch, stop generating repair runners, reduce scope to diagnosis, use short targeted diffs, and prefer visible manual cleanup over layered finalization runners.
 - Downloadable Halleus execution artifacts must be supplied as a ZIP whose root contains only one uniquely named PowerShell runner.
+
+## v0.1.295 homepage Sky Pulse compact-copy scope
+Baseline before apply:
+- HEAD: `7035ff066519199c4a0eb3c6f750cccffbd7936b`
+- Tag: `v0.1.294-homepage-app-shell-redesign`
+- Branch: `main`
+- Working tree: clean in the latest live terminal output
+
+Scope:
+- Reduce the visible height and copy density of `components/SkyPulseDateCard.tsx` on the homepage.
+- Keep real date, moon phase, current moon sign, existing guidance data, one concise mood line, and no more than two deduplicated aspect highlights.
+- Remove technical/public-scope badges, duplicated interpretation summary, raw long-form sky mood, repeated inspiration/reflection paragraphs, technical footer copy, Tehran/time metadata row, and the secondary FAQ action from the visible card.
+- Simplify only the user-facing aspect labels; do not change Sky Pulse calculation, API response shape, interpretation source, transit math, Tehran launch scope, report transit, SEO/indexing, auth/payment/storage, or public/private consent.
+
+Files:
+- `components/SkyPulseDateCard.tsx`
+- `scripts/check-homepage-sky-pulse-compact-copy.mjs`
+- `docs/HALLEUS_IDEA_GARDEN.md`
+- `docs/HALLEUS_PROJECT_CONTEXT.md`
+
+Checks:
+- `node scripts/check-homepage-sky-pulse-compact-copy.mjs`
+- `node scripts/check-homepage-app-redesign.mjs`
+- `pnpm run check:site-chrome-minimal-ui`
+- `pnpm run check:product-surface`
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `pnpm build`
