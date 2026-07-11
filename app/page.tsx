@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { HomepageProductProof } from "@/components/HomepageProductProof";
-import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { SkyPulseDateCard } from "@/components/SkyPulseDateCard";
 import { wikiArticles, wikiCategories } from "@/lib/wiki/wiki-content";
 
@@ -51,24 +50,6 @@ const productHighlights = [
   },
 ] as const;
 
-const trustItems = [
-  {
-    number: "۰۱",
-    title: "دادهٔ واقعی تولد",
-    text: "تاریخ، ساعت و شهر تولد مبنای محاسبه‌اند؛ نه جمله‌های تصادفی یا تست شخصیتی عمومی.",
-  },
-  {
-    number: "۰۲",
-    title: "خوانش ترکیبی",
-    text: "گزارش فقط placementها را ردیف نمی‌کند و میان سیاره، نشان، خانه و جنبه ارتباط می‌سازد.",
-  },
-  {
-    number: "۰۳",
-    title: "زبان غیرقطعی",
-    text: "هالیوس الگوها و امکان‌ها را توضیح می‌دهد؛ نه سرنوشت، تشخیص یا تصمیم قطعی زندگی.",
-  },
-] as const;
-
 const featuredWikiSlugs = new Set([
   "how-to-read-birth-chart",
   "what-is-birth-chart-interpretation",
@@ -87,7 +68,12 @@ export default function Home() {
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
           <span className={styles.eyebrow}>گزارش تولد فارسی، روشن و شخصی</span>
-          <h1 id="home-title">نقشهٔ واقعی زندگی تو، بر اساس آسمان لحظهٔ تولد</h1>
+          <h1 id="home-title">
+            <span className={styles.heroTitleLine}>تو حاصل لحظه‌ای هستی که</span>
+            <span className={styles.heroTitleLine}>
+              آسمان و زمین با هم داستانی نو نوشتند.
+            </span>
+          </h1>
           <p className={styles.heroLead}>
             هالیوس داده‌های واقعی چارت تولدت را به یک گزارش فارسی و انسانی تبدیل می‌کند؛ گزارشی برای دیدن الگوهای شخصی، نیازهای احساسی، رابطه‌ها و مسیر رشد.
           </p>
@@ -237,25 +223,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.trustSection} aria-labelledby="trust-title">
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>دقت و اعتماد</span>
-            <h2 id="trust-title">ظاهر تازه، بدون کم‌کردن از مرزهای فنی و اخلاقی</h2>
-          </div>
-          <p>طراحی جدید باید محصول را روشن‌تر کند، نه اینکه با آمار و قابلیت‌های ساختگی آن را بزرگ‌تر از واقعیت نشان دهد.</p>
-        </div>
-        <div className={styles.trustGrid}>
-          {trustItems.map((item) => (
-            <article className={styles.trustCard} key={item.number}>
-              <span>{item.number}</span>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section className={styles.finalCta} aria-labelledby="final-cta-title">
         <div>
           <span className={styles.sectionKicker}>شروع از دادهٔ واقعی تو</span>
@@ -263,18 +230,19 @@ export default function Home() {
           <p>اطلاعات تولد را وارد کن، گزارش فارسی را ببین و بعد با کمک ویکی بخش‌های مختلف آن را دقیق‌تر بخوان.</p>
         </div>
         <div className={styles.finalCtaActions}>
-          <Link className={styles.primaryButton} href="/chart">
-            شروع ساخت گزارش
-          </Link>
           <Link className={styles.secondaryButton} href="/reports">
             گزارش‌های من
           </Link>
         </div>
       </section>
 
-      <div className={styles.disclaimerWrap}>
-        <SafetyDisclaimer />
-      </div>
+      <aside className={styles.homeDisclaimer} aria-labelledby="home-disclaimer-title">
+        <strong id="home-disclaimer-title">یک یادآوری آرام</strong>
+        <p>
+          خوانش‌های هالیوس برای الهام و تأمل‌اند، نه پیش‌گویی یا حکم قطعی؛ اینکه چه
+          برداشتی از آن‌ها می‌گیری و چطور از آن‌ها استفاده می‌کنی، با خودِ توست.
+        </p>
+      </aside>
     </div>
   );
 }

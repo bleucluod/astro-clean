@@ -2320,3 +2320,35 @@ Checks:
 - `pnpm run check:encoding`
 - `git --no-pager diff --check`
 - `pnpm build`
+
+## v0.1.296 homepage hero and lower-page polish scope
+Baseline before apply:
+- HEAD: `a0c786d038e30ce092c45df8eb478a644a7be6c0`
+- Tag: `v0.1.295-homepage-sky-pulse-compact-copy`
+- Branch: `main`
+- Working tree: clean in the latest live terminal output
+
+Scope:
+- Replace and resize the homepage hero headline, keeping it to two explicit desktop lines.
+- Force the dark primary CTA text and arrow to white across normal, visited, hover, and focus states.
+- Reduce homepage-only spacing beneath the fixed header and compact the hero without changing the shared App Shell.
+- Remove the homepage “دقت و اعتماد” section and its local data array.
+- Remove only the duplicate dark primary CTA from the lower final section; retain the section and the reports link.
+- Replace the shared report-style disclaimer usage on the homepage with a homepage-specific reflection note.
+- Do not change report/chart engines, Sky Pulse, APIs, auth/payment/storage, sitemap/indexing, consent rules, or shared disclaimer behavior on other pages.
+
+Files:
+- `app/page.tsx`
+- `app/home.module.css`
+- `scripts/check-homepage-hero-lower-polish.mjs`
+- `docs/HALLEUS_IDEA_GARDEN.md`
+- `docs/HALLEUS_PROJECT_CONTEXT.md`
+
+Checks:
+- `node scripts/check-homepage-hero-lower-polish.mjs`
+- `node scripts/check-homepage-app-redesign.mjs`
+- `pnpm run check:site-chrome-minimal-ui`
+- `pnpm run check:product-surface`
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `pnpm build`

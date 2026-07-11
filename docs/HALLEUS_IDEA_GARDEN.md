@@ -1949,3 +1949,11 @@ Product and trust boundary:
 - Remove public/free/login/location badges, technical trust copy, duplicated summary/sky-mood phrasing, repeated aspect paragraphs, and the secondary FAQ action from the homepage card.
 - Simplify user-facing aspect labels while leaving calculation, API response, interpretation source, Tehran scope, and non-fatalistic policy unchanged.
 - Longer technical and SEO-oriented interpretation may remain in source/data layers, but it must not dominate the homepage UI.
+
+## v0.1.296 Homepage hero and lower-page polish
+- The homepage hero should feel human and evocative rather than oversized or product-test-like.
+- Use the approved headline: «تو حاصل لحظه‌ای هستی که آسمان و زمین با هم داستانی نو نوشتند.» Present it as a restrained two-part headline on desktop.
+- Keep the main chart CTA visible with clearly white text, and reduce the empty space between the fixed header and the first homepage section.
+- Remove the “دقت و اعتماد” homepage section and the duplicate dark primary CTA from the lower “شروع از دادهٔ واقعی تو” section.
+- Keep a homepage-specific reflection note: Halleus readings are for inspiration and reflection, not prediction or a definitive ruling; interpretation and use remain with the user.
+- Do not change chart/report calculation, Sky Pulse, auth/payment/storage, sitemap/indexing, or public/private consent behavior.
