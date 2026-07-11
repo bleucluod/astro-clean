@@ -95,6 +95,7 @@ if (failures.length === 0) {
     "why-birth-city-matters",
     "birth-chart-without-birth-time",
     "how-to-read-birth-chart",
+    "what-is-birth-chart-interpretation",
   ];
 
   for (const slug of expectedSlugs) {
@@ -108,8 +109,8 @@ if (failures.length === 0) {
   );
   const uniqueSlugs = new Set(declaredSlugs);
 
-  if (declaredSlugs.length !== 8) {
-    failures.push(`Expected exactly 8 Wiki articles, found ${declaredSlugs.length}`);
+  if (declaredSlugs.length !== 9) {
+    failures.push(`Expected exactly 9 Wiki articles, found ${declaredSlugs.length}`);
   }
 
   if (uniqueSlugs.size !== declaredSlugs.length) {
@@ -140,6 +141,11 @@ if (failures.length === 0) {
     "سیاره: چه نیرویی در کار است؟",
     "یک ترتیب پیشنهادی برای خواندن چارت",
     "چارت تولد ابزار تشخیص پزشکی یا روان‌شناختی",
+    "تفسیر چارت تولد چیست؟",
+    "محاسبه می‌گوید در چارت چه چیزی وجود دارد",
+    "یک تفسیر خوب چه ویژگی‌هایی دارد؟",
+    "تفسیر زرد چه نشانه‌هایی دارد؟",
+    "هالیوس نباید برای کاربر سرنوشت قطعی بنویسد",
   ]);
 
   assertExcludes("Unknown-time product claims", content, [
@@ -170,6 +176,7 @@ if (failures.length === 0) {
 
   assertIncludes("Idea Garden", ideaGarden, [
     "v0.1.290 wiki accuracy content batch",
+    "v0.1.292 wiki birth-chart interpretation guide",
     "why-birth-time-matters",
     "why-birth-city-matters",
     "birth-chart-without-birth-time",
@@ -183,6 +190,8 @@ if (failures.length === 0) {
     "No sitemap or indexing activation",
     "v0.1.291 wiki birth-chart reading guide",
     "eight Persian Wiki articles",
+    "v0.1.292 wiki birth-chart interpretation guide",
+    "nine Persian Wiki articles",
   ]);
 }
 
@@ -195,7 +204,7 @@ if (failures.length > 0) {
 }
 
 console.log("Wiki content foundation check passed.");
-console.log("- eight Persian articles are present, including the new birth-chart reading guide");
+console.log("- nine Persian articles are present, including the new birth-chart interpretation guide");
 console.log("- Article and BreadcrumbList structured data are rendered without FAQPage overclaiming");
 console.log("- unknown birth time is explained without claiming unsupported Halleus form behavior");
 console.log("- Wiki remains noindex/follow and outside sitemap");

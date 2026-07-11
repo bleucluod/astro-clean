@@ -1900,3 +1900,20 @@ Product and trust boundary:
 - The article is educational and must not claim that Halleus currently exposes every specialist technique, degree interpretation, minor aspect, asteroid, predictive method, or deep link described as a possible future enhancement.
 - No report-engine, birth-form, astrology calculation, auth/payment/storage, sitemap, indexing, or public/private consent change is included.
 - Wiki remains `noindex/follow` and outside the sitemap until explicit indexing approval.
+
+## v0.1.292 wiki birth-chart interpretation guide
+
+Decision:
+
+- Publish `what-is-birth-chart-interpretation` as the ninth Persian Wiki article in the Birth Chart Core / foundations cluster.
+- Explain the difference between chart calculation, interpretation, and a written birth report.
+- Treat synthesis, repeated themes, chart emphasis, and transparent evidence as the standard for responsible interpretation.
+- Link only to existing live Wiki articles and the real `/chart` CTA; do not create a placeholder link for the future planet/sign/house comparison article.
+- Use the Persian brand name «هالیوس» in SEO-facing title and article copy.
+
+Product and trust boundary:
+
+- The article must reject deterministic prediction, fear-based interpretation, medical or psychological diagnosis, and unsupported certainty.
+- AI-assisted interpretation is framed as dependent on real calculation, synthesis quality, and clear limitations; output length is not treated as depth.
+- No report-engine, astrology calculation, route, CSS, sitemap, indexing, Sky Pulse, auth/payment/storage, or public/private consent change is included.
+- Wiki remains `noindex/follow` and outside the sitemap until explicit indexing approval.

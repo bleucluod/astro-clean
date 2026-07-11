@@ -2203,3 +2203,27 @@ Verification:
 - Run `node scripts/check-wiki-content-foundation.mjs`.
 - Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
 - Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.
+
+## v0.1.292 wiki birth-chart interpretation guide
+
+Baseline before apply:
+
+- HEAD: `5f70c375ef090275d101ad3d3507dc77f9596b1f`
+- Tag: `v0.1.291-wiki-birth-chart-reading-guide`
+- Branch: `main`
+- Working tree: clean in the latest live user output
+
+Scope:
+
+- Extend `lib/wiki/wiki-content.ts` from eight to nine Persian Wiki articles.
+- Publish `what-is-birth-chart-interpretation` with Persian SEO metadata, a clear calculation-versus-interpretation distinction, responsible editorial principles, warning signs for deterministic/fear-based copy, internal links to existing Wiki pages, and a restrained `/chart` CTA.
+- Add the interpretation guide to related-article paths from the birth-chart basics and chart-reading guide pages.
+- Update `scripts/check-wiki-content-foundation.mjs` to guard the ninth slug, interpretation/synthesis markers, trust language, and the continuing noindex boundary.
+- Do not add a link to the not-yet-published planet/sign/house comparison article.
+- No route, CSS, sitemap, indexing, report-engine, astrology-calculation, Sky Pulse, birth-form, auth/payment/storage, or broad UI change is included.
+
+Verification:
+
+- Run `node scripts/check-wiki-content-foundation.mjs`.
+- Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
+- Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.
