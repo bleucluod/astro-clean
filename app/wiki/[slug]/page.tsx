@@ -15,6 +15,8 @@ type WikiArticlePageProps = {
   }>;
 };
 
+const WIKI_BASE_URL = "https://halleus.ir";
+
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -40,8 +42,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${article.title} | ویکی هالیوس`,
-    description: article.summary,
+    title: article.seoTitle ?? `${article.title} | ویکی هالیوس`,
+    description: article.metaDescription ?? article.summary,
     alternates: {
       canonical: `/wiki/${article.slug}`,
     },
@@ -50,6 +52,10 @@ export async function generateMetadata({
       follow: true,
     },
   };
+}
+
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
 export default async function WikiArticlePage({ params }: WikiArticlePageProps) {
@@ -62,9 +68,67 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
 
   const category = getWikiCategory(article.categoryId);
   const relatedArticles = getRelatedWikiArticles(article);
+  const articleUrl = `${WIKI_BASE_URL}/wiki/${article.slug}`;
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.metaDescription ?? article.summary,
+    inLanguage: "fa-IR",
+    mainEntityOfPage: articleUrl,
+    author: {
+      "@type": "Organization",
+      name: "Halleus",
+      url: WIKI_BASE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Halleus",
+      url: WIKI_BASE_URL,
+    },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "ویکی هالیوس",
+        item: `${WIKI_BASE_URL}/wiki`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: category?.label ?? "مقاله",
+        item: articleUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: article.title,
+        item: articleUrl,
+      },
+    ],
+  };
+  const callToAction = article.callToAction ?? {
+    title: "تعریف وقتی واقعی می‌شود که به چارت شخصی وصل شود",
+    text: "گزارش هالیوس جایگاه‌ها، خانه‌ها و جنبه‌های واقعی چارت را کنار هم می‌گذارد تا فقط با یک تعریف عمومی روبه‌رو نباشی.",
+    label: "ساخت گزارش تولد",
+    href: "/chart",
+  };
 
   return (
     <section className={`${styles.page} ${styles.articlePage}`}>
+      <script
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleJsonLd) }}
+        type="application/ld+json"
+      />
+      <script
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+        type="application/ld+json"
+      />
+
       <nav className={styles.breadcrumb} aria-label="مسیر مقاله">
         <Link href="/wiki">ویکی هالیوس</Link>
         <span aria-hidden="true">/</span>
@@ -110,6 +174,31 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
                 ) : null}
               </section>
             ))}
+
+            {article.contextLinks?.length ? (
+              <section className={styles.bodySection} aria-labelledby="article-links-title">
+                <h2 id="article-links-title">برای ادامه بخوان</h2>
+                <div className={styles.sideLinks}>
+                  {article.contextLinks.map((link) => (
+                    <Link href={link.href} key={`${link.href}-${link.label}`}>
+                      <span>{link.label}</span>
+                      <span aria-hidden="true">←</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {article.sources?.length ? (
+              <section className={styles.bodySection} aria-labelledby="article-sources-title">
+                <h2 id="article-sources-title">منابع و مطالعهٔ بیشتر</h2>
+                <ul className={styles.bodyList}>
+                  {article.sources.map((source) => (
+                    <li key={source}>{source}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
           </div>
         </div>
 
@@ -117,13 +206,10 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
           <div className={styles.stickyAside}>
             <section className={styles.sideCard}>
               <span className={styles.sectionKicker}>در چارت خودت ببین</span>
-              <h2>تعریف وقتی واقعی می‌شود که به چارت شخصی وصل شود</h2>
-              <p>
-                گزارش هالیوس جایگاه‌ها، خانه‌ها و جنبه‌های واقعی چارت را کنار هم
-                می‌گذارد تا فقط با یک تعریف عمومی روبه‌رو نباشی.
-              </p>
-              <Link className={styles.primaryButton} href="/chart">
-                ساخت گزارش تولد
+              <h2>{callToAction.title}</h2>
+              <p>{callToAction.text}</p>
+              <Link className={styles.primaryButton} href={callToAction.href}>
+                {callToAction.label}
               </Link>
             </section>
 

@@ -2148,3 +2148,35 @@ Verification:
 - Run `node scripts/check-wiki-content-foundation.mjs`.
 - Run `pnpm run check:site-chrome-minimal-ui`, `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
 - Apply through exact full-file writes guarded against the expected HEAD Git blobs. Runner must not commit, tag, or push.
+
+## v0.1.289 Wiki runner failure ledger
+
+- Failure 1: the first Wiki foundation runner converted the Git root result into a string and then indexed it with `[0]`, reducing `C:\Projects\astro-clean` to `C` and failing before any write.
+- Failure 2: the first path repair used `git cat-file -e` for baseline-new files; PowerShell promoted the expected missing-path stderr to a terminating error before the exit code could be handled.
+- Failure 3: after the Wiki files were written, the runner called the unrelated `check:site-chrome-minimal-ui` guard, which was already red on the baseline because it expected the retired `Halleus.ir` AppShell marker.
+- Fix and prevention: use `Select-Object -First 1` for Git text output, use `git ls-tree` rather than expected-error probes for new files, and run only checks that cover the active batch. Before handing off a runner, replay the payload and inspect every check for baseline relevance; do not imply full Windows execution when PowerShell was not actually available.
+
+## v0.1.290 wiki accuracy content batch
+
+Baseline before apply:
+
+- HEAD: `f4c620506a666b732477036073d1af3d20a3cb2b`
+- Tag: `v0.1.289-wiki-content-foundation`
+- Branch: `main`
+- Working tree: clean in the latest live user output
+
+Scope:
+
+- Extend `lib/wiki/wiki-content.ts` from four to seven Persian Wiki articles and add the `accuracy` category.
+- Publish `why-birth-time-matters`, `why-birth-city-matters`, and `birth-chart-without-birth-time` with article-specific metadata, internal links, sources, and restrained chart CTAs.
+- Update `app/wiki/[slug]/page.tsx` to use optional SEO fields and render `Article` and `BreadcrumbList` structured data, contextual internal links, sources, and per-article CTA copy.
+- Update the Wiki home copy to describe the foundational and accuracy clusters without changing its responsive layout.
+- Update `scripts/check-wiki-content-foundation.mjs` to guard seven Persian Wiki articles, the three new slugs, structured data, no unsupported unknown-time product claim, and the continuing noindex boundary.
+- No sitemap or indexing activation, report engine change, birth-form capability change, auth/payment/storage change, or broad site redesign is included.
+
+Verification:
+
+- Run `node scripts/check-wiki-content-foundation.mjs`.
+- Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
+- Do not run unrelated known-red site-chrome assertions as a release gate for this content-only batch.
+- Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.

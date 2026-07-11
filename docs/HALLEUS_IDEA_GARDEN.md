@@ -1868,3 +1868,20 @@ Product boundary:
 - Do not generate thin sign-by-sign, house-by-house, city/month cohort, or public-report pages yet.
 - Do not change report visibility, consent, public/private behavior, report engine calculations, Sky Pulse, auth, payment, or storage.
 - Future Wiki expansion must preserve internal linking and connect informational articles to the personal report flow without keyword stuffing.
+
+## v0.1.290 wiki accuracy content batch
+
+Decision:
+
+- Expand the Wiki from four foundational articles to seven by publishing the first focused `Accuracy / ساعت و شهر تولد` cluster.
+- Add three user-facing Persian articles with stable slugs: `why-birth-time-matters`, `why-birth-city-matters`, and `birth-chart-without-birth-time`.
+- Keep the articles connected to the existing birth-chart, Sun/Moon/Rising, houses, and aspects pages through descriptive internal links and calm `/chart` calls to action.
+- Add article-specific SEO titles and meta descriptions plus visible sources where supplied; render `Article` and `BreadcrumbList` structured data on the real article route.
+- Do not add `FAQPage` structured data unless a future batch renders a real question-and-answer section matching that schema.
+
+Product and trust boundary:
+
+- Wiki index and article pages remain `noindex/follow` and outside the sitemap until explicit indexing approval.
+- The unknown-time article must not claim that the current Halleus form can generate a chart with no time or from a birth-time range. The current CTA is only for a user who has found a specific birth time.
+- Never present a noon placeholder, guessed city, approximate time, or rectified time as recorded fact without a visible label.
+- No report engine, birth form, Placidus, Node/Lilith/transit, storage, auth, payment, public/private consent, sitemap, or public-report SEO behavior changes in this content batch.

@@ -14,7 +14,7 @@ const failures = [];
 
 for (const filePath of requiredFiles) {
   if (!existsSync(filePath)) {
-    failures.push(`Missing required Wiki foundation file: ${filePath}`);
+    failures.push(`Missing required Wiki file: ${filePath}`);
   }
 }
 
@@ -50,6 +50,7 @@ if (failures.length === 0) {
     "wikiCategories",
     "از اینجا شروع کن",
     "نقشهٔ ویکی",
+    "دقت ساعت و شهر تولد",
     "ساخت گزارش شخصی",
     "index: false",
     "follow: true",
@@ -69,9 +70,20 @@ if (failures.length === 0) {
     "dynamicParams = false",
     "notFound()",
     "getRelatedWikiArticles",
-    'href="/chart"',
+    "article.seoTitle",
+    "article.metaDescription",
+    '"@type": "Article"',
+    '"@type": "BreadcrumbList"',
+    'type="application/ld+json"',
+    "article.contextLinks",
+    "article.sources",
+    "article.callToAction",
     "index: false",
     "follow: true",
+  ]);
+
+  assertExcludes("Wiki article template", articlePage, [
+    '"@type": "FAQPage"',
   ]);
 
   const expectedSlugs = [
@@ -79,11 +91,14 @@ if (failures.length === 0) {
     "sun-moon-rising",
     "astrology-houses",
     "major-aspects",
+    "why-birth-time-matters",
+    "why-birth-city-matters",
+    "birth-chart-without-birth-time",
   ];
 
   for (const slug of expectedSlugs) {
     if (!content.includes(`slug: "${slug}"`)) {
-      failures.push(`Wiki content missing foundational slug: ${slug}`);
+      failures.push(`Wiki content missing required slug: ${slug}`);
     }
   }
 
@@ -92,8 +107,8 @@ if (failures.length === 0) {
   );
   const uniqueSlugs = new Set(declaredSlugs);
 
-  if (declaredSlugs.length !== 4) {
-    failures.push(`Expected exactly 4 foundational Wiki articles, found ${declaredSlugs.length}`);
+  if (declaredSlugs.length !== 7) {
+    failures.push(`Expected exactly 7 Wiki articles, found ${declaredSlugs.length}`);
   }
 
   if (uniqueSlugs.size !== declaredSlugs.length) {
@@ -101,16 +116,31 @@ if (failures.length === 0) {
   }
 
   assertIncludes("Wiki content model", content, [
-    "WikiCategoryId",
-    "WikiArticleSection",
-    "wikiCategories",
-    "wikiArticles",
-    "getWikiArticle",
-    "getRelatedWikiArticles",
+    '"accuracy"',
+    "دقت ساعت و شهر تولد",
+    "WikiArticleLink",
+    "WikiArticleCallToAction",
+    "seoTitle?: string",
+    "metaDescription?: string",
+    "contextLinks?",
+    "sources?",
+    "callToAction?",
+    "چرا ساعت تولد در چارت تولد مهم است؟",
+    "چرا شهر تولد در چارت تولد مهم است؟",
+    "اگر ساعت تولدم را ندانم، چارت تولد چه می‌شود؟",
+    "فرم فعلی هالیوس برای ساخت گزارش به ساعت مشخص نیاز دارد",
+    "رایزینگ قطعی نسازد",
+    "شهر فعلی با شهر تولد یکی نیست",
     "Placidus",
     "Whole Sign",
     "orb",
     "پیش‌بینی قطعی",
+  ]);
+
+  assertExcludes("Unknown-time product claims", content, [
+    "هالیوس چارت بدون ساعت می‌سازد",
+    "هالیوس بازهٔ تولد را محاسبه می‌کند",
+    "ساعت ۱۲ ظهر را به‌عنوان ساعت واقعی وارد کن",
   ]);
 
   assertIncludes("Wiki styles", styles, [
@@ -119,6 +149,8 @@ if (failures.length === 0) {
     ".categoryGrid",
     ".articleLayout",
     ".stickyAside",
+    ".sideLinks",
+    ".bodyList",
     "@media (max-width: 720px)",
   ]);
 
@@ -128,21 +160,22 @@ if (failures.length === 0) {
   ]);
 
   if (seoConfig.includes('path: "/wiki"')) {
-    failures.push("Wiki was added to seoRoutes before keyword research/indexing approval");
+    failures.push("Wiki was added to seoRoutes before indexing approval");
   }
 
   assertIncludes("Idea Garden", ideaGarden, [
-    "v0.1.289 wiki content foundation",
-    "four foundational Persian articles",
+    "v0.1.290 wiki accuracy content batch",
+    "why-birth-time-matters",
+    "why-birth-city-matters",
+    "birth-chart-without-birth-time",
     "noindex/follow",
-    "live Persian keyword research",
   ]);
 
   assertIncludes("Project Context", projectContext, [
-    "v0.1.289 wiki content foundation",
-    "app/wiki/[slug]/page.tsx",
-    "check-wiki-content-foundation.mjs",
-    "No sitemap or public-report indexing change",
+    "v0.1.290 wiki accuracy content batch",
+    "seven Persian Wiki articles",
+    "render `Article` and `BreadcrumbList` structured data",
+    "No sitemap or indexing activation",
   ]);
 }
 
@@ -155,6 +188,7 @@ if (failures.length > 0) {
 }
 
 console.log("Wiki content foundation check passed.");
-console.log("- four foundational Persian articles are present");
-console.log("- index, article template, internal links, and report CTA are wired");
-console.log("- Wiki remains noindex/follow and outside sitemap until keyword research");
+console.log("- seven Persian articles are present, including the three accuracy guides");
+console.log("- Article and BreadcrumbList structured data are rendered without FAQPage overclaiming");
+console.log("- unknown birth time is explained without claiming unsupported Halleus form behavior");
+console.log("- Wiki remains noindex/follow and outside sitemap");
