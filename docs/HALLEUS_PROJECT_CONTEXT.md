@@ -2227,3 +2227,35 @@ Verification:
 - Run `node scripts/check-wiki-content-foundation.mjs`.
 - Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
 - Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.
+
+## v0.1.293 wiki core gap content batch
+
+Baseline before apply:
+
+- HEAD: `313daec45b6ca0757efa75fa235e0d20009206fe`
+- Tag: `v0.1.292-wiki-birth-chart-interpretation-guide`
+- Branch: `main`
+- Working tree: clean in the latest live user output
+
+Duplicate reconciliation:
+
+- The supplied files contained eight article drafts.
+- `how-to-read-birth-chart` already existed from v0.1.291.
+- `what-is-birth-chart-interpretation` already existed from v0.1.292.
+- The remaining six slugs were absent from the live nine-article inventory and are the only articles included in this batch.
+
+Scope:
+
+- Extend `lib/wiki/wiki-content.ts` from nine to fifteen Persian Wiki articles.
+- Publish `planet-sign-house-difference`, `why-sun-sign-is-not-enough`, `planets-in-birth-chart`, `what-is-moon-sign`, `what-is-rising-sign`, and `tehran-birth-chart-difference`.
+- Add article-specific Persian SEO metadata, long-form sections, internal links among live pages, and restrained `/chart` calls to action.
+- Add selected related-article paths from the existing birth-chart basics and Sun/Moon/Rising guides to the new live articles.
+- Update `scripts/check-wiki-content-foundation.mjs` to guard the fifteen-article inventory, unique slugs, unique article titles, all six new slugs, trust markers, and the continuing noindex boundary.
+- Update the Idea Garden with the duplicate-reconciliation decision and content/product boundaries.
+- No route, CSS, report engine, astrology calculation, birth form, auth/payment/storage, sitemap, indexing, Sky Pulse, or public/private consent implementation change is included.
+
+Verification:
+
+- Run `node scripts/check-wiki-content-foundation.mjs`.
+- Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
+- Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.

@@ -1917,3 +1917,21 @@ Product and trust boundary:
 - AI-assisted interpretation is framed as dependent on real calculation, synthesis quality, and clear limitations; output length is not treated as depth.
 - No report-engine, astrology calculation, route, CSS, sitemap, indexing, Sky Pulse, auth/payment/storage, or public/private consent change is included.
 - Wiki remains `noindex/follow` and outside the sitemap until explicit indexing approval.
+
+## v0.1.293 wiki core gap content batch
+
+Decision:
+
+- Reconcile the two supplied Wiki content batches against the nine live Persian articles before publishing anything.
+- Treat `how-to-read-birth-chart` and `what-is-birth-chart-interpretation` as duplicates because they were already published in v0.1.291 and v0.1.292.
+- Publish exactly six previously omitted guides in one batch: `planet-sign-house-difference`, `why-sun-sign-is-not-enough`, `planets-in-birth-chart`, `what-is-moon-sign`, `what-is-rising-sign`, and `tehran-birth-chart-difference`.
+- Extend the learning path from birth-chart basics into planets, Moon sign, Rising, city accuracy, and responsible synthesis through real internal links.
+- Keep the Persian brand spelling «هالیوس» in article metadata and visible copy.
+
+Product and trust boundary:
+
+- The Tehran article explains geographic calculation and privacy/consent; it must not imply that everyone born in one city shares a chart, Rising sign, or personality.
+- The Moon and Rising guides must preserve uncertainty when birth time is missing or near a sign boundary.
+- The planets article must not add unsupported Lilith, True/Osculating Node, prediction, or Sky Pulse claims.
+- This remains a content-only Wiki batch: no route, CSS, report engine, astrology calculation, form behavior, auth/payment/storage, sitemap, indexing, or public/private consent implementation change.
+- Wiki remains `noindex/follow` and outside the sitemap until explicit indexing approval and keyword QA.
