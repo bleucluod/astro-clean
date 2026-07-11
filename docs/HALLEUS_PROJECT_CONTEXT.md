@@ -2360,3 +2360,10 @@ Checks:
 - `check-jalali-birth-date-input.mjs` required a direct `birthDate: parsedBirthDate.gregorianIso` assignment and incorrectly forbade the single `type="date"` input used by the explicit Gregorian mode.
 - Fix: align the final-submit guard with the live fallback copy and make the birth-date guard verify the actual Jalali-to-ISO normalization, normalized-form assignment, and separate Gregorian branch.
 - Prevention: run every check intended for a batch once on the clean baseline before the first write; treat a pre-existing red guard as a separate repair batch rather than attributing it to new product code.
+
+## Failure ledger — v0.1.298 public chart shell guard alignment
+
+- Pre-write inspection for the first small `/chart` visual-shell batch found that `check-public-chart-shell-restored.mjs` was red on clean HEAD `cfcce2a73bc0983dfbea02bd7adb6d91319c3429`.
+- The committed route metadata already used `ساخت گزارش تولد | Halleus`, while the guard still required the retired marker `ساخت چارت تولد | Halleus`.
+- Fix: align only the guard marker with the committed route metadata; no route, form, auth, storage, engine, API, or visual product file changes in this repair.
+- Prevention: execute every chart check selected for a product batch on the clean baseline before the first product write.
