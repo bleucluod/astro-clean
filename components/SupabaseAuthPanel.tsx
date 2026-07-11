@@ -14,6 +14,10 @@ import type { AuthSession } from "@/types/account";
 
 type AuthMode = "sign-in" | "sign-up";
 
+type SupabaseAuthPanelProps = Readonly<{
+  compact?: boolean;
+}>;
+
 function formatUserLabel(session: AuthSession | null) {
   return session?.user.displayName || session?.user.email || "حساب هالیوس";
 }
@@ -34,7 +38,9 @@ function describeAuthError(message: string) {
   return message;
 }
 
-export function SupabaseAuthPanel() {
+export function SupabaseAuthPanel({
+  compact = false,
+}: SupabaseAuthPanelProps) {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
   const accountSaveConfig = useMemo(() => getAccountReportSaveClientConfig(), []);
   const accountReadConfig = useMemo(() => getAccountReportReadClientConfig(), []);
@@ -189,6 +195,156 @@ export function SupabaseAuthPanel() {
     } finally {
       setIsBusy(false);
     }
+  }
+
+  if (compact) {
+    if (config.canUseRealSupabaseLogin && !isReady) {
+      return (
+        <section
+          className="chart-account-compact is-loading"
+          aria-label="حساب هالیوس"
+        >
+          <span className="chart-account-greeting">
+            در حال بررسی حساب...
+          </span>
+        </section>
+      );
+    }
+
+    if (config.canUseRealSupabaseLogin && session) {
+      return (
+        <section
+          className="chart-account-compact is-signed-in"
+          aria-label="حساب هالیوس"
+        >
+          <span className="chart-account-greeting">
+            سلام، {formatUserLabel(session)}
+          </span>
+        </section>
+      );
+    }
+
+    return (
+      <section
+        className="chart-account-compact"
+        aria-labelledby="chart-account-save-note"
+      >
+        <p id="chart-account-save-note" className="chart-account-save-note">
+          با ثبت‌نام، گزارش‌هایت برای همیشه در حسابت ذخیره می‌شوند.
+        </p>
+
+        <details className="chart-account-disclosure">
+          <summary>ورود یا ثبت‌نام</summary>
+
+          <div className="chart-account-disclosure-body">
+            {!config.canUseRealSupabaseLogin ? (
+              <p className="file-hint">
+                ورود حساب در این محیط هنوز آماده نیست.
+              </p>
+            ) : null}
+
+            {config.canUseRealSupabaseLogin && isReady && !session ? (
+              <form
+                className="form-grid chart-account-form"
+                onSubmit={handleSubmit}
+              >
+                <label className="field">
+                  <span>نام کاربری</span>
+                  <input
+                    autoComplete="username"
+                    dir="ltr"
+                    minLength={3}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="halleus-name"
+                    type="text"
+                    value={username}
+                  />
+                </label>
+
+                {mode === "sign-up" ? (
+                  <label className="field">
+                    <span>شماره موبایل</span>
+                    <input
+                      autoComplete="tel"
+                      dir="ltr"
+                      inputMode="tel"
+                      onChange={(event) => setPhone(event.target.value)}
+                      placeholder="+989121234567"
+                      title="شماره موبایل را با +98 وارد کن."
+                      type="tel"
+                      value={phone}
+                    />
+                  </label>
+                ) : null}
+
+                {mode === "sign-up" ? (
+                  <label className="field">
+                    <span>ایمیل اختیاری</span>
+                    <input
+                      autoComplete="email"
+                      dir="ltr"
+                      inputMode="email"
+                      onChange={(event) =>
+                        setSecondaryEmail(event.target.value)
+                      }
+                      placeholder="برای ارتباط یا رسید، اختیاری"
+                      type="email"
+                      value={secondaryEmail}
+                    />
+                  </label>
+                ) : null}
+
+                <label className="field">
+                  <span>رمز عبور</span>
+                  <input
+                    autoComplete={
+                      mode === "sign-up"
+                        ? "new-password"
+                        : "current-password"
+                    }
+                    dir="ltr"
+                    minLength={6}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="حداقل ۶ کاراکتر"
+                    type="password"
+                    value={password}
+                  />
+                </label>
+
+                <p className="file-hint">
+                  {isSignUp
+                    ? "برای ساخت حساب، نام کاربری یکتا، شماره موبایل و رمز لازم است. ایمیل اختیاری است."
+                    : "برای ورود فقط نام کاربری و رمز لازم است."}
+                </p>
+
+                <div className="actions">
+                  <button className="button" disabled={isBusy} type="submit">
+                    {isSignUp ? "ساخت حساب و ورود" : "ورود به حساب"}
+                  </button>
+
+                  <button
+                    className="button secondary"
+                    disabled={isBusy}
+                    onClick={() =>
+                      setMode(mode === "sign-in" ? "sign-up" : "sign-in")
+                    }
+                    type="button"
+                  >
+                    {mode === "sign-in"
+                      ? "حساب ندارم؛ ثبت‌نام"
+                      : "قبلاً حساب دارم؛ ورود"}
+                  </button>
+                </div>
+              </form>
+            ) : null}
+
+            {message ? (
+              <p className="success-message">{message}</p>
+            ) : null}
+          </div>
+        </details>
+      </section>
+    );
   }
 
   return (

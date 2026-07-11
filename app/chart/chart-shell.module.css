@@ -305,3 +305,117 @@
     border-radius: 24px;
   }
 }
+
+/* v0.1.300 chart compact account */
+.formStage :global(.chart-account-compact) {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid rgba(103, 119, 187, 0.14);
+  border-radius: 20px;
+  background: rgba(248, 249, 255, 0.92);
+}
+
+.formStage :global(.chart-account-compact.is-loading),
+.formStage :global(.chart-account-compact.is-signed-in) {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+}
+
+.formStage :global(.chart-account-greeting) {
+  color: var(--halleus-ink-strong, #17213f);
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+.formStage :global(.chart-account-save-note) {
+  margin: 0;
+  color: var(--halleus-muted, #66708f);
+  font-size: 0.86rem;
+  line-height: 1.9;
+}
+
+.formStage :global(.chart-account-disclosure) {
+  margin-top: 10px;
+}
+
+.formStage :global(.chart-account-disclosure summary) {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(91, 107, 177, 0.13);
+  border-radius: 14px;
+  color: #334164;
+  background: rgba(255, 255, 255, 0.86);
+  font-size: 0.84rem;
+  font-weight: 850;
+  cursor: pointer;
+  list-style: none;
+}
+
+.formStage :global(.chart-account-disclosure summary::-webkit-details-marker) {
+  display: none;
+}
+
+.formStage :global(.chart-account-disclosure summary::after) {
+  content: "+";
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #334164;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.formStage :global(.chart-account-disclosure[open] summary::after) {
+  content: "−";
+}
+
+.formStage :global(.chart-account-disclosure-body) {
+  padding-top: 14px;
+}
+
+.formStage :global(.chart-account-form.form-grid) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.formStage :global(.chart-account-form .actions),
+.formStage :global(.chart-account-disclosure-body .success-message) {
+  grid-column: 1 / -1;
+}
+
+.formStage :global(.chart-account-disclosure-body .file-hint),
+.formStage :global(.chart-account-disclosure-body .success-message) {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .formStage :global(.chart-account-compact) {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .formStage :global(.chart-account-form.form-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  .formStage :global(.chart-account-form .actions) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formStage :global(.chart-account-form .button) {
+    width: 100%;
+  }
+}

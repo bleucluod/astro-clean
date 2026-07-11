@@ -519,23 +519,6 @@ export function ChartForm() {
             <SafetyDisclaimer compact />
           </div>
 
-          <section className="chart-inline-account-panel" aria-labelledby="chart-inline-account-title">
-            <div className="chart-inline-account-copy">
-              <span className="badge">حساب اختیاری</span>
-              <h2 id="chart-inline-account-title">می‌خواهی گزارش بعدی در حساب هم بماند؟</h2>
-              <p>
-                بدون حساب هم گزارش ساخته و نسخه local/private روی همین دستگاه باز
-                می‌شود. اگر همین‌جا وارد شوی یا ثبت‌نام کنی، مسیر ذخیره تلاش می‌کند
-                نسخه account/private/noindex را هم نگه دارد.
-              </p>
-              <p className="file-hint">
-                این پنل اختیاری است؛ پرداخت، انتشار indexable یا اجبار به ثبت‌نام
-                اضافه نمی‌کند.
-              </p>
-            </div>
-
-            <SupabaseAuthPanel />
-          </section>
 
           <form className="chart-reference-form" onSubmit={handleSubmit}>
             <div className="chart-form-fields">
@@ -814,6 +797,7 @@ export function ChartForm() {
               </div>
             ) : null}
           </form>
+          <SupabaseAuthPanel compact />
         </div>
       </div>
     </section>

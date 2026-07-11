@@ -1964,3 +1964,12 @@ Product and trust boundary:
 - Keep the visible introduction specific to chart creation: birth information, chart calculation, and the Persian report path.
 - Do not modify `ChartForm`, account/auth presentation, city selection, submit flow, report routing, storage, engine, API, payment, indexing, or consent behavior in this phase.
 - Account compaction, adjacent birth/current-residence fields, selected-city state, and the five-second toast remain separate follow-up phases after visual QA.
+
+## v0.1.300 chart account compaction — phase two
+
+- Move the optional account surface below the closed birth-data form while keeping it inside the `/chart` data-entry card.
+- Logged-out users see one short permanence note and a closed `ورود یا ثبت‌نام` disclosure; opening it reveals the existing username/password account flow.
+- Logged-in users see only `سلام، نام کاربر` on the chart page.
+- Keep the default `SupabaseAuthPanel` presentation on other routes unchanged.
+- Keep Supabase auth/session behavior, report saving, city fields, submit flow, redirects, toast behavior, storage, payment, indexing, and consent rules unchanged.
+- Adjacent birth/current-residence fields, selected-city styling, and the five-second toast remain separate follow-up phases.

@@ -2381,3 +2381,30 @@ Checks:
 - encoding
 - `git --no-pager diff --check`
 - `pnpm build`
+
+## v0.1.300 chart account compaction — phase two
+
+Scope:
+- Move the chart-only account surface from above the birth-data form to below the closed form.
+- Add an optional `compact` presentation mode to `SupabaseAuthPanel`; the default presentation remains unchanged for other routes.
+- Guest chart users see one save-permanence note and a closed login/signup disclosure.
+- Signed-in chart users see only `سلام، نام کاربر`.
+- Add isolated chart-shell CSS and a focused AST-aware guard.
+
+Failure ledger:
+- The first account-compaction runner stopped before writes because a historical username/password guard was already red on clean HEAD.
+- The attempted guard-repair runner then exposed another historical account-copy guard that was already red.
+- The second account-compaction runner stopped before writes because its probe guessed `client.auth.onAuthStateChange`; exact source inspection showed the live listener is `authClient.auth.onAuthStateChange`.
+- A read-only audit confirmed multiple historical account/dashboard/homepage guards depend on retired presentation copy or unrelated older surfaces.
+- Fix and prevention: inspect the exact committed source, patch the live TSX structure through the TypeScript AST, validate exact current auth behavior markers, and keep broad historical-guard repair outside this scoped product batch.
+
+Boundaries:
+- No auth/session method, identity normalization, Supabase credential, storage, account API, report-save, city, submit, redirect, toast, engine, payment, indexing, schema, or consent change.
+
+Checks:
+- exact live-source behavior probe
+- focused chart account-compaction guard
+- public chart shell, chart visual shell, chart product polish, real-engine bridge, final-submit, and Jalali guards
+- encoding
+- `git --no-pager diff --check`
+- `pnpm build`
