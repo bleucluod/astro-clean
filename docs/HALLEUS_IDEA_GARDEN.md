@@ -1957,3 +1957,10 @@ Product and trust boundary:
 - Remove the “دقت و اعتماد” homepage section and the duplicate dark primary CTA from the lower “شروع از دادهٔ واقعی تو” section.
 - Keep a homepage-specific reflection note: Halleus readings are for inspiration and reflection, not prediction or a definitive ruling; interpretation and use remain with the user.
 - Do not change chart/report calculation, Sky Pulse, auth/payment/storage, sitemap/indexing, or public/private consent behavior.
+
+## v0.1.299 chart page visual shell — phase one
+
+- Apply the approved soft-light Halleus visual system to `/chart` through a route-level layout and isolated CSS module.
+- Keep the visible introduction specific to chart creation: birth information, chart calculation, and the Persian report path.
+- Do not modify `ChartForm`, account/auth presentation, city selection, submit flow, report routing, storage, engine, API, payment, indexing, or consent behavior in this phase.
+- Account compaction, adjacent birth/current-residence fields, selected-city state, and the five-second toast remain separate follow-up phases after visual QA.

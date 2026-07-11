@@ -2367,3 +2367,17 @@ Checks:
 - The committed route metadata already used `ساخت گزارش تولد | Halleus`, while the guard still required the retired marker `ساخت چارت تولد | Halleus`.
 - Fix: align only the guard marker with the committed route metadata; no route, form, auth, storage, engine, API, or visual product file changes in this repair.
 - Prevention: execute every chart check selected for a product batch on the clean baseline before the first product write.
+
+## v0.1.299 chart page visual shell — phase one
+
+Scope:
+- Add `app/chart/layout.tsx` and `app/chart/chart-shell.module.css` for a chart-specific, homepage-aligned route shell.
+- Add `scripts/check-chart-page-visual-shell.mjs` to guard the phase-one boundary.
+- Keep `app/chart/page.tsx`, `components/ChartForm.tsx`, account/auth behavior, city logic, submit flow, toast behavior, storage, API, and report engine unchanged.
+
+Checks:
+- chart visual-shell guard
+- existing public chart, product polish, real-engine bridge, final-submit, and Jalali guards
+- encoding
+- `git --no-pager diff --check`
+- `pnpm build`
