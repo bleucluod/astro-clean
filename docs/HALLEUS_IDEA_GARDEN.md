@@ -1885,3 +1885,18 @@ Product and trust boundary:
 - The unknown-time article must not claim that the current Halleus form can generate a chart with no time or from a birth-time range. The current CTA is only for a user who has found a specific birth time.
 - Never present a noon placeholder, guessed city, approximate time, or rectified time as recorded fact without a visible label.
 - No report engine, birth form, Placidus, Node/Lilith/transit, storage, auth, payment, public/private consent, sitemap, or public-report SEO behavior changes in this content batch.
+
+## v0.1.291 wiki birth-chart reading guide
+
+Decision:
+
+- Publish `how-to-read-birth-chart` as the first long-form step-by-step guide in the `Birth Chart Core` cluster.
+- Teach a stable reading order: Sun/Moon/Rising, chart ruler, personal planets, houses, angles, major aspects, repeated themes, elements, and modalities.
+- Keep internal links limited to already-published Wiki pages and connect the article to the real `/chart` flow with a restrained CTA.
+- Use the Persian brand spelling «هالیوس» in SEO title and visible copy.
+
+Product and trust boundary:
+
+- The article is educational and must not claim that Halleus currently exposes every specialist technique, degree interpretation, minor aspect, asteroid, predictive method, or deep link described as a possible future enhancement.
+- No report-engine, birth-form, astrology calculation, auth/payment/storage, sitemap, indexing, or public/private consent change is included.
+- Wiki remains `noindex/follow` and outside the sitemap until explicit indexing approval.

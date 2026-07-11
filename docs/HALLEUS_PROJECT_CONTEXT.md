@@ -2180,3 +2180,26 @@ Verification:
 - Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
 - Do not run unrelated known-red site-chrome assertions as a release gate for this content-only batch.
 - Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.
+
+## v0.1.291 wiki birth-chart reading guide
+
+Baseline before apply:
+
+- HEAD: `10b923e1a63a7a8841e97f9b89d50082006fd1e5`
+- Tag: `v0.1.290-wiki-birth-data-accuracy-guides`
+- Branch: `main`
+- Working tree: clean in the latest live user output
+
+Scope:
+
+- Extend `lib/wiki/wiki-content.ts` from seven to eight Persian Wiki articles.
+- Publish `how-to-read-birth-chart` with article-specific SEO metadata, a practical ten-step reading order, internal links to the four existing foundation articles, and a restrained `/chart` CTA.
+- Add the new guide to related-article paths from the birth-chart basics and Sun/Moon/Rising pages.
+- Update `scripts/check-wiki-content-foundation.mjs` to guard the eighth slug, core reading-order markers, trust language, and the continuing noindex boundary.
+- No route, CSS, sitemap, indexing, report-engine, birth-form, auth/payment/storage, or broad UI change is included.
+
+Verification:
+
+- Run `node scripts/check-wiki-content-foundation.mjs`.
+- Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
+- Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.

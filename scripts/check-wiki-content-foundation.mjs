@@ -94,6 +94,7 @@ if (failures.length === 0) {
     "why-birth-time-matters",
     "why-birth-city-matters",
     "birth-chart-without-birth-time",
+    "how-to-read-birth-chart",
   ];
 
   for (const slug of expectedSlugs) {
@@ -107,8 +108,8 @@ if (failures.length === 0) {
   );
   const uniqueSlugs = new Set(declaredSlugs);
 
-  if (declaredSlugs.length !== 7) {
-    failures.push(`Expected exactly 7 Wiki articles, found ${declaredSlugs.length}`);
+  if (declaredSlugs.length !== 8) {
+    failures.push(`Expected exactly 8 Wiki articles, found ${declaredSlugs.length}`);
   }
 
   if (uniqueSlugs.size !== declaredSlugs.length) {
@@ -135,6 +136,10 @@ if (failures.length === 0) {
     "Whole Sign",
     "orb",
     "پیش‌بینی قطعی",
+    "چطور چارت تولد خودم را بخوانم؟",
+    "سیاره: چه نیرویی در کار است؟",
+    "یک ترتیب پیشنهادی برای خواندن چارت",
+    "چارت تولد ابزار تشخیص پزشکی یا روان‌شناختی",
   ]);
 
   assertExcludes("Unknown-time product claims", content, [
@@ -176,6 +181,8 @@ if (failures.length === 0) {
     "seven Persian Wiki articles",
     "render `Article` and `BreadcrumbList` structured data",
     "No sitemap or indexing activation",
+    "v0.1.291 wiki birth-chart reading guide",
+    "eight Persian Wiki articles",
   ]);
 }
 
@@ -188,7 +195,7 @@ if (failures.length > 0) {
 }
 
 console.log("Wiki content foundation check passed.");
-console.log("- seven Persian articles are present, including the three accuracy guides");
+console.log("- eight Persian articles are present, including the new birth-chart reading guide");
 console.log("- Article and BreadcrumbList structured data are rendered without FAQPage overclaiming");
 console.log("- unknown birth time is explained without claiming unsupported Halleus form behavior");
 console.log("- Wiki remains noindex/follow and outside sitemap");
