@@ -1935,3 +1935,10 @@ Product and trust boundary:
 - The planets article must not add unsupported Lilith, True/Osculating Node, prediction, or Sky Pulse claims.
 - This remains a content-only Wiki batch: no route, CSS, report engine, astrology calculation, form behavior, auth/payment/storage, sitemap, indexing, or public/private consent implementation change.
 - Wiki remains `noindex/follow` and outside the sitemap until explicit indexing approval and keyword QA.
+
+## v0.1.294 Homepage and App Shell visual system scope
+- The user approved the soft light Halleus direction: white surfaces, dark navy Persian typography, rounded app-like cards, and restrained blue/lilac gradients.
+- This batch establishes that direction on the shared App Shell, header/footer, and homepage before redesigning chart, report, account, and Wiki surfaces.
+- Homepage content must reflect the real current product: birth-chart report, public Tehran Sky Pulse, private-report boundary, and the live fifteen-article Persian Wiki.
+- Do not add invented user counts, fictional products, unsupported forecasts, fake pricing states, or capabilities that are only visible in the visual mockup.
+- Keep report engine, chart calculation, auth behavior, payment, sitemap/indexing, public/private consent, and internal route policy unchanged in this visual batch.

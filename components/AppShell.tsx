@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+
 import { SiteHeader } from "@/components/SiteHeader";
+
+import styles from "./app-shell.module.css";
 
 type AppShellProps = {
   children: ReactNode;
@@ -13,46 +16,60 @@ const footerLinks = [
   { href: "/pricing", label: "پلن‌ها" },
   { href: "/order", label: "سفارش دستی" },
   { href: "/reports", label: "گزارش‌ها" },
+  { href: "/wiki", label: "ویکی" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <>
+    <div className={styles.shell}>
       <SiteHeader />
+      <main className={styles.main} id="main-content">
+        {children}
+      </main>
 
-      <main id="top">{children}</main>
-
-      <a className="back-to-top-button" href="#top" aria-label="پرش به بالای صفحه">
+      <Link className={styles.backToTop} href="#main-content" aria-label="پرش به ابتدای محتوای صفحه">
         <span aria-hidden="true">↑</span>
-        <span>پرش به بالا</span>
-      </a>
+        پرش به بالا
+      </Link>
 
-      <footer className="site-footer">
-        <div className="footer-inner footer-inner-clean">
-          <div className="footer-brand-block">
-            <Image
-              src="/halleus-logo/emblem-transparent.png"
-              alt=""
-              width={32}
-              height={32}
-              className="footer-brand-logo"
-            />
-            <strong>Halleus</strong>
-            <p className="footer-note">
-              هالیوس تجربه‌ای فارسی و آرام برای ساخت و خواندن گزارش تولد است.
+      <footer className={`site-footer ${styles.footer}`}>
+        <div className={`footer-inner ${styles.footerInner}`}>
+          <div className={`footer-brand-block ${styles.footerBrandBlock}`}>
+            <Link className={styles.footerBrand} href="/" aria-label="هالیوس">
+              <Image
+                src="/halleus-logo/emblem-transparent.png"
+                alt=""
+                width={42}
+                height={42}
+                className={styles.footerLogo}
+              />
+              <span>
+                <strong>هالیوس</strong>
+                <small>Halleus.ir</small>
+              </span>
+            </Link>
+            <p className={`footer-note ${styles.footerNote}`}>
+              تجربه‌ای فارسی، آرام و دقیق برای ساخت گزارش تولد، دیدن آسمان امروز و یادگیری منطق چارت.
             </p>
           </div>
 
-          <nav className="footer-links" aria-label="دسترسی‌های سریع">
-            {footerLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="footer-link">
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <div className={styles.footerNavBlock}>
+            <span className={styles.footerNavTitle}>دسترسی سریع</span>
+            <div className={`footer-links ${styles.footerLinks}`}>
+              {footerLinks.map((link) => (
+                <Link className={`footer-link ${styles.footerLink}`} href={link.href} key={link.href}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className={styles.footerBottom}>
+          <span>© {new Date().getFullYear().toLocaleString("fa-IR")} هالیوس</span>
+          <span>برای خودشناسی نمادین، نه تصمیم‌گیری قطعی</span>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

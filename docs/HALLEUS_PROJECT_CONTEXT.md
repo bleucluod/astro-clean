@@ -2259,3 +2259,36 @@ Verification:
 - Run `node scripts/check-wiki-content-foundation.mjs`.
 - Run `pnpm run check:encoding`, `git --no-pager diff --check`, and full `pnpm build`.
 - Apply through one exact full-file runner; it must not commit, tag, push, deploy, or activate indexing.
+
+## v0.1.294 homepage + app-shell redesign scope
+Baseline before apply:
+- HEAD: `6106ad5d57d36ffa299e1659bb5bb08cccaf76b7`
+- Tag: `v0.1.293-wiki-core-gap-content-batch`
+- Branch: `main`
+- Working tree: clean in the latest live terminal output
+
+Scope:
+- Establish the approved soft-light Halleus visual language on the shared header, footer, and homepage.
+- Rebuild the homepage around real product surfaces: chart/report entry, real HomepageProductProof, real SkyPulseDateCard, the fifteen-article Wiki, privacy, and truthful trust copy.
+- Add shared app-shell design tokens through a scoped CSS module without rewriting `app/globals.css` or changing internal page behavior.
+- Preserve the existing header scroll/hide behavior, NavLinks, public route discoverability, and site-chrome guard contracts.
+- Do not change report calculation, report data contracts, chart form behavior, storage/auth/payment, sitemap/robots/indexing, Sky Pulse calculation, or public/private consent.
+
+Checks:
+- `node scripts/check-homepage-app-redesign.mjs`
+- `pnpm run check:site-chrome-minimal-ui`
+- `pnpm run check:product-surface`
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `pnpm build`
+
+## v0.1.294 workflow failure ledger
+- The initial v0.1.294 homepage and App Shell redesign runner applied its intended payload successfully and passed the homepage guard, site-chrome guard, product-surface guard, encoding check, diff check, and production build.
+- Repair runner v0.1.294a stopped before writing because its expected SHA-256 baseline for components/SkyPulseDateCard.tsx did not match the live file. Prevention: derive repair baselines from exact uploaded live source and stop on any stale hash.
+- Repair runner v0.1.294b failed during PowerShell parsing because interpolated variables were followed directly by a colon. Prevention: use format strings or delimited variable references and syntax-check PowerShell runners before delivery.
+- Finalization runners v1 and v2 produced false failures by comparing full authority documents through PowerShell-sensitive line-ending and encoding paths. Prevention: do not perform whole-file Persian document comparisons through PowerShell text capture.
+- Finalization runner v3 failed before cleanup because a multiline JavaScript program passed through node -e lost required quoting in native PowerShell argument handling. Prevention: pass JavaScript through stdin or a verified temporary script rather than nested node -e quoting.
+- All failed runners stopped before product rewrites or cleanup. Temporary artifacts were manually backed up to the system Temp directory and removed from the repository working tree.
+- Manual recovery then passed the homepage redesign guard, site-chrome guard, product-surface guard, encoding check, git diff check, and full production build.
+- Workflow prevention: after two failures in one batch, stop generating repair runners, reduce scope to diagnosis, use short targeted diffs, and prefer visible manual cleanup over layered finalization runners.
+- Downloadable Halleus execution artifacts must be supplied as a ZIP whose root contains only one uniquely named PowerShell runner.
