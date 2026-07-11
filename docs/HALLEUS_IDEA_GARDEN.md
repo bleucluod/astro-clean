@@ -1973,3 +1973,11 @@ Product and trust boundary:
 - Keep the default `SupabaseAuthPanel` presentation on other routes unchanged.
 - Keep Supabase auth/session behavior, report saving, city fields, submit flow, redirects, toast behavior, storage, payment, indexing, and consent rules unchanged.
 - Adjacent birth/current-residence fields, selected-city styling, and the five-second toast remain separate follow-up phases.
+
+## v0.1.301 chart city pair UX
+
+- Keep birth city and current residence visually adjacent on desktop and stacked on mobile.
+- Explain that current residence is used for daily transit calculation.
+- Give the selected city suggestion a clear visual state and `aria-pressed` semantics.
+- Preserve the existing Iran city source, normalization, validation, coordinates, timezone, submit payload, and personal-transit bridge.
+- Keep the five-second submit/result toast as a separate follow-up phase.

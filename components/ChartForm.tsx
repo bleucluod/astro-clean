@@ -130,7 +130,7 @@ function makeFaLabel(codes: number[]) {
 const CURRENT_RESIDENCE_LABEL = makeFaLabel([1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
 const CURRENT_RESIDENCE_PLACEHOLDER = makeFaLabel([1606,1575,1605,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,1740,1583]);
 const CURRENT_RESIDENCE_SUGGESTIONS_LABEL = makeFaLabel([1662,1740,1588,1606,1607,1575,1583,1607,1575,1740,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
-const CURRENT_RESIDENCE_HINT = makeFaLabel([1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,32,1608,32,1575,1586,32,1662,1740,1588,1606,1607,1575,1583,1607,1575,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
+const CURRENT_RESIDENCE_HINT = makeFaLabel([1576,1585,1575,1740,32,1605,1581,1575,1587,1576,1607,8204,1740,32,1578,1585,1606,1586,1740,1578,32,1585,1608,1586,1575,1606,1607,1548,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,32,1608,32,1575,1586,32,1662,1740,1588,1606,1607,1575,1583,1607,1575,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
 const CURRENT_RESIDENCE_NOT_FOUND_MESSAGE = makeFaLabel([1601,1593,1604,1575,1611,32,1575,1740,1606,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1583,1585,32,1601,1607,1585,1587,1578,32,1575,1740,1585,1575,1606,32,1662,1740,1583,1575,32,1606,1588,1583,46]);
 const CURRENT_RESIDENCE_REQUIRED_MESSAGE = makeFaLabel([1576,1585,1575,1740,32,1570,1587,1605,1575,1606,32,1575,1605,1585,1608,1586,1548,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1607,1605,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
 
@@ -148,6 +148,22 @@ function isGregorianDateInput(value: string) {
 
 function normalizeCitySearch(value: string) {
   return value.trim().toLocaleLowerCase("fa-IR");
+}
+function isSelectedCityValue(
+  value: string,
+  city: IranCityOption,
+) {
+  const normalizedValue = normalizeCitySearch(value);
+
+  if (!normalizedValue) {
+    return false;
+  }
+
+  return (
+    normalizedValue === normalizeCitySearch(city.faName) ||
+    normalizedValue ===
+      normalizeCitySearch(getIranCityDisplayName(city))
+  );
 }
 
 function notifyLocalDataChanged() {
@@ -687,7 +703,7 @@ export function ChartForm() {
                 ) : null}
               </div>
 
-              <div className="chart-field chart-field-full chart-city-field">
+              <div className="chart-field chart-city-field chart-city-card">
                 <label className="chart-city-label">
                   <span className="chart-field-label">
                     <span aria-hidden="true">⌖</span>
@@ -721,15 +737,17 @@ export function ChartForm() {
                       type="button"
                       className="city-suggestion-chip"
                       onClick={() => updateField("birthCity", city.faName)}
+                      data-selected={isSelectedCityValue(form.birthCity, city)}
+                      aria-pressed={isSelectedCityValue(form.birthCity, city)}
                     >
                       {getIranCityDisplayName(city)}
                     </button>
                   ))}
                 </div>
               </div>
-            </div>
 
-            <label className="form-field">
+            <div className="chart-field chart-city-field chart-city-card">
+            <label className="chart-city-label">
               <span>{CURRENT_RESIDENCE_LABEL}</span>
               <input
                 value={currentResidenceCity}
@@ -737,7 +755,7 @@ export function ChartForm() {
                 placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
                 aria-describedby="current-residence-city-hint"
               />
-              <small id="current-residence-city-hint">
+              <small id="current-residence-city-hint" className="field-hint">
                 {CURRENT_RESIDENCE_HINT}
               </small>
             </label>
@@ -755,10 +773,19 @@ export function ChartForm() {
                   key={city.id}
                   type="button"
                   onClick={() => updateCurrentResidenceCity(city.faName)}
+                  className="city-suggestion-chip"
+                  data-selected={
+                    isSelectedCityValue(currentResidenceCity, city)
+                  }
+                  aria-pressed={
+                    isSelectedCityValue(currentResidenceCity, city)
+                  }
                 >
                   {getIranCityDisplayName(city)}
                 </button>
               ))}
+            </div>
+            </div>
             </div>
 
             <div className="chart-form-actions">

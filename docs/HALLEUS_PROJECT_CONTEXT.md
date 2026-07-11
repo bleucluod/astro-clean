@@ -2408,3 +2408,23 @@ Checks:
 - encoding
 - `git --no-pager diff --check`
 - `pnpm build`
+
+## v0.1.301 chart city pair UX
+
+Scope:
+- Move the existing current-residence field and suggestion list into the live `chart-form-fields` grid beside birth city.
+- Keep both city cards equal-width on desktop and stacked on mobile.
+- Update the current-residence hint to explicitly mention daily transit calculation.
+- Add selected-state styling and `aria-pressed` to both city suggestion lists.
+
+Boundaries:
+- No city source, search algorithm, city validation, coordinates, timezone, normalized report input, API payload, account UI, submit, redirect, toast, report engine, storage, payment, indexing, schema, or consent change.
+
+Checks:
+- exact live-source city probe
+- focused AST-aware chart city UX guard
+- current-residence personal-transit bridge
+- existing account-compaction, chart shell, product, final-submit, real-engine bridge, and Jalali guards
+- encoding
+- `git --no-pager diff --check`
+- `pnpm build`

@@ -419,3 +419,55 @@
     width: 100%;
   }
 }
+
+/* v0.1.301 chart city pair UX */
+.formStage :global(.chart-form-fields) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.formStage :global(.chart-city-card) {
+  min-width: 0;
+  grid-column: span 1;
+  align-self: start;
+}
+
+.formStage :global(.chart-city-card .chart-city-label) {
+  display: grid;
+  gap: 8px;
+}
+
+.formStage :global(.chart-city-card .field-hint) {
+  min-height: 3.8em;
+}
+
+.formStage :global(.chart-city-card .city-suggestion-chips) {
+  align-content: start;
+}
+
+.formStage :global(.city-suggestion-chip[data-selected="true"]) {
+  border-color: rgba(64, 78, 151, 0.82);
+  color: #ffffff;
+  background: linear-gradient(135deg, #344574 0%, #6570aa 100%);
+  box-shadow: 0 8px 18px rgba(50, 65, 126, 0.2);
+  transform: translateY(-1px);
+}
+
+.formStage :global(.city-suggestion-chip[data-selected="true"]:hover) {
+  color: #ffffff;
+  background: linear-gradient(135deg, #2f406e 0%, #59669f 100%);
+}
+
+@media (max-width: 760px) {
+  .formStage :global(.chart-form-fields) {
+    grid-template-columns: 1fr;
+  }
+
+  .formStage :global(.chart-city-card) {
+    grid-column: 1 / -1;
+  }
+
+  .formStage :global(.chart-city-card .field-hint) {
+    min-height: 0;
+  }
+}
