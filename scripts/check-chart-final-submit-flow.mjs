@@ -1,10 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 
 const failures = [];
+
 const chartForm = readFileSync("components/ChartForm.tsx", "utf8");
 const chartPage = readFileSync("app/chart/page.tsx", "utf8");
 const css = readFileSync("app/globals.css", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
 
 const requiredChartMarkers = [
@@ -15,7 +17,7 @@ const requiredChartMarkers = [
   "router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`)",
   "router.push(`/reports/${saveResult.localRecord.id}`)",
   "buildReportSaveFallbackMessage",
-  "ذخیره آنلاین موقتاً پاسخ نداد",
+  "ذخیره حساب یا لینک noindex موقتاً پاسخ نداد",
   "disabled={isRealEngineLoading}",
   "IRAN_CITY_OPTIONS",
   "findIranCityByName",
@@ -69,7 +71,9 @@ const forbiddenChartMarkers = [
 
 for (const marker of forbiddenChartMarkers) {
   if (chartForm.includes(marker)) {
-    failures.push(`Chart final submit flow still has preview/debug/stale marker: ${marker}`);
+    failures.push(
+      `Chart final submit flow still has preview/debug/stale marker: ${marker}`,
+    );
   }
 }
 

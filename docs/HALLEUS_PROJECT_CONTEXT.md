@@ -2352,3 +2352,11 @@ Checks:
 - `pnpm run check:encoding`
 - `git --no-pager diff --check`
 - `pnpm build`
+
+## Failure ledger — v0.1.297 baseline chart guard repair
+
+- Baseline audit on clean HEAD `269e2aa0dcd9ce6ae6d59d9a59f5e58f01e827be` proved that two chart guards were already failing before the `/chart` redesign batch wrote product files.
+- `check-chart-final-submit-flow.mjs` required the retired fallback copy `ذخیره آنلاین موقتاً پاسخ نداد`, while the committed chart form already used the account/noindex fallback copy.
+- `check-jalali-birth-date-input.mjs` required a direct `birthDate: parsedBirthDate.gregorianIso` assignment and incorrectly forbade the single `type="date"` input used by the explicit Gregorian mode.
+- Fix: align the final-submit guard with the live fallback copy and make the birth-date guard verify the actual Jalali-to-ISO normalization, normalized-form assignment, and separate Gregorian branch.
+- Prevention: run every check intended for a batch once on the clean baseline before the first write; treat a pre-existing red guard as a separate repair batch rather than attributing it to new product code.
