@@ -138,3 +138,37 @@ Search Console and indexing remain blocked until all of these are complete:
 - basic external uptime monitoring.
 
 Cloudflare Proxy must remain off during this phase. Render remains only a temporary fallback until VPS deploy and rollback are proven.
+
+
+## VPS final Nginx and operations cleanup (v0.1.303)
+
+The live release layout was verified before this cleanup:
+
+```text
+current=/srv/halleus/releases/v0.1.302-vps-release-workflow-foundation-75fcdefaaa9a
+previous=/srv/halleus/source
+```
+
+The final Nginx cleanup:
+
+- added explicit HTTP and HTTPS default-server catch-all blocks;
+- returns HTTP 421 for unknown hostnames instead of serving the default page or Halleus;
+- disabled only the exact `/etc/nginx/sites-enabled/default` symlink while preserving the package reference file in `sites-available`;
+- removed the temporary `X-Halleus-Proxy` response header;
+- hides the upstream `X-Powered-By` response header;
+- preserved apex and `www` routing, ACME webroot renewal, TLS, dotfile protection, encoded-backslash protection, and observed fake Next-Action protection.
+
+A root-only operational backup was created at:
+
+```text
+/var/backups/halleus/v0.1.303a
+```
+
+It contains the pre-cleanup Nginx site, systemd unit, default-site link metadata, release metadata, environment-file metadata with values redacted, hashes, and the closure audit. It does not contain SSH private keys or production environment values.
+
+The external closure tasks are intentionally not marked complete from inside the VPS:
+
+- confirm a provider-level VPS snapshot in the hosting control panel;
+- configure an external uptime monitor for the homepage and one API endpoint.
+
+Search Console, indexing work, Cloudflare Proxy, and Render removal remain outside this operations batch.

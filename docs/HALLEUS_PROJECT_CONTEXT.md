@@ -2464,3 +2464,42 @@ Failure ledger:
 
 - The first v0.1.302 apply runner treated the Windows/WSL bash.exe launcher as a usable Bash installation because `Get-Command bash.exe` succeeded. The launcher then failed with `execvpe(/bin/bash) failed: No such file or directory`; the batch restored all local project changes and did not reach the VPS.
 - Fix and prevention: Only explicit Git Bash paths are accepted and probed before local bash -n. If Git Bash is unavailable, the optional local syntax check is skipped, while `/bin/bash -n` remains mandatory on Ubuntu before live bootstrap.
+
+
+## v0.1.303 VPS Nginx final cleanup and operations closure
+
+Verified live state entering this batch:
+
+- local HEAD/tag: `75fcdefaaa9abcf85e0110077c8d6a7709bd4b52` / `v0.1.302-vps-release-workflow-foundation`;
+- live `current` points to the exact v0.1.302 release and `previous` points to preserved `/srv/halleus/source`;
+- deploy, real rollback, re-activation, reboot, auto-start, ACME, routes, resources, and journals passed;
+- active Nginx pre-cleanup hash was `6c850bfb824237174acd5eb4f709c3b578fffb905f052ed2c9df77ebf033efff`;
+- the Ubuntu package default site was still enabled, unknown HTTP hosts received the default page, unknown HTTPS hosts reached Halleus, and temporary diagnostic headers remained public.
+
+v0.1.303 scope:
+
+- add explicit HTTP/HTTPS default-server catch-all handling for unknown hosts;
+- disable only the exact package default-site symlink;
+- remove `X-Halleus-Proxy` and hide upstream `X-Powered-By`;
+- preserve named Halleus hosts, HTTPS, ACME, scanner hardening, release layout, systemd, env values, SSH, DNS, SSL files, UFW, and product code;
+- create a root-only operations backup and closure audit under `/var/backups/halleus/v0.1.303a`;
+- update deployment and recovery documentation after public and local smoke tests pass.
+
+Checks:
+
+- Nginx candidate hash and `nginx -t`;
+- unknown-host HTTP/HTTPS return 421;
+- apex, `www`, redirects, Wiki, Chart, robots, sitemap, Sky Pulse, chart validation, ACME, SSL, services, ports, UFW, logrotate, journal, release links, and response-header cleanup;
+- `pnpm run check:vps-release-workflow`;
+- `pnpm run check:encoding`;
+- `git --no-pager diff --check`;
+- `pnpm build`.
+
+Remaining human confirmations before declaring the entire VPS work fully closed:
+
+- provider-level snapshot confirmed in the hosting panel;
+- external uptime monitoring confirmed for `https://halleus.ir/` and a stable API endpoint.
+
+Do not claim those two external controls are complete without direct evidence. Search Console/indexing and Cloudflare Proxy remain blocked until the VPS closure commit is pushed and these external confirmations are recorded.
+
+- The first v0.1.303 Nginx cleanup attempt exposed a graceful-reload readiness race: `systemctl reload nginx.service` succeeded, but the immediate unknown-host request was still served by an old worker and returned HTTP 200. The EXIT trap restored the exact Nginx hash and default-site symlink; release health remained intact. v0.1.303a keeps the same candidate and adds bounded HTTP/HTTPS readiness polling with fresh connections after apply and rollback.

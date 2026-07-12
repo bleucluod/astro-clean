@@ -128,3 +128,53 @@ Fix and prevention:
 - require `/bin/bash -n` again on the Ubuntu VPS before the later bootstrap changes any live file;
 - stop and rollback on any real syntax failure;
 - do not install or modify WSL merely to satisfy a local optional check.
+
+
+## 2026-07-12 — Nginx reload readiness race during first v0.1.303 attempt
+
+The first v0.1.303 cleanup attempt wrote the verified candidate, removed the package default-site symlink, passed `nginx -t`, and successfully requested an Nginx reload. It then tested the unknown HTTP hostname immediately after `systemctl reload nginx.service` and received HTTP 200 instead of the intended HTTP 421.
+
+The remote EXIT trap restored the exact pre-cleanup state. Live diagnosis then confirmed:
+
+- `/etc/nginx/sites-available/halleus` returned to SHA-256 `6c850bfb824237174acd5eb4f709c3b578fffb905f052ed2c9df77ebf033efff`;
+- `/etc/nginx/sites-enabled/default` again pointed to `/etc/nginx/sites-available/default`;
+- Nginx remained active with `NRestarts=0`;
+- the release symlinks and Halleus service remained healthy;
+- the apply reload and automatic rollback reload were both recorded at `2026-07-12 12:14:54 UTC`.
+
+Root cause: the runner treated a successful Nginx reload request as if every old worker had already stopped accepting connections. Nginx reload is graceful, so a request issued immediately afterward can still be served by an old worker using the previous configuration.
+
+Fix and prevention:
+
+- preserve the same verified Nginx candidate and rollback scope;
+- use bounded polling after reload for both HTTP and HTTPS unknown-host behavior;
+- force a fresh connection on each probe with `Connection: close`;
+- fail and restore only after the bounded readiness window expires;
+- use the same bounded readiness verification after rollback;
+- store the successful retry backup under `/var/backups/halleus/v0.1.303a`, leaving the failed-attempt backup evidence untouched.
+
+
+## v0.1.303 Nginx and operations rollback anchor
+
+The pre-cleanup Nginx and operations backup is stored at:
+
+```text
+/var/backups/halleus/v0.1.303a
+```
+
+Recovery facts:
+
+- `nginx-halleus.before-v0.1.303` is the exact pre-cleanup Halleus site config;
+- `default-site-link-target.txt` records whether the package default-site symlink was enabled and its exact target;
+- `halleus.service` is a backup of the active versioned systemd unit;
+- `release-status.txt` records `current` and `previous` at cleanup time;
+- `env-metadata-redacted.txt` contains only file metadata and variable names, never values;
+- `closure-audit.txt` records the verified post-cleanup state.
+
+The release rollback path remains:
+
+```text
+sudo bash /srv/halleus/current/ops/vps/halleus-release.sh rollback
+```
+
+Do not replace the production environment file from chat output or backup metadata. Do not restore the Ubuntu package default site without also restoring and testing the pre-cleanup Nginx configuration. Always run `nginx -t` before reload.
