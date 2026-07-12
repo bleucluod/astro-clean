@@ -48,7 +48,7 @@ export async function generateMetadata({
       canonical: `/wiki/${article.slug}`,
     },
     robots: {
-      index: false,
+      index: true,
       follow: true,
     },
   };

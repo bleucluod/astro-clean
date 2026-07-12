@@ -52,7 +52,7 @@ if (failures.length === 0) {
     "نقشهٔ ویکی",
     "دقت ساعت و شهر تولد",
     "ساخت گزارش شخصی",
-    "index: false",
+    "index: true",
     "follow: true",
   ]);
 
@@ -79,6 +79,8 @@ if (failures.length === 0) {
     "article.sources",
     "article.callToAction",
     "index: false",
+    "follow: false",
+    "index: true",
     "follow: true",
   ]);
 
@@ -225,8 +227,12 @@ if (failures.length === 0) {
     'label: "ویکی"',
   ]);
 
-  if (seoConfig.includes('path: "/wiki"')) {
-    failures.push("Wiki was added to seoRoutes before indexing approval");
+  if (!seoConfig.includes('path: "/wiki"')) {
+    failures.push("Wiki is missing from seoRoutes after indexing approval");
+  }
+
+  if (seoConfig.includes('path: "/reports"')) {
+    failures.push("Reports remain in seoRoutes while report indexing is deferred");
   }
 
   assertIncludes("Idea Garden", ideaGarden, [
@@ -236,7 +242,7 @@ if (failures.length === 0) {
     "why-birth-time-matters",
     "why-birth-city-matters",
     "birth-chart-without-birth-time",
-    "noindex/follow",
+    "v0.1.304 Wiki-first SEO indexability decision",
   ]);
 
   assertIncludes("Project Context", projectContext, [
@@ -265,4 +271,4 @@ console.log("Wiki content foundation check passed.");
 console.log("- fifteen Persian articles are present, including all six previously omitted core guides");
 console.log("- Article and BreadcrumbList structured data are rendered without FAQPage overclaiming");
 console.log("- unknown birth time is explained without claiming unsupported Halleus form behavior");
-console.log("- Wiki remains noindex/follow and outside sitemap");
+console.log("- Wiki is index/follow and included in sitemap");

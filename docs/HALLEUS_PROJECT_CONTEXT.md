@@ -2503,3 +2503,40 @@ Remaining human confirmations before declaring the entire VPS work fully closed:
 Do not claim those two external controls are complete without direct evidence. Search Console/indexing and Cloudflare Proxy remain blocked until the VPS closure commit is pushed and these external confirmations are recorded.
 
 - The first v0.1.303 Nginx cleanup attempt exposed a graceful-reload readiness race: `systemctl reload nginx.service` succeeded, but the immediate unknown-host request was still served by an old worker and returned HTTP 200. The EXIT trap restored the exact Nginx hash and default-site symlink; release health remained intact. v0.1.303a keeps the same candidate and adds bounded HTTP/HTTPS readiness polling with fresh connections after apply and rollback.
+
+## v0.1.304f Wiki-first SEO core
+
+Baseline:
+
+- HEAD: `6ed336608eb8ef3cc19cb955315a5c3f3b1f3710`.
+- Tag: `v0.1.303-vps-nginx-ops-closure`.
+- Tracked working tree was clean; only failed v0.1.304 runner artifacts were untracked.
+- The uploaded `git archive` snapshot was normalized to LF for patch construction, and `lib/config/seo.ts` then reproduced the exact live HEAD blob `4fc6889280dfb27b92a3a4d317778a6f010d604d`.
+
+Scope:
+
+- Remove the root-level `/` canonical so child routes do not inherit the homepage canonical; keep the homepage self-canonical.
+- Change `/wiki` and valid `/wiki/*` articles to `index/follow`; preserve missing-article `noindex/nofollow`.
+- Replace `/reports` with `/wiki` in the public route matrix.
+- Generate all current Wiki article URLs from `wikiArticles` in `sitemap.xml`.
+- Add report-family and reports-index `noindex/nofollow` metadata.
+- Align the historical Wiki guard, add a focused SEO guard, and wire it into `check:project`.
+- Keep all report indexing deferred.
+
+Failure ledger and prevention:
+
+- v0.1.304a failed during PowerShell parsing because a variable interpolation was followed directly by a colon.
+- v0.1.304b used a regex mutation that did not match the exact live `/reports` entry.
+- v0.1.304c read `$LASTEXITCODE` after a PowerShell pipeline changed the successful Git exit code.
+- v0.1.304d used a full-file baseline comparison that failed despite equivalent live Git content.
+- v0.1.304e generated trailing whitespace in the historical Wiki guard; `git --no-pager diff --check` caught it and rollback restored all targets.
+- Patch-first workflow: v0.1.304f contains one prebuilt unified Git patch. The runner performs `git apply --check` before the first project write and then applies the exact patch without regex, runtime code generation, full-file comparison, or line-by-line mutation.
+- Prevention: build the patch from the exact tracked snapshot; the guarded runner must run syntax and focused guards, encoding, `git --no-pager diff --check`, and a production build, and must reverse the patch if any check fails.
+
+Still open after this batch:
+
+- explicit noindex layouts for non-report internal/account route families;
+- commit/tag/push;
+- controlled VPS deploy;
+- live canonical, robots, and sitemap verification;
+- Search Console verification and sitemap submission.

@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/reports",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 type ReportsPageProps = {

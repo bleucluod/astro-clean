@@ -1981,3 +1981,23 @@ Product and trust boundary:
 - Give the selected city suggestion a clear visual state and `aria-pressed` semantics.
 - Preserve the existing Iran city source, normalization, validation, coordinates, timezone, submit payload, and personal-transit bridge.
 - Keep the five-second submit/result toast as a separate follow-up phase.
+
+## v0.1.304 Wiki-first SEO indexability decision
+
+Decision:
+
+- This decision supersedes the temporary Wiki `noindex/follow` hold recorded in v0.1.290-v0.1.293.
+- `/wiki` and every valid `/wiki/*` article are now approved as public, self-canonical, `index/follow` content surfaces.
+- The Wiki index and all current Wiki article slugs belong in the generated sitemap.
+- Wiki and the content of the main public site pages are the active organic-acquisition surfaces for this phase.
+- All report routes remain noindex in the current SEO phase, including free, stored, shareable, or potentially public report paths.
+- Report indexing remains deferred until report depth is materially stronger and the user explicitly reopens that product decision.
+- The earlier free/public-report SEO model remains in the Idea Garden as a deferred future model, not current implementation policy.
+- Missing Wiki article responses remain `noindex/nofollow`.
+- Search Console verification and sitemap submission wait until this foundation is committed, deployed, and verified on the live domain.
+
+Reduced-scope boundary:
+
+- This milestone changes only root canonical inheritance, Wiki metadata, report-route noindex, sitemap generation, and executable guards.
+- Explicit noindex layouts for non-report internal/account route families remain a separate follow-up batch.
+- No article rewrite, report-engine change, consent implementation, VPS change, deploy, or Search Console action belongs in this milestone.

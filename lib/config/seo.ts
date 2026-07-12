@@ -17,5 +17,5 @@ export const seoRoutes = [
   { path: "/pricing", priority: 0.75, changeFrequency: "monthly" },
   { path: "/order", priority: 0.65, changeFrequency: "monthly" },
   { path: "/privacy", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/reports", priority: 0.55, changeFrequency: "weekly" },
+  { path: "/wiki", priority: 0.9, changeFrequency: "weekly" },
 ] as const;

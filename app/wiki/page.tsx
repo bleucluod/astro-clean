@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     canonical: "/wiki",
   },
   robots: {
-    index: false,
+    index: true,
     follow: true,
   },
 };
