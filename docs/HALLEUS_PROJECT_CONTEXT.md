@@ -2428,3 +2428,39 @@ Checks:
 - encoding
 - `git --no-pager diff --check`
 - `pnpm build`
+
+
+## v0.1.302 VPS release workflow foundation
+
+Scope:
+- Add a versioned VPS release/rollback workflow under `ops/vps`.
+- Add a systemd template that runs only from `/srv/halleus/current`.
+- Require exact commit/tag verification and a clean VPS source clone.
+- Build each release in a detached worktree under `/srv/halleus/releases`.
+- Run locked dependency install, encoding, diff, and production-build checks before activation.
+- Use atomic `current` / `previous` symlinks and automatic rollback after failed restart or smoke tests.
+- Update deployment/recovery documentation and add a focused regression guard.
+
+Live infrastructure facts established before this batch:
+- DNS, TLS, Nginx, systemd, Certbot renewal dry-run, controlled restarts, reboot recovery, auto-start, routes, ACME, resources, and post-reboot journal state passed on the VPS.
+- Nginx evidence hardening rejects encoded backslash probes, dotfile probes, and the observed fake Next-Action IDs while preserving the real chart API validation path.
+- The active runtime still uses `/srv/halleus/source`; no release/current/previous layout has been bootstrapped yet.
+- The legacy source build must remain available as a recovery path during the later bootstrap.
+- release builds must be created outside the active runtime directory.
+
+Boundaries:
+- This batch does not change the live VPS, systemd, Nginx, DNS, SSL, firewall, environment values, SSH keys, product code, report engine, auth, payment, consent, public-report indexing, or Search Console state.
+- The versioned workflow must not be used until a separate controlled bootstrap batch has installed the release layout and service unit.
+
+Checks:
+- focused VPS release workflow guard
+- encoding
+- `git --no-pager diff --check`
+- `pnpm build`
+
+Failure ledger:
+- The runner used BatchMode=yes with a passphrase-protected private key that was not preloaded into ssh-agent. SSH could not prompt for the key passphrase, so authentication failed before the remote script started.
+- Prevention: interactive SSH for the current protected key, `IdentitiesOnly=yes`, `-tt` for interactive sudo, and no secret persistence.
+
+- The first v0.1.302 apply runner treated the Windows/WSL bash.exe launcher as a usable Bash installation because `Get-Command bash.exe` succeeded. The launcher then failed with `execvpe(/bin/bash) failed: No such file or directory`; the batch restored all local project changes and did not reach the VPS.
+- Fix and prevention: Only explicit Git Bash paths are accepted and probed before local bash -n. If Git Bash is unavailable, the optional local syntax check is skipped, while `/bin/bash -n` remains mandatory on Ubuntu before live bootstrap.

@@ -1,0 +1,21 @@
+[Unit]
+Description=Halleus Next.js production server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/srv/halleus/current
+EnvironmentFile=/etc/halleus/halleus.env
+ExecStart=/usr/local/bin/node /srv/halleus/current/node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
