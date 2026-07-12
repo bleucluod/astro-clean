@@ -2540,3 +2540,35 @@ Still open after this batch:
 - controlled VPS deploy;
 - live canonical, robots, and sitemap verification;
 - Search Console verification and sitemap submission.
+## v0.1.305 Internal-route noindex boundary
+
+Baseline:
+
+- HEAD: `aaf081cb16a3d80b1a7793faf46377d96b23cd48`.
+- Tag: `v0.1.304-wiki-first-seo-indexability`.
+- Working tree was clean before this batch.
+
+Scope:
+
+- Add explicit `noindex/nofollow` layouts for `/admin`, `/dashboard`, `/profile`, `/roadmap`, `/engine/*`, `/quality/*`, `/interpretation`, and `/language`.
+- Keep all internal route families outside `seoRoutes` and sitemap generation.
+- Add a focused executable guard and wire it into `check:project`.
+- Record the indexing decision in the Idea Garden.
+
+Boundaries:
+
+- No route deletion, navigation change, authentication change, report-engine change, Wiki content change, VPS change, deploy, or Search Console action.
+- This metadata boundary does not make the routes private; it only tells compliant search engines not to index or follow them.
+
+Checks:
+
+- `pnpm run check:internal-route-noindex-boundary`
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `pnpm build`
+
+Next after commit/tag/push:
+
+- controlled VPS deploy;
+- live verification of canonical, robots metadata, sitemap, Wiki pages, reports, and internal routes;
+- Search Console verification and sitemap submission only after live checks pass.

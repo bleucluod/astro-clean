@@ -2001,3 +2001,13 @@ Reduced-scope boundary:
 - This milestone changes only root canonical inheritance, Wiki metadata, report-route noindex, sitemap generation, and executable guards.
 - Explicit noindex layouts for non-report internal/account route families remain a separate follow-up batch.
 - No article rewrite, report-engine change, consent implementation, VPS change, deploy, or Search Console action belongs in this milestone.
+## v0.1.305 Internal-route noindex boundary
+
+Current decision:
+
+- Internal, account, diagnostic, and roadmap surfaces remain accessible by direct URL but are not organic-acquisition pages.
+- `/admin`, `/dashboard`, `/profile`, `/roadmap`, `/engine/*`, `/quality/*`, `/interpretation`, and `/language` must emit `noindex, nofollow`.
+- Parent layouts define the boundary for the complete `/engine/*` and `/quality/*` families.
+- These routes must remain outside `seoRoutes` and generated sitemap output.
+- This is an indexing boundary only; it does not delete routes, add authentication, or claim that internal pages are access-controlled.
+- Public pages and Wiki remain indexable under the v0.1.304 policy, while every report route remains noindex.
