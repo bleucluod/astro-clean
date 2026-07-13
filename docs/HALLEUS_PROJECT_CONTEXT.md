@@ -2616,3 +2616,32 @@ Next after commit/tag/push:
 - grant consent and verify one sanitized public page view in GA4 Realtime;
 - verify report/internal routes do not emit page views;
 - connect GA4 to the verified Search Console property after live verification.
+
+## v0.1.306a Analytics transport hotfix
+
+Live failure:
+
+- v0.1.306 deployed successfully and the consent UI correctly kept the Google tag absent before consent.
+- After consent, `gtag.js` loaded with HTTP 200, `ga-disable-G-W3WBZCTL7G` was false, and the expected consent/config/page_view commands appeared in `dataLayer`.
+- No `g/collect` request appeared in DevTools Network and GA4 Realtime remained at zero.
+- The initial verification incorrectly treated a queued `dataLayer` command as proof of network transmission.
+
+Root cause and fix:
+
+- The local wrapper pushed a rest-parameter array with `dataLayer.push(args)`.
+- The official gtag.js bootstrap contract uses `dataLayer.push(arguments)`.
+- Replace only the wrapper transport shape and strengthen the focused guard so the array form cannot return.
+- Preserve consent-first loading, sanitized public-only page views, blocked report/internal routes, disabled advertising signals, and the existing Measurement ID.
+
+Workflow failure:
+
+- The first v0.1.306a runner contained incorrect unified-diff hunk counts and failed during `git apply --check` before any project write.
+- Rollback verification confirmed that tracked files remained clean; only the failed runner artifact stayed untracked.
+- Prevention: generate the corrected patch from before/after files and validate parse, apply, reverse, and clean restoration before packaging.
+
+Required checks:
+
+- `pnpm run check:privacy-conscious-analytics`
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `pnpm build`

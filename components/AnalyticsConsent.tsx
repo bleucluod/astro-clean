@@ -38,8 +38,8 @@ function ensureGoogleAnalyticsLoaded(): void {
 
   if (!analyticsWindow.gtag) {
     analyticsWindow.dataLayer = analyticsWindow.dataLayer ?? [];
-    analyticsWindow.gtag = (...args: unknown[]) => {
-      analyticsWindow.dataLayer?.push(args);
+    analyticsWindow.gtag = function gtag(): void {
+      analyticsWindow.dataLayer?.push(arguments);
     };
 
     analyticsWindow.gtag("consent", "default", {
