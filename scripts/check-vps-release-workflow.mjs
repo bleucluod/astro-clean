@@ -44,7 +44,11 @@ requireMarkers("release workflow", releaseSource, [
   "deploy --commit <40-char-sha> --tag <tag>",
   'git -C "$SOURCE" fetch --tags --prune origin',
   'worktree add --detach "$release_dir" "$commit"',
-  'install --frozen-lockfile',
+  'install --frozen-lockfile --prod=false',
+  'DEPLOY_RELEASE_DIR=""',
+  "DEPLOY_ACTIVATED=0",
+  "DEPLOY_WORKTREE_CREATED=0",
+  'worktree remove --force "$DEPLOY_RELEASE_DIR"',
   "run check:encoding",
   "--no-pager diff --check",
   "Building release before activation",
@@ -57,6 +61,10 @@ requireMarkers("release workflow", releaseSource, [
 ]);
 
 forbidMarkers("release workflow", releaseSource, [
+  "local activated=0",
+  "local worktree_created=0",
+  '[ "$activated" -eq 0 ]',
+  '[ "$worktree_created" -eq 1 ]',
   "git commit",
   "git tag ",
   "git push",

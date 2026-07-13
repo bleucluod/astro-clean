@@ -14,6 +14,9 @@ DEPLOY_GROUP="deploy"
 NODE_BIN="/usr/local/bin/node"
 HOST="127.0.0.1"
 PORT="3000"
+DEPLOY_RELEASE_DIR=""
+DEPLOY_ACTIVATED=0
+DEPLOY_WORKTREE_CREATED=0
 
 fail() {
     printf 'ERROR: %s\n' "$*" >&2
@@ -216,21 +219,22 @@ deploy_release() {
     short_sha="${commit:0:12}"
     release_name="${safe_tag}-${short_sha}"
     release_dir="$RELEASES/$release_name"
+    DEPLOY_RELEASE_DIR="$release_dir"
 
     [ ! -e "$release_dir" ] || fail "Release directory already exists: $release_dir"
 
     local old_current
-    local activated=0
-    local worktree_created=0
+    DEPLOY_ACTIVATED=0
+    DEPLOY_WORKTREE_CREATED=0
     old_current="$(current_target)"
 
     cleanup_failed_deploy() {
         local rc=$?
         trap - EXIT
 
-        if [ "$rc" -ne 0 ] && [ "$activated" -eq 0 ] && [ "$worktree_created" -eq 1 ]; then
+        if [ "$rc" -ne 0 ] && [ "$DEPLOY_ACTIVATED" -eq 0 ] && [ "$DEPLOY_WORKTREE_CREATED" -eq 1 ] && [ -n "$DEPLOY_RELEASE_DIR" ]; then
             printf '%s\n' "Cleaning failed, non-active release worktree..."
-            as_deploy git -C "$SOURCE" worktree remove --force "$release_dir" || true
+            as_deploy git -C "$SOURCE" worktree remove --force "$DEPLOY_RELEASE_DIR" || true
         fi
 
         exit "$rc"
@@ -239,13 +243,13 @@ deploy_release() {
 
     printf 'Creating detached release worktree: %s\n' "$release_dir"
     as_deploy git -C "$SOURCE" worktree add --detach "$release_dir" "$commit"
-    worktree_created=1
+    DEPLOY_WORKTREE_CREATED=1
 
     local pnpm_bin
     pnpm_bin="$(resolve_pnpm)"
 
     printf '%s\n' "Installing locked dependencies..."
-    as_deploy "$pnpm_bin" --dir "$release_dir" install --frozen-lockfile
+    as_deploy "$pnpm_bin" --dir "$release_dir" install --frozen-lockfile --prod=false
 
     printf '%s\n' "Running release checks..."
     as_deploy bash -lc "cd '$release_dir' && '$pnpm_bin' run check:encoding"
@@ -268,7 +272,7 @@ deploy_release() {
     printf 'Activating release: %s\n' "$release_dir"
     atomic_link "$old_current" "$PREVIOUS"
     atomic_link "$release_dir" "$CURRENT"
-    activated=1
+    DEPLOY_ACTIVATED=1
 
     if ! restart_and_smoke; then
         printf '%s\n' "Activation smoke test failed. Restoring previous release..." >&2
@@ -279,7 +283,7 @@ deploy_release() {
             fail "Activation failed and the automatic rollback smoke test also failed."
         fi
 
-        activated=0
+        DEPLOY_ACTIVATED=0
         fail "Activation failed; previous release was restored successfully."
     fi
 
