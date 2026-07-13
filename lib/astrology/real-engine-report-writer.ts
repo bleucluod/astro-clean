@@ -1093,6 +1093,10 @@ function buildAspectSelectionContext(
       id: placement.id,
       house: placement.house ?? null,
     })),
+    retrogradePlanetIds:
+      realEngine.retrogrades?.status === "calculated"
+        ? realEngine.retrogrades.planetIds
+        : [],
   };
 }
 
