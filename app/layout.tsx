@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Vazirmatn } from "next/font/google";
+import localFont from "next/font/local";
 import { AppShell } from "@/components/AppShell";
 import { siteConfig } from "@/lib/config/seo";
 import "./globals.css";
 
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const vazirmatn = localFont({
+  src: "./fonts/vazirmatn/Vazirmatn-Variable.woff2",
   display: "swap",
   variable: "--font-vazirmatn",
+  weight: "100 900",
+  style: "normal",
 });
 
 export const metadata: Metadata = {
