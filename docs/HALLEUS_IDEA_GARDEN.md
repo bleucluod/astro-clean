@@ -2011,3 +2011,18 @@ Current decision:
 - These routes must remain outside `seoRoutes` and generated sitemap output.
 - This is an indexing boundary only; it does not delete routes, add authentication, or claim that internal pages are access-controlled.
 - Public pages and Wiki remain indexable under the v0.1.304 policy, while every report route remains noindex.
+
+## v0.1.306 Privacy-conscious analytics foundation
+
+Current decision:
+
+- GA4 may measure only public Halleus surfaces after a visitor explicitly chooses «اجازه می‌دهم».
+- The Google tag must not load before consent; choosing «فعلاً نه» leaves analytics disabled.
+- The visitor can reopen analytics settings from the shared footer or Privacy page and change the choice.
+- Eligible paths are limited to `/`, `/chart`, `/product`, `/pricing`, `/order`, `/privacy`, `/wiki`, and valid `/wiki/*` articles.
+- Reports, report IDs, account pages, admin, roadmap, engine, quality, interpretation, and language surfaces remain outside analytics.
+- Halleus application code may emit only a sanitized `page_view` with pathname, page title, and origin-plus-path; query strings and hashes are excluded, while GA4 can still produce its standard automatic session/engagement events.
+- Birth data, report content, names, mobile numbers, email addresses, account identifiers, and report identifiers must never become analytics payloads.
+- Google Signals, ad personalization, remarketing, Google Ads, and GTM remain disabled and out of scope.
+- GA4 Enhanced Measurement must be disabled in the Web Data Stream before production verification so it cannot add automatic scroll, click, form, download, search, video, or history-based page-view events.
+- `G-W3WBZCTL7G` is a public GA4 Measurement ID, not a secret; no infrastructure secret or database field is introduced.

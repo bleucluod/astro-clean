@@ -2572,3 +2572,47 @@ Next after commit/tag/push:
 - controlled VPS deploy;
 - live verification of canonical, robots metadata, sitemap, Wiki pages, reports, and internal routes;
 - Search Console verification and sitemap submission only after live checks pass.
+
+## v0.1.306 Privacy-conscious analytics foundation
+
+Baseline:
+
+- HEAD: `d65b3c9a0835b60bf7965f6960cde7aaf5d5a8b9`.
+- Tag: `v0.1.305-internal-route-noindex-boundary`.
+- Working tree was clean before this batch.
+- Search Console domain ownership and priority crawl requests were completed; GA4 Measurement ID `G-W3WBZCTL7G` was created by the user.
+
+Scope:
+
+- Add a consent-first GA4 client integration and shared consent UI.
+- Keep the Google tag absent until the visitor explicitly grants analytics consent.
+- Store only the consent choice and version in local storage.
+- Have Halleus application code emit sanitized page views on public routes only, without query strings or hashes.
+- Exclude reports, report details, account routes, and internal routes from analytics.
+- Disable Google Signals and ad-personalization signals.
+- Require GA4 Enhanced Measurement to be disabled in the external Web Data Stream before production verification; GA4 standard automatic session/engagement behavior remains platform-controlled and is not represented as a Halleus custom event.
+- Support later refusal or withdrawal by disabling analytics and deleting accessible `_ga*` cookies.
+- Add an analytics preference control to the shared footer and Privacy page.
+- Update Privacy copy, add a focused executable guard, and wire it into `check:project`.
+
+Boundaries:
+
+- No birth data, report content, name, mobile, email, account ID, report ID, custom conversion event, advertising, remarketing, Google Ads, GTM, database, auth, report-engine, SEO-indexability, VPS, Nginx, or Search Console change.
+- The UI must not overclaim that GA4 receives only page paths: standard browser/device and automatically collected analytics signals can still be processed after consent.
+- The public GA4 Measurement ID is committed as product configuration and is not treated as a secret.
+
+Checks:
+
+- `pnpm run check:privacy-conscious-analytics`
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `pnpm build`
+
+Next after commit/tag/push:
+
+- disable Enhanced Measurement in the GA4 Web Data Stream;
+- controlled VPS deploy;
+- verify that no Google tag request occurs before consent;
+- grant consent and verify one sanitized public page view in GA4 Realtime;
+- verify report/internal routes do not emit page views;
+- connect GA4 to the verified Search Console property after live verification.

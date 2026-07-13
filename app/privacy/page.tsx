@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AnalyticsPreferencesLink } from "@/components/AnalyticsConsent";
+
 export const metadata: Metadata = {
   title: "حریم داده و گزارش‌ها | Halleus",
   description:
@@ -22,6 +24,10 @@ const privacyPoints = [
   {
     title: "انتشار عمومی فقط با رضایت روشن",
     text: "اگر روزی گزارش عمومی، لینک قابل اشتراک یا نسخه قابل پیدا شدن در گوگل اضافه شود، باید با انتخاب آگاهانه، نام نمایشی و امکان برگشت همراه باشد.",
+  },
+  {
+    title: "آمار بازدید فقط با انتخاب تو",
+    text: "Google Analytics تنها بعد از اجازهٔ روشن تو فعال می‌شود و آمار صفحه‌های عمومی و اطلاعات فنی متعارف مرورگر را دریافت می‌کند؛ دادهٔ تولد، محتوای گزارش، نام، شماره، ایمیل و شناسهٔ گزارش به آن ارسال نمی‌شود.",
   },
 ] as const;
 
@@ -58,6 +64,23 @@ export default function PrivacyPage() {
             <p>{item.text}</p>
           </article>
         ))}
+      </section>
+
+      <section className="card trust-note-card privacy-copy-detox-marker">
+        <span className="section-label">آمار بازدید</span>
+        <h2>انتخاب استفاده از آمار بازدید دست خودت می‌ماند</h2>
+        <p>
+          هالیوس بدون اجازهٔ تو Google Analytics را بارگذاری نمی‌کند. در صورت
+          موافقت، کد هالیوس فقط page view مسیرهای عمومی را بدون query، hash یا
+          شناسه‌های خصوصی می‌فرستد. هر زمان می‌توانی انتخابت را تغییر بدهی.
+        </p>
+
+        <div className="actions">
+          <AnalyticsPreferencesLink
+            className="button secondary"
+            label="تغییر انتخاب آمار بازدید"
+          />
+        </div>
       </section>
 
       <section className="card trust-note-card privacy-copy-detox-marker">

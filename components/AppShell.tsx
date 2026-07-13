@@ -2,6 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import {
+  AnalyticsConsent,
+  AnalyticsPreferencesLink,
+} from "@/components/AnalyticsConsent";
 import { SiteHeader } from "@/components/SiteHeader";
 
 import styles from "./app-shell.module.css";
@@ -68,8 +72,11 @@ export function AppShell({ children }: AppShellProps) {
         <div className={styles.footerBottom}>
           <span>© {new Date().getFullYear().toLocaleString("fa-IR")} هالیوس</span>
           <span>برای خودشناسی نمادین، نه تصمیم‌گیری قطعی</span>
+          <AnalyticsPreferencesLink />
         </div>
       </footer>
+
+      <AnalyticsConsent />
     </div>
   );
 }
