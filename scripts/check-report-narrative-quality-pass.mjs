@@ -44,11 +44,21 @@ for (const marker of [
 
 for (const marker of [
   "placement-bridge",
-  "اول هر سیاره را جدا",
-  "aspectها توضیح می‌دهند",
   "for-dummies",
+  "data-halleus-behavioral-placement-core",
+  "buildPlacementBehavioralInterpretation",
+  "isBehavioralPlacementInput",
 ]) {
-  assert(placements.includes(marker), `ReportPlanetPlacementSections missing narrative marker: ${marker}`);
+  assert(
+    placements.includes(marker),
+    `ReportPlanetPlacementSections missing behavioral structure marker: ${marker}`,
+  );
+}
+for (const forbiddenMarker of ["const PLANET_COPY", "const SIGN_COPY"]) {
+  assert(
+    !placements.includes(forbiddenMarker),
+    `ReportPlanetPlacementSections still owns duplicate semantic dictionary: ${forbiddenMarker}`,
+  );
 }
 
 for (const marker of [

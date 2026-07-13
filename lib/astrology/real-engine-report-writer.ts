@@ -32,6 +32,10 @@ import {
   type RealEngineSynthesisPlan,
   type RealEngineSynthesisRole,
 } from "@/lib/astrology/real-engine-synthesis";
+import {
+  buildPlacementBehavioralInterpretation,
+  isBehavioralPlacementInput,
+} from "@/lib/astrology/report-behavioral-interpretation";
 import type { ReportOutputSection } from "@/types/report-output";
 
 type SignCopy = {
@@ -82,7 +86,7 @@ const SIGN_COPY: Record<ZodiacKey, SignCopy> = {
   taurus: {
     faName: "ثور",
     enName: "Taurus",
-    energy: "آرام، بدن‌مند و ثبات‌ساز",
+    energy: "آرام، ملموس و وابسته به زمان و ثبات",
     gift: "ساختن امنیت، لذت و ریتمی که واقعاً دوام می‌آورد",
     growth: "رها کردن چسبندگی به چیزی که فقط از روی عادت امن به نظر می‌رسد",
   },
@@ -270,12 +274,12 @@ const ANGLE_COPY: Record<RealEngineReportAngleId, { faName: string; axis: string
 const HOUSE_COPY: Record<number, HouseCopy> = {
   1: {
     field: "بدن، تصویر بیرونی، شروع‌های شخصی و شیوه ورود به موقعیت‌ها",
-    gift: "حضور روشن‌تر و شروع کردن از جایگاهی که با ریتم خودت هماهنگ‌تر است",
+    gift: "بیان خواسته و مشخص کردن جایگاه خود پیش از پنهان شدن پشت واکنش دیگران",
     growth: "این است که واکنش اول را بشناسی و آن را به انتخاب آگاهانه‌تر تبدیل کنی",
   },
   2: {
     field: "امنیت، ارزش شخصی، بدن، پول و چیزهایی که حس ثبات می‌سازند",
-    gift: "ساختن رابطه سالم‌تر با ارزش، منابع و آرامش بدن‌مند",
+    gift: "ساختن امنیتی که در خواب، غذا، ریتم بدن و منابع قابل اتکا حس می‌شود",
     growth: "این است که امنیت را فقط از بیرون نخواهی و ارزش خودت را آهسته‌تر اما واقعی‌تر بسازی",
   },
   3: {
@@ -306,7 +310,7 @@ const HOUSE_COPY: Record<number, HouseCopy> = {
   8: {
     field: "اعتماد، صمیمیت عمیق، ترس‌ها، منابع مشترک و دگرگونی روانی",
     gift: "توان دیدن لایه‌های پنهان و تبدیل بحران به شناخت عمیق‌تر",
-    growth: "این است که شدت احساس را به آگاهی، مرز و اعتماد تدریجی تبدیل کنی",
+    growth: "این است که حد خود را روشن کنی و اعتماد را با هماهنگی حرف و عمل، احترام به نه و بازگشت به گفت‌وگو بسازی",
   },
   9: {
     field: "معنا، سفر، آموزش، باورها، جهان‌بینی و افق‌های دورتر",
@@ -1360,7 +1364,7 @@ function buildElementBalanceInterpretation(counts: Record<ChartElementKey, numbe
   const notes: string[] = [];
 
   if ((counts.air ?? 0) >= 4) {
-    notes.push("هوای پررنگ یعنی ذهن، تحلیل، فاصله گرفتن برای دیدن الگو و نیاز به گفت‌وگو یا ایده در چارت قوی است؛ تمرینش بدن‌مند کردن فکرهاست.");
+    notes.push("هوای پررنگ یعنی ذهن، تحلیل و فاصله گرفتن برای دیدن الگو در چارت قوی است؛ تمرینش این است که پیش از تحلیل بیشتر، خواب، غذا و تنش بدن را بررسی کنی و فکر را به یک قدم عملی با زمان مشخص تبدیل کنی.");
   }
 
   if ((counts.fire ?? 0) >= 4) {
@@ -1902,15 +1906,28 @@ function buildCorePlacementText(
   }
 
   const planet = PLANET_COPY[planetId];
-  const sign = SIGN_COPY[placement.signId];
   const placementLabel = formatPlacementWithHouse(placement);
-  const houseSentence = buildPlanetHouseSentence(placement, planetId);
+  const interpretation = buildPlacementInterpretation(
+    planetId,
+    placement,
+  );
+  const houseSentence = buildPlanetHouseSentence(
+    placement,
+    planetId,
+  );
+
+  if (!interpretation) {
+    return `${planet.faName} در ${placementLabel} قرار دارد؛ برای این جایگاه هنوز ترکیب کامل سیاره، نشان و خانه در دسترس نیست.`;
+  }
 
   return [
-    `${planet.faName} در ${placementLabel} قرار دارد؛ این بخش درباره ${planet.role} است.`,
-    `کیفیت اصلی این جایگاه ${sign.energy} است و هدیه طبیعی آن ${sign.gift}.`,
+    `${planet.faName} در ${placementLabel} قرار دارد.`,
+    `به زبان ساده، ${interpretation.plainMeaning}.`,
+    `در زندگی روزمره، ${interpretation.dailyLifeExample}.`,
+    `شکل سالم این جایگاه ${interpretation.healthyExpression}.`,
+    `گیر احتمالی آن ${interpretation.possibleFriction}.`,
     houseSentence,
-    buildPlacementGrowthPractice(planetId, placement),
+    `آزمایش کوچک: ${interpretation.smallExperiment}.`,
   ]
     .filter((part): part is string => Boolean(part))
     .join(" ");
@@ -1925,15 +1942,28 @@ function buildOptionalPlacementText(
   }
 
   const planet = PLANET_COPY[planetId];
-  const sign = SIGN_COPY[placement.signId];
   const placementLabel = formatPlacementWithHouse(placement);
-  const houseSentence = buildPlanetHouseSentence(placement, planetId);
+  const interpretation = buildPlacementInterpretation(
+    planetId,
+    placement,
+  );
+  const houseSentence = buildPlanetHouseSentence(
+    placement,
+    planetId,
+  );
+
+  if (!interpretation) {
+    return `${planet.faName} در ${placementLabel} قرار دارد؛ برای این جایگاه هنوز ترکیب کامل سیاره، نشان و خانه در دسترس نیست.`;
+  }
 
   return [
-    `${planet.faName} در ${placementLabel} قرار دارد؛ این لایه درباره ${planet.role} است.`,
-    `کیفیت ${sign.energy} این بخش را رنگ می‌دهد و نقطه قوتش ${sign.gift}.`,
+    `${planet.faName} در ${placementLabel} قرار دارد.`,
+    `به زبان ساده، ${interpretation.plainMeaning}.`,
+    `نمونه روزمره آن ${interpretation.dailyLifeExample}.`,
+    `توان سالمش ${interpretation.healthyExpression}.`,
+    `گیر احتمالی‌اش ${interpretation.possibleFriction}.`,
     houseSentence,
-    buildPlacementGrowthPractice(planetId, placement),
+    `آزمایش کوچک: ${interpretation.smallExperiment}.`,
   ]
     .filter((part): part is string => Boolean(part))
     .join(" ");
@@ -1943,57 +1973,51 @@ function buildPlanetHouseSentence(
   placement: RealEngineReportPlacement,
   planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
 ): string | undefined {
-  const houseNumber = placement.house;
+  const interpretation = buildPlacementInterpretation(
+    planetId,
+    placement,
+  );
 
-  if (!isReportHouseNumber(houseNumber)) {
-    return undefined;
-  }
-
-  const house = HOUSE_COPY[houseNumber];
-  const planet = PLANET_COPY[planetId];
-  const formattedHouse = toPersianNumber(houseNumber);
-
-  return `از نظر خانه‌ها، خانه ${formattedHouse} نشان می‌دهد موضوع ${planet.title} بیشتر در میدان ${house.field} دیده می‌شود.`;
+  return interpretation
+    ? `از نظر خانه‌ها، این جایگاه بیشتر در این صحنه دیده می‌شود: ${interpretation.focus}.`
+    : undefined;
 }
 
 function buildPlacementGrowthPractice(
   planetId: string,
   placement: RealEngineReportPlacement,
 ): string {
-  const sign = SIGN_COPY[placement.signId];
-  const planet = PLANET_COPY[planetId];
-  const house = isReportHouseNumber(placement.house) ? HOUSE_COPY[placement.house] : undefined;
-  const planetPhrase = planet?.title ?? getPlanetLabel(planetId);
+  const interpretation = buildPlacementInterpretation(
+    planetId,
+    placement,
+  );
 
-  if (planetId === "mercury" && placement.signId === "aquarius" && placement.house === 6) {
-    return "تمرین این جایگاه این است که ذهن سریع و الگوگیر، به زبان ساده، تصمیم قابل اجرا و مراقبت واقعی از بدن و روزمره تبدیل شود.";
+  if (interpretation) {
+    return `تمرین این جایگاه: ${interpretation.smallExperiment}.`;
   }
 
-  if (planetId === "venus" && placement.signId === "aquarius" && placement.house === 6) {
-    return "تمرین این جایگاه این است که ارزش و رابطه فقط در ایده یا فاصله امن نماند و در مراقبت روزمره، همکاری و انتخاب‌های کوچک دیده شود.";
+  return "تمرین این جایگاه این است که یک نمونه واقعی از الگو را ثبت کنی و آن را به یک رفتار کوچک و قابل مشاهده تبدیل کنی.";
+}
+
+function buildPlacementInterpretation(
+  planetId: string,
+  placement: RealEngineReportPlacement,
+) {
+  if (
+    !isBehavioralPlacementInput(
+      planetId,
+      placement.signId,
+      placement.house,
+    )
+  ) {
+    return undefined;
   }
 
-  if (planetId === "mars" && placement.signId === "libra" && placement.house === 2) {
-    return "تمرین این جایگاه روشن کردن خواسته، بدن، پول و مرز شخصی بدون گم شدن در رضایت دیگران است.";
-  }
-
-  if (planetId === "moon" && placement.signId === "aquarius" && placement.house === 8) {
-    return "تمرین این جایگاه این است که احساس در صمیمیت فقط تحلیل یا فاصله نشود؛ قبل از واکنش سریع، نام احساس و مرز امن پیدا شود.";
-  }
-
-  if (planetId === "mars" && placement.signId === "aquarius" && placement.house === 8) {
-    return "تمرین این جایگاه مکث کوتاه میان فشار عاطفی و واکنش تند است؛ خواسته باید روشن شود، نه اینکه ناگهانی به قطع یا کنترل تبدیل شود.";
-  }
-
-  if (planetId === "sun" && placement.house === 6) {
-    return `تمرین این جایگاه این است که ${planetPhrase} با کیفیت ${sign.energy} به روتین، مهارت و مراقبت عملی تبدیل شود، نه فقط به ایده یا فشار برای بهتر کردن همه چیز.`;
-  }
-
-  if (house) {
-    return `تمرین این جایگاه این است که ${planetPhrase} با کیفیت ${sign.energy} در میدان ${house.field} به رفتاری روشن و قابل مشاهده نزدیک شود.`;
-  }
-
-  return `تمرین این جایگاه این است که ${planetPhrase} با کیفیت ${sign.energy} به رفتار ساده و قابل مشاهده تبدیل شود.`;
+  return buildPlacementBehavioralInterpretation({
+    planetId,
+    signId: placement.signId,
+    houseNumber: placement.house,
+  });
 }
 
 function buildRisingText(
