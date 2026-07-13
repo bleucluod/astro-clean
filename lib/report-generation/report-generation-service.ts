@@ -58,6 +58,16 @@ import { buildRealChartReportCopy } from "../../src/lib/report-output/real-chart
 
 export const REPORT_GENERATION_SERVICE_VERSION = "0.1.284c" as const;
 
+const CARDINAL_ANGLE_HOUSE_BY_ID: Record<
+  RealEngineReportAngleId,
+  RealEngineReportHouseNumber
+> = {
+  asc: 1,
+  dsc: 7,
+  mc: 10,
+  ic: 4,
+};
+
 type SectionedAstrologyReport = AstrologyReport & {
   interpretationSections: ReportOutputSection[];
   outputQuality: ReportOutputQuality;
@@ -271,7 +281,7 @@ function toRealEngineReportHouses(
           getHouseNumberForLongitude(placement.longitude, realChart) === house.number,
       )
       .map((placement) => placement.id),
-    angleIds: getAngleIdsForHouse(house.number, realChart),
+    angleIds: getAngleIdsForHouse(house.number),
     limitation:
       house.system === "placidus"
         ? "سرخانه با محاسبهٔ محلی پلاسیدوس و سرخانه‌های نامساوی ساخته شده است."
@@ -301,11 +311,15 @@ function toRealEngineReportHouseMethod(
 
 function getAngleIdsForHouse(
   houseNumber: RealEngineReportHouseNumber,
-  realChart: RealChartWorkbenchResult,
 ): RealEngineReportAngleId[] {
-  return Object.values(realChart.angles)
-    .filter((angle) => getHouseNumberForLongitude(angle.longitude, realChart) === houseNumber)
-    .map((angle) => angle.id as RealEngineReportAngleId);
+  return (Object.keys(CARDINAL_ANGLE_HOUSE_BY_ID) as RealEngineReportAngleId[])
+    .filter((angleId) => CARDINAL_ANGLE_HOUSE_BY_ID[angleId] === houseNumber);
+}
+
+function getCardinalAngleHouseNumber(
+  angleId: RealEngineReportAngleId,
+): RealEngineReportHouseNumber {
+  return CARDINAL_ANGLE_HOUSE_BY_ID[angleId];
 }
 
 function getHouseNumberForLongitude(
@@ -336,16 +350,15 @@ function toRealEngineReportAngles(
   realChart: RealChartWorkbenchResult,
 ): RealEngineReportAngles {
   return {
-    asc: toRealEngineReportAngle(realChart.angles.asc, realChart),
-    dsc: toRealEngineReportAngle(realChart.angles.dsc, realChart),
-    mc: toRealEngineReportAngle(realChart.angles.mc, realChart),
-    ic: toRealEngineReportAngle(realChart.angles.ic, realChart),
+    asc: toRealEngineReportAngle(realChart.angles.asc),
+    dsc: toRealEngineReportAngle(realChart.angles.dsc),
+    mc: toRealEngineReportAngle(realChart.angles.mc),
+    ic: toRealEngineReportAngle(realChart.angles.ic),
   };
 }
 
 function toRealEngineReportAngle(
   angle: RealChartCalculatedAngle,
-  realChart: RealChartWorkbenchResult,
 ): RealEngineReportAngle {
   return {
     id: angle.id,
@@ -356,7 +369,7 @@ function toRealEngineReportAngle(
     method: angle.method,
     source: angle.source,
     reliability: angle.reliability,
-    house: getHouseNumberForLongitude(angle.longitude, realChart),
+    house: getCardinalAngleHouseNumber(angle.id as RealEngineReportAngleId),
     limitation: angle.limitation,
   };
 }
