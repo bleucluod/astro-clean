@@ -2645,3 +2645,53 @@ Required checks:
 - `pnpm run check:encoding`
 - `git --no-pager diff --check`
 - `pnpm build`
+
+## v0.1.307 Default public analytics
+
+Baseline:
+
+- HEAD: `5cd6454526b335b357f189523828dae17c2588d2`.
+- Tag: `v0.1.306a-analytics-transport-fix`.
+- Working tree was clean before this batch except for the explicitly created live-context ZIP.
+- The v0.1.306a live release passed `g/collect`, GA4 Realtime, public-route page views, and the report/internal-route exclusion check.
+- The user observed that Halleus now appears in Google and estimated that about five pages are visible; this is an early search observation, not a verified Search Console coverage count.
+
+Decision:
+
+- Supersede the v0.1.306 first-visit opt-in gate for the current Iran-focused audience.
+- On approved public routes, no stored preference means analytics is enabled by default.
+- Remove the first-visit consent banner while keeping the shared settings panel and explicit opt-out.
+- Preserve an existing stored `denied` preference instead of silently resetting it.
+- Keep reports, report details, accounts, and internal routes outside Analytics.
+- Keep ad storage, ad user data, ad personalization, Google Signals, remarketing, Google Ads, GTM, and Enhanced Measurement disabled.
+- Keep birth data, report content, names, mobile numbers, email addresses, account IDs, and report IDs outside analytics payloads.
+- Reassess regional consent/CMP requirements before any active expansion beyond the current Iran-focused market.
+
+Scope:
+
+- Default the current analytics choice to `granted` only when no valid stored preference exists.
+- Convert the former first-visit banner into a settings-only panel with enable/disable controls.
+- Update Privacy copy, the focused analytics guard, Idea Garden, and this context record.
+- Record the user-reported initial Google visibility without treating it as verified coverage.
+
+Boundaries:
+
+- No analytics path expansion, custom events, conversion events, query/hash tracking, report tracking, advertising integration, SEO metadata change, sitemap change, Search Console action, VPS change, Nginx change, auth change, database change, or report-engine change.
+- This batch does not promise 100% visitor coverage because browser protections, blockers, and disabled JavaScript remain outside Halleus control.
+- The explicit-consent rule for making a user report public/indexable remains unchanged.
+
+Workflow failure and prevention:
+
+- The first v0.1.307 runner stopped before repository writes because it guessed an outdated Idea Garden tail instead of using the exact live file.
+- That artifact was also delivered as a loose `.ps1` rather than the required ZIP containing one uniquely named runner.
+- The v0.1.307a patch was built from CRLF worktree context while preflight used `git apply --index`; live raw hashes matched, but LF-normalized Git index blobs rejected every hunk before repository writes.
+- The v0.1.307b EOL-safe patch applied, but the focused guard incorrectly required the Persian marker `حدود پنج صفحه` while the new context note used the English wording `about five pages`; the runner restored all tracked files.
+- Tracked files remained clean after every failure; only known runner and diagnostic artifacts were untracked.
+- Prevention: normalize patch inputs to LF, validate against a simulated Windows checkout with CRLF worktree and LF index, run the actual focused guard against the complete intended after-state before packaging, and never guard incidental documentation wording that is unrelated to product behavior.
+
+Required checks:
+
+- `pnpm run check:privacy-conscious-analytics`
+- `pnpm run check:encoding`
+- `git --no-pager diff --check`
+- `pnpm build`

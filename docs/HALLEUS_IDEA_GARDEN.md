@@ -2026,3 +2026,18 @@ Current decision:
 - Google Signals, ad personalization, remarketing, Google Ads, and GTM remain disabled and out of scope.
 - GA4 Enhanced Measurement must be disabled in the Web Data Stream before production verification so it cannot add automatic scroll, click, form, download, search, video, or history-based page-view events.
 - `G-W3WBZCTL7G` is a public GA4 Measurement ID, not a secret; no infrastructure secret or database field is introduced.
+
+## v0.1.307 Default public analytics decision
+
+This decision supersedes the first-visit opt-in requirement from v0.1.306 for the current Iran-focused product phase.
+
+- Approved public routes enable GA4 by default when no valid stored analytics preference exists.
+- Remove the first-visit «اجازه می‌دهم / فعلاً نه» banner; keep clear disclosure on the Privacy page and the shared analytics-settings control.
+- Preserve every explicit stored opt-out. A visitor can disable analytics or enable it again from the footer or Privacy page.
+- Keep eligible paths limited to `/`, `/chart`, `/product`, `/pricing`, `/order`, `/privacy`, `/wiki`, and valid `/wiki/*` articles.
+- Reports, report IDs, account pages, admin, roadmap, engine, quality, interpretation, and language surfaces remain outside analytics.
+- Birth data, report content, names, mobile numbers, email addresses, account identifiers, and report identifiers must never become analytics payloads.
+- Google Signals, advertising storage, ad user data, ad personalization, remarketing, Google Ads, GTM, and Enhanced Measurement remain disabled.
+- This policy maximizes coverage of trackable public visitors but does not claim 100% measurement because browser protections, blockers, and disabled JavaScript can still prevent collection.
+- Reassess regional consent/CMP requirements before any active expansion beyond the current Iran-focused market.
+- This analytics preference change does not alter the separate explicit-consent requirement for publishing or indexing a user report.

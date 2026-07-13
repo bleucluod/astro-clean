@@ -150,7 +150,7 @@ export function AnalyticsConsent() {
   const lastTrackedPath = useRef<string | null>(null);
 
   useEffect(() => {
-    setChoice(readStoredChoice());
+    setChoice(readStoredChoice() ?? "granted");
     setIsReady(true);
 
     const openSettings = () => setIsSettingsOpen(true);
@@ -200,31 +200,31 @@ export function AnalyticsConsent() {
     }
   };
 
-  if (!isReady || (choice !== null && !isSettingsOpen)) {
+  if (!isReady || !isSettingsOpen) {
     return null;
   }
 
   return (
     <section
-      aria-label="انتخاب آمار بازدید"
+      aria-label="تنظیم آمار بازدید"
       aria-live="polite"
       className={styles.banner}
     >
       <div className={styles.copy}>
-        <strong>کمک می‌کنی هالیوس را بهتر بفهمیم؟</strong>
+        <strong>آمار بازدید هالیوس</strong>
         <p>
-          فقط با اجازهٔ تو، بازدید صفحه‌های عمومی و اطلاعات فنی پایهٔ مرورگر
-          را به‌صورت آماری می‌سنجیم. دادهٔ تولد، محتوای گزارش، نام، شماره،
-          ایمیل و شناسهٔ گزارش ارسال نمی‌شود.
+          هالیوس بازدید صفحه‌های عمومی و اطلاعات فنی پایهٔ مرورگر را برای
+          بهترشدن محصول به‌صورت آماری می‌سنجد. دادهٔ تولد، محتوای گزارش، نام،
+          شماره، ایمیل و شناسهٔ گزارش ارسال نمی‌شود.
         </p>
       </div>
 
       <div className={styles.actions}>
         <button className={styles.allowButton} onClick={() => choose("granted")} type="button">
-          اجازه می‌دهم
+          آمار فعال باشد
         </button>
         <button className={styles.denyButton} onClick={() => choose("denied")} type="button">
-          فعلاً نه
+          آمار غیرفعال شود
         </button>
       </div>
     </section>

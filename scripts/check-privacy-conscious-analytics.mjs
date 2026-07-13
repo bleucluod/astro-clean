@@ -41,6 +41,26 @@ for (const blockedPath of ["/reports", "/admin", "/dashboard", "/profile", "/eng
 
 requireText("analytics component", analyticsComponent, '"use client"');
 requireText("analytics component", analyticsComponent, "readStoredChoice()");
+requireText(
+  "analytics component",
+  analyticsComponent,
+  'setChoice(readStoredChoice() ?? "granted");',
+);
+requireText(
+  "analytics component",
+  analyticsComponent,
+  "if (!isReady || !isSettingsOpen)",
+);
+forbidText(
+  "analytics component",
+  analyticsComponent,
+  "setChoice(readStoredChoice());",
+);
+forbidText(
+  "analytics component",
+  analyticsComponent,
+  "choice !== null && !isSettingsOpen",
+);
 requireText("analytics component", analyticsComponent, 'choice !== "granted"');
 requireText("analytics component", analyticsComponent, "isAnalyticsPublicPath(pathname)");
 requireText("analytics component", analyticsComponent, "analyticsWindow.gtag = function gtag(): void");
@@ -59,6 +79,12 @@ requireText("analytics component", analyticsComponent, "`${window.location.origi
 requireText("analytics component", analyticsComponent, "deleteAnalyticsCookies()");
 requireText("analytics component", analyticsComponent, "ga-disable-");
 requireText("analytics component", analyticsComponent, "دادهٔ تولد");
+requireText("analytics component", analyticsComponent, "آمار بازدید هالیوس");
+forbidText(
+  "analytics component",
+  analyticsComponent,
+  "کمک می‌کنی هالیوس را بهتر بفهمیم؟",
+);
 forbidText("analytics component", analyticsComponent, "window.location.href");
 forbidText("analytics component", analyticsComponent, "useSearchParams");
 forbidText("analytics component", analyticsComponent, "reportId");
@@ -72,9 +98,19 @@ requireText("App Shell", appShell, "<AnalyticsPreferencesLink />");
 forbidText("root layout", rootLayout, "googletagmanager.com");
 forbidText("root layout", rootLayout, "gtag(");
 
-requireText("Privacy page", privacyPage, "آمار بازدید فقط با انتخاب تو");
-requireText("Privacy page", privacyPage, "بدون اجازهٔ تو Google Analytics را بارگذاری نمی‌کند");
-requireText("Privacy page", privacyPage, "تغییر انتخاب آمار بازدید");
+requireText("Privacy page", privacyPage, "آمار بازدید صفحه‌های عمومی");
+requireText(
+  "Privacy page",
+  privacyPage,
+  "به‌صورت پیش‌فرض فقط روی صفحه‌های عمومی",
+);
+requireText("Privacy page", privacyPage, "تنظیم آمار بازدید");
+forbidText("Privacy page", privacyPage, "آمار بازدید فقط با انتخاب تو");
+forbidText(
+  "Privacy page",
+  privacyPage,
+  "بدون اجازهٔ تو Google Analytics را بارگذاری نمی‌کند",
+);
 
 if (
   packageJson.scripts?.["check:privacy-conscious-analytics"] !==
@@ -96,9 +132,19 @@ requireText(
   "## v0.1.306 Privacy-conscious analytics foundation",
 );
 requireText(
+  "Idea Garden",
+  ideaGarden,
+  "## v0.1.307 Default public analytics decision",
+);
+requireText(
   "Project Context",
   projectContext,
   "## v0.1.306 Privacy-conscious analytics foundation",
+);
+requireText(
+  "Project Context",
+  projectContext,
+  "## v0.1.307 Default public analytics",
 );
 requireText(
   "Project Context",
@@ -107,16 +153,17 @@ requireText(
 );
 
 if (failures.length > 0) {
-  console.error("Privacy-conscious analytics check failed:");
+  console.error("Default public analytics check failed:");
   for (const failure of failures) {
     console.error(`- ${failure}`);
   }
   process.exit(1);
 }
 
-console.log("Privacy-conscious analytics check passed.");
-console.log("- Google Analytics does not load before explicit consent");
+console.log("Default public analytics check passed.");
+console.log("- approved public routes enable analytics when no stored opt-out exists");
+console.log("- the first-visit consent banner is removed");
 console.log("- Halleus emits only sanitized public-route page_view events");
 console.log("- report, account, and internal routes remain outside analytics");
 console.log("- ad personalization and Google Signals remain disabled");
-console.log("- the visitor can deny or reopen and change the choice");
+console.log("- the visitor can opt out or re-enable analytics from shared settings");
