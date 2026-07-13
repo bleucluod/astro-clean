@@ -2695,3 +2695,9 @@ Required checks:
 - `pnpm run check:encoding`
 - `git --no-pager diff --check`
 - `pnpm build`
+
+## v0.1.308 public content crawlability loading boundary scope
+- Scope is limited to removing root app/loading.tsx, adding a focused public-content crawlability guard, and recording the product boundary.
+- The guard protects server-rendered H1/content contracts, real Wiki href contracts, static Wiki article generation, and the existing report-submit loading state.
+- The apply batch must run the source guard, existing Wiki SEO guard, report-flow guard, encoding, diff check, production build, and built-HTML smoke for /, /wiki, and one real article.
+- Do not change report engine, auth, schema, storage, analytics, sitemap, metadata, report visibility, or the public/private consent model in this batch.

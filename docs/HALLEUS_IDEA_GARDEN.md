@@ -2041,3 +2041,12 @@ This decision supersedes the first-visit opt-in requirement from v0.1.306 for th
 - This policy maximizes coverage of trackable public visitors but does not claim 100% measurement because browser protections, blockers, and disabled JavaScript can still prevent collection.
 - Reassess regional consent/CMP requirements before any active expansion beyond the current Iran-focused market.
 - This analytics preference change does not alter the separate explicit-consent requirement for publishing or indexing a user report.
+
+## v0.1.308 Public content loading boundary decision
+Decision:
+- Public content routes must expose their real server-rendered or prerendered content without a root route fallback replacing the initial view.
+- Remove the root app/loading.tsx boundary. The homepage, Wiki index, and valid Wiki articles remain direct public content surfaces.
+- Route-level loading UI remains allowed for deliberately scoped app/private segments.
+- Preserve report-generation progress shown only after a user submits the birth form.
+- Keep the current report noindex policy and the deferred public-report/public-profile consent model unchanged.
+- Future public/indexable report or profile routes must follow the same initial-HTML crawlability boundary when those models are explicitly implemented.
