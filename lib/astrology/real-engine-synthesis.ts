@@ -9,6 +9,11 @@ import {
   type RealEngineAspectSelectionContext,
 } from "@/lib/astrology/real-engine-aspect-selection";
 import type { RealEngineHouseEmphasis } from "@/lib/astrology/real-engine-house-emphasis";
+import {
+  buildRealEngineNarrativeSynthesisProfile,
+  type RealEngineNarrativeSynthesisProfile,
+} from "@/lib/astrology/real-engine-narrative-synthesis";
+import type { RealEngineReportLunarNodes } from "@/types/astro";
 
 const DAILY_PLANET_IDS = new Set(["mercury", "venus", "mars"]);
 
@@ -19,6 +24,8 @@ export type RealEngineSynthesisPlanInput = {
   activeHouseNumbers: number[];
   retrogradePlanetIds?: string[];
   houseEmphasis?: RealEngineHouseEmphasis[];
+  lunarNodes?: RealEngineReportLunarNodes;
+  narrativeProfile?: RealEngineNarrativeSynthesisProfile;
 };
 
 export type RealEngineSynthesisRoleId =
@@ -32,9 +39,12 @@ export type RealEngineSynthesisRole = {
 };
 
 export type RealEngineSynthesisPlan = {
+  narrativeProfile: RealEngineNarrativeSynthesisProfile;
+  primaryRelationship?: RealEngineReportAspect;
   primaryChallenge?: RealEngineReportAspect;
   primarySupport?: RealEngineReportAspect;
   dailyBridge?: RealEngineReportAspect;
+  narrativeRelationships: RealEngineReportAspect[];
   primaryHouseNumber: number | null;
   evidenceAspectIds: string[];
   houseEmphasis: RealEngineHouseEmphasis[];
@@ -47,6 +57,8 @@ export function buildRealEngineSynthesisPlan({
   activeHouseNumbers,
   retrogradePlanetIds = [],
   houseEmphasis = [],
+  lunarNodes,
+  narrativeProfile,
 }: RealEngineSynthesisPlanInput): RealEngineSynthesisPlan {
   const placementHouseById = new Map(
     placements.map((placement) => [placement.id, placement.house ?? null]),
@@ -61,18 +73,33 @@ export function buildRealEngineSynthesisPlan({
     retrogradePlanetIds,
   };
   const ranked = rankRealEngineAspects(aspects, context);
-  const primaryChallenge =
-    selectPrimaryDynamicAnchor(ranked, context) ??
-    ranked.find((aspect) => aspect.aspectId === "conjunction");
-
+  const resolvedProfile =
+    narrativeProfile ??
+    buildRealEngineNarrativeSynthesisProfile({
+      aspects,
+      placements,
+      chartRulerId,
+      activeHouseNumbers,
+      retrogradePlanetIds,
+      lunarNodes,
+      houseEmphasis,
+    });
+  const primaryChallenge = narrativeProfile
+    ? resolvedProfile.mode === "tension-led"
+      ? resolvedProfile.primaryAspect ??
+        selectPrimaryDynamicAnchor(ranked, context)
+      : undefined
+    : selectPrimaryDynamicAnchor(ranked, context) ??
+      ranked.find((aspect) => aspect.aspectId === "conjunction");
+  const primaryRelationship = primaryChallenge ?? ranked[0];
   const primarySupport = ranked.find(
     (aspect) =>
-      aspect.id !== primaryChallenge?.id &&
+      aspect.id !== primaryRelationship?.id &&
       (aspect.aspectId === "trine" || aspect.aspectId === "sextile"),
   );
 
   const selectedIds = new Set(
-    [primaryChallenge?.id, primarySupport?.id].filter(
+    [primaryRelationship?.id, primarySupport?.id].filter(
       (id): id is string => typeof id === "string",
     ),
   );
@@ -85,23 +112,31 @@ export function buildRealEngineSynthesisPlan({
     return getParticipants(aspect).some((id) => DAILY_PLANET_IDS.has(id));
   });
 
-  const selectedAspects = [primaryChallenge, primarySupport, dailyBridge].filter(
+  const selectedAspects = [
+    primaryRelationship,
+    primarySupport,
+    dailyBridge,
+  ].filter(
     (aspect): aspect is RealEngineReportAspect => Boolean(aspect),
   );
+  const boundedHouseEmphasis = houseEmphasis.slice(0, 4);
   const primaryHouseNumber = selectPrimaryHouseNumber({
-    primaryChallenge,
+    primaryChallenge: primaryRelationship,
     selectedAspects,
     placementHouseById,
     activeHouseNumbers,
-    houseEmphasis,
+    houseEmphasis: boundedHouseEmphasis,
   });
   const plan: RealEngineSynthesisPlan = {
+    narrativeProfile: resolvedProfile,
+    primaryRelationship,
     primaryChallenge,
     primarySupport,
     dailyBridge,
+    narrativeRelationships: aspects.slice(0, 5),
     primaryHouseNumber,
     evidenceAspectIds: [],
-    houseEmphasis,
+    houseEmphasis: boundedHouseEmphasis,
   };
 
   return {

@@ -20,11 +20,9 @@ import {
   formatAspectDegree,
 } from "@/lib/astrology/real-engine-aspects";
 import {
-  REPORT_ASPECT_HIGHLIGHT_LIMIT,
   mergeRealEngineAspectInventory,
   rankRealEngineAspects,
   selectNarrativeAspectHighlights,
-  selectPrimaryDynamicAnchor,
   type RealEngineAspectSelectionContext,
 } from "@/lib/astrology/real-engine-aspect-selection";
 import {
@@ -38,6 +36,15 @@ import {
   type RealEngineHouseEmphasis,
   type RealEngineHouseEmphasisReason,
 } from "@/lib/astrology/real-engine-house-emphasis";
+import {
+  buildRealEngineNarrativeSynthesisProfile,
+  selectThreeDomainNarrativePractices,
+  type RealEngineChartBalanceProfile,
+  type RealEngineNarrativeCluster,
+  type RealEngineNarrativeSynthesisProfile,
+  type RealEngineNodeAxisSynthesis,
+  type RealEnginePracticeCandidate,
+} from "@/lib/astrology/real-engine-narrative-synthesis";
 import {
   buildAspectBehavioralInterpretation,
   buildPlacementBehavioralInterpretation,
@@ -574,15 +581,36 @@ export function enrichReportWithRealEngineCopy(
     chartSpineDraft,
     realEngine,
   );
+  const narrativeProfile = buildRealEngineNarrativeSynthesisProfile({
+    aspects: allAspects,
+    placements: realEngine.placements,
+    chartRulerId: chartSpineDraft.chartRulerId,
+    activeHouseNumbers: chartSpineDraft.activeHouses.map(
+      (activeHouse) => activeHouse.house.number,
+    ),
+    retrogradePlanetIds:
+      realEngine.retrogrades?.status === "calculated"
+        ? realEngine.retrogrades.planetIds
+        : [],
+    lunarNodes: realEngine.lunarNodes,
+    houseEmphasis: chartSpineDraft.activeHouses,
+  });
   const aspectHighlights = selectNarrativeAspectHighlights(
     allAspects,
     aspectSelectionContext,
-    REPORT_ASPECT_HIGHLIGHT_LIMIT,
+    {
+      limit: narrativeProfile.relationshipLimit,
+      primaryAspect:
+        narrativeProfile.mode === "tension-led"
+          ? narrativeProfile.primaryAspect
+          : undefined,
+      forceDynamicAnchor: narrativeProfile.mode === "tension-led",
+    },
   );
-  const primaryAnchor = selectPrimaryDynamicAnchor(
-    aspectHighlights,
-    aspectSelectionContext,
-  );
+  const primaryAnchor =
+    narrativeProfile.mode === "tension-led"
+      ? narrativeProfile.primaryAspect
+      : undefined;
   const behavioralAudienceMode =
     realEngine.behavioralAudienceMode ??
     resolveBehavioralAudienceMode(
@@ -612,6 +640,8 @@ export function enrichReportWithRealEngineCopy(
         ? realEngineWithAspects.retrogrades.planetIds
         : [],
     houseEmphasis: chartSpine.activeHouses,
+    lunarNodes: realEngineWithAspects.lunarNodes,
+    narrativeProfile,
   });
   const risingSign = chartSpine.risingSign;
 
@@ -636,11 +666,18 @@ export function enrichReportWithRealEngineCopy(
   );
   const chartRulerText = buildChartRulerText(chartSpine, realEngineWithAspects);
   const activeHouseText = buildActiveHousesText(chartSpine);
-  const balanceText = buildChartBalanceText(realEngineWithAspects);
+  const balanceText = buildChartBalanceText(
+    realEngineWithAspects,
+    synthesisPlan.narrativeProfile.balance,
+  );
   const houseText = buildHouseContextText(realEngine.houseContext, risingSign);
   const houseAnglesText = buildHouseAnglesText(realEngineWithAspects);
   const retrogradeText = buildRetrogradeText(realEngineWithAspects, chartSpine);
-  const lunarNodeText = buildLunarNodeText(realEngineWithAspects, chartSpine);
+  const lunarNodeText = buildLunarNodeText(
+    realEngineWithAspects,
+    chartSpine,
+    synthesisPlan.narrativeProfile.nodeAxis,
+  );
   const natalAccuracyText = buildNatalAccuracyText(realEngineWithAspects);
   const mercuryText = buildOptionalPlacementText(mercury, "mercury", realEngineWithAspects);
   const venusText = buildOptionalPlacementText(venus, "venus", realEngineWithAspects);
@@ -1187,7 +1224,7 @@ function buildActiveHousesText(chartSpine: ChartSpine): string | undefined {
   }
 
   const houses = chartSpine.activeHouses
-    .slice(0, 5)
+    .slice(0, 4)
     .map((activeHouse) =>
       buildChartSpineActiveHouseNarrative(activeHouse),
     );
@@ -1348,19 +1385,30 @@ function buildSpecialActiveHouseNarrative(
   return undefined;
 }
 
-function buildChartBalanceText(realEngine: RealEngineReportSnapshot): string | undefined {
+function buildChartBalanceText(
+  realEngine: RealEngineReportSnapshot,
+  balance: RealEngineChartBalanceProfile,
+): string | undefined {
   if (!realEngine.placements.length) {
     return undefined;
   }
 
-  const elementCounts = countChartItems(realEngine.placements.map((placement) => SIGN_ELEMENT[placement.signId]));
-  const modalityCounts = countChartItems(realEngine.placements.map((placement) => SIGN_MODALITY[placement.signId]));
-  const polarityCounts = countChartItems(realEngine.placements.map((placement) => SIGN_POLARITY[placement.signId]));
-  const elementLine = formatCountMap(elementCounts, ELEMENT_LABELS);
-  const modalityLine = formatCountMap(modalityCounts, MODALITY_LABELS);
+  const polarityCounts = countChartItems(
+    realEngine.placements.map(
+      (placement) => SIGN_POLARITY[placement.signId],
+    ),
+  );
+  const elementLine = formatCountMap(
+    balance.elementCounts,
+    ELEMENT_LABELS,
+  );
+  const modalityLine = formatCountMap(
+    balance.modalityCounts,
+    MODALITY_LABELS,
+  );
   const polarityLine = formatCountMap(polarityCounts, POLARITY_LABELS);
-  const elementInterpretation = buildElementBalanceInterpretation(elementCounts);
-  const modalityInterpretation = buildModalityBalanceInterpretation(modalityCounts);
+  const elementInterpretation = buildElementBalanceInterpretation(balance);
+  const modalityInterpretation = buildModalityBalanceInterpretation(balance);
 
   return [
     `در عنصرها، این چارت چنین پخش شده است: ${elementLine}.`,
@@ -1389,48 +1437,65 @@ function formatCountMap<T extends string>(
     .join("، ");
 }
 
-function buildElementBalanceInterpretation(counts: Record<ChartElementKey, number>): string {
+function buildElementBalanceInterpretation(
+  balance: RealEngineChartBalanceProfile,
+): string {
   const notes: string[] = [];
 
-  if ((counts.air ?? 0) >= 4) {
-    notes.push("هوای پررنگ یعنی ذهن، تحلیل و فاصله گرفتن برای دیدن الگو در چارت قوی است؛ تمرینش این است که پیش از تحلیل بیشتر، خواب، غذا و تنش بدن را بررسی کنی و فکر را به یک قدم عملی با زمان مشخص تبدیل کنی.");
+  if (balance.dominantElement === "air") {
+    notes.push("هوای غالب یعنی ذهن، تحلیل و فاصله گرفتن برای دیدن الگو سریع‌تر در دسترس است؛ تعادل از بدن، زمان‌بندی و یک اقدام مشخص می‌آید.");
+  } else if (balance.dominantElement === "fire") {
+    notes.push("آتش غالب حرکت، شوق و شروع کردن را بالا می‌آورد؛ تعادل از مکث، پیگیری و نسوزاندن انرژی در موج اول می‌آید.");
+  } else if (balance.dominantElement === "earth") {
+    notes.push("زمین غالب ثبات، واقع‌بینی و ساختن را تقویت می‌کند؛ تعادل از انعطاف و اجازه دادن به تجربه‌های ناتمام می‌آید.");
+  } else if (balance.dominantElement === "water") {
+    notes.push("آب غالب دریافت عاطفی و حافظه را پررنگ می‌کند؛ تعادل از مرز روشن و تبدیل حس به درخواست قابل گفت‌وگو می‌آید.");
   }
 
-  if ((counts.fire ?? 0) >= 4) {
-    notes.push("آتش پررنگ حرکت، شوق، شروع کردن و صراحت را بالا می‌آورد؛ تمرینش مکث، پیگیری و نسوزاندن انرژی در بی‌قراری است.");
+  if (balance.zeroElements.includes("water")) {
+    notes.push("نبود آب به معنی بی‌احساسی نیست؛ فقط بیان مستقیم احساس باید آگاهانه‌تر تمرین شود.");
   }
-
-  if ((counts.water ?? 0) <= 1) {
-    notes.push("آب کم به معنی بی‌احساسی نیست؛ فقط ممکن است بیان مستقیم احساس نیاز به تمرین داشته باشد و محبت بیشتر از مسیر فکر، عمل، وفاداری یا بدن نشان داده شود.");
+  if (balance.zeroElements.includes("earth")) {
+    notes.push("نبود زمین یعنی روتین، بدن و پیگیری آرام باید عمداً وارد برنامه شوند.");
   }
-
-  if ((counts.earth ?? 0) <= 1) {
-    notes.push("زمین کم می‌تواند نشان دهد ساختن روتین، بدن، ثبات مالی/عملی و پیگیری آرام باید آگاهانه‌تر تمرین شود.");
+  if (balance.zeroElements.includes("air")) {
+    notes.push("نبود هوا یعنی فاصله گرفتن، نام‌گذاری و دیدن چند زاویه ممکن است به تمرین بیشتری نیاز داشته باشد.");
+  }
+  if (balance.zeroElements.includes("fire")) {
+    notes.push("نبود آتش یعنی آغاز، ریسک سنجیده و ابراز مستقیم خواسته بهتر است در قدم‌های کوچک تمرین شود.");
   }
 
   return notes.length > 0
     ? notes.join(" ")
-    : "عنصرها پخش نسبتاً متعادلی دارند؛ بنابراین بهتر است به خانه‌ها و حاکم چارت برای تشخیص وزن اصلی نگاه شود.";
+    : "عنصرها پخش نسبتاً متعادلی دارند؛ بنابراین خانه‌ها و سیاره‌ی راهبر وزن اصلی را روشن‌تر می‌کنند.";
 }
 
-function buildModalityBalanceInterpretation(counts: Record<ChartModalityKey, number>): string {
+function buildModalityBalanceInterpretation(
+  balance: RealEngineChartBalanceProfile,
+): string {
   const notes: string[] = [];
 
-  if ((counts.fixed ?? 0) >= 5) {
-    notes.push("کیفیت ثابت پررنگ، پایداری، وفاداری و تمرکز می‌دهد؛ اما ممکن است تغییر دادن الگوهای آشنا را کندتر یا مقاوم‌تر کند.");
+  if (balance.dominantModality === "fixed") {
+    notes.push("کیفیت ثابت غالب، پایداری و تمرکز می‌دهد؛ تعادل از تغییر تدریجی و رها کردن کنترل کامل می‌آید.");
+  } else if (balance.dominantModality === "cardinal") {
+    notes.push("کاردینال غالب، شروع و تصمیم را فعال می‌کند؛ تعادل از ادامه دادن بعد از موج اول حرکت می‌آید.");
+  } else if (balance.dominantModality === "mutable") {
+    notes.push("متغیر غالب، سازگاری و تغییر مسیر را آسان می‌کند؛ تعادل از انتخاب یک جهت و نگه داشتن آن تا نتیجه می‌آید.");
   }
 
-  if ((counts.cardinal ?? 0) >= 5) {
-    notes.push("کاردینال پررنگ، شروع کردن و تصمیم گرفتن را فعال می‌کند؛ تمرینش ادامه دادن بعد از موج اول حرکت است.");
+  if (balance.zeroModalities.includes("mutable")) {
+    notes.push("نبود کیفیت متغیر یعنی تغییر مسیر به زمان، دلیل روشن و آزمایش تدریجی نیاز دارد.");
   }
-
-  if ((counts.mutable ?? 0) <= 1) {
-    notes.push("متغیر کم یعنی انعطاف و تغییر مسیر ممکن است نیاز به زمان، دلیل روشن و تمرین تدریجی داشته باشد.");
+  if (balance.zeroModalities.includes("fixed")) {
+    notes.push("نبود کیفیت ثابت یعنی نگه داشتن ریتم و تمام کردن کارها باید آگاهانه‌تر ساخته شود.");
+  }
+  if (balance.zeroModalities.includes("cardinal")) {
+    notes.push("نبود کیفیت کاردینال یعنی آغاز کردن و اعلام تصمیم ممکن است به محرک بیرونی یا زمان بیشتر نیاز داشته باشد.");
   }
 
   return notes.length > 0
     ? notes.join(" ")
-    : "کیفیت‌ها فشار غالب خیلی تندی نشان نمی‌دهند؛ پس باید دید کدام خانه یا aspect عملاً میدان اصلی رشد را فعال می‌کند.";
+    : "کیفیت‌ها فشار غالب تندی نشان نمی‌دهند؛ خانه‌ها، خوشه‌ها و رابطه‌های اصلی جهت را روشن‌تر می‌کنند.";
 }
 
 function getPlanetLabel(planetId: string): string {
@@ -1758,7 +1823,10 @@ function buildHouseSynthesisThread(
     return "از نظر میدان‌های زندگی، خانه‌ها فقط وقتی وارد جمع‌بندی می‌شوند که جایگاه محاسبه‌شده و قابل توضیح داشته باشند.";
   }
 
-  const shownHouses = activeHouses.map((house) => "خانه " + toPersianNumber(house)).join("، ");
+  const shownHouses = activeHouses
+    .slice(0, 4)
+    .map((house) => "خانه " + toPersianNumber(house))
+    .join("، ");
 
   return "از نظر میدان‌های زندگی، تمرکز اولیه در " + shownHouses + " دیده می‌شود؛ یعنی تصویر کلی فقط از نشانه‌ها ساخته نمی‌شود، بلکه از جایی هم ساخته می‌شود که هر نیرو در زندگی روزمره فعال می‌شود.";
 }
@@ -1768,12 +1836,37 @@ function buildFirstSynthesisText(
   chartSpine: ChartSpine,
   synthesisPlan: RealEngineSynthesisPlan,
 ): string {
+  const profile = synthesisPlan.narrativeProfile;
+  const driverThread = buildNarrativeDriverThread(
+    profile,
+    realEngine,
+    chartSpine,
+  );
+  const relationshipThread =
+    profile.mode === "tension-led"
+      ? buildSynthesisChallengeThread(
+          synthesisPlan.primaryChallenge,
+          realEngine,
+          chartSpine,
+        )
+      : buildSynthesisPrimaryRelationshipThread(
+          synthesisPlan.primaryRelationship,
+          realEngine,
+          chartSpine,
+        );
+  const clusterThread =
+    profile.mode === "cluster-led"
+      ? undefined
+      : buildAspectClusterSynthesisThread(
+          realEngine,
+          chartSpine,
+          profile.primaryCluster,
+        );
+
   return [
-    buildSynthesisChallengeThread(
-      synthesisPlan.primaryChallenge,
-      realEngine,
-      chartSpine,
-    ),
+    driverThread,
+    relationshipThread,
+    clusterThread,
     buildSynthesisSupportThread(
       synthesisPlan.primarySupport,
       realEngine,
@@ -1784,11 +1877,94 @@ function buildFirstSynthesisText(
       realEngine,
       chartSpine,
     ),
-    buildAspectClusterSynthesisThread(realEngine, chartSpine),
     buildSynthesisWeeklyPractice(realEngine, chartSpine, synthesisPlan),
   ]
-    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+    .filter(
+      (part): part is string =>
+        typeof part === "string" && part.trim().length > 0,
+    )
+    .filter((part, index, parts) => parts.indexOf(part) === index)
     .join("\n\n");
+}
+
+function buildNarrativeDriverThread(
+  profile: RealEngineNarrativeSynthesisProfile,
+  realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
+): string | undefined {
+  if (profile.primaryDriver.kind === "aspect") {
+    return undefined;
+  }
+
+  if (profile.primaryDriver.kind === "cluster") {
+    return buildAspectClusterSynthesisThread(
+      realEngine,
+      chartSpine,
+      profile.primaryDriver.cluster,
+    );
+  }
+
+  if (profile.primaryDriver.kind === "axis") {
+    return buildNodeAxisDriverThread(profile.primaryDriver.axis);
+  }
+
+  return buildStrengthDriverThread(profile);
+}
+
+function buildSynthesisPrimaryRelationshipThread(
+  aspect: RealEngineReportAspect | undefined,
+  realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
+): string | undefined {
+  if (!aspect) {
+    return undefined;
+  }
+
+  return `رابطهٔ همراه: ${buildSynthesisAspectBridge(
+    aspect,
+    realEngine,
+    chartSpine,
+    "support",
+  )}`;
+}
+
+function buildStrengthDriverThread(
+  profile: RealEngineNarrativeSynthesisProfile,
+): string {
+  const parts = [
+    profile.balance.dominantElement
+      ? `${ELEMENT_LABELS[profile.balance.dominantElement]} مسیر راحت‌تر بیان انرژی است`
+      : undefined,
+    profile.balance.dominantModality
+      ? `${MODALITY_LABELS[profile.balance.dominantModality]} ریتم غالب حرکت و تصمیم است`
+      : undefined,
+    profile.balance.zeroElements.length > 0
+      ? `عنصر کم‌حضور ${joinPersianList(
+          profile.balance.zeroElements.map((item) => ELEMENT_LABELS[item]),
+        )} باید آگاهانه‌تر تمرین شود`
+      : undefined,
+  ].filter((part): part is string => Boolean(part));
+
+  return `نقطهٔ قوت اصلی: ${parts.join("؛ ")}. این الگو یک برچسب ثابت نیست؛ نشان می‌دهد چارت از کدام مسیر راحت‌تر شروع می‌کند و کجا برای تعادل به تمرین نیاز دارد.`;
+}
+
+function buildNodeAxisDriverThread(
+  axis: RealEngineNodeAxisSynthesis,
+): string {
+  const southHouse = axis.southHouse
+    ? `خانه ${toPersianNumber(axis.southHouse)}`
+    : "خانه نامشخص";
+  const northHouse = axis.northHouse
+    ? `خانه ${toPersianNumber(axis.northHouse)}`
+    : "خانه نامشخص";
+  const confidence =
+    axis.confidence === "very-near"
+      ? "چون محور بسیار نزدیک مرز نشانه است، خانه‌ها مبنای اصلی‌اند و نشانه‌ها با احتیاط خوانده می‌شوند"
+      : axis.confidence === "near"
+        ? "چون محور نزدیک مرز نشانه است، خانه‌ها وزن بیشتری دارند و نشانه‌ها ملایم‌تر خوانده می‌شوند"
+        : "خانه و نشانه هر دو پشتوانه کافی برای خوانش این محور دارند";
+
+  return `محور اصلی رشد: الگوی آشنای ${southHouse} به تمرین تازهٔ ${northHouse} وصل می‌شود. ${confidence}.`;
 }
 
 function buildSynthesisChallengeThread(
@@ -2207,6 +2383,7 @@ function buildRetrogradeText(
 function buildLunarNodeText(
   realEngine: RealEngineReportSnapshot,
   chartSpine?: ChartSpine,
+  nodeAxis?: RealEngineNodeAxisSynthesis,
 ): string | undefined {
   const lunarNodes = realEngine.lunarNodes;
 
@@ -2215,7 +2392,7 @@ function buildLunarNodeText(
   }
 
   const modelLabel = getLunarNodeModelLabel(lunarNodes);
-  const boundaryWarning = buildLunarNodeBoundaryWarning(lunarNodes);
+  const boundaryWarning = buildLunarNodeBoundaryWarning(nodeAxis);
   const northHouse = isReportHouseNumber(lunarNodes.northNode.house)
     ? HOUSE_COPY[lunarNodes.northNode.house]
     : undefined;
@@ -2256,15 +2433,17 @@ function buildLunarNodeAxisHumanSentence(
 }
 
 function buildLunarNodeBoundaryWarning(
-  lunarNodes: RealEngineReportCalculatedLunarNodes,
+  nodeAxis: RealEngineNodeAxisSynthesis | undefined,
 ): string | undefined {
-  const nearBoundary = [lunarNodes.northNode, lunarNodes.southNode].some((node) =>
-    node.degreeInSign <= 1.5 || node.degreeInSign >= 28.5,
-  );
+  if (!nodeAxis || nodeAxis.confidence === "stable") {
+    return undefined;
+  }
 
-  return nearBoundary
-    ? "چون یکی از دست‌های ماه نزدیک مرز نشانه ثبت شده است، این بخش باید ملایم و احتمالی خوانده شود."
-    : undefined;
+  const distance = formatAspectDegree(nodeAxis.boundaryDistance);
+
+  return nodeAxis.confidence === "very-near"
+    ? `فاصله این محور تا مرز نشانه ${distance} است؛ بنابراین محور خانه‌ها مبنای اصلی خوانش است و جزئیات نشانه‌ای با احتیاط گفته می‌شود.`
+    : `فاصله این محور تا مرز نشانه ${distance} است؛ خانه‌ها قابل اتکاترند و جزئیات نشانه‌ای ملایم‌تر خوانده می‌شوند.`;
 }
 
 
@@ -2661,55 +2840,79 @@ function buildWriterAspectInterpretation(
   });
 }
 
-function getAspectClusterAspects(
+function getNarrativeClusterAspects(
   realEngine: RealEngineReportSnapshot,
+  cluster: RealEngineNarrativeCluster | undefined,
 ): RealEngineReportAspect[] {
-  const highlights = realEngine.aspectHighlights ?? [];
-  const clusterPlanetIds = new Set(["moon", "mars", "uranus"]);
+  if (!cluster) {
+    return [];
+  }
 
-  return highlights.filter(
+  const planetIds = new Set(cluster.placementIds);
+
+  return (realEngine.aspectHighlights ?? []).filter(
     (aspect) =>
-      clusterPlanetIds.has(aspect.firstPlanetId) &&
-      clusterPlanetIds.has(aspect.secondPlanetId),
+      planetIds.has(aspect.firstPlanetId) &&
+      planetIds.has(aspect.secondPlanetId),
   );
 }
 
 function buildAspectClusterPractice(
   realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
+  cluster: RealEngineNarrativeCluster | undefined,
 ): string | undefined {
-  const clusterAspects = getAspectClusterAspects(realEngine);
+  const clusterAspects = getNarrativeClusterAspects(realEngine, cluster);
 
-  if (clusterAspects.length < 2) {
-    return undefined;
+  if (clusterAspects.length > 0) {
+    return buildWriterAspectInterpretation(
+      clusterAspects[0],
+      realEngine,
+      chartSpine,
+      "daily-bridge",
+    ).smallExperiment;
   }
 
-  return buildWriterAspectInterpretation(
-    clusterAspects[0],
-    realEngine,
-    chartSpine,
-    "daily-bridge",
-  ).smallExperiment;
+  const placement = cluster?.placementIds
+    .map((planetId) => findPlacement(realEngine, planetId))
+    .find((item): item is RealEngineReportPlacement => Boolean(item));
+
+  return placement
+    ? buildPlacementInterpretation(
+        placement.id,
+        placement,
+        realEngine,
+      )?.smallExperiment
+    : undefined;
 }
 
 function buildAspectClusterSynthesisThread(
   realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
+  cluster: RealEngineNarrativeCluster | undefined,
 ): string | undefined {
-  const clusterAspects = getAspectClusterAspects(realEngine);
-
-  if (clusterAspects.length < 2) {
+  if (!cluster) {
     return undefined;
   }
 
+  const labels = joinPersianList(
+    cluster.placementIds.map(getPlanetLabel),
+  );
+  const field =
+    cluster.kind === "house" && cluster.houseNumber
+      ? `خانه ${toPersianNumber(cluster.houseNumber)}`
+      : cluster.signId
+        ? formatSignLabel(SIGN_COPY[cluster.signId])
+        : "یک میدان مشترک";
   const sharedExperiment = buildAspectClusterPractice(
     realEngine,
     chartSpine,
+    cluster,
   );
 
   return [
-    "الگوی خوشه‌ای: ماه، مریخ و اورانوس اینجا سه جملهٔ جدا نیستند؛ احساس، واکنش عملی و نیاز به آزادی می‌توانند پشت سر هم روشن شوند.",
-    "توان این خوشه صداقت، دفاع از احساس و تغییر مستقل است؛ گیر آن تصمیم یا قطع‌کردن پیش از نام‌گذاری احساس و درخواست است.",
+    `الگوی خوشه‌ای: ${labels} در ${field} باید پیش از کارت‌های جداگانه به‌عنوان یک سیستم واحد خوانده شوند.`,
+    "توان این تمرکز، هماهنگ کردن چند نیاز در یک میدان است؛ گیر آن شلوغ شدن همان میدان و واکنش پیش از روشن شدن اولویت است.",
     sharedExperiment ? `آزمایش خوشه: ${sharedExperiment}.` : undefined,
   ]
     .filter((part): part is string => Boolean(part))
@@ -2799,37 +3002,19 @@ function buildSynthesisPracticeItems(
   chartSpine: ChartSpine,
   synthesisPlan: RealEngineSynthesisPlan,
 ): string[] {
-  const practices: string[] = [];
-  const practiceKeys = new Set<string>();
-  const pushPractice = (practice: string | undefined) => {
-    if (!practice) {
-      return;
-    }
-
-    const cleaned = trimSentenceEnd(practice);
-    const key = cleaned
-      .replace(/[،؛:.؟!]/gu, " ")
-      .replace(/\s+/gu, " ")
-      .trim();
-
-    if (!key || practiceKeys.has(key)) {
-      return;
-    }
-
-    practiceKeys.add(key);
-    practices.push(cleaned);
-  };
   const buildRolePractice = (
     aspect: RealEngineReportAspect | undefined,
     role: BehavioralSynthesisRole,
   ) =>
     aspect
-      ? buildWriterAspectInterpretation(
-          aspect,
-          realEngine,
-          chartSpine,
-          role,
-        ).smallExperiment
+      ? trimSentenceEnd(
+          buildWriterAspectInterpretation(
+            aspect,
+            realEngine,
+            chartSpine,
+            role,
+          ).smallExperiment,
+        )
       : undefined;
   const challengePractice = buildRolePractice(
     synthesisPlan.primaryChallenge,
@@ -2846,48 +3031,77 @@ function buildSynthesisPracticeItems(
   const clusterPractice = buildAspectClusterPractice(
     realEngine,
     chartSpine,
+    synthesisPlan.narrativeProfile.primaryCluster,
   );
-
-  pushPractice(challengePractice);
-  pushPractice(clusterPractice ?? supportPractice);
-  pushPractice(dailyBridgePractice);
-  pushPractice(
-    buildPrimaryHousePlacementPractice(
-      realEngine,
-      chartSpine,
-      synthesisPlan.primaryHouseNumber,
-    ),
+  const primaryHousePractice = buildPrimaryHousePlacementPractice(
+    realEngine,
+    chartSpine,
+    synthesisPlan.primaryHouseNumber,
   );
-  pushPractice(supportPractice);
+  const chartRulerPractice = chartSpine.chartRulerPlacement
+    ? buildPlacementInterpretation(
+        chartSpine.chartRulerPlacement.id,
+        chartSpine.chartRulerPlacement,
+        realEngine,
+      )?.smallExperiment
+    : undefined;
+  const candidates: RealEnginePracticeCandidate[] = [
+    {
+      domain: "emotional-relational",
+      text: challengePractice,
+      priority: 100,
+    },
+    {
+      domain: "emotional-relational",
+      text: supportPractice,
+      priority: 70,
+    },
+    {
+      domain: "emotional-relational",
+      text: "یک احساس یا نیاز را پیش از واکنش در یک جمله روشن بیان کن",
+      priority: 10,
+    },
+    {
+      domain: "daily-body-work",
+      text: dailyBridgePractice,
+      priority: 100,
+    },
+    {
+      domain: "daily-body-work",
+      text: primaryHousePractice,
+      priority: 90,
+    },
+    {
+      domain: "daily-body-work",
+      text: "یک روتین کوچک بدن یا کار را برای هفت روز در زمان مشخص تکرار کن",
+      priority: 10,
+    },
+    {
+      domain: "identity-decision-creative",
+      text: clusterPractice,
+      priority:
+        synthesisPlan.narrativeProfile.mode === "cluster-led" ? 110 : 80,
+    },
+    {
+      domain: "identity-decision-creative",
+      text: chartRulerPractice,
+      priority: 90,
+    },
+    {
+      domain: "identity-decision-creative",
+      text: supportPractice,
+      priority: 60,
+    },
+    {
+      domain: "identity-decision-creative",
+      text: "یک انتخاب کوچک و قابل مشاهده را بدون منتظر ماندن برای نتیجه کامل انجام بده",
+      priority: 10,
+    },
+  ];
 
-  const activeHouse =
-    synthesisPlan.primaryHouseNumber ??
-    chartSpine.activeHouses[0]?.house.number;
-  if (practices.length < 3 && activeHouse && HOUSE_COPY[activeHouse]) {
-    const growth = trimSentenceEnd(HOUSE_COPY[activeHouse].growth).replace(
-      /^این است که /u,
-      "",
-    );
-    pushPractice(
-      `در خانه ${toPersianNumber(
-        activeHouse,
-      )} یک قدم کوچک بردار تا ${growth}`,
-    );
-  }
-
-  for (const fallback of [
-    "یک واکنش تکراری را پیش از عمل نام‌گذاری کن",
-    "یک نیاز را کوتاه و مستقیم بیان کن",
-    "یک انتخاب کوچک را به‌جای تصمیم بزرگ امتحان کن",
-  ]) {
-    if (practices.length >= 3) {
-      break;
-    }
-
-    pushPractice(fallback);
-  }
-
-  return practices.slice(0, 3);
+  return selectThreeDomainNarrativePractices(candidates).map(
+    trimSentenceEnd,
+  );
 }
 
 function buildPrimaryHousePlacementPractice(

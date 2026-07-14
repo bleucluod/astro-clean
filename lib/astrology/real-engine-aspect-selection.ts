@@ -27,6 +27,12 @@ export type RealEngineAspectSelectionContext = {
   retrogradePlanetIds?: string[];
 };
 
+export type RealEngineNarrativeAspectSelectionOptions = {
+  limit?: number;
+  primaryAspect?: RealEngineReportAspect;
+  forceDynamicAnchor?: boolean;
+};
+
 export function mergeRealEngineAspectInventory(
   calculatedAspects: RealEngineReportAspect[],
   storedAspects: RealEngineReportAspect[] = [],
@@ -89,9 +95,17 @@ export function selectPrimaryDynamicAnchor(
 export function selectNarrativeAspectHighlights(
   aspects: RealEngineReportAspect[],
   context: RealEngineAspectSelectionContext,
-  limit = REPORT_ASPECT_HIGHLIGHT_LIMIT,
+  limitOrOptions: number | RealEngineNarrativeAspectSelectionOptions =
+    REPORT_ASPECT_HIGHLIGHT_LIMIT,
 ): RealEngineReportAspect[] {
-  const safeLimit = Math.max(0, Math.trunc(limit));
+  const options: RealEngineNarrativeAspectSelectionOptions =
+    typeof limitOrOptions === "number"
+      ? { limit: limitOrOptions }
+      : limitOrOptions;
+  const safeLimit = Math.max(
+    0,
+    Math.trunc(options.limit ?? REPORT_ASPECT_HIGHLIGHT_LIMIT),
+  );
 
   if (safeLimit === 0) {
     return [];
@@ -238,7 +252,11 @@ export function selectNarrativeAspectHighlights(
     addAspect(candidate);
   }
 
-  const primaryAnchor = selectPrimaryDynamicAnchor(ranked, context);
+  const primaryAnchor =
+    options.primaryAspect ??
+    (options.forceDynamicAnchor === false
+      ? undefined
+      : selectPrimaryDynamicAnchor(ranked, context));
 
   if (primaryAnchor) {
     const anchorKey = getCanonicalAspectKey(primaryAnchor);
