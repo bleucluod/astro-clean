@@ -1,9 +1,15 @@
 import type {
   RealEngineReportAspect,
+  RealEngineReportHouseNumber,
   RealEngineReportPlacement,
 } from "@/types/astro";
+import {
+  rankRealEngineAspects,
+  selectPrimaryDynamicAnchor,
+  type RealEngineAspectSelectionContext,
+} from "@/lib/astrology/real-engine-aspect-selection";
+import type { RealEngineHouseEmphasis } from "@/lib/astrology/real-engine-house-emphasis";
 
-const CORE_PLANET_IDS = new Set(["sun", "moon"]);
 const DAILY_PLANET_IDS = new Set(["mercury", "venus", "mars"]);
 
 export type RealEngineSynthesisPlanInput = {
@@ -11,6 +17,8 @@ export type RealEngineSynthesisPlanInput = {
   placements: RealEngineReportPlacement[];
   chartRulerId: string;
   activeHouseNumbers: number[];
+  retrogradePlanetIds?: string[];
+  houseEmphasis?: RealEngineHouseEmphasis[];
 };
 
 export type RealEngineSynthesisRoleId =
@@ -29,6 +37,7 @@ export type RealEngineSynthesisPlan = {
   dailyBridge?: RealEngineReportAspect;
   primaryHouseNumber: number | null;
   evidenceAspectIds: string[];
+  houseEmphasis: RealEngineHouseEmphasis[];
 };
 
 export function buildRealEngineSynthesisPlan({
@@ -36,20 +45,24 @@ export function buildRealEngineSynthesisPlan({
   placements,
   chartRulerId,
   activeHouseNumbers,
+  retrogradePlanetIds = [],
+  houseEmphasis = [],
 }: RealEngineSynthesisPlanInput): RealEngineSynthesisPlan {
   const placementHouseById = new Map(
     placements.map((placement) => [placement.id, placement.house ?? null]),
   );
-  const activeHouses = new Set(activeHouseNumbers);
-  const ranked = [...aspects].sort((first, second) =>
-    getSynthesisRelevance(second, chartRulerId, placementHouseById, activeHouses) -
-      getSynthesisRelevance(first, chartRulerId, placementHouseById, activeHouses) ||
-    first.orb - second.orb ||
-    first.id.localeCompare(second.id),
-  );
-
+  const context: RealEngineAspectSelectionContext = {
+    chartRulerId,
+    activeHouseNumbers,
+    placements: placements.map((placement) => ({
+      id: placement.id,
+      house: placement.house ?? null,
+    })),
+    retrogradePlanetIds,
+  };
+  const ranked = rankRealEngineAspects(aspects, context);
   const primaryChallenge =
-    ranked.find((aspect) => isDynamicAspect(aspect)) ??
+    selectPrimaryDynamicAnchor(ranked, context) ??
     ranked.find((aspect) => aspect.aspectId === "conjunction");
 
   const primarySupport = ranked.find(
@@ -69,29 +82,26 @@ export function buildRealEngineSynthesisPlan({
       return false;
     }
 
-    const participants = getParticipants(aspect);
-    return participants.some((id) => DAILY_PLANET_IDS.has(id));
+    return getParticipants(aspect).some((id) => DAILY_PLANET_IDS.has(id));
   });
 
   const selectedAspects = [primaryChallenge, primarySupport, dailyBridge].filter(
     (aspect): aspect is RealEngineReportAspect => Boolean(aspect),
   );
-  const selectedParticipantHouses = selectedAspects.flatMap((aspect) =>
-    getParticipants(aspect)
-      .map((planetId) => placementHouseById.get(planetId))
-      .filter(isHouseNumber),
-  );
-  const primaryHouseNumber =
-    selectedParticipantHouses.find((house) => activeHouses.has(house)) ??
-    activeHouseNumbers[0] ??
-    selectedParticipantHouses[0] ??
-    null;
+  const primaryHouseNumber = selectPrimaryHouseNumber({
+    primaryChallenge,
+    selectedAspects,
+    placementHouseById,
+    activeHouseNumbers,
+    houseEmphasis,
+  });
   const plan: RealEngineSynthesisPlan = {
     primaryChallenge,
     primarySupport,
     dailyBridge,
     primaryHouseNumber,
     evidenceAspectIds: [],
+    houseEmphasis,
   };
 
   return {
@@ -118,40 +128,68 @@ export function getRealEngineSynthesisRoles(
   ].filter((role): role is RealEngineSynthesisRole => Boolean(role));
 }
 
-function getSynthesisRelevance(
-  aspect: RealEngineReportAspect,
-  chartRulerId: string,
-  placementHouseById: Map<string, number | null>,
-  activeHouses: Set<number>,
-): number {
-  const participants = getParticipants(aspect);
-  const coreHits = participants.filter((id) => CORE_PLANET_IDS.has(id)).length;
-  const dailyHits = participants.filter((id) => DAILY_PLANET_IDS.has(id)).length;
-  const activeHouseHits = participants.filter((id) => {
-    const house = placementHouseById.get(id);
-    return typeof house === "number" && activeHouses.has(house);
-  }).length;
+function selectPrimaryHouseNumber({
+  primaryChallenge,
+  selectedAspects,
+  placementHouseById,
+  activeHouseNumbers,
+  houseEmphasis,
+}: {
+  primaryChallenge: RealEngineReportAspect | undefined;
+  selectedAspects: RealEngineReportAspect[];
+  placementHouseById: Map<string, number | null>;
+  activeHouseNumbers: number[];
+  houseEmphasis: RealEngineHouseEmphasis[];
+}): number | null {
+  const emphasisScoreByHouse = new Map(
+    houseEmphasis.map((item) => [item.house.number, item.score]),
+  );
+  const activeOrderByHouse = new Map(
+    activeHouseNumbers.map((house, index) => [house, index]),
+  );
+  const rankHouses = (houses: number[]) =>
+    Array.from(new Set(houses))
+      .filter(isHouseNumber)
+      .sort(
+        (first, second) =>
+          (emphasisScoreByHouse.get(second) ?? 0) -
+            (emphasisScoreByHouse.get(first) ?? 0) ||
+          (activeOrderByHouse.get(first) ?? Number.MAX_SAFE_INTEGER) -
+            (activeOrderByHouse.get(second) ?? Number.MAX_SAFE_INTEGER) ||
+          first - second,
+      );
 
-  return [
-    isDynamicAspect(aspect) ? 40 : 0,
-    aspect.aspectId === "conjunction" ? 18 : 0,
-    aspect.aspectId === "trine" || aspect.aspectId === "sextile" ? 12 : 0,
-    participants.includes(chartRulerId) ? 34 : 0,
-    coreHits * 24,
-    dailyHits * 8,
-    activeHouseHits * 7,
-    Math.max(0, 20 - aspect.orb * 4),
-  ].reduce((total, value) => total + value, 0);
+  const primaryChallengeHouses = primaryChallenge
+    ? getParticipants(primaryChallenge)
+        .map((planetId) => placementHouseById.get(planetId))
+        .filter(isHouseNumber)
+    : [];
+  const challengeHouse = rankHouses(primaryChallengeHouses)[0];
+
+  if (challengeHouse) {
+    return challengeHouse;
+  }
+
+  const selectedParticipantHouses = selectedAspects.flatMap((aspect) =>
+    getParticipants(aspect)
+      .map((planetId) => placementHouseById.get(planetId))
+      .filter(isHouseNumber),
+  );
+
+  return (
+    rankHouses(selectedParticipantHouses)[0] ??
+    houseEmphasis[0]?.house.number ??
+    activeHouseNumbers[0] ??
+    null
+  );
 }
 
 function getParticipants(aspect: RealEngineReportAspect): string[] {
   return [aspect.firstPlanetId, aspect.secondPlanetId];
 }
 
-function isDynamicAspect(aspect: RealEngineReportAspect): boolean {
-  return aspect.aspectId === "square" || aspect.aspectId === "opposition";
-}
-
-function isHouseNumber(value: number | null | undefined): value is number {
+function isHouseNumber(
+  value: number | null | undefined,
+): value is RealEngineReportHouseNumber {
   return typeof value === "number" && value >= 1 && value <= 12;
 }

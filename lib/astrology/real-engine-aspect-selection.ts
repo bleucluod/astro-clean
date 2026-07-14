@@ -70,6 +70,22 @@ export function rankRealEngineAspects(
   });
 }
 
+export function selectPrimaryDynamicAnchor(
+  aspects: RealEngineReportAspect[],
+  context: RealEngineAspectSelectionContext,
+): RealEngineReportAspect | undefined {
+  return mergeRealEngineAspectInventory(aspects)
+    .filter((aspect) => isDynamicAspect(aspect))
+    .sort((first, second) =>
+      scorePrimaryDynamicAnchor(second, context) -
+        scorePrimaryDynamicAnchor(first, context) ||
+      first.orb - second.orb ||
+      getCanonicalAspectKey(first).localeCompare(
+        getCanonicalAspectKey(second),
+      ),
+    )[0];
+}
+
 export function selectNarrativeAspectHighlights(
   aspects: RealEngineReportAspect[],
   context: RealEngineAspectSelectionContext,
@@ -222,7 +238,24 @@ export function selectNarrativeAspectHighlights(
     addAspect(candidate);
   }
 
-  return selected;
+  const primaryAnchor = selectPrimaryDynamicAnchor(ranked, context);
+
+  if (primaryAnchor) {
+    const anchorKey = getCanonicalAspectKey(primaryAnchor);
+    const currentIndex = selected.findIndex(
+      (aspect) => getCanonicalAspectKey(aspect) === anchorKey,
+    );
+
+    if (currentIndex >= 0) {
+      selected.splice(currentIndex, 1);
+    } else if (selected.length >= safeLimit) {
+      selected.pop();
+    }
+
+    selected.unshift(primaryAnchor);
+  }
+
+  return selected.slice(0, safeLimit);
 }
 
 export function scoreRealEngineAspect(
@@ -269,6 +302,18 @@ export function scoreRealEngineAspect(
     isDynamicAspect(aspect) && connectsOppositeHouseAxis(aspect, context) ? 18 : 0,
     unsupportedOuterHarmony ? -42 : 0,
   ].reduce((total, value) => total + value, 0);
+}
+
+function scorePrimaryDynamicAnchor(
+  aspect: RealEngineReportAspect,
+  context: RealEngineAspectSelectionContext,
+): number {
+  return (
+    scoreRealEngineAspect(aspect, context) +
+    (hasRetrogradePersonalParticipant(aspect, context) ? 12 : 0) +
+    (connectsOppositeHouseAxis(aspect, context) ? 12 : 0) -
+    (isSocialOuterOnly(aspect) ? 48 : 0)
+  );
 }
 
 export function getCanonicalAspectKey(aspect: RealEngineReportAspect): string {

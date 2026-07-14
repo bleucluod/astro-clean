@@ -184,8 +184,9 @@ for (const marker of [
   "dailyBridge",
   "evidenceAspectIds",
   "getRealEngineSynthesisRoles",
-  "selectedParticipantHouses",
-  "getSynthesisRelevance",
+  "selectPrimaryDynamicAnchor",
+  "rankRealEngineAspects",
+  "houseEmphasis",
 ]) {
   if (!plannerSource.includes(marker)) {
     failures.push(`synthesis planner missing marker: ${marker}`);
