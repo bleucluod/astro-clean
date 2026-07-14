@@ -256,6 +256,7 @@ export type RealEngineReportHouseContext = {
 export type RealEngineReportSnapshot = {
   version: "real-engine-preview-v1" | "real-engine-preview-v2";
   generatedAt: string;
+  behavioralAudienceMode?: "caregiver" | "youth" | "adult";
   cityLabel: string;
   utcIso: string;
   ascendantLongitude: number;

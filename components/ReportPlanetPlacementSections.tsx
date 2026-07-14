@@ -4,6 +4,10 @@ import {
   buildPlacementBehavioralInterpretation,
   isBehavioralPlacementInput,
 } from "@/lib/astrology/report-behavioral-interpretation";
+import {
+  getReportBehavioralAudienceMode,
+  selectPlacementMajorAspectModifier,
+} from "@/lib/astrology/report-behavioral-context";
 import { formatZodiacLabel, zodiacSignFromLongitude } from "@/lib/astrology/zodiac-labels";
 import type { AstrologyReport } from "@/types/astro";
 
@@ -59,6 +63,7 @@ export function ReportPlanetPlacementSections({
       ? report.realEngine.retrogrades.planetIds
       : [],
   );
+  const audienceMode = getReportBehavioralAudienceMode(report);
 
   if (placements.length === 0) {
     return null;
@@ -101,6 +106,11 @@ export function ReportPlanetPlacementSections({
                   signId: placement.signId,
                   houseNumber: placement.houseNumber,
                   retrograde: retrogradePlanetIds.has(placement.id),
+                  audienceMode,
+                  majorAspect: selectPlacementMajorAspectModifier(
+                    placement.id,
+                    report.realEngine?.aspectHighlights,
+                  ),
                 })
               : null;
           const title = `${placement.label} در ${placement.signLabel}`;

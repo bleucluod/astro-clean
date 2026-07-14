@@ -5,6 +5,7 @@ import {
   getBehavioralChartRulerId,
   isBehavioralAspectInput,
 } from "@/lib/astrology/report-behavioral-interpretation";
+import { getReportBehavioralAudienceMode } from "@/lib/astrology/report-behavioral-context";
 import type {
   AstrologyReport,
   RealEngineReportAspect,
@@ -58,6 +59,7 @@ export function ReportAspectRelationshipSections({
     snapshot.retrogrades?.status === "calculated"
       ? snapshot.retrogrades.planetIds
       : [];
+  const audienceMode = getReportBehavioralAudienceMode(report);
 
   return (
     <section
@@ -103,6 +105,7 @@ export function ReportAspectRelationshipSections({
                 chartRulerId,
                 activeHouseNumbers,
                 retrogradePlanetIds,
+                audienceMode,
               })
             : null;
           const heading = buildAspectHeading(aspect);

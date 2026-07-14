@@ -38,6 +38,14 @@ export type BehavioralHouseNumber =
   | 11
   | 12;
 
+export type BehavioralAudienceMode = "caregiver" | "youth" | "adult";
+
+export type BehavioralPlacementAspectModifier = {
+  otherPlanetId: string;
+  aspectId: string;
+  primary?: boolean;
+};
+
 export type PlacementBehavioralInterpretation = {
   plainMeaning: string;
   dailyLifeExample: string;
@@ -53,6 +61,8 @@ export type PlacementBehavioralInterpretationInput = {
   signId: string;
   houseNumber?: number | null;
   retrograde?: boolean;
+  audienceMode?: BehavioralAudienceMode;
+  majorAspect?: BehavioralPlacementAspectModifier | null;
 };
 
 type PlanetSemantic = {
@@ -390,6 +400,220 @@ const RETROGRADE_FRICTION_BY_PLANET: Partial<Record<BehavioralPlanetId, string>>
   pluto: "در حالت پس‌رو، کشمکش قدرت یا رهاسازی ممکن است دیرتر به زبان بیاید",
 };
 
+type PlanetSignBehaviorOverride = {
+  healthy: string;
+  friction: string;
+};
+
+const PLANET_SIGN_BEHAVIOR_OVERRIDES: Partial<
+  Record<string, PlanetSignBehaviorOverride>
+> = {
+  "mercury:taurus": {
+    healthy:
+      "فکر آرام، ملموس و قابل پیگیری که پیش از نتیجه‌گیری به تجربه و زمان کافی تکیه می‌کند",
+    friction:
+      "دیر عوض کردن نتیجه یا نگه داشتن حرف تا زمانی که اطمینان کامل به دست بیاید",
+  },
+  "mars:taurus": {
+    healthy:
+      "اقدام پایدار، تحمل مسیر و توان ادامه دادن کاری که به نتیجه ملموس نیاز دارد",
+    friction:
+      "دیر شروع کردن، جمع شدن ناراحتی یا سخت تغییر دادن مسیر بعد از تصمیم",
+  },
+  "mars:libra": {
+    healthy:
+      "اقدامی که خواسته را روشن می‌کند و هم‌زمان اثر آن بر طرف مقابل را می‌سنجد",
+    friction:
+      "دیر گفتن خواسته، موافقت اولیه و جمع شدن دلخوری تا پیش از اقدام",
+  },
+  "moon:capricorn": {
+    healthy:
+      "امنیت عاطفی از راه ثبات، قابل اعتماد بودن و ساختن حمایت در عمل",
+    friction:
+      "پنهان کردن نیاز برای قوی ماندن یا تبدیل احساس به وظیفه پیش از تجربه کردن آن",
+  },
+  "moon:aquarius": {
+    healthy:
+      "فهم احساس با فاصله ذهنی کافی و بازگشت روشن به گفت‌وگو و درخواست حمایت",
+    friction:
+      "تحلیل احساس به جای تجربه آن یا دور شدن ناگهانی برای حفظ استقلال",
+  },
+  "venus:scorpio": {
+    healthy:
+      "نزدیکی عمیق، وفاداری و اعتمادی که از هماهنگی حرف و عمل ساخته می‌شود",
+    friction:
+      "آزمودن پنهانی، همه‌یا‌هیچ دیدن یا کنترل برای جلوگیری از آسیب‌پذیری",
+  },
+};
+
+const HOUSE_OBSERVABLE_SCENARIO: Record<BehavioralHouseNumber, string> = {
+  1: "وقتی وارد موقعیتی تازه می‌شوی یا باید جای خودت را مشخص کنی",
+  2: "وقتی درباره منابع، وسایل شخصی یا راحتی بدنت تصمیم می‌گیری",
+  3: "وقتی پیام می‌دهی، توضیح می‌دهی یا چیزی تازه یاد می‌گیری",
+  4: "وقتی در خانه به حمایت، خلوت یا گفت‌وگوی خانوادگی نیاز داری",
+  5: "وقتی چیزی می‌سازی، بازی می‌کنی یا می‌خواهی امضای شخصی‌ات دیده شود",
+  6: "وقتی برنامه روزانه، مراقبت از بدن یا یک مسئولیت تکراری را تنظیم می‌کنی",
+  7: "وقتی در گفت‌وگویی نزدیک باید خواسته و مرز دو طرف روشن شود",
+  8: "وقتی اعتماد، آسیب‌پذیری یا یک مسئولیت مشترک مطرح می‌شود",
+  9: "وقتی با باور تازه، آموزش یا تجربه‌ای بیرون از عادت روبه‌رو می‌شوی",
+  10: "وقتی مسئولیتی می‌پذیری یا می‌خواهی توانایی‌ات در جمع دیده شود",
+  11: "وقتی در گروه، دوستی یا هدف مشترک نقش می‌گیری",
+  12: "وقتی به خلوت، استراحت یا فهم چیزی که هنوز نامش روشن نیست نیاز داری",
+};
+
+const CAREGIVER_HOUSE_SCENARIO: Record<BehavioralHouseNumber, string> = {
+  1: "وقتی کودک وارد جمع یا بازی تازه‌ای می‌شود",
+  2: "وقتی درباره وسایل شخصی، خوراکی یا حس راحتی تصمیم می‌گیرد",
+  3: "وقتی سؤال می‌پرسد، توضیح می‌دهد یا مهارتی تازه تمرین می‌کند",
+  4: "وقتی در خانه به آرامش، مراقبت یا خلوت نیاز دارد",
+  5: "وقتی بازی می‌کند، چیزی می‌سازد یا می‌خواهد دیده شود",
+  6: "وقتی خواب، برنامه روزانه یا یک مسئولیت کوچک را تمرین می‌کند",
+  7: "وقتی با دوست یا همراه نزدیک باید نوبت، خواسته و مرز را روشن کند",
+  8: "وقتی اعتماد، راز، ترس یا تقسیم یک مسئولیت مطرح می‌شود",
+  9: "وقتی موضوع تازه‌ای می‌آموزد یا با دیدگاهی ناآشنا روبه‌رو می‌شود",
+  10: "وقتی مسئولیتی کوچک می‌گیرد یا توانایی‌اش در جمع دیده می‌شود",
+  11: "وقتی در گروه، دوستی یا بازی مشترک نقش می‌گیرد",
+  12: "وقتی به استراحت، خلوت یا نام‌گذاری احساس مبهم نیاز دارد",
+};
+
+const CAREGIVER_ACTION_BY_PLANET: Record<BehavioralPlanetId, string> = {
+  sun: "انتخاب یا نظر شخصی‌اش را نشان دهد",
+  moon: "احساس و نیازش به امنیت را بشناسد",
+  mercury: "فکرش را به کلمه و یک تصمیم کوچک تبدیل کند",
+  venus: "ترجیح، علاقه و مرزش را روشن کند",
+  mars: "خواستن یا ناراحتی را به درخواست و حرکت امن تبدیل کند",
+  jupiter: "کنجکاوی و امکان تازه را به تجربه‌ای کوچک وصل کند",
+  saturn: "مرز و مسئولیت را با تمرین یاد بگیرد",
+  uranus: "راه تازه‌ای را بدون قطع ناگهانی امتحان کند",
+  neptune: "میان خیال، حس و واقعیت فرق بگذارد",
+  pluto: "ترس، کنترل یا نیاز به رها کردن را آرام‌تر بشناسد",
+};
+
+const PLANET_EXPERIMENT_STEM: Record<BehavioralPlanetId, string> = {
+  sun: "یک انتخاب شخصی را روشن نشان بده",
+  moon: "یک احساس و نیاز را نام ببر",
+  mercury: "موضوع را در سه خط بنویس",
+  venus: "یک ترجیح و مرز را روشن بگو",
+  mars: "یک خواسته را به اقدام کوچک تبدیل کن",
+  jupiter: "یک امکان را تا نمونه‌ای کوچک پیش ببر",
+  saturn: "یک مسئولیت را به قدمی کوتاه تبدیل کن",
+  uranus: "یک تغییر کوچک و برگشت‌پذیر را بیازما",
+  neptune: "یک دریافت را با شاهد واقعی بررسی کن",
+  pluto: "یک بخش قابل کنترل را انتخاب و رها کن",
+};
+
+const CAREGIVER_EXPERIMENT_STEM: Record<BehavioralPlanetId, string> = {
+  sun: "یک انتخاب شخصی را نشان دهد",
+  moon: "یک احساس و نیاز را نام ببرد",
+  mercury: "موضوع را در دو جمله جمع‌بندی کند",
+  venus: "یک علاقه و مرز را بیان کند",
+  mars: "یک ناراحتی را به درخواست امن تبدیل کند",
+  jupiter: "یک ایده را تا تجربه‌ای کوچک دنبال کند",
+  saturn: "یک مسئولیت کوتاه را تمرین کند",
+  uranus: "یک راه تازه و برگشت‌پذیر را بیازماید",
+  neptune: "یک حس را با سؤال ساده بررسی کند",
+  pluto: "یک ترس و انتخاب امن را نام ببرد",
+};
+
+type SignExperimentCue = {
+  adult: string;
+  caregiver: string;
+};
+
+const SIGN_EXPERIMENT_CUE: Record<BehavioralSignId, SignExperimentCue> = {
+  aries: {
+    adult: "پیش از شروع، معیار پایان را بگو",
+    caregiver: "پیش از شروع، پایان کار را بداند",
+  },
+  taurus: {
+    adult: "آن را در زمانی ثابت تکرار کن",
+    caregiver: "آن را در زمانی ثابت تکرار کند",
+  },
+  gemini: {
+    adult: "پس از دو گزینه، یکی را انتخاب کن",
+    caregiver: "پس از دو گزینه، یکی را انتخاب کند",
+  },
+  cancer: {
+    adult: "نیازت را پیش از مراقبت از دیگری بگو",
+    caregiver: "نیازش را پیش از کمک به دیگری بگوید",
+  },
+  leo: {
+    adult: "نتیجه را پیش از گرفتن تأیید تمام کن",
+    caregiver: "نتیجه را پیش از تشویق گرفتن تمام کند",
+  },
+  virgo: {
+    adult: "نسخه کافی را پیش از کامل‌سازی تحویل بده",
+    caregiver: "نسخه کافی را پیش از کامل‌سازی تمام کند",
+  },
+  libra: {
+    adult: "خواسته را پیش از دلخوری روشن بگو",
+    caregiver: "خواسته‌اش را پیش از دلخوری بگوید",
+  },
+  scorpio: {
+    adult: "نگرانی را به‌جای آزمون پنهانی بگو",
+    caregiver: "نگرانی را به‌جای آزمودن دیگری بگوید",
+  },
+  sagittarius: {
+    adult: "یک ادعا را با نمونه واقعی بررسی کن",
+    caregiver: "یک ادعا را با نمونه واقعی بررسی کند",
+  },
+  capricorn: {
+    adult: "قدم بعدی و زمان پایان را مشخص کن",
+    caregiver: "قدم بعدی و زمان پایان را بداند",
+  },
+  aquarius: {
+    adult: "تغییر را اول به‌شکل برگشت‌پذیر بیازما",
+    caregiver: "تغییر را اول برگشت‌پذیر امتحان کند",
+  },
+  pisces: {
+    adult: "حست را با یک شاهد واقعی بسنج",
+    caregiver: "حسش را با یک شاهد واقعی بسنجد",
+  },
+};
+
+const SIGN_METHOD_CUE: Record<BehavioralSignId, string> = {
+  aries: "مستقیم و سریع",
+  taurus: "آهسته و ملموس",
+  gemini: "با سؤال و مقایسه",
+  cancer: "با توجه به تعلق و امنیت",
+  leo: "خلاق و قابل مشاهده",
+  virgo: "دقیق و مرحله‌به‌مرحله",
+  libra: "با سنجیدن دو طرف",
+  scorpio: "عمیق و اعتمادمحور",
+  sagittarius: "صریح و تجربه‌محور",
+  capricorn: "ساختاری و پیگیر",
+  aquarius: "مستقل و الگو‌بین",
+  pisces: "حساس و شهودی",
+};
+
+const SIGN_FRICTION_CUE: Record<BehavioralSignId, string> = {
+  aries: "عجله جای روشن‌کردن اولویت را بگیرد",
+  taurus: "تغییر فقط به‌دلیل ناآشنا بودن عقب بیفتد",
+  gemini: "احتمال‌های زیاد تصمیم را پخش کنند",
+  cancer: "حفظ پیوند جای بیان نیاز را بگیرد",
+  leo: "نیاز به دیده‌شدن تصمیم را هدایت کند",
+  virgo: "کامل‌گرایی حرکت را عقب بیندازد",
+  libra: "سنجیدن دیگری خواسته شخصی را دیر کند",
+  scorpio: "ترس از آسیب‌پذیری به کنترل تبدیل شود",
+  sagittarius: "هیجان بزرگ جزئیات را کنار بزند",
+  capricorn: "ترس از خطا شروع را عقب بیندازد",
+  aquarius: "فاصله فکری جای گفت‌وگوی مستقیم را بگیرد",
+  pisces: "حس درونی بدون بررسی، حقیقت فرض شود",
+};
+
+const RETROGRADE_ASPECT_NOTE_BY_PLANET: Partial<
+  Record<BehavioralPlanetId, string>
+> = {
+  mercury: "عطارد پس‌رو پاسخ را پیش از بیان بازبینی می‌کند",
+  venus: "زهره پس‌رو ارزش و مرز نزدیکی را دیرتر روشن می‌کند",
+  mars: "مریخ پس‌رو خواستن یا خشم را پیش از اقدام نگه می‌دارد",
+  jupiter: "مشتری پس‌رو امید یا باور را دوباره می‌سنجد",
+  saturn: "زحل پس‌رو مسئولیت را درونی‌تر و سخت‌گیرانه‌تر می‌کند",
+  uranus: "اورانوس پس‌رو نیاز به آزادی را ابتدا درونی فعال می‌کند",
+  neptune: "نپتون پس‌رو ابهام را طولانی‌تر درون ذهن نگه می‌دارد",
+  pluto: "پلوتو پس‌رو کشمکش قدرت را دیرتر به زبان می‌آورد",
+};
+
 const ASPECT_NEED_BY_PLANET: Record<BehavioralPlanetId, string> = {
   sun: "دیده‌شدن و انتخاب شخصی",
   moon: "امنیت عاطفی",
@@ -606,45 +830,246 @@ export function buildPlacementBehavioralInterpretation(
   const planetId = normalizePlanetId(input.planetId);
   const signId = normalizeSignId(input.signId);
   const houseNumber = normalizeHouseNumber(input.houseNumber);
+  const audienceMode = normalizeAudienceMode(input.audienceMode);
   const planet = PLANET_SEMANTICS[planetId];
   const sign = SIGN_SEMANTICS[signId];
-  const house = houseNumber ? HOUSE_SEMANTICS[houseNumber] : null;
   const houseFocus = houseNumber
     ? HOUSE_FOCUS_LABELS[houseNumber]
     : "بخش ثبت‌شده زندگی";
-  const targeted = houseNumber
-    ? TARGETED_INTERPRETATIONS[`${planetId}:${signId}:${houseNumber}`]
-    : undefined;
+  const targeted =
+    audienceMode === "caregiver" || !houseNumber
+      ? undefined
+      : TARGETED_INTERPRETATIONS[`${planetId}:${signId}:${houseNumber}`];
   const retrogradeModifier = input.retrograde
     ? RETROGRADE_FRICTION_BY_PLANET[planetId]
     : undefined;
+  const aspectModifier = buildPlacementAspectModifier(
+    input.majorAspect,
+    audienceMode,
+  );
 
   if (targeted) {
+    return adaptPlacementInterpretationForAudience(
+      {
+        ...targeted,
+        healthyExpression: appendBehavioralModifier(
+          targeted.healthyExpression,
+          aspectModifier.healthy,
+        ),
+        possibleFriction: appendBehavioralModifiers(
+          targeted.possibleFriction,
+          retrogradeModifier,
+          aspectModifier.friction,
+        ),
+        symbolicBody: planet.symbolicBody,
+      },
+      audienceMode,
+    );
+  }
+
+  const pairOverride =
+    PLANET_SIGN_BEHAVIOR_OVERRIDES[`${planetId}:${signId}`];
+  const healthyExpression = appendBehavioralModifier(
+    pairOverride?.healthy ??
+      `${planet.healthy} با ریتمی ${SIGN_METHOD_CUE[signId]}`,
+    aspectModifier.healthy,
+  );
+  const possibleFriction = appendBehavioralModifiers(
+    pairOverride?.friction ??
+      `${planet.friction}، وقتی ${SIGN_FRICTION_CUE[signId]}`,
+    retrogradeModifier,
+    aspectModifier.friction,
+  );
+  const base: PlacementBehavioralInterpretation = {
+    plainMeaning: buildPlacementPlainMeaning(
+      planetId,
+      signId,
+      houseFocus,
+      audienceMode,
+    ),
+    dailyLifeExample: buildPlacementDailyLifeExample(
+      planetId,
+      signId,
+      houseNumber,
+      audienceMode,
+    ),
+    healthyExpression,
+    possibleFriction,
+    focus: `${PLACEMENT_FOCUS_BY_PLANET[planetId]} در ${houseFocus}`,
+    smallExperiment: buildPlacementExperiment(
+      planetId,
+      signId,
+      houseFocus,
+      audienceMode,
+    ),
+    symbolicBody: planet.symbolicBody,
+  };
+
+  return adaptPlacementInterpretationForAudience(base, audienceMode);
+}
+
+function buildPlacementPlainMeaning(
+  planetId: BehavioralPlanetId,
+  signId: BehavioralSignId,
+  houseFocus: string,
+  audienceMode: BehavioralAudienceMode,
+): string {
+  const sign = SIGN_SEMANTICS[signId];
+
+  if (audienceMode === "caregiver") {
+    return `برای همراه بزرگسال، این جایگاه نشان می‌دهد کودک در ${houseFocus} چگونه ${CAREGIVER_ACTION_BY_PLANET[planetId]}؛ ریتم آن بیشتر ${sign.method} است`;
+  }
+
+  return `در ${houseFocus}، معمولاً ${PLACEMENT_ACTION_BY_PLANET[planetId]}؛ این فرایند ${sign.method} پیش می‌رود`;
+}
+
+function buildPlacementDailyLifeExample(
+  planetId: BehavioralPlanetId,
+  signId: BehavioralSignId,
+  houseNumber: BehavioralHouseNumber | null,
+  audienceMode: BehavioralAudienceMode,
+): string {
+  const sign = SIGN_SEMANTICS[signId];
+
+  if (!houseNumber) {
+    return audienceMode === "caregiver"
+      ? `در رفتار روزمره، ممکن است کودک ${CAREGIVER_ACTION_BY_PLANET[planetId]} و این الگو بیشتر ${sign.method} پیش برود`
+      : `در رفتار روزمره، بیشتر ${PLACEMENT_ACTION_BY_PLANET[planetId]} و این الگو ${sign.method} پیش می‌رود`;
+  }
+
+  if (audienceMode === "caregiver") {
+    return `${CAREGIVER_HOUSE_SCENARIO[houseNumber]}، ممکن است کودک ${CAREGIVER_ACTION_BY_PLANET[planetId]} و این الگو بیشتر ${sign.method} پیش برود`;
+  }
+
+  return `${HOUSE_OBSERVABLE_SCENARIO[houseNumber]}، بیشتر ${PLACEMENT_ACTION_BY_PLANET[planetId]} و این الگو ${sign.method} پیش می‌رود`;
+}
+
+function buildPlacementExperiment(
+  planetId: BehavioralPlanetId,
+  signId: BehavioralSignId,
+  houseFocus: string,
+  audienceMode: BehavioralAudienceMode,
+): string {
+  const cue = SIGN_EXPERIMENT_CUE[signId];
+
+  if (audienceMode === "caregiver") {
+    return `در ${houseFocus}، کمک کنید کودک ${CAREGIVER_EXPERIMENT_STEM[planetId]}؛ ${cue.caregiver}`;
+  }
+
+  return `در ${houseFocus}، ${PLANET_EXPERIMENT_STEM[planetId]}؛ ${cue.adult}`;
+}
+
+function buildPlacementAspectModifier(
+  modifier: BehavioralPlacementAspectModifier | null | undefined,
+  audienceMode: BehavioralAudienceMode,
+): { healthy?: string; friction?: string } {
+  if (
+    !modifier ||
+    !(modifier.otherPlanetId in PLANET_SEMANTICS) ||
+    !(modifier.aspectId in ASPECT_FORM_SEMANTICS)
+  ) {
+    return {};
+  }
+
+  const otherPlanetId = modifier.otherPlanetId as BehavioralPlanetId;
+  const need = ASPECT_NEED_BY_PLANET[otherPlanetId];
+  const prefix = modifier.primary ? "رابطه اصلی" : "رابطه روایی";
+  const caregiverPrefix = audienceMode === "caregiver" ? "در موقعیت‌های پررنگ چارت" : prefix;
+
+  if (
+    modifier.aspectId === "square" ||
+    modifier.aspectId === "opposition"
+  ) {
     return {
-      ...targeted,
-      possibleFriction: appendBehavioralModifier(
-        targeted.possibleFriction,
-        retrogradeModifier,
-      ),
-      symbolicBody: planet.symbolicBody,
+      friction: `${caregiverPrefix} با «${need}» می‌تواند این گیر را زیر فشار زودتر فعال کند`,
+    };
+  }
+
+  if (modifier.aspectId === "conjunction") {
+    return {
+      friction: `${caregiverPrefix} با «${need}» می‌تواند شدت این واکنش را بیشتر کند`,
     };
   }
 
   return {
-    plainMeaning:
-      `در ${houseFocus}، معمولاً ${PLACEMENT_ACTION_BY_PLANET[planetId]}؛ این فرایند ${sign.method} پیش می‌رود`,
-    dailyLifeExample:
-      `وقتی می‌خواهی ${planet.dailyVerb}، این الگو ${house?.dailyPattern ?? "در رفتارهای کوچک روزمره دیده می‌شود"}`,
-    healthyExpression: planet.healthy,
-    possibleFriction: appendBehavioralModifier(
-      planet.friction,
-      retrogradeModifier,
-    ),
-    focus: `${PLACEMENT_FOCUS_BY_PLANET[planetId]} در ${houseFocus}`,
-    smallExperiment:
-      house?.experiment ?? planet.experiment,
-    symbolicBody: planet.symbolicBody,
+    healthy: `${caregiverPrefix} با «${need}» می‌تواند راهی کمک‌کننده برای تنظیم این الگو باز کند`,
   };
+}
+
+function adaptPlacementInterpretationForAudience(
+  interpretation: PlacementBehavioralInterpretation,
+  audienceMode: BehavioralAudienceMode,
+): PlacementBehavioralInterpretation {
+  if (audienceMode === "adult") {
+    return interpretation;
+  }
+
+  return {
+    plainMeaning: adaptBehavioralTextForAudience(
+      interpretation.plainMeaning,
+      audienceMode,
+    ),
+    dailyLifeExample: adaptBehavioralTextForAudience(
+      interpretation.dailyLifeExample,
+      audienceMode,
+    ),
+    healthyExpression: adaptBehavioralTextForAudience(
+      interpretation.healthyExpression,
+      audienceMode,
+    ),
+    possibleFriction: adaptBehavioralTextForAudience(
+      interpretation.possibleFriction,
+      audienceMode,
+    ),
+    focus: adaptBehavioralTextForAudience(
+      interpretation.focus,
+      audienceMode,
+    ),
+    smallExperiment: adaptBehavioralTextForAudience(
+      interpretation.smallExperiment,
+      audienceMode,
+    ),
+    symbolicBody: interpretation.symbolicBody,
+  };
+}
+
+function adaptBehavioralTextForAudience(
+  text: string,
+  audienceMode: BehavioralAudienceMode,
+): string {
+  if (audienceMode === "adult") {
+    return text;
+  }
+
+  const replacements: Array<[string, string]> = [
+    ["رابطه عاشقانه", "دوستی، علاقه یا بیان خلاق"],
+    ["عشق", "شادی و بیان خلاق"],
+    ["تصمیم حرفه‌ای", "انتخاب تحصیلی، مهارتی یا مسئولیتی"],
+    ["جایگاه اجتماعی", "نقشی که در جمع گرفته می‌شود"],
+    ["کار بلندمدت", "مسئولیت و پیگیری بلندمدت"],
+    ["تصمیم مالی", "انتخاب درباره منابع و وسایل شخصی"],
+    ["پول", "منابع و وسایل شخصی"],
+    ["شراکت", "همکاری نزدیک"],
+    ["صمیمیت", "اعتماد و نزدیکی امن"],
+  ];
+
+  return replacements.reduce(
+    (value, [from, to]) => value.replaceAll(from, to),
+    text,
+  );
+}
+
+function appendBehavioralModifiers(
+  base: string,
+  ...modifiers: Array<string | undefined>
+): string {
+  const activeModifiers = modifiers.filter(
+    (modifier): modifier is string => Boolean(modifier),
+  );
+
+  return activeModifiers.length > 0
+    ? `${base}؛ ${activeModifiers.join(" و ")}`
+    : base;
 }
 
 function appendBehavioralModifier(
@@ -678,6 +1103,14 @@ function normalizeSignId(value: string): BehavioralSignId {
   return value in SIGN_SEMANTICS
     ? (value as BehavioralSignId)
     : "aries";
+}
+
+function normalizeAudienceMode(
+  value: BehavioralAudienceMode | null | undefined,
+): BehavioralAudienceMode {
+  return value === "caregiver" || value === "youth" || value === "adult"
+    ? value
+    : "adult";
 }
 
 function normalizeHouseNumber(
@@ -726,6 +1159,7 @@ export type AspectBehavioralInterpretationInput = {
   activeHouseNumbers?: number[];
   retrogradePlanetIds?: string[];
   synthesisRole?: BehavioralSynthesisRole | null;
+  audienceMode?: BehavioralAudienceMode;
 };
 
 type AspectFormSemantic = {
@@ -739,6 +1173,7 @@ type AspectParticipantContext = {
   id: BehavioralPlanetId;
   planet: PlanetSemantic;
   sign: SignSemantic | null;
+  signId: BehavioralSignId | null;
   house: HouseSemantic | null;
   houseNumber: BehavioralHouseNumber | null;
   retrograde: boolean;
@@ -833,6 +1268,7 @@ export function isBehavioralAspectInput(
 export function buildAspectBehavioralInterpretation(
   input: AspectBehavioralInterpretationInput,
 ): AspectBehavioralInterpretation {
+  const audienceMode = normalizeAudienceMode(input.audienceMode);
   const first = buildAspectParticipantContext(
     input.firstPlanetId,
     input.firstSignId,
@@ -863,9 +1299,10 @@ export function buildAspectBehavioralInterpretation(
     first,
     second,
   );
+  const retrogradeNote = buildRetrogradeAspectNote(first, second);
 
   if (targeted) {
-    return {
+    const targetedInterpretation: AspectBehavioralInterpretation = {
       ...targeted,
       titleFragment: form.titleFragment,
       narrativeSummary: targeted.plainMeaning,
@@ -877,13 +1314,25 @@ export function buildAspectBehavioralInterpretation(
         targeted.healthyExpression,
         relevance,
       ),
+      possibleFriction: appendBehavioralModifier(
+        targeted.possibleFriction,
+        retrogradeNote,
+      ),
       focus: buildAspectFocus(first, second),
       confidenceNote,
       patternKey,
     };
+
+    return adaptAspectInterpretationForAudience(
+      targetedInterpretation,
+      audienceMode,
+      first,
+      second,
+      aspectId,
+    );
   }
 
-  return {
+  const genericInterpretation: AspectBehavioralInterpretation = {
     titleFragment: form.titleFragment,
     narrativeSummary,
     plainMeaning: joinBehavioralSentences(
@@ -893,17 +1342,36 @@ export function buildAspectBehavioralInterpretation(
     dailyLifeExample: buildGenericAspectDailyLifeExample(
       first,
       second,
+      audienceMode,
     ),
     healthyExpression: joinBehavioralSentences(
-      `هماهنگ کردن ${ASPECT_STRENGTH_BY_PLANET[first.id]} با ${ASPECT_STRENGTH_BY_PLANET[second.id]}`,
+      buildGenericAspectHealthyExpression(first, second),
       relevance,
     ),
-    possibleFriction: form.friction,
-    smallExperiment: buildGenericAspectExperiment(aspectId),
+    possibleFriction: buildGenericAspectFriction(
+      form,
+      first,
+      second,
+      retrogradeNote,
+    ),
+    smallExperiment: buildGenericAspectExperiment(
+      aspectId,
+      first,
+      second,
+      audienceMode,
+    ),
     confidenceNote,
     focus: buildAspectFocus(first, second),
     patternKey,
   };
+
+  return adaptAspectInterpretationForAudience(
+    genericInterpretation,
+    audienceMode,
+    first,
+    second,
+    aspectId,
+  );
 }
 
 function joinBehavioralSentences(
@@ -947,20 +1415,68 @@ function buildAspectNarrativeSummary(
 function buildGenericAspectDailyLifeExample(
   first: AspectParticipantContext,
   second: AspectParticipantContext,
+  audienceMode: BehavioralAudienceMode,
 ): string {
   const firstHouse = getAspectHouseFocus(first);
   const secondHouse = getAspectHouseFocus(second);
-  const retrogradeNote = buildRetrogradeAspectNote(first, second);
+
+  if (audienceMode === "caregiver") {
+    const firstAction = CAREGIVER_ACTION_BY_PLANET[first.id];
+    const secondAction = CAREGIVER_ACTION_BY_PLANET[second.id];
+
+    if (
+      first.houseNumber &&
+      second.houseNumber &&
+      first.houseNumber === second.houseNumber
+    ) {
+      return `در ${firstHouse} ممکن است کودک بخواهد ${firstAction} و ${secondAction}`;
+    }
+
+    return `در ${firstHouse} ممکن است کودک بخواهد ${firstAction}، اما در ${secondHouse} لازم باشد ${secondAction}`;
+  }
 
   if (
     first.houseNumber &&
     second.houseNumber &&
     first.houseNumber === second.houseNumber
   ) {
-    return `در ${firstHouse} ممکن است هم‌زمان بخواهی ${ASPECT_ACTION_BY_PLANET[first.id]} و ${ASPECT_ACTION_BY_PLANET[second.id]}${retrogradeNote}`;
+    return `در ${firstHouse} ممکن است بخواهی ${ASPECT_ACTION_BY_PLANET[first.id]} و ${ASPECT_ACTION_BY_PLANET[second.id]}`;
   }
 
-  return `در ${firstHouse} ممکن است بخواهی ${ASPECT_ACTION_BY_PLANET[first.id]}، در حالی که در ${secondHouse} لازم باشد ${ASPECT_ACTION_BY_PLANET[second.id]}${retrogradeNote}`;
+  return `در ${firstHouse} ممکن است بخواهی ${ASPECT_ACTION_BY_PLANET[first.id]}، اما در ${secondHouse} لازم باشد ${ASPECT_ACTION_BY_PLANET[second.id]}`;
+}
+
+function buildGenericAspectHealthyExpression(
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  const base = `هماهنگ کردن ${ASPECT_STRENGTH_BY_PLANET[first.id]} با ${ASPECT_STRENGTH_BY_PLANET[second.id]}`;
+
+  if (first.signId && second.signId) {
+    return `${base}، با ریتم ${SIGN_METHOD_CUE[first.signId]} و ${SIGN_METHOD_CUE[second.signId]}`;
+  }
+
+  return base;
+}
+
+function buildGenericAspectFriction(
+  form: AspectFormSemantic,
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+  retrogradeNote: string | undefined,
+): string {
+  const signFriction = first.signId
+    ? SIGN_FRICTION_CUE[first.signId]
+    : second.signId
+      ? SIGN_FRICTION_CUE[second.signId]
+      : undefined;
+  const modifierParts = [signFriction, retrogradeNote].filter(
+    (value): value is string => Boolean(value),
+  );
+
+  return modifierParts.length > 0
+    ? `${form.friction}؛ این الگو وقتی پررنگ‌تر می‌شود که ${modifierParts.join(" و ")}`
+    : form.friction;
 }
 
 function buildAspectFocus(
@@ -1156,6 +1672,7 @@ function buildAspectParticipantContext(
     id: normalizedPlanet,
     planet: PLANET_SEMANTICS[normalizedPlanet],
     sign: normalizedSign ? SIGN_SEMANTICS[normalizedSign] : null,
+    signId: normalizedSign,
     house: normalizedHouse ? HOUSE_SEMANTICS[normalizedHouse] : null,
     houseNumber: normalizedHouse,
     retrograde: retrogradePlanetIds?.includes(normalizedPlanet) ?? false,
@@ -1210,26 +1727,100 @@ function buildAspectRelevanceNote(
 function buildRetrogradeAspectNote(
   first: AspectParticipantContext,
   second: AspectParticipantContext,
-): string {
-  if (!first.retrograde && !second.retrograde) {
-    return "";
-  }
+): string | undefined {
+  const retrogradeParticipant = first.retrograde
+    ? first
+    : second.retrograde
+      ? second
+      : null;
 
-  return "؛ اگر یکی از آن‌ها پس‌رو باشد، تصمیم ممکن است چند بار بازبینی شود";
+  return retrogradeParticipant
+    ? RETROGRADE_ASPECT_NOTE_BY_PLANET[retrogradeParticipant.id]
+    : undefined;
 }
 
 function buildGenericAspectExperiment(
   aspectId: BehavioralAspectId,
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+  audienceMode: BehavioralAudienceMode,
 ): string {
-  if (aspectId === "square" || aspectId === "opposition") {
-    return "پیش از واکنش، نیاز هر طرف را در یک جمله بنویس و یک مرز یا توافق کوچک انتخاب کن";
+  const houseFocus = getAspectHouseFocus(first);
+  const secondNeed = ASPECT_NEED_BY_PLANET[second.id];
+  const bridge =
+    aspectId === "square" || aspectId === "opposition"
+      ? "پیش از واکنش"
+      : "هم‌زمان";
+
+  if (audienceMode === "caregiver") {
+    return `در ${houseFocus}، کمک کنید کودک ${CAREGIVER_EXPERIMENT_STEM[first.id]}؛ نیاز دوم را با یک سؤال بسنجد`;
   }
 
-  if (aspectId === "conjunction") {
-    return "پیش از تصمیم، مشخص کن کدام نیاز جلوتر است و فقط یک اقدام کوچک برای آن انجام بده";
+  return `در ${houseFocus}، ${PLANET_EXPERIMENT_STEM[first.id]}؛ ${bridge} نیاز «${secondNeed}» را روشن کن`;
+}
+
+function adaptAspectInterpretationForAudience(
+  interpretation: AspectBehavioralInterpretation,
+  audienceMode: BehavioralAudienceMode,
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+  aspectId: BehavioralAspectId,
+): AspectBehavioralInterpretation {
+  if (audienceMode === "adult") {
+    return interpretation;
   }
 
-  return "یک توان این رابطه را انتخاب کن و تا پایان هفته در یک کار کوچک و قابل مشاهده به‌کار ببر";
+  const adapted = {
+    ...interpretation,
+    narrativeSummary: adaptBehavioralTextForAudience(
+      interpretation.narrativeSummary,
+      audienceMode,
+    ),
+    plainMeaning: adaptBehavioralTextForAudience(
+      interpretation.plainMeaning,
+      audienceMode,
+    ),
+    dailyLifeExample: adaptBehavioralTextForAudience(
+      interpretation.dailyLifeExample,
+      audienceMode,
+    ),
+    healthyExpression: adaptBehavioralTextForAudience(
+      interpretation.healthyExpression,
+      audienceMode,
+    ),
+    possibleFriction: adaptBehavioralTextForAudience(
+      interpretation.possibleFriction,
+      audienceMode,
+    ),
+    smallExperiment: adaptBehavioralTextForAudience(
+      interpretation.smallExperiment,
+      audienceMode,
+    ),
+    focus: adaptBehavioralTextForAudience(
+      interpretation.focus,
+      audienceMode,
+    ),
+  };
+
+  if (audienceMode !== "caregiver") {
+    return adapted;
+  }
+
+  return {
+    ...adapted,
+    plainMeaning: `برای همراه بزرگسال، ${adapted.plainMeaning}`,
+    dailyLifeExample: buildGenericAspectDailyLifeExample(
+      first,
+      second,
+      audienceMode,
+    ),
+    smallExperiment: buildGenericAspectExperiment(
+      aspectId,
+      first,
+      second,
+      audienceMode,
+    ),
+  };
 }
 
 function buildAspectConfidenceNote(orb: number | null | undefined): string {

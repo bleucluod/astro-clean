@@ -46,6 +46,11 @@ import {
   type AspectBehavioralInterpretation,
   type BehavioralSynthesisRole,
 } from "@/lib/astrology/report-behavioral-interpretation";
+import {
+  getSnapshotBehavioralAudienceMode,
+  resolveBehavioralAudienceMode,
+  selectPlacementMajorAspectModifier,
+} from "@/lib/astrology/report-behavioral-context";
 import type { ReportOutputSection } from "@/types/report-output";
 
 type SignCopy = {
@@ -578,8 +583,15 @@ export function enrichReportWithRealEngineCopy(
     aspectHighlights,
     aspectSelectionContext,
   );
+  const behavioralAudienceMode =
+    realEngine.behavioralAudienceMode ??
+    resolveBehavioralAudienceMode(
+      report.input.birthDate,
+      realEngine.generatedAt,
+    );
   const realEngineWithAspects: RealEngineReportSnapshot = {
     ...realEngine,
+    behavioralAudienceMode,
     aspects: allAspects,
     aspectHighlights,
   };
@@ -614,8 +626,8 @@ export function enrichReportWithRealEngineCopy(
     chartSpine,
   }));
 
-  const sunText = buildCorePlacementText(sun, "sun");
-  const moonText = buildCorePlacementText(moon, "moon");
+  const sunText = buildCorePlacementText(sun, "sun", realEngineWithAspects);
+  const moonText = buildCorePlacementText(moon, "moon", realEngineWithAspects);
   const coreSynthesisText = buildCoreSynthesisThread(sun, moon, risingSign);
   const risingText = buildRisingText(
     risingSign,
@@ -630,9 +642,9 @@ export function enrichReportWithRealEngineCopy(
   const retrogradeText = buildRetrogradeText(realEngineWithAspects, chartSpine);
   const lunarNodeText = buildLunarNodeText(realEngineWithAspects, chartSpine);
   const natalAccuracyText = buildNatalAccuracyText(realEngineWithAspects);
-  const mercuryText = buildOptionalPlacementText(mercury, "mercury");
-  const venusText = buildOptionalPlacementText(venus, "venus");
-  const marsText = buildOptionalPlacementText(mars, "mars");
+  const mercuryText = buildOptionalPlacementText(mercury, "mercury", realEngineWithAspects);
+  const venusText = buildOptionalPlacementText(venus, "venus", realEngineWithAspects);
+  const marsText = buildOptionalPlacementText(mars, "mars", realEngineWithAspects);
   const dailyLifeSynthesisText = buildDailyLifeSynthesisThread(mercury, venus, mars);
   const aspectText = buildAspectOverviewText(synthesisPlan, realEngineWithAspects);
   const sunAspectText = buildPlanetAspectText(
@@ -1155,6 +1167,11 @@ function buildChartRulerText(
     retrograde:
       realEngine.retrogrades?.status === "calculated" &&
       realEngine.retrogrades.planetIds.includes(chartSpine.chartRulerId),
+    audienceMode: getSnapshotBehavioralAudienceMode(realEngine),
+    majorAspect: selectPlacementMajorAspectModifier(
+      chartSpine.chartRulerId,
+      realEngine.aspectHighlights,
+    ),
   });
 
   return [
@@ -1927,6 +1944,7 @@ function buildSynthesisWeeklyPractice(
 function buildCorePlacementText(
   placement: RealEngineReportPlacement | undefined,
   planetId: "sun" | "moon",
+  realEngine: RealEngineReportSnapshot,
 ) {
   if (!placement) {
     return undefined;
@@ -1937,10 +1955,12 @@ function buildCorePlacementText(
   const interpretation = buildPlacementInterpretation(
     planetId,
     placement,
+    realEngine,
   );
   const houseSentence = buildPlanetHouseSentence(
     placement,
     planetId,
+    realEngine,
   );
 
   if (!interpretation) {
@@ -1963,6 +1983,7 @@ function buildCorePlacementText(
 function buildOptionalPlacementText(
   placement: RealEngineReportPlacement | undefined,
   planetId: "mercury" | "venus" | "mars",
+  realEngine: RealEngineReportSnapshot,
 ) {
   if (!placement) {
     return undefined;
@@ -1973,10 +1994,12 @@ function buildOptionalPlacementText(
   const interpretation = buildPlacementInterpretation(
     planetId,
     placement,
+    realEngine,
   );
   const houseSentence = buildPlanetHouseSentence(
     placement,
     planetId,
+    realEngine,
   );
 
   if (!interpretation) {
@@ -1999,10 +2022,12 @@ function buildOptionalPlacementText(
 function buildPlanetHouseSentence(
   placement: RealEngineReportPlacement,
   planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
+  realEngine: RealEngineReportSnapshot,
 ): string | undefined {
   const interpretation = buildPlacementInterpretation(
     planetId,
     placement,
+    realEngine,
   );
 
   return interpretation
@@ -2013,11 +2038,17 @@ function buildPlanetHouseSentence(
 function buildPlacementGrowthPractice(
   planetId: string,
   placement: RealEngineReportPlacement,
+  realEngine?: RealEngineReportSnapshot,
 ): string {
-  const interpretation = buildPlacementInterpretation(
-    planetId,
-    placement,
-  );
+  const interpretation = realEngine
+    ? buildPlacementInterpretation(planetId, placement, realEngine)
+    : isBehavioralPlacementInput(planetId, placement.signId, placement.house)
+      ? buildPlacementBehavioralInterpretation({
+          planetId,
+          signId: placement.signId,
+          houseNumber: placement.house,
+        })
+      : undefined;
 
   if (interpretation) {
     return `تمرین این جایگاه: ${interpretation.smallExperiment}.`;
@@ -2029,6 +2060,7 @@ function buildPlacementGrowthPractice(
 function buildPlacementInterpretation(
   planetId: string,
   placement: RealEngineReportPlacement,
+  realEngine: RealEngineReportSnapshot,
 ) {
   if (
     !isBehavioralPlacementInput(
@@ -2044,6 +2076,14 @@ function buildPlacementInterpretation(
     planetId,
     signId: placement.signId,
     houseNumber: placement.house,
+    retrograde:
+      realEngine.retrogrades?.status === "calculated" &&
+      realEngine.retrogrades.planetIds.includes(planetId),
+    audienceMode: getSnapshotBehavioralAudienceMode(realEngine),
+    majorAspect: selectPlacementMajorAspectModifier(
+      planetId,
+      realEngine.aspectHighlights,
+    ),
   });
 }
 
@@ -2617,6 +2657,7 @@ function buildWriterAspectInterpretation(
     activeHouseNumbers,
     retrogradePlanetIds,
     synthesisRole,
+    audienceMode: getSnapshotBehavioralAudienceMode(realEngine),
   });
 }
 
@@ -2893,6 +2934,11 @@ function buildPrimaryHousePlacementPractice(
     retrograde:
       realEngine.retrogrades?.status === "calculated" &&
       realEngine.retrogrades.planetIds.includes(placement.id),
+    audienceMode: getSnapshotBehavioralAudienceMode(realEngine),
+    majorAspect: selectPlacementMajorAspectModifier(
+      placement.id,
+      realEngine.aspectHighlights,
+    ),
   }).smallExperiment;
 }
 
