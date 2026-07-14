@@ -39,7 +39,10 @@ for (const marker of [
   "کارت‌های جدا",
   "پیوسته‌تر",
 ]) {
-  assert(synthesis.includes(marker), `ReportSynthesisSection missing marker: ${marker}`);
+  assert(
+    synthesis.includes(marker),
+    `ReportSynthesisSection missing marker: ${marker}`,
+  );
 }
 
 for (const marker of [
@@ -54,6 +57,7 @@ for (const marker of [
     `ReportPlanetPlacementSections missing behavioral structure marker: ${marker}`,
   );
 }
+
 for (const forbiddenMarker of ["const PLANET_COPY", "const SIGN_COPY"]) {
   assert(
     !placements.includes(forbiddenMarker),
@@ -63,10 +67,21 @@ for (const forbiddenMarker of ["const PLANET_COPY", "const SIGN_COPY"]) {
 
 for (const marker of [
   "aspect-bridge",
-  "دستور زبان",
-  "انتخاب آگاهانه بخواهند",
+  "data-halleus-behavioral-aspect-core",
+  "buildAspectBehavioralInterpretation",
+  "isBehavioralAspectInput",
 ]) {
-  assert(aspects.includes(marker), `ReportAspectRelationshipSections missing narrative marker: ${marker}`);
+  assert(
+    aspects.includes(marker),
+    `ReportAspectRelationshipSections missing behavioral structure marker: ${marker}`,
+  );
+}
+
+for (const forbiddenMarker of ["const ASPECT_META_BY_KIND"]) {
+  assert(
+    !aspects.includes(forbiddenMarker),
+    `ReportAspectRelationshipSections still owns duplicate semantic dictionary: ${forbiddenMarker}`,
+  );
 }
 
 for (const marker of [
@@ -74,7 +89,10 @@ for (const marker of [
   "یک داستان جدا، قطعی یا اغراق‌شده",
   "کنار جایگاه‌ها و رابطه‌های سیاره‌ای",
 ]) {
-  assert(specialPoints.includes(marker), `ReportSpecialPointsNarrativeSection missing narrative marker: ${marker}`);
+  assert(
+    specialPoints.includes(marker),
+    `ReportSpecialPointsNarrativeSection missing narrative marker: ${marker}`,
+  );
 }
 
 for (const marker of [
@@ -82,7 +100,10 @@ for (const marker of [
   "سیاره‌ای و نقاط ویژه بخوان",
   "هالیوس تهران را بی‌اجازه جایگزین محل فعلی نمی‌کند",
 ]) {
-  assert(personalTransit.includes(marker), `PersonalTransitReportSection missing narrative marker: ${marker}`);
+  assert(
+    personalTransit.includes(marker),
+    `PersonalTransitReportSection missing narrative marker: ${marker}`,
+  );
 }
 
 assert(
@@ -99,10 +120,21 @@ assert(
   "check:project must include the narrative quality pass guard.",
 );
 
-for (const docPath of [files.context, files.ideaGarden, files.audit, files.plan]) {
+for (const docPath of [
+  files.context,
+  files.ideaGarden,
+  files.audit,
+  files.plan,
+]) {
   const doc = read(docPath);
-  assert(doc.includes("v0.1.263 Report narrative quality pass"), `${docPath} missing v0.1.263 narrative note.`);
-  assert(doc.includes("report narrative quality pass"), `${docPath} missing lowercase narrative marker.`);
+  assert(
+    doc.includes("v0.1.263 Report narrative quality pass"),
+    `${docPath} missing v0.1.263 narrative note.`,
+  );
+  assert(
+    doc.includes("report narrative quality pass"),
+    `${docPath} missing lowercase narrative marker.`,
+  );
 }
 
 console.log("Report narrative quality pass guard passed.");

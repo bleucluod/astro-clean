@@ -58,7 +58,7 @@ for (const marker of [
   "SIGN_COPY",
   "PLANET_COPY",
   "HOUSE_COPY",
-  "ASPECT_STORY",
+  "buildAspectBehavioralInterpretation", "buildWriterAspectInterpretation", "buildSynthesisPracticeItems",
   "buildPlanetHouseSentence",
   "toPersianNumber",
   "از نظر خانه‌ها",
@@ -77,7 +77,7 @@ for (const marker of [
   assertIncludes(writer, marker, "lib/astrology/real-engine-report-writer.ts");
 }
 
-for (const forbiddenMarker of ["Halleus"]) {
+for (const forbiddenMarker of ["Halleus", "const ASPECT_STORY"]) {
   if (writer.includes(forbiddenMarker)) {
     throw new Error(
       `lib/astrology/real-engine-report-writer.ts still contains English brand marker in Persian report text: ${forbiddenMarker}`,

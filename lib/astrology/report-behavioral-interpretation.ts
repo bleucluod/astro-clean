@@ -588,3 +588,488 @@ function normalizeHouseNumber(
     ? (value as BehavioralHouseNumber)
     : null;
 }
+
+export type BehavioralAspectId =
+  | "conjunction"
+  | "sextile"
+  | "square"
+  | "trine"
+  | "opposition";
+
+export type BehavioralSynthesisRole =
+  | "challenge"
+  | "support"
+  | "daily-bridge";
+
+export type AspectBehavioralInterpretation = {
+  titleFragment: string;
+  narrativeSummary: string;
+  plainMeaning: string;
+  dailyLifeExample: string;
+  healthyExpression: string;
+  possibleFriction: string;
+  smallExperiment: string;
+  confidenceNote: string;
+  focus: string;
+  patternKey: string;
+};
+
+export type AspectBehavioralInterpretationInput = {
+  firstPlanetId: string;
+  secondPlanetId: string;
+  firstSignId?: string | null;
+  secondSignId?: string | null;
+  firstHouseNumber?: number | null;
+  secondHouseNumber?: number | null;
+  aspectId: string;
+  orb?: number | null;
+  chartRulerId?: string | null;
+  activeHouseNumbers?: number[];
+  retrogradePlanetIds?: string[];
+  synthesisRole?: BehavioralSynthesisRole | null;
+};
+
+type AspectFormSemantic = {
+  titleFragment: string;
+  relationship: string;
+  healthy: string;
+  friction: string;
+};
+
+type AspectParticipantContext = {
+  id: BehavioralPlanetId;
+  planet: PlanetSemantic;
+  sign: SignSemantic | null;
+  house: HouseSemantic | null;
+  houseNumber: BehavioralHouseNumber | null;
+  retrograde: boolean;
+};
+
+const ASPECT_FORM_SEMANTICS: Record<BehavioralAspectId, AspectFormSemantic> = {
+  conjunction: {
+    titleFragment: "هم‌نشینی ۰ درجه",
+    relationship:
+      "دو نیاز تقریباً هم‌زمان فعال می‌شوند و صدای یکدیگر را بلندتر می‌کنند",
+    healthy:
+      "تمرکز و توان یکپارچه‌کردن دو نیرو در یک حرکت روشن",
+    friction:
+      "تشخیص ندادن اینکه کدام نیاز هدایت می‌کند و واکنش‌دادن با شدت بیشتر از موقعیت",
+  },
+  sextile: {
+    titleFragment: "زاویه‌ی ۶۰ درجه",
+    relationship:
+      "دو نیاز امکان همکاری دارند، اما این امکان باید با انتخاب و تمرین فعال شود",
+    healthy:
+      "یادگیری سریع‌تر و ساختن راهی کوچک که دو توان را به هم وصل می‌کند",
+    friction:
+      "نادیده‌گرفتن امکان چون فشار فوری ندارد یا رهاکردن آن در حد استعداد خام",
+  },
+  square: {
+    titleFragment: "زاویه‌ی ۹۰ درجه",
+    relationship:
+      "دو نیاز با ریتم‌های متفاوت به هم فشار می‌آورند و مسئله‌ای واقعی برای حل‌کردن می‌سازند",
+    healthy:
+      "ساختن مهارت، مرز و تصمیم از راه روبه‌روشدن با اصطکاک",
+    friction:
+      "سرکوب یک نیاز، نوسان میان دو واکنش یا تکرار تنش بدون تبدیل آن به مسئله‌ای قابل حل",
+  },
+  trine: {
+    titleFragment: "زاویه‌ی ۱۲۰ درجه",
+    relationship:
+      "دو نیاز طبیعی‌تر به هم راه می‌دهند و می‌توانند بدون فشار زیاد همکاری کنند",
+    healthy:
+      "استفاده آگاهانه از روانی و استعداد برای ساختن مهارت یا نتیجه‌ای قابل مشاهده",
+    friction:
+      "عادی فرض‌کردن توان، پراکندگی یا تکیه‌کردن به موج آسانی بدون ادامه‌دادن",
+  },
+  opposition: {
+    titleFragment: "روبه‌رویی ۱۸۰ درجه",
+    relationship:
+      "دو نیاز در دو سر یک محور قرار می‌گیرند و تعادل میان خود و دیگری یا دو میدان زندگی را می‌طلبند",
+    healthy:
+      "دیدن هر دو طرف، مذاکره و انتخابی که هیچ قطب را حذف نمی‌کند",
+    friction:
+      "رفت‌وبرگشت، فرافکنی یک قطب به دیگری یا منتظرماندن برای مجوز و زمان کاملاً بی‌تنش",
+  },
+};
+
+const CHART_RULER_BY_RISING: Record<BehavioralSignId, BehavioralPlanetId> = {
+  aries: "mars",
+  taurus: "venus",
+  gemini: "mercury",
+  cancer: "moon",
+  leo: "sun",
+  virgo: "mercury",
+  libra: "venus",
+  scorpio: "mars",
+  sagittarius: "jupiter",
+  capricorn: "saturn",
+  aquarius: "saturn",
+  pisces: "jupiter",
+};
+
+export function getBehavioralChartRulerId(
+  risingSignId: string | null | undefined,
+): BehavioralPlanetId | null {
+  return typeof risingSignId === "string" && risingSignId in CHART_RULER_BY_RISING
+    ? CHART_RULER_BY_RISING[risingSignId as BehavioralSignId]
+    : null;
+}
+
+export function isBehavioralAspectInput(
+  firstPlanetId: string | null | undefined,
+  secondPlanetId: string | null | undefined,
+  aspectId: string | null | undefined,
+): boolean {
+  return (
+    typeof firstPlanetId === "string" &&
+    firstPlanetId in PLANET_SEMANTICS &&
+    typeof secondPlanetId === "string" &&
+    secondPlanetId in PLANET_SEMANTICS &&
+    typeof aspectId === "string" &&
+    aspectId in ASPECT_FORM_SEMANTICS
+  );
+}
+
+export function buildAspectBehavioralInterpretation(
+  input: AspectBehavioralInterpretationInput,
+): AspectBehavioralInterpretation {
+  const first = buildAspectParticipantContext(
+    input.firstPlanetId,
+    input.firstSignId,
+    input.firstHouseNumber,
+    input.retrogradePlanetIds,
+  );
+  const second = buildAspectParticipantContext(
+    input.secondPlanetId,
+    input.secondSignId,
+    input.secondHouseNumber,
+    input.retrogradePlanetIds,
+  );
+  const aspectId = normalizeAspectId(input.aspectId);
+  const form = ASPECT_FORM_SEMANTICS[aspectId];
+  const pairKey = [first.id, second.id].sort().join(":");
+  const patternKey = `${pairKey}:${aspectId}`;
+  const targeted = buildTargetedAspectInterpretation(
+    patternKey,
+    first,
+    second,
+    form,
+  );
+  const context = buildAspectContextSentence(first, second);
+  const relevance = buildAspectRelevanceNote(input, first, second);
+  const confidenceNote = buildAspectConfidenceNote(input.orb);
+
+  if (targeted) {
+    return {
+      ...targeted,
+      titleFragment: form.titleFragment,
+      narrativeSummary: targeted.plainMeaning,
+      plainMeaning: `${targeted.plainMeaning}. ${context}`,
+      healthyExpression: `${targeted.healthyExpression}. ${relevance}`,
+      confidenceNote,
+      patternKey,
+    };
+  }
+
+  const firstMethod = first.sign?.method ?? "به شیوه‌ای که نشان آن در داده ثبت کرده";
+  const secondMethod = second.sign?.method ?? "به شیوه‌ای که نشان آن در داده ثبت کرده";
+  const firstScene = first.house?.scene ?? "میدان زندگی ثبت‌شده برای سیاره اول";
+  const secondScene = second.house?.scene ?? "میدان زندگی ثبت‌شده برای سیاره دوم";
+  const retrogradeNote = buildRetrogradeAspectNote(first, second);
+
+  return {
+    titleFragment: form.titleFragment,
+    narrativeSummary:
+      `${first.planet.role} و ${second.planet.role} ${form.relationship}`,
+    plainMeaning:
+      `${first.planet.role} و ${second.planet.role} در این رابطه ${form.relationship}. ${context}`,
+    dailyLifeExample:
+      `ممکن است هنگام ${first.planet.dailyVerb} در ${firstScene}، هم‌زمان لازم باشد ${second.planet.dailyVerb} در ${secondScene}. نیروی اول ${firstMethod} عمل می‌کند و نیروی دوم ${secondMethod}${retrogradeNote}`,
+    healthyExpression:
+      `${form.healthy}. شکل سالم آن این است که ${first.planet.healthy} با ${second.planet.healthy} هم‌زمان جا داشته باشد. ${relevance}`,
+    possibleFriction:
+      `${form.friction}. در عمل ممکن است ${first.planet.friction} با ${second.planet.friction} ترکیب شود`,
+    smallExperiment:
+      buildGenericAspectExperiment(aspectId, first, second),
+    confidenceNote,
+    focus: `${first.planet.role} × ${second.planet.role}`,
+    patternKey,
+  };
+}
+
+function buildTargetedAspectInterpretation(
+  patternKey: string,
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+  form: AspectFormSemantic,
+): Omit<
+  AspectBehavioralInterpretation,
+  "titleFragment" | "narrativeSummary" | "confidenceNote" | "patternKey"
+> | null {
+  const contextFor = (planetId: BehavioralPlanetId) =>
+    first.id === planetId ? first : second;
+  const sceneFor = (planetId: BehavioralPlanetId) =>
+    contextFor(planetId).house?.scene ?? "میدان زندگی مربوط به آن سیاره";
+
+  if (patternKey === "mars:saturn:opposition") {
+    return {
+      plainMeaning:
+        "یک بخش می‌خواهد خواسته، ناراحتی یا تصمیمش را بیان کند و بخش دیگر پیامد رابطه، مخالفت، ردشدن یا مسئولیت آن را می‌سنجد",
+      dailyLifeExample:
+        "ممکن است پیش از اقدام واکنش دیگری را بیش از حد بررسی کنی، شروع کنی و عقب بکشی، یا برای حفظ رابطه موافقت کنی و بعد دلخوری جمع شود",
+      healthyExpression:
+        "اقدام سنجیده، مسئولیت‌پذیری و مذاکره‌ای که خواسته را روشن می‌کند بدون اینکه رابطه یا خودت حذف شود",
+      possibleFriction:
+        "توقف‌وحرکت، خشم فشرده، دیرگفتن خواسته یا احساس اینکه همیشه به مجوز و زمان مناسب‌تری نیاز داری",
+      smallExperiment:
+        "پیش از گفت‌وگوی مهم سه خط بنویس: چه می‌خواهم؟ از چه واکنشی می‌ترسم؟ کوچک‌ترین درخواست روشن من چیست؟",
+      focus: `${sceneFor("mars")} در برابر ${sceneFor("saturn")}`,
+    };
+  }
+
+  if (patternKey === "jupiter:uranus:conjunction") {
+    return {
+      plainMeaning:
+        "گسترش و آزادی هم‌زمان فعال می‌شوند؛ ایده یا امکان تازه می‌تواند ناگهان بسیار هیجان‌انگیز و بزرگ به نظر برسد",
+      dailyLifeExample:
+        "ممکن است پروژه، عشق، سرگرمی یا تجربه خلاقانه را سریع شروع کنی چون چند مسیر تازه را یک‌باره می‌بینی",
+      healthyExpression:
+        "نوآوری، جسارت آزمایش و بازکردن راهی که قبلاً وجود نداشته است",
+      possibleFriction:
+        "رهاکردن ادامه بعد از موج اول هیجان، زیادکردن هم‌زمان پروژه‌ها یا اشتباه‌گرفتن تازگی با ارزش پایدار",
+      smallExperiment:
+        "وقتی ایده‌ای تازه خیلی هیجان‌انگیز شد، فقط یک نسخه کوچک آن را تا پایان اجرا کن و ایده‌های بعدی را در فهرستی جدا نگه دار",
+      focus: `${sceneFor("jupiter")} و ${sceneFor("uranus")}`,
+    };
+  }
+
+  if (patternKey === "mars:saturn:square") {
+    return {
+      plainMeaning:
+        "میل به اقدام با نیاز به احتیاط، زمان، مسئولیت یا ترس از پیامد اصطکاک پیدا می‌کند",
+      dailyLifeExample:
+        "ممکن است یک‌بار با فشار زیاد جلو بروی و بار دیگر کاملاً متوقف شوی، چون سرعت خواستن با سرعت اطمینان و مهارت‌سازی یکی نیست",
+      healthyExpression:
+        "انضباط عملی، تحمل تأخیر و تبدیل خشم یا فشار به برنامه‌ای مرحله‌بندی‌شده",
+      possibleFriction:
+        "خودسرزنشی، سخت‌گیری، خشم انباشته یا رهاکردن کار درست پیش از آنکه زمان کافی برای ساختن مهارت بگیرد",
+      smallExperiment:
+        "کار دشوار را به یک قدم پانزده‌دقیقه‌ای تبدیل کن و پیش از شروع فقط مانع واقعی همان قدم را بنویس",
+      focus: `${sceneFor("mars")} و ${sceneFor("saturn")}`,
+    };
+  }
+
+  if (patternKey === "moon:saturn:square") {
+    return {
+      plainMeaning:
+        "احساس و نیاز به حمایت با نگرانی درباره ثبات، جایگاه، مسئولیت یا پیامد بلندمدت اصطکاک پیدا می‌کند",
+      dailyLifeExample:
+        "ممکن است از ترس باربودن، نیازت را دیر بگویی و قوی، منطقی یا بی‌نیاز به نظر برسی، در حالی که همراهی یا محدودیت روشن لازم داری",
+      healthyExpression:
+        "تحمل احساس، ساختن اعتماد قابل اتکا و درخواست حمایتی که شکل و مرز مشخص دارد",
+      possibleFriction:
+        "کنترل یا تحلیل احساس تا زمانی که فشار زیاد شود، تنهایی کشیدن بار یا فرض‌کردن اینکه نیازداشتن نشانه ضعف است",
+      smallExperiment:
+        "پیش از تصمیم دو سؤال را جواب بده: الان چه احساسی دارم؟ چه حمایت یا محدودیت مشخصی باید در نظر گرفته شود؟",
+      focus: `${sceneFor("moon")} و ${sceneFor("saturn")}`,
+    };
+  }
+
+  if (patternKey === "mars:moon:conjunction") {
+    return {
+      plainMeaning:
+        "احساس و واکنش عملی بسیار نزدیک‌اند و ناراحتی می‌تواند سریع به تصمیم، پیام، دفاع یا قطع‌کردن تبدیل شود",
+      dailyLifeExample:
+        "در موقعیت عاطفی سنگین ممکن است سرعت واکنش از سرعت فهمیدن و نام‌گذاری احساس بیشتر باشد",
+      healthyExpression:
+        "جرئت دفاع از احساس، صداقت سریع و توان تبدیل نیاز به درخواست مستقیم",
+      possibleFriction:
+        "عمل‌کردن پیش از فهمیدن احساس، پیام فوری، دفاع تند یا تصمیم غیرقابل‌برگشت در اوج فشار",
+      smallExperiment:
+        "قبل از پیام‌دادن یا تصمیم‌گرفتن سه جمله بنویس: چه اتفاقی افتاد؟ چه احساسی دارم؟ الان چه درخواستی دارم؟",
+      focus: `${sceneFor("moon")} و ${sceneFor("mars")}`,
+    };
+  }
+
+  if (patternKey === "mars:uranus:conjunction") {
+    return {
+      plainMeaning:
+        "اقدام و نیاز به آزادی هم‌زمان روشن می‌شوند و محدودشدن می‌تواند واکنش بسیار سریع ایجاد کند",
+      dailyLifeExample:
+        "ممکن است برای شکستن فشار تصمیم ناگهانی بگیری، مسیر را عوض کنی یا ارتباط را پیش از گفت‌وگوی کامل قطع کنی",
+      healthyExpression:
+        "نوآوری، استقلال و جرئت تغییر روشی که واقعاً دیگر کار نمی‌کند",
+      possibleFriction:
+        "بی‌تابی، تغییر غیرقابل‌برگشت در اوج فشار یا اشتباه‌گرفتن مکث کوتاه با از دست‌دادن آزادی",
+      smallExperiment:
+        "پیش از تصمیم غیرقابل‌برگشت ده دقیقه مکث کن و یک تغییر کوچک و قابل برگشت را اول امتحان کن",
+      focus: `${sceneFor("mars")} و ${sceneFor("uranus")}`,
+    };
+  }
+
+  if (patternKey === "saturn:sun:square") {
+    return {
+      plainMeaning:
+        "میل به حضور، انتخاب و دیده‌شدن با ترس از اشتباه، قضاوت، مسئولیت یا برهم‌زدن تعادل اصطکاک پیدا می‌کند",
+      dailyLifeExample:
+        "ممکن است حرف یا نظر شخصی را آن‌قدر بسنجی که دیر گفته شود، مخصوصاً وقتی جایگاهت در جمع یا رابطه برایت مهم است",
+      healthyExpression:
+        "حضور مسئولانه، صدای دقیق و توان ساختن اعتبار با تکرار عمل‌های کوچک",
+      possibleFriction:
+        "خودسانسوری، سخت‌گیری، عقب‌انداختن دیده‌شدن تا زمان آمادگی کامل یا تعریف خود فقط از راه وظیفه",
+      smallExperiment:
+        "در یک جمع یا گفت‌وگو، یک نظر شخصی را در دو جمله بگو و یک اقدام کوچک قابل مشاهده برای آن تعیین کن",
+      focus: `${sceneFor("sun")} و ${sceneFor("saturn")}`,
+    };
+  }
+
+  if (
+    (patternKey === "jupiter:mars:trine" ||
+      patternKey === "mars:uranus:trine" ||
+      patternKey === "jupiter:mars:sextile" ||
+      patternKey === "mars:uranus:sextile")
+  ) {
+    return {
+      plainMeaning:
+        "اقدام با گسترش یا آزادی همکاری می‌کند و شروع‌کردن، ریسک سنجیده و بیان متفاوت را آسان‌تر می‌سازد",
+      dailyLifeExample:
+        "ممکن است برای پروژه خلاق، تجربه تازه یا نشان‌دادن ایده شخصی سریع انرژی بگیری و دیگران را هم با حرکتت همراه کنی",
+      healthyExpression:
+        "جرئت، ابتکار و تبدیل امکان به نمونه‌ای واقعی و قابل مشاهده",
+      possibleFriction:
+        "پراکندگی، زیادشروع‌کردن یا وابسته‌شدن ادامه کار به موج هیجان و آزادی لحظه‌ای",
+      smallExperiment:
+        "از میان ایده‌های امروز یکی را انتخاب کن، نسخه کوچک آن را تمام کن و تا پایان آن شروع تازه‌ای اضافه نکن",
+      focus: `${first.house?.scene ?? "اقدام"} و ${second.house?.scene ?? "خلاقیت"}`,
+    };
+  }
+
+  return null;
+}
+
+function buildAspectParticipantContext(
+  planetId: string,
+  signId: string | null | undefined,
+  houseNumber: number | null | undefined,
+  retrogradePlanetIds: string[] | undefined,
+): AspectParticipantContext {
+  const normalizedPlanet = normalizePlanetId(planetId);
+  const normalizedSign =
+    typeof signId === "string" && signId in SIGN_SEMANTICS
+      ? (signId as BehavioralSignId)
+      : null;
+  const normalizedHouse = normalizeHouseNumber(houseNumber);
+
+  return {
+    id: normalizedPlanet,
+    planet: PLANET_SEMANTICS[normalizedPlanet],
+    sign: normalizedSign ? SIGN_SEMANTICS[normalizedSign] : null,
+    house: normalizedHouse ? HOUSE_SEMANTICS[normalizedHouse] : null,
+    houseNumber: normalizedHouse,
+    retrograde: retrogradePlanetIds?.includes(normalizedPlanet) ?? false,
+  };
+}
+
+function buildAspectContextSentence(
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  const firstHouse = first.houseNumber
+    ? `خانه ${first.houseNumber} (${first.house?.scene})`
+    : "خانه ثبت‌نشده";
+  const secondHouse = second.houseNumber
+    ? `خانه ${second.houseNumber} (${second.house?.scene})`
+    : "خانه ثبت‌نشده";
+  const firstMethod = first.sign?.method ?? "شیوه نشان ثبت‌نشده";
+  const secondMethod = second.sign?.method ?? "شیوه نشان ثبت‌نشده";
+
+  return `نیروی اول با ریتم ${firstMethod} در ${firstHouse} و نیروی دوم با ریتم ${secondMethod} در ${secondHouse} عمل می‌کند`;
+}
+
+function buildAspectRelevanceNote(
+  input: AspectBehavioralInterpretationInput,
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  const notes: string[] = [];
+  const participants = new Set([first.id, second.id]);
+
+  if (input.chartRulerId && participants.has(input.chartRulerId as BehavioralPlanetId)) {
+    notes.push("این رابطه به حاکم چارت وصل است و روی شیوه شروع و انتخاب وزن بیشتری دارد");
+  }
+  if (participants.has("sun") || participants.has("moon")) {
+    notes.push("چون خورشید یا ماه درگیر است، الگو به هویت یا امنیت عاطفی نزدیک می‌شود");
+  }
+  const activeHouses = new Set(
+    (input.activeHouseNumbers ?? []).map((house) => normalizeHouseNumber(house)).filter(Boolean),
+  );
+  if (
+    (first.houseNumber && activeHouses.has(first.houseNumber)) ||
+    (second.houseNumber && activeHouses.has(second.houseNumber))
+  ) {
+    notes.push("یکی از میدان‌های فعال چارت در این رابطه حضور دارد");
+  }
+  if (input.synthesisRole === "challenge") {
+    notes.push("این رابطه در synthesis به‌عنوان کشمکش اصلی انتخاب شده است");
+  } else if (input.synthesisRole === "support") {
+    notes.push("این رابطه در synthesis منبع همراه و تنظیم‌کننده است");
+  } else if (input.synthesisRole === "daily-bridge") {
+    notes.push("این رابطه پل ترجمه الگو به رفتار روزمره است");
+  }
+
+  return notes.length > 0
+    ? notes.join("؛ ")
+    : "اهمیت این رابطه از ترکیب دو سیاره، خانه‌ها، نشان‌ها و نزدیکی زاویه به دست می‌آید";
+}
+
+function buildRetrogradeAspectNote(
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  const retrograde = [first, second].filter((participant) => participant.retrograde);
+
+  if (retrograde.length === 0) {
+    return "";
+  }
+
+  return "؛ یکی از نیروها پس‌روست و ممکن است پیش از بیان بیرونی چند بار درونت مرور یا بازبینی شود";
+}
+
+function buildGenericAspectExperiment(
+  aspectId: BehavioralAspectId,
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  if (aspectId === "square" || aspectId === "opposition") {
+    return `یک موقعیت واقعی را انتخاب کن و روی کاغذ بنویس: نیاز اول چیست، نیاز دوم چیست و کوچک‌ترین توافق یا مرز قابل اجرا میان ${first.house?.scene ?? "میدان اول"} و ${second.house?.scene ?? "میدان دوم"} کدام است`;
+  }
+
+  if (aspectId === "conjunction") {
+    return `پیش از واکنش، نام ببر کدام نیاز هدایت می‌کند و سپس یک اقدام کوچک انجام بده که ${first.planet.role} و ${second.planet.role} را هم‌زمان اما جداگانه جا بدهد`;
+  }
+
+  return `یک توان طبیعی این رابطه را انتخاب کن و آن را تا پایان هفته به یک کار قابل مشاهده در ${first.house?.scene ?? "زندگی روزمره"} تبدیل کن`;
+}
+
+function buildAspectConfidenceNote(orb: number | null | undefined): string {
+  if (typeof orb !== "number" || !Number.isFinite(orb)) {
+    return "عدد اورب برای این کارت در دسترس نیست؛ وزن خوانش از زمینه کامل چارت می‌آید";
+  }
+
+  if (orb <= 1.5) {
+    return `اورب ${orb.toFixed(1)} درجه است؛ تماس بسیار نزدیک است، اما معنای انسانی آن همچنان از سیاره‌ها و خانه‌ها می‌آید`;
+  }
+
+  if (orb <= 4) {
+    return `اورب ${orb.toFixed(1)} درجه است؛ تماس روشن و قابل استفاده است، بدون اینکه نزدیکی عددی جای زمینه را بگیرد`;
+  }
+
+  return `اورب ${orb.toFixed(1)} درجه است؛ این رابطه با اعتماد ملایم‌تر و در کنار بقیه شواهد چارت خوانده می‌شود`;
+}
+
+function normalizeAspectId(value: string): BehavioralAspectId {
+  return value in ASPECT_FORM_SEMANTICS
+    ? (value as BehavioralAspectId)
+    : "conjunction";
+}

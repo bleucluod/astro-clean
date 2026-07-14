@@ -207,7 +207,7 @@ for (const marker of [
   "منبع همراه:",
   "ترجمهٔ روزمره:",
   "تمرین این هفته:",
-  "totalWords > 1450",
+  "totalWords > 1950",
 ]) {
   if (!sampleQaSource.includes(marker)) {
     failures.push(`sample QA missing synthesis-depth acceptance marker: ${marker}`);
@@ -236,4 +236,4 @@ console.log("Report synthesis depth check passed.");
 console.log("- primary challenge, support, and daily bridge are selected deterministically");
 console.log("- synthesis uses actual planet roles, signs, and house fields");
 console.log("- old generic tension sentence and person-specific branches are blocked");
-console.log("- report sample QA keeps the main narrative under 1450 words");
+console.log("- report sample QA keeps the main narrative under 1950 words");

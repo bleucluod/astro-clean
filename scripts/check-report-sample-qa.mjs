@@ -460,7 +460,7 @@ for (const sample of samples) {
     failures.push(`${sample.id}: total generated section text is too short (${totalWords} words)`);
   }
 
-  if (totalWords > 1450) {
+  if (totalWords > 1950) {
     failures.push(`${sample.id}: main narrative is too long after synthesis depth pass (${totalWords} words)`);
   }
 

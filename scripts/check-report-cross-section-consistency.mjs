@@ -133,7 +133,7 @@ for (const marker of [
   "assertCrossSectionConsistency",
   "same weekly practice",
   "daily-life narrative still exposes technical angle detail",
-  "totalWords > 1450",
+  "totalWords > 1950",
 ]) {
   if (!sampleQaSource.includes(marker)) {
     failures.push(`sample QA missing Batch 4 consistency marker: ${marker}`);

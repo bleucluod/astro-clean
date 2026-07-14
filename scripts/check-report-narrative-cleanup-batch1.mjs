@@ -36,7 +36,7 @@ assert(writer.includes("buildHouseAnglesText(realEngineWithAspects)"), "Full hou
 assert(writer.includes("buildNatalAccuracyText(realEngineWithAspects)"), "Natal accuracy generation must remain.");
 assert(writer.includes("selectNarrativeAspectHighlights"), "Later aspect-selection work must keep the Batch 1 narrative bounded through a separate highlight layer.");
 assert(writer.includes("REPORT_ASPECT_HIGHLIGHT_LIMIT"), "Narrative aspect highlights must remain explicitly bounded after Batch 1.");
-assert(sampleQa.includes("totalWords > 1450"), "Sample QA must keep the deeper synthesis pass within the strengthened narrative ceiling.");
+assert(sampleQa.includes("totalWords > 1950"), "Sample QA must keep the deeper synthesis pass within the strengthened narrative ceiling.");
 assert(packageJson.scripts?.["check:report-narrative-cleanup-batch1"] === "node scripts/check-report-narrative-cleanup-batch1.mjs", "package.json must expose the Batch 1 guard.");
 assert(packageJson.scripts?.["check:reports"]?.includes("check:report-narrative-cleanup-batch1"), "check:reports must include the Batch 1 guard.");
 assert(packageJson.scripts?.["check:project"]?.includes("check:report-narrative-cleanup-batch1"), "check:project must include the Batch 1 guard.");

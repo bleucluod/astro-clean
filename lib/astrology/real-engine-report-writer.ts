@@ -33,8 +33,12 @@ import {
   type RealEngineSynthesisRole,
 } from "@/lib/astrology/real-engine-synthesis";
 import {
+  buildAspectBehavioralInterpretation,
   buildPlacementBehavioralInterpretation,
+  isBehavioralAspectInput,
   isBehavioralPlacementInput,
+  type AspectBehavioralInterpretation,
+  type BehavioralSynthesisRole,
 } from "@/lib/astrology/report-behavioral-interpretation";
 import type { ReportOutputSection } from "@/types/report-output";
 
@@ -542,77 +546,6 @@ const PERSONAL_PLANET_STORY: Record<
   },
 };
 
-type AspectStory = {
-  theme: string;
-  supportSignal: string;
-  growthSignal: string;
-  integration: string;
-  reflection: string;
-};
-
-const ASPECT_STORY: Record<RealEngineReportAspect["aspectId"], AspectStory> = {
-  conjunction: {
-    theme:
-      "هم‌نشینی مثل این است که دو بخش شخصیت در یک اتاق مشترک حرف بزنند؛ صداها جدا هستند، اما اثرشان روی هم می‌افتد و یک هسته پررنگ‌تر می‌سازند.",
-    supportSignal:
-      "وقتی آگاهانه زندگی شود، این رابطه می‌تواند تمرکز، شدت و حس جهت‌دار بودن ایجاد کند.",
-    growthSignal:
-      "چالش طبیعی‌اش این است که یکی از دو نیرو ممکن است دیگری را بیش از حد رنگ کند و انتخاب‌های تو از حالت آزاد به حالت واکنشی نزدیک شود.",
-    integration:
-      "راه یکپارچه‌تر این است که قبل از عمل، از خودت بپرسی کدام صدا واقعاً در حال هدایت است و کدام صدا فقط همراه شده است.",
-    reflection:
-      "برای تأمل: این دو بخش وقتی با هم فعال می‌شوند، تو را به تمرکز نزدیک‌تر می‌کنند یا به فشار؟",
-  },
-  sextile: {
-    theme:
-      "فرصت نرم نشان می‌دهد دو بخش شخصیت می‌توانند بدون اجبار زیاد با هم همکاری کنند، اما این همکاری معمولاً نیاز به انتخاب آگاهانه دارد.",
-    supportSignal:
-      "وقتی از آن استفاده کنی، این رابطه می‌تواند راه‌حل، یادگیری و حرکت آرام بسازد.",
-    growthSignal:
-      "چالش طبیعی‌اش این است که چون تنش زیادی ندارد، ممکن است نادیده گرفته شود و به جای توان فعال، فقط یک امکان خام بماند.",
-    integration:
-      "راه یکپارچه‌تر این است که این استعداد را کوچک اما عملی وارد روزمره کنی؛ با یک گفت‌وگو، یک تمرین یا یک تصمیم ساده.",
-    reflection:
-      "برای تأمل: کدام فرصت کوچک در این رابطه هست که اگر فعالش کنی، زندگی‌ات کمی روان‌تر می‌شود؟",
-  },
-  square: {
-    theme:
-      "چالش سازنده یعنی دو بخش شخصیت با ریتم‌های متفاوت به هم فشار می‌آورند؛ این فشار همیشه بد نیست، اما اگر دیده نشود می‌تواند فرسوده‌کننده شود.",
-    supportSignal:
-      "وقتی آگاهانه هدایت شود، این رابطه می‌تواند اراده، بلوغ و توان عمل بسازد.",
-    growthSignal:
-      "چالش طبیعی‌اش این است که ممکن است یکی از دو نیاز را سرکوب کنی یا مدام بین آن‌ها نوسان داشته باشی.",
-    integration:
-      "راه یکپارچه‌تر این است که تنش را به مسئله قابل حل تبدیل کنی: نه جنگ درونی، نه انکار، بلکه تنظیم قدم‌به‌قدم.",
-    reflection:
-      "برای تأمل: این اصطکاک از تو چه مهارتی می‌خواهد که هنوز در حال ساختنش هستی؟",
-  },
-  trine: {
-    theme:
-      "جریان هماهنگ یعنی دو بخش شخصیت راحت‌تر به هم راه می‌دهند و ممکن است حس استعداد طبیعی یا حمایت درونی بسازند.",
-    supportSignal:
-      "وقتی آگاهانه استفاده شود، این رابطه می‌تواند اعتماد، روانی و حس طبیعی بودن مسیر را بیشتر کند.",
-    growthSignal:
-      "چالش طبیعی‌اش این است که چون راحت است، ممکن است تنبل یا ناخودآگاه بماند و به جای رشد فعال، فقط به عادت تبدیل شود.",
-    integration:
-      "راه یکپارچه‌تر این است که این روانی را قدر بدانی، اما آن را به انتخاب، تمرین و مسئولیت تبدیل کنی.",
-    reflection:
-      "برای تأمل: کدام توان طبیعی را آن‌قدر عادی می‌دانی که شاید ارزش واقعی‌اش را کم می‌بینی؟",
-  },
-  opposition: {
-    theme:
-      "قطبیت آگاه‌کننده یعنی دو بخش شخصیت روبه‌روی هم می‌ایستند تا تو یاد بگیری هیچ سر طیف را کامل حذف نکنی.",
-    supportSignal:
-      "وقتی آگاهانه زندگی شود، این رابطه می‌تواند نگاه دوطرفه، بلوغ رابطه‌ای و قدرت انتخاب میان دو نیاز متفاوت بسازد.",
-    growthSignal:
-      "چالش طبیعی‌اش این است که ممکن است یکی از دو بخش را به دیگران نسبت بدهی یا فقط یک طرف را درست بدانی.",
-    integration:
-      "راه یکپارچه‌تر این است که به جای انتخاب یکی علیه دیگری، ببینی هر دو قطب چه نیازی را نمایندگی می‌کنند.",
-    reflection:
-      "برای تأمل: کدام دو نیاز در تو روبه‌روی هم ایستاده‌اند و چه گفت‌وگویی بین آن‌ها لازم است؟",
-  },
-};
-
 export function enrichReportWithRealEngineCopy(
   report: AstrologyReport,
   realEngine: RealEngineReportSnapshot,
@@ -677,11 +610,41 @@ export function enrichReportWithRealEngineCopy(
   const marsText = buildOptionalPlacementText(mars, "mars");
   const dailyLifeSynthesisText = buildDailyLifeSynthesisThread(mercury, venus, mars);
   const aspectText = buildAspectOverviewText(synthesisPlan, realEngineWithAspects);
-  const sunAspectText = buildPlanetAspectText("sun", PLANET_COPY.sun.faName, aspectHighlights);
-  const moonAspectText = buildPlanetAspectText("moon", PLANET_COPY.moon.faName, aspectHighlights);
-  const mercuryAspectText = buildPlanetAspectText("mercury", PLANET_COPY.mercury.faName, aspectHighlights);
-  const venusAspectText = buildPlanetAspectText("venus", PLANET_COPY.venus.faName, aspectHighlights);
-  const marsAspectText = buildPlanetAspectText("mars", PLANET_COPY.mars.faName, aspectHighlights);
+  const sunAspectText = buildPlanetAspectText(
+    "sun",
+    PLANET_COPY.sun.faName,
+    aspectHighlights,
+    realEngineWithAspects,
+    chartSpine,
+  );
+  const moonAspectText = buildPlanetAspectText(
+    "moon",
+    PLANET_COPY.moon.faName,
+    aspectHighlights,
+    realEngineWithAspects,
+    chartSpine,
+  );
+  const mercuryAspectText = buildPlanetAspectText(
+    "mercury",
+    PLANET_COPY.mercury.faName,
+    aspectHighlights,
+    realEngineWithAspects,
+    chartSpine,
+  );
+  const venusAspectText = buildPlanetAspectText(
+    "venus",
+    PLANET_COPY.venus.faName,
+    aspectHighlights,
+    realEngineWithAspects,
+    chartSpine,
+  );
+  const marsAspectText = buildPlanetAspectText(
+    "mars",
+    PLANET_COPY.mars.faName,
+    aspectHighlights,
+    realEngineWithAspects,
+    chartSpine,
+  );
   const firstSynthesisText = buildFirstSynthesisText(
     realEngineWithAspects,
     chartSpine,
@@ -1740,9 +1703,22 @@ function buildFirstSynthesisText(
   synthesisPlan: RealEngineSynthesisPlan,
 ): string {
   return [
-    buildSynthesisChallengeThread(synthesisPlan.primaryChallenge, realEngine),
-    buildSynthesisSupportThread(synthesisPlan.primarySupport, realEngine),
-    buildSynthesisDailyBridgeThread(synthesisPlan.dailyBridge, realEngine),
+    buildSynthesisChallengeThread(
+      synthesisPlan.primaryChallenge,
+      realEngine,
+      chartSpine,
+    ),
+    buildSynthesisSupportThread(
+      synthesisPlan.primarySupport,
+      realEngine,
+      chartSpine,
+    ),
+    buildSynthesisDailyBridgeThread(
+      synthesisPlan.dailyBridge,
+      realEngine,
+      chartSpine,
+    ),
+    buildAspectClusterSynthesisThread(realEngine, chartSpine),
     buildSynthesisWeeklyPractice(realEngine, chartSpine, synthesisPlan),
   ]
     .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
@@ -1752,67 +1728,69 @@ function buildFirstSynthesisText(
 function buildSynthesisChallengeThread(
   aspect: RealEngineReportAspect | undefined,
   realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
 ): string | undefined {
   if (!aspect) {
     return undefined;
   }
 
   const label = aspect.aspectId === "conjunction" ? "تمرکز اصلی" : "کشمکش اصلی";
-  return `${label}: ${buildSynthesisAspectBridge(aspect, realEngine)}`;
+  return `${label}: ${buildSynthesisAspectBridge(
+    aspect,
+    realEngine,
+    chartSpine,
+    "challenge",
+  )}`;
 }
 
 function buildSynthesisSupportThread(
   aspect: RealEngineReportAspect | undefined,
   realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
 ): string | undefined {
   if (!aspect) {
     return undefined;
   }
 
-  return `منبع همراه: ${buildSynthesisAspectBridge(aspect, realEngine)}`;
+  return `منبع همراه: ${buildSynthesisAspectBridge(
+    aspect,
+    realEngine,
+    chartSpine,
+    "support",
+  )}`;
 }
 
 function buildSynthesisDailyBridgeThread(
   aspect: RealEngineReportAspect | undefined,
   realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
 ): string | undefined {
   if (!aspect) {
     return undefined;
   }
 
-  return `ترجمهٔ روزمره: ${buildSynthesisAspectBridge(aspect, realEngine)}`;
+  return `ترجمهٔ روزمره: ${buildSynthesisAspectBridge(
+    aspect,
+    realEngine,
+    chartSpine,
+    "daily-bridge",
+  )}`;
 }
 
 function buildSynthesisAspectBridge(
   aspect: RealEngineReportAspect,
   realEngine: RealEngineReportSnapshot,
+  chartSpine?: ChartSpine,
+  synthesisRole?: BehavioralSynthesisRole,
 ): string {
-  const first = buildSynthesisParticipantPhrase(
-    aspect.firstPlanetId,
-    findPlacement(realEngine, aspect.firstPlanetId),
-  );
-  const second = buildSynthesisParticipantPhrase(
-    aspect.secondPlanetId,
-    findPlacement(realEngine, aspect.secondPlanetId),
+  const interpretation = buildWriterAspectInterpretation(
+    aspect,
+    realEngine,
+    chartSpine,
+    synthesisRole,
   );
 
-  if (aspect.aspectId === "opposition") {
-    return `${first} و ${second} دو سر یک محورند. برای هر دو نیاز زمان و زبان جدا بساز؛ یکی نباید جای دیگری را بگیرد.`;
-  }
-
-  if (aspect.aspectId === "square") {
-    return `${first} و ${second} اصطکاک می‌سازند. فشار را به یک مسئلهٔ قابل حل تبدیل کن تا صدای یکی دیگری را خاموش نکند.`;
-  }
-
-  if (aspect.aspectId === "conjunction") {
-    return `${first} و ${second} هم‌زمان فعال می‌شوند. قدرتشان در تمرکز است؛ تمرینشان تشخیص نیروی هدایت‌کننده در هر موقعیت.`;
-  }
-
-  if (aspect.aspectId === "trine") {
-    return `${first} و ${second} طبیعی‌تر همکاری می‌کنند. توان آسان را آگاهانه به مهارت یا مسئولیت تبدیل کن.`;
-  }
-
-  return `${first} و ${second} فرصت همکاری دارند. یک انتخاب کوچک این امکان را به ابزار واقعی تبدیل می‌کند.`;
+  return interpretation.narrativeSummary;
 }
 
 function buildSynthesisParticipantPhrase(
@@ -2458,59 +2436,35 @@ function buildPlanetAspectText(
   planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
   planetLabel: string,
   aspects: RealEngineReportAspect[],
+  realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
 ): string | undefined {
-  const planetAspects = aspects
-    .filter((aspect) => aspect.firstPlanetId === planetId || aspect.secondPlanetId === planetId)
-    .sort((first, second) => first.orb - second.orb)
-    .slice(0, 1);
+  const aspect = aspects
+    .filter(
+      (candidate) =>
+        candidate.firstPlanetId === planetId ||
+        candidate.secondPlanetId === planetId,
+    )
+    .sort((first, second) => first.orb - second.orb)[0];
 
-  if (planetAspects.length === 0) {
+  if (!aspect) {
     return undefined;
   }
 
-  const details = planetAspects.map((aspect) =>
-    formatPlanetAspectDetail(planetId, aspect),
+  const interpretation = buildWriterAspectInterpretation(
+    aspect,
+    realEngine,
+    chartSpine,
   );
-
-  return [`رابطه برجسته ${planetLabel}:`, ...details].join(" ");
-}
-
-
-function formatPlanetAspectDetail(
-  planetId: "sun" | "moon" | "mercury" | "venus" | "mars",
-  aspect: RealEngineReportAspect,
-): string {
   const otherPlanetLabel =
-    aspect.firstPlanetId === planetId ? aspect.secondPlanetLabel : aspect.firstPlanetLabel;
-  const bridge = getAspectPlainLanguageBridge(aspect);
+    aspect.firstPlanetId === planetId
+      ? aspect.secondPlanetLabel
+      : aspect.firstPlanetLabel;
 
-  return `با ${otherPlanetLabel} در الگوی ${aspect.aspectLabel} و فاصله ${formatAspectDegree(aspect.orb)} از زاویه دقیق. ${bridge}`;
-}
-
-
-function getAspectPlainLanguageBridge(aspect: RealEngineReportAspect): string {
-  if (aspect.aspectId === "square" || aspect.aspectId === "opposition") {
-    return "این رابطه بیشتر کشش میان دو نیاز زنده را نشان می‌دهد و به مرز، ریتم یا توافق کوچک نیاز دارد.";
-  }
-
-  if (aspect.aspectId === "sextile" || aspect.aspectId === "trine") {
-    return "این رابطه می‌تواند مسیر همکاری یا استعداد طبیعی باشد، به شرطی که آگاهانه زندگی شود.";
-  }
-
-  return "این هم‌نشینی دو صدا را نزدیک‌تر می‌کند و تمرکز بیشتری به همان بخش از چارت می‌دهد.";
-}
-
-
-function getPlanetAspectTone(aspect: RealEngineReportAspect): string {
-  if (aspect.aspectId === "square" || aspect.aspectId === "opposition") {
-    return "این رابطه جایی حس می‌شود که دو نیاز هم‌زمان فعال‌اند و حذف کردن یکی از آن‌ها تنش را بیشتر می‌کند.";
-  }
-
-  if (aspect.aspectId === "sextile" || aspect.aspectId === "trine") {
-    return "این رابطه وقتی مفیدتر می‌شود که از توان طبیعی به انتخاب یا تمرین روزمره تبدیل شود.";
-  }
-
-  return "این هم‌نشینی صدای دو نیرو را نزدیک‌تر می‌کند؛ پس باید دید کدام صدا بیشتر هدایت می‌کند.";
+  return [
+    `رابطه برجسته ${planetLabel}: با ${otherPlanetLabel} در الگوی ${aspect.aspectLabel} و اورب ${formatAspectDegree(aspect.orb)}.`,
+    interpretation.narrativeSummary,
+  ].join(" ");
 }
 
 
@@ -2519,13 +2473,21 @@ function buildAspectOverviewText(
   realEngine: RealEngineReportSnapshot,
 ) {
   const roles = getRealEngineSynthesisRoles(synthesisPlan);
+  const chartSpine = buildChartSpine(
+    realEngine,
+    realEngine.aspectHighlights ?? [],
+  );
 
   if (roles.length === 0) {
     return undefined;
   }
 
   const details = roles.map((role) =>
-    buildSynthesisRoleContinuation(role, realEngine),
+    buildSynthesisRoleContinuation(
+      role,
+      realEngine,
+      chartSpine,
+    ),
   );
 
   return [
@@ -2540,96 +2502,107 @@ function buildAspectOverviewText(
 function buildSynthesisRoleContinuation(
   role: RealEngineSynthesisRole,
   realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
 ): string {
-  const aspect = role.aspect;
-  const firstLabel = getPlanetLabel(aspect.firstPlanetId);
-  const secondLabel = getPlanetLabel(aspect.secondPlanetId);
-  const first = findPlacement(realEngine, aspect.firstPlanetId);
-  const second = findPlacement(realEngine, aspect.secondPlanetId);
-  const fields = [first?.house, second?.house]
-    .filter(isReportHouseNumber)
-    .map((house) => HOUSE_SYNTHESIS_FIELD[house]);
-  const uniqueFields = Array.from(new Set(fields));
-  const fieldPhrase = uniqueFields.length > 1
-    ? ` میان ${joinPersianList(uniqueFields.map((field) => `میدان ${field}`))}`
-    : uniqueFields.length === 1
-      ? ` در میدان ${uniqueFields[0]}`
-      : "";
+  const synthesisRole: BehavioralSynthesisRole =
+    role.id === "challenge"
+      ? "challenge"
+      : role.id === "support"
+        ? "support"
+        : "daily-bridge";
+  const interpretation = buildWriterAspectInterpretation(
+    role.aspect,
+    realEngine,
+    chartSpine,
+    synthesisRole,
+  );
+  const prefix =
+    role.id === "challenge"
+      ? "ادامهٔ کشمکش اصلی"
+      : role.id === "support"
+        ? "ادامهٔ منبع همراه"
+        : "ادامهٔ ترجمهٔ روزمره";
 
-  if (role.id === "challenge") {
-    return `ادامهٔ کشمکش اصلی: رابطهٔ ${firstLabel} و ${secondLabel}${fieldPhrase} همان فشار محوری آغاز گزارش را به انتخاب‌های روزمره می‌آورد. وقتی یکی زودتر عمل می‌کند، نیاز دیگری را پیش از تصمیم نام ببر.`;
-  }
-
-  if (role.id === "support") {
-    return `ادامهٔ منبع همراه: رابطهٔ ${firstLabel} و ${secondLabel}${fieldPhrase} راهی برای تنظیم فشار اصلی می‌سازد. یک کار کوچک که هر دو توان را به کار بگیرد، این حمایت را قابل مشاهده می‌کند.`;
-  }
-
-  return `ادامهٔ ترجمهٔ روزمره: رابطهٔ ${firstLabel} و ${secondLabel}${fieldPhrase} جایی است که نخ اصلی به گفت‌وگو، مرز یا عمل تبدیل می‌شود. تصمیم را کوتاه، روشن و قابل پیگیری نگه دار.`;
+  return `${prefix}: ${interpretation.narrativeSummary}.`;
 }
 
-function buildHumanAspectNarrative(
+
+function buildWriterAspectInterpretation(
   aspect: RealEngineReportAspect,
-  realEngine?: RealEngineReportSnapshot,
+  realEngine: RealEngineReportSnapshot,
   chartSpine?: ChartSpine,
-): string {
-  const first = realEngine ? findPlacement(realEngine, aspect.firstPlanetId) : undefined;
-  const second = realEngine ? findPlacement(realEngine, aspect.secondPlanetId) : undefined;
-  const firstLabel = aspect.firstPlanetLabel;
-  const secondLabel = aspect.secondPlanetLabel;
-  const firstPlace = first ? formatPlacementWithHouse(first) : firstLabel;
-  const secondPlace = second ? formatPlacementWithHouse(second) : secondLabel;
+  synthesisRole?: BehavioralSynthesisRole,
+): AspectBehavioralInterpretation {
+  const first = findPlacement(realEngine, aspect.firstPlanetId);
+  const second = findPlacement(realEngine, aspect.secondPlanetId);
+  const activeHouseNumbers = chartSpine?.activeHouses.map(
+    (activeHouse) => activeHouse.house.number,
+  );
+  const retrogradePlanetIds =
+    realEngine.retrogrades?.status === "calculated"
+      ? realEngine.retrogrades.planetIds
+      : [];
 
-  if (isAspectBetween(aspect, "mars", "saturn") && aspect.aspectId === "opposition") {
-    return `مریخ در ${first?.id === "mars" ? firstPlace : secondPlace} در برابر زحل در ${first?.id === "saturn" ? firstPlace : secondPlace} یکی از تمرین‌های جدی چارت را در مرز میان خواستن، ارزش شخصی، اعتماد و صمیمیت نشان می‌دهد. ممکن است مطالبه، خشم، پول، بدن یا مرزگذاری اول از مسیر سنجیدن واکنش دیگری عبور کند. تمرین این رابطه جنگیدن نیست؛ روشن کردن خواسته بدون حذف خود است.`;
+  if (
+    !isBehavioralAspectInput(
+      aspect.firstPlanetId,
+      aspect.secondPlanetId,
+      aspect.aspectId,
+    )
+  ) {
+    throw new Error(
+      `Unsupported behavioral aspect input: ${aspect.id}`,
+    );
   }
 
-  if (isAspectBetween(aspect, "moon", "saturn") && aspect.aspectId === "square") {
-    return `ماه در ${first?.id === "moon" ? firstPlace : secondPlace} با زحل در ${first?.id === "saturn" ? firstPlace : secondPlace} تنشی میان نیاز عاطفی و نیاز به ثبات، پذیرش یا امنیت می‌سازد. ممکن است احساس دیرتر گفته شود یا اول از مسیر کنترل، منطق یا بی‌نیازی عبور کند. تمرین این رابطه این است که نیاز داشتن ضعف تلقی نشود و اعتماد به‌تدریج ساخته شود.`;
+  return buildAspectBehavioralInterpretation({
+    firstPlanetId: aspect.firstPlanetId,
+    secondPlanetId: aspect.secondPlanetId,
+    firstSignId: first?.signId,
+    secondSignId: second?.signId,
+    firstHouseNumber: first?.house,
+    secondHouseNumber: second?.house,
+    aspectId: aspect.aspectId,
+    orb: aspect.orb,
+    chartRulerId: chartSpine?.chartRulerId,
+    activeHouseNumbers,
+    retrogradePlanetIds,
+    synthesisRole,
+  });
+}
+
+function buildAspectClusterSynthesisThread(
+  realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
+): string | undefined {
+  const highlights = realEngine.aspectHighlights ?? [];
+  const clusterPlanetIds = ["moon", "mars", "uranus"];
+  const clusterAspects = highlights.filter((aspect) =>
+    clusterPlanetIds.includes(aspect.firstPlanetId) &&
+    clusterPlanetIds.includes(aspect.secondPlanetId),
+  );
+
+  if (clusterAspects.length < 2) {
+    return undefined;
   }
 
-  if (isAspectBetween(aspect, "moon", "mars") && aspect.aspectId === "conjunction") {
-    return `ماه و مریخ در ${first?.id === "moon" ? firstPlace : secondPlace} احساس را سریع‌تر به واکنش، تصمیم یا دفاع تبدیل می‌کنند. این هم‌نشینی انرژی زیادی برای محافظت و حرکت دارد، اما تمرینش مکث کوتاه میان احساس و واکنش است.`;
-  }
-
-  if (isAspectBetween(aspect, "moon", "uranus") && aspect.aspectId === "conjunction") {
-    return `ماه و اورانوس در ${first?.id === "moon" ? firstPlace : secondPlace} نیاز احساسی را ناگهانی، مستقل و حساس به کنترل می‌کنند. در فشار یا نزدیکی، ممکن است فاصله گرفتن یا تصمیم برق‌آسا فعال شود؛ تمرینش گفتن نیاز پیش از قطع ارتباط است.`;
-  }
-
-  if (isAspectBetween(aspect, "mercury", "uranus") && aspect.aspectId === "conjunction") {
-    return `عطارد و اورانوس در ${first?.id === "mercury" ? firstPlace : secondPlace} ذهن را سریع، شبکه‌ای و آینده‌نگر می‌کنند. ایده‌ها برق‌آسا می‌آیند؛ تمرین این رابطه این است که کشف ذهنی به زبان ساده، سیستم قابل اجرا و مراقبت روزمره تبدیل شود.`;
-  }
-
-  if (isAspectBetween(aspect, "mercury", "jupiter") && aspect.aspectId === "conjunction") {
-    return `عطارد و مشتری در ${first?.id === "mercury" ? firstPlace : secondPlace} ذهن را گسترده، ایده‌ساز و معناجو می‌کنند. هدیه‌اش دیدن تصویر بزرگ‌تر است؛ تمرینش این است که گستردگی فکر، جزئیات بدن و زمان روزمره را زیر خود له نکند.`;
-  }
-
-  const bridge = getAspectPlainLanguageBridge(aspect);
-  const priorityNote = chartSpine && (
-    aspectHasParticipant(aspect, chartSpine.chartRulerId) ||
-    aspectHasParticipant(aspect, "sun") ||
-    aspectHasParticipant(aspect, "moon")
-  )
-    ? "چون این رابطه به یکی از ستون‌های اصلی چارت وصل است، در روایت جلوتر آمده است."
-    : undefined;
+  const readings = clusterAspects.map((aspect) =>
+    buildWriterAspectInterpretation(
+      aspect,
+      realEngine,
+      chartSpine,
+      "daily-bridge",
+    ),
+  );
+  const sharedExperiment = readings[0]?.smallExperiment;
 
   return [
-    `${firstLabel} و ${secondLabel} در الگوی ${aspect.aspectLabel} قرار دارند.`,
-    `زاویه الگو: ${typeof aspect.angle === "number" ? formatAspectDegree(aspect.angle) : aspect.aspectLabel}؛ زاویه واقعی: ${formatAspectDegree(aspect.separation)}؛ اورب: ${formatAspectDegree(aspect.orb)}.`,
-    bridge,
-    priorityNote,
+    "الگوی خوشه‌ای: ماه، مریخ و اورانوس اینجا سه جملهٔ جدا نیستند؛ احساس، واکنش عملی و نیاز به آزادی می‌توانند پشت سر هم روشن شوند.",
+    "توان این خوشه صداقت، دفاع از احساس و تغییر مستقل است؛ گیر آن تصمیم یا قطع‌کردن پیش از نام‌گذاری احساس و درخواست است.",
+    sharedExperiment ? `آزمایش خوشه: ${sharedExperiment}.` : undefined,
   ]
     .filter((part): part is string => Boolean(part))
     .join(" ");
-}
-
-function isAspectBetween(
-  aspect: RealEngineReportAspect,
-  firstPlanetId: string,
-  secondPlanetId: string,
-): boolean {
-  const participants = new Set([aspect.firstPlanetId, aspect.secondPlanetId]);
-
-  return participants.has(firstPlanetId) && participants.has(secondPlanetId);
 }
 
 function formatAspectLead(aspect: RealEngineReportAspect): string {
@@ -2639,7 +2612,12 @@ function formatAspectLead(aspect: RealEngineReportAspect): string {
 }
 
 function buildAspectPriorityText(aspects: RealEngineReportAspect[]): string {
-  const closest = aspects.slice(0, 3).map((aspect) => `${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel}`);
+  const closest = aspects
+    .slice(0, 3)
+    .map(
+      (aspect) =>
+        `${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel}`,
+    );
 
   if (closest.length === 0) {
     return "اولویت خواندن رابطه‌های سیاره‌ای از وزن چارت شروع می‌شود: نورها، حاکم چارت، خانه‌های فعال، رابطه‌های تنشی و بعد اورب نزدیک.";
@@ -2648,19 +2626,6 @@ function buildAspectPriorityText(aspects: RealEngineReportAspect[]): string {
   return `اولویت خواندن رابطه‌های سیاره‌ای از رابطه‌هایی شروع می‌شود که به نورها، حاکم چارت، خانه‌های فعال یا رابطه‌های تنشی وصل‌اند: ${closest.join("، ")}. اورب نزدیک مهم است، اما تنها معیار انتخاب نیست.`;
 }
 
-function buildAspectDetailText(aspect: RealEngineReportAspect): string {
-  const story = ASPECT_STORY[aspect.aspectId];
-  const bridge = getAspectPlainLanguageBridge(aspect);
-
-  return [
-    `${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel} در الگوی ${aspect.aspectLabel} قرار گرفته‌اند.`,
-    `زاویه الگو: ${typeof aspect.angle === "number" ? formatAspectDegree(aspect.angle) : aspect.aspectLabel}؛ زاویه واقعی: ${formatAspectDegree(aspect.separation)}؛ اورب: ${formatAspectDegree(
-      aspect.orb,
-    )}.`,
-    bridge,
-    story.integration,
-  ].join(" ");
-}
 
 function buildAspectReflectionText(aspects: RealEngineReportAspect[]): string {
   const tensionCount = aspects.filter((aspect) =>
@@ -2728,31 +2693,23 @@ function buildSynthesisPracticeItems(
   const support = synthesisPlan.primarySupport;
   const dailyBridge = synthesisPlan.dailyBridge;
 
-  if (challenge) {
-    const firstPlanet = getPlanetLabel(challenge.firstPlanetId);
-    const secondPlanet = getPlanetLabel(challenge.secondPlanetId);
-    practices.push(`در یک موقعیت واقعی، نیاز ${firstPlanet} و نیاز ${secondPlanet} را جداگانه نام ببر و بعد تصمیم بگیر`);
-  }
+  for (const [aspect, role] of [
+    [challenge, "challenge"],
+    [support, "support"],
+    [dailyBridge, "daily-bridge"],
+  ] as const) {
+    if (!aspect) {
+      continue;
+    }
 
-  if (support) {
-    const firstPlanet = getPlanetLabel(support.firstPlanetId);
-    const secondPlanet = getPlanetLabel(support.secondPlanetId);
-    practices.push(`یک کار کوچک پیدا کن که توان ${firstPlanet} و ${secondPlanet} را هم‌زمان به کار بگیرد`);
-  }
-
-  if (dailyBridge) {
-    const first = findPlacement(realEngine, dailyBridge.firstPlanetId);
-    const second = findPlacement(realEngine, dailyBridge.secondPlanetId);
-    const fields = [first?.house, second?.house]
-      .filter(isReportHouseNumber)
-      .map((house) => HOUSE_SYNTHESIS_FIELD[house]);
-    const uniqueFields = Array.from(new Set(fields));
-    const fieldPhrase = uniqueFields.length > 1
-      ? ` میان ${joinPersianList(uniqueFields)}`
-      : uniqueFields.length === 1
-        ? ` در ${uniqueFields[0]}`
-        : "";
-    practices.push(`یک گفت‌وگو یا تصمیم روزمره${fieldPhrase} را کوتاه‌تر، روشن‌تر و قابل پیگیری‌تر کن`);
+    practices.push(
+      buildWriterAspectInterpretation(
+        aspect,
+        realEngine,
+        chartSpine,
+        role,
+      ).smallExperiment,
+    );
   }
 
   const activeHouse = synthesisPlan.primaryHouseNumber ?? chartSpine.activeHouses[0]?.house.number;
