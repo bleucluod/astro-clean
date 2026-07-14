@@ -194,7 +194,15 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
                 <h2 id="article-sources-title">منابع و مطالعهٔ بیشتر</h2>
                 <ul className={styles.bodyList}>
                   {article.sources.map((source) => (
-                    <li key={source}>{source}</li>
+                    <li key={typeof source === "string" ? source : source.href}>
+                      {typeof source === "string" ? (
+                        source
+                      ) : (
+                        <a href={source.href} rel="noreferrer" target="_blank">
+                          {source.label}
+                        </a>
+                      )}
+                    </li>
                   ))}
                 </ul>
               </section>

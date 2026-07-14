@@ -124,9 +124,9 @@ forbidText("sitemap", sitemapSource, "/reports");
 const declaredWikiSlugs = [
   ...wikiContent.matchAll(/slug: "([a-z0-9-]+)"/g),
 ].map((match) => match[1]);
-if (declaredWikiSlugs.length !== 15) {
+if (declaredWikiSlugs.length !== 19) {
   failures.push(
-    `expected 15 Wiki article slugs for sitemap generation, found ${declaredWikiSlugs.length}`,
+    `expected 19 Wiki article slugs for sitemap generation, found ${declaredWikiSlugs.length}`,
   );
 }
 
@@ -176,5 +176,5 @@ if (failures.length > 0) {
 console.log("Wiki-first SEO indexability check passed.");
 console.log("- homepage retains an explicit self-canonical without root inheritance");
 console.log("- Wiki index and all valid Wiki articles are index/follow");
-console.log("- Wiki index and 15 current articles are generated into the sitemap");
+console.log("- Wiki index and 19 current articles are generated into the sitemap");
 console.log("- reports index and report details remain noindex/nofollow");

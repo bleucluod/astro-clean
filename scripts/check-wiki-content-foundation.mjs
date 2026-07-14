@@ -104,6 +104,10 @@ if (failures.length === 0) {
     "what-is-moon-sign",
     "what-is-rising-sign",
     "tehran-birth-chart-difference",
+    "what-is-astrology",
+    "what-is-tropical-astrology",
+    "what-is-sidereal-astrology",
+    "what-is-vedic-astrology",
   ];
 
   for (const slug of expectedSlugs) {
@@ -117,8 +121,8 @@ if (failures.length === 0) {
   );
   const uniqueSlugs = new Set(declaredSlugs);
 
-  if (declaredSlugs.length !== 15) {
-    failures.push(`Expected exactly 15 Wiki articles, found ${declaredSlugs.length}`);
+  if (declaredSlugs.length !== 19) {
+    failures.push(`Expected exactly 19 Wiki articles, found ${declaredSlugs.length}`);
   }
 
   if (uniqueSlugs.size !== declaredSlugs.length) {
@@ -268,7 +272,7 @@ if (failures.length > 0) {
 }
 
 console.log("Wiki content foundation check passed.");
-console.log("- fifteen Persian articles are present, including all six previously omitted core guides");
+console.log("- nineteen Persian articles are present, including the four-article astrology systems cluster");
 console.log("- Article and BreadcrumbList structured data are rendered without FAQPage overclaiming");
 console.log("- unknown birth time is explained without claiming unsupported Halleus form behavior");
 console.log("- Wiki is index/follow and included in sitemap");
