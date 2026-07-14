@@ -61,7 +61,7 @@ includesAll("stored personal transit trust contract", transitBridge + transitSec
   "must not be relabeled as today",
   "formatTransitLocalDate",
   "آسمان زمان ساخت گزارش نسبت به چارت تولد تو",
-  "آسمان زمان گزارش",
+  "آسمان ثبت‌شده",
   "هنگام بازکردن گزارش قدیمی داده‌ی تازه‌ای جایگزین نمی‌کند",
 ]);
 excludesAll("stale personal transit labels", transitSection + reportDetail, [

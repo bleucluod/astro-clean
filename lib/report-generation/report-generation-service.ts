@@ -1,5 +1,6 @@
 import { createMockReport } from "@/lib/astrology/mock-engine";
 import { enrichReportWithRealEngineCopy } from "@/lib/astrology/real-engine-report-writer";
+import { getBehavioralChartRulerId } from "@/lib/astrology/report-behavioral-interpretation";
 import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 import type {
   AstrologyReport,
@@ -38,6 +39,7 @@ import type { NormalizedChart } from "../../src/lib/chart/normalized-chart";
 import { getHouseNumberFromCusps } from "../../src/lib/chart/houses";
 import {
   buildRealChartWorkbenchResult,
+  getZodiacSignForLongitude,
   type RealChartBirthInput,
   type RealChartCalculatedAngle,
   type RealChartCalculatedLilith,
@@ -561,10 +563,6 @@ function buildRealChartContract({
     generatedAt,
     chartReportEnrichment,
   );
-  const personalTransitReportData = buildPersonalTransitReportData(
-    request.input,
-    generatedAt,
-  );
   const report = enrichReportWithRealEngineCopy(
     {
       ...baseReport,
@@ -572,6 +570,11 @@ function buildRealChartContract({
     },
     realEngineSnapshot,
   ) as SectionedAstrologyReport;
+  const personalTransitReportData = buildPersonalTransitReportData(
+    request.input,
+    generatedAt,
+    report.realEngine ?? realEngineSnapshot,
+  );
   const status = getRealChartGenerationStatus(chartReportEnrichment);
   const limitations = [
     ...chartReportEnrichment.limitations,
@@ -670,14 +673,41 @@ function buildFallbackContract({
 function buildPersonalTransitReportData(
   input: BirthInput,
   generatedAt: string,
+  realEngine: RealEngineReportSnapshot,
 ) {
   const probeResult = calculateNatalToTransitProbe({
     birthInput: buildRealChartBirthInput(input),
     currentResidence: buildCurrentResidenceInput(input),
     currentLocalDate: getCurrentTransitLocalDate(generatedAt),
   });
+  const risingSign = getZodiacSignForLongitude(
+    realEngine.ascendantLongitude,
+  ).signId;
+  const chartRulerId = getBehavioralChartRulerId(risingSign);
+  const angularNatalBodyIds = realEngine.placements
+    .filter((placement) =>
+      placement.house === 1 ||
+      placement.house === 4 ||
+      placement.house === 7 ||
+      placement.house === 10,
+    )
+    .map((placement) => placement.id);
+  const activeNatalBodyIds = Array.from(
+    new Set(
+      (realEngine.aspectHighlights ?? []).flatMap((aspect) => [
+        aspect.firstPlanetId,
+        aspect.secondPlanetId,
+      ]),
+    ),
+  );
 
-  return buildPersonalTransitReportDataBridge(probeResult);
+  return buildPersonalTransitReportDataBridge(probeResult, {
+    audienceMode: realEngine.behavioralAudienceMode ?? "adult",
+    chartRulerId,
+    angularNatalBodyIds,
+    activeNatalBodyIds,
+    maxVisible: 5,
+  });
 }
 
 function buildCurrentResidenceInput(

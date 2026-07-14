@@ -2,8 +2,12 @@
 
 import type {
   PersonalTransitReportDataBridge,
-  PersonalTransitReportDataBridgeAspectSummary,
+  PersonalTransitReportDataBridgeSelectedAspectSummary,
 } from "@/src/lib/report-output/personal-transit-report-data-bridge";
+import {
+  buildPersonalTransitBehavioralInterpretation,
+  selectPersonalTransitHighlights,
+} from "@/src/lib/report-output/personal-transit-relevance";
 
 const BODY_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
@@ -34,40 +38,6 @@ const ASPECT_ANGLE_LABELS_FA: Record<string, string> = {
   sextile: "زاویه‌ی ۶۰ درجه",
 };
 
-const ASPECT_TONE_FA: Record<string, string> = {
-  conjunction: "تمرکز و پررنگ‌شدن یک موضوع",
-  opposition: "آینه، روبه‌رو شدن و نیاز به تعادل",
-  trine: "جریان روان‌تر و فرصت طبیعی‌تر",
-  square: "فشار سازنده، اصطکاک و نیاز به انتخاب آگاهانه",
-  sextile: "فرصت کوچک اما قابل استفاده",
-};
-
-const TRANSIT_BODY_FOCUS_FA: Record<string, string> = {
-  sun: "نورافکنی روی موضوعات روزمره و جهت فعلی",
-  moon: "تغییر حال‌وهوا، واکنش عاطفی و نیاز لحظه‌ای",
-  mercury: "فکر، گفت‌وگو، تصمیم و دریافت اطلاعات",
-  venus: "رابطه، پسند، ارزش، لذت و پیوند",
-  mars: "انگیزه، اقدام، خشم، جسارت و انرژی خام",
-  jupiter: "رشد، گسترش، امید و اغراق احتمالی",
-  saturn: "مرز، مسئولیت، واقع‌بینی و فشار بلوغ",
-  uranus: "تغییر، بی‌قراری، آزادی و شکست الگو",
-  neptune: "ابهام، الهام، رویا و نیاز به مرزبندی",
-  pluto: "شدت، دگرگونی، کنترل و مواجهه عمیق",
-};
-
-const NATAL_BODY_FIELD_FA: Record<string, string> = {
-  sun: "هویت، اراده و مسیر اصلی چارت تولد",
-  moon: "نیاز عاطفی، امنیت درونی و واکنش ناخودآگاه",
-  mercury: "ذهن، زبان، یادگیری و شیوه‌ی پردازش",
-  venus: "رابطه، زیبایی، ارزش‌ها و میل به نزدیکی",
-  mars: "جرئت، میل، خشم و شیوه‌ی اقدام",
-  jupiter: "باور، امید، رشد و افق دید",
-  saturn: "ترس، تعهد، مرز و درس‌های بلوغ",
-  uranus: "استقلال، تفاوت و الگوی آزادی",
-  neptune: "حساسیت، خیال، معنویت و مرزهای مبهم",
-  pluto: "شدت روانی، قدرت، رهاسازی و دگرگونی",
-};
-
 const PERSONAL_TRANSIT_VISIBLE_SECTION_VERSION =
   "v0.1.255-personal-transit-visible-report-section" as const;
 
@@ -86,8 +56,10 @@ export function PersonalTransitReportSection({
     return null;
   }
 
-  const hasAspects = data.aspectHighlights.length > 0;
-  const topAspects = data.aspectHighlights.slice(0, 6);
+  const audienceMode = data.audienceMode ?? "adult";
+  const topAspects = getVisibleTransitAspects(data, audienceMode);
+  const hasAspects = topAspects.length > 0;
+  const groupedAspects = groupVisibleTransitAspects(topAspects);
   const isMissingResidence = data.status === "missing-current-residence";
   const birthPlace = data.location.birthPlaceName ?? "محل تولد ثبت نشده";
   const currentResidence =
@@ -177,34 +149,49 @@ export function PersonalTransitReportSection({
             </p>
           </div>
 
-          <div className="report-aspect-grid report-personal-transit-grid">
-            {topAspects.map((aspect) => {
-              const insight = buildTransitInsight(aspect, transitDateLabel);
-
-              return (
-                <article className="report-aspect-card" key={aspect.id}>
-                  <span className="report-kicker">
-                    {getAspectAngleLabel(aspect.aspect)}
-                  </span>
-                  <h4>{formatAspectTitle(aspect)}</h4>
-                  <p>{insight.focus}</p>
-                  <ul>
-                    <li>
-                      <strong>سمت کمک‌کننده:</strong> {insight.helpful}
-                    </li>
-                    <li>
-                      <strong>سمت رشدی:</strong> {insight.growth}
-                    </li>
-                    <li>
-                      <strong>اعتماد محاسباتی:</strong> اورب{" "}
-                      {formatDegree(aspect.orb)} از سقف{" "}
-                      {formatDegree(aspect.orbLimit)}؛ هرچه اورب کمتر باشد،
-                      تماس نزدیک‌تر است.
-                    </li>
-                  </ul>
-                </article>
-              );
-            })}
+          <div className="report-personal-transit-groups">
+            {groupedAspects.map((group) => (
+              <section className="report-personal-transit-group" key={group.theme}>
+                <div className="report-section-heading compact">
+                  <span className="report-kicker">موضوع تولدی</span>
+                  <h4>{group.theme}</h4>
+                </div>
+                <div className="report-aspect-grid report-personal-transit-grid">
+                  {group.aspects.map((aspect) => (
+                    <article className="report-aspect-card" key={aspect.id}>
+                      <span className="report-kicker">
+                        {getAspectAngleLabel(aspect.aspect)}
+                      </span>
+                      <h4>{formatAspectTitle(aspect)}</h4>
+                      <p>
+                        <strong>توجه اصلی:</strong>{" "}
+                        {aspect.interpretation.attention}
+                      </p>
+                      <ul>
+                        <li>
+                          <strong>سناریوی احتمالی همان بازه:</strong>{" "}
+                          {aspect.interpretation.scenario}
+                        </li>
+                        <li>
+                          <strong>وقتی خوب استفاده می‌شود:</strong>{" "}
+                          {aspect.interpretation.helpful}
+                        </li>
+                        <li>
+                          <strong>گیر:</strong> {aspect.interpretation.friction}
+                        </li>
+                        <li>
+                          <strong>کار کوچک:</strong> {aspect.interpretation.action}
+                        </li>
+                        <li>
+                          <strong>جزئیات فنی:</strong>{" "}
+                          {aspect.interpretation.technicalDetail}
+                        </li>
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         </div>
       ) : null}
@@ -220,35 +207,61 @@ export function PersonalTransitReportSection({
         </div>
       ) : null}
 
-      <p className="report-muted-note">
-        این مقایسه فقط از خورشید، ماه، عطارد، زهره، مریخ، مشتری، زحل، اورانوس،
-        نپتون و پلوتو استفاده می‌کند. دست‌های ماه، لیلیت، خانه‌ها و زاویه‌ها در
-        این نسخه وارد مقایسه‌ی ترنزیتی نشده‌اند.
+      <p
+        className="report-muted-note"
+        data-personal-transit-technical-disclaimer="true"
+      >
+        {data.technicalDisclaimer ??
+          "این مقایسه فقط از snapshot ذخیره‌شده‌ی سیاره‌ها و اورب‌های همان زمان استفاده می‌کند؛ دست‌های ماه، لیلیت، خانه‌ها و زاویه‌ها وارد این محاسبه نشده‌اند و هیچ رویداد قطعی یا پیش‌بینی آینده ساخته نمی‌شود."}
       </p>
     </section>
   );
 }
 
-function buildTransitInsight(
-  aspect: PersonalTransitReportDataBridgeAspectSummary,
-  transitDateLabel: string,
-) {
-  const transitFocus =
-    TRANSIT_BODY_FOCUS_FA[aspect.transitBody] ?? "جریان زمان گزارش";
-  const natalField =
-    NATAL_BODY_FIELD_FA[aspect.natalBody] ?? "یکی از الگوهای چارت تولد";
-  const aspectTone =
-    ASPECT_TONE_FA[aspect.aspect] ?? "تماس قابل مشاهده بین دو بخش چارت";
+function getVisibleTransitAspects(
+  data: PersonalTransitReportDataBridge,
+  audienceMode: "caregiver" | "youth" | "adult",
+): PersonalTransitReportDataBridgeSelectedAspectSummary[] {
+  if (Array.isArray(data.visibleAspectHighlights)) {
+    return data.visibleAspectHighlights.slice(0, 5);
+  }
 
-  return {
-    focus: `${getBodyLabel(aspect.transitBody)} در ${transitDateLabel} می‌توانسته ${transitFocus} را به ${natalField} وصل کند. کیفیت این تماس بیشتر شبیه ${aspectTone} بوده است.`,
-    helpful: `از این تماس برای مرور روشن‌تر ${natalField} استفاده کن؛ آن را به یک تجربه‌ی همان بازه وصل کن، نه به پیش‌بینی آینده.`,
-    growth: "اگر این بخش سنگین بوده، آن را به‌عنوان دعوتی موقت برای تنظیم ریتم، مرز و انتخاب آگاهانه بخوان؛ نه حکم ثابت درباره زندگی.",
-  };
+  return selectPersonalTransitHighlights(data.aspectHighlights, {
+    audienceMode,
+    maxVisible: 5,
+  }).map((aspect) => ({
+    ...aspect,
+    relevanceScore: 0,
+    interpretation: buildPersonalTransitBehavioralInterpretation(
+      aspect,
+      audienceMode,
+    ),
+  }));
+}
+
+function groupVisibleTransitAspects(
+  aspects: PersonalTransitReportDataBridgeSelectedAspectSummary[],
+) {
+  const groups = new Map<
+    string,
+    PersonalTransitReportDataBridgeSelectedAspectSummary[]
+  >();
+
+  for (const aspect of aspects) {
+    const theme = aspect.interpretation.theme;
+    const current = groups.get(theme) ?? [];
+    current.push(aspect);
+    groups.set(theme, current);
+  }
+
+  return Array.from(groups, ([theme, grouped]) => ({
+    theme,
+    aspects: grouped,
+  }));
 }
 
 function formatAspectTitle(
-  aspect: PersonalTransitReportDataBridgeAspectSummary,
+  aspect: PersonalTransitReportDataBridgeSelectedAspectSummary,
 ): string {
   return [
     getBodyLabel(aspect.transitBody),
@@ -316,12 +329,4 @@ function getAspectLabel(aspect: string): string {
 
 function getAspectAngleLabel(aspect: string): string {
   return ASPECT_ANGLE_LABELS_FA[aspect] ?? "زاویه‌ی اصلی";
-}
-
-function formatDegree(value: number): string {
-  return (
-    value.toLocaleString("fa-IR", {
-      maximumFractionDigits: 2,
-    }) + " درجه"
-  );
 }

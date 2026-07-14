@@ -8,6 +8,15 @@ import {
   type NatalToTransitProbeResult,
 } from "../chart/natal-to-transit-calculation-probe";
 import { NATAL_TO_TRANSIT_COPY_POLICY } from "../chart/natal-to-transit-contract";
+import type { BehavioralAudienceMode } from "@/lib/astrology/report-behavioral-interpretation";
+import {
+  PERSONAL_TRANSIT_RELEVANCE_VERSION,
+  buildPersonalTransitBehavioralInterpretation,
+  scorePersonalTransitRelevance,
+  selectPersonalTransitHighlights,
+  type PersonalTransitBehavioralInterpretation,
+  type PersonalTransitSelectionContext,
+} from "./personal-transit-relevance";
 
 export const PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_VERSION =
   "v0.1.288-personal-transit-trust-boundary" as const;
@@ -29,6 +38,12 @@ export type PersonalTransitReportDataBridgeAspectSummary = {
   orbLimit: number;
   summaryKey: string;
 };
+
+export type PersonalTransitReportDataBridgeSelectedAspectSummary =
+  PersonalTransitReportDataBridgeAspectSummary & {
+    relevanceScore: number;
+    interpretation: PersonalTransitBehavioralInterpretation;
+  };
 
 export type PersonalTransitReportDataBridgeLocationSummary = {
   birthPlaceName: string | null;
@@ -58,6 +73,10 @@ export type PersonalTransitReportDataBridge = {
   currentResidenceUtcIso: string | null;
   location: PersonalTransitReportDataBridgeLocationSummary;
   aspectHighlights: PersonalTransitReportDataBridgeAspectSummary[];
+  audienceMode?: BehavioralAudienceMode;
+  relevanceVersion?: typeof PERSONAL_TRANSIT_RELEVANCE_VERSION;
+  visibleAspectHighlights?: PersonalTransitReportDataBridgeSelectedAspectSummary[];
+  technicalDisclaimer?: string;
   limitations: string[];
   notes: string[];
   nextMilestone: "post-v0.1.288-personal-transit-refresh";
@@ -65,12 +84,13 @@ export type PersonalTransitReportDataBridge = {
 
 export function buildPersonalTransitReportDataBridge(
   probeResult: NatalToTransitProbeResult,
+  context: PersonalTransitSelectionContext = {},
 ): PersonalTransitReportDataBridge {
   if (probeResult.status === NATAL_TO_TRANSIT_MISSING_CURRENT_RESIDENCE_STATUS) {
-    return buildMissingResidenceReportData(probeResult);
+    return buildMissingResidenceReportData(probeResult, context);
   }
 
-  return buildReadyReportData(probeResult);
+  return buildReadyReportData(probeResult, context);
 }
 
 export function hasPersonalTransitReportAspectData(
@@ -81,7 +101,14 @@ export function hasPersonalTransitReportAspectData(
 
 function buildReadyReportData(
   probeResult: NatalToTransitCalculationProbeResult,
+  context: PersonalTransitSelectionContext,
 ): PersonalTransitReportDataBridge {
+  const audienceMode = context.audienceMode ?? "adult";
+  const selectedAspects = selectPersonalTransitHighlights(
+    probeResult.aspects,
+    context,
+  );
+
   return {
     version: PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_VERSION,
     status: probeResult.aspects.length > 0 ? "ready" : "partial-no-aspects",
@@ -110,6 +137,18 @@ function buildReadyReportData(
       noSilentTehranDefaultForPersonalTransit: true,
     },
     aspectHighlights: probeResult.aspects.slice(0, 8).map(toAspectSummary),
+    audienceMode,
+    relevanceVersion: PERSONAL_TRANSIT_RELEVANCE_VERSION,
+    visibleAspectHighlights: selectedAspects.map((aspect) => ({
+      ...toAspectSummary(aspect),
+      relevanceScore: roundToTwo(scorePersonalTransitRelevance(aspect, context)),
+      interpretation: buildPersonalTransitBehavioralInterpretation(
+        aspect,
+        audienceMode,
+      ),
+    })),
+    technicalDisclaimer:
+      "این کارت‌ها از همان snapshot ذخیره‌شده انتخاب شده‌اند؛ اورب فقط نزدیکی هندسی را نشان می‌دهد و هیچ رویداد یا پیش‌بینی قطعی نمی‌سازد.",
     limitations: [
       "The stored personal-transit snapshot belongs to transitLocalDate/sampleLocalTime and must not be relabeled as today on later report views.",
       "Phase one uses calculated natal bodies and calculated current-residence transit bodies only; houses, angles, lunar nodes, and Lilith transits remain outside this comparison.",
@@ -126,6 +165,7 @@ function buildReadyReportData(
 
 function buildMissingResidenceReportData(
   probeResult: NatalToTransitMissingCurrentResidenceResult,
+  context: PersonalTransitSelectionContext,
 ): PersonalTransitReportDataBridge {
   return {
     version: PERSONAL_TRANSIT_REPORT_DATA_BRIDGE_VERSION,
@@ -153,6 +193,11 @@ function buildMissingResidenceReportData(
       noSilentTehranDefaultForPersonalTransit: true,
     },
     aspectHighlights: [],
+    audienceMode: context.audienceMode ?? "adult",
+    relevanceVersion: PERSONAL_TRANSIT_RELEVANCE_VERSION,
+    visibleAspectHighlights: [],
+    technicalDisclaimer:
+      "این بخش بدون محل زندگی فعلی هیچ تماس شخصی یا رویداد احتمالی نمی‌سازد.",
     limitations: [
       "Current residence is required before Halleus can add personal transit report data with precision.",
       "The bridge must not silently use Tehran for personal reports when current residence is missing.",
