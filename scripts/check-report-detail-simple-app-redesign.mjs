@@ -25,11 +25,15 @@ for (const marker of [
   "report-detail-section-card",
   "report-detail-section-chip-scroll",
   "id=\"final-reading\"",
-  "id=\"quick-facts\"",
   "id=\"core-pillars\"",
+  "id=\"chart-ruler\"",
+  "id=\"important-houses\"",
   "id=\"planet-placements\"",
   "id=\"aspect-relationships\"",
   "id=\"special-points\"",
+  "id=\"energy-balance\"",
+  "id=\"weekly-practices\"",
+  "id=\"chart-data\"",
   "id=\"personal-transit\"",
   "engineData?.personalTransitReportData",
 ]) {
@@ -42,9 +46,9 @@ assert(!reportDetail.includes("localStorage.getItem"), "ReportDetail must not re
 
 for (const marker of [
   "report-final-reading-card",
-  "report-reading-section-list",
-  "report-reading-section-card",
-  "createReadingParagraphs",
+  "data-live-report-reading-contract",
+  "summarySentences.map",
+  "reflectionQuestions",
 ]) {
   assert(reportV3Experience.includes(marker), `ReportV3Experience missing existing reader marker: ${marker}`);
 }

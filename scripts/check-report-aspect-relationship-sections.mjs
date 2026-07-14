@@ -48,11 +48,11 @@ assert(placementIndex >= 0 && aspectIndex > placementIndex, "Aspect relationship
 assert(legacyAspectIndex < 0 || aspectIndex < legacyAspectIndex, "Aspect relationship sections must appear before the legacy aspect summary list.");
 
 assert(component.includes('data-report-aspect-relationship-sections="true"'), "Component must expose a guardable data marker.");
-assert(component.includes("ارتباط سیاره‌ها به زبان ساده"), "Component must have a clear Persian heading.");
-assert(component.includes("خلاصه ساده"), "Component must include a for-dummies summary line.");
-assert(component.includes("سمت کمک‌کننده"), "Component must include a positive/helpful side.");
-assert(component.includes("سمت رشدی"), "Component must include a growth/challenge side.");
-assert(component.includes("اورب و اعتماد خوانش"), "Component must explain orb/trust.");
+assert(component.includes("رابطه‌های مهم"), "Component must have the reading-contract Persian heading.");
+assert(!component.includes("خلاصه ساده"), "Component must remove the duplicate focus summary line.");
+assert(component.includes("وقتی خوب کار می‌کند"), "Component must include the approved healthy-expression label.");
+assert(component.includes("جایی که گیر می‌کند"), "Component must include the approved friction label.");
+assert(component.includes("اورب و میزان اعتماد این خوانش"), "Component must keep orb/trust inside progressive details.");
 assert(component.includes("زاویه‌ی ۶۰ درجه"), "Component must label sextile as 60 degrees.");
 assert(component.includes("زاویه‌ی ۹۰ درجه"), "Component must label square as 90 degrees.");
 assert(component.includes("زاویه‌ی ۱۲۰ درجه"), "Component must label trine as 120 degrees.");

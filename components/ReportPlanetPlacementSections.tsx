@@ -76,13 +76,9 @@ export function ReportPlanetPlacementSections({
       data-halleus-behavioral-placement-core="v0.1.314"
     >
       <div className="report-section-heading">
-        <span className="section-label">موقعیت‌های سیاره‌ها</span>
-        <h3>هر سیاره در زندگی واقعی چطور دیده می‌شود؟</h3>
-        <p>
-          هر کارت نقش سیاره، شیوهٔ بیان نشان و صحنهٔ زندگی خانه را با هم
-          می‌خواند. خانه فقط یک برچسب نیست؛ مشخص می‌کند این الگو بیشتر در کدام
-          تصمیم، رابطه یا رفتار روزمره دیده می‌شود.
-        </p>
+        <span className="section-label">جایگاه‌های اصلی</span>
+        <h3>سیاره‌ها در زندگی روزمره</h3>
+        <p>هر کارت یک الگوی قابل مشاهده، یک گیر محتمل و یک تمرین کوتاه را نشان می‌دهد.</p>
         <p
           className="report-muted-note"
           data-report-narrative-quality-pass="placement-bridge for-dummies"
@@ -140,11 +136,15 @@ export function ReportPlanetPlacementSections({
                   {interpretation?.possibleFriction ??
                     "زیاده‌روی احتمالی یا الگوی تکرارشونده"}
                 </li>
-                <li>
-                  <strong>علایق و کشش‌ها:</strong>{" "}
-                  {interpretation?.focus ??
-                    "شناخت بهتر نقش این جایگاه در چارت"}
-                </li>
+                {isIndependentFocus(
+                  interpretation?.focus,
+                  interpretation?.plainMeaning,
+                ) ? (
+                  <li>
+                    <strong>کجا بیشتر دیده می‌شود؟</strong>{" "}
+                    {interpretation?.focus}
+                  </li>
+                ) : null}
                 <li>
                   <strong>در زندگی روزمره / مثال ساده:</strong>{" "}
                   {interpretation?.dailyLifeExample ??
@@ -273,4 +273,30 @@ function getHouseNumber(placement: PlanetPlacement) {
 
 function formatPersianNumber(value: number) {
   return new Intl.NumberFormat("fa-IR").format(value);
+}
+
+function normalizePlacementText(value: string | undefined) {
+  return value
+    ?.normalize("NFKC")
+    .replace(/[\s\u00a0]+/gu, " ")
+    .replace(/[.،؛:!?؟«»()\-–—]/gu, "")
+    .trim();
+}
+
+function isIndependentFocus(
+  focus: string | undefined,
+  plainMeaning: string | undefined,
+) {
+  const normalizedFocus = normalizePlacementText(focus);
+  const normalizedMeaning = normalizePlacementText(plainMeaning);
+
+  if (!normalizedFocus || !normalizedMeaning) {
+    return Boolean(normalizedFocus);
+  }
+
+  return (
+    normalizedFocus !== normalizedMeaning &&
+    !normalizedMeaning.includes(normalizedFocus) &&
+    !normalizedFocus.includes(normalizedMeaning)
+  );
 }

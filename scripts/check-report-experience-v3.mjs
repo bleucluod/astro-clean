@@ -14,7 +14,7 @@ const requiredContent = [
   ["types/report-output-v3.ts", "ReportOutputV3"],
   ["lib/report-output/report-v3.ts", "enhanceReportOutputV3"],
   ["lib/report-output/report-v3-export.ts", "createReportV3PlainText"],
-  ["components/ReportV3Experience.tsx", "خوانش نهایی گزارش"],
+  ["components/ReportV3Experience.tsx", "data-live-report-reading-contract"],
   ["components/ReportDetail.tsx", "ReportV3Experience"],
   ["components/ReportDetail.tsx", "گزارش محاسبه‌شده هالیوس"],
   ["components/ReportCard.tsx", "گزارش محاسبه‌شده هالیوس"],

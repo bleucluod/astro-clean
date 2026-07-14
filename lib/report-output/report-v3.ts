@@ -185,8 +185,8 @@ export function enhanceReportOutputV3(
     outputV3Version: "v3-persian-sectioned-preview",
     reportV3Summary: {
       version: "v3-persian-sectioned-preview",
-      title: `روایت کلی چارت ${name}`,
-      subtitle: `این خوانش برای تولد در ${birthCity} ساخته شده تا الگوهای اصلی چارت را آرام‌تر و انسانی‌تر دنبال کنی.`,
+      title: `خلاصه چارت ${name}`,
+      subtitle: `خوانش تولد در ${birthCity}؛ یک مسیر کوتاه برای دیدن الگوهای اصلی و رفتن سراغ بخش‌های مرتبط‌تر.`,
       sectionCount: sections.length,
       wordCount,
       readingMinutes: Math.max(1, Math.ceil(wordCount / 180)),

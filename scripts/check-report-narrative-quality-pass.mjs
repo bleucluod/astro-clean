@@ -86,7 +86,7 @@ for (const forbiddenMarker of ["const ASPECT_META_BY_KIND"]) {
 
 for (const marker of [
   "special-points-bridge",
-  "یک داستان جدا، قطعی یا اغراق‌شده",
+  "دست‌های ماه — الگوی آشنا، انتخاب تازه",
   "کنار جایگاه‌ها و رابطه‌های سیاره‌ای",
 ]) {
   assert(

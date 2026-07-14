@@ -70,12 +70,7 @@ export function ReportSpecialPointsNarrativeSection({
   const lunarNodeCards = buildLunarNodeCards(engine?.lunarNodes ?? null);
   const lilithNarrativeCard = buildLilithNarrativeCard(engine?.lilith ?? null);
   const lilithBoundaryCard = buildLilithBoundaryCard(engine?.lilith ?? null);
-  const narrativeCards = [
-    ...lunarNodeCards,
-    ...(lilithNarrativeCard ? [lilithNarrativeCard] : []),
-  ];
-
-  if (narrativeCards.length === 0 && !lilithBoundaryCard) {
+  if (lunarNodeCards.length === 0 && !lilithNarrativeCard && !lilithBoundaryCard) {
     return null;
   }
 
@@ -84,28 +79,18 @@ export function ReportSpecialPointsNarrativeSection({
       className="report-section report-special-points-narrative-section"
       data-special-points-deep-narrative={SPECIAL_POINTS_DEEP_NARRATIVE_VERSION}
       data-special-points-final-qa={SPECIAL_POINTS_FINAL_QA_VERSION}
-      aria-label="روایت دست‌های ماه و مرز خوانش لیلیت"
+      aria-label="دست‌های ماه؛ الگوی آشنا و انتخاب تازه"
     >
       <div className="report-section-heading">
-        <span className="report-kicker">دست‌های ماه و لیلیت</span>
-        <h2>مسیر رشد و مرزهای خوانش نقاط ویژه</h2>
-        <p>
-          دست‌های ماه در این بخش مثل یک محور تمرین خوانده می‌شوند: الگویی که
-          آشناست و جهتی که می‌تواند تجربه‌ی تازه‌تری بسازد. لیلیت فقط وقتی وارد
-          روایت می‌شود که مجوز خوانش آن در خود داده‌ی گزارش فعال باشد؛ محاسبه‌ی
-          یک جایگاه به‌تنهایی به معنی تأیید تفسیر آن نیست.
-        </p>
-        <p className="report-muted-note" data-report-narrative-quality-pass="special-points-bridge">
-          این نقاط کنار جایگاه‌ها و رابطه‌های سیاره‌ای معنا می‌گیرند و نباید به
-          یک داستان جدا، قطعی یا اغراق‌شده درباره شخصیت تبدیل شوند.
-        </p>
+        <span className="report-kicker">محور رشد</span>
+        <h2>دست‌های ماه — الگوی آشنا، انتخاب تازه</h2>
+        <p data-report-narrative-quality-pass="special-points-bridge">این دو نقطه کنار جایگاه‌ها و رابطه‌های سیاره‌ای نشان می‌دهند کدام پاسخ آشناتر است و کدام انتخاب به تمرین تازه نیاز دارد.</p>
       </div>
 
-      {narrativeCards.length > 0 ? (
+      {lunarNodeCards.length > 0 ? (
         <div className="report-aspect-grid report-special-points-grid">
-          {narrativeCards.map((card) => (
+          {lunarNodeCards.map((card) => (
             <article className="report-aspect-card" key={card.id}>
-              <span className="report-kicker">{card.source}</span>
               <h3>{card.title}</h3>
               <p className="report-muted-note">{card.position}</p>
               <p>{card.theme}</p>
@@ -116,34 +101,36 @@ export function ReportSpecialPointsNarrativeSection({
                 <li>
                   <strong>سمت رشدی:</strong> {card.growth}
                 </li>
-                <li>
-                  <strong>اعتماد و مرز خوانش:</strong> {card.trust}
-                </li>
               </ul>
             </article>
           ))}
         </div>
       ) : null}
 
-      {lilithBoundaryCard ? (
-        <article className="notice report-notice report-special-point-boundary-card">
-          <span className="report-kicker">{lilithBoundaryCard.source}</span>
-          <h3>{lilithBoundaryCard.title}</h3>
-          <p>{lilithBoundaryCard.position}</p>
-          <p>
-            <strong>وضعیت:</strong> {lilithBoundaryCard.status}
+      {lilithNarrativeCard || lilithBoundaryCard ? (
+        <details className="notice report-notice report-special-point-boundary-card">
+          <summary>جزئیات فنی لیلیت</summary>
+          {lilithNarrativeCard ? (
+            <>
+              <h3>{lilithNarrativeCard.title}</h3>
+              <p>{lilithNarrativeCard.position}</p>
+              <p>{lilithNarrativeCard.theme}</p>
+              <p>{lilithNarrativeCard.trust}</p>
+            </>
+          ) : null}
+          {lilithBoundaryCard ? (
+            <>
+              <h3>{lilithBoundaryCard.title}</h3>
+              <p>{lilithBoundaryCard.position}</p>
+              <p>{lilithBoundaryCard.status}</p>
+              <p>{lilithBoundaryCard.boundary}</p>
+            </>
+          ) : null}
+          <p className="report-muted-note">
+            مدل‌ها در داده حفظ می‌شود؛ دست‌های ماه و لیلیت جدا نگه داشته می‌شوند و هیچ‌کدام بی‌اجازه جای دیگری را نمی‌گیرد.
           </p>
-          <p>
-            <strong>مرز خوانش:</strong> {lilithBoundaryCard.boundary}
-          </p>
-        </article>
+        </details>
       ) : null}
-
-      <p className="report-muted-note">
-        مدل نوسانی/واقعی دست‌های ماه با مدل میانگین یکی نیست. لیلیت محاسبه‌شده‌ی
-        این نسخه نیز لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست. تفاوت
-        مدل‌ها در داده حفظ می‌شود و هیچ‌کدام بی‌اجازه جای دیگری را نمی‌گیرد.
-      </p>
     </section>
   );
 }

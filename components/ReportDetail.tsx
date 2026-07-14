@@ -10,6 +10,12 @@ import { ReportAspectRelationshipSections } from "@/components/ReportAspectRelat
 import { ReportSpecialPointsNarrativeSection } from "@/components/ReportSpecialPointsNarrativeSection";
 import { PersonalTransitReportSection } from "@/components/PersonalTransitReportSection";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
+import { buildLiveReportReadingContract } from "@/lib/report-output/live-report-reading-contract";
+import {
+  buildRealEngineHouseEmphasis,
+  type RealEngineHouseEmphasisReasonId,
+} from "@/lib/astrology/real-engine-house-emphasis";
+import { getBehavioralChartRulerId } from "@/lib/astrology/report-behavioral-interpretation";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
   getAccountReportRecord,
@@ -97,6 +103,24 @@ type EnergySummary = {
   value: string;
 };
 
+type ImportantHouseCard = {
+  id: string;
+  title: string;
+  field: string;
+  reasons: string[];
+};
+
+const HOUSE_REASON_LABELS: Record<RealEngineHouseEmphasisReasonId, string> = {
+  "planetary-concentration": "تراکم سیاره‌ای",
+  "chart-ruler-house": "خانهٔ سیاره‌ی راهبر",
+  "north-node-house": "جهت رشد",
+  "south-node-house": "الگوی آشنا",
+  "luminary-house": "حضور خورشید یا ماه",
+  "angle-house": "زاویهٔ اصلی چارت",
+  "major-aspect-house": "محور رابطهٔ اصلی",
+  "placement-house": "جایگاه‌های تکمیلی",
+};
+
 type ReportWithPersonalTransitEngineData = AstrologyReport & {
   engineData?: {
     personalTransitReportData?: PersonalTransitReportDataBridge | null;
@@ -169,6 +193,61 @@ const MOON_PHASES = [
   { from: 247.5, to: 292.5, title: "تربیع آخر" },
   { from: 292.5, to: 337.5, title: "هلال کاهنده" },
 ] as const;
+
+function buildImportantHouseCards(report: AstrologyReport): ImportantHouseCard[] {
+  const snapshot = report.realEngine;
+
+  if (!snapshot) {
+    return [];
+  }
+
+  const risingSignId = snapshot.angles?.asc?.signId ?? report.chart.risingSign.key;
+  const chartRulerId = getBehavioralChartRulerId(risingSignId) ?? "sun";
+  const primaryAnchor = snapshot.aspectHighlights?.[0];
+
+  return buildRealEngineHouseEmphasis({
+    houses: snapshot.houses,
+    placements: snapshot.placements,
+    chartRulerId,
+    lunarNodes: snapshot.lunarNodes,
+    primaryAnchor,
+  })
+    .slice(0, 4)
+    .map((emphasis) => ({
+      id: `important-house-${emphasis.house.number}`,
+      title: `خانه ${formatPersianNumber(emphasis.house.number)}`,
+      field:
+        HOUSE_FIELD_LABELS[emphasis.house.number] ??
+        "یکی از میدان‌های مهم این چارت",
+      reasons: Array.from(
+        new Set(
+          emphasis.reasons.map(
+            (reason) => HOUSE_REASON_LABELS[reason.id],
+          ),
+        ),
+      ),
+    }));
+}
+
+function buildChartRulerSummary(report: AstrologyReport) {
+  const snapshot = report.realEngine;
+  const risingSignId = snapshot?.angles?.asc?.signId ?? report.chart.risingSign.key;
+  const chartRulerId = getBehavioralChartRulerId(risingSignId) ?? "sun";
+  const placement = snapshot?.placements.find((item) => item.id === chartRulerId);
+  const label = PLANET_LABELS_FA[chartRulerId] ?? chartRulerId;
+
+  return {
+    id: chartRulerId,
+    label,
+    position: placement
+      ? `${formatZodiacLabel(placement.signId)}${
+          typeof placement.house === "number"
+            ? `، خانه ${formatPersianNumber(placement.house)}`
+            : ""
+        }`
+      : "جایگاه دقیق در دادهٔ فعلی ثبت نشده است",
+  };
+}
 
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("halleus-data-changed"));
@@ -806,6 +885,18 @@ export function ReportDetail({
 
   const birthDataItems = useMemo(() => (report ? buildBirthDataItems(report) : []), [report]);
   const pillars = useMemo(() => (report ? buildPillars(report) : []), [report]);
+  const liveReading = useMemo(
+    () => (report ? buildLiveReportReadingContract(report) : null),
+    [report],
+  );
+  const importantHouses = useMemo(
+    () => (report ? buildImportantHouseCards(report) : []),
+    [report],
+  );
+  const chartRulerSummary = useMemo(
+    () => (report ? buildChartRulerSummary(report) : null),
+    [report],
+  );
   const stats = useMemo(() => (report ? buildReportReadingStats(report) : null), [report]);
   const placements = report?.realEngine?.placements ?? [];
   const aspects = report?.realEngine?.aspects ?? [];
@@ -888,9 +979,6 @@ export function ReportDetail({
             <span className="pill">{getSourceBadge(reportSource)}</span>
           </div>
           <h1 id="report-detail-title">{getReportTitle(report)}</h1>
-          <p>
-            این صفحه روایت اصلی گزارش، سه ستون، چرخ چارت و جزئیات لازم را یک‌جا نگه می‌دارد. اول خوانش نهایی را بخوان؛ هر وقت خواستی، بخش‌های پایین‌تر را باز کن.
-          </p>
         </div>
 
         <article className="report-detail-chart-card" id="chart-wheel">
@@ -920,17 +1008,18 @@ export function ReportDetail({
       <nav className="report-detail-section-chips" aria-label="دسترسی سریع بخش‌های گزارش">
         <div className="report-detail-section-chip-scroll">
         {[
-          ["final-reading", "روایت اصلی"],
-          ["quick-facts", "اطلاعات سریع"],
-          ["core-pillars", "سه ستون اصلی"],
-          ["planet-placements", "جایگاه‌ها"],
-          ["aspect-relationships", "روابط"],
-          ["special-points", "لیلیت و دست‌های ماه"],
-          ["personal-transit", "آسمان زمان گزارش"],
-          ["chart-wheel", "چرخ چارت"],
-          ["technical-tables", "جدول‌ها"],
-          ["technical-details", "جزئیات"],
-          ["personal-note", "یادداشت"],
+          ["final-reading", "خلاصه"],
+          ["core-pillars", "خورشید، ماه و رایزینگ"],
+          ["chart-ruler", "سیاره‌ی راهبر"],
+          ["important-houses", "خانه‌های مهم"],
+          ["aspect-relationships", "رابطه‌های مهم"],
+          ["special-points", "دست‌های ماه"],
+          ["energy-balance", "ترکیب انرژی‌ها"],
+          ["weekly-practices", "سه کار این هفته"],
+          ["planet-placements", "سیاره‌ها در زندگی روزمره"],
+          ["chart-data", "داده‌های چارت"],
+          ["personal-transit", "آسمان ثبت‌شده"],
+          ["technical-details", "جزئیات محاسبه"],
         ].map(([id, label]) => (
           <button
             className={activeSection === id ? "active" : ""}
@@ -944,24 +1033,19 @@ export function ReportDetail({
         </div>
       </nav>
 
-      <div className="report-detail-app-main-stack">
+      <div
+        className="report-detail-app-main-stack"
+        data-live-report-primary-sequence="summary-pillars-ruler-houses-aspects-nodes-balance-practices-placements-data-transit-details"
+      >
         <section className="card report-detail-section-card report-detail-primary-reading-card" id="final-reading">
           <ReportV3Experience report={report} />
         </section>
 
-        <section
-          className="card report-detail-section-card report-detail-live-facts-card"
-          id="quick-facts"
-          data-report-live-structure-facts={REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION}
-        >
-          <ReportDetailFactsPanel report={report} />
-        </section>
-
         <section className="card report-detail-section-card report-detail-pillars-card" id="core-pillars">
-          <span className="section-label">سه ستون اصلی</span>
-          <h2>سه ستون اصلی و فاز ماه تولد</h2>
+          <span className="section-label">سه جایگاه پایه</span>
+          <h2>خورشید، ماه و رایزینگ</h2>
           <div className="report-detail-pillars-grid">
-            {pillars.map((pillar) => (
+            {pillars.slice(0, 3).map((pillar) => (
               <article className="mini-card report-detail-pillar-card" key={pillar.id}>
                 <span>{pillar.title}</span>
                 <strong>{pillar.body}</strong>
@@ -970,12 +1054,34 @@ export function ReportDetail({
             ))}
           </div>
         </section>
-        <section
-          className="card report-detail-section-card report-detail-live-placements-card"
-          id="planet-placements"
-          data-report-live-placements-aspects={REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION}
-        >
-          <ReportPlanetPlacementSections report={report} />
+
+        <section className="card report-detail-section-card" id="chart-ruler">
+          <span className="section-label">ریتم پشت‌صحنه</span>
+          <h2>سیاره‌ی راهبر</h2>
+          {chartRulerSummary ? (
+            <article className="mini-card">
+              <strong>{chartRulerSummary.label}</strong>
+              <p>{chartRulerSummary.position}</p>
+              {liveReading?.chartRulerParagraphs.slice(0, 2).map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+              <small>در جزئیات فنی، از این نقش با اصطلاح «حاکم سنتی چارت» هم یاد می‌شود.</small>
+            </article>
+          ) : null}
+        </section>
+
+        <section className="card report-detail-section-card" id="important-houses">
+          <span className="section-label">میدان‌های اصلی</span>
+          <h2>خانه‌های مهم</h2>
+          <div className="report-detail-pillars-grid">
+            {importantHouses.map((house) => (
+              <article className="mini-card" key={house.id}>
+                <strong>{house.title}</strong>
+                <p>{house.field}</p>
+                <small>{house.reasons.join(" · ")}</small>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section
@@ -994,6 +1100,52 @@ export function ReportDetail({
           <ReportSpecialPointsNarrativeSection report={report} />
         </section>
 
+        <section className="card report-detail-section-card" id="energy-balance">
+          <span className="section-label">ریتم کلی</span>
+          <h2>ترکیب انرژی‌ها</h2>
+          <div style={{ display: "grid", gap: "0.75rem" }}>
+            {liveReading?.balanceParagraphs.slice(0, 3).map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        </section>
+
+        <section className="card report-detail-section-card" id="weekly-practices">
+          <span className="section-label">از گزارش به عمل</span>
+          <h2>سه کار برای این هفته</h2>
+          <div className="report-detail-pillars-grid">
+            {liveReading?.weeklyPractices.slice(0, 3).map((practice, index) => (
+              <article className="mini-card" key={practice}>
+                <span>کار {formatPersianNumber(index + 1)}</span>
+                <p>{practice}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section
+          className="card report-detail-section-card report-detail-live-placements-card"
+          id="planet-placements"
+          data-report-live-placements-aspects={REPORT_DETAIL_LIVE_PLACEMENTS_ASPECTS_VERSION}
+        >
+          <ReportPlanetPlacementSections report={report} />
+        </section>
+
+        <section
+          className="card report-detail-section-card report-detail-live-facts-card"
+          id="chart-data"
+          data-report-live-structure-facts={REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION}
+        >
+          <div className="report-section-heading">
+            <span className="section-label">داده‌های قابل بازکردن</span>
+            <h2>داده‌های چارت</h2>
+          </div>
+          <details>
+            <summary>نشان ماه، حرکت برگشتی و شروع خانه‌ها</summary>
+            <ReportDetailFactsPanel report={report} />
+          </details>
+        </section>
+
         <section
           className="card report-detail-section-card report-detail-live-personal-transit-card"
           id="personal-transit"
@@ -1003,82 +1155,20 @@ export function ReportDetail({
             <PersonalTransitReportSection data={personalTransitReportData} />
           ) : (
             <div className="notice report-notice">
-              <strong>آسمان زمان گزارش هنوز داده‌ی شخصی ذخیره‌شده ندارد.</strong>
+              <strong>آسمان ثبت‌شده هنوز داده‌ی شخصی ندارد.</strong>
               <p>
                 این بخش فقط وقتی فعال می‌شود که داده‌ی ترنزیت شخصی همراه خود گزارش ذخیره شده باشد.
-                هالیوس تهران را پیش‌فرض نمی‌گیرد، از مرورگر محل را حدس نمی‌زند و هنگام بازکردن گزارش قدیمی داده‌ی تازه‌ای جایگزین نمی‌کند.
+                هالیوس تهران را پیش‌فرض نمی‌گیرد و هنگام بازکردن گزارش قدیمی داده‌ی تازه‌ای جایگزین نمی‌کند.
               </p>
             </div>
           )}
         </section>
       </div>
 
-      <section className="report-detail-quick-card-grid" aria-label="گام‌های سریع بعد از روایت">
-        <article className="card report-detail-quick-card" id="technical-tables">
-          <span className="section-label">جدول‌ها</span>
-          <h2>دسترسی سریع به جدول‌ها</h2>
-          <p>
-            جایگاه‌ها، خانه‌ها، محورها، دست‌های ماه و روابط سیاره‌ای اینجا جمع شده‌اند.
-          </p>
-          <button className="button secondary" type="button" onClick={() => scrollToSection("technical-details")}>
-            مشاهده همه بخش‌ها
-          </button>
-        </article>
-
-        <article className="card report-detail-quick-card report-detail-note-card" id="personal-note">
-          <span className="section-label">یادداشت شخصی</span>
-          <h2>یادداشت شخصی</h2>
-          {reportSource === "public" ? (
-            <p>یادداشت‌های شخصی در این نما نمایش داده نمی‌شوند.</p>
-          ) : (
-            <>
-              <label className="field">
-                <span>متن یادداشت</span>
-                <textarea
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-                  placeholder="مثلاً: این هفته فقط به نیاز ماه خودم توجه کنم..."
-                  rows={5}
-                  disabled={isReadOnlyReportSource}
-                />
-              </label>
-              <div className="actions">
-                <button className="button" type="button" onClick={handleSaveNote} disabled={isReadOnlyReportSource}>
-                  {isReadOnlyReportSource ? "فقط خواندنی" : "ذخیره"}
-                </button>
-                <button className="button secondary" type="button" onClick={() => setNote("")} disabled={isReadOnlyReportSource}>
-                  پاک کردن
-                </button>
-              </div>
-            </>
-          )}
-          {message ? <p className="success-message">{message}</p> : null}
-        </article>
-
-        <article className="card report-detail-quick-card">
-          <span className="section-label">حریم گزارش</span>
-          <h2>دسترسی به این گزارش</h2>
-          <span className="pill">{getSourceBadge(reportSource)}</span>
-          <p>{getPublicLinkMessage(reportSource, message)}</p>
-          {reportSource === "public" ? (
-            <button
-              className="button secondary"
-              type="button"
-              onClick={() => {
-                void navigator.clipboard?.writeText(window.location.href);
-                setMessage("لینک گزارش کپی شد.");
-              }}
-            >
-              کپی لینک
-            </button>
-          ) : null}
-        </article>
-      </section>
-
       <section className="card report-detail-technical-sections" id="technical-details">
         <div className="report-section-heading">
           <span className="section-label">پشتوانه</span>
-          <h2>جزئیات و پشتوانه محاسبه</h2>
+          <h2>جزئیات محاسبه</h2>
           <p>
             این بخش برای شفافیت است. اگر فقط می‌خواهی گزارش را مثل یک روایت بخوانی، لازم نیست همه جدول‌ها را دنبال کنی.
           </p>
@@ -1234,6 +1324,57 @@ export function ReportDetail({
             چرخ چارت برای این گزارش کامل در دسترس نیست؛ روایت همچنان نمایش داده می‌شود.
           </div>
         )}
+      </section>
+
+      <section className="report-detail-quick-card-grid" aria-label="گام‌های سریع بعد از روایت">
+        <article className="card report-detail-quick-card report-detail-note-card" id="personal-note">
+          <span className="section-label">یادداشت شخصی</span>
+          <h2>یادداشت شخصی</h2>
+          {reportSource === "public" ? (
+            <p>یادداشت‌های شخصی در این نما نمایش داده نمی‌شوند.</p>
+          ) : (
+            <>
+              <label className="field">
+                <span>متن یادداشت</span>
+                <textarea
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  placeholder="مثلاً: این هفته فقط به نیاز ماه خودم توجه کنم..."
+                  rows={5}
+                  disabled={isReadOnlyReportSource}
+                />
+              </label>
+              <div className="actions">
+                <button className="button" type="button" onClick={handleSaveNote} disabled={isReadOnlyReportSource}>
+                  {isReadOnlyReportSource ? "فقط خواندنی" : "ذخیره"}
+                </button>
+                <button className="button secondary" type="button" onClick={() => setNote("")} disabled={isReadOnlyReportSource}>
+                  پاک کردن
+                </button>
+              </div>
+            </>
+          )}
+          {message ? <p className="success-message">{message}</p> : null}
+        </article>
+
+        <article className="card report-detail-quick-card">
+          <span className="section-label">حریم گزارش</span>
+          <h2>دسترسی به این گزارش</h2>
+          <span className="pill">{getSourceBadge(reportSource)}</span>
+          <p>{getPublicLinkMessage(reportSource, message)}</p>
+          {reportSource === "public" ? (
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => {
+                void navigator.clipboard?.writeText(window.location.href);
+                setMessage("لینک گزارش کپی شد.");
+              }}
+            >
+              کپی لینک
+            </button>
+          ) : null}
+        </article>
       </section>
 
       <section className="card report-detail-next-actions">

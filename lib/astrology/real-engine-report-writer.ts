@@ -3210,7 +3210,7 @@ function buildRealEngineInterpretationSections(
     ? {
         id: "real-engine-chart-ruler",
         kind: "identity",
-        title: "حاکم چارت",
+        title: "سیاره‌ی راهبر",
         body: buildStructuredSectionBody({
           opening: "حاکم چارت ریتم پشت‌صحنه بسیاری از شروع‌ها، واکنش‌ها و انتخاب‌های روزمره را نشان می‌دهد.",
           body: input.chartRulerText,
@@ -3222,7 +3222,7 @@ function buildRealEngineInterpretationSections(
     ? {
         id: "real-engine-active-houses",
         kind: "growth",
-        title: "خانه‌های فعال",
+        title: "خانه‌های مهم",
         body: buildStructuredSectionBody({
           readerCue: "خانه‌های فعال را مثل صحنه‌های زندگی بخوان؛ جایی که موضوعات چارت بیشتر دیده و تجربه می‌شوند.",
           opening: "در روایت اصلی فقط خانه‌هایی آمده‌اند که در این چارت وزن بیشتری دارند.",
@@ -3236,7 +3236,7 @@ function buildRealEngineInterpretationSections(
     ? {
         id: "real-engine-node-axis",
         kind: "growth",
-        title: "دست‌های ماه و مسیر رشد",
+        title: "دست‌های ماه — الگوی آشنا، انتخاب تازه",
         body: buildStructuredSectionBody({
           readerCue: "دست‌های ماه را مثل مسیر تمرین بخوان؛ از الگوی آشنا به سمت رفتاری که هنوز تازه است.",
           opening: "دست‌های ماه مسیر رشد را به زبان حرکت از الگوی آشنا به تمرین تازه توضیح می‌دهند.",
@@ -3250,7 +3250,7 @@ function buildRealEngineInterpretationSections(
     ? {
         id: "real-engine-balance",
         kind: "overview",
-        title: "عنصرها، کیفیت‌ها و ریتم کلی",
+        title: "ترکیب انرژی‌ها",
         body: buildStructuredSectionBody({
           opening: "عنصرها و کیفیت‌ها ریتم کلی انرژی را نشان می‌دهند؛ نه یک برچسب ثابت برای شخصیت.",
           body: input.balanceText,
@@ -3263,7 +3263,7 @@ function buildRealEngineInterpretationSections(
     {
       id: "real-engine-first-synthesis",
       kind: "overview",
-      title: "نخ اصلی این چارت",
+      title: "خلاصه",
       body: buildStructuredSectionBody({
         readerCue: "اول این خلاصه را بخوان؛ لازم نیست همه جزئیات را حفظ کنی، فقط نخ اصلی را پیدا کن.",
         opening: input.summary,
@@ -3274,7 +3274,7 @@ function buildRealEngineInterpretationSections(
     {
       id: "real-engine-core-pattern",
       kind: "identity",
-      title: "سه ستون اصلی",
+      title: "خورشید، ماه و رایزینگ",
       body: buildStructuredSectionBody({
         opening: coreBody || fallbackBody,
         body: undefined,
@@ -3286,7 +3286,7 @@ function buildRealEngineInterpretationSections(
     {
       id: "real-engine-daily-life",
       kind: "relationships",
-      title: "ذهن، رابطه، عمل و روابط مهم",
+      title: "رابطه‌های مهم",
       body: buildStructuredSectionBody({
         opening: "عطارد، زهره و مریخ ابزارهای روزمره فکر، انتخاب، نزدیکی و عمل را نشان می‌دهند.",
         body: dailyBody || fallbackBody,
@@ -3298,7 +3298,7 @@ function buildRealEngineInterpretationSections(
     {
       id: "real-engine-personal-summary",
       kind: "growth",
-      title: "جمع‌بندی و سه تمرین کوچک",
+      title: "سه کار برای این هفته",
       body: buildStructuredSectionBody({
         opening: input.integrationText || fallbackBody,
         body: undefined,

@@ -41,28 +41,45 @@ assert(reportDetail.includes("ReportV3Experience"), "ReportDetail must keep the 
 assert(reportV3Experience.includes("enhanceReportOutputV3"), "ReportV3Experience must keep report-v3 enhancement.");
 assert(reportV3.includes("REPORT_TRUST_SAFETY_NOTE"), "report-v3 must own the visible trust/safety note.");
 
-const finalReadingIndex = indexOfRequired(reportDetail, 'id="final-reading"', "ReportDetail must expose final-reading anchor.");
-const factsIndex = indexOfRequired(reportDetail, 'id="quick-facts"', "ReportDetail must expose quick-facts anchor.");
-const pillarsIndex = indexOfRequired(reportDetail, 'id="core-pillars"', "ReportDetail must expose core-pillars anchor.");
-const placementsIndex = indexOfRequired(reportDetail, 'id="planet-placements"', "ReportDetail must expose planet-placements anchor.");
-const aspectsIndex = indexOfRequired(reportDetail, 'id="aspect-relationships"', "ReportDetail must expose aspect-relationships anchor.");
-const specialPointsIndex = indexOfRequired(reportDetail, 'id="special-points"', "ReportDetail must expose special-points anchor.");
-const personalTransitIndex = indexOfRequired(reportDetail, 'id="personal-transit"', "ReportDetail must expose personal-transit anchor.");
+const primaryAnchors = [
+  ['id="final-reading"', "summary"],
+  ['id="core-pillars"', "Sun/Moon/Rising"],
+  ['id="chart-ruler"', "chart ruler"],
+  ['id="important-houses"', "important houses"],
+  ['id="aspect-relationships"', "relationships"],
+  ['id="special-points"', "lunar nodes"],
+  ['id="energy-balance"', "energy balance"],
+  ['id="weekly-practices"', "weekly practices"],
+  ['id="planet-placements"', "placements"],
+  ['id="chart-data"', "chart data"],
+  ['id="personal-transit"', "stored sky"],
+  ['id="technical-details"', "calculation details"],
+];
 
-assert(finalReadingIndex < factsIndex, "Final reading must stay before quick facts.");
-assert(factsIndex < pillarsIndex, "Quick facts must stay before core pillars.");
-assert(pillarsIndex < placementsIndex, "Core pillars must stay before placements.");
-assert(placementsIndex < aspectsIndex, "Placements must stay before aspects.");
-assert(aspectsIndex < specialPointsIndex, "Aspects must stay before Lilith/nodes.");
-assert(specialPointsIndex < personalTransitIndex, "Lilith/nodes must stay before personal transit.");
+const primaryPositions = primaryAnchors.map(([marker, label]) => ({
+  label,
+  index: indexOfRequired(reportDetail, marker, `ReportDetail must expose ${label} anchor.`),
+}));
+for (let index = 1; index < primaryPositions.length; index += 1) {
+  assert(
+    primaryPositions[index - 1].index < primaryPositions[index].index,
+    `${primaryPositions[index - 1].label} must come before ${primaryPositions[index].label}.`,
+  );
+}
 
 for (const chip of [
-  '["final-reading", "روایت اصلی"]',
-  '["quick-facts", "اطلاعات سریع"]',
-  '["planet-placements", "جایگاه‌ها"]',
-  '["aspect-relationships", "روابط"]',
-  '["special-points", "لیلیت و دست‌های ماه"]',
-  '["personal-transit", "آسمان زمان گزارش"]',
+  '["final-reading", "خلاصه"]',
+  '["core-pillars", "خورشید، ماه و رایزینگ"]',
+  '["chart-ruler", "سیاره‌ی راهبر"]',
+  '["important-houses", "خانه‌های مهم"]',
+  '["aspect-relationships", "رابطه‌های مهم"]',
+  '["special-points", "دست‌های ماه"]',
+  '["energy-balance", "ترکیب انرژی‌ها"]',
+  '["weekly-practices", "سه کار این هفته"]',
+  '["planet-placements", "سیاره‌ها در زندگی روزمره"]',
+  '["chart-data", "داده‌های چارت"]',
+  '["personal-transit", "آسمان ثبت‌شده"]',
+  '["technical-details", "جزئیات محاسبه"]',
 ]) {
   assert(reportDetail.includes(chip), `ReportDetail missing live report chip: ${chip}`);
 }

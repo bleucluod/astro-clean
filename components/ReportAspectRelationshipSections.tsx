@@ -33,10 +33,10 @@ export function ReportAspectRelationshipSections({
 }: ReportAspectRelationshipSectionsProps) {
   const snapshot = report.realEngine;
   const aspects = snapshot?.aspects ?? [];
-  const storedHighlights = report.realEngine?.aspectHighlights ?? [];
+  const storedHighlights = snapshot?.aspectHighlights ?? [];
   const shownAspects = (
-    storedHighlights.length > 0 ? storedHighlights : aspects.slice(0, 6)
-  ).slice(0, 8);
+    storedHighlights.length > 0 ? storedHighlights : aspects.slice(0, 5)
+  ).slice(0, 5);
   const shownAspectIds = new Set(shownAspects.map((aspect) => aspect.id));
   const hiddenAspectCount = aspects.filter(
     (aspect) => !shownAspectIds.has(aspect.id),
@@ -69,19 +69,8 @@ export function ReportAspectRelationshipSections({
     >
       <div className="report-section-heading">
         <span className="report-eyebrow">رابطه سیاره‌ها</span>
-        <h3>ارتباط سیاره‌ها به زبان ساده</h3>
-        <p>
-          بعد از جایگاه‌های تکی، این بخش نشان می‌دهد همان نیروها در زندگی واقعی
-          چگونه با هم همکاری یا اصطکاک پیدا می‌کنند. نوع زاویه فقط شکل رابطه را
-          توضیح می‌دهد؛ معنای اصلی از خود سیاره‌ها، نشان‌ها و خانه‌هایشان می‌آید.
-        </p>
-        <p
-          className="report-muted-note"
-          data-report-narrative-quality-pass="aspect-bridge"
-        >
-          اورب وزن و نزدیکی تماس را نشان می‌دهد، اما جای رفتار انسانی را نمی‌گیرد.
-          هر کارت یک نمونه روزمره، توان، گیر و آزمایش کوچک دارد.
-        </p>
+        <h3>رابطه‌های مهم</h3>
+        <p data-report-narrative-quality-pass="aspect-bridge">اینجا فقط سه تا پنج رابطه‌ی روایی اولویت‌دار باز شده‌اند؛ فهرست کامل در جزئیات محاسبه می‌ماند.</p>
       </div>
 
       <div className="report-grid report-placement-section-grid">
@@ -108,7 +97,6 @@ export function ReportAspectRelationshipSections({
                 audienceMode,
               })
             : null;
-          const heading = buildAspectHeading(aspect);
 
           return (
             <article
@@ -118,38 +106,36 @@ export function ReportAspectRelationshipSections({
               <span className="report-eyebrow">
                 رابطه {formatPersianNumber(index + 1)}
               </span>
-              <h4>{heading}</h4>
+              <h4>{buildAspectHeading(aspect)}</h4>
               <p>
                 {interpretation?.plainMeaning ??
                   "این رابطه باید در کنار جایگاه واقعی هر دو سیاره خوانده شود."}
               </p>
               <ul className="report-detail-list">
                 <li>
-                  <strong>خلاصه ساده:</strong>{" "}
-                  {interpretation?.focus ?? aspect.meaning}
-                </li>
-                <li>
-                  <strong>نمونه روزمره:</strong>{" "}
+                  <strong>در عمل:</strong>{" "}
                   {interpretation?.dailyLifeExample ?? aspect.narrative}
                 </li>
                 <li>
-                  <strong>سمت کمک‌کننده:</strong>{" "}
+                  <strong>وقتی خوب کار می‌کند:</strong>{" "}
                   {interpretation?.healthyExpression ?? aspect.meaning}
                 </li>
                 <li>
-                  <strong>سمت رشدی:</strong>{" "}
+                  <strong>جایی که گیر می‌کند:</strong>{" "}
                   {interpretation?.possibleFriction ?? aspect.narrative}
                 </li>
                 <li>
-                  <strong>آزمایش کوچک:</strong>{" "}
+                  <strong>این هفته امتحان کن:</strong>{" "}
                   {interpretation?.smallExperiment ??
                     "یک نمونه واقعی از این رابطه را ثبت و پیش از واکنش مکث کن."}
                 </li>
-                <li>
-                  <strong>اورب و اعتماد خوانش:</strong>{" "}
-                  {interpretation?.confidenceNote ?? formatOrbLabel(aspect)}
-                </li>
               </ul>
+              <details>
+                <summary>اورب و میزان اعتماد این خوانش</summary>
+                <p>
+                  {interpretation?.confidenceNote ?? formatOrbLabel(aspect)}
+                </p>
+              </details>
             </article>
           );
         })}
@@ -157,9 +143,7 @@ export function ReportAspectRelationshipSections({
 
       {hiddenAspectCount > 0 ? (
         <p className="report-muted">
-          {formatPersianNumber(hiddenAspectCount)} رابطه‌ی دیگر هم محاسبه شده و
-          در جدول فنی کامل پایین صفحه دیده می‌شود؛ اینجا فقط رابطه‌های روایی
-          اولویت‌دار باز شده‌اند.
+          {formatPersianNumber(hiddenAspectCount)} رابطه‌ی دیگر در جدول فنی کامل پایین صفحه در دسترس است.
         </p>
       ) : null}
     </section>

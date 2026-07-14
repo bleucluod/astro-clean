@@ -1,40 +1,32 @@
 "use client";
 
 import { useMemo } from "react";
+import {
+  buildLiveReportReadingContract,
+  LIVE_REPORT_READING_CONTRACT_VERSION,
+} from "@/lib/report-output/live-report-reading-contract";
 import { enhanceReportOutputV3 } from "@/lib/report-output/report-v3";
+import type { AstrologyReport } from "@/types/astro";
 
 type ReportV3ExperienceProps = {
-  report: unknown;
+  report: AstrologyReport;
 };
 
-function createReadingParagraphs(body: string) {
-  return body
-    .replace(/\s+(پرسش تأملی:)/gu, "\n\n$1")
-    .replace(/\s+(برای خواندن ادامه گزارش،)/gu, "\n\n$1")
-    .replace(/\s+(این بخش را آرام‌تر بخوان؛)/gu, "\n\n$1")
-    .replace(/\s+(اگر این فصل طولانی‌تر است،)/gu, "\n\n$1")
-    .replace(/\s+(عطارد و مریخ را کنار هم بخوان:)/gu, "\n\n$1")
-    .replace(/\s+(جمع‌بندی نهایی هالیوس این است:)/gu, "\n\n$1")
-    .split(/\n{2,}/u)
-    .map((part) => part.trim())
-    .filter(Boolean);
-}
-
 export function ReportV3Experience({ report }: ReportV3ExperienceProps) {
-  const enhancedReport = useMemo(() => {
-    if (!report || typeof report !== "object") {
-      return null;
-    }
-
-    return enhanceReportOutputV3(report as Record<string, unknown>);
-  }, [report]);
-
-  if (!enhancedReport) {
-    return null;
-  }
+  const enhancedReport = useMemo(
+    () => enhanceReportOutputV3(report as unknown as Record<string, unknown>),
+    [report],
+  );
+  const readingContract = useMemo(
+    () => buildLiveReportReadingContract(report),
+    [report],
+  );
 
   return (
-    <section className="card report-final-reading-card">
+    <section
+      className="report-final-reading-card"
+      data-live-report-reading-contract={LIVE_REPORT_READING_CONTRACT_VERSION}
+    >
       <div className="report-section-heading">
         <div
           style={{
@@ -46,59 +38,35 @@ export function ReportV3Experience({ report }: ReportV3ExperienceProps) {
             marginBottom: "1.25rem",
           }}
         >
-          <span className="badge">خوانش نهایی گزارش</span>
-
-          <span
-            className="form-hint"
-            style={{
-              marginInlineStart: "auto",
-              whiteSpace: "nowrap",
-            }}
-          >
-            حدود {enhancedReport.reportV3Summary.readingMinutes.toLocaleString("fa-IR")} دقیقه مطالعه
+          <span className="badge">خلاصه</span>
+          <span className="form-hint" style={{ whiteSpace: "nowrap" }}>
+            حدود {readingContract.readingMinutes.toLocaleString("fa-IR")} دقیقه مطالعه
           </span>
         </div>
-
-        <h2>{enhancedReport.reportV3Summary.title}</h2>
-
-        <p>{enhancedReport.reportV3Summary.subtitle}</p>
+        <h2>تصویر کلی این چارت</h2>
+        <p>{readingContract.guide}</p>
       </div>
 
-      <div
-        className="report-reading-section-list"
-        style={{
-          display: "grid",
-          gap: "1.25rem",
-          marginTop: "1.5rem",
-        }}
-      >
-        {enhancedReport.reportV3Sections.map((section) => (
-          <article
-            className="mini-card report-reading-section-card"
-            key={section.id}
-            style={{
-              display: "grid",
-              gap: "0.8rem",
-            }}
-          >
-            <h3>{section.title}</h3>
-
-            <div
-              style={{
-                display: "grid",
-                gap: "0.75rem",
-                maxWidth: "none",
-              }}
-            >
-              {createReadingParagraphs(section.body).map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
-          </article>
+      <div style={{ display: "grid", gap: "0.75rem", marginTop: "1.5rem" }}>
+        {readingContract.summarySentences.map((sentence) => (
+          <p key={sentence}>{sentence}</p>
         ))}
       </div>
 
-      <p className="form-hint">{enhancedReport.reportV3Disclaimer}</p>
+      {readingContract.reflectionQuestions.length > 0 ? (
+        <div className="mini-card" style={{ marginTop: "1.25rem" }}>
+          <strong>دو پرسش برای مکث</strong>
+          <ul className="report-compact-list">
+            {readingContract.reflectionQuestions.map((question) => (
+              <li key={question}>{question}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <p className="form-hint" style={{ marginTop: "1.25rem" }}>
+        {enhancedReport.reportV3Disclaimer}
+      </p>
     </section>
   );
 }

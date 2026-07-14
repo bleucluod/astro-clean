@@ -15,7 +15,7 @@ assert(reportDetail.includes("personalTransitReportData"), "ReportDetail must us
 assert(reportDetail.includes("engineData") && reportDetail.includes("personalTransitReportData"), "ReportDetail must read personal transit from stored engineData.");
 assert(reportDetail.includes("<PersonalTransitReportSection data={personalTransitReportData} />"), "ReportDetail must render PersonalTransitReportSection with stored report data.");
 assert(reportDetail.includes('id="personal-transit"'), "ReportDetail must expose the personal-transit anchor.");
-assert(reportDetail.includes("آسمان زمان گزارش"), "ReportDetail must expose the stored-time personal transit tab label.");
+assert(reportDetail.includes("آسمان ثبت‌شده"), "ReportDetail must expose the stored-sky personal transit tab label.");
 assert(reportDetail.includes("v0.1.288-report-special-points-transit-final-qa"), "ReportDetail missing v0.1.288 personal transit marker.");
 assert(reportDetail.includes("تهران را پیش‌فرض نمی‌گیرد"), "ReportDetail must preserve no silent Tehran missing-state copy.");
 assert(reportDetail.includes("هنگام بازکردن گزارش قدیمی داده‌ی تازه‌ای جایگزین نمی‌کند"), "ReportDetail must preserve stored-snapshot trust copy.");

@@ -490,8 +490,8 @@ for (const sample of samples) {
   }
 
   for (const marker of [
-    "نخ اصلی این چارت",
-    "سه ستون اصلی",
+    "خلاصه",
+    "خورشید، ماه و رایزینگ",
     "کشمکش اصلی:",
     "منبع همراه:",
     "ترجمهٔ روزمره:",
@@ -499,7 +499,7 @@ for (const sample of samples) {
     "رابطه‌های سیاره‌ای",
     "گفت‌وگوی درونی",
     "سه تمرین کوچک این چارت",
-    "خانه‌های فعال",
+    "خانه‌های مهم",
   ]) {
     if (!combined.includes(marker)) {
       failures.push(`${sample.id}: missing current V3 synthesis marker ${marker}`);

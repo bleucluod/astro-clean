@@ -20,9 +20,9 @@ assert(routePage.includes("ReportDetail"), "Live route must render ReportDetail.
 assert(reportDetail.includes('from "@/components/ReportDetailFactsPanel"'), "ReportDetail must import ReportDetailFactsPanel on the live path.");
 assert(reportDetail.includes("REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION"), "ReportDetail missing live structure/facts version constant.");
 assert(reportDetail.includes("v0.1.266-live-report-structure-facts"), "ReportDetail missing v0.1.266 live facts marker.");
-assert(reportDetail.includes('["quick-facts", "اطلاعات سریع"]'), "ReportDetail quick chips must include quick facts.");
-assert(reportDetail.includes('id="quick-facts"'), "ReportDetail must expose a quick facts anchor.");
-assert(reportDetail.includes('data-report-live-structure-facts={REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION}'), "Quick facts section must carry the v0.1.266 marker.");
+assert(reportDetail.includes('["chart-data", "داده‌های چارت"]'), "ReportDetail chips must include chart data.");
+assert(reportDetail.includes('id="chart-data"'), "ReportDetail must expose a chart-data anchor.");
+assert(reportDetail.includes('data-report-live-structure-facts={REPORT_DETAIL_LIVE_STRUCTURE_FACTS_VERSION}'), "Chart-data section must carry the v0.1.266 marker.");
 assert(reportDetail.includes("<ReportDetailFactsPanel report={report} />"), "ReportDetail must render ReportDetailFactsPanel in the live report page.");
 assert(
   reportDetail.indexOf("<ReportV3Experience report={report} />") <
@@ -30,9 +30,9 @@ assert(
   "Quick facts must appear after the final reading, not above it.",
 );
 assert(
-  reportDetail.indexOf("<ReportDetailFactsPanel report={report} />") <
-    reportDetail.indexOf('id="core-pillars"'),
-  "Quick facts must appear before the core pillars block.",
+  reportDetail.indexOf("<ReportDetailFactsPanel report={report} />") >
+    reportDetail.indexOf('id="planet-placements"'),
+  "Chart data must appear after the primary placement reading.",
 );
 assert(factsPanel.includes('data-report-detail-fact="moon-sign"'), "Facts panel must expose moon sign data.");
 assert(factsPanel.includes('data-report-detail-fact="retrograde-motion"'), "Facts panel must expose retrograde status.");

@@ -36,9 +36,9 @@ assert(!reportDetail.includes("localStorage.getItem"), "ReportDetail must not re
 
 for (const marker of [
   "report-final-reading-card",
-  "report-reading-section-list",
-  "report-reading-section-card",
-  "createReadingParagraphs",
+  "data-live-report-reading-contract",
+  "summarySentences.map",
+  "reflectionQuestions",
 ]) {
   assert(reportV3Experience.includes(marker), `ReportV3Experience missing existing reader marker: ${marker}`);
 }
