@@ -186,21 +186,16 @@ try {
         ["شروع کنی و عقب بکشی", "توقف‌وحرکت"],
         ["دلخوری"],
         ["چه می‌خواهم"],
-        ["خانه 1"],
-        ["خانه 7"],
       ]);
       requireConcepts("Arad Jupiter-Uranus", samples.aradJupiterUranus, [
         ["ایده", "امکان تازه"],
         ["موج اول هیجان"],
         ["نسخه کوچک"],
-        ["خانه 5"],
       ]);
       requireConcepts("Haleh Moon-Saturn", samples.halehMoonSaturn, [
         ["باربودن", "بی‌نیاز"],
         ["حمایت"],
         ["چه احساسی دارم"],
-        ["خانه 8"],
-        ["خانه 11"],
       ]);
       requireConcepts("Haleh Moon-Mars", samples.halehMoonMars, [
         ["سرعت واکنش"],
@@ -214,8 +209,6 @@ try {
         ["قضاوت", "اشتباه"],
         ["نظر شخصی"],
         ["دو جمله"],
-        ["خانه 11"],
-        ["خانه 3"],
       ]);
 
       if (

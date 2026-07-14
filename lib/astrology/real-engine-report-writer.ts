@@ -597,7 +597,7 @@ export function enrichReportWithRealEngineCopy(
     chartSpine.ascendantDegreeInSign,
     realEngine.houseContext,
   );
-  const chartRulerText = buildChartRulerText(chartSpine);
+  const chartRulerText = buildChartRulerText(chartSpine, realEngineWithAspects);
   const activeHouseText = buildActiveHousesText(chartSpine);
   const balanceText = buildChartBalanceText(realEngineWithAspects);
   const houseText = buildHouseContextText(realEngine.houseContext, risingSign);
@@ -1177,45 +1177,32 @@ function buildNodeAxisSpinePhrase(
   ].filter((part): part is string => Boolean(part)).join(" ");
 }
 
-function buildChartRulerText(chartSpine: ChartSpine): string | undefined {
+function buildChartRulerText(
+  chartSpine: ChartSpine,
+  realEngine: RealEngineReportSnapshot,
+): string | undefined {
   const rulerLabel = getPlanetLabel(chartSpine.chartRulerId);
   const risingLabel = formatSignLabel(SIGN_COPY[chartSpine.risingSign]);
   const placement = chartSpine.chartRulerPlacement;
-  const placementText = placement
-    ? `${rulerLabel} در ${formatPlacementWithHouse(placement)} قرار دارد.`
-    : `${rulerLabel} در جایگاه‌های ذخیره‌شده این نسخه پیدا نشد.`;
-  const aspectText = chartSpine.chartRulerAspects.length > 0
-    ? `رابطه‌های مهم حاکم چارت: ${chartSpine.chartRulerAspects.slice(0, 3).map(formatAspectLead).join("؛ ")}.`
-    : undefined;
-
-  return [
-    `با رایزینگ ${risingLabel}، حاکم سنتی چارت ${rulerLabel} است؛ یعنی این سیاره فقط یک نقطه جدا نیست و روی شیوه شروع کردن، واکنش اولیه و انتخاب‌های روزمره اثر مرکزی دارد.`,
-    placementText,
-    buildChartRulerRoleSentence(chartSpine.chartRulerId, placement),
-    aspectText,
-  ]
-    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
-    .join(" ");
-}
-
-function buildChartRulerRoleSentence(
-  planetId: string,
-  placement?: RealEngineReportPlacement,
-): string {
-  const planet = PLANET_COPY[planetId];
-  const need = PLANET_SYNTHESIS_NEED[planetId] ?? planet?.role ?? "ریتم تصمیم و شروع";
 
   if (!placement) {
-    return `چون جایگاه ${getPlanetLabel(planetId)} در دادهٔ ذخیره‌شده حاضر نیست، نقش حاکم چارت فقط در حد ${need} نگه داشته می‌شود و تفسیر خانه یا نشانه به آن اضافه نمی‌شود.`;
+    return `با رایزینگ ${risingLabel}، حاکم سنتی چارت ${rulerLabel} است و روی ریتم شروع‌ها و انتخاب‌های روزمره وزن بیشتری دارد. جایگاه ${rulerLabel} در دادهٔ ذخیره‌شده حاضر نیست؛ بنابراین تفسیر خانه یا نشان به آن اضافه نمی‌شود.`;
   }
 
-  const sign = SIGN_COPY[placement.signId];
-  const houseField = isReportHouseNumber(placement.house)
-    ? HOUSE_SYNTHESIS_FIELD[placement.house]
-    : undefined;
-  const fieldPhrase = houseField ? ` در میدان ${houseField}` : "";
+  const interpretation = buildPlacementBehavioralInterpretation({
+    planetId: chartSpine.chartRulerId,
+    signId: placement.signId,
+    houseNumber: placement.house,
+    retrograde:
+      realEngine.retrogrades?.status === "calculated" &&
+      realEngine.retrogrades.planetIds.includes(chartSpine.chartRulerId),
+  });
 
-  return `${getPlanetLabel(planetId)} به‌عنوان حاکم چارت، ${need} را با کیفیت ${sign.energy}${fieldPhrase} به ریتم اصلی انتخاب‌ها وصل می‌کند. توان این جایگاه از ${sign.gift} می‌آید؛ تمرینش این است که ${trimSentenceEnd(sign.growth)}${isReportHouseNumber(placement.house) ? ` و در خانه ${toPersianNumber(placement.house)}، ${trimSentenceEnd(HOUSE_COPY[placement.house].growth)}` : ""}.`;
+  return [
+    `با رایزینگ ${risingLabel}، حاکم سنتی چارت ${rulerLabel} است و روی ریتم شروع‌ها و انتخاب‌های روزمره وزن بیشتری دارد.`,
+    `${rulerLabel} در ${formatPlacementWithHouse(placement)} قرار دارد؛ ${interpretation.plainMeaning}.`,
+    `توان این جایگاه ${interpretation.healthyExpression} است؛ تمرین خانه‌اش: ${interpretation.smallExperiment}.`,
+  ].join(" ");
 }
 
 function buildActiveHousesText(chartSpine: ChartSpine): string | undefined {

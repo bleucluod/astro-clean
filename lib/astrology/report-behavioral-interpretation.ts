@@ -337,6 +337,98 @@ const HOUSE_SEMANTICS: Record<BehavioralHouseNumber, HouseSemantic> = {
   },
 };
 
+
+const HOUSE_FOCUS_LABELS: Record<BehavioralHouseNumber, string> = {
+  1: "شروع و حضور شخصی",
+  2: "امنیت و منابع",
+  3: "فکر و گفت‌وگوی روزمره",
+  4: "خانه و امنیت خصوصی",
+  5: "خلاقیت و بیان شخصی",
+  6: "کار روزمره و مراقبت",
+  7: "رابطه نزدیک و مذاکره",
+  8: "اعتماد و صمیمیت",
+  9: "یادگیری و جهان‌بینی",
+  10: "مسیر عمومی و مسئولیت",
+  11: "دوستی و آینده جمعی",
+  12: "خلوت و پشت‌صحنه",
+};
+
+const PLACEMENT_ACTION_BY_PLANET: Record<BehavioralPlanetId, string> = {
+  sun: "جایگاه و انتخاب شخصی‌ات را روشن‌تر نشان می‌دهی",
+  moon: "احساس و نیازت به امنیت را می‌شناسی",
+  mercury: "فکر را به کلمه و تصمیم تبدیل می‌کنی",
+  venus: "ارزش و مرز رابطه را روشن می‌کنی",
+  mars: "خواسته را به اقدام تبدیل می‌کنی",
+  jupiter: "امکان را به رشد واقعی وصل می‌کنی",
+  saturn: "مرز و مسئولیت را به مهارت تبدیل می‌کنی",
+  uranus: "برای شکستن الگوی ناکارآمد راه تازه‌ای پیدا می‌کنی",
+  neptune: "میان الهام و حدس مرز می‌گذاری",
+  pluto: "با ترس، کنترل یا نیاز به رهاسازی روبه‌رو می‌شوی",
+};
+
+const PLACEMENT_FOCUS_BY_PLANET: Record<BehavioralPlanetId, string> = {
+  sun: "هویت و انتخاب شخصی",
+  moon: "احساس و امنیت",
+  mercury: "فکر و گفت‌وگو",
+  venus: "ارزش و نزدیکی",
+  mars: "اقدام و دفاع از خواسته",
+  jupiter: "رشد و امکان",
+  saturn: "مرز و مسئولیت",
+  uranus: "آزادی و تغییر",
+  neptune: "الهام و مرزبندی",
+  pluto: "قدرت و رهاسازی",
+};
+
+const RETROGRADE_FRICTION_BY_PLANET: Partial<Record<BehavioralPlanetId, string>> = {
+  mercury: "در حالت پس‌رو، تصمیم یا حرفت ممکن است چند بار در ذهن بازبینی شود",
+  venus: "در حالت پس‌رو، ارزش یا مرز رابطه ممکن است دیرتر روشن شود",
+  mars: "در حالت پس‌رو، خواستن یا خشم ممکن است پیش از اقدام چند بار درونت برگردد",
+  jupiter: "در حالت پس‌رو، امید یا باور ممکن است پیش از بیرونی شدن دوباره سنجیده شود",
+  saturn: "در حالت پس‌رو، ترس و مسئولیت ممکن است بیشتر درونی و سخت‌گیرانه تجربه شود",
+  uranus: "در حالت پس‌رو، نیاز به آزادی ممکن است ابتدا درونی و ناگهانی حس شود",
+  neptune: "در حالت پس‌رو، الهام و ابهام ممکن است مدت بیشتری درونت پردازش شود",
+  pluto: "در حالت پس‌رو، کشمکش قدرت یا رهاسازی ممکن است دیرتر به زبان بیاید",
+};
+
+const ASPECT_NEED_BY_PLANET: Record<BehavioralPlanetId, string> = {
+  sun: "دیده‌شدن و انتخاب شخصی",
+  moon: "امنیت عاطفی",
+  mercury: "فهم روشن",
+  venus: "نزدیکی و ارزش",
+  mars: "اقدام و دفاع از خواسته",
+  jupiter: "رشد و امکان",
+  saturn: "مرز و مسئولیت",
+  uranus: "آزادی و تغییر",
+  neptune: "الهام و واقعیت‌سنجی",
+  pluto: "قدرت و رهاسازی",
+};
+
+const ASPECT_ACTION_BY_PLANET: Record<BehavioralPlanetId, string> = {
+  sun: "نظر یا انتخاب شخصی‌ات را نشان بدهی",
+  moon: "احساست را نام ببری و حمایت بخواهی",
+  mercury: "موضوع را روشن و تصمیم را مشخص کنی",
+  venus: "ارزش و مرز رابطه را بگویی",
+  mars: "خواسته‌ات را به اقدام تبدیل کنی",
+  jupiter: "امکان بزرگ‌تر را به یک قدم واقعی وصل کنی",
+  saturn: "محدودیت را بپذیری و مسئولانه ادامه بدهی",
+  uranus: "راه تازه‌ای را بدون قطع ناگهانی امتحان کنی",
+  neptune: "دریافتت را با واقعیت یا سؤال مستقیم بررسی کنی",
+  pluto: "با ترس یا کنترل صادقانه روبه‌رو شوی",
+};
+
+const ASPECT_STRENGTH_BY_PLANET: Record<BehavioralPlanetId, string> = {
+  sun: "حضور روشن",
+  moon: "تنظیم احساس",
+  mercury: "گفت‌وگوی روشن",
+  venus: "نزدیکی همراه با مرز",
+  mars: "اقدام روشن",
+  jupiter: "امید واقع‌بینانه",
+  saturn: "مرزبندی پایدار",
+  uranus: "تغییر قابل برگشت",
+  neptune: "تخیل همراه با واقعیت‌سنجی",
+  pluto: "صداقت با لایه‌های پنهان",
+};
+
 const TARGETED_INTERPRETATIONS: Record<string, Omit<PlacementBehavioralInterpretation, "symbolicBody">> = {
   "moon:taurus:8": {
     plainMeaning:
@@ -517,42 +609,49 @@ export function buildPlacementBehavioralInterpretation(
   const planet = PLANET_SEMANTICS[planetId];
   const sign = SIGN_SEMANTICS[signId];
   const house = houseNumber ? HOUSE_SEMANTICS[houseNumber] : null;
+  const houseFocus = houseNumber
+    ? HOUSE_FOCUS_LABELS[houseNumber]
+    : "بخش ثبت‌شده زندگی";
   const targeted = houseNumber
     ? TARGETED_INTERPRETATIONS[`${planetId}:${signId}:${houseNumber}`]
     : undefined;
-  const retrogradeNote =
-    input.retrograde && ["mercury", "venus", "mars", "jupiter", "saturn"].includes(planetId)
-      ? " اگر این سیاره پس‌روست، ممکن است این فرایند بیشتر درونی شود، دیرتر بیرون بیاید یا پیش از اقدام چند بار بازبینی شود."
-      : "";
+  const retrogradeModifier = input.retrograde
+    ? RETROGRADE_FRICTION_BY_PLANET[planetId]
+    : undefined;
 
   if (targeted) {
     return {
       ...targeted,
-      possibleFriction: `${targeted.possibleFriction}.${retrogradeNote}`.replace(/\.\s*\./gu, ".").trim(),
+      possibleFriction: appendBehavioralModifier(
+        targeted.possibleFriction,
+        retrogradeModifier,
+      ),
       symbolicBody: planet.symbolicBody,
     };
   }
 
-  const houseScene = house?.scene ?? "بخشی از زندگی که خانه آن در داده گزارش ثبت نشده";
-  const dailyHouse = house?.dailyPattern ?? "در رفتارهای کوچک روزمره قابل مشاهده می‌شود";
-  const houseHealthy = house?.healthy ?? "با مشاهده و انتخاب روشن‌تر قابل رشد است";
-  const houseFriction = house?.friction ?? "ممکن است بدون زمینه خانه، بیش از حد کلی فهمیده شود";
-  const houseExperiment = house?.experiment ?? "یک نمونه واقعی از این الگو را ثبت کن";
-
   return {
     plainMeaning:
-      `${planet.role} به شیوه‌ای ${sign.method} و در صحنه ${houseScene} عمل می‌کند`,
+      `در ${houseFocus}، معمولاً ${PLACEMENT_ACTION_BY_PLANET[planetId]}؛ این فرایند ${sign.method} پیش می‌رود`,
     dailyLifeExample:
-      `${sign.dailyPattern}. این موضوع وقتی می‌خواهی ${planet.dailyVerb}، ${dailyHouse}`,
-    healthyExpression:
-      `${planet.healthy}؛ ${sign.healthy} و ${houseHealthy}`,
-    possibleFriction:
-      `${planet.friction}؛ ${sign.friction} و ${houseFriction}.${retrogradeNote}`.replace(/\.\s*\./gu, ".").trim(),
-    focus: `${planet.role} در ${houseScene}`,
+      `وقتی می‌خواهی ${planet.dailyVerb}، این الگو ${house?.dailyPattern ?? "در رفتارهای کوچک روزمره دیده می‌شود"}`,
+    healthyExpression: planet.healthy,
+    possibleFriction: appendBehavioralModifier(
+      planet.friction,
+      retrogradeModifier,
+    ),
+    focus: `${PLACEMENT_FOCUS_BY_PLANET[planetId]} در ${houseFocus}`,
     smallExperiment:
-      `${houseExperiment}. سپس ${planet.experiment}. ${sign.experiment}`,
+      house?.experiment ?? planet.experiment,
     symbolicBody: planet.symbolicBody,
   };
+}
+
+function appendBehavioralModifier(
+  base: string,
+  modifier: string | undefined,
+): string {
+  return modifier ? `${base}؛ ${modifier}` : base;
 }
 
 export function isBehavioralPlacementInput(
@@ -653,7 +752,7 @@ const ASPECT_FORM_SEMANTICS: Record<BehavioralAspectId, AspectFormSemantic> = {
     healthy:
       "تمرکز و توان یکپارچه‌کردن دو نیرو در یک حرکت روشن",
     friction:
-      "تشخیص ندادن اینکه کدام نیاز هدایت می‌کند و واکنش‌دادن با شدت بیشتر از موقعیت",
+      "آمیختن دو نیاز، واکنش تندتر از موقعیت یا تصمیم‌گرفتن بدون روشن کردن اولویت",
   },
   sextile: {
     titleFragment: "زاویه‌ی ۶۰ درجه",
@@ -759,43 +858,135 @@ export function buildAspectBehavioralInterpretation(
   const context = buildAspectContextSentence(first, second);
   const relevance = buildAspectRelevanceNote(input, first, second);
   const confidenceNote = buildAspectConfidenceNote(input.orb);
+  const narrativeSummary = buildAspectNarrativeSummary(
+    aspectId,
+    first,
+    second,
+  );
 
   if (targeted) {
     return {
       ...targeted,
       titleFragment: form.titleFragment,
       narrativeSummary: targeted.plainMeaning,
-      plainMeaning: `${targeted.plainMeaning}. ${context}`,
-      healthyExpression: `${targeted.healthyExpression}. ${relevance}`,
+      plainMeaning: joinBehavioralSentences(
+        targeted.plainMeaning,
+        context,
+      ),
+      healthyExpression: joinBehavioralSentences(
+        targeted.healthyExpression,
+        relevance,
+      ),
+      focus: buildAspectFocus(first, second),
       confidenceNote,
       patternKey,
     };
   }
 
-  const firstMethod = first.sign?.method ?? "به شیوه‌ای که نشان آن در داده ثبت کرده";
-  const secondMethod = second.sign?.method ?? "به شیوه‌ای که نشان آن در داده ثبت کرده";
-  const firstScene = first.house?.scene ?? "میدان زندگی ثبت‌شده برای سیاره اول";
-  const secondScene = second.house?.scene ?? "میدان زندگی ثبت‌شده برای سیاره دوم";
-  const retrogradeNote = buildRetrogradeAspectNote(first, second);
-
   return {
     titleFragment: form.titleFragment,
-    narrativeSummary:
-      `${first.planet.role} و ${second.planet.role} ${form.relationship}`,
-    plainMeaning:
-      `${first.planet.role} و ${second.planet.role} در این رابطه ${form.relationship}. ${context}`,
-    dailyLifeExample:
-      `ممکن است هنگام ${first.planet.dailyVerb} در ${firstScene}، هم‌زمان لازم باشد ${second.planet.dailyVerb} در ${secondScene}. نیروی اول ${firstMethod} عمل می‌کند و نیروی دوم ${secondMethod}${retrogradeNote}`,
-    healthyExpression:
-      `${form.healthy}. شکل سالم آن این است که ${first.planet.healthy} با ${second.planet.healthy} هم‌زمان جا داشته باشد. ${relevance}`,
-    possibleFriction:
-      `${form.friction}. در عمل ممکن است ${first.planet.friction} با ${second.planet.friction} ترکیب شود`,
-    smallExperiment:
-      buildGenericAspectExperiment(aspectId, first, second),
+    narrativeSummary,
+    plainMeaning: joinBehavioralSentences(
+      narrativeSummary,
+      context,
+    ),
+    dailyLifeExample: buildGenericAspectDailyLifeExample(
+      first,
+      second,
+    ),
+    healthyExpression: joinBehavioralSentences(
+      `هماهنگ کردن ${ASPECT_STRENGTH_BY_PLANET[first.id]} با ${ASPECT_STRENGTH_BY_PLANET[second.id]}`,
+      relevance,
+    ),
+    possibleFriction: form.friction,
+    smallExperiment: buildGenericAspectExperiment(aspectId),
     confidenceNote,
-    focus: `${first.planet.role} × ${second.planet.role}`,
+    focus: buildAspectFocus(first, second),
     patternKey,
   };
+}
+
+function joinBehavioralSentences(
+  first: string,
+  second: string | undefined,
+): string {
+  if (!second) {
+    return first;
+  }
+
+  return `${first.replace(/[.؟!]+$/u, "")}. ${second.replace(/[.؟!]+$/u, "")}`;
+}
+
+function buildAspectNarrativeSummary(
+  aspectId: BehavioralAspectId,
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  const firstNeed = ASPECT_NEED_BY_PLANET[first.id];
+  const secondNeed = ASPECT_NEED_BY_PLANET[second.id];
+
+  if (aspectId === "conjunction") {
+    return `«${firstNeed}» و «${secondNeed}» تقریباً هم‌زمان فعال می‌شوند و صدای یکدیگر را بلندتر می‌کنند`;
+  }
+
+  if (aspectId === "sextile") {
+    return `«${firstNeed}» و «${secondNeed}» با تمرین آگاهانه می‌توانند به هم کمک کنند`;
+  }
+
+  if (aspectId === "square") {
+    return `میان «${firstNeed}» و «${secondNeed}» اصطکاکی شکل می‌گیرد که به یک تصمیم روشن نیاز دارد`;
+  }
+
+  if (aspectId === "trine") {
+    return `«${firstNeed}» و «${secondNeed}» راحت‌تر با هم همکاری می‌کنند و می‌توانند به یک توان عملی تبدیل شوند`;
+  }
+
+  return `«${firstNeed}» و «${secondNeed}» در دو سر یک محور قرار می‌گیرند و به تعادل نیاز دارند`;
+}
+
+function buildGenericAspectDailyLifeExample(
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  const firstHouse = getAspectHouseFocus(first);
+  const secondHouse = getAspectHouseFocus(second);
+  const retrogradeNote = buildRetrogradeAspectNote(first, second);
+
+  if (
+    first.houseNumber &&
+    second.houseNumber &&
+    first.houseNumber === second.houseNumber
+  ) {
+    return `در ${firstHouse} ممکن است هم‌زمان بخواهی ${ASPECT_ACTION_BY_PLANET[first.id]} و ${ASPECT_ACTION_BY_PLANET[second.id]}${retrogradeNote}`;
+  }
+
+  return `در ${firstHouse} ممکن است بخواهی ${ASPECT_ACTION_BY_PLANET[first.id]}، در حالی که در ${secondHouse} لازم باشد ${ASPECT_ACTION_BY_PLANET[second.id]}${retrogradeNote}`;
+}
+
+function buildAspectFocus(
+  first: AspectParticipantContext,
+  second: AspectParticipantContext,
+): string {
+  const firstNeed = ASPECT_NEED_BY_PLANET[first.id];
+  const secondNeed = ASPECT_NEED_BY_PLANET[second.id];
+
+  if (
+    first.houseNumber &&
+    second.houseNumber &&
+    first.houseNumber === second.houseNumber
+  ) {
+    return `«${firstNeed}» در کنار «${secondNeed}» در ${getAspectHouseFocus(first)}`;
+  }
+
+  return `«${firstNeed}» در کنار «${secondNeed}»`;
+}
+
+function getAspectHouseFocus(
+  participant: AspectParticipantContext,
+): string {
+  return participant.houseNumber
+    ? HOUSE_FOCUS_LABELS[participant.houseNumber]
+    : "میدان زندگی ثبت‌شده";
 }
 
 function buildTargetedAspectInterpretation(
@@ -975,81 +1166,70 @@ function buildAspectContextSentence(
   first: AspectParticipantContext,
   second: AspectParticipantContext,
 ): string {
-  const firstHouse = first.houseNumber
-    ? `خانه ${first.houseNumber} (${first.house?.scene})`
-    : "خانه ثبت‌نشده";
-  const secondHouse = second.houseNumber
-    ? `خانه ${second.houseNumber} (${second.house?.scene})`
-    : "خانه ثبت‌نشده";
-  const firstMethod = first.sign?.method ?? "شیوه نشان ثبت‌نشده";
-  const secondMethod = second.sign?.method ?? "شیوه نشان ثبت‌نشده";
+  const firstHouse = getAspectHouseFocus(first);
+  const secondHouse = getAspectHouseFocus(second);
+  const firstMethod = first.sign?.method;
+  const secondMethod = second.sign?.method;
 
-  return `نیروی اول با ریتم ${firstMethod} در ${firstHouse} و نیروی دوم با ریتم ${secondMethod} در ${secondHouse} عمل می‌کند`;
+  if (
+    first.houseNumber &&
+    second.houseNumber &&
+    first.houseNumber === second.houseNumber
+  ) {
+    if (firstMethod && firstMethod === secondMethod) {
+      return `هر دو نیرو در «${firstHouse}»، ${firstMethod} فعال‌اند`;
+    }
+
+    return `هر دو نیرو در «${firstHouse}» فعال‌اند، اما با دو ریتم متفاوت پیش می‌روند`;
+  }
+
+  return `این رابطه میان میدان «${firstHouse}» و میدان «${secondHouse}» شکل می‌گیرد`;
 }
 
 function buildAspectRelevanceNote(
   input: AspectBehavioralInterpretationInput,
   first: AspectParticipantContext,
   second: AspectParticipantContext,
-): string {
-  const notes: string[] = [];
+): string | undefined {
   const participants = new Set([first.id, second.id]);
 
-  if (input.chartRulerId && participants.has(input.chartRulerId as BehavioralPlanetId)) {
-    notes.push("این رابطه به حاکم چارت وصل است و روی شیوه شروع و انتخاب وزن بیشتری دارد");
-  }
-  if (participants.has("sun") || participants.has("moon")) {
-    notes.push("چون خورشید یا ماه درگیر است، الگو به هویت یا امنیت عاطفی نزدیک می‌شود");
-  }
-  const activeHouses = new Set(
-    (input.activeHouseNumbers ?? []).map((house) => normalizeHouseNumber(house)).filter(Boolean),
-  );
   if (
-    (first.houseNumber && activeHouses.has(first.houseNumber)) ||
-    (second.houseNumber && activeHouses.has(second.houseNumber))
+    input.chartRulerId &&
+    participants.has(input.chartRulerId as BehavioralPlanetId)
   ) {
-    notes.push("یکی از میدان‌های فعال چارت در این رابطه حضور دارد");
-  }
-  if (input.synthesisRole === "challenge") {
-    notes.push("این رابطه در synthesis به‌عنوان کشمکش اصلی انتخاب شده است");
-  } else if (input.synthesisRole === "support") {
-    notes.push("این رابطه در synthesis منبع همراه و تنظیم‌کننده است");
-  } else if (input.synthesisRole === "daily-bridge") {
-    notes.push("این رابطه پل ترجمه الگو به رفتار روزمره است");
+    return "این رابطه به‌دلیل درگیری حاکم چارت وزن بیشتری دارد";
   }
 
-  return notes.length > 0
-    ? notes.join("؛ ")
-    : "اهمیت این رابطه از ترکیب دو سیاره، خانه‌ها، نشان‌ها و نزدیکی زاویه به دست می‌آید";
+  if (participants.has("sun") || participants.has("moon")) {
+    return "این رابطه به هویت یا امنیت عاطفی نزدیک‌تر است";
+  }
+
+  return undefined;
 }
 
 function buildRetrogradeAspectNote(
   first: AspectParticipantContext,
   second: AspectParticipantContext,
 ): string {
-  const retrograde = [first, second].filter((participant) => participant.retrograde);
-
-  if (retrograde.length === 0) {
+  if (!first.retrograde && !second.retrograde) {
     return "";
   }
 
-  return "؛ یکی از نیروها پس‌روست و ممکن است پیش از بیان بیرونی چند بار درونت مرور یا بازبینی شود";
+  return "؛ اگر یکی از آن‌ها پس‌رو باشد، تصمیم ممکن است چند بار بازبینی شود";
 }
 
 function buildGenericAspectExperiment(
   aspectId: BehavioralAspectId,
-  first: AspectParticipantContext,
-  second: AspectParticipantContext,
 ): string {
   if (aspectId === "square" || aspectId === "opposition") {
-    return `یک موقعیت واقعی را انتخاب کن و روی کاغذ بنویس: نیاز اول چیست، نیاز دوم چیست و کوچک‌ترین توافق یا مرز قابل اجرا میان ${first.house?.scene ?? "میدان اول"} و ${second.house?.scene ?? "میدان دوم"} کدام است`;
+    return "پیش از واکنش، نیاز هر طرف را در یک جمله بنویس و یک مرز یا توافق کوچک انتخاب کن";
   }
 
   if (aspectId === "conjunction") {
-    return `پیش از واکنش، نام ببر کدام نیاز هدایت می‌کند و سپس یک اقدام کوچک انجام بده که ${first.planet.role} و ${second.planet.role} را هم‌زمان اما جداگانه جا بدهد`;
+    return "پیش از تصمیم، مشخص کن کدام نیاز جلوتر است و فقط یک اقدام کوچک برای آن انجام بده";
   }
 
-  return `یک توان طبیعی این رابطه را انتخاب کن و آن را تا پایان هفته به یک کار قابل مشاهده در ${first.house?.scene ?? "زندگی روزمره"} تبدیل کن`;
+  return "یک توان این رابطه را انتخاب کن و تا پایان هفته در یک کار کوچک و قابل مشاهده به‌کار ببر";
 }
 
 function buildAspectConfidenceNote(orb: number | null | undefined): string {
