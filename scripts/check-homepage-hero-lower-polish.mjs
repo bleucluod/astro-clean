@@ -2,14 +2,13 @@ import { readFileSync } from "node:fs";
 
 const home = readFileSync("app/page.tsx", "utf8");
 const styles = readFileSync("app/home.module.css", "utf8");
+const appShell = readFileSync("components/AppShell.tsx", "utf8");
 const failures = [];
 
 for (const marker of [
   "تو حاصل لحظه‌ای هستی که",
   "آسمان و زمین با هم داستانی نو نوشتند.",
   "styles.heroTitleLine",
-  "styles.homeDisclaimer",
-  "خوانش‌های هالیوس برای الهام و تأمل‌اند",
   "ساخت چارت تولد",
 ]) {
   if (!home.includes(marker)) {
@@ -24,6 +23,12 @@ for (const removedMarker of [
   "دقت و اعتماد",
   "شروع ساخت گزارش",
   "SafetyDisclaimer",
+  "styles.homeDisclaimer",
+  "home-disclaimer-title",
+  "پیش‌گویی",
+  "پیشگویی",
+  "پیش‌بینی",
+  "پیش بینی",
 ]) {
   if (home.includes(removedMarker)) {
     failures.push(`Homepage still contains removed marker: ${removedMarker}`);
@@ -47,11 +52,14 @@ for (const marker of [
   ".heroTitleLine",
   ".page .primaryButton:visited",
   "-webkit-text-fill-color: #fff",
-  ".homeDisclaimer",
 ]) {
   if (!styles.includes(marker)) {
     failures.push(`Homepage hero polish style missing: ${marker}`);
   }
+}
+
+if (!appShell.includes("برای خودشناسی نمادین")) {
+  failures.push("AppShell must retain the shared footer disclaimer");
 }
 
 if (failures.length > 0) {
@@ -67,4 +75,4 @@ console.log("- hero title is smaller, two-part, and uses the approved human copy
 console.log("- primary button text is explicitly white in all link states");
 console.log("- homepage top spacing is reduced");
 console.log("- test-like trust section and lower duplicate primary CTA are removed");
-console.log("- homepage disclaimer is specific to reflection, not a report-page warning");
+console.log("- reflection disclaimer stays in the shared footer instead of repeating in homepage body");

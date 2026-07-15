@@ -8,7 +8,7 @@
   --halleus-surface: rgba(255, 255, 255, 0.88);
   --halleus-border: rgba(64, 84, 156, 0.14);
   width: min(1180px, calc(100% - 32px));
-  margin: 0 auto;
+  margin: -20px auto 0;
   padding: 10px 0 56px;
   color: var(--halleus-ink-strong);
 }
@@ -403,8 +403,11 @@
 }
 
 .highlightCard div {
-  display: grid;
-  align-content: start;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .highlightCard h2 {
@@ -433,6 +436,35 @@
   text-decoration: none;
 }
 
+.highlightCard a {
+  min-height: 36px;
+  margin-top: auto;
+  padding: 0 12px;
+  border: 1px solid rgba(48, 69, 155, 0.14);
+  border-radius: 12px;
+  background: rgba(239, 242, 255, 0.72);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.highlightCard a::after {
+  content: "←";
+  font-size: 0.8rem;
+}
+
+.highlightCard a:hover {
+  border-color: rgba(48, 69, 155, 0.24);
+  background: #eef1ff;
+  transform: translateY(-1px);
+}
+
+.highlightCard a:focus-visible {
+  outline: 3px solid rgba(63, 82, 159, 0.2);
+  outline-offset: 2px;
+}
+
 .splitSection,
 .reportSection,
 .wikiSection,
@@ -447,10 +479,10 @@
 
 .splitSection {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(440px, 1.2fr);
-  gap: 38px;
-  align-items: center;
-  padding: 42px;
+  grid-template-columns: minmax(290px, 0.68fr) minmax(500px, 1.32fr);
+  gap: 28px;
+  align-items: start;
+  padding: 34px;
   background:
     radial-gradient(circle at 10% 30%, rgba(228, 234, 255, 0.62), transparent 24rem),
     rgba(255, 255, 255, 0.84);
@@ -487,6 +519,49 @@
   margin: 0;
 }
 
+.embeddedCard :global(.sky-pulse-compact-panel) {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.72fr) minmax(0, 1.28fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.embeddedCard :global(.sky-pulse-interpretation-card),
+.embeddedCard :global(.sky-pulse-compact-aspect-list article),
+.embeddedCard :global(.sky-pulse-no-aspect-note) {
+  padding: 10px 12px;
+  border: 1px solid var(--halleus-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.embeddedCard :global(.sky-pulse-interpretation-card p),
+.embeddedCard :global(.sky-pulse-compact-aspect-list p),
+.embeddedCard :global(.sky-pulse-no-aspect-note p) {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.75;
+}
+
+.embeddedCard :global(.sky-pulse-interpretation-card strong) {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--halleus-ink-strong);
+  font-weight: 800;
+}
+
+.embeddedCard :global(.sky-pulse-compact-aspect-list) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.embeddedCard :global(.sky-pulse-compact-aspect-list article) {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
 .reportSection,
 .wikiSection,
 .trustSection {
@@ -512,9 +587,60 @@
   background: linear-gradient(145deg, #fbfcff, #f7f8fd);
 }
 
+.productProofHeading {
+  display: grid;
+  gap: 8px;
+  padding: 24px 24px 4px;
+}
+
+.productProofHeading h2 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(1.55rem, 2.5vw, 2.15rem);
+  line-height: 1.55;
+}
+
 .productProofWrap > * {
   margin: 0;
   box-shadow: none;
+}
+
+.productProofWrap :global(.real-report-preview-shell) {
+  gap: 14px;
+  padding: 16px 24px 24px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.productProofWrap :global(.report-preview-showcase-grid) {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px;
+}
+
+.productProofWrap :global(.report-preview-layer-list) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.productProofWrap :global(.report-preview-layer) {
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+
+.productProofWrap :global(.report-preview-layer:last-child) {
+  grid-column: 1 / -1;
+}
+
+.productProofWrap :global(.real-report-preview-shell::before) {
+  display: none;
+}
+
+.productProofWrap :global(.report-preview-excerpt-card),
+.productProofWrap :global(.report-preview-meta-card) {
+  padding: 18px !important;
 }
 
 .wikiSection {
@@ -525,13 +651,13 @@
 
 .wikiGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
 }
 
 .wikiCard {
   display: grid;
-  min-height: 250px;
+  min-height: 225px;
   padding: 22px;
   border: 1px solid rgba(63, 82, 159, 0.11);
   border-radius: 22px;
@@ -543,7 +669,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .wikiCardTopline span {
@@ -558,13 +684,8 @@
   font-weight: 800;
 }
 
-.wikiCardTopline small {
-  color: #858bab;
-  font-size: 0.67rem;
-}
-
 .wikiCard h3 {
-  margin: 18px 0 10px;
+  margin: 14px 0 10px;
   font-size: 1rem;
   line-height: 1.65;
 }
@@ -604,6 +725,7 @@
 .wikiFooter span {
   color: var(--halleus-muted);
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .trustGrid {
@@ -654,30 +776,6 @@
   justify-content: flex-end;
 }
 
-.homeDisclaimer {
-  display: grid;
-  gap: 8px;
-  margin-top: 18px;
-  padding: 22px 24px;
-  border: 1px solid rgba(63, 82, 159, 0.1);
-  border-radius: 20px;
-  color: var(--halleus-ink-strong);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 12px 30px rgba(45, 61, 121, 0.05);
-}
-
-.homeDisclaimer strong {
-  font-size: 0.88rem;
-}
-
-.homeDisclaimer p {
-  max-width: 900px;
-  margin: 0;
-  color: var(--halleus-muted);
-  font-size: 0.8rem;
-  line-height: 1.95;
-}
-
 @media (max-width: 1080px) {
   .hero {
     grid-template-columns: 1fr;
@@ -693,13 +791,20 @@
     min-height: 430px;
   }
 
-  .highlightGrid,
-  .wikiGrid {
+  .highlightGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wikiGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .splitSection {
     grid-template-columns: 1fr;
+  }
+
+  .embeddedCard :global(.sky-pulse-compact-panel) {
+    grid-template-columns: minmax(180px, 0.68fr) minmax(0, 1.32fr);
   }
 
   .sectionHeader {
@@ -711,6 +816,7 @@
 @media (max-width: 760px) {
   .page {
     width: calc(100% - 20px);
+    margin-top: -8px;
     padding-top: 6px;
   }
 
@@ -783,6 +889,17 @@
 
   .highlightCard {
     min-height: auto;
+  }
+
+  .highlightCard a {
+    margin-top: 14px;
+  }
+
+  .embeddedCard :global(.sky-pulse-compact-panel),
+  .embeddedCard :global(.sky-pulse-compact-aspect-list),
+  .productProofWrap :global(.report-preview-showcase-grid),
+  .productProofWrap :global(.report-preview-layer-list) {
+    grid-template-columns: 1fr !important;
   }
 
   .splitSection,

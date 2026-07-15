@@ -17,9 +17,11 @@ for (const marker of [
   'href="/wiki"',
   'href="/chart"',
   'id="sample-report"',
-  "what-is-birth-chart-interpretation",
+  "birth-chart-basics",
+  "why-birth-time-matters",
+  "why-birth-city-matters",
   "what-is-rising-sign",
-  "what-is-moon-sign",
+  "how-to-read-birth-chart",
 ]) {
   if (!home.includes(marker)) {
     failures.push(`Homepage missing redesign marker: ${marker}`);

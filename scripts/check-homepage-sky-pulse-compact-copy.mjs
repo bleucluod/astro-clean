@@ -12,6 +12,9 @@ for (const marker of [
   "sky-pulse-compact-panel",
   "sky-pulse-compact-aspect-list",
   "ماه و حال‌وهوای امروز",
+  "<strong>حال‌وهوای امروز</strong>",
+  "ماه، فاز ماه و جنبه‌های امروز",
+  "ساخت چارت تولد شخصی",
 ]) {
   if (!component.includes(marker)) {
     failures.push(`Compact Sky Pulse marker missing: ${marker}`);
@@ -30,6 +33,9 @@ for (const removedCopy of [
   "پرسش‌های کوتاه",
   "aspectهای واقعی محاسبه‌شده",
   "این بخش یک خوانش عمومی از آسمان امروز است",
+  "خوانش امروز در حال آماده شدن است",
+  "چند لحظه صبر کن.",
+  "<small>حال‌وهوای امروز</small>",
 ]) {
   if (component.includes(removedCopy)) {
     failures.push(`Homepage Sky Pulse still contains removed copy or block: ${removedCopy}`);

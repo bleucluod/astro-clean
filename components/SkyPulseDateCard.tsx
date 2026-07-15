@@ -86,8 +86,8 @@ function MoonPulseLoadingCard() {
   return (
     <article className="moon-widget-state">
       <span className="section-label">آسمان امروز</span>
-      <strong>خوانش امروز در حال آماده شدن است</strong>
-      <p>چند لحظه صبر کن.</p>
+      <strong>ماه، فاز ماه و جنبه‌های امروز</strong>
+      <p>این بخش حال‌وهوای عمومی آسمان تهران را نشان می‌دهد و با دریافت داده‌های روز کامل می‌شود.</p>
     </article>
   );
 }
@@ -96,8 +96,8 @@ function MoonPulseErrorCard() {
   return (
     <article className="moon-widget-state">
       <span className="section-label">آسمان امروز</span>
-      <strong>خوانش امروز فعلاً در دسترس نیست</strong>
-      <p>کمی بعد دوباره امتحان کن.</p>
+      <strong>دادهٔ زندهٔ امروز موقتاً در دسترس نیست</strong>
+      <p>نبض آسمان عمومی است؛ گزارش تولد فارسی و چارت شخصی از مسیر جدا ساخته می‌شوند.</p>
     </article>
   );
 }
@@ -206,7 +206,7 @@ export function SkyPulseDateCard() {
               aria-label="خوانش کوتاه آسمان امروز"
             >
               <article className="sky-pulse-interpretation-card soft">
-                <small>حال‌وهوای امروز</small>
+                <strong>حال‌وهوای امروز</strong>
                 <p>{compactMood}</p>
               </article>
 
@@ -236,7 +236,7 @@ export function SkyPulseDateCard() {
       ) : null}
 
       <div className="sky-pulse-widget-actions">
-        <Link href="/chart">ساخت گزارش تولد</Link>
+        <Link href="/chart">ساخت چارت تولد شخصی</Link>
       </div>
     </section>
   );

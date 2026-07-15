@@ -9,9 +9,9 @@ import { wikiArticles, wikiCategories } from "@/lib/wiki/wiki-content";
 import styles from "./home.module.css";
 
 export const metadata: Metadata = {
-  title: "هالیوس | گزارش تولد فارسی، آسمان امروز و ویکی آسترولوژی",
+  title: "هالیوس | گزارش تولد فارسی و چارت تولد",
   description:
-    "هالیوس چارت تولد را به گزارشی فارسی و قابل‌فهم تبدیل می‌کند، آسمان امروز را نشان می‌دهد و با ویکی فارسی به خواندن دقیق‌تر چارت کمک می‌کند.",
+    "در هالیوس با تاریخ، ساعت و شهر تولد، چارت تولدت را بساز و گزارش تولد فارسی بگیر. آسمان امروز و ویکی آسترولوژی فارسی هم کنار گزارش تولد در دسترس‌اند.",
   alternates: {
     canonical: "/",
   },
@@ -23,21 +23,21 @@ const productHighlights = [
   {
     icon: "✦",
     title: "گزارش تولد شخصی",
-    description: "یک خوانش فارسی از خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجستهٔ چارت.",
+    description: "گزارش تولد فارسی بر پایهٔ چارت تولد واقعی؛ با خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجستهٔ چارت.",
     href: "/chart",
-    label: "ساخت گزارش",
+    label: "ساخت چارت تولد",
   },
   {
     icon: "◐",
     title: "آسمان امروز",
-    description: "نبض عمومی آسمان و ترنزیت روزانهٔ تهران، بر پایهٔ محاسبه و بدون پیش‌گویی قطعی.",
+    description: "حال‌وهوای عمومی آسمان امروز، ماه اکنون، فاز ماه و چند جنبهٔ مهم ترنزیت روزانهٔ تهران.",
     href: "#sky-pulse",
     label: "دیدن نبض امروز",
   },
   {
-    icon: "⌁",
+    icon: "◫",
     title: "ویکی هالیوس",
-    description: `${wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ فارسی برای فهم چارت، سیاره‌ها، خانه‌ها و دقت داده‌های تولد.`,
+    description: `${wikiArticles.length.toLocaleString("fa-IR")} مقاله در ویکی آسترولوژی فارسی برای فهم چارت، رایزینگ، خانه‌ها و دقت داده‌های تولد.`,
     href: "/wiki",
     label: "ورود به ویکی",
   },
@@ -52,14 +52,15 @@ const productHighlights = [
 
 const featuredWikiSlugs = new Set([
   "how-to-read-birth-chart",
-  "what-is-birth-chart-interpretation",
+  "birth-chart-basics",
+  "why-birth-time-matters",
+  "why-birth-city-matters",
   "what-is-rising-sign",
-  "what-is-moon-sign",
 ]);
 
 const featuredWikiArticles = wikiArticles
   .filter((article) => featuredWikiSlugs.has(article.slug))
-  .slice(0, 4);
+  .slice(0, 5);
 
 export default function Home() {
   return (
@@ -67,7 +68,7 @@ export default function Home() {
       <section className={styles.hero} aria-labelledby="home-title">
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
-          <span className={styles.eyebrow}>گزارش تولد فارسی، روشن و شخصی</span>
+          <span className={styles.eyebrow}>گزارش تولد فارسی بر پایهٔ چارت تولد واقعی</span>
           <h1 id="home-title">
             <span className={styles.heroTitleLine}>تو حاصل لحظه‌ای هستی که</span>
             <span className={styles.heroTitleLine}>
@@ -75,7 +76,7 @@ export default function Home() {
             </span>
           </h1>
           <p className={styles.heroLead}>
-            هالیوس داده‌های واقعی چارت تولدت را به یک گزارش فارسی و انسانی تبدیل می‌کند؛ گزارشی برای دیدن الگوهای شخصی، نیازهای احساسی، رابطه‌ها و مسیر رشد.
+            هالیوس با تاریخ، ساعت و شهر تولد، چارت تولدت را محاسبه می‌کند و آن را به یک گزارش فارسی، انسانی و قابل‌فهم تبدیل می‌کند؛ گزارشی برای دیدن الگوهای شخصی، نیازهای احساسی، رابطه‌ها و مسیر رشد.
           </p>
           <div className={styles.heroActions}>
             <Link className={styles.primaryButton} href="/chart">
@@ -148,15 +149,15 @@ export default function Home() {
         ))}
       </section>
 
-      <section className={styles.splitSection} id="sky-pulse" aria-labelledby="sky-pulse-title">
+      <section className={styles.splitSection} id="sky-pulse" aria-labelledby="home-sky-pulse-title">
         <div className={styles.sectionIntro}>
-          <span className={styles.sectionKicker}>نبض آسمان امروز</span>
-          <h2 id="sky-pulse-title">حال‌وهوای آسمان را ببین، بدون اینکه آن را سرنوشت بدانی</h2>
+          <span className={styles.sectionKicker}>آسمان امروز</span>
+          <h2 id="home-sky-pulse-title">نبض آسمان امروز؛ حال‌وهوای عمومی آسمان</h2>
           <p>
-            این بخش یک خوانش عمومی و رایگان از ماه اکنون، فاز ماه و جنبه‌های مهم ترنزیت روزانهٔ تهران است. برای خوانش شخصی، چارت تولد تو باید جداگانه محاسبه شود.
+            هر روز یک خوانش عمومی از ماه اکنون، فاز ماه و چند جنبهٔ مهم ترنزیت روزانهٔ تهران. این بخش برای دیدن حال‌وهوای آسمان است؛ برای خوانش شخصی، چارت تولد خودت را جداگانه بساز.
           </p>
           <Link className={styles.textLink} href="/chart">
-            ساخت گزارش شخصی
+            ساخت چارت تولد شخصی
             <span aria-hidden="true">←</span>
           </Link>
         </div>
@@ -166,16 +167,11 @@ export default function Home() {
       </section>
 
       <section className={styles.reportSection} id="sample-report" aria-labelledby="sample-report-title">
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>نمونهٔ واقعی محصول</span>
-            <h2 id="sample-report-title">گزارش هالیوس باید شبیه یک روایت منسجم خوانده شود</h2>
-          </div>
-          <p>
-            از توضیح سه‌گانهٔ اصلی تا خانه‌ها، جنبه‌ها و جمع‌بندی؛ هر بخش باید به ساختار واقعی همان چارت وصل باشد.
-          </p>
-        </div>
         <div className={styles.productProofWrap}>
+          <div className={styles.productProofHeading}>
+            <span className={styles.sectionKicker}>نمونهٔ واقعی محصول</span>
+            <h2 id="sample-report-title">یک بخش کوتاه از گزارش تولد هالیوس</h2>
+          </div>
           <HomepageProductProof />
         </div>
       </section>
@@ -184,10 +180,10 @@ export default function Home() {
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>ویکی هالیوس</span>
-            <h2 id="home-wiki-title">قبل و بعد از گزارش، منطق چارت را به زبان ساده یاد بگیر</h2>
+            <h2 id="home-wiki-title">قبل و بعد از ساخت گزارش، منطق چارت را یاد بگیر</h2>
           </div>
           <p>
-            ویکی حالا بخشی واقعی از محصول است؛ با {wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ فارسی و لینک‌های داخلی برای حرکت مرحله‌به‌مرحله میان مفاهیم.
+            ویکی هالیوس مجموعه‌ای از {wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ فارسی دربارهٔ چارت تولد، رایزینگ، نشان ماه، خانه‌ها، جنبه‌ها و اهمیت ساعت و شهر تولد است؛ تا قبل از ساخت گزارش بدانی چه داده‌ای وارد می‌کنی و بعد از گزارش هم بتوانی بخش‌هایش را بهتر بخوانی.
           </p>
         </div>
 
@@ -199,7 +195,6 @@ export default function Home() {
               <article className={styles.wikiCard} key={article.slug}>
                 <div className={styles.wikiCardTopline}>
                   <span>{category?.label ?? "ویکی هالیوس"}</span>
-                  <small>{article.readingMinutes.toLocaleString("fa-IR")} دقیقه</small>
                 </div>
                 <h3>{article.shortTitle}</h3>
                 <p>{article.summary}</p>
@@ -215,7 +210,7 @@ export default function Home() {
         <div className={styles.wikiFooter}>
           <div>
             <strong>{wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ منتشرشده</strong>
-            <span>از مفاهیم پایه تا دقت ساعت و شهر تولد</span>
+            <span>از مفاهیم پایه تا دقت داده‌های تولد</span>
           </div>
           <Link className={styles.secondaryButton} href="/wiki">
             مشاهدهٔ همهٔ مقاله‌ها
@@ -230,19 +225,11 @@ export default function Home() {
           <p>اطلاعات تولد را وارد کن، گزارش فارسی را ببین و بعد با کمک ویکی بخش‌های مختلف آن را دقیق‌تر بخوان.</p>
         </div>
         <div className={styles.finalCtaActions}>
-          <Link className={styles.secondaryButton} href="/reports">
-            گزارش‌های من
+          <Link className={styles.secondaryButton} href="/chart">
+            ساخت چارت تولد
           </Link>
         </div>
       </section>
-
-      <aside className={styles.homeDisclaimer} aria-labelledby="home-disclaimer-title">
-        <strong id="home-disclaimer-title">یک یادآوری آرام</strong>
-        <p>
-          خوانش‌های هالیوس برای الهام و تأمل‌اند، نه پیش‌گویی یا حکم قطعی؛ اینکه چه
-          برداشتی از آن‌ها می‌گیری و چطور از آن‌ها استفاده می‌کنی، با خودِ توست.
-        </p>
-      </aside>
     </div>
   );
 }

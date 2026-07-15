@@ -5,8 +5,6 @@ const requiredFiles = [
   "lib/report-preview/homepage-report-preview.ts",
   "app/page.tsx",
   "app/globals.css",
-  "docs/HALLEUS_PROJECT_CONTEXT.md",
-  "docs/HALLEUS_IDEA_GARDEN.md",
 ];
 
 for (const file of requiredFiles) {
@@ -16,13 +14,10 @@ for (const file of requiredFiles) {
 }
 
 const read = (file) => fs.readFileSync(file, "utf8");
-
 const preview = read("components/HomepageProductProof.tsx");
 const copy = read("lib/report-preview/homepage-report-preview.ts");
 const page = read("app/page.tsx");
 const css = read("app/globals.css");
-const context = read("docs/HALLEUS_PROJECT_CONTEXT.md");
-const ideaGarden = read("docs/HALLEUS_IDEA_GARDEN.md");
 
 const mustContain = (text, token, label) => {
   if (!text.includes(token)) {
@@ -34,17 +29,15 @@ for (const token of [
   "HOME_REPORT_PREVIEW_SECTIONS",
   "HOME_REPORT_PREVIEW_LAYERS",
   "real-report-preview-shell",
-  "گزارش خودم را بساز",
+  'aria-label="نمونه کوتاه گزارش هالیوس"',
+  ".slice(0, 1)",
   "ردپای محاسبه",
 ]) {
   mustContain(preview, token, "HomepageProductProof");
 }
 
 for (const token of [
-  "سه نخ اصلی",
-  "خورشید",
-  "ماه",
-  "رایزینگ",
+  "خورشید، ماه و رایزینگ در کنار هم",
   "خانه‌ها",
   "جنبه",
   "دست‌های ماه",
@@ -64,22 +57,27 @@ for (const token of [
   mustContain(css, token, "homepage report preview CSS");
 }
 
-mustContain(page, "کتابخانه محتوای فارسی", "home page future modules");
-if (page.includes("نمونه گزارش و محتوای فارسی")) {
-  throw new Error("Homepage still treats report preview as a future module.");
-}
+mustContain(page, "HomepageProductProof", "home page report preview path");
+mustContain(page, 'id="sample-report"', "home page report preview anchor");
 
 for (const forbidden of [
+  "سه نخ اصلی چارت",
+  "سه نخ اصلی",
+  "placementها",
+  "گزارش‌های من",
+  "report-preview-card-head",
+  "report-preview-actions",
+  "فصل اول گزارش",
   "Source keys:",
   "Halleus engine preview",
   "این صفحه برای تست محصولی است",
 ]) {
   if (preview.includes(forbidden) || copy.includes(forbidden) || page.includes(forbidden)) {
-    throw new Error(`Homepage preview leaked internal/demo wording: ${forbidden}`);
+    throw new Error(`Homepage preview contains removed or internal wording: ${forbidden}`);
   }
 }
 
-mustContain(context, "v0.1.175", "project context");
-mustContain(ideaGarden, "v0.1.175", "idea garden");
-
 console.log("Real report preview homepage check passed.");
+console.log("- the sample follows the current homepage render path and report structure");
+console.log("- Persian chart-position wording replaces hybrid or machine-like copy");
+console.log("- duplicate sample CTAs and internal chapter markers stay outside the compact proof block");

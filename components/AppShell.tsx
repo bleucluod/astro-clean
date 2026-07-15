@@ -70,7 +70,7 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <span>© {new Date().getFullYear().toLocaleString("fa-IR")} هالیوس</span>
+          <span>© {new Date().getFullYear().toLocaleString("fa-IR", { useGrouping: false })} هالیوس</span>
           <span>برای خودشناسی نمادین، نه تصمیم‌گیری قطعی</span>
           <AnalyticsPreferencesLink />
         </div>
