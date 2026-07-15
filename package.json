@@ -76,6 +76,7 @@
     "check:chart-page-product-polish": "node scripts/check-chart-page-product-polish.mjs",
     "check:site-chrome-minimal-ui": "node scripts/check-site-chrome-minimal-ui.mjs",
     "check:real-chart-wheel-structure": "node scripts/check-real-chart-wheel-structure.mjs",
+    "check:report-birth-chart-wheel": "node scripts/check-report-birth-chart-wheel.mjs",
     "check:natal-accuracy-hardening": "node scripts/check-natal-accuracy-hardening.mjs",
     "check:full-report-product-polish": "node scripts/check-full-report-product-polish.mjs",
     "check:special-points-real-source": "node scripts/check-special-points-real-source.mjs",
@@ -169,6 +170,7 @@
     "check:live-report-reading-contract": "node scripts/check-live-report-reading-contract.mjs"
   },
   "dependencies": {
+    "@astrodraw/astrochart": "3.0.2",
     "@supabase/supabase-js": "^2.110.0",
     "astronomy-engine": "2.1.19",
     "next": "16.2.9",

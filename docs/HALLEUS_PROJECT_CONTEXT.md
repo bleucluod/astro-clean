@@ -2701,3 +2701,11 @@ Required checks:
 - The guard protects server-rendered H1/content contracts, real Wiki href contracts, static Wiki article generation, and the existing report-submit loading state.
 - The apply batch must run the source guard, existing Wiki SEO guard, report-flow guard, encoding, diff check, production build, and built-HTML smoke for /, /wiki, and one real article.
 - Do not change report engine, auth, schema, storage, analytics, sitemap, metadata, report visibility, or the public/private consent model in this batch.
+
+## v0.1.323 report birth-chart wheel adapter scope
+
+- The live report detail uses `@astrodraw/astrochart` 3.0.2 as a client-only SVG renderer through a typed adapter over the stored `realEngine` snapshot.
+- The adapter copies the ten major planetary longitudes, twelve stored house cusp longitudes, and existing report aspects; it performs no astronomical or aspect calculation. AstroChart receives existing Halleus aspects only through its custom-aspect drawing input.
+- The report wheel excludes technical special points by a fixed ten-planet allowlist and has Persian partial/unavailable states for old or incomplete reports.
+- Report detail renders the wheel once in a featured card directly after the report summary, while the Persian reading remains the primary content sequence and technical tables remain available below.
+- The exact MIT renderer dependency and lockfile entry are the only dependency changes. No engine, report writer, transit, Sky Pulse, SEO, privacy, storage, or deployment change belongs in this batch.

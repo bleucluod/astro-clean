@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
-import { RealChartWheel } from "@/components/RealChartWheel";
+import { ReportBirthChartWheel } from "@/components/ReportBirthChartWheel";
 import { ReportDetailFactsPanel } from "@/components/ReportDetailFactsPanel";
 import { ReportPlanetPlacementSections } from "@/components/ReportPlanetPlacementSections";
 import { ReportAspectRelationshipSections } from "@/components/ReportAspectRelationshipSections";
@@ -900,7 +900,6 @@ export function ReportDetail({
   const stats = useMemo(() => (report ? buildReportReadingStats(report) : null), [report]);
   const placements = report?.realEngine?.placements ?? [];
   const aspects = report?.realEngine?.aspects ?? [];
-  const aspectHighlights = report?.realEngine?.aspectHighlights ?? aspects.slice(0, 6);
   const houses = report?.realEngine?.houses ?? [];
   const angles = report ? buildAngleRows(report) : [];
   const lunarNodes = report ? buildLunarNodeRows(report) : [];
@@ -960,7 +959,10 @@ export function ReportDetail({
         </Link>
       </div>
 
-      <section className="card report-detail-hero-simple" aria-labelledby="report-detail-title">
+      <section
+        className="card report-detail-hero-simple report-detail-hero-summary"
+        aria-labelledby="report-detail-title"
+      >
         <article className="report-detail-birth-card">
           <span className="section-label">اطلاعات تولد</span>
           <div className="report-detail-key-value-list">
@@ -980,30 +982,19 @@ export function ReportDetail({
           </div>
           <h1 id="report-detail-title">{getReportTitle(report)}</h1>
         </div>
-
-        <article className="report-detail-chart-card" id="chart-wheel">
-          <span className="section-label">چرخ چارت</span>
-          {report.realEngine ? (
-            <div className="report-detail-chart-frame report-detail-chart-frame-hero">
-              <RealChartWheel
-                placements={placements}
-                ascendantLongitude={report.realEngine.ascendantLongitude}
-                houses={report.realEngine.houses}
-                angles={report.realEngine.angles}
-                aspects={aspectHighlights.slice(0, 8)}
-                retrogradePlanetIds={retrogradePlanetIds}
-                houseSystem={report.realEngine.houseSystem}
-                houseAvailability={report.realEngine.houseContext?.availability}
-                houseUnavailableReason={report.realEngine.houseContext?.unavailableReason}
-              />
-            </div>
-          ) : (
-            <div className="report-detail-chart-placeholder">
-              چرخ چارت برای این گزارش کامل در دسترس نیست.
-            </div>
-          )}
-        </article>
       </section>
+
+      <article
+        className="report-detail-chart-card report-detail-chart-card-featured"
+        id="chart-wheel"
+      >
+        <div
+          className="w-full max-w-[760px] justify-self-center"
+          data-report-birth-chart-wheel-shell="featured-auto-height"
+        >
+          <ReportBirthChartWheel report={report} />
+        </div>
+      </article>
 
       <nav className="report-detail-section-chips" aria-label="دسترسی سریع بخش‌های گزارش">
         <div className="report-detail-section-chip-scroll">
@@ -1176,23 +1167,6 @@ export function ReportDetail({
 
         {report.realEngine ? (
           <div className="report-detail-technical-stack">
-            <article className="report-detail-technical-card">
-              <h3>چرخ چارت</h3>
-              <div className="report-detail-chart-frame report-detail-chart-frame-wide">
-                <RealChartWheel
-                  placements={placements}
-                  ascendantLongitude={report.realEngine.ascendantLongitude}
-                  houses={report.realEngine.houses}
-                  angles={report.realEngine.angles}
-                  aspects={aspectHighlights.slice(0, 8)}
-                  retrogradePlanetIds={retrogradePlanetIds}
-                  houseSystem={report.realEngine.houseSystem}
-                  houseAvailability={report.realEngine.houseContext?.availability}
-                  houseUnavailableReason={report.realEngine.houseContext?.unavailableReason}
-                />
-              </div>
-            </article>
-
             <article className="report-detail-technical-card">
               <h3>پشتوانه محاسبه و داده‌های دقیق</h3>
               <div className="report-detail-key-value-list report-detail-key-value-list-compact">

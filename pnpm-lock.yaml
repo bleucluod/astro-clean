@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@astrodraw/astrochart':
+        specifier: 3.0.2
+        version: 3.0.2
       '@supabase/supabase-js':
         specifier: ^2.110.0
         version: 2.110.0
@@ -57,6 +60,9 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+
+  '@astrodraw/astrochart@3.0.2':
+    resolution: {integrity: sha512-LopHZSXjL4FZm5xLeti6kp9z+x08vte8yA+imstZu5c1XpGyU0YR7cdML56FY594AWvNfafN8fkt2YNtwo2pzQ==}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -1998,6 +2004,8 @@ packages:
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
+
+  '@astrodraw/astrochart@3.0.2': {}
 
   '@babel/code-frame@7.29.7':
     dependencies:

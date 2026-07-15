@@ -2050,3 +2050,11 @@ Decision:
 - Preserve report-generation progress shown only after a user submits the birth form.
 - Keep the current report noindex policy and the deferred public-report/public-profile consent model unchanged.
 - Future public/indexable report or profile routes must follow the same initial-HTML crawlability boundary when those models are explicitly implemented.
+
+## v0.1.323 Report birth-chart wheel boundary
+
+- Accepted: report detail should show one genuine natal chart wheel built only from the planetary longitudes and house cusps already stored by Halleus.
+- `@astrodraw/astrochart` 3.0.2 is accepted only as the client-side SVG renderer; it must not become a calculation source or replace Halleus planet, house, angle, retrograde, or aspect data.
+- First pass is limited to Sun through Pluto. Technical special points, transit overlays, Sky Pulse, synastry, compatibility, and unrelated divination features stay outside the wheel.
+- Old or incomplete reports receive a calm Persian fallback and must keep their text report readable.
+- Keep the report narrative central and preserve report noindex/privacy policy. The renderer stays pinned to the verified MIT, dependency-free 3.0.2 release and is loaded only after client mount because its published bundle is browser-oriented.
