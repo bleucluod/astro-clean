@@ -136,7 +136,7 @@ const birthButtons = chartFields
         tagNameText(node.openingElement.tagName) === "button" &&
         node
           .getText(file)
-          .includes('updateField("birthCity", city.faName)'),
+          .includes("selectBirthCity(city)"),
     )
   : [];
 
@@ -148,7 +148,7 @@ const currentButtons = chartFields
         tagNameText(node.openingElement.tagName) === "button" &&
         node
           .getText(file)
-          .includes("updateCurrentResidenceCity(city.faName)"),
+          .includes("selectCurrentResidenceCity(city)"),
     )
   : [];
 
@@ -167,21 +167,21 @@ for (const [label, nodes] of [
 
   if (
     getLiteralAttribute(nodeOpening, "className") !==
-      "city-suggestion-chip" ||
-    !getAttribute(nodeOpening, "data-selected") ||
-    !getAttribute(nodeOpening, "aria-pressed")
+      "city-suggestion-chip"
   ) {
     failures.push(
-      `${label} suggestion button lacks class, selected data, or aria-pressed.`,
+      `${label} suggestion button lacks the shared suggestion class.`,
     );
   }
 }
 
 for (const marker of [
-  "function isSelectedCityValue(",
-  "isSelectedCityValue(form.birthCity, city)",
-  "isSelectedCityValue(currentResidenceCity, city)",
-  "makeFaLabel([1576,1585,1575,1740,32,1605,1581,1575,1587,1576,1607,8204,1740,32,1578,1585,1606,1586,1740,1578,32,1585,1608,1586,1575,1606,1607,1548,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,32,1608,32,1575,1586,32,1662,1740,1588,1606,1607,1575,1583,1607,1575,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46])",
+  "selectedBirthCityId",
+  "selectedCurrentResidenceCityId",
+  "setSelectedBirthCityId(city.id)",
+  "setSelectedCurrentResidenceCityId(city.id)",
+  "updateField(\"birthCity\", getIranCityDisplayName(city))",
+  "setCurrentResidenceCity(getIranCityDisplayName(city))",
   "currentResidenceCity: selectedCurrentResidenceCity.faName",
   "currentResidenceLatitude: selectedCurrentResidenceCity.latitude",
   "currentResidenceLongitude: selectedCurrentResidenceCity.longitude",
@@ -198,6 +198,8 @@ for (const marker of [
 for (const forbidden of [
   'className="chart-field chart-field-full chart-city-field"',
   'className="form-field"',
+  "birth-city-hint",
+  "current-residence-city-hint",
 ]) {
   if (chartSource.includes(forbidden)) {
     failures.push(`ChartForm retains old city layout marker: ${forbidden}`);
@@ -208,7 +210,7 @@ for (const marker of [
   "/* v0.1.301 chart city pair UX */",
   ":global(.chart-form-fields)",
   ":global(.chart-city-card)",
-  ':global(.city-suggestion-chip[data-selected="true"])',
+  "align-self: stretch",
   "grid-template-columns: repeat(2, minmax(0, 1fr))",
   "@media (max-width: 760px)",
 ]) {
@@ -229,6 +231,5 @@ if (failures.length > 0) {
 
 console.log("Chart city-pair UX check passed.");
 console.log("- birth city and current residence share the desktop grid");
-console.log("- current residence explains daily transit usage");
-console.log("- selected suggestions have visual and accessible state");
+console.log("- a selected city prints its full city/province label and closes suggestions");
 console.log("- transit payload, submit flow, and account panel are preserved");

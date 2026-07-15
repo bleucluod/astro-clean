@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
-import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import { createMockReport } from "@/lib/astrology/mock-engine";
@@ -53,6 +51,33 @@ const JALALI_YEAR_OPTIONS = Array.from({ length: 101 }, (_, index) =>
   String(1405 - index),
 );
 
+const GREGORIAN_MONTH_OPTIONS = [
+  { value: "01", label: "ژانویه" },
+  { value: "02", label: "فوریه" },
+  { value: "03", label: "مارس" },
+  { value: "04", label: "آوریل" },
+  { value: "05", label: "مه" },
+  { value: "06", label: "ژوئن" },
+  { value: "07", label: "ژوئیه" },
+  { value: "08", label: "اوت" },
+  { value: "09", label: "سپتامبر" },
+  { value: "10", label: "اکتبر" },
+  { value: "11", label: "نوامبر" },
+  { value: "12", label: "دسامبر" },
+];
+
+const GREGORIAN_YEAR_OPTIONS = Array.from({ length: 121 }, (_, index) =>
+  String(2026 - index),
+);
+
+const TIME_HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) =>
+  String(index).padStart(2, "0"),
+);
+
+const TIME_MINUTE_OPTIONS = Array.from({ length: 60 }, (_, index) =>
+  String(index).padStart(2, "0"),
+);
+
 const UNKNOWN_BIRTH_TIME = "12:00";
 const MAX_CITY_SUGGESTIONS = 5;
 
@@ -65,10 +90,20 @@ type JalaliBirthDateParts = {
   day: string;
 };
 
+type BirthTimeParts = {
+  hour: string;
+  minute: string;
+};
+
 const initialJalaliBirthDateParts: JalaliBirthDateParts = {
   year: "",
   month: "",
   day: "",
+};
+
+const initialBirthTimeParts: BirthTimeParts = {
+  hour: "",
+  minute: "",
 };
 
 type IranCityOption = (typeof IRAN_CITY_OPTIONS)[number];
@@ -130,7 +165,6 @@ function makeFaLabel(codes: number[]) {
 const CURRENT_RESIDENCE_LABEL = makeFaLabel([1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
 const CURRENT_RESIDENCE_PLACEHOLDER = makeFaLabel([1606,1575,1605,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,1740,1583]);
 const CURRENT_RESIDENCE_SUGGESTIONS_LABEL = makeFaLabel([1662,1740,1588,1606,1607,1575,1583,1607,1575,1740,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
-const CURRENT_RESIDENCE_HINT = makeFaLabel([1576,1585,1575,1740,32,1605,1581,1575,1587,1576,1607,8204,1740,32,1578,1585,1606,1586,1740,1578,32,1585,1608,1586,1575,1606,1607,1548,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,32,1608,32,1575,1586,32,1662,1740,1588,1606,1607,1575,1583,1607,1575,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
 const CURRENT_RESIDENCE_NOT_FOUND_MESSAGE = makeFaLabel([1601,1593,1604,1575,1611,32,1575,1740,1606,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1583,1585,32,1601,1607,1585,1587,1578,32,1575,1740,1585,1575,1606,32,1662,1740,1583,1575,32,1606,1588,1583,46]);
 const CURRENT_RESIDENCE_REQUIRED_MESSAGE = makeFaLabel([1576,1585,1575,1740,32,1570,1587,1605,1575,1606,32,1575,1605,1585,1608,1586,1548,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1607,1605,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
 
@@ -146,26 +180,25 @@ function isGregorianDateInput(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+function getSelectedGregorianDateInput(parts: JalaliBirthDateParts) {
+  if (!parts.year || !parts.month || !parts.day) {
+    return "";
+  }
+
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function getGregorianDayCount(year: string, month: string) {
+  if (!year || !month) {
+    return 31;
+  }
+
+  return new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
+}
+
 function normalizeCitySearch(value: string) {
   return value.trim().toLocaleLowerCase("fa-IR");
 }
-function isSelectedCityValue(
-  value: string,
-  city: IranCityOption,
-) {
-  const normalizedValue = normalizeCitySearch(value);
-
-  if (!normalizedValue) {
-    return false;
-  }
-
-  return (
-    normalizedValue === normalizeCitySearch(city.faName) ||
-    normalizedValue ===
-      normalizeCitySearch(getIranCityDisplayName(city))
-  );
-}
-
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
@@ -199,17 +232,28 @@ export function ChartForm() {
   const [birthDateParts, setBirthDateParts] = useState<JalaliBirthDateParts>(
     initialJalaliBirthDateParts,
   );
-  const [gregorianBirthDate, setGregorianBirthDate] = useState("");
+  const [gregorianBirthDateParts, setGregorianBirthDateParts] =
+    useState<JalaliBirthDateParts>(initialJalaliBirthDateParts);
   const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>("known");
+  const [birthTimeParts, setBirthTimeParts] =
+    useState<BirthTimeParts>(initialBirthTimeParts);
+  const [showAccountPanel, setShowAccountPanel] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =
     useState<RealEngineRequestState>(initialRealEngineRequest);
 
   const [currentResidenceCity, setCurrentResidenceCity] = useState("");
+  const [selectedBirthCityId, setSelectedBirthCityId] = useState("");
+  const [selectedCurrentResidenceCityId, setSelectedCurrentResidenceCityId] =
+    useState("");
 
   const isRealEngineLoading = realEngineRequest.status === "loading";
 
   const citySuggestions = useMemo(() => {
+    if (selectedBirthCityId) {
+      return [];
+    }
+
     const query = normalizeCitySearch(form.birthCity);
 
     if (!query) {
@@ -222,9 +266,13 @@ export function ChartForm() {
 
       return cityName.includes(query) || cityDisplayName.includes(query);
     }).slice(0, MAX_CITY_SUGGESTIONS);
-  }, [form.birthCity]);
+  }, [form.birthCity, selectedBirthCityId]);
 
   const currentResidenceSuggestions = useMemo(() => {
+    if (selectedCurrentResidenceCityId) {
+      return [];
+    }
+
     const query = normalizeCitySearch(currentResidenceCity);
 
     if (!query) {
@@ -237,10 +285,40 @@ export function ChartForm() {
 
       return cityName.includes(query) || cityDisplayName.includes(query);
     }).slice(0, MAX_CITY_SUGGESTIONS);
-  }, [currentResidenceCity]);
+  }, [currentResidenceCity, selectedCurrentResidenceCityId]);
+
+  const gregorianDayOptions = useMemo(
+    () =>
+      Array.from(
+        {
+          length: getGregorianDayCount(
+            gregorianBirthDateParts.year,
+            gregorianBirthDateParts.month,
+          ),
+        },
+        (_, index) => String(index + 1).padStart(2, "0"),
+      ),
+    [gregorianBirthDateParts.month, gregorianBirthDateParts.year],
+  );
 
   function updateCurrentResidenceCity(value: string) {
+    setSelectedCurrentResidenceCityId("");
     setCurrentResidenceCity(value);
+  }
+
+  function selectCurrentResidenceCity(city: IranCityOption) {
+    setSelectedCurrentResidenceCityId(city.id);
+    setCurrentResidenceCity(getIranCityDisplayName(city));
+  }
+
+  function updateBirthCity(value: string) {
+    setSelectedBirthCityId("");
+    updateField("birthCity", value);
+  }
+
+  function selectBirthCity(city: IranCityOption) {
+    setSelectedBirthCityId(city.id);
+    updateField("birthCity", getIranCityDisplayName(city));
   }
 
   function updateField(field: keyof BirthInput, value: string) {
@@ -265,15 +343,37 @@ export function ChartForm() {
     updateField("birthDate", "");
   }
 
-  function updateGregorianBirthDate(value: string) {
-    setGregorianBirthDate(value);
-    updateField("birthDate", value);
+  function updateGregorianBirthDatePart(
+    field: keyof JalaliBirthDateParts,
+    value: string,
+  ) {
+    setGregorianBirthDateParts((current) => {
+      const next = { ...current, [field]: value };
+      const dayCount = getGregorianDayCount(next.year, next.month);
+
+      if (next.day && Number(next.day) > dayCount) {
+        next.day = "";
+      }
+
+      return next;
+    });
+    updateField("birthDate", "");
+  }
+
+  function updateBirthTimePart(field: keyof BirthTimeParts, value: string) {
+    const next = { ...birthTimeParts, [field]: value };
+    setBirthTimeParts(next);
+    updateField(
+      "birthTime",
+      next.hour && next.minute ? `${next.hour}:${next.minute}` : "",
+    );
   }
 
   function updateBirthTimeMode(nextMode: BirthTimeMode) {
     setBirthTimeMode(nextMode);
 
     if (nextMode === "unknown") {
+      setBirthTimeParts(initialBirthTimeParts);
       updateField("birthTime", "");
     }
   }
@@ -296,7 +396,9 @@ export function ChartForm() {
 
       normalizedBirthDate = parsedBirthDate.gregorianIso;
     } else {
-      const selectedGregorianBirthDate = gregorianBirthDate.trim();
+      const selectedGregorianBirthDate = getSelectedGregorianDateInput(
+        gregorianBirthDateParts,
+      );
 
       if (!selectedGregorianBirthDate) {
         throw new Error("تاریخ میلادی تولد را وارد کن.");
@@ -315,7 +417,9 @@ export function ChartForm() {
       throw new Error("نام شهر تولد را وارد کن و از پیشنهادها انتخاب کن.");
     }
 
-    const selectedCity = findIranCityByName(normalizedCityName);
+    const selectedCity =
+      IRAN_CITY_OPTIONS.find((city) => city.id === selectedBirthCityId) ??
+      findIranCityByName(normalizedCityName);
 
     if (!selectedCity) {
       throw new Error("فعلاً این شهر در فهرست ایران پیدا نشد. نزدیک‌ترین شهر پیشنهادی را انتخاب کن.");
@@ -327,9 +431,10 @@ export function ChartForm() {
       throw new Error(CURRENT_RESIDENCE_REQUIRED_MESSAGE);
     }
 
-    const selectedCurrentResidenceCity = findIranCityByName(
-      normalizedCurrentResidenceCityName,
-    );
+    const selectedCurrentResidenceCity =
+      IRAN_CITY_OPTIONS.find(
+        (city) => city.id === selectedCurrentResidenceCityId,
+      ) ?? findIranCityByName(normalizedCurrentResidenceCityName);
 
     if (!selectedCurrentResidenceCity) {
       throw new Error(CURRENT_RESIDENCE_NOT_FOUND_MESSAGE);
@@ -446,7 +551,7 @@ export function ChartForm() {
         message:
           error instanceof Error
             ? error.message
-            : "اطلاعات تولد برای ساخت گزارش کامل نیست.",
+            : "چند ورودی لازم برای ساخت گزارش کامل نیست.",
       });
       return;
     }
@@ -501,42 +606,14 @@ export function ChartForm() {
   }
 
   return (
-    <section className="chart-reference-page" aria-labelledby="chart-form-title">
+    <section className="chart-reference-page" aria-label="فرم ساخت چارت تولد">
       <div className="chart-reference-shell">
-        <aside className="chart-reference-visual" aria-hidden="true">
-          <div className="chart-reference-sky">
-            <span className="chart-reference-crescent">☾</span>
-            <span className="chart-reference-star chart-reference-star-a">✦</span>
-            <span className="chart-reference-star chart-reference-star-b">✧</span>
-            <span className="chart-reference-orbit chart-reference-orbit-a" />
-            <span className="chart-reference-orbit chart-reference-orbit-b" />
-            <span className="chart-reference-orbit chart-reference-orbit-c" />
-            <span className="chart-reference-sun" />
-            <span className="chart-reference-sign chart-reference-sign-a">♏</span>
-            <span className="chart-reference-sign chart-reference-sign-b">♒</span>
-            <span className="chart-reference-sign chart-reference-sign-c">♉</span>
-            <span className="chart-reference-sign chart-reference-sign-d">♋</span>
-            <span className="chart-reference-sign chart-reference-sign-e">♍</span>
-            <span className="chart-reference-sign chart-reference-sign-f">♐</span>
-          </div>
-        </aside>
-
         <div className="chart-reference-content">
-          <header className="chart-reference-heading">
-            <span className="chart-reference-mobile-brand">هالیوس</span>
-            <h1 id="chart-form-title">اطلاعات تولد</h1>
-            <p>ورودی‌های اصلی</p>
-            <span className="chart-heading-separator" aria-hidden="true">
-              ✦
-            </span>
-          </header>
-
-          <div className="chart-reference-note">
-            <SafetyDisclaimer compact />
-          </div>
-
-
-          <form className="chart-reference-form" onSubmit={handleSubmit}>
+          <form
+            className="chart-reference-form"
+            id="chart-birth-data-form"
+            onSubmit={handleSubmit}
+          >
             <div className="chart-form-fields">
               <label className="chart-field chart-field-full">
                 <span className="chart-field-label">
@@ -547,7 +624,7 @@ export function ChartForm() {
                   autoComplete="name"
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
-                  placeholder="نام یا نیک‌نیم خود را وارد کنید"
+                  placeholder="نام خود را وارد کنید"
                 />
               </label>
 
@@ -651,13 +728,68 @@ export function ChartForm() {
                     </label>
                   </div>
                 ) : (
-                  <input
-                    required
-                    type="date"
-                    value={gregorianBirthDate}
-                    onChange={(event) => updateGregorianBirthDate(event.target.value)}
-                    aria-label="تاریخ تولد میلادی"
-                  />
+                  <div
+                    className="birth-date-picker-grid"
+                    role="group"
+                    aria-label="انتخاب تاریخ تولد میلادی"
+                  >
+                    <label>
+                      <span>سال</span>
+                      <select
+                        required
+                        value={gregorianBirthDateParts.year}
+                        onChange={(event) =>
+                          updateGregorianBirthDatePart("year", event.target.value)
+                        }
+                        aria-label="سال تولد میلادی"
+                      >
+                        <option value="">سال</option>
+                        {GREGORIAN_YEAR_OPTIONS.map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>ماه</span>
+                      <select
+                        required
+                        value={gregorianBirthDateParts.month}
+                        onChange={(event) =>
+                          updateGregorianBirthDatePart("month", event.target.value)
+                        }
+                        aria-label="ماه تولد میلادی"
+                      >
+                        <option value="">ماه</option>
+                        {GREGORIAN_MONTH_OPTIONS.map((month) => (
+                          <option key={month.value} value={month.value}>
+                            {month.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>روز</span>
+                      <select
+                        required
+                        value={gregorianBirthDateParts.day}
+                        onChange={(event) =>
+                          updateGregorianBirthDatePart("day", event.target.value)
+                        }
+                        aria-label="روز تولد میلادی"
+                      >
+                        <option value="">روز</option>
+                        {gregorianDayOptions.map((day) => (
+                          <option key={day} value={day}>
+                            {Number(day).toLocaleString("fa-IR")}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
                 )}
               </div>
 
@@ -668,33 +800,65 @@ export function ChartForm() {
                     ساعت تولد
                   </span>
 
-                  <button
-                    type="button"
-                    className={
-                      birthTimeMode === "unknown"
-                        ? "time-unknown-button time-unknown-inline is-active"
-                        : "time-unknown-button time-unknown-inline"
-                    }
-                    aria-pressed={birthTimeMode === "unknown"}
-                    onClick={() =>
-                      updateBirthTimeMode(
-                        birthTimeMode === "unknown" ? "known" : "unknown",
-                      )
-                    }
-                  >
-                    نمی‌دانم
-                  </button>
+                  <label className="time-unknown-choice">
+                    <input
+                      type="checkbox"
+                      checked={birthTimeMode === "unknown"}
+                      onChange={(event) =>
+                        updateBirthTimeMode(
+                          event.target.checked ? "unknown" : "known",
+                        )
+                      }
+                    />
+                    <span>ساعت تولدم را نمی‌دانم</span>
+                  </label>
                 </div>
 
-                <input
-                  className="birth-time-input"
-                  required={birthTimeMode === "known"}
-                  type="time"
-                  value={birthTimeMode === "known" ? form.birthTime : ""}
-                  disabled={birthTimeMode === "unknown"}
-                  onChange={(event) => updateField("birthTime", event.target.value)}
-                  aria-label="ساعت تولد"
-                />
+                <div
+                  className="birth-time-picker-grid"
+                  role="group"
+                  aria-label="انتخاب ساعت تولد به‌صورت ۲۴ ساعته"
+                >
+                  <label>
+                    <span>ساعت</span>
+                    <select
+                      required={birthTimeMode === "known"}
+                      disabled={birthTimeMode === "unknown"}
+                      value={birthTimeParts.hour}
+                      onChange={(event) =>
+                        updateBirthTimePart("hour", event.target.value)
+                      }
+                      aria-label="ساعت تولد از صفر تا بیست‌وسه"
+                    >
+                      <option value="">ساعت</option>
+                      {TIME_HOUR_OPTIONS.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>دقیقه</span>
+                    <select
+                      required={birthTimeMode === "known"}
+                      disabled={birthTimeMode === "unknown"}
+                      value={birthTimeParts.minute}
+                      onChange={(event) =>
+                        updateBirthTimePart("minute", event.target.value)
+                      }
+                      aria-label="دقیقه تولد"
+                    >
+                      <option value="">دقیقه</option>
+                      {TIME_MINUTE_OPTIONS.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
 
                 {birthTimeMode === "unknown" ? (
                   <small className="field-hint">
@@ -713,94 +877,94 @@ export function ChartForm() {
                     required
                     autoComplete="address-level2"
                     value={form.birthCity}
-                    onChange={(event) => updateField("birthCity", event.target.value)}
+                    onChange={(event) => updateBirthCity(event.target.value)}
                     placeholder="نام شهر تولد را وارد کنید"
-                    aria-describedby="birth-city-hint"
                   />
                 </label>
 
-                <small id="birth-city-hint" className="field-hint">
-                  نام شهر تولد را وارد کنید و از گزینه‌ها انتخاب کنید. اگر شهر شما در فهرست نیست، نزدیک‌ترین شهر را انتخاب کنید.
-                </small>
-
-                <div
-                  className={
-                    citySuggestions.length > 0
-                      ? "city-suggestion-chips has-suggestions"
-                      : "city-suggestion-chips"
-                  }
-                  aria-label="پیشنهادهای شهر تولد"
-                >
-                  {citySuggestions.map((city) => (
-                    <button
-                      key={city.id}
-                      type="button"
-                      className="city-suggestion-chip"
-                      onClick={() => updateField("birthCity", city.faName)}
-                      data-selected={isSelectedCityValue(form.birthCity, city)}
-                      aria-pressed={isSelectedCityValue(form.birthCity, city)}
-                    >
-                      {getIranCityDisplayName(city)}
-                    </button>
-                  ))}
-                </div>
+                {citySuggestions.length > 0 ? (
+                  <div
+                    className="city-suggestion-chips has-suggestions"
+                    aria-label="پیشنهادهای شهر تولد"
+                  >
+                    {citySuggestions.map((city) => (
+                      <button
+                        key={city.id}
+                        type="button"
+                        className="city-suggestion-chip"
+                        onClick={() => selectBirthCity(city)}
+                      >
+                        {getIranCityDisplayName(city)}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
-            <div className="chart-field chart-city-field chart-city-card">
-            <label className="chart-city-label">
-              <span>{CURRENT_RESIDENCE_LABEL}</span>
+              <div className="chart-field chart-city-field chart-city-card">
+                <label className="chart-city-label">
+                  <span className="chart-field-label">
+                    <span aria-hidden="true">⌖</span>
+                    {CURRENT_RESIDENCE_LABEL}
+                  </span>
+                  <input
+                    value={currentResidenceCity}
+                    onChange={(event) =>
+                      updateCurrentResidenceCity(event.target.value)
+                    }
+                    placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
+                  />
+                </label>
+
+                {currentResidenceSuggestions.length > 0 ? (
+                  <div
+                    className="city-suggestion-chips has-suggestions"
+                    aria-label={CURRENT_RESIDENCE_SUGGESTIONS_LABEL}
+                  >
+                    {currentResidenceSuggestions.map((city) => (
+                      <button
+                        key={city.id}
+                        type="button"
+                        onClick={() => selectCurrentResidenceCity(city)}
+                        className="city-suggestion-chip"
+                      >
+                        {getIranCityDisplayName(city)}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </form>
+
+          <div className="chart-account-option">
+            <label className="chart-account-option-toggle">
               <input
-                value={currentResidenceCity}
-                onChange={(event) => updateCurrentResidenceCity(event.target.value)}
-                placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
-                aria-describedby="current-residence-city-hint"
+                type="checkbox"
+                checked={showAccountPanel}
+                onChange={(event) => setShowAccountPanel(event.target.checked)}
               />
-              <small id="current-residence-city-hint" className="field-hint">
-                {CURRENT_RESIDENCE_HINT}
-              </small>
+              <span className="chart-account-option-copy">
+                <strong>گزارشم را در حساب هالیوس نگه دار</strong>
+              </span>
             </label>
 
-            <div
-              className={
-                currentResidenceSuggestions.length > 0
-                  ? "city-suggestion-chips has-suggestions"
-                  : "city-suggestion-chips"
-              }
-              aria-label={CURRENT_RESIDENCE_SUGGESTIONS_LABEL}
+            {showAccountPanel ? <SupabaseAuthPanel compact /> : null}
+          </div>
+
+          <div className="chart-form-actions">
+            <button
+              className="button chart-submit-button"
+              type="submit"
+              form="chart-birth-data-form"
+              disabled={isRealEngineLoading}
             >
-              {currentResidenceSuggestions.map((city) => (
-                <button
-                  key={city.id}
-                  type="button"
-                  onClick={() => updateCurrentResidenceCity(city.faName)}
-                  className="city-suggestion-chip"
-                  data-selected={
-                    isSelectedCityValue(currentResidenceCity, city)
-                  }
-                  aria-pressed={
-                    isSelectedCityValue(currentResidenceCity, city)
-                  }
-                >
-                  {getIranCityDisplayName(city)}
-                </button>
-              ))}
-            </div>
-            </div>
-            </div>
+              <span aria-hidden="true">✦</span>
+              {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت گزارش"}
+            </button>
+          </div>
 
-            <div className="chart-form-actions">
-              <button className="button chart-submit-button" type="submit" disabled={isRealEngineLoading}>
-                <span aria-hidden="true">✦</span>
-                {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت گزارش"}
-              </button>
-
-              <Link className="button secondary chart-reports-link" href="/reports">
-                <span aria-hidden="true">▤</span>
-                گزارش‌ها
-              </Link>
-            </div>
-
-            {realEngineRequest.status !== "idle" ? (
+          {realEngineRequest.status !== "idle" ? (
               <div
                 className={
                   realEngineRequest.status === "error"
@@ -815,16 +979,14 @@ export function ChartForm() {
                 </strong>
                 <span>{realEngineRequest.message}</span>
               </div>
-            ) : null}
+          ) : null}
 
-            {saveMessage ? (
-              <div className="chart-form-status is-success" role="status" aria-live="polite">
-                <strong>گزارش آماده شد</strong>
-                <span>{saveMessage}</span>
-              </div>
-            ) : null}
-          </form>
-          <SupabaseAuthPanel compact />
+          {saveMessage ? (
+            <div className="chart-form-status is-success" role="status" aria-live="polite">
+              <strong>گزارش آماده شد</strong>
+              <span>{saveMessage}</span>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

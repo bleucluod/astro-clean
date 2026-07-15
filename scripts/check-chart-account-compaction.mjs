@@ -10,10 +10,12 @@ const failures = [];
 const chartFormPath = "components/ChartForm.tsx";
 const authPanelPath = "components/SupabaseAuthPanel.tsx";
 const cssPath = "app/chart/chart-shell.module.css";
+const globalCssPath = "app/globals.css";
 
 const chartFormSource = readFileSync(chartFormPath, "utf8");
 const authPanelSource = readFileSync(authPanelPath, "utf8");
 const cssSource = readFileSync(cssPath, "utf8");
+const globalCssSource = readFileSync(globalCssPath, "utf8");
 
 function parseTsx(path, source) {
   return ts.createSourceFile(
@@ -168,6 +170,8 @@ for (const removedCopy of [
 
 for (const preservedChartMarker of [
   "currentResidenceSuggestions.map",
+  "showAccountPanel",
+  "گزارشم را در حساب هالیوس نگه دار",
   'className="chart-form-actions"',
   "saveGeneratedReportWithAccountFallback(nextReport)",
   "router.push(",
@@ -222,10 +226,19 @@ for (const compactMarker of [
   'className="chart-account-compact is-loading"',
   'className="chart-account-compact is-signed-in"',
   "سلام، {formatUserLabel(session)}",
-  "با ثبت‌نام، گزارش‌هایت برای همیشه در حسابت ذخیره می‌شوند.",
-  '<details className="chart-account-disclosure">',
-  "<summary>ورود یا ثبت‌نام</summary>",
+  "ورود یا ثبت‌نام سریع؛ بعداً راحت به گزارش‌هایت برگرد.",
+  '<div className="chart-account-disclosure">',
   'className="form-grid chart-account-form"',
+  'className="auth-mode-tabs"',
+  'role="tablist"',
+  'aria-selected={mode === "sign-in"}',
+  'aria-selected={mode === "sign-up"}',
+  "ثبت‌نام سریع",
+  'selectMode("sign-in")',
+  'selectMode("sign-up")',
+  "buildIranPhoneNumber(phone)",
+  'className="phone-country-input"',
+  '<span title="کد کشور ایران">+98</span>',
 ]) {
   if (!authPanelSource.includes(compactMarker)) {
     failures.push(
@@ -235,6 +248,7 @@ for (const compactMarker of [
 }
 
 for (const authBehaviorMarker of [
+  'useState<AuthMode>("sign-in")',
   "const authClient = client;",
   "authClient.auth.getSession",
   "authClient.auth.onAuthStateChange",
@@ -254,6 +268,16 @@ for (const authBehaviorMarker of [
     failures.push(
       `SupabaseAuthPanel lost auth behavior/default surface: ${authBehaviorMarker}`,
     );
+  }
+}
+
+for (const tabCssMarker of [
+  ".auth-mode-tabs {",
+  ".auth-mode-tabs button {",
+  ".auth-mode-tabs button.is-active {",
+]) {
+  if (!globalCssSource.includes(tabCssMarker)) {
+    failures.push(`Global CSS missing in-place auth tab marker: ${tabCssMarker}`);
   }
 }
 
@@ -277,12 +301,29 @@ if (!compactBranch) {
   failures.push("Could not isolate the compact chart-account branch.");
 }
 
+const compactPrimaryActionCount =
+  compactBranch.match(/className="button"/gu)?.length ?? 0;
+
+if (compactPrimaryActionCount !== 1) {
+  failures.push(
+    `Compact guest auth must render one primary action; found ${compactPrimaryActionCount}.`,
+  );
+}
+
 for (const forbiddenCompactMarker of [
   "handleSignOut",
   "profile-grid",
   "home-step-list",
   "ساخت گزارش جدید",
   "دیدن گزارش‌ها",
+  '<summary>',
+  'className="button secondary"',
+  'placeholder="halleus-name"',
+  'placeholder="حداقل ۶ کاراکتر"',
+  'className="auth-mode-switch"',
+  "حساب ندارید؟ ثبت‌نام کنید",
+  "قبلاً حساب ساخته‌اید؟ وارد شوید",
+  "برای ساخت حساب، نام کاربری یکتا، شماره موبایل و رمز لازم است. ایمیل اختیاری است.",
 ]) {
   if (compactBranch.includes(forbiddenCompactMarker)) {
     failures.push(
@@ -321,6 +362,6 @@ if (failures.length > 0) {
 }
 
 console.log("Chart account compaction check passed.");
-console.log("- compact panel is after the closed birth-data form");
-console.log("- guest UI is collapsed and signed-in UI is greeting-only");
+console.log("- the opt-in compact panel is after the closed birth-data form and before submit");
+console.log("- checking the account option opens guest auth while signed-in UI stays greeting-only");
 console.log("- exact live auth/session behavior markers remain present");

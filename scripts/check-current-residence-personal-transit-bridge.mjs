@@ -73,7 +73,7 @@ for (const marker of [
   "currentResidenceLatitude: normalizedForm.currentResidenceLatitude",
   "currentResidenceLongitude: normalizedForm.currentResidenceLongitude",
   "currentResidenceTimezone: normalizedForm.currentResidenceTimezone",
-  "current-residence-city-hint",
+  "selectCurrentResidenceCity(city)",
   "personalTransitReportData: engineData.personalTransitReportData ?? null",
 ]) {
   assert(chartForm.includes(marker), `ChartForm missing currentResidence bridge marker: ${marker}`);

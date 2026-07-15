@@ -61,6 +61,7 @@
     "check:real-chart-product-ui": "node scripts/check-real-chart-product-ui.mjs",
     "check:real-chart-aspect-panel": "node scripts/check-real-chart-aspect-panel.mjs",
     "check:public-chart-shell-restored": "node scripts/check-public-chart-shell-restored.mjs",
+    "check:chart-seo-landing": "node scripts/check-chart-seo-landing.mjs",
     "check:chart-form-real-engine-bridge": "node scripts/check-chart-form-real-engine-bridge.mjs",
     "check:real-report-save-flow": "node scripts/check-real-report-save-flow.mjs",
     "check:real-engine-report-writer": "node scripts/check-real-engine-report-writer.mjs",

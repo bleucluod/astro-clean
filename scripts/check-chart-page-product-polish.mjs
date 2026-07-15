@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 const failures = [];
 const chartPage = readFileSync("app/chart/page.tsx", "utf8");
+const chartLayout = readFileSync("app/chart/layout.tsx", "utf8");
 const chartForm = readFileSync("components/ChartForm.tsx", "utf8");
 const css = readFileSync("app/globals.css", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
@@ -9,7 +10,7 @@ const checkProject = packageJson.scripts?.["check:project"] ?? "";
 
 for (const marker of [
   "return <ChartForm />",
-  "صفحه شروع ساخت گزارش تولد",
+  "ساخت چارت تولد رایگان",
 ]) {
   if (!chartPage.includes(marker)) {
     failures.push("Chart page missing product polish marker: " + marker);
@@ -17,18 +18,26 @@ for (const marker of [
 }
 
 for (const marker of [
-  "اطلاعات تولد",
-  "ورودی‌های اصلی",
-  "نام یا نیک‌نیم خود را وارد کنید",
+  'data-chart-seo-landing="transactional-birth-chart"',
+  "<h1 className={styles.title}>ساخت چارت تولد و گزارش تولد فارسی</h1>",
+  'data-chart-seo-education="wiki-guides"',
+]) {
+  if (!chartLayout.includes(marker)) {
+    failures.push("Chart layout missing SEO landing marker: " + marker);
+  }
+}
+
+for (const marker of [
+  "نام خود را وارد کنید",
   "تاریخ تولد",
   "شمسی",
   "میلادی",
   "ساعت تولد",
-  "نمی‌دانم",
+  "ساعت تولدم را نمی‌دانم",
   "اگر ساعت دقیق را نمی‌دانی",
   "نام شهر تولد را وارد کنید",
-  "اگر شهر شما در فهرست نیست، نزدیک‌ترین شهر را انتخاب کنید",
   "پیشنهادهای شهر تولد",
+  "گزارشم را در حساب هالیوس نگه دار",
   "ساخت گزارش",
 ]) {
   if (!chartForm.includes(marker)) {
@@ -66,6 +75,10 @@ for (const marker of [
 for (const forbiddenMarker of [
   "مثال: آرمان",
   "ساخت، ذخیره و باز کردن گزارش",
+  "نام یا نیک‌نیم خود را وارد کنید",
+  "اطلاعات تولد",
+  "ورودی‌های اصلی",
+  "اگر شهر شما در فهرست نیست، نزدیک‌ترین شهر را انتخاب کنید",
   "placeholder=\"تهران\"",
   "app/globals.css",
   "ManualOrderRequestForm",

@@ -14,7 +14,10 @@ const requiredChartMarkers = [
   "JALALI_MONTH_OPTIONS",
   "JALALI_DAY_OPTIONS",
   "birthDateParts",
-  "gregorianBirthDate",
+  "gregorianBirthDateParts",
+  "GREGORIAN_YEAR_OPTIONS",
+  "GREGORIAN_MONTH_OPTIONS",
+  "getSelectedGregorianDateInput(",
   "getSelectedJalaliDateInput(birthDateParts)",
   "parseJalaliDateInput(selectedJalaliBirthDate)",
   "normalizedBirthDate = parsedBirthDate.gregorianIso",
@@ -25,8 +28,10 @@ const requiredChartMarkers = [
   'aria-label="سال تولد شمسی"',
   'aria-label="ماه تولد شمسی"',
   'aria-label="روز تولد شمسی"',
-  'aria-label="تاریخ تولد میلادی"',
-  'type="date"',
+  'aria-label="انتخاب تاریخ تولد میلادی"',
+  'aria-label="سال تولد میلادی"',
+  'aria-label="ماه تولد میلادی"',
+  'aria-label="روز تولد میلادی"',
   "<select",
 ];
 
@@ -86,28 +91,19 @@ if (!normalizedFormPattern.test(chartFormSource)) {
 }
 
 const gregorianInputPattern =
-  /dateMode\s*===\s*"jalali"\s*\?\s*\([\s\S]*?:\s*\([\s\S]*?type="date"[\s\S]*?aria-label="تاریخ تولد میلادی"/;
+  /dateMode\s*===\s*"jalali"\s*\?\s*\([\s\S]*?:\s*\([\s\S]*?aria-label="انتخاب تاریخ تولد میلادی"[\s\S]*?aria-label="سال تولد میلادی"[\s\S]*?aria-label="ماه تولد میلادی"[\s\S]*?aria-label="روز تولد میلادی"/;
 
 if (!gregorianInputPattern.test(chartFormSource)) {
   failures.push(
-    "ChartForm must keep type=date only in the explicit Gregorian branch.",
+    "ChartForm must render three select controls in the Gregorian branch.",
   );
 }
 
-const gregorianDateInputCount =
-  chartFormSource.match(/type="date"/g)?.length ?? 0;
+const birthControlSelectCount = chartFormSource.match(/<select/g)?.length ?? 0;
 
-if (gregorianDateInputCount !== 1) {
+if (birthControlSelectCount < 8) {
   failures.push(
-    `ChartForm expected exactly one Gregorian type=date input; found ${gregorianDateInputCount}.`,
-  );
-}
-
-const jalaliSelectCount = chartFormSource.match(/<select/g)?.length ?? 0;
-
-if (jalaliSelectCount < 3) {
-  failures.push(
-    `ChartForm expected at least three Jalali select controls; found ${jalaliSelectCount}.`,
+    `ChartForm expected Jalali, Gregorian, and 24-hour select controls; found ${birthControlSelectCount}.`,
   );
 }
 
@@ -115,6 +111,7 @@ for (const forbiddenMarker of [
   "max={todayIsoDate}",
   "const todayIsoDate",
   "birthDateInput",
+  'type="date"',
   'placeholder="۱۳۷۸/۰۵/۲۱"',
   'inputMode="numeric"',
   "<span>کشور</span>",

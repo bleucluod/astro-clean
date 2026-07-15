@@ -6876,6 +6876,78 @@ h6,
     width: 100%;
   }
 }
+
+/* Account phone prefix and single-primary auth action */
+.phone-country-input {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  min-height: 50px;
+  border: 1px solid rgba(154, 166, 178, 0.24);
+  border-radius: 14px;
+  background: #ffffff;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.phone-country-input:focus-within {
+  border-color: rgba(82, 96, 216, 0.62);
+  box-shadow: 0 0 0 4px rgba(82, 96, 216, 0.08);
+}
+
+.phone-country-input > span {
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 13px;
+  border-inline-end: 1px solid rgba(154, 166, 178, 0.2);
+  background: rgba(238, 240, 255, 0.72);
+  color: #40538d;
+  font-weight: 900;
+}
+
+.phone-country-input input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.auth-mode-tabs {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(91, 107, 177, 0.14);
+  border-radius: 15px;
+  background: rgba(238, 240, 255, 0.72);
+}
+
+.auth-mode-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #5f6985;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.auth-mode-tabs button:hover {
+  color: #4338a0;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.auth-mode-tabs button.is-active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #7658e8, #5b49c9);
+  box-shadow: 0 8px 18px rgba(91, 73, 201, 0.2);
+}
 /* End report detail simple reader redesign v0.1.211c */
 
 /* v0.1.215 header behavior: one-line mobile nav + scroll reveal */

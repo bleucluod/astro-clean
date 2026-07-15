@@ -9,7 +9,7 @@ for (const marker of [
   'import type { Metadata } from "next"',
   'import { ChartForm } from "@/components/ChartForm"',
   "export const metadata",
-  "title: \"ساخت گزارش تولد | Halleus\"",
+  "title: \"ساخت چارت تولد رایگان | گزارش تولد فارسی هالیوس\"",
   "return <ChartForm />",
 ]) {
   if (!chartSource.includes(marker)) {

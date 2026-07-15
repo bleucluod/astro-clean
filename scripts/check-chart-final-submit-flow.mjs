@@ -25,9 +25,13 @@ const requiredChartMarkers = [
   "birthLatitude",
   "birthLongitude",
   "birthTimezone",
-  "نام یا نیک‌نیم خود را وارد کنید",
-  "time-unknown-inline",
-  "birth-city-hint",
+  "نام خود را وارد کنید",
+  "birth-time-picker-grid",
+  "TIME_HOUR_OPTIONS",
+  "selectBirthCity(city)",
+  "selectCurrentResidenceCity(city)",
+  "showAccountPanel",
+  'form="chart-birth-data-form"',
   "نزدیک‌ترین شهر",
   "ساخت گزارش",
 ];
@@ -67,6 +71,10 @@ const forbiddenChartMarkers = [
   "مثال: آرمان",
   "ساخت، ذخیره و باز کردن گزارش",
   "ذخیره عمومی سرور کامل نشد:",
+  "نام یا نیک‌نیم خود را وارد کنید",
+  "birth-city-hint",
+  "current-residence-city-hint",
+  'href="/reports"',
 ];
 
 for (const marker of forbiddenChartMarkers) {

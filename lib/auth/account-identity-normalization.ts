@@ -96,7 +96,7 @@ export function validateAccountIdentityInput({
       ok: false,
       normalizedUsername,
       normalizedPhone,
-      message: "شماره موبایل را با فرمت بین‌المللی وارد کن؛ نمونه: +989121234567.",
+      message: "شماره موبایل ایران را کامل وارد کن؛ نمونه: ۹۱۲۱۲۳۴۵۶۷.",
     };
   }
 

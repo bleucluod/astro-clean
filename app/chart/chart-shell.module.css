@@ -75,36 +75,22 @@
   line-height: 2.05;
 }
 
-.steps {
+.guideLinks {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 8px 14px;
+  margin: 18px 0 0;
+  color: var(--halleus-muted, #66708f);
+  font-size: 0.86rem;
+  line-height: 1.9;
 }
 
-.steps span {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 7px 12px;
-  border: 1px solid rgba(91, 107, 177, 0.12);
-  border-radius: 14px;
-  color: #4c587d;
-  background: rgba(255, 255, 255, 0.72);
-  font-size: 0.78rem;
-  font-weight: 750;
-}
-
-.steps b {
-  display: grid;
-  width: 23px;
-  height: 23px;
-  place-items: center;
-  border-radius: 50%;
-  color: #ffffff;
-  background: #26345e;
-  font-size: 0.7rem;
+.guideLinks a {
+  color: #40538d;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: rgba(64, 83, 141, 0.28);
+  text-underline-offset: 4px;
 }
 
 .visual {
@@ -213,6 +199,68 @@
   min-width: 0;
 }
 
+.education {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 16px;
+}
+
+.educationCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid rgba(103, 119, 187, 0.14);
+  border-radius: 24px;
+  padding: clamp(20px, 2.5vw, 28px);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 42px rgba(45, 61, 121, 0.06);
+}
+
+.educationCard h2 {
+  margin: 0;
+  color: var(--halleus-ink-strong, #17213f);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.educationCard p {
+  margin: 10px 0 0;
+  color: var(--halleus-muted, #66708f);
+  font-size: 0.88rem;
+  line-height: 2;
+}
+
+.educationLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.educationLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid rgba(82, 99, 166, 0.16);
+  border-radius: 12px;
+  color: #40538d;
+  background: rgba(245, 247, 255, 0.94);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.8;
+  text-decoration: none;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.educationLinks a:hover {
+  border-color: rgba(82, 99, 166, 0.32);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
 .formStage :global(.chart-reference-page) {
   width: 100%;
   max-width: none;
@@ -226,6 +274,7 @@
   max-width: none;
   margin: 0;
   overflow: hidden;
+  grid-template-columns: minmax(0, 1fr);
   border: 1px solid rgba(103, 119, 187, 0.15);
   border-radius: 32px;
   background: rgba(255, 255, 255, 0.94);
@@ -239,12 +288,102 @@
 }
 
 .formStage :global(.chart-reference-content) {
+  margin-top: 0;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 255, 0.98));
 }
 
-.formStage :global(.chart-reference-heading h1) {
+.formStage :global(.chart-reference-page .chart-form-actions .chart-submit-button) {
+  border: 1px solid #5546d2 !important;
+  background: linear-gradient(135deg, #7658e8 0%, #5546d2 52%, #3347aa 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 18px 38px rgba(76, 63, 190, 0.34) !important;
+}
+
+.formStage :global(.chart-reference-page .chart-form-actions .chart-submit-button:hover:not(:disabled)) {
+  border-color: #4638c4 !important;
+  background: linear-gradient(135deg, #6849dc 0%, #4638c4 52%, #293b9d 100%) !important;
+  box-shadow: 0 20px 42px rgba(67, 54, 178, 0.42) !important;
+}
+
+.formStage :global(.birth-time-picker-grid) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.formStage :global(.birth-time-picker-grid label) {
+  display: grid;
+  gap: 8px;
+  color: var(--chart-navy, #17213f);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.formStage :global(.birth-time-picker-grid select) {
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid var(--chart-line, rgba(103, 119, 187, 0.2));
+  border-radius: 16px;
+  padding-inline: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--chart-text, #20315f);
+  font: inherit;
+  text-align: center;
+}
+
+.formStage :global(.time-unknown-choice),
+.formStage :global(.chart-account-option-toggle) {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #46557f;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.formStage :global(.time-unknown-choice input),
+.formStage :global(.chart-account-option-toggle input) {
+  width: 18px;
+  height: 18px;
+  accent-color: #5b4bd6;
+}
+
+.formStage :global(.chart-account-option-copy) {
+  display: grid;
+  gap: 3px;
+}
+
+.formStage :global(.chart-account-option-copy strong) {
+  color: #31406f;
+  font-size: 0.94rem;
+  font-weight: 900;
+}
+
+.formStage :global(.chart-account-option) {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(103, 119, 187, 0.14);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: rgba(248, 249, 255, 0.86);
+}
+
+.formStage :global(.chart-account-option .chart-account-compact) {
+  margin-top: 0;
+}
+
+.formStage :global(.chart-form-actions) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.formStage :global(.chart-reference-heading h2) {
+  margin: 0;
   color: var(--halleus-ink-strong, #17213f);
+  font-size: clamp(46px, 4.8vw, 74px);
+  font-weight: 800;
+  line-height: 1.18;
   letter-spacing: -0.025em;
 }
 
@@ -261,6 +400,15 @@
 
   .visual {
     width: min(100%, 280px);
+  }
+
+  .education {
+    grid-template-columns: 1fr;
+  }
+
+  .formStage :global(.chart-reference-heading h2) {
+    color: var(--chart-navy, #17213f);
+    text-shadow: 0 2px 16px rgba(255, 255, 255, 0.65);
   }
 }
 
@@ -288,13 +436,8 @@
     line-height: 1.95;
   }
 
-  .steps {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .steps span {
-    width: 100%;
+  .formStage :global(.chart-reference-heading h2) {
+    font-size: clamp(40px, 13vw, 58px);
   }
 
   .visual {
@@ -337,44 +480,6 @@
 
 .formStage :global(.chart-account-disclosure) {
   margin-top: 10px;
-}
-
-.formStage :global(.chart-account-disclosure summary) {
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  border: 1px solid rgba(91, 107, 177, 0.13);
-  border-radius: 14px;
-  color: #334164;
-  background: rgba(255, 255, 255, 0.86);
-  font-size: 0.84rem;
-  font-weight: 850;
-  cursor: pointer;
-  list-style: none;
-}
-
-.formStage :global(.chart-account-disclosure summary::-webkit-details-marker) {
-  display: none;
-}
-
-.formStage :global(.chart-account-disclosure summary::after) {
-  content: "+";
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: #ffffff;
-  background: #334164;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.formStage :global(.chart-account-disclosure[open] summary::after) {
-  content: "−";
 }
 
 .formStage :global(.chart-account-disclosure-body) {
@@ -428,17 +533,16 @@
 
 .formStage :global(.chart-city-card) {
   min-width: 0;
+  display: grid;
   grid-column: span 1;
-  align-self: start;
+  align-self: stretch;
+  align-content: start;
+  gap: 10px;
 }
 
 .formStage :global(.chart-city-card .chart-city-label) {
   display: grid;
   gap: 8px;
-}
-
-.formStage :global(.chart-city-card .field-hint) {
-  min-height: 3.8em;
 }
 
 .formStage :global(.chart-city-card .city-suggestion-chips) {
@@ -467,7 +571,7 @@
     grid-column: 1 / -1;
   }
 
-  .formStage :global(.chart-city-card .field-hint) {
-    min-height: 0;
+  .formStage :global(.birth-time-picker-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

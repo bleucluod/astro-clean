@@ -13,8 +13,15 @@ function assertIncludes(text, token, label) {
   }
 }
 
+function assertNotIncludes(text, token, label) {
+  if (text.includes(token)) {
+    throw new Error(`${label} must not expose: ${token}`);
+  }
+}
+
 const chartForm = read("components/ChartForm.tsx");
-const dashboard = read("app/dashboard/page.tsx");
+const chartLayout = read("app/chart/layout.tsx");
+const chartPage = read("app/chart/page.tsx");
 const packageJson = JSON.parse(read("package.json"));
 
 [
@@ -22,15 +29,11 @@ const packageJson = JSON.parse(read("package.json"));
   "مسیر تست بتا",
   "BETA_READINESS_SMOKE",
   "ساخت، ذخیره و باز کردن گزارش",
-].forEach((token) => assertIncludes(chartForm, token, "ChartForm beta readiness copy"));
-
-[
-  "چک‌لیست مسیر بتا",
-  "BETA_READINESS_DASHBOARD",
-  "Local smoke",
-  "Deploy smoke",
-  "feature جدید یا SEO نیست",
-].forEach((token) => assertIncludes(dashboard, token, "Dashboard beta readiness copy"));
+].forEach((token) => {
+  assertNotIncludes(chartForm, token, "public ChartForm");
+  assertNotIncludes(chartLayout, token, "public chart layout");
+  assertNotIncludes(chartPage, token, "public chart page");
+});
 
 assertIncludes(
   packageJson.scripts?.["check:beta-readiness-smoke"] ?? "",
@@ -38,4 +41,5 @@ assertIncludes(
   "package script",
 );
 
-console.log("Beta readiness smoke check passed.");
+console.log("Beta readiness boundary check passed.");
+console.log("- beta/smoke/test copy stays outside the public /chart route");

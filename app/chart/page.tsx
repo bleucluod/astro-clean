@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { ChartForm } from "@/components/ChartForm";
 
 export const metadata: Metadata = {
-  title: "ساخت گزارش تولد | Halleus",
+  title: "ساخت چارت تولد رایگان | گزارش تولد فارسی هالیوس",
   description:
-    "صفحه شروع ساخت گزارش تولد در Halleus؛ تاریخ شمسی، ساعت و شهر تولد را وارد می‌کنی و گزارش فارسی ذخیره‌شده می‌گیری.",
+    "با تاریخ، ساعت و شهر تولد، چارت تولد خودت را در هالیوس بساز و گزارش تولد فارسی بگیر. اگر ساعت تولدت را نمی‌دانی، محدودیت‌های رایزینگ و خانه‌ها را هم روشن ببین.",
   alternates: {
     canonical: "/chart",
   },

@@ -38,9 +38,13 @@ function describeAuthError(message: string) {
   return message;
 }
 
-export function SupabaseAuthPanel({
-  compact = false,
-}: SupabaseAuthPanelProps) {
+function buildIranPhoneNumber(value: string) {
+  const localDigits = value.replace(/\D/g, "").replace(/^0/, "");
+
+  return localDigits ? `+98${localDigits}` : "";
+}
+
+export function SupabaseAuthPanel({ compact = false }: SupabaseAuthPanelProps) {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
   const accountSaveConfig = useMemo(() => getAccountReportSaveClientConfig(), []);
   const accountReadConfig = useMemo(() => getAccountReportReadClientConfig(), []);
@@ -59,6 +63,11 @@ export function SupabaseAuthPanel({
     accountSaveConfig.canAttemptAccountReportSave &&
     accountReadConfig.canAttemptAccountReportRead;
   const isSignUp = mode === "sign-up";
+
+  function selectMode(nextMode: AuthMode) {
+    setMode(nextMode);
+    setMessage("");
+  }
 
   useEffect(() => {
     const client = getSupabaseBrowserAuthClient();
@@ -112,7 +121,7 @@ export function SupabaseAuthPanel({
     const identity = validateAccountIdentityInput({
       mode,
       username,
-      phone,
+      phone: isSignUp ? buildIranPhoneNumber(phone) : "",
       password,
     });
     const optionalEmail = secondaryEmail.trim();
@@ -230,12 +239,10 @@ export function SupabaseAuthPanel({
         aria-labelledby="chart-account-save-note"
       >
         <p id="chart-account-save-note" className="chart-account-save-note">
-          با ثبت‌نام، گزارش‌هایت برای همیشه در حسابت ذخیره می‌شوند.
+          ورود یا ثبت‌نام سریع؛ بعداً راحت به گزارش‌هایت برگرد.
         </p>
 
-        <details className="chart-account-disclosure">
-          <summary>ورود یا ثبت‌نام</summary>
-
+        <div className="chart-account-disclosure">
           <div className="chart-account-disclosure-body">
             {!config.canUseRealSupabaseLogin ? (
               <p className="file-hint">
@@ -248,6 +255,32 @@ export function SupabaseAuthPanel({
                 className="form-grid chart-account-form"
                 onSubmit={handleSubmit}
               >
+                <div
+                  className="auth-mode-tabs"
+                  role="tablist"
+                  aria-label="انتخاب ورود یا ثبت‌نام"
+                >
+                  <button
+                    aria-selected={mode === "sign-in"}
+                    className={mode === "sign-in" ? "is-active" : undefined}
+                    onClick={() => selectMode("sign-in")}
+                    role="tab"
+                    type="button"
+                  >
+                    ورود
+                  </button>
+
+                  <button
+                    aria-selected={mode === "sign-up"}
+                    className={mode === "sign-up" ? "is-active" : undefined}
+                    onClick={() => selectMode("sign-up")}
+                    role="tab"
+                    type="button"
+                  >
+                    ثبت‌نام سریع
+                  </button>
+                </div>
+
                 <label className="field">
                   <span>نام کاربری</span>
                   <input
@@ -255,7 +288,7 @@ export function SupabaseAuthPanel({
                     dir="ltr"
                     minLength={3}
                     onChange={(event) => setUsername(event.target.value)}
-                    placeholder="halleus-name"
+                    placeholder="نام کاربری را وارد کنید"
                     type="text"
                     value={username}
                   />
@@ -264,16 +297,26 @@ export function SupabaseAuthPanel({
                 {mode === "sign-up" ? (
                   <label className="field">
                     <span>شماره موبایل</span>
-                    <input
-                      autoComplete="tel"
-                      dir="ltr"
-                      inputMode="tel"
-                      onChange={(event) => setPhone(event.target.value)}
-                      placeholder="+989121234567"
-                      title="شماره موبایل را با +98 وارد کن."
-                      type="tel"
-                      value={phone}
-                    />
+                    <div className="phone-country-input" dir="ltr">
+                      <span title="کد کشور ایران">+98</span>
+                      <input
+                        autoComplete="tel-national"
+                        inputMode="numeric"
+                        maxLength={11}
+                        onChange={(event) =>
+                          setPhone(
+                            event.target.value
+                              .replace(/\D/g, "")
+                              .replace(/^0/, "")
+                              .slice(0, 10),
+                          )
+                        }
+                        placeholder="9121234567"
+                        title="شماره موبایل را بدون کد کشور وارد کنید."
+                        type="tel"
+                        value={phone}
+                      />
+                    </div>
                   </label>
                 ) : null}
 
@@ -305,34 +348,15 @@ export function SupabaseAuthPanel({
                     dir="ltr"
                     minLength={6}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="حداقل ۶ کاراکتر"
+                    placeholder="رمز عبور را وارد کنید"
                     type="password"
                     value={password}
                   />
                 </label>
 
-                <p className="file-hint">
-                  {isSignUp
-                    ? "برای ساخت حساب، نام کاربری یکتا، شماره موبایل و رمز لازم است. ایمیل اختیاری است."
-                    : "برای ورود فقط نام کاربری و رمز لازم است."}
-                </p>
-
                 <div className="actions">
                   <button className="button" disabled={isBusy} type="submit">
                     {isSignUp ? "ساخت حساب و ورود" : "ورود به حساب"}
-                  </button>
-
-                  <button
-                    className="button secondary"
-                    disabled={isBusy}
-                    onClick={() =>
-                      setMode(mode === "sign-in" ? "sign-up" : "sign-in")
-                    }
-                    type="button"
-                  >
-                    {mode === "sign-in"
-                      ? "حساب ندارم؛ ثبت‌نام"
-                      : "قبلاً حساب دارم؛ ورود"}
                   </button>
                 </div>
               </form>
@@ -342,7 +366,7 @@ export function SupabaseAuthPanel({
               <p className="success-message">{message}</p>
             ) : null}
           </div>
-        </details>
+        </div>
       </section>
     );
   }
@@ -356,11 +380,6 @@ export function SupabaseAuthPanel({
       <p>
         با حساب هالیوس می‌توانی گزارش‌های بعدی‌ات را امن‌تر نگه داری و راحت‌تر
         به آن‌ها برگردی.
-      </p>
-
-      <p className="file-hint">
-        برای ثبت‌نام، نام کاربری، شماره موبایل و رمز عبور لازم است. موبایل برای
-        اطلاعات حساب است و نام کاربری تو نیست.
       </p>
 
       <div className="actions">
@@ -428,6 +447,32 @@ export function SupabaseAuthPanel({
 
       {config.canUseRealSupabaseLogin && isReady && !session ? (
         <form className="form-grid" onSubmit={handleSubmit}>
+          <div
+            className="auth-mode-tabs"
+            role="tablist"
+            aria-label="انتخاب ورود یا ثبت‌نام"
+          >
+            <button
+              aria-selected={mode === "sign-in"}
+              className={mode === "sign-in" ? "is-active" : undefined}
+              onClick={() => selectMode("sign-in")}
+              role="tab"
+              type="button"
+            >
+              ورود
+            </button>
+
+            <button
+              aria-selected={mode === "sign-up"}
+              className={mode === "sign-up" ? "is-active" : undefined}
+              onClick={() => selectMode("sign-up")}
+              role="tab"
+              type="button"
+            >
+              ثبت‌نام سریع
+            </button>
+          </div>
+
           <label className="field">
             <span>نام کاربری</span>
             <input
@@ -435,7 +480,7 @@ export function SupabaseAuthPanel({
               dir="ltr"
               minLength={3}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="halleus-name"
+              placeholder="نام کاربری را وارد کنید"
               type="text"
               value={username}
             />
@@ -444,16 +489,26 @@ export function SupabaseAuthPanel({
           {mode === "sign-up" ? (
             <label className="field">
               <span>شماره موبایل</span>
-              <input
-                autoComplete="tel"
-                dir="ltr"
-                inputMode="tel"
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="+989121234567"
-                title="شماره موبایل را با +98 وارد کن."
-                type="tel"
-                value={phone}
-              />
+              <div className="phone-country-input" dir="ltr">
+                <span title="کد کشور ایران">+98</span>
+                <input
+                  autoComplete="tel-national"
+                  inputMode="numeric"
+                  maxLength={11}
+                  onChange={(event) =>
+                    setPhone(
+                      event.target.value
+                        .replace(/\D/g, "")
+                        .replace(/^0/, "")
+                        .slice(0, 10),
+                    )
+                  }
+                  placeholder="9121234567"
+                  title="شماره موبایل را بدون کد کشور وارد کنید."
+                  type="tel"
+                  value={phone}
+                />
+              </div>
             </label>
           ) : null}
 
@@ -479,17 +534,11 @@ export function SupabaseAuthPanel({
               dir="ltr"
               minLength={6}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="حداقل ۶ کاراکتر"
+              placeholder="رمز عبور را وارد کنید"
               type="password"
               value={password}
             />
           </label>
-
-          <p className="file-hint">
-            {isSignUp
-              ? "برای ساخت حساب، نام کاربری یکتا، شماره موبایل و رمز لازم است. ایمیل اختیاری است."
-              : "برای ورود فقط نام کاربری و رمز لازم است."}
-          </p>
 
           <div className="actions">
             <button
@@ -498,15 +547,6 @@ export function SupabaseAuthPanel({
               type="submit"
             >
               {isSignUp ? "ساخت حساب و ورود" : "ورود به حساب"}
-            </button>
-
-            <button
-              className="button secondary"
-              disabled={isBusy}
-              onClick={() => setMode(mode === "sign-in" ? "sign-up" : "sign-in")}
-              type="button"
-            >
-              {mode === "sign-in" ? "حساب ندارم؛ ثبت‌نام" : "قبلاً حساب دارم؛ ورود"}
             </button>
           </div>
         </form>
