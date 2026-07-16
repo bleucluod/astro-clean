@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { seoRoutes, siteConfig } from "@/lib/config/seo";
-import { wikiArticles } from "@/lib/wiki/wiki-content";
+import { listPublicWikiSitemapArticles } from "@/lib/wiki/wiki-repository";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
+  const wikiArticles = await listPublicWikiSitemapArticles();
 
   const publicPageEntries: MetadataRoute.Sitemap = seoRoutes.map((route) => ({
     url: `${siteConfig.url}${route.path}`,

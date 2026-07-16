@@ -111,8 +111,9 @@ if (JSON.stringify(publicPaths) !== JSON.stringify(expectedPublicPaths)) {
 requireText(
   "sitemap",
   sitemapSource,
-  'import { wikiArticles } from "@/lib/wiki/wiki-content"',
+  'import { listPublicWikiSitemapArticles } from "@/lib/wiki/wiki-repository"',
 );
+requireText("sitemap", sitemapSource, "await listPublicWikiSitemapArticles()");
 requireText("sitemap", sitemapSource, "wikiArticles.map");
 requireText(
   "sitemap",

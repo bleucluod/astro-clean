@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { wikiArticles, wikiCategories } from "@/lib/wiki/wiki-content";
+import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 import styles from "./wiki.module.css";
 
 export const metadata: Metadata = {
@@ -34,7 +34,10 @@ const readingSteps = [
   },
 ] as const;
 
-export default function WikiPage() {
+export default async function WikiPage() {
+  const { articles: wikiArticles, categories: wikiCategories } =
+    await getPublicWikiCatalog();
+
   return (
     <section className={styles.page} data-product-surface="Halleus Wiki">
       <section className={styles.hero}>

@@ -2734,3 +2734,23 @@ Required checks:
 - Wiki CMS, analytics integrations, monetization control plane, payment,
   synastry, deploy buttons, and editable astrology calculations remain outside
   this batch.
+
+## v0.1.327 Wiki storage and public-read foundation
+
+- The 19 approved Persian Wiki articles keep `lib/wiki/wiki-content.ts` as a
+  recovery source while their byte-for-byte equivalent seed becomes the first
+  database snapshot.
+- Public Wiki routes and sitemap read through one server-only, database-first
+  repository. The repository exposes only rows that are published, indexable,
+  already published, and not scheduled.
+- A database outage or an unapplied schema produces the structured
+  `HALLEUS_WIKI_STORAGE_FALLBACK` server marker and falls back to the approved
+  code snapshot. A legitimate draft, scheduled, archived, future, or nonindex
+  row never triggers fallback exposure.
+- The additive schema introduces categories, articles, append-only initial
+  revisions, and permanent slug redirects. Direct `anon` and `authenticated`
+  table privileges stay revoked and RLS remains enabled.
+- This batch preserves all 19 slugs, URLs, copy, metadata, JSON-LD, related
+  links, indexability, static route inventory, and sitemap inclusion.
+- CMS editing, uploads, media, scheduling controls, payment, analytics
+  dashboards, report-engine work, and Synastry remain outside Batch 2.

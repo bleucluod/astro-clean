@@ -2090,3 +2090,24 @@ user/report operations, and a persisted premium-request queue. It does not add
 Wiki CMS, payment, plan/paywall controls, astrology-setting edits, synastry, or
 browser-driven deploy/rollback.
 ```
+
+## v0.1.327 Wiki storage migration decision
+
+Decision:
+
+```text
+The approved 19-article Wiki snapshot moves to additive database storage
+without rewriting copy or changing any public URL or SEO contract. Public
+reads are database-first and server-only. Only published, indexable,
+already-published rows may reach the public catalog, article route, redirects,
+or sitemap.
+```
+
+Recovery boundary:
+
+```text
+The code-backed snapshot stays as an observable recovery path for database or
+schema failure. It is not an alternate lookup for suppressed database rows, so
+draft, scheduled, future, archived, and nonindex content cannot reappear via
+fallback. CMS and scheduling controls belong to the next batch.
+```

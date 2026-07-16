@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import {
-  getRelatedWikiArticles,
-  getWikiArticle,
-  getWikiCategory,
-  wikiArticles,
-} from "@/lib/wiki/wiki-content";
+  getPublicWikiArticleResolution,
+  listPublicWikiRouteSlugs,
+} from "@/lib/wiki/wiki-repository";
 import styles from "../wiki.module.css";
 
 type WikiArticlePageProps = {
@@ -19,19 +17,31 @@ const WIKI_BASE_URL = "https://halleus.ir";
 
 export const dynamicParams = false;
 
-export function generateStaticParams() {
-  return wikiArticles.map((article) => ({
-    slug: article.slug,
-  }));
+export async function generateStaticParams() {
+  const routeSlugs = await listPublicWikiRouteSlugs();
+
+  return routeSlugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
   params,
 }: WikiArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = getWikiArticle(slug);
+  const resolution = await getPublicWikiArticleResolution(slug);
 
-  if (!article) {
+  if (resolution.kind === "redirect") {
+    return {
+      alternates: {
+        canonical: `/wiki/${resolution.targetSlug}`,
+      },
+      robots: {
+        index: false,
+        follow: true,
+      },
+    };
+  }
+
+  if (resolution.kind === "missing") {
     return {
       title: "مقاله پیدا نشد | ویکی هالیوس",
       robots: {
@@ -40,6 +50,8 @@ export async function generateMetadata({
       },
     };
   }
+
+  const { article } = resolution;
 
   return {
     title: article.seoTitle ?? `${article.title} | ویکی هالیوس`,
@@ -60,14 +72,19 @@ function serializeJsonLd(value: unknown): string {
 
 export default async function WikiArticlePage({ params }: WikiArticlePageProps) {
   const { slug } = await params;
-  const article = getWikiArticle(slug);
+  const resolution = await getPublicWikiArticleResolution(slug);
 
-  if (!article) {
+  if (resolution.kind === "redirect") {
+    permanentRedirect(`/wiki/${resolution.targetSlug}`);
+  }
+
+  if (resolution.kind === "missing") {
     notFound();
   }
 
-  const category = getWikiCategory(article.categoryId);
-  const relatedArticles = getRelatedWikiArticles(article);
+  const { article, categories, relatedArticles } = resolution;
+  const category =
+    categories.find((item) => item.id === article.categoryId) ?? null;
   const articleUrl = `${WIKI_BASE_URL}/wiki/${article.slug}`;
   const articleJsonLd = {
     "@context": "https://schema.org",

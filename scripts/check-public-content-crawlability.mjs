@@ -91,8 +91,8 @@ requirePattern(
 );
 
 requireText("Wiki article", wikiArticle, 'export const dynamicParams = false');
-requireText("Wiki article", wikiArticle, "export function generateStaticParams()");
-requireText("Wiki article", wikiArticle, "wikiArticles.map");
+requireText("Wiki article", wikiArticle, "export async function generateStaticParams()");
+requireText("Wiki article", wikiArticle, "listPublicWikiRouteSlugs");
 requireText("Wiki article", wikiArticle, "<h1>{article.title}</h1>");
 requirePattern(
   "Wiki article",
