@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "baseline": {
+    "description": "Fast repository-wide safeguards required for every non-empty change set.",
+    "guards": [
+      "check:encoding",
+      "check:workflow-acceleration"
+    ]
+  },
+  "fallback": {
+    "description": "Fail-safe policy for paths that are not yet registered.",
+    "guards": [],
+    "lint": true,
+    "build": true
+  },
+  "areas": [
+    {
+      "id": "documentation",
+      "description": "Repository documentation with no production runtime effect.",
+      "patterns": [
+        "**/*.md",
+        "docs/**"
+      ],
+      "guards": [],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "workflow-tooling",
+      "description": "Shared check planner, guard scripts, CI, and repository text policy.",
+      "patterns": [
+        "config/halleus-check-impact.json",
+        "scripts/**",
+        ".github/workflows/**",
+        ".gitattributes",
+        ".editorconfig",
+        "package.json"
+      ],
+      "guards": [
+        "check:workflow"
+      ],
+      "lint": true,
+      "build": false
+    },
+    {
+      "id": "project-configuration",
+      "description": "Dependency and compiler configuration can alter every production route.",
+      "patterns": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "next.config.*",
+        "tsconfig*.json",
+        "eslint.config.*",
+        "postcss.config.*",
+        ".env.example"
+      ],
+      "guards": [],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "runtime",
+      "description": "Application runtime, shared libraries, types, and public assets.",
+      "patterns": [
+        "app/**",
+        "components/**",
+        "lib/**",
+        "src/**",
+        "types/**",
+        "public/**"
+      ],
+      "guards": [],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "ui",
+      "description": "User-facing pages, components, and styles.",
+      "patterns": [
+        "app/**/*.tsx",
+        "app/**/*.css",
+        "components/**"
+      ],
+      "guards": [
+        "check:product-surface"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "engine",
+      "description": "Chart and astrology calculation contracts.",
+      "patterns": [
+        "app/api/engine/**",
+        "app/engine/**",
+        "lib/astro-engine/**",
+        "lib/astrology/**",
+        "lib/chart-engine/**",
+        "src/lib/chart/**",
+        "types/*engine*.ts"
+      ],
+      "guards": [
+        "check:chart-engine",
+        "check:chart-engine-integration",
+        "check:real-chart-normalization"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "reports",
+      "description": "Report generation, output, preview, and quality contracts.",
+      "patterns": [
+        "app/reports/**",
+        "components/ManualOrderRequestForm.tsx",
+        "components/PersonalTransitReportSection.tsx",
+        "components/Report*.tsx",
+        "components/ReportsList.tsx",
+        "lib/report-*/**",
+        "src/lib/report-output/**",
+        "types/report-*.ts"
+      ],
+      "guards": [
+        "check:report-quality"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "auth-admin-account",
+      "description": "Authentication, account identity, admin authorization, and audit boundaries.",
+      "patterns": [
+        "app/admin/**",
+        "app/api/admin/**",
+        "components/admin/**",
+        "components/SupabaseAuthPanel.tsx",
+        "lib/admin/**",
+        "lib/auth/**",
+        "lib/account/**",
+        "types/auth.ts",
+        "types/account.ts"
+      ],
+      "guards": [
+        "check:secure-admin-core",
+        "check:auth-readiness"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "report-wheel",
+      "description": "Stored report chart wheel rendering and fallbacks.",
+      "patterns": [
+        "components/ReportBirthChartWheel.tsx"
+      ],
+      "guards": [
+        "check:report-birth-chart-wheel"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "personal-transit-guard-tooling",
+      "description": "Focused personal transit relevance guard implementation.",
+      "patterns": [
+        "scripts/check-personal-transit-relevance-interpretation.mjs"
+      ],
+      "guards": [
+        "check:personal-transit-relevance-interpretation"
+      ],
+      "lint": true,
+      "build": false
+    },
+    {
+      "id": "storage-database",
+      "description": "Persistent storage adapters, database access, migrations, and seeds.",
+      "patterns": [
+        "database/**",
+        "lib/database/**",
+        "lib/storage/**",
+        "types/storage.ts"
+      ],
+      "guards": [
+        "check:storage",
+        "check:database"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "wiki",
+      "description": "Public Wiki, CMS, storage, import, media, and publication behavior.",
+      "patterns": [
+        "app/wiki/**",
+        "app/api/admin/wiki/**",
+        "app/api/internal/wiki/**",
+        "components/admin/WikiAdminPanel.tsx",
+        "lib/wiki/**",
+        "lib/config/wiki.ts",
+        "database/migrations/*wiki*.sql",
+        "database/seeds/*wiki*.sql",
+        "public/*wiki*.md",
+        "ops/vps/*wiki*"
+      ],
+      "guards": [
+        "check:wiki-content-foundation",
+        "check:wiki-storage-public-read",
+        "check:wiki-package-security",
+        "check:wiki-scheduling-determinism",
+        "check:full-wiki-cms"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "wiki-guard-tooling",
+      "description": "Focused Wiki guards without a production runtime change.",
+      "patterns": [
+        "scripts/check-*wiki*.mjs"
+      ],
+      "guards": [
+        "check:wiki-content-foundation",
+        "check:wiki-storage-public-read",
+        "check:wiki-package-security",
+        "check:wiki-scheduling-determinism",
+        "check:full-wiki-cms"
+      ],
+      "lint": true,
+      "build": false
+    },
+    {
+      "id": "privacy",
+      "description": "Consent, analytics configuration, and the public privacy surface.",
+      "patterns": [
+        "app/privacy/**",
+        "components/AnalyticsConsent.tsx",
+        "components/analytics-consent.module.css",
+        "lib/config/analytics.ts",
+        "lib/**/analytics*"
+      ],
+      "guards": [
+        "check:privacy-conscious-analytics"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "wiki-publication-ops",
+      "description": "Publisher scheduling, readiness, and VPS service contracts.",
+      "patterns": [
+        "lib/wiki/wiki-publisher.ts",
+        "lib/wiki/wiki-revalidation.ts",
+        "lib/wiki/wiki-scheduling.ts",
+        "app/api/internal/wiki/**",
+        "ops/vps/*wiki*"
+      ],
+      "guards": [
+        "check:full-wiki-cms",
+        "check:wiki-scheduling-determinism",
+        "check:vps-release-workflow"
+      ],
+      "lint": true,
+      "build": true
+    }
+  ]
+}

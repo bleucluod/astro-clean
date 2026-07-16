@@ -28,10 +28,10 @@ function loadTransitModule() {
     `personal transit relevance helper has ${diagnostics.length} transpile diagnostic(s)`,
   );
 
-  const module = { exports: {} };
+  const loadedModule = { exports: {} };
   const evaluate = new Function("exports", "module", result.outputText);
-  evaluate(module.exports, module);
-  return module.exports;
+  evaluate(loadedModule.exports, loadedModule);
+  return loadedModule.exports;
 }
 
 const transit = loadTransitModule();

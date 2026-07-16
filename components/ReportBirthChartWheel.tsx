@@ -153,14 +153,15 @@ function AstroChartRadix({ data }: { data: ReportBirthChartWheelData }) {
     const host = document.getElementById(chartId);
 
     if (!host) {
-      setRendererState("error");
       return undefined;
     }
 
     const chartHost = host;
 
     chartHost.replaceChildren();
-    setRendererState("loading");
+    queueMicrotask(() => {
+      if (!cancelled) setRendererState("loading");
+    });
 
     async function renderRadix() {
       try {

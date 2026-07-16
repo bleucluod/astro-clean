@@ -38,8 +38,8 @@ function ensureGoogleAnalyticsLoaded(): void {
 
   if (!analyticsWindow.gtag) {
     analyticsWindow.dataLayer = analyticsWindow.dataLayer ?? [];
-    analyticsWindow.gtag = function gtag(): void {
-      analyticsWindow.dataLayer?.push(arguments);
+    analyticsWindow.gtag = function gtag(...args: unknown[]): void {
+      analyticsWindow.dataLayer?.push(args);
     };
 
     analyticsWindow.gtag("consent", "default", {
@@ -150,13 +150,19 @@ export function AnalyticsConsent() {
   const lastTrackedPath = useRef<string | null>(null);
 
   useEffect(() => {
-    setChoice(readStoredChoice() ?? "granted");
-    setIsReady(true);
+    let isActive = true;
+
+    queueMicrotask(() => {
+      if (!isActive) return;
+      setChoice(readStoredChoice() ?? "granted");
+      setIsReady(true);
+    });
 
     const openSettings = () => setIsSettingsOpen(true);
     window.addEventListener(OPEN_ANALYTICS_SETTINGS_EVENT, openSettings);
 
     return () => {
+      isActive = false;
       window.removeEventListener(OPEN_ANALYTICS_SETTINGS_EVENT, openSettings);
     };
   }, []);

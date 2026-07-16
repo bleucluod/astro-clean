@@ -78,24 +78,34 @@ export function ManualOrderRequestForm({
   const [copyMessage, setCopyMessage] = useState("");
 
   useEffect(() => {
+    let isActive = true;
+
     if (!normalizedInitialReportId) {
-      setLinkedReport(null);
-      setReportLookupMessage("");
-      return;
+      queueMicrotask(() => {
+        if (!isActive) return;
+        setLinkedReport(null);
+        setReportLookupMessage("");
+      });
+
+      return () => {
+        isActive = false;
+      };
     }
 
-    setForm((current) => {
-      if (current.reportLink.trim()) {
-        return current;
-      }
+    queueMicrotask(() => {
+      if (!isActive) return;
 
-      return {
-        ...current,
-        reportLink: normalizedInitialReportId,
-      };
+      setForm((current) => {
+        if (current.reportLink.trim()) {
+          return current;
+        }
+
+        return {
+          ...current,
+          reportLink: normalizedInitialReportId,
+        };
+      });
     });
-
-    let isActive = true;
 
     async function loadLinkedReport() {
       const record = await getReportRepository().getReport(normalizedInitialReportId);

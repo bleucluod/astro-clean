@@ -63,10 +63,22 @@ forbidText(
 );
 requireText("analytics component", analyticsComponent, 'choice !== "granted"');
 requireText("analytics component", analyticsComponent, "isAnalyticsPublicPath(pathname)");
-requireText("analytics component", analyticsComponent, "analyticsWindow.gtag = function gtag(): void");
-requireText("analytics component", analyticsComponent, "analyticsWindow.dataLayer?.push(arguments);");
-forbidText("analytics component", analyticsComponent, "analyticsWindow.dataLayer?.push(args);");
-forbidText("analytics component", analyticsComponent, "analyticsWindow.gtag = (...args:");
+const gtagFunction = analyticsComponent.match(
+  /analyticsWindow\.gtag\s*=\s*function\s+gtag\s*\(\s*\.\.\.([A-Za-z_$][\w$]*)\s*:\s*unknown\[\]\s*\)\s*:\s*void\s*\{([\s\S]*?)\n\s*\};/,
+);
+if (!gtagFunction) {
+  failures.push("analytics component must define a named gtag function with rest parameters");
+} else {
+  const parameterName = gtagFunction[1];
+  const functionBody = gtagFunction[2];
+  const forwardsArguments = new RegExp(
+    `analyticsWindow\\.dataLayer\\?\\.push\\(\\s*${parameterName}\\s*\\)`,
+  );
+
+  if (!forwardsArguments.test(functionBody)) {
+    failures.push("analytics gtag function must forward its complete argument list to dataLayer");
+  }
+}
 requireText("analytics component", analyticsComponent, "document.createElement(\"script\")");
 requireText("analytics component", analyticsComponent, "www.googletagmanager.com/gtag/js");
 requireText("analytics component", analyticsComponent, "send_page_view: false");

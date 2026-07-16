@@ -70,16 +70,20 @@ export function SupabaseAuthPanel({ compact = false }: SupabaseAuthPanelProps) {
   }
 
   useEffect(() => {
+    let mounted = true;
     const client = getSupabaseBrowserAuthClient();
 
     if (!client) {
-      setIsReady(true);
-      return;
+      queueMicrotask(() => {
+        if (mounted) setIsReady(true);
+      });
+
+      return () => {
+        mounted = false;
+      };
     }
 
     const authClient = client;
-
-    let mounted = true;
 
     async function loadSession() {
       const { data, error } = await authClient.auth.getSession();

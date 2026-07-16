@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { RealChartWheel } from "./RealChartWheel";
 import { ReportDetailFactsPanel } from "./ReportDetailFactsPanel";
 import { ReportPlanetPlacementSections } from "./ReportPlanetPlacementSections";
@@ -272,9 +274,9 @@ export function ReportCard({ report }: ReportCardProps) {
           ) : null}
 
           <div className="actions report-product-card-actions">
-            <a className="button secondary" href="/reports">
+            <Link className="button secondary" href="/reports">
               گزارش‌های من
-            </a>
+            </Link>
 
             <a className="button secondary" href="#personal-note">
               یادداشت ایمنی
