@@ -2058,3 +2058,35 @@ Decision:
 - First pass is limited to Sun through Pluto. Technical special points, transit overlays, Sky Pulse, synastry, compatibility, and unrelated divination features stay outside the wheel.
 - Old or incomplete reports receive a calm Persian fallback and must keep their text report readable.
 - Keep the report narrative central and preserve report noindex/privacy policy. The renderer stays pinned to the verified MIT, dependency-free 3.0.2 release and is loaded only after client mount because its published bundle is browser-oriented.
+
+## v0.1.326 Secure Admin Core and publication authority
+
+Decision:
+
+```text
+Admin authorization is server-side and database-backed through a private
+admin_memberships table keyed to auth.users.id. Runtime authorization must not
+trust user_metadata, query parameters, client flags, or a temporary env bypass.
+The first owner is bootstrapped once in Supabase SQL Editor and the same
+transaction records an audit event.
+```
+
+Publication authority:
+
+```text
+No-login and logged-in free reports are public/indexable. Premium reports are
+private by default and can become public/indexable only after the owner gives
+explicit publication consent. Identifying details remain optional and
+consent-based. Analytics consent never substitutes for publication consent.
+An admin may restrict or unpublish an already-public report, but may not force a
+private report into public visibility.
+```
+
+Batch boundary:
+
+```text
+This milestone adds secure admin membership, capability checks, audit events,
+user/report operations, and a persisted premium-request queue. It does not add
+Wiki CMS, payment, plan/paywall controls, astrology-setting edits, synastry, or
+browser-driven deploy/rollback.
+```

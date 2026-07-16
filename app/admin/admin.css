@@ -1,0 +1,21 @@
+body:has(.halleus-admin-root) .site-header,
+body:has(.halleus-admin-root) .site-footer,
+body:has(.halleus-admin-root) a[href="#main-content"] {
+  display: none !important;
+}
+
+body:has(.halleus-admin-root) {
+  background: #f4f7fa;
+}
+
+body:has(.halleus-admin-root) #main-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.halleus-admin-root {
+  width: 100%;
+  min-height: 100vh;
+}

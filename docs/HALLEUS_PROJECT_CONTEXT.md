@@ -2709,3 +2709,28 @@ Required checks:
 - The report wheel excludes technical special points by a fixed ten-planet allowlist and has Persian partial/unavailable states for old or incomplete reports.
 - Report detail renders the wheel once in a featured card directly after the report summary, while the Persian reading remains the primary content sequence and technical tables remain available below.
 - The exact MIT renderer dependency and lockfile entry are the only dependency changes. No engine, report writer, transit, Sky Pulse, SEO, privacy, storage, or deployment change belongs in this batch.
+
+## v0.1.326 Secure Admin Core scope and authority
+
+- Live baseline before the batch: `d0d5041`,
+  `v0.1.325-homepage-seo-content-cleanup`.
+- Production baseline: active `v0.1.325`, previous rollback release `v0.1.324`,
+  `halleus.service` active.
+- Production schema evidence before migration: `public.halleus_users`,
+  `public.halleus_reports`, and `public.halleus_birth_profiles`; no existing
+  admin schema and no Supabase migration ledger.
+- Admin authorization is database-backed in the private `halleus_private`
+  schema. Roles are never read from `user_metadata`, query parameters, or a
+  client flag.
+- Owner bootstrap is a one-time transaction in Supabase SQL Editor and writes
+  an audit event. A real owner UUID is never stored in Git.
+- Sensitive mutations and explicit private-report content access are audited.
+- Admin report operations can only make visibility more restrictive. Forced
+  publication is not supported.
+- Premium-request intake is persisted, while payment remains out of scope.
+- Publication model remains: free reports public/indexable; premium reports
+  private by default; premium publication requires explicit owner consent;
+  identifying details are optional; analytics consent is separate.
+- Wiki CMS, analytics integrations, monetization control plane, payment,
+  synastry, deploy buttons, and editable astrology calculations remain outside
+  this batch.

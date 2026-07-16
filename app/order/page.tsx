@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ManualOrderRequestForm } from "@/components/ManualOrderRequestForm";
+import { PremiumRequestForm } from "@/components/PremiumRequestForm";
 
 type OrderPageProps = {
   searchParams?: Promise<{
@@ -11,7 +11,7 @@ type OrderPageProps = {
 export const metadata: Metadata = {
   title: "درخواست نسخه کامل‌تر گزارش | Halleus",
   description:
-    "در هالیوس می‌توانی بعد از ساخت گزارش تولد، درخواست نسخه کامل‌تر همان گزارش را آماده کنی.",
+    "در هالیوس می‌توانی بعد از ساخت گزارش تولد، درخواست نسخه کامل‌تر همان گزارش را ثبت کنی.",
   alternates: {
     canonical: "/order",
   },
@@ -21,7 +21,6 @@ function normalizeReportId(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
     return value[0] ?? "";
   }
-
   return value ?? "";
 }
 
@@ -33,58 +32,44 @@ export default async function OrderPage({ searchParams }: OrderPageProps) {
     <section className="grid manual-order-page order-copy-detox-marker">
       <div className="card manual-order-hero">
         <span className="badge">درخواست نسخه کامل‌تر</span>
-
-        <h1>متن سفارش گزارش کامل‌تر را آماده کن</h1>
-
+        <h1>درخواستت را ثبت کن تا قابل پیگیری باشد</h1>
         <p>
-          برای نسخه کامل‌تر، متن درخواستت را آماده کن و برای هماهنگی دستی بفرست.
-          اگر از صفحه گزارش آمده باشی، شناسه همان گزارش در متن سفارش می‌ماند.
+          اگر از صفحه گزارش آمده باشی، شناسه همان گزارش همراه درخواست ثبت
+          می‌شود. زمان، هزینه و محدوده کار پیش از شروع جداگانه تأیید خواهد شد.
         </p>
-
         <div className="actions">
           <Link className="button" href="/chart">
             ساخت گزارش پایه
           </Link>
-
           <Link className="button secondary" href="/pricing">
             دیدن پلن‌ها
           </Link>
         </div>
       </div>
 
-      <ManualOrderRequestForm initialReportId={initialReportId} />
+      <PremiumRequestForm initialReportId={initialReportId} />
 
       <section className="card">
-        <span className="section-label">بعد از کپی متن سفارش</span>
-
-        <h2>هماهنگی سفارش قدم‌به‌قدم انجام می‌شود</h2>
-
+        <span className="section-label">روند بررسی</span>
+        <h2>ثبت درخواست به معنی پرداخت یا شروع خودکار نیست</h2>
         <ol>
-          <li>متن آماده سفارش را کپی کن و شناسه گزارش نمونه را همراهش نگه دار.</li>
-          <li>متن را از راه ارتباطی هماهنگ‌شده برای بررسی دستی ارسال کن.</li>
-          <li>زمان، هزینه و محدوده نسخه کامل‌تر قبل از شروع کار تأیید می‌شود.</li>
+          <li>درخواست در صف خصوصی هالیوس ثبت می‌شود.</li>
+          <li>جزئیات، زمان و هزینه برای هماهنگی بررسی می‌شود.</li>
+          <li>پس از تأیید دوطرفه، وضعیت آماده‌سازی و تحویل پیگیری می‌شود.</li>
         </ol>
-
-        <p>
-          این فرم چیزی را در سایت ثبت نمی‌کند؛ فقط کمک می‌کند درخواستت مرتب،
-          قابل‌کپی و آماده هماهنگی باشد.
-        </p>
       </section>
 
       <section className="card">
-        <span className="section-label">شفافیت سفارش</span>
-
-        <h2>اطلاعات این فرم در سایت ذخیره یا ارسال نمی‌شود</h2>
-
+        <span className="section-label">حریم خصوصی و انتشار</span>
+        <h2>ثبت سفارش، رضایت انتشار نیست</h2>
         <p>
-          متن سفارش فقط روی همین صفحه آماده می‌شود. بعد از کپی، خودت آن را از
-          راه ارتباطی دلخواه می‌فرستی و جزئیات سفارش جداگانه تأیید می‌شود.
+          انتخاب عمومی یا خصوصی بودن گزارش جداگانه نگه داشته می‌شود. هالیوس یک
+          گزارش خصوصی را بدون رضایت صریح صاحب آن عمومی نمی‌کند.
         </p>
-
         <div className="tag-list">
-          <span>قابل کپی</span>
-          <span>بدون ارسال خودکار</span>
-          <span>با هماهنگی دستی</span>
+          <span>صف خصوصی</span>
+          <span>قابل پیگیری</span>
+          <span>رضایت انتشار جداگانه</span>
         </div>
       </section>
     </section>

@@ -169,7 +169,8 @@
     "check:behavioral-aspect-synthesis-alignment": "node scripts/check-behavioral-aspect-synthesis-alignment.mjs",
     "check:synthesis-priority-house-emphasis-alignment": "node scripts/check-synthesis-priority-house-emphasis-alignment.mjs",
     "check:chart-level-narrative-synthesis": "node scripts/check-chart-level-narrative-synthesis.mjs",
-    "check:live-report-reading-contract": "node scripts/check-live-report-reading-contract.mjs"
+    "check:live-report-reading-contract": "node scripts/check-live-report-reading-contract.mjs",
+    "check:secure-admin-core": "node scripts/check-secure-admin-core.mjs"
   },
   "dependencies": {
     "@astrodraw/astrochart": "3.0.2",
