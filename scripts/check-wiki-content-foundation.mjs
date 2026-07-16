@@ -68,7 +68,7 @@ if (failures.length === 0) {
   assertIncludes("Wiki article template", articlePage, [
     "generateStaticParams",
     "generateMetadata",
-    "dynamicParams = false",
+    "dynamicParams = true",
     "notFound()",
     "getPublicWikiArticleResolution",
     "listPublicWikiRouteSlugs",

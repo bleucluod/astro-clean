@@ -1,0 +1,14 @@
+[Unit]
+Description=Halleus due Wiki publication runner
+After=network-online.target halleus.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+EnvironmentFile=/etc/halleus/halleus.env
+ExecStart=/bin/bash /srv/halleus/current/ops/vps/halleus-wiki-publisher.sh
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0027

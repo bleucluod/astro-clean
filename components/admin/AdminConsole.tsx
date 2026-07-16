@@ -13,8 +13,12 @@ import type {
   AdminUserSummary,
 } from "@/lib/admin/admin-types";
 import styles from "./admin-console.module.css";
+import {
+  WikiAdminPanel,
+  type WikiWorkspaceSection,
+} from "./WikiAdminPanel";
 
-type TabId = "overview" | "users" | "reports" | "premium" | "audit";
+type TabId = "overview" | "users" | "reports" | "premium" | "wiki" | "audit";
 
 type JsonPayload = Record<string, unknown>;
 
@@ -31,7 +35,21 @@ const tabs: {
     label: "درخواست‌های پرمیوم",
     capability: "premium_requests.read",
   },
+  { id: "wiki", label: "مدیریت ویکی", capability: "wiki.read" },
   { id: "audit", label: "لاگ ممیزی", capability: "audit.read" },
+];
+
+const wikiSections: {
+  id: WikiWorkspaceSection;
+  label: string;
+  capability: AdminCapability;
+}[] = [
+  { id: "articles", label: "مقاله‌ها", capability: "wiki.read" },
+  { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write" },
+  { id: "import", label: "ورود بستهٔ استاندارد ویکی", capability: "wiki.import.write" },
+  { id: "settings", label: "تنظیمات انتشار خودکار", capability: "wiki.read" },
+  { id: "categories", label: "دسته‌ها", capability: "wiki.settings.write" },
+  { id: "media", label: "رسانه‌ها", capability: "wiki.read" },
 ];
 
 function formatDate(value: string | null) {
@@ -59,6 +77,7 @@ export function AdminConsole() {
   const [token, setToken] = useState("");
   const [session, setSession] = useState<AdminSessionPayload | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [wikiSection, setWikiSection] = useState<WikiWorkspaceSection>("articles");
   const [overview, setOverview] = useState<AdminOverviewPayload | null>(null);
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
   const [reports, setReports] = useState<AdminReportSummary[]>([]);
@@ -79,7 +98,7 @@ export function AdminConsole() {
       }
       const headers = new Headers(init?.headers);
       headers.set("authorization", `Bearer ${token}`);
-      if (init?.body) {
+      if (init?.body && !(init.body instanceof FormData)) {
         headers.set("content-type", "application/json");
       }
 
@@ -212,6 +231,8 @@ export function AdminConsole() {
   }, [activeTab, request, search, session, token]);
 
   useEffect(() => {
+    // Data loading is the external synchronization owned by this admin tab.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadTab();
   }, [loadTab]);
 
@@ -435,14 +456,32 @@ export function AdminConsole() {
         </div>
         <nav className={styles.nav} aria-label="بخش‌های پنل">
           {availableTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={activeTab === tab.id ? styles.activeNav : undefined}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
+            <div className={styles.navGroup} key={tab.id}>
+              <button
+                type="button"
+                className={activeTab === tab.id ? styles.activeNav : undefined}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  if (tab.id === "wiki") setWikiSection("articles");
+                }}
+              >
+                {tab.label}
+              </button>
+              {tab.id === "wiki" && activeTab === "wiki" ? (
+                <div className={styles.subnav} aria-label="بخش‌های مدیریت ویکی">
+                  {wikiSections.filter((item) => hasCapability(session, item.capability)).map((item) => (
+                    <button
+                      className={wikiSection === item.id ? styles.activeSubnav : undefined}
+                      key={item.id}
+                      type="button"
+                      onClick={() => setWikiSection(item.id)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           ))}
         </nav>
         <Link href="/" className={styles.publicLink}>
@@ -472,9 +511,11 @@ export function AdminConsole() {
               <button type="submit">جست‌وجو</button>
             </form>
           )}
-          <button type="button" onClick={() => void loadTab()}>
-            تازه‌سازی
-          </button>
+          {activeTab !== "wiki" ? (
+            <button type="button" onClick={() => void loadTab()}>
+              تازه‌سازی
+            </button>
+          ) : null}
         </header>
 
         {error ? <p className={styles.error}>{error}</p> : null}
@@ -759,6 +800,15 @@ export function AdminConsole() {
               </tbody>
             </table>
           </div>
+        ) : null}
+
+        {activeTab === "wiki" ? (
+          <WikiAdminPanel
+            activeSection={wikiSection}
+            onSectionChange={setWikiSection}
+            session={session}
+            token={token}
+          />
         ) : null}
       </main>
     </div>

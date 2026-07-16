@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 import styles from "./wiki.module.css";
 
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: "ویکی آسترولوژی هالیوس | راهنمای فارسی چارت تولد",
   description:

@@ -2,6 +2,7 @@ export const ADMIN_ROLES = [
   "owner",
   "admin",
   "editor",
+  "publisher",
   "support",
   "analyst",
 ] as const;
@@ -20,6 +21,12 @@ export const ADMIN_CAPABILITIES = [
   "premium_requests.write",
   "audit.read",
   "memberships.manage",
+  "wiki.read",
+  "wiki.draft.write",
+  "wiki.import.write",
+  "wiki.publish.write",
+  "wiki.settings.write",
+  "wiki.media.write",
 ] as const;
 
 export type AdminCapability = (typeof ADMIN_CAPABILITIES)[number];

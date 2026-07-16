@@ -2111,3 +2111,9 @@ schema failure. It is not an alternate lookup for suppressed database rows, so
 draft, scheduled, future, archived, and nonindex content cannot reappear via
 fallback. CMS and scheduling controls belong to the next batch.
 ```
+## Completed: full Wiki CMS foundation (v0.1.328)
+
+- Standard multi-article ZIP package with stable IDs and dependency-aware scheduling.
+- Draft editor, autosave, preview, revision history, rollback, soft delete/restore, slug redirects, SEO/index controls, and media library.
+- Automatic publisher with pause control, Tehran-default editable schedule, stale-lock recovery, bounded retry, audit events, and public revalidation.
+- Deferred outside this batch: analytics/search-console ingestion, payment, report paywalls, and generic site-wide CMS behavior.

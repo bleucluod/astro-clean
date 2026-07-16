@@ -2754,3 +2754,11 @@ Required checks:
   links, indexability, static route inventory, and sitemap inclusion.
 - CMS editing, uploads, media, scheduling controls, payment, analytics
   dashboards, report-engine work, and Synastry remain outside Batch 2.
+## Wiki CMS and automatic publishing (v0.1.328)
+
+- The public Wiki keeps the database-first, code-fallback read boundary from v0.1.327.
+- Admin Wiki mutations are server-authorized by explicit capabilities; editor and publisher duties stay separate.
+- Standard `halleus-wiki-package-*.zip` imports validate paths, sizes, signatures, dependencies, metadata, and Markdown before storage.
+- Published content is never silently overwritten: mutable autosaves live in a separate draft table and publication creates an append-only revision.
+- Automatic publishing uses a bounded database queue, an authenticated internal route, and a lightweight systemd timer; cache and sitemap paths are revalidated after a successful transition.
+- Wiki media is stored in the dedicated Supabase `wiki-media` bucket and reused by content hash. Release directories are not media storage.

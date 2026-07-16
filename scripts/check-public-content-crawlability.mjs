@@ -90,7 +90,7 @@ requirePattern(
   "real article hrefs through next/link",
 );
 
-requireText("Wiki article", wikiArticle, 'export const dynamicParams = false');
+requireText("Wiki article", wikiArticle, 'export const dynamicParams = true');
 requireText("Wiki article", wikiArticle, "export async function generateStaticParams()");
 requireText("Wiki article", wikiArticle, "listPublicWikiRouteSlugs");
 requireText("Wiki article", wikiArticle, "<h1>{article.title}</h1>");

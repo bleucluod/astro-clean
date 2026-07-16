@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { seoRoutes, siteConfig } from "@/lib/config/seo";
 import { listPublicWikiSitemapArticles } from "@/lib/wiki/wiki-repository";
 
+export const revalidate = 300;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
   const wikiArticles = await listPublicWikiSitemapArticles();

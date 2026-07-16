@@ -8,7 +8,7 @@ export type WikiCategoryId =
   | "systems";
 
 export type WikiCategory = {
-  id: WikiCategoryId;
+  id: string;
   label: string;
   description: string;
 };
@@ -17,6 +17,11 @@ export type WikiArticleSection = {
   title: string;
   paragraphs: readonly string[];
   bullets?: readonly string[];
+  media?: readonly {
+    src: string;
+    alt: string;
+    caption?: string;
+  }[];
 };
 
 export type WikiArticleLink = {
@@ -37,10 +42,11 @@ export type WikiArticleCallToAction = {
 };
 
 export type WikiArticle = {
+  stableId?: string;
   slug: string;
   title: string;
   shortTitle: string;
-  categoryId: WikiCategoryId;
+  categoryId: string;
   seoTitle?: string;
   metaDescription?: string;
   summary: string;
@@ -52,6 +58,7 @@ export type WikiArticle = {
   sources?: readonly (string | WikiArticleSource)[];
   callToAction?: WikiArticleCallToAction;
   relatedSlugs: readonly string[];
+  relatedArticleIds?: readonly string[];
 };
 
 export const wikiCategories = [
@@ -3354,7 +3361,7 @@ export const wikiArticles = [
   },
 ] as const satisfies readonly WikiArticle[];
 
-export function getWikiCategory(categoryId: WikiCategoryId): WikiCategory | null {
+export function getWikiCategory(categoryId: string): WikiCategory | null {
   return wikiCategories.find((category) => category.id === categoryId) ?? null;
 }
 

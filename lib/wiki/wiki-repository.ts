@@ -13,7 +13,6 @@ import type {
   WikiArticleSection,
   WikiArticleSource,
   WikiCategory,
-  WikiCategoryId,
 } from "@/lib/wiki/wiki-content";
 
 type WikiStorageSource = "database" | "code-fallback";
@@ -24,6 +23,8 @@ type WikiRedirect = {
 };
 
 type StoredWikiArticle = WikiArticle & {
+  stableId: string;
+  relatedArticleIds: readonly string[];
   updatedAt: string;
 };
 
@@ -47,6 +48,7 @@ export type PublicWikiArticleResolution =
       categories: WikiCategory[];
       relatedArticles: WikiArticle[];
       source: WikiStorageSource;
+      internalLinkTargets: Record<string, { slug: string; label: string }>;
     }
   | {
       kind: "redirect";
@@ -111,6 +113,8 @@ function fallbackSnapshot(reason: "database-not-configured" | "database-read-fai
   return {
     articles: fallbackWikiArticles.map((article) => ({
       ...article,
+      stableId: article.slug,
+      relatedArticleIds: article.relatedSlugs,
       updatedAt: "2026-07-16T00:00:00.000Z",
     })),
     categories: [...fallbackWikiCategories],
@@ -138,7 +142,7 @@ function asArray<T>(value: unknown, field: string): T[] {
 
 function normalizeCategory(row: Record<string, unknown>): WikiCategory {
   return {
-    id: asString(row.id) as WikiCategoryId,
+    id: asString(row.id),
     label: asString(row.label),
     description: asString(row.description),
   };
@@ -148,10 +152,11 @@ function normalizeArticle(row: Record<string, unknown>): StoredWikiArticle {
   const callToAction = row.call_to_action;
 
   return {
+    stableId: asString(row.stable_id),
     slug: asString(row.slug),
     title: asString(row.title),
     shortTitle: asString(row.short_title),
-    categoryId: asString(row.category_id) as WikiCategoryId,
+    categoryId: asString(row.category_id),
     seoTitle: asNullableString(row.seo_title),
     metaDescription: asNullableString(row.meta_description),
     summary: asString(row.summary),
@@ -172,6 +177,7 @@ function normalizeArticle(row: Record<string, unknown>): StoredWikiArticle {
         ? (callToAction as WikiArticleCallToAction)
         : undefined,
     relatedSlugs: asArray<string>(row.related_slugs, "related_slugs"),
+    relatedArticleIds: asArray<string>(row.related_article_ids, "related_article_ids"),
     updatedAt: asString(row.updated_at),
   };
 }
@@ -185,6 +191,7 @@ async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<W
     `,
     sql`
       select
+        stable_id,
         slug,
         category_id,
         title,
@@ -200,6 +207,7 @@ async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<W
         sources,
         call_to_action,
         related_slugs,
+        related_article_ids,
         updated_at::text as updated_at
       from public.wiki_articles
       where status = 'published'
@@ -207,6 +215,7 @@ async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<W
         and published_at is not null
         and published_at <= now()
         and scheduled_for is null
+        and deleted_at is null
       order by sort_order asc, slug asc
     `,
     sql`
@@ -221,6 +230,7 @@ async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<W
         and target.published_at is not null
         and target.published_at <= now()
         and target.scheduled_for is null
+        and target.deleted_at is null
       order by redirect.source_slug asc
     `,
   ]);
@@ -277,14 +287,19 @@ export async function getPublicWikiArticleResolution(
 
   if (article) {
     const articlesBySlug = new Map(snapshot.articles.map((item) => [item.slug, item]));
+    const articlesByStableId = new Map(snapshot.articles.map((item) => [item.stableId, item]));
 
     return {
       kind: "article",
       article,
       categories: snapshot.categories,
-      relatedArticles: article.relatedSlugs
-        .map((relatedSlug) => articlesBySlug.get(relatedSlug))
+      relatedArticles: (article.relatedArticleIds.length
+        ? article.relatedArticleIds.map((stableId) => articlesByStableId.get(stableId))
+        : article.relatedSlugs.map((relatedSlug) => articlesBySlug.get(relatedSlug)))
         .filter((relatedArticle): relatedArticle is StoredWikiArticle => Boolean(relatedArticle)),
+      internalLinkTargets: Object.fromEntries(
+        snapshot.articles.map((item) => [item.stableId, { slug: item.slug, label: item.shortTitle }]),
+      ),
       source: snapshot.source,
     };
   }

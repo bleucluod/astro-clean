@@ -6,6 +6,7 @@ import {
 import { getAdminDatabase } from "@/lib/admin/admin-database";
 import {
   ADMIN_ROLES,
+  ADMIN_CAPABILITIES,
   type AdminCapability,
   type AdminRole,
   type AdminSessionPayload,
@@ -56,9 +57,18 @@ export async function requireAdminCapability(
 
   const sql = getAdminDatabase();
   const rows = await sql`
-    select role, status
-    from halleus_private.admin_memberships
-    where user_id = ${user.id}::uuid
+    select
+      membership.role,
+      membership.status,
+      coalesce(
+        jsonb_agg(grant_row.capability) filter (where grant_row.is_granted = true),
+        '[]'::jsonb
+      ) as explicit_grants
+    from halleus_private.admin_memberships as membership
+    left join halleus_private.admin_capability_grants as grant_row
+      on grant_row.user_id = membership.user_id
+    where membership.user_id = ${user.id}::uuid
+    group by membership.role, membership.status
     limit 1
   `;
   const membership = rows[0];
@@ -71,7 +81,14 @@ export async function requireAdminCapability(
     throw new AdminAccessError(403, "This admin membership is not active.");
   }
 
-  if (!adminRoleHasCapability(membership.role, capability)) {
+  const explicitGrants = Array.isArray(membership.explicit_grants)
+    ? membership.explicit_grants.filter(
+        (item): item is AdminCapability =>
+          typeof item === "string" && ADMIN_CAPABILITIES.includes(item as AdminCapability),
+      )
+    : [];
+
+  if (!adminRoleHasCapability(membership.role, capability, explicitGrants)) {
     throw new AdminAccessError(403, "This admin role cannot perform that action.");
   }
 
@@ -79,7 +96,7 @@ export async function requireAdminCapability(
     userId: user.id,
     displayName: user.displayName,
     role: membership.role,
-    capabilities: getAdminCapabilities(membership.role),
+    capabilities: getAdminCapabilities(membership.role, explicitGrants),
     correlationId: readCorrelationId(request),
   };
 }
@@ -93,5 +110,17 @@ export function assertAdminMutationRequest(request: Request) {
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin) {
     throw new AdminAccessError(403, "Cross-origin admin mutation was rejected.");
+  }
+}
+
+export function assertAdminUploadRequest(request: Request) {
+  const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!contentType.includes("multipart/form-data")) {
+    throw new AdminAccessError(415, "Admin uploads require multipart form data.");
+  }
+
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(request.url).origin) {
+    throw new AdminAccessError(403, "Cross-origin admin upload was rejected.");
   }
 }

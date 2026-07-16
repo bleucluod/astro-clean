@@ -15,6 +15,7 @@ export type HalleusRuntimeEnv = {
   supabaseLoginEnabled: boolean;
   accountStorageEnabled: boolean;
   accountReportSaveEnabled: boolean;
+  wikiPublisherSecret?: string;
 };
 
 function getOptionalEnv(name: string) {
@@ -43,6 +44,7 @@ export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
     supabaseLoginEnabled: isEnabledEnv("NEXT_PUBLIC_HALLEUS_ENABLE_SUPABASE_LOGIN"),
     accountStorageEnabled: isEnabledEnv("HALLEUS_ENABLE_ACCOUNT_STORAGE"),
     accountReportSaveEnabled: isEnabledEnv("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE"),
+    wikiPublisherSecret: getOptionalEnv("HALLEUS_WIKI_PUBLISHER_SECRET"),
   };
 }
 

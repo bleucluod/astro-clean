@@ -15,7 +15,8 @@ type WikiArticlePageProps = {
 
 const WIKI_BASE_URL = "https://halleus.ir";
 
-export const dynamicParams = false;
+export const dynamicParams = true;
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   const routeSlugs = await listPublicWikiRouteSlugs();
@@ -70,6 +71,25 @@ function serializeJsonLd(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
+function renderWikiText(
+  text: string,
+  targets: Record<string, { slug: string; label: string }>,
+) {
+  const parts = text.split(/(\[\[article:[a-z0-9]+(?:[._-][a-z0-9]+)*\]\])/g);
+  return parts.map((part, index) => {
+    const match = part.match(/^\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)\]\]$/);
+    if (!match) {
+      return part;
+    }
+    const target = targets[match[1]];
+    return target ? (
+      <Link href={`/wiki/${target.slug}`} key={`${target.slug}-${index}`}>
+        {target.label}
+      </Link>
+    ) : null;
+  });
+}
+
 export default async function WikiArticlePage({ params }: WikiArticlePageProps) {
   const { slug } = await params;
   const resolution = await getPublicWikiArticleResolution(slug);
@@ -82,7 +102,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
     notFound();
   }
 
-  const { article, categories, relatedArticles } = resolution;
+  const { article, categories, relatedArticles, internalLinkTargets } = resolution;
   const category =
     categories.find((item) => item.id === article.categoryId) ?? null;
   const articleUrl = `${WIKI_BASE_URL}/wiki/${article.slug}`;
@@ -162,7 +182,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               </span>
             </div>
             <h1>{article.title}</h1>
-            <p>{article.intro}</p>
+            <p>{renderWikiText(article.intro, internalLinkTargets)}</p>
           </header>
 
           <section className={styles.keyPoints} aria-labelledby="key-points-title">
@@ -170,7 +190,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
             <h2 id="key-points-title">سه نکته‌ای که باید با خودت ببری</h2>
             <ul>
               {article.keyPoints.map((point) => (
-                <li key={point}>{point}</li>
+                <li key={point}>{renderWikiText(point, internalLinkTargets)}</li>
               ))}
             </ul>
           </section>
@@ -180,15 +200,23 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               <section className={styles.bodySection} key={section.title}>
                 <h2>{section.title}</h2>
                 {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                  <p key={paragraph}>{renderWikiText(paragraph, internalLinkTargets)}</p>
                 ))}
                 {section.bullets ? (
                   <ul className={styles.bodyList}>
                     {section.bullets.map((bullet) => (
-                      <li key={bullet}>{bullet}</li>
+                      <li key={bullet}>{renderWikiText(bullet, internalLinkTargets)}</li>
                     ))}
                   </ul>
                 ) : null}
+                {section.media?.map((media) => (
+                  <figure className={styles.articleMedia} key={media.src}>
+                    {/* CMS media is signature-validated and served from the dedicated public bucket. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img alt={media.alt} loading="lazy" src={media.src} />
+                    {media.caption ? <figcaption>{media.caption}</figcaption> : null}
+                  </figure>
+                ))}
               </section>
             ))}
 

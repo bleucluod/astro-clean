@@ -5,6 +5,27 @@
   margin: 0 auto;
 }
 
+.articleMedia {
+  margin: 24px 0;
+}
+
+.articleMedia img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 720px;
+  object-fit: contain;
+  border: 1px solid var(--border, #d9e2ec);
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+.articleMedia figcaption {
+  margin-top: 8px;
+  color: #637588;
+  font-size: 0.9rem;
+}
+
 .hero {
   position: relative;
   display: grid;

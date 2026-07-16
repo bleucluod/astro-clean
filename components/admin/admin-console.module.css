@@ -7,6 +7,404 @@
   color: #243447;
 }
 
+.wikiWorkspace {
+  display: grid;
+  gap: 18px;
+}
+
+.wikiPanel {
+  padding: 18px;
+  border: 1px solid #d9e2ec;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.wikiPanel h3,
+.wikiPanel h4,
+.wikiPanel p {
+  margin-top: 0;
+}
+
+.wikiPanelHeader,
+.wikiActions,
+.wikiInlineForm,
+.wikiFilters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wikiPanel button,
+.wikiPanel input,
+.wikiPanel select,
+.wikiPanel textarea {
+  border: 1px solid #bcccdc;
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: #fff;
+  color: #243447;
+}
+
+.wikiPanel input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  padding: 0;
+  border-radius: 5px;
+  accent-color: #5367d8;
+}
+
+.wikiPanel button {
+  cursor: pointer;
+}
+
+.wikiFilters input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.wikiArticleList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.wikiArticleList button {
+  display: grid;
+  gap: 5px;
+  text-align: right;
+}
+
+.wikiArticleList span,
+.wikiArticleList small {
+  color: #637588;
+}
+
+.inlineError {
+  color: #8b3030 !important;
+}
+
+.wikiEditor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wikiEditor label {
+  display: grid;
+  gap: 6px;
+  color: #52657a;
+  font-size: 0.88rem;
+}
+
+.wideField {
+  grid-column: 1 / -1;
+}
+
+.markdownEditor {
+  min-height: 360px;
+  direction: rtl;
+  font-family: inherit;
+  line-height: 1.9;
+}
+
+.wikiActions {
+  justify-content: flex-start;
+  margin-top: 16px;
+}
+
+.wikiPanelHeader .wikiActions {
+  margin-top: 0;
+}
+
+.downloadLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid #94aee8;
+  border-radius: 10px;
+  color: #344eb5;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.fieldHint {
+  color: #637588;
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+.importResult {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #c7d4ed;
+  border-radius: 14px;
+  background: #f8faff;
+}
+
+.importResult > p {
+  margin: 0;
+  color: #52657a;
+}
+
+.importItem {
+  padding: 11px 12px;
+  border: 1px solid #d9e2f2;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.importItem > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.importItem code {
+  color: #344eb5;
+  overflow-wrap: anywhere;
+}
+
+.importItem ul {
+  margin: 9px 0 0;
+  padding-inline-start: 20px;
+  color: #8a3f4f;
+  line-height: 1.8;
+}
+
+.scheduleSummary {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4055b5;
+  font-size: 0.88rem;
+}
+
+.scheduleGrid,
+.categoryForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.scheduleGrid label,
+.categoryForm label {
+  display: grid;
+  gap: 7px;
+  color: #52657a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.scheduleGrid small,
+.toggleCard small {
+  color: #718398;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.scheduleBlock {
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px solid #e0e7ef;
+  border-radius: 14px;
+  background: #f9fbfd;
+}
+
+.scheduleBlock > strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.weekdayPicker {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+.weekdayOption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 7px 9px;
+  border: 1px solid #cbd6e2;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.weekdayOption:has(input:checked) {
+  border-color: #6478d8;
+  background: #eef2ff;
+  color: #344eb5;
+  font-weight: 700;
+}
+
+.blackoutEditor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.blackoutEditor input {
+  min-width: 190px;
+}
+
+.blackoutList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  color: #718398;
+}
+
+.blackoutChip {
+  padding: 6px 10px !important;
+  background: #fff7f7 !important;
+  color: #7f3b3b !important;
+}
+
+.toggleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.toggleCard {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #d8e1eb;
+  border-radius: 13px;
+  background: #f9fbfd;
+  cursor: pointer;
+}
+
+.toggleCard > span {
+  display: grid;
+  gap: 4px;
+}
+
+.toggleCard strong,
+.toggleCard small {
+  display: block;
+}
+
+.categoryForm button {
+  justify-self: start;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.categoryGrid article {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid #e0e7ef;
+  border-radius: 13px;
+  background: #f9fbfd;
+}
+
+.categoryGrid code {
+  direction: ltr;
+  justify-self: end;
+  color: #5367a7;
+}
+
+.categoryGrid p {
+  margin-bottom: 0;
+  color: #637588;
+  line-height: 1.75;
+}
+
+.wikiPreview {
+  padding: 20px;
+  border: 1px dashed #bcccdc;
+  border-radius: 14px;
+  line-height: 2;
+}
+
+.revisions {
+  margin-top: 18px;
+}
+
+.revisions details {
+  padding: 10px 0;
+  border-top: 1px solid #e8eef4;
+}
+
+.revisions pre {
+  max-height: 280px;
+  overflow: auto;
+  direction: ltr;
+  text-align: left;
+  white-space: pre-wrap;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mediaGrid article {
+  display: grid;
+  gap: 6px;
+}
+
+.mediaGrid img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #f5f7fa;
+}
+
+.mediaGrid small {
+  color: #637588;
+}
+
+@media (max-width: 900px) {
+  .wikiArticleList,
+  .mediaGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .wikiEditor,
+  .wikiArticleList,
+  .mediaGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .sidebar {
   position: sticky;
   top: 0;
@@ -41,6 +439,11 @@
   gap: 8px;
 }
 
+.navGroup {
+  display: grid;
+  gap: 4px;
+}
+
 .nav button,
 .publicLink {
   width: 100%;
@@ -58,6 +461,25 @@
 .nav button:focus-visible,
 .activeNav {
   background: rgba(217, 234, 253, 0.13) !important;
+}
+
+.subnav {
+  display: grid;
+  gap: 3px;
+  margin-right: 12px;
+  padding: 4px 10px 4px 0;
+  border-right: 1px solid rgba(217, 234, 253, 0.22);
+}
+
+.subnav button {
+  padding: 8px 10px;
+  font-size: 0.84rem;
+  color: #d9eafd;
+}
+
+.activeSubnav {
+  background: rgba(132, 153, 255, 0.24) !important;
+  color: #fff !important;
 }
 
 .publicLink {
@@ -269,6 +691,14 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .subnav {
+    margin-right: 0;
+  }
+
+  .weekdayPicker {
+    grid-template-columns: repeat(4, minmax(72px, 1fr));
+  }
+
   .publicLink {
     margin-top: 0;
   }
@@ -295,5 +725,16 @@
 
   .cards {
     grid-template-columns: 1fr;
+  }
+
+  .scheduleGrid,
+  .toggleGrid,
+  .categoryForm,
+  .categoryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .weekdayPicker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
