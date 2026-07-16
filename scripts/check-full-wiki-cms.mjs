@@ -43,6 +43,7 @@ const scheduling = read("lib/wiki/wiki-scheduling.ts");
 const packageGuide = read("public/halleus-wiki-package-guide-v1.md");
 const internalRoute = read("app/api/internal/wiki/publish-due/route.ts");
 const timer = read("ops/vps/halleus-wiki-publisher.timer");
+const publisherRunner = read("ops/vps/halleus-wiki-publisher.sh");
 const packageJson = JSON.parse(read("package.json"));
 
 for (const table of [
@@ -118,6 +119,9 @@ requireText("publisher", publisher, "system.wiki.scheduled_article_published");
 requireText("publisher route", internalRoute, "timingSafeEqual");
 requireText("publisher route", internalRoute, "wikiPublisherSecret");
 requireText("publisher timer", timer, "OnUnitActiveSec=5min");
+requireText("publisher readiness retry", publisherRunner, "max_attempts=12");
+requireText("publisher readiness retry", publisherRunner, "exit_code != 7");
+requireText("publisher readiness retry", publisherRunner, '/bin/sleep "$retry_delay_seconds"');
 
 requireText("public repository", repository, "deleted_at is null");
 requireText("public article route", articlePage, "dynamicParams = true");
