@@ -1,0 +1,38 @@
+name: Halleus Wiki Queue Read-only Preflight
+
+on:
+  push:
+    branches:
+      - preflight/wiki-publication-queue-readonly-v01331a
+
+permissions:
+  contents: read
+
+concurrency:
+  group: halleus-wiki-publication-queue-readonly-preflight
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify exact change range
+        run: pnpm run verify -- --base ff4c9bce3841e45f194b21bcaa084c233f1e3165 --head HEAD
+      - name: Diff check
+        run: git --no-pager diff --check ff4c9bce3841e45f194b21bcaa084c233f1e3165...HEAD
