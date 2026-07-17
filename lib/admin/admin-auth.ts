@@ -1,4 +1,6 @@
+import { isTrustedAdminRequestOrigin } from "@/lib/admin/admin-origin";
 import { getSupabaseUserFromAuthorizationHeader } from "@/lib/auth/supabase-server-user";
+import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import {
   adminRoleHasCapability,
   getAdminCapabilities,
@@ -101,16 +103,30 @@ export async function requireAdminCapability(
   };
 }
 
+function assertTrustedAdminRequestOrigin(
+  request: Request,
+  errorMessage: string,
+) {
+  if (
+    !isTrustedAdminRequestOrigin(
+      request,
+      getHalleusRuntimeEnv().siteUrl,
+    )
+  ) {
+    throw new AdminAccessError(403, errorMessage);
+  }
+}
+
 export function assertAdminMutationRequest(request: Request) {
   const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
   if (!contentType.includes("application/json")) {
     throw new AdminAccessError(415, "Admin mutations require JSON.");
   }
 
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    throw new AdminAccessError(403, "Cross-origin admin mutation was rejected.");
-  }
+  assertTrustedAdminRequestOrigin(
+    request,
+    "Cross-origin admin mutation was rejected.",
+  );
 }
 
 export function assertAdminUploadRequest(request: Request) {
@@ -119,8 +135,8 @@ export function assertAdminUploadRequest(request: Request) {
     throw new AdminAccessError(415, "Admin uploads require multipart form data.");
   }
 
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    throw new AdminAccessError(403, "Cross-origin admin upload was rejected.");
-  }
+  assertTrustedAdminRequestOrigin(
+    request,
+    "Cross-origin admin upload was rejected.",
+  );
 }

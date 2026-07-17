@@ -142,6 +142,7 @@
       ],
       "guards": [
         "check:secure-admin-core",
+        "check:admin-origin-boundary",
         "check:auth-readiness"
       ],
       "lint": true,

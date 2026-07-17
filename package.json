@@ -52,6 +52,7 @@
     "check:plan": "node scripts/halleus-check-plan.mjs",
     "verify": "node scripts/halleus-verify.mjs",
     "check:workflow-acceleration": "node scripts/check-workflow-acceleration.mjs",
+    "check:admin-origin-boundary": "node scripts/check-admin-origin-boundary.mjs",
     "check:real-chart-normalization": "node scripts/check-real-chart-normalization.mjs",
     "check:chart-report-enrichment": "node scripts/check-chart-report-enrichment.mjs",
     "check:report-real-chart-bridge": "node scripts/check-report-real-chart-bridge.mjs",
