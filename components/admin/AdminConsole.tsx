@@ -490,8 +490,10 @@ export function AdminConsole() {
         </Link>
       </aside>
 
-      <main className={styles.main}>
-        <header className={styles.toolbar}>
+      <main className={`${styles.main} ${activeTab === "wiki" ? styles.wikiMain : ""}`}>
+        <header
+          className={`${styles.toolbar} ${activeTab === "wiki" ? styles.wikiToolbar : ""}`}
+        >
           <div>
             <span className={styles.eyebrow}>server-protected</span>
             <h2>{tabs.find((tab) => tab.id === activeTab)?.label}</h2>

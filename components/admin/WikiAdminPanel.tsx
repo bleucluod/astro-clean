@@ -7,6 +7,7 @@ import type {
 import type {
   WikiArticleAdminSummary,
   WikiArticleSnapshot,
+  WikiBulkSchedulePlan,
   WikiImportResult,
   WikiRevisionSummary,
   WikiScheduleSettings,
@@ -156,6 +157,17 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [blackoutDate, setBlackoutDate] = useState("");
   const [categoryDraft, setCategoryDraft] = useState({ id: "", label: "", description: "" });
   const [importResult, setImportResult] = useState<WikiImportResult | null>(null);
+  const selectionScope = `${activeSection}:${status}:${search}`;
+  const [articleSelection, setArticleSelection] = useState<{
+    scope: string;
+    ids: string[];
+  }>({ scope: selectionScope, ids: [] });
+  const selectedArticleIds = useMemo(
+    () =>
+      articleSelection.scope === selectionScope ? articleSelection.ids : [],
+    [articleSelection, selectionScope],
+  );
+  const [bulkSchedulePlan, setBulkSchedulePlan] = useState<WikiBulkSchedulePlan | null>(null);
 
   const canDraft = session.capabilities.includes("wiki.draft.write");
   const canPublish = session.capabilities.includes("wiki.publish.write");
@@ -174,6 +186,53 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
       ),
     [publicationQueue, settings?.publishingPaused],
   );
+  const bulkEligibleArticles = useMemo(
+    () =>
+      articles.filter(
+        (article) =>
+          !article.deletedAt &&
+          article.hasDraft &&
+          ["draft", "published"].includes(article.status) &&
+          !["queued", "running", "retry", "failed"].includes(
+            article.publishJobStatus ?? "",
+          ),
+      ),
+    [articles],
+  );
+  const bulkEligibleIds = useMemo(
+    () => new Set(bulkEligibleArticles.map((article) => article.id)),
+    [bulkEligibleArticles],
+  );
+  const visibleSelectableArticles = useMemo(
+    () =>
+      (activeSection === "queue" ? publicationQueue : articles).filter(
+        (article) => !article.deletedAt,
+      ),
+    [activeSection, articles, publicationQueue],
+  );
+  const visibleSelectableIds = useMemo(
+    () => new Set(visibleSelectableArticles.map((article) => article.id)),
+    [visibleSelectableArticles],
+  );
+  const selectedVisibleIds = useMemo(
+    () =>
+      selectedArticleIds.filter((articleId) =>
+        visibleSelectableIds.has(articleId),
+      ),
+    [selectedArticleIds, visibleSelectableIds],
+  );
+  const selectedBulkEligibleIds = useMemo(
+    () =>
+      selectedVisibleIds.filter((articleId) => bulkEligibleIds.has(articleId)),
+    [bulkEligibleIds, selectedVisibleIds],
+  );
+  const allVisibleSelected =
+    visibleSelectableArticles.length > 0 &&
+    selectedVisibleIds.length === visibleSelectableArticles.length;
+  const selectedCanBeScheduled =
+    activeSection === "articles" &&
+    selectedVisibleIds.length > 0 &&
+    selectedVisibleIds.length === selectedBulkEligibleIds.length;
 
   const request = useCallback(async (path: string, init?: RequestInit) => {
     const headers = new Headers(init?.headers);
@@ -307,6 +366,125 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
       await loadList();
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "عملیات ویکی ناموفق بود.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function updateArticleSelection(articleId: string, selected: boolean) {
+    setArticleSelection((current) => {
+      const currentIds = current.scope === selectionScope ? current.ids : [];
+      return {
+        scope: selectionScope,
+        ids: selected
+          ? [...new Set([...currentIds, articleId])]
+          : currentIds.filter((currentId) => currentId !== articleId),
+      };
+    });
+    setBulkSchedulePlan(null);
+  }
+
+  function toggleAllVisibleArticles() {
+    setArticleSelection({
+      scope: selectionScope,
+      ids: allVisibleSelected
+        ? []
+        : visibleSelectableArticles.map((article) => article.id),
+    });
+    setBulkSchedulePlan(null);
+  }
+
+  async function deleteSelectedArticles() {
+    if (!selectedVisibleIds.length || !canPublish) return;
+    if (
+      !window.confirm(
+        `حذف نرم ${selectedVisibleIds.length.toLocaleString("fa-IR")} مقاله انجام شود؟`,
+      )
+    ) {
+      return;
+    }
+    const reason = window.prompt("دلیل حذف گروهی مقاله‌ها را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await request("/api/admin/wiki/articles/bulk-actions", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "delete",
+          articleIds: selectedVisibleIds,
+          reason: reason.trim(),
+        }),
+      });
+      setArticleSelection({ scope: selectionScope, ids: [] });
+      setBulkSchedulePlan(null);
+      setMessage("مقاله‌های انتخاب‌شده به‌صورت نرم حذف شدند.");
+      await loadList();
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "حذف گروهی مقاله‌ها ناموفق بود.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function previewBulkSchedule() {
+    if (!selectedBulkEligibleIds.length) return;
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      const payload = await request("/api/admin/wiki/publication-schedule", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "preview",
+          articleIds: selectedBulkEligibleIds,
+        }),
+      });
+      setBulkSchedulePlan(payload.plan as WikiBulkSchedulePlan);
+    } catch (previewError) {
+      setBulkSchedulePlan(null);
+      setError(
+        previewError instanceof Error
+          ? previewError.message
+          : "پیش‌نمایش زمان‌بندی گروهی ساخته نشد.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function applyBulkSchedule() {
+    if (!bulkSchedulePlan) return;
+    const reason = window.prompt("دلیل زمان‌بندی گروهی را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      await request("/api/admin/wiki/publication-schedule", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "apply",
+          articleIds: selectedBulkEligibleIds,
+          planToken: bulkSchedulePlan.planToken,
+          previewedAt: bulkSchedulePlan.previewedAt,
+          reason: reason.trim(),
+        }),
+      });
+      setArticleSelection({ scope: selectionScope, ids: [] });
+      setBulkSchedulePlan(null);
+      setMessage("زمان‌بندی گروهی با موفقیت ثبت شد.");
+      await loadList();
+    } catch (applyError) {
+      setError(
+        applyError instanceof Error
+          ? applyError.message
+          : "اعمال زمان‌بندی گروهی ناموفق بود.",
+      );
     } finally {
       setLoading(false);
     }
@@ -476,32 +654,152 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
 
       {activeSection === "articles" && !detail ? (
       <section className={styles.wikiPanel}>
-        <div className={styles.wikiPanelHeader}>
-          <div>
-            <h3>مقاله‌ها</h3>
-            <p>پیش‌نویس، زمان‌بندی، انتشار و تاریخچهٔ نسخه‌ها</p>
+        <div className={styles.wikiCollectionHeader}>
+          <div className={styles.wikiSearchStack}>
+            <form
+              className={styles.wikiSearchForm}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void loadList();
+              }}
+            >
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="جست‌وجوی عنوان، slug یا stable ID"
+              />
+              <button type="submit">جست‌وجو</button>
+            </form>
+            <div className={styles.wikiStatusTabs} role="tablist" aria-label="وضعیت مقاله‌ها">
+              {[
+                ["all", "همه"],
+                ["draft", "پیش‌نویس"],
+                ["scheduled", "زمان‌بندی‌شده"],
+                ["published", "منتشرشده"],
+                ["archived", "آرشیو"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={status === value}
+                  className={status === value ? styles.activeStatusTab : undefined}
+                  onClick={() => setStatus(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className={styles.wikiSelectionActions}>
+            <button
+              type="button"
+              onClick={toggleAllVisibleArticles}
+              disabled={!visibleSelectableArticles.length}
+            >
+              {allVisibleSelected ? "لغو انتخاب همه" : "انتخاب همه"}
+            </button>
+            <span>{selectedVisibleIds.length.toLocaleString("fa-IR")} انتخاب شده</span>
+            {canPublish ? (
+              <>
+                <button
+                  className={styles.dangerButton}
+                  type="button"
+                  onClick={() => void deleteSelectedArticles()}
+                  disabled={!selectedVisibleIds.length}
+                >
+                  حذف انتخاب‌شده‌ها
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void previewBulkSchedule()}
+                  disabled={!selectedCanBeScheduled}
+                  title={
+                    selectedVisibleIds.length > 0 && !selectedCanBeScheduled
+                      ? "برای زمان‌بندی، همهٔ انتخاب‌ها باید پیش‌نویس ذخیره‌شده و بدون job باز باشند."
+                      : undefined
+                  }
+                >
+                  پیش‌نمایش زمان‌بندی
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
-        <form className={styles.wikiFilters} onSubmit={(event) => { event.preventDefault(); void loadList(); }}>
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="جست‌وجوی عنوان، slug یا stable ID" />
-          <select value={status} onChange={(event) => setStatus(event.target.value)}>
-            <option value="all">همه وضعیت‌ها</option>
-            <option value="draft">پیش‌نویس</option>
-            <option value="scheduled">زمان‌بندی‌شده</option>
-            <option value="published">منتشرشده</option>
-            <option value="archived">آرشیو</option>
-          </select>
-          <button type="submit">جست‌وجو</button>
-        </form>
+
+        {bulkSchedulePlan ? (
+          <div className={styles.bulkSchedulePreview}>
+            <div className={styles.wikiPanelHeader}>
+              <div>
+                <strong>پیش‌نمایش برنامه</strong>
+                <p>
+                  این پیش‌نمایش تا {formatDate(bulkSchedulePlan.expiresAt)} معتبر است.
+                </p>
+              </div>
+              <button type="button" onClick={() => void applyBulkSchedule()}>
+                اعمال همین برنامه
+              </button>
+            </div>
+            <div className={styles.tableWrap}>
+              <table className={styles.bulkScheduleTable}>
+                <thead>
+                  <tr>
+                    <th>ترتیب</th>
+                    <th>مقاله</th>
+                    <th>نقش</th>
+                    <th>اولویت</th>
+                    <th>زمان انتشار</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bulkSchedulePlan.items.map((item, index) => (
+                    <tr key={item.articleId}>
+                      <td>{(index + 1).toLocaleString("fa-IR")}</td>
+                      <td>
+                        <strong>{item.title}</strong>
+                        <small>{item.slug}</small>
+                      </td>
+                      <td>{item.articleRole === "pillar" ? "ستون اصلی" : "پشتیبان"}</td>
+                      <td>{item.publicationPriority.toLocaleString("fa-IR")}</td>
+                      <td>{formatDate(item.publishAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : null}
+
         <div className={styles.wikiArticleList}>
-          {articles.map((article) => (
-            <button key={article.id} type="button" onClick={() => void openArticle(article.id)}>
-              <strong>{article.title}</strong>
-              <span>{article.slug} · {article.status}{article.hasDraft ? " · پیش‌نویس باز" : ""}</span>
-              <small>{article.pendingPublishAt ? `انتشار: ${formatDate(article.pendingPublishAt)} · ${article.publishJobStatus}` : `ویرایش: ${formatDate(article.updatedAt)}`}</small>
-              {article.publishJobError ? <small className={styles.inlineError}>{article.publishJobError}</small> : null}
-            </button>
-          ))}
+          {articles.map((article) => {
+            const selected = selectedVisibleIds.includes(article.id);
+            return (
+              <article key={article.id} className={styles.wikiArticleListItem}>
+                {canPublish && !article.deletedAt ? (
+                  <label className={styles.articleSelectionCheckbox}>
+                    <input
+                      type="checkbox"
+                      aria-label={`انتخاب ${article.title}`}
+                      checked={selected}
+                      onChange={(event) =>
+                        updateArticleSelection(article.id, event.target.checked)
+                      }
+                    />
+                  </label>
+                ) : null}
+                <button
+                  className={styles.wikiArticleOpenButton}
+                  type="button"
+                  onClick={() => void openArticle(article.id)}
+                >
+                  <strong>{article.title}</strong>
+                  <span>{article.slug} · {article.status}{article.hasDraft ? " · پیش‌نویس باز" : ""}</span>
+                  <small>{article.pendingPublishAt ? `انتشار: ${formatDate(article.pendingPublishAt)} · ${article.publishJobStatus}` : `ویرایش: ${formatDate(article.updatedAt)}`}</small>
+                  {article.publishJobError ? <small className={styles.inlineError}>{article.publishJobError}</small> : null}
+                </button>
+              </article>
+            );
+          })}
         </div>
       </section>
       ) : null}
@@ -509,12 +807,32 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
 
       {activeSection === "queue" ? (
         <section className={styles.wikiPanel}>
-          <div className={styles.wikiPanelHeader}>
-            <div>
+          <div className={styles.wikiCollectionHeader}>
+            <div className={styles.wikiQueueHeaderCopy}>
               <h3>صف انتشار</h3>
               <p>نمای خواندنی jobهای زمان‌بندی‌شده؛ تغییر برنامه از این بخش ممکن نیست.</p>
             </div>
-            <button type="button" onClick={() => void loadList()}>تازه‌سازی صف</button>
+            <div className={styles.wikiSelectionActions}>
+              <button type="button" onClick={() => void loadList()}>تازه‌سازی صف</button>
+              <button
+                type="button"
+                onClick={toggleAllVisibleArticles}
+                disabled={!visibleSelectableArticles.length}
+              >
+                {allVisibleSelected ? "لغو انتخاب همه" : "انتخاب همه"}
+              </button>
+              <span>{selectedVisibleIds.length.toLocaleString("fa-IR")} انتخاب شده</span>
+              {canPublish ? (
+                <button
+                  className={styles.dangerButton}
+                  type="button"
+                  onClick={() => void deleteSelectedArticles()}
+                  disabled={!selectedVisibleIds.length}
+                >
+                  حذف انتخاب‌شده‌ها
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {publicationQueueSummary.publishingPaused ? (
@@ -545,6 +863,14 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               <table className={styles.publicationQueueTable}>
                 <thead>
                   <tr>
+                    <th className={styles.queueSelectionColumn}>
+                      <input
+                        type="checkbox"
+                        aria-label="انتخاب همهٔ صف"
+                        checked={allVisibleSelected}
+                        onChange={toggleAllVisibleArticles}
+                      />
+                    </th>
                     <th>مقاله</th>
                     <th>زمان انتشار</th>
                     <th>وضعیت job</th>
@@ -556,6 +882,16 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 <tbody>
                   {publicationQueue.map((article) => (
                     <tr key={article.id}>
+                      <td className={styles.queueSelectionColumn}>
+                        <input
+                          type="checkbox"
+                          aria-label={`انتخاب ${article.title}`}
+                          checked={selectedVisibleIds.includes(article.id)}
+                          onChange={(event) =>
+                            updateArticleSelection(article.id, event.target.checked)
+                          }
+                        />
+                      </td>
                       <td>
                         <strong>{article.title}</strong>
                         <small>{article.slug} · {article.contentCluster ?? "بدون خوشه"}</small>

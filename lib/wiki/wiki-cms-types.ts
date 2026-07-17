@@ -99,6 +99,23 @@ export type WikiScheduleSettings = {
   publishingPaused: boolean;
 };
 
+export type WikiBulkSchedulePlanItem = {
+  articleId: string;
+  stableId: string;
+  title: string;
+  slug: string;
+  articleRole: WikiArticleRole;
+  publicationPriority: number;
+  publishAt: string;
+};
+
+export type WikiBulkSchedulePlan = {
+  planToken: string;
+  previewedAt: string;
+  expiresAt: string;
+  items: WikiBulkSchedulePlanItem[];
+};
+
 export type WikiPackageArticleManifest = {
   article_id: string;
   version: number;

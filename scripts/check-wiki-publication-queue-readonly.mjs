@@ -39,6 +39,8 @@ for (const marker of [
   'publicationQueueSummary',
   'publicationQueueTable',
   'تازه‌سازی صف',
+  'aria-label="انتخاب همهٔ صف"',
+  'حذف انتخاب‌شده‌ها',
 ]) {
   requireText("Wiki publication queue UI", panel, marker);
 }
@@ -53,16 +55,21 @@ if (queueSectionStart < 0 || queueSectionEnd < 0) {
 } else {
   const queueSection = panel.slice(queueSectionStart, queueSectionEnd);
   for (const forbidden of [
-    'method: "POST"',
-    'method: "PATCH"',
-    'method: "DELETE"',
-    'saveDraft(',
-    'publishArticle(',
-    'deleteArticle(',
+    'previewBulkSchedule(',
+    'applyBulkSchedule(',
+    '/api/admin/wiki/publication-schedule',
+    'reschedule',
+    'retryPublishJob',
+    'cancelPublishJob',
     '/api/admin/wiki/settings',
   ]) {
-    forbidText("read-only queue section", queueSection, forbidden);
+    forbidText("queue scheduling boundary", queueSection, forbidden);
   }
+  requireText(
+    "queue shared soft-delete",
+    queueSection,
+    'onClick={() => void deleteSelectedArticles()}',
+  );
 }
 
 if (
@@ -156,4 +163,4 @@ console.log("- deleted and unscheduled draft rows are excluded");
 console.log("- queued, running, retry, and failed jobs remain visible");
 console.log("- queue order is deterministic by time, priority, and stable ID");
 console.log("- queue summary reports the next slot, paused state, and job counts");
-console.log("- the admin queue surface contains no mutation path");
+console.log("- queue scheduling stays read-only; shared soft-delete is the only mutation exposed");

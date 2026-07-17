@@ -209,7 +209,9 @@
         "check:wiki-package-security",
         "check:wiki-scheduling-determinism",
         "check:full-wiki-cms",
-        "check:wiki-publication-queue-readonly"
+        "check:wiki-publication-queue-readonly",
+        "check:wiki-bulk-scheduling",
+        "check:wiki-bulk-actions-ui"
       ],
       "lint": true,
       "build": true
@@ -226,7 +228,9 @@
         "check:wiki-package-security",
         "check:wiki-scheduling-determinism",
         "check:full-wiki-cms",
-        "check:wiki-publication-queue-readonly"
+        "check:wiki-publication-queue-readonly",
+        "check:wiki-bulk-scheduling",
+        "check:wiki-bulk-actions-ui"
       ],
       "lint": true,
       "build": false

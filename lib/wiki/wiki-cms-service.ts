@@ -11,6 +11,7 @@ import { recordAdminAuditEvent } from "@/lib/admin/admin-service";
 import type {
   WikiArticleAdminSummary,
   WikiArticleSnapshot,
+  WikiBulkSchedulePlan,
   WikiContentGuideArticle,
   WikiRevisionSummary,
   WikiScheduleSettings,
@@ -21,6 +22,13 @@ import {
   readWikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-validation";
 import { findWikiInternalArticleIds } from "@/lib/wiki/wiki-markdown";
+import {
+  fingerprintWikiBulkScheduleSnapshot,
+  planWikiBulkSchedule,
+  WIKI_BULK_SCHEDULE_PREVIEW_TTL_MS,
+  type WikiBulkScheduleCandidate,
+  type WikiBulkScheduleExistingJob,
+} from "@/lib/wiki/wiki-bulk-scheduling";
 
 function legacyMarkdown(row: Record<string, unknown>) {
   const lines = [asString(row.intro)];
@@ -760,6 +768,69 @@ export async function setAdminWikiArticleDeleted(input: {
   });
 }
 
+export async function softDeleteAdminWikiArticles(input: {
+  actor: VerifiedAdminActor;
+  articleIds: string[];
+  reason: string;
+}) {
+  const articleIds = [...new Set(input.articleIds)].sort((left, right) =>
+    left.localeCompare(right, "en"),
+  );
+  const sql = getAdminDatabase();
+
+  return sql.begin(async (tx) => {
+    const rows = await tx`
+      select id::text, slug, deleted_at::text
+      from public.wiki_articles
+      where id = any(${articleIds}::uuid[])
+      order by id
+      for update
+    `;
+    if (rows.length !== articleIds.length) {
+      throw new AdminAccessError(404, "One or more Wiki articles were not found.");
+    }
+    if (rows.some((row) => row.deleted_at)) {
+      throw new AdminAccessError(409, "One or more Wiki articles are already deleted.");
+    }
+
+    await tx`
+      update public.wiki_articles set
+        deleted_from_status = status,
+        deleted_at = now(),
+        deleted_by = ${input.actor.userId}::uuid,
+        status = 'archived',
+        is_indexable = false,
+        published_at = null,
+        scheduled_for = null
+      where id = any(${articleIds}::uuid[])
+    `;
+    await tx`
+      update halleus_private.wiki_publish_jobs
+      set status = 'canceled', completed_at = now()
+      where article_id = any(${articleIds}::uuid[])
+        and status in ('queued', 'retry', 'running')
+    `;
+    await tx`
+      insert into halleus_private.admin_audit_events (
+        actor_user_id, actor_role, action, target_type, target_id,
+        after_summary, reason, success, request_correlation_id
+      ) values (
+        ${input.actor.userId}::uuid, ${input.actor.role},
+        'admin.wiki.articles_bulk_soft_deleted', 'wiki_article_batch',
+        ${articleIds.join(',')},
+        ${tx.json({
+          articleIds,
+          count: articleIds.length,
+          slugs: rows.map((row) => asString(row.slug)),
+        })},
+        ${input.reason}, true, ${input.actor.correlationId}
+      )
+    `;
+
+    return { articleIds, count: articleIds.length };
+  });
+}
+
 export async function rollbackAdminWikiRevision(input: {
   actor: VerifiedAdminActor;
   articleId: string;
@@ -792,6 +863,346 @@ export async function rollbackAdminWikiRevision(input: {
   });
 }
 
+
+type WikiBulkScheduleCandidateState = {
+  candidate: WikiBulkScheduleCandidate;
+  snapshot: WikiArticleSnapshot;
+  status: string;
+};
+
+const BULK_SCHEDULE_BLOCKING_JOB_STATUSES = [
+  "queued",
+  "running",
+  "retry",
+  "failed",
+] as const;
+
+function scheduleSettingsFromRow(raw: unknown): WikiScheduleSettings {
+  const row = asRecord(raw);
+  return {
+    articlesPerWeek: asNumber(row.articles_per_week),
+    maxArticlesPerDay: asNumber(row.max_articles_per_day),
+    allowedWeekdays: Array.isArray(row.allowed_weekdays)
+      ? row.allowed_weekdays.map(Number)
+      : [],
+    publishTime: asString(row.publish_time).slice(0, 5),
+    timezone: asString(row.timezone),
+    minimumIntervalHours: asNumber(row.minimum_interval_hours),
+    blackoutDates: Array.isArray(row.blackout_dates)
+      ? row.blackout_dates.map(String)
+      : [],
+    pillarBeforeSupport: asBoolean(row.pillar_before_support),
+    maxHorizonDays: asNumber(row.max_horizon_days),
+    publishingPaused: asBoolean(row.publishing_paused),
+  };
+}
+
+function bulkScheduleCandidateFromRow(raw: unknown): WikiBulkScheduleCandidateState {
+  const row = asRecord(raw);
+  const snapshot = readWikiArticleSnapshot(row.snapshot);
+  const dependencyStableIds = [...new Set([
+    ...snapshot.relatedArticleIds,
+    ...findWikiInternalArticleIds(snapshot.bodyMarkdown),
+  ])].filter((stableId) => stableId !== snapshot.stableId);
+
+  return {
+    snapshot,
+    status: asString(row.status),
+    candidate: {
+      articleId: asString(row.id),
+      stableId: snapshot.stableId,
+      title: snapshot.title,
+      slug: snapshot.slug,
+      contentVersion: snapshot.contentVersion,
+      publicationPriority: snapshot.publicationPriority,
+      contentCluster: snapshot.contentCluster,
+      articleRole: snapshot.articleRole,
+      draftUpdatedAt: asString(row.draft_updated_at),
+      snapshotFingerprint: fingerprintWikiBulkScheduleSnapshot(snapshot),
+      dependencyStableIds,
+    },
+  };
+}
+
+function assertBulkScheduleRows(
+  articleIds: string[],
+  rows: unknown[],
+  blockingJobs: unknown[],
+) {
+  if (rows.length !== articleIds.length) {
+    throw new AdminAccessError(
+      409,
+      "Every selected Wiki article must exist and have a saved draft.",
+    );
+  }
+
+  const blockingArticleIds = new Set(
+    blockingJobs.map((raw) => asString(asRecord(raw).article_id)),
+  );
+  const invalid = rows
+    .map((raw) => asRecord(raw))
+    .filter(
+      (row) =>
+        row.deleted_at ||
+        !["draft", "published"].includes(asString(row.status)) ||
+        blockingArticleIds.has(asString(row.id)),
+    )
+    .map((row) => asString(row.id));
+
+  if (invalid.length > 0) {
+    throw new AdminAccessError(
+      409,
+      "Selected Wiki articles changed or already have a job that Batch 5 must manage.",
+    );
+  }
+}
+
+function existingBulkScheduleJobs(rows: unknown[]): WikiBulkScheduleExistingJob[] {
+  return rows.map((raw) => {
+    const row = asRecord(raw);
+    return {
+      id: asString(row.id),
+      runAt: asString(row.run_at),
+      status: asString(row.status) as WikiBulkScheduleExistingJob["status"],
+      updatedAt: asString(row.updated_at),
+    };
+  });
+}
+
+async function publishedDependencyIdsForCandidates(
+  candidates: WikiBulkScheduleCandidateState[],
+) {
+  const sql = getAdminDatabase();
+  const dependencyIds = [...new Set(
+    candidates.flatMap((candidate) => candidate.candidate.dependencyStableIds),
+  )];
+  if (dependencyIds.length === 0) return [];
+
+  const rows = await sql`
+    select stable_id
+    from public.wiki_articles
+    where stable_id = any(${dependencyIds}::text[])
+      and status = 'published'
+      and published_at is not null
+      and deleted_at is null
+  `;
+  return rows.map((row) => asString(row.stable_id));
+}
+
+export async function previewAdminWikiBulkSchedule(input: {
+  articleIds: string[];
+}): Promise<WikiBulkSchedulePlan> {
+  const sql = getAdminDatabase();
+  const [articleRows, blockingJobs, settings, existingJobs] = await Promise.all([
+    sql`
+      select article.id::text, article.status, article.deleted_at::text,
+             draft.snapshot, draft.updated_at::text as draft_updated_at
+      from public.wiki_articles as article
+      join public.wiki_article_drafts as draft on draft.article_id = article.id
+      where article.id = any(${input.articleIds}::uuid[])
+      order by article.id
+    `,
+    sql`
+      select article_id::text, status
+      from halleus_private.wiki_publish_jobs
+      where article_id = any(${input.articleIds}::uuid[])
+        and status = any(${BULK_SCHEDULE_BLOCKING_JOB_STATUSES}::text[])
+    `,
+    getWikiScheduleSettings(),
+    sql`
+      select id::text, run_at::text, status, updated_at::text
+      from halleus_private.wiki_publish_jobs
+      where status in ('queued', 'retry', 'running')
+      order by id
+    `,
+  ]);
+
+  assertBulkScheduleRows(input.articleIds, articleRows, blockingJobs);
+  const candidates = articleRows.map(bulkScheduleCandidateFromRow);
+  const publishedStableIds = await publishedDependencyIdsForCandidates(candidates);
+
+  return planWikiBulkSchedule({
+    candidates: candidates.map((candidate) => candidate.candidate),
+    settings,
+    existingJobs: existingBulkScheduleJobs(existingJobs),
+    publishedStableIds,
+    previewedAt: new Date().toISOString(),
+  });
+}
+
+export async function applyAdminWikiBulkSchedule(input: {
+  actor: VerifiedAdminActor;
+  articleIds: string[];
+  planToken: string;
+  previewedAt: string;
+  reason: string;
+}): Promise<WikiBulkSchedulePlan> {
+  const previewedAt = new Date(input.previewedAt);
+  if (
+    !Number.isFinite(previewedAt.getTime()) ||
+    previewedAt.getTime() > Date.now() ||
+    Date.now() - previewedAt.getTime() > WIKI_BULK_SCHEDULE_PREVIEW_TTL_MS
+  ) {
+    throw new AdminAccessError(
+      409,
+      "Bulk schedule preview expired. Generate a fresh preview.",
+    );
+  }
+
+  const sql = getAdminDatabase();
+  return sql.begin(async (tx) => {
+    const settingsRows = await tx`
+      select articles_per_week, max_articles_per_day, allowed_weekdays,
+             publish_time::text, timezone, minimum_interval_hours,
+             blackout_dates, pillar_before_support, max_horizon_days,
+             publishing_paused
+      from halleus_private.wiki_schedule_settings
+      where singleton = true
+      for update
+    `;
+    if (!settingsRows[0]) {
+      throw new Error("Wiki schedule settings are missing.");
+    }
+
+    const articleRows = await tx`
+      select article.id::text, article.status, article.deleted_at::text,
+             draft.snapshot, draft.updated_at::text as draft_updated_at
+      from public.wiki_articles as article
+      join public.wiki_article_drafts as draft on draft.article_id = article.id
+      where article.id = any(${input.articleIds}::uuid[])
+      order by article.id
+      for update of article, draft
+    `;
+    const blockingJobs = await tx`
+      select article_id::text, status
+      from halleus_private.wiki_publish_jobs
+      where article_id = any(${input.articleIds}::uuid[])
+        and status = any(${BULK_SCHEDULE_BLOCKING_JOB_STATUSES}::text[])
+      for update
+    `;
+    const existingJobs = await tx`
+      select id::text, run_at::text, status, updated_at::text
+      from halleus_private.wiki_publish_jobs
+      where status in ('queued', 'retry', 'running')
+      order by id
+      for update
+    `;
+
+    assertBulkScheduleRows(input.articleIds, articleRows, blockingJobs);
+    const candidates = articleRows.map(bulkScheduleCandidateFromRow);
+    const candidateStableIds = new Set(
+      candidates.map((candidate) => candidate.candidate.stableId),
+    );
+    const dependencyIds = [...new Set(
+      candidates.flatMap((candidate) => candidate.candidate.dependencyStableIds),
+    )].filter((stableId) => !candidateStableIds.has(stableId));
+    const dependencyRows = dependencyIds.length > 0
+      ? await tx`
+          select stable_id, status, published_at, deleted_at
+          from public.wiki_articles
+          where stable_id = any(${dependencyIds}::text[])
+          for share
+        `
+      : [];
+    const publishedStableIds = dependencyRows
+      .filter(
+        (row) =>
+          row.status === "published" && row.published_at && !row.deleted_at,
+      )
+      .map((row) => asString(row.stable_id));
+
+    const plan = planWikiBulkSchedule({
+      candidates: candidates.map((candidate) => candidate.candidate),
+      settings: scheduleSettingsFromRow(settingsRows[0]),
+      existingJobs: existingBulkScheduleJobs(existingJobs),
+      publishedStableIds,
+      previewedAt: previewedAt.toISOString(),
+    });
+
+    if (plan.planToken !== input.planToken) {
+      throw new AdminAccessError(
+        409,
+        "Wiki bulk schedule changed after preview. Generate a fresh preview.",
+      );
+    }
+    if (plan.items.some((item) => Date.parse(item.publishAt) <= Date.now())) {
+      throw new AdminAccessError(
+        409,
+        "A planned Wiki publication time is no longer in the future.",
+      );
+    }
+
+    const stateByArticleId = new Map(
+      candidates.map((candidate) => [candidate.candidate.articleId, candidate]),
+    );
+    for (const item of plan.items) {
+      const state = stateByArticleId.get(item.articleId);
+      if (!state) {
+        throw new Error("Wiki bulk schedule candidate disappeared.");
+      }
+      const revisionRows = await tx`
+        select coalesce(max(revision_number), 0)::int + 1 as next_revision
+        from public.wiki_article_revisions
+        where article_id = ${item.articleId}::uuid
+      `;
+      const revisionNumber = asNumber(revisionRows[0]?.next_revision);
+      const runAt = new Date(item.publishAt);
+
+      await tx`
+        insert into public.wiki_article_revisions (
+          article_id, revision_number, snapshot, change_note, created_by,
+          revision_status
+        ) values (
+          ${item.articleId}::uuid, ${revisionNumber}, ${tx.json(state.snapshot)},
+          ${input.reason}, ${input.actor.userId}::uuid, 'scheduled'
+        )
+      `;
+      await tx`
+        insert into halleus_private.wiki_publish_jobs (
+          article_id, revision_number, run_at, created_by
+        ) values (
+          ${item.articleId}::uuid, ${revisionNumber}, ${runAt},
+          ${input.actor.userId}::uuid
+        )
+      `;
+      if (state.status !== "published") {
+        await tx`
+          update public.wiki_articles
+          set status = 'scheduled', scheduled_for = ${runAt},
+              published_at = null, is_indexable = false
+          where id = ${item.articleId}::uuid
+        `;
+      }
+      await tx`
+        delete from public.wiki_article_drafts
+        where article_id = ${item.articleId}::uuid
+      `;
+    }
+
+    await tx`
+      insert into halleus_private.admin_audit_events (
+        actor_user_id, actor_role, action, target_type, target_id,
+        after_summary, reason, success, request_correlation_id
+      ) values (
+        ${input.actor.userId}::uuid, ${input.actor.role},
+        'admin.wiki.bulk_schedule_applied', 'wiki_schedule_batch',
+        ${plan.planToken},
+        ${tx.json({
+          articleCount: plan.items.length,
+          items: plan.items.map((item) => ({
+            articleId: item.articleId,
+            stableId: item.stableId,
+            publishAt: item.publishAt,
+          })),
+        })},
+        ${input.reason}, true, ${input.actor.correlationId}
+      )
+    `;
+
+    return plan;
+  });
+}
+
 export async function getWikiScheduleSettings(): Promise<WikiScheduleSettings> {
   const sql = getAdminDatabase();
   const rows = await sql`
@@ -803,19 +1214,7 @@ export async function getWikiScheduleSettings(): Promise<WikiScheduleSettings> {
   if (!rows[0]) {
     throw new Error("Wiki schedule settings are missing.");
   }
-  const row = asRecord(rows[0]);
-  return {
-    articlesPerWeek: asNumber(row.articles_per_week),
-    maxArticlesPerDay: asNumber(row.max_articles_per_day),
-    allowedWeekdays: Array.isArray(row.allowed_weekdays) ? row.allowed_weekdays.map(Number) : [],
-    publishTime: asString(row.publish_time).slice(0, 5),
-    timezone: asString(row.timezone),
-    minimumIntervalHours: asNumber(row.minimum_interval_hours),
-    blackoutDates: Array.isArray(row.blackout_dates) ? row.blackout_dates.map(String) : [],
-    pillarBeforeSupport: asBoolean(row.pillar_before_support),
-    maxHorizonDays: asNumber(row.max_horizon_days),
-    publishingPaused: asBoolean(row.publishing_paused),
-  };
+  return scheduleSettingsFromRow(rows[0]);
 }
 
 export async function updateWikiScheduleSettings(input: {
