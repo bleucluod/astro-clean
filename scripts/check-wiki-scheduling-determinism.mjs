@@ -86,5 +86,20 @@ try {
 }
 if (!cycleRejected) throw new Error("Circular Wiki dependencies were not rejected.");
 
+const queueInput = [
+  { stableId: "late", status: "scheduled", pendingPublishAt: "2026-07-18T06:30:00.000Z" },
+  { stableId: "fallback", status: "scheduled", pendingPublishAt: null, scheduledFor: "2026-07-16T06:30:00.000Z" },
+  { stableId: "draft", status: "draft", pendingPublishAt: "2026-07-15T06:30:00.000Z" },
+  { stableId: "early-b", status: "scheduled", pendingPublishAt: "2026-07-17T06:30:00.000Z" },
+  { stableId: "early-a", status: "scheduled", pendingPublishAt: "2026-07-17T06:30:00.000Z" },
+];
+const orderedQueue = scheduling.orderWikiPublicationQueue(queueInput);
+if (orderedQueue.map((item) => item.stableId).join(",") !== "fallback,early-a,early-b,late") {
+  throw new Error("Wiki publication queue order is not deterministic.");
+}
+if (queueInput[0].stableId !== "late") {
+  throw new Error("Wiki publication queue ordering mutated its input.");
+}
+
 console.log("Wiki scheduling determinism check passed.");
 console.log("- Tehran slots, one-to-five daily publications, Persian week boundaries, pillar ordering, dependencies, and cycles are deterministic");

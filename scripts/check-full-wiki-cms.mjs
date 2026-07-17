@@ -149,6 +149,10 @@ for (const marker of [
   "تنظیمات انتشار خودکار",
   "دسته‌های ویکی",
   "رسانه‌ها",
+  "publicationQueue",
+  'activeSection === "queue"',
+  "جای خالی بعدی",
+  "orderWikiPublicationQueue",
   "weekdayOptions",
   "maxArticlesPerDay",
   "/api/admin/wiki/content-guide",
@@ -160,6 +164,7 @@ for (const marker of [
 }
 requireText("Wiki nested navigation", adminConsole, "wikiSections");
 requireText("Wiki nested navigation", adminConsole, "activeSubnav");
+requireText("Wiki nested navigation", adminConsole, "صف انتشار");
 forbidText("Wiki scheduling UI", adminClient, "روزهای هفته ۰ تا ۶");
 forbidText("Wiki scheduling UI", adminClient, "settings.onePerDay");
 requireText("Wiki category route", categoryRoute, "wiki.settings.write");

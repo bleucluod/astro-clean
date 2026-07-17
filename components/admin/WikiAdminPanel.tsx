@@ -11,6 +11,10 @@ import type {
   WikiRevisionSummary,
   WikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-types";
+import {
+  computeWikiScheduleSlots,
+  orderWikiPublicationQueue,
+} from "@/lib/wiki/wiki-scheduling";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -22,6 +26,7 @@ type Props = {
 
 export type WikiWorkspaceSection =
   | "articles"
+  | "queue"
   | "new"
   | "import"
   | "settings"
@@ -124,6 +129,7 @@ function formatImportError(importError: string) {
 
 export function WikiAdminPanel({ token, session, activeSection, onSectionChange }: Props) {
   const [articles, setArticles] = useState<WikiArticleAdminSummary[]>([]);
+  const [publicationQueue, setPublicationQueue] = useState<WikiArticleAdminSummary[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [detail, setDetail] = useState<ArticleDetail | null>(null);
   const [draft, setDraft] = useState<WikiArticleSnapshot>(() => emptySnapshot());
@@ -164,9 +170,15 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     setLoading(true);
     setError("");
     try {
-      const payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&limit=100`);
-      setArticles(payload.articles as WikiArticleAdminSummary[]);
-      setCategories(payload.categories as Category[]);
+      const [articlePayload, queuePayload] = await Promise.all([
+        request(`/api/admin/wiki/articles?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&limit=100`),
+        request("/api/admin/wiki/articles?search=&status=scheduled&limit=100"),
+      ]);
+      setArticles(articlePayload.articles as WikiArticleAdminSummary[]);
+      setPublicationQueue(orderWikiPublicationQueue(
+        queuePayload.articles as WikiArticleAdminSummary[],
+      ));
+      setCategories(articlePayload.categories as Category[]);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "بارگذاری ویکی ناموفق بود.");
     } finally {
@@ -438,11 +450,81 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     draft.bodyMarkdown.split("\n").filter(Boolean).slice(0, 80),
   [draft.bodyMarkdown]);
 
+  const nextAvailableSlot = useMemo(() => {
+    if (!settings || settings.publishingPaused) return null;
+    try {
+      return computeWikiScheduleSlots({
+        settings,
+        existingRunAt: publicationQueue.flatMap((article) => {
+          const runAt = article.pendingPublishAt ?? article.scheduledFor;
+          return runAt ? [runAt] : [];
+        }),
+        count: 1,
+      })[0]?.toISOString() ?? null;
+    } catch {
+      return null;
+    }
+  }, [publicationQueue, settings]);
+
   return (
     <div className={styles.wikiWorkspace}>
       {error ? <p className={styles.error}>{error}</p> : null}
       {message ? <p className={styles.success}>{message}</p> : null}
       {loading ? <p className={styles.loading}>در حال انجام…</p> : null}
+
+      {activeSection === "queue" ? (
+        <section className={styles.wikiPanel}>
+          <div className={styles.wikiPanelHeader}>
+            <div>
+              <h3>صف انتشار</h3>
+              <p>ترتیب فعلی انتشارهای زمان‌بندی‌شده و وضعیت اجرای هر مقاله</p>
+            </div>
+            <strong className={styles.scheduleSummary}>
+              {settings?.publishingPaused
+                ? "انتشار خودکار متوقف است"
+                : nextAvailableSlot
+                  ? `جای خالی بعدی: ${formatDate(nextAvailableSlot)}`
+                  : "جای خالی بعدی پیدا نشد"}
+            </strong>
+          </div>
+          {publicationQueue.length ? (
+            <div className={styles.tableWrap}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>ردیف</th>
+                    <th>مقاله</th>
+                    <th>نقش / خوشه</th>
+                    <th>زمان انتشار</th>
+                    <th>وضعیت job</th>
+                    <th>خطا</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {publicationQueue.map((article, index) => (
+                    <tr key={article.id}>
+                      <td>{(index + 1).toLocaleString("fa-IR")}</td>
+                      <td>
+                        <strong>{article.title}</strong>
+                        <small>{article.slug}</small>
+                      </td>
+                      <td>
+                        {article.articleRole}
+                        <small>{article.contentCluster || "—"}</small>
+                      </td>
+                      <td>{formatDate(article.pendingPublishAt ?? article.scheduledFor)}</td>
+                      <td>{article.publishJobStatus || "نامشخص"}</td>
+                      <td>{article.publishJobError || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className={styles.fieldHint}>صف انتشار در حال حاضر خالی است.</p>
+          )}
+        </section>
+      ) : null}
 
       {activeSection === "articles" && !detail ? (
       <section className={styles.wikiPanel}>

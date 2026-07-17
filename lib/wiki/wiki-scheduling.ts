@@ -95,6 +95,25 @@ export function sortWikiArticlesForPublishing(
   return output;
 }
 
+export function orderWikiPublicationQueue<T extends {
+  stableId: string;
+  status: string;
+  pendingPublishAt: string | null;
+  scheduledFor?: string | null;
+}>(articles: readonly T[]) {
+  return articles
+    .filter((article) => article.status === "scheduled")
+    .slice()
+    .sort((left, right) => {
+      const leftTime = Date.parse(left.pendingPublishAt ?? left.scheduledFor ?? "");
+      const rightTime = Date.parse(right.pendingPublishAt ?? right.scheduledFor ?? "");
+      const normalizedLeft = Number.isFinite(leftTime) ? leftTime : Number.MAX_SAFE_INTEGER;
+      const normalizedRight = Number.isFinite(rightTime) ? rightTime : Number.MAX_SAFE_INTEGER;
+      return normalizedLeft - normalizedRight
+        || left.stableId.localeCompare(right.stableId, "en");
+    });
+}
+
 export function computeWikiScheduleSlots(input: {
   settings: WikiScheduleSettings;
   existingRunAt: string[];
