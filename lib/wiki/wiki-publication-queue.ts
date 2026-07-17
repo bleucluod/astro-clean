@@ -1,0 +1,76 @@
+import type { WikiArticleAdminSummary } from "@/lib/wiki/wiki-cms-types";
+
+const QUEUE_JOB_STATUSES = new Set(["queued", "running", "retry", "failed"]);
+
+export type WikiPublicationQueueSummary = {
+  total: number;
+  queued: number;
+  running: number;
+  retrying: number;
+  failed: number;
+  nextPublishAt: string | null;
+  publishingPaused: boolean;
+};
+
+export function getWikiPublicationQueueDate(
+  article: WikiArticleAdminSummary,
+): string | null {
+  return article.pendingPublishAt ?? article.scheduledFor;
+}
+
+function queueTimestamp(article: WikiArticleAdminSummary): number {
+  const value = getWikiPublicationQueueDate(article);
+  if (!value) return Number.POSITIVE_INFINITY;
+
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+}
+
+export function buildWikiPublicationQueue(
+  articles: WikiArticleAdminSummary[],
+): WikiArticleAdminSummary[] {
+  return articles
+    .filter((article) => {
+      if (article.deletedAt) return false;
+
+      return Boolean(
+        article.status === "scheduled" ||
+          getWikiPublicationQueueDate(article) ||
+          (article.publishJobStatus &&
+            QUEUE_JOB_STATUSES.has(article.publishJobStatus)),
+      );
+    })
+    .slice()
+    .sort((left, right) => {
+      const leftTimestamp = queueTimestamp(left);
+      const rightTimestamp = queueTimestamp(right);
+      if (leftTimestamp !== rightTimestamp) {
+        return leftTimestamp < rightTimestamp ? -1 : 1;
+      }
+
+      const priorityDifference =
+        right.publicationPriority - left.publicationPriority;
+      if (priorityDifference !== 0) return priorityDifference;
+
+      return left.stableId.localeCompare(right.stableId, "en");
+    });
+}
+
+export function summarizeWikiPublicationQueue(
+  queue: WikiArticleAdminSummary[],
+  publishingPaused: boolean,
+): WikiPublicationQueueSummary {
+  const nextPublishAt = queue
+    .map(getWikiPublicationQueueDate)
+    .find((value): value is string => Boolean(value)) ?? null;
+
+  return {
+    total: queue.length,
+    queued: queue.filter((article) => article.publishJobStatus === "queued").length,
+    running: queue.filter((article) => article.publishJobStatus === "running").length,
+    retrying: queue.filter((article) => article.publishJobStatus === "retry").length,
+    failed: queue.filter((article) => article.publishJobStatus === "failed").length,
+    nextPublishAt,
+    publishingPaused,
+  };
+}

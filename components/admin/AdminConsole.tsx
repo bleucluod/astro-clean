@@ -45,6 +45,7 @@ const wikiSections: {
   capability: AdminCapability;
 }[] = [
   { id: "articles", label: "مقاله‌ها", capability: "wiki.read" },
+  { id: "queue", label: "صف انتشار", capability: "wiki.read" },
   { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write" },
   { id: "import", label: "ورود بستهٔ استاندارد ویکی", capability: "wiki.import.write" },
   { id: "settings", label: "تنظیمات انتشار خودکار", capability: "wiki.read" },

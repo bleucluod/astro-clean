@@ -88,6 +88,61 @@
   color: #8b3030 !important;
 }
 
+.publicationQueueSummary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.publicationQueueSummary article {
+  display: grid;
+  gap: 6px;
+  padding: 13px;
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.publicationQueueSummary span,
+.publicationQueueTable small {
+  color: #637588;
+}
+
+.publicationQueueTable {
+  min-width: 1040px !important;
+}
+
+.queueStatus {
+  display: inline-flex;
+  width: max-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3f4f78;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.queueStatus[data-status="failed"] {
+  background: #fff0f0;
+  color: #8b3030;
+}
+
+.queueStatus[data-status="running"] {
+  background: #eaf7f2;
+  color: #28664f;
+}
+
+.queuePaused,
+.queueEmpty {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff7e6;
+  color: #705221;
+}
+
 .wikiEditor {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -392,7 +447,8 @@
 
 @media (max-width: 900px) {
   .wikiArticleList,
-  .mediaGrid {
+  .mediaGrid,
+  .publicationQueueSummary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -400,7 +456,8 @@
 @media (max-width: 560px) {
   .wikiEditor,
   .wikiArticleList,
-  .mediaGrid {
+  .mediaGrid,
+  .publicationQueueSummary {
     grid-template-columns: 1fr;
   }
 }

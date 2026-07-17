@@ -11,6 +11,11 @@ import type {
   WikiRevisionSummary,
   WikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-types";
+import {
+  buildWikiPublicationQueue,
+  getWikiPublicationQueueDate,
+  summarizeWikiPublicationQueue,
+} from "@/lib/wiki/wiki-publication-queue";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -22,6 +27,7 @@ type Props = {
 
 export type WikiWorkspaceSection =
   | "articles"
+  | "queue"
   | "new"
   | "import"
   | "settings"
@@ -93,6 +99,17 @@ function formatDate(value: string | null | undefined) {
   return new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
+function formatPublishJobStatus(value: string | null) {
+  const labels: Record<string, string> = {
+    queued: "در صف",
+    running: "در حال انتشار",
+    retry: "در انتظار تلاش دوباره",
+    failed: "ناموفق",
+    published: "منتشرشده",
+  };
+  return value ? (labels[value] ?? value) : "در انتظار job";
+}
+
 function changedFields(left: WikiArticleSnapshot, right: WikiArticleSnapshot) {
   return Object.keys(left).filter((key) =>
     JSON.stringify(left[key as keyof WikiArticleSnapshot]) !==
@@ -145,6 +162,18 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const canImport = session.capabilities.includes("wiki.import.write");
   const canSettings = session.capabilities.includes("wiki.settings.write");
   const canMedia = session.capabilities.includes("wiki.media.write");
+  const publicationQueue = useMemo(
+    () => buildWikiPublicationQueue(articles),
+    [articles],
+  );
+  const publicationQueueSummary = useMemo(
+    () =>
+      summarizeWikiPublicationQueue(
+        publicationQueue,
+        settings?.publishingPaused ?? false,
+      ),
+    [publicationQueue, settings?.publishingPaused],
+  );
 
   const request = useCallback(async (path: string, init?: RequestInit) => {
     const headers = new Headers(init?.headers);
@@ -164,7 +193,8 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     setLoading(true);
     setError("");
     try {
-      const payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&limit=100`);
+      const queueView = activeSection === "queue";
+      const payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(queueView ? "" : search)}&status=${encodeURIComponent(queueView ? "all" : status)}&limit=100`);
       setArticles(payload.articles as WikiArticleAdminSummary[]);
       setCategories(payload.categories as Category[]);
     } catch (loadError) {
@@ -172,7 +202,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } finally {
       setLoading(false);
     }
-  }, [request, search, status]);
+  }, [activeSection, request, search, status]);
 
   const loadSettingsAndMedia = useCallback(async () => {
     try {
@@ -474,6 +504,87 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
           ))}
         </div>
       </section>
+      ) : null}
+
+
+      {activeSection === "queue" ? (
+        <section className={styles.wikiPanel}>
+          <div className={styles.wikiPanelHeader}>
+            <div>
+              <h3>صف انتشار</h3>
+              <p>نمای خواندنی jobهای زمان‌بندی‌شده؛ تغییر برنامه از این بخش ممکن نیست.</p>
+            </div>
+            <button type="button" onClick={() => void loadList()}>تازه‌سازی صف</button>
+          </div>
+
+          {publicationQueueSummary.publishingPaused ? (
+            <p className={styles.queuePaused}>انتشار خودکار متوقف است؛ ترتیب صف حفظ شده اما publisher مقاله‌ای را جلو نمی‌برد.</p>
+          ) : null}
+
+          <div className={styles.publicationQueueSummary}>
+            <article>
+              <span>کل صف</span>
+              <strong>{publicationQueueSummary.total.toLocaleString("fa-IR")}</strong>
+            </article>
+            <article>
+              <span>نوبت بعدی</span>
+              <strong>{formatDate(publicationQueueSummary.nextPublishAt)}</strong>
+            </article>
+            <article>
+              <span>در حال اجرا / تلاش دوباره</span>
+              <strong>{(publicationQueueSummary.running + publicationQueueSummary.retrying).toLocaleString("fa-IR")}</strong>
+            </article>
+            <article>
+              <span>خطادار</span>
+              <strong>{publicationQueueSummary.failed.toLocaleString("fa-IR")}</strong>
+            </article>
+          </div>
+
+          {publicationQueue.length ? (
+            <div className={styles.tableWrap}>
+              <table className={styles.publicationQueueTable}>
+                <thead>
+                  <tr>
+                    <th>مقاله</th>
+                    <th>زمان انتشار</th>
+                    <th>وضعیت job</th>
+                    <th>اولویت</th>
+                    <th>آخرین خطا</th>
+                    <th>دسترسی</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {publicationQueue.map((article) => (
+                    <tr key={article.id}>
+                      <td>
+                        <strong>{article.title}</strong>
+                        <small>{article.slug} · {article.contentCluster ?? "بدون خوشه"}</small>
+                      </td>
+                      <td>{formatDate(getWikiPublicationQueueDate(article))}</td>
+                      <td>
+                        <span className={styles.queueStatus} data-status={article.publishJobStatus ?? "scheduled"}>
+                          {formatPublishJobStatus(article.publishJobStatus)}
+                        </span>
+                      </td>
+                      <td>{article.publicationPriority.toLocaleString("fa-IR")}</td>
+                      <td>{article.publishJobError ? <span className={styles.inlineError}>{article.publishJobError}</span> : "—"}</td>
+                      <td>
+                        <button type="button" onClick={() => {
+                          onSectionChange("articles");
+                          void openArticle(article.id);
+                        }}>
+                          باز کردن مقاله
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className={styles.queueEmpty}>هیچ مقاله‌ای در صف انتشار نیست.</p>
+          )}
+        </section>
       ) : null}
 
       {((activeSection === "articles" && detail) || (activeSection === "new" && canDraft)) ? (

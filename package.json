@@ -168,6 +168,7 @@
     "check:wiki-first-seo-indexability": "node scripts/check-wiki-first-seo-indexability.mjs",
     "check:wiki-storage-public-read": "node scripts/check-wiki-storage-public-read.mjs",
     "check:full-wiki-cms": "node scripts/check-full-wiki-cms.mjs",
+    "check:wiki-publication-queue-readonly": "node scripts/check-wiki-publication-queue-readonly.mjs",
     "check:wiki-package-security": "node scripts/check-wiki-package-security.mjs",
     "check:wiki-scheduling-determinism": "node scripts/check-wiki-scheduling-determinism.mjs",
     "check:wiki-astrology-systems-cluster": "node scripts/check-wiki-astrology-systems-cluster.mjs",

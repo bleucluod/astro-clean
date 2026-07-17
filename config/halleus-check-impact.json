@@ -208,7 +208,8 @@
         "check:wiki-storage-public-read",
         "check:wiki-package-security",
         "check:wiki-scheduling-determinism",
-        "check:full-wiki-cms"
+        "check:full-wiki-cms",
+        "check:wiki-publication-queue-readonly"
       ],
       "lint": true,
       "build": true
@@ -224,7 +225,8 @@
         "check:wiki-storage-public-read",
         "check:wiki-package-security",
         "check:wiki-scheduling-determinism",
-        "check:full-wiki-cms"
+        "check:full-wiki-cms",
+        "check:wiki-publication-queue-readonly"
       ],
       "lint": true,
       "build": false
