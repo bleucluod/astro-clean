@@ -1190,6 +1190,30 @@ textarea {
   margin-top: 6px;
 }
 
+.report-title-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report-title-list li + li {
+  border-top: 1px solid rgba(36, 52, 71, 0.12);
+}
+
+.report-title-list a {
+  display: block;
+  padding: 1rem 0;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.report-title-list a:hover {
+  color: #4f6578;
+}
+
 .success-message {
   margin-top: 14px;
 }

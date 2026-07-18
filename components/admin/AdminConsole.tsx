@@ -315,6 +315,28 @@ export function AdminConsole() {
     );
   }
 
+  async function updateReportTitle(report: AdminReportSummary) {
+    const title = window.prompt("عنوان تازهٔ گزارش:", report.title);
+    if (title === null) return;
+    const reason = window.prompt("دلیل تغییر عنوان را ثبت کن:");
+    if (!reason?.trim()) return;
+    await mutate(
+      "/api/admin/reports",
+      { action: "update_title", reportId: report.id, title, reason: reason.trim() },
+      "عنوان گزارش به‌روزرسانی شد.",
+    );
+  }
+
+  async function deleteReport(reportId: string) {
+    const reason = window.prompt("دلیل حذف نرم گزارش را ثبت کن:");
+    if (!reason?.trim()) return;
+    await mutate(
+      "/api/admin/reports",
+      { action: "soft_delete", reportId, reason: reason.trim() },
+      "گزارش به‌صورت نرم حذف شد.",
+    );
+  }
+
   async function inspectPrivateReport(reportId: string) {
     const reason = window.prompt(
       "مشاهده متن خصوصی یک اقدام audit‌شده است. دلیل دسترسی را وارد کن:",
@@ -613,7 +635,7 @@ export function AdminConsole() {
               <table>
                 <thead>
                   <tr>
-                    <th>گزارش</th>
+                    <th>عنوان</th>
                     <th>مالک</th>
                     <th>دسترسی</th>
                     <th>نسخه</th>
@@ -626,8 +648,7 @@ export function AdminConsole() {
                   {reports.map((report) => (
                     <tr key={report.id}>
                       <td>
-                        <strong>{report.id}</strong>
-                        <small>{report.source}</small>
+                        <strong>{report.title}</strong>
                       </td>
                       <td>{report.ownerUserId}</td>
                       <td>
@@ -643,7 +664,21 @@ export function AdminConsole() {
                       <td>{report.publicationConsentState}</td>
                       <td>{formatDate(report.createdAt)}</td>
                       <td className={styles.actions}>
-                        {report.visibility === "public" &&
+                        <Link
+                          className="button secondary"
+                          href={`/admin/reports/${report.id}`}
+                        >
+                          جزئیات
+                        </Link>
+                        {hasCapability(session, "reports.title.write") ? (
+                          <button
+                            type="button"
+                            onClick={() => void updateReportTitle(report)}
+                          >
+                            ویرایش عنوان
+                          </button>
+                        ) : null}
+                        {report.visibility !== "restricted_by_admin" &&
                         hasCapability(
                           session,
                           "reports.visibility.restrict",
@@ -652,7 +687,15 @@ export function AdminConsole() {
                             type="button"
                             onClick={() => void restrictReport(report.id)}
                           >
-                            خارج‌کردن از انتشار
+                            محدودسازی
+                          </button>
+                        ) : null}
+                        {hasCapability(session, "reports.delete") ? (
+                          <button
+                            type="button"
+                            onClick={() => void deleteReport(report.id)}
+                          >
+                            حذف نرم
                           </button>
                         ) : null}
                         {hasCapability(

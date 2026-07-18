@@ -18,8 +18,10 @@ import {
 import { getBehavioralChartRulerId } from "@/lib/astrology/report-behavioral-interpretation";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
+  deleteAccountReport,
   getAccountReportRecord,
   getPublicReportRecord,
+  mutateAccountReport,
 } from "@/lib/storage/account-report-read-client";
 import {
   formatZodiacLabel,
@@ -750,6 +752,7 @@ export function ReportDetail({
   const [isReady, setIsReady] = useState(() => Boolean(initialReport));
   const [message, setMessage] = useState(initialMessage);
   const [activeSection, setActiveSection] = useState("final-reading");
+  const [accountVisibility, setAccountVisibility] = useState<"private" | "public" | "shared_by_link" | "unpublished" | "restricted_by_admin">("private");
 
   useEffect(() => {
     let isActive = true;
@@ -812,6 +815,7 @@ export function ReportDetail({
 
         setReport(sanitizeReportVisibleCopy(result.reportRecord.report));
         setNote(result.reportRecord.note ?? "");
+        setAccountVisibility(result.reportRecord.visibility);
         setMessage("گزارش حساب آماده است.");
         setIsReady(true);
         return;
@@ -876,6 +880,40 @@ export function ReportDetail({
 
     notifyLocalDataChanged();
     setMessage(note.trim() ? "یادداشت ذخیره شد." : "یادداشت پاک شد.");
+  }
+
+  async function handleAccountAction(action: "title" | "enable_sharing" | "revoke_sharing" | "delete") {
+    if (!report || reportSource !== "account") return;
+
+    try {
+      if (action === "title") {
+        const title = window.prompt("عنوان تازهٔ گزارش:", getReportTitle(report));
+        if (title === null) return;
+        await mutateAccountReport({ reportId, action, title });
+        setMessage("عنوان گزارش به‌روزرسانی شد.");
+        return;
+      }
+
+      if (action === "delete") {
+        if (!window.confirm("این گزارش حذف شود؟ پیوند اشتراک آن نیز فوراً از کار می‌افتد.")) return;
+        await deleteAccountReport(reportId);
+        window.location.assign("/reports");
+        return;
+      }
+
+      const result = await mutateAccountReport({ reportId, action });
+      if (result.sharePath) {
+        const url = new URL(result.sharePath, window.location.origin).toString();
+        await navigator.clipboard?.writeText(url);
+        setAccountVisibility("shared_by_link");
+        setMessage("پیوند امن ساخته و کپی شد.");
+      } else {
+        setAccountVisibility("unpublished");
+        setMessage("اشتراک‌گذاری گزارش لغو شد.");
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "مدیریت گزارش انجام نشد.");
+    }
   }
 
   function scrollToSection(sectionId: string) {
@@ -1347,6 +1385,17 @@ export function ReportDetail({
             >
               کپی لینک
             </button>
+          ) : null}
+          {reportSource === "account" ? (
+            <div className="actions">
+              <button className="button secondary" type="button" onClick={() => void handleAccountAction("title")}>ویرایش عنوان</button>
+              {accountVisibility === "shared_by_link" ? (
+                <button className="button secondary" type="button" onClick={() => void handleAccountAction("revoke_sharing")}>لغو اشتراک</button>
+              ) : (
+                <button className="button secondary" type="button" onClick={() => void handleAccountAction("enable_sharing")}>ساخت پیوند امن</button>
+              )}
+              <button className="button secondary" type="button" onClick={() => void handleAccountAction("delete")}>حذف گزارش</button>
+            </div>
           ) : null}
         </article>
       </section>

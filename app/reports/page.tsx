@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AccountReportTitleList } from "@/components/AccountReportTitleList";
 import { ReportsList } from "@/components/ReportsList";
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const rawSource = Array.isArray(resolvedSearchParams.source)
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
-  const reportSource = rawSource === "account" ? "account" : "local";
+  const reportSource = rawSource === "local" ? "local" : "account";
   const isAccountSource = reportSource === "account";
 
   return (
@@ -54,10 +55,20 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           <Link className="button secondary" href="/profile">
             حساب و پروفایل
           </Link>
+
+          {isAccountSource ? (
+            <Link className="button secondary" href="/reports?source=local">
+              گزارش‌های این دستگاه
+            </Link>
+          ) : null}
         </div>
       </div>
 
-      <ReportsList reportSource={reportSource} />
+      {isAccountSource ? (
+        <AccountReportTitleList />
+      ) : (
+        <ReportsList reportSource="local" />
+      )}
       <span className="reports-page-copy-detox-marker" aria-hidden="true" hidden />
     </section>
   );
