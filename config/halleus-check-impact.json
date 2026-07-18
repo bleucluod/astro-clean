@@ -26,6 +26,26 @@
       "build": false
     },
     {
+      "id": "workflow-core",
+      "description": "Shared impact planner, verifier, workflow contract, and text-policy files.",
+      "exclusive": true,
+      "patterns": [
+        "config/halleus-check-impact.json",
+        "scripts/halleus-check-plan.mjs",
+        "scripts/halleus-verify.mjs",
+        "scripts/check-workflow-optimization.mjs",
+        "scripts/check-workflow-acceleration.mjs",
+        ".github/workflows/halleus-verify.yml",
+        ".gitattributes",
+        ".editorconfig"
+      ],
+      "guards": [
+        "check:workflow"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
       "id": "workflow-tooling",
       "description": "Shared check planner, guard scripts, CI, and repository text policy.",
       "patterns": [
@@ -220,6 +240,87 @@
       "build": true
     },
     {
+      "id": "wiki-public-surface",
+      "description": "Public Wiki routes and public-facing Wiki configuration.",
+      "exclusive": true,
+      "patterns": [
+        "app/wiki/**",
+        "lib/config/wiki.ts"
+      ],
+      "guards": [
+        "check:product-surface",
+        "check:wiki-content-foundation",
+        "check:wiki-storage-public-read",
+        "check:full-wiki-cms"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "wiki-admin-ui",
+      "description": "Wiki admin page and queue controls rendered in the protected admin UI.",
+      "exclusive": true,
+      "patterns": [
+        "app/admin/wiki/**",
+        "components/admin/WikiAdminPanel.tsx"
+      ],
+      "guards": [
+        "check:product-surface",
+        "check:secure-admin-core",
+        "check:admin-origin-boundary",
+        "check:auth-readiness",
+        "check:full-wiki-cms",
+        "check:wiki-publication-queue-readonly",
+        "check:wiki-bulk-scheduling",
+        "check:wiki-bulk-actions-ui",
+        "check:wiki-queue-operations",
+        "check:wiki-queue-priority",
+        "check:wiki-content-guide-priority"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "wiki-package-import",
+      "description": "Wiki package parsing, validation, import, and package contract routes.",
+      "exclusive": true,
+      "patterns": [
+        "app/api/admin/wiki/packages/**",
+        "app/api/admin/wiki/import/**",
+        "lib/wiki/wiki-package.ts",
+        "public/halleus-wiki-package-guide-v1.md"
+      ],
+      "guards": [
+        "check:secure-admin-core",
+        "check:admin-origin-boundary",
+        "check:auth-readiness",
+        "check:wiki-package-security",
+        "check:full-wiki-cms",
+        "check:wiki-content-guide-priority"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "wiki-content-guide",
+      "description": "Live Wiki AI content guide and its queue-aware priority contract.",
+      "exclusive": true,
+      "patterns": [
+        "app/api/admin/wiki/content-guide/**",
+        "lib/wiki/wiki-content-guide.ts"
+      ],
+      "guards": [
+        "check:secure-admin-core",
+        "check:admin-origin-boundary",
+        "check:auth-readiness",
+        "check:full-wiki-cms",
+        "check:wiki-queue-priority",
+        "check:wiki-content-guide-priority"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "wiki-guard-tooling",
       "description": "Focused Wiki guards without a production runtime change.",
       "patterns": [
@@ -242,6 +343,162 @@
       "build": false
     },
     {
+      "id": "wiki-content-foundation-guard",
+      "description": "Focused self-verification for check:wiki-content-foundation.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-content-foundation.mjs"
+      ],
+      "guards": [
+        "check:wiki-content-foundation"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-storage-public-read-guard",
+      "description": "Focused self-verification for check:wiki-storage-public-read.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-storage-public-read.mjs"
+      ],
+      "guards": [
+        "check:wiki-storage-public-read"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-package-security-guard",
+      "description": "Focused self-verification for check:wiki-package-security.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-package-security.mjs"
+      ],
+      "guards": [
+        "check:wiki-package-security"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-scheduling-determinism-guard",
+      "description": "Focused self-verification for check:wiki-scheduling-determinism.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-scheduling-determinism.mjs"
+      ],
+      "guards": [
+        "check:wiki-scheduling-determinism"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "full-wiki-cms-guard",
+      "description": "Focused self-verification for check:full-wiki-cms.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-full-wiki-cms.mjs"
+      ],
+      "guards": [
+        "check:full-wiki-cms"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-publication-queue-readonly-guard",
+      "description": "Focused self-verification for check:wiki-publication-queue-readonly.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-publication-queue-readonly.mjs"
+      ],
+      "guards": [
+        "check:wiki-publication-queue-readonly"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-bulk-scheduling-guard",
+      "description": "Focused self-verification for check:wiki-bulk-scheduling.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-bulk-scheduling.mjs"
+      ],
+      "guards": [
+        "check:wiki-bulk-scheduling"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-bulk-actions-ui-guard",
+      "description": "Focused self-verification for check:wiki-bulk-actions-ui.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-bulk-actions-ui.mjs"
+      ],
+      "guards": [
+        "check:wiki-bulk-actions-ui"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-queue-operations-guard",
+      "description": "Focused self-verification for check:wiki-queue-operations.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-queue-operations.mjs"
+      ],
+      "guards": [
+        "check:wiki-queue-operations"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-queue-priority-guard",
+      "description": "Focused self-verification for check:wiki-queue-priority.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-queue-priority.mjs"
+      ],
+      "guards": [
+        "check:wiki-queue-priority"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "wiki-content-guide-priority-guard",
+      "description": "Focused self-verification for check:wiki-content-guide-priority.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-content-guide-priority.mjs"
+      ],
+      "guards": [
+        "check:wiki-content-guide-priority"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "release-workflow-guard",
+      "description": "Focused VPS release workflow guard implementation.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-vps-release-workflow.mjs"
+      ],
+      "guards": [
+        "check:vps-release-workflow"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
       "id": "privacy",
       "description": "Consent, analytics configuration, and the public privacy surface.",
       "patterns": [
@@ -261,13 +518,19 @@
       "id": "wiki-publication-ops",
       "description": "Publisher scheduling, readiness, and VPS service contracts.",
       "patterns": [
+        "app/api/admin/wiki/publication-jobs/**",
+        "app/api/internal/wiki/**",
         "lib/wiki/wiki-publisher.ts",
         "lib/wiki/wiki-revalidation.ts",
         "lib/wiki/wiki-scheduling.ts",
-        "app/api/internal/wiki/**",
+        "lib/wiki/wiki-queue-operations.ts",
+        "lib/wiki/wiki-queue-priority.ts",
         "ops/vps/*wiki*"
       ],
       "guards": [
+        "check:secure-admin-core",
+        "check:admin-origin-boundary",
+        "check:auth-readiness",
         "check:full-wiki-cms",
         "check:wiki-scheduling-determinism",
         "check:vps-release-workflow",
@@ -275,7 +538,8 @@
         "check:wiki-queue-priority"
       ],
       "lint": true,
-      "build": true
+      "build": true,
+      "exclusive": true
     }
   ]
 }

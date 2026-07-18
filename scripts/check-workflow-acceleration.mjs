@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createCheckPlan, loadImpactRegistry } from "./halleus-check-plan.mjs";
-import { createPnpmInvocation, getPnpmExecutable } from "./halleus-verify.mjs";
+import {
+  createPnpmInvocation,
+  formatDuration,
+  getPnpmExecutable,
+} from "./halleus-verify.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const root = path.resolve(path.dirname(scriptPath), "..");
@@ -64,9 +68,74 @@ for (const guard of ["check:report-quality", "check:report-birth-chart-wheel"]) 
 }
 
 const wikiPlan = createCheckPlan(["app/wiki/page.tsx"], registry);
-for (const guard of ["check:wiki-content-foundation", "check:full-wiki-cms"]) {
-  requirePlan("Wiki", wikiPlan, (plan) => plan.guards.includes(guard), `must include ${guard}`);
+for (const guard of ["check:wiki-content-foundation", "check:wiki-storage-public-read", "check:full-wiki-cms"]) {
+  requirePlan("Wiki public surface", wikiPlan, (plan) => plan.guards.includes(guard), `must include ${guard}`);
 }
+requirePlan(
+  "Wiki public surface",
+  wikiPlan,
+  (plan) => plan.files[0]?.exclusive && plan.files[0]?.areas.includes("wiki-public-surface"),
+  "must use the focused exclusive public-surface policy",
+);
+requirePlan(
+  "Wiki public surface",
+  wikiPlan,
+  (plan) => !plan.guards.includes("check:wiki-bulk-actions-ui"),
+  "must not run unrelated Wiki admin guards",
+);
+
+const wikiAdminPlan = createCheckPlan(["components/admin/WikiAdminPanel.tsx"], registry);
+for (const guard of [
+  "check:secure-admin-core",
+  "check:full-wiki-cms",
+  "check:wiki-bulk-actions-ui",
+  "check:wiki-queue-operations",
+]) {
+  requirePlan("Wiki admin UI", wikiAdminPlan, (plan) => plan.guards.includes(guard), `must include ${guard}`);
+}
+requirePlan(
+  "Wiki admin UI",
+  wikiAdminPlan,
+  (plan) => !plan.guards.includes("check:wiki-storage-public-read"),
+  "must not run unrelated public-read guards",
+);
+
+const wikiGuardPlan = createCheckPlan(["scripts/check-wiki-queue-operations.mjs"], registry);
+requirePlan(
+  "Wiki guard tooling",
+  wikiGuardPlan,
+  (plan) =>
+    plan.files[0]?.exclusive &&
+    plan.guards.includes("check:wiki-queue-operations") &&
+    !plan.guards.includes("check:wiki-bulk-scheduling") &&
+    !plan.lint &&
+    !plan.build,
+  "must self-verify without running the full Wiki guard set, lint, or build",
+);
+
+const workflowCorePlan = createCheckPlan(["scripts/halleus-verify.mjs"], registry);
+requirePlan(
+  "workflow core",
+  workflowCorePlan,
+  (plan) =>
+    plan.files[0]?.exclusive &&
+    plan.guards.includes("check:workflow") &&
+    !plan.lint &&
+    !plan.build,
+  "must run focused workflow guards without lint or build",
+);
+
+const releaseGuardPlan = createCheckPlan(["scripts/check-vps-release-workflow.mjs"], registry);
+requirePlan(
+  "release guard tooling",
+  releaseGuardPlan,
+  (plan) =>
+    plan.files[0]?.exclusive &&
+    plan.guards.includes("check:vps-release-workflow") &&
+    !plan.lint &&
+    !plan.build,
+  "must run only the focused release guard without lint or build",
+);
 
 const unknownPlan = createCheckPlan(["future/unknown.runtime"], registry);
 requirePlan(
@@ -77,6 +146,19 @@ requirePlan(
 );
 for (const guard of registry.baseline.guards) {
   requirePlan("unknown path", unknownPlan, (plan) => plan.guards.includes(guard), `must include ${guard}`);
+}
+
+if (formatDuration(0.2) !== "<1 ms") {
+  failures.push("verification timing does not format sub-millisecond durations");
+}
+if (formatDuration(1250) !== "1.25 s") {
+  failures.push("verification timing does not format second-scale durations");
+}
+try {
+  formatDuration(-1);
+  failures.push("verification timing accepted a negative duration");
+} catch {
+  // expected
 }
 
 if (getPnpmExecutable("win32") !== "pnpm.cmd") {
@@ -90,6 +172,13 @@ if (
   windowsInvocation.args.at(-1) !== "pnpm.cmd run lint"
 ) {
   failures.push("Windows verification does not use an explicit safe pnpm.cmd invocation");
+}
+
+const verifierSource = read("scripts/halleus-verify.mjs");
+for (const marker of ["performance.now()", "Verification timing:", "Total verification time:"]) {
+  if (!verifierSource.includes(marker)) {
+    failures.push(`shared verifier is missing timing marker: ${marker}`);
+  }
 }
 
 const workflow = read(".github/workflows/halleus-verify.yml");
@@ -123,6 +212,7 @@ if (failures.length > 0) {
 }
 
 console.log("Workflow acceleration check passed.");
-console.log("- one shared registry drives local and PR verification");
-console.log("- docs-only, runtime, Wiki, and unknown-path policies are covered");
-console.log("- unknown paths fail safe and Windows uses pnpm.cmd");
+console.log("- exclusive impact areas narrow focused Wiki, workflow, and release-guard changes");
+console.log("- one shared registry still drives local and PR verification");
+console.log("- guard timing is recorded and Windows uses the centralized pnpm.cmd invocation");
+console.log("- unknown paths remain fail-safe");

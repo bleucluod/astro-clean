@@ -62,6 +62,9 @@ export function loadImpactRegistry(filePath = registryPath) {
     areaIds.add(area.id);
     assertStringArray(area.patterns, `${area.id}.patterns`, { allowEmpty: false });
     validatePolicy(area, area.id);
+    if (area.exclusive !== undefined && typeof area.exclusive !== "boolean") {
+      throw new Error(`${area.id}.exclusive must be boolean when declared.`);
+    }
   }
 
   return registry;
@@ -120,7 +123,9 @@ export function createCheckPlan(filePaths, registry = loadImpactRegistry()) {
 
   const plannedFiles = files.map((filePath) => {
     const matches = registry.areas.filter((area) => matchesArea(filePath, area));
-    const policies = matches.length > 0 ? matches : [registry.fallback];
+    const exclusiveMatches = matches.filter((area) => area.exclusive === true);
+    const effectiveMatches = exclusiveMatches.length > 0 ? exclusiveMatches : matches;
+    const policies = effectiveMatches.length > 0 ? effectiveMatches : [registry.fallback];
 
     for (const policy of policies) {
       for (const guard of policy.guards) guards.add(guard);
@@ -128,9 +133,14 @@ export function createCheckPlan(filePaths, registry = loadImpactRegistry()) {
       build ||= policy.build;
     }
 
+    const effectiveIds = new Set(effectiveMatches.map((area) => area.id));
     return {
       path: filePath,
-      areas: matches.map((area) => area.id),
+      areas: effectiveMatches.map((area) => area.id),
+      shadowedAreas: matches
+        .filter((area) => !effectiveIds.has(area.id))
+        .map((area) => area.id),
+      exclusive: exclusiveMatches.length > 0,
       unknown: matches.length === 0,
     };
   });
@@ -222,7 +232,11 @@ export function formatCheckPlan(plan, source) {
   lines.push("Files:");
   for (const file of plan.files) {
     const areas = file.unknown ? "unknown (fail-safe fallback)" : file.areas.join(", ");
-    lines.push(`- ${file.path}: ${areas}`);
+    const narrowed =
+      file.shadowedAreas?.length > 0
+        ? `; exclusive match shadowed: ${file.shadowedAreas.join(", ")}`
+        : "";
+    lines.push(`- ${file.path}: ${areas}${narrowed}`);
   }
 
   lines.push("Guards:");

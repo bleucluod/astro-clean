@@ -94,7 +94,8 @@ requireMarkers("deployment notes", deploymentNotes, [
   "/srv/halleus/current",
   "/srv/halleus/previous",
   "Do not deploy with git pull plus an in-place build",
-  "Search Console and indexing remain blocked",
+  "identify an exact 40-character commit and its exact tag",
+  "The release script never commits, tags, pushes",
 ]);
 
 requireMarkers("recovery notes", recoveryNotes, [
@@ -109,11 +110,12 @@ requireMarkers("recovery notes", recoveryNotes, [
 ]);
 
 requireMarkers("project context", projectContext, [
-  "## v0.1.302 VPS release workflow foundation",
-  "release builds must be created outside the active runtime directory",
-  "The runner used BatchMode=yes with a passphrase-protected private key",
-  "The first v0.1.302 apply runner treated the Windows/WSL bash.exe launcher as a usable Bash installation",
-  "Only explicit Git Bash paths are accepted and probed before local bash -n",
+  "### VPS release model",
+  "/srv/halleus/releases/<tag>-<short-sha>",
+  "/srv/halleus/current",
+  "/srv/halleus/previous",
+  "verifies the exact commit/tag",
+  "A Git commit, GitHub push, active VPS release, database state, and public behavior are separate states",
 ]);
 
 if (
@@ -141,4 +143,5 @@ console.log("- exact commit/tag verification is required");
 console.log("- build and focused checks happen before activation");
 console.log("- current/previous activation is atomic and rollback-aware");
 console.log("- systemd template runs only from /srv/halleus/current");
+console.log("- authority markers follow the compact live project context");
 console.log("- no commit, tag, push, key rotation, or live VPS change is embedded");
