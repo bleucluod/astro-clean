@@ -74,6 +74,10 @@ function compareCandidates(
   right: WikiBulkScheduleCandidate,
   pillarBeforeSupport: boolean,
 ) {
+  if (left.publicationPriority !== right.publicationPriority) {
+    return right.publicationPriority - left.publicationPriority;
+  }
+
   if (pillarBeforeSupport && left.articleRole !== right.articleRole) {
     return left.articleRole === "pillar" ? -1 : 1;
   }
@@ -82,10 +86,7 @@ function compareCandidates(
     return left.contentCluster.localeCompare(right.contentCluster, "en");
   }
 
-  return (
-    right.publicationPriority - left.publicationPriority ||
-    left.stableId.localeCompare(right.stableId, "en")
-  );
+  return left.stableId.localeCompare(right.stableId, "en");
 }
 
 function orderCandidates(

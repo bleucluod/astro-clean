@@ -25,7 +25,10 @@ import {
   WIKI_PUBLISH_JOB_MAX_ATTEMPTS,
   type WikiPublishJobOperation,
 } from "@/lib/wiki/wiki-queue-operations";
-import type { WikiQueuePositionPlan } from "@/lib/wiki/wiki-queue-priority";
+import type {
+  WikiQueueBulkReorderPlan,
+  WikiQueuePositionPlan,
+} from "@/lib/wiki/wiki-queue-priority";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -180,6 +183,8 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [bulkSchedulePlan, setBulkSchedulePlan] = useState<WikiBulkSchedulePlan | null>(null);
   const [queuePositionDrafts, setQueuePositionDrafts] = useState<Record<string, string>>({});
   const [queuePositionPlan, setQueuePositionPlan] = useState<WikiQueuePositionPlan | null>(null);
+  const [queueBulkOrder, setQueueBulkOrder] = useState("");
+  const [queueBulkPlan, setQueueBulkPlan] = useState<WikiQueueBulkReorderPlan | null>(null);
 
   const canDraft = session.capabilities.includes("wiki.draft.write");
   const canPublish = session.capabilities.includes("wiki.publish.write");
@@ -675,6 +680,32 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     }
   }
 
+  async function previewQueueBulkReorder() {
+    const stableIds = queueBulkOrder.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+    setLoading(true); setError(""); setMessage("");
+    try {
+      const payload = await request("/api/admin/wiki/publication-priority", { method: "POST", body: JSON.stringify({ action: "preview_bulk", stableIds }) });
+      setQueueBulkPlan(payload.plan as WikiQueueBulkReorderPlan);
+    } catch (previewError) {
+      setQueueBulkPlan(null);
+      setError(previewError instanceof Error ? previewError.message : "پیش‌نمایش بازچینی گروهی ساخته نشد.");
+    } finally { setLoading(false); }
+  }
+
+  async function applyQueueBulkReorder() {
+    if (!queueBulkPlan || !canPublish) return;
+    const reason = window.prompt("دلیل بازچینی گروهی صف را ثبت کن:");
+    if (!reason?.trim()) return;
+    const stableIds = queueBulkOrder.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+    setLoading(true); setError(""); setMessage("");
+    try {
+      await request("/api/admin/wiki/publication-priority", { method: "POST", body: JSON.stringify({ action: "apply_bulk", stableIds, planToken: queueBulkPlan.planToken, previewedAt: queueBulkPlan.previewedAt, reason: reason.trim() }) });
+      setQueueBulkPlan(null); setMessage("بازچینی گروهی صف با موفقیت انجام شد."); await loadList();
+    } catch (applyError) {
+      setQueueBulkPlan(null); await loadList(); setError(applyError instanceof Error ? applyError.message : "بازچینی گروهی صف ناموفق بود.");
+    } finally { setLoading(false); }
+  }
+
   async function importPackage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -1042,6 +1073,31 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               <strong>{publicationQueueSummary.failed.toLocaleString("fa-IR")}</strong>
             </article>
           </div>
+
+          {canPublish ? (
+            <section className={styles.queuePositionPreview}>
+              <strong>بازچینی گروهی صف</strong>
+              <textarea
+                value={queueBulkOrder}
+                onChange={(event) => { setQueueBulkOrder(event.target.value); setQueueBulkPlan(null); }}
+                placeholder="شناسهٔ هر مقاله را در یک خط و به ترتیب دلخواه وارد کن"
+                rows={8}
+                disabled={loading}
+              />
+              <button type="button" onClick={() => void previewQueueBulkReorder()} disabled={loading || !queueBulkOrder.trim()}>
+                پیش‌نمایش بازچینی گروهی
+              </button>
+              {queueBulkPlan ? (
+                <div className={styles.queuePositionPreviewItems}>
+                  <span>ترتیب {queueBulkPlan.dependencyAdjustmentCount.toLocaleString("fa-IR")} مقاله برای حفظ وابستگی‌ها اصلاح شد.</span>
+                  <button type="button" onClick={() => void applyQueueBulkReorder()} disabled={loading}>اعمال بازچینی گروهی</button>
+                  {queueBulkPlan.items.filter((item) => item.dependencyAdjusted).map((item) => (
+                    <article key={item.jobId}><strong>{item.title}</strong><span>ردیف درخواستی {item.requestedPosition.toLocaleString("fa-IR")} ← ردیف نهایی {item.nextPosition.toLocaleString("fa-IR")}</span></article>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
 
           {queuePositionPlan ? (
             <div className={styles.queuePositionPreview}>

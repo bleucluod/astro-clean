@@ -44,8 +44,10 @@ import {
 } from "@/lib/wiki/wiki-bulk-scheduling";
 import {
   planWikiQueuePositionMove,
+  planWikiQueueBulkReorder,
   WIKI_QUEUE_POSITION_PREVIEW_TTL_MS,
   type WikiQueuePositionCandidate,
+  type WikiQueueBulkReorderPlan,
   type WikiQueuePositionPlan,
 } from "@/lib/wiki/wiki-queue-priority";
 
@@ -1500,6 +1502,94 @@ export async function applyAdminWikiQueuePositionMove(input: {
         })},
         ${input.reason}, true, ${input.actor.correlationId}
       )
+    `;
+    return plan;
+  });
+}
+
+export async function previewAdminWikiQueueBulkReorder(input: {
+  requestedStableIds: string[];
+}): Promise<WikiQueueBulkReorderPlan> {
+  const sql = getAdminDatabase();
+  const jobRows = await sql`
+    select job.id::text as job_id, job.article_id::text, job.revision_number,
+           job.run_at::text, job.status, job.updated_at::text, revision.snapshot
+    from halleus_private.wiki_publish_jobs as job
+    join public.wiki_articles as article on article.id = job.article_id
+    join public.wiki_article_revisions as revision
+      on revision.article_id = job.article_id and revision.revision_number = job.revision_number
+    where job.status in ('queued', 'retry') and article.deleted_at is null
+    order by job.run_at, job.id
+  `;
+  const candidates = jobRows.map(queuePositionCandidateFromRow);
+  const dependencyIds = queuePositionExternalDependencyIds(candidates);
+  const publishedRows = dependencyIds.length ? await sql`
+    select stable_id from public.wiki_articles
+    where stable_id = any(${dependencyIds}::text[]) and status = 'published'
+      and published_at is not null and deleted_at is null
+  ` : [];
+  return planWikiQueueBulkReorder({
+    candidates,
+    publishedStableIds: publishedRows.map((row) => asString(row.stable_id)),
+    requestedStableIds: input.requestedStableIds,
+    previewedAt: new Date().toISOString(),
+  });
+}
+
+export async function applyAdminWikiQueueBulkReorder(input: {
+  actor: VerifiedAdminActor;
+  requestedStableIds: string[];
+  planToken: string;
+  previewedAt: string;
+  reason: string;
+}): Promise<WikiQueueBulkReorderPlan> {
+  const previewedAt = new Date(input.previewedAt);
+  if (!Number.isFinite(previewedAt.getTime()) || previewedAt.getTime() > Date.now() || Date.now() - previewedAt.getTime() > WIKI_QUEUE_POSITION_PREVIEW_TTL_MS) {
+    throw new AdminAccessError(409, "Wiki queue bulk reorder preview expired. Generate a fresh preview.");
+  }
+  const sql = getAdminDatabase();
+  return sql.begin(async (tx) => {
+    const jobRows = await tx`
+      select job.id::text as job_id, job.article_id::text, job.revision_number,
+             job.run_at::text, job.status, job.updated_at::text, revision.snapshot
+      from halleus_private.wiki_publish_jobs as job
+      join public.wiki_articles as article on article.id = job.article_id
+      join public.wiki_article_revisions as revision
+        on revision.article_id = job.article_id and revision.revision_number = job.revision_number
+      where job.status in ('queued', 'retry') and article.deleted_at is null
+      order by job.run_at, job.id for update of job, article, revision
+    `;
+    const candidates = jobRows.map(queuePositionCandidateFromRow);
+    const dependencyIds = queuePositionExternalDependencyIds(candidates);
+    const publishedRows = dependencyIds.length ? await tx`
+      select stable_id from public.wiki_articles
+      where stable_id = any(${dependencyIds}::text[]) and status = 'published'
+        and published_at is not null and deleted_at is null for share
+    ` : [];
+    const plan = planWikiQueueBulkReorder({ candidates, publishedStableIds: publishedRows.map((row) => asString(row.stable_id)), requestedStableIds: input.requestedStableIds, previewedAt: previewedAt.toISOString() });
+    if (plan.planToken !== input.planToken) throw new AdminAccessError(409, "WIKI_SCHEDULING_PLAN_STALE");
+    const jobIds = plan.items.map((item) => item.jobId);
+    const articleIds = plan.items.map((item) => item.articleId);
+    const runAts = plan.items.map((item) => item.nextRunAt);
+    const updatedJobs = await tx`
+      update halleus_private.wiki_publish_jobs as job
+      set run_at = changes.run_at, updated_at = now()
+      from unnest(${jobIds}::uuid[], ${runAts}::timestamptz[]) as changes(job_id, run_at)
+      where job.id = changes.job_id and job.status in ('queued', 'retry')
+      returning job.id::text
+    `;
+    if (updatedJobs.length !== plan.items.length) {
+      throw new AdminAccessError(409, "WIKI_SCHEDULING_PLAN_STALE");
+    }
+    await tx`
+      update public.wiki_articles as article
+      set scheduled_for = changes.run_at
+      from unnest(${articleIds}::uuid[], ${runAts}::timestamptz[]) as changes(article_id, run_at)
+      where article.id = changes.article_id and article.status <> 'published'
+    `;
+    await tx`
+      insert into halleus_private.admin_audit_events (actor_user_id, actor_role, action, target_type, target_id, after_summary, reason, success, request_correlation_id)
+      values (${input.actor.userId}::uuid, ${input.actor.role}, 'admin.wiki.publish_queue_bulk_reordered', 'wiki_publish_queue', ${plan.planToken}, ${tx.json({ articleCount: plan.items.length, dependencyAdjustmentCount: plan.dependencyAdjustmentCount })}, ${input.reason}, true, ${input.actor.correlationId})
     `;
     return plan;
   });

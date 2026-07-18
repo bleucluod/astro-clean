@@ -112,6 +112,16 @@ if (typeof helperModule.planWikiBulkSchedule !== "function") {
   if (first.items.map((item) => item.stableId).join(",") !== "pillar-one,support-two") {
     failures.push("dependency order did not place the pillar before support");
   }
+  const priorityBeforeRole = helperModule.planWikiBulkSchedule({
+    ...base,
+    candidates: [
+      { ...candidates[0], dependencyStableIds: ["published-external"], publicationPriority: 500 },
+      { ...candidates[1], dependencyStableIds: ["published-external"], publicationPriority: 100 },
+    ],
+  });
+  if (priorityBeforeRole.items.map((item) => item.stableId).join(",") !== "support-two,pillar-one") {
+    failures.push("publication priority did not order simultaneously ready articles");
+  }
   if (!first.planToken || first.planToken.length !== 64) {
     failures.push("bulk schedule plan token is not a sha256 digest");
   }

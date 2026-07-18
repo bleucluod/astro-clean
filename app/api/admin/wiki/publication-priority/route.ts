@@ -11,6 +11,8 @@ import {
 } from "@/lib/admin/admin-http";
 import {
   applyAdminWikiQueuePositionMove,
+  applyAdminWikiQueueBulkReorder,
+  previewAdminWikiQueueBulkReorder,
   previewAdminWikiQueuePositionMove,
 } from "@/lib/wiki/wiki-cms-service";
 
@@ -31,6 +33,17 @@ function readTargetPosition(value: unknown) {
   return position;
 }
 
+function readStableIds(value: unknown) {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 100) {
+    throw new AdminAccessError(400, "stableIds must contain between 1 and 100 values.");
+  }
+  const stableIds = value.map((entry) => typeof entry === "string" ? entry.trim() : "");
+  if (stableIds.some((stableId) => !/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(stableId))) {
+    throw new AdminAccessError(400, "stableIds are invalid.");
+  }
+  return stableIds;
+}
+
 export async function POST(request: Request) {
   try {
     assertAdminMutationRequest(request);
@@ -42,6 +55,14 @@ export async function POST(request: Request) {
       );
     }
     const action = readRequiredString(body.action, "action", 30);
+    if (action === "preview_bulk") {
+      await requireAdminCapability(request, "wiki.read");
+      return noStoreJsonResponse({ ok: true, plan: await previewAdminWikiQueueBulkReorder({ requestedStableIds: readStableIds(body.stableIds) }) });
+    }
+    if (action === "apply_bulk") {
+      const actor = await requireAdminCapability(request, "wiki.publish.write");
+      return noStoreJsonResponse({ ok: true, plan: await applyAdminWikiQueueBulkReorder({ actor, requestedStableIds: readStableIds(body.stableIds), planToken: readRequiredString(body.planToken, "planToken", 100), previewedAt: readRequiredString(body.previewedAt, "previewedAt", 100), reason: readRequiredString(body.reason, "reason", 1000) }) });
+    }
     const targetJobId = readRequiredString(body.targetJobId, "targetJobId", 80);
     if (!UUID_PATTERN.test(targetJobId)) {
       throw new AdminAccessError(400, "targetJobId is invalid.");

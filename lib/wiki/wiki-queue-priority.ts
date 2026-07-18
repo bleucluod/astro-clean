@@ -43,6 +43,20 @@ export type WikiQueuePositionPlan = {
   items: WikiQueuePositionPlanItem[];
 };
 
+export type WikiQueueBulkReorderPlanItem = WikiQueuePositionPlanItem & {
+  requestedPosition: number;
+  dependencyAdjusted: boolean;
+  dependencyStableIds: string[];
+};
+
+export type WikiQueueBulkReorderPlan = {
+  planToken: string;
+  previewedAt: string;
+  expiresAt: string;
+  dependencyAdjustmentCount: number;
+  items: WikiQueueBulkReorderPlanItem[];
+};
+
 function uniqueSorted(values: string[]) {
   return [...new Set(values)].sort((left, right) =>
     left.localeCompare(right, "en"),
@@ -299,6 +313,80 @@ export function planWikiQueuePositionMove(input: {
     requestedPosition: input.targetPosition,
     appliedPosition,
     constrained: appliedPosition !== input.targetPosition,
+    items,
+  };
+}
+
+export function planWikiQueueBulkReorder(input: {
+  candidates: WikiQueuePositionCandidate[];
+  publishedStableIds: string[];
+  requestedStableIds: string[];
+  previewedAt: string;
+}): WikiQueueBulkReorderPlan {
+  const previewedAt = new Date(input.previewedAt);
+  if (!Number.isFinite(previewedAt.getTime())) {
+    throw new Error("Wiki queue bulk reorder preview timestamp is invalid.");
+  }
+  const candidates = input.candidates.map((candidate) => ({
+    ...candidate,
+    dependencyStableIds: uniqueSorted(candidate.dependencyStableIds.filter(
+      (dependency) => dependency !== candidate.stableId,
+    )),
+  }));
+  validateCandidateSet(candidates, input.publishedStableIds);
+  if (input.requestedStableIds.length !== candidates.length) {
+    throw new Error("The requested Wiki queue order must include every queued article exactly once.");
+  }
+  const requestedSet = new Set(input.requestedStableIds);
+  if (requestedSet.size !== input.requestedStableIds.length) {
+    throw new Error("The requested Wiki queue order contains a duplicate stable ID.");
+  }
+  const candidateSet = new Set(candidates.map((candidate) => candidate.stableId));
+  const unknown = input.requestedStableIds.find((stableId) => !candidateSet.has(stableId));
+  if (unknown || candidates.some((candidate) => !requestedSet.has(candidate.stableId))) {
+    throw new Error(`The requested Wiki queue order does not match the queue: ${unknown ?? "missing stable ID"}.`);
+  }
+  const orderedNow = currentOrder(candidates);
+  const normalized = normalizeRequestedOrder({
+    candidates,
+    requestedStableIds: input.requestedStableIds,
+    pillarBeforeSupport: false,
+  });
+  const currentByJob = new Map(orderedNow.map((candidate, index) => [candidate.jobId, index + 1]));
+  const requestedByStableId = new Map(input.requestedStableIds.map((stableId, index) => [stableId, index + 1]));
+  const slots = orderedNow.map((candidate) => candidate.currentRunAt);
+  const items = normalized.map((candidate, index) => {
+    const requestedPosition = requestedByStableId.get(candidate.stableId) ?? index + 1;
+    return {
+      jobId: candidate.jobId,
+      articleId: candidate.articleId,
+      revisionNumber: candidate.revisionNumber,
+      stableId: candidate.stableId,
+      title: candidate.title,
+      currentPosition: currentByJob.get(candidate.jobId) ?? index + 1,
+      nextPosition: index + 1,
+      requestedPosition,
+      currentRunAt: candidate.currentRunAt,
+      nextRunAt: slots[index],
+      moved: currentByJob.get(candidate.jobId) !== index + 1 || candidate.currentRunAt !== slots[index],
+      dependencyAdjusted: requestedPosition !== index + 1,
+      dependencyStableIds: candidate.dependencyStableIds,
+    };
+  });
+  const previewedAtIso = previewedAt.toISOString();
+  const expiresAt = new Date(previewedAt.getTime() + WIKI_QUEUE_POSITION_PREVIEW_TTL_MS).toISOString();
+  const planToken = createHash("sha256").update(JSON.stringify({
+    previewedAt: previewedAtIso,
+    requestedStableIds: input.requestedStableIds,
+    publishedStableIds: uniqueSorted(input.publishedStableIds),
+    candidates: candidates.map((candidate) => ({ ...candidate })).sort((left, right) => left.jobId.localeCompare(right.jobId, "en")),
+    items,
+  }), "utf8").digest("hex");
+  return {
+    planToken,
+    previewedAt: previewedAtIso,
+    expiresAt,
+    dependencyAdjustmentCount: items.filter((item) => item.dependencyAdjusted).length,
     items,
   };
 }
