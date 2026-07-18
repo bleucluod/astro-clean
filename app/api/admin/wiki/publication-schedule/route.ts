@@ -13,7 +13,10 @@ import {
   applyAdminWikiBulkSchedule,
   previewAdminWikiBulkSchedule,
 } from "@/lib/wiki/wiki-cms-service";
-import { WIKI_BULK_SCHEDULE_MAX_ARTICLES } from "@/lib/wiki/wiki-bulk-scheduling";
+import {
+  WikiBulkScheduleError,
+  WIKI_BULK_SCHEDULE_MAX_ARTICLES,
+} from "@/lib/wiki/wiki-bulk-scheduling";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +42,25 @@ function readArticleIds(value: unknown) {
   }
 
   return articleIds;
+}
+
+function bulkScheduleErrorResponse(error: unknown) {
+  if (error instanceof WikiBulkScheduleError) {
+    return noStoreJsonResponse(
+      {
+        ok: false,
+        error: error.message,
+        code: error.code,
+        ...(error.articleId ? { articleId: error.articleId } : {}),
+        ...(error.dependencyStableId
+          ? { dependencyStableId: error.dependencyStableId }
+          : {}),
+      },
+      error.status,
+    );
+  }
+
+  return adminErrorResponse(error, "Wiki bulk scheduling failed.");
 }
 
 export async function POST(request: Request) {
@@ -77,6 +99,6 @@ export async function POST(request: Request) {
       400,
     );
   } catch (error) {
-    return adminErrorResponse(error, "Wiki bulk scheduling failed.");
+    return bulkScheduleErrorResponse(error);
   }
 }

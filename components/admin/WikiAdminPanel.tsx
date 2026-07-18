@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   AdminSessionPayload,
 } from "@/lib/admin/admin-types";
+import { readAdminJsonResponse } from "@/lib/admin/admin-client-response";
 import type {
   WikiArticleAdminSummary,
   WikiArticleSnapshot,
@@ -258,11 +259,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
       headers.set("content-type", "application/json");
     }
     const response = await fetch(path, { ...init, headers, cache: "no-store" });
-    const payload = await response.json() as Record<string, unknown>;
-    if (!response.ok) {
-      throw new Error(typeof payload.error === "string" ? payload.error : "درخواست ویکی ناموفق بود.");
-    }
-    return payload;
+    return readAdminJsonResponse(response);
   }, [token]);
 
   const loadList = useCallback(async () => {

@@ -128,6 +128,8 @@ if (typeof helperModule.planWikiBulkSchedule !== "function") {
     ...base,
     existingJobs: [{
       id: "job-1",
+      articleId: "00000000-0000-4000-8000-000000000099",
+      stableId: "scheduled-external",
       runAt: first.items[0].publishAt,
       status: "queued",
       updatedAt: "2026-07-17T08:00:00.000Z",
@@ -136,11 +138,93 @@ if (typeof helperModule.planWikiBulkSchedule !== "function") {
   if (changedJobs.planToken === first.planToken) {
     failures.push("queue change did not invalidate the bulk schedule plan token");
   }
+
+  const scheduledDependencyAt = "2026-07-20T06:30:00.000Z";
+  const scheduledDependencyPlan = helperModule.planWikiBulkSchedule({
+    ...base,
+    candidates: [
+      { ...candidates[0], dependencyStableIds: ["scheduled-external"] },
+    ],
+    existingJobs: [{
+      id: "job-scheduled-external",
+      articleId: "00000000-0000-4000-8000-000000000099",
+      stableId: "scheduled-external",
+      runAt: scheduledDependencyAt,
+      status: "queued",
+      updatedAt: previewedAt,
+    }],
+    publishedStableIds: [],
+  });
+  if (Date.parse(scheduledDependencyPlan.items[0].publishAt) <= Date.parse(scheduledDependencyAt)) {
+    failures.push("dependent article was not scheduled after its active scheduled dependency");
+  }
+
+  for (const count of [1, 2, 9, 50]) {
+    const manyCandidates = Array.from({ length: count }, (_, index) => ({
+      ...candidates[0],
+      articleId: `00000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+      stableId: `bulk-${index + 1}`,
+      slug: `bulk-${index + 1}`,
+      title: `Bulk ${index + 1}`,
+      dependencyStableIds: index === 0 ? ["scheduled-external"] : [`bulk-${index}`],
+    }));
+    const plan = helperModule.planWikiBulkSchedule({
+      ...base,
+      settings: {
+        ...settings,
+        articlesPerWeek: 100,
+        maxArticlesPerDay: 4,
+        minimumIntervalHours: 8,
+        maxHorizonDays: 90,
+      },
+      candidates: manyCandidates,
+      existingJobs: [{
+        id: "job-scheduled-external",
+        articleId: "00000000-0000-4000-8000-000000000099",
+        stableId: "scheduled-external",
+        runAt: scheduledDependencyAt,
+        status: "queued",
+        updatedAt: previewedAt,
+      }],
+      publishedStableIds: [],
+    });
+    if (plan.items.length !== count) failures.push(`bulk planner did not schedule ${count} articles`);
+  }
+
+  try {
+    helperModule.planWikiBulkSchedule({ ...base, settings: { ...settings, publishingPaused: true } });
+    failures.push("paused scheduling was accepted");
+  } catch (error) {
+    if (error?.code !== "WIKI_AUTO_PUBLISH_PAUSED") {
+      failures.push(`paused scheduling returned the wrong error: ${String(error)}`);
+    }
+  }
+
+  try {
+    helperModule.planWikiBulkSchedule({
+      ...base,
+      candidates: [{ ...candidates[0], dependencyStableIds: ["scheduled-external"] }],
+      existingJobs: [{
+        id: "job-stale-external",
+        articleId: "00000000-0000-4000-8000-000000000099",
+        stableId: "scheduled-external",
+        runAt: "2026-07-16T06:30:00.000Z",
+        status: "queued",
+        updatedAt: previewedAt,
+      }],
+      publishedStableIds: [],
+    });
+    failures.push("past scheduled dependency was accepted");
+  } catch (error) {
+    if (error?.code !== "WIKI_SCHEDULING_ARTICLE_INVALID") {
+      failures.push(`past scheduled dependency returned the wrong error: ${String(error)}`);
+    }
+  }
   try {
     helperModule.planWikiBulkSchedule({ ...base, publishedStableIds: [] });
     failures.push("missing published dependency was accepted");
   } catch (error) {
-    if (!String(error).includes("Publish dependencies first")) {
+    if (error?.code !== "WIKI_SCHEDULING_ARTICLE_INVALID") {
       failures.push(`missing dependency returned the wrong error: ${String(error)}`);
     }
   }
@@ -164,6 +248,7 @@ if (typeof helperModule.planWikiBulkSchedule !== "function") {
 const route = read("app/api/admin/wiki/publication-schedule/route.ts");
 const service = read("lib/wiki/wiki-cms-service.ts");
 const panel = read("components/admin/WikiAdminPanel.tsx");
+const clientResponse = read("lib/admin/admin-client-response.ts");
 const queueGuard = read("scripts/check-wiki-publication-queue-readonly.mjs");
 const packageJson = JSON.parse(read("package.json"));
 const impact = JSON.parse(read("config/halleus-check-impact.json"));
@@ -171,6 +256,8 @@ const impact = JSON.parse(read("config/halleus-check-impact.json"));
 requireText("bulk route", route, 'requireAdminCapability(request, "wiki.publish.write")');
 requireText("bulk route", route, 'action === "preview"');
 requireText("bulk route", route, 'action === "apply"');
+requireText("bulk route", route, "bulkScheduleErrorResponse");
+requireText("bulk route", route, "WikiBulkScheduleError");
 requireText("bulk service", service, "return sql.begin(async (tx) =>");
 requireText("bulk service", service, "for update of article, draft");
 requireText("bulk service", service, "Wiki bulk schedule changed after preview");
@@ -182,6 +269,8 @@ requireText(
   "selectedVisibleIds.length === selectedBulkEligibleIds.length",
 );
 requireText("bulk panel", panel, "disabled={!selectedCanBeScheduled}");
+requireText("bulk panel", panel, "readAdminJsonResponse(response)");
+requireText("admin response parser", clientResponse, "response.headers.get(\"content-type\")");
 requireText("bulk panel", panel, "پیش‌نمایش زمان‌بندی");
 requireText("bulk panel", panel, "اعمال همین برنامه");
 forbidText("bulk panel", panel, "انتخاب همهٔ واجد شرایط");

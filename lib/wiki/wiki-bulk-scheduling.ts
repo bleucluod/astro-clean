@@ -10,6 +10,28 @@ import { computeWikiScheduleSlots } from "@/lib/wiki/wiki-scheduling";
 export const WIKI_BULK_SCHEDULE_MAX_ARTICLES = 100;
 export const WIKI_BULK_SCHEDULE_PREVIEW_TTL_MS = 15 * 60 * 1000;
 
+export class WikiBulkScheduleError extends Error {
+  readonly status: number;
+  readonly code: string;
+  readonly articleId?: string;
+  readonly dependencyStableId?: string;
+
+  constructor(input: {
+    status: number;
+    code: string;
+    message: string;
+    articleId?: string;
+    dependencyStableId?: string;
+  }) {
+    super(input.message);
+    this.name = "WikiBulkScheduleError";
+    this.status = input.status;
+    this.code = input.code;
+    this.articleId = input.articleId;
+    this.dependencyStableId = input.dependencyStableId;
+  }
+}
+
 export type WikiBulkScheduleCandidate = {
   articleId: string;
   stableId: string;
@@ -26,6 +48,8 @@ export type WikiBulkScheduleCandidate = {
 
 export type WikiBulkScheduleExistingJob = {
   id: string;
+  articleId: string;
+  stableId: string;
   runAt: string;
   status: "queued" | "retry" | "running";
   updatedAt: string;
@@ -117,40 +141,82 @@ export function planWikiBulkSchedule(input: {
     input.candidates.length < 1 ||
     input.candidates.length > WIKI_BULK_SCHEDULE_MAX_ARTICLES
   ) {
-    throw new Error(
-      `Select between 1 and ${WIKI_BULK_SCHEDULE_MAX_ARTICLES} Wiki articles.`,
-    );
+    throw new WikiBulkScheduleError({
+      status: 422,
+      code: "WIKI_SCHEDULING_ARTICLE_INVALID",
+      message: `Select between 1 and ${WIKI_BULK_SCHEDULE_MAX_ARTICLES} Wiki articles.`,
+    });
+  }
+
+  if (input.settings.publishingPaused) {
+    throw new WikiBulkScheduleError({
+      status: 409,
+      code: "WIKI_AUTO_PUBLISH_PAUSED",
+      message: "انتشار خودکار ویکی موقتاً متوقف است.",
+    });
   }
 
   const articleIds = new Set<string>();
   const stableIds = new Set<string>();
   for (const candidate of input.candidates) {
     if (articleIds.has(candidate.articleId)) {
-      throw new Error("Wiki bulk schedule contains a duplicate article ID.");
+      throw new WikiBulkScheduleError({
+        status: 422,
+        code: "WIKI_SCHEDULING_ARTICLE_INVALID",
+        message: "Wiki bulk schedule contains a duplicate article ID.",
+        articleId: candidate.articleId,
+      });
     }
     if (stableIds.has(candidate.stableId)) {
-      throw new Error("Wiki bulk schedule contains a duplicate stable ID.");
+      throw new WikiBulkScheduleError({
+        status: 422,
+        code: "WIKI_SCHEDULING_ARTICLE_INVALID",
+        message: "Wiki bulk schedule contains a duplicate stable ID.",
+        articleId: candidate.articleId,
+      });
     }
     articleIds.add(candidate.articleId);
     stableIds.add(candidate.stableId);
   }
 
   const publishedStableIds = new Set(input.publishedStableIds);
-  const missingDependencies = uniqueSorted(
-    input.candidates.flatMap((candidate) =>
-      candidate.dependencyStableIds.filter(
-        (dependency) =>
-          dependency !== candidate.stableId &&
-          !stableIds.has(dependency) &&
-          !publishedStableIds.has(dependency),
-      ),
-    ),
+  const scheduledDependencies = new Map(
+    input.existingJobs.map((job) => [job.stableId, job]),
   );
+  const externalDependencyRunAt = new Map<string, Date>();
 
-  if (missingDependencies.length > 0) {
-    throw new Error(
-      `Publish dependencies first: ${missingDependencies.join(", ")}`,
-    );
+  for (const candidate of input.candidates) {
+    for (const dependency of candidate.dependencyStableIds) {
+      if (
+        dependency === candidate.stableId ||
+        stableIds.has(dependency) ||
+        publishedStableIds.has(dependency)
+      ) {
+        continue;
+      }
+
+      const scheduled = scheduledDependencies.get(dependency);
+      const scheduledAt = scheduled ? new Date(scheduled.runAt) : null;
+      if (!scheduledAt || !Number.isFinite(scheduledAt.getTime())) {
+        throw new WikiBulkScheduleError({
+          status: 422,
+          code: "WIKI_SCHEDULING_ARTICLE_INVALID",
+          message: `Publish dependency first: ${dependency}`,
+          articleId: candidate.articleId,
+          dependencyStableId: dependency,
+        });
+      }
+      if (scheduledAt.getTime() <= previewedAt.getTime()) {
+        throw new WikiBulkScheduleError({
+          status: 422,
+          code: "WIKI_SCHEDULING_ARTICLE_INVALID",
+          message: `Scheduled dependency is no longer pending: ${dependency}`,
+          articleId: candidate.articleId,
+          dependencyStableId: dependency,
+        });
+      }
+      externalDependencyRunAt.set(dependency, scheduledAt);
+    }
   }
 
   const ordered = orderCandidates(
@@ -165,12 +231,34 @@ export function planWikiBulkSchedule(input: {
     input.settings.pillarBeforeSupport,
   );
 
-  const slots = computeWikiScheduleSlots({
-    settings: input.settings,
-    existingRunAt: input.existingJobs.map((job) => job.runAt),
-    count: ordered.length,
-    now: previewedAt,
+  const notBefore = ordered.map((candidate) => {
+    const dependencyTimes = candidate.dependencyStableIds
+      .map((dependency) => externalDependencyRunAt.get(dependency))
+      .filter((value): value is Date => Boolean(value));
+    if (dependencyTimes.length === 0) return null;
+    return new Date(Math.max(...dependencyTimes.map((value) => value.getTime())));
   });
+
+  let slots: Date[];
+  try {
+    slots = computeWikiScheduleSlots({
+      settings: input.settings,
+      existingRunAt: input.existingJobs.map((job) => job.runAt),
+      notBefore,
+      count: ordered.length,
+      now: previewedAt,
+    });
+  } catch (error) {
+    if (error instanceof WikiBulkScheduleError) throw error;
+    throw new WikiBulkScheduleError({
+      status: 422,
+      code: "WIKI_SCHEDULING_CAPACITY_EXCEEDED",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Schedule settings cannot fit the selected articles.",
+    });
+  }
 
   const items = ordered.map((candidate, index) => ({
     articleId: candidate.articleId,

@@ -173,6 +173,7 @@ export function validateWikiScheduleSlot(input: {
 export function computeWikiScheduleSlots(input: {
   settings: WikiScheduleSettings;
   existingRunAt: string[];
+  notBefore?: Array<string | Date | null>;
   count: number;
   now?: Date;
 }) {
@@ -181,6 +182,15 @@ export function computeWikiScheduleSlots(input: {
     throw new Error("Automatic Wiki publishing is paused.");
   }
   const now = input.now ?? new Date();
+  if (input.notBefore && input.notBefore.length !== input.count) {
+    throw new Error("Schedule dependency constraints do not match the selected articles.");
+  }
+  const notBefore = (input.notBefore ?? []).map((value) =>
+    value === null ? null : new Date(value),
+  );
+  if (notBefore.some((value) => value && !Number.isFinite(value.getTime()))) {
+    throw new Error("Scheduled dependency time is invalid.");
+  }
   const used = input.existingRunAt.map((value) => new Date(value));
   const dailyCounts = new Map<string, number>();
   const weeklyCounts = new Map<string, number>();
@@ -217,6 +227,8 @@ export function computeWikiScheduleSlots(input: {
       );
       if (dateKey(zonedParts(slot, settings.timezone)) !== day) break;
       if (slot.getTime() <= now.getTime()) continue;
+      const dependencyTime = notBefore[result.length];
+      if (dependencyTime && slot.getTime() <= dependencyTime.getTime()) continue;
       if (occupied.some((date) =>
         Math.abs(slot.getTime() - date.getTime()) < settings.minimumIntervalHours * 3_600_000,
       )) {

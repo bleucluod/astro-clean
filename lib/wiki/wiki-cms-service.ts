@@ -37,6 +37,7 @@ import {
 import {
   fingerprintWikiBulkScheduleSnapshot,
   planWikiBulkSchedule,
+  WikiBulkScheduleError,
   WIKI_BULK_SCHEDULE_PREVIEW_TTL_MS,
   type WikiBulkScheduleCandidate,
   type WikiBulkScheduleExistingJob,
@@ -1603,10 +1604,15 @@ function assertBulkScheduleRows(
   blockingJobs: unknown[],
 ) {
   if (rows.length !== articleIds.length) {
-    throw new AdminAccessError(
-      409,
-      "Every selected Wiki article must exist and have a saved draft.",
+    const foundArticleIds = new Set(
+      rows.map((raw) => asString(asRecord(raw).id)),
     );
+    throw new WikiBulkScheduleError({
+      status: 422,
+      code: "WIKI_SCHEDULING_ARTICLE_INVALID",
+      message: "Every selected Wiki article must exist and have a saved draft.",
+      articleId: articleIds.find((articleId) => !foundArticleIds.has(articleId)),
+    });
   }
 
   const blockingArticleIds = new Set(
@@ -1623,10 +1629,12 @@ function assertBulkScheduleRows(
     .map((row) => asString(row.id));
 
   if (invalid.length > 0) {
-    throw new AdminAccessError(
-      409,
-      "Selected Wiki articles changed or already have a job that Batch 5 must manage.",
-    );
+    throw new WikiBulkScheduleError({
+      status: 409,
+      code: "WIKI_SCHEDULING_ARTICLE_INVALID",
+      message: "Selected Wiki articles changed or already have a job that must be managed first.",
+      articleId: invalid[0],
+    });
   }
 }
 
@@ -1635,6 +1643,8 @@ function existingBulkScheduleJobs(rows: unknown[]): WikiBulkScheduleExistingJob[
     const row = asRecord(raw);
     return {
       id: asString(row.id),
+      articleId: asString(row.article_id),
+      stableId: asString(row.stable_id),
       runAt: asString(row.run_at),
       status: asString(row.status) as WikiBulkScheduleExistingJob["status"],
       updatedAt: asString(row.updated_at),
@@ -1683,10 +1693,12 @@ export async function previewAdminWikiBulkSchedule(input: {
     `,
     getWikiScheduleSettings(),
     sql`
-      select id::text, run_at::text, status, updated_at::text
-      from halleus_private.wiki_publish_jobs
-      where status in ('queued', 'retry', 'running')
-      order by id
+      select job.id::text, job.article_id::text, article.stable_id,
+             job.run_at::text, job.status, job.updated_at::text
+      from halleus_private.wiki_publish_jobs as job
+      join public.wiki_articles as article on article.id = job.article_id
+      where job.status in ('queued', 'retry', 'running')
+      order by job.id
     `,
   ]);
 
@@ -1716,10 +1728,11 @@ export async function applyAdminWikiBulkSchedule(input: {
     previewedAt.getTime() > Date.now() ||
     Date.now() - previewedAt.getTime() > WIKI_BULK_SCHEDULE_PREVIEW_TTL_MS
   ) {
-    throw new AdminAccessError(
-      409,
-      "Bulk schedule preview expired. Generate a fresh preview.",
-    );
+    throw new WikiBulkScheduleError({
+      status: 409,
+      code: "WIKI_SCHEDULING_PLAN_EXPIRED",
+      message: "Bulk schedule preview expired. Generate a fresh preview.",
+    });
   }
 
   const sql = getAdminDatabase();
@@ -1754,11 +1767,13 @@ export async function applyAdminWikiBulkSchedule(input: {
       for update
     `;
     const existingJobs = await tx`
-      select id::text, run_at::text, status, updated_at::text
-      from halleus_private.wiki_publish_jobs
-      where status in ('queued', 'retry', 'running')
-      order by id
-      for update
+      select job.id::text, job.article_id::text, article.stable_id,
+             job.run_at::text, job.status, job.updated_at::text
+      from halleus_private.wiki_publish_jobs as job
+      join public.wiki_articles as article on article.id = job.article_id
+      where job.status in ('queued', 'retry', 'running')
+      order by job.id
+      for update of job, article
     `;
 
     assertBulkScheduleRows(input.articleIds, articleRows, blockingJobs);
@@ -1793,10 +1808,11 @@ export async function applyAdminWikiBulkSchedule(input: {
     });
 
     if (plan.planToken !== input.planToken) {
-      throw new AdminAccessError(
-        409,
-        "Wiki bulk schedule changed after preview. Generate a fresh preview.",
-      );
+      throw new WikiBulkScheduleError({
+        status: 409,
+        code: "WIKI_SCHEDULING_PLAN_STALE",
+        message: "Wiki bulk schedule changed after preview. Generate a fresh preview.",
+      });
     }
     if (plan.items.some((item) => Date.parse(item.publishAt) <= Date.now())) {
       throw new AdminAccessError(
