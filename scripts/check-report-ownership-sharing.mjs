@@ -15,6 +15,7 @@ const sitemap = read("app/sitemap.ts");
 for (const marker of ["share_token_hash", "share_enabled", "restricted_at", "deleted_at", "visibility = 'private'"]) {
   if (!migration.includes(marker)) throw new Error(`Report migration is missing ${marker}.`);
 }
+if (!migration.includes("'public', 'shared_by_link'")) throw new Error("Report migration must preserve rollback compatibility with the previous release.");
 for (const marker of ["randomBytes(32)", "sha256", "REPORT_SUMMARY_PAGE_SIZE = 25", "validateReportTitle"]) {
   if (!contract.includes(marker)) throw new Error(`Report access contract is missing ${marker}.`);
 }

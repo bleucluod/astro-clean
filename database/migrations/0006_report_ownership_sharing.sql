@@ -28,7 +28,7 @@ alter table public.halleus_reports
   check (title is null or char_length(btrim(title)) between 1 and 160);
 alter table public.halleus_reports drop constraint if exists halleus_reports_visibility_check;
 alter table public.halleus_reports add constraint halleus_reports_visibility_check
-  check (visibility in ('private', 'shared_by_link', 'unpublished', 'restricted_by_admin'));
+  check (visibility in ('private', 'public', 'shared_by_link', 'unpublished', 'restricted_by_admin'));
 alter table public.halleus_reports drop constraint if exists halleus_reports_share_state_check;
 alter table public.halleus_reports add constraint halleus_reports_share_state_check check (
   (visibility = 'shared_by_link' and share_enabled and share_token_hash is not null and restricted_at is null and deleted_at is null)
