@@ -29,7 +29,7 @@ export function createReportRecord(
     updatedAt: timestamp,
     favorite: options.favorite ?? false,
     note: options.note,
-    visibility: options.visibility ?? "public",
+    visibility: options.visibility ?? "private",
     source: options.source ?? "local-preview",
   };
 }
@@ -39,6 +39,7 @@ export function summarizeReportRecord(
 ): ReportRecordSummary {
   return {
     id: record.id,
+    title: record.input.name ? `گزارش ${record.input.name}` : "گزارش ذخیره‌شده",
     userId: record.userId,
     name: record.input.name,
     birthDate: record.input.birthDate,

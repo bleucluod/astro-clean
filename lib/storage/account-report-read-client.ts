@@ -23,6 +23,8 @@ export type AccountReportListResult = {
   summaries: ReportRecordSummary[];
   message: string;
   blockers: string[];
+  page: number;
+  total: number;
 };
 
 export type AccountReportDetailResult = {
@@ -37,6 +39,8 @@ type AccountReportListResponse = {
   error?: string;
   summaries?: ReportRecordSummary[];
   blockers?: string[];
+  page?: number;
+  total?: number;
 };
 
 type AccountReportDetailResponse = {
@@ -135,7 +139,7 @@ function createAuthHeaders(accessToken: string) {
   };
 }
 
-export async function listAccountReportSummaries(): Promise<AccountReportListResult> {
+export async function listAccountReportSummaries(page = 1): Promise<AccountReportListResult> {
   const tokenResult = await readAccountAccessToken();
 
   if (!tokenResult.ok) {
@@ -144,11 +148,13 @@ export async function listAccountReportSummaries(): Promise<AccountReportListRes
       summaries: [],
       message: tokenResult.message,
       blockers: tokenResult.blockers,
+      page,
+      total: 0,
     };
   }
 
   try {
-    const response = await fetch("/api/reports/account", {
+    const response = await fetch(`/api/reports/account?page=${page}`, {
       headers: createAuthHeaders(tokenResult.accessToken),
     });
     const payload = (await response.json().catch(() => null)) as
@@ -162,6 +168,8 @@ export async function listAccountReportSummaries(): Promise<AccountReportListRes
         message:
           payload?.error ?? "Account report summaries could not be loaded.",
         blockers: payload?.blockers ?? [],
+        page,
+        total: 0,
       };
     }
 
@@ -170,6 +178,8 @@ export async function listAccountReportSummaries(): Promise<AccountReportListRes
       summaries: payload.summaries,
       message: "Account report summaries loaded.",
       blockers: [],
+      page: payload.page ?? page,
+      total: payload.total ?? payload.summaries.length,
     };
   } catch (error) {
     return {
@@ -180,6 +190,8 @@ export async function listAccountReportSummaries(): Promise<AccountReportListRes
           ? error.message
           : "Account report summaries could not be loaded.",
       blockers: [],
+      page,
+      total: 0,
     };
   }
 }
@@ -296,4 +308,25 @@ export async function getAccountReportRecord(
       blockers: [],
     };
   }
+}
+
+export async function mutateAccountReport(input: { reportId: string; action: "title" | "enable_sharing" | "revoke_sharing"; title?: string }) {
+  const tokenResult = await readAccountAccessToken();
+  if (!tokenResult.ok) throw new Error(tokenResult.message);
+  const response = await fetch("/api/reports/account", {
+    method: "PATCH",
+    headers: { ...createAuthHeaders(tokenResult.accessToken), "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json().catch(() => null) as { ok?: boolean; error?: string; sharePath?: string } | null;
+  if (!response.ok || !payload?.ok) throw new Error(payload?.error ?? "Report update failed.");
+  return payload;
+}
+
+export async function deleteAccountReport(reportId: string) {
+  const tokenResult = await readAccountAccessToken();
+  if (!tokenResult.ok) throw new Error(tokenResult.message);
+  const response = await fetch(`/api/reports/account?reportId=${encodeURIComponent(reportId)}`, { method: "DELETE", headers: createAuthHeaders(tokenResult.accessToken) });
+  const payload = await response.json().catch(() => null) as { ok?: boolean; error?: string } | null;
+  if (!response.ok || !payload?.ok) throw new Error(payload?.error ?? "Report deletion failed.");
 }

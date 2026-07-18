@@ -12,10 +12,13 @@ export type AdminRole = (typeof ADMIN_ROLES)[number];
 export const ADMIN_CAPABILITIES = [
   "dashboard.read",
   "users.read",
+  "users.contact.read",
   "users.status.write",
   "users.notes.write",
   "reports.read",
   "reports.visibility.restrict",
+  "reports.title.write",
+  "reports.delete",
   "reports.private_content.read",
   "premium_requests.read",
   "premium_requests.write",
@@ -62,8 +65,10 @@ export type AdminUserSummary = {
 
 export type AdminReportSummary = {
   id: string;
+  title: string;
   ownerUserId: string;
-  visibility: "public" | "private";
+  ownerDisplayName: string | null;
+  visibility: "public" | "private" | "shared_by_link" | "unpublished" | "restricted_by_admin";
   source: string;
   accessTier: string;
   engineVersion: string | null;

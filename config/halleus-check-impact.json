@@ -23,6 +23,14 @@
       "build": true
     },
     {
+      "id": "report-ownership-sharing",
+      "description": "Report ownership, private library, safe sharing, and report administration.",
+      "patterns": ["app/api/reports/**", "app/api/admin/reports/**", "app/reports/**", "app/admin/reports/**", "components/**/*Report*", "lib/reports/**", "lib/storage/**", "lib/database/**", "lib/admin/**", "types/storage.ts", "database/migrations/*report*.sql", "scripts/check-report-ownership-sharing.mjs"],
+      "guards": ["check:report-ownership-sharing", "check:secure-admin-core"],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "documentation",
       "description": "Repository documentation with no production runtime effect.",
       "patterns": [

@@ -18,6 +18,7 @@ import {
   AdminAccessError,
   type VerifiedAdminActor,
 } from "@/lib/admin/admin-auth";
+import { validateReportTitle } from "@/lib/reports/report-access-contract";
 
 type AuditInput = {
   actor: VerifiedAdminActor | null;
@@ -315,53 +316,65 @@ export async function addAdminUserNote(input: {
 export async function listAdminReports(
   search: string,
   limit: number,
+  page = 1,
 ): Promise<AdminReportSummary[]> {
   const sql = getAdminDatabase();
   const query = search ? `%${search}%` : null;
+  const offset = (Math.max(1, page) - 1) * limit;
   const rows = await sql`
     select
-      id,
-      user_id,
-      visibility,
-      source,
+      r.id,
+      r.user_id,
+      r.visibility,
+      r.source,
+      coalesce(r.title, r.report_json #>> '{input,name}', 'گزارش ذخیره‌شده') as title,
+      u.display_name as owner_display_name,
       coalesce(
-        report_json #>> '{access,tier}',
-        report_json ->> 'tier',
+        r.report_json #>> '{access,tier}',
+        r.report_json ->> 'tier',
         'unknown'
       ) as access_tier,
       coalesce(
-        report_json #>> '{engineData,engineVersion}',
-        report_json #>> '{chart,engineVersion}',
-        report_json ->> 'engineVersion'
+        r.report_json #>> '{engineData,engineVersion}',
+        r.report_json #>> '{chart,engineVersion}',
+        r.report_json ->> 'engineVersion'
       ) as engine_version,
       coalesce(
-        report_json #>> '{metadata,reportVersion}',
-        report_json ->> 'reportVersion'
+        r.report_json #>> '{metadata,reportVersion}',
+        r.report_json ->> 'reportVersion'
       ) as report_version,
       coalesce(
-        report_json #>> '{publication,consentState}',
-        report_json ->> 'publicationConsentState',
+        r.report_json #>> '{publication,consentState}',
+        r.report_json ->> 'publicationConsentState',
         'unknown'
       ) as publication_consent_state,
-      created_at::text as created_at,
-      updated_at::text as updated_at
-    from public.halleus_reports
-    where (
+      r.created_at::text as created_at,
+      r.updated_at::text as updated_at
+    from public.halleus_reports r
+    left join public.halleus_users u on u.id = r.user_id
+    where r.deleted_at is null and (
       ${query}::text is null
-      or id ilike ${query}
-      or user_id ilike ${query}
-      or source ilike ${query}
+      or r.id ilike ${query}
+      or r.user_id ilike ${query}
+      or r.source ilike ${query}
+      or coalesce(r.title, '') ilike ${query}
+      or coalesce(u.display_name, '') ilike ${query}
     )
-    order by created_at desc
+    order by r.created_at desc
     limit ${limit}
+    offset ${offset}
   `;
 
   return rows.map((raw) => {
     const row = asRecord(raw);
     return {
       id: asString(row.id),
+      title: asString(row.title),
       ownerUserId: asString(row.user_id),
-      visibility: row.visibility === "public" ? "public" : "private",
+      ownerDisplayName: asNullableString(row.owner_display_name),
+      visibility: ["public", "shared_by_link", "unpublished", "restricted_by_admin"].includes(asString(row.visibility))
+        ? asString(row.visibility) as AdminReportSummary["visibility"]
+        : "private",
       source: asString(row.source),
       accessTier: asString(row.access_tier),
       engineVersion: asNullableString(row.engine_version),
@@ -396,7 +409,13 @@ export async function restrictAdminReportVisibility(input: {
 
       await tx`
         update public.halleus_reports
-        set visibility = 'private', updated_at = now()
+        set visibility = 'restricted_by_admin',
+            share_enabled = false,
+            share_token_hash = null,
+            restricted_at = now(),
+            restricted_by = ${input.actor.userId}::uuid,
+            restriction_reason = ${input.reason},
+            updated_at = now()
         where id = ${input.reportId}
       `;
 
@@ -412,7 +431,7 @@ export async function restrictAdminReportVisibility(input: {
           'report',
           ${input.reportId},
           ${tx.json({ visibility: asString(before.visibility) })},
-          ${tx.json({ visibility: "private" })},
+          ${tx.json({ visibility: "restricted_by_admin" })},
           ${input.reason},
           true,
           ${input.actor.correlationId}
@@ -432,6 +451,21 @@ export async function restrictAdminReportVisibility(input: {
     );
     throw error;
   }
+}
+
+export async function updateAdminReportTitle(input: { actor: VerifiedAdminActor; reportId: string; title: unknown; reason: string }) {
+  const sql = getAdminDatabase();
+  const title = validateReportTitle(input.title);
+  const rows = await sql`update public.halleus_reports set title = ${title}, updated_at = now() where id = ${input.reportId} and deleted_at is null returning id`;
+  if (!rows.length) throw new AdminAccessError(404, "Report was not found.");
+  await recordAdminAuditEvent({ actor: input.actor, action: "admin.report.title_updated", targetType: "report", targetId: input.reportId, afterSummary: { titleLength: title.length }, reason: input.reason, success: true });
+}
+
+export async function softDeleteAdminReport(input: { actor: VerifiedAdminActor; reportId: string; reason: string }) {
+  const sql = getAdminDatabase();
+  const rows = await sql`update public.halleus_reports set deleted_at = now(), deleted_by = ${input.actor.userId}::uuid, delete_reason = ${input.reason}, visibility = 'unpublished', share_enabled = false, share_token_hash = null, updated_at = now() where id = ${input.reportId} and deleted_at is null returning id`;
+  if (!rows.length) throw new AdminAccessError(404, "Report was not found.");
+  await recordAdminAuditEvent({ actor: input.actor, action: "admin.report.soft_deleted", targetType: "report", targetId: input.reportId, reason: input.reason, success: true });
 }
 
 export async function getAdminPrivateReportContent(input: {
@@ -485,6 +519,22 @@ export async function getAdminPrivateReportContent(input: {
     );
     throw error;
   }
+}
+
+export async function getAdminReportCustomerContact(input: { actor: VerifiedAdminActor; reportId: string; reason: string }) {
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select u.display_name, u.email, a.phone
+    from public.halleus_reports r
+    join public.halleus_users u on u.id = r.user_id
+    left join auth.users a on a.id::text = u.id
+    where r.id = ${input.reportId} and r.deleted_at is null
+    limit 1
+  `;
+  const row = asRecord(rows[0]);
+  if (!rows.length) throw new AdminAccessError(404, "Report was not found.");
+  await recordAdminAuditEvent({ actor: input.actor, action: "admin.report.customer_contact_viewed", targetType: "report", targetId: input.reportId, afterSummary: { hasPhone: Boolean(row.phone), hasEmail: Boolean(row.email) }, reason: input.reason, success: true });
+  return { displayName: asNullableString(row.display_name), email: asNullableString(row.email), phone: asNullableString(row.phone) };
 }
 
 export async function createPremiumRequest(input: {

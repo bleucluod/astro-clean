@@ -32,7 +32,7 @@ function createAccountReportRecord(
   return createReportRecord(report, {
     source: "account",
     userId,
-    visibility: "public",
+    visibility: "private",
   });
 }
 
@@ -44,7 +44,7 @@ function prepareImportedRecord(
     ...record,
     userId,
     source: "account",
-    visibility: "public",
+    visibility: "private",
     updatedAt: nowIso(),
   };
 }

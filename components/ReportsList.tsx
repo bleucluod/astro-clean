@@ -9,8 +9,10 @@ import { decodeReportRecords } from "@/lib/storage/report-record-migration";
 import { createReportRecord } from "@/lib/storage/report-records";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
+  deleteAccountReport,
   getAccountReportReadClientConfig,
   listAccountReportSummaries,
+  mutateAccountReport,
 } from "@/lib/storage/account-report-read-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
@@ -250,6 +252,8 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   const [searchInput, setSearchInput] = useState("");
   const [sortMode, setمرتب‌سازیMode] = useState<مرتب‌سازیMode>("newest");
   const [filterMode, setFilterMode] = useState<ReportFilterMode>("all");
+  const [accountPage, setAccountPage] = useState(1);
+  const [accountTotal, setAccountTotal] = useState(0);
 
   const searchTerm = normalizeSearchText(searchInput);
   const isBetaDatabaseSource = reportSource === "beta-db";
@@ -300,7 +304,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
   async function refreshReports() {
     if (isAccountSource) {
-      const result = await listAccountReportSummaries();
+      const result = await listAccountReportSummaries(accountPage);
 
       setDatabaseSummaries(result.summaries);
       setReports([]);
@@ -312,6 +316,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       setReportNotes({});
       setIsReady(true);
       setMessage(result.message);
+      setAccountTotal(result.total);
 
       return;
     }
@@ -357,6 +362,30 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
     setIsReady(true);
   }
 
+  async function manageAccountReport(summary: ReportRecordSummary, action: "title" | "enable_sharing" | "revoke_sharing" | "delete") {
+    try {
+      if (action === "title") {
+        const title = window.prompt("عنوان تازهٔ گزارش:", summary.title ?? summary.name ?? "");
+        if (title === null) return;
+        await mutateAccountReport({ reportId: summary.id, action, title });
+      } else if (action === "delete") {
+        if (!window.confirm("این گزارش حذف شود؟ پیوند اشتراک آن نیز فوراً از کار می‌افتد.")) return;
+        await deleteAccountReport(summary.id);
+      } else {
+        const result = await mutateAccountReport({ reportId: summary.id, action });
+        if (result.sharePath) {
+          const url = new URL(result.sharePath, window.location.origin).toString();
+          await navigator.clipboard?.writeText(url);
+          setMessage("پیوند امن ساخته و کپی شد.");
+        }
+      }
+      await refreshReports();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "مدیریت گزارش انجام نشد.");
+    }
+  }
+
+  // The source switch owns one refresh; request helpers intentionally remain local.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void refreshReports();
@@ -365,7 +394,8 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [reportSource]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportSource, accountPage]);
 
   async function handleToggleFavorite(reportId: string) {
     const shouldBeFavorite = !favoriteReportIds.includes(reportId);
@@ -666,15 +696,9 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
           <article className="card" key={summary.id}>
             <span className="badge">گزارش حساب</span>
 
-            <h2>{summary.name ? `گزارش ${summary.name}` : "گزارش ذخیره‌شده در حساب"}</h2>
+            <h2>{summary.title ?? (summary.name ? `گزارش ${summary.name}` : "گزارش ذخیره‌شده در حساب")}</h2>
 
-            <div className="birth-details">
-              <span>{summary.birthDate}</span>
-              <span>{summary.birthTime}</span>
-              <span>
-                {summary.birthCity}, {summary.birthCountry}
-              </span>
-            </div>
+            <div className="birth-details"><span>{summary.reportType ?? "گزارش تولد"}</span><span>{summary.accessTier ?? "رایگان"}</span><span>{summary.visibility === "shared_by_link" ? "قابل مشاهده با پیوند" : "خصوصی"}</span></div>
 
             <p>
               ذخیره‌شده در {new Date(summary.createdAt).toLocaleDateString("fa-IR")} ·{" "}
@@ -689,9 +713,17 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               >
                 باز کردن گزارش
               </Link>
+              <button className="button secondary" type="button" onClick={() => void manageAccountReport(summary, "title")}>ویرایش عنوان</button>
+              {summary.visibility === "shared_by_link" ? (
+                <button className="button secondary" type="button" onClick={() => void manageAccountReport(summary, "revoke_sharing")}>لغو اشتراک</button>
+              ) : (
+                <button className="button secondary" type="button" onClick={() => void manageAccountReport(summary, "enable_sharing")}>ساخت پیوند امن</button>
+              )}
+              <button className="button secondary" type="button" onClick={() => void manageAccountReport(summary, "delete")}>حذف گزارش</button>
             </div>
           </article>
         ))}
+        {accountTotal > 25 ? <nav className="actions" aria-label="صفحه‌بندی گزارش‌ها"><button className="button secondary" type="button" disabled={accountPage <= 1} onClick={() => setAccountPage((page) => Math.max(1, page - 1))}>صفحهٔ قبل</button><span>صفحهٔ {accountPage.toLocaleString("fa-IR")}</span><button className="button secondary" type="button" disabled={accountPage * 25 >= accountTotal} onClick={() => setAccountPage((page) => page + 1)}>صفحهٔ بعد</button></nav> : null}
       </section>
     );
   }

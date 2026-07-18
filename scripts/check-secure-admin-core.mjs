@@ -115,7 +115,9 @@ requireText(
 );
 requireText("admin service", service, "success: false");
 requireText("admin service", service, "setSupabaseAccountSuspended");
-requireText("admin service", service, "visibility = 'private'");
+requireText("admin service", service, "visibility = 'restricted_by_admin'");
+requireText("admin service", service, "share_enabled = false");
+requireText("admin service", service, "share_token_hash = null");
 
 const adminPage = read("app/admin/page.tsx");
 requireText("admin page", adminPage, "AdminConsole");

@@ -2,7 +2,7 @@ import type { AstrologyReport, BirthInput } from "@/types/astro";
 
 export type HalleusStorageDriver = "local" | "database";
 
-export type ReportVisibility = "private" | "public";
+export type ReportVisibility = "private" | "public" | "shared_by_link" | "unpublished" | "restricted_by_admin";
 
 export type ReportSource = "local-preview" | "account";
 
@@ -21,6 +21,10 @@ export type ReportRecord = {
 
 export type ReportRecordSummary = {
   id: string;
+  title?: string;
+  reportType?: string;
+  accessTier?: string;
+  status?: "active" | "deleted";
   userId?: string;
   name?: string;
   birthDate: string;

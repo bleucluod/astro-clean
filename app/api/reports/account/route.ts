@@ -5,14 +5,21 @@ import { getHalleusRuntimeEnv, hasDatabaseConfig } from "@/lib/config/env";
 import { ensureAccountPersistenceUser } from "@/lib/database/account-persistence-user";
 import { getSupabaseUserFromAuthorizationHeader } from "@/lib/auth/supabase-server-user";
 import {
-  getPublicServerStoredReport,
-  getServerStoredReport,
-  listServerReportSummaries,
   saveServerGeneratedReport,
 } from "@/lib/storage/server-report-persistence";
 import type { AstrologyReport } from "@/types/astro";
+import { readReportPage } from "@/lib/reports/report-access-contract";
+import {
+  enableOwnedReportSharing,
+  getOwnedReport,
+  listOwnedReportSummaries,
+  revokeOwnedReportSharing,
+  softDeleteOwnedReport,
+  updateOwnedReportTitle,
+} from "@/lib/reports/report-access-service";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const PUBLIC_REPORT_OWNER_USER_ID = "00000000-0000-4000-8000-000000000207";
 const PUBLIC_REPORT_OWNER_EMAIL = "public-reports@halleus.local";
@@ -32,24 +39,6 @@ function accountReportSaveGuard(): AccountReportSaveGuard {
       status: 503,
       error: "Account report save path is not configured.",
       blockers: readiness.blockers,
-    };
-  }
-
-  return {
-    ok: true,
-    databaseUrl: env.databaseUrl,
-  };
-}
-
-function publicReportReadGuard(): AccountReportSaveGuard {
-  const env = getHalleusRuntimeEnv();
-
-  if (!hasDatabaseConfig() || !env.databaseUrl) {
-    return {
-      ok: false,
-      status: 503,
-      error: "Public report read path is not configured.",
-      blockers: ["DATABASE_URL is missing."],
     };
   }
 
@@ -123,28 +112,7 @@ export async function GET(request: Request) {
   const authorizationHeader = request.headers.get("authorization");
 
   if (reportId && !authorizationHeader) {
-    const guard = publicReportReadGuard();
-
-    if (!guard.ok) {
-      return errorResponse(guard.status, guard.error, guard.blockers);
-    }
-
-    try {
-      const reportRecord = await getPublicServerStoredReport({ reportId });
-
-      if (!reportRecord) {
-        return errorResponse(404, "Public report was not found.");
-      }
-
-      return NextResponse.json({ ok: true, reportRecord });
-    } catch (error) {
-      return errorResponse(
-        500,
-        error instanceof Error
-          ? error.message
-          : "Public report read failed.",
-      );
-    }
+    return errorResponse(401, "A verified account session is required.");
   }
 
   const guard = accountReportSaveGuard();
@@ -157,10 +125,7 @@ export async function GET(request: Request) {
     const user = await readAuthenticatedAccountUser(request);
 
     if (reportId) {
-      const reportRecord = await getServerStoredReport({
-        userId: user.id,
-        reportId,
-      });
+      const reportRecord = await getOwnedReport(user.id, reportId);
 
       if (!reportRecord) {
         return errorResponse(404, "Report was not found.");
@@ -169,9 +134,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, reportRecord });
     }
 
-    const summaries = await listServerReportSummaries({ userId: user.id });
-
-    return NextResponse.json({ ok: true, summaries });
+    const result = await listOwnedReportSummaries(user.id, readReportPage(url.searchParams.get("page")));
+    return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     return errorResponse(
       error instanceof Error && error.message.includes("bearer token") ? 401 : 500,
@@ -179,6 +143,37 @@ export async function GET(request: Request) {
         ? error.message
         : "Account report persistence read failed.",
     );
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const user = await readAuthenticatedAccountUser(request);
+    const body = await request.json();
+    if (!isRecord(body)) return errorResponse(400, "Request body must be an object.");
+    const reportId = readString(body.reportId);
+    const action = readString(body.action);
+    if (!reportId || !action) return errorResponse(400, "Report id and action are required.");
+    if (action === "title") return NextResponse.json({ ok: await updateOwnedReportTitle(user.id, reportId, body.title) });
+    if (action === "enable_sharing") {
+      const shareToken = await enableOwnedReportSharing(user.id, reportId);
+      return shareToken ? NextResponse.json({ ok: true, sharePath: `/reports/shared/${shareToken}` }) : errorResponse(404, "Report was not found.");
+    }
+    if (action === "revoke_sharing") return NextResponse.json({ ok: await revokeOwnedReportSharing(user.id, reportId) });
+    return errorResponse(400, "Report action is invalid.");
+  } catch (error) {
+    return errorResponse(error instanceof Error && error.message.includes("bearer token") ? 401 : 500, error instanceof Error ? error.message : "Report update failed.");
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await readAuthenticatedAccountUser(request);
+    const reportId = readString(new URL(request.url).searchParams.get("reportId"));
+    if (!reportId) return errorResponse(400, "Report id is required.");
+    return NextResponse.json({ ok: await softDeleteOwnedReport(user.id, reportId) });
+  } catch (error) {
+    return errorResponse(error instanceof Error && error.message.includes("bearer token") ? 401 : 500, error instanceof Error ? error.message : "Report deletion failed.");
   }
 }
 

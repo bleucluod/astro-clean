@@ -39,7 +39,9 @@ function normalizeRow(row: RawDatabaseReportRow): DatabaseReportRow {
     report_json: row.report_json as DatabaseReportRow["report_json"],
     note: typeof row.note === "string" ? row.note : null,
     favorite: Boolean(row.favorite),
-    visibility: row.visibility === "public" ? "public" : "private",
+    visibility: ["public", "shared_by_link", "unpublished", "restricted_by_admin"].includes(String(row.visibility))
+      ? row.visibility as DatabaseReportRow["visibility"]
+      : "private",
     created_at: toIsoString(row.created_at),
     updated_at: toIsoString(row.updated_at),
   };

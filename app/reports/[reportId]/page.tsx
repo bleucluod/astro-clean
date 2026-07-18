@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { ReportDetail } from "@/components/ReportDetail";
-import { getPublicServerStoredReport } from "@/lib/storage/server-report-persistence";
-import type { AstrologyReport } from "@/types/astro";
 
-type ReportDetailSource = "local" | "beta-db" | "account" | "public";
+type ReportDetailSource = "local" | "beta-db" | "account";
 
 type ReportDetailPageProps = {
   params: Promise<{
@@ -39,27 +37,7 @@ function resolveReportSource(rawSource: string | undefined): ReportDetailSource 
     return "local";
   }
 
-  return "public";
-}
-
-async function readInitialPublicReport({
-  reportId,
-  reportSource,
-}: {
-  reportId: string;
-  reportSource: ReportDetailSource;
-}): Promise<AstrologyReport | null> {
-  if (reportSource !== "public") {
-    return null;
-  }
-
-  try {
-    const reportRecord = await getPublicServerStoredReport({ reportId });
-
-    return reportRecord?.report ?? null;
-  } catch {
-    return null;
-  }
+  return "local";
 }
 
 export default async function ReportDetailPage({
@@ -72,19 +50,12 @@ export default async function ReportDetailPage({
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
   const reportSource = resolveReportSource(rawSource);
-  const initialPublicReport = await readInitialPublicReport({
-    reportId,
-    reportSource,
-  });
-
   return (
     <ReportDetail
       reportId={reportId}
       reportSource={reportSource}
-      initialReport={initialPublicReport}
-      initialMessage={
-        initialPublicReport ? "گزارش آماده است." : ""
-      }
+      initialReport={null}
+      initialMessage=""
     />
   );
 }

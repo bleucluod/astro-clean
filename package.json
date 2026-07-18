@@ -50,6 +50,7 @@
     "check:fast": "pnpm run check:core && pnpm run check:engine && pnpm run check:reports && pnpm lint",
     "check:workflow": "node scripts/check-workflow-optimization.mjs",
     "check:sky-daily-contract": "node scripts/check-sky-daily-contract.mjs",
+    "check:report-ownership-sharing": "node scripts/check-report-ownership-sharing.mjs",
     "check:plan": "node scripts/halleus-check-plan.mjs",
     "verify": "node scripts/halleus-verify.mjs",
     "check:workflow-acceleration": "node scripts/check-workflow-acceleration.mjs",

@@ -110,6 +110,16 @@ export function AdminConsole() {
       });
       const payload = (await response.json()) as JsonPayload;
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          setSession(null);
+          setToken("");
+          setOverview(null);
+          setUsers([]);
+          setReports([]);
+          setPremiumRequests([]);
+          setAuditEvents([]);
+          setPrivateReport(null);
+        }
         throw new Error(
           typeof payload.error === "string"
             ? payload.error
