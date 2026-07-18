@@ -15,6 +15,14 @@
   },
   "areas": [
     {
+      "id": "sky-daily-contract",
+      "description": "Canonical daily-sky contract and its deterministic guard.",
+      "patterns": ["lib/sky-daily/**", "scripts/check-sky-daily-contract.mjs"],
+      "guards": ["check:sky-daily-contract"],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "documentation",
       "description": "Repository documentation with no production runtime effect.",
       "patterns": [
