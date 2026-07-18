@@ -220,4 +220,4 @@ console.log("- shared mark-all stays general while schedule preview requires onl
 console.log("- preview order and slots are deterministic and dependency-aware");
 console.log("- draft, settings, or queue changes invalidate the plan token");
 console.log("- apply rechecks the plan and writes the whole batch in one transaction");
-console.log("- reschedule, cancel, retry, and full concurrency remain outside Batch 4B");
+console.log("- Batch 4 bulk scheduling remains isolated from per-job queue operations");

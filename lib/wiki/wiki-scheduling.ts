@@ -95,6 +95,81 @@ export function sortWikiArticlesForPublishing(
   return output;
 }
 
+export function validateWikiScheduleSlot(input: {
+  settings: WikiScheduleSettings;
+  existingRunAt: string[];
+  runAt: string | Date;
+  now?: Date;
+}) {
+  const settings = input.settings;
+  const now = input.now ?? new Date();
+  const candidate = input.runAt instanceof Date
+    ? new Date(input.runAt.getTime())
+    : new Date(input.runAt);
+  if (!Number.isFinite(candidate.getTime()) || candidate.getTime() <= now.getTime()) {
+    throw new Error("Scheduled publication must be in the future.");
+  }
+
+  const startingDay = dateKey(zonedParts(now, settings.timezone));
+  const candidateParts = zonedParts(candidate, settings.timezone);
+  const candidateDay = dateKey(candidateParts);
+  const [startYear, startMonth, startDate] = startingDay.split("-").map(Number);
+  const [endYear, endMonth, endDate] = candidateDay.split("-").map(Number);
+  const dayOffset = Math.round(
+    (Date.UTC(endYear, endMonth - 1, endDate) -
+      Date.UTC(startYear, startMonth - 1, startDate)) /
+      86_400_000,
+  );
+  if (dayOffset < 0 || dayOffset > settings.maxHorizonDays) {
+    throw new Error("Scheduled publication is outside the configured horizon.");
+  }
+  if (!settings.allowedWeekdays.includes(weekdayForKey(candidateDay))) {
+    throw new Error("Scheduled publication is not on an allowed weekday.");
+  }
+  if (settings.blackoutDates.includes(candidateDay)) {
+    throw new Error("Scheduled publication falls on a blackout date.");
+  }
+
+  const [publishHour, publishMinute] = settings.publishTime.split(":").map(Number);
+  const baseMinute = publishHour * 60 + publishMinute;
+  const candidateMinute = candidateParts.hour * 60 + candidateParts.minute;
+  const intervalMinutes = settings.minimumIntervalHours * 60;
+  const slotOffset = candidateMinute - baseMinute;
+  if (
+    slotOffset < 0 ||
+    slotOffset % intervalMinutes !== 0 ||
+    slotOffset / intervalMinutes >= settings.maxArticlesPerDay
+  ) {
+    throw new Error("Scheduled publication does not align with a configured daily slot.");
+  }
+
+  const existing = input.existingRunAt.map((value) => new Date(value));
+  const dailyCount = existing.filter(
+    (value) => dateKey(zonedParts(value, settings.timezone)) === candidateDay,
+  ).length;
+  if (dailyCount >= settings.maxArticlesPerDay) {
+    throw new Error("The selected day has reached its publication limit.");
+  }
+  const candidateWeek = weekKey(candidateDay);
+  const weeklyCount = existing.filter((value) =>
+    weekKey(dateKey(zonedParts(value, settings.timezone))) === candidateWeek
+  ).length;
+  if (weeklyCount >= settings.articlesPerWeek) {
+    throw new Error("The selected week has reached its publication limit.");
+  }
+  if (
+    existing.some(
+      (value) =>
+        Math.abs(candidate.getTime() - value.getTime()) <
+        settings.minimumIntervalHours * 3_600_000,
+    )
+  ) {
+    throw new Error("Scheduled publication is too close to an occupied slot.");
+  }
+
+  return candidate;
+}
+
 export function computeWikiScheduleSlots(input: {
   settings: WikiScheduleSettings;
   existingRunAt: string[];

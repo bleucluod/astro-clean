@@ -186,7 +186,10 @@ export async function processDueWikiPublishJobs(limit = 10) {
   }
   await sql`
     update halleus_private.wiki_publish_jobs
-    set status = 'retry', locked_at = null, run_at = now(),
+    set status = case when attempt_count >= 3 then 'failed' else 'retry' end,
+        locked_at = null,
+        run_at = case when attempt_count >= 3 then run_at else now() end,
+        completed_at = case when attempt_count >= 3 then now() else null end,
         last_error = 'Recovered a stale publisher lock.'
     where status = 'running' and locked_at < now() - interval '15 minutes'
   `;
@@ -197,7 +200,9 @@ export async function processDueWikiPublishJobs(limit = 10) {
       const rows = await tx`
         select id::text
         from halleus_private.wiki_publish_jobs
-        where status in ('queued', 'retry') and run_at <= now()
+        where status in ('queued', 'retry')
+          and attempt_count < 3
+          and run_at <= now()
         order by run_at, created_at
         for update skip locked
         limit 1
@@ -206,11 +211,17 @@ export async function processDueWikiPublishJobs(limit = 10) {
         return null;
       }
       const jobId = asString(rows[0].id);
-      await tx`
+      const claimedRows = await tx`
         update halleus_private.wiki_publish_jobs
         set status = 'running', locked_at = now(), attempt_count = attempt_count + 1
         where id = ${jobId}::uuid
+          and status in ('queued', 'retry')
+          and attempt_count < 3
+        returning id::text
       `;
+      if (!claimedRows[0]) {
+        return null;
+      }
       return jobId;
     });
     if (!claimed) {

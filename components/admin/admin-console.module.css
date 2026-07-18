@@ -252,7 +252,107 @@
 }
 
 .publicationQueueTable {
-  min-width: 1040px !important;
+  min-width: 1320px !important;
+}
+
+.queueJobActions {
+  display: flex;
+  min-width: 220px;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.queueJobActions button {
+  padding: 7px 9px;
+  font-size: 0.82rem;
+}
+
+.queueLockNote {
+  color: #637588;
+  line-height: 1.6;
+}
+
+.queuePositionEditor {
+  display: grid;
+  min-width: 230px;
+  gap: 7px;
+}
+
+.queuePositionInput,
+.queuePositionButtons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.queuePositionInput input {
+  width: 64px;
+  padding: 7px 8px;
+  text-align: center;
+}
+
+.queuePositionInput span,
+.queuePositionState {
+  color: #637588;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.queuePositionEditor button,
+.queuePositionPreview button {
+  padding: 7px 9px;
+  font-size: 0.8rem;
+}
+
+.queuePositionButtons button:first-child {
+  min-width: 62px;
+}
+
+.queuePositionButtons button:not(:first-child) {
+  width: 34px;
+  padding-inline: 0;
+}
+
+.queuePositionPreview {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #c7d4ed;
+  border-radius: 14px;
+  background: #f8faff;
+}
+
+.queuePositionPreview > div:first-child {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.queuePositionPreview > div:first-child > div {
+  display: grid;
+  gap: 5px;
+}
+
+.queuePositionPreview span {
+  color: #637588;
+}
+
+.queuePositionPreviewItems {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.queuePositionPreviewItems article {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #d9e2ec;
+  border-radius: 10px;
+  background: #fff;
 }
 
 .queueStatus {
@@ -274,6 +374,11 @@
 .queueStatus[data-status="running"] {
   background: #eaf7f2;
   color: #28664f;
+}
+
+.queueStatus[data-status="retry"] {
+  background: #fff7e6;
+  color: #705221;
 }
 
 .queuePaused,
@@ -932,6 +1037,10 @@
 
   .cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .queuePositionPreviewItems {
+    grid-template-columns: 1fr;
   }
 }
 

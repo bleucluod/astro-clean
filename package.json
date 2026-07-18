@@ -182,7 +182,10 @@
     "check:synthesis-priority-house-emphasis-alignment": "node scripts/check-synthesis-priority-house-emphasis-alignment.mjs",
     "check:chart-level-narrative-synthesis": "node scripts/check-chart-level-narrative-synthesis.mjs",
     "check:live-report-reading-contract": "node scripts/check-live-report-reading-contract.mjs",
-    "check:secure-admin-core": "node scripts/check-secure-admin-core.mjs"
+    "check:secure-admin-core": "node scripts/check-secure-admin-core.mjs",
+    "check:wiki-queue-operations": "node scripts/check-wiki-queue-operations.mjs",
+    "check:wiki-queue-priority": "node scripts/check-wiki-queue-priority.mjs",
+    "check:wiki-content-guide-priority": "node scripts/check-wiki-content-guide-priority.mjs"
   },
   "dependencies": {
     "@astrodraw/astrochart": "3.0.2",

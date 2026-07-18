@@ -1,6 +1,7 @@
 import type { WikiArticleAdminSummary } from "@/lib/wiki/wiki-cms-types";
 
 const QUEUE_JOB_STATUSES = new Set(["queued", "running", "retry", "failed"]);
+const POSITIONED_JOB_STATUSES = new Set(["queued", "retry"]);
 
 export type WikiPublicationQueueSummary = {
   total: number;
@@ -50,10 +51,23 @@ export function buildWikiPublicationQueue(
 
       const priorityDifference =
         right.publicationPriority - left.publicationPriority;
-      if (priorityDifference !== 0) return priorityDifference;
-
-      return left.stableId.localeCompare(right.stableId, "en");
+      return (
+        priorityDifference ||
+        left.stableId.localeCompare(right.stableId, "en")
+      );
     });
+}
+
+export function getWikiPublicationQueuePositions(
+  queue: WikiArticleAdminSummary[],
+) {
+  return new Map(
+    queue
+      .filter((article) =>
+        POSITIONED_JOB_STATUSES.has(article.publishJobStatus ?? ""),
+      )
+      .map((article, index) => [article.id, index + 1]),
+  );
 }
 
 export function summarizeWikiPublicationQueue(
@@ -61,8 +75,12 @@ export function summarizeWikiPublicationQueue(
   publishingPaused: boolean,
 ): WikiPublicationQueueSummary {
   const nextPublishAt = queue
+    .filter((article) =>
+      POSITIONED_JOB_STATUSES.has(article.publishJobStatus ?? ""),
+    )
     .map(getWikiPublicationQueueDate)
-    .find((value): value is string => Boolean(value)) ?? null;
+    .filter((value): value is string => Boolean(value))
+    .sort((left, right) => Date.parse(left) - Date.parse(right))[0] ?? null;
 
   return {
     total: queue.length,

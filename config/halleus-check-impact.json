@@ -211,7 +211,10 @@
         "check:full-wiki-cms",
         "check:wiki-publication-queue-readonly",
         "check:wiki-bulk-scheduling",
-        "check:wiki-bulk-actions-ui"
+        "check:wiki-bulk-actions-ui",
+        "check:wiki-queue-operations",
+        "check:wiki-queue-priority",
+        "check:wiki-content-guide-priority"
       ],
       "lint": true,
       "build": true
@@ -230,7 +233,10 @@
         "check:full-wiki-cms",
         "check:wiki-publication-queue-readonly",
         "check:wiki-bulk-scheduling",
-        "check:wiki-bulk-actions-ui"
+        "check:wiki-bulk-actions-ui",
+        "check:wiki-queue-operations",
+        "check:wiki-queue-priority",
+        "check:wiki-content-guide-priority"
       ],
       "lint": true,
       "build": false
@@ -264,7 +270,9 @@
       "guards": [
         "check:full-wiki-cms",
         "check:wiki-scheduling-determinism",
-        "check:vps-release-workflow"
+        "check:vps-release-workflow",
+        "check:wiki-queue-operations",
+        "check:wiki-queue-priority"
       ],
       "lint": true,
       "build": true

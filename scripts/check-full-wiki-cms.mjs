@@ -166,16 +166,18 @@ requireText("Wiki category route", categoryRoute, "wiki.settings.write");
 requireText("Wiki content guide route", contentGuideRoute, 'requireAdminCapability(request, "wiki.read")');
 requireText("Wiki content guide route", contentGuideRoute, '"cache-control": "private, no-store"');
 requireText("Wiki content guide route", contentGuideRoute, "listWikiContentGuideInventory");
+requireText("Wiki content guide route", contentGuideRoute, "listWikiContentGuideQueue");
 forbidText("Wiki content guide route", contentGuideRoute, "listAdminWikiArticles");
 requireText("Wiki content guide inventory", cms, "export async function listWikiContentGuideInventory");
 const contentGuideInventory = cms.slice(
   cms.indexOf("export async function listWikiContentGuideInventory"),
-  cms.indexOf("export async function getAdminWikiArticle"),
+  cms.indexOf("export async function listWikiContentGuideQueue"),
 );
 forbidText("Wiki content guide inventory", contentGuideInventory, "join ");
 forbidText("Wiki content guide inventory", contentGuideInventory, "limit ");
 forbidText("Wiki content guide inventory", contentGuideInventory, "body_markdown");
 requireText("Wiki content guide", contentGuide, "مقاله‌های منتشرشده و قابل لینک");
+requireText("Wiki content guide", contentGuide, "صف زندهٔ انتشار");
 requireText("Wiki content guide", contentGuide, "همهٔ شناسه‌ها و slugهای رزروشده");
 requireText("Wiki content guide", contentGuide, "deleted-reserved");
 requireText("Wiki package guide", packageGuide, "manifest.json");

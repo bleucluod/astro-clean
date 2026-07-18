@@ -154,7 +154,7 @@ export function readWikiArticleSnapshot(value: unknown): WikiArticleSnapshot {
     summary,
     intro: text(input.intro ?? parsed.intro ?? summary, "intro", 5000),
     readingMinutes: integer(input.readingMinutes, "readingMinutes", 1, 240),
-    publicationPriority: integer(input.publicationPriority ?? 0, "publicationPriority", -1000, 1000),
+    publicationPriority: integer(input.publicationPriority ?? 0, "publicationPriority", 0, 300),
     contentCluster: text(input.contentCluster, "contentCluster", 160),
     articleRole: role as WikiArticleRole,
     relatedArticleIds: textArray(input.relatedArticleIds ?? [], "relatedArticleIds", 50),

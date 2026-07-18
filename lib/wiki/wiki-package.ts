@@ -239,7 +239,7 @@ function parseArticleManifest(raw: unknown, index: number): WikiPackageArticleMa
     tags: stringArray(item.tags, `articles[${index}].tags`),
     summary: stringValue(item.summary, `articles[${index}].summary`, 2000),
     reading_minutes: integerValue(item.reading_minutes, `articles[${index}].reading_minutes`, 1, 240),
-    publication_priority: integerValue(item.publication_priority, `articles[${index}].publication_priority`, -1000, 1000),
+    publication_priority: integerValue(item.publication_priority, `articles[${index}].publication_priority`, 0, 300),
     content_cluster: stringValue(item.content_cluster, `articles[${index}].content_cluster`, 160),
     article_role: role,
     related_article_ids: stringArray(item.related_article_ids, `articles[${index}].related_article_ids`),

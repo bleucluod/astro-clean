@@ -15,8 +15,16 @@ import type {
 import {
   buildWikiPublicationQueue,
   getWikiPublicationQueueDate,
+  getWikiPublicationQueuePositions,
   summarizeWikiPublicationQueue,
 } from "@/lib/wiki/wiki-publication-queue";
+import {
+  getWikiPublishJobOperationAvailability,
+  getWikiPublishJobStateFromArticle,
+  WIKI_PUBLISH_JOB_MAX_ATTEMPTS,
+  type WikiPublishJobOperation,
+} from "@/lib/wiki/wiki-queue-operations";
+import type { WikiQueuePositionPlan } from "@/lib/wiki/wiki-queue-priority";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -107,6 +115,7 @@ function formatPublishJobStatus(value: string | null) {
     retry: "در انتظار تلاش دوباره",
     failed: "ناموفق",
     published: "منتشرشده",
+    canceled: "لغوشده",
   };
   return value ? (labels[value] ?? value) : "در انتظار job";
 }
@@ -168,6 +177,8 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     [articleSelection, selectionScope],
   );
   const [bulkSchedulePlan, setBulkSchedulePlan] = useState<WikiBulkSchedulePlan | null>(null);
+  const [queuePositionDrafts, setQueuePositionDrafts] = useState<Record<string, string>>({});
+  const [queuePositionPlan, setQueuePositionPlan] = useState<WikiQueuePositionPlan | null>(null);
 
   const canDraft = session.capabilities.includes("wiki.draft.write");
   const canPublish = session.capabilities.includes("wiki.publish.write");
@@ -178,6 +189,11 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     () => buildWikiPublicationQueue(articles),
     [articles],
   );
+  const queuePositions = useMemo(
+    () => getWikiPublicationQueuePositions(publicationQueue),
+    [publicationQueue],
+  );
+  const positionedQueueSize = queuePositions.size;
   const publicationQueueSummary = useMemo(
     () =>
       summarizeWikiPublicationQueue(
@@ -206,7 +222,8 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const visibleSelectableArticles = useMemo(
     () =>
       (activeSection === "queue" ? publicationQueue : articles).filter(
-        (article) => !article.deletedAt,
+        (article) =>
+          !article.deletedAt && article.publishJobStatus !== "running",
       ),
     [activeSection, articles, publicationQueue],
   );
@@ -256,6 +273,8 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
       const payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(queueView ? "" : search)}&status=${encodeURIComponent(queueView ? "all" : status)}&limit=100`);
       setArticles(payload.articles as WikiArticleAdminSummary[]);
       setCategories(payload.categories as Category[]);
+      setQueuePositionDrafts({});
+      setQueuePositionPlan(null);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "بارگذاری ویکی ناموفق بود.");
     } finally {
@@ -484,6 +503,175 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
         applyError instanceof Error
           ? applyError.message
           : "اعمال زمان‌بندی گروهی ناموفق بود.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function mutateQueueJob(
+    article: WikiArticleAdminSummary,
+    operation: WikiPublishJobOperation,
+  ) {
+    if (!canPublish) return;
+    const job = getWikiPublishJobStateFromArticle(article);
+    if (!job) {
+      setError("اطلاعات job کامل نیست؛ صف را تازه‌سازی کن.");
+      return;
+    }
+
+    let publishAt: string | null = null;
+    if (operation === "reschedule") {
+      const currentDate = new Date(job.runAt);
+      const offset = currentDate.getTimezoneOffset() * 60_000;
+      const localValue = new Date(currentDate.getTime() - offset)
+        .toISOString()
+        .slice(0, 16);
+      const requested = window.prompt(
+        "زمان جدید را به‌صورت تاریخ و ساعت وارد کن:",
+        localValue,
+      );
+      if (!requested?.trim()) return;
+      const parsed = new Date(requested.trim());
+      if (!Number.isFinite(parsed.getTime())) {
+        setError("زمان جدید معتبر نیست.");
+        return;
+      }
+      publishAt = parsed.toISOString();
+    }
+    if (
+      operation === "cancel" &&
+      !window.confirm("این نوبت انتشار لغو و متن آن به پیش‌نویس برگردانده شود؟")
+    ) {
+      return;
+    }
+    if (
+      operation === "retry" &&
+      !window.confirm("این job ناموفق در نخستین زمان معتبر دوباره وارد صف شود؟")
+    ) {
+      return;
+    }
+
+    const reason = window.prompt("دلیل این عملیات صف را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await request(
+        `/api/admin/wiki/publication-jobs/${encodeURIComponent(job.id)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            action: operation,
+            expectedUpdatedAt: job.updatedAt,
+            publishAt,
+            reason: reason.trim(),
+          }),
+        },
+      );
+      setMessage(
+        operation === "reschedule"
+          ? "زمان انتشار به‌روزرسانی شد."
+          : operation === "cancel"
+            ? "نوبت انتشار لغو و پیش‌نویس بازیابی شد."
+            : "job در نخستین زمان معتبر برای تلاش دوباره قرار گرفت.",
+      );
+      setQueuePositionPlan(null);
+      await loadList();
+    } catch (queueError) {
+      await loadList();
+      setError(
+        queueError instanceof Error
+          ? queueError.message
+          : "عملیات صف انتشار ناموفق بود.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function previewQueuePositionMove(
+    article: WikiArticleAdminSummary,
+    targetPosition: number,
+  ) {
+    const job = getWikiPublishJobStateFromArticle(article);
+    const availability = job
+      ? getWikiPublishJobOperationAvailability(job)
+      : null;
+    if (!job || !availability?.canReorder) {
+      setError("این job در وضعیت فعلی قابل جابه‌جایی نیست.");
+      return;
+    }
+    if (
+      !Number.isInteger(targetPosition) ||
+      targetPosition < 1 ||
+      targetPosition > positionedQueueSize
+    ) {
+      setError(
+        `جایگاه باید عددی بین ۱ و ${positionedQueueSize.toLocaleString("fa-IR")} باشد.`,
+      );
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      const payload = await request("/api/admin/wiki/publication-priority", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "preview_move",
+          targetJobId: job.id,
+          targetPosition,
+          expectedUpdatedAt: job.updatedAt,
+        }),
+      });
+      setQueuePositionPlan(payload.plan as WikiQueuePositionPlan);
+    } catch (previewError) {
+      await loadList();
+      setQueuePositionPlan(null);
+      setError(
+        previewError instanceof Error
+          ? previewError.message
+          : "پیش‌نمایش تغییر جایگاه ساخته نشد.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function applyQueuePositionMove() {
+    if (!queuePositionPlan || !canPublish) return;
+    const reason = window.prompt("دلیل تغییر جایگاه صف را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await request("/api/admin/wiki/publication-priority", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "apply_move",
+          targetJobId: queuePositionPlan.targetJobId,
+          targetPosition: queuePositionPlan.requestedPosition,
+          expectedUpdatedAt: queuePositionPlan.targetUpdatedAt,
+          planToken: queuePositionPlan.planToken,
+          previewedAt: queuePositionPlan.previewedAt,
+          reason: reason.trim(),
+        }),
+      });
+      setQueuePositionDrafts({});
+      setQueuePositionPlan(null);
+      setMessage("جایگاه مقاله و زمان‌های صف با موفقیت به‌روزرسانی شدند.");
+      await loadList();
+    } catch (applyError) {
+      await loadList();
+      setQueuePositionPlan(null);
+      setError(
+        applyError instanceof Error
+          ? applyError.message
+          : "تغییر جایگاه صف ناموفق بود.",
       );
     } finally {
       setLoading(false);
@@ -775,7 +963,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             const selected = selectedVisibleIds.includes(article.id);
             return (
               <article key={article.id} className={styles.wikiArticleListItem}>
-                {canPublish && !article.deletedAt ? (
+                {canPublish && !article.deletedAt && article.publishJobStatus !== "running" ? (
                   <label className={styles.articleSelectionCheckbox}>
                     <input
                       type="checkbox"
@@ -810,7 +998,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
           <div className={styles.wikiCollectionHeader}>
             <div className={styles.wikiQueueHeaderCopy}>
               <h3>صف انتشار</h3>
-              <p>نمای خواندنی jobهای زمان‌بندی‌شده؛ تغییر برنامه از این بخش ممکن نیست.</p>
+              <p>جایگاه ۱ یعنی انتشار بعدی. مقاله را به اول صف ببر، یک پله جابه‌جا کن یا شمارهٔ جایگاه را مستقیم وارد کن.</p>
             </div>
             <div className={styles.wikiSelectionActions}>
               <button type="button" onClick={() => void loadList()}>تازه‌سازی صف</button>
@@ -858,6 +1046,51 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             </article>
           </div>
 
+          {queuePositionPlan ? (
+            <div className={styles.queuePositionPreview}>
+              <div>
+                <div>
+                  <strong>پیش‌نمایش تغییر جایگاه</strong>
+                  <span>
+                    جایگاه {queuePositionPlan.items.find((item) => item.jobId === queuePositionPlan.targetJobId)?.currentPosition.toLocaleString("fa-IR")}
+                    {" ← "}
+                    {queuePositionPlan.appliedPosition.toLocaleString("fa-IR")}
+                    {queuePositionPlan.constrained
+                      ? "؛ به نزدیک‌ترین جایگاه معتبر با رعایت وابستگی‌ها منتقل می‌شود."
+                      : "؛ زمان‌های انتشار هماهنگ با این جابه‌جایی تغییر می‌کنند."}
+                  </span>
+                </div>
+                {canPublish ? (
+                  <button
+                    type="button"
+                    onClick={() => void applyQueuePositionMove()}
+                    disabled={loading}
+                  >
+                    اعمال تغییر جایگاه
+                  </button>
+                ) : null}
+              </div>
+              <div className={styles.queuePositionPreviewItems}>
+                {queuePositionPlan.items
+                  .filter((item) => item.moved)
+                  .map((item) => (
+                    <article key={item.jobId}>
+                      <strong>{item.title}</strong>
+                      <span>
+                        جایگاه {item.currentPosition.toLocaleString("fa-IR")}
+                        {" ← "}
+                        {item.nextPosition.toLocaleString("fa-IR")}
+                        {" · "}
+                        {formatDate(item.currentRunAt)}
+                        {" ← "}
+                        {formatDate(item.nextRunAt)}
+                      </span>
+                    </article>
+                  ))}
+              </div>
+            </div>
+          ) : null}
+
           {publicationQueue.length ? (
             <div className={styles.tableWrap}>
               <table className={styles.publicationQueueTable}>
@@ -874,46 +1107,213 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                     <th>مقاله</th>
                     <th>زمان انتشار</th>
                     <th>وضعیت job</th>
-                    <th>اولویت</th>
+                    <th>تلاش / قفل</th>
+                    <th>جایگاه صف</th>
                     <th>آخرین خطا</th>
-                    <th>دسترسی</th>
+                    <th>عملیات</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {publicationQueue.map((article) => (
-                    <tr key={article.id}>
-                      <td className={styles.queueSelectionColumn}>
-                        <input
-                          type="checkbox"
-                          aria-label={`انتخاب ${article.title}`}
-                          checked={selectedVisibleIds.includes(article.id)}
-                          onChange={(event) =>
-                            updateArticleSelection(article.id, event.target.checked)
-                          }
-                        />
-                      </td>
-                      <td>
-                        <strong>{article.title}</strong>
-                        <small>{article.slug} · {article.contentCluster ?? "بدون خوشه"}</small>
-                      </td>
-                      <td>{formatDate(getWikiPublicationQueueDate(article))}</td>
-                      <td>
-                        <span className={styles.queueStatus} data-status={article.publishJobStatus ?? "scheduled"}>
-                          {formatPublishJobStatus(article.publishJobStatus)}
-                        </span>
-                      </td>
-                      <td>{article.publicationPriority.toLocaleString("fa-IR")}</td>
-                      <td>{article.publishJobError ? <span className={styles.inlineError}>{article.publishJobError}</span> : "—"}</td>
-                      <td>
-                        <button type="button" onClick={() => {
-                          onSectionChange("articles");
-                          void openArticle(article.id);
-                        }}>
-                          باز کردن مقاله
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {publicationQueue.map((article) => {
+                    const job = getWikiPublishJobStateFromArticle(article);
+                    const availability = job
+                      ? getWikiPublishJobOperationAvailability(job)
+                      : null;
+                    const queuePosition = queuePositions.get(article.id) ?? null;
+                    return (
+                      <tr key={article.id}>
+                        <td className={styles.queueSelectionColumn}>
+                          {article.publishJobStatus !== "running" ? (
+                            <input
+                              type="checkbox"
+                              aria-label={`انتخاب ${article.title}`}
+                              checked={selectedVisibleIds.includes(article.id)}
+                              onChange={(event) =>
+                                updateArticleSelection(article.id, event.target.checked)
+                              }
+                            />
+                          ) : "—"}
+                        </td>
+                        <td>
+                          <strong>{article.title}</strong>
+                          <small>{article.slug} · {article.contentCluster ?? "بدون خوشه"}</small>
+                        </td>
+                        <td>{formatDate(getWikiPublicationQueueDate(article))}</td>
+                        <td>
+                          <span className={styles.queueStatus} data-status={article.publishJobStatus ?? "scheduled"}>
+                            {formatPublishJobStatus(article.publishJobStatus)}
+                          </span>
+                        </td>
+                        <td>
+                          <strong>
+                            {(article.publishJobAttemptCount ?? 0).toLocaleString("fa-IR")}
+                            {" / "}
+                            {WIKI_PUBLISH_JOB_MAX_ATTEMPTS.toLocaleString("fa-IR")}
+                          </strong>
+                          <small className={styles.queueLockNote}>
+                            {article.publishJobLockedAt
+                              ? `قفل از ${formatDate(article.publishJobLockedAt)}`
+                              : "بدون قفل فعال"}
+                          </small>
+                        </td>
+                        <td>
+                          {article.publishJobStatus === "running" ? (
+                            <span className={styles.queuePositionState}>در حال انتشار</span>
+                          ) : article.publishJobStatus === "failed" ? (
+                            <span className={styles.queuePositionState}>خارج از صف</span>
+                          ) : availability?.canReorder && queuePosition ? (
+                            <div className={styles.queuePositionEditor}>
+                              <div className={styles.queuePositionInput}>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={positionedQueueSize}
+                                  step={1}
+                                  aria-label={`جایگاه صف ${article.title}`}
+                                  value={
+                                    queuePositionDrafts[article.id] ??
+                                    String(queuePosition)
+                                  }
+                                  disabled={loading}
+                                  onChange={(event) => {
+                                    setQueuePositionDrafts((current) => ({
+                                      ...current,
+                                      [article.id]: event.target.value,
+                                    }));
+                                    setQueuePositionPlan(null);
+                                  }}
+                                />
+                                <span>از {positionedQueueSize.toLocaleString("fa-IR")}</span>
+                                <button
+                                  type="button"
+                                  disabled={
+                                    loading ||
+                                    !Number.isInteger(
+                                      Number(
+                                        queuePositionDrafts[article.id] ??
+                                          queuePosition,
+                                      ),
+                                    ) ||
+                                    Number(
+                                      queuePositionDrafts[article.id] ??
+                                        queuePosition,
+                                    ) < 1 ||
+                                    Number(
+                                      queuePositionDrafts[article.id] ??
+                                        queuePosition,
+                                    ) > positionedQueueSize ||
+                                    Number(
+                                      queuePositionDrafts[article.id] ??
+                                        queuePosition,
+                                    ) === queuePosition
+                                  }
+                                  onClick={() =>
+                                    void previewQueuePositionMove(
+                                      article,
+                                      Number(
+                                        queuePositionDrafts[article.id] ??
+                                          queuePosition,
+                                      ),
+                                    )
+                                  }
+                                >
+                                  جابه‌جا
+                                </button>
+                              </div>
+                              <div className={styles.queuePositionButtons}>
+                                <button
+                                  type="button"
+                                  disabled={loading || queuePosition === 1}
+                                  onClick={() =>
+                                    void previewQueuePositionMove(article, 1)
+                                  }
+                                >
+                                  اول صف
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={`یک جایگاه بالاتر برای ${article.title}`}
+                                  disabled={loading || queuePosition === 1}
+                                  onClick={() =>
+                                    void previewQueuePositionMove(
+                                      article,
+                                      Math.max(1, queuePosition - 1),
+                                    )
+                                  }
+                                >
+                                  ↑
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={`یک جایگاه پایین‌تر برای ${article.title}`}
+                                  disabled={
+                                    loading ||
+                                    queuePosition === positionedQueueSize
+                                  }
+                                  onClick={() =>
+                                    void previewQueuePositionMove(
+                                      article,
+                                      Math.min(
+                                        positionedQueueSize,
+                                        queuePosition + 1,
+                                      ),
+                                    )
+                                  }
+                                >
+                                  ↓
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td>{article.publishJobError ? <span className={styles.inlineError}>{article.publishJobError}</span> : "—"}</td>
+                        <td>
+                          <div className={styles.queueJobActions}>
+                            <button type="button" onClick={() => {
+                              onSectionChange("articles");
+                              void openArticle(article.id);
+                            }}>
+                              باز کردن مقاله
+                            </button>
+                            {job && availability?.canReschedule ? (
+                              <button
+                                type="button"
+                                disabled={loading}
+                                onClick={() => void mutateQueueJob(article, "reschedule")}
+                              >
+                                تغییر زمان
+                              </button>
+                            ) : null}
+                            {job && availability?.canCancel ? (
+                              <button
+                                type="button"
+                                disabled={loading}
+                                onClick={() => void mutateQueueJob(article, "cancel")}
+                              >
+                                لغو نوبت
+                              </button>
+                            ) : null}
+                            {job && availability?.canRetry ? (
+                              <button
+                                type="button"
+                                disabled={loading}
+                                onClick={() => void mutateQueueJob(article, "retry")}
+                              >
+                                تلاش دوباره
+                              </button>
+                            ) : null}
+                            {availability?.locked ? (
+                              <small className={styles.queueLockNote}>
+                                job در حال اجراست و قابل تغییر نیست.
+                              </small>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -962,7 +1362,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               <label>نقش<select value={draft.articleRole} onChange={(event) => updateDraft("articleRole", event.target.value as "pillar" | "support")}><option value="pillar">Pillar</option><option value="support">Support</option></select></label>
               <label>خوشه<input value={draft.contentCluster} onChange={(event) => updateDraft("contentCluster", event.target.value)} /></label>
               <label>نسخه<input min="1" type="number" value={draft.contentVersion} onChange={(event) => updateDraft("contentVersion", Number(event.target.value))} /></label>
-              <label>اولویت<input type="number" value={draft.publicationPriority} onChange={(event) => updateDraft("publicationPriority", Number(event.target.value))} /></label>
+              <label>اولویت ۰ تا ۳۰۰<input min="0" max="300" step="10" type="number" value={draft.publicationPriority} onChange={(event) => updateDraft("publicationPriority", Number(event.target.value))} /></label>
               <label>زمان مطالعه<input min="1" type="number" value={draft.readingMinutes} onChange={(event) => updateDraft("readingMinutes", Number(event.target.value))} /></label>
               <label className={styles.wideField}>SEO title<input value={draft.seoTitle ?? ""} onChange={(event) => updateDraft("seoTitle", event.target.value || null)} /></label>
               <label className={styles.wideField}>Meta description<textarea value={draft.metaDescription} onChange={(event) => updateDraft("metaDescription", event.target.value)} /></label>

@@ -35,7 +35,7 @@ for (const marker of [
   'getWikiPublicationQueueDate',
   'activeSection === "queue"',
   'صف انتشار',
-  'نمای خواندنی jobهای زمان‌بندی‌شده',
+  'getWikiPublicationQueuePositions',
   'publicationQueueSummary',
   'publicationQueueTable',
   'تازه‌سازی صف',
@@ -51,16 +51,13 @@ requireText("Wiki queue styles", styles, '.queueStatus[data-status="failed"]');
 const queueSectionStart = panel.indexOf('{activeSection === "queue" ? (');
 const queueSectionEnd = panel.indexOf('activeSection === "articles" && detail', queueSectionStart);
 if (queueSectionStart < 0 || queueSectionEnd < 0) {
-  failures.push("unable to isolate the read-only queue section");
+  failures.push("unable to isolate the queue section");
 } else {
   const queueSection = panel.slice(queueSectionStart, queueSectionEnd);
   for (const forbidden of [
     'previewBulkSchedule(',
     'applyBulkSchedule(',
     '/api/admin/wiki/publication-schedule',
-    'reschedule',
-    'retryPublishJob',
-    'cancelPublishJob',
     '/api/admin/wiki/settings',
   ]) {
     forbidText("queue scheduling boundary", queueSection, forbidden);
@@ -136,6 +133,24 @@ if (actualOrder !== expectedOrder) {
   failures.push(`queue order mismatch: expected ${expectedOrder}, received ${actualOrder}`);
 }
 
+const positions = queueModule.getWikiPublicationQueuePositions(queue);
+for (const [articleId, expectedPosition] of [
+  ["retry", 1],
+  ["tie-low", 2],
+  ["later", 3],
+]) {
+  if (positions.get(articleId) !== expectedPosition) {
+    failures.push(
+      `queue position mismatch for ${articleId}: expected ${expectedPosition}, received ${positions.get(articleId)}`,
+    );
+  }
+}
+for (const articleId of ["tie-high", "failed-no-date"]) {
+  if (positions.has(articleId)) {
+    failures.push(`${articleId} must not receive a movable queue position`);
+  }
+}
+
 const summary = queueModule.summarizeWikiPublicationQueue(queue, true);
 const expectedSummary = {
   total: 5,
@@ -163,4 +178,4 @@ console.log("- deleted and unscheduled draft rows are excluded");
 console.log("- queued, running, retry, and failed jobs remain visible");
 console.log("- queue order is deterministic by time, priority, and stable ID");
 console.log("- queue summary reports the next slot, paused state, and job counts");
-console.log("- queue scheduling stays read-only; shared soft-delete is the only mutation exposed");
+console.log("- queue mutations are limited to guarded position changes, reschedule, cancel, retry, and shared soft-delete");

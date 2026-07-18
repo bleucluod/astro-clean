@@ -13,6 +13,7 @@ import type {
   WikiArticleSnapshot,
   WikiBulkSchedulePlan,
   WikiContentGuideArticle,
+  WikiContentGuideQueueItem,
   WikiRevisionSummary,
   WikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-types";
@@ -23,12 +24,29 @@ import {
 } from "@/lib/wiki/wiki-cms-validation";
 import { findWikiInternalArticleIds } from "@/lib/wiki/wiki-markdown";
 import {
+  computeWikiScheduleSlots,
+  validateWikiScheduleSlot,
+} from "@/lib/wiki/wiki-scheduling";
+import {
+  getWikiPublishJobOperationAvailability,
+  isWikiPublishJobStateCurrent,
+  WIKI_PUBLISH_JOB_MAX_ATTEMPTS,
+  type WikiPublishJobOperation,
+  type WikiPublishJobState,
+} from "@/lib/wiki/wiki-queue-operations";
+import {
   fingerprintWikiBulkScheduleSnapshot,
   planWikiBulkSchedule,
   WIKI_BULK_SCHEDULE_PREVIEW_TTL_MS,
   type WikiBulkScheduleCandidate,
   type WikiBulkScheduleExistingJob,
 } from "@/lib/wiki/wiki-bulk-scheduling";
+import {
+  planWikiQueuePositionMove,
+  WIKI_QUEUE_POSITION_PREVIEW_TTL_MS,
+  type WikiQueuePositionCandidate,
+  type WikiQueuePositionPlan,
+} from "@/lib/wiki/wiki-queue-priority";
 
 function legacyMarkdown(row: Record<string, unknown>) {
   const lines = [asString(row.intro)];
@@ -196,12 +214,18 @@ export async function listAdminWikiArticles(input: {
       article.updated_at::text,
       (draft.article_id is not null) as has_draft,
       job.run_at::text as pending_publish_at,
+      job.id::text as publish_job_id,
       job.status as publish_job_status,
-      job.last_error as publish_job_error
+      job.last_error as publish_job_error,
+      job.attempt_count as publish_job_attempt_count,
+      job.locked_at::text as publish_job_locked_at,
+      job.completed_at::text as publish_job_completed_at,
+      job.updated_at::text as publish_job_updated_at
     from public.wiki_articles as article
     left join public.wiki_article_drafts as draft on draft.article_id = article.id
     left join lateral (
-      select run_at, status, last_error
+       select id, run_at, status, last_error, attempt_count, locked_at,
+              completed_at, updated_at
       from halleus_private.wiki_publish_jobs
       where article_id = article.id and status <> 'canceled'
       order by created_at desc
@@ -236,8 +260,16 @@ export async function listAdminWikiArticles(input: {
       deletedAt: asNullableString(row.deleted_at),
       hasDraft: asBoolean(row.has_draft),
       pendingPublishAt: asNullableString(row.pending_publish_at),
+      publishJobId: asNullableString(row.publish_job_id),
       publishJobStatus: asNullableString(row.publish_job_status),
       publishJobError: asNullableString(row.publish_job_error),
+      publishJobAttemptCount: row.publish_job_attempt_count === null ||
+          row.publish_job_attempt_count === undefined
+        ? null
+        : asNumber(row.publish_job_attempt_count),
+      publishJobLockedAt: asNullableString(row.publish_job_locked_at),
+      publishJobCompletedAt: asNullableString(row.publish_job_completed_at),
+      publishJobUpdatedAt: asNullableString(row.publish_job_updated_at),
       updatedAt: asString(row.updated_at),
     };
   });
@@ -255,6 +287,7 @@ export async function listWikiContentGuideInventory(): Promise<WikiContentGuideA
       content_version,
       article_role,
       content_cluster,
+      publication_priority,
       deleted_at::text
     from public.wiki_articles
     order by stable_id asc
@@ -270,7 +303,53 @@ export async function listWikiContentGuideInventory(): Promise<WikiContentGuideA
       contentVersion: asNumber(row.content_version),
       articleRole: asString(row.article_role) as WikiContentGuideArticle["articleRole"],
       contentCluster: asNullableString(row.content_cluster),
+      publicationPriority: asNumber(row.publication_priority),
       deletedAt: asNullableString(row.deleted_at),
+    };
+  });
+}
+
+export async function listWikiContentGuideQueue(): Promise<WikiContentGuideQueueItem[]> {
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select
+      article.stable_id,
+      article.title,
+      article.article_role,
+      article.content_cluster,
+      article.publication_priority,
+      job.run_at::text,
+      job.status
+    from public.wiki_articles as article
+    join lateral (
+      select run_at, status
+      from halleus_private.wiki_publish_jobs
+      where article_id = article.id
+        and status in ('queued', 'running', 'retry', 'failed')
+      order by created_at desc
+      limit 1
+    ) as job on true
+    where article.deleted_at is null
+    order by
+      case
+        when job.status = 'running' then 0
+        when job.status in ('queued', 'retry') then 1
+        else 2
+      end,
+      job.run_at asc,
+      article.publication_priority desc,
+      article.stable_id asc
+  `;
+  return rows.map((raw) => {
+    const row = asRecord(raw);
+    return {
+      stableId: asString(row.stable_id),
+      title: asString(row.title),
+      articleRole: asString(row.article_role) as WikiContentGuideQueueItem["articleRole"],
+      contentCluster: asNullableString(row.content_cluster),
+      publicationPriority: asNumber(row.publication_priority),
+      runAt: asString(row.run_at),
+      jobStatus: asString(row.status) as WikiContentGuideQueueItem["jobStatus"],
     };
   });
 }
@@ -490,6 +569,19 @@ export async function saveAdminWikiDraft(input: {
   return { articleId: articleId! };
 }
 
+function publishJobStateFromRow(raw: unknown): WikiPublishJobState {
+  const row = asRecord(raw);
+  return {
+    id: asString(row.id),
+    status: asString(row.status),
+    runAt: asString(row.run_at),
+    attemptCount: asNumber(row.attempt_count),
+    lastError: asNullableString(row.last_error),
+    lockedAt: asNullableString(row.locked_at),
+    updatedAt: asString(row.updated_at),
+  };
+}
+
 async function applyPublishedSnapshot(input: {
   actor: VerifiedAdminActor;
   articleId: string;
@@ -502,6 +594,15 @@ async function applyPublishedSnapshot(input: {
   let revisionNumber = 0;
   let previousSlug = "";
   await sql.begin(async (tx) => {
+    const runningJobs = await tx`
+      select id
+      from halleus_private.wiki_publish_jobs
+      where article_id = ${input.articleId}::uuid and status = 'running'
+      for update
+    `;
+    if (runningJobs[0]) {
+      throw new AdminAccessError(409, "A running Wiki publish job cannot be changed.");
+    }
     const articles = await tx`
       select slug from public.wiki_articles where id = ${input.articleId}::uuid for update
     `;
@@ -589,7 +690,7 @@ async function applyPublishedSnapshot(input: {
     await tx`
       update halleus_private.wiki_publish_jobs
       set status = 'canceled', completed_at = now()
-      where article_id = ${input.articleId}::uuid and status in ('queued', 'retry', 'running')
+      where article_id = ${input.articleId}::uuid and status in ('queued', 'retry', 'failed')
     `;
     await tx`
       insert into halleus_private.admin_audit_events (
@@ -636,6 +737,15 @@ export async function publishAdminWikiDraft(input: {
   }
   let revisionNumber = 0;
   await sql.begin(async (tx) => {
+    const runningJobs = await tx`
+      select id
+      from halleus_private.wiki_publish_jobs
+      where article_id = ${input.articleId}::uuid and status = 'running'
+      for update
+    `;
+    if (runningJobs[0]) {
+      throw new AdminAccessError(409, "A running Wiki publish job cannot be changed.");
+    }
     const articleRows = await tx`
       select status from public.wiki_articles where id = ${input.articleId}::uuid for update
     `;
@@ -649,7 +759,7 @@ export async function publishAdminWikiDraft(input: {
     revisionNumber = asNumber(revisionRows[0]?.next_revision);
     await tx`
       update halleus_private.wiki_publish_jobs set status = 'canceled', completed_at = now()
-      where article_id = ${input.articleId}::uuid and status in ('queued', 'retry')
+      where article_id = ${input.articleId}::uuid and status in ('queued', 'retry', 'failed')
     `;
     await tx`
       insert into public.wiki_article_revisions (
@@ -694,6 +804,15 @@ export async function unpublishAdminWikiArticle(input: {
 }) {
   const sql = getAdminDatabase();
   await sql.begin(async (tx) => {
+    const runningJobs = await tx`
+      select id
+      from halleus_private.wiki_publish_jobs
+      where article_id = ${input.articleId}::uuid and status = 'running'
+      for update
+    `;
+    if (runningJobs[0]) {
+      throw new AdminAccessError(409, "A running Wiki publish job cannot be changed.");
+    }
     const rows = await tx`
       update public.wiki_articles
       set status = 'archived', is_indexable = false, published_at = null, scheduled_for = null
@@ -705,7 +824,7 @@ export async function unpublishAdminWikiArticle(input: {
     }
     await tx`
       update halleus_private.wiki_publish_jobs set status = 'canceled', completed_at = now()
-      where article_id = ${input.articleId}::uuid and status in ('queued', 'retry', 'running')
+      where article_id = ${input.articleId}::uuid and status in ('queued', 'retry', 'failed')
     `;
     await tx`
       insert into halleus_private.admin_audit_events (
@@ -728,6 +847,17 @@ export async function setAdminWikiArticleDeleted(input: {
 }) {
   const sql = getAdminDatabase();
   await sql.begin(async (tx) => {
+    const runningJobs = input.deleted
+      ? await tx`
+          select id
+          from halleus_private.wiki_publish_jobs
+          where article_id = ${input.articleId}::uuid and status = 'running'
+          for update
+        `
+      : [];
+    if (runningJobs[0]) {
+      throw new AdminAccessError(409, "A running Wiki publish job cannot be changed.");
+    }
     const rows = await tx`
       select status, deleted_at from public.wiki_articles
       where id = ${input.articleId}::uuid for update
@@ -744,7 +874,7 @@ export async function setAdminWikiArticleDeleted(input: {
       `;
       await tx`
         update halleus_private.wiki_publish_jobs set status = 'canceled', completed_at = now()
-        where article_id = ${input.articleId}::uuid and status in ('queued', 'retry', 'running')
+        where article_id = ${input.articleId}::uuid and status in ('queued', 'retry', 'failed')
       `;
     } else {
       await tx`
@@ -779,6 +909,18 @@ export async function softDeleteAdminWikiArticles(input: {
   const sql = getAdminDatabase();
 
   return sql.begin(async (tx) => {
+    const runningJobs = await tx`
+      select id::text, article_id::text
+      from halleus_private.wiki_publish_jobs
+      where article_id = any(${articleIds}::uuid[]) and status = 'running'
+      for update
+    `;
+    if (runningJobs.length > 0) {
+      throw new AdminAccessError(
+        409,
+        "One or more selected articles have a running publish job.",
+      );
+    }
     const rows = await tx`
       select id::text, slug, deleted_at::text
       from public.wiki_articles
@@ -808,7 +950,7 @@ export async function softDeleteAdminWikiArticles(input: {
       update halleus_private.wiki_publish_jobs
       set status = 'canceled', completed_at = now()
       where article_id = any(${articleIds}::uuid[])
-        and status in ('queued', 'retry', 'running')
+        and status in ('queued', 'retry', 'failed')
     `;
     await tx`
       insert into halleus_private.admin_audit_events (
@@ -828,6 +970,537 @@ export async function softDeleteAdminWikiArticles(input: {
     `;
 
     return { articleIds, count: articleIds.length };
+  });
+}
+
+export async function mutateAdminWikiPublishJob(input: {
+  actor: VerifiedAdminActor;
+  jobId: string;
+  action: WikiPublishJobOperation;
+  expectedUpdatedAt: string;
+  publishAt?: string | null;
+  reason: string;
+}) {
+  const sql = getAdminDatabase();
+  return sql.begin(async (tx) => {
+    const rows = await tx`
+      select job.id::text, job.article_id::text, job.revision_number,
+             job.run_at::text, job.status, job.attempt_count, job.last_error,
+             job.locked_at::text, job.completed_at::text, job.updated_at::text,
+             article.status as article_status, revision.snapshot
+      from halleus_private.wiki_publish_jobs as job
+      join public.wiki_articles as article on article.id = job.article_id
+      join public.wiki_article_revisions as revision
+        on revision.article_id = job.article_id
+       and revision.revision_number = job.revision_number
+      where job.id = ${input.jobId}::uuid
+      for update of job, article, revision
+    `;
+    if (!rows[0]) {
+      throw new AdminAccessError(404, "Wiki publish job was not found.");
+    }
+
+    const row = asRecord(rows[0]);
+    const current = publishJobStateFromRow(row);
+    if (input.action === "cancel" && current.status === "canceled") {
+      return { action: input.action, idempotent: true, job: current };
+    }
+    if (!isWikiPublishJobStateCurrent(current.updatedAt, input.expectedUpdatedAt)) {
+      throw new AdminAccessError(
+        409,
+        "Wiki publish job changed after it was loaded. Refresh the queue.",
+      );
+    }
+
+    const availability = getWikiPublishJobOperationAvailability(current);
+    if (availability.locked) {
+      throw new AdminAccessError(409, "A running Wiki publish job cannot be changed.");
+    }
+    if (
+      (input.action === "reschedule" && !availability.canReschedule) ||
+      (input.action === "cancel" && !availability.canCancel) ||
+      (input.action === "retry" && !availability.canRetry)
+    ) {
+      throw new AdminAccessError(409, "Wiki publish job is not eligible for this action.");
+    }
+
+    const beforeSummary = {
+      status: current.status,
+      runAt: current.runAt,
+      attemptCount: current.attemptCount,
+      lastError: current.lastError,
+      updatedAt: current.updatedAt,
+    };
+    const articleId = asString(row.article_id);
+    const revisionNumber = asNumber(row.revision_number);
+    const articleStatus = asString(row.article_status);
+
+    let nextRunAt: Date | null = null;
+
+    if (input.action === "reschedule" || input.action === "retry") {
+      const [settingsRows, occupiedRows] = await Promise.all([
+        tx`
+          select articles_per_week, max_articles_per_day, allowed_weekdays,
+                 publish_time::text, timezone, minimum_interval_hours,
+                 blackout_dates, pillar_before_support, max_horizon_days,
+                 publishing_paused
+          from halleus_private.wiki_schedule_settings
+          where singleton = true
+          for update
+        `,
+        tx`
+          select run_at::text
+          from halleus_private.wiki_publish_jobs
+          where id <> ${input.jobId}::uuid
+            and status in ('queued', 'retry', 'running')
+          order by id
+          for update
+        `,
+      ]);
+      if (!settingsRows[0]) {
+        throw new Error("Wiki schedule settings are missing.");
+      }
+      const settings = {
+        ...scheduleSettingsFromRow(settingsRows[0]),
+        publishingPaused: false,
+      };
+      const existingRunAt = occupiedRows.map((item) => asString(item.run_at));
+
+      if (input.action === "reschedule") {
+        if (!input.publishAt) {
+          throw new AdminAccessError(400, "publishAt is required for reschedule.");
+        }
+        try {
+          nextRunAt = validateWikiScheduleSlot({
+            settings,
+            existingRunAt,
+            runAt: input.publishAt,
+          });
+        } catch (error) {
+          throw new AdminAccessError(
+            409,
+            error instanceof Error ? error.message : "Wiki schedule slot is invalid.",
+          );
+        }
+      } else {
+        nextRunAt = computeWikiScheduleSlots({
+          settings,
+          existingRunAt,
+          count: 1,
+        })[0] ?? null;
+      }
+    }
+
+    if (input.action === "cancel") {
+      const snapshot = readWikiArticleSnapshot(row.snapshot);
+      const updated = await tx`
+        update halleus_private.wiki_publish_jobs
+        set status = 'canceled', completed_at = now(), locked_at = null
+        where id = ${input.jobId}::uuid and status in ('queued', 'retry')
+        returning id::text, run_at::text, status, attempt_count, last_error,
+                  locked_at::text, updated_at::text
+      `;
+      if (!updated[0]) {
+        throw new AdminAccessError(409, "Wiki publish job changed while canceling.");
+      }
+      await tx`
+        update public.wiki_article_revisions
+        set revision_status = 'superseded'
+        where article_id = ${articleId}::uuid
+          and revision_number = ${revisionNumber}
+          and revision_status = 'scheduled'
+      `;
+      await tx`
+        insert into public.wiki_article_drafts (
+          article_id, snapshot, base_revision, updated_by, autosaved_at
+        ) values (
+          ${articleId}::uuid, ${tx.json(snapshot)}, ${Math.max(revisionNumber - 1, 0)},
+          ${input.actor.userId}::uuid, null
+        )
+        on conflict (article_id) do update set
+          snapshot = excluded.snapshot,
+          base_revision = excluded.base_revision,
+          updated_by = excluded.updated_by,
+          autosaved_at = null
+      `;
+      if (articleStatus !== "published") {
+        await tx`
+          update public.wiki_articles
+          set status = 'draft', scheduled_for = null, published_at = null,
+              is_indexable = false
+          where id = ${articleId}::uuid
+        `;
+      }
+      const job = publishJobStateFromRow(updated[0]);
+      await tx`
+        insert into halleus_private.admin_audit_events (
+          actor_user_id, actor_role, action, target_type, target_id,
+          before_summary, after_summary, reason, success, request_correlation_id
+        ) values (
+          ${input.actor.userId}::uuid, ${input.actor.role},
+          'admin.wiki.publish_job_canceled', 'wiki_publish_job', ${input.jobId},
+          ${tx.json(beforeSummary)},
+          ${tx.json({ status: job.status, draftRestored: true })},
+          ${input.reason}, true, ${input.actor.correlationId}
+        )
+      `;
+      return { action: input.action, idempotent: false, job };
+    }
+
+    if (!nextRunAt) {
+      throw new Error("Wiki publish job operation did not resolve a run time.");
+    }
+    const updated = input.action === "retry"
+      ? await tx`
+          update halleus_private.wiki_publish_jobs
+          set status = 'retry', run_at = ${nextRunAt}, attempt_count = 0,
+              completed_at = null, locked_at = null
+          where id = ${input.jobId}::uuid and status = 'failed'
+          returning id::text, run_at::text, status, attempt_count, last_error,
+                    locked_at::text, updated_at::text
+        `
+      : await tx`
+          update halleus_private.wiki_publish_jobs
+          set run_at = ${nextRunAt}, completed_at = null, locked_at = null
+          where id = ${input.jobId}::uuid and status in ('queued', 'retry')
+          returning id::text, run_at::text, status, attempt_count, last_error,
+                    locked_at::text, updated_at::text
+        `;
+    if (!updated[0]) {
+      throw new AdminAccessError(409, "Wiki publish job changed during the operation.");
+    }
+    await tx`
+      update public.wiki_article_revisions
+      set revision_status = 'scheduled'
+      where article_id = ${articleId}::uuid and revision_number = ${revisionNumber}
+    `;
+    if (articleStatus !== "published") {
+      await tx`
+        update public.wiki_articles
+        set status = 'scheduled', scheduled_for = ${nextRunAt},
+            published_at = null, is_indexable = false
+        where id = ${articleId}::uuid
+      `;
+    }
+
+    const job = publishJobStateFromRow(updated[0]);
+    const auditAction = input.action === "retry"
+      ? "admin.wiki.publish_job_retried"
+      : "admin.wiki.publish_job_rescheduled";
+    await tx`
+      insert into halleus_private.admin_audit_events (
+        actor_user_id, actor_role, action, target_type, target_id,
+        before_summary, after_summary, reason, success, request_correlation_id
+      ) values (
+        ${input.actor.userId}::uuid, ${input.actor.role}, ${auditAction},
+        'wiki_publish_job', ${input.jobId}, ${tx.json(beforeSummary)},
+        ${tx.json({
+          status: job.status,
+          runAt: job.runAt,
+          attemptCount: job.attemptCount,
+          maxAttempts: WIKI_PUBLISH_JOB_MAX_ATTEMPTS,
+        })},
+        ${input.reason}, true, ${input.actor.correlationId}
+      )
+    `;
+    return { action: input.action, idempotent: false, job };
+  });
+}
+
+
+function queuePositionCandidateFromRow(raw: unknown): WikiQueuePositionCandidate {
+  const row = asRecord(raw);
+  const snapshot = readWikiArticleSnapshot(row.snapshot);
+  const dependencyStableIds = [...new Set([
+    ...snapshot.relatedArticleIds,
+    ...findWikiInternalArticleIds(snapshot.bodyMarkdown),
+  ])].filter((stableId) => stableId !== snapshot.stableId);
+  const status = asString(row.status);
+  if (status !== "queued" && status !== "retry") {
+    throw new Error("Wiki position queue candidate has an invalid status.");
+  }
+  return {
+    jobId: asString(row.job_id),
+    articleId: asString(row.article_id),
+    revisionNumber: asNumber(row.revision_number),
+    stableId: snapshot.stableId,
+    title: snapshot.title,
+    articleRole: snapshot.articleRole,
+    contentCluster: snapshot.contentCluster,
+    publicationPriority: snapshot.publicationPriority,
+    dependencyStableIds,
+    currentRunAt: asString(row.run_at),
+    status,
+    updatedAt: asString(row.updated_at),
+  };
+}
+
+function queuePositionExternalDependencyIds(
+  candidates: WikiQueuePositionCandidate[],
+) {
+  const candidateIds = new Set(candidates.map((candidate) => candidate.stableId));
+  return [...new Set(
+    candidates.flatMap((candidate) => candidate.dependencyStableIds),
+  )].filter((stableId) => !candidateIds.has(stableId));
+}
+
+function assertQueuePositionTarget(input: {
+  candidates: WikiQueuePositionCandidate[];
+  targetJobId: string;
+  targetPosition: number;
+  expectedUpdatedAt: string;
+}) {
+  if (
+    !Number.isInteger(input.targetPosition) ||
+    input.targetPosition < 1 ||
+    input.targetPosition > input.candidates.length
+  ) {
+    throw new AdminAccessError(
+      400,
+      `Queue position must be between 1 and ${input.candidates.length}.`,
+    );
+  }
+  const target = input.candidates.find(
+    (candidate) => candidate.jobId === input.targetJobId,
+  );
+  if (!target) {
+    throw new AdminAccessError(
+      409,
+      "Wiki queue job is no longer available for reordering.",
+    );
+  }
+  if (
+    !isWikiPublishJobStateCurrent(
+      target.updatedAt,
+      input.expectedUpdatedAt,
+    )
+  ) {
+    throw new AdminAccessError(
+      409,
+      "Wiki queue job changed after it was loaded. Refresh the queue.",
+    );
+  }
+}
+
+export async function previewAdminWikiQueuePositionMove(input: {
+  targetJobId: string;
+  targetPosition: number;
+  expectedUpdatedAt: string;
+}): Promise<WikiQueuePositionPlan> {
+  const sql = getAdminDatabase();
+  const [jobRows, settingsRows] = await Promise.all([
+    sql`
+      select job.id::text as job_id, job.article_id::text,
+             job.revision_number, job.run_at::text,
+             job.status, job.updated_at::text, revision.snapshot
+      from halleus_private.wiki_publish_jobs as job
+      join public.wiki_articles as article on article.id = job.article_id
+      join public.wiki_article_revisions as revision
+        on revision.article_id = job.article_id
+       and revision.revision_number = job.revision_number
+      where job.status in ('queued', 'retry')
+        and article.deleted_at is null
+      order by job.run_at, job.id
+    `,
+    sql`
+      select pillar_before_support
+      from halleus_private.wiki_schedule_settings
+      where singleton = true
+    `,
+  ]);
+  if (!settingsRows[0]) {
+    throw new Error("Wiki schedule settings are missing.");
+  }
+  if (jobRows.length === 0) {
+    throw new AdminAccessError(
+      409,
+      "No queued or retry Wiki jobs can change position.",
+    );
+  }
+  const candidates = jobRows.map(queuePositionCandidateFromRow);
+  assertQueuePositionTarget({ candidates, ...input });
+  const dependencyIds = queuePositionExternalDependencyIds(candidates);
+  const publishedRows = dependencyIds.length > 0
+    ? await sql`
+        select stable_id
+        from public.wiki_articles
+        where stable_id = any(${dependencyIds}::text[])
+          and status = 'published'
+          and published_at is not null
+          and deleted_at is null
+      `
+    : [];
+
+  try {
+    return planWikiQueuePositionMove({
+      candidates,
+      publishedStableIds: publishedRows.map((row) => asString(row.stable_id)),
+      pillarBeforeSupport: asBoolean(settingsRows[0].pillar_before_support),
+      targetJobId: input.targetJobId,
+      targetPosition: input.targetPosition,
+      expectedUpdatedAt: input.expectedUpdatedAt,
+      previewedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    throw new AdminAccessError(
+      409,
+      error instanceof Error
+        ? error.message
+        : "Wiki queue position could not be planned.",
+    );
+  }
+}
+
+export async function applyAdminWikiQueuePositionMove(input: {
+  actor: VerifiedAdminActor;
+  targetJobId: string;
+  targetPosition: number;
+  expectedUpdatedAt: string;
+  planToken: string;
+  previewedAt: string;
+  reason: string;
+}): Promise<WikiQueuePositionPlan> {
+  const previewedAt = new Date(input.previewedAt);
+  if (
+    !Number.isFinite(previewedAt.getTime()) ||
+    previewedAt.getTime() > Date.now() ||
+    Date.now() - previewedAt.getTime() > WIKI_QUEUE_POSITION_PREVIEW_TTL_MS
+  ) {
+    throw new AdminAccessError(
+      409,
+      "Wiki queue position preview expired. Generate a fresh preview.",
+    );
+  }
+
+  const sql = getAdminDatabase();
+  return sql.begin(async (tx) => {
+    const settingsRows = await tx`
+      select pillar_before_support
+      from halleus_private.wiki_schedule_settings
+      where singleton = true
+      for update
+    `;
+    if (!settingsRows[0]) {
+      throw new Error("Wiki schedule settings are missing.");
+    }
+    const jobRows = await tx`
+      select job.id::text as job_id, job.article_id::text,
+             job.revision_number, job.run_at::text,
+             job.status, job.updated_at::text, revision.snapshot
+      from halleus_private.wiki_publish_jobs as job
+      join public.wiki_articles as article on article.id = job.article_id
+      join public.wiki_article_revisions as revision
+        on revision.article_id = job.article_id
+       and revision.revision_number = job.revision_number
+      where job.status in ('queued', 'retry')
+        and article.deleted_at is null
+      order by job.run_at, job.id
+      for update of job, article, revision
+    `;
+    if (jobRows.length === 0) {
+      throw new AdminAccessError(
+        409,
+        "No queued or retry Wiki jobs can change position.",
+      );
+    }
+    const candidates = jobRows.map(queuePositionCandidateFromRow);
+    assertQueuePositionTarget({
+      candidates,
+      targetJobId: input.targetJobId,
+      targetPosition: input.targetPosition,
+      expectedUpdatedAt: input.expectedUpdatedAt,
+    });
+    const dependencyIds = queuePositionExternalDependencyIds(candidates);
+    const publishedRows = dependencyIds.length > 0
+      ? await tx`
+          select stable_id
+          from public.wiki_articles
+          where stable_id = any(${dependencyIds}::text[])
+            and status = 'published'
+            and published_at is not null
+            and deleted_at is null
+          for share
+        `
+      : [];
+
+    let plan: WikiQueuePositionPlan;
+    try {
+      plan = planWikiQueuePositionMove({
+        candidates,
+        publishedStableIds: publishedRows.map((row) => asString(row.stable_id)),
+        pillarBeforeSupport: asBoolean(settingsRows[0].pillar_before_support),
+        targetJobId: input.targetJobId,
+        targetPosition: input.targetPosition,
+        expectedUpdatedAt: input.expectedUpdatedAt,
+        previewedAt: previewedAt.toISOString(),
+      });
+    } catch (error) {
+      throw new AdminAccessError(
+        409,
+        error instanceof Error
+          ? error.message
+          : "Wiki queue position could not be applied.",
+      );
+    }
+    if (plan.planToken !== input.planToken) {
+      throw new AdminAccessError(
+        409,
+        "Wiki queue changed after preview. Generate a fresh position preview.",
+      );
+    }
+
+    for (const item of plan.items) {
+      await tx`
+        update public.wiki_articles
+        set scheduled_for = case
+          when status = 'published' then scheduled_for
+          else ${new Date(item.nextRunAt)}
+        end
+        where id = ${item.articleId}::uuid
+      `;
+      const updatedJobs = await tx`
+        update halleus_private.wiki_publish_jobs
+        set run_at = ${new Date(item.nextRunAt)},
+            updated_at = now()
+        where id = ${item.jobId}::uuid
+          and status in ('queued', 'retry')
+        returning article_id::text
+      `;
+      if (!updatedJobs[0]) {
+        throw new AdminAccessError(
+          409,
+          "A Wiki job changed while applying its queue position.",
+        );
+      }
+    }
+
+    await tx`
+      insert into halleus_private.admin_audit_events (
+        actor_user_id, actor_role, action, target_type, target_id,
+        after_summary, reason, success, request_correlation_id
+      ) values (
+        ${input.actor.userId}::uuid, ${input.actor.role},
+        'admin.wiki.publish_queue_position_changed', 'wiki_publish_queue',
+        ${plan.planToken},
+        ${tx.json({
+          targetJobId: plan.targetJobId,
+          requestedPosition: plan.requestedPosition,
+          appliedPosition: plan.appliedPosition,
+          constrained: plan.constrained,
+          movedCount: plan.items.filter((item) => item.moved).length,
+          items: plan.items.map((item) => ({
+            jobId: item.jobId,
+            stableId: item.stableId,
+            fromPosition: item.currentPosition,
+            toPosition: item.nextPosition,
+            fromRunAt: item.currentRunAt,
+            toRunAt: item.nextRunAt,
+          })),
+        })},
+        ${input.reason}, true, ${input.actor.correlationId}
+      )
+    `;
+    return plan;
   });
 }
 

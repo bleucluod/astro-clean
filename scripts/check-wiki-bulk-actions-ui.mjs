@@ -73,15 +73,16 @@ requireText("bulk delete service", serviceSource, "export async function softDel
 requireText("bulk delete service", serviceSource, "return sql.begin(async (tx) =>");
 requireText("bulk delete service", serviceSource, "for update");
 requireText("bulk delete service", serviceSource, "rows.length !== articleIds.length");
-requireText("bulk delete service", serviceSource, "status in ('queued', 'retry', 'running')");
+requireText("bulk delete service", serviceSource, "One or more selected articles have a running publish job");
+requireText("bulk delete service", serviceSource, "status in ('queued', 'retry', 'failed')");
 requireText("bulk delete service", serviceSource, "admin.wiki.articles_bulk_soft_deleted");
 requireText("bulk delete service", serviceSource, "wiki_article_batch");
 
 requireText("4B guard", bulkScheduleGuard, "apply rechecks the plan");
 requireText(
-  "4A guard",
+  "4A guard position behavior",
   queueGuard,
-  "queue scheduling stays read-only; shared soft-delete is the only mutation exposed",
+  "queueModule.getWikiPublicationQueuePositions(queue)",
 );
 
 if (
@@ -108,4 +109,4 @@ console.log("- Wiki heading is centered inside the same bounded card system");
 console.log("- search and status tabs replace the old title, subtitle, and status select");
 console.log("- article and queue selections share mark-all and soft-delete actions");
 console.log("- schedule preview remains restricted to eligible saved drafts");
-console.log("- bulk delete is validated, row-locked, transactional, audit-covered, and cancels managed jobs");
+console.log("- bulk delete is validated, row-locked, transactional, audit-covered, and never cancels a running job");

@@ -6,6 +6,7 @@ import { adminErrorResponse } from "@/lib/admin/admin-http";
 import {
   listWikiCategories,
   listWikiContentGuideInventory,
+  listWikiContentGuideQueue,
 } from "@/lib/wiki/wiki-cms-service";
 import { buildLiveWikiContentGuide } from "@/lib/wiki/wiki-content-guide";
 
@@ -15,15 +16,17 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
     await requireAdminCapability(request, "wiki.read");
-    const [baseGuide, categories, articles] = await Promise.all([
+    const [baseGuide, categories, articles, queue] = await Promise.all([
       readFile(path.join(process.cwd(), "public", "halleus-wiki-package-guide-v1.md"), "utf8"),
       listWikiCategories(),
       listWikiContentGuideInventory(),
+      listWikiContentGuideQueue(),
     ]);
     const content = buildLiveWikiContentGuide({
       baseGuide,
       categories,
       articles,
+      queue,
       generatedAt: new Date(),
     });
     return new Response(content, {

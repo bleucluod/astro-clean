@@ -59,8 +59,13 @@ export type WikiArticleAdminSummary = {
   deletedAt: string | null;
   hasDraft: boolean;
   pendingPublishAt: string | null;
+  publishJobId: string | null;
   publishJobStatus: string | null;
   publishJobError: string | null;
+  publishJobAttemptCount: number | null;
+  publishJobLockedAt: string | null;
+  publishJobCompletedAt: string | null;
+  publishJobUpdatedAt: string | null;
   updatedAt: string;
 };
 
@@ -73,7 +78,18 @@ export type WikiContentGuideArticle = {
   contentVersion: number;
   articleRole: WikiArticleRole;
   contentCluster: string | null;
+  publicationPriority: number;
   deletedAt: string | null;
+};
+
+export type WikiContentGuideQueueItem = {
+  stableId: string;
+  title: string;
+  articleRole: WikiArticleRole;
+  contentCluster: string | null;
+  publicationPriority: number;
+  runAt: string;
+  jobStatus: "queued" | "running" | "retry" | "failed";
 };
 
 export type WikiRevisionSummary = {
