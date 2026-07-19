@@ -1,0 +1,604 @@
+.shell {
+  display: grid;
+  gap: 24px;
+  width: min(980px, 100%);
+  margin: 0 auto;
+}
+
+.hero,
+.controls,
+.dayCard,
+.state,
+.notice,
+.summaryGrid article {
+  border: 1px solid rgba(36, 52, 71, 0.1);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(36, 52, 71, 0.06);
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: clamp(28px, 5vw, 58px);
+  min-height: 480px;
+  align-items: center;
+  overflow: hidden;
+  padding: clamp(34px, 6vw, 64px);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(214, 223, 255, 0.76), transparent 22rem),
+    radial-gradient(circle at 10% 90%, rgba(239, 226, 255, 0.68), transparent 24rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(247, 249, 255, 0.95));
+  box-shadow: 0 30px 90px rgba(42, 59, 126, 0.12);
+}
+
+.hero h1 {
+  margin: 18px 0;
+  color: #14245f;
+  font-size: clamp(3rem, 7vw, 5.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+}
+
+.heroGlow {
+  position: absolute;
+  inset: auto -90px -120px auto;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: rgba(204, 216, 255, 0.42);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.heroContent,
+.heroVisual {
+  position: relative;
+  z-index: 1;
+}
+
+.heroContent {
+  display: grid;
+  justify-items: start;
+}
+
+.heroVisual {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.heroOrbit {
+  position: relative;
+  display: grid;
+  width: min(100%, 360px);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(61, 82, 170, 0.2);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 21%, transparent 21.5%),
+    conic-gradient(from 0deg, rgba(48, 71, 163, 0.08), transparent 12%, rgba(142, 117, 225, 0.1) 28%, transparent 46%, rgba(87, 177, 214, 0.1) 66%, transparent 84%, rgba(48, 71, 163, 0.08));
+  box-shadow:
+    0 28px 70px rgba(48, 63, 130, 0.14),
+    inset 0 0 0 8px rgba(255, 255, 255, 0.58);
+}
+
+.heroOrbit::before,
+.heroOrbit::after {
+  position: absolute;
+  content: "";
+  border: 1px solid rgba(71, 90, 161, 0.18);
+  border-radius: 50%;
+}
+
+.heroOrbit::before { inset: 17%; }
+.heroOrbit::after { inset: 34%; }
+
+.heroOrbit > span {
+  --sky-angle: 0deg;
+  --sky-counter-angle: 0deg;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  color: #263f96;
+  font-size: 1.22rem;
+  transform: translate(-50%, -50%) rotate(var(--sky-angle)) translateY(-145px) rotate(var(--sky-counter-angle));
+}
+
+.heroOrbit > div {
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+  place-items: center;
+  color: #14245f;
+}
+
+.heroOrbit > div strong { font-size: 1.12rem; }
+.heroOrbit > div small { color: #66709a; }
+
+.hero p,
+.notice p,
+.state p {
+  max-width: 68ch;
+  margin-bottom: 0;
+  color: #5f7080;
+  line-height: 2;
+}
+
+.hero p {
+  max-width: 56ch;
+  font-size: 1.02rem;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #607b91;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.55fr) auto;
+  gap: 14px;
+  padding: 18px;
+  align-items: end;
+}
+
+.controls label {
+  display: grid;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.controls input,
+.controls button {
+  min-height: 48px;
+  border: 1px solid rgba(36, 52, 71, 0.14);
+  border-radius: 14px;
+  padding: 0 14px;
+  font: inherit;
+}
+
+.cityPicker {
+  position: relative;
+}
+
+.citySuggestions {
+  position: absolute;
+  z-index: 20;
+  inset: calc(100% + 6px) 0 auto;
+  display: grid;
+  max-height: 280px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid rgba(36, 52, 71, 0.14);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(36, 52, 71, 0.14);
+}
+
+.citySuggestions li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.citySuggestions li:hover,
+.citySuggestions li[aria-selected="true"] {
+  background: #edf3f7;
+}
+
+.citySuggestions li span {
+  color: #627485;
+  font-weight: 500;
+}
+
+.controls button {
+  cursor: pointer;
+  background: #243447;
+  color: #fff;
+  font-weight: 800;
+}
+
+.dayCard {
+  padding: 26px;
+}
+
+.dayCard h2,
+.dayCard p {
+  margin-bottom: 6px;
+}
+
+.gregorianDate,
+.sectionIntro {
+  color: #697b8b;
+}
+
+.sectionIntro {
+  margin-top: -6px;
+  margin-bottom: 16px;
+  line-height: 1.9;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.summaryGrid article {
+  display: grid;
+  gap: 7px;
+  padding: 22px;
+}
+
+.summaryGrid strong {
+  font-size: 1.5rem;
+}
+
+.summaryGrid span {
+  color: #697b8b;
+}
+
+.notice,
+.state {
+  padding: 26px;
+}
+
+.dateNav {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  text-align: center;
+}
+
+.dateNav a {
+  border: 1px solid rgba(36, 52, 71, 0.12);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #fff;
+  font-weight: 800;
+}
+
+.planetGrid,
+.aspectList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.planetGrid article,
+.aspectList article,
+.moonCard,
+.quality,
+.cta,
+.empty {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(36, 52, 71, 0.1);
+  border-radius: 18px;
+  padding: 18px;
+  background: #fff;
+}
+
+.moonCard {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(145deg, #f6f3ff, #fff);
+}
+
+.moonCard dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.moonCard dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.moonCard dt { color: #697b8b; }
+.moonCard dd { margin: 0; font-weight: 800; text-align: end; }
+
+.moreAspects {
+  margin-top: 14px;
+}
+
+.moreAspects summary {
+  width: fit-content;
+  cursor: pointer;
+  border: 1px solid rgba(36, 52, 71, 0.14);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #fff;
+  font-weight: 800;
+}
+
+.moreAspects[open] summary { margin-bottom: 14px; }
+
+.planetGrid span,
+.aspectList span,
+.planetGrid small,
+.aspectList small {
+  color: #627485;
+}
+
+.engineReading,
+.engineCardReading {
+  color: #334b62;
+  line-height: 2;
+}
+
+.engineReading {
+  margin-top: 18px !important;
+  border-inline-start: 3px solid #6e62b5;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: #f5f3ff;
+}
+
+.engineCardReading {
+  margin: 8px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(36, 52, 71, 0.08);
+  font-size: 0.92rem;
+}
+
+.timeline {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid rgba(36, 52, 71, 0.1);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.timeline li {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 18px;
+  padding: 16px 18px;
+}
+
+.timeline li[data-state="past"] { opacity: 0.62; }
+.timeline li[data-state="future"] { border-inline-start: 4px solid #4c8b7b; }
+.timeline small { color: #697b8b; font-weight: 800; }
+
+.timeline li + li {
+  border-top: 1px solid rgba(36, 52, 71, 0.08);
+}
+
+.timeline time {
+  color: #607b91;
+  font-weight: 800;
+}
+
+.quality {
+  background: #fff8e9;
+}
+
+.cta {
+  padding: 28px;
+  background: linear-gradient(145deg, #edf4f7, #fff);
+}
+
+.cta a {
+  width: fit-content;
+  border-radius: 14px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #263f96, #654db5);
+  box-shadow: 0 10px 24px rgba(53, 54, 145, 0.24);
+  color: #fff !important;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+:global(.sky-astrochart-wheel) {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+}
+
+:global(.sky-astrochart-wheel-header) {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+:global(.sky-astrochart-wheel-header span),
+:global(.sky-astrochart-wheel-guide strong) {
+  color: #243447;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+:global(.sky-astrochart-wheel-header h2) {
+  margin: 8px 0 0;
+  color: #243447;
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+}
+
+:global(.sky-astrochart-wheel-header p) {
+  max-width: 52ch;
+  margin: 0;
+  color: #52657a;
+  line-height: 2;
+}
+
+:global(.sky-astrochart-wheel-body) {
+  display: grid;
+  gap: clamp(22px, 3vw, 34px);
+  min-width: 0;
+}
+
+:global(.sky-astrochart-wheel-canvas) {
+  direction: ltr;
+  display: grid;
+  width: min(100%, 800px);
+  aspect-ratio: 1;
+  place-items: center;
+  justify-self: center;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #f8fafc;
+}
+
+:global(.sky-astrochart-wheel-canvas svg) {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 800px;
+}
+
+:global(.sky-astrochart-wheel[data-sky-public-wheel-status="error"] .sky-astrochart-wheel-canvas) {
+  display: none;
+}
+
+:global(.sky-astrochart-wheel-guide) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  width: min(100%, 1120px);
+  justify-self: center;
+  border: 1px solid rgba(188, 204, 220, 0.62);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+:global(.sky-wheel-symbol-list),
+:global(.sky-wheel-aspect-guide) {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+:global(.sky-wheel-symbol-list) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+
+:global(.sky-wheel-symbol-list li),
+:global(.sky-wheel-aspect-guide li) {
+  min-width: 0;
+  border-radius: 10px;
+  padding: 7px 9px;
+  background: rgba(238, 243, 248, 0.72);
+  color: #52657a;
+}
+
+:global(.sky-wheel-symbol-list li) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+:global(.sky-wheel-symbol-list span) {
+  width: 1.4em;
+  color: #243447;
+  font-size: 1.12rem;
+  text-align: center;
+}
+
+:global(.sky-wheel-aspect-guide) {
+  display: grid;
+  gap: 8px;
+}
+
+:global(.sky-wheel-aspect-guide li) {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+:global(.sky-wheel-aspect-guide i) {
+  display: block;
+  width: 32px;
+  border-top: 3px solid #7f8c9b;
+  border-radius: 999px;
+}
+
+:global(.sky-wheel-aspect-guide i[data-tone="harmonious"]) { border-color: #4c8b7b; }
+:global(.sky-wheel-aspect-guide i[data-tone="dynamic"]) { border-color: #c86565; }
+
+:global(.sky-wheel-retrogrades) {
+  margin: 12px 0 0;
+  border-top: 1px solid rgba(36, 52, 71, 0.1);
+  padding-top: 12px;
+  color: #52657a;
+  line-height: 1.9;
+}
+
+:global(.sky-astrochart-wheel-state) {
+  margin: 6px 0 0;
+  color: #52657a;
+  line-height: 1.9;
+}
+
+:global(.sky-astrochart-wheel-state) { text-align: center; }
+
+.state span {
+  color: #9d4f4f;
+  font-weight: 800;
+}
+
+.state a {
+  display: inline-block;
+  margin-top: 18px;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .controls,
+  .hero,
+  .dayCard,
+  .summaryGrid,
+  .planetGrid,
+  .aspectList,
+  .moonCard,
+  .dateNav,
+  :global(.sky-astrochart-wheel-guide) {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    min-height: 0;
+    padding: 32px 24px;
+  }
+
+  .heroVisual { padding-top: 8px; }
+
+  .heroOrbit { width: min(100%, 300px); }
+
+  .heroOrbit > span {
+    transform: translate(-50%, -50%) rotate(var(--sky-angle)) translateY(-120px) rotate(var(--sky-counter-angle));
+  }
+
+  :global(.sky-astrochart-wheel-header) {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .dateNav { text-align: start; }
+  .timeline li { grid-template-columns: 1fr; gap: 6px; }
+
+}

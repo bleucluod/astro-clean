@@ -908,6 +908,15 @@ export function buildPlacementBehavioralInterpretation(
   return adaptPlacementInterpretationForAudience(base, audienceMode);
 }
 
+export function buildPlainDailyPlacementInterpretation(
+  input: PlacementBehavioralInterpretationInput,
+): string {
+  const planet = PLANET_SEMANTICS[normalizePlanetId(input.planetId)];
+  const sign = SIGN_SEMANTICS[normalizeSignId(input.signId)];
+
+  return `موضوع این جایگاه ${planet.role} است. این موضوع ${sign.method} جلو می‌رود.`;
+}
+
 function buildPlacementPlainMeaning(
   planetId: BehavioralPlanetId,
   signId: BehavioralSignId,
@@ -1372,6 +1381,32 @@ export function buildAspectBehavioralInterpretation(
     second,
     aspectId,
   );
+}
+
+export function buildPlainDailyAspectInterpretation(
+  input: AspectBehavioralInterpretationInput,
+): string {
+  const firstNeed = ASPECT_NEED_BY_PLANET[normalizePlanetId(input.firstPlanetId)];
+  const secondNeed = ASPECT_NEED_BY_PLANET[normalizePlanetId(input.secondPlanetId)];
+  const aspectId = normalizeAspectId(input.aspectId);
+
+  if (aspectId === "conjunction") {
+    return `در این زاویه، «${firstNeed}» و «${secondNeed}» هم‌زمان پررنگ‌تر می‌شوند.`;
+  }
+
+  if (aspectId === "sextile") {
+    return `در این زاویه، «${firstNeed}» و «${secondNeed}» می‌توانند به هم کمک کنند.`;
+  }
+
+  if (aspectId === "square") {
+    return `در این زاویه، بین «${firstNeed}» و «${secondNeed}» کمی کشمکش هست.`;
+  }
+
+  if (aspectId === "trine") {
+    return `در این زاویه، «${firstNeed}» و «${secondNeed}» راحت‌تر با هم هماهنگ می‌شوند.`;
+  }
+
+  return `در این زاویه، «${firstNeed}» و «${secondNeed}» روبه‌روی هم قرار می‌گیرند و به تعادل نیاز دارند.`;
 }
 
 function joinBehavioralSentences(

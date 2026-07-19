@@ -23,6 +23,14 @@
       "build": true
     },
     {
+      "id": "sky-public-experience",
+      "description": "Public Sky routes consuming the canonical daily snapshot without client-side astronomy.",
+      "patterns": ["app/sky/**", "app/api/sky/**", "components/SkyPublic*.tsx", "components/SkyCityPicker.tsx", "lib/sky-public/**", "scripts/check-sky-public-route.mjs"],
+      "guards": ["check:sky-daily-contract", "check:sky-public-route"],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "report-ownership-sharing",
       "description": "Report ownership, private library, safe sharing, and report administration.",
       "patterns": ["app/api/reports/**", "app/api/admin/reports/**", "app/reports/**", "app/admin/reports/**", "components/**/*Report*", "lib/reports/**", "lib/storage/**", "lib/database/**", "lib/admin/**", "types/storage.ts", "database/migrations/*report*.sql", "scripts/check-report-ownership-sharing.mjs"],
