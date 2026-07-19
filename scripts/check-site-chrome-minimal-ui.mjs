@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 const appShell = readFileSync("components/AppShell.tsx", "utf8");
 const siteHeader = readFileSync("components/SiteHeader.tsx", "utf8");
+const navigation = readFileSync("lib/config/navigation.ts", "utf8");
 const globals = readFileSync("app/globals.css", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
@@ -65,11 +66,9 @@ for (const marker of [
 }
 
 const requiredFooterRoutes = [
-  ["/chart", "ساخت گزارش"],
-  ["/product", "محصول"],
-  ["/pricing", "پلن‌ها"],
-  ["/order", "سفارش دستی"],
-  ["/reports", "گزارش‌ها"],
+  ["/chart", "ساخت چارت تولد"],
+  ["/sky", "آسمان امروز"],
+  ["/wiki", "ویکی آسترولوژی"],
   ["/privacy", "حریم خصوصی"],
 ];
 
@@ -77,6 +76,39 @@ for (const [href, label] of requiredFooterRoutes) {
   if (!appShell.includes(`href: "${href}"`) || !appShell.includes(`label: "${label}"`)) {
     failures.push(`Footer access links missing ${label} -> ${href}`);
   }
+}
+
+for (const href of ["/product", "/pricing", "/order", "/reports", "/dashboard"]) {
+  if (appShell.includes(`href: "${href}"`)) {
+    failures.push(`Footer exposes non-essential route ${href}`);
+  }
+}
+
+for (const marker of [
+  "footerResponsibility",
+  "footerSocialLink",
+  'href="https://www.instagram.com/halleus_ir/"',
+  'aria-label="اینستاگرام هالیوس"',
+]) {
+  if (!appShell.includes(marker)) {
+    failures.push(`Minimal footer missing brand/social marker: ${marker}`);
+  }
+}
+
+for (const marker of ['href: "/reports"', 'href: "/dashboard"']) {
+  if (navigation.includes(marker)) {
+    failures.push(`Primary navigation exposes private route marker: ${marker}`);
+  }
+}
+
+for (const marker of ['href: "/chart"', 'href: "/sky"', 'href: "/wiki"']) {
+  if (!navigation.includes(marker)) {
+    failures.push(`Primary navigation missing public route marker: ${marker}`);
+  }
+}
+
+if (appShell.includes('href: "/reports"')) {
+  failures.push("Footer must not expose the private report library route");
 }
 
 for (const marker of [

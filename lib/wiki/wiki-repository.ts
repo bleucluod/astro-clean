@@ -6,6 +6,8 @@ import {
   wikiArticles as fallbackWikiArticles,
   wikiCategories as fallbackWikiCategories,
 } from "@/lib/wiki/wiki-content";
+import { buildPublicWikiCategoryViews } from "@/lib/wiki/wiki-public-discovery";
+import type { DatedWikiArticle } from "@/lib/wiki/wiki-public-discovery";
 import type {
   WikiArticle,
   WikiArticleCallToAction,
@@ -22,10 +24,11 @@ type WikiRedirect = {
   targetSlug: string;
 };
 
-type StoredWikiArticle = WikiArticle & {
+export type PublicWikiArticle = DatedWikiArticle;
+
+type StoredWikiArticle = PublicWikiArticle & {
   stableId: string;
   relatedArticleIds: readonly string[];
-  updatedAt: string;
 };
 
 type WikiStorageSnapshot = {
@@ -36,7 +39,7 @@ type WikiStorageSnapshot = {
 };
 
 export type PublicWikiCatalog = {
-  articles: WikiArticle[];
+  articles: PublicWikiArticle[];
   categories: WikiCategory[];
   source: WikiStorageSource;
 };
@@ -334,5 +337,17 @@ export async function listPublicWikiSitemapArticles() {
   return snapshot.articles.map((article) => ({
     slug: article.slug,
     updatedAt: article.updatedAt,
+  }));
+}
+
+export async function listPublicWikiSitemapCategories() {
+  const snapshot = await loadWikiStorageSnapshot();
+
+  return buildPublicWikiCategoryViews(
+    snapshot.articles,
+    snapshot.categories,
+  ).map((view) => ({
+    id: view.category.id,
+    updatedAt: view.updatedAt,
   }));
 }

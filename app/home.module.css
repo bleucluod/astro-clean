@@ -423,8 +423,7 @@
 }
 
 .highlightCard a,
-.textLink,
-.wikiCard a {
+.textLink {
   display: inline-flex;
   gap: 7px;
   align-items: center;
@@ -697,8 +696,11 @@
   line-height: 1.9;
 }
 
-.wikiCard a {
-  align-self: end;
+.wikiCard h3 a {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-decoration: none;
 }
 
 .wikiFooter {

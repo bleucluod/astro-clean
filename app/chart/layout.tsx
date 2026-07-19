@@ -111,6 +111,29 @@ export default function ChartLayout({ children }: ChartLayoutProps) {
           </div>
         </article>
       </section>
+
+      <section
+        className={styles.discoveryBridge}
+        data-chart-public-discovery="sky-wiki"
+        aria-label="ادامه مسیر در هالیوس"
+      >
+        <div>
+          <span className={styles.discoveryEyebrow}>ادامهٔ مسیر</span>
+          <h2>گزارش تولد را کنار آسمان امروز و راهنماهای ویکی بخوان</h2>
+          <p>
+            بعد از ساخت چارت، می‌توانی وضعیت واقعی آسمان امروز را ببینی یا برای
+            فهم بهتر سیاره‌ها، خانه‌ها و جنبه‌ها به ویکی هالیوس بروی.
+          </p>
+        </div>
+        <div className={styles.discoveryActions}>
+          <Link className={styles.discoveryPrimary} href="/sky">
+            دیدن آسمان امروز
+          </Link>
+          <Link className={styles.discoverySecondary} href="/wiki">
+            خواندن ویکی هالیوس
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

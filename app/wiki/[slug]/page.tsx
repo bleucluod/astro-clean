@@ -138,7 +138,9 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
         "@type": "ListItem",
         position: 2,
         name: category?.label ?? "مقاله",
-        item: articleUrl,
+        item: category
+          ? `${WIKI_BASE_URL}/wiki/category/${category.id}`
+          : `${WIKI_BASE_URL}/wiki`,
       },
       {
         "@type": "ListItem",
@@ -169,14 +171,25 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
       <nav className={styles.breadcrumb} aria-label="مسیر مقاله">
         <Link href="/wiki">ویکی هالیوس</Link>
         <span aria-hidden="true">/</span>
-        <span>{category?.label}</span>
+        {category ? (
+          <Link href={`/wiki/category/${category.id}`}>{category.label}</Link>
+        ) : (
+          <span>مقاله</span>
+        )}
       </nav>
 
       <article className={styles.articleLayout}>
         <div className={styles.articleMain}>
           <header className={styles.articleHero}>
             <div className={styles.articleTopline}>
-              <span className={styles.categoryPill}>{category?.label}</span>
+              {category ? (
+                <Link
+                  className={styles.categoryPill}
+                  href={`/wiki/category/${category.id}`}
+                >
+                  {category.label}
+                </Link>
+              ) : null}
               <span className={styles.articleMeta}>
                 زمان مطالعه: {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
               </span>

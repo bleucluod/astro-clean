@@ -4,16 +4,12 @@ export const navItems = [
     label: "چارت تولد",
   },
   {
-    href: "/reports",
-    label: "گزارش‌ها",
+    href: "/sky",
+    label: "آسمان امروز",
   },
   {
     href: "/wiki",
     label: "ویکی",
-  },
-  {
-    href: "/dashboard",
-    label: "پنل",
   },
   {
     href: "/product",

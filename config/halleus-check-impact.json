@@ -15,6 +15,66 @@
   },
   "areas": [
     {
+      "id": "wiki-build-stability",
+      "description": "Build-time worker limit that keeps public Wiki prerendering stable.",
+      "exclusive": true,
+      "patterns": ["next.config.ts"],
+      "guards": ["check:wiki-build-stability"],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "wiki-build-stability-guard-tooling",
+      "description": "Focused self-verification for the Wiki build-stability contract.",
+      "exclusive": true,
+      "patterns": ["scripts/check-wiki-build-stability.mjs"],
+      "guards": ["check:wiki-build-stability"],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "public-discovery-architecture",
+      "description": "Public navigation, live Wiki discovery, category routes, and sitemap index contracts.",
+      "exclusive": true,
+      "patterns": [
+        "app/page.tsx",
+        "app/home.module.css",
+        "app/sitemap.ts",
+        "app/wiki/**",
+        "components/AppShell.tsx",
+        "lib/config/navigation.ts",
+        "lib/config/seo.ts",
+        "lib/wiki/wiki-repository.ts",
+        "lib/wiki/wiki-public-discovery.ts",
+        "lib/wiki/wiki-revalidation.ts",
+        "app/chart/layout.tsx",
+        "app/chart/chart-shell.module.css",
+        "components/app-shell.module.css"
+      ],
+      "guards": [
+        "check:public-discovery-architecture",
+        "check:site-chrome-minimal-ui",
+        "check:wiki-storage-public-read"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "public-discovery-guard-tooling",
+      "description": "Focused verification for the public discovery and site-chrome contracts.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-public-discovery-architecture.mjs",
+        "scripts/check-site-chrome-minimal-ui.mjs"
+      ],
+      "guards": [
+        "check:public-discovery-architecture",
+        "check:site-chrome-minimal-ui"
+      ],
+      "lint": false,
+      "build": false
+    },
+    {
       "id": "sky-daily-contract",
       "description": "Canonical daily-sky contract and its deterministic guard.",
       "patterns": ["lib/sky-daily/**", "scripts/check-sky-daily-contract.mjs"],
@@ -259,23 +319,6 @@
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority"
-      ],
-      "lint": true,
-      "build": true
-    },
-    {
-      "id": "wiki-public-surface",
-      "description": "Public Wiki routes and public-facing Wiki configuration.",
-      "exclusive": true,
-      "patterns": [
-        "app/wiki/**",
-        "lib/config/wiki.ts"
-      ],
-      "guards": [
-        "check:product-surface",
-        "check:wiki-content-foundation",
-        "check:wiki-storage-public-read",
-        "check:full-wiki-cms"
       ],
       "lint": true,
       "build": true

@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 
 export function revalidateWikiPublicPaths(slugs: string[] = []) {
+  revalidatePath("/", "layout");
   revalidatePath("/wiki", "page");
   revalidatePath("/wiki/[slug]", "page");
   revalidatePath("/sitemap.xml");

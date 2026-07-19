@@ -251,32 +251,29 @@
 
 .footer {
   width: min(1180px, calc(100% - 32px));
-  margin: 24px auto 18px;
-  border: 1px solid var(--halleus-border);
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 10% 10%, rgba(217, 224, 255, 0.52), transparent 19rem),
-    rgba(255, 255, 255, 0.82);
-  box-shadow: var(--halleus-shadow-soft);
-  backdrop-filter: blur(16px);
+  margin: 34px auto 16px;
+  border: 1px solid rgba(188, 204, 220, 0.72);
+  border-radius: 22px;
+  background: rgba(248, 250, 252, 0.9);
 }
 
 .footerInner {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(360px, 1.2fr);
+  grid-template-columns: minmax(260px, 1.15fr) minmax(180px, 0.65fr) minmax(300px, 1fr);
   gap: 48px;
   align-items: start;
-  padding: 34px;
+  padding: 30px 34px 28px;
 }
 
 .footerBrandBlock {
   display: grid;
-  gap: 16px;
+  gap: 12px;
+  align-content: start;
 }
 
 .footerBrand {
   display: inline-flex;
-  gap: 12px;
+  gap: 11px;
   align-items: center;
   width: fit-content;
   color: var(--halleus-ink-strong);
@@ -284,8 +281,8 @@
 }
 
 .footerLogo {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
@@ -295,63 +292,94 @@
 }
 
 .footerBrand strong {
-  font-size: 1.02rem;
+  font-size: 1rem;
   font-weight: 800;
 }
 
 .footerBrand small {
   color: var(--halleus-muted);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   direction: ltr;
 }
 
 .footerNote {
-  max-width: 480px;
+  max-width: 430px;
   margin: 0;
   color: var(--halleus-muted);
-  font-size: 0.88rem;
-  line-height: 1.9;
+  font-size: 0.82rem;
+  line-height: 1.95;
 }
 
-.footerNavBlock {
+.footerResponsibility {
+  margin: 0;
+  color: #66778b;
+  font-size: 0.74rem;
+  font-weight: 650;
+  line-height: 1.8;
+}
+
+.footerSocialLink {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(154, 166, 178, 0.5);
+  border-radius: 10px;
+  color: #52657a;
+  background: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.footerSocialLink:hover {
+  border-color: rgba(30, 64, 175, 0.36);
+  color: #1e40af;
+  background: rgba(217, 234, 253, 0.48);
+}
+
+.footerNavBlock,
+.footerWikiBlock {
   display: grid;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
+  align-content: start;
 }
 
 .footerNavTitle {
   color: var(--halleus-ink-strong);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 800;
 }
 
-.footerLinks {
+.footerLinks,
+.footerWikiLinks {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 4px;
 }
 
-.footerLink {
-  display: flex;
-  min-height: 40px;
-  align-items: center;
-  padding: 0 12px;
-  border: 1px solid rgba(70, 89, 161, 0.08);
-  border-radius: 12px;
-  color: #59638d;
-  background: rgba(247, 248, 253, 0.82);
+.footerLink,
+.footerWikiLink,
+.footerWikiEmpty {
+  display: block;
+  min-width: 0;
+  padding: 3px 0;
+  color: #52657a;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 650;
+  line-height: 1.8;
   text-decoration: none;
-  transition:
-    color 160ms ease,
-    background 160ms ease,
-    transform 160ms ease;
+  transition: color 160ms ease, padding-inline-start 160ms ease;
 }
 
-.footerLink:hover {
-  color: var(--halleus-primary-strong);
-  background: #eef1ff;
-  transform: translateY(-1px);
+.footerLink:hover,
+.footerWikiLink:hover,
+.footerWikiEmpty:hover {
+  color: #1e40af;
+  padding-inline-start: 4px;
 }
 
 .footerBottom {
@@ -359,10 +387,10 @@
   gap: 18px;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 34px 18px;
-  border-top: 1px solid rgba(68, 86, 154, 0.1);
-  color: #7a82a3;
-  font-size: 0.72rem;
+  padding: 12px 34px 14px;
+  border-top: 1px solid rgba(188, 204, 220, 0.5);
+  color: #718096;
+  font-size: 0.7rem;
 }
 
 @media (max-width: 980px) {
@@ -389,7 +417,7 @@
 
   .footerInner {
     grid-template-columns: 1fr;
-    gap: 28px;
+    gap: 24px;
   }
 }
 
@@ -459,21 +487,17 @@
   .footer {
     width: calc(100% - 20px);
     margin-bottom: 10px;
-    border-radius: 24px;
+    border-radius: 18px;
   }
 
   .footerInner {
-    padding: 26px 20px;
-  }
-
-  .footerLinks {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 24px 20px 22px;
   }
 
   .footerBottom {
     align-items: flex-start;
     flex-direction: column;
-    padding: 14px 20px 18px;
+    padding: 12px 20px 14px;
   }
 }
 
@@ -484,9 +508,5 @@
 
   .nav {
     grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .footerLinks {
-    grid-template-columns: 1fr;
   }
 }

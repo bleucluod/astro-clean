@@ -13,6 +13,7 @@ export const siteConfig = {
 export const seoRoutes = [
   { path: "", priority: 1, changeFrequency: "weekly" },
   { path: "/chart", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/sky", priority: 0.88, changeFrequency: "daily" },
   { path: "/product", priority: 0.85, changeFrequency: "weekly" },
   { path: "/pricing", priority: 0.75, changeFrequency: "monthly" },
   { path: "/order", priority: 0.65, changeFrequency: "monthly" },

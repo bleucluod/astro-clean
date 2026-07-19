@@ -68,20 +68,29 @@ for (const guard of ["check:report-quality", "check:report-birth-chart-wheel"]) 
 }
 
 const wikiPlan = createCheckPlan(["app/wiki/page.tsx"], registry);
-for (const guard of ["check:wiki-content-foundation", "check:wiki-storage-public-read", "check:full-wiki-cms"]) {
+for (const guard of [
+  "check:public-discovery-architecture",
+  "check:site-chrome-minimal-ui",
+  "check:wiki-storage-public-read",
+]) {
   requirePlan("Wiki public surface", wikiPlan, (plan) => plan.guards.includes(guard), `must include ${guard}`);
 }
 requirePlan(
   "Wiki public surface",
   wikiPlan,
-  (plan) => plan.files[0]?.exclusive && plan.files[0]?.areas.includes("wiki-public-surface"),
-  "must use the focused exclusive public-surface policy",
+  (plan) =>
+    plan.files[0]?.exclusive &&
+    plan.files[0]?.areas.includes("public-discovery-architecture"),
+  "must use the focused exclusive public-discovery policy",
 );
 requirePlan(
   "Wiki public surface",
   wikiPlan,
-  (plan) => !plan.guards.includes("check:wiki-bulk-actions-ui"),
-  "must not run unrelated Wiki admin guards",
+  (plan) =>
+    !plan.guards.includes("check:wiki-bulk-actions-ui") &&
+    !plan.guards.includes("check:full-wiki-cms") &&
+    !plan.guards.includes("check:wiki-content-foundation"),
+  "must not run unrelated or stale Wiki admin/content guards",
 );
 
 const wikiAdminPlan = createCheckPlan(["components/admin/WikiAdminPanel.tsx"], registry);

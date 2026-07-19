@@ -7,6 +7,8 @@ import {
   AnalyticsPreferencesLink,
 } from "@/components/AnalyticsConsent";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
 
 import styles from "./app-shell.module.css";
 
@@ -15,16 +17,16 @@ type AppShellProps = {
 };
 
 const footerLinks = [
-  { href: "/chart", label: "ساخت گزارش" },
-  { href: "/product", label: "محصول" },
-  { href: "/pricing", label: "پلن‌ها" },
-  { href: "/order", label: "سفارش دستی" },
-  { href: "/reports", label: "گزارش‌ها" },
-  { href: "/wiki", label: "ویکی" },
+  { href: "/chart", label: "ساخت چارت تولد" },
+  { href: "/sky", label: "آسمان امروز" },
+  { href: "/wiki", label: "ویکی آسترولوژی" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 
-export function AppShell({ children }: AppShellProps) {
+export async function AppShell({ children }: AppShellProps) {
+  const { articles: wikiArticles } = await getPublicWikiCatalog();
+  const latestWikiArticles = sortPublicWikiArticlesNewestFirst(wikiArticles).slice(0, 4);
+
   return (
     <div className={styles.shell}>
       <SiteHeader />
@@ -53,9 +55,37 @@ export function AppShell({ children }: AppShellProps) {
                 <small>Halleus.ir</small>
               </span>
             </Link>
+
             <p className={`footer-note ${styles.footerNote}`}>
-              تجربه‌ای فارسی، آرام و دقیق برای ساخت گزارش تولد، دیدن آسمان امروز و یادگیری منطق چارت.
+              تجربه‌ای فارسی برای دیدن آسمان امروز، ساخت چارت تولد و یادگیری معنای نمادین چارت.
             </p>
+
+            <p className={styles.footerResponsibility}>
+              برای خودشناسی نمادین، نه تصمیم‌گیری قطعی
+            </p>
+
+            <a
+              className={styles.footerSocialLink}
+              href="https://www.instagram.com/halleus_ir/"
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label="اینستاگرام هالیوس"
+              title="اینستاگرام هالیوس"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4.25" />
+                <circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
+              </svg>
+            </a>
           </div>
 
           <div className={styles.footerNavBlock}>
@@ -68,10 +98,31 @@ export function AppShell({ children }: AppShellProps) {
               ))}
             </div>
           </div>
+
+          <div className={styles.footerWikiBlock} aria-label="تازه‌ترین مقاله‌های ویکی">
+            <span className={styles.footerNavTitle}>تازه‌ترین‌های ویکی</span>
+            {latestWikiArticles.length > 0 ? (
+              <div className={styles.footerWikiLinks}>
+                {latestWikiArticles.map((article) => (
+                  <Link
+                    className={styles.footerWikiLink}
+                    href={`/wiki/${article.slug}`}
+                    key={article.slug}
+                  >
+                    {article.title}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Link className={styles.footerWikiEmpty} href="/wiki">
+                رفتن به ویکی هالیوس
+              </Link>
+            )}
+          </div>
         </div>
+
         <div className={styles.footerBottom}>
           <span>© {new Date().getFullYear().toLocaleString("fa-IR", { useGrouping: false })} هالیوس</span>
-          <span>برای خودشناسی نمادین، نه تصمیم‌گیری قطعی</span>
           <AnalyticsPreferencesLink />
         </div>
       </footer>

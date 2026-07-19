@@ -1,28 +1,41 @@
 import type { MetadataRoute } from "next";
 import { seoRoutes, siteConfig } from "@/lib/config/seo";
-import { listPublicWikiSitemapArticles } from "@/lib/wiki/wiki-repository";
+import {
+  listPublicWikiSitemapArticles,
+  listPublicWikiSitemapCategories,
+} from "@/lib/wiki/wiki-repository";
 
 export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const lastModified = new Date();
-  const wikiArticles = await listPublicWikiSitemapArticles();
+  const [wikiArticles, wikiCategories] = await Promise.all([
+    listPublicWikiSitemapArticles(),
+    listPublicWikiSitemapCategories(),
+  ]);
 
   const publicPageEntries: MetadataRoute.Sitemap = seoRoutes.map((route) => ({
     url: `${siteConfig.url}${route.path}`,
-    lastModified,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
 
+  const wikiCategoryEntries: MetadataRoute.Sitemap = wikiCategories.map(
+    (category) => ({
+      url: `${siteConfig.url}/wiki/category/${category.id}`,
+      lastModified: category.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.72,
+    }),
+  );
+
   const wikiArticleEntries: MetadataRoute.Sitemap = wikiArticles.map(
     (article) => ({
       url: `${siteConfig.url}/wiki/${article.slug}`,
-      lastModified,
+      lastModified: article.updatedAt,
       changeFrequency: "monthly",
       priority: 0.75,
     }),
   );
 
-  return [...publicPageEntries, ...wikiArticleEntries];
+  return [...publicPageEntries, ...wikiCategoryEntries, ...wikiArticleEntries];
 }

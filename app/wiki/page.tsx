@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import {
+  buildPublicWikiCategoryViews,
+  sortPublicWikiArticlesNewestFirst,
+} from "@/lib/wiki/wiki-public-discovery";
 import styles from "./wiki.module.css";
 
 export const revalidate = 300;
@@ -37,8 +41,16 @@ const readingSteps = [
 ] as const;
 
 export default async function WikiPage() {
-  const { articles: wikiArticles, categories: wikiCategories } =
+  const { articles: catalogArticles, categories: wikiCategories } =
     await getPublicWikiCatalog();
+  const wikiArticles = sortPublicWikiArticlesNewestFirst(catalogArticles);
+  const categoryViews = buildPublicWikiCategoryViews(
+    wikiArticles,
+    wikiCategories,
+  );
+  const categoryViewsById = new Map(
+    categoryViews.map((view) => [view.category.id, view]),
+  );
 
   return (
     <section className={styles.page} data-product-surface="Halleus Wiki">
@@ -67,8 +79,8 @@ export default async function WikiPage() {
         </div>
         <div className={styles.heroSummary}>
           <span>شروع مجموعه</span>
-          <strong>{wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ پایه</strong>
-          <p>مقاله‌های به‌هم‌پیوسته برای یادگیری مفاهیم و سنجیدن دقت داده‌های تولد.</p>
+          <strong>{wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ منتشرشده</strong>
+          <p>مقاله‌های زنده و به‌هم‌پیوسته برای یادگیری مفاهیم و سنجیدن دقت داده‌های تولد.</p>
         </div>
       </section>
 
@@ -99,12 +111,15 @@ export default async function WikiPage() {
                     {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
                   </span>
                 </div>
-                <h3>{article.shortTitle}</h3>
+                <h3>
+                  <Link
+                    className={styles.articleTitleLink}
+                    href={`/wiki/${article.slug}`}
+                  >
+                    {article.shortTitle}
+                  </Link>
+                </h3>
                 <p>{article.summary}</p>
-                <Link className={styles.articleLink} href={`/wiki/${article.slug}`}>
-                  خواندن مقاله
-                  <span aria-hidden="true">←</span>
-                </Link>
               </article>
             );
           })}
@@ -125,12 +140,10 @@ export default async function WikiPage() {
 
         <div className={styles.categoryGrid}>
           {wikiCategories.map((category) => {
-            const articleCount = wikiArticles.filter(
-              (article) => article.categoryId === category.id,
-            ).length;
-
-            return (
-              <div className={styles.categoryCard} key={category.id}>
+            const categoryView = categoryViewsById.get(category.id);
+            const articleCount = categoryView?.articles.length ?? 0;
+            const content = (
+              <>
                 <div>
                   <h3>{category.label}</h3>
                   <p>{category.description}</p>
@@ -140,6 +153,20 @@ export default async function WikiPage() {
                     ? `${articleCount.toLocaleString("fa-IR")} مقاله`
                     : "در صف ساخت"}
                 </span>
+              </>
+            );
+
+            return categoryView ? (
+              <Link
+                className={`${styles.categoryCard} ${styles.categoryCardLink}`}
+                href={`/wiki/category/${category.id}`}
+                key={category.id}
+              >
+                {content}
+              </Link>
+            ) : (
+              <div className={styles.categoryCard} key={category.id}>
+                {content}
               </div>
             );
           })}

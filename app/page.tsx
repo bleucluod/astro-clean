@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import { HomepageProductProof } from "@/components/HomepageProductProof";
 import { SkyPulseDateCard } from "@/components/SkyPulseDateCard";
-import { wikiArticles, wikiCategories } from "@/lib/wiki/wiki-content";
+import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
 
 import styles from "./home.module.css";
 
@@ -19,50 +20,46 @@ export const metadata: Metadata = {
 
 const zodiacSymbols = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
 
-const productHighlights = [
-  {
-    icon: "✦",
-    title: "گزارش تولد شخصی",
-    description: "گزارش تولد فارسی بر پایهٔ چارت تولد واقعی؛ با خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجستهٔ چارت.",
-    href: "/chart",
-    label: "ساخت چارت تولد",
-  },
-  {
-    icon: "◐",
-    title: "آسمان امروز",
-    description: "حال‌وهوای عمومی آسمان امروز، ماه اکنون، فاز ماه و چند جنبهٔ مهم ترنزیت روزانهٔ تهران.",
-    href: "#sky-pulse",
-    label: "دیدن نبض امروز",
-  },
-  {
-    icon: "◫",
-    title: "ویکی هالیوس",
-    description: `${wikiArticles.length.toLocaleString("fa-IR")} مقاله در ویکی آسترولوژی فارسی برای فهم چارت، رایزینگ، خانه‌ها و دقت داده‌های تولد.`,
-    href: "/wiki",
-    label: "ورود به ویکی",
-  },
-  {
-    icon: "◇",
-    title: "حریم خصوصی روشن",
-    description: "گزارش شخصی بدون رضایت روشن تو عمومی و قابل ایندکس نمی‌شود.",
-    href: "/privacy",
-    label: "خواندن سیاست حریم",
-  },
-] as const;
+function buildProductHighlights(articleCount: number) {
+  return [
+    {
+      icon: "✦",
+      title: "گزارش تولد شخصی",
+      description: "گزارش تولد فارسی بر پایهٔ چارت تولد واقعی؛ با خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجستهٔ چارت.",
+      href: "/chart",
+      label: "ساخت چارت تولد",
+    },
+    {
+      icon: "◐",
+      title: "آسمان امروز",
+      description: "حال‌وهوای عمومی آسمان امروز، ماه اکنون، فاز ماه و چند جنبهٔ مهم ترنزیت روزانهٔ تهران.",
+      href: "/sky",
+      label: "دیدن آسمان امروز",
+    },
+    {
+      icon: "◫",
+      title: "ویکی هالیوس",
+      description: `${articleCount.toLocaleString("fa-IR")} مقاله در ویکی آسترولوژی فارسی برای فهم چارت، رایزینگ، خانه‌ها و دقت داده‌های تولد.`,
+      href: "/wiki",
+      label: "ورود به ویکی",
+    },
+    {
+      icon: "◇",
+      title: "حریم خصوصی روشن",
+      description: "گزارش شخصی بدون رضایت روشن تو عمومی و قابل ایندکس نمی‌شود.",
+      href: "/privacy",
+      label: "خواندن سیاست حریم",
+    },
+  ] as const;
+}
 
-const featuredWikiSlugs = new Set([
-  "how-to-read-birth-chart",
-  "birth-chart-basics",
-  "why-birth-time-matters",
-  "why-birth-city-matters",
-  "what-is-rising-sign",
-]);
+export default async function Home() {
+  const { articles: catalogArticles, categories: wikiCategories } =
+    await getPublicWikiCatalog();
+  const wikiArticles = sortPublicWikiArticlesNewestFirst(catalogArticles);
+  const featuredWikiArticles = wikiArticles.slice(0, 5);
+  const productHighlights = buildProductHighlights(wikiArticles.length);
 
-const featuredWikiArticles = wikiArticles
-  .filter((article) => featuredWikiSlugs.has(article.slug))
-  .slice(0, 5);
-
-export default function Home() {
   return (
     <div className={styles.page} data-home-theme="halleus-soft-app" data-product-surface="Halleus Home">
       <section className={styles.hero} aria-labelledby="home-title">
@@ -156,8 +153,8 @@ export default function Home() {
           <p>
             هر روز یک خوانش عمومی از ماه اکنون، فاز ماه و چند جنبهٔ مهم ترنزیت روزانهٔ تهران. این بخش برای دیدن حال‌وهوای آسمان است؛ برای خوانش شخصی، چارت تولد خودت را جداگانه بساز.
           </p>
-          <Link className={styles.textLink} href="/chart">
-            ساخت چارت تولد شخصی
+          <Link className={styles.textLink} href="/sky">
+            دیدن آسمان امروز
             <span aria-hidden="true">←</span>
           </Link>
         </div>
@@ -196,12 +193,10 @@ export default function Home() {
                 <div className={styles.wikiCardTopline}>
                   <span>{category?.label ?? "ویکی هالیوس"}</span>
                 </div>
-                <h3>{article.shortTitle}</h3>
+                <h3>
+                  <Link href={`/wiki/${article.slug}`}>{article.shortTitle}</Link>
+                </h3>
                 <p>{article.summary}</p>
-                <Link href={`/wiki/${article.slug}`}>
-                  خواندن مقاله
-                  <span aria-hidden="true">←</span>
-                </Link>
               </article>
             );
           })}
