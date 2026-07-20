@@ -2,10 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import {
-  AnalyticsConsent,
-  AnalyticsPreferencesLink,
-} from "@/components/AnalyticsConsent";
+import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
@@ -88,8 +85,7 @@ export async function AppShell({ children }: AppShellProps) {
             </a>
           </div>
 
-          <div className={styles.footerNavBlock}>
-            <span className={styles.footerNavTitle}>دسترسی سریع</span>
+          <div className={styles.footerNavBlock} aria-label="مسیرهای اصلی">
             <div className={`footer-links ${styles.footerLinks}`}>
               {footerLinks.map((link) => (
                 <Link className={`footer-link ${styles.footerLink}`} href={link.href} key={link.href}>
@@ -123,7 +119,6 @@ export async function AppShell({ children }: AppShellProps) {
 
         <div className={styles.footerBottom}>
           <span>© {new Date().getFullYear().toLocaleString("fa-IR", { useGrouping: false })} هالیوس</span>
-          <AnalyticsPreferencesLink />
         </div>
       </footer>
 

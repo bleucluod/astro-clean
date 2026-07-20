@@ -259,8 +259,8 @@
 
 .footerInner {
   display: grid;
-  grid-template-columns: minmax(260px, 1.15fr) minmax(180px, 0.65fr) minmax(300px, 1fr);
-  gap: 48px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(140px, 0.62fr) minmax(220px, 1fr);
+  gap: clamp(18px, 3vw, 48px);
   align-items: start;
   padding: 30px 34px 28px;
 }
@@ -415,10 +415,6 @@
     display: none;
   }
 
-  .footerInner {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
 }
 
 @media (max-width: 760px) {
@@ -491,6 +487,8 @@
   }
 
   .footerInner {
+    grid-template-columns: 1fr;
+    gap: 24px;
     padding: 24px 20px 22px;
   }
 

@@ -4,6 +4,7 @@ const appShell = readFileSync("components/AppShell.tsx", "utf8");
 const siteHeader = readFileSync("components/SiteHeader.tsx", "utf8");
 const navigation = readFileSync("lib/config/navigation.ts", "utf8");
 const globals = readFileSync("app/globals.css", "utf8");
+const appShellCss = readFileSync("components/app-shell.module.css", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 const failures = [];
@@ -95,6 +96,66 @@ for (const marker of [
   }
 }
 
+for (const forbiddenMarker of ["AnalyticsPreferencesLink", "دسترسی سریع"]) {
+  if (appShell.includes(forbiddenMarker)) {
+    failures.push(`Minimal footer still exposes removed control/title: ${forbiddenMarker}`);
+  }
+}
+
+if (!appShell.includes('aria-label="مسیرهای اصلی"')) {
+  failures.push("Minimal footer access links need a compact accessible label");
+}
+
+const legacyGlobalFooterLayoutPatterns = [
+  [
+    /(?:\.footer-inner-clean\s*,\s*)?\.footer-inner\s*\{[^}]*(?:display|grid-template-columns|gap|padding-top|align-items)\s*:/s,
+    "globals.css must not control footer inner layout",
+  ],
+  [
+    /\.footer-links(?:\s*,[^{}]+)*\s*\{[^}]*(?:display|flex-wrap|justify-content|gap|max-width)\s*:/s,
+    "globals.css must not control footer links layout or visibility",
+  ],
+  [
+    /\.site-footer\s*\{[^}]*(?:width|margin|padding(?:-block)?)\s*:/s,
+    "globals.css must not control footer width, margin, or padding",
+  ],
+  [
+    /\.footer-brand-block\s*\{[^}]*max-width\s*:/s,
+    "globals.css must not cap the footer brand column",
+  ],
+];
+
+for (const [pattern, message] of legacyGlobalFooterLayoutPatterns) {
+  if (pattern.test(globals)) {
+    failures.push(message);
+  }
+}
+
+const footerInnerMatch = appShellCss.match(/\.footerInner\s*\{([^}]*)\}/);
+if (!footerInnerMatch) {
+  failures.push("Footer CSS is missing the base footerInner rule");
+} else {
+  const baseFooterColumns = footerInnerMatch[1].match(/minmax\(/g) ?? [];
+  if (baseFooterColumns.length !== 3) {
+    failures.push("Footer base layout must define exactly three responsive columns");
+  }
+}
+
+const tabletStart = appShellCss.indexOf("@media (max-width: 980px)");
+const mobileStart = appShellCss.indexOf("@media (max-width: 760px)");
+if (tabletStart === -1 || mobileStart === -1 || mobileStart <= tabletStart) {
+  failures.push("Footer CSS is missing the expected tablet/mobile media boundaries");
+} else {
+  const tabletRules = appShellCss.slice(tabletStart, mobileStart);
+  if (/\.footerInner\s*\{[^}]*grid-template-columns\s*:\s*1fr/.test(tabletRules)) {
+    failures.push("Footer must remain three-column above the mobile breakpoint");
+  }
+  const mobileRules = appShellCss.slice(mobileStart);
+  if (!/\.footerInner\s*\{[^}]*grid-template-columns\s*:\s*1fr/.test(mobileRules)) {
+    failures.push("Footer must stack to one column at the mobile breakpoint");
+  }
+}
+
 for (const marker of ['href: "/reports"', 'href: "/dashboard"']) {
   if (navigation.includes(marker)) {
     failures.push(`Primary navigation exposes private route marker: ${marker}`);
@@ -118,10 +179,8 @@ for (const marker of [
   ".site-nav-scroll-row",
   ".site-brand-copy",
   ".site-nav-cta",
-  ".footer-inner",
   ".footer-brand-block",
   ".footer-note",
-  ".footer-links",
   ".footer-link",
   "overflow-x: auto",
   "grid-template-columns: auto minmax(0, 1fr)",
