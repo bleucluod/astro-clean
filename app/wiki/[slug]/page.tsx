@@ -279,17 +279,6 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               </Link>
             </section>
 
-            <section className={styles.sideCard}>
-              <span className={styles.sectionKicker}>مقاله‌های مرتبط</span>
-              <div className={styles.sideLinks}>
-                {relatedArticles.map((relatedArticle) => (
-                  <Link href={`/wiki/${relatedArticle.slug}`} key={relatedArticle.slug}>
-                    <span>{relatedArticle.shortTitle}</span>
-                    <span aria-hidden="true">←</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
           </div>
         </aside>
       </article>

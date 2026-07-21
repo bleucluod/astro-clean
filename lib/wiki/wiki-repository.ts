@@ -6,7 +6,11 @@ import {
   wikiArticles as fallbackWikiArticles,
   wikiCategories as fallbackWikiCategories,
 } from "@/lib/wiki/wiki-content";
-import { buildPublicWikiCategoryViews } from "@/lib/wiki/wiki-public-discovery";
+import {
+  buildPublicWikiCategoryViews,
+  buildPublicWikiRelatedArticles,
+  normalizePublicWikiUpdatedAt,
+} from "@/lib/wiki/wiki-public-discovery";
 import type { DatedWikiArticle } from "@/lib/wiki/wiki-public-discovery";
 import type {
   WikiArticle,
@@ -181,7 +185,7 @@ function normalizeArticle(row: Record<string, unknown>): StoredWikiArticle {
         : undefined,
     relatedSlugs: asArray<string>(row.related_slugs, "related_slugs"),
     relatedArticleIds: asArray<string>(row.related_article_ids, "related_article_ids"),
-    updatedAt: asString(row.updated_at),
+    updatedAt: normalizePublicWikiUpdatedAt(asString(row.updated_at)),
   };
 }
 
@@ -289,17 +293,11 @@ export async function getPublicWikiArticleResolution(
   const article = snapshot.articles.find((item) => item.slug === slug);
 
   if (article) {
-    const articlesBySlug = new Map(snapshot.articles.map((item) => [item.slug, item]));
-    const articlesByStableId = new Map(snapshot.articles.map((item) => [item.stableId, item]));
-
     return {
       kind: "article",
       article,
       categories: snapshot.categories,
-      relatedArticles: (article.relatedArticleIds.length
-        ? article.relatedArticleIds.map((stableId) => articlesByStableId.get(stableId))
-        : article.relatedSlugs.map((relatedSlug) => articlesBySlug.get(relatedSlug)))
-        .filter((relatedArticle): relatedArticle is StoredWikiArticle => Boolean(relatedArticle)),
+      relatedArticles: buildPublicWikiRelatedArticles(article, snapshot.articles),
       internalLinkTargets: Object.fromEntries(
         snapshot.articles.map((item) => [item.stableId, { slug: item.slug, label: item.shortTitle }]),
       ),

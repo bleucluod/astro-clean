@@ -99,7 +99,9 @@ async function loadDiscoveryModule() {
 async function checkDiscoveryBehavior() {
   const {
     buildPublicWikiCategoryViews,
+    buildPublicWikiRelatedArticles,
     findPublicWikiCategoryView,
+    normalizePublicWikiUpdatedAt,
     sortPublicWikiArticlesNewestFirst,
   } = await loadDiscoveryModule();
 
@@ -157,6 +159,278 @@ async function checkDiscoveryBehavior() {
   const missing = findPublicWikiCategoryView("empty", articles, categories);
   if (missing !== null) {
     failures.push("Empty Wiki categories must not resolve to public category pages.");
+  }
+
+  const normalizedPostgresTimestamp = normalizePublicWikiUpdatedAt(
+    "2026-07-21 06:33:54.113468+00",
+  );
+  if (normalizedPostgresTimestamp !== "2026-07-21T06:33:54.113Z") {
+    failures.push("PostgreSQL Wiki timestamps must normalize to W3C/ISO sitemap values.");
+  }
+  if (normalizePublicWikiUpdatedAt("2026-07-21T06:33:54.113Z") !== normalizedPostgresTimestamp) {
+    failures.push("Existing ISO Wiki timestamps must remain stable after normalization.");
+  }
+  try {
+    normalizePublicWikiUpdatedAt("not-a-date");
+    failures.push("Invalid Wiki timestamps must be rejected before sitemap rendering.");
+  } catch {
+    // Expected: invalid storage timestamps cannot leak into public sitemap output.
+  }
+
+  const relationshipArticles = [
+    {
+      stableId: "current",
+      slug: "current",
+      relatedArticleIds: ["outgoing", "outgoing", "current"],
+      relatedSlugs: [],
+    },
+    {
+      stableId: "outgoing",
+      slug: "outgoing",
+      relatedArticleIds: ["current"],
+      relatedSlugs: [],
+    },
+    {
+      stableId: "backlink",
+      slug: "backlink",
+      relatedArticleIds: ["current"],
+      relatedSlugs: [],
+    },
+    {
+      stableId: "legacy-backlink",
+      slug: "legacy-backlink",
+      relatedArticleIds: [],
+      relatedSlugs: ["current"],
+    },
+    {
+      stableId: "unrelated",
+      slug: "unrelated",
+      relatedArticleIds: [],
+      relatedSlugs: [],
+    },
+  ];
+  const completedRelated = buildPublicWikiRelatedArticles(
+    relationshipArticles[0],
+    relationshipArticles,
+  );
+  const completedRelatedIds = completedRelated.map((item) => item.stableId);
+  if (completedRelatedIds.join("|") !== "outgoing|backlink|legacy-backlink") {
+    failures.push(
+      "Wiki related articles must preserve outgoing order and append deterministic public backlinks without duplicates or self-links.",
+    );
+  }
+
+  const cappedRelationshipArticles = [
+    {
+      stableId: "planets-in-birth-chart",
+      slug: "planets-in-birth-chart",
+      relatedArticleIds: [
+        "manual-1",
+        "manual-2",
+        "manual-3",
+        "manual-4",
+        "manual-5",
+        "manual-6",
+        "manual-7",
+        "manual-8",
+        "manual-1",
+        "planets-in-birth-chart",
+      ],
+      relatedSlugs: [],
+    },
+    ...Array.from({ length: 8 }, (_, index) => ({
+      stableId: `manual-${index + 1}`,
+      slug: `manual-${index + 1}`,
+      relatedArticleIds: [],
+      relatedSlugs: [],
+    })),
+    {
+      stableId: "retrograde-planets-explained",
+      slug: "retrograde-planets-explained",
+      relatedArticleIds: ["planets-in-birth-chart"],
+      relatedSlugs: [],
+    },
+    {
+      stableId: "mercury-retrograde-guide",
+      slug: "mercury-retrograde-guide",
+      relatedArticleIds: [],
+      relatedSlugs: ["planets-in-birth-chart"],
+    },
+    ...Array.from({ length: 4 }, (_, index) => ({
+      stableId: `extra-backlink-${index + 1}`,
+      slug: `extra-backlink-${index + 1}`,
+      relatedArticleIds: ["planets-in-birth-chart"],
+      relatedSlugs: [],
+    })),
+  ];
+  const cappedRelated = buildPublicWikiRelatedArticles(
+    cappedRelationshipArticles[0],
+    cappedRelationshipArticles,
+  );
+  const cappedRelatedIds = cappedRelated.map((item) => item.stableId);
+  const expectedCappedIds = [
+    "manual-1",
+    "manual-2",
+    "manual-3",
+    "manual-4",
+    "manual-5",
+    "manual-6",
+    "retrograde-planets-explained",
+    "mercury-retrograde-guide",
+  ];
+  if (cappedRelatedIds.join("|") !== expectedCappedIds.join("|")) {
+    failures.push(
+      "Wiki related caps must preserve the first six manual links and reserve the remaining public slots for deterministic backlinks.",
+    );
+  }
+  if (cappedRelated.length > 8) {
+    failures.push("No public Wiki article may return more than eight related articles.");
+  }
+  if (
+    !cappedRelatedIds.includes("retrograde-planets-explained") ||
+    !cappedRelatedIds.includes("mercury-retrograde-guide")
+  ) {
+    failures.push(
+      "The planets-in-birth-chart cap must retain retrograde-planets-explained and mercury-retrograde-guide as public backlinks.",
+    );
+  }
+
+  for (const candidate of cappedRelationshipArticles) {
+    if (
+      buildPublicWikiRelatedArticles(candidate, cappedRelationshipArticles).length > 8
+    ) {
+      failures.push("Every public Wiki related list must respect the eight-item cap.");
+      break;
+    }
+  }
+
+  const sparseRelationshipArticles = [
+    {
+      stableId: "sparse-current",
+      slug: "sparse-current",
+      relatedArticleIds: ["sparse-manual-1", "sparse-manual-2"],
+      relatedSlugs: [],
+    },
+    ...Array.from({ length: 2 }, (_, index) => ({
+      stableId: `sparse-manual-${index + 1}`,
+      slug: `sparse-manual-${index + 1}`,
+      relatedArticleIds: [],
+      relatedSlugs: [],
+    })),
+    ...Array.from({ length: 5 }, (_, index) => ({
+      stableId: `sparse-backlink-${index + 1}`,
+      slug: `sparse-backlink-${index + 1}`,
+      relatedArticleIds: ["sparse-current"],
+      relatedSlugs: [],
+    })),
+  ];
+  const sparseRelatedIds = buildPublicWikiRelatedArticles(
+    sparseRelationshipArticles[0],
+    sparseRelationshipArticles,
+  ).map((item) => item.stableId);
+  if (
+    sparseRelatedIds.join("|") !==
+    "sparse-manual-1|sparse-manual-2|sparse-backlink-1|sparse-backlink-2|sparse-backlink-3|sparse-backlink-4"
+  ) {
+    failures.push(
+      "Sparse manual related lists must be filled by up to four ordered public backlinks.",
+    );
+  }
+}
+
+function jsxTagName(node) {
+  const opening = ts.isJsxElement(node)
+    ? node.openingElement
+    : ts.isJsxSelfClosingElement(node)
+      ? node
+      : null;
+  return opening ? opening.tagName.getText() : null;
+}
+
+function containsStyleReference(node, styleName) {
+  let found = false;
+  const visit = (candidate) => {
+    if (
+      ts.isPropertyAccessExpression(candidate) &&
+      ts.isIdentifier(candidate.expression) &&
+      candidate.expression.text === "styles" &&
+      candidate.name.text === styleName
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(candidate, visit);
+  };
+  visit(node);
+  return found;
+}
+
+function jsxElementHasStyle(node, styleName) {
+  const opening = ts.isJsxElement(node)
+    ? node.openingElement
+    : ts.isJsxSelfClosingElement(node)
+      ? node
+      : null;
+  if (!opening) return false;
+  const className = opening.attributes.properties.find(
+    (attribute) =>
+      ts.isJsxAttribute(attribute) &&
+      attribute.name.getText() === "className",
+  );
+  return Boolean(
+    className &&
+      ts.isJsxAttribute(className) &&
+      className.initializer &&
+      containsStyleReference(className.initializer, styleName),
+  );
+}
+
+function checkWikiArticleRelatedPresentation() {
+  const sourceFile = parseSource("app/wiki/[slug]/page.tsx");
+  const relatedMaps = [];
+  const visit = (node) => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      ts.isIdentifier(node.expression.expression) &&
+      node.expression.expression.text === "relatedArticles" &&
+      node.expression.name.text === "map"
+    ) {
+      relatedMaps.push(node);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+
+  if (relatedMaps.length !== 1) {
+    failures.push(
+      "birth-chart-basics and every shared Wiki article route must render exactly one relatedArticles region.",
+    );
+    return;
+  }
+
+  let ancestor = relatedMaps[0].parent;
+  let insideAside = false;
+  let insideBottomRelatedSection = false;
+  while (ancestor) {
+    if (ts.isJsxElement(ancestor) || ts.isJsxSelfClosingElement(ancestor)) {
+      if (jsxTagName(ancestor) === "aside") {
+        insideAside = true;
+      }
+      if (
+        jsxTagName(ancestor) === "section" &&
+        jsxElementHasStyle(ancestor, "relatedSection")
+      ) {
+        insideBottomRelatedSection = true;
+      }
+    }
+    ancestor = ancestor.parent;
+  }
+
+  if (insideAside || !insideBottomRelatedSection) {
+    failures.push(
+      "Wiki related links must render only in the bottom relatedSection, never again in the sidebar or mobile aside.",
+    );
   }
 }
 
@@ -289,6 +563,13 @@ function checkIntegrationSources() {
 
   requireText("Wiki article route", wikiArticle, "href={`/wiki/category/${category.id}`}");
   requireText(
+    "Wiki article inline links",
+    wikiArticle,
+    "renderWikiText(paragraph, internalLinkTargets)",
+  );
+  requireText("Wiki article chart CTA", wikiArticle, 'href: "/chart"');
+  requireText("Wiki article chart CTA", wikiArticle, "href={callToAction.href}");
+  requireText(
     "Wiki article breadcrumb metadata",
     wikiArticle,
     "`${WIKI_BASE_URL}/wiki/category/${category.id}`",
@@ -297,6 +578,8 @@ function checkIntegrationSources() {
   requireText("Wiki repository", repository, "PublicWikiArticle = DatedWikiArticle");
   requireText("Wiki repository", repository, "listPublicWikiSitemapCategories");
   requireText("Wiki repository", repository, "buildPublicWikiCategoryViews");
+  requireText("Wiki repository", repository, "buildPublicWikiRelatedArticles");
+  requireText("Wiki repository", repository, "normalizePublicWikiUpdatedAt");
 
   requireText("SEO routes", seo, 'path: "/sky"');
   forbidText("SEO routes", seo, 'path: "/reports"');
@@ -376,6 +659,7 @@ function checkImpactPlan() {
 }
 
 await checkDiscoveryBehavior();
+checkWikiArticleRelatedPresentation();
 checkNavigation();
 checkIntegrationSources();
 checkImpactPlan();
@@ -394,5 +678,7 @@ console.log("- homepage, footer, and Wiki discovery read the live database-first
 console.log("- the minimal footer exposes four essential routes, Instagram, and four newest Wiki articles");
 console.log("- the chart page links directly to Sky and Wiki discovery surfaces");
 console.log("- non-empty Wiki categories resolve newest-first public pages");
-console.log("- sitemap freshness comes from stored Wiki update timestamps");
+console.log("- sitemap freshness uses normalized W3C/ISO Wiki update timestamps");
+console.log("- related article lists preserve up to six manual links and append up to four public backlinks within an eight-item cap");
+console.log("- each Wiki article renders that capped related list once in the bottom continuation section, not again in the sidebar");
 console.log("- report and dated Sky noindex boundaries remain intact");
