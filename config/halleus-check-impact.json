@@ -15,6 +15,21 @@
   },
   "areas": [
     {
+      "id": "report-tone-voice",
+      "description": "Shared Persian report voice policy and its live writer integration.",
+      "patterns": [
+        "types/report-quality.ts",
+        "lib/report-quality/tone-profile.ts",
+        "lib/astrology/real-engine-report-writer.ts",
+        "scripts/check-report-tone-voice.mjs"
+      ],
+      "guards": [
+        "check:report-tone-voice"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "canonical-chart-signature",
       "description": "Canonical, versioned chart balance signature and its report snapshot integration.",
       "patterns": [

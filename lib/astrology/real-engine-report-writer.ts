@@ -59,6 +59,7 @@ import {
   selectPlacementMajorAspectModifier,
 } from "@/lib/astrology/report-behavioral-context";
 import type { ReportOutputSection } from "@/types/report-output";
+import { applyHalleusReportVoice } from "@/lib/report-quality/tone-profile";
 
 type SignCopy = {
   faName: string;
@@ -777,7 +778,7 @@ function sanitizeReportOutputSection(section: ReportOutputSection): ReportOutput
 }
 
 function sanitizeUserFacingReportText(text: string): string {
-  return text
+  return applyHalleusReportVoice(text)
     .replace(/chartSpine/giu, "ستون فقرات چارت")
     .replace(/hard aspectها/giu, "رابطه‌های تنشی")
     .replace(/hard aspect/giu, "رابطه تنشی")

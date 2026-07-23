@@ -46,4 +46,6 @@ export type ReportToneProfile = {
   language: "fa-IR";
   principles: string[];
   bannedClaims: string[];
+  preferredPatterns: string[];
+  avoidedPatterns: string[];
 };
