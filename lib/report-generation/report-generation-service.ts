@@ -1,5 +1,6 @@
 import { createMockReport } from "@/lib/astrology/mock-engine";
 import { enrichReportWithRealEngineCopy } from "@/lib/astrology/real-engine-report-writer";
+import { buildRealEngineChartSignature } from "@/lib/astrology/real-engine-chart-signature";
 import { getBehavioralChartRulerId } from "@/lib/astrology/report-behavioral-interpretation";
 import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 import type {
@@ -197,6 +198,9 @@ export function buildRealEngineSnapshot(
   generatedAt: string,
   chartReportEnrichment: ChartReportEnrichment | null = null,
 ): RealEngineReportSnapshot {
+  const placements = realChart.placements.map((placement) =>
+    toRealEnginePlacement(placement, chartReportEnrichment),
+  );
   return {
     version: "real-engine-preview-v2",
     generatedAt,
@@ -215,12 +219,11 @@ export function buildRealEngineSnapshot(
     retrogrades: buildCalculatedRetrogradeStatus(realChart),
     lunarNodes: buildCalculatedLunarNodes(realChart),
     lilith: buildCalculatedLilith(realChart),
+    chartSignature: buildRealEngineChartSignature(placements),
     ...(chartReportEnrichment
       ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }
       : {}),
-    placements: realChart.placements.map((placement) =>
-      toRealEnginePlacement(placement, chartReportEnrichment),
-    ),
+    placements,
     note:
       "این داده محاسبه‌شده از مسیر report generation service ساخته شده و تا قبل از اتصال کامل public/private reports، به‌عنوان preview ذخیره می‌شود.",
   };

@@ -54,6 +54,37 @@ export type RealEngineReportPlacement = {
   method: string;
 };
 
+export type RealEngineChartElement = "fire" | "earth" | "air" | "water";
+export type RealEngineChartModality = "cardinal" | "fixed" | "mutable";
+export type RealEngineChartExpression = "active" | "receptive";
+
+export type RealEngineChartSignatureEvidence = {
+  placementId: string;
+  signId: ZodiacKey;
+  element: RealEngineChartElement;
+  modality: RealEngineChartModality;
+  expression: RealEngineChartExpression;
+  weight: 1;
+};
+
+export type RealEngineChartSignature = {
+  version: "chart-signature-v1";
+  method: "equal-weight-major-planets";
+  elementCounts: Record<RealEngineChartElement, number>;
+  modalityCounts: Record<RealEngineChartModality, number>;
+  expressionCounts: Record<RealEngineChartExpression, number>;
+  dominantElement: RealEngineChartElement | null;
+  dominantModality: RealEngineChartModality | null;
+  dominantExpression: RealEngineChartExpression | null;
+  lowElements: RealEngineChartElement[];
+  lowModalities: RealEngineChartModality[];
+  lowExpressions: RealEngineChartExpression[];
+  zeroElements: RealEngineChartElement[];
+  zeroModalities: RealEngineChartModality[];
+  evidence: RealEngineChartSignatureEvidence[];
+  excludedPlacementIds: string[];
+};
+
 export type RealEngineReportAspectKind =
   | "conjunction"
   | "sextile"
@@ -268,6 +299,7 @@ export type RealEngineReportSnapshot = {
   retrogrades?: RealEngineReportRetrogradeStatus;
   lunarNodes?: RealEngineReportLunarNodes;
   lilith?: RealEngineReportLilith;
+  chartSignature?: RealEngineChartSignature;
   placements: RealEngineReportPlacement[];
   aspects?: RealEngineReportAspect[];
   aspectHighlights?: RealEngineReportAspect[];

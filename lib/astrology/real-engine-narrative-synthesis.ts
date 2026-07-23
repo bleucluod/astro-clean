@@ -4,8 +4,12 @@ import type {
   RealEngineReportHouseNumber,
   RealEngineReportLunarNodes,
   RealEngineReportPlacement,
+  RealEngineChartSignature,
+  RealEngineChartElement,
+  RealEngineChartModality,
   ZodiacKey,
 } from "@/types/astro";
+import { buildRealEngineChartSignature } from "@/lib/astrology/real-engine-chart-signature";
 import {
   rankRealEngineAspects,
   selectPrimaryDynamicAnchor,
@@ -47,17 +51,7 @@ export type RealEngineNodeAxisSynthesis = {
   primaryDimension: "house-axis" | "house-and-sign";
 };
 
-export type RealEngineChartElement = "fire" | "earth" | "air" | "water";
-export type RealEngineChartModality = "cardinal" | "fixed" | "mutable";
-
-export type RealEngineChartBalanceProfile = {
-  elementCounts: Record<RealEngineChartElement, number>;
-  modalityCounts: Record<RealEngineChartModality, number>;
-  dominantElement: RealEngineChartElement | null;
-  dominantModality: RealEngineChartModality | null;
-  zeroElements: RealEngineChartElement[];
-  zeroModalities: RealEngineChartModality[];
-};
+export type RealEngineChartBalanceProfile = RealEngineChartSignature;
 
 export type RealEngineNarrativeDriver =
   | { kind: "aspect"; aspect: RealEngineReportAspect }
@@ -89,6 +83,7 @@ export type BuildRealEngineNarrativeSynthesisProfileInput = {
   retrogradePlanetIds?: string[];
   lunarNodes?: RealEngineReportLunarNodes;
   houseEmphasis?: RealEngineHouseEmphasis[];
+  chartSignature?: RealEngineChartSignature;
 };
 
 export type RealEnginePracticeDomain =
@@ -116,13 +111,6 @@ const SOCIAL_OUTER_PLANET_IDS = new Set([
   "neptune",
   "pluto",
 ]);
-const ELEMENTS: RealEngineChartElement[] = ["fire", "earth", "air", "water"];
-const MODALITIES: RealEngineChartModality[] = [
-  "cardinal",
-  "fixed",
-  "mutable",
-];
-
 const SIGN_ELEMENT: Record<ZodiacKey, RealEngineChartElement> = {
   aries: "fire",
   leo: "fire",
@@ -138,21 +126,6 @@ const SIGN_ELEMENT: Record<ZodiacKey, RealEngineChartElement> = {
   pisces: "water",
 };
 
-const SIGN_MODALITY: Record<ZodiacKey, RealEngineChartModality> = {
-  aries: "cardinal",
-  cancer: "cardinal",
-  libra: "cardinal",
-  capricorn: "cardinal",
-  taurus: "fixed",
-  leo: "fixed",
-  scorpio: "fixed",
-  aquarius: "fixed",
-  gemini: "mutable",
-  virgo: "mutable",
-  sagittarius: "mutable",
-  pisces: "mutable",
-};
-
 export function buildRealEngineNarrativeSynthesisProfile({
   aspects,
   placements,
@@ -161,6 +134,7 @@ export function buildRealEngineNarrativeSynthesisProfile({
   retrogradePlanetIds = [],
   lunarNodes,
   houseEmphasis = [],
+  chartSignature,
 }: BuildRealEngineNarrativeSynthesisProfileInput): RealEngineNarrativeSynthesisProfile {
   const context: RealEngineAspectSelectionContext = {
     chartRulerId,
@@ -181,7 +155,7 @@ export function buildRealEngineNarrativeSynthesisProfile({
   );
   const primaryCluster = clusters[0];
   const nodeAxis = buildRealEngineNodeAxisSynthesis(lunarNodes);
-  const balance = buildRealEngineChartBalanceProfile(placements);
+  const balance = chartSignature ?? buildRealEngineChartBalanceProfile(placements);
   const hasStrongPersonalTension = Boolean(
     dynamicAnchor &&
       !isSocialOuterOnly(dynamicAnchor) &&
@@ -338,22 +312,7 @@ export function buildRealEngineNodeAxisSynthesis(
 export function buildRealEngineChartBalanceProfile(
   placements: RealEngineReportPlacement[],
 ): RealEngineChartBalanceProfile {
-  const elementCounts = emptyCounts(ELEMENTS);
-  const modalityCounts = emptyCounts(MODALITIES);
-
-  for (const placement of placements) {
-    elementCounts[SIGN_ELEMENT[placement.signId]] += 1;
-    modalityCounts[SIGN_MODALITY[placement.signId]] += 1;
-  }
-
-  return {
-    elementCounts,
-    modalityCounts,
-    dominantElement: selectDominantKey(elementCounts, placements.length),
-    dominantModality: selectDominantKey(modalityCounts, placements.length),
-    zeroElements: ELEMENTS.filter((key) => elementCounts[key] === 0),
-    zeroModalities: MODALITIES.filter((key) => modalityCounts[key] === 0),
-  };
+  return buildRealEngineChartSignature(placements);
 }
 
 export function selectThreeDomainNarrativePractices(
@@ -542,27 +501,6 @@ function makeCluster({
       (active ? 8 : 0) +
       bonus,
   };
-}
-
-function selectDominantKey<T extends string>(
-  counts: Record<T, number>,
-  total: number,
-): T | null {
-  const ranked = (Object.entries(counts) as Array<[T, number]>).sort(
-    (first, second) => second[1] - first[1] || first[0].localeCompare(second[0]),
-  );
-  const [first, second] = ranked;
-  const minimumShare = Math.ceil(total / 3);
-
-  return first &&
-    first[1] >= minimumShare &&
-    first[1] - (second?.[1] ?? 0) >= 2
-    ? first[0]
-    : null;
-}
-
-function emptyCounts<T extends string>(keys: T[]): Record<T, number> {
-  return Object.fromEntries(keys.map((key) => [key, 0])) as Record<T, number>;
 }
 
 function hasCoreOrRulerParticipant(

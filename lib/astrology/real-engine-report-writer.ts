@@ -374,7 +374,6 @@ const HOUSE_SYNTHESIS_FIELD: Record<number, string> = {
 
 type ChartElementKey = "fire" | "earth" | "air" | "water";
 type ChartModalityKey = "cardinal" | "fixed" | "mutable";
-type ChartPolarityKey = "masculine" | "feminine";
 
 const SIGN_ELEMENT: Record<ZodiacKey, ChartElementKey> = {
   aries: "fire",
@@ -404,21 +403,6 @@ const SIGN_MODALITY: Record<ZodiacKey, ChartModalityKey> = {
   virgo: "mutable",
   sagittarius: "mutable",
   pisces: "mutable",
-};
-
-const SIGN_POLARITY: Record<ZodiacKey, ChartPolarityKey> = {
-  aries: "masculine",
-  gemini: "masculine",
-  leo: "masculine",
-  libra: "masculine",
-  sagittarius: "masculine",
-  aquarius: "masculine",
-  taurus: "feminine",
-  cancer: "feminine",
-  virgo: "feminine",
-  scorpio: "feminine",
-  capricorn: "feminine",
-  pisces: "feminine",
 };
 
 const CHART_RULER_BY_RISING: Record<ZodiacKey, string> = {
@@ -462,11 +446,6 @@ const MODALITY_LABELS: Record<ChartModalityKey, string> = {
   cardinal: "کاردینال",
   fixed: "ثابت",
   mutable: "متغیر",
-};
-
-const POLARITY_LABELS: Record<ChartPolarityKey, string> = {
-  masculine: "مذکر",
-  feminine: "مونث",
 };
 
 const CORE_SPINE_IDS = new Set(["sun", "moon"]);
@@ -594,6 +573,7 @@ export function enrichReportWithRealEngineCopy(
         : [],
     lunarNodes: realEngine.lunarNodes,
     houseEmphasis: chartSpineDraft.activeHouses,
+    chartSignature: realEngine.chartSignature,
   });
   const aspectHighlights = selectNarrativeAspectHighlights(
     allAspects,
@@ -1393,11 +1373,6 @@ function buildChartBalanceText(
     return undefined;
   }
 
-  const polarityCounts = countChartItems(
-    realEngine.placements.map(
-      (placement) => SIGN_POLARITY[placement.signId],
-    ),
-  );
   const elementLine = formatCountMap(
     balance.elementCounts,
     ELEMENT_LABELS,
@@ -1406,7 +1381,10 @@ function buildChartBalanceText(
     balance.modalityCounts,
     MODALITY_LABELS,
   );
-  const polarityLine = formatCountMap(polarityCounts, POLARITY_LABELS);
+  const polarityLine = formatCountMap(
+    balance.expressionCounts,
+    { active: "فعال", receptive: "پذیرا" },
+  );
   const elementInterpretation = buildElementBalanceInterpretation(balance);
   const modalityInterpretation = buildModalityBalanceInterpretation(balance);
 
@@ -1419,13 +1397,6 @@ function buildChartBalanceText(
   ]
     .filter((part): part is string => Boolean(part))
     .join(" ");
-}
-
-function countChartItems<T extends string>(items: T[]): Record<T, number> {
-  return items.reduce((counts, item) => {
-    counts[item] = (counts[item] ?? 0) + 1;
-    return counts;
-  }, {} as Record<T, number>);
 }
 
 function formatCountMap<T extends string>(

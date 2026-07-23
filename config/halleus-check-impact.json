@@ -15,6 +15,23 @@
   },
   "areas": [
     {
+      "id": "canonical-chart-signature",
+      "description": "Canonical, versioned chart balance signature and its report snapshot integration.",
+      "patterns": [
+        "types/astro.ts",
+        "lib/astrology/real-engine-chart-signature.ts",
+        "lib/astrology/real-engine-narrative-synthesis.ts",
+        "lib/astrology/real-engine-report-writer.ts",
+        "lib/report-generation/report-generation-service.ts",
+        "scripts/check-canonical-chart-signature.mjs"
+      ],
+      "guards": [
+        "check:canonical-chart-signature"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "wiki-build-stability",
       "description": "Build-time worker limit that keeps public Wiki prerendering stable.",
       "exclusive": true,
