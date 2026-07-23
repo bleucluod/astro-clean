@@ -62,6 +62,18 @@ requireMatch(
   /script\.src\s*=\s*`https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=[$][{]analyticsConfig\.measurementId[}]`/,
   "load the configured Google tag URL",
 );
+requireMatch(
+  "AnalyticsConsent",
+  analyticsConsentSource,
+  /analyticsWindow\.gtag\s*=\s*function\s+gtag\s*\(\s*\)\s*:\s*void\s*\{[\s\S]*?analyticsWindow\.dataLayer\?\.push\(arguments\);[\s\S]*?\n\s*\};/,
+  "define a zero-parameter gtag wrapper that queues the native Arguments object",
+);
+
+if (/analyticsWindow\.dataLayer\?\.push\(args\)/.test(analyticsConsentSource)) {
+  failures.push(
+    "AnalyticsConsent must not queue Google tag commands as rest-parameter arrays",
+  );
+}
 
 const initialConfigMatch = analyticsConsentSource.match(
   /analyticsWindow\.gtag\(\s*"config"\s*,\s*analyticsConfig\.measurementId\s*,\s*\{([\s\S]*?)\}\s*\);/,

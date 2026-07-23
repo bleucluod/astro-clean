@@ -38,8 +38,10 @@ function ensureGoogleAnalyticsLoaded(): void {
 
   if (!analyticsWindow.gtag) {
     analyticsWindow.dataLayer = analyticsWindow.dataLayer ?? [];
-    analyticsWindow.gtag = function gtag(...args: unknown[]): void {
-      analyticsWindow.dataLayer?.push(args);
+    analyticsWindow.gtag = function gtag(): void {
+      // GA4 requires the native Arguments object; a rest array is not equivalent.
+      // eslint-disable-next-line prefer-rest-params
+      analyticsWindow.dataLayer?.push(arguments);
     };
 
     analyticsWindow.gtag("consent", "default", {
