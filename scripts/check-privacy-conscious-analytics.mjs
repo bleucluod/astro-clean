@@ -106,9 +106,15 @@ forbidText("analytics component", analyticsComponent, "email:");
 requireText("analytics styles", analyticsStyles, ".banner");
 requireText("analytics styles", analyticsStyles, "position: fixed");
 requireText("App Shell", appShell, "<AnalyticsConsent />");
-requireText("App Shell", appShell, "<AnalyticsPreferencesLink />");
 forbidText("root layout", rootLayout, "googletagmanager.com");
 forbidText("root layout", rootLayout, "gtag(");
+
+requireText(
+  "Privacy page",
+  privacyPage,
+  'import { AnalyticsPreferencesLink } from "@/components/AnalyticsConsent";',
+);
+requireText("Privacy page", privacyPage, "<AnalyticsPreferencesLink");
 
 requireText("Privacy page", privacyPage, "آمار بازدید صفحه‌های عمومی");
 requireText(
@@ -141,27 +147,17 @@ if (
 requireText(
   "Idea Garden",
   ideaGarden,
-  "## v0.1.306 Privacy-conscious analytics foundation",
-);
-requireText(
-  "Idea Garden",
-  ideaGarden,
-  "## v0.1.307 Default public analytics decision",
+  "Analytics consent: never publication consent.",
 );
 requireText(
   "Project Context",
   projectContext,
-  "## v0.1.306 Privacy-conscious analytics foundation",
+  "GA4 is limited to approved public paths",
 );
 requireText(
   "Project Context",
   projectContext,
-  "## v0.1.307 Default public analytics",
-);
-requireText(
-  "Project Context",
-  projectContext,
-  "GA4 Enhanced Measurement to be disabled",
+  "Analytics preference never grants permission to publish a report.",
 );
 
 if (failures.length > 0) {

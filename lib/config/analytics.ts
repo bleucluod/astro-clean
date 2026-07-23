@@ -5,6 +5,7 @@ export const analyticsConfig = {
   publicPaths: [
     "/",
     "/chart",
+    "/sky",
     "/product",
     "/pricing",
     "/order",
