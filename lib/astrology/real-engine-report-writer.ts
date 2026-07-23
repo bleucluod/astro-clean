@@ -1365,7 +1365,7 @@ function buildSpecialActiveHouseNarrative(
   return undefined;
 }
 
-function buildChartBalanceText(
+export function buildChartBalanceText(
   realEngine: RealEngineReportSnapshot,
   balance: RealEngineChartBalanceProfile,
 ): string | undefined {
@@ -1373,39 +1373,18 @@ function buildChartBalanceText(
     return undefined;
   }
 
-  const elementLine = formatCountMap(
-    balance.elementCounts,
-    ELEMENT_LABELS,
-  );
-  const modalityLine = formatCountMap(
-    balance.modalityCounts,
-    MODALITY_LABELS,
-  );
-  const polarityLine = formatCountMap(
-    balance.expressionCounts,
-    { active: "فعال", receptive: "پذیرا" },
-  );
   const elementInterpretation = buildElementBalanceInterpretation(balance);
   const modalityInterpretation = buildModalityBalanceInterpretation(balance);
+  const expressionInterpretation = buildExpressionBalanceInterpretation(balance);
 
   return [
-    `در عنصرها، این چارت چنین پخش شده است: ${elementLine}.`,
     elementInterpretation,
-    `در کیفیت‌ها، پخش چارت این است: ${modalityLine}.`,
     modalityInterpretation,
-    `قطبیت کلی هم چنین دیده می‌شود: ${polarityLine}. این عددها حکم قطعی درباره شخصیت نیستند؛ فقط نشان می‌دهند انرژی چارت از چه مسیرهایی راحت‌تر بیان می‌شود.`,
+    expressionInterpretation,
+    "این ترکیب حکم قطعی درباره شخصیت نیست؛ نشان می‌دهد کدام مسیرها خودبه‌خود در دسترس‌ترند و کدام مسیرها با تمرین آگاهانه بهتر به تعادل می‌رسند.",
   ]
     .filter((part): part is string => Boolean(part))
     .join(" ");
-}
-
-function formatCountMap<T extends string>(
-  counts: Record<T, number>,
-  labels: Record<T, string>,
-): string {
-  return Object.entries(labels)
-    .map(([key, label]) => `${toPersianNumber(counts[key as T] ?? 0)} ${label}`)
-    .join("، ");
 }
 
 function buildElementBalanceInterpretation(
@@ -1414,31 +1393,31 @@ function buildElementBalanceInterpretation(
   const notes: string[] = [];
 
   if (balance.dominantElement === "air") {
-    notes.push("هوای غالب یعنی ذهن، تحلیل و فاصله گرفتن برای دیدن الگو سریع‌تر در دسترس است؛ تعادل از بدن، زمان‌بندی و یک اقدام مشخص می‌آید.");
+    notes.push("در امضای عنصری این چارت، هوا پررنگ‌تر است: ذهن، تحلیل و فاصله گرفتن برای دیدن الگوها سریع‌تر در دسترس قرار می‌گیرد؛ تعادل از برگشتن به بدن، زمان‌بندی و یک اقدام مشخص می‌آید.");
   } else if (balance.dominantElement === "fire") {
-    notes.push("آتش غالب حرکت، شوق و شروع کردن را بالا می‌آورد؛ تعادل از مکث، پیگیری و نسوزاندن انرژی در موج اول می‌آید.");
+    notes.push("در امضای عنصری این چارت، آتش پررنگ‌تر است: حرکت، شوق و شروع کردن طبیعی‌تر جریان می‌گیرد؛ تعادل از مکث، پیگیری و نسوزاندن انرژی در موج اول می‌آید.");
   } else if (balance.dominantElement === "earth") {
-    notes.push("زمین غالب ثبات، واقع‌بینی و ساختن را تقویت می‌کند؛ تعادل از انعطاف و اجازه دادن به تجربه‌های ناتمام می‌آید.");
+    notes.push("در امضای عنصری این چارت، زمین پررنگ‌تر است: ثبات، واقع‌بینی و ساختن تکیه‌گاه اصلی‌اند؛ تعادل از انعطاف و جا دادن تجربه‌های هنوز ناتمام می‌آید.");
   } else if (balance.dominantElement === "water") {
-    notes.push("آب غالب دریافت عاطفی و حافظه را پررنگ می‌کند؛ تعادل از مرز روشن و تبدیل حس به درخواست قابل گفت‌وگو می‌آید.");
+    notes.push("در امضای عنصری این چارت، آب پررنگ‌تر است: دریافت عاطفی، همدلی و حافظه زودتر فعال می‌شوند؛ تعادل از مرز روشن و تبدیل حس به درخواست قابل گفت‌وگو می‌آید.");
   }
 
   if (balance.zeroElements.includes("water")) {
-    notes.push("نبود آب به معنی بی‌احساسی نیست؛ فقط بیان مستقیم احساس باید آگاهانه‌تر تمرین شود.");
+    notes.push("کم‌حضور بودن آب به معنی بی‌احساسی نیست؛ نام‌گذاری و بیان مستقیم احساس مسیری است که باید آگاهانه‌تر تمرین شود.");
   }
   if (balance.zeroElements.includes("earth")) {
-    notes.push("نبود زمین یعنی روتین، بدن و پیگیری آرام باید عمداً وارد برنامه شوند.");
+    notes.push("کم‌حضور بودن زمین یعنی روتین، توجه به بدن و پیگیری آرام بهتر است عمداً وارد زندگی روزمره شوند.");
   }
   if (balance.zeroElements.includes("air")) {
-    notes.push("نبود هوا یعنی فاصله گرفتن، نام‌گذاری و دیدن چند زاویه ممکن است به تمرین بیشتری نیاز داشته باشد.");
+    notes.push("کم‌حضور بودن هوا یعنی فاصله گرفتن، نام‌گذاری و دیدن چند زاویه ممکن است به تمرین بیشتری نیاز داشته باشد.");
   }
   if (balance.zeroElements.includes("fire")) {
-    notes.push("نبود آتش یعنی آغاز، ریسک سنجیده و ابراز مستقیم خواسته بهتر است در قدم‌های کوچک تمرین شود.");
+    notes.push("کم‌حضور بودن آتش یعنی آغاز، ریسک سنجیده و ابراز مستقیم خواسته بهتر است در قدم‌های کوچک تمرین شود.");
   }
 
   return notes.length > 0
     ? notes.join(" ")
-    : "عنصرها پخش نسبتاً متعادلی دارند؛ بنابراین خانه‌ها و سیاره‌ی راهبر وزن اصلی را روشن‌تر می‌کنند.";
+    : "عنصرها در این چارت توازن نسبی دارند؛ به‌جای یک مسیر غالب، موقعیت، خانه‌های فعال و سیاره راهبر تعیین می‌کنند کدام کیفیت جلوتر بیاید.";
 }
 
 function buildModalityBalanceInterpretation(
@@ -1447,26 +1426,40 @@ function buildModalityBalanceInterpretation(
   const notes: string[] = [];
 
   if (balance.dominantModality === "fixed") {
-    notes.push("کیفیت ثابت غالب، پایداری و تمرکز می‌دهد؛ تعادل از تغییر تدریجی و رها کردن کنترل کامل می‌آید.");
+    notes.push("در ریتم حرکت این چارت، کیفیت پایدار پررنگ‌تر است: ماندن، تمرکز و حفظ مسیر نقطه قوت‌اند؛ تعادل از تغییر تدریجی و رها کردن کنترل کامل می‌آید.");
   } else if (balance.dominantModality === "cardinal") {
-    notes.push("کاردینال غالب، شروع و تصمیم را فعال می‌کند؛ تعادل از ادامه دادن بعد از موج اول حرکت می‌آید.");
+    notes.push("در ریتم حرکت این چارت، کیفیت آغازگر پررنگ‌تر است: شروع و تصمیم زودتر فعال می‌شوند؛ تعادل از ادامه دادن بعد از موج اول حرکت می‌آید.");
   } else if (balance.dominantModality === "mutable") {
-    notes.push("متغیر غالب، سازگاری و تغییر مسیر را آسان می‌کند؛ تعادل از انتخاب یک جهت و نگه داشتن آن تا نتیجه می‌آید.");
+    notes.push("در ریتم حرکت این چارت، کیفیت انعطاف‌پذیر پررنگ‌تر است: سازگاری و تغییر مسیر آسان‌ترند؛ تعادل از انتخاب یک جهت و نگه داشتن آن تا نتیجه می‌آید.");
   }
 
   if (balance.zeroModalities.includes("mutable")) {
-    notes.push("نبود کیفیت متغیر یعنی تغییر مسیر به زمان، دلیل روشن و آزمایش تدریجی نیاز دارد.");
+    notes.push("کم‌حضور بودن کیفیت انعطاف‌پذیر یعنی تغییر مسیر به زمان، دلیل روشن و آزمایش تدریجی نیاز دارد.");
   }
   if (balance.zeroModalities.includes("fixed")) {
-    notes.push("نبود کیفیت ثابت یعنی نگه داشتن ریتم و تمام کردن کارها باید آگاهانه‌تر ساخته شود.");
+    notes.push("کم‌حضور بودن کیفیت پایدار یعنی نگه داشتن ریتم و تمام کردن کارها باید آگاهانه‌تر ساخته شود.");
   }
   if (balance.zeroModalities.includes("cardinal")) {
-    notes.push("نبود کیفیت کاردینال یعنی آغاز کردن و اعلام تصمیم ممکن است به محرک بیرونی یا زمان بیشتر نیاز داشته باشد.");
+    notes.push("کم‌حضور بودن کیفیت آغازگر یعنی شروع کردن و اعلام تصمیم ممکن است به محرک بیرونی یا زمان بیشتر نیاز داشته باشد.");
   }
 
   return notes.length > 0
     ? notes.join(" ")
-    : "کیفیت‌ها فشار غالب تندی نشان نمی‌دهند؛ خانه‌ها، خوشه‌ها و رابطه‌های اصلی جهت را روشن‌تر می‌کنند.";
+    : "کیفیت‌های آغازگر، پایدار و انعطاف‌پذیر توازن نسبی دارند؛ بنابراین نوع حرکت با موضوع و موقعیت تغییر می‌کند، نه با یک ریتم ثابت.";
+}
+
+function buildExpressionBalanceInterpretation(
+  balance: RealEngineChartBalanceProfile,
+): string {
+  if (balance.dominantExpression === "active") {
+    return "در شیوه بیان انرژی، ریتم فعال پررنگ‌تر است؛ تجربه بیشتر از راه اقدام، گفتن و اثر گذاشتن روشن می‌شود. مکث و دریافت پیش از پاسخ، تعادل این ریتم را کامل‌تر می‌کند.";
+  }
+
+  if (balance.dominantExpression === "receptive") {
+    return "در شیوه بیان انرژی، ریتم پذیرا پررنگ‌تر است؛ تجربه ابتدا از راه مشاهده، جذب و پردازش درونی شکل می‌گیرد. بیان مستقیم خواسته و اقدام به‌موقع، تعادل این ریتم را کامل‌تر می‌کند.";
+  }
+
+  return "ریتم فعال و پذیرا در این چارت توازن نسبی دارند؛ توان اقدام و اثرگذاری می‌تواند در کنار مکث، مشاهده و دریافت به کار گرفته شود.";
 }
 
 function getPlanetLabel(planetId: string): string {

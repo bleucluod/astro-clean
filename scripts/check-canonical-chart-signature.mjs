@@ -37,6 +37,9 @@ Module._resolveFilename = function resolveAlias(request, parent, isMain, options
 const { buildRealEngineChartSignature } = require(
   "../lib/astrology/real-engine-chart-signature.ts",
 );
+const { buildChartBalanceText } = require(
+  "../lib/astrology/real-engine-report-writer.ts",
+);
 
 const placements = [
   ["sun", "aries"],
@@ -73,6 +76,54 @@ assert.deepEqual(signature.zeroElements, ["water"]);
 assert.equal(signature.evidence.length, 10);
 assert.deepEqual(signature.excludedPlacementIds, ["north-node"]);
 
+const dominantNarrative = buildChartBalanceText(
+  { placements: [{ id: "sun", signId: "aries" }] },
+  {
+    ...signature,
+    zeroModalities: [],
+  },
+);
+
+assert.match(dominantNarrative, /آتش پررنگ‌تر است/);
+assert.match(dominantNarrative, /ریتم فعال پررنگ‌تر است/);
+assert.match(dominantNarrative, /کم‌حضور بودن آب به معنی بی‌احساسی نیست/);
+assert.doesNotMatch(
+  dominantNarrative,
+  /این چارت چنین پخش شده است|پخش چارت این است|قطبیت کلی هم چنین دیده می‌شود/,
+);
+assert.doesNotMatch(
+  dominantNarrative,
+  /[۰-۹0-9]+\s+(آتش|زمین|هوا|آب|فعال|پذیرا)/,
+);
+
+const balancedNarrative = buildChartBalanceText(
+  { placements: [{ id: "sun", signId: "aries" }] },
+  {
+    elementCounts: { fire: 3, earth: 2, air: 3, water: 2 },
+    modalityCounts: { cardinal: 3, fixed: 3, mutable: 4 },
+    expressionCounts: { active: 5, receptive: 5 },
+    dominantElement: null,
+    dominantModality: null,
+    dominantExpression: null,
+    lowElements: ["earth", "water"],
+    lowModalities: ["cardinal", "fixed"],
+    lowExpressions: [],
+    zeroElements: [],
+    zeroModalities: [],
+  },
+);
+
+assert.match(balancedNarrative, /عنصرها در این چارت توازن نسبی دارند/);
+assert.match(
+  balancedNarrative,
+  /کیفیت‌های آغازگر، پایدار و انعطاف‌پذیر توازن نسبی دارند/,
+);
+assert.match(
+  balancedNarrative,
+  /ریتم فعال و پذیرا در این چارت توازن نسبی دارند/,
+);
+assert.equal(buildChartBalanceText({ placements: [] }, signature), undefined);
+
 const service = fs.readFileSync(
   "lib/report-generation/report-generation-service.ts",
   "utf8",
@@ -85,7 +136,6 @@ const types = fs.readFileSync("types/astro.ts", "utf8");
 
 assert.match(service, /chartSignature: buildRealEngineChartSignature\(placements\)/);
 assert.match(writer, /chartSignature: realEngine\.chartSignature/);
-assert.match(writer, /balance\.expressionCounts/);
 assert.match(types, /chartSignature\?: RealEngineChartSignature/);
 
 console.log("canonical chart signature check passed");
