@@ -19,7 +19,7 @@ const requiredContent = [
   ["lib/chart-engine/report-engine-metadata.ts", "attachChartEngineMetadata"],
   ["lib/storage/report-write-service.ts", "attachChartEngineMetadata"],
   ["components/ChartEngineReportBadge.tsx", "Chart Engine Path"],
-  ["components/ReportDetail.tsx", "ChartReportBridgePanel"],
+  ["components/ReportDetail.tsx", "ReportDetailFactsPanel"],
   ["docs/CHART_ENGINE_INTEGRATION_PATH.md", "chart engine path"],
 ];
 
