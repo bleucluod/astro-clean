@@ -15,6 +15,19 @@
   },
   "areas": [
     {
+      "id": "personal-opening",
+      "description": "Data-backed personal opening in the existing live report synthesis path.",
+      "patterns": [
+        "lib/astrology/real-engine-report-writer.ts",
+        "scripts/check-personal-opening.mjs"
+      ],
+      "guards": [
+        "check:personal-opening"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "report-tone-voice",
       "description": "Shared Persian report voice policy and its live writer integration.",
       "patterns": [

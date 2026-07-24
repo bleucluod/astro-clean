@@ -6,6 +6,7 @@ import type {
   RealEngineReportCalculatedLilith,
   RealEngineReportCalculatedLunarNodes,
   RealEngineReportAspect,
+  RealEngineChartSignature,
   RealEngineReportHouse,
   RealEngineReportHouseContext,
   RealEngineReportLilith,
@@ -636,6 +637,14 @@ export function enrichReportWithRealEngineCopy(
     lunarNodes: realEngine.lunarNodes,
     chartSpine,
   }));
+  const personalOpening = sanitizeUserFacingReportText(buildPersonalOpening({
+    name: report.input.name ?? "",
+    risingSign,
+    chartRulerId: chartSpine.chartRulerId,
+    chartRulerPlacement: chartSpine.chartRulerPlacement,
+    activeHouseNumber: chartSpine.activeHouses[0]?.house.number,
+    chartSignature: realEngineWithAspects.chartSignature,
+  }));
 
   const sunText = buildCorePlacementText(sun, "sun", realEngineWithAspects);
   const moonText = buildCorePlacementText(moon, "moon", realEngineWithAspects);
@@ -727,11 +736,13 @@ export function enrichReportWithRealEngineCopy(
     chartSpine,
   });
   const interpretations = [
+    personalOpening,
     summary,
     firstSynthesisText,
     integrationText,
   ].filter(Boolean).map((text) => sanitizeUserFacingReportText(text as string));
   const interpretationSections = buildRealEngineInterpretationSections({
+    personalOpening,
     summary,
     sunText,
     moonText,
@@ -847,6 +858,7 @@ type RealEngineSectionEvidenceInput = {
 };
 
 type RealEngineSectionTextInput = {
+  personalOpening: string;
   summary: string;
   sunText?: string;
   moonText?: string;
@@ -1639,6 +1651,87 @@ function buildRealEngineSummary({
   }
 
   return `${displayName}این خوانش هالیوس${cityPhrase} از ${risingDescriptor} ${rising.faName} شروع می‌شود.`;
+}
+
+type PersonalOpeningInput = {
+  name: string;
+  risingSign: ZodiacKey;
+  chartRulerId: string;
+  chartRulerPlacement?: RealEngineReportPlacement;
+  activeHouseNumber?: number;
+  chartSignature?: RealEngineChartSignature;
+};
+
+const PERSONAL_OPENING_ELEMENT_THREADS: Record<
+  NonNullable<RealEngineChartSignature["dominantElement"]>,
+  string
+> = {
+  fire: "حرکت، شوق و آغاز کردن زودتر در دسترس قرار می‌گیرند",
+  earth: "ساختن، ثبات و نتیجه ملموس زودتر به تجربه شکل می‌دهند",
+  air: "فکر کردن، نام‌گذاری و دیدن ارتباط‌ها زودتر راه را روشن می‌کنند",
+  water: "دریافت عاطفی، همدلی و حافظه زودتر فضا را رنگ می‌زنند",
+};
+
+const PERSONAL_OPENING_MODALITY_THREADS: Record<
+  NonNullable<RealEngineChartSignature["dominantModality"]>,
+  string
+> = {
+  cardinal: "شروع کردن ممکن است طبیعی‌تر از منتظر ماندن باشد",
+  fixed: "ماندن و ادامه دادن ممکن است طبیعی‌تر از تغییر مسیر باشد",
+  mutable: "سازگار شدن و دیدن راه‌های تازه ممکن است طبیعی‌تر از نگه داشتن یک مسیر ثابت باشد",
+};
+
+const PERSONAL_OPENING_EXPRESSION_THREADS: Record<
+  NonNullable<RealEngineChartSignature["dominantExpression"]>,
+  string
+> = {
+  active: "انرژی بیشتر از راه اقدام و اثر گذاشتن خودش را نشان می‌دهد",
+  receptive: "انرژی بیشتر از راه مشاهده و پردازش درونی خودش را نشان می‌دهد",
+};
+
+export function buildPersonalOpening({
+  name,
+  risingSign,
+  chartRulerId,
+  chartRulerPlacement,
+  activeHouseNumber,
+  chartSignature,
+}: PersonalOpeningInput): string {
+  const displayName = name.trim() ? `${name.trim()}، ` : "";
+  const rising = SIGN_COPY[risingSign];
+  const rulerNeed =
+    PLANET_SYNTHESIS_NEED_SHORT[chartRulerId] ??
+    PLANET_SYNTHESIS_NEED[chartRulerId] ??
+    PLANET_COPY[chartRulerId]?.role ??
+    "یک نیاز مهم";
+  const signatureThreads = [
+    chartSignature?.dominantElement
+      ? PERSONAL_OPENING_ELEMENT_THREADS[chartSignature.dominantElement]
+      : undefined,
+    chartSignature?.dominantModality
+      ? PERSONAL_OPENING_MODALITY_THREADS[chartSignature.dominantModality]
+      : undefined,
+    chartSignature?.dominantExpression
+      ? PERSONAL_OPENING_EXPRESSION_THREADS[chartSignature.dominantExpression]
+      : undefined,
+  ].filter((part): part is string => Boolean(part));
+  const signatureThread =
+    signatureThreads.length > 0
+      ? joinPersianList(signatureThreads.slice(0, 2))
+      : `شیوه ورود ${rising.energy} با ${rulerNeed} کنار هم قرار می‌گیرد`;
+  const focusHouse = isReportHouseNumber(activeHouseNumber)
+    ? activeHouseNumber
+    : isReportHouseNumber(chartRulerPlacement?.house)
+      ? chartRulerPlacement.house
+      : undefined;
+  const focusPhrase = focusHouse
+    ? ` در میدان ${HOUSE_SYNTHESIS_FIELD[focusHouse]}`
+    : "";
+
+  return [
+    `${displayName}برای ورود به این گزارش، یک نخ را نگه دار: ${signatureThread}.`,
+    `در ادامه ببین این ریتم چگونه میان ${rising.energy} وارد شدن، ${rulerNeed}${focusPhrase} شکل می‌گیرد؛ آن را حکم ثابت نخوان و فقط جایی نگه دار که در تجربه روزمره‌ات واقعاً دیده می‌شود.`,
+  ].join(" ");
 }
 
 function buildChartSpineHumanSummary(
@@ -3231,8 +3324,8 @@ function buildRealEngineInterpretationSections(
       title: "خلاصه",
       body: buildStructuredSectionBody({
         readerCue: "اول این خلاصه را بخوان؛ لازم نیست همه جزئیات را حفظ کنی، فقط نخ اصلی را پیدا کن.",
-        opening: input.summary,
-        body: input.firstSynthesisText,
+        opening: input.personalOpening,
+        body: joinSectionBody(input.summary, input.firstSynthesisText),
         reflection: "کدام جمله از این خلاصه بیشتر شبیه تجربه واقعی توست و کدام بخش هنوز نیاز به زمان دارد؟",
       }),
     },

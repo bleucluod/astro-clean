@@ -10,6 +10,7 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "check:canonical-chart-signature": "node scripts/check-canonical-chart-signature.mjs",
     "check:report-tone-voice": "node scripts/check-report-tone-voice.mjs",
+    "check:personal-opening": "node scripts/check-personal-opening.mjs",
     "check:ga4-public-analytics": "node scripts/check-ga4-public-analytics.mjs",
     "clean:temp": "node scripts/clean-temp-files.mjs",
     "health": "node scripts/project-health.mjs",
