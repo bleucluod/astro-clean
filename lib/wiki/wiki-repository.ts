@@ -7,6 +7,7 @@ import {
   wikiCategories as fallbackWikiCategories,
 } from "@/lib/wiki/wiki-content";
 import {
+  buildPublicWikiClusterArticles,
   buildPublicWikiCategoryViews,
   buildPublicWikiRelatedArticles,
   normalizePublicWikiUpdatedAt,
@@ -53,6 +54,7 @@ export type PublicWikiArticleResolution =
       kind: "article";
       article: WikiArticle;
       categories: WikiCategory[];
+      clusterArticles: WikiArticle[];
       relatedArticles: WikiArticle[];
       source: WikiStorageSource;
       internalLinkTargets: Record<string, { slug: string; label: string }>;
@@ -297,6 +299,7 @@ export async function getPublicWikiArticleResolution(
       kind: "article",
       article,
       categories: snapshot.categories,
+      clusterArticles: buildPublicWikiClusterArticles(article, snapshot.articles),
       relatedArticles: buildPublicWikiRelatedArticles(article, snapshot.articles),
       internalLinkTargets: Object.fromEntries(
         snapshot.articles.map((item) => [item.stableId, { slug: item.slug, label: item.shortTitle }]),

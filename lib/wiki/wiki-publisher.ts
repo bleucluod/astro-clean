@@ -1,7 +1,10 @@
 import { asNumber, asRecord, asString, getAdminDatabase } from "@/lib/admin/admin-database";
 import type { WikiArticleSnapshot } from "@/lib/wiki/wiki-cms-types";
 import { readWikiArticleSnapshot } from "@/lib/wiki/wiki-cms-validation";
-import { findWikiInternalArticleIds } from "@/lib/wiki/wiki-markdown";
+import {
+  findWikiInternalArticleIds,
+  findWikiPublicationDependencyIds,
+} from "@/lib/wiki/wiki-markdown";
 
 async function publishClaimedJob(jobId: string) {
   const sql = getAdminDatabase();
@@ -27,23 +30,27 @@ async function publishClaimedJob(jobId: string) {
     const snapshot: WikiArticleSnapshot = readWikiArticleSnapshot(row.snapshot);
     publishedSlug = snapshot.slug;
 
-    const dependencies = [...new Set([
+    const references = [...new Set([
       ...snapshot.relatedArticleIds,
       ...findWikiInternalArticleIds(snapshot.bodyMarkdown),
     ])].filter((stableId) => stableId !== snapshot.stableId);
-    const dependencyRows = dependencies.length
+    const publicationDependencies = findWikiPublicationDependencyIds(
+      snapshot.relatedArticleIds,
+      snapshot.stableId,
+    );
+    const dependencyRows = references.length
       ? await tx`
           select stable_id, slug, status, published_at
           from public.wiki_articles
-          where stable_id = any(${dependencies}::text[]) and deleted_at is null
+          where stable_id = any(${references}::text[]) and deleted_at is null
         `
       : [];
     const dependencyMap = new Map(dependencyRows.map((item) => [asString(item.stable_id), item]));
-    const missing = dependencies.filter((stableId) => !dependencyMap.has(stableId));
+    const missing = references.filter((stableId) => !dependencyMap.has(stableId));
     if (missing.length) {
       throw new Error(`Scheduled Wiki dependencies are missing: ${missing.join(", ")}`);
     }
-    const unpublished = dependencies.filter((stableId) => {
+    const unpublished = publicationDependencies.filter((stableId) => {
       const dependency = dependencyMap.get(stableId);
       return dependency?.status !== "published" || !dependency.published_at;
     });

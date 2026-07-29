@@ -102,7 +102,13 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
     notFound();
   }
 
-  const { article, categories, relatedArticles, internalLinkTargets } = resolution;
+  const {
+    article,
+    categories,
+    clusterArticles,
+    relatedArticles,
+    internalLinkTargets,
+  } = resolution;
   const category =
     categories.find((item) => item.id === article.categoryId) ?? null;
   const articleUrl = `${WIKI_BASE_URL}/wiki/${article.slug}`;
@@ -207,6 +213,32 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               ))}
             </ul>
           </section>
+
+          {clusterArticles.length ? (
+            <section
+              className={styles.bodySection}
+              aria-labelledby="house-cluster-title"
+            >
+              <span className={styles.sectionKicker}>راهنمای ساختاری خانه‌ها</span>
+              <h2 id="house-cluster-title">خانه‌های دوازده‌گانه را به‌ترتیب بخوان</h2>
+              <p>
+                هر خانه میدان متفاوتی از تجربه را نشان می‌دهد. برای دیدن تفاوت
+                موضوع‌ها، از خانهٔ اول شروع کن یا مستقیم سراغ خانه‌ای برو که در
+                چارتت برجسته است.
+              </p>
+              <div className={styles.sideLinks}>
+                {clusterArticles.map((clusterArticle) => (
+                  <Link
+                    href={`/wiki/${clusterArticle.slug}`}
+                    key={clusterArticle.slug}
+                  >
+                    <span>{clusterArticle.shortTitle}</span>
+                    <span aria-hidden="true">←</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <div className={styles.articleBody}>
             {article.sections.map((section) => (

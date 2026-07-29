@@ -364,7 +364,6 @@ export function parseWikiPackageArchive(
           throw new Error(`${article.article_id} references an undeclared asset: ${path}`);
         }
       }
-      const allRelated = [...new Set([...article.related_article_ids, ...parsed.internalArticleIds])];
       const snapshot: WikiArticleSnapshot = {
       stableId: article.article_id,
       slug: article.slug,
@@ -380,7 +379,7 @@ export function parseWikiPackageArchive(
       publicationPriority: article.publication_priority,
       contentCluster: article.content_cluster,
       articleRole: article.article_role,
-      relatedArticleIds: allRelated,
+      relatedArticleIds: [...new Set(article.related_article_ids)],
       indexable: article.indexable,
       bodyMarkdown,
       keyPoints: parsed.keyPoints.length ? parsed.keyPoints : [article.summary],

@@ -19,6 +19,21 @@ const PUBLIC_CATEGORY_ID_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
 const PUBLIC_RELATED_ARTICLE_LIMIT = 8;
 const PUBLIC_MANUAL_RELATED_ARTICLE_LIMIT = 6;
 const PUBLIC_BACKLINK_ARTICLE_LIMIT = 4;
+const HOUSE_CLUSTER_HUB_SLUG = "astrology-houses";
+const HOUSE_CLUSTER_ARTICLE_SLUGS = [
+  "first-house-in-natal-chart",
+  "second-house-in-natal-chart",
+  "third-house-in-natal-chart",
+  "fourth-house-in-natal-chart",
+  "fifth-house-in-natal-chart",
+  "sixth-house-in-natal-chart",
+  "seventh-house-in-natal-chart",
+  "eighth-house-in-natal-chart",
+  "ninth-house-in-natal-chart",
+  "tenth-house-in-natal-chart",
+  "eleventh-house-in-natal-chart",
+  "twelfth-house-in-natal-chart",
+] as const;
 const POSTGRES_TIMESTAMP_PATTERN =
   /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})(?:\.(\d+))?([+-]\d{2})(?::?(\d{2}))?$/;
 
@@ -117,6 +132,21 @@ export function buildPublicWikiRelatedArticles(
     0,
     PUBLIC_RELATED_ARTICLE_LIMIT,
   );
+}
+
+export function buildPublicWikiClusterArticles(
+  article: DatedWikiArticle,
+  articles: readonly DatedWikiArticle[],
+) {
+  if (article.slug !== HOUSE_CLUSTER_HUB_SLUG) {
+    return [];
+  }
+
+  const articlesBySlug = new Map(articles.map((item) => [item.slug, item]));
+  return HOUSE_CLUSTER_ARTICLE_SLUGS.flatMap((slug) => {
+    const clusterArticle = articlesBySlug.get(slug);
+    return clusterArticle ? [clusterArticle] : [];
+  });
 }
 
 export function buildPublicWikiCategoryViews(

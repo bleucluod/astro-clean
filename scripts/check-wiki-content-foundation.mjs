@@ -243,26 +243,18 @@ if (failures.length === 0) {
   }
 
   assertIncludes("Idea Garden", ideaGarden, [
-    "v0.1.290 wiki accuracy content batch",
-    "v0.1.292 wiki birth-chart interpretation guide",
-    "v0.1.293 wiki core gap content batch",
-    "why-birth-time-matters",
-    "why-birth-city-matters",
-    "birth-chart-without-birth-time",
-    "v0.1.304 Wiki-first SEO indexability decision",
+    "The Persian Wiki is a live, public, indexable knowledge surface",
+    "credible sourcing, internal links",
+    "Do not turn it into a volume-only SEO factory",
+    "Analytics consent: never publication consent",
   ]);
 
   assertIncludes("Project Context", projectContext, [
-    "v0.1.290 wiki accuracy content batch",
-    "seven Persian Wiki articles",
-    "render `Article` and `BreadcrumbList` structured data",
-    "No sitemap or indexing activation",
-    "v0.1.291 wiki birth-chart reading guide",
-    "eight Persian Wiki articles",
-    "v0.1.292 wiki birth-chart interpretation guide",
-    "nine Persian Wiki articles",
-    "v0.1.293 wiki core gap content batch",
-    "fifteen Persian Wiki articles",
+    "The Persian Wiki is live and must be preserved",
+    "Public Wiki reads are database-first and server-only",
+    "Only published, indexable, already-published rows may reach public routes",
+    "Valid Wiki articles are self-canonical and index/follow",
+    "Sitemap and Search Console indexing were externally verified for key Wiki URLs",
   ]);
 }
 

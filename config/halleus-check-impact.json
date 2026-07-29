@@ -110,10 +110,14 @@
       "exclusive": true,
       "patterns": [
         "scripts/check-public-discovery-architecture.mjs",
+        "scripts/check-wiki-contextual-internal-links.mjs",
+        "scripts/check-wiki-contextual-publication-boundary.mjs",
         "scripts/check-site-chrome-minimal-ui.mjs"
       ],
       "guards": [
         "check:public-discovery-architecture",
+        "check:wiki-contextual-internal-links",
+        "check:wiki-contextual-publication-boundary",
         "check:site-chrome-minimal-ui"
       ],
       "lint": false,

@@ -27,6 +27,15 @@ export function findWikiInternalArticleIds(text: string) {
   return [...text.matchAll(internalLinkPattern)].map((match) => match[1]);
 }
 
+export function findWikiPublicationDependencyIds(
+  relatedArticleIds: readonly string[],
+  sourceStableId: string,
+) {
+  return [...new Set(relatedArticleIds)].filter(
+    (stableId) => stableId !== sourceStableId,
+  );
+}
+
 export function parseWikiMarkdown(markdown: string): ParsedWikiMarkdown {
   const normalized = markdown.replaceAll("\r\n", "\n").replaceAll("\r", "\n").trim();
   if (!normalized || normalized.length > 120_000) {

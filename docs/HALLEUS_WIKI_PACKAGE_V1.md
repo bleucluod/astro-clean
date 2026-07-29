@@ -66,6 +66,11 @@ and stable internal links:
 ![توضیح تصویر](../assets/illustration.webp)
 ```
 
+Stable links written as `[[article:...]]` are contextual references. They must
+resolve to an existing article, but they do not create publication-order
+dependencies. Only IDs explicitly listed in `related_article_ids` participate
+in package ordering and scheduled publication dependency checks.
+
 Raw HTML, executable files, undeclared files, path traversal, encrypted ZIP,
 ZIP64, unsafe compression ratios, missing dependencies, duplicate IDs/slugs,
 and unsupported image signatures are rejected. Article-level Markdown or

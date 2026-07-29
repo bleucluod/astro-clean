@@ -22,7 +22,10 @@ import {
   readWikiArticleSnapshot,
   readWikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-validation";
-import { findWikiInternalArticleIds } from "@/lib/wiki/wiki-markdown";
+import {
+  findWikiInternalArticleIds,
+  findWikiPublicationDependencyIds,
+} from "@/lib/wiki/wiki-markdown";
 import {
   computeWikiScheduleSlots,
   validateWikiScheduleSlot,
@@ -175,8 +178,18 @@ async function assertSnapshotReferences(
       throw new AdminAccessError(409, `Missing Wiki article dependencies: ${missing.join(", ")}`);
     }
     if (requirePublishedDependencies) {
+      const publicationDependencies = new Set(
+        findWikiPublicationDependencyIds(
+          snapshot.relatedArticleIds,
+          snapshot.stableId,
+        ),
+      );
       const unpublished = rows
-        .filter((row) => row.status !== "published" || !row.published_at)
+        .filter(
+          (row) =>
+            publicationDependencies.has(asString(row.stable_id)) &&
+            (row.status !== "published" || !row.published_at),
+        )
         .map((row) => asString(row.stable_id));
       if (unpublished.length) {
         throw new AdminAccessError(409, `Publish dependencies first: ${unpublished.join(", ")}`);
@@ -1214,10 +1227,10 @@ export async function mutateAdminWikiPublishJob(input: {
 function queuePositionCandidateFromRow(raw: unknown): WikiQueuePositionCandidate {
   const row = asRecord(raw);
   const snapshot = readWikiArticleSnapshot(row.snapshot);
-  const dependencyStableIds = [...new Set([
-    ...snapshot.relatedArticleIds,
-    ...findWikiInternalArticleIds(snapshot.bodyMarkdown),
-  ])].filter((stableId) => stableId !== snapshot.stableId);
+  const dependencyStableIds = findWikiPublicationDependencyIds(
+    snapshot.relatedArticleIds,
+    snapshot.stableId,
+  );
   const status = asString(row.status);
   if (status !== "queued" && status !== "retry") {
     throw new Error("Wiki position queue candidate has an invalid status.");
@@ -1664,10 +1677,10 @@ function scheduleSettingsFromRow(raw: unknown): WikiScheduleSettings {
 function bulkScheduleCandidateFromRow(raw: unknown): WikiBulkScheduleCandidateState {
   const row = asRecord(raw);
   const snapshot = readWikiArticleSnapshot(row.snapshot);
-  const dependencyStableIds = [...new Set([
-    ...snapshot.relatedArticleIds,
-    ...findWikiInternalArticleIds(snapshot.bodyMarkdown),
-  ])].filter((stableId) => stableId !== snapshot.stableId);
+  const dependencyStableIds = findWikiPublicationDependencyIds(
+    snapshot.relatedArticleIds,
+    snapshot.stableId,
+  );
 
   return {
     snapshot,
