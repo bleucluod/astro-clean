@@ -18,15 +18,16 @@ export async function GET(request: Request) {
   try {
     await requireAdminCapability(request, "wiki.read");
     const url = new URL(request.url);
-    const [articles, categories] = await Promise.all([
+    const [articlePage, categories] = await Promise.all([
       listAdminWikiArticles({
         search: url.searchParams.get("search")?.trim() ?? "",
         status: url.searchParams.get("status"),
-        limit: readLimit(url.searchParams.get("limit"), 100),
+        limit: readLimit(url.searchParams.get("limit"), 25),
+        page: Math.max(1, Number.parseInt(url.searchParams.get("page") ?? "1", 10) || 1),
       }),
       listWikiCategories(),
     ]);
-    return noStoreJsonResponse({ ok: true, articles, categories });
+    return noStoreJsonResponse({ ok: true, ...articlePage, categories });
   } catch (error) {
     return adminErrorResponse(error, "Wiki article list failed.");
   }

@@ -365,6 +365,7 @@
         "check:wiki-publication-queue-readonly",
         "check:wiki-bulk-scheduling",
         "check:wiki-bulk-actions-ui",
+        "check:wiki-admin-pagination-import-status",
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority"
@@ -389,6 +390,7 @@
         "check:wiki-publication-queue-readonly",
         "check:wiki-bulk-scheduling",
         "check:wiki-bulk-actions-ui",
+        "check:wiki-admin-pagination-import-status",
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority"
@@ -451,6 +453,7 @@
         "check:wiki-publication-queue-readonly",
         "check:wiki-bulk-scheduling",
         "check:wiki-bulk-actions-ui",
+        "check:wiki-admin-pagination-import-status",
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority"

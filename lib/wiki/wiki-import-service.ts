@@ -5,6 +5,7 @@ import type {
   WikiArticleSnapshot,
   WikiImportMode,
   WikiImportResult,
+  WikiImportPackageSummary,
 } from "@/lib/wiki/wiki-cms-types";
 import {
   getWikiScheduleSettings,
@@ -22,6 +23,61 @@ type Candidate = {
   errors: string[];
   articleId?: string;
 };
+
+export async function listWikiImportPackageSummaries(
+  limit = 20,
+): Promise<WikiImportPackageSummary[]> {
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select
+      package.id::text as package_id,
+      package.package_name,
+      package.import_mode,
+      package.status as import_status,
+      package.article_count,
+      package.imported_count,
+      package.quarantined_count,
+      package.created_at::text,
+      package.completed_at::text,
+      count(*) filter (where article.status = 'published' and article.deleted_at is null)::integer as current_published,
+      count(*) filter (where article.status = 'scheduled' and article.deleted_at is null)::integer as current_scheduled,
+      count(*) filter (where article.status = 'draft' and article.deleted_at is null)::integer as current_draft,
+      count(*) filter (where article.status = 'archived' and article.deleted_at is null)::integer as current_archived,
+      count(*) filter (where item.article_id is null or article.id is null)::integer as current_missing,
+      count(*) filter (where article.deleted_at is not null)::integer as current_deleted,
+      count(*) filter (where draft.article_id is not null)::integer as open_drafts
+    from halleus_private.wiki_import_packages as package
+    left join halleus_private.wiki_import_items as item on item.package_id = package.id
+    left join public.wiki_articles as article on article.id = item.article_id
+    left join public.wiki_article_drafts as draft on draft.article_id = article.id
+    group by package.id
+    order by package.created_at desc
+    limit ${Math.min(Math.max(limit, 1), 50)}
+  `;
+  return rows.map((raw) => {
+    const row = asRecord(raw);
+    return {
+      packageId: asString(row.package_id),
+      packageName: asString(row.package_name),
+      importMode: asString(row.import_mode) as WikiImportPackageSummary["importMode"],
+      importStatus: asString(row.import_status),
+      articleCount: asNumber(row.article_count),
+      importedCount: asNumber(row.imported_count),
+      quarantinedCount: asNumber(row.quarantined_count),
+      createdAt: asString(row.created_at),
+      completedAt: row.completed_at ? asString(row.completed_at) : null,
+      current: {
+        published: asNumber(row.current_published),
+        scheduled: asNumber(row.current_scheduled),
+        draft: asNumber(row.current_draft),
+        archived: asNumber(row.current_archived),
+        missing: asNumber(row.current_missing),
+        deleted: asNumber(row.current_deleted),
+        openDrafts: asNumber(row.open_drafts),
+      },
+    };
+  });
+}
 
 function replaceAssetReferences(snapshot: WikiArticleSnapshot, urls: Map<string, string>) {
   let bodyMarkdown = snapshot.bodyMarkdown;

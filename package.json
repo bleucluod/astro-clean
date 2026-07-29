@@ -180,6 +180,7 @@
     "check:wiki-publication-queue-readonly": "node scripts/check-wiki-publication-queue-readonly.mjs",
     "check:wiki-bulk-scheduling": "node scripts/check-wiki-bulk-scheduling.mjs",
     "check:wiki-bulk-actions-ui": "node scripts/check-wiki-bulk-actions-ui.mjs",
+    "check:wiki-admin-pagination-import-status": "node scripts/check-wiki-admin-pagination-import-status.mjs",
     "check:wiki-package-security": "node scripts/check-wiki-package-security.mjs",
     "check:wiki-scheduling-determinism": "node scripts/check-wiki-scheduling-determinism.mjs",
     "check:wiki-astrology-systems-cluster": "node scripts/check-wiki-astrology-systems-cluster.mjs",

@@ -69,6 +69,14 @@ export type WikiArticleAdminSummary = {
   updatedAt: string;
 };
 
+export type WikiArticleAdminPage = {
+  articles: WikiArticleAdminSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
 export type WikiContentGuideArticle = {
   stableId: string;
   slug: string;
@@ -199,4 +207,25 @@ export type WikiImportResult = {
     scheduledFor?: string;
     errors: string[];
   }>;
+};
+
+export type WikiImportPackageSummary = {
+  packageId: string;
+  packageName: string;
+  importMode: WikiImportMode;
+  importStatus: string;
+  articleCount: number;
+  importedCount: number;
+  quarantinedCount: number;
+  createdAt: string;
+  completedAt: string | null;
+  current: {
+    published: number;
+    scheduled: number;
+    draft: number;
+    archived: number;
+    missing: number;
+    deleted: number;
+    openDrafts: number;
+  };
 };

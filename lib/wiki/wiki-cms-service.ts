@@ -10,6 +10,7 @@ import {
 import { recordAdminAuditEvent } from "@/lib/admin/admin-service";
 import type {
   WikiArticleAdminSummary,
+  WikiArticleAdminPage,
   WikiArticleSnapshot,
   WikiBulkSchedulePlan,
   WikiContentGuideArticle,
@@ -207,11 +208,14 @@ export async function listAdminWikiArticles(input: {
   search: string;
   status?: string | null;
   limit: number;
-}): Promise<WikiArticleAdminSummary[]> {
+  page?: number;
+}): Promise<WikiArticleAdminPage> {
   const sql = getAdminDatabase();
   const query = input.search ? `%${input.search}%` : null;
   const status = input.status && input.status !== "all" ? input.status : null;
-  const rows = await sql`
+  const page = Math.max(1, input.page ?? 1);
+  const offset = (page - 1) * input.limit;
+  const [rows, countRows] = await Promise.all([sql`
     select
       article.id::text,
       article.stable_id,
@@ -256,8 +260,19 @@ export async function listAdminWikiArticles(input: {
       and (${status}::text is null or article.status = ${status})
     order by article.deleted_at nulls first, article.updated_at desc
     limit ${input.limit}
-  `;
-  return rows.map((raw) => {
+    offset ${offset}
+  `, sql`
+    select count(*)::integer as total
+    from public.wiki_articles as article
+    where (
+      ${query}::text is null
+      or article.title ilike ${query}
+      or article.slug ilike ${query}
+      or article.stable_id ilike ${query}
+    )
+      and (${status}::text is null or article.status = ${status})
+  `]);
+  const articles = rows.map((raw) => {
     const row = asRecord(raw);
     return {
       id: asString(row.id),
@@ -289,6 +304,14 @@ export async function listAdminWikiArticles(input: {
       updatedAt: asString(row.updated_at),
     };
   });
+  const total = asNumber(asRecord(countRows[0]).total);
+  return {
+    articles,
+    total,
+    page,
+    pageSize: input.limit,
+    totalPages: Math.max(1, Math.ceil(total / input.limit)),
+  };
 }
 
 export async function listWikiContentGuideInventory(): Promise<WikiContentGuideArticle[]> {

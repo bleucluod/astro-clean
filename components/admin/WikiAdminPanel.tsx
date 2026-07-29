@@ -10,6 +10,7 @@ import type {
   WikiArticleSnapshot,
   WikiBulkSchedulePlan,
   WikiImportResult,
+  WikiImportPackageSummary,
   WikiRevisionSummary,
   WikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-types";
@@ -170,7 +171,12 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [blackoutDate, setBlackoutDate] = useState("");
   const [categoryDraft, setCategoryDraft] = useState({ id: "", label: "", description: "" });
   const [importResult, setImportResult] = useState<WikiImportResult | null>(null);
-  const selectionScope = `${activeSection}:${status}:${search}`;
+  const [importPackages, setImportPackages] = useState<WikiImportPackageSummary[]>([]);
+  const [articlePage, setArticlePage] = useState(1);
+  const [articlePageSize, setArticlePageSize] = useState(25);
+  const [articleTotal, setArticleTotal] = useState(0);
+  const [articleTotalPages, setArticleTotalPages] = useState(1);
+  const selectionScope = `${activeSection}:${status}:${search}:${articlePage}:${articlePageSize}`;
   const [articleSelection, setArticleSelection] = useState<{
     scope: string;
     ids: string[];
@@ -272,9 +278,13 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     setError("");
     try {
       const queueView = activeSection === "queue";
-      const payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(queueView ? "" : search)}&status=${encodeURIComponent(queueView ? "all" : status)}&limit=100`);
+      const payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(queueView ? "" : search)}&status=${encodeURIComponent(queueView ? "all" : status)}&limit=${queueView ? 100 : articlePageSize}&page=${queueView ? 1 : articlePage}`);
       setArticles(payload.articles as WikiArticleAdminSummary[]);
       setCategories(payload.categories as Category[]);
+      if (!queueView) {
+        setArticleTotal(Number(payload.total ?? 0));
+        setArticleTotalPages(Number(payload.totalPages ?? 1));
+      }
       setQueuePositionDrafts({});
       setQueuePositionPlan(null);
     } catch (loadError) {
@@ -282,7 +292,12 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } finally {
       setLoading(false);
     }
-  }, [activeSection, request, search, status]);
+  }, [activeSection, articlePage, articlePageSize, request, search, status]);
+
+  const loadImportPackages = useCallback(async () => {
+    const payload = await request("/api/admin/wiki/imports");
+    setImportPackages(payload.packages as WikiImportPackageSummary[]);
+  }, [request]);
 
   const loadSettingsAndMedia = useCallback(async () => {
     try {
@@ -303,6 +318,21 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     void loadList();
     void loadSettingsAndMedia();
   }, [loadList, loadSettingsAndMedia]);
+
+  useEffect(() => {
+    if (activeSection !== "import" || !canImport) return;
+    // The protected import workspace reads its current server state when opened.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadImportPackages().catch((loadError) => {
+      setError(loadError instanceof Error ? loadError.message : "وضعیت بسته‌های ورود بارگذاری نشد.");
+    });
+  }, [activeSection, canImport, loadImportPackages]);
+
+  useEffect(() => {
+    // A changed filter starts a new server-paginated result set.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setArticlePage(1);
+  }, [search, status]);
 
   useEffect(() => {
     if (activeSection === "new") {
@@ -768,6 +798,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
       }
       formElement.reset();
       await loadList();
+      await loadImportPackages();
     } catch (importError) {
       setError(importError instanceof Error ? importError.message : "ورود بسته ناموفق بود.");
     } finally {
@@ -1070,6 +1101,32 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               </article>
             );
           })}
+        </div>
+        <div className={styles.wikiPagination} aria-label="صفحه‌بندی مقاله‌ها">
+          <span>
+            {articleTotal
+              ? `${(((articlePage - 1) * articlePageSize) + 1).toLocaleString("fa-IR")} تا ${Math.min(articlePage * articlePageSize, articleTotal).toLocaleString("fa-IR")} از ${articleTotal.toLocaleString("fa-IR")} مقاله`
+              : "مقاله‌ای پیدا نشد"}
+          </span>
+          <label>
+            تعداد در صفحه
+            <select
+              value={articlePageSize}
+              onChange={(event) => {
+                setArticlePageSize(Number(event.target.value));
+                setArticlePage(1);
+              }}
+            >
+              {[25, 50, 100].map((value) => <option key={value} value={value}>{value.toLocaleString("fa-IR")}</option>)}
+            </select>
+          </label>
+          <button type="button" disabled={articlePage <= 1} onClick={() => setArticlePage((value) => Math.max(1, value - 1))}>
+            صفحهٔ قبل
+          </button>
+          <span>صفحهٔ {articlePage.toLocaleString("fa-IR")} از {articleTotalPages.toLocaleString("fa-IR")}</span>
+          <button type="button" disabled={articlePage >= articleTotalPages} onClick={() => setArticlePage((value) => Math.min(articleTotalPages, value + 1))}>
+            صفحهٔ بعد
+          </button>
         </div>
       </section>
       ) : null}
@@ -1576,6 +1633,33 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               ))}
             </div>
           ) : null}
+          <div className={styles.importResult}>
+            <strong>وضعیت واقعی بسته‌های اخیر</strong>
+            <p>وضعیت هنگام ورود از وضعیت فعلی مقاله‌ها جدا نمایش داده می‌شود.</p>
+            {importPackages.map((item) => {
+              const allPublished =
+                item.articleCount > 0 &&
+                item.current.published === item.articleCount &&
+                item.current.missing === 0 &&
+                item.current.deleted === 0 &&
+                item.current.openDrafts === 0;
+              return (
+                <article className={styles.importItem} key={item.packageId}>
+                  <div>
+                    <strong>{item.packageName}</strong>
+                    <span>ورود تاریخی: {item.importedCount.toLocaleString("fa-IR")} واردشده · {item.quarantinedCount.toLocaleString("fa-IR")} قرنطینه</span>
+                    <span>
+                      وضعیت فعلی: {item.current.published.toLocaleString("fa-IR")} منتشرشده · {item.current.scheduled.toLocaleString("fa-IR")} زمان‌بندی · {item.current.draft.toLocaleString("fa-IR")} پیش‌نویس · {item.current.archived.toLocaleString("fa-IR")} آرشیو
+                    </span>
+                    <span>
+                      {item.current.missing.toLocaleString("fa-IR")} مفقود · {item.current.deleted.toLocaleString("fa-IR")} حذف‌شده · {item.current.openDrafts.toLocaleString("fa-IR")} ویرایش باز
+                    </span>
+                    {allPublished ? <strong>همهٔ {item.articleCount.toLocaleString("fa-IR")} مقاله منتشر شده‌اند؛ اقدام انتشار دوباره لازم نیست.</strong> : null}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </section>
       ) : null}
 

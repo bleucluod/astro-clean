@@ -2,11 +2,24 @@ import { AdminAccessError, assertAdminUploadRequest, requireAdminCapability } fr
 import { adminErrorResponse, noStoreJsonResponse } from "@/lib/admin/admin-http";
 import type { WikiImportMode } from "@/lib/wiki/wiki-cms-types";
 import { auditWikiFailure } from "@/lib/wiki/wiki-cms-service";
-import { importValidatedWikiPackage } from "@/lib/wiki/wiki-import-service";
+import {
+  importValidatedWikiPackage,
+  listWikiImportPackageSummaries,
+} from "@/lib/wiki/wiki-import-service";
 import { parseWikiPackageArchive } from "@/lib/wiki/wiki-package";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
+  try {
+    await requireAdminCapability(request, "wiki.read");
+    const packages = await listWikiImportPackageSummaries();
+    return noStoreJsonResponse({ ok: true, packages });
+  } catch (error) {
+    return adminErrorResponse(error, "Wiki import package list failed.");
+  }
+}
 
 export async function POST(request: Request) {
   let actor;

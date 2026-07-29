@@ -175,6 +175,21 @@
   font-size: 0.88rem;
 }
 
+.wikiPagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.wikiPagination label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .wikiPanel .dangerButton {
   border-color: #e1aaaa;
   color: #8b3030;
