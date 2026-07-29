@@ -257,7 +257,11 @@ export async function listAdminWikiArticles(input: {
       or article.slug ilike ${query}
       or article.stable_id ilike ${query}
     )
-      and (${status}::text is null or article.status = ${status})
+      and (
+        ${status}::text is null
+        or (${status} = 'deleted' and article.deleted_at is not null)
+        or (${status} <> 'deleted' and article.status = ${status} and article.deleted_at is null)
+      )
     order by article.deleted_at nulls first, article.updated_at desc
     limit ${input.limit}
     offset ${offset}
@@ -270,7 +274,11 @@ export async function listAdminWikiArticles(input: {
       or article.slug ilike ${query}
       or article.stable_id ilike ${query}
     )
-      and (${status}::text is null or article.status = ${status})
+      and (
+        ${status}::text is null
+        or (${status} = 'deleted' and article.deleted_at is not null)
+        or (${status} <> 'deleted' and article.status = ${status} and article.deleted_at is null)
+      )
   `]);
   const articles = rows.map((raw) => {
     const row = asRecord(raw);
@@ -1069,6 +1077,44 @@ export async function softDeleteAdminWikiArticles(input: {
 
     return { articleIds, count: articleIds.length };
   });
+}
+
+export async function permanentlyDeleteAdminWikiArticles(input: {
+  actor: VerifiedAdminActor;
+  articleIds: string[];
+  confirmation: string;
+  reason: string;
+}) {
+  if (input.actor.role !== "owner") {
+    throw new AdminAccessError(
+      403,
+      "Only the owner can permanently delete Wiki articles.",
+    );
+  }
+  const articleIds = [...new Set(input.articleIds)].sort((left, right) =>
+    left.localeCompare(right, "en"),
+  );
+  const expectedConfirmation = `DELETE ${articleIds.length} ARCHIVED`;
+  if (input.confirmation !== expectedConfirmation) {
+    throw new AdminAccessError(400, "Permanent deletion confirmation is invalid.");
+  }
+
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select *
+    from halleus_private.permanently_delete_wiki_articles(
+      ${articleIds}::uuid[],
+      ${input.actor.userId}::uuid,
+      ${input.actor.role},
+      ${input.reason},
+      ${input.actor.correlationId}
+    )
+  `;
+  const result = asRecord(rows[0]);
+  return {
+    articleIds,
+    count: asNumber(result.deleted_count),
+  };
 }
 
 export async function mutateAdminWikiPublishJob(input: {

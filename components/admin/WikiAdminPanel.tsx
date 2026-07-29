@@ -194,6 +194,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
 
   const canDraft = session.capabilities.includes("wiki.draft.write");
   const canPublish = session.capabilities.includes("wiki.publish.write");
+  const canPermanentlyDelete = session.role === "owner";
   const canImport = session.capabilities.includes("wiki.import.write");
   const canSettings = session.capabilities.includes("wiki.settings.write");
   const canMedia = session.capabilities.includes("wiki.media.write");
@@ -235,9 +236,37 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     () =>
       (activeSection === "queue" ? publicationQueue : articles).filter(
         (article) =>
-          !article.deletedAt && article.publishJobStatus !== "running",
+          article.publishJobStatus !== "running" &&
+          (!article.deletedAt ||
+            (activeSection === "articles" &&
+              status === "deleted" &&
+              canPermanentlyDelete)),
       ),
-    [activeSection, articles, publicationQueue],
+    [
+      activeSection,
+      articles,
+      canPermanentlyDelete,
+      publicationQueue,
+      status,
+    ],
+  );
+  const permanentlyDeletableArticles = useMemo(
+    () =>
+      articles.filter(
+        (article) => article.status === "archived" && Boolean(article.deletedAt),
+      ),
+    [articles],
+  );
+  const permanentlyDeletableIds = useMemo(
+    () => new Set(permanentlyDeletableArticles.map((article) => article.id)),
+    [permanentlyDeletableArticles],
+  );
+  const selectedPermanentlyDeletableIds = useMemo(
+    () =>
+      selectedArticleIds.filter((articleId) =>
+        permanentlyDeletableIds.has(articleId),
+      ),
+    [permanentlyDeletableIds, selectedArticleIds],
   );
   const visibleSelectableIds = useMemo(
     () => new Set(visibleSelectableArticles.map((article) => article.id)),
@@ -477,6 +506,43 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
         deleteError instanceof Error
           ? deleteError.message
           : "حذف گروهی مقاله‌ها ناموفق بود.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function permanentlyDeleteSelectedArticles() {
+    const articleIds = selectedPermanentlyDeletableIds;
+    if (!articleIds.length || !canPermanentlyDelete) return;
+    const confirmationPhrase = `DELETE ${articleIds.length} ARCHIVED`;
+    const confirmation = window.prompt(
+      `این عملیات قابل بازیابی نیست و همهٔ تاریخچه و وابستگی‌های ذخیره‌شده را حذف می‌کند.\nبرای تأیید دقیقاً بنویس:\n${confirmationPhrase}`,
+    );
+    if (confirmation !== confirmationPhrase) return;
+    const reason = window.prompt("دلیل حذف دائمی گروهی را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await request("/api/admin/wiki/articles/bulk-actions", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "permanent_delete",
+          articleIds,
+          confirmation,
+          reason: reason.trim(),
+        }),
+      });
+      setArticleSelection({ scope: selectionScope, ids: [] });
+      setMessage("مقاله‌های حذف‌شده برای همیشه پاک شدند.");
+      await loadList();
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "حذف دائمی گروهی ناموفق بود.",
       );
     } finally {
       setLoading(false);
@@ -967,6 +1033,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 ["scheduled", "زمان‌بندی‌شده"],
                 ["published", "منتشرشده"],
                 ["archived", "آرشیو"],
+                ["deleted", "حذف‌شده"],
               ].map(([value, label]) => (
                 <button
                   key={value}
@@ -1003,14 +1070,16 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 >
                   انتشار همهٔ ویرایش‌های باز
                 </button>
-                <button
-                  className={styles.dangerButton}
-                  type="button"
-                  onClick={() => void deleteSelectedArticles()}
-                  disabled={!selectedVisibleIds.length}
-                >
-                  حذف انتخاب‌شده‌ها
-                </button>
+                {status !== "deleted" ? (
+                  <button
+                    className={styles.dangerButton}
+                    type="button"
+                    onClick={() => void deleteSelectedArticles()}
+                    disabled={!selectedVisibleIds.length}
+                  >
+                    حذف انتخاب‌شده‌ها
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => void previewBulkSchedule()}
@@ -1024,6 +1093,17 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                   پیش‌نمایش زمان‌بندی
                 </button>
               </>
+            ) : null}
+            {canPermanentlyDelete && status === "deleted" ? (
+              <button
+                className={styles.dangerButton}
+                type="button"
+                onClick={() => void permanentlyDeleteSelectedArticles()}
+                disabled={!selectedPermanentlyDeletableIds.length}
+                title="فقط مقاله‌های حذف نرم‌شده و Archive قابل حذف دائمی هستند."
+              >
+                حذف دائمی آرشیوشده‌ها
+              </button>
             ) : null}
           </div>
         </div>

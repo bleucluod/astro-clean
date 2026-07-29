@@ -10,6 +10,7 @@ import {
   readRequiredString,
 } from "@/lib/admin/admin-http";
 import {
+  permanentlyDeleteAdminWikiArticles,
   publishAdminWikiDrafts,
   softDeleteAdminWikiArticles,
 } from "@/lib/wiki/wiki-cms-service";
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
       );
     }
     const action = readRequiredString(body.action, "action", 30);
-    if (action !== "delete" && action !== "publish") {
+    if (action !== "delete" && action !== "publish" && action !== "permanent_delete") {
       return noStoreJsonResponse(
         { ok: false, error: "Unsupported Wiki bulk action." },
         400,
@@ -61,6 +62,21 @@ export async function POST(request: Request) {
 
     const articleIds = readArticleIds(body.articleIds);
     const reason = readRequiredString(body.reason, "reason", 1000);
+    if (action === "permanent_delete") {
+      const confirmation = readRequiredString(
+        body.confirmation,
+        "confirmation",
+        100,
+      );
+      const result = await permanentlyDeleteAdminWikiArticles({
+        actor,
+        articleIds,
+        confirmation,
+        reason,
+      });
+      revalidateWikiPublicPaths();
+      return noStoreJsonResponse({ ok: true, result });
+    }
     if (action === "publish") {
       const result = await publishAdminWikiDrafts({
         actor,
