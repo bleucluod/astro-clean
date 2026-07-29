@@ -83,7 +83,11 @@ function renderWikiText(
     }
     const target = targets[match[1]];
     return target ? (
-      <Link href={`/wiki/${target.slug}`} key={`${target.slug}-${index}`}>
+      <Link
+        className={styles.inlineArticleLink}
+        href={`/wiki/${target.slug}`}
+        key={`${target.slug}-${index}`}
+      >
         {target.label}
       </Link>
     ) : null;
@@ -306,7 +310,10 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               <span className={styles.sectionKicker}>در چارت خودت ببین</span>
               <h2>{callToAction.title}</h2>
               <p>{callToAction.text}</p>
-              <Link className={styles.primaryButton} href={callToAction.href}>
+              <Link
+                className={`${styles.primaryButton} ${styles.wikiArticleCta}`}
+                href={callToAction.href}
+              >
                 {callToAction.label}
               </Link>
             </section>
