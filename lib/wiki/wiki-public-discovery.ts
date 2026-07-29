@@ -1,4 +1,9 @@
 import type { WikiArticle, WikiCategory } from "@/lib/wiki/wiki-content";
+import {
+  getWikiCategoryContent,
+  MIN_PUBLIC_WIKI_CATEGORY_ARTICLES,
+  type WikiCategoryContent,
+} from "@/lib/wiki/wiki-category-content";
 
 export type DatedWikiArticle = WikiArticle & {
   updatedAt: string;
@@ -11,7 +16,9 @@ export type PublicWikiRelationshipArticle = DatedWikiArticle & {
 
 export type PublicWikiCategoryView = {
   category: WikiCategory;
+  content: WikiCategoryContent;
   articles: DatedWikiArticle[];
+  pillarArticles: DatedWikiArticle[];
   updatedAt: string;
 };
 
@@ -161,15 +168,33 @@ export function buildPublicWikiCategoryViews(
     const categoryArticles = sortPublicWikiArticlesNewestFirst(
       articles.filter((article) => article.categoryId === category.id),
     );
+    const content = getWikiCategoryContent(category.id);
 
-    if (categoryArticles.length === 0) {
+    if (
+      !content ||
+      categoryArticles.length < MIN_PUBLIC_WIKI_CATEGORY_ARTICLES
+    ) {
+      return [];
+    }
+
+    const articlesBySlug = new Map(
+      categoryArticles.map((article) => [article.slug, article]),
+    );
+    const pillarArticles = content.pillarSlugs.flatMap((slug) => {
+      const pillar = articlesBySlug.get(slug);
+      return pillar ? [pillar] : [];
+    });
+
+    if (pillarArticles.length !== content.pillarSlugs.length) {
       return [];
     }
 
     return [
       {
         category,
+        content,
         articles: categoryArticles,
+        pillarArticles,
         updatedAt: categoryArticles[0].updatedAt,
       },
     ];

@@ -84,7 +84,19 @@ function extractLinkMap(relativePath, variableName) {
 }
 
 async function loadDiscoveryModule() {
-  const source = read("lib/wiki/wiki-public-discovery.ts");
+  const categorySource = read("lib/wiki/wiki-category-content.ts");
+  const categoryTranspiled = ts.transpileModule(categorySource, {
+    compilerOptions: {
+      module: ts.ModuleKind.ES2022,
+      target: ts.ScriptTarget.ES2022,
+    },
+    fileName: "wiki-category-content.ts",
+  }).outputText;
+  const categoryDataUrl = `data:text/javascript;base64,${Buffer.from(categoryTranspiled).toString("base64")}`;
+  const source = read("lib/wiki/wiki-public-discovery.ts").replace(
+    '"@/lib/wiki/wiki-category-content"',
+    JSON.stringify(categoryDataUrl),
+  );
   const transpiled = ts.transpileModule(source, {
     compilerOptions: {
       module: ts.ModuleKind.ES2022,
@@ -113,24 +125,34 @@ async function checkDiscoveryBehavior() {
   ];
   const articles = [
     {
-      slug: "older",
+      slug: "birth-chart-basics",
       categoryId: "foundations",
       updatedAt: "2026-01-01T00:00:00.000Z",
     },
     {
-      slug: "newer-b",
+      slug: "planet-sign-house-difference",
       categoryId: "foundations",
       updatedAt: "2026-03-01T00:00:00.000Z",
     },
     {
-      slug: "newer-a",
+      slug: "how-to-read-birth-chart",
       categoryId: "foundations",
       updatedAt: "2026-03-01T00:00:00.000Z",
     },
     {
-      slug: "house-one",
+      slug: "astrology-houses",
       categoryId: "houses",
       updatedAt: "2026-02-01T00:00:00.000Z",
+    },
+    {
+      slug: "what-is-rising-sign",
+      categoryId: "houses",
+      updatedAt: "2026-02-02T00:00:00.000Z",
+    },
+    {
+      slug: "first-house-in-natal-chart",
+      categoryId: "houses",
+      updatedAt: "2026-02-03T00:00:00.000Z",
     },
     {
       slug: "unsafe",
@@ -140,7 +162,15 @@ async function checkDiscoveryBehavior() {
   ];
 
   const sorted = sortPublicWikiArticlesNewestFirst(articles);
-  const expectedOrder = ["unsafe", "newer-a", "newer-b", "house-one", "older"];
+  const expectedOrder = [
+    "unsafe",
+    "how-to-read-birth-chart",
+    "planet-sign-house-difference",
+    "first-house-in-natal-chart",
+    "what-is-rising-sign",
+    "astrology-houses",
+    "birth-chart-basics",
+  ];
   if (sorted.map((article) => article.slug).join("|") !== expectedOrder.join("|")) {
     failures.push("Wiki article discovery is not newest-first with deterministic slug ties.");
   }
@@ -149,7 +179,10 @@ async function checkDiscoveryBehavior() {
   if (views.map((view) => view.category.id).join("|") !== "foundations|houses") {
     failures.push("Wiki category discovery must exclude empty and unsafe category routes.");
   }
-  if (views[0]?.articles.map((article) => article.slug).join("|") !== "newer-a|newer-b|older") {
+  if (
+    views[0]?.articles.map((article) => article.slug).join("|") !==
+    "how-to-read-birth-chart|planet-sign-house-difference|birth-chart-basics"
+  ) {
     failures.push("Wiki category articles are not newest-first.");
   }
   if (views[0]?.updatedAt !== "2026-03-01T00:00:00.000Z") {

@@ -23,9 +23,24 @@ const houseArticleSlugs = [
 const tokenPattern = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)\]\]/g;
 
 async function loadDiscoveryModule() {
+  const categorySource = fs.readFileSync(
+    path.join(root, "lib/wiki/wiki-category-content.ts"),
+    "utf8",
+  );
+  const categoryTranspiled = ts.transpileModule(categorySource, {
+    compilerOptions: {
+      module: ts.ModuleKind.ES2022,
+      target: ts.ScriptTarget.ES2022,
+    },
+    fileName: "wiki-category-content.ts",
+  }).outputText;
+  const categoryDataUrl = `data:text/javascript;base64,${Buffer.from(categoryTranspiled).toString("base64")}`;
   const source = fs.readFileSync(
     path.join(root, "lib/wiki/wiki-public-discovery.ts"),
     "utf8",
+  ).replace(
+    '"@/lib/wiki/wiki-category-content"',
+    JSON.stringify(categoryDataUrl),
   );
   const transpiled = ts.transpileModule(source, {
     compilerOptions: {

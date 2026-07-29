@@ -49,8 +49,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${categoryView.category.label} | ویکی هالیوس`,
-    description: categoryView.category.description,
+    title: categoryView.content.seoTitle,
+    description: categoryView.content.metaDescription,
     alternates: {
       canonical: `/wiki/category/${categoryView.category.id}`,
     },
@@ -91,8 +91,12 @@ export default async function WikiCategoryPage({
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
           <span className={styles.eyebrow}>دستهٔ ویکی هالیوس</span>
-          <h1 className={styles.heroTitle}>{categoryView.category.label}</h1>
-          <p className={styles.heroText}>{categoryView.category.description}</p>
+          <h1 className={styles.heroTitle}>{categoryView.content.h1}</h1>
+          {categoryView.content.intro.map((paragraph) => (
+            <p className={styles.heroText} key={paragraph}>
+              {paragraph}
+            </p>
+          ))}
           <div className={styles.heroActions}>
             <Link className={styles.primaryButton} href="/chart">
               ساخت گزارش شخصی
@@ -111,12 +115,55 @@ export default async function WikiCategoryPage({
         </div>
       </section>
 
+      <section className={styles.section} aria-labelledby="category-start-title">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>از اینجا شروع کن</span>
+            <h2 id="category-start-title">{categoryView.content.startTitle}</h2>
+          </div>
+          <p>{categoryView.content.startText}</p>
+        </div>
+
+        <div className={styles.articleGrid}>
+          {categoryView.pillarArticles.map((article, index) => (
+            <article className={styles.articleCard} key={article.slug}>
+              <div className={styles.articleTopline}>
+                <span className={styles.categoryPill}>
+                  گام {(index + 1).toLocaleString("fa-IR")}
+                </span>
+                <span className={styles.articleMeta}>
+                  {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
+                </span>
+              </div>
+              <h3>
+                <Link
+                  className={styles.articleTitleLink}
+                  href={`/wiki/${article.slug}`}
+                >
+                  {article.shortTitle}
+                </Link>
+              </h3>
+              <p>{article.summary}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className={styles.guideGrid}>
+          {categoryView.content.readingPath.map((step, index) => (
+            <div className={styles.guideStep} key={step}>
+              <span>{(index + 1).toLocaleString("fa-IR")}</span>
+              <p>{step}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className={styles.section} aria-labelledby="category-articles-title">
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>مسیر مطالعه</span>
             <h2 id="category-articles-title">
-              تازه‌ترین مقاله‌های {categoryView.category.label}
+              همهٔ مقاله‌های {categoryView.category.label}
             </h2>
           </div>
           <p>

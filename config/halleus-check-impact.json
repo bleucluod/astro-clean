@@ -98,6 +98,7 @@
       ],
       "guards": [
         "check:public-discovery-architecture",
+        "check:wiki-category-content",
         "check:wiki-article-link-cta-visibility",
         "check:sitewide-link-cta-contrast",
         "check:site-chrome-minimal-ui",
@@ -116,6 +117,7 @@
         "scripts/check-sitewide-link-cta-contrast.mjs",
         "scripts/check-wiki-contextual-internal-links.mjs",
         "scripts/check-wiki-contextual-publication-boundary.mjs",
+        "scripts/check-wiki-category-content.mjs",
         "scripts/check-site-chrome-minimal-ui.mjs"
       ],
       "guards": [
@@ -124,6 +126,7 @@
         "check:sitewide-link-cta-contrast",
         "check:wiki-contextual-internal-links",
         "check:wiki-contextual-publication-boundary",
+        "check:wiki-category-content",
         "check:site-chrome-minimal-ui"
       ],
       "lint": false,

@@ -189,6 +189,7 @@
     "check:wiki-contextual-publication-boundary": "node scripts/check-wiki-contextual-publication-boundary.mjs",
     "check:wiki-article-link-cta-visibility": "node scripts/check-wiki-article-link-cta-visibility.mjs",
     "check:sitewide-link-cta-contrast": "node scripts/check-sitewide-link-cta-contrast.mjs",
+    "check:wiki-category-content": "node scripts/check-wiki-category-content.mjs",
     "check:wiki-content-foundation": "node scripts/check-wiki-content-foundation.mjs",
     "check:internal-route-noindex-boundary": "node scripts/check-internal-route-noindex-boundary.mjs",
     "check:privacy-conscious-analytics": "node scripts/check-privacy-conscious-analytics.mjs",
