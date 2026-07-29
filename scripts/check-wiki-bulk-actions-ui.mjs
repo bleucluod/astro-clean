@@ -60,6 +60,8 @@ requireText("article tabs", panelSource, "activeStatusTab");
 requireText("shared selection", panelSource, "toggleAllVisibleArticles");
 requireText("shared selection", panelSource, "selectedVisibleIds");
 requireText("bulk delete UI", panelSource, "حذف انتخاب‌شده‌ها");
+requireText("bulk publish UI", panelSource, "انتشار همهٔ ویرایش‌های باز");
+requireText("bulk publish UI", panelSource, "publishAllOpenEdits");
 requireText("queue selection", panelSource, 'aria-label="انتخاب همهٔ صف"');
 requireText("bulk schedule preservation", panelSource, "پیش‌نمایش زمان‌بندی");
 forbidText("article list", panelSource, "انتخاب برای زمان‌بندی");
@@ -67,7 +69,8 @@ forbidText("article filters", panelSource, '<select value={status}');
 forbidText("article heading", panelSource, "پیش‌نویس، زمان‌بندی، انتشار و تاریخچهٔ نسخه‌ها");
 
 requireText("bulk action route", routeSource, 'requireAdminCapability(request, "wiki.publish.write")');
-requireText("bulk action route", routeSource, 'action !== "delete"');
+requireText("bulk action route", routeSource, 'action !== "delete" && action !== "publish"');
+requireText("bulk action route", routeSource, "publishAdminWikiDrafts");
 requireText("bulk action route", routeSource, "revalidateWikiPublicPaths()");
 requireText("bulk delete service", serviceSource, "export async function softDeleteAdminWikiArticles");
 requireText("bulk delete service", serviceSource, "return sql.begin(async (tx) =>");
@@ -77,6 +80,11 @@ requireText("bulk delete service", serviceSource, "One or more selected articles
 requireText("bulk delete service", serviceSource, "status in ('queued', 'retry', 'failed')");
 requireText("bulk delete service", serviceSource, "admin.wiki.articles_bulk_soft_deleted");
 requireText("bulk delete service", serviceSource, "wiki_article_batch");
+requireText("bulk publish service", serviceSource, "export async function publishAdminWikiDrafts");
+requireText("bulk publish eligibility", serviceSource, 'asString(row.status) !== "published"');
+requireText("bulk publish eligibility", serviceSource, "!asBoolean(row.has_draft)");
+requireText("bulk publish eligibility", serviceSource, "asBoolean(row.has_open_job)");
+requireText("bulk publish behavior", serviceSource, "await publishAdminWikiDraft");
 
 requireText("4B guard", bulkScheduleGuard, "apply rechecks the plan");
 requireText(
@@ -110,3 +118,4 @@ console.log("- search and status tabs replace the old title, subtitle, and statu
 console.log("- article and queue selections share mark-all and soft-delete actions");
 console.log("- schedule preview remains restricted to eligible saved drafts");
 console.log("- bulk delete is validated, row-locked, transactional, audit-covered, and never cancels a running job");
+console.log("- bulk publish accepts only live articles with open drafts and no open publish job");

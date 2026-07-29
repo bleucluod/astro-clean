@@ -453,6 +453,49 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     }
   }
 
+  async function publishAllOpenEdits() {
+    const articleIds = bulkEligibleArticles
+      .filter((article) => article.status === "published")
+      .map((article) => article.id);
+    if (!articleIds.length || !canPublish) return;
+    if (
+      !window.confirm(
+        `نسخهٔ باز ${articleIds.length.toLocaleString("fa-IR")} مقالهٔ منتشرشده اکنون منتشر شود؟`,
+      )
+    ) {
+      return;
+    }
+    const reason = window.prompt("دلیل انتشار گروهی ویرایش‌ها را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await request("/api/admin/wiki/articles/bulk-actions", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "publish",
+          articleIds,
+          reason: reason.trim(),
+        }),
+      });
+      setArticleSelection({ scope: selectionScope, ids: [] });
+      setBulkSchedulePlan(null);
+      setMessage(
+        `نسخهٔ باز ${articleIds.length.toLocaleString("fa-IR")} مقاله منتشر شد.`,
+      );
+      await loadList();
+    } catch (publishError) {
+      setError(
+        publishError instanceof Error
+          ? publishError.message
+          : "انتشار گروهی ویرایش‌ها ناموفق بود.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function previewBulkSchedule() {
     if (!selectedBulkEligibleIds.length) return;
     setLoading(true);
@@ -918,6 +961,17 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             <span>{selectedVisibleIds.length.toLocaleString("fa-IR")} انتخاب شده</span>
             {canPublish ? (
               <>
+                <button
+                  type="button"
+                  onClick={() => void publishAllOpenEdits()}
+                  disabled={
+                    !bulkEligibleArticles.some(
+                      (article) => article.status === "published",
+                    )
+                  }
+                >
+                  انتشار همهٔ ویرایش‌های باز
+                </button>
                 <button
                   className={styles.dangerButton}
                   type="button"

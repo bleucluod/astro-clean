@@ -9,7 +9,10 @@ import {
   readObject,
   readRequiredString,
 } from "@/lib/admin/admin-http";
-import { softDeleteAdminWikiArticles } from "@/lib/wiki/wiki-cms-service";
+import {
+  publishAdminWikiDrafts,
+  softDeleteAdminWikiArticles,
+} from "@/lib/wiki/wiki-cms-service";
 import { revalidateWikiPublicPaths } from "@/lib/wiki/wiki-revalidation";
 
 export const runtime = "nodejs";
@@ -49,17 +52,34 @@ export async function POST(request: Request) {
       );
     }
     const action = readRequiredString(body.action, "action", 30);
-    if (action !== "delete") {
+    if (action !== "delete" && action !== "publish") {
       return noStoreJsonResponse(
         { ok: false, error: "Unsupported Wiki bulk action." },
         400,
       );
     }
 
+    const articleIds = readArticleIds(body.articleIds);
+    const reason = readRequiredString(body.reason, "reason", 1000);
+    if (action === "publish") {
+      const result = await publishAdminWikiDrafts({
+        actor,
+        articleIds,
+        reason,
+      });
+      revalidateWikiPublicPaths(
+        result.published.flatMap((article) => [
+          article.slug,
+          article.previousSlug,
+        ]),
+      );
+      return noStoreJsonResponse({ ok: true, result });
+    }
+
     const result = await softDeleteAdminWikiArticles({
       actor,
-      articleIds: readArticleIds(body.articleIds),
-      reason: readRequiredString(body.reason, "reason", 1000),
+      articleIds,
+      reason,
     });
     revalidateWikiPublicPaths();
     return noStoreJsonResponse({ ok: true, result });

@@ -813,6 +813,65 @@ export async function publishAdminWikiDraft(input: {
   return { mode: "scheduled" as const, revisionNumber, slug: snapshot.slug, publishAt: runAt.toISOString() };
 }
 
+export async function publishAdminWikiDrafts(input: {
+  actor: VerifiedAdminActor;
+  articleIds: string[];
+  reason: string;
+}) {
+  const articleIds = [...new Set(input.articleIds)].sort((left, right) =>
+    left.localeCompare(right, "en"),
+  );
+  const sql = getAdminDatabase();
+  const eligibilityRows = await sql`
+    select article.id::text, article.status, article.deleted_at::text,
+           draft.article_id is not null as has_draft,
+           exists (
+             select 1 from halleus_private.wiki_publish_jobs as job
+             where job.article_id = article.id
+               and job.status in ('queued', 'running', 'retry', 'failed')
+           ) as has_open_job
+    from public.wiki_articles as article
+    left join public.wiki_article_drafts as draft on draft.article_id = article.id
+    where article.id = any(${articleIds}::uuid[])
+    order by article.id
+  `;
+  if (eligibilityRows.length !== articleIds.length) {
+    throw new AdminAccessError(404, "One or more Wiki articles were not found.");
+  }
+  if (
+    eligibilityRows.some(
+      (row) =>
+        asString(row.status) !== "published" ||
+        Boolean(row.deleted_at) ||
+        !asBoolean(row.has_draft) ||
+        asBoolean(row.has_open_job),
+    )
+  ) {
+    throw new AdminAccessError(
+      409,
+      "Bulk publish accepts only published articles with an open draft and no open publish job.",
+    );
+  }
+
+  const published = [];
+  for (const articleId of articleIds) {
+    const result = await publishAdminWikiDraft({
+      actor: input.actor,
+      articleId,
+      reason: input.reason,
+    });
+    if (result.mode !== "published") {
+      throw new AdminAccessError(500, "Wiki bulk publish returned an invalid mode.");
+    }
+    published.push({
+      articleId,
+      slug: result.slug,
+      previousSlug: result.previousSlug,
+    });
+  }
+  return { articleIds, count: published.length, published };
+}
+
 export async function unpublishAdminWikiArticle(input: {
   actor: VerifiedAdminActor;
   articleId: string;
