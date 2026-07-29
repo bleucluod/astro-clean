@@ -3941,13 +3941,19 @@ h6,
   color: #64748B !important;
 }
 
-a,
+a {
+  color: #3A4A5C;
+}
+
 .site-nav-links a,
 .site-nav-links .nav-link {
   color: #3A4A5C !important;
 }
 
-a:hover,
+a:hover {
+  color: #243447;
+}
+
 .site-nav-links a:hover,
 .site-nav-links .nav-link:hover,
 .site-nav-links a[aria-current="page"],

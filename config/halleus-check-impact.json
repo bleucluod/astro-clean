@@ -99,6 +99,7 @@
       "guards": [
         "check:public-discovery-architecture",
         "check:wiki-article-link-cta-visibility",
+        "check:sitewide-link-cta-contrast",
         "check:site-chrome-minimal-ui",
         "check:wiki-storage-public-read"
       ],
@@ -112,6 +113,7 @@
       "patterns": [
         "scripts/check-public-discovery-architecture.mjs",
         "scripts/check-wiki-article-link-cta-visibility.mjs",
+        "scripts/check-sitewide-link-cta-contrast.mjs",
         "scripts/check-wiki-contextual-internal-links.mjs",
         "scripts/check-wiki-contextual-publication-boundary.mjs",
         "scripts/check-site-chrome-minimal-ui.mjs"
@@ -119,6 +121,7 @@
       "guards": [
         "check:public-discovery-architecture",
         "check:wiki-article-link-cta-visibility",
+        "check:sitewide-link-cta-contrast",
         "check:wiki-contextual-internal-links",
         "check:wiki-contextual-publication-boundary",
         "check:site-chrome-minimal-ui"

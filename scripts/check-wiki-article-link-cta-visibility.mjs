@@ -64,11 +64,11 @@ requireText(
 requireText("Wiki article CTA", ctaRule, "color: #ffffff;");
 requireText("Wiki article CTA", ctaRule, "background: #1e3a8a;");
 requireText("Wiki article CTA", ctaRule, "font-weight: 600;");
-requireText("Wiki article CTA scoped cascade", scopedCtaRule, "color: #ffffff;");
-requireText("Wiki article CTA visited", ctaVisitedRule, "color: #ffffff;");
-requireText("Wiki article CTA hover", ctaHoverRule, "color: #ffffff;");
+requireText("Wiki article CTA scoped cascade", scopedCtaRule, "color: #ffffff !important;");
+requireText("Wiki article CTA visited", ctaVisitedRule, "color: #ffffff !important;");
+requireText("Wiki article CTA hover", ctaHoverRule, "color: #ffffff !important;");
 requireText("Wiki article CTA hover", ctaHoverRule, "background: #1e40af;");
-requireText("Wiki article CTA focus", ctaFocusRule, "color: #ffffff;");
+requireText("Wiki article CTA focus", ctaFocusRule, "color: #ffffff !important;");
 requireText("Wiki article CTA focus", ctaFocusRule, "outline:");
 requireText("Wiki article CTA focus", ctaFocusRule, "outline-offset:");
 
