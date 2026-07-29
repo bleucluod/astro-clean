@@ -554,13 +554,22 @@
   font-weight: 600;
 }
 
-.wikiArticleCta:hover {
+.sideCard .wikiArticleCta {
+  color: #ffffff;
+}
+
+.sideCard .wikiArticleCta:visited {
+  color: #ffffff;
+}
+
+.sideCard .wikiArticleCta:hover {
   color: #ffffff;
   background: #1e40af;
   box-shadow: 0 14px 32px rgba(30, 64, 175, 0.3);
 }
 
-.wikiArticleCta:focus-visible {
+.sideCard .wikiArticleCta:focus-visible {
+  color: #ffffff;
   outline: 3px solid #60a5fa;
   outline-offset: 3px;
 }

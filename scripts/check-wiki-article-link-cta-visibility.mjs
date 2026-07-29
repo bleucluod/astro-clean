@@ -26,8 +26,10 @@ const inlineRule = ruleBody(".inlineArticleLink");
 const inlineHoverRule = ruleBody(".inlineArticleLink:hover");
 const inlineFocusRule = ruleBody(".inlineArticleLink:focus-visible");
 const ctaRule = ruleBody(".wikiArticleCta");
-const ctaHoverRule = ruleBody(".wikiArticleCta:hover");
-const ctaFocusRule = ruleBody(".wikiArticleCta:focus-visible");
+const scopedCtaRule = ruleBody(".sideCard .wikiArticleCta");
+const ctaVisitedRule = ruleBody(".sideCard .wikiArticleCta:visited");
+const ctaHoverRule = ruleBody(".sideCard .wikiArticleCta:hover");
+const ctaFocusRule = ruleBody(".sideCard .wikiArticleCta:focus-visible");
 
 requireText(
   "Wiki inline link renderer",
@@ -62,7 +64,11 @@ requireText(
 requireText("Wiki article CTA", ctaRule, "color: #ffffff;");
 requireText("Wiki article CTA", ctaRule, "background: #1e3a8a;");
 requireText("Wiki article CTA", ctaRule, "font-weight: 600;");
+requireText("Wiki article CTA scoped cascade", scopedCtaRule, "color: #ffffff;");
+requireText("Wiki article CTA visited", ctaVisitedRule, "color: #ffffff;");
+requireText("Wiki article CTA hover", ctaHoverRule, "color: #ffffff;");
 requireText("Wiki article CTA hover", ctaHoverRule, "background: #1e40af;");
+requireText("Wiki article CTA focus", ctaFocusRule, "color: #ffffff;");
 requireText("Wiki article CTA focus", ctaFocusRule, "outline:");
 requireText("Wiki article CTA focus", ctaFocusRule, "outline-offset:");
 
