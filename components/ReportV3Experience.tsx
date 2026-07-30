@@ -64,6 +64,35 @@ export function ReportV3Experience({ report }: ReportV3ExperienceProps) {
         </div>
       ) : null}
 
+      {readingContract.themeChapters.length > 0 ? (
+        <section
+          data-report-theme-chapters="seven-topic-chapters"
+          style={{ display: "grid", gap: "1rem", marginTop: "1.5rem" }}
+        >
+          <div className="report-section-heading">
+            <span className="section-label">فصل‌های موضوعی</span>
+            <h3>هفت مسیر برای خواندن این چارت</h3>
+            <p>لازم نیست همه فصل‌ها را یک‌باره بخوانی؛ از موضوعی شروع کن که به تجربه این روزهایت نزدیک‌تر است.</p>
+          </div>
+          <div className="report-reading-section-list">
+            {readingContract.themeChapters.map((chapter) => (
+              <article
+                className="mini-card report-reading-section-card"
+                key={chapter.id}
+              >
+                <h4>{chapter.title}</h4>
+                {chapter.paragraphs.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+                {chapter.reflection ? (
+                  <p className="form-hint">برای مکث: {chapter.reflection}</p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <p className="form-hint" style={{ marginTop: "1.25rem" }}>
         {enhancedReport.reportV3Disclaimer}
       </p>

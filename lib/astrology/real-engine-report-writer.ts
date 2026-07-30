@@ -725,6 +725,11 @@ export function enrichReportWithRealEngineCopy(
     chartSpine,
     synthesisPlan,
   );
+  const themeChapters = buildReportThemeChapters(
+    realEngineWithAspects,
+    chartSpine,
+    synthesisPlan,
+  );
   const sectionEvidence = buildRealEngineSectionEvidence({
     sun,
     moon,
@@ -774,6 +779,7 @@ export function enrichReportWithRealEngineCopy(
     marsAspectText,
     firstSynthesisText,
     integrationText,
+    themeChapters,
     ...sectionEvidence,
   }).map(sanitizeReportOutputSection);
 
@@ -890,6 +896,7 @@ type RealEngineSectionTextInput = {
   marsAspectText?: string;
   firstSynthesisText: string;
   integrationText: string;
+  themeChapters?: ReportOutputSection[];
   identityEvidence?: string;
   emotionalEvidence?: string;
   relationshipEvidence?: string;
@@ -2255,6 +2262,271 @@ export function buildWholeChartSynthesisThread(
         typeof part === "string" && part.trim().length > 0,
     )
     .join(" ");
+}
+
+export function buildReportThemeChapters(
+  realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
+  synthesisPlan: RealEngineSynthesisPlan,
+): ReportOutputSection[] {
+  const sun = findPlacement(realEngine, "sun");
+  const moon = findPlacement(realEngine, "moon");
+  const mercury = findPlacement(realEngine, "mercury");
+  const venus = findPlacement(realEngine, "venus");
+  const mars = findPlacement(realEngine, "mars");
+  const sunReading = sun
+    ? buildPlacementInterpretation("sun", sun, realEngine)
+    : undefined;
+  const moonReading = moon
+    ? buildPlacementInterpretation("moon", moon, realEngine)
+    : undefined;
+  const mercuryReading = mercury
+    ? buildPlacementInterpretation("mercury", mercury, realEngine)
+    : undefined;
+  const venusReading = venus
+    ? buildPlacementInterpretation("venus", venus, realEngine)
+    : undefined;
+  const marsReading = mars
+    ? buildPlacementInterpretation("mars", mars, realEngine)
+    : undefined;
+  const rising = SIGN_COPY[chartSpine.risingSign];
+  const chartRulerLabel = getPlanetLabel(chartSpine.chartRulerId);
+  const focusHouse =
+    synthesisPlan.primaryHouseNumber ??
+    chartSpine.activeHouses[0]?.house.number;
+  const focusField = isReportHouseNumber(focusHouse)
+    ? HOUSE_SYNTHESIS_FIELD[focusHouse]
+    : "میدان‌های فعال چارت";
+  const primaryChallenge =
+    synthesisPlan.primaryChallenge ?? synthesisPlan.primaryRelationship;
+  const support = synthesisPlan.primarySupport ?? synthesisPlan.dailyBridge;
+
+  const placementEvidence = (
+    placement: RealEngineReportPlacement | undefined,
+    planetId: string,
+  ) =>
+    placement
+      ? `${getPlanetLabel(planetId)} در ${formatSignHouseLabel(placement)}`
+      : `${getPlanetLabel(planetId)} بدون جایگاه کامل ذخیره‌شده`;
+  const sentence = (value: string) =>
+    /[.؟!]$/u.test(value.trim()) ? value.trim() : `${value.trim()}.`;
+  const placementChapter = ({
+    id,
+    title,
+    kind,
+    placement,
+    planetId,
+    reading,
+    fallback,
+    reflection,
+  }: {
+    id: string;
+    title: string;
+    kind: string;
+    placement: RealEngineReportPlacement | undefined;
+    planetId: string;
+    reading: ReturnType<typeof buildPlacementInterpretation>;
+    fallback: string;
+    reflection: string;
+  }): ReportOutputSection => ({
+    id,
+    title,
+    kind,
+    body: buildStructuredSectionBody({
+      opening: reading
+        ? sentence(`ممکن است ${reading.dailyLifeExample}`)
+        : fallback,
+      body: reading
+        ? [
+            sentence(`وقتی این بخش خوب کار می‌کند، ${reading.healthyExpression}`),
+            sentence(`زیر فشار، ${reading.possibleFriction}`),
+            `پشتوانه اصلی: ${placementEvidence(placement, planetId)}.`,
+          ].join("\n\n")
+        : `پشتوانه اصلی: ${placementEvidence(placement, planetId)}؛ هیچ نشان یا خانه‌ای برای دادهٔ غایب حدس زده نمی‌شود.`,
+      reflection,
+    }),
+  });
+
+  const relationshipFriction = primaryChallenge
+    ? `اصطکاک محتمل: گفت‌وگوی ${getPlanetLabel(
+        primaryChallenge.firstPlanetId,
+      )} و ${getPlanetLabel(
+        primaryChallenge.secondPlanetId,
+      )} می‌تواند میان ${getPersonalOpeningPlanetNeed(
+        primaryChallenge.firstPlanetId,
+      )} و ${getPersonalOpeningPlanetNeed(
+        primaryChallenge.secondPlanetId,
+      )} کشش بسازد؛ مسئله حذف یکی از این دو نیاز نیست، بلکه نام‌گذاری هر دو است.`
+    : "اصطکاک محتمل: در دادهٔ انتخاب‌شده رابطهٔ تنشی محوری ثبت نشده است؛ بنابراین این فصل از ساختن کشمکش فرضی خودداری می‌کند.";
+  const relationshipRepair = support
+    ? `ترمیم و همکاری: همکاری ${getPlanetLabel(
+        support.firstPlanetId,
+      )} و ${getPlanetLabel(
+        support.secondPlanetId,
+      )} یادآوری می‌کند که ${getPersonalOpeningPlanetNeed(
+        support.firstPlanetId,
+      )} و ${getPersonalOpeningPlanetNeed(
+        support.secondPlanetId,
+      )} می‌توانند به جای رقابت، مسیر بازگشت به گفت‌وگو را بسازند.`
+    : "ترمیم و همکاری: یک نیاز را زودتر نام ببر، یک مرز روشن بگو و پیش از نتیجه‌گیری از طرف مقابل سؤال مستقیم بپرس.";
+  const recurringEvidence = primaryChallenge
+    ? `الگوی منتخب ${getPlanetLabel(
+        primaryChallenge.firstPlanetId,
+      )} و ${getPlanetLabel(primaryChallenge.secondPlanetId)}`
+    : synthesisPlan.narrativeProfile.primaryCluster
+      ? `خوشهٔ ${joinPersianList(
+          synthesisPlan.narrativeProfile.primaryCluster.placementIds.map(
+            getPlanetLabel,
+          ),
+        )}`
+      : "ریتم غالب چارت";
+  const recurringBody = primaryChallenge
+    ? `ممکن است موقعیت‌های متفاوت بارها همان پرسش را برگردانند: چطور ${getPersonalOpeningPlanetNeed(
+        primaryChallenge.firstPlanetId,
+      )} را در کنار ${getPersonalOpeningPlanetNeed(
+        primaryChallenge.secondPlanetId,
+      )} نگه داری، بدون اینکه یکی برای آرام کردن دیگری حذف شود.`
+    : "ممکن است تکرار اصلی بیشتر از یک کشمکش واحد، در شیوه آغاز، ادامه دادن یا تغییر مسیر دیده شود.";
+
+  return [
+    {
+      id: "real-engine-theme-signature",
+      title: "امضای کلی چارت",
+      kind: "overview",
+      body: buildStructuredSectionBody({
+        opening: `ممکن است از بیرون کیفیت ${rising.energy} زودتر دیده شود، در حالی که تصمیم‌های مهم برای ${getPersonalOpeningPlanetNeed(
+          chartSpine.chartRulerId,
+        )} به ریتم شخصی‌تری نیاز دارند.`,
+        body: [
+          `سیارهٔ راهبر این چارت ${chartRulerLabel} است و میدان ${focusField} یکی از جاهایی است که این امضا بیشتر به تجربهٔ واقعی وصل می‌شود.`,
+          `پشتوانه اصلی: رایزینگ ${rising.faName} و ${
+            chartSpine.chartRulerPlacement
+              ? `${chartRulerLabel} در ${formatSignHouseLabel(
+                  chartSpine.chartRulerPlacement,
+                )}`
+              : `${chartRulerLabel} به‌عنوان سیارهٔ راهبر`
+          }.`,
+        ].join("\n\n"),
+        reflection:
+          "در یک تصمیم تازه، کدام کیفیت زودتر دیده می‌شود و کدام نیاز پشت‌صحنه جهت را تعیین می‌کند؟",
+      }),
+    },
+    placementChapter({
+      id: "real-engine-theme-mind-language",
+      title: "ذهن و زبان",
+      kind: "identity",
+      placement: mercury,
+      planetId: "mercury",
+      reading: mercuryReading,
+      fallback:
+        "دادهٔ فعلی برای ساختن یک خوانش کامل از ذهن و زبان کافی نیست و هالیوس جایگاه عطارد را حدس نمی‌زند.",
+      reflection:
+        "وقتی چیزی مبهم می‌شود، چه جمله‌ای می‌تواند فکر را کوتاه‌تر، روشن‌تر و قابل‌گفت‌وگو کند؟",
+    }),
+    placementChapter({
+      id: "real-engine-theme-emotional-security",
+      title: "احساسات و امنیت درونی",
+      kind: "emotional-pattern",
+      placement: moon,
+      planetId: "moon",
+      reading: moonReading,
+      fallback:
+        "دادهٔ فعلی برای ساختن یک خوانش کامل از امنیت درونی کافی نیست و هالیوس جایگاه ماه را حدس نمی‌زند.",
+      reflection:
+        "پیش از واکنش بعدی، نام احساس، نیاز بدنی و درخواست روشن تو چیست؟",
+    }),
+    {
+      id: "real-engine-theme-relationship-style",
+      title: "رابطه و صمیمیت",
+      kind: "relationships",
+      body: buildStructuredSectionBody({
+        opening:
+          "این فصل سبک رابطه را در یک چارت می‌خواند؛ دربارهٔ فرد دیگری، سازگاری دو نفر یا نتیجهٔ قطعی یک رابطه ادعایی نمی‌کند.",
+        body: [
+          `نزدیک‌شدن: ${
+            venusReading?.dailyLifeExample ??
+            "جایگاه کامل زهره در دادهٔ ذخیره‌شده حاضر نیست، پس شیوه نزدیک‌شدن حدس زده نمی‌شود"
+          }.`,
+          `امنیت: ${
+            moonReading?.healthyExpression ??
+            "برای امنیت عاطفی فقط داده‌های موجود ماه معتبرند و جزئیات غایب ساخته نمی‌شوند"
+          }.`,
+          `گفت‌وگو: ${
+            mercuryReading?.healthyExpression ??
+            "سبک گفت‌وگو بدون جایگاه معتبر عطارد به یک توصیه عمومی محدود می‌ماند"
+          }.`,
+          `مرز: ${
+            marsReading?.healthyExpression ??
+            "مرزبندی بدون جایگاه معتبر مریخ به‌صورت شخصی‌سازی‌شده تفسیر نمی‌شود"
+          }.`,
+          `استقلال: کیفیت ${rising.energy} در ورود به رابطه دیده می‌شود و سیارهٔ راهبر برای ${getPersonalOpeningPlanetNeed(
+            chartSpine.chartRulerId,
+          )} به فضای کافی نیاز دارد.`,
+          `ریتم صمیمیت: زهره برای ${getPersonalOpeningPlanetNeed(
+            "venus",
+          )} و ماه برای ${getPersonalOpeningPlanetNeed(
+            "moon",
+          )} باید هم‌زمان شنیده شوند؛ نزدیکی وقتی پایدارتر است که لذت و امنیت جای یکدیگر را نگیرند.`,
+          relationshipFriction,
+          relationshipRepair,
+          `پشتوانه اصلی: ${placementEvidence(venus, "venus")}; شواهد همراه از ${placementEvidence(
+            moon,
+            "moon",
+          )}، ${placementEvidence(mercury, "mercury")} و ${placementEvidence(
+            mars,
+            "mars",
+          )} می‌آیند.`,
+        ].join("\n\n"),
+        reflection:
+          "در یک رابطهٔ واقعی، کدام نیاز را زودتر می‌گویی و کدام مرز یا درخواست را معمولاً دیرتر روشن می‌کنی؟",
+      }),
+    },
+    placementChapter({
+      id: "real-engine-theme-will-action",
+      title: "اراده و حرکت",
+      kind: "growth",
+      placement: mars,
+      planetId: "mars",
+      reading: marsReading,
+      fallback:
+        "دادهٔ فعلی برای ساختن یک خوانش کامل از اراده و حرکت کافی نیست و هالیوس جایگاه مریخ را حدس نمی‌زند.",
+      reflection:
+        "کوچک‌ترین اقدام روشن و بدون خشونتی که خواسته را قابل مشاهده می‌کند چیست؟",
+    }),
+    placementChapter({
+      id: "real-engine-theme-direction-path",
+      title: "جهت و مسیر",
+      kind: "career",
+      placement: sun,
+      planetId: "sun",
+      reading: sunReading,
+      fallback:
+        "دادهٔ فعلی برای ساختن یک خوانش کامل از جهت و مسیر کافی نیست و هالیوس جایگاه خورشید را حدس نمی‌زند.",
+      reflection:
+        "کدام انتخاب کوچک بیشتر امضای خودت را دارد، حتی اگر هنوز نتیجهٔ کاملش معلوم نباشد؟",
+    }),
+    {
+      id: "real-engine-theme-recurring-patterns",
+      title: "الگوهای تکرارشونده",
+      kind: "growth",
+      body: buildStructuredSectionBody({
+        opening: recurringBody,
+        body: [
+          support
+            ? `راه خروج از تکرار فقط فشار بیشتر نیست؛ همکاری ${getPlanetLabel(
+                support.firstPlanetId,
+              )} و ${getPlanetLabel(
+                support.secondPlanetId,
+              )} یک منبع عملی برای تنظیم الگو می‌سازد.`
+            : "راه خروج از تکرار با مشاهدهٔ موقعیت، نام‌گذاری نیاز و انتخاب یک پاسخ کوچک و قابل برگشت شروع می‌شود.",
+          `این الگو بیشتر در میدان ${focusField} قابل مشاهده است و باید با نمونه‌های واقعی زندگی سنجیده شود.`,
+          `پشتوانه اصلی: ${recurringEvidence}.`,
+        ].join("\n\n"),
+        reflection:
+          "کدام موقعیت متفاوت در ظاهر، همان کشمکش یا عادت آشنا را دوباره فعال می‌کند؟",
+      }),
+    },
+  ];
 }
 
 function buildFirstSynthesisText(
@@ -3700,6 +3972,7 @@ export function buildRealEngineInterpretationSections(
         reflection: "کدام جمله از این خلاصه بیشتر شبیه تجربه واقعی توست و کدام بخش هنوز نیاز به زمان دارد؟",
       }),
     },
+    ...(input.themeChapters ?? []),
     {
       id: "real-engine-core-pattern",
       kind: "identity",

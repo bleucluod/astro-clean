@@ -1,0 +1,253 @@
+import fs from "node:fs";
+import path from "node:path";
+import Module, { createRequire } from "node:module";
+
+const repoRoot = process.cwd();
+const require = createRequire(import.meta.url);
+const ts = require("typescript");
+const originalResolveFilename = Module._resolveFilename;
+
+function resolveWithTypeScriptExtensions(candidate) {
+  const candidates = [
+    candidate,
+    `${candidate}.ts`,
+    `${candidate}.tsx`,
+    `${candidate}.js`,
+    path.join(candidate, "index.ts"),
+  ];
+  return candidates.find((option) => fs.existsSync(option)) ?? candidate;
+}
+
+Module._resolveFilename = function resolveHalleusAlias(
+  request,
+  parent,
+  isMain,
+  options,
+) {
+  if (typeof request === "string" && request.startsWith("@/")) {
+    return originalResolveFilename.call(
+      this,
+      resolveWithTypeScriptExtensions(
+        path.join(repoRoot, request.slice(2)),
+      ),
+      parent,
+      isMain,
+      options,
+    );
+  }
+  return originalResolveFilename.call(
+    this,
+    request,
+    parent,
+    isMain,
+    options,
+  );
+};
+
+require.extensions[".ts"] = function compileTypeScript(module, filename) {
+  const source = fs.readFileSync(filename, "utf8");
+  const transpiled = ts.transpileModule(source, {
+    fileName: filename,
+    compilerOptions: {
+      esModuleInterop: true,
+      module: ts.ModuleKind.CommonJS,
+      moduleResolution: ts.ModuleResolutionKind.Node10,
+      target: ts.ScriptTarget.ES2021,
+      strict: true,
+    },
+  });
+  module._compile(transpiled.outputText, filename);
+};
+
+const {
+  buildReportThemeChapters,
+} = require("../lib/astrology/real-engine-report-writer.ts");
+const {
+  buildRealEngineSynthesisPlan,
+} = require("../lib/astrology/real-engine-synthesis.ts");
+
+const failures = [];
+const assert = (condition, message) => {
+  if (!condition) failures.push(message);
+};
+
+function aspect(id, firstPlanetId, secondPlanetId, aspectId, orb) {
+  const angle =
+    aspectId === "opposition" ? 180 :
+    aspectId === "square" ? 90 :
+    aspectId === "trine" ? 120 :
+    aspectId === "sextile" ? 60 : 0;
+  return {
+    id,
+    firstPlanetId,
+    firstPlanetLabel: firstPlanetId,
+    secondPlanetId,
+    secondPlanetLabel: secondPlanetId,
+    aspectId,
+    aspectLabel: aspectId,
+    glyph: "*",
+    angle,
+    separation: angle + orb,
+    orb,
+    meaning: "fixture",
+    narrative: "fixture",
+  };
+}
+
+const placements = [
+  { id: "sun", label: "sun", longitude: 10, signId: "aries", degreeInSign: 10, house: 9, method: "fixture" },
+  { id: "moon", label: "moon", longitude: 130, signId: "leo", degreeInSign: 10, house: 1, method: "fixture" },
+  { id: "mercury", label: "mercury", longitude: 70, signId: "gemini", degreeInSign: 10, house: 11, method: "fixture" },
+  { id: "venus", label: "venus", longitude: 190, signId: "libra", degreeInSign: 10, house: 3, method: "fixture" },
+  { id: "mars", label: "mars", longitude: 100, signId: "cancer", degreeInSign: 10, house: 12, method: "fixture" },
+];
+const aspects = [
+  aspect("sun-opposition-venus", "sun", "venus", "opposition", 0.2),
+  aspect("moon-sextile-mercury", "moon", "mercury", "sextile", 0.1),
+  aspect("venus-square-mars", "venus", "mars", "square", 0.2),
+];
+const plan = buildRealEngineSynthesisPlan({
+  aspects,
+  placements,
+  chartRulerId: "sun",
+  activeHouseNumbers: [9, 1, 3, 12],
+});
+const chartSpine = {
+  risingSign: "leo",
+  ascendantDegreeInSign: 10,
+  chartRulerId: "sun",
+  chartRulerPlacement: placements[0],
+  chartRulerAspects: [],
+  activeHouses: [{ house: { number: 9 } }],
+  signClusters: [],
+  houseClusters: [],
+  centralAspects: aspects,
+};
+const chapters = buildReportThemeChapters(
+  {
+    placements,
+    aspectHighlights: aspects,
+    retrogrades: { status: "calculated", planetIds: [] },
+    behavioralAudienceMode: "adult",
+  },
+  chartSpine,
+  plan,
+);
+
+const expected = [
+  ["real-engine-theme-signature", "امضای کلی چارت"],
+  ["real-engine-theme-mind-language", "ذهن و زبان"],
+  ["real-engine-theme-emotional-security", "احساسات و امنیت درونی"],
+  ["real-engine-theme-relationship-style", "رابطه و صمیمیت"],
+  ["real-engine-theme-will-action", "اراده و حرکت"],
+  ["real-engine-theme-direction-path", "جهت و مسیر"],
+  ["real-engine-theme-recurring-patterns", "الگوهای تکرارشونده"],
+];
+assert(chapters.length === expected.length, `expected seven theme chapters, got ${chapters.length}`);
+assert(
+  chapters.map((chapter) => chapter.id).join("|") ===
+    expected.map(([id]) => id).join("|"),
+  "theme chapter order is not stable",
+);
+for (const [id, title] of expected) {
+  const chapter = chapters.find((item) => item.id === id);
+  assert(chapter?.title === title, `missing or mistitled chapter: ${id}`);
+  assert(
+    chapter?.body.includes("پشتوانه اصلی:"),
+    `chapter lacks primary evidence: ${id}`,
+  );
+}
+
+const relationship = chapters.find(
+  (chapter) => chapter.id === "real-engine-theme-relationship-style",
+)?.body ?? "";
+for (const dimension of [
+  "نزدیک‌شدن:",
+  "امنیت:",
+  "گفت‌وگو:",
+  "مرز:",
+  "استقلال:",
+  "ریتم صمیمیت:",
+  "اصطکاک محتمل:",
+  "ترمیم و همکاری:",
+]) {
+  assert(
+    relationship.includes(dimension),
+    `relationship chapter is missing dimension: ${dimension}`,
+  );
+}
+
+const allText = chapters.map((chapter) => chapter.body).join("\n");
+assert(!/اورب|درجه/u.test(allText), "main theme chapters expose orb/degree detail");
+assert(!/درصد سازگاری|سینستری|شخص دوم/u.test(allText), "single-chart chapter drifts into compatibility/synastry");
+
+const evidenceLines = chapters.map((chapter) =>
+  chapter.body.match(/پشتوانه اصلی:[^\n]+/u)?.[0] ?? "",
+);
+assert(
+  evidenceLines.every(Boolean),
+  "one or more chapters lack an evidence line",
+);
+assert(
+  new Set(evidenceLines).size === evidenceLines.length,
+  "primary evidence lines must remain distinct across chapters",
+);
+
+const writerSource = fs.readFileSync(
+  "lib/astrology/real-engine-report-writer.ts",
+  "utf8",
+);
+const contractSource = fs.readFileSync(
+  "lib/report-output/live-report-reading-contract.ts",
+  "utf8",
+);
+const componentSource = fs.readFileSync(
+  "components/ReportV3Experience.tsx",
+  "utf8",
+);
+const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+for (const marker of [
+  "buildReportThemeChapters",
+  "const themeChapters = buildReportThemeChapters(",
+  "themeChapters,",
+  "...(input.themeChapters ?? [])",
+]) {
+  assert(writerSource.includes(marker), `writer integration marker missing: ${marker}`);
+}
+for (const marker of [
+  "LiveReportThemeChapter",
+  "THEME_CHAPTER_IDS",
+  "themeChapters: getThemeChapters(sections)",
+]) {
+  assert(contractSource.includes(marker), `reading contract marker missing: ${marker}`);
+}
+for (const marker of [
+  "data-report-theme-chapters=\"seven-topic-chapters\"",
+  "readingContract.themeChapters.map",
+  "هفت مسیر برای خواندن این چارت",
+]) {
+  assert(componentSource.includes(marker), `component integration marker missing: ${marker}`);
+}
+assert(
+  pkg.scripts?.["check:report-theme-chapters"] ===
+    "node scripts/check-report-theme-chapters.mjs",
+  "package script for theme chapter guard is missing",
+);
+for (const aggregate of ["check:project", "check:reports"]) {
+  assert(
+    pkg.scripts?.[aggregate]?.includes("pnpm run check:report-theme-chapters"),
+    `${aggregate} does not include theme chapter guard`,
+  );
+}
+
+if (failures.length > 0) {
+  console.error("Report theme chapter check failed:");
+  for (const failure of failures) console.error(`- ${failure}`);
+  process.exit(1);
+}
+
+console.log("Report theme chapter check passed.");
+console.log("- seven topic chapters are ordered and data-backed");
+console.log("- relationship style covers eight single-chart dimensions");
+console.log("- primary evidence stays distinct and technical detail stays out");
+console.log("- live reading contract and summary card expose the chapters");

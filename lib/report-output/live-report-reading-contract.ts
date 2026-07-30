@@ -5,8 +5,16 @@ import type { ReportOutputSection } from "@/types/report-output";
 export const LIVE_REPORT_READING_CONTRACT_VERSION =
   "v0.1.320-live-report-reading-contract" as const;
 
+export type LiveReportThemeChapter = {
+  id: string;
+  title: string;
+  paragraphs: string[];
+  reflection?: string;
+};
+
 export type LiveReportReadingContract = {
   summarySentences: string[];
+  themeChapters: LiveReportThemeChapter[];
   guide: string;
   reflectionQuestions: string[];
   chartRulerParagraphs: string[];
@@ -26,6 +34,16 @@ const SECTION_IDS = {
   balance: "real-engine-balance",
   practices: "real-engine-personal-summary",
 } as const;
+
+const THEME_CHAPTER_IDS = [
+  "real-engine-theme-signature",
+  "real-engine-theme-mind-language",
+  "real-engine-theme-emotional-security",
+  "real-engine-theme-relationship-style",
+  "real-engine-theme-will-action",
+  "real-engine-theme-direction-path",
+  "real-engine-theme-recurring-patterns",
+] as const;
 
 const FALLBACK_SUMMARY_SENTENCES = [
   "این گزارش چند الگوی اصلی چارت را کنار هم می‌گذارد تا تصویر کلی روشن‌تر شود.",
@@ -115,6 +133,42 @@ function getInterpretiveParagraphs(section: ReportOutputSection | undefined) {
   }
 
   return output;
+}
+
+function getSectionReflection(
+  section: ReportOutputSection | undefined,
+): string | undefined {
+  if (!section) {
+    return undefined;
+  }
+
+  return splitParagraphs(section.body)
+    .find(isReflection)
+    ?.replace(/^برای تأمل:\s*/u, "")
+    .trim();
+}
+
+function getThemeChapters(
+  sections: ReportOutputSection[],
+): LiveReportThemeChapter[] {
+  return THEME_CHAPTER_IDS.flatMap((id) => {
+    const section = getSection(sections, id);
+    if (!section) {
+      return [];
+    }
+
+    const paragraphs = getInterpretiveParagraphs(section);
+    if (paragraphs.length === 0) {
+      return [];
+    }
+
+    return [{
+      id: section.id,
+      title: section.title,
+      paragraphs,
+      reflection: getSectionReflection(section),
+    }];
+  });
 }
 
 function getReflectionQuestions(sections: ReportOutputSection[]) {
@@ -303,6 +357,7 @@ export function buildLiveReportReadingContract(
 
   return {
     summarySentences,
+    themeChapters: getThemeChapters(sections),
     guide: getAudienceGuide(report),
     reflectionQuestions: getReflectionQuestions(sections).slice(0, 2),
     chartRulerParagraphs,
