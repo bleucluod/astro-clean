@@ -649,7 +649,12 @@ export function enrichReportWithRealEngineCopy(
 
   const sunText = buildCorePlacementText(sun, "sun", realEngineWithAspects);
   const moonText = buildCorePlacementText(moon, "moon", realEngineWithAspects);
-  const coreSynthesisText = buildCoreSynthesisThread(sun, moon, risingSign);
+  const coreSynthesisText = buildCoreSynthesisThread(
+    sun,
+    moon,
+    risingSign,
+    realEngineWithAspects,
+  );
   const risingText = buildRisingText(
     risingSign,
     chartSpine.ascendantDegreeInSign,
@@ -1179,16 +1184,21 @@ function buildNodeAxisSpinePhrase(
   ].filter((part): part is string => Boolean(part)).join(" ");
 }
 
-function buildChartRulerText(
+export function buildChartRulerText(
   chartSpine: ChartSpine,
   realEngine: RealEngineReportSnapshot,
 ): string | undefined {
   const rulerLabel = getPlanetLabel(chartSpine.chartRulerId);
   const risingLabel = formatSignLabel(SIGN_COPY[chartSpine.risingSign]);
   const placement = chartSpine.chartRulerPlacement;
+  const rulerNeed = getPersonalOpeningPlanetNeed(chartSpine.chartRulerId);
 
   if (!placement) {
-    return `با رایزینگ ${risingLabel}، حاکم سنتی چارت ${rulerLabel} است و روی ریتم شروع‌ها و انتخاب‌های روزمره وزن بیشتری دارد. جایگاه ${rulerLabel} در دادهٔ ذخیره‌شده حاضر نیست؛ بنابراین تفسیر خانه یا نشان به آن اضافه نمی‌شود.`;
+    return [
+      `ممکن است در شروع‌ها و انتخاب‌های مهم، نیاز به ${rulerNeed} را زودتر از بقیهٔ نیازها حس کنی، اما دادهٔ فعلی برای گفتن اینکه این نیرو دقیقاً در کدام میدان زندگی عمل می‌کند کافی نیست.`,
+      `این برداشت محدود از رایزینگ ${risingLabel} می‌آید؛ در این چارت ${rulerLabel} سیارهٔ راهبر است، اما جایگاه ذخیره‌شدهٔ آن حاضر نیست و هیچ نشان یا خانه‌ای برایش حدس زده نمی‌شود.`,
+      "برای دیدن این الگو در زندگی واقعی، فقط یک شروع یا تصمیم را ثبت کن و ببین پیش از حرکت، کدام نیاز می‌خواهد جهت را در دست بگیرد.",
+    ].join(" ");
   }
 
   const interpretation = buildPlacementBehavioralInterpretation({
@@ -1204,15 +1214,20 @@ function buildChartRulerText(
       realEngine.aspectHighlights,
     ),
   });
+  const focusField = isReportHouseNumber(placement.house)
+    ? HOUSE_SYNTHESIS_FIELD[placement.house]
+    : "شروع‌ها و انتخاب‌های روزمره";
+  const placementSign = SIGN_COPY[placement.signId];
 
   return [
-    `با رایزینگ ${risingLabel}، حاکم سنتی چارت ${rulerLabel} است و روی ریتم شروع‌ها و انتخاب‌های روزمره وزن بیشتری دارد.`,
-    `${rulerLabel} در ${formatPlacementWithHouse(placement)} قرار دارد؛ ${interpretation.plainMeaning}.`,
-    `توان این جایگاه ${interpretation.healthyExpression} است؛ تمرین خانه‌اش: ${interpretation.smallExperiment}.`,
+    `ممکن است هنگام شروع یا تصمیم‌گیری، در میدان ${focusField} خیلی زود تلاش کنی ${rulerNeed} را با ریتم ${placementSign.energy} جلو ببری.`,
+    `زیر فشار، ممکن است ${interpretation.possibleFriction} پررنگ‌تر شود؛ در شکل سالم‌تر، ${interpretation.healthyExpression} راه حرکت را قابل‌اعتمادتر می‌کند.`,
+    `این الگو از ${rulerLabel} در ${formatPlacementWithHouse(placement)} می‌آید؛ چون رایزینگ ${risingLabel} است، ${rulerLabel} سیارهٔ راهبر چارت و یکی از مسیرهای اصلی بیرونی شدن انتخاب‌هاست.`,
+    `برای دیدن این الگو در زندگی واقعی، ${interpretation.smallExperiment}.`,
   ].join(" ");
 }
 
-function buildActiveHousesText(chartSpine: ChartSpine): string | undefined {
+export function buildActiveHousesText(chartSpine: ChartSpine): string | undefined {
   if (chartSpine.activeHouses.length === 0) {
     return undefined;
   }
@@ -1233,20 +1248,23 @@ function buildChartSpineActiveHouseNarrative(
   const copy = HOUSE_COPY[houseNumber];
   const houseLabel = toPersianNumber(houseNumber);
   const reasonText = buildHouseEmphasisReasonText(activeHouse);
+  const focusField = HOUSE_SYNTHESIS_FIELD[houseNumber];
   const specialTheme = buildSpecialActiveHouseNarrative(houseNumber);
-  const themeText =
-    specialTheme ??
-    (copy
-      ? `موضوع ${copy.field} در این خانه دیده می‌شود. توان آن ${copy.gift} است و تمرینش ${copy.growth}.`
-      : "این میدان زندگی به‌دلیل شواهد محاسبه‌شده وزن بیشتری گرفته است.");
+  const livedExperience = `ممکن است موضوع ${focusField} بیشتر از بعضی میدان‌های دیگر به تصمیم‌ها، رابطه‌ها یا واکنش‌های روزمره‌ات برگردد.`;
+  const meaningText = specialTheme
+    ? specialTheme
+    : copy
+      ? `در شکل سازنده، ${copy.gift} می‌تواند از این میدان بیرون بیاید؛ تمرینش ${copy.growth}.`
+      : "این میدان زندگی به‌دلیل شواهد محاسبه‌شده وزن بیشتری گرفته و بهتر است با نمونه‌های واقعی سنجیده شود.";
+  const reflection =
+    HOUSE_REFLECTIONS[houseNumber] ??
+    "این میدان زندگی الان چه تمرین کوچک و واقعی می‌خواهد؟";
 
   return [
-    reasonText,
-    themeText,
-    `پرسش خانه ${houseLabel}: ${
-      HOUSE_REFLECTIONS[houseNumber] ??
-      "این میدان زندگی الان چه تمرین کوچک و واقعی می‌خواهد؟"
-    }`,
+    livedExperience,
+    meaningText,
+    `این تأکید از خود چارت می‌آید: ${trimSentenceEnd(reasonText)}.`,
+    `برای دیدن خانه ${houseLabel} در زندگی واقعی، ${reflection}`,
   ]
     .filter(
       (part): part is string =>
@@ -1357,23 +1375,23 @@ function buildSpecialActiveHouseNarrative(
   houseNumber: ReportHouseNumber,
 ): string | undefined {
   if (houseNumber === 6) {
-    return "موضوع کار روزمره، بدن، مهارت و روتین در این میدان دیده می‌شود. تمرینش ساده‌تر کردن یک عادت و تبدیل نیت خوب به مراقبت عملی است.";
+    return "در شکل سازنده، این تأکید می‌تواند نیت خوب را به مراقبت عملی تبدیل کند؛ زیر فشار، خطرش این است که اصلاح به سخت‌گیری با خودت تبدیل شود.";
   }
 
   if (houseNumber === 8) {
-    return "موضوع اعتماد، صمیمیت، منابع مشترک و تغییر عمیق در این میدان دیده می‌شود. تمرینش ساختن اعتماد تدریجی، گفتن احساس پیش از واکنش و نگه داشتن مرز امن است.";
+    return "در شکل سازنده، این تأکید می‌تواند صمیمیت و اعتماد را عمیق‌تر کند؛ زیر فشار، کنترل یا آزمودن پنهانی دیگری ممکن است جای گفت‌وگوی روشن را بگیرد.";
   }
 
   if (houseNumber === 2) {
-    return "موضوع ارزش شخصی، بدن، پول و امنیت در این میدان دیده می‌شود. تمرینش ساختن ثبات از انتخاب‌های کوچک و بیان روشن یک خواسته است.";
+    return "در شکل سازنده، این تأکید می‌تواند ثبات و ارزش شخصی را از انتخاب‌های واقعی بسازد؛ زیر فشار، ترس از دست دادن امنیت ممکن است خواستهٔ واقعی را عقب بیندازد.";
   }
 
   if (houseNumber === 5) {
-    return "موضوع عشق، خلاقیت، بازی و بیان شخصی در این میدان دیده می‌شود. تمرینش تمام کردن و قابل مشاهده کردن یک بیان کوچک و صادقانه است.";
+    return "در شکل سازنده، این تأکید می‌تواند به بیان صادقانه و خلاقیت جان بدهد؛ زیر فشار، نیاز به تأیید ممکن است لذت خودِ تجربه را کم‌رنگ کند.";
   }
 
   if (houseNumber === 10) {
-    return "موضوع مسیر اجتماعی، اعتبار و مسئولیت بیرونی در این میدان دیده می‌شود. تمرینش تبدیل جهت بلندمدت به یک قدم قابل ادامه است.";
+    return "در شکل سازنده، این تأکید می‌تواند جهت بلندمدت را به مسئولیتی قابل ادامه تبدیل کند؛ زیر فشار، نقش بیرونی ممکن است بیشتر از نیاز شخصی وزن بگیرد.";
   }
 
   return undefined;
@@ -1390,12 +1408,43 @@ export function buildChartBalanceText(
   const elementInterpretation = buildElementBalanceInterpretation(balance);
   const modalityInterpretation = buildModalityBalanceInterpretation(balance);
   const expressionInterpretation = buildExpressionBalanceInterpretation(balance);
+  const evidenceParts = [
+    balance.dominantElement
+      ? `عنصر غالب ${ELEMENT_LABELS[balance.dominantElement]}`
+      : undefined,
+    balance.dominantModality
+      ? `کیفیت غالب ${MODALITY_LABELS[balance.dominantModality]}`
+      : undefined,
+    balance.dominantExpression === "active"
+      ? "ریتم بیان فعال"
+      : balance.dominantExpression === "receptive"
+        ? "ریتم بیان پذیرا"
+        : undefined,
+  ].filter((part): part is string => Boolean(part));
+  const dominantEvidence = [
+    balance.dominantElement
+      ? `${ELEMENT_LABELS[balance.dominantElement]} پررنگ‌تر است`
+      : "عنصرها در این چارت توازن نسبی دارند",
+    balance.dominantModality
+      ? `کیفیت ${MODALITY_LABELS[balance.dominantModality]} پررنگ‌تر است`
+      : "کیفیت‌های آغازگر، پایدار و انعطاف‌پذیر توازن نسبی دارند",
+    balance.dominantExpression === "active"
+      ? "ریتم فعال پررنگ‌تر است"
+      : balance.dominantExpression === "receptive"
+        ? "ریتم پذیرا پررنگ‌تر است"
+        : "ریتم فعال و پذیرا در این چارت توازن نسبی دارند",
+  ];
+  const evidenceSentence = evidenceParts.length > 0
+    ? `این برداشت از کنار هم گذاشتن ${joinPersianList(evidenceParts)} در جایگاه‌های اصلی چارت به دست آمده است: ${dominantEvidence.join("؛ ")}؛ کم‌حضور بودن یک کیفیت به معنی نقص یا ناتوانی نیست.`
+    : `این برداشت از توزیع نسبتاً متعادل عنصرها، کیفیت‌ها و شیوهٔ بیان انرژی در جایگاه‌های اصلی چارت به دست آمده است: ${dominantEvidence.join("؛ ")}.`;
+  const observation = buildBalanceObservation(balance);
 
   return [
     elementInterpretation,
     modalityInterpretation,
     expressionInterpretation,
-    "این ترکیب حکم قطعی درباره شخصیت نیست؛ نشان می‌دهد کدام مسیرها خودبه‌خود در دسترس‌ترند و کدام مسیرها با تمرین آگاهانه بهتر به تعادل می‌رسند.",
+    evidenceSentence,
+    observation,
   ]
     .filter((part): part is string => Boolean(part))
     .join(" ");
@@ -1404,76 +1453,75 @@ export function buildChartBalanceText(
 function buildElementBalanceInterpretation(
   balance: RealEngineChartBalanceProfile,
 ): string {
-  const notes: string[] = [];
+  const experience = balance.dominantElement === "air"
+    ? "ممکن است پیش از آنکه یک تجربه را در بدن یا عمل حس کنی، اول آن را در ذهنت باز کنی و از چند زاویه ببینی."
+    : balance.dominantElement === "fire"
+      ? "ممکن است شروع کردن و روشن کردن موج اول حرکت برایت طبیعی‌تر از آهسته ادامه دادن و نگه داشتن همان انرژی باشد."
+      : balance.dominantElement === "earth"
+        ? "ممکن است وقتی چیزی قابل لمس، قابل اندازه‌گیری یا قابل اتکا نیست، دیرتر به آن اعتماد کنی و برای حرکت به نشانه‌ای واقعی نیاز داشته باشی."
+        : balance.dominantElement === "water"
+          ? "ممکن است حال‌وهوای فضا و آدم‌ها را پیش از آنکه چیزی مستقیم گفته شود دریافت کنی و برای جدا کردن حس خودت از دیگری به زمان نیاز داشته باشی."
+          : "ممکن است بسته به موقعیت، گاهی از فکر، گاهی از احساس و گاهی از عمل وارد تجربه شوی و یک مسیر ثابت همیشه جلوتر نباشد.";
+  const lowElement = balance.zeroElements[0] ?? balance.lowElements[0];
+  const practice = lowElement === "water"
+    ? "کم‌حضور بودن آب به معنی بی‌احساسی نیست؛ نام‌گذاری و بیان مستقیم احساس ممکن است به تمرین آگاهانه‌تری نیاز داشته باشد"
+    : lowElement === "earth"
+      ? "کم‌حضور بودن زمین یعنی توجه به بدن، روتین و پیگیری آرام ممکن است به ساختن عمدی‌تری نیاز داشته باشد"
+      : lowElement === "air"
+        ? "کم‌حضور بودن هوا یعنی فاصله گرفتن و دیدن چند زاویه ممکن است به مکث آگاهانه‌تری نیاز داشته باشد"
+        : lowElement === "fire"
+          ? "کم‌حضور بودن آتش یعنی آغاز، ریسک سنجیده و ابراز مستقیم خواسته ممکن است در قدم‌های کوچک آسان‌تر ساخته شود"
+          : undefined;
 
-  if (balance.dominantElement === "air") {
-    notes.push("در امضای عنصری این چارت، هوا پررنگ‌تر است: ذهن، تحلیل و فاصله گرفتن برای دیدن الگوها سریع‌تر در دسترس قرار می‌گیرد؛ تعادل از برگشتن به بدن، زمان‌بندی و یک اقدام مشخص می‌آید.");
-  } else if (balance.dominantElement === "fire") {
-    notes.push("در امضای عنصری این چارت، آتش پررنگ‌تر است: حرکت، شوق و شروع کردن طبیعی‌تر جریان می‌گیرد؛ تعادل از مکث، پیگیری و نسوزاندن انرژی در موج اول می‌آید.");
-  } else if (balance.dominantElement === "earth") {
-    notes.push("در امضای عنصری این چارت، زمین پررنگ‌تر است: ثبات، واقع‌بینی و ساختن تکیه‌گاه اصلی‌اند؛ تعادل از انعطاف و جا دادن تجربه‌های هنوز ناتمام می‌آید.");
-  } else if (balance.dominantElement === "water") {
-    notes.push("در امضای عنصری این چارت، آب پررنگ‌تر است: دریافت عاطفی، همدلی و حافظه زودتر فعال می‌شوند؛ تعادل از مرز روشن و تبدیل حس به درخواست قابل گفت‌وگو می‌آید.");
-  }
-
-  if (balance.zeroElements.includes("water")) {
-    notes.push("کم‌حضور بودن آب به معنی بی‌احساسی نیست؛ نام‌گذاری و بیان مستقیم احساس مسیری است که باید آگاهانه‌تر تمرین شود.");
-  }
-  if (balance.zeroElements.includes("earth")) {
-    notes.push("کم‌حضور بودن زمین یعنی روتین، توجه به بدن و پیگیری آرام بهتر است عمداً وارد زندگی روزمره شوند.");
-  }
-  if (balance.zeroElements.includes("air")) {
-    notes.push("کم‌حضور بودن هوا یعنی فاصله گرفتن، نام‌گذاری و دیدن چند زاویه ممکن است به تمرین بیشتری نیاز داشته باشد.");
-  }
-  if (balance.zeroElements.includes("fire")) {
-    notes.push("کم‌حضور بودن آتش یعنی آغاز، ریسک سنجیده و ابراز مستقیم خواسته بهتر است در قدم‌های کوچک تمرین شود.");
-  }
-
-  return notes.length > 0
-    ? notes.join(" ")
-    : "عنصرها در این چارت توازن نسبی دارند؛ به‌جای یک مسیر غالب، موقعیت، خانه‌های فعال و سیاره راهبر تعیین می‌کنند کدام کیفیت جلوتر بیاید.";
+  return practice ? `${experience} در سوی کم‌حضورتر این ترکیب، ${practice}.` : experience;
 }
 
 function buildModalityBalanceInterpretation(
   balance: RealEngineChartBalanceProfile,
 ): string {
-  const notes: string[] = [];
-
   if (balance.dominantModality === "fixed") {
-    notes.push("در ریتم حرکت این چارت، کیفیت پایدار پررنگ‌تر است: ماندن، تمرکز و حفظ مسیر نقطه قوت‌اند؛ تعادل از تغییر تدریجی و رها کردن کنترل کامل می‌آید.");
-  } else if (balance.dominantModality === "cardinal") {
-    notes.push("در ریتم حرکت این چارت، کیفیت آغازگر پررنگ‌تر است: شروع و تصمیم زودتر فعال می‌شوند؛ تعادل از ادامه دادن بعد از موج اول حرکت می‌آید.");
-  } else if (balance.dominantModality === "mutable") {
-    notes.push("در ریتم حرکت این چارت، کیفیت انعطاف‌پذیر پررنگ‌تر است: سازگاری و تغییر مسیر آسان‌ترند؛ تعادل از انتخاب یک جهت و نگه داشتن آن تا نتیجه می‌آید.");
+    return "وقتی تصمیمی می‌گیری، ماندن و حفظ مسیر می‌تواند نقطهٔ قوتت باشد؛ بخش دشوارتر ممکن است تشخیص لحظه‌ای باشد که ادامه دادن دیگر با نیاز واقعی تو هماهنگ نیست.";
   }
 
-  if (balance.zeroModalities.includes("mutable")) {
-    notes.push("کم‌حضور بودن کیفیت انعطاف‌پذیر یعنی تغییر مسیر به زمان، دلیل روشن و آزمایش تدریجی نیاز دارد.");
-  }
-  if (balance.zeroModalities.includes("fixed")) {
-    notes.push("کم‌حضور بودن کیفیت پایدار یعنی نگه داشتن ریتم و تمام کردن کارها باید آگاهانه‌تر ساخته شود.");
-  }
-  if (balance.zeroModalities.includes("cardinal")) {
-    notes.push("کم‌حضور بودن کیفیت آغازگر یعنی شروع کردن و اعلام تصمیم ممکن است به محرک بیرونی یا زمان بیشتر نیاز داشته باشد.");
+  if (balance.dominantModality === "cardinal") {
+    return "ممکن است در شروع‌ها سریع‌تر از دیگران جهت بگیری، اما ارزش واقعی این ریتم زمانی دیده می‌شود که بعد از موج اول هم چیزی را ادامه بدهی.";
   }
 
-  return notes.length > 0
-    ? notes.join(" ")
-    : "کیفیت‌های آغازگر، پایدار و انعطاف‌پذیر توازن نسبی دارند؛ بنابراین نوع حرکت با موضوع و موقعیت تغییر می‌کند، نه با یک ریتم ثابت.";
+  if (balance.dominantModality === "mutable") {
+    return "ممکن است تغییر مسیر و سازگار شدن برایت آسان‌تر باشد، اما گاهی همین انعطاف تصمیم نهایی یا تمام کردن یک مسیر را عقب بیندازد.";
+  }
+
+  return "ریتم حرکتت احتمالاً با موضوع تغییر می‌کند؛ بعضی جاها شروع می‌کنی، بعضی جاها می‌مانی و بعضی جاها زودتر مسیر را تنظیم می‌کنی.";
 }
 
 function buildExpressionBalanceInterpretation(
   balance: RealEngineChartBalanceProfile,
 ): string {
   if (balance.dominantExpression === "active") {
-    return "در شیوه بیان انرژی، ریتم فعال پررنگ‌تر است؛ تجربه بیشتر از راه اقدام، گفتن و اثر گذاشتن روشن می‌شود. مکث و دریافت پیش از پاسخ، تعادل این ریتم را کامل‌تر می‌کند.";
+    return "ممکن است تجربه‌ات زمانی روشن‌تر شود که آن را به اقدام، گفتن یا اثر گذاشتن تبدیل کنی؛ مکث پیش از پاسخ کمک می‌کند حرکت فقط واکنش لحظه‌ای نباشد.";
   }
 
   if (balance.dominantExpression === "receptive") {
-    return "در شیوه بیان انرژی، ریتم پذیرا پررنگ‌تر است؛ تجربه ابتدا از راه مشاهده، جذب و پردازش درونی شکل می‌گیرد. بیان مستقیم خواسته و اقدام به‌موقع، تعادل این ریتم را کامل‌تر می‌کند.";
+    return "ممکن است ابتدا مشاهده کنی، فضا را جذب کنی و بعد به نتیجه برسی؛ بیان مستقیم خواسته کمک می‌کند پردازش درونی به فاصله یا سکوت ناخواسته تبدیل نشود.";
   }
 
-  return "ریتم فعال و پذیرا در این چارت توازن نسبی دارند؛ توان اقدام و اثرگذاری می‌تواند در کنار مکث، مشاهده و دریافت به کار گرفته شود.";
+  return "می‌توانی میان اقدام و دریافت جابه‌جا شوی؛ مسئله بیشتر این است که در هر موقعیت تشخیص بدهی کدام ریتم واقعاً لازم است.";
+}
+
+function buildBalanceObservation(
+  balance: RealEngineChartBalanceProfile,
+): string {
+  const observation = balance.dominantElement === "air"
+    ? "یک تصمیم را انتخاب کن و ببین بعد از تحلیل، چه نشانهٔ بدنی و چه اقدام مشخصی هنوز جا مانده است"
+    : balance.dominantElement === "fire"
+      ? "یک شروع تازه را انتخاب کن و ببین برای ادامه دادن بعد از موج اول چه ریتم کوچکی لازم داری"
+      : balance.dominantElement === "earth"
+        ? "در یک برنامهٔ امن بررسی کن کدام بخش واقعاً مفید است و کدام بخش فقط چون آشناست تغییر نمی‌کند"
+        : balance.dominantElement === "water"
+          ? "در یک موقعیت عاطفی جدا بنویس چه چیزی را حس کردی، چه چیزی را از دیگری دریافت کردی و درخواست خودت چیست"
+          : "یک موقعیت را ثبت کن و ببین فکر، احساس، بدن و عمل به چه ترتیبی وارد آن شدند";
+
+  return `برای دیدن این ترکیب در زندگی واقعی، ${observation}.`;
 }
 
 function getPlanetLabel(planetId: string): string {
@@ -1985,21 +2033,57 @@ function buildNodeAxisSummaryPhrase(
   return `مسیر رشد از الگوی آشنای دست جنوبی در ${formatSignLabel(SIGN_COPY[lunarNodes.southNode.signId])} ${southHouse} به سمت تمرین تازه دست شمالی در ${formatSignLabel(SIGN_COPY[lunarNodes.northNode.signId])} ${northHouse} حرکت می‌کند.`;
 }
 
-function buildCoreSynthesisThread(
+export function buildCoreSynthesisThread(
   sun: RealEngineReportPlacement | undefined,
   moon: RealEngineReportPlacement | undefined,
   risingSign: ZodiacKey,
+  realEngine?: RealEngineReportSnapshot,
 ): string {
   const rising = SIGN_COPY[risingSign];
 
   if (!sun || !moon) {
-    return `رایزینگ ${rising.faName} شیوه ورود به جهان را شکل می‌دهد و جایگاه‌های محاسبه‌شده بعدی این تصویر را کامل‌تر می‌کنند.`;
+    const availablePlacement = sun ?? moon;
+    const availableEvidence = availablePlacement
+      ? `${getPlanetLabel(availablePlacement.id)} در ${formatSignHouseLabel(availablePlacement)}`
+      : undefined;
+
+    return [
+      "ممکن است چیزی که از بیرون نشان می‌دهی همهٔ آن چیزی نباشد که برای تصمیم گرفتن یا آرام شدن درونت نیاز دارد.",
+      `از بیرون، کیفیت ${rising.energy} ممکن است زودتر دیده شود؛ برای کامل کردن فاصلهٔ میان خواسته، احساس و ظاهر بیرونی هنوز دادهٔ کافی وجود ندارد.`,
+      availableEvidence
+        ? `این برداشت محدود از ${availableEvidence} و رایزینگ ${rising.faName} می‌آید و هیچ جایگاه غایبی برای کامل کردن روایت حدس زده نمی‌شود.`
+        : `این برداشت محدود فقط از رایزینگ ${rising.faName} می‌آید و هیچ جایگاه غایبی برای کامل کردن روایت حدس زده نمی‌شود.`,
+      "برای دیدن این فاصله در زندگی واقعی، یک موقعیت را ثبت کن و بنویس چه چیزی نشان دادی، چه چیزی خواستی و برای آرام شدن به چه نیاز داشتی.",
+    ].join(" ");
   }
 
+  const sunField = isReportHouseNumber(sun.house)
+    ? HOUSE_SYNTHESIS_FIELD[sun.house]
+    : "انتخاب‌ها و جهت شخصی";
+  const moonField = isReportHouseNumber(moon.house)
+    ? HOUSE_SYNTHESIS_FIELD[moon.house]
+    : "احساس و امنیت روزمره";
+  const sunNeed = getPersonalOpeningPlanetNeed("sun");
+  const moonNeed = getPersonalOpeningPlanetNeed("moon");
   const sunSign = SIGN_COPY[sun.signId];
   const moonSign = SIGN_COPY[moon.signId];
+  const sameField = sun.house === moon.house && isReportHouseNumber(sun.house);
+  const livedExperience = sameField
+    ? `ممکن است در میدان ${sunField} هم بخواهی ${sunNeed} خودت را روشن‌تر دنبال کنی و هم پیش از حرکت مطمئن شوی ${moonNeed} نادیده نمانده است.`
+    : `ممکن است در میدان ${sunField} بخواهی ${sunNeed} خودت را روشن‌تر دنبال کنی، اما در میدان ${moonField} پیش از آرام شدن به ${moonNeed} بیشتری نیاز داشته باشی.`;
+  const outwardContrast = `از بیرون، کیفیت ${rising.energy} ممکن است زودتر دیده شود؛ برای همین دیگران همیشه متوجه نمی‌شوند که پشت این ظاهر، خواستهٔ شخصی و نیاز عاطفی تو با یک سرعت جلو نمی‌روند.`;
+  const evidence = `این تصویر از خورشید ${formatSignHouseLabel(sun)} با ریتم ${sunSign.energy}، ماه ${formatSignHouseLabel(moon)} با ریتم ${moonSign.energy} و رایزینگ ${rising.faName} می‌آید؛ نشان‌ها شیوهٔ بیان را و خانه‌ها صحنهٔ اصلی آن را مشخص می‌کنند.`;
+  const sunInterpretation = realEngine
+    ? buildPlacementInterpretation("sun", sun, realEngine)
+    : undefined;
+  const moonInterpretation = realEngine
+    ? buildPlacementInterpretation("moon", moon, realEngine)
+    : undefined;
+  const observation = sunInterpretation && moonInterpretation
+    ? `در یک تصمیم واقعی، اول چیزی را که می‌خواهی به نام خودت جلو ببری بنویس؛ بعد جداگانه مشخص کن برای احساس امنیت به چه نیاز داری و قدم بعدی را طوری کوچک کن که هیچ‌کدام حذف نشود.`
+    : "در یک تصمیم واقعی ببین چه چیزی می‌خواهی به نام خودت جلو ببری، برای آرام ماندن به چه نیاز داری و کدام بخش را دیگران زودتر می‌بینند.";
 
-  return `خورشید ${formatSignHouseLabel(sun)} مسیر هویت را با ${sunSign.gift} پیوند می‌دهد؛ ماه ${formatSignHouseLabel(moon)} زبان امنیت عاطفی را با ریتم ${moonSign.energy} می‌سازد؛ رایزینگ ${rising.faName} هم شیوه ورود به جهان را با کیفیت ${rising.energy} شکل می‌دهد.`;
+  return [livedExperience, outwardContrast, evidence, observation].join(" ");
 }
 
 function buildDailyLifeSynthesisThread(
@@ -3444,7 +3528,7 @@ function buildReportHumanReadingRhythmText(input: RealEngineSectionTextInput): s
   ].join("\n\n");
 }
 
-function buildRealEngineInterpretationSections(
+export function buildRealEngineInterpretationSections(
   input: RealEngineSectionTextInput,
 ): ReportOutputSection[] {
   const coreBody = input.coreSynthesisText ?? joinSectionBody(
@@ -3475,8 +3559,8 @@ function buildRealEngineInterpretationSections(
         kind: "identity",
         title: "سیاره‌ی راهبر",
         body: buildStructuredSectionBody({
-          opening: "حاکم چارت ریتم پشت‌صحنه بسیاری از شروع‌ها، واکنش‌ها و انتخاب‌های روزمره را نشان می‌دهد.",
-          body: input.chartRulerText,
+          opening: input.chartRulerText,
+          body: undefined,
           reflection: "این نیرو بیشتر کجا کمک می‌کند شروع کنی و کجا ممکن است تو را به تکرار یک عادت بکشاند؟",
         }),
       }
@@ -3487,10 +3571,8 @@ function buildRealEngineInterpretationSections(
         kind: "growth",
         title: "خانه‌های مهم",
         body: buildStructuredSectionBody({
-          readerCue: "خانه‌های فعال را مثل صحنه‌های زندگی بخوان؛ جایی که موضوعات چارت بیشتر دیده و تجربه می‌شوند.",
-          opening: "در روایت اصلی فقط خانه‌هایی آمده‌اند که در این چارت وزن بیشتری دارند.",
-          chapterSummary: "این فصل نیروهای اصلی چارت را به چند میدان واقعی زندگی وصل می‌کند.",
-          body: activeHouseBody,
+          opening: activeHouseBody,
+          body: undefined,
           reflection: "این روزها کدام میدان زندگی بیشتر توجه تو را می‌خواهد و چه کار کوچکی آن را روشن‌تر می‌کند؟",
         }),
       }
@@ -3515,8 +3597,8 @@ function buildRealEngineInterpretationSections(
         kind: "overview",
         title: "ترکیب انرژی‌ها",
         body: buildStructuredSectionBody({
-          opening: "عنصرها و کیفیت‌ها ریتم کلی انرژی را نشان می‌دهند؛ نه یک برچسب ثابت برای شخصیت.",
-          body: input.balanceText,
+          opening: input.balanceText,
+          body: undefined,
           reflection: "برای ادامه دادن، بیشتر به شروع، انعطاف، ثبات، یا رها کردن یک فشار قدیمی نیاز داری؟",
         }),
       }
@@ -3528,7 +3610,6 @@ function buildRealEngineInterpretationSections(
       kind: "overview",
       title: "خلاصه",
       body: buildStructuredSectionBody({
-        readerCue: "اول این خلاصه را بخوان؛ لازم نیست همه جزئیات را حفظ کنی، فقط نخ اصلی را پیدا کن.",
         opening: input.personalOpening,
         body: joinSectionBody(input.summary, input.firstSynthesisText),
         reflection: "کدام جمله از این خلاصه بیشتر شبیه تجربه واقعی توست و کدام بخش هنوز نیاز به زمان دارد؟",
