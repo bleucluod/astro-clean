@@ -1022,22 +1022,11 @@ export function ReportDetail({
         </div>
       </section>
 
-      <article
-        className="report-detail-chart-card report-detail-chart-card-featured"
-        id="chart-wheel"
-      >
-        <div
-          className="w-full max-w-[760px] justify-self-center"
-          data-report-birth-chart-wheel-shell="featured-auto-height"
-        >
-          <ReportBirthChartWheel report={report} />
-        </div>
-      </article>
-
       <nav className="report-detail-section-chips" aria-label="دسترسی سریع بخش‌های گزارش">
         <div className="report-detail-section-chip-scroll">
         {[
           ["final-reading", "خلاصه"],
+          ["chart-wheel", "چرخ چارت"],
           ["core-pillars", "خورشید، ماه و رایزینگ"],
           ["chart-ruler", "سیاره‌ی راهبر"],
           ["important-houses", "خانه‌های مهم"],
@@ -1064,11 +1053,23 @@ export function ReportDetail({
 
       <div
         className="report-detail-app-main-stack"
-        data-live-report-primary-sequence="summary-pillars-ruler-houses-aspects-nodes-balance-practices-placements-data-transit-details"
+        data-live-report-primary-sequence="summary-wheel-pillars-ruler-houses-aspects-nodes-balance-practices-placements-data-transit-details"
       >
         <section className="card report-detail-section-card report-detail-primary-reading-card" id="final-reading">
           <ReportV3Experience report={report} />
         </section>
+
+        <article
+          className="report-detail-chart-card report-detail-chart-card-featured"
+          id="chart-wheel"
+        >
+          <div
+            className="w-full max-w-[760px] justify-self-center"
+            data-report-birth-chart-wheel-shell="featured-auto-height"
+          >
+            <ReportBirthChartWheel report={report} />
+          </div>
+        </article>
 
         <section className="card report-detail-section-card report-detail-pillars-card" id="core-pillars">
           <span className="section-label">سه جایگاه پایه</span>

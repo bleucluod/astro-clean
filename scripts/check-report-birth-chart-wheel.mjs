@@ -381,10 +381,10 @@ assert(
   "ReportDetail must not clip the full birth-chart component inside the legacy square frame",
 );
 assert(
-  /className="card report-detail-hero-simple report-detail-hero-summary"[\s\S]*?<\/section>\s*<article\s+className="report-detail-chart-card report-detail-chart-card-featured"\s+id="chart-wheel"/.test(
+  /id="final-reading"[\s\S]*?<ReportV3Experience report=\{report\} \/>\s*<\/section>\s*<article\s+className="report-detail-chart-card report-detail-chart-card-featured"\s+id="chart-wheel"/.test(
     detailSource,
   ),
-  "the wheel must use a dedicated featured card instead of the narrow hero column",
+  "the wheel must stay in a dedicated featured card immediately after the primary Persian reading",
 );
 assert(
   globalCss.includes(".report-astrochart-wheel-canvas svg") &&
@@ -412,9 +412,16 @@ assert(
   "the guide must stack same-width supplementary cards beside the retrograde status",
 );
 assert(
-  detailSource.indexOf("<ReportBirthChartWheel") <
-    detailSource.indexOf("<ReportV3Experience"),
-  "featured wheel must appear before the Persian reading sequence",
+  detailSource.indexOf("<ReportV3Experience") <
+    detailSource.indexOf("<ReportBirthChartWheel"),
+  "the Persian reading sequence must appear before the featured wheel",
+);
+assert(
+  detailSource.includes('["chart-wheel", "چرخ چارت"]') &&
+    detailSource.includes(
+      'data-live-report-primary-sequence="summary-wheel-pillars-ruler-houses-aspects-nodes-balance-practices-placements-data-transit-details"',
+    ),
+  "ReportDetail must expose the narrative-first wheel anchor and primary sequence",
 );
 assert(
   packageJson.scripts?.["check:report-birth-chart-wheel"] ===
