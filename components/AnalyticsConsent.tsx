@@ -177,7 +177,7 @@ export function AnalyticsConsent() {
       return;
     }
 
-    if (!isAnalyticsPublicPath(pathname)) {
+    if (!pathname || !isAnalyticsPublicPath(pathname)) {
       setAnalyticsDisabled(true);
       return;
     }
