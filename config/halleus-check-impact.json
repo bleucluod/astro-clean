@@ -133,6 +133,20 @@
       "build": false
     },
     {
+      "id": "wiki-true-inline-contextual-graph",
+      "description": "Version-bounded published-Wiki prose links with revision and audit history.",
+      "exclusive": true,
+      "patterns": [
+        "database/migrations/0008_wiki_true_inline_contextual_graph.sql",
+        "scripts/check-wiki-true-inline-contextual-graph.mjs"
+      ],
+      "guards": [
+        "check:wiki-true-inline-contextual-graph"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "sky-daily-contract",
       "description": "Canonical daily-sky contract and its deterministic guard.",
       "patterns": ["lib/sky-daily/**", "scripts/check-sky-daily-contract.mjs"],

@@ -186,6 +186,7 @@
     "check:wiki-scheduling-determinism": "node scripts/check-wiki-scheduling-determinism.mjs",
     "check:wiki-astrology-systems-cluster": "node scripts/check-wiki-astrology-systems-cluster.mjs",
     "check:wiki-contextual-internal-links": "node scripts/check-wiki-contextual-internal-links.mjs",
+    "check:wiki-true-inline-contextual-graph": "node scripts/check-wiki-true-inline-contextual-graph.mjs",
     "check:wiki-contextual-publication-boundary": "node scripts/check-wiki-contextual-publication-boundary.mjs",
     "check:wiki-article-link-cta-visibility": "node scripts/check-wiki-article-link-cta-visibility.mjs",
     "check:sitewide-link-cta-contrast": "node scripts/check-sitewide-link-cta-contrast.mjs",
