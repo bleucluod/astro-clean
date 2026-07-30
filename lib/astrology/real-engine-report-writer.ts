@@ -644,6 +644,7 @@ export function enrichReportWithRealEngineCopy(
     chartRulerPlacement: chartSpine.chartRulerPlacement,
     activeHouseNumber: chartSpine.activeHouses[0]?.house.number,
     chartSignature: realEngineWithAspects.chartSignature,
+    synthesisPlan,
   }));
 
   const sunText = buildCorePlacementText(sun, "sun", realEngineWithAspects);
@@ -1660,34 +1661,237 @@ type PersonalOpeningInput = {
   chartRulerPlacement?: RealEngineReportPlacement;
   activeHouseNumber?: number;
   chartSignature?: RealEngineChartSignature;
+  synthesisPlan?: RealEngineSynthesisPlan;
 };
 
-const PERSONAL_OPENING_ELEMENT_THREADS: Record<
+const PERSONAL_OPENING_HOUSE_EXPERIENCES: Record<number, string> = {
+  1: "شاید در شروع موقعیت‌ها خیلی زود خودت را جمع‌وجور کنی و تصمیم بگیری چه تصویری از تو دیده شود، حتی وقتی هنوز درونت به نتیجه نرسیده است",
+  2: "ممکن است آرامش تو بیشتر از چیزی که دیگران می‌بینند به حس امنیت، ارزش شخصی و قابل‌اتکا بودن شرایط وابسته باشد",
+  3: "شاید ذهنت پیش از آنکه یک تجربه را کامل حس کنی، شروع به نام‌گذاری، مقایسه یا پیدا کردن چند توضیح مختلف برای آن کند",
+  4: "ممکن است از بیرون آرام‌تر از چیزی که درونت می‌گذرد به نظر برسی و پیش از نزدیک شدن، ناخودآگاه بسنجی این فضا واقعاً امن است یا نه",
+  5: "شاید هم بخواهی دیده شوی و خودت را بی‌واسطه نشان بدهی و هم درست نزدیک لحظهٔ بیان، بخشی از تو نگران قضاوت یا از دست دادن کنترل شود",
+  6: "ممکن است وقتی زندگی نامنظم می‌شود، خیلی زود سراغ درست کردن جزئیات بروی و نیازهای خودت را تا بعد از انجام کارها عقب بیندازی",
+  7: "شاید نزدیکی را عمیق بخواهی، اما وقتی رابطه جدی‌تر می‌شود بخشی از تو برای حفظ مرزها یا اطمینان از امنیتش کمی عقب برود",
+  8: "ممکن است صمیمیت را سطحی نخواهی، اما برای اعتماد کردن بیشتر از چیزی که دیگران می‌بینند زمان و نشانهٔ واقعی بخواهی",
+  9: "شاید وقتی تجربه‌ای برایت معنا نداشته باشد، حتی موفقیت یا آرامش ظاهری هم نتواند برای مدت زیادی تو را راضی نگه دارد",
+  10: "ممکن است دیگران تو را محکم و قابل‌اتکا ببینند، حتی وقتی درونت هنوز مطمئن نیست چه‌قدر از مسئولیت‌هایی که حمل می‌کنی واقعاً مال توست",
+  11: "شاید حتی وقتی میان آدم‌ها هستی، بخشی از تو همچنان منتظر بماند تا واقعاً دیده یا فهمیده شود",
+  12: "شاید گاهی برای آرام شدن به خلوت پناه ببری، اما همان خلوت اگر طولانی شود فاصله‌ای بسازد که خودت هم قصدش را نداشتی",
+};
+
+const PERSONAL_OPENING_HOUSE_OBSERVATIONS: Record<number, string> = {
+  1: "پیش از واکنش اول، یک لحظه ببین واقعاً چه می‌خواهی و چه بخشی فقط می‌خواهد تصویر امن‌تری بسازد",
+  2: "در یک تصمیم کوچک بررسی کن آیا انتخابت از ارزش واقعی می‌آید یا فقط از ترس از دست دادن ثبات",
+  3: "پیش از پیدا کردن توضیح بعدی، یک بار همان تجربه را با یک جمله ساده و مستقیم نام ببر",
+  4: "وقتی عقب می‌روی، بررسی کن واقعاً به خلوت نیاز داری یا هنوز مطمئن نشده‌ای که این فضا امن است",
+  5: "یک چیز کوچک را فقط برای لذت و بیان خودت نشان بده، نه برای گرفتن تأیید یا کامل بودن",
+  6: "در میان کارهای روزمره یک نیاز بدنی یا عاطفی خودت را هم مثل یک وظیفه واقعی جدی بگیر",
+  7: "پیش از فاصله گرفتن، خواسته و مرزت را با یک جمله روشن و بدون توضیح اضافه بیان کن",
+  8: "به جای آزمودن پنهانی دیگری، یک نشانه مشخص از اعتماد یا مرز را مستقیم درخواست کن",
+  9: "ببین کدام باور به تو جهت می‌دهد و کدام باور فقط اجازه نمی‌دهد تجربه تازه‌ای را امتحان کنی",
+  10: "یکی از مسئولیت‌هایت را بررسی کن و ببین انجام دادنش انتخاب توست یا فقط به نقش همیشگی‌ات وفادار مانده‌ای",
+  11: "در یک جمع، به جای سنجیدن اینکه پذیرفته شده‌ای یا نه، یک علاقه یا نظر واقعی خودت را آشکار کن",
+  12: "برای خلوتت پایان مشخص بگذار تا استراحت به قطع ارتباط ناخواسته تبدیل نشود",
+};
+
+const PERSONAL_OPENING_ELEMENT_RESOURCES: Record<
   NonNullable<RealEngineChartSignature["dominantElement"]>,
   string
 > = {
-  fire: "حرکت، شوق و آغاز کردن زودتر در دسترس قرار می‌گیرند",
-  earth: "ساختن، ثبات و نتیجه ملموس زودتر به تجربه شکل می‌دهند",
-  air: "فکر کردن، نام‌گذاری و دیدن ارتباط‌ها زودتر راه را روشن می‌کنند",
-  water: "دریافت عاطفی، همدلی و حافظه زودتر فضا را رنگ می‌زنند",
+  fire: "جرئت شروع کردن و زنده کردن چیزی که هنوز شکل کامل نگرفته",
+  earth: "ساختن ریتم قابل‌اتکا و تبدیل قصد به نتیجه‌ای که در زندگی واقعی دیده می‌شود",
+  air: "دیدن ارتباط‌ها و پیدا کردن زبان برای چیزی که هنوز مبهم است",
+  water: "دریافت لایه‌های عاطفی و ساختن پیوندی که در سطح متوقف نمی‌ماند",
 };
 
-const PERSONAL_OPENING_MODALITY_THREADS: Record<
-  NonNullable<RealEngineChartSignature["dominantModality"]>,
-  string
-> = {
-  cardinal: "شروع کردن ممکن است طبیعی‌تر از منتظر ماندن باشد",
-  fixed: "ماندن و ادامه دادن ممکن است طبیعی‌تر از تغییر مسیر باشد",
-  mutable: "سازگار شدن و دیدن راه‌های تازه ممکن است طبیعی‌تر از نگه داشتن یک مسیر ثابت باشد",
+const PERSONAL_OPENING_ASPECT_EVIDENCE: Record<string, string> = {
+  conjunction: "هم‌نشینی",
+  sextile: "فرصت همکاری",
+  square: "رابطهٔ تنشی",
+  trine: "رابطهٔ روان و حمایتی",
+  opposition: "کشش میان دو قطب",
 };
 
-const PERSONAL_OPENING_EXPRESSION_THREADS: Record<
-  NonNullable<RealEngineChartSignature["dominantExpression"]>,
-  string
-> = {
-  active: "انرژی بیشتر از راه اقدام و اثر گذاشتن خودش را نشان می‌دهد",
-  receptive: "انرژی بیشتر از راه مشاهده و پردازش درونی خودش را نشان می‌دهد",
-};
+function getPersonalOpeningPlanetNeed(planetId: string): string {
+  return (
+    PLANET_SYNTHESIS_NEED_SHORT[planetId] ??
+    PLANET_SYNTHESIS_NEED[planetId] ??
+    PLANET_COPY[planetId]?.role ??
+    "یک نیاز مهم"
+  );
+}
+
+function selectDistinctPersonalOpeningAspects(
+  synthesisPlan: RealEngineSynthesisPlan | undefined,
+): {
+  challenge?: RealEngineReportAspect;
+  support?: RealEngineReportAspect;
+  dailyBridge?: RealEngineReportAspect;
+} {
+  const challenge = synthesisPlan?.primaryChallenge;
+  const usedIds = new Set(
+    [challenge?.id].filter((id): id is string => typeof id === "string"),
+  );
+  const support =
+    synthesisPlan?.primarySupport &&
+    !usedIds.has(synthesisPlan.primarySupport.id)
+      ? synthesisPlan.primarySupport
+      : undefined;
+  if (support) {
+    usedIds.add(support.id);
+  }
+  const dailyBridge =
+    synthesisPlan?.dailyBridge &&
+    !usedIds.has(synthesisPlan.dailyBridge.id)
+      ? synthesisPlan.dailyBridge
+      : undefined;
+
+  return { challenge, support, dailyBridge };
+}
+
+function getPersonalOpeningFocusHouse({
+  synthesisPlan,
+  activeHouseNumber,
+  chartRulerPlacement,
+}: {
+  synthesisPlan: RealEngineSynthesisPlan | undefined;
+  activeHouseNumber: number | undefined;
+  chartRulerPlacement: RealEngineReportPlacement | undefined;
+}): ReportHouseNumber | undefined {
+  const candidates = [
+    synthesisPlan?.primaryHouseNumber,
+    activeHouseNumber,
+    chartRulerPlacement?.house,
+  ];
+
+  return candidates.find(isReportHouseNumber);
+}
+
+function buildPersonalOpeningContrastSentence({
+  risingSign,
+  chartRulerId,
+  challenge,
+}: {
+  risingSign: ZodiacKey;
+  chartRulerId: string;
+  challenge: RealEngineReportAspect | undefined;
+}): string {
+  const rising = SIGN_COPY[risingSign];
+
+  if (!challenge) {
+    return `ممکن است از بیرون ${rising.energy} به نظر برسی، اما درونت برای ${getPersonalOpeningPlanetNeed(chartRulerId)} به فضایی نیاز داشته باشد که با ریتم خودت هماهنگ باشد.`;
+  }
+
+  const firstNeed = getPersonalOpeningPlanetNeed(challenge.firstPlanetId);
+  const secondNeed = getPersonalOpeningPlanetNeed(challenge.secondPlanetId);
+  const closing =
+    challenge.aspectId === "conjunction"
+      ? "این دو نیاز گاهی آن‌قدر به هم گره می‌خورند که تشخیص اینکه کدام یکی جلوتر است سخت می‌شود"
+      : challenge.aspectId === "square" || challenge.aspectId === "opposition"
+        ? "برای همین بعضی تصمیم‌ها ممکن است از بیرون ساده به نظر برسند، اما درونت به زمان بیشتری نیاز داشته باشد تا هیچ‌کدام نادیده نماند"
+        : "این دو نیاز معمولاً راه همکاری پیدا می‌کنند، هرچند ممکن است چون طبیعی‌اند نقششان را کمتر ببینی";
+
+  return `ممکن است از بیرون ${rising.energy} به نظر برسی، اما درونت هم‌زمان هم ${firstNeed} را بخواهد و هم ${secondNeed} را؛ ${closing}.`;
+}
+
+function buildPersonalOpeningResourceSentence({
+  support,
+  chartSignature,
+  risingSign,
+}: {
+  support: RealEngineReportAspect | undefined;
+  chartSignature: RealEngineChartSignature | undefined;
+  risingSign: ZodiacKey;
+}): string {
+  if (support) {
+    const firstNeed = getPersonalOpeningPlanetNeed(support.firstPlanetId);
+    const secondNeed = getPersonalOpeningPlanetNeed(support.secondPlanetId);
+
+    return `در عین حال، همکاری ${getPlanetLabel(support.firstPlanetId)} و ${getPlanetLabel(support.secondPlanetId)} نشان می‌دهد وقتی «${firstNeed}» و «${secondNeed}» را هم‌زمان جدی می‌گیری، معمولاً راهی پیدا می‌کنی که حرکتت را دوباره قابل‌اعتمادتر کند.`;
+  }
+
+  const dominantElement = chartSignature?.dominantElement;
+  const resource = dominantElement
+    ? PERSONAL_OPENING_ELEMENT_RESOURCES[dominantElement]
+    : SIGN_COPY[risingSign].gift;
+
+  return `وقتی به ریتم خودت فرصت می‌دهی، توان ${resource} می‌تواند به جای واکنش خودکار، راه انتخاب آگاهانه‌تری را باز کند.`;
+}
+
+function buildPersonalOpeningEvidenceSentence({
+  risingSign,
+  chartRulerId,
+  focusHouse,
+  chartSignature,
+  challenge,
+}: {
+  risingSign: ZodiacKey;
+  chartRulerId: string;
+  focusHouse: ReportHouseNumber | undefined;
+  chartSignature: RealEngineChartSignature | undefined;
+  challenge: RealEngineReportAspect | undefined;
+}): string {
+  const houseEvidence = focusHouse
+    ? `تأکید خانه ${toPersianNumber(focusHouse)}، یعنی ${HOUSE_SYNTHESIS_FIELD[focusHouse]}`
+    : undefined;
+
+  if (challenge) {
+    const relation =
+      PERSONAL_OPENING_ASPECT_EVIDENCE[challenge.aspectId] ??
+      challenge.aspectLabel ??
+      "رابطهٔ سیاره‌ای";
+
+    const evidenceParts = [
+      `${relation} ${getPlanetLabel(challenge.firstPlanetId)} و ${getPlanetLabel(challenge.secondPlanetId)}`,
+      houseEvidence,
+    ].filter((part): part is string => Boolean(part));
+
+    return `این برداشت بیشتر از ${joinPersianList(evidenceParts)} می‌آید؛ رایزینگ ${SIGN_COPY[risingSign].faName} و ${getPlanetLabel(chartRulerId)} به‌عنوان سیارهٔ راهبر، شیوهٔ بیرونی شدنش را رنگ می‌زنند.`;
+  }
+
+  const signatureEvidence = [
+    chartSignature?.dominantElement
+      ? `عنصر غالب ${ELEMENT_LABELS[chartSignature.dominantElement]}`
+      : undefined,
+    chartSignature?.dominantModality
+      ? `کیفیت غالب ${MODALITY_LABELS[chartSignature.dominantModality]}`
+      : undefined,
+  ].filter((part): part is string => Boolean(part));
+  const signaturePhrase =
+    signatureEvidence.length > 0
+      ? joinPersianList(signatureEvidence)
+      : "ریتم کلی جایگاه‌های اصلی";
+
+  const evidenceParts = [
+    `رایزینگ ${SIGN_COPY[risingSign].faName}`,
+    `${getPlanetLabel(chartRulerId)} به‌عنوان سیارهٔ راهبر`,
+    houseEvidence,
+    signaturePhrase,
+  ].filter((part): part is string => Boolean(part));
+
+  return `این تصویر بیشتر از ${joinPersianList(evidenceParts)} می‌آید؛ این ترکیب، نه فقط نشانهٔ خورشیدی، پایهٔ این برداشت است.`;
+}
+
+function buildPersonalOpeningDailySentence({
+  dailyBridge,
+  focusHouse,
+}: {
+  dailyBridge: RealEngineReportAspect | undefined;
+  focusHouse: ReportHouseNumber | undefined;
+}): string {
+  if (dailyBridge) {
+    const firstNeed = getPersonalOpeningPlanetNeed(dailyBridge.firstPlanetId);
+    const secondNeed = getPersonalOpeningPlanetNeed(dailyBridge.secondPlanetId);
+
+    return `دفعهٔ بعد که این الگو فعال شد، پیش از واکنش میان «${firstNeed}» و «${secondNeed}» یک مکث کوتاه بساز و ببین کدام نیاز واقعاً به توجه فوری نیاز دارد.`;
+  }
+
+  const observation = focusHouse
+    ? PERSONAL_OPENING_HOUSE_OBSERVATIONS[focusHouse]
+    : "یک موقعیت واقعی را ثبت کن و ببین پشت واکنش اول، کدام نیاز هنوز فرصت بیان پیدا نکرده است";
+
+  return `برای دیدن این الگو در زندگی واقعی، ${observation}.`;
+}
 
 export function buildPersonalOpening({
   name,
@@ -1696,44 +1900,45 @@ export function buildPersonalOpening({
   chartRulerPlacement,
   activeHouseNumber,
   chartSignature,
+  synthesisPlan,
 }: PersonalOpeningInput): string {
   const displayName = name.trim() ? `${name.trim()}، ` : "";
-  const rising = SIGN_COPY[risingSign];
-  const rulerNeed =
-    PLANET_SYNTHESIS_NEED_SHORT[chartRulerId] ??
-    PLANET_SYNTHESIS_NEED[chartRulerId] ??
-    PLANET_COPY[chartRulerId]?.role ??
-    "یک نیاز مهم";
-  const signatureThreads = [
-    chartSignature?.dominantElement
-      ? PERSONAL_OPENING_ELEMENT_THREADS[chartSignature.dominantElement]
-      : undefined,
-    chartSignature?.dominantModality
-      ? PERSONAL_OPENING_MODALITY_THREADS[chartSignature.dominantModality]
-      : undefined,
-    chartSignature?.dominantExpression
-      ? PERSONAL_OPENING_EXPRESSION_THREADS[chartSignature.dominantExpression]
-      : undefined,
-  ].filter((part): part is string => Boolean(part));
-  const signatureThread =
-    signatureThreads.length > 0
-      ? joinPersianList(signatureThreads.slice(0, 2))
-      : `شیوه ورود ${rising.energy} با ${rulerNeed} کنار هم قرار می‌گیرد`;
-  const focusHouse = isReportHouseNumber(activeHouseNumber)
-    ? activeHouseNumber
-    : isReportHouseNumber(chartRulerPlacement?.house)
-      ? chartRulerPlacement.house
-      : undefined;
-  const focusPhrase = focusHouse
-    ? ` در میدان ${HOUSE_SYNTHESIS_FIELD[focusHouse]}`
-    : "";
+  const focusHouse = getPersonalOpeningFocusHouse({
+    synthesisPlan,
+    activeHouseNumber,
+    chartRulerPlacement,
+  });
+  const { challenge, support, dailyBridge } =
+    selectDistinctPersonalOpeningAspects(synthesisPlan);
+  const experience = focusHouse
+    ? PERSONAL_OPENING_HOUSE_EXPERIENCES[focusHouse]
+    : `شاید در بعضی موقعیت‌ها چیزی که از بیرون نشان می‌دهی، همهٔ آن چیزی نباشد که هم‌زمان درونت می‌گذرد`;
 
   return [
-    `${displayName}برای ورود به این گزارش، یک نخ را نگه دار: ${signatureThread}.`,
-    `در ادامه ببین این ریتم چگونه میان ${rising.energy} وارد شدن، ${rulerNeed}${focusPhrase} شکل می‌گیرد؛ آن را حکم ثابت نخوان و فقط جایی نگه دار که در تجربه روزمره‌ات واقعاً دیده می‌شود.`,
+    `${displayName}${experience}.`,
+    buildPersonalOpeningContrastSentence({
+      risingSign,
+      chartRulerId,
+      challenge,
+    }),
+    buildPersonalOpeningResourceSentence({
+      support,
+      chartSignature,
+      risingSign,
+    }),
+    buildPersonalOpeningEvidenceSentence({
+      risingSign,
+      chartRulerId,
+      focusHouse,
+      chartSignature,
+      challenge,
+    }),
+    buildPersonalOpeningDailySentence({
+      dailyBridge,
+      focusHouse,
+    }),
   ].join(" ");
 }
-
 function buildChartSpineHumanSummary(
   chartSpine: ChartSpine,
   primaryHouseNumber?: number | null,

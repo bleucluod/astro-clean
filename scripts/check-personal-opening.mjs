@@ -42,6 +42,8 @@ function signature({
   dominantElement,
   dominantModality,
   dominantExpression,
+  lowElements = [],
+  zeroElements = [],
 }) {
   return {
     version: "chart-signature-v1",
@@ -52,38 +54,164 @@ function signature({
     dominantElement,
     dominantModality,
     dominantExpression,
-    lowElements: ["water"],
-    lowModalities: ["mutable"],
-    lowExpressions: ["receptive"],
-    zeroElements: [],
+    lowElements,
+    lowModalities: [],
+    lowExpressions: [],
+    zeroElements,
     zeroModalities: [],
     evidence: [],
     excludedPlacementIds: [],
   };
 }
 
-const fireOpening = buildPersonalOpening({
-  name: "هاله",
-  risingSign: "aries",
-  chartRulerId: "mars",
-  chartRulerPlacement: {
-    id: "mars",
-    label: "مریخ",
-    signId: "leo",
-    longitude: 132,
-    degreeInSign: 12,
-    house: 5,
-    method: "fixture",
-  },
-  activeHouseNumber: 5,
-  chartSignature: signature({
-    dominantElement: "fire",
-    dominantModality: "cardinal",
-    dominantExpression: "active",
-  }),
+function aspect({
+  id,
+  firstPlanetId,
+  firstPlanetLabel,
+  secondPlanetId,
+  secondPlanetLabel,
+  aspectId,
+  aspectLabel,
+}) {
+  return {
+    id,
+    firstPlanetId,
+    firstPlanetLabel,
+    secondPlanetId,
+    secondPlanetLabel,
+    aspectId,
+    aspectLabel,
+    glyph: "",
+    angle: 0,
+    separation: 0,
+    orb: 1,
+    meaning: "fixture",
+    narrative: "fixture",
+  };
+}
+
+function openingSentences(opening) {
+  return (opening.match(/[^.!؟]+[.!؟]?/gu) ?? [])
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+}
+
+function normalize(value) {
+  return value
+    .normalize("NFKC")
+    .replace(/[\u200c\u200f\u202a-\u202e]/gu, "")
+    .replace(/[\s\u00a0]+/gu, " ")
+    .replace(/[.،؛:!?؟«»()[\]{}\-–—]/gu, "")
+    .trim();
+}
+
+function assertExperienceFirstOpening(opening, label) {
+  const sentences = openingSentences(opening);
+
+  assert.equal(sentences.length, 5, `${label} must contain exactly five sentences.`);
+  assert.match(sentences[0], /شاید|ممکن است/);
+  assert.doesNotMatch(
+    sentences[0],
+    /چارت|رایزینگ|سیاره|خانه|خورشید|ماه|عطارد|زهره|مریخ|مشتری|زحل|اورانوس|نپتون|پلوتو/,
+    `${label} starts with astrology instead of lived experience.`,
+  );
+  assert.match(sentences[3], /این برداشت بیشتر از|این تصویر بیشتر از/);
+  assert.match(sentences[4], /دفعهٔ بعد|برای دیدن این الگو در زندگی واقعی/);
+  assert.equal(
+    new Set(sentences.map(normalize)).size,
+    5,
+    `${label} repeats an opening sentence.`,
+  );
+  assert.ok(
+    opening.length >= 520 && opening.length <= 1800,
+    `${label} is outside the experience-first reading boundary.`,
+  );
+  assert.doesNotMatch(
+    opening,
+    /تو همیشه|تو هرگز|سرنوشت تو|محکوم هستی|چارت ثابت می‌کند|این یعنی حتماً|اختلال|بیماری روانی/,
+    `${label} contains deterministic or diagnostic language.`,
+  );
+  assert.doesNotMatch(
+    opening,
+    /ساعت تولد|تاریخ تولد|شهر تولد|ترانزیت|پیش‌بینی آینده|آیندهٔ قطعی/,
+    `${label} introduced data outside verified opening inputs.`,
+  );
+  assert.doesNotMatch(
+    opening,
+    /سه الگوی اصلی این چارت|نقطهٔ قوت اصلی|چالش اصلی|جمله‌ای که می‌توانی نگه داری|برای ورود به این گزارش، یک نخ را نگه دار/,
+    `${label} retained the structural report-first opening.`,
+  );
+}
+
+const fireSignature = signature({
+  dominantElement: "fire",
+  dominantModality: "cardinal",
+  dominantExpression: "active",
+  lowElements: ["water"],
+});
+const waterSignature = signature({
+  dominantElement: "water",
+  dominantModality: "mutable",
+  dominantExpression: "receptive",
+  lowElements: ["air"],
 });
 
-const waterOpening = buildPersonalOpening({
+const moonSaturnChallenge = aspect({
+  id: "moon-square-saturn",
+  firstPlanetId: "moon",
+  firstPlanetLabel: "ماه",
+  secondPlanetId: "saturn",
+  secondPlanetLabel: "زحل",
+  aspectId: "square",
+  aspectLabel: "تربیع",
+});
+const venusUranusChallenge = aspect({
+  id: "venus-opposition-uranus",
+  firstPlanetId: "venus",
+  firstPlanetLabel: "زهره",
+  secondPlanetId: "uranus",
+  secondPlanetLabel: "اورانوس",
+  aspectId: "opposition",
+  aspectLabel: "مقابله",
+});
+const sunJupiterSupport = aspect({
+  id: "sun-trine-jupiter",
+  firstPlanetId: "sun",
+  firstPlanetLabel: "خورشید",
+  secondPlanetId: "jupiter",
+  secondPlanetLabel: "مشتری",
+  aspectId: "trine",
+  aspectLabel: "تثلیث",
+});
+const venusJupiterSupport = aspect({
+  id: "venus-trine-jupiter",
+  firstPlanetId: "venus",
+  firstPlanetLabel: "زهره",
+  secondPlanetId: "jupiter",
+  secondPlanetLabel: "مشتری",
+  aspectId: "trine",
+  aspectLabel: "تثلیث",
+});
+const mercuryMarsBridge = aspect({
+  id: "mercury-sextile-mars",
+  firstPlanetId: "mercury",
+  firstPlanetLabel: "عطارد",
+  secondPlanetId: "mars",
+  secondPlanetLabel: "مریخ",
+  aspectId: "sextile",
+  aspectLabel: "تسدیس",
+});
+const moonMarsBridge = aspect({
+  id: "moon-sextile-mars",
+  firstPlanetId: "moon",
+  firstPlanetLabel: "ماه",
+  secondPlanetId: "mars",
+  secondPlanetLabel: "مریخ",
+  aspectId: "sextile",
+  aspectLabel: "تسدیس",
+});
+
+const crowdOpening = buildPersonalOpening({
   name: "هاله",
   risingSign: "cancer",
   chartRulerId: "moon",
@@ -93,67 +221,106 @@ const waterOpening = buildPersonalOpening({
     signId: "pisces",
     longitude: 349,
     degreeInSign: 19,
-    house: 9,
+    house: 11,
     method: "fixture",
   },
-  activeHouseNumber: 4,
-  chartSignature: signature({
-    dominantElement: "water",
-    dominantModality: "mutable",
-    dominantExpression: "receptive",
-  }),
+  activeHouseNumber: 11,
+  chartSignature: waterSignature,
+  synthesisPlan: {
+    primaryHouseNumber: 11,
+    primaryChallenge: moonSaturnChallenge,
+    primarySupport: venusJupiterSupport,
+    dailyBridge: mercuryMarsBridge,
+  },
 });
+assertExperienceFirstOpening(crowdOpening, "Crowd-belonging opening");
+const crowdSentences = openingSentences(crowdOpening);
+assert.match(
+  crowdSentences[0],
+  /^هاله، شاید حتی وقتی میان آدم‌ها هستی، بخشی از تو همچنان منتظر بماند تا واقعاً دیده یا فهمیده شود/,
+);
+assert.match(crowdOpening, /امنیت عاطفی/);
+assert.match(crowdOpening, /مرز و مسئولیت/);
+assert.match(crowdOpening, /رابطهٔ تنشی ماه و زحل/);
+assert.match(crowdOpening, /خانه ۱۱/);
+assert.match(crowdOpening, /جمع، دوستی و آینده‌سازی/);
+assert.match(crowdOpening, /رایزینگ سرطان/);
+assert.match(crowdOpening, /سیارهٔ راهبر/);
 
-assert.match(fireOpening, /^هاله، برای ورود به این گزارش/);
-assert.match(fireOpening, /حرکت، شوق و آغاز کردن/);
-assert.match(fireOpening, /شروع کردن ممکن است طبیعی‌تر/);
-assert.match(fireOpening, /خلاقیت، عشق و بیان شخصی/);
-assert.notEqual(fireOpening, waterOpening, "Different chart patterns produced the same opening.");
-assert.match(waterOpening, /دریافت عاطفی، همدلی و حافظه/);
-assert.match(waterOpening, /سازگار شدن و دیدن راه‌های تازه/);
-assert.match(waterOpening, /خانه، ریشه و امنیت درونی/);
-
-const renamedOpening = buildPersonalOpening({
+const relationshipOpening = buildPersonalOpening({
   name: "آراد",
-  risingSign: "aries",
-  chartRulerId: "mars",
-  activeHouseNumber: 5,
+  risingSign: "libra",
+  chartRulerId: "venus",
+  activeHouseNumber: 7,
   chartSignature: signature({
-    dominantElement: "fire",
+    dominantElement: "air",
     dominantModality: "cardinal",
     dominantExpression: "active",
   }),
+  synthesisPlan: {
+    primaryHouseNumber: 7,
+    primaryChallenge: venusUranusChallenge,
+    primarySupport: sunJupiterSupport,
+    dailyBridge: moonMarsBridge,
+  },
 });
-assert.notEqual(fireOpening, renamedOpening, "Changing the reader name did not change the opening.");
-assert.match(renamedOpening, /^آراد، برای ورود به این گزارش/);
+assertExperienceFirstOpening(relationshipOpening, "Relationship opening");
+assert.match(relationshipOpening, /^آراد، شاید نزدیکی را عمیق بخواهی/);
+assert.match(relationshipOpening, /کشش میان دو قطب زهره و اورانوس/);
+assert.match(relationshipOpening, /خانه ۷/);
+assert.notEqual(
+  crowdOpening,
+  relationshipOpening,
+  "Different chart evidence produced the same experience-first opening.",
+);
+
+const strengthOpening = buildPersonalOpening({
+  name: "هاله",
+  risingSign: "aries",
+  chartRulerId: "mars",
+  activeHouseNumber: 5,
+  chartSignature: fireSignature,
+  synthesisPlan: {
+    primaryHouseNumber: 5,
+    primarySupport: sunJupiterSupport,
+    dailyBridge: mercuryMarsBridge,
+  },
+});
+assertExperienceFirstOpening(strengthOpening, "Strength-led opening");
+assert.match(strengthOpening, /هم بخواهی دیده شوی/);
+assert.match(strengthOpening, /همکاری خورشید و مشتری/);
+assert.match(strengthOpening, /عنصر غالب آتش/);
+assert.match(strengthOpening, /کیفیت غالب کاردینال/);
 
 const boundedFallback = buildPersonalOpening({
   name: "",
   risingSign: "virgo",
   chartRulerId: "mercury",
 });
-assert.match(boundedFallback, /^برای ورود به این گزارش/);
-assert.match(boundedFallback, /شیوه ورود/);
+assertExperienceFirstOpening(boundedFallback, "Bounded fallback opening");
+assert.match(boundedFallback, /^شاید در بعضی موقعیت‌ها/);
+assert.match(boundedFallback, /رایزینگ سنبله/);
+assert.match(boundedFallback, /عطارد به‌عنوان سیارهٔ راهبر/);
 assert.doesNotMatch(boundedFallback, /نامشخص|ذخیره نشده|فرض/);
 
-for (const opening of [fireOpening, waterOpening, renamedOpening, boundedFallback]) {
-  assert.ok(opening.length >= 180 && opening.length <= 620, "Opening is outside the short-reading boundary.");
-  assert.doesNotMatch(
-    opening,
-    /این خوانش هالیوس|میدان‌های پررنگ‌تر این چارت|سه ستون اصلی چارت/,
-    "Personal opening repeats the existing summary frame.",
-  );
-  assert.doesNotMatch(
-    opening,
-    /تو همیشه|تو هرگز|سرنوشت تو|محکوم هستی|چارت ثابت می‌کند|این یعنی حتماً/,
-    "Personal opening contains deterministic language.",
-  );
-  assert.doesNotMatch(
-    opening,
-    /ساعت تولد|تاریخ تولد|شهر تولد|ترانزیت|آینده/,
-    "Personal opening introduced data outside its verified inputs.",
-  );
-}
+const duplicateAspectOpening = buildPersonalOpening({
+  name: "نمونه",
+  risingSign: "cancer",
+  chartRulerId: "moon",
+  activeHouseNumber: 11,
+  chartSignature: waterSignature,
+  synthesisPlan: {
+    primaryHouseNumber: 11,
+    primaryChallenge: moonSaturnChallenge,
+    primarySupport: moonSaturnChallenge,
+    dailyBridge: moonSaturnChallenge,
+  },
+});
+assertExperienceFirstOpening(duplicateAspectOpening, "Duplicate-evidence opening");
+const duplicateSentences = openingSentences(duplicateAspectOpening);
+assert.match(duplicateSentences[3], /ماه و زحل/);
+assert.doesNotMatch(duplicateSentences[2], /ماه.*زحل|زحل.*ماه/);
+assert.doesNotMatch(duplicateSentences[4], /امنیت عاطفی.*مرز|مرز.*امنیت عاطفی/);
 
 const writerSource = fs.readFileSync(
   "lib/astrology/real-engine-report-writer.ts",
@@ -161,12 +328,23 @@ const writerSource = fs.readFileSync(
 );
 for (const marker of [
   "const personalOpening = sanitizeUserFacingReportText(buildPersonalOpening({",
+  "chartSignature: realEngineWithAspects.chartSignature,",
+  "synthesisPlan,",
+  "PERSONAL_OPENING_HOUSE_EXPERIENCES",
+  "buildPersonalOpeningContrastSentence({",
+  "buildPersonalOpeningResourceSentence({",
+  "buildPersonalOpeningEvidenceSentence({",
+  "buildPersonalOpeningDailySentence({",
+  "selectDistinctPersonalOpeningAspects(synthesisPlan)",
   "personalOpening,",
   "opening: input.personalOpening",
   "body: joinSectionBody(input.summary, input.firstSynthesisText)",
   'id: "real-engine-first-synthesis"',
 ]) {
-  assert.ok(writerSource.includes(marker), `Live writer integration is missing: ${marker}`);
+  assert.ok(
+    writerSource.includes(marker),
+    `Live writer integration is missing: ${marker}`,
+  );
 }
 
 const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
@@ -188,4 +366,7 @@ assert.deepEqual(area?.guards, ["check:personal-opening"]);
 assert.equal(area?.lint, true);
 assert.equal(area?.build, true);
 
-console.log("Personal opening guard passed.");
+console.log("Experience-first personal opening guard passed.");
+console.log("- lived experience appears before astrology terminology");
+console.log("- chart evidence is named after the human reading");
+console.log("- support, challenge, and daily bridge stay distinct and data-honest");
