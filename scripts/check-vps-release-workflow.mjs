@@ -27,12 +27,99 @@ const servicePath = "ops/vps/halleus.service";
 const deploymentNotesPath = "DEPLOYMENT_NOTES.md";
 const recoveryNotesPath = "RECOVERY_NOTES.md";
 const contextPath = "docs/HALLEUS_PROJECT_CONTEXT.md";
+const pnpmWorkspacePath = "pnpm-workspace.yaml";
+const pnpmLockPath = "pnpm-lock.yaml";
+
+const approvedDependencyBuilds = new Map([
+  ["sharp", "0.34.5"],
+  ["unrs-resolver", "1.12.2"],
+]);
+
+function parsePnpmAllowBuilds(source) {
+  const normalized = source.replaceAll("\r\n", "\n");
+  const lines = normalized.split("\n");
+  const sectionIndexes = lines
+    .map((line, index) => (line === "allowBuilds:" ? index : -1))
+    .filter((index) => index >= 0);
+
+  if (sectionIndexes.length !== 1) {
+    throw new Error(`Expected exactly one root allowBuilds section, found ${sectionIndexes.length}.`);
+  }
+
+  const entries = new Map();
+  for (let index = sectionIndexes[0] + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.trim().length === 0 || line.trimStart().startsWith("#")) continue;
+    if (!line.startsWith("  ")) break;
+
+    const match = /^  ([A-Za-z0-9@._/-]+): (true|false)$/.exec(line);
+    if (!match) {
+      throw new Error(`Unsupported allowBuilds entry: ${line}`);
+    }
+
+    const [, dependencyName, booleanValue] = match;
+    if (entries.has(dependencyName)) {
+      throw new Error(`Duplicate allowBuilds entry: ${dependencyName}`);
+    }
+    entries.set(dependencyName, booleanValue === "true");
+  }
+
+  return entries;
+}
+
+function validatePnpmDependencyBuildPolicy(workspaceSource, lockSource) {
+  const policyFailures = [];
+  let actualAllowBuilds;
+
+  try {
+    actualAllowBuilds = parsePnpmAllowBuilds(workspaceSource);
+  } catch (error) {
+    return [error.message];
+  }
+
+  const approvedNames = [...approvedDependencyBuilds.keys()].sort();
+  const actualNames = [...actualAllowBuilds.keys()].sort();
+  if (JSON.stringify(actualNames) !== JSON.stringify(approvedNames)) {
+    policyFailures.push(
+      `allowBuilds must contain only ${approvedNames.join(", ")}; found ${actualNames.join(", ") || "none"}.`,
+    );
+  }
+
+  for (const [dependencyName, version] of approvedDependencyBuilds) {
+    if (actualAllowBuilds.get(dependencyName) !== true) {
+      policyFailures.push(`${dependencyName} must be explicitly approved with true.`);
+    }
+
+    const escapedName = dependencyName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const lockVersions = [
+      ...new Set(
+        [...lockSource.matchAll(new RegExp(`^  ${escapedName}@([^:]+):$`, "gm"))]
+          .map((match) => match[1]),
+      ),
+    ];
+    if (lockVersions.length !== 1 || lockVersions[0] !== version) {
+      policyFailures.push(
+        `${dependencyName} approval requires the reviewed lock version ${version}; found ${lockVersions.join(", ") || "none"}.`,
+      );
+    }
+  }
+
+  for (const forbiddenKey of ["*", "**"]) {
+    if (actualAllowBuilds.has(forbiddenKey)) {
+      policyFailures.push(`Wildcard dependency build approval is forbidden: ${forbiddenKey}.`);
+    }
+  }
+
+  return policyFailures;
+}
 
 const releaseSource = read(releasePath);
 const serviceSource = read(servicePath);
 const deploymentNotes = read(deploymentNotesPath);
 const recoveryNotes = read(recoveryNotesPath);
 const projectContext = read(contextPath);
+const pnpmWorkspace = read(pnpmWorkspacePath);
+const pnpmLock = read(pnpmLockPath);
 const packageJson = JSON.parse(read("package.json"));
 const scripts = packageJson.scripts ?? {};
 
@@ -130,6 +217,34 @@ if (!checkProject.includes("pnpm run check:vps-release-workflow")) {
   failures.push("check:project does not include check:vps-release-workflow");
 }
 
+for (const policyFailure of validatePnpmDependencyBuildPolicy(pnpmWorkspace, pnpmLock)) {
+  failures.push(`pnpm dependency build policy: ${policyFailure}`);
+}
+
+const policySelfTests = [
+  {
+    label: "rejects unreviewed dependency approvals",
+    workspace: `${pnpmWorkspace.trimEnd()}\n  unexpected-package: true\n`,
+    lock: pnpmLock,
+  },
+  {
+    label: "rejects disabled required approvals",
+    workspace: pnpmWorkspace.replace("  sharp: true", "  sharp: false"),
+    lock: pnpmLock,
+  },
+  {
+    label: "rejects unreviewed lock-version changes",
+    workspace: pnpmWorkspace,
+    lock: pnpmLock.replace("  sharp@0.34.5:", "  sharp@0.34.6:"),
+  },
+];
+
+for (const selfTest of policySelfTests) {
+  if (validatePnpmDependencyBuildPolicy(selfTest.workspace, selfTest.lock).length === 0) {
+    failures.push(`pnpm dependency build policy self-test failed: ${selfTest.label}`);
+  }
+}
+
 if (failures.length > 0) {
   console.error("VPS release workflow check failed:");
   for (const failure of failures) {
@@ -144,4 +259,5 @@ console.log("- build and focused checks happen before activation");
 console.log("- current/previous activation is atomic and rollback-aware");
 console.log("- systemd template runs only from /srv/halleus/current");
 console.log("- authority markers follow the compact live project context");
+console.log("- pnpm dependency builds are limited to reviewed sharp and unrs-resolver lock versions");
 console.log("- no commit, tag, push, key rotation, or live VPS change is embedded");
