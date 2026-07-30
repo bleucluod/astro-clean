@@ -2178,11 +2178,95 @@ function buildHouseSynthesisThread(
   return "از نظر میدان‌های زندگی، تمرکز اولیه در " + shownHouses + " دیده می‌شود؛ یعنی تصویر کلی فقط از نشانه‌ها ساخته نمی‌شود، بلکه از جایی هم ساخته می‌شود که هر نیرو در زندگی روزمره فعال می‌شود.";
 }
 
+export function buildWholeChartSynthesisThread(
+  realEngine: RealEngineReportSnapshot,
+  chartSpine: ChartSpine,
+  synthesisPlan: RealEngineSynthesisPlan,
+): string {
+  const sun = findPlacement(realEngine, "sun");
+  const moon = findPlacement(realEngine, "moon");
+  const rising = SIGN_COPY[chartSpine.risingSign];
+  const chartRulerLabel = getPlanetLabel(chartSpine.chartRulerId);
+  const focusHouse =
+    synthesisPlan.primaryHouseNumber ??
+    chartSpine.activeHouses[0]?.house.number;
+  const focusField = isReportHouseNumber(focusHouse)
+    ? HOUSE_SYNTHESIS_FIELD[focusHouse]
+    : "میدان‌های فعال چارت";
+  const sunField =
+    sun && isReportHouseNumber(sun.house)
+      ? HOUSE_SYNTHESIS_FIELD[sun.house]
+      : "هویت و جهت شخصی";
+  const moonField =
+    moon && isReportHouseNumber(moon.house)
+      ? HOUSE_SYNTHESIS_FIELD[moon.house]
+      : "احساس و امنیت روزمره";
+  const coreSentence =
+    sun && moon
+      ? `ممکن است در میدان ${sunField} بخواهی ${getPersonalOpeningPlanetNeed(
+          "sun",
+        )} را روشن‌تر جلو ببری، در حالی که در میدان ${moonField} برای ${getPersonalOpeningPlanetNeed(
+          "moon",
+        )} به ریتم دیگری نیاز داری؛ از بیرون هم کیفیت ${rising.energy} زودتر دیده می‌شود.`
+      : `ممکن است چیزی که از بیرون نشان می‌دهی با نیاز درونی‌ات برای تصمیم یا آرام شدن یک ریتم نداشته باشد؛ داده‌های موجود اجازه می‌دهند این فاصله بدون حدس زدن جایگاه‌های غایب خوانده شود.`;
+  const evidenceParts = [
+    sun ? `خورشید ${formatSignHouseLabel(sun)}` : undefined,
+    moon ? `ماه ${formatSignHouseLabel(moon)}` : undefined,
+    `رایزینگ ${rising.faName}`,
+  ].filter((part): part is string => Boolean(part));
+  const chartRulerPhrase = chartSpine.chartRulerPlacement
+    ? `${chartRulerLabel} در ${formatSignHouseLabel(
+        chartSpine.chartRulerPlacement,
+      )}`
+    : `${chartRulerLabel} به‌عنوان سیارهٔ راهبر`;
+  const evidenceSentence = `پشتوانه این نخ ${joinPersianList(
+    evidenceParts,
+  )} است؛ ${chartRulerPhrase} نشان می‌دهد یکپارچه کردن این لایه‌ها به ${getPersonalOpeningPlanetNeed(
+    chartSpine.chartRulerId,
+  )} نیاز دارد و بیشتر در میدان ${focusField} دیده می‌شود.`;
+  const primaryRelationship =
+    synthesisPlan.primaryChallenge ?? synthesisPlan.primaryRelationship;
+  const relationshipSentence = primaryRelationship
+    ? `گفت‌وگوی ${getPlanetLabel(
+        primaryRelationship.firstPlanetId,
+      )} و ${getPlanetLabel(
+        primaryRelationship.secondPlanetId,
+      )} نقطهٔ اصلی تنظیم ${getPersonalOpeningPlanetNeed(
+        primaryRelationship.firstPlanetId,
+      )} و ${getPersonalOpeningPlanetNeed(
+        primaryRelationship.secondPlanetId,
+      )} است؛ تصمیم وقتی روشن‌تر می‌شود که هر دو نیاز نام برده شوند.`
+    : undefined;
+  const support = synthesisPlan.primarySupport;
+  const supportSentence = support
+    ? `همکاری ${getPlanetLabel(support.firstPlanetId)} و ${getPlanetLabel(
+        support.secondPlanetId,
+      )} منبع همراه این نخ است و راه بازگشت به تعادل را نشان می‌دهد.`
+    : undefined;
+
+  return [
+    coreSentence,
+    evidenceSentence,
+    relationshipSentence,
+    supportSentence,
+  ]
+    .filter(
+      (part): part is string =>
+        typeof part === "string" && part.trim().length > 0,
+    )
+    .join(" ");
+}
+
 function buildFirstSynthesisText(
   realEngine: RealEngineReportSnapshot,
   chartSpine: ChartSpine,
   synthesisPlan: RealEngineSynthesisPlan,
 ): string {
+  const wholeChartThread = buildWholeChartSynthesisThread(
+    realEngine,
+    chartSpine,
+    synthesisPlan,
+  );
   const profile = synthesisPlan.narrativeProfile;
   const driverThread = buildNarrativeDriverThread(
     profile,
@@ -2211,6 +2295,7 @@ function buildFirstSynthesisText(
         );
 
   return [
+    wholeChartThread,
     driverThread,
     relationshipThread,
     clusterThread,

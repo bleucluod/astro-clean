@@ -44,6 +44,9 @@ const {
   buildRealEngineSynthesisPlan,
   getRealEngineSynthesisRoles,
 } = require("../lib/astrology/real-engine-synthesis.ts");
+const {
+  buildWholeChartSynthesisThread,
+} = require("../lib/astrology/real-engine-report-writer.ts");
 const writerSource = fs.readFileSync("lib/astrology/real-engine-report-writer.ts", "utf8");
 const sampleQaSource = fs.readFileSync("scripts/check-report-sample-qa.mjs", "utf8");
 const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
@@ -97,7 +100,50 @@ if (plan.primaryHouseNumber !== 9) {
   failures.push(`primary house should follow first selected challenge evidence, got ${plan.primaryHouseNumber}`);
 }
 
+const chartSpine = {
+  risingSign: "leo",
+  ascendantDegreeInSign: 10,
+  chartRulerId: "sun",
+  chartRulerPlacement: placements[0],
+  chartRulerAspects: [],
+  activeHouses: [{ house: { number: 9 } }],
+  signClusters: [],
+  houseClusters: [],
+  centralAspects: [],
+};
+const wholeChartText = buildWholeChartSynthesisThread(
+  {
+    placements,
+    aspectHighlights: roles.map((role) => role.aspect),
+    retrogrades: { status: "calculated", planetIds: [] },
+  },
+  chartSpine,
+  plan,
+);
+
+if (!wholeChartText.startsWith("ممکن است")) {
+  failures.push("whole-chart synthesis does not begin with lived experience");
+}
 for (const marker of [
+  "معنا، باور و افق‌های دورتر",
+  "بدن، حضور و شروع",
+  "رایزینگ اسد",
+  "خورشید در حمل خانه ۹",
+  "گفت‌وگوی خورشید و زهره",
+  "همکاری ماه و عطارد",
+]) {
+  if (!wholeChartText.includes(marker)) {
+    failures.push(`whole-chart synthesis missing calculated thread marker: ${marker}`);
+  }
+}
+if (/اورب|درجه/u.test(wholeChartText)) {
+  failures.push("whole-chart synthesis exposes technical orb/degree detail");
+}
+
+for (const marker of [
+  "buildWholeChartSynthesisThread",
+  "const wholeChartThread = buildWholeChartSynthesisThread(",
+  "wholeChartThread,",
   "buildAspectOverviewText(synthesisPlan, realEngineWithAspects)",
   "getRealEngineSynthesisRoles(synthesisPlan)",
   "buildSynthesisRoleContinuation",
