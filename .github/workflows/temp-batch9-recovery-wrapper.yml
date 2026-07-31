@@ -1,0 +1,19 @@
+name: Temporary Batch9 recovery wrapper
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-powershell-51:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out temporary harness
+        uses: actions/checkout@v6
+
+      - name: Exercise native stderr handling
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ci-temp\check-batch9-recovery-native-wrapper.ps1
