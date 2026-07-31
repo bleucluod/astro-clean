@@ -10,9 +10,18 @@ import {
 } from "@/lib/astrology/report-behavioral-context";
 import { formatZodiacLabel, zodiacSignFromLongitude } from "@/lib/astrology/zodiac-labels";
 import type { AstrologyReport } from "@/types/astro";
+import type { ReportOutputSection } from "@/types/report-output";
 
 type ReportPlanetPlacementSectionsProps = {
   report: AstrologyReport;
+};
+
+type PlacementInterpretation = ReturnType<
+  typeof buildPlacementBehavioralInterpretation
+>;
+
+type ReportWithInterpretationSections = AstrologyReport & {
+  interpretationSections?: ReportOutputSection[];
 };
 
 type PlanetPlacement = {
@@ -64,6 +73,10 @@ export function ReportPlanetPlacementSections({
       : [],
   );
   const audienceMode = getReportBehavioralAudienceMode(report);
+  const reportWithSections = report as ReportWithInterpretationSections;
+  const hasThemeChapters = (
+    reportWithSections.interpretationSections ?? []
+  ).some((section) => section.id.startsWith("real-engine-theme-"));
 
   if (placements.length === 0) {
     return null;
@@ -73,19 +86,35 @@ export function ReportPlanetPlacementSections({
     <section
       className="report-section report-planet-placement-section"
       data-halleus-report-planet-placement-sections="v0.1.259"
+      data-halleus-report-placement-reference="v0.1.369"
+      data-halleus-report-placement-mode={
+        hasThemeChapters ? "theme-reference" : "legacy-narrative"
+      }
       data-halleus-behavioral-placement-core="v0.1.314"
     >
       <div className="report-section-heading">
-        <span className="section-label">جایگاه‌های اصلی</span>
-        <h3>سیاره‌ها در زندگی روزمره</h3>
-        <p>هر کارت یک الگوی قابل مشاهده، یک گیر محتمل و یک تمرین کوتاه را نشان می‌دهد.</p>
-        <p
-          className="report-muted-note"
-          data-report-narrative-quality-pass="placement-bridge for-dummies"
-        >
-          آناتومی این بخش نمادین است، تشخیص پزشکی نیست و رابطهٔ علت‌ومعلولی
-          دربارهٔ بدن یا سلامت مطرح نمی‌کند.
+        <span className="section-label">
+          {hasThemeChapters ? "مرجع سریع" : "جایگاه‌های اصلی"}
+        </span>
+        <h3>
+          {hasThemeChapters
+            ? "مرجع جایگاه‌های سیاره‌ای"
+            : "سیاره‌ها در زندگی روزمره"}
+        </h3>
+        <p>
+          {hasThemeChapters
+            ? "روایت اصلی و فصل‌های موضوعی بالاتر آمده‌اند؛ این بخش فقط جایگاه، خانه، حرکت و یک آزمایش کوچک را برای مرور سریع نگه می‌دارد."
+            : "هر کارت یک الگوی قابل مشاهده، یک گیر محتمل و یک تمرین کوتاه را نشان می‌دهد."}
         </p>
+        {!hasThemeChapters ? (
+          <p
+            className="report-muted-note"
+            data-report-narrative-quality-pass="placement-bridge for-dummies"
+          >
+            آناتومی این بخش نمادین است، تشخیص پزشکی نیست و رابطهٔ علت‌ومعلولی
+            دربارهٔ بدن یا سلامت مطرح نمی‌کند.
+          </p>
+        ) : null}
       </div>
 
       <div className="report-placement-grid">
@@ -125,47 +154,92 @@ export function ReportPlanetPlacementSections({
                 {interpretation?.plainMeaning ??
                   "برای این جایگاه هنوز ترکیب کامل سیاره، نشان و خانه در دسترس نیست."}
               </p>
-              <ul className="report-compact-list">
-                <li>
-                  <strong>ویژگی‌های روشن:</strong>{" "}
-                  {interpretation?.healthyExpression ??
-                    "ظرفیت رشد و انتخاب روشن‌تر"}
-                </li>
-                <li>
-                  <strong>چالش‌ها:</strong>{" "}
-                  {interpretation?.possibleFriction ??
-                    "زیاده‌روی احتمالی یا الگوی تکرارشونده"}
-                </li>
-                {isIndependentFocus(
-                  interpretation?.focus,
-                  interpretation?.plainMeaning,
-                ) ? (
-                  <li>
-                    <strong>کجا بیشتر دیده می‌شود؟</strong>{" "}
-                    {interpretation?.focus}
-                  </li>
-                ) : null}
-                <li>
-                  <strong>در زندگی روزمره / مثال ساده:</strong>{" "}
-                  {interpretation?.dailyLifeExample ??
-                    "این کیفیت در تصمیم‌ها و رفتارهای کوچک قابل مشاهده است."}
-                </li>
-                <li>
-                  <strong>آزمایش کوچک:</strong>{" "}
-                  {interpretation?.smallExperiment ??
-                    "یک نمونه واقعی از این الگو را در طول هفته یادداشت کن."}
-                </li>
-                <li>
-                  <strong>آناتومی نمادین:</strong>{" "}
-                  {interpretation?.symbolicBody ??
-                    "این جایگاه فقط به‌عنوان یک استعارهٔ نمادین خوانده می‌شود."}
-                </li>
-              </ul>
+              {hasThemeChapters ? (
+                <ThemePlacementReference interpretation={interpretation} />
+              ) : (
+                <LegacyPlacementNarrative interpretation={interpretation} />
+              )}
             </article>
           );
         })}
       </div>
     </section>
+  );
+}
+
+function ThemePlacementReference({
+  interpretation,
+}: {
+  interpretation: PlacementInterpretation | null;
+}) {
+  return (
+    <ul
+      className="report-compact-list"
+      data-report-placement-reference-details="deduplicated"
+    >
+      {isIndependentFocus(
+        interpretation?.focus,
+        interpretation?.plainMeaning,
+      ) ? (
+        <li>
+          <strong>میدان پررنگ:</strong>{" "}
+          {interpretation?.focus}
+        </li>
+      ) : null}
+      <li>
+        <strong>آزمایش کوچک:</strong>{" "}
+        {interpretation?.smallExperiment ??
+          "یک نمونه واقعی از این الگو را در طول هفته یادداشت کن."}
+      </li>
+    </ul>
+  );
+}
+
+function LegacyPlacementNarrative({
+  interpretation,
+}: {
+  interpretation: PlacementInterpretation | null;
+}) {
+  return (
+    <ul
+      className="report-compact-list"
+      data-report-placement-legacy-details="full-narrative"
+    >
+      <li>
+        <strong>ویژگی‌های روشن:</strong>{" "}
+        {interpretation?.healthyExpression ??
+          "ظرفیت رشد و انتخاب روشن‌تر"}
+      </li>
+      <li>
+        <strong>چالش‌ها:</strong>{" "}
+        {interpretation?.possibleFriction ??
+          "زیاده‌روی احتمالی یا الگوی تکرارشونده"}
+      </li>
+      {isIndependentFocus(
+        interpretation?.focus,
+        interpretation?.plainMeaning,
+      ) ? (
+        <li>
+          <strong>کجا بیشتر دیده می‌شود؟</strong>{" "}
+          {interpretation?.focus}
+        </li>
+      ) : null}
+      <li>
+        <strong>در زندگی روزمره / مثال ساده:</strong>{" "}
+        {interpretation?.dailyLifeExample ??
+          "این کیفیت در تصمیم‌ها و رفتارهای کوچک قابل مشاهده است."}
+      </li>
+      <li>
+        <strong>آزمایش کوچک:</strong>{" "}
+        {interpretation?.smallExperiment ??
+          "یک نمونه واقعی از این الگو را در طول هفته یادداشت کن."}
+      </li>
+      <li>
+        <strong>آناتومی نمادین:</strong>{" "}
+        {interpretation?.symbolicBody ??
+          "این جایگاه فقط به‌عنوان یک استعارهٔ نمادین خوانده می‌شود."}
+      </li>
+    </ul>
   );
 }
 

@@ -1034,7 +1034,7 @@ export function ReportDetail({
           ["special-points", "دست‌های ماه"],
           ["energy-balance", "ترکیب انرژی‌ها"],
           ["weekly-practices", "سه کار این هفته"],
-          ["planet-placements", "سیاره‌ها در زندگی روزمره"],
+          ["planet-placements", "مرجع سیاره‌ها"],
           ["chart-data", "داده‌های چارت"],
           ["personal-transit", "آسمان ثبت‌شده"],
           ["technical-details", "جزئیات محاسبه"],
