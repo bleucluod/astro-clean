@@ -2283,9 +2283,6 @@ export function buildReportThemeChapters(
   const mercuryReading = mercury
     ? buildPlacementInterpretation("mercury", mercury, realEngine)
     : undefined;
-  const venusReading = venus
-    ? buildPlacementInterpretation("venus", venus, realEngine)
-    : undefined;
   const marsReading = mars
     ? buildPlacementInterpretation("mars", mars, realEngine)
     : undefined;
@@ -2321,6 +2318,31 @@ export function buildReportThemeChapters(
       : `${getPlanetLabel(planetId)} بدون جایگاه کامل ذخیره‌شده`;
   const sentence = (value: string) =>
     /[.؟!]$/u.test(value.trim()) ? value.trim() : `${value.trim()}.`;
+  const relationshipPlacementContext = (
+    placement: RealEngineReportPlacement | undefined,
+    planetId: string,
+  ) => {
+    if (!placement) {
+      return undefined;
+    }
+
+    return {
+      evidence: `${getPlanetLabel(planetId)} در ${formatSignHouseLabel(
+        placement,
+      )}`,
+      field: isReportHouseNumber(placement.house)
+        ? HOUSE_SYNTHESIS_FIELD[placement.house]
+        : "میدانی که خانه‌اش در دادهٔ ذخیره‌شده کامل نیست",
+      energy: SIGN_COPY[placement.signId].energy,
+    };
+  };
+  const venusRelationship = relationshipPlacementContext(venus, "venus");
+  const moonRelationship = relationshipPlacementContext(moon, "moon");
+  const mercuryRelationship = relationshipPlacementContext(
+    mercury,
+    "mercury",
+  );
+  const marsRelationship = relationshipPlacementContext(mars, "mars");
   const placementChapter = ({
     id,
     title,
@@ -2457,21 +2479,25 @@ export function buildReportThemeChapters(
           "این فصل سبک رابطه را در یک چارت می‌خواند؛ دربارهٔ فرد دیگری، سازگاری دو نفر یا نتیجهٔ قطعی یک رابطه ادعایی نمی‌کند.",
         body: [
           `نزدیک‌شدن: ${
-            venusReading?.dailyLifeExample ??
-            "جایگاه کامل زهره در دادهٔ ذخیره‌شده حاضر نیست، پس شیوه نزدیک‌شدن حدس زده نمی‌شود"
-          }.`,
+            venusRelationship
+              ? `${venusRelationship.evidence} نشان می‌دهد نزدیک‌شدن در میدان ${venusRelationship.field} با ریتم ${venusRelationship.energy} شکل می‌گیرد؛ نزدیکی وقتی شخصی‌تر می‌ماند که چیزی را که واقعاً برایت ارزشمند است پیش از سازگار شدن یا گرفتن تأیید، به انتخابی روشن تبدیل کنی.`
+              : "جایگاه کامل زهره در دادهٔ ذخیره‌شده حاضر نیست، پس شیوهٔ نزدیک‌شدن حدس زده نمی‌شود."
+          }`,
           `امنیت: ${
-            moonReading?.healthyExpression ??
-            "برای امنیت عاطفی فقط داده‌های موجود ماه معتبرند و جزئیات غایب ساخته نمی‌شوند"
-          }.`,
+            moonRelationship
+              ? `با ${moonRelationship.evidence}، امنیت عاطفی بیشتر در میدان ${moonRelationship.field} و با ریتم ${moonRelationship.energy} ساخته می‌شود؛ آنچه برای آرام شدن و احساس تعلق لازم داری باید به درخواست یا ریتمی قابل گفت‌وگو تبدیل شود.`
+              : "برای امنیت عاطفی فقط داده‌های موجود ماه معتبرند و جزئیات غایب ساخته نمی‌شوند."
+          }`,
           `گفت‌وگو: ${
-            mercuryReading?.healthyExpression ??
-            "سبک گفت‌وگو بدون جایگاه معتبر عطارد به یک توصیه عمومی محدود می‌ماند"
-          }.`,
+            mercuryRelationship
+              ? `${mercuryRelationship.evidence} گفت‌وگو را در میدان ${mercuryRelationship.field} با کیفیت ${mercuryRelationship.energy} پیش می‌برد؛ فهم و تصمیم وقتی راه ارتباط می‌مانند که به‌جای حدس زدن، با سؤال و جمله‌ای مستقیم بیان شوند.`
+              : "سبک گفت‌وگو بدون جایگاه معتبر عطارد به یک توصیهٔ عمومی محدود می‌ماند."
+          }`,
           `مرز: ${
-            marsReading?.healthyExpression ??
-            "مرزبندی بدون جایگاه معتبر مریخ به‌صورت شخصی‌سازی‌شده تفسیر نمی‌شود"
-          }.`,
+            marsRelationship
+              ? `${marsRelationship.evidence} نشان می‌دهد مرزگذاری در میدان ${marsRelationship.field} با ریتم ${marsRelationship.energy} عمل می‌کند؛ خواسته یا خشم باید پیش از انباشته شدن فشار، به جمله و اقدامی کوچک و صریح تبدیل شود.`
+              : "مرزبندی بدون جایگاه معتبر مریخ به‌صورت شخصی‌سازی‌شده تفسیر نمی‌شود."
+          }`,
           `استقلال: کیفیت ${rising.energy} در ورود به رابطه دیده می‌شود و سیارهٔ راهبر برای ${getPersonalOpeningPlanetNeed(
             chartSpine.chartRulerId,
           )} به فضای کافی نیاز دارد.`,

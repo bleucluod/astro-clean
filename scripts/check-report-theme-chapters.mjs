@@ -65,6 +65,12 @@ const {
 const {
   buildRealEngineSynthesisPlan,
 } = require("../lib/astrology/real-engine-synthesis.ts");
+const {
+  buildPlacementBehavioralInterpretation,
+} = require("../lib/astrology/report-behavioral-interpretation.ts");
+const {
+  selectPlacementMajorAspectModifier,
+} = require("../lib/astrology/report-behavioral-context.ts");
 
 const failures = [];
 const assert = (condition, message) => {
@@ -177,6 +183,45 @@ for (const dimension of [
   );
 }
 
+const relationshipDimensionEvidence = [
+  ["نزدیک‌شدن:", "زهره در میزان خانه ۳"],
+  ["امنیت:", "ماه در اسد خانه ۱"],
+  ["گفت‌وگو:", "عطارد در جوزا خانه ۱۱"],
+  ["مرز:", "مریخ در سرطان خانه ۱۲"],
+];
+for (const [dimension, evidence] of relationshipDimensionEvidence) {
+  const paragraph = relationship
+    .split(/\n{2,}/u)
+    .find((part) => part.startsWith(dimension));
+  assert(
+    paragraph?.includes(evidence),
+    `relationship dimension is not placement-backed: ${dimension}`,
+  );
+}
+
+for (const planetId of ["venus", "moon", "mercury", "mars"]) {
+  const placement = placements.find((item) => item.id === planetId);
+  const reading = buildPlacementBehavioralInterpretation({
+    planetId,
+    signId: placement.signId,
+    houseNumber: placement.house,
+    audienceMode: "adult",
+    majorAspect: selectPlacementMajorAspectModifier(planetId, aspects),
+  });
+  for (const field of [
+    "dailyLifeExample",
+    "healthyExpression",
+    "possibleFriction",
+    "smallExperiment",
+  ]) {
+    const copiedText = reading?.[field];
+    assert(
+      !copiedText || !relationship.includes(copiedText),
+      `relationship chapter reuses ${planetId} placement ${field}`,
+    );
+  }
+}
+
 const recurring = chapters.find(
   (chapter) => chapter.id === "real-engine-theme-recurring-patterns",
 )?.body ?? "";
@@ -262,6 +307,17 @@ const writerSource = fs.readFileSync(
   "lib/astrology/real-engine-report-writer.ts",
   "utf8",
 );
+for (const marker of [
+  "venusReading?.dailyLifeExample",
+  "moonReading?.healthyExpression",
+  "mercuryReading?.healthyExpression",
+  "marsReading?.healthyExpression",
+]) {
+  assert(
+    !writerSource.includes(marker),
+    `relationship chapter still directly reuses placement copy: ${marker}`,
+  );
+}
 const contractSource = fs.readFileSync(
   "lib/report-output/live-report-reading-contract.ts",
   "utf8",
@@ -314,6 +370,8 @@ if (failures.length > 0) {
 console.log("Report theme chapter check passed.");
 console.log("- seven topic chapters are ordered and data-backed");
 console.log("- relationship style covers eight single-chart dimensions");
+console.log("- relationship dimensions use placement-backed, relationship-specific copy");
+console.log("- standalone placement interpretation is not repeated verbatim in relationships");
 console.log("- relationship and recurring-pattern chapters use distinct aspect evidence");
 console.log("- recurring-pattern fallback stays cluster- or house-backed");
 console.log("- primary evidence stays distinct and technical detail stays out");
