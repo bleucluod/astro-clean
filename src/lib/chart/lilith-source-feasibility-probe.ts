@@ -3,19 +3,21 @@ import {
   LILITH_MODEL_DECISION_STATUS,
   LILITH_PRODUCTION_OUTPUT_STATUS,
 } from "./lilith-model-decision-contract";
+import {
+  LILITH_REFERENCE_FIXTURE_RUNTIME_POLICY,
+  LILITH_REFERENCE_FIXTURE_SOURCE,
+} from "./lilith-reference-fixtures";
 
-export const LILITH_SOURCE_FEASIBILITY_VERSION = "v0.1.236" as const;
-export const LILITH_SOURCE_FEASIBILITY_STATUS = "no-approved-production-source" as const;
-export const LILITH_SOURCE_FEASIBILITY_SCOPE = "local-runtime-source-feasibility-probe-only" as const;
+export const LILITH_SOURCE_FEASIBILITY_VERSION = "v0.1.370" as const;
+export const LILITH_SOURCE_FEASIBILITY_STATUS = "local-source-validated-for-natal-report" as const;
+export const LILITH_SOURCE_FEASIBILITY_SCOPE = "local-runtime-source-validation" as const;
 export const LILITH_SOURCE_FEASIBILITY_RUNTIME = "astronomy-engine@2.1.19" as const;
-export const LILITH_SOURCE_FEASIBILITY_APPROVED_FOR_OUTPUT = false as const;
+export const LILITH_SOURCE_FEASIBILITY_APPROVED_FOR_OUTPUT = true as const;
 
-export const LILITH_SOURCE_FEASIBILITY_RESEARCH_ONLY_APIS = [
+export const LILITH_SOURCE_FEASIBILITY_RUNTIME_APIS = [
   "GeoMoonState",
   "RotateState",
   "Rotation_EQJ_ECT",
-  "SearchLunarApsis",
-  "NextLunarApsis",
 ] as const;
 
 export const LILITH_SOURCE_FEASIBILITY_REJECTED_SUBSTITUTES = [
@@ -23,40 +25,31 @@ export const LILITH_SOURCE_FEASIBILITY_REJECTED_SUBSTITUTES = [
   "NextLunarApsis",
   "lunar-apsis-event-time",
   "moon-apogee-event-as-natal-longitude",
+  "external-api-lilith",
+  "swiss-runtime-lilith",
 ] as const;
-
-export const LILITH_SOURCE_FEASIBILITY_REQUIRED_BEFORE_OUTPUT = [
-  "select True/Osculating Black Moon Lilith as the first self-built probe model",
-  "derive a local osculating lunar apogee longitude from Moon position and velocity state vectors",
-  "add offline reference fixtures before any engine output",
-  "keep ReportCard, report writer, and chart wheel deferred until calculated longitude data exists",
-] as const;
-
-export type LilithSourceFeasibilityStatus = typeof LILITH_SOURCE_FEASIBILITY_STATUS;
-export type LilithSourceFeasibilityRuntime = typeof LILITH_SOURCE_FEASIBILITY_RUNTIME;
 
 export type LilithSourceFeasibilityProbe = {
   version: typeof LILITH_SOURCE_FEASIBILITY_VERSION;
-  status: LilithSourceFeasibilityStatus;
+  status: typeof LILITH_SOURCE_FEASIBILITY_STATUS;
   scope: typeof LILITH_SOURCE_FEASIBILITY_SCOPE;
-  runtime: LilithSourceFeasibilityRuntime;
+  runtime: typeof LILITH_SOURCE_FEASIBILITY_RUNTIME;
   approvedForProductionOutput: typeof LILITH_SOURCE_FEASIBILITY_APPROVED_FOR_OUTPUT;
   decisionContractStatus: typeof LILITH_MODEL_DECISION_STATUS;
   decisionContractScope: typeof LILITH_MODEL_DECISION_SCOPE;
   productionOutputStatus: typeof LILITH_PRODUCTION_OUTPUT_STATUS;
-  researchOnlyApis: readonly (typeof LILITH_SOURCE_FEASIBILITY_RESEARCH_ONLY_APIS)[number][];
+  validationReference: typeof LILITH_REFERENCE_FIXTURE_SOURCE;
+  referenceRuntimePolicy: typeof LILITH_REFERENCE_FIXTURE_RUNTIME_POLICY;
+  runtimeApis: readonly (typeof LILITH_SOURCE_FEASIBILITY_RUNTIME_APIS)[number][];
   rejectedSubstitutes: readonly (typeof LILITH_SOURCE_FEASIBILITY_REJECTED_SUBSTITUTES)[number][];
-  requiredBeforeOutput: readonly (typeof LILITH_SOURCE_FEASIBILITY_REQUIRED_BEFORE_OUTPUT)[number][];
   notes: readonly string[];
 };
 
 export const LILITH_SOURCE_FEASIBILITY_NOTES = [
-  "The current local runtime does not provide an approved Black Moon Lilith production longitude source.",
-  "SearchLunarApsis and NextLunarApsis are event-time helpers, not natal Black Moon Lilith longitude sources.",
-  "Do not approximate Black Moon Lilith from lunar apsis events or reuse lunar-node vector code under a Lilith label.",
-  "This probe keeps Black Moon Lilith deferred and not-calculated until a separate source/fixture batch proves one model.",
-  "The preferred next path is self-built True/Osculating Black Moon Lilith from Moon state vectors, not a new runtime dependency.",
-  "Mean Black Moon Lilith remains later-only until a public/permissive mean-apogee formula is selected.",
+  "Production uses the existing local Astronomy Engine Moon state vector; no external API or new ephemeris dependency is added.",
+  "Fixed Swiss Ephemeris osculating-apogee values are committed only as offline validation evidence.",
+  "SearchLunarApsis and NextLunarApsis remain event-time helpers and are not used as natal longitude substitutes.",
+  "Approval is bounded to natal report interpretation and does not approve Lilith transit or chart-wheel output.",
 ] as const;
 
 export function getLilithSourceFeasibilityProbe(): LilithSourceFeasibilityProbe {
@@ -69,29 +62,27 @@ export function getLilithSourceFeasibilityProbe(): LilithSourceFeasibilityProbe 
     decisionContractStatus: LILITH_MODEL_DECISION_STATUS,
     decisionContractScope: LILITH_MODEL_DECISION_SCOPE,
     productionOutputStatus: LILITH_PRODUCTION_OUTPUT_STATUS,
-    researchOnlyApis: LILITH_SOURCE_FEASIBILITY_RESEARCH_ONLY_APIS,
+    validationReference: LILITH_REFERENCE_FIXTURE_SOURCE,
+    referenceRuntimePolicy: LILITH_REFERENCE_FIXTURE_RUNTIME_POLICY,
+    runtimeApis: LILITH_SOURCE_FEASIBILITY_RUNTIME_APIS,
     rejectedSubstitutes: LILITH_SOURCE_FEASIBILITY_REJECTED_SUBSTITUTES,
-    requiredBeforeOutput: LILITH_SOURCE_FEASIBILITY_REQUIRED_BEFORE_OUTPUT,
     notes: LILITH_SOURCE_FEASIBILITY_NOTES,
   };
 }
 
 export function assertLilithSourceFeasibilityIsSafe(probe: LilithSourceFeasibilityProbe): void {
-  if (probe.status !== "no-approved-production-source") {
-    throw new Error("Lilith source feasibility status changed without an approval batch.");
+  if (probe.status !== "local-source-validated-for-natal-report") {
+    throw new Error("Lilith source must retain validated local status.");
   }
-
-  if (probe.approvedForProductionOutput !== false) {
-    throw new Error("Lilith source feasibility must not approve production output yet.");
+  if (probe.approvedForProductionOutput !== true) {
+    throw new Error("Validated Lilith natal output must remain approved.");
   }
-
-  if (probe.productionOutputStatus !== "not-calculated") {
-    throw new Error("Lilith must remain not-calculated after the source feasibility probe.");
+  if (probe.referenceRuntimePolicy !== "reference-values-only-no-swiss-runtime-dependency") {
+    throw new Error("Swiss Ephemeris must remain fixture-only and absent from runtime.");
   }
-
-  for (const rejected of ["SearchLunarApsis", "NextLunarApsis"] as const) {
+  for (const rejected of ["SearchLunarApsis", "NextLunarApsis", "external-api-lilith"] as const) {
     if (!probe.rejectedSubstitutes.includes(rejected)) {
-      throw new Error(`Lilith source feasibility must reject ${rejected} as a production longitude substitute.`);
+      throw new Error(`Lilith source must reject ${rejected}.`);
     }
   }
 }

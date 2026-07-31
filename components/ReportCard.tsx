@@ -630,7 +630,7 @@ const VISIBLE_ENGINE_COPY_REPLACEMENTS = [
   {
     needle: "Local True/Osculating Black Moon Lilith is calculated",
     value:
-      "لیلیت نوسانی/واقعی محلی از بردار مکان و سرعت ماه محاسبه شده و فقط به صورت داده‌ی فنی نمایش داده می‌شود؛ روایت تفسیری آن در این گزارش فعال نیست.",
+      "لیلیت نوسانی/واقعی محلی از بردار مکان و سرعت ماه محاسبه شده و پس از عبور از fixtureهای مرجع مستقل، فقط برای خوانش محدود گزارش تولد استفاده می‌شود.",
   },
   {
     needle: "Black Moon Lilith is not calculated",
@@ -864,10 +864,10 @@ function buildLilithRow(report: AstrologyReport): LilithSummaryRow | null {
     title: "لیلیت نوسانی/واقعی محلی",
     positionLabel: `${formatZodiacLabel(lilith.signId)}، درجه ${formatDegree(lilith.degreeInSign)}`,
     houseLabel: typeof lilith.house === "number" ? `در خانه ${formatPersianNumber(lilith.house)}` : null,
-    sourceLabel: "محاسبه محلی از بردار مکان و سرعت ماه؛ بدون API، بدون اجرای Swiss و بدون وابستگی تازه",
+    sourceLabel: "محاسبه محلی از بردار مکان و سرعت ماه؛ fixture مرجع آفلاین و بدون API یا وابستگی تازه در runtime",
     reportGateLabel: lilith.approvedForReportOutput
-      ? "آماده نمایش در گزارش"
-      : "نمایش محدود داده؛ روایت تفسیری این گزارش فعال نیست",
+      ? "خوانش محدود و اعتبارسنجی‌شدهٔ گزارش تولد فعال است"
+      : "گزارش ذخیره‌شدهٔ قدیمی؛ روایت تفسیری خودکار فعال نیست",
     modelNote: "این نقطه لیلیت میانگین، سیارک ۱۱۸۱ یا دارک‌مون/والدماث نیست.",
   };
 }

@@ -6,14 +6,14 @@ import {
   LILITH_SELF_BUILT_OSCULATING_RUNTIME_DEPENDENCY_POLICY,
 } from "./lilith-self-built-osculating-decision";
 
-export const LILITH_OSCULATING_PROBE_VERSION = "v0.1.238" as const;
-export const LILITH_OSCULATING_PROBE_STATUS = "probe-only-not-approved-for-output" as const;
-export const LILITH_OSCULATING_PROBE_SCOPE = "self-built-local-osculating-black-moon-lilith-probe-only" as const;
+export const LILITH_OSCULATING_PROBE_VERSION = "v0.1.370" as const;
+export const LILITH_OSCULATING_PROBE_STATUS = "validated-local-osculating-output" as const;
+export const LILITH_OSCULATING_PROBE_SCOPE = "self-built-local-osculating-black-moon-lilith" as const;
 export const LILITH_OSCULATING_PROBE_SOURCE = "astronomy-engine-geomoonstate-local-state-vector" as const;
 export const LILITH_OSCULATING_PROBE_METHOD =
   "self-built-osculating-lunar-apogee-from-moon-position-velocity" as const;
 export const LILITH_OSCULATING_PROBE_MODEL_ID = LILITH_SELF_BUILT_OSCULATING_MODEL_ID;
-export const LILITH_OSCULATING_PROBE_APPROVED_FOR_PRODUCTION_OUTPUT = false as const;
+export const LILITH_OSCULATING_PROBE_APPROVED_FOR_PRODUCTION_OUTPUT = true as const;
 
 export const LILITH_OSCULATING_PROBE_REQUIRED_APIS = [
   "GeoMoonState",
@@ -32,11 +32,11 @@ export const LILITH_OSCULATING_PROBE_REJECTED_RUNTIME_SHORTCUTS = [
 ] as const;
 
 export const LILITH_OSCULATING_PROBE_LIMITATIONS = [
-  "Probe-only self-built osculating Black Moon Lilith candidate.",
+  "Validated self-built osculating Black Moon Lilith calculation.",
   "Uses the existing local Astronomy Engine Moon state vector and no external API.",
-  "Uses a two-body osculating orbit from the geocentric Moon position and velocity state vectors.",
-  "Not approved for realChart output, report generation, chart wheel display, transit, or public SEO claims.",
-  "Requires offline reference fixtures before any production output approval.",
+  "Uses a two-body osculating orbit from geocentric Moon position and velocity state vectors.",
+  "Passed fixed offline Swiss Ephemeris osculating-apogee reference fixtures within the approved tolerance.",
+  "Approved for bounded natal-report interpretation only; transit, chart-wheel and public SEO expansion remain separate.",
 ] as const;
 
 export const LILITH_OSCULATING_PROBE_EARTH_MOON_GM_KM3_S2 = 403503.241918 as const;
@@ -183,8 +183,8 @@ export function calculateLilithOsculatingProbe(utcDate: Date): LilithOsculatingP
 }
 
 export function assertLilithOsculatingProbeResultIsSafe(result: LilithOsculatingProbeResult): void {
-  if (result.approvedForProductionOutput !== false || result.decisionProductionOutputAllowed !== false) {
-    throw new Error("Lilith osculating probe must not approve production output.");
+  if (result.approvedForProductionOutput !== true || result.decisionProductionOutputAllowed !== true) {
+    throw new Error("Validated Lilith osculating output approval is missing.");
   }
 
   if (result.apiPolicy !== "no-external-api") {

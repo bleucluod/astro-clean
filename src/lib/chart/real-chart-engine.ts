@@ -88,8 +88,11 @@ export type RealChartCalculatedLilith = {
   lilithType: "local-true-osculating-black-moon-lilith";
   source: typeof LILITH_INTERNAL_ADAPTER_SOURCE;
   frame: LilithInternalAdapterResult["frame"];
-  reliability: "guarded-engine-output";
-  approvedForReportOutput: false;
+  reliability: "validated-report-output";
+  approvedForReportOutput: true;
+  validationStatus: LilithInternalAdapterResult["validationStatus"];
+  validationReference: LilithInternalAdapterResult["validationReference"];
+  validationToleranceDegrees: number;
   limitation: string | null;
 };
 
@@ -263,7 +266,7 @@ export function buildRealChartWorkbenchResult(
           : "حل‌گر محلی پلاسیدوس همگرا نشد و هیچ روش خانهٔ جایگزینی اعمال نشده است.",
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around the birth time.",
       "Local True/Osculating lunar nodes are calculated from Astronomy Engine GeoMoonState and the instantaneous lunar orbital plane; no external API or Swiss runtime dependency is used.",
-      "Local True/Osculating Black Moon Lilith is calculated from the guarded self-built Moon state-vector adapter; technical report output is enabled, while interpretive narrative remains disabled because approvedForReportOutput is false.",
+      "Local True/Osculating Black Moon Lilith is calculated from the validated local Moon state-vector adapter; bounded natal-report interpretation is enabled after independent offline reference fixtures passed.",
       "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time must be disclosed before paid/private reports.",
       "Timezone and midnight-boundary behavior is guarded by natal accuracy hardening checks before the report claims production-grade precision.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",
@@ -366,10 +369,13 @@ export function calculateRealChartLilith(utcDate: Date): RealChartCalculatedLili
     lilithType: "local-true-osculating-black-moon-lilith",
     source: LILITH_INTERNAL_ADAPTER_SOURCE,
     frame: adapterResult.frame,
-    reliability: "guarded-engine-output",
-    approvedForReportOutput: false,
+    reliability: "validated-report-output",
+    approvedForReportOutput: true,
+    validationStatus: adapterResult.validationStatus,
+    validationReference: adapterResult.validationReference,
+    validationToleranceDegrees: adapterResult.validationToleranceDegrees,
     limitation:
-      "Calculated locally from the self-built True/Osculating Black Moon Lilith adapter. Technical report output is enabled; interpretive narrative remains disabled because approvedForReportOutput is false.",
+      "Calculated locally from the validated True/Osculating Black Moon Lilith adapter. Natal-report interpretation is enabled; transit, chart-wheel and public SEO expansion remain separately gated.",
   };
 }
 

@@ -410,7 +410,7 @@ function toRealEngineReportCalculationQuality(
       ...(chartReportEnrichment?.limitations ?? []),
       "حرکت برگشتی از تغییر جایگاه ظاهری سیاره‌ها نزدیک زمان تولد محاسبه می‌شود؛ اگر سیاره نزدیک ایستایی باشد، خوانش باید ملایم و محتاط باشد.",
       "دست‌های ماه در این نسخه با مدل نوسانی/واقعی محلی محاسبه می‌شوند؛ منبع خارجی یا Swiss runtime استفاده نشده است.",
-      "جایگاه لیلیت نوسانی/واقعی محلی در داده و بخش فنی گزارش ذخیره می‌شود، اما تا وقتی مجوز خروجی فعال نیست وارد روایت تفسیری نمی‌شود.",
+      "لیلیت نوسانی/واقعی محلی از مسیر محاسبه محلی و fixtureهای مرجع مستقل عبور کرده و فقط در خوانش محدود گزارش تولد استفاده می‌شود؛ ترانزیت و نمایش روی چرخ چارت همچنان جداگانه غیرفعال‌اند.",
     ],
     warnings: [
       "اگر ساعت تولد تقریبی یا نامشخص باشد، خانه‌ها، محورها، حرکت برگشتی و زبان نهایی گزارش باید محتاطانه‌تر خوانده شوند.",
@@ -497,6 +497,9 @@ function toRealEngineReportLilith(
     source: lilith.source,
     reliability: "calculated",
     approvedForReportOutput: lilith.approvedForReportOutput,
+    validationStatus: lilith.validationStatus,
+    validationReference: lilith.validationReference,
+    validationToleranceDegrees: lilith.validationToleranceDegrees,
     limitation: lilith.limitation,
   };
 }

@@ -1,7 +1,15 @@
 "use client";
 
+import {
+  buildLilithReportInterpretation,
+  type LilithReportInterpretation,
+} from "@/lib/astrology/lilith-report-interpretation";
 import { formatZodiacLabel } from "@/lib/astrology/zodiac-labels";
-import type { AstrologyReport } from "@/types/astro";
+import type {
+  AstrologyReport,
+  RealEngineReportCalculatedLilith,
+  RealEngineReportPlacement,
+} from "@/types/astro";
 
 type SpecialPointEngine = {
   lunarNodes?: {
@@ -11,6 +19,7 @@ type SpecialPointEngine = {
     southNode?: SpecialPointNode | null;
   } | null;
   lilith?: SpecialPointLilith | null;
+  placements?: RealEngineReportPlacement[];
 } | null;
 
 type SpecialPointReport = AstrologyReport & {
@@ -28,11 +37,16 @@ type SpecialPointNode = {
 type SpecialPointLilith = {
   id?: string;
   status?: string;
+  modelId?: string;
   lilithType?: string;
+  longitude?: number;
   signId?: string;
   degreeInSign?: number;
   house?: number | null;
   approvedForReportOutput?: boolean;
+  validationStatus?: string;
+  validationReference?: string;
+  validationToleranceDegrees?: number;
 };
 
 type NarrativeCard = {
@@ -57,9 +71,10 @@ type LilithBoundaryCard = {
 
 const SPECIAL_POINTS_DEEP_NARRATIVE_VERSION =
   "v0.1.262-report-special-points-deep-narrative" as const;
-
 const SPECIAL_POINTS_FINAL_QA_VERSION =
   "v0.1.288-report-special-points-transit-final-qa" as const;
+const VALIDATED_LILITH_REPORT_VERSION =
+  "v0.1.370-validated-lilith-report-interpretation" as const;
 
 export function ReportSpecialPointsNarrativeSection({
   report,
@@ -68,9 +83,21 @@ export function ReportSpecialPointsNarrativeSection({
 }) {
   const engine = (report as SpecialPointReport).realEngine ?? null;
   const lunarNodeCards = buildLunarNodeCards(engine?.lunarNodes ?? null);
-  const lilithNarrativeCard = buildLilithNarrativeCard(engine?.lilith ?? null);
-  const lilithBoundaryCard = buildLilithBoundaryCard(engine?.lilith ?? null);
-  if (lunarNodeCards.length === 0 && !lilithNarrativeCard && !lilithBoundaryCard) {
+  const lilith = engine?.lilith ?? null;
+  const approvedLilith = isApprovedLilith(lilith) ? lilith : null;
+  const lilithInterpretation = approvedLilith
+    ? buildLilithReportInterpretation({
+        lilith: approvedLilith,
+        placements: engine?.placements ?? [],
+      })
+    : null;
+  const lilithBoundaryCard = buildLilithBoundaryCard(lilith);
+
+  if (
+    lunarNodeCards.length === 0 &&
+    !lilithInterpretation &&
+    !lilithBoundaryCard
+  ) {
     return null;
   }
 
@@ -79,12 +106,17 @@ export function ReportSpecialPointsNarrativeSection({
       className="report-section report-special-points-narrative-section"
       data-special-points-deep-narrative={SPECIAL_POINTS_DEEP_NARRATIVE_VERSION}
       data-special-points-final-qa={SPECIAL_POINTS_FINAL_QA_VERSION}
-      aria-label="دست‌های ماه؛ الگوی آشنا و انتخاب تازه"
+      data-validated-lilith-report={VALIDATED_LILITH_REPORT_VERSION}
+      aria-label="دست‌های ماه و لیلیت؛ الگوی آشنا، انتخاب تازه و مرزهای شخصی"
     >
       <div className="report-section-heading">
         <span className="report-kicker">محور رشد</span>
         <h2>دست‌های ماه — الگوی آشنا، انتخاب تازه</h2>
-        <p data-report-narrative-quality-pass="special-points-bridge">این دو نقطه کنار جایگاه‌ها و رابطه‌های سیاره‌ای نشان می‌دهند کدام پاسخ آشناتر است و کدام انتخاب به تمرین تازه نیاز دارد.</p>
+        <p data-report-narrative-quality-pass="special-points-bridge">
+          دست‌های ماه مسیر میان پاسخ آشنا و تمرین تازه را نشان می‌دهند؛
+          لیلیت، وقتی دادهٔ معتبر و مجوز روایت دارد، لایه‌ای محدود درباره مرز،
+          حساسیت و صداقت با خواسته‌ها اضافه می‌کند.
+        </p>
       </div>
 
       {lunarNodeCards.length > 0 ? (
@@ -107,31 +139,91 @@ export function ReportSpecialPointsNarrativeSection({
         </div>
       ) : null}
 
-      {lilithNarrativeCard || lilithBoundaryCard ? (
+      {approvedLilith && lilithInterpretation ? (
+        <LilithNarrativeCard
+          interpretation={lilithInterpretation}
+          lilith={approvedLilith}
+        />
+      ) : null}
+
+      {lilithBoundaryCard ? (
         <details className="notice report-notice report-special-point-boundary-card">
           <summary>جزئیات فنی لیلیت</summary>
-          {lilithNarrativeCard ? (
-            <>
-              <h3>{lilithNarrativeCard.title}</h3>
-              <p>{lilithNarrativeCard.position}</p>
-              <p>{lilithNarrativeCard.theme}</p>
-              <p>{lilithNarrativeCard.trust}</p>
-            </>
-          ) : null}
-          {lilithBoundaryCard ? (
-            <>
-              <h3>{lilithBoundaryCard.title}</h3>
-              <p>{lilithBoundaryCard.position}</p>
-              <p>{lilithBoundaryCard.status}</p>
-              <p>{lilithBoundaryCard.boundary}</p>
-            </>
-          ) : null}
+          <h3>{lilithBoundaryCard.title}</h3>
+          <p>{lilithBoundaryCard.position}</p>
+          <p>{lilithBoundaryCard.status}</p>
+          <p>{lilithBoundaryCard.boundary}</p>
           <p className="report-muted-note">
-            مدل‌ها در داده حفظ می‌شود؛ دست‌های ماه و لیلیت جدا نگه داشته می‌شوند و هیچ‌کدام بی‌اجازه جای دیگری را نمی‌گیرد.
+            مدل‌ها در داده جدا نگه داشته می‌شوند؛ لیلیت میانگین، دارک‌مون/والدماث
+            و سیارک ۱۱۸۱ جای این مدل را نمی‌گیرند.
           </p>
         </details>
       ) : null}
     </section>
+  );
+}
+
+function LilithNarrativeCard({
+  interpretation,
+  lilith,
+}: {
+  interpretation: LilithReportInterpretation;
+  lilith: RealEngineReportCalculatedLilith;
+}) {
+  return (
+    <article
+      className="report-aspect-card report-special-points-lilith-card"
+      data-lilith-interpretation-version={interpretation.version}
+    >
+      <span className="report-kicker">مرز و حساسیت</span>
+      <h3>لیلیت: مرز، حساسیت و صداقت با خواسته‌ها</h3>
+      <p className="report-muted-note">{formatPointPosition(lilith)}</p>
+      <p>{interpretation.signText}</p>
+      {interpretation.houseText ? <p>{interpretation.houseText}</p> : null}
+      <ul>
+        <li>
+          <strong>بیان کمک‌کننده:</strong> {interpretation.helpfulText}
+        </li>
+        <li>
+          <strong>نقطهٔ اصطکاک:</strong> {interpretation.growthText}
+        </li>
+      </ul>
+
+      {interpretation.aspects.length > 0 ? (
+        <div className="report-special-points-lilith-aspects">
+          <h4>پیوندهای پررنگ لیلیت با چارت</h4>
+          {interpretation.aspects.map((aspect) => (
+            <div className="mini-card" key={aspect.id}>
+              <strong>
+                {aspect.aspectLabel} با {aspect.planetLabel}
+              </strong>
+              <p>{aspect.text}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="report-muted-note">
+          در محدودهٔ محافظه‌کارانهٔ این گزارش، جنبهٔ اصلیِ نزدیکی برای لیلیت
+          انتخاب نشد؛ این به معنی بی‌اهمیت‌بودن جایگاه نیست.
+        </p>
+      )}
+
+      <p>
+        <strong>آزمایش کوچک:</strong> {interpretation.practiceText}
+      </p>
+      <details className="report-special-points-lilith-trust">
+        <summary>پشتوانه و محدودیت این خوانش</summary>
+        <p>{interpretation.trustText}</p>
+        <p>
+          مرجع اعتبارسنجی: fixtureهای آفلاین نوسانی/واقعی؛ حداکثر اختلاف مجاز
+          {` ${formatPersianNumber(lilith.validationToleranceDegrees)} درجه`}.
+        </p>
+        <p>
+          این مجوز فقط برای گزارش تولد است و لیلیت ترانزیتی یا نمایش روی چرخ
+          چارت را فعال نمی‌کند.
+        </p>
+      </details>
+    </article>
   );
 }
 
@@ -148,7 +240,6 @@ function buildLunarNodeCards(
   }
 
   const source = formatNodeSource(lunarNodes.nodeType);
-
   return [
     {
       id: "north-node-deep-narrative",
@@ -156,52 +247,28 @@ function buildLunarNodeCards(
       position: formatPointPosition(lunarNodes.northNode),
       source,
       theme:
-        "دست شمالی ماه در این مدل جهتی را نشان می‌دهد که ممکن است ابتدا ناآشنا باشد و با تجربه‌ی تدریجی به یک مهارت تازه تبدیل شود.",
+        "دست شمالی ماه در این مدل جهتی را نشان می‌دهد که ممکن است ابتدا ناآشنا باشد و با تجربهٔ تدریجی به یک مهارت تازه تبدیل شود.",
       helpful:
         "این نقطه را مثل مسیر تمرین بخوان: یک انتخاب کوچک، تکرارشونده و قابل مشاهده، نه تصویری کامل و بی‌نقص از آینده.",
       growth:
-        "چالش طبیعی این است که بخش ناآشنا زود کنار گذاشته شود. رشد یعنی نزدیک شدن تدریجی به این جهت، بدون انکار توانایی‌های قبلی.",
-      trust:
-        `این کارت از ${source} استفاده می‌کند و مدل را جداگانه نگه می‌دارد تا محور میانگین و محور نوسانی/واقعی با هم قاطی نشوند.`,
+        "چالش طبیعی این است که بخش ناآشنا زود کنار گذاشته شود. رشد یعنی نزدیک‌شدن تدریجی به این جهت، بدون انکار توانایی‌های قبلی.",
+      trust: `این کارت از ${source} استفاده می‌کند و مدل را جداگانه نگه می‌دارد تا محور میانگین و محور نوسانی/واقعی با هم قاطی نشوند.`,
     },
     {
       id: "south-node-deep-narrative",
       title: "دست جنوبی ماه: الگوی آشنا",
       position: formatPointPosition(lunarNodes.southNode),
-      source: `${source}؛ نقطه‌ی مقابل دست شمالی`,
+      source: `${source}؛ نقطهٔ مقابل دست شمالی`,
       theme:
         "دست جنوبی ماه بیشتر از الگو، مهارت یا واکنشی می‌گوید که آشناتر است و در فشارها راحت‌تر به آن برمی‌گردی.",
       helpful:
-        "این نقطه می‌تواند یک توانایی قدیمی باشد. لازم نیست حذف شود؛ بهتر است آگاهانه به کار گرفته شود و همه‌ی تصمیم‌ها را به تنهایی هدایت نکند.",
+        "این نقطه می‌تواند یک توانایی قدیمی باشد. لازم نیست حذف شود؛ بهتر است آگاهانه به کار گرفته شود و همهٔ تصمیم‌ها را به تنهایی هدایت نکند.",
       growth:
         "چالش وقتی شروع می‌شود که الگوی آشنا به تنها پناهگاه تبدیل شود. مسیر رشد احترام به گذشته است، بدون ماندن همیشگی در همان پاسخ.",
       trust:
-        "دست جنوبی در این داده از محور مقابل دست شمالی به دست آمده و محاسبه‌ی مستقل یا مدل مبهم دیگری نیست.",
+        "دست جنوبی در این داده از محور مقابل دست شمالی به دست آمده و محاسبهٔ مستقل یا مدل مبهم دیگری نیست.",
     },
   ];
-}
-
-function buildLilithNarrativeCard(
-  lilith: SpecialPointLilith | null,
-): NarrativeCard | null {
-  if (!isCalculatedLilith(lilith) || lilith.approvedForReportOutput !== true) {
-    return null;
-  }
-
-  return {
-    id: "lilith-approved-narrative",
-    title: "لیلیت: مرز و حساسیت",
-    position: formatPointPosition(lilith),
-    source: "لیلیت سیاه‌ماه با مدل نوسانی/واقعی محلی",
-    theme:
-      "وقتی مجوز خوانش فعال باشد، این نقطه فقط به‌عنوان یک لایه‌ی مکمل درباره مرز، حساسیت و میل خام خوانده می‌شود؛ نه هویت کامل یا حکم قطعی.",
-    helpful:
-      "از این نقطه برای دیدن موقعیت‌هایی استفاده کن که در آن‌ها مرز روشن‌تر یا صداقت بیشتری با خواسته‌ها لازم است.",
-    growth:
-      "چالش این است که حساسیت یا میل به برچسب ثابت تبدیل شود. خوانش سالم آن را در کنار کل چارت و تجربه‌ی واقعی نگه می‌دارد.",
-    trust:
-      "مجوز ورود این مدل به روایت در خود داده‌ی گزارش فعال است و مدل آن از لیلیت میانگین، سیارک ۱۱۸۱ و دارک‌مون/والدماث جدا نگه داشته می‌شود.",
-  };
 }
 
 function buildLilithBoundaryCard(
@@ -210,19 +277,21 @@ function buildLilithBoundaryCard(
   if (!isCalculatedLilith(lilith) || lilith.approvedForReportOutput === true) {
     return null;
   }
-
   return {
     id: "lilith-technical-boundary",
     title: "لیلیت نوسانی/واقعی محلی",
     position: formatPointPosition(lilith),
     source: "جایگاه محاسبه‌شده؛ روایت غیرفعال",
-    status: "جایگاه برای شفافیت فنی نمایش داده می‌شود، اما مجوز ورود به روایت تفسیری فعال نیست.",
+    status:
+      "این گزارش قدیمی جایگاه را حفظ کرده، اما مجوز اعتبارسنجی‌شدهٔ ورود به روایت را در دادهٔ خود ندارد.",
     boundary:
-      "این نقطه در جمع‌بندی شخصیت، رابطه، مسیر رشد یا تمرین‌های گزارش استفاده نمی‌شود. فعال‌شدن روایت به تصمیم و اعتبارسنجی جداگانه نیاز دارد.",
+      "برای حفظ سازگاری و صداقت، گزارش‌های ذخیره‌شدهٔ قدیمی بدون بازتولید داده به‌صورت خودکار بازنویسی نمی‌شوند.",
   };
 }
 
-function isValidNode(node: SpecialPointNode | null | undefined): node is SpecialPointNode {
+function isValidNode(
+  node: SpecialPointNode | null | undefined,
+): node is SpecialPointNode {
   return Boolean(
     node &&
       typeof node.signId === "string" &&
@@ -231,29 +300,52 @@ function isValidNode(node: SpecialPointNode | null | undefined): node is Special
   );
 }
 
-function isCalculatedLilith(lilith: SpecialPointLilith | null): lilith is SpecialPointLilith {
+function isCalculatedLilith(
+  lilith: SpecialPointLilith | null,
+): lilith is SpecialPointLilith {
   return Boolean(
     lilith &&
       lilith.status === "calculated" &&
       lilith.id === "black-moon-lilith" &&
       lilith.lilithType === "local-true-osculating-black-moon-lilith" &&
+      typeof lilith.longitude === "number" &&
+      Number.isFinite(lilith.longitude) &&
       typeof lilith.signId === "string" &&
       typeof lilith.degreeInSign === "number" &&
       Number.isFinite(lilith.degreeInSign),
   );
 }
 
-function formatPointPosition(point: SpecialPointNode | SpecialPointLilith): string {
+function isApprovedLilith(
+  lilith: SpecialPointLilith | null,
+): lilith is RealEngineReportCalculatedLilith {
+  return Boolean(
+    isCalculatedLilith(lilith) &&
+      lilith.approvedForReportOutput === true &&
+      lilith.validationStatus === "independent-reference-fixtures-passed" &&
+      lilith.validationReference ===
+        "swiss-ephemeris-2.10.03-offline-osculating-apogee" &&
+      typeof lilith.validationToleranceDegrees === "number" &&
+      Number.isFinite(lilith.validationToleranceDegrees),
+  );
+}
+
+function formatPointPosition(
+  point: SpecialPointNode | SpecialPointLilith,
+): string {
   const signLabel = point.signId
-    ? formatZodiacLabel(point.signId as Parameters<typeof formatZodiacLabel>[0])
+    ? formatZodiacLabel(
+        point.signId as Parameters<typeof formatZodiacLabel>[0],
+      )
     : "نشان نامشخص";
   const degreeLabel =
     typeof point.degreeInSign === "number"
       ? `درجه ${formatPersianNumber(point.degreeInSign)}`
       : "درجه نامشخص";
   const houseLabel =
-    typeof point.house === "number" ? `خانه ${formatPersianNumber(point.house)}` : null;
-
+    typeof point.house === "number"
+      ? `خانه ${formatPersianNumber(point.house)}`
+      : null;
   return [signLabel, degreeLabel, houseLabel].filter(Boolean).join("، ");
 }
 
@@ -261,11 +353,7 @@ function formatNodeSource(nodeType: string | undefined): string {
   if (nodeType === "local-true-osculating") {
     return "دست‌های ماه با مدل نوسانی/واقعی محلی";
   }
-
-  if (nodeType === "mean") {
-    return "دست‌های ماه با مدل میانگین";
-  }
-
+  if (nodeType === "mean") return "دست‌های ماه با مدل میانگین";
   return "دست‌های ماه با مدل ثبت‌شده در گزارش";
 }
 

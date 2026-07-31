@@ -203,7 +203,8 @@
     "check:secure-admin-core": "node scripts/check-secure-admin-core.mjs",
     "check:wiki-queue-operations": "node scripts/check-wiki-queue-operations.mjs",
     "check:wiki-queue-priority": "node scripts/check-wiki-queue-priority.mjs",
-    "check:wiki-content-guide-priority": "node scripts/check-wiki-content-guide-priority.mjs"
+    "check:wiki-content-guide-priority": "node scripts/check-wiki-content-guide-priority.mjs",
+    "check:validated-lilith-report-interpretation": "node scripts/check-validated-lilith-report-interpretation.mjs"
   },
   "dependencies": {
     "@astrodraw/astrochart": "3.0.2",

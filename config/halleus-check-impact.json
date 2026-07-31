@@ -187,6 +187,31 @@
       "build": true
     },
     {
+      "id": "validated-lilith-report-interpretation",
+      "description": "Independently validated natal Lilith calculation, bounded interpretation, and live report integration.",
+      "patterns": [
+        "components/ReportCard.tsx",
+        "components/ReportSpecialPointsNarrativeSection.tsx",
+        "lib/astrology/lilith-report-interpretation.ts",
+        "lib/astrology/real-engine-report-writer.ts",
+        "lib/report-generation/report-generation-service.ts",
+        "src/lib/chart/lilith-internal-adapter.ts",
+        "src/lib/chart/lilith-model-decision-contract.ts",
+        "src/lib/chart/lilith-osculating-probe.ts",
+        "src/lib/chart/lilith-reference-fixtures.ts",
+        "src/lib/chart/lilith-self-built-osculating-decision.ts",
+        "src/lib/chart/lilith-source-feasibility-probe.ts",
+        "src/lib/chart/lilith-validation-harness.ts",
+        "src/lib/chart/real-chart-engine.ts",
+        "types/astro.ts"
+      ],
+      "guards": [
+        "check:validated-lilith-report-interpretation"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "documentation",
       "description": "Repository documentation with no production runtime effect.",
       "patterns": [

@@ -3229,7 +3229,7 @@ function buildNatalAccuracyText(realEngine: RealEngineReportSnapshot): string | 
   const lilithText =
     isCalculatedLilith(realEngine.lilith)
       ? realEngine.lilith.approvedForReportOutput
-        ? "لیلیت محاسبه شده و مجوز ورود به روایت این گزارش را دارد."
+        ? "لیلیت با مدل محلیِ اعتبارسنجی‌شده محاسبه شده و فقط مجوز ورود محدود به روایت گزارش تولد را دارد."
         : "جایگاه لیلیت در بخش فنی ثبت شده است، اما مجوز ورود به روایت تفسیری این گزارش فعال نیست."
       : "لیلیت در این نسخه محاسبه نمی‌شود و وارد خوانش نشده است.";
 

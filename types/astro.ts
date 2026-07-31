@@ -229,7 +229,10 @@ export type RealEngineReportCalculatedLilith = {
   lilithType: "local-true-osculating-black-moon-lilith";
   source: "astronomy-engine-geomoonstate-local-state-vector";
   reliability: RealEngineReportDataReliability;
-  approvedForReportOutput: false;
+  approvedForReportOutput: boolean;
+  validationStatus: "independent-reference-fixtures-passed";
+  validationReference: "swiss-ephemeris-2.10.03-offline-osculating-apogee";
+  validationToleranceDegrees: number;
   limitation: string | null;
 };
 
