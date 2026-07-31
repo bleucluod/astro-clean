@@ -158,6 +158,33 @@ if (emptyPlan.primaryChallenge || emptyPlan.primarySupport || emptyPlan.dailyBri
   failures.push("empty aspect input should not invent synthesis evidence");
 }
 
+const chapterCoveragePlan = buildPlan([
+  aspect("sun-opposition-venus", "sun", "venus", "opposition", 0.2),
+  aspect("moon-sextile-mercury", "moon", "mercury", "sextile", 0.1),
+  aspect("mercury-square-venus", "mercury", "venus", "square", 0.01),
+  aspect("mars-square-jupiter", "mars", "jupiter", "square", 0.3),
+]);
+if (chapterCoveragePlan.dailyBridge?.id !== "mars-square-jupiter") {
+  failures.push(
+    `daily bridge should prefer a new theme chapter when evidence permits, got ${chapterCoveragePlan.dailyBridge?.id ?? "none"}`,
+  );
+}
+const coveredThemePlanetIds = new Set(
+  getRealEngineSynthesisRoles(chapterCoveragePlan)
+    .flatMap((role) => [
+      role.aspect.firstPlanetId,
+      role.aspect.secondPlanetId,
+    ])
+    .filter((planetId) =>
+      ["sun", "moon", "mercury", "venus", "mars"].includes(planetId),
+    ),
+);
+if (coveredThemePlanetIds.size !== 5) {
+  failures.push(
+    `selected synthesis roles should cover five theme planets, got ${coveredThemePlanetIds.size}`,
+  );
+}
+
 for (const marker of [
   "buildRealEngineSynthesisPlan",
   "buildSynthesisChallengeThread",
@@ -187,6 +214,9 @@ for (const marker of [
   "selectPrimaryDynamicAnchor",
   "rankRealEngineAspects",
   "houseEmphasis",
+  "THEME_PLANET_IDS",
+  "selectedNarrativeParticipantIds",
+  "dailyBridgeCandidates",
 ]) {
   if (!plannerSource.includes(marker)) {
     failures.push(`synthesis planner missing marker: ${marker}`);
@@ -235,6 +265,7 @@ if (failures.length > 0) {
 
 console.log("Report synthesis depth check passed.");
 console.log("- primary challenge, support, and daily bridge are selected deterministically");
+console.log("- daily bridge expands theme-chapter coverage when evidence permits");
 console.log("- synthesis uses actual planet roles, signs, and house fields");
 console.log("- old generic tension sentence and person-specific branches are blocked");
 console.log("- report sample QA keeps the main narrative under 1950 words");
