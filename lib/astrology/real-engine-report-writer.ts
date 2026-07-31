@@ -2300,6 +2300,17 @@ export function buildReportThemeChapters(
   const primaryChallenge =
     synthesisPlan.primaryChallenge ?? synthesisPlan.primaryRelationship;
   const support = synthesisPlan.primarySupport ?? synthesisPlan.dailyBridge;
+  const relationshipAspectIds = new Set(
+    [primaryChallenge?.id, support?.id].filter(
+      (id): id is string => typeof id === "string",
+    ),
+  );
+  const recurringAspect = [
+    synthesisPlan.dailyBridge,
+    ...synthesisPlan.narrativeRelationships,
+  ].find(
+    (aspect) => aspect && !relationshipAspectIds.has(aspect.id),
+  );
 
   const placementEvidence = (
     placement: RealEngineReportPlacement | undefined,
@@ -2369,24 +2380,26 @@ export function buildReportThemeChapters(
         support.secondPlanetId,
       )} می‌توانند به جای رقابت، مسیر بازگشت به گفت‌وگو را بسازند.`
     : "ترمیم و همکاری: یک نیاز را زودتر نام ببر، یک مرز روشن بگو و پیش از نتیجه‌گیری از طرف مقابل سؤال مستقیم بپرس.";
-  const recurringEvidence = primaryChallenge
-    ? `الگوی منتخب ${getPlanetLabel(
-        primaryChallenge.firstPlanetId,
-      )} و ${getPlanetLabel(primaryChallenge.secondPlanetId)}`
+  const recurringEvidence = recurringAspect
+    ? `رابطهٔ متمایز ${getPlanetLabel(
+        recurringAspect.firstPlanetId,
+      )} و ${getPlanetLabel(recurringAspect.secondPlanetId)}`
     : synthesisPlan.narrativeProfile.primaryCluster
       ? `خوشهٔ ${joinPersianList(
           synthesisPlan.narrativeProfile.primaryCluster.placementIds.map(
             getPlanetLabel,
           ),
         )}`
-      : "ریتم غالب چارت";
-  const recurringBody = primaryChallenge
+      : `میدان ${focusField}`;
+  const recurringBody = recurringAspect
     ? `ممکن است موقعیت‌های متفاوت بارها همان پرسش را برگردانند: چطور ${getPersonalOpeningPlanetNeed(
-        primaryChallenge.firstPlanetId,
+        recurringAspect.firstPlanetId,
       )} را در کنار ${getPersonalOpeningPlanetNeed(
-        primaryChallenge.secondPlanetId,
+        recurringAspect.secondPlanetId,
       )} نگه داری، بدون اینکه یکی برای آرام کردن دیگری حذف شود.`
-    : "ممکن است تکرار اصلی بیشتر از یک کشمکش واحد، در شیوه آغاز، ادامه دادن یا تغییر مسیر دیده شود.";
+    : synthesisPlan.narrativeProfile.primaryCluster
+      ? "ممکن است تکرار اصلی بیشتر در هماهنگ‌کردن چند نیاز هم‌زمان دیده شود؛ این خوشه باید با نمونه‌های واقعی زندگی سنجیده شود."
+      : `ممکن است تکرار اصلی در میدان ${focusField}، در شیوه آغاز، ادامه دادن یا تغییر مسیر دیده شود.`;
 
   return [
     {
@@ -2512,11 +2525,11 @@ export function buildReportThemeChapters(
       body: buildStructuredSectionBody({
         opening: recurringBody,
         body: [
-          support
-            ? `راه خروج از تکرار فقط فشار بیشتر نیست؛ همکاری ${getPlanetLabel(
-                support.firstPlanetId,
+          recurringAspect
+            ? `راه خروج از تکرار فقط فشار بیشتر نیست؛ گفت‌وگوی ${getPlanetLabel(
+                recurringAspect.firstPlanetId,
               )} و ${getPlanetLabel(
-                support.secondPlanetId,
+                recurringAspect.secondPlanetId,
               )} یک منبع عملی برای تنظیم الگو می‌سازد.`
             : "راه خروج از تکرار با مشاهدهٔ موقعیت، نام‌گذاری نیاز و انتخاب یک پاسخ کوچک و قابل برگشت شروع می‌شود.",
           `این الگو بیشتر در میدان ${focusField} قابل مشاهده است و باید با نمونه‌های واقعی زندگی سنجیده شود.`,

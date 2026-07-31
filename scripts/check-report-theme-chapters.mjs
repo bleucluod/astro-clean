@@ -177,6 +177,71 @@ for (const dimension of [
   );
 }
 
+const recurring = chapters.find(
+  (chapter) => chapter.id === "real-engine-theme-recurring-patterns",
+)?.body ?? "";
+assert(
+  plan.primaryChallenge?.id === "sun-opposition-venus",
+  "fixture no longer selects the expected relationship challenge",
+);
+assert(
+  plan.primarySupport?.id === "moon-sextile-mercury",
+  "fixture no longer selects the expected relationship support",
+);
+assert(
+  plan.dailyBridge?.id === "venus-square-mars",
+  "fixture no longer selects the expected distinct recurring-pattern aspect",
+);
+assert(
+  relationship.includes("گفت‌وگوی خورشید و زهره") &&
+    relationship.includes("همکاری ماه و عطارد"),
+  "relationship chapter no longer owns its selected challenge and support",
+);
+assert(
+  recurring.includes("گفت‌وگوی زهره و مریخ") &&
+    recurring.includes("پشتوانه اصلی: رابطهٔ متمایز زهره و مریخ."),
+  "recurring-pattern chapter does not use the distinct daily bridge",
+);
+assert(
+  !recurring.includes("الگوی منتخب خورشید و زهره") &&
+    !recurring.includes("راه خروج از تکرار فقط فشار بیشتر نیست؛ همکاری ماه و عطارد"),
+  "recurring-pattern chapter reuses relationship chapter evidence",
+);
+
+const singleAspectPlan = buildRealEngineSynthesisPlan({
+  aspects: [aspects[0]],
+  placements,
+  chartRulerId: "sun",
+  activeHouseNumbers: [9, 1, 3, 12],
+});
+const singleAspectChapters = buildReportThemeChapters(
+  {
+    placements,
+    aspectHighlights: [aspects[0]],
+    retrogrades: { status: "calculated", planetIds: [] },
+    behavioralAudienceMode: "adult",
+  },
+  {
+    ...chartSpine,
+    centralAspects: [aspects[0]],
+  },
+  singleAspectPlan,
+);
+const singleAspectRecurring =
+  singleAspectChapters.find(
+    (chapter) => chapter.id === "real-engine-theme-recurring-patterns",
+  )?.body ?? "";
+const singleAspectEvidence =
+  singleAspectRecurring.match(/پشتوانه اصلی:[^\n]+/u)?.[0] ?? "";
+assert(
+  /^پشتوانه اصلی: (خوشهٔ|میدان )/u.test(singleAspectEvidence),
+  "recurring-pattern fallback must use cluster or house evidence",
+);
+assert(
+  !singleAspectEvidence.includes("رابطهٔ متمایز"),
+  "recurring-pattern fallback invents a distinct aspect",
+);
+
 const allText = chapters.map((chapter) => chapter.body).join("\n");
 assert(!/اورب|درجه/u.test(allText), "main theme chapters expose orb/degree detail");
 assert(!/درصد سازگاری|سینستری|شخص دوم/u.test(allText), "single-chart chapter drifts into compatibility/synastry");
@@ -249,5 +314,7 @@ if (failures.length > 0) {
 console.log("Report theme chapter check passed.");
 console.log("- seven topic chapters are ordered and data-backed");
 console.log("- relationship style covers eight single-chart dimensions");
+console.log("- relationship and recurring-pattern chapters use distinct aspect evidence");
+console.log("- recurring-pattern fallback stays cluster- or house-backed");
 console.log("- primary evidence stays distinct and technical detail stays out");
 console.log("- live reading contract and summary card expose the chapters");
