@@ -46,4 +46,4 @@ jobs:
         env:
           HALLEUS_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HALLEUS_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: pnpm run verify -- --base "$HALLEUS_BASE_SHA" --head "$HALLEUS_HEAD_SHA"
+        run: pnpm run verify --base "$HALLEUS_BASE_SHA" --head "$HALLEUS_HEAD_SHA"
