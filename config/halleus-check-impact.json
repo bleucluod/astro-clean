@@ -165,7 +165,23 @@
     {
       "id": "report-ownership-sharing",
       "description": "Report ownership, private library, safe sharing, and report administration.",
-      "patterns": ["app/api/reports/**", "app/api/admin/reports/**", "app/reports/**", "app/admin/reports/**", "components/**/*Report*", "lib/reports/**", "lib/storage/**", "lib/database/**", "lib/admin/**", "types/storage.ts", "database/migrations/*report*.sql", "scripts/check-report-ownership-sharing.mjs"],
+      "patterns": [
+        "app/api/reports/**",
+        "app/api/admin/reports/**",
+        "app/reports/**",
+        "app/admin/reports/**",
+        "components/ReportDetail.tsx",
+        "components/ReportsList.tsx",
+        "components/admin/AdminReportsWorkspace.tsx",
+        "components/admin/AdminConsole.tsx",
+        "lib/reports/**",
+        "lib/storage/**",
+        "lib/database/**",
+        "lib/admin/**",
+        "types/storage.ts",
+        "database/migrations/*report*.sql",
+        "scripts/check-report-ownership-sharing.mjs"
+      ],
       "guards": ["check:report-ownership-sharing", "check:secure-admin-core"],
       "lint": true,
       "build": true
@@ -198,6 +214,18 @@
       "guards": [
         "check:workflow"
       ],
+      "lint": false,
+      "build": false
+    },
+    {
+      "id": "focused-guard-tooling",
+      "description": "Registered deterministic check scripts self-verify without unrelated lint or production builds.",
+      "exclusive": true,
+      "selfGuard": true,
+      "patterns": [
+        "scripts/check-*.mjs"
+      ],
+      "guards": [],
       "lint": false,
       "build": false
     },

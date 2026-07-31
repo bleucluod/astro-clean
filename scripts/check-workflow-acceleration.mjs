@@ -67,6 +67,39 @@ for (const guard of ["check:report-quality", "check:report-birth-chart-wheel"]) 
   requirePlan("report wheel", reportWheelPlan, (plan) => plan.guards.includes(guard), `must include ${guard}`);
 }
 
+const reportPresentationPlan = createCheckPlan(
+  ["components/ReportPlanetPlacementSections.tsx"],
+  registry,
+);
+for (const guard of ["check:product-surface", "check:report-quality"]) {
+  requirePlan(
+    "report presentation",
+    reportPresentationPlan,
+    (plan) => plan.guards.includes(guard),
+    `must include ${guard}`,
+  );
+}
+requirePlan(
+  "report presentation",
+  reportPresentationPlan,
+  (plan) =>
+    !plan.guards.includes("check:report-ownership-sharing") &&
+    !plan.guards.includes("check:secure-admin-core") &&
+    plan.lint &&
+    plan.build,
+  "must keep runtime verification without unrelated ownership/admin guards",
+);
+
+const reportOwnershipPlan = createCheckPlan(["components/ReportDetail.tsx"], registry);
+for (const guard of ["check:report-ownership-sharing", "check:secure-admin-core"]) {
+  requirePlan(
+    "ownership-sensitive report UI",
+    reportOwnershipPlan,
+    (plan) => plan.guards.includes(guard),
+    `must include ${guard}`,
+  );
+}
+
 const wikiPlan = createCheckPlan(["app/wiki/page.tsx"], registry);
 for (const guard of [
   "check:public-discovery-architecture",
@@ -120,6 +153,39 @@ requirePlan(
     !plan.lint &&
     !plan.build,
   "must self-verify without running the full Wiki guard set, lint, or build",
+);
+
+const focusedReportGuardPlan = createCheckPlan(
+  ["scripts/check-report-planet-placement-sections.mjs"],
+  registry,
+);
+requirePlan(
+  "focused report guard",
+  focusedReportGuardPlan,
+  (plan) =>
+    plan.files[0]?.exclusive &&
+    plan.files[0]?.areas.includes("focused-guard-tooling") &&
+    plan.guards.includes("check:report-planet-placement-sections") &&
+    !plan.guards.includes("check:workflow") &&
+    !plan.lint &&
+    !plan.build,
+  "must self-verify without unrelated workflow, lint, or build work",
+);
+
+const staleUnregisteredGuardPlan = createCheckPlan(
+  ["scripts/check-report-depth-humanization.mjs"],
+  registry,
+);
+requirePlan(
+  "stale unregistered guard",
+  staleUnregisteredGuardPlan,
+  (plan) =>
+    !plan.files[0]?.exclusive &&
+    plan.files[0]?.areas.includes("workflow-tooling") &&
+    plan.guards.includes("check:workflow") &&
+    plan.lint &&
+    !plan.build,
+  "must retain the fail-safe workflow-tooling policy until explicitly registered",
 );
 
 const workflowCorePlan = createCheckPlan(["scripts/halleus-verify.mjs"], registry);
@@ -221,7 +287,9 @@ if (failures.length > 0) {
 }
 
 console.log("Workflow acceleration check passed.");
-console.log("- exclusive impact areas narrow focused Wiki, workflow, and release-guard changes");
+console.log("- report presentation changes no longer inherit unrelated ownership/admin guards");
+console.log("- registered focused guards self-verify without unrelated lint or production builds");
+console.log("- stale unregistered guards remain on the fail-safe workflow-tooling path");
 console.log("- one shared registry still drives local and PR verification");
 console.log("- guard timing is recorded and Windows uses the centralized pnpm.cmd invocation");
 console.log("- unknown paths remain fail-safe");

@@ -29,6 +29,10 @@ function validatePolicy(policy, label) {
   if (typeof policy.lint !== "boolean" || typeof policy.build !== "boolean") {
     throw new Error(`${label} must declare boolean lint and build values.`);
   }
+
+  if (policy.selfGuard !== undefined && typeof policy.selfGuard !== "boolean") {
+    throw new Error(`${label}.selfGuard must be boolean when declared.`);
+  }
 }
 
 export function loadImpactRegistry(filePath = registryPath) {
@@ -64,6 +68,9 @@ export function loadImpactRegistry(filePath = registryPath) {
     validatePolicy(area, area.id);
     if (area.exclusive !== undefined && typeof area.exclusive !== "boolean") {
       throw new Error(`${area.id}.exclusive must be boolean when declared.`);
+    }
+    if (area.selfGuard === true && area.exclusive !== true) {
+      throw new Error(`${area.id}.selfGuard requires an exclusive impact area.`);
     }
   }
 
@@ -106,8 +113,60 @@ export function globToRegExp(glob) {
   return new RegExp(`${expression}$`);
 }
 
+let cachedPackageScripts;
+
+function loadPackageScripts() {
+  if (!cachedPackageScripts) {
+    const packageJson = JSON.parse(
+      readFileSync(path.join(root, "package.json"), "utf8"),
+    );
+    cachedPackageScripts = packageJson.scripts ?? {};
+  }
+  return cachedPackageScripts;
+}
+
+export function resolveSelfGuardScript(
+  filePath,
+  { required = true, packageScripts = loadPackageScripts() } = {},
+) {
+  const normalizedPath = normalizeRepoPath(filePath);
+  const expectedCommand = `node ${normalizedPath}`;
+  const matches = Object.entries(packageScripts)
+    .filter(
+      ([scriptName, command]) =>
+        scriptName.startsWith("check:") &&
+        typeof command === "string" &&
+        command.trim() === expectedCommand,
+    )
+    .map(([scriptName]) => scriptName);
+
+  if (matches.length === 1) {
+    return matches[0];
+  }
+  if (matches.length > 1) {
+    throw new Error(
+      `Multiple package scripts invoke focused guard ${normalizedPath}: ${matches.join(", ")}`,
+    );
+  }
+  if (required) {
+    throw new Error(
+      `Focused guard ${normalizedPath} must have one exact package script: ${expectedCommand}`,
+    );
+  }
+  return null;
+}
+
 function matchesArea(filePath, area) {
-  return area.patterns.some((pattern) => globToRegExp(pattern).test(filePath));
+  const patternMatches = area.patterns.some((pattern) =>
+    globToRegExp(pattern).test(filePath),
+  );
+  if (!patternMatches) {
+    return false;
+  }
+  if (area.selfGuard === true) {
+    return resolveSelfGuardScript(filePath, { required: false }) !== null;
+  }
+  return true;
 }
 
 export function createCheckPlan(filePaths, registry = loadImpactRegistry()) {
@@ -129,6 +188,9 @@ export function createCheckPlan(filePaths, registry = loadImpactRegistry()) {
 
     for (const policy of policies) {
       for (const guard of policy.guards) guards.add(guard);
+      if (policy.selfGuard === true) {
+        guards.add(resolveSelfGuardScript(filePath));
+      }
       lint ||= policy.lint;
       build ||= policy.build;
     }
