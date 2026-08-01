@@ -1,4 +1,4 @@
-name: Temporary Batch9B wrapper test
+name: Temporary Batch9B exact runner E2E
 
 on:
   pull_request:
@@ -7,11 +7,101 @@ permissions:
   contents: read
 
 jobs:
-  windows-powershell-51:
+  windows-powershell-51-e2e:
     runs-on: windows-latest
-    timeout-minutes: 10
+    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v6
-      - name: Test exact Batch 9B native wrapper
+      - name: Check out temporary harness
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Reconstruct exact Recovery 9B runner
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $parts = Get-ChildItem "$env:GITHUB_WORKSPACE\ci-temp\batch9b-runner.part*" |
+            Sort-Object Name
+          if ($parts.Count -ne 5) {
+            throw "RUNNER_PART_COUNT_MISMATCH=$($parts.Count)"
+          }
+          $base64 = ($parts | ForEach-Object {
+            [System.IO.File]::ReadAllText($_.FullName).Trim()
+          }) -join ""
+          $runner = Join-Path $env:RUNNER_TEMP "Apply-Halleus-Whole-Chart-Theme-Coverage-Recovery-9B-20260801.ps1"
+          [System.IO.File]::WriteAllBytes(
+            $runner,
+            [System.Convert]::FromBase64String($base64)
+          )
+          $hash = (Get-FileHash -LiteralPath $runner -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne "b1162ad0a5aeef4161764f3381401e321011b9bbfd04957ddf5dc090e1183876") {
+            throw "RUNNER_SHA256_MISMATCH=$hash"
+          }
+          "BATCH9B_RUNNER=$runner" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "EXACT_RUNNER_RECONSTRUCTION=PASS"
+          Write-Host "RUNNER_SHA256=$hash"
+
+      - name: Restore exact clean baseline
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $base = "2697b57996011810028cb82d3f7f8a36d4e5c768"
+          git config core.autocrlf true
+          git reset --hard $base
+          git clean -fdx
+          git checkout -B main $base
+          git update-ref refs/remotes/origin/main $base
+          git fetch --force origin "refs/tags/v0.1.372-relationship-placement-deduplication:refs/tags/v0.1.372-relationship-placement-deduplication"
+          if ((git rev-parse HEAD).Trim() -ne $base) { throw "HEAD_MISMATCH" }
+          if ((git rev-parse refs/remotes/origin/main).Trim() -ne $base) { throw "ORIGIN_MAIN_MISMATCH" }
+          if ((git rev-parse 'v0.1.372-relationship-placement-deduplication^{commit}').Trim() -ne $base) { throw "TAG_MISMATCH" }
+          if (git status --porcelain=v1 --untracked-files=all) { throw "BASELINE_NOT_CLEAN" }
+          Write-Host "EXACT_BASELINE=PASS"
+
+      - name: Populate locked dependency store
+        shell: powershell
+        run: pnpm install --frozen-lockfile
+
+      - name: Execute exact Recovery 9B runner
         shell: cmd
-        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ci-temp\batch9b-wrapper-test.ps1
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%BATCH9B_RUNNER%" -Mode Apply -RepoPath "%GITHUB_WORKSPACE%"
+
+      - name: Verify exact applied after-state
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $expected = @(
+            "lib/astrology/real-engine-synthesis.ts",
+            "scripts/check-report-synthesis-depth.mjs"
+          ) | Sort-Object
+          $actual = @(git diff --name-only --relative) |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { $_.Replace("\", "/") } |
+            Sort-Object -Unique
+          if (($actual -join "`n") -ne ($expected -join "`n")) {
+            throw "FINAL_CHANGED_FILE_BOUNDARY_FAILED actual=$($actual -join ',')"
+          }
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw "FINAL_DIFF_CHECK_FAILED" }
+          $planner = (git hash-object --path=lib/astrology/real-engine-synthesis.ts lib/astrology/real-engine-synthesis.ts).Trim()
+          $guard = (git hash-object --path=scripts/check-report-synthesis-depth.mjs scripts/check-report-synthesis-depth.mjs).Trim()
+          if ($planner -ne "fac941792d682c3ab87d51e2b0580583aae72296") {
+            throw "PLANNER_BLOB_MISMATCH=$planner"
+          }
+          if ($guard -ne "efd29d2fb949a2cfb317cd6eb561cd6392bcdcf1") {
+            throw "GUARD_BLOB_MISMATCH=$guard"
+          }
+          Write-Host "EXACT_APPLY_AFTER_STATE=PASS"
+          Write-Host "PLANNER_BLOB=$planner"
+          Write-Host "GUARD_BLOB=$guard"
