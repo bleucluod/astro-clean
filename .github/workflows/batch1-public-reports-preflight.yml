@@ -44,8 +44,7 @@ jobs:
           $target=Join-Path $env:RUNNER_TEMP "astro-clean-baseline"
           git clone --no-hardlinks $env:GITHUB_WORKSPACE $target
           git -C $target checkout --detach $expected
-          git -C $target branch -D main 2>$null
-          git -C $target checkout -b main $expected
+          git -C $target checkout -B main $expected
           git -C $target update-ref refs/remotes/origin/main $expected
           git -C $target tag -f $tag $expected
           if (@(git -C $target status --porcelain).Count) { throw "BASELINE_DIRTY" }
