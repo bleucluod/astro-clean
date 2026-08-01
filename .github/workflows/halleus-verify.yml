@@ -115,6 +115,7 @@ jobs:
           HALLEUS_PUBLICATION_MUTATION_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
           HALLEUS_PUBLIC_REPORT_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
         run: |
+          pnpm run check:plan -- --base "$HALLEUS_BATCH1_BASELINE" --head HEAD
           pnpm run check:encoding
           pnpm run check:plan
           pnpm run verify
