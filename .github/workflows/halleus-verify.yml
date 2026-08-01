@@ -97,7 +97,8 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $b=(0..3|%{Get-Content ".preflight\runner.part.$($_.ToString('00'))" -Raw})-join''
+          $b=(0..15|%{Get-Content ".preflight\runner.chunk.$($_.ToString('000'))" -Raw})-join''
+          if($b.Length-ne47484){throw"Runner Base64 length mismatch: $($b.Length)"}
           $m=[IO.MemoryStream]::new([Convert]::FromBase64String(($b-replace'\s','')),$false)
           $g=[IO.Compression.GZipStream]::new($m,[IO.Compression.CompressionMode]::Decompress)
           $o=[IO.MemoryStream]::new(); $g.CopyTo($o); $g.Dispose(); $m.Dispose()
