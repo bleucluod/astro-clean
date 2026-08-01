@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 ORIGINAL_SHA = "98aa792830e8453c3f5ece02d666a009b7dc5f64a711db890bda76e19730bc99"
-FINAL_SHA = "36b67b60b6daa4c784bdc7837348c900eb65fd455c73dd049940bb1ac4b379c6"
+FINAL_SHA = "03a1adc1b3e5f8f02a892e492d8715629ebfb42722408054e38a69300f4a59ed"
 RUNNER_NAME = "Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1"
 
 
