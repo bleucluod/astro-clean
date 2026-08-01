@@ -1,0 +1,17 @@
+name: Temporary Batch9B wrapper test
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-powershell-51:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Test exact Batch 9B native wrapper
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ci-temp\batch9b-wrapper-test.ps1
