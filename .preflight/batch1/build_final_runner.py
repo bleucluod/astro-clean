@@ -141,67 +141,31 @@ def reconstruct(root: Path) -> bytes:
         *(root / f"runner.correct{index:02d}.b64" for index in range(1, 7)),
         *(root / f"runner.part{index:02d}.b64" for index in range(3, 7)),
     ]
-    expected_lengths = [
-        5000,
-        5000,
-        5000,
-        5000,
-        5000,
-        5000,
-        11000,
-        11000,
-        10032,
-        10032,
-    ]
-    actual_lengths = [
-        len(path.read_text(encoding="utf-8").strip())
-        for path in parts
-    ]
+    expected_lengths = [5000, 5000, 5000, 5000, 5000, 5000, 11000, 11000, 10032, 10032]
+    actual_lengths = [len(path.read_text(encoding="utf-8").strip()) for path in parts]
     if actual_lengths != expected_lengths:
         raise SystemExit(f"RUNNER_PART_LENGTH_MISMATCH={actual_lengths}")
-
-    encoded = "".join(
-        path.read_text(encoding="utf-8").strip()
-        for path in parts
-    )
+    encoded = "".join(path.read_text(encoding="utf-8").strip() for path in parts)
     if len(encoded) != 72064:
         raise SystemExit(f"RUNNER_BASE64_LENGTH={len(encoded)}")
-
     original = lzma.decompress(base64.b64decode(encoded))
     if hashlib.sha256(original).hexdigest() != ORIGINAL_SHA:
         raise SystemExit("ORIGINAL_RUNNER_SHA_MISMATCH")
-
     corrected = original
     for before, after in (
-        (
-            b'    "scripts/check-report-publication-mutation.mjs",\n)',
-            b'    "scripts/check-report-publication-mutation.mjs"\n)',
-        ),
-        (
-            b'    "scripts/check-public-report-activation.mjs",\n)',
-            b'    "scripts/check-public-report-activation.mjs"\n)',
-        ),
+        (b'    "scripts/check-report-publication-mutation.mjs",\n)', b'    "scripts/check-report-publication-mutation.mjs"\n)'),
+        (b'    "scripts/check-public-report-activation.mjs",\n)', b'    "scripts/check-public-report-activation.mjs"\n)'),
     ):
         if corrected.count(before) != 1:
-            raise SystemExit(
-                f"RUNNER_SYNTAX_PATCH_ANCHOR_COUNT={before!r}:"
-                f"{corrected.count(before)}"
-            )
+            raise SystemExit(f"RUNNER_SYNTAX_PATCH_ANCHOR_COUNT={before!r}:{corrected.count(before)}")
         corrected = corrected.replace(before, after, 1)
-
     text = corrected.decode("utf-8-sig")
     match = re.search(r'^\$PayloadBase64 = "([^"]+)"$', text, re.M)
     if match is None:
         raise SystemExit("PAYLOAD_LINE_MISSING")
     payload = json.loads(base64.b64decode(match.group(1)).decode("utf-8"))
     payload = build_payload(payload)
-    payload_base64 = base64.b64encode(
-        json.dumps(
-            payload,
-            ensure_ascii=False,
-            separators=(",", ":"),
-        ).encode("utf-8")
-    ).decode("ascii")
+    payload_base64 = base64.b64encode(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")
     text = text[: match.start(1)] + payload_base64 + text[match.end(1) :]
     final = b"\xef\xbb\xbf" + text.encode("utf-8")
     actual_sha = hashlib.sha256(final).hexdigest()
@@ -216,7 +180,6 @@ def audit(runner: Path, target: Path) -> None:
     if match is None:
         raise SystemExit("PAYLOAD_LINE_MISSING")
     payload = json.loads(base64.b64decode(match.group(1)).decode("utf-8"))
-
     failures: list[str] = []
     for relative_path, operations in payload["replacements"].items():
         path = target / relative_path
@@ -229,9 +192,7 @@ def audit(runner: Path, target: Path) -> None:
             new = decode(operation["new"])
             count = content.count(old)
             if count != 1:
-                failures.append(
-                    f"ANCHOR_COUNT={relative_path}#{index}:{count}"
-                )
+                failures.append(f"ANCHOR_COUNT={relative_path}#{index}:{count}\nOLD_REPR={old!r}\nNEW_REPR={new!r}")
                 continue
             content = content.replace(old, new, 1)
     if failures:
@@ -246,7 +207,6 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--target", type=Path)
     args = parser.parse_args()
-
     args.output.write_bytes(reconstruct(args.root))
     if args.target is not None:
         audit(args.output, args.target)
