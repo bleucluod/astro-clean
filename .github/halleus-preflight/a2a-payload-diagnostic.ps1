@@ -57,10 +57,10 @@ $CompressedSha = [BitConverter]::ToString(
 Write-Host "CANDIDATE_COMPRESSED_LENGTH=$($CompressedBytes.Length)"
 Write-Host "CANDIDATE_COMPRESSED_SHA256=$CompressedSha"
 
-if ($CompressedBytes.Length -ne 21477) {
+if ($CompressedBytes.Length -ne 21475) {
     throw "CANDIDATE_COMPRESSED_LENGTH_MISMATCH=$($CompressedBytes.Length)"
 }
-if ($CompressedSha -ne "fa7f9ec9e017c3b25552d5ec9e4e9a2631a46c4522daf5bb9b05a17b47d1a625") {
+if ($CompressedSha -ne "551b8d926554b4a505d75e77e9678004b4c40ffd21a0d66a42f646c316eb85f6") {
     throw "CANDIDATE_COMPRESSED_SHA_MISMATCH=$CompressedSha"
 }
 
