@@ -69,9 +69,14 @@ jobs:
           if (git status --porcelain=v1 --untracked-files=all) { throw "BASELINE_NOT_CLEAN" }
           Write-Host "EXACT_BASELINE=PASS"
 
-      - name: Populate locked dependency store
+      - name: Populate complete locked dependency store
         shell: powershell
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "PNPM_INSTALL_FAILED" }
+          pnpm fetch --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "PNPM_FETCH_FAILED" }
+          Write-Host "OFFLINE_STORE_POPULATED=PASS"
 
       - name: Execute exact Recovery 9B runner
         shell: cmd
