@@ -104,7 +104,7 @@ jobs:
           if((Get-FileHash $r -Algorithm SHA256).Hash.ToLowerInvariant()-ne$env:RUNNER_SHA){throw'Runner hash mismatch'}
           $repo=Join-Path $env:RUNNER_TEMP 'b1repo'
           git clone --no-checkout $env:GITHUB_WORKSPACE $repo
-          git -C $repo config core.autrlf false
+          git -C $repo config core.autocrlf false
           git -C $repo checkout -B main $env:BASE
           git -C $repo reset --hard $env:BASE
           git -C $repo remote set-url origin "https://github.com/${{ github.repository }}.git"
