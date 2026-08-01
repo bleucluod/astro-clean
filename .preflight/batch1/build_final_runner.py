@@ -26,14 +26,7 @@ def indent(value: str, count: int) -> str:
     return "\n".join(prefix + line if line else line for line in value.split("\n"))
 
 
-def set_operation(
-    payload: dict,
-    path: str,
-    index: int,
-    *,
-    old: str | None = None,
-    new: str | None = None,
-) -> None:
+def set_operation(payload: dict, path: str, index: int, *, old: str | None = None, new: str | None = None) -> None:
     operation = payload["replacements"][path][index - 1]
     if old is not None:
         operation["old"] = encode(old)
@@ -43,104 +36,31 @@ def set_operation(
 
 def indent_operation(payload: dict, path: str, index: int, count: int) -> None:
     operation = payload["replacements"][path][index - 1]
-    set_operation(
-        payload,
-        path,
-        index,
-        old=indent(decode(operation["old"]), count),
-        new=indent(decode(operation["new"]), count),
-    )
+    set_operation(payload, path, index, old=indent(decode(operation["old"]), count), new=indent(decode(operation["new"]), count))
 
 
 def build_payload(payload: dict) -> dict:
-    set_operation(
-        payload,
-        "app/dashboard/page.tsx",
-        2,
-        old=(
-            '<Link className="button secondary" href="/reports">\n'
-            '            گزارش‌های من\n'
-            '          </Link>'
-        ),
-        new=(
-            '<Link className="button secondary" href="/dashboard/reports">\n'
-            '  گزارش‌های من\n'
-            '</Link>'
-        ),
-    )
-    old_message = (
-        'return "گزارش ساخته شد، اما ذخیره حساب یا لینک noindex کامل نشد. '
-        'نسخه private همین دستگاه باز می‌شود.";'
-    )
-    new_message = (
-        'return "گزارش ساخته شد، اما ذخیره آنلاین کامل نشد. '
-        'نسخه خصوصی همین دستگاه باز می‌شود.";'
-    )
-    set_operation(
-        payload,
-        "components/ChartForm.tsx",
-        2,
-        old=f"if (!normalizedMessage) {{\n  {old_message}\n}}",
-        new=f"if (!normalizedMessage) {{\n  {new_message}\n}}",
-    )
-    set_operation(
-        payload,
-        "components/ChartForm.tsx",
-        3,
-        old=f"    {old_message}\n}}",
-        new=f"    {new_message}\n}}",
-    )
+    set_operation(payload, "app/dashboard/page.tsx", 2, old='<Link className="button secondary" href="/reports">\n            گزارش‌های من\n          </Link>', new='<Link className="button secondary" href="/dashboard/reports">\n  گزارش‌های من\n</Link>')
+    old_message = 'return "گزارش ساخته شد، اما ذخیره حساب یا لینک noindex کامل نشد. نسخه private همین دستگاه باز می‌شود.";'
+    new_message = 'return "گزارش ساخته شد، اما ذخیره آنلاین کامل نشد. نسخه خصوصی همین دستگاه باز می‌شود.";'
+    set_operation(payload, "components/ChartForm.tsx", 2, old=f"if (!normalizedMessage) {{\n  {old_message}\n}}", new=f"if (!normalizedMessage) {{\n  {new_message}\n}}")
+    set_operation(payload, "components/ChartForm.tsx", 3, old=f"    {old_message}\n}}", new=f"    {new_message}\n}}")
     for index, count in ((4, 8), (5, 8), (6, 6)):
         indent_operation(payload, "components/ChartForm.tsx", index, count)
-
-    indent_operation(
-        payload,
-        "lib/storage/account-report-save-client.ts",
-        1,
-        6,
-    )
+    indent_operation(payload, "lib/storage/account-report-save-client.ts", 1, 6)
     indent_operation(payload, "lib/storage/report-records.ts", 1, 2)
-
-    set_operation(
-        payload,
-        "app/api/reports/account/route.ts",
-        2,
-        old=(
-            "  listOwnedReportSummaries,\n"
-            "  mutateOwnedReportPublication,\n"
-            "  revokeOwnedReportSharing,"
-        ),
-        new=(
-            "  listOwnedReportSummaries,\n"
-            "  mutateOwnedReportIdentityConsent,\n"
-            "  mutateOwnedReportPublication,\n"
-            "  revokeOwnedReportSharing,"
-        ),
-    )
+    set_operation(payload, "app/api/reports/account/route.ts", 2, old="  listOwnedReportSummaries,\n  mutateOwnedReportPublication,\n  revokeOwnedReportSharing,", new="  listOwnedReportSummaries,\n  mutateOwnedReportIdentityConsent,\n  mutateOwnedReportPublication,\n  revokeOwnedReportSharing,")
     for index in (6, 7):
         indent_operation(payload, "app/api/reports/account/route.ts", index, 6)
-
     indent_operation(payload, "app/api/admin/reports/route.ts", 3, 4)
-
-    for index, count in (
-        (7, 8),
-        (9, 2),
-        (10, 2),
-        (11, 10),
-        (12, 10),
-        (13, 10),
-    ):
+    for index, count in ((7, 8), (9, 2), (10, 2), (11, 10), (12, 10), (13, 10)):
         indent_operation(payload, "components/ReportDetail.tsx", index, count)
-
     indent_operation(payload, "config/halleus-check-impact.json", 1, 4)
     return payload
 
 
 def reconstruct(root: Path) -> bytes:
-    parts = [
-        *(root / f"runner.correct{index:02d}.b64" for index in range(1, 7)),
-        *(root / f"runner.part{index:02d}.b64" for index in range(3, 7)),
-    ]
+    parts = [*(root / f"runner.correct{index:02d}.b64" for index in range(1, 7)), *(root / f"runner.part{index:02d}.b64" for index in range(3, 7))]
     expected_lengths = [5000, 5000, 5000, 5000, 5000, 5000, 11000, 11000, 10032, 10032]
     actual_lengths = [len(path.read_text(encoding="utf-8").strip()) for path in parts]
     if actual_lengths != expected_lengths:
@@ -152,10 +72,7 @@ def reconstruct(root: Path) -> bytes:
     if hashlib.sha256(original).hexdigest() != ORIGINAL_SHA:
         raise SystemExit("ORIGINAL_RUNNER_SHA_MISMATCH")
     corrected = original
-    for before, after in (
-        (b'    "scripts/check-report-publication-mutation.mjs",\n)', b'    "scripts/check-report-publication-mutation.mjs"\n)'),
-        (b'    "scripts/check-public-report-activation.mjs",\n)', b'    "scripts/check-public-report-activation.mjs"\n)'),
-    ):
+    for before, after in ((b'    "scripts/check-report-publication-mutation.mjs",\n)', b'    "scripts/check-report-publication-mutation.mjs"\n)'), (b'    "scripts/check-public-report-activation.mjs",\n)', b'    "scripts/check-public-report-activation.mjs"\n)')):
         if corrected.count(before) != 1:
             raise SystemExit(f"RUNNER_SYNTAX_PATCH_ANCHOR_COUNT={before!r}:{corrected.count(before)}")
         corrected = corrected.replace(before, after, 1)
@@ -163,10 +80,9 @@ def reconstruct(root: Path) -> bytes:
     match = re.search(r'^\$PayloadBase64 = "([^"]+)"$', text, re.M)
     if match is None:
         raise SystemExit("PAYLOAD_LINE_MISSING")
-    payload = json.loads(base64.b64decode(match.group(1)).decode("utf-8"))
-    payload = build_payload(payload)
+    payload = build_payload(json.loads(base64.b64decode(match.group(1)).decode("utf-8")))
     payload_base64 = base64.b64encode(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")
-    text = text[: match.start(1)] + payload_base64 + text[match.end(1) :]
+    text = text[:match.start(1)] + payload_base64 + text[match.end(1):]
     final = b"\xef\xbb\xbf" + text.encode("utf-8")
     actual_sha = hashlib.sha256(final).hexdigest()
     if actual_sha != FINAL_SHA:
@@ -192,11 +108,11 @@ def audit(runner: Path, target: Path) -> None:
             new = decode(operation["new"])
             count = content.count(old)
             if count != 1:
-                failures.append(f"ANCHOR_COUNT={relative_path}#{index}:{count}\nOLD_REPR={old!r}\nNEW_REPR={new!r}")
+                failures.append(f"ANCHOR_COUNT={relative_path}#{index}:{count}\nOLD_B64={encode(old)}\nNEW_B64={encode(new)}")
                 continue
             content = content.replace(old, new, 1)
     if failures:
-        print("\n".join(failures))
+        print("\n".join(failures).encode("ascii", "backslashreplace").decode("ascii"))
         raise SystemExit("TRANSFORMATION_ANCHOR_AUDIT_FAILED")
     print("TRANSFORMATION_ANCHOR_AUDIT=PASS")
 
