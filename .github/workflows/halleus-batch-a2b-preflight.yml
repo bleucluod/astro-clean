@@ -1,0 +1,100 @@
+name: Halleus Batch A2b publication mutation preflight
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  windows-runner:
+    runs-on: windows-2025
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout preflight branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Execute exact PowerShell 5.1 runner
+        shell: powershell
+        run: |
+          & powershell.exe `
+            -NoProfile `
+            -ExecutionPolicy Bypass `
+            -File ".github/halleus-preflight/a2b-runner-harness.ps1"
+          if ($LASTEXITCODE -ne 0) {
+            throw "A2B_HARNESS_FAILED=$LASTEXITCODE"
+          }
+
+      - name: Upload exact candidate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Halleus-Batch-A2b-candidate-evidence
+          path: a2b-evidence
+          if-no-files-found: error
+          retention-days: 7
+
+  postgres-mutation:
+    needs:
+      - windows-runner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: halleus_a2b
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d halleus_a2b"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout exact baseline
+        uses: actions/checkout@v4
+        with:
+          ref: b7d016ef817f9434ee8289dbd7cdd17a3beb9c9e
+          fetch-depth: 1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download exact candidate evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: Halleus-Batch-A2b-candidate-evidence
+          path: evidence
+
+      - name: Verify owner mutation against disposable PostgreSQL
+        shell: bash
+        run: bash evidence/a2b-postgres.sh
