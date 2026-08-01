@@ -1,0 +1,37 @@
+name: Batch 1 Runner Diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout control branch
+        uses: actions/checkout@v4
+        with:
+          path: control
+          fetch-depth: 1
+
+      - name: Checkout exact baseline
+        uses: actions/checkout@v4
+        with:
+          ref: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+          path: target
+          fetch-depth: 1
+
+      - name: Build and print exact runner invocation lines
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $root = "control/.preflight/batch1"
+          $runner = "$root/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1"
+          python "$root/build_final_runner.py" --root "$root" --output "$runner" --target "target"
+          if ($LASTEXITCODE -ne 0) { throw "RUNNER_BUILD_FAILED=$LASTEXITCODE" }
+          Write-Host "RUNNER_SHA256=$((Get-FileHash $runner -Algorithm SHA256).Hash.ToLowerInvariant())"
+          Select-String -LiteralPath $runner -Pattern "plannerArguments|verifyArguments|check:plan|verify" -Context 2,2 |
+            ForEach-Object { Write-Host $_.ToString() }
