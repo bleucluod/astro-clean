@@ -30,8 +30,14 @@ jobs:
           [IO.File]::WriteAllBytes($gzPath, [Convert]::FromBase64String($b64))
           $src=[IO.File]::OpenRead($gzPath)
           try { $gz=[IO.Compression.GZipStream]::new($src,[IO.Compression.CompressionMode]::Decompress); try { $dst=[IO.File]::Create($runner); try {$gz.CopyTo($dst)} finally {$dst.Dispose()} } finally {$gz.Dispose()} } finally {$src.Dispose()}
+          $compressedRunnerSha=(Get-FileHash -Algorithm SHA256 $runner).Hash.ToLowerInvariant()
+          if ($compressedRunnerSha -ne "d113005c80d597bb6376523ae5b24e6301f97efa3884152b6b2f7ad7efd06314") { throw "COMPRESSED_RUNNER_SHA=$compressedRunnerSha" }
+          $runnerText=[IO.File]::ReadAllText($runner)
+          $runnerText=$runnerText.Replace("    `"config/halleus-check-impact.json`",`n)", "    `"config/halleus-check-impact.json`"`n)")
+          $runnerText=$runnerText.Replace("    `"scripts/check-public-report-activation.mjs`",`n)", "    `"scripts/check-public-report-activation.mjs`"`n)")
+          [IO.File]::WriteAllText($runner,$runnerText,[Text.UTF8Encoding]::new($false))
           $sha=(Get-FileHash -Algorithm SHA256 $runner).Hash.ToLowerInvariant()
-          if ($sha -ne "d113005c80d597bb6376523ae5b24e6301f97efa3884152b6b2f7ad7efd06314") { throw "RUNNER_SHA=$sha" }
+          if ($sha -ne "d41e187116600ba4455a3b086fd2d7fa8c19d32dfc786031f5310987b3d16850") { throw "RUNNER_SHA=$sha" }
           $tokens=$null; $errors=$null
           [Management.Automation.Language.Parser]::ParseFile($runner,[ref]$tokens,[ref]$errors)|Out-Null
           if ($errors.Count) { throw "RUNNER_PARSE=$($errors -join '; ')" }
