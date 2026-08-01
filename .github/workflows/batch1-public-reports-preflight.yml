@@ -1,0 +1,113 @@
+name: Halleus Batch1 Public Reports Preflight
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - uses: pnpm/action-setup@v4
+        with: {version: 11.18.0}
+      - name: Exact runner, rollback, verify
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $expected = "1b941f6c3edc40cff0594e1516760da7ecc74c95"
+          $tag = "v0.1.376-report-publication-mutations"
+          $parts = Get-ChildItem ".preflight/batch1/runner.part.*" | Sort-Object Name
+          if ($parts.Count -ne 6) { throw "RUNNER_PART_COUNT=$($parts.Count)" }
+          $b64 = ($parts | % { [IO.File]::ReadAllText($_.FullName).Trim() }) -join ""
+          $gzPath = Join-Path $env:RUNNER_TEMP "runner.gz"
+          $runner = Join-Path $env:RUNNER_TEMP "Apply-Halleus-Complete-Public-Reports-Activation-20260801.ps1"
+          [IO.File]::WriteAllBytes($gzPath, [Convert]::FromBase64String($b64))
+          $src=[IO.File]::OpenRead($gzPath)
+          try { $gz=[IO.Compression.GZipStream]::new($src,[IO.Compression.CompressionMode]::Decompress); try { $dst=[IO.File]::Create($runner); try {$gz.CopyTo($dst)} finally {$dst.Dispose()} } finally {$gz.Dispose()} } finally {$src.Dispose()}
+          $sha=(Get-FileHash -Algorithm SHA256 $runner).Hash.ToLowerInvariant()
+          if ($sha -ne "d113005c80d597bb6376523ae5b24e6301f97efa3884152b6b2f7ad7efd06314") { throw "RUNNER_SHA=$sha" }
+          $tokens=$null; $errors=$null
+          [Management.Automation.Language.Parser]::ParseFile($runner,[ref]$tokens,[ref]$errors)|Out-Null
+          if ($errors.Count) { throw "RUNNER_PARSE=$($errors -join '; ')" }
+          $target=Join-Path $env:RUNNER_TEMP "astro-clean-baseline"
+          git clone --no-hardlinks $env:GITHUB_WORKSPACE $target
+          git -C $target checkout --detach $expected
+          git -C $target branch -D main 2>$null
+          git -C $target checkout -b main $expected
+          git -C $target update-ref refs/remotes/origin/main $expected
+          git -C $target tag -f $tag $expected
+          if (@(git -C $target status --porcelain).Count) { throw "BASELINE_DIRTY" }
+          Push-Location $target
+          try { pnpm install --frozen-lockfile; if ($LASTEXITCODE) {throw "INSTALL_FAILED"} } finally {Pop-Location}
+          $rehearse=Join-Path $env:GITHUB_WORKSPACE "rehearse.log"
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner -Mode Rehearse -RepoPath $target 2>&1 | Tee-Object $rehearse
+          if ($LASTEXITCODE -or -not (Select-String $rehearse -SimpleMatch "ROLLBACK_REHEARSAL=PASS")) {throw "REHEARSE_FAILED"}
+          if (@(git -C $target status --porcelain).Count) {throw "REHEARSE_DIRTY"}
+          $apply=Join-Path $env:GITHUB_WORKSPACE "apply.log"
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner -Mode Apply -RepoPath $target 2>&1 | Tee-Object $apply
+          if ($LASTEXITCODE -or -not (Select-String $apply -SimpleMatch "APPLY=PASS")) {throw "APPLY_FAILED"}
+          $new=@(git -C $target ls-files --others --exclude-standard); if($new.Count){git -C $target add -N -- $new}
+          $changed=@(git -C $target diff --name-only|Sort-Object); if($changed.Count -ne 26){throw "FILE_COUNT=$($changed.Count)"}
+          $manifest=@(); foreach($p in $changed){$manifest += "$p`t$((git -C $target hash-object -- $p).Trim())"}
+          [IO.File]::WriteAllLines((Join-Path $env:GITHUB_WORKSPACE "after-blobs.tsv"),$manifest,[Text.UTF8Encoding]::new($false))
+          $patch=@(git -C $target --no-pager diff --binary --no-ext-diff)
+          [IO.File]::WriteAllLines((Join-Path $env:GITHUB_WORKSPACE "after-state.patch"),$patch,[Text.UTF8Encoding]::new($false))
+          Copy-Item $runner (Join-Path $env:GITHUB_WORKSPACE "Apply-Halleus-Complete-Public-Reports-Activation-20260801.ps1")
+          Write-Host "WINDOWS_EXACT_AFTER_STATE=PASS"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: batch1-windows-discovery
+          path: |
+            Apply-Halleus-Complete-Public-Reports-Activation-20260801.ps1
+            after-state.patch
+            after-blobs.tsv
+            rehearse.log
+            apply.log
+          if-no-files-found: error
+          retention-days: 7
+  postgres:
+    needs: windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_USER: halleus, POSTGRES_PASSWORD: halleus, POSTGRES_DB: halleus_batch1}
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U halleus -d halleus_batch1"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - uses: pnpm/action-setup@v4
+        with: {version: 11.18.0}
+      - uses: actions/download-artifact@v4
+        with: {name: batch1-windows-discovery, path: "${{ runner.temp }}/evidence"}
+      - name: PostgreSQL exact after-state
+        shell: bash
+        env:
+          HALLEUS_PUBLIC_REPORT_ACTIVATION_DATABASE_URL: postgres://halleus:halleus@127.0.0.1:5432/halleus_batch1
+        run: |
+          set -Eeuo pipefail
+          target="$RUNNER_TEMP/astro-clean-linux"
+          git clone --no-hardlinks "$GITHUB_WORKSPACE" "$target"
+          git -C "$target" checkout --detach 1b941f6c3edc40cff0594e1516760da7ecc74c95
+          git -C "$target" apply --whitespace=nowarn "$RUNNER_TEMP/evidence/after-state.patch"
+          git -C "$target" --no-pager diff --check
+          count="$( { git -C "$target" diff --name-only; git -C "$target" ls-files --others --exclude-standard; }|sort -u|wc -l|tr -d ' ' )"; test "$count" = 26
+          while IFS=$'\t' read -r p e; do a="$(git -C "$target" hash-object -- "$p")"; test "$a" = "$e" || { echo "BLOB_MISMATCH=$p"; exit 1; }; done < "$RUNNER_TEMP/evidence/after-blobs.tsv"
+          cd "$target"; pnpm install --frozen-lockfile
+          pnpm run check:public-report-activation | tee "$GITHUB_WORKSPACE/postgres.log"
+          grep -F "PUBLIC_REPORT_POSTGRESQL=PASS" "$GITHUB_WORKSPACE/postgres.log"
+          echo "POSTGRES_AFTER_STATE=PASS"
+      - uses: actions/upload-artifact@v4
+        with: {name: batch1-postgres-discovery, path: postgres.log, if-no-files-found: error, retention-days: 7}
