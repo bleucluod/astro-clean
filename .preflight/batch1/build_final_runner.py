@@ -44,14 +44,15 @@ def build_payload(payload: dict) -> dict:
     old_message = 'return "گزارش ساخته شد، اما ذخیره حساب یا لینک noindex کامل نشد. نسخه private همین دستگاه باز می‌شود.";'
     new_message = 'return "گزارش ساخته شد، اما ذخیره آنلاین کامل نشد. نسخه خصوصی همین دستگاه باز می‌شود.";'
     set_operation(payload, "components/ChartForm.tsx", 2, old=f"if (!normalizedMessage) {{\n  {old_message}\n}}", new=f"if (!normalizedMessage) {{\n  {new_message}\n}}")
+    indent_operation(payload, "components/ChartForm.tsx", 2, 2)
     set_operation(payload, "components/ChartForm.tsx", 3, old=f"    {old_message}\n}}", new=f"    {new_message}\n}}")
-    for index, count in ((4, 8), (5, 8), (6, 6)):
+    for index, count in ((4, 6), (5, 6), (6, 4)):
         indent_operation(payload, "components/ChartForm.tsx", index, count)
     indent_operation(payload, "lib/storage/account-report-save-client.ts", 1, 6)
     indent_operation(payload, "lib/storage/report-records.ts", 1, 2)
     set_operation(payload, "app/api/reports/account/route.ts", 2, old="  listOwnedReportSummaries,\n  mutateOwnedReportPublication,\n  revokeOwnedReportSharing,", new="  listOwnedReportSummaries,\n  mutateOwnedReportIdentityConsent,\n  mutateOwnedReportPublication,\n  revokeOwnedReportSharing,")
-    for index in (6, 7):
-        indent_operation(payload, "app/api/reports/account/route.ts", index, 6)
+    indent_operation(payload, "app/api/reports/account/route.ts", 6, 6)
+    indent_operation(payload, "app/api/reports/account/route.ts", 7, 4)
     indent_operation(payload, "app/api/admin/reports/route.ts", 3, 4)
     for index, count in ((7, 8), (9, 2), (10, 2), (11, 10), (12, 10), (13, 10)):
         indent_operation(payload, "components/ReportDetail.tsx", index, count)
