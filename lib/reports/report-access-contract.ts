@@ -1,4 +1,216 @@
 import { createHash, randomBytes } from "node:crypto";
+import type {
+  GeneratedReportIndexingPolicy,
+  GeneratedReportVisibility,
+  GeneratedReportVisibilityKind,
+  ReportAccessTier,
+  ReportIdentityConsentState,
+  ReportPublicationConsentState,
+  ReportPublicationIntent,
+  ReportPublicationOwnerKind,
+  ReportPublicationPolicy,
+  ReportPublicationPolicyInput,
+} from "@/types/report-generation";
+
+
+export const REPORT_PUBLICATION_POLICY_VERSION = "1" as const;
+export const REPORT_PUBLICATION_COPY_VERSION =
+  "report-publication-policy-v1" as const;
+
+function compactReasons(
+  ...reasons: Array<string | false | null | undefined>
+): string[] {
+  return reasons.filter((reason): reason is string => Boolean(reason));
+}
+
+export function evaluateReportPublicationPolicy(
+  input: ReportPublicationPolicyInput,
+): ReportPublicationPolicy {
+  const publicationIntent = input.publicationIntent ?? "default";
+  const requestedPublicationConsent =
+    input.publicationConsentState ?? "pending";
+  const identityConsentState = input.identityConsentState ?? "withheld";
+  const legacyRecord = input.legacyRecord === true || input.ownerKind === "legacy";
+
+  if (input.adminRestricted === true) {
+    return {
+      version: REPORT_PUBLICATION_POLICY_VERSION,
+      ownerKind: input.ownerKind,
+      tier: input.tier,
+      publicationState: "restricted",
+      publicationConsentState:
+        input.tier === "free" ? "not-required" : requestedPublicationConsent,
+      identityConsentState,
+      indexingPolicy: "noindex",
+      publiclyReadable: false,
+      sitemapEligible: false,
+      identityPublic: false,
+      reasons: ["admin-restriction-overrides-publication"],
+    };
+  }
+
+  if (legacyRecord) {
+    return {
+      version: REPORT_PUBLICATION_POLICY_VERSION,
+      ownerKind: input.ownerKind,
+      tier: input.tier,
+      publicationState: "private",
+      publicationConsentState: requestedPublicationConsent,
+      identityConsentState,
+      indexingPolicy: "noindex",
+      publiclyReadable: false,
+      sitemapEligible: false,
+      identityPublic: false,
+      reasons: ["legacy-report-never-auto-publishes"],
+    };
+  }
+
+  if (input.ownerKind === "local" || input.tier === "preview") {
+    return {
+      version: REPORT_PUBLICATION_POLICY_VERSION,
+      ownerKind: input.ownerKind,
+      tier: input.tier,
+      publicationState: "private",
+      publicationConsentState: "pending",
+      identityConsentState,
+      indexingPolicy: "noindex",
+      publiclyReadable: false,
+      sitemapEligible: false,
+      identityPublic: false,
+      reasons: ["local-preview-is-not-a-publication-record"],
+    };
+  }
+
+  if (input.tier === "free") {
+    const publicationState =
+      publicationIntent === "unpublish" ? "unpublished" : "public";
+    const publiclyReadable = publicationState === "public";
+
+    return {
+      version: REPORT_PUBLICATION_POLICY_VERSION,
+      ownerKind: input.ownerKind,
+      tier: input.tier,
+      publicationState,
+      publicationConsentState: "not-required",
+      identityConsentState,
+      indexingPolicy: publiclyReadable ? "indexable" : "noindex",
+      publiclyReadable,
+      sitemapEligible: publiclyReadable,
+      identityPublic:
+        publiclyReadable && identityConsentState === "granted",
+      reasons: compactReasons(
+        publiclyReadable
+          ? "free-report-is-public-by-product-contract"
+          : "owner-unpublished-free-report",
+        identityConsentState !== "granted" &&
+          "identity-withheld-independently-of-publication",
+      ),
+    };
+  }
+
+  const ownerGrantedPublication =
+    publicationIntent === "publish" &&
+    requestedPublicationConsent === "granted";
+  const ownerWithdrewPublication =
+    publicationIntent === "unpublish" ||
+    requestedPublicationConsent === "withdrawn";
+  const publicationState = ownerGrantedPublication
+    ? "public"
+    : ownerWithdrewPublication
+      ? "unpublished"
+      : "private";
+  const publiclyReadable = publicationState === "public";
+
+  return {
+    version: REPORT_PUBLICATION_POLICY_VERSION,
+    ownerKind: input.ownerKind,
+    tier: input.tier,
+    publicationState,
+    publicationConsentState: requestedPublicationConsent,
+    identityConsentState,
+    indexingPolicy: publiclyReadable ? "indexable" : "noindex",
+    publiclyReadable,
+    sitemapEligible: publiclyReadable,
+    identityPublic: publiclyReadable && identityConsentState === "granted",
+    reasons: compactReasons(
+      ownerGrantedPublication
+        ? "premium-owner-explicitly-published"
+        : ownerWithdrewPublication
+          ? "premium-owner-unpublished"
+          : "premium-private-by-default",
+      identityConsentState !== "granted" &&
+        "identity-withheld-independently-of-publication",
+    ),
+  };
+}
+
+type GeneratedVisibilityInput = {
+  kind: GeneratedReportVisibilityKind;
+  nickname: string | null;
+  ownerKind: ReportPublicationOwnerKind;
+  tier: ReportAccessTier;
+  publicationIntent?: ReportPublicationIntent;
+  publicationConsentState?: ReportPublicationConsentState;
+  identityConsentState?: ReportIdentityConsentState;
+  legacyRecord?: boolean;
+  compatibilityIndexAfterConsent?: boolean;
+  compatibilityRequiresPublicationConsent?: boolean;
+};
+
+function publicationSummary(policy: ReportPublicationPolicy): string {
+  if (policy.publicationState === "restricted") {
+    return "این گزارش از نمایش عمومی محدود شده است.";
+  }
+
+  if (policy.tier === "free" && policy.publicationState === "public") {
+    return "گزارش رایگان عمومی و قابل ایندکس است؛ نمایش هویت فقط با رضایت جداگانه انجام می‌شود.";
+  }
+
+  if (policy.tier === "premium" && policy.publicationState === "public") {
+    return "مالک گزارش پریمیوم با رضایت صریح، انتشار عمومی را فعال کرده است.";
+  }
+
+  if (policy.publicationState === "unpublished") {
+    return "این گزارش از انتشار عمومی خارج شده و قابل ایندکس نیست.";
+  }
+
+  return "این گزارش خصوصی است و در نتایج عمومی یا نقشهٔ سایت قرار نمی‌گیرد.";
+}
+
+export function createGeneratedReportVisibility(
+  input: GeneratedVisibilityInput,
+): GeneratedReportVisibility {
+  const publicationPolicy = evaluateReportPublicationPolicy({
+    ownerKind: input.ownerKind,
+    tier: input.tier,
+    publicationIntent: input.publicationIntent,
+    publicationConsentState: input.publicationConsentState,
+    identityConsentState: input.identityConsentState,
+    legacyRecord: input.legacyRecord,
+  });
+  const indexingPolicy: GeneratedReportIndexingPolicy =
+    input.compatibilityIndexAfterConsent &&
+    publicationPolicy.indexingPolicy === "noindex"
+      ? "index-after-consent"
+      : publicationPolicy.indexingPolicy;
+
+  return {
+    kind: input.kind,
+    indexingPolicy,
+    nickname: input.nickname,
+    consent: {
+      required:
+        input.compatibilityRequiresPublicationConsent === true ||
+        (publicationPolicy.tier === "premium" &&
+          publicationPolicy.publicationState !== "public"),
+      capturedAt: null,
+      copyVersion: REPORT_PUBLICATION_COPY_VERSION,
+      userFacingSummary: publicationSummary(publicationPolicy),
+    },
+    publicationPolicy,
+    notes: publicationPolicy.reasons,
+  };
+}
 
 export const REPORT_TITLE_MAX_LENGTH = 160;
 export const REPORT_SUMMARY_PAGE_SIZE = 25;

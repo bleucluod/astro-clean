@@ -9,7 +9,7 @@ import type {
 } from "./report-output";
 import type { PersonalTransitReportDataBridge } from "../src/lib/report-output/personal-transit-report-data-bridge";
 
-export const REPORT_GENERATION_CONTRACT_VERSION = "0.1.155" as const;
+export const REPORT_GENERATION_CONTRACT_VERSION = "0.1.156" as const;
 
 export type ReportGenerationContractVersion =
   typeof REPORT_GENERATION_CONTRACT_VERSION;
@@ -26,6 +26,54 @@ export type ReportCalculationSource =
   | "mock-fallback"
   | "manual-import"
   | "unknown";
+
+export type ReportPublicationOwnerKind =
+  | "local"
+  | "guest"
+  | "account"
+  | "legacy";
+
+export type ReportAccessTier = "preview" | "free" | "premium";
+
+export type ReportPublicationIntent = "default" | "publish" | "unpublish";
+
+export type ReportPublicationState =
+  | "private"
+  | "public"
+  | "unpublished"
+  | "restricted";
+
+export type ReportPublicationConsentState =
+  | "not-required"
+  | "pending"
+  | "granted"
+  | "withdrawn";
+
+export type ReportIdentityConsentState = "withheld" | "granted";
+
+export type ReportPublicationPolicyInput = {
+  ownerKind: ReportPublicationOwnerKind;
+  tier: ReportAccessTier;
+  publicationIntent?: ReportPublicationIntent;
+  publicationConsentState?: ReportPublicationConsentState;
+  identityConsentState?: ReportIdentityConsentState;
+  adminRestricted?: boolean;
+  legacyRecord?: boolean;
+};
+
+export type ReportPublicationPolicy = {
+  version: "1";
+  ownerKind: ReportPublicationOwnerKind;
+  tier: ReportAccessTier;
+  publicationState: ReportPublicationState;
+  publicationConsentState: ReportPublicationConsentState;
+  identityConsentState: ReportIdentityConsentState;
+  indexingPolicy: "noindex" | "indexable";
+  publiclyReadable: boolean;
+  sitemapEligible: boolean;
+  identityPublic: boolean;
+  reasons: string[];
+};
 
 export type GeneratedReportVisibilityKind =
   | "local-private-preview"
@@ -51,6 +99,7 @@ export type GeneratedReportVisibility = {
   indexingPolicy: GeneratedReportIndexingPolicy;
   nickname: string | null;
   consent: GeneratedReportConsent;
+  publicationPolicy: ReportPublicationPolicy;
   notes: string[];
 };
 
@@ -101,6 +150,11 @@ export type ReportGenerationInput = {
   input: BirthInput;
   nickname?: string | null;
   requestedVisibility?: GeneratedReportVisibilityKind;
+  reportOwnerKind?: Exclude<ReportPublicationOwnerKind, "legacy">;
+  reportTier?: ReportAccessTier;
+  publicationIntent?: ReportPublicationIntent;
+  publicationConsentState?: ReportPublicationConsentState;
+  identityConsentState?: ReportIdentityConsentState;
 };
 
 export type ReportGenerationSuccess<TNormalizedChart = unknown> = {
@@ -118,26 +172,6 @@ export type ReportGenerationFailure = {
 export type ReportGenerationResult<TNormalizedChart = unknown> =
   | ReportGenerationSuccess<TNormalizedChart>
   | ReportGenerationFailure;
-
-export function createPrivatePreviewVisibility(
-  nickname: string | null = null,
-): GeneratedReportVisibility {
-  return {
-    kind: "local-private-preview",
-    indexingPolicy: "noindex",
-    nickname,
-    consent: {
-      required: false,
-      capturedAt: null,
-      copyVersion: "visibility-consent-not-yet-active",
-      userFacingSummary:
-        "This preview report is local/private until the public consent model is implemented.",
-    },
-    notes: [
-      "Free public and paid private visibility are not active until explicit consent and storage rules exist.",
-    ],
-  };
-}
 
 export function createEmptySeoDraft(): GeneratedReportSeoDraft {
   return {

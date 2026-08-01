@@ -63,8 +63,12 @@
       "id": "wiki-build-stability",
       "description": "Build-time worker limit that keeps public Wiki prerendering stable.",
       "exclusive": true,
-      "patterns": ["next.config.ts"],
-      "guards": ["check:wiki-build-stability"],
+      "patterns": [
+        "next.config.ts"
+      ],
+      "guards": [
+        "check:wiki-build-stability"
+      ],
       "lint": true,
       "build": true
     },
@@ -72,8 +76,12 @@
       "id": "wiki-build-stability-guard-tooling",
       "description": "Focused self-verification for the Wiki build-stability contract.",
       "exclusive": true,
-      "patterns": ["scripts/check-wiki-build-stability.mjs"],
-      "guards": ["check:wiki-build-stability"],
+      "patterns": [
+        "scripts/check-wiki-build-stability.mjs"
+      ],
+      "guards": [
+        "check:wiki-build-stability"
+      ],
       "lint": false,
       "build": false
     },
@@ -149,16 +157,47 @@
     {
       "id": "sky-daily-contract",
       "description": "Canonical daily-sky contract and its deterministic guard.",
-      "patterns": ["lib/sky-daily/**", "scripts/check-sky-daily-contract.mjs"],
-      "guards": ["check:sky-daily-contract"],
+      "patterns": [
+        "lib/sky-daily/**",
+        "scripts/check-sky-daily-contract.mjs"
+      ],
+      "guards": [
+        "check:sky-daily-contract"
+      ],
       "lint": true,
       "build": true
     },
     {
       "id": "sky-public-experience",
       "description": "Public Sky routes consuming the canonical daily snapshot without client-side astronomy.",
-      "patterns": ["app/sky/**", "app/api/sky/**", "components/SkyPublic*.tsx", "components/SkyCityPicker.tsx", "lib/sky-public/**", "scripts/check-sky-public-route.mjs"],
-      "guards": ["check:sky-daily-contract", "check:sky-public-route"],
+      "patterns": [
+        "app/sky/**",
+        "app/api/sky/**",
+        "components/SkyPublic*.tsx",
+        "components/SkyCityPicker.tsx",
+        "lib/sky-public/**",
+        "scripts/check-sky-public-route.mjs"
+      ],
+      "guards": [
+        "check:sky-daily-contract",
+        "check:sky-public-route"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "report-publication-policy",
+      "description": "Canonical generated-report publication, identity-consent, and indexability policy.",
+      "exclusive": true,
+      "patterns": [
+        "types/report-generation.ts",
+        "lib/report-generation/report-generation-service.ts",
+        "lib/reports/report-access-contract.ts",
+        "scripts/check-report-ownership-sharing.mjs"
+      ],
+      "guards": [
+        "check:report-ownership-sharing"
+      ],
       "lint": true,
       "build": true
     },
@@ -182,7 +221,10 @@
         "database/migrations/*report*.sql",
         "scripts/check-report-ownership-sharing.mjs"
       ],
-      "guards": ["check:report-ownership-sharing", "check:secure-admin-core"],
+      "guards": [
+        "check:report-ownership-sharing",
+        "check:secure-admin-core"
+      ],
       "lint": true,
       "build": true
     },

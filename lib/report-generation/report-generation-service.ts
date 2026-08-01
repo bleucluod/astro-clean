@@ -29,13 +29,13 @@ import type {
 import {
   REPORT_GENERATION_CONTRACT_VERSION,
   createEmptySeoDraft,
-  createPrivatePreviewVisibility,
   type GeneratedReportContract,
   type GeneratedReportVisibility,
   type ReportGenerationInput,
   type ReportGenerationResult,
   type ReportGenerationStatus,
 } from "@/types/report-generation";
+import { createGeneratedReportVisibility } from "@/lib/reports/report-access-contract";
 import type { NormalizedChart } from "../../src/lib/chart/normalized-chart";
 import { getHouseNumberFromCusps } from "../../src/lib/chart/houses";
 import {
@@ -519,31 +519,74 @@ export function buildDefaultReportVisibility(
   request: ReportGenerationInput,
 ): GeneratedReportVisibility {
   const nickname = normalizeNullableText(request.nickname ?? null);
-  const requestedVisibility = request.requestedVisibility;
+  const requestedVisibility =
+    request.requestedVisibility ?? "local-private-preview";
 
-  if (!requestedVisibility || requestedVisibility === "local-private-preview") {
-    return createPrivatePreviewVisibility(nickname);
+  if (
+    request.reportOwnerKind ||
+    request.reportTier ||
+    request.publicationIntent ||
+    request.publicationConsentState ||
+    request.identityConsentState
+  ) {
+    return createGeneratedReportVisibility({
+      kind: requestedVisibility,
+      nickname,
+      ownerKind: request.reportOwnerKind ?? "local",
+      tier: request.reportTier ?? "preview",
+      publicationIntent: request.publicationIntent,
+      publicationConsentState: request.publicationConsentState,
+      identityConsentState: request.identityConsentState,
+    });
   }
 
-  const requiresPublicConsent = requestedVisibility.startsWith("free-public");
-  const visibility = createPrivatePreviewVisibility(nickname);
+  if (requestedVisibility === "free-public-indexable") {
+    return createGeneratedReportVisibility({
+      kind: requestedVisibility,
+      nickname,
+      ownerKind: "guest",
+      tier: "free",
+    });
+  }
 
-  return {
-    ...visibility,
-    kind: requestedVisibility,
-    indexingPolicy: "noindex",
-    consent: {
-      ...visibility.consent,
-      required: requiresPublicConsent,
-      copyVersion: "visibility-consent-not-yet-active",
-      userFacingSummary:
-        "درخواست نوع نمایش فقط ذخیره شده است؛ انتشار عمومی تا زمان رضایت صریح، مسیر امن و قوانین ذخیره‌سازی فعال نمی‌شود.",
-    },
-    notes: [
-      ...visibility.notes,
-      "درخواست نوع نمایش فعلاً فقط داده کمکی است؛ مسیر عمومی و مدل خصوصی/پرداختی هنوز فعال نیست.",
-    ],
-  };
+  if (requestedVisibility === "free-public-consent-required") {
+    return createGeneratedReportVisibility({
+      kind: requestedVisibility,
+      nickname,
+      ownerKind: "guest",
+      tier: "free",
+      publicationIntent: "unpublish",
+      publicationConsentState: "pending",
+      compatibilityIndexAfterConsent: true,
+      compatibilityRequiresPublicationConsent: true,
+    });
+  }
+
+  if (requestedVisibility === "paid-private") {
+    return createGeneratedReportVisibility({
+      kind: requestedVisibility,
+      nickname,
+      ownerKind: "account",
+      tier: "premium",
+    });
+  }
+
+  if (requestedVisibility === "manual-review-private") {
+    return createGeneratedReportVisibility({
+      kind: requestedVisibility,
+      nickname,
+      ownerKind: "legacy",
+      tier: "premium",
+      legacyRecord: true,
+    });
+  }
+
+  return createGeneratedReportVisibility({
+    kind: "local-private-preview",
+    nickname,
+    ownerKind: "local",
+    tier: "preview",
+  });
 }
 
 function buildRealChartContract({
