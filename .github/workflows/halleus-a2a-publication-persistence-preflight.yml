@@ -27,6 +27,17 @@ jobs:
         with:
           node-version: 24
 
+      - name: Diagnose candidate payload parts
+        shell: powershell
+        run: |
+          & powershell.exe `
+            -NoProfile `
+            -ExecutionPolicy Bypass `
+            -File ".github/halleus-preflight/a2a-payload-diagnostic.ps1"
+          if ($LASTEXITCODE -ne 0) {
+            throw "A2A_PAYLOAD_DIAGNOSTIC_FAILED=$LASTEXITCODE"
+          }
+
       - name: Execute direct exact PowerShell 5.1 harness
         shell: powershell
         run: |
