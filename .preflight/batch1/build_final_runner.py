@@ -57,6 +57,40 @@ def build_payload(payload: dict) -> dict:
     for index, count in ((7, 8), (9, 2), (10, 2), (11, 10), (12, 10), (13, 10)):
         indent_operation(payload, "components/ReportDetail.tsx", index, count)
     indent_operation(payload, "config/halleus-check-impact.json", 1, 4)
+
+    payload["replacements"]["scripts/check-report-publication-persistence.mjs"] = [
+        {
+            "old": encode('  "visibility = \'private\'",'),
+            "new": encode('  "publication_state = \'public\'",'),
+        },
+        {
+            "old": encode(
+                'assert(\n'
+                '  !saveClient.includes("public/noindex"),\n'
+                '  "save copy must not claim that the public route is already active",\n'
+                ');\n'
+                'assert(\n'
+                '  saveClient.includes("مسیر عمومی هنوز فعال نشده است"),\n'
+                '  "save copy must state the current route-activation boundary",\n'
+                ');'
+            ),
+            "new": encode(
+                'assert(\n'
+                '  !saveClient.includes("مسیر عمومی هنوز فعال نشده است"),\n'
+                '  "save copy must not retain the deferred route-activation boundary",\n'
+                ');\n'
+                'assert(\n'
+                '  saveClient.includes("طبق قانون محصول عمومی شد") &&\n'
+                '    saveClient.includes("هویت جداگانه پنهان است"),\n'
+                '  "save copy must describe active free publication and independent identity consent",\n'
+                ');'
+            ),
+        },
+        {
+            "old": encode('console.log("Report publication persistence guard passed; public access activation remains deferred.");'),
+            "new": encode('console.log("Report publication persistence guard passed with public access activation.");'),
+        },
+    ]
     return payload
 
 
@@ -84,6 +118,7 @@ def reconstruct(root: Path) -> bytes:
     payload = build_payload(json.loads(base64.b64decode(match.group(1)).decode("utf-8")))
     payload_base64 = base64.b64encode(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")
     text = text[:match.start(1)] + payload_base64 + text[match.end(1):]
+
     replacements = (
         (
             '    $plannerArguments = @("run", "check:plan", "--") + $AllowedFiles\n'
@@ -105,11 +140,22 @@ def reconstruct(root: Path) -> bytes:
             '        node @verifyArguments\n'
             '    }',
         ),
+        (
+            '    "scripts/check-report-publication-mutation.mjs"\n)',
+            '    "scripts/check-report-publication-mutation.mjs",\n'
+            '    "scripts/check-report-publication-persistence.mjs"\n)',
+        ),
+        (
+            '    "scripts/check-report-publication-mutation.mjs" = "254c55eab139d37f08b39493448ff1c99c131a38"\n}',
+            '    "scripts/check-report-publication-mutation.mjs" = "254c55eab139d37f08b39493448ff1c99c131a38"\n'
+            '    "scripts/check-report-publication-persistence.mjs" = "916137f21e794844724750e6a9de1aec955bc9bb"\n}',
+        ),
     )
     for before, after in replacements:
         if text.count(before) != 1:
-            raise SystemExit(f"RUNNER_INVOCATION_PATCH_ANCHOR_COUNT={before!r}:{text.count(before)}")
+            raise SystemExit(f"RUNNER_PATCH_ANCHOR_COUNT={before!r}:{text.count(before)}")
         text = text.replace(before, after, 1)
+
     final = b"\xef\xbb\xbf" + text.encode("utf-8")
     actual_sha = hashlib.sha256(final).hexdigest()
     if actual_sha != FINAL_SHA:
