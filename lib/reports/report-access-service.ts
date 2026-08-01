@@ -1,8 +1,38 @@
 import { getAdminDatabase, asRecord, asString, asNullableString } from "@/lib/admin/admin-database";
 import { createReportShareSecret, hashReportShareSecret, REPORT_SUMMARY_PAGE_SIZE, validateReportTitle } from "@/lib/reports/report-access-contract";
+import type { StoredReportPublication } from "@/types/storage";
 
 function reportTitle(row: Record<string, unknown>) {
   return asNullableString(row.title) ?? asNullableString(asRecord(row.report_json).title) ?? "گزارش ذخیره‌شده";
+}
+
+function storedPublication(row: Record<string, unknown>): StoredReportPublication {
+  const ownerKind = asString(row.publication_owner_kind);
+  const accessTier = asString(row.access_tier);
+  const publicationIntent = asString(row.publication_intent);
+  const publicationState = asString(row.publication_state);
+  const publicationConsentState = asString(row.publication_consent_state);
+  const identityConsentState = asString(row.identity_consent_state);
+
+  return {
+    policyVersion: "1",
+    ownerKind: ["local", "guest", "account", "legacy"].includes(ownerKind)
+      ? ownerKind as StoredReportPublication["ownerKind"]
+      : "legacy",
+    accessTier: ["preview", "free", "premium"].includes(accessTier)
+      ? accessTier as StoredReportPublication["accessTier"]
+      : "free",
+    publicationIntent: ["default", "publish", "unpublish"].includes(publicationIntent)
+      ? publicationIntent as StoredReportPublication["publicationIntent"]
+      : "default",
+    publicationState: ["private", "public", "unpublished", "restricted"].includes(publicationState)
+      ? publicationState as StoredReportPublication["publicationState"]
+      : "private",
+    publicationConsentState: ["not-required", "pending", "granted", "withdrawn"].includes(publicationConsentState)
+      ? publicationConsentState as StoredReportPublication["publicationConsentState"]
+      : "pending",
+    identityConsentState: identityConsentState === "granted" ? "granted" : "withheld",
+  };
 }
 
 function summary(row: unknown) {
@@ -17,6 +47,11 @@ function summary(row: unknown) {
     birthCountry: "",
     reportType: asString(record.report_type) || "birth_chart",
     accessTier: asString(record.access_tier) || "free",
+    publicationOwnerKind: storedPublication(record).ownerKind,
+    publicationState: storedPublication(record).publicationState,
+    publicationConsentState: storedPublication(record).publicationConsentState,
+    identityConsentState: storedPublication(record).identityConsentState,
+    publicationPolicyVersion: storedPublication(record).policyVersion,
     status: "active" as const,
     createdAt: asString(record.created_at),
     updatedAt: asString(record.updated_at),
@@ -37,6 +72,9 @@ export async function listOwnedReportSummaries(userId: string, page: number) {
       coalesce(report_json #>> '{metadata,reportType}', report_json ->> 'reportType', 'birth_chart') as report_type,
       coalesce(report_json #>> '{access,tier}', report_json ->> 'tier', 'free') as access_tier,
       note, favorite, visibility, source,
+      publication_owner_kind, access_tier, publication_intent,
+      publication_state, publication_consent_state,
+      identity_consent_state, publication_policy_version,
       created_at::text, updated_at::text,
       count(*) over()::int as total_count
     from public.halleus_reports
@@ -51,6 +89,9 @@ export async function getOwnedReport(userId: string, reportId: string) {
   const sql = getAdminDatabase();
   const rows = await sql`
     select id, user_id, title, report_json, note, favorite, visibility, source,
+      publication_owner_kind, access_tier, publication_intent,
+      publication_state, publication_consent_state,
+      identity_consent_state, publication_policy_version,
       created_at::text, updated_at::text
     from public.halleus_reports
     where id = ${reportId} and user_id = ${userId} and deleted_at is null
@@ -62,6 +103,7 @@ export async function getOwnedReport(userId: string, reportId: string) {
     id: asString(row.id), userId: asString(row.user_id), title: reportTitle(row), report: row.report_json,
     input: asRecord(row.report_json).input, note: asNullableString(row.note) ?? undefined,
     favorite: Boolean(row.favorite), visibility: asString(row.visibility), source: asString(row.source),
+    publication: storedPublication(row),
     createdAt: asString(row.created_at), updatedAt: asString(row.updated_at),
   };
 }
@@ -82,13 +124,13 @@ export async function enableOwnedReportSharing(userId: string, reportId: string)
 
 export async function revokeOwnedReportSharing(userId: string, reportId: string) {
   const sql = getAdminDatabase();
-  const rows = await sql`update public.halleus_reports set visibility = 'unpublished', share_enabled = false, share_token_hash = null, updated_at = now() where id = ${reportId} and user_id = ${userId} and deleted_at is null returning id`;
+  const rows = await sql`update public.halleus_reports set visibility = 'private', share_enabled = false, share_token_hash = null, updated_at = now() where id = ${reportId} and user_id = ${userId} and deleted_at is null returning id`;
   return rows.length > 0;
 }
 
 export async function softDeleteOwnedReport(userId: string, reportId: string) {
   const sql = getAdminDatabase();
-  const rows = await sql`update public.halleus_reports set deleted_at = now(), deleted_by = ${userId}::uuid, delete_reason = 'Deleted by report owner.', visibility = 'unpublished', share_enabled = false, share_token_hash = null, updated_at = now() where id = ${reportId} and user_id = ${userId} and deleted_at is null returning id`;
+  const rows = await sql`update public.halleus_reports set deleted_at = now(), deleted_by = ${userId}::uuid, delete_reason = 'Deleted by report owner.', visibility = 'unpublished', publication_intent = 'unpublish', publication_state = 'unpublished', publication_consent_state = case when access_tier = 'premium' then 'withdrawn' else 'not-required' end, share_enabled = false, share_token_hash = null, updated_at = now() where id = ${reportId} and user_id = ${userId} and deleted_at is null returning id`;
   return rows.length > 0;
 }
 

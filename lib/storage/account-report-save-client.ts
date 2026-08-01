@@ -158,8 +158,8 @@ export async function saveGeneratedReportWithAccountFallback(
       accountRecord: payload.reportRecord,
       accountStatus: accessToken ? "account-saved" : "public-saved",
       accountMessage: accessToken
-        ? "Report was saved to the signed-in account as public/noindex and kept in local-preview fallback."
-        : "Report was saved as a public/noindex server report and kept in local-preview fallback.",
+        ? "گزارش در حساب ذخیره شد؛ وضعیت انتشار ثبت شد اما مسیر عمومی هنوز فعال نشده است."
+        : "گزارش روی سرور ذخیره شد؛ وضعیت انتشار ثبت شد اما مسیر عمومی هنوز فعال نشده است.",
     };
   } catch (error) {
     return {

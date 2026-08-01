@@ -1,4 +1,5 @@
 import type { AstrologyReport } from "@/types/astro";
+import type { ReportPublicationPolicyInput } from "@/types/report-generation";
 import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
 import { createDatabaseReportRepository } from "@/lib/storage/database-report-repository";
 import { getReportDatabaseDriver } from "@/lib/database/report-database-driver";
@@ -6,6 +7,7 @@ import { summarizeReportRecord } from "@/lib/storage/report-records";
 
 export type ServerReportPersistenceOptions = {
   userId: string;
+  publication?: ReportPublicationPolicyInput;
 };
 
 export type SaveServerReportInput = ServerReportPersistenceOptions & {
@@ -31,14 +33,19 @@ export function createServerReportPersistenceRepository(
 ) {
   return createDatabaseReportRepository({
     userId: normalizeServerPersistenceId(options.userId, "userId"),
+    publication: options.publication,
   });
 }
 
 export async function saveServerGeneratedReport({
   userId,
   report,
+  publication,
 }: SaveServerReportInput): Promise<ReportRecord> {
-  const repository = createServerReportPersistenceRepository({ userId });
+  const repository = createServerReportPersistenceRepository({
+    userId,
+    publication,
+  });
 
   return repository.saveReport(report);
 }

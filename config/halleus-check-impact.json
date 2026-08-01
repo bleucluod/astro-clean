@@ -202,6 +202,31 @@
       "build": true
     },
     {
+      "id": "report-publication-persistence",
+      "description": "Durable server-side report publication policy inputs and legacy-safe database round-trip.",
+      "exclusive": true,
+      "patterns": [
+        "database/migrations/0009_report_publication_persistence.sql",
+        "types/storage.ts",
+        "lib/database/report-row-mapper.ts",
+        "lib/database/postgres-report-database-driver.ts",
+        "lib/storage/report-records.ts",
+        "lib/storage/database-report-repository.ts",
+        "lib/storage/server-report-persistence.ts",
+        "lib/storage/account-report-save-client.ts",
+        "app/api/reports/account/route.ts",
+        "app/api/reports/beta/route.ts",
+        "lib/reports/report-access-service.ts",
+        "scripts/check-report-publication-persistence.mjs"
+      ],
+      "guards": [
+        "check:report-publication-persistence",
+        "check:report-ownership-sharing"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "report-ownership-sharing",
       "description": "Report ownership, private library, safe sharing, and report administration.",
       "patterns": [

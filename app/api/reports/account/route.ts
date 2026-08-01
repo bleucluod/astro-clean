@@ -217,6 +217,11 @@ export async function POST(request: Request) {
       const reportRecord = await saveServerGeneratedReport({
         userId: PUBLIC_REPORT_OWNER_USER_ID,
         report,
+        publication: {
+          ownerKind: "guest",
+          tier: "free",
+          identityConsentState: "withheld",
+        },
       });
 
       return NextResponse.json({ ok: true, reportRecord });
@@ -250,6 +255,11 @@ export async function POST(request: Request) {
     const reportRecord = await saveServerGeneratedReport({
       userId: user.id,
       report,
+      publication: {
+        ownerKind: "account",
+        tier: "free",
+        identityConsentState: "withheld",
+      },
     });
 
     return NextResponse.json({ ok: true, reportRecord });

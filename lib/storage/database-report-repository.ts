@@ -1,14 +1,19 @@
 import { getReportDatabaseDriver } from "@/lib/database/report-database-driver";
 import type { AstrologyReport } from "@/types/astro";
+import type { ReportPublicationPolicyInput } from "@/types/report-generation";
 import type {
   ReportImportResult,
   ReportRecord,
   ReportRepository,
 } from "@/types/storage";
-import { createReportRecord } from "./report-records";
+import {
+  createReportRecord,
+  createStoredReportPublication,
+} from "./report-records";
 
 export type DatabaseReportRepositoryOptions = {
   userId: string;
+  publication?: ReportPublicationPolicyInput;
 };
 
 function normalizeUserId(userId: string) {
@@ -28,11 +33,13 @@ function nowIso() {
 function createAccountReportRecord(
   userId: string,
   report: AstrologyReport,
+  publication: ReportPublicationPolicyInput,
 ): ReportRecord {
   return createReportRecord(report, {
     source: "account",
     userId,
     visibility: "private",
+    publication,
   });
 }
 
@@ -45,6 +52,11 @@ function prepareImportedRecord(
     userId,
     source: "account",
     visibility: "private",
+    publication: createStoredReportPublication({
+      ownerKind: "legacy",
+      tier: "free",
+      legacyRecord: true,
+    }),
     updatedAt: nowIso(),
   };
 }
@@ -54,6 +66,11 @@ export function createDatabaseReportRepository(
 ): ReportRepository {
   const userId = normalizeUserId(options.userId);
   const driver = getReportDatabaseDriver();
+  const publication = options.publication ?? {
+    ownerKind: "legacy" as const,
+    tier: "free" as const,
+    legacyRecord: true,
+  };
 
   async function getExistingReport(reportId: string) {
     return driver.getReportById(userId, reportId);
@@ -69,7 +86,10 @@ export function createDatabaseReportRepository(
     },
 
     async saveReport(report: AstrologyReport) {
-      return driver.upsertReport(userId, createAccountReportRecord(userId, report));
+      return driver.upsertReport(
+        userId,
+        createAccountReportRecord(userId, report, publication),
+      );
     },
 
     async deleteReport(reportId: string) {

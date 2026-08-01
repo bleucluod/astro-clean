@@ -32,6 +32,16 @@ function toIsoString(value: unknown) {
   return nowIso();
 }
 
+function normalizeEnum<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  fallback: T,
+): T {
+  const normalized = String(value);
+
+  return allowed.includes(normalized as T) ? (normalized as T) : fallback;
+}
+
 function normalizeRow(row: RawDatabaseReportRow): DatabaseReportRow {
   return {
     id: String(row.id),
@@ -39,9 +49,48 @@ function normalizeRow(row: RawDatabaseReportRow): DatabaseReportRow {
     report_json: row.report_json as DatabaseReportRow["report_json"],
     note: typeof row.note === "string" ? row.note : null,
     favorite: Boolean(row.favorite),
-    visibility: ["public", "shared_by_link", "unpublished", "restricted_by_admin"].includes(String(row.visibility))
-      ? row.visibility as DatabaseReportRow["visibility"]
-      : "private",
+    visibility: normalizeEnum(
+      row.visibility,
+      [
+        "private",
+        "public",
+        "shared_by_link",
+        "unpublished",
+        "restricted_by_admin",
+      ] as const,
+      "private",
+    ),
+    publication_owner_kind: normalizeEnum(
+      row.publication_owner_kind,
+      ["local", "guest", "account", "legacy"] as const,
+      "legacy",
+    ),
+    access_tier: normalizeEnum(
+      row.access_tier,
+      ["preview", "free", "premium"] as const,
+      "free",
+    ),
+    publication_intent: normalizeEnum(
+      row.publication_intent,
+      ["default", "publish", "unpublish"] as const,
+      "default",
+    ),
+    publication_state: normalizeEnum(
+      row.publication_state,
+      ["private", "public", "unpublished", "restricted"] as const,
+      "private",
+    ),
+    publication_consent_state: normalizeEnum(
+      row.publication_consent_state,
+      ["not-required", "pending", "granted", "withdrawn"] as const,
+      "pending",
+    ),
+    identity_consent_state: normalizeEnum(
+      row.identity_consent_state,
+      ["withheld", "granted"] as const,
+      "withheld",
+    ),
+    publication_policy_version: "1",
     created_at: toIsoString(row.created_at),
     updated_at: toIsoString(row.updated_at),
   };
@@ -94,6 +143,13 @@ export function createPostgresReportDatabaseDriver(
           note,
           favorite,
           visibility,
+          publication_owner_kind,
+          access_tier,
+          publication_intent,
+          publication_state,
+          publication_consent_state,
+          identity_consent_state,
+          publication_policy_version,
           created_at::text as created_at,
           updated_at::text as updated_at
         from halleus_reports
@@ -113,6 +169,13 @@ export function createPostgresReportDatabaseDriver(
           note,
           favorite,
           visibility,
+          publication_owner_kind,
+          access_tier,
+          publication_intent,
+          publication_state,
+          publication_consent_state,
+          identity_consent_state,
+          publication_policy_version,
           created_at::text as created_at,
           updated_at::text as updated_at
         from halleus_reports
@@ -134,10 +197,21 @@ export function createPostgresReportDatabaseDriver(
           null::text as note,
           favorite,
           visibility,
+          publication_owner_kind,
+          access_tier,
+          publication_intent,
+          publication_state,
+          publication_consent_state,
+          identity_consent_state,
+          publication_policy_version,
           created_at::text as created_at,
           updated_at::text as updated_at
         from halleus_reports
-        where id = ${reportId} and visibility = 'public'
+        where id = ${reportId}
+          and visibility = 'public'
+          and publication_state = 'public'
+          and restricted_at is null
+          and deleted_at is null
         limit 1
       `;
 
@@ -157,6 +231,13 @@ export function createPostgresReportDatabaseDriver(
           note,
           favorite,
           visibility,
+          publication_owner_kind,
+          access_tier,
+          publication_intent,
+          publication_state,
+          publication_consent_state,
+          identity_consent_state,
+          publication_policy_version,
           source,
           created_at,
           updated_at
@@ -168,6 +249,13 @@ export function createPostgresReportDatabaseDriver(
           ${row.note},
           ${row.favorite},
           ${row.visibility},
+          ${row.publication_owner_kind},
+          ${row.access_tier},
+          ${row.publication_intent},
+          ${row.publication_state},
+          ${row.publication_consent_state},
+          ${row.identity_consent_state},
+          ${row.publication_policy_version},
           ${record.source},
           ${row.created_at},
           ${row.updated_at}
@@ -177,6 +265,13 @@ export function createPostgresReportDatabaseDriver(
           note = excluded.note,
           favorite = excluded.favorite,
           visibility = excluded.visibility,
+          publication_owner_kind = excluded.publication_owner_kind,
+          access_tier = excluded.access_tier,
+          publication_intent = excluded.publication_intent,
+          publication_state = excluded.publication_state,
+          publication_consent_state = excluded.publication_consent_state,
+          identity_consent_state = excluded.identity_consent_state,
+          publication_policy_version = excluded.publication_policy_version,
           source = excluded.source,
           updated_at = excluded.updated_at
         where halleus_reports.user_id = ${userId}
@@ -187,6 +282,13 @@ export function createPostgresReportDatabaseDriver(
           note,
           favorite,
           visibility,
+          publication_owner_kind,
+          access_tier,
+          publication_intent,
+          publication_state,
+          publication_consent_state,
+          identity_consent_state,
+          publication_policy_version,
           created_at::text as created_at,
           updated_at::text as updated_at
       `;

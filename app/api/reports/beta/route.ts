@@ -139,6 +139,12 @@ export async function POST(request: Request) {
     const reportRecord = await saveServerGeneratedReport({
       userId: guard.userId,
       report,
+      publication: {
+        ownerKind: "legacy",
+        tier: "free",
+        identityConsentState: "withheld",
+        legacyRecord: true,
+      },
     });
 
     return NextResponse.json({ ok: true, reportRecord });

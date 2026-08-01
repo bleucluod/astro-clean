@@ -1,10 +1,28 @@
 import type { AstrologyReport, BirthInput } from "@/types/astro";
+import type {
+  ReportAccessTier,
+  ReportIdentityConsentState,
+  ReportPublicationConsentState,
+  ReportPublicationIntent,
+  ReportPublicationOwnerKind,
+  ReportPublicationState,
+} from "@/types/report-generation";
 
 export type HalleusStorageDriver = "local" | "database";
 
 export type ReportVisibility = "private" | "public" | "shared_by_link" | "unpublished" | "restricted_by_admin";
 
 export type ReportSource = "local-preview" | "account";
+
+export type StoredReportPublication = {
+  policyVersion: "1";
+  ownerKind: ReportPublicationOwnerKind;
+  accessTier: ReportAccessTier;
+  publicationIntent: ReportPublicationIntent;
+  publicationState: ReportPublicationState;
+  publicationConsentState: ReportPublicationConsentState;
+  identityConsentState: ReportIdentityConsentState;
+};
 
 export type ReportRecord = {
   id: string;
@@ -17,6 +35,7 @@ export type ReportRecord = {
   note?: string;
   visibility: ReportVisibility;
   source: ReportSource;
+  publication?: StoredReportPublication;
 };
 
 export type ReportRecordSummary = {
@@ -24,6 +43,11 @@ export type ReportRecordSummary = {
   title?: string;
   reportType?: string;
   accessTier?: string;
+  publicationOwnerKind?: ReportPublicationOwnerKind;
+  publicationState?: ReportPublicationState;
+  publicationConsentState?: ReportPublicationConsentState;
+  identityConsentState?: ReportIdentityConsentState;
+  publicationPolicyVersion?: "1";
   status?: "active" | "deleted";
   userId?: string;
   name?: string;
@@ -71,6 +95,13 @@ export type DatabaseReportRow = {
   note: string | null;
   favorite: boolean;
   visibility: ReportVisibility;
+  publication_owner_kind: ReportPublicationOwnerKind;
+  access_tier: ReportAccessTier;
+  publication_intent: ReportPublicationIntent;
+  publication_state: ReportPublicationState;
+  publication_consent_state: ReportPublicationConsentState;
+  identity_consent_state: ReportIdentityConsentState;
+  publication_policy_version: "1";
   created_at: string;
   updated_at: string;
 };
