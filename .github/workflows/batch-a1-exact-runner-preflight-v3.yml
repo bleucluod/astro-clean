@@ -1,0 +1,43 @@
+name: Batch A1 exact runner preflight v3
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-runner-e2e:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout retry branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+          run_install: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - name: Execute exact PowerShell 5.1 preflight harness
+        shell: powershell
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tmp-preflight/batch-a1/Batch-A1-Exact-Preflight-Harness.ps1
+
+      - name: Upload exact runner evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Halleus-Batch-A1-exact-runner-v3
+          path: ${{ runner.temp }}/batch-a1-artifact/Apply-Halleus-Report-Publication-Policy-A1-20260801.ps1
+          if-no-files-found: error
