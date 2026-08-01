@@ -29,6 +29,17 @@ jobs:
         with:
           node-version: 24
 
+      - name: Reconstruct exact runner candidate
+        shell: powershell
+        run: |
+          & powershell.exe `
+            -NoProfile `
+            -ExecutionPolicy Bypass `
+            -File ".github/halleus-preflight/a2b-reconstruct-runner.ps1"
+          if ($LASTEXITCODE -ne 0) {
+            throw "A2B_RUNNER_RECONSTRUCTION_FAILED=$LASTEXITCODE"
+          }
+
       - name: Execute exact PowerShell 5.1 runner
         shell: powershell
         run: |
