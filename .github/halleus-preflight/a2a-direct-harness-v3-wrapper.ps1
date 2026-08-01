@@ -2,7 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $SourceHarness = ".github/halleus-preflight/a2a-direct-harness-v2.ps1"
-$GeneratedHarness = Join-Path $env:RUNNER_TEMP "a2a-direct-harness-v5.ps1"
+$GeneratedHarness = Join-Path $env:RUNNER_TEMP "a2a-direct-harness-v6.ps1"
 $Utf8 = New-Object System.Text.UTF8Encoding($false)
 
 function Replace-ExactlyOnce {
@@ -28,8 +28,8 @@ $Harness = [IO.File]::ReadAllText($SourceHarness).Replace("`r`n", "`n")
 $Harness = Replace-ExactlyOnce `
     -Text $Harness `
     -Old '$Candidate5Sha = "382c845e8d857e7335d2117892d0b01fdb5838dd8af68e651247d68beeef02a6"' `
-    -New '$Candidate5Sha = "438aa892e9ff7caed3e6957996e7f2c86e4d51f327fedd9f069f6e1082208ba1"' `
-    -Name "candidate8-sha"
+    -New '$Candidate5Sha = "2d1e11e306b4507f4cf84a9854c3b8a8dc5567c5c02a9e07899f8c533de8553c"' `
+    -Name "candidate9-sha"
 
 $OldNode = @'
 content = content.replace(oldOrder, newOrder);
@@ -52,6 +52,12 @@ if (content.split(oldPlan).length !== 2) {
   throw new Error("check-plan invocation anchor count mismatch");
 }
 content = content.replace(oldPlan, newPlan);
+const oldVerify = '    $verifyArguments = @("run", "verify", "--") + $Targets';
+const newVerify = '    $verifyArguments = @("run", "verify") + $Targets';
+if (content.split(oldVerify).length !== 2) {
+  throw new Error("verify invocation anchor count mismatch");
+}
+content = content.replace(oldVerify, newVerify);
 fs.writeFileSync(runnerPath, content, "utf8");
 '@
 $OldNode = $OldNode.Replace("`r`n", "`n")
@@ -60,7 +66,7 @@ $Harness = Replace-ExactlyOnce `
     -Text $Harness `
     -Old $OldNode `
     -New $NewNode `
-    -Name "candidate8-patches"
+    -Name "candidate9-patches"
 
 [IO.File]::WriteAllText($GeneratedHarness, $Harness, $Utf8)
 
@@ -70,5 +76,5 @@ $Harness = Replace-ExactlyOnce `
     -File $GeneratedHarness
 $ExitCode = $LASTEXITCODE
 if ($ExitCode -ne 0) {
-    throw "A2A_CANDIDATE8_GENERATED_HARNESS_FAILED=$ExitCode"
+    throw "A2A_CANDIDATE9_GENERATED_HARNESS_FAILED=$ExitCode"
 }
