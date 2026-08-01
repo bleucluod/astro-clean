@@ -56,7 +56,8 @@ jobs:
           $evidence = Join-Path $env:RUNNER_TEMP "halleus-a2a-evidence"
           Remove-Item -LiteralPath $target, $evidence -Recurse -Force -ErrorAction SilentlyContinue
           git fetch origin main --tags
-          if ((git show-ref --verify --quiet refs/heads/main; $LASTEXITCODE) -eq 0) {
+          git show-ref --verify --quiet refs/heads/main
+          if ($LASTEXITCODE -eq 0) {
             git branch -D main
           }
           git branch main $baseline
