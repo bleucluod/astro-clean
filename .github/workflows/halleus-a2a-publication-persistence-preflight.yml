@@ -27,15 +27,15 @@ jobs:
         with:
           node-version: 24
 
-      - name: Execute candidate4 PowerShell 5.1 harness
+      - name: Execute direct exact PowerShell 5.1 harness
         shell: powershell
         run: |
           & powershell.exe `
             -NoProfile `
             -ExecutionPolicy Bypass `
-            -File ".github/halleus-preflight/a2a-harness-candidate4-wrapper.ps1"
+            -File ".github/halleus-preflight/a2a-direct-harness.ps1"
           if ($LASTEXITCODE -ne 0) {
-            throw "A2A_CANDIDATE4_HARNESS_FAILED=$LASTEXITCODE"
+            throw "A2A_DIRECT_HARNESS_FAILED=$LASTEXITCODE"
           }
 
       - name: Upload exact candidate evidence
