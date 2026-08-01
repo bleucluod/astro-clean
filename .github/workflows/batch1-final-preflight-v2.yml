@@ -1,0 +1,238 @@
+name: Batch 1 Final Public Reports Preflight V2
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  windows-exact:
+    runs-on: windows-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout control branch
+        uses: actions/checkout@v4
+        with:
+          path: control
+          fetch-depth: 1
+
+      - name: Checkout exact baseline
+        uses: actions/checkout@v4
+        with:
+          ref: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+          path: target
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Prepare exact clean target
+        shell: pwsh
+        working-directory: target
+        run: |
+          $ErrorActionPreference = "Stop"
+          git switch -C main 1b941f6c3edc40cff0594e1516760da7ecc74c95
+          git fetch origin main --tags
+          if ((git rev-parse HEAD).Trim() -ne "1b941f6c3edc40cff0594e1516760da7ecc74c95") { throw "BASELINE_MISMATCH" }
+          if ((git rev-parse origin/main).Trim() -ne "1b941f6c3edc40cff0594e1516760da7ecc74c95") { throw "ORIGIN_BASELINE_MISMATCH" }
+          if ((git status --porcelain).Count -ne 0) { throw "TARGET_NOT_CLEAN" }
+
+      - name: Build, hash, audit, and parse exact runner
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $root = "control/.preflight/batch1"
+          $runner = "$root/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1"
+          python "$root/build_final_runner.py" --root "$root" --output "$runner" --target "target"
+          if ($LASTEXITCODE -ne 0) { throw "RUNNER_BUILD_OR_AUDIT_FAILED=$LASTEXITCODE" }
+          $sha = (Get-FileHash $runner -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($sha -ne "e0f06d02c1b8c29ba57e2549c1908a0566257b00d028b7acc3a7b2685a717bf9") { throw "RUNNER_SHA_MISMATCH=$sha" }
+          $errors = $null
+          [void][Management.Automation.Language.Parser]::ParseFile((Resolve-Path $runner), [ref]$null, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Host $_ }
+            throw "RUNNER_PARSE_FAILED"
+          }
+          New-Item -ItemType Directory -Path evidence -Force | Out-Null
+          "$sha  Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" | Out-File evidence/runner-sha256.txt -Encoding ascii
+          Copy-Item $runner evidence/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1
+          Write-Host "RUNNER_SHA256=$sha"
+          Write-Host "TRANSFORMATION_ANCHOR_AUDIT=PASS"
+          Write-Host "POWERSHELL_5_1_PARSE=PASS"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install exact dependencies
+        working-directory: target
+        run: pnpm install --frozen-lockfile
+
+      - name: Exact rollback rehearsal
+        shell: powershell
+        run: |
+          & "control/.preflight/batch1/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" -Mode Rehearse -RepoPath "${{ github.workspace }}\target"
+          if ($LASTEXITCODE -ne 0) { throw "ROLLBACK_REHEARSAL_FAILED=$LASTEXITCODE" }
+          if ((git -C target status --porcelain).Count -ne 0) {
+            git -C target status --short
+            throw "ROLLBACK_TARGET_NOT_CLEAN"
+          }
+          Write-Host "ROLLBACK_REHEARSAL=PASS"
+
+      - name: Exact apply and full live verification
+        shell: powershell
+        run: |
+          & "control/.preflight/batch1/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" -Mode Apply -RepoPath "${{ github.workspace }}\target"
+          if ($LASTEXITCODE -ne 0) { throw "EXACT_APPLY_FAILED=$LASTEXITCODE" }
+          Write-Host "WINDOWS_EXACT_APPLY_VERIFY=PASS"
+
+      - name: Capture exact 28-file after-state
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $changed = @(git -C target status --porcelain=v1 --untracked-files=all | ForEach-Object { $_.Substring(3) } | Sort-Object)
+          if ($changed.Count -ne 28) {
+            git -C target status --short
+            throw "AFTER_STATE_FILE_COUNT_MISMATCH=$($changed.Count)"
+          }
+          if ($changed -notcontains "scripts/check-report-publication-persistence.mjs") { throw "PERSISTENCE_GUARD_NOT_CHANGED" }
+          if ($changed -notcontains "scripts/check-public-report-activation.mjs") { throw "FOCUSED_GUARD_NOT_CHANGED" }
+          git -C target --no-pager diff --check
+          if ($LASTEXITCODE -ne 0) { throw "FINAL_DIFF_CHECK_FAILED" }
+          New-Item -ItemType Directory -Path evidence/after-state -Force | Out-Null
+          foreach ($path in $changed) {
+            $source = Join-Path target $path
+            $destination = Join-Path evidence/after-state $path
+            New-Item -ItemType Directory -Path (Split-Path $destination -Parent) -Force | Out-Null
+            Copy-Item -LiteralPath $source -Destination $destination -Force
+          }
+          $changed | Out-File evidence/changed-files.txt -Encoding utf8
+          git -C target status --short | Out-File evidence/final-status.txt -Encoding utf8
+          git -C target --no-pager diff --stat | Out-File evidence/final-diff-stat.txt -Encoding utf8
+          git -C target --no-pager diff | Out-File evidence/final-diff.patch -Encoding utf8
+          "WINDOWS_EXACT_AFTER_STATE=PASS" | Out-File evidence/windows-result.txt -Encoding ascii
+
+      - name: Upload exact runner and after-state
+        uses: actions/upload-artifact@v4
+        with:
+          name: Halleus-Batch1-Final-Evidence-V2
+          path: evidence
+          if-no-files-found: error
+          retention-days: 7
+
+  postgres-http:
+    runs-on: ubuntu-24.04
+    needs: windows-exact
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: halleus_batch1
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d halleus_batch1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout exact baseline
+        uses: actions/checkout@v4
+        with:
+          ref: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+          fetch-depth: 1
+
+      - name: Download exact Windows evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: Halleus-Batch1-Final-Evidence-V2
+          path: evidence
+
+      - name: Overlay exact after-state
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cp -a evidence/after-state/. .
+          runner_sha="$(sha256sum evidence/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1 | cut -d ' ' -f 1)"
+          test "$runner_sha" = "e0f06d02c1b8c29ba57e2549c1908a0566257b00d028b7acc3a7b2685a717bf9"
+          grep -q "^${runner_sha}  Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1$" evidence/runner-sha256.txt
+          test "$(wc -l < evidence/changed-files.txt)" -eq 28
+          git --no-pager diff --check
+          echo "RUNNER_SHA256=$runner_sha"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install exact dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: PostgreSQL 16 behavior guard
+        env:
+          HALLEUS_PUBLIC_REPORT_ACTIVATION_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
+        run: pnpm run check:public-report-activation
+
+      - name: Production build against disposable PostgreSQL
+        env:
+          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
+          NEXT_PUBLIC_SITE_URL: https://halleus.ir
+        run: pnpm build
+
+      - name: HTTP route and privacy smoke
+        env:
+          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
+          NEXT_PUBLIC_SITE_URL: https://halleus.ir
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          pnpm start > /tmp/halleus-batch1-next.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/halleus-batch1-next.log' EXIT
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/reports >/tmp/public-hub.html; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3000/reports > /tmp/public-hub.html
+          grep -q "گزارش‌های عمومی هالیوس" /tmp/public-hub.html
+          ! grep -q "تهران" /tmp/public-hub.html
+          ! grep -q "1990-01-02" /tmp/public-hub.html
+          curl -fsS http://127.0.0.1:3000/reports/11111111-1111-4111-8111-111111111111 > /tmp/public-detail.html
+          grep -q 'name="robots" content="index, follow"' /tmp/public-detail.html
+          grep -q 'rel="canonical" href="https://halleus.ir/reports/11111111-1111-4111-8111-111111111111"' /tmp/public-detail.html
+          ! grep -q "تهران" /tmp/public-detail.html
+          ! grep -q "مهمان" /tmp/public-detail.html
+          curl -fsS http://127.0.0.1:3000/reports/33333333-3333-4333-8333-333333333333 > /tmp/private-fallback.html
+          grep -q 'name="robots" content="noindex, nofollow"' /tmp/private-fallback.html
+          ! grep -q "پریمیوم خصوصی" /tmp/private-fallback.html
+          ! grep -q "رشت" /tmp/private-fallback.html
+          curl -fsS http://127.0.0.1:3000/dashboard/reports > /tmp/private-hub.html
+          grep -q 'name="robots" content="noindex, nofollow"' /tmp/private-hub.html
+          redirect_headers="$(mktemp)"
+          curl -sS -o /dev/null -D "$redirect_headers" "http://127.0.0.1:3000/reports?source=account"
+          grep -Eq '^HTTP/.* 30[78]' "$redirect_headers"
+          grep -qi '^location: /dashboard/reports\?source=account' "$redirect_headers"
+          curl -fsS http://127.0.0.1:3000/sitemap.xml > /tmp/sitemap.xml
+          grep -q "/reports/11111111-1111-4111-8111-111111111111" /tmp/sitemap.xml
+          grep -q "/reports/44444444-4444-4444-8444-444444444444" /tmp/sitemap.xml
+          ! grep -q "/reports/33333333-3333-4333-8333-333333333333" /tmp/sitemap.xml
+          ! grep -q "/reports/55555555-5555-4555-8555-555555555555" /tmp/sitemap.xml
+          echo "POSTGRES_PUBLIC_REPORT_ACTIVATION=PASS"
+          echo "HTTP_PUBLIC_REPORT_ACTIVATION=PASS"
