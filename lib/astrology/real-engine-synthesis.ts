@@ -16,6 +16,13 @@ import {
 import type { RealEngineReportLunarNodes } from "@/types/astro";
 
 const DAILY_PLANET_IDS = new Set(["mercury", "venus", "mars"]);
+const THEME_PLANET_IDS = new Set([
+  "sun",
+  "moon",
+  "mercury",
+  "venus",
+  "mars",
+]);
 
 export type RealEngineSynthesisPlanInput = {
   aspects: RealEngineReportAspect[];
@@ -103,14 +110,28 @@ export function buildRealEngineSynthesisPlan({
       (id): id is string => typeof id === "string",
     ),
   );
-
-  const dailyBridge = ranked.find((aspect) => {
+  const selectedNarrativeParticipantIds = new Set(
+    [primaryRelationship, primarySupport]
+      .filter(
+        (aspect): aspect is RealEngineReportAspect => Boolean(aspect),
+      )
+      .flatMap(getParticipants),
+  );
+  const dailyBridgeCandidates = ranked.filter((aspect) => {
     if (selectedIds.has(aspect.id)) {
       return false;
     }
 
     return getParticipants(aspect).some((id) => DAILY_PLANET_IDS.has(id));
   });
+  const dailyBridge =
+    dailyBridgeCandidates.find((aspect) =>
+      getParticipants(aspect).some(
+        (id) =>
+          THEME_PLANET_IDS.has(id) &&
+          !selectedNarrativeParticipantIds.has(id),
+      ),
+    ) ?? dailyBridgeCandidates[0];
 
   const selectedAspects = [
     primaryRelationship,
