@@ -84,16 +84,29 @@ def reconstruct(root: Path) -> bytes:
     payload = build_payload(json.loads(base64.b64decode(match.group(1)).decode("utf-8")))
     payload_base64 = base64.b64encode(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")
     text = text[:match.start(1)] + payload_base64 + text[match.end(1):]
-    for before, after in (
+    replacements = (
         (
-            '    $plannerArguments = @("run", "check:plan", "--") + $AllowedFiles',
-            '    $plannerArguments = @("run", "check:plan") + $AllowedFiles',
+            '    $plannerArguments = @("run", "check:plan", "--") + $AllowedFiles\n'
+            '    Invoke-NativeChecked -FailureMarker "CHECK_PLAN_FAILED" -Command {\n'
+            '        pnpm.cmd @plannerArguments\n'
+            '    }',
+            '    $plannerArguments = @("scripts/halleus-check-plan.mjs") + $AllowedFiles\n'
+            '    Invoke-NativeChecked -FailureMarker "CHECK_PLAN_FAILED" -Command {\n'
+            '        node @plannerArguments\n'
+            '    }',
         ),
         (
-            '    $verifyArguments = @("run", "verify", "--") + $AllowedFiles',
-            '    $verifyArguments = @("run", "verify") + $AllowedFiles',
+            '    $verifyArguments = @("run", "verify", "--") + $AllowedFiles\n'
+            '    Invoke-NativeChecked -FailureMarker "VERIFICATION_FAILED" -Command {\n'
+            '        pnpm.cmd @verifyArguments\n'
+            '    }',
+            '    $verifyArguments = @("scripts/halleus-verify.mjs") + $AllowedFiles\n'
+            '    Invoke-NativeChecked -FailureMarker "VERIFICATION_FAILED" -Command {\n'
+            '        node @verifyArguments\n'
+            '    }',
         ),
-    ):
+    )
+    for before, after in replacements:
         if text.count(before) != 1:
             raise SystemExit(f"RUNNER_INVOCATION_PATCH_ANCHOR_COUNT={before!r}:{text.count(before)}")
         text = text.replace(before, after, 1)
