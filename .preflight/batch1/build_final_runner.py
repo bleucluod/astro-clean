@@ -53,6 +53,21 @@ def indent_operation(payload: dict, path: str, index: int, count: int) -> None:
 
 
 def build_payload(payload: dict) -> dict:
+    set_operation(
+        payload,
+        "app/dashboard/page.tsx",
+        2,
+        old=(
+            '<Link className="button secondary" href="/reports">\n'
+            '            گزارش‌های من\n'
+            '          </Link>'
+        ),
+        new=(
+            '<Link className="button secondary" href="/dashboard/reports">\n'
+            '            گزارش‌های من\n'
+            '          </Link>'
+        ),
+    )
     old_message = (
         'return "گزارش ساخته شد، اما ذخیره حساب یا لینک noindex کامل نشد. '
         'نسخه private همین دستگاه باز می‌شود.";'
