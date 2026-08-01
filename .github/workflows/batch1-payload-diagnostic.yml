@@ -46,7 +46,7 @@ jobs:
                   print(f'OP={index}')
                   print('OLD_REPR=' + repr(old))
                   print('NEW_REPR=' + repr(new))
-          for number, line in enumerate(text.splitlines(), 1):
-              if 'check-report-publication-persistence.mjs' in line or '$AllowedFiles' in line or '$ExpectedBlobs' in line:
-                  print(f'RUNNER_{number}=' + repr(line))
+          lines = text.splitlines()
+          for number, line in enumerate(lines[:100], 1):
+              print(f'RUNNER_{number}=' + repr(line))
           PY
