@@ -61,14 +61,35 @@ jobs:
               "control/.preflight/batch1/"
               "Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1"
           )
-          output.write_bytes(lzma.decompress(base64.b64decode(encoded)))
+          original = lzma.decompress(base64.b64decode(encoded))
+          old_sha = "98aa792830e8453c3f5ece02d666a009b7dc5f64a711db890bda76e19730bc99"
+          if __import__("hashlib").sha256(original).hexdigest() != old_sha:
+              raise SystemExit("ORIGINAL_RUNNER_SHA_MISMATCH")
+          replacements = [
+              (
+                  b'    "scripts/check-report-publication-mutation.mjs",\n)',
+                  b'    "scripts/check-report-publication-mutation.mjs"\n)',
+              ),
+              (
+                  b'    "scripts/check-public-report-activation.mjs",\n)',
+                  b'    "scripts/check-public-report-activation.mjs"\n)',
+              ),
+          ]
+          corrected = original
+          for before, after in replacements:
+              if corrected.count(before) != 1:
+                  raise SystemExit(
+                      f"RUNNER_PATCH_ANCHOR_COUNT={before!r}:{corrected.count(before)}"
+                  )
+              corrected = corrected.replace(before, after, 1)
+          output.write_bytes(corrected)
           '@ | python -
           if ($LASTEXITCODE -ne 0) {
             throw "RUNNER_RECONSTRUCTION_FAILED=$LASTEXITCODE"
           }
           $runner = "control/.preflight/batch1/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1"
           $sha = (Get-FileHash $runner -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($sha -ne "98aa792830e8453c3f5ece02d666a009b7dc5f64a711db890bda76e19730bc99") {
+          if ($sha -ne "d8051e1cd67ded72634c4be53ac7b5395e1920fadc6f564d5ba4d96bbbb65768") {
             throw "RUNNER_SHA_MISMATCH=$sha"
           }
           $errors = $null
@@ -164,7 +185,7 @@ jobs:
             "lib/storage/report-records.ts",
             "package.json",
             "scripts/check-public-report-activation.mjs",
-            "scripts/check-report-publication-mutation.mjs",
+            "scripts/check-report-publication-mutation.mjs"
           )
           New-Item -ItemType Directory -Path evidence/after-state -Force | Out-Null
           foreach ($path in $allowed) {
@@ -183,7 +204,7 @@ jobs:
           if (Compare-Object $expected $changed) {
             throw "AFTER_STATE_BOUNDARY_MISMATCH"
           }
-          "98aa792830e8453c3f5ece02d666a009b7dc5f64a711db890bda76e19730bc99  Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" |
+          "d8051e1cd67ded72634c4be53ac7b5395e1920fadc6f564d5ba4d96bbbb65768  Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" |
             Out-File ../evidence/runner-sha256.txt -Encoding ascii
           "WINDOWS_EXACT_AFTER_STATE=PASS" |
             Out-File ../evidence/windows-result.txt -Encoding ascii
@@ -231,7 +252,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           cp -a evidence/after-state/. .
-          test "$(sha256sum "evidence/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" | cut -d ' ' -f 1)" = "98aa792830e8453c3f5ece02d666a009b7dc5f64a711db890bda76e19730bc99"
+          test "$(sha256sum "evidence/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" | cut -d ' ' -f 1)" = "d8051e1cd67ded72634c4be53ac7b5395e1920fadc6f564d5ba4d96bbbb65768"
           git --no-pager diff --check
 
       - name: Setup pnpm
@@ -297,7 +318,7 @@ jobs:
           grep -q 'name="robots" content="noindex, nofollow"' /tmp/private-hub.html
 
           redirect_headers="$(mktemp)"
-          curl -sS -o /dev/null -D "$redirect_headers"             "http://127.0.0.1:3000/reports?source=account"
+          curl -sS -o /dev/null -D "$redirect_headers" "http://127.0.0.1:3000/reports?source=account"
           grep -Eq '^HTTP/.* 30[78]' "$redirect_headers"
           grep -qi '^location: /dashboard/reports\?source=account' "$redirect_headers"
 
