@@ -82,6 +82,47 @@ jobs:
                       f"RUNNER_PATCH_ANCHOR_COUNT={before!r}:{corrected.count(before)}"
                   )
               corrected = corrected.replace(before, after, 1)
+
+          text = corrected.decode("utf-8-sig")
+          payload_match = __import__("re").search(
+              r'^\$PayloadBase64 = "([^"]+)"$',
+              text,
+              __import__("re").M,
+          )
+          if payload_match is None:
+              raise SystemExit("PAYLOAD_LINE_MISSING")
+          payload = __import__("json").loads(
+              base64.b64decode(payload_match.group(1)).decode("utf-8")
+          )
+          operation = payload["replacements"]["app/dashboard/page.tsx"][1]
+          expected_old = (
+              '<Link className="button secondary" href="/reports">\n'
+              '  گزارش‌های من\n'
+              '</Link>'
+          )
+          actual_old = base64.b64decode(operation["old"]).decode("utf-8")
+          if actual_old != expected_old:
+              raise SystemExit(f"DASHBOARD_ANCHOR_UNEXPECTED={actual_old!r}")
+          operation["old"] = base64.b64encode(
+              (
+                  '<Link className="button secondary" href="/reports">\n'
+                  '            گزارش‌های من\n'
+                  '          </Link>'
+              ).encode("utf-8")
+          ).decode("ascii")
+          payload_base64 = base64.b64encode(
+              __import__("json").dumps(
+                  payload,
+                  ensure_ascii=False,
+                  separators=(",", ":"),
+              ).encode("utf-8")
+          ).decode("ascii")
+          text = (
+              text[:payload_match.start(1)]
+              + payload_base64
+              + text[payload_match.end(1):]
+          )
+          corrected = b"\xef\xbb\xbf" + text.encode("utf-8")
           output.write_bytes(corrected)
           '@ | python -
           if ($LASTEXITCODE -ne 0) {
@@ -89,7 +130,7 @@ jobs:
           }
           $runner = "control/.preflight/batch1/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1"
           $sha = (Get-FileHash $runner -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($sha -ne "d8051e1cd67ded72634c4be53ac7b5395e1920fadc6f564d5ba4d96bbbb65768") {
+          if ($sha -ne "ba1b9a5e368c9798f9e861b73114387500a5d3dfc73d0aaf85046c410ebd1c86") {
             throw "RUNNER_SHA_MISMATCH=$sha"
           }
           $errors = $null
@@ -117,6 +158,54 @@ jobs:
           }
           if ((git status --porcelain).Count -ne 0) {
             throw "TARGET_NOT_CLEAN"
+          }
+
+      - name: Audit all transformation anchors
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          @'
+          import base64
+          import json
+          import re
+          from pathlib import Path
+
+          runner = Path(
+              "control/.preflight/batch1/"
+              "Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1"
+          )
+          text = runner.read_text(encoding="utf-8-sig")
+          match = re.search(r'^\$PayloadBase64 = "([^"]+)"$', text, re.M)
+          if match is None:
+              raise SystemExit("PAYLOAD_LINE_MISSING")
+          payload = json.loads(
+              base64.b64decode(match.group(1)).decode("utf-8")
+          )
+          failures = []
+          root = Path("target")
+          for relative_path, operations in payload["replacements"].items():
+              target = root / relative_path
+              if not target.is_file():
+                  failures.append(f"TARGET_MISSING={relative_path}")
+                  continue
+              content = target.read_text(encoding="utf-8")
+              for index, operation in enumerate(operations, 1):
+                  old = base64.b64decode(operation["old"]).decode("utf-8")
+                  new = base64.b64decode(operation["new"]).decode("utf-8")
+                  count = content.count(old)
+                  if count != 1:
+                      failures.append(
+                          f"ANCHOR_COUNT={relative_path}#{index}:{count}"
+                      )
+                      continue
+                  content = content.replace(old, new, 1)
+          if failures:
+              print("\n".join(failures))
+              raise SystemExit("TRANSFORMATION_ANCHOR_AUDIT_FAILED")
+          print("TRANSFORMATION_ANCHOR_AUDIT=PASS")
+          '@ | python -
+          if ($LASTEXITCODE -ne 0) {
+            throw "TRANSFORMATION_ANCHOR_AUDIT_FAILED=$LASTEXITCODE"
           }
 
       - name: Setup pnpm
@@ -204,7 +293,7 @@ jobs:
           if (Compare-Object $expected $changed) {
             throw "AFTER_STATE_BOUNDARY_MISMATCH"
           }
-          "d8051e1cd67ded72634c4be53ac7b5395e1920fadc6f564d5ba4d96bbbb65768  Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" |
+          "ba1b9a5e368c9798f9e861b73114387500a5d3dfc73d0aaf85046c410ebd1c86  Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" |
             Out-File ../evidence/runner-sha256.txt -Encoding ascii
           "WINDOWS_EXACT_AFTER_STATE=PASS" |
             Out-File ../evidence/windows-result.txt -Encoding ascii
@@ -252,7 +341,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           cp -a evidence/after-state/. .
-          test "$(sha256sum "evidence/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" | cut -d ' ' -f 1)" = "d8051e1cd67ded72634c4be53ac7b5395e1920fadc6f564d5ba4d96bbbb65768"
+          test "$(sha256sum "evidence/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1" | cut -d ' ' -f 1)" = "ba1b9a5e368c9798f9e861b73114387500a5d3dfc73d0aaf85046c410ebd1c86"
           git --no-pager diff --check
 
       - name: Setup pnpm
