@@ -1,0 +1,292 @@
+name: Halleus Public Reports Activation Preflight
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXPECTED_BASELINE: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+  EXPECTED_RUNNER_SHA256: 942252671c8ecbf7c6e1b1781f6130f6772dfd8cc141f6e396c68358f899b80a
+  RUNNER_NAME: Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1
+
+jobs:
+  windows-full-preflight:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout preflight assets
+        uses: actions/checkout@v4
+        with:
+          path: preflight
+          fetch-depth: 1
+
+      - name: Checkout exact main baseline for rehearsal
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: rehearsal
+          fetch-depth: 0
+
+      - name: Checkout exact main baseline for apply
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: apply
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        shell: powershell
+        run: npm install --global pnpm@11.18.0
+
+      - name: Reconstruct exact runner
+        shell: powershell
+        run: |
+          @'
+          import base64, gzip, hashlib, pathlib
+          root = pathlib.Path("preflight/.halleus-preflight")
+          encoded = "".join(
+              (root / name).read_text(encoding="ascii").strip()
+              for name in [
+                  "public-reports-runner.part1",
+                  "public-reports-runner.part2",
+              ]
+          )
+          payload = gzip.decompress(base64.b64decode(encoded))
+          actual = hashlib.sha256(payload).hexdigest()
+          expected = "942252671c8ecbf7c6e1b1781f6130f6772dfd8cc141f6e396c68358f899b80a"
+          if actual != expected:
+              raise SystemExit(f"RUNNER_SHA_MISMATCH={actual}")
+          pathlib.Path("runner.ps1").write_bytes(payload)
+          print(f"RUNNER_SHA256={actual}")
+          '@ | python -
+
+      - name: Parse runner with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "runner.ps1"),
+            [ref]$null,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            throw "RUNNER_PARSE_FAILED"
+          }
+          Write-Host "POWERSHELL_5_1_PARSE=PASS"
+
+      - name: Verify exact baseline checkouts
+        shell: powershell
+        run: |
+          foreach ($path in @("rehearsal", "apply")) {
+            git -C $path checkout main
+            if ($LASTEXITCODE -ne 0) { throw "CHECKOUT_MAIN_FAILED=$path" }
+            $head = (git -C $path rev-parse HEAD).Trim()
+            if ($head -ne $env:EXPECTED_BASELINE) {
+              throw "BASELINE_MISMATCH=$path HEAD=$head"
+            }
+            if ((git -C $path status --porcelain).Count -ne 0) {
+              throw "BASELINE_NOT_CLEAN=$path"
+            }
+          }
+          Write-Host "EXACT_BASELINE=PASS"
+
+      - name: Exact rollback rehearsal
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass `
+            -File (Resolve-Path "runner.ps1") `
+            -Mode Rehearsal `
+            -RepoPath (Resolve-Path "rehearsal") `
+            -SkipVerification
+          if ($LASTEXITCODE -ne 0) { throw "REHEARSAL_FAILED=$LASTEXITCODE" }
+          if ((git -C rehearsal status --porcelain).Count -ne 0) {
+            git -C rehearsal status --short
+            throw "REHEARSAL_DID_NOT_ROLL_BACK"
+          }
+          Write-Host "ROLLBACK_REHEARSAL=PASS"
+
+      - name: Exact apply with full live verification
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass `
+            -File (Resolve-Path "runner.ps1") `
+            -Mode Apply `
+            -RepoPath (Resolve-Path "apply")
+          if ($LASTEXITCODE -ne 0) { throw "FULL_APPLY_FAILED=$LASTEXITCODE" }
+          git -C apply --no-pager diff --check
+          if ($LASTEXITCODE -ne 0) { throw "FINAL_DIFF_CHECK_FAILED" }
+          Write-Host "WINDOWS_FULL_PREFLIGHT=PASS"
+
+      - name: Upload Windows after-state evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-after-state
+          path: |
+            apply/
+          include-hidden-files: true
+          retention-days: 1
+
+  postgres-behavior-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: halleus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d halleus"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Checkout preflight assets
+        uses: actions/checkout@v4
+        with:
+          path: preflight
+          fetch-depth: 1
+
+      - name: Checkout exact main baseline
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: candidate
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install --global pnpm@11.18.0
+
+      - name: Reconstruct exact runner
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, pathlib
+          root = pathlib.Path("preflight/.halleus-preflight")
+          encoded = "".join(
+              (root / name).read_text(encoding="ascii").strip()
+              for name in [
+                  "public-reports-runner.part1",
+                  "public-reports-runner.part2",
+              ]
+          )
+          payload = gzip.decompress(base64.b64decode(encoded))
+          actual = hashlib.sha256(payload).hexdigest()
+          expected = "942252671c8ecbf7c6e1b1781f6130f6772dfd8cc141f6e396c68358f899b80a"
+          if actual != expected:
+              raise SystemExit(f"RUNNER_SHA_MISMATCH={actual}")
+          pathlib.Path("runner.ps1").write_bytes(payload)
+          print(f"RUNNER_SHA256={actual}")
+          PY
+
+      - name: Verify exact baseline
+        run: |
+          git -C candidate checkout main
+          test "$(git -C candidate rev-parse HEAD)" = "$EXPECTED_BASELINE"
+          test -z "$(git -C candidate status --porcelain)"
+          echo "EXACT_BASELINE=PASS"
+
+      - name: Apply exact runner without duplicate full verification
+        shell: pwsh
+        run: |
+          ./runner.ps1 `
+            -Mode Apply `
+            -RepoPath (Resolve-Path "candidate") `
+            -SkipVerification
+          if ($LASTEXITCODE -ne 0) { throw "RUNNER_APPLY_FAILED=$LASTEXITCODE" }
+
+      - name: Install exact dependencies
+        working-directory: candidate
+        run: pnpm install --frozen-lockfile
+
+      - name: Execute public-report behavior and PostgreSQL migration guard
+        working-directory: candidate
+        env:
+          HALLEUS_PUBLIC_REPORTS_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus
+        run: pnpm run check:public-reports-activation
+
+      - name: Encoding and diff checks
+        working-directory: candidate
+        run: |
+          pnpm run check:encoding
+          git --no-pager diff --check
+          echo "POSTGRES_PUBLIC_REPORTS_PREFLIGHT=PASS"
+
+  package:
+    needs:
+      - windows-full-preflight
+      - postgres-behavior-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout preflight assets
+        uses: actions/checkout@v4
+        with:
+          path: preflight
+          fetch-depth: 1
+
+      - name: Reconstruct exact runner
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, pathlib
+          root = pathlib.Path("preflight/.halleus-preflight")
+          encoded = "".join(
+              (root / name).read_text(encoding="ascii").strip()
+              for name in [
+                  "public-reports-runner.part1",
+                  "public-reports-runner.part2",
+              ]
+          )
+          payload = gzip.decompress(base64.b64decode(encoded))
+          actual = hashlib.sha256(payload).hexdigest()
+          expected = "942252671c8ecbf7c6e1b1781f6130f6772dfd8cc141f6e396c68358f899b80a"
+          if actual != expected:
+              raise SystemExit(f"RUNNER_SHA_MISMATCH={actual}")
+          out = pathlib.Path("package")
+          out.mkdir()
+          (out / "Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1").write_bytes(payload)
+          pathlib.Path("evidence.txt").write_text(
+              "\n".join([
+                  "HALLEUS_PUBLIC_REPORTS_ACTIVATION_PREFLIGHT=PASS",
+                  "BASELINE=1b941f6c3edc40cff0594e1516760da7ecc74c95",
+                  f"RUNNER_SHA256={actual}",
+                  "WINDOWS_POWERSHELL_5_1=PASS",
+                  "ROLLBACK_REHEARSAL=PASS",
+                  "CHECK_PLAN_VERIFY_LINT_BUILD=PASS",
+                  "POSTGRESQL_16_BEHAVIOR=PASS",
+              ]) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Verify package root
+        run: |
+          test "$(find package -maxdepth 1 -type f | wc -l)" -eq 1
+          test "$(find package -maxdepth 1 -type f -name '*.ps1' | wc -l)" -eq 1
+          sha256sum package/*.ps1 evidence.txt
+
+      - name: Upload verified runner
+        uses: actions/upload-artifact@v4
+        with:
+          name: halleus-public-reports-activation-batch1
+          path: |
+            package/Apply-Halleus-Public-Reports-Activation-Batch1-20260801.ps1
+            evidence.txt
+          retention-days: 7
