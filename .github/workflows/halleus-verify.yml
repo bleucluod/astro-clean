@@ -10,15 +10,83 @@ concurrency:
   group: halleus-verify-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+env:
+  HALLEUS_BATCH1_BASELINE: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+  HALLEUS_BATCH1_TAG: v0.1.376-report-publication-mutations
+  HALLEUS_BATCH1_PATCH_SHA256: 0d453a7650fc861051248cf470f083bc034a54b1161ada0a8b8726cc07024aec
+  HALLEUS_BATCH1_RUNNER_SHA256: 7427579e3a5ec749acd6afe0a24e95604c0d37d608d93f79b29529cecb79db9b
+  HALLEUS_BATCH1_RUNNER_NAME: Apply-Halleus-Batch1-Public-Reports-Activation-20260802.ps1
+
 jobs:
-  verify:
+  linux-source:
+    name: Linux source, PostgreSQL and HTTP
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: halleus_batch1
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d halleus_batch1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     steps:
-      - name: Check out repository
+      - name: Check out exact candidate
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Verify baseline and reconstruct exact after-state
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "$HALLEUS_BATCH1_BASELINE"
+          test "$(git merge-base HEAD origin/main)" = "$HALLEUS_BATCH1_BASELINE"
+          test "$(git rev-list -n 1 "$HALLEUS_BATCH1_TAG")" = "$HALLEUS_BATCH1_BASELINE"
+
+          cat \
+            .preflight/batch1.patch.part1 \
+            .preflight/batch1.patch.part2 \
+            .preflight/batch1.patch.part3 \
+            | tr -d '\r\n' \
+            | base64 --decode \
+            | gzip --decompress \
+            > /tmp/halleus-batch1.patch
+
+          echo "$HALLEUS_BATCH1_PATCH_SHA256  /tmp/halleus-batch1.patch" | sha256sum --check
+          git apply --check /tmp/halleus-batch1.patch
+          git apply /tmp/halleus-batch1.patch
+          git --no-pager diff --check
+
+          {
+            git diff --name-only
+            git ls-files --others --exclude-standard
+          } | grep -v '^\.preflight/' | sort -u > /tmp/actual-files.txt
+
+          diff -u .preflight/expected-files.txt /tmp/actual-files.txt
+
+      - name: Rehearse rollback and reapply
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git apply -R --check /tmp/halleus-batch1.patch
+          git apply -R /tmp/halleus-batch1.patch
+
+          test -z "$(git diff --name-only)"
+          test -z "$(git ls-files --others --exclude-standard | grep -v '^\.preflight/' || true)"
+
+          git apply --check /tmp/halleus-batch1.patch
+          git apply /tmp/halleus-batch1.patch
+          git --no-pager diff --check
+          echo "ROLLBACK_REHEARSAL=PASS"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -39,11 +107,214 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-next-${{ hashFiles('pnpm-lock.yaml') }}-
 
-      - name: Install dependencies
+      - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run impact-based verification
+      - name: Run exact impact-based verification
         env:
-          HALLEUS_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HALLEUS_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: pnpm run verify -- --base "$HALLEUS_BASE_SHA" --head "$HALLEUS_HEAD_SHA"
+          HALLEUS_PUBLICATION_MUTATION_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
+          HALLEUS_PUBLIC_REPORT_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
+        run: |
+          pnpm run check:encoding
+          pnpm run check:plan
+          pnpm run verify
+
+      - name: Smoke built public and personal report boundaries
+        shell: bash
+        env:
+          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1
+        run: |
+          set -Eeuo pipefail
+          pnpm start > /tmp/halleus-next.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true; cat /tmp/halleus-next.log' EXIT
+
+          ready=0
+          for attempt in $(seq 1 60); do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/reports || true)"
+            if [ "$code" = "200" ]; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = "1"
+
+          test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/reports)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/dashboard/reports)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/sitemap.xml)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/public-reports/not-valid)" = "404"
+
+          kill "$app_pid"
+          wait "$app_pid" || true
+          trap - EXIT
+          echo "HTTP_SMOKE=PASS"
+
+      - name: Confirm exact final after-state boundary
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git --no-pager diff --check
+          {
+            git diff --name-only
+            git ls-files --others --exclude-standard
+          } | grep -v '^\.preflight/' | sort -u > /tmp/final-files.txt
+          diff -u .preflight/expected-files.txt /tmp/final-files.txt
+          echo "BATCH1_EXACT_AFTER_STATE=PASS"
+
+  windows-runner:
+    name: Windows PowerShell 5.1 exact runner
+    needs: linux-source
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Reconstruct and verify exact runner
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $parts = 0..3 | ForEach-Object {
+            Join-Path $env:GITHUB_WORKSPACE (".preflight\runner.part.{0:D2}" -f $_)
+          }
+          $encoded = ($parts | ForEach-Object { Get-Content -LiteralPath $_ -Raw }) -join ""
+          $compressed = [Convert]::FromBase64String(($encoded -replace "\s", ""))
+          $compressedStream = [IO.MemoryStream]::new($compressed, $false)
+          $gzip = [IO.Compression.GZipStream]::new(
+            $compressedStream,
+            [IO.Compression.CompressionMode]::Decompress
+          )
+          $output = [IO.MemoryStream]::new()
+          try {
+            $gzip.CopyTo($output)
+          }
+          finally {
+            $gzip.Dispose()
+            $compressedStream.Dispose()
+          }
+          $runnerPath = Join-Path $env:RUNNER_TEMP $env:HALLEUS_BATCH1_RUNNER_NAME
+          [IO.File]::WriteAllBytes($runnerPath, $output.ToArray())
+          $output.Dispose()
+
+          $hash = (Get-FileHash -LiteralPath $runnerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $env:HALLEUS_BATCH1_RUNNER_SHA256) {
+            throw "Runner SHA-256 mismatch: $hash"
+          }
+          "HALLEUS_BATCH1_RUNNER_PATH=$runnerPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "RUNNER_SHA256=PASS"
+
+      - name: Create exact disposable baseline repository
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $repo = Join-Path $env:RUNNER_TEMP "halleus-batch1-runner-repo"
+          if (Test-Path -LiteralPath $repo) {
+            Remove-Item -LiteralPath $repo -Recurse -Force
+          }
+
+          git clone --no-checkout $env:GITHUB_WORKSPACE $repo
+          if ($LASTEXITCODE -ne 0) { throw "Disposable clone failed." }
+
+          git -C $repo config core.autocrlf false
+          git -C $repo checkout -B main $env:HALLEUS_BATCH1_BASELINE
+          if ($LASTEXITCODE -ne 0) { throw "Baseline checkout failed." }
+          git -C $repo reset --hard $env:HALLEUS_BATCH1_BASELINE
+          if ($LASTEXITCODE -ne 0) { throw "Baseline reset failed." }
+
+          git -C $repo remote set-url origin "https://github.com/${{ github.repository }}.git"
+          git -C $repo update-ref refs/remotes/origin/main $env:HALLEUS_BATCH1_BASELINE
+          git -C $repo tag -f $env:HALLEUS_BATCH1_TAG $env:HALLEUS_BATCH1_BASELINE
+
+          Copy-Item -LiteralPath $env:HALLEUS_BATCH1_RUNNER_PATH -Destination (Join-Path $repo $env:HALLEUS_BATCH1_RUNNER_NAME)
+          "HALLEUS_BATCH1_DISPOSABLE_REPO=$repo" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+          if ((git -C $repo branch --show-current).Trim() -ne "main") { throw "Disposable branch mismatch." }
+          if ((git -C $repo rev-parse HEAD).Trim() -ne $env:HALLEUS_BATCH1_BASELINE) { throw "Disposable HEAD mismatch." }
+          if ((git -C $repo rev-parse origin/main).Trim() -ne $env:HALLEUS_BATCH1_BASELINE) { throw "Disposable origin/main mismatch." }
+          Write-Host "DISPOSABLE_BASELINE=PASS"
+
+      - name: Install locked dependencies in disposable repository
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          pnpm --dir $env:HALLEUS_BATCH1_DISPOSABLE_REPO install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "Locked dependency install failed." }
+
+      - name: Execute exact runner with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $stdout = Join-Path $env:RUNNER_TEMP "batch1-runner.stdout.log"
+          $stderr = Join-Path $env:RUNNER_TEMP "batch1-runner.stderr.log"
+          $runnerInRepo = Join-Path $env:HALLEUS_BATCH1_DISPOSABLE_REPO $env:HALLEUS_BATCH1_RUNNER_NAME
+
+          $process = Start-Process `
+            -FilePath "powershell.exe" `
+            -ArgumentList @(
+              "-NoLogo",
+              "-NoProfile",
+              "-ExecutionPolicy", "Bypass",
+              "-File", $runnerInRepo,
+              "-RepoPath", $env:HALLEUS_BATCH1_DISPOSABLE_REPO
+            ) `
+            -NoNewWindow `
+            -Wait `
+            -PassThru `
+            -RedirectStandardOutput $stdout `
+            -RedirectStandardError $stderr
+
+          if (Test-Path -LiteralPath $stdout) { Get-Content -LiteralPath $stdout }
+          if (Test-Path -LiteralPath $stderr) { Get-Content -LiteralPath $stderr }
+          if ($process.ExitCode -ne 0) { throw "Exact runner failed with exit code $($process.ExitCode)." }
+
+          $combined = @()
+          if (Test-Path -LiteralPath $stdout) { $combined += Get-Content -LiteralPath $stdout }
+          if (Test-Path -LiteralPath $stderr) { $combined += Get-Content -LiteralPath $stderr }
+          $text = $combined -join "`n"
+          foreach ($marker in @(
+            "BASELINE=PASS",
+            "ROLLBACK_REHEARSAL=PASS",
+            "BATCH1_PUBLIC_REPORTS_ACTIVATION=PASS"
+          )) {
+            if (-not $text.Contains($marker)) { throw "Missing runner marker: $marker" }
+          }
+          Write-Host "WINDOWS_POWERSHELL_51_RUNNER=PASS"
+
+      - name: Confirm exact Windows after-state boundary
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $repo = $env:HALLEUS_BATCH1_DISPOSABLE_REPO
+          $runnerName = $env:HALLEUS_BATCH1_RUNNER_NAME
+          $actual = @(
+            git -C $repo diff --name-only
+            git -C $repo ls-files --others --exclude-standard
+          ) | Where-Object {
+            -not [string]::IsNullOrWhiteSpace($_) -and $_ -ne $runnerName
+          } | Sort-Object -Unique
+          $expected = Get-Content -LiteralPath (Join-Path $env:GITHUB_WORKSPACE ".preflight\expected-files.txt") |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            Sort-Object -Unique
+          $difference = Compare-Object -ReferenceObject $expected -DifferenceObject $actual
+          if ($difference) {
+            $difference | Format-Table | Out-String | Write-Host
+            throw "Windows changed-file boundary mismatch."
+          }
+          git -C $repo --no-pager diff --check
+          if ($LASTEXITCODE -ne 0) { throw "Windows diff-check failed." }
+          Write-Host "WINDOWS_EXACT_AFTER_STATE=PASS"
