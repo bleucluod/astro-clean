@@ -80,6 +80,9 @@ jobs:
 
       - name: Execute exact Recovery 9B runner
         shell: cmd
+        env:
+          TEMP: ${{ runner.temp }}
+          TMP: ${{ runner.temp }}
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%BATCH9B_RUNNER%" -Mode Apply -RepoPath "%GITHUB_WORKSPACE%"
 
       - name: Verify exact applied after-state
