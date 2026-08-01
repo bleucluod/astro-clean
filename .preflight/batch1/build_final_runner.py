@@ -84,6 +84,10 @@ def reconstruct(root: Path) -> bytes:
     payload = build_payload(json.loads(base64.b64decode(match.group(1)).decode("utf-8")))
     payload_base64 = base64.b64encode(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")
     text = text[:match.start(1)] + payload_base64 + text[match.end(1):]
+    for line_number, line in enumerate(text.splitlines(), 1):
+        if "check:plan" in line or "verify" in line:
+            diagnostic = f"RUNNER_LINE_{line_number}={line!r}"
+            print(diagnostic.encode("ascii", "backslashreplace").decode("ascii"))
     final = b"\xef\xbb\xbf" + text.encode("utf-8")
     actual_sha = hashlib.sha256(final).hexdigest()
     if actual_sha != FINAL_SHA:
