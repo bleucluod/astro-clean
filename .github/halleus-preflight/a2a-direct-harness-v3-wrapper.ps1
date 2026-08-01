@@ -2,7 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $SourceHarness = ".github/halleus-preflight/a2a-direct-harness-v2.ps1"
-$GeneratedHarness = Join-Path $env:RUNNER_TEMP "a2a-direct-harness-v3.ps1"
+$GeneratedHarness = Join-Path $env:RUNNER_TEMP "a2a-direct-harness-v4.ps1"
 $Utf8 = New-Object System.Text.UTF8Encoding($false)
 
 function Replace-ExactlyOnce {
@@ -28,8 +28,8 @@ $Harness = [IO.File]::ReadAllText($SourceHarness).Replace("`r`n", "`n")
 $Harness = Replace-ExactlyOnce `
     -Text $Harness `
     -Old '$Candidate5Sha = "382c845e8d857e7335d2117892d0b01fdb5838dd8af68e651247d68beeef02a6"' `
-    -New '$Candidate5Sha = "aa1cc4c24a212ceada73d71ebf60d4b18c351165f77c530541b393abc72585bb"' `
-    -Name "candidate6-sha"
+    -New '$Candidate5Sha = "16aaa0cec5d9c54bc69e6f1bd39b6617f21ee7b7dd8f9a373edd8799d60d67e5"' `
+    -Name "candidate7-sha"
 
 $OldNode = @'
 content = content.replace(oldOrder, newOrder);
@@ -38,7 +38,10 @@ fs.writeFileSync(runnerPath, content, "utf8");
 $NewNode = @'
 content = content.replace(oldOrder, newOrder);
 const oldBoundary = '    $changedFiles = @(Get-GitLines @("diff", "--name-only"))';
-const newBoundary = '    $changedFiles = @(Get-GitLines @("status", "--porcelain") | ForEach-Object { $_.Substring(3).Replace("\\", "/") })';
+const newBoundary = `    $changedFiles = @(
+        Get-GitLines @("diff", "--name-only")
+        Get-GitLines @("ls-files", "--others", "--exclude-standard")
+    )`;
 if (content.split(oldBoundary).length !== 2) {
   throw new Error("changed-file boundary anchor count mismatch");
 }
@@ -51,7 +54,7 @@ $Harness = Replace-ExactlyOnce `
     -Text $Harness `
     -Old $OldNode `
     -New $NewNode `
-    -Name "candidate6-boundary"
+    -Name "candidate7-boundary"
 
 [IO.File]::WriteAllText($GeneratedHarness, $Harness, $Utf8)
 
@@ -61,5 +64,5 @@ $Harness = Replace-ExactlyOnce `
     -File $GeneratedHarness
 $ExitCode = $LASTEXITCODE
 if ($ExitCode -ne 0) {
-    throw "A2A_CANDIDATE6_GENERATED_HARNESS_FAILED=$ExitCode"
+    throw "A2A_CANDIDATE7_GENERATED_HARNESS_FAILED=$ExitCode"
 }
