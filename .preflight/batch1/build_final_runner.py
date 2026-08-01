@@ -64,8 +64,8 @@ def build_payload(payload: dict) -> dict:
         ),
         new=(
             '<Link className="button secondary" href="/dashboard/reports">\n'
-            '            گزارش‌های من\n'
-            '          </Link>'
+            '  گزارش‌های من\n'
+            '</Link>'
         ),
     )
     old_message = (
