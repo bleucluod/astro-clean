@@ -1,0 +1,82 @@
+name: Halleus Batch 1 diagnose
+on:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: halleus-batch1-diagnose-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+env:
+  BASE: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+  TAG: v0.1.376-report-publication-mutations
+  RUNNER_SHA: 7427579e3a5ec749acd6afe0a24e95604c0d37d608d93f79b29529cecb79db9b
+  RUNNER_NAME: Apply-Halleus-Batch1-Public-Reports-Activation-20260802.ps1
+jobs:
+  diagnose-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with: {fetch-depth: 0}
+      - uses: pnpm/action-setup@v6
+        with: {version: 11.9.0}
+      - uses: actions/setup-node@v6
+        with: {node-version: 24, cache: pnpm}
+      - name: Reconstruct exact runner and baseline
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $b=(0..15|%{Get-Content ".preflight\runner.chunk.$($_.ToString('000'))" -Raw})-join''
+          if($b.Length-ne47484){throw"Runner Base64 length mismatch: $($b.Length)"}
+          $m=[IO.MemoryStream]::new([Convert]::FromBase64String(($b-replace'\s','')),$false)
+          $g=[IO.Compression.GZipStream]::new($m,[IO.Compression.CompressionMode]::Decompress)
+          $o=[IO.MemoryStream]::new(); $g.CopyTo($o); $g.Dispose(); $m.Dispose()
+          $r=Join-Path $env:RUNNER_TEMP $env:RUNNER_NAME; [IO.File]::WriteAllBytes($r,$o.ToArray()); $o.Dispose()
+          if((Get-FileHash $r -Algorithm SHA256).Hash.ToLowerInvariant()-ne$env:RUNNER_SHA){throw'Runner hash mismatch'}
+          $repo=Join-Path $env:RUNNER_TEMP 'b1diag'
+          git clone --no-checkout $env:GITHUB_WORKSPACE $repo
+          git -C $repo config core.autocrlf false
+          git -C $repo checkout -B main $env:BASE
+          git -C $repo reset --hard $env:BASE
+          git -C $repo remote set-url origin "https://github.com/${{ github.repository }}.git"
+          git -C $repo update-ref refs/remotes/origin/main $env:BASE
+          git -C $repo tag -f $env:TAG $env:BASE
+          Copy-Item $r (Join-Path $repo $env:RUNNER_NAME)
+          "B1_REPO=$repo"|Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "RUNNER_PATH=$(Join-Path $repo $env:RUNNER_NAME)"|Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - run: pnpm --dir $env:B1_REPO install --frozen-lockfile
+        shell: powershell
+      - name: Execute runner and capture exact logs
+        id: execute
+        continue-on-error: true
+        shell: powershell
+        run: |
+          $out=Join-Path $env:RUNNER_TEMP 'batch1-runner.stdout.log'
+          $err=Join-Path $env:RUNNER_TEMP 'batch1-runner.stderr.log'
+          $p=Start-Process powershell.exe -ArgumentList @('-NoLogo','-NoProfile','-ExecutionPolicy','Bypass','-File',$env:RUNNER_PATH,'-RepoPath',$env:B1_REPO) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $out -RedirectStandardError $err
+          "RUNNER_EXIT_CODE=$($p.ExitCode)" | Out-File (Join-Path $env:RUNNER_TEMP 'batch1-runner.exit.txt') -Encoding ascii
+          if(Test-Path $out){Get-Content $out}
+          if(Test-Path $err){Get-Content $err}
+          if($p.ExitCode-ne0){exit $p.ExitCode}
+      - name: Record final Git state
+        if: always()
+        shell: powershell
+        run: |
+          git -C $env:B1_REPO status --short --branch | Out-File (Join-Path $env:RUNNER_TEMP 'batch1-final-status.txt') -Encoding utf8
+          git -C $env:B1_REPO --no-pager diff | Out-File (Join-Path $env:RUNNER_TEMP 'batch1-final-diff.txt') -Encoding utf8
+      - name: Upload exact diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halleus-batch1-windows-diagnostic
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/batch1-runner.stdout.log
+            ${{ runner.temp }}/batch1-runner.stderr.log
+            ${{ runner.temp }}/batch1-runner.exit.txt
+            ${{ runner.temp }}/batch1-final-status.txt
+            ${{ runner.temp }}/batch1-final-diff.txt
+      - name: Preserve failure result
+        if: steps.execute.outcome != 'success'
+        shell: powershell
+        run: throw 'Exact runner failed; diagnostic artifact uploaded.'
