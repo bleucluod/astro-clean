@@ -1,0 +1,52 @@
+name: Batch 1 Payload Diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout exact baseline
+        uses: actions/checkout@v4
+        with:
+          ref: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+          path: target
+          fetch-depth: 1
+
+      - name: Build and inspect payload
+        run: |
+          set -Eeuo pipefail
+          python .preflight/batch1/build_final_runner.py \
+            --root .preflight/batch1 \
+            --output /tmp/runner.ps1 \
+            --target target
+          python - <<'PY'
+          import base64, json, re, pathlib
+          text = pathlib.Path('/tmp/runner.ps1').read_text(encoding='utf-8-sig')
+          payload = json.loads(base64.b64decode(re.search(r'^\$PayloadBase64 = "([^"]+)"$', text, re.M).group(1)))
+          for path in [
+              'lib/storage/account-report-save-client.ts',
+              'lib/reports/report-access-service.ts',
+              'scripts/check-report-publication-persistence.mjs',
+          ]:
+              print(f'PATH={path}')
+              for index, op in enumerate(payload.get('replacements', {}).get(path, []), 1):
+                  old = base64.b64decode(op['old']).decode('utf-8')
+                  new = base64.b64decode(op['new']).decode('utf-8')
+                  print(f'OP={index}')
+                  print('OLD_REPR=' + repr(old))
+                  print('NEW_REPR=' + repr(new))
+          for number, line in enumerate(text.splitlines(), 1):
+              if 'check-report-publication-persistence.mjs' in line or '$AllowedFiles' in line or '$ExpectedBlobs' in line:
+                  print(f'RUNNER_{number}=' + repr(line))
+          PY
