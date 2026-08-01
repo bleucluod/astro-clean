@@ -38,15 +38,15 @@ jobs:
             throw "A2A_PAYLOAD_DIAGNOSTIC_FAILED=$LASTEXITCODE"
           }
 
-      - name: Execute exact candidate5 PowerShell 5.1 harness
+      - name: Execute exact candidate6 PowerShell 5.1 harness
         shell: powershell
         run: |
           & powershell.exe `
             -NoProfile `
             -ExecutionPolicy Bypass `
-            -File ".github/halleus-preflight/a2a-direct-harness-v2.ps1"
+            -File ".github/halleus-preflight/a2a-direct-harness-v3-wrapper.ps1"
           if ($LASTEXITCODE -ne 0) {
-            throw "A2A_CANDIDATE5_HARNESS_FAILED=$LASTEXITCODE"
+            throw "A2A_CANDIDATE6_HARNESS_FAILED=$LASTEXITCODE"
           }
 
       - name: Upload exact candidate evidence
