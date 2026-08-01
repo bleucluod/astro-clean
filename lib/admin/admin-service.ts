@@ -397,7 +397,7 @@ export async function restrictAdminReportVisibility(input: {
   try {
     await sql.begin(async (tx) => {
       const rows = await tx`
-        select visibility
+        select visibility, publication_state
         from public.halleus_reports
         where id = ${input.reportId}
         for update
@@ -410,6 +410,7 @@ export async function restrictAdminReportVisibility(input: {
       await tx`
         update public.halleus_reports
         set visibility = 'restricted_by_admin',
+            publication_state = 'restricted',
             share_enabled = false,
             share_token_hash = null,
             restricted_at = now(),
@@ -463,7 +464,7 @@ export async function updateAdminReportTitle(input: { actor: VerifiedAdminActor;
 
 export async function softDeleteAdminReport(input: { actor: VerifiedAdminActor; reportId: string; reason: string }) {
   const sql = getAdminDatabase();
-  const rows = await sql`update public.halleus_reports set deleted_at = now(), deleted_by = ${input.actor.userId}::uuid, delete_reason = ${input.reason}, visibility = 'unpublished', share_enabled = false, share_token_hash = null, updated_at = now() where id = ${input.reportId} and deleted_at is null returning id`;
+  const rows = await sql`update public.halleus_reports set deleted_at = now(), deleted_by = ${input.actor.userId}::uuid, delete_reason = ${input.reason}, visibility = 'unpublished', publication_intent = 'unpublish', publication_state = 'unpublished', publication_consent_state = case when access_tier = 'premium' then 'withdrawn' else 'not-required' end, share_enabled = false, share_token_hash = null, updated_at = now() where id = ${input.reportId} and deleted_at is null returning id`;
   if (!rows.length) throw new AdminAccessError(404, "Report was not found.");
   await recordAdminAuditEvent({ actor: input.actor, action: "admin.report.soft_deleted", targetType: "report", targetId: input.reportId, reason: input.reason, success: true });
 }

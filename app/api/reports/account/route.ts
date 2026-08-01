@@ -13,6 +13,7 @@ import {
   enableOwnedReportSharing,
   getOwnedReport,
   listOwnedReportSummaries,
+  mutateOwnedReportPublication,
   revokeOwnedReportSharing,
   softDeleteOwnedReport,
   updateOwnedReportTitle,
@@ -160,6 +161,37 @@ export async function PATCH(request: Request) {
       return shareToken ? NextResponse.json({ ok: true, sharePath: `/reports/shared/${shareToken}` }) : errorResponse(404, "Report was not found.");
     }
     if (action === "revoke_sharing") return NextResponse.json({ ok: await revokeOwnedReportSharing(user.id, reportId) });
+    if (action === "publish" || action === "unpublish") {
+      const result = await mutateOwnedReportPublication(
+        user.id,
+        reportId,
+        action,
+      );
+
+      if (!result.ok) {
+        if (result.code === "not-found") {
+          return errorResponse(404, "Report was not found.");
+        }
+
+        if (result.code === "admin-restricted") {
+          return errorResponse(
+            409,
+            "Report publication is restricted by an administrator.",
+          );
+        }
+
+        return errorResponse(
+          409,
+          "This report cannot be published from the account mutation path.",
+        );
+      }
+
+      return NextResponse.json({
+        ok: true,
+        visibility: result.visibility,
+        publication: result.publication,
+      });
+    }
     return errorResponse(400, "Report action is invalid.");
   } catch (error) {
     return errorResponse(error instanceof Error && error.message.includes("bearer token") ? 401 : 500, error instanceof Error ? error.message : "Report update failed.");

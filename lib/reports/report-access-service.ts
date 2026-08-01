@@ -1,5 +1,12 @@
 import { getAdminDatabase, asRecord, asString, asNullableString } from "@/lib/admin/admin-database";
-import { createReportShareSecret, hashReportShareSecret, REPORT_SUMMARY_PAGE_SIZE, validateReportTitle } from "@/lib/reports/report-access-contract";
+import {
+  createReportShareSecret,
+  evaluateOwnedReportPublicationMutation,
+  hashReportShareSecret,
+  REPORT_SUMMARY_PAGE_SIZE,
+  type ReportPublicationMutationAction,
+  validateReportTitle,
+} from "@/lib/reports/report-access-contract";
 import type { StoredReportPublication } from "@/types/storage";
 
 function reportTitle(row: Record<string, unknown>) {
@@ -106,6 +113,102 @@ export async function getOwnedReport(userId: string, reportId: string) {
     publication: storedPublication(row),
     createdAt: asString(row.created_at), updatedAt: asString(row.updated_at),
   };
+}
+
+export type OwnedReportPublicationMutationResult =
+  | {
+      ok: true;
+      visibility: "public" | "unpublished";
+      publication: StoredReportPublication;
+    }
+  | {
+      ok: false;
+      code:
+        | "not-found"
+        | "admin-restricted"
+        | "owner-kind-not-account"
+        | "policy-rejected";
+    };
+
+export async function mutateOwnedReportPublication(
+  userId: string,
+  reportId: string,
+  action: ReportPublicationMutationAction,
+): Promise<OwnedReportPublicationMutationResult> {
+  const sql = getAdminDatabase();
+
+  return sql.begin(async (tx) => {
+    const rows = await tx`
+      select id, visibility, restricted_at,
+        publication_owner_kind, access_tier,
+        publication_intent, publication_state,
+        publication_consent_state, identity_consent_state,
+        publication_policy_version
+      from public.halleus_reports
+      where id = ${reportId}
+        and user_id = ${userId}
+        and deleted_at is null
+      for update
+    `;
+    const row = asRecord(rows[0]);
+
+    if (!row.id) {
+      return { ok: false, code: "not-found" };
+    }
+
+    const publication = storedPublication(row);
+    const decision = evaluateOwnedReportPublicationMutation({
+      action,
+      ownerKind: publication.ownerKind,
+      tier: publication.accessTier,
+      identityConsentState: publication.identityConsentState,
+      adminRestricted:
+        Boolean(row.restricted_at) ||
+        asString(row.visibility) === "restricted_by_admin",
+    });
+
+    if (!decision.ok) {
+      return { ok: false, code: decision.code };
+    }
+
+    const updatedRows = await tx`
+      update public.halleus_reports
+      set visibility = ${decision.visibility},
+          publication_intent = ${decision.publicationIntent},
+          publication_state = ${decision.policy.publicationState},
+          publication_consent_state =
+            ${decision.policy.publicationConsentState},
+          publication_policy_version = ${decision.policy.version},
+          share_enabled = false,
+          share_token_hash = null,
+          updated_at = now()
+      where id = ${reportId}
+        and user_id = ${userId}
+        and deleted_at is null
+        and restricted_at is null
+        and visibility <> 'restricted_by_admin'
+      returning visibility,
+        publication_owner_kind, access_tier,
+        publication_intent, publication_state,
+        publication_consent_state, identity_consent_state,
+        publication_policy_version
+    `;
+
+    if (!updatedRows.length) {
+      return { ok: false, code: "admin-restricted" };
+    }
+
+    const updated = asRecord(updatedRows[0]);
+
+    return {
+      ok: true,
+      visibility:
+        asString(updated.visibility) === "public"
+          ? "public"
+          : "unpublished",
+      publication: storedPublication(updated),
+    };
+  });
 }
 
 export async function updateOwnedReportTitle(userId: string, reportId: string, value: unknown) {

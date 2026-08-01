@@ -17,6 +17,34 @@ export const REPORT_PUBLICATION_POLICY_VERSION = "1" as const;
 export const REPORT_PUBLICATION_COPY_VERSION =
   "report-publication-policy-v1" as const;
 
+export type ReportPublicationMutationAction = "publish" | "unpublish";
+
+export type OwnedReportPublicationMutationInput = {
+  action: ReportPublicationMutationAction;
+  ownerKind: ReportPublicationOwnerKind;
+  tier: ReportAccessTier;
+  identityConsentState: ReportIdentityConsentState;
+  adminRestricted?: boolean;
+};
+
+export type OwnedReportPublicationMutationDecision =
+  | {
+      ok: true;
+      action: ReportPublicationMutationAction;
+      visibility: "public" | "unpublished";
+      publicationIntent: ReportPublicationIntent;
+      policy: ReportPublicationPolicy;
+    }
+  | {
+      ok: false;
+      action: ReportPublicationMutationAction;
+      code:
+        | "admin-restricted"
+        | "owner-kind-not-account"
+        | "policy-rejected";
+      policy: ReportPublicationPolicy;
+    };
+
 function compactReasons(
   ...reasons: Array<string | false | null | undefined>
 ): string[] {
@@ -141,6 +169,66 @@ export function evaluateReportPublicationPolicy(
       identityConsentState !== "granted" &&
         "identity-withheld-independently-of-publication",
     ),
+  };
+}
+
+export function evaluateOwnedReportPublicationMutation(
+  input: OwnedReportPublicationMutationInput,
+): OwnedReportPublicationMutationDecision {
+  const publicationIntent: ReportPublicationIntent =
+    input.action === "publish" ? "publish" : "unpublish";
+  const publicationConsentState: ReportPublicationConsentState =
+    input.tier === "premium"
+      ? input.action === "publish"
+        ? "granted"
+        : "withdrawn"
+      : "not-required";
+  const policy = evaluateReportPublicationPolicy({
+    ownerKind: input.ownerKind,
+    tier: input.tier,
+    publicationIntent,
+    publicationConsentState,
+    identityConsentState: input.identityConsentState,
+    adminRestricted: input.adminRestricted,
+    legacyRecord: input.ownerKind === "legacy",
+  });
+
+  if (input.adminRestricted === true) {
+    return {
+      ok: false,
+      action: input.action,
+      code: "admin-restricted",
+      policy,
+    };
+  }
+
+  if (input.ownerKind !== "account") {
+    return {
+      ok: false,
+      action: input.action,
+      code: "owner-kind-not-account",
+      policy,
+    };
+  }
+
+  const expectedState =
+    input.action === "publish" ? "public" : "unpublished";
+
+  if (policy.publicationState !== expectedState) {
+    return {
+      ok: false,
+      action: input.action,
+      code: "policy-rejected",
+      policy,
+    };
+  }
+
+  return {
+    ok: true,
+    action: input.action,
+    visibility: expectedState,
+    publicationIntent,
+    policy,
   };
 }
 

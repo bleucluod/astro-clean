@@ -57,6 +57,7 @@
     "check:sky-public-route": "node scripts/check-sky-public-route.mjs",
     "check:report-ownership-sharing": "node scripts/check-report-ownership-sharing.mjs",
     "check:report-publication-persistence": "node scripts/check-report-publication-persistence.mjs",
+    "check:report-publication-mutation": "node scripts/check-report-publication-mutation.mjs",
     "check:plan": "node scripts/halleus-check-plan.mjs",
     "verify": "node scripts/halleus-verify.mjs",
     "check:workflow-acceleration": "node scripts/check-workflow-acceleration.mjs",

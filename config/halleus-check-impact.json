@@ -186,6 +186,25 @@
       "build": true
     },
     {
+      "id": "report-publication-mutation",
+      "description": "Owner-only server publication transitions with stored tier, explicit premium consent, and admin restriction precedence.",
+      "exclusive": true,
+      "patterns": [
+        "app/api/reports/account/route.ts",
+        "lib/reports/report-access-contract.ts",
+        "lib/reports/report-access-service.ts",
+        "lib/admin/admin-service.ts",
+        "scripts/check-report-publication-mutation.mjs"
+      ],
+      "guards": [
+        "check:report-publication-mutation",
+        "check:report-ownership-sharing",
+        "check:secure-admin-core"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "report-publication-policy",
       "description": "Canonical generated-report publication, identity-consent, and indexability policy.",
       "exclusive": true,
