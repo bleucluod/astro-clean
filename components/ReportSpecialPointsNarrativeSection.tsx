@@ -78,11 +78,15 @@ const VALIDATED_LILITH_REPORT_VERSION =
 
 export function ReportSpecialPointsNarrativeSection({
   report,
+  showNodes = true,
 }: {
   report: AstrologyReport;
+  showNodes?: boolean;
 }) {
   const engine = (report as SpecialPointReport).realEngine ?? null;
-  const lunarNodeCards = buildLunarNodeCards(engine?.lunarNodes ?? null);
+  const lunarNodeCards = showNodes
+    ? buildLunarNodeCards(engine?.lunarNodes ?? null)
+    : [];
   const lilith = engine?.lilith ?? null;
   const approvedLilith = isApprovedLilith(lilith) ? lilith : null;
   const lilithInterpretation = approvedLilith

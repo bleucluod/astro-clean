@@ -6,6 +6,7 @@ import {
   isBehavioralAspectInput,
 } from "@/lib/astrology/report-behavioral-interpretation";
 import { getReportBehavioralAudienceMode } from "@/lib/astrology/report-behavioral-context";
+import { selectPrimaryNarrativeAspects } from "@/lib/report-output/live-report-reading-contract";
 import type {
   AstrologyReport,
   RealEngineReportAspect,
@@ -34,9 +35,10 @@ export function ReportAspectRelationshipSections({
   const snapshot = report.realEngine;
   const aspects = snapshot?.aspects ?? [];
   const storedHighlights = snapshot?.aspectHighlights ?? [];
-  const shownAspects = (
-    storedHighlights.length > 0 ? storedHighlights : aspects.slice(0, 5)
-  ).slice(0, 5);
+  const shownAspects = selectPrimaryNarrativeAspects(
+    aspects,
+    storedHighlights,
+  );
   const shownAspectIds = new Set(shownAspects.map((aspect) => aspect.id));
   const hiddenAspectCount = aspects.filter(
     (aspect) => !shownAspectIds.has(aspect.id),

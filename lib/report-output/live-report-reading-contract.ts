@@ -1,28 +1,205 @@
+import { buildRealEngineChartSignature } from "@/lib/astrology/real-engine-chart-signature";
+import { formatZodiacLabel } from "@/lib/astrology/zodiac-labels";
 import { enhanceReportOutputV3 } from "@/lib/report-output/report-v3";
-import type { AstrologyReport } from "@/types/astro";
+import type {
+  AstrologyReport,
+  RealEngineChartElement,
+  RealEngineChartExpression,
+  RealEngineChartModality,
+  RealEngineReportAspect,
+  RealEngineReportPlacement,
+} from "@/types/astro";
 import type { ReportOutputSection } from "@/types/report-output";
+import type {
+  PersonalTransitReportDataBridge,
+  PersonalTransitReportDataBridgeSelectedAspectSummary,
+} from "@/src/lib/report-output/personal-transit-report-data-bridge";
+import {
+  buildPersonalTransitBehavioralInterpretation,
+  selectPersonalTransitHighlights,
+} from "@/src/lib/report-output/personal-transit-relevance";
 
 export const LIVE_REPORT_READING_CONTRACT_VERSION =
-  "v0.1.320-live-report-reading-contract" as const;
+  "v0.1.378-complete-birth-report" as const;
+
+export const REPORT_READING_NAVIGATION = [
+  { id: "overview", label: "تصویر کلی" },
+  { id: "inner-world", label: "دنیای درونی" },
+  { id: "relationships", label: "رابطه‌ها" },
+  { id: "growth-path", label: "مسیر رشد" },
+  { id: "chart-details", label: "جزئیات چارت" },
+] as const;
+
+export type ReportReadingNavigationId =
+  (typeof REPORT_READING_NAVIGATION)[number]["id"];
+
+export type ReportInsightOwner =
+  | "personal-opening"
+  | "primary-pattern"
+  | "primary-strength"
+  | "primary-challenge"
+  | "saveable-sentence"
+  | "theme-chapter"
+  | "relationship-profile"
+  | "growth-axis"
+  | "weekly-action"
+  | "reflection-question"
+  | "evidence"
+  | "technical-explanation"
+  | "limitation";
+
+export type ReportPrimaryPattern = {
+  id: string;
+  title: string;
+  summary: string;
+  evidence: string[];
+};
+
+export type ReportValueCard = {
+  title: string;
+  body: string;
+  evidence: string[];
+};
+
+export type ReportRelationshipGroup = {
+  id: "closeness-security" | "dialogue-needs" | "boundaries-independence" | "friction-repair";
+  title: string;
+  paragraphs: string[];
+};
 
 export type LiveReportThemeChapter = {
   id: string;
   title: string;
+  navigationId: ReportReadingNavigationId;
+  summary: string;
   paragraphs: string[];
   reflection?: string;
+  relationshipGroups?: ReportRelationshipGroup[];
+};
+
+export type ReportCorePlacement = {
+  id: "sun" | "moon" | "rising";
+  label: string;
+  position: string;
+  role: string;
+};
+
+export type ReportChartSignatureSummary = {
+  title: string;
+  body: string;
+  evidenceCount: number;
+};
+
+export type ReportGrowthAxis = {
+  available: boolean;
+  familiarPattern: string;
+  growthDirection: string;
+  bridge: string;
+};
+
+export type ReportReadingTime = {
+  natalMinutes: number;
+  technicalMinutes: number;
+  transitMinutes: number;
+  natalWordCount: number;
+  technicalWordCount: number;
+  transitWordCount: number;
+};
+
+export type ReportEvidenceReference = {
+  id: string;
+  label: string;
+  detail: string;
+};
+
+
+export type ReportTechnicalAspectRow = {
+  id: string;
+  planets: string;
+  type: string;
+  exactAngle: number;
+  separation: number;
+  orb: number;
+};
+
+export function selectPrimaryNarrativeAspects(
+  aspects: RealEngineReportAspect[],
+  storedHighlights: RealEngineReportAspect[] = [],
+): RealEngineReportAspect[] {
+  const candidates = storedHighlights.length > 0 ? storedHighlights : aspects;
+  const seen = new Set<string>();
+  const output: RealEngineReportAspect[] = [];
+
+  for (const aspect of candidates) {
+    if (seen.has(aspect.id)) {
+      continue;
+    }
+    seen.add(aspect.id);
+    output.push(aspect);
+    if (output.length === 5) {
+      break;
+    }
+  }
+
+  return output;
+}
+
+export function buildTechnicalAspectRows(
+  aspects: RealEngineReportAspect[],
+): ReportTechnicalAspectRow[] {
+  return aspects.map((aspect) => ({
+    id: aspect.id,
+    planets: `${aspect.firstPlanetLabel} — ${aspect.secondPlanetLabel}`,
+    type: aspect.aspectLabel,
+    exactAngle: aspect.angle,
+    separation: aspect.separation,
+    orb: aspect.orb,
+  }));
+}
+
+export type ReportContentOwnership = {
+  owner: ReportInsightOwner;
+  id: string;
+  normalizedText: string;
+  role: "owner" | "reference";
+  sourceOwnerId?: string;
 };
 
 export type LiveReportReadingContract = {
-  summarySentences: string[];
+  displayName: string;
+  personalOpening: string[];
+  chartSignature: ReportChartSignatureSummary;
+  corePlacements: ReportCorePlacement[];
+  primaryPatterns: ReportPrimaryPattern[];
+  primaryStrength: ReportValueCard;
+  primaryChallenge: ReportValueCard;
+  saveableSentence: string;
+  recommendedReadingPath: string[];
   themeChapters: LiveReportThemeChapter[];
-  guide: string;
+  relationshipProfile: ReportRelationshipGroup[];
+  growthAxis: ReportGrowthAxis;
+  weeklyActions: string[];
   reflectionQuestions: string[];
-  chartRulerParagraphs: string[];
-  activeHouseParagraphs: string[];
-  nodeAxisParagraphs: string[];
-  balanceParagraphs: string[];
-  weeklyPractices: string[];
-  readingMinutes: number;
+  limitations: string[];
+  evidenceReferences: ReportEvidenceReference[];
+  readingTime: ReportReadingTime;
+  navigation: typeof REPORT_READING_NAVIGATION;
+  contentOwnership: ReportContentOwnership[];
+  hasReliableBirthTime: boolean;
+  hasTransit: boolean;
+};
+
+type ReportWithTransit = AstrologyReport & {
+  engineData?: {
+    personalTransitReportData?: PersonalTransitReportDataBridge | null;
+  } | null;
+};
+
+type ChapterSpec = {
+  id: string;
+  title: string;
+  navigationId: ReportReadingNavigationId;
+  patternTitle?: string;
 };
 
 const SECTION_IDS = {
@@ -35,25 +212,152 @@ const SECTION_IDS = {
   practices: "real-engine-personal-summary",
 } as const;
 
-const THEME_CHAPTER_IDS = [
-  "real-engine-theme-signature",
-  "real-engine-theme-mind-language",
-  "real-engine-theme-emotional-security",
-  "real-engine-theme-relationship-style",
-  "real-engine-theme-will-action",
-  "real-engine-theme-direction-path",
-  "real-engine-theme-recurring-patterns",
-] as const;
-
-const FALLBACK_SUMMARY_SENTENCES = [
-  "این گزارش چند الگوی اصلی چارت را کنار هم می‌گذارد تا تصویر کلی روشن‌تر شود.",
-  "هر بخش را بهتر است در کنار تجربه واقعی زندگی بخوانی، نه به‌عنوان یک برچسب ثابت.",
-  "جایگاه‌ها نشان می‌دهند هر نیرو کجا بیشتر دیده می‌شود و رابطه‌ها نحوه همکاری یا اصطکاک آن‌ها را روشن می‌کنند.",
-  "خانه‌های مهم، دست‌های ماه و ترکیب انرژی‌ها کمک می‌کنند این تصویر به موقعیت‌های واقعی وصل شود.",
-  "در پایان فقط یک کار کوچک و قابل مشاهده را برای این هفته انتخاب کن.",
+const CHAPTER_SPECS: ChapterSpec[] = [
+  {
+    id: "real-engine-theme-signature",
+    title: "تصویر کلی و امضای چارت",
+    navigationId: "overview",
+    patternTitle: "نحوهٔ دیده‌شدن و جهت‌گیری",
+  },
+  {
+    id: "real-engine-theme-emotional-security",
+    title: "احساسات و امنیت درونی",
+    navigationId: "inner-world",
+    patternTitle: "ریتم امنیت درونی",
+  },
+  {
+    id: "real-engine-theme-mind-language",
+    title: "ذهن و زبان",
+    navigationId: "inner-world",
+  },
+  {
+    id: "real-engine-theme-relationship-style",
+    title: "رابطه و صمیمیت",
+    navigationId: "relationships",
+    patternTitle: "شیوهٔ نزدیک‌شدن",
+  },
+  {
+    id: "real-engine-theme-will-action",
+    title: "اراده و حرکت",
+    navigationId: "growth-path",
+  },
+  {
+    id: "real-engine-theme-direction-path",
+    title: "جهت و مسیر",
+    navigationId: "growth-path",
+  },
+  {
+    id: "real-engine-theme-recurring-patterns",
+    title: "الگوهای تکرارشونده و تمرین‌ها",
+    navigationId: "growth-path",
+    patternTitle: "الگوی تکرارشونده",
+  },
 ];
 
-function normalizeText(value: string) {
+const ELEMENT_LABELS: Record<RealEngineChartElement, string> = {
+  fire: "آتش",
+  earth: "زمین",
+  air: "هوا",
+  water: "آب",
+};
+
+const MODALITY_LABELS: Record<RealEngineChartModality, string> = {
+  cardinal: "آغازگر",
+  fixed: "پایدار",
+  mutable: "انعطاف‌پذیر",
+};
+
+const EXPRESSION_LABELS: Record<RealEngineChartExpression, string> = {
+  active: "فعال و بیرونی",
+  receptive: "دریافت‌گر و درونی",
+};
+
+const FALLBACK_WEEKLY_ACTIONS = [
+  "یک الگوی تکرارشونده را در یک موقعیت واقعی ثبت کن.",
+  "پیش از واکنش، نام احساس و نیاز اصلی را جداگانه بنویس.",
+  "در پایان هفته بررسی کن کدام انتخاب کوچک بیشتر به تو کمک کرد.",
+];
+
+const FALLBACK_PRIMARY_PATTERNS: ReportPrimaryPattern[] = [
+  {
+    id: "pattern-signature",
+    title: "امضای کلی",
+    summary: "جایگاه‌های اصلی چارت نشان می‌دهند چه کیفیتی زودتر دیده می‌شود و چه نیازی پشت انتخاب‌ها قرار دارد.",
+    evidence: [],
+  },
+  {
+    id: "pattern-emotional-security",
+    title: "امنیت درونی",
+    summary: "ماه و خانهٔ آن کمک می‌کنند ریتم احساس، آرام‌شدن و درخواست حمایت روشن‌تر شود.",
+    evidence: [],
+  },
+  {
+    id: "pattern-recurring",
+    title: "الگوی تکرارشونده",
+    summary: "رابطه‌های اصلی سیاره‌ها نشان می‌دهند کدام دو نیاز بارها به تنظیم و گفت‌وگو احتیاج دارند.",
+    evidence: [],
+  },
+];
+
+class OwnershipRegistry {
+  private readonly entries: ReportContentOwnership[] = [];
+
+  claim(owner: ReportInsightOwner, id: string, text: string): string | null {
+    const sanitized = sanitizeReportText(text);
+    const normalized = normalizeReportText(sanitized);
+
+    if (!normalized || this.hasOwnedSemanticMatch(normalized)) {
+      return null;
+    }
+
+    this.entries.push({ owner, id, normalizedText: normalized, role: "owner" });
+    return sanitized;
+  }
+
+  reference(
+    owner: ReportInsightOwner,
+    id: string,
+    text: string,
+    sourceOwnerId: string,
+  ): string | null {
+    const sanitized = sanitizeReportText(text);
+    const normalized = normalizeReportText(sanitized);
+
+    if (!normalized || this.hasReferenceMatch(owner, normalized)) {
+      return null;
+    }
+
+    this.entries.push({
+      owner,
+      id,
+      normalizedText: normalized,
+      role: "reference",
+      sourceOwnerId,
+    });
+    return sanitized;
+  }
+
+  list(): ReportContentOwnership[] {
+    return [...this.entries];
+  }
+
+  private hasOwnedSemanticMatch(candidate: string): boolean {
+    return this.entries.some(({ normalizedText, role }) =>
+      role === "owner" &&
+      (normalizedText === candidate || semanticSimilarity(normalizedText, candidate) >= 0.86),
+    );
+  }
+
+  private hasReferenceMatch(owner: ReportInsightOwner, candidate: string): boolean {
+    return this.entries.some(({ normalizedText, role, owner: existingOwner }) =>
+      role === "reference" &&
+      existingOwner === owner &&
+      normalizedText === candidate,
+    );
+  }
+}
+
+export function normalizeReportText(value: string): string {
   return value
     .normalize("NFKC")
     .replace(/[\u200c\u200f\u202a-\u202e]/gu, "")
@@ -63,43 +367,86 @@ function normalizeText(value: string) {
     .toLocaleLowerCase("fa-IR");
 }
 
-function splitParagraphs(body: string) {
+export function sanitizeReportText(value: string): string {
+  const tokens = value
+    .replace(/[\s\u00a0]+/gu, " ")
+    .trim()
+    .split(" ");
+  const output: string[] = [];
+
+  for (const token of tokens) {
+    if (output.length > 0 && normalizeReportText(output.at(-1) ?? "") === normalizeReportText(token)) {
+      continue;
+    }
+    output.push(token);
+  }
+
+  let seenPossibility = false;
+  return output
+    .join(" ")
+    .replace(/ممکن است/gu, (match) => {
+      if (seenPossibility) {
+        return "گاهی";
+      }
+      seenPossibility = true;
+      return match;
+    })
+    .replace(/میدان\s+میدان‌های/gu, "میدان‌های")
+    .replace(/([.!؟])\s*\1+/gu, "$1")
+    .trim();
+}
+
+export function calculateReadingMinutes(wordCount: number, wordsPerMinute = 180): number {
+  if (wordCount <= 0) {
+    return 0;
+  }
+  return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+}
+
+function semanticSimilarity(first: string, second: string): number {
+  const firstTokens = new Set(first.split(" ").filter((token) => token.length > 2));
+  const secondTokens = new Set(second.split(" ").filter((token) => token.length > 2));
+
+  if (firstTokens.size === 0 || secondTokens.size === 0) {
+    return 0;
+  }
+
+  const intersection = [...firstTokens].filter((token) => secondTokens.has(token)).length;
+  const union = new Set([...firstTokens, ...secondTokens]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
+function splitParagraphs(body: string): string[] {
   return body
     .replace(/\s+(چطور بخوانی:)/gu, "\n\n$1")
     .replace(/\s+(خلاصه فصل:)/gu, "\n\n$1")
     .replace(/\s+(برای تأمل:)/gu, "\n\n$1")
     .split(/\n{2,}/u)
-    .map((part) => part.trim())
+    .map((part) => sanitizeReportText(part))
     .filter(Boolean);
 }
 
-function cleanInterpretiveParagraph(paragraph: string) {
-  return paragraph
-    .replace(
-      /(?:ادامهٔ?\s+)?(?:کشمکش اصلی|منبع همراه|ترجمهٔ روزمره|تمرین این هفته):\s*/gu,
-      "",
-    )
-    .trim();
+function splitSentences(text: string): string[] {
+  return (text.match(/[^.!؟]+[.!؟]?/gu) ?? [])
+    .map((sentence) => sanitizeReportText(sentence))
+    .filter((sentence) => sentence.length >= 24)
+    .map((sentence) => (/[.!؟]$/u.test(sentence) ? sentence : `${sentence}.`));
 }
 
-function isReaderCue(paragraph: string) {
+function isReaderCue(paragraph: string): boolean {
   return /^(چطور بخوانی:|خلاصه فصل:)/u.test(paragraph);
 }
 
-function isReflection(paragraph: string) {
+function isReflection(paragraph: string): boolean {
   return /^برای تأمل:/u.test(paragraph);
 }
 
-function stripReflectionPrefix(paragraph: string) {
-  return paragraph.replace(/^برای تأمل:\s*/u, "").trim();
+function isEvidence(paragraph: string): boolean {
+  return /^(پشتوانه اصلی:|پشتوانه محاسبه:)/u.test(paragraph);
 }
 
-function splitSentences(text: string) {
-  const matches = text.match(/[^.!؟]+[.!؟]?/gu) ?? [];
-  return matches
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length >= 24)
-    .map((sentence) => (/[.!؟]$/u.test(sentence) ? sentence : `${sentence}.`));
+function stripPrefix(paragraph: string, expression: RegExp): string {
+  return paragraph.replace(expression, "").trim();
 }
 
 function getSection(
@@ -109,205 +456,894 @@ function getSection(
   return sections.find((section) => section.id === id);
 }
 
-function getInterpretiveParagraphs(section: ReportOutputSection | undefined) {
+function getSectionParagraphs(section: ReportOutputSection | undefined): string[] {
   if (!section) {
     return [];
   }
-
-  const seen = new Set<string>();
-  const output: string[] = [];
-
-  for (const paragraph of splitParagraphs(section.body)) {
-    if (isReaderCue(paragraph) || isReflection(paragraph)) {
-      continue;
-    }
-
-    const cleaned = cleanInterpretiveParagraph(paragraph);
-    const normalized = normalizeText(cleaned);
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-
-    seen.add(normalized);
-    output.push(cleaned);
-  }
-
-  return output;
-}
-
-function getSectionReflection(
-  section: ReportOutputSection | undefined,
-): string | undefined {
-  if (!section) {
-    return undefined;
-  }
-
-  return splitParagraphs(section.body)
-    .find(isReflection)
-    ?.replace(/^برای تأمل:\s*/u, "")
-    .trim();
-}
-
-function getThemeChapters(
-  sections: ReportOutputSection[],
-): LiveReportThemeChapter[] {
-  return THEME_CHAPTER_IDS.flatMap((id) => {
-    const section = getSection(sections, id);
-    if (!section) {
-      return [];
-    }
-
-    const paragraphs = getInterpretiveParagraphs(section);
-    if (paragraphs.length === 0) {
-      return [];
-    }
-
-    return [{
-      id: section.id,
-      title: section.title,
-      paragraphs,
-      reflection: getSectionReflection(section),
-    }];
-  });
-}
-
-function getReflectionQuestions(sections: ReportOutputSection[]) {
-  const preferredIds = [
-    SECTION_IDS.summary,
-    SECTION_IDS.chartRuler,
-    SECTION_IDS.houses,
-    SECTION_IDS.nodes,
-    SECTION_IDS.balance,
-    SECTION_IDS.practices,
-  ];
-  const seen = new Set<string>();
-  const questions: string[] = [];
-
-  for (const id of preferredIds) {
-    const section = getSection(sections, id);
-    if (!section) {
-      continue;
-    }
-
-    for (const paragraph of splitParagraphs(section.body)) {
-      if (!isReflection(paragraph)) {
-        continue;
-      }
-
-      const question = stripReflectionPrefix(paragraph);
-      const normalized = normalizeText(question);
-      if (!normalized || seen.has(normalized)) {
-        continue;
-      }
-
-      seen.add(normalized);
-      questions.push(question);
-
-      if (questions.length === 2) {
-        return questions;
-      }
-    }
-  }
-
-  return questions;
-}
-
-function getWeeklyPractices(section: ReportOutputSection | undefined) {
-  if (!section) {
-    return [];
-  }
-
-  const match = section.body.match(
-    /سه تمرین کوچک این چارت:\s*۱\)\s*(.*?)؛\s*۲\)\s*(.*?)؛\s*۳\)\s*(.*?)(?:\.|\n|$)/u,
+  return splitParagraphs(section.body).filter(
+    (paragraph) => !isReaderCue(paragraph) && !isReflection(paragraph) && !isEvidence(paragraph),
   );
-
-  if (!match) {
-    return [];
-  }
-
-  return match
-    .slice(1, 4)
-    .map((practice) => practice.trim())
-    .filter(Boolean);
 }
 
-function getAudienceGuide(report: AstrologyReport) {
-  const mode = report.realEngine?.behavioralAudienceMode ?? "adult";
-
-  if (mode === "caregiver") {
-    return "این خلاصه برای همراه بزرگسال نوشته شده است؛ آن را با زبان ساده و بدون برچسب‌زدن به کودک بخوان.";
-  }
-
-  if (mode === "youth") {
-    return "این خلاصه را مثل چند نشانه برای شناخت بهتر خودت بخوان؛ لازم نیست هیچ جمله‌ای را تعریف ثابت خودت بدانی.";
-  }
-
-  return "این خلاصه را یک‌بار بخوان و بعد فقط سراغ بخشی برو که به تجربه این روزهایت نزدیک‌تر است.";
+function getSectionReflection(section: ReportOutputSection | undefined): string | undefined {
+  const reflection = splitParagraphs(section?.body ?? "").find(isReflection);
+  return reflection ? stripPrefix(reflection, /^برای تأمل:\s*/u) : undefined;
 }
 
-function buildSummarySentences(
-  report: AstrologyReport,
-  sections: ReportOutputSection[],
-) {
-  const candidates = getInterpretiveParagraphs(
-    getSection(sections, SECTION_IDS.summary),
-  ).flatMap(splitSentences);
-  const seen = new Set<string>();
-  const output: string[] = [];
-
-  for (const sentence of candidates) {
-    const normalized = normalizeText(sentence);
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-
-    seen.add(normalized);
-    output.push(sentence);
-
-    if (output.length === 5) {
-      return output;
-    }
-  }
-
-  for (const sentence of FALLBACK_SUMMARY_SENTENCES) {
-    const normalized = normalizeText(sentence);
-    if (seen.has(normalized)) {
-      continue;
-    }
-
-    seen.add(normalized);
-    output.push(sentence);
-
-    if (output.length === 5) {
-      break;
-    }
-  }
-
-  return output.slice(0, 5);
+function getSectionEvidence(section: ReportOutputSection | undefined): string[] {
+  return splitParagraphs(section?.body ?? "")
+    .filter(isEvidence)
+    .map((paragraph) => stripPrefix(paragraph, /^(پشتوانه اصلی:|پشتوانه محاسبه:)\s*/u));
 }
 
-function takeUniquePrimaryParagraphs(
-  seen: Set<string>,
-  paragraphs: string[],
+function claimSentences(
+  registry: OwnershipRegistry,
+  owner: ReportInsightOwner,
+  id: string,
+  text: string,
   limit: number,
-) {
+): string[] {
   const output: string[] = [];
 
-  for (const paragraph of paragraphs) {
-    const normalized = normalizeText(paragraph);
-    if (!normalized || seen.has(normalized)) {
-      continue;
+  for (const sentence of splitSentences(text)) {
+    const claimed = registry.claim(owner, `${id}-${output.length + 1}`, sentence);
+    if (claimed) {
+      output.push(claimed);
     }
-
-    seen.add(normalized);
-    output.push(paragraph);
-
     if (output.length === limit) {
       break;
     }
   }
 
   return output;
+}
+
+function claimParagraphs(
+  registry: OwnershipRegistry,
+  owner: ReportInsightOwner,
+  id: string,
+  paragraphs: string[],
+  sentenceLimit: number,
+): string[] {
+  const output: string[] = [];
+
+  for (const paragraph of paragraphs) {
+    const sentences = claimSentences(
+      registry,
+      owner,
+      `${id}-paragraph-${output.length + 1}`,
+      paragraph,
+      sentenceLimit,
+    );
+    if (sentences.length > 0) {
+      output.push(sentences.join(" "));
+    }
+  }
+
+  return output;
+}
+
+function findParagraph(paragraphs: string[], pattern: RegExp): string | undefined {
+  return paragraphs.find((paragraph) => pattern.test(paragraph));
+}
+
+function buildRelationshipGroups(
+  section: ReportOutputSection | undefined,
+  registry: OwnershipRegistry,
+): ReportRelationshipGroup[] {
+  const paragraphs = getSectionParagraphs(section);
+  const groups: Array<{
+    id: ReportRelationshipGroup["id"];
+    title: string;
+    patterns: RegExp[];
+  }> = [
+    {
+      id: "closeness-security",
+      title: "نزدیکی و امنیت",
+      patterns: [/^نزدیک‌شدن:/u, /^امنیت:/u, /^ریتم صمیمیت:/u],
+    },
+    {
+      id: "dialogue-needs",
+      title: "گفت‌وگو و بیان خواسته",
+      patterns: [/^گفت‌وگو:/u],
+    },
+    {
+      id: "boundaries-independence",
+      title: "مرز و استقلال",
+      patterns: [/^مرز:/u, /^استقلال:/u],
+    },
+    {
+      id: "friction-repair",
+      title: "اصطکاک و ترمیم",
+      patterns: [/^اصطکاک محتمل:/u, /^ترمیم و همکاری:/u],
+    },
+  ];
+
+  return groups.map((group) => {
+    const selected = group.patterns
+      .map((pattern) => findParagraph(paragraphs, pattern))
+      .filter((paragraph): paragraph is string => Boolean(paragraph))
+      .map((paragraph) => stripPrefix(paragraph, /^[^:]+:\s*/u));
+    const owned = claimParagraphs(
+      registry,
+      "relationship-profile",
+      group.id,
+      selected,
+      2,
+    );
+
+    return {
+      id: group.id,
+      title: group.title,
+      paragraphs:
+        owned.length > 0
+          ? owned
+          : [`در نسخهٔ فعلی دادهٔ کافی برای توضیح شخصیِ «${group.title}» ثبت نشده است.`],
+    };
+  });
+}
+
+
+function buildBriefChapterSummary(value: string): string {
+  const cleaned = sanitizeReportText(value);
+  const words = cleaned.split(/\s+/u).filter(Boolean);
+
+  if (words.length <= 32) {
+    return cleaned;
+  }
+
+  const clauses = cleaned
+    .split(/(?<=[،؛])/u)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+  const selected: string[] = [];
+  let selectedWordCount = 0;
+
+  for (const clause of clauses) {
+    const clauseWordCount = clause.split(/\s+/u).filter(Boolean).length;
+    if (selected.length > 0 && selectedWordCount + clauseWordCount > 32) {
+      break;
+    }
+    selected.push(clause);
+    selectedWordCount += clauseWordCount;
+    if (selectedWordCount >= 16) {
+      break;
+    }
+  }
+
+  const summary = selected.join(" ").replace(/[،؛]\s*$/u, "").trim();
+  return summary ? `${summary}.` : `${words.slice(0, 32).join(" ")}…`;
+}
+
+
+function buildPrimaryPatternReference(value: string): string {
+  const cleaned = sanitizeReportText(value);
+  const clauses = cleaned
+    .split(/(?<=[،؛:])/u)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+  const selected: string[] = [];
+  let wordCount = 0;
+
+  for (const clause of clauses) {
+    const clauseWords = clause.split(/\s+/u).filter(Boolean).length;
+    const current = selected.join(" ");
+    const needsMainClause = /^(?:نشانهٔ اصلی:\s*)?ممکن است وقتی/u.test(current);
+    const maximumWords = needsMainClause ? 34 : 24;
+    if (selected.length > 0 && wordCount + clauseWords > maximumWords) {
+      break;
+    }
+    selected.push(clause);
+    wordCount += clauseWords;
+    const selectedText = selected.join(" ");
+    const stillNeedsMainClause = /^ممکن است وقتی/u.test(selectedText) && selected.length < 3;
+    if (wordCount >= 12 && !/[،؛:]$/u.test(clause) && !stillNeedsMainClause) {
+      break;
+    }
+  }
+
+  const reference = selected.join(" ").replace(/[،؛:]\s*$/u, "").trim();
+  const concise = reference
+    ? `${reference}${/[.!؟]$/u.test(reference) ? "" : "."}`
+    : buildBriefChapterSummary(cleaned);
+  return `نشانهٔ اصلی: ${concise}`;
+}
+
+function buildPrimaryPatternSummary(
+  specId: (typeof CHAPTER_SPECS)[number]["id"],
+  source: string,
+  evidence: string | undefined,
+  report: AstrologyReport,
+): string {
+  const cleanEvidence = evidence
+    ?.split("؛")[0]
+    ?.replace(/[.!؟]+$/u, "")
+    .trim();
+
+  if (
+    specId === "real-engine-theme-signature" &&
+    !hasReliableBirthTime(report)
+  ) {
+    const sun = getPlacement(report, "sun");
+    const moon = getPlacement(report, "moon");
+    const independentPositions = [
+      sun ? `خورشید ${formatZodiacLabel(sun.signId)}` : null,
+      moon ? `ماه ${formatZodiacLabel(moon.signId)}` : null,
+    ].filter((item): item is string => Boolean(item));
+    return independentPositions.length > 0
+      ? `${independentPositions.join(" و ")} داده‌های اصلیِ مستقل از ساعت تولد در این نسخه‌اند.`
+      : "این نسخه فقط جایگاه‌های مستقل از ساعت تولد را نگه می‌دارد و رایزینگ یا خانه‌ها را حدس نمی‌زند.";
+  }
+
+  if (cleanEvidence) {
+    if (specId === "real-engine-theme-signature") {
+      return `${cleanEvidence} نشان می‌دهد تصویر بیرونی و جهت شخصی همیشه با یک ریتم حرکت نمی‌کنند.`;
+    }
+    if (specId === "real-engine-theme-emotional-security") {
+      return `${cleanEvidence} نقطهٔ شروع خواندن آرام‌شدن، اعتماد و نیاز به امنیت درونی است.`;
+    }
+    if (specId === "real-engine-theme-recurring-patterns") {
+      return `${cleanEvidence} دو نیازی را برجسته می‌کند که در موقعیت‌های مختلف دوباره به تنظیم احتیاج دارند.`;
+    }
+  }
+
+  if (specId === "real-engine-theme-emotional-security") {
+    return "دادهٔ ماه برای این نسخه کامل نیست؛ بنابراین ریتم امنیت درونی بدون حدس‌زدن محدود و شفاف می‌ماند.";
+  }
+  if (specId === "real-engine-theme-recurring-patterns") {
+    return "این نسخه میدان کلی تکرار را نشان می‌دهد، اما بدون جنبه‌های معتبر دربارهٔ علت دقیق آن حکم نمی‌دهد.";
+  }
+
+  return buildPrimaryPatternReference(source);
+}
+
+function buildChapterSummary(
+  spec: (typeof CHAPTER_SPECS)[number],
+  section: ReportOutputSection | undefined,
+): string {
+  if (spec.id === "real-engine-theme-relationship-style") {
+    return "این فصل چهار بخشِ نزدیکی، گفت‌وگو، مرز و ترمیم را در همان یک چارت کنار هم می‌گذارد؛ این متن گزارش سازگاری دو نفر نیست.";
+  }
+
+  const evidence = getSectionEvidence(section)[0]?.replace(/[.!؟]+$/u, "").trim();
+  if (evidence) {
+    return `پشتوانهٔ فصل «${section?.title ?? spec.title}» ${evidence} است؛ متن فصل معنای روزمرهٔ این داده را باز می‌کند.`;
+  }
+
+  return `فصل «${section?.title ?? spec.title}» داده‌های مرتبط این حوزه را کنار هم می‌گذارد و فقط یک‌بار توضیح کامل آن‌ها را نشان می‌دهد.`;
+}
+
+function buildValueReference(value: string, kind: "strength" | "challenge"): string {
+  const cleaned = sanitizeReportText(value);
+  if (kind === "strength") {
+    const body = cleaned.replace(/^وقتی این بخش خوب کار می‌کند،?\s*/u, "");
+    return buildBriefChapterSummary(`توان برجسته: ${body}`);
+  }
+
+  const body = cleaned.replace(/^زیر فشار،?\s*(?:ممکن است\s*)?/u, "");
+  return buildBriefChapterSummary(`چالش برجسته: اینکه ${body}`);
+}
+
+function buildLegacyChapterParagraph(
+  spec: (typeof CHAPTER_SPECS)[number],
+  report: AstrologyReport,
+): string {
+  const sun = report.chart.sunSign.faName;
+  const moon = report.chart.moonSign.faName;
+  const rising = report.chart.risingSign.faName;
+
+  switch (spec.id) {
+    case "real-engine-theme-signature":
+      return `این نسخهٔ قدیمی فقط خورشید ${sun}، ماه ${moon} و رایزینگ ${rising} را به‌عنوان سه نقطهٔ شروع نگه داشته است؛ امضای کامل بدون جایگاه‌های محاسبه‌شده ساخته نمی‌شود.`;
+    case "real-engine-theme-emotional-security":
+      return `برای احساسات و امنیت درونی، این نسخه فقط ماه ${moon} را ثبت کرده است؛ خانه، جنبه‌ها و شواهد تکمیلی حدس زده نمی‌شوند.`;
+    case "real-engine-theme-mind-language":
+      return "دادهٔ کامل عطارد و خانهٔ آن در این نسخهٔ قدیمی موجود نیست؛ بنابراین سبک ذهن و زبان به‌جای تفسیر ساختگی، محدود و شفاف می‌ماند.";
+    case "real-engine-theme-will-action":
+      return "دادهٔ کامل مریخ و تماس‌های آن در این نسخه موجود نیست؛ فصل اراده فقط مرز داده را توضیح می‌دهد و الگوی رفتاری تازه اختراع نمی‌کند.";
+    case "real-engine-theme-direction-path":
+      return `در این نسخه، جهت کلی فقط از خورشید ${sun} و رایزینگ ${rising} شروع می‌شود؛ مسیر خانه‌ها و سیارهٔ راهبر بدون دادهٔ معتبر بازسازی نمی‌شود.`;
+    case "real-engine-theme-recurring-patterns":
+      return "فهرست کامل جنبه‌ها در این نسخهٔ قدیمی ذخیره نشده است؛ الگوهای تکرارشونده و تمرین‌های شخصی فقط پس از ساخت گزارش محاسبه‌شده قابل رتبه‌بندی‌اند.";
+    default:
+      return "این بخش در نسخهٔ قدیمی دادهٔ کافی ندارد و به‌جای متن عمومی، محدودیت آن آشکار نمایش داده می‌شود.";
+  }
+}
+
+function buildLegacyPrimaryPatterns(report: AstrologyReport): ReportPrimaryPattern[] {
+  return [
+    {
+      id: "pattern-signature",
+      title: "سه نقطهٔ پایه",
+      summary: `خورشید ${report.chart.sunSign.faName}، ماه ${report.chart.moonSign.faName} و رایزینگ ${report.chart.risingSign.faName} داده‌های پایهٔ این نسخه‌اند.`,
+      evidence: [],
+    },
+    {
+      id: "pattern-emotional-security",
+      title: "مرز خوانش درونی",
+      summary: `ماه ${report.chart.moonSign.faName} ثبت شده، اما خانه و تماس‌های تکمیلی در نسخهٔ قدیمی موجود نیستند.`,
+      evidence: [],
+    },
+    {
+      id: "pattern-recurring",
+      title: "الگوهای تکرارشونده",
+      summary: "بدون فهرست معتبر جنبه‌ها، این نسخه الگوی تکرارشونده یا تمرین شخصی تازه‌ای را حدس نمی‌زند.",
+      evidence: [],
+    },
+  ];
+}
+
+function buildThemeChapters(
+  sections: ReportOutputSection[],
+  registry: OwnershipRegistry,
+  relationshipProfile: ReportRelationshipGroup[],
+  report: AstrologyReport,
+): LiveReportThemeChapter[] {
+  return CHAPTER_SPECS.map((spec) => {
+    const section = getSection(sections, spec.id);
+    const rawParagraphs = getSectionParagraphs(section);
+    const sourceParagraphs = rawParagraphs.length > 0
+      ? rawParagraphs
+      : [buildLegacyChapterParagraph(spec, report)];
+    const paragraphs = spec.id === "real-engine-theme-relationship-style"
+      ? []
+      : claimParagraphs(
+          registry,
+          "theme-chapter",
+          spec.id,
+          sourceParagraphs,
+          2,
+        ).slice(0, 4);
+    const summarySource = buildChapterSummary(spec, section);
+    const summary =
+      registry.reference(
+        "theme-chapter",
+        `${spec.id}-summary`,
+        summarySource,
+        spec.id === "real-engine-theme-relationship-style"
+          ? "relationship-profile"
+          : `${spec.id}-body`,
+      ) ?? summarySource;
+
+    return {
+      id: spec.id,
+      title: section?.title || spec.title,
+      navigationId: spec.navigationId,
+      summary,
+      paragraphs,
+      reflection: getSectionReflection(section),
+      ...(spec.id === "real-engine-theme-relationship-style"
+        ? { relationshipGroups: relationshipProfile }
+        : {}),
+    };
+  });
+}
+
+function buildPrimaryPatterns(
+  sections: ReportOutputSection[],
+  chapters: LiveReportThemeChapter[],
+  registry: OwnershipRegistry,
+  report: AstrologyReport,
+): ReportPrimaryPattern[] {
+  const preferredIds = new Set([
+    "real-engine-theme-signature",
+    "real-engine-theme-emotional-security",
+    "real-engine-theme-recurring-patterns",
+  ]);
+  const preferred = CHAPTER_SPECS.filter((spec) => preferredIds.has(spec.id));
+  const patterns = preferred.flatMap((spec, index) => {
+    const section = getSection(sections, spec.id);
+    const chapter = chapters.find((item) => item.id === spec.id);
+    const source = getSectionParagraphs(section)[0];
+    if (!source || !chapter) {
+      return [];
+    }
+    const evidence = getSectionEvidence(section).slice(0, 2);
+    const summary = registry.reference(
+      "primary-pattern",
+      `primary-pattern-${index + 1}`,
+      buildPrimaryPatternSummary(spec.id, source, evidence[0], report),
+      spec.id,
+    );
+    if (!summary) {
+      return [];
+    }
+    return [{
+      id: `primary-pattern-${index + 1}`,
+      title: spec.patternTitle ?? spec.title,
+      summary,
+      evidence,
+    }];
+  });
+
+  const fallbackPatterns = report.realEngine
+    ? FALLBACK_PRIMARY_PATTERNS
+    : buildLegacyPrimaryPatterns(report);
+
+  return [...patterns, ...fallbackPatterns]
+    .filter((pattern, index, collection) =>
+      collection.findIndex((item) => item.id === pattern.id) === index,
+    )
+    .slice(0, 3);
+}
+
+function buildValueCard(
+  sections: ReportOutputSection[],
+  registry: OwnershipRegistry,
+  kind: "strength" | "challenge",
+): ReportValueCard {
+  const chapterIds = kind === "strength"
+    ? ["real-engine-theme-mind-language", "real-engine-theme-will-action"]
+    : ["real-engine-theme-emotional-security", "real-engine-theme-recurring-patterns"];
+  const pattern = kind === "strength" ? /^وقتی این بخش خوب کار می‌کند/u : /^زیر فشار/u;
+
+  for (const chapterId of chapterIds) {
+    const section = getSection(sections, chapterId);
+    const paragraph = findParagraph(getSectionParagraphs(section), pattern);
+    if (!paragraph) {
+      continue;
+    }
+    const body = registry.reference(
+      kind === "strength" ? "primary-strength" : "primary-challenge",
+      `primary-${kind}`,
+      buildValueReference(paragraph, kind),
+      chapterId,
+    ) ?? "";
+    if (body) {
+      return {
+        title: kind === "strength" ? "نقطهٔ قوت اصلی" : "چالش اصلی",
+        body,
+        evidence: getSectionEvidence(section).slice(0, 2),
+      };
+    }
+  }
+
+  return {
+    title: kind === "strength" ? "نقطهٔ قوت اصلی" : "چالش اصلی",
+    body:
+      kind === "strength"
+        ? "توان اصلی این چارت در تبدیل مشاهده به یک انتخاب کوچک و قابل انجام دیده می‌شود."
+        : "چالش اصلی این است که دو نیاز واقعی پیش از روشن‌شدن، جای یکدیگر را نگیرند.",
+    evidence: [],
+  };
+}
+
+function buildPersonalOpening(
+  sections: ReportOutputSection[],
+  registry: OwnershipRegistry,
+): string[] {
+  const summarySection = getSection(sections, SECTION_IDS.summary);
+  const firstParagraph = getSectionParagraphs(summarySection)[0] ?? "";
+  const opening = claimSentences(registry, "personal-opening", "personal-opening", firstParagraph, 2);
+
+  return opening.length > 0
+    ? opening
+    : ["این گزارش از چند الگوی محاسبه‌شدهٔ چارت شروع می‌کند تا تصویر کلی پیش از جزئیات روشن باشد."];
+}
+
+function buildSaveableSentence(
+  sections: ReportOutputSection[],
+  registry: OwnershipRegistry,
+  primaryStrength: ReportValueCard,
+): string {
+  const summaryParagraphs = getSectionParagraphs(getSection(sections, SECTION_IDS.summary));
+  const candidates = summaryParagraphs.flatMap(splitSentences).slice(2);
+
+  for (const candidate of candidates) {
+    const claimed = registry.claim("saveable-sentence", "saveable-sentence", candidate);
+    if (claimed) {
+      return claimed;
+    }
+  }
+
+  return primaryStrength.evidence[0]
+    ? `یادآوری این چارت: ${primaryStrength.evidence[0]} را به یک انتخاب کوچک و قابل مشاهده وصل کن.`
+    : "یادآوری این چارت: یک انتخاب کوچک و قابل مشاهده از یک تعریف ثابت دربارهٔ خودت مفیدتر است.";
+}
+
+function buildWeeklyActions(
+  sections: ReportOutputSection[],
+  registry: OwnershipRegistry,
+): string[] {
+  const section = getSection(sections, SECTION_IDS.practices);
+  const match = section?.body.match(
+    /سه تمرین کوچک این چارت:\s*۱\)\s*(.*?)؛\s*۲\)\s*(.*?)؛\s*۳\)\s*(.*?)(?:\.|\n|$)/u,
+  );
+  const candidates = match
+    ? match.slice(1, 4).map((action) => sanitizeReportText(action))
+    : FALLBACK_WEEKLY_ACTIONS;
+  const output = candidates.flatMap((action, index) => {
+    const claimed = registry.claim("weekly-action", `weekly-action-${index + 1}`, action);
+    return claimed ? [claimed] : [];
+  });
+
+  return [...output, ...FALLBACK_WEEKLY_ACTIONS]
+    .filter((action, index, collection) =>
+      collection.findIndex((item) => normalizeReportText(item) === normalizeReportText(action)) === index,
+    )
+    .slice(0, 3);
+}
+
+function buildReflectionQuestions(
+  sections: ReportOutputSection[],
+  registry: OwnershipRegistry,
+): string[] {
+  const preferredIds = CHAPTER_SPECS.map((chapter) => chapter.id);
+  const seen = new Set<string>();
+  const output: string[] = [];
+
+  for (const id of preferredIds) {
+    const reflection = getSectionReflection(getSection(sections, id));
+    const normalized = normalizeReportText(reflection ?? "");
+    if (!reflection || !normalized || seen.has(normalized)) {
+      continue;
+    }
+    const claimed = registry.claim(
+      "reflection-question",
+      `reflection-question-${output.length + 1}`,
+      reflection,
+    );
+    if (!claimed) {
+      continue;
+    }
+    seen.add(normalized);
+    output.push(claimed);
+    if (output.length === 3) {
+      break;
+    }
+  }
+
+  return output;
+}
+
+function buildChartSignature(report: AstrologyReport): ReportChartSignatureSummary {
+  const placements = report.realEngine?.placements ?? [];
+  const signature =
+    report.realEngine?.chartSignature ??
+    (placements.length > 0 ? buildRealEngineChartSignature(placements) : null);
+  if (!signature) {
+    return {
+      title: "امضای چارت از سه جایگاه پایه",
+      body: `خورشید ${report.chart.sunSign.faName}، ماه ${report.chart.moonSign.faName} و رایزینگ ${report.chart.risingSign.faName} نقطهٔ شروع این خوانش‌اند.`,
+      evidenceCount: 3,
+    };
+  }
+
+  const titleParts = [
+    signature.dominantElement ? ELEMENT_LABELS[signature.dominantElement] : null,
+    signature.dominantModality ? MODALITY_LABELS[signature.dominantModality] : null,
+    signature.dominantExpression ? EXPRESSION_LABELS[signature.dominantExpression] : null,
+  ].filter((part): part is string => Boolean(part));
+  const lowElement = signature.lowElements[0];
+
+  return {
+    title:
+      titleParts.length === 1
+        ? `ریتم غالب چارت: ${titleParts[0]}`
+        : titleParts.length > 1
+          ? `امضای غالب: ${titleParts.join(" · ")}`
+          : "ترکیب متعادل چند کیفیت",
+    body: lowElement
+      ? `کیفیت ${ELEMENT_LABELS[lowElement]} کم‌حضورتر است؛ این تفاوت نقص نیست و فقط نشان می‌دهد آن ریتم به توجه آگاهانه‌تری نیاز دارد.`
+      : "هیچ کیفیت واحدی تمام چارت را در اختیار ندارد؛ امضا از کنار هم گذاشتن چند ریتم شکل می‌گیرد.",
+    evidenceCount: signature.evidence.length,
+  };
+}
+
+function getPlacement(report: AstrologyReport, id: string): RealEngineReportPlacement | undefined {
+  return report.realEngine?.placements.find((placement) => placement.id === id);
+}
+
+function formatPlacementPosition(
+  report: AstrologyReport,
+  id: "sun" | "moon" | "rising",
+): string {
+  if (id === "rising") {
+    const angle = report.realEngine?.angles?.asc;
+    return angle
+      ? `${formatZodiacLabel(angle.signId)}، درجه ${formatPersianNumber(angle.degreeInSign)}`
+      : formatZodiacLabel(report.chart.risingSign.key);
+  }
+
+  const placement = getPlacement(report, id);
+  if (!placement) {
+    return formatZodiacLabel(id === "sun" ? report.chart.sunSign.key : report.chart.moonSign.key);
+  }
+
+  const house = typeof placement.house === "number"
+    ? `، خانه ${formatPersianNumber(placement.house)}`
+    : "";
+  return `${formatZodiacLabel(placement.signId)}، درجه ${formatPersianNumber(placement.degreeInSign)}${house}`;
+}
+
+function buildCorePlacements(report: AstrologyReport): ReportCorePlacement[] {
+  const risingPosition = hasReliableBirthTime(report)
+    ? formatPlacementPosition(report, "rising")
+    : "نامشخص؛ ساعت تولد معتبر در دسترس نیست";
+
+  return [
+    { id: "sun", label: "خورشید", position: formatPlacementPosition(report, "sun"), role: "هویت و جهت" },
+    { id: "moon", label: "ماه", position: formatPlacementPosition(report, "moon"), role: "احساس و امنیت" },
+    { id: "rising", label: "رایزینگ", position: risingPosition, role: "ورود و تصویر اولیه" },
+  ];
+}
+
+function formatNodePosition(node: { signId: Parameters<typeof formatZodiacLabel>[0]; degreeInSign: number; house?: number | null }): string {
+  return `${formatZodiacLabel(node.signId)}، درجه ${formatPersianNumber(node.degreeInSign)}${
+    typeof node.house === "number" ? `، خانه ${formatPersianNumber(node.house)}` : ""
+  }`;
+}
+
+function buildGrowthAxis(report: AstrologyReport): ReportGrowthAxis {
+  const nodes = report.realEngine?.lunarNodes;
+  if (
+    !nodes ||
+    nodes.status !== "calculated" ||
+    !("northNode" in nodes) ||
+    !("southNode" in nodes)
+  ) {
+    return {
+      available: false,
+      familiarPattern: "الگوی آشنا در دادهٔ این نسخه کامل ثبت نشده است.",
+      growthDirection: "جهت رشد بدون دادهٔ معتبر حدس زده نمی‌شود.",
+      bridge: "در این نسخه فقط تمرین‌های رفتاری فصل رشد را دنبال کن.",
+    };
+  }
+
+  return {
+    available: true,
+    familiarPattern: formatNodePosition(nodes.southNode),
+    growthDirection: formatNodePosition(nodes.northNode),
+    bridge: "از پاسخ آشنا به سمت یک رفتار کوچک، تازه و قابل تکرار حرکت کن؛ لازم نیست توانایی‌های قبلی را انکار کنی.",
+  };
+}
+
+function hasReliableBirthTime(report: AstrologyReport): boolean {
+  const value = report.input.birthTime?.trim().toLocaleLowerCase("fa-IR") ?? "";
+  return Boolean(value) && !["unknown", "نامشخص", "--:--", "00:00?"].includes(value);
+}
+
+function getTransitData(report: AstrologyReport): PersonalTransitReportDataBridge | null {
+  return (report as ReportWithTransit).engineData?.personalTransitReportData ?? null;
+}
+
+function countWords(text: string): number {
+  return text.trim().split(/\s+/u).filter(Boolean).length;
+}
+
+const TRANSIT_VISIBLE_FOUNDATION_COPY = [
+  "آسمان زمان ساخت گزارش نسبت به چارت تولد تو",
+  "این بخش آسمانی را که هنگام ساخت گزارش ثبت شده روی همان چارت تولد می‌گذارد. داده قدیمی هنگام بازکردن دوباره با برچسب امروز نمایش داده نمی‌شود.",
+  "چارت تولد از محل و زمان تولد می‌آید و زمان ترنزیت از محل زندگی فعلی؛ هالیوس تهران را بی‌اجازه جایگزین محل فعلی نمی‌کند.",
+  "این خوانش فقط یک نشانه موقت برای توجه است و رویداد قطعی یا پیش‌بینی آینده نمی‌سازد.",
+] as const;
+
+function getTransitVisibleHighlights(
+  transit: PersonalTransitReportDataBridge,
+): PersonalTransitReportDataBridgeSelectedAspectSummary[] {
+  if (Array.isArray(transit.visibleAspectHighlights)) {
+    return transit.visibleAspectHighlights.slice(0, 5);
+  }
+
+  const audienceMode = transit.audienceMode ?? "adult";
+  return selectPersonalTransitHighlights(transit.aspectHighlights, {
+    audienceMode,
+    maxVisible: 5,
+  }).map((aspect) => ({
+    ...aspect,
+    relevanceScore: 0,
+    interpretation: buildPersonalTransitBehavioralInterpretation(
+      aspect,
+      audienceMode,
+    ),
+  }));
+}
+
+export function buildTransitVisibleWordCount(
+  transit: PersonalTransitReportDataBridge | null,
+): number {
+  if (!transit) {
+    return 0;
+  }
+
+  const highlights = getTransitVisibleHighlights(transit);
+  const themes = Array.from(
+    new Set(highlights.map((aspect) => aspect.interpretation.theme)),
+  );
+  const contextText = [
+    ...TRANSIT_VISIBLE_FOUNDATION_COPY,
+    transit.location.birthPlaceName ?? "محل تولد ثبت نشده",
+    transit.location.birthTimezone ?? "",
+    transit.location.currentResidencePlaceName ?? "محل زندگی فعلی ثبت نشده",
+    transit.location.currentResidenceTimezone ?? "",
+    transit.transitLocalDate ?? "زمان ساخت گزارش",
+    transit.sampleLocalTime ?? "",
+    transit.status === "missing-current-residence"
+      ? "برای تعیین زمان محلی این بخش، محل زندگی فعلی لازم است و تا ثبت آن هالیوس ادعای شخصی درباره ترنزیت نمی‌سازد."
+      : transit.status === "partial-no-aspects"
+        ? "در محدوده رابطه‌های اصلی و اورب‌های تعریف‌شده تماس نزدیکی پیدا نشد؛ نبود تماس نزدیک هم یک نتیجه محاسباتی است."
+        : "داده ترنزیت ذخیره‌شده آماده است و فقط تماس‌های اولویت‌دار نمایش داده می‌شوند.",
+    ...themes,
+    ...highlights.flatMap((aspect) => [
+      aspect.transitBody,
+      aspect.aspect,
+      aspect.natalBody,
+      aspect.interpretation.theme,
+      aspect.interpretation.attention,
+      aspect.interpretation.scenario,
+      aspect.interpretation.helpful,
+      aspect.interpretation.friction,
+      aspect.interpretation.action,
+      aspect.interpretation.technicalDetail,
+    ]),
+    transit.technicalDisclaimer ??
+      "این مقایسه فقط از داده ذخیره‌شده سیاره‌ها و اورب‌های همان زمان استفاده می‌کند و هیچ رویداد قطعی یا پیش‌بینی آینده نمی‌سازد.",
+    ...transit.limitations,
+  ];
+
+  return contextText.reduce(
+    (total, text) => total + countWords(String(text)),
+    0,
+  );
+}
+
+function buildTechnicalWordCount(report: AstrologyReport): number {
+  const snapshot = report.realEngine;
+  if (!snapshot) {
+    return countWords(report.safetyNote);
+  }
+  const placementWords = snapshot.placements.reduce(
+    (total, placement) => total + countWords(`${placement.label} ${formatZodiacLabel(placement.signId)} ${placement.house ?? ""}`),
+    0,
+  );
+  const houseWords = (snapshot.houses ?? []).reduce(
+    (total, house) => total + countWords(`خانه ${house.number} ${formatZodiacLabel(house.signId)}`),
+    0,
+  );
+  const aspectWords = (snapshot.aspects ?? []).reduce(
+    (total, aspect) => total + countWords(`${aspect.firstPlanetLabel} ${aspect.aspectLabel} ${aspect.secondPlanetLabel} ${aspect.angle} ${aspect.separation} ${aspect.orb}`),
+    0,
+  );
+  const limitationWords = (snapshot.calculationQuality?.limitations ?? []).reduce(
+    (total, limitation) => total + countWords(limitation),
+    0,
+  );
+  return placementWords + houseWords + aspectWords + limitationWords;
+}
+
+function buildReadingTime(
+  contractText: string[],
+  report: AstrologyReport,
+  transit: PersonalTransitReportDataBridge | null,
+): ReportReadingTime {
+  const natalWordCount = contractText.reduce((total, text) => total + countWords(text), 0);
+  const technicalWordCount = buildTechnicalWordCount(report);
+  const transitWordCount = buildTransitVisibleWordCount(transit);
+
+  return {
+    natalMinutes: calculateReadingMinutes(natalWordCount),
+    technicalMinutes: calculateReadingMinutes(technicalWordCount),
+    transitMinutes: calculateReadingMinutes(transitWordCount),
+    natalWordCount,
+    technicalWordCount,
+    transitWordCount,
+  };
+}
+
+function buildEvidenceReferences(
+  report: AstrologyReport,
+  registry: OwnershipRegistry,
+): ReportEvidenceReference[] {
+  const snapshot = report.realEngine;
+  if (!snapshot) {
+    const detail = registry.claim(
+      "evidence",
+      "fallback-report-evidence",
+      "این گزارش دادهٔ کامل موتور محاسبه‌شده را ندارد و فقط بخش‌های موجود نمایش داده می‌شوند.",
+    );
+    return [{
+      id: "fallback-report",
+      label: "نسخهٔ قدیمی یا جایگزین",
+      detail: detail ?? "این گزارش دادهٔ کامل موتور محاسبه‌شده را ندارد.",
+    }];
+  }
+
+  const placements = snapshot.placements.slice(0, 5).flatMap((placement) => {
+    const detail = `${formatZodiacLabel(placement.signId)}${
+      typeof placement.house === "number" ? `، خانه ${formatPersianNumber(placement.house)}` : ""
+    }`;
+    const claimed = registry.claim(
+      "evidence",
+      `placement-${placement.id}-evidence`,
+      `${placement.label}: ${detail}`,
+    );
+    return claimed
+      ? [{
+          id: `placement-${placement.id}`,
+          label: placement.label,
+          detail,
+        }]
+      : [];
+  });
+  const methodDetail = registry.claim(
+    "technical-explanation",
+    "calculation-method",
+    `روش خانه‌ها: ${snapshot.houseSystem ?? "ثبت نشده"}. زمان مرجع محاسبه: ${snapshot.utcIso}.`,
+  );
+
+  return [
+    ...placements,
+    ...(methodDetail
+      ? [{ id: "calculation-method", label: "روش محاسبه", detail: methodDetail }]
+      : []),
+  ];
+}
+
+function buildLimitations(
+  report: AstrologyReport,
+  registry: OwnershipRegistry,
+): string[] {
+  const candidates = [
+    ...(report.realEngine?.calculationQuality?.limitations ?? []),
+    ...(report.realEngine?.calculationQuality?.warnings ?? []),
+    report.safetyNote,
+  ];
+  const output: string[] = [];
+
+  for (const candidate of candidates) {
+    const claimed = registry.claim("limitation", `limitation-${output.length + 1}`, candidate);
+    if (claimed) {
+      output.push(claimed);
+    }
+    if (output.length === 4) {
+      break;
+    }
+  }
+
+  return output.length > 0
+    ? output
+    : ["این گزارش برای خودشناسی و تأمل است و نباید به‌عنوان حکم قطعی خوانده شود."];
+}
+
+function collectVisibleNatalText(input: {
+  personalOpening: string[];
+  chartSignature: ReportChartSignatureSummary;
+  corePlacements: ReportCorePlacement[];
+  primaryPatterns: ReportPrimaryPattern[];
+  primaryStrength: ReportValueCard;
+  primaryChallenge: ReportValueCard;
+  saveableSentence: string;
+  recommendedReadingPath: string[];
+  themeChapters: LiveReportThemeChapter[];
+  growthAxis: ReportGrowthAxis;
+  weeklyActions: string[];
+  reflectionQuestions: string[];
+  limitations: string[];
+}): string[] {
+  return [
+    ...input.personalOpening,
+    input.chartSignature.title,
+    input.chartSignature.body,
+    ...input.corePlacements.flatMap((placement) => [placement.label, placement.position, placement.role]),
+    ...input.primaryPatterns.flatMap((pattern) => [pattern.title, pattern.summary, ...pattern.evidence]),
+    input.primaryStrength.body,
+    input.primaryChallenge.body,
+    input.saveableSentence,
+    ...input.recommendedReadingPath,
+    ...input.themeChapters.flatMap((chapter) => [
+      chapter.title,
+      chapter.summary,
+      ...chapter.paragraphs,
+      ...(chapter.relationshipGroups?.flatMap((group) => [group.title, ...group.paragraphs]) ?? []),
+      chapter.reflection ?? "",
+    ]),
+    input.growthAxis.familiarPattern,
+    input.growthAxis.growthDirection,
+    input.growthAxis.bridge,
+    ...input.weeklyActions,
+    ...input.reflectionQuestions,
+    ...input.limitations,
+  ].filter(Boolean);
 }
 
 export function buildLiveReportReadingContract(
@@ -317,57 +1353,85 @@ export function buildLiveReportReadingContract(
     report as unknown as Record<string, unknown>,
   );
   const sections = enhanced.reportV3Sections;
-  const parsedPractices = getWeeklyPractices(
-    getSection(sections, SECTION_IDS.practices),
+  const registry = new OwnershipRegistry();
+  const displayName = report.input.name?.trim() || "تو";
+  const personalOpening = buildPersonalOpening(sections, registry);
+  const relationshipProfile = buildRelationshipGroups(
+    getSection(sections, "real-engine-theme-relationship-style"),
+    registry,
   );
-  const fallbackPractices = [
-    "یک الگوی تکرارشونده را در یک موقعیت واقعی ثبت کن.",
-    "پیش از واکنش، یک مکث کوتاه و قابل اندازه‌گیری بساز.",
-    "در پایان هفته بنویس کدام انتخاب کوچک بیشتر به تو کمک کرد.",
+  const themeChapters = buildThemeChapters(
+    sections,
+    registry,
+    relationshipProfile,
+    report,
+  );
+  const primaryPatterns = buildPrimaryPatterns(
+    sections,
+    themeChapters,
+    registry,
+    report,
+  );
+  const primaryStrength = buildValueCard(sections, registry, "strength");
+  const primaryChallenge = buildValueCard(sections, registry, "challenge");
+  const saveableSentence = buildSaveableSentence(sections, registry, primaryStrength);
+  const weeklyActions = buildWeeklyActions(sections, registry);
+  const limitations = buildLimitations(report, registry);
+  const chartSignature = buildChartSignature(report);
+  const corePlacements = buildCorePlacements(report);
+  const growthAxis = buildGrowthAxis(report);
+  const reflectionQuestions = buildReflectionQuestions(sections, registry);
+  const recommendedReadingPath = [
+    "اول سه الگوی اصلی و جفتِ قوت/چالش را بخوان.",
+    "بعد فقط فصل نزدیک‌تر به تجربهٔ این روزهایت را باز کن.",
+    "جزئیات فنی و آسمان ثبت‌شده را جدا و فقط در صورت نیاز ببین.",
   ];
-  const summarySentences = buildSummarySentences(report, sections);
-  const primaryParagraphHashes = new Set(
-    summarySentences.map(normalizeText),
-  );
-  const chartRulerParagraphs = takeUniquePrimaryParagraphs(
-    primaryParagraphHashes,
-    getInterpretiveParagraphs(getSection(sections, SECTION_IDS.chartRuler)),
-    2,
-  );
-  const activeHouseParagraphs = takeUniquePrimaryParagraphs(
-    primaryParagraphHashes,
-    getInterpretiveParagraphs(getSection(sections, SECTION_IDS.houses)),
-    2,
-  );
-  const nodeAxisParagraphs = takeUniquePrimaryParagraphs(
-    primaryParagraphHashes,
-    getInterpretiveParagraphs(getSection(sections, SECTION_IDS.nodes)),
-    2,
-  );
-  const balanceParagraphs = takeUniquePrimaryParagraphs(
-    primaryParagraphHashes,
-    getInterpretiveParagraphs(getSection(sections, SECTION_IDS.balance)),
-    3,
-  );
-  const weeklyPractices = takeUniquePrimaryParagraphs(
-    primaryParagraphHashes,
-    parsedPractices.length === 3 ? parsedPractices : fallbackPractices,
-    3,
+  const transit = getTransitData(report);
+  const readingTime = buildReadingTime(
+    collectVisibleNatalText({
+      personalOpening,
+      chartSignature,
+      corePlacements,
+      primaryPatterns,
+      primaryStrength,
+      primaryChallenge,
+      saveableSentence,
+      recommendedReadingPath,
+      themeChapters,
+      growthAxis,
+      weeklyActions,
+      reflectionQuestions,
+      limitations,
+    }),
+    report,
+    transit,
   );
 
   return {
-    summarySentences,
-    themeChapters: getThemeChapters(sections),
-    guide: getAudienceGuide(report),
-    reflectionQuestions: getReflectionQuestions(sections).slice(0, 2),
-    chartRulerParagraphs,
-    activeHouseParagraphs,
-    nodeAxisParagraphs,
-    balanceParagraphs,
-    weeklyPractices,
-    readingMinutes: Math.min(
-      13,
-      Math.max(10, enhanced.reportV3Summary.readingMinutes),
-    ),
+    displayName,
+    personalOpening,
+    chartSignature,
+    corePlacements,
+    primaryPatterns,
+    primaryStrength,
+    primaryChallenge,
+    saveableSentence,
+    recommendedReadingPath,
+    themeChapters,
+    relationshipProfile,
+    growthAxis,
+    weeklyActions,
+    reflectionQuestions,
+    limitations,
+    evidenceReferences: buildEvidenceReferences(report, registry),
+    readingTime,
+    navigation: REPORT_READING_NAVIGATION,
+    contentOwnership: registry.list(),
+    hasReliableBirthTime: hasReliableBirthTime(report),
+    hasTransit: Boolean(transit),
   };
+}
+
+function formatPersianNumber(value: number): string {
+  return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 1 }).format(value);
 }

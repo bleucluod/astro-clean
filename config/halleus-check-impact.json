@@ -15,6 +15,44 @@
   },
   "areas": [
     {
+      "id": "report-product-quality",
+      "description": "Complete birth-report reader contract, content ownership, responsive presentation, technical appendix, and stored-transit separation.",
+      "exclusive": true,
+      "patterns": [
+        "components/ReportV3Experience.tsx",
+        "components/ReportAspectRelationshipSections.tsx",
+        "components/ReportSpecialPointsNarrativeSection.tsx",
+        "components/report/**",
+        "lib/report-output/live-report-reading-contract.ts",
+        "app/globals.css",
+        "scripts/fixtures/report-product-fixtures.mjs"
+      ],
+      "guards": [
+        "check:report-product-quality",
+        "check:report-quality",
+        "check:vps-release-workflow"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "report-product-orchestrator",
+      "description": "ReportDetail loading, ownership actions, and delegation into the complete birth-report reader.",
+      "exclusive": true,
+      "patterns": [
+        "components/ReportDetail.tsx"
+      ],
+      "guards": [
+        "check:report-product-quality",
+        "check:report-quality",
+        "check:vps-release-workflow",
+        "check:report-ownership-sharing",
+        "check:secure-admin-core"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "personal-opening",
       "description": "Data-backed personal opening in the existing live report synthesis path.",
       "patterns": [
