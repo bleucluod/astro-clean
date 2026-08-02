@@ -77,6 +77,14 @@ export type LiveReportThemeChapter = {
   relationshipGroups?: ReportRelationshipGroup[];
 };
 
+export type ReportNarrativeDeepDive = {
+  id: string;
+  title: string;
+  navigationId: ReportReadingNavigationId;
+  summary: string;
+  paragraphs: string[];
+};
+
 export type ReportCorePlacement = {
   id: "sun" | "moon" | "rising";
   label: string;
@@ -176,6 +184,7 @@ export type LiveReportReadingContract = {
   saveableSentence: string;
   recommendedReadingPath: string[];
   themeChapters: LiveReportThemeChapter[];
+  deepDiveSections: ReportNarrativeDeepDive[];
   relationshipProfile: ReportRelationshipGroup[];
   growthAxis: ReportGrowthAxis;
   weeklyActions: string[];
@@ -343,8 +352,7 @@ class OwnershipRegistry {
 
   private hasOwnedSemanticMatch(candidate: string): boolean {
     return this.entries.some(({ normalizedText, role }) =>
-      role === "owner" &&
-      (normalizedText === candidate || semanticSimilarity(normalizedText, candidate) >= 0.86),
+      role === "owner" && normalizedText === candidate,
     );
   }
 
@@ -381,16 +389,9 @@ export function sanitizeReportText(value: string): string {
     output.push(token);
   }
 
-  let seenPossibility = false;
   return output
     .join(" ")
-    .replace(/ممکن است/gu, (match) => {
-      if (seenPossibility) {
-        return "گاهی";
-      }
-      seenPossibility = true;
-      return match;
-    })
+    .replace(/ممکن است\s+ممکن است/gu, "ممکن است")
     .replace(/میدان\s+میدان‌های/gu, "میدان‌های")
     .replace(/([.!؟])\s*\1+/gu, "$1")
     .trim();
@@ -503,20 +504,17 @@ function claimParagraphs(
   owner: ReportInsightOwner,
   id: string,
   paragraphs: string[],
-  sentenceLimit: number,
 ): string[] {
   const output: string[] = [];
 
   for (const paragraph of paragraphs) {
-    const sentences = claimSentences(
-      registry,
+    const claimed = registry.claim(
       owner,
       `${id}-paragraph-${output.length + 1}`,
       paragraph,
-      sentenceLimit,
     );
-    if (sentences.length > 0) {
-      output.push(sentences.join(" "));
+    if (claimed) {
+      output.push(claimed);
     }
   }
 
@@ -569,7 +567,6 @@ function buildRelationshipGroups(
       "relationship-profile",
       group.id,
       selected,
-      2,
     );
 
     return {
@@ -584,69 +581,9 @@ function buildRelationshipGroups(
 }
 
 
-function buildBriefChapterSummary(value: string): string {
+function ensureSentence(value: string): string {
   const cleaned = sanitizeReportText(value);
-  const words = cleaned.split(/\s+/u).filter(Boolean);
-
-  if (words.length <= 32) {
-    return cleaned;
-  }
-
-  const clauses = cleaned
-    .split(/(?<=[،؛])/u)
-    .map((clause) => clause.trim())
-    .filter(Boolean);
-  const selected: string[] = [];
-  let selectedWordCount = 0;
-
-  for (const clause of clauses) {
-    const clauseWordCount = clause.split(/\s+/u).filter(Boolean).length;
-    if (selected.length > 0 && selectedWordCount + clauseWordCount > 32) {
-      break;
-    }
-    selected.push(clause);
-    selectedWordCount += clauseWordCount;
-    if (selectedWordCount >= 16) {
-      break;
-    }
-  }
-
-  const summary = selected.join(" ").replace(/[،؛]\s*$/u, "").trim();
-  return summary ? `${summary}.` : `${words.slice(0, 32).join(" ")}…`;
-}
-
-
-function buildPrimaryPatternReference(value: string): string {
-  const cleaned = sanitizeReportText(value);
-  const clauses = cleaned
-    .split(/(?<=[،؛:])/u)
-    .map((clause) => clause.trim())
-    .filter(Boolean);
-  const selected: string[] = [];
-  let wordCount = 0;
-
-  for (const clause of clauses) {
-    const clauseWords = clause.split(/\s+/u).filter(Boolean).length;
-    const current = selected.join(" ");
-    const needsMainClause = /^(?:نشانهٔ اصلی:\s*)?ممکن است وقتی/u.test(current);
-    const maximumWords = needsMainClause ? 34 : 24;
-    if (selected.length > 0 && wordCount + clauseWords > maximumWords) {
-      break;
-    }
-    selected.push(clause);
-    wordCount += clauseWords;
-    const selectedText = selected.join(" ");
-    const stillNeedsMainClause = /^ممکن است وقتی/u.test(selectedText) && selected.length < 3;
-    if (wordCount >= 12 && !/[،؛:]$/u.test(clause) && !stillNeedsMainClause) {
-      break;
-    }
-  }
-
-  const reference = selected.join(" ").replace(/[،؛:]\s*$/u, "").trim();
-  const concise = reference
-    ? `${reference}${/[.!؟]$/u.test(reference) ? "" : "."}`
-    : buildBriefChapterSummary(cleaned);
-  return `نشانهٔ اصلی: ${concise}`;
+  return !cleaned || /[.!؟]$/u.test(cleaned) ? cleaned : `${cleaned}.`;
 }
 
 function buildPrimaryPatternSummary(
@@ -655,11 +592,6 @@ function buildPrimaryPatternSummary(
   evidence: string | undefined,
   report: AstrologyReport,
 ): string {
-  const cleanEvidence = evidence
-    ?.split("؛")[0]
-    ?.replace(/[.!؟]+$/u, "")
-    .trim();
-
   if (
     specId === "real-engine-theme-signature" &&
     !hasReliableBirthTime(report)
@@ -675,26 +607,25 @@ function buildPrimaryPatternSummary(
       : "این نسخه فقط جایگاه‌های مستقل از ساعت تولد را نگه می‌دارد و رایزینگ یا خانه‌ها را حدس نمی‌زند.";
   }
 
+  const cleanEvidence = evidence
+    ?.split("؛")[0]
+    ?.replace(/[.!؟]+$/u, "")
+    .trim();
+
   if (cleanEvidence) {
     if (specId === "real-engine-theme-signature") {
-      return `${cleanEvidence} نشان می‌دهد تصویر بیرونی و جهت شخصی همیشه با یک ریتم حرکت نمی‌کنند.`;
+      return `${cleanEvidence}؛ چیزی که دیگران زودتر می‌بینند همیشه با ریتم تصمیم‌های درونی یکی نیست.`;
     }
     if (specId === "real-engine-theme-emotional-security") {
-      return `${cleanEvidence} نقطهٔ شروع خواندن آرام‌شدن، اعتماد و نیاز به امنیت درونی است.`;
+      return `${cleanEvidence}؛ اینجا ریتم آرام‌شدن، اعتماد و درخواست حمایت روشن‌تر می‌شود.`;
     }
     if (specId === "real-engine-theme-recurring-patterns") {
-      return `${cleanEvidence} دو نیازی را برجسته می‌کند که در موقعیت‌های مختلف دوباره به تنظیم احتیاج دارند.`;
+      return `${cleanEvidence}؛ این تماس نشان می‌دهد کدام دو نیاز در موقعیت‌های مختلف دوباره به تنظیم برمی‌گردند.`;
     }
   }
 
-  if (specId === "real-engine-theme-emotional-security") {
-    return "دادهٔ ماه برای این نسخه کامل نیست؛ بنابراین ریتم امنیت درونی بدون حدس‌زدن محدود و شفاف می‌ماند.";
-  }
-  if (specId === "real-engine-theme-recurring-patterns") {
-    return "این نسخه میدان کلی تکرار را نشان می‌دهد، اما بدون جنبه‌های معتبر دربارهٔ علت دقیق آن حکم نمی‌دهد.";
-  }
-
-  return buildPrimaryPatternReference(source);
+  const firstSentence = splitSentences(source)[0] ?? ensureSentence(source);
+  return `در زندگی روزمره، ${firstSentence.replace(/^ممکن است\s*/u, "")}`;
 }
 
 function buildChapterSummary(
@@ -702,26 +633,26 @@ function buildChapterSummary(
   section: ReportOutputSection | undefined,
 ): string {
   if (spec.id === "real-engine-theme-relationship-style") {
-    return "این فصل چهار بخشِ نزدیکی، گفت‌وگو، مرز و ترمیم را در همان یک چارت کنار هم می‌گذارد؛ این متن گزارش سازگاری دو نفر نیست.";
+    return "نزدیکی، امنیت، گفت‌وگو، مرز و ترمیم در یک چارت؛ نه قضاوت دربارهٔ سازگاری دو نفر.";
   }
 
-  const evidence = getSectionEvidence(section)[0]?.replace(/[.!؟]+$/u, "").trim();
+  const evidence = getSectionEvidence(section)[0];
   if (evidence) {
-    return `پشتوانهٔ فصل «${section?.title ?? spec.title}» ${evidence} است؛ متن فصل معنای روزمرهٔ این داده را باز می‌کند.`;
+    return ensureSentence(evidence);
   }
 
-  return `فصل «${section?.title ?? spec.title}» داده‌های مرتبط این حوزه را کنار هم می‌گذارد و فقط یک‌بار توضیح کامل آن‌ها را نشان می‌دهد.`;
+  return `خوانش «${section?.title ?? spec.title}» فقط تا جایی پیش می‌رود که دادهٔ ذخیره‌شده اجازه می‌دهد.`;
 }
 
 function buildValueReference(value: string, kind: "strength" | "challenge"): string {
   const cleaned = sanitizeReportText(value);
   if (kind === "strength") {
     const body = cleaned.replace(/^وقتی این بخش خوب کار می‌کند،?\s*/u, "");
-    return buildBriefChapterSummary(`توان برجسته: ${body}`);
+    return ensureSentence(`توان برجستهٔ این بخش: ${body}`);
   }
 
-  const body = cleaned.replace(/^زیر فشار،?\s*(?:ممکن است\s*)?/u, "");
-  return buildBriefChapterSummary(`چالش برجسته: اینکه ${body}`);
+  const body = cleaned.replace(/^زیر فشار،?\s*/u, "");
+  return ensureSentence(`چالش برجستهٔ این بخش: ${body}`);
 }
 
 function buildLegacyChapterParagraph(
@@ -792,8 +723,7 @@ function buildThemeChapters(
           "theme-chapter",
           spec.id,
           sourceParagraphs,
-          2,
-        ).slice(0, 4);
+        );
     const summarySource = buildChapterSummary(spec, section);
     const summary =
       registry.reference(
@@ -816,6 +746,99 @@ function buildThemeChapters(
         ? { relationshipGroups: relationshipProfile }
         : {}),
     };
+  });
+}
+
+const DEEP_DIVE_SPECS: Array<{
+  id: string;
+  sectionId: string;
+  title: string;
+  navigationId: ReportReadingNavigationId;
+}> = [
+  {
+    id: "whole-chart-story",
+    sectionId: SECTION_IDS.summary,
+    title: "روایت یکپارچهٔ چارت",
+    navigationId: "overview",
+  },
+  {
+    id: "chart-ruler-story",
+    sectionId: SECTION_IDS.chartRuler,
+    title: "سیارهٔ راهبر در زندگی روزمره",
+    navigationId: "overview",
+  },
+  {
+    id: "balance-story",
+    sectionId: SECTION_IDS.balance,
+    title: "ترکیب انرژی‌ها و ریتم واکنش",
+    navigationId: "inner-world",
+  },
+  {
+    id: "active-houses-story",
+    sectionId: SECTION_IDS.houses,
+    title: "میدان‌های پررنگ زندگی",
+    navigationId: "growth-path",
+  },
+  {
+    id: "node-axis-story",
+    sectionId: SECTION_IDS.nodes,
+    title: "الگوی آشنا و جهت تمرین",
+    navigationId: "growth-path",
+  },
+];
+
+function cleanDeepDiveParagraph(
+  sectionId: string,
+  paragraph: string,
+  paragraphIndex: number,
+): string | null {
+  if (sectionId === SECTION_IDS.summary) {
+    if (/^تمرین این هفته:/u.test(paragraph)) {
+      return null;
+    }
+    const withoutRepeatedOpening = paragraphIndex === 0
+      ? splitSentences(paragraph).slice(2).join(" ")
+      : paragraph;
+    return ensureSentence(
+      withoutRepeatedOpening.replace(
+        /^(کشمکش اصلی:|الگوی خوشه‌ای:|منبع همراه:|ترجمهٔ روزمره:)\s*/u,
+        "",
+      ),
+    );
+  }
+  return paragraph;
+}
+
+function buildDeepDiveSections(
+  sections: ReportOutputSection[],
+  registry: OwnershipRegistry,
+): ReportNarrativeDeepDive[] {
+  return DEEP_DIVE_SPECS.flatMap((spec) => {
+    const section = getSection(sections, spec.sectionId);
+    const sourceParagraphs = getSectionParagraphs(section)
+      .map((paragraph, paragraphIndex) =>
+        cleanDeepDiveParagraph(spec.sectionId, paragraph, paragraphIndex),
+      )
+      .filter((paragraph): paragraph is string => Boolean(paragraph));
+    const paragraphs = claimParagraphs(
+      registry,
+      "theme-chapter",
+      `deep-dive-${spec.id}`,
+      sourceParagraphs,
+    );
+    if (paragraphs.length === 0) {
+      return [];
+    }
+    const summary = getSectionReflection(section)
+      ? ensureSentence(getSectionReflection(section) ?? "")
+      : ensureSentence(getSectionEvidence(section)[0] ?? paragraphs[0]);
+    return [{
+      id: spec.id,
+      title: spec.title,
+      navigationId: spec.navigationId,
+      summary,
+      paragraphs,
+    }];
   });
 }
 
@@ -1315,6 +1338,7 @@ function collectVisibleNatalText(input: {
   saveableSentence: string;
   recommendedReadingPath: string[];
   themeChapters: LiveReportThemeChapter[];
+  deepDiveSections: ReportNarrativeDeepDive[];
   growthAxis: ReportGrowthAxis;
   weeklyActions: string[];
   reflectionQuestions: string[];
@@ -1336,6 +1360,11 @@ function collectVisibleNatalText(input: {
       ...chapter.paragraphs,
       ...(chapter.relationshipGroups?.flatMap((group) => [group.title, ...group.paragraphs]) ?? []),
       chapter.reflection ?? "",
+    ]),
+    ...input.deepDiveSections.flatMap((section) => [
+      section.title,
+      section.summary,
+      ...section.paragraphs,
     ]),
     input.growthAxis.familiarPattern,
     input.growthAxis.growthDirection,
@@ -1366,6 +1395,7 @@ export function buildLiveReportReadingContract(
     relationshipProfile,
     report,
   );
+  const deepDiveSections = buildDeepDiveSections(sections, registry);
   const primaryPatterns = buildPrimaryPatterns(
     sections,
     themeChapters,
@@ -1398,6 +1428,7 @@ export function buildLiveReportReadingContract(
       saveableSentence,
       recommendedReadingPath,
       themeChapters,
+      deepDiveSections,
       growthAxis,
       weeklyActions,
       reflectionQuestions,
@@ -1418,6 +1449,7 @@ export function buildLiveReportReadingContract(
     saveableSentence,
     recommendedReadingPath,
     themeChapters,
+    deepDiveSections,
     relationshipProfile,
     growthAxis,
     weeklyActions,

@@ -97,6 +97,11 @@ function flattenVisibleNatalText(contract) {
       ...(chapter.relationshipGroups?.flatMap((group) => [group.title, ...group.paragraphs]) ?? []),
       chapter.reflection ?? "",
     ]),
+    ...contract.deepDiveSections.flatMap((section) => [
+      section.title,
+      section.summary,
+      ...section.paragraphs,
+    ]),
     contract.growthAxis.familiarPattern,
     contract.growthAxis.growthDirection,
     contract.growthAxis.bridge,
@@ -137,7 +142,7 @@ function assertOwnershipUniqueness(fixtureId, ownership) {
       const first = owners[firstIndex];
       const second = owners[secondIndex];
       const similarity = semanticSimilarity(first.normalizedText, second.normalizedText);
-      if (first.normalizedText === second.normalizedText || similarity >= 0.86) {
+      if (first.normalizedText === second.normalizedText || similarity >= 0.98) {
         failures.push(
           `${fixtureId}: content ownership duplicates ${first.owner}/${first.id} and ${second.owner}/${second.id} (${similarity.toFixed(2)})`,
         );
@@ -146,7 +151,7 @@ function assertOwnershipUniqueness(fixtureId, ownership) {
   }
   for (const reference of references) {
     assert(Boolean(reference.sourceOwnerId), `${fixtureId}: reference ${reference.id} is missing its source owner`);
-    assert(countWords(reference.normalizedText) <= 36, `${fixtureId}: reference ${reference.id} rewrites too much of its owner`);
+    assert(countWords(reference.normalizedText) <= 60, `${fixtureId}: reference ${reference.id} rewrites too much of its owner`);
   }
 }
 
@@ -195,6 +200,10 @@ function assertVisibleSurfaceUniqueness(fixtureId, contract) {
         group.paragraphs.map((text, index) => ({ id: `${chapter.id}-${group.id}-${index}`, text })),
       ) ?? []),
     ]),
+    ...contract.deepDiveSections.flatMap((section) => [
+      { id: `${section.id}-summary`, text: section.summary },
+      ...section.paragraphs.map((text, index) => ({ id: `${section.id}-paragraph-${index}`, text })),
+    ]),
     ...contract.weeklyActions.map((text, index) => ({ id: `weekly-${index}`, text })),
     ...contract.reflectionQuestions.map((text, index) => ({ id: `reflection-${index}`, text })),
     ...contract.limitations.map((text, index) => ({ id: `limitation-${index}`, text })),
@@ -211,8 +220,8 @@ function assertVisibleSurfaceUniqueness(fixtureId, contract) {
         `${fixtureId}: exact visible sentence repeats across ${first.id} and ${second.id}`,
       );
       assert(
-        similarity < 0.92,
-        `${fixtureId}: strong visible semantic duplicate across ${first.id} and ${second.id} (${similarity.toFixed(2)})`,
+        similarity < 0.99,
+        `${fixtureId}: near-identical visible duplicate across ${first.id} and ${second.id} (${similarity.toFixed(2)})`,
       );
     }
   }
@@ -237,6 +246,17 @@ for (const [fixtureId, fixture] of Object.entries(reportProductFixtures)) {
     contract.themeChapters.some((chapter) => chapter.id === "real-engine-theme-emotional-security"),
     `${fixtureId}: emotional-security chapter is missing`,
   );
+  if (report.realEngine) {
+    assert(contract.deepDiveSections.length >= 4, `${fixtureId}: writer-backed deep dives are incomplete`);
+    assert(
+      contract.deepDiveSections.some((section) => section.id === "active-houses-story"),
+      `${fixtureId}: active-house narrative was not restored`,
+    );
+    assert(
+      contract.deepDiveSections.some((section) => section.id === "chart-ruler-story"),
+      `${fixtureId}: chart-ruler narrative was not restored`,
+    );
+  }
   for (const chapter of contract.themeChapters) {
     const hasOwnedBody = chapter.paragraphs.length > 0 || (chapter.relationshipGroups?.some((group) => group.paragraphs.length > 0) ?? false);
     assert(hasOwnedBody, `${fixtureId}: chapter ${chapter.id} lost its owned body during deduplication`);
@@ -264,9 +284,10 @@ for (const [fixtureId, fixture] of Object.entries(reportProductFixtures)) {
   for (const text of visibleText) {
     const duplicate = adjacentDuplicateToken(text);
     assert(!duplicate, `${fixtureId}: adjacent duplicate token “${duplicate}” in visible text`);
-    const possibilityCount = text.match(/ممکن است/gu)?.length ?? 0;
-    assert(possibilityCount <= 1, `${fixtureId}: “ممکن است” repeats inside one visible paragraph`);
     assert(!/داده ذخیره‌شده\s+ذخیره‌شده/u.test(text), `${fixtureId}: duplicated stored-data phrase remains`);
+    assert(!/ممکن است\s+ممکن است/u.test(text), `${fixtureId}: duplicated possibility phrase remains`);
+    assert(!/این توان بیشتر در/u.test(text), `${fixtureId}: mechanical strength phrasing remains`);
+    assert(!/این چالش بیشتر در ممکن است/u.test(text), `${fixtureId}: mechanical challenge phrasing remains`);
   }
 
   assertOwnershipUniqueness(fixtureId, contract.contentOwnership);
@@ -288,7 +309,15 @@ const aradOwnerKinds = new Set(aradContract.contentOwnership.filter((entry) => e
 for (const requiredOwner of ["theme-chapter", "relationship-profile", "weekly-action", "reflection-question", "evidence", "technical-explanation", "limitation"]) {
   assert(aradOwnerKinds.has(requiredOwner), `Arad ownership map is missing ${requiredOwner}`);
 }
-assert(aradContract.readingTime.natalWordCount >= 850 && aradContract.readingTime.natalWordCount <= 1800, "Arad visible natal report must stay deep without returning to the 2900-word wall");
+assert(aradContract.readingTime.natalWordCount >= 2200 && aradContract.readingTime.natalWordCount <= 3800, "Arad visible natal report must recover full narrative depth while keeping technical facts collapsed");
+const aradNarrative = flattenVisibleNatalText(aradContract).join(" ");
+for (const marker of ["ممکن است", "وقتی این بخش خوب کار می‌کند", "زیر فشار"]) {
+  assert(aradNarrative.includes(marker), `Arad narrative is missing the human scenario marker: ${marker}`);
+}
+assert(aradContract.reflectionQuestions.length >= 2, "Arad narrative must retain reflection questions");
+for (const forbiddenMachineSummary of ["پشتوانهٔ فصل", "متن فصل معنای روزمره", "داده‌های مرتبط این حوزه را کنار هم می‌گذارد"]) {
+  assert(!aradNarrative.includes(forbiddenMachineSummary), `Arad narrative still exposes machine summary copy: ${forbiddenMachineSummary}`);
+}
 
 const denseReport = prepareFixture(reportProductFixtures.dense);
 const denseContract = buildLiveReportReadingContract(denseReport);
@@ -385,8 +414,8 @@ if (failures.length > 0) {
 
 console.log("Report product quality check passed.");
 console.log("- Arad remains the primary QA fixture alongside a different chart, unknown-time, legacy, no-transit, and dense fixtures");
-console.log("- visible insight ownership removes exact and strong semantic duplication");
-console.log("- seven chapters, four relationship groups, three patterns, strength/challenge, and three weekly actions are complete");
+console.log("- exact duplication is removed without deleting distinct scenario and context paragraphs");
+console.log("- seven chapters plus writer-backed whole-chart, chart-ruler, balance, active-house, and node-axis deep dives are complete");
 console.log("- natal, technical, and stored-transit reading times are calculated separately from visible content");
 console.log("- only three to five aspects receive full narrative while the technical appendix preserves all aspect facts without narrative copy");
 console.log("- five-item navigation, mobile selector, legacy fallback, and unknown-time degradation are covered");

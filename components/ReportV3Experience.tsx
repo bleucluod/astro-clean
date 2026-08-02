@@ -41,6 +41,15 @@ export function ReportV3Experience({
   const growthChapters = readingContract.themeChapters.filter(
     (chapter) => chapter.navigationId === "growth-path",
   );
+  const overviewDeepDives = readingContract.deepDiveSections.filter(
+    (section) => section.navigationId === "overview",
+  );
+  const innerWorldDeepDives = readingContract.deepDiveSections.filter(
+    (section) => section.navigationId === "inner-world",
+  );
+  const growthDeepDives = readingContract.deepDiveSections.filter(
+    (section) => section.navigationId === "growth-path",
+  );
 
   return (
     <div
@@ -143,6 +152,7 @@ export function ReportV3Experience({
       {overviewChapter ? (
         <ReportChapterAccordion chapter={overviewChapter} defaultOpen />
       ) : null}
+      <ReportNarrativeDeepDives sections={overviewDeepDives} />
 
       <section className="report-product-section" id="inner-world">
         <div className="report-product-section-heading">
@@ -155,6 +165,7 @@ export function ReportV3Experience({
             <ReportChapterAccordion chapter={chapter} defaultOpen={index === 0} key={chapter.id} />
           ))}
         </div>
+        <ReportNarrativeDeepDives sections={innerWorldDeepDives} />
       </section>
 
       <section className="report-product-section" id="relationships">
@@ -182,6 +193,7 @@ export function ReportV3Experience({
             <ReportChapterAccordion chapter={chapter} defaultOpen={index === 0} key={chapter.id} />
           ))}
         </div>
+        <ReportNarrativeDeepDives sections={growthDeepDives} />
 
         <section className="report-product-growth-axis" aria-label="محور رشد">
           <div className="report-product-axis-point is-familiar">
@@ -224,6 +236,45 @@ export function ReportV3Experience({
         <p>{enhancedReport.reportV3Disclaimer}</p>
       </details>
     </div>
+  );
+}
+
+function ReportNarrativeDeepDives({
+  sections,
+}: {
+  sections: LiveReportReadingContract["deepDiveSections"];
+}) {
+  if (sections.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="report-product-chapter-list"
+      data-report-narrative-deep-dives="restored-writer-depth"
+      aria-label="خوانش عمیق‌تر گزارش"
+    >
+      {sections.map((section) => (
+        <details
+          className="report-product-chapter report-product-narrative-deep-dive"
+          data-report-narrative-deep-dive={section.id}
+          key={section.id}
+        >
+          <summary>
+            <span>
+              <strong>{section.title}</strong>
+              <small>{section.summary}</small>
+            </span>
+            <span aria-hidden="true">+</span>
+          </summary>
+          <div className="report-product-chapter-body">
+            {section.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        </details>
+      ))}
+    </section>
   );
 }
 
