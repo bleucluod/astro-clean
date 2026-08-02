@@ -1,0 +1,72 @@
+name: Report narrative recovery preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/report-narrative-recovery-preflight.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout PR merge
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact product baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="49d3f215bef7767328df3feca7e60abdcaae80ab"
+          git cat-file -e "${BASE}^{commit}"
+          test -z "$(git diff --name-only "$BASE" -- components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs)"
+
+      - name: Apply exact frozen recovery patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat <<'B64' | base64 -d | gzip -d > /tmp/report-narrative-recovery.patch.gz.decoded
+          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
+          B64
+          test "$(sha256sum /tmp/report-narrative-recovery.patch.gz.decoded | cut -d' ' -f1)" = "e083f8bfca9547adcca135e3c2b2ec79b7965aa81073c21e54e0c0ba36c07ba0"
+          git apply --check /tmp/report-narrative-recovery.patch.gz.decoded
+          git apply /tmp/report-narrative-recovery.patch.gz.decoded
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs "
+          git diff --check
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Focused narrative quality guard
+        run: pnpm run check:report-product-quality
+
+      - name: Explain impact plan
+        run: pnpm run check:plan -- components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs
+
+      - name: Full required verification
+        run: pnpm run verify -- components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs
+
+      - name: Final exact-state checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs "
+          sha256sum components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs
