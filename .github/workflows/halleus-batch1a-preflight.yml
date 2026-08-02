@@ -1,0 +1,194 @@
+name: Halleus Batch 1A preflight
+on:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: halleus-batch1a-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+env:
+  BASE: 1b941f6c3edc40cff0594e1516760da7ecc74c95
+  TAG: v0.1.376-report-publication-mutations
+  PATCH_SHA: b109b0585f8d206777499f4c32abda0eec86ffd817c14e8571fc4a1d8d429efe
+  RUNNER_SHA: 4354e110ebd14b36189b237af78ac12cf730233cbc121f26f217c535c86006c3
+  HALLEUS_RUNNER_FILE: Apply-Halleus-Batch1A-Public-Read-Path-20260802.ps1
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: halleus_batch1a
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d halleus_batch1a"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Reconstruct exact candidate and rehearse rollback
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          base64 -d .preflight/batch1a.patch.b64 | gzip -d > /tmp/b1a.patch
+          echo "$PATCH_SHA  /tmp/b1a.patch" | sha256sum -c
+          cp .preflight/expected-files.txt /tmp/expected-files.txt
+
+          repo=/tmp/halleus-b1a
+          git clone --no-checkout "$GITHUB_WORKSPACE" "$repo"
+          git -C "$repo" config core.autocrlf false
+          git -C "$repo" checkout -B main "$BASE"
+          git -C "$repo" reset --hard "$BASE"
+          git -C "$repo" update-ref refs/remotes/origin/main "$BASE"
+          git -C "$repo" tag -f "$TAG" "$BASE"
+
+          test "$(git -C "$repo" rev-parse HEAD)" = "$BASE"
+          test "$(git -C "$repo" rev-parse origin/main)" = "$BASE"
+          test "$(git -C "$repo" rev-list -n 1 "$TAG")" = "$BASE"
+          test -z "$(git -C "$repo" status --porcelain=v1)"
+          test -z "$(git -C "$repo" ls-tree --name-only HEAD -- scripts/check-public-report-read-path.mjs)"
+          echo NEW_FILE_ABSENCE_CHECK=PASS
+
+          git -C "$repo" apply --check /tmp/b1a.patch
+          git -C "$repo" apply --whitespace=nowarn /tmp/b1a.patch
+          git -C "$repo" --no-pager diff --check
+          { git -C "$repo" diff --name-only; git -C "$repo" ls-files --others --exclude-standard; } | sort -u > /tmp/actual-files.txt
+          diff -u /tmp/expected-files.txt /tmp/actual-files.txt
+
+          git -C "$repo" apply -R --check /tmp/b1a.patch
+          git -C "$repo" apply -R /tmp/b1a.patch
+          test -z "$(git -C "$repo" status --porcelain=v1)"
+          echo ROLLBACK_REHEARSAL=PASS
+
+          git -C "$repo" apply --check /tmp/b1a.patch
+          git -C "$repo" apply --whitespace=nowarn /tmp/b1a.patch
+          git -C "$repo" --no-pager diff --check
+          echo "B1A_REPO=$repo" >> "$GITHUB_ENV"
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install exact dependencies
+        run: pnpm --dir "$B1A_REPO" install --frozen-lockfile
+      - name: Run focused and live verification
+        working-directory: ${{ env.B1A_REPO }}
+        env:
+          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1a
+          HALLEUS_PUBLICATION_MUTATION_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/halleus_batch1a
+        run: |
+          pnpm run check:public-report-read-path
+          pnpm run check:encoding
+          pnpm run check:plan
+          pnpm run verify
+      - name: Confirm exact final boundary
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git -C "$B1A_REPO" --no-pager diff --check
+          { git -C "$B1A_REPO" diff --name-only; git -C "$B1A_REPO" ls-files --others --exclude-standard; } | sort -u > /tmp/final-files.txt
+          diff -u /tmp/expected-files.txt /tmp/final-files.txt
+          echo BATCH1A_LINUX_AFTER_STATE=PASS
+
+  windows:
+    needs: linux
+    runs-on: windows-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Reconstruct exact runner and disposable baseline
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $compressed = [Convert]::FromBase64String((Get-Content '.preflight\batch1a.runner.b64' -Raw))
+          $input = [IO.MemoryStream]::new($compressed, $false)
+          $gzip = [IO.Compression.GZipStream]::new($input, [IO.Compression.CompressionMode]::Decompress)
+          $output = [IO.MemoryStream]::new()
+          $gzip.CopyTo($output)
+          $gzip.Dispose()
+          $input.Dispose()
+          $runnerPath = Join-Path $env:RUNNER_TEMP $env:HALLEUS_RUNNER_FILE
+          [IO.File]::WriteAllBytes($runnerPath, $output.ToArray())
+          $output.Dispose()
+          if ((Get-FileHash $runnerPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:RUNNER_SHA) {
+            throw 'Runner hash mismatch.'
+          }
+
+          $repo = Join-Path $env:RUNNER_TEMP 'halleus-b1a-repo'
+          git clone --no-checkout $env:GITHUB_WORKSPACE $repo
+          git -C $repo config core.autocrlf false
+          git -C $repo checkout -B main $env:BASE
+          git -C $repo reset --hard $env:BASE
+          git -C $repo update-ref refs/remotes/origin/main $env:BASE
+          git -C $repo tag -f $env:TAG $env:BASE
+          "B1A_REPO=$repo" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "B1A_RUNNER=$runnerPath" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Execute exact Windows PowerShell 5.1 runner
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $stdout = Join-Path $env:RUNNER_TEMP 'b1a.stdout.log'
+          $stderr = Join-Path $env:RUNNER_TEMP 'b1a.stderr.log'
+          $process = Start-Process powershell.exe -ArgumentList @(
+            '-NoLogo',
+            '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-File',
+            $env:B1A_RUNNER,
+            '-RepoPath',
+            $env:B1A_REPO
+          ) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          if (Test-Path $stdout) { Get-Content $stdout }
+          if (Test-Path $stderr) { Get-Content $stderr }
+          if ($process.ExitCode -ne 0) {
+            throw "Runner failed with exit code $($process.ExitCode)."
+          }
+          $text = ((Get-Content $stdout) + (Get-Content $stderr -ErrorAction SilentlyContinue)) -join "`n"
+          foreach ($marker in @(
+            'BASELINE=PASS',
+            'NEW_FILE_ABSENCE_CHECK=PASS',
+            'ROLLBACK_REHEARSAL=PASS',
+            'BATCH1A_PUBLIC_READ_PATH=PASS'
+          )) {
+            if (-not $text.Contains($marker)) {
+              throw "Missing runner marker: $marker"
+            }
+          }
+      - name: Confirm exact Windows boundary
+        shell: powershell
+        run: |
+          $actual = @(
+            git -C $env:B1A_REPO diff --name-only
+            git -C $env:B1A_REPO ls-files --others --exclude-standard
+          ) | Where-Object { $_ } | Sort-Object -Unique
+          $expected = Get-Content '.preflight\expected-files.txt' | Where-Object { $_ } | Sort-Object -Unique
+          if (Compare-Object $expected $actual) {
+            throw 'Windows changed-file boundary mismatch.'
+          }
+          git -C $env:B1A_REPO --no-pager diff --check
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Windows diff check failed.'
+          }
+          Write-Host BATCH1A_WINDOWS_AFTER_STATE=PASS
