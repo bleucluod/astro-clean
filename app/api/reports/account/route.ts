@@ -5,6 +5,7 @@ import { getHalleusRuntimeEnv, hasDatabaseConfig } from "@/lib/config/env";
 import { ensureAccountPersistenceUser } from "@/lib/database/account-persistence-user";
 import { getSupabaseUserFromAuthorizationHeader } from "@/lib/auth/supabase-server-user";
 import {
+  getPublicServerStoredReport,
   saveServerGeneratedReport,
 } from "@/lib/storage/server-report-persistence";
 import type { AstrologyReport } from "@/types/astro";
@@ -113,7 +114,28 @@ export async function GET(request: Request) {
   const authorizationHeader = request.headers.get("authorization");
 
   if (reportId && !authorizationHeader) {
-    return errorResponse(401, "A verified account session is required.");
+    const guard = publicReportWriteGuard();
+
+    if (!guard.ok) {
+      return errorResponse(guard.status, guard.error, guard.blockers);
+    }
+
+    try {
+      const reportRecord = await getPublicServerStoredReport({ reportId });
+
+      if (!reportRecord) {
+        return errorResponse(404, "Public report was not found.");
+      }
+
+      return NextResponse.json({ ok: true, reportRecord });
+    } catch (error) {
+      return errorResponse(
+        500,
+        error instanceof Error
+          ? error.message
+          : "Public report persistence read failed.",
+      );
+    }
   }
 
   const guard = accountReportSaveGuard();

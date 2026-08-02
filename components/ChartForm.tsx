@@ -579,17 +579,19 @@ export function ChartForm() {
 
     if (saveResult.accountStatus === "account-saved") {
       setSaveMessage(
-        "گزارش در حساب ذخیره شد؛ نسخه حساب private/noindex است و نسخه دستگاه هم برای اطمینان باقی ماند.",
+        "گزارش در حساب ذخیره شد؛ نسخه عمومی بدون جزئیات تولد فعال است و نسخه دستگاه هم باقی ماند.",
       );
-      router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`);
+      router.push(
+        `/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}?source=account`,
+      );
       return;
     }
 
     if (saveResult.accountStatus === "public-saved" && saveResult.accountRecord) {
       setSaveMessage(
-        "گزارش با لینک public/noindex ذخیره شد؛ هرکس لینک مستقیم را داشته باشد می‌تواند آن را ببیند و نسخه دستگاه هم باقی ماند.",
+        "گزارش عمومی ذخیره شد؛ نام فقط با رضایت جداگانه نمایش داده می‌شود و جزئیات تولد در نسخه عمومی پنهان است.",
       );
-      router.push(`/reports/${saveResult.accountRecord.id}`);
+      router.push(`/reports/${saveResult.accountRecord.id}?source=public`);
       return;
     }
 

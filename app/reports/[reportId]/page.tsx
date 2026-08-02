@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ReportDetail } from "@/components/ReportDetail";
 
-type ReportDetailSource = "local" | "beta-db" | "account";
+type ReportDetailSource = "local" | "beta-db" | "account" | "public";
 
 type ReportDetailPageProps = {
   params: Promise<{
@@ -25,6 +25,10 @@ export const metadata: Metadata = {
 };
 
 function resolveReportSource(rawSource: string | undefined): ReportDetailSource {
+  if (rawSource === "public") {
+    return "public";
+  }
+
   if (rawSource === "account") {
     return "account";
   }

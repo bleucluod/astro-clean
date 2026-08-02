@@ -72,8 +72,8 @@ if (!migration.includes("'public', 'shared_by_link'")) throw new Error("Report m
 for (const marker of ["randomBytes(32)", "sha256", "REPORT_SUMMARY_PAGE_SIZE = 25", "validateReportTitle"]) {
   if (!contract.includes(marker)) throw new Error(`Report access contract is missing ${marker}.`);
 }
-if (accountRoute.includes("getPublicServerStoredReport")) throw new Error("Legacy unauthenticated report lookup is still enabled.");
-if (reportPage.includes("getPublicServerStoredReport")) throw new Error("Legacy public report rendering is still enabled.");
+if (!accountRoute.includes("getPublicServerStoredReport")) throw new Error("Safe unauthenticated public report lookup is missing.");
+if (!reportPage.includes('rawSource === "public"')) throw new Error("Public report source routing is missing.");
 if (sitemap.includes("/reports")) throw new Error("Report routes must remain outside the sitemap.");
 for (const marker of ["share_token_hash", "deleted_at is null", "listOwnedReportSummaries", "softDeleteOwnedReport", "getSharedReport"]) if (!service.includes(marker)) throw new Error(`Report service is missing ${marker}.`);
 const summaryQuery = service.slice(service.indexOf("export async function listOwnedReportSummaries"), service.indexOf("export async function getOwnedReport"));

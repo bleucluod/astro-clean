@@ -5,6 +5,8 @@ import type {
   ReportImportResult,
   ReportRecord,
   ReportRepository,
+  ReportVisibility,
+  StoredReportPublication,
 } from "@/types/storage";
 import {
   createReportRecord,
@@ -30,15 +32,35 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+export function reportVisibilityForPublication(
+  publication: StoredReportPublication,
+): ReportVisibility {
+  if (publication.publicationState === "public") {
+    return "public";
+  }
+
+  if (publication.publicationState === "unpublished") {
+    return "unpublished";
+  }
+
+  if (publication.publicationState === "restricted") {
+    return "restricted_by_admin";
+  }
+
+  return "private";
+}
+
 function createAccountReportRecord(
   userId: string,
   report: AstrologyReport,
   publication: ReportPublicationPolicyInput,
 ): ReportRecord {
+  const storedPublication = createStoredReportPublication(publication);
+
   return createReportRecord(report, {
     source: "account",
     userId,
-    visibility: "private",
+    visibility: reportVisibilityForPublication(storedPublication),
     publication,
   });
 }

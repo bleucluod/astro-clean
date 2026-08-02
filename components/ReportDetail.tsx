@@ -781,19 +781,9 @@ export function ReportDetail({
           return;
         }
 
-        const selectedRecord = await reportRepository.getReport(reportId);
-
-        if (!isActive) {
-          return;
-        }
-
-        setReport(selectedRecord?.report ? sanitizeReportVisibleCopy(selectedRecord.report) : null);
-        setNote(selectedRecord?.note ?? "");
-        setMessage(
-          selectedRecord?.report
-            ? "گزارش روی همین دستگاه پیدا شد."
-            : result.message,
-        );
+        setReport(null);
+        setNote("");
+        setMessage(result.message);
         setIsReady(true);
         return;
       }

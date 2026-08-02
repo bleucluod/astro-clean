@@ -158,8 +158,8 @@ export async function saveGeneratedReportWithAccountFallback(
       accountRecord: payload.reportRecord,
       accountStatus: accessToken ? "account-saved" : "public-saved",
       accountMessage: accessToken
-        ? "گزارش در حساب ذخیره شد؛ وضعیت انتشار ثبت شد اما مسیر عمومی هنوز فعال نشده است."
-        : "گزارش روی سرور ذخیره شد؛ وضعیت انتشار ثبت شد اما مسیر عمومی هنوز فعال نشده است.",
+        ? "گزارش در حساب ذخیره شد و نسخه عمومیِ بدون جزئیات تولد فعال است."
+        : "گزارش روی سرور ذخیره شد و نسخه عمومیِ بدون جزئیات تولد فعال است.",
     };
   } catch (error) {
     return {

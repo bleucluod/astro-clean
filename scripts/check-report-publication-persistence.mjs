@@ -172,8 +172,9 @@ assert(
   "save copy must not claim that the public route is already active",
 );
 assert(
-  saveClient.includes("مسیر عمومی هنوز فعال نشده است"),
-  "save copy must state the current route-activation boundary",
+  !saveClient.includes("مسیر عمومی هنوز فعال نشده است") &&
+    saveClient.includes("نسخه عمومیِ بدون جزئیات تولد فعال است"),
+  "save copy must describe the active privacy-minimized public read path",
 );
 
 const sampleReport = {
@@ -229,7 +230,7 @@ assert(
 );
 assert(
   guest.visibility === "private",
-  "public access visibility must remain inactive in Batch A2a",
+  "record constructor must preserve an explicitly private access visibility",
 );
 assert(
   guest.publication?.publicationConsentState === "not-required",
@@ -249,6 +250,10 @@ const account = createReportRecord(sampleReport, {
 assert(
   account.publication?.publicationState === "public",
   "logged-in free save must persist the canonical public policy state",
+);
+assert(
+  account.visibility === "private",
+  "record constructor must preserve an explicitly private access visibility",
 );
 
 const premium = createReportRecord(sampleReport, {
@@ -306,4 +311,4 @@ console.log("Report publication persistence check passed.");
 console.log("- server saves persist canonical policy fields without trusting client tier");
 console.log("- legacy and beta records remain private");
 console.log("- database round-trip preserves publication and identity consent");
-console.log("- public access activation remains deferred");
+console.log("- public access activation is covered by the focused read-path guard");
