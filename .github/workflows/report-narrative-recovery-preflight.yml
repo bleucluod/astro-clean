@@ -1,0 +1,74 @@
+name: Report narrative recovery preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/report-narrative-recovery-preflight.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout PR merge
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact product baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="49d3f215bef7767328df3feca7e60abdcaae80ab"
+          git cat-file -e "${BASE}^{commit}"
+          test -z "$(git diff --name-only "$BASE" -- components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs)"
+
+      - name: Recover and apply exact frozen patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          HARNESS_COMMIT="2b925cf135611c8703195395bdbc25c163b66e37"
+          HARNESS_PATH=".github/workflows/report-narrative-recovery-preflight.yml"
+          git show "${HARNESS_COMMIT}:${HARNESS_PATH}" |
+            awk '/cat <<'\''B64'\''/{capture=1;next} capture && /^[[:space:]]*B64[[:space:]]*$/{exit} capture{sub(/^[[:space:]]+/, ""); print}' |
+            base64 -d | gzip -d > /tmp/report-narrative-recovery.patch
+          test "$(sha256sum /tmp/report-narrative-recovery.patch | cut -d' ' -f1)" = "e083f8bfca9547adcca135e3c2b2ec79b7965aa81073c21e54e0c0ba36c07ba0"
+          git apply --check /tmp/report-narrative-recovery.patch
+          git apply /tmp/report-narrative-recovery.patch
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs "
+          git diff --check
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Focused narrative quality guard
+        run: pnpm run check:report-product-quality
+
+      - name: Explain impact plan
+        run: node scripts/halleus-check-plan.mjs components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs
+
+      - name: Full required verification
+        run: node scripts/halleus-verify.mjs components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs
+
+      - name: Final exact-state checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs "
+          sha256sum components/ReportV3Experience.tsx lib/report-output/live-report-reading-contract.ts scripts/check-report-product-quality.mjs
