@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
-import { ReportCard } from "@/components/ReportCard";
-import { createShareText } from "@/lib/astrology/share-text";
 import { decodeReportRecords } from "@/lib/storage/report-record-migration";
 import { createReportRecord } from "@/lib/storage/report-records";
 import { getReportRepository } from "@/lib/storage/report-repository";
@@ -16,6 +14,10 @@ import {
 } from "@/lib/storage/account-report-read-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
+import {
+  getReportReadingProgress,
+  getReportReadingSectionLabel,
+} from "@/lib/storage/report-journey-client";
 
 type مرتب‌سازیMode = "newest" | "oldest";
 type ReportFilterMode = "all" | "favorites";
@@ -112,25 +114,35 @@ function createReportsArchivePayload(
   };
 }
 
-function createReportsArchiveText(
-  reports: AstrologyReport[],
-  reportNotes: ReportNotesMap,
-) {
+function redactArchiveText(value: string, report: AstrologyReport) {
+  const privateTokens = [
+    report.input.name,
+    report.input.birthDate,
+    report.input.birthTime,
+    report.input.birthCity,
+    report.input.birthCountry,
+  ]
+    .map((item) => item?.trim())
+    .filter((item): item is string => Boolean(item && item.length > 1));
+
+  return privateTokens.reduce(
+    (current, token) => current.split(token).join("—"),
+    value,
+  );
+}
+
+function createReportsArchiveText(reports: AstrologyReport[]) {
   return reports
-    .map((report, index) => {
-      const lines = [
+    .map((report, index) =>
+      [
         `# ${index + 1}`,
-        createShareText(report),
-      ];
-
-      const note = reportNotes[report.id]?.trim();
-
-      if (note) {
-        lines.push("", "Note:", note);
-      }
-
-      return lines.join("\n");
-    })
+        "خلاصه امن گزارش هالیوس",
+        "",
+        redactArchiveText(report.summary, report),
+        "",
+        "نام، تاریخ، ساعت، شهر تولد، یادداشت شخصی و داده فنی خام حذف شده‌اند.",
+      ].join("\n"),
+    )
     .join("\n\n---\n\n");
 }
 
@@ -362,12 +374,31 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
     setIsReady(true);
   }
 
-  async function manageAccountReport(summary: ReportRecordSummary, action: "title" | "enable_sharing" | "revoke_sharing" | "delete") {
+  async function manageAccountReport(
+    summary: ReportRecordSummary,
+    action:
+      | "title"
+      | "favorite"
+      | "enable_sharing"
+      | "revoke_sharing"
+      | "delete",
+  ) {
     try {
       if (action === "title") {
         const title = window.prompt("عنوان تازهٔ گزارش:", summary.title ?? summary.name ?? "");
         if (title === null) return;
         await mutateAccountReport({ reportId: summary.id, action, title });
+      } else if (action === "favorite") {
+        await mutateAccountReport({
+          reportId: summary.id,
+          action,
+          favorite: !summary.favorite,
+        });
+        setMessage(
+          summary.favorite
+            ? "گزارش از علاقه‌مندی‌ها حذف شد."
+            : "گزارش به علاقه‌مندی‌ها اضافه شد.",
+        );
       } else if (action === "delete") {
         if (!window.confirm("این گزارش حذف شود؟ پیوند اشتراک آن نیز فوراً از کار می‌افتد.")) return;
         await deleteAccountReport(summary.id);
@@ -502,11 +533,11 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
     downloadArchiveFile(
       createArchiveFileName("txt"),
-      createReportsArchiveText(visibleReports, reportNotes),
+      createReportsArchiveText(visibleReports),
       "text/plain;charset=utf-8",
     );
 
-    setMessage("خروجی متنی گزارش‌های نمایش‌داده‌شده آماده شد.");
+    setMessage("خلاصه امن گزارش‌های نمایش‌داده‌شده بدون اطلاعات تولد آماده شد.");
   }
 
   function handleExportVisibleJson() {
@@ -713,6 +744,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               >
                 باز کردن گزارش
               </Link>
+              <button className="button secondary" type="button" onClick={() => void manageAccountReport(summary, "favorite")}>{summary.favorite ? "حذف ستاره" : "ستاره‌دار کردن"}</button>
               <button className="button secondary" type="button" onClick={() => void manageAccountReport(summary, "title")}>ویرایش عنوان</button>
               {summary.visibility === "shared_by_link" ? (
                 <button className="button secondary" type="button" onClick={() => void manageAccountReport(summary, "revoke_sharing")}>لغو اشتراک</button>
@@ -1016,7 +1048,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportVisibleText}
             >
-              دریافت متن گزارش‌ها
+              دریافت متن امن بدون اطلاعات تولد
             </button>
 
             <button
@@ -1024,7 +1056,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
               type="button"
               onClick={handleExportVisibleJson}
             >
-              دریافت فایل گزارش‌های نمایش‌داده‌شده
+              پشتیبان خصوصی گزارش‌های نمایش‌داده‌شده
             </button>
           </div>
         </div>
@@ -1056,24 +1088,58 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
         </div>
       ) : null}
 
-      {visibleReports.map((report) => {
-        const isFavorite = favoriteReportIds.includes(report.id);
-        const hasNote = Boolean(reportNotes[report.id]);
+      <div className="report-library-grid">
+        {visibleReports.map((report) => {
+          const isFavorite = favoriteReportIds.includes(report.id);
+          const hasNote = Boolean(reportNotes[report.id]);
+          const progress = getReportReadingProgress("local", report.id);
+          const title = report.input.name?.trim()
+            ? `گزارش چارت تولد ${report.input.name.trim()}`
+            : "گزارش چارت تولد";
 
-        return (
-          <article className="report-list-item" key={report.id}>
-            <ReportCard report={report} />
+          return (
+            <article className="report-library-card" key={report.id}>
+              <header>
+                <div>
+                  <span className="badge">
+                    {report.realEngine ? "گزارش محاسبه‌شده" : "گزارش نمادین"}
+                  </span>
+                  <h2>{title}</h2>
+                </div>
+                <span className="pill">
+                  {new Date(report.createdAt).toLocaleDateString("fa-IR")}
+                </span>
+              </header>
 
-            <div className="card report-actions-card">
+              <p className="report-library-summary">{report.summary}</p>
+
+              <div className="birth-details report-library-private-details">
+                <span>{report.input.birthDate}</span>
+                <span>{report.input.birthTime}</span>
+                <span>{report.input.birthCity}</span>
+              </div>
+
+              <div className="report-library-state-row">
+                {progress ? (
+                  <span>
+                    ادامه از {getReportReadingSectionLabel(progress.sectionId)}
+                  </span>
+                ) : (
+                  <span>آماده شروع مطالعه</span>
+                )}
+                {isFavorite ? <span>علاقه‌مندی</span> : null}
+                {hasNote ? <span>یادداشت دارد</span> : null}
+              </div>
+
               {hasNote ? (
                 <p className="report-note-preview">
                   یادداشت: {reportNotes[report.id]}
                 </p>
               ) : null}
 
-              <div className="actions">
+              <div className="actions report-library-actions">
                 <Link className="button" href={`/reports/${report.id}`}>
-                  دیدن جزئیات گزارش
+                  {progress ? "ادامه مطالعه" : "باز کردن گزارش"}
                 </Link>
 
                 <button
@@ -1081,21 +1147,21 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
                   type="button"
                   onClick={() => handleToggleFavorite(report.id)}
                 >
-                  {isFavorite ? "حذف از علاقه‌مندی‌ها" : "ستاره‌دار کردن"}
+                  {isFavorite ? "حذف ستاره" : "ستاره‌دار کردن"}
                 </button>
 
                 <button
-                  className="button secondary"
+                  className="button secondary report-danger-action"
                   type="button"
                   onClick={() => handleDeleteReport(report.id)}
                 >
-                  حذف این گزارش
+                  حذف
                 </button>
               </div>
-            </div>
-          </article>
-        );
-      })}
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 }

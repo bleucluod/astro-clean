@@ -109,6 +109,56 @@ function replaceSensitiveTokens(value: unknown, tokens: string[]): unknown {
   return value;
 }
 
+export function projectPrivateShareReport(
+  sourceReport: AstrologyReport,
+): AstrologyReport {
+  const input = sourceReport.input;
+  const sensitiveTokens = [
+    input.name,
+    input.birthDate,
+    input.birthTime,
+    input.birthCity,
+    input.currentResidenceCity,
+  ]
+    .map((value) => value?.trim() ?? "")
+    .filter(Boolean);
+  const report = replaceSensitiveTokens(
+    sourceReport,
+    sensitiveTokens,
+  ) as AstrologyReport;
+
+  report.input = {
+    birthDate: "",
+    birthTime: "",
+    birthCity: "",
+    birthCountry: "",
+  };
+
+  if (report.realEngine) {
+    report.realEngine = {
+      ...report.realEngine,
+      cityLabel: "پنهان در نمایش اشتراکی",
+      utcIso: "پنهان در نمایش اشتراکی",
+    };
+  }
+
+  const reportWithEngineData = report as AstrologyReport & {
+    engineData?: {
+      personalTransitReportData?: unknown;
+      [key: string]: unknown;
+    } | null;
+  };
+
+  if (reportWithEngineData.engineData?.personalTransitReportData) {
+    reportWithEngineData.engineData = {
+      ...reportWithEngineData.engineData,
+      personalTransitReportData: null,
+    };
+  }
+
+  return report;
+}
+
 export function projectPublicReportRecord(
   record: ReportRecord,
 ): ReportRecord | null {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import { createMockReport } from "@/lib/astrology/mock-engine";
@@ -19,6 +19,10 @@ import {
 } from "@/lib/locations/iran-cities";
 import { saveGeneratedReportWithAccountFallback } from "@/lib/storage/account-report-save-client";
 import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
+import {
+  loadLastStudyLocation,
+  saveLastStudyLocation,
+} from "@/lib/storage/report-journey-client";
 
 const initialForm: BirthInput = {
   name: "",
@@ -153,6 +157,24 @@ type RealEngineRequestState = {
   message: string;
 };
 
+type ChartFieldId =
+  | "birthDate"
+  | "birthTime"
+  | "birthCity"
+  | "currentResidence";
+
+type ChartFieldErrors = Partial<Record<ChartFieldId, string>>;
+
+class ChartFormValidationError extends Error {
+  readonly field: ChartFieldId;
+
+  constructor(field: ChartFieldId, message: string) {
+    super(message);
+    this.name = "ChartFormValidationError";
+    this.field = field;
+  }
+}
+
 const initialRealEngineRequest: RealEngineRequestState = {
   status: "idle",
   message: "فرم آماده است.",
@@ -241,13 +263,37 @@ export function ChartForm() {
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =
     useState<RealEngineRequestState>(initialRealEngineRequest);
+  const formRef = useRef<HTMLFormElement>(null);
+  const submissionInFlightRef = useRef(false);
+  const openReportTimerRef = useRef<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ChartFieldErrors>({});
+  const [includeTransitReading, setIncludeTransitReading] = useState(false);
+  const [generatedReportPath, setGeneratedReportPath] = useState("");
+  const [showOpenReportButton, setShowOpenReportButton] = useState(false);
 
   const [currentResidenceCity, setCurrentResidenceCity] = useState("");
   const [selectedBirthCityId, setSelectedBirthCityId] = useState("");
   const [selectedCurrentResidenceCityId, setSelectedCurrentResidenceCityId] =
     useState("");
 
-  const isRealEngineLoading = realEngineRequest.status === "loading";
+  useEffect(() => {
+    const restoreFrame = window.requestAnimationFrame(() => {
+      const savedLocation = loadLastStudyLocation();
+
+      if (savedLocation) {
+        setSelectedCurrentResidenceCityId(savedLocation.cityId);
+        setCurrentResidenceCity(savedLocation.cityName);
+      }
+    });
+
+    return () => {
+      window.cancelAnimationFrame(restoreFrame);
+      if (openReportTimerRef.current !== null) {
+        window.clearTimeout(openReportTimerRef.current);
+      }
+    };
+  }, []);
 
   const citySuggestions = useMemo(() => {
     if (selectedBirthCityId) {
@@ -301,22 +347,37 @@ export function ChartForm() {
     [gregorianBirthDateParts.month, gregorianBirthDateParts.year],
   );
 
+  function clearFieldError(field: ChartFieldId) {
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
   function updateCurrentResidenceCity(value: string) {
+    clearFieldError("currentResidence");
     setSelectedCurrentResidenceCityId("");
     setCurrentResidenceCity(value);
   }
 
   function selectCurrentResidenceCity(city: IranCityOption) {
+    const cityName = getIranCityDisplayName(city);
+    clearFieldError("currentResidence");
     setSelectedCurrentResidenceCityId(city.id);
-    setCurrentResidenceCity(getIranCityDisplayName(city));
+    setCurrentResidenceCity(cityName);
+    saveLastStudyLocation({ cityId: city.id, cityName });
   }
 
   function updateBirthCity(value: string) {
+    clearFieldError("birthCity");
     setSelectedBirthCityId("");
     updateField("birthCity", value);
   }
 
   function selectBirthCity(city: IranCityOption) {
+    clearFieldError("birthCity");
     setSelectedBirthCityId(city.id);
     updateField("birthCity", getIranCityDisplayName(city));
   }
@@ -329,6 +390,7 @@ export function ChartForm() {
   }
 
   function updateDateMode(nextMode: BirthDateMode) {
+    clearFieldError("birthDate");
     setDateMode(nextMode);
     setSaveMessage("");
   }
@@ -339,6 +401,7 @@ export function ChartForm() {
       [field]: value,
     };
 
+    clearFieldError("birthDate");
     setBirthDateParts(nextBirthDateParts);
     updateField("birthDate", "");
   }
@@ -347,6 +410,7 @@ export function ChartForm() {
     field: keyof JalaliBirthDateParts,
     value: string,
   ) {
+    clearFieldError("birthDate");
     setGregorianBirthDateParts((current) => {
       const next = { ...current, [field]: value };
       const dayCount = getGregorianDayCount(next.year, next.month);
@@ -361,6 +425,7 @@ export function ChartForm() {
   }
 
   function updateBirthTimePart(field: keyof BirthTimeParts, value: string) {
+    clearFieldError("birthTime");
     const next = { ...birthTimeParts, [field]: value };
     setBirthTimeParts(next);
     updateField(
@@ -370,6 +435,7 @@ export function ChartForm() {
   }
 
   function updateBirthTimeMode(nextMode: BirthTimeMode) {
+    clearFieldError("birthTime");
     setBirthTimeMode(nextMode);
 
     if (nextMode === "unknown") {
@@ -385,13 +451,13 @@ export function ChartForm() {
       const selectedJalaliBirthDate = getSelectedJalaliDateInput(birthDateParts);
 
       if (!selectedJalaliBirthDate) {
-        throw new Error("تاریخ تولد را کامل کن.");
+        throw new ChartFormValidationError("birthDate", "تاریخ تولد را کامل کن.");
       }
 
       const parsedBirthDate = parseJalaliDateInput(selectedJalaliBirthDate);
 
       if (!parsedBirthDate.ok) {
-        throw new Error(parsedBirthDate.message);
+        throw new ChartFormValidationError("birthDate", parsedBirthDate.message);
       }
 
       normalizedBirthDate = parsedBirthDate.gregorianIso;
@@ -401,11 +467,11 @@ export function ChartForm() {
       );
 
       if (!selectedGregorianBirthDate) {
-        throw new Error("تاریخ میلادی تولد را وارد کن.");
+        throw new ChartFormValidationError("birthDate", "تاریخ میلادی تولد را وارد کن.");
       }
 
       if (!isGregorianDateInput(selectedGregorianBirthDate)) {
-        throw new Error("تاریخ میلادی باید کامل باشد.");
+        throw new ChartFormValidationError("birthDate", "تاریخ میلادی باید کامل باشد.");
       }
 
       normalizedBirthDate = selectedGregorianBirthDate;
@@ -414,7 +480,7 @@ export function ChartForm() {
     const normalizedCityName = form.birthCity.trim();
 
     if (!normalizedCityName) {
-      throw new Error("نام شهر تولد را وارد کن و از پیشنهادها انتخاب کن.");
+      throw new ChartFormValidationError("birthCity", "نام شهر تولد را وارد کن و از پیشنهادها انتخاب کن.");
     }
 
     const selectedCity =
@@ -422,29 +488,39 @@ export function ChartForm() {
       findIranCityByName(normalizedCityName);
 
     if (!selectedCity) {
-      throw new Error("فعلاً این شهر در فهرست ایران پیدا نشد. نزدیک‌ترین شهر پیشنهادی را انتخاب کن.");
+      throw new ChartFormValidationError("birthCity", "فعلاً این شهر در فهرست ایران پیدا نشد. نزدیک‌ترین شهر پیشنهادی را انتخاب کن.");
     }
 
-    const normalizedCurrentResidenceCityName = currentResidenceCity.trim();
+    let selectedCurrentResidenceCity: IranCityOption | null = null;
 
-    if (!normalizedCurrentResidenceCityName) {
-      throw new Error(CURRENT_RESIDENCE_REQUIRED_MESSAGE);
-    }
+    if (includeTransitReading) {
+      const normalizedCurrentResidenceCityName = currentResidenceCity.trim();
 
-    const selectedCurrentResidenceCity =
-      IRAN_CITY_OPTIONS.find(
-        (city) => city.id === selectedCurrentResidenceCityId,
-      ) ?? findIranCityByName(normalizedCurrentResidenceCityName);
+      if (!normalizedCurrentResidenceCityName) {
+        throw new ChartFormValidationError(
+          "currentResidence",
+          CURRENT_RESIDENCE_REQUIRED_MESSAGE,
+        );
+      }
 
-    if (!selectedCurrentResidenceCity) {
-      throw new Error(CURRENT_RESIDENCE_NOT_FOUND_MESSAGE);
+      selectedCurrentResidenceCity =
+        IRAN_CITY_OPTIONS.find(
+          (city) => city.id === selectedCurrentResidenceCityId,
+        ) ?? findIranCityByName(normalizedCurrentResidenceCityName) ?? null;
+
+      if (!selectedCurrentResidenceCity) {
+        throw new ChartFormValidationError(
+          "currentResidence",
+          CURRENT_RESIDENCE_NOT_FOUND_MESSAGE,
+        );
+      }
     }
 
     const normalizedBirthTime =
       birthTimeMode === "unknown" ? UNKNOWN_BIRTH_TIME : form.birthTime.trim();
 
     if (!normalizedBirthTime) {
-      throw new Error("ساعت تولد را وارد کن یا گزینه «نمی‌دانم» را بزن.");
+      throw new ChartFormValidationError("birthTime", "ساعت تولد را وارد کن یا گزینه «نمی‌دانم» را بزن.");
     }
 
     const normalizedForm: BirthInput = {
@@ -458,12 +534,16 @@ export function ChartForm() {
       birthLatitude: selectedCity.latitude,
       birthLongitude: selectedCity.longitude,
       birthTimezone: selectedCity.timezone,
-      currentResidenceCity: selectedCurrentResidenceCity.faName,
-      currentResidenceCountry: initialForm.birthCountry,
-      currentResidenceCityId: selectedCurrentResidenceCity.id,
-      currentResidenceLatitude: selectedCurrentResidenceCity.latitude,
-      currentResidenceLongitude: selectedCurrentResidenceCity.longitude,
-      currentResidenceTimezone: selectedCurrentResidenceCity.timezone,
+      ...(selectedCurrentResidenceCity
+        ? {
+            currentResidenceCity: selectedCurrentResidenceCity.faName,
+            currentResidenceCountry: initialForm.birthCountry,
+            currentResidenceCityId: selectedCurrentResidenceCity.id,
+            currentResidenceLatitude: selectedCurrentResidenceCity.latitude,
+            currentResidenceLongitude: selectedCurrentResidenceCity.longitude,
+            currentResidenceTimezone: selectedCurrentResidenceCity.timezone,
+          }
+        : {}),
     };
 
     return {
@@ -519,8 +599,8 @@ export function ChartForm() {
       }
 
       setRealEngineRequest({
-        status: "ready",
-        message: "چارت آماده شد؛ گزارش مستقیم باز می‌شود.",
+        status: "loading",
+        message: "چارت آماده شد؛ گزارش در حال آماده‌سازی نهایی است…",
       });
 
       return payload;
@@ -539,13 +619,33 @@ export function ChartForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (submissionInFlightRef.current || generatedReportPath) {
+      return;
+    }
+
+    submissionInFlightRef.current = true;
+    setIsSubmitting(true);
+    setShowOpenReportButton(false);
     setSaveMessage("");
+    setFieldErrors({});
+    setRealEngineRequest({
+      status: "loading",
+      message: "در حال ساخت گزارش…",
+    });
 
     let normalizedBirth: ReturnType<typeof normalizeBirthForm>;
 
     try {
       normalizedBirth = normalizeBirthForm();
     } catch (error) {
+      submissionInFlightRef.current = false;
+      setIsSubmitting(false);
+
+      if (error instanceof ChartFormValidationError) {
+        setFieldErrors({ [error.field]: error.message });
+      }
+
       setRealEngineRequest({
         status: "error",
         message:
@@ -560,51 +660,83 @@ export function ChartForm() {
     let realEngineResult: RealChartApiResponse | null = null;
 
     try {
-      realEngineResult = await requestRealEngineReportData(
+      try {
+        realEngineResult = await requestRealEngineReportData(
+          normalizedForm,
+          engineCity,
+        );
+      } catch {
+        setRealEngineRequest({
+          status: "loading",
+          message:
+            "محاسبه دقیق کامل نشد؛ نسخه امن گزارش در حال آماده‌سازی است…",
+        });
+      }
+
+      if (
+        normalizedForm.currentResidenceCityId &&
+        normalizedForm.currentResidenceCity
+      ) {
+        saveLastStudyLocation({
+          cityId: normalizedForm.currentResidenceCityId,
+          cityName: normalizedForm.currentResidenceCity,
+        });
+      }
+
+      const nextReport = buildReportForSave(
         normalizedForm,
+        realEngineResult,
         engineCity,
       );
-    } catch {
-      // Keep the safe report save flow alive if the deeper chart calculation is unavailable.
-    }
 
-    const nextReport = buildReportForSave(
-      normalizedForm,
-      realEngineResult,
-      engineCity,
-    );
-
-    const saveResult = await saveGeneratedReportWithAccountFallback(nextReport);
-    notifyLocalDataChanged();
-
-    if (saveResult.accountStatus === "account-saved") {
-      setSaveMessage(
-        "گزارش در حساب ذخیره شد؛ نسخه عمومی بدون جزئیات تولد فعال است و نسخه دستگاه هم باقی ماند.",
+      const saveResult = await saveGeneratedReportWithAccountFallback(
+        nextReport,
+        { navigationGraceMs: 2200 },
       );
-      router.push(
-        `/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}?source=account`,
-      );
-      return;
+      notifyLocalDataChanged();
+
+      let nextPath = `/reports/${saveResult.localRecord.id}`;
+      let nextMessage =
+        "گزارش روی همین دستگاه آماده شد. ذخیره آنلاین در صورت امکان بدون متوقف‌کردن بازشدن گزارش ادامه پیدا می‌کند.";
+
+      if (saveResult.accountStatus === "account-saved") {
+        nextPath = `/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}?source=account`;
+        nextMessage =
+          "گزارش در حساب ذخیره شد؛ نسخه عمومی بدون جزئیات تولد فعال است و نسخه دستگاه هم باقی ماند.";
+      } else if (
+        saveResult.accountStatus === "public-saved" &&
+        saveResult.accountRecord
+      ) {
+        nextPath = `/reports/${saveResult.accountRecord.id}?source=public`;
+        nextMessage =
+          "گزارش عمومی ذخیره شد؛ نام فقط با رضایت جداگانه نمایش داده می‌شود و جزئیات تولد در نسخه عمومی پنهان است.";
+      } else if (saveResult.accountMessage) {
+        nextMessage = buildReportSaveFallbackMessage(saveResult.accountMessage);
+      }
+
+      setGeneratedReportPath(nextPath);
+      setSaveMessage(nextMessage);
+      setRealEngineRequest({
+        status: "ready",
+        message: "گزارش آماده شد؛ در حال باز کردن…",
+      });
+
+      openReportTimerRef.current = window.setTimeout(() => {
+        setShowOpenReportButton(true);
+      }, 1400);
+
+      router.push(nextPath);
+    } catch (error) {
+      submissionInFlightRef.current = false;
+      setIsSubmitting(false);
+      setRealEngineRequest({
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "ساخت گزارش کامل نشد. دوباره تلاش کن.",
+      });
     }
-
-    if (saveResult.accountStatus === "public-saved" && saveResult.accountRecord) {
-      setSaveMessage(
-        "گزارش عمومی ذخیره شد؛ نام فقط با رضایت جداگانه نمایش داده می‌شود و جزئیات تولد در نسخه عمومی پنهان است.",
-      );
-      router.push(`/reports/${saveResult.accountRecord.id}?source=public`);
-      return;
-    }
-
-    const fallbackMessage = buildReportSaveFallbackMessage(saveResult.accountMessage);
-
-    setRealEngineRequest({
-      status: "ready",
-      message: fallbackMessage,
-    });
-    setSaveMessage(
-      "گزارش روی همین دستگاه آماده شد؛ این نسخه local/private است و اگر ذخیره حساب یا لینک noindex دیر پاسخ داد، همین نسخه را می‌بینی.",
-    );
-    router.push(`/reports/${saveResult.localRecord.id}`);
   }
 
   return (
@@ -615,12 +747,14 @@ export function ChartForm() {
             className="chart-reference-form"
             id="chart-birth-data-form"
             onSubmit={handleSubmit}
+            ref={formRef}
           >
             <div className="chart-form-fields">
               <label className="chart-field chart-field-full">
                 <span className="chart-field-label">
                   <span aria-hidden="true">♙</span>
                   نام
+                  <small className="chart-optional-label">اختیاری</small>
                 </span>
                 <input
                   autoComplete="name"
@@ -793,6 +927,7 @@ export function ChartForm() {
                     </label>
                   </div>
                 )}
+                <FieldError message={fieldErrors.birthDate} />
               </div>
 
               <div className="chart-field chart-field-full">
@@ -864,9 +999,10 @@ export function ChartForm() {
 
                 {birthTimeMode === "unknown" ? (
                   <small className="field-hint">
-                    اگر ساعت دقیق را نمی‌دانی، با ساعت میانی روز شروع می‌کنیم.
+                    اگر ساعت دقیق را نمی‌دانی، با ساعت میانی روز شروع می‌کنیم و محدودیت خانه‌ها و رایزینگ را در گزارش روشن نگه می‌داریم.
                   </small>
                 ) : null}
+                <FieldError message={fieldErrors.birthTime} />
               </div>
 
               <div className="chart-field chart-city-field chart-city-card">
@@ -901,41 +1037,62 @@ export function ChartForm() {
                     ))}
                   </div>
                 ) : null}
+                <FieldError message={fieldErrors.birthCity} />
               </div>
 
-              <div className="chart-field chart-city-field chart-city-card">
-                <label className="chart-city-label">
-                  <span className="chart-field-label">
-                    <span aria-hidden="true">⌖</span>
-                    {CURRENT_RESIDENCE_LABEL}
-                  </span>
-                  <input
-                    value={currentResidenceCity}
-                    onChange={(event) =>
-                      updateCurrentResidenceCity(event.target.value)
-                    }
-                    placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
-                  />
-                </label>
+              <label className="chart-transit-choice chart-field-full">
+                <input
+                  type="checkbox"
+                  checked={includeTransitReading}
+                  onChange={(event) => {
+                    setIncludeTransitReading(event.target.checked);
+                    clearFieldError("currentResidence");
+                  }}
+                />
+                <span>
+                  <strong>آسمان زمان ساخت را هم مقایسه کن</strong>
+                  <small>
+                    فقط در این حالت محل زندگی فعلی لازم است. این بخش از گزارش تولد جدا می‌ماند.
+                  </small>
+                </span>
+              </label>
 
-                {currentResidenceSuggestions.length > 0 ? (
-                  <div
-                    className="city-suggestion-chips has-suggestions"
-                    aria-label={CURRENT_RESIDENCE_SUGGESTIONS_LABEL}
-                  >
-                    {currentResidenceSuggestions.map((city) => (
-                      <button
-                        key={city.id}
-                        type="button"
-                        onClick={() => selectCurrentResidenceCity(city)}
-                        className="city-suggestion-chip"
-                      >
-                        {getIranCityDisplayName(city)}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+              {includeTransitReading ? (
+                <div className="chart-field chart-city-field chart-city-card chart-transit-location">
+                  <label className="chart-city-label">
+                    <span className="chart-field-label">
+                      <span aria-hidden="true">⌖</span>
+                      {CURRENT_RESIDENCE_LABEL}
+                    </span>
+                    <input
+                      value={currentResidenceCity}
+                      onChange={(event) =>
+                        updateCurrentResidenceCity(event.target.value)
+                      }
+                      placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
+                    />
+                  </label>
+
+                  {currentResidenceSuggestions.length > 0 ? (
+                    <div
+                      className="city-suggestion-chips has-suggestions"
+                      aria-label={CURRENT_RESIDENCE_SUGGESTIONS_LABEL}
+                    >
+                      {currentResidenceSuggestions.map((city) => (
+                        <button
+                          key={city.id}
+                          type="button"
+                          onClick={() => selectCurrentResidenceCity(city)}
+                          className="city-suggestion-chip"
+                        >
+                          {getIranCityDisplayName(city)}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <FieldError message={fieldErrors.currentResidence} />
+                </div>
+              ) : null}
             </div>
           </form>
 
@@ -959,40 +1116,73 @@ export function ChartForm() {
               className="button chart-submit-button"
               type="submit"
               form="chart-birth-data-form"
-              disabled={isRealEngineLoading}
+              disabled={isSubmitting}
             >
               <span aria-hidden="true">✦</span>
-              {isRealEngineLoading ? "در حال ساخت گزارش..." : "ساخت گزارش"}
+              {isSubmitting ? "در حال ساخت گزارش…" : "ساخت گزارش"}
             </button>
           </div>
 
           {realEngineRequest.status !== "idle" ? (
-              <div
-                className={
-                  realEngineRequest.status === "error"
-                    ? "chart-form-status is-error"
-                    : "chart-form-status is-progress"
-                }
-                role="status"
-                aria-live="polite"
-              >
+            <div
+              className={
+                realEngineRequest.status === "error"
+                  ? "chart-journey-notification is-error"
+                  : realEngineRequest.status === "ready"
+                    ? "chart-journey-notification is-ready"
+                    : "chart-journey-notification is-progress"
+              }
+              role={realEngineRequest.status === "error" ? "alert" : "status"}
+              aria-live="assertive"
+            >
+              <div className="chart-journey-notification-copy">
                 <strong>
-                  {realEngineRequest.status === "error" ? "نیاز به اصلاح ورودی" : "در حال انجام"}
+                  {realEngineRequest.status === "error"
+                    ? "خطا رخ داد"
+                    : realEngineRequest.status === "ready"
+                      ? "گزارش آماده شد"
+                      : "در حال ساخت گزارش…"}
                 </strong>
                 <span>{realEngineRequest.message}</span>
+                {saveMessage ? <small>{saveMessage}</small> : null}
               </div>
-          ) : null}
 
-          {saveMessage ? (
-            <div className="chart-form-status is-success" role="status" aria-live="polite">
-              <strong>گزارش آماده شد</strong>
-              <span>{saveMessage}</span>
+              <div className="chart-journey-notification-actions">
+                {realEngineRequest.status === "error" && !generatedReportPath ? (
+                  <button
+                    className="button secondary"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => formRef.current?.requestSubmit()}
+                  >
+                    تلاش دوباره
+                  </button>
+                ) : null}
+
+                {generatedReportPath && showOpenReportButton ? (
+                  <button
+                    className="button"
+                    type="button"
+                    onClick={() => router.push(generatedReportPath)}
+                  >
+                    باز کردن گزارش
+                  </button>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>
       </div>
     </section>
   );
+}
+
+function FieldError({ message }: { message?: string }) {
+  return message ? (
+    <small className="chart-field-error" role="alert">
+      {message}
+    </small>
+  ) : null;
 }
 
 function buildReportForSave(

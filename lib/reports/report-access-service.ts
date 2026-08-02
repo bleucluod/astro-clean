@@ -1,4 +1,6 @@
 import { getAdminDatabase, asRecord, asString, asNullableString } from "@/lib/admin/admin-database";
+import { projectPrivateShareReport } from "@/lib/storage/server-report-persistence";
+import type { AstrologyReport } from "@/types/astro";
 import {
   createReportShareSecret,
   evaluateOwnedReportPublicationMutation,
@@ -218,6 +220,44 @@ export async function updateOwnedReportTitle(userId: string, reportId: string, v
   return rows.length > 0;
 }
 
+export async function updateOwnedReportFavorite(
+  userId: string,
+  reportId: string,
+  favorite: boolean,
+) {
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    update public.halleus_reports
+    set favorite = ${favorite}, updated_at = now()
+    where id = ${reportId}
+      and user_id = ${userId}
+      and deleted_at is null
+    returning id
+  `;
+  return rows.length > 0;
+}
+
+export async function updateOwnedReportNote(
+  userId: string,
+  reportId: string,
+  value: string,
+) {
+  const sql = getAdminDatabase();
+  const note = value.trim();
+  if (note.length > 4000) {
+    throw new Error("Report note is too long.");
+  }
+  const rows = await sql`
+    update public.halleus_reports
+    set note = ${note || null}, updated_at = now()
+    where id = ${reportId}
+      and user_id = ${userId}
+      and deleted_at is null
+    returning id
+  `;
+  return rows.length > 0;
+}
+
 export async function enableOwnedReportSharing(userId: string, reportId: string) {
   const sql = getAdminDatabase();
   const secret = createReportShareSecret();
@@ -241,5 +281,6 @@ export async function getSharedReport(token: string) {
   const sql = getAdminDatabase();
   const tokenHash = hashReportShareSecret(token);
   const rows = await sql`select report_json from public.halleus_reports where share_token_hash = ${tokenHash} and share_enabled = true and visibility = 'shared_by_link' and restricted_at is null and deleted_at is null limit 1`;
-  return rows[0]?.report_json ?? null;
+  const report = rows[0]?.report_json as AstrologyReport | undefined;
+  return report ? projectPrivateShareReport(report) : null;
 }

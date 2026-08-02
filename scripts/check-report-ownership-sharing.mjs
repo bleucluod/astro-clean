@@ -61,6 +61,7 @@ const reportPage = read("app/reports/[reportId]/page.tsx");
 const sharedRoute = read("app/api/reports/shared/[shareToken]/route.ts");
 const sharedPage = read("app/reports/shared/[shareToken]/page.tsx");
 const service = read("lib/reports/report-access-service.ts");
+const serverPersistence = read("lib/storage/server-report-persistence.ts");
 const adminWorkspace = read("components/admin/AdminReportsWorkspace.tsx");
 const adminConsole = read("components/admin/AdminConsole.tsx");
 const sitemap = read("app/sitemap.ts");
@@ -80,6 +81,10 @@ const summaryQuery = service.slice(service.indexOf("export async function listOw
 if (summaryQuery.includes("select id, title, report_json")) throw new Error("Report summary query must not select the full report payload.");
 for (const forbidden of ["'{input,birthDate}'", "'{input,birthTime}'", "'{input,birthCity}'", "'{input,birthCountry}'"]) if (summaryQuery.includes(forbidden)) throw new Error(`Report summary query exposes ${forbidden}.`);
 if (!sharedRoute.includes("noindex, nofollow") || !sharedPage.includes("index: false")) throw new Error("Shared reports must remain noindex.");
+if (!service.includes("projectPrivateShareReport(report)")) throw new Error("Shared report service must apply the privacy-safe projection.");
+for (const marker of ["projectPrivateShareReport", 'birthDate: ""', 'birthTime: ""', 'birthCity: ""', "personalTransitReportData: null"]) {
+  if (!serverPersistence.includes(marker)) throw new Error(`Shared report privacy projection is missing ${marker}.`);
+}
 for (const marker of ["limit=25", "update_title", "restrict_visibility", "soft_delete"]) if (!adminWorkspace.includes(marker)) throw new Error(`Admin report workspace is missing ${marker}.`);
 for (const marker of ["response.status === 401", "setReports([])", "setPrivateReport(null)"]) if (!adminConsole.includes(marker)) throw new Error(`Admin authentication cleanup is missing ${marker}.`);
 

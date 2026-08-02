@@ -96,12 +96,53 @@ export function getAccountReportSaveClientConfig(): AccountReportSaveClientConfi
   };
 }
 
+export type AccountReportSaveOptions = {
+  navigationGraceMs?: number;
+};
+
+const DEFAULT_ACCOUNT_SAVE_NAVIGATION_GRACE_MS = 2200;
+
+type RemoteSaveRace =
+  | { kind: "settled"; result: AccountReportSaveResult }
+  | { kind: "timeout" };
+
 export async function saveGeneratedReportWithAccountFallback(
   report: AstrologyReport,
+  options: AccountReportSaveOptions = {},
 ): Promise<AccountReportSaveResult> {
   const localRecord = await saveGeneratedReport(report);
   const config = getAccountReportSaveClientConfig();
+  const navigationGraceMs = Math.max(
+    0,
+    options.navigationGraceMs ?? DEFAULT_ACCOUNT_SAVE_NAVIGATION_GRACE_MS,
+  );
+  const remoteSavePromise = attemptRemoteReportSave(localRecord, config);
+  const race = await Promise.race<RemoteSaveRace>([
+    remoteSavePromise.then((result) => ({ kind: "settled", result })),
+    new Promise<RemoteSaveRace>((resolve) => {
+      window.setTimeout(() => resolve({ kind: "timeout" }), navigationGraceMs);
+    }),
+  ]);
 
+  if (race.kind === "settled") {
+    return race.result;
+  }
+
+  void remoteSavePromise.catch(() => undefined);
+
+  return {
+    localRecord,
+    accountRecord: null,
+    accountStatus: "account-skipped",
+    accountMessage:
+      "نسخه همین دستگاه آماده است؛ ذخیره آنلاین بدون متوقف‌کردن بازشدن گزارش ادامه پیدا می‌کند.",
+  };
+}
+
+async function attemptRemoteReportSave(
+  localRecord: ReportRecord,
+  config: AccountReportSaveClientConfig,
+): Promise<AccountReportSaveResult> {
   let accessToken: string | undefined;
   let authErrorMessage: string | undefined;
   const client = getSupabaseBrowserAuthClient();
@@ -113,7 +154,12 @@ export async function saveGeneratedReportWithAccountFallback(
     authErrorMessage = error?.message;
   }
 
-  if (client && config.canAttemptAccountReportSave && authErrorMessage && !accessToken) {
+  if (
+    client &&
+    config.canAttemptAccountReportSave &&
+    authErrorMessage &&
+    !accessToken
+  ) {
     return {
       localRecord,
       accountRecord: null,

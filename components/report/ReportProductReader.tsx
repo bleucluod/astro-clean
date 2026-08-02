@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PersonalTransitReportSection } from "@/components/PersonalTransitReportSection";
 import { ReportBirthChartWheel } from "@/components/ReportBirthChartWheel";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
@@ -9,6 +9,11 @@ import {
   type ReportReadingNavigationId,
 } from "@/lib/report-output/live-report-reading-contract";
 import type { PersonalTransitReportDataBridge } from "@/src/lib/report-output/personal-transit-report-data-bridge";
+import {
+  getReportReadingProgress,
+  getReportReadingSectionLabel,
+  saveReportReadingProgress,
+} from "@/lib/storage/report-journey-client";
 import type { AstrologyReport } from "@/types/astro";
 import { ReportReadingNavigation } from "@/components/report/ReportReadingNavigation";
 import { ReportTechnicalAppendix } from "@/components/report/ReportTechnicalAppendix";
@@ -30,13 +35,64 @@ export function ReportProductReader({ report }: { report: AstrologyReport }) {
     () => (report as ReportWithTransit).engineData?.personalTransitReportData ?? null,
     [report],
   );
+  const initialProgress = getReportReadingProgress("reader", report.id);
   const [mode, setMode] = useState<ReaderMode>("natal");
   const [activeSection, setActiveSection] =
-    useState<ReportReadingNavigationId>("overview");
+    useState<ReportReadingNavigationId>(
+      initialProgress?.sectionId ?? "overview",
+    );
+  const [resumeSection, setResumeSection] =
+    useState<ReportReadingNavigationId | null>(
+      initialProgress?.sectionId ?? null,
+    );
+
+  useEffect(() => {
+    const restoreFrame = window.requestAnimationFrame(() => {
+      const progress = getReportReadingProgress("reader", report.id);
+      setActiveSection(progress?.sectionId ?? "overview");
+      setResumeSection(progress?.sectionId ?? null);
+    });
+
+    return () => window.cancelAnimationFrame(restoreFrame);
+  }, [report.id]);
+
+  useEffect(() => {
+    const sections = contract.navigation
+      .map((item) => document.getElementById(item.id))
+      .filter((item): item is HTMLElement => item !== null);
+
+    if (sections.length === 0 || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (!visible) return;
+
+        const sectionId = visible.target.id as ReportReadingNavigationId;
+        setActiveSection(sectionId);
+        setResumeSection(sectionId);
+        saveReportReadingProgress("reader", report.id, sectionId);
+      },
+      {
+        rootMargin: "-18% 0px -66% 0px",
+        threshold: [0.08, 0.25, 0.5],
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [contract.navigation, report.id]);
 
   function navigateTo(sectionId: ReportReadingNavigationId) {
     setMode("natal");
     setActiveSection(sectionId);
+    setResumeSection(sectionId);
+    saveReportReadingProgress("reader", report.id, sectionId);
     window.requestAnimationFrame(() => {
       document.getElementById(sectionId)?.scrollIntoView({
         behavior: "smooth",
@@ -50,6 +106,24 @@ export function ReportProductReader({ report }: { report: AstrologyReport }) {
       className="report-product-reader"
       data-report-product-reader="birth-report-overhaul"
     >
+      {resumeSection && resumeSection !== "overview" ? (
+        <section className="report-continue-reading" aria-label="ادامه مطالعه">
+          <div>
+            <span className="section-label">ادامه مطالعه</span>
+            <strong>
+              آخرین بخش: {getReportReadingSectionLabel(resumeSection)}
+            </strong>
+          </div>
+          <button
+            className="button secondary"
+            type="button"
+            onClick={() => navigateTo(resumeSection)}
+          >
+            ادامه از همین بخش
+          </button>
+        </section>
+      ) : null}
+
       <div className="report-product-mode-switch" role="tablist" aria-label="نوع خوانش گزارش">
         <button
           aria-selected={mode === "natal"}

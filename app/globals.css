@@ -7991,6 +7991,261 @@ h6,
   }
 }
 
+/* Halleus Batch 2 — Chart and report library journey */
+.chart-optional-label {
+  margin-inline-start: 8px;
+  color: #52657a;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.chart-field-error {
+  display: block;
+  margin-top: 8px;
+  color: #9f2f38;
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 1.7;
+}
+
+.chart-transit-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid rgba(30, 64, 175, 0.14);
+  border-radius: 18px;
+  padding: 16px;
+  background: #eef6ff;
+  color: #243447;
+  cursor: pointer;
+}
+
+.chart-transit-choice input {
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+  accent-color: #1e40af;
+}
+
+.chart-transit-choice > span {
+  display: grid;
+  gap: 4px;
+}
+
+.chart-transit-choice small {
+  color: #52657a;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.chart-transit-location {
+  animation: chart-transit-location-in 180ms ease-out;
+}
+
+@keyframes chart-transit-location-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-journey-notification {
+  position: fixed;
+  z-index: 80;
+  inset-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: min(680px, calc(100vw - 32px));
+  margin-inline: auto;
+  border: 1px solid rgba(36, 52, 71, 0.14);
+  border-radius: 22px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 24px 70px rgba(36, 52, 71, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.chart-journey-notification.is-progress {
+  border-color: rgba(30, 64, 175, 0.22);
+}
+
+.chart-journey-notification.is-ready {
+  border-color: rgba(32, 106, 83, 0.25);
+}
+
+.chart-journey-notification.is-error {
+  border-color: rgba(159, 47, 56, 0.28);
+}
+
+.chart-journey-notification-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.chart-journey-notification-copy strong {
+  color: #243447;
+  font-size: 0.96rem;
+}
+
+.chart-journey-notification-copy span,
+.chart-journey-notification-copy small {
+  color: #52657a;
+  line-height: 1.7;
+}
+
+.chart-journey-notification-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.chart-journey-notification .button {
+  min-height: 44px !important;
+  padding: 9px 15px !important;
+  font-size: 0.86rem;
+}
+
+.report-library-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.report-library-card {
+  display: grid;
+  align-content: start;
+  gap: 15px;
+  min-width: 0;
+  border: 1px solid rgba(36, 52, 71, 0.11);
+  border-radius: 24px;
+  padding: 22px;
+  background: #ffffff;
+  box-shadow: 0 16px 42px rgba(36, 52, 71, 0.055);
+}
+
+.report-library-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.report-library-card .badge {
+  margin-bottom: 8px;
+}
+
+.report-library-card h2 {
+  margin: 0;
+  color: #243447;
+  font-size: 1.22rem;
+  line-height: 1.55;
+}
+
+.report-library-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #3a4a5c;
+  line-height: 1.9;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.report-library-private-details span {
+  font-size: 0.78rem;
+}
+
+.report-library-state-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.report-library-state-row span {
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #eef6ff;
+  color: #1e40af;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.report-library-actions {
+  margin-top: auto;
+}
+
+@media (max-width: 800px) {
+  .chart-reference-content {
+    padding-inline: 12px;
+  }
+
+  .birth-date-picker-grid,
+  .birth-time-picker-grid {
+    gap: 8px;
+  }
+
+  .chart-transit-choice {
+    padding: 14px;
+  }
+
+  .chart-journey-notification {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    width: calc(100vw - 20px);
+    inset-inline: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    border-radius: 18px;
+  }
+
+  .chart-journey-notification-actions,
+  .chart-journey-notification-actions .button {
+    width: 100%;
+  }
+
+  .report-library-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-library-card {
+    padding: 18px;
+  }
+
+  .report-library-card header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .report-library-card .pill {
+    width: fit-content;
+  }
+}
+
+@media print {
+  .site-header,
+  .site-footer {
+    display: none !important;
+  }
+
+  html,
+  body,
+  main {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+}
+
 /* Complete birth report reader — scoped to the report product surface. */
 .report-product-page {
   --report-reading-width: 740px;
@@ -9164,4 +9419,95 @@ h6,
 .report-product-section .report-special-points-lilith-card li {
   font-size: 0.9rem;
   line-height: 1.9;
+}
+
+/* Halleus Batch 2 — Scoped report journey */
+.report-product-page .report-continue-reading,
+.report-product-page .report-product-journey-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid rgba(30, 64, 175, 0.13);
+  border-radius: 22px;
+  padding: 18px 20px;
+  background: #eef6ff;
+}
+
+.report-product-page .report-continue-reading > div,
+.report-product-page .report-product-journey-toolbar > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.report-product-page .report-continue-reading .section-label,
+.report-product-page .report-product-journey-toolbar .section-label {
+  margin: 0;
+}
+
+.report-product-page .report-product-journey-toolbar {
+  align-items: flex-start;
+  background: #ffffff;
+}
+
+.report-product-page .report-product-journey-toolbar p {
+  max-width: 620px;
+  margin: 0;
+  color: #52657a;
+}
+
+.report-product-page .report-product-journey-toolbar .actions {
+  justify-content: flex-end;
+  margin-top: 0;
+}
+
+.report-product-page .report-danger-action {
+  color: #8f2d37 !important;
+}
+
+@media (max-width: 800px) {
+  .report-product-page .report-continue-reading,
+  .report-product-page .report-product-journey-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .report-product-page .report-product-journey-toolbar .actions,
+  .report-product-page .report-product-journey-toolbar .button,
+  .report-product-page .report-continue-reading .button {
+    width: 100%;
+  }
+}
+
+@media print {
+  .report-product-page .report-detail-back-row,
+  .report-product-page .report-product-mode-switch,
+  .report-product-page .report-product-navigation,
+  .report-product-page .report-continue-reading,
+  .report-product-page .report-product-journey-toolbar,
+  .report-product-page .report-product-after-reading,
+  .report-product-page .report-product-endpoint,
+  .report-product-page .report-product-status {
+    display: none !important;
+  }
+
+  .report-product-page .report-product-reader-layout {
+    display: block !important;
+  }
+
+  .report-product-page .report-product-reading-column {
+    width: 100% !important;
+  }
+
+  .report-product-page,
+  .report-product-page * {
+    box-shadow: none !important;
+    print-color-adjust: exact;
+  }
+
+  .report-product-page .report-product-section,
+  .report-product-page .report-product-overview-block,
+  .report-product-page .report-product-chart-details {
+    break-inside: avoid;
+  }
 }

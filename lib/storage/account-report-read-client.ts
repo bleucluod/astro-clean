@@ -310,7 +310,18 @@ export async function getAccountReportRecord(
   }
 }
 
-export async function mutateAccountReport(input: { reportId: string; action: "title" | "enable_sharing" | "revoke_sharing"; title?: string }) {
+export async function mutateAccountReport(input: {
+  reportId: string;
+  action:
+    | "title"
+    | "favorite"
+    | "note"
+    | "enable_sharing"
+    | "revoke_sharing";
+  title?: string;
+  favorite?: boolean;
+  note?: string;
+}) {
   const tokenResult = await readAccountAccessToken();
   if (!tokenResult.ok) throw new Error(tokenResult.message);
   const response = await fetch("/api/reports/account", {

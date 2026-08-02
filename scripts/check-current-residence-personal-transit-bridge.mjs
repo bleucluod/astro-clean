@@ -42,9 +42,11 @@ const route = read("app/api/engine/real-chart/route.ts");
 const service = read("lib/report-generation/report-generation-service.ts");
 const astro = read("types/astro.ts");
 const reportDetail = read("components/ReportDetail.tsx");
+const reportProductReader = read("components/report/ReportProductReader.tsx");
+const reportJourneyClient = read("lib/storage/report-journey-client.ts");
 const packageJson = JSON.parse(read("package.json"));
 
-for (const [label, text] of Object.entries({ chartForm, route, service, astro, reportDetail })) {
+for (const [label, text] of Object.entries({ chartForm, route, service, astro, reportDetail, reportProductReader, reportJourneyClient })) {
   assertNoMojibake(text, label);
   assert(!text.includes("data-report-app-shell-redesign"), `${label} must not reintroduce failed app-shell marker.`);
 }
@@ -66,6 +68,9 @@ for (const marker of [
 
 for (const marker of [
   "CURRENT_RESIDENCE_LABEL",
+  "includeTransitReading",
+  "loadLastStudyLocation",
+  "saveLastStudyLocation",
   'const [currentResidenceCity, setCurrentResidenceCity] = useState("")',
   "const currentResidenceSuggestions = useMemo",
   "selectedCurrentResidenceCity",
@@ -101,7 +106,22 @@ for (const marker of [
   assert(service.includes(marker), `report-generation service missing personal transit marker: ${marker}`);
 }
 
-assert(reportDetail.includes("engineData?.personalTransitReportData"), "ReportDetail must keep reading stored personalTransitReportData.");
+for (const marker of [
+  "LAST_STUDY_LOCATION_KEY",
+  "REPORT_READING_PROGRESS_KEY",
+  "saveLastStudyLocation",
+  "saveReportReadingProgress",
+]) {
+  assert(reportJourneyClient.includes(marker), `Report journey client missing marker: ${marker}`);
+}
+
+assert(
+  chartForm.includes("{includeTransitReading ? ("),
+  "Current residence field must only render when transit reading is requested.",
+);
+assert(reportProductReader.includes("engineData?.personalTransitReportData"), "ReportProductReader must keep reading stored personalTransitReportData.");
+assert(reportProductReader.includes("getReportReadingProgress"), "ReportProductReader must own continue-reading progress.");
+assert(reportProductReader.includes("saveReportReadingProgress"), "ReportProductReader must persist reading progress.");
 assert(
   packageJson.scripts?.["check:current-residence-personal-transit-bridge"] ===
     "node scripts/check-current-residence-personal-transit-bridge.mjs",

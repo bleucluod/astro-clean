@@ -17,6 +17,8 @@ import {
   mutateOwnedReportPublication,
   revokeOwnedReportSharing,
   softDeleteOwnedReport,
+  updateOwnedReportFavorite,
+  updateOwnedReportNote,
   updateOwnedReportTitle,
 } from "@/lib/reports/report-access-service";
 
@@ -178,6 +180,26 @@ export async function PATCH(request: Request) {
     const action = readString(body.action);
     if (!reportId || !action) return errorResponse(400, "Report id and action are required.");
     if (action === "title") return NextResponse.json({ ok: await updateOwnedReportTitle(user.id, reportId, body.title) });
+    if (action === "favorite") {
+      if (typeof body.favorite !== "boolean") {
+        return errorResponse(400, "Favorite must be a boolean.");
+      }
+      return NextResponse.json({
+        ok: await updateOwnedReportFavorite(
+          user.id,
+          reportId,
+          body.favorite,
+        ),
+      });
+    }
+    if (action === "note") {
+      if (typeof body.note !== "string" || body.note.length > 4000) {
+        return errorResponse(400, "Report note is invalid or too long.");
+      }
+      return NextResponse.json({
+        ok: await updateOwnedReportNote(user.id, reportId, body.note),
+      });
+    }
     if (action === "enable_sharing") {
       const shareToken = await enableOwnedReportSharing(user.id, reportId);
       return shareToken ? NextResponse.json({ ok: true, sharePath: `/reports/shared/${shareToken}` }) : errorResponse(404, "Report was not found.");

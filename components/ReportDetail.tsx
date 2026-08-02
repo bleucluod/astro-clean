@@ -13,6 +13,10 @@ import {
 } from "@/lib/storage/account-report-read-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportVisibility } from "@/types/storage";
+import {
+  createPrivacySafeReportText,
+  downloadPrivacySafeReport,
+} from "@/lib/storage/report-journey-client";
 
 type ReportDetailSource = "local" | "beta-db" | "account" | "public";
 
@@ -140,6 +144,7 @@ export function ReportDetail({
   const [message, setMessage] = useState(initialMessage);
   const [accountVisibility, setAccountVisibility] =
     useState<ReportVisibility>("private");
+  const [favorite, setFavorite] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -184,6 +189,7 @@ export function ReportDetail({
 
         setReport(sanitizeReportVisibleCopy(result.reportRecord.report));
         setNote(result.reportRecord.note ?? "");
+        setFavorite(Boolean(result.reportRecord.favorite));
         setAccountVisibility(result.reportRecord.visibility);
         setMessage("");
         setIsReady(true);
@@ -232,6 +238,7 @@ export function ReportDetail({
           : null,
       );
       setNote(selectedRecord?.note ?? "");
+      setFavorite(Boolean(selectedRecord?.favorite));
       setMessage(
         selectedRecord?.report ? "" : "گزارش روی این دستگاه پیدا نشد.",
       );
@@ -245,17 +252,56 @@ export function ReportDetail({
     };
   }, [initialMessage, initialReport, reportId, reportSource]);
 
+  async function handleToggleFavorite() {
+    const nextFavorite = !favorite;
+
+    if (reportSource === "local") {
+      const updated = await reportRepository.setFavorite(reportId, nextFavorite);
+      setFavorite(Boolean(updated?.favorite));
+      notifyLocalDataChanged();
+    } else if (reportSource === "account") {
+      await mutateAccountReport({
+        reportId,
+        action: "favorite",
+        favorite: nextFavorite,
+      });
+      setFavorite(nextFavorite);
+    } else {
+      setMessage("علاقه‌مندی این گزارش در این نما فقط خواندنی است.");
+      return;
+    }
+
+    setMessage(
+      nextFavorite
+        ? "گزارش به علاقه‌مندی‌ها اضافه شد."
+        : "گزارش از علاقه‌مندی‌ها حذف شد.",
+    );
+  }
+
+  async function handleCopySafeSummary() {
+    if (!report) return;
+    await navigator.clipboard?.writeText(createPrivacySafeReportText(report));
+    setMessage("خلاصه امن بدون اطلاعات تولد کپی شد.");
+  }
+
   async function handleSaveNote() {
-    if (reportSource !== "local") {
+    if (reportSource === "local") {
+      const updatedRecord = await reportRepository.setNote(reportId, note);
+      if (updatedRecord) {
+        setNote(updatedRecord.note ?? "");
+      }
+      notifyLocalDataChanged();
+    } else if (reportSource === "account") {
+      await mutateAccountReport({
+        reportId,
+        action: "note",
+        note,
+      });
+    } else {
       setMessage("یادداشت این گزارش در این نما فقط خواندنی است.");
       return;
     }
 
-    const updatedRecord = await reportRepository.setNote(reportId, note);
-    if (updatedRecord) {
-      setNote(updatedRecord.note ?? "");
-    }
-    notifyLocalDataChanged();
     setMessage(note.trim() ? "یادداشت ذخیره شد." : "یادداشت پاک شد.");
   }
 
@@ -329,7 +375,8 @@ export function ReportDetail({
     );
   }
 
-  const isReadOnlyNote = reportSource !== "local";
+  const isReadOnlyNote =
+    reportSource === "public" || reportSource === "beta-db";
 
   return (
     <section
@@ -345,6 +392,50 @@ export function ReportDetail({
       </div>
 
       <ReportProductReader report={report} />
+
+      <section
+        className="report-product-journey-toolbar"
+        aria-label="عملیات گزارش"
+      >
+        <div>
+          <span className="section-label">عملیات گزارش</span>
+          <p>
+            اشتراک امن فقط خلاصهٔ بدون نام، تاریخ، ساعت، شهر، یادداشت و دادهٔ خام را می‌سازد.
+          </p>
+        </div>
+        <div className="actions">
+          {reportSource === "local" || reportSource === "account" ? (
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => void handleToggleFavorite()}
+            >
+              {favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+            </button>
+          ) : null}
+          <button
+            className="button secondary"
+            type="button"
+            onClick={() => void handleCopySafeSummary()}
+          >
+            کپی خلاصه امن
+          </button>
+          <button
+            className="button secondary"
+            type="button"
+            onClick={() => downloadPrivacySafeReport(report)}
+          >
+            خروجی امن
+          </button>
+          <button
+            className="button secondary"
+            type="button"
+            onClick={() => window.print()}
+          >
+            چاپ گزارش
+          </button>
+        </div>
+      </section>
 
       <section className="report-product-after-reading" aria-label="عملیات بعد از خواندن گزارش">
         <article className="report-product-note-panel">
