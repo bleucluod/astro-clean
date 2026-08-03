@@ -14,8 +14,8 @@ import type {
   SynastryNatalPoint,
   SynastryNatalSnapshot,
   SynastryPointReference,
-} from "../../../types/synastry-engine.js";
-import { REAL_SYNASTRY_CONTRACT_VERSION } from "../../../types/synastry-engine.js";
+} from "../../../types/synastry-engine";
+import { REAL_SYNASTRY_CONTRACT_VERSION } from "../../../types/synastry-engine";
 import {
   buildSynastryContactEvidenceFa,
   buildSynastryContactGrowthFa,
@@ -26,14 +26,14 @@ import {
   buildSynastryPersianSynthesis,
   getCanonicalSynastryPointLabelsFa,
   getSynastryPointIdLabelFa,
-} from "./real-synastry-persian.js";
+} from "./real-synastry-persian";
 import type {
   RealEngineReportAngle,
   RealEngineReportHouse,
   RealEngineReportHouseNumber,
   RealEngineReportPlacement,
   ZodiacKey,
-} from "../../../types/astro.js";
+} from "../../../types/astro";
 
 const ASPECT_DEFINITIONS: readonly SynastryAspectDefinition[] = [
   { id: "conjunction", labelFa: "هم‌نشینی", angle: 0, defaultOrb: 7 },

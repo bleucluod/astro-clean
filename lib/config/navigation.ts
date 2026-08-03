@@ -4,6 +4,10 @@ export const navItems = [
     label: "چارت تولد",
   },
   {
+    href: "/compare",
+    label: "مقایسه دو چارت",
+  },
+  {
     href: "/sky",
     label: "آسمان امروز",
   },

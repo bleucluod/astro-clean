@@ -8,9 +8,9 @@ import type {
   SynastryPersianSynthesis,
   SynastryPointReference,
   SynastryRelationshipContext,
-} from "../../../types/synastry-engine.js";
-import { REAL_SYNASTRY_WRITER_VERSION } from "../../../types/synastry-engine.js";
-import type { RealEngineReportHouseNumber } from "../../../types/astro.js";
+} from "../../../types/synastry-engine";
+import { REAL_SYNASTRY_WRITER_VERSION } from "../../../types/synastry-engine";
+import type { RealEngineReportHouseNumber } from "../../../types/astro";
 
 const PLANET_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
