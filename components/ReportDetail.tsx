@@ -15,7 +15,6 @@ import type { AstrologyReport } from "@/types/astro";
 import type { ReportVisibility } from "@/types/storage";
 import {
   createPrivacySafeReportText,
-  downloadPrivacySafeReport,
 } from "@/lib/storage/report-journey-client";
 
 type ReportDetailSource = "local" | "beta-db" | "account" | "public";
@@ -384,153 +383,87 @@ export function ReportDetail({
       data-report-detail-product={REPORT_DETAIL_PRODUCT_VERSION}
       data-report-source={reportSource}
     >
-      <div className="report-detail-back-row">
-        <Link className="button secondary" href="/reports">
-          بازگشت به گزارش‌ها
-        </Link>
-        <span className="pill">{getSourceBadge(reportSource)}</span>
-      </div>
-
       <ReportProductReader report={report} />
 
-      <section
-        className="report-product-journey-toolbar"
-        aria-label="عملیات گزارش"
-      >
-        <div>
-          <span className="section-label">عملیات گزارش</span>
-          <p>
-            اشتراک امن فقط خلاصهٔ بدون نام، تاریخ، ساعت، شهر، یادداشت و دادهٔ خام را می‌سازد.
-          </p>
-        </div>
-        <div className="actions">
-          {reportSource === "local" || reportSource === "account" ? (
-            <button
-              className="button secondary"
-              type="button"
-              onClick={() => void handleToggleFavorite()}
-            >
-              {favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+      <details className="report-product-reader-tools">
+        <summary>ذخیره و مدیریت گزارش</summary>
+        <div className="report-product-reader-tools-body">
+          <div className="report-product-reader-tools-heading">
+            <span className="pill">{getSourceBadge(reportSource)}</span>
+            <p>{getAccessDescription(reportSource)}</p>
+          </div>
+          <div className="actions">
+            {reportSource === "local" || reportSource === "account" ? (
+              <button className="button secondary" type="button" onClick={() => void handleToggleFavorite()}>
+                {favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+              </button>
+            ) : null}
+            <button className="button secondary" type="button" onClick={() => void handleCopySafeSummary()}>
+              کپی خلاصهٔ قابل‌اشتراک
             </button>
-          ) : null}
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => void handleCopySafeSummary()}
-          >
-            کپی خلاصه امن
-          </button>
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => downloadPrivacySafeReport(report)}
-          >
-            خروجی امن
-          </button>
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => window.print()}
-          >
-            چاپ گزارش
-          </button>
-        </div>
-      </section>
+            <button className="button secondary" type="button" onClick={() => window.print()}>
+              چاپ گزارش
+            </button>
+            {reportSource === "public" ? (
+              <button className="button secondary" type="button" onClick={() => {
+                void navigator.clipboard?.writeText(window.location.href);
+                setMessage("لینک گزارش کپی شد.");
+              }}>
+                کپی لینک
+              </button>
+            ) : null}
+          </div>
 
-      <section className="report-product-after-reading" aria-label="عملیات بعد از خواندن گزارش">
-        <article className="report-product-note-panel">
-          <span className="section-label">یادداشت شخصی</span>
-          <h2>چیزی که می‌خواهی به خاطر بسپاری</h2>
-          {reportSource === "public" ? (
-            <p>یادداشت‌های شخصی در این نما نمایش داده نمی‌شوند.</p>
-          ) : (
-            <>
+          {reportSource !== "public" ? (
+            <details className="report-product-inline-tool">
+              <summary>یادداشت شخصی</summary>
               <label className="field">
-                <span>متن یادداشت</span>
+                <span>چیزی که می‌خواهی به خاطر بسپاری</span>
                 <textarea
                   disabled={isReadOnlyNote}
                   onChange={(event: { target: { value: string } }) => setNote(event.target.value)}
-                  placeholder="مثلاً: این هفته فقط به نیاز ماه خودم توجه کنم..."
+                  placeholder="مثلاً: این هفته بیشتر به نیاز خودم توجه کنم..."
                   rows={4}
                   value={note}
                 />
               </label>
               <div className="actions">
-                <button
-                  className="button"
-                  disabled={isReadOnlyNote}
-                  onClick={() => void handleSaveNote()}
-                  type="button"
-                >
-                  {isReadOnlyNote ? "فقط خواندنی" : "ذخیره یادداشت"}
+                <button className="button" disabled={isReadOnlyNote} onClick={() => void handleSaveNote()} type="button">
+                  ذخیره یادداشت
                 </button>
-                {!isReadOnlyNote ? (
-                  <button
-                    className="button secondary"
-                    onClick={() => setNote("")}
-                    type="button"
-                  >
-                    پاک کردن
-                  </button>
-                ) : null}
+                <button className="button secondary" onClick={() => setNote("")} type="button">پاک کردن</button>
               </div>
-            </>
-          )}
-        </article>
-
-        <article className="report-product-access-panel">
-          <span className="section-label">دسترسی گزارش</span>
-          <h2>{getSourceBadge(reportSource)}</h2>
-          <p>{getAccessDescription(reportSource)}</p>
-
-          {reportSource === "public" ? (
-            <button
-              className="button secondary"
-              onClick={() => {
-                void navigator.clipboard?.writeText(window.location.href);
-                setMessage("لینک گزارش کپی شد.");
-              }}
-              type="button"
-            >
-              کپی لینک
-            </button>
+            </details>
           ) : null}
 
           {reportSource === "account" ? (
-            <div className="actions">
-              <button className="button secondary" onClick={() => void handleAccountAction("title")} type="button">
-                ویرایش عنوان
-              </button>
-              {accountVisibility === "shared_by_link" ? (
-                <button className="button secondary" onClick={() => void handleAccountAction("revoke_sharing")} type="button">
-                  لغو پیوند امن
-                </button>
-              ) : (
-                <button className="button secondary" onClick={() => void handleAccountAction("enable_sharing")} type="button">
-                  ساخت پیوند امن
-                </button>
-              )}
-              <button className="button secondary" onClick={() => void handleAccountAction("delete")} type="button">
-                حذف گزارش
-              </button>
-            </div>
+            <details className="report-product-inline-tool">
+              <summary>تنظیمات حساب و اشتراک</summary>
+              <div className="actions">
+                <button className="button secondary" onClick={() => void handleAccountAction("title")} type="button">ویرایش عنوان</button>
+                {accountVisibility === "shared_by_link" ? (
+                  <button className="button secondary" onClick={() => void handleAccountAction("revoke_sharing")} type="button">لغو پیوند امن</button>
+                ) : (
+                  <button className="button secondary" onClick={() => void handleAccountAction("enable_sharing")} type="button">ساخت پیوند امن</button>
+                )}
+                <button className="button secondary" onClick={() => void handleAccountAction("delete")} type="button">حذف گزارش</button>
+              </div>
+            </details>
           ) : null}
-        </article>
-      </section>
+        </div>
+      </details>
 
-      {message ? (
-        <p className="report-product-status" role="status">{message}</p>
-      ) : null}
+      {message ? <p className="report-product-status" role="status">{message}</p> : null}
 
-      <section className="report-product-endpoint">
+      <section className="report-product-endpoint report-product-relationship-cta">
         <div>
-          <span className="section-label">پایان مسیر اصلی</span>
-          <h2>از این گزارش چه چیزی با خودت می‌بری؟</h2>
-          <p>یک جمله یا یک تمرین کافی است؛ لازم نیست همهٔ جزئیات را هم‌زمان نگه داری.</p>
+          <span className="section-label">گام بعدی</span>
+          <h2>رابطه‌تان را از زاویهٔ دو چارت ببینید</h2>
+          <p>ببینید کجا راحت‌تر به هم نزدیک می‌شوید، کجا ممکن است حرف هم را اشتباه بفهمید و چه چیزی به امنیت و رشد رابطه کمک می‌کند.</p>
         </div>
         <div className="actions">
-          <Link className="button" href="/chart">ساخت گزارش تازه</Link>
-          <Link className="button secondary" href="/reports">کتابخانه گزارش‌ها</Link>
+          <Link className="button" href="/compare">شروع تحلیل رابطه</Link>
+          <Link className="button secondary report-detail-bottom-back" href="/reports">کتابخانه گزارش‌ها</Link>
         </div>
       </section>
     </section>

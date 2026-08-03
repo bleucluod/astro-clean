@@ -478,12 +478,12 @@ function checkNavigation() {
     { href: "/privacy", label: "حریم خصوصی" },
   ];
 
-  for (const href of ["/chart", "/sky", "/wiki", "/product", "/privacy"]) {
+  for (const href of ["/chart", "/compare", "/sky", "/wiki"]) {
     if (!primaryHrefs.includes(href)) {
       failures.push(`Primary navigation is missing ${href}.`);
     }
   }
-  for (const href of ["/reports", "/dashboard"]) {
+  for (const href of ["/product", "/privacy", "/reports", "/dashboard"]) {
     if (primaryHrefs.includes(href)) {
       failures.push(`Primary navigation exposes private route ${href}.`);
     }

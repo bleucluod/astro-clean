@@ -374,11 +374,11 @@ assert(reportDetail.includes("<ReportProductReader report={report} />"), "Report
 assert(!reportDetail.includes("report-detail-birth-card"), "Birth data must not dominate the report hero");
 assert(reportDetail.includes('reportSource === "public"'), "Public-read source branch must remain explicit");
 assert(reportDetail.includes("getPublicReportRecord(reportId)"), "Public-read source must use its privacy-minimized client path");
-assert(reportReader.includes('type ReaderMode = "natal" | "transit"'), "Natal and stored transit must be separate reader modes");
+assert(reportReader.includes("ReportReaderMode"), "Natal, stored transit, and technical details must be separate reader modes");
 assert(reportReader.indexOf("<ReportV3Experience") < reportReader.indexOf('id="chart-details"'), "Natal narrative must precede the optional technical appendix");
-assert(reportReader.includes("این داده با بازکردن دوبارهٔ گزارش تازه نمی‌شود"), "Stored transit must be clearly distinguished from today");
+assert(reportReader.includes("با بازکردن دوباره تازه نمی‌شود") && reportReader.includes("همیشه تصویر همان زمان"), "Stored transit must be clearly distinguished from today");
 assert(reportReader.includes("disabled={!transitData}"), "Reports without transit must degrade without an empty active mode");
-assert(navigation.includes("<select"), "Mobile navigation must use a compact selector instead of horizontal chips");
+assert(navigation.includes("bottomSheet") && navigation.includes("floatingSectionsButton"), "Mobile navigation must use the floating bottom-sheet navigator");
 assert(!navigation.includes("overflow-x"), "Mobile report navigation must not rely on horizontal chip overflow");
 assert(reportExperience.includes("سه الگوی اصلی"), "Primary patterns must be visible near the top of the report");
 assert(reportExperience.includes("نقطهٔ قوت اصلی") || reportExperience.includes("primaryStrength"), "Primary strength must be visible");

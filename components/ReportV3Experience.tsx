@@ -2,15 +2,19 @@
 
 import { useMemo } from "react";
 import { ReportAspectRelationshipSections } from "@/components/ReportAspectRelationshipSections";
-import { ReportSpecialPointsNarrativeSection } from "@/components/ReportSpecialPointsNarrativeSection";
+import {
+  buildHumanFirstBirthReading,
+  humanizeVisibleText,
+  type HumanFirstBirthChapter,
+} from "@/lib/report-output/human-first-report-reading";
 import {
   buildLiveReportReadingContract,
-  LIVE_REPORT_READING_CONTRACT_VERSION,
   type LiveReportReadingContract,
-  type LiveReportThemeChapter,
 } from "@/lib/report-output/live-report-reading-contract";
 import { enhanceReportOutputV3 } from "@/lib/report-output/report-v3";
+import type { HumanFirstNarrativeBlock } from "@/types/human-first-reading";
 import type { AstrologyReport } from "@/types/astro";
+import styles from "@/components/report/human-first-report.module.css";
 
 type ReportV3ExperienceProps = {
   report: AstrologyReport;
@@ -21,304 +25,309 @@ export function ReportV3Experience({
   report,
   readingContract: suppliedContract,
 }: ReportV3ExperienceProps) {
-  const readingContract = useMemo(
+  const contract = useMemo(
     () => suppliedContract ?? buildLiveReportReadingContract(report),
     [report, suppliedContract],
+  );
+  const reading = useMemo(
+    () => buildHumanFirstBirthReading(contract),
+    [contract],
   );
   const enhancedReport = useMemo(
     () => enhanceReportOutputV3(report as unknown as Record<string, unknown>),
     [report],
   );
-  const overviewChapter = readingContract.themeChapters.find(
-    (chapter) => chapter.navigationId === "overview",
-  );
-  const innerWorldChapters = readingContract.themeChapters.filter(
-    (chapter) => chapter.navigationId === "inner-world",
-  );
-  const relationshipChapters = readingContract.themeChapters.filter(
-    (chapter) => chapter.navigationId === "relationships",
-  );
-  const growthChapters = readingContract.themeChapters.filter(
-    (chapter) => chapter.navigationId === "growth-path",
-  );
-  const overviewDeepDives = readingContract.deepDiveSections.filter(
-    (section) => section.navigationId === "overview",
-  );
-  const innerWorldDeepDives = readingContract.deepDiveSections.filter(
-    (section) => section.navigationId === "inner-world",
-  );
-  const growthDeepDives = readingContract.deepDiveSections.filter(
-    (section) => section.navigationId === "growth-path",
-  );
+
+  const name = contract.displayName === "تو" ? "" : contract.displayName;
 
   return (
     <div
-      className="report-product-natal-reading"
-      data-live-report-reading-contract={LIVE_REPORT_READING_CONTRACT_VERSION}
-      data-report-product-quality="complete-birth-report"
+      className={styles.natalReading}
+      data-report-product-quality="human-first-birth-report"
     >
-      <section className="report-product-hero" id="overview">
-        <div className="report-product-hero-motif" aria-hidden="true" />
-        <div className="report-product-hero-copy">
-          <div className="report-product-eyebrow-row">
-            <span className="badge">گزارش تولد هالیوس</span>
-            <span className="report-product-reading-time">
-              حدود {readingContract.readingTime.natalMinutes.toLocaleString("fa-IR")} دقیقه خواندن اصلی
-            </span>
-          </div>
-          <h1>
-            {readingContract.displayName === "تو"
-              ? "تصویر کلی چارت تولد"
-              : `تصویر کلی چارت تولد ${readingContract.displayName}`}
-          </h1>
-          <div className="report-product-opening">
-            {readingContract.personalOpening.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
-          <a className="button report-product-main-cta" href="#inner-world">
-            از دنیای درونی شروع کن
-          </a>
+      <section className={styles.hero} id="overview">
+        <p className={styles.eyebrow}>داستان کلی چارت</p>
+        <h1>
+          {name
+            ? `${name}؛ این چارت از چه داستانی می‌گوید؟`
+            : "این چارت از چه داستانی می‌گوید؟"}
+        </h1>
+        <div className={styles.opening}>
+          {reading.opening.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
         </div>
-
-        <aside className="report-product-signature" aria-label="امضای چارت">
-          <span className="section-label">امضای چارت</span>
-          <h2>{readingContract.chartSignature.title}</h2>
-          <p>{readingContract.chartSignature.body}</p>
-          <small>
-            بر اساس {readingContract.chartSignature.evidenceCount.toLocaleString("fa-IR")} جایگاه محاسبه‌شده
-          </small>
-        </aside>
       </section>
 
-      <section className="report-product-core-row" aria-label="خورشید، ماه و رایزینگ">
-        {readingContract.corePlacements.map((placement) => (
-          <article key={placement.id} className="report-product-core-item">
-            <span>{placement.label}</span>
-            <strong>{placement.position}</strong>
-            <small>{placement.role}</small>
+      <section
+        className={styles.section}
+        id="primary-patterns"
+        aria-labelledby="birth-primary-patterns-title"
+      >
+        <SectionHeading
+          eyebrow="سه الگوی اصلی"
+          id="birth-primary-patterns-title"
+          title="سه الگویی که بیشتر از همه در تو تکرار می‌شوند"
+          description="هر کدام را کامل بخوان و بعد سراغ الگوی بعدی برو؛ قرار نیست سه روایت فشرده را هم‌زمان کنار هم نگه داری."
+        />
+        <div className={styles.patternList}>
+          {reading.primaryPatterns.map((pattern, index) => (
+            <BirthPattern
+              index={index}
+              key={pattern.id}
+              pattern={pattern}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section
+        className={styles.section}
+        id="strength-challenge"
+        aria-labelledby="birth-strength-challenge-title"
+      >
+        <SectionHeading
+          eyebrow="دو روی یک الگو"
+          id="birth-strength-challenge-title"
+          title="وقتی روی فرم خودتی، و وقتی فشار بالا می‌رود"
+        />
+        <div className={styles.valueFlow}>
+          <article data-kind="strength">
+            <span>وقتی روی فرم خودتی</span>
+            <p>{humanizeVisibleText(contract.primaryStrength.body)}</p>
           </article>
-        ))}
+          <article data-kind="challenge">
+            <span>وقتی تحت فشار می‌ری</span>
+            <p>{humanizeVisibleText(contract.primaryChallenge.body)}</p>
+          </article>
+        </div>
+
+        <blockquote
+          className={`${styles.saveableSentence} report-product-saveable-sentence`}
+        >
+          <header>
+            <span>یک جمله برای این روزها</span>
+          </header>
+          <p>{humanizeVisibleText(contract.saveableSentence)}</p>
+        </blockquote>
       </section>
 
-      <section className="report-product-overview-block" aria-labelledby="report-primary-patterns-title">
-        <div className="report-product-section-heading">
-          <span className="section-label">سه الگوی اصلی</span>
-          <h2 id="report-primary-patterns-title">اول این سه چیز را نگه دار</h2>
-          <p>این کارت‌ها اشارهٔ کوتاه‌اند؛ توضیح کامل هر الگو فقط در فصل صاحب آن می‌آید.</p>
-        </div>
-        <div className="report-product-pattern-grid">
-          {readingContract.primaryPatterns.map((pattern, index) => (
-            <article className="report-product-pattern-card" key={pattern.id}>
-              <span>{(index + 1).toLocaleString("fa-IR")}</span>
-              <h3>{pattern.title}</h3>
-              <p>{pattern.summary}</p>
-              {pattern.evidence.length > 0 ? (
-                <small>{pattern.evidence.join(" · ")}</small>
-              ) : null}
-            </article>
-          ))}
+      <HumanChapter chapter={reading.innerWorld} eyebrow="دنیای درونی" />
+      <HumanChapter chapter={reading.mindLanguage} eyebrow="فکر و بیان" />
+      <HumanChapter chapter={reading.relationships} eyebrow="رابطه‌ها" />
+      <HumanChapter chapter={reading.driveDirection} eyebrow="حرکت و جهت" />
+
+      <section
+        className={styles.section}
+        id="friction-repair"
+        aria-labelledby="birth-friction-repair-title"
+      >
+        <SectionHeading
+          description={reading.frictionRepair.introduction}
+          eyebrow="وقتی گیر می‌کنی"
+          id="birth-friction-repair-title"
+          title={reading.frictionRepair.title}
+        />
+        <ChapterBody chapter={reading.frictionRepair} />
+        <div className={styles.aspectShell}>
+          <ReportAspectRelationshipSections report={report} />
         </div>
       </section>
 
-      <section className="report-product-strength-challenge" aria-label="نقطه قوت و چالش اصلی">
-        <article className="report-product-value-card is-strength">
-          <span className="section-label">{readingContract.primaryStrength.title}</span>
-          <p>{readingContract.primaryStrength.body}</p>
-        </article>
-        <article className="report-product-value-card is-challenge">
-          <span className="section-label">{readingContract.primaryChallenge.title}</span>
-          <p>{readingContract.primaryChallenge.body}</p>
-        </article>
-      </section>
+      <section
+        className={styles.section}
+        id="growth-path"
+        aria-labelledby="birth-growth-title"
+      >
+        <SectionHeading
+          description={reading.growthPath.introduction}
+          eyebrow="مسیر رشد"
+          id="birth-growth-title"
+          title={reading.growthPath.title}
+        />
+        <ChapterBody chapter={reading.growthPath} />
 
-      <blockquote className="report-product-saveable-sentence">
-        <span>جمله‌ای برای نگه‌داشتن</span>
-        <p>{readingContract.saveableSentence}</p>
-      </blockquote>
-
-      <section className="report-product-reading-path" aria-labelledby="report-reading-path-title">
-        <div>
-          <span className="section-label">مسیر پیشنهادی خواندن</span>
-          <h2 id="report-reading-path-title">لازم نیست همه‌چیز را یک‌باره بخوانی</h2>
-        </div>
-        <ol>
-          {readingContract.recommendedReadingPath.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ol>
-      </section>
-
-      {overviewChapter ? (
-        <ReportChapterAccordion chapter={overviewChapter} defaultOpen />
-      ) : null}
-      <ReportNarrativeDeepDives sections={overviewDeepDives} />
-
-      <section className="report-product-section" id="inner-world">
-        <div className="report-product-section-heading">
-          <span className="section-label">دنیای درونی</span>
-          <h2>احساسات، امنیت، ذهن و زبان</h2>
-          <p>این دو فصل نشان می‌دهند چه چیزی آرامت می‌کند و چطور تجربه را به کلمه و تصمیم تبدیل می‌کنی.</p>
-        </div>
-        <div className="report-product-chapter-list">
-          {innerWorldChapters.map((chapter, index) => (
-            <ReportChapterAccordion chapter={chapter} defaultOpen={index === 0} key={chapter.id} />
-          ))}
-        </div>
-        <ReportNarrativeDeepDives sections={innerWorldDeepDives} />
-      </section>
-
-      <section className="report-product-section" id="relationships">
-        <div className="report-product-section-heading">
-          <span className="section-label">رابطه‌ها</span>
-          <h2>نزدیکی، گفت‌وگو، مرز و ترمیم</h2>
-          <p>این بخش پروفایل رابطه در یک چارت است؛ مقایسهٔ دو نفر یا حکم دربارهٔ سرنوشت رابطه نیست.</p>
-        </div>
-        <div className="report-product-chapter-list">
-          {relationshipChapters.map((chapter) => (
-            <ReportChapterAccordion chapter={chapter} defaultOpen key={chapter.id} />
-          ))}
-        </div>
-        <ReportAspectRelationshipSections report={report} />
-      </section>
-
-      <section className="report-product-section" id="growth-path">
-        <div className="report-product-section-heading">
-          <span className="section-label">مسیر رشد</span>
-          <h2>اراده، جهت و الگوهای تکرارشونده</h2>
-          <p>این فصل‌ها گزارش را از توصیف به انتخاب‌های کوچک و قابل مشاهده وصل می‌کنند.</p>
-        </div>
-        <div className="report-product-chapter-list">
-          {growthChapters.map((chapter, index) => (
-            <ReportChapterAccordion chapter={chapter} defaultOpen={index === 0} key={chapter.id} />
-          ))}
-        </div>
-        <ReportNarrativeDeepDives sections={growthDeepDives} />
-
-        <section className="report-product-growth-axis" aria-label="محور رشد">
-          <div className="report-product-axis-point is-familiar">
-            <span>الگوی آشنا</span>
-            <strong>{readingContract.growthAxis.familiarPattern}</strong>
+        <section className={styles.growthAxis} aria-label="محور رشد شخصی">
+          <div className={styles.growthPoint}>
+            <span>راهی که آشناتر است</span>
+            <strong>{humanizeVisibleText(contract.growthAxis.familiarPattern)}</strong>
           </div>
-          <div className="report-product-axis-arrow" aria-hidden="true">←</div>
-          <div className="report-product-axis-point is-growth">
-            <span>جهت رشد</span>
-            <strong>{readingContract.growthAxis.growthDirection}</strong>
+          <div className={styles.growthArrow} aria-hidden="true">←</div>
+          <div className={styles.growthPoint}>
+            <span>انتخابی که می‌تواند تازه‌تر باشد</span>
+            <strong>{humanizeVisibleText(contract.growthAxis.growthDirection)}</strong>
           </div>
-          <p>{readingContract.growthAxis.bridge}</p>
+          <p>{humanizeVisibleText(contract.growthAxis.bridge)}</p>
         </section>
+      </section>
 
-        <ReportSpecialPointsNarrativeSection report={report} showNodes={false} />
+      <section
+        className={styles.section}
+        id="deeper-layers"
+        aria-labelledby="birth-deeper-layers-title"
+      >
+        <SectionHeading
+          eyebrow="برای وقتی که می‌خواهی عمیق‌تر بروی"
+          id="birth-deeper-layers-title"
+          title="لایه‌هایی که بعد از تصویر کلی معنای بیشتری پیدا می‌کنند"
+          description="این بخش‌ها قرار نیست همان حرف‌ها را دوباره تکرار کنند؛ هر کدام زاویه تازه‌ای به داستان چارت اضافه می‌کنند."
+        />
 
-        <section className="report-product-weekly-actions" aria-labelledby="report-weekly-actions-title">
-          <div className="report-product-section-heading compact">
-            <span className="section-label">سه کار این هفته</span>
-            <h3 id="report-weekly-actions-title">فقط یکی را انتخاب کن و ادامه بده</h3>
-          </div>
-          <div className="report-product-weekly-grid">
-            {readingContract.weeklyActions.map((action, index) => (
-              <article key={action}>
-                <span>{(index + 1).toLocaleString("fa-IR")}</span>
-                <p>{action}</p>
-              </article>
+        {reading.deeperLayers.length > 0 ? (
+          <div className={styles.deepDiveList}>
+            {reading.deeperLayers.map((section) => (
+              <details className={styles.deepDive} key={section.id}>
+                <summary>
+                  <strong>{section.title}</strong>
+                  <small>{section.summary}</small>
+                </summary>
+                <div className={styles.deepDiveBody}>
+                  {section.paragraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+              </details>
             ))}
           </div>
-        </section>
-      </section>
+        ) : null}
 
-      <details className="report-product-limitations">
-        <summary>محدودیت‌ها و شیوهٔ درست خواندن گزارش</summary>
-        <ul>
-          {readingContract.limitations.map((limitation) => (
-            <li key={limitation}>{limitation}</li>
-          ))}
-        </ul>
-        <p>{enhancedReport.reportV3Disclaimer}</p>
-      </details>
+
+        {reading.limitations.length > 0 ? (
+          <details className={styles.limitationsDisclosure}>
+            <summary>این گزارش را تا کجا می‌شود دقیق خواند؟</summary>
+            <ul>
+              {reading.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+            <p>{humanizeVisibleText(enhancedReport.reportV3Disclaimer)}</p>
+          </details>
+        ) : null}
+      </section>
     </div>
   );
 }
 
-function ReportNarrativeDeepDives({
-  sections,
+function BirthPattern({
+  pattern,
+  index,
 }: {
-  sections: LiveReportReadingContract["deepDiveSections"];
+  pattern: HumanFirstNarrativeBlock;
+  index: number;
 }) {
-  if (sections.length === 0) {
-    return null;
-  }
+  return (
+    <article className={styles.patternStory}>
+      <span className={styles.patternNumber}>
+        {(index + 1).toLocaleString("fa-IR")}
+      </span>
+      <div className={styles.patternContent}>
+        <h3>{pattern.title}</h3>
+        <p>{pattern.humanExperience}</p>
+        <p>{pattern.effect}</p>
 
+        <div className={styles.patternMoments}>
+          <p>
+            <strong>بیشتر چه وقت خودش را نشان می‌دهد؟</strong>
+            {pattern.dailySituation}
+          </p>
+          <p>
+            <strong>وقتی خوب پیش می‌رود</strong>
+            {pattern.strength}
+          </p>
+          <p>
+            <strong>وقتی گیر می‌کند</strong>
+            {pattern.challenge}
+          </p>
+        </div>
+
+        <div className={styles.patternHelp}>
+          <strong>یک راه کوچک برای تغییر این الگو</strong>
+          <p>{pattern.practicalStep}</p>
+        </div>
+        <EvidenceDisclosure evidence={pattern.evidence} />
+      </div>
+    </article>
+  );
+}
+
+function HumanChapter({
+  chapter,
+  eyebrow,
+}: {
+  chapter: HumanFirstBirthChapter;
+  eyebrow: string;
+}) {
   return (
     <section
-      className="report-product-chapter-list"
-      data-report-narrative-deep-dives="restored-writer-depth"
-      aria-label="خوانش عمیق‌تر گزارش"
+      className={styles.section}
+      id={chapter.id}
+      aria-labelledby={`${chapter.id}-title`}
     >
-      {sections.map((section) => (
-        <details
-          className="report-product-chapter report-product-narrative-deep-dive"
-          data-report-narrative-deep-dive={section.id}
-          key={section.id}
-        >
-          <summary>
-            <span>
-              <strong>{section.title}</strong>
-              <small>{section.summary}</small>
-            </span>
-            <span aria-hidden="true">+</span>
-          </summary>
-          <div className="report-product-chapter-body">
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
-        </details>
-      ))}
+      <SectionHeading
+        description={chapter.introduction}
+        eyebrow={eyebrow}
+        id={`${chapter.id}-title`}
+        title={chapter.title}
+      />
+      <ChapterBody chapter={chapter} />
     </section>
   );
 }
 
-function ReportChapterAccordion({
-  chapter,
-  defaultOpen = false,
-}: {
-  chapter: LiveReportThemeChapter;
-  defaultOpen?: boolean;
-}) {
+function ChapterBody({ chapter }: { chapter: HumanFirstBirthChapter }) {
   return (
-    <details
-      className="report-product-chapter"
-      data-report-theme-chapter={chapter.id}
-      open={defaultOpen}
-    >
-      <summary>
-        <span>
-          <strong>{chapter.title}</strong>
-          <small>{chapter.summary}</small>
-        </span>
-        <span aria-hidden="true">+</span>
-      </summary>
-      <div className="report-product-chapter-body">
-        {chapter.relationshipGroups ? (
-          <div className="report-product-relationship-grid">
-            {chapter.relationshipGroups.map((group) => (
-              <article key={group.id}>
-                <h3>{group.title}</h3>
-                {group.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-              </article>
-            ))}
-          </div>
-        ) : (
-          chapter.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
-        )}
-        {chapter.reflection ? (
-          <p className="report-product-reflection">
-            <strong>برای مکث:</strong> {chapter.reflection}
+    <div className={styles.chapterMain}>
+      <div className={styles.chapterParagraphs}>
+        {chapter.paragraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </div>
+      <div className={styles.practiceLine}>
+        <strong>یک راه کوچک برای امتحان‌کردن</strong>
+        <p>{chapter.practicalStep}</p>
+      </div>
+      <EvidenceDisclosure evidence={chapter.evidence} />
+    </div>
+  );
+}
+
+function EvidenceDisclosure({
+  evidence,
+}: {
+  evidence: HumanFirstNarrativeBlock["evidence"];
+}) {
+  if (evidence.length === 0) return null;
+
+  return (
+    <details className={styles.evidenceDisclosure}>
+      <summary>از کجای چارت می‌آید؟</summary>
+      <div className={styles.evidenceBody}>
+        {evidence.map((item) => (
+          <p key={item.id}>
+            <strong>{item.label}:</strong> {item.detail}
           </p>
-        ) : null}
+        ))}
       </div>
     </details>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  id,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  id: string;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className={styles.sectionHeading}>
+      <p className={styles.eyebrow}>{eyebrow}</p>
+      <h2 id={id}>{title}</h2>
+      {description ? <p>{description}</p> : null}
+    </div>
   );
 }

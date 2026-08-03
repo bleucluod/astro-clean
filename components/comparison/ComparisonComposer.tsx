@@ -168,26 +168,24 @@ export function ComparisonComposer() {
     <main className={styles.product}>
       <section className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>مقایسه دو چارت</p>
-          <h1>رابطه را از میان دو چارت بخوان</h1>
+          <p className={styles.eyebrow}>تحلیل رابطه</p>
+          <h1>تحلیل رابطه با چارت تولد دو نفر</h1>
           <p>
-            این گزارش به‌جای درصد سازگاری، الگوهای حمایت، اصطکاک، گفت‌وگو،
-            امنیت عاطفی و مرزهای رابطه را از تماس‌های واقعی دو چارت کنار هم می‌گذارد.
+            این خوانش به‌جای یک نمره یا حکم قطعی، نشان می‌دهد کجا راحت‌تر به هم می‌رسید، کجا ممکن است سوءتفاهم بسازید و چه چیزی به امنیت و ترمیم رابطه کمک می‌کند.
           </p>
         </div>
         <div className={styles.privacyBadge}>
-          <strong>خصوصی روی همین دستگاه</strong>
-          <span>noindex · بدون لینک عمومی · بدون ارسال داده به Analytics</span>
+          <strong>این خوانش خصوصی می‌ماند</strong>
+          <span>فقط روی همین دستگاه ذخیره می‌شود و لینک عمومی ندارد.</span>
         </div>
       </section>
 
       <section className={styles.composerCard} aria-labelledby="comparison-builder-title">
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>ساخت مقایسه</p>
+          <p className={styles.eyebrow}>ساخت تحلیل رابطه</p>
           <h2 id="comparison-builder-title">دو چارت را انتخاب کن</h2>
           <p>
-            فقط جایگاه‌ها، زاویه‌ها و خانه‌های لازم وارد مقایسه می‌شوند؛ تاریخ، شهر
-            و ساعت خام نفر دوم در رکورد مقایسه ذخیره نمی‌شود.
+            فقط بخش‌هایی از دو چارت که برای این خوانش لازم‌اند کنار هم قرار می‌گیرند. تاریخ، شهر و ساعت خام نفر دوم داخل مقایسه نگه‌داری نمی‌شود.
           </p>
         </div>
 
@@ -268,8 +266,7 @@ export function ComparisonComposer() {
               <span>
                 <strong>اجازه استفاده از اطلاعات نفر دوم را دارم</strong>
                 <small>
-                  این رضایت فقط برای ساخت همین مقایسه خصوصی است و به معنی انتشار یا
-                  نمایش عمومی اطلاعات نیست.
+                  این اجازه فقط برای ساخت همین خوانش خصوصی است و اطلاعات نفر دوم را عمومی نمی‌کند.
                 </small>
               </span>
             </label>
@@ -282,7 +279,7 @@ export function ComparisonComposer() {
               disabled={isWorking || !chartA || !chartB}
               onClick={generateComparison}
             >
-              {isWorking ? "در حال ساخت مقایسه…" : "ساخت گزارش مقایسه"}
+              {isWorking ? "در حال ساخت خوانش…" : "شروع تحلیل رابطه"}
             </button>
           </>
         )}
@@ -290,9 +287,9 @@ export function ComparisonComposer() {
 
       <section className={styles.historySection} aria-labelledby="comparison-history-title">
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>تاریخچه خصوصی</p>
-          <h2 id="comparison-history-title">مقایسه‌های ذخیره‌شده</h2>
-          <p>حداکثر شش مقایسه روی همین مرورگر نگه‌داری می‌شود.</p>
+          <p className={styles.eyebrow}>خوانش‌های قبلی</p>
+          <h2 id="comparison-history-title">مقایسه‌هایی که روی این دستگاه مانده‌اند</h2>
+          <p>تا شش مقایسه در همین مرورگر نگه‌داری می‌شود و هر زمان بخواهی می‌توانی آن‌ها را پاک کنی.</p>
         </div>
 
         {history.length === 0 ? (
@@ -374,7 +371,7 @@ function ChartPicker({
           <span>
             <strong>ساعت تولد این چارت دقیق است</strong>
             <small>
-              اگر خاموش باشد، زاویه‌ها و هم‌پوشانی خانه‌ها وارد نتیجه نمی‌شوند.
+              اگر ساعت دقیق نیست، رایزینگ و هم‌پوشانی خانه‌ها وارد خوانش نمی‌شوند؛ بقیهٔ پیوندها همچنان بررسی می‌شوند.
             </small>
           </span>
         </label>

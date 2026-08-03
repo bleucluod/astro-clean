@@ -96,10 +96,14 @@ for (const marker of [
   }
 }
 
-for (const forbiddenMarker of ["AnalyticsPreferencesLink", "دسترسی سریع"]) {
+for (const forbiddenMarker of ["AnalyticsPreferencesLink"]) {
   if (appShell.includes(forbiddenMarker)) {
     failures.push(`Minimal footer still exposes removed control/title: ${forbiddenMarker}`);
   }
+}
+
+if (!appShell.includes("دسترسی سریع")) {
+  failures.push("Minimal footer is missing the approved quick-access title");
 }
 
 if (!appShell.includes('aria-label="مسیرهای اصلی"')) {
@@ -156,13 +160,13 @@ if (tabletStart === -1 || mobileStart === -1 || mobileStart <= tabletStart) {
   }
 }
 
-for (const marker of ['href: "/reports"', 'href: "/dashboard"']) {
+for (const marker of ['href: "/product"', 'href: "/privacy"', 'href: "/reports"', 'href: "/dashboard"']) {
   if (navigation.includes(marker)) {
     failures.push(`Primary navigation exposes private route marker: ${marker}`);
   }
 }
 
-for (const marker of ['href: "/chart"', 'href: "/sky"', 'href: "/wiki"']) {
+for (const marker of ['href: "/chart"', 'href: "/compare"', 'href: "/sky"', 'href: "/wiki"']) {
   if (!navigation.includes(marker)) {
     failures.push(`Primary navigation missing public route marker: ${marker}`);
   }

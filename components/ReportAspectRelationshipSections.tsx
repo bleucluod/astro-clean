@@ -7,6 +7,7 @@ import {
 } from "@/lib/astrology/report-behavioral-interpretation";
 import { getReportBehavioralAudienceMode } from "@/lib/astrology/report-behavioral-context";
 import { selectPrimaryNarrativeAspects } from "@/lib/report-output/live-report-reading-contract";
+import { humanizeVisibleText } from "@/lib/report-output/human-first-report-reading";
 import type {
   AstrologyReport,
   RealEngineReportAspect,
@@ -22,61 +23,56 @@ const PERSIAN_NUMBER_FORMATTER = new Intl.NumberFormat("fa-IR", {
 });
 
 const ASPECT_TITLE_BY_KIND: Record<RealEngineReportAspectKind, string> = {
-  conjunction: "هم‌نشینی ۰ درجه",
-  sextile: "زاویه‌ی ۶۰ درجه",
-  square: "زاویه‌ی ۹۰ درجه",
-  trine: "زاویه‌ی ۱۲۰ درجه",
-  opposition: "روبه‌رویی ۱۸۰ درجه",
+  conjunction: "هم‌نشینی",
+  sextile: "تسدیس",
+  square: "مربع",
+  trine: "تثلیث",
+  opposition: "مقابله",
 };
 
 export function ReportAspectRelationshipSections({
   report,
 }: ReportAspectRelationshipSectionsProps) {
-  const snapshot = report.realEngine;
-  const aspects = snapshot?.aspects ?? [];
-  const storedHighlights = snapshot?.aspectHighlights ?? [];
-  const shownAspects = selectPrimaryNarrativeAspects(
-    aspects,
-    storedHighlights,
-  );
-  const shownAspectIds = new Set(shownAspects.map((aspect) => aspect.id));
-  const hiddenAspectCount = aspects.filter(
-    (aspect) => !shownAspectIds.has(aspect.id),
-  ).length;
+  const chartData = report.realEngine;
+  const aspects = chartData?.aspects ?? [];
+  const storedHighlights = chartData?.aspectHighlights ?? [];
+  const shownAspects = selectPrimaryNarrativeAspects(aspects, storedHighlights);
 
-  if (!snapshot || shownAspects.length === 0) {
+  if (!chartData || shownAspects.length === 0) {
     return null;
   }
 
   const placementById = new Map(
-    snapshot.placements.map((placement) => [placement.id, placement]),
+    chartData.placements.map((placement) => [placement.id, placement]),
   );
   const risingSignId =
-    snapshot.angles?.asc?.signId ?? report.chart.risingSign.key;
+    chartData.angles?.asc?.signId ?? report.chart.risingSign.key;
   const chartRulerId = getBehavioralChartRulerId(risingSignId);
-  const activeHouseNumbers = (snapshot.houses ?? [])
+  const activeHouseNumbers = (chartData.houses ?? [])
     .filter((house) => house.planetIds.length > 0)
     .map((house) => house.number);
   const retrogradePlanetIds =
-    snapshot.retrogrades?.status === "calculated"
-      ? snapshot.retrogrades.planetIds
+    chartData.retrogrades?.status === "calculated"
+      ? chartData.retrogrades.planetIds
       : [];
   const audienceMode = getReportBehavioralAudienceMode(report);
 
   return (
     <section
       className="report-section report-aspect-relationship-sections"
-      data-report-aspect-relationship-sections="true"
-      data-halleus-behavioral-aspect-core="v0.1.315"
+      data-report-aspect-relationship-sections="human-first"
+      aria-label="پیوندهای مهم میان بخش‌های مختلف این چارت"
     >
       <div className="report-section-heading">
-        <span className="report-eyebrow">رابطه سیاره‌ها</span>
-        <h3>رابطه‌های مهم</h3>
-        <p data-report-narrative-quality-pass="aspect-bridge">اینجا فقط سه تا پنج رابطه‌ی روایی اولویت‌دار باز شده‌اند؛ فهرست کامل در جزئیات محاسبه می‌ماند.</p>
+        <span className="report-eyebrow">پیوندهای پررنگ</span>
+        <h3>وقتی دو بخش مهم تو هم‌زمان فعال می‌شوند</h3>
+        <p>
+          اول تجربهٔ انسانی این پیوند را بخوان. نام جنبه، درجه و اورب فقط در بخش بازشوندهٔ همان روایت آمده‌اند.
+        </p>
       </div>
 
       <div className="report-grid report-placement-section-grid">
-        {shownAspects.map((aspect, index) => {
+        {shownAspects.map((aspect) => {
           const firstPlacement = placementById.get(aspect.firstPlanetId);
           const secondPlacement = placementById.get(aspect.secondPlanetId);
           const interpretation = isBehavioralAspectInput(
@@ -105,59 +101,82 @@ export function ReportAspectRelationshipSections({
               className="report-card report-aspect-relationship-card"
               key={aspect.id}
             >
-              <span className="report-eyebrow">
-                رابطه {formatPersianNumber(index + 1)}
-              </span>
-              <h4>{buildAspectHeading(aspect)}</h4>
+              <span className="report-eyebrow">یک چرخه که می‌شود زودتر دید</span>
+              <h4>{buildHumanAspectHeading(aspect)}</h4>
               <p>
-                {interpretation?.plainMeaning ??
-                  "این رابطه باید در کنار جایگاه واقعی هر دو سیاره خوانده شود."}
+                {humanizeVisibleText(interpretation?.plainMeaning ??
+                  "این دو نیاز در یک موقعیت هم‌زمان فعال می‌شوند؛ جدا نام‌بردن از هر کدام کمک می‌کند واکنش روشن‌تری داشته باشی.")}
               </p>
               <ul className="report-detail-list">
                 <li>
-                  <strong>در عمل:</strong>{" "}
-                  {interpretation?.dailyLifeExample ?? aspect.narrative}
+                  <strong>در زندگی تو</strong>{" "}
+                  {humanizeVisibleText(interpretation?.dailyLifeExample ?? aspect.narrative)}
                 </li>
                 <li>
-                  <strong>وقتی خوب کار می‌کند:</strong>{" "}
-                  {interpretation?.healthyExpression ?? aspect.meaning}
+                  <strong>وقتی خوب پیش می‌رود</strong>{" "}
+                  {humanizeVisibleText(interpretation?.healthyExpression ?? aspect.meaning)}
                 </li>
                 <li>
-                  <strong>جایی که گیر می‌کند:</strong>{" "}
-                  {interpretation?.possibleFriction ?? aspect.narrative}
+                  <strong>وقتی گیر می‌کند</strong>{" "}
+                  {humanizeVisibleText(interpretation?.possibleFriction ?? aspect.narrative)}
                 </li>
                 <li>
-                  <strong>این هفته امتحان کن:</strong>{" "}
-                  {interpretation?.smallExperiment ??
-                    "یک نمونه واقعی از این رابطه را ثبت و پیش از واکنش مکث کن."}
+                  <strong>یک راه کوچک برای برگشتن</strong>{" "}
+                  {humanizeVisibleText(interpretation?.smallExperiment ??
+                    "شروع این چرخه را ثبت کن و پیش از واکنش، نیاز اصلی را در یک جملهٔ کوتاه نام ببر.")}
                 </li>
               </ul>
               <details>
-                <summary>اورب و میزان اعتماد این خوانش</summary>
-                <p>
-                  {interpretation?.confidenceNote ?? formatOrbLabel(aspect)}
-                </p>
+                <summary>از کجای چارت می‌آید؟</summary>
+                <p>{formatAstrologyEvidence(aspect)}</p>
+                {interpretation?.confidenceNote ? (
+                  <p>{humanizeVisibleText(interpretation.confidenceNote)}</p>
+                ) : null}
               </details>
             </article>
           );
         })}
       </div>
 
-      {hiddenAspectCount > 0 ? (
-        <p className="report-muted">
-          {formatPersianNumber(hiddenAspectCount)} رابطه‌ی دیگر در جدول فنی کامل پایین صفحه در دسترس است.
-        </p>
-      ) : null}
+      <p className="report-muted">
+        فهرست کامل جنبه‌ها و همهٔ اورب‌ها در تب «جزئیات نجومی» در دسترس است.
+      </p>
     </section>
   );
 }
 
-function buildAspectHeading(aspect: RealEngineReportAspect) {
-  return `${aspect.firstPlanetLabel} در ${ASPECT_TITLE_BY_KIND[aspect.aspectId]} با ${aspect.secondPlanetLabel}`;
+function buildHumanAspectHeading(aspect: RealEngineReportAspect) {
+  const ids = new Set([aspect.firstPlanetId, aspect.secondPlanetId]);
+
+  if (ids.has("moon") && ids.has("saturn")) {
+    return "وقتی نیاز به امنیت با ترس از آسیب‌پذیری برخورد می‌کند";
+  }
+  if (ids.has("moon") && ids.has("mercury")) {
+    return "وقتی فکر آمادهٔ حرف‌زدن است اما احساس هنوز زمان می‌خواهد";
+  }
+  if (ids.has("venus") && ids.has("mars")) {
+    return "وقتی شیوه نزدیک‌شدن و سرعت خواستن یکسان نیست";
+  }
+  if (ids.has("sun") && ids.has("saturn")) {
+    return "وقتی نیاز به دیده‌شدن با احتیاط و مسئولیت روبه‌رو می‌شود";
+  }
+  if (ids.has("mercury") && ids.has("saturn")) {
+    return "وقتی گفتن حرف مهم با ترس از اشتباه یا قضاوت همراه می‌شود";
+  }
+  if (ids.has("moon") && ids.has("venus")) {
+    return "وقتی آرام‌شدن و دریافت محبت از دو مسیر متفاوت می‌آیند";
+  }
+  if (aspect.aspectId === "trine" || aspect.aspectId === "sextile") {
+    return "وقتی دو توانایی طبیعی می‌توانند به کمک هم بیایند";
+  }
+  if (aspect.aspectId === "square" || aspect.aspectId === "opposition") {
+    return "وقتی دو نیاز مهم هم‌زمان فعال می‌شوند و پاسخ یکسانی نمی‌خواهند";
+  }
+  return "وقتی دو بخش مهم شخصیت در یک موقعیت به هم می‌رسند";
 }
 
-function formatOrbLabel(aspect: RealEngineReportAspect) {
-  return `حدود ${formatPersianNumber(aspect.orb)} درجه؛ این عدد نزدیکی تماس را نشان می‌دهد، نه تمام معنای آن را.`;
+function formatAstrologyEvidence(aspect: RealEngineReportAspect) {
+  return `${aspect.firstPlanetLabel} در ${ASPECT_TITLE_BY_KIND[aspect.aspectId]} با ${aspect.secondPlanetLabel}؛ زاویهٔ واقعی ${formatPersianNumber(aspect.separation)} درجه و اورب ${formatPersianNumber(aspect.orb)} درجه.`;
 }
 
 function formatPersianNumber(value: number) {

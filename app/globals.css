@@ -9511,3 +9511,33 @@ h6,
     break-inside: avoid;
   }
 }
+
+/* Human-first report tools and relationship CTA */
+.report-product-reader-tools {
+  width: min(920px, 100%);
+  margin: 24px auto 0;
+  border: 1px solid rgba(36, 52, 71, 0.12);
+  border-radius: 18px;
+  background: #ffffff;
+}
+.report-product-reader-tools > summary {
+  cursor: pointer;
+  padding: 15px 18px;
+  color: #243447;
+  font-weight: 850;
+}
+.report-product-reader-tools-body { display: grid; gap: 16px; padding: 0 18px 18px; }
+.report-product-reader-tools-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.report-product-reader-tools-heading p { margin: 0; color: #52657a; }
+.report-product-inline-tool { border-top: 1px solid rgba(36, 52, 71, 0.1); padding-top: 12px; }
+.report-product-inline-tool > summary { cursor: pointer; color: #1e40af; font-weight: 800; margin-bottom: 12px; }
+.report-product-relationship-cta {
+  border-inline-start: 4px solid #1e40af;
+  background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+}
+@media (max-width: 760px) {
+  .report-product-reader-tools { border-radius: 15px; }
+  .report-product-reader-tools-heading { align-items: flex-start; }
+  .report-product-relationship-cta .actions { width: 100%; }
+  .report-product-relationship-cta .button { width: 100%; justify-content: center; }
+}

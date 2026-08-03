@@ -1,4 +1,12 @@
-import type { RealSynastryReport, SynastryBirthTimeStatus, SynastryPattern, SynastryRelationshipContext } from "@/types/synastry-engine";
+import type {
+  RealSynastryReport,
+  SynastryBirthTimeStatus,
+  SynastryRelationshipContext,
+} from "@/types/synastry-engine";
+import type {
+  HumanFirstDirectionalNarrativeBlock,
+  HumanFirstEvidence,
+} from "@/types/human-first-reading";
 
 export const COMPARISON_PRODUCT_VERSION = "comparison-product-v1" as const;
 export const COMPARISON_PRIVACY_VERSION = "comparison-private-v1" as const;
@@ -13,13 +21,34 @@ export type ComparisonPrivacy = {
   rawBirthInputStored: false;
 };
 
-export type ComparisonPrimaryPattern = Pick<
-  SynastryPattern,
-  "id" | "kind" | "titleFa" | "summaryFa" | "contactIds" | "relevanceScore"
->;
+export type ComparisonPrimaryPattern = HumanFirstDirectionalNarrativeBlock & {
+  kind: "supportive" | "tension";
+  titleFa: string;
+  summaryFa: string;
+  contactIds: string[];
+  relevanceScore: number;
+};
+
+export type ComparisonGrowthReading = {
+  personASkill: string;
+  personBSkill: string;
+  cycleToNotice: string;
+  practicalStep: string;
+  evidence: HumanFirstEvidence[];
+};
 
 export type ComparisonReading = {
+  overviewFa: string;
   primaryPatterns: ComparisonPrimaryPattern[];
+  support: HumanFirstDirectionalNarrativeBlock;
+  misunderstanding: HumanFirstDirectionalNarrativeBlock;
+  communication: HumanFirstDirectionalNarrativeBlock;
+  emotionalSecurity: HumanFirstDirectionalNarrativeBlock;
+  closenessIndependence: HumanFirstDirectionalNarrativeBlock;
+  boundariesCommitment: HumanFirstDirectionalNarrativeBlock;
+  frictionRepair: HumanFirstDirectionalNarrativeBlock;
+  growth: ComparisonGrowthReading;
+  readingLimitFa: string;
   supportiveFa: string;
   frictionFa: string;
   communicationFa: string;

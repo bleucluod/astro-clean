@@ -5,7 +5,7 @@ export const navItems = [
   },
   {
     href: "/compare",
-    label: "مقایسه دو چارت",
+    label: "تحلیل رابطه",
   },
   {
     href: "/sky",
@@ -14,13 +14,5 @@ export const navItems = [
   {
     href: "/wiki",
     label: "ویکی",
-  },
-  {
-    href: "/product",
-    label: "محصول",
-  },
-  {
-    href: "/privacy",
-    label: "حریم خصوصی",
   },
 ] as const;

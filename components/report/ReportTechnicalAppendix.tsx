@@ -6,6 +6,7 @@ import {
   buildTechnicalAspectRows,
   type LiveReportReadingContract,
 } from "@/lib/report-output/live-report-reading-contract";
+import { humanizeVisibleText } from "@/lib/report-output/human-first-report-reading";
 import type {
   AstrologyReport,
   RealEngineReportAngle,
@@ -13,15 +14,21 @@ import type {
   RealEngineReportHouse,
   RealEngineReportPlacement,
 } from "@/types/astro";
+import styles from "./human-first-report.module.css";
 
-type TechnicalTab = "placements" | "houses" | "aspects" | "axes" | "method";
+type AstrologyTab =
+  | "placements"
+  | "houses"
+  | "aspects"
+  | "axes"
+  | "context";
 
-const TECHNICAL_TABS: Array<{ id: TechnicalTab; label: string }> = [
+const ASTROLOGY_TABS: Array<{ id: AstrologyTab; label: string }> = [
   { id: "placements", label: "جایگاه‌ها" },
   { id: "houses", label: "خانه‌ها" },
-  { id: "aspects", label: "جنبه‌ها" },
-  { id: "axes", label: "محورها" },
-  { id: "method", label: "روش محاسبه" },
+  { id: "aspects", label: "رابطه‌های زاویه‌ای" },
+  { id: "axes", label: "محورهای اصلی" },
+  { id: "context", label: "مبنای خوانش" },
 ];
 
 const HOUSE_FIELD_LABELS: Record<number, string> = {
@@ -53,39 +60,42 @@ export function ReportTechnicalAppendix({
   report: AstrologyReport;
   contract: LiveReportReadingContract;
 }) {
-  const [activeTab, setActiveTab] = useState<TechnicalTab>("placements");
-  const snapshot = report.realEngine;
-  const placements = snapshot?.placements ?? [];
-  const houses = snapshot?.houses ?? [];
-  const aspects = snapshot?.aspects ?? [];
-  const angles = snapshot?.angles ? Object.values(snapshot.angles) : [];
+  const [activeTab, setActiveTab] =
+    useState<AstrologyTab>("placements");
+  const chartData = report.realEngine;
+  const placements = chartData?.placements ?? [];
+  const houses = chartData?.houses ?? [];
+  const aspects = chartData?.aspects ?? [];
+  const angles = chartData?.angles ? Object.values(chartData.angles) : [];
 
   return (
     <section
-      className="report-product-technical-appendix"
+      className={styles.technicalAppendix}
       data-report-technical-appendix="placements-houses-aspects-axes-method"
-      aria-labelledby="report-technical-title"
+      data-human-first-technical-appendix="complete-astrology-details"
+      aria-labelledby="report-astrology-details-title"
     >
-      <details>
-        <summary className="report-product-technical-heading">
-          <div>
-            <span className="section-label">ضمیمهٔ فنی</span>
-            <h2 id="report-technical-title">داده‌ها بدون سنگین‌کردن مسیر اصلی</h2>
-            <p>
-              این بخش اختیاری است و حدود {contract.readingTime.technicalMinutes.toLocaleString("fa-IR")} دقیقه زمان می‌گیرد.
-            </p>
-          </div>
-          <span className="report-product-technical-count">
-            {placements.length.toLocaleString("fa-IR")} جایگاه · {aspects.length.toLocaleString("fa-IR")} جنبه
-          </span>
+      <details className={styles.technicalDisclosure}>
+        <summary className={styles.technicalHeading}>
+          <span className={styles.eyebrow}>جزئیات نجومی</span>
+          <h2 id="report-astrology-details-title">
+            همهٔ جایگاه‌ها و زاویه‌ها در یک نگاه
+          </h2>
+          <p>
+            اینجا همهٔ جایگاه‌ها، خانه‌ها، محورهای اصلی، جنبه‌ها و اورب‌ها را یک‌جا می‌بینی.
+          </p>
         </summary>
 
-        <div style={{ display: "grid", gap: "16px", marginTop: "16px" }}>
-          <div className="report-product-technical-tabs" role="tablist" aria-label="داده‌های فنی چارت">
-            {TECHNICAL_TABS.map((tab) => (
+        <div className={styles.technicalContent}>
+          <div
+            className={styles.technicalTabs}
+            role="tablist"
+            aria-label="جزئیات کامل چارت"
+          >
+            {ASTROLOGY_TABS.map((tab) => (
               <button
                 aria-selected={activeTab === tab.id}
-                className={activeTab === tab.id ? "active" : ""}
+                data-active={activeTab === tab.id}
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 role="tab"
@@ -96,7 +106,7 @@ export function ReportTechnicalAppendix({
             ))}
           </div>
 
-          <div className="report-product-technical-panel" role="tabpanel">
+          <div className={styles.technicalPanel} role="tabpanel">
             {activeTab === "placements" ? (
               <PlacementTable placements={placements} />
             ) : null}
@@ -104,19 +114,21 @@ export function ReportTechnicalAppendix({
               <HouseTable
                 hasReliableBirthTime={contract.hasReliableBirthTime}
                 houses={houses}
-                houseSystem={snapshot?.houseSystem}
-                houseAvailability={snapshot?.houseContext?.availability}
+                houseAvailability={chartData?.houseContext?.availability}
+                houseSystem={chartData?.houseSystem}
               />
             ) : null}
-            {activeTab === "aspects" ? <AspectTable aspects={aspects} /> : null}
+            {activeTab === "aspects" ? (
+              <AspectTable aspects={aspects} />
+            ) : null}
             {activeTab === "axes" ? (
               <AxisTable
                 angles={angles}
                 hasReliableBirthTime={contract.hasReliableBirthTime}
               />
             ) : null}
-            {activeTab === "method" ? (
-              <MethodPanel report={report} contract={contract} />
+            {activeTab === "context" ? (
+              <ContextPanel contract={contract} report={report} />
             ) : null}
           </div>
         </div>
@@ -125,21 +137,38 @@ export function ReportTechnicalAppendix({
   );
 }
 
-function PlacementTable({ placements }: { placements: RealEngineReportPlacement[] }) {
+function PlacementTable({
+  placements,
+}: {
+  placements: RealEngineReportPlacement[];
+}) {
   if (placements.length === 0) {
-    return <EmptyTechnicalState>جایگاه محاسبه‌شده‌ای در نسخهٔ ذخیره‌شده وجود ندارد.</EmptyTechnicalState>;
+    return (
+      <EmptyTechnicalState>
+        جایگاه نجومی قابل نمایش در این گزارش ثبت نشده است.
+      </EmptyTechnicalState>
+    );
   }
 
   return (
-    <div className="report-product-data-table" data-technical-table="placements">
-      <div className="report-product-data-head">
-        <span>سیاره</span><span>نشان و درجه</span><span>خانه</span>
+    <div className={styles.dataTable} data-technical-table="placements">
+      <div className={styles.dataHead}>
+        <span>سیاره یا نقطه</span>
+        <span>نشان و درجه</span>
+        <span>خانه</span>
       </div>
       {placements.map((placement) => (
-        <div className="report-product-data-row" key={placement.id}>
+        <div className={styles.dataRow} key={placement.id}>
           <strong>{placement.label}</strong>
-          <span>{formatZodiacLabel(placement.signId)}، {formatDegree(placement.degreeInSign)}</span>
-          <span>{typeof placement.house === "number" ? `خانه ${formatPersianNumber(placement.house)}` : "ثبت نشده"}</span>
+          <span>
+            {formatZodiacLabel(placement.signId)}،{" "}
+            {formatDegree(placement.degreeInSign)}
+          </span>
+          <span>
+            {typeof placement.house === "number"
+              ? `خانه ${formatPersianNumber(placement.house)}`
+              : "وابسته به ساعت تولد نیست یا ثبت نشده"}
+          </span>
         </div>
       ))}
     </div>
@@ -160,7 +189,8 @@ function HouseTable({
   if (!hasReliableBirthTime) {
     return (
       <EmptyTechnicalState>
-        چون ساعت تولد دقیق در دسترس نیست، خانه‌ها و محورهای وابسته به زمان در این گزارش تفسیر نمی‌شوند.
+        چون ساعت تولد دقیق نیست، درباره رایزینگ و خانه‌ها نتیجه‌گیری نشده؛
+        بخش‌های مستقل از ساعت همچنان بررسی شده‌اند.
       </EmptyTechnicalState>
     );
   }
@@ -169,22 +199,29 @@ function HouseTable({
     return (
       <EmptyTechnicalState>
         {houseSystem === "placidus" && houseAvailability === "unavailable"
-          ? "خانه‌های پلاسیدوس برای این چارت قابل محاسبه نبوده‌اند و روش جایگزین پنهانی اعمال نشده است."
-          : "جدول کامل دوازده خانه در نسخهٔ ذخیره‌شده موجود نیست."}
+          ? "برای این موقعیت تولد، جدول کامل خانه‌های پلاسیدوس به دست نیامده و خانه‌ای جای آن حدس زده نشده است."
+          : "جدول کامل دوازده خانه همراه این گزارش ثبت نشده است."}
       </EmptyTechnicalState>
     );
   }
 
   return (
-    <div className="report-product-data-table" data-technical-table="houses">
-      <div className="report-product-data-head">
-        <span>خانه</span><span>شروع خانه</span><span>میدان زندگی</span>
+    <div className={styles.dataTable} data-technical-table="houses">
+      <div className={styles.dataHead}>
+        <span>خانه</span>
+        <span>شروع خانه</span>
+        <span>میدان زندگی</span>
       </div>
       {houses.map((house) => (
-        <div className="report-product-data-row" key={house.number}>
+        <div className={styles.dataRow} key={house.number}>
           <strong>خانه {formatPersianNumber(house.number)}</strong>
-          <span>{formatZodiacLabel(house.signId)}، {formatDegree(house.degreeInSign)}</span>
-          <span>{HOUSE_FIELD_LABELS[house.number] ?? "میدان ثبت‌شدهٔ چارت"}</span>
+          <span>
+            {formatZodiacLabel(house.signId)}،{" "}
+            {formatDegree(house.degreeInSign)}
+          </span>
+          <span>
+            {HOUSE_FIELD_LABELS[house.number] ?? "میدان ثبت‌شدهٔ چارت"}
+          </span>
         </div>
       ))}
     </div>
@@ -195,18 +232,30 @@ function AspectTable({ aspects }: { aspects: RealEngineReportAspect[] }) {
   const rows = buildTechnicalAspectRows(aspects);
 
   if (rows.length === 0) {
-    return <EmptyTechnicalState>جنبهٔ اصلی محاسبه‌شده‌ای برای نمایش وجود ندارد.</EmptyTechnicalState>;
+    return (
+      <EmptyTechnicalState>
+        رابطهٔ زاویه‌ای اصلی برای نمایش در این گزارش ثبت نشده است.
+      </EmptyTechnicalState>
+    );
   }
 
   return (
-    <div className="report-product-data-table" data-technical-table="aspects" data-aspect-table-mode="technical-only">
-      <div className="report-product-data-head report-product-aspect-head">
-        <span>سیاره‌ها</span><span>نوع</span><span>زاویه واقعی</span><span>اورب</span>
+    <div className={styles.dataTable} data-technical-table="aspects">
+      <div className={`${styles.dataHead} ${styles.aspectHead}`}>
+        <span>دو نقطه</span>
+        <span>نوع رابطه</span>
+        <span>فاصلهٔ زاویه‌ای</span>
+        <span>اورب</span>
       </div>
       {rows.map((row) => (
-        <div className="report-product-data-row report-product-aspect-row" key={row.id}>
+        <div
+          className={`${styles.dataRow} ${styles.aspectRow}`}
+          key={row.id}
+        >
           <strong>{row.planets}</strong>
-          <span>{row.type} ({formatDegree(row.exactAngle)})</span>
+          <span>
+            {row.type} ({formatDegree(row.exactAngle)})
+          </span>
           <span>{formatDegree(row.separation)}</span>
           <span>{formatDegree(row.orb)}</span>
         </div>
@@ -225,62 +274,101 @@ function AxisTable({
   if (!hasReliableBirthTime || angles.length === 0) {
     return (
       <EmptyTechnicalState>
-        محورهای اصلی بدون ساعت تولد معتبر نمایش داده نمی‌شوند؛ جایگاه‌های سیاره‌ای مستقل همچنان قابل استفاده‌اند.
+        چون ساعت تولد دقیق نیست، رایزینگ و محورهای وابسته به زمان نمایش داده
+        نمی‌شوند؛ جایگاه‌های مستقل از ساعت همچنان در دسترس‌اند.
       </EmptyTechnicalState>
     );
   }
 
   return (
-    <div className="report-product-data-table" data-technical-table="axes">
-      <div className="report-product-data-head">
-        <span>محور</span><span>نشان و درجه</span><span>خانه</span>
+    <div className={styles.dataTable} data-technical-table="axes">
+      <div className={styles.dataHead}>
+        <span>محور</span>
+        <span>نشان و درجه</span>
+        <span>خانه</span>
       </div>
       {angles.map((angle) => (
-        <div className="report-product-data-row" key={angle.id}>
+        <div className={styles.dataRow} key={angle.id}>
           <strong>{ANGLE_LABELS[angle.id] ?? angle.label}</strong>
-          <span>{formatZodiacLabel(angle.signId)}، {formatDegree(angle.degreeInSign)}</span>
-          <span>{typeof angle.house === "number" ? `خانه ${formatPersianNumber(angle.house)}` : "ثبت نشده"}</span>
+          <span>
+            {formatZodiacLabel(angle.signId)}،{" "}
+            {formatDegree(angle.degreeInSign)}
+          </span>
+          <span>
+            {typeof angle.house === "number"
+              ? `خانه ${formatPersianNumber(angle.house)}`
+              : "ثبت نشده"}
+          </span>
         </div>
       ))}
     </div>
   );
 }
 
-function MethodPanel({
+function ContextPanel({
   report,
   contract,
 }: {
   report: AstrologyReport;
   contract: LiveReportReadingContract;
 }) {
-  const snapshot = report.realEngine;
+  const chartData = report.realEngine;
+  const readableLimitations = buildReadableLimitations(contract);
 
   return (
-    <div className="report-product-method-panel">
-      <details>
-        <summary>اطلاعات تولد و مبنای محاسبه</summary>
-        <dl>
-          <div><dt>نام انتخابی</dt><dd>{report.input.name?.trim() || "ثبت نشده"}</dd></div>
-          <div><dt>تاریخ تولد</dt><dd>{report.input.birthDate || "ثبت نشده"}</dd></div>
-          <div><dt>ساعت تولد</dt><dd>{contract.hasReliableBirthTime ? report.input.birthTime : "نامشخص"}</dd></div>
-          <div><dt>محل تولد</dt><dd>{[report.input.birthCity, report.input.birthCountry].filter(Boolean).join("، ") || "ثبت نشده"}</dd></div>
-          <div><dt>منطقه زمانی</dt><dd>{report.input.birthTimezone || "در نسخهٔ ذخیره‌شده ثبت نشده"}</dd></div>
-        </dl>
-      </details>
-
-      <dl className="report-product-method-facts">
-        <div><dt>نسخه داده</dt><dd>{snapshot?.version ?? "legacy/fallback"}</dd></div>
-        <div><dt>روش خانه‌ها</dt><dd>{formatHouseSystem(snapshot?.houseSystem)}</dd></div>
-        <div><dt>زمان مرجع ذخیره‌شده</dt><dd>{snapshot?.utcIso || "ثبت نشده"}</dd></div>
-        <div><dt>وضعیت محاسبه</dt><dd>{snapshot?.calculationQuality?.status ?? "نسخهٔ قدیمی"}</dd></div>
+    <div className={styles.contextPanel}>
+      <dl className={styles.contextFacts}>
+        <div>
+          <dt>نام انتخابی</dt>
+          <dd>{report.input.name?.trim() || "ثبت نشده"}</dd>
+        </div>
+        <div>
+          <dt>تاریخ تولد</dt>
+          <dd>{report.input.birthDate || "ثبت نشده"}</dd>
+        </div>
+        <div>
+          <dt>ساعت تولد</dt>
+          <dd>
+            {contract.hasReliableBirthTime
+              ? report.input.birthTime
+              : "دقیق نیست"}
+          </dd>
+        </div>
+        <div>
+          <dt>محل تولد</dt>
+          <dd>
+            {[report.input.birthCity, report.input.birthCountry]
+              .filter(Boolean)
+              .join("، ") || "ثبت نشده"}
+          </dd>
+        </div>
+        <div>
+          <dt>منطقه زمانی</dt>
+          <dd>{report.input.birthTimezone || "همراه گزارش ثبت نشده"}</dd>
+        </div>
+        <div>
+          <dt>خانه‌ها</dt>
+          <dd>{formatHouseSystem(chartData?.houseSystem)}</dd>
+        </div>
       </dl>
 
-      <div className="report-product-evidence-list">
-        <h3>پشتوانهٔ خروجی‌های اصلی</h3>
+      {readableLimitations.length > 0 ? (
+        <details className={styles.limitationsDisclosure}>
+          <summary>حدود این خوانش</summary>
+          <ul>
+            {readableLimitations.map((limitation) => (
+              <li key={limitation}>{limitation}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+
+      <div className={styles.evidenceList}>
+        <h3>این خوانش از کجای چارت آمده است؟</h3>
         {contract.evidenceReferences.map((evidence) => (
           <div key={evidence.id}>
-            <strong>{evidence.label}</strong>
-            <span>{evidence.detail}</span>
+            <strong>{humanizeVisibleLabel(evidence.label)}</strong>
+            <span>{humanizeVisibleLabel(evidence.detail)}</span>
           </div>
         ))}
       </div>
@@ -289,7 +377,60 @@ function MethodPanel({
 }
 
 function EmptyTechnicalState({ children }: { children: ReactNode }) {
-  return <div className="report-product-empty-technical" role="note">{children}</div>;
+  return (
+    <div className={styles.emptyTechnical} role="note">
+      {children}
+    </div>
+  );
+}
+
+function buildReadableLimitations(
+  contract: LiveReportReadingContract,
+): string[] {
+  const values = contract.hasReliableBirthTime
+    ? []
+    : [
+        "چون ساعت تولد دقیق نیست، درباره رایزینگ و خانه‌ها نتیجه‌گیری نشده؛ بخش‌های مستقل از ساعت همچنان بررسی شده‌اند.",
+      ];
+
+  for (const limitation of contract.limitations) {
+    const internalOnly =
+      /\b(?:engine|runtime|snapshot|fixture|contract|ranking)\b|feature disabled|partial data|disabled/iu.test(
+        limitation,
+      );
+    const human = humanizeLimitation(limitation)
+      .replace(/^[:؛،\-\s]+/u, "")
+      .replace(/[\s:؛،\-]+$/u, "")
+      .trim();
+
+    if (!human) continue;
+    if (!contract.hasReliableBirthTime && /ساعت تولد|رایزینگ و خانه‌ها/u.test(human)) {
+      continue;
+    }
+    if (internalOnly && human.length < 36) continue;
+    values.push(human);
+  }
+
+  return [...new Set(values)];
+}
+
+function humanizeLimitation(value: string) {
+  return humanizeVisibleLabel(value)
+    .replace(
+      /زاویه‌ها، حاکم چارت و خانه‌ها[^.؟!]*/gu,
+      "رایزینگ و خانه‌ها در این خوانش وارد نتیجه‌گیری نشده‌اند",
+    )
+    .replace(
+      /تعداد جایگاه‌های سیاره‌ای محدود[^.؟!]*/gu,
+      "این خوانش فقط از جایگاه‌هایی استفاده کرده که همراه گزارش ثبت شده‌اند",
+    );
+}
+
+function humanizeVisibleLabel(value: string) {
+  return humanizeVisibleText(value)
+    .replace(/legacy\s*\/\s*fallback/giu, "")
+    .replace(/[\s\u00a0]+/gu, " ")
+    .trim();
 }
 
 function formatDegree(value: number): string {
@@ -297,12 +438,14 @@ function formatDegree(value: number): string {
 }
 
 function formatPersianNumber(value: number): string {
-  return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 1 }).format(value);
+  return new Intl.NumberFormat("fa-IR", {
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
 function formatHouseSystem(system: string | undefined): string {
   if (system === "placidus") return "پلاسیدوس";
-  if (system === "whole-sign") return "نشانهٔ کامل (نسخهٔ قدیمی)";
-  if (system === "equal-house") return "خانه‌های مساوی (نسخهٔ قدیمی)";
-  return "در نسخهٔ ذخیره‌شده مشخص نیست";
+  if (system === "whole-sign") return "نشانهٔ کامل";
+  if (system === "equal-house") return "خانه‌های مساوی";
+  return "همراه این گزارش مشخص نشده";
 }

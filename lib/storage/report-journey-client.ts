@@ -1,13 +1,11 @@
 "use client";
 
 import type { AstrologyReport } from "@/types/astro";
+import { buildLiveReportReadingContract } from "@/lib/report-output/live-report-reading-contract";
+import { buildHumanFirstBirthReading, humanizeVisibleText } from "@/lib/report-output/human-first-report-reading";
+import type { HumanFirstReadingSectionId } from "@/types/human-first-reading";
 
-export type ReportReadingSectionId =
-  | "overview"
-  | "inner-world"
-  | "relationships"
-  | "growth-path"
-  | "chart-details";
+export type ReportReadingSectionId = HumanFirstReadingSectionId;
 
 export type LastStudyLocation = {
   cityId: string;
@@ -23,11 +21,25 @@ const LAST_STUDY_LOCATION_KEY = "halleus-last-study-location-v1";
 const REPORT_READING_PROGRESS_KEY = "halleus-report-reading-progress-v1";
 
 const REPORT_SECTION_LABELS: Record<ReportReadingSectionId, string> = {
-  overview: "تصویر کلی",
+  overview: "تو در چند خط",
+  "primary-patterns": "سه الگوی اصلی",
+  "strength-challenge": "نقطه قوت و چالش اصلی",
   "inner-world": "دنیای درونی",
-  relationships: "رابطه‌ها",
+  "mind-language": "فکر و بیان",
+  relationships: "رابطه و مرزها",
+  "drive-direction": "انگیزه و جهت",
+  "friction-repair": "اصطکاک و برگشتن",
   "growth-path": "مسیر رشد",
-  "chart-details": "جزئیات چارت",
+  "deeper-layers": "لایه‌های عمیق‌تر",
+  "chart-details": "جزئیات کامل نجومی",
+};
+
+const LEGACY_SECTION_MAP: Record<string, ReportReadingSectionId> = {
+  overview: "overview",
+  "inner-world": "inner-world",
+  relationships: "relationships",
+  "growth-path": "growth-path",
+  "chart-details": "chart-details",
 };
 
 function canUseLocalStorage() {
@@ -71,10 +83,31 @@ function loadProgressMap(): Record<string, ReportReadingProgress> {
   try {
     const raw = window.localStorage.getItem(REPORT_READING_PROGRESS_KEY);
     if (!raw) return {};
-    return JSON.parse(raw) as Record<string, ReportReadingProgress>;
+    const parsed = JSON.parse(raw) as Record<
+      string,
+      { sectionId?: string; updatedAt?: string }
+    >;
+    const output: Record<string, ReportReadingProgress> = {};
+
+    for (const [key, value] of Object.entries(parsed)) {
+      const sectionId = normalizeSectionId(value.sectionId);
+      if (!sectionId) continue;
+      output[key] = {
+        sectionId,
+        updatedAt: value.updatedAt ?? new Date(0).toISOString(),
+      };
+    }
+
+    return output;
   } catch {
     return {};
   }
+}
+
+function normalizeSectionId(value: string | undefined): ReportReadingSectionId | null {
+  if (!value) return null;
+  if (value in REPORT_SECTION_LABELS) return value as ReportReadingSectionId;
+  return LEGACY_SECTION_MAP[value] ?? null;
 }
 
 export function getReportReadingProgress(
@@ -140,40 +173,35 @@ function redactPrivateReportText(value: string, report: AstrologyReport) {
 }
 
 export function createPrivacySafeReportText(report: AstrologyReport) {
-  return [
-    "خلاصه امن گزارش هالیوس",
+  const contract = buildLiveReportReadingContract(report);
+  const reading = buildHumanFirstBirthReading(contract);
+  const parts = [
+    "خلاصه‌ای از چارت تو",
     "",
-    redactPrivateReportText(report.summary, report),
+    ...reading.opening.slice(0, 2),
     "",
-    "این خروجی شامل نام، تاریخ تولد، ساعت تولد، شهر تولد، یادداشت شخصی یا داده فنی خام نیست.",
-  ].join("\n");
+    "وقتی روی فرم خودتی",
+    humanizeVisibleText(contract.primaryStrength.body),
+    "",
+    "وقتی فشار بالا می‌رود",
+    humanizeVisibleText(contract.primaryChallenge.body),
+    "",
+    "یک جهت برای ادامه",
+    reading.growthPath.practicalStep,
+    "",
+    "این متن یک برداشت نمادین برای خودشناسی است؛ نه پیش‌بینی قطعی یا توصیه پزشکی، حقوقی و مالی.",
+  ];
+  return redactPrivateReportText(parts.join("\n"), report);
 }
 
 export function downloadPrivacySafeReport(report: AstrologyReport) {
-  const payload = {
-    app: "halleus",
-    type: "privacy-safe-report-summary",
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    title: "خلاصه امن گزارش چارت تولد",
-    summary: redactPrivateReportText(report.summary, report),
-    safetyNote: redactPrivateReportText(report.safetyNote, report),
-    excludes: [
-      "name",
-      "birthDate",
-      "birthTime",
-      "birthCity",
-      "personalNote",
-      "rawEngineData",
-    ],
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json;charset=utf-8",
+  const blob = new Blob([createPrivacySafeReportText(report)], {
+    type: "text/plain;charset=utf-8",
   });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "halleus-safe-summary.json";
+  link.download = "halleus-shareable-summary.txt";
   document.body.appendChild(link);
   link.click();
   link.remove();

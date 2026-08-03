@@ -8,6 +8,7 @@ import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
 
 import styles from "./app-shell.module.css";
+import humanStyles from "./human-first-shell.module.css";
 
 type AppShellProps = {
   children: ReactNode;
@@ -25,13 +26,17 @@ export async function AppShell({ children }: AppShellProps) {
   const latestWikiArticles = sortPublicWikiArticlesNewestFirst(wikiArticles).slice(0, 4);
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${humanStyles.humanShell}`}>
       <SiteHeader />
       <main className={styles.main} id="main-content">
         {children}
       </main>
 
-      <Link className={styles.backToTop} href="#main-content" aria-label="پرش به ابتدای محتوای صفحه">
+      <Link
+        className={`${styles.backToTop} ${humanStyles.backToTopFlow}`}
+        href="#main-content"
+        aria-label="پرش به ابتدای محتوای صفحه"
+      >
         <span aria-hidden="true">↑</span>
         پرش به بالا
       </Link>
@@ -80,22 +85,36 @@ export async function AppShell({ children }: AppShellProps) {
               >
                 <rect x="3" y="3" width="18" height="18" rx="5" />
                 <circle cx="12" cy="12" r="4.25" />
-                <circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
+                <circle
+                  cx="17.4"
+                  cy="6.6"
+                  r="1"
+                  fill="currentColor"
+                  stroke="none"
+                />
               </svg>
             </a>
           </div>
 
           <div className={styles.footerNavBlock} aria-label="مسیرهای اصلی">
+            <span className={styles.footerNavTitle}>دسترسی سریع</span>
             <div className={`footer-links ${styles.footerLinks}`}>
               {footerLinks.map((link) => (
-                <Link className={`footer-link ${styles.footerLink}`} href={link.href} key={link.href}>
+                <Link
+                  className={`footer-link ${styles.footerLink}`}
+                  href={link.href}
+                  key={link.href}
+                >
                   {link.label}
                 </Link>
               ))}
             </div>
           </div>
 
-          <div className={styles.footerWikiBlock} aria-label="تازه‌ترین مقاله‌های ویکی">
+          <div
+            className={styles.footerWikiBlock}
+            aria-label="تازه‌ترین مقاله‌های ویکی"
+          >
             <span className={styles.footerNavTitle}>تازه‌ترین‌های ویکی</span>
             {latestWikiArticles.length > 0 ? (
               <div className={styles.footerWikiLinks}>
@@ -118,7 +137,13 @@ export async function AppShell({ children }: AppShellProps) {
         </div>
 
         <div className={styles.footerBottom}>
-          <span>© {new Date().getFullYear().toLocaleString("fa-IR", { useGrouping: false })} هالیوس</span>
+          <span>
+            ©{" "}
+            {new Date().getFullYear().toLocaleString("fa-IR", {
+              useGrouping: false,
+            })}{" "}
+            هالیوس
+          </span>
         </div>
       </footer>
 

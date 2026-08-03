@@ -1,0 +1,67 @@
+.humanShell :global(.site-header-app) {
+  transition:
+    transform 220ms ease,
+    opacity 220ms ease,
+    padding 220ms ease;
+}
+
+.backToTopFlow {
+  position: static !important;
+  display: flex !important;
+  width: fit-content !important;
+  margin: 22px max(16px, calc((100% - 1180px) / 2)) 0 auto !important;
+}
+
+@media (max-width: 760px) {
+  .humanShell :global(.site-header-app) {
+    padding-top: 5px !important;
+  }
+
+  .humanShell :global(.site-nav-app) {
+    min-height: 52px !important;
+    border-radius: 15px !important;
+    padding: 5px 6px 5px 9px !important;
+  }
+
+  .humanShell :global(.site-brand-mark) {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 11px !important;
+  }
+
+  .humanShell :global(.site-brand-logo-emblem) {
+    width: 29px !important;
+    height: 29px !important;
+  }
+
+  .humanShell :global(.site-brand-copy strong) {
+    font-size: 0.84rem !important;
+  }
+
+  .humanShell :global(.site-nav-links) {
+    max-width: 100%;
+  }
+
+  .humanShell :global(.nav-link) {
+    min-height: 32px !important;
+    padding-inline: 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .humanShell :global(.site-header-cta) {
+    min-height: 34px !important;
+    padding-inline: 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .backToTopFlow {
+    min-height: 40px !important;
+    margin: 16px 12px 0 auto !important;
+    padding-inline: 13px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .backToTopFlow span {
+    font-size: 0.9rem !important;
+  }
+}

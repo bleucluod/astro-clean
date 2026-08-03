@@ -100,7 +100,7 @@ requireMarkers("comparison contract", sources.types, [
 ]);
 requireMarkers("comparison navigation", sources.navigation, [
   'href: "/compare"',
-  'label: "مقایسه دو چارت"',
+  'label: "تحلیل رابطه"',
 ]);
 requireMarkers("comparison responsive styles", sources.styles, [
   "@media (max-width: 760px)",
