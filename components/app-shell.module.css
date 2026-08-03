@@ -508,3 +508,263 @@
     grid-template-columns: auto minmax(0, 1fr);
   }
 }
+
+/* header-human-first-v2 */
+.main {
+  padding-top: 78px;
+}
+
+.header {
+  padding: 9px 16px 0;
+  transition:
+    transform 200ms ease,
+    opacity 200ms ease,
+    padding 200ms ease;
+}
+
+.headerTop {
+  padding-top: 9px;
+}
+
+.headerScrolled {
+  padding-top: 6px;
+}
+
+.nav {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  width: min(1120px, calc(100% - 24px));
+  min-height: 58px;
+  padding: 6px 7px 6px 14px;
+  border: 1px solid rgba(188, 204, 220, 0.78);
+  border-radius: 17px;
+  background: rgba(248, 250, 252, 0.96);
+  box-shadow: 0 10px 30px rgba(36, 52, 71, 0.08);
+  backdrop-filter: blur(16px) saturate(135%);
+}
+
+.headerScrolled .nav {
+  border-color: rgba(154, 166, 178, 0.72);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12px 32px rgba(36, 52, 71, 0.11);
+}
+
+.brand {
+  gap: 8px;
+  color: #243447;
+}
+
+.brandMark {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.brandMark img {
+  width: 36px;
+  height: 36px;
+}
+
+.brandCopy {
+  gap: 0;
+}
+
+.brandCopy strong {
+  color: #243447;
+  font-size: 0.96rem;
+  font-weight: 850;
+}
+
+.brandCopy small {
+  color: #52657a;
+  font-size: 0.65rem;
+}
+
+.navScrollRow {
+  gap: 12px;
+}
+
+.navLinks {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.navLinks::-webkit-scrollbar {
+  display: none;
+}
+
+:global(.nav-link-track) {
+  gap: 2px;
+}
+
+:global(.nav-link) {
+  min-height: 36px;
+  padding: 0 11px;
+  border-radius: 10px;
+  color: #52657a;
+  font-size: 0.81rem;
+  font-weight: 700;
+}
+
+:global(.nav-link:hover) {
+  color: #1e40af;
+  background: rgba(217, 234, 253, 0.55);
+  transform: none;
+}
+
+:global(.nav-link.active) {
+  color: #1e40af;
+  background: #d9eafd;
+  box-shadow: inset 0 0 0 1px rgba(30, 64, 175, 0.08);
+}
+
+.headerActions {
+  gap: 7px;
+}
+
+.accountLink,
+.headerCta {
+  min-height: 38px;
+  border-radius: 11px;
+  font-size: 0.79rem;
+}
+
+.accountLink {
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid rgba(188, 204, 220, 0.78);
+  color: #2f4052;
+  background: #ffffff;
+}
+
+.accountIcon {
+  display: none;
+  flex: 0 0 auto;
+}
+
+.headerCta {
+  padding: 0 15px;
+  color: #ffffff;
+  background: #1e40af;
+  box-shadow: 0 8px 20px rgba(30, 64, 175, 0.18);
+}
+
+.headerCta:hover {
+  background: #1a378f;
+}
+
+@media (max-width: 980px) {
+  .nav {
+    gap: 10px;
+  }
+
+  .navScrollRow {
+    gap: 7px;
+  }
+
+  .accountLabel {
+    display: none;
+  }
+
+  .accountIcon {
+    display: block;
+  }
+
+  .accountLink {
+    width: 38px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .main {
+    padding-top: 68px;
+  }
+
+  .header {
+    padding: 6px 7px 0;
+  }
+
+  .headerTop,
+  .headerScrolled {
+    padding-top: 6px;
+  }
+
+  .nav {
+    width: 100%;
+    min-height: 54px;
+    gap: 6px;
+    padding: 5px 6px 5px 8px;
+    border-radius: 14px;
+  }
+
+  .brand {
+    gap: 0;
+  }
+
+  .brandMark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brandMark img {
+    width: 33px;
+    height: 33px;
+  }
+
+  .brandCopy {
+    display: none;
+  }
+
+  .navScrollRow {
+    gap: 5px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .navLinks {
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  :global(.nav-link-track) {
+    width: max-content;
+  }
+
+  :global(.nav-link) {
+    min-height: 34px;
+    padding-inline: 9px;
+    font-size: 0.74rem;
+  }
+
+  .headerActions {
+    flex: 0 0 auto;
+  }
+
+  .accountLink {
+    width: 36px;
+    min-height: 36px;
+    border-radius: 10px;
+  }
+
+  .headerCta {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  :global(.nav-link) {
+    padding-inline: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  :global(.nav-link) {
+    transition: none;
+  }
+}

@@ -5,6 +5,9 @@ const siteHeader = readFileSync("components/SiteHeader.tsx", "utf8");
 const navigation = readFileSync("lib/config/navigation.ts", "utf8");
 const globals = readFileSync("app/globals.css", "utf8");
 const appShellCss = readFileSync("components/app-shell.module.css", "utf8");
+const homePage = readFileSync("app/page.tsx", "utf8");
+const privacyPage = readFileSync("app/privacy/page.tsx", "utf8");
+const compareLayout = readFileSync("app/compare/layout.tsx", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 const failures = [];
@@ -59,7 +62,8 @@ for (const marker of [
   "site-nav-scroll-row",
   "site-header-cta",
   "NavLinks",
-  "ساخت گزارش",
+  "ساخت چارت",
+  'data-site-header="human-first-v2"',
 ]) {
   if (!siteHeader.includes(marker)) {
     failures.push(`SiteHeader missing header behavior marker: ${marker}`);
@@ -192,6 +196,61 @@ for (const marker of [
   if (!globals.includes(marker)) {
     failures.push(`globals.css missing site chrome selector: ${marker}`);
   }
+}
+
+
+if (!appShellCss.includes("header-human-first-v2")) {
+  failures.push("Header CSS is missing the Human-First v2 contract marker");
+}
+
+for (const marker of [
+  "گزارش‌های مهمان و رایگان عمومی و قابل ایندکس‌اند",
+  "گزارش‌های پریمیوم خصوصی شروع می‌شوند",
+  "انتشار روشن و قابل‌کنترل",
+]) {
+  if (!homePage.includes(marker)) {
+    failures.push(`Homepage missing publication contract marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "گزارش شخصی بدون رضایت روشن تو عمومی و قابل ایندکس نمی‌شود",
+  "<span>گزارش خصوصی</span>",
+]) {
+  if (homePage.includes(marker)) {
+    failures.push(`Homepage still contains stale publication copy: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "گزارش مهمان و حساب رایگان",
+  "پریمیوم: خصوصی و noindex به‌صورت پیش‌فرض",
+  "نمایش نام، رضایتی جدا از انتشار است",
+  "تحلیل رابطه همیشه خصوصی و noindex است",
+  "مهمان و رایگان: public / indexable",
+  "پریمیوم: private / noindex",
+]) {
+  if (!privacyPage.includes(marker)) {
+    failures.push(`Privacy page missing publication contract marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "گزارش‌ها فعلاً خصوصی‌اند",
+  "اگر روزی گزارش عمومی",
+  "پیدا شدن در گوگل: فعال نیست",
+]) {
+  if (privacyPage.includes(marker)) {
+    failures.push(`Privacy page still contains stale publication copy: ${marker}`);
+  }
+}
+
+if (!compareLayout.includes("تحلیل رابطه با چارت تولد دو نفر")) {
+  failures.push("Compare layout is missing the approved relationship product title");
+}
+
+if (compareLayout.includes("مقایسه دو چارت")) {
+  failures.push("Compare layout still exposes the retired comparison title");
 }
 
 if (packageJson.scripts?.["check:site-chrome-minimal-ui"] !== "node scripts/check-site-chrome-minimal-ui.mjs") {

@@ -46,7 +46,7 @@ function buildProductHighlights(articleCount: number) {
     {
       icon: "◇",
       title: "حریم خصوصی روشن",
-      description: "گزارش شخصی بدون رضایت روشن تو عمومی و قابل ایندکس نمی‌شود.",
+      description: "گزارش‌های مهمان و رایگان عمومی و قابل ایندکس‌اند؛ گزارش‌های پریمیوم خصوصی شروع می‌شوند و انتشارشان انتخابی است.",
       href: "/privacy",
       label: "خواندن سیاست حریم",
     },
@@ -86,7 +86,7 @@ export default async function Home() {
           </div>
           <div className={styles.heroMeta} aria-label="ویژگی‌های اصلی هالیوس">
             <span>محاسبه با تاریخ، ساعت و شهر تولد</span>
-            <span>گزارش خصوصی</span>
+            <span>انتشار روشن و قابل‌کنترل</span>
             <span>فارسی و قابل‌فهم</span>
           </div>
         </div>

@@ -3,11 +3,11 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: {
-    default: "مقایسه دو چارت | هالیوس",
+    default: "تحلیل رابطه با چارت تولد دو نفر | هالیوس",
     template: "%s | هالیوس",
   },
   description:
-    "مقایسه خصوصی دو چارت تولد با تمرکز بر الگوهای رابطه، گفت‌وگو، امنیت عاطفی و مرزها.",
+    "تحلیل خصوصی رابطه با چارت تولد دو نفر؛ با تمرکز بر گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و مسیر رشد.",
   robots: {
     index: false,
     follow: false,
