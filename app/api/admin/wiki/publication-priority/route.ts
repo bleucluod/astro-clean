@@ -14,7 +14,12 @@ import {
   applyAdminWikiQueueBulkReorder,
   previewAdminWikiQueueBulkReorder,
   previewAdminWikiQueuePositionMove,
+  previewAdminWikiQueueReflow,
+  applyAdminWikiQueueReflow,
+  previewAdminWikiQueueReflowUndo,
+  applyAdminWikiQueueReflowUndo,
 } from "@/lib/wiki/wiki-cms-service";
+import type { WikiQueueReflowPolicy } from "@/lib/wiki/wiki-cms-types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +49,11 @@ function readStableIds(value: unknown) {
   return stableIds;
 }
 
+function readReflowPolicy(value: unknown): WikiQueueReflowPolicy {
+  if (value === "preserve" || value === "priority" || value === "balanced_clusters") return value;
+  throw new AdminAccessError(400, "policy is invalid.");
+}
+
 export async function POST(request: Request) {
   try {
     assertAdminMutationRequest(request);
@@ -55,6 +65,34 @@ export async function POST(request: Request) {
       );
     }
     const action = readRequiredString(body.action, "action", 30);
+    if (action === "preview_reflow") {
+      await requireAdminCapability(request, "wiki.read");
+      return noStoreJsonResponse({ ok: true, plan: await previewAdminWikiQueueReflow({ policy: readReflowPolicy(body.policy) }) });
+    }
+    if (action === "apply_reflow") {
+      const actor = await requireAdminCapability(request, "wiki.publish.write");
+      return noStoreJsonResponse({ ok: true, plan: await applyAdminWikiQueueReflow({
+        actor,
+        policy: readReflowPolicy(body.policy),
+        planToken: readRequiredString(body.planToken, "planToken", 100),
+        previewedAt: readRequiredString(body.previewedAt, "previewedAt", 100),
+        reason: readRequiredString(body.reason, "reason", 1000),
+      }) });
+    }
+    if (action === "preview_reflow_undo") {
+      await requireAdminCapability(request, "wiki.read");
+      return noStoreJsonResponse({ ok: true, plan: await previewAdminWikiQueueReflowUndo() });
+    }
+    if (action === "apply_reflow_undo") {
+      const actor = await requireAdminCapability(request, "wiki.publish.write");
+      return noStoreJsonResponse({ ok: true, plan: await applyAdminWikiQueueReflowUndo({
+        actor,
+        sourcePlanToken: readRequiredString(body.sourcePlanToken, "sourcePlanToken", 100),
+        planToken: readRequiredString(body.planToken, "planToken", 100),
+        previewedAt: readRequiredString(body.previewedAt, "previewedAt", 100),
+        reason: readRequiredString(body.reason, "reason", 1000),
+      }) });
+    }
     if (action === "preview_bulk") {
       await requireAdminCapability(request, "wiki.read");
       return noStoreJsonResponse({ ok: true, plan: await previewAdminWikiQueueBulkReorder({ requestedStableIds: readStableIds(body.stableIds) }) });

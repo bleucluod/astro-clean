@@ -14,7 +14,12 @@ export const WIKI_ARTICLE_STATUSES = [
 
 export type WikiArticleStatus = (typeof WIKI_ARTICLE_STATUSES)[number];
 export type WikiArticleRole = "pillar" | "support";
-export type WikiImportMode = "auto_schedule" | "review_first";
+export type WikiImportMode = "auto_schedule" | "review_first" | "merge_queue";
+
+export type WikiQueueReflowPolicy =
+  | "preserve"
+  | "priority"
+  | "balanced_clusters";
 
 export type WikiArticleSnapshot = {
   stableId: string;

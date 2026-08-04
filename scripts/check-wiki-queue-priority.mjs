@@ -47,6 +47,37 @@ const queueModule = await importTypescriptModule(
   queueSource,
   new Map([["@/lib/wiki/wiki-cms-types", typeStubUrl]]),
 );
+const schedulingSource = read("lib/wiki/wiki-scheduling.ts");
+const schedulingTranspiled = ts.transpileModule(schedulingSource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText.replaceAll(`from "@/lib/wiki/wiki-cms-types"`, `from "${typeStubUrl}"`);
+const schedulingUrl = `data:text/javascript;base64,${Buffer.from(schedulingTranspiled, "utf8").toString("base64")}`;
+const reflowSource = read("lib/wiki/wiki-queue-reflow.ts");
+let reflowTranspiled = ts.transpileModule(reflowSource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText;
+reflowTranspiled = reflowTranspiled
+  .replaceAll(`from "@/lib/wiki/wiki-cms-types"`, `from "${typeStubUrl}"`)
+  .replaceAll(`from "@/lib/wiki/wiki-queue-priority"`, `from "${typeStubUrl}"`)
+  .replaceAll(`from "@/lib/wiki/wiki-scheduling"`, `from "${schedulingUrl}"`);
+const reflowUrl = `data:text/javascript;base64,${Buffer.from(reflowTranspiled, "utf8").toString("base64")}`;
+const reflowModule = await import(reflowUrl);
+const importMergeSource = read("lib/wiki/wiki-import-merge.ts");
+const importMergeModule = await importTypescriptModule(
+  importMergeSource,
+  new Map([
+    ["@/lib/wiki/wiki-cms-types", typeStubUrl],
+    ["@/lib/wiki/wiki-queue-priority", typeStubUrl],
+    ["@/lib/wiki/wiki-queue-reflow", reflowUrl],
+  ]),
+);
+const importServiceSource = read("lib/wiki/wiki-import-service.ts");
+const cmsServiceSource = read("lib/wiki/wiki-cms-service.ts");
+if (!importServiceSource.includes('return sql.begin((tx) => applyImport(tx));') ||
+    !importServiceSource.includes('if (input.mode === "merge_queue") throw error;') ||
+    !cmsServiceSource.includes('database?: TransactionSql;')) {
+  failures.push("merge import is not enclosed by one database transaction");
+}
 
 const candidates = [
   {
@@ -92,6 +123,106 @@ const candidates = [
     updatedAt: "2026-07-18T01:00:02.000Z",
   },
 ];
+
+const reflowCandidates = Array.from({ length: 120 }, (_, index) => ({
+  jobId: `job-${index}`,
+  articleId: `article-${index}`,
+  revisionNumber: 1,
+  stableId: `article-${index}`,
+  title: `Article ${index}`,
+  articleRole: index % 10 === 0 ? "pillar" : "support",
+  contentCluster: `cluster-${index % 5}`,
+  publicationPriority: 120 - index,
+  dependencyStableIds: index > 0 && index % 10 === 1 ? [`article-${index - 1}`] : [],
+  currentRunAt: new Date(Date.UTC(2026, 7, 5 + index, 5, 30)).toISOString(),
+  status: index % 7 === 0 ? "retry" : "queued",
+  updatedAt: new Date(Date.UTC(2026, 7, 4, 1, index % 60)).toISOString(),
+}));
+const reflowSettings = {
+  articlesPerWeek: 28,
+  maxArticlesPerDay: 4,
+  allowedWeekdays: [0, 1, 2, 3, 4, 5, 6],
+  publishTime: "09:00",
+  timezone: "Asia/Tehran",
+  minimumIntervalHours: 3,
+  blackoutDates: ["2026-08-10"],
+  pillarBeforeSupport: true,
+  maxHorizonDays: 120,
+  publishingPaused: false,
+};
+const reflowInput = {
+  candidates: reflowCandidates,
+  lockedJobs: [{ jobId: "locked", stableId: "locked", runAt: "2026-08-05T05:30:00.000Z", status: "running" }],
+  publishedStableIds: [],
+  settings: reflowSettings,
+  previousDailyCapacity: 2,
+  policy: "preserve",
+  previewedAt: "2026-08-04T00:00:00.000Z",
+};
+const reflowPlan = reflowModule.planWikiQueueReflow(reflowInput);
+if (reflowPlan.items.length !== 120 || reflowPlan.totalFutureJobs !== 121) {
+  failures.push("queue-wide reflow did not support more than 100 jobs");
+}
+const perTehranDay = new Map();
+for (const item of reflowPlan.items) {
+  const key = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(item.nextRunAt));
+  perTehranDay.set(key, (perTehranDay.get(key) ?? 0) + 1);
+}
+if ([...perTehranDay.values()].some((count) => count > 4) || perTehranDay.get("2026-08-10")) {
+  failures.push("queue-wide reflow violated daily capacity or blackout dates");
+}
+if (reflowPlan.lockedJobs[0]?.runAt !== "2026-08-05T05:30:00.000Z") {
+  failures.push("queue-wide reflow moved a running job");
+}
+const changedReflow = reflowModule.planWikiQueueReflow({
+  ...reflowInput,
+  candidates: reflowCandidates.map((candidate, index) => index === 0 ? { ...candidate, updatedAt: "2026-08-04T09:00:00.000Z" } : candidate),
+});
+if (changedReflow.planToken === reflowPlan.planToken) failures.push("reflow token ignored a queue version change");
+const undoPlan = reflowModule.planWikiQueueReflowUndo({
+  sourcePlanToken: reflowPlan.planToken,
+  snapshotItems: reflowCandidates.slice(0, 3).map((candidate) => ({ jobId: candidate.jobId, articleId: candidate.articleId, stableId: candidate.stableId, runAt: candidate.currentRunAt })),
+  candidates: reflowCandidates.slice(0, 2),
+  occupiedRunAt: [],
+  previewedAt: "2026-08-04T00:00:00.000Z",
+});
+if (undoPlan.restorableCount !== 2 || undoPlan.skippedCount !== 1) {
+  failures.push("undo did not skip a job that is no longer mutable");
+}
+const mergeSnapshot = (index) => ({
+  stableId: `fresh-${index}`, slug: `fresh-${index}`, title: `Fresh ${index}`,
+  shortTitle: `Fresh ${index}`, seoTitle: null, metaDescription: "description",
+  categoryId: "foundations", tags: [], summary: "summary", intro: "intro",
+  readingMinutes: 5, publicationPriority: 200 - index,
+  contentCluster: `cluster-${index % 2}`, articleRole: index === 0 ? "pillar" : "support",
+  relatedArticleIds: index === 1 ? ["fresh-0"] : [], indexable: true,
+  bodyMarkdown: "content", keyPoints: [], sections: [], contextLinks: [], sources: [],
+  callToAction: null, contentVersion: 1,
+});
+const mergePlan = importMergeModule.planWikiImportMerge({
+  packageHash: "a".repeat(64),
+  existingCandidates: reflowCandidates.slice(0, 5),
+  newCandidates: [0, 1].map((index) => ({
+    snapshot: mergeSnapshot(index),
+    snapshotFingerprint: importMergeModule.fingerprintWikiImportSnapshot(mergeSnapshot(index)),
+  })),
+  lockedJobs: [], publishedStableIds: [], settings: reflowSettings,
+  previousDailyCapacity: 2, policy: "preserve", quarantinedArticleCount: 3,
+  previewedAt: "2026-08-04T00:00:00.000Z",
+});
+if (mergePlan.validArticleCount !== 2 || mergePlan.quarantinedArticleCount !== 3 ||
+    mergePlan.queue.items.filter((item) => item.jobId.startsWith("new:")).length !== 2) {
+  failures.push("merge preview did not combine valid articles and quarantine diagnostics");
+}
+const changedPackagePlan = importMergeModule.planWikiImportMerge({
+  packageHash: "b".repeat(64),
+  existingCandidates: reflowCandidates.slice(0, 5),
+  newCandidates: [0, 1].map((index) => ({ snapshot: mergeSnapshot(index), snapshotFingerprint: importMergeModule.fingerprintWikiImportSnapshot(mergeSnapshot(index)) })),
+  lockedJobs: [], publishedStableIds: [], settings: reflowSettings,
+  previousDailyCapacity: 2, policy: "preserve", quarantinedArticleCount: 3,
+  previewedAt: "2026-08-04T00:00:00.000Z",
+});
+if (mergePlan.planToken === changedPackagePlan.planToken) failures.push("merge token ignored the package hash");
 const frozenInput = JSON.stringify(candidates);
 const baseInput = {
   candidates,

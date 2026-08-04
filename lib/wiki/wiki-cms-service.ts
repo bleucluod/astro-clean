@@ -1,4 +1,5 @@
 import { AdminAccessError, type VerifiedAdminActor } from "@/lib/admin/admin-auth";
+import type { Sql, TransactionSql } from "postgres";
 import {
   asBoolean,
   asNullableString,
@@ -54,6 +55,16 @@ import {
   type WikiQueueBulkReorderPlan,
   type WikiQueuePositionPlan,
 } from "@/lib/wiki/wiki-queue-priority";
+import {
+  planWikiQueueReflow,
+  WIKI_QUEUE_REFLOW_PREVIEW_TTL_MS,
+  type WikiQueueLockedJob,
+  type WikiQueueReflowPlan,
+  type WikiQueueReflowSnapshotItem,
+  type WikiQueueReflowUndoPlan,
+  planWikiQueueReflowUndo,
+} from "@/lib/wiki/wiki-queue-reflow";
+import type { WikiQueueReflowPolicy } from "@/lib/wiki/wiki-cms-types";
 
 function legacyMarkdown(row: Record<string, unknown>) {
   const lines = [asString(row.intro)];
@@ -132,8 +143,9 @@ async function assertSnapshotReferences(
   snapshot: WikiArticleSnapshot,
   articleId?: string,
   requirePublishedDependencies = false,
+  database: Sql | TransactionSql = getAdminDatabase(),
 ) {
-  const sql = getAdminDatabase();
+  const sql = database;
   const categories = await sql`
     select id from public.wiki_categories where id = ${snapshot.categoryId} limit 1
   `;
@@ -511,12 +523,18 @@ export async function saveAdminWikiDraft(input: {
   snapshot: unknown;
   autosave: boolean;
   reason?: string | null;
+  database?: TransactionSql;
 }) {
   const snapshot = readWikiArticleSnapshot(input.snapshot);
-  await assertSnapshotReferences(snapshot, input.articleId ?? undefined);
+  await assertSnapshotReferences(
+    snapshot,
+    input.articleId ?? undefined,
+    false,
+    input.database ?? getAdminDatabase(),
+  );
   const sql = getAdminDatabase();
   let articleId = input.articleId ?? null;
-  await sql.begin(async (tx) => {
+  const save = async (tx: Sql | TransactionSql) => {
     if (!articleId) {
       const stableConflict = await tx`
         select id from public.wiki_articles where stable_id = ${snapshot.stableId} limit 1
@@ -612,7 +630,12 @@ export async function saveAdminWikiDraft(input: {
         )
       `;
     }
-  });
+  };
+  if (input.database) {
+    await save(input.database);
+  } else {
+    await sql.begin(save);
+  }
   return { articleId: articleId! };
 }
 
@@ -635,12 +658,18 @@ async function applyPublishedSnapshot(input: {
   snapshot: WikiArticleSnapshot;
   reason: string;
   rollbackFrom?: number;
+  database?: TransactionSql;
 }) {
-  await assertSnapshotReferences(input.snapshot, input.articleId, true);
+  await assertSnapshotReferences(
+    input.snapshot,
+    input.articleId,
+    true,
+    input.database ?? getAdminDatabase(),
+  );
   const sql = getAdminDatabase();
   let revisionNumber = 0;
   let previousSlug = "";
-  await sql.begin(async (tx) => {
+  const publish = async (tx: Sql | TransactionSql) => {
     const runningJobs = await tx`
       select id
       from halleus_private.wiki_publish_jobs
@@ -751,7 +780,12 @@ async function applyPublishedSnapshot(input: {
         ${input.reason}, true, ${input.actor.correlationId}
       )
     `;
-  });
+  };
+  if (input.database) {
+    await publish(input.database);
+  } else {
+    await sql.begin(publish);
+  }
   return { revisionNumber, slug: input.snapshot.slug, previousSlug };
 }
 
@@ -760,8 +794,9 @@ export async function publishAdminWikiDraft(input: {
   articleId: string;
   reason: string;
   publishAt?: string | null;
+  database?: TransactionSql;
 }) {
-  const sql = getAdminDatabase();
+  const sql = input.database ?? getAdminDatabase();
   const draftRows = await sql`
     select snapshot from public.wiki_article_drafts where article_id = ${input.articleId}::uuid limit 1
   `;
@@ -775,15 +810,16 @@ export async function publishAdminWikiDraft(input: {
       articleId: input.articleId,
       snapshot,
       reason: input.reason,
+      database: input.database,
     })) };
   }
-  await assertSnapshotReferences(snapshot, input.articleId);
+  await assertSnapshotReferences(snapshot, input.articleId, false, sql);
   const runAt = new Date(input.publishAt);
   if (!Number.isFinite(runAt.getTime()) || runAt.getTime() <= Date.now()) {
     throw new AdminAccessError(400, "Scheduled publication must be in the future.");
   }
   let revisionNumber = 0;
-  await sql.begin(async (tx) => {
+  const schedule = async (tx: Sql | TransactionSql) => {
     const runningJobs = await tx`
       select id
       from halleus_private.wiki_publish_jobs
@@ -840,7 +876,12 @@ export async function publishAdminWikiDraft(input: {
         ${input.reason}, true, ${input.actor.correlationId}
       )
     `;
-  });
+  };
+  if (input.database) {
+    await schedule(input.database);
+  } else {
+    await getAdminDatabase().begin(schedule);
+  }
   return { mode: "scheduled" as const, revisionNumber, slug: snapshot.slug, publishAt: runAt.toISOString() };
 }
 
@@ -1731,6 +1772,257 @@ export async function applyAdminWikiQueueBulkReorder(input: {
     await tx`
       insert into halleus_private.admin_audit_events (actor_user_id, actor_role, action, target_type, target_id, after_summary, reason, success, request_correlation_id)
       values (${input.actor.userId}::uuid, ${input.actor.role}, 'admin.wiki.publish_queue_bulk_reordered', 'wiki_publish_queue', ${plan.planToken}, ${tx.json({ articleCount: plan.items.length, dependencyAdjustmentCount: plan.dependencyAdjustmentCount })}, ${input.reason}, true, ${input.actor.correlationId})
+    `;
+    return plan;
+  });
+}
+
+type WikiDatabaseSql = Sql<Record<string, never>> | TransactionSql<Record<string, never>>;
+
+async function loadWikiQueueReflowState(sql: WikiDatabaseSql) {
+  const [jobRows, settingsRows] = await Promise.all([
+    sql`
+      select job.id::text as job_id, job.article_id::text, job.revision_number,
+             job.run_at::text, job.status, job.updated_at::text, revision.snapshot
+      from halleus_private.wiki_publish_jobs as job
+      join public.wiki_articles as article on article.id = job.article_id
+      join public.wiki_article_revisions as revision
+        on revision.article_id = job.article_id and revision.revision_number = job.revision_number
+      where job.status in ('queued', 'retry', 'running', 'failed')
+        and job.run_at > now() and article.deleted_at is null
+      order by job.run_at, job.id
+    `,
+    sql`
+      select *, coalesce(last_reflow_daily_capacity, max_articles_per_day)::integer
+        as previous_daily_capacity
+      from halleus_private.wiki_schedule_settings where singleton = true
+    `,
+  ]);
+  if (!settingsRows[0]) throw new Error("Wiki schedule settings are missing.");
+  const mutableRows = jobRows.filter((row) => ["queued", "retry"].includes(asString(row.status)));
+  const candidates = mutableRows.map(queuePositionCandidateFromRow);
+  const lockedJobs: WikiQueueLockedJob[] = jobRows
+    .filter((row) => ["running", "failed"].includes(asString(row.status)))
+    .map((row) => ({
+      jobId: asString(row.job_id),
+      stableId: readWikiArticleSnapshot(row.snapshot).stableId,
+      runAt: asString(row.run_at),
+      status: asString(row.status) as "running" | "failed",
+    }));
+  return {
+    candidates,
+    lockedJobs,
+    settings: scheduleSettingsFromRow(settingsRows[0]),
+    previousDailyCapacity: asNumber(settingsRows[0].previous_daily_capacity),
+  };
+}
+
+async function publishedDependenciesForReflow(
+  sql: WikiDatabaseSql,
+  candidates: WikiQueuePositionCandidate[],
+) {
+  const dependencyIds = queuePositionExternalDependencyIds(candidates);
+  if (dependencyIds.length === 0) return [];
+  const rows = await sql`
+    select stable_id from public.wiki_articles
+    where stable_id = any(${dependencyIds}::text[]) and status = 'published'
+      and published_at is not null and deleted_at is null
+  `;
+  return rows.map((row) => asString(row.stable_id));
+}
+
+export async function previewAdminWikiQueueReflow(input: {
+  policy: WikiQueueReflowPolicy;
+}): Promise<WikiQueueReflowPlan> {
+  const sql = getAdminDatabase();
+  const state = await loadWikiQueueReflowState(sql);
+  return planWikiQueueReflow({
+    ...state,
+    publishedStableIds: await publishedDependenciesForReflow(sql, state.candidates),
+    policy: input.policy,
+    previewedAt: new Date().toISOString(),
+  });
+}
+
+export async function applyAdminWikiQueueReflow(input: {
+  actor: VerifiedAdminActor;
+  policy: WikiQueueReflowPolicy;
+  planToken: string;
+  previewedAt: string;
+  reason: string;
+}): Promise<WikiQueueReflowPlan> {
+  const previewedAt = new Date(input.previewedAt);
+  if (!Number.isFinite(previewedAt.getTime()) || previewedAt.getTime() > Date.now() ||
+      Date.now() - previewedAt.getTime() > WIKI_QUEUE_REFLOW_PREVIEW_TTL_MS) {
+    throw new AdminAccessError(409, "Wiki queue reflow preview expired. Generate a fresh preview.");
+  }
+  const sql = getAdminDatabase();
+  return sql.begin(async (tx) => {
+    await tx`select singleton from halleus_private.wiki_schedule_settings where singleton = true for update`;
+    await tx`select id from halleus_private.wiki_publish_jobs where status in ('queued', 'retry', 'running', 'failed') and run_at > now() for update`;
+    const state = await loadWikiQueueReflowState(tx);
+    const plan = planWikiQueueReflow({
+      ...state,
+      publishedStableIds: await publishedDependenciesForReflow(tx, state.candidates),
+      policy: input.policy,
+      previewedAt: previewedAt.toISOString(),
+    });
+    if (plan.planToken !== input.planToken) {
+      throw new AdminAccessError(409, "WIKI_SCHEDULING_PLAN_STALE");
+    }
+    if (plan.dependencyErrors.length || plan.blackoutConflicts.length || plan.horizonConflicts.length) {
+      throw new AdminAccessError(409, "Wiki queue reflow has unresolved conflicts.");
+    }
+    const jobIds = plan.items.map((item) => item.jobId);
+    const articleIds = plan.items.map((item) => item.articleId);
+    const runAts = plan.items.map((item) => item.nextRunAt);
+    await tx`
+      insert into halleus_private.wiki_queue_schedule_snapshots
+        (plan_token, policy, previous_daily_capacity, next_daily_capacity,
+         queue_snapshot, created_by, reason)
+      values (${plan.planToken}, ${plan.policy}, ${plan.previousDailyCapacity},
+        ${plan.nextDailyCapacity}, ${tx.json(plan.items.map((item) => ({
+          jobId: item.jobId, articleId: item.articleId, stableId: item.stableId,
+          runAt: item.currentRunAt,
+        })))}, ${input.actor.userId}::uuid, ${input.reason})
+    `;
+    const updated = await tx`
+      update halleus_private.wiki_publish_jobs as job
+      set run_at = changes.run_at, updated_at = now()
+      from unnest(${jobIds}::uuid[], ${runAts}::timestamptz[]) as changes(job_id, run_at)
+      where job.id = changes.job_id and job.status in ('queued', 'retry')
+      returning job.id::text
+    `;
+    if (updated.length !== plan.items.length) throw new AdminAccessError(409, "WIKI_SCHEDULING_PLAN_STALE");
+    await tx`
+      update public.wiki_articles as article set scheduled_for = changes.run_at
+      from unnest(${articleIds}::uuid[], ${runAts}::timestamptz[]) as changes(article_id, run_at)
+      where article.id = changes.article_id and article.status <> 'published'
+    `;
+    await tx`
+      update halleus_private.wiki_schedule_settings
+      set last_reflow_daily_capacity = max_articles_per_day, updated_at = now()
+      where singleton = true
+    `;
+    await tx`
+      insert into halleus_private.admin_audit_events
+        (actor_user_id, actor_role, action, target_type, target_id,
+         after_summary, reason, success, request_correlation_id)
+      values (${input.actor.userId}::uuid, ${input.actor.role},
+        'admin.wiki.publish_queue_reflowed', 'wiki_publish_queue', ${plan.planToken},
+        ${tx.json({ policy: plan.policy, totalFutureJobs: plan.totalFutureJobs,
+          movedCount: plan.movedCount, lockedJobs: plan.lockedJobs })},
+        ${input.reason}, true, ${input.actor.correlationId})
+    `;
+    return plan;
+  });
+}
+
+function readQueueReflowSnapshot(value: unknown): WikiQueueReflowSnapshotItem[] {
+  if (!Array.isArray(value)) throw new Error("Wiki queue snapshot is invalid.");
+  return value.map((raw) => {
+    const item = asRecord(raw);
+    return {
+      jobId: asString(item.jobId),
+      articleId: asString(item.articleId),
+      stableId: asString(item.stableId),
+      runAt: asString(item.runAt),
+    };
+  });
+}
+
+async function latestWikiQueueReflowSnapshot(sql: WikiDatabaseSql) {
+  const rows = await sql`
+    select plan_token, queue_snapshot
+    from halleus_private.wiki_queue_schedule_snapshots
+    where reverted_at is null
+    order by created_at desc limit 1
+  `;
+  if (!rows[0]) throw new AdminAccessError(409, "No Wiki queue reflow is available to undo.");
+  return {
+    sourcePlanToken: asString(rows[0].plan_token),
+    snapshotItems: readQueueReflowSnapshot(rows[0].queue_snapshot),
+  };
+}
+
+export async function previewAdminWikiQueueReflowUndo(): Promise<WikiQueueReflowUndoPlan> {
+  const sql = getAdminDatabase();
+  const [snapshot, state] = await Promise.all([
+    latestWikiQueueReflowSnapshot(sql),
+    loadWikiQueueReflowState(sql),
+  ]);
+  return planWikiQueueReflowUndo({
+    ...snapshot,
+    candidates: state.candidates,
+    occupiedRunAt: state.lockedJobs.map((job) => job.runAt),
+    previewedAt: new Date().toISOString(),
+  });
+}
+
+export async function applyAdminWikiQueueReflowUndo(input: {
+  actor: VerifiedAdminActor;
+  sourcePlanToken: string;
+  planToken: string;
+  previewedAt: string;
+  reason: string;
+}): Promise<WikiQueueReflowUndoPlan> {
+  const previewedAt = new Date(input.previewedAt);
+  if (!Number.isFinite(previewedAt.getTime()) || previewedAt.getTime() > Date.now() ||
+      Date.now() - previewedAt.getTime() > WIKI_QUEUE_REFLOW_PREVIEW_TTL_MS) {
+    throw new AdminAccessError(409, "Wiki queue undo preview expired. Generate a fresh preview.");
+  }
+  const sql = getAdminDatabase();
+  return sql.begin(async (tx) => {
+    const snapshotRows = await tx`
+      select plan_token, queue_snapshot
+      from halleus_private.wiki_queue_schedule_snapshots
+      where reverted_at is null order by created_at desc limit 1 for update
+    `;
+    if (!snapshotRows[0] || asString(snapshotRows[0].plan_token) !== input.sourcePlanToken) {
+      throw new AdminAccessError(409, "The Wiki queue undo target changed. Generate a fresh preview.");
+    }
+    await tx`select id from halleus_private.wiki_publish_jobs where status in ('queued', 'retry', 'running', 'failed') and run_at > now() for update`;
+    const state = await loadWikiQueueReflowState(tx);
+    const plan = planWikiQueueReflowUndo({
+      sourcePlanToken: input.sourcePlanToken,
+      snapshotItems: readQueueReflowSnapshot(snapshotRows[0].queue_snapshot),
+      candidates: state.candidates,
+      occupiedRunAt: state.lockedJobs.map((job) => job.runAt),
+      previewedAt: previewedAt.toISOString(),
+    });
+    if (plan.planToken !== input.planToken) throw new AdminAccessError(409, "WIKI_SCHEDULING_PLAN_STALE");
+    if (plan.conflicts.length > 0) throw new AdminAccessError(409, "Wiki queue undo has unresolved conflicts.");
+    const jobIds = plan.items.map((item) => item.jobId);
+    const articleIds = plan.items.map((item) => item.articleId);
+    const runAts = plan.items.map((item) => item.nextRunAt);
+    const updated = await tx`
+      update halleus_private.wiki_publish_jobs as job
+      set run_at = changes.run_at, updated_at = now()
+      from unnest(${jobIds}::uuid[], ${runAts}::timestamptz[]) as changes(job_id, run_at)
+      where job.id = changes.job_id and job.status in ('queued', 'retry')
+      returning job.id::text
+    `;
+    if (updated.length !== plan.items.length) throw new AdminAccessError(409, "WIKI_SCHEDULING_PLAN_STALE");
+    await tx`
+      update public.wiki_articles as article set scheduled_for = changes.run_at
+      from unnest(${articleIds}::uuid[], ${runAts}::timestamptz[]) as changes(article_id, run_at)
+      where article.id = changes.article_id and article.status <> 'published'
+    `;
+    await tx`
+      update halleus_private.wiki_queue_schedule_snapshots
+      set reverted_at = now(), reverted_by = ${input.actor.userId}::uuid,
+          revert_plan_token = ${plan.planToken}
+      where plan_token = ${input.sourcePlanToken} and reverted_at is null
+    `;
+    await tx`
+      insert into halleus_private.admin_audit_events
+        (actor_user_id, actor_role, action, target_type, target_id,
+         after_summary, reason, success, request_correlation_id)
+      values (${input.actor.userId}::uuid, ${input.actor.role},
+        'admin.wiki.publish_queue_reflow_undone', 'wiki_publish_queue', ${plan.planToken},
+        ${tx.json({ sourcePlanToken: plan.sourcePlanToken,
+          restoredCount: plan.restorableCount, skippedCount: plan.skippedCount })},
+        ${input.reason}, true, ${input.actor.correlationId})
     `;
     return plan;
   });

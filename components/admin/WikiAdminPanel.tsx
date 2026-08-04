@@ -30,6 +30,12 @@ import type {
   WikiQueueBulkReorderPlan,
   WikiQueuePositionPlan,
 } from "@/lib/wiki/wiki-queue-priority";
+import type {
+  WikiQueueReflowPlan,
+  WikiQueueReflowUndoPlan,
+} from "@/lib/wiki/wiki-queue-reflow";
+import type { WikiQueueReflowPolicy } from "@/lib/wiki/wiki-cms-types";
+import type { WikiImportMergePlan } from "@/lib/wiki/wiki-import-merge";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -172,6 +178,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [categoryDraft, setCategoryDraft] = useState({ id: "", label: "", description: "" });
   const [importResult, setImportResult] = useState<WikiImportResult | null>(null);
   const [importPackages, setImportPackages] = useState<WikiImportPackageSummary[]>([]);
+  const [importMergePlan, setImportMergePlan] = useState<WikiImportMergePlan | null>(null);
   const [articlePage, setArticlePage] = useState(1);
   const [articlePageSize, setArticlePageSize] = useState(25);
   const [articleTotal, setArticleTotal] = useState(0);
@@ -191,6 +198,9 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [queuePositionPlan, setQueuePositionPlan] = useState<WikiQueuePositionPlan | null>(null);
   const [queueBulkOrder, setQueueBulkOrder] = useState("");
   const [queueBulkPlan, setQueueBulkPlan] = useState<WikiQueueBulkReorderPlan | null>(null);
+  const [queueReflowPolicy, setQueueReflowPolicy] = useState<WikiQueueReflowPolicy>("preserve");
+  const [queueReflowPlan, setQueueReflowPlan] = useState<WikiQueueReflowPlan | null>(null);
+  const [queueUndoPlan, setQueueUndoPlan] = useState<WikiQueueReflowUndoPlan | null>(null);
 
   const canDraft = session.capabilities.includes("wiki.draft.write");
   const canPublish = session.capabilities.includes("wiki.publish.write");
@@ -845,15 +855,96 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } finally { setLoading(false); }
   }
 
+  async function previewQueueReflow() {
+    setLoading(true); setError(""); setMessage(""); setQueueUndoPlan(null);
+    try {
+      const payload = await request("/api/admin/wiki/publication-priority", {
+        method: "POST",
+        body: JSON.stringify({ action: "preview_reflow", policy: queueReflowPolicy }),
+      });
+      setQueueReflowPlan(payload.plan as WikiQueueReflowPlan);
+    } catch (previewError) {
+      setQueueReflowPlan(null);
+      setError(previewError instanceof Error ? previewError.message : "پیش‌نمایش بازچینی کامل صف ساخته نشد.");
+    } finally { setLoading(false); }
+  }
+
+  async function applyQueueReflow() {
+    if (!queueReflowPlan || !canPublish) return;
+    if (queueReflowPlan.dependencyErrors.length || queueReflowPlan.blackoutConflicts.length || queueReflowPlan.horizonConflicts.length) {
+      setError("تعارض‌های پیش‌نمایش باید پیش از اعمال برطرف شوند."); return;
+    }
+    const reason = window.prompt("دلیل بازچینی کامل صف را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true); setError(""); setMessage("");
+    try {
+      await request("/api/admin/wiki/publication-priority", {
+        method: "POST",
+        body: JSON.stringify({ action: "apply_reflow", policy: queueReflowPlan.policy,
+          planToken: queueReflowPlan.planToken, previewedAt: queueReflowPlan.previewedAt,
+          reason: reason.trim() }),
+      });
+      setQueueReflowPlan(null); setMessage("برنامهٔ آیندهٔ انتشار با موفقیت بازچینی شد."); await loadList();
+    } catch (applyError) {
+      setQueueReflowPlan(null); await loadList();
+      setError(applyError instanceof Error ? applyError.message : "بازچینی کامل صف ناموفق بود.");
+    } finally { setLoading(false); }
+  }
+
+  async function previewQueueReflowUndo() {
+    setLoading(true); setError(""); setMessage(""); setQueueReflowPlan(null);
+    try {
+      const payload = await request("/api/admin/wiki/publication-priority", {
+        method: "POST", body: JSON.stringify({ action: "preview_reflow_undo" }),
+      });
+      setQueueUndoPlan(payload.plan as WikiQueueReflowUndoPlan);
+    } catch (previewError) {
+      setQueueUndoPlan(null);
+      setError(previewError instanceof Error ? previewError.message : "پیش‌نمایش بازگردانی ساخته نشد.");
+    } finally { setLoading(false); }
+  }
+
+  async function applyQueueReflowUndo() {
+    if (!queueUndoPlan || !canPublish || queueUndoPlan.conflicts.length) return;
+    const reason = window.prompt("دلیل بازگردانی آخرین برنامه را ثبت کن:");
+    if (!reason?.trim()) return;
+    setLoading(true); setError(""); setMessage("");
+    try {
+      await request("/api/admin/wiki/publication-priority", {
+        method: "POST",
+        body: JSON.stringify({ action: "apply_reflow_undo",
+          sourcePlanToken: queueUndoPlan.sourcePlanToken, planToken: queueUndoPlan.planToken,
+          previewedAt: queueUndoPlan.previewedAt, reason: reason.trim() }),
+      });
+      setQueueUndoPlan(null); setMessage("آخرین برنامهٔ صف با موفقیت بازگردانده شد."); await loadList();
+    } catch (applyError) {
+      setQueueUndoPlan(null); await loadList();
+      setError(applyError instanceof Error ? applyError.message : "بازگردانی صف ناموفق بود.");
+    } finally { setLoading(false); }
+  }
+
   async function importPackage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const mergeMode = form.get("mode") === "merge_queue";
+    if (mergeMode) {
+      form.set("mergeAction", importMergePlan ? "apply" : "preview");
+      if (importMergePlan) {
+        form.set("planToken", importMergePlan.planToken);
+        form.set("previewedAt", importMergePlan.previewedAt);
+      }
+    }
     setLoading(true);
     setError("");
     setImportResult(null);
     try {
       const payload = await request("/api/admin/wiki/imports", { method: "POST", body: form });
+      if (mergeMode && !importMergePlan) {
+        setImportMergePlan(payload.plan as WikiImportMergePlan);
+        setMessage("پیش‌نمایش ادغام آماده است؛ تا زمان تأیید هیچ مقاله یا کار انتشاری ساخته نشده است.");
+        return;
+      }
       const result = payload.result as WikiImportResult;
       setImportResult(result);
       if (result.quarantinedCount > 0) {
@@ -863,9 +954,11 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
         setMessage(`${result.importedCount.toLocaleString("fa-IR")} مقاله با موفقیت وارد شد.`);
       }
       formElement.reset();
+      setImportMergePlan(null);
       await loadList();
       await loadImportPackages();
     } catch (importError) {
+      if (mergeMode) setImportMergePlan(null);
       setError(importError instanceof Error ? importError.message : "ورود بسته ناموفق بود.");
     } finally {
       setLoading(false);
@@ -1264,6 +1357,59 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               <strong>{publicationQueueSummary.failed.toLocaleString("fa-IR")}</strong>
             </article>
           </div>
+
+          {canPublish ? (
+            <section className={styles.queuePositionPreview} data-queue-reflow="global">
+              <strong>بازچینی کامل برنامهٔ آینده</strong>
+              <p>تغییر تنظیمات به‌تنهایی صف را جابه‌جا نمی‌کند. ابتدا سیاست را انتخاب و پیش‌نمایش را بررسی کن.</p>
+              <label>
+                سیاست چیدمان
+                <select value={queueReflowPolicy} onChange={(event) => {
+                  setQueueReflowPolicy(event.target.value as WikiQueueReflowPolicy);
+                  setQueueReflowPlan(null);
+                }} disabled={loading}>
+                  <option value="preserve">حفظ ترتیب فعلی صف</option>
+                  <option value="priority">ادغام بر پایهٔ اولویت انتشار</option>
+                  <option value="balanced_clusters">پخش متعادل خوشه‌های موضوعی</option>
+                </select>
+              </label>
+              <div className={styles.wikiSelectionActions}>
+                <button type="button" onClick={() => void previewQueueReflow()} disabled={loading}>
+                  پیش‌نمایش بازچینی کامل
+                </button>
+                <button type="button" onClick={() => void previewQueueReflowUndo()} disabled={loading}>
+                  پیش‌نمایش بازگردانی آخرین برنامه
+                </button>
+              </div>
+              {queueReflowPlan ? (
+                <div className={styles.queuePositionPreviewItems}>
+                  <article><strong>ظرفیت روزانه</strong><span>{queueReflowPlan.previousDailyCapacity.toLocaleString("fa-IR")} ← {queueReflowPlan.nextDailyCapacity.toLocaleString("fa-IR")}</span></article>
+                  <article><strong>کل کارهای آینده</strong><span>{queueReflowPlan.totalFutureJobs.toLocaleString("fa-IR")}</span></article>
+                  <article><strong>اولین نوبت</strong><span>{formatDate(queueReflowPlan.firstRunAt)}</span></article>
+                  <article><strong>آخرین نوبت فعلی</strong><span>{formatDate(queueReflowPlan.previousLastRunAt)}</span></article>
+                  <article><strong>آخرین نوبت جدید</strong><span>{formatDate(queueReflowPlan.nextLastRunAt)}</span></article>
+                  <article><strong>جابه‌جا / بدون تغییر</strong><span>{queueReflowPlan.movedCount.toLocaleString("fa-IR")} / {queueReflowPlan.unchangedCount.toLocaleString("fa-IR")}</span></article>
+                  <article><strong>قفل‌شده</strong><span>{queueReflowPlan.lockedJobs.length.toLocaleString("fa-IR")}</span></article>
+                  {[...queueReflowPlan.dependencyErrors, ...queueReflowPlan.blackoutConflicts, ...queueReflowPlan.horizonConflicts].map((conflict) => (
+                    <p className={styles.queuePaused} key={conflict}>{conflict}</p>
+                  ))}
+                  <button type="button" onClick={() => void applyQueueReflow()} disabled={loading || Boolean(queueReflowPlan.dependencyErrors.length + queueReflowPlan.blackoutConflicts.length + queueReflowPlan.horizonConflicts.length)}>
+                    اعمال بازچینی کامل
+                  </button>
+                </div>
+              ) : null}
+              {queueUndoPlan ? (
+                <div className={styles.queuePositionPreviewItems}>
+                  <article><strong>قابل بازگردانی</strong><span>{queueUndoPlan.restorableCount.toLocaleString("fa-IR")}</span></article>
+                  <article><strong>کنار گذاشته‌شده</strong><span>{queueUndoPlan.skippedCount.toLocaleString("fa-IR")}</span></article>
+                  {queueUndoPlan.conflicts.map((conflict) => <p className={styles.queuePaused} key={conflict}>{conflict}</p>)}
+                  <button type="button" onClick={() => void applyQueueReflowUndo()} disabled={loading || Boolean(queueUndoPlan.conflicts.length)}>
+                    تأیید و بازگردانی برنامه
+                  </button>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
 
           {canPublish ? (
             <section className={styles.queuePositionPreview}>
@@ -1688,10 +1834,31 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
           </div>
           <p className={styles.fieldHint}>این فایل هنگام دانلود ساخته می‌شود و علاوه بر قرارداد کامل بسته، دسته‌های فعلی، مقاله‌های منتشرشدهٔ قابل لینک و همهٔ شناسه‌ها و slugهای رزروشده را دارد.</p>
           <form className={styles.wikiInlineForm} onSubmit={(event) => void importPackage(event)}>
-            <input accept=".zip,application/zip" name="package" required type="file" />
-            <select defaultValue={canPublish ? "auto_schedule" : "review_first"} name="mode"><option disabled={!canPublish} value="auto_schedule">زمان‌بندی خودکار</option><option value="review_first">ابتدا بازبینی</option></select>
-            <button type="submit">اعتبارسنجی و ورود</button>
+            <input accept=".zip,application/zip" name="package" required type="file" onChange={() => setImportMergePlan(null)} />
+            <select defaultValue={canPublish ? "auto_schedule" : "review_first"} name="mode" onChange={() => setImportMergePlan(null)}>
+              <option disabled={!canPublish} value="auto_schedule">زمان‌بندی خودکار</option>
+              <option value="review_first">ابتدا بازبینی</option>
+              <option disabled={!canPublish} value="merge_queue">ورود و ادغام با صف فعلی</option>
+            </select>
+            <select defaultValue="preserve" name="policy" onChange={() => setImportMergePlan(null)}>
+              <option value="preserve">حفظ ترتیب فعلی و افزودن تازه‌ها</option>
+              <option value="priority">ادغام بر پایهٔ اولویت انتشار</option>
+              <option value="balanced_clusters">پخش متعادل خوشه‌ها</option>
+            </select>
+            <button type="submit">{importMergePlan ? "تأیید و اعمال ادغام" : "اعتبارسنجی و پیش‌نمایش"}</button>
           </form>
+          {importMergePlan ? (
+            <div className={styles.importResult} data-wiki-import-merge-preview="true">
+              <strong>پیش‌نمایش ورود و ادغام با صف فعلی</strong>
+              <p>{importMergePlan.validArticleCount.toLocaleString("fa-IR")} مقالهٔ معتبر و {importMergePlan.quarantinedArticleCount.toLocaleString("fa-IR")} مقالهٔ قرنطینه‌شده.</p>
+              <p>پایان فعلی صف: {formatDate(importMergePlan.queue.previousLastRunAt)} · پایان جدید: {formatDate(importMergePlan.queue.nextLastRunAt)}</p>
+              <p>{importMergePlan.queue.movedCount.toLocaleString("fa-IR")} کار جابه‌جا می‌شود و {importMergePlan.queue.lockedJobs.length.toLocaleString("fa-IR")} کار قفل‌شده دست‌نخورده می‌ماند.</p>
+              {[...importMergePlan.queue.dependencyErrors, ...importMergePlan.queue.blackoutConflicts, ...importMergePlan.queue.horizonConflicts].map((conflict) => (
+                <p className={styles.queuePaused} key={conflict}>{conflict}</p>
+              ))}
+              <p>برای اعمال، همان فایل و تنظیمات را نگه دار و دکمهٔ تأیید را بزن. هر تغییر در بسته یا صف، پیش‌نمایش را نامعتبر می‌کند.</p>
+            </div>
+          ) : null}
           {importResult ? (
             <div className={styles.importResult}>
               <strong>نتیجهٔ بررسی بسته</strong>
