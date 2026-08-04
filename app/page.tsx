@@ -1,13 +1,14 @@
-import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { HomepageLiveSky } from "@/components/HomepageLiveSky";
 import { HomepageProductProof } from "@/components/HomepageProductProof";
 import { resolveHomepageSkyState } from "@/lib/homepage/homepage-live-sky-state";
-import { HOME_REPORT_PREVIEW_LAYERS } from "@/lib/report-preview/homepage-report-preview";
+import {
+  HOME_REPORT_PREVIEW_LAYERS,
+  HOME_REPORT_PREVIEW_SECTIONS,
+} from "@/lib/report-preview/homepage-report-preview";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
-import { SKY_SIGN_LABELS } from "@/lib/sky-public/sky-public-labels";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 
@@ -16,15 +17,18 @@ import styles from "./home.module.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه",
-  description: "در هالیوس چارت تولد فارسی بساز، دو چارت را برای تحلیل خصوصی رابطه کنار هم بگذار، وضعیت واقعی آسمان امروز را ببین و آسترولوژی را مرحله‌به‌مرحله یاد بگیر.",
+  title: "هالیوس | چارت تولد فارسی، تحلیل رابطه و آسمان امروز",
+  description:
+    "هالیوس فضای کار فارسی آسترولوژی است: چارت تولد بساز، دو چارت را به‌صورت خصوصی برای تحلیل رابطه کنار هم بگذار، آسمان امروز را با داده واقعی ببین و مفاهیم را مرحله‌به‌مرحله یاد بگیر.",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
 };
 
+const faNumber = (value: number) => new Intl.NumberFormat("fa-IR").format(value);
+
 function IconChart() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="6" cy="7" r="2" />
       <circle cx="18" cy="9" r="2" />
       <circle cx="9" cy="18" r="2" />
@@ -35,7 +39,7 @@ function IconChart() {
 
 function IconRelation() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M12 20.5c-4.6-3-7.5-5.9-7.5-9.4A3.6 3.6 0 0 1 12 8.7a3.6 3.6 0 0 1 7.5 2.4c0 3.5-2.9 6.4-7.5 9.4Z" />
     </svg>
   );
@@ -43,7 +47,7 @@ function IconRelation() {
 
 function IconSky() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M8 18h9a3.5 3.5 0 0 0 .4-6.98A5 5 0 0 0 8 10.2 4 4 0 0 0 8 18Z" />
       <path d="M15.5 8.2a3 3 0 1 1 3.3 4.2" />
     </svg>
@@ -52,7 +56,7 @@ function IconSky() {
 
 function IconWiki() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M12 6.5C10.5 5.3 8.4 4.8 5.5 5v12c2.9-.2 5 .3 6.5 1.5 1.5-1.2 3.6-1.7 6.5-1.5V5c-2.9-.2-5 .3-6.5 1.5Z" />
       <path d="M12 6.5V18" />
     </svg>
@@ -61,7 +65,7 @@ function IconWiki() {
 
 function IconLock() {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="5" y="10.5" width="14" height="9" rx="2.2" />
       <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
     </svg>
@@ -70,101 +74,73 @@ function IconLock() {
 
 function IconCheck() {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="m5 12.5 4.2 4.2L19 7" />
     </svg>
   );
 }
 
-type QuickProduct = {
-  href: string;
-  title: string;
-  text: string;
-  cta: string;
-  icon: ReactNode;
-  featured?: boolean;
-};
+function IconArrow() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M13.5 6 7.5 12l6 6" />
+      <path d="M17 12H8" />
+    </svg>
+  );
+}
 
-const quickProducts: QuickProduct[] = [
-  {
-    href: "/chart",
-    title: "چارت تولد فارسی",
-    text: "تاریخ، ساعت و شهر تولد را وارد کن تا خورشید، ماه، رایزینگ، خانه‌ها و جنبه‌ها محاسبه شوند و در یک گزارش فارسی و قابل‌مرور نمایش داده شوند.",
-    cta: "ساخت چارت تولد",
-    icon: <IconChart />,
-    featured: true,
-  },
-  {
-    href: "/compare",
-    title: "تحلیل رابطه",
-    text: "دو چارت را برای بررسی گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و اصطکاک کنار هم بگذار. نتیجه خصوصی است و درصد سازگاری یا حکم قطعی نمی‌سازد.",
-    cta: "تحلیل رابطه با دو چارت",
-    icon: <IconRelation />,
-    featured: true,
-  },
-  {
-    href: "/sky",
-    title: "آسمان امروز",
-    text: "جایگاه ماه و سیاره‌ها، فاز ماه، حرکت‌های برگشتی و رویدادهای نزدیک روز، براساس داده محاسبه‌شده.",
-    cta: "دیدن آسمان امروز",
-    icon: <IconSky />,
-  },
-  {
-    href: "/wiki",
-    title: "ویکی هالیوس",
-    text: "مفاهیم چارت تولد، رایزینگ، خانه‌ها، جنبه‌ها، ساعت تولد و ترنزیت‌ها را روشن و فارسی یاد بگیر.",
-    cta: "ورود به ویکی",
-    icon: <IconWiki />,
-  },
+const productNav = [
+  { href: "/chart", label: "چارت تولد", hint: "ساخت و خواندن گزارش", icon: <IconChart /> },
+  { href: "/compare", label: "تحلیل رابطه", hint: "دو چارت، تحلیل خصوصی", icon: <IconRelation /> },
+  { href: "/sky", label: "آسمان امروز", hint: "داده واقعی امروز", icon: <IconSky /> },
+  { href: "/wiki", label: "ویکی هالیوس", hint: "یادگیری مرحله‌به‌مرحله", icon: <IconWiki /> },
 ];
 
-const relationshipContexts = [
-  "رابطه عاطفی",
-  "دوستی",
-  "خانواده",
-  "همکاری کاری",
-  "مقایسه عمومی",
-];
+const relationshipContexts = ["رابطه عاطفی", "دوستی", "خانواده", "همکاری کاری", "مقایسه عمومی"];
 
 const relationshipThemes = [
-  { title: "پیوند و نزدیکی", text: "نقطه‌هایی که دو نفر راحت‌تر به هم وصل می‌شوند." },
-  { title: "گفت‌وگو", text: "سبک بیان، شنیدن و تفاوت زبان دو طرف." },
-  { title: "امنیت عاطفی", text: "چه چیزی حس امنیت می‌سازد و چه چیزی آن را می‌لرزاند." },
-  { title: "اصطکاک و مرزها", text: "محل‌های تنش و جایی که مرز روشن لازم است." },
-  { title: "مسیر رشد", text: "تمرین‌هایی که رابطه را عمیق‌تر می‌کنند، بدون حکم قطعی." },
+  { title: "پیوند و نزدیکی", text: "جایی که دو نفر راحت‌تر وصل می‌شوند." },
+  { title: "گفت‌وگو", text: "سبک بیان، شنیدن و تفاوت زبان." },
+  { title: "امنیت عاطفی", text: "چه چیزی حس امنیت می‌سازد یا می‌لرزاند." },
+  { title: "اصطکاک و مرزها", text: "محل‌های تنش و مرز روشن." },
+  { title: "مسیر رشد", text: "تمرین‌های تعمیق رابطه، بدون حکم قطعی." },
+];
+
+const skyModules = [
+  { label: "خلاصهٔ امروز", hint: "جایگاه ماه، فاز و روشنایی" },
+  { label: "خط زمان رویدادها", hint: "ورود به برج، ایست و تغییر جهت" },
+  { label: "جنبه‌های امروز", hint: "زاویه‌های فعال میان سیاره‌ها" },
+  { label: "سیارات برگشتی", hint: "حرکت‌های برگشتی روز" },
 ];
 
 const howItWorks = [
-  { title: "اطلاعات لازم را وارد کن", text: "تاریخ، ساعت و شهر تولد را بنویس یا مشخص کن که ساعت دقیق را نمی‌دانی." },
-  { title: "موتور هالیوس محاسبه می‌کند", text: "جایگاه‌ها، خانه‌ها، جنبه‌ها و داده‌های لازم از همان اطلاعات ساخته می‌شوند." },
-  { title: "نتیجه فارسی و قابل‌فهم را بخوان", text: "گزارش تولد، تحلیل رابطه یا آسمان امروز را مرحله‌به‌مرحله مرور کن." },
+  { title: "اطلاعات تولد را وارد کن", text: "تاریخ، ساعت و شهر تولد؛ ساعت نامعلوم هم پذیرفته می‌شود." },
+  { title: "موتور هالیوس محاسبه می‌کند", text: "جایگاه‌ها، خانه‌ها و جنبه‌ها از همان داده ساخته می‌شوند." },
+  { title: "نتیجهٔ فارسی را بخوان", text: "گزارش، تحلیل رابطه یا آسمان امروز را مرور کن." },
 ];
 
-const learningPaths: { title: string; text: string; slugs: string[] }[] = [
-  { title: "شروع از چارت تولد", text: "نقشهٔ تولد و چهار لایهٔ اصلی خواندن آن.", slugs: ["birth-chart-basics", "how-to-read-birth-chart"] },
-  { title: "خورشید، ماه و رایزینگ", text: "سه ستون معروف چارت و تفاوت‌شان.", slugs: ["sun-moon-rising", "what-is-rising-sign", "what-is-moon-sign"] },
-  { title: "خانه‌ها و جنبه‌ها", text: "میدان‌های زندگی و رابطهٔ زاویه‌ای سیاره‌ها.", slugs: ["astrology-houses", "major-aspects"] },
-  { title: "ساعت و شهر تولد", text: "چرا دقت داده روی رایزینگ و خانه‌ها اثر می‌گذارد.", slugs: ["why-birth-time-matters", "why-birth-city-matters"] },
-  { title: "ترنزیت‌ها و آسمان امروز", text: "مقایسهٔ آسمان امروز با چارت تولد، با مرز روشن.", slugs: [] },
+const learningPaths: { title: string; slugs: string[] }[] = [
+  { title: "شروع از چارت تولد", slugs: ["birth-chart-basics", "how-to-read-birth-chart"] },
+  { title: "خورشید، ماه و رایزینگ", slugs: ["sun-moon-rising", "what-is-rising-sign", "what-is-moon-sign"] },
+  { title: "خانه‌ها و جنبه‌ها", slugs: ["astrology-houses", "major-aspects"] },
+  { title: "ساعت و شهر تولد", slugs: ["why-birth-time-matters", "why-birth-city-matters"] },
+];
+
+const assurance = [
+  { title: "محاسبهٔ واقعی", text: "جایگاه‌ها و جنبه‌ها از داده می‌آیند، نه متن آماده." },
+  { title: "انتشار روشن", text: "پیش از انتشار می‌دانی گزارش عمومی است یا خصوصی." },
+  { title: "پریمیوم خصوصی", text: "گزارش Premium خصوصی شروع می‌شود." },
+  { title: "رابطه، همیشه خصوصی", text: "تحلیل رابطه خصوصی می‌ماند و به اجازهٔ نفر دوم نیاز دارد." },
+  { title: "بدون حکم قطعی", text: "درصد سازگاری و آیندهٔ قطعی ساخته نمی‌شود." },
+  { title: "بدون ارسال به Analytics", text: "داده تولد یا متن گزارش برای آمار بازدید ارسال نمی‌شود." },
 ];
 
 const faqItems = [
-  { q: "هالیوس چیست؟", a: "هالیوس یک تجربه فارسی برای ساخت چارت تولد، خواندن گزارش شخصی، تحلیل خصوصی رابطه، دیدن آسمان امروز و یادگیری مفاهیم آسترولوژی است." },
-  { q: "چارت تولد چگونه محاسبه می‌شود؟", a: "با تاریخ، ساعت و شهر تولد، جایگاه خورشید، ماه، رایزینگ، خانه‌ها و جنبه‌ها محاسبه می‌شوند و نتیجه در یک گزارش فارسی و قابل‌مرور نمایش داده می‌شود." },
-  { q: "آیا ساخت چارت رایگان است؟", a: "ساخت چارت و دیدن گزارش پایه رایگان است. گزارش Premium لایه‌های بیشتری دارد و به‌صورت خصوصی شروع می‌شود." },
-  { q: "بدون ساعت دقیق تولد چه می‌شود؟", a: "می‌توانی شروع کنی، اما رایزینگ، خانه‌ها و محورهای اصلی قابل اتکای کامل نیستند و ممکن است جایگاه ماه هم به ساعت حساس باشد. این محدودیت داخل نتیجه پنهان نمی‌شود." },
+  { q: "چارت تولد چگونه محاسبه می‌شود؟", a: "با تاریخ، ساعت و شهر تولد، جایگاه خورشید، ماه، رایزینگ، خانه‌ها و جنبه‌ها محاسبه می‌شوند و در یک گزارش فارسی و قابل‌مرور نمایش داده می‌شوند." },
+  { q: "بدون ساعت دقیق تولد چه می‌شود؟", a: "می‌توانی شروع کنی، اما رایزینگ، خانه‌ها و محورهای اصلی قابل اتکای کامل نیستند و این محدودیت داخل نتیجه پنهان نمی‌شود." },
   { q: "تحلیل رابطه چه فرقی با درصد سازگاری دارد؟", a: "هیچ درصدی نمایش داده نمی‌شود. تحلیل روی گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و اصطکاک تمرکز دارد و رابطه را «خوب» یا «بد» اعلام نمی‌کند." },
-  { q: "آسمان امروز از کجا می‌آید؟", a: "از داده محاسبه‌شدهٔ جایگاه‌ها، فاز ماه، جنبه‌ها و خط زمانی روز. این صفحه فال روزانه نیست و رویدادهای روز را به‌طور قطعی اعلام نمی‌کند." },
-  { q: "گزارش‌ها عمومی‌اند یا خصوصی؟", a: "گزارش مهمان و رایگان به‌صورت پیش‌فرض عمومی است و می‌تواند در نتایج جست‌وجو دیده شود. گزارش Premium خصوصی شروع می‌شود و تحلیل رابطه همیشه خصوصی است." },
-];
-
-const trustItems = [
-  { title: "محاسبه واقعی", text: "جایگاه‌ها، خانه‌ها و جنبه‌ها از داده محاسبه‌شده می‌آیند، نه متن آماده." },
-  { title: "سیاست انتشار روشن", text: "پیش از انتشار می‌دانی گزارش عمومی است یا خصوصی." },
-  { title: "پریمیوم خصوصی به‌صورت پیش‌فرض", text: "گزارش Premium خصوصی شروع می‌شود و فقط با انتخاب روشن صاحب آن عمومی می‌شود." },
-  { title: "تحلیل رابطه، همیشه خصوصی", text: "تحلیل رابطه همیشه خصوصی می‌ماند و استفاده از چارت نفر دوم نیازمند اجازهٔ اوست." },
-  { title: "بدون حکم قطعی", text: "هالیوس درصد سازگاری نمی‌سازد و آیندهٔ قطعی اعلام نمی‌کند." },
-  { title: "بدون ارسال داده به Analytics", text: "داده تولد یا متن گزارش نباید برای آمار بازدید ارسال شوند." },
+  { q: "آسمان امروز از کجا می‌آید؟", a: "از داده محاسبه‌شدهٔ جایگاه‌ها، فاز ماه، جنبه‌ها و خط زمان روز. این صفحه فال روزانه نیست." },
+  { q: "گزارش‌ها عمومی‌اند یا خصوصی؟", a: "گزارش رایگان به‌صورت پیش‌فرض عمومی است؛ گزارش Premium خصوصی شروع می‌شود و تحلیل رابطه همیشه خصوصی است." },
 ];
 
 export default async function Home() {
@@ -182,252 +158,310 @@ export default async function Home() {
     const match = slugs.find((slug) => slugSet.has(slug));
     return match ? `/wiki/${match}` : "/wiki";
   };
-  const featuredArticles = articles.slice(0, 4);
+  const featuredArticles = articles.slice(0, 3);
 
-  const heroSkyState = resolveHomepageSkyState(sky);
-  const heroSky = heroSkyState.status !== "unavailable" ? heroSkyState.result : null;
-  const heroMoon = heroSky?.snapshot.planetaryStates.find((item) => item.body === "moon") ?? null;
-  const heroSkyLine = heroSky
-    ? heroMoon
-      ? `${heroSky.city.faName} · ماه در ${SKY_SIGN_LABELS[heroMoon.sign]}`
-      : `${heroSky.city.faName} · وضعیت امروز`
-    : "وضعیت آسمان همین حالا در صفحهٔ آسمان امروز محاسبه می‌شود.";
+  const skyState = resolveHomepageSkyState(sky);
+  const skyChip =
+    skyState.status === "ready"
+      ? { text: "دادهٔ امروز آماده", tone: "ready" }
+      : skyState.status === "partial"
+        ? { text: "بخشی از داده آماده", tone: "partial" }
+        : skyState.status === "stale"
+          ? { text: "آخرین دادهٔ معتبر", tone: "stale" }
+          : { text: "فعلاً در دسترس نیست", tone: "unavailable" };
+  const skyCity = skyState.status !== "unavailable" ? skyState.result.city.faName : null;
 
   return (
     <div className={styles.page} data-home-theme="halleus-soft-app" data-product-surface="Halleus Home">
-      {/* 1. Hero */}
-      <section className={styles.hero} aria-labelledby="home-hero-title">
-        <div className={styles.heroContent}>
-          <span className={styles.eyebrow}>هالیوس؛ تجربه فارسی آسترولوژی</span>
-          <h1 className={styles.heroTitle} id="home-hero-title">
-            چارت تولد فارسی، تحلیل رابطه و آسمان امروز
-          </h1>
-          <p className={styles.heroLead}>
-            هالیوس اطلاعات تولد را محاسبه می‌کند و نتیجه را در یک تجربه فارسی، روشن و قابل‌مرور نشان می‌دهد؛
-            از گزارش شخصی چارت تا تحلیل خصوصی رابطه و وضعیت واقعی آسمان امروز.
+      {/* ============ APP WORKSPACE (first screen) ============ */}
+      <section className={styles.workspaceGrid} aria-label="فضای کار هالیوس">
+        {/* PRIMARY (right in RTL) */}
+        <div className={styles.primary}>
+          <span className={styles.appTag}>
+            <span className={styles.appDot} aria-hidden="true" />
+            هالیوس · فضای کار آسترولوژی فارسی
+          </span>
+          <h1 className={styles.title}>چارت تولد، رابطه و آسمان امروز در یک فضای کار</h1>
+          <p className={styles.lead}>
+            اطلاعات تولد را وارد کن و نتیجهٔ محاسبه‌شده را روشن و فارسی بخوان.
           </p>
-          <div className={styles.heroActions}>
+
+          <div className={styles.actions}>
             <Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link>
-            <Link className={styles.secondaryButton} href="/compare">تحلیل رابطه</Link>
-            <Link className={styles.textLink} href="/product">دیدن نمونه گزارش</Link>
+            <Link className={styles.ghostButton} href="/compare">تحلیل رابطه</Link>
+            <Link className={styles.quietLink} href="/product">دیدن نمونه گزارش</Link>
           </div>
-          <p className={styles.heroMicro}>
-            تاریخ شمسی یا میلادی فرقی ندارد. ساعت دقیق را هم نمی‌دانی؟ باز می‌توانی شروع کنی و محدودیت‌ها را در نتیجه ببینی.
-          </p>
-        </div>
 
-        <div className={styles.heroPanel} aria-hidden="true">
-          <article className={`${styles.heroCard} ${styles.heroCardReport}`}>
-            <span className={styles.heroCardKicker}>گزارش چارت تولد</span>
-            <strong className={styles.heroCardTitle}>یک گزارش، چند لایه خوانش</strong>
-            <ul className={styles.heroLayerList}>
-              {HOME_REPORT_PREVIEW_LAYERS.slice(0, 3).map((layer) => (
-                <li key={layer.label}>{layer.label}</li>
-              ))}
-            </ul>
-          </article>
-
-          <article className={`${styles.heroCard} ${styles.heroCardSky}`}>
-            <span className={styles.heroCardKicker}>آسمان امروز</span>
-            <strong className={styles.heroCardTitle}>خلاصهٔ زندهٔ آسمان</strong>
-            <p className={styles.heroCardText}>{heroSkyLine}</p>
-          </article>
-
-          <article className={`${styles.heroCard} ${styles.heroCardRelation}`}>
-            <span className={styles.heroPrivate}><IconLock /> خصوصی</span>
-            <strong className={styles.heroCardTitle}>تحلیل رابطه</strong>
-            <p className={styles.heroCardText}>دو چارت، بدون درصد سازگاری و بدون حکم قطعی.</p>
-          </article>
-
-          <div className={styles.heroTrust}>
-            <span><IconCheck /> محاسبهٔ واقعی</span>
-            <span><IconCheck /> بدون حکم قطعی</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Quick Start */}
-      <section className={styles.quickStart} aria-labelledby="home-quick-title">
-        <header className={styles.sectionHead}>
-          <span className={styles.sectionKicker}>چهار مسیر محصول</span>
-          <h2 className={styles.sectionTitle} id="home-quick-title">امروز از کدام مسیر شروع می‌کنی؟</h2>
-          <p className={styles.sectionLead}>هر مسیر یک محصول واقعی هالیوس است؛ از همان‌جا که برایت مهم‌تر است شروع کن.</p>
-        </header>
-        <div className={styles.quickGrid}>
-          {quickProducts.map((product) => (
-            <article
-              key={product.href}
-              className={`${styles.quickCard} ${product.featured ? styles.quickCardFeatured : ""}`}
-            >
-              <span className={styles.quickIcon}>{product.icon}</span>
-              <h3 className={styles.quickTitle}>{product.title}</h3>
-              <p className={styles.quickText}>{product.text}</p>
-              <Link className={styles.quickCta} href={product.href}>{product.cta}</Link>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* 3. Live Sky Today */}
-      <section className={styles.liveSkySection} aria-labelledby="home-live-sky-heading">
-        <header className={styles.sectionHead}>
-          <span className={styles.sectionKicker}>داده زنده</span>
-          <h2 className={styles.sectionTitle} id="home-live-sky-heading">آسمان امروز در یک نگاه</h2>
-          <p className={styles.sectionLead}>خلاصه‌ای از داده معتبر امروز؛ جزئیات کامل در صفحهٔ آسمان امروز است.</p>
-        </header>
-        <HomepageLiveSky result={sky} />
-      </section>
-
-      {/* 4. Birth Report showcase */}
-      <section className={styles.reportSection} id="sample-report" aria-labelledby="home-report-heading">
-        <header className={styles.sectionHead}>
-          <span className={styles.sectionKicker}>گزارش چارت تولد</span>
-          <h2 className={styles.sectionTitle} id="home-report-heading">چارت تولد فقط یک جدول نیست</h2>
-          <p className={styles.sectionLead}>
-            گزارش با یک تصویر کلی شروع می‌شود و بعد خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجسته را
-            در فصل‌هایی مرتبط کنار هم می‌گذارد. اگر ساعت تولد نامعلوم باشد، محدودیت رایزینگ و خانه‌ها پنهان نمی‌شود.
-          </p>
-        </header>
-        <div className={styles.productProofWrap}>
-          <HomepageProductProof />
-        </div>
-        <div className={styles.reportActions}>
-          <Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link>
-          <Link className={styles.secondaryButton} href="/product">داخل گزارش چه می‌بینی؟</Link>
-        </div>
-      </section>
-
-      {/* 5. Relationship Analysis showcase */}
-      <section className={styles.relationSection} aria-labelledby="home-relation-heading">
-        <div className={styles.relationIntro}>
-          <span className={styles.sectionKicker}>تحلیل رابطه</span>
-          <h2 className={styles.sectionTitle} id="home-relation-heading">
-            دو چارت را کنار هم بگذار؛ رابطه را بدون حکم قطعی بخوان
-          </h2>
-          <p className={styles.sectionLead}>
-            تحلیل رابطه نشان می‌دهد دو نفر گفت‌وگو، امنیت، نزدیکی، فاصله و مرزها را چگونه تجربه می‌کنند.
-            این خوانش برای زمینه‌های مختلف قابل استفاده است و نتیجه همیشه خصوصی می‌ماند.
-          </p>
-          <div className={styles.relationContexts}>
-            {relationshipContexts.map((context) => (
-              <span key={context} className={styles.contextChip}>{context}</span>
+          <nav className={styles.switcher} aria-label="مسیرهای محصول">
+            {productNav.map((item) => (
+              <Link key={item.href} className={styles.switchRow} href={item.href}>
+                <span className={styles.switchIcon}>{item.icon}</span>
+                <span className={styles.switchText}>
+                  <strong>{item.label}</strong>
+                  <small>{item.hint}</small>
+                </span>
+                <span className={styles.switchArrow} aria-hidden="true"><IconArrow /></span>
+              </Link>
             ))}
-          </div>
-          <p className={styles.relationPrivate}>
-            <IconLock /> استفاده از چارت نفر دوم نیازمند اجازهٔ اوست و نتیجه بدون درصد سازگاری ارائه می‌شود.
-          </p>
-          <Link className={styles.primaryButton} href="/compare">تحلیل رابطه با دو چارت</Link>
+          </nav>
         </div>
-        <ul className={styles.relationThemes}>
-          {relationshipThemes.map((theme) => (
-            <li key={theme.title} className={styles.themeItem}>
-              <strong>{theme.title}</strong>
-              <span>{theme.text}</span>
-            </li>
-          ))}
-        </ul>
+
+        {/* WORKSPACE (center) — CSS-only tabbed product preview */}
+        <div className={styles.workspace} role="group" aria-label="پیش‌نمایش محصول">
+          <input className={`${styles.tabInput} ${styles.tabReport}`} type="radio" name="hp-workspace" id="hp-tab-report" defaultChecked />
+          <input className={`${styles.tabInput} ${styles.tabRelation}`} type="radio" name="hp-workspace" id="hp-tab-relation" />
+          <input className={`${styles.tabInput} ${styles.tabSky}`} type="radio" name="hp-workspace" id="hp-tab-sky" />
+
+          <div className={styles.workspaceBar}>
+            <div className={styles.segmented}>
+              <label className={styles.seg} htmlFor="hp-tab-report">گزارش تولد</label>
+              <label className={styles.seg} htmlFor="hp-tab-relation">تحلیل رابطه</label>
+              <label className={styles.seg} htmlFor="hp-tab-sky">آسمان امروز</label>
+            </div>
+            <span className={styles.workspaceHint}>پیش‌نمایش زنده</span>
+          </div>
+
+          <div className={styles.panels}>
+            {/* Report preview */}
+            <div className={`${styles.panel} ${styles.panelReport}`}>
+              <div className={styles.panelHead}>
+                <div>
+                  <span className={styles.panelKicker}>گزارش چارت تولد</span>
+                  <h2 className={styles.panelTitle}>ساختار خواندن گزارش</h2>
+                </div>
+                <span className={`${styles.stateTag} ${styles.stateNeutral}`}>پیش‌فرض عمومی · Premium خصوصی</span>
+              </div>
+
+              <ol className={styles.navRows}>
+                {HOME_REPORT_PREVIEW_SECTIONS.map((section, index) => (
+                  <li key={section.title} className={styles.navRow}>
+                    <span className={styles.rowIndex}>{faNumber(index + 1)}</span>
+                    <span className={styles.rowText}>{section.title}</span>
+                    <span className={styles.rowMeta}>فصل</span>
+                  </li>
+                ))}
+              </ol>
+
+              <div className={styles.layerBlock}>
+                <span className={styles.blockLabel}>لایه‌های خوانش</span>
+                <div className={styles.layerList}>
+                  {HOME_REPORT_PREVIEW_LAYERS.map((layer) => (
+                    <div key={layer.label} className={styles.layerItem}>
+                      <span className={styles.layerDot} aria-hidden="true" />
+                      <strong>{layer.label}</strong>
+                      <small>{layer.description}</small>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <details className={styles.sampleDetails}>
+                <summary className={styles.sampleSummary}>
+                  دیدن نمونهٔ واقعی یک فصل گزارش
+                  <span aria-hidden="true">+</span>
+                </summary>
+                <div className={styles.sampleBody}>
+                  <HomepageProductProof />
+                </div>
+              </details>
+
+              <div className={styles.panelActions}>
+                <Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link>
+                <Link className={styles.quietLink} href="/product">داخل گزارش چه می‌بینی؟</Link>
+              </div>
+            </div>
+
+            {/* Relationship preview */}
+            <div className={`${styles.panel} ${styles.panelRelation}`}>
+              <div className={styles.panelHead}>
+                <div>
+                  <span className={styles.panelKicker}>تحلیل رابطه</span>
+                  <h2 className={styles.panelTitle}>دو چارت، بدون حکم قطعی</h2>
+                </div>
+                <span className={`${styles.stateTag} ${styles.statePrivate}`}><IconLock /> خصوصی</span>
+              </div>
+
+              <div className={styles.chipRow}>
+                {relationshipContexts.map((context) => (
+                  <span key={context} className={styles.chip}>{context}</span>
+                ))}
+              </div>
+
+              <ul className={styles.themeRows}>
+                {relationshipThemes.map((theme) => (
+                  <li key={theme.title} className={styles.themeRow}>
+                    <strong>{theme.title}</strong>
+                    <span>{theme.text}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <p className={styles.privateNote}>
+                <IconLock /> بدون درصد سازگاری. استفاده از چارت نفر دوم به اجازهٔ او نیاز دارد.
+              </p>
+
+              <div className={styles.panelActions}>
+                <Link className={styles.primaryButton} href="/compare">تحلیل رابطه با دو چارت</Link>
+              </div>
+            </div>
+
+            {/* Sky preview */}
+            <div className={`${styles.panel} ${styles.panelSky}`}>
+              <div className={styles.panelHead}>
+                <div>
+                  <span className={styles.panelKicker}>آسمان امروز</span>
+                  <h2 className={styles.panelTitle}>پیش‌نمایش صفحهٔ آسمان{skyCity ? ` · ${skyCity}` : ""}</h2>
+                </div>
+                <span className={`${styles.stateTag} ${styles[`state_${skyChip.tone}`] ?? ""}`}>{skyChip.text}</span>
+              </div>
+
+              <ul className={styles.navRows}>
+                {skyModules.map((module) => (
+                  <li key={module.label} className={styles.navRow}>
+                    <span className={styles.rowText}>
+                      <strong>{module.label}</strong>
+                      <small className={styles.rowSub}>{module.hint}</small>
+                    </span>
+                    <span className={styles.rowMeta} aria-hidden="true"><IconArrow /></span>
+                  </li>
+                ))}
+              </ul>
+
+              <p className={styles.privateNote}>
+                این صفحه فال روزانه نیست و رویداد روز را به‌طور قطعی اعلام نمی‌کند.
+              </p>
+
+              <div className={styles.panelActions}>
+                <Link className={styles.primaryButton} href="/sky">دیدن آسمان کامل</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* LIVE RAIL (left) */}
+        <aside className={styles.rail} aria-label="داده زنده و وضعیت">
+          <HomepageLiveSky result={sky} />
+
+          <div className={styles.statusPanel}>
+            <span className={styles.blockLabel}>وضعیت و حریم خصوصی</span>
+            <ul className={styles.statusList}>
+              <li><span className={styles.statusIcon}><IconCheck /></span> محاسبهٔ واقعی، بدون متن آماده</li>
+              <li><span className={styles.statusIcon}><IconLock /></span> تحلیل رابطه همیشه خصوصی</li>
+              <li><span className={styles.statusIcon}><IconLock /></span> Premium خصوصی به‌صورت پیش‌فرض</li>
+            </ul>
+            <Link className={styles.quietLink} href="/privacy">سیاست حریم خصوصی</Link>
+          </div>
+        </aside>
       </section>
 
-      {/* 6. How Halleus Works */}
-      <section className={styles.howSection} aria-labelledby="home-how-heading">
-        <header className={styles.sectionHead}>
-          <span className={styles.sectionKicker}>سه گام ساده</span>
-          <h2 className={styles.sectionTitle} id="home-how-heading">هالیوس چگونه کار می‌کند؟</h2>
-        </header>
-        <ol className={styles.howGrid}>
+      {/* ============ HOW IT WORKS (connected flow) ============ */}
+      <section className={styles.flowSection} aria-labelledby="home-flow-title">
+        <div className={styles.rowHead}>
+          <h2 className={styles.rowTitle} id="home-flow-title">سه گام تا نتیجه</h2>
+        </div>
+        <ol className={styles.flow}>
           {howItWorks.map((step, index) => (
-            <li key={step.title} className={styles.howStep}>
-              <span className={styles.stepNumber}>{new Intl.NumberFormat("fa-IR").format(index + 1)}</span>
+            <li key={step.title} className={styles.flowStep}>
+              <span className={styles.flowIndex}>{faNumber(index + 1)}</span>
               <strong>{step.title}</strong>
-              <span className={styles.howText}>{step.text}</span>
+              <span className={styles.flowText}>{step.text}</span>
             </li>
           ))}
         </ol>
       </section>
 
-      {/* 7. Wiki learning paths + real articles */}
-      <section className={styles.wikiSection} aria-labelledby="home-wiki-heading">
-        <header className={styles.sectionHead}>
-          <span className={styles.sectionKicker}>ویکی هالیوس</span>
-          <h2 className={styles.sectionTitle} id="home-wiki-heading">آسترولوژی را فارسی و مرحله‌به‌مرحله یاد بگیر</h2>
-          <p className={styles.sectionLead}>از سؤال ساده خودت شروع کن و به مقالهٔ درست برس.</p>
-        </header>
-
-        <div className={styles.pathList}>
-          {learningPaths.map((path) => (
-            <Link key={path.title} className={styles.pathCard} href={pathHref(path.slugs)}>
-              <strong>{path.title}</strong>
-              <span>{path.text}</span>
-            </Link>
-          ))}
+      {/* ============ LEARNING PATHS (compact nav list) ============ */}
+      <section className={styles.pathsSection} aria-labelledby="home-paths-title">
+        <div className={styles.rowHead}>
+          <h2 className={styles.rowTitle} id="home-paths-title">مسیرهای یادگیری در ویکی</h2>
+          <Link className={styles.quietLink} href="/wiki">ورود به ویکی هالیوس</Link>
         </div>
-
-        {featuredArticles.length ? (
-          <div className={styles.featuredBlock}>
-            <div className={styles.featuredHead}>
-              <h3>مقاله‌های تازهٔ ویکی</h3>
-              <Link className={styles.textLink} href="/wiki">ورود به ویکی هالیوس</Link>
-            </div>
-            <div className={styles.featuredGrid}>
+        <div className={styles.pathsGrid}>
+          <ul className={styles.pathList}>
+            {learningPaths.map((path) => (
+              <li key={path.title}>
+                <Link className={styles.pathRow} href={pathHref(path.slugs)}>
+                  <span>{path.title}</span>
+                  <span className={styles.pathArrow} aria-hidden="true"><IconArrow /></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {featuredArticles.length ? (
+            <ul className={styles.recentList}>
               {featuredArticles.map((article) => (
-                <article key={article.slug} className={styles.featuredCard}>
-                  {categoryLabels.has(article.categoryId) ? (
-                    <span className={styles.featuredTag}>{categoryLabels.get(article.categoryId)}</span>
-                  ) : null}
-                  <h4><Link href={`/wiki/${article.slug}`}>{article.shortTitle}</Link></h4>
-                  <p>{article.summary}</p>
-                </article>
+                <li key={article.slug}>
+                  <Link className={styles.recentRow} href={`/wiki/${article.slug}`}>
+                    {categoryLabels.has(article.categoryId) ? (
+                      <span className={styles.recentTag}>{categoryLabels.get(article.categoryId)}</span>
+                    ) : null}
+                    <span className={styles.recentTitle}>{article.shortTitle}</span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-      {/* 8. Trust & Privacy strip */}
-      <section className={styles.trustSection} aria-labelledby="home-trust-heading">
-        <header className={styles.sectionHead}>
-          <span className={styles.sectionKicker}>اعتماد و حریم خصوصی</span>
-          <h2 className={styles.sectionTitle} id="home-trust-heading">محاسبه روشن، انتشار روشن</h2>
-        </header>
-        <div className={styles.trustGrid}>
-          {trustItems.map((item) => (
-            <article key={item.title} className={styles.trustCard}>
-              <span className={styles.trustIcon}><IconCheck /></span>
-              <strong>{item.title}</strong>
-              <span className={styles.trustText}>{item.text}</span>
-            </article>
-          ))}
+            </ul>
+          ) : null}
         </div>
-        <Link className={styles.textLink} href="/privacy">حریم خصوصی هالیوس</Link>
       </section>
 
-      {/* 9. FAQ */}
-      <section className={styles.faqSection} aria-labelledby="home-faq-heading">
-        <header className={styles.sectionHead}>
-          <span className={styles.sectionKicker}>سؤال‌های رایج</span>
-          <h2 className={styles.sectionTitle} id="home-faq-heading">قبل از شروع، این‌ها را بدان</h2>
-        </header>
+      {/* ============ ASSURANCE (small status rows) ============ */}
+      <section className={styles.assuranceSection} aria-labelledby="home-assurance-title">
+        <div className={styles.rowHead}>
+          <h2 className={styles.rowTitle} id="home-assurance-title">محاسبهٔ روشن، انتشار روشن</h2>
+          <Link className={styles.quietLink} href="/privacy">حریم خصوصی</Link>
+        </div>
+        <ul className={styles.assuranceGrid}>
+          {assurance.map((item) => (
+            <li key={item.title} className={styles.assuranceRow}>
+              <span className={styles.assuranceIcon}><IconCheck /></span>
+              <span className={styles.assuranceText}>
+                <strong>{item.title}</strong>
+                <small>{item.text}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ============ FAQ ============ */}
+      <section className={styles.faqSection} aria-labelledby="home-faq-title">
+        <div className={styles.rowHead}>
+          <h2 className={styles.rowTitle} id="home-faq-title">سؤال‌های رایج</h2>
+        </div>
         <div className={styles.faqList}>
           {faqItems.map((item) => (
             <details key={item.q} className={styles.faqItem}>
-              <summary className={styles.faqSummary}>{item.q}</summary>
+              <summary className={styles.faqSummary}>
+                {item.q}
+                <span aria-hidden="true">+</span>
+              </summary>
               <p className={styles.faqAnswer}>{item.a}</p>
             </details>
           ))}
         </div>
       </section>
 
-      {/* 10. Final CTA */}
-      <section className={styles.finalCta} aria-labelledby="home-final-heading">
+      {/* ============ FINAL ACTION ============ */}
+      <section className={styles.finalCta} aria-labelledby="home-final-title">
         <div>
-          <h2 className={styles.sectionTitle} id="home-final-heading">از داده واقعی تولدت شروع کن</h2>
-          <p className={styles.sectionLead}>چارت خودت را بساز یا دو چارت را برای یک خوانش خصوصی رابطه کنار هم بگذار.</p>
+          <h2 className={styles.finalTitle} id="home-final-title">آمادهٔ شروعی؟</h2>
+          <p className={styles.finalText}>یک چارت بساز یا دو چارت را برای تحلیل خصوصی رابطه کنار هم بگذار.</p>
         </div>
-        <div className={styles.finalCtaActions}>
+        <div className={styles.actions}>
           <Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link>
-          <Link className={styles.secondaryButton} href="/compare">تحلیل رابطه</Link>
+          <Link className={styles.ghostButton} href="/compare">تحلیل رابطه</Link>
         </div>
       </section>
+
+      {/* ============ MOBILE ACTION DOCK (homepage-only) ============ */}
+      <nav className={styles.dock} aria-label="میان‌بر محصول‌ها">
+        <div className={styles.dockNav}>
+          <Link className={styles.dockItem} href="/chart"><span className={styles.dockIcon}><IconChart /></span>چارت</Link>
+          <Link className={styles.dockItem} href="/compare"><span className={styles.dockIcon}><IconRelation /></span>رابطه</Link>
+          <Link className={styles.dockItem} href="/sky"><span className={styles.dockIcon}><IconSky /></span>آسمان</Link>
+          <Link className={styles.dockItem} href="/wiki"><span className={styles.dockIcon}><IconWiki /></span>یادگیری</Link>
+        </div>
+      </nav>
     </div>
   );
 }
