@@ -1011,6 +1011,14 @@
   line-height: 2;
 }
 
+.heroMicrocopy {
+  max-width: 650px;
+  margin: 14px 0 0;
+  color: var(--halleus-muted);
+  font-size: 0.76rem;
+  line-height: 1.8;
+}
+
 .page[data-home-theme="halleus-ecosystem"] .eyebrow,
 .sectionHeading > span,
 .stateBadge {

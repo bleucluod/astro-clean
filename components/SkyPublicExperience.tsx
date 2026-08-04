@@ -64,8 +64,8 @@ function SkyHero() {
   return <header className={styles.hero}>
     <div className={styles.heroGlow} aria-hidden="true" />
     <div className={styles.heroContent}>
-      <h1>آسمان امروز</h1>
-      <p>ببین امروز سیاره‌ها کجا هستند، ماه چه حالتی دارد و چه زاویه‌هایی در آسمان شکل گرفته‌اند.</p>
+      <h1>آسترولوژی امروز؛ وضعیت ماه، سیارات و ترنزیت‌ها</h1>
+      <p>ببین امروز سیاره‌ها کجا هستند، ماه در چه نشانی قرار دارد و چه زاویه‌هایی در آسمان شکل گرفته‌اند. این صفحه دادهٔ محاسبه‌شده را نشان می‌دهد؛ نه فال روزانه یا پیش‌بینی قطعی.</p>
     </div>
     <div className={styles.heroVisual} aria-hidden="true">
       <div className={styles.heroOrbit}>
@@ -84,17 +84,17 @@ function SkyHero() {
   </header>;
 }
 
-export function SkyPublicExperience({ result, cityQuery }: { result: SkyPublicDeliveryResult; cityQuery?: string }) {
+export function SkyPublicExperience({ result, cityQuery, relatedArticles = [] }: { result: SkyPublicDeliveryResult; cityQuery?: string; relatedArticles?: Array<{ slug: string; title: string }> }) {
   const controlCity = result.city ?? { id: cityQuery ?? "tehran", faName: cityQuery ?? "تهران", provinceFaName: "" };
 
   return <main className={styles.shell}>
     <SkyHero />
     <form className={styles.controls} method="get" action="/sky"><SkyCityPicker initialCity={controlCity}/><label><span>تاریخ</span><input type="date" name="date" defaultValue={result.currentLocalDate ?? result.requestedDate ?? ""}/></label><button type="submit">نمایش آسمان</button></form>
-    {result.status !== "ready" ? <section className={styles.state} role="status"><span>داده در دسترس نیست</span><h2>{result.message}</h2>{result.requestedDate && result.city ? <p>روز درخواستی: {formatPersianDate(result.requestedDate, result.city.timezone)} برابر با {formatGregorianDate(result.requestedDate, result.city.timezone)}. هالیوس فقط دادهٔ معتبر و ذخیره‌شده را نمایش می‌دهد و برای پرکردن آرشیو، آسمان روز دیگری را جایگزین نمی‌کند.</p> : <p>هیچ دادهٔ ساختگی یا دادهٔ روز دیگری نمایش داده نشده است.</p>}<Link href={`/sky?city=${encodeURIComponent(result.city?.id ?? "tehran")}`}>بازگشت به آسمان امروز</Link></section> : <ReadyExperience result={result}/>} 
+    {result.status !== "ready" ? <section className={styles.state} role="status"><span>داده در دسترس نیست</span><h2>{result.message}</h2>{result.requestedDate && result.city ? <p>روز درخواستی: {formatPersianDate(result.requestedDate, result.city.timezone)} برابر با {formatGregorianDate(result.requestedDate, result.city.timezone)}. هالیوس فقط دادهٔ معتبر و ذخیره‌شده را نمایش می‌دهد و برای پرکردن آرشیو، آسمان روز دیگری را جایگزین نمی‌کند.</p> : <p>هیچ دادهٔ ساختگی یا دادهٔ روز دیگری نمایش داده نشده است.</p>}<Link href={`/sky?city=${encodeURIComponent(result.city?.id ?? "tehran")}`}>بازگشت به آسمان امروز</Link></section> : <ReadyExperience result={result} relatedArticles={relatedArticles}/>}
   </main>;
 }
 
-function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, { status: "ready" }> }) {
+function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPublicDeliveryResult, { status: "ready" }>; relatedArticles: Array<{ slug: string; title: string }> }) {
   const { snapshot, city, requestedDate } = result;
   const moon = snapshot.planetaryStates.find((item) => item.body === "moon");
   const moonEvents = snapshot.timeline.filter((event) => event.type === "ingress" && event.body === "moon");
@@ -113,6 +113,9 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
     <section data-interpretation-source={reportInterpretation.source}><header><span className={styles.eyebrow}>روابط آسمان</span><h2>زاویه‌های مهم روز</h2><p className={styles.sectionIntro}>این‌ها مهم‌ترین رابطه‌های امروز میان سیاره‌ها هستند. عدد کنار هر زاویه نشان می‌دهد چقدر به حالت دقیق نزدیک است؛ هرچه کمتر، دقیق‌تر.</p></header>{snapshot.aspects.length ? <><div className={styles.aspectList}>{initialAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div>{remainingAspects.length ? <details className={styles.moreAspects}><summary>نمایش {remainingAspects.length.toLocaleString("fa-IR")} زاویهٔ دیگر</summary><div className={styles.aspectList}>{remainingAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div></details> : null}</> : <p className={styles.empty}>زاویهٔ مهمی در محدودهٔ معتبر امروز ثبت نشده است.</p>}</section>
     <section><header><span className={styles.eyebrow}>به ترتیب زمان</span><h2>خط زمانی روز</h2><p className={styles.sectionIntro}>رویدادهای امروز را به ترتیب ساعت می‌بینی.</p></header>{snapshot.timeline.length ? <ol className={styles.timeline}>{snapshot.timeline.map((event, index) => { const occurredAt = "occurredAt" in event ? event.occurredAt : undefined; const isPast = occurredAt ? new Date(occurredAt).getTime() < now : false; return <li key={`${event.type}-${index}`} data-state={occurredAt ? (isPast ? "past" : "future") : "untimed"}><time>{formatTime(occurredAt, city.timezone)}</time><span>{eventText(event)}</span><small>{occurredAt ? (isPast ? "گذشته" : "پیش رو") : "بدون زمان دقیق"}</small></li>; })}</ol> : <p className={styles.empty}>رویداد مهمی برای این روز نداریم.</p>}</section>
     {snapshot.qualityFlags.length ? <section className={styles.quality} role="status"><h2>یک نکته دربارهٔ ساعت‌ها</h2><p>ساعت بعضی رویدادها تقریبی است.</p></section> : null}
+    <section><header><span className={styles.eyebrow}>راهنمای کوتاه</span><h2>این داده‌ها را چگونه بخوانم؟</h2></header><div className={styles.aspectList}><details><summary>ترنزیت چیست؟</summary><p>ترنزیت به جایگاه و حرکت فعلی سیاره‌ها گفته می‌شود. این صفحه وضعیت عمومی روز را نشان می‌دهد؛ ارتباط فردی فقط با مقایسه با چارت تولد بررسی می‌شود.</p></details><details><summary>چرا شهر و منطقه زمانی مهم‌اند؟</summary><p>تاریخ محلی و ساعت رویدادها به منطقه زمانی شهر وابسته‌اند و ممکن است برای دو شهر متفاوت نمایش داده شوند.</p></details><details><summary>آیا حرکت برگشتی یعنی اتفاق بد؟</summary><p>خیر. رتروگراد یک وضعیت محاسباتی است و به‌تنهایی نتیجهٔ قطعی دربارهٔ زندگی فرد نمی‌دهد.</p></details></div></section>
+    {relatedArticles.length ? <section><header><span className={styles.eyebrow}>یادگیری بیشتر</span><h2>راهنماهای مرتبط ویکی</h2></header><div className={styles.aspectList}>{relatedArticles.map((article) => <article key={article.slug}><Link href={`/wiki/${article.slug}`}>{article.title}</Link></article>)}</div></section> : null}
+    <section><header><span className={styles.eyebrow}>پرسش‌های رایج</span><h2>دربارهٔ آسمان امروز</h2></header><div className={styles.aspectList}><details><summary>آیا این صفحه فال روزانه است؟</summary><p>خیر. دادهٔ واقعی جایگاه‌ها، حرکت‌ها، فاز ماه و جنبه‌ها را نمایش می‌دهد و وقوع اتفاق شخصی را تضمین نمی‌کند.</p></details><details><summary>ساعت رویدادها برای کدام شهر است؟</summary><p>برای شهر انتخاب‌شده و منطقه زمانی همان شهر.</p></details><details><summary>چرا بعضی روزها داده نمایش داده نمی‌شود؟</summary><p>اگر دادهٔ معتبر موجود نباشد، هالیوس روز دیگری یا نتیجهٔ تخمینی را جایگزین نمی‌کند.</p></details></div></section>
     <section className={styles.cta}><h2>می‌خواهی ارتباط این آسمان را با چارت تولدت ببینی؟</h2><p>تاریخ، ساعت و شهر تولدت را وارد کن تا چارت شخصی خودت را ببینی.</p><Link href="/chart">ساخت چارت تولد</Link></section>
   </>;
 }

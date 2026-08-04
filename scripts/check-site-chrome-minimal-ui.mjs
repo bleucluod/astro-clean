@@ -224,11 +224,10 @@ for (const marker of [
 
 for (const marker of [
   "گزارش مهمان و حساب رایگان",
-  "پریمیوم: خصوصی و noindex به‌صورت پیش‌فرض",
-  "نمایش نام، رضایتی جدا از انتشار است",
-  "تحلیل رابطه همیشه خصوصی و noindex است",
-  "مهمان و رایگان: public / indexable",
-  "پریمیوم: private / noindex",
+  "به‌صورت پیش‌فرض خصوصی و خارج از نتایج جست‌وجو است",
+  "نمایش نام، نیک‌نیم یا هویت انتخابی جدا از انتشار است",
+  "همیشه خصوصی است، لینک عمومی ندارد",
+  "انتشار گزارش و نمایش هویت دو انتخاب جدا هستند",
 ]) {
   if (!privacyPage.includes(marker)) {
     failures.push(`Privacy page missing publication contract marker: ${marker}`);

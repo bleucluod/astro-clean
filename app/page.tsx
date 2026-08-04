@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه",
   description:
-    "هالیوس یک مسیر روشن برای آسترولوژی فارسی است: ساخت چارت تولد، تحلیل خصوصی رابطه، آسمان امروز و یادگیری از ویکی.",
+    "در هالیوس چارت تولد فارسی بساز، دو چارت را برای تحلیل خصوصی رابطه کنار هم بگذار، وضعیت واقعی آسمان امروز را ببین و آسترولوژی را مرحله‌به‌مرحله یاد بگیر.",
   alternates: { canonical: "/" },
 };
 
@@ -80,14 +80,15 @@ export default async function Home() {
     <main className={styles.page} data-home-theme="halleus-ecosystem" data-product-surface="Halleus Home">
       <section className={styles.hero} aria-labelledby="home-title">
         <div className={styles.heroContent}>
-          <span className={styles.eyebrow}>آسترولوژی فارسی، از داده تا فهم</span>
-          <h1 id="home-title">چارتت را بساز، رابطه‌ها را بهتر ببین و آسمان امروز را دنبال کن</h1>
-          <p className={styles.heroLead}>هالیوس محاسبهٔ واقعی چارت را با خوانش انسانی، تحلیل خصوصی رابطه، دادهٔ روز آسمان و آموزش مرحله‌ای کنار هم می‌گذارد؛ بدون پیش‌بینی قطعی یا حکم دربارهٔ آینده.</p>
+          <span className={styles.eyebrow}>هالیوس؛ تجربهٔ فارسی آسترولوژی</span>
+          <h1 id="home-title">آسترولوژی فارسی برای شناخت چارت تولد، رابطه‌ها و آسمان امروز</h1>
+          <p className={styles.heroLead}>هالیوس اطلاعات تولد را محاسبه می‌کند و نتیجه را به شکلی فارسی و قابل‌مرور نشان می‌دهد. چارت خودت را بساز، دو چارت را برای یک تحلیل خصوصی رابطه کنار هم بگذار، وضعیت واقعی ماه و سیاره‌های امروز را ببین یا مفاهیم آسترولوژی را در ویکی یاد بگیر.</p>
           <div className={styles.heroActions}>
             <Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link>
             <Link className={styles.secondaryButton} href="/compare">تحلیل رابطه</Link>
             <Link className={styles.textButton} href="#birth-report-showcase">دیدن نمونه گزارش</Link>
           </div>
+          <p className={styles.heroMicrocopy}>تاریخ شمسی یا میلادی فرقی ندارد. اگر ساعت دقیق را نمی‌دانی، باز می‌توانی شروع کنی و محدودیت‌ها را در نتیجه ببینی.</p>
         </div>
 
         <aside className={styles.heroPreview} aria-label="پیش‌نمایش واقعی ساختار گزارش هالیوس">
@@ -103,7 +104,7 @@ export default async function Home() {
       </section>
 
       <section className={styles.quickStart} aria-labelledby="quick-start-title">
-        <header className={styles.sectionHeading}><span>شروع سریع</span><h2 id="quick-start-title">چهار مسیر اصلی هالیوس</h2></header>
+        <header className={styles.sectionHeading}><span>شروع سریع</span><h2 id="quick-start-title">امروز از کدام مسیر شروع می‌کنی؟</h2></header>
         <div className={styles.productGrid}>
           {PRODUCT_PATHS.map((product) => <article className={`${styles.productCard} ${product.featured ? styles.productCardFeatured : ""}`} key={product.href}>
             <h3>{product.title}</h3><p>{product.description}</p><Link href={product.href}>{product.label}</Link>
@@ -114,7 +115,7 @@ export default async function Home() {
       <HomepageLiveSky result={sky} />
 
       <section className={styles.showcase} id="birth-report-showcase" aria-labelledby="birth-showcase-title">
-        <header className={styles.sectionHeading}><span>گزارش تولد</span><h2 id="birth-showcase-title">محاسبهٔ واقعی، خوانش فارسی و مسیرهای قابل مرور</h2><p>گزارش از خورشید، ماه و رایزینگ شروع می‌کند و خانه‌ها، جنبه‌ها و الگوهای برجسته را با مرز روشن میان نماد و تصمیم شخصی توضیح می‌دهد.</p></header>
+        <header className={styles.sectionHeading}><span>گزارش تولد</span><h2 id="birth-showcase-title">چارت تولد فقط یک جدول نیست</h2><p>گزارش با یک تصویر کلی شروع می‌شود و بعد خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجسته را در فصل‌هایی مرتبط کنار هم می‌گذارد. اگر ساعت تولد نامعلوم باشد، محدودیت رایزینگ و خانه‌ها پنهان نمی‌شود.</p></header>
         <HomepageProductProof />
         <div className={styles.sectionActions}><Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link><Link className={styles.secondaryButton} href="/product">آشنایی با ساختار گزارش</Link></div>
       </section>

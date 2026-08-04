@@ -116,11 +116,11 @@ requireText(
 );
 requireText("Privacy page", privacyPage, "<AnalyticsPreferencesLink");
 
-requireText("Privacy page", privacyPage, "آمار بازدید صفحه‌های عمومی");
+requireText("Privacy page", privacyPage, "آمار بازدید فقط برای صفحه‌های عمومی");
 requireText(
   "Privacy page",
   privacyPage,
-  "به‌صورت پیش‌فرض فقط روی صفحه‌های عمومی",
+  "اجازهٔ آن از انتشار جداست",
 );
 requireText("Privacy page", privacyPage, "تنظیم آمار بازدید");
 forbidText("Privacy page", privacyPage, "آمار بازدید فقط با انتخاب تو");

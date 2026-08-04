@@ -15,6 +15,34 @@
   },
   "areas": [
     {
+      "id": "public-editorial-content",
+      "description": "Final reviewed non-Wiki copy, metadata, internal links, pricing safety, publication policy, and dynamic-source boundaries across public routes.",
+      "exclusive": true,
+      "patterns": [
+        "app/page.tsx",
+        "app/chart/**",
+        "app/compare/**",
+        "app/sky/**",
+        "app/product/**",
+        "app/pricing/**",
+        "app/order/**",
+        "app/privacy/**",
+        "components/PremiumRequestForm.tsx",
+        "components/SkyPublicExperience.tsx",
+        "scripts/check-public-editorial-content.mjs"
+      ],
+      "guards": [
+        "check:public-editorial-content",
+        "check:comparison-product",
+        "check:sky-public-route",
+        "check:privacy-conscious-analytics",
+        "check:public-discovery-architecture",
+        "check:site-chrome-minimal-ui"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "homepage-ecosystem-live-sky",
       "description": "Public four-product homepage with server-rendered Live Sky states, real report proof, Wiki learning paths, trust, FAQ, and responsive boundaries.",
       "exclusive": true,

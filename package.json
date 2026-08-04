@@ -81,6 +81,7 @@
     "check:chart-seo-landing": "node scripts/check-chart-seo-landing.mjs",
     "check:homepage-seo-content-cleanup": "node scripts/check-homepage-seo-content-cleanup.mjs",
     "check:homepage-ecosystem-live-sky": "node scripts/check-homepage-ecosystem-live-sky.mjs",
+    "check:public-editorial-content": "node scripts/check-public-editorial-content.mjs",
     "check:chart-form-real-engine-bridge": "node scripts/check-chart-form-real-engine-bridge.mjs",
     "check:real-report-save-flow": "node scripts/check-real-report-save-flow.mjs",
     "check:real-engine-report-writer": "node scripts/check-real-engine-report-writer.mjs",
