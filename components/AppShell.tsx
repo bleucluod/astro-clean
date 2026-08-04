@@ -47,16 +47,12 @@ export async function AppShell({ children }: AppShellProps) {
           <div className={`footer-brand-block ${styles.footerBrandBlock}`}>
             <Link className={styles.footerBrand} href="/" aria-label="هالیوس">
               <Image
-                src="/halleus-logo/emblem-transparent.png"
+                src="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
                 alt=""
-                width={42}
-                height={42}
+                width={1805}
+                height={624}
                 className={styles.footerLogo}
               />
-              <span>
-                <strong>هالیوس</strong>
-                <small>Halleus.ir</small>
-              </span>
             </Link>
 
             <p className={`footer-note ${styles.footerNote}`}>

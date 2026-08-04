@@ -15,6 +15,32 @@
   },
   "areas": [
     {
+      "id": "final-brand-assets",
+      "description": "Approved Halleus logo lockup, favicon and app icons, web manifest, social previews, and responsive site chrome.",
+      "exclusive": true,
+      "patterns": [
+        "app/layout.tsx",
+        "app/manifest.ts",
+        "app/favicon.ico",
+        "app/icon.png",
+        "app/apple-icon.png",
+        "components/SiteHeader.tsx",
+        "components/AppShell.tsx",
+        "components/app-shell.module.css",
+        "public/favicon.ico",
+        "public/icon.png",
+        "public/apple-touch-icon.png",
+        "public/halleus-logo/**",
+        "scripts/check-logo-favicon-assets.mjs"
+      ],
+      "guards": [
+        "check:logo-favicon-assets",
+        "check:site-chrome-minimal-ui"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "public-editorial-content",
       "description": "Final reviewed non-Wiki copy, metadata, internal links, pricing safety, publication policy, and dynamic-source boundaries across public routes.",
       "exclusive": true,

@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     apple: [
       {
         url: "/apple-touch-icon.png",
-        sizes: "512x512",
+        sizes: "180x180",
         type: "image/png",
       },
     ],
@@ -50,11 +50,20 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     locale: siteConfig.locale,
     type: "website",
+    images: [
+      {
+        url: "/halleus-logo/social-share-light-1200x630.png",
+        width: 1200,
+        height: 630,
+        alt: "هالیوس؛ آسترولوژی، شناخت و مسیر",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
+    images: ["/halleus-logo/social-share-light-1200x630.png"],
   },
 };
 

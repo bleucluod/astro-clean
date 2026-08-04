@@ -68,24 +68,22 @@ export function SiteHeader() {
           className={`site-brand ${styles.brand}`}
           aria-label="هالیوس | صفحه اصلی"
         >
-          <span
-            className={`site-brand-mark ${styles.brandMark}`}
-            aria-hidden="true"
-          >
-            <Image
-              src="/halleus-logo/emblem-transparent.png"
-              alt=""
-              width={38}
-              height={38}
-              priority
-              className="site-brand-logo-emblem"
-            />
-          </span>
-
-          <span className={`site-brand-copy ${styles.brandCopy}`}>
-            <strong>هالیوس</strong>
-            <small>Halleus.ir</small>
-          </span>
+          <Image
+            src="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
+            alt=""
+            width={1805}
+            height={624}
+            priority
+            className={`${styles.brandLogo} ${styles.brandLogoDesktop}`}
+          />
+          <Image
+            src="/halleus-logo/symbol-dark-final-20260804.png"
+            alt=""
+            width={695}
+            height={702}
+            priority
+            className={styles.brandLogoMobile}
+          />
         </Link>
 
         <div

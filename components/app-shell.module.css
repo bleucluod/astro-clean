@@ -112,6 +112,17 @@
   white-space: nowrap;
 }
 
+.brandLogo {
+  display: block;
+  width: 148px;
+  height: auto;
+  object-fit: contain;
+}
+
+.brandLogoMobile {
+  display: none;
+}
+
 .brandMark {
   display: grid;
   width: 44px;
@@ -281,8 +292,8 @@
 }
 
 .footerLogo {
-  width: 40px;
-  height: 40px;
+  width: 156px;
+  height: auto;
   object-fit: contain;
 }
 
@@ -703,6 +714,17 @@
 
   .brand {
     gap: 0;
+  }
+
+  .brandLogoDesktop {
+    display: none;
+  }
+
+  .brandLogoMobile {
+    display: block;
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
   }
 
   .brandMark {

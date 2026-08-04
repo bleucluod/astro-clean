@@ -45,7 +45,7 @@ for (const marker of [
   "footer-note",
   "footer-links",
   "footer-link",
-  "Halleus.ir",
+  "/halleus-logo/logo-horizontal-bilingual-final-20260804.png",
 ]) {
   if (!appShell.includes(marker)) {
     failures.push(`AppShell missing site chrome marker: ${marker}`);
