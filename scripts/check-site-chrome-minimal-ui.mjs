@@ -245,12 +245,8 @@ for (const marker of [
   }
 }
 
-if (!compareLayout.includes("تحلیل رابطه با چارت تولد دو نفر")) {
-  failures.push("Compare layout is missing the approved relationship product title");
-}
-
-if (compareLayout.includes("مقایسه دو چارت")) {
-  failures.push("Compare layout still exposes the retired comparison title");
+if (!compareLayout.includes("چارت سیناستری آنلاین | مقایسه دو چارت تولد")) {
+  failures.push("Compare layout is missing the approved public synastry title");
 }
 
 if (packageJson.scripts?.["check:site-chrome-minimal-ui"] !== "node scripts/check-site-chrome-minimal-ui.mjs") {

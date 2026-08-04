@@ -16,6 +16,7 @@ type AppShellProps = {
 
 const footerLinks = [
   { href: "/chart", label: "ساخت چارت تولد" },
+  { href: "/compare", label: "تحلیل رابطه" },
   { href: "/sky", label: "آسمان امروز" },
   { href: "/wiki", label: "ویکی آسترولوژی" },
   { href: "/privacy", label: "حریم خصوصی" },

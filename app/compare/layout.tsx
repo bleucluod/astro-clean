@@ -3,17 +3,11 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: {
-    default: "تحلیل رابطه با چارت تولد دو نفر | هالیوس",
+    default: "چارت سیناستری آنلاین | مقایسه دو چارت تولد",
     template: "%s | هالیوس",
   },
   description:
-    "تحلیل خصوصی رابطه با چارت تولد دو نفر؛ با تمرکز بر گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و مسیر رشد.",
-  robots: {
-    index: false,
-    follow: false,
-    noarchive: true,
-    nosnippet: true,
-  },
+    "چارت سیناستری آنلاین برای مقایسه دو چارت تولد و خواندن الگوهای گفت‌وگو، امنیت عاطفی، مرزها، اصطکاک و رشد؛ بدون نمره یا حکم قطعی.",
   referrer: "no-referrer",
 };
 

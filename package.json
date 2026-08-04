@@ -94,6 +94,7 @@
     "check:sales-copy-polish": "node scripts/check-sales-copy-polish.mjs",
     "check:chart-page-product-polish": "node scripts/check-chart-page-product-polish.mjs",
     "check:site-chrome-minimal-ui": "node scripts/check-site-chrome-minimal-ui.mjs",
+    "check:comparison-product": "node scripts/check-comparison-product.mjs",
     "check:real-chart-wheel-structure": "node scripts/check-real-chart-wheel-structure.mjs",
     "check:report-birth-chart-wheel": "node scripts/check-report-birth-chart-wheel.mjs",
     "check:natal-accuracy-hardening": "node scripts/check-natal-accuracy-hardening.mjs",

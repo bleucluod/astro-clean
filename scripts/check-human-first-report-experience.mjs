@@ -60,8 +60,8 @@ forbidText("birth human reading", birth, "پشتوانه و محدودیت ای�
 for (const marker of ["خوانش رابطه", "جزئیات نجومی", "record.report.contacts.map", "contact.orb"]) requireText("comparison report", comparison, marker);
 for (const marker of ["برای کارکرد بهتر:", "contact.growthFa", "برچسب‌های داخلی سیستم"]) forbidText("comparison technical details", comparison, marker);
 requireText("comparison navigation label", nav, 'label: "تحلیل رابطه"');
-requireText("comparison composer", composer, "تحلیل رابطه با چارت تولد دو نفر");
-requireText("comparison SEO", comparePage, "سازگاری چارت تولد دو نفر | تحلیل رابطه و سیناستری");
+requireText("comparison composer", composer, "تحلیل رابطه با مقایسه دو چارت تولد");
+requireText("comparison SEO", comparePage, "چارت سیناستری آنلاین | مقایسه دو چارت تولد");
 requireText("comparison mobile tabs", comparisonCss, "/* Final relationship reading cleanup */");
 
 for (const marker of [

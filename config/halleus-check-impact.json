@@ -15,6 +15,25 @@
   },
   "areas": [
     {
+      "id": "public-comparison-landing",
+      "description": "Public indexable synastry landing with private result-route, consent, sitemap, navigation, and analytics boundaries.",
+      "exclusive": true,
+      "patterns": [
+        "app/compare/**",
+        "components/comparison/**",
+        "lib/comparison/**",
+        "types/comparison-product.ts",
+        "scripts/check-comparison-product.mjs"
+      ],
+      "guards": [
+        "check:comparison-product",
+        "check:privacy-conscious-analytics",
+        "check:internal-route-noindex-boundary"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "report-product-quality",
       "description": "Complete birth-report reader contract, content ownership, responsive presentation, technical appendix, and stored-transit separation.",
       "exclusive": true,

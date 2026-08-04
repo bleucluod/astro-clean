@@ -169,7 +169,7 @@ export function ComparisonComposer() {
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>تحلیل رابطه</p>
-          <h1>تحلیل رابطه با چارت تولد دو نفر</h1>
+          <h1>تحلیل رابطه با مقایسه دو چارت تولد</h1>
           <p>
             این خوانش به‌جای یک نمره یا حکم قطعی، نشان می‌دهد کجا راحت‌تر به هم می‌رسید، کجا ممکن است سوءتفاهم بسازید و چه چیزی به امنیت و ترمیم رابطه کمک می‌کند.
           </p>
@@ -177,6 +177,71 @@ export function ComparisonComposer() {
         <div className={styles.privacyBadge}>
           <strong>این خوانش خصوصی می‌ماند</strong>
           <span>فقط روی همین دستگاه ذخیره می‌شود و لینک عمومی ندارد.</span>
+        </div>
+      </section>
+
+      <section className={styles.landingOverview} aria-labelledby="synastry-overview-title">
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>چارت سیناستری آنلاین</p>
+          <h2 id="synastry-overview-title">سیناستری چه چیزی را کنار هم می‌گذارد؟</h2>
+          <p>
+            سیناستری جایگاه‌های دو چارت تولد را با هم می‌خواند تا الگوهای تماس، تفاوت و هم‌راهی روشن‌تر شوند. این خوانش برای رابطهٔ عاطفی، دوستی، خانواده، همکاری یا یک رابطهٔ عمومی قابل استفاده است؛ اما موفقیت یا شکست رابطه را پیش‌بینی نمی‌کند.
+          </p>
+        </div>
+        <div className={styles.useCaseList} aria-label="کاربردهای تحلیل رابطه">
+          {RELATIONSHIP_OPTIONS.map((option) => (
+            <span key={option.value}>{option.label}</span>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.landingDynamics} aria-labelledby="synastry-dynamics-title">
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>محورهای خوانش</p>
+          <h2 id="synastry-dynamics-title">به‌جای یک نمره، چند بُعد رابطه را ببین</h2>
+          <p>
+            هر بخش از خوانش یک پرسش مشخص را دنبال می‌کند تا تفاوت میان کشش، امنیت، اصطکاک و امکان رشد گم نشود.
+          </p>
+        </div>
+        <div className={styles.landingDynamicsGrid}>
+          <article>
+            <h3>گفت‌وگو</h3>
+            <p>ریتم بیان، شنیدن و جاهایی که سوءبرداشت محتمل‌تر است.</p>
+          </article>
+          <article>
+            <h3>امنیت عاطفی</h3>
+            <p>شیوه‌های متفاوت دریافت حمایت، آرامش و پاسخ عاطفی.</p>
+          </article>
+          <article>
+            <h3>نزدیکی و استقلال</h3>
+            <p>تعادل میان باهم‌بودن، فضای شخصی و نیازهای متفاوت دو نفر.</p>
+          </article>
+          <article>
+            <h3>مرز و تعهد</h3>
+            <p>جاهایی که انتظار، مسئولیت یا تعریف رابطه نیاز به گفت‌وگوی روشن دارد.</p>
+          </article>
+          <article>
+            <h3>اصطکاک و ترمیم</h3>
+            <p>الگوهای تنش و راه‌هایی که می‌توانند بازگشت به گفت‌وگو را آسان‌تر کنند.</p>
+          </article>
+          <article>
+            <h3>جهت رشد</h3>
+            <p>پرسش‌ها و تمرین‌هایی برای دیدن انتخاب‌های آگاهانه‌تر در رابطه.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className={styles.landingBoundary} aria-labelledby="synastry-boundary-title">
+        <div>
+          <p className={styles.eyebrow}>مرز خوانش</p>
+          <h2 id="synastry-boundary-title">نتیجه خصوصی است و حکم قطعی نیست</h2>
+          <p>
+            هالیوس درصد سازگاری نمی‌سازد و دربارهٔ آینده یا ارزش رابطه داوری نمی‌کند. نتیجه فقط روی همین دستگاه نگه‌داری می‌شود، لینک عمومی ندارد و برای ساخت آن باید اجازهٔ استفاده از اطلاعات نفر دوم را تأیید کنی.
+          </p>
+        </div>
+        <div className={styles.landingLinks}>
+          <Link href="/chart">ساخت چارت تولد</Link>
+          <Link href="/privacy">خواندن حریم خصوصی</Link>
         </div>
       </section>
 

@@ -473,6 +473,7 @@ function checkNavigation() {
   const primaryHrefs = primaryLinks.map((link) => link.href);
   const expectedFooterLinks = [
     { href: "/chart", label: "ساخت چارت تولد" },
+    { href: "/compare", label: "تحلیل رابطه" },
     { href: "/sky", label: "آسمان امروز" },
     { href: "/wiki", label: "ویکی آسترولوژی" },
     { href: "/privacy", label: "حریم خصوصی" },
@@ -490,7 +491,7 @@ function checkNavigation() {
   }
 
   if (JSON.stringify(footerLinks) !== JSON.stringify(expectedFooterLinks)) {
-    failures.push("Footer quick access must contain exactly the four approved public links in product order.");
+    failures.push("Footer quick access must contain exactly the five approved public links in product order.");
   }
 }
 
@@ -708,7 +709,7 @@ if (failures.length > 0) {
 console.log("Public discovery architecture check passed.");
 console.log("- public navigation exposes Sky and Wiki without private report/dashboard routes");
 console.log("- homepage, footer, and Wiki discovery read the live database-first catalog");
-console.log("- the minimal footer exposes four essential routes, Instagram, and four newest Wiki articles");
+console.log("- the minimal footer exposes five essential routes, Instagram, and four newest Wiki articles");
 console.log("- the chart page links directly to Sky and Wiki discovery surfaces");
 console.log("- non-empty Wiki categories resolve newest-first public pages");
 console.log("- sitemap freshness uses normalized W3C/ISO Wiki update timestamps");

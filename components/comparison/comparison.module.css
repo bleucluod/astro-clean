@@ -75,6 +75,9 @@
 
 .composerCard,
 .historySection,
+.landingOverview,
+.landingDynamics,
+.landingBoundary,
 .patternSection,
 .contactsSection,
 .overlaySection,
@@ -85,6 +88,84 @@
   border-radius: 26px;
   background: #ffffff;
   box-shadow: 0 14px 36px rgba(36, 52, 71, 0.06);
+}
+
+.landingOverview,
+.landingDynamics,
+.landingBoundary {
+  margin-top: 28px;
+  padding: 28px;
+}
+
+.useCaseList,
+.landingLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.useCaseList span {
+  border: 1px solid rgba(30, 64, 175, 0.14);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: #1e40af;
+  background: #eef6ff;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.landingDynamicsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.landingDynamicsGrid article {
+  min-width: 0;
+  border: 1px solid rgba(36, 52, 71, 0.1);
+  border-radius: 18px;
+  padding: 18px;
+  background: #f8fafc;
+}
+
+.landingDynamicsGrid h3,
+.landingBoundary h2 {
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.landingDynamicsGrid p,
+.landingBoundary p {
+  margin: 0;
+  color: #3a4a5c;
+  line-height: 1.9;
+}
+
+.landingBoundary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  border-color: rgba(30, 64, 175, 0.16);
+  background: #eef6ff;
+}
+
+.landingLinks {
+  justify-content: flex-end;
+}
+
+.landingLinks a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(30, 64, 175, 0.24);
+  border-radius: 14px;
+  padding: 0 16px;
+  color: #1e40af;
+  background: #ffffff;
+  font-weight: 900;
+  text-decoration: none;
 }
 
 .sectionHeading {
@@ -627,6 +708,7 @@
 
   .hero,
   .reportHero,
+  .landingBoundary,
   .chartGrid,
   .twoColumnSection,
   .dynamicsGrid,
@@ -636,8 +718,15 @@
     grid-template-columns: 1fr;
   }
 
+  .landingDynamicsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .hero,
   .reportHero,
+  .landingOverview,
+  .landingDynamics,
+  .landingBoundary,
   .composerCard,
   .historySection,
   .patternSection,
@@ -646,6 +735,18 @@
   .wheelSection {
     padding: 20px;
     border-radius: 22px;
+  }
+
+  .landingDynamicsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .landingLinks {
+    justify-content: stretch;
+  }
+
+  .landingLinks a {
+    width: 100%;
   }
 
   .relationshipGrid,

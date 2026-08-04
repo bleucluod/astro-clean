@@ -4,6 +4,7 @@ const failures = [];
 const paths = {
   layout: "app/compare/layout.tsx",
   indexPage: "app/compare/page.tsx",
+  detailLayout: "app/compare/[comparisonId]/layout.tsx",
   detailPage: "app/compare/[comparisonId]/page.tsx",
   composer: "components/comparison/ComparisonComposer.tsx",
   report: "components/comparison/ComparisonReport.tsx",
@@ -13,6 +14,9 @@ const paths = {
   storage: "lib/comparison/comparison-storage.ts",
   types: "types/comparison-product.ts",
   navigation: "lib/config/navigation.ts",
+  seo: "lib/config/seo.ts",
+  analytics: "lib/config/analytics.ts",
+  shell: "components/AppShell.tsx",
 };
 
 function read(path) {
@@ -39,10 +43,18 @@ const sources = Object.fromEntries(
   Object.entries(paths).map(([key, path]) => [key, read(path)]),
 );
 
-requireMarkers("comparison metadata", sources.layout, [
+requireMarkers("public comparison metadata", sources.indexPage, [
+  "چارت سیناستری آنلاین | مقایسه دو چارت تولد",
+  'canonical: "/compare"',
+  "index: true",
+  "follow: true",
+]);
+requireMarkers("private comparison metadata", sources.detailLayout, [
   "index: false",
   "follow: false",
   "noarchive: true",
+  "nosnippet: true",
+  "noimageindex: true",
   'referrer: "no-referrer"',
 ]);
 requireMarkers("comparison route", sources.indexPage, ["ComparisonComposer"]);
@@ -67,6 +79,14 @@ requireMarkers("private comparison storage", sources.storage, [
   "Never delete natal reports automatically",
 ]);
 requireMarkers("comparison composer", sources.composer, [
+  "چارت سیناستری آنلاین",
+  "گفت‌وگو",
+  "امنیت عاطفی",
+  "نزدیکی و استقلال",
+  "مرز و تعهد",
+  "اصطکاک و ترمیم",
+  "جهت رشد",
+  "درصد سازگاری نمی‌سازد",
   "ساخت چارت دوم در تب تازه",
   "اجازه استفاده از اطلاعات نفر دوم را دارم",
   "ساعت تولد این چارت دقیق است",
@@ -102,6 +122,10 @@ requireMarkers("comparison navigation", sources.navigation, [
   'href: "/compare"',
   'label: "تحلیل رابطه"',
 ]);
+requireMarkers("comparison public discovery", sources.seo, ['path: "/compare"']);
+requireMarkers("comparison footer", sources.shell, ['href: "/compare"']);
+requireMarkers("comparison analytics boundary", sources.analytics, ['"/compare"']);
+forbidMarkers("comparison analytics boundary", sources.analytics, ['"/compare/"']);
 requireMarkers("comparison responsive styles", sources.styles, [
   "@media (max-width: 760px)",
   ".wheelSvg",
@@ -146,4 +170,5 @@ console.log("- comparison records are local-only, private, noindex, and raw-birt
 console.log("- three patterns, support/friction, communication, emotional security, boundaries, repair, and bi-wheel are visible");
 console.log("- history, delete, refresh, and retry flows are present");
 console.log("- Synastry runtime imports are resolvable by the Next.js client graph");
-console.log("- no public sharing, sitemap, analytics, network persistence, or compatibility percentage is introduced");
+console.log("- only the public landing is discoverable and analytics-eligible; private result paths remain excluded");
+console.log("- no public result sharing, network persistence, or compatibility percentage is introduced");
