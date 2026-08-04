@@ -84,6 +84,25 @@ export function sortPublicWikiArticlesNewestFirst(
   });
 }
 
+export function selectPublicWikiArticlesByPreferredSlugs(
+  articles: readonly DatedWikiArticle[],
+  preferredSlugs: readonly string[],
+) {
+  const articlesBySlug = new Map(
+    articles.map((article) => [article.slug, article]),
+  );
+  const selectedSlugs = new Set<string>();
+
+  return preferredSlugs.flatMap((slug) => {
+    if (selectedSlugs.has(slug)) {
+      return [];
+    }
+    selectedSlugs.add(slug);
+    const article = articlesBySlug.get(slug);
+    return article ? [article] : [];
+  });
+}
+
 export function buildPublicWikiRelatedArticles(
   article: PublicWikiRelationshipArticle,
   articles: readonly PublicWikiRelationshipArticle[],

@@ -114,6 +114,7 @@ async function checkDiscoveryBehavior() {
     buildPublicWikiRelatedArticles,
     findPublicWikiCategoryView,
     normalizePublicWikiUpdatedAt,
+    selectPublicWikiArticlesByPreferredSlugs,
     sortPublicWikiArticlesNewestFirst,
   } = await loadDiscoveryModule();
 
@@ -173,6 +174,21 @@ async function checkDiscoveryBehavior() {
   ];
   if (sorted.map((article) => article.slug).join("|") !== expectedOrder.join("|")) {
     failures.push("Wiki article discovery is not newest-first with deterministic slug ties.");
+  }
+
+  const preferred = selectPublicWikiArticlesByPreferredSlugs(articles, [
+    "what-is-rising-sign",
+    "scheduled-or-missing",
+    "birth-chart-basics",
+    "what-is-rising-sign",
+  ]);
+  if (
+    preferred.map((article) => article.slug).join("|") !==
+    "what-is-rising-sign|birth-chart-basics"
+  ) {
+    failures.push(
+      "Preferred Wiki discovery must preserve requested order while omitting unavailable and duplicate slugs.",
+    );
   }
 
   const views = buildPublicWikiCategoryViews(articles, categories);

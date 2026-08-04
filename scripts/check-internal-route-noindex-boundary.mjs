@@ -93,13 +93,19 @@ if (
 }
 
 const ideaGarden = read("docs/HALLEUS_IDEA_GARDEN.md");
-if (!ideaGarden.includes("## v0.1.305 Internal-route noindex boundary")) {
-  failures.push("Idea Garden is missing the v0.1.305 decision");
+if (
+  !ideaGarden.includes("Authority checkpoint:") ||
+  !ideaGarden.includes("Historical seed notes are preserved in Git history")
+) {
+  failures.push("Idea Garden is missing its compact authority boundary");
 }
 
 const projectContext = read("docs/HALLEUS_PROJECT_CONTEXT.md");
-if (!projectContext.includes("## v0.1.305 Internal-route noindex boundary")) {
-  failures.push("Project Context is missing the v0.1.305 batch note");
+if (
+  !projectContext.includes("Authority checkpoint:") ||
+  !projectContext.includes("Historical details belong in Git history and release tags")
+) {
+  failures.push("Project Context is missing its compact authority boundary");
 }
 
 if (failures.length > 0) {

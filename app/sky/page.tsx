@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SkyPublicExperience } from "@/components/SkyPublicExperience";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
+import { selectPublicWikiArticlesByPreferredSlugs } from "@/lib/wiki/wiki-public-discovery";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +11,9 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
   const query = await searchParams; const first = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
   const city = first(query.city);
   const [result, catalog] = await Promise.all([deliverSkyPublicSnapshot({ city, date: first(query.date) }), getPublicWikiCatalog()]);
-  const preferredSlugs = new Set(["what-is-moon-sign", "retrograde-planets-explained", "mordad-1405-transit-guide"]);
-  const relatedArticles = catalog.articles.filter((article) => preferredSlugs.has(article.slug)).map((article) => ({ slug: article.slug, title: article.shortTitle }));
+  const relatedArticles = selectPublicWikiArticlesByPreferredSlugs(
+    catalog.articles,
+    ["what-is-moon-sign", "astrology-transits-explained", "retrograde-planets-explained", "mordad-1405-transit-guide"],
+  ).map((article) => ({ slug: article.slug, title: article.shortTitle }));
   return <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles}/>;
 }

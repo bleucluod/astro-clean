@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ComparisonComposer } from "@/components/comparison/ComparisonComposer";
 import styles from "@/components/comparison/comparison.module.css";
+import { selectPublicWikiArticlesByPreferredSlugs } from "@/lib/wiki/wiki-public-discovery";
+import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "چارت سیناستری آنلاین | مقایسه دو چارت تولد",
@@ -16,7 +20,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ComparePage() {
+const SYNASTRY_ARTICLE_SLUGS = [
+  "synastry-explained",
+  "birth-chart-and-relationships",
+  "compatibility-beyond-sun-sign",
+  "element-compatibility-in-astrology",
+] as const;
+
+export default async function ComparePage() {
+  const catalog = await getPublicWikiCatalog();
+  const relatedArticles = selectPublicWikiArticlesByPreferredSlugs(
+    catalog.articles,
+    SYNASTRY_ARTICLE_SLUGS,
+  );
+
   return <>
     <ComparisonComposer />
     <div className={styles.product} data-compare-editorial-content="final-reviewed">
@@ -40,6 +57,18 @@ export default function ComparePage() {
         </div>
         <div className={styles.landingLinks}><Link href="/chart">ساخت چارت تولد</Link><Link href="/privacy">حریم خصوصی تحلیل رابطه</Link></div>
       </section>
+      {relatedArticles.length ? (
+        <section className={styles.landingOverview} aria-labelledby="compare-learning-title">
+          <span className={styles.eyebrow}>مسیر یادگیری</span>
+          <h2 id="compare-learning-title">پیش از خواندن سینستری بیشتر بدان</h2>
+          <p>فقط راهنماهایی که اکنون در ویکی هالیوس منتشر شده‌اند در این بخش نمایش داده می‌شوند.</p>
+          <div className={styles.landingLinks}>
+            {relatedArticles.map((article) => (
+              <Link href={`/wiki/${article.slug}`} key={article.slug}>{article.shortTitle}</Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   </>;
 }

@@ -14,7 +14,7 @@ const required = {
   home: ["هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه", "آسترولوژی فارسی برای شناخت چارت تولد، رابطه‌ها و آسمان امروز", "href=\"/chart\"", "href=\"/compare\"", "href=\"/product\"", "href=\"/privacy\""],
   chart: ["چارت تولد رایگان فارسی با تفسیر | هالیوس", "چارت تولد رایگان فارسی؛ محاسبه و گزارش شخصی", "href=\"/product\"", "href=\"/compare\"", "href=\"/privacy\""],
   compare: ["چارت سیناستری آنلاین | مقایسه دو چارت تولد", "تحلیل رابطه با مقایسه دو چارت تولد", "چارت سیناستری چیست؟", "این ابزار چه چیزی را تضمین نمی‌کند؟", "href=\"/privacy\""],
-  sky: ["آسترولوژی امروز | وضعیت ماه، سیارات و ترنزیت‌ها", "deliverSkyPublicSnapshot", "getPublicWikiCatalog", "preferredSlugs", "این داده‌ها را چگونه بخوانم؟"],
+  sky: ["آسترولوژی امروز | وضعیت ماه، سیارات و ترنزیت‌ها", "deliverSkyPublicSnapshot", "getPublicWikiCatalog", "selectPublicWikiArticlesByPreferredSlugs", "این داده‌ها را چگونه بخوانم؟"],
   product: ["تفسیر چارت تولد فارسی | داخل گزارش هالیوس چیست؟", "گزارش چارت تولد هالیوس چه چیزهایی را تحلیل می‌کند؟", "HomepageProductProof", "href=\"/pricing\""],
   pricing: ["گزارش پایه و گزینه‌های نسخه کامل‌تر | هالیوس", "هماهنگی دستی", "ثبت درخواست به معنی خرید، پرداخت یا شروع خودکار نیست", "href=\"/order\""],
   order: ["درخواست نسخه کامل‌تر گزارش چارت تولد | هالیوس", "درخواست نسخه کامل‌تر گزارش را ثبت کن", "publicationChoice", "company", "در حال ثبت…"],
@@ -27,6 +27,11 @@ const all = Object.values(sources).join("\n");
 for (const forbidden of ["[PLAN_NAME_REQUIRED]", "[PRICE_REQUIRED]", "[REQUEST_ID]", "بیش از ۱۰۰٬۰۰۰ کاربر"]) assert.ok(!all.includes(forbidden), `Public content contains forbidden placeholder or claim: ${forbidden}`);
 assert.ok(!/\b(?:9|19|90|190)\s*(?:USD|دلار)/u.test(sources.pricing), "Pricing exposes internal trial prices.");
 assert.ok(sources.compare.includes("noarchive: true") && sources.compare.includes("nosnippet: true"), "Private Compare metadata boundary is missing.");
+assert.ok(sources.compare.includes("getPublicWikiCatalog"), "Compare learning links must read the public Wiki catalog.");
+assert.ok(sources.compare.includes("selectPublicWikiArticlesByPreferredSlugs"), "Compare learning links must filter preferred slugs through the public catalog.");
+assert.ok(sources.compare.includes("relatedArticles.length ?"), "Compare must hide its learning section until a preferred article is public.");
+assert.ok(!/href=["']\/wiki\/(?:synastry|birth-chart-and-relationships|compatibility-beyond|element-compatibility)/u.test(sources.compare), "Compare must not hardcode future Wiki article links.");
+assert.ok(sources.sky.includes("selectPublicWikiArticlesByPreferredSlugs"), "Sky learning links must filter preferred slugs through the public catalog.");
 
 console.log("Final public editorial content check passed.");
 console.log("- eight public routes preserve distinct query ownership and canonical metadata");
