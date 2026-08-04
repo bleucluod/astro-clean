@@ -1,4 +1,4 @@
-﻿# Astro Clean MVP Checklist
+# Astro Clean MVP Checklist
 
 ## Done
 

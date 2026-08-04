@@ -1,4 +1,4 @@
-﻿# Deploy Ready Checklist
+# Deploy Ready Checklist
 
 ## Goal
 

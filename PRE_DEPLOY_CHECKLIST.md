@@ -1,4 +1,4 @@
-﻿# Pre-Deploy Checklist
+# Pre-Deploy Checklist
 
 Run this checklist before pushing code to production.
 

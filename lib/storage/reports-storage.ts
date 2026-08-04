@@ -1,4 +1,4 @@
-﻿import type { AstrologyReport } from "@/types/astro";
+import type { AstrologyReport } from "@/types/astro";
 
 const reportsStorageKey = "astro-clean-reports";
 

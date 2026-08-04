@@ -1,4 +1,4 @@
-﻿const REPORT_NOTES_KEY = "astro-clean-report-notes";
+const REPORT_NOTES_KEY = "astro-clean-report-notes";
 
 export type ReportNotesMap = Record<string, string>;
 

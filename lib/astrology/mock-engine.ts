@@ -1,4 +1,4 @@
-﻿import type { AstrologyReport, BirthInput, MockChart } from "@/types/astro";
+import type { AstrologyReport, BirthInput, MockChart } from "@/types/astro";
 import { createReportContent } from "./rule-engine";
 import { getZodiacByIndex } from "./zodiac";
 

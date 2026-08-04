@@ -1,4 +1,4 @@
-﻿import type { MockChart } from "@/types/astro";
+import type { MockChart } from "@/types/astro";
 import type { EngineChartInput, EngineInsight } from "@/lib/astro-engine";
 import { generateEngineResult } from "@/lib/astro-engine";
 

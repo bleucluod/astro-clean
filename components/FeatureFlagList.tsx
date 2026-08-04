@@ -1,4 +1,4 @@
-﻿import { featureFlags } from "@/lib/config/feature-flags";
+import { featureFlags } from "@/lib/config/feature-flags";
 
 export function FeatureFlagList() {
   return (

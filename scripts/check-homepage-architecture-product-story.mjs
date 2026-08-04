@@ -1,4 +1,4 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 
 function read(file) {
   return fs.readFileSync(file, "utf8");

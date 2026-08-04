@@ -1,4 +1,4 @@
-﻿import type { AstrologyReport } from "@/types/astro";
+import type { AstrologyReport } from "@/types/astro";
 import {
   clearFavoriteReportIds,
   loadFavoriteReportIds,

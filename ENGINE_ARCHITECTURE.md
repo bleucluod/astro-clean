@@ -1,4 +1,4 @@
-﻿# Astro Clean Engine v0
+# Astro Clean Engine v0
 
 This folder contains the first rule-engine scaffold for Astro Clean.
 

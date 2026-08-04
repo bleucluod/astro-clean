@@ -1,4 +1,4 @@
-﻿# Final QA Notes
+# Final QA Notes
 
 ## Current QA status
 

@@ -1,4 +1,4 @@
-﻿const FAVORITE_REPORT_IDS_KEY = "astro-clean-favorite-report-ids";
+const FAVORITE_REPORT_IDS_KEY = "astro-clean-favorite-report-ids";
 
 function canUseStorage() {
   return typeof window !== "undefined";

@@ -1,4 +1,4 @@
-﻿# Recovery Notes
+# Recovery Notes
 
 Date: 2026-06-24
 Project: Astro Clean

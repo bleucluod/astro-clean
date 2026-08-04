@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   AuthSignInRequest,
   AuthSignInResult,
 } from "@/types/auth";

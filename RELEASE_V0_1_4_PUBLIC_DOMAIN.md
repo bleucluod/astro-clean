@@ -1,4 +1,4 @@
-﻿# Release v0.1.4 — Public Domain
+# Release v0.1.4 — Public Domain
 
 Astro Clean is now deployed on the public domain:
 

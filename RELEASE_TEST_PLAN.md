@@ -1,4 +1,4 @@
-﻿# Release Test Plan
+# Release Test Plan
 
 ## Purpose
 

@@ -1,4 +1,4 @@
-﻿type DashboardStatsProps = {
+type DashboardStatsProps = {
   reportCount: number;
   favoriteCount: number;
   noteCount: number;

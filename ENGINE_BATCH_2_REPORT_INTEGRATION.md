@@ -1,4 +1,4 @@
-﻿# Engine Batch 2
+# Engine Batch 2
 
 Engine Batch 2 connects the first standalone engine scaffold to report generation.
 

@@ -1,4 +1,4 @@
-﻿export type PrivacyMode = "public" | "private";
+export type PrivacyMode = "public" | "private";
 
 export type UserProfile = {
   displayName: string;

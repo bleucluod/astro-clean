@@ -1,4 +1,4 @@
-﻿# Public Demo Plan
+# Public Demo Plan
 
 ## Purpose
 

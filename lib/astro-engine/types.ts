@@ -1,4 +1,4 @@
-﻿import type { ZodiacKey } from "@/types/astro";
+import type { ZodiacKey } from "@/types/astro";
 
 export type AstroElement = "fire" | "earth" | "air" | "water";
 

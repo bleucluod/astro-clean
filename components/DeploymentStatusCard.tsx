@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { seoRoutes, siteConfig } from "@/lib/config/seo";
 
 export function DeploymentStatusCard() {

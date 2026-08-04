@@ -1,4 +1,4 @@
-﻿# Astro Clean v0.1.2 Local Reports Release
+# Astro Clean v0.1.2 Local Reports Release
 
 ## Release goal
 

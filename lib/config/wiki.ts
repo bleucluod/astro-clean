@@ -1,4 +1,4 @@
-﻿export type WikiTopic = {
+export type WikiTopic = {
   title: string;
   slug: string;
   description: string;

@@ -1,4 +1,4 @@
-﻿export function MvpStatusCard() {
+export function MvpStatusCard() {
   return (
     <section className="card">
       <span className="badge">MVP Status</span>

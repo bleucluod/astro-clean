@@ -1,4 +1,4 @@
-﻿export type AccountProvider = "local-preview" | "email" | "phone" | "google";
+export type AccountProvider = "local-preview" | "email" | "phone" | "google";
 
 export type AccountStatus = "preview" | "active" | "disabled";
 

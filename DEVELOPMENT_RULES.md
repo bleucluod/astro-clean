@@ -1,4 +1,4 @@
-﻿# Development Rules
+# Development Rules
 
 Project: Astro Clean
 

@@ -1,4 +1,4 @@
-﻿export type FeatureFlag = {
+export type FeatureFlag = {
   key: string;
   title: string;
   description: string;

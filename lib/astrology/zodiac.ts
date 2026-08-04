@@ -1,4 +1,4 @@
-﻿import type { ZodiacKey, ZodiacSign } from "@/types/astro";
+import type { ZodiacKey, ZodiacSign } from "@/types/astro";
 
 export const zodiacSigns: ZodiacSign[] = [
   { key: "aries", faName: "حمل", enName: "Aries", element: "آتش", quality: "کاردینال" },

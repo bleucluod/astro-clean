@@ -1,4 +1,4 @@
-﻿import type { UserProfile } from "@/types/user";
+import type { UserProfile } from "@/types/user";
 
 const profileStorageKey = "astro-clean-profile";
 

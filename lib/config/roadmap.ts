@@ -1,4 +1,4 @@
-﻿export type RoadmapItem = {
+export type RoadmapItem = {
   title: string;
   description: string;
   phase: "MVP" | "Next" | "Future";
