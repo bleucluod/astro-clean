@@ -497,6 +497,7 @@ function checkNavigation() {
 
 function checkIntegrationSources() {
   const homepage = read("app/page.tsx");
+  const homepageLiveSky = read("components/HomepageLiveSky.tsx");
   const appShell = read("components/AppShell.tsx");
   const appShellStyles = read("components/app-shell.module.css");
   const chartLayout = read("app/chart/layout.tsx");
@@ -522,8 +523,8 @@ function checkIntegrationSources() {
   requireText("Homepage", homepage, "getPublicWikiCatalog");
   requireText("Homepage", homepage, "sortPublicWikiArticlesNewestFirst");
   requireText("Homepage", homepage, 'href: "/sky"');
-  requireText("Homepage", homepage, 'href="/sky"');
-  requireText("Homepage", homepage, "featuredWikiArticles = wikiArticles.slice(0, 5)");
+  requireText("Homepage Live Sky", homepageLiveSky, 'href="/sky"');
+  requireText("Homepage", homepage, "selectLearningPaths(wikiArticles)");
   requireText("Homepage", homepage, "<h3>");
   requireText("Homepage", homepage, "href={`/wiki/${article.slug}`}");
   forbidText("Homepage", homepage, 'from "@/lib/wiki/wiki-content"');

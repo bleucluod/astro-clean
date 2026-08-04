@@ -204,9 +204,9 @@ if (!appShellCss.includes("header-human-first-v2")) {
 }
 
 for (const marker of [
-  "گزارش‌های مهمان و رایگان عمومی و قابل ایندکس‌اند",
-  "گزارش‌های پریمیوم خصوصی شروع می‌شوند",
-  "انتشار روشن و قابل‌کنترل",
+  "گزارش مهمان و رایگان عمومی و ایندکس‌پذیر",
+  "نسخهٔ پریمیوم خصوصی از ابتدا",
+  "سیاست انتشار روشن",
 ]) {
   if (!homePage.includes(marker)) {
     failures.push(`Homepage missing publication contract marker: ${marker}`);

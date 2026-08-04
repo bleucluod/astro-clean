@@ -75,14 +75,6 @@ for (const marker of [
   }
 }
 
-const home = read("app/page.tsx");
-for (const line of [
-  "تو حاصل لحظه‌ای هستی که",
-  "آسمان و زمین با هم داستانی نو نوشتند.",
-]) {
-  if (!home.includes(line)) failures.push(`Home slogan changed: ${line}`);
-}
-
 const articlePage = read("app/wiki/[slug]/page.tsx");
 if (!articlePage.includes("<h1>{article.title}</h1>")) {
   failures.push("Wiki article H1 rendering contract changed.");
@@ -97,4 +89,4 @@ if (failures.length) {
 console.log("Wiki category content check passed.");
 console.log("- eligible categories have unique search metadata and structured reading paths");
 console.log("- thin categories and invalid pillar sets cannot resolve or enter sitemap");
-console.log("- Home slogan and article H1 rendering remain unchanged");
+console.log("- Wiki article H1 rendering remains unchanged");

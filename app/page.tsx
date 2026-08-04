@@ -1,230 +1,156 @@
-import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { HomepageLiveSky } from "@/components/HomepageLiveSky";
 import { HomepageProductProof } from "@/components/HomepageProductProof";
-import { SkyPulseDateCard } from "@/components/SkyPulseDateCard";
-import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { HOME_REPORT_PREVIEW_LAYERS } from "@/lib/report-preview/homepage-report-preview";
+import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
+import { getPublicWikiCatalog, type PublicWikiArticle } from "@/lib/wiki/wiki-repository";
 
 import styles from "./home.module.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "هالیوس | گزارش تولد فارسی و چارت تولد",
+  title: "هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه",
   description:
-    "در هالیوس با تاریخ، ساعت و شهر تولد، چارت تولدت را بساز و گزارش تولد فارسی بگیر. آسمان امروز و ویکی آسترولوژی فارسی هم کنار گزارش تولد در دسترس‌اند.",
-  alternates: {
-    canonical: "/",
-  },
+    "هالیوس یک مسیر روشن برای آسترولوژی فارسی است: ساخت چارت تولد، تحلیل خصوصی رابطه، آسمان امروز و یادگیری از ویکی.",
+  alternates: { canonical: "/" },
 };
 
-const zodiacSymbols = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
+const PRODUCT_PATHS = [
+  {
+    title: "چارت تولد فارسی",
+    description: "تاریخ، ساعت و شهر تولد را به چارت واقعی و یک خوانش فارسی قابل‌فهم تبدیل کن.",
+    href: "/chart",
+    label: "ساخت چارت تولد",
+    featured: true,
+  },
+  {
+    title: "تحلیل رابطه",
+    description: "دو چارت را بدون نمره‌سازی کنار هم ببین؛ از پیوند و گفت‌وگو تا مرز، اصطکاک و ترمیم.",
+    href: "/compare",
+    label: "شروع تحلیل رابطه",
+    featured: false,
+  },
+  {
+    title: "آسمان امروز",
+    description: "جایگاه واقعی سیاره‌ها، وضعیت ماه و رویدادهای معتبر روز را برای یک شهر ببین.",
+    href: "/sky",
+    label: "دیدن آسمان امروز",
+    featured: false,
+  },
+  {
+    title: "ویکی هالیوس",
+    description: "مفاهیم چارت، خانه‌ها، جنبه‌ها و دقت دادهٔ تولد را قدم‌به‌قدم یاد بگیر.",
+    href: "/wiki",
+    label: "ورود به ویکی",
+    featured: false,
+  },
+] as const;
 
-function buildProductHighlights(articleCount: number) {
-  return [
-    {
-      icon: "✦",
-      title: "گزارش تولد شخصی",
-      description: "گزارش تولد فارسی بر پایهٔ چارت تولد واقعی؛ با خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجستهٔ چارت.",
-      href: "/chart",
-      label: "ساخت چارت تولد",
-    },
-    {
-      icon: "◐",
-      title: "آسمان امروز",
-      description: "حال‌وهوای عمومی آسمان امروز، ماه اکنون، فاز ماه و چند جنبهٔ مهم ترنزیت روزانهٔ تهران.",
-      href: "/sky",
-      label: "دیدن آسمان امروز",
-    },
-    {
-      icon: "◫",
-      title: "ویکی هالیوس",
-      description: `${articleCount.toLocaleString("fa-IR")} مقاله در ویکی آسترولوژی فارسی برای فهم چارت، رایزینگ، خانه‌ها و دقت داده‌های تولد.`,
-      href: "/wiki",
-      label: "ورود به ویکی",
-    },
-    {
-      icon: "◇",
-      title: "حریم خصوصی روشن",
-      description: "گزارش‌های مهمان و رایگان عمومی و قابل ایندکس‌اند؛ گزارش‌های پریمیوم خصوصی شروع می‌شوند و انتشارشان انتخابی است.",
-      href: "/privacy",
-      label: "خواندن سیاست حریم",
-    },
-  ] as const;
+const LEARNING_PATH_SLUGS = [
+  "birth-chart-basics",
+  "sun-moon-rising",
+  "astrology-houses",
+  "why-birth-time-matters",
+  "why-birth-city-matters",
+] as const;
+
+function selectLearningPaths(articles: PublicWikiArticle[]) {
+  const selected = LEARNING_PATH_SLUGS
+    .map((slug) => articles.find((article) => article.slug === slug))
+    .filter((article): article is PublicWikiArticle => Boolean(article));
+  const selectedSlugs = new Set(selected.map((article) => article.slug));
+  return [...selected, ...articles.filter((article) => !selectedSlugs.has(article.slug))].slice(0, 5);
 }
 
 export default async function Home() {
-  const { articles: catalogArticles, categories: wikiCategories } =
-    await getPublicWikiCatalog();
-  const wikiArticles = sortPublicWikiArticlesNewestFirst(catalogArticles);
-  const featuredWikiArticles = wikiArticles.slice(0, 5);
-  const productHighlights = buildProductHighlights(wikiArticles.length);
+  const [wikiResult, skyResult] = await Promise.allSettled([
+    getPublicWikiCatalog(),
+    deliverSkyPublicSnapshot({}),
+  ]);
+  const catalog = wikiResult.status === "fulfilled" ? wikiResult.value : { articles: [], categories: [] };
+  const wikiArticles = sortPublicWikiArticlesNewestFirst(catalog.articles);
+  const learningPaths = selectLearningPaths(wikiArticles);
+  const sky = skyResult.status === "fulfilled" ? skyResult.value : null;
 
   return (
-    <div className={styles.page} data-home-theme="halleus-soft-app" data-product-surface="Halleus Home">
+    <main className={styles.page} data-home-theme="halleus-ecosystem" data-product-surface="Halleus Home">
       <section className={styles.hero} aria-labelledby="home-title">
-        <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
-          <span className={styles.eyebrow}>گزارش تولد فارسی بر پایهٔ چارت تولد واقعی</span>
-          <h1 id="home-title">
-            <span className={styles.heroTitleLine}>تو حاصل لحظه‌ای هستی که</span>
-            <span className={styles.heroTitleLine}>
-              آسمان و زمین با هم داستانی نو نوشتند.
-            </span>
-          </h1>
-          <p className={styles.heroLead}>
-            هالیوس با تاریخ، ساعت و شهر تولد، چارت تولدت را محاسبه می‌کند و آن را به یک گزارش فارسی، انسانی و قابل‌فهم تبدیل می‌کند؛ گزارشی برای دیدن الگوهای شخصی، نیازهای احساسی، رابطه‌ها و مسیر رشد.
-          </p>
+          <span className={styles.eyebrow}>آسترولوژی فارسی، از داده تا فهم</span>
+          <h1 id="home-title">چارتت را بساز، رابطه‌ها را بهتر ببین و آسمان امروز را دنبال کن</h1>
+          <p className={styles.heroLead}>هالیوس محاسبهٔ واقعی چارت را با خوانش انسانی، تحلیل خصوصی رابطه، دادهٔ روز آسمان و آموزش مرحله‌ای کنار هم می‌گذارد؛ بدون پیش‌بینی قطعی یا حکم دربارهٔ آینده.</p>
           <div className={styles.heroActions}>
-            <Link className={styles.primaryButton} href="/chart">
-              ساخت چارت تولد
-              <span aria-hidden="true">←</span>
-            </Link>
-            <Link className={styles.secondaryButton} href="#sample-report">
-              مشاهدهٔ نمونهٔ گزارش
-            </Link>
-          </div>
-          <div className={styles.heroMeta} aria-label="ویژگی‌های اصلی هالیوس">
-            <span>محاسبه با تاریخ، ساعت و شهر تولد</span>
-            <span>انتشار روشن و قابل‌کنترل</span>
-            <span>فارسی و قابل‌فهم</span>
+            <Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link>
+            <Link className={styles.secondaryButton} href="/compare">تحلیل رابطه</Link>
+            <Link className={styles.textButton} href="#birth-report-showcase">دیدن نمونه گزارش</Link>
           </div>
         </div>
 
-        <div className={styles.heroVisual} aria-label="نمای نمادین چرخ چارت تولد">
-          <div className={styles.visualBadge}>
-            <span>چارت تولد</span>
-            <strong>۱۲ خانه، ۱۰ سیاره، یک روایت شخصی</strong>
-          </div>
-          <div className={styles.chartWheel} aria-hidden="true">
-            <div className={styles.outerOrbit} />
-            <div className={styles.middleOrbit} />
-            <div className={styles.innerOrbit} />
-            {zodiacSymbols.map((symbol, index) => {
-              const angle = index * 30;
-              const symbolStyle = {
-                transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-142px) rotate(${-angle}deg)`,
-              } as CSSProperties;
-
-              return (
-                <span className={styles.zodiacSymbol} key={symbol} style={symbolStyle}>
-                  {symbol}
-                </span>
-              );
-            })}
-            <span className={`${styles.aspectLine} ${styles.aspectLineOne}`} />
-            <span className={`${styles.aspectLine} ${styles.aspectLineTwo}`} />
-            <span className={`${styles.aspectLine} ${styles.aspectLineThree}`} />
-            <span className={`${styles.aspectLine} ${styles.aspectLineFour}`} />
-            <div className={styles.chartCore}>
-              <span>هالیوس</span>
-              <small>خوانش فارسی چارت</small>
+        <aside className={styles.heroPreview} aria-label="پیش‌نمایش واقعی ساختار گزارش هالیوس">
+          <div className={styles.previewChrome}><span /><span /><span /><strong>نمونهٔ ساختار گزارش</strong></div>
+          <div className={styles.previewBody}>
+            <span>خوانش چارت تولد</span>
+            <h2>از جایگاه‌های محاسبه‌شده تا یک روایت قابل مرور</h2>
+            <div className={styles.previewLayers}>
+              {HOME_REPORT_PREVIEW_LAYERS.slice(0, 4).map((layer) => <p key={layer.label}><strong>{layer.label}</strong><span>{layer.description}</span></p>)}
             </div>
           </div>
-          <div className={styles.visualNote}>
-            <span className={styles.visualNoteIcon}>⌁</span>
-            <div>
-              <strong>محاسبهٔ واقعی و قابل پیگیری</strong>
-              <p>جایگاه‌ها، خانه‌ها و جنبه‌ها از دادهٔ تولد ساخته می‌شوند.</p>
-            </div>
-          </div>
+        </aside>
+      </section>
+
+      <section className={styles.quickStart} aria-labelledby="quick-start-title">
+        <header className={styles.sectionHeading}><span>شروع سریع</span><h2 id="quick-start-title">چهار مسیر اصلی هالیوس</h2></header>
+        <div className={styles.productGrid}>
+          {PRODUCT_PATHS.map((product) => <article className={`${styles.productCard} ${product.featured ? styles.productCardFeatured : ""}`} key={product.href}>
+            <h3>{product.title}</h3><p>{product.description}</p><Link href={product.href}>{product.label}</Link>
+          </article>)}
         </div>
       </section>
 
-      <section className={styles.highlightGrid} aria-label="امکانات اصلی هالیوس">
-        {productHighlights.map((item) => (
-          <article className={styles.highlightCard} key={item.title}>
-            <span className={styles.highlightIcon} aria-hidden="true">
-              {item.icon}
-            </span>
-            <div>
-              <h2>{item.title}</h2>
-              <p>{item.description}</p>
-              <Link href={item.href}>{item.label}</Link>
-            </div>
-          </article>
-        ))}
+      <HomepageLiveSky result={sky} />
+
+      <section className={styles.showcase} id="birth-report-showcase" aria-labelledby="birth-showcase-title">
+        <header className={styles.sectionHeading}><span>گزارش تولد</span><h2 id="birth-showcase-title">محاسبهٔ واقعی، خوانش فارسی و مسیرهای قابل مرور</h2><p>گزارش از خورشید، ماه و رایزینگ شروع می‌کند و خانه‌ها، جنبه‌ها و الگوهای برجسته را با مرز روشن میان نماد و تصمیم شخصی توضیح می‌دهد.</p></header>
+        <HomepageProductProof />
+        <div className={styles.sectionActions}><Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link><Link className={styles.secondaryButton} href="/product">آشنایی با ساختار گزارش</Link></div>
       </section>
 
-      <section className={styles.splitSection} id="sky-pulse" aria-labelledby="home-sky-pulse-title">
-        <div className={styles.sectionIntro}>
-          <span className={styles.sectionKicker}>آسمان امروز</span>
-          <h2 id="home-sky-pulse-title">نبض آسمان امروز؛ حال‌وهوای عمومی آسمان</h2>
-          <p>
-            هر روز یک خوانش عمومی از ماه اکنون، فاز ماه و چند جنبهٔ مهم ترنزیت روزانهٔ تهران. این بخش برای دیدن حال‌وهوای آسمان است؛ برای خوانش شخصی، چارت تولد خودت را جداگانه بساز.
-          </p>
-          <Link className={styles.textLink} href="/sky">
-            دیدن آسمان امروز
-            <span aria-hidden="true">←</span>
-          </Link>
-        </div>
-        <div className={styles.embeddedCard}>
-          <SkyPulseDateCard />
-        </div>
+      <section className={`${styles.showcase} ${styles.relationshipShowcase}`} aria-labelledby="relationship-showcase-title">
+        <div><span className={styles.eyebrow}>تحلیل رابطه</span><h2 id="relationship-showcase-title">دو چارت، بدون درصد سازگاری و نتیجه‌گیری قطعی</h2><p>خوانش رابطه نقاط پیوند و اصطکاک را در گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها، رشد و ترمیم بررسی می‌کند. نتیجه همیشه خصوصی می‌ماند و دادهٔ خام تولد در رکورد تحلیل ذخیره نمی‌شود.</p><Link className={styles.primaryButton} href="/compare">مقایسهٔ دو چارت</Link></div>
+        <div className={styles.relationshipSignals}>{["نقاط پیوند", "گفت‌وگو", "امنیت عاطفی", "نزدیکی و استقلال", "مرز و تعهد", "اصطکاک و ترمیم", "جهت رشد"].map((item) => <span key={item}>{item}</span>)}</div>
       </section>
 
-      <section className={styles.reportSection} id="sample-report" aria-labelledby="sample-report-title">
-        <div className={styles.productProofWrap}>
-          <div className={styles.productProofHeading}>
-            <span className={styles.sectionKicker}>نمونهٔ واقعی محصول</span>
-            <h2 id="sample-report-title">یک بخش کوتاه از گزارش تولد هالیوس</h2>
-          </div>
-          <HomepageProductProof />
+      <section className={styles.howItWorks} aria-labelledby="how-title">
+        <header className={styles.sectionHeading}><span>روش هالیوس</span><h2 id="how-title">از دادهٔ ورودی تا یک تجربهٔ قابل‌فهم</h2></header>
+        <ol><li><strong>دادهٔ درست</strong><span>تاریخ، ساعت و شهر تولد یا شهر امروز را انتخاب می‌کنی.</span></li><li><strong>محاسبهٔ واقعی</strong><span>جایگاه‌ها و رابطه‌های نجومی از موتور مشترک هالیوس می‌آیند.</span></li><li><strong>خوانش انسانی</strong><span>داده به زبان فارسی، محتاط و بدون پیش‌بینی قطعی توضیح داده می‌شود.</span></li></ol>
+      </section>
+
+      <section className={styles.wikiSection} aria-labelledby="learning-title">
+        <header className={styles.sectionHeading}><span>مسیرهای یادگیری</span><h2 id="learning-title">از کجا خواندن ویکی را شروع کنی؟</h2><p>این مسیرها مستقیماً از مقاله‌های منتشرشدهٔ کاتالوگ هالیوس ساخته می‌شوند.</p></header>
+        {learningPaths.length ? <div className={styles.learningGrid}>{learningPaths.map((article) => <article key={article.slug}><h3><Link href={`/wiki/${article.slug}`}>{article.shortTitle}</Link></h3><p>{article.summary}</p></article>)}</div> : <p className={styles.emptyState}>مقالهٔ منتشرشده‌ای برای نمایش در این بخش در دسترس نیست.</p>}
+        <div className={styles.wikiFooter}><span>{wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ منتشرشده</span><Link className={styles.secondaryButton} href="/wiki">مشاهدهٔ همهٔ مقاله‌ها</Link></div>
+      </section>
+
+      <section className={styles.trustStrip} aria-label="اعتماد و حریم خصوصی">
+        {["محاسبهٔ واقعی", "سیاست انتشار روشن", "گزارش مهمان و رایگان عمومی و ایندکس‌پذیر", "نسخهٔ پریمیوم خصوصی از ابتدا", "تحلیل رابطه همیشه خصوصی", "بدون پیش‌بینی قطعی", "بدون ارسال دادهٔ حساس به سنجش بازدید"].map((item) => <span key={item}>{item}</span>)}
+        <Link href="/privacy">جزئیات حریم خصوصی</Link>
+      </section>
+
+      <section className={styles.faq} aria-labelledby="faq-title">
+        <header className={styles.sectionHeading}><span>پرسش‌های رایج</span><h2 id="faq-title">پیش از شروع</h2></header>
+        <div className={styles.faqGrid}>
+          <details><summary>آیا هالیوس آینده را قطعی پیش‌بینی می‌کند؟</summary><p>خیر. هالیوس از زبان نمادین برای مشاهده و تأمل استفاده می‌کند و جایگزین تصمیم شخصی یا نظر تخصصی نیست.</p></details>
+          <details><summary>تحلیل رابطه عمومی می‌شود؟</summary><p>خیر. مسیر مقایسه و نتیجهٔ آن خصوصی و خارج از ایندکس موتورهای جست‌وجو است.</p></details>
+          <details><summary>آسمان صفحهٔ اصلی واقعی است؟</summary><p>بله. خلاصه از همان منبع محاسباتی صفحهٔ آسمان می‌آید و در نبود داده، مقدار ساختگی نمایش داده نمی‌شود.</p></details>
+          <details><summary>برای چارت دقیق چه داده‌ای لازم است؟</summary><p>تاریخ، ساعت و شهر تولد ورودی‌های اصلی‌اند. دقت ساعت تولد روی رایزینگ و خانه‌ها اثر دارد.</p></details>
         </div>
       </section>
 
-      <section className={styles.wikiSection} aria-labelledby="home-wiki-title">
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>ویکی هالیوس</span>
-            <h2 id="home-wiki-title">قبل و بعد از ساخت گزارش، منطق چارت را یاد بگیر</h2>
-          </div>
-          <p>
-            ویکی هالیوس مجموعه‌ای از {wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ فارسی دربارهٔ چارت تولد، رایزینگ، نشان ماه، خانه‌ها، جنبه‌ها و اهمیت ساعت و شهر تولد است؛ تا قبل از ساخت گزارش بدانی چه داده‌ای وارد می‌کنی و بعد از گزارش هم بتوانی بخش‌هایش را بهتر بخوانی.
-          </p>
-        </div>
-
-        <div className={styles.wikiGrid}>
-          {featuredWikiArticles.map((article) => {
-            const category = wikiCategories.find((item) => item.id === article.categoryId);
-
-            return (
-              <article className={styles.wikiCard} key={article.slug}>
-                <div className={styles.wikiCardTopline}>
-                  <span>{category?.label ?? "ویکی هالیوس"}</span>
-                </div>
-                <h3>
-                  <Link href={`/wiki/${article.slug}`}>{article.shortTitle}</Link>
-                </h3>
-                <p>{article.summary}</p>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className={styles.wikiFooter}>
-          <div>
-            <strong>{wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ منتشرشده</strong>
-            <span>از مفاهیم پایه تا دقت داده‌های تولد</span>
-          </div>
-          <Link className={styles.secondaryButton} href="/wiki">
-            مشاهدهٔ همهٔ مقاله‌ها
-          </Link>
-        </div>
-      </section>
-
-      <section className={styles.finalCta} aria-labelledby="final-cta-title">
-        <div>
-          <span className={styles.sectionKicker}>شروع از دادهٔ واقعی تو</span>
-          <h2 id="final-cta-title">چارت تولدت را بساز و از یک خوانش پراکنده عبور کن</h2>
-          <p>اطلاعات تولد را وارد کن، گزارش فارسی را ببین و بعد با کمک ویکی بخش‌های مختلف آن را دقیق‌تر بخوان.</p>
-        </div>
-        <div className={styles.finalCtaActions}>
-          <Link className={styles.secondaryButton} href="/chart">
-            ساخت چارت تولد
-          </Link>
-        </div>
-      </section>
-    </div>
+      <section className={styles.finalCta} aria-labelledby="final-cta-title"><div><span className={styles.eyebrow}>آماده‌ای شروع کنی؟</span><h2 id="final-cta-title">اولین مسیرت را انتخاب کن</h2><p>با چارت تولد شروع کن یا اگر دو چارت آماده داری، سراغ خوانش خصوصی رابطه برو.</p></div><div className={styles.finalCtaActions}><Link className={styles.primaryButton} href="/chart">ساخت چارت تولد</Link><Link className={styles.secondaryButton} href="/compare">تحلیل رابطه</Link></div></section>
+    </main>
   );
 }

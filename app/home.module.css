@@ -950,3 +950,625 @@
     justify-content: center;
   }
 }
+
+/* Homepage ecosystem and server-rendered Live Sky */
+.page[data-home-theme="halleus-ecosystem"] {
+  --halleus-base: #f8fafc;
+  --halleus-sky: #d9eafd;
+  --halleus-border: #bcccdc;
+  --halleus-heading: #243447;
+  --halleus-body: #2f4052;
+  --halleus-secondary: #3a4a5c;
+  --halleus-muted: #52657a;
+  --halleus-link: #1e40af;
+  display: grid;
+  gap: 20px;
+  width: min(1180px, calc(100% - 32px));
+  margin: -12px auto 0;
+  padding: 0 0 64px;
+  color: var(--halleus-body);
+}
+
+.page[data-home-theme="halleus-ecosystem"] > section {
+  min-width: 0;
+  border: 1px solid rgba(188, 204, 220, 0.9);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 54px rgba(36, 52, 71, 0.07);
+}
+
+.page[data-home-theme="halleus-ecosystem"] h1,
+.page[data-home-theme="halleus-ecosystem"] h2,
+.page[data-home-theme="halleus-ecosystem"] h3 {
+  color: var(--halleus-heading);
+}
+
+.page[data-home-theme="halleus-ecosystem"] .hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(390px, 0.98fr);
+  gap: 44px;
+  min-height: 570px;
+  align-items: center;
+  padding: 54px 58px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 86% 8%, rgba(217, 234, 253, 0.95), transparent 27rem),
+    linear-gradient(145deg, #ffffff, #f8fafc 72%);
+}
+
+.page[data-home-theme="halleus-ecosystem"] .hero h1 {
+  max-width: 650px;
+  margin: 18px 0;
+  font-size: clamp(2.1rem, 4.2vw, 4.15rem);
+  line-height: 1.22;
+  letter-spacing: -0.055em;
+}
+
+.page[data-home-theme="halleus-ecosystem"] .heroLead {
+  max-width: 660px;
+  color: var(--halleus-muted);
+  font-size: 1rem;
+  line-height: 2;
+}
+
+.page[data-home-theme="halleus-ecosystem"] .eyebrow,
+.sectionHeading > span,
+.stateBadge {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 11px;
+  border: 1px solid rgba(30, 64, 175, 0.12);
+  border-radius: 999px;
+  color: var(--halleus-link);
+  background: rgba(217, 234, 253, 0.54);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.page[data-home-theme="halleus-ecosystem"] .heroActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 28px;
+}
+
+.page[data-home-theme="halleus-ecosystem"] .primaryButton,
+.page[data-home-theme="halleus-ecosystem"] .secondaryButton,
+.textButton {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.page[data-home-theme="halleus-ecosystem"] .primaryButton {
+  color: #fff;
+  background: var(--halleus-heading);
+  box-shadow: 0 12px 28px rgba(36, 52, 71, 0.18);
+}
+
+.page[data-home-theme="halleus-ecosystem"] .secondaryButton {
+  border: 1px solid var(--halleus-border);
+  color: var(--halleus-link);
+  background: #fff;
+}
+
+.textButton {
+  color: var(--halleus-link);
+}
+
+.heroPreview {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(188, 204, 220, 0.95);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 24px 70px rgba(36, 52, 71, 0.13);
+}
+
+.previewChrome {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(188, 204, 220, 0.7);
+  background: #f8fafc;
+}
+
+.previewChrome > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #bcccdc;
+}
+
+.previewChrome strong {
+  margin-inline-start: auto;
+  color: var(--halleus-muted);
+  font-size: 0.7rem;
+}
+
+.previewBody {
+  padding: 28px;
+}
+
+.previewBody > span {
+  color: var(--halleus-link);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.previewBody h2 {
+  margin: 10px 0 22px;
+  font-size: 1.35rem;
+  line-height: 1.65;
+}
+
+.previewLayers {
+  display: grid;
+  gap: 9px;
+}
+
+.previewLayers p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(188, 204, 220, 0.7);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.previewLayers strong {
+  font-size: 0.76rem;
+}
+
+.previewLayers span {
+  color: var(--halleus-muted);
+  font-size: 0.7rem;
+  line-height: 1.7;
+}
+
+.quickStart,
+.showcase,
+.howItWorks,
+.wikiSection,
+.faq {
+  padding: 42px;
+}
+
+.sectionHeading {
+  max-width: 760px;
+  margin-bottom: 24px;
+}
+
+.sectionHeading h2 {
+  margin: 12px 0 8px;
+  font-size: clamp(1.65rem, 3vw, 2.55rem);
+  line-height: 1.45;
+  letter-spacing: -0.04em;
+}
+
+.sectionHeading p {
+  margin: 0;
+  color: var(--halleus-muted);
+  line-height: 1.95;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: 1.18fr repeat(3, 1fr);
+  gap: 12px;
+}
+
+.productCard {
+  display: flex;
+  min-width: 0;
+  min-height: 210px;
+  flex-direction: column;
+  padding: 22px;
+  border: 1px solid rgba(188, 204, 220, 0.8);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.productCardFeatured {
+  background: linear-gradient(145deg, rgba(217, 234, 253, 0.72), #fff);
+  box-shadow: inset 0 3px 0 #1e40af;
+}
+
+.productCard h3 {
+  margin: 0 0 9px;
+  font-size: 1.05rem;
+}
+
+.productCard p {
+  margin: 0;
+  color: var(--halleus-muted);
+  font-size: 0.79rem;
+  line-height: 1.85;
+}
+
+.productCard a {
+  width: fit-content;
+  margin-top: auto;
+  padding-top: 18px;
+  color: var(--halleus-link);
+  font-size: 0.77rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.liveSkyCard,
+.liveSkyState {
+  padding: 38px 42px;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(217, 234, 253, 0.82), transparent 22rem),
+    #fff;
+}
+
+.liveSkyHeader,
+.liveSkyState {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.liveSkyHeader h2,
+.liveSkyState h2 {
+  margin: 12px 0 5px;
+  font-size: clamp(1.55rem, 3vw, 2.4rem);
+}
+
+.liveSkyHeader p,
+.liveSkyState p {
+  margin: 0;
+  color: var(--halleus-muted);
+  line-height: 1.9;
+}
+
+.liveSkyMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.liveSkyMetrics article {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-width: 0;
+  min-height: 128px;
+  padding: 18px;
+  border: 1px solid rgba(188, 204, 220, 0.82);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.liveSkyMetrics span,
+.liveSkyMetrics small {
+  color: var(--halleus-muted);
+  font-size: 0.7rem;
+}
+
+.liveSkyMetrics strong {
+  overflow-wrap: anywhere;
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.skyStateNote {
+  margin: 14px 0 0;
+  color: var(--halleus-muted);
+  font-size: 0.78rem;
+}
+
+.showcase :global(.real-report-preview-shell) {
+  margin: 0;
+  border: 1px solid rgba(188, 204, 220, 0.8);
+  box-shadow: none;
+}
+
+.sectionActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.relationshipShowcase {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+  gap: 44px;
+  align-items: center;
+  background: linear-gradient(145deg, #fff, rgba(217, 234, 253, 0.42)) !important;
+}
+
+.relationshipShowcase h2 {
+  margin: 14px 0 12px;
+  font-size: clamp(1.7rem, 3vw, 2.65rem);
+  line-height: 1.45;
+}
+
+.relationshipShowcase p {
+  margin: 0 0 22px;
+  color: var(--halleus-muted);
+  line-height: 2;
+}
+
+.relationshipSignals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.relationshipSignals span {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(188, 204, 220, 0.86);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--halleus-heading);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.howItWorks ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.howItWorks li {
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+  border-inline-start: 3px solid #d9eafd;
+  background: #f8fafc;
+}
+
+.howItWorks li span {
+  color: var(--halleus-muted);
+  font-size: 0.8rem;
+  line-height: 1.85;
+}
+
+.learningGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.learningGrid article {
+  min-width: 0;
+  padding: 19px;
+  border: 1px solid rgba(188, 204, 220, 0.78);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.learningGrid h3 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.learningGrid h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.learningGrid p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--halleus-muted);
+  font-size: 0.73rem;
+  line-height: 1.8;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.wikiFooter {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.wikiFooter > span {
+  color: var(--halleus-muted);
+  font-size: 0.78rem;
+}
+
+.emptyState {
+  color: var(--halleus-muted);
+}
+
+.trustStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 22px 26px;
+}
+
+.trustStrip span,
+.trustStrip a {
+  padding: 9px 11px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: var(--halleus-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.trustStrip a {
+  margin-inline-start: auto;
+  color: var(--halleus-link);
+}
+
+.faqGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.faqGrid details {
+  padding: 18px;
+  border: 1px solid rgba(188, 204, 220, 0.82);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.faqGrid summary {
+  cursor: pointer;
+  color: var(--halleus-heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.7;
+}
+
+.faqGrid p {
+  margin: 12px 0 0;
+  color: var(--halleus-muted);
+  font-size: 0.78rem;
+  line-height: 1.9;
+}
+
+.page[data-home-theme="halleus-ecosystem"] .finalCta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 30px;
+  align-items: center;
+  padding: 42px;
+  background: linear-gradient(145deg, rgba(217, 234, 253, 0.65), #fff);
+}
+
+.page[data-home-theme="halleus-ecosystem"] .finalCta h2 {
+  margin: 12px 0 8px;
+}
+
+.page[data-home-theme="halleus-ecosystem"] .finalCta p {
+  margin: 0;
+  color: var(--halleus-muted);
+}
+
+.page[data-home-theme="halleus-ecosystem"] .finalCtaActions {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+}
+
+@media (max-width: 980px) {
+  .page[data-home-theme="halleus-ecosystem"] .hero,
+  .relationshipShowcase {
+    grid-template-columns: 1fr;
+  }
+
+  .page[data-home-theme="halleus-ecosystem"] .hero {
+    min-height: auto;
+    padding: 44px;
+  }
+
+  .productGrid,
+  .liveSkyMetrics,
+  .learningGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .page[data-home-theme="halleus-ecosystem"] {
+    gap: 12px;
+    width: calc(100% - 20px);
+    margin-top: -6px;
+  }
+
+  .page[data-home-theme="halleus-ecosystem"] > section {
+    border-radius: 21px;
+  }
+
+  .page[data-home-theme="halleus-ecosystem"] .hero,
+  .quickStart,
+  .showcase,
+  .howItWorks,
+  .wikiSection,
+  .faq,
+  .liveSkyCard,
+  .liveSkyState,
+  .page[data-home-theme="halleus-ecosystem"] .finalCta {
+    padding: 26px 20px;
+  }
+
+  .page[data-home-theme="halleus-ecosystem"] .hero {
+    gap: 26px;
+  }
+
+  .page[data-home-theme="halleus-ecosystem"] .hero h1 {
+    font-size: clamp(1.85rem, 10vw, 2.8rem);
+  }
+
+  .page[data-home-theme="halleus-ecosystem"] .heroActions,
+  .sectionActions,
+  .page[data-home-theme="halleus-ecosystem"] .finalCtaActions,
+  .liveSkyHeader,
+  .liveSkyState,
+  .wikiFooter {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .page[data-home-theme="halleus-ecosystem"] .heroActions > *,
+  .sectionActions > *,
+  .page[data-home-theme="halleus-ecosystem"] .finalCtaActions > *,
+  .liveSkyHeader > a,
+  .liveSkyState > a,
+  .wikiFooter > a {
+    width: 100%;
+  }
+
+  .heroPreview {
+    border-radius: 18px;
+  }
+
+  .previewBody {
+    padding: 20px;
+  }
+
+  .productGrid,
+  .liveSkyMetrics,
+  .relationshipSignals,
+  .howItWorks ol,
+  .learningGrid,
+  .faqGrid,
+  .page[data-home-theme="halleus-ecosystem"] .finalCta {
+    grid-template-columns: 1fr;
+  }
+
+  .productCard {
+    min-height: 178px;
+  }
+
+  .liveSkyMetrics article {
+    min-height: auto;
+  }
+
+  .trustStrip a {
+    margin-inline-start: 0;
+  }
+}

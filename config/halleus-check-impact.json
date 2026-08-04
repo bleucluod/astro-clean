@@ -15,6 +15,29 @@
   },
   "areas": [
     {
+      "id": "homepage-ecosystem-live-sky",
+      "description": "Public four-product homepage with server-rendered Live Sky states, real report proof, Wiki learning paths, trust, FAQ, and responsive boundaries.",
+      "exclusive": true,
+      "patterns": [
+        "app/page.tsx",
+        "app/home.module.css",
+        "components/HomepageLiveSky.tsx",
+        "components/HomepageProductProof.tsx",
+        "lib/homepage/**",
+        "lib/report-preview/homepage-report-preview.ts",
+        "scripts/check-homepage-ecosystem-live-sky.mjs"
+      ],
+      "guards": [
+        "check:homepage-ecosystem-live-sky",
+        "check:sky-public-route",
+        "check:public-discovery-architecture",
+        "check:privacy-conscious-analytics",
+        "check:site-chrome-minimal-ui"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "public-comparison-landing",
       "description": "Public indexable synastry landing with private result-route, consent, sitemap, navigation, and analytics boundaries.",
       "exclusive": true,
