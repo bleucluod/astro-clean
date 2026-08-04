@@ -57,7 +57,7 @@ const RELATIONSHIP_OPTIONS: ReadonlyArray<{
   },
 ];
 
-export function ComparisonComposer() {
+export function ComparisonComposer({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [reports, setReports] = useState<AstrologyReport[]>([]);
   const [history, setHistory] = useState<ComparisonRecord[]>([]);
@@ -165,7 +165,8 @@ export function ComparisonComposer() {
   }
 
   return (
-    <main className={styles.product}>
+    <div className={styles.product}>
+      {!embedded ? <>
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>تحلیل رابطه</p>
@@ -244,6 +245,8 @@ export function ComparisonComposer() {
           <Link href="/privacy">خواندن حریم خصوصی</Link>
         </div>
       </section>
+
+      </> : null}
 
       <section className={styles.composerCard} aria-labelledby="comparison-builder-title">
         <div className={styles.sectionHeading}>
@@ -387,7 +390,7 @@ export function ComparisonComposer() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }
 

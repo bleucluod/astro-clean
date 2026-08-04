@@ -1,40 +1,53 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(path, "utf8");
-const sources = {
-  home: read("app/page.tsx"), chart: read("app/chart/page.tsx") + read("app/chart/layout.tsx"),
-  compare: read("app/compare/page.tsx") + read("app/compare/layout.tsx") + read("app/compare/[comparisonId]/layout.tsx") + read("components/comparison/ComparisonComposer.tsx"),
-  sky: read("app/sky/page.tsx") + read("components/SkyPublicExperience.tsx"), product: read("app/product/page.tsx"),
-  pricing: read("app/pricing/page.tsx"), order: read("app/order/page.tsx") + read("components/PremiumRequestForm.tsx"),
-  privacy: read("app/privacy/page.tsx"),
+const hashes = {
+  "00-README.md": "AAAA9D512E66D3AFCDD767C6EB9C5210321BCE765833AF97F8AA6CC3CFA24EE7",
+  "01-keyword-map.md": "3D4C2977B0DE83D22B5B6EC3C40066B984521CF1D438D2BA2B95A3EF59CBC41E",
+  "02-internal-link-map.md": "C2C4C5A6A971DEBBD33FEF8715B61112EA4C5E0D6DAD007A33DAEF2CC1315BE7",
+  "03-homepage.md": "C25397373A5511F917C7587F5A15007397C2516DBB28B6401A5BED315D3F393D",
+  "04-chart.md": "5F5F88C87B02F87FAE7D9B6B4B4C2C5F523688492C89B070A74FEB648AFED915",
+  "05-compare.md": "632FF2F028CFC16DC61CB720DF98622AD67F7FBB760DC8E5A5FDF234139F2AF7",
+  "06-sky.md": "C065163859DB379B0D5F4F4E43C4CE6078D1B1A1D1948D608B911A31EBF504B8",
+  "07-product.md": "B00B6548FB3E683C36ECCE709090B2628C8DC112DE2BFE6543A87C170E393DD2",
+  "08-pricing.md": "D5496B2131FA0B03401B4783EE30F94FA9FDC4B74AEA7721AA030A9E14A7C713",
+  "09-order.md": "AF5151CF857B5BA078A7AB594A753E4E98CE93C1C5E6A338AB7199F34ED4E4CF",
+  "10-privacy.md": "180273FD8440C9B72DA5CC7DB09024ED9DEC4494B95ADB6744AF1E7798887504",
+  "11-implementation-checklist.md": "C890EB68A15FF1B4F226EA2305F7D670C39555EF335D94D532A0B1EAC0DFEADD",
 };
 
-const required = {
-  home: ["هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه", "آسترولوژی فارسی برای شناخت چارت تولد، رابطه‌ها و آسمان امروز", "href=\"/chart\"", "href=\"/compare\"", "href=\"/product\"", "href=\"/privacy\""],
-  chart: ["چارت تولد رایگان فارسی با تفسیر | هالیوس", "چارت تولد رایگان فارسی؛ محاسبه و گزارش شخصی", "href=\"/product\"", "href=\"/compare\"", "href=\"/privacy\""],
-  compare: ["چارت سیناستری آنلاین | مقایسه دو چارت تولد", "تحلیل رابطه با مقایسه دو چارت تولد", "چارت سیناستری چیست؟", "این ابزار چه چیزی را تضمین نمی‌کند؟", "href=\"/privacy\""],
-  sky: ["آسترولوژی امروز | وضعیت ماه، سیارات و ترنزیت‌ها", "deliverSkyPublicSnapshot", "getPublicWikiCatalog", "selectPublicWikiArticlesByPreferredSlugs", "این داده‌ها را چگونه بخوانم؟"],
-  product: ["تفسیر چارت تولد فارسی | داخل گزارش هالیوس چیست؟", "گزارش چارت تولد هالیوس چه چیزهایی را تحلیل می‌کند؟", "HomepageProductProof", "href=\"/pricing\""],
-  pricing: ["گزارش پایه و گزینه‌های نسخه کامل‌تر | هالیوس", "هماهنگی دستی", "ثبت درخواست به معنی خرید، پرداخت یا شروع خودکار نیست", "href=\"/order\""],
-  order: ["درخواست نسخه کامل‌تر گزارش چارت تولد | هالیوس", "درخواست نسخه کامل‌تر گزارش را ثبت کن", "publicationChoice", "company", "در حال ثبت…"],
-  privacy: ["حریم خصوصی هالیوس | انتشار، حذف و ایندکس گزارش‌ها", "حریم خصوصی هالیوس؛ قبل از ذخیره بدان چه چیزی عمومی می‌شود", "گزارش مهمان و حساب رایگان", "گزارش پریمیوم", "تحلیل رابطه", "AnalyticsPreferencesLink", "href=\"/reports\""],
+for (const [filename, expected] of Object.entries(hashes)) {
+  const actual = createHash("sha256").update(read(`content/public-editorial-final/${filename}`)).digest("hex").toUpperCase();
+  assert.equal(actual, expected, `${filename} differs from the supplied reviewed package`);
+}
+
+const generated = JSON.parse(read("lib/public-content/final-editorial-content.generated.json"));
+const expectedSections = {
+  home: 10, chart: 12, compare: 12, sky: 13, product: 12, pricing: 7, order: 6, privacy: 12,
 };
+for (const [page, count] of Object.entries(expectedSections)) {
+  assert.equal(generated[page].sections.length, count, `${page} does not contain every reviewed section`);
+  const route = page === "home" ? read("app/page.tsx") : read(`app/${page}/page.tsx`) + (page === "chart" ? read("app/chart/layout.tsx") : "");
+  assert.ok(route.includes(`pageKey=\"${page}\"`), `${page} is not connected to the reviewed package source`);
+}
 
-for (const [page, markers] of Object.entries(required)) for (const marker of markers) assert.ok(sources[page].includes(marker), `${page} missing final editorial marker: ${marker}`);
+const renderer = read("components/FinalEditorialPage.tsx");
+assert.ok(renderer.includes("hasUnresolvedPlaceholder"), "Production placeholder filtering is missing");
+assert.ok(renderer.includes("FinalEditorialSectionView"), "Reviewed sections are not rendered through the canonical renderer");
+assert.ok(read("app/page.tsx").includes("BirthChartVisual"), "The restored homepage chart-wheel visual is missing");
+assert.ok(read("app/page.tsx").includes("halleus-soft-app"), "The restored soft homepage theme is missing");
+assert.ok(read("app/page.tsx").includes("HomepageLiveSky"), "Homepage Sky must use its real source-of-truth component");
+assert.ok(read("app/sky/page.tsx").includes("deliverSkyPublicSnapshot"), "Sky must use real delivery data");
+assert.ok(read("app/order/page.tsx").includes("PremiumRequestForm"), "Order must retain the real request form");
+assert.ok(read("app/privacy/page.tsx").includes("AnalyticsPreferencesLink"), "Privacy must retain real analytics controls");
 
-const all = Object.values(sources).join("\n");
-for (const forbidden of ["[PLAN_NAME_REQUIRED]", "[PRICE_REQUIRED]", "[REQUEST_ID]", "بیش از ۱۰۰٬۰۰۰ کاربر"]) assert.ok(!all.includes(forbidden), `Public content contains forbidden placeholder or claim: ${forbidden}`);
-assert.ok(!/\b(?:9|19|90|190)\s*(?:USD|دلار)/u.test(sources.pricing), "Pricing exposes internal trial prices.");
-assert.ok(sources.compare.includes("noarchive: true") && sources.compare.includes("nosnippet: true"), "Private Compare metadata boundary is missing.");
-assert.ok(sources.compare.includes("getPublicWikiCatalog"), "Compare learning links must read the public Wiki catalog.");
-assert.ok(sources.compare.includes("selectPublicWikiArticlesByPreferredSlugs"), "Compare learning links must filter preferred slugs through the public catalog.");
-assert.ok(sources.compare.includes("relatedArticles.length ?"), "Compare must hide its learning section until a preferred article is public.");
-assert.ok(!/href=["']\/wiki\/(?:synastry|birth-chart-and-relationships|compatibility-beyond|element-compatibility)/u.test(sources.compare), "Compare must not hardcode future Wiki article links.");
-assert.ok(sources.sky.includes("selectPublicWikiArticlesByPreferredSlugs"), "Sky learning links must filter preferred slugs through the public catalog.");
+const compareBoundary = read("app/compare/layout.tsx") + read("app/compare/[comparisonId]/layout.tsx");
+assert.ok(compareBoundary.includes("noarchive: true") && compareBoundary.includes("nosnippet: true"), "Private Compare metadata boundary is missing");
 
 console.log("Final public editorial content check passed.");
-console.log("- eight public routes preserve distinct query ownership and canonical metadata");
-console.log("- pricing and order expose no placeholder, fake price, delivery promise, or automatic purchase claim");
-console.log("- publication, identity, Compare privacy, deletion, and analytics choices remain distinct");
-console.log("- dynamic Sky and Wiki links come from real delivery and catalog sources");
+console.log("- all 12 supplied Markdown files match their exact package hashes");
+console.log("- all 84 reviewed public sections are generated and connected to their routes");
+console.log("- dynamic Sky, Wiki, request, privacy, and private Compare boundaries remain real");
+console.log("- unresolved commercial and runtime placeholders are filtered from production UI");

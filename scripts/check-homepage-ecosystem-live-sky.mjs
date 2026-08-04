@@ -3,27 +3,29 @@ import { readFile } from "node:fs/promises";
 import ts from "typescript";
 
 const read = (path) => readFile(path, "utf8");
-const [home, component, styles, stateSource] = await Promise.all([
+const [homeRoute, component, styles, stateSource, editorialSource, renderer] = await Promise.all([
   read("app/page.tsx"),
   read("components/HomepageLiveSky.tsx"),
-  read("app/home.module.css"),
+  Promise.all([read("app/home.module.css"), read("components/final-editorial.module.css")]).then((parts) => parts.join("\n")),
   read("lib/homepage/homepage-live-sky-state.ts"),
+  read("content/public-editorial-final/03-homepage.md"),
+  read("components/FinalEditorialPage.tsx"),
 ]);
+const home = `${homeRoute}\n${editorialSource}\n${renderer}`;
 
 for (const marker of [
-  'href="/chart"',
-  'href="/compare"',
-  'href: "/sky"',
-  'href="/wiki"',
-  'href="/product"',
-  'href="/privacy"',
+  '"/chart"',
+  '"/compare"',
+  '"/sky"',
+  '"/wiki"',
+  '"/product"',
+  '"/privacy"',
   "HomepageProductProof",
   "HomepageLiveSky",
   "deliverSkyPublicSnapshot",
   "Promise.allSettled",
-  "HOME_REPORT_PREVIEW_LAYERS",
-  "تحلیل رابطه همیشه خصوصی",
-  "بدون ارسال دادهٔ حساس به سنجش بازدید",
+  "تحلیل رابطه همیشه خصوصی می‌ماند",
+  "داده تولد یا متن گزارش نباید برای آمار بازدید ارسال شوند",
 ]) assert.ok(home.includes(marker), `Homepage marker is missing: ${marker}`);
 
 for (const forbidden of ["پیش‌بینی قطعی آینده", "بیش از ۱۰۰٬۰۰۰ کاربر"]) {
@@ -40,10 +42,10 @@ for (const marker of [
   "حرکت برگشتی",
 ]) assert.ok(component.includes(marker), `Live Sky UI marker is missing: ${marker}`);
 
+assert.ok(homeRoute.includes('data-home-theme="halleus-soft-app"'), "Homepage soft-app theme marker is missing");
 for (const marker of [
-  'data-home-theme="halleus-ecosystem"',
   "grid-template-columns: repeat(4, minmax(0, 1fr))",
-  "@media (max-width: 680px)",
+  "@media (max-width: 760px)",
   "overflow-wrap: anywhere",
 ]) assert.ok(styles.includes(marker), `Homepage responsive marker is missing: ${marker}`);
 

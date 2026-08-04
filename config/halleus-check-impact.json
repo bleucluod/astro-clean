@@ -53,8 +53,13 @@
         "app/pricing/**",
         "app/order/**",
         "app/privacy/**",
+        "content/public-editorial-final/**",
+        "components/FinalEditorialPage.tsx",
+        "components/final-editorial.module.css",
+        "lib/public-content/**",
         "components/PremiumRequestForm.tsx",
         "components/SkyPublicExperience.tsx",
+        "scripts/generate-final-public-editorial-content.mjs",
         "scripts/check-public-editorial-content.mjs"
       ],
       "guards": [

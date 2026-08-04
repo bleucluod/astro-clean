@@ -512,11 +512,11 @@ function checkNavigation() {
 }
 
 function checkIntegrationSources() {
-  const homepage = read("app/page.tsx");
+  const homepage = `${read("app/page.tsx")}\n${read("components/FinalEditorialPage.tsx")}\n${read("content/public-editorial-final/03-homepage.md")}`;
   const homepageLiveSky = read("components/HomepageLiveSky.tsx");
   const appShell = read("components/AppShell.tsx");
   const appShellStyles = read("components/app-shell.module.css");
-  const chartLayout = read("app/chart/layout.tsx");
+  const chartLayout = `${read("app/chart/layout.tsx")}\n${read("components/FinalEditorialPage.tsx")}\n${read("content/public-editorial-final/04-chart.md")}`;
   const chartStyles = read("app/chart/chart-shell.module.css");
   const wikiRevalidation = read("lib/wiki/wiki-revalidation.ts");
   const wikiIndex = read("app/wiki/page.tsx");
@@ -538,9 +538,9 @@ function checkIntegrationSources() {
   requireText("Homepage", homepage, "<h1");
   requireText("Homepage", homepage, "getPublicWikiCatalog");
   requireText("Homepage", homepage, "sortPublicWikiArticlesNewestFirst");
-  requireText("Homepage", homepage, 'href: "/sky"');
+  requireText("Homepage", homepage, '"/sky"');
   requireText("Homepage Live Sky", homepageLiveSky, 'href="/sky"');
-  requireText("Homepage", homepage, "selectLearningPaths(wikiArticles)");
+  requireText("Homepage", homepage, "articles.slice(0, 4)");
   requireText("Homepage", homepage, "<h3>");
   requireText("Homepage", homepage, "href={`/wiki/${article.slug}`}");
   forbidText("Homepage", homepage, 'from "@/lib/wiki/wiki-content"');
@@ -575,9 +575,9 @@ function checkIntegrationSources() {
   requireText("App shell styles", appShellStyles, ".footerResponsibility");
   requireText("App shell styles", appShellStyles, ".footerSocialLink");
 
-  requireText("Chart discovery", chartLayout, 'data-chart-public-discovery="sky-wiki"');
-  requireText("Chart discovery", chartLayout, 'href="/sky"');
-  requireText("Chart discovery", chartLayout, 'href="/wiki"');
+  requireText("Chart discovery", chartLayout, 'pageKey="chart"');
+  requireText("Chart discovery", chartLayout, '"/sky"');
+  requireText("Chart discovery", chartLayout, '"/wiki"');
   requireText("Chart discovery styles", chartStyles, ".discoveryBridge");
   requireText("Chart discovery styles", chartStyles, ".discoveryActions");
 

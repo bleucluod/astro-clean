@@ -25,7 +25,7 @@ const analyticsComponent = read("components/AnalyticsConsent.tsx");
 const analyticsStyles = read("components/analytics-consent.module.css");
 const appShell = read("components/AppShell.tsx");
 const rootLayout = read("app/layout.tsx");
-const privacyPage = read("app/privacy/page.tsx");
+const privacyPage = `${read("app/privacy/page.tsx")}\n${read("content/public-editorial-final/10-privacy.md")}`;
 const packageJson = JSON.parse(read("package.json"));
 const ideaGarden = read("docs/HALLEUS_IDEA_GARDEN.md");
 const projectContext = read("docs/HALLEUS_PROJECT_CONTEXT.md");
@@ -116,11 +116,11 @@ requireText(
 );
 requireText("Privacy page", privacyPage, "<AnalyticsPreferencesLink");
 
-requireText("Privacy page", privacyPage, "آمار بازدید فقط برای صفحه‌های عمومی");
+requireText("Privacy page", privacyPage, "آمار بازدید فقط برای اندازه‌گیری صفحه‌های عمومی");
 requireText(
   "Privacy page",
   privacyPage,
-  "اجازهٔ آن از انتشار جداست",
+  "اجازه آن از اجازه انتشار جداست",
 );
 requireText("Privacy page", privacyPage, "تنظیم آمار بازدید");
 forbidText("Privacy page", privacyPage, "آمار بازدید فقط با انتخاب تو");

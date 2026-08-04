@@ -5,8 +5,8 @@ const siteHeader = readFileSync("components/SiteHeader.tsx", "utf8");
 const navigation = readFileSync("lib/config/navigation.ts", "utf8");
 const globals = readFileSync("app/globals.css", "utf8");
 const appShellCss = readFileSync("components/app-shell.module.css", "utf8");
-const homePage = readFileSync("app/page.tsx", "utf8");
-const privacyPage = readFileSync("app/privacy/page.tsx", "utf8");
+const homePage = `${readFileSync("app/page.tsx", "utf8")}\n${readFileSync("content/public-editorial-final/03-homepage.md", "utf8")}`;
+const privacyPage = `${readFileSync("app/privacy/page.tsx", "utf8")}\n${readFileSync("content/public-editorial-final/10-privacy.md", "utf8")}`;
 const compareLayout = readFileSync("app/compare/layout.tsx", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
@@ -204,9 +204,9 @@ if (!appShellCss.includes("header-human-first-v2")) {
 }
 
 for (const marker of [
-  "گزارش مهمان و رایگان عمومی و ایندکس‌پذیر",
-  "نسخهٔ پریمیوم خصوصی از ابتدا",
-  "سیاست انتشار روشن",
+  "گزارش‌های مهمان و حساب رایگان به‌صورت پیش‌فرض عمومی‌اند",
+  "گزارش Premium خصوصی شروع می‌شود",
+  "محاسبه روشن، انتشار روشن",
 ]) {
   if (!homePage.includes(marker)) {
     failures.push(`Homepage missing publication contract marker: ${marker}`);
@@ -224,7 +224,7 @@ for (const marker of [
 
 for (const marker of [
   "گزارش مهمان و حساب رایگان",
-  "به‌صورت پیش‌فرض خصوصی و خارج از نتایج جست‌وجو است",
+  "به‌صورت پیش‌فرض خصوصی است و در نتایج جست‌وجو نمایش داده نمی‌شود",
   "نمایش نام، نیک‌نیم یا هویت انتخابی جدا از انتشار است",
   "همیشه خصوصی است، لینک عمومی ندارد",
   "انتشار گزارش و نمایش هویت دو انتخاب جدا هستند",
