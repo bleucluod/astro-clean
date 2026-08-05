@@ -34,7 +34,7 @@ export async function AppShell({ children }: AppShellProps) {
       </main>
 
       <Link
-        className={`${styles.backToTop} ${humanStyles.backToTopFlow}`}
+        className={styles.backToTop}
         href="#main-content"
         aria-label="پرش به ابتدای محتوای صفحه"
       >
@@ -42,17 +42,40 @@ export async function AppShell({ children }: AppShellProps) {
         پرش به بالا
       </Link>
 
-      <footer className={`site-footer ${styles.footer}`}>
+      <footer
+        data-approved-lockup="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
+        className={`site-footer ${styles.footer}`}
+      >
+        <div className={styles.footerAtmosphere} aria-hidden="true">
+          <span className={styles.footerPlanet} />
+          <span className={styles.footerOrbitPrimary} />
+          <span className={styles.footerOrbitSecondary} />
+          <span className={styles.footerSignal} />
+        </div>
+
         <div className={`footer-inner ${styles.footerInner}`}>
           <div className={`footer-brand-block ${styles.footerBrandBlock}`}>
             <Link className={styles.footerBrand} href="/" aria-label="هالیوس">
-              <Image
-                src="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
-                alt=""
-                width={1805}
-                height={624}
-                className={styles.footerLogo}
-              />
+              <span className={styles.footerLogoPlate}>
+                <span className={styles.footerBrandMark} aria-hidden="true">
+                  <Image
+                    src="/halleus-logo/symbol-transparent-white.png"
+                    alt=""
+                    width={1400}
+                    height={1400}
+                    className={styles.footerSymbol}
+                    data-logo-variant="white"
+                  />
+                </span>
+                <Image
+                  src="/halleus-logo/wordmark-bilingual-transparent-white.png"
+                  alt=""
+                  width={1900}
+                  height={950}
+                  className={styles.footerLogo}
+                  data-logo-variant="white"
+                />
+              </span>
             </Link>
 
             <p className={`footer-note ${styles.footerNote}`}>
@@ -141,7 +164,9 @@ export async function AppShell({ children }: AppShellProps) {
             })}{" "}
             هالیوس
           </span>
+          <span className={styles.footerBottomNote}>داده واقعی · خوانش فارسی · مرزهای روشن</span>
         </div>
+
       </footer>
 
       <AnalyticsConsent />

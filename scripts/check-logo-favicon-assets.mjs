@@ -52,6 +52,10 @@ const pngAssets = [
   ["public/halleus-logo/wordmark-persian-transparent.png", 1900, 700, 6, "F9C519705F64621FA8611E40F7FCDBEEC6628CF4E58D312890A2BAF0454AC289"],
   ["public/halleus-logo/logo-horizontal-bilingual-final-20260804.png", 1805, 624, 6, "B9C41C5563C1CC5F0B28A05EEB6DAF2013DB5071147D9BDC5E53909C2CD3A001"],
   ["public/halleus-logo/symbol-dark-final-20260804.png", 695, 702, 6, "22BEE90291788F023A56E9D8055379A9DC0BFB3E13C3BD66BC00296EA9DE5601"],
+  ["public/halleus-logo/symbol-transparent-white.png", 1400, 1400, 6, "EBAAC5E9EEBADF5490D8F63930C748EC367F526ECB6E1CF4374BAC7F6C7F8D1D"],
+  ["public/halleus-logo/symbol-transparent-black.png", 1400, 1400, 6, "750B7C051EF34E2DB15009E5BB4EA2CBF2D5B5BD967004BD183F0B2C6AA0626E"],
+  ["public/halleus-logo/wordmark-bilingual-transparent-white.png", 1900, 950, 6, "6ABACC86FE815239255DEA207255D564A22C08B9A8664EBC1A957C562A8D2B04"],
+  ["public/halleus-logo/wordmark-bilingual-transparent-black.png", 1900, 950, 6, "36501400793983181E9B18222FF28951D6ECEA3BCE75756062FAD75CE6BDF2F5"],
   ["public/halleus-logo/favicon-32x32.png", 32, 32, 2, "351B0E8836ACD9DAC182E315D48109D0D5D627EB493EC79ED3D1A43185CDDC50"],
   ["public/halleus-logo/favicon-192x192.png", 192, 192, 2, "DD6918CB55984D98E7676DB9F268A76265B4D344E0F39683AB52530DF11DCA05"],
   ["public/halleus-logo/favicon-512x512.png", 512, 512, 2, "9C98DC3B7F188E815A3742A5ABCC93A8A127407A27FAF6554AB094EC506C6F5C"],
@@ -82,12 +86,16 @@ const layout = read("app/layout.tsx");
 const manifest = read("app/manifest.ts");
 
 for (const source of [header, shell]) {
-  mustContain("site chrome", source, "/halleus-logo/logo-horizontal-bilingual-final-20260804.png");
-  mustNotContain("site chrome", source, "/halleus-logo/emblem-transparent.png");
+  mustContain("dark site chrome", source, "/halleus-logo/symbol-transparent-white.png");
+  mustContain("dark site chrome", source, "/halleus-logo/wordmark-bilingual-transparent-white.png");
+  mustNotContain("dark site chrome", source, "data-logo-variant=\"dark\"");
 }
+
 mustContain("responsive brand styles", styles, ".brandLogo");
 mustContain("responsive brand styles", styles, ".brandLogoMobile");
 mustContain("responsive brand styles", styles, ".footerLogo");
+mustContain("responsive brand styles", styles, ".brandSymbolAccent");
+mustContain("responsive brand styles", styles, ".footerSymbol");
 
 for (const token of [
   'sizes: "180x180"',
@@ -103,6 +111,7 @@ for (const token of [
 ]) mustContain("web app manifest", manifest, token);
 
 console.log("Final Halleus brand asset check passed.");
-console.log("- header and footer use the same approved bilingual lockup");
+console.log("- dark header and footer use transparent white symbol and bilingual wordmark assets");
+console.log("- matching transparent black variants remain available for light surfaces");
 console.log("- favicon, app, Apple, transparent, and social assets match approved package hashes");
 console.log("- PNG dimensions, alpha expectations, manifest, and social metadata are verified");

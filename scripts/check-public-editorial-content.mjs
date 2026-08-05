@@ -19,35 +19,117 @@ const hashes = {
 };
 
 for (const [filename, expected] of Object.entries(hashes)) {
-  const actual = createHash("sha256").update(read(`content/public-editorial-final/${filename}`)).digest("hex").toUpperCase();
+  const actual = createHash("sha256")
+    .update(read(`content/public-editorial-final/${filename}`))
+    .digest("hex")
+    .toUpperCase();
   assert.equal(actual, expected, `${filename} differs from the supplied reviewed package`);
 }
 
-const generated = JSON.parse(read("lib/public-content/final-editorial-content.generated.json"));
+const generated = JSON.parse(
+  read("lib/public-content/final-editorial-content.generated.json"),
+);
 const expectedSections = {
-  home: 10, chart: 12, compare: 12, sky: 13, product: 12, pricing: 7, order: 6, privacy: 12,
+  home: 10,
+  chart: 12,
+  compare: 12,
+  sky: 13,
+  product: 12,
+  pricing: 7,
+  order: 6,
+  privacy: 12,
 };
+
 for (const [page, count] of Object.entries(expectedSections)) {
-  assert.equal(generated[page].sections.length, count, `${page} does not contain every reviewed section`);
-  const route = page === "home" ? read("app/page.tsx") : read(`app/${page}/page.tsx`) + (page === "chart" ? read("app/chart/layout.tsx") : "");
-  assert.ok(route.includes(`pageKey=\"${page}\"`), `${page} is not connected to the reviewed package source`);
+  assert.equal(
+    generated[page].sections.length,
+    count,
+    `${page} does not contain every reviewed section`,
+  );
+
+  const route =
+    page === "home"
+      ? read("app/page.tsx")
+      : read(`app/${page}/page.tsx`) +
+        (page === "chart" ? read("app/chart/layout.tsx") : "");
+
+  if (page === "home") {
+    assert.ok(
+      route.includes('data-editorial-source="reviewed-public-editorial-home"'),
+      "home is not connected to the reviewed Homepage source",
+    );
+    for (const marker of [
+      "HomepageLiveSky",
+      "HomepageProductProof",
+      "HomeHowItWorks",
+      "getPublicWikiCatalog",
+      "sortPublicWikiArticlesNewestFirst",
+    ]) {
+      assert.ok(
+        route.includes(marker),
+        `Dedicated Homepage is missing reviewed integration marker: ${marker}`,
+      );
+    }
+    assert.ok(
+      !route.includes("FinalEditorialPage"),
+      "Homepage must use its dedicated product composition rather than the shared editorial renderer",
+    );
+  } else {
+    assert.ok(
+      route.includes(`pageKey=\"${page}\"`),
+      `${page} is not connected to the reviewed package source`,
+    );
+  }
 }
 
 const renderer = read("components/FinalEditorialPage.tsx");
-assert.ok(renderer.includes("hasUnresolvedPlaceholder"), "Production placeholder filtering is missing");
-assert.ok(renderer.includes("FinalEditorialSectionView"), "Reviewed sections are not rendered through the canonical renderer");
-assert.ok(read("app/page.tsx").includes("BirthChartVisual"), "The restored homepage chart-wheel visual is missing");
-assert.ok(read("app/page.tsx").includes("halleus-soft-app"), "The restored soft homepage theme is missing");
-assert.ok(read("app/page.tsx").includes("HomepageLiveSky"), "Homepage Sky must use its real source-of-truth component");
-assert.ok(read("app/sky/page.tsx").includes("deliverSkyPublicSnapshot"), "Sky must use real delivery data");
-assert.ok(read("app/order/page.tsx").includes("PremiumRequestForm"), "Order must retain the real request form");
-assert.ok(read("app/privacy/page.tsx").includes("AnalyticsPreferencesLink"), "Privacy must retain real analytics controls");
+assert.ok(
+  renderer.includes("hasUnresolvedPlaceholder"),
+  "Production placeholder filtering is missing",
+);
+assert.ok(
+  renderer.includes("FinalEditorialSectionView"),
+  "Reviewed sections are not rendered through the canonical renderer",
+);
 
-const compareBoundary = read("app/compare/layout.tsx") + read("app/compare/[comparisonId]/layout.tsx");
-assert.ok(compareBoundary.includes("noarchive: true") && compareBoundary.includes("nosnippet: true"), "Private Compare metadata boundary is missing");
+const homepage = read("app/page.tsx");
+assert.ok(
+  homepage.includes("heroAtmosphere") && homepage.includes("heroPlanet"),
+  "The dedicated Homepage planet hero is missing",
+);
+assert.ok(
+  homepage.includes("halleus-soft-app"),
+  "The restored Homepage theme contract is missing",
+);
+assert.ok(
+  homepage.includes("HomepageLiveSky"),
+  "Homepage Sky must use its real source-of-truth component",
+);
+assert.ok(
+  read("app/sky/page.tsx").includes("deliverSkyPublicSnapshot"),
+  "Sky must use real delivery data",
+);
+assert.ok(
+  read("app/order/page.tsx").includes("PremiumRequestForm"),
+  "Order must retain the real request form",
+);
+assert.ok(
+  read("app/privacy/page.tsx").includes("AnalyticsPreferencesLink"),
+  "Privacy must retain real analytics controls",
+);
+
+const compareBoundary =
+  read("app/compare/layout.tsx") +
+  read("app/compare/[comparisonId]/layout.tsx");
+assert.ok(
+  compareBoundary.includes("noarchive: true") &&
+    compareBoundary.includes("nosnippet: true"),
+  "Private Compare metadata boundary is missing",
+);
 
 console.log("Final public editorial content check passed.");
 console.log("- all 12 supplied Markdown files match their exact package hashes");
-console.log("- all 84 reviewed public sections are generated and connected to their routes");
-console.log("- dynamic Sky, Wiki, request, privacy, and private Compare boundaries remain real");
-console.log("- unresolved commercial and runtime placeholders are filtered from production UI");
+console.log("- all 84 reviewed public sections remain generated and connected");
+console.log("- Homepage uses a dedicated product composition with real Sky, report proof, and Wiki data");
+console.log("- dynamic request, privacy, and private Compare boundaries remain real");
+console.log("- unresolved commercial and runtime placeholders remain filtered from shared editorial routes");

@@ -1,52 +1,80 @@
+import Link from "next/link";
+
+import styles from "@/app/home.module.css";
 import {
   HOME_REPORT_PREVIEW_LAYERS,
   HOME_REPORT_PREVIEW_SECTIONS,
 } from "@/lib/report-preview/homepage-report-preview";
 
 export function HomepageProductProof() {
+  const preview = HOME_REPORT_PREVIEW_SECTIONS[0];
+
   return (
-    <section
-      className="card paid-section home-section-card real-report-preview-shell"
+    <article
+      className={styles.reportPanel}
       id="report-preview"
       aria-label="نمونه کوتاه گزارش هالیوس"
     >
-      <div className="report-preview-showcase-grid">
-        <div className="report-preview-excerpt-stack">
-          {HOME_REPORT_PREVIEW_SECTIONS.slice(0, 1).map((section) => (
-            <article className="report-preview-excerpt-card" key={section.title}>
-              <h3>{section.title}</h3>
-              <p>{section.body}</p>
+      <header className={styles.reportPanelHeader}>
+        <span className={styles.productBadge}>گزارش تولد فارسی</span>
+        <span className={styles.calculationBadge}>ردپای محاسبه محفوظ</span>
+      </header>
 
-              <div className="report-preview-evidence">
-                <strong>ردپای محاسبه</strong>
-                <span>{section.evidence}</span>
-              </div>
+      <h3>چارت تولد فقط یک جدول نیست</h3>
+      <p className={styles.reportPanelLead}>
+        گزارش با یک تصویر کلی شروع می‌شود و بعد خورشید، ماه، رایزینگ، خانه‌ها،
+        جنبه‌ها و الگوهای برجسته را در فصل‌هایی مرتبط کنار هم می‌گذارد.
+      </p>
 
-              <blockquote>{section.reflection}</blockquote>
-            </article>
-          ))}
+      <div className={styles.reportPreviewWindow}>
+        <div className={styles.reportPreviewToolbar} aria-hidden="true">
+          <div>
+            <span />
+            <span />
+            <span />
+          </div>
+          <small>نمونه گزارش هالیوس</small>
         </div>
 
-        <aside className="report-preview-meta-card" aria-label="ساختار نمونه گزارش">
-          <span className="section-label">در گزارش کامل چه می‌آید؟</span>
-
-          <h3>یک گزارش، چند لایه خوانش</h3>
-
-          <p>
-            هالیوس جایگاه‌های چارت را فقط فهرست نمی‌کند؛ هر لایه را به زبان انسانی،
-            با مرز روشن میان نماد، مشاهده و تصمیم شخصی روایت می‌کند.
-          </p>
-
-          <div className="report-preview-layer-list">
-            {HOME_REPORT_PREVIEW_LAYERS.map((layer) => (
-              <div className="report-preview-layer" key={layer.label}>
-                <strong>{layer.label}</strong>
-                <span>{layer.description}</span>
-              </div>
-            ))}
+        {preview ? (
+          <div className={styles.reportPreviewContent}>
+            <span>تصویر کلی گزارش</span>
+            <h4>{preview.title}</h4>
+            <p>{preview.body}</p>
+            <div className={styles.reportEvidence}>
+              <strong>ردپای محاسبه</strong>
+              <span>{preview.evidence}</span>
+            </div>
+            <blockquote>{preview.reflection}</blockquote>
           </div>
-        </aside>
+        ) : null}
       </div>
-    </section>
+
+      <div className={styles.reportLayerList} aria-label="ساختار گزارش کامل">
+        {HOME_REPORT_PREVIEW_LAYERS.map((layer) => (
+          <div key={layer.label}>
+            <p>
+              <strong>{layer.label}</strong>
+              <small>{layer.description}</small>
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className={styles.reportLimitNote}>
+        اگر ساعت تولد نامعلوم باشد، محدودیت رایزینگ و خانه‌ها داخل گزارش پنهان
+        نمی‌شود.
+      </p>
+
+      <div className={styles.reportActions}>
+        <Link className={styles.secondaryButton} href="/product">
+          داخل گزارش چه می‌بینی؟
+        </Link>
+        <Link className={styles.primaryButton} href="/chart">
+          ساخت گزارش شخصی
+          <span aria-hidden="true">←</span>
+        </Link>
+      </div>
+    </article>
   );
 }
