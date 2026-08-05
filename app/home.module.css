@@ -2642,3 +2642,30 @@
     transition: none !important;
   }
 }
+
+/* HALLEUS_HOME_REMOVED_INDEX_GRID_REPAIR_20260805 */
+.reportLayerList > div {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.reportLayerList p {
+  min-width: 0;
+}
+
+.howStep,
+.howStepActive {
+  grid-template-columns: minmax(0, 1fr) 14px !important;
+}
+
+.howStep > div,
+.howStepActive > div {
+  min-width: 0;
+}
+
+.learningPaths a {
+  grid-template-columns: minmax(0, 1fr) 24px !important;
+}
+
+.learningPaths a > div {
+  min-width: 0;
+}

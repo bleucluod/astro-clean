@@ -2264,3 +2264,74 @@
     padding-inline: 7px !important;
   }
 }
+
+/* HALLEUS_MOBILE_NAV_APPROVED_SEPARATORS_20260805 */
+.navLinks :global(.nav-link-separator),
+.mobileNavLinks :global(.nav-link-separator) {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .mobileNavLinks {
+    width: 88% !important;
+    max-width: 88% !important;
+    box-sizing: border-box !important;
+    justify-self: start !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    padding-inline: 6px !important;
+  }
+
+  .mobileNavLinks :global(.nav-link-track) {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: clamp(4px, 1.2vw, 7px) !important;
+    padding-inline: clamp(8px, 2.3vw, 11px) !important;
+    overflow: visible !important;
+  }
+
+  .mobileNavLinks :global(.nav-link),
+  .mobileNavLinks :global(.nav-link:visited),
+  .mobileNavLinks :global(.nav-link:hover),
+  .mobileNavLinks :global(.nav-link[aria-current="page"]),
+  .mobileNavLinks :global(.nav-link.active) {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding-inline: 2px !important;
+    white-space: nowrap !important;
+  }
+
+  .mobileNavLinks :global(.nav-link-separator) {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #79aeca !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    opacity: 0.82 !important;
+    transform: translateY(-0.5px) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .mobileNavLinks {
+    width: 92% !important;
+    max-width: 92% !important;
+  }
+
+  .mobileNavLinks :global(.nav-link-track) {
+    gap: 3px !important;
+    padding-inline: 7px !important;
+  }
+
+  .mobileNavLinks :global(.nav-link-separator) {
+    font-size: 10px !important;
+  }
+}
