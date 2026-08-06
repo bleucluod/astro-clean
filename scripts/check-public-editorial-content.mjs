@@ -23,12 +23,17 @@ for (const [filename, expected] of Object.entries(hashes)) {
     .update(read(`content/public-editorial-final/${filename}`))
     .digest("hex")
     .toUpperCase();
-  assert.equal(actual, expected, `${filename} differs from the supplied reviewed package`);
+  assert.equal(
+    actual,
+    expected,
+    `${filename} differs from the supplied reviewed package`,
+  );
 }
 
 const generated = JSON.parse(
   read("lib/public-content/final-editorial-content.generated.json"),
 );
+
 const expectedSections = {
   home: 10,
   chart: 12,
@@ -55,9 +60,12 @@ for (const [page, count] of Object.entries(expectedSections)) {
 
   if (page === "home") {
     assert.ok(
-      route.includes('data-editorial-source="reviewed-public-editorial-home"'),
+      route.includes(
+        'data-editorial-source="reviewed-public-editorial-home"',
+      ),
       "home is not connected to the reviewed Homepage source",
     );
+
     for (const marker of [
       "HomepageLiveSky",
       "HomepageProductProof",
@@ -70,9 +78,30 @@ for (const [page, count] of Object.entries(expectedSections)) {
         `Dedicated Homepage is missing reviewed integration marker: ${marker}`,
       );
     }
+
     assert.ok(
       !route.includes("FinalEditorialPage"),
       "Homepage must use its dedicated product composition rather than the shared editorial renderer",
+    );
+  } else if (page === "chart") {
+    for (const marker of [
+      'getFinalEditorialPage("chart")',
+      'data-editorial-source="reviewed-public-editorial-chart"',
+      "ChartForm",
+      "chart-shell.module.css",
+      "getPublicWikiCatalog",
+      "sortPublicWikiArticlesNewestFirst",
+    ]) {
+      assert.ok(
+        route.includes(marker),
+        `Dedicated Chart page is missing reviewed integration marker: ${marker}`,
+      );
+    }
+
+    assert.ok(
+      !route.includes('from "@/components/FinalEditorialPage"') &&
+        !route.includes("<FinalEditorialPage"),
+      "Chart must use its dedicated product composition rather than the shared editorial renderer",
     );
   } else {
     assert.ok(
@@ -92,9 +121,127 @@ assert.ok(
   "Reviewed sections are not rendered through the canonical renderer",
 );
 
+const chartPage = read("app/chart/page.tsx");
+const chartForm = read("components/ChartForm.tsx");
+const iranCities = read("lib/locations/iran-cities.ts");
+const chartStyles = read("app/chart/chart-shell.module.css");
+const appShellStyles = read("components/app-shell.module.css");
+const homeStyles = read("app/home.module.css");
+const sharedEditorialStyles = read(
+  "components/final-editorial.module.css",
+);
+const wikiStyles = read("app/wiki/wiki.module.css");
+
+for (const marker of [
+  "halleus-chart-refinement-v2",
+  "heroAtmosphere",
+  "reportStrip",
+  "supportGroup",
+  "linksForSection",
+  "isTechnicalCopy",
+  "humanizeText",
+  'href="#chart-birth-data-form"',
+]) {
+  assert.ok(
+    chartPage.includes(marker),
+    `Dedicated Chart refinement is missing marker: ${marker}`,
+  );
+}
+
+assert.ok(
+  !chartPage.includes('href="/chart"'),
+  "Chart contains a redundant self-link instead of a useful anchor or destination",
+);
+
+assert.ok(
+  !chartPage.includes("previewPanel") &&
+    chartPage.includes("reportStripItems") &&
+    chartPage.includes("supportGroups.map((group)"),
+  "Chart must use the centered form, horizontal report strip, and collapsed FAQ composition",
+);
+
+for (const marker of [
+  "chart-generation-overlay",
+  'aria-modal="true"',
+  "chart-generation-symbol",
+  "گزارشت در حال ساخته‌شدن است",
+  "گزارشت آماده شد",
+  "برگشت به فرم",
+  "chart-form-progress",
+  "chartProgress",
+  'symbol-transparent-black.png',
+  'toLocaleString("fa-IR")',
+]) {
+  assert.ok(
+    chartForm.includes(marker),
+    `Chart loading-dialog contract is missing marker: ${marker}`,
+  );
+}
+
+assert.ok(
+  !chartForm.includes("chart-journey-notification") &&
+    chartForm.includes('aria-required="true"'),
+  "The old loading notification remains or the required-name contract is missing",
+);
+
+for (const marker of [
+  "submitLogoSpin 0.96s linear infinite",
+  "width: 136px !important",
+  "color-scheme: dark !important",
+  "chart-modern-form-motion-v3",
+  "chart-centered-modern-v4",
+  ".reportStrip",
+  "width: min(780px, 100%)",
+  "background: #dceeff !important",
+  ".birth-date-picker-grid",
+  ".birth-time-picker-grid",
+  "grid-template-columns: repeat(3, minmax(0, 1fr))",
+  "grid-template-columns: repeat(2, minmax(0, 1fr))",
+  "@media (prefers-reduced-motion: reduce)",
+]) {
+  assert.ok(
+    chartStyles.includes(marker),
+    `Chart form or motion styling is missing marker: ${marker}`,
+  );
+}
+
+assert.ok(
+  appShellStyles.includes(
+    "--halleus-public-h1-size: clamp(1.5rem, 2.35vw, 1.95rem);",
+  ) &&
+    appShellStyles.includes(
+      "--halleus-public-h1-line-height: 1.6;",
+    ),
+  "The public H1 size contract is missing",
+);
+
+for (const [label, source] of [
+  ["Homepage", homeStyles],
+  ["Chart", chartStyles],
+  ["Shared editorial pages", sharedEditorialStyles],
+  ["Wiki", wikiStyles],
+]) {
+  assert.ok(
+    /var\(\s*--halleus-public-h1-size/.test(source),
+    `${label} does not use the shared public H1 size`,
+  );
+}
+
+assert.ok(
+  appShellStyles.includes(
+    ".nav :global(.site-nav-links .nav-link)",
+  ) &&
+    appShellStyles.includes("color: #ffffff !important;") &&
+    appShellStyles.includes(
+      "-webkit-text-fill-color: #ffffff !important;",
+    ),
+  "Dark header navigation does not force readable white text",
+);
+
 const homepage = read("app/page.tsx");
 assert.ok(
-  homepage.includes("heroAtmosphere") && homepage.includes("heroPlanet"),
+  homepage.includes("heroAtmosphere") &&
+    homepage.includes("heroPlanet"),
   "The dedicated Homepage planet hero is missing",
 );
 assert.ok(
@@ -114,22 +261,89 @@ assert.ok(
   "Order must retain the real request form",
 );
 assert.ok(
-  read("app/privacy/page.tsx").includes("AnalyticsPreferencesLink"),
+  read("app/privacy/page.tsx").includes(
+    "AnalyticsPreferencesLink",
+  ),
   "Privacy must retain real analytics controls",
 );
 
 const compareBoundary =
   read("app/compare/layout.tsx") +
   read("app/compare/[comparisonId]/layout.tsx");
+
 assert.ok(
   compareBoundary.includes("noarchive: true") &&
     compareBoundary.includes("nosnippet: true"),
   "Private Compare metadata boundary is missing",
 );
 
+
+assert.ok(
+  chartPage.includes("ساخت چارت تولد آنلاین") &&
+    chartPage.includes("پرسش‌های رایج درباره محاسبه و تفسیر چارت تولد") &&
+    chartPage.includes("در تفسیر چارت تولد چه می‌بینی؟") &&
+    !chartPage.includes("سه بخش اصلی، بدون شلوغی اضافه"),
+  "Chart SEO copy is incomplete or demo-style copy remains",
+);
+
+for (const marker of [
+  "function ChartSelect(",
+  'className="chart-select-trigger"',
+  'className="chart-select-options"',
+  "filterIranCities",
+  'onKeyDown={(event) =>',
+]) {
+  assert.ok(
+    chartForm.includes(marker),
+    `Chart polished-control contract is missing marker: ${marker}`,
+  );
+}
+
+assert.ok(
+  !chartForm.includes('className="chart-required-label"') &&
+    chartForm.includes('aria-required="true"'),
+  "Name must remain required without a visible required badge",
+);
+
+for (const marker of [
+  "chart-product-ready-controls-v4",
+  ".chart-select-options::-webkit-scrollbar",
+  "inset: 0 0 0 auto !important",
+  ".supportSectionCopy p",
+  "color: #f4f7fb !important",
+]) {
+  assert.ok(
+    chartStyles.includes(marker),
+    `Chart final visual polish is missing marker: ${marker}`,
+  );
+}
+
+assert.ok(
+  iranCities.includes("export function filterIranCities") &&
+    iranCities.includes("cityName === normalizedValue") &&
+    iranCities.includes("city.faName === city.provinceFaName") &&
+    iranCities.includes(
+      "const scoreDifference = left.score - right.score",
+    ),
+  "Iran city ranking or province-capital display contract is missing",
+);
+
 console.log("Final public editorial content check passed.");
-console.log("- all 12 supplied Markdown files match their exact package hashes");
-console.log("- all 84 reviewed public sections remain generated and connected");
-console.log("- Homepage uses a dedicated product composition with real Sky, report proof, and Wiki data");
-console.log("- dynamic request, privacy, and private Compare boundaries remain real");
-console.log("- unresolved commercial and runtime placeholders remain filtered from shared editorial routes");
+console.log(
+  "- all 12 supplied Markdown files match their exact package hashes",
+);
+console.log(
+  "- all 84 reviewed public sections remain generated and connected",
+);
+console.log(
+  "- Homepage and Chart use dedicated product compositions with real data sources",
+);
+console.log(
+  "- Chart uses a centered form, compact report strip, collapsed FAQ, and Persian user-facing copy",
+);
+console.log(
+  "- the public H1 contract and white dark-header navigation are enforced",
+);
+console.log(
+  "- dynamic request, privacy, and private Compare boundaries remain real",
+);

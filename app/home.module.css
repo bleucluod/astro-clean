@@ -152,9 +152,12 @@
   max-width: 610px;
   margin: 20px 0 18px;
   color: #ffffff;
-  font-size: clamp(1.5rem, 2.35vw, 1.95rem);
+  font-size: var(
+    --halleus-public-h1-size,
+    clamp(1.5rem, 2.35vw, 1.95rem)
+  );
   font-weight: 860;
-  line-height: 1.6;
+  line-height: var(--halleus-public-h1-line-height, 1.6);
   letter-spacing: -0.05em;
 }
 

@@ -1,7 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import { createMockReport } from "@/lib/astrology/mock-engine";
@@ -14,6 +22,7 @@ import type {
 import type { GeneratedReportContract } from "@/types/report-generation";
 import {
   IRAN_CITY_OPTIONS,
+  filterIranCities,
   findIranCityByName,
   getIranCityDisplayName,
 } from "@/lib/locations/iran-cities";
@@ -83,7 +92,7 @@ const TIME_MINUTE_OPTIONS = Array.from({ length: 60 }, (_, index) =>
 );
 
 const UNKNOWN_BIRTH_TIME = "12:00";
-const MAX_CITY_SUGGESTIONS = 5;
+const MAX_CITY_SUGGESTIONS = 7;
 
 type BirthDateMode = "jalali" | "gregorian";
 type BirthTimeMode = "known" | "unknown";
@@ -158,6 +167,7 @@ type RealEngineRequestState = {
 };
 
 type ChartFieldId =
+  | "name"
   | "birthDate"
   | "birthTime"
   | "birthCity"
@@ -218,9 +228,7 @@ function getGregorianDayCount(year: string, month: string) {
   return new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
 }
 
-function normalizeCitySearch(value: string) {
-  return value.trim().toLocaleLowerCase("fa-IR");
-}
+
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("astro-clean-data-changed"));
 }
@@ -245,6 +253,140 @@ function buildReportSaveFallbackMessage(message: string) {
   }
 
     return "گزارش ساخته شد، اما ذخیره در حساب یا ساخت لینک کامل نشد. نسخهٔ همین دستگاه باز می‌شود.";
+}
+
+type ChartSelectOption = {
+  value: string;
+  label: string;
+};
+
+function sanitizePersianName(value: string) {
+  return value
+    .replaceAll("ي", "ی")
+    .replaceAll("ك", "ک")
+    .replace(
+      /[^ء-غف-یپچژکگ‌\s]/g,
+      "",
+    )
+    .replace(/\s{2,}/g, " ")
+    .replace(/^\s+/, "");
+}
+function ChartSelect({
+  ariaLabel,
+  disabled = false,
+  onChange,
+  options,
+  placeholder,
+  value,
+}: {
+  ariaLabel: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+  options: readonly ChartSelectOption[];
+  placeholder: string;
+  value: string;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOption = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        rootRef.current &&
+        event.target instanceof Node &&
+        !rootRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  return (
+    <div
+      className={isOpen ? "chart-select is-open" : "chart-select"}
+      ref={rootRef}
+    >
+      <button
+        type="button"
+        className="chart-select-trigger"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-label={ariaLabel}
+        disabled={disabled}
+        onClick={() => setIsOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setIsOpen(true);
+          }
+        }}
+      >
+        <span>{selectedOption?.label ?? placeholder}</span>
+        <span className="chart-select-chevron" aria-hidden="true">
+         ⌄
+        </span>
+      </button>
+
+      {isOpen ? (
+        <div
+          className="chart-select-options"
+          role="listbox"
+          aria-label={ariaLabel}
+        >
+          {options.map((option) => {
+            const isSelected = option.value === value;
+
+            return (
+              <button
+                type="button"
+                className={
+                  isSelected
+                    ? "chart-select-option is-selected"
+                    : "chart-select-option"
+                }
+                role="option"
+                aria-selected={isSelected}
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span>{option.label}</span>
+                {isSelected ? (
+                  <span
+                    className="chart-select-option-check"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function ChartForm() {
@@ -295,42 +437,42 @@ export function ChartForm() {
     };
   }, []);
 
+  useEffect(() => {
+    if (realEngineRequest.status === "idle") {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [realEngineRequest.status]);
+
   const citySuggestions = useMemo(() => {
-    if (selectedBirthCityId) {
+    if (selectedBirthCityId || !form.birthCity.trim()) {
       return [];
     }
 
-    const query = normalizeCitySearch(form.birthCity);
-
-    if (!query) {
-      return [];
-    }
-
-    return IRAN_CITY_OPTIONS.filter((city) => {
-      const cityName = normalizeCitySearch(city.faName);
-      const cityDisplayName = normalizeCitySearch(getIranCityDisplayName(city));
-
-      return cityName.includes(query) || cityDisplayName.includes(query);
-    }).slice(0, MAX_CITY_SUGGESTIONS);
+    return filterIranCities(form.birthCity).slice(
+      0,
+      MAX_CITY_SUGGESTIONS,
+    );
   }, [form.birthCity, selectedBirthCityId]);
 
   const currentResidenceSuggestions = useMemo(() => {
-    if (selectedCurrentResidenceCityId) {
+    if (
+      selectedCurrentResidenceCityId ||
+      !currentResidenceCity.trim()
+    ) {
       return [];
     }
 
-    const query = normalizeCitySearch(currentResidenceCity);
-
-    if (!query) {
-      return [];
-    }
-
-    return IRAN_CITY_OPTIONS.filter((city) => {
-      const cityName = normalizeCitySearch(city.faName);
-      const cityDisplayName = normalizeCitySearch(getIranCityDisplayName(city));
-
-      return cityName.includes(query) || cityDisplayName.includes(query);
-    }).slice(0, MAX_CITY_SUGGESTIONS);
+    return filterIranCities(currentResidenceCity).slice(
+      0,
+      MAX_CITY_SUGGESTIONS,
+    );
   }, [currentResidenceCity, selectedCurrentResidenceCityId]);
 
   const gregorianDayOptions = useMemo(
@@ -346,6 +488,51 @@ export function ChartForm() {
       ),
     [gregorianBirthDateParts.month, gregorianBirthDateParts.year],
   );
+
+  const chartProgress = useMemo(() => {
+    const dateParts =
+      dateMode === "jalali"
+        ? birthDateParts
+        : gregorianBirthDateParts;
+    const hasSelectedCity = Boolean(
+      form.birthCity.trim() &&
+        (selectedBirthCityId || findIranCityByName(form.birthCity)),
+    );
+    const steps = [
+      { id: "name", label: "نام", complete: Boolean((form.name ?? "").trim()) },
+      {
+        id: "date",
+        label: "تاریخ تولد",
+        complete: Boolean(
+          dateParts.year && dateParts.month && dateParts.day,
+        ),
+      },
+      {
+        id: "time",
+        label: "ساعت تولد",
+        complete:
+          birthTimeMode === "unknown" ||
+          Boolean(birthTimeParts.hour && birthTimeParts.minute),
+      },
+      { id: "city", label: "شهر تولد", complete: hasSelectedCity },
+    ];
+    const completed = steps.filter((step) => step.complete).length;
+
+    return {
+      completed,
+      percentage: (Math.max(completed - 1, 0) / (steps.length - 1)) * 100,
+      steps,
+    };
+  }, [
+    birthDateParts,
+    birthTimeMode,
+    birthTimeParts,
+    dateMode,
+    form.birthCity,
+    form.name,
+    gregorianBirthDateParts,
+    selectedBirthCityId,
+  ]);
 
   function clearFieldError(field: ChartFieldId) {
     setFieldErrors((current) => {
@@ -445,6 +632,15 @@ export function ChartForm() {
   }
 
   function normalizeBirthForm() {
+    const normalizedName = sanitizePersianName(form.name ?? "").trim();
+
+    if (!normalizedName) {
+      throw new ChartFormValidationError(
+        "name",
+        "نام فارسی‌ات را برای شخصی‌سازی گزارش وارد کن.",
+      );
+    }
+
     let normalizedBirthDate = "";
 
     if (dateMode === "jalali") {
@@ -525,7 +721,7 @@ export function ChartForm() {
 
     const normalizedForm: BirthInput = {
       ...form,
-      name: (form.name ?? "").trim(),
+      name: normalizedName,
       birthDate: normalizedBirthDate,
       birthTime: normalizedBirthTime,
       birthCity: selectedCity.faName,
@@ -749,19 +945,61 @@ export function ChartForm() {
             onSubmit={handleSubmit}
             ref={formRef}
           >
+            <div className="chart-form-progress" aria-live="polite">
+              <div className="chart-form-progress-header">
+                <span>پیشرفت اطلاعات ضروری</span>
+                <strong>{chartProgress.completed.toLocaleString("fa-IR")} از ۴</strong>
+              </div>
+
+              <div
+                className="chart-form-progress-bar"
+                style={
+                  {
+                    "--chart-progress": `${chartProgress.percentage}%`,
+                  } as CSSProperties
+                }
+                aria-hidden="true"
+              />
+
+              <div className="chart-form-progress-steps">
+                {chartProgress.steps.map((step) => (
+                  <span
+                    className={
+                      step.complete
+                        ? "chart-form-progress-step is-complete"
+                        : "chart-form-progress-step"
+                    }
+                    key={step.id}
+                  >
+                    {step.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <div className="chart-form-fields">
               <label className="chart-field chart-field-full">
                 <span className="chart-field-label">
                   <span aria-hidden="true">♙</span>
                   نام
-                  <small className="chart-optional-label">اختیاری</small>
                 </span>
                 <input
+                  required
+                  aria-required="true"
                   autoComplete="name"
+                  dir="rtl"
+                  lang="fa"
                   value={form.name}
-                  onChange={(event) => updateField("name", event.target.value)}
-                  placeholder="نام خود را وارد کنید"
+                  onChange={(event) => {
+                    clearFieldError("name");
+                    updateField(
+                      "name",
+                      sanitizePersianName(event.target.value),
+                    );
+                  }}
+                  placeholder="نام فارسی خود را وارد کنید"
                 />
+                <FieldError message={fieldErrors.name} />
               </label>
 
               <div className="chart-field chart-field-full">
@@ -800,68 +1038,56 @@ export function ChartForm() {
                   </div>
                 </div>
 
-                {dateMode === "jalali" ? (
+                                {dateMode === "jalali" ? (
                   <div
                     className="birth-date-picker-grid"
                     role="group"
                     aria-label="انتخاب تاریخ تولد شمسی"
                   >
-                    <label>
+                    <div className="chart-select-segment">
                       <span>سال</span>
-                      <select
-                        required
+                      <ChartSelect
+                        ariaLabel="سال تولد شمسی"
+                        placeholder="انتخاب"
                         value={birthDateParts.year}
-                        onChange={(event) =>
-                          updateBirthDatePart("year", event.target.value)
+                        onChange={(value) =>
+                          updateBirthDatePart("year", value)
                         }
-                        aria-label="سال تولد شمسی"
-                      >
-                        <option value="">سال</option>
-                        {JALALI_YEAR_OPTIONS.map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        options={JALALI_YEAR_OPTIONS.map((year) => ({
+                          value: year,
+                          label: Number(year).toLocaleString("fa-IR", { useGrouping: false }),
+                        }))}
+                      />
+                    </div>
 
-                    <label>
+                    <div className="chart-select-segment">
                       <span>ماه</span>
-                      <select
-                        required
+                      <ChartSelect
+                        ariaLabel="ماه تولد شمسی"
+                        placeholder="انتخاب"
                         value={birthDateParts.month}
-                        onChange={(event) =>
-                          updateBirthDatePart("month", event.target.value)
+                        onChange={(value) =>
+                          updateBirthDatePart("month", value)
                         }
-                        aria-label="ماه تولد شمسی"
-                      >
-                        <option value="">ماه</option>
-                        {JALALI_MONTH_OPTIONS.map((month) => (
-                          <option key={month.value} value={month.value}>
-                            {month.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        options={JALALI_MONTH_OPTIONS}
+                      />
+                    </div>
 
-                    <label>
+                    <div className="chart-select-segment">
                       <span>روز</span>
-                      <select
-                        required
+                      <ChartSelect
+                        ariaLabel="روز تولد شمسی"
+                        placeholder="انتخاب"
                         value={birthDateParts.day}
-                        onChange={(event) =>
-                          updateBirthDatePart("day", event.target.value)
+                        onChange={(value) =>
+                          updateBirthDatePart("day", value)
                         }
-                        aria-label="روز تولد شمسی"
-                      >
-                        <option value="">روز</option>
-                        {JALALI_DAY_OPTIONS.map((day) => (
-                          <option key={day} value={day}>
-                            {Number(day).toLocaleString("fa-IR")}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        options={JALALI_DAY_OPTIONS.map((day) => ({
+                          value: day,
+                          label: Number(day).toLocaleString("fa-IR"),
+                        }))}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div
@@ -869,62 +1095,50 @@ export function ChartForm() {
                     role="group"
                     aria-label="انتخاب تاریخ تولد میلادی"
                   >
-                    <label>
+                    <div className="chart-select-segment">
                       <span>سال</span>
-                      <select
-                        required
+                      <ChartSelect
+                        ariaLabel="سال تولد میلادی"
+                        placeholder="انتخاب"
                         value={gregorianBirthDateParts.year}
-                        onChange={(event) =>
-                          updateGregorianBirthDatePart("year", event.target.value)
+                        onChange={(value) =>
+                          updateGregorianBirthDatePart("year", value)
                         }
-                        aria-label="سال تولد میلادی"
-                      >
-                        <option value="">سال</option>
-                        {GREGORIAN_YEAR_OPTIONS.map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        options={GREGORIAN_YEAR_OPTIONS.map((year) => ({
+                          value: year,
+                          label: Number(year).toLocaleString("fa-IR", { useGrouping: false }),
+                        }))}
+                      />
+                    </div>
 
-                    <label>
+                    <div className="chart-select-segment">
                       <span>ماه</span>
-                      <select
-                        required
+                      <ChartSelect
+                        ariaLabel="ماه تولد میلادی"
+                        placeholder="انتخاب"
                         value={gregorianBirthDateParts.month}
-                        onChange={(event) =>
-                          updateGregorianBirthDatePart("month", event.target.value)
+                        onChange={(value) =>
+                          updateGregorianBirthDatePart("month", value)
                         }
-                        aria-label="ماه تولد میلادی"
-                      >
-                        <option value="">ماه</option>
-                        {GREGORIAN_MONTH_OPTIONS.map((month) => (
-                          <option key={month.value} value={month.value}>
-                            {month.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        options={GREGORIAN_MONTH_OPTIONS}
+                      />
+                    </div>
 
-                    <label>
+                    <div className="chart-select-segment">
                       <span>روز</span>
-                      <select
-                        required
+                      <ChartSelect
+                        ariaLabel="روز تولد میلادی"
+                        placeholder="انتخاب"
                         value={gregorianBirthDateParts.day}
-                        onChange={(event) =>
-                          updateGregorianBirthDatePart("day", event.target.value)
+                        onChange={(value) =>
+                          updateGregorianBirthDatePart("day", value)
                         }
-                        aria-label="روز تولد میلادی"
-                      >
-                        <option value="">روز</option>
-                        {gregorianDayOptions.map((day) => (
-                          <option key={day} value={day}>
-                            {Number(day).toLocaleString("fa-IR")}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        options={gregorianDayOptions.map((day) => ({
+                          value: day,
+                          label: Number(day).toLocaleString("fa-IR"),
+                        }))}
+                      />
+                    </div>
                   </div>
                 )}
                 <FieldError message={fieldErrors.birthDate} />
@@ -951,55 +1165,55 @@ export function ChartForm() {
                   </label>
                 </div>
 
-                <div
+                                <div
                   className="birth-time-picker-grid"
                   role="group"
                   aria-label="انتخاب ساعت تولد به‌صورت ۲۴ ساعته"
                 >
-                  <label>
-                    <span>ساعت</span>
-                    <select
-                      required={birthTimeMode === "known"}
+                  <div className="chart-select-segment">
+                    <span>ساعت تولد</span>
+                    <ChartSelect
+                      key={`hour-${birthTimeMode}`}
+                      ariaLabel="ساعت تولد از صفر تا بیست‌وسه"
                       disabled={birthTimeMode === "unknown"}
+                      placeholder="انتخاب"
                       value={birthTimeParts.hour}
-                      onChange={(event) =>
-                        updateBirthTimePart("hour", event.target.value)
+                      onChange={(value) =>
+                        updateBirthTimePart("hour", value)
                       }
-                      aria-label="ساعت تولد از صفر تا بیست‌وسه"
-                    >
-                      <option value="">ساعت</option>
-                      {TIME_HOUR_OPTIONS.map((hour) => (
-                        <option key={hour} value={hour}>
-                          {hour}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                      options={TIME_HOUR_OPTIONS.map((hour) => ({
+                        value: hour,
+                        label: Number(hour).toLocaleString("fa-IR", {
+                          minimumIntegerDigits: 2,
+                        }),
+                      }))}
+                    />
+                  </div>
 
-                  <label>
+                  <div className="chart-select-segment">
                     <span>دقیقه</span>
-                    <select
-                      required={birthTimeMode === "known"}
+                    <ChartSelect
+                      key={`minute-${birthTimeMode}`}
+                      ariaLabel="دقیقه تولد"
                       disabled={birthTimeMode === "unknown"}
+                      placeholder="انتخاب"
                       value={birthTimeParts.minute}
-                      onChange={(event) =>
-                        updateBirthTimePart("minute", event.target.value)
+                      onChange={(value) =>
+                        updateBirthTimePart("minute", value)
                       }
-                      aria-label="دقیقه تولد"
-                    >
-                      <option value="">دقیقه</option>
-                      {TIME_MINUTE_OPTIONS.map((minute) => (
-                        <option key={minute} value={minute}>
-                          {minute}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                      options={TIME_MINUTE_OPTIONS.map((minute) => ({
+                        value: minute,
+                        label: Number(minute).toLocaleString("fa-IR", {
+                          minimumIntegerDigits: 2,
+                        }),
+                      }))}
+                    />
+                  </div>
                 </div>
 
                 {birthTimeMode === "unknown" ? (
                   <small className="field-hint">
-                    اگر ساعت دقیق را نمی‌دانی، با ساعت میانی روز شروع می‌کنیم و محدودیت خانه‌ها و رایزینگ را در گزارش روشن نگه می‌داریم.
+                    اگر ساعت دقیق را نمی‌دانی، با ساعت میانی روز شروع می‌کنیم و محدودیت خانه‌ها و طالع را در گزارش روشن نگه می‌داریم.
                   </small>
                 ) : null}
                 <FieldError message={fieldErrors.birthTime} />
@@ -1016,6 +1230,12 @@ export function ChartForm() {
                     autoComplete="address-level2"
                     value={form.birthCity}
                     onChange={(event) => updateBirthCity(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && citySuggestions[0]) {
+                        event.preventDefault();
+                        selectBirthCity(citySuggestions[0]);
+                      }
+                    }}
                     placeholder="نام شهر تولد را وارد کنید"
                   />
                 </label>
@@ -1069,6 +1289,17 @@ export function ChartForm() {
                       onChange={(event) =>
                         updateCurrentResidenceCity(event.target.value)
                       }
+                      onKeyDown={(event) => {
+                        if (
+                          event.key === "Enter" &&
+                          currentResidenceSuggestions[0]
+                        ) {
+                          event.preventDefault();
+                          selectCurrentResidenceCity(
+                            currentResidenceSuggestions[0],
+                          );
+                        }
+                      }}
                       placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
                     />
                   </label>
@@ -1118,57 +1349,113 @@ export function ChartForm() {
               form="chart-birth-data-form"
               disabled={isSubmitting}
             >
-              <span aria-hidden="true">✦</span>
+              <span className="chart-submit-icon" aria-hidden="true">
+                <Image
+                  alt=""
+                  height={1400}
+                  src="/halleus-logo/symbol-transparent-black.png"
+                  width={1400}
+                />
+              </span>
               {isSubmitting ? "در حال ساخت گزارش…" : "ساخت گزارش"}
             </button>
           </div>
 
           {realEngineRequest.status !== "idle" ? (
-            <div
-              className={
-                realEngineRequest.status === "error"
-                  ? "chart-journey-notification is-error"
-                  : realEngineRequest.status === "ready"
-                    ? "chart-journey-notification is-ready"
-                    : "chart-journey-notification is-progress"
-              }
-              role={realEngineRequest.status === "error" ? "alert" : "status"}
-              aria-live="assertive"
-            >
-              <div className="chart-journey-notification-copy">
-                <strong>
-                  {realEngineRequest.status === "error"
-                    ? "خطا رخ داد"
-                    : realEngineRequest.status === "ready"
-                      ? "گزارش آماده شد"
-                      : "در حال ساخت گزارش…"}
-                </strong>
-                <span>{realEngineRequest.message}</span>
-                {saveMessage ? <small>{saveMessage}</small> : null}
-              </div>
+            <div className="chart-generation-overlay">
+              <section
+                className={`chart-generation-dialog is-${realEngineRequest.status}`}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="chart-generation-title"
+                aria-describedby="chart-generation-description"
+              >
+                <div
+                  className={
+                    realEngineRequest.status === "error"
+                      ? "chart-generation-symbol is-error"
+                      : realEngineRequest.status === "ready"
+                        ? "chart-generation-symbol is-ready"
+                        : "chart-generation-symbol is-progress"
+                  }
+                  aria-hidden="true"
+                >
+                  <Image
+                    alt=""
+                    height={1400}
+                    priority
+                    src="/halleus-logo/symbol-transparent-white.png"
+                    width={1400}
+                  />
+                </div>
 
-              <div className="chart-journey-notification-actions">
-                {realEngineRequest.status === "error" && !generatedReportPath ? (
-                  <button
-                    className="button secondary"
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={() => formRef.current?.requestSubmit()}
-                  >
-                    تلاش دوباره
-                  </button>
-                ) : null}
+                <div className="chart-generation-copy" aria-live="assertive">
+                  <strong id="chart-generation-title">
+                    {realEngineRequest.status === "error"
+                      ? "ساخت گزارش کامل نشد"
+                      : realEngineRequest.status === "ready"
+                        ? "گزارشت آماده شد"
+                        : "گزارشت در حال ساخته‌شدن است"}
+                  </strong>
 
-                {generatedReportPath && showOpenReportButton ? (
-                  <button
-                    className="button"
-                    type="button"
-                    onClick={() => router.push(generatedReportPath)}
-                  >
-                    باز کردن گزارش
-                  </button>
-                ) : null}
-              </div>
+                  <p id="chart-generation-description">
+                    {realEngineRequest.status === "error"
+                      ? "اطلاعات واردشده را بررسی کن و دوباره تلاش کن."
+                      : realEngineRequest.status === "ready"
+                        ? "در حال بازکردن گزارش هستیم."
+                        : "اطلاعات تولدت در حال محاسبه و آماده‌شدن برای گزارش فارسی است. این مرحله ممکن است چند لحظه طول بکشد."}
+                  </p>
+
+                  {realEngineRequest.status === "ready" && saveMessage ? (
+                    <small>{saveMessage}</small>
+                  ) : null}
+                </div>
+
+                <div className="chart-generation-actions">
+                  {realEngineRequest.status === "error" &&
+                  !generatedReportPath ? (
+                    <>
+                      <button
+                        className="button"
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => formRef.current?.requestSubmit()}
+                      >
+                        تلاش دوباره
+                      </button>
+
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => {
+                          setRealEngineRequest(initialRealEngineRequest);
+                          setSaveMessage("");
+                          setGeneratedReportPath("");
+                          setShowOpenReportButton(false);
+                          window.requestAnimationFrame(() => {
+                            formRef.current?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
+                          });
+                        }}
+                      >
+                        برگشت به فرم
+                      </button>
+                    </>
+                  ) : null}
+
+                  {generatedReportPath && showOpenReportButton ? (
+                    <button
+                      className="button"
+                      type="button"
+                      onClick={() => router.push(generatedReportPath)}
+                    >
+                      باز کردن گزارش
+                    </button>
+                  ) : null}
+                </div>
+              </section>
             </div>
           ) : null}
         </div>

@@ -8085,6 +8085,10 @@ export const IRAN_CITY_OPTIONS = [
 ] as const satisfies readonly IranCity[];
 
 export function getIranCityDisplayName(city: IranCity) {
+  if (city.faName === city.provinceFaName) {
+    return city.faName;
+  }
+
   return `${city.faName}، ${city.provinceFaName}`;
 }
 
@@ -8117,11 +8121,44 @@ export function filterIranCities(value: string) {
     return IRAN_CITY_OPTIONS;
   }
 
-  return IRAN_CITY_OPTIONS.filter((city) => {
-    return (
-      normalizeCitySearch(city.faName).includes(normalizedValue) ||
-      normalizeCitySearch(city.provinceFaName).includes(normalizedValue) ||
-      normalizeCitySearch(getIranCityDisplayName(city)).includes(normalizedValue)
-    );
+  const rankedCities = IRAN_CITY_OPTIONS.flatMap((city) => {
+    const cityName = normalizeCitySearch(city.faName);
+    const provinceName = normalizeCitySearch(city.provinceFaName);
+    const displayName = normalizeCitySearch(getIranCityDisplayName(city));
+    let score: number | null = null;
+
+    if (cityName === normalizedValue) {
+      score = 0;
+    } else if (displayName === normalizedValue) {
+      score = 1;
+    } else if (cityName.startsWith(normalizedValue)) {
+      score = 2;
+    } else if (cityName.includes(normalizedValue)) {
+      score = 3;
+    } else if (provinceName === normalizedValue) {
+      score = 4;
+    } else if (displayName.startsWith(normalizedValue)) {
+      score = 5;
+    } else if (provinceName.startsWith(normalizedValue)) {
+      score = 6;
+    } else if (displayName.includes(normalizedValue)) {
+      score = 7;
+    } else if (provinceName.includes(normalizedValue)) {
+      score = 8;
+    }
+
+    return score === null ? [] : [{ city, score }];
   });
+
+  rankedCities.sort((left, right) => {
+    const scoreDifference = left.score - right.score;
+
+    if (scoreDifference !== 0) {
+      return scoreDifference;
+    }
+
+    return left.city.sourceId - right.city.sourceId;
+  });
+
+  return rankedCities.map((entry) => entry.city);
 }

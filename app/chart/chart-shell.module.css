@@ -1,659 +1,3142 @@
 .page {
-  width: min(1180px, calc(100% - 32px));
+  --chart-bg: #050609;
+  --chart-surface: #08090c;
+  --chart-surface-raised: #0c0e12;
+  --chart-surface-soft: #101216;
+  --chart-border: rgba(255, 255, 255, 0.1);
+  --chart-border-strong: rgba(255, 255, 255, 0.18);
+  --chart-text: #ffffff;
+  --chart-text-soft: #edf2f7;
+  --chart-muted: #c7cfda;
+  --chart-faint: #a9b2bd;
+  --chart-ice: #dceeff;
+  --chart-blue: #7dd3fc;
+  position: relative;
+  width: min(1160px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 12px 0 76px;
+  padding: 16px 0 64px;
   display: grid;
-  gap: 24px;
+  gap: 18px;
   direction: rtl;
+  color: var(--chart-text);
+  font-family: var(--font-vazirmatn), sans-serif;
 }
 
-.intro {
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.hero {
   position: relative;
-  min-height: 280px;
+  isolation: isolate;
+  min-height: 448px;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 0.52fr);
   align-items: center;
-  gap: 32px;
-  padding: clamp(30px, 4vw, 52px);
-  border: 1px solid rgba(111, 126, 192, 0.16);
-  border-radius: 32px;
+  gap: clamp(24px, 4vw, 54px);
+  padding: clamp(34px, 5vw, 58px);
+  border: 1px solid var(--chart-border);
+  border-radius: 30px;
   background:
-    radial-gradient(circle at 12% 18%, rgba(157, 173, 255, 0.22), transparent 34%),
-    radial-gradient(circle at 86% 72%, rgba(197, 177, 255, 0.2), transparent 36%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(245, 247, 255, 0.94));
-  box-shadow: 0 22px 56px rgba(45, 61, 121, 0.08);
-  isolation: isolate;
+    radial-gradient(circle at 82% 40%, rgba(125, 211, 252, 0.07), transparent 22rem),
+    radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.03), transparent 24rem),
+    linear-gradient(145deg, #040506 0%, #08090c 64%, #0d1015 100%);
+  box-shadow: 0 28px 74px rgba(0, 0, 0, 0.25);
 }
 
-.introGlow {
+.hero::after {
+  content: "";
   position: absolute;
-  inset: auto -90px -130px auto;
-  width: 360px;
-  height: 360px;
-  border-radius: 50%;
-  background: rgba(165, 177, 244, 0.16);
-  filter: blur(4px);
+  inset: 0;
+  z-index: -2;
+  opacity: 0.32;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(130deg, #000, transparent 72%);
+}
+
+.heroAtmosphere,
+.heroAtmosphere span {
+  position: absolute;
+  pointer-events: none;
+}
+
+.heroAtmosphere {
+  inset: 0;
   z-index: -1;
 }
 
-.introCopy {
-  position: relative;
-  z-index: 1;
-  max-width: 720px;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 6px 14px;
-  border: 1px solid rgba(80, 96, 171, 0.14);
-  border-radius: 999px;
-  color: #5263a6;
-  background: rgba(255, 255, 255, 0.76);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.title {
-  max-width: 680px;
-  margin: 18px 0 0;
-  color: var(--halleus-ink-strong, #17213f);
-  font-size: clamp(1.8rem, 3.4vw, 3.15rem);
-  font-weight: 900;
-  line-height: 1.48;
-  letter-spacing: -0.04em;
-}
-
-.lead {
-  max-width: 680px;
-  margin: 16px 0 0;
-  color: var(--halleus-muted, #66708f);
-  font-size: clamp(0.94rem, 1.5vw, 1.06rem);
-  line-height: 2.05;
-}
-
-.guideLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  margin: 18px 0 0;
-  color: var(--halleus-muted, #66708f);
-  font-size: 0.86rem;
-  line-height: 1.9;
-}
-
-.guideLinks a {
-  color: #40538d;
-  font-weight: 800;
-  text-decoration: underline;
-  text-decoration-color: rgba(64, 83, 141, 0.28);
-  text-underline-offset: 4px;
-}
-
-.visual {
-  position: relative;
-  width: min(100%, 330px);
-  aspect-ratio: 1;
-  justify-self: center;
-  color: #48598f;
-}
-
-.orbitOuter,
-.orbitInner {
-  position: absolute;
-  inset: 50%;
-  border: 1px solid rgba(91, 108, 179, 0.22);
+.heroOrbitOuter,
+.heroOrbitInner {
+  border: 1px solid rgba(220, 238, 255, 0.15);
   border-radius: 50%;
-  transform: translate(-50%, -50%);
 }
 
-.orbitOuter {
-  width: 88%;
-  height: 88%;
-  box-shadow:
-    0 0 0 22px rgba(255, 255, 255, 0.22),
-    inset 0 0 52px rgba(110, 126, 201, 0.08);
+.heroOrbitOuter {
+  width: 540px;
+  height: 540px;
+  top: -180px;
+  left: -180px;
+  animation: orbitRotate 34s linear infinite;
 }
 
-.orbitInner {
-  width: 58%;
-  height: 58%;
+.heroOrbitInner {
+  width: 310px;
+  height: 310px;
+  top: -64px;
+  left: -70px;
   border-style: dashed;
+  animation: orbitRotateReverse 26s linear infinite;
 }
 
-.sun {
-  position: absolute;
-  inset: 50%;
-  width: 92px;
-  height: 92px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 38% 34%, #ffffff 0 10%, #f7d999 32%, #e9b95f 100%);
-  box-shadow:
-    0 0 0 14px rgba(244, 207, 132, 0.12),
-    0 18px 36px rgba(174, 130, 57, 0.2);
-  transform: translate(-50%, -50%);
+.heroStarA,
+.heroStarB {
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 0 20px rgba(125, 211, 252, 0.7);
 }
 
-.moon,
-.starA,
-.starB,
-.signA,
-.signB,
-.signC {
-  position: absolute;
-  display: grid;
-  place-items: center;
+.heroStarA {
+  top: 16%;
+  left: 10%;
+  animation: starFloat 8s ease-in-out infinite;
 }
 
-.moon {
-  top: 8%;
-  right: 20%;
-  font-size: 2.4rem;
-  transform: rotate(-15deg);
+.heroStarB {
+  right: 46%;
+  bottom: 18%;
+  animation: starFloat 10s ease-in-out infinite reverse;
 }
 
-.starA {
-  top: 18%;
-  left: 13%;
-  font-size: 1.15rem;
+.heroCopy {
+  position: relative;
+  z-index: 2;
+  max-width: 660px;
+  animation: enterUp 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.starB {
-  right: 10%;
-  bottom: 22%;
-  font-size: 1rem;
+.heroKicker,
+.sectionEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--chart-border);
+  border-radius: 999px;
+  color: #f3f6fa;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.7rem;
+  font-weight: 780;
 }
 
-.signA,
-.signB,
-.signC {
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(84, 101, 173, 0.14);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 10px 24px rgba(50, 67, 127, 0.08);
-  font-size: 1.15rem;
+.heroTitle {
+  max-width: 620px;
+  margin: 18px 0 14px;
+  color: #ffffff;
+  font-size: var(
+    --halleus-public-h1-size,
+    clamp(1.5rem, 2.35vw, 1.95rem)
+  );
+  font-weight: 860;
+  line-height: var(--halleus-public-h1-line-height, 1.6);
+  letter-spacing: -0.05em;
 }
 
-.signA {
-  left: 4%;
-  bottom: 28%;
-}
-
-.signB {
-  right: 2%;
-  top: 38%;
-}
-
-.signC {
-  left: 38%;
-  bottom: 0;
-}
-
-.formStage {
-  min-width: 0;
-}
-
-.education {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 16px;
-}
-
-.educationCard {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  border: 1px solid rgba(103, 119, 187, 0.14);
-  border-radius: 24px;
-  padding: clamp(20px, 2.5vw, 28px);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 18px 42px rgba(45, 61, 121, 0.06);
-}
-
-.educationCard h2 {
+.heroLead {
+  max-width: 62ch;
   margin: 0;
-  color: var(--halleus-ink-strong, #17213f);
-  font-size: 1.05rem;
-  line-height: 1.8;
-}
-
-.educationCard p {
-  margin: 10px 0 0;
-  color: var(--halleus-muted, #66708f);
-  font-size: 0.88rem;
+  color: #edf2f7;
+  font-size: clamp(0.94rem, 1.15vw, 1.02rem);
   line-height: 2;
 }
 
-.educationLinks {
+.heroLead + .heroLead {
+  margin-top: 7px;
+  color: #c7cfda;
+  font-size: 0.86rem;
+}
+
+.heroActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-top: auto;
-  padding-top: 16px;
-}
-
-.educationLinks a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  padding: 7px 12px;
-  border: 1px solid rgba(82, 99, 166, 0.16);
-  border-radius: 12px;
-  color: #40538d;
-  background: rgba(245, 247, 255, 0.94);
-  font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1.8;
-  text-decoration: none;
-  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
-}
-
-.educationLinks a:hover {
-  border-color: rgba(82, 99, 166, 0.32);
-  background: #ffffff;
-  transform: translateY(-1px);
-}
-
-.formStage :global(.chart-reference-page) {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-}
-
-.formStage :global(.chart-reference-shell) {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  overflow: hidden;
-  grid-template-columns: minmax(0, 1fr);
-  border: 1px solid rgba(103, 119, 187, 0.15);
-  border-radius: 32px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 24px 64px rgba(45, 61, 121, 0.08);
-}
-
-.formStage :global(.chart-reference-visual) {
-  background:
-    radial-gradient(circle at 26% 22%, rgba(255, 255, 255, 0.32), transparent 30%),
-    linear-gradient(160deg, #26345e 0%, #5065a0 54%, #8d85c7 100%);
-}
-
-.formStage :global(.chart-reference-content) {
-  margin-top: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 255, 0.98));
-}
-
-.formStage :global(.chart-reference-page .chart-form-actions .chart-submit-button) {
-  border: 1px solid #5546d2 !important;
-  background: linear-gradient(135deg, #7658e8 0%, #5546d2 52%, #3347aa 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 18px 38px rgba(76, 63, 190, 0.34) !important;
-}
-
-.formStage :global(.chart-reference-page .chart-form-actions .chart-submit-button:hover:not(:disabled)) {
-  border-color: #4638c4 !important;
-  background: linear-gradient(135deg, #6849dc 0%, #4638c4 52%, #293b9d 100%) !important;
-  box-shadow: 0 20px 42px rgba(67, 54, 178, 0.42) !important;
-}
-
-.formStage :global(.birth-time-picker-grid) {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.formStage :global(.birth-time-picker-grid label) {
-  display: grid;
-  gap: 8px;
-  color: var(--chart-navy, #17213f);
-  font-size: 0.84rem;
-  font-weight: 800;
-}
-
-.formStage :global(.birth-time-picker-grid select) {
-  width: 100%;
-  min-height: 58px;
-  border: 1px solid var(--chart-line, rgba(103, 119, 187, 0.2));
-  border-radius: 16px;
-  padding-inline: 14px;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--chart-text, #20315f);
-  font: inherit;
-  text-align: center;
-}
-
-.formStage :global(.time-unknown-choice),
-.formStage :global(.chart-account-option-toggle) {
-  display: inline-flex;
-  align-items: center;
   gap: 9px;
-  color: #46557f;
-  font-size: 0.88rem;
-  font-weight: 800;
-  cursor: pointer;
+  margin-top: 24px;
 }
 
-.formStage :global(.time-unknown-choice input),
-.formStage :global(.chart-account-option-toggle input) {
-  width: 18px;
-  height: 18px;
-  accent-color: #5b4bd6;
-}
-
-.formStage :global(.chart-account-option-copy) {
-  display: grid;
-  gap: 3px;
-}
-
-.formStage :global(.chart-account-option-copy strong) {
-  color: #31406f;
-  font-size: 0.94rem;
-  font-weight: 900;
-}
-
-.formStage :global(.chart-account-option) {
-  display: grid;
-  gap: 12px;
-  border: 1px solid rgba(103, 119, 187, 0.14);
-  border-radius: 18px;
-  padding: 14px 16px;
-  background: rgba(248, 249, 255, 0.86);
-}
-
-.formStage :global(.chart-account-option .chart-account-compact) {
-  margin-top: 0;
-}
-
-.formStage :global(.chart-form-actions) {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.formStage :global(.chart-reference-heading h2) {
-  margin: 0;
-  color: var(--halleus-ink-strong, #17213f);
-  font-size: clamp(46px, 4.8vw, 74px);
-  font-weight: 800;
-  line-height: 1.18;
-  letter-spacing: -0.025em;
-}
-
-.formStage :global(.chart-reference-heading p),
-.formStage :global(.chart-reference-note) {
-  color: var(--halleus-muted, #66708f);
-}
-
-.discoveryBridge {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 28px;
-  align-items: center;
-  border: 1px solid rgba(36, 52, 71, 0.12);
-  border-radius: 24px;
-  padding: clamp(22px, 3vw, 32px);
-  background: linear-gradient(135deg, #f8fafc 0%, #d9eafd 100%);
-  box-shadow: 0 18px 42px rgba(36, 52, 71, 0.06);
-}
-
-.discoveryBridge h2 {
-  margin: 8px 0 0;
-  color: #243447;
-  font-size: clamp(1.08rem, 2vw, 1.42rem);
-  line-height: 1.75;
-}
-
-.discoveryBridge p {
-  max-width: 720px;
-  margin: 8px 0 0;
-  color: #52657a;
-  font-size: 0.88rem;
-  line-height: 2;
-}
-
-.discoveryEyebrow {
-  color: #52657a;
-  font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.discoveryActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.discoveryPrimary,
-.discoverySecondary {
+.heroPrimary,
+.heroSecondary {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 46px;
   align-items: center;
   justify-content: center;
-  border-radius: 13px;
-  padding: 0 16px;
-  font-size: 0.84rem;
-  font-weight: 850;
+  gap: 9px;
+  padding: 0 18px;
+  border-radius: 11px;
+  font-size: 0.82rem;
+  font-weight: 820;
   text-decoration: none;
+  transition:
+    transform 170ms ease,
+    border-color 170ms ease,
+    background 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.heroPrimary {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  background: linear-gradient(135deg, #202733, #101318);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
 }
 
 .discoveryPrimary {
   color: #ffffff;
-  background: #243447;
 }
 
-.discoverySecondary {
-  border: 1px solid rgba(36, 52, 71, 0.18);
-  color: #2f4052;
-  background: rgba(255, 255, 255, 0.72);
+.heroSecondary {
+  border: 1px solid var(--chart-border-strong);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.035);
 }
 
-@media (max-width: 920px) {
-  .discoveryBridge {
-    grid-template-columns: 1fr;
-  }
-
-  .discoveryActions {
-    justify-content: flex-start;
-  }
-
-  .intro {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-
-  .visual {
-    width: min(100%, 280px);
-  }
-
-  .education {
-    grid-template-columns: 1fr;
-  }
-
-  .formStage :global(.chart-reference-heading h2) {
-    color: var(--chart-navy, #17213f);
-    text-shadow: 0 2px 16px rgba(255, 255, 255, 0.65);
-  }
+.heroPrimary:hover,
+.heroSecondary:hover {
+  transform: translateY(-2px);
 }
 
-@media (max-width: 760px) {
-  .discoveryActions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .discoveryPrimary,
-  .discoverySecondary {
-    width: 100%;
-  }
-
-  .page {
-    width: calc(100% - 20px);
-    padding-top: 6px;
-    padding-bottom: 48px;
-    gap: 16px;
-  }
-
-  .intro {
-    gap: 22px;
-    padding: 28px 22px;
-    border-radius: 24px;
-  }
-
-  .title {
-    font-size: clamp(1.45rem, 7vw, 2rem);
-    line-height: 1.58;
-  }
-
-  .lead {
-    font-size: 0.9rem;
-    line-height: 1.95;
-  }
-
-  .formStage :global(.chart-reference-heading h2) {
-    font-size: clamp(40px, 13vw, 58px);
-  }
-
-  .visual {
-    width: 230px;
-  }
-
-  .formStage :global(.chart-reference-shell) {
-    border-radius: 24px;
-  }
+.heroPrimary:hover {
+  background: linear-gradient(135deg, #2a3340, #171b22);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
 }
 
-/* v0.1.300 chart compact account */
-.formStage :global(.chart-account-compact) {
-  margin-top: 20px;
-  padding: 16px 18px;
-  border: 1px solid rgba(103, 119, 187, 0.14);
-  border-radius: 20px;
-  background: rgba(248, 249, 255, 0.92);
+.heroSecondary:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.075);
 }
 
-.formStage :global(.chart-account-compact.is-loading),
-.formStage :global(.chart-account-compact.is-signed-in) {
-  min-height: 56px;
+.heroTrustRow {
   display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.heroTrustRow span {
+  display: inline-flex;
+  min-height: 30px;
   align-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: #d8dde5;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.68rem;
+  font-weight: 740;
 }
 
-.formStage :global(.chart-account-greeting) {
-  color: var(--halleus-ink-strong, #17213f);
-  font-size: 0.95rem;
-  font-weight: 850;
+.heroVisual {
+  position: relative;
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  animation: enterScale 620ms 80ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.formStage :global(.chart-account-save-note) {
-  margin: 0;
-  color: var(--halleus-muted, #66708f);
-  font-size: 0.86rem;
-  line-height: 1.9;
+.heroPlanet {
+  position: relative;
+  width: min(336px, 88%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 26%, rgba(255, 255, 255, 0.18), transparent 18%),
+    radial-gradient(circle at 56% 60%, rgba(125, 211, 252, 0.09), transparent 54%),
+    rgba(255, 255, 255, 0.02);
+  box-shadow:
+    inset 0 0 64px rgba(125, 211, 252, 0.06),
+    0 26px 70px rgba(0, 0, 0, 0.22);
 }
 
-.formStage :global(.chart-account-disclosure) {
-  margin-top: 10px;
+.heroPlanet::before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.07), transparent 68%);
+  filter: blur(2px);
 }
 
-.formStage :global(.chart-account-disclosure-body) {
-  padding-top: 14px;
+.heroPlanet img {
+  position: relative;
+  z-index: 1;
+  width: 156px;
+  height: 156px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(220, 238, 255, 0.2));
 }
 
-.formStage :global(.chart-account-form.form-grid) {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+.heroPlanetRing {
+  position: absolute;
+  width: 138%;
+  height: 44%;
+  border: 1px solid rgba(220, 238, 255, 0.16);
+  border-radius: 50%;
+  transform: rotate(-18deg);
+  animation: orbitTilt 26s linear infinite;
 }
 
-.formStage :global(.chart-account-form .actions),
-.formStage :global(.chart-account-disclosure-body .success-message) {
-  grid-column: 1 / -1;
+.heroPreviewCard {
+  position: absolute;
+  inset: auto 0 10px auto;
+  width: min(260px, 92%);
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  border: 1px solid var(--chart-border);
+  border-radius: 16px;
+  color: #ffffff;
+  background: rgba(5, 6, 9, 0.82);
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(16px);
 }
 
-.formStage :global(.chart-account-disclosure-body .file-hint),
-.formStage :global(.chart-account-disclosure-body .success-message) {
-  margin: 0;
+.heroPreviewCard span {
+  color: #c7cfda;
+  font-size: 0.68rem;
+  font-weight: 760;
 }
 
-@media (max-width: 760px) {
-  .formStage :global(.chart-account-compact) {
-    margin-top: 16px;
-    padding: 14px;
-    border-radius: 18px;
-  }
-
-  .formStage :global(.chart-account-form.form-grid) {
-    grid-template-columns: 1fr;
-  }
-
-  .formStage :global(.chart-account-form .actions) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .formStage :global(.chart-account-form .button) {
-    width: 100%;
-  }
+.heroPreviewCard strong {
+  font-size: 0.82rem;
+  line-height: 1.75;
 }
 
-/* v0.1.301 chart city pair UX */
-.formStage :global(.chart-form-fields) {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.36fr) minmax(0, 1fr);
+  grid-template-areas: "preview form";
+  gap: 16px;
   align-items: start;
 }
 
-.formStage :global(.chart-city-card) {
-  min-width: 0;
-  display: grid;
-  grid-column: span 1;
-  align-self: stretch;
-  align-content: start;
-  gap: 10px;
+.formPanel,
+.previewPanel,
+.education,
+.finalCta {
+  border: 1px solid var(--chart-border);
+  background: var(--chart-surface);
+  box-shadow: 0 22px 58px rgba(0, 0, 0, 0.22);
 }
 
-.formStage :global(.chart-city-card .chart-city-label) {
+.formPanel {
+  grid-area: form;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 26px;
+}
+
+.formPanelHeading {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 22px;
+  border-bottom: 1px solid var(--chart-border);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(125, 211, 252, 0.07), transparent 36%),
+    #0b0d11;
+}
+
+.panelStep {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--chart-border-strong);
+  border-radius: 13px;
+  color: #ffffff;
+  background: #101318;
+  font-size: 0.78rem;
+  font-weight: 860;
+}
+
+.formPanelHeading h2,
+.educationHeading h2,
+.finalCta h2 {
+  color: #ffffff;
+}
+
+.formPanelHeading h2 {
+  margin: 8px 0 0;
+  font-size: clamp(1.25rem, 2.4vw, 1.72rem);
+  line-height: 1.6;
+}
+
+.formPanelHeading p {
+  max-width: 60ch;
+  margin: 6px 0 0;
+  color: #c7cfda;
+  font-size: 0.82rem;
+  line-height: 1.9;
+}
+
+.previewPanel {
+  grid-area: preview;
+  position: sticky;
+  top: 98px;
+  display: grid;
+  gap: 14px;
+  border-radius: 24px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(125, 211, 252, 0.07), transparent 34%),
+    #0b0d11;
+}
+
+.previewPanelHeader {
+  display: grid;
+  gap: 5px;
+}
+
+.previewPanelHeader span {
+  color: #a9b2bd;
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
+.previewPanelHeader strong {
+  color: #ffffff;
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+
+.previewItems {
   display: grid;
   gap: 8px;
 }
 
-.formStage :global(.chart-city-card .city-suggestion-chips) {
-  align-content: start;
+.previewItems article {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  padding: 11px;
+  border: 1px solid var(--chart-border);
+  border-radius: 15px;
+  background: var(--chart-surface-raised);
 }
 
-.formStage :global(.city-suggestion-chip[data-selected="true"]) {
-  border-color: rgba(64, 78, 151, 0.82);
+.previewItems article > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
   color: #ffffff;
-  background: linear-gradient(135deg, #344574 0%, #6570aa 100%);
-  box-shadow: 0 8px 18px rgba(50, 65, 126, 0.2);
+  background: #171c23;
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.previewItems div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.previewItems strong {
+  color: #ffffff;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.previewItems small {
+  color: #a9b2bd;
+  font-size: 0.74rem;
+  line-height: 1.65;
+}
+
+.previewPrivacy {
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(125, 211, 252, 0.11);
+  border-radius: 14px;
+  color: #c7cfda;
+  background: rgba(125, 211, 252, 0.045);
+  font-size: 0.78rem;
+  line-height: 1.9;
+}
+
+.previewLink {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.formPanel :global(.chart-reference-page) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+}
+
+.formPanel :global(.chart-reference-shell) {
+  min-height: 0 !important;
+  overflow: visible !important;
+  display: block !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.formPanel :global(.chart-reference-content) {
+  width: 100% !important;
+  margin: 0 !important;
+  display: grid !important;
+  gap: 14px !important;
+  padding: 20px 22px 22px !important;
+  background: transparent !important;
+}
+
+.formPanel :global(.chart-reference-form) {
+  display: grid !important;
+  gap: 14px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.formPanel :global(.chart-form-fields) {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.formPanel :global(.chart-field) {
+  min-width: 0 !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 11px !important;
+  padding: 18px 2px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease !important;
+}
+
+.formPanel :global(.chart-field:focus-within) {
+  z-index: 2;
+  border-bottom-color: rgba(125, 211, 252, 0.44) !important;
+  background: linear-gradient(90deg, rgba(125, 211, 252, 0.035), transparent 34%) !important;
+  box-shadow: none !important;
+}
+
+.formPanel :global(.chart-field-full),
+.formPanel :global(.chart-city-card),
+.formPanel :global(.chart-transit-choice) {
+  grid-column: 1 / -1 !important;
+}
+
+.formPanel :global(.chart-field-label),
+.formPanel :global(.chart-field-title-row),
+.formPanel :global(.chart-time-title-row) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.formPanel :global(.chart-field-title-row),
+.formPanel :global(.chart-time-title-row) {
+  justify-content: space-between !important;
+}
+
+.formPanel :global(.chart-field-label) {
+  color: #ffffff !important;
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+}
+
+.formPanel :global(.chart-field-label > span:first-child) {
+  display: grid !important;
+  width: 30px !important;
+  height: 30px !important;
+  place-items: center !important;
+  border: 1px solid var(--chart-border) !important;
+  border-radius: 9px !important;
+  color: #dceeff !important;
+  background: #101318 !important;
+  font-size: 15px !important;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.formPanel :global(.chart-field:focus-within .chart-field-label > span:first-child) {
+  border-color: rgba(125, 211, 252, 0.32) !important;
+  color: #ffffff !important;
+  background: rgba(125, 211, 252, 0.08) !important;
+  transform: translateY(-2px) rotate(-4deg);
+}
+
+.formPanel :global(.chart-optional-label),
+.formPanel :global(.chart-required-label) {
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  font-size: 0.67rem !important;
+  font-weight: 760 !important;
+}
+
+.formPanel :global(.chart-optional-label) {
+  color: #c7cfda !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+}
+
+.formPanel :global(.chart-required-label) {
+  border: 1px solid rgba(125, 211, 252, 0.2) !important;
+  color: #ffffff !important;
+  background: rgba(125, 211, 252, 0.12) !important;
+}
+
+.formPanel :global(.chart-field input) {
+  width: 100% !important;
+  min-height: 56px !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--chart-border-strong) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  background: #0d0f13 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-weight: 650 !important;
+}
+
+.formPanel :global(.chart-field input::placeholder) {
+  color: #8f99a5 !important;
+  opacity: 1 !important;
+}
+
+.formPanel :global(.chart-field input:focus) {
+  border-color: rgba(125, 211, 252, 0.58) !important;
+  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.07) !important;
+}
+
+.formPanel :global(.birth-date-picker-grid),
+.formPanel :global(.birth-time-picker-grid) {
+  position: relative !important;
+  display: grid !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  border: 1px solid var(--chart-border-strong) !important;
+  border-radius: 15px !important;
+  background: var(--chart-surface-soft) !important;
+}
+
+.formPanel :global(.birth-date-picker-grid) {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.formPanel :global(.birth-time-picker-grid) {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  direction: ltr !important;
+}
+
+.formPanel :global(.birth-time-picker-grid::after) {
+  content: ":" !important;
+  position: absolute !important;
+  inset: 50% 50% auto auto !important;
+  z-index: 3 !important;
+  color: #ffffff !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  transform: translate(50%, -38%) !important;
+  pointer-events: none !important;
+}
+
+.formPanel :global(.birth-date-picker-grid label),
+.formPanel :global(.birth-time-picker-grid label) {
+  position: relative !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 3px !important;
+  padding: 9px 11px 7px !important;
+  color: #a9b2bd !important;
+  background: transparent !important;
+  font-size: 0.65rem !important;
+  font-weight: 720 !important;
+}
+
+.formPanel :global(.birth-time-picker-grid label) {
+  direction: rtl !important;
+}
+
+.formPanel :global(.birth-date-picker-grid label + label),
+.formPanel :global(.birth-time-picker-grid label + label) {
+  border-inline-start: 1px solid var(--chart-border) !important;
+}
+
+.formPanel :global(.birth-date-picker-grid label::after),
+.formPanel :global(.birth-time-picker-grid label::after) {
+  content: "⌄" !important;
+  position: absolute !important;
+  inset: auto auto 15px 10px !important;
+  color: #7dd3fc !important;
+  font-size: 0.76rem !important;
+  pointer-events: none !important;
+}
+
+.formPanel :global(.birth-date-picker-grid select),
+.formPanel :global(.birth-time-picker-grid select) {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 38px !important;
+  padding: 0 0 0 18px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  font: inherit !important;
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  color-scheme: dark !important;
+}
+
+.formPanel :global(.birth-date-picker-grid option),
+.formPanel :global(.birth-time-picker-grid option) {
+  color: #ffffff !important;
+  background: #0b0d11 !important;
+}
+
+.formPanel :global(.birth-date-picker-grid label:focus-within),
+.formPanel :global(.birth-time-picker-grid label:focus-within) {
+  background: rgba(125, 211, 252, 0.06) !important;
+  box-shadow: inset 0 -2px 0 rgba(125, 211, 252, 0.75) !important;
+}
+
+.formPanel :global(.birth-date-picker-grid select:disabled),
+.formPanel :global(.birth-time-picker-grid select:disabled) {
+  color: #6f7883 !important;
+  cursor: not-allowed !important;
+}
+
+.formPanel :global(.date-mode-switch) {
+  display: inline-grid !important;
+  grid-template-columns: repeat(2, minmax(76px, 1fr)) !important;
+  padding: 3px !important;
+  border: 1px solid var(--chart-border) !important;
+  border-radius: 11px !important;
+  background: #0f1217 !important;
+}
+
+.formPanel :global(.date-mode-button) {
+  min-height: 34px !important;
+  padding: 0 11px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: #a9b2bd !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  font: inherit !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease !important;
+}
+
+.formPanel :global(.date-mode-button.is-active) {
+  color: #ffffff !important;
+  background: #202631 !important;
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.24) !important;
+}
+
+.formPanel :global(.time-unknown-choice),
+.formPanel :global(.chart-account-option-toggle) {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: #c7cfda !important;
+  font-size: 0.72rem !important;
+  font-weight: 720 !important;
+  cursor: pointer !important;
+}
+
+.formPanel :global(.time-unknown-choice input),
+.formPanel :global(.chart-account-option-toggle input),
+.formPanel :global(.chart-transit-choice input) {
+  position: relative !important;
+  width: 42px !important;
+  height: 24px !important;
+  flex: 0 0 42px !important;
+  margin: 0 !important;
+  appearance: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 999px !important;
+  background: #171a20 !important;
+  cursor: pointer !important;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease !important;
+}
+
+.formPanel :global(.time-unknown-choice input::after),
+.formPanel :global(.chart-account-option-toggle input::after),
+.formPanel :global(.chart-transit-choice input::after) {
+  content: "" !important;
+  position: absolute !important;
+  inset: 3px auto auto 3px !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  background: #a9b2bd !important;
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 180ms ease !important;
+}
+
+.formPanel :global(.time-unknown-choice input:checked),
+.formPanel :global(.chart-account-option-toggle input:checked),
+.formPanel :global(.chart-transit-choice input:checked) {
+  border-color: rgba(125, 211, 252, 0.5) !important;
+  background: rgba(125, 211, 252, 0.2) !important;
+  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.06) !important;
+}
+
+.formPanel :global(.time-unknown-choice input:checked::after),
+.formPanel :global(.chart-account-option-toggle input:checked::after),
+.formPanel :global(.chart-transit-choice input:checked::after) {
+  background: #ffffff !important;
+  transform: translateX(18px) !important;
+}
+
+.formPanel :global(.field-hint),
+.formPanel :global(.chart-field-error) {
+  display: block !important;
+  margin: 0 !important;
+  padding: 9px 10px !important;
+  border-radius: 11px !important;
+  font-size: 0.78rem !important;
+  line-height: 1.9 !important;
+  animation: hintReveal 190ms ease both;
+}
+
+.formPanel :global(.field-hint) {
+  color: #c7cfda !important;
+  background: rgba(125, 211, 252, 0.055) !important;
+}
+
+.formPanel :global(.chart-field-error) {
+  color: #fecaca !important;
+  background: rgba(127, 29, 29, 0.34) !important;
+}
+
+.formPanel :global(.city-suggestion-chips) {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.formPanel :global(.city-suggestion-chip) {
+  min-height: 32px !important;
+  padding: 5px 10px !important;
+  border: 1px solid var(--chart-border) !important;
+  border-radius: 999px !important;
+  color: #dceeff !important;
+  background: #101318 !important;
+  cursor: pointer !important;
+  font: inherit !important;
+  font-size: 0.76rem !important;
+  font-weight: 760 !important;
+}
+
+.formPanel :global(.city-suggestion-chip:hover) {
+  border-color: rgba(125, 211, 252, 0.4) !important;
+  color: #ffffff !important;
+  background: #161b22 !important;
+}
+
+.formPanel :global(.chart-transit-choice) {
+  display: grid !important;
+  grid-template-columns: 20px minmax(0, 1fr) !important;
+  gap: 11px !important;
+  align-items: start !important;
+  padding: 18px 2px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  cursor: pointer !important;
+}
+
+.formPanel :global(.chart-transit-choice > span) {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.formPanel :global(.chart-transit-choice strong) {
+  color: #ffffff !important;
+  font-size: 0.8rem !important;
+  line-height: 1.7 !important;
+}
+
+.formPanel :global(.chart-transit-choice small) {
+  color: #b9c2cd !important;
+  font-size: 0.78rem !important;
+  line-height: 1.9 !important;
+}
+
+.formPanel :global(.chart-transit-location) {
+  animation: enterUp 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.formPanel :global(.chart-account-option) {
+  display: grid !important;
+  gap: 11px !important;
+  padding: 18px 2px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.formPanel :global(.chart-account-option-copy strong) {
+  color: #ffffff !important;
+  font-size: 0.78rem !important;
+}
+
+.formPanel :global(.chart-form-actions) {
+  display: grid !important;
+  margin: 0 !important;
+}
+
+.formPanel :global(.chart-submit-button) {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 68px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  padding: 10px 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 15px !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #2b3240, #161a22) !important;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3) !important;
+  font-size: 0.9rem !important;
+  font-weight: 840 !important;
+  cursor: pointer !important;
+  transition:
+    transform 170ms ease,
+    box-shadow 170ms ease,
+    opacity 170ms ease !important;
+}
+
+.formPanel :global(.chart-submit-button:hover:not(:disabled)) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.38) !important;
+}
+
+.formPanel :global(.chart-submit-button:active:not(:disabled)) {
+  transform: translateY(0) scale(0.992) !important;
+}
+
+.formPanel :global(.chart-submit-button:disabled) {
+  cursor: wait !important;
+  opacity: 0.78 !important;
+}
+
+.formPanel :global(.chart-submit-icon) {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.formPanel :global(.chart-submit-icon img) {
+  width: 48px !important;
+  height: 48px !important;
+  object-fit: contain !important;
+}
+
+.formGuide {
+  margin: 0 22px 22px;
+  overflow: hidden;
+  border: 1px solid var(--chart-border);
+  border-radius: 17px;
+  background: var(--chart-surface-raised);
+}
+
+.formGuide summary,
+.supportGroup summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.formGuide summary::-webkit-details-marker,
+.supportGroup summary::-webkit-details-marker {
+  display: none;
+}
+
+.formGuide summary {
+  min-height: 50px;
+  padding: 10px 13px;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 790;
+}
+
+.formGuide summary span:last-child,
+.supportGroup summary > span:last-child {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #171c23;
+  transition: transform 160ms ease;
+}
+
+.formGuide[open] summary span:last-child,
+.supportGroup[open] summary > span:last-child {
+  transform: rotate(45deg);
+}
+
+.formGuide ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0 32px 14px 14px;
+  color: #b9c2cd;
+  font-size: 0.78rem;
+  line-height: 1.9;
+}
+
+.education {
+  overflow: hidden;
+  border-radius: 26px;
+  padding: 24px;
+}
+
+.educationHeading {
+  max-width: 700px;
+}
+
+.educationHeading h2 {
+  margin: 10px 0 0;
+  font-size: clamp(1.28rem, 2.6vw, 1.86rem);
+  line-height: 1.6;
+}
+
+.educationHeading p {
+  margin: 6px 0 0;
+  color: #c7cfda;
+  font-size: 0.8rem;
+  line-height: 1.9;
+}
+
+.supportStack {
+  display: grid;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.supportGroup {
+  overflow: hidden;
+  border: 1px solid var(--chart-border);
+  border-radius: 18px;
+  background: var(--chart-surface-raised);
+}
+
+.supportGroup summary {
+  min-height: 58px;
+  padding: 12px 15px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 810;
+}
+
+.supportGroupBody {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 12px;
+  animation: hintReveal 190ms ease both;
+}
+
+.supportSection {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid var(--chart-border);
+  border-radius: 15px;
+  background: #0d1015;
+}
+
+.supportSection h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 0.94rem;
+  line-height: 1.7;
+}
+
+.supportSectionCopy {
+  display: grid;
+  gap: 8px;
+}
+
+.detailSubheading {
+  margin: 6px 0 0;
+  color: #edf2f7;
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+
+.detailParagraph,
+.detailNote,
+.detailList {
+  margin: 0;
+  color: #edf2f7;
+  font-size: 0.78rem;
+  line-height: 2;
+}
+
+.detailNote {
+  padding: 9px 10px;
+  border-inline-start: 2px solid rgba(125, 211, 252, 0.65);
+  border-radius: 10px;
+  background: rgba(125, 211, 252, 0.045);
+}
+
+.detailList {
+  display: grid;
+  gap: 5px;
+  padding-inline-start: 18px;
+}
+
+.contextLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.contextLinks a {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid var(--chart-border);
+  border-radius: 10px;
+  color: #ffffff;
+  background: #181d26;
+  font-size: 0.7rem;
+  font-weight: 770;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.contextLinks a:hover {
+  border-color: rgba(125, 211, 252, 0.36);
+  background: #171c23;
   transform: translateY(-1px);
 }
 
-.formStage :global(.city-suggestion-chip[data-selected="true"]:hover) {
+.finalCta {
+  display: grid;
+  justify-items: start;
+  gap: 9px;
+  padding: 24px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(125, 211, 252, 0.07), transparent 28%),
+    #0b0d11;
+}
+
+.finalCta h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  line-height: 1.6;
+}
+
+.finalCta p {
+  max-width: 62ch;
+  margin: 0;
+  color: #c7cfda;
+  font-size: 0.8rem;
+  line-height: 1.9;
+}
+
+.finalCta .heroPrimary {
+  margin-top: 4px;
+}
+
+.formPanel :global(.chart-generation-overlay) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 180 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 20px !important;
+  background: rgba(2, 3, 5, 0.82) !important;
+  backdrop-filter: blur(14px) saturate(115%) !important;
+  animation: overlayReveal 180ms ease both;
+}
+
+.formPanel :global(.chart-generation-dialog) {
+  width: min(460px, 100%) !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 14px !important;
+  padding: 28px 24px 24px !important;
+  border: 1px solid var(--chart-border-strong) !important;
+  border-radius: 24px !important;
+  color: #ffffff !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(125, 211, 252, 0.09), transparent 34%),
+    #0b0d11 !important;
+  box-shadow: 0 36px 100px rgba(0, 0, 0, 0.52) !important;
+  text-align: center !important;
+  animation: dialogReveal 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.formPanel :global(.chart-generation-symbol) {
+  position: relative !important;
+  width: 136px !important;
+  height: 136px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 31px !important;
+  background: #141922 !important;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.32),
+    0 0 38px rgba(125, 211, 252, 0.08) !important;
+}
+
+.formPanel :global(.chart-generation-symbol::after) {
+  content: "" !important;
+  position: absolute !important;
+  inset: -9px !important;
+  border: 1px solid rgba(125, 211, 252, 0.16) !important;
+  border-radius: 38px !important;
+  animation: submitHalo 1.9s ease-in-out infinite;
+}
+
+.formPanel :global(.chart-generation-symbol img) {
+  width: 110px !important;
+  height: 110px !important;
+  object-fit: contain !important;
+}
+
+.formPanel :global(.chart-generation-symbol.is-progress img) {
+  animation: submitLogoSpin 0.96s linear infinite;
+}
+
+.formPanel :global(.chart-generation-symbol.is-ready) {
+  border-color: rgba(187, 247, 208, 0.22) !important;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.32),
+    0 0 42px rgba(187, 247, 208, 0.1) !important;
+}
+
+.formPanel :global(.chart-generation-symbol.is-error) {
+  border-color: rgba(254, 202, 202, 0.22) !important;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.32),
+    0 0 42px rgba(254, 202, 202, 0.08) !important;
+}
+
+.formPanel :global(.chart-generation-copy) {
+  display: grid !important;
+  justify-items: center !important;
+  gap: 7px !important;
+}
+
+.formPanel :global(.chart-generation-copy strong) {
+  color: #ffffff !important;
+  font-size: 1.04rem !important;
+  line-height: 1.7 !important;
+}
+
+.formPanel :global(.chart-generation-copy p) {
+  max-width: 42ch !important;
+  margin: 0 !important;
+  color: #c7cfda !important;
+  font-size: 0.78rem !important;
+  line-height: 1.9 !important;
+}
+
+.formPanel :global(.chart-generation-copy small) {
+  color: #a9b2bd !important;
+  font-size: 0.7rem !important;
+  line-height: 1.75 !important;
+}
+
+.formPanel :global(.chart-generation-actions) {
+  width: 100% !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-top: 2px !important;
+}
+
+.formPanel :global(.chart-generation-actions .button) {
+  min-height: 42px !important;
+  padding: 0 15px !important;
+  border-radius: 11px !important;
+  color: #ffffff !important;
+  background: #202631 !important;
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+}
+
+.formPanel :global(.chart-generation-actions .button.secondary) {
+  border: 1px solid var(--chart-border) !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+}
+
+@keyframes enterUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes enterScale {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes orbitRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbitRotateReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes orbitTilt {
+  to {
+    transform: rotate(342deg);
+  }
+}
+
+@keyframes starFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@keyframes markFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+@keyframes hintReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes overlayReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialogReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes submitLogoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes submitHalo {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(1.06);
+  }
+}
+
+@media (max-width: 980px) {
+  .hero {
+    min-height: 420px;
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "form"
+      "preview";
+  }
+
+  .previewPanel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    width: calc(100% - 18px);
+    padding-top: 8px;
+    padding-bottom: 44px;
+    gap: 12px;
+  }
+
+  .hero {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 26px 18px 20px;
+    border-radius: 24px;
+  }
+
+  .heroTitle {
+    max-width: 100%;
+    margin-top: 15px;
+    font-size: var(
+      --halleus-public-h1-size,
+      clamp(1.5rem, 2.35vw, 1.95rem)
+    );
+  }
+
+  .heroLead {
+    font-size: 0.87rem;
+  }
+
+  .heroLead + .heroLead {
+    font-size: 0.78rem;
+  }
+
+  .heroActions {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-top: 20px;
+  }
+
+  .heroPrimary,
+  .heroSecondary {
+    width: 100%;
+  }
+
+  .heroVisual {
+    min-height: 210px;
+  }
+
+  .heroPlanet {
+    width: 220px;
+  }
+
+  .heroPlanet img {
+    width: 96px;
+    height: 96px;
+  }
+
+  .heroPreviewCard {
+    inset: auto 0 0 auto;
+    width: min(240px, 92%);
+  }
+
+  .formPanel,
+  .previewPanel,
+  .education,
+  .finalCta {
+    border-radius: 21px;
+  }
+
+  .formPanelHeading {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 11px;
+    padding: 18px 15px;
+  }
+
+  .panelStep {
+    width: 40px;
+    height: 40px;
+  }
+
+  .formPanel :global(.chart-reference-content) {
+    padding: 15px !important;
+  }
+
+  .formPanel :global(.chart-form-fields) {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .formPanel :global(.chart-field),
+  .formPanel :global(.chart-transit-choice) {
+    grid-column: 1 / -1 !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .formPanel :global(.chart-field-title-row),
+  .formPanel :global(.chart-time-title-row) {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .formPanel :global(.date-mode-switch) {
+    width: 100% !important;
+  }
+
+  .formPanel :global(.birth-date-picker-grid label),
+  .formPanel :global(.birth-time-picker-grid label) {
+    padding-inline: 8px !important;
+  }
+
+  .formPanel :global(.birth-date-picker-grid select),
+  .formPanel :global(.birth-time-picker-grid select) {
+    font-size: 0.78rem !important;
+  }
+
+  .formPanel :global(.time-unknown-choice) {
+    width: 100% !important;
+  }
+
+  .formPanel :global(.chart-submit-button) {
+    min-height: 66px !important;
+  }
+
+  .formGuide {
+    margin: 0 15px 15px;
+  }
+
+  .previewPanel,
+  .education,
+  .finalCta {
+    padding: 17px 15px;
+  }
+
+  .supportGroup summary {
+    min-height: 54px;
+    padding: 11px 12px;
+  }
+
+  .supportGroupBody {
+    padding: 0 9px 9px;
+  }
+
+  .supportSection {
+    padding: 12px;
+  }
+
+  .formPanel :global(.chart-generation-dialog) {
+    padding: 24px 18px 20px !important;
+    border-radius: 21px !important;
+  }
+
+  .formPanel :global(.chart-generation-symbol) {
+    width: 84px !important;
+    height: 84px !important;
+    border-radius: 27px !important;
+  }
+
+  .formPanel :global(.chart-generation-symbol img) {
+    width: 68px !important;
+    height: 68px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .page {
+    width: calc(100% - 12px);
+  }
+
+  .hero {
+    padding-inline: 15px;
+  }
+
+  .formPanel :global(.birth-date-picker-grid) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .formPanel :global(.birth-date-picker-grid label) {
+    padding-inline: 6px !important;
+  }
+
+  .formPanel :global(.birth-date-picker-grid select) {
+    font-size: 0.72rem !important;
+  }
+
+  .contextLinks {
+    display: grid;
+  }
+
+  .contextLinks a {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  .formPanel :global(.chart-generation-symbol.is-progress img) {
+    animation: submitHalo 1.8s ease-in-out infinite !important;
+  }
+}
+
+/* chart-modern-form-motion-v3 */
+.formPanel :global(.chart-city-card) {
+  position: relative !important;
+}
+
+.formPanel :global(.city-suggestion-chips.has-suggestions) {
+  position: absolute !important;
+  inset: calc(100% - 8px) 0 auto !important;
+  z-index: 35 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 4px !important;
+  max-height: 260px !important;
+  padding: 8px !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  background: rgba(8, 9, 12, 0.98) !important;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.48) !important;
+  backdrop-filter: blur(18px) !important;
+  animation: dropdownReveal 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.formPanel :global(.city-suggestion-chips.has-suggestions .city-suggestion-chip) {
+  width: 100% !important;
+  min-height: 42px !important;
+  justify-content: flex-start !important;
+  border-radius: 10px !important;
+  text-align: right !important;
+}
+
+.formPanel :global(.chart-form-progress) {
+  display: grid !important;
+  gap: 11px !important;
+  margin-bottom: 4px !important;
+  padding: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 18px !important;
+  background: #090a0d !important;
+}
+
+.formPanel :global(.chart-form-progress-header) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  color: #ffffff !important;
+}
+
+.formPanel :global(.chart-form-progress-header span) {
+  font-size: 0.8rem !important;
+  font-weight: 760 !important;
+}
+
+.formPanel :global(.chart-form-progress-header strong) {
+  color: #dceeff !important;
+  font-size: 0.78rem !important;
+}
+
+.formPanel :global(.chart-form-progress-bar) {
+  position: relative !important;
+  height: 4px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.formPanel :global(.chart-form-progress-bar::after) {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 0 0 auto !important;
+  width: var(--chart-progress) !important;
+  border-radius: inherit !important;
+  background: linear-gradient(270deg, #ffffff, #7dd3fc) !important;
+  box-shadow: 0 0 18px rgba(125, 211, 252, 0.34) !important;
+  transition: width 260ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.formPanel :global(.chart-form-progress-steps) {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.formPanel :global(.chart-form-progress-step) {
+  display: inline-flex !important;
+  min-height: 32px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 0 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  color: #8f99a5 !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  font-size: 0.68rem !important;
+  font-weight: 720 !important;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.formPanel :global(.chart-form-progress-step::before) {
+  content: "" !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: currentColor !important;
+}
+
+.formPanel :global(.chart-form-progress-step.is-complete) {
+  border-color: rgba(125, 211, 252, 0.22) !important;
+  color: #ffffff !important;
+  background: rgba(125, 211, 252, 0.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+.supportGroup[open] .supportGroupContent,
+.formGuide[open] ul {
+  animation: detailsReveal 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dropdownReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes detailsReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .education,
+  .finalCta {
+    animation: sectionViewReveal linear both;
+    animation-timeline: view();
+    animation-range: entry 4% cover 24%;
+  }
+}
+
+@keyframes sectionViewReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroLogoScroll {
+  from {
+    transform: rotate(-10deg) scale(0.98);
+  }
+  to {
+    transform: rotate(26deg) scale(1.02);
+  }
+}
+
+@keyframes heroRingScroll {
+  from {
+    transform: rotate(-18deg) scale(0.98);
+  }
+  to {
+    transform: rotate(10deg) scale(1.02);
+  }
+}
+
+@supports (animation-timeline: scroll(root block)) {
+  .heroPlanet {
+    animation: heroLogoScroll linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 720px;
+  }
+
+  .heroPlanetRing {
+    animation: heroRingScroll linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 720px;
+  }
+}
+
+/* chart-centered-modern-v4 */
+.page {
+  --chart-bg: #030406;
+  --chart-surface: #07080b;
+  --chart-surface-raised: #0a0c10;
+  --chart-surface-soft: #0d1014;
+  --chart-border: rgba(255, 255, 255, 0.09);
+  --chart-border-strong: rgba(255, 255, 255, 0.16);
+  --chart-text: #f7f9fc;
+  --chart-text-soft: #d8dee7;
+  --chart-muted: #aab4c0;
+  --chart-faint: #808b98;
+  --chart-ice: #dceeff;
+  --chart-blue: #8fd8ff;
+  gap: clamp(22px, 3vw, 34px);
+  color: var(--chart-text);
+  background: var(--chart-bg);
+  box-shadow: 0 0 0 100vmax var(--chart-bg);
+  clip-path: inset(0 -100vmax);
+}
+
+.hero {
+  min-height: 410px;
+  border-color: rgba(255, 255, 255, 0.085);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 18% 48%, rgba(143, 216, 255, 0.055), transparent 20rem),
+    linear-gradient(145deg, #030406 0%, #07090c 68%, #0a0d12 100%);
+  box-shadow: none;
+}
+
+.heroTitle,
+.formPanelHeading h2,
+.educationHeading h2,
+.finalCta h2,
+.supportSection h3 {
+  color: #f7f9fc !important;
+  -webkit-text-fill-color: #f7f9fc !important;
+}
+
+.heroLead {
+  color: #d8dee7 !important;
+  -webkit-text-fill-color: #d8dee7 !important;
+}
+
+.heroLead + .heroLead,
+.formPanelHeading p,
+.educationHeading p,
+.finalCta p {
+  color: #aab4c0 !important;
+  -webkit-text-fill-color: #aab4c0 !important;
+}
+
+.heroVisual {
+  min-height: 250px;
+  opacity: 0.9;
+}
+
+.heroPlanet {
+  width: 210px;
+  height: 210px;
+}
+
+.heroPreviewCard {
+  border-color: rgba(255, 255, 255, 0.11);
+  background: rgba(3, 4, 6, 0.88);
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.28);
+}
+
+.heroPrimary,
+.formPanel :global(.chart-submit-button) {
+  border-color: #dceeff !important;
+  color: #05070a !important;
+  -webkit-text-fill-color: #05070a !important;
+  background: #dceeff !important;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34) !important;
+}
+
+.heroPrimary:hover,
+.formPanel :global(.chart-submit-button:hover:not(:disabled)) {
+  border-color: #ffffff !important;
+  background: #ffffff !important;
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.42) !important;
+}
+
+.heroSecondary {
+  color: #f7f9fc;
+  -webkit-text-fill-color: #f7f9fc;
+  background: transparent;
+}
+
+.reportStrip {
+  width: min(920px, 100%);
+  margin-inline: auto;
+  padding: 22px 0;
+  display: grid;
+  gap: 18px;
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reportStripIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.reportStripIntro strong {
+  color: #f7f9fc;
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+
+.reportStripItems {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.reportStripItems article {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 11px;
+  align-items: start;
+  padding: 4px 18px;
+}
+
+.reportStripItems article + article {
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reportStripItems article > span {
+  color: #8fd8ff;
+  font-size: 0.7rem;
+  font-weight: 840;
+  letter-spacing: 0.04em;
+}
+
+.reportStripItems article div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.reportStripItems strong {
+  color: #f7f9fc;
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+.reportStripItems small {
+  color: #909ba8;
+  font-size: 0.76rem;
+  line-height: 1.8;
+}
+
+.reportStripPrivacy {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  color: #b8c3cf;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.reportStripPrivacy:hover {
   color: #ffffff;
-  background: linear-gradient(135deg, #2f406e 0%, #59669f 100%);
+}
+
+.workspace {
+  display: block;
+}
+
+.formPanel {
+  width: min(780px, 100%);
+  margin-inline: auto;
+  border-color: rgba(255, 255, 255, 0.095);
+  border-radius: 22px;
+  background: #07080b;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.26);
+}
+
+.formPanelHeading {
+  display: block;
+  padding: 28px 30px 12px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.formPanelHeading h2 {
+  margin: 10px 0 0;
+}
+
+.formPanelHeading p {
+  max-width: 58ch;
+  font-size: 0.88rem;
+}
+
+.formPanel :global(.chart-reference-content) {
+  gap: 0 !important;
+  padding: 0 30px 30px !important;
+}
+
+.formPanel :global(.chart-reference-form) {
+  gap: 0 !important;
+}
+
+.formPanel :global(.chart-form-progress) {
+  margin: 0 !important;
+  padding: 10px 0 28px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.formPanel :global(.chart-form-progress-header) {
+  margin-bottom: 18px !important;
+}
+
+.formPanel :global(.chart-form-progress-header span) {
+  color: #b9c3cf !important;
+  font-size: 0.76rem !important;
+}
+
+.formPanel :global(.chart-form-progress-header strong) {
+  color: #f7f9fc !important;
+  font-size: 0.75rem !important;
+}
+
+.formPanel :global(.chart-form-progress-bar) {
+  height: 2px !important;
+  margin-inline: 12.5% !important;
+  overflow: visible !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.09) !important;
+}
+
+.formPanel :global(.chart-form-progress-bar::after) {
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, #dceeff, #8fd8ff) !important;
+  box-shadow: 0 0 18px rgba(143, 216, 255, 0.26) !important;
+}
+
+.formPanel :global(.chart-form-progress-steps) {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  margin-top: -8px !important;
+}
+
+.formPanel :global(.chart-form-progress-step) {
+  min-height: 0 !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #727d89 !important;
+  background: transparent !important;
+  font-size: 0.7rem !important;
+  font-weight: 720 !important;
+}
+
+.formPanel :global(.chart-form-progress-step::before) {
+  width: 12px !important;
+  height: 12px !important;
+  border: 2px solid #07080b !important;
+  border-radius: 50% !important;
+  background: #303640 !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+}
+
+.formPanel :global(.chart-form-progress-step.is-complete) {
+  color: #f7f9fc !important;
+  background: transparent !important;
+}
+
+.formPanel :global(.chart-form-progress-step.is-complete::before) {
+  background: #dceeff !important;
+  box-shadow:
+    0 0 0 1px rgba(220, 238, 255, 0.7),
+    0 0 14px rgba(143, 216, 255, 0.34) !important;
+}
+
+.formPanel :global(.chart-form-fields) {
+  display: block !important;
+}
+
+.formPanel :global(.chart-field),
+.formPanel :global(.chart-transit-choice),
+.formPanel :global(.chart-account-option) {
+  padding-block: 24px !important;
+  border-bottom-color: rgba(255, 255, 255, 0.075) !important;
+}
+
+.formPanel :global(.chart-field:focus-within) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.formPanel :global(.chart-field-label) {
+  font-size: 0.94rem !important;
+}
+
+.formPanel :global(.chart-field-label > span:first-child) {
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #99a5b2 !important;
+  background: transparent !important;
+}
+
+.formPanel :global(.chart-field:focus-within .chart-field-label > span:first-child) {
+  color: #dceeff !important;
+  background: transparent !important;
+  transform: none !important;
+}
+
+.formPanel :global(.chart-field input) {
+  min-height: 58px !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  border-radius: 13px !important;
+  background: #0b0d11 !important;
+}
+
+.formPanel :global(.chart-field input:focus) {
+  border-color: rgba(143, 216, 255, 0.48) !important;
+  box-shadow: 0 0 0 3px rgba(143, 216, 255, 0.055) !important;
+}
+
+.formPanel :global(.birth-date-picker-grid) {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: #0b0d11 !important;
+}
+
+.formPanel :global(.birth-date-picker-grid label) {
+  min-height: 78px !important;
+  align-content: center !important;
+  padding: 10px 14px !important;
+}
+
+.formPanel :global(.birth-date-picker-grid select),
+.formPanel :global(.birth-time-picker-grid select) {
+  min-height: 42px !important;
+  font-size: 1rem !important;
+}
+
+.formPanel :global(.birth-time-picker-grid) {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.formPanel :global(.birth-time-picker-grid::after) {
+  display: none !important;
+}
+
+.formPanel :global(.birth-time-picker-grid label) {
+  min-height: 78px !important;
+  align-content: center !important;
+  padding: 10px 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 13px !important;
+  background: #0b0d11 !important;
+}
+
+.formPanel :global(.birth-time-picker-grid label + label) {
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+.formPanel :global(.date-mode-switch) {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: #090b0e !important;
+}
+
+.formPanel :global(.date-mode-button.is-active) {
+  color: #07090d !important;
+  -webkit-text-fill-color: #07090d !important;
+  background: #dceeff !important;
+  box-shadow: none !important;
+}
+
+.formPanel :global(.time-unknown-choice),
+.formPanel :global(.chart-account-option-toggle) {
+  min-height: 32px !important;
+  gap: 10px !important;
+  font-size: 0.78rem !important;
+}
+
+.formPanel :global(.time-unknown-choice input),
+.formPanel :global(.chart-account-option-toggle input),
+.formPanel :global(.chart-transit-choice input) {
+  inline-size: 42px !important;
+  min-inline-size: 42px !important;
+  max-inline-size: 42px !important;
+  block-size: 24px !important;
+  min-block-size: 24px !important;
+  max-block-size: 24px !important;
+  padding: 0 !important;
+  direction: ltr !important;
+  display: inline-block !important;
+}
+
+.formPanel :global(.time-unknown-choice input::after),
+.formPanel :global(.chart-account-option-toggle input::after),
+.formPanel :global(.chart-transit-choice input::after) {
+  inset: 3px auto auto 3px !important;
+}
+
+.formPanel :global(.chart-transit-choice) {
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+}
+
+.formPanel :global(.chart-transit-choice strong),
+.formPanel :global(.chart-account-option-copy strong) {
+  font-size: 0.88rem !important;
+}
+
+.formPanel :global(.chart-transit-choice small) {
+  font-size: 0.8rem !important;
+}
+
+.formPanel :global(.chart-submit-button) {
+  min-height: 64px !important;
+  margin-top: 18px !important;
+  border-radius: 13px !important;
+  font-size: 0.94rem !important;
+}
+
+.formPanel :global(.chart-submit-button:disabled) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #6f7a87 !important;
+  -webkit-text-fill-color: #6f7a87 !important;
+  background: #15181e !important;
+  box-shadow: none !important;
+}
+
+.formPanel :global(.chart-submit-icon),
+.formPanel :global(.chart-submit-icon img) {
+  width: 34px !important;
+  height: 34px !important;
+  flex-basis: 34px !important;
+}
+
+.formPanel :global(.chart-form-actions::after) {
+  content: "کمتر از دو دقیقه";
+  display: block;
+  margin-top: 10px;
+  color: #7f8a97;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.formGuide {
+  margin: 0 30px 28px;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 0;
+  background: transparent;
+}
+
+.formGuide summary {
+  padding-inline: 0;
+}
+
+.education {
+  width: min(820px, 100%);
+  margin-inline: auto;
+  padding: 42px 0 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.educationHeading {
+  max-width: 620px;
+}
+
+.educationHeading p {
+  font-size: 0.88rem;
+}
+
+.supportStack {
+  gap: 0;
+  margin-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.085);
+}
+
+.supportGroup {
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 0;
+  background: transparent;
+}
+
+.supportGroup summary {
+  min-height: 70px;
+  padding: 16px 0;
+  font-size: 0.94rem;
+}
+
+.supportGroup summary > span:last-child {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #0b0d11;
+}
+
+.supportGroupBody {
+  gap: 0;
+  padding: 0 0 24px;
+}
+
+.supportSection {
+  gap: 12px;
+  padding: 22px 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+  background: transparent;
+}
+
+.supportSection h3 {
+  font-size: 1.02rem;
+}
+
+.supportSectionCopy {
+  max-width: 68ch;
+  gap: 10px;
+}
+
+.detailSubheading {
+  color: #d8dee7;
+  font-size: 0.9rem;
+}
+
+.detailParagraph,
+.detailNote,
+.detailList {
+  color: #aab4c0;
+  font-size: 0.86rem;
+  line-height: 2.05;
+}
+
+.detailNote {
+  padding: 11px 14px;
+  border-inline-start-color: rgba(143, 216, 255, 0.55);
+  border-radius: 8px;
+  background: rgba(143, 216, 255, 0.035);
+}
+
+.contextLinks {
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.contextLinks a {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #cdeaff;
+  background: transparent;
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-decoration-color: rgba(143, 216, 255, 0.38);
+  text-underline-offset: 5px;
+}
+
+.contextLinks a:hover {
+  color: #ffffff;
+  background: transparent;
+  transform: none;
+}
+
+.finalCta {
+  width: min(820px, 100%);
+  margin-inline: auto;
+  justify-items: center;
+  gap: 11px;
+  padding: 48px 0 10px;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+
+.finalCta p {
+  font-size: 0.88rem;
+}
+
+.finalCta .heroPrimary {
+  margin-top: 8px;
 }
 
 @media (max-width: 760px) {
-  .formStage :global(.chart-form-fields) {
+  .page {
+    width: min(100% - 20px, 1160px);
+    padding-bottom: 42px;
+  }
+
+  .hero {
+    min-height: 0;
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+
+  .heroVisual {
+    min-height: 210px;
+  }
+
+  .reportStrip {
+    padding-block: 18px;
+  }
+
+  .reportStripIntro {
+    display: grid;
+    gap: 8px;
+  }
+
+  .reportStripItems {
     grid-template-columns: 1fr;
   }
 
-  .formStage :global(.chart-city-card) {
-    grid-column: 1 / -1;
+  .reportStripItems article {
+    padding: 14px 0;
   }
 
-  .formStage :global(.birth-time-picker-grid) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .reportStripItems article + article {
+    border-inline-start: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .formPanel {
+    border-radius: 18px;
+  }
+
+  .formPanelHeading {
+    padding: 24px 18px 10px;
+  }
+
+  .formPanel :global(.chart-reference-content) {
+    padding: 0 18px 24px !important;
+  }
+
+  .formPanel :global(.chart-form-progress-step) {
+    font-size: 0.64rem !important;
+  }
+
+  .formPanel :global(.chart-field-title-row),
+  .formPanel :global(.chart-time-title-row) {
+    align-items: flex-start !important;
+  }
+
+  .formPanel :global(.chart-time-title-row) {
+    display: grid !important;
+    gap: 12px !important;
+  }
+
+  .formPanel :global(.time-unknown-choice) {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .formGuide {
+    margin: 0 18px 22px;
+  }
+
+  .education {
+    padding-top: 30px;
+  }
+
+  .supportGroup summary {
+    min-height: 62px;
+  }
+
+  .finalCta {
+    padding-top: 36px;
+  }
+}
+
+@media (max-width: 430px) {
+  .formPanel :global(.chart-form-progress-header) {
+    align-items: center !important;
+  }
+
+  .formPanel :global(.chart-form-progress-step) {
+    font-size: 0.6rem !important;
+  }
+
+  .formPanel :global(.birth-date-picker-grid label),
+  .formPanel :global(.birth-time-picker-grid label) {
+    padding-inline: 8px !important;
+  }
+}
+
+
+/* chart-product-ready-controls-v4 */
+.formPanel :global(.birth-date-picker-grid),
+.formPanel :global(.birth-time-picker-grid) {
+  overflow: visible !important;
+}
+
+.formPanel :global(.chart-select-segment) {
+  position: relative !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 7px !important;
+  padding: 10px !important;
+  color: #cbd5e1 !important;
+  background: transparent !important;
+}
+
+.formPanel :global(.chart-select-segment + .chart-select-segment) {
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.formPanel :global(.chart-select-segment > span) {
+  color: #cbd5e1 !important;
+  font-size: 0.69rem !important;
+  font-weight: 760 !important;
+}
+
+.formPanel :global(.chart-select) {
+  position: relative !important;
+  min-width: 0 !important;
+}
+
+.formPanel :global(.chart-select-trigger) {
+  width: 100% !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 0 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  cursor: pointer !important;
+  font: inherit !important;
+  font-size: 0.88rem !important;
+  font-weight: 820 !important;
+  text-align: right !important;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease !important;
+}
+
+.formPanel :global(.chart-select-trigger:hover),
+.formPanel :global(.chart-select.is-open .chart-select-trigger) {
+  border-color: rgba(125, 211, 252, 0.32) !important;
+  background: rgba(125, 211, 252, 0.065) !important;
+}
+
+.formPanel :global(.chart-select-trigger:focus-visible) {
+  outline: none !important;
+  border-color: rgba(125, 211, 252, 0.58) !important;
+  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.08) !important;
+}
+
+.formPanel :global(.chart-select-trigger:disabled) {
+  color: #6f7883 !important;
+  cursor: not-allowed !important;
+  opacity: 0.58 !important;
+}
+
+.formPanel :global(.chart-select-chevron) {
+  color: #dceeff !important;
+  font-size: 0.72rem !important;
+  transition: transform 160ms ease !important;
+}
+
+.formPanel :global(.chart-select.is-open .chart-select-chevron) {
+  transform: rotate(180deg) !important;
+}
+
+.formPanel :global(.chart-select-options) {
+  position: absolute !important;
+  inset: calc(100% + 7px) 0 auto !important;
+  z-index: 80 !important;
+  display: grid !important;
+  gap: 3px !important;
+  max-height: 280px !important;
+  padding: 7px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  background: rgba(7, 9, 12, 0.985) !important;
+  box-shadow: 0 26px 62px rgba(0, 0, 0, 0.58) !important;
+  backdrop-filter: blur(18px) !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #7b8796 #171a20 !important;
+  animation: dropdownReveal 170ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.formPanel :global(.chart-select-options::-webkit-scrollbar) {
+  width: 8px !important;
+}
+
+.formPanel :global(.chart-select-options::-webkit-scrollbar-track) {
+  border-radius: 999px !important;
+  background: #171a20 !important;
+}
+
+.formPanel :global(.chart-select-options::-webkit-scrollbar-thumb) {
+  border: 2px solid #171a20 !important;
+  border-radius: 999px !important;
+  background: #7b8796 !important;
+}
+
+.formPanel :global(.chart-select-option) {
+  width: 100% !important;
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 7px 11px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  color: #f8fafc !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  font: inherit !important;
+  font-size: 0.84rem !important;
+  font-weight: 720 !important;
+  text-align: right !important;
+}
+
+.formPanel :global(.chart-select-option:hover),
+.formPanel :global(.chart-select-option:focus-visible) {
+  outline: none !important;
+  color: #ffffff !important;
+  background: rgba(125, 211, 252, 0.1) !important;
+}
+
+.formPanel :global(.chart-select-option.is-selected) {
+  color: #ffffff !important;
+  background: rgba(125, 211, 252, 0.15) !important;
+}
+
+.formPanel :global(.chart-select-option-check) {
+  color: #dceeff !important;
+  font-size: 0.78rem !important;
+}
+
+.formPanel :global(.time-unknown-choice input::before),
+.formPanel :global(.chart-account-option-toggle input::before),
+.formPanel :global(.chart-transit-choice input::before) {
+  content: "✓" !important;
+  position: absolute !important;
+  inset: 50% auto auto 5px !important;
+  z-index: 2 !important;
+  color: #071018 !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  opacity: 0 !important;
+  transform: translateY(-50%) !important;
+  transition:
+    opacity 150ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.formPanel :global(.time-unknown-choice input:checked::before),
+.formPanel :global(.chart-account-option-toggle input:checked::before),
+.formPanel :global(.chart-transit-choice input:checked::before) {
+  opacity: 1 !important;
+  transform: translate(18px, -50%) !important;
+}
+
+.formPanel :global(.time-unknown-choice input:focus-visible),
+.formPanel :global(.chart-account-option-toggle input:focus-visible),
+.formPanel :global(.chart-transit-choice input:focus-visible) {
+  outline: 2px solid rgba(220, 238, 255, 0.78) !important;
+  outline-offset: 3px !important;
+}
+
+.formPanel :global(.chart-transit-choice input),
+.formPanel :global(.chart-account-option-toggle input),
+.formPanel :global(.time-unknown-choice input) {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)) !important;
+}
+
+.formPanel :global(.chart-transit-choice input:checked),
+.formPanel :global(.chart-account-option-toggle input:checked),
+.formPanel :global(.time-unknown-choice input:checked) {
+  background-color: rgba(125, 211, 252, 0.26) !important;
+}
+
+.educationHeading p,
+.supportGroup summary,
+.supportSection,
+.supportSection h3,
+.supportSectionCopy,
+.supportSectionCopy p,
+.supportSectionCopy li,
+.supportSectionCopy span,
+.detailSubheading,
+.detailParagraph,
+.detailNote,
+.detailList {
+  color: #f4f7fb !important;
+}
+
+.educationHeading p {
+  color: #dce3ec !important;
+  font-size: 0.86rem !important;
+}
+
+.supportSectionCopy {
+  gap: 10px !important;
+}
+
+.detailParagraph,
+.detailNote,
+.detailList {
+  font-size: 0.82rem !important;
+  line-height: 2.05 !important;
+}
+
+.detailNote {
+  color: #edf5fc !important;
+  background: rgba(125, 211, 252, 0.065) !important;
+}
+
+.contextLinks {
+  gap: 14px !important;
+  padding-top: 8px !important;
+}
+
+.contextLinks a {
+  min-height: 32px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #dceeff !important;
+  background: transparent !important;
+  font-size: 0.78rem !important;
+  text-decoration: underline !important;
+  text-decoration-color: rgba(125, 211, 252, 0.5) !important;
+  text-underline-offset: 6px !important;
+}
+
+.contextLinks a:hover {
+  color: #ffffff !important;
+  text-decoration-color: #ffffff !important;
+}
+
+@media (max-width: 720px) {
+  .formPanel :global(.chart-select-options) {
+    max-height: 238px !important;
+  }
+
+  .formPanel :global(.chart-select-trigger) {
+    min-height: 42px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+.formPanel :global(.birth-time-picker-grid) {
+  direction: rtl !important;
+}
+
+.formPanel :global(.chart-select-segment) {
+  direction: rtl !important;
+}
+
+.formPanel :global(.city-suggestion-chips.has-suggestions) {
+  scrollbar-width: thin !important;
+  scrollbar-color: #7b8796 #171a20 !important;
+}
+
+.formPanel :global(.city-suggestion-chips.has-suggestions::-webkit-scrollbar) {
+  width: 8px !important;
+}
+
+.formPanel :global(.city-suggestion-chips.has-suggestions::-webkit-scrollbar-track) {
+  border-radius: 999px !important;
+  background: #171a20 !important;
+}
+
+.formPanel :global(.city-suggestion-chips.has-suggestions::-webkit-scrollbar-thumb) {
+  border: 2px solid #171a20 !important;
+  border-radius: 999px !important;
+  background: #7b8796 !important;
+}
+
+/* HALLEUS_CHART_FINAL_CONTROL_POLISH_20260806 */
+
+.formPanel :global(.time-unknown-choice input),
+.formPanel :global(.chart-account-option-toggle input),
+.formPanel :global(.chart-transit-choice input) {
+  inline-size: 27px !important;
+  min-inline-size: 27px !important;
+  max-inline-size: 27px !important;
+  block-size: 27px !important;
+  min-block-size: 27px !important;
+  max-block-size: 27px !important;
+  position: relative !important;
+  padding: 0 !important;
+  border: 1px solid rgba(220, 238, 255, 0.28) !important;
+  border-radius: 50% !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #101318 !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+    0 5px 16px rgba(0, 0, 0, 0.18) !important;
+  cursor: pointer !important;
+  transition:
+    border-color 170ms ease,
+    background-color 170ms ease,
+    box-shadow 170ms ease,
+    transform 170ms ease !important;
+}
+
+.formPanel :global(.time-unknown-choice input::after),
+.formPanel :global(.chart-account-option-toggle input::after),
+.formPanel :global(.chart-transit-choice input::after) {
+  display: none !important;
+  content: none !important;
+}
+
+.formPanel :global(.time-unknown-choice input::before),
+.formPanel :global(.chart-account-option-toggle input::before),
+.formPanel :global(.chart-transit-choice input::before) {
+  content: "✓" !important;
+  position: absolute !important;
+  inset: 50% auto auto 50% !important;
+  color: #071018 !important;
+  font-size: 0.72rem !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  opacity: 0 !important;
+  transform: translate(-50%, -50%) scale(0.72) !important;
+  transition:
+    opacity 150ms ease,
+    transform 170ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.formPanel :global(.time-unknown-choice input:hover),
+.formPanel :global(.chart-account-option-toggle input:hover),
+.formPanel :global(.chart-transit-choice input:hover) {
+  border-color: rgba(220, 238, 255, 0.52) !important;
+  transform: translateY(-1px) !important;
+}
+
+.formPanel :global(.time-unknown-choice input:checked),
+.formPanel :global(.chart-account-option-toggle input:checked),
+.formPanel :global(.chart-transit-choice input:checked) {
+  border-color: #dceeff !important;
+  background: #dceeff !important;
+  box-shadow:
+    0 0 0 4px rgba(125, 211, 252, 0.09),
+    0 0 18px rgba(125, 211, 252, 0.22) !important;
+}
+
+.formPanel :global(.time-unknown-choice input:checked::before),
+.formPanel :global(.chart-account-option-toggle input:checked::before),
+.formPanel :global(.chart-transit-choice input:checked::before) {
+  opacity: 1 !important;
+  transform: translate(-50%, -50%) scale(1) !important;
+}
+
+.formPanel :global(.time-unknown-choice input:focus-visible),
+.formPanel :global(.chart-account-option-toggle input:focus-visible),
+.formPanel :global(.chart-transit-choice input:focus-visible) {
+  outline: 2px solid rgba(220, 238, 255, 0.82) !important;
+  outline-offset: 4px !important;
+}
+
+.formPanel :global(.chart-transit-choice) {
+  grid-template-columns: 27px minmax(0, 1fr) !important;
+  column-gap: 14px !important;
+}
+
+.formPanel :global(.chart-form-progress) {
+  grid-template-rows: auto minmax(44px, auto) !important;
+  row-gap: 17px !important;
+}
+
+.formPanel :global(.chart-form-progress-header) {
+  margin-bottom: 0 !important;
+}
+
+.formPanel :global(.chart-form-progress-bar) {
+  grid-row: 2 !important;
+  grid-column: 1 !important;
+  align-self: start !important;
+  width: auto !important;
+  height: 2px !important;
+  margin: 5px 12.5% 0 !important;
+  overflow: visible !important;
+  z-index: 0 !important;
+}
+
+.formPanel :global(.chart-form-progress-bar::after) {
+  inset: 0 0 0 auto !important;
+  height: 2px !important;
+  background: linear-gradient(270deg, #ffffff, #8fd8ff) !important;
+}
+
+.formPanel :global(.chart-form-progress-steps) {
+  grid-row: 2 !important;
+  grid-column: 1 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  margin: 0 !important;
+  align-items: start !important;
+}
+
+.formPanel :global(.chart-form-progress-step) {
+  grid-template-rows: 12px auto !important;
+  align-content: start !important;
+  justify-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  color: #7f8995 !important;
+  line-height: 1.5 !important;
+  text-align: center !important;
+}
+
+.formPanel :global(.chart-form-progress-step::before) {
+  box-sizing: border-box !important;
+  align-self: center !important;
+  z-index: 2 !important;
+}
+
+.formPanel :global(.chart-form-progress-step.is-complete) {
+  color: #ffffff !important;
+}
+
+.formPanel :global(.chart-submit-button) {
+  justify-content: center !important;
+  gap: 0 !important;
+}
+
+/* HALLEUS_CHART_PROGRESS_NAME_POLISH_20260806 */
+
+.formPanel :global(.chart-submit-icon) {
+  display: none !important;
+}
+
+.formPanel :global(.chart-submit-button) {
+  gap: 0 !important;
+}
+
+.formPanel :global(.chart-form-progress-bar) {
+  margin-inline: 12.5% !important;
+}
+
+.formPanel :global(.chart-form-progress-step) {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.formPanel :global(.chart-form-progress-step::before) {
+  box-shadow: 0 0 0 4px #08090c !important;
+}
+
+.formPanel :global(.chart-form-progress-step.is-complete::before) {
+  border-color: #dceeff !important;
+  background: #dceeff !important;
+  box-shadow:
+    0 0 0 4px #08090c,
+    0 0 15px rgba(125, 211, 252, 0.32) !important;
+}
+
+/* HALLEUS_CHART_DROPDOWN_LAYER_POLISH_20260806 */
+
+.formPanel :global(.chart-field:has(.chart-select.is-open)) {
+  position: relative !important;
+  z-index: 220 !important;
+}
+
+.formPanel :global(.birth-date-picker-grid),
+.formPanel :global(.birth-time-picker-grid) {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: visible !important;
+}
+
+.formPanel :global(.birth-date-picker-grid:has(.chart-select.is-open)),
+.formPanel :global(.birth-time-picker-grid:has(.chart-select.is-open)) {
+  z-index: 221 !important;
+}
+
+.formPanel :global(.chart-select-segment) {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.formPanel :global(.chart-select-segment:has(.chart-select.is-open)) {
+  z-index: 222 !important;
+}
+
+.formPanel :global(.chart-select.is-open) {
+  z-index: 223 !important;
+}
+
+.formPanel :global(.chart-select-options) {
+  inset-block-start: calc(100% + 8px) !important;
+  inset-inline-start: auto !important;
+  inset-inline-end: 0 !important;
+  z-index: 224 !important;
+  inline-size: 100% !important;
+  min-inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  max-block-size: 272px !important;
+  padding: 6px !important;
+  border-color: rgba(220, 238, 255, 0.2) !important;
+  background: #080a0e !important;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(255, 255, 255, 0.025) !important;
+  backdrop-filter: none !important;
+}
+
+.formPanel :global(.chart-select-option) {
+  min-block-size: 40px !important;
+  padding-inline: 12px !important;
+  color: #f8fafc !important;
+  background: #080a0e !important;
+}
+
+.formPanel :global(.chart-select-option:hover),
+.formPanel :global(.chart-select-option:focus-visible) {
+  background: #111a22 !important;
+}
+
+.formPanel :global(.chart-select-option.is-selected) {
+  color: #ffffff !important;
+  background: #142431 !important;
+}
+
+.formPanel :global(.chart-select-trigger) {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+@media (max-width: 720px) {
+  .formPanel :global(.chart-select-options) {
+    max-block-size: 240px !important;
   }
 }
