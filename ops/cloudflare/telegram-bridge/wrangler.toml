@@ -1,0 +1,17 @@
+name = "halleus-telegram-bridge"
+main = "worker.mjs"
+compatibility_date = "2026-08-08"
+
+[vars]
+HALLEUS_PUBLISH_DUE_URL = "https://halleus.ir/api/internal/telegram/publish-due"
+
+[secrets]
+required = [
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_CHANNEL_ID",
+  "HALLEUS_BRIDGE_SECRET",
+  "HALLEUS_PUBLISHER_SECRET"
+]
+
+[triggers]
+crons = ["*/10 * * * *"]

@@ -302,6 +302,24 @@
       "build": true
     },
     {
+      "id": "telegram-content-publishing",
+      "description": "Telegram content planning, reviewed queueing, Cloudflare transport bridge, and private due-publisher boundary.",
+      "patterns": [
+        "app/api/internal/telegram/**",
+        "lib/telegram/**",
+        "ops/cloudflare/telegram-bridge/**",
+        "database/migrations/0011_telegram_content_queue.sql",
+        "lib/config/env.ts",
+        ".env.example"
+      ],
+      "guards": [
+        "check:telegram-content-integrity",
+        "check:sky-daily-contract"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "sky-daily-contract",
       "description": "Canonical daily-sky contract and its deterministic guard.",
       "patterns": [

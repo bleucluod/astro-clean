@@ -16,6 +16,9 @@ export type HalleusRuntimeEnv = {
   accountStorageEnabled: boolean;
   accountReportSaveEnabled: boolean;
   wikiPublisherSecret?: string;
+  telegramBridgeUrl?: string;
+  telegramBridgeSecret?: string;
+  telegramPublisherSecret?: string;
 };
 
 function getOptionalEnv(name: string) {
@@ -45,6 +48,9 @@ export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
     accountStorageEnabled: isEnabledEnv("HALLEUS_ENABLE_ACCOUNT_STORAGE"),
     accountReportSaveEnabled: isEnabledEnv("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE"),
     wikiPublisherSecret: getOptionalEnv("HALLEUS_WIKI_PUBLISHER_SECRET"),
+    telegramBridgeUrl: getOptionalEnv("HALLEUS_TELEGRAM_BRIDGE_URL"),
+    telegramBridgeSecret: getOptionalEnv("HALLEUS_TELEGRAM_BRIDGE_SECRET"),
+    telegramPublisherSecret: getOptionalEnv("HALLEUS_TELEGRAM_PUBLISHER_SECRET"),
   };
 }
 
