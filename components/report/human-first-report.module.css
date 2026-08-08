@@ -1273,3 +1273,2584 @@
   .readingMetadata dl > div { grid-template-columns: 1fr; gap: 4px; }
   .reader { padding-bottom: 78px; }
 }
+
+/* HALLEUS_REPORT_ASTROLOGY_FIRST_20260806 */
+
+.astrologySignature {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: 760px;
+  margin-top: 4px;
+}
+
+.signatureSummary {
+  display: grid;
+  gap: 7px;
+  border-inline-start: 3px solid #1e40af;
+  padding: 3px 16px 3px 0;
+}
+
+.signatureSummary > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.signatureSummary > strong {
+  color: var(--ink);
+  font-size: clamp(1.05rem, 2.2vw, 1.34rem);
+  line-height: 1.65;
+}
+
+.signatureSummary > p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--body);
+  line-height: 1.95;
+}
+
+.corePlacementGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.corePlacementCard {
+  display: grid;
+  gap: 7px;
+  min-height: 154px;
+  align-content: start;
+  border: 1px solid rgba(36, 52, 71, 0.14);
+  border-radius: 18px;
+  padding: 18px;
+  background:
+    linear-gradient(145deg, rgba(217, 234, 253, 0.72), rgba(255, 255, 255, 0.96));
+  box-shadow: 0 12px 32px rgba(36, 52, 71, 0.06);
+}
+
+.corePlacementCard > span {
+  color: #1e40af;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.corePlacementCard > strong {
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.corePlacementCard > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.79rem;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.birthTimeCaveat {
+  margin: 0;
+  border-radius: 13px;
+  padding: 12px 14px;
+  color: var(--muted);
+  background: var(--slate);
+  font-size: 0.78rem;
+  line-height: 1.85;
+}
+
+.astrologySourceLine {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin: 18px 0 24px;
+  border: 1px solid rgba(30, 64, 175, 0.13);
+  border-radius: 15px;
+  padding: 13px 15px;
+  background: rgba(238, 246, 255, 0.72);
+}
+
+.astrologySourceLine > span {
+  color: #1e40af;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.8;
+}
+
+.astrologySourceLine > div {
+  display: grid;
+  gap: 6px;
+}
+
+.astrologySourceLine p {
+  margin: 0;
+  color: var(--body);
+  font-size: 0.8rem;
+  line-height: 1.85;
+}
+
+.astrologySourceLine strong {
+  color: var(--ink);
+}
+
+.patternContent > .astrologySourceLine {
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 820px) {
+  .corePlacementGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .corePlacementCard {
+    min-height: 0;
+  }
+
+  .astrologySourceLine {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
+/* HALLEUS_BIRTH_REPORT_BATCH1_FIVE_MINUTE_SUMMARY_20260806 */
+.desktopModeSwitch {
+  position: sticky;
+  z-index: 35;
+  top: 82px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 7px;
+  background: rgba(248, 250, 252, 0.96);
+  box-shadow: 0 14px 36px rgba(36, 52, 71, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.desktopModeSwitch button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.desktopModeSwitch button[data-active="true"] {
+  color: #1e40af;
+  background: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgba(30, 64, 175, 0.12),
+    0 8px 22px rgba(36, 52, 71, 0.07);
+}
+
+.desktopModeSwitch button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.fiveMinuteSummary {
+  display: grid;
+  gap: clamp(28px, 5vw, 52px);
+  width: min(940px, 100%);
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 48px) 0 clamp(40px, 8vw, 76px);
+}
+
+.summaryHero {
+  display: grid;
+  gap: 17px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: clamp(28px, 6vw, 54px);
+}
+
+.summaryHeroMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #1e40af;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.summaryHeroMeta strong {
+  border: 1px solid rgba(30, 64, 175, 0.14);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--sky);
+}
+
+.summaryKicker {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 780;
+}
+
+.summaryHero h1 {
+  max-width: 790px;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+}
+
+.summaryHero > p:last-of-type {
+  max-width: 760px;
+  margin: 0;
+  color: var(--body);
+  font-size: 1rem;
+  line-height: 2;
+}
+
+.summaryIdentityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.summaryIdentityCard {
+  display: grid;
+  gap: 8px;
+  min-height: 150px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.summaryIdentityCard span,
+.summarySentence > span,
+.summarySectionHeading > span,
+.summaryValueCard > span {
+  color: #1e40af;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.summaryIdentityCard strong {
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.summaryIdentityCard p,
+.summaryPatternCard > p,
+.summaryValueCard > p,
+.summarySentence > p {
+  margin: 0;
+  color: var(--body);
+  line-height: 1.95;
+}
+
+.summarySentence {
+  display: grid;
+  gap: 14px;
+  border-inline-start: 4px solid #1e40af;
+  border-radius: 18px;
+  padding: clamp(20px, 4vw, 30px);
+  background: linear-gradient(135deg, #f5f9ff, #eef6ff);
+}
+
+.summarySentence > p {
+  color: var(--ink);
+  font-size: clamp(1.12rem, 3vw, 1.38rem);
+  font-weight: 760;
+}
+
+.summarySection {
+  display: grid;
+  gap: 22px;
+}
+
+.summarySectionHeading {
+  display: grid;
+  gap: 7px;
+}
+
+.summarySectionHeading h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.5rem, 4vw, 2.15rem);
+  line-height: 1.5;
+}
+
+.summaryPatternGrid,
+.summaryValueGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.summaryPatternCard,
+.summaryValueCard {
+  display: grid;
+  gap: 13px;
+  align-content: start;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: clamp(18px, 3vw, 24px);
+  background: #ffffff;
+}
+
+.summaryPatternCard:first-child {
+  grid-column: 1 / -1;
+}
+
+.summaryPatternNumber {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 999px;
+  color: #1e40af;
+  background: var(--sky-strong);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.summaryPatternCard h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.2rem;
+  line-height: 1.65;
+}
+
+.summaryEvidence {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid rgba(36, 52, 71, 0.09);
+  padding-top: 12px;
+}
+
+.summaryEvidence strong {
+  color: var(--ink);
+  font-size: 0.78rem;
+}
+
+.summaryEvidence ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-inline-start: 18px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+
+.summaryLink {
+  justify-self: start;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 4px 0;
+  color: #1e40af;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.summaryLink:focus-visible {
+  outline: 3px solid rgba(30, 64, 175, 0.2);
+  outline-offset: 4px;
+}
+
+@media (max-width: 760px) {
+  .desktopModeSwitch {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    border-radius: 15px;
+    padding: 5px;
+  }
+
+  .desktopModeSwitch button {
+    min-height: 44px;
+    padding: 7px 6px;
+    font-size: 0.74rem;
+  }
+
+  .fiveMinuteSummary {
+    gap: 30px;
+    padding-top: 18px;
+  }
+
+  .summaryIdentityGrid,
+  .summaryPatternGrid,
+  .summaryValueGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryPatternCard:first-child {
+    grid-column: auto;
+  }
+
+  .summaryIdentityCard {
+    min-height: 0;
+  }
+}
+/* Birth report Batch 3 chart-pattern presentation */
+.chartPatternSection {
+  display: grid;
+  gap: 22px;
+  margin-block: 28px;
+  scroll-margin-top: 92px;
+}
+
+.chartPatternGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.chartPatternCard {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: clamp(16px, 2.4vw, 22px);
+  border: 1px solid #bcccdc;
+  border-radius: 20px;
+  background: #f8fafc;
+  box-shadow: 0 14px 36px rgb(36 52 71 / 7%);
+}
+
+.chartPatternCardHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.chartPatternCardHeading > span {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 34px;
+  min-height: 34px;
+  border-radius: 999px;
+  background: #d9eafd;
+  color: #243447;
+  font-weight: 900;
+}
+
+.chartPatternCardHeading p,
+.chartPatternCardHeading h3,
+.chartPatternCard > p,
+.chartPatternTechnical p,
+.chartPatternMoreNote {
+  margin: 0;
+}
+
+.chartPatternCardHeading p {
+  color: #52657a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.chartPatternCardHeading h3 {
+  margin-top: 4px;
+  color: #243447;
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.75;
+}
+
+.chartPatternCard > p,
+.chartPatternTechnical p,
+.chartPatternMoreNote {
+  color: #3a4a5c;
+  line-height: 1.95;
+}
+
+.chartPatternEvidence {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chartPatternEvidence li {
+  position: relative;
+  padding-inline-start: 18px;
+  color: #2f4052;
+  line-height: 1.8;
+}
+
+.chartPatternEvidence li::before {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.72em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #1e40af;
+  content: "";
+}
+
+.chartPatternTechnical {
+  padding-top: 12px;
+  border-top: 1px solid #d9e2ec;
+}
+
+.chartPatternTechnical summary {
+  color: #1e40af;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.chartPatternTechnical p {
+  margin-top: 10px;
+}
+
+.chartPatternMoreNote {
+  padding: 12px 16px;
+  border-inline-start: 3px solid #9aa6b2;
+  background: #f1f5f9;
+  border-radius: 12px;
+}
+
+.patternWheelControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #bcccdc;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.patternWheelControls > p {
+  flex-basis: 100%;
+  margin: 0;
+  color: #52657a;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.patternWheelButton {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #bcccdc;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #243447;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.patternWheelButton[data-active="true"] {
+  border-color: #1e40af;
+  background: #d9eafd;
+  color: #1e40af;
+}
+
+.patternWheelButton:focus-visible {
+  outline: 3px solid rgb(30 64 175 / 22%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .chartPatternGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chartPatternCard {
+    border-radius: 16px;
+  }
+
+  .patternWheelControls {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+  }
+
+  .patternWheelControls > p {
+    display: none;
+  }
+
+  .patternWheelButton {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+/* Birth report Batch 8 reading motion */
+.reader[data-report-reading-motion="batch8"] .fiveMinuteSummary,
+.reader[data-report-reading-motion="batch8"] .readerLayout,
+.reader[data-report-reading-motion="batch8"] .transitView,
+.reader[data-report-reading-motion="batch8"] .chartDetails {
+  animation: reportModeEnter 220ms ease-out both;
+}
+
+.backToSummaryButton {
+  width: fit-content;
+  min-height: 42px;
+  margin: 0 0 12px;
+  padding: 8px 14px;
+  border: 1px solid #bcccdc;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #1e40af;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.backToSummaryButton:focus-visible {
+  outline: 3px solid rgb(30 64 175 / 22%);
+  outline-offset: 2px;
+}
+
+.reader [data-reading-motion-card] {
+  transition: transform 180ms ease-out, border-color 180ms ease-out, box-shadow 180ms ease-out;
+}
+
+.reader [data-reading-motion-card][data-reading-motion-active="true"] {
+  transform: translateY(-2px);
+}
+
+.reader [data-reading-motion-card] p,
+.reader [data-reading-motion-card] li,
+.reader [data-reading-motion-card] strong {
+  overflow-wrap: anywhere;
+}
+
+.reader :global(.report-astrochart-wheel) line[data-precision] {
+  transition: stroke-opacity 180ms ease-out, stroke-width 180ms ease-out;
+}
+
+.reader [data-halleus-reading-focus] {
+  pointer-events: none;
+}
+
+.reader [data-report-wheel-intro-ring] {
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: reportWheelRing 520ms ease-out 40ms forwards;
+}
+
+.reader [data-report-wheel-intro-house] {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: reportWheelHouse 360ms ease-out forwards;
+  animation-delay: calc(180ms + (var(--report-motion-index) * 18ms));
+}
+
+.reader [data-report-wheel-intro-planet] {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: reportWheelPlanet 300ms ease-out forwards;
+  animation-delay: calc(430ms + (var(--report-motion-index) * 24ms));
+}
+
+.reader [data-report-wheel-intro-luminary],
+.reader [data-report-wheel-intro-asc] {
+  animation-name: reportWheelLuminary;
+  animation-duration: 360ms;
+  animation-fill-mode: forwards;
+  animation-delay: 680ms;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.reader [data-report-wheel-intro-aspect] {
+  opacity: 0;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: reportWheelAspect 360ms ease-out forwards;
+  animation-delay: calc(760ms + (var(--report-motion-index) * 36ms));
+}
+
+.reader [data-halleus-intro-motion] {
+  animation: reportWheelOverlayOut 220ms ease-in 1.28s forwards;
+}
+
+@keyframes reportModeEnter {
+  from { opacity: 0.72; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reportWheelRing {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes reportWheelHouse {
+  from { opacity: 0; transform: scale(0.15); }
+  to { opacity: 0.85; transform: scale(1); }
+}
+
+@keyframes reportWheelPlanet {
+  from { opacity: 0; transform: scale(0.45); }
+  to { opacity: 0.9; transform: scale(1); }
+}
+
+@keyframes reportWheelLuminary {
+  0% { opacity: 0; transform: scale(0.5); }
+  55% { opacity: 1; transform: scale(1.35); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes reportWheelAspect {
+  to { opacity: 0.72; stroke-dashoffset: 0; }
+}
+
+@keyframes reportWheelOverlayOut {
+  to { opacity: 0; }
+}
+
+@media (max-width: 390px) {
+  .reader[data-report-reading-motion="batch8"] {
+    min-width: 0;
+  }
+  .backToSummaryButton {
+    width: 100%;
+  }
+  .reader [data-reading-motion-card][data-reading-motion-active="true"] {
+    transform: translateY(-1px);
+  }
+  .reader :global(.report-astrochart-wheel) {
+    max-width: 100%;
+    overflow: clip;
+  }
+}
+
+@media (min-width: 391px) and (max-width: 760px) {
+  .backToSummaryButton {
+    max-width: 100%;
+  }
+  .reader :global(.report-astrochart-wheel) {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1024px) {
+  .reader[data-report-reading-motion="batch8"] .readingColumn {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1025px) {
+  .backToSummaryButton {
+    position: sticky;
+    top: 10px;
+    z-index: 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader[data-report-reading-motion="batch8"] .fiveMinuteSummary,
+  .reader[data-report-reading-motion="batch8"] .readerLayout,
+  .reader[data-report-reading-motion="batch8"] .transitView,
+  .reader[data-report-reading-motion="batch8"] .chartDetails,
+  .reader [data-reading-motion-card],
+  .reader :global(.report-astrochart-wheel) line[data-precision],
+  .reader [data-report-wheel-intro-ring],
+  .reader [data-report-wheel-intro-house],
+  .reader [data-report-wheel-intro-planet],
+  .reader [data-report-wheel-intro-luminary],
+  .reader [data-report-wheel-intro-asc],
+  .reader [data-report-wheel-intro-aspect],
+  .reader [data-halleus-intro-motion] {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* HALLEUS_REPORT_EDITORIAL_FLOW_BATCH1_20260808 */
+.reader {
+  --editorial-bg: #060707;
+  --editorial-surface: #0d0e0e;
+  --editorial-surface-strong: #121313;
+  --editorial-ink: #f3f1eb;
+  --editorial-body: #cfcec8;
+  --editorial-muted: #929592;
+  --editorial-line: rgb(255 255 255 / 12%);
+  width: min(1320px, calc(100% - 20px)) !important;
+  max-width: none !important;
+  margin-inline: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 clamp(14px, 3vw, 34px) 60px !important;
+  background: var(--editorial-bg) !important;
+  color: var(--editorial-body) !important;
+  box-shadow: none !important;
+  overflow: clip;
+}
+
+.reader a,
+.reader button,
+.reader summary,
+.reader .eyebrow,
+.reader [data-active="true"] {
+  color: var(--editorial-ink) !important;
+}
+
+.reader a:hover,
+.reader button:hover,
+.reader summary:hover {
+  color: #ffffff !important;
+}
+
+.reader button,
+.reader summary {
+  border-color: var(--editorial-line) !important;
+}
+
+.reader [data-active="true"] {
+  background: #f0eee7 !important;
+  color: #080909 !important;
+}
+
+.reader .desktopModeSwitch,
+.reader .modeSwitch,
+.reader .backToSummaryButton,
+.reader .navigation,
+.reader .desktopNavigation,
+.reader .mobileNavigation {
+  display: none !important;
+}
+
+.reportFlow {
+  display: grid;
+  gap: 0;
+}
+
+.flowSection {
+  position: relative;
+  scroll-margin-top: 120px;
+  padding: clamp(64px, 9vw, 118px) 0;
+  border-top: 1px solid var(--editorial-line);
+  background: transparent !important;
+}
+
+.flowSection:first-child {
+  border-top: 0;
+  padding-top: clamp(34px, 6vw, 74px);
+}
+
+.flowSectionHeader {
+  display: grid;
+  gap: 14px;
+  max-width: 840px;
+  margin-bottom: clamp(34px, 6vw, 70px);
+}
+
+.flowSectionHeader h1 {
+  margin: 0;
+  color: var(--editorial-ink) !important;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.28;
+  letter-spacing: -0.04em;
+}
+
+.flowSectionHeader > p:not(.eyebrow) {
+  margin: 0;
+  color: var(--editorial-body) !important;
+  font-size: 1rem;
+  line-height: 2;
+}
+
+.flowSectionHeader > span {
+  color: var(--editorial-muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.journeyNavigator {
+  position: sticky;
+  z-index: 72;
+  top: 76px;
+  width: max-content;
+  max-width: min(760px, calc(100vw - 28px));
+  margin: 10px auto 0;
+}
+
+.journeyNavigator > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: max-content;
+  max-width: min(100%, calc(100vw - 28px));
+  margin-inline: auto;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 999px;
+  padding: 10px 15px;
+  background: rgb(10 11 11 / 86%) !important;
+  box-shadow: 0 12px 34px rgb(0 0 0 / 28%);
+  backdrop-filter: blur(18px);
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.76rem;
+}
+
+.journeyNavigator > summary::-webkit-details-marker {
+  display: none;
+}
+
+.journeyNavigator > summary span {
+  color: var(--editorial-muted);
+}
+
+.journeyNavigator > summary strong {
+  color: var(--editorial-ink);
+}
+
+.journeyNavigatorPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  width: min(720px, calc(100vw - 28px));
+  max-height: min(72vh, 680px);
+  overflow: auto;
+  transform: translateX(-50%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 26px;
+  padding: 14px;
+  background: rgb(9 10 10 / 97%);
+  box-shadow: 0 28px 90px rgb(0 0 0 / 48%);
+  backdrop-filter: blur(24px);
+}
+
+.journeyMacroLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.journeyMacroLinks button,
+.journeyChapterLinks button {
+  min-height: 46px;
+  border: 1px solid var(--editorial-line);
+  border-radius: 14px;
+  padding: 9px 12px;
+  background: #111212 !important;
+  color: var(--editorial-body) !important;
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+}
+
+.journeyMacroLinks button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.journeyChapterLinks {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border-top: 1px solid var(--editorial-line);
+  padding-top: 14px;
+}
+
+.journeyChapterLinks > span {
+  color: var(--editorial-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.journeyChapterLinks nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.journeyChapterLinks button {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.journeyChapterLinks button > span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 8%);
+  color: var(--editorial-muted);
+  font-size: 0.66rem;
+}
+
+.journeyChapterLinks button[data-active="true"] {
+  border-color: #f0eee7 !important;
+  background: #f0eee7 !important;
+  color: #080909 !important;
+}
+
+.journeyChapterLinks button[data-active="true"] > span {
+  background: #080909;
+  color: #f0eee7;
+}
+
+/* The report itself is dark. White is reserved for text and the chart drawing, never as a page/card surface. */
+.reader .fiveMinuteSummary,
+.reader .readerLayout,
+.reader .readingColumn,
+.reader .hero,
+.reader .section,
+.reader .transitView,
+.reader .chartDetails,
+.reader .technicalContent,
+.reader .technicalPanel,
+.reader .readingMetadata,
+.reader .chapterNarrative,
+.reader .synthesisEditorialList,
+.reader .synthesisGroup,
+.reader .lifeAreaEditorialList,
+.reader :global(.report-section),
+.reader :global(.report-card),
+.reader :global(.report-aspect-card),
+.reader :global(.mini-card),
+.reader :global(.notice) {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--editorial-body) !important;
+}
+
+.reader .hero,
+.reader .section,
+.reader .transitView,
+.reader .chartDetails {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.reader .hero,
+.reader .section {
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: clamp(24px, 3vw, 36px) !important;
+  padding: clamp(30px, 5vw, 64px) !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgb(255 255 255 / 4%), transparent 32%),
+    linear-gradient(145deg, #0e0f0f, #090a0a) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%) !important;
+}
+
+.reader .section + .section {
+  margin-top: clamp(24px, 4vw, 44px) !important;
+}
+
+.reader .sectionHeading h2,
+.reader .sectionHeading h3,
+.reader .chartHeading h1,
+.reader .transitView h1,
+.reader .patternContent h3,
+.reader .technicalHeading h2,
+.reader .chapterNarrative h3,
+.reader .synthesisEditorialChapter h3,
+.reader .lifeAreaEditorialCard h3 {
+  color: var(--editorial-ink) !important;
+}
+
+.reader .sectionHeading > p:last-child,
+.reader .chapterNarrative p,
+.reader .synthesisEditorialBody p,
+.reader .lifeAreaEditorialCard > p,
+.reader .patternContent > p,
+.reader .transitView p,
+.reader .chartHeading p,
+.reader .technicalHeading p,
+.reader .evidenceBody p,
+.reader .dataRow,
+.reader :global(.report-card p),
+.reader :global(.report-aspect-card p) {
+  color: var(--editorial-body) !important;
+}
+
+.reader .eyebrow,
+.reader .lifeAreaAstrologyLabel,
+.reader .reportChartRailLabel,
+.reader .summarySectionHeading > span,
+.reader .summaryKicker {
+  color: var(--editorial-muted) !important;
+}
+
+.reader .patternHelp,
+.reader .practiceLine,
+.reader .saveableSentence,
+.reader .growthAxis,
+.reader .emptyTechnical,
+.reader .continueReading,
+.reader .readingMetadata,
+.reader .technicalTabs button,
+.reader :global(.notice) {
+  border-color: var(--editorial-line) !important;
+  background: #111212 !important;
+  color: var(--editorial-body) !important;
+}
+
+.reader .evidenceDisclosure,
+.reader .deepDive,
+.reader .limitationsDisclosure,
+.reader .technicalDisclosure,
+.reader .dataTable,
+.reader .dataRow,
+.reader .patternMoments,
+.reader .valueFlow,
+.reader .patternStory,
+.reader .synthesisEditorialChapter,
+.reader .lifeAreaEditorialCard {
+  border-color: var(--editorial-line) !important;
+}
+
+.reader .evidenceDisclosure summary,
+.reader .deepDive summary,
+.reader .limitationsDisclosure summary,
+.reader .technicalDisclosure summary,
+.reader .aspectShell :global(summary),
+.reader .specialPointsShell :global(summary) {
+  color: var(--editorial-ink) !important;
+}
+
+.reader .summaryHero,
+.reader .summaryBeginnerSection,
+.reader .summaryCombination,
+.reader .summarySection,
+.reader .summaryFinalCta {
+  width: 100%;
+  max-width: none;
+}
+
+.reader .fiveMinuteSummary {
+  width: 100% !important;
+  max-width: none !important;
+  padding: 0 !important;
+  gap: clamp(42px, 7vw, 86px) !important;
+}
+
+.reader .summaryHero {
+  min-height: min(760px, 78svh);
+  align-content: center;
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: clamp(28px, 4vw, 44px);
+  padding: clamp(36px, 7vw, 84px) !important;
+  background:
+    radial-gradient(circle at 12% 12%, rgb(255 255 255 / 5%), transparent 34%),
+    linear-gradient(145deg, #101111, #080909) !important;
+}
+
+.reader .summaryHero h1 {
+  max-width: 980px;
+  color: var(--editorial-ink) !important;
+  font-size: clamp(2.4rem, 7vw, 5.2rem) !important;
+  line-height: 1.24 !important;
+}
+
+.reader .summaryHero > p:last-of-type {
+  max-width: 820px;
+  color: var(--editorial-body) !important;
+}
+
+.summaryCoreGrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px !important;
+  border: 0 !important;
+}
+
+.summaryCoreItem {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  align-content: start;
+  gap: 16px !important;
+  min-height: 430px;
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 30px;
+  padding: clamp(24px, 4vw, 40px) !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(255 255 255 / 5%), transparent 32%),
+    #0d0e0e !important;
+}
+
+.summaryCoreHeading {
+  display: grid;
+  gap: 7px;
+}
+
+.summaryCoreItem h3 {
+  margin: auto 0 0;
+  color: var(--editorial-ink) !important;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.55;
+}
+
+.summaryAstrologyTitle,
+.summaryPlacement,
+.summaryDefinition,
+.summaryPersonalMeaning {
+  grid-column: 1 !important;
+}
+
+.summaryAstrologyTitle {
+  color: var(--editorial-ink) !important;
+}
+
+.summaryPlacement {
+  color: var(--editorial-muted) !important;
+}
+
+.summaryDefinition {
+  color: #aaaead !important;
+}
+
+.summaryPersonalMeaning {
+  color: var(--editorial-ink) !important;
+  font-size: 1.05rem;
+  line-height: 1.95;
+}
+
+.summaryBeginnerCue {
+  margin: 0;
+  border-top: 1px solid var(--editorial-line);
+  padding-top: 15px;
+  color: var(--editorial-muted) !important;
+  font-size: 0.84rem;
+  line-height: 1.9;
+}
+
+.summaryCombination {
+  min-height: 500px;
+  align-content: center;
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 36px !important;
+  padding: clamp(30px, 6vw, 70px) !important;
+  background:
+    radial-gradient(circle at 86% 16%, rgb(255 255 255 / 5%), transparent 34%),
+    #0b0c0c !important;
+}
+
+.summaryCombinationLead {
+  color: var(--editorial-ink) !important;
+  font-size: clamp(1.5rem, 4vw, 2.5rem) !important;
+  line-height: 1.65 !important;
+}
+
+.summaryCombinationBody {
+  max-width: 820px;
+  margin: 0;
+  color: var(--editorial-body) !important;
+  line-height: 2;
+}
+
+.summaryRulerLine {
+  display: grid;
+  gap: 8px;
+  max-width: 820px;
+  border-top: 1px solid var(--editorial-line);
+  padding-top: 18px;
+}
+
+.summaryRulerLine > span {
+  color: var(--editorial-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.summaryRulerLine > p {
+  margin: 0;
+  color: var(--editorial-body) !important;
+  line-height: 1.9;
+}
+
+.summaryPatternGrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px !important;
+}
+
+.summaryPatternCard,
+.summaryPatternCard:first-child {
+  grid-column: auto !important;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 360px;
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 28px !important;
+  padding: 26px !important;
+  background: #0d0e0e !important;
+}
+
+.summaryPatternCard h3 {
+  color: var(--editorial-ink) !important;
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+
+.summaryPatternCard > p {
+  color: var(--editorial-body) !important;
+  line-height: 1.95;
+}
+
+.summaryPatternNumber,
+.patternNumber {
+  color: #080909 !important;
+  background: #e7e4dd !important;
+}
+
+.summaryLink,
+.summaryPrimaryAction {
+  border: 1px solid rgb(255 255 255 / 18%) !important;
+  background: transparent !important;
+  color: var(--editorial-ink) !important;
+}
+
+.summaryPrimaryAction {
+  background: #f0eee7 !important;
+  color: #080909 !important;
+}
+
+.summaryFinalCta {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 220px;
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 32px !important;
+  padding: clamp(26px, 5vw, 48px) !important;
+  background: #0d0e0e !important;
+}
+
+.fullReportStage {
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 330px) !important;
+  gap: clamp(24px, 4vw, 52px) !important;
+}
+
+.fullReportNarrative {
+  display: grid;
+  gap: clamp(24px, 4vw, 44px);
+}
+
+.fullReportNarrative strong {
+  color: var(--editorial-ink) !important;
+}
+
+.fullReportNarrative span,
+.fullReportNarrative small {
+  color: var(--editorial-muted) !important;
+}
+
+.reportChartRailSticky {
+  top: 142px !important;
+  border: 1px solid var(--editorial-line);
+  border-radius: 28px;
+  padding: 14px;
+  background: #0b0c0c;
+}
+
+.reportChartRail :global(.report-astrochart-wheel) {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.reportChartRail :global(.report-astrochart-wheel) details {
+  display: none !important;
+}
+
+.transitView {
+  display: grid !important;
+  gap: clamp(28px, 5vw, 52px) !important;
+  padding: 0 !important;
+}
+
+.transitPatternList {
+  display: grid;
+  gap: 18px;
+}
+
+.transitPattern {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 20px;
+  min-height: 520px;
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 32px !important;
+  padding: clamp(26px, 5vw, 50px) !important;
+  background: #0d0e0e !important;
+}
+
+.transitMoment,
+.transitBalance > p,
+.practiceLine {
+  border-color: var(--editorial-line) !important;
+  background: #101111 !important;
+}
+
+.chartDetails {
+  padding: 0 !important;
+}
+
+.wheelShell {
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 34px !important;
+  padding: clamp(14px, 3vw, 26px) !important;
+  background: #0b0c0c !important;
+  box-shadow: none !important;
+}
+
+.wheelShell :global(.report-astrochart-wheel) {
+  overflow: hidden;
+  border-radius: 24px;
+  background: #efede7;
+}
+
+.technicalTabs button {
+  background: #111212 !important;
+  color: var(--editorial-body) !important;
+}
+
+.technicalTabs button[data-active="true"] {
+  border-color: #f0eee7 !important;
+  background: #f0eee7 !important;
+  color: #080909 !important;
+}
+
+.reader [data-screenshot-ready],
+.reader .hero,
+.reader .section {
+  position: relative;
+  overflow: hidden;
+}
+
+.reader [data-screenshot-ready]::after,
+.reader .hero::after,
+.reader .section::after {
+  content: "HALLEUS";
+  position: absolute;
+  left: clamp(18px, 4vw, 44px);
+  bottom: clamp(14px, 3vw, 30px);
+  color: rgb(255 255 255 / 10%);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  pointer-events: none;
+}
+
+@media (max-width: 1080px) {
+  .summaryCoreGrid,
+  .summaryPatternGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .summaryCoreItem,
+  .summaryPatternCard {
+    min-height: 0;
+  }
+
+  .fullReportStage {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reportChartRail {
+    order: -1;
+  }
+
+  .reportChartRailSticky {
+    position: static !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .reader {
+    width: 100% !important;
+    padding-inline: 10px !important;
+  }
+
+  .flowSection {
+    padding-block: 54px;
+  }
+
+  .journeyNavigator {
+    position: fixed;
+    top: auto;
+    right: 10px;
+    bottom: 12px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    margin: 0;
+  }
+
+  .journeyNavigator > summary {
+    width: 100%;
+    max-width: none;
+    justify-content: space-between;
+    padding: 12px 15px;
+  }
+
+  .journeyNavigatorPanel {
+    position: fixed;
+    top: auto;
+    right: 8px;
+    bottom: 70px;
+    left: 8px;
+    width: auto;
+    max-height: 70vh;
+    transform: none;
+    border-radius: 24px;
+  }
+
+  .journeyMacroLinks,
+  .journeyChapterLinks nav {
+    grid-template-columns: 1fr;
+  }
+
+  .reader .summaryHero {
+    min-height: 72svh;
+    padding: 28px 22px !important;
+  }
+
+  .reader .summaryHero h1 {
+    font-size: clamp(2.2rem, 12vw, 3.5rem) !important;
+  }
+
+  .summaryFinalCta {
+    display: grid !important;
+  }
+
+  .summaryPrimaryAction {
+    width: 100%;
+  }
+
+  .reader .hero,
+  .reader .section,
+  .transitPattern {
+    border-radius: 24px !important;
+    padding: 24px 20px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .reader {
+    padding-inline: 7px !important;
+  }
+
+  .flowSection {
+    padding-block: 44px;
+  }
+
+  .summaryCoreItem,
+  .summaryPatternCard,
+  .summaryCombination,
+  .summaryFinalCta {
+    border-radius: 22px !important;
+    padding: 22px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journeyNavigator,
+  .journeyNavigatorPanel,
+  .reader [data-screenshot-ready] {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+/* HALLEUS_REPORT_EDITORIAL_MOTION_BATCH2_20260808 */
+.reader {
+  --halleus-ambient-y: 0px;
+  --halleus-ambient-rotate: 0deg;
+  isolation: isolate;
+}
+
+.ambientLogo {
+  position: fixed;
+  z-index: 0;
+  top: -470px;
+  left: -445px;
+  width: min(72vw, 920px);
+  aspect-ratio: 1;
+  background: url("/halleus-logo/emblem-transparent.png") center / contain no-repeat;
+  filter: grayscale(1) brightness(2.2);
+  opacity: 0.065;
+  transform: translate3d(0, var(--halleus-ambient-y), 0) rotate(var(--halleus-ambient-rotate));
+  transform-origin: 68% 66%;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.reader > :not(.ambientLogo) {
+  position: relative;
+  z-index: 1;
+}
+
+.reader [data-screenshot-ready],
+.reader .hero,
+.reader .section,
+.reader .transitPattern,
+.reader .wheelShell {
+  isolation: isolate;
+}
+
+.reader [data-screenshot-ready]::before,
+.reader .hero::before,
+.reader .section::before,
+.reader .transitPattern::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -92px;
+  left: -86px;
+  width: 230px;
+  aspect-ratio: 1;
+  background: url("/halleus-logo/emblem-transparent.png") center / contain no-repeat;
+  filter: grayscale(1) brightness(2.1);
+  opacity: 0.032;
+  pointer-events: none;
+}
+
+.flowSectionHeader[data-screenshot-ready],
+.reader .transitView .sectionHeading[data-screenshot-ready],
+.reader .chartHeading[data-screenshot-ready] {
+  width: 100%;
+  max-width: none;
+  min-height: min(640px, 76svh);
+  align-content: center;
+  border: 1px solid var(--editorial-line);
+  border-radius: clamp(28px, 4vw, 42px);
+  padding: clamp(34px, 6vw, 72px);
+  background:
+    radial-gradient(circle at 12% 10%, rgb(255 255 255 / 5%), transparent 35%),
+    linear-gradient(145deg, #101111, #080909);
+  overflow: hidden;
+}
+
+.flowSectionHeader[data-screenshot-ready] h1,
+.reader .transitView .sectionHeading[data-screenshot-ready] h1,
+.reader .chartHeading[data-screenshot-ready] h1 {
+  max-width: 980px;
+  font-size: clamp(2.25rem, 6vw, 4.9rem) !important;
+  line-height: 1.28 !important;
+  letter-spacing: -0.04em;
+}
+
+.flowSectionHeader[data-screenshot-ready] > p:not(.eyebrow),
+.reader .transitView .sectionHeading[data-screenshot-ready] > p:last-child,
+.reader .chartHeading[data-screenshot-ready] > p:last-child {
+  max-width: 820px;
+  font-size: clamp(0.98rem, 1.7vw, 1.12rem);
+  line-height: 2.05;
+}
+
+.reader .transitPatternList {
+  gap: clamp(22px, 4vw, 44px) !important;
+}
+
+.reader .transitPattern {
+  position: relative;
+  width: min(900px, 100%);
+  min-height: min(880px, 88svh);
+  margin-inline: auto;
+  align-items: center;
+  border-radius: 40px !important;
+  padding: clamp(34px, 6vw, 72px) !important;
+  background:
+    radial-gradient(circle at 86% 10%, rgb(255 255 255 / 4%), transparent 34%),
+    linear-gradient(150deg, #101111, #0a0b0b) !important;
+}
+
+.reader .transitPattern > div {
+  max-width: 760px;
+}
+
+.reader .transitPattern h2 {
+  margin-top: 0;
+  color: var(--editorial-ink) !important;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.45;
+}
+
+.reader .transitBalance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reader .transitMoment,
+.reader .transitBalance > p,
+.reader .transitPattern .practiceLine {
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 20px !important;
+  padding: 18px !important;
+  background: rgb(255 255 255 / 3%) !important;
+}
+
+.reader .chartDetails {
+  display: grid;
+  gap: clamp(30px, 5vw, 62px);
+}
+
+.reader .wheelShell {
+  width: min(1040px, 100%);
+  margin-inline: auto;
+  padding: clamp(14px, 3vw, 30px) !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-body) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0 !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-canvas) {
+  overflow: hidden;
+  border-radius: 22px 22px 0 0;
+  background: #efede7;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-legend) {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px !important;
+  border-top: 1px solid var(--editorial-line) !important;
+  padding: 24px !important;
+  background: #0d0e0e !important;
+  color: var(--editorial-body) !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-legend-heading) {
+  grid-column: 1 / -1;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-legend-label),
+.reader .wheelShell :global(.report-astrochart-wheel-aspect-note),
+.reader .wheelShell :global(.report-astrochart-wheel-retrogrades),
+.reader .wheelShell :global(.report-astrochart-wheel-axes),
+.reader .wheelShell :global(.report-astrochart-wheel-notations),
+.reader .wheelShell :global(.report-astrochart-wheel-planets),
+.reader .wheelShell :global(.report-astrochart-wheel-signs),
+.reader .wheelShell :global(.report-astrochart-wheel-aspects) {
+  color: var(--editorial-body) !important;
+}
+
+.reader .reportChartRail :global(.report-astrochart-wheel-header),
+.reader .reportChartRail :global(.report-astrochart-wheel-legend),
+.reader .reportChartRail :global(.report-astrochart-wheel-state) {
+  display: none !important;
+}
+
+.reader .reportChartRail :global(.report-astrochart-wheel-body) {
+  display: block !important;
+}
+
+.reader .reportChartRail :global(.report-astrochart-wheel-canvas) {
+  overflow: hidden;
+  border-radius: 18px;
+  background: #efede7;
+}
+
+.reader .reportChartRailSticky {
+  box-shadow: 0 24px 72px rgb(0 0 0 / 34%) !important;
+}
+
+.reader [data-reading-motion-card][data-reading-motion-active="true"] {
+  border-color: rgb(255 255 255 / 26%) !important;
+  box-shadow: 0 22px 60px rgb(0 0 0 / 28%) !important;
+  transform: translateY(-3px);
+}
+
+.reader [data-report-wheel-intro-ring] {
+  stroke-width: 3 !important;
+  opacity: 0.92 !important;
+  animation-duration: 1100ms !important;
+  animation-delay: 80ms !important;
+}
+
+.reader [data-report-wheel-intro-house] {
+  animation-duration: 700ms !important;
+  animation-delay: calc(420ms + (var(--report-motion-index) * 34ms)) !important;
+}
+
+.reader [data-report-wheel-intro-planet] {
+  animation-duration: 620ms !important;
+  animation-delay: calc(900ms + (var(--report-motion-index) * 46ms)) !important;
+}
+
+.reader [data-report-wheel-intro-luminary],
+.reader [data-report-wheel-intro-asc] {
+  animation-duration: 760ms !important;
+  animation-delay: 1450ms !important;
+}
+
+.reader [data-report-wheel-intro-aspect] {
+  stroke-width: 2.4 !important;
+  animation-duration: 780ms !important;
+  animation-delay: calc(1760ms + (var(--report-motion-index) * 72ms)) !important;
+}
+
+.reader [data-halleus-intro-motion] {
+  animation: reportWheelOverlayOutBatch2 420ms ease-in 3.45s forwards !important;
+}
+
+@keyframes reportWheelOverlayOutBatch2 {
+  to { opacity: 0; }
+}
+
+.reader .technicalTabs button,
+.reader .technicalTabs button:hover,
+.reader .technicalTabs button:focus-visible {
+  border-color: var(--editorial-line) !important;
+  background: #111212 !important;
+  color: var(--editorial-body) !important;
+}
+
+.reader .technicalTabs button[data-active="true"] {
+  border-color: #f0eee7 !important;
+  background: #f0eee7 !important;
+  color: #080909 !important;
+}
+
+@media (max-width: 1024px) {
+  .ambientLogo {
+    top: -390px;
+    left: -370px;
+    width: 760px;
+    opacity: 0.055;
+  }
+
+  .reader .wheelShell :global(.report-astrochart-wheel-legend) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ambientLogo {
+    top: -330px;
+    left: -315px;
+    width: 610px;
+    opacity: 0.045;
+  }
+
+  .flowSectionHeader[data-screenshot-ready],
+  .reader .transitView .sectionHeading[data-screenshot-ready],
+  .reader .chartHeading[data-screenshot-ready] {
+    min-height: 68svh;
+    border-radius: 26px;
+    padding: 28px 22px;
+  }
+
+  .reader .transitPattern {
+    min-height: 72svh;
+    border-radius: 26px !important;
+    padding: 28px 22px !important;
+  }
+
+  .reader .transitPattern {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .reader .transitBalance,
+  .reader .wheelShell :global(.report-astrochart-wheel-legend) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reader .wheelShell :global(.report-astrochart-wheel-legend) {
+    padding: 18px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .ambientLogo {
+    top: -275px;
+    left: -270px;
+    width: 520px;
+    opacity: 0.04;
+  }
+
+  .flowSectionHeader[data-screenshot-ready],
+  .reader .transitView .sectionHeading[data-screenshot-ready],
+  .reader .chartHeading[data-screenshot-ready],
+  .reader .transitPattern {
+    border-radius: 22px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambientLogo,
+  .reader [data-reading-motion-card][data-reading-motion-active="true"],
+  .reader [data-report-wheel-intro-ring],
+  .reader [data-report-wheel-intro-house],
+  .reader [data-report-wheel-intro-planet],
+  .reader [data-report-wheel-intro-luminary],
+  .reader [data-report-wheel-intro-asc],
+  .reader [data-report-wheel-intro-aspect],
+  .reader [data-halleus-intro-motion] {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* HALLEUS_REPORT_ADAPTIVE_DEPTH_FINAL_QA_20260808 */
+.reader {
+  --editorial-ink: #f4f2ed;
+  --editorial-body: #d8d5cf;
+  --editorial-muted: #aaa7a0;
+  --editorial-soft: #817e77;
+  --editorial-line: rgb(244 242 237 / 13%);
+  --editorial-card: #0d0e0e;
+  --editorial-card-strong: #111212;
+  min-height: 100vh;
+  background: #050606 !important;
+  color: var(--editorial-body) !important;
+  color-scheme: dark;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.reader :is(h1, h2, h3, h4, h5, strong, summary) {
+  color: var(--editorial-ink) !important;
+}
+
+.reader :is(p, li, dd, dt, small, label) {
+  color: var(--editorial-body) !important;
+}
+
+.reader :is(a, button:not([data-active="true"])) {
+  color: #e8e5df !important;
+}
+
+.reader button[data-active="true"] {
+  color: #050606 !important;
+  background: var(--editorial-ink) !important;
+  box-shadow: none !important;
+}
+
+.reader :is(.eyebrow, [class*="Eyebrow"], [class*="eyebrow"], [class*="Meta"], [class*="meta"]) {
+  color: var(--editorial-muted) !important;
+}
+
+.ambientLogo {
+  top: -190px !important;
+  left: -230px !important;
+  width: min(62vw, 760px) !important;
+  opacity: 0.12 !important;
+  filter: grayscale(1) brightness(2.35) contrast(0.92) !important;
+}
+
+.reader [data-screenshot-ready]::before,
+.reader .hero::before,
+.reader .section::before,
+.reader .transitPattern::before {
+  opacity: 0.045 !important;
+}
+
+.reportChartRail,
+.reportChartRailSticky {
+  display: none !important;
+}
+
+.legacySummarySuppressed {
+  display: none !important;
+}
+
+.reportNarrativeWithChart {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.reader section:empty {
+  display: none !important;
+}
+
+.adaptiveNarrative {
+  display: grid;
+  gap: clamp(72px, 10vw, 132px);
+  width: min(1120px, 100%);
+  margin-inline: auto;
+  color: var(--editorial-body);
+}
+
+.adaptiveHero,
+.adaptiveSectionHeader[data-screenshot-ready] {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: center;
+  min-height: min(620px, 72svh);
+  overflow: hidden;
+  border: 1px solid var(--editorial-line);
+  border-radius: clamp(28px, 4vw, 42px);
+  padding: clamp(34px, 6vw, 72px);
+  background:
+    radial-gradient(circle at 14% 10%, rgb(255 255 255 / 6%), transparent 34%),
+    linear-gradient(148deg, #111212, #080909);
+}
+
+.adaptiveHero::after,
+.adaptiveSectionHeader[data-screenshot-ready]::after {
+  content: "";
+  position: absolute;
+  inset: auto auto -34% -15%;
+  z-index: -1;
+  width: min(62%, 620px);
+  aspect-ratio: 1;
+  background: url("/halleus-logo/emblem-transparent.png") center / contain no-repeat;
+  filter: grayscale(1) brightness(2.15);
+  opacity: 0.055;
+  pointer-events: none;
+}
+
+.adaptiveHero h1,
+.adaptiveSectionHeader h2 {
+  max-width: 900px;
+  margin: 12px 0 18px;
+  color: var(--editorial-ink) !important;
+  letter-spacing: -0.035em;
+}
+
+.adaptiveHero h1 {
+  font-size: clamp(2.3rem, 5.8vw, 4.7rem);
+  line-height: 1.25;
+}
+
+.adaptiveSectionHeader h2 {
+  font-size: clamp(1.9rem, 4.2vw, 3.25rem);
+  line-height: 1.35;
+}
+
+.adaptiveHero > p:not(.eyebrow),
+.adaptiveSectionHeader > p:not(.eyebrow) {
+  max-width: 820px;
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.12rem);
+  line-height: 2.1;
+}
+
+.adaptiveMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.adaptiveMetaRow span {
+  border: 1px solid var(--editorial-line);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgb(255 255 255 / 3%);
+  color: var(--editorial-muted) !important;
+  font-size: 0.86rem;
+}
+
+.adaptiveSection {
+  display: grid;
+  gap: clamp(24px, 4vw, 42px);
+  scroll-margin-top: 110px;
+}
+
+.adaptiveSectionHeader:not([data-screenshot-ready]) {
+  display: grid;
+  gap: 10px;
+  max-width: 840px;
+}
+
+.adaptiveSectionHeader:not([data-screenshot-ready]) h2 {
+  margin: 0;
+  color: var(--editorial-ink) !important;
+  font-size: clamp(1.75rem, 3.6vw, 2.8rem);
+}
+
+.adaptiveSectionHeader:not([data-screenshot-ready]) p {
+  margin: 0;
+  line-height: 2;
+}
+
+.adaptiveStoryList,
+.adaptiveAspectList {
+  display: grid;
+  gap: clamp(20px, 3vw, 34px);
+}
+
+.adaptiveStoryCard {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 30px);
+  border: 1px solid var(--editorial-line);
+  border-radius: clamp(24px, 3vw, 34px);
+  padding: clamp(24px, 4.4vw, 48px);
+  background:
+    radial-gradient(circle at 90% 8%, rgb(255 255 255 / 4%), transparent 34%),
+    var(--editorial-card);
+}
+
+.adaptiveIndex {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #f1eee7;
+  color: #0a0b0b !important;
+  font-weight: 800;
+}
+
+.adaptiveStoryBody {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.adaptiveStoryBody h3,
+.adaptiveAspectCard h3,
+.adaptivePlacementCard h3,
+.adaptiveHouseCard h3,
+.adaptiveBalanceCard h3 {
+  margin: 0;
+  color: var(--editorial-ink) !important;
+  font-size: clamp(1.25rem, 2.5vw, 1.85rem);
+  line-height: 1.55;
+}
+
+.adaptiveStoryBody p,
+.adaptiveAspectCard p,
+.adaptivePlacementCard p,
+.adaptiveHouseCard p,
+.adaptiveNodeCard p,
+.adaptiveBalanceCard p,
+.adaptiveRulerStrip p {
+  margin: 0;
+  color: var(--editorial-body) !important;
+  line-height: 2.05;
+}
+
+.adaptiveLead {
+  font-size: 1.04rem;
+}
+
+.adaptiveLivedBlock,
+.adaptiveTwoColumn > div,
+.adaptiveNodeCard > div,
+.adaptiveBalanceCard,
+.adaptiveRulerStrip,
+.adaptiveHouseCard,
+.adaptiveAspectCard,
+.adaptivePlacementCard {
+  border: 1px solid var(--editorial-line);
+  background: rgb(255 255 255 / 2.5%);
+}
+
+.adaptiveLivedBlock {
+  display: grid;
+  gap: 7px;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.adaptiveTwoColumn {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.adaptiveTwoColumn > div {
+  display: grid;
+  gap: 8px;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.adaptiveActionLine {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  border-inline-start: 2px solid #eeeae2;
+  padding-inline-start: 14px;
+}
+
+.adaptiveActionLine strong {
+  color: var(--editorial-ink) !important;
+}
+
+.adaptiveEvidence {
+  border-top: 1px solid var(--editorial-line);
+  padding-top: 14px;
+}
+
+.adaptiveEvidence summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.adaptiveEvidence ul,
+.adaptiveEvidence dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.adaptiveEvidence ul {
+  padding-inline-start: 20px;
+}
+
+.adaptiveEvidence dl > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.35fr) minmax(0, 1fr);
+  gap: 12px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgb(255 255 255 / 2.5%);
+}
+
+.adaptiveEvidence dt {
+  color: var(--editorial-ink) !important;
+  font-weight: 700;
+}
+
+.adaptiveEvidence dd {
+  margin: 0;
+}
+
+.adaptivePlacementGrid,
+.adaptiveHouseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.adaptivePlacementCard,
+.adaptiveHouseCard,
+.adaptiveAspectCard,
+.adaptiveBalanceCard,
+.adaptiveRulerStrip {
+  display: grid;
+  gap: 14px;
+  border-radius: 22px;
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.adaptivePlacementCard header p {
+  margin-top: 4px;
+  color: var(--editorial-muted) !important;
+  font-size: 0.88rem;
+}
+
+.adaptiveLivedExample {
+  border-inline-start: 2px solid rgb(244 242 237 / 40%);
+  padding-inline-start: 12px;
+}
+
+.adaptiveRulerStrip {
+  grid-template-columns: minmax(150px, 0.3fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.adaptiveRulerStrip > div {
+  display: grid;
+  gap: 5px;
+}
+
+.adaptiveRulerStrip > div strong {
+  font-size: 1.35rem;
+}
+
+.adaptiveAspectCard {
+  width: min(900px, 100%);
+  margin-inline: auto;
+  padding: clamp(24px, 4vw, 40px);
+}
+
+.adaptiveNodeCard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.adaptiveNodeCard > div {
+  display: grid;
+  gap: 8px;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.adaptiveNodeCard > .adaptiveActionLine,
+.adaptiveNodeCard > .adaptiveConfidence,
+.adaptiveNodeCard > .adaptiveEvidence {
+  grid-column: 1 / -1;
+}
+
+.adaptiveConfidence {
+  border: 1px solid var(--editorial-line);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgb(255 255 255 / 2.5%);
+  color: var(--editorial-muted) !important;
+}
+
+.adaptiveWeeklyActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: weekly-action;
+}
+
+.adaptiveWeeklyActions li {
+  counter-increment: weekly-action;
+  min-height: 190px;
+  border: 1px solid var(--editorial-line);
+  border-radius: 22px;
+  padding: 24px;
+  background: var(--editorial-card);
+  color: var(--editorial-body) !important;
+  line-height: 2;
+}
+
+.adaptiveWeeklyActions li::before {
+  content: counter(weekly-action, decimal-leading-zero);
+  display: block;
+  margin-bottom: 20px;
+  color: var(--editorial-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.reader .technicalTabs button,
+.reader .technicalTabs button:hover,
+.reader .technicalTabs button:focus-visible,
+.reader :global(.report-astrochart-wheel-legend) {
+  color: var(--editorial-body) !important;
+}
+
+@media (max-width: 1024px) {
+  .ambientLogo {
+    top: -165px !important;
+    left: -205px !important;
+    width: 650px !important;
+    opacity: 0.105 !important;
+  }
+
+  .adaptivePlacementGrid,
+  .adaptiveHouseGrid,
+  .adaptiveWeeklyActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ambientLogo {
+    top: -135px !important;
+    left: -175px !important;
+    width: 500px !important;
+    opacity: 0.095 !important;
+  }
+
+  .adaptiveNarrative {
+    gap: 72px;
+  }
+
+  .adaptiveHero,
+  .adaptiveSectionHeader[data-screenshot-ready] {
+    min-height: 62svh;
+    border-radius: 24px;
+    padding: 28px 22px;
+  }
+
+  .adaptiveStoryCard {
+    grid-template-columns: 1fr;
+    border-radius: 24px;
+    padding: 22px;
+  }
+
+  .adaptivePlacementGrid,
+  .adaptiveHouseGrid,
+  .adaptiveWeeklyActions,
+  .adaptiveTwoColumn,
+  .adaptiveNodeCard,
+  .adaptiveRulerStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .adaptiveNodeCard > .adaptiveActionLine,
+  .adaptiveNodeCard > .adaptiveConfidence,
+  .adaptiveNodeCard > .adaptiveEvidence {
+    grid-column: auto;
+  }
+
+  .adaptiveEvidence dl > div {
+    grid-template-columns: 1fr;
+  }
+
+  .adaptiveActionLine {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adaptiveNarrative *,
+  .ambientLogo {
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .reader {
+    min-height: 100vh !important;
+    background: #050606 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .adaptiveHero,
+  .adaptiveSectionHeader[data-screenshot-ready],
+  .adaptiveStoryCard,
+  .adaptivePlacementCard,
+  .adaptiveHouseCard,
+  .adaptiveAspectCard,
+  .adaptiveNodeCard,
+  .adaptiveBalanceCard,
+  .adaptiveRulerStrip,
+  .adaptiveWeeklyActions li {
+    break-inside: avoid;
+  }
+}
+
+/* HALLEUS_REPORT_AMBIENT_BACKGROUND_NEUTRAL_HEADINGS_FINAL_QA_R16_20260808 */
+.ambientLogo {
+  position: fixed !important;
+  z-index: 0 !important;
+  top: 50% !important;
+  left: -910px !important;
+  width: 1820px !important;
+  aspect-ratio: 1 !important;
+  background: url("/halleus-logo/emblem-transparent.png") center / contain no-repeat !important;
+  filter: brightness(0) invert(1) !important;
+  opacity: 0.07 !important;
+  transform: translate3d(0, -50%, 0) rotate(var(--halleus-ambient-rotate)) !important;
+  transform-origin: 50% 50% !important;
+  will-change: transform;
+  pointer-events: none !important;
+}
+
+.reader,
+.readerLayout,
+.readingColumn,
+.reportNarrativeWithChart,
+.adaptiveNarrative,
+.adaptiveSection,
+.transitView,
+.transitPatternList,
+.chartDetails,
+.flowSection {
+  background: transparent !important;
+}
+
+.reader > :not(.ambientLogo) {
+  position: relative;
+  z-index: 1;
+}
+
+.reader :is(
+  .adaptiveHero,
+  .adaptiveSectionHeader,
+  .adaptiveStoryCard,
+  .adaptivePlacementCard,
+  .adaptiveHouseCard,
+  .adaptiveAspectCard,
+  .adaptiveNodeCard,
+  .adaptiveBalanceCard,
+  .adaptiveRulerStrip,
+  .adaptiveWeeklyActions li,
+  .sectionHeading,
+  .transitPattern,
+  .emptyTechnical,
+  .chartHeading,
+  .readingMetadata,
+  .wheelShell,
+  .technicalTabs
+) {
+  position: relative;
+  z-index: 2;
+  background: radial-gradient(circle at 90% 8%, rgb(255 255 255 / 4%), transparent 34%), rgb(13 14 14 / 78%) !important;
+}
+
+.reader :is(
+  .desktopModeSwitch,
+  .journeyNavigator,
+  .readingTimeLine
+) {
+  position: relative;
+  z-index: 2;
+}
+
+/* Bring the biggest adaptive headings back into the calmer Halleus scale. */
+.adaptiveHero h1 {
+  font-size: clamp(1.95rem, 4.85vw, 3.9rem) !important;
+  line-height: 1.22 !important;
+}
+
+.adaptiveSectionHeader h2 {
+  font-size: clamp(1.55rem, 3.35vw, 2.45rem) !important;
+  line-height: 1.28 !important;
+}
+
+.adaptiveSectionHeader:not([data-screenshot-ready]) h2 {
+  font-size: clamp(1.4rem, 2.8vw, 2.1rem) !important;
+  line-height: 1.3 !important;
+}
+
+.reader [data-screenshot-ready]::before,
+.reader .hero::before,
+.reader .section::before,
+.reader .transitPattern::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
+}
+
+@media (max-width: 1280px) {
+  .ambientLogo { left: -820px !important; width: 1640px !important; opacity: 0.068 !important; }
+}
+@media (max-width: 1024px) {
+  .ambientLogo { left: -700px !important; width: 1400px !important; opacity: 0.064 !important; }
+}
+@media (max-width: 760px) {
+  .ambientLogo { left: -560px !important; width: 1120px !important; opacity: 0.058 !important; }
+}
+@media (max-width: 520px) {
+  .ambientLogo { left: -470px !important; width: 940px !important; opacity: 0.055 !important; }
+  .adaptiveHero h1 { font-size: clamp(1.8rem, 7.2vw, 3rem) !important; }
+  .adaptiveSectionHeader h2 { font-size: clamp(1.35rem, 5.8vw, 2rem) !important; }
+}
+@media (max-width: 390px) {
+  .ambientLogo { left: -405px !important; width: 810px !important; opacity: 0.051 !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambientLogo { transform: translate3d(0, -50%, 0) !important; will-change: auto !important; }
+}
+@media print {
+  .ambientLogo {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.05 !important;
+    top: 50% !important;
+    left: -640px !important;
+    width: 1280px !important;
+    transform: translate3d(0, -50%, 0) !important;
+  }
+}

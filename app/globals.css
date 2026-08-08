@@ -9541,3 +9541,21 @@ h6,
   .report-product-relationship-cta .actions { width: 100%; }
   .report-product-relationship-cta .button { width: 100%; justify-content: center; }
 }
+
+/* HALLEUS_REPORT_ADAPTIVE_DEPTH_DARK_DOCUMENT_20260808 */
+html:has(.report-product-page),
+body:has(.report-product-page) {
+  min-height: 100%;
+  background: #050606 !important;
+  color-scheme: dark;
+}
+
+@media print {
+  html:has(.report-product-page),
+  body:has(.report-product-page) {
+    min-height: 100%;
+    background: #050606 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

@@ -265,6 +265,7 @@ export type PersonalTransitSelectionContext = {
   chartRulerId?: string | null;
   angularNatalBodyIds?: string[];
   activeNatalBodyIds?: string[];
+  natalHouseByBody?: Partial<Record<NatalToTransitBodyId, number | null>>;
   maxVisible?: number;
 };
 
@@ -374,20 +375,21 @@ export function scorePersonalTransitRelevance(
 export function buildPersonalTransitBehavioralInterpretation(
   aspect: PersonalTransitAspectLike,
   audienceMode: BehavioralAudienceMode = "adult",
+  natalHouseNumber: number | null = null,
 ): PersonalTransitBehavioralInterpretation {
   const transit = TRANSIT_ROLE_FA[aspect.transitBody];
   const natal = NATAL_THEME_FA[aspect.natalBody];
   const frame = ASPECT_FRAME_FA[aspect.aspect];
   const transitLabel = BODY_LABELS_FA[aspect.transitBody];
   const natalLabel = BODY_LABELS_FA[aspect.natalBody];
-  const scenario = getAudienceScenario(natal, audienceMode);
+  const scenario = getAudienceScenario(natal, audienceMode, natalHouseNumber);
   const action =
     audienceMode === "caregiver" ? transit.caregiverAction : transit.action;
 
   return {
     theme: natal.theme,
     attention: `${transitLabel} ترنزیتی می‌توانسته ${transit.attention} و آن را به ${natal.field} در چارت تولد وصل کند؛ در این زاویه ${frame.framework}.`,
-    scenario: `اگر این تماس در تجربه همان بازه محسوس بوده، ممکن بود در ${scenario} خودش را نشان دهد؛ این جمله احتمال رفتاری است، نه گزارش یک رویداد قطعی.`,
+    scenario: `اگر این تماس در تجربه همان بازه محسوس بوده، ممکن بود در ${scenario} خودش را نشان دهد.`,
     helpful: `استفاده سازنده این بود که ${transit.helpful} و هم‌زمان ${natal.healthy}؛ در این حالت می‌شد ${frame.helpful}.`,
     friction: `گیر محتمل این بود که ${transit.friction} و ${natal.friction}؛ در نتیجه ممکن بود ${frame.friction}.`,
     action,
@@ -447,20 +449,43 @@ function getDynamicScore(aspect: NatalToTransitAspectId): number {
   return 10;
 }
 
+const NATAL_HOUSE_SCENARIO_FA: Partial<Record<number, string>> = {
+  1: "شروع، بدن یا موقعیتی که باید جای خودت را روشن کنی",
+  2: "خرج، منابع یا تصمیمی درباره امنیت شخصی",
+  3: "پیام، گفت‌وگو، یادگیری یا تصمیم روزمره",
+  4: "خانه، خانواده یا نیاز به فضای خصوصی",
+  5: "خلاقیت، بازی یا چیزی که می‌خواهی نشان بدهی",
+  6: "برنامه روزانه، کار تکراری یا مراقبت از بدن",
+  7: "رابطه نزدیک، همکاری یا مذاکره مستقیم",
+  8: "اعتماد، آسیب‌پذیری یا یک مسئولیت و منبع مشترک",
+  9: "یادگیری، سفر، باور یا دیدگاهی که لازم است دوباره سنجیده شود",
+  10: "مسئولیت دیده‌شده، تحویل کار یا تصمیم درباره جهت عمومی",
+  11: "دوستی، جمع یا برنامه‌ای که با دیگران می‌سازی",
+  12: "استراحت، خلوت یا زمانی که قبل از پاسخ به پردازش خصوصی نیاز داری",
+};
+
 function getAudienceScenario(
   natal: (typeof NATAL_THEME_FA)[NatalToTransitBodyId],
   audienceMode: BehavioralAudienceMode,
+  natalHouseNumber: number | null = null,
 ): string {
-  if (audienceMode === "caregiver") {
-    return natal.caregiverScenario;
-  }
+  const bodyScenario =
+    audienceMode === "caregiver"
+      ? natal.caregiverScenario
+      : audienceMode === "youth"
+        ? natal.youthScenario
+        : natal.adultScenario;
+  const houseScenario =
+    typeof natalHouseNumber === "number"
+      ? NATAL_HOUSE_SCENARIO_FA[natalHouseNumber]
+      : null;
 
-  if (audienceMode === "youth") {
-    return natal.youthScenario;
-  }
-
-  return natal.adultScenario;
+  return houseScenario
+    ? `${houseScenario}؛ جایی که ${bodyScenario}`
+    : bodyScenario;
 }
+
+// HALLEUS_PERSONAL_TRANSIT_NATAL_HOUSE_CONTEXT_20260808
 
 function dedupeAspects<TAspect extends PersonalTransitAspectLike>(
   aspects: readonly TAspect[],

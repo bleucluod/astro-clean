@@ -62,10 +62,20 @@ for (const oldPhrase of [
   assert(!visibleCopy.includes(oldPhrase), `Old repeated trust/safety phrase still appears: ${oldPhrase}`);
 }
 
-assert(
-  read(files.specialPoints).includes("مدل‌ها در داده حفظ می‌شود"),
-  "Special points copy should keep model transparency without repeating safety disclaimers.",
-);
+const trustRepairMarker = "HALLEUS_REPORT_TRUST_SAFETY_FOUR_MODE_SYNC_R5_20260806";
+const specialPointsCopy = read(files.specialPoints);
+for (const marker of [
+  "formatNodeSource(lunarNodes.nodeType)",
+  "\u0645\u062f\u0644 \u0631\u0627 \u062c\u062f\u0627\u06af\u0627\u0646\u0647 \u0646\u06af\u0647 \u0645\u06cc\u200c\u062f\u0627\u0631\u062f",
+  "\u0645\u062d\u0648\u0631 \u0645\u06cc\u0627\u0646\u06af\u06cc\u0646 \u0648 \u0645\u062d\u0648\u0631 \u0646\u0648\u0633\u0627\u0646\u06cc/\u0648\u0627\u0642\u0639\u06cc \u0628\u0627 \u0647\u0645 \u0642\u0627\u0637\u06cc \u0646\u0634\u0648\u0646\u062f",
+  "\u0644\u06cc\u0644\u06cc\u062a \u0645\u06cc\u0627\u0646\u06af\u06cc\u0646",
+  "\u062f\u0627\u0631\u06a9\u200c\u0645\u0648\u0646/\u0648\u0627\u0644\u062f\u0645\u0627\u062b",
+]) {
+  assert(
+    specialPointsCopy.includes(marker),
+    "Special points must preserve explicit model-source distinctions: " + marker,
+  );
+}
 assert(
   read(files.personalTransit).includes("هر کارت فقط یک نشانه‌ی موقت برای توجه است"),
   "Personal transit copy should use light observational language.",
@@ -85,16 +95,41 @@ assert(
   "check:project must include the trust/safety language QA guard.",
 );
 
-for (const file of [
-  files.projectContext,
-  files.ideaGarden,
-  files.realityAudit,
-  files.unificationPlan,
-]) {
-  assert(
-    read(file).includes("report trust safety language qa"),
-    `${file} missing report trust safety language qa marker.`,
-  );
-}
+const trustRuntimeSources = {
+  reportDetail: read("components/ReportDetail.tsx"),
+  reportProductReader: read("components/report/ReportProductReader.tsx"),
+  visibleLanguage: read("lib/report-output/visible-report-language.ts"),
+  fiveMinuteSummary: read("components/report/FiveMinuteReportSummary.tsx"),
+};
+
+assert(
+  trustRuntimeSources.reportDetail.includes("sanitizeVisibleReportValue"),
+  "ReportDetail must sanitize the report before it reaches any visible report mode.",
+);
+assert(
+  trustRuntimeSources.reportProductReader.includes("FiveMinuteReportSummary") &&
+    trustRuntimeSources.reportProductReader.includes("ReportV3Experience") &&
+    trustRuntimeSources.reportProductReader.includes("ReportTechnicalAppendix"),
+  "The four-mode reader must keep summary, full narrative, and technical ownership explicit.",
+);
+assert(
+  trustRuntimeSources.visibleLanguage.includes("sanitizeVisibleReportText") &&
+    trustRuntimeSources.visibleLanguage.includes("sanitizeVisibleReportValue") &&
+    trustRuntimeSources.visibleLanguage.includes("ENGLISH_INTERNAL_TERMS") &&
+    trustRuntimeSources.visibleLanguage.includes("EXACT_VISIBLE_REPLACEMENTS"),
+  "Visible internal-language cleanup must remain centralized.",
+);
+assert(
+  trustRuntimeSources.fiveMinuteSummary.includes("contract.hasReliableBirthTime") &&
+    trustRuntimeSources.fiveMinuteSummary.includes("contract.primaryPatterns.slice(0, 3)"),
+  "The summary must preserve evidence limits and unknown-time degradation.",
+);
+
+const trustRuntimeMarker = "HALLEUS_REPORT_TRUST_SAFETY_RUNTIME_CONTRACT_SYNC_R6_20260806";
 
 console.log("Report trust/safety language QA guard passed.");
+console.log("- special-point source models remain explicit and distinct");
+console.log("- " + trustRepairMarker);
+console.log("- runtime trust/safety ownership replaces stale documentation markers");
+console.log("- HALLEUS_REPORT_TRUST_CENTRALIZATION_REAL_IDENTIFIERS_R7_20260806");
+console.log("- " + trustRuntimeMarker);

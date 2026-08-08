@@ -106,6 +106,7 @@ function buildBirthInputFromRequest(body: RealChartRouteBody): BirthInput {
     name: readString(body.name) ?? undefined,
     birthDate: readString(body.birthDate) ?? "",
     birthTime: readString(body.birthTime) ?? "",
+    birthTimeAccuracy: readBirthTimeAccuracy(body.birthTimeAccuracy),
     birthCity: placeName,
     birthCountry: readString(body.birthCountry) ?? "ایران",
     birthCityId: readString(body.birthCityId) ?? undefined,
@@ -250,6 +251,12 @@ function readString(value: unknown): string | null {
   const normalized = value.trim();
 
   return normalized.length > 0 ? normalized : null;
+}
+
+function readBirthTimeAccuracy(
+  value: unknown,
+): BirthInput["birthTimeAccuracy"] {
+  return value === "unknown" ? "unknown" : value === "known" ? "known" : undefined;
 }
 
 function readNumber(value: unknown): number | undefined {

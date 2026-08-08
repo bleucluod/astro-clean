@@ -33,7 +33,7 @@ const adapterSource = read(
   "src/lib/report-output/report-birth-chart-wheel-data.ts",
 );
 const componentSource = read("components/ReportBirthChartWheel.tsx");
-const detailSource = read("components/ReportDetail.tsx");
+const readerSource = read("components/report/ReportProductReader.tsx");
 const globalCss = read("app/globals.css");
 const packageJson = JSON.parse(read("package.json"));
 const astroChartPackage = JSON.parse(
@@ -276,7 +276,9 @@ assert(
   "AstroChart may draw only stored Halleus aspects and must not calculate replacements",
 );
 assert(
-  componentSource.includes("styleStoredAspectLines(svg)") &&
+  componentSource.includes("styleStoredAspectLines(svg, data, activePattern)") &&
+    componentSource.includes("appendPatternPlanetHighlights(svg, data, activePattern)") &&
+    componentSource.includes('data-active-chart-pattern') &&
     componentSource.includes('data-halleus-aspect-weight') &&
     componentSource.includes('data-report-birth-chart-aspect-count={data.aspects.length}'),
   "stored aspect lines must expose report-specific count and stored-orb visual weight",
@@ -364,28 +366,22 @@ assert(
   "wrapper must provide a human Persian fallback",
 );
 assert(
-  (detailSource.match(/<ReportBirthChartWheel report=\{report\} \/>/g) ?? []).length === 1 &&
-    !detailSource.includes("<RealChartWheel"),
-  "ReportDetail must render one adapted wheel and never bypass its adapter",
+  readerSource.includes("ReportBirthChartWheel") &&
+    (readerSource.match(/<ReportBirthChartWheel/g) ?? []).length === 1 &&
+    readerSource.includes('id="report-full"') &&
+    readerSource.includes('id="report-chart"') &&
+    readerSource.includes("<ReportTechnicalAppendix contract={contract} report={report} />"),
+  "continuous reader must expose exactly one adapted wheel in the technical chart section",
 );
 assert(
-  detailSource.includes(
-    'data-report-birth-chart-wheel-shell="featured-auto-height"',
-  ),
-  "ReportDetail must keep the report birth-chart wheel in a featured auto-height shell",
+  readerSource.includes('data-report-product-flow="continuous"') &&
+    !readerSource.includes('mode === "technical"') &&
+    readerSource.indexOf('id="report-full"') <
+      readerSource.indexOf('id="report-chart"'),
+  "wheel ownership must follow the continuous report flow rather than the retired technical mode",
 );
-assert(
-  !/report-detail-chart-frame[^\n]*[\s\S]{0,240}<ReportBirthChartWheel report=\{report\} \/>/.test(
-    detailSource,
-  ),
-  "ReportDetail must not clip the full birth-chart component inside the legacy square frame",
-);
-assert(
-  /id="final-reading"[\s\S]*?<ReportV3Experience report=\{report\} \/>\s*<\/section>\s*<article\s+className="report-detail-chart-card report-detail-chart-card-featured"\s+id="chart-wheel"/.test(
-    detailSource,
-  ),
-  "the wheel must stay in a dedicated featured card immediately after the primary Persian reading",
-);
+// HALLEUS_REPORT_BIRTH_CHART_WHEEL_CONTINUOUS_FLOW_R2_20260808
+// HALLEUS_REPORT_BIRTH_CHART_WHEEL_ADAPTIVE_SINGLE_OWNER_20260808
 assert(
   globalCss.includes(".report-astrochart-wheel-canvas svg") &&
     globalCss.includes("width: min(100%, 800px)") &&
@@ -412,16 +408,9 @@ assert(
   "the guide must stack same-width supplementary cards beside the retrograde status",
 );
 assert(
-  detailSource.indexOf("<ReportV3Experience") <
-    detailSource.indexOf("<ReportBirthChartWheel"),
-  "the Persian reading sequence must appear before the featured wheel",
-);
-assert(
-  detailSource.includes('["chart-wheel", "چرخ چارت"]') &&
-    detailSource.includes(
-      'data-live-report-primary-sequence="summary-wheel-pillars-ruler-houses-aspects-nodes-balance-practices-placements-data-transit-details"',
-    ),
-  "ReportDetail must expose the narrative-first wheel anchor and primary sequence",
+  readerSource.indexOf("<ReportV3Experience") <
+    readerSource.indexOf("<ReportBirthChartWheel"),
+  "the full Persian reading remains before the technical chart wheel in reader source",
 );
 assert(
   packageJson.scripts?.["check:report-birth-chart-wheel"] ===
@@ -454,3 +443,36 @@ console.log("- cusp degree pills fit their numbers without colored sign emoji");
 console.log("- matching wheel glyphs, bold headings, card items, and aligned notation rows keep the guide readable");
 console.log("- compact Persian labels avoid duplicate wheel headings and long retrograde copy");
 console.log("- the client-only renderer is pinned to the MIT, dependency-free 3.0.2 release");
+assert(
+  componentSource.includes("appendIntroMotionOverlay(svg, data)") &&
+    componentSource.includes("applyReadingWheelFocus") &&
+    componentSource.includes("halleus:report-reading-focus") &&
+    componentSource.includes('data-report-wheel-motion="batch8"') &&
+    componentSource.includes("data.aspects.slice(0, 6)"),
+  "Batch 8 wheel must stage stored-data motion and preserve chapter-to-chart focus",
+);
+assert(
+  componentSource.includes('window.matchMedia?.("(prefers-reduced-motion: reduce)").matches'),
+  "Batch 8 wheel intro must short-circuit for reduced motion",
+);
+assert(
+  componentSource.includes("useState<string | null>(() => {") &&
+    componentSource.includes("window.sessionStorage.getItem") &&
+    !componentSource.includes("setReadingFocus(window.sessionStorage.getItem"),
+  "Batch 8 reading focus must initialize lazily and keep effects subscription-only",
+);
+
+console.log("- interactive Batch 3 pattern highlighting remains stored-data-only");
+console.log("- Batch 8 chart motion is finite, stored-data-only, and reduced-motion aware");
+console.log("- HALLEUS_REPORT_BIRTH_CHART_WHEEL_BATCH8_MOTION_20260807");
+console.log("- HALLEUS_REPORT_BIRTH_CHART_WHEEL_BATCH3_SYNC_R2_20260807");
+
+const batch2WheelSource = read("components/ReportBirthChartWheel.tsx");
+const batch2WheelCss = read("components/report/human-first-report.module.css");
+if (!batch2WheelSource.includes('data-report-wheel-visibility-trigger="batch2"')) throw new Error("Batch 2 wheel visibility marker missing");
+if (!batch2WheelSource.includes("entry.intersectionRatio >= 0.32")) throw new Error("Batch 2 wheel must wait until it is meaningfully visible");
+if (!batch2WheelSource.includes("introObserver?.disconnect()")) throw new Error("Batch 2 wheel observer cleanup missing");
+if (!batch2WheelCss.includes("reportWheelOverlayOutBatch2")) throw new Error("Batch 2 stronger wheel motion CSS missing");
+if (!batch2WheelCss.includes("@media (prefers-reduced-motion: reduce)")) throw new Error("Batch 2 reduced-motion CSS missing");
+console.log("- Batch 2 starts the finite wheel intro only when the wheel is visibly on screen");
+console.log("- HALLEUS_REPORT_BIRTH_CHART_WHEEL_BATCH2_VISIBLE_MOTION_20260808");

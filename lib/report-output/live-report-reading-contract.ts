@@ -1,4 +1,29 @@
 import { buildRealEngineChartSignature } from "@/lib/astrology/real-engine-chart-signature";
+import {
+  buildChartProminenceProfile,
+  type ChartProminenceProfile,
+} from "@/lib/astrology/chart-prominence";
+import {
+  buildChartPatternProfile,
+  mergeChartPatternsIntoProminence,
+  type ChartPatternProfile,
+} from "@/lib/astrology/chart-patterns";
+import {
+  buildChartRulershipProfile,
+  type ChartRulershipProfile,
+} from "@/lib/astrology/chart-rulership";
+import {
+  buildValidatedSupplementaryPointsProfile,
+  type ValidatedSupplementaryPointsProfile,
+} from "@/lib/astrology/validated-supplementary-points";
+import {
+  buildPersonalPlanetChapters,
+  type PersonalPlanetChaptersProfile,
+} from "@/lib/astrology/personal-planet-chapters";
+import {
+  buildWholeChartSynthesis,
+  type WholeChartSynthesisProfile,
+} from "@/lib/astrology/whole-chart-synthesis";
 import { formatZodiacLabel } from "@/lib/astrology/zodiac-labels";
 import { enhanceReportOutputV3 } from "@/lib/report-output/report-v3";
 import type {
@@ -10,6 +35,7 @@ import type {
   RealEngineReportPlacement,
 } from "@/types/astro";
 import type { ReportOutputSection } from "@/types/report-output";
+import type { HumanFirstReadingSectionId } from "@/types/human-first-reading";
 import type {
   PersonalTransitReportDataBridge,
   PersonalTransitReportDataBridgeSelectedAspectSummary,
@@ -53,6 +79,7 @@ export type ReportPrimaryPattern = {
   title: string;
   summary: string;
   evidence: string[];
+  destination: HumanFirstReadingSectionId;
 };
 
 export type ReportValueCard = {
@@ -177,6 +204,12 @@ export type LiveReportReadingContract = {
   displayName: string;
   personalOpening: string[];
   chartSignature: ReportChartSignatureSummary;
+  prominence: ChartProminenceProfile;
+  chartPatterns: ChartPatternProfile;
+  rulership: ChartRulershipProfile;
+  supplementaryPoints: ValidatedSupplementaryPointsProfile;
+  personalPlanetChapters: PersonalPlanetChaptersProfile;
+  wholeChartSynthesis: WholeChartSynthesisProfile;
   corePlacements: ReportCorePlacement[];
   primaryPatterns: ReportPrimaryPattern[];
   primaryStrength: ReportValueCard;
@@ -290,18 +323,21 @@ const FALLBACK_WEEKLY_ACTIONS = [
 const FALLBACK_PRIMARY_PATTERNS: ReportPrimaryPattern[] = [
   {
     id: "pattern-signature",
+    destination: "overview",
     title: "امضای کلی",
     summary: "جایگاه‌های اصلی چارت نشان می‌دهند چه کیفیتی زودتر دیده می‌شود و چه نیازی پشت انتخاب‌ها قرار دارد.",
     evidence: [],
   },
   {
     id: "pattern-emotional-security",
+    destination: "inner-world",
     title: "امنیت درونی",
     summary: "ماه و خانهٔ آن کمک می‌کنند ریتم احساس، آرام‌شدن و درخواست حمایت روشن‌تر شود.",
     evidence: [],
   },
   {
     id: "pattern-recurring",
+    destination: "growth-path",
     title: "الگوی تکرارشونده",
     summary: "رابطه‌های اصلی سیاره‌ها نشان می‌دهند کدام دو نیاز بارها به تنظیم و گفت‌وگو احتیاج دارند.",
     evidence: [],
@@ -685,18 +721,21 @@ function buildLegacyPrimaryPatterns(report: AstrologyReport): ReportPrimaryPatte
   return [
     {
       id: "pattern-signature",
+    destination: "overview",
       title: "سه نقطهٔ پایه",
       summary: `خورشید ${report.chart.sunSign.faName}، ماه ${report.chart.moonSign.faName} و رایزینگ ${report.chart.risingSign.faName} داده‌های پایهٔ این نسخه‌اند.`,
       evidence: [],
     },
     {
       id: "pattern-emotional-security",
+    destination: "inner-world",
       title: "مرز خوانش درونی",
       summary: `ماه ${report.chart.moonSign.faName} ثبت شده، اما خانه و تماس‌های تکمیلی در نسخهٔ قدیمی موجود نیستند.`,
       evidence: [],
     },
     {
       id: "pattern-recurring",
+    destination: "growth-path",
       title: "الگوهای تکرارشونده",
       summary: "بدون فهرست معتبر جنبه‌ها، این نسخه الگوی تکرارشونده یا تمرین شخصی تازه‌ای را حدس نمی‌زند.",
       evidence: [],
@@ -847,14 +886,30 @@ function buildPrimaryPatterns(
   chapters: LiveReportThemeChapter[],
   registry: OwnershipRegistry,
   report: AstrologyReport,
+  prominence: ChartProminenceProfile,
 ): ReportPrimaryPattern[] {
+  const prominencePatterns = prominence.signatures.map(
+    (signature, index): ReportPrimaryPattern => ({
+      id: signature.id,
+      title: signature.title,
+      summary:
+        registry.claim(
+          "primary-pattern",
+          `prominence-pattern-${index + 1}`,
+          signature.summary,
+        ) ?? signature.summary,
+      evidence: signature.evidence.slice(0, 3),
+      destination: signature.destination,
+    }),
+  );
+
   const preferredIds = new Set([
     "real-engine-theme-signature",
     "real-engine-theme-emotional-security",
     "real-engine-theme-recurring-patterns",
   ]);
   const preferred = CHAPTER_SPECS.filter((spec) => preferredIds.has(spec.id));
-  const patterns = preferred.flatMap((spec, index) => {
+  const chapterPatterns = preferred.flatMap((spec, index) => {
     const section = getSection(sections, spec.id);
     const chapter = chapters.find((item) => item.id === spec.id);
     const source = getSectionParagraphs(section)[0];
@@ -864,18 +919,25 @@ function buildPrimaryPatterns(
     const evidence = getSectionEvidence(section).slice(0, 2);
     const summary = registry.reference(
       "primary-pattern",
-      `primary-pattern-${index + 1}`,
+      `chapter-pattern-${index + 1}`,
       buildPrimaryPatternSummary(spec.id, source, evidence[0], report),
       spec.id,
     );
     if (!summary) {
       return [];
     }
+    const destination: HumanFirstReadingSectionId =
+      spec.id === "real-engine-theme-emotional-security"
+        ? "inner-world"
+        : spec.id === "real-engine-theme-recurring-patterns"
+          ? "growth-path"
+          : "overview";
     return [{
-      id: `primary-pattern-${index + 1}`,
+      id: `chapter-pattern-${index + 1}`,
       title: spec.patternTitle ?? spec.title,
       summary,
       evidence,
+      destination,
     }];
   });
 
@@ -883,7 +945,7 @@ function buildPrimaryPatterns(
     ? FALLBACK_PRIMARY_PATTERNS
     : buildLegacyPrimaryPatterns(report);
 
-  return [...patterns, ...fallbackPatterns]
+  return [...prominencePatterns, ...chapterPatterns, ...fallbackPatterns]
     .filter((pattern, index, collection) =>
       collection.findIndex((item) => item.id === pattern.id) === index,
     )
@@ -948,7 +1010,17 @@ function buildSaveableSentence(
   sections: ReportOutputSection[],
   registry: OwnershipRegistry,
   primaryStrength: ReportValueCard,
+  prominence: ChartProminenceProfile,
 ): string {
+  if (prominence.signatures.length > 0) {
+    const rankedSentence = registry.claim(
+      "saveable-sentence",
+      "prominence-chart-sentence",
+      prominence.chartSentence,
+    );
+    if (rankedSentence) return rankedSentence;
+  }
+
   const summaryParagraphs = getSectionParagraphs(getSection(sections, SECTION_IDS.summary));
   const candidates = summaryParagraphs.flatMap(splitSentences).slice(2);
 
@@ -1122,6 +1194,7 @@ function buildGrowthAxis(report: AstrologyReport): ReportGrowthAxis {
 }
 
 function hasReliableBirthTime(report: AstrologyReport): boolean {
+  if (report.input.birthTimeAccuracy === "unknown") return false;
   const value = report.input.birthTime?.trim().toLocaleLowerCase("fa-IR") ?? "";
   return Boolean(value) && !["unknown", "نامشخص", "--:--", "00:00?"].includes(value);
 }
@@ -1234,13 +1307,79 @@ function buildTechnicalWordCount(report: AstrologyReport): number {
   return placementWords + houseWords + aspectWords + limitationWords;
 }
 
+function buildRulershipTechnicalWordCount(
+  rulership: ChartRulershipProfile,
+): number {
+  const technicalText = [
+    ...(rulership.chartRuler
+      ? [rulership.chartRuler.pathSummary, ...rulership.chartRuler.evidence]
+      : []),
+    ...(rulership.dispositorChain
+      ? [
+          rulership.dispositorChain.summary,
+          ...rulership.dispositorChain.steps.flatMap((step) => [
+            step.planetLabel,
+            step.signLabel,
+            step.rulerPlanetLabel,
+            step.house ?? "",
+          ]),
+        ]
+      : []),
+    ...rulership.houseRulers.flatMap((house) => [
+      house.summary,
+      ...house.evidence,
+    ]),
+    ...rulership.planetConditions.flatMap((condition) => [
+      condition.dignityLabel,
+      condition.expression,
+      condition.majorAspect ?? "",
+      ...condition.evidence,
+    ]),
+    ...rulership.excludedTimeDependentFactors,
+  ];
+
+  return technicalText.reduce(
+    (total, text) => total + countWords(String(text)),
+    0,
+  );
+}
+
+function buildSupplementaryPointsTechnicalWordCount(
+  profile: ValidatedSupplementaryPointsProfile,
+): number {
+  const fortune = profile.partOfFortune;
+  if (!fortune) return 0;
+
+  const technicalText = [
+    fortune.label,
+    fortune.signLabel,
+    fortune.degreeInSign,
+    fortune.house,
+    fortune.sect,
+    fortune.formula,
+    ...fortune.evidence,
+  ];
+
+  return technicalText.reduce<number>(
+    (total, text) => total + countWords(String(text)),
+    0,
+  );
+}
+
 function buildReadingTime(
   contractText: string[],
   report: AstrologyReport,
   transit: PersonalTransitReportDataBridge | null,
+  rulership: ChartRulershipProfile,
+  supplementaryPoints: ValidatedSupplementaryPointsProfile,
 ): ReportReadingTime {
-  const natalWordCount = contractText.reduce((total, text) => total + countWords(text), 0);
-  const technicalWordCount = buildTechnicalWordCount(report);
+  const natalWordCount =
+    contractText.reduce((total, text) => total + countWords(text), 0) +
+    countWords(supplementaryPoints.partOfFortune?.summary ?? "");
+  const technicalWordCount =
+    buildTechnicalWordCount(report) +
+    buildRulershipTechnicalWordCount(rulership) +
+    buildSupplementaryPointsTechnicalWordCount(supplementaryPoints);
   const transitWordCount = buildTransitVisibleWordCount(transit);
 
   return {
@@ -1331,6 +1470,9 @@ function buildLimitations(
 function collectVisibleNatalText(input: {
   personalOpening: string[];
   chartSignature: ReportChartSignatureSummary;
+  chartPatterns: ChartPatternProfile;
+  personalPlanetChapters: PersonalPlanetChaptersProfile;
+  wholeChartSynthesis: WholeChartSynthesisProfile;
   corePlacements: ReportCorePlacement[];
   primaryPatterns: ReportPrimaryPattern[];
   primaryStrength: ReportValueCard;
@@ -1348,24 +1490,63 @@ function collectVisibleNatalText(input: {
     ...input.personalOpening,
     input.chartSignature.title,
     input.chartSignature.body,
+    ...input.chartPatterns.patterns.flatMap((pattern) => [
+      pattern.title,
+      pattern.summary,
+      pattern.technicalSummary,
+      ...pattern.evidence,
+    ]),
     ...input.corePlacements.flatMap((placement) => [placement.label, placement.position, placement.role]),
     ...input.primaryPatterns.flatMap((pattern) => [pattern.title, pattern.summary, ...pattern.evidence]),
     input.primaryStrength.body,
     input.primaryChallenge.body,
     input.saveableSentence,
     ...input.recommendedReadingPath,
-    ...input.themeChapters.flatMap((chapter) => [
+    ...input.personalPlanetChapters.chapters.flatMap((chapter) => [
+      chapter.title,
+      chapter.summary,
+      ...chapter.sections
+        .filter((section) => section.id !== "evidence")
+        .flatMap((section) => [section.label, section.body]),
+    ]),
+    ...input.wholeChartSynthesis.fixedChapters
+      .filter((chapter) => chapter.available)
+      .flatMap((chapter) => [chapter.title, chapter.summary, ...chapter.paragraphs]),
+    ...input.wholeChartSynthesis.dynamicChapters.flatMap((chapter) => [
       chapter.title,
       chapter.summary,
       ...chapter.paragraphs,
-      ...(chapter.relationshipGroups?.flatMap((group) => [group.title, ...group.paragraphs]) ?? []),
-      chapter.reflection ?? "",
     ]),
-    ...input.deepDiveSections.flatMap((section) => [
-      section.title,
-      section.summary,
-      ...section.paragraphs,
-    ]),
+    ...input.wholeChartSynthesis.lifeAreas
+      .filter((area) => area.available)
+      .flatMap((area) => [area.title, area.summary, ...area.factors]),
+    ...input.themeChapters
+      .filter((chapter) =>
+        chapter.id === "real-engine-theme-direction-path" ||
+        chapter.id === "real-engine-theme-recurring-patterns",
+      )
+      .flatMap((chapter) => [
+        chapter.title,
+        chapter.summary,
+        ...chapter.paragraphs,
+        chapter.reflection ?? "",
+      ]),
+    ...input.deepDiveSections
+      .filter(
+        (section) =>
+          ![
+            "whole-chart-story",
+            "chart-ruler-story",
+            "balance-story",
+            "active-houses-story",
+            "node-axis-story",
+          ].includes(section.id),
+      )
+      .flatMap((section) => [
+        section.title,
+        section.summary,
+        ...section.paragraphs,
+      ]),
     input.growthAxis.familiarPattern,
     input.growthAxis.growthDirection,
     input.growthAxis.bridge,
@@ -1373,6 +1554,37 @@ function collectVisibleNatalText(input: {
     ...input.reflectionQuestions,
     ...input.limitations,
   ].filter(Boolean);
+}
+
+function buildProminenceReadingPath(
+  prominence: ChartProminenceProfile,
+): string[] {
+  const labels: Partial<Record<HumanFirstReadingSectionId, string>> = {
+    overview: "تصویر کلی",
+    "primary-patterns": "سه الگوی اصلی",
+    "strength-challenge": "قوت و چالش",
+    "inner-world": "دنیای درونی",
+    "mind-language": "ذهن و زبان",
+    relationships: "رابطه و مرزها",
+    "drive-direction": "انگیزه و جهت",
+    "friction-repair": "اصطکاک و ترمیم",
+    "growth-path": "مسیر رشد",
+    "deeper-layers": "لایه‌های عمیق‌تر",
+  };
+  const selected = prominence.signatures
+    .map((signature) => labels[signature.destination])
+    .filter((label): label is string => Boolean(label))
+    .filter((label, index, collection) => collection.indexOf(label) === index)
+    .slice(0, 2)
+    .map((label, index) =>
+      index === 0
+        ? `اول فصل «${label}» را بخوان؛ بالاترین امضای رتبه‌بندی‌شده به آن وصل است.`
+        : `بعد فصل «${label}» را باز کن تا امضای بعدی را در متن کامل ببینی.`,
+    );
+  return [
+    ...selected,
+    "جزئیات فنی و آسمان ثبت‌شده را جدا و فقط در صورت نیاز ببین.",
+  ].slice(0, 3);
 }
 
 export function buildLiveReportReadingContract(
@@ -1396,31 +1608,79 @@ export function buildLiveReportReadingContract(
     report,
   );
   const deepDiveSections = buildDeepDiveSections(sections, registry);
+  const chartPatterns = buildChartPatternProfile(report);
+  const rulership = buildChartRulershipProfile(report, {
+    hasReliableBirthTime: hasReliableBirthTime(report),
+  });
+  const supplementaryPoints = buildValidatedSupplementaryPointsProfile(report, {
+    hasReliableBirthTime: hasReliableBirthTime(report),
+  });
+  const personalPlanetChapters = buildPersonalPlanetChapters(report, {
+    hasReliableBirthTime: hasReliableBirthTime(report),
+    rulership,
+    chartPatterns,
+    inheritedNarratives: {
+      sun:
+        themeChapters.find((chapter) => chapter.id === "real-engine-theme-signature")
+          ?.paragraphs.slice(0, 8) ?? [],
+      moon:
+        themeChapters.find(
+          (chapter) => chapter.id === "real-engine-theme-emotional-security",
+        )?.paragraphs.slice(0, 8) ?? [],
+      "rising-ruler":
+        deepDiveSections.find((section) => section.id === "chart-ruler-story")
+          ?.paragraphs.slice(0, 8) ?? [],
+      mercury:
+        themeChapters.find((chapter) => chapter.id === "real-engine-theme-mind-language")
+          ?.paragraphs.slice(0, 8) ?? [],
+      venus: relationshipProfile
+        .flatMap((group) => group.paragraphs)
+        .slice(0, 8),
+      mars:
+        themeChapters.find((chapter) => chapter.id === "real-engine-theme-will-action")
+          ?.paragraphs.slice(0, 8) ?? [],
+    },
+  });
+  const prominence = mergeChartPatternsIntoProminence(
+    buildChartProminenceProfile(report),
+    chartPatterns,
+  );
   const primaryPatterns = buildPrimaryPatterns(
     sections,
     themeChapters,
     registry,
     report,
+    prominence,
   );
   const primaryStrength = buildValueCard(sections, registry, "strength");
   const primaryChallenge = buildValueCard(sections, registry, "challenge");
-  const saveableSentence = buildSaveableSentence(sections, registry, primaryStrength);
+  const saveableSentence = buildSaveableSentence(
+    sections,
+    registry,
+    primaryStrength,
+    prominence,
+  );
   const weeklyActions = buildWeeklyActions(sections, registry);
   const limitations = buildLimitations(report, registry);
   const chartSignature = buildChartSignature(report);
   const corePlacements = buildCorePlacements(report);
   const growthAxis = buildGrowthAxis(report);
   const reflectionQuestions = buildReflectionQuestions(sections, registry);
-  const recommendedReadingPath = [
-    "اول سه الگوی اصلی و جفتِ قوت/چالش را بخوان.",
-    "بعد فقط فصل نزدیک‌تر به تجربهٔ این روزهایت را باز کن.",
-    "جزئیات فنی و آسمان ثبت‌شده را جدا و فقط در صورت نیاز ببین.",
-  ];
+  const recommendedReadingPath = buildProminenceReadingPath(prominence);
   const transit = getTransitData(report);
+  const wholeChartSynthesis = buildWholeChartSynthesis(report, {
+    prominence,
+    chartPatterns,
+    rulership,
+    supplementaryPoints,
+  });
   const readingTime = buildReadingTime(
     collectVisibleNatalText({
       personalOpening,
       chartSignature,
+      chartPatterns,
+      personalPlanetChapters,
+      wholeChartSynthesis,
       corePlacements,
       primaryPatterns,
       primaryStrength,
@@ -1436,12 +1696,20 @@ export function buildLiveReportReadingContract(
     }),
     report,
     transit,
+    rulership,
+    supplementaryPoints,
   );
 
   return {
     displayName,
     personalOpening,
     chartSignature,
+    prominence,
+    chartPatterns,
+    rulership,
+    supplementaryPoints,
+    personalPlanetChapters,
+    wholeChartSynthesis,
     corePlacements,
     primaryPatterns,
     primaryStrength,

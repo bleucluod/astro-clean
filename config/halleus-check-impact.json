@@ -126,9 +126,17 @@
         "components/report/**",
         "lib/report-output/live-report-reading-contract.ts",
         "app/globals.css",
-        "scripts/fixtures/report-product-fixtures.mjs"
+        "scripts/fixtures/report-product-fixtures.mjs",
+        "lib/astrology/chart-prominence.ts",
+        "scripts/check-chart-prominence.mjs",
+        "lib/astrology/chart-patterns.ts",
+        "lib/astrology/chart-rulership.ts",
+        "lib/astrology/validated-supplementary-points.ts",
+        "lib/astrology/personal-planet-chapters.ts",
+        "lib/astrology/whole-chart-synthesis.ts"
       ],
       "guards": [
+        "check:chart-prominence",
         "check:report-product-quality",
         "check:report-quality",
         "check:vps-release-workflow"

@@ -16,6 +16,10 @@ import type { ReportVisibility } from "@/types/storage";
 import {
   createPrivacySafeReportText,
 } from "@/lib/storage/report-journey-client";
+import {
+  sanitizeVisibleReportText,
+  sanitizeVisibleReportValue,
+} from "@/lib/report-output/visible-report-language";
 
 type ReportDetailSource = "local" | "beta-db" | "account" | "public";
 
@@ -40,64 +44,10 @@ const reportRepository = getReportRepository();
 const isBetaDatabaseSaveUiEnabled =
   process.env.NEXT_PUBLIC_HALLEUS_ENABLE_BETA_DB_SAVE_UI === "true";
 
-const REPORT_DETAIL_PRODUCT_VERSION =
-  "v0.1.378-complete-birth-report-overhaul" as const;
 
 function notifyLocalDataChanged() {
   window.dispatchEvent(new Event("halleus-data-changed"));
   window.dispatchEvent(new Event("astro-clean-data-changed"));
-}
-
-function sanitizeReportVisibleCopy(report: AstrologyReport): AstrologyReport {
-  return sanitizeVisibleReportValue(report) as AstrologyReport;
-}
-
-function sanitizeVisibleReportValue(value: unknown): unknown {
-  if (typeof value === "string") {
-    return sanitizeVisibleReportText(value);
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => sanitizeVisibleReportValue(item));
-  }
-
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
-        key,
-        sanitizeVisibleReportValue(item),
-      ]),
-    );
-  }
-
-  return value;
-}
-
-function sanitizeVisibleReportText(value: string): string {
-  return value
-    .replace(/Mean North Node/g, "دست شمالی ماه با مدل میانگین")
-    .replace(/Mean South Node/g, "دست جنوبی ماه با مدل میانگین")
-    .replace(/Mean Lunar Node/g, "دست‌های ماه با مدل میانگین")
-    .replace(/Mean Node/g, "دست‌های ماه با مدل میانگین")
-    .replace(/True\/Osculating Node/g, "مدل نوسانی/واقعی دست‌های ماه")
-    .replace(/Osculating Node/g, "مدل نوسانی دست‌های ماه")
-    .replace(/True Node/g, "مدل واقعی دست‌های ماه")
-    .replace(/Black Moon Lilith/g, "لیلیت")
-    .replace(/Lilith/g, "لیلیت")
-    .replace(/Whole Sign/g, "روش نشانه کامل")
-    .replace(/snapshot/g, "داده ذخیره‌شده")
-    .replace(/real engine/g, "چارت واقعی محاسبه‌شده")
-    .replace(/Retrograde/g, "حرکت برگشتی")
-    .replace(/retrograde/g, "حرکت برگشتی")
-    .replace(/motion/g, "وضعیت حرکت")
-    .replace(/aspect/g, "رابطه سیاره‌ای")
-    .replace(/read-only/g, "فقط خواندنی")
-    .replace(/noindex/g, "خارج از ایندکس")
-    .replace(/indexable/g, "قابل ایندکس")
-    .replace(/claim/g, "ادعا")
-    .replace(/timezone/g, "منطقه زمانی")
-    .replace(/فرمول دست‌های ماه با مدل میانگین/g, "مدل میانگین")
-    .replace(/مخالفت دقیق با دست شمالی ماه با مدل میانگین/g, "مقابل دقیق دست شمالی ماه");
 }
 
 function getReportTitle(report: AstrologyReport) {
@@ -109,7 +59,7 @@ function getReportTitle(report: AstrologyReport) {
 function getSourceBadge(reportSource: ReportDetailSource) {
   if (reportSource === "account") return "ذخیره‌شده در حساب";
   if (reportSource === "public") return "لینک مستقیم";
-  if (reportSource === "beta-db") return "گزارش داخلی";
+  if (reportSource === "beta-db") return "گزارش ذخیره‌شده";
   return "روی همین دستگاه";
 }
 
@@ -123,7 +73,7 @@ function getAccessDescription(reportSource: ReportDetailSource) {
   }
 
   if (reportSource === "beta-db") {
-    return "این گزارش از مسیر داخلی خوانده شده است.";
+    return "این گزارش از فضای ذخیره‌سازی هالیوس خوانده شده است.";
   }
 
   return "این گزارش روی همین دستگاه ذخیره شده است و یادداشت شخصی فقط در همین مرورگر نگه‌داری می‌شود.";
@@ -136,7 +86,7 @@ export function ReportDetail({
   initialMessage = "",
 }: ReportDetailProps) {
   const [report, setReport] = useState<AstrologyReport | null>(() =>
-    initialReport ? sanitizeReportVisibleCopy(initialReport) : null,
+    initialReport ? sanitizeVisibleReportValue(initialReport) : null,
   );
   const [note, setNote] = useState("");
   const [isReady, setIsReady] = useState(() => Boolean(initialReport));
@@ -150,7 +100,7 @@ export function ReportDetail({
 
     async function loadReport() {
       if (reportSource === "public" && initialReport) {
-        setReport(sanitizeReportVisibleCopy(initialReport));
+        setReport(sanitizeVisibleReportValue(initialReport));
         setNote("");
         setMessage(initialMessage);
         setIsReady(true);
@@ -162,7 +112,7 @@ export function ReportDetail({
         if (!isActive) return;
 
         if (result.status === "account-read-ready" && result.reportRecord?.report) {
-          setReport(sanitizeReportVisibleCopy(result.reportRecord.report));
+          setReport(sanitizeVisibleReportValue(result.reportRecord.report));
           setNote("");
           setMessage("");
         } else {
@@ -186,7 +136,7 @@ export function ReportDetail({
           return;
         }
 
-        setReport(sanitizeReportVisibleCopy(result.reportRecord.report));
+        setReport(sanitizeVisibleReportValue(result.reportRecord.report));
         setNote(result.reportRecord.note ?? "");
         setFavorite(Boolean(result.reportRecord.favorite));
         setAccountVisibility(result.reportRecord.visibility);
@@ -198,7 +148,7 @@ export function ReportDetail({
       if (reportSource === "beta-db") {
         if (!isBetaDatabaseSaveUiEnabled) {
           setReport(null);
-          setMessage("خواندن این بخش داخلی در دسترس نیست.");
+          setMessage("این گزارش اکنون در دسترس نیست.");
           setIsReady(true);
           return;
         }
@@ -216,7 +166,7 @@ export function ReportDetail({
           }
 
           if (!isActive) return;
-          setReport(sanitizeReportVisibleCopy(payload.reportRecord.report));
+          setReport(sanitizeVisibleReportValue(payload.reportRecord.report));
           setNote(payload.reportRecord.note ?? "");
           setMessage("");
         } catch (error) {
@@ -233,7 +183,7 @@ export function ReportDetail({
 
       setReport(
         selectedRecord?.report
-          ? sanitizeReportVisibleCopy(selectedRecord.report)
+          ? sanitizeVisibleReportValue(selectedRecord.report)
           : null,
       );
       setNote(selectedRecord?.note ?? "");
@@ -344,7 +294,6 @@ export function ReportDetail({
     return (
       <section
         className="grid report-detail-reader-page"
-        data-report-detail-product={REPORT_DETAIL_PRODUCT_VERSION}
       >
         <div className="report-detail-skeleton-card" aria-hidden="true" />
         <div className="report-detail-skeleton-grid" aria-hidden="true">
@@ -358,15 +307,14 @@ export function ReportDetail({
     return (
       <section
         className="grid report-detail-reader-page"
-        data-report-detail-product={REPORT_DETAIL_PRODUCT_VERSION}
       >
         <EmptyState
           badge="گزارش پیدا نشد"
           title="این گزارش پیدا نشد"
-          description={
+          description={sanitizeVisibleReportText(
             message ||
-            "این گزارش ممکن است پاک شده باشد، در حساب فعلی نباشد، یا روی مرورگر/دستگاه دیگری ساخته شده باشد."
-          }
+              "این گزارش ممکن است پاک شده باشد، در حساب فعلی نباشد، یا روی مرورگر/دستگاه دیگری ساخته شده باشد.",
+          )}
           actionHref="/reports"
           actionLabel="بازگشت به گزارش‌ها"
         />
@@ -380,7 +328,6 @@ export function ReportDetail({
   return (
     <section
       className="report-detail-reader-page report-product-page"
-      data-report-detail-product={REPORT_DETAIL_PRODUCT_VERSION}
       data-report-source={reportSource}
     >
       <ReportProductReader report={report} />
@@ -453,7 +400,11 @@ export function ReportDetail({
         </div>
       </details>
 
-      {message ? <p className="report-product-status" role="status">{message}</p> : null}
+      {message ? (
+        <p className="report-product-status" role="status">
+          {sanitizeVisibleReportText(message)}
+        </p>
+      ) : null}
 
       <section className="report-product-endpoint report-product-relationship-cta">
         <div>

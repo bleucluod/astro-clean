@@ -145,7 +145,9 @@ function buildReadyReportData(
       interpretation: buildPersonalTransitBehavioralInterpretation(
         aspect,
         audienceMode,
+        context.natalHouseByBody?.[aspect.natalBody] ?? null,
       ),
+      // HALLEUS_PERSONAL_TRANSIT_REPORT_HOUSE_CONTEXT_BRIDGE_20260808
     })),
     technicalDisclaimer:
       "این کارت‌ها از همان snapshot ذخیره‌شده انتخاب شده‌اند؛ اورب فقط نزدیکی هندسی را نشان می‌دهد و هیچ رویداد یا پیش‌بینی قطعی نمی‌سازد.",

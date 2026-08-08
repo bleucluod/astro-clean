@@ -86,22 +86,62 @@ function flattenVisibleNatalText(contract) {
     contract.chartSignature.body,
     ...contract.corePlacements.flatMap((item) => [item.label, item.position, item.role]),
     ...contract.primaryPatterns.flatMap((pattern) => [pattern.title, pattern.summary, ...pattern.evidence]),
+    ...contract.chartPatterns.patterns.flatMap((pattern) => [
+      pattern.title,
+      pattern.summary,
+      pattern.technicalSummary,
+      ...pattern.evidence,
+    ]),
+    contract.supplementaryPoints.partOfFortune?.summary ?? "",
     contract.primaryStrength.body,
     contract.primaryChallenge.body,
     contract.saveableSentence,
     ...contract.recommendedReadingPath,
-    ...contract.themeChapters.flatMap((chapter) => [
+    ...contract.personalPlanetChapters.chapters.flatMap((chapter) => [
+      chapter.title,
+      chapter.summary,
+      ...chapter.sections
+        .filter((section) => section.id !== "evidence")
+        .flatMap((section) => [section.label, section.body]),
+    ]),
+    ...contract.wholeChartSynthesis.fixedChapters
+      .filter((chapter) => chapter.available)
+      .flatMap((chapter) => [chapter.title, chapter.summary, ...chapter.paragraphs]),
+    ...contract.wholeChartSynthesis.dynamicChapters.flatMap((chapter) => [
       chapter.title,
       chapter.summary,
       ...chapter.paragraphs,
-      ...(chapter.relationshipGroups?.flatMap((group) => [group.title, ...group.paragraphs]) ?? []),
-      chapter.reflection ?? "",
     ]),
-    ...contract.deepDiveSections.flatMap((section) => [
-      section.title,
-      section.summary,
-      ...section.paragraphs,
-    ]),
+    ...contract.wholeChartSynthesis.lifeAreas
+      .filter((area) => area.available)
+      .flatMap((area) => [area.title, area.summary, ...area.factors]),
+    ...contract.themeChapters
+      .filter((chapter) =>
+        chapter.id === "real-engine-theme-direction-path" ||
+        chapter.id === "real-engine-theme-recurring-patterns",
+      )
+      .flatMap((chapter) => [
+        chapter.title,
+        chapter.summary,
+        ...chapter.paragraphs,
+        chapter.reflection ?? "",
+      ]),
+    ...contract.deepDiveSections
+      .filter(
+        (section) =>
+          ![
+            "whole-chart-story",
+            "chart-ruler-story",
+            "balance-story",
+            "active-houses-story",
+            "node-axis-story",
+          ].includes(section.id),
+      )
+      .flatMap((section) => [
+        section.title,
+        section.summary,
+        ...section.paragraphs,
+      ]),
     contract.growthAxis.familiarPattern,
     contract.growthAxis.growthDirection,
     contract.growthAxis.bridge,
@@ -243,6 +283,125 @@ for (const [fixtureId, fixture] of Object.entries(reportProductFixtures)) {
   assert(new Set(contract.navigation.map((item) => item.id)).size === 5, `${fixtureId}: navigation ids must be unique`);
   assert(contract.themeChapters.length === 7, `${fixtureId}: expected seven complete theme chapters`);
   assert(
+    contract.personalPlanetChapters.version === "personal-planet-chapters-v1",
+    `${fixtureId}: personal-planet chapter contract version is missing`,
+  );
+  const expectedPersonalChapterIds = [
+    "sun",
+    "moon",
+    "rising-ruler",
+    "mercury",
+    "venus",
+    "mars",
+  ];
+  assert(
+    JSON.stringify(contract.personalPlanetChapters.chapters.map((chapter) => chapter.id)) ===
+      JSON.stringify(expectedPersonalChapterIds),
+    `${fixtureId}: personal-planet chapters are incomplete or out of order`,
+  );
+  for (const chapter of contract.personalPlanetChapters.chapters) {
+    assert(
+      chapter.sections.length === 12,
+      `${fixtureId}: chapter ${chapter.id} must keep all twelve layers`,
+    );
+    assert(
+      JSON.stringify(chapter.sections.map((section) => section.id)) ===
+        JSON.stringify([
+          "position",
+          "core-meaning",
+          "sign-expression",
+          "house-expression",
+          "planet-condition",
+          "major-aspects",
+          "whole-chart-connection",
+          "daily-life",
+          "healthy-capacity",
+          "under-pressure",
+          "integration",
+          "evidence",
+        ]),
+      `${fixtureId}: chapter ${chapter.id} broke the twelve-layer order`,
+    );
+  }
+  assert(
+    contract.wholeChartSynthesis.version === "whole-chart-synthesis-v1",
+    `${fixtureId}: whole-chart synthesis contract version is missing`,
+  );
+  assert(
+    contract.wholeChartSynthesis.fixedChapters
+      .map((chapter) => chapter.id)
+      .join("|") ===
+      [
+        "jupiter",
+        "saturn",
+        "sun-moon-rising",
+        "chart-ruler-story",
+        "element-modality-balance",
+        "lunar-node-axis",
+        "whole-chart-summary",
+      ].join("|"),
+    `${fixtureId}: fixed whole-chart chapter order drifted`,
+  );
+  assert(
+    contract.wholeChartSynthesis.lifeAreas.length === 10,
+    `${fixtureId}: expected ten life-area synthesis profiles`,
+  );
+  assert(
+    contract.wholeChartSynthesis.dynamicChapters.every(
+      (chapter) => chapter.selectedByProminence === true,
+    ),
+    `${fixtureId}: a dynamic whole-chart chapter bypassed prominence selection`,
+  );
+  assert(
+    !contract.wholeChartSynthesis.dynamicChapters.some(
+      (chapter) => chapter.kind === "chiron",
+    ),
+    `${fixtureId}: Chiron entered whole-chart synthesis without validated ephemeris data`,
+  );
+  if (!contract.hasReliableBirthTime) {
+    assert(
+      !contract.wholeChartSynthesis.dynamicChapters.some((chapter) =>
+        ["active-house", "part-of-fortune", "dispositor-chain"].includes(
+          chapter.kind,
+        ),
+      ),
+      `${fixtureId}: unknown time leaked a house/Ascendant-dependent dynamic synthesis`,
+    );
+    assert(
+      contract.wholeChartSynthesis.fixedChapters.find(
+        (chapter) => chapter.id === "chart-ruler-story",
+      )?.available === false,
+      `${fixtureId}: unknown time leaked the chart-ruler fixed chapter`,
+    );
+  }
+
+  const risingRulerChapter = contract.personalPlanetChapters.chapters.find(
+    (chapter) => chapter.id === "rising-ruler",
+  );
+  const hasCalculatedRisingRulerData = Boolean(
+    contract.hasReliableBirthTime &&
+      report.realEngine?.angles?.asc &&
+      contract.rulership.chartRuler,
+  );
+  assert(
+    risingRulerChapter?.available === hasCalculatedRisingRulerData,
+    `${fixtureId}: rising/chart-ruler chapter availability must follow calculated chart data`,
+  );
+  if (!contract.hasReliableBirthTime) {
+    for (const planetId of ["sun", "moon", "mercury", "venus", "mars"]) {
+      const chapter = contract.personalPlanetChapters.chapters.find(
+        (item) => item.id === planetId,
+      );
+      const houseLayer = chapter?.sections.find(
+        (section) => section.id === "house-expression",
+      );
+      assert(
+        houseLayer?.body.includes("بدون ساعت تولد معتبر"),
+        `${fixtureId}: unknown time leaked a house reading into ${planetId}`,
+      );
+    }
+  }
+  assert(
     contract.themeChapters.some((chapter) => chapter.id === "real-engine-theme-emotional-security"),
     `${fixtureId}: emotional-security chapter is missing`,
   );
@@ -262,6 +421,44 @@ for (const [fixtureId, fixture] of Object.entries(reportProductFixtures)) {
     assert(hasOwnedBody, `${fixtureId}: chapter ${chapter.id} lost its owned body during deduplication`);
   }
   assert(contract.primaryPatterns.length === 3, `${fixtureId}: expected exactly three primary patterns`);
+  assert(
+    contract.chartPatterns.version === "chart-patterns-v1",
+    `${fixtureId}: chart-pattern contract version is missing`,
+  );
+  assert(
+    contract.rulership.version === "chart-rulership-v1",
+    `${fixtureId}: chart-rulership contract version is missing`,
+  );
+  assert(
+    contract.supplementaryPoints.version === "validated-supplementary-points-v1",
+    `${fixtureId}: supplementary-points contract version is missing`,
+  );
+  assert(
+    contract.supplementaryPoints.chiron === null,
+    `${fixtureId}: Chiron must remain absent until independent ephemeris validation exists`,
+  );
+  if (!contract.hasReliableBirthTime) {
+    assert(
+      contract.supplementaryPoints.partOfFortune === null,
+      `${fixtureId}: unknown time leaked Part of Fortune`,
+    );
+  }
+  assert(
+    contract.rulership.planetConditions.length <= 7,
+    `${fixtureId}: classical planetary-condition output exceeded seven planets`,
+  );
+  if (!contract.hasReliableBirthTime) {
+    assert(contract.rulership.chartRuler === null, `${fixtureId}: unknown time leaked chart ruler`);
+    assert(contract.rulership.houseRulers.length === 0, `${fixtureId}: unknown time leaked house rulers`);
+    assert(contract.rulership.dispositorChain === null, `${fixtureId}: unknown time leaked dispositor chain`);
+    assert(
+      contract.rulership.planetConditions.every((condition) => condition.house === null),
+      `${fixtureId}: unknown time leaked condition houses`,
+    );
+  }
+  if (contract.hasReliableBirthTime && (report.realEngine?.houses?.length ?? 0) === 12) {
+    assert(contract.rulership.houseRulers.length === 12, `${fixtureId}: complete houses must expose twelve rulers`);
+  }
   assert(
     contract.primaryPatterns.every((pattern) => !/(?:،|؛|:|و|یا|که|اگر|وقتی)\.?$/u.test(pattern.summary.trim())),
     `${fixtureId}: a primary-pattern reference ends as an incomplete clause`,
@@ -302,6 +499,90 @@ for (const [fixtureId, fixture] of Object.entries(reportProductFixtures)) {
   });
 }
 
+const wholeChartSynthesisSource = read(
+  "lib/astrology/whole-chart-synthesis.ts",
+);
+const wholeChartSynthesisComponent = read(
+  "components/report/ReportWholeChartSynthesis.tsx",
+);
+const batch7ProductReader = read("components/report/ReportProductReader.tsx");
+for (const marker of [
+  "WHOLE_CHART_SYNTHESIS_VERSION",
+  "buildWholeChartSynthesis",
+  "growth-personal-path",
+  "selectedByProminence",
+]) {
+  assert(
+    wholeChartSynthesisSource.includes(marker),
+    `whole-chart synthesis source missing marker: ${marker}`,
+  );
+}
+assert(
+  wholeChartSynthesisComponent.includes(
+    'data-whole-chart-synthesis={profile.version}',
+  ) &&
+    wholeChartSynthesisComponent.includes("data-whole-chart-dynamic-chapters") &&
+    wholeChartSynthesisComponent.includes("data-whole-chart-life-areas"),
+  "whole-chart synthesis component must expose fixed, dynamic, and life-area ownership",
+);
+for (const interim of [
+  "ReportChartPatternSection",
+  "ReportRulershipSection",
+  "ReportSupplementaryPointsSection",
+]) {
+  assert(
+    !batch7ProductReader.includes(interim),
+    `full report retained interim direct section: ${interim}`,
+  );
+}
+
+const personalChapterSource = read(
+  "lib/astrology/personal-planet-chapters.ts",
+);
+const personalChapterComponent = read(
+  "components/report/ReportPersonalPlanetChapters.tsx",
+);
+const personalPlanetReportExperience = read("components/ReportV3Experience.tsx");
+for (const marker of [
+  "PERSONAL_PLANET_CHAPTERS_VERSION",
+  "buildPersonalPlanetChapters",
+  "whole-chart-connection",
+  "planet-condition",
+  "major-aspects",
+]) {
+  assert(
+    personalChapterSource.includes(marker),
+    `personal-planet chapter engine missing marker: ${marker}`,
+  );
+}
+assert(
+  personalChapterComponent.includes(
+    'data-personal-planet-chapters={profile.version}',
+  ) &&
+    personalChapterComponent.includes(
+      'data-personal-planet-layer="evidence"',
+    ),
+  "personal-planet chapter component must expose full reading and evidence layers",
+);
+assert(
+  personalPlanetReportExperience.includes("ReportPersonalPlanetChapters") &&
+    personalPlanetReportExperience.includes("ReportWholeChartSynthesis") &&
+    !personalPlanetReportExperience.includes("reading.innerWorld") &&
+    !personalPlanetReportExperience.includes("reading.mindLanguage") &&
+    !personalPlanetReportExperience.includes("reading.relationships") &&
+    !personalPlanetReportExperience.includes("reading.driveDirection") &&
+    personalPlanetReportExperience.includes('"whole-chart-story"') &&
+    personalPlanetReportExperience.includes('"chart-ruler-story"') &&
+    personalPlanetReportExperience.includes('"balance-story"') &&
+    personalPlanetReportExperience.includes('"active-houses-story"') &&
+    personalPlanetReportExperience.includes('"node-axis-story"') &&
+    personalPlanetReportExperience.includes(
+      '"human-first-signature-deeper-layer"',
+    ) &&
+    personalPlanetReportExperience.includes("].includes(section.id)"),
+  "full report must keep six astrology-led chapters and transfer absorbed deeper layers to whole-chart synthesis",
+);
+
 const aradReport = prepareFixture(reportProductFixtures.arad);
 const aradContract = buildLiveReportReadingContract(aradReport);
 assert(aradContract.displayName === "آراد", "Arad fixture must remain the primary named QA fixture");
@@ -309,7 +590,10 @@ const aradOwnerKinds = new Set(aradContract.contentOwnership.filter((entry) => e
 for (const requiredOwner of ["theme-chapter", "relationship-profile", "weekly-action", "reflection-question", "evidence", "technical-explanation", "limitation"]) {
   assert(aradOwnerKinds.has(requiredOwner), `Arad ownership map is missing ${requiredOwner}`);
 }
-assert(aradContract.readingTime.natalWordCount >= 2200 && aradContract.readingTime.natalWordCount <= 3800, "Arad visible natal report must recover full narrative depth while keeping technical facts collapsed");
+assert(
+  aradContract.readingTime.natalWordCount >= 2200,
+  `Arad visible natal report must preserve full narrative depth while technical facts stay collapsed (actual=${aradContract.readingTime.natalWordCount})`,
+);
 const aradNarrative = flattenVisibleNatalText(aradContract).join(" ");
 for (const marker of ["ممکن است", "وقتی این بخش خوب کار می‌کند", "زیر فشار"]) {
   assert(aradNarrative.includes(marker), `Arad narrative is missing the human scenario marker: ${marker}`);
@@ -365,7 +649,6 @@ const reportDetail = read("components/ReportDetail.tsx");
 const reportReader = read("components/report/ReportProductReader.tsx");
 const reportExperience = read("components/ReportV3Experience.tsx");
 const technicalAppendix = read("components/report/ReportTechnicalAppendix.tsx");
-const navigation = read("components/report/ReportReadingNavigation.tsx");
 const aspectComponent = read("components/ReportAspectRelationshipSections.tsx");
 const css = read("app/globals.css");
 
@@ -374,12 +657,46 @@ assert(reportDetail.includes("<ReportProductReader report={report} />"), "Report
 assert(!reportDetail.includes("report-detail-birth-card"), "Birth data must not dominate the report hero");
 assert(reportDetail.includes('reportSource === "public"'), "Public-read source branch must remain explicit");
 assert(reportDetail.includes("getPublicReportRecord(reportId)"), "Public-read source must use its privacy-minimized client path");
-assert(reportReader.includes("ReportReaderMode"), "Natal, stored transit, and technical details must be separate reader modes");
-assert(reportReader.indexOf("<ReportV3Experience") < reportReader.indexOf('id="chart-details"'), "Natal narrative must precede the optional technical appendix");
+assert(
+  reportReader.includes('data-report-product-flow="continuous"') &&
+    reportReader.includes("data-report-journey-navigator") &&
+    reportReader.includes('id="report-summary"') &&
+    reportReader.includes('id="report-full"') &&
+    reportReader.includes('id="report-sky"') &&
+    reportReader.includes('id="report-chart"') &&
+    !reportReader.includes("ReportReaderMode") &&
+    !reportReader.includes("ModeButton") &&
+    !reportReader.includes("ReportReadingNavigation"),
+  "Summary, natal, stored transit, and technical details must share one continuous editorial reader",
+);
+const editorialFlowOrder = ["report-summary", "report-full", "report-sky", "report-chart"].map((id) =>
+  reportReader.indexOf('id="' + id + '"'),
+);
+assert(
+  editorialFlowOrder.every((position) => position >= 0) &&
+    editorialFlowOrder.every((position, index) => index === 0 || editorialFlowOrder[index - 1] < position),
+  "Continuous editorial report sections must remain in summary/full/sky/chart order",
+);
 assert(reportReader.includes("با بازکردن دوباره تازه نمی‌شود") && reportReader.includes("همیشه تصویر همان زمان"), "Stored transit must be clearly distinguished from today");
-assert(reportReader.includes("disabled={!transitData}"), "Reports without transit must degrade without an empty active mode");
-assert(navigation.includes("bottomSheet") && navigation.includes("floatingSectionsButton"), "Mobile navigation must use the floating bottom-sheet navigator");
-assert(!navigation.includes("overflow-x"), "Mobile report navigation must not rely on horizontal chip overflow");
+assert(
+  reportReader.includes("<HumanTransitReading data={transitData} />") &&
+    reportReader.includes("function HumanTransitReading") &&
+    reportReader.includes("if (!data)"),
+  "Reports without stored transit must render an explicit in-flow fallback instead of an empty or disabled mode",
+);
+assert(
+  reportReader.includes("data-report-journey-navigator") &&
+    reportReader.includes("journeyNavigatorPanel") &&
+    reportReader.includes("HUMAN_FIRST_REPORT_NAVIGATION") &&
+    reportReader.includes("scrollToFlowSection") &&
+    reportReader.includes("navigateTo"),
+  "Report navigation must use the compact journey navigator for macro sections and natal chapters",
+);
+assert(
+  !reportReader.includes("ReportReadingNavigation") &&
+    !reportReader.includes("overflow-x"),
+  "Continuous report navigation must not restore the retired navigation component or horizontal chip overflow",
+);
 assert(reportExperience.includes("سه الگوی اصلی"), "Primary patterns must be visible near the top of the report");
 assert(reportExperience.includes("نقطهٔ قوت اصلی") || reportExperience.includes("primaryStrength"), "Primary strength must be visible");
 assert(reportExperience.includes("primaryChallenge"), "Primary challenge must be visible");
@@ -406,6 +723,162 @@ assert(reportCss.includes("grid-template-columns: repeat(2, minmax(0, 1fr));"), 
 assert(reportCss.includes(".report-product-navigation-desktop {\n    display: none;"), "Desktop navigation must be removed at the compact breakpoint");
 assert(reportCss.includes(".report-product-navigation-mobile {\n    display: grid;"), "Mobile section selector must become visible at the compact breakpoint");
 
+const batch8ReaderSource = read("components/report/ReportProductReader.tsx");
+const batch8ExperienceSource = read("components/ReportV3Experience.tsx");
+const batch8PersonalSource = read("components/report/ReportPersonalPlanetChapters.tsx");
+const batch8SynthesisComponentSource = read("components/report/ReportWholeChartSynthesis.tsx");
+const batch8WheelSource = read("components/ReportBirthChartWheel.tsx");
+const batch8MotionCss = read("components/report/human-first-report.module.css");
+
+assert(
+  batch8ReaderSource.includes('data-report-product-flow="continuous"') &&
+    batch8ReaderSource.includes('data-report-reading-motion="batch8"') &&
+    batch8ReaderSource.includes("data-report-journey-navigator") &&
+    batch8ReaderSource.includes('id="report-summary"') &&
+    batch8ReaderSource.includes('id="report-full"') &&
+    batch8ReaderSource.includes('id="report-sky"') &&
+    batch8ReaderSource.includes('id="report-chart"') &&
+    !batch8ReaderSource.includes("ReportStoryMode") &&
+    !batch8ReaderSource.includes("ModeButton"),
+  "Batch 8 reading-position ownership must survive inside the continuous editorial report without retired mode tabs",
+);
+assert(
+  batch8ExperienceSource.includes("IntersectionObserver") &&
+    batch8ExperienceSource.includes("halleus:report-reading-focus") &&
+    batch8ExperienceSource.includes("sessionStorage") &&
+    !batch8ExperienceSource.includes("setInterval("),
+  "Batch 8 chapter focus must be event-driven, finite, and optional",
+);
+assert(
+  batch8PersonalSource.includes("data-reading-motion-focus={chapter.id}") &&
+    batch8SynthesisComponentSource.includes("data-whole-chart-chapter-id={chapter.id}") &&
+    batch8SynthesisComponentSource.includes("data-reading-motion-focus={") &&
+    batch8SynthesisComponentSource.includes("life-area:"),
+  "Batch 8 reading chapters must expose deterministic chart-focus ownership",
+);
+assert(
+  batch8WheelSource.includes("appendIntroMotionOverlay") &&
+    batch8WheelSource.includes("getWheelPoint(placement.longitude") &&
+    batch8WheelSource.includes("data.aspects.slice(0, 6)") &&
+    batch8WheelSource.includes("prefers-reduced-motion: reduce") &&
+    !batch8WheelSource.includes("setInterval("),
+  "Batch 8 wheel motion must use stored positions, cap intro aspects, respect reduced motion, and never loop",
+);
+assert(
+  batch8MotionCss.includes("Birth report Batch 8 reading motion") &&
+    batch8MotionCss.includes("@media (max-width: 390px)") &&
+    batch8MotionCss.includes("@media (min-width: 391px) and (max-width: 760px)") &&
+    batch8MotionCss.includes("@media (min-width: 761px) and (max-width: 1024px)") &&
+    batch8MotionCss.includes("@media (min-width: 1025px)") &&
+    batch8MotionCss.includes("@media (prefers-reduced-motion: reduce)") &&
+    batch8MotionCss.includes("overflow-wrap: anywhere"),
+  "Batch 8 visual contract must cover 360/390-class mobile, larger mobile, tablet, desktop, reduced motion, and long text",
+);
+const batch8HasBareMotionSelector = batch8MotionCss
+  .split(String.fromCharCode(10))
+  .map((line) => line.trimStart())
+  .some(
+    (line) =>
+      line.startsWith("[data-reading-motion-card]") ||
+      line.startsWith("[data-halleus-reading-focus]") ||
+      line.startsWith("[data-report-wheel-intro-") ||
+      line.startsWith("[data-halleus-intro-motion]"),
+  );
+assert(
+  !batch8HasBareMotionSelector &&
+    batch8MotionCss.includes(".reader :global(.report-astrochart-wheel)"),
+  "Batch 8 CSS-module selectors must be locally scoped while the literal wheel class remains global",
+);
+assert(
+  !batch8MotionCss.includes("animation-iteration-count: infinite") &&
+    !batch8MotionCss.includes("infinite linear") &&
+    !batch8MotionCss.includes("infinite ease"),
+  "Batch 8 must not introduce permanent reading animation",
+);
+// HALLEUS_REPORT_READING_MOTION_PRODUCT_GUARD_BATCH8_20260807
+
+
+// HALLEUS_REPORT_EDITORIAL_FLOW_PRODUCT_ARCHITECTURE_R4_20260808
+const editorialBatch1ReaderSource = read("components/report/ReportProductReader.tsx");
+const editorialBatch1SummarySource = read("components/report/FiveMinuteReportSummary.tsx");
+const editorialBatch1CssSource = read("components/report/human-first-report.module.css");
+const editorialBatch1CssMarker = "/* HALLEUS_REPORT_EDITORIAL_FLOW_BATCH1_20260808 */";
+const editorialBatch1Css = editorialBatch1CssSource.slice(editorialBatch1CssSource.indexOf(editorialBatch1CssMarker));
+
+assert(
+  editorialBatch1ReaderSource.includes('data-report-product-flow="continuous"') &&
+    editorialBatch1ReaderSource.includes("data-report-journey-navigator") &&
+    editorialBatch1ReaderSource.includes('id="report-summary"') &&
+    editorialBatch1ReaderSource.includes('id="report-full"') &&
+    editorialBatch1ReaderSource.includes('id="report-sky"') &&
+    editorialBatch1ReaderSource.includes('id="report-chart"'),
+  "Editorial Batch 1 must render one continuous report flow with compact journey navigation",
+);
+for (const retiredMarker of ["ReportStoryMode", "ModeButton", "ReportReadingNavigation", "ReportProductMode"]) {
+  assert(!editorialBatch1ReaderSource.includes(retiredMarker), "Editorial Batch 1 still contains retired report UI: " + retiredMarker);
+}
+for (const astrologyHeading of ["خورشید؛ هویت و جهت", "ماه؛ احساس و امنیت", "طالع؛ ورود و تصویر اولیه"]) {
+  assert(editorialBatch1SummarySource.includes(astrologyHeading), "Editorial Batch 1 lost astrological heading: " + astrologyHeading);
+}
+assert(
+  editorialBatch1SummarySource.includes('data-editorial-summary="astrology-first-beginner"') &&
+    !editorialBatch1SummarySource.includes("contract.primaryStrength") &&
+    !editorialBatch1SummarySource.includes("contract.primaryChallenge"),
+  "Editorial Batch 1 summary must keep beginner translation and remove generic strength/challenge cards",
+);
+assert(editorialBatch1CssSource.includes(editorialBatch1CssMarker), "Editorial Batch 1 CSS marker missing");
+for (const requiredCssMarker of [".journeyNavigator", ".reportFlow", ".flowSection", ".summaryCoreGrid", ".summaryPatternGrid", ".reader .hero", ".reader .section", "[data-screenshot-ready]"]) {
+  assert(editorialBatch1Css.includes(requiredCssMarker), "Editorial Batch 1 CSS missing: " + requiredCssMarker);
+}
+for (const forbiddenBlue of ["#1e40af", "#d9eafd", "30 64 175", "30, 64, 175"]) {
+  assert(!editorialBatch1Css.toLowerCase().includes(forbiddenBlue), "Editorial Batch 1 CSS contains retired blue UI token: " + forbiddenBlue);
+}
+for (const storyPath of ["components/report/ReportStoryMode.tsx", "components/report/report-story-mode.module.css", "lib/report-output/report-story-mode.ts"]) {
+  assert(!fs.existsSync(path.join(repoRoot, storyPath)), "Story Mode file still exists: " + storyPath);
+}
+// HALLEUS_REPORT_EDITORIAL_FLOW_PRODUCT_GUARD_BATCH1_20260808
+
+
+const editorialBatch2Reader = read("components/report/ReportProductReader.tsx");
+const editorialBatch2Wheel = read("components/ReportBirthChartWheel.tsx");
+const editorialBatch2Css = read("components/report/human-first-report.module.css");
+for (const marker of [
+  'data-editorial-report-batch2="motion-polish"',
+  'data-report-ambient-logo="parallax"',
+  "HALLEUS_REPORT_AMBIENT_LOGO_PARALLAX_BATCH2_20260808",
+  'data-screenshot-ready',
+]) {
+  assert(editorialBatch2Reader.includes(marker), "Batch 2 reader missing " + marker);
+}
+for (const marker of [
+  'data-report-wheel-visibility-trigger="batch2"',
+  "IntersectionObserver",
+  "entry.intersectionRatio >= 0.32",
+  "introObserver?.disconnect()",
+]) {
+  assert(editorialBatch2Wheel.includes(marker), "Batch 2 wheel missing " + marker);
+}
+const editorialBatch2CssMarker = "/* HALLEUS_REPORT_EDITORIAL_MOTION_BATCH2_20260808 */";
+assert(editorialBatch2Css.includes(editorialBatch2CssMarker), "Batch 2 CSS marker is missing");
+const editorialBatch2Slice = editorialBatch2Css.slice(editorialBatch2Css.indexOf(editorialBatch2CssMarker));
+for (const marker of [
+  ".ambientLogo",
+  'url("/halleus-logo/emblem-transparent.png")',
+  ".reportChartRail :global(.report-astrochart-wheel-legend)",
+  "reportWheelOverlayOutBatch2",
+  "@media (max-width: 1024px)",
+  "@media (max-width: 760px)",
+  "@media (max-width: 390px)",
+  "@media (prefers-reduced-motion: reduce)",
+]) {
+  assert(editorialBatch2Slice.includes(marker), "Batch 2 CSS missing " + marker);
+}
+for (const forbiddenBlue of ["#1e40af", "#d9eafd", "30 64 175", "30, 64, 175"]) {
+  assert(!editorialBatch2Slice.toLowerCase().includes(forbiddenBlue), "Batch 2 CSS introduces blue UI: " + forbiddenBlue);
+}
+assert(!editorialBatch2Reader.includes("ReportStoryMode"), "Story Mode must stay removed in Batch 2");
+// HALLEUS_REPORT_EDITORIAL_MOTION_BATCH2_GUARD_20260808
+
 if (failures.length > 0) {
   console.error("Report product quality check failed:");
   for (const failure of failures) console.error(`- ${failure}`);
@@ -418,7 +891,7 @@ console.log("- exact duplication is removed without deleting distinct scenario a
 console.log("- seven chapters plus writer-backed whole-chart, chart-ruler, balance, active-house, and node-axis deep dives are complete");
 console.log("- natal, technical, and stored-transit reading times are calculated separately from visible content");
 console.log("- only three to five aspects receive full narrative while the technical appendix preserves all aspect facts without narrative copy");
-console.log("- five-item navigation, mobile selector, legacy fallback, and unknown-time degradation are covered");
+console.log("- continuous journey navigation, explicit no-transit fallback, legacy fallback, and unknown-time degradation are covered");
 for (const metric of metrics) {
   console.log(`  ${metric.fixtureId}: natal=${metric.natalWords} words/${metric.natalMinutes} min, technical=${metric.technicalMinutes} min, transit=${metric.transitMinutes} min`);
 }

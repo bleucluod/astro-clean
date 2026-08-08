@@ -61,6 +61,7 @@ import {
 } from "@/lib/astrology/report-behavioral-context";
 import type { ReportOutputSection } from "@/types/report-output";
 import { applyHalleusReportVoice } from "@/lib/report-quality/tone-profile";
+import { getTraditionalSignRuler } from "@/lib/astrology/chart-rulership";
 
 type SignCopy = {
   faName: string;
@@ -407,20 +408,6 @@ const SIGN_MODALITY: Record<ZodiacKey, ChartModalityKey> = {
   pisces: "mutable",
 };
 
-const CHART_RULER_BY_RISING: Record<ZodiacKey, string> = {
-  aries: "mars",
-  taurus: "venus",
-  gemini: "mercury",
-  cancer: "moon",
-  leo: "sun",
-  virgo: "mercury",
-  libra: "venus",
-  scorpio: "mars",
-  sagittarius: "jupiter",
-  capricorn: "saturn",
-  aquarius: "saturn",
-  pisces: "jupiter",
-};
 
 const HOUSE_REFLECTIONS: Record<number, string> = {
   1: "واکنش اول تو در شروع‌ها بیشتر از نیاز واقعی می‌آید یا از دفاع قدیمی؟",
@@ -950,7 +937,7 @@ function buildChartSpine(
     typeof realEngine.angles?.asc?.degreeInSign === "number"
       ? realEngine.angles.asc.degreeInSign
       : degreeInSignFromLongitude(realEngine.ascendantLongitude);
-  const chartRulerId = CHART_RULER_BY_RISING[risingSign];
+  const chartRulerId = getTraditionalSignRuler(risingSign);
   const chartRulerPlacement = findPlacement(realEngine, chartRulerId);
   const activeHouses = buildChartSpineActiveHouses(
     realEngine,

@@ -749,12 +749,20 @@ function buildPersonalTransitReportData(
       ]),
     ),
   );
+  const natalHouseByBody = Object.fromEntries(
+    realEngine.placements.map((placement) => [
+      placement.id,
+      placement.house ?? null,
+    ]),
+  );
+  // HALLEUS_PERSONAL_TRANSIT_SERVICE_HOUSE_CONTEXT_20260808
 
   return buildPersonalTransitReportDataBridge(probeResult, {
     audienceMode: realEngine.behavioralAudienceMode ?? "adult",
     chartRulerId,
     angularNatalBodyIds,
     activeNatalBodyIds,
+    natalHouseByBody,
     maxVisible: 5,
   });
 }

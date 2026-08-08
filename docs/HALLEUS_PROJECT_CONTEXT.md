@@ -279,3 +279,9 @@ Until the user changes direction:
 ## 9. Historical note
 
 This file intentionally no longer contains the long append-only milestone and failure archive. Git commits and release tags preserve that history. Only current verified evidence and durable active rules belong here.
+
+## Adaptive birth-report depth and evidence integrity — 2026-08-08
+- The primary birth-report narrative is now planned from typed, chart-derived anchors so ranking identity, evidence provenance, human interpretation and rendered cards stay attached to the same source fact.
+- Semantic dedup merges duplicate representations such as a house concentration plus the same house prominence; section existence and depth are importance-driven while the technical inventory remains complete in progressive disclosure.
+- User-facing report copy is beginner-first and behavior-led; Placidus, lunar-node calculation models, Lilith calculation, privacy/publication, auth, payment and /sky calculations are unchanged.
+- HALLEUS_REPORT_ADAPTIVE_DEPTH_EVIDENCE_INTEGRITY_20260808

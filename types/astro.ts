@@ -24,6 +24,7 @@ export type BirthInput = {
   name?: string;
   birthDate: string;
   birthTime: string;
+  birthTimeAccuracy?: "known" | "unknown";
   birthCity: string;
   birthCountry: string;
   birthCityId?: string;

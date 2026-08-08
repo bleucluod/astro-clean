@@ -12,16 +12,16 @@ import type {
 } from "@/types/human-first-reading";
 
 export const HUMAN_FIRST_REPORT_NAVIGATION: readonly HumanFirstNavigationItem[] = [
-  { id: "overview", label: "داستان کلی" },
-  { id: "primary-patterns", label: "سه الگوی اصلی" },
-  { id: "strength-challenge", label: "روی فرم و زیر فشار" },
-  { id: "inner-world", label: "دنیای درونی" },
-  { id: "mind-language", label: "فکر و بیان" },
-  { id: "relationships", label: "رابطه و مرز" },
-  { id: "drive-direction", label: "حرکت و جهت" },
-  { id: "friction-repair", label: "وقتی گیر می‌کنی" },
-  { id: "growth-path", label: "انتخاب تازه‌تر" },
-  { id: "deeper-layers", label: "لایه‌های عمیق‌تر" },
+  { id: "overview", label: "امضای چارت" },
+  { id: "primary-patterns", label: "نشانه‌های شاخص" },
+  { id: "strength-challenge", label: "توان و فشار" },
+  { id: "inner-world", label: "ماه و درون" },
+  { id: "mind-language", label: "عطارد و بیان" },
+  { id: "relationships", label: "زهره و رابطه" },
+  { id: "drive-direction", label: "مریخ و اراده" },
+  { id: "friction-repair", label: "جنبه‌ها و اصطکاک" },
+  { id: "growth-path", label: "گره‌ها و رشد" },
+  { id: "deeper-layers", label: "لایه‌های تکمیلی" },
 ] as const;
 
 export type HumanFirstBirthChapter = {
@@ -75,42 +75,42 @@ const CHAPTER_COPY: Record<
   { title: string; introduction: string; fallbackStep: string }
 > = {
   "inner-world": {
-    title: "چه چیزی تو را آرام می‌کند؟",
+    title: "ماه تو؛ نیاز عاطفی و امنیت درونی",
     introduction:
       "اینجا از نیازهایی می‌خوانی که شاید همیشه از بیرون دیده نشوند، اما در لحظه‌های حساس تعیین می‌کنند چطور آرام می‌شوی و دوباره احساس امنیت می‌کنی.",
     fallbackStep:
       "پیش از جواب‌دادن، فقط نام احساست و چیزی را که الان لازم داری برای خودت روشن کن.",
   },
   "mind-language": {
-    title: "چطور چیزی را می‌فهمی و به زبان می‌آوری؟",
+    title: "عطارد تو؛ شیوه فکر و بیان",
     introduction:
       "این فصل درباره لحظه‌ای است که فکر، احساس و کلمه باید به هم برسند؛ جایی که گاهی خیلی زود جواب می‌دهی و گاهی برای پیدا کردن جمله درست زمان بیشتری می‌خواهی.",
     fallbackStep:
       "در یک گفت‌وگوی مهم، اول چیزی را که فهمیده‌ای بگو و بعد خواسته‌ات را در یک جمله کوتاه و روشن بیان کن.",
   },
   relationships: {
-    title: "چطور نزدیک می‌شوی و چطور خودت می‌مانی؟",
+    title: "زهره و دیگر نشانه‌های رابطه؛ صمیمیت و مرزها",
     introduction:
       "رابطه برای تو فقط نزدیک‌شدن نیست؛ کیفیت اعتماد، حق خلوت، شیوه درخواست محبت و توان گفتن مرزها هم بخشی از همان داستان‌اند.",
     fallbackStep:
       "یک خواسته یا مرز را پیش از بالاگرفتن تنش، کوتاه و مستقیم بگو؛ بدون اینکه آن را با توضیح‌های زیاد پنهان کنی.",
   },
   "drive-direction": {
-    title: "چه چیزی تو را واقعاً به حرکت می‌اندازد؟",
+    title: "مریخ و نشانه‌های حرکت؛ اراده و شیوه عمل",
     introduction:
       "اینجا می‌بینی انرژی‌ات کجا جان می‌گیرد، چه چیزی آن را پخش می‌کند و چرا بعضی هدف‌ها تو را زنده نگه می‌دارند اما بعضی دیگر خیلی زود بی‌معنا می‌شوند.",
     fallbackStep:
       "یک هدف را به کوچک‌ترین کاری تبدیل کن که همین هفته واقعاً می‌توانی انجامش بدهی.",
   },
   "friction-repair": {
-    title: "این چرخه‌ها چطور شروع می‌شوند و چطور می‌توانی برگردی؟",
+    title: "جنبه‌های شاخص؛ اصطکاک و راه ترمیم",
     introduction:
       "زیر فشار، پاسخ‌های آشنا معمولاً زودتر از انتخاب‌های تازه وارد می‌شوند. وقتی شروع چرخه را بشناسی، لازم نیست تا آخر همان مسیر بروی.",
     fallbackStep:
       "اولین نشانهٔ شروع چرخه را پیدا کن و برای همان لحظه یک مکث کوتاه و از پیش‌تعیین‌شده بگذار.",
   },
   "growth-path": {
-    title: "انتخاب تازه‌تر تو کجاست؟",
+    title: "گره‌های ماه؛ الگوی آشنا و مسیر رشد",
     introduction:
       "رشد قرار نیست بخش‌های آشنای تو را پاک کند؛ قرار است کنار آن‌ها یک پاسخ تازه هم داشته باشی تا همیشه مجبور نباشی همان راه قبلی را تکرار کنی.",
     fallbackStep:
@@ -328,7 +328,7 @@ function buildChapterEvidence(
     }))
     .filter((item) => Boolean(item.detail));
 
-  return uniqueEvidence([...chapterSummaries, ...matchingReferences]).slice(0, 5);
+  return uniqueEvidence([...matchingReferences, ...chapterSummaries]).slice(0, 5);
 }
 
 function buildDeeperLayers(
@@ -435,21 +435,21 @@ function buildPatternTitle(kind: PatternKind, sourceTitle: string): string {
   const title = humanizeVisibleText(sourceTitle);
   switch (kind) {
     case "emotion":
-      return "وقتی برای فهمیدن احساس خودت به زمان و امنیت نیاز داری";
+      return "ماه و الگوی امنیت درونی";
     case "mind":
-      return "وقتی ذهنت جلوتر از احساست آمادهٔ پاسخ‌دادن می‌شود";
+      return "عطارد و الگوی فکر و بیان";
     case "relationship":
-      return "وقتی نیاز به نزدیکی با حفظ مرزهای شخصی همراه می‌شود";
+      return "زهره و الگوی صمیمیت و مرز";
     case "action":
-      return "وقتی میل به حرکت با نیاز به سنجیدن پیامدها روبه‌رو می‌شود";
+      return "مریخ و الگوی اراده و واکنش";
     case "direction":
-      return "وقتی پیشرفت فقط با یک هدف معنادار برایت زنده می‌ماند";
+      return "جهت غالب چارت و مسیر حرکت";
     case "recurring":
-      return "وقتی یک واکنش آشنا زیر فشار دوباره فعال می‌شود";
+      return "جنبه‌های شاخص و چرخه تکرارشونده";
     default:
       return title && !looksTechnical(title)
-        ? title
-        : "وقتی تصویر بیرونی و ریتم درونی همیشه یکسان نیستند";
+        ? `خورشید و امضای هویت؛ ${title}`
+        : "خورشید و امضای هویت";
   }
 }
 

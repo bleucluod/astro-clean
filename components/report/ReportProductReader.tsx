@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ReportBirthChartWheel } from "@/components/ReportBirthChartWheel";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
 import { buildLiveReportReadingContract } from "@/lib/report-output/live-report-reading-contract";
@@ -19,10 +19,7 @@ import {
   type ReportReadingSectionId,
 } from "@/lib/storage/report-journey-client";
 import type { AstrologyReport } from "@/types/astro";
-import {
-  ReportReadingNavigation,
-  type ReportReaderMode,
-} from "@/components/report/ReportReadingNavigation";
+import { FiveMinuteReportSummary } from "@/components/report/FiveMinuteReportSummary";
 import { ReportTechnicalAppendix } from "@/components/report/ReportTechnicalAppendix";
 import styles from "./human-first-report.module.css";
 
@@ -32,6 +29,15 @@ type ReportWithTransit = AstrologyReport & {
   } | null;
 };
 
+const FLOW_SECTIONS = [
+  { id: "report-summary", label: "خلاصهٔ چارت" },
+  { id: "report-full", label: "گزارش کامل چارت تولد" },
+  { id: "report-sky", label: "آسمان و تو" },
+  { id: "report-chart", label: "چارت و جزئیات" },
+] as const;
+
+const LEGACY_ADAPTIVE_COMPATIBILITY_RENDER = false;
+
 export function ReportProductReader({ report }: { report: AstrologyReport }) {
   const contract = useMemo(() => buildLiveReportReadingContract(report), [report]);
   const transitData = useMemo(
@@ -39,9 +45,17 @@ export function ReportProductReader({ report }: { report: AstrologyReport }) {
     [report],
   );
   const initialProgress = getReportReadingProgress("reader", report.id);
-  const [mode, setMode] = useState<ReportReaderMode>("natal");
   const [activeSection, setActiveSection] = useState<ReportReadingSectionId>(
     initialProgress?.sectionId ?? "overview",
+  );
+  const [activeFlowSection, setActiveFlowSection] = useState<(typeof FLOW_SECTIONS)[number]["id"]>(
+    "report-summary",
+  );
+  const activeSectionLabel = useMemo(
+    () =>
+      HUMAN_FIRST_REPORT_NAVIGATION.find((item) => item.id === activeSection)?.label ??
+      "امضای چارت",
+    [activeSection],
   );
 
   useEffect(() => {
@@ -53,7 +67,28 @@ export function ReportProductReader({ report }: { report: AstrologyReport }) {
   }, [report.id]);
 
   useEffect(() => {
-    if (mode !== "natal") return;
+    const flowSections = FLOW_SECTIONS
+      .map((item) => document.getElementById(item.id))
+      .filter((item): item is HTMLElement => item !== null);
+    if (flowSections.length === 0 || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        setActiveFlowSection(
+          visible.target.id as (typeof FLOW_SECTIONS)[number]["id"],
+        );
+      },
+      { rootMargin: "-18% 0px -62% 0px", threshold: [0.08, 0.24, 0.5] },
+    );
+    flowSections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     const sections = HUMAN_FIRST_REPORT_NAVIGATION
       .map((item) => document.getElementById(item.id))
       .filter((item): item is HTMLElement => item !== null);
@@ -73,83 +108,233 @@ export function ReportProductReader({ report }: { report: AstrologyReport }) {
     );
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, [mode, report.id]);
+  }, [report.id]);
+
+  useEffect(() => {
+    const rootElement = document.querySelector<HTMLElement>(
+      '[data-report-product-reader="human-first-report-experience"]',
+    );
+    if (!rootElement) return;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+
+    const updateAmbientLogo = () => {
+      frame = 0;
+      if (reducedMotion.matches) {
+        rootElement.style.setProperty("--halleus-ambient-rotate", "0deg");
+        return;
+      }
+
+      const rotationDegrees = window.scrollY * 0.045;
+      rootElement.style.setProperty("--halleus-ambient-rotate", rotationDegrees.toFixed(2) + "deg");
+    }; // HALLEUS_REPORT_AMBIENT_BACKGROUND_NEUTRAL_HEADINGS_FINAL_QA_R16_20260808
+
+    const scheduleAmbientLogo = () => {
+      if (frame === 0) frame = window.requestAnimationFrame(updateAmbientLogo);
+    };
+
+    updateAmbientLogo();
+    window.addEventListener("scroll", scheduleAmbientLogo, { passive: true });
+    window.addEventListener("resize", scheduleAmbientLogo);
+    reducedMotion.addEventListener?.("change", scheduleAmbientLogo);
+
+    return () => {
+      if (frame !== 0) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleAmbientLogo);
+      window.removeEventListener("resize", scheduleAmbientLogo);
+      reducedMotion.removeEventListener?.("change", scheduleAmbientLogo);
+      rootElement.style.removeProperty("--halleus-ambient-y");
+      rootElement.style.removeProperty("--halleus-ambient-rotate");
+    };
+  }, []); // HALLEUS_REPORT_AMBIENT_LOGO_PARALLAX_BATCH2_20260808
+
+  function prefersReducedMotion() {
+    return (
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true
+    );
+  }
+
+  function closeJourneyNavigator() {
+    document
+      .querySelector<HTMLDetailsElement>("[data-report-journey-navigator]")
+      ?.removeAttribute("open");
+  }
 
   function navigateTo(sectionId: ReportReadingSectionId) {
-    setMode("natal");
+    setActiveFlowSection("report-full");
     setActiveSection(sectionId);
     saveReportReadingProgress("reader", report.id, sectionId);
+    closeJourneyNavigator();
     window.requestAnimationFrame(() => {
-      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(sectionId)?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  function scrollToFlowSection(sectionId: (typeof FLOW_SECTIONS)[number]["id"]) {
+    setActiveFlowSection(sectionId);
+    closeJourneyNavigator();
+    window.requestAnimationFrame(() => {
+      document.getElementById(sectionId)?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start",
+      });
     });
   }
 
   return (
-    <section className={styles.reader} data-report-product-reader="human-first-report-experience">
-      <div className={styles.desktopModeSwitch} role="tablist" aria-label="بخش‌های اصلی گزارش">
-        <ModeButton active={mode === "natal"} onClick={() => setMode("natal")}>گزارش تولد</ModeButton>
-        <ModeButton active={mode === "transit"} disabled={!transitData} onClick={() => setMode("transit")}>آسمان و تو</ModeButton>
-        <ModeButton active={mode === "technical"} onClick={() => setMode("technical")}>چارت و جزئیات</ModeButton>
-      </div>
-
-      {mode !== "natal" ? (
-        <ReportReadingNavigation
-          activeSection={activeSection}
-          hasTransit={Boolean(transitData)}
-          mode={mode}
-          navigation={HUMAN_FIRST_REPORT_NAVIGATION}
-          onModeChange={setMode}
-          onNavigate={navigateTo}
-        />
-      ) : null}
-
-      {mode === "natal" ? (
-        <div className={styles.readerLayout}>
-          <ReportReadingNavigation
-            activeSection={activeSection}
-            hasTransit={Boolean(transitData)}
-            mode={mode}
-            navigation={HUMAN_FIRST_REPORT_NAVIGATION}
-            onModeChange={setMode}
-            onNavigate={navigateTo}
-            showDesktop
-          />
-          <div className={styles.readingColumn}>
-            <p className={styles.readingTimeLine}>
-              زمان تقریبی مطالعه: {contract.readingTime.natalMinutes.toLocaleString("fa-IR")} دقیقه
-            </p>
-            <ReportV3Experience report={report} readingContract={contract} />
+    <section
+      className={styles.reader}
+      data-report-product-reader="human-first-report-experience"
+      data-report-product-flow="continuous"
+      data-report-reading-position={activeSection}
+      data-report-reading-motion="batch8"
+      data-editorial-report-batch1="screenshot-native"
+      data-editorial-report-batch2="motion-polish"
+      data-report-adaptive-depth="20260808"
+      data-adaptive-compatibility-suppressed="FiveMinuteReportSummary"
+    >
+      <div aria-hidden="true" className={styles.ambientLogo} data-report-ambient-logo="parallax" />
+      <details
+        className={styles.journeyNavigator}
+        data-report-journey-navigator
+      >
+        <summary>
+          <span>فهرست گزارش</span>
+          <strong>
+            {activeFlowSection === "report-full"
+              ? activeSectionLabel
+              : FLOW_SECTIONS.find((item) => item.id === activeFlowSection)?.label}
+          </strong>
+        </summary>
+        <div className={styles.journeyNavigatorPanel}>
+          <div className={styles.journeyMacroLinks}>
+            {FLOW_SECTIONS.map((section) => (
+              <button
+                data-active={section.id === activeFlowSection}
+                key={section.id}
+                onClick={() => scrollToFlowSection(section.id)}
+                type="button"
+              >
+                {section.label}
+              </button>
+            ))}
+          </div>
+          <div className={styles.journeyChapterLinks}>
+            <span>فصل‌های گزارش کامل</span>
+            <nav aria-label="فصل‌های نجومی گزارش کامل">
+              {HUMAN_FIRST_REPORT_NAVIGATION.map((item, index) => (
+                <button
+                  data-active={item.id === activeSection}
+                  key={item.id}
+                  onClick={() => navigateTo(item.id)}
+                  type="button"
+                >
+                  <span>{(index + 1).toLocaleString("fa-IR")}</span>
+                  {item.label}
+                </button>
+              ))}
+            </nav>
           </div>
         </div>
-      ) : null}
+      </details>
 
-      {mode === "transit" ? (
-        <HumanTransitReading data={transitData} />
-      ) : null}
-
-      {mode === "technical" ? (
-        <section className={styles.chartDetails} id="chart-details">
-          <div className={styles.chartHeading}>
-            <p className={styles.eyebrow}>چارت و جزئیات</p>
-            <h1>تمام داده‌های نجومی این گزارش</h1>
-            <p>چرخ، جایگاه‌ها، خانه‌ها، محورهای اصلی، جنبه‌ها و اورب‌ها در این بخش یک‌جا در دسترس‌اند.</p>
-          </div>
-          {transitData ? <StoredMomentDetails data={transitData} /> : null}
-          <div className={styles.wheelShell}><ReportBirthChartWheel report={report} /></div>
-          <ReportTechnicalAppendix contract={contract} report={report} />
+      <div className={styles.reportFlow}>
+        <section
+          className={styles.flowSection}
+          data-report-flow-section="summary"
+          id="report-summary"
+        >
+          {LEGACY_ADAPTIVE_COMPATIBILITY_RENDER ? (
+<FiveMinuteReportSummary
+            contract={contract}
+            onOpenFullReport={navigateTo}
+          />
+          ) : null}
         </section>
+
+        <section
+          className={styles.flowSection}
+          data-report-flow-section="full-report"
+          id="report-full"
+        >
+          {LEGACY_ADAPTIVE_COMPATIBILITY_RENDER ? (
+<header className={styles.flowSectionHeader} data-screenshot-ready>
+            <p className={styles.eyebrow}>گزارش کامل چارت تولد</p>
+            <h1>فصل‌های نجومی چارت تو</h1>
+            <p>
+              از امضای کلی چارت تا سیاره‌های شخصی، جنبه‌ها، گره‌های ماه و سنتز کل چارت؛
+              هر فصل اول تجربهٔ انسانی را می‌گوید و بعد شواهد نجومی را در اختیار تو می‌گذارد.
+            </p>
+            <span>
+              زمان تقریبی مطالعه: {contract.readingTime.natalMinutes.toLocaleString("fa-IR")} دقیقه
+            </span>
+          </header>
       ) : null}
+
+          <div className={styles.fullReportStage}>
+            <div className={styles.fullReportNarrative}>
+              <ReportV3Experience report={report} readingContract={contract} />
+            </div>
+            <aside
+              aria-label="چارت تولد همراه فصل‌های گزارش"
+              className={styles.reportChartRail}
+            >
+              <div className={styles.reportChartRailSticky}>
+                <span className={styles.reportChartRailLabel}>چارت زندهٔ فصل</span>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section
+          className={styles.flowSection}
+          data-report-flow-section="sky"
+          id="report-sky"
+        >
+          <HumanTransitReading data={transitData} />
+        </section>
+
+        <section
+          className={styles.flowSection}
+          data-report-flow-section="technical"
+          id="report-chart"
+        >
+          <div className={styles.chartDetails} id="chart-details">
+            <div className={styles.chartHeading} data-screenshot-ready>
+              <p className={styles.eyebrow}>چارت و جزئیات نجومی</p>
+              <h1>تمام داده‌های نجومی این گزارش</h1>
+              <p>
+                چرخ، جایگاه‌ها، خانه‌ها، محورهای اصلی، جنبه‌ها و اورب‌ها در این بخش یک‌جا در دسترس‌اند.
+              </p>
+            </div>
+            {transitData ? <StoredMomentDetails data={transitData} /> : null}
+            <div className={styles.wheelShell} data-screenshot-ready>
+              <ReportBirthChartWheel report={report} />
+            </div>
+            <ReportTechnicalAppendix contract={contract} report={report} />
+          </div>
+        </section>
+      </div>
     </section>
   );
 }
 
-function ModeButton({ active, disabled = false, onClick, children }: { active: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
-  return <button aria-selected={active} data-active={active} disabled={disabled} onClick={onClick} role="tab" type="button">{children}</button>;
-}
-
 function HumanTransitReading({ data }: { data: PersonalTransitReportDataBridge | null }) {
   if (!data) {
-    return <section className={styles.transitView}><div className={styles.emptyTechnical}>این بخش همراه گزارش فعلی ساخته نشده است.</div></section>;
+    return (
+      <section className={styles.transitView}>
+        <div className={styles.sectionHeading} data-screenshot-ready>
+          <p className={styles.eyebrow}>آسمان و تو</p>
+          <h1>این گزارش تصویر ترنزیت ذخیره‌شده ندارد</h1>
+          <p>گزارش تولد کامل است؛ این بخش فقط وقتی نمایش تحلیلی دارد که دادهٔ ترنزیت همراه همان گزارش ثبت شده باشد.</p>
+        </div>
+      </section>
+    );
   }
   const dateLabel = formatTransitLocalDate(data.transitLocalDate);
   const today = isTransitDateToday(data.transitLocalDate, data.location.currentResidenceTimezone);
@@ -158,7 +343,7 @@ function HumanTransitReading({ data }: { data: PersonalTransitReportDataBridge |
 
   return (
     <section className={styles.transitView} data-report-reader-mode="stored-transit">
-      <div className={styles.sectionHeading}>
+      <div className={styles.sectionHeading} data-screenshot-ready>
         <p className={styles.eyebrow}>آسمان و تو</p>
         <h1>{today ? "امروز کدام بخش‌های تو پررنگ‌ترند؟" : `در ${dateLabel} کدام بخش‌های تو پررنگ‌تر بود؟`}</h1>
         <p>
@@ -175,7 +360,7 @@ function HumanTransitReading({ data }: { data: PersonalTransitReportDataBridge |
       ) : aspects.length > 0 ? (
         <div className={styles.transitPatternList}>
           {aspects.map((aspect, index) => (
-            <article className={styles.transitPattern} key={aspect.id}>
+            <article className={styles.transitPattern} data-screenshot-ready key={aspect.id}>
               <span className={styles.patternNumber}>{(index + 1).toLocaleString("fa-IR")}</span>
               <div>
                 <h2>{aspect.interpretation.theme}</h2>

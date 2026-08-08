@@ -20,6 +20,9 @@ type AstrologyTab =
   | "placements"
   | "houses"
   | "aspects"
+  | "patterns"
+  | "rulership"
+  | "supplementary"
   | "axes"
   | "context";
 
@@ -27,6 +30,9 @@ const ASTROLOGY_TABS: Array<{ id: AstrologyTab; label: string }> = [
   { id: "placements", label: "جایگاه‌ها" },
   { id: "houses", label: "خانه‌ها" },
   { id: "aspects", label: "رابطه‌های زاویه‌ای" },
+  { id: "patterns", label: "الگوها" },
+  { id: "rulership", label: "حاکمیت‌ها" },
+  { id: "supplementary", label: "نقاط تکمیلی" },
   { id: "axes", label: "محورهای اصلی" },
   { id: "context", label: "مبنای خوانش" },
 ];
@@ -120,6 +126,15 @@ export function ReportTechnicalAppendix({
             ) : null}
             {activeTab === "aspects" ? (
               <AspectTable aspects={aspects} />
+            ) : null}
+            {activeTab === "patterns" ? (
+              <PatternTable patterns={contract.chartPatterns.patterns} />
+            ) : null}
+            {activeTab === "rulership" ? (
+              <RulershipTable profile={contract.rulership} />
+            ) : null}
+            {activeTab === "supplementary" ? (
+              <SupplementaryPointsTable profile={contract.supplementaryPoints} />
             ) : null}
             {activeTab === "axes" ? (
               <AxisTable
@@ -260,6 +275,176 @@ function AspectTable({ aspects }: { aspects: RealEngineReportAspect[] }) {
           <span>{formatDegree(row.orb)}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PatternTable({
+  patterns,
+}: {
+  patterns: LiveReportReadingContract["chartPatterns"]["patterns"];
+}) {
+  if (patterns.length === 0) {
+    return (
+      <EmptyTechnicalState>
+        در این چارت استلیوم یا الگوی هندسی چندسیاره‌ایِ معتبر پیدا نشد؛
+        نبود الگو هم یک نتیجهٔ محاسباتی است.
+      </EmptyTechnicalState>
+    );
+  }
+
+  return (
+    <div className={styles.dataTable} data-technical-table="patterns">
+      <div className={styles.dataHead}>
+        <span>الگو</span>
+        <span>سیاره‌های درگیر</span>
+        <span>پشتوانه</span>
+      </div>
+      {patterns.map((pattern) => (
+        <div className={styles.dataRow} key={pattern.id}>
+          <strong>{pattern.title}</strong>
+          <span>{pattern.participantLabels.join("، ")}</span>
+          <span>{pattern.technicalSummary}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RulershipTable({
+  profile,
+}: {
+  profile: LiveReportReadingContract["rulership"];
+}) {
+  return (
+    <div className={styles.contextPanel} data-technical-table="rulership">
+      {!profile.hasReliableBirthTime ? (
+        <EmptyTechnicalState>
+          ساعت تولد دقیق ثبت نشده؛ بنابراین حاکمان خانه‌ها و حاکم طالع وارد
+          این جدول نمی‌شوند. وضعیت‌های مستقل از خانه همچنان نمایش داده می‌شوند.
+        </EmptyTechnicalState>
+      ) : null}
+
+      {profile.chartRuler ? (
+        <div className={styles.evidenceList}>
+          <h3>مسیر حاکم چارت</h3>
+          <div>
+            <strong>{profile.chartRuler.planetLabel}</strong>
+            <span>{profile.chartRuler.pathSummary}</span>
+          </div>
+        </div>
+      ) : null}
+
+      {profile.dispositorChain ? (
+        <div className={styles.evidenceList}>
+          <h3>زنجیرهٔ حاکمیتی</h3>
+          <div>
+            <strong>مسیر محدود و قابل ردیابی</strong>
+            <span>{profile.dispositorChain.summary}</span>
+          </div>
+        </div>
+      ) : null}
+
+      {profile.houseRulers.length > 0 ? (
+        <div className={styles.dataTable}>
+          <div className={styles.dataHead}>
+            <span>خانه</span>
+            <span>حاکم</span>
+            <span>مسیر در چارت</span>
+          </div>
+          {profile.houseRulers.map((house) => (
+            <div className={styles.dataRow} key={house.house}>
+              <strong>خانه {formatPersianNumber(house.house)}</strong>
+              <span>
+                {house.rulerPlanetLabel} · {house.cuspSignLabel}
+              </span>
+              <span>{house.summary}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {profile.planetConditions.length > 0 ? (
+        <div className={styles.dataTable}>
+          <div className={styles.dataHead}>
+            <span>سیاره</span>
+            <span>وضعیت کلاسیک</span>
+            <span>پشتوانه</span>
+          </div>
+          {profile.planetConditions.map((condition) => (
+            <div className={styles.dataRow} key={condition.planetId}>
+              <strong>
+                {condition.planetLabel} در {condition.signLabel}
+              </strong>
+              <span>{condition.dignityLabel}</span>
+              <span>
+                {condition.majorAspect
+                  ? `${condition.expression} ${condition.majorAspect}`
+                  : condition.expression}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SupplementaryPointsTable({
+  profile,
+}: {
+  profile: LiveReportReadingContract["supplementaryPoints"];
+}) {
+  const fortune = profile.partOfFortune;
+
+  if (!fortune) {
+    return (
+      <EmptyTechnicalState>
+        ساعت تولد دقیق ثبت نشده یا دادهٔ لازم برای تعیین روز/شب کامل نیست؛
+        بنابراین سهم سعادت نمایش داده نمی‌شود.
+      </EmptyTechnicalState>
+    );
+  }
+
+  return (
+    <div
+      className={styles.contextPanel}
+      data-technical-table="supplementary-points"
+    >
+      <dl className={styles.contextFacts}>
+        <div>
+          <dt>نقطه</dt>
+          <dd>{fortune.label}</dd>
+        </div>
+        <div>
+          <dt>جایگاه</dt>
+          <dd>
+            {fortune.signLabel}، {formatDegree(fortune.degreeInSign)}، خانه{" "}
+            {formatPersianNumber(fortune.house)}
+          </dd>
+        </div>
+        <div>
+          <dt>نوع چارت</dt>
+          <dd>{fortune.sect === "day" ? "روز" : "شب"}</dd>
+        </div>
+        <div>
+          <dt>فرمول</dt>
+          <dd>
+            {fortune.formula === "ascendant+moon-sun"
+              ? "طالع + ماه − خورشید"
+              : "طالع + خورشید − ماه"}
+          </dd>
+        </div>
+      </dl>
+
+      <div className={styles.evidenceList}>
+        <h3>پشتوانهٔ محاسبه</h3>
+        {fortune.evidence.map((item) => (
+          <div key={item}>
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

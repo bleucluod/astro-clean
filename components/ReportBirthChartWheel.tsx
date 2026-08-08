@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   buildReportBirthChartWheelData,
   REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES,
@@ -10,10 +10,13 @@ import {
   type ReportBirthChartWheelPlacement,
 } from "@/src/lib/report-output/report-birth-chart-wheel-data";
 import type { RealEngineReportAspectKind } from "@/types/astro";
+import type { ChartPattern } from "@/lib/astrology/chart-patterns";
+import reportStyles from "@/components/report/human-first-report.module.css";
 import type { AstrologyReport } from "@/types/astro";
 
 type ReportBirthChartWheelProps = {
   report: AstrologyReport;
+  patterns?: ChartPattern[];
 };
 
 type RendererState = "loading" | "ready" | "error";
@@ -113,6 +116,7 @@ const WHEEL_ASPECT_GUIDE = [
 
 export function ReportBirthChartWheel({
   report,
+  patterns = [],
 }: ReportBirthChartWheelProps) {
   const wheelResult = useMemo(
     () => buildReportBirthChartWheelData(report),
@@ -136,20 +140,63 @@ export function ReportBirthChartWheel({
     );
   }
 
-  return <AstroChartRadix data={wheelResult.data} />;
+  return (
+    <AstroChartRadix
+      data={wheelResult.data}
+      patterns={patterns}
+      reportId={report.id}
+    />
+  );
 }
 
-function AstroChartRadix({ data }: { data: ReportBirthChartWheelData }) {
+function AstroChartRadix({
+  data,
+  patterns,
+  reportId,
+}: {
+  data: ReportBirthChartWheelData;
+  patterns: ChartPattern[];
+  reportId: string;
+}) {
   const reactId = useId().replace(/:/g, "");
   const chartId = `halleus-report-astrochart-${reactId}`;
   const [rendererState, setRendererState] =
     useState<RendererState>("loading");
+  const [activePatternId, setActivePatternId] = useState<string | null>(null);
+  const [readingFocus, setReadingFocus] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      return window.sessionStorage.getItem(`halleus:report-reading-focus:${reportId}`);
+    } catch {
+      return null;
+    }
+  });
+  const introPlayedRef = useRef(false);
   const retrogradePlanetLabels = data.retrogradePlanetIds.map(
     (planetId) => WHEEL_PLANET_LABELS[planetId],
   );
+  const visiblePatterns = patterns.slice(0, 6);
+  const activePattern =
+    visiblePatterns.find((pattern) => pattern.id === activePatternId) ?? null;
+  const readingWheelFocus = resolveReadingWheelFocus(
+    readingFocus,
+    patterns,
+    data,
+  );
+
+  useEffect(() => {
+    const onFocus = (event: Event) => {
+      const detail = (event as CustomEvent<{ reportId?: string; focus?: string }>).detail;
+      if (detail?.reportId !== reportId || typeof detail.focus !== "string") return;
+      setReadingFocus(detail.focus);
+    };
+    window.addEventListener("halleus:report-reading-focus", onFocus);
+    return () => window.removeEventListener("halleus:report-reading-focus", onFocus);
+  }, [reportId]);
 
   useEffect(() => {
     let cancelled = false;
+    let introObserver: IntersectionObserver | null = null;
     const host = document.getElementById(chartId);
 
     if (!host) {
@@ -211,8 +258,35 @@ function AstroChartRadix({ data }: { data: ReportBirthChartWheelData }) {
 
         const svg = chartHost.querySelector("svg");
         if (svg) {
-          styleStoredAspectLines(svg);
+          styleStoredAspectLines(svg, data, activePattern);
           appendStoredCuspLabels(svg, data);
+          appendPatternPlanetHighlights(svg, data, activePattern);
+          if (!introPlayedRef.current) {
+            const playIntroWhenVisible = () => {
+              if (cancelled || introPlayedRef.current) return;
+              appendIntroMotionOverlay(svg, data);
+              introPlayedRef.current = true;
+              chartHost.setAttribute("data-report-wheel-intro-visible", "true");
+            };
+
+            if (typeof IntersectionObserver === "undefined") {
+              playIntroWhenVisible();
+            } else {
+              introObserver = new IntersectionObserver(
+                (entries) => {
+                  const visible = entries.some(
+                    (entry) => entry.isIntersecting && entry.intersectionRatio >= 0.32,
+                  );
+                  if (!visible) return;
+                  introObserver?.disconnect();
+                  introObserver = null;
+                  playIntroWhenVisible();
+                },
+                { threshold: [0.32, 0.58] },
+              );
+              introObserver.observe(chartHost);
+            }
+          }
           svg.setAttribute("role", "img");
           svg.setAttribute(
             "aria-label",
@@ -232,14 +306,27 @@ function AstroChartRadix({ data }: { data: ReportBirthChartWheelData }) {
 
     return () => {
       cancelled = true;
+      introObserver?.disconnect();
       chartHost.replaceChildren();
     };
-  }, [chartId, data]);
+  }, [activePattern, chartId, data]);
+
+  useEffect(() => {
+    if (rendererState !== "ready") return;
+    const host = document.getElementById(chartId);
+    const svg = host?.querySelector<SVGSVGElement>("svg");
+    if (!svg) return;
+    applyReadingWheelFocus(svg, data, readingWheelFocus, activePattern);
+  }, [activePattern, chartId, data, readingWheelFocus, rendererState]);
 
   return (
     <section
       className="report-astrochart-wheel"
+      data-active-chart-pattern={activePattern?.id ?? readingWheelFocus.pattern?.id ?? "all"}
       data-astrochart-aspect-mode="stored-report-only"
+      data-report-reading-focus={readingFocus ?? "none"}
+      data-report-wheel-motion="batch8"
+      data-report-wheel-visibility-trigger="batch2"
       data-report-birth-chart-aspect-count={data.aspects.length}
       data-report-birth-chart-renderer={ASTROCHART_RENDERER_VERSION}
       data-report-birth-chart-wheel={REPORT_BIRTH_CHART_WHEEL_DATA_VERSION}
@@ -251,6 +338,34 @@ function AstroChartRadix({ data }: { data: ReportBirthChartWheelData }) {
           <p className="section-label">چارت دایره‌ای</p>
         </div>
       </header>
+
+      {visiblePatterns.length > 0 ? (
+        <div
+          aria-label="نمایش الگوهای چارت"
+          className={reportStyles.patternWheelControls}
+        >
+          <p>برجسته‌سازی الگو روی چارت</p>
+          <button
+            className={reportStyles.patternWheelButton}
+            data-active={activePattern === null}
+            onClick={() => setActivePatternId(null)}
+            type="button"
+          >
+            همهٔ چارت
+          </button>
+          {visiblePatterns.map((pattern) => (
+            <button
+              className={reportStyles.patternWheelButton}
+              data-active={activePattern?.id === pattern.id}
+              key={pattern.id}
+              onClick={() => setActivePatternId(pattern.id)}
+              type="button"
+            >
+              {pattern.title}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div className="report-astrochart-wheel-body">
         <div
@@ -415,31 +530,370 @@ function buildStoredAstroChartAspects(data: ReportBirthChartWheelData) {
   });
 }
 
-function styleStoredAspectLines(svg: SVGSVGElement) {
+function styleStoredAspectLines(
+  svg: SVGSVGElement,
+  data: ReportBirthChartWheelData,
+  activePattern: ChartPattern | null,
+) {
   const aspectLines = svg.querySelectorAll<SVGLineElement>(
     'line[data-precision]',
   );
+  const activeAspectIds = new Set(activePattern?.aspectIds ?? []);
 
-  aspectLines.forEach((line) => {
+  aspectLines.forEach((line, index) => {
     const orb = Number(line.dataset.precision);
     const isVeryTight = Number.isFinite(orb) && orb <= 1;
     const isTight = Number.isFinite(orb) && orb <= 2.5;
+    const aspect = data.aspects[index];
+    const belongsToPattern = Boolean(
+      activePattern && aspect && activeAspectIds.has(aspect.id),
+    );
+    const isDimmed = Boolean(activePattern && !belongsToPattern);
 
+    if (aspect) line.setAttribute("data-halleus-aspect-id", aspect.id);
     line.setAttribute(
       "stroke-width",
-      isVeryTight ? "2.4" : isTight ? "1.8" : "1.25",
+      belongsToPattern ? "3" : isVeryTight ? "2.4" : isTight ? "1.8" : "1.25",
     );
     line.setAttribute(
       "stroke-opacity",
-      isVeryTight ? "0.92" : isTight ? "0.78" : "0.62",
+      isDimmed
+        ? "0.12"
+        : belongsToPattern
+          ? "0.98"
+          : isVeryTight
+            ? "0.92"
+            : isTight
+              ? "0.78"
+              : "0.62",
     );
     line.setAttribute("stroke-linecap", "round");
     line.setAttribute(
       "data-halleus-aspect-weight",
-      isVeryTight ? "primary" : isTight ? "strong" : "supporting",
+      belongsToPattern
+        ? "pattern"
+        : isVeryTight
+          ? "primary"
+          : isTight
+            ? "strong"
+            : "supporting",
     );
   });
 }
+
+function appendPatternPlanetHighlights(
+  svg: SVGSVGElement,
+  data: ReportBirthChartWheelData,
+  activePattern: ChartPattern | null,
+) {
+  svg.querySelector('[data-halleus-pattern-highlights]')?.remove();
+  if (!activePattern) return;
+
+  const placements = data.placements.filter((placement) =>
+    activePattern.participantIds.includes(placement.id),
+  );
+  if (placements.length === 0) return;
+
+  const wrapper = document.createElementNS(SVG_NAMESPACE, "g");
+  const shift = 360 - data.cusps[0];
+  const radius = ASTROCHART_RADIUS / 1.34;
+  wrapper.setAttribute("data-halleus-pattern-highlights", activePattern.id);
+  wrapper.setAttribute("aria-hidden", "true");
+
+  placements.forEach((placement) => {
+    const angleInRadians =
+      (180 - (placement.longitude + shift)) * (Math.PI / 180);
+    const x = ASTROCHART_CENTER + radius * Math.cos(angleInRadians);
+    const y = ASTROCHART_CENTER + radius * Math.sin(angleInRadians);
+    const circle = document.createElementNS(SVG_NAMESPACE, "circle");
+    const title = document.createElementNS(SVG_NAMESPACE, "title");
+    circle.setAttribute("cx", x.toString());
+    circle.setAttribute("cy", y.toString());
+    circle.setAttribute("r", "17");
+    circle.setAttribute("fill", "none");
+    circle.setAttribute("stroke", "#1E40AF");
+    circle.setAttribute("stroke-width", "2.4");
+    circle.setAttribute("stroke-opacity", "0.9");
+    circle.setAttribute("data-pattern-planet-id", placement.id);
+    title.textContent = activePattern.title + ": " + WHEEL_PLANET_LABELS[placement.id];
+    circle.appendChild(title);
+    wrapper.appendChild(circle);
+  });
+
+  svg.appendChild(wrapper);
+}
+
+type ReadingWheelFocus = {
+  planetIds: ReportBirthChartWheelPlanetId[];
+  aspectIds: string[];
+  includeAscendant: boolean;
+  house: number | null;
+  pattern: ChartPattern | null;
+};
+
+function resolveReadingWheelFocus(
+  focus: string | null,
+  patterns: ChartPattern[],
+  data: ReportBirthChartWheelData,
+): ReadingWheelFocus {
+  const empty: ReadingWheelFocus = {
+    planetIds: [],
+    aspectIds: [],
+    includeAscendant: false,
+    house: null,
+    pattern: null,
+  };
+  if (!focus || focus === "overview") return empty;
+
+  const pattern = patterns.find(
+    (item) => focus === item.id || focus === `dynamic-${item.id}`,
+  ) ?? null;
+  if (pattern) {
+    return {
+      ...empty,
+      planetIds: pattern.participantIds.filter(
+        (id): id is ReportBirthChartWheelPlanetId => id in WHEEL_PLANET_LABELS,
+      ),
+      aspectIds: pattern.aspectIds,
+      pattern,
+    };
+  }
+
+  if (focus === "sun-moon-rising") {
+    return { ...empty, planetIds: ["sun", "moon"], includeAscendant: true };
+  }
+  if (focus === "rising-ruler" || focus === "chart-ruler-story") {
+    return { ...empty, includeAscendant: true };
+  }
+  if (
+    focus === "sun" ||
+    focus === "moon" ||
+    focus === "mercury" ||
+    focus === "venus" ||
+    focus === "mars" ||
+    focus === "jupiter" ||
+    focus === "saturn"
+  ) {
+    return { ...empty, planetIds: [focus] };
+  }
+  const dynamicPlanet = /^dynamic-(?:angular|outer)-(uranus|neptune|pluto|sun|moon|mercury|venus|mars|jupiter|saturn)$/u.exec(focus)?.[1];
+  if (dynamicPlanet && dynamicPlanet in WHEEL_PLANET_LABELS) {
+    return { ...empty, planetIds: [dynamicPlanet as ReportBirthChartWheelPlanetId] };
+  }
+  if (focus.startsWith("dynamic-aspect-")) {
+    const aspectId = focus.slice("dynamic-aspect-".length);
+    const aspect = data.aspects.find((item) => item.id === aspectId);
+    if (aspect) {
+      return {
+        ...empty,
+        aspectIds: [aspect.id],
+        planetIds: [aspect.firstPlanetId, aspect.secondPlanetId].filter(
+          (id): id is ReportBirthChartWheelPlanetId => id in WHEEL_PLANET_LABELS,
+        ),
+      };
+    }
+  }
+  const houseMatch = /^dynamic-house-(\d{1,2})$/u.exec(focus);
+  const house = houseMatch ? Number(houseMatch[1]) : null;
+  if (house && house >= 1 && house <= 12) return { ...empty, house };
+  return empty;
+}
+
+function applyReadingWheelFocus(
+  svg: SVGSVGElement,
+  data: ReportBirthChartWheelData,
+  focus: ReadingWheelFocus,
+  manualPattern: ChartPattern | null,
+) {
+  svg.querySelector('[data-halleus-reading-focus]')?.remove();
+  const effectivePattern = manualPattern ?? focus.pattern;
+  const planetIds = new Set<string>([
+    ...focus.planetIds,
+    ...(effectivePattern?.participantIds ?? []),
+  ]);
+  const aspectIds = new Set<string>([
+    ...focus.aspectIds,
+    ...(effectivePattern?.aspectIds ?? []),
+  ]);
+  const hasFocus =
+    planetIds.size > 0 ||
+    aspectIds.size > 0 ||
+    focus.includeAscendant ||
+    focus.house !== null;
+
+  const aspectLines = svg.querySelectorAll<SVGLineElement>('line[data-precision]');
+  aspectLines.forEach((line, index) => {
+    const aspect = data.aspects[index];
+    if (!aspect) return;
+    const matches =
+      aspectIds.has(aspect.id) ||
+      planetIds.has(aspect.firstPlanetId) ||
+      planetIds.has(aspect.secondPlanetId);
+    if (hasFocus && matches) {
+      line.setAttribute("stroke-opacity", "0.98");
+      line.setAttribute("stroke-width", "2.8");
+      line.setAttribute("data-report-reading-aspect-focus", "true");
+    } else {
+      line.removeAttribute("data-report-reading-aspect-focus");
+      if (hasFocus) line.setAttribute("stroke-opacity", "0.16");
+    }
+  });
+
+  if (!hasFocus) {
+    styleStoredAspectLines(svg, data, manualPattern);
+    return;
+  }
+
+  const wrapper = document.createElementNS(SVG_NAMESPACE, "g");
+  wrapper.setAttribute("data-halleus-reading-focus", "true");
+  wrapper.setAttribute("aria-hidden", "true");
+
+  for (const placement of data.placements) {
+    if (!planetIds.has(placement.id)) continue;
+    const point = getWheelPoint(placement.longitude, data, ASTROCHART_RADIUS / 1.34);
+    const circle = document.createElementNS(SVG_NAMESPACE, "circle");
+    circle.setAttribute("cx", point.x.toString());
+    circle.setAttribute("cy", point.y.toString());
+    circle.setAttribute("r", placement.id === "sun" || placement.id === "moon" ? "20" : "17");
+    circle.setAttribute("fill", "#F8FAFC");
+    circle.setAttribute("fill-opacity", "0.18");
+    circle.setAttribute("stroke", "#1E40AF");
+    circle.setAttribute("stroke-width", "2.6");
+    circle.setAttribute("data-report-reading-planet-focus", placement.id);
+    wrapper.appendChild(circle);
+  }
+
+  if (focus.includeAscendant) {
+    const point = getWheelPoint(data.ascendantLongitude, data, ASTROCHART_RADIUS - 8);
+    const circle = document.createElementNS(SVG_NAMESPACE, "circle");
+    circle.setAttribute("cx", point.x.toString());
+    circle.setAttribute("cy", point.y.toString());
+    circle.setAttribute("r", "12");
+    circle.setAttribute("fill", "#D9EAFD");
+    circle.setAttribute("stroke", "#1E40AF");
+    circle.setAttribute("stroke-width", "2.4");
+    circle.setAttribute("data-report-reading-asc-focus", "true");
+    wrapper.appendChild(circle);
+  }
+
+  if (focus.house !== null && data.cusps.length === 12) {
+    const cusp = data.cusps[focus.house - 1];
+    const point = getWheelPoint(cusp, data, ASTROCHART_RADIUS - 14);
+    const line = document.createElementNS(SVG_NAMESPACE, "line");
+    line.setAttribute("x1", ASTROCHART_CENTER.toString());
+    line.setAttribute("y1", ASTROCHART_CENTER.toString());
+    line.setAttribute("x2", point.x.toString());
+    line.setAttribute("y2", point.y.toString());
+    line.setAttribute("stroke", "#1E40AF");
+    line.setAttribute("stroke-width", "3");
+    line.setAttribute("stroke-linecap", "round");
+    line.setAttribute("data-report-reading-house-focus", String(focus.house));
+    wrapper.appendChild(line);
+  }
+  svg.appendChild(wrapper);
+}
+
+function appendIntroMotionOverlay(
+  svg: SVGSVGElement,
+  data: ReportBirthChartWheelData,
+) {
+  if (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  ) {
+    return;
+  }
+  svg.querySelector('[data-halleus-intro-motion]')?.remove();
+  const wrapper = document.createElementNS(SVG_NAMESPACE, "g");
+  wrapper.setAttribute("data-halleus-intro-motion", "true");
+  wrapper.setAttribute("aria-hidden", "true");
+  wrapper.setAttribute("style", "pointer-events:none");
+
+  const ring = document.createElementNS(SVG_NAMESPACE, "circle");
+  ring.setAttribute("cx", ASTROCHART_CENTER.toString());
+  ring.setAttribute("cy", ASTROCHART_CENTER.toString());
+  ring.setAttribute("r", (ASTROCHART_RADIUS - 3).toString());
+  ring.setAttribute("fill", "none");
+  ring.setAttribute("stroke", "#52657A");
+  ring.setAttribute("stroke-width", "1.4");
+  ring.setAttribute("data-report-wheel-intro-ring", "true");
+  wrapper.appendChild(ring);
+
+  data.cusps.forEach((cusp, index) => {
+    const point = getWheelPoint(cusp, data, ASTROCHART_RADIUS - 10);
+    const line = document.createElementNS(SVG_NAMESPACE, "line");
+    line.setAttribute("x1", ASTROCHART_CENTER.toString());
+    line.setAttribute("y1", ASTROCHART_CENTER.toString());
+    line.setAttribute("x2", point.x.toString());
+    line.setAttribute("y2", point.y.toString());
+    line.setAttribute("stroke", "#9AA6B2");
+    line.setAttribute("stroke-width", "1");
+    line.setAttribute("data-report-wheel-intro-house", String(index + 1));
+    line.style.setProperty("--report-motion-index", String(index));
+    wrapper.appendChild(line);
+  });
+
+  data.placements.forEach((placement, index) => {
+    const point = getWheelPoint(placement.longitude, data, ASTROCHART_RADIUS / 1.34);
+    const circle = document.createElementNS(SVG_NAMESPACE, "circle");
+    circle.setAttribute("cx", point.x.toString());
+    circle.setAttribute("cy", point.y.toString());
+    circle.setAttribute("r", placement.id === "sun" || placement.id === "moon" ? "7" : "5");
+    circle.setAttribute("fill", placement.id === "sun" || placement.id === "moon" ? "#1E40AF" : "#52657A");
+    circle.setAttribute("data-report-wheel-intro-planet", placement.id);
+    if (placement.id === "sun" || placement.id === "moon") {
+      circle.setAttribute("data-report-wheel-intro-luminary", "true");
+    }
+    circle.style.setProperty("--report-motion-index", String(index));
+    wrapper.appendChild(circle);
+  });
+
+  const ascPoint = getWheelPoint(data.ascendantLongitude, data, ASTROCHART_RADIUS - 5);
+  const asc = document.createElementNS(SVG_NAMESPACE, "circle");
+  asc.setAttribute("cx", ascPoint.x.toString());
+  asc.setAttribute("cy", ascPoint.y.toString());
+  asc.setAttribute("r", "8");
+  asc.setAttribute("fill", "#D9EAFD");
+  asc.setAttribute("stroke", "#1E40AF");
+  asc.setAttribute("stroke-width", "2");
+  asc.setAttribute("data-report-wheel-intro-asc", "true");
+  wrapper.appendChild(asc);
+
+  data.aspects.slice(0, 6).forEach((aspect, index) => {
+    const first = data.placements.find((item) => item.id === aspect.firstPlanetId);
+    const second = data.placements.find((item) => item.id === aspect.secondPlanetId);
+    if (!first || !second) return;
+    const firstPoint = getWheelPoint(first.longitude, data, ASTROCHART_RADIUS / 2.1);
+    const secondPoint = getWheelPoint(second.longitude, data, ASTROCHART_RADIUS / 2.1);
+    const line = document.createElementNS(SVG_NAMESPACE, "line");
+    line.setAttribute("x1", firstPoint.x.toString());
+    line.setAttribute("y1", firstPoint.y.toString());
+    line.setAttribute("x2", secondPoint.x.toString());
+    line.setAttribute("y2", secondPoint.y.toString());
+    line.setAttribute("stroke", ASPECT_COLORS[aspect.aspectId]);
+    line.setAttribute("stroke-width", "1.5");
+    line.setAttribute("data-report-wheel-intro-aspect", aspect.id);
+    line.style.setProperty("--report-motion-index", String(index));
+    wrapper.appendChild(line);
+  });
+
+  svg.appendChild(wrapper);
+}
+
+function getWheelPoint(
+  longitude: number,
+  data: ReportBirthChartWheelData,
+  radius: number,
+) {
+  const shift = data.cusps.length > 0 ? 360 - data.cusps[0] : 0;
+  const angle = (180 - (longitude + shift)) * (Math.PI / 180);
+  return {
+    x: ASTROCHART_CENTER + radius * Math.cos(angle),
+    y: ASTROCHART_CENTER + radius * Math.sin(angle),
+  };
+}
+
+// HALLEUS_REPORT_WHEEL_MOTION_BATCH8_20260807
 
 function appendStoredCuspLabels(
   svg: SVGSVGElement,

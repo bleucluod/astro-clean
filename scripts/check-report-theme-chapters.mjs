@@ -318,8 +318,13 @@ for (const marker of [
     `relationship chapter still directly reuses placement copy: ${marker}`,
   );
 }
+// HALLEUS_REPORT_THEME_CHAPTERS_HUMAN_FIRST_SYNC_20260806
 const contractSource = fs.readFileSync(
   "lib/report-output/live-report-reading-contract.ts",
+  "utf8",
+);
+const humanReadingSource = fs.readFileSync(
+  "lib/report-output/human-first-report-reading.ts",
   "utf8",
 );
 const componentSource = fs.readFileSync(
@@ -337,17 +342,29 @@ for (const marker of [
 }
 for (const marker of [
   "LiveReportThemeChapter",
-  "THEME_CHAPTER_IDS",
-  "themeChapters: getThemeChapters(sections)",
+  "const CHAPTER_SPECS: ChapterSpec[] = [",
+  "const themeChapters = buildThemeChapters(",
+  "collectVisibleNatalText({",
+  "themeChapters,",
 ]) {
   assert(contractSource.includes(marker), `reading contract marker missing: ${marker}`);
 }
 for (const marker of [
-  "data-report-theme-chapters=\"seven-topic-chapters\"",
-  "readingContract.themeChapters.map",
-  "هفت مسیر برای خواندن این چارت",
+  "buildHumanFirstBirthReading",
+  "contract.themeChapters.find",
+  "buildChapter(",
+  "buildDeeperLayers(contract)",
 ]) {
-  assert(componentSource.includes(marker), `component integration marker missing: ${marker}`);
+  assert(humanReadingSource.includes(marker), `human-first reading marker missing: ${marker}`);
+}
+for (const marker of [
+  "buildHumanFirstBirthReading",
+  "reading.opening",
+  "reading.primaryPatterns",
+  "reading.relationships",
+  "reading.growthPath",
+]) {
+  assert(componentSource.includes(marker), `human-first component marker missing: ${marker}`);
 }
 assert(
   pkg.scripts?.["check:report-theme-chapters"] ===
@@ -375,4 +392,4 @@ console.log("- standalone placement interpretation is not repeated verbatim in r
 console.log("- relationship and recurring-pattern chapters use distinct aspect evidence");
 console.log("- recurring-pattern fallback stays cluster- or house-backed");
 console.log("- primary evidence stays distinct and technical detail stays out");
-console.log("- live reading contract and summary card expose the chapters");
+console.log("- live reading contract and human-first report consume the chapters");

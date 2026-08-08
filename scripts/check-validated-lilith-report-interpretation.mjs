@@ -227,8 +227,8 @@ for (const marker of [
   "buildLilithReportInterpretation",
   "لیلیت: مرز، حساسیت و صداقت با خواسته‌ها",
   "پیوندهای پررنگ لیلیت با چارت",
-  "گزارش‌های ذخیره‌شدهٔ قدیمی",
-  "این مجوز فقط برای گزارش تولد است",
+  "گزارش‌های قدیمی تا زمانی که دوباره ساخته نشوند با تفسیر تازه بازنویسی نمی‌شوند",
+  "این توضیح فقط به گزارش تولد مربوط است",
 ]) {
   assert(component.includes(marker), `live Lilith component marker missing: ${marker}`);
 }
@@ -275,3 +275,4 @@ console.log(`- max reference delta ${summary.maxReferenceAngularDeltaDegrees.toF
 console.log("- local runtime keeps Swiss Ephemeris out of dependencies and APIs");
 console.log("- new reports receive sign, house and at most two conservative Lilith aspects");
 console.log("- legacy unapproved reports remain technical-only");
+console.log("- HALLEUS_VALIDATED_LILITH_VISIBLE_COPY_SYNC_R6_20260807");
