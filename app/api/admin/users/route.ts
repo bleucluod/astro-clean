@@ -6,6 +6,7 @@ import {
   noStoreJsonResponse,
   adminErrorResponse,
   readLimit,
+  readPage,
   readObject,
   readOptionalString,
   readRequiredString,
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
     const users = await listAdminUsers(
       search,
       readLimit(url.searchParams.get("limit")),
+      readPage(url.searchParams.get("page")),
     );
     return noStoreJsonResponse({ ok: true, users });
   } catch (error) {

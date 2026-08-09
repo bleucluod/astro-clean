@@ -5,11 +5,16 @@ import { createTelegramMvpContentPlan } from "@/lib/telegram/telegram-content";
 import {
   claimDueTelegramQueueItem,
   enqueueTelegramContent,
-  markTelegramQueueFailed,
+  markTelegramQueueDeliveryFailure,
+  markTelegramQueueDispatchStarted,
   markTelegramQueuePublished,
+  recoverStaleTelegramQueueItems,
   type TelegramQueueInitialStatus,
 } from "@/lib/telegram/telegram-queue";
-import { publishTelegramPayload } from "@/lib/telegram/telegram-publisher";
+import {
+  publishTelegramPayload,
+  readTelegramPublishFailure,
+} from "@/lib/telegram/telegram-publisher";
 
 function tehranLocalDate(now: Date) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -52,26 +57,99 @@ export async function generateTelegramMvpQueue(input: {
   };
 }
 
-export async function processDueTelegramQueue(limit = 3) {
-  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 5);
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function finalizePublishedWithRetry(id: string, messageId: number) {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await markTelegramQueuePublished(id, messageId);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) await wait(attempt * 150);
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Telegram published-message finalization failed.");
+}
+
+export async function processDueTelegramQueue(limit = 10) {
+  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 10);
+  const recovery = await recoverStaleTelegramQueueItems();
   const published: Array<{ id: string; messageId: number }> = [];
-  const failed: string[] = [];
+  const retryScheduled: Array<{ id: string; retryAfter: string | null }> = [];
+  const terminalFailed: string[] = [];
+  const deliveryUncertain: string[] = [];
+  const finalizationPending: Array<{ id: string; messageId: number }> = [];
 
   for (let index = 0; index < safeLimit; index += 1) {
     const item = await claimDueTelegramQueueItem();
     if (!item) break;
+
     try {
-      const result = await publishTelegramPayload({
+      await markTelegramQueueDispatchStarted(item.id);
+    } catch (error) {
+      const outcome = await markTelegramQueueDeliveryFailure({
+        id: item.id,
+        attemptCount: item.attemptCount,
+        failure: {
+          message: error instanceof Error ? error.message : "Dispatch phase could not start.",
+          retryableSafe: true,
+          deliveryUncertain: false,
+        },
+      });
+      if (outcome.retried) {
+        retryScheduled.push({ id: item.id, retryAfter: outcome.retryAfter });
+      } else {
+        terminalFailed.push(item.id);
+      }
+      continue;
+    }
+
+    let result;
+    try {
+      result = await publishTelegramPayload({
         queueId: item.id,
         payload: item.payload,
       });
-      await markTelegramQueuePublished(item.id, result.messageId);
-      published.push({ id: item.id, messageId: result.messageId });
     } catch (error) {
-      failed.push(item.id);
-      await markTelegramQueueFailed(item.id, error);
+      const failure = readTelegramPublishFailure(error);
+      const outcome = await markTelegramQueueDeliveryFailure({
+        id: item.id,
+        attemptCount: item.attemptCount,
+        failure,
+      });
+      if (outcome.retried) {
+        retryScheduled.push({ id: item.id, retryAfter: outcome.retryAfter });
+      } else if (outcome.deliveryUncertain) {
+        deliveryUncertain.push(item.id);
+      } else {
+        terminalFailed.push(item.id);
+      }
+      continue;
+    }
+
+    try {
+      await finalizePublishedWithRetry(item.id, result.messageId);
+      published.push({ id: item.id, messageId: result.messageId });
+    } catch {
+      // The external send succeeded and returned a Telegram message id.
+      // Never send again automatically; stale recovery will quarantine this row
+      // if database finalization cannot be completed in this request.
+      finalizationPending.push({ id: item.id, messageId: result.messageId });
     }
   }
 
-  return { published, failed };
+  return {
+    published,
+    retryScheduled,
+    terminalFailed,
+    deliveryUncertain,
+    finalizationPending,
+    recovery,
+  };
 }

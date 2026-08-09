@@ -4,6 +4,7 @@ import { getAccountReportSaveReadiness } from "@/lib/account/account-report-save
 import { getHalleusRuntimeEnv, hasDatabaseConfig } from "@/lib/config/env";
 import { ensureAccountPersistenceUser } from "@/lib/database/account-persistence-user";
 import { getSupabaseUserFromAuthorizationHeader } from "@/lib/auth/supabase-server-user";
+import { getEffectiveTelegramRewardAccessTier } from "@/lib/telegram/telegram-reward-service";
 import {
   getPublicServerStoredReport,
   saveServerGeneratedReport,
@@ -328,12 +329,14 @@ export async function POST(request: Request) {
       provider: user.provider,
     });
 
+    const accessTier = await getEffectiveTelegramRewardAccessTier(user.id);
+
     const reportRecord = await saveServerGeneratedReport({
       userId: user.id,
       report,
       publication: {
         ownerKind: "account",
-        tier: "free",
+        tier: accessTier,
         identityConsentState: "withheld",
       },
     });

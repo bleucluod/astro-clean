@@ -120,7 +120,12 @@ requireText("admin service", service, "share_enabled = false");
 requireText("admin service", service, "share_token_hash = null");
 
 const adminPage = read("app/admin/page.tsx");
-requireText("admin page", adminPage, "AdminConsole");
+requireText("legacy admin page", adminPage, "notFound");
+const adminiPage = read("app/admini/page.tsx");
+requireText("direct admin page", adminiPage, "AdminDirectGate");
+const adminiLayout = read("app/admini/layout.tsx");
+requireText("direct admin layout", adminiLayout, "index: false");
+requireText("direct admin layout", adminiLayout, "follow: false");
 for (const legacy of [
   "DemoDataPanel",
   "DeploymentStatusCard",
@@ -163,7 +168,12 @@ for (const routePath of [
 const client = read("components/admin/AdminConsole.tsx");
 forbidText("admin client", client, "SUPABASE_SERVICE_ROLE_KEY");
 forbidText("admin client", client, "DATABASE_URL");
-requireText("admin client", client, "/api/admin/session");
+const directGateSessionClient = read("components/admin/AdminDirectGate.tsx");
+requireText(
+  "direct admin session restore",
+  directGateSessionClient,
+  "/api/admin/session",
+);
 requireText("admin client", client, "editPremium");
 requireText("admin client", client, "deliveryStatus");
 
@@ -173,7 +183,18 @@ requireText("premium intake", premiumRoute, "publicationChoice");
 
 const orderPage = read("app/order/page.tsx");
 requireText("order page", orderPage, "PremiumRequestForm");
-requireText("order page", orderPage, "رضایت انتشار نیست");
+
+const premiumRequestForm = read("components/PremiumRequestForm.tsx");
+requireText(
+  "premium request publication consent",
+  premiumRequestForm,
+  "انتخاب انتشار گزارش جدا از ثبت درخواست است و بدون رضایت صریح تغییر نمی‌کند.",
+);
+requireText(
+  "premium request publication consent",
+  premiumRequestForm,
+  "فقط با رضایت صریح من عمومی شود",
+);
 
 const packageJson = JSON.parse(read("package.json"));
 if (
@@ -197,3 +218,46 @@ console.log("- admin APIs enforce capabilities and never force-publish reports")
 console.log("- private report access is explicit and audit-covered");
 console.log("- premium requests persist with publication choice kept separate");
 console.log("- legacy localStorage admin panels are absent from the live admin page");
+
+
+// HALLEUS_DIRECT_ADMINI_R16
+{
+  const directAuth = read("lib/admin/admin-direct-auth.ts");
+  const directRoute = read("app/api/admin/direct-session/route.ts");
+  const directGate = read("components/admin/AdminDirectGate.tsx");
+  const directConsole = read("components/admin/AdminConsole.tsx");
+  const directReports = read("components/admin/AdminReportsWorkspace.tsx");
+
+  requireText("direct admin auth", directAuth, "pbkdf2Sync");
+  requireText("direct admin auth", directAuth, "createHmac");
+  requireText(
+    "direct admin auth",
+    directAuth,
+    "verifyDirectAdminAuthorizationHeader",
+  );
+  requireText(
+    "direct admin route",
+    directRoute,
+    "authenticateDirectAdminCredentials",
+  );
+  requireText(
+    "direct admin gate",
+    directGate,
+    "window.sessionStorage",
+  );
+  forbidText(
+    "direct admin gate",
+    directGate,
+    "window.localStorage",
+  );
+  requireText(
+    "direct admin console",
+    directConsole,
+    "HALLEUS_DIRECT_ADMINI_R16",
+  );
+  requireText(
+    "direct admin reports",
+    directReports,
+    "HALLEUS_DIRECT_ADMINI_R16",
+  );
+}

@@ -1,4 +1,5 @@
 import { isTrustedAdminRequestOrigin } from "@/lib/admin/admin-origin";
+import { verifyDirectAdminAuthorizationHeader } from "@/lib/admin/admin-direct-auth";
 import { getSupabaseUserFromAuthorizationHeader } from "@/lib/auth/supabase-server-user";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import {
@@ -44,6 +45,28 @@ export async function requireAdminCapability(
   request: Request,
   capability: AdminCapability,
 ): Promise<VerifiedAdminActor> {
+  const directSession = verifyDirectAdminAuthorizationHeader(
+    request.headers.get("authorization"),
+  );
+  if (directSession.kind === "invalid") {
+    throw new AdminAccessError(
+      401,
+      "نشست مستقیم ادمین معتبر نیست یا منقضی شده است.",
+    );
+  }
+  if (directSession.kind === "valid") {
+    if (!directSession.actor.capabilities.includes(capability)) {
+      throw new AdminAccessError(
+        403,
+        "این نشست ادمین اجازهٔ انجام این عملیات را ندارد.",
+      );
+    }
+    return {
+      ...directSession.actor,
+      correlationId: readCorrelationId(request),
+    };
+  }
+
   let user;
   try {
     user = await getSupabaseUserFromAuthorizationHeader(

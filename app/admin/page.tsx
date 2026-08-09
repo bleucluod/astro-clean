@@ -1,5 +1,5 @@
-import { AdminConsole } from "@/components/admin/AdminConsole";
+import { notFound } from "next/navigation";
 
-export default function AdminPage() {
-  return <AdminConsole />;
+export default function LegacyAdminPage() {
+  notFound();
 }

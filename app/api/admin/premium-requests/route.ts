@@ -6,6 +6,7 @@ import {
   noStoreJsonResponse,
   adminErrorResponse,
   readLimit,
+  readPage,
   readObject,
   readOptionalString,
   readRequiredString,
@@ -42,6 +43,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const requests = await listPremiumRequests(
       readLimit(url.searchParams.get("limit")),
+      readPage(url.searchParams.get("page")),
     );
     return noStoreJsonResponse({ ok: true, requests });
   } catch (error) {

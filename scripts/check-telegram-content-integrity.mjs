@@ -90,6 +90,64 @@ try {
   assert(!/https?:\/\//u.test(stripHtml(engine.payload.text)), "Raw CTA URL is visible in engine post text.");
   assert(!/https?:\/\//u.test(stripHtml(evergreen.payload.text)), "Raw CTA URL is visible in evergreen post text.");
 
+
+  // HALLEUS_TELEGRAM_HIDDEN_LINK_TARGETS_V1 runtime checks
+  const comparePayload = content.renderTelegramPayload(
+    {
+      contentType: "shareable_virgo_start",
+      sourceFacts: {},
+      allowedClaims: ["evergreen.reflection_only"],
+      signTargets: ["virgo"],
+      tone: "young_conversational",
+      length: "short",
+      cta: { label: "تحلیل رابطه‌تون رو ببین", target: "compare" },
+      hashtags: [],
+      scheduledWindow: {
+        startAt: "2026-08-08T08:30:00.000Z",
+        endAt: "2026-08-08T08:50:00.000Z",
+      },
+    },
+    "https://halleus.ir",
+  );
+  assert(
+    comparePayload.text.includes('<a href="https://halleus.ir/compare">تحلیل رابطه‌تون رو ببین</a>'),
+    "Compare CTA is not rendered as a hidden Persian Telegram link.",
+  );
+  assert(
+    !/https?:\/\//u.test(stripHtml(comparePayload.text)),
+    "Raw compare URL is visible in Telegram text.",
+  );
+
+  const wikiPayload = content.renderTelegramPayload(
+    {
+      contentType: "shareable_virgo_start",
+      sourceFacts: {},
+      allowedClaims: ["evergreen.reflection_only"],
+      signTargets: ["virgo"],
+      tone: "young_conversational",
+      length: "short",
+      cta: {
+        label: "چارت تولد چیست؟",
+        target: "wiki",
+        wikiSlug: "birth-chart-basics",
+      },
+      hashtags: [],
+      scheduledWindow: {
+        startAt: "2026-08-08T08:30:00.000Z",
+        endAt: "2026-08-08T08:50:00.000Z",
+      },
+    },
+    "https://halleus.ir",
+  );
+  assert(
+    wikiPayload.text.includes('<a href="https://halleus.ir/wiki/birth-chart-basics">چارت تولد چیست؟</a>'),
+    "Wiki CTA is not rendered as a hidden Persian Telegram link.",
+  );
+  assert(
+    !/https?:\/\//u.test(stripHtml(wikiPayload.text)),
+    "Raw wiki URL is visible in Telegram text.",
+  );
+
   const fallback = content.createTelegramMvpContentPlan({
     snapshot: null,
     siteUrl: "https://halleus.ir",
@@ -112,7 +170,9 @@ for (const marker of [
 assert(!serviceSource.includes('fetch("/sky') && !serviceSource.includes("fetch('/sky"), "Telegram service must not scrape /sky HTML.");
 assert(!contentSource.includes("astronomy-engine"), "Telegram writer must not import or calculate astronomy.");
 assert(queueSource.includes("for update skip locked"), "Queue claim is not concurrency-safe.");
-assert(queueSource.includes("TELEGRAM_MVP_MAX_ATTEMPTS = 1"), "MVP retry boundary must be explicit and duplicate-safe.");
+assert(queueSource.includes("TELEGRAM_PUBLISH_MAX_ATTEMPTS"), "Bounded publishing retry policy must be wired into the queue.");
+assert(queueSource.includes("recoverStaleTelegramQueueItems"), "Stale publishing recovery is missing.");
+assert(queueSource.includes("[delivery_uncertain]"), "Uncertain delivery quarantine marker is missing.");
 assert(queueSource.includes("on conflict (content_key)"), "Queue content idempotency is missing.");
 assert(!publisherSource.includes("api.telegram.org"), "Iran VPS publisher must only call the Cloudflare bridge.");
 assert(publisherSource.includes("x-halleus-bridge-secret"), "Bridge authentication header is missing.");
@@ -122,7 +182,7 @@ assert(!bridgeSource.includes("body.chat_id"), "Caller must not be able to choos
 assert(bridgeSource.includes("sendMessage"), "MVP bridge must support sendMessage.");
 assert(bridgeSource.includes("scheduled("), "Cloudflare bridge must expose the minimum Cron scheduler.");
 assert(bridgeSource.includes("controller.noRetry()"), "Cron trigger must not create hidden Cloudflare retries in the MVP.");
-assert(wranglerSource.includes('crons = ["*/10 * * * *"]'), "Cron trigger is missing or changed.");
+assert(wranglerSource.includes('crons = ["* * * * *"]'), "Minute-level Telegram Cron trigger is missing or changed.");
 for (const secret of [
   "TELEGRAM_BOT_TOKEN",
   "TELEGRAM_CHANNEL_ID",
@@ -143,6 +203,6 @@ console.log("Telegram content integrity check passed.");
 console.log("- engine-backed copy is derived only from a structured SkyDailySnapshot fixture with provenance");
 console.log("- missing sky data falls back to evergreen/shareable content instead of inventing transits");
 console.log("- Telegram HTML CTAs hide raw URLs and target Halleus routes");
-console.log("- queue claim/idempotency and one-attempt MVP duplicate protection are explicit");
+console.log("- queue claim/idempotency, bounded safe retry, and uncertain-delivery quarantine are explicit");
 console.log("- Iran VPS publishes only through the authenticated Cloudflare bridge and fixed channel target");
 console.log("HALLEUS_TELEGRAM_CONTENT_INTEGRITY_SLICE1_20260808");

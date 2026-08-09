@@ -24,6 +24,8 @@ export const ADMIN_CAPABILITIES = [
   "premium_requests.write",
   "audit.read",
   "memberships.manage",
+  "telegram.read",
+  "telegram.import.write",
   "wiki.read",
   "wiki.draft.write",
   "wiki.import.write",

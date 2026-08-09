@@ -1,4 +1,7 @@
 import type {
+  SkyDailyAspectKind,
+  SkyDailyAspectPhase,
+  SkyDailyBodyId,
   SkyDailyMotionState,
   SkyDailySnapshot,
   SkyDailyZodiacSign,
@@ -14,14 +17,27 @@ export type TelegramContentClass =
 
 export type TelegramContentType =
   | "sky_moon_position"
+  | "sky_moon_phase"
+  | "sky_priority_aspect"
+  | "sky_ingress"
+  | "sky_station"
   | "evergreen_taurus_boundary"
-  | "shareable_virgo_start";
+  | "evergreen_sign_boundary"
+  | "evergreen_relationship_pattern"
+  | "evergreen_planet_sign_lesson"
+  | "shareable_virgo_start"
+  | "shareable_sign_prompt"
+  | "shareable_relationship_prompt"
+  | "shareable_micro_reflection"
+  | "educational_retrograde"
+  | "educational_aspect";
 
-export type TelegramCtaTarget = "sky" | "chart";
+export type TelegramCtaTarget = "sky" | "chart" | "compare" | "wiki";
 
 export type TelegramCta = {
   label: string;
   target: TelegramCtaTarget;
+  wikiSlug?: string;
 };
 
 export type TelegramEngineProvenance = {
@@ -30,8 +46,11 @@ export type TelegramEngineProvenance = {
   snapshotLocalDate: string;
   calculationSource: string;
   calculationVersion: string;
-  factType: "planetary_state";
-  relatedBodies: ["moon"];
+  factType: "planetary_state" | "moon_phase" | "aspect";
+  relatedBodies: SkyDailyBodyId[];
+  aspectKind?: SkyDailyAspectKind;
+  aspectPhase?: SkyDailyAspectPhase;
+  exactAt?: string | null;
   generatedAt: string;
 };
 
@@ -121,9 +140,28 @@ function normalizeHashtag(value: string) {
   return normalized;
 }
 
-function resolveCtaUrl(siteUrl: string, target: TelegramCtaTarget) {
-  const route = target === "sky" ? "/sky" : "/chart";
-  return new URL(route, siteUrl).toString();
+function resolveCtaUrl(
+  siteUrl: string,
+  target: TelegramCtaTarget,
+  wikiSlug?: string,
+) {
+  // HALLEUS_TELEGRAM_HIDDEN_LINK_TARGETS_V1
+  if (target === "chart") {
+    return new URL("/chart", siteUrl).toString();
+  }
+  if (target === "sky") {
+    return new URL("/sky", siteUrl).toString();
+  }
+  if (target === "compare") {
+    return new URL("/compare", siteUrl).toString();
+  }
+
+  const normalizedSlug = String(wikiSlug ?? "").trim();
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedSlug)) {
+    throw new Error("Telegram wiki CTA slug is invalid.");
+  }
+
+  return new URL("/wiki/" + normalizedSlug, siteUrl).toString();
 }
 
 export function writeTelegramPersianCopy(input: TelegramWriterInput) {
@@ -154,7 +192,7 @@ export function renderTelegramPayload(input: TelegramWriterInput, siteUrl: strin
   const parts = [body];
 
   if (input.cta) {
-    const href = escapeTelegramHtml(resolveCtaUrl(siteUrl, input.cta.target));
+    const href = escapeTelegramHtml(resolveCtaUrl(siteUrl, input.cta.target, input.cta.wikiSlug));
     const label = escapeTelegramHtml(input.cta.label);
     parts.push(`<a href="${href}">${label}</a>`);
   }

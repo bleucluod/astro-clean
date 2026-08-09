@@ -1,3 +1,4 @@
+body:has(.halleus-admin-root) > div > header:first-child,
 body:has(.halleus-admin-root) .site-header,
 body:has(.halleus-admin-root) .site-footer,
 body:has(.halleus-admin-root) a[href="#main-content"] {
@@ -5,17 +6,27 @@ body:has(.halleus-admin-root) a[href="#main-content"] {
 }
 
 body:has(.halleus-admin-root) {
-  background: #f4f7fa;
+  margin: 0;
+  background: #f5f8fb;
+  color: #243447;
+  overflow-x: hidden;
 }
 
-body:has(.halleus-admin-root) #main-content {
+body:has(.halleus-admin-root) > div,
+body:has(.halleus-admin-root) #main-content,
+body:has(.halleus-admin-root) .halleus-admin-root {
   width: 100%;
   max-width: none;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
 }
 
+body:has(.halleus-admin-root) #main-content {
+  display: block;
+}
+
 .halleus-admin-root {
-  width: 100%;
-  min-height: 100vh;
+  isolation: isolate;
+  background: #f5f8fb;
 }

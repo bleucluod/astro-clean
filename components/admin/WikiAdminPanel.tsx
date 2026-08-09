@@ -1744,34 +1744,11 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             </article>
           ) : (
             <div className={styles.wikiEditor}>
-              <label>شناسهٔ پایدار<input disabled={Boolean(detail)} value={draft.stableId} onChange={(event) => updateDraft("stableId", event.target.value)} /></label>
-              <label>Slug<input value={draft.slug} onChange={(event) => updateDraft("slug", event.target.value)} /></label>
               <label className={styles.wideField}>عنوان<input value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} /></label>
-              <label>عنوان کوتاه<input value={draft.shortTitle} onChange={(event) => updateDraft("shortTitle", event.target.value)} /></label>
               <label>دسته<select value={draft.categoryId} onChange={(event) => updateDraft("categoryId", event.target.value)}>{categories.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select></label>
-              <label>نقش<select value={draft.articleRole} onChange={(event) => updateDraft("articleRole", event.target.value as "pillar" | "support")}><option value="pillar">Pillar</option><option value="support">Support</option></select></label>
-              <label>خوشه<input value={draft.contentCluster} onChange={(event) => updateDraft("contentCluster", event.target.value)} /></label>
-              <label>نسخه<input min="1" type="number" value={draft.contentVersion} onChange={(event) => updateDraft("contentVersion", Number(event.target.value))} /></label>
-              <label>اولویت ۰ تا ۳۰۰<input min="0" max="300" step="10" type="number" value={draft.publicationPriority} onChange={(event) => updateDraft("publicationPriority", Number(event.target.value))} /></label>
-              <label>زمان مطالعه<input min="1" type="number" value={draft.readingMinutes} onChange={(event) => updateDraft("readingMinutes", Number(event.target.value))} /></label>
-              <label className={styles.wideField}>SEO title<input value={draft.seoTitle ?? ""} onChange={(event) => updateDraft("seoTitle", event.target.value || null)} /></label>
-              <label className={styles.wideField}>Meta description<textarea value={draft.metaDescription} onChange={(event) => updateDraft("metaDescription", event.target.value)} /></label>
+              <label>عنوان کوتاه<input value={draft.shortTitle} onChange={(event) => updateDraft("shortTitle", event.target.value)} /></label>
               <label className={styles.wideField}>خلاصه<textarea value={draft.summary} onChange={(event) => updateDraft("summary", event.target.value)} /></label>
               <label className={styles.wideField}>مقدمه<textarea value={draft.intro} onChange={(event) => updateDraft("intro", event.target.value)} /></label>
-              <label className={styles.wideField}>برچسب‌ها؛ جداشده با ویرگول<input value={draft.tags.join(", ")} onChange={(event) => updateDraft("tags", event.target.value.split(",").map((item) => item.trim()).filter(Boolean))} /></label>
-              <label className={styles.wideField}>شناسهٔ مقاله‌های مرتبط؛ جداشده با ویرگول<input value={draft.relatedArticleIds.join(", ")} onChange={(event) => updateDraft("relatedArticleIds", event.target.value.split(",").map((item) => item.trim()).filter(Boolean))} /></label>
-              <label className={styles.wideField}>منابع؛ هر خط «عنوان|https://…»<textarea value={draft.sources.map((source) => typeof source === "string" ? source : `${source.label}|${source.href}`).join("\n")} onChange={(event) => updateDraft("sources", event.target.value.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
-                const separator = line.indexOf("|");
-                return separator > 0 ? { label: line.slice(0, separator).trim(), href: line.slice(separator + 1).trim() } : line;
-              }))} /></label>
-              <label className={styles.wideField}>لینک‌های ادامه؛ هر خط «عنوان|/مسیر»<textarea value={draft.contextLinks.map((link) => `${link.label}|${link.href}`).join("\n")} onChange={(event) => updateDraft("contextLinks", event.target.value.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
-                const [label, ...href] = line.split("|");
-                return { label: label.trim(), href: href.join("|").trim() };
-              }))} /></label>
-              <label>عنوان CTA<input value={draft.callToAction?.title ?? ""} onChange={(event) => updateDraft("callToAction", { title: event.target.value, text: draft.callToAction?.text ?? "", label: draft.callToAction?.label ?? "", href: draft.callToAction?.href ?? "/chart" })} /></label>
-              <label>متن دکمهٔ CTA<input value={draft.callToAction?.label ?? ""} onChange={(event) => updateDraft("callToAction", { title: draft.callToAction?.title ?? "", text: draft.callToAction?.text ?? "", label: event.target.value, href: draft.callToAction?.href ?? "/chart" })} /></label>
-              <label className={styles.wideField}>توضیح CTA<textarea value={draft.callToAction?.text ?? ""} onChange={(event) => updateDraft("callToAction", { title: draft.callToAction?.title ?? "", text: event.target.value, label: draft.callToAction?.label ?? "", href: draft.callToAction?.href ?? "/chart" })} /></label>
-              <label className={styles.wideField}>مسیر CTA<input value={draft.callToAction?.href ?? ""} onChange={(event) => updateDraft("callToAction", event.target.value ? { title: draft.callToAction?.title ?? "", text: draft.callToAction?.text ?? "", label: draft.callToAction?.label ?? "", href: event.target.value } : null)} /></label>
               <label className={styles.wideField}>Markdown و بخش‌ها<textarea className={styles.markdownEditor} value={draft.bodyMarkdown} onChange={(event) => updateDraft("bodyMarkdown", event.target.value)} /></label>
               <label className={`${styles.toggleCard} ${styles.wideField}`}>
                 <span>
@@ -1780,6 +1757,35 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 </span>
                 <input type="checkbox" checked={draft.indexable} onChange={(event) => updateDraft("indexable", event.target.checked)} />
               </label>
+
+              <details className={`${styles.wikiAdvanced} ${styles.wideField}`}>
+                <summary>تنظیمات پیشرفتهٔ مقاله</summary>
+                <div className={styles.wikiAdvancedGrid}>
+                  <label>شناسهٔ پایدار<input disabled={Boolean(detail)} value={draft.stableId} onChange={(event) => updateDraft("stableId", event.target.value)} /></label>
+                  <label>Slug<input value={draft.slug} onChange={(event) => updateDraft("slug", event.target.value)} /></label>
+                  <label>نقش<select value={draft.articleRole} onChange={(event) => updateDraft("articleRole", event.target.value as "pillar" | "support")}><option value="pillar">Pillar</option><option value="support">Support</option></select></label>
+                  <label>خوشه<input value={draft.contentCluster} onChange={(event) => updateDraft("contentCluster", event.target.value)} /></label>
+                  <label>نسخه<input min="1" type="number" value={draft.contentVersion} onChange={(event) => updateDraft("contentVersion", Number(event.target.value))} /></label>
+                  <label>اولویت ۰ تا ۳۰۰<input min="0" max="300" step="10" type="number" value={draft.publicationPriority} onChange={(event) => updateDraft("publicationPriority", Number(event.target.value))} /></label>
+                  <label>زمان مطالعه<input min="1" type="number" value={draft.readingMinutes} onChange={(event) => updateDraft("readingMinutes", Number(event.target.value))} /></label>
+                  <label className={styles.wideField}>SEO title<input value={draft.seoTitle ?? ""} onChange={(event) => updateDraft("seoTitle", event.target.value || null)} /></label>
+                  <label className={styles.wideField}>Meta description<textarea value={draft.metaDescription} onChange={(event) => updateDraft("metaDescription", event.target.value)} /></label>
+                  <label className={styles.wideField}>برچسب‌ها؛ جداشده با ویرگول<input value={draft.tags.join(", ")} onChange={(event) => updateDraft("tags", event.target.value.split(",").map((item) => item.trim()).filter(Boolean))} /></label>
+                  <label className={styles.wideField}>شناسهٔ مقاله‌های مرتبط؛ جداشده با ویرگول<input value={draft.relatedArticleIds.join(", ")} onChange={(event) => updateDraft("relatedArticleIds", event.target.value.split(",").map((item) => item.trim()).filter(Boolean))} /></label>
+                  <label className={styles.wideField}>منابع؛ هر خط «عنوان|https://…»<textarea value={draft.sources.map((source) => typeof source === "string" ? source : `${source.label}|${source.href}`).join("\n")} onChange={(event) => updateDraft("sources", event.target.value.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
+                    const separator = line.indexOf("|");
+                    return separator > 0 ? { label: line.slice(0, separator).trim(), href: line.slice(separator + 1).trim() } : line;
+                  }))} /></label>
+                  <label className={styles.wideField}>لینک‌های ادامه؛ هر خط «عنوان|/مسیر»<textarea value={draft.contextLinks.map((link) => `${link.label}|${link.href}`).join("\n")} onChange={(event) => updateDraft("contextLinks", event.target.value.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
+                    const [label, ...href] = line.split("|");
+                    return { label: label.trim(), href: href.join("|").trim() };
+                  }))} /></label>
+                  <label>عنوان CTA<input value={draft.callToAction?.title ?? ""} onChange={(event) => updateDraft("callToAction", { title: event.target.value, text: draft.callToAction?.text ?? "", label: draft.callToAction?.label ?? "", href: draft.callToAction?.href ?? "/chart" })} /></label>
+                  <label>متن دکمهٔ CTA<input value={draft.callToAction?.label ?? ""} onChange={(event) => updateDraft("callToAction", { title: draft.callToAction?.title ?? "", text: draft.callToAction?.text ?? "", label: event.target.value, href: draft.callToAction?.href ?? "/chart" })} /></label>
+                  <label className={styles.wideField}>توضیح CTA<textarea value={draft.callToAction?.text ?? ""} onChange={(event) => updateDraft("callToAction", { title: draft.callToAction?.title ?? "", text: event.target.value, label: draft.callToAction?.label ?? "", href: draft.callToAction?.href ?? "/chart" })} /></label>
+                  <label className={styles.wideField}>مسیر CTA<input value={draft.callToAction?.href ?? ""} onChange={(event) => updateDraft("callToAction", event.target.value ? { title: draft.callToAction?.title ?? "", text: draft.callToAction?.text ?? "", label: draft.callToAction?.label ?? "", href: event.target.value } : null)} /></label>
+                </div>
+              </details>
             </div>
           )}
 

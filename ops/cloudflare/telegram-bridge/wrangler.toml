@@ -4,14 +4,16 @@ compatibility_date = "2026-08-08"
 
 [vars]
 HALLEUS_PUBLISH_DUE_URL = "https://halleus.ir/api/internal/telegram/publish-due"
+HALLEUS_REWARD_LINK_URL = "https://halleus.ir/api/internal/telegram/reward-link"
 
 [secrets]
 required = [
   "TELEGRAM_BOT_TOKEN",
   "TELEGRAM_CHANNEL_ID",
+  "TELEGRAM_WEBHOOK_SECRET",
   "HALLEUS_BRIDGE_SECRET",
   "HALLEUS_PUBLISHER_SECRET"
 ]
 
 [triggers]
-crons = ["*/10 * * * *"]
+crons = ["* * * * *"]

@@ -85,7 +85,16 @@ if (!service.includes("projectPrivateShareReport(report)")) throw new Error("Sha
 for (const marker of ["projectPrivateShareReport", 'birthDate: ""', 'birthTime: ""', 'birthCity: ""', "personalTransitReportData: null"]) {
   if (!serverPersistence.includes(marker)) throw new Error(`Shared report privacy projection is missing ${marker}.`);
 }
-for (const marker of ["limit=25", "update_title", "restrict_visibility", "soft_delete"]) if (!adminWorkspace.includes(marker)) throw new Error(`Admin report workspace is missing ${marker}.`);
+const adminReportsUseCanonicalPageSize =
+  adminWorkspace.includes("limit=25") ||
+  (adminWorkspace.includes("const PAGE_SIZE = 25;") &&
+    adminWorkspace.includes("limit=${PAGE_SIZE}"));
+if (!adminReportsUseCanonicalPageSize) {
+  throw new Error("Admin report workspace is missing canonical 25-row pagination.");
+}
+for (const marker of ["update_title", "restrict_visibility", "soft_delete"]) {
+  if (!adminWorkspace.includes(marker)) throw new Error(`Admin report workspace is missing ${marker}.`);
+}
 for (const marker of ["response.status === 401", "setReports([])", "setPrivateReport(null)"]) if (!adminConsole.includes(marker)) throw new Error(`Admin authentication cleanup is missing ${marker}.`);
 
 

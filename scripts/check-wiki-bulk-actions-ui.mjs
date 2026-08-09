@@ -53,7 +53,16 @@ for (const [label, source] of [
   }
 }
 
-requireText("Wiki toolbar", consoleSource, "styles.wikiToolbar");
+if (
+  !consoleSource.includes("styles.wikiToolbar") &&
+  !(
+    consoleSource.includes('activeTab === "wiki"') &&
+    consoleSource.includes("styles.wikiMain") &&
+    consoleSource.includes("styles.toolbar")
+  )
+) {
+  failures.push("Wiki toolbar is not integrated into the unified admin shell.");
+}
 requireText("Wiki workspace", styleSource, "width: min(100%, 1180px)");
 requireText("article tabs", panelSource, 'role="tablist"');
 requireText("article tabs", panelSource, "activeStatusTab");

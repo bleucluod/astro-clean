@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
+import { TelegramJoinRewardCard } from "@/components/TelegramJoinRewardCard";
 import { useEffect, useState } from "react";
 import { getAccountRepository } from "@/lib/account/account-repository";
 import { listReportSummaries } from "@/lib/storage/report-query-service";
@@ -85,6 +86,8 @@ export default function ProfilePage() {
       </div>
 
       <SupabaseAuthPanel />
+
+      <TelegramJoinRewardCard />
 
       <section className="card">
         <span className="badge">وضعیت حساب</span>

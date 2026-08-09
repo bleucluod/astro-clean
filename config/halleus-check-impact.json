@@ -306,15 +306,24 @@
       "description": "Telegram content planning, reviewed queueing, Cloudflare transport bridge, and private due-publisher boundary.",
       "patterns": [
         "app/api/internal/telegram/**",
+        "app/api/admin/telegram/**",
+        "components/admin/AdminConsole.tsx",
+        "components/admin/TelegramAdminPanel.tsx",
+        "lib/admin/admin-capabilities.ts",
+        "lib/admin/admin-types.ts",
         "lib/telegram/**",
         "ops/cloudflare/telegram-bridge/**",
         "database/migrations/0011_telegram_content_queue.sql",
         "lib/config/env.ts",
-        ".env.example"
+        ".env.example",
+        "scripts/check-telegram-content-integrity.mjs",
+        "scripts/check-telegram-content-pack.mjs"
       ],
       "guards": [
         "check:telegram-content-integrity",
-        "check:sky-daily-contract"
+        "check:telegram-content-pack",
+        "check:sky-daily-contract",
+        "check:secure-admin-core"
       ],
       "lint": true,
       "build": true
@@ -987,6 +996,51 @@
       "lint": true,
       "build": true,
       "exclusive": true
+    },
+    {
+      "id": "telegram-join-reward",
+      "description": "Verified Telegram identity and fixed-channel membership reward with permanent one-time redemption and 24h Premium entitlement.",
+      "patterns": [
+        ".env.example",
+        "app/api/account/telegram-reward/**",
+        "app/api/internal/telegram/reward-link/**",
+        "app/profile/page.tsx",
+        "components/TelegramJoinRewardCard.tsx",
+        "database/migrations/0012_telegram_join_reward.sql",
+        "lib/config/env.ts",
+        "lib/telegram/telegram-publisher.ts",
+        "lib/telegram/telegram-reward-*.ts",
+        "ops/cloudflare/telegram-bridge/**",
+        "scripts/check-telegram-reward-integrity.mjs"
+      ],
+      "guards": [
+        "check:telegram-reward-integrity",
+        "check:telegram-content-integrity"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "telegram-auto-publish-hardening",
+      "description": "Bounded safe Telegram retry, fail-closed uncertain delivery, stale claim recovery, and final operations visibility.",
+      "patterns": [
+        "app/api/internal/telegram/publish-due/**",
+        "components/admin/TelegramAdminPanel.tsx",
+        "database/migrations/0013_telegram_publish_hardening.sql",
+        "lib/telegram/telegram-admin-service.ts",
+        "lib/telegram/telegram-publisher.ts",
+        "lib/telegram/telegram-publishing-hardening.ts",
+        "lib/telegram/telegram-queue.ts",
+        "lib/telegram/telegram-service.ts",
+        "ops/cloudflare/telegram-bridge/worker.mjs",
+        "scripts/check-telegram-publishing-hardening.mjs"
+      ],
+      "guards": [
+        "check:telegram-publishing-hardening",
+        "check:telegram-content-integrity"
+      ],
+      "lint": true,
+      "build": true
     }
   ]
 }

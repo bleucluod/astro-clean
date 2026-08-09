@@ -121,7 +121,7 @@ export function DashboardSummary() {
             دیدن همه گزارش‌ها
           </Link>
 
-          <Link className="button secondary" href="/admin">
+          <Link className="button secondary" href="/admini">
             مدیریت داده‌های محلی
           </Link>
         </div>

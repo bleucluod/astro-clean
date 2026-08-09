@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await processDueTelegramQueue(3);
+    const result = await processDueTelegramQueue(10);
     return NextResponse.json(
       { ok: true, result },
       { headers: { "cache-control": "private, no-store" } },

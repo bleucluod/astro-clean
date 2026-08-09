@@ -116,9 +116,11 @@ export async function getAdminOverview(): Promise<AdminOverviewPayload> {
 export async function listAdminUsers(
   search: string,
   limit: number,
+  page = 1,
 ): Promise<AdminUserSummary[]> {
   const sql = getAdminDatabase();
   const query = search ? `%${search}%` : null;
+  const offset = (Math.max(1, page) - 1) * limit;
   const rows = await sql`
     select
       u.id,
@@ -149,6 +151,7 @@ export async function listAdminUsers(
     group by u.id, u.email, u.display_name, u.status, u.plan, u.created_at, a.last_sign_in_at
     order by u.created_at desc
     limit ${limit}
+    offset ${offset}
   `;
 
   return rows.map((raw) => {
@@ -606,8 +609,10 @@ export async function createPremiumRequest(input: {
 
 export async function listPremiumRequests(
   limit: number,
+  page = 1,
 ): Promise<AdminPremiumRequestSummary[]> {
   const sql = getAdminDatabase();
+  const offset = (Math.max(1, page) - 1) * limit;
   const rows = await sql`
     select
       id::text as id,
@@ -636,6 +641,7 @@ export async function listPremiumRequests(
       end,
       created_at desc
     limit ${limit}
+    offset ${offset}
   `;
 
   return rows.map((raw) => {
@@ -766,8 +772,10 @@ export async function updatePremiumRequest(input: {
 
 export async function listAdminAuditEvents(
   limit: number,
+  page = 1,
 ): Promise<AdminAuditEventSummary[]> {
   const sql = getAdminDatabase();
+  const offset = (Math.max(1, page) - 1) * limit;
   const rows = await sql`
     select
       id::text as id,
@@ -783,6 +791,7 @@ export async function listAdminAuditEvents(
     from halleus_private.admin_audit_events
     order by created_at desc
     limit ${limit}
+    offset ${offset}
   `;
 
   return rows.map((raw) => {

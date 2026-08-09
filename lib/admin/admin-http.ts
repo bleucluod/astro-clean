@@ -75,3 +75,9 @@ export function readLimit(value: string | null, fallback = 50) {
   }
   return Math.min(Math.max(parsed, 1), 100);
 }
+
+export function readPage(value: string | null) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(Math.max(parsed, 1), 10000);
+}

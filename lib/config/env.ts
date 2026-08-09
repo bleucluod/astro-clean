@@ -19,6 +19,12 @@ export type HalleusRuntimeEnv = {
   telegramBridgeUrl?: string;
   telegramBridgeSecret?: string;
   telegramPublisherSecret?: string;
+  adminDirectUsername?: string;
+  adminDirectPasswordHash?: string;
+  adminDirectSessionSecret?: string;
+  adminDirectUserId?: string;
+  telegramBotUsername?: string;
+  telegramChannelUrl?: string;
 };
 
 function getOptionalEnv(name: string) {
@@ -51,6 +57,12 @@ export function getHalleusRuntimeEnv(): HalleusRuntimeEnv {
     telegramBridgeUrl: getOptionalEnv("HALLEUS_TELEGRAM_BRIDGE_URL"),
     telegramBridgeSecret: getOptionalEnv("HALLEUS_TELEGRAM_BRIDGE_SECRET"),
     telegramPublisherSecret: getOptionalEnv("HALLEUS_TELEGRAM_PUBLISHER_SECRET"),
+    adminDirectUsername: getOptionalEnv("HALLEUS_ADMIN_DIRECT_USERNAME"),
+    adminDirectPasswordHash: getOptionalEnv("HALLEUS_ADMIN_DIRECT_PASSWORD_HASH"),
+    adminDirectSessionSecret: getOptionalEnv("HALLEUS_ADMIN_DIRECT_SESSION_SECRET"),
+    adminDirectUserId: getOptionalEnv("HALLEUS_ADMIN_DIRECT_USER_ID"),
+    telegramBotUsername: getOptionalEnv("HALLEUS_TELEGRAM_BOT_USERNAME"),
+    telegramChannelUrl: getOptionalEnv("HALLEUS_TELEGRAM_CHANNEL_URL"),
   };
 }
 
