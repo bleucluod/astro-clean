@@ -77,7 +77,7 @@ assert(wrangler.includes('"TELEGRAM_WEBHOOK_SECRET"'), "Worker secret manifest l
 assert(wrangler.includes('HALLEUS_REWARD_LINK_URL = "https://halleus.ir/api/internal/telegram/reward-link"'), "Worker reward callback URL is not fixed to Halleus.");
 assert(env.includes("telegramBotUsername") && env.includes("telegramChannelUrl"), "Runtime env lacks reward public routing config.");
 assert(envExample.includes("HALLEUS_TELEGRAM_BOT_USERNAME=h4ll3usbot"), "Env example lacks Telegram bot username.");
-assert(envExample.includes("HALLEUS_TELEGRAM_CHANNEL_URL=https://t.me/halleus_IR"), "Env example lacks Telegram channel URL.");
+assert(envExample.includes("HALLEUS_TELEGRAM_CHANNEL_URL=https://t.me/Halleus_astro"), "Env example lacks Telegram channel URL.");
 assert(packageJson.scripts?.["check:telegram-reward-integrity"] === "node scripts/check-telegram-reward-integrity.mjs", "package.json is missing reward guard script.");
 const rewardArea = registry.areas?.find((area) => area.id === "telegram-join-reward");
 assert(rewardArea?.guards?.includes("check:telegram-reward-integrity"), "Impact registry does not enforce Telegram reward integrity.");
