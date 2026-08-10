@@ -46,6 +46,12 @@ assert(
     pack.includes("future teaser provenance must be 1 to 3 Tehran calendar days ahead") &&
     pack.includes("non-engine Sky provenance is allowed only for Natal Placement Spotlight") &&
     pack.includes("sourceRef does not match its engine provenance date") &&
+    pack.includes('sourceRef?.includes(":timeline:")') &&
+    pack.includes('eventAt = provenance.exactAt') &&
+    pack.includes('Date.parse(scheduledAt) < Date.parse(eventAt)') &&
+    pack.includes('"pre_event"') &&
+    pack.includes('"at_or_after_event"') &&
+    !pack.includes("uses an exact timeline event but does not declare eventAt/timingMode") &&
     pack.includes('"sky_planetary_state"'),
   "Smart Pack import provenance/type/date contract is incomplete.",
 );

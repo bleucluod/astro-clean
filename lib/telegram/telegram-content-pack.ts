@@ -514,8 +514,8 @@ export function parseTelegramContentPack(
         `items[${index}].timingMode must be same_day, pre_event, or at_or_after_event.`,
       );
     }
-    const timingMode = timingModeRaw as (typeof CONTENT_TIMING_MODES)[number];
-    const eventAt =
+    let timingMode = timingModeRaw as (typeof CONTENT_TIMING_MODES)[number];
+    let eventAt =
       typeof item.eventAt === "string" && item.eventAt.trim()
         ? item.eventAt.trim()
         : null;
@@ -528,6 +528,27 @@ export function parseTelegramContentPack(
         `items[${index}].eventAt must be an ISO timestamp with timezone.`,
       );
     }
+
+    const hasNatalSpotlightMetadata =
+      typeof item.bridgeSourceRef === "string" &&
+      Boolean(item.bridgeSourceRef.trim()) &&
+      typeof item.interpretationBasis === "string" &&
+      Boolean(item.interpretationBasis.trim());
+
+    if (
+      provenance?.exactAt &&
+      sourceRef?.includes(":timeline:") &&
+      timingMode === "same_day" &&
+      !eventAt &&
+      !hasNatalSpotlightMetadata
+    ) {
+      eventAt = provenance.exactAt;
+      timingMode =
+        Date.parse(scheduledAt) < Date.parse(eventAt)
+          ? "pre_event"
+          : "at_or_after_event";
+    }
+
     const eventLocalDate = eventAt
       ? localDateInTimezone(eventAt, timezone)
       : null;
@@ -610,22 +631,6 @@ export function parseTelegramContentPack(
         );
       }
     }
-    const hasNatalSpotlightMetadata =
-      typeof item.bridgeSourceRef === "string" &&
-      Boolean(item.bridgeSourceRef.trim()) &&
-      typeof item.interpretationBasis === "string" &&
-      Boolean(item.interpretationBasis.trim());
-    if (
-      provenance?.exactAt &&
-      sourceRef?.includes(":timeline:") &&
-      !eventAt &&
-      !hasNatalSpotlightMetadata
-    ) {
-      throw new TelegramContentPackValidationError(
-        `items[${index}] uses an exact timeline event but does not declare eventAt/timingMode.`,
-      );
-    }
-
     const bridgeSourceRef =
       typeof item.bridgeSourceRef === "string" && item.bridgeSourceRef.trim()
         ? item.bridgeSourceRef.trim()
