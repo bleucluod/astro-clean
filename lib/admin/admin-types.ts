@@ -70,6 +70,14 @@ export type AdminReportSummary = {
   title: string;
   ownerUserId: string;
   ownerDisplayName: string | null;
+  // HALLEUS_REPORT_SUBJECT_FIELDS_R44
+  subjectName: string | null;
+  birthDate: string | null;
+  birthTime: string | null;
+  birthTimeAccuracy: "known" | "unknown" | null;
+  birthCity: string | null;
+  birthCountry: string | null;
+  ownerKind: string;
   visibility: "public" | "private" | "shared_by_link" | "unpublished" | "restricted_by_admin";
   source: string;
   accessTier: string;

@@ -170,6 +170,23 @@ function badgeTone(value: string) {
   return "neutral";
 }
 
+function formatReportBirth(report: AdminReportSummary) {
+  const date = report.birthDate ?? "تاریخ نامشخص";
+  const time = report.birthTimeAccuracy === "unknown"
+    ? "ساعت نامشخص"
+    : report.birthTime ?? "ساعت نامشخص";
+  return `${date} · ${time}`;
+}
+
+function formatReportBirthPlace(report: AdminReportSummary) {
+  return [report.birthCity, report.birthCountry].filter(Boolean).join("، ") || "—";
+}
+
+function formatReportAccount(report: AdminReportSummary) {
+  return report.ownerDisplayName || report.ownerUserId || "بدون حساب";
+}
+
+// HALLEUS_REPORTS_MAIN_SUBJECT_ACCOUNT_R62
 function Paginator({
   page,
   itemCount,
@@ -669,7 +686,11 @@ export function AdminConsole({
                 <input
                   value={searchDraft}
                   onChange={(event) => setSearchDraft(event.target.value)}
-                  placeholder="جست‌وجوی شناسه، نام یا ایمیل"
+                  placeholder={
+                  activeTab === "reports"
+                    ? "عنوان، شناسه، نام سوژه، شهر تولد یا نام کاربر"
+                    : "جست‌وجوی شناسه، نام یا ایمیل"
+                }
                 />
                 <button type="submit">جست‌وجو</button>
               </form>
@@ -849,29 +870,41 @@ export function AdminConsole({
                   <table>
                     <thead>
                       <tr>
-                        <th>عنوان</th>
-                        <th>مالک</th>
+                        <th>گزارش</th>
+                        <th>سوژه</th>
+                        <th>تولد / محل تولد</th>
+                        <th>حساب</th>
                         <th>دسترسی</th>
-                        <th>نسخه</th>
-                        <th>رضایت انتشار</th>
-                        <th>ساخته‌شده</th>
-                        <th>عملیات</th>
+                        <th>ساخته‌شده</th>                        <th>عملیات</th>
                       </tr>
                     </thead>
                     <tbody>
                       {reports.map((report) => (
                         <tr key={report.id}>
-                          <td><strong>{report.title}</strong><small>{report.source}</small></td>
-                          <td>{report.ownerDisplayName || report.ownerUserId}</td>
+                          <td>
+                            <strong>{report.title}</strong>
+                            <small>
+                              {report.source} · {report.engineVersion || "—"} / {report.reportVersion || "—"}
+                            </small>
+                          </td>
+                          <td>
+                            <strong>{report.subjectName ?? "—"}</strong>
+                            <small>نوع مالک: {report.ownerKind}</small>
+                          </td>
+                          <td>
+                            <strong>{formatReportBirth(report)}</strong>
+                            <small>{formatReportBirthPlace(report)}</small>
+                          </td>
+                          <td>
+                            <strong>{formatReportAccount(report)}</strong>
+                            <small>{report.ownerUserId || "بدون شناسهٔ حساب"}</small>
+                          </td>
                           <td>
                             <span className={styles.statusPill} data-tone={badgeTone(report.visibility)}>
                               {report.visibility}
                             </span>
-                            <small>{report.accessTier}</small>
-                          </td>
-                          <td>{report.engineVersion || "—"}<small>{report.reportVersion || "—"}</small></td>
-                          <td>{report.publicationConsentState}</td>
-                          <td>{formatDate(report.createdAt)}</td>
+                            <small>{report.accessTier} · رضایت: {report.publicationConsentState}</small>
+                          </td>                          <td>{formatDate(report.createdAt)}</td>
                           <td>
                             <details className={styles.actionMenu}>
                               <summary>عملیات</summary>
@@ -903,13 +936,17 @@ export function AdminConsole({
                       <div className={styles.recordHeader}>
                         <div>
                           <strong>{report.title}</strong>
-                          <small>{report.ownerDisplayName || report.ownerUserId}</small>
+                          <small>سوژه: {report.subjectName ?? "—"}</small>
                         </div>
                         <span className={styles.statusPill} data-tone={badgeTone(report.visibility)}>
                           {report.visibility}
                         </span>
                       </div>
                       <div className={styles.recordMeta}>
+                        <span>تولد: {formatReportBirth(report)}</span>
+                        <span>محل تولد: {formatReportBirthPlace(report)}</span>
+                        <span>حساب: {formatReportAccount(report)}</span>
+                        <span>نوع مالک: {report.ownerKind}</span>
                         <span>پلن: {report.accessTier}</span>
                         <span>ساخته‌شده: {formatDate(report.createdAt)}</span>
                         <span>رضایت: {report.publicationConsentState}</span>

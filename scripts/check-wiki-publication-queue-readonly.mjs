@@ -40,7 +40,9 @@ for (const marker of [
   'publicationQueueTable',
   'تازه‌سازی صف',
   'aria-label="انتخاب همهٔ صف"',
-  'حذف انتخاب‌شده‌ها',
+  '/api/admin/wiki/publication-jobs?limit=${articlePageSize}&page=${articlePage}',
+  'صف از jobهای واقعی انتشار خوانده می‌شود.',
+  // HALLEUS_WIKI_QUEUE_GUARD_R48
 ]) {
   requireText("Wiki publication queue UI", panel, marker);
 }
@@ -62,10 +64,15 @@ if (queueSectionStart < 0 || queueSectionEnd < 0) {
   ]) {
     forbidText("queue scheduling boundary", queueSection, forbidden);
   }
-  requireText(
-    "queue shared soft-delete",
+  forbidText(
+    "queue destructive article delete",
     queueSection,
     'onClick={() => void deleteSelectedArticles()}',
+  );
+  requireText(
+    "queue safe cancel",
+    queueSection,
+    'mutateQueueJob(article, "cancel")',
   );
 }
 
@@ -178,4 +185,4 @@ console.log("- deleted and unscheduled draft rows are excluded");
 console.log("- queued, running, retry, and failed jobs remain visible");
 console.log("- queue order is deterministic by time, priority, and stable ID");
 console.log("- queue summary reports the next slot, paused state, and job counts");
-console.log("- queue mutations are limited to guarded position changes, reschedule, cancel, retry, and shared soft-delete");
+console.log("- queue reads real publication jobs and excludes destructive article deletion; guarded move, reschedule, cancel, and retry remain available");

@@ -18,6 +18,19 @@ function formatDate(value: string) {
   }
 }
 
+function formatBirthLine(report: AdminReportSummary) {
+  const date = report.birthDate ?? "—";
+  const time = report.birthTimeAccuracy === "unknown"
+    ? "ساعت نامشخص"
+    : report.birthTime ?? "ساعت نامشخص";
+  return `${date} · ${time}`;
+}
+
+function formatBirthPlace(report: AdminReportSummary) {
+  return [report.birthCity, report.birthCountry].filter(Boolean).join("، ") || "—";
+}
+
+// HALLEUS_REPORT_SUBJECT_HELPERS_R44
 function reportTone(visibility: AdminReportSummary["visibility"]) {
   if (visibility === "public") return "positive";
   if (visibility === "restricted_by_admin") return "danger";
@@ -203,6 +216,11 @@ export function AdminReportsWorkspace({
               </span>
             </div>
             <div className={styles.detailGrid}>
+              {/* HALLEUS_REPORT_DETAIL_SUBJECT_R44 */}
+              <div><span>سوژه گزارش</span><strong>{detail.subjectName ?? "—"}</strong></div>
+              <div><span>تولد</span><strong>{formatBirthLine(detail)}</strong></div>
+              <div><span>محل تولد</span><strong>{formatBirthPlace(detail)}</strong></div>
+              <div><span>نوع مالک</span><strong>{detail.ownerKind}</strong></div>
               <div><span>پلن</span><strong>{detail.accessTier}</strong></div>
               <div><span>منبع</span><strong>{detail.source}</strong></div>
               <div><span>نسخه موتور</span><strong>{detail.engineVersion || "—"}</strong></div>
@@ -245,7 +263,7 @@ export function AdminReportsWorkspace({
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="عنوان، شناسه یا نام کاربر"
+              placeholder="عنوان، شناسه، نام سوژه، شهر تولد یا نام کاربر"
             />
             <button type="submit">جست‌وجو</button>
           </form>
@@ -256,8 +274,11 @@ export function AdminReportsWorkspace({
                 <table>
                   <thead>
                     <tr>
-                      <th>عنوان</th>
-                      <th>کاربر</th>
+                      {/* HALLEUS_REPORT_TABLE_R44 */}
+                      <th>سوژه</th>
+                      <th>تولد</th>
+                      <th>شهر تولد</th>
+                      <th>صاحب حساب</th>
                       <th>دسترسی</th>
                       <th>تاریخ</th>
                       <th>عملیات</th>
@@ -266,8 +287,11 @@ export function AdminReportsWorkspace({
                   <tbody>
                     {reports.map((report) => (
                       <tr key={report.id}>
-                        <td><strong>{report.title}</strong><small>{report.source}</small></td>
-                        <td>{report.ownerDisplayName ?? "بدون نام نمایشی"}<small>{report.ownerUserId}</small></td>
+                        {/* HALLEUS_REPORT_TABLE_ROW_R44 */}
+                        <td><strong>{report.subjectName ?? "—"}</strong><small>{report.title} · {report.source}</small></td>
+                        <td>{formatBirthLine(report)}</td>
+                        <td>{formatBirthPlace(report)}</td>
+                        <td>{report.ownerDisplayName ?? "بدون نام نمایشی"}<small>{report.ownerUserId || report.ownerKind}</small></td>
                         <td><span className={styles.statusPill} data-tone={reportTone(report.visibility)}>{report.visibility}</span><small>{report.accessTier}</small></td>
                         <td>{formatDate(report.createdAt)}</td>
                         <td>
@@ -291,7 +315,7 @@ export function AdminReportsWorkspace({
                 {reports.map((report) => (
                   <article className={styles.mobileRecord} key={report.id}>
                     <div className={styles.recordHeader}>
-                      <div><strong>{report.title}</strong><small>{report.ownerDisplayName ?? report.ownerUserId}</small></div>
+                      <div>{/* HALLEUS_REPORT_MOBILE_R44 */}<strong>{report.subjectName ?? report.title}</strong><small>{formatBirthLine(report)} · {formatBirthPlace(report)}</small><small>{(report.ownerDisplayName ?? report.ownerUserId) || report.ownerKind}</small></div>
                       <span className={styles.statusPill} data-tone={reportTone(report.visibility)}>{report.visibility}</span>
                     </div>
                     <div className={styles.recordMeta}>

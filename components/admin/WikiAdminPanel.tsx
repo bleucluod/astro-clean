@@ -11,6 +11,7 @@ import type {
   WikiBulkSchedulePlan,
   WikiImportResult,
   WikiImportPackageSummary,
+  WikiImportPreviewPlan,
   WikiRevisionSummary,
   WikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-types";
@@ -27,6 +28,7 @@ import {
   type WikiPublishJobOperation,
 } from "@/lib/wiki/wiki-queue-operations";
 import type {
+  WikiPriorityRebalancePlan,
   WikiQueueBulkReorderPlan,
   WikiQueuePositionPlan,
 } from "@/lib/wiki/wiki-queue-priority";
@@ -114,9 +116,60 @@ function emptySnapshot(categoryId = "foundations"): WikiArticleSnapshot {
   };
 }
 
+const WIKI_ADMIN_TIMEZONE = "Asia/Tehran";
+// HALLEUS_WIKI_ADMIN_TEHRAN_R44
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("fa-IR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: WIKI_ADMIN_TIMEZONE,
+  }).format(new Date(value));
+}
+
+function readZonedParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: WIKI_ADMIN_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  return Object.fromEntries(parts.map((part) => [part.type, part.value]));
+}
+
+function formatTehranDateTimeInput(value: string) {
+  const parts = readZonedParts(new Date(value));
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
+function parseTehranDateTimeInput(value: string) {
+  const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  const localUtc = Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+  let candidate = new Date(localUtc);
+  for (let iteration = 0; iteration < 3; iteration += 1) {
+    const parts = readZonedParts(candidate);
+    const representedUtc = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+    );
+    candidate = new Date(candidate.getTime() + (localUtc - representedUtc));
+  }
+  const parts = readZonedParts(candidate);
+  if (
+    parts.year !== year || parts.month !== month || parts.day !== day ||
+    parts.hour !== hour || parts.minute !== minute
+  ) {
+    return null;
+  }
+  return candidate.toISOString();
 }
 
 function formatPublishJobStatus(value: string | null) {
@@ -179,6 +232,8 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [importResult, setImportResult] = useState<WikiImportResult | null>(null);
   const [importPackages, setImportPackages] = useState<WikiImportPackageSummary[]>([]);
   const [importMergePlan, setImportMergePlan] = useState<WikiImportMergePlan | null>(null);
+  // HALLEUS_WIKI_IMPORT_PREVIEW_UI_R62
+  const [importPreviewPlan, setImportPreviewPlan] = useState<WikiImportPreviewPlan | null>(null);
   const [articlePage, setArticlePage] = useState(1);
   const [articlePageSize, setArticlePageSize] = useState(25);
   const [articleTotal, setArticleTotal] = useState(0);
@@ -201,6 +256,33 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [queueReflowPolicy, setQueueReflowPolicy] = useState<WikiQueueReflowPolicy>("preserve");
   const [queueReflowPlan, setQueueReflowPlan] = useState<WikiQueueReflowPlan | null>(null);
   const [queueUndoPlan, setQueueUndoPlan] = useState<WikiQueueReflowUndoPlan | null>(null);
+  // HALLEUS_WIKI_PRIORITY_REBALANCE_UI_R55
+  const [queuePriorityRebalancePlan, setQueuePriorityRebalancePlan] =
+    useState<WikiPriorityRebalancePlan | null>(null);
+  // HALLEUS_WIKI_REFLOW_PROGRESS_R51
+  const [queueProgressStartedAt, setQueueProgressStartedAt] = useState<number | null>(null);
+  const [queueProgressElapsedSeconds, setQueueProgressElapsedSeconds] = useState(0);
+  const [queueProgressLabel, setQueueProgressLabel] = useState("");
+
+  useEffect(() => {
+    if (queueProgressStartedAt === null) return;
+    const timer = window.setInterval(() => {
+      setQueueProgressElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - queueProgressStartedAt) / 1000)),
+      );
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [queueProgressStartedAt]);
+
+  function beginQueueProgress(label: string) {
+    setQueueProgressLabel(label);
+    setQueueProgressElapsedSeconds(0);
+    setQueueProgressStartedAt(Date.now());
+  }
+
+  function endQueueProgress() {
+    setQueueProgressStartedAt(null);
+  }
 
   const canDraft = session.capabilities.includes("wiki.draft.write");
   const canPublish = session.capabilities.includes("wiki.publish.write");
@@ -216,7 +298,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     () => getWikiPublicationQueuePositions(publicationQueue),
     [publicationQueue],
   );
-  const positionedQueueSize = queuePositions.size;
+  const positionedQueueSize = publicationQueue.find((article) => article.publishQueueSize)?.publishQueueSize ?? queuePositions.size; // HALLEUS_WIKI_GLOBAL_QUEUE_SIZE_R44
   const publicationQueueSummary = useMemo(
     () =>
       summarizeWikiPublicationQueue(
@@ -312,18 +394,21 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     return readAdminJsonResponse(response);
   }, [token]);
 
+  // HALLEUS_WIKI_QUEUE_API_R44
   const loadList = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const queueView = activeSection === "queue";
-      const payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(queueView ? "" : search)}&status=${encodeURIComponent(queueView ? "all" : status)}&limit=${queueView ? 100 : articlePageSize}&page=${queueView ? 1 : articlePage}`);
+      const payload = queueView
+        ? await request(`/api/admin/wiki/publication-jobs?limit=${articlePageSize}&page=${articlePage}`)
+        : await request(`/api/admin/wiki/articles?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&limit=${articlePageSize}&page=${articlePage}`);
       setArticles(payload.articles as WikiArticleAdminSummary[]);
-      setCategories(payload.categories as Category[]);
-      if (!queueView) {
-        setArticleTotal(Number(payload.total ?? 0));
-        setArticleTotalPages(Number(payload.totalPages ?? 1));
+      if (Array.isArray(payload.categories)) {
+        setCategories(payload.categories as Category[]);
       }
+      setArticleTotal(Number(payload.total ?? 0));
+      setArticleTotalPages(Number(payload.totalPages ?? 1));
       setQueuePositionDrafts({});
       setQueuePositionPlan(null);
     } catch (loadError) {
@@ -368,10 +453,11 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   }, [activeSection, canImport, loadImportPackages]);
 
   useEffect(() => {
-    // A changed filter starts a new server-paginated result set.
+    // HALLEUS_WIKI_SECTION_PAGE_RESET_R44
+    // A changed filter or workspace starts a new server-paginated result set.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setArticlePage(1);
-  }, [search, status]);
+  }, [activeSection, search, status]);
 
   useEffect(() => {
     if (activeSection === "new") {
@@ -673,22 +759,17 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
 
     let publishAt: string | null = null;
     if (operation === "reschedule") {
-      const currentDate = new Date(job.runAt);
-      const offset = currentDate.getTimezoneOffset() * 60_000;
-      const localValue = new Date(currentDate.getTime() - offset)
-        .toISOString()
-        .slice(0, 16);
       const requested = window.prompt(
-        "زمان جدید را به‌صورت تاریخ و ساعت وارد کن:",
-        localValue,
+        "زمان جدید را به وقت تهران با قالب YYYY-MM-DDTHH:mm وارد کن:",
+        formatTehranDateTimeInput(job.runAt),
       );
       if (!requested?.trim()) return;
-      const parsed = new Date(requested.trim());
-      if (!Number.isFinite(parsed.getTime())) {
-        setError("زمان جدید معتبر نیست.");
+      const parsed = parseTehranDateTimeInput(requested.trim());
+      if (!parsed) {
+        setError("زمان جدید به وقت تهران معتبر نیست.");
         return;
       }
-      publishAt = parsed.toISOString();
+      publishAt = parsed; // HALLEUS_WIKI_RESCHEDULE_TEHRAN_R44
     }
     if (
       operation === "cancel" &&
@@ -855,7 +936,71 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } finally { setLoading(false); }
   }
 
+  async function previewQueuePriorityRebalance() {
+    beginQueueProgress("در حال محاسبهٔ تعادل اولویت‌های صف");
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      const payload = await request("/api/admin/wiki/publication-priority", {
+        method: "POST",
+        body: JSON.stringify({ action: "preview_priority_rebalance" }),
+      });
+      setQueuePriorityRebalancePlan(payload.plan as WikiPriorityRebalancePlan);
+    } catch (previewError) {
+      setQueuePriorityRebalancePlan(null);
+      setError(
+        previewError instanceof Error
+          ? previewError.message
+          : "پیش‌نمایش متعادل‌سازی اولویت‌ها ساخته نشد.",
+      );
+    } finally {
+      endQueueProgress();
+      setLoading(false);
+    }
+  }
+
+  async function applyQueuePriorityRebalance() {
+    if (!queuePriorityRebalancePlan || !canPublish) return;
+    const reason = window.prompt("دلیل متعادل‌سازی اولویت‌های صف را ثبت کن:");
+    if (!reason?.trim()) return;
+    beginQueueProgress("در حال اعمال تعادل اولویت‌های صف");
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await request("/api/admin/wiki/publication-priority", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "apply_priority_rebalance",
+          planToken: queuePriorityRebalancePlan.planToken,
+          previewedAt: queuePriorityRebalancePlan.previewedAt,
+          reason: reason.trim(),
+        }),
+      });
+      setQueuePriorityRebalancePlan(null);
+      setQueueReflowPlan(null);
+      setQueueUndoPlan(null);
+      setMessage(
+        "اولویت‌های صف بدون تغییر زمان‌ها یا ترتیب اولویت، دوباره در بازهٔ مفید پخش شدند.",
+      );
+      await loadList();
+    } catch (applyError) {
+      setQueuePriorityRebalancePlan(null);
+      await loadList();
+      setError(
+        applyError instanceof Error
+          ? applyError.message
+          : "متعادل‌سازی اولویت‌های صف ناموفق بود.",
+      );
+    } finally {
+      endQueueProgress();
+      setLoading(false);
+    }
+  }
+
   async function previewQueueReflow() {
+    beginQueueProgress("در حال ساخت پیش‌نمایش بازچینی کامل صف");
     setLoading(true); setError(""); setMessage(""); setQueueUndoPlan(null);
     try {
       const payload = await request("/api/admin/wiki/publication-priority", {
@@ -866,7 +1011,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } catch (previewError) {
       setQueueReflowPlan(null);
       setError(previewError instanceof Error ? previewError.message : "پیش‌نمایش بازچینی کامل صف ساخته نشد.");
-    } finally { setLoading(false); }
+    } finally { endQueueProgress(); setLoading(false); }
   }
 
   async function applyQueueReflow() {
@@ -876,6 +1021,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     }
     const reason = window.prompt("دلیل بازچینی کامل صف را ثبت کن:");
     if (!reason?.trim()) return;
+    beginQueueProgress("در حال اعمال بازچینی کامل صف");
     setLoading(true); setError(""); setMessage("");
     try {
       await request("/api/admin/wiki/publication-priority", {
@@ -888,10 +1034,11 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } catch (applyError) {
       setQueueReflowPlan(null); await loadList();
       setError(applyError instanceof Error ? applyError.message : "بازچینی کامل صف ناموفق بود.");
-    } finally { setLoading(false); }
+    } finally { endQueueProgress(); setLoading(false); }
   }
 
   async function previewQueueReflowUndo() {
+    beginQueueProgress("در حال ساخت پیش‌نمایش بازگردانی صف");
     setLoading(true); setError(""); setMessage(""); setQueueReflowPlan(null);
     try {
       const payload = await request("/api/admin/wiki/publication-priority", {
@@ -901,13 +1048,14 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } catch (previewError) {
       setQueueUndoPlan(null);
       setError(previewError instanceof Error ? previewError.message : "پیش‌نمایش بازگردانی ساخته نشد.");
-    } finally { setLoading(false); }
+    } finally { endQueueProgress(); setLoading(false); }
   }
 
   async function applyQueueReflowUndo() {
     if (!queueUndoPlan || !canPublish || queueUndoPlan.conflicts.length) return;
     const reason = window.prompt("دلیل بازگردانی آخرین برنامه را ثبت کن:");
     if (!reason?.trim()) return;
+    beginQueueProgress("در حال بازگردانی آخرین برنامهٔ صف");
     setLoading(true); setError(""); setMessage("");
     try {
       await request("/api/admin/wiki/publication-priority", {
@@ -920,45 +1068,71 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } catch (applyError) {
       setQueueUndoPlan(null); await loadList();
       setError(applyError instanceof Error ? applyError.message : "بازگردانی صف ناموفق بود.");
-    } finally { setLoading(false); }
+    } finally { endQueueProgress(); setLoading(false); }
   }
 
   async function importPackage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    const mergeMode = form.get("mode") === "merge_queue";
+    const mode = String(form.get("mode") ?? "auto_schedule");
+    const mergeMode = mode === "merge_queue";
     if (mergeMode) {
       form.set("mergeAction", importMergePlan ? "apply" : "preview");
       if (importMergePlan) {
         form.set("planToken", importMergePlan.planToken);
         form.set("previewedAt", importMergePlan.previewedAt);
       }
+    } else {
+      form.set("importAction", importPreviewPlan ? "apply" : "preview");
+      if (importPreviewPlan) {
+        form.set("planToken", importPreviewPlan.planToken);
+        form.set("previewedAt", importPreviewPlan.previewedAt);
+      }
     }
     setLoading(true);
     setError("");
+    setMessage("");
     setImportResult(null);
     try {
-      const payload = await request("/api/admin/wiki/imports", { method: "POST", body: form });
+      const payload = await request("/api/admin/wiki/imports", {
+        method: "POST",
+        body: form,
+      });
       if (mergeMode && !importMergePlan) {
         setImportMergePlan(payload.plan as WikiImportMergePlan);
-        setMessage("پیش‌نمایش ادغام آماده است؛ تا زمان تأیید هیچ مقاله یا کار انتشاری ساخته نشده است.");
+        setImportPreviewPlan(null);
+        setMessage(
+          "پیش‌نمایش ادغام آماده است؛ تا زمان تأیید هیچ مقاله یا کار انتشاری ساخته نشده است.",
+        );
+        return;
+      }
+      if (!mergeMode && !importPreviewPlan) {
+        setImportPreviewPlan(payload.plan as WikiImportPreviewPlan);
+        setImportMergePlan(null);
+        setMessage(
+          "پیش‌نمایش ورود آماده است؛ تا زمان تأیید هیچ مقاله، رسانه یا نوبت انتشاری ساخته نشده است.",
+        );
         return;
       }
       const result = payload.result as WikiImportResult;
       setImportResult(result);
       if (result.quarantinedCount > 0) {
         setMessage("");
-        setError(`${result.importedCount.toLocaleString("fa-IR")} مقاله وارد شد و ${result.quarantinedCount.toLocaleString("fa-IR")} مقاله نیاز به اصلاح دارد. دلیل هر مورد پایین فرم آمده است.`);
+        setError(
+          `${result.importedCount.toLocaleString("fa-IR")} مقاله وارد شد و ${result.quarantinedCount.toLocaleString("fa-IR")} مقاله نیاز به اصلاح دارد. دلیل هر مورد پایین فرم آمده است.`,
+        );
       } else {
         setMessage(`${result.importedCount.toLocaleString("fa-IR")} مقاله با موفقیت وارد شد.`);
       }
       formElement.reset();
       setImportMergePlan(null);
+      setImportPreviewPlan(null);
       await loadList();
       await loadImportPackages();
     } catch (importError) {
       if (mergeMode) setImportMergePlan(null);
+      else setImportPreviewPlan(null);
       setError(importError instanceof Error ? importError.message : "ورود بسته ناموفق بود.");
     } finally {
       setLoading(false);
@@ -1099,7 +1273,22 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     <div className={styles.wikiWorkspace}>
       {error ? <p className={styles.error}>{error}</p> : null}
       {message ? <p className={styles.success}>{message}</p> : null}
-      {loading ? <p className={styles.loading}>در حال انجام…</p> : null}
+      {loading ? (
+        queueProgressStartedAt !== null ? (
+          <div className={styles.loading} role="status" aria-live="polite">
+            <p>{queueProgressLabel}</p>
+            <progress aria-label={queueProgressLabel} style={{ width: "100%" }} />
+            <small>
+              زمان سپری‌شده: {queueProgressElapsedSeconds.toLocaleString("fa-IR")} ثانیه
+              {queueProgressElapsedSeconds >= 60
+                ? " · اتصال پایگاه داده کندتر از معمول است؛ درخواست هنوز در انتظار پاسخ است."
+                : ""}
+            </small>
+          </div>
+        ) : (
+          <p className={styles.loading}>در حال انجام…</p>
+        )
+      ) : null}
 
       {activeSection === "articles" && !detail ? (
       <section className={styles.wikiPanel}>
@@ -1313,25 +1502,9 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               <p>جایگاه ۱ یعنی انتشار بعدی. مقاله را به اول صف ببر، یک پله جابه‌جا کن یا شمارهٔ جایگاه را مستقیم وارد کن.</p>
             </div>
             <div className={styles.wikiSelectionActions}>
+              {/* HALLEUS_WIKI_QUEUE_SAFE_ACTIONS_R44 */}
               <button type="button" onClick={() => void loadList()}>تازه‌سازی صف</button>
-              <button
-                type="button"
-                onClick={toggleAllVisibleArticles}
-                disabled={!visibleSelectableArticles.length}
-              >
-                {allVisibleSelected ? "لغو انتخاب همه" : "انتخاب همه"}
-              </button>
-              <span>{selectedVisibleIds.length.toLocaleString("fa-IR")} انتخاب شده</span>
-              {canPublish ? (
-                <button
-                  className={styles.dangerButton}
-                  type="button"
-                  onClick={() => void deleteSelectedArticles()}
-                  disabled={!selectedVisibleIds.length}
-                >
-                  حذف انتخاب‌شده‌ها
-                </button>
-              ) : null}
+              <span>صف از jobهای واقعی انتشار خوانده می‌شود.</span>
             </div>
           </div>
 
@@ -1405,6 +1578,91 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                   {queueUndoPlan.conflicts.map((conflict) => <p className={styles.queuePaused} key={conflict}>{conflict}</p>)}
                   <button type="button" onClick={() => void applyQueueReflowUndo()} disabled={loading || Boolean(queueUndoPlan.conflicts.length)}>
                     تأیید و بازگردانی برنامه
+                  </button>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          {canPublish ? (
+            <section
+              className={styles.queuePositionPreview}
+              data-priority-rebalance="semantic"
+            >
+              <strong>متعادل‌سازی اولویت‌ها</strong>
+              <p>
+                {/* HALLEUS_WIKI_PRIORITY_HEADROOM_UI_R57 */}
+                ترتیب معنایی اولویت‌ها و زمان‌های انتشار تغییر نمی‌کند؛ فقط عددهای
+                اولویت دوباره با فاصله پخش می‌شوند. برای صف‌های معمول، بازهٔ جدید
+                ۱۵۰ تا ۲۸۰ است تا اولویت‌های ۲۸۱ تا ۳۰۰ برای مقاله‌های مهم‌تر آینده
+                خالی بماند.
+              </p>
+              <button
+                type="button"
+                onClick={() => void previewQueuePriorityRebalance()}
+                disabled={loading}
+              >
+                پیش‌نمایش تعادل اولویت‌ها
+              </button>
+              {queuePriorityRebalancePlan ? (
+                <div className={styles.queuePositionPreviewItems}>
+                  <article>
+                    <strong>بازهٔ فعلی</strong>
+                    <span>
+                      {queuePriorityRebalancePlan.currentMinPriority.toLocaleString("fa-IR")}
+                      {" تا "}
+                      {queuePriorityRebalancePlan.currentMaxPriority.toLocaleString("fa-IR")}
+                    </span>
+                  </article>
+                  <article>
+                    <strong>بازهٔ پیشنهادی</strong>
+                    <span>
+                      {queuePriorityRebalancePlan.nextMinPriority.toLocaleString("fa-IR")}
+                      {" تا "}
+                      {queuePriorityRebalancePlan.nextMaxPriority.toLocaleString("fa-IR")}
+                    </span>
+                  </article>
+                  <article>
+                    <strong>تعداد اولویت‌ها</strong>
+                    <span>{queuePriorityRebalancePlan.itemCount.toLocaleString("fa-IR")}</span>
+                  </article>
+                  <article>
+                    <strong>تغییر / بدون تغییر</strong>
+                    <span>
+                      {queuePriorityRebalancePlan.changedCount.toLocaleString("fa-IR")}
+                      {" / "}
+                      {queuePriorityRebalancePlan.unchangedCount.toLocaleString("fa-IR")}
+                    </span>
+                  </article>
+                  <article>
+                    <strong>ترتیب اولویت‌ها</strong>
+                    <span>بدون تغییر</span>
+                  </article>
+                  <article>
+                    <strong>زمان‌های صف</strong>
+                    <span>بدون تغییر</span>
+                  </article>
+                  <details>
+                    <summary>دیدن عددهای قبل و بعد</summary>
+                    <div className={styles.queuePositionPreviewItems}>
+                      {queuePriorityRebalancePlan.items.map((item) => (
+                        <article key={item.jobId}>
+                          <strong>{item.title}</strong>
+                          <span>
+                            {item.currentPriority.toLocaleString("fa-IR")}
+                            {" ← "}
+                            {item.nextPriority.toLocaleString("fa-IR")}
+                          </span>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                  <button
+                    type="button"
+                    onClick={() => void applyQueuePriorityRebalance()}
+                    disabled={loading}
+                  >
+                    اعمال تعادل اولویت‌ها
                   </button>
                 </div>
               ) : null}
@@ -1509,9 +1767,9 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                     const availability = job
                       ? getWikiPublishJobOperationAvailability(job)
                       : null;
-                    const queuePosition = queuePositions.get(article.id) ?? null;
+                    const queuePosition = article.publishQueuePosition ?? queuePositions.get(article.publishJobId ?? article.id) ?? null; // HALLEUS_WIKI_JOB_POSITION_LOOKUP_R44
                     return (
-                      <tr key={article.id}>
+                      <tr key={article.publishJobId ?? article.id}>{/* HALLEUS_WIKI_JOB_ROW_KEY_R44 */}
                         <td className={styles.queueSelectionColumn}>
                           {article.publishJobStatus !== "running" ? (
                             <input
@@ -1710,6 +1968,33 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
           ) : (
             <p className={styles.queueEmpty}>هیچ مقاله‌ای در صف انتشار نیست.</p>
           )}
+          <div className={styles.wikiPagination} aria-label="صفحه‌بندی صف انتشار">
+            {/* HALLEUS_WIKI_QUEUE_PAGINATION_R44 */}
+            <span>
+              {articleTotal
+                ? `${(((articlePage - 1) * articlePageSize) + 1).toLocaleString("fa-IR")} تا ${Math.min(articlePage * articlePageSize, articleTotal).toLocaleString("fa-IR")} از ${articleTotal.toLocaleString("fa-IR")} job`
+                : "job فعالی پیدا نشد"}
+            </span>
+            <label>
+              تعداد در صفحه
+              <select
+                value={articlePageSize}
+                onChange={(event) => {
+                  setArticlePageSize(Number(event.target.value));
+                  setArticlePage(1);
+                }}
+              >
+                {[25, 50, 100].map((value) => <option key={value} value={value}>{value.toLocaleString("fa-IR")}</option>)}
+              </select>
+            </label>
+            <button type="button" disabled={articlePage <= 1} onClick={() => setArticlePage((value) => Math.max(1, value - 1))}>
+              صفحهٔ قبل
+            </button>
+            <span>صفحهٔ {articlePage.toLocaleString("fa-IR")} از {articleTotalPages.toLocaleString("fa-IR")}</span>
+            <button type="button" disabled={articlePage >= articleTotalPages} onClick={() => setArticlePage((value) => Math.min(articleTotalPages, value + 1))}>
+              صفحهٔ بعد
+            </button>
+          </div>
         </section>
       ) : null}
 
@@ -1718,7 +2003,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
           <div className={styles.wikiPanelHeader}>
             <div>
               <h3>{detail ? "ویرایش مقاله" : "مقالهٔ تازه"}</h3>
-              <p>{dirty ? "تغییر ذخیره‌نشده؛ ذخیرهٔ خودکار فعال است." : "همه تغییرها ذخیره شده‌اند."}</p>
+              <p>{detail ? (dirty ? "تغییر ذخیره‌نشده؛ ذخیرهٔ خودکار فعال است." : "همه تغییرها ذخیره شده‌اند.") : (dirty ? "مقالهٔ تازه هنوز ذخیره نشده است." : "برای ساخت مقاله، پیش‌نویس را ذخیره کن.")}</p> {/* HALLEUS_WIKI_NEW_AUTOSAVE_COPY_R44 */}
             </div>
             <div className={styles.wikiActions}>
               {detail ? (
@@ -1793,14 +2078,14 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             {canDraft ? <button type="button" onClick={() => void saveDraft(false)}>ذخیرهٔ پیش‌نویس</button> : null}
             {detail && canPublish ? <button type="button" onClick={() => void action("publish")}>انتشار اکنون</button> : null}
             {detail && canPublish ? <button type="button" onClick={() => {
-              const value = window.prompt("زمان انتشار با قالب ISO یا تاریخ قابل‌خواندن مرورگر:");
+              const value = window.prompt("زمان انتشار را به وقت تهران با قالب YYYY-MM-DDTHH:mm وارد کن:");
               if (!value) return;
-              const date = new Date(value);
-              if (!Number.isFinite(date.getTime())) {
-                setError("زمان انتشار معتبر نیست.");
+              const publishAt = parseTehranDateTimeInput(value);
+              if (!publishAt) {
+                setError("زمان انتشار به وقت تهران معتبر نیست.");
                 return;
               }
-              void action("schedule", { publishAt: date.toISOString() });
+              void action("schedule", { publishAt }); // HALLEUS_WIKI_SCHEDULE_TEHRAN_R44
             }}>زمان‌بندی</button> : null}
             {detail && detail.status === "published" && canPublish ? <button type="button" onClick={() => void action("unpublish")}>خارج‌کردن از انتشار</button> : null}
             {detail && ((detail.deletedAt && canDraft) || (!detail.deletedAt && canPublish)) ? <button type="button" onClick={() => void action(detail.deletedAt ? "restore" : "delete")}>{detail.deletedAt ? "بازیابی" : "حذف نرم"}</button> : null}
@@ -1840,18 +2125,24 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
           </div>
           <p className={styles.fieldHint}>این فایل هنگام دانلود ساخته می‌شود و علاوه بر قرارداد کامل بسته، دسته‌های فعلی، مقاله‌های منتشرشدهٔ قابل لینک و همهٔ شناسه‌ها و slugهای رزروشده را دارد.</p>
           <form className={styles.wikiInlineForm} onSubmit={(event) => void importPackage(event)}>
-            <input accept=".zip,application/zip" name="package" required type="file" onChange={() => setImportMergePlan(null)} />
-            <select defaultValue={canPublish ? "auto_schedule" : "review_first"} name="mode" onChange={() => setImportMergePlan(null)}>
+            <input accept=".zip,application/zip" name="package" required type="file" onChange={() => { setImportMergePlan(null); setImportPreviewPlan(null); }} />
+            <select defaultValue={canPublish ? "auto_schedule" : "review_first"} name="mode" onChange={() => { setImportMergePlan(null); setImportPreviewPlan(null); }}>
               <option disabled={!canPublish} value="auto_schedule">زمان‌بندی خودکار</option>
               <option value="review_first">ابتدا بازبینی</option>
               <option disabled={!canPublish} value="merge_queue">ورود و ادغام با صف فعلی</option>
             </select>
-            <select defaultValue="preserve" name="policy" onChange={() => setImportMergePlan(null)}>
+            <select defaultValue="preserve" name="policy" onChange={() => { setImportMergePlan(null); setImportPreviewPlan(null); }}>
               <option value="preserve">حفظ ترتیب فعلی و افزودن تازه‌ها</option>
               <option value="priority">ادغام بر پایهٔ اولویت انتشار</option>
               <option value="balanced_clusters">پخش متعادل خوشه‌ها</option>
             </select>
-            <button type="submit">{importMergePlan ? "تأیید و اعمال ادغام" : "اعتبارسنجی و پیش‌نمایش"}</button>
+            <button type="submit">
+              {importMergePlan
+                ? "تأیید و اعمال ادغام"
+                : importPreviewPlan
+                  ? "تأیید و اعمال ورود"
+                  : "اعتبارسنجی و پیش‌نمایش"}
+            </button>
           </form>
           {importMergePlan ? (
             <div className={styles.importResult} data-wiki-import-merge-preview="true">
@@ -1863,6 +2154,53 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 <p className={styles.queuePaused} key={conflict}>{conflict}</p>
               ))}
               <p>برای اعمال، همان فایل و تنظیمات را نگه دار و دکمهٔ تأیید را بزن. هر تغییر در بسته یا صف، پیش‌نمایش را نامعتبر می‌کند.</p>
+            </div>
+          ) : null}
+          {importPreviewPlan ? (
+            <div className={styles.importResult} data-wiki-import-preview="true">
+              <strong>پیش‌نمایش ورود بسته</strong>
+              <p>
+                {importPreviewPlan.validArticleCount.toLocaleString("fa-IR")} مقالهٔ معتبر · {importPreviewPlan.quarantinedArticleCount.toLocaleString("fa-IR")} قرنطینه · {importPreviewPlan.assetCount.toLocaleString("fa-IR")} رسانه
+              </p>
+              <p>
+                {importPreviewPlan.createCount.toLocaleString("fa-IR")} مقالهٔ تازه و {importPreviewPlan.updateCount.toLocaleString("fa-IR")} نسخهٔ جدید برای مقالهٔ موجود.
+              </p>
+              <p>
+                حالت اعمال: {importPreviewPlan.mode === "auto_schedule" ? "ساخت پیش‌نویس و زمان‌بندی خودکار" : "فقط ساخت/به‌روزرسانی پیش‌نویس برای بازبینی"}.
+              </p>
+              {importPreviewPlan.mode === "auto_schedule" ? (
+                <p>
+                  اولین نوبت: {formatDate(importPreviewPlan.firstScheduledFor)} · آخرین نوبت: {formatDate(importPreviewPlan.lastScheduledFor)}
+                </p>
+              ) : null}
+              <p>
+                این مرحله فقط پیش‌نمایش است. تا زدن «تأیید و اعمال ورود» هیچ مقاله، رسانه یا job انتشاری ساخته نمی‌شود.
+              </p>
+              <details>
+                <summary>دیدن نتیجهٔ برنامه‌ریزی برای مقاله‌ها</summary>
+                {importPreviewPlan.items.map((item) => (
+                  <article className={styles.importItem} key={`${item.stableId}-${item.resultStatus}`}>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <code dir="ltr">{item.stableId}</code>
+                      <span>
+                        {item.resultStatus === "quarantined"
+                          ? "قرنطینه"
+                          : item.resultStatus === "scheduled"
+                            ? `زمان‌بندی: ${formatDate(item.scheduledFor)}`
+                            : "پیش‌نویس برای بازبینی"}
+                      </span>
+                    </div>
+                    {item.errors.length ? (
+                      <ul>
+                        {item.errors.map((itemError) => (
+                          <li key={itemError}>{formatImportError(itemError)}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </article>
+                ))}
+              </details>
             </div>
           ) : null}
           {importResult ? (

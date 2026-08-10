@@ -5,6 +5,7 @@ import { auditWikiFailure } from "@/lib/wiki/wiki-cms-service";
 import {
   importValidatedWikiPackage,
   listWikiImportPackageSummaries,
+  previewWikiImport,
   previewWikiQueueMergeImport,
 } from "@/lib/wiki/wiki-import-service";
 import { parseWikiPackageArchive } from "@/lib/wiki/wiki-package";
@@ -67,8 +68,44 @@ export async function POST(request: Request) {
       const result = await importValidatedWikiPackage({ actor, package: parsed, mode, mergePlan: plan });
       return noStoreJsonResponse({ ok: true, result }, 201);
     }
-    const result = await importValidatedWikiPackage({ actor, package: parsed, mode });
+    // HALLEUS_WIKI_IMPORT_PREVIEW_ROUTE_R62
+    const action = form.get("importAction");
+    if (action === "preview") {
+      const plan = await previewWikiImport({ package: parsed, mode });
+      return noStoreJsonResponse({ ok: true, plan });
+    }
+    if (action !== "apply") {
+      throw new AdminAccessError(400, "A Wiki import preview or apply action is required.");
+    }
+    const planToken = String(form.get("planToken") ?? "");
+    const previewedAt = String(form.get("previewedAt") ?? "");
+    const plan = await previewWikiImport({ package: parsed, mode, previewedAt });
+    if (Date.parse(plan.expiresAt) < Date.now()) {
+      throw new AdminAccessError(409, "Wiki import preview expired.");
+    }
+    if (plan.planToken !== planToken) {
+      throw new AdminAccessError(409, "WIKI_IMPORT_PLAN_STALE");
+    }
+    if (
+      mode === "auto_schedule" &&
+      plan.items.some(
+        (item) =>
+          item.scheduledFor && Date.parse(item.scheduledFor) <= Date.now(),
+      )
+    ) {
+      throw new AdminAccessError(
+        409,
+        "Wiki import schedule changed after preview. Generate a fresh preview.",
+      );
+    }
+    const result = await importValidatedWikiPackage({
+      actor,
+      package: parsed,
+      mode,
+      previewPlan: plan,
+    });
     return noStoreJsonResponse({ ok: true, result }, 201);
+
   } catch (error) {
     if (actor) {
       await auditWikiFailure({

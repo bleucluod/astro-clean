@@ -332,6 +332,14 @@ export async function listAdminReports(
       r.source,
       coalesce(r.title, r.report_json #>> '{input,name}', 'گزارش ذخیره‌شده') as title,
       u.display_name as owner_display_name,
+      r.report_json #>> '{input,name}' as subject_name,
+      r.report_json #>> '{input,birthDate}' as birth_date,
+      r.report_json #>> '{input,birthTime}' as birth_time,
+      r.report_json #>> '{input,birthTimeAccuracy}' as birth_time_accuracy,
+      r.report_json #>> '{input,birthCity}' as birth_city,
+      r.report_json #>> '{input,birthCountry}' as birth_country,
+      coalesce(r.report_json #>> '{visibility,publicationPolicy,ownerKind}', 'unknown') as owner_kind,
+      -- HALLEUS_REPORT_SUBJECT_SELECT_R44
       coalesce(
         r.report_json #>> '{access,tier}',
         r.report_json ->> 'tier',
@@ -362,6 +370,10 @@ export async function listAdminReports(
       or r.source ilike ${query}
       or coalesce(r.title, '') ilike ${query}
       or coalesce(u.display_name, '') ilike ${query}
+      or coalesce(r.report_json #>> '{input,name}', '') ilike ${query}
+      or coalesce(r.report_json #>> '{input,birthCity}', '') ilike ${query}
+      or coalesce(r.report_json #>> '{input,birthCountry}', '') ilike ${query}
+      -- HALLEUS_REPORT_SUBJECT_SEARCH_R44
     )
     order by r.created_at desc
     limit ${limit}
@@ -375,6 +387,16 @@ export async function listAdminReports(
       title: asString(row.title),
       ownerUserId: asString(row.user_id),
       ownerDisplayName: asNullableString(row.owner_display_name),
+      subjectName: asNullableString(row.subject_name),
+      birthDate: asNullableString(row.birth_date),
+      birthTime: asNullableString(row.birth_time),
+      birthTimeAccuracy: ["known", "unknown"].includes(asString(row.birth_time_accuracy))
+        ? asString(row.birth_time_accuracy) as "known" | "unknown"
+        : null,
+      birthCity: asNullableString(row.birth_city),
+      birthCountry: asNullableString(row.birth_country),
+      ownerKind: asString(row.owner_kind) || "unknown",
+      // HALLEUS_REPORT_SUBJECT_MAP_R44
       visibility: ["public", "shared_by_link", "unpublished", "restricted_by_admin"].includes(asString(row.visibility))
         ? asString(row.visibility) as AdminReportSummary["visibility"]
         : "private",

@@ -370,6 +370,90 @@
   background: #fff;
 }
 
+/* HALLEUS_WIKI_PRIORITY_COMPACT_UI_R59 */
+/* HALLEUS_WIKI_PRIORITY_COMPACT_UI_PURE_SCOPE_R61 */
+.queuePositionPreview[data-priority-rebalance="semantic"] {
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > strong {
+  font-size: 1rem;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > p {
+  max-width: 920px;
+  margin: -2px 0 2px;
+  color: #52657a;
+  line-height: 1.7;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > button {
+  width: auto;
+  min-width: 210px;
+  justify-self: start;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 7px;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > article {
+  min-height: 66px;
+  align-content: center;
+  padding: 9px 11px;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > article strong {
+  font-size: 0.84rem;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > article span {
+  font-size: 0.82rem;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > details,
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > button {
+  grid-column: 1 / -1;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > details {
+  padding-top: 1px;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > details > summary {
+  width: max-content;
+  cursor: pointer;
+  color: #344eb5;
+  font-weight: 700;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > details .queuePositionPreviewItems {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > button {
+  width: auto;
+  min-width: 190px;
+  justify-self: start;
+  margin-top: 1px;
+}
+
+@media (max-width: 760px) {
+.queuePositionPreview[data-priority-rebalance="semantic"] > button,
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems > button {
+    width: 100%;
+    min-width: 0;
+  }
+
+.queuePositionPreview[data-priority-rebalance="semantic"] > .queuePositionPreviewItems {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .queueStatus {
   display: inline-flex;
   width: max-content;

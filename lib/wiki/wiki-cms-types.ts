@@ -71,6 +71,9 @@ export type WikiArticleAdminSummary = {
   publishJobLockedAt: string | null;
   publishJobCompletedAt: string | null;
   publishJobUpdatedAt: string | null;
+  // HALLEUS_WIKI_GLOBAL_POSITION_R44
+  publishQueuePosition?: number | null;
+  publishQueueSize?: number | null;
   updatedAt: string;
 };
 
@@ -196,6 +199,32 @@ export type ValidatedWikiPackage = {
     bytes: Uint8Array;
     mimeType: "image/png" | "image/jpeg" | "image/webp";
     contentHash: string;
+  }>;
+};
+
+// HALLEUS_WIKI_IMPORT_PREVIEW_TYPES_R62
+export type WikiImportPreviewPlan = {
+  planToken: string;
+  previewedAt: string;
+  expiresAt: string;
+  packageHash: string;
+  packageName: string;
+  mode: "auto_schedule" | "review_first";
+  articleCount: number;
+  validArticleCount: number;
+  quarantinedArticleCount: number;
+  assetCount: number;
+  createCount: number;
+  updateCount: number;
+  firstScheduledFor: string | null;
+  lastScheduledFor: string | null;
+  items: Array<{
+    stableId: string;
+    title: string;
+    operation: "create" | "update" | "quarantine";
+    resultStatus: "drafted" | "scheduled" | "quarantined";
+    scheduledFor?: string;
+    errors: string[];
   }>;
 };
 

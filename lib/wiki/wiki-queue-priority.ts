@@ -390,3 +390,146 @@ export function planWikiQueueBulkReorder(input: {
     items,
   };
 }
+
+ // HALLEUS_WIKI_PRIORITY_REBALANCE_R55
+export const WIKI_PRIORITY_REBALANCE_PREVIEW_TTL_MS = 15 * 60 * 1000;
+
+export type WikiPriorityRebalancePlanItem = {
+  jobId: string;
+  articleId: string;
+  revisionNumber: number;
+  stableId: string;
+  title: string;
+  currentPriority: number;
+  nextPriority: number;
+  changed: boolean;
+};
+
+export type WikiPriorityRebalancePlan = {
+  planToken: string;
+  previewedAt: string;
+  expiresAt: string;
+  itemCount: number;
+  currentMinPriority: number;
+  currentMaxPriority: number;
+  nextMinPriority: number;
+  nextMaxPriority: number;
+  changedCount: number;
+  unchangedCount: number;
+  orderChanged: false;
+  items: WikiPriorityRebalancePlanItem[];
+};
+
+export function planWikiPriorityRebalance(input: {
+  candidates: WikiQueuePositionCandidate[];
+  previewedAt: string;
+}): WikiPriorityRebalancePlan {
+  const previewedAt = new Date(input.previewedAt);
+  if (!Number.isFinite(previewedAt.getTime())) {
+    throw new Error("Wiki priority rebalance preview timestamp is invalid.");
+  }
+  if (input.candidates.length < 1) {
+    throw new Error("No queued or retry Wiki jobs are available for priority rebalance.");
+  }
+  // HALLEUS_WIKI_PRIORITY_HEADROOM_R57
+  if (input.candidates.length > 280) {
+    throw new Error(
+      "Wiki priority rebalance supports at most 280 queued or retry jobs while reserving 281..300 for future urgent articles.",
+    );
+  }
+
+  const jobIds = new Set<string>();
+  const stableIds = new Set<string>();
+  for (const candidate of input.candidates) {
+    if (candidate.status !== "queued" && candidate.status !== "retry") {
+      throw new Error("Only queued or retry jobs can be priority rebalanced.");
+    }
+    if (jobIds.has(candidate.jobId) || stableIds.has(candidate.stableId)) {
+      throw new Error("Wiki priority rebalance contains duplicate jobs or stable IDs.");
+    }
+    if (
+      !Number.isInteger(candidate.publicationPriority) ||
+      candidate.publicationPriority < 0 ||
+      candidate.publicationPriority > 300
+    ) {
+      throw new Error("Wiki publication priority must be between 0 and 300.");
+    }
+    timestamp(candidate.currentRunAt, "Wiki queue run time");
+    jobIds.add(candidate.jobId);
+    stableIds.add(candidate.stableId);
+  }
+
+  const ordered = input.candidates.slice().sort((left, right) =>
+    right.publicationPriority - left.publicationPriority ||
+    timestamp(left.currentRunAt, "Wiki queue run time") -
+      timestamp(right.currentRunAt, "Wiki queue run time") ||
+    left.stableId.localeCompare(right.stableId, "en")
+  );
+
+  const count = ordered.length;
+  const targetHigh = count === 1 ? 215 : 280;
+  const targetLow = count === 1
+    ? 215
+    : count <= 131
+      ? 150
+      : Math.max(1, 280 - (count - 1));
+  const span = targetHigh - targetLow;
+
+  const items = ordered.map((candidate, index) => {
+    const nextPriority = count === 1
+      ? 225
+      : Math.round(targetHigh - (index * span) / (count - 1));
+    return {
+      jobId: candidate.jobId,
+      articleId: candidate.articleId,
+      revisionNumber: candidate.revisionNumber,
+      stableId: candidate.stableId,
+      title: candidate.title,
+      currentPriority: candidate.publicationPriority,
+      nextPriority,
+      changed: candidate.publicationPriority !== nextPriority,
+    };
+  });
+
+  for (let index = 1; index < items.length; index += 1) {
+    if (items[index - 1].nextPriority <= items[index].nextPriority) {
+      throw new Error("Wiki priority rebalance could not preserve unique descending priorities.");
+    }
+  }
+
+  const currentPriorities = items.map((item) => item.currentPriority);
+  const nextPriorities = items.map((item) => item.nextPriority);
+  const previewedAtIso = previewedAt.toISOString();
+  const expiresAt = new Date(
+    previewedAt.getTime() + WIKI_PRIORITY_REBALANCE_PREVIEW_TTL_MS,
+  ).toISOString();
+  const normalizedCandidates = ordered.map((candidate, index) => ({
+    jobId: candidate.jobId,
+    articleId: candidate.articleId,
+    revisionNumber: candidate.revisionNumber,
+    stableId: candidate.stableId,
+    currentRunAt: candidate.currentRunAt,
+    currentPriority: candidate.publicationPriority,
+    nextPriority: items[index].nextPriority,
+    updatedAt: candidate.updatedAt,
+  }));
+  const base = {
+    previewedAt: previewedAtIso,
+    expiresAt,
+    itemCount: items.length,
+    currentMinPriority: Math.min(...currentPriorities),
+    currentMaxPriority: Math.max(...currentPriorities),
+    nextMinPriority: Math.min(...nextPriorities),
+    nextMaxPriority: Math.max(...nextPriorities),
+    changedCount: items.filter((item) => item.changed).length,
+    unchangedCount: items.filter((item) => !item.changed).length,
+    orderChanged: false as const,
+    items,
+  };
+  return {
+    planToken: createHash("sha256")
+      .update(JSON.stringify({ ...base, candidates: normalizedCandidates }), "utf8")
+      .digest("hex"),
+    ...base,
+  };
+}

@@ -66,7 +66,7 @@ export function getWikiPublicationQueuePositions(
       .filter((article) =>
         POSITIONED_JOB_STATUSES.has(article.publishJobStatus ?? ""),
       )
-      .map((article, index) => [article.id, index + 1]),
+      .map((article, index) => [article.publishJobId ?? article.id, index + 1]), // HALLEUS_WIKI_JOB_POSITION_KEY_R44
   );
 }
 

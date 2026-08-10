@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { AdminAccessError, type VerifiedAdminActor } from "@/lib/admin/admin-auth";
 import { asNumber, asRecord, asString, getAdminDatabase } from "@/lib/admin/admin-database";
 import type { Sql, TransactionSql } from "postgres";
@@ -5,6 +6,7 @@ import type {
   ValidatedWikiPackage,
   WikiArticleSnapshot,
   WikiImportMode,
+  WikiImportPreviewPlan,
   WikiImportResult,
   WikiImportPackageSummary,
 } from "@/lib/wiki/wiki-cms-types";
@@ -194,6 +196,145 @@ async function prepareWikiImport(packageData: ValidatedWikiPackage) {
   };
 }
 
+// HALLEUS_WIKI_IMPORT_PREVIEW_SERVICE_R62
+export const WIKI_IMPORT_PREVIEW_TTL_MS = 15 * 60 * 1000;
+
+export async function previewWikiImport(input: {
+  package: ValidatedWikiPackage;
+  mode: "auto_schedule" | "review_first";
+  previewedAt?: string;
+}): Promise<WikiImportPreviewPlan> {
+  const previewedAt = new Date(input.previewedAt ?? new Date().toISOString());
+  if (!Number.isFinite(previewedAt.getTime())) {
+    throw new AdminAccessError(400, "Wiki import preview timestamp is invalid.");
+  }
+
+  const preparation = await prepareWikiImport(input.package);
+  const {
+    settings,
+    existingByStableId,
+    candidates,
+    valid,
+    existingJobRows,
+  } = preparation;
+
+  const scheduleSlots = input.mode === "auto_schedule"
+    ? computeWikiScheduleSlots({
+        settings,
+        existingRunAt: existingJobRows.map((row) => asString(row.run_at)),
+        count: valid.length,
+        now: previewedAt,
+      })
+    : [];
+
+  const quarantinedItems: WikiImportPreviewPlan["items"] = [
+    ...input.package.quarantinedArticles.map((item) => ({
+      stableId: item.manifest.article_id,
+      title: item.manifest.title,
+      operation: "quarantine" as const,
+      resultStatus: "quarantined" as const,
+      errors: item.errors,
+    })),
+    ...candidates
+      .filter((candidate) => candidate.errors.length > 0)
+      .map((candidate) => ({
+        stableId: candidate.snapshot.stableId,
+        title: candidate.snapshot.title,
+        operation: "quarantine" as const,
+        resultStatus: "quarantined" as const,
+        errors: candidate.errors,
+      })),
+  ];
+
+  const validItems: WikiImportPreviewPlan["items"] = valid.map(
+    (candidate, index) => {
+      const existing = existingByStableId.get(candidate.snapshot.stableId);
+      const scheduledFor = scheduleSlots[index]?.toISOString();
+      return {
+        stableId: candidate.snapshot.stableId,
+        title: candidate.snapshot.title,
+        operation: existing ? "update" : "create",
+        resultStatus: input.mode === "auto_schedule" ? "scheduled" : "drafted",
+        ...(scheduledFor ? { scheduledFor } : {}),
+        errors: [],
+      };
+    },
+  );
+
+  const items = [...quarantinedItems, ...validItems];
+  const scheduled = validItems
+    .map((item) => item.scheduledFor)
+    .filter((value): value is string => Boolean(value));
+  const previewedAtIso = previewedAt.toISOString();
+  const base = {
+    previewedAt: previewedAtIso,
+    expiresAt: new Date(
+      previewedAt.getTime() + WIKI_IMPORT_PREVIEW_TTL_MS,
+    ).toISOString(),
+    packageHash: input.package.packageHash,
+    packageName: input.package.fileName,
+    mode: input.mode,
+    articleCount: input.package.manifest.articles.length,
+    validArticleCount: valid.length,
+    quarantinedArticleCount: quarantinedItems.length,
+    assetCount: input.package.assets.length,
+    createCount: valid.filter(
+      (candidate) => !existingByStableId.has(candidate.snapshot.stableId),
+    ).length,
+    updateCount: valid.filter(
+      (candidate) => existingByStableId.has(candidate.snapshot.stableId),
+    ).length,
+    firstScheduledFor: scheduled[0] ?? null,
+    lastScheduledFor: scheduled.at(-1) ?? null,
+    items,
+  };
+
+  const candidateState = candidates
+    .map((candidate) => {
+      const existing = existingByStableId.get(candidate.snapshot.stableId);
+      return {
+        stableId: candidate.snapshot.stableId,
+        incomingVersion: candidate.snapshot.contentVersion,
+        incomingSlug: candidate.snapshot.slug,
+        errors: [...candidate.errors],
+        existing: existing
+          ? {
+              id: asString(existing.id),
+              slug: asString(existing.slug),
+              contentVersion: asNumber(existing.content_version),
+              deletedAt: existing.deleted_at ? String(existing.deleted_at) : null,
+            }
+          : null,
+      };
+    })
+    .sort((left, right) => left.stableId.localeCompare(right.stableId, "en"));
+  const jobState = existingJobRows
+    .map((row) => ({
+      jobId: asString(row.job_id),
+      articleId: asString(row.article_id),
+      revisionNumber: asNumber(row.revision_number),
+      runAt: asString(row.run_at),
+      status: asString(row.status),
+      updatedAt: asString(row.updated_at),
+    }))
+    .sort((left, right) => left.jobId.localeCompare(right.jobId, "en"));
+
+  return {
+    planToken: createHash("sha256")
+      .update(
+        JSON.stringify({
+          ...base,
+          candidateState,
+          jobState,
+          settings: input.mode === "auto_schedule" ? settings : null,
+        }),
+        "utf8",
+      )
+      .digest("hex"),
+    ...base,
+  };
+}
+
 export async function previewWikiQueueMergeImport(input: {
   package: ValidatedWikiPackage;
   policy: WikiQueueReflowPolicy;
@@ -265,22 +406,44 @@ export async function importValidatedWikiPackage(input: {
   package: ValidatedWikiPackage;
   mode: WikiImportMode;
   mergePlan?: WikiImportMergePlan;
+  previewPlan?: WikiImportPreviewPlan;
 }): Promise<WikiImportResult> {
   const preparation = await prepareWikiImport(input.package);
   const { sql, settings, existingByStableId, candidates, valid, existingJobRows } = preparation;
   if (input.mode === "merge_queue" && (!input.mergePlan || input.mergePlan.packageHash !== input.package.packageHash)) {
     throw new AdminAccessError(409, "A current Wiki queue merge preview is required.");
   }
+  if (
+    input.mode !== "merge_queue" &&
+    (!input.previewPlan ||
+      input.previewPlan.packageHash !== input.package.packageHash ||
+      input.previewPlan.mode !== input.mode)
+  ) {
+    throw new AdminAccessError(409, "A current Wiki import preview is required.");
+  }
+  const previewSlots = new Map(
+    input.previewPlan?.items
+      .filter(
+        (item) =>
+          item.resultStatus === "scheduled" && Boolean(item.scheduledFor),
+      )
+      .map((item) => [item.stableId, new Date(item.scheduledFor!)]) ?? [],
+  );
   const mergeSlots = new Map(
     input.mergePlan?.queue.items
       .filter((item) => item.jobId.startsWith("new:"))
       .map((item) => [item.stableId, new Date(item.nextRunAt)]) ?? [],
   );
   const scheduleSlots = input.mode === "auto_schedule"
-    ? computeWikiScheduleSlots({
-        settings,
-        existingRunAt: existingJobRows.map((row) => asString(row.run_at)),
-        count: valid.length,
+    ? valid.map((candidate) => {
+        const slot = previewSlots.get(candidate.snapshot.stableId);
+        if (!slot || !Number.isFinite(slot.getTime())) {
+          throw new AdminAccessError(
+            409,
+            `Import preview is missing ${candidate.snapshot.stableId}.`,
+          );
+        }
+        return slot;
       })
     : input.mode === "merge_queue"
       ? valid.map((candidate) => {
@@ -289,6 +452,7 @@ export async function importValidatedWikiPackage(input: {
           return slot;
         })
       : [];
+
 
   const assetUrls = new Map<string, string>();
   for (const asset of input.package.assets) {

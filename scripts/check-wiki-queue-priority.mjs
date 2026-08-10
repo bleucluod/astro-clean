@@ -400,7 +400,36 @@ requireText("position service", service, "export async function applyAdminWikiQu
 requireText("position service", service, "for update of job, article, revision");
 requireText("position service", service, "Wiki queue changed after preview");
 requireText("position service", service, "admin.wiki.publish_queue_position_changed");
-forbidText("position service", service, "{publicationPriority}");
+// HALLEUS_WIKI_PRIORITY_REBALANCE_SCOPED_GUARD_R56
+const positionMoveServiceStart = service.indexOf(
+  "export async function previewAdminWikiQueuePositionMove",
+);
+const positionMoveServiceEnd = service.indexOf(
+  "export async function previewAdminWikiQueueBulkReorder",
+  positionMoveServiceStart,
+);
+if (
+  positionMoveServiceStart < 0 ||
+  positionMoveServiceEnd <= positionMoveServiceStart
+) {
+  failures.push("position move service scope could not be isolated");
+} else {
+  forbidText(
+    "position move service",
+    service.slice(positionMoveServiceStart, positionMoveServiceEnd),
+    "{publicationPriority}",
+  );
+}
+requireText(
+  "priority rebalance service",
+  service,
+  "export async function applyAdminWikiPriorityRebalance",
+);
+requireText(
+  "priority rebalance service",
+  service,
+  "'{publicationPriority}'",
+);
 requireText("position service", service, "scheduled_for = case");
 requireText("position operations", operations, "canReorder");
 requireText("position UI", panel, "جایگاه ۱ یعنی انتشار بعدی");
@@ -427,6 +456,77 @@ for (const id of ["wiki", "wiki-guard-tooling", "wiki-publication-ops"]) {
   }
 }
 
+// HALLEUS_WIKI_PRIORITY_REBALANCE_CHECK_R55
+const rebalanceCandidates = Array.from({ length: 73 }, (_, index) => ({
+  jobId: `rebalance-job-${index}`,
+  articleId: `rebalance-article-${index}`,
+  revisionNumber: 1,
+  stableId: `rebalance-${index}`,
+  title: `Rebalance ${index}`,
+  articleRole: index % 12 === 0 ? "pillar" : "support",
+  contentCluster: `cluster-${index % 5}`,
+  publicationPriority: Math.max(1, 70 - Math.floor(index / 2)),
+  dependencyStableIds: [],
+  currentRunAt: new Date(Date.UTC(2026, 7, 20, index, 0)).toISOString(),
+  status: index % 9 === 0 ? "retry" : "queued",
+  updatedAt: new Date(Date.UTC(2026, 7, 19, 1, index)).toISOString(),
+}));
+const rebalanceInput = {
+  candidates: rebalanceCandidates,
+  previewedAt: "2026-08-19T00:00:00.000Z",
+};
+const rebalancePlan = positionModule.planWikiPriorityRebalance(rebalanceInput);
+if (
+  rebalancePlan.itemCount !== 73 ||
+  rebalancePlan.nextMinPriority !== 150 ||
+  rebalancePlan.nextMaxPriority !== 280 ||
+  rebalancePlan.orderChanged !== false
+) {
+  failures.push("priority rebalance did not spread a 73-job queue across 150..280");
+}
+// HALLEUS_WIKI_PRIORITY_HEADROOM_CHECK_R57
+if (rebalancePlan.nextMaxPriority >= 281) {
+  failures.push("priority rebalance consumed the reserved 281..300 future headroom");
+}
+if (rebalancePlan.items.some((item) => item.nextPriority < 150 || item.nextPriority > 280)) {
+  failures.push("normal-size priority rebalance escaped the 150..280 target band");
+}
+const reservedUrgentPriority = 290;
+if (reservedUrgentPriority <= rebalancePlan.nextMaxPriority) {
+  failures.push("future urgent priority does not remain above the rebalanced queue");
+}
+
+const priorityRank = rebalanceCandidates.slice().sort((left, right) =>
+  right.publicationPriority - left.publicationPriority ||
+  Date.parse(left.currentRunAt) - Date.parse(right.currentRunAt) ||
+  left.stableId.localeCompare(right.stableId, "en")
+).map((candidate) => candidate.stableId).join(",");
+if (rebalancePlan.items.map((item) => item.stableId).join(",") !== priorityRank) {
+  failures.push("priority rebalance changed semantic priority order");
+}
+if (new Set(rebalancePlan.items.map((item) => item.nextPriority)).size !== 73) {
+  failures.push("priority rebalance did not create unique priority values");
+}
+if (rebalancePlan.items.some((item, index, items) =>
+  index > 0 && items[index - 1].nextPriority <= item.nextPriority
+)) {
+  failures.push("priority rebalance output is not strictly descending");
+}
+if (rebalancePlan.items.some((item) => "nextRunAt" in item || "currentRunAt" in item)) {
+  failures.push("priority rebalance unexpectedly carries queue time mutations");
+}
+const rebalanceVersionChange = positionModule.planWikiPriorityRebalance({
+  ...rebalanceInput,
+  candidates: rebalanceCandidates.map((candidate, index) =>
+    index === 0
+      ? { ...candidate, updatedAt: "2026-08-19T12:00:00.000Z" }
+      : candidate
+  ),
+});
+if (rebalanceVersionChange.planToken === rebalancePlan.planToken) {
+  failures.push("priority rebalance token ignored a job version change");
+}
+
 if (failures.length > 0) {
   console.error("Wiki queue position check failed:");
   for (const failure of failures) console.error(`- ${failure}`);
@@ -439,3 +539,5 @@ console.log("- direct, top, up, and down moves preserve existing slots");
 console.log("- dependencies and pillar policy constrain moves to a valid position");
 console.log("- preview tokens include job versions and reject stale queue state");
 console.log("- running and failed jobs never receive a movable queue position");
+console.log("- priority rebalance preserves semantic rank while reopening numeric space");
+console.log("- priority rebalance reserves 281..300 for future higher-priority articles");

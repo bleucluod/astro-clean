@@ -18,6 +18,8 @@ import {
   applyAdminWikiQueueReflow,
   previewAdminWikiQueueReflowUndo,
   applyAdminWikiQueueReflowUndo,
+  previewAdminWikiPriorityRebalance,
+  applyAdminWikiPriorityRebalance,
 } from "@/lib/wiki/wiki-cms-service";
 import type { WikiQueueReflowPolicy } from "@/lib/wiki/wiki-cms-types";
 
@@ -55,6 +57,8 @@ function readReflowPolicy(value: unknown): WikiQueueReflowPolicy {
 }
 
 export async function POST(request: Request) {
+  // HALLEUS_WIKI_QUEUE_ACTION_LOG_R51
+  let actionForLog = "unknown";
   try {
     assertAdminMutationRequest(request);
     const body = readObject(await request.json());
@@ -65,6 +69,28 @@ export async function POST(request: Request) {
       );
     }
     const action = readRequiredString(body.action, "action", 30);
+    actionForLog = action;
+    // HALLEUS_WIKI_PRIORITY_REBALANCE_ROUTE_R55
+    if (action === "preview_priority_rebalance") {
+      await requireAdminCapability(request, "wiki.read");
+      return noStoreJsonResponse({
+        ok: true,
+        plan: await previewAdminWikiPriorityRebalance(),
+      });
+    }
+    if (action === "apply_priority_rebalance") {
+      const actor = await requireAdminCapability(request, "wiki.publish.write");
+      return noStoreJsonResponse({
+        ok: true,
+        plan: await applyAdminWikiPriorityRebalance({
+          actor,
+          planToken: readRequiredString(body.planToken, "planToken", 100),
+          previewedAt: readRequiredString(body.previewedAt, "previewedAt", 100),
+          reason: readRequiredString(body.reason, "reason", 1000),
+        }),
+      });
+    }
+
     if (action === "preview_reflow") {
       await requireAdminCapability(request, "wiki.read");
       return noStoreJsonResponse({ ok: true, plan: await previewAdminWikiQueueReflow({ policy: readReflowPolicy(body.policy) }) });
@@ -139,6 +165,11 @@ export async function POST(request: Request) {
       400,
     );
   } catch (error) {
-    return adminErrorResponse(error, "Wiki queue position action failed.");
+    console.error("HALLEUS_WIKI_QUEUE_ACTION_FAILED", {
+      action: actionForLog,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+    return adminErrorResponse(error, "Wiki queue action failed.");
   }
 }
