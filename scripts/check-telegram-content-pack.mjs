@@ -73,6 +73,16 @@ assert(
   "Validated content packs are not scheduled automatically.",
 );
 assert(
+  importRoute.includes("const importStartedAt = new Date()") &&
+    importRoute.includes("Date.parse(item.scheduledFor) <= importStartedAt.getTime()") &&
+    importRoute.includes("Date.parse(item.scheduledFor) > importStartedAt.getTime()") &&
+    importRoute.includes("skippedPastCount: pastItems.length") &&
+    importRoute.includes("pastCutoff: importStartedAt.toISOString()") &&
+    panel.includes("زمان انتشارشان تا لحظهٔ ورود فایل گذشته بود") &&
+    panel.includes("پیام آینده با زمان‌بندی اصلی وارد صف شد"),
+  "Late Content Pack import can still dump past-due Telegram messages.",
+);
+assert(
   importRoute.includes("admin.telegram.content_pack_imported") &&
     importRoute.includes("recordAdminAuditEvent"),
   "Content-pack imports are not audit-covered.",

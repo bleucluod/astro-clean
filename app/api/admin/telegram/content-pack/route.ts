@@ -74,7 +74,15 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    const inspection = await inspectTelegramContentPackImport(parsed.items);
+    const importStartedAt = new Date();
+    const pastItems = parsed.items.filter(
+      (item) => Date.parse(item.scheduledFor) <= importStartedAt.getTime(),
+    );
+    const importableItems = parsed.items.filter(
+      (item) => Date.parse(item.scheduledFor) > importStartedAt.getTime(),
+    );
+
+    const inspection = await inspectTelegramContentPackImport(importableItems);
     if (inspection.conflictDates.length > 0) {
       const conflictText = inspection.conflictDates
         .map((conflict) => {
@@ -107,7 +115,10 @@ export async function POST(request: Request) {
       targetId: parsed.packId,
       afterSummary: {
         itemCount: parsed.items.length,
+        importableCount: importableItems.length,
         queuedCount: queued.length,
+        skippedPastCount: pastItems.length,
+        pastCutoff: importStartedAt.toISOString(),
         skippedDuplicateCount: inspection.skippedDuplicateCount,
         duplicateDates: inspection.duplicateDates,
         rangeStart: parsed.rangeStart,
@@ -124,12 +135,16 @@ export async function POST(request: Request) {
         result: {
           packId: parsed.packId,
           itemCount: parsed.items.length,
+          importableCount: importableItems.length,
           queuedCount: queued.length,
+          skippedPastCount: pastItems.length,
+          pastCutoff: importStartedAt.toISOString(),
           skippedDuplicateCount: inspection.skippedDuplicateCount,
           duplicateDates: inspection.duplicateDates,
           alreadyImported:
+            pastItems.length === 0 &&
             queued.length === 0 &&
-            inspection.skippedDuplicateCount === parsed.items.length,
+            inspection.skippedDuplicateCount === importableItems.length,
           rangeStart: parsed.rangeStart,
           rangeEnd: parsed.rangeEnd,
         },

@@ -180,22 +180,37 @@ export function TelegramAdminPanel({ token }: { token: string }) {
         packId?: string;
         itemCount?: number;
         queuedCount?: number;
+        skippedPastCount?: number;
+        pastCutoff?: string;
         skippedDuplicateCount?: number;
         duplicateDates?: string[];
         alreadyImported?: boolean;
       };
       const queuedCount = Number(result.queuedCount ?? 0);
+      const skippedPastCount = Number(result.skippedPastCount ?? 0);
       const skippedDuplicateCount = Number(result.skippedDuplicateCount ?? 0);
+      const dates = Array.isArray(result.duplicateDates)
+        ? result.duplicateDates.join("، ")
+        : "";
       if (result.alreadyImported) {
         setMessage(
           `این بسته قبلاً به هالیوس داده شده بود. ${skippedDuplicateCount.toLocaleString("fa-IR")} پیام تکراری شناسایی شد و دوباره وارد صف نشد؛ صف انتشار هیچ تغییری نکرد.`,
         );
-      } else if (skippedDuplicateCount > 0) {
-        const dates = Array.isArray(result.duplicateDates)
-          ? result.duplicateDates.join("، ")
-          : "";
+      } else if (queuedCount === 0 && skippedPastCount > 0) {
         setMessage(
-          `${queuedCount.toLocaleString("fa-IR")} پیام جدید وارد صف شد و ${skippedDuplicateCount.toLocaleString("fa-IR")} پیام تکراری بدون ساخت نسخهٔ دوم رد شد${dates ? ` (${dates})` : ""}.`,
+          `هیچ پیام تازه‌ای وارد صف نشد. ${skippedPastCount.toLocaleString("fa-IR")} پیام چون زمان انتشارشان تا لحظهٔ ورود فایل گذشته بود، عمداً رد شدند و روی کانال نریختند.`,
+        );
+      } else if (skippedPastCount > 0 || skippedDuplicateCount > 0) {
+        const pastText =
+          skippedPastCount > 0
+            ? ` ${skippedPastCount.toLocaleString("fa-IR")} پیامِ گذشته عمداً وارد صف نشد.`
+            : "";
+        const duplicateText =
+          skippedDuplicateCount > 0
+            ? ` ${skippedDuplicateCount.toLocaleString("fa-IR")} پیام تکراری هم بدون ساخت نسخهٔ دوم رد شد${dates ? ` (${dates})` : ""}.`
+            : "";
+        setMessage(
+          `${queuedCount.toLocaleString("fa-IR")} پیام آینده با زمان‌بندی اصلی وارد صف شد.${pastText}${duplicateText}`,
         );
       } else {
         setMessage(
