@@ -40,10 +40,14 @@ assert(
   "Engine provenance handoff is missing from the pack contract.",
 );
 assert(
-  pack.includes("engine-backed content must use a sky_* contentType") &&
-    pack.includes("engine provenance date must match its scheduled Tehran date") &&
-    pack.includes("sourceRef does not match its engine provenance date"),
-  "Engine-backed pack claims are not tightly bound to Sky type/date provenance.",
+  pack.includes("sky_* contentType requires engine_backed contentClass") &&
+    pack.includes("engine-backed content requires Sky provenance") &&
+    pack.includes("same-day Sky provenance must match its scheduled Tehran date") &&
+    pack.includes("future teaser provenance must be 1 to 3 Tehran calendar days ahead") &&
+    pack.includes("non-engine Sky provenance is allowed only for Natal Placement Spotlight") &&
+    pack.includes("sourceRef does not match its engine provenance date") &&
+    pack.includes('"sky_planetary_state"'),
+  "Smart Pack import provenance/type/date contract is incomplete.",
 );
 assert(
   pack.includes("scheduledAt must be an ISO timestamp with timezone") &&

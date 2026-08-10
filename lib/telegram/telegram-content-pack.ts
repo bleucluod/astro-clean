@@ -41,6 +41,7 @@ const CONTENT_CLASSES = [
 const CONTENT_TYPES = [
   "sky_moon_position",
   "sky_moon_phase",
+  "sky_planetary_state",
   "sky_priority_aspect",
   "sky_ingress",
   "sky_station",
@@ -468,11 +469,6 @@ export function parseTelegramContentPack(
     }
     const cta = parseCta(item.cta);
     const isSkyType = contentType.startsWith("sky_");
-    if (contentClass === "engine_backed" && !isSkyType) {
-      throw new TelegramContentPackValidationError(
-        `items[${index}] engine-backed content must use a sky_* contentType.`,
-      );
-    }
     if (contentClass !== "engine_backed" && isSkyType) {
       throw new TelegramContentPackValidationError(
         `items[${index}] sky_* contentType requires engine_backed contentClass.`,
@@ -480,12 +476,12 @@ export function parseTelegramContentPack(
     }
 
     const provenance =
-      contentClass === "engine_backed"
+      item.sourceProvenance != null
         ? parseProvenance(item.sourceProvenance)
         : null;
-    if (contentClass !== "engine_backed" && item.sourceProvenance != null) {
+    if (contentClass === "engine_backed" && !provenance) {
       throw new TelegramContentPackValidationError(
-        `items[${index}] must not attach Sky provenance to non-engine content.`,
+        `items[${index}] engine-backed content requires Sky provenance.`,
       );
     }
 
@@ -496,9 +492,9 @@ export function parseTelegramContentPack(
         `items[${index}] engine-backed content requires sourceRef from the transit pack.`,
       );
     }
-    if (provenance && provenance.snapshotLocalDate !== scheduledLocalDate) {
+    if (provenance && !sourceRef) {
       throw new TelegramContentPackValidationError(
-        `items[${index}] engine provenance date must match its scheduled Tehran date.`,
+        `items[${index}] Sky provenance requires sourceRef from the transit pack.`,
       );
     }
     if (provenance && sourceRef && !sourceRef.startsWith(`${provenance.snapshotLocalDate}:`)) {
@@ -531,6 +527,48 @@ export function parseTelegramContentPack(
       throw new TelegramContentPackValidationError(
         `items[${index}].eventAt must be an ISO timestamp with timezone.`,
       );
+    }
+    const eventLocalDate = eventAt
+      ? localDateInTimezone(eventAt, timezone)
+      : null;
+    if (provenance) {
+      if (
+        timingMode === "same_day" &&
+        provenance.snapshotLocalDate !== scheduledLocalDate
+      ) {
+        throw new TelegramContentPackValidationError(
+          `items[${index}] same-day Sky provenance must match its scheduled Tehran date.`,
+        );
+      }
+      if (
+        timingMode !== "same_day" &&
+        eventLocalDate &&
+        provenance.snapshotLocalDate !== eventLocalDate
+      ) {
+        throw new TelegramContentPackValidationError(
+          `items[${index}] event provenance date must match the event Tehran date.`,
+        );
+      }
+      if (
+        timingMode === "pre_event" &&
+        provenance.snapshotLocalDate !== scheduledLocalDate
+      ) {
+        const lookaheadDays =
+          inclusiveDayCount(scheduledLocalDate, provenance.snapshotLocalDate) - 1;
+        if (lookaheadDays < 1 || lookaheadDays > 3) {
+          throw new TelegramContentPackValidationError(
+            `items[${index}] future teaser provenance must be 1 to 3 Tehran calendar days ahead.`,
+          );
+        }
+      }
+      if (
+        timingMode === "at_or_after_event" &&
+        provenance.snapshotLocalDate !== scheduledLocalDate
+      ) {
+        throw new TelegramContentPackValidationError(
+          `items[${index}] post-event provenance must match its scheduled Tehran date.`,
+        );
+      }
     }
     if (eventAt && timingMode === "same_day") {
       throw new TelegramContentPackValidationError(
@@ -572,10 +610,16 @@ export function parseTelegramContentPack(
         );
       }
     }
+    const hasNatalSpotlightMetadata =
+      typeof item.bridgeSourceRef === "string" &&
+      Boolean(item.bridgeSourceRef.trim()) &&
+      typeof item.interpretationBasis === "string" &&
+      Boolean(item.interpretationBasis.trim());
     if (
       provenance?.exactAt &&
       sourceRef?.includes(":timeline:") &&
-      !eventAt
+      !eventAt &&
+      !hasNatalSpotlightMetadata
     ) {
       throw new TelegramContentPackValidationError(
         `items[${index}] uses an exact timeline event but does not declare eventAt/timingMode.`,
@@ -593,6 +637,15 @@ export function parseTelegramContentPack(
     if (Boolean(bridgeSourceRef) !== Boolean(interpretationBasis)) {
       throw new TelegramContentPackValidationError(
         `items[${index}] Natal Spotlight provenance requires both bridgeSourceRef and interpretationBasis.`,
+      );
+    }
+    if (
+      contentClass !== "engine_backed" &&
+      provenance &&
+      !(bridgeSourceRef && interpretationBasis)
+    ) {
+      throw new TelegramContentPackValidationError(
+        `items[${index}] non-engine Sky provenance is allowed only for Natal Placement Spotlight.`,
       );
     }
     if (

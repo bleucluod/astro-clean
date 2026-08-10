@@ -18,6 +18,7 @@ export type TelegramContentClass =
 export type TelegramContentType =
   | "sky_moon_position"
   | "sky_moon_phase"
+  | "sky_planetary_state"
   | "sky_priority_aspect"
   | "sky_ingress"
   | "sky_station"
