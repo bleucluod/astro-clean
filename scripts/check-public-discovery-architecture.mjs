@@ -516,7 +516,7 @@ function checkIntegrationSources() {
   const homepageLiveSky = read("components/HomepageLiveSky.tsx");
   const appShell = read("components/AppShell.tsx");
   const appShellStyles = read("components/app-shell.module.css");
-  const chartLayout = `${read("app/chart/layout.tsx")}\n${read("components/FinalEditorialPage.tsx")}\n${read("content/public-editorial-final/04-chart.md")}`;
+  const chartPage = read("app/chart/page.tsx");
   const chartStyles = read("app/chart/chart-shell.module.css");
   const wikiRevalidation = read("lib/wiki/wiki-revalidation.ts");
   const wikiIndex = read("app/wiki/page.tsx");
@@ -575,11 +575,11 @@ function checkIntegrationSources() {
   requireText("App shell styles", appShellStyles, ".footerResponsibility");
   requireText("App shell styles", appShellStyles, ".footerSocialLink");
 
-  requireText("Chart discovery", chartLayout, 'pageKey="chart"');
-  requireText("Chart discovery", chartLayout, '"/sky"');
-  requireText("Chart discovery", chartLayout, '"/wiki"');
-  requireText("Chart discovery styles", chartStyles, ".discoveryBridge");
-  requireText("Chart discovery styles", chartStyles, ".discoveryActions");
+  requireText("Chart discovery", chartPage, 'getFinalEditorialPage("chart")');
+  requireText("Chart discovery", chartPage, 'href: "/sky"');
+  requireText("Chart discovery", chartPage, 'href: "/wiki"');
+  requireText("Chart discovery styles", chartStyles, ".discoveryPrimary");
+  requireText("Chart discovery styles", chartStyles, ".contextLinks");
 
   requireText(
     "Wiki publication revalidation",

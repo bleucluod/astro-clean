@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { getWikiCategoryR8Body } from "@/lib/wiki/wiki-category-r8-content";
 import {
   buildPublicWikiCategoryViews,
   findPublicWikiCategoryView,
@@ -75,6 +76,8 @@ export default async function WikiCategoryPage({
   if (!categoryView) {
     notFound();
   }
+
+  const r8Body = getWikiCategoryR8Body(categoryId);
 
   return (
     <section
@@ -157,6 +160,23 @@ export default async function WikiCategoryPage({
           ))}
         </div>
       </section>
+
+      {r8Body ? (
+        <section className={styles.section} data-r8-category-body="true">
+          {r8Body.sections.map((section) => (
+            <section className={styles.bodySection} key={section.title}>
+              <h2>{section.title}</h2>
+              {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              {section.subsections.map((subsection) => (
+                <div key={subsection.title}>
+                  <h3>{subsection.title}</h3>
+                  {subsection.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                </div>
+              ))}
+            </section>
+          ))}
+        </section>
+      ) : null}
 
       <section className={styles.section} aria-labelledby="category-articles-title">
         <div className={styles.sectionHeader}>

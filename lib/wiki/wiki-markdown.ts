@@ -5,7 +5,7 @@ const unsafeProtocolPattern = /(?:javascript|vbscript|data):/i;
 const unsupportedInlineMarkdownPattern = /(?:\*\*|__|`|(?<!!)\[[^\]]+\]\([^)]+\))/;
 const unsupportedBlockMarkdownPattern = /^(?:#\s|#{3,6}\s|>|```|\d+[.)]\s)/m;
 const imagePattern = /^!\[([^\]]+)\]\((?:(?:\.\.\/)?(assets\/[A-Za-z0-9._/-]+)|(https:\/\/[^\s)]+))\)$/;
-const internalLinkPattern = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)\]\]/g;
+const internalLinkPattern = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
 
 export type ParsedWikiMarkdown = {
   intro: string;

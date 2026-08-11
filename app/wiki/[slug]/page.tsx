@@ -71,26 +71,41 @@ function serializeJsonLd(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
+const CORE_WIKI_ROUTES = new Set(["/", "/chart", "/compare", "/sky", "/wiki"]);
+
 function renderWikiText(
   text: string,
   targets: Record<string, { slug: string; label: string }>,
 ) {
-  const parts = text.split(/(\[\[article:[a-z0-9]+(?:[._-][a-z0-9]+)*\]\])/g);
+  const parts = text.split(/(\[\[article:[a-z0-9]+(?:[._-][a-z0-9]+)*(?:\|[^\]\r\n]+)?\]\]|\[\[page:\/(?:chart|compare|sky|wiki)?\|[^\]\r\n]+\]\])/g);
   return parts.map((part, index) => {
-    const match = part.match(/^\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)\]\]$/);
-    if (!match) {
-      return part;
+    const articleMatch = part.match(/^\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]$/);
+    if (articleMatch) {
+      const target = targets[articleMatch[1]];
+      const explicitLabel = articleMatch[2]?.trim();
+      if (!target) {
+        return explicitLabel ?? null;
+      }
+      return (
+        <Link
+          className={styles.inlineArticleLink}
+          href={`/wiki/${target.slug}`}
+          key={`article-${target.slug}-${index}`}
+        >
+          {explicitLabel ?? target.label}
+        </Link>
+      );
     }
-    const target = targets[match[1]];
-    return target ? (
-      <Link
-        className={styles.inlineArticleLink}
-        href={`/wiki/${target.slug}`}
-        key={`${target.slug}-${index}`}
-      >
-        {target.label}
-      </Link>
-    ) : null;
+    const pageMatch = part.match(/^\[\[page:(\/(?:chart|compare|sky|wiki)?)?\|([^\]\r\n]+)\]\]$/);
+    if (pageMatch) {
+      const href = (pageMatch[1] ?? "/").trim();
+      const label = pageMatch[2].trim();
+      if (CORE_WIKI_ROUTES.has(href) && label) {
+        return <Link className={styles.inlineArticleLink} href={href} key={`page-${href}-${index}`}>{label}</Link>;
+      }
+      return label || part;
+    }
+    return part;
   });
 }
 

@@ -25,6 +25,19 @@ while true; do
 
   if (( exit_code == 0 )); then
     printf '%s\n' "$response"
+
+    # HALLEUS_WIKI_R8_PERIODIC_AUDIT_NON_GATING: audit after successful publication checks, but never gate publishing.
+    if [ -f /srv/halleus/current/scripts/audit-wiki-r8-links-periodic.mjs ]; then
+      set +e
+      audit_output="$(/usr/local/bin/node /srv/halleus/current/scripts/audit-wiki-r8-links-periodic.mjs 2>&1)"
+      audit_exit=$?
+      set -e
+      printf '%s\n' "$audit_output"
+      if (( audit_exit != 0 )); then
+        printf 'HALLEUS_WIKI_R8_PERIODIC_AUDIT_WARNING=exit_%d\n' "$audit_exit" >&2
+      fi
+    fi
+
     exit 0
   fi
 

@@ -1,0 +1,3 @@
+import { auditWikiR8Links, openWikiAuditDatabase } from "./wiki-r8-link-audit-core.mjs";
+const sql=await openWikiAuditDatabase();
+try{const r=await auditWikiR8Links(sql);if(r.failures.length){console.error("HALLEUS_WIKI_R8_EXACT_LINK_AUDIT=FAIL count="+r.failures.length);for(const f of r.failures)console.error("- "+f);process.exitCode=1;}else{console.log("HALLEUS_WIKI_R8_EXACT_LINK_AUDIT=PASS article=203 core=128 identities=120 deferred=48");console.log("R8_CORE_ROUTE_COUNTS="+JSON.stringify(r.routeCounts));console.log("R8_LINK_MODES="+JSON.stringify(r.modes));console.log("R8_ACTIVATION="+JSON.stringify(r.activation));}}finally{await sql.end({timeout:2}).catch(()=>{});}
