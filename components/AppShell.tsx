@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 import type { ReactNode } from "react";
 
 import { AnalyticsConsent } from "@/components/AnalyticsConsent";
@@ -33,14 +33,14 @@ export async function AppShell({ children }: AppShellProps) {
         {children}
       </main>
 
-      <Link
+      <IntentPrefetchLink
         className={styles.backToTop}
         href="#main-content"
         aria-label="پرش به ابتدای محتوای صفحه"
       >
         <span aria-hidden="true">↑</span>
         پرش به بالا
-      </Link>
+      </IntentPrefetchLink>
 
       <footer
         data-approved-lockup="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
@@ -55,28 +55,20 @@ export async function AppShell({ children }: AppShellProps) {
 
         <div className={`footer-inner ${styles.footerInner}`}>
           <div className={`footer-brand-block ${styles.footerBrandBlock}`}>
-            <Link className={styles.footerBrand} href="/" aria-label="هالیوس">
+            <IntentPrefetchLink className={styles.footerBrand} href="/" aria-label="هالیوس">
               <span className={styles.footerLogoPlate}>
-                <span className={styles.footerBrandMark} aria-hidden="true">
-                  <Image
-                    src="/halleus-logo/symbol-transparent-white.png"
-                    alt=""
-                    width={1400}
-                    height={1400}
-                    className={styles.footerSymbol}
-                    data-logo-variant="white"
-                  />
-                </span>
                 <Image
-                  src="/halleus-logo/wordmark-bilingual-transparent-white.png"
+                  src="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
                   alt=""
-                  width={1900}
-                  height={950}
+                  width={1805}
+                  height={624}
+                  sizes="150px"
                   className={styles.footerLogo}
-                  data-logo-variant="white"
+                  data-logo-variant="approved-final"
+                  style={{ filter: "brightness(0) invert(1)", opacity: 1 }}
                 />
               </span>
-            </Link>
+            </IntentPrefetchLink>
 
             <p className={`footer-note ${styles.footerNote}`}>
               تجربه‌ای فارسی برای دیدن آسمان امروز، ساخت چارت تولد و یادگیری معنای نمادین چارت.
@@ -120,13 +112,13 @@ export async function AppShell({ children }: AppShellProps) {
             <span className={styles.footerNavTitle}>دسترسی سریع</span>
             <div className={`footer-links ${styles.footerLinks}`}>
               {footerLinks.map((link) => (
-                <Link
+                <IntentPrefetchLink
                   className={`footer-link ${styles.footerLink}`}
                   href={link.href}
                   key={link.href}
                 >
                   {link.label}
-                </Link>
+                </IntentPrefetchLink>
               ))}
             </div>
           </div>
@@ -139,19 +131,19 @@ export async function AppShell({ children }: AppShellProps) {
             {latestWikiArticles.length > 0 ? (
               <div className={styles.footerWikiLinks}>
                 {latestWikiArticles.map((article) => (
-                  <Link
+                  <IntentPrefetchLink
                     className={styles.footerWikiLink}
                     href={`/wiki/${article.slug}`}
                     key={article.slug}
                   >
                     {article.title}
-                  </Link>
+                  </IntentPrefetchLink>
                 ))}
               </div>
             ) : (
-              <Link className={styles.footerWikiEmpty} href="/wiki">
+              <IntentPrefetchLink className={styles.footerWikiEmpty} href="/wiki">
                 رفتن به ویکی هالیوس
-              </Link>
+              </IntentPrefetchLink>
             )}
           </div>
         </div>

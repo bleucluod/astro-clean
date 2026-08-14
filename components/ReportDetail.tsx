@@ -94,6 +94,7 @@ export function ReportDetail({
   const [accountVisibility, setAccountVisibility] =
     useState<ReportVisibility>("private");
   const [favorite, setFavorite] = useState(false);
+  const [storedAccessTier, setStoredAccessTier] = useState<string | null>(null);
 
   useEffect(() => {
     let isActive = true;
@@ -113,6 +114,7 @@ export function ReportDetail({
 
         if (result.status === "account-read-ready" && result.reportRecord?.report) {
           setReport(sanitizeVisibleReportValue(result.reportRecord.report));
+          setStoredAccessTier(result.reportRecord.publication?.accessTier ?? null);
           setNote("");
           setMessage("");
         } else {
@@ -137,6 +139,7 @@ export function ReportDetail({
         }
 
         setReport(sanitizeVisibleReportValue(result.reportRecord.report));
+        setStoredAccessTier(result.reportRecord.publication?.accessTier ?? null);
         setNote(result.reportRecord.note ?? "");
         setFavorite(Boolean(result.reportRecord.favorite));
         setAccountVisibility(result.reportRecord.visibility);
@@ -330,7 +333,7 @@ export function ReportDetail({
       className="report-detail-reader-page report-product-page"
       data-report-source={reportSource}
     >
-      <ReportProductReader report={report} />
+      <ReportProductReader report={report} storedAccessTier={storedAccessTier} />
 
       <details className="report-product-reader-tools">
         <summary>ذخیره و مدیریت گزارش</summary>

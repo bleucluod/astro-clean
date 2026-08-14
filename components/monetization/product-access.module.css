@@ -1,0 +1,145 @@
+.offerSection {
+  display: grid;
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+
+.offerHeading {
+  max-width: 48rem;
+}
+
+.kicker {
+  display: inline-block;
+  color: #1e40af;
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin-bottom: 0.45rem;
+}
+
+.offerGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.offerCard,
+.accountCard {
+  border: 1px solid #bcccdc;
+  border-radius: 20px;
+  background: #f8fafc;
+  padding: 1.15rem;
+  color: #2f4052;
+}
+
+.offerCard[data-selected="true"] {
+  box-shadow: 0 0 0 2px #d9eafd;
+}
+
+.offerCard h3,
+.accountCard h2 {
+  color: #243447;
+  margin: 0.25rem 0 0.65rem;
+}
+
+.testPrice {
+  display: inline-flex;
+  border: 1px solid #bcccdc;
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 12px;
+  padding: 0.65rem 0.9rem;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.primaryAction {
+  border: 0;
+  background: #d9eafd;
+  color: #243447;
+  cursor: pointer;
+}
+
+.primaryAction:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.secondaryAction {
+  border: 1px solid #bcccdc;
+  color: #1e40af;
+}
+
+.lockedOffer {
+  margin: 1.5rem 0;
+  border: 1px solid rgb(188 204 220 / 45%);
+  border-radius: 22px;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  background:
+    linear-gradient(145deg, rgb(217 234 253 / 14%), rgb(248 250 252 / 4%));
+  color: inherit;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+}
+
+.lockedOffer h3 {
+  margin: 0.2rem 0 0.7rem;
+  color: inherit;
+}
+
+.lockedOffer p,
+.lockedOffer li,
+.lockedOffer small {
+  color: inherit;
+  opacity: 0.9;
+}
+
+.lockedOffer ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.85rem 0 1rem;
+  padding-inline-start: 1.2rem;
+}
+
+.lockActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.lockMessage {
+  margin: 0.8rem 0 0;
+  font-weight: 700;
+}
+
+.accountAccessGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.accountAccessGrid > div {
+  border: 1px solid #bcccdc;
+  border-radius: 14px;
+  padding: 0.8rem;
+}
+
+.accountAccessGrid span,
+.accountAccessGrid strong {
+  display: block;
+}
+
+.accountAccessGrid strong {
+  margin-top: 0.25rem;
+  font-size: 1.35rem;
+  color: #243447;
+}

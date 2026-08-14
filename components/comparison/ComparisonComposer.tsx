@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { AccountProductAccessCard } from "@/components/monetization/ProductAccessCards";
+import { ProductLockedOffer } from "@/components/monetization/ProductAccessCards";
+import { useProductAccess } from "@/lib/monetization/product-access-client";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -59,6 +62,7 @@ const RELATIONSHIP_OPTIONS: ReadonlyArray<{
 
 export function ComparisonComposer({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
+  const productAccess = useProductAccess();
   const [reports, setReports] = useState<AstrologyReport[]>([]);
   const [history, setHistory] = useState<ComparisonRecord[]>([]);
   const [chartAId, setChartAId] = useState("");
@@ -72,6 +76,7 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
   const [consentConfirmed, setConsentConfirmed] = useState(false);
   const [message, setMessage] = useState("");
   const [isWorking, setIsWorking] = useState(false);
+  const [productLocked, setProductLocked] = useState(false);
 
   const refreshLibrary = useCallback(() => {
     setReports(loadReports());
@@ -119,12 +124,23 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
     setMessage("");
   }
 
-  function generateComparison() {
+  async function generateComparison() {
     if (!chartA || !chartB) {
       setMessage("دو چارت محاسبه‌شده را انتخاب کن.");
       return;
     }
 
+    if (productAccess.status === "loading") {
+      setMessage("اعتبار حساب هنوز در حال بررسی است.");
+      return;
+    }
+    if (productAccess.access.balances.relationship < 1) {
+      setProductLocked(true);
+      setMessage("برای ساخت تحلیل رابطه تازه یک اعتبار تحلیل رابطه لازم است.");
+      return;
+    }
+
+    setProductLocked(false);
     setIsWorking(true);
     setMessage("");
 
@@ -142,6 +158,14 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
     if (!result.ok) {
       setIsWorking(false);
       setMessage(result.message);
+      return;
+    }
+
+    const consume = await productAccess.consumeRelationship(result.record.id);
+    if (!consume.ok) {
+      setProductLocked(true);
+      setIsWorking(false);
+      setMessage(consume.error ?? "مصرف اعتبار تحلیل رابطه انجام نشد.");
       return;
     }
 
@@ -165,7 +189,7 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
   }
 
   return (
-    <div className={styles.product}>
+    <div className={styles.product} data-halleus-progressive-compare="batch4-r1">
       {!embedded ? <>
       <section className={styles.hero}>
         <div>
@@ -248,6 +272,14 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
 
       </> : null}
 
+      <ol className={styles.flowRail} aria-label="مراحل ساخت تحلیل رابطه">
+        <li><span>۱</span>چارت اول</li>
+        <li><span>۲</span>چارت دوم</li>
+        <li><span>۳</span>نوع رابطه</li>
+        <li><span>۴</span>رضایت</li>
+        <li><span>۵</span>اعتبار و ساخت</li>
+      </ol>
+
       <section className={styles.composerCard} aria-labelledby="comparison-builder-title">
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>ساخت تحلیل رابطه</p>
@@ -270,7 +302,9 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
           </div>
         ) : (
           <>
-            <div className={styles.chartGrid}>
+            <section className={styles.flowStep} data-flow-step="charts">
+              <div className={styles.stepHeading}><span>۱–۲</span><div><h3>دو چارت را انتخاب کن</h3><p>اول چارت خودت و بعد چارت نفر دوم را انتخاب کن؛ ساخت چارت دوم همچنان در تب تازه انجام می‌شود.</p></div></div>
+              <div className={styles.chartGrid}>
               <ChartPicker
                 label="چارت اول"
                 value={chartAId}
@@ -290,6 +324,7 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
                 onTimeStatusChange={setChartBTimeStatus}
               />
             </div>
+            </section>
 
             <div className={styles.builderToolbar}>
               <Link className={styles.secondaryButton} href="/chart" target="_blank" rel="noreferrer noopener">
@@ -300,7 +335,9 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
               </button>
             </div>
 
-            <fieldset className={styles.relationshipFieldset}>
+            <section className={styles.flowStep} data-flow-step="relationship">
+              <div className={styles.stepHeading}><span>۳</span><div><h3>زمینهٔ رابطه را مشخص کن</h3><p>این انتخاب فقط لحن و تمرکز خوانش را تنظیم می‌کند و حکم قطعی درباره آینده رابطه نمی‌دهد.</p></div></div>
+              <fieldset className={styles.relationshipFieldset}>
               <legend>نوع رابطه</legend>
               <div className={styles.relationshipGrid}>
                 {RELATIONSHIP_OPTIONS.map((option) => (
@@ -324,8 +361,11 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
                 ))}
               </div>
             </fieldset>
+            </section>
 
-            <label className={styles.consentBox}>
+            <section className={styles.flowStep} data-flow-step="consent">
+              <div className={styles.stepHeading}><span>۴</span><div><h3>رضایت نفر دوم را تأیید کن</h3><p>تحلیل رابطه خصوصی می‌ماند و اطلاعات خام تولد نفر دوم برای بررسی اعتبار ارسال نمی‌شود.</p></div></div>
+              <label className={styles.consentBox}>
               <input
                 type="checkbox"
                 checked={consentConfirmed}
@@ -338,16 +378,33 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
                 </small>
               </span>
             </label>
+            </section>
 
             {message ? <p className={styles.errorMessage} role="alert">{message}</p> : null}
+
+            {productLocked && chartA && chartB ? (
+              <ProductLockedOffer
+                productCode="relationship"
+                title={`خوانش کامل ${getComparisonChartLabel(chartA)} و ${getComparisonChartLabel(chartB)}`}
+                description={`برای زمینهٔ ${RELATIONSHIP_OPTIONS.find((item) => item.value === relationshipContext)?.label ?? "عمومی"}، پاسخ‌های این دو چارت پشت دسترسی Relationship می‌ماند؛ دادهٔ تولد نفر دوم برای بررسی اعتبار به سرور فرستاده نمی‌شود.`}
+                items={["گفت‌وگو و سوءبرداشت", "امنیت عاطفی و نزدیکی", "اصطکاک، مرزها و ترمیم", "این نتیجه بعد از ساخت دوباره اعتبار مصرف نمی‌کند"]}
+                href="/pricing"
+              />
+            ) : null}
+
+            <section className={styles.creditStage} data-flow-step="credit">
+              <div className={styles.stepHeading}><span>۵</span><div><h3>اعتبار رابطه و ساخت تحلیل</h3><p>ساخت یک تحلیل تازه یک اعتبار رابطه مصرف می‌کند. بازکردن نتیجهٔ ذخیره‌شده اعتبار دیگری مصرف نمی‌کند.</p></div></div>
+              <div className={styles.creditWidget}><AccountProductAccessCard /></div>
+              <Link className={styles.purchasePath} href="/pricing">اعتبار کافی نداری؟ بسته‌های فعال را ببین</Link>
+            </section>
 
             <button
               className={styles.primaryButton}
               type="button"
-              disabled={isWorking || !chartA || !chartB}
+              disabled={isWorking || productAccess.status === "loading" || !chartA || !chartB}
               onClick={generateComparison}
             >
-              {isWorking ? "در حال ساخت خوانش…" : "شروع تحلیل رابطه"}
+              {isWorking ? "در حال ساخت خوانش…" : "ساخت تحلیل رابطه"}
             </button>
           </>
         )}

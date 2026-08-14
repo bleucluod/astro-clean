@@ -19,6 +19,14 @@ import {
   type VerifiedAdminActor,
 } from "@/lib/admin/admin-auth";
 import { validateReportTitle } from "@/lib/reports/report-access-contract";
+import {
+  normalizeHalleusPackageCode,
+  type HalleusPackageCode,
+} from "@/lib/monetization/product-catalog";
+import {
+  getProductPackageByCode,
+  grantPackageCredits,
+} from "@/lib/monetization/product-entitlement-service";
 
 type AuditInput = {
   actor: VerifiedAdminActor | null;
@@ -330,51 +338,54 @@ export async function listAdminReports(
       r.user_id,
       r.visibility,
       r.source,
-      coalesce(r.title, r.report_json #>> '{input,name}', 'گزارش ذخیره‌شده') as title,
+      r.publication_owner_kind,
+      r.access_tier,
+      r.publication_state,
+      r.publication_consent_state,
+      r.identity_consent_state,
+      r.share_enabled,
+      pg_column_size(r)::int as storage_bytes,
+      pg_column_size(r.report_json)::int as report_json_bytes,
+      coalesce(
+        nullif(r.title, ''),
+        nullif(r.report_json #>> '{input,name}', ''),
+        'گزارش ذخیره‌شده'
+      ) as title,
       u.display_name as owner_display_name,
+      u.plan as account_plan,
       r.report_json #>> '{input,name}' as subject_name,
       r.report_json #>> '{input,birthDate}' as birth_date,
       r.report_json #>> '{input,birthTime}' as birth_time,
       r.report_json #>> '{input,birthTimeAccuracy}' as birth_time_accuracy,
       r.report_json #>> '{input,birthCity}' as birth_city,
       r.report_json #>> '{input,birthCountry}' as birth_country,
-      coalesce(r.report_json #>> '{visibility,publicationPolicy,ownerKind}', 'unknown') as owner_kind,
-      -- HALLEUS_REPORT_SUBJECT_SELECT_R44
+      nullif(r.report_json #>> '{metadata,reportType}', '') as metadata_report_type,
+      nullif(r.report_json ->> 'reportType', '') as top_level_report_type,
       coalesce(
-        r.report_json #>> '{access,tier}',
-        r.report_json ->> 'tier',
-        'unknown'
-      ) as access_tier,
-      coalesce(
-        r.report_json #>> '{engineData,engineVersion}',
-        r.report_json #>> '{chart,engineVersion}',
-        r.report_json ->> 'engineVersion'
+        nullif(r.report_json #>> '{engineData,engineVersion}', ''),
+        nullif(r.report_json #>> '{chart,engineVersion}', ''),
+        nullif(r.report_json ->> 'engineVersion', '')
       ) as engine_version,
       coalesce(
-        r.report_json #>> '{metadata,reportVersion}',
-        r.report_json ->> 'reportVersion'
+        nullif(r.report_json #>> '{metadata,reportVersion}', ''),
+        nullif(r.report_json ->> 'reportVersion', '')
       ) as report_version,
-      coalesce(
-        r.report_json #>> '{publication,consentState}',
-        r.report_json ->> 'publicationConsentState',
-        'unknown'
-      ) as publication_consent_state,
       r.created_at::text as created_at,
       r.updated_at::text as updated_at
-    from public.halleus_reports r
-    left join public.halleus_users u on u.id = r.user_id
-    where r.deleted_at is null and (
-      ${query}::text is null
-      or r.id ilike ${query}
-      or r.user_id ilike ${query}
-      or r.source ilike ${query}
-      or coalesce(r.title, '') ilike ${query}
-      or coalesce(u.display_name, '') ilike ${query}
-      or coalesce(r.report_json #>> '{input,name}', '') ilike ${query}
-      or coalesce(r.report_json #>> '{input,birthCity}', '') ilike ${query}
-      or coalesce(r.report_json #>> '{input,birthCountry}', '') ilike ${query}
-      -- HALLEUS_REPORT_SUBJECT_SEARCH_R44
-    )
+    from public.halleus_reports as r
+    left join public.halleus_users as u on u.id = r.user_id
+    where r.deleted_at is null
+      and (
+        ${query}::text is null
+        or r.id ilike ${query}
+        or r.user_id ilike ${query}
+        or r.source ilike ${query}
+        or coalesce(r.title, '') ilike ${query}
+        or coalesce(u.display_name, '') ilike ${query}
+        or coalesce(r.report_json #>> '{input,name}', '') ilike ${query}
+        or coalesce(r.report_json #>> '{input,birthCity}', '') ilike ${query}
+        or coalesce(r.report_json #>> '{input,birthCountry}', '') ilike ${query}
+      )
     order by r.created_at desc
     limit ${limit}
     offset ${offset}
@@ -382,30 +393,56 @@ export async function listAdminReports(
 
   return rows.map((raw) => {
     const row = asRecord(raw);
+    const birthDate = asNullableString(row.birth_date);
+    const birthParts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDate ?? "");
+    const visibilityRaw = asString(row.visibility);
+    const visibility = [
+      "public",
+      "private",
+      "shared_by_link",
+      "unpublished",
+      "restricted_by_admin",
+    ].includes(visibilityRaw)
+      ? (visibilityRaw as AdminReportSummary["visibility"])
+      : "unknown";
+    const publicationState = asString(row.publication_state) || "unknown";
+    const birthTimeAccuracyRaw = asString(row.birth_time_accuracy);
+
     return {
       id: asString(row.id),
-      title: asString(row.title),
+      title: asString(row.title) || "گزارش ذخیره‌شده",
       ownerUserId: asString(row.user_id),
       ownerDisplayName: asNullableString(row.owner_display_name),
       subjectName: asNullableString(row.subject_name),
-      birthDate: asNullableString(row.birth_date),
+      birthDate,
       birthTime: asNullableString(row.birth_time),
-      birthTimeAccuracy: ["known", "unknown"].includes(asString(row.birth_time_accuracy))
-        ? asString(row.birth_time_accuracy) as "known" | "unknown"
+      birthTimeAccuracy: ["known", "unknown"].includes(birthTimeAccuracyRaw)
+        ? (birthTimeAccuracyRaw as "known" | "unknown")
         : null,
       birthCity: asNullableString(row.birth_city),
       birthCountry: asNullableString(row.birth_country),
-      ownerKind: asString(row.owner_kind) || "unknown",
+      ownerKind: asString(row.publication_owner_kind) || "unknown",
+      accountPlan: asNullableString(row.account_plan),
+      reportType:
+        asNullableString(row.metadata_report_type) ??
+        asNullableString(row.top_level_report_type) ??
+        "unknown",
+      birthYear: birthParts?.[1] ?? null,
+      birthMonth: birthParts?.[2] ?? null,
+      publicationState,
+      identityConsentState: asString(row.identity_consent_state) || "unknown",
+      shareEnabled: asBoolean(row.share_enabled),
+      storageBytes: asNumber(row.storage_bytes),
+      reportJsonBytes: asNumber(row.report_json_bytes),
       // HALLEUS_REPORT_SUBJECT_MAP_R44
-      visibility: ["public", "shared_by_link", "unpublished", "restricted_by_admin"].includes(asString(row.visibility))
-        ? asString(row.visibility) as AdminReportSummary["visibility"]
-        : "private",
-      source: asString(row.source),
-      accessTier: asString(row.access_tier),
+      visibility,
+      source: asString(row.source) || "unknown",
+      accessTier: asString(row.access_tier) || "unknown",
       engineVersion: asNullableString(row.engine_version),
       reportVersion: asNullableString(row.report_version),
-      publicationConsentState: asString(row.publication_consent_state),
-      indexable: false,
+      publicationConsentState:
+        asString(row.publication_consent_state) || "unknown",
+      indexable: visibility === "public" && publicationState === "public",
       createdAt: asString(row.created_at),
       updatedAt: asString(row.updated_at),
     };
@@ -567,60 +604,52 @@ export async function createPremiumRequest(input: {
   userId: string | null;
   contactName: string;
   contactValue: string;
-  requestedProduct: string;
+  productCode: HalleusPackageCode;
   linkedReportId: string | null;
   customerNotes: string | null;
   publicationChoice: "not_requested" | "private" | "public_with_consent";
 }) {
   const sql = getAdminDatabase();
   const correlationId = crypto.randomUUID();
+  const normalizedCode = normalizeHalleusPackageCode(input.productCode);
+  if (!normalizedCode) {
+    throw new AdminAccessError(400, "Unsupported Halleus package.");
+  }
+  const productPackage = await getProductPackageByCode(normalizedCode);
+  if (!productPackage || !productPackage.active) {
+    throw new AdminAccessError(400, "This Halleus package is not active.");
+  }
 
   return sql.begin(async (tx) => {
     const rows = await tx`
       insert into halleus_private.premium_requests (
-        user_id,
-        contact_name,
-        contact_value,
-        requested_product,
-        linked_report_id,
-        customer_notes,
-        publication_choice
+        user_id, contact_name, contact_value, requested_product, product_code,
+        linked_report_id, customer_notes, publication_choice
       )
       values (
-        ${input.userId}::uuid,
-        ${input.contactName},
-        ${input.contactValue},
-        ${input.requestedProduct},
-        ${input.linkedReportId},
-        ${input.customerNotes},
-        ${input.publicationChoice}
+        ${input.userId}::uuid, ${input.contactName}, ${input.contactValue},
+        ${productPackage.name}, ${normalizedCode}, ${input.linkedReportId},
+        ${input.customerNotes}, ${input.publicationChoice}
       )
       returning id::text as id, status, created_at::text as created_at
     `;
     const row = asRecord(rows[0]);
-
     await tx`
       insert into halleus_private.admin_audit_events (
         actor_user_id, actor_role, action, target_type, target_id,
         after_summary, reason, success, request_correlation_id
       )
       values (
-        ${input.userId}::uuid,
-        ${input.userId ? "user" : "guest"},
-        'premium_request.created',
-        'premium_request',
-        ${asString(row.id)},
+        ${input.userId}::uuid, ${input.userId ? "user" : "guest"},
+        'premium_request.created', 'premium_request', ${asString(row.id)},
         ${tx.json({
-          requestedProduct: input.requestedProduct,
+          packageCode: normalizedCode,
           linkedReport: Boolean(input.linkedReportId),
           publicationChoice: input.publicationChoice,
         })},
-        'Premium request intake.',
-        true,
-        ${correlationId}
+        'Manual Halleus package request intake.', true, ${correlationId}
       )
     `;
-
     return {
       id: asString(row.id),
       status: asString(row.status),
@@ -637,21 +666,11 @@ export async function listPremiumRequests(
   const offset = (Math.max(1, page) - 1) * limit;
   const rows = await sql`
     select
-      id::text as id,
-      user_id::text as user_id,
-      contact_name,
-      contact_value,
-      requested_product,
-      linked_report_id,
-      customer_notes,
-      internal_notes,
-      status,
-      agreed_amount::text as agreed_amount,
-      due_date::text as due_date,
-      delivery_status,
-      publication_choice,
-      created_at::text as created_at,
-      updated_at::text as updated_at
+      id::text as id, user_id::text as user_id, contact_name, contact_value,
+      requested_product, product_code, linked_report_id, customer_notes,
+      internal_notes, status, agreed_amount::text as agreed_amount,
+      due_date::text as due_date, delivery_status, publication_choice,
+      created_at::text as created_at, updated_at::text as updated_at
     from halleus_private.premium_requests
     order by
       case status
@@ -662,40 +681,39 @@ export async function listPremiumRequests(
         else 5
       end,
       created_at desc
-    limit ${limit}
-    offset ${offset}
+    limit ${limit} offset ${offset}
   `;
-
   return rows.map((raw) => {
     const row = asRecord(raw);
-    const status = asString(row.status) as AdminPremiumRequestSummary["status"];
-    const deliveryStatus = asString(
-      row.delivery_status,
-    ) as AdminPremiumRequestSummary["deliveryStatus"];
-    const publicationChoice = asString(
-      row.publication_choice,
-    ) as AdminPremiumRequestSummary["publicationChoice"];
-
+    const productCode = normalizeHalleusPackageCode(
+      asString(row.product_code),
+    );
     return {
       id: asString(row.id),
       userId: asNullableString(row.user_id),
       contactName: asString(row.contact_name),
       contactValue: asString(row.contact_value),
       requestedProduct: asString(row.requested_product),
+      productCode,
       linkedReportId: asNullableString(row.linked_report_id),
       customerNotes: asNullableString(row.customer_notes),
       internalNotes: asNullableString(row.internal_notes),
-      status,
+      status: asString(row.status) as AdminPremiumRequestSummary["status"],
       agreedAmount: asNullableString(row.agreed_amount),
       dueDate: asNullableString(row.due_date),
-      deliveryStatus,
-      publicationChoice,
+      deliveryStatus: asString(
+        row.delivery_status,
+      ) as AdminPremiumRequestSummary["deliveryStatus"],
+      publicationChoice: asString(
+        row.publication_choice,
+      ) as AdminPremiumRequestSummary["publicationChoice"],
       createdAt: asString(row.created_at),
       updatedAt: asString(row.updated_at),
     };
   });
 }
 
+// HALLEUS_MANUAL_PACKAGE_FULFILLMENT_CREDITS_R1
 export async function updatePremiumRequest(input: {
   actor: VerifiedAdminActor;
   requestId: string;
@@ -708,16 +726,15 @@ export async function updatePremiumRequest(input: {
   reason: string;
 }) {
   const sql = getAdminDatabase();
+  let deliveredUserId: string | null = null;
+  let deliveredPackageCode: string | null = null;
 
   try {
     await sql.begin(async (tx) => {
       const beforeRows = await tx`
-        select
-          status,
-          delivery_status,
-          agreed_amount::text as agreed_amount,
-          due_date::text as due_date,
-          linked_report_id
+        select user_id::text as user_id, product_code,
+          status, delivery_status, agreed_amount::text as agreed_amount,
+          due_date::text as due_date, linked_report_id
         from halleus_private.premium_requests
         where id = ${input.requestId}::bigint
         for update
@@ -730,7 +747,10 @@ export async function updatePremiumRequest(input: {
       const amount =
         input.agreedAmount === null ? null : Number(input.agreedAmount);
       if (amount !== null && (!Number.isFinite(amount) || amount < 0)) {
-        throw new AdminAccessError(400, "Agreed amount must be a non-negative number.");
+        throw new AdminAccessError(
+          400,
+          "Agreed amount must be a non-negative number.",
+        );
       }
 
       await tx`
@@ -745,16 +765,25 @@ export async function updatePremiumRequest(input: {
         where id = ${input.requestId}::bigint
       `;
 
+      const delivered =
+        input.status === "delivered" &&
+        input.deliveryStatus === "delivered";
+      deliveredUserId = delivered
+        ? asNullableString(before.user_id)
+        : null;
+      deliveredPackageCode = delivered
+        ? normalizeHalleusPackageCode(asString(before.product_code))
+        : null;
+
       await tx`
         insert into halleus_private.admin_audit_events (
           actor_user_id, actor_role, action, target_type, target_id,
-          before_summary, after_summary, reason, success, request_correlation_id
+          before_summary, after_summary, reason, success,
+          request_correlation_id
         )
         values (
-          ${input.actor.userId}::uuid,
-          ${input.actor.role},
-          'admin.premium_request.updated',
-          'premium_request',
+          ${input.actor.userId}::uuid, ${input.actor.role},
+          'admin.premium_request.updated', 'premium_request',
           ${input.requestId},
           ${tx.json({
             status: asString(before.status),
@@ -762,6 +791,9 @@ export async function updatePremiumRequest(input: {
             agreedAmount: asNullableString(before.agreed_amount),
             dueDate: asNullableString(before.due_date),
             linkedReportId: asNullableString(before.linked_report_id),
+            packageCode: normalizeHalleusPackageCode(
+              asString(before.product_code),
+            ),
           })},
           ${tx.json({
             status: input.status,
@@ -769,14 +801,26 @@ export async function updatePremiumRequest(input: {
             agreedAmount: input.agreedAmount,
             dueDate: input.dueDate,
             linkedReportId: input.linkedReportId,
+            packageCode: deliveredPackageCode,
+            creditGrantPending:
+              Boolean(deliveredUserId && deliveredPackageCode),
             internalNoteLength: input.internalNotes?.length ?? 0,
           })},
-          ${input.reason},
-          true,
-          ${input.actor.correlationId}
+          ${input.reason}, true, ${input.actor.correlationId}
         )
       `;
     });
+
+    if (deliveredUserId && deliveredPackageCode) {
+      await grantPackageCredits({
+        userId: deliveredUserId,
+        packageCode: deliveredPackageCode,
+        sourceRequestId: input.requestId,
+        reason: input.reason,
+        actorUserId: input.actor.userId,
+        idempotencyKey: `premium-request:${input.requestId}:delivered`,
+      });
+    }
   } catch (error) {
     await safeFailureAudit(
       {

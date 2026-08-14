@@ -522,6 +522,7 @@ function checkIntegrationSources() {
   const wikiIndex = read("app/wiki/page.tsx");
   const wikiCategory = read("app/wiki/category/[categoryId]/page.tsx");
   const wikiArticle = read("app/wiki/[slug]/page.tsx");
+  const wikiArticleRenderer = read("components/wiki/WikiArticleRender.tsx");
   const repository = read("lib/wiki/wiki-repository.ts");
   const sitemap = read("app/sitemap.ts");
   const seo = read("lib/config/seo.ts");
@@ -613,10 +614,14 @@ function checkIntegrationSources() {
   }
 
   requireText("Wiki article route", wikiArticle, "href={`/wiki/category/${category.id}`}");
+  // HALLEUS_PUBLIC_DISCOVERY_SHARED_WIKI_RENDERER_R2
+  requireText("Wiki article shared body", wikiArticle, "<WikiArticleBody");
+  requireText("Wiki article shared inline text", wikiArticle, "<WikiInlineText");
+  requireText("Wiki article inline links", wikiArticleRenderer, "WikiInlineText");
   requireText(
-    "Wiki article inline links",
-    wikiArticle,
-    "renderWikiText(paragraph, internalLinkTargets)",
+    "Wiki article inline article target",
+    wikiArticleRenderer,
+    'href={`/wiki/${target.slug}`}',
   );
   requireText("Wiki article chart CTA", wikiArticle, 'href: "/chart"');
   requireText("Wiki article chart CTA", wikiArticle, "href={callToAction.href}");

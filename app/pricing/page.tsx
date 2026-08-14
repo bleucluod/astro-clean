@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 
-import { FinalEditorialPage } from "@/components/FinalEditorialPage";
+import { ProductOfferGrid } from "@/components/monetization/ProductAccessCards";
+import { PricingCommerceSurface } from "@/components/commerce/CommerceSurfaces";
 
 export const metadata: Metadata = {
-  title: "گزارش پایه و گزینه‌های نسخه کامل‌تر | هالیوس",
-  description: "گزارش پایه هالیوس را رایگان شروع کن و در صورت نیاز، گزینه‌های نسخه کامل‌تر را ببین. زمان، هزینه، محدوده و قالب تحویل پیش از شروع جداگانه تأیید می‌شوند.",
+  title: "قیمت گزارش چارت تولد کامل و اعتبارها | هالیوس",
+  description: "گزارش پایه هالیوس را رایگان شروع کن و بسته‌های فعال گزارش کامل و تحلیل رابطه را با قیمت و تعداد اعتبارهای واقعی کاتالوگ هالیوس ببین.",
   alternates: { canonical: "/pricing" },
   robots: { index: true, follow: true },
 };
 
 export default function PricingPage() {
-  return <FinalEditorialPage pageKey="pricing" />;
+  return <PricingCommerceSurface packages={<ProductOfferGrid />} />;
 }

@@ -21,6 +21,7 @@ import {
 import type { AstrologyReport } from "@/types/astro";
 import { FiveMinuteReportSummary } from "@/components/report/FiveMinuteReportSummary";
 import { ReportTechnicalAppendix } from "@/components/report/ReportTechnicalAppendix";
+import { useProductAccess } from "@/lib/monetization/product-access-client";
 import styles from "./human-first-report.module.css";
 
 type ReportWithTransit = AstrologyReport & {
@@ -38,7 +39,13 @@ const FLOW_SECTIONS = [
 
 const LEGACY_ADAPTIVE_COMPATIBILITY_RENDER = false;
 
-export function ReportProductReader({ report }: { report: AstrologyReport }) {
+export function ReportProductReader({ report, storedAccessTier = null }: { report: AstrologyReport; storedAccessTier?: string | null }) {
+  const productAccess = useProductAccess(report.id);
+  const premiumBirthUnlocked =
+    storedAccessTier === "premium" || productAccess.access.reportUnlocked;
+  const accessPolicy = productAccess.access.policy;
+  const technicalAppendixVisible =
+    premiumBirthUnlocked || accessPolicy.technical.appendix === "free";
   const contract = useMemo(() => buildLiveReportReadingContract(report), [report]);
   const transitData = useMemo(
     () => (report as ReportWithTransit).engineData?.personalTransitReportData ?? null,
@@ -278,7 +285,14 @@ export function ReportProductReader({ report }: { report: AstrologyReport }) {
 
           <div className={styles.fullReportStage}>
             <div className={styles.fullReportNarrative}>
-              <ReportV3Experience report={report} readingContract={contract} />
+              <ReportV3Experience
+                accessMode={premiumBirthUnlocked ? "premium" : "free"}
+                accessPolicy={accessPolicy}
+                fullReportCredits={productAccess.access.balances.fullReport}
+                onUnlockFullReport={() => productAccess.unlockReport(report.id)}
+                report={report}
+                readingContract={contract}
+              />
             </div>
             <aside
               aria-label="چارت تولد همراه فصل‌های گزارش"
@@ -316,7 +330,9 @@ export function ReportProductReader({ report }: { report: AstrologyReport }) {
             <div className={styles.wheelShell} data-screenshot-ready>
               <ReportBirthChartWheel report={report} />
             </div>
-            <ReportTechnicalAppendix contract={contract} report={report} />
+            {technicalAppendixVisible ? (
+              <ReportTechnicalAppendix contract={contract} report={report} />
+            ) : null}
           </div>
         </section>
       </div>

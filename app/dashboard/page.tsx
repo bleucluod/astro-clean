@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
+import { AccountProductAccessCard } from "@/components/monetization/ProductAccessCards";
+import styles from "./dashboard.module.css";
 import { useEffect, useMemo, useState } from "react";
 import { getPreviewSession } from "@/lib/account/preview-session";
 import { listReportSummaries } from "@/lib/storage/report-query-service";
@@ -26,22 +28,14 @@ export default function DashboardPage() {
 
     async function loadDashboard() {
       const nextReports = await listReportSummaries();
-
-      if (!isActive) {
-        return;
-      }
-
+      if (!isActive) return;
       setSession(getPreviewSession());
       setReports(nextReports);
       setIsReady(true);
     }
 
     void loadDashboard();
-
-    const handleDataChange = () => {
-      void loadDashboard();
-    };
-
+    const handleDataChange = () => { void loadDashboard(); };
     window.addEventListener("halleus-data-changed", handleDataChange);
     window.addEventListener("astro-clean-data-changed", handleDataChange);
 
@@ -52,137 +46,122 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const stats = useMemo(() => {
-    const favoriteCount = reports.filter((report) => report.favorite).length;
-    const noteCount = reports.filter((report) => report.hasNote).length;
-    const privateCount = reports.filter(
-      (report) => report.visibility === "private",
-    ).length;
-
-    return {
-      favoriteCount,
-      noteCount,
-      privateCount,
-      totalCount: reports.length,
-    };
-  }, [reports]);
-
-  const latestReports = useMemo(() => reports.slice(0, 5), [reports]);
+  const latestReport = reports[0] ?? null;
+  const recentReports = useMemo(() => reports.slice(0, 5), [reports]);
 
   if (!isReady) {
     return (
-      <section className="grid core-surface-dashboard">
-        <div className="card">
-          <span className="badge">پنل هالیوس</span>
-          <h1>در حال آماده‌سازی پنل تو</h1>
-          <p>گزارش‌ها و اطلاعات حساب تو آماده می‌شوند.</p>
-        </div>
-        <span className="dashboard-copy-detox-marker" aria-hidden="true" hidden />
-      </section>
+      <main className={styles.page} data-halleus-personal-home="batch4-r1">
+        <section className={styles.loadingCard}>
+          <span className={styles.eyebrow}>خانه شخصی هالیوس</span>
+          <h1>داریم فضای شخصی تو را آماده می‌کنیم</h1>
+          <p>گزارش‌ها، اعتبارها و مسیرهای بعدی در حال آماده‌شدن‌اند.</p>
+        </section>
+      </main>
     );
   }
 
   return (
-    <section className="grid core-surface-dashboard account-ready-dashboard">
-      <div className="card account-ready-dashboard-hero">
-        <span className="badge">پنل من</span>
-
-        <h1>سلام، به پنل هالیوس خوش آمدی</h1>
-
-        <p>
-          اینجا می‌توانی به گزارش‌های ذخیره‌شده برگردی، گزارش تازه بسازی و مسیر
-          حساب خودت را ساده‌تر دنبال کنی.
-        </p>
-
-        <div className="account-ready-status-strip" aria-label="خلاصه حساب و گزارش‌ها">
-          <span>حساب: {session ? "آماده" : "قابل ساخت"}</span>
-          <span>گزارش‌ها: خصوصی</span>
-          <span>ذخیره‌شده‌ها: {stats.totalCount.toLocaleString("fa-IR")}</span>
+    <main className={styles.page} data-halleus-personal-home="batch4-r1">
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.eyebrow}>خانه شخصی هالیوس</span>
+          <h1>از همین‌جا ادامه بده</h1>
+          <p>
+            {session
+              ? "حساب تو آماده است؛ گزارش‌های قبلی، اعتبارها و تحلیل رابطه را از یک جای ساده دنبال کن."
+              : "گزارش‌های این مرورگر را می‌بینی؛ برای استفاده از اعتبارهای خریداری‌شده وارد حساب هالیوس شو."}
+          </p>
         </div>
-
-        <div className="actions">
-          <Link className="button" href="/chart">
-            ساخت گزارش جدید
-          </Link>
-
-          <Link className="button secondary" href="/reports">
-            گزارش‌های من
-          </Link>
-
-          <Link className="button secondary" href="/profile">
-            پروفایل
-          </Link>
-
-          <Link className="button secondary" href="/privacy">
-            حریم خصوصی
-          </Link>
+        <div className={styles.heroActions}>
+          <Link className={styles.primaryAction} href="/chart">ساخت چارت جدید</Link>
+          <Link className={styles.secondaryAction} href="/compare">تحلیل رابطه</Link>
         </div>
-      </div>
+      </section>
 
-      <div className="feature-grid">
-        <article className="card feature-card-polished">
-          <span className="badge">گزارش‌ها</span>
-          <h2>{stats.totalCount.toLocaleString("fa-IR")}</h2>
-          <p>گزارش‌هایی که برای برگشت دوباره ذخیره کرده‌ای.</p>
+      <section className={styles.creditSection} aria-labelledby="dashboard-credit-title">
+        <div className={styles.sectionHeading}>
+          <div>
+            <span className={styles.eyebrow}>اعتبارهای حساب</span>
+            <h2 id="dashboard-credit-title">موجودی و دسترسی‌های تو</h2>
+          </div>
+          <Link href="/pricing">دیدن بسته‌های اعتبار</Link>
+        </div>
+<AccountProductAccessCard />
+      </section>
+
+      <section className={styles.continueGrid}>
+        <article className={styles.continueCard}>
+          <span className={styles.eyebrow}>ادامه خواندن</span>
+          {latestReport ? (
+            <>
+              <h2>{latestReport.name?.trim() || "آخرین گزارش تولد"}</h2>
+              <p>
+                {latestReport.birthCity ? latestReport.birthCity + " · " : ""}
+                {formatDate(latestReport.createdAt)}
+              </p>
+              <Link className={styles.primaryAction} href={`/reports/${latestReport.id}`}>ادامه گزارش</Link>
+            </>
+          ) : (
+            <>
+              <h2>اولین گزارش خودت را بساز</h2>
+              <p>بعد از ذخیرهٔ گزارش، سریع‌ترین مسیر برگشت به آن همین‌جا خواهد بود.</p>
+              <Link className={styles.primaryAction} href="/chart">ساخت اولین گزارش</Link>
+            </>
+          )}
         </article>
 
-        <article className="card feature-card-polished">
-          <span className="badge">علاقه‌مندی‌ها</span>
-          <h2>{stats.favoriteCount.toLocaleString("fa-IR")}</h2>
-          <p>گزارش‌هایی که برای مرور دوباره ستاره‌دار شده‌اند.</p>
+        <article className={styles.nextCard}>
+          <span className={styles.eyebrow}>گام بعدی</span>
+          <h2>می‌خواهی چه کاری انجام بدهی؟</h2>
+          <div className={styles.actionList}>
+            <Link href="/chart"><strong>چارت تولد جدید</strong><span>ساخت یک گزارش تازه</span></Link>
+            <Link href="/compare"><strong>تحلیل رابطه</strong><span>مقایسهٔ خصوصی دو چارت تولد</span></Link>
+            <Link href="/pricing"><strong>اعتبار بیشتر</strong><span>بسته‌های فعال هالیوس</span></Link>
+          </div>
         </article>
+      </section>
 
-        <article className="card feature-card-polished">
-          <span className="badge">یادداشت‌ها</span>
-          <h2>{stats.noteCount.toLocaleString("fa-IR")}</h2>
-          <p>گزارش‌هایی که یادداشت شخصی دارند.</p>
-        </article>
-
-        <article className="card feature-card-polished">
-          <span className="badge">حریم</span>
-          <h2>{stats.privateCount.toLocaleString("fa-IR")}</h2>
-          <p>گزارش‌هایی که فقط برای خودت نگه داشته‌ای.</p>
-        </article>
-      </div>
-
-      <SupabaseAuthPanel />
-
-      <section className="card">
-        <span className="badge">آخرین گزارش‌ها</span>
-
-        <h2>آخرین فعالیت‌ها</h2>
-
-        {latestReports.length === 0 ? (
-          <>
-            <p>
-              هنوز گزارشی ذخیره نشده. از ساخت اولین گزارش شروع کن؛ بعد همین پنل
-              نقطه برگشت تو می‌شود.
-            </p>
-
-            <Link className="button" href="/chart">
-              ساخت اولین گزارش
-            </Link>
-          </>
+      <section className={styles.recentSection} aria-labelledby="dashboard-recent-title">
+        <div className={styles.sectionHeading}>
+          <div>
+            <span className={styles.eyebrow}>گزارش‌های اخیر</span>
+            <h2 id="dashboard-recent-title">آخرین گزارش‌های ذخیره‌شده</h2>
+          </div>
+          <Link href="/reports">همه گزارش‌ها</Link>
+        </div>
+        {recentReports.length === 0 ? (
+          <p className={styles.emptyCopy}>هنوز گزارشی ذخیره نشده است.</p>
         ) : (
-          <div className="report-preview-list">
-            {latestReports.map((report) => (
-              <Link
-                className="report-preview-row"
-                href={`/reports/${report.id}`}
-                key={report.id}
-              >
+          <div className={styles.reportList}>
+            {recentReports.map((report) => (
+              <Link className={styles.reportRow} href={`/reports/${report.id}`} key={report.id}>
                 <span>
-                  {report.name?.trim() || "گزارش بدون نام"} ·{" "}
-                  {report.birthCity}
+                  <strong>{report.name?.trim() || "گزارش بدون نام"}</strong>
+                  <small>{report.birthCity || "گزارش تولد"}</small>
                 </span>
-                <small>{formatDate(report.createdAt)}</small>
+                <time>{formatDate(report.createdAt)}</time>
               </Link>
             ))}
           </div>
         )}
       </section>
 
+      <section className={styles.accountSection} aria-labelledby="dashboard-account-title">
+        <div className={styles.sectionHeading}>
+          <div>
+            <span className={styles.eyebrow}>حساب و حریم خصوصی</span>
+            <h2 id="dashboard-account-title">حساب هالیوس، بدون شلوغی فنی</h2>
+          </div>
+          <div className={styles.inlineLinks}>
+            <Link href="/profile">پروفایل</Link>
+            <Link href="/privacy">حریم خصوصی</Link>
+          </div>
+        </div>
+        <SupabaseAuthPanel compact />
+      </section>
+
       <span className="dashboard-copy-detox-marker" aria-hidden="true" hidden />
-    </section>
+    </main>
   );
 }

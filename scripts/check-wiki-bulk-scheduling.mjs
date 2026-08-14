@@ -259,7 +259,6 @@ const route = read("app/api/admin/wiki/publication-schedule/route.ts");
 const service = read("lib/wiki/wiki-cms-service.ts");
 const panel = read("components/admin/WikiAdminPanel.tsx");
 const clientResponse = read("lib/admin/admin-client-response.ts");
-const queueGuard = read("scripts/check-wiki-publication-queue-readonly.mjs");
 const packageJson = JSON.parse(read("package.json"));
 const impact = JSON.parse(read("config/halleus-check-impact.json"));
 
@@ -284,16 +283,24 @@ requireText("admin response parser", clientResponse, "response.headers.get(\"con
 requireText("bulk panel", panel, "پیش‌نمایش زمان‌بندی");
 requireText("bulk panel", panel, "اعمال همین برنامه");
 forbidText("bulk panel", panel, "انتخاب همهٔ واجد شرایط");
-requireText(
-  "queue scheduling guard",
-  queueGuard,
-  'forbidText("queue scheduling boundary", queueSection, forbidden)',
+// HALLEUS_WIKI_BULK_SCHEDULE_PUBLICATION_BOUNDARY_R2
+const queueSectionStart = panel.indexOf('{activeSection === "queue" ? (');
+const queueSectionEnd = panel.indexOf(
+  'activeSection === "articles" && detail',
+  queueSectionStart,
 );
-requireText(
-  "queue scheduling guard",
-  queueGuard,
-  "'/api/admin/wiki/publication-schedule'",
-);
+if (queueSectionStart < 0 || queueSectionEnd <= queueSectionStart) {
+  failures.push("unable to isolate the Publication section for bulk-scheduling boundary checks");
+} else {
+  const queueSection = panel.slice(queueSectionStart, queueSectionEnd);
+  for (const forbidden of [
+    "previewBulkSchedule(",
+    "applyBulkSchedule(",
+    "/api/admin/wiki/publication-schedule",
+  ]) {
+    forbidText("Publication scheduling boundary", queueSection, forbidden);
+  }
+}
 
 if (
   packageJson.scripts?.["check:wiki-bulk-scheduling"] !==

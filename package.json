@@ -220,9 +220,18 @@
     "check:report-adaptive-depth": "node scripts/check-report-adaptive-depth.mjs",
     "check:telegram-reward-integrity": "node scripts/check-telegram-reward-integrity.mjs",
     "check:telegram-publishing-hardening": "node scripts/check-telegram-publishing-hardening.mjs",
+    "check:telegram-admin-operations": "node scripts/check-telegram-admin-operations.mjs",
     "check:admin-ux-consolidation": "node scripts/check-admin-ux-consolidation.mjs",
     "check:admin-direct-auth": "node scripts/check-admin-direct-auth.mjs",
-    "check:admini-ui-routes": "node scripts/check-admini-ui-routes.mjs"
+    "check:admini-ui-routes": "node scripts/check-admini-ui-routes.mjs",
+    "check:wiki-admin-completion": "node scripts/check-wiki-admin-completion.mjs",
+    "check:reports-intelligence": "node scripts/check-reports-intelligence.mjs",
+    "check:monetization-products": "node scripts/check-monetization-products.mjs",
+    "check:predeploy-admin-ia": "node scripts/check-predeploy-admin-ia.mjs",
+    "check:credit-monetization": "node scripts/check-credit-monetization.mjs",
+    "check:predeploy-commerce-surfaces": "node scripts/check-predeploy-commerce-surfaces.mjs",
+    "check:predeploy-consumer-product-ux": "node scripts/check-predeploy-consumer-product-ux.mjs",
+    "check:predeploy-home-chart-performance": "node scripts/check-predeploy-home-chart-performance.mjs"
   },
   "dependencies": {
     "@astrodraw/astrochart": "3.0.2",

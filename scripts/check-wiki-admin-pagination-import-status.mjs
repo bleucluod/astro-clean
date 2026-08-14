@@ -16,7 +16,7 @@ const cms = read("lib/wiki/wiki-cms-service.ts");
 // HALLEUS_WIKI_JOB_PAGINATION_GUARD_R48
 const importRoute = read("app/api/admin/wiki/imports/route.ts");
 const importer = read("lib/wiki/wiki-import-service.ts");
-const adminConsole = read("components/admin/AdminConsole.tsx");
+// HALLEUS_WIKI_REPORT_ASSERTIONS_MOVED_TO_REPORTS_INTELLIGENCE_R2
 
 for (const [label, source] of [
   ["panel", panel],
@@ -25,7 +25,6 @@ for (const [label, source] of [
   ["CMS service", cms],
   ["import route", importRoute],
   ["import service", importer],
-  ["admin console", adminConsole],
 ]) {
   const result = ts.transpileModule(source, {
     compilerOptions: {
@@ -78,13 +77,6 @@ requireText("import preview no mutation copy", panel, "هیچ مقاله، رس�
 if (importRoute.includes("const result = await importValidatedWikiPackage({ actor, package: parsed, mode });")) {
   failures.push("non-merge import still applies immediately without preview");
 }
-requireText("reports main subject/account", adminConsole, "HALLEUS_REPORTS_MAIN_SUBJECT_ACCOUNT_R62");
-requireText("reports subject cell", adminConsole, "report.subjectName");
-requireText("reports birth line", adminConsole, "formatReportBirth(report)");
-requireText("reports birth place", adminConsole, "formatReportBirthPlace(report)");
-requireText("reports separate account", adminConsole, "formatReportAccount(report)");
-requireText("reports subject search", adminConsole, "نام سوژه، شهر تولد");
-
 if (failures.length) {
   console.error("Wiki admin pagination/import status check failed:");
   for (const failure of failures) console.error(`- ${failure}`);
@@ -98,4 +90,3 @@ console.log("- import history is separated from current article state");
 console.log("- fully published packages explicitly require no repeat publication");
 console.log("- review-first and auto-schedule imports require Preview → Confirm → Apply");
 console.log("- auto-schedule apply reuses the exact previewed publication slots");
-console.log("- main Reports list separates subject/birth/place from account ownership");

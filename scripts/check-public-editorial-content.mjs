@@ -103,10 +103,14 @@ for (const [page, count] of Object.entries(expectedSections)) {
         !route.includes("<FinalEditorialPage"),
       "Chart must use its dedicated product composition rather than the shared editorial renderer",
     );
+  } else if (["product", "pricing", "order"].includes(page)) {
+    const componentName = page === "product" ? "ProductCommerceSurface" : page === "pricing" ? "PricingCommerceSurface" : "OrderCommerceSurface";
+    assert.ok(route.includes(componentName), page + " is missing its dedicated commerce composition");
+    assert.ok(!route.includes("<FinalEditorialPage"), "Dedicated commerce surfaces must supersede the shared editorial renderer");
   } else {
     assert.ok(
-      route.includes(`pageKey=\"${page}\"`),
-      `${page} is not connected to the reviewed package source`,
+      route.includes('pageKey="' + page + '"'),
+      page + " is not connected to the reviewed package source",
     );
   }
 }

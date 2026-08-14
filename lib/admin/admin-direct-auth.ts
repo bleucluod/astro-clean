@@ -13,7 +13,7 @@ import { getHalleusRuntimeEnv } from "@/lib/config/env";
 
 export const HALLEUS_DIRECT_ADMINI_R14 = "HALLEUS_DIRECT_ADMINI_R14";
 const DIRECT_TOKEN_PREFIX = "hal-admin-v1";
-const DIRECT_TOKEN_TTL_SECONDS = 12 * 60 * 60;
+const DIRECT_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 const PASSWORD_SCHEME = "pbkdf2-sha256";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 
 import { HomepageLiveSky } from "@/components/HomepageLiveSky";
 import { HomepageProductProof } from "@/components/HomepageProductProof";
@@ -193,18 +193,18 @@ export default async function Home() {
           </p>
 
           <div className={styles.heroActions}>
-            <Link className={styles.primaryButton} href="/chart">
+            <IntentPrefetchLink className={styles.primaryButton} href="/chart">
               ساخت چارت تولد
               <span aria-hidden="true">←</span>
-            </Link>
-            <Link className={styles.secondaryButton} href="/compare">
+            </IntentPrefetchLink>
+            <IntentPrefetchLink className={styles.secondaryButton} href="/compare">
               تحلیل رابطه
-            </Link>
+            </IntentPrefetchLink>
           </div>
 
-          <Link className={styles.heroTextLink} href="/product">
+          <IntentPrefetchLink className={styles.heroTextLink} href="/product">
             دیدن نمونه گزارش
-          </Link>
+          </IntentPrefetchLink>
 
           <p className={styles.heroMicrocopy}>
             تاریخ شمسی یا میلادی فرقی ندارد. ساعت دقیق را هم نمی‌دانی؟ باز
@@ -234,7 +234,7 @@ export default async function Home() {
               <small>نقطه شروع پیشنهادی</small>
               <h3>{productPaths[0].title}</h3>
               <p>{productPaths[0].description}</p>
-              <Link href={productPaths[0].href}>{productPaths[0].action}</Link>
+              <IntentPrefetchLink href={productPaths[0].href}>{productPaths[0].action}</IntentPrefetchLink>
             </div>
 
             <div className={styles.chartInterface} aria-hidden="true">
@@ -270,7 +270,7 @@ export default async function Home() {
               >
                 <h3>{path.title}</h3>
                 <p>{path.description}</p>
-                <Link href={path.href}>{path.action}</Link>
+                <IntentPrefetchLink href={path.href}>{path.action}</IntentPrefetchLink>
               </article>
             ))}
           </div>
@@ -326,10 +326,10 @@ export default async function Home() {
               </p>
             </div>
 
-            <Link className={styles.primaryButton} href="/compare">
+            <IntentPrefetchLink className={styles.primaryButton} href="/compare">
               شروع تحلیل خصوصی رابطه
               <span aria-hidden="true">←</span>
-            </Link>
+            </IntentPrefetchLink>
           </article>
         </div>
       </section>
@@ -350,13 +350,13 @@ export default async function Home() {
         <div className={styles.wikiLayout}>
           <nav className={styles.learningPaths} aria-label="مسیرهای یادگیری ویکی">
             {learningPaths.map((path) => (
-              <Link href={path.href} key={path.title}>
+              <IntentPrefetchLink href={path.href} key={path.title}>
                 <div>
                   <strong>{path.title}</strong>
                   <small>{path.articleTitle}</small>
                 </div>
                 <i aria-hidden="true">←</i>
-              </Link>
+              </IntentPrefetchLink>
             ))}
           </nav>
 
@@ -367,15 +367,15 @@ export default async function Home() {
                 <article className={styles.wikiCard} key={article.slug}>
                   <span>{article.categoryId}</span>
                   <h3>
-                    <Link href={`/wiki/${article.slug}`}>{article.shortTitle}</Link>
+                    <IntentPrefetchLink href={`/wiki/${article.slug}`}>{article.shortTitle}</IntentPrefetchLink>
                   </h3>
                   <p>{article.summary}</p>
                 </article>
               ))}
             </div>
-            <Link className={styles.secondaryButton} href="/wiki">
+            <IntentPrefetchLink className={styles.secondaryButton} href="/wiki">
               ورود به ویکی هالیوس
-            </Link>
+            </IntentPrefetchLink>
           </div>
         </div>
       </section>
@@ -398,10 +398,10 @@ export default async function Home() {
           ))}
         </div>
 
-        <Link className={styles.textLink} href="/privacy">
+        <IntentPrefetchLink className={styles.textLink} href="/privacy">
           خواندن حریم خصوصی هالیوس
           <span aria-hidden="true">←</span>
-        </Link>
+        </IntentPrefetchLink>
       </section>
 
       <section className={styles.faqSection} aria-labelledby="faq-title">
@@ -432,9 +432,9 @@ export default async function Home() {
             <li>تحلیل رابطه خصوصی</li>
             <li>بدون پیش‌بینی قطعی</li>
           </ul>
-          <Link className={styles.primaryButton} href="/privacy">
+          <IntentPrefetchLink className={styles.primaryButton} href="/privacy">
             بررسی حریم خصوصی
-          </Link>
+          </IntentPrefetchLink>
         </aside>
       </section>
 
@@ -444,18 +444,18 @@ export default async function Home() {
         <h2 id="final-cta-title">از کدام مسیر شروع می‌کنی؟</h2>
         <p>یک انتخاب کافی است؛ بقیه مسیرها هر وقت لازم شوند کنار تو می‌مانند.</p>
         <div className={styles.finalCtaActions}>
-          <Link className={styles.primaryButton} href="/chart">
+          <IntentPrefetchLink className={styles.primaryButton} href="/chart">
             ساخت چارت تولد
-          </Link>
-          <Link className={styles.secondaryButton} href="/compare">
+          </IntentPrefetchLink>
+          <IntentPrefetchLink className={styles.secondaryButton} href="/compare">
             تحلیل رابطه
-          </Link>
-          <Link className={styles.secondaryButton} href="/sky">
+          </IntentPrefetchLink>
+          <IntentPrefetchLink className={styles.secondaryButton} href="/sky">
             دیدن آسمان امروز
-          </Link>
-          <Link className={styles.secondaryButton} href="/wiki">
+          </IntentPrefetchLink>
+          <IntentPrefetchLink className={styles.secondaryButton} href="/wiki">
             یادگیری در ویکی
-          </Link>
+          </IntentPrefetchLink>
         </div>
       </section>
     </div>

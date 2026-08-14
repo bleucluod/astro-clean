@@ -217,7 +217,7 @@ console.log("- database-backed role authorization and append-only audit are pres
 console.log("- admin APIs enforce capabilities and never force-publish reports");
 console.log("- private report access is explicit and audit-covered");
 console.log("- premium requests persist with publication choice kept separate");
-console.log("- legacy localStorage admin panels are absent from the live admin page");
+console.log("- legacy unsecured admin panels are absent; direct admin persists only the signed seven-day token");
 
 
 // HALLEUS_DIRECT_ADMINI_R16
@@ -243,12 +243,17 @@ console.log("- legacy localStorage admin panels are absent from the live admin p
   requireText(
     "direct admin gate",
     directGate,
-    "window.sessionStorage",
+    "window.localStorage",
   );
   forbidText(
     "direct admin gate",
     directGate,
-    "window.localStorage",
+    "window.sessionStorage",
+  );
+  requireText(
+    "direct admin auth",
+    directAuth,
+    "const DIRECT_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;",
   );
   requireText(
     "direct admin console",

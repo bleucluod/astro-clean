@@ -10,27 +10,31 @@ import {
   readRequiredString,
 } from "@/lib/admin/admin-http";
 import {
-  listAdminReports,
   restrictAdminReportVisibility,
   softDeleteAdminReport,
   updateAdminReportTitle,
 } from "@/lib/admin/admin-service";
+import {
+  getAdminReportCohort,
+  readAdminReportFilters,
+} from "@/lib/admin/admin-report-intelligence";
 import { readReportPage } from "@/lib/reports/report-access-contract";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// HALLEUS_REPORTS_INTELLIGENCE_API_R1
 export async function GET(request: Request) {
   try {
     await requireAdminCapability(request, "reports.read");
     const url = new URL(request.url);
-    const search = (url.searchParams.get("search") ?? "").trim().slice(0, 160);
-    const reports = await listAdminReports(
-      search,
-      readLimit(url.searchParams.get("limit")),
-      readReportPage(url.searchParams.get("page")),
-    );
-    return noStoreJsonResponse({ ok: true, reports });
+    const filters = readAdminReportFilters(url.searchParams);
+    const cohort = await getAdminReportCohort({
+      filters,
+      page: readReportPage(url.searchParams.get("page")),
+      pageSize: readLimit(url.searchParams.get("limit")),
+    });
+    return noStoreJsonResponse({ ok: true, ...cohort });
   } catch (error) {
     return adminErrorResponse(error);
   }
@@ -43,16 +47,16 @@ export async function PATCH(request: Request) {
     if (!body) {
       return noStoreJsonResponse(
         { ok: false, error: "Request body must be an object." },
-      400,
-    );
+        400,
+      );
     }
 
     const action = readRequiredString(body.action, "action", 80);
     if (!["restrict_visibility", "update_title", "soft_delete"].includes(action)) {
       return noStoreJsonResponse(
         { ok: false, error: "Admin cannot force-publish a report." },
-      400,
-    );
+        400,
+      );
     }
 
     const reportId = readRequiredString(body.reportId, "reportId", 200);

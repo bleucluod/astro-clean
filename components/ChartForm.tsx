@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   type CSSProperties,
@@ -10,10 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
-import { createMockReport } from "@/lib/astrology/mock-engine";
-import { enrichReportWithRealEngineCopy } from "@/lib/astrology/real-engine-report-writer";
 import type {
   AstrologyReport,
   BirthInput,
@@ -26,12 +24,19 @@ import {
   findIranCityByName,
   getIranCityDisplayName,
 } from "@/lib/locations/iran-cities";
-import { saveGeneratedReportWithAccountFallback } from "@/lib/storage/account-report-save-client";
-import { enhanceReportOutputV2 } from "@/lib/report-output/report-v2";
 import {
   loadLastStudyLocation,
   saveLastStudyLocation,
 } from "@/lib/storage/report-journey-client";
+
+// HALLEUS_CHART_DEFERRED_RUNTIME_BATCH5_R1
+const LazySupabaseAuthPanel = dynamic(
+  () =>
+    import("@/components/SupabaseAuthPanel").then(
+      (module) => module.SupabaseAuthPanel,
+    ),
+  { ssr: false },
+);
 
 const initialForm: BirthInput = {
   name: "",
@@ -855,6 +860,7 @@ export function ChartForm() {
     }
 
     const { normalizedForm, engineCity } = normalizedBirth;
+    const saveClientPromise = import("@/lib/storage/account-report-save-client");
     let realEngineResult: RealChartApiResponse | null = null;
 
     try {
@@ -881,12 +887,13 @@ export function ChartForm() {
         });
       }
 
-      const nextReport = buildReportForSave(
+      const nextReport = await buildReportForSave(
         normalizedForm,
         realEngineResult,
         engineCity,
       );
 
+      const { saveGeneratedReportWithAccountFallback } = await saveClientPromise;
       const saveResult = await saveGeneratedReportWithAccountFallback(
         nextReport,
         { navigationGraceMs: 2200 },
@@ -1341,7 +1348,7 @@ export function ChartForm() {
               </span>
             </label>
 
-            {showAccountPanel ? <SupabaseAuthPanel compact /> : null}
+            {showAccountPanel ? <LazySupabaseAuthPanel compact /> : null}
           </div>
 
           <div className="chart-form-actions">
@@ -1474,11 +1481,11 @@ function FieldError({ message }: { message?: string }) {
   ) : null;
 }
 
-function buildReportForSave(
+async function buildReportForSave(
   normalizedForm: BirthInput,
   payload: RealChartApiResponse | null,
   engineCity: IranCityOption,
-): AstrologyReport {
+): Promise<AstrologyReport> {
   if (payload?.report) {
     return attachReportGenerationContext(payload.report, payload);
   }
@@ -1525,21 +1532,25 @@ function attachReportGenerationContext(
   } as ReportWithGenerationContext;
 }
 
-function buildLocalFallbackReport(
+async function buildLocalFallbackReport(
   normalizedForm: BirthInput,
   payload: RealChartApiResponse | null,
   engineCity: IranCityOption,
-): AstrologyReport {
+): Promise<AstrologyReport> {
+  const [{ createMockReport }, { enhanceReportOutputV2 }] = await Promise.all([
+    import("@/lib/astrology/mock-engine"),
+    import("@/lib/report-output/report-v2"),
+  ]);
   const baseReport = enhanceReportOutputV2(createMockReport(normalizedForm));
 
   return attachRealEngineSnapshotToReport(baseReport, payload, engineCity);
 }
 
-function attachRealEngineSnapshotToReport(
+async function attachRealEngineSnapshotToReport(
   report: AstrologyReport,
   payload: RealChartApiResponse | null,
   engineCity: IranCityOption,
-): AstrologyReport {
+): Promise<AstrologyReport> {
   if (!payload?.ok || !payload.realChart) {
     return report;
   }
@@ -1554,6 +1565,10 @@ function attachRealEngineSnapshotToReport(
     note:
       "این داده محاسبه‌شده از همان تاریخ، ساعت و شهر تولد ساخته شده و برای خوانش فارسی گزارش ذخیره شده است.",
   };
+
+  const { enrichReportWithRealEngineCopy } = await import(
+    "@/lib/astrology/real-engine-report-writer"
+  );
 
   return enrichReportWithRealEngineCopy(
     {

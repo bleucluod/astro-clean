@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 
-import { FinalEditorialPage } from "@/components/FinalEditorialPage";
+import { ProductOfferGrid } from "@/components/monetization/ProductAccessCards";
 import { HomepageProductProof } from "@/components/HomepageProductProof";
+import { ProductCommerceSurface } from "@/components/commerce/CommerceSurfaces";
 
 export const metadata: Metadata = {
-  title: "تفسیر چارت تولد فارسی | داخل گزارش هالیوس چیست؟",
-  description: "ببین گزارش چارت تولد هالیوس چگونه تصویر کلی، خورشید، ماه، رایزینگ، خانه‌ها، جنبه‌ها و الگوهای برجسته را در یک تفسیر فارسی و قابل‌مرور کنار هم قرار می‌دهد.",
+  title: "تفسیر چارت تولد فارسی | گزارش تولد شخصی هالیوس",
+  description: "ساختار گزارش چارت تولد هالیوس، مسیر خواندن، تفاوت Free و Full براساس سیاست دسترسی واقعی، و نمونهٔ تجربهٔ تفسیر فارسی را ببین.",
   alternates: { canonical: "/product" },
   robots: { index: true, follow: true },
 };
 
 export default function ProductPage() {
-  return <FinalEditorialPage pageKey="product" slots={{ "report-overview": <HomepageProductProof /> }} />;
+  return <ProductCommerceSurface accessAndPackages={<ProductOfferGrid />} proof={<HomepageProductProof />} />;
 }

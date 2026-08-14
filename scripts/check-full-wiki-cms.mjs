@@ -34,6 +34,7 @@ const markdownParser = read("lib/wiki/wiki-markdown.ts");
 const publisher = read("lib/wiki/wiki-publisher.ts");
 const repository = read("lib/wiki/wiki-repository.ts");
 const articlePage = read("app/wiki/[slug]/page.tsx");
+const articleRenderer = read("components/wiki/WikiArticleRender.tsx");
 const adminClient = read("components/admin/WikiAdminPanel.tsx");
 const adminConsole = read("components/admin/AdminConsole.tsx");
 const categoryRoute = read("app/api/admin/wiki/categories/route.ts");
@@ -127,7 +128,7 @@ requireText("public repository", repository, "deleted_at is null");
 requireText("public article route", articlePage, "dynamicParams = true");
 requireText("public article route", articlePage, "revalidate = 300");
 requireText("public article route", articlePage, "internalLinkTargets");
-requireText("public article route", articlePage, "articleMedia");
+requireText("public article renderer", articleRenderer, "articleMedia");
 
 for (const marker of [
   "ذخیرهٔ پیش‌نویس",

@@ -71,6 +71,9 @@ export type WikiArticleAdminSummary = {
   publishJobLockedAt: string | null;
   publishJobCompletedAt: string | null;
   publishJobUpdatedAt: string | null;
+  publishRevisionNumber?: number | null;
+  publishPackageId?: string | null;
+  publishPackageName?: string | null;
   // HALLEUS_WIKI_GLOBAL_POSITION_R44
   publishQueuePosition?: number | null;
   publishQueueSize?: number | null;
@@ -84,6 +87,69 @@ export type WikiArticleAdminPage = {
   pageSize: number;
   totalPages: number;
 };
+export type WikiPublicationJobView =
+  | "active"
+  | "failed"
+  | "published"
+  | "canceled";
+
+export type WikiPublicationJobStatusFilter =
+  | "all"
+  | "queued"
+  | "running"
+  | "retry"
+  | "failed"
+  | "published"
+  | "canceled";
+
+export type WikiPublicationControlSummary = {
+  activeTotal: number;
+  queued: number;
+  running: number;
+  retrying: number;
+  failed: number;
+  nextJob: {
+    id: string;
+    articleId: string;
+    stableId: string;
+    title: string;
+    runAt: string;
+  } | null;
+  queueEndAt: string | null;
+  publishingPaused: boolean;
+};
+
+export type WikiPublicationPackageProgress = {
+  packageId: string;
+  packageName: string;
+  total: number;
+  active: number;
+  published: number;
+  failed: number;
+  canceled: number;
+  firstRunAt: string | null;
+  lastRunAt: string | null;
+};
+
+export type WikiPublicationJobsPage = WikiArticleAdminPage & {
+  view: WikiPublicationJobView;
+  statusFilter: WikiPublicationJobStatusFilter;
+  packageId: string | null;
+  dateFrom: string | null;
+  dateTo: string | null;
+  visibleCount: number;
+  expectedPageCount: number;
+  summary: WikiPublicationControlSummary;
+  todayTimeline: WikiArticleAdminSummary[];
+  tomorrowTimeline: WikiArticleAdminSummary[];
+  packages: WikiPublicationPackageProgress[];
+};
+
+export type WikiAdminPreviewData = {
+  snapshot: WikiArticleSnapshot;
+  internalLinkTargets: Record<string, { slug: string; label: string }>;
+};
+
 
 export type WikiContentGuideArticle = {
   stableId: string;

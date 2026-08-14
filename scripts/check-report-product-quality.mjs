@@ -653,7 +653,20 @@ const aspectComponent = read("components/ReportAspectRelationshipSections.tsx");
 const css = read("app/globals.css");
 
 assert(reportDetail.split(/\r?\n/u).length < 620, "ReportDetail must remain a thin loading/action orchestrator");
-assert(reportDetail.includes("<ReportProductReader report={report} />"), "ReportDetail must delegate the reading product to ReportProductReader");
+const reportReaderDelegationStart = reportDetail.indexOf("<ReportProductReader");
+const reportReaderDelegationEnd = reportDetail.indexOf("/>", reportReaderDelegationStart);
+const reportReaderDelegation =
+  reportReaderDelegationStart >= 0 && reportReaderDelegationEnd > reportReaderDelegationStart
+    ? reportDetail.slice(reportReaderDelegationStart, reportReaderDelegationEnd + 2)
+    : "";
+assert(
+  reportReaderDelegation.includes("report={report}"),
+  "ReportDetail must delegate the reading product to ReportProductReader",
+);
+assert(
+  reportReaderDelegation.includes("storedAccessTier={storedAccessTier}"),
+  "ReportDetail must pass the stored access tier into ReportProductReader",
+);
 assert(!reportDetail.includes("report-detail-birth-card"), "Birth data must not dominate the report hero");
 assert(reportDetail.includes('reportSource === "public"'), "Public-read source branch must remain explicit");
 assert(reportDetail.includes("getPublicReportRecord(reportId)"), "Public-read source must use its privacy-minimized client path");

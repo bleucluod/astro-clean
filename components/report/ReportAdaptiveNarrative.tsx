@@ -9,36 +9,54 @@ import {
   type AdaptiveNarrativeEvidence,
   type AdaptivePlacementStory,
 } from "@/lib/astrology/adaptive-report-planner";
+import { ProductLockedOffer } from "@/components/monetization/ProductAccessCards";
+import {
+  DEFAULT_REPORT_ACCESS_POLICY,
+  getPlanetChapterAccess,
+  isReportSectionFull,
+  isReportSectionTeaser,
+  type ReportAccessPolicy,
+} from "@/lib/monetization/access-policy";
 import type { AstrologyReport } from "@/types/astro";
 
 import styles from "./human-first-report.module.css";
 
+export type BirthReportAccessMode = "free" | "premium";
+
 type Props = {
   report: AstrologyReport;
+  accessMode?: BirthReportAccessMode;
+  accessPolicy?: ReportAccessPolicy;
+  fullReportCredits?: number;
+  onUnlockFullReport?: () => Promise<{ ok: boolean; error?: string }>;
 };
 
 function EvidenceDisclosure({
   evidence,
   reasons = [],
+  compact = false,
 }: {
   evidence: AdaptiveNarrativeEvidence[];
   reasons?: string[];
+  compact?: boolean;
 }) {
   if (evidence.length === 0 && reasons.length === 0) return null;
+  const visibleEvidence = compact ? evidence.slice(0, 1) : evidence;
+  const visibleReasons = compact ? reasons.slice(0, 1) : reasons;
 
   return (
     <details className={styles.adaptiveEvidence} data-adaptive-evidence>
       <summary>چرا این نتیجه؟</summary>
-      {reasons.length > 0 ? (
+      {visibleReasons.length > 0 ? (
         <ul>
-          {reasons.map((reason) => (
+          {visibleReasons.map((reason) => (
             <li key={reason}>{reason}</li>
           ))}
         </ul>
       ) : null}
-      {evidence.length > 0 ? (
+      {visibleEvidence.length > 0 ? (
         <dl>
-          {evidence.map((item) => (
+          {visibleEvidence.map((item) => (
             <div key={item.id} data-adaptive-evidence-source={item.sourceIds.join(",")}>
               <dt>{item.label}</dt>
               <dd>{item.detail}</dd>
@@ -50,7 +68,7 @@ function EvidenceDisclosure({
   );
 }
 
-function StoryCard({ story, index, showAction }: { story: AdaptiveNarrativeAnchor; index: number; showAction: boolean }) {
+function StoryCard({ story, index, showAction, compactEvidence }: { story: AdaptiveNarrativeAnchor; index: number; showAction: boolean; compactEvidence: boolean }) {
   return (
     <article
       className={styles.adaptiveStoryCard}
@@ -88,7 +106,7 @@ function StoryCard({ story, index, showAction }: { story: AdaptiveNarrativeAncho
             {story.action}
           </p>
         ) : null}
-        <EvidenceDisclosure evidence={story.evidenceRefs} reasons={story.rankingReasons} />
+        <EvidenceDisclosure compact={compactEvidence} evidence={story.evidenceRefs} reasons={story.rankingReasons} />
       </div>
     </article>
   );
@@ -154,12 +172,72 @@ function modeCopy(mode: ReturnType<typeof buildAdaptiveReportPlan>["mode"]) {
   }
 }
 
-export function ReportAdaptiveNarrative({ report }: Props) {
+export function ReportAdaptiveNarrative({
+  report,
+  accessMode = "free",
+  accessPolicy = DEFAULT_REPORT_ACCESS_POLICY,
+  fullReportCredits = 0,
+  onUnlockFullReport,
+}: Props) {
   const plan = useMemo(() => {
     const nextPlan = buildAdaptiveReportPlan(report);
     if (process.env.NODE_ENV !== "production") assertAdaptiveAnchorIntegrity(nextPlan);
     return nextPlan;
   }, [report]);
+
+  const isPremium = accessMode === "premium";
+  const visibleTopStories = isPremium
+    ? plan.topStories
+    : plan.topStories.slice(0, accessPolicy.topStoriesFreeCount);
+  const visibleHouses = isPremium
+    ? plan.importantHouses
+    : plan.importantHouses.slice(0, accessPolicy.importantHousesFreeCount);
+  const visibleAspects = isPremium
+    ? plan.importantAspects
+    : plan.importantAspects.slice(0, accessPolicy.importantAspectsFreeCount);
+  const visibleWeeklyActions = isPremium
+    ? plan.weeklyActions
+    : plan.weeklyActions.slice(0, accessPolicy.weeklyActionsFreeCount);
+  const nodeFull = isReportSectionFull(accessPolicy.nodeAxis, isPremium);
+  const nodeTeaser = isReportSectionTeaser(accessPolicy.nodeAxis, isPremium);
+  const balanceFull = isReportSectionFull(accessPolicy.energyBalance, isPremium);
+  const balanceTeaser = isReportSectionTeaser(accessPolicy.energyBalance, isPremium);
+  const visiblePlacementStories = isPremium
+    ? plan.placementStories
+    : plan.placementStories.filter(
+        (story) => getPlanetChapterAccess(accessPolicy, story.planetId) !== "premium",
+      );
+  const compactEvidence =
+    !isPremium && accessPolicy.evidence !== "full_free";
+  const lockedPlacementLabels = plan.placementStories
+    .filter(
+      (story) =>
+        !["sun", "moon"].includes(story.planetId) &&
+        !isPremium &&
+        getPlanetChapterAccess(accessPolicy, story.planetId) === "premium",
+    )
+    .map((story) => story.planetLabel);
+  const lockedItems = [
+    plan.topStories.length > visibleTopStories.length
+      ? `${(plan.topStories.length - visibleTopStories.length).toLocaleString("fa-IR")} داستان اصلی دیگر`
+      : "",
+    plan.importantHouses.length > visibleHouses.length
+      ? `${(plan.importantHouses.length - visibleHouses.length).toLocaleString("fa-IR")} خانهٔ برجستهٔ دیگر`
+      : "",
+    plan.importantAspects.length > visibleAspects.length
+      ? `${(plan.importantAspects.length - visibleAspects.length).toLocaleString("fa-IR")} جنبهٔ مهم دیگر`
+      : "",
+    !nodeFull && plan.nodeStory ? "خوانش کامل محور رشد این چارت" : "",
+    !balanceFull ? `خوانش کامل «${plan.balanceStory.title}»` : "",
+    lockedPlacementLabels.length
+      ? `فصل‌های عمیق‌تر: ${lockedPlacementLabels.slice(0, 6).join("، ")}${lockedPlacementLabels.length > 6 ? " و…" : ""}`
+      : "",
+    !isPremium &&
+    (accessPolicy.technical.appendix === "premium" ||
+      accessPolicy.technical.provenance === "premium")
+      ? "جزئیات فنی و محاسبات کامل"
+      : "",
+  ].filter(Boolean);
 
   // HALLEUS_REPORT_SEMANTIC_FINAL_QA_R18_20260808
   const rulerPlacement = plan.placementStories.find((story) => story.planetId === plan.chartRulerId);
@@ -191,7 +269,7 @@ export function ReportAdaptiveNarrative({ report }: Props) {
   }, [plan]);
   const showInlineAction = (value: string) => {
     const key = normalizeAdaptiveActionKey(value);
-    return Boolean(key) && !weeklyActionKeys.has(key) && (inlineActionFrequency.get(key) ?? 0) === 1;
+    return isPremium && Boolean(key) && !weeklyActionKeys.has(key) && (inlineActionFrequency.get(key) ?? 0) === 1;
   };
 
   return (
@@ -222,8 +300,8 @@ export function ReportAdaptiveNarrative({ report }: Props) {
             <PlacementCard
               key={story.planetId}
               story={story}
-              condensed={topStoryPlanetIds.has(story.planetId)}
-              showAction={showInlineAction(story.interpretation.smallExperiment)}
+              condensed={topStoryPlanetIds.has(story.planetId) || (!isPremium && getPlanetChapterAccess(accessPolicy, story.planetId) === "teaser")}
+              showAction={isPremium && showInlineAction(story.interpretation.smallExperiment)}
             />
           ))}
         </div>
@@ -244,7 +322,7 @@ export function ReportAdaptiveNarrative({ report }: Props) {
         </div>
       </section>
 
-      {plan.topStories.length > 0 ? (
+      {visibleTopStories.length > 0 ? (
         <section className={styles.adaptiveSection} id="primary-patterns" data-adaptive-report-section="top-stories">
           <header className={styles.adaptiveSectionHeader} data-screenshot-ready>
             <p className={styles.eyebrow}>بیشترین وزن در همین چارت</p>
@@ -252,14 +330,14 @@ export function ReportAdaptiveNarrative({ report }: Props) {
             <p>این‌ها موضوع‌هایی هستند که چند شاهد واقعی چارت روی آن‌ها هم‌زمان تأکید می‌کنند. جزئیات نجومی هر داستان را فقط اگر خواستی باز کن.</p>
           </header>
           <div className={styles.adaptiveStoryList}>
-            {plan.topStories.map((story, index) => (
-              <StoryCard key={story.anchorId} story={story} index={index} showAction={showInlineAction(story.action)} />
+            {visibleTopStories.map((story, index) => (
+              <StoryCard compactEvidence={!isPremium} key={story.anchorId} story={story} index={index} showAction={showInlineAction(story.action)} />
             ))}
           </div>
         </section>
       ) : null}
 
-      {plan.importantHouses.length > 0 ? (
+      {visibleHouses.length > 0 ? (
         <section className={styles.adaptiveSection} id="mind-language" data-adaptive-report-section="important-houses">
           <header className={styles.adaptiveSectionHeader}>
             <p className={styles.eyebrow}>کجا بیشتر اتفاق می‌افتد؟</p>
@@ -267,19 +345,19 @@ export function ReportAdaptiveNarrative({ report }: Props) {
             <p>فقط حوزه‌هایی آمده‌اند که در همین چارت چند نشانه مهم به آن‌ها می‌رسند؛ برای هر کدام یک موقعیت روزمره هم می‌بینی.</p>
           </header>
           <div className={styles.adaptiveHouseGrid}>
-            {plan.importantHouses.map((house) => (
+            {visibleHouses.map((house) => (
               <article key={house.houseNumber} className={styles.adaptiveHouseCard} data-adaptive-house={house.houseNumber}>
                 <h3>خانه {house.houseNumber.toLocaleString("fa-IR")}: {house.label}</h3>
                 <p>{house.reason}</p>
                 {house.livedExample ? <p className={styles.adaptiveLivedExample}>{house.livedExample}</p> : null}
-                <EvidenceDisclosure evidence={house.evidence} />
+                <EvidenceDisclosure compact={compactEvidence} evidence={house.evidence} />
               </article>
             ))}
           </div>
         </section>
       ) : null}
 
-      {plan.importantAspects.length > 0 ? (
+      {visibleAspects.length > 0 ? (
         <section className={styles.adaptiveSection} id="relationships" data-adaptive-report-section="important-aspects">
           <header className={styles.adaptiveSectionHeader} data-screenshot-ready>
             <p className={styles.eyebrow}>وقتی دو بخش چارت با هم فعال می‌شوند</p>
@@ -287,7 +365,7 @@ export function ReportAdaptiveNarrative({ report }: Props) {
             <p>اول رفتار قابل لمس را می‌خوانی؛ نام جنبه، اورب و جزئیات فنی در همان کارت و در بخش بازشونده می‌مانند.</p>
           </header>
           <div className={styles.adaptiveAspectList}>
-            {plan.importantAspects.map((story) => (
+            {visibleAspects.map((story) => (
               <article key={story.aspect.id} className={styles.adaptiveAspectCard} data-adaptive-aspect-id={story.aspect.id}>
                 <h3>{story.title}</h3>
                 {story.dailyLife ? <p>{story.dailyLife}</p> : null}
@@ -300,14 +378,30 @@ export function ReportAdaptiveNarrative({ report }: Props) {
                   ) : null}
                 </div>
                 {story.action && showInlineAction(story.action) ? <p className={styles.adaptiveActionLine}><strong>این هفته امتحان کن</strong>{story.action}</p> : null}
-                <EvidenceDisclosure evidence={story.evidence} reasons={[`${story.aspect.aspectLabel} · اورب ${story.aspect.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`]} />
+                <EvidenceDisclosure compact={compactEvidence} evidence={story.evidence} reasons={[`${story.aspect.aspectLabel} · اورب ${story.aspect.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`]} />
               </article>
             ))}
           </div>
         </section>
       ) : null}
 
-      {plan.nodeStory ? (
+            {!isPremium && lockedItems.length > 0 ? (
+        <ProductLockedOffer
+          productCode="full_report"
+          title={accessPolicy.upgradeTitle ?? "ادامهٔ همین گزارش کامل"}
+          description={
+            accessPolicy.upgradeSupportSentence ??
+            "نسخه رایگان پاسخ واقعی می‌دهد؛ یک اعتبار گزارش کامل فقط بخش‌هایی را باز می‌کند که با تنظیم فعلی هنوز قفل‌اند."
+          }
+          items={lockedItems}
+          href="/pricing"
+          availableCredits={fullReportCredits}
+          onUnlock={onUnlockFullReport}
+          unlockLabel={accessPolicy.upgradeCtaLabel}
+        />
+      ) : null}
+
+      {nodeFull && plan.nodeStory ? (
         <section className={styles.adaptiveSection} id="growth-path" data-adaptive-report-section="lunar-node-axis">
           <header className={styles.adaptiveSectionHeader} data-screenshot-ready>
             <p className={styles.eyebrow}>الگوی آشنا، انتخاب تازه</p>
@@ -326,6 +420,15 @@ export function ReportAdaptiveNarrative({ report }: Props) {
         </section>
       ) : null}
 
+      {balanceTeaser ? (
+        <section className={styles.adaptiveSection} data-access-teaser="energy-balance">
+          <p className={styles.eyebrow}>تعادل انرژی</p>
+          <h2>{plan.balanceStory.title}</h2>
+          <p>الگوی کامل این ترکیب در نسخه کامل همین گزارش باز می‌شود.</p>
+        </section>
+      ) : null}
+
+      {balanceFull ? (
       <section className={styles.adaptiveSection} id="strength-challenge" data-adaptive-report-section="balance">
         <header className={styles.adaptiveSectionHeader}>
           <p className={styles.eyebrow}>نه فقط شمارش</p>
@@ -337,21 +440,22 @@ export function ReportAdaptiveNarrative({ report }: Props) {
           {plan.balanceStory.action && showInlineAction(plan.balanceStory.action) ? <p className={styles.adaptiveActionLine}><strong>کاربرد عملی</strong>{plan.balanceStory.action}</p> : null}
         </article>
       </section>
+      ) : null}
 
-      {plan.weeklyActions.length > 0 ? (
+      {visibleWeeklyActions.length > 0 ? (
         <section className={styles.adaptiveSection} id="drive-direction" data-adaptive-report-section="weekly-actions">
           <header className={styles.adaptiveSectionHeader} data-screenshot-ready>
             <p className={styles.eyebrow}>از خواندن به عمل</p>
-            <h2>سه کار برای این هفته</h2>
+            <h2>{isPremium ? "سه کار برای این هفته" : "یک کار برای این هفته"}</h2>
             <p>سه حرکت از سه حوزه متفاوت انتخاب شده‌اند تا گزارش به یک فهرست تمرین تکراری تبدیل نشود.</p>
           </header>
           <ol className={styles.adaptiveWeeklyActions}>
-            {plan.weeklyActions.map((action) => <li key={action}>{action}</li>)}
+            {visibleWeeklyActions.map((action) => <li key={action}>{action}</li>)}
           </ol>
         </section>
       ) : null}
 
-      {plan.placementStories.length > 0 ? (
+      {visiblePlacementStories.length > 0 ? (
         <section className={styles.adaptiveSection} id="deeper-layers" data-adaptive-report-section="placements">
           <header className={styles.adaptiveSectionHeader}>
             <p className={styles.eyebrow}>برای جزئیات بیشتر</p>
@@ -359,7 +463,7 @@ export function ReportAdaptiveNarrative({ report }: Props) {
             <p>سیاره‌هایی که در داستان‌های اصلی نقش بیشتری دارند عمق بیشتری گرفته‌اند؛ بقیه کوتاه‌تر می‌مانند و بخش فنی پایین صفحه همچنان کامل است.</p>
           </header>
           <div className={styles.adaptivePlacementGrid}>
-            {plan.placementStories.map((story) => (
+            {visiblePlacementStories.map((story) => (
               <PlacementCard
                 key={story.planetId}
                 story={story}

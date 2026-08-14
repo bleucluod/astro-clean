@@ -17,6 +17,10 @@ import type {
   WikiContentGuideArticle,
   WikiContentGuideQueueItem,
   WikiRevisionSummary,
+  WikiPublicationJobsPage,
+  WikiPublicationJobStatusFilter,
+  WikiPublicationJobView,
+  WikiAdminPreviewData,
   WikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-types";
 import {
@@ -337,15 +341,72 @@ export async function listAdminWikiArticles(input: {
   };
 }
 
-// HALLEUS_WIKI_JOB_SOURCE_R44
+// HALLEUS_WIKI_PUBLICATION_CONTROL_SERVER_R1
 export async function listAdminWikiPublicationJobs(input: {
   limit: number;
   page?: number;
-}): Promise<WikiArticleAdminPage> {
+  view?: WikiPublicationJobView;
+  status?: WikiPublicationJobStatusFilter;
+  packageId?: string | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+}): Promise<WikiPublicationJobsPage> {
   const sql = getAdminDatabase();
   const page = Math.max(1, input.page ?? 1);
   const offset = (page - 1) * input.limit;
-  const [rows, countRows] = await Promise.all([sql`
+  const view = input.view ?? "active";
+  const statusFilter = input.status ?? "all";
+  const packageId = input.packageId ?? null;
+  const dateFrom = input.dateFrom ?? null;
+  const dateTo = input.dateTo ?? null;
+
+  const rowToArticle = (raw: unknown): WikiArticleAdminSummary => {
+    const row = asRecord(raw);
+    return {
+      id: asString(row.id),
+      stableId: asString(row.stable_id),
+      slug: asString(row.slug),
+      title: asString(row.title),
+      categoryId: asString(row.category_id),
+      status: asString(row.status) as WikiArticleAdminSummary["status"],
+      indexable: asBoolean(row.is_indexable),
+      contentVersion: asNumber(row.content_version),
+      articleRole: asString(row.article_role) as WikiArticleAdminSummary["articleRole"],
+      contentCluster: asNullableString(row.content_cluster),
+      publicationPriority: asNumber(row.publication_priority),
+      publishedAt: asNullableString(row.published_at),
+      scheduledFor: asNullableString(row.scheduled_for),
+      deletedAt: asNullableString(row.deleted_at),
+      hasDraft: asBoolean(row.has_draft),
+      pendingPublishAt: asNullableString(row.pending_publish_at),
+      publishJobId: asNullableString(row.publish_job_id),
+      publishJobStatus: asNullableString(row.publish_job_status),
+      publishJobError: asNullableString(row.publish_job_error),
+      publishJobAttemptCount:
+        row.publish_job_attempt_count === null ||
+        row.publish_job_attempt_count === undefined
+          ? null
+          : asNumber(row.publish_job_attempt_count),
+      publishJobLockedAt: asNullableString(row.publish_job_locked_at),
+      publishJobCompletedAt: asNullableString(row.publish_job_completed_at),
+      publishJobUpdatedAt: asNullableString(row.publish_job_updated_at),
+      publishRevisionNumber:
+        row.publish_revision_number === null ||
+        row.publish_revision_number === undefined
+          ? null
+          : asNumber(row.publish_revision_number),
+      publishPackageId: asNullableString(row.publish_package_id),
+      publishPackageName: asNullableString(row.publish_package_name),
+      publishQueuePosition:
+        ["queued", "retry"].includes(asString(row.publish_job_status))
+          ? asNumber(row.publish_queue_position)
+          : null,
+      publishQueueSize: asNumber(row.publish_queue_size),
+      updatedAt: asString(row.updated_at),
+    };
+  };
+
+  const baseSelect = sql`
     select
       article.id::text,
       article.stable_id,
@@ -371,6 +432,9 @@ export async function listAdminWikiPublicationJobs(input: {
       job.locked_at::text as publish_job_locked_at,
       job.completed_at::text as publish_job_completed_at,
       job.updated_at::text as publish_job_updated_at,
+      job.revision_number as publish_revision_number,
+      revision.source_package_id::text as publish_package_id,
+      package.package_name as publish_package_name,
       count(*) filter (where job.status in ('queued', 'retry')) over (
         order by
           case
@@ -383,74 +447,307 @@ export async function listAdminWikiPublicationJobs(input: {
           job.created_at asc
         rows between unbounded preceding and current row
       ) as publish_queue_position,
-      count(*) filter (where job.status in ('queued', 'retry')) over () as publish_queue_size
+      (
+        select count(*)::integer
+        from halleus_private.wiki_publish_jobs as global_job
+        join public.wiki_articles as global_article
+          on global_article.id = global_job.article_id
+        where global_article.deleted_at is null
+          and global_job.status in ('queued', 'retry')
+      ) as publish_queue_size
     from halleus_private.wiki_publish_jobs as job
     join public.wiki_articles as article on article.id = job.article_id
+    join public.wiki_article_revisions as revision
+      on revision.article_id = job.article_id
+      and revision.revision_number = job.revision_number
+    left join halleus_private.wiki_import_packages as package
+      on package.id = revision.source_package_id
     left join public.wiki_article_drafts as draft on draft.article_id = article.id
     where article.deleted_at is null
-      and job.status in ('queued', 'running', 'retry', 'failed')
+      and (
+        (${view} = 'active' and job.status in ('queued', 'running', 'retry'))
+        or (${view} = 'failed' and job.status = 'failed')
+        or (${view} = 'published' and job.status = 'published')
+        or (${view} = 'canceled' and job.status = 'canceled')
+      )
+      and (${statusFilter} = 'all' or job.status = ${statusFilter})
+      and (${packageId}::uuid is null or revision.source_package_id = ${packageId}::uuid)
+      and (
+        ${dateFrom}::date is null
+        or (job.run_at at time zone 'Asia/Tehran')::date >= ${dateFrom}::date
+      )
+      and (
+        ${dateTo}::date is null
+        or (job.run_at at time zone 'Asia/Tehran')::date <= ${dateTo}::date
+      )
     order by
       case
         when job.status = 'running' then 0
         when job.status in ('queued', 'retry') then 1
-        else 2
+        when job.status = 'failed' then 2
+        else 3
       end,
+      case when ${view} = 'published' then job.completed_at end desc nulls last,
       job.run_at asc,
       article.publication_priority desc,
       job.created_at asc
     limit ${input.limit}
     offset ${offset}
-  `, sql`
-    select count(*)::integer as total
-    from halleus_private.wiki_publish_jobs as job
-    join public.wiki_articles as article on article.id = job.article_id
-    where article.deleted_at is null
-      and job.status in ('queued', 'running', 'retry', 'failed')
-  `]);
+  `;
 
-  const articles = rows.map((raw) => {
-    const row = asRecord(raw);
-    return {
-      id: asString(row.id),
-      stableId: asString(row.stable_id),
-      slug: asString(row.slug),
-      title: asString(row.title),
-      categoryId: asString(row.category_id),
-      status: asString(row.status) as WikiArticleAdminSummary["status"],
-      indexable: asBoolean(row.is_indexable),
-      contentVersion: asNumber(row.content_version),
-      articleRole: asString(row.article_role) as WikiArticleAdminSummary["articleRole"],
-      contentCluster: asNullableString(row.content_cluster),
-      publicationPriority: asNumber(row.publication_priority),
-      publishedAt: asNullableString(row.published_at),
-      scheduledFor: asNullableString(row.scheduled_for),
-      deletedAt: asNullableString(row.deleted_at),
-      hasDraft: asBoolean(row.has_draft),
-      pendingPublishAt: asNullableString(row.pending_publish_at),
-      publishJobId: asNullableString(row.publish_job_id),
-      publishJobStatus: asNullableString(row.publish_job_status),
-      publishJobError: asNullableString(row.publish_job_error),
-      publishJobAttemptCount:
-        row.publish_job_attempt_count === null || row.publish_job_attempt_count === undefined
-          ? null
-          : asNumber(row.publish_job_attempt_count),
-      publishJobLockedAt: asNullableString(row.publish_job_locked_at),
-      publishJobCompletedAt: asNullableString(row.publish_job_completed_at),
-      publishJobUpdatedAt: asNullableString(row.publish_job_updated_at),
-      publishQueuePosition: ['queued', 'retry'].includes(asString(row.publish_job_status))
-        ? asNumber(row.publish_queue_position)
-        : null,
-      publishQueueSize: asNumber(row.publish_queue_size),
-      updatedAt: asString(row.updated_at),
-    };
-  });
+  const [rows, countRows, summaryRows, nextRows, timelineRows, packageRows] =
+    await Promise.all([
+      baseSelect,
+      sql`
+        select count(*)::integer as total
+        from halleus_private.wiki_publish_jobs as job
+        join public.wiki_articles as article on article.id = job.article_id
+        join public.wiki_article_revisions as revision
+          on revision.article_id = job.article_id
+          and revision.revision_number = job.revision_number
+        where article.deleted_at is null
+          and (
+            (${view} = 'active' and job.status in ('queued', 'running', 'retry'))
+            or (${view} = 'failed' and job.status = 'failed')
+            or (${view} = 'published' and job.status = 'published')
+            or (${view} = 'canceled' and job.status = 'canceled')
+          )
+          and (${statusFilter} = 'all' or job.status = ${statusFilter})
+          and (${packageId}::uuid is null or revision.source_package_id = ${packageId}::uuid)
+          and (
+            ${dateFrom}::date is null
+            or (job.run_at at time zone 'Asia/Tehran')::date >= ${dateFrom}::date
+          )
+          and (
+            ${dateTo}::date is null
+            or (job.run_at at time zone 'Asia/Tehran')::date <= ${dateTo}::date
+          )
+      `,
+      sql`
+        select
+          count(*) filter (
+            where job.status in ('queued', 'running', 'retry')
+          )::integer as active_total,
+          count(*) filter (where job.status = 'queued')::integer as queued,
+          count(*) filter (where job.status = 'running')::integer as running,
+          count(*) filter (where job.status = 'retry')::integer as retrying,
+          count(*) filter (where job.status = 'failed')::integer as failed,
+          max(job.run_at) filter (
+            where job.status in ('queued', 'running', 'retry')
+          )::text as queue_end_at,
+          (
+            select publishing_paused
+            from halleus_private.wiki_schedule_settings
+            where singleton = true
+            limit 1
+          ) as publishing_paused
+        from halleus_private.wiki_publish_jobs as job
+        join public.wiki_articles as article on article.id = job.article_id
+        where article.deleted_at is null
+      `,
+      sql`
+        select
+          job.id::text,
+          article.id::text as article_id,
+          article.stable_id,
+          article.title,
+          job.run_at::text
+        from halleus_private.wiki_publish_jobs as job
+        join public.wiki_articles as article on article.id = job.article_id
+        where article.deleted_at is null
+          and job.status in ('queued', 'retry')
+        order by job.run_at, article.publication_priority desc, job.created_at
+        limit 1
+      `,
+      sql`
+        select
+          article.id::text,
+          article.stable_id,
+          article.slug,
+          article.title,
+          article.category_id,
+          article.status,
+          article.is_indexable,
+          article.content_version,
+          article.article_role,
+          article.content_cluster,
+          article.publication_priority,
+          article.published_at::text,
+          article.scheduled_for::text,
+          article.deleted_at::text,
+          article.updated_at::text,
+          (draft.article_id is not null) as has_draft,
+          job.run_at::text as pending_publish_at,
+          job.id::text as publish_job_id,
+          job.status as publish_job_status,
+          job.last_error as publish_job_error,
+          job.attempt_count as publish_job_attempt_count,
+          job.locked_at::text as publish_job_locked_at,
+          job.completed_at::text as publish_job_completed_at,
+          job.updated_at::text as publish_job_updated_at,
+          job.revision_number as publish_revision_number,
+          revision.source_package_id::text as publish_package_id,
+          package.package_name as publish_package_name,
+          null::integer as publish_queue_position,
+          (
+            select count(*)::integer
+            from halleus_private.wiki_publish_jobs as global_job
+            join public.wiki_articles as global_article
+              on global_article.id = global_job.article_id
+            where global_article.deleted_at is null
+              and global_job.status in ('queued', 'retry')
+          ) as publish_queue_size,
+          (job.run_at at time zone 'Asia/Tehran')::date::text as local_date
+        from halleus_private.wiki_publish_jobs as job
+        join public.wiki_articles as article on article.id = job.article_id
+        join public.wiki_article_revisions as revision
+          on revision.article_id = job.article_id
+          and revision.revision_number = job.revision_number
+        left join halleus_private.wiki_import_packages as package
+          on package.id = revision.source_package_id
+        left join public.wiki_article_drafts as draft on draft.article_id = article.id
+        where article.deleted_at is null
+          and (job.run_at at time zone 'Asia/Tehran')::date
+            between (now() at time zone 'Asia/Tehran')::date
+            and (now() at time zone 'Asia/Tehran')::date + 1
+        order by job.run_at, job.created_at
+        limit 250
+      `,
+      sql`
+        select
+          package.id::text as package_id,
+          package.package_name,
+          count(*)::integer as total,
+          count(*) filter (
+            where job.status in ('queued', 'running', 'retry')
+          )::integer as active,
+          count(*) filter (where job.status = 'published')::integer as published,
+          count(*) filter (where job.status = 'failed')::integer as failed,
+          count(*) filter (where job.status = 'canceled')::integer as canceled,
+          min(job.run_at)::text as first_run_at,
+          max(job.run_at)::text as last_run_at
+        from halleus_private.wiki_publish_jobs as job
+        join public.wiki_article_revisions as revision
+          on revision.article_id = job.article_id
+          and revision.revision_number = job.revision_number
+        join halleus_private.wiki_import_packages as package
+          on package.id = revision.source_package_id
+        join public.wiki_articles as article on article.id = job.article_id
+        where article.deleted_at is null
+        group by package.id, package.package_name
+        order by max(job.created_at) desc
+        limit 30
+      `,
+    ]);
+
   const total = asNumber(asRecord(countRows[0]).total);
+  const summary = asRecord(summaryRows[0]);
+  const next = nextRows[0] ? asRecord(nextRows[0]) : null;
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const tomorrowDate = new Date(`${today}T00:00:00.000Z`);
+  tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
+  const tomorrow = tomorrowDate.toISOString().slice(0, 10);
+
+  const timeline = timelineRows.map((raw) => ({
+    article: rowToArticle(raw),
+    localDate: asString(asRecord(raw).local_date),
+  }));
+
+  const articles = rows.map(rowToArticle);
+  const expectedPageCount = Math.max(
+    0,
+    Math.min(input.limit, total - offset),
+  );
+
   return {
     articles,
     total,
     page,
     pageSize: input.limit,
     totalPages: Math.max(1, Math.ceil(total / input.limit)),
+    view,
+    statusFilter,
+    packageId,
+    dateFrom,
+    dateTo,
+    visibleCount: articles.length,
+    expectedPageCount,
+    summary: {
+      activeTotal: asNumber(summary.active_total),
+      queued: asNumber(summary.queued),
+      running: asNumber(summary.running),
+      retrying: asNumber(summary.retrying),
+      failed: asNumber(summary.failed),
+      nextJob: next
+        ? {
+            id: asString(next.id),
+            articleId: asString(next.article_id),
+            stableId: asString(next.stable_id),
+            title: asString(next.title),
+            runAt: asString(next.run_at),
+          }
+        : null,
+      queueEndAt: asNullableString(summary.queue_end_at),
+      publishingPaused: asBoolean(summary.publishing_paused),
+    },
+    todayTimeline: timeline
+      .filter((item) => item.localDate === today)
+      .map((item) => item.article),
+    tomorrowTimeline: timeline
+      .filter((item) => item.localDate === tomorrow)
+      .map((item) => item.article),
+    packages: packageRows.map((raw) => {
+      const row = asRecord(raw);
+      return {
+        packageId: asString(row.package_id),
+        packageName: asString(row.package_name),
+        total: asNumber(row.total),
+        active: asNumber(row.active),
+        published: asNumber(row.published),
+        failed: asNumber(row.failed),
+        canceled: asNumber(row.canceled),
+        firstRunAt: asNullableString(row.first_run_at),
+        lastRunAt: asNullableString(row.last_run_at),
+      };
+    }),
+  };
+}
+
+export async function getAdminWikiPreview(
+  snapshotInput: unknown,
+): Promise<WikiAdminPreviewData> {
+  const snapshot = readWikiArticleSnapshot(snapshotInput);
+  const stableIds = [...new Set(findWikiInternalArticleIds(snapshot.bodyMarkdown))];
+  if (!stableIds.length) {
+    return { snapshot, internalLinkTargets: {} };
+  }
+
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select stable_id, slug, short_title, title
+    from public.wiki_articles
+    where stable_id = any(${stableIds}::text[])
+      and deleted_at is null
+      and status = 'published'
+      and published_at is not null
+  `;
+
+  return {
+    snapshot,
+    internalLinkTargets: Object.fromEntries(
+      rows.map((row) => [
+        asString(row.stable_id),
+        {
+          slug: asString(row.slug),
+          label: asString(row.short_title) || asString(row.title),
+        },
+      ]),
+    ),
   };
 }
 

@@ -1,12 +1,52 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { getImageProps } from "next/image";
+import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 import { useEffect, useRef, useState } from "react";
 
 import { NavLinks } from "@/components/NavLinks";
 
 import styles from "./app-shell.module.css";
+
+// HALLEUS_RESPONSIVE_CHROME_IMAGE_BATCH5_R1
+const TRANSPARENT_PIXEL =
+  "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+
+type ResponsiveChromeImageProps = {
+  src: string;
+  width: number;
+  height: number;
+  sizes: string;
+  className: string;
+  viewport: "desktop" | "mobile";
+};
+
+function ResponsiveChromeImage({
+  src,
+  width,
+  height,
+  sizes,
+  className,
+  viewport,
+}: ResponsiveChromeImageProps) {
+  const { props } = getImageProps({ src, alt: "", width, height, sizes });
+  const oppositeViewport =
+    viewport === "desktop" ? "(max-width: 760px)" : "(min-width: 761px)";
+
+  return (
+    <picture style={{ display: "contents" }} data-halleus-responsive-image={viewport}>
+      <source media={oppositeViewport} srcSet={TRANSPARENT_PIXEL} />
+      <img
+        {...props}
+        alt=""
+        className={className}
+        decoding="async"
+        fetchPriority="high"
+        loading="eager"
+      />
+    </picture>
+  );
+}
 
 const HEADER_HIDE_OFFSET = 96;
 const HEADER_SCROLL_DELTA = 6;
@@ -271,7 +311,7 @@ export function SiteHeader() {
         className={`site-nav site-nav-app ${styles.nav}`}
         aria-label="ناوبری اصلی"
       >
-        <Link
+        <IntentPrefetchLink
           href="/"
           className={`site-brand ${styles.brand}`}
           aria-label="هالیوس | صفحه اصلی"
@@ -279,37 +319,26 @@ export function SiteHeader() {
           <span className={styles.brandPlate}>
             <span className={styles.brandMarkGroup}>
               <span className={styles.brandSymbolAccentWrap} aria-hidden="true">
-                <Image
+                <ResponsiveChromeImage
                   src="/halleus-logo/symbol-transparent-white.png"
-                  alt=""
                   width={1400}
                   height={1400}
-                  priority
+                  sizes="72px"
                   className={styles.brandSymbolAccent}
-                  data-logo-variant="white"
+                  viewport="desktop"
                 />
               </span>
-              <Image
+              <ResponsiveChromeImage
                 src="/halleus-logo/wordmark-bilingual-transparent-white.png"
-                alt=""
                 width={1900}
                 height={950}
-                priority
+                sizes="136px"
                 className={`${styles.brandLogo} ${styles.brandLogoDesktop}`}
-                data-logo-variant="white"
+                viewport="desktop"
               />
             </span>
-            <Image
-              src="/halleus-logo/symbol-transparent-white.png"
-              alt=""
-              width={1400}
-              height={1400}
-              priority
-              className={styles.brandLogoMobile}
-              data-logo-variant="white"
-            />
           </span>
-        </Link>
+        </IntentPrefetchLink>
 
         <div
           className={`site-nav-scroll-row ${styles.navScrollRow}`}
@@ -320,7 +349,7 @@ export function SiteHeader() {
           </div>
 
           <div className={styles.headerActions}>
-            <Link
+            <IntentPrefetchLink
               className={styles.accountLink}
               href="/profile"
               aria-label="حساب من"
@@ -339,14 +368,14 @@ export function SiteHeader() {
                 <path d="M5.5 19c.8-3.3 3-5 6.5-5s5.7 1.7 6.5 5" />
               </svg>
               <span className={styles.accountLabel}>حساب من</span>
-            </Link>
+            </IntentPrefetchLink>
 
-            <Link
+            <IntentPrefetchLink
               className={`site-nav-cta site-header-cta ${styles.headerCta}`}
               href="/chart"
             >
               ساخت چارت
-            </Link>
+            </IntentPrefetchLink>
           </div>
         </div>
       </nav>
@@ -358,20 +387,20 @@ export function SiteHeader() {
         aria-label="ناوبری اصلی موبایل"
         data-mobile-nav="independent-final-v1"
       >
-        <Link
+        <IntentPrefetchLink
           href="/"
           className={styles.mobileBrand}
           aria-label="هالیوس | صفحه اصلی"
         >
-          <Image
+          <ResponsiveChromeImage
             src="/halleus-logo/symbol-dark-final-20260804.png"
-            alt=""
             width={695}
             height={702}
-            priority
+            sizes="40px"
             className={styles.mobileBrandLogo}
+            viewport="mobile"
           />
-        </Link>
+        </IntentPrefetchLink>
 
         <span
           className={styles.mobileWordmarkText}
@@ -386,7 +415,7 @@ export function SiteHeader() {
         </div>
       </nav>
 
-<Link
+<IntentPrefetchLink
         className={styles.mobileAccountFab}
         href="/profile"
         aria-label="حساب من"
@@ -404,7 +433,7 @@ export function SiteHeader() {
           <circle cx="12" cy="8" r="3.25" />
           <path d="M5.5 19c.8-3.3 3-5 6.5-5s5.7 1.7 6.5 5" />
         </svg>
-      </Link>
+      </IntentPrefetchLink>
     </>
   );
 }

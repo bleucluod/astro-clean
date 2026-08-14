@@ -1,6 +1,7 @@
 "use client";
 
-import { ReportAdaptiveNarrative } from "@/components/report/ReportAdaptiveNarrative";
+import { ReportAdaptiveNarrative, type BirthReportAccessMode } from "@/components/report/ReportAdaptiveNarrative";
+import type { ReportAccessPolicy } from "@/lib/monetization/access-policy";
 
 import { useEffect, useMemo } from "react";
 import { ReportAspectRelationshipSections } from "@/components/ReportAspectRelationshipSections";
@@ -27,11 +28,23 @@ import styles from "@/components/report/human-first-report.module.css";
 type ReportV3ExperienceProps = {
   report: AstrologyReport;
   readingContract?: LiveReportReadingContract;
+  accessMode?: BirthReportAccessMode;
+  accessPolicy?: ReportAccessPolicy;
+  fullReportCredits?: number;
+  onUnlockFullReport?: () => Promise<{ ok: boolean; error?: string }>;
 };
 
 export function ReportV3Experience(props: ReportV3ExperienceProps) {
   if ((props.report.realEngine?.placements?.length ?? 0) > 0) {
-    return <ReportAdaptiveNarrative report={props.report} />;
+    return (
+      <ReportAdaptiveNarrative
+        accessMode={props.accessMode}
+        accessPolicy={props.accessPolicy}
+        fullReportCredits={props.fullReportCredits}
+        onUnlockFullReport={props.onUnlockFullReport}
+        report={props.report}
+      />
+    );
   }
 
   return <LegacyReportV3Experience {...props} />;

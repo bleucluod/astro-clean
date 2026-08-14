@@ -60,15 +60,19 @@
         "components/PremiumRequestForm.tsx",
         "components/SkyPublicExperience.tsx",
         "scripts/generate-final-public-editorial-content.mjs",
-        "scripts/check-public-editorial-content.mjs"
+        "scripts/check-public-editorial-content.mjs",
+        "components/commerce/**",
+        "scripts/check-predeploy-commerce-surfaces.mjs"
       ],
       "guards": [
+        "check:predeploy-commerce-surfaces",
         "check:public-editorial-content",
         "check:comparison-product",
         "check:sky-public-route",
         "check:privacy-conscious-analytics",
         "check:public-discovery-architecture",
-        "check:site-chrome-minimal-ui"
+        "check:site-chrome-minimal-ui",
+        "check:monetization-products"
       ],
       "lint": true,
       "build": true
@@ -105,12 +109,16 @@
         "components/comparison/**",
         "lib/comparison/**",
         "types/comparison-product.ts",
-        "scripts/check-comparison-product.mjs"
+        "scripts/check-comparison-product.mjs",
+        "scripts/check-predeploy-consumer-product-ux.mjs"
       ],
       "guards": [
+        "check:predeploy-consumer-product-ux",
         "check:comparison-product",
         "check:privacy-conscious-analytics",
-        "check:internal-route-noindex-boundary"
+        "check:internal-route-noindex-boundary",
+        "check:monetization-products",
+        "check:credit-monetization"
       ],
       "lint": true,
       "build": true
@@ -139,7 +147,9 @@
         "check:chart-prominence",
         "check:report-product-quality",
         "check:report-quality",
-        "check:vps-release-workflow"
+        "check:vps-release-workflow",
+        "check:monetization-products",
+        "check:credit-monetization"
       ],
       "lint": true,
       "build": true
@@ -156,7 +166,9 @@
         "check:report-quality",
         "check:vps-release-workflow",
         "check:report-ownership-sharing",
-        "check:secure-admin-core"
+        "check:secure-admin-core",
+        "check:monetization-products",
+        "check:credit-monetization"
       ],
       "lint": true,
       "build": true
@@ -249,7 +261,8 @@
         "lib/wiki/wiki-revalidation.ts",
         "app/chart/layout.tsx",
         "app/chart/chart-shell.module.css",
-        "components/app-shell.module.css"
+        "components/app-shell.module.css",
+        "components/wiki/WikiArticleRender.tsx"
       ],
       "guards": [
         "check:public-discovery-architecture",
@@ -314,16 +327,20 @@
         "lib/telegram/**",
         "ops/cloudflare/telegram-bridge/**",
         "database/migrations/0011_telegram_content_queue.sql",
+        "database/migrations/0014_telegram_admin_operations.sql",
         "lib/config/env.ts",
         ".env.example",
         "scripts/check-telegram-content-integrity.mjs",
-        "scripts/check-telegram-content-pack.mjs"
+        "scripts/check-telegram-content-pack.mjs",
+        "scripts/check-telegram-admin-operations.mjs"
       ],
       "guards": [
         "check:telegram-content-integrity",
         "check:telegram-content-pack",
+        "check:telegram-admin-operations",
         "check:sky-daily-contract",
-        "check:secure-admin-core"
+        "check:secure-admin-core",
+        "check:predeploy-admin-ia"
       ],
       "lint": true,
       "build": true
@@ -437,11 +454,16 @@
         "lib/admin/**",
         "types/storage.ts",
         "database/migrations/*report*.sql",
-        "scripts/check-report-ownership-sharing.mjs"
+        "scripts/check-report-ownership-sharing.mjs",
+        "lib/admin/admin-report-intelligence.ts",
+        "scripts/check-reports-intelligence.mjs"
       ],
       "guards": [
         "check:report-ownership-sharing",
-        "check:secure-admin-core"
+        "check:secure-admin-core",
+        "check:reports-intelligence",
+        "check:predeploy-admin-ia",
+        "check:credit-monetization"
       ],
       "lint": true,
       "build": true
@@ -690,7 +712,9 @@
         "database/migrations/*wiki*.sql",
         "database/seeds/*wiki*.sql",
         "public/*wiki*.md",
-        "ops/vps/*wiki*"
+        "ops/vps/*wiki*",
+        "components/wiki/WikiArticleRender.tsx",
+        "scripts/check-wiki-admin-completion.mjs"
       ],
       "guards": [
         "check:wiki-content-foundation",
@@ -705,7 +729,9 @@
         "check:wiki-permanent-bulk-delete",
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
-        "check:wiki-content-guide-priority"
+        "check:wiki-content-guide-priority",
+        "check:wiki-admin-completion",
+        "check:predeploy-admin-ia"
       ],
       "lint": true,
       "build": true
@@ -730,7 +756,9 @@
         "check:wiki-admin-pagination-import-status",
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
-        "check:wiki-content-guide-priority"
+        "check:wiki-content-guide-priority",
+        "check:wiki-admin-completion",
+        "check:predeploy-admin-ia"
       ],
       "lint": true,
       "build": true
@@ -793,7 +821,8 @@
         "check:wiki-admin-pagination-import-status",
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
-        "check:wiki-content-guide-priority"
+        "check:wiki-content-guide-priority",
+        "check:wiki-admin-completion"
       ],
       "lint": true,
       "build": false
@@ -1038,6 +1067,35 @@
       "guards": [
         "check:telegram-publishing-hardening",
         "check:telegram-content-integrity"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
+      "id": "monetization-products",
+      "description": "Credit resources, permanent per-output unlock, dynamic report access policy and manual package administration.",
+      "patterns": [
+        "lib/monetization/**",
+        "components/monetization/**",
+        "app/api/account/entitlements/**",
+        "app/api/admin/monetization/**",
+        "components/admin/AccessSalesPanel.tsx",
+        "database/migrations/0015_product_entitlements.sql",
+        "scripts/check-credit-monetization.mjs",
+        "scripts/check-monetization-products.mjs",
+        "app/dashboard/page.tsx",
+        "app/dashboard/dashboard.module.css",
+        "scripts/check-predeploy-consumer-product-ux.mjs"
+      ],
+      "guards": [
+        "check:predeploy-consumer-product-ux",
+        "check:monetization-products",
+        "check:report-ownership-sharing",
+        "check:secure-admin-core",
+        "check:auth-readiness",
+        "check:comparison-product",
+        "check:product-surface",
+        "check:credit-monetization"
       ],
       "lint": true,
       "build": true

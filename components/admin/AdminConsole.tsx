@@ -9,7 +9,6 @@ import type {
   AdminCapability,
   AdminOverviewPayload,
   AdminPremiumRequestSummary,
-  AdminReportSummary,
   AdminSessionPayload,
   AdminUserSummary,
 } from "@/lib/admin/admin-types";
@@ -32,6 +31,14 @@ const TelegramAdminPanel = dynamic(
   },
 );
 
+const AdminReportsWorkspace = dynamic(
+  () => import("./AdminReportsWorkspace").then((module) => module.AdminReportsWorkspace),
+  {
+    ssr: false,
+    loading: () => <div className={styles.panelSkeleton}>Reports Intelligence در حال آماده‌شدن است…</div>,
+  },
+);
+
 type TabId =
   | "overview"
   | "users"
@@ -43,6 +50,7 @@ type TabId =
 
 type JsonPayload = Record<string, unknown>;
 type NavigationGroup = "main" | "content" | "operations";
+type TelegramWorkspaceSection = "overview" | "operations";
 
 const PAGE_SIZE = 25;
 
@@ -114,14 +122,14 @@ const wikiSections: {
   id: WikiWorkspaceSection;
   label: string;
   capability: AdminCapability;
+  showInNav?: boolean;
 }[] = [
   { id: "articles", label: "مقاله‌ها", capability: "wiki.read" },
-  { id: "queue", label: "صف انتشار", capability: "wiki.read" },
-  { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write" },
+  { id: "queue", label: "انتشار", capability: "wiki.read" },
+  { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write", showInNav: false },
   { id: "import", label: "ورود بسته", capability: "wiki.import.write" },
-  { id: "settings", label: "تنظیمات انتشار", capability: "wiki.read" },
-  { id: "categories", label: "دسته‌ها", capability: "wiki.settings.write" },
   { id: "media", label: "رسانه‌ها", capability: "wiki.read" },
+  { id: "settings", label: "تنظیمات", capability: "wiki.read" },
 ];
 
 const premiumStatusLabels: Record<AdminPremiumRequestSummary["status"], string> = {
@@ -170,23 +178,6 @@ function badgeTone(value: string) {
   return "neutral";
 }
 
-function formatReportBirth(report: AdminReportSummary) {
-  const date = report.birthDate ?? "تاریخ نامشخص";
-  const time = report.birthTimeAccuracy === "unknown"
-    ? "ساعت نامشخص"
-    : report.birthTime ?? "ساعت نامشخص";
-  return `${date} · ${time}`;
-}
-
-function formatReportBirthPlace(report: AdminReportSummary) {
-  return [report.birthCity, report.birthCountry].filter(Boolean).join("، ") || "—";
-}
-
-function formatReportAccount(report: AdminReportSummary) {
-  return report.ownerDisplayName || report.ownerUserId || "بدون حساب";
-}
-
-// HALLEUS_REPORTS_MAIN_SUBJECT_ACCOUNT_R62
 function Paginator({
   page,
   itemCount,
@@ -234,12 +225,10 @@ export function AdminConsole({
   const [session, setSession] = useState<AdminSessionPayload | null>(initialSession);
   const [overview, setOverview] = useState<AdminOverviewPayload | null>(null);
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
-  const [reports, setReports] = useState<AdminReportSummary[]>([]);
   const [premiumRequests, setPremiumRequests] = useState<AdminPremiumRequestSummary[]>([]);
   const [auditEvents, setAuditEvents] = useState<AdminAuditEventSummary[]>([]);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchApplied, setSearchApplied] = useState("");
-  const [privateReport, setPrivateReport] = useState<unknown>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -266,15 +255,28 @@ export function AdminConsole({
     availableWikiSections.find((item) => item.id === requestedWikiSection)?.id ??
     availableWikiSections[0]?.id ??
     "articles";
+  const requestedTelegramSection = searchParams.get("section") as
+    | TelegramWorkspaceSection
+    | null;
+  const telegramSection: TelegramWorkspaceSection =
+    requestedTelegramSection === "operations" ? "operations" : "overview";
   const page = readPage(searchParams.get("page"));
   const activeTabConfig = tabs.find((tab) => tab.id === activeTab);
 
   const navigate = useCallback(
-    (tab: TabId, options?: { section?: WikiWorkspaceSection; page?: number }) => {
+    (
+      tab: TabId,
+      options?: {
+        section?: WikiWorkspaceSection | TelegramWorkspaceSection;
+        page?: number;
+      },
+    ) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", tab);
       if (tab === "wiki") {
         params.set("section", options?.section ?? "articles");
+      } else if (tab === "telegram") {
+        params.set("section", options?.section ?? "overview");
       } else {
         params.delete("section");
       }
@@ -307,10 +309,8 @@ export function AdminConsole({
           setToken("");
           setOverview(null);
           setUsers([]);
-          setReports([]);
           setPremiumRequests([]);
           setAuditEvents([]);
-          setPrivateReport(null);
         }
         throw new Error(
           typeof payload.error === "string"
@@ -324,7 +324,7 @@ export function AdminConsole({
   );
 
   const loadTab = useCallback(async () => {
-    if (!token || !session || activeTab === "telegram" || activeTab === "wiki") {
+    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "reports") {
       return;
     }
     setLoading(true);
@@ -339,11 +339,6 @@ export function AdminConsole({
           `/api/admin/users?search=${encodeURIComponent(searchApplied)}&limit=${PAGE_SIZE}&page=${page}`,
         );
         setUsers(payload.users as AdminUserSummary[]);
-      } else if (activeTab === "reports") {
-        const payload = await request(
-          `/api/admin/reports?search=${encodeURIComponent(searchApplied)}&limit=${PAGE_SIZE}&page=${page}`,
-        );
-        setReports(payload.reports as AdminReportSummary[]);
       } else if (activeTab === "premium") {
         const payload = await request(
           `/api/admin/premium-requests?limit=${PAGE_SIZE}&page=${page}`,
@@ -413,61 +408,6 @@ export function AdminConsole({
       { action: "add_note", userId, note: note.trim() },
       "یادداشت داخلی ثبت شد.",
     );
-  }
-
-  async function restrictReport(reportId: string) {
-    const reason = window.prompt("دلیل محدودکردن دسترسی این گزارش:");
-    if (!reason?.trim()) return;
-    await mutate(
-      "/api/admin/reports",
-      { action: "restrict_visibility", reportId, reason: reason.trim() },
-      "گزارش از حالت عمومی خارج شد.",
-    );
-  }
-
-  async function updateReportTitle(report: AdminReportSummary) {
-    const title = window.prompt("عنوان تازهٔ گزارش:", report.title);
-    if (title === null) return;
-    const reason = window.prompt("دلیل تغییر عنوان را ثبت کن:");
-    if (!reason?.trim()) return;
-    await mutate(
-      "/api/admin/reports",
-      { action: "update_title", reportId: report.id, title, reason: reason.trim() },
-      "عنوان گزارش به‌روزرسانی شد.",
-    );
-  }
-
-  async function deleteReport(reportId: string) {
-    const reason = window.prompt("دلیل حذف نرم گزارش را ثبت کن:");
-    if (!reason?.trim()) return;
-    await mutate(
-      "/api/admin/reports",
-      { action: "soft_delete", reportId, reason: reason.trim() },
-      "گزارش به‌صورت نرم حذف شد.",
-    );
-  }
-
-  async function inspectPrivateReport(reportId: string) {
-    const reason = window.prompt(
-      "مشاهده متن خصوصی یک اقدام audit‌شده است. دلیل دسترسی را وارد کن:",
-    );
-    if (!reason?.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      const payload = await request(
-        `/api/admin/reports/${encodeURIComponent(reportId)}/private-content`,
-        { method: "POST", body: JSON.stringify({ reason: reason.trim() }) },
-      );
-      setPrivateReport(payload.content);
-      setMessage("دسترسی خصوصی ثبت و audit شد.");
-    } catch (inspectError) {
-      setError(
-        inspectError instanceof Error ? inspectError.message : "مشاهده گزارش ناموفق بود.",
-      );
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function updatePremium(
@@ -563,13 +503,11 @@ export function AdminConsole({
   const paginationCount =
     activeTab === "users"
       ? users.length
-      : activeTab === "reports"
-        ? reports.length
-        : activeTab === "premium"
-          ? premiumRequests.length
-          : activeTab === "audit"
-            ? auditEvents.length
-            : 0;
+      : activeTab === "premium"
+        ? premiumRequests.length
+        : activeTab === "audit"
+          ? auditEvents.length
+          : 0;
 
   return (
     <div className={styles.console}>
@@ -638,9 +576,36 @@ export function AdminConsole({
                     >
                       {tab.label}
                     </button>
+                    {tab.id === "telegram" && activeTab === "telegram" ? (
+                      <div
+                        className={styles.subnav}
+                        aria-label="بخش‌های مدیریت تلگرام"
+                        data-admin-telegram-subnav="true"
+                      >
+                        {([
+                          ["overview", "نمای کلی"],
+                          ["operations", "عملیات"],
+                        ] as const).map(([section, label]) => (
+                          <button
+                            className={
+                              telegramSection === section
+                                ? styles.activeSubnav
+                                : undefined
+                            }
+                            key={section}
+                            type="button"
+                            onClick={() =>
+                              navigate("telegram", { section })
+                            }
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                     {tab.id === "wiki" && activeTab === "wiki" ? (
                       <div className={styles.subnav} aria-label="بخش‌های مدیریت ویکی">
-                        {availableWikiSections.map((item) => (
+                        {availableWikiSections.filter((item) => item.showInNav !== false).map((item) => (
                           <button
                             className={wikiSection === item.id ? styles.activeSubnav : undefined}
                             key={item.id}
@@ -681,16 +646,12 @@ export function AdminConsole({
           </div>
 
           <div className={styles.toolbarActions}>
-            {(activeTab === "users" || activeTab === "reports") ? (
+            {activeTab === "users" ? (
               <form className={styles.search} onSubmit={submitSearch}>
                 <input
                   value={searchDraft}
                   onChange={(event) => setSearchDraft(event.target.value)}
-                  placeholder={
-                  activeTab === "reports"
-                    ? "عنوان، شناسه، نام سوژه، شهر تولد یا نام کاربر"
-                    : "جست‌وجوی شناسه، نام یا ایمیل"
-                }
+                  placeholder="جست‌وجوی شناسه، نام یا ایمیل"
                 />
                 <button type="submit">جست‌وجو</button>
               </form>
@@ -705,7 +666,7 @@ export function AdminConsole({
 
         {error ? <p className={styles.error}>{error}</p> : null}
         {message ? <p className={styles.success}>{message}</p> : null}
-        {loading && activeTab !== "wiki" && activeTab !== "telegram" ? (
+        {loading && activeTab !== "wiki" && activeTab !== "telegram" && activeTab !== "reports" ? (
           <div className={styles.loadingBar}>در حال دریافت داده…</div>
         ) : null}
 
@@ -753,9 +714,9 @@ export function AdminConsole({
                 <strong>صف ویکی</strong>
                 <span>انتشارهای آینده و وضعیت jobها</span>
               </button>
-              <button type="button" onClick={() => navigate("wiki", { section: "new" })}>
-                <strong>مقاله تازه</strong>
-                <span>ورود سریع به ویرایشگر</span>
+              <button type="button" onClick={() => navigate("wiki", { section: "articles" })}>
+                <strong>مقاله‌ها</strong>
+                <span>جست‌وجو، ویرایش و ساخت مقاله</span>
               </button>
               <button type="button" onClick={() => selectTab("reports")}>
                 <strong>گزارش‌ها</strong>
@@ -863,120 +824,13 @@ export function AdminConsole({
         ) : null}
 
         {activeTab === "reports" ? (
-          <>
-            {reports.length ? (
-              <>
-                <div className={`${styles.tableWrap} ${styles.desktopOnly}`}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>گزارش</th>
-                        <th>سوژه</th>
-                        <th>تولد / محل تولد</th>
-                        <th>حساب</th>
-                        <th>دسترسی</th>
-                        <th>ساخته‌شده</th>                        <th>عملیات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reports.map((report) => (
-                        <tr key={report.id}>
-                          <td>
-                            <strong>{report.title}</strong>
-                            <small>
-                              {report.source} · {report.engineVersion || "—"} / {report.reportVersion || "—"}
-                            </small>
-                          </td>
-                          <td>
-                            <strong>{report.subjectName ?? "—"}</strong>
-                            <small>نوع مالک: {report.ownerKind}</small>
-                          </td>
-                          <td>
-                            <strong>{formatReportBirth(report)}</strong>
-                            <small>{formatReportBirthPlace(report)}</small>
-                          </td>
-                          <td>
-                            <strong>{formatReportAccount(report)}</strong>
-                            <small>{report.ownerUserId || "بدون شناسهٔ حساب"}</small>
-                          </td>
-                          <td>
-                            <span className={styles.statusPill} data-tone={badgeTone(report.visibility)}>
-                              {report.visibility}
-                            </span>
-                            <small>{report.accessTier} · رضایت: {report.publicationConsentState}</small>
-                          </td>                          <td>{formatDate(report.createdAt)}</td>
-                          <td>
-                            <details className={styles.actionMenu}>
-                              <summary>عملیات</summary>
-                              <div>
-                                <Link href={`/admini/reports/${report.id}`}>جزئیات</Link>
-                                {hasCapability(session, "reports.title.write") ? (
-                                  <button type="button" onClick={() => void updateReportTitle(report)}>ویرایش عنوان</button>
-                                ) : null}
-                                {report.visibility !== "restricted_by_admin" && hasCapability(session, "reports.visibility.restrict") ? (
-                                  <button type="button" onClick={() => void restrictReport(report.id)}>محدودسازی</button>
-                                ) : null}
-                                {hasCapability(session, "reports.private_content.read") ? (
-                                  <button type="button" onClick={() => void inspectPrivateReport(report.id)}>دسترسی audit‌شده</button>
-                                ) : null}
-                                {hasCapability(session, "reports.delete") ? (
-                                  <button className={styles.dangerButton} type="button" onClick={() => void deleteReport(report.id)}>حذف نرم</button>
-                                ) : null}
-                              </div>
-                            </details>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className={`${styles.mobileCards} ${styles.mobileOnly}`}>
-                  {reports.map((report) => (
-                    <article className={styles.mobileRecord} key={report.id}>
-                      <div className={styles.recordHeader}>
-                        <div>
-                          <strong>{report.title}</strong>
-                          <small>سوژه: {report.subjectName ?? "—"}</small>
-                        </div>
-                        <span className={styles.statusPill} data-tone={badgeTone(report.visibility)}>
-                          {report.visibility}
-                        </span>
-                      </div>
-                      <div className={styles.recordMeta}>
-                        <span>تولد: {formatReportBirth(report)}</span>
-                        <span>محل تولد: {formatReportBirthPlace(report)}</span>
-                        <span>حساب: {formatReportAccount(report)}</span>
-                        <span>نوع مالک: {report.ownerKind}</span>
-                        <span>پلن: {report.accessTier}</span>
-                        <span>ساخته‌شده: {formatDate(report.createdAt)}</span>
-                        <span>رضایت: {report.publicationConsentState}</span>
-                      </div>
-                      <div className={styles.recordActions}>
-                        <Link href={`/admini/reports/${report.id}`}>جزئیات</Link>
-                        {hasCapability(session, "reports.title.write") ? (
-                          <button type="button" onClick={() => void updateReportTitle(report)}>ویرایش</button>
-                        ) : null}
-                        {report.visibility !== "restricted_by_admin" && hasCapability(session, "reports.visibility.restrict") ? (
-                          <button type="button" onClick={() => void restrictReport(report.id)}>محدودسازی</button>
-                        ) : null}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <EmptyState>گزارشی در این صفحه پیدا نشد.</EmptyState>
-            )}
-            {privateReport ? (
-              <section className={styles.privateViewer}>
-                <div className={styles.viewerHeader}>
-                  <h3>محتوای خصوصی با دسترسی ثبت‌شده</h3>
-                  <button type="button" onClick={() => setPrivateReport(null)}>بستن</button>
-                </div>
-                <pre>{JSON.stringify(privateReport, null, 2)}</pre>
-              </section>
-            ) : null}
-          </>
+          <AdminReportsWorkspace
+            accessToken={token}
+            canExport={hasCapability(session, "reports.export")}
+              canDelete={hasCapability(session, "reports.delete")}
+              canManageAccess={hasCapability(session, "memberships.manage")}
+            embedded
+          />
         ) : null}
 
         {activeTab === "premium" ? (
@@ -1120,7 +974,15 @@ export function AdminConsole({
           </>
         ) : null}
 
-        {activeTab === "telegram" ? <TelegramAdminPanel token={token} /> : null}
+        {activeTab === "telegram" ? (
+          <TelegramAdminPanel
+            activeSection={telegramSection}
+            onSectionChange={(section) =>
+              navigate("telegram", { section })
+            }
+            token={token}
+          />
+        ) : null}
 
         {activeTab === "wiki" ? (
           <WikiAdminPanel
@@ -1131,7 +993,7 @@ export function AdminConsole({
           />
         ) : null}
 
-        {["users", "reports", "premium", "audit"].includes(activeTab) ? (
+        {["users", "premium", "audit"].includes(activeTab) ? (
           <Paginator
             page={page}
             itemCount={paginationCount}

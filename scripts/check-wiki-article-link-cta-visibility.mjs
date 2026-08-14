@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 const page = readFileSync("app/wiki/[slug]/page.tsx", "utf8");
+const renderer = readFileSync("components/wiki/WikiArticleRender.tsx", "utf8");
 const styles = readFileSync("app/wiki/wiki.module.css", "utf8");
 const failures = [];
 
@@ -33,7 +34,7 @@ const ctaFocusRule = ruleBody(".sideCard .wikiArticleCta:focus-visible");
 
 requireText(
   "Wiki inline link renderer",
-  page,
+  renderer,
   "className={styles.inlineArticleLink}",
 );
 requireText("Wiki inline link", inlineRule, "color: #1e40af;");

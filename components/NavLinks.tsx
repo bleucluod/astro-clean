@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 import { navItems } from "@/lib/config/navigation";
@@ -15,13 +15,13 @@ export function NavLinks() {
 
         return (
           <Fragment key={item.href}>
-            <Link
+            <IntentPrefetchLink
               aria-current={isActive ? "page" : undefined}
               className={isActive ? "nav-link active" : "nav-link"}
               href={item.href}
             >
               {item.label}
-            </Link>
+            </IntentPrefetchLink>
             {index < navItems.length - 1 ? (
               <span className="nav-link-separator" aria-hidden="true">
                 |

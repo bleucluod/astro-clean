@@ -124,6 +124,7 @@ export async function POST(request: Request) {
         rangeStart: parsed.rangeStart,
         rangeEnd: parsed.rangeEnd,
         timezone: parsed.timezone,
+        aiContentConfigVersion: parsed.aiContentConfigVersion,
       },
       reason: "Bulk Telegram content pack scheduled.",
       success: true,
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
             inspection.skippedDuplicateCount === importableItems.length,
           rangeStart: parsed.rangeStart,
           rangeEnd: parsed.rangeEnd,
+          aiContentConfigVersion: parsed.aiContentConfigVersion,
         },
       },
       201,
@@ -161,13 +163,19 @@ export async function POST(request: Request) {
           reason: "Bulk Telegram content pack import failed.",
           success: false,
           afterSummary: {
-            error: error instanceof Error ? error.message.slice(0, 500) : "Unknown error",
+            error:
+              error instanceof Error
+                ? error.message.slice(0, 500)
+                : "Unknown error",
           },
         });
       } catch {
         // Keep the import error primary.
       }
     }
-    return adminErrorResponse(error, "ورود بستهٔ تلگرام ناموفق بود و هیچ پیام جدیدی وارد صف نشد.");
+    return adminErrorResponse(
+      error,
+      "ورود بستهٔ تلگرام ناموفق بود و هیچ پیام جدیدی وارد صف نشد.",
+    );
   }
 }

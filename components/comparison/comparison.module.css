@@ -1912,3 +1912,32 @@
     padding-inline: 2px;
   }
 }
+
+/* Halleus predeploy Batch 4 progressive compare UX */
+.flowRail {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto 18px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+}
+.flowRail li { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border: 1px solid #d6e3f0; border-radius: 12px; background: rgba(248,250,252,.9); color: #40556b; font-size: .78rem; font-weight: 800; }
+.flowRail span, .stepHeading > span { display: inline-grid; place-items: center; min-width: 28px; height: 28px; border-radius: 999px; background: #243447; color: #fff; font-weight: 900; }
+.flowStep, .creditStage { display: grid; gap: 14px; padding: 18px; border: 1px solid #d7e4f2; border-radius: 18px; background: rgba(248,250,252,.78); }
+.stepHeading { display: flex; gap: 12px; align-items: flex-start; }
+.stepHeading div { display: grid; gap: 4px; }
+.stepHeading h3, .stepHeading p { margin: 0; }
+.stepHeading h3 { color: #243447; font-size: 1rem; }
+.stepHeading p { color: #64748b; line-height: 1.9; font-size: .86rem; }
+.creditWidget { display: grid; gap: 10px; }
+.purchasePath { width: fit-content; color: #1e40af; font-weight: 850; text-decoration: none; }
+@media (max-width: 760px) {
+  .flowRail { grid-template-columns: 1fr 1fr; width: min(100% - 20px, 1120px); }
+  .flowRail li:last-child { grid-column: 1 / -1; }
+  .flowStep, .creditStage { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product[data-halleus-progressive-compare="batch4-r1"] *, .product[data-halleus-progressive-compare="batch4-r1"] *::before, .product[data-halleus-progressive-compare="batch4-r1"] *::after { animation: none !important; transition: none !important; }
+}

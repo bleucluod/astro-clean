@@ -1,3 +1,5 @@
+import type { HalleusPackageCode } from "@/lib/monetization/product-catalog";
+
 export const ADMIN_ROLES = [
   "owner",
   "admin",
@@ -20,12 +22,14 @@ export const ADMIN_CAPABILITIES = [
   "reports.title.write",
   "reports.delete",
   "reports.private_content.read",
+  "reports.export",
   "premium_requests.read",
   "premium_requests.write",
   "audit.read",
   "memberships.manage",
   "telegram.read",
   "telegram.import.write",
+  "telegram.operations.write",
   "wiki.read",
   "wiki.draft.write",
   "wiki.import.write",
@@ -78,7 +82,16 @@ export type AdminReportSummary = {
   birthCity: string | null;
   birthCountry: string | null;
   ownerKind: string;
-  visibility: "public" | "private" | "shared_by_link" | "unpublished" | "restricted_by_admin";
+  accountPlan: string | null;
+  reportType: string;
+  birthYear: string | null;
+  birthMonth: string | null;
+  publicationState: string;
+  identityConsentState: string;
+  shareEnabled: boolean;
+  storageBytes: number;
+  reportJsonBytes: number;
+  visibility: "public" | "private" | "shared_by_link" | "unpublished" | "restricted_by_admin" | "unknown";
   source: string;
   accessTier: string;
   engineVersion: string | null;
@@ -89,12 +102,97 @@ export type AdminReportSummary = {
   updatedAt: string;
 };
 
+export type AdminReportFilters = {
+  search: string;
+  dateFrom: string | null;
+  dateTo: string | null;
+  birthCity: string | null;
+  birthCountry: string | null;
+  reportType: string | null;
+  ownerKind: string | null;
+  accessTier: string | null;
+  visibility: string | null;
+  source: string | null;
+  birthYear: string | null;
+  birthMonth: string | null;
+};
+
+export type AdminReportBreakdownItem = {
+  key: string;
+  count: number;
+};
+
+export type AdminReportTrendPoint = {
+  key: string;
+  count: number;
+};
+
+export type AdminReportInsights = {
+  volume: {
+    today: number;
+    last7Days: number;
+    last30Days: number;
+    total: number;
+  };
+  uniqueCreators: number;
+  storage: {
+    rowCount: number;
+    totalBytes: number;
+    averageBytes: number;
+    largestBytes: number;
+    medianBytes: number;
+    reportJsonTotalBytes: number;
+    reportJsonAverageBytes: number;
+  };
+  accountFrequency: {
+    accountCount: number;
+    averageReportsPerAccount: number;
+    oneReportAccounts: number;
+    multiReportAccounts: number;
+  };
+  byReportType: AdminReportBreakdownItem[];
+  byAccessTier: AdminReportBreakdownItem[];
+  byOwnerKind: AdminReportBreakdownItem[];
+  topBirthCities: AdminReportBreakdownItem[];
+  topBirthCountries: AdminReportBreakdownItem[];
+  birthYears: AdminReportBreakdownItem[];
+  birthMonths: AdminReportBreakdownItem[];
+  trends: {
+    daily: AdminReportTrendPoint[];
+    weekly: AdminReportTrendPoint[];
+    monthly: AdminReportTrendPoint[];
+  };
+};
+
+export type AdminReportFilterOptions = {
+  birthCities: string[];
+  birthCountries: string[];
+  reportTypes: string[];
+  ownerKinds: string[];
+  accessTiers: string[];
+  visibilities: string[];
+  sources: string[];
+  birthYears: string[];
+};
+
+export type AdminReportCohortPayload = {
+  reports: AdminReportSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  filters: AdminReportFilters;
+  options: AdminReportFilterOptions;
+  insights: AdminReportInsights;
+};
+
 export type AdminPremiumRequestSummary = {
   id: string;
   userId: string | null;
   contactName: string;
   contactValue: string;
   requestedProduct: string;
+  productCode: HalleusPackageCode | null;
   linkedReportId: string | null;
   customerNotes: string | null;
   internalNotes: string | null;

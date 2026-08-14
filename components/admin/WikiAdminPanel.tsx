@@ -13,6 +13,10 @@ import type {
   WikiImportPackageSummary,
   WikiImportPreviewPlan,
   WikiRevisionSummary,
+  WikiPublicationJobsPage,
+  WikiPublicationJobStatusFilter,
+  WikiPublicationJobView,
+  WikiAdminPreviewData,
   WikiScheduleSettings,
 } from "@/lib/wiki/wiki-cms-types";
 import {
@@ -38,6 +42,8 @@ import type {
 } from "@/lib/wiki/wiki-queue-reflow";
 import type { WikiQueueReflowPolicy } from "@/lib/wiki/wiki-cms-types";
 import type { WikiImportMergePlan } from "@/lib/wiki/wiki-import-merge";
+import { WikiArticleBody, WikiInlineText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
+import wikiPublicStyles from "@/app/wiki/wiki.module.css";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -234,6 +240,15 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   const [importMergePlan, setImportMergePlan] = useState<WikiImportMergePlan | null>(null);
   // HALLEUS_WIKI_IMPORT_PREVIEW_UI_R62
   const [importPreviewPlan, setImportPreviewPlan] = useState<WikiImportPreviewPlan | null>(null);
+  const [publicationControl, setPublicationControl] = useState<WikiPublicationJobsPage | null>(null);
+  const [queueJobView, setQueueJobView] = useState<WikiPublicationJobView>("active");
+  const [queueStatusFilter, setQueueStatusFilter] = useState<WikiPublicationJobStatusFilter>("all");
+  const [queuePackageFilter, setQueuePackageFilter] = useState("");
+  const [queueDateFrom, setQueueDateFrom] = useState("");
+  const [queueDateTo, setQueueDateTo] = useState("");
+  const [previewData, setPreviewData] = useState<WikiAdminPreviewData | null>(null);
+  const [relatedSearch, setRelatedSearch] = useState("");
+  const [relatedOptions, setRelatedOptions] = useState<WikiArticleAdminSummary[]>([]);
   const [articlePage, setArticlePage] = useState(1);
   const [articlePageSize, setArticlePageSize] = useState(25);
   const [articleTotal, setArticleTotal] = useState(0);
@@ -326,7 +341,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
   );
   const visibleSelectableArticles = useMemo(
     () =>
-      (activeSection === "queue" ? publicationQueue : articles).filter(
+      articles.filter(
         (article) =>
           article.publishJobStatus !== "running" &&
           (!article.deletedAt ||
@@ -384,6 +399,11 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     selectedVisibleIds.length > 0 &&
     selectedVisibleIds.length === selectedBulkEligibleIds.length;
 
+  const queueMismatch = activeSection === "queue" && Boolean(publicationControl) && (
+    publicationControl!.visibleCount !== articles.length ||
+    publicationControl!.expectedPageCount !== articles.length
+  );
+
   const request = useCallback(async (path: string, init?: RequestInit) => {
     const headers = new Headers(init?.headers);
     headers.set("authorization", `Bearer ${token}`);
@@ -394,19 +414,26 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     return readAdminJsonResponse(response);
   }, [token]);
 
-  // HALLEUS_WIKI_QUEUE_API_R44
+  // HALLEUS_WIKI_PUBLICATION_CONTROL_LOAD_R1
   const loadList = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const queueView = activeSection === "queue";
-      const payload = queueView
-        ? await request(`/api/admin/wiki/publication-jobs?limit=${articlePageSize}&page=${articlePage}`)
-        : await request(`/api/admin/wiki/articles?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&limit=${articlePageSize}&page=${articlePage}`);
-      setArticles(payload.articles as WikiArticleAdminSummary[]);
-      if (Array.isArray(payload.categories)) {
-        setCategories(payload.categories as Category[]);
+      const isQueueView = activeSection === "queue";
+      let payload: Record<string, unknown>;
+      if (isQueueView) {
+        const queuePath = `/api/admin/wiki/publication-jobs?limit=${articlePageSize}&page=${articlePage}`;
+        const params = new URLSearchParams({ view: queueJobView, status: queueStatusFilter });
+        if (queuePackageFilter) params.set("packageId", queuePackageFilter);
+        if (queueDateFrom) params.set("dateFrom", queueDateFrom);
+        if (queueDateTo) params.set("dateTo", queueDateTo);
+        payload = await request(`${queuePath}&${params.toString()}`);
+        setPublicationControl(payload as unknown as WikiPublicationJobsPage);
+      } else {
+        payload = await request(`/api/admin/wiki/articles?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&limit=${articlePageSize}&page=${articlePage}`);
       }
+      setArticles(payload.articles as WikiArticleAdminSummary[]);
+      if (Array.isArray(payload.categories)) setCategories(payload.categories as Category[]);
       setArticleTotal(Number(payload.total ?? 0));
       setArticleTotalPages(Number(payload.totalPages ?? 1));
       setQueuePositionDrafts({});
@@ -416,7 +443,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     } finally {
       setLoading(false);
     }
-  }, [activeSection, articlePage, articlePageSize, request, search, status]);
+  }, [activeSection, articlePage, articlePageSize, queueDateFrom, queueDateTo, queueJobView, queuePackageFilter, queueStatusFilter, request, search, status]);
 
   const loadImportPackages = useCallback(async () => {
     const payload = await request("/api/admin/wiki/imports");
@@ -458,6 +485,12 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setArticlePage(1);
   }, [activeSection, search, status]);
+
+  useEffect(() => {
+    // Queue filters define a new server-paginated result set.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setArticlePage(1);
+  }, [queueJobView, queueStatusFilter, queuePackageFilter, queueDateFrom, queueDateTo]);
 
   useEffect(() => {
     if (activeSection === "new") {
@@ -645,9 +678,10 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     }
   }
 
-  async function publishAllOpenEdits() {
+  async function publishSelectedOpenEdits() {
+    const selected = new Set(selectedVisibleIds);
     const articleIds = bulkEligibleArticles
-      .filter((article) => article.status === "published")
+      .filter((article) => article.status === "published" && selected.has(article.id))
       .map((article) => article.id);
     if (!articleIds.length || !canPublish) return;
     if (
@@ -1265,9 +1299,149 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     }
   }
 
-  const markdownPreview = useMemo(() =>
-    draft.bodyMarkdown.split("\n").filter(Boolean).slice(0, 80),
-  [draft.bodyMarkdown]);
+
+  async function toggleWikiPublishingPause() {
+    if (!settings || !canSettings) return;
+    const nextPaused = !(publicationControl?.summary.publishingPaused ?? settings.publishingPaused);
+    const reason = window.prompt(
+      nextPaused ? "دلیل Pause انتشار ویکی:" : "دلیل Resume انتشار ویکی:",
+    );
+    if (!reason?.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      const payload = await request("/api/admin/wiki/settings", {
+        method: "PUT",
+        body: JSON.stringify({
+          settings: { ...settings, publishingPaused: nextPaused },
+          reason: reason.trim(),
+        }),
+      });
+      setSettings(payload.settings as WikiScheduleSettings);
+      setMessage(nextPaused ? "انتشار خودکار Pause شد." : "انتشار خودکار Resume شد.");
+      await loadList();
+    } catch (pauseError) {
+      setError(pauseError instanceof Error ? pauseError.message : "تغییر Pause ناموفق بود.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function viewImportPackageInQueue() {
+    if (!importResult?.packageId) return;
+    setQueueJobView("active");
+    setQueueStatusFilter("all");
+    setQueuePackageFilter(importResult.packageId);
+    setQueueDateFrom("");
+    setQueueDateTo("");
+    setArticlePage(1);
+    onSectionChange("queue");
+  }
+
+  async function toggleCanonicalPreview() {
+    if (preview) {
+      setPreview(false);
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const payload = await request("/api/admin/wiki/preview", {
+        method: "POST",
+        body: JSON.stringify({ snapshot: draft }),
+      });
+      setPreviewData(payload.preview as WikiAdminPreviewData);
+      setPreview(true);
+    } catch (previewError) {
+      setPreviewData(null);
+      setError(previewError instanceof Error ? previewError.message : "پیش‌نمایش ساخته نشد.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function searchRelatedArticles() {
+    const query = relatedSearch.trim();
+    if (!query) {
+      setRelatedOptions([]);
+      return;
+    }
+    try {
+      const payload = await request(
+        `/api/admin/wiki/articles?search=${encodeURIComponent(query)}&status=all&limit=25&page=1`,
+      );
+      setRelatedOptions(
+        (payload.articles as WikiArticleAdminSummary[]).filter(
+          (article) => !article.deletedAt,
+        ),
+      );
+    } catch (searchError) {
+      setError(searchError instanceof Error ? searchError.message : "جست‌وجوی مقالهٔ مرتبط ناموفق بود.");
+    }
+  }
+
+  const sourceRows = useMemo(
+    () =>
+      draft.sources.map((source) =>
+        typeof source === "string"
+          ? { label: source, href: "" }
+          : { label: source.label, href: source.href },
+      ),
+    [draft.sources],
+  );
+
+  function updateSourceRow(
+    index: number,
+    field: "label" | "href",
+    value: string,
+  ) {
+    const rows = sourceRows.map((item) => ({ ...item }));
+    if (!rows[index]) return;
+    const nextValue = value.trim();
+    if (field === "href" && nextValue && !nextValue.startsWith("https://")) {
+      setError("URL منبع باید با https:// شروع شود.");
+      return;
+    }
+    rows[index][field] = nextValue;
+    const nextSources = rows
+      .filter((item) => item.label.trim() || item.href.trim())
+      .map((item) =>
+        item.href.trim()
+          ? {
+              label: item.label.trim() || item.href.trim(),
+              href: item.href.trim(),
+            }
+          : item.label.trim(),
+      );
+    updateDraft("sources", nextSources);
+  }
+
+  function removeSourceRow(index: number) {
+    updateDraft(
+      "sources",
+      draft.sources.filter((_, sourceIndex) => sourceIndex !== index),
+    );
+  }
+
+  function addSourceRow() {
+    const label = window.prompt("عنوان منبع:");
+    if (!label?.trim()) return;
+    const href = window.prompt("HTTPS URL منبع؛ خالی یعنی منبع متنی:", "");
+    if (href === null) return;
+    if (href.trim() && !href.trim().startsWith("https://")) {
+      setError("URL منبع باید با https:// شروع شود.");
+      return;
+    }
+    updateDraft(
+      "sources",
+      [
+        ...draft.sources,
+        href.trim()
+          ? { label: label.trim(), href: href.trim() }
+          : label.trim(),
+      ],
+    );
+  }
 
   return (
     <div className={styles.wikiWorkspace}>
@@ -1331,33 +1505,39 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             </div>
           </div>
           <div className={styles.wikiSelectionActions}>
+            {canDraft ? (
+              <button type="button" onClick={() => onSectionChange("new")}>+ مقالهٔ تازه</button>
+            ) : null}
+            {canImport ? (
+              <button type="button" onClick={() => onSectionChange("import")}>ورود بسته</button>
+            ) : null}
             <button
               type="button"
               onClick={toggleAllVisibleArticles}
               disabled={!visibleSelectableArticles.length}
             >
-              {allVisibleSelected ? "لغو انتخاب همه" : "انتخاب همه"}
+              {allVisibleSelected ? "لغو انتخاب همه" : "انتخاب همهٔ این صفحه"}
             </button>
-            <span>{selectedVisibleIds.length.toLocaleString("fa-IR")} انتخاب شده</span>
+          </div>
+        </div>
+
+        {selectedVisibleIds.length > 0 ? (
+          <div className={styles.wikiBulkToolbar}>
+            <strong>{selectedVisibleIds.length.toLocaleString("fa-IR")} مقاله انتخاب شده</strong>
             {canPublish ? (
               <>
                 <button
                   type="button"
-                  onClick={() => void publishAllOpenEdits()}
-                  disabled={
-                    !bulkEligibleArticles.some(
-                      (article) => article.status === "published",
-                    )
-                  }
+                  onClick={() => void publishSelectedOpenEdits()}
+                  disabled={!selectedBulkEligibleIds.length}
                 >
-                  انتشار همهٔ ویرایش‌های باز
+                  انتشار ویرایش‌های انتخاب‌شده
                 </button>
                 {status !== "deleted" ? (
                   <button
                     className={styles.dangerButton}
                     type="button"
                     onClick={() => void deleteSelectedArticles()}
-                    disabled={!selectedVisibleIds.length}
                   >
                     حذف انتخاب‌شده‌ها
                   </button>
@@ -1366,11 +1546,6 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                   type="button"
                   onClick={() => void previewBulkSchedule()}
                   disabled={!selectedCanBeScheduled}
-                  title={
-                    selectedVisibleIds.length > 0 && !selectedCanBeScheduled
-                      ? "برای زمان‌بندی، همهٔ انتخاب‌ها باید پیش‌نویس ذخیره‌شده و بدون job باز باشند."
-                      : undefined
-                  }
                 >
                   پیش‌نمایش زمان‌بندی
                 </button>
@@ -1382,13 +1557,12 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 type="button"
                 onClick={() => void permanentlyDeleteSelectedArticles()}
                 disabled={!selectedPermanentlyDeletableIds.length}
-                title="فقط مقاله‌های حذف نرم‌شده و Archive قابل حذف دائمی هستند."
               >
                 حذف دائمی آرشیوشده‌ها
               </button>
             ) : null}
           </div>
-        </div>
+        ) : null}
 
         {bulkSchedulePlan ? (
           <div className={styles.bulkSchedulePreview}>
@@ -1435,31 +1609,82 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
 
         <div className={styles.wikiArticleList}>
           {articles.map((article) => {
-            const selected = selectedVisibleIds.includes(article.id);
+            const selected = selectedArticleIds.includes(article.id);
+            const selectable =
+              canPublish &&
+              !article.deletedAt &&
+              article.publishJobStatus !== "running";
             return (
-              <article key={article.id} className={styles.wikiArticleListItem}>
-                {canPublish && !article.deletedAt && article.publishJobStatus !== "running" ? (
-                  <label className={styles.articleSelectionCheckbox}>
-                    <input
-                      type="checkbox"
-                      aria-label={`انتخاب ${article.title}`}
-                      checked={selected}
-                      onChange={(event) =>
-                        updateArticleSelection(article.id, event.target.checked)
-                      }
-                    />
-                  </label>
-                ) : null}
-                <button
-                  className={styles.wikiArticleOpenButton}
-                  type="button"
-                  onClick={() => void openArticle(article.id)}
+              <article
+                key={article.id}
+                className={styles.wikiArticleListItem}
+                data-selected={selected ? "true" : "false"}
+              >
+                <div
+                  className={styles.wikiArticleSelectableRow}
+                  role={selectable ? "checkbox" : undefined}
+                  aria-checked={selectable ? selected : undefined}
+                  tabIndex={selectable ? 0 : undefined}
+                  onClick={() => {
+                    if (selectable) {
+                      updateArticleSelection(article.id, !selected);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (
+                      selectable &&
+                      (event.key === "Enter" || event.key === " ")
+                    ) {
+                      event.preventDefault();
+                      updateArticleSelection(article.id, !selected);
+                    }
+                  }}
                 >
-                  <strong>{article.title}</strong>
-                  <span>{article.slug} · {article.status}{article.hasDraft ? " · پیش‌نویس باز" : ""}</span>
-                  <small>{article.pendingPublishAt ? `انتشار: ${formatDate(article.pendingPublishAt)} · ${article.publishJobStatus}` : `ویرایش: ${formatDate(article.updatedAt)}`}</small>
-                  {article.publishJobError ? <small className={styles.inlineError}>{article.publishJobError}</small> : null}
-                </button>
+                  {selectable ? (
+                    <label
+                      className={styles.articleSelectionCheckbox}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        aria-label={`انتخاب ${article.title}`}
+                        checked={selected}
+                        onChange={(event) =>
+                          updateArticleSelection(article.id, event.target.checked)
+                        }
+                      />
+                    </label>
+                  ) : null}
+
+                  <div className={styles.wikiArticleRowCopy}>
+                    <strong>{article.title}</strong>
+                    <span>
+                      {article.slug} · {article.status}
+                      {article.hasDraft ? " · پیش‌نویس باز" : ""}
+                    </span>
+                    <small>
+                      {article.pendingPublishAt
+                        ? `انتشار: ${formatDate(article.pendingPublishAt)} · ${article.publishJobStatus}`
+                        : `ویرایش: ${formatDate(article.updatedAt)}`}
+                    </small>
+                    {article.publishJobError ? (
+                      <small className={styles.inlineError}>
+                        {article.publishJobError}
+                      </small>
+                    ) : null}
+                  </div>
+
+                  <button
+                    className={styles.wikiArticleEditButton}
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void openArticle(article.id);
+                    }}
+                  >
+                    ویرایش
+                  </button>
+                </div>
               </article>
             );
           })}
@@ -1498,39 +1723,134 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
         <section className={styles.wikiPanel}>
           <div className={styles.wikiCollectionHeader}>
             <div className={styles.wikiQueueHeaderCopy}>
-              <h3>صف انتشار</h3>
-              <p>جایگاه ۱ یعنی انتشار بعدی. مقاله را به اول صف ببر، یک پله جابه‌جا کن یا شمارهٔ جایگاه را مستقیم وارد کن.</p>
+              <h3>Publication Control Center</h3>
+              <p>نمای عملیاتی سراسری مستقیماً از wiki_publish_jobs؛ فیلتر صفحه، شمارنده‌های کل سیستم را تغییر نمی‌دهد.</p>
             </div>
             <div className={styles.wikiSelectionActions}>
-              {/* HALLEUS_WIKI_QUEUE_SAFE_ACTIONS_R44 */}
-              <button type="button" onClick={() => void loadList()}>تازه‌سازی صف</button>
+              <button type="button" onClick={() => void loadList()}>تازه‌سازی انتشار</button>
+              {canSettings && settings ? (
+                <button type="button" onClick={() => void toggleWikiPublishingPause()}>
+                  {publicationControl?.summary.publishingPaused ? "Resume انتشار" : "Pause انتشار"}
+                </button>
+              ) : null}
               <span>صف از jobهای واقعی انتشار خوانده می‌شود.</span>
             </div>
           </div>
 
-          {publicationQueueSummary.publishingPaused ? (
-            <p className={styles.queuePaused}>انتشار خودکار متوقف است؛ ترتیب صف حفظ شده اما publisher مقاله‌ای را جلو نمی‌برد.</p>
+          {publicationControl?.summary.publishingPaused ? (
+            <p className={styles.queuePaused}>انتشار خودکار متوقف است؛ jobها و ترتیبشان حفظ شده‌اند.</p>
           ) : null}
 
           <div className={styles.publicationQueueSummary}>
-            <article>
-              <span>کل صف</span>
-              <strong>{publicationQueueSummary.total.toLocaleString("fa-IR")}</strong>
+            <article><span>کل job فعال</span><strong>{(publicationControl?.summary.activeTotal ?? 0).toLocaleString("fa-IR")}</strong></article>
+            <article><span>job بعدی</span><strong>{publicationControl?.summary.nextJob ? `${publicationControl.summary.nextJob.title} · ${formatDate(publicationControl.summary.nextJob.runAt)}` : "—"}</strong></article>
+            <article><span>در حال اجرا</span><strong>{(publicationControl?.summary.running ?? 0).toLocaleString("fa-IR")}</strong></article>
+            <article><span>Retry</span><strong>{(publicationControl?.summary.retrying ?? 0).toLocaleString("fa-IR")}</strong></article>
+            <article><span>Failed</span><strong>{(publicationControl?.summary.failed ?? 0).toLocaleString("fa-IR")}</strong></article>
+            <article><span>پایان فعلی صف</span><strong>{formatDate(publicationControl?.summary.queueEndAt ?? null)}</strong></article>
+          </div>
+
+          <div className={styles.wikiPublicationFilters}>
+            <div className={styles.wikiPublicationTabs}>
+              {([
+                ["active", "فعال"],
+                ["failed", "ناموفق"],
+                ["published", "منتشرشده"],
+                ["canceled", "لغوشده"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  data-active={queueJobView === value ? "true" : "false"}
+                  onClick={() => setQueueJobView(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <label>
+              وضعیت
+              <select value={queueStatusFilter} onChange={(event) => setQueueStatusFilter(event.target.value as WikiPublicationJobStatusFilter)}>
+                <option value="all">همهٔ وضعیت‌های این نما</option>
+                <option value="queued">queued</option>
+                <option value="running">running</option>
+                <option value="retry">retry</option>
+                <option value="failed">failed</option>
+                <option value="published">published</option>
+                <option value="canceled">canceled</option>
+              </select>
+            </label>
+            <label>
+              بستهٔ محتوا
+              <select value={queuePackageFilter} onChange={(event) => setQueuePackageFilter(event.target.value)}>
+                <option value="">همهٔ بسته‌ها و jobهای دستی</option>
+                {(publicationControl?.packages ?? []).map((item) => (
+                  <option key={item.packageId} value={item.packageId}>{item.packageName}</option>
+                ))}
+              </select>
+            </label>
+            <label>از تاریخ تهران<input type="date" value={queueDateFrom} onChange={(event) => setQueueDateFrom(event.target.value)} /></label>
+            <label>تا تاریخ تهران<input type="date" value={queueDateTo} onChange={(event) => setQueueDateTo(event.target.value)} /></label>
+            {(queuePackageFilter || queueDateFrom || queueDateTo || queueStatusFilter !== "all") ? (
+              <button type="button" onClick={() => {
+                setQueuePackageFilter("");
+                setQueueDateFrom("");
+                setQueueDateTo("");
+                setQueueStatusFilter("all");
+              }}>پاک‌کردن فیلترها</button>
+            ) : null}
+          </div>
+
+          {queueMismatch ? (
+            <p className={styles.wikiQueueMismatch}>
+              تعداد jobهای قابل‌مشاهده با metadata سرور هم‌خوان نیست؛ قبل از هر عملیات صف را تازه‌سازی کن.
+            </p>
+          ) : null}
+
+          <div className={styles.wikiTimelineGrid}>
+            <article className={styles.wikiTimelineDay}>
+              <strong>امروز · Asia/Tehran</strong>
+              {(publicationControl?.todayTimeline ?? []).map((item) => (
+                <div className={styles.wikiTimelineItem} key={item.publishJobId ?? item.id}>
+                  <span>{formatDate(item.pendingPublishAt)} · {item.title}</span>
+                  <span>{formatPublishJobStatus(item.publishJobStatus)}</span>
+                </div>
+              ))}
+              {(publicationControl?.todayTimeline.length ?? 0) === 0 ? <small>jobی برای امروز نیست.</small> : null}
             </article>
-            <article>
-              <span>نوبت بعدی</span>
-              <strong>{formatDate(publicationQueueSummary.nextPublishAt)}</strong>
-            </article>
-            <article>
-              <span>در حال اجرا / تلاش دوباره</span>
-              <strong>{(publicationQueueSummary.running + publicationQueueSummary.retrying).toLocaleString("fa-IR")}</strong>
-            </article>
-            <article>
-              <span>خطادار</span>
-              <strong>{publicationQueueSummary.failed.toLocaleString("fa-IR")}</strong>
+            <article className={styles.wikiTimelineDay}>
+              <strong>فردا · Asia/Tehran</strong>
+              {(publicationControl?.tomorrowTimeline ?? []).map((item) => (
+                <div className={styles.wikiTimelineItem} key={item.publishJobId ?? item.id}>
+                  <span>{formatDate(item.pendingPublishAt)} · {item.title}</span>
+                  <span>{formatPublishJobStatus(item.publishJobStatus)}</span>
+                </div>
+              ))}
+              {(publicationControl?.tomorrowTimeline.length ?? 0) === 0 ? <small>jobی برای فردا نیست.</small> : null}
             </article>
           </div>
 
+          {(publicationControl?.packages.length ?? 0) > 0 ? (
+            <details>
+              <summary>پیشرفت بسته‌های محتوا</summary>
+              <div className={styles.wikiPackageProgressGrid}>
+                {publicationControl?.packages.map((item) => (
+                  <article className={styles.wikiPackageProgress} key={item.packageId}>
+                    <strong>{item.packageName}</strong>
+                    <span>کل {item.total.toLocaleString("fa-IR")} · فعال {item.active.toLocaleString("fa-IR")} · منتشر {item.published.toLocaleString("fa-IR")} · خطا {item.failed.toLocaleString("fa-IR")} · لغو {item.canceled.toLocaleString("fa-IR")}</span>
+                    <button type="button" onClick={() => {
+                      setQueuePackageFilter(item.packageId);
+                      setArticlePage(1);
+                    }}>فیلتر همین بسته</button>
+                  </article>
+                ))}
+              </div>
+            </details>
+          ) : null}
+          {canPublish ? (
+            <details className={styles.wikiAdvancedQueueTools}>
+              <summary>ابزارهای پیشرفته صف</summary>
+              <p>جایگاه ۱ یعنی انتشار بعدی. Reflow، Priority و Undo فقط پس از پیش‌نمایش اعمال می‌شوند.</p>
           {canPublish ? (
             <section className={styles.queuePositionPreview} data-queue-reflow="global">
               <strong>بازچینی کامل برنامهٔ آینده</strong>
@@ -1669,29 +1989,9 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             </section>
           ) : null}
 
-          {canPublish ? (
-            <section className={styles.queuePositionPreview}>
-              <strong>بازچینی گروهی صف</strong>
-              <textarea
-                value={queueBulkOrder}
-                onChange={(event) => { setQueueBulkOrder(event.target.value); setQueueBulkPlan(null); }}
-                placeholder="شناسهٔ هر مقاله را در یک خط و به ترتیب دلخواه وارد کن"
-                rows={8}
-                disabled={loading}
-              />
-              <button type="button" onClick={() => void previewQueueBulkReorder()} disabled={loading || !queueBulkOrder.trim()}>
-                پیش‌نمایش بازچینی گروهی
-              </button>
-              {queueBulkPlan ? (
-                <div className={styles.queuePositionPreviewItems}>
-                  <span>ترتیب {queueBulkPlan.dependencyAdjustmentCount.toLocaleString("fa-IR")} مقاله برای حفظ وابستگی‌ها اصلاح شد.</span>
-                  <button type="button" onClick={() => void applyQueueBulkReorder()} disabled={loading}>اعمال بازچینی گروهی</button>
-                  {queueBulkPlan.items.filter((item) => item.dependencyAdjusted).map((item) => (
-                    <article key={item.jobId}><strong>{item.title}</strong><span>ردیف درخواستی {item.requestedPosition.toLocaleString("fa-IR")} ← ردیف نهایی {item.nextPosition.toLocaleString("fa-IR")}</span></article>
-                  ))}
-                </div>
-              ) : null}
-            </section>
+
+
+            </details>
           ) : null}
 
           {queuePositionPlan ? (
@@ -1739,7 +2039,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             </div>
           ) : null}
 
-          {publicationQueue.length ? (
+          {articles.length ? (
             <div className={styles.tableWrap}>
               <table className={styles.publicationQueueTable}>
                 <thead>
@@ -1753,6 +2053,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                       />
                     </th>
                     <th>مقاله</th>
+                    <th>بسته</th>
                     <th>زمان انتشار</th>
                     <th>وضعیت job</th>
                     <th>تلاش / قفل</th>
@@ -1762,7 +2063,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                   </tr>
                 </thead>
                 <tbody>
-                  {publicationQueue.map((article) => {
+                  {articles.map((article) => {
                     const job = getWikiPublishJobStateFromArticle(article);
                     const availability = job
                       ? getWikiPublishJobOperationAvailability(job)
@@ -1786,6 +2087,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                           <strong>{article.title}</strong>
                           <small>{article.slug} · {article.contentCluster ?? "بدون خوشه"}</small>
                         </td>
+                        <td><strong>{article.publishPackageName ?? "دستی / بدون بسته"}</strong><small>{article.publishPackageId ?? "—"}</small></td>
                         <td>{formatDate(getWikiPublicationQueueDate(article))}</td>
                         <td>
                           <span className={styles.queueStatus} data-status={article.publishJobStatus ?? "scheduled"}>
@@ -2014,61 +2316,143 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                   بازگشت به مقاله‌ها
                 </button>
               ) : null}
-              <button type="button" onClick={() => setPreview((value) => !value)}>{preview ? "بازگشت به ویرایش" : "پیش‌نمایش"}</button>
+              <button type="button" onClick={() => void toggleCanonicalPreview()}>{preview ? "بازگشت به ویرایش" : "پیش‌نمایش"}</button>
             </div>
           </div>
 
-          {preview ? (
-            <article className={styles.wikiPreview}>
-              <span>{categories.find((item) => item.id === draft.categoryId)?.label}</span>
-              <h2>{draft.title || "عنوان مقاله"}</h2>
-              <p>{draft.intro || draft.summary}</p>
-              {markdownPreview.map((line, index) => line.startsWith("## ")
-                ? <h3 key={`${line}-${index}`}>{line.slice(3)}</h3>
-                : <p key={`${line}-${index}`}>{line.replace(/^- /, "• ")}</p>)}
+          {preview && previewData ? (
+            <article className={`${styles.wikiPreview} ${styles.wikiPublicPreview}`}>
+              <header className={wikiPublicStyles.articleHero}>
+                <div className={wikiPublicStyles.articleTopline}>
+                  <span className={wikiPublicStyles.categoryPill}>
+                    {categories.find((item) => item.id === previewData.snapshot.categoryId)?.label ?? previewData.snapshot.categoryId}
+                  </span>
+                  <span className={wikiPublicStyles.articleMeta}>
+                    زمان مطالعه: {previewData.snapshot.readingMinutes.toLocaleString("fa-IR")} دقیقه
+                  </span>
+                </div>
+                <h1>{previewData.snapshot.title}</h1>
+                <p><WikiInlineText text={previewData.snapshot.intro} targets={previewData.internalLinkTargets} /></p>
+              </header>
+              <WikiKeyPoints keyPoints={previewData.snapshot.keyPoints} targets={previewData.internalLinkTargets} />
+              <WikiArticleBody
+                sections={previewData.snapshot.sections}
+                contextLinks={previewData.snapshot.contextLinks}
+                sources={previewData.snapshot.sources}
+                targets={previewData.internalLinkTargets}
+              />
+              {previewData.snapshot.callToAction ? (
+                <section className={wikiPublicStyles.sideCard}>
+                  <h2>{previewData.snapshot.callToAction.title}</h2>
+                  <p>{previewData.snapshot.callToAction.text}</p>
+                  <span className={`${wikiPublicStyles.primaryButton} ${wikiPublicStyles.wikiArticleCta}`}>
+                    {previewData.snapshot.callToAction.label}
+                  </span>
+                </section>
+              ) : null}
             </article>
           ) : (
             <div className={styles.wikiEditor}>
-              <label className={styles.wideField}>عنوان<input value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} /></label>
-              <label>دسته<select value={draft.categoryId} onChange={(event) => updateDraft("categoryId", event.target.value)}>{categories.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select></label>
-              <label>عنوان کوتاه<input value={draft.shortTitle} onChange={(event) => updateDraft("shortTitle", event.target.value)} /></label>
-              <label className={styles.wideField}>خلاصه<textarea value={draft.summary} onChange={(event) => updateDraft("summary", event.target.value)} /></label>
-              <label className={styles.wideField}>مقدمه<textarea value={draft.intro} onChange={(event) => updateDraft("intro", event.target.value)} /></label>
-              <label className={styles.wideField}>Markdown و بخش‌ها<textarea className={styles.markdownEditor} value={draft.bodyMarkdown} onChange={(event) => updateDraft("bodyMarkdown", event.target.value)} /></label>
-              <label className={`${styles.toggleCard} ${styles.wideField}`}>
-                <span>
-                  <strong>نمایش در نتایج جست‌وجو</strong>
-                  <small>پس از انتشار، این مقاله اجازهٔ ایندکس‌شدن داشته باشد.</small>
-                </span>
-                <input type="checkbox" checked={draft.indexable} onChange={(event) => updateDraft("indexable", event.target.checked)} />
-              </label>
+              <section className={styles.wikiEditorGroup}>
+                <h4>Content</h4>
+                <label className={styles.wideField}>عنوان<input value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} /></label>
+                <label>دسته<select value={draft.categoryId} onChange={(event) => updateDraft("categoryId", event.target.value)}>{categories.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select></label>
+                <label>عنوان کوتاه<input value={draft.shortTitle} onChange={(event) => updateDraft("shortTitle", event.target.value)} /></label>
+                <label className={styles.wideField}>خلاصه<textarea value={draft.summary} onChange={(event) => updateDraft("summary", event.target.value)} /></label>
+                <label className={styles.wideField}>مقدمه<textarea value={draft.intro} onChange={(event) => updateDraft("intro", event.target.value)} /></label>
+                <label className={styles.wideField}>Markdown و بخش‌ها<textarea className={styles.markdownEditor} value={draft.bodyMarkdown} onChange={(event) => updateDraft("bodyMarkdown", event.target.value)} /></label>
+              </section>
+
+              <section className={styles.wikiEditorGroup}>
+                <h4>Publication & SEO</h4>
+                <label className={`${styles.toggleCard} ${styles.wideField}`}>
+                  <span><strong>نمایش در نتایج جست‌وجو</strong><small>پس از انتشار، این مقاله اجازهٔ ایندکس‌شدن داشته باشد.</small></span>
+                  <input type="checkbox" checked={draft.indexable} onChange={(event) => updateDraft("indexable", event.target.checked)} />
+                </label>
+                <label>Slug<input value={draft.slug} onChange={(event) => updateDraft("slug", event.target.value)} /></label>
+                <label>اولویت انتشار<input min="0" max="300" step="10" type="number" value={draft.publicationPriority} onChange={(event) => updateDraft("publicationPriority", Number(event.target.value))} /></label>
+                <label className={styles.wideField}>SEO title<input value={draft.seoTitle ?? ""} onChange={(event) => updateDraft("seoTitle", event.target.value || null)} /></label>
+                <label className={styles.wideField}>Meta description<textarea value={draft.metaDescription} onChange={(event) => updateDraft("metaDescription", event.target.value)} /></label>
+              </section>
 
               <details className={`${styles.wikiAdvanced} ${styles.wideField}`}>
-                <summary>تنظیمات پیشرفتهٔ مقاله</summary>
-                <div className={styles.wikiAdvancedGrid}>
+                <summary>Advanced</summary>
+                <div className={styles.wikiEditorGroup}>
+                  <h4>Technical metadata</h4>
                   <label>شناسهٔ پایدار<input disabled={Boolean(detail)} value={draft.stableId} onChange={(event) => updateDraft("stableId", event.target.value)} /></label>
-                  <label>Slug<input value={draft.slug} onChange={(event) => updateDraft("slug", event.target.value)} /></label>
+                  <label>
+                    نسخهٔ محتوا
+                    <output>{draft.contentVersion.toLocaleString("fa-IR")}</output>
+                    <small>نسخهٔ محتوا توسط سیستم نگهداری می‌شود.</small>
+                  </label>
                   <label>نقش<select value={draft.articleRole} onChange={(event) => updateDraft("articleRole", event.target.value as "pillar" | "support")}><option value="pillar">Pillar</option><option value="support">Support</option></select></label>
                   <label>خوشه<input value={draft.contentCluster} onChange={(event) => updateDraft("contentCluster", event.target.value)} /></label>
-                  <label>نسخه<input min="1" type="number" value={draft.contentVersion} onChange={(event) => updateDraft("contentVersion", Number(event.target.value))} /></label>
-                  <label>اولویت ۰ تا ۳۰۰<input min="0" max="300" step="10" type="number" value={draft.publicationPriority} onChange={(event) => updateDraft("publicationPriority", Number(event.target.value))} /></label>
                   <label>زمان مطالعه<input min="1" type="number" value={draft.readingMinutes} onChange={(event) => updateDraft("readingMinutes", Number(event.target.value))} /></label>
-                  <label className={styles.wideField}>SEO title<input value={draft.seoTitle ?? ""} onChange={(event) => updateDraft("seoTitle", event.target.value || null)} /></label>
-                  <label className={styles.wideField}>Meta description<textarea value={draft.metaDescription} onChange={(event) => updateDraft("metaDescription", event.target.value)} /></label>
                   <label className={styles.wideField}>برچسب‌ها؛ جداشده با ویرگول<input value={draft.tags.join(", ")} onChange={(event) => updateDraft("tags", event.target.value.split(",").map((item) => item.trim()).filter(Boolean))} /></label>
-                  <label className={styles.wideField}>شناسهٔ مقاله‌های مرتبط؛ جداشده با ویرگول<input value={draft.relatedArticleIds.join(", ")} onChange={(event) => updateDraft("relatedArticleIds", event.target.value.split(",").map((item) => item.trim()).filter(Boolean))} /></label>
-                  <label className={styles.wideField}>منابع؛ هر خط «عنوان|https://…»<textarea value={draft.sources.map((source) => typeof source === "string" ? source : `${source.label}|${source.href}`).join("\n")} onChange={(event) => updateDraft("sources", event.target.value.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
-                    const separator = line.indexOf("|");
-                    return separator > 0 ? { label: line.slice(0, separator).trim(), href: line.slice(separator + 1).trim() } : line;
-                  }))} /></label>
+
+                  <div className={styles.wikiRelatedPicker}>
+                    <strong>مقاله‌های مرتبط</strong>
+                    <div className={styles.wikiRelatedChips}>
+                      {draft.relatedArticleIds.map((stableId) => (
+                        <button key={stableId} type="button" onClick={() => updateDraft("relatedArticleIds", draft.relatedArticleIds.filter((item) => item !== stableId))}>
+                          {stableId} ×
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.wikiInlineForm}>
+                      <input value={relatedSearch} onChange={(event) => setRelatedSearch(event.target.value)} placeholder="جست‌وجوی مقالهٔ مرتبط با عنوان، slug یا stable ID" />
+                      <button type="button" onClick={() => void searchRelatedArticles()}>جست‌وجوی مقالهٔ مرتبط</button>
+                    </div>
+                    <div className={styles.wikiRelatedResults}>
+                      {relatedOptions.map((article) => (
+                        <button
+                          type="button"
+                          key={article.id}
+                          disabled={article.stableId === draft.stableId || draft.relatedArticleIds.includes(article.stableId)}
+                          onClick={() => updateDraft("relatedArticleIds", [...new Set([...draft.relatedArticleIds, article.stableId])])}
+                        >
+                          {article.title} · {article.stableId}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.wikiStructuredList}>
+                    <strong>منابع</strong>
+                    {sourceRows.map((source, index) => (
+                      <div className={styles.wikiStructuredRow} key={`${source.label}-${source.href}-${index}`}>
+                        <label>عنوان<input defaultValue={source.label} onBlur={(event) => updateSourceRow(index, "label", event.target.value)} /></label>
+                        <label>HTTPS URL یا خالی<input dir="ltr" defaultValue={source.href} onBlur={(event) => updateSourceRow(index, "href", event.target.value)} /></label>
+                        <button type="button" onClick={() => removeSourceRow(index)}>حذف</button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={addSourceRow}>افزودن منبع</button>
+                  </div>
+
+                  <div className={styles.wikiStructuredList}>
+                    <strong>CTA</strong>
+                    {draft.callToAction ? (
+                      <>
+                        <label>عنوان CTA<input value={draft.callToAction.title} onChange={(event) => updateDraft("callToAction", { ...draft.callToAction!, title: event.target.value })} /></label>
+                        <label>متن دکمهٔ CTA<input value={draft.callToAction.label} onChange={(event) => updateDraft("callToAction", { ...draft.callToAction!, label: event.target.value })} /></label>
+                        <label className={styles.wideField}>توضیح CTA<textarea value={draft.callToAction.text} onChange={(event) => updateDraft("callToAction", { ...draft.callToAction!, text: event.target.value })} /></label>
+                        <label className={styles.wideField}>مسیر CTA<input value={draft.callToAction.href} onChange={(event) => updateDraft("callToAction", { ...draft.callToAction!, href: event.target.value })} /></label>
+                        <button type="button" onClick={() => updateDraft("callToAction", null)}>حذف CTA</button>
+                      </>
+                    ) : (
+                      <button type="button" onClick={() => updateDraft("callToAction", {
+                        title: "ادامه در هالیوس",
+                        text: "این موضوع را در ابزارهای هالیوس روی دادهٔ شخصی خودت ادامه بده.",
+                        label: "ادامه",
+                        href: "/chart",
+                      })}>افزودن CTA</button>
+                    )}
+                  </div>
+
                   <label className={styles.wideField}>لینک‌های ادامه؛ هر خط «عنوان|/مسیر»<textarea value={draft.contextLinks.map((link) => `${link.label}|${link.href}`).join("\n")} onChange={(event) => updateDraft("contextLinks", event.target.value.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
                     const [label, ...href] = line.split("|");
                     return { label: label.trim(), href: href.join("|").trim() };
                   }))} /></label>
-                  <label>عنوان CTA<input value={draft.callToAction?.title ?? ""} onChange={(event) => updateDraft("callToAction", { title: event.target.value, text: draft.callToAction?.text ?? "", label: draft.callToAction?.label ?? "", href: draft.callToAction?.href ?? "/chart" })} /></label>
-                  <label>متن دکمهٔ CTA<input value={draft.callToAction?.label ?? ""} onChange={(event) => updateDraft("callToAction", { title: draft.callToAction?.title ?? "", text: draft.callToAction?.text ?? "", label: event.target.value, href: draft.callToAction?.href ?? "/chart" })} /></label>
-                  <label className={styles.wideField}>توضیح CTA<textarea value={draft.callToAction?.text ?? ""} onChange={(event) => updateDraft("callToAction", { title: draft.callToAction?.title ?? "", text: event.target.value, label: draft.callToAction?.label ?? "", href: draft.callToAction?.href ?? "/chart" })} /></label>
-                  <label className={styles.wideField}>مسیر CTA<input value={draft.callToAction?.href ?? ""} onChange={(event) => updateDraft("callToAction", event.target.value ? { title: draft.callToAction?.title ?? "", text: draft.callToAction?.text ?? "", label: draft.callToAction?.label ?? "", href: event.target.value } : null)} /></label>
                 </div>
               </details>
             </div>
@@ -2209,6 +2593,7 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               <p>
                 {importResult.importedCount.toLocaleString("fa-IR")} مقاله وارد شد؛ {importResult.quarantinedCount.toLocaleString("fa-IR")} مورد نیاز به اصلاح دارد.
               </p>
+              <button type="button" onClick={viewImportPackageInQueue}>مشاهدهٔ همین بسته در انتشار</button>
               {importResult.items.map((item) => (
                 <article className={styles.importItem} key={`${item.stableId}-${item.status}`}>
                   <div>
@@ -2341,6 +2726,23 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
               <input type="checkbox" checked={settings.publishingPaused} onChange={(event) => setSettings({ ...settings, publishingPaused: event.target.checked })} />
             </label>
           </div>
+
+          <details className={styles.wikiSettingsTaxonomy}>
+            <summary>دسته‌های ویکی · maintenance / read-only</summary>
+            <p className={styles.fieldHint}>
+              دسته‌های ویکی در کار روزمره از اینجا فقط برای مرجع دیده می‌شوند؛ ساخت دستهٔ دلخواه از ناوبری روزانه حذف شده است.
+            </p>
+            <div className={styles.categoryGrid}>
+              {categories.map((category) => (
+                <article key={category.id}>
+                  <strong>{category.label}</strong>
+                  <code>{category.id}</code>
+                  <p>{category.description}</p>
+                </article>
+              ))}
+            </div>
+          </details>
+
           {canSettings ? <button type="button" onClick={() => void saveSettings()}>ذخیرهٔ تنظیمات</button> : null}
         </section>
       ) : null}

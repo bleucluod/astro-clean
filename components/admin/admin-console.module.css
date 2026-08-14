@@ -2451,3 +2451,1842 @@
   background: #fff;
   color: #2f4052;
 }
+
+/* HALLEUS_TELEGRAM_ADMIN_PHASE2_R2_CONTROL_CENTER */
+.telegramAlertStack {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.telegramAlertStack article {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #d8e1eb;
+  border-radius: 11px;
+  background: #f8fafc;
+}
+
+.telegramAlertStack article[data-level="critical"] {
+  border-color: #c7a9af;
+  background: #fff7f8;
+}
+
+.telegramAlertStack article[data-level="warning"] {
+  border-color: #c8d2dd;
+  background: #f7f9fb;
+}
+
+.telegramControlBar {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #d8e1eb;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.telegramControlBar p {
+  margin: 5px 0 0;
+  color: #637588;
+}
+
+.telegramDayPause,
+.telegramFilterBar,
+.telegramPager,
+.telegramScheduleEditor,
+.telegramCtaEditor,
+.telegramDetailFacts {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.telegramFilterBar {
+  margin: 4px 0 12px;
+}
+
+.telegramFilterBar button[data-active="true"] {
+  background: #243447;
+  color: #f8fafc;
+}
+
+.telegramTimeline {
+  display: grid;
+  gap: 7px;
+}
+
+.telegramTimeline button,
+.telegramQueueRow {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(150px, auto) minmax(90px, auto) 1fr;
+  gap: 10px;
+  align-items: center;
+  text-align: right;
+  border: 1px solid #e0e7ef;
+  border-radius: 11px;
+  padding: 10px 12px;
+  background: #fff;
+  color: #2f4052;
+}
+
+.telegramQueueRow {
+  grid-template-columns: minmax(180px, 1.4fr) minmax(145px, 1fr) minmax(180px, 1fr) auto;
+}
+
+.telegramQueueRow > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.telegramQueueRow small {
+  grid-column: 1 / -1;
+  color: #637588;
+}
+
+.telegramPager {
+  justify-content: space-between;
+}
+
+.telegramDetailFacts {
+  padding: 12px;
+  border-radius: 11px;
+  background: #f3f6f9;
+}
+
+.telegramDetailFacts span {
+  overflow-wrap: anywhere;
+}
+
+.telegramEditorField {
+  display: grid;
+  gap: 7px;
+  font-weight: 700;
+}
+
+.telegramEditorField textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #bcccdc;
+  border-radius: 11px;
+  padding: 11px;
+  font: inherit;
+  line-height: 1.9;
+  background: #fff;
+}
+
+.telegramCtaEditor label,
+.telegramScheduleEditor label {
+  display: grid;
+  gap: 6px;
+  color: #52657a;
+  font-weight: 700;
+}
+
+.telegramCtaEditor input,
+.telegramCtaEditor select,
+.telegramScheduleEditor input,
+.telegramDayPause input,
+.telegramFilterBar input {
+  min-height: 40px;
+  border: 1px solid #bcccdc;
+  border-radius: 9px;
+  padding: 7px 9px;
+  background: #fff;
+}
+
+.telegramExactPreview {
+  border-top: 1px solid #e0e7ef;
+  padding-top: 10px;
+}
+
+.telegramExactPreview pre {
+  overflow: auto;
+  direction: rtl;
+  text-align: right;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f3f6f9;
+  border-radius: 10px;
+  padding: 12px;
+  line-height: 1.8;
+}
+
+.telegramPackGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.telegramPackGrid article {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #e0e7ef;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.telegramPackGrid p {
+  margin: 0;
+  color: #637588;
+  line-height: 1.8;
+}
+
+@media (max-width: 760px) {
+  .telegramTimeline button,
+  .telegramQueueRow,
+  .telegramPackGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .telegramQueueRow small {
+    grid-column: 1;
+  }
+
+  .telegramControlBar,
+  .telegramPager,
+  .telegramScheduleEditor {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* HALLEUS_WIKI_ADMIN_PHASE3_BATCH4_5 */
+.wikiPublicationFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+  margin: 14px 0;
+}
+
+.wikiPublicationFilters label {
+  display: grid;
+  gap: 5px;
+  min-width: 150px;
+}
+
+.wikiPublicationTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wikiPublicationTabs button[data-active="true"] {
+  background: #243447;
+  color: #f8fafc;
+}
+
+.wikiTimelineGrid,
+.wikiPackageProgressGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 14px 0;
+}
+
+.wikiTimelineDay,
+.wikiPackageProgress {
+  display: grid;
+  gap: 8px;
+  padding: 13px;
+  border: 1px solid #d8e1eb;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.wikiTimelineItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid #e0e7ef;
+}
+
+.wikiQueueMismatch {
+  padding: 10px 12px;
+  border: 1px solid #c7a9af;
+  border-radius: 10px;
+  background: #fff7f8;
+}
+
+.wikiAdvancedQueueTools {
+  margin: 16px 0;
+  border: 1px solid #d8e1eb;
+  border-radius: 13px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.wikiAdvancedQueueTools > summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.wikiBulkToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0 16px;
+  padding: 10px;
+  border: 1px solid #d8e1eb;
+  border-radius: 11px;
+  background: #f8fafc;
+}
+
+.wikiEditorGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  grid-column: 1 / -1;
+  padding: 14px;
+  border: 1px solid #d8e1eb;
+  border-radius: 13px;
+  background: #f8fafc;
+}
+
+.wikiEditorGroup > h4,
+.wikiEditorGroup > p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.wikiRelatedPicker,
+.wikiStructuredList {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.wikiRelatedResults,
+.wikiRelatedChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wikiStructuredRow {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(220px, 2fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.wikiPublicPreview {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.wikiSettingsTaxonomy {
+  margin-top: 18px;
+  border-top: 1px solid #d8e1eb;
+  padding-top: 14px;
+}
+
+@media (max-width: 760px) {
+  .wikiTimelineGrid,
+  .wikiPackageProgressGrid,
+  .wikiEditorGroup,
+  .wikiStructuredRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* HALLEUS_REPORTS_INTELLIGENCE_PHASE4_R1 */
+.reportEmbeddedWorkspace {
+  display: grid;
+  gap: 16px;
+}
+
+.reportCohortHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.reportCohortHeader h3,
+.reportCohortHeader p {
+  margin: 0;
+}
+
+.reportFilterGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #d8e1eb;
+  border-radius: 13px;
+  background: #f8fafc;
+}
+
+.reportFilterGrid label {
+  display: grid;
+  gap: 5px;
+  color: #52657a;
+  font-weight: 700;
+}
+
+.reportFilterGrid input,
+.reportFilterGrid select {
+  min-height: 40px;
+  border: 1px solid #bcccdc;
+  border-radius: 9px;
+  padding: 7px 9px;
+  background: #fff;
+  color: #2f4052;
+}
+
+.reportFilterWide {
+  grid-column: span 2;
+}
+
+.reportFilterActions {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+}
+
+.reportMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reportMetricGrid article {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid #d8e1eb;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.reportMetricGrid article span {
+  color: #637588;
+}
+
+.reportMetricGrid article strong {
+  font-size: 1.35rem;
+  color: #243447;
+}
+
+.reportInsightsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reportInsightPanel,
+.reportTrend {
+  padding: 12px;
+  border: 1px solid #d8e1eb;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.reportBreakdownList {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.reportBreakdownList > div,
+.reportTrend > div > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #e7edf3;
+}
+
+.reportTrendGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reportTrend summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.reportTrend > div {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+@media (max-width: 900px) {
+  .reportFilterGrid,
+  .reportMetricGrid,
+  .reportInsightsGrid,
+  .reportTrendGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .reportFilterGrid,
+  .reportMetricGrid,
+  .reportInsightsGrid,
+  .reportTrendGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .reportFilterWide {
+    grid-column: auto;
+  }
+}
+
+/* HALLEUS_PREDEPLOY_ADMIN_IA_BATCH1_R1 */
+.adminWorkspaceTabs {
+  display: inline-flex;
+  gap: 6px;
+  width: fit-content;
+  padding: 4px;
+  border: 1px solid #bcccdc;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.adminWorkspaceTabs button {
+  min-height: 38px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #52657a;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.adminWorkspaceTabs button[data-active="true"] {
+  background: #d9eafd;
+  color: #243447;
+}
+
+.reportDailyOverview,
+.reportOperationsWorkspace {
+  display: grid;
+  gap: 16px;
+}
+
+.reportOverviewHero,
+.reportRecentSection,
+.reportStorageSummary,
+.reportCanonicalAccordion,
+.telegramOverviewHero,
+.telegramUpcomingSection,
+.telegramDangerZone,
+.telegramPromptEditor {
+  border: 1px solid #bcccdc;
+  border-radius: 15px;
+  background: #f8fafc;
+}
+
+.reportOverviewHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 18px;
+  align-items: center;
+  padding: 18px;
+}
+
+.reportOverviewHero h3,
+.reportOverviewHero p,
+.reportSectionHeading h3,
+.reportSectionHeading p,
+.telegramOverviewHero h3,
+.telegramOverviewHero p,
+.telegramUpcomingSection h3,
+.telegramPromptEditor h3 {
+  margin: 0;
+}
+
+.reportOverviewHero > strong {
+  grid-row: span 2;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: #243447;
+}
+
+.reportOverviewHero > span:last-child {
+  grid-column: 2;
+  color: #637588;
+  text-align: center;
+}
+
+.reportRecentSection,
+.reportStorageSummary {
+  padding: 16px;
+}
+
+.reportSectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.reportRecentList {
+  display: grid;
+  gap: 8px;
+}
+
+.reportRecentRow {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.4fr) minmax(260px, 2fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #d8e1eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.reportRecentMain,
+.reportRecentMeta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.reportRecentMain {
+  display: grid;
+}
+
+.reportRecentMain small,
+.reportRecentMeta {
+  color: #637588;
+}
+
+.reportRecentMeta span {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #f3f6f9;
+}
+
+.reportRecentActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.reportRecentActions a {
+  color: #1e40af;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.reportStorageGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.reportStorageGrid article {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid #d8e1eb;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.reportStorageGrid span {
+  color: #637588;
+}
+
+.reportStorageGrid strong {
+  color: #243447;
+  font-size: 1.1rem;
+}
+
+.reportCanonicalAccordion {
+  overflow: clip;
+}
+
+.reportCanonicalAccordion > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+  padding: 16px;
+}
+
+.reportCanonicalAccordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.reportCanonicalAccordion > summary > div {
+  display: grid;
+  gap: 4px;
+}
+
+.reportCanonicalAccordion > summary > span {
+  color: #1e40af;
+  font-weight: 800;
+}
+
+.reportCanonicalBody {
+  display: grid;
+  gap: 14px;
+  padding: 0 16px 16px;
+  border-top: 1px solid #d8e1eb;
+}
+
+.reportMoreFilters {
+  grid-column: 1 / -1;
+  padding: 10px;
+  border: 1px solid #d8e1eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.reportMoreFilters > summary {
+  cursor: pointer;
+  color: #243447;
+  font-weight: 800;
+}
+
+.reportMoreFilters > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.telegramOverviewHero {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+}
+
+.telegramUpcomingSection,
+.telegramPromptEditor,
+.telegramDangerZone {
+  padding: 16px;
+}
+
+.telegramUpcomingList {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.telegramUpcomingRow {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  text-align: right;
+  padding: 12px;
+  border: 1px solid #d8e1eb;
+  border-radius: 12px;
+  background: #fff;
+  color: #2f4052;
+}
+
+.telegramUpcomingRow > div {
+  display: grid;
+  gap: 5px;
+}
+
+.telegramUpcomingRow small {
+  color: #637588;
+}
+
+.telegramDangerZone {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-color: #d8b7bd;
+  background: #fff8f9;
+}
+
+.telegramDangerZone h3,
+.telegramDangerZone p {
+  margin: 0;
+}
+
+.telegramEngineReadonly {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #bcccdc;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.telegramEngineReadonly summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #243447;
+}
+
+.telegramPromptSettings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.telegramPromptSettings label,
+.telegramRawPrompt {
+  display: grid;
+  gap: 6px;
+  color: #52657a;
+  font-weight: 700;
+}
+
+.telegramPromptSettings input,
+.telegramPromptSettings select,
+.telegramPromptSettings textarea,
+.telegramRawPrompt textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #bcccdc;
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #2f4052;
+  font: inherit;
+  line-height: 1.8;
+}
+
+.telegramPromptWide {
+  grid-column: 1 / -1;
+}
+
+.telegramRawPrompt {
+  margin-top: 12px;
+}
+
+.telegramQueueText {
+  display: grid !important;
+  gap: 5px !important;
+}
+
+.telegramQueueText strong {
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.telegramQueueText small {
+  color: #637588;
+}
+
+.wikiArticleListItem[data-selected="true"] {
+  border-color: #8eadd0;
+  background: #eef6ff;
+}
+
+.wikiArticleSelectableRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.articleSelectionCheckbox {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+}
+
+.articleSelectionCheckbox input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.wikiArticleRowCopy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.wikiArticleRowCopy strong,
+.wikiArticleRowCopy span,
+.wikiArticleRowCopy small {
+  overflow-wrap: anywhere;
+}
+
+.wikiArticleRowCopy span,
+.wikiArticleRowCopy small {
+  color: #637588;
+}
+
+.wikiArticleEditButton {
+  min-height: 38px;
+  padding: 7px 13px;
+  border: 1px solid #bcccdc;
+  border-radius: 9px;
+  background: #fff;
+  color: #1e40af;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reportRecentActions button,
+.reportSectionHeading button,
+.telegramOverviewHero button,
+.telegramUpcomingSection button,
+.telegramOpsSection button,
+.telegramPromptEditor button,
+.telegramDangerZone button,
+.wikiArticleEditButton {
+  min-height: 38px;
+}
+
+@media (max-width: 900px) {
+  .reportRecentRow {
+    grid-template-columns: 1fr;
+  }
+
+  .reportStorageGrid,
+  .reportMoreFilters > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .telegramUpcomingRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .adminWorkspaceTabs,
+  .reportSectionHeading,
+  .telegramOverviewHero,
+  .telegramDangerZone {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .adminWorkspaceTabs button {
+    flex: 1;
+  }
+
+  .reportOverviewHero,
+  .reportStorageGrid,
+  .reportMoreFilters > div,
+  .telegramPromptSettings {
+    grid-template-columns: 1fr;
+  }
+
+  .reportOverviewHero > strong,
+  .reportOverviewHero > span:last-child,
+  .telegramPromptWide {
+    grid-column: auto;
+    grid-row: auto;
+    text-align: right;
+  }
+
+  .wikiArticleSelectableRow {
+    grid-template-columns: auto 1fr;
+  }
+
+  .wikiArticleEditButton {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+/* HALLEUS_PREDEPLOY_ACCESS_SALES_BATCH2_R1 */
+.accessSalesWorkspace {
+  display: grid;
+  gap: 1rem;
+}
+
+.accessSalesHero {
+  border: 1px solid #bcccdc;
+  border-radius: 18px;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.adminDisclosure {
+  border: 1px solid #bcccdc;
+  border-radius: 16px;
+  background: #f8fafc;
+  padding: 0.85rem;
+}
+
+.adminDisclosure > summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #243447;
+}
+
+.accessPolicyGrid,
+.packageAdminGrid,
+.creditBalanceGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin: 1rem 0;
+}
+
+.accessPolicyGrid label,
+.accessCopyOverrides label,
+.packageAdminGrid label,
+.creditAccountPanel label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.accessCopyOverrides {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.accessPreview {
+  border: 1px solid #bcccdc;
+  border-radius: 14px;
+  background: #d9eafd;
+  padding: 0.85rem;
+  margin: 1rem 0;
+}
+
+.packageAdminGrid > article,
+.creditAccountPanel {
+  border: 1px solid #bcccdc;
+  border-radius: 14px;
+  padding: 0.8rem;
+}
+
+.creditSearchRow,
+.packageGrantActions,
+.creditAdjustment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.creditSearchRow input {
+  flex: 1 1 260px;
+}
+
+.creditUserList {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+}
+
+.creditUserList button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  text-align: start;
+}
+
+.creditUserList button[data-active="true"] {
+  box-shadow: 0 0 0 2px #d9eafd;
+}
+
+.creditBalanceGrid > div {
+  border: 1px solid #bcccdc;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.creditBalanceGrid span,
+.creditBalanceGrid strong {
+  display: block;
+}
+
+.creditBalanceGrid strong {
+  font-size: 1.35rem;
+  margin-top: 0.2rem;
+}
+
+.creditHistory {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.creditHistory article {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr auto;
+  gap: 0.55rem;
+  align-items: center;
+  border-top: 1px solid #bcccdc;
+  padding-top: 0.55rem;
+}
+
+@media (max-width: 760px) {
+  .creditHistory article {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* HALLEUS_TELEGRAM_PROMPT_EDITOR_R5_START */
+.telegramPromptCard {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #bcccdc;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(36, 52, 71, 0.06);
+}
+
+.telegramPromptHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e5edf5;
+}
+
+.telegramPromptHeader > div {
+  display: grid;
+  gap: 5px;
+}
+
+.telegramPromptHeader h3 {
+  margin: 0;
+  color: #243447;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.telegramPromptHeader p {
+  max-width: 720px;
+  margin: 0;
+  color: #5a6b7c;
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+.telegramPromptEyebrow {
+  color: #71859a;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.telegramPromptSingleSource {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid #c8d6e4;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #40566c;
+  font-size: 0.72rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.telegramPromptEditor {
+  display: grid;
+  gap: 8px;
+  color: #243447;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.telegramPromptTextarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 420px;
+  resize: vertical;
+  padding: 18px 20px;
+  border: 1px solid #bcccdc;
+  border-radius: 14px;
+  outline: none;
+  background: #fbfdff;
+  color: #2f4052;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 2;
+  text-align: right;
+  white-space: pre-wrap;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.telegramPromptTextarea:focus {
+  border-color: #7899ba;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(217, 234, 253, 0.9);
+}
+
+.telegramPromptRecovery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 13px;
+  border: 1px solid #d6e4f2;
+  border-radius: 12px;
+  background: #f4f8fc;
+}
+
+.telegramPromptRecovery p {
+  margin: 0;
+  color: #52677b;
+  font-size: 0.79rem;
+  line-height: 1.7;
+}
+
+.telegramPromptPrimary,
+.telegramPromptSecondary,
+.telegramPromptCancel {
+  border-radius: 11px;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.telegramPromptPrimary {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #243447;
+  background: #243447;
+  color: #ffffff;
+}
+
+.telegramPromptPrimary:hover:not(:disabled) {
+  background: #2f4052;
+}
+
+.telegramPromptSecondary {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #9fb4c8;
+  background: #ffffff;
+  color: #243447;
+}
+
+.telegramPromptSecondary:hover:not(:disabled) {
+  background: #eaf3fc;
+}
+
+.telegramPromptCancel {
+  justify-self: end;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #cbd7e3;
+  background: transparent;
+  color: #52677b;
+  font-size: 0.78rem;
+}
+
+.telegramPromptPrimary:disabled,
+.telegramPromptSecondary:disabled,
+.telegramPromptCancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 720px) {
+  .telegramPromptCard {
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .telegramPromptHeader,
+  .telegramPromptRecovery {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .telegramPromptSingleSource {
+    align-self: flex-start;
+  }
+
+  .telegramPromptTextarea {
+    min-height: 360px;
+    padding: 15px;
+  }
+
+  .telegramPromptSecondary {
+    width: 100%;
+  }
+}
+/* HALLEUS_TELEGRAM_PROMPT_EDITOR_R5_END */
+
+
+/* HALLEUS_TELEGRAM_ADMIN_UX_COMPLETE_R2
+   Telegram admin controls share one modern visual language. New native-looking
+   buttons/inputs should extend these rules instead of introducing raw controls. */
+.telegramWorkspace {
+  --telegram-border: #bcccdc;
+  --telegram-border-soft: #dce5ee;
+  --telegram-ink: #243447;
+  --telegram-body: #2f4052;
+  --telegram-muted: #637588;
+  --telegram-soft: #f8fafc;
+}
+
+.telegramWorkspace button {
+  min-height: 40px;
+  border: 1px solid var(--telegram-border);
+  border-radius: 11px;
+  padding: 8px 13px;
+  background: #fff;
+  color: var(--telegram-ink);
+  font: inherit;
+  font-weight: 750;
+  line-height: 1.35;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.telegramWorkspace button:hover:not(:disabled) {
+  border-color: #9fb4c8;
+  background: #eef6ff;
+  transform: translateY(-1px);
+}
+
+.telegramWorkspace button:focus-visible,
+.telegramWorkspace input:focus-visible,
+.telegramWorkspace select:focus-visible,
+.telegramWorkspace textarea:focus-visible {
+  outline: 3px solid rgba(217, 234, 253, 0.95);
+  outline-offset: 1px;
+}
+
+.telegramWorkspace button:disabled,
+.telegramWorkspace input:disabled,
+.telegramWorkspace select:disabled,
+.telegramWorkspace textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.telegramWorkspace .primaryAction,
+.telegramWorkspace .telegramPromptPrimary {
+  border-color: #243447;
+  background: #243447;
+  color: #fff;
+}
+
+.telegramWorkspace .primaryAction:hover:not(:disabled),
+.telegramWorkspace .telegramPromptPrimary:hover:not(:disabled) {
+  border-color: #2f4052;
+  background: #2f4052;
+}
+
+.telegramWorkspace .dangerAction {
+  border-color: #d8aeb6;
+  background: #fff7f8;
+  color: #8b303f;
+}
+
+.telegramWorkspace .dangerAction:hover:not(:disabled) {
+  border-color: #c98f9a;
+  background: #ffedf0;
+}
+
+.telegramWorkspace input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.telegramWorkspace select,
+.telegramWorkspace textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--telegram-border);
+  border-radius: 11px;
+  padding: 9px 11px;
+  background: #fff;
+  color: var(--telegram-body);
+  font: inherit;
+}
+
+.telegramOpsSection,
+.telegramMessageEditor,
+.telegramDayBrowser {
+  display: grid;
+  gap: 13px;
+  padding: 16px;
+  border: 1px solid var(--telegram-border-soft);
+  border-radius: 15px;
+  background: #fff;
+}
+
+.telegramOpsHeader {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.telegramOpsHeader > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.telegramOpsHeader h3,
+.telegramOpsHeader p {
+  margin: 0;
+}
+
+.telegramOpsHeader p,
+.telegramControlNote,
+.telegramNote {
+  color: var(--telegram-muted);
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+
+.telegramControlNote,
+.telegramNote {
+  margin: 0;
+}
+
+.telegramStatusStrip {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.telegramDayBrowser {
+  padding: 0;
+  overflow: hidden;
+}
+
+.telegramDayBrowser > .telegramOpsHeader {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #e8eef5;
+}
+
+.telegramSelectedDaysBar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #d8b7bd;
+  border-radius: 12px;
+  background: #fff8f9;
+}
+
+.telegramDayList {
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 14px;
+}
+
+.telegramDayCard {
+  overflow: hidden;
+  border: 1px solid #dce5ee;
+  border-radius: 13px;
+  background: #fff;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.telegramDayCard[data-selected="true"] {
+  border-color: #8fb1d1;
+  box-shadow: 0 0 0 3px rgba(217, 234, 253, 0.68);
+}
+
+.telegramDayHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.telegramDayCheckbox {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  min-width: 104px;
+  padding: 0 12px;
+  border-inline-end: 1px solid #e8eef5;
+  color: #52657a;
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.telegramDayCheckbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #243447;
+}
+
+.telegramDayExpand {
+  display: flex !important;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 58px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 9px 13px !important;
+  background: #fff !important;
+  text-align: right;
+  transform: none !important;
+}
+
+.telegramDayExpand:hover:not(:disabled) {
+  background: #f7fbff !important;
+}
+
+.telegramDayExpand > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.telegramDayExpand strong {
+  color: var(--telegram-ink);
+}
+
+.telegramDayExpand small {
+  color: var(--telegram-muted);
+  font-weight: 520;
+}
+
+.telegramDayMessages {
+  display: grid;
+  border-top: 1px solid #e8eef5;
+  background: #fbfdff;
+}
+
+.telegramDayMessageRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 11px 13px;
+  border-bottom: 1px solid #e8eef5;
+}
+
+.telegramDayMessageRow:last-child {
+  border-bottom: 0;
+}
+
+.telegramDayMessageRow > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.telegramDayMessageRow time,
+.telegramDayMessageRow small {
+  color: var(--telegram-muted);
+  font-size: 0.74rem;
+}
+
+.telegramDayMessageRow strong {
+  color: var(--telegram-body);
+  font-size: 0.86rem;
+  font-weight: 680;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.telegramDayEditButton {
+  min-width: 84px;
+}
+
+.telegramMessageEditor {
+  scroll-margin-top: 92px;
+  border-color: #a9bfd4;
+  box-shadow: 0 12px 28px rgba(36, 52, 71, 0.06);
+}
+
+.telegramReason {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #e3c8cd;
+  border-radius: 11px;
+  background: #fff8f9;
+  color: #7c3945;
+  line-height: 1.75;
+}
+
+.telegramItemActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.telegramGeneratorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.telegramGeneratorCard {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--telegram-border-soft);
+  border-radius: 15px;
+  background: #fff;
+}
+
+.telegramGeneratorCard h3,
+.telegramGeneratorCard p {
+  margin: 0;
+}
+
+.telegramGeneratorCard p {
+  color: var(--telegram-muted);
+  font-size: 0.81rem;
+  line-height: 1.75;
+}
+
+.telegramStep {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  background: #eaf3fc;
+  color: #294c6d;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.telegramRangeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.telegramRangeGrid label,
+.telegramCityField,
+.telegramFileField,
+.telegramSmartAspectLimit {
+  display: grid;
+  gap: 6px;
+  color: #52657a;
+  font-size: 0.79rem;
+  font-weight: 750;
+}
+
+.telegramFileField {
+  padding: 10px 11px;
+  border: 1px dashed #adc0d3;
+  border-radius: 11px;
+  background: #f8fbff;
+}
+
+.telegramFileField input[type="file"] {
+  width: 100%;
+  color: #52657a;
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.telegramSmartPicker {
+  display: grid;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid #d6e4f2;
+  border-radius: 12px;
+  background: #f7fbff;
+}
+
+.telegramSmartPicker > summary,
+.telegramSmartSubgroup > summary {
+  cursor: pointer;
+  color: #243447;
+  font-weight: 820;
+}
+
+.telegramSmartPicker > p {
+  margin: 0;
+  color: var(--telegram-muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.telegramSmartSubgroup {
+  padding-top: 7px;
+  border-top: 1px solid #e1eaf3;
+}
+
+.telegramSmartOptionGrid {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.telegramSmartOptionGrid label {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid #d6e4f2;
+  border-radius: 999px;
+  background: #fff;
+  color: #40566c;
+  font-size: 0.72rem;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.telegramSmartOptionGrid input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #243447;
+}
+
+.telegramSmartAspectLimit {
+  max-width: 220px;
+  margin-top: 9px;
+}
+
+.telegramAdvancedTools {
+  overflow: hidden;
+  border: 1px solid #d8e2ec;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.telegramAdvancedTools > summary {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 50px;
+  padding: 10px 14px;
+  color: #243447;
+  cursor: pointer;
+  font-weight: 820;
+}
+
+.telegramAdvancedTools > summary small {
+  color: var(--telegram-muted);
+  font-size: 0.72rem;
+  font-weight: 520;
+}
+
+.telegramAdvancedToolsBody {
+  display: grid;
+  gap: 12px;
+  padding: 0 12px 12px;
+  border-top: 1px solid #e8eef5;
+}
+
+.telegramAdvancedToolsBody > :first-child {
+  margin-top: 12px;
+}
+
+.telegramEventList,
+.telegramQueueList {
+  display: grid;
+  gap: 7px;
+}
+
+.telegramEventRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 9px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid #e0e7ef;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--telegram-body);
+  font-size: 0.78rem;
+}
+
+.telegramEventRow time {
+  color: var(--telegram-muted);
+}
+
+@media (max-width: 1100px) {
+  .telegramStatusStrip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .telegramGeneratorGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .telegramDayMessageRow {
+    grid-template-columns: 1fr;
+  }
+
+  .telegramDayEditButton {
+    justify-self: start;
+  }
+
+  .telegramOpsHeader,
+  .telegramSelectedDaysBar,
+  .telegramDangerZone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .telegramStatusStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .telegramDayHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .telegramDayCheckbox {
+    min-height: 40px;
+    border-inline-end: 0;
+    border-bottom: 1px solid #e8eef5;
+  }
+
+  .telegramRangeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .telegramAdvancedTools > summary {
+    display: grid;
+  }
+}

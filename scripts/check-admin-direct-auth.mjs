@@ -70,8 +70,12 @@ for (const marker of [
   assert(loginRoute.includes(marker), "Direct login route marker missing: " + marker);
 }
 
-assert(gate.includes("window.sessionStorage"), "Direct token must use sessionStorage.");
-assert(!gate.includes("window.localStorage"), "Direct token must not use localStorage.");
+assert(gate.includes("window.localStorage"), "Direct token must use localStorage for the seven-day session.");
+assert(!gate.includes("window.sessionStorage"), "Direct token must not use sessionStorage.");
+assert(
+  directAuth.includes("const DIRECT_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;"),
+  "Direct token TTL must be seven days.",
+);
 
 assert(
   consoleSource.includes("HALLEUS_DIRECT_ADMINI_R16"),
@@ -82,8 +86,10 @@ assert(
   "AdminConsole still depends on Halleus/Supabase account bootstrap.",
 );
 assert(
-  reportsSource.includes("HALLEUS_DIRECT_ADMINI_R16"),
-  "AdminReportsWorkspace is not wired to direct token.",
+  reportsSource.includes("accessToken") &&
+    reportsSource.includes("authorization") &&
+    reportsSource.includes("Bearer"),
+  "AdminReportsWorkspace is not wired to the direct bearer token.",
 );
 assert(
   !reportsSource.includes("getSupabaseBrowserAuthClient"),
@@ -99,8 +105,8 @@ assert(
   "AdminReportsWorkspace still exposes legacy report-detail UI links.",
 );
 assert(
-  consoleSource.includes("/admini/reports/"),
-  "AdminConsole does not point report details to /admini.",
+  consoleSource.includes("AdminReportsWorkspace"),
+  "AdminConsole does not delegate report UI to AdminReportsWorkspace.",
 );
 assert(
   reportsSource.includes("/admini/reports/"),
@@ -144,11 +150,19 @@ console.log("HALLEUS_DIRECT_ADMINI_R17");
 
 // HALLEUS_DIRECT_ADMINI_R18
 assert(
-  reportsSource.includes("Admin report data is external server state synchronized"),
-  "AdminReportsWorkspace external-state effect must keep its lint-safe annotation.",
+  reportsSource.includes("accessToken") &&
+    reportsSource.includes("authorization") &&
+    reportsSource.includes("Bearer") &&
+    !reportsSource.includes("setToken(accessToken);\n\n    void load"),
+  "AdminReportsWorkspace direct-session effect must preserve external bearer-token state without prop-to-state synchronization.",
 );
 assert(
-  gate.includes("Direct admin session is external sessionStorage/server state"),
-  "AdminDirectGate external-session restore must keep its lint-safe annotation.",
+  gate.includes('const STORAGE_KEY = "halleus.admini.direct-session.v1";') &&
+    gate.includes("window.localStorage.getItem(STORAGE_KEY)") &&
+    gate.includes("window.localStorage.setItem(STORAGE_KEY, token)") &&
+    gate.includes("window.localStorage.removeItem(STORAGE_KEY)") &&
+    gate.includes('fetch("/api/admin/session"') &&
+    gate.includes("authorization: `Bearer ${stored}`"),
+  "AdminDirectGate must preserve persistent localStorage-backed direct-session restore through the canonical storage key and bearer session endpoint.",
 );
 console.log("HALLEUS_DIRECT_ADMINI_R18");

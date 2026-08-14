@@ -18,7 +18,7 @@ type DirectLoginPayload = {
 
 function readStoredToken() {
   try {
-    return window.sessionStorage.getItem(STORAGE_KEY) ?? "";
+    return window.localStorage.getItem(STORAGE_KEY) ?? "";
   } catch {
     return "";
   }
@@ -26,7 +26,7 @@ function readStoredToken() {
 
 function storeToken(token: string) {
   try {
-    window.sessionStorage.setItem(STORAGE_KEY, token);
+    window.localStorage.setItem(STORAGE_KEY, token);
   } catch {
     // In-memory state still keeps the current session usable.
   }
@@ -34,7 +34,7 @@ function storeToken(token: string) {
 
 function clearStoredToken() {
   try {
-    window.sessionStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(STORAGE_KEY);
   } catch {
     // Nothing else to clear.
   }
@@ -103,8 +103,7 @@ export function AdminDirectGate({
       }
     }
 
-    // Direct admin session is external sessionStorage/server state restored on mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // Direct admin session is external localStorage/server state restored on mount.
     void restore();
     return () => {
       active = false;
@@ -183,7 +182,15 @@ export function AdminDirectGate({
   }
 
   if (mode === "reports") {
-    return <AdminReportsWorkspace reportId={reportId} accessToken={token} />;
+    return (
+      <AdminReportsWorkspace
+        reportId={reportId}
+        accessToken={token}
+        canExport={session.capabilities.includes("reports.export")}
+              canDelete={session.capabilities.includes("reports.delete")}
+              canManageAccess={session.capabilities.includes("memberships.manage")}
+      />
+    );
   }
 
   return (

@@ -355,6 +355,7 @@ export type ParsedTelegramContentPack = {
   rangeStart: string;
   rangeEnd: string;
   timezone: string;
+  aiContentConfigVersion: number | null;
   items: TelegramPlannedContent[];
 };
 
@@ -379,6 +380,22 @@ export function parseTelegramContentPack(
     throw new TelegramContentPackValidationError(
       "Telegram content packs must use Asia/Tehran.",
     );
+  }
+  let aiContentConfigVersion: number | null = null;
+  if (
+    root.aiContentConfigVersion !== null &&
+    root.aiContentConfigVersion !== undefined
+  ) {
+    if (
+      typeof root.aiContentConfigVersion !== "number" ||
+      !Number.isInteger(root.aiContentConfigVersion) ||
+      root.aiContentConfigVersion < 1
+    ) {
+      throw new TelegramContentPackValidationError(
+        "aiContentConfigVersion must be a positive integer when provided.",
+      );
+    }
+    aiContentConfigVersion = root.aiContentConfigVersion;
   }
   const range = asRecord(root.range);
   const rangeStart = parseIsoDate(range.startDate, "range.startDate");
@@ -677,6 +694,7 @@ export function parseTelegramContentPack(
         sourceFacts: {
           packId,
           itemId,
+          aiContentConfigVersion,
           sourceRef,
           timingMode,
           eventAt,
@@ -704,7 +722,7 @@ export function parseTelegramContentPack(
     };
   });
 
-  return { packId, rangeStart, rangeEnd, timezone, items };
+  return { packId, rangeStart, rangeEnd, timezone, aiContentConfigVersion, items };
 }
 
 function buildProvenance(
@@ -800,6 +818,7 @@ export function __halleusSmartDailyBase_buildTelegramSmartTransitPack(input: {
   startDate: string;
   endDate: string;
   city?: string;
+  aspectLimit?: number | "all";
 }) {
   const startDate = parseIsoDate(input.startDate, "startDate");
   const endDate = parseIsoDate(input.endDate, "endDate");
@@ -917,7 +936,12 @@ export function __halleusSmartDailyBase_buildTelegramSmartTransitPack(input: {
       planetaryStates: snapshot.planetaryStates,
       aspects: [...snapshot.aspects]
         .sort((left, right) => left.orb - right.orb)
-        .slice(0, 12),
+        .slice(
+          0,
+          input.aspectLimit === "all"
+            ? snapshot.aspects.length
+            : Math.min(Math.max(input.aspectLimit ?? 12, 1), 100),
+        ),
       timeline: snapshot.timeline,
       contentFacts: contentFactsForSnapshot(snapshot),
     };

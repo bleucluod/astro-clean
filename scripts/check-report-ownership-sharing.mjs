@@ -85,17 +85,30 @@ if (!service.includes("projectPrivateShareReport(report)")) throw new Error("Sha
 for (const marker of ["projectPrivateShareReport", 'birthDate: ""', 'birthTime: ""', 'birthCity: ""', "personalTransitReportData: null"]) {
   if (!serverPersistence.includes(marker)) throw new Error(`Shared report privacy projection is missing ${marker}.`);
 }
+// HALLEUS_REPORT_COHORT_PAGINATION_GUARD_R2
+// HALLEUS_PREDEPLOY_REPORT_OPERATIONS_PAGINATION_GUARD_R2
 const adminReportsUseCanonicalPageSize =
-  adminWorkspace.includes("limit=25") ||
-  (adminWorkspace.includes("const PAGE_SIZE = 25;") &&
-    adminWorkspace.includes("limit=${PAGE_SIZE}"));
+  adminWorkspace.includes("const OPERATIONS_PAGE_SIZE = 25;") &&
+  adminWorkspace.includes("const OVERVIEW_PAGE_SIZE = 10;") &&
+  adminWorkspace.includes("limit: String(pageSize)") &&
+  adminWorkspace.includes('view === "operations"') &&
+  adminWorkspace.includes("buildQuery(effectiveFilters, effectivePage, pageSize)");
 if (!adminReportsUseCanonicalPageSize) {
-  throw new Error("Admin report workspace is missing canonical 25-row pagination.");
+  throw new Error("Admin report workspace is missing the 10-row overview / canonical 25-row Operations pagination contract.");
 }
 for (const marker of ["update_title", "restrict_visibility", "soft_delete"]) {
   if (!adminWorkspace.includes(marker)) throw new Error(`Admin report workspace is missing ${marker}.`);
 }
-for (const marker of ["response.status === 401", "setReports([])", "setPrivateReport(null)"]) if (!adminConsole.includes(marker)) throw new Error(`Admin authentication cleanup is missing ${marker}.`);
+for (const marker of [
+  "response.status === 401 || response.status === 403",
+  "setReports([])",
+  'setToken("")',
+  "setContact(null)",
+]) {
+  if (!adminWorkspace.includes(marker)) {
+    throw new Error(`Admin report workspace authentication cleanup is missing ${marker}.`);
+  }
+}
 
 
 const policyFailures = [];
