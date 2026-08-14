@@ -265,17 +265,69 @@ async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<W
   };
 }
 
+const WIKI_DATABASE_READ_MAX_ATTEMPTS = 3;
+const WIKI_DATABASE_READ_RETRY_MS = 1_500;
+
+function isProductionWikiRuntime() {
+  return process.env.NODE_ENV === "production";
+}
+
+async function waitForWikiDatabaseRetry() {
+  await new Promise((resolve) => setTimeout(resolve, WIKI_DATABASE_READ_RETRY_MS));
+}
+
+function failClosedWikiStorage(
+  reason: "database-not-configured" | "database-read-failed",
+  error?: unknown,
+): never {
+  console.error(
+    JSON.stringify({
+      marker: "HALLEUS_WIKI_STORAGE_REQUIRED",
+      reason,
+      errorCode: error ? storageErrorCode(error) : null,
+    }),
+  );
+
+  throw new Error(`HALLEUS_WIKI_STORAGE_REQUIRED:${reason}`);
+}
+
 const loadWikiStorageSnapshot = cache(async (): Promise<WikiStorageSnapshot> => {
   const sql = getWikiDatabase();
   if (!sql) {
+    if (isProductionWikiRuntime()) {
+      failClosedWikiStorage("database-not-configured");
+    }
+
     return fallbackSnapshot("database-not-configured");
   }
 
-  try {
-    return await readDatabaseSnapshot(sql);
-  } catch (error) {
-    return fallbackSnapshot("database-read-failed", error);
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= WIKI_DATABASE_READ_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await readDatabaseSnapshot(sql);
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < WIKI_DATABASE_READ_MAX_ATTEMPTS) {
+        console.warn(
+          JSON.stringify({
+            marker: "HALLEUS_WIKI_DATABASE_RETRY",
+            attempt,
+            maxAttempts: WIKI_DATABASE_READ_MAX_ATTEMPTS,
+            errorCode: storageErrorCode(error),
+          }),
+        );
+        await waitForWikiDatabaseRetry();
+      }
+    }
   }
+
+  if (isProductionWikiRuntime()) {
+    failClosedWikiStorage("database-read-failed", lastError);
+  }
+
+  return fallbackSnapshot("database-read-failed", lastError);
 });
 
 export async function getPublicWikiCatalog(): Promise<PublicWikiCatalog> {

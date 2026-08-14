@@ -33,6 +33,7 @@ const packageParser = read("lib/wiki/wiki-package.ts");
 const markdownParser = read("lib/wiki/wiki-markdown.ts");
 const publisher = read("lib/wiki/wiki-publisher.ts");
 const repository = read("lib/wiki/wiki-repository.ts");
+const releaseEngine = read("ops/vps/halleus-release.sh");
 const articlePage = read("app/wiki/[slug]/page.tsx");
 const articleRenderer = read("components/wiki/WikiArticleRender.tsx");
 const adminClient = read("components/admin/WikiAdminPanel.tsx");
@@ -125,6 +126,17 @@ requireText("publisher readiness retry", publisherRunner, "exit_code != 7");
 requireText("publisher readiness retry", publisherRunner, '/bin/sleep "$retry_delay_seconds"');
 
 requireText("public repository", repository, "deleted_at is null");
+requireText("public repository production fail-closed", repository, "HALLEUS_WIKI_STORAGE_REQUIRED");
+requireText("public repository bounded DB retry", repository, "WIKI_DATABASE_READ_MAX_ATTEMPTS");
+requireText("public repository production gate", repository, 'process.env.NODE_ENV === "production"');
+requireText("release engine root env loading", releaseEngine, 'source "$ENV_FILE"');
+requireText("release engine wiki fail-closed smoke", releaseEngine, "assert_local_wiki_catalog");
+requireText("release engine wiki fail-closed smoke", releaseEngine, "HALLEUS_WIKI_FALLBACK_CATALOG");
+forbidText(
+  "release engine deploy-user env-file read",
+  releaseEngine,
+  `as_deploy bash -lc "set -a; source '$ENV_FILE'; set +a;`,
+);
 requireText("public article route", articlePage, "dynamicParams = true");
 requireText("public article route", articlePage, "revalidate = 300");
 requireText("public article route", articlePage, "internalLinkTargets");

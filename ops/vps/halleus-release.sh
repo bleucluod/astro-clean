@@ -131,10 +131,45 @@ wait_http_code() {
     return 1
 }
 
+assert_local_wiki_catalog() {
+    local wiki_html
+    local wiki_count
+
+    wiki_html="$(curl --silent --show-error --fail "http://$HOST:$PORT/wiki?release_smoke=$(date +%s)")" || return 1
+
+    wiki_count="$(
+        printf '%s' "$wiki_html" |
+            "$NODE_BIN" -e '
+let html = "";
+process.stdin.setEncoding("utf8");
+process.stdin.on("data", (chunk) => { html += chunk; });
+process.stdin.on("end", () => {
+  const slugs = [...html.matchAll(/href="\/wiki\/([^"?#/]+)"/g)].map((match) => match[1]);
+  process.stdout.write(String(new Set(slugs).size));
+});
+'
+    )"
+
+    if ! [[ "$wiki_count" =~ ^[0-9]+$ ]]; then
+        printf 'FAIL %-42s invalid-count=%s marker=HALLEUS_WIKI_FALLBACK_CATALOG\n' "local wiki catalog" "$wiki_count" >&2
+        return 1
+    fi
+
+    if [ "$wiki_count" -le 19 ]; then
+        printf 'FAIL %-42s articles=%s marker=HALLEUS_WIKI_FALLBACK_CATALOG\n' "local wiki catalog" "$wiki_count" >&2
+        return 1
+    fi
+
+    printf 'PASS %-42s articles=%s\n' "local wiki catalog" "$wiki_count"
+    return 0
+}
+
 smoke_release() {
     systemctl is-active --quiet "$SERVICE" || return 1
 
     wait_http_code 200 "localhost homepage" "http://$HOST:$PORT/" || return 1
+    wait_http_code 200 "localhost wiki" "http://$HOST:$PORT/wiki" || return 1
+    assert_local_wiki_catalog || return 1
     wait_http_code 200 "public homepage" "https://halleus.ir/" || return 1
     wait_http_code 200 "public chart" "https://halleus.ir/chart" || return 1
     wait_http_code 200 "public wiki" "https://halleus.ir/wiki" || return 1
@@ -256,7 +291,11 @@ deploy_release() {
     as_deploy git -C "$release_dir" --no-pager diff --check
 
     printf '%s\n' "Building release before activation..."
-    as_deploy bash -lc "set -a; source '$ENV_FILE'; set +a; cd '$release_dir'; '$pnpm_bin' build"
+    set -a
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
+    set +a
+    as_deploy bash -lc "cd '$release_dir'; '$pnpm_bin' build"
 
     local build_id
     local created_utc
