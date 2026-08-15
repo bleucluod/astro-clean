@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 
 import { FinalEditorialPage } from "@/components/FinalEditorialPage";
 import { ComparisonComposer } from "@/components/comparison/ComparisonComposer";
+import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "چارت سیناستری آنلاین | مقایسه دو چارت تولد",
@@ -10,6 +13,8 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function ComparePage() {
-  return <FinalEditorialPage pageKey="compare" slots={{ "chart-selection": <ComparisonComposer embedded /> }} />;
+export default async function ComparePage() {
+  // HALLEUS_SERVER_SEEDED_COMPARE_ACCESS_BATCH1_R1
+  const policy = await getReportAccessPolicy();
+  return <FinalEditorialPage pageKey="compare" slots={{ "chart-selection": <ComparisonComposer embedded initialMonetizationMode={policy.monetizationMode} /> }} />;
 }

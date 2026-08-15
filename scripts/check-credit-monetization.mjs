@@ -72,6 +72,8 @@ for (const marker of [
   "planetChapters",
   "technical",
   "normalizeReportAccessPolicy",
+  "REPORT_MONETIZATION_MODES",
+  "monetizationMode",
 ]) {
   assert(policy.includes(marker), `access policy missing: ${marker}`);
 }
@@ -86,6 +88,9 @@ for (const marker of [
   "adjustAccountCredit",
   "saveReportAccessPolicy",
   "saveProductPackage",
+  "getReportAccessControlState",
+  "bypassedByMode",
+  "bypassedRelationshipByMode",
 ]) {
   assert(service.includes(marker), `credit service missing: ${marker}`);
 }
@@ -138,6 +143,10 @@ for (const marker of [
 assert(
   !comparison.includes("relationshipUnlocked"),
   "Old account-wide Relationship entitlement gate must be removed.",
+);
+assert(
+  comparison.includes("freeAllAccess") && comparison.includes("if (!freeAllAccess)"),
+  "Relationship credit consumption must remain available only under CONFIGURED mode.",
 );
 
 for (const marker of [

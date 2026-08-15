@@ -13,6 +13,7 @@ import {
 } from "@/lib/storage/account-report-read-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportVisibility } from "@/types/storage";
+import type { ReportAccessPolicy } from "@/lib/monetization/access-policy";
 import {
   createPrivacySafeReportText,
 } from "@/lib/storage/report-journey-client";
@@ -28,6 +29,7 @@ type ReportDetailProps = {
   reportSource?: ReportDetailSource;
   initialReport?: AstrologyReport | null;
   initialMessage?: string;
+  initialAccessPolicy?: ReportAccessPolicy;
 };
 
 type BetaDatabaseReadResponse = {
@@ -84,6 +86,7 @@ export function ReportDetail({
   reportSource = "local",
   initialReport = null,
   initialMessage = "",
+  initialAccessPolicy = undefined,
 }: ReportDetailProps) {
   const [report, setReport] = useState<AstrologyReport | null>(() =>
     initialReport ? sanitizeVisibleReportValue(initialReport) : null,
@@ -333,7 +336,7 @@ export function ReportDetail({
       className="report-detail-reader-page report-product-page"
       data-report-source={reportSource}
     >
-      <ReportProductReader report={report} storedAccessTier={storedAccessTier} />
+      <ReportProductReader initialAccessPolicy={initialAccessPolicy} report={report} storedAccessTier={storedAccessTier} />
 
       <details className="report-product-reader-tools">
         <summary>ذخیره و مدیریت گزارش</summary>

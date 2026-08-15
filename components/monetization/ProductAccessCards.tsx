@@ -148,6 +148,8 @@ export function ProductOfferGrid({
 
 export function AccountProductAccessCard() {
   const access = useProductAccess();
+  // HALLEUS_FREE_ALL_ACCOUNT_CARD_BATCH1_R1
+  const freeAllAccess = access.access.policy.monetizationMode === "FREE_ALL";
   return (
     <section
       className={styles.accountCard}
@@ -158,10 +160,14 @@ export function AccountProductAccessCard() {
         <h2 id="account-products-title">دسترسی‌های قابل مصرف</h2>
         <p>
           {access.status === "loading"
-            ? "در حال خواندن اعتبارهای حساب…"
-            : access.status === "unauthenticated"
-              ? "برای دیدن اعتبارها وارد حساب هالیوس شو."
-              : "اعتبار فقط هنگام بازکردن یک خروجی تازه مصرف می‌شود."}
+            ? "در حال خواندن وضعیت دسترسی…"
+            : access.status === "unavailable"
+              ? "وضعیت دسترسی فعلاً قابل تأیید نیست."
+              : freeAllAccess
+                ? "گزارش‌ها و تحلیل رابطه فعلاً بدون مصرف اعتبار در دسترس‌اند."
+                : access.status === "unauthenticated"
+                  ? "برای دیدن اعتبارها وارد حساب هالیوس شو."
+                  : "اعتبار فقط هنگام بازکردن یک خروجی تازه مصرف می‌شود."}
         </p>
       </div>
       <div className={styles.accountAccessGrid}>
@@ -178,9 +184,11 @@ export function AccountProductAccessCard() {
           </strong>
         </div>
       </div>
-      <Link className={styles.secondaryAction} href="/pricing">
-        دیدن بسته‌ها
-      </Link>
+      {!freeAllAccess && access.status !== "loading" && access.status !== "unavailable" ? (
+        <Link className={styles.secondaryAction} href="/pricing">
+          دیدن بسته‌ها
+        </Link>
+      ) : null}
     </section>
   );
 }

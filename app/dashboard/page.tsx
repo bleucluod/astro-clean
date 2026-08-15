@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { AccountProductAccessCard } from "@/components/monetization/ProductAccessCards";
+import { useProductAccess } from "@/lib/monetization/product-access-client";
 import styles from "./dashboard.module.css";
 import { useEffect, useMemo, useState } from "react";
 import { getPreviewSession } from "@/lib/account/preview-session";
@@ -19,6 +20,11 @@ function formatDate(value: string) {
 }
 
 export default function DashboardPage() {
+  // HALLEUS_FREE_ALL_DASHBOARD_BATCH1_R1
+  const productAccess = useProductAccess();
+  const configuredMonetizationVisible =
+    (productAccess.status === "ready" || productAccess.status === "unauthenticated") &&
+    productAccess.access.policy.monetizationMode === "CONFIGURED";
   const [session, setSession] = useState<AuthSession | null>(null);
   const [reports, setReports] = useState<ReportRecordSummary[]>([]);
   const [isReady, setIsReady] = useState(false);
@@ -70,7 +76,9 @@ export default function DashboardPage() {
           <p>
             {session
               ? "حساب تو آماده است؛ گزارش‌های قبلی، اعتبارها و تحلیل رابطه را از یک جای ساده دنبال کن."
-              : "گزارش‌های این مرورگر را می‌بینی؛ برای استفاده از اعتبارهای خریداری‌شده وارد حساب هالیوس شو."}
+              : configuredMonetizationVisible
+                ? "گزارش‌های این مرورگر را می‌بینی؛ برای استفاده از اعتبارهای خریداری‌شده وارد حساب هالیوس شو."
+                : "گزارش‌های این مرورگر را می‌بینی؛ برای ادامه می‌توانی چارت یا تحلیل رابطه را باز کنی."}
           </p>
         </div>
         <div className={styles.heroActions}>
@@ -85,7 +93,7 @@ export default function DashboardPage() {
             <span className={styles.eyebrow}>اعتبارهای حساب</span>
             <h2 id="dashboard-credit-title">موجودی و دسترسی‌های تو</h2>
           </div>
-          <Link href="/pricing">دیدن بسته‌های اعتبار</Link>
+          {configuredMonetizationVisible ? <Link href="/pricing">دیدن بسته‌های اعتبار</Link> : null}
         </div>
 <AccountProductAccessCard />
       </section>
@@ -117,7 +125,9 @@ export default function DashboardPage() {
           <div className={styles.actionList}>
             <Link href="/chart"><strong>چارت تولد جدید</strong><span>ساخت یک گزارش تازه</span></Link>
             <Link href="/compare"><strong>تحلیل رابطه</strong><span>مقایسهٔ خصوصی دو چارت تولد</span></Link>
-            <Link href="/pricing"><strong>اعتبار بیشتر</strong><span>بسته‌های فعال هالیوس</span></Link>
+            {configuredMonetizationVisible ? (
+              <Link href="/pricing"><strong>اعتبار بیشتر</strong><span>بسته‌های فعال هالیوس</span></Link>
+            ) : null}
           </div>
         </article>
       </section>

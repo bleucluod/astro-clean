@@ -60,9 +60,15 @@ const RELATIONSHIP_OPTIONS: ReadonlyArray<{
   },
 ];
 
-export function ComparisonComposer({ embedded = false }: { embedded?: boolean }) {
+export function ComparisonComposer({ embedded = false, initialMonetizationMode = "CONFIGURED" }: { embedded?: boolean; initialMonetizationMode?: "FREE_ALL" | "CONFIGURED" }) {
   const router = useRouter();
   const productAccess = useProductAccess();
+  // HALLEUS_FREE_ALL_RELATIONSHIP_BATCH1_R1
+  const effectiveMonetizationMode =
+    productAccess.status === "loading"
+      ? initialMonetizationMode
+      : productAccess.access.policy.monetizationMode;
+  const freeAllAccess = effectiveMonetizationMode === "FREE_ALL";
   const [reports, setReports] = useState<AstrologyReport[]>([]);
   const [history, setHistory] = useState<ComparisonRecord[]>([]);
   const [chartAId, setChartAId] = useState("");
@@ -131,10 +137,14 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
     }
 
     if (productAccess.status === "loading") {
-      setMessage("اعتبار حساب هنوز در حال بررسی است.");
+      setMessage("وضعیت دسترسی هنوز در حال بررسی است.");
       return;
     }
-    if (productAccess.access.balances.relationship < 1) {
+    if (productAccess.status === "unavailable") {
+      setMessage("وضعیت دسترسی فعلاً قابل تأیید نیست.");
+      return;
+    }
+    if (!freeAllAccess && productAccess.access.balances.relationship < 1) {
       setProductLocked(true);
       setMessage("برای ساخت تحلیل رابطه تازه یک اعتبار تحلیل رابطه لازم است.");
       return;
@@ -161,12 +171,15 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
       return;
     }
 
-    const consume = await productAccess.consumeRelationship(result.record.id);
-    if (!consume.ok) {
-      setProductLocked(true);
-      setIsWorking(false);
-      setMessage(consume.error ?? "مصرف اعتبار تحلیل رابطه انجام نشد.");
-      return;
+    // HALLEUS_CONFIGURED_RELATIONSHIP_CONSUME_BATCH1_R1
+    if (!freeAllAccess) {
+      const consume = await productAccess.consumeRelationship(result.record.id);
+      if (!consume.ok) {
+        setProductLocked(true);
+        setIsWorking(false);
+        setMessage(consume.error ?? "مصرف اعتبار تحلیل رابطه انجام نشد.");
+        return;
+      }
     }
 
     const storageResult = savePrivateComparison(result.record);
@@ -277,7 +290,7 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
         <li><span>۲</span>چارت دوم</li>
         <li><span>۳</span>نوع رابطه</li>
         <li><span>۴</span>رضایت</li>
-        <li><span>۵</span>اعتبار و ساخت</li>
+        <li><span>۵</span>{freeAllAccess ? "ساخت تحلیل" : "اعتبار و ساخت"}</li>
       </ol>
 
       <section className={styles.composerCard} aria-labelledby="comparison-builder-title">
@@ -382,7 +395,7 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
 
             {message ? <p className={styles.errorMessage} role="alert">{message}</p> : null}
 
-            {productLocked && chartA && chartB ? (
+            {!freeAllAccess && productLocked && chartA && chartB ? (
               <ProductLockedOffer
                 productCode="relationship"
                 title={`خوانش کامل ${getComparisonChartLabel(chartA)} و ${getComparisonChartLabel(chartB)}`}
@@ -392,16 +405,28 @@ export function ComparisonComposer({ embedded = false }: { embedded?: boolean })
               />
             ) : null}
 
-            <section className={styles.creditStage} data-flow-step="credit">
-              <div className={styles.stepHeading}><span>۵</span><div><h3>اعتبار رابطه و ساخت تحلیل</h3><p>ساخت یک تحلیل تازه یک اعتبار رابطه مصرف می‌کند. بازکردن نتیجهٔ ذخیره‌شده اعتبار دیگری مصرف نمی‌کند.</p></div></div>
-              <div className={styles.creditWidget}><AccountProductAccessCard /></div>
-              <Link className={styles.purchasePath} href="/pricing">اعتبار کافی نداری؟ بسته‌های فعال را ببین</Link>
-            </section>
+            {freeAllAccess ? (
+              <section className={styles.creditStage} data-flow-step="credit" data-free-all-relationship-access="true">
+                <div className={styles.stepHeading}>
+                  <span>۵</span>
+                  <div>
+                    <h3>ساخت تحلیل رابطه</h3>
+                    <p>در حالت فعلی، ساخت تحلیل رابطه بدون خرید و بدون مصرف اعتبار انجام می‌شود.</p>
+                  </div>
+                </div>
+              </section>
+            ) : (
+              <section className={styles.creditStage} data-flow-step="credit">
+                <div className={styles.stepHeading}><span>۵</span><div><h3>اعتبار رابطه و ساخت تحلیل</h3><p>ساخت یک تحلیل تازه یک اعتبار رابطه مصرف می‌کند. بازکردن نتیجهٔ ذخیره‌شده اعتبار دیگری مصرف نمی‌کند.</p></div></div>
+                <div className={styles.creditWidget}><AccountProductAccessCard /></div>
+                <Link className={styles.purchasePath} href="/pricing">اعتبار کافی نداری؟ بسته‌های فعال را ببین</Link>
+              </section>
+            )}
 
             <button
               className={styles.primaryButton}
               type="button"
-              disabled={isWorking || productAccess.status === "loading" || !chartA || !chartB}
+              disabled={isWorking || productAccess.status === "loading" || productAccess.status === "unavailable" || !chartA || !chartB}
               onClick={generateComparison}
             >
               {isWorking ? "در حال ساخت خوانش…" : "ساخت تحلیل رابطه"}

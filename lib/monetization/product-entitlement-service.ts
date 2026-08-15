@@ -8,6 +8,8 @@ import {
 } from "@/lib/admin/admin-database";
 import {
   DEFAULT_REPORT_ACCESS_POLICY,
+  DISCOVERED_MONETIZED_REPORT_TYPES,
+  isReportMonetizationMode,
   normalizeReportAccessPolicy,
   type ReportAccessPolicy,
 } from "@/lib/monetization/access-policy";
@@ -84,21 +86,70 @@ async function readBalances(userId: string): Promise<AccountCreditBalances> {
   }
 }
 
-export async function getReportAccessPolicy(): Promise<ReportAccessPolicy> {
+// HALLEUS_REPORT_ACCESS_CONTROL_STATE_BATCH1_R1
+export type ReportAccessControlState = {
+  policy: ReportAccessPolicy;
+  effectiveMode: ReportAccessPolicy["monetizationMode"];
+  version: number;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  storage: "database" | "fail_safe";
+  reportTypes: typeof DISCOVERED_MONETIZED_REPORT_TYPES;
+};
+
+export async function getReportAccessControlState(): Promise<ReportAccessControlState> {
   const sql = getAdminDatabase();
   try {
     const rows = await sql`
-      select version, config
+      select
+        version,
+        config,
+        updated_at::text as updated_at,
+        updated_by::text as updated_by
       from halleus_private.report_access_policy
       where singleton_id = 1
       limit 1
     `;
-    if (!rows.length) return DEFAULT_REPORT_ACCESS_POLICY;
+    if (!rows.length) {
+      return {
+        policy: DEFAULT_REPORT_ACCESS_POLICY,
+        effectiveMode: DEFAULT_REPORT_ACCESS_POLICY.monetizationMode,
+        version: DEFAULT_REPORT_ACCESS_POLICY.version,
+        updatedAt: null,
+        updatedBy: null,
+        storage: "fail_safe",
+        reportTypes: DISCOVERED_MONETIZED_REPORT_TYPES,
+      };
+    }
     const row = asRecord(rows[0]);
-    return normalizeReportAccessPolicy(row.config, asNumber(row.version));
+    const policy = normalizeReportAccessPolicy(
+      row.config,
+      asNumber(row.version),
+    );
+    return {
+      policy,
+      effectiveMode: policy.monetizationMode,
+      version: policy.version,
+      updatedAt: asNullableString(row.updated_at),
+      updatedBy: asNullableString(row.updated_by),
+      storage: "database",
+      reportTypes: DISCOVERED_MONETIZED_REPORT_TYPES,
+    };
   } catch {
-    return DEFAULT_REPORT_ACCESS_POLICY;
+    return {
+      policy: DEFAULT_REPORT_ACCESS_POLICY,
+      effectiveMode: DEFAULT_REPORT_ACCESS_POLICY.monetizationMode,
+      version: DEFAULT_REPORT_ACCESS_POLICY.version,
+      updatedAt: null,
+      updatedBy: null,
+      storage: "fail_safe",
+      reportTypes: DISCOVERED_MONETIZED_REPORT_TYPES,
+    };
   }
+}
+
+export async function getReportAccessPolicy(): Promise<ReportAccessPolicy> {
+  return (await getReportAccessControlState()).policy;
 }
 
 export async function getProductPackages(input?: {
@@ -188,6 +239,16 @@ export async function unlockReportWithCredit(input: {
       "invalid_request",
       "Report unlock request is incomplete.",
     );
+  }
+  const accessPolicy = await getReportAccessPolicy();
+  if (accessPolicy.monetizationMode === "FREE_ALL") {
+    const balances = await readBalances(input.userId);
+    return {
+      unlocked: false,
+      consumed: false,
+      balance: balances.fullReport,
+      bypassedByMode: "FREE_ALL" as const,
+    };
   }
   const sql = getAdminDatabase();
 
@@ -310,6 +371,15 @@ export async function consumeRelationshipCredit(input: {
       "Relationship credit request is incomplete.",
     );
   }
+  const accessPolicy = await getReportAccessPolicy();
+  if (accessPolicy.monetizationMode === "FREE_ALL") {
+    const balances = await readBalances(input.userId);
+    return {
+      consumed: false,
+      balance: balances.relationship,
+      bypassedRelationshipByMode: "FREE_ALL" as const,
+    };
+  }
   const sql = getAdminDatabase();
 
   return sql.begin(async (tx) => {
@@ -400,6 +470,14 @@ export async function saveReportAccessPolicy(input: {
   config: unknown;
   actorUserId: string;
 }) {
+  // HALLEUS_REPORT_ACCESS_MODE_VALIDATION_BATCH1_R1
+  const rawConfig = asRecord(input.config);
+  if (!isReportMonetizationMode(rawConfig.monetizationMode)) {
+    throw new ProductCreditError(
+      "invalid_request",
+      "Report monetization mode must be FREE_ALL or CONFIGURED.",
+    );
+  }
   const sql = getAdminDatabase();
   return sql.begin(async (tx) => {
     const rows = await tx`

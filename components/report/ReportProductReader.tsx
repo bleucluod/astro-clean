@@ -22,6 +22,7 @@ import type { AstrologyReport } from "@/types/astro";
 import { FiveMinuteReportSummary } from "@/components/report/FiveMinuteReportSummary";
 import { ReportTechnicalAppendix } from "@/components/report/ReportTechnicalAppendix";
 import { useProductAccess } from "@/lib/monetization/product-access-client";
+import type { ReportAccessPolicy } from "@/lib/monetization/access-policy";
 import styles from "./human-first-report.module.css";
 
 type ReportWithTransit = AstrologyReport & {
@@ -39,11 +40,18 @@ const FLOW_SECTIONS = [
 
 const LEGACY_ADAPTIVE_COMPATIBILITY_RENDER = false;
 
-export function ReportProductReader({ report, storedAccessTier = null }: { report: AstrologyReport; storedAccessTier?: string | null }) {
+export function ReportProductReader({ report, storedAccessTier = null, initialAccessPolicy }: { report: AstrologyReport; storedAccessTier?: string | null; initialAccessPolicy?: ReportAccessPolicy }) {
   const productAccess = useProductAccess(report.id);
+  // HALLEUS_FREE_ALL_BIRTH_REPORT_BATCH1_R1
+  const accessPolicy =
+    productAccess.status === "loading" && initialAccessPolicy
+      ? initialAccessPolicy
+      : productAccess.access.policy;
+  const freeAllAccess = accessPolicy.monetizationMode === "FREE_ALL";
   const premiumBirthUnlocked =
-    storedAccessTier === "premium" || productAccess.access.reportUnlocked;
-  const accessPolicy = productAccess.access.policy;
+    freeAllAccess ||
+    storedAccessTier === "premium" ||
+    productAccess.access.reportUnlocked;
   const technicalAppendixVisible =
     premiumBirthUnlocked || accessPolicy.technical.appendix === "free";
   const contract = useMemo(() => buildLiveReportReadingContract(report), [report]);
@@ -204,6 +212,7 @@ export function ReportProductReader({ report, storedAccessTier = null }: { repor
       data-editorial-report-batch2="motion-polish"
       data-report-adaptive-depth="20260808"
       data-adaptive-compatibility-suppressed="FiveMinuteReportSummary"
+      data-effective-monetization-mode={accessPolicy.monetizationMode}
     >
       <div aria-hidden="true" className={styles.ambientLogo} data-report-ambient-logo="parallax" />
       <details

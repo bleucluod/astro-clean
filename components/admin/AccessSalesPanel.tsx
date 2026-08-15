@@ -22,10 +22,25 @@ type HistoryItem = {
   createdAt: string;
 };
 
+// HALLEUS_ACCESS_MODE_ADMIN_STATE_BATCH1_R1
+type AccessControlState = {
+  effectiveMode: "FREE_ALL" | "CONFIGURED";
+  version: number;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  storage: "database" | "fail_safe";
+  reportTypes: Array<{
+    id: string;
+    label: string;
+    configuredBehavior: string;
+  }>;
+};
+
 type Payload = {
   ok?: boolean;
   error?: string;
   policy?: ReportAccessPolicy;
+  accessControl?: AccessControlState;
   packages?: HalleusProductPackage[];
   users?: AdminUserSummary[];
   access?: AccountProductAccess | null;
@@ -60,6 +75,7 @@ export function AccessSalesPanel({ accessToken }: { accessToken: string }) {
   const [policy, setPolicy] = useState<ReportAccessPolicy>(
     DEFAULT_REPORT_ACCESS_POLICY,
   );
+  const [accessControl, setAccessControl] = useState<AccessControlState | null>(null);
   const [packages, setPackages] = useState<HalleusProductPackage[]>([]);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
@@ -103,6 +119,7 @@ export function AccessSalesPanel({ accessToken }: { accessToken: string }) {
         throw new Error(payload.error ?? "دسترسی و فروش دریافت نشد.");
       }
       if (payload.policy) setPolicy(payload.policy);
+      if (payload.accessControl) setAccessControl(payload.accessControl);
       if (payload.packages) setPackages(payload.packages);
       setUsers(payload.users ?? []);
       setAccountAccess(payload.access ?? null);
@@ -161,6 +178,45 @@ export function AccessSalesPanel({ accessToken }: { accessToken: string }) {
 
       {error ? <p className={styles.inlineError}>{error}</p> : null}
       {message ? <p className={styles.inlineSuccess}>{message}</p> : null}
+
+      <section className={styles.accessPreview} data-access-mode-admin="batch1-r1">
+        <strong>حالت مؤثر دسترسی گزارش‌ها</strong>
+        <label>
+          حالت اجرا
+          <select
+            value={policy.monetizationMode}
+            onChange={(event) =>
+              setPolicy({
+                ...policy,
+                monetizationMode: event.target.value as ReportAccessPolicy["monetizationMode"],
+              })
+            }
+          >
+            <option value="FREE_ALL">FREE_ALL — همهٔ گزارش‌ها بدون مصرف اعتبار</option>
+            <option value="CONFIGURED">CONFIGURED — قوانین اعتبار فعلی</option>
+          </select>
+        </label>
+        <p>
+          پیش‌نمایش قبل از ذخیره: {policy.monetizationMode === "FREE_ALL"
+            ? "گزارش کامل و تحلیل رابطه بدون خرید و بدون مصرف اعتبار اجرا می‌شوند؛ موجودی و تاریخچه دست‌نخورده می‌مانند."
+            : "قوانین فعلی بسته‌ها، اعتبار گزارش کامل و اعتبار تحلیل رابطه دوباره اعمال می‌شوند."}
+        </p>
+        <p>
+          نسخه تنظیمات: {(accessControl?.version ?? policy.version).toLocaleString("fa-IR")}
+          {accessControl?.updatedAt ? " · آخرین تغییر: " + formatDate(accessControl.updatedAt) : ""}
+          {" · تغییر دهنده: " + (accessControl?.updatedBy ?? "سیستم")}
+        </p>
+        {accessControl?.storage === "fail_safe" ? (
+          <p className={styles.inlineError}>منبع تنظیمات در دسترس نیست؛ حالت ایمن CONFIGURED نمایش داده می‌شود.</p>
+        ) : null}
+        <div>
+          {(accessControl?.reportTypes ?? []).map((reportType) => (
+            <p key={reportType.id}>
+              <strong>{reportType.label}</strong> — {reportType.configuredBehavior}
+            </p>
+          ))}
+        </div>
+      </section>
 
       <details className={styles.adminDisclosure} open>
         <summary>چه چیزهایی در گزارش رایگان دیده می‌شوند؟</summary>
@@ -344,7 +400,7 @@ export function AccessSalesPanel({ accessToken }: { accessToken: string }) {
           disabled={loading}
           onClick={() => void mutate({ action: "save_policy", policy })}
         >
-          ذخیره سیاست گزارش
+          ذخیره حالت و سیاست گزارش
         </button>
       </details>
 

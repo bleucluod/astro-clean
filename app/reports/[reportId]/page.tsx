@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ReportDetail } from "@/components/ReportDetail";
+import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
 type ReportDetailSource = "local" | "beta-db" | "account" | "public";
 
@@ -54,8 +55,11 @@ export default async function ReportDetailPage({
     ? resolvedSearchParams.source[0]
     : resolvedSearchParams.source;
   const reportSource = resolveReportSource(rawSource);
+  // HALLEUS_SERVER_SEEDED_REPORT_ACCESS_BATCH1_R1
+  const initialAccessPolicy = await getReportAccessPolicy();
   return (
     <ReportDetail
+      initialAccessPolicy={initialAccessPolicy}
       reportId={reportId}
       reportSource={reportSource}
       initialReport={null}

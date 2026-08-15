@@ -32,7 +32,33 @@ function SecondaryLink({ href, children }: { href: string; children: ReactNode }
   return <Link className={styles.secondaryButton} href={href}>{children}</Link>;
 }
 
-export function PricingCommerceSurface({ packages }: { packages: ReactNode }) {
+export function PricingCommerceSurface({ packages, freeAll = false }: { packages: ReactNode; freeAll?: boolean }) {
+  // HALLEUS_FREE_ALL_PRICING_SURFACE_BATCH1_R1
+  if (freeAll) {
+    return (
+      <main className={styles.page} data-commerce-surface="pricing" data-effective-access-mode="FREE_ALL">
+        <section className={styles.hero}>
+          <div className={styles.heroInner}>
+            <Eyebrow>دسترسی کامل فعال است</Eyebrow>
+            <h1>گزارش کامل و تحلیل رابطه فعلاً بدون خرید یا مصرف اعتبار در دسترس‌اند</h1>
+            <p>ساخت چارت، خواندن گزارش کامل و ساخت تحلیل رابطه در حالت فعلی هزینه یا اعتبار کم نمی‌کند. موجودی اعتبارها و سابقه خریدهای قبلی محفوظ می‌مانند.</p>
+            <div className={styles.actions}>
+              <PrimaryLink href="/chart">ساخت گزارش کامل</PrimaryLink>
+              <SecondaryLink href="/compare">ساخت تحلیل رابطه</SecondaryLink>
+            </div>
+          </div>
+        </section>
+        <section className={styles.section}>
+          <div className={styles.sectionIntro}>
+            <Eyebrow>بدون تغییر در حریم خصوصی</Eyebrow>
+            <h2>رایگان‌شدن دسترسی، گزارش را عمومی نمی‌کند</h2>
+            <p>حالت FREE_ALL فقط مانع خرید و مصرف اعتبار را برمی‌دارد. وضعیت خصوصی یا عمومی گزارش، رضایت انتشار و اشتراک‌گذاری همان قواعد قبلی را دارند.</p>
+          </div>
+          <ReadingLinks />
+        </section>
+      </main>
+    );
+  }
   return (
     <main className={styles.page} data-commerce-surface="pricing" data-halleus-predeploy-commerce="batch3-r2">
       <section className={styles.hero}>
@@ -109,7 +135,40 @@ export function PricingCommerceSurface({ packages }: { packages: ReactNode }) {
   );
 }
 
-export function ProductCommerceSurface({ accessAndPackages, proof }: { accessAndPackages: ReactNode; proof: ReactNode }) {
+export function ProductCommerceSurface({ accessAndPackages, proof, freeAll = false }: { accessAndPackages: ReactNode; proof: ReactNode; freeAll?: boolean }) {
+  // HALLEUS_FREE_ALL_PRODUCT_SURFACE_BATCH1_R1
+  if (freeAll) {
+    return (
+      <main className={styles.page} data-commerce-surface="product" data-effective-access-mode="FREE_ALL">
+        <section className={styles.hero}>
+          <div className={styles.heroInner}>
+            <Eyebrow>گزارش کامل، بدون قفل اعتباری</Eyebrow>
+            <h1>تفسیر کامل چارت تولد فارسی هالیوس</h1>
+            <p>همه فصل‌های گزارش در حالت فعلی بدون خرید و بدون مصرف اعتبار باز هستند؛ محاسبه و محتوای گزارش همان خروجی واقعی هالیوس است.</p>
+            <div className={styles.actions}>
+              <PrimaryLink href="/chart">ساخت چارت تولد</PrimaryLink>
+              <SecondaryLink href="/compare">تحلیل رابطه</SecondaryLink>
+            </div>
+          </div>
+        </section>
+        <section className={styles.proofSection} aria-labelledby="product-proof-title">
+          <div className={styles.sectionIntro}>
+            <Eyebrow>نمونه محصول</Eyebrow>
+            <h2 id="product-proof-title">شکل واقعی تجربه گزارش را ببین</h2>
+          </div>
+          <div className={styles.proof}>{proof}</div>
+        </section>
+        <section className={styles.section}>
+          <div className={styles.sectionIntro}>
+            <Eyebrow>مرز دسترسی و انتشار</Eyebrow>
+            <h2>دسترسی رایگان، تنظیمات حریم خصوصی را تغییر نمی‌دهد</h2>
+            <p>بازشدن کامل گزارش مستقل از عمومی‌کردن، رضایت انتشار و اشتراک‌گذاری است.</p>
+          </div>
+          <ReadingLinks />
+        </section>
+      </main>
+    );
+  }
   return (
     <main className={styles.page} data-commerce-surface="product" data-halleus-predeploy-commerce="batch3-r2">
       <section className={styles.hero}>
@@ -181,11 +240,31 @@ export function OrderCommerceSurface({
   selectedPackageCode,
   catalog,
   requestForm,
+  freeAll = false,
 }: {
   selectedPackageCode: string;
   catalog: ReactNode;
   requestForm: ReactNode;
+  freeAll?: boolean;
 }) {
+  // HALLEUS_FREE_ALL_ORDER_SURFACE_BATCH1_R1
+  if (freeAll) {
+    return (
+      <main className={styles.page} data-commerce-surface="order" data-effective-access-mode="FREE_ALL">
+        <section className={styles.hero}>
+          <div className={styles.heroInner}>
+            <Eyebrow>خرید لازم نیست</Eyebrow>
+            <h1>گزارش‌ها در حالت فعلی بدون خرید در دسترس‌اند</h1>
+            <p>در FREE_ALL درخواست خرید تازه ثبت نمی‌شود و اعتبارهای قبلی هم مصرف نمی‌شوند. برای ادامه مستقیم به گزارش یا تحلیل رابطه برو.</p>
+            <div className={styles.actions}>
+              <PrimaryLink href="/chart">ساخت گزارش</PrimaryLink>
+              <SecondaryLink href="/compare">ساخت تحلیل رابطه</SecondaryLink>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
   return (
     <main className={styles.page} data-commerce-surface="order" data-halleus-predeploy-commerce="batch3-r2">
       <section className={styles.hero}>

@@ -1,3 +1,33 @@
+// HALLEUS_FREE_ALL_ACCESS_MODE_BATCH1_R1
+export const REPORT_MONETIZATION_MODES = ["FREE_ALL", "CONFIGURED"] as const;
+
+export type ReportMonetizationMode =
+  (typeof REPORT_MONETIZATION_MODES)[number];
+
+export const DISCOVERED_MONETIZED_REPORT_TYPES = [
+  {
+    id: "birth_full_report",
+    label: "گزارش کامل چارت تولد",
+    configuredBehavior:
+      "در حالت CONFIGURED، بازکردن دائمی هر گزارش کامل یک اعتبار full_report_credit مصرف می‌کند.",
+  },
+  {
+    id: "relationship_comparison",
+    label: "تحلیل رابطه",
+    configuredBehavior:
+      "در حالت CONFIGURED، ساخت هر تحلیل رابطه تازه یک اعتبار relationship_credit مصرف می‌کند؛ بازکردن نتیجه ذخیره‌شده مصرف دوباره ندارد.",
+  },
+] as const;
+
+export function isReportMonetizationMode(
+  value: unknown,
+): value is ReportMonetizationMode {
+  return (
+    typeof value === "string" &&
+    REPORT_MONETIZATION_MODES.includes(value as ReportMonetizationMode)
+  );
+}
+
 export const REPORT_ACCESS_SECTION_STATES = [
   "hidden",
   "teaser",
@@ -33,6 +63,7 @@ export type ReportAccessPlanetId =
 
 export type ReportAccessPolicy = {
   version: number;
+  monetizationMode: ReportMonetizationMode;
   topStoriesFreeCount: number;
   importantHousesFreeCount: number;
   importantAspectsFreeCount: number;
@@ -53,6 +84,7 @@ export type ReportAccessPolicy = {
 
 export const DEFAULT_REPORT_ACCESS_POLICY: ReportAccessPolicy = {
   version: 1,
+  monetizationMode: "CONFIGURED",
   topStoriesFreeCount: 1,
   importantHousesFreeCount: 1,
   importantAspectsFreeCount: 1,
@@ -145,6 +177,8 @@ export function normalizeReportAccessPolicy(
 
   return {
     version: Math.max(1, Math.trunc(version)),
+    monetizationMode:
+      record.monetizationMode === "FREE_ALL" ? "FREE_ALL" : "CONFIGURED",
     topStoriesFreeCount: int(
       record.topStoriesFreeCount,
       DEFAULT_REPORT_ACCESS_POLICY.topStoriesFreeCount,

@@ -17,7 +17,7 @@ import {
   adjustAccountCredit,
   getAccountProductAccess,
   getProductPackages,
-  getReportAccessPolicy,
+  getReportAccessControlState,
   grantPackageCredits,
   listCreditHistory,
   saveProductPackage,
@@ -36,11 +36,12 @@ export async function GET(request: Request) {
     const search = (url.searchParams.get("search") ?? "").slice(0, 160);
     const userId = (url.searchParams.get("userId") ?? "").slice(0, 160);
 
-    const [policy, packages, users] = await Promise.all([
-      getReportAccessPolicy(),
+    const [accessControl, packages, users] = await Promise.all([
+      getReportAccessControlState(),
       getProductPackages(),
       search ? listAdminUsers(search, 20, 1) : Promise.resolve([]),
     ]);
+    const policy = accessControl.policy;
     const access = userId
       ? await getAccountProductAccess(userId)
       : null;
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
     return noStoreJsonResponse({
       ok: true,
       policy,
+      accessControl,
       packages,
       users,
       access,
@@ -76,20 +78,31 @@ export async function PUT(request: Request) {
     const action = readRequiredString(body.action, "action", 80);
 
     if (action === "save_policy") {
+      // HALLEUS_ACCESS_MODE_AUDIT_BATCH1_R1
+      const before = await getReportAccessControlState();
       const policy = await saveReportAccessPolicy({
         config: body.policy,
         actorUserId: actor.userId,
       });
+      const after = await getReportAccessControlState();
       await recordAdminAuditEvent({
         actor,
         action: "admin.monetization.access_policy_updated",
         targetType: "report_access_policy",
         targetId: String(policy.version),
-        afterSummary: { version: policy.version },
-        reason: "Free/Full report access policy updated.",
+        beforeSummary: {
+          version: before.version,
+          monetizationMode: before.effectiveMode,
+        },
+        afterSummary: {
+          version: after.version,
+          monetizationMode: after.effectiveMode,
+          updatedAt: after.updatedAt,
+        },
+        reason: "Report access mode and Free/Full presentation policy updated.",
         success: true,
       });
-      return noStoreJsonResponse({ ok: true, policy });
+      return noStoreJsonResponse({ ok: true, policy, accessControl: after });
     }
 
     if (action === "save_package") {

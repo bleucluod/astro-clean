@@ -3,8 +3,11 @@ import { PremiumRequestForm } from "@/components/PremiumRequestForm";
 import { isHalleusProductCode, type HalleusProductCode } from "@/lib/monetization/product-catalog";
 import { ProductOfferGrid } from "@/components/monetization/ProductAccessCards";
 import { OrderCommerceSurface } from "@/components/commerce/CommerceSurfaces";
+import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
 type OrderPageProps = { searchParams?: Promise<{ reportId?: string | string[]; product?: string | string[]; package?: string | string[] }> };
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "خرید اعتبار گزارش کامل و تحلیل رابطه | هالیوس",
@@ -24,11 +27,15 @@ function normalizeCommerceValue(value: string | string[] | undefined) {
 }
 
 export default async function OrderPage({ searchParams }: OrderPageProps) {
+  // HALLEUS_FREE_ALL_ORDER_PAGE_BATCH1_R1
+  const policy = await getReportAccessPolicy();
+  const freeAll = policy.monetizationMode === "FREE_ALL";
   const params = await searchParams;
   const commerceParams = params as Record<string, string | string[] | undefined> | undefined;
   const selectedPackageCode = normalizeCommerceValue(commerceParams?.package) || normalizeCommerceValue(commerceParams?.product);
   return (
     <OrderCommerceSurface
+      freeAll={freeAll}
       selectedPackageCode={selectedPackageCode}
       catalog={<ProductOfferGrid />}
       requestForm={<PremiumRequestForm

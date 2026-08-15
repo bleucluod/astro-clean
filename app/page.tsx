@@ -7,6 +7,7 @@ import { HomeHowItWorks } from "@/components/home/HomeHowItWorks";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
 import styles from "./home.module.css";
 
@@ -127,16 +128,41 @@ const faqItems = [
 ] as const;
 
 export default async function Home() {
-  const [catalogResult, skyResult] = await Promise.allSettled([
+  // HALLEUS_FREE_ALL_HOME_COPY_BATCH1_R1
+  const [catalogResult, skyResult, accessPolicyResult] = await Promise.allSettled([
     getPublicWikiCatalog(),
     deliverSkyPublicSnapshot({}),
+    getReportAccessPolicy(),
   ]);
+  const freeAllAccess =
+    accessPolicyResult.status === "fulfilled" &&
+    accessPolicyResult.value.monetizationMode === "FREE_ALL";
   const catalog =
     catalogResult.status === "fulfilled"
       ? catalogResult.value
       : { articles: [], categories: [] };
   const articles = sortPublicWikiArticlesNewestFirst(catalog.articles);
   const sky = skyResult.status === "fulfilled" ? skyResult.value : null;
+  const effectiveTrustItems = freeAllAccess
+    ? trustItems.map((item) =>
+        item.title === "انتشار روشن"
+          ? {
+              ...item,
+              text: "دسترسی کامل فعلاً رایگان است؛ رایگان‌شدن دسترسی، قواعد انتشار و حریم خصوصی را تغییر نمی‌دهد.",
+            }
+          : item,
+      )
+    : trustItems;
+  const effectiveFaqItems = freeAllAccess
+    ? faqItems.map((item) =>
+        item.question === "آیا ساخت چارت رایگان است؟"
+          ? {
+              ...item,
+              answer: "بله. در حالت فعلی، ساخت چارت، خواندن گزارش کامل و ساخت تحلیل رابطه بدون خرید و بدون مصرف اعتبار در دسترس‌اند.",
+            }
+          : item,
+      )
+    : faqItems;
 
   const usedWikiSlugs = new Set<string>();
   const learningSeeds = [
@@ -390,7 +416,7 @@ export default async function Home() {
         </header>
 
         <div className={styles.trustGrid}>
-          {trustItems.map((item) => (
+          {effectiveTrustItems.map((item) => (
             <article key={item.title}>
               <h3>{item.title}</h3>
               <p>{item.text}</p>
@@ -411,7 +437,7 @@ export default async function Home() {
           </header>
 
           <div className={styles.faqList}>
-            {faqItems.map((item, index) => (
+            {effectiveFaqItems.map((item, index) => (
               <details key={item.question} open={index === 0}>
                 <summary>
                   <span>{item.question}</span>

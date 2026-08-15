@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin/admin-http";
 import { createPremiumRequest } from "@/lib/admin/admin-service";
 import { normalizeHalleusPackageCode } from "@/lib/monetization/product-catalog";
+import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,19 @@ export async function POST(request: Request) {
     if (!body) return noStoreJsonResponse({ ok: false, error: "Request body must be an object." }, 400);
     const honeypot = readOptionalString(body.company, 200);
     if (honeypot) return noStoreJsonResponse({ ok: true, request: { status: "new" } });
+
+    // HALLEUS_FREE_ALL_PURCHASE_REQUEST_GUARD_BATCH1_R1
+    const accessPolicy = await getReportAccessPolicy();
+    if (accessPolicy.monetizationMode === "FREE_ALL") {
+      return noStoreJsonResponse(
+        {
+          ok: false,
+          error: "در حالت فعلی گزارش کامل و تحلیل رابطه بدون خرید در دسترس‌اند.",
+          code: "FREE_ALL_ACTIVE",
+        },
+        409,
+      );
+    }
 
     const authorizationHeader = request.headers.get("authorization");
     let user: VerifiedSupabaseAccountUser | null = null;
