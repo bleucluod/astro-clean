@@ -44,6 +44,7 @@ import type { WikiQueueReflowPolicy } from "@/lib/wiki/wiki-cms-types";
 import type { WikiImportMergePlan } from "@/lib/wiki/wiki-import-merge";
 import { WikiArticleBody, WikiInlineText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
 import wikiPublicStyles from "@/app/wiki/wiki.module.css";
+import { WikiImagePipelinePanel } from "./WikiImagePipelinePanel";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -56,6 +57,7 @@ type Props = {
 export type WikiWorkspaceSection =
   | "articles"
   | "queue"
+  | "links"
   | "new"
   | "import"
   | "settings"
@@ -2363,6 +2365,8 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 <label className={styles.wideField}>Markdown و بخش‌ها<textarea className={styles.markdownEditor} value={draft.bodyMarkdown} onChange={(event) => updateDraft("bodyMarkdown", event.target.value)} /></label>
               </section>
 
+              <WikiImagePipelinePanel compactStableId={draft.stableId} session={session} token={token} />
+
               <section className={styles.wikiEditorGroup}>
                 <h4>Publication & SEO</h4>
                 <label className={`${styles.toggleCard} ${styles.wideField}`}>
@@ -2776,27 +2780,15 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
       ) : null}
 
       {activeSection === "media" ? (
-      <section className={styles.wikiPanel}>
-        <h3>رسانه‌ها</h3>
-        {canMedia ? (
-          <form className={styles.wikiInlineForm} onSubmit={(event) => void uploadMedia(event)}>
-            <input accept="image/png,image/jpeg,image/webp" name="file" required type="file" />
-            <input name="alt" placeholder="متن جایگزین تصویر" required />
-            <button type="submit">آپلود امن</button>
-          </form>
-        ) : null}
-        <div className={styles.mediaGrid}>
-          {assets.filter((asset) => !asset.deletedAt).map((asset) => (
-            <article key={asset.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt={asset.alt} loading="lazy" src={asset.url} />
-              <strong>{asset.originalName}</strong>
-              <small>{asset.alt} · {asset.byteSize.toLocaleString("fa-IR")} بایت · {asset.orphan ? "بدون استفاده" : `${asset.referenceCount.toLocaleString("fa-IR")} ارجاع`}</small>
-              {canMedia && asset.orphan ? <button type="button" onClick={() => void deleteMedia(asset)}>حذف رسانهٔ بدون استفاده</button> : null}
-            </article>
-          ))}
-        </div>
-      </section>
+        <section className={styles.wikiPanel}>
+          <div className={styles.wikiPanelHeader}>
+            <div>
+              <h3>رسانه‌ها</h3>
+              <p>آپلود امن و خط تولید تصویر مقاله در یک فضای واحد؛ نبود تصویر مانع انتشار نیست.</p>
+            </div>
+          </div>
+          <WikiImagePipelinePanel session={session} token={token} />
+        </section>
       ) : null}
     </div>
   );

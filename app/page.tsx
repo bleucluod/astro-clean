@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPublicPageMetadata } from "@/lib/config/seo";
 import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 
 import { HomepageLiveSky } from "@/components/HomepageLiveSky";
@@ -13,13 +14,11 @@ import styles from "./home.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicPageMetadata({
   title: "هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه",
-  description:
-    "در هالیوس چارت تولد فارسی بساز، دو چارت را برای تحلیل خصوصی رابطه کنار هم بگذار، وضعیت واقعی آسمان امروز را ببین و آسترولوژی را مرحله‌به‌مرحله یاد بگیر.",
-  alternates: { canonical: "/" },
-  robots: { index: true, follow: true },
-};
+  description: "در هالیوس چارت تولد فارسی بساز، دو چارت را برای تحلیل خصوصی رابطه کنار هم بگذار، وضعیت واقعی آسمان امروز را ببین و آسترولوژی را مرحله‌به‌مرحله یاد بگیر.",
+  canonical: "/",
+});
 
 const productPaths = [
   {

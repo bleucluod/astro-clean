@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPublicPageMetadata } from "@/lib/config/seo";
 import { FinalEditorialPage } from "@/components/FinalEditorialPage";
 import { SkyPublicExperience } from "@/components/SkyPublicExperience";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
@@ -6,7 +7,14 @@ import { selectPublicWikiArticlesByPreferredSlugs } from "@/lib/wiki/wiki-public
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "آسترولوژی امروز | وضعیت ماه، سیارات و ترنزیت‌ها", description: "وضعیت واقعی آسمان امروز را ببین: جایگاه و حرکت سیاره‌ها، نشان و فاز ماه، درصد روشنایی، جنبه‌های مهم و خط زمانی رویدادها برای شهر انتخاب‌شده.", alternates: { canonical: "/sky" }, robots: { index: true, follow: true } };
+export const metadata: Metadata = {
+  ...buildPublicPageMetadata({
+  title: "آسترولوژی امروز | وضعیت ماه، سیارات و ترنزیت‌ها",
+  description: "وضعیت واقعی آسمان امروز را ببین: جایگاه و حرکت سیاره‌ها، نشان و فاز ماه، درصد روشنایی، جنبه‌های مهم و خط زمانی رویدادها برای شهر انتخاب‌شده.",
+  canonical: "/sky",
+  }),
+  alternates: { canonical: "/sky" },
+};
 
 export default async function SkyPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;

@@ -41,6 +41,18 @@ export type WikiArticleCallToAction = {
   href: string;
 };
 
+export type WikiArticleImage = {
+  url: string;
+  srcSet: string;
+  width: 1200;
+  height: 675;
+  mimeType: "image/webp";
+  alt: string;
+  caption: string | null;
+  focalX: number;
+  focalY: number;
+};
+
 export type WikiArticle = {
   stableId?: string;
   slug: string;
@@ -59,6 +71,7 @@ export type WikiArticle = {
   callToAction?: WikiArticleCallToAction;
   relatedSlugs: readonly string[];
   relatedArticleIds?: readonly string[];
+  image?: WikiArticleImage;
 };
 
 export const wikiCategories = [

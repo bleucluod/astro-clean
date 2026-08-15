@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -50,15 +51,12 @@ export async function generateMetadata({
   }
 
   return {
+    ...buildPublicPageMetadata({
     title: categoryView.content.seoTitle,
     description: categoryView.content.metaDescription,
-    alternates: {
-      canonical: `/wiki/category/${categoryView.category.id}`,
-    },
-    robots: {
-      index: true,
-      follow: true,
-    },
+    canonical: `/wiki/category/${categoryView.category.id}`,
+    }),
+    robots: { index: true, follow: true },
   };
 }
 

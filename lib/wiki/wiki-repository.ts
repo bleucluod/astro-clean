@@ -16,6 +16,7 @@ import type { DatedWikiArticle } from "@/lib/wiki/wiki-public-discovery";
 import type {
   WikiArticle,
   WikiArticleCallToAction,
+  WikiArticleImage,
   WikiArticleLink,
   WikiArticleSection,
   WikiArticleSource,
@@ -157,7 +158,7 @@ function normalizeCategory(row: Record<string, unknown>): WikiCategory {
   };
 }
 
-function normalizeArticle(row: Record<string, unknown>): StoredWikiArticle {
+function normalizeArticle(row: Record<string, unknown>, image?: WikiArticleImage): StoredWikiArticle {
   const callToAction = row.call_to_action;
 
   return {
@@ -188,7 +189,59 @@ function normalizeArticle(row: Record<string, unknown>): StoredWikiArticle {
     relatedSlugs: asArray<string>(row.related_slugs, "related_slugs"),
     relatedArticleIds: asArray<string>(row.related_article_ids, "related_article_ids"),
     updatedAt: normalizePublicWikiUpdatedAt(asString(row.updated_at)),
+    image,
   };
+}
+
+function wikiImagePublicUrl(storagePath: string) {
+  const base = getHalleusRuntimeEnv().supabaseUrl?.replace(/\/$/, "");
+  if (!base) return "";
+  return `${base}/storage/v1/object/public/wiki-media/${storagePath.replace(/^\/+/, "")}`;
+}
+
+async function readReadyWikiImages(sql: ReturnType<typeof postgres>) {
+  const relation = await sql`select to_regclass('halleus_private.wiki_article_images')::text as relation`;
+  if (!relation[0]?.relation) return new Map<string, WikiArticleImage>();
+  const rows = await sql`
+    select article.stable_id, image.alt_fa, image.caption, image.focal_x, image.focal_y,
+           variant.width, variant.height, variant.storage_path, variant.mime_type, variant.byte_size
+    from halleus_private.wiki_article_images as image
+    join public.wiki_articles as article on article.id = image.article_id
+    join public.wiki_assets as asset on asset.id = image.asset_id and asset.deleted_at is null
+    join halleus_private.wiki_asset_variants as variant on variant.asset_id = image.asset_id
+    where image.state = 'READY' and image.alt_state = 'reviewed'
+      and article.status = 'published' and article.is_indexable = true
+      and article.published_at is not null and article.published_at <= now()
+      and article.scheduled_for is null and article.deleted_at is null
+      and variant.mime_type = 'image/webp'
+    order by article.stable_id, variant.width asc
+  `;
+  const grouped = new Map<string, Array<Record<string, unknown>>>();
+  for (const raw of rows) {
+    const stableId = asString(raw.stable_id);
+    grouped.set(stableId, [...(grouped.get(stableId) ?? []), raw]);
+  }
+  const result = new Map<string, WikiArticleImage>();
+  for (const [stableId, variants] of grouped) {
+    const primary = variants.find((row) => Number(row.width) === 1200 && Number(row.height) === 675);
+    if (!primary) continue;
+    const srcSet = variants
+      .filter((row) => [480, 768, 1200].includes(Number(row.width)))
+      .map((row) => `${wikiImagePublicUrl(asString(row.storage_path))} ${Number(row.width)}w`)
+      .join(", ");
+    result.set(stableId, {
+      url: wikiImagePublicUrl(asString(primary.storage_path)),
+      srcSet,
+      width: 1200,
+      height: 675,
+      mimeType: "image/webp",
+      alt: asString(primary.alt_fa),
+      caption: primary.caption ? asString(primary.caption) : null,
+      focalX: Number(primary.focal_x ?? 0.5),
+      focalY: Number(primary.focal_y ?? 0.5),
+    });
+  }
+  return result;
 }
 
 async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<WikiStorageSnapshot> {
@@ -244,9 +297,10 @@ async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<W
     `,
   ]);
 
+  const readyImages = await readReadyWikiImages(sql);
   const categories = categoryRows.map((row) => normalizeCategory(row));
   const categoryIds = new Set(categories.map((category) => category.id));
-  const articles = articleRows.map((row) => normalizeArticle(row));
+  const articles = articleRows.map((row) => normalizeArticle(row, readyImages.get(asString(row.stable_id))));
 
   for (const article of articles) {
     if (!categoryIds.has(article.categoryId)) {

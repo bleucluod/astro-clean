@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { buildPublicPageMetadata } from "@/lib/config/seo";
 
 import { ChartForm } from "@/components/ChartForm";
 import {
@@ -15,14 +16,11 @@ import styles from "./chart-shell.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicPageMetadata({
   title: "چارت تولد رایگان فارسی با تفسیر | هالیوس",
-  description:
-    "تاریخ، ساعت و شهر تولدت را وارد کن تا چارت تولد رایگان فارسی و گزارش شخصی خورشید، ماه، طالع، خانه‌ها و جنبه‌ها را ببینی؛ با محدودیت روشن برای ساعت نامعلوم.",
-  alternates: {
-    canonical: "/chart",
-  },
-};
+  description: "تاریخ، ساعت و شهر تولدت را وارد کن تا چارت تولد رایگان فارسی و گزارش شخصی خورشید، ماه، طالع، خانه‌ها و جنبه‌ها را ببینی؛ با محدودیت روشن برای ساعت نامعلوم.",
+  canonical: "/chart",
+});
 
 type WikiArticle = Awaited<
   ReturnType<typeof getPublicWikiCatalog>

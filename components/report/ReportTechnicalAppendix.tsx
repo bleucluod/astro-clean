@@ -17,6 +17,7 @@ import type {
 import styles from "./human-first-report.module.css";
 
 type AstrologyTab =
+  | "engine"
   | "placements"
   | "houses"
   | "aspects"
@@ -27,6 +28,8 @@ type AstrologyTab =
   | "context";
 
 const ASTROLOGY_TABS: Array<{ id: AstrologyTab; label: string }> = [
+  // HALLEUS_FREE_ALL_ENGINE_OUTPUT_TAB_20260815
+  { id: "engine", label: "خروجی کامل موتور" },
   { id: "placements", label: "جایگاه‌ها" },
   { id: "houses", label: "خانه‌ها" },
   { id: "aspects", label: "رابطه‌های زاویه‌ای" },
@@ -62,12 +65,14 @@ const ANGLE_LABELS: Record<string, string> = {
 export function ReportTechnicalAppendix({
   report,
   contract,
+  exhaustive = false,
 }: {
   report: AstrologyReport;
   contract: LiveReportReadingContract;
+  exhaustive?: boolean;
 }) {
   const [activeTab, setActiveTab] =
-    useState<AstrologyTab>("placements");
+    useState<AstrologyTab>(exhaustive ? "engine" : "placements");
   const chartData = report.realEngine;
   const placements = chartData?.placements ?? [];
   const houses = chartData?.houses ?? [];
@@ -81,7 +86,11 @@ export function ReportTechnicalAppendix({
       data-human-first-technical-appendix="complete-astrology-details"
       aria-labelledby="report-astrology-details-title"
     >
-      <details className={styles.technicalDisclosure}>
+      <details
+        className={styles.technicalDisclosure}
+        data-free-all-engine-output={exhaustive ? "all" : "configured"}
+        open={exhaustive}
+      >
         <summary className={styles.technicalHeading}>
           <span className={styles.eyebrow}>جزئیات نجومی</span>
           <h2 id="report-astrology-details-title">
@@ -113,6 +122,9 @@ export function ReportTechnicalAppendix({
           </div>
 
           <div className={styles.technicalPanel} role="tabpanel">
+            {activeTab === "engine" ? (
+              <EngineOutputPanel report={report} />
+            ) : null}
             {activeTab === "placements" ? (
               <PlacementTable placements={placements} />
             ) : null}
@@ -152,6 +164,357 @@ export function ReportTechnicalAppendix({
   );
 }
 
+
+const ENGINE_PLANET_LABELS: Record<string, string> = {
+  sun: "خورشید",
+  moon: "ماه",
+  mercury: "عطارد",
+  venus: "زهره",
+  mars: "مریخ",
+  jupiter: "مشتری",
+  saturn: "زحل",
+  uranus: "اورانوس",
+  neptune: "نپتون",
+  pluto: "پلوتو",
+};
+
+function formatEngineList(values: readonly string[] | undefined) {
+  if (!values?.length) return "هیچ‌کدام";
+  return values.map((value) => ENGINE_PLANET_LABELS[value] ?? value).join("، ");
+}
+
+function formatEngineStatus(value: unknown) {
+  return typeof value === "string" && value.trim()
+    ? value
+    : "ثبت نشده";
+}
+
+function EngineOutputPanel({ report }: { report: AstrologyReport }) {
+  const chartData = report.realEngine;
+  if (!chartData) {
+    return (
+      <EmptyTechnicalState>
+        {"خروجی محاسباتی موتور در این گزارش ذخیره نشده است."}
+      </EmptyTechnicalState>
+    );
+  }
+
+  // HALLEUS_FREE_ALL_ENGINE_UNION_NARROWING_R2_20260815
+  const nodes =
+    chartData.lunarNodes && "northNode" in chartData.lunarNodes
+      ? chartData.lunarNodes
+      : null;
+  const lilith =
+    chartData.lilith && "modelId" in chartData.lilith
+      ? chartData.lilith
+      : null;
+  const signature = chartData.chartSignature;
+  const quality = chartData.calculationQuality;
+  const houseContext = chartData.houseContext;
+
+  return (
+    <div
+      className={styles.contextPanel}
+      data-technical-table="engine-output"
+      data-engine-output-completeness="free-all"
+    >
+      <dl className={styles.contextFacts}>
+        <div>
+          <dt>{"زمان UTC تولد"}</dt>
+          <dd>{chartData.utcIso}</dd>
+        </div>
+        <div>
+          <dt>{"زمان ساخت"}</dt>
+          <dd>{chartData.generatedAt}</dd>
+        </div>
+        <div>
+          <dt>{"شهر محاسبه"}</dt>
+          <dd>{chartData.cityLabel}</dd>
+        </div>
+        <div>
+          <dt>{"تعداد جایگاه‌ها"}</dt>
+          <dd>{formatPersianNumber(chartData.placements.length)}</dd>
+        </div>
+        <div>
+          <dt>{"تعداد خانه‌ها"}</dt>
+          <dd>{formatPersianNumber(chartData.houses?.length ?? 0)}</dd>
+        </div>
+        <div>
+          <dt>{"تعداد جنبه‌ها"}</dt>
+          <dd>{formatPersianNumber(chartData.aspects?.length ?? 0)}</dd>
+        </div>
+        <div>
+          <dt>{"وضعیت محاسبه"}</dt>
+          <dd>{formatEngineStatus(quality?.status)}</dd>
+        </div>
+      </dl>
+
+      <div className={styles.evidenceList}>
+        <h3>{"جایگاه‌های محاسبه‌شده"}</h3>
+        {chartData.placements.map((placement) => (
+          <div key={"engine-placement-" + placement.id}>
+            <strong>
+              {placement.label}{" · "}{formatZodiacLabel(placement.signId)}{" "}
+              {formatDegree(placement.degreeInSign)}
+            </strong>
+            <span>
+              {"longitude "}{formatDegree(placement.longitude)}
+              {typeof placement.house === "number"
+                ? " · خانه " + formatPersianNumber(placement.house)
+                : ""}
+              {placement.pointType ? " · " + placement.pointType : ""}
+              {" · "}{placement.method}
+              {placement.motion
+                ? " · " + placement.motion.status +
+                  " · " + formatPersianNumber(placement.motion.arcDegreesPerDay) +
+                  "°/day · window " +
+                  formatPersianNumber(placement.motion.sampleWindowHours) +
+                  "h · " + placement.motion.method
+                : ""}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {chartData.angles ? (
+        <div className={styles.evidenceList}>
+          <h3>{"محورهای محاسبه‌شده"}</h3>
+          {Object.values(chartData.angles).map((angle) => (
+            <div key={"engine-angle-" + angle.id}>
+              <strong>
+                {ANGLE_LABELS[angle.id] ?? angle.label}{" · "}
+                {formatZodiacLabel(angle.signId)}{" "}{formatDegree(angle.degreeInSign)}
+              </strong>
+              <span>
+                {"longitude "}{formatDegree(angle.longitude)}{" · "}
+                {angle.source}{" · "}{angle.reliability}{" · "}{angle.method}
+                {angle.limitation ? " · " + angle.limitation : ""}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {chartData.houses?.length ? (
+        <div className={styles.evidenceList}>
+          <h3>{"دوازده خانه و تخصیص‌ها"}</h3>
+          {chartData.houses.map((house) => (
+            <div key={"engine-house-" + house.number}>
+              <strong>
+                {"خانه "}{formatPersianNumber(house.number)}{" · "}
+                {formatZodiacLabel(house.signId)}{" "}{formatDegree(house.degreeInSign)}
+              </strong>
+              <span>
+                {"cusp "}{formatDegree(house.cuspLongitude)}{" · "}
+                {house.system}{" · "}{house.method}{" · "}{house.reliability}
+                {house.planetIds.length ? " · planets=" + house.planetIds.join(",") : ""}
+                {house.angleIds.length ? " · angles=" + house.angleIds.join(",") : ""}
+                {house.limitation ? " · " + house.limitation : ""}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {chartData.aspects?.length ? (
+        <div className={styles.evidenceList}>
+          <h3>{"همه جنبه‌های محاسبه‌شده"}</h3>
+          {chartData.aspects.map((aspect) => (
+            <div key={"engine-aspect-" + aspect.id}>
+              <strong>
+                {aspect.firstPlanetLabel}{" — "}{aspect.secondPlanetLabel}
+                {" · "}{aspect.aspectLabel}
+              </strong>
+              <span>
+                {"exact "}{formatDegree(aspect.angle)}
+                {" · separation "}{formatDegree(aspect.separation)}
+                {" · orb "}{formatDegree(aspect.orb)}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {houseContext ? (
+        <div className={styles.evidenceList}>
+          <h3>{"محاسبه خانه‌ها و سرخانه‌ها"}</h3>
+          <div>
+            <strong>{`${houseContext.requestedSystem} -> ${houseContext.appliedSystem}`}</strong>
+            <span>{`${houseContext.availability} · ${houseContext.confidence}`}</span>
+          </div>
+          <div>
+            <strong>{"Ascendant"}</strong>
+            <span>
+              {houseContext.ascendantLongitude === null
+                ? "ثبت نشده"
+                : formatDegree(houseContext.ascendantLongitude)}
+              {" · "}
+              {houseContext.ascendantMethod}
+            </span>
+          </div>
+          <div>
+            <strong>{"1st house cusp"}</strong>
+            <span>{formatDegree(houseContext.firstHouseCuspLongitude)}</span>
+          </div>
+          {houseContext.cuspLongitudes?.map((longitude, index) => (
+            <div key={`engine-cusp-${index + 1}`}>
+              <strong>
+                {"سرخانه "}
+                {formatPersianNumber(index + 1)}
+              </strong>
+              <span>{formatDegree(longitude)}</span>
+            </div>
+          ))}
+          {houseContext.calculationMethod ? (
+            <div>
+              <strong>{"method"}</strong>
+              <span>{houseContext.calculationMethod}</span>
+            </div>
+          ) : null}
+          {houseContext.limitation ? (
+            <div>
+              <strong>{"محدودیت"}</strong>
+              <span>{houseContext.limitation}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {chartData.retrogrades ? (
+        <div className={styles.evidenceList}>
+          <h3>{"حرکت برگشتی"}</h3>
+          <div>
+            <strong>{formatEngineList(chartData.retrogrades.planetIds)}</strong>
+            <span>{chartData.retrogrades.method ?? chartData.retrogrades.status}</span>
+          </div>
+          {chartData.retrogrades.limitation ? (
+            <div><span>{chartData.retrogrades.limitation}</span></div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {nodes ? (
+        <div className={styles.evidenceList}>
+          <h3>{"گره‌های ماه"}</h3>
+          {[nodes.northNode, nodes.southNode].map((node) => (
+            <div key={node.id}>
+              <strong>
+                {node.label}: {formatZodiacLabel(node.signId)}{" "}
+                {formatDegree(node.degreeInSign)}
+              </strong>
+              <span>
+                {formatDegree(node.longitude)}
+                {typeof node.house === "number"
+                  ? " · خانه " + formatPersianNumber(node.house)
+                  : ""}
+                {" · "}
+                {node.method}
+                {" · "}
+                {node.reliability}
+              </span>
+            </div>
+          ))}
+          {nodes.limitation ? <div><span>{nodes.limitation}</span></div> : null}
+        </div>
+      ) : null}
+
+      {lilith ? (
+        <div className={styles.evidenceList}>
+          <h3>{"لیلیت سیاه"}</h3>
+          <div>
+            <strong>
+              {formatZodiacLabel(lilith.signId)}{" "}
+              {formatDegree(lilith.degreeInSign)}
+            </strong>
+            <span>
+              {formatDegree(lilith.longitude)}
+              {typeof lilith.house === "number"
+                ? " · خانه " + formatPersianNumber(lilith.house)
+                : ""}
+            </span>
+          </div>
+          <div>
+            <strong>{lilith.modelId}</strong>
+            <span>{`${lilith.method} · ${lilith.source} · ${lilith.reliability}`}</span>
+          </div>
+          <div>
+            <strong>{lilith.validationStatus}</strong>
+            <span>
+              {`${lilith.validationReference} · tolerance ${formatDegree(
+                lilith.validationToleranceDegrees,
+              )}`}
+            </span>
+          </div>
+          {lilith.limitation ? <div><span>{lilith.limitation}</span></div> : null}
+        </div>
+      ) : null}
+
+      {signature ? (
+        <div className={styles.evidenceList}>
+          <h3>{"امضای کل چارت"}</h3>
+          <div>
+            <strong>{signature.method}</strong>
+            <span>
+              {`element=${signature.dominantElement ?? "none"} · modality=${
+                signature.dominantModality ?? "none"
+              } · expression=${signature.dominantExpression ?? "none"}`}
+            </span>
+          </div>
+          <div>
+            <strong>{"element counts"}</strong>
+            <span>{JSON.stringify(signature.elementCounts)}</span>
+          </div>
+          <div>
+            <strong>{"modality counts"}</strong>
+            <span>{JSON.stringify(signature.modalityCounts)}</span>
+          </div>
+          <div>
+            <strong>{"expression counts"}</strong>
+            <span>{JSON.stringify(signature.expressionCounts)}</span>
+          </div>
+          <div>
+            <strong>{"zero / low"}</strong>
+            <span>
+              {JSON.stringify({
+                zeroElements: signature.zeroElements,
+                zeroModalities: signature.zeroModalities,
+                zeroExpressions: Object.entries(signature.expressionCounts)
+                  .filter(([, count]) => count === 0)
+                  .map(([key]) => key),
+                lowElements: signature.lowElements,
+                lowModalities: signature.lowModalities,
+                lowExpressions: signature.lowExpressions,
+              })}
+            </span>
+          </div>
+          {signature.evidence.map((item) => (
+            <div key={`signature-${item.placementId}`}>
+              <strong>{ENGINE_PLANET_LABELS[item.placementId] ?? item.placementId}</strong>
+              <span>{`${item.signId} · ${item.element} · ${item.modality} · ${item.expression}`}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {quality ? (
+        <div className={styles.evidenceList}>
+          <h3>{"کیفیت و مرز محاسبه"}</h3>
+          <div>
+            <strong>{quality.status}</strong>
+            <span>
+              {`houses=${quality.houseSystemStatus} · angles=${quality.anglesStatus} · retrograde=${quality.retrogradeStatus} · nodes=${quality.nodesStatus} · lilith=${quality.lilithStatus}`}
+            </span>
+          </div>
+          {[...quality.limitations, ...quality.warnings].map((item, index) => (
+            <div key={`quality-${index}`}><span>{item}</span></div>
+          ))}
+        </div>
+      ) : null}
+
+    </div>
+  );
+}
+
 function PlacementTable({
   placements,
 }: {
@@ -181,8 +544,17 @@ function PlacementTable({
           </span>
           <span>
             {typeof placement.house === "number"
-              ? `خانه ${formatPersianNumber(placement.house)}`
+              ? "خانه " + formatPersianNumber(placement.house)
               : "وابسته به ساعت تولد نیست یا ثبت نشده"}
+            {placement.motion ? (
+              <small>
+                {" · "}
+                {placement.motion.status}
+                {" · "}
+                {formatPersianNumber(placement.motion.arcDegreesPerDay)}
+                {"°/day"}
+              </small>
+            ) : null}
           </span>
         </div>
       ))}

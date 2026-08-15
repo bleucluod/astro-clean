@@ -225,6 +225,8 @@
     "check:admin-direct-auth": "node scripts/check-admin-direct-auth.mjs",
     "check:admini-ui-routes": "node scripts/check-admini-ui-routes.mjs",
     "check:wiki-admin-completion": "node scripts/check-wiki-admin-completion.mjs",
+    "check:wiki-internal-link-admin": "node scripts/check-wiki-internal-link-admin.mjs",
+    "check:wiki-image-pipeline": "node scripts/check-wiki-image-pipeline.mjs",
     "check:reports-intelligence": "node scripts/check-reports-intelligence.mjs",
     "check:monetization-products": "node scripts/check-monetization-products.mjs",
     "check:predeploy-admin-ia": "node scripts/check-predeploy-admin-ia.mjs",
@@ -239,6 +241,7 @@
     "astronomy-engine": "2.1.19",
     "next": "16.2.9",
     "postgres": "^3.4.9",
+    "sharp": "0.35.3",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -251,5 +254,19 @@
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": [
+        "win32",
+        "linux"
+      ],
+      "cpu": [
+        "x64"
+      ],
+      "libc": [
+        "glibc"
+      ]
+    }
   }
 }

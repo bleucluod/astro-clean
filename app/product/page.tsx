@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPublicPageMetadata } from "@/lib/config/seo";
 
 import { ProductOfferGrid } from "@/components/monetization/ProductAccessCards";
 import { HomepageProductProof } from "@/components/HomepageProductProof";
@@ -7,12 +8,11 @@ import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-se
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicPageMetadata({
   title: "تفسیر چارت تولد فارسی | گزارش تولد شخصی هالیوس",
   description: "ساختار گزارش چارت تولد هالیوس، مسیر خواندن، تفاوت Free و Full براساس سیاست دسترسی واقعی، و نمونهٔ تجربهٔ تفسیر فارسی را ببین.",
-  alternates: { canonical: "/product" },
-  robots: { index: true, follow: true },
-};
+  canonical: "/product",
+});
 
 export default async function ProductPage() {
   // HALLEUS_FREE_ALL_PRODUCT_PAGE_BATCH1_R1

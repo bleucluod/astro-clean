@@ -23,6 +23,14 @@ const WikiAdminPanel = dynamic(
   },
 );
 
+const WikiLinkAdminPanel = dynamic(
+  () => import("./WikiLinkAdminPanel").then((module) => module.WikiLinkAdminPanel),
+  {
+    ssr: false,
+    loading: () => <div className={styles.panelSkeleton}>Wiki links workspace is loading...</div>,
+  },
+);
+
 const TelegramAdminPanel = dynamic(
   () => import("./TelegramAdminPanel").then((module) => module.TelegramAdminPanel),
   {
@@ -126,6 +134,7 @@ const wikiSections: {
 }[] = [
   { id: "articles", label: "مقاله‌ها", capability: "wiki.read" },
   { id: "queue", label: "انتشار", capability: "wiki.read" },
+  { id: "links", label: "لینک‌ها", capability: "wiki.read" },
   { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write", showInNav: false },
   { id: "import", label: "ورود بسته", capability: "wiki.import.write" },
   { id: "media", label: "رسانه‌ها", capability: "wiki.read" },
@@ -985,12 +994,16 @@ export function AdminConsole({
         ) : null}
 
         {activeTab === "wiki" ? (
-          <WikiAdminPanel
-            activeSection={wikiSection}
-            onSectionChange={(section) => navigate("wiki", { section })}
-            session={session}
-            token={token}
-          />
+          wikiSection === "links" ? (
+            <WikiLinkAdminPanel session={session} token={token} />
+          ) : (
+            <WikiAdminPanel
+              activeSection={wikiSection}
+              onSectionChange={(section) => navigate("wiki", { section })}
+              session={session}
+              token={token}
+            />
+          )
         ) : null}
 
         {["users", "premium", "audit"].includes(activeTab) ? (

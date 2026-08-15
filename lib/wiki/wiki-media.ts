@@ -33,8 +33,33 @@ function extensionForMime(mimeType: WikiMediaUpload["mimeType"]) {
   return mimeType === "image/png" ? "png" : mimeType === "image/jpeg" ? "jpg" : "webp";
 }
 
+export function getWikiMediaPublicUrl(storagePath: string) {
+  const env = getHalleusRuntimeEnv();
+  if (!env.supabaseUrl) throw new Error("Supabase public media URL is not configured.");
+  const base = env.supabaseUrl.replace(/\/$/, "");
+  const cleanPath = storagePath.replace(/^\/+/, "");
+  return cleanPath
+    ? `${base}/storage/v1/object/public/wiki-media/${cleanPath}`
+    : `${base}/storage/v1/object/public/wiki-media/`;
+}
+
 function publicUrl(storagePath: string) {
-  return getWikiMediaClient().storage.from("wiki-media").getPublicUrl(storagePath).data.publicUrl;
+  return getWikiMediaPublicUrl(storagePath);
+}
+
+export async function putWikiMediaObject(storagePath: string, bytes: Uint8Array, mimeType: "image/webp") {
+  const uploaded = await getWikiMediaClient().storage.from("wiki-media").upload(storagePath, bytes, {
+    contentType: mimeType,
+    cacheControl: "31536000",
+    upsert: true,
+  });
+  if (uploaded.error) throw new Error(uploaded.error.message);
+}
+
+export async function removeWikiMediaObjects(storagePaths: string[]) {
+  if (!storagePaths.length) return;
+  const removed = await getWikiMediaClient().storage.from("wiki-media").remove(storagePaths);
+  if (removed.error) throw new Error(removed.error.message);
 }
 
 export async function storeWikiMedia(actor: VerifiedAdminActor, upload: WikiMediaUpload) {
@@ -139,6 +164,17 @@ export async function deleteWikiMedia(actor: VerifiedAdminActor, assetId: string
   }
   const row = asRecord(rows[0]);
   const path = asString(row.storage_path);
+  const dedicatedTable = await sql`select to_regclass('halleus_private.wiki_article_images')::text as relation`;
+  if (dedicatedTable[0]?.relation) {
+    const dedicated = await sql`
+      select count(*)::int as dedicated_reference_count
+      from halleus_private.wiki_article_images
+      where asset_id = ${assetId}::uuid
+    `;
+    if (asNumber(dedicated[0]?.dedicated_reference_count) > 0) {
+      throw new AdminAccessError(409, "A dedicated Wiki cover must be detached before deleting its asset.");
+    }
+  }
   const url = publicUrl(path);
   const references = await sql`
     select (

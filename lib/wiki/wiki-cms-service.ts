@@ -1,3 +1,4 @@
+import { enqueueWikiLinkScanTriggerBestEffort } from "@/lib/wiki/wiki-link-admin-trigger";
 import { AdminAccessError, type VerifiedAdminActor } from "@/lib/admin/admin-auth";
 import type { Sql, TransactionSql } from "postgres";
 import {
@@ -1222,13 +1223,19 @@ export async function publishAdminWikiDraft(input: {
   }
   const snapshot = readWikiArticleSnapshot(draftRows[0].snapshot);
   if (!input.publishAt) {
-    return { mode: "published" as const, ...(await applyPublishedSnapshot({
+    const published = await applyPublishedSnapshot({
       actor: input.actor,
       articleId: input.articleId,
       snapshot,
       reason: input.reason,
       database: input.database,
-    })) };
+    });
+    // HALLEUS_WIKI_LINK_POST_PUBLISH_SCAN
+    void enqueueWikiLinkScanTriggerBestEffort({
+      triggerKind: "post_publish",
+      articleStableId: snapshot.stableId,
+    });
+    return { mode: "published" as const, ...published };
   }
   await assertSnapshotReferences(snapshot, input.articleId, false, sql);
   const runAt = new Date(input.publishAt);

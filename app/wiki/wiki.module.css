@@ -703,3 +703,25 @@
     flex-direction: column;
   }
 }
+
+/* Halleus Wiki dedicated cover 2026-08-15 */
+.articleCover {
+  margin: 18px 0 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: #08090c;
+}
+.articleCover img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.articleCover figcaption {
+  padding: 10px 14px 12px;
+  color: inherit;
+  font-size: 0.78rem;
+  opacity: 0.78;
+}

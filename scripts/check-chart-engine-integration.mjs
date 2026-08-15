@@ -25,12 +25,10 @@ const requiredContent = [
   ["lib/storage/report-write-service.ts", "attachChartEngineMetadata"],
   ["components/ChartEngineReportBadge.tsx", "Chart Engine Path"],
   ["components/ReportDetail.tsx", "ReportProductReader"],
-  ["components/ReportDetail.tsx", "<ReportProductReader report={report} />"],
+  ["components/ReportDetail.tsx", "initialAccessPolicy={initialAccessPolicy}"],
+  ["components/ReportDetail.tsx", "storedAccessTier={storedAccessTier}"],
   ["components/report/ReportProductReader.tsx", "ReportTechnicalAppendix"],
-  [
-    "components/report/ReportProductReader.tsx",
-    "<ReportTechnicalAppendix contract={contract} report={report} />",
-  ],
+
   [
     "components/report/ReportTechnicalAppendix.tsx",
     'data-report-technical-appendix="placements-houses-aspects-axes-method"',
@@ -58,6 +56,34 @@ for (const [file, marker] of requiredContent) {
 
   if (!read(file).includes(marker)) {
     console.error(`Missing marker in ${file}: ${marker}`);
+    failed = true;
+  }
+}
+
+// HALLEUS_CHART_ENGINE_INTEGRATION_PROP_SHAPE_R4_20260815
+if (!failed) {
+  const reportDetailSource = read("components/ReportDetail.tsx");
+  const reportReaderSource = read("components/report/ReportProductReader.tsx");
+
+  if (
+    !/<ReportProductReader\b[\s\S]*?initialAccessPolicy=\{initialAccessPolicy\}[\s\S]*?report=\{report\}[\s\S]*?storedAccessTier=\{storedAccessTier\}[\s\S]*?\/>/.test(
+      reportDetailSource,
+    )
+  ) {
+    console.error(
+      "ReportDetail must delegate through the current prop-bearing ReportProductReader call.",
+    );
+    failed = true;
+  }
+
+  if (
+    !/<ReportTechnicalAppendix\b[\s\S]*?contract=\{contract\}[\s\S]*?exhaustive=\{freeAllAccess\}[\s\S]*?report=\{report\}[\s\S]*?\/>/.test(
+      reportReaderSource,
+    )
+  ) {
+    console.error(
+      "ReportProductReader must own the technical appendix and wire the current exhaustive access mode structurally.",
+    );
     failed = true;
   }
 }

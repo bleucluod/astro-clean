@@ -43,8 +43,10 @@ const LEGACY_ADAPTIVE_COMPATIBILITY_RENDER = false;
 export function ReportProductReader({ report, storedAccessTier = null, initialAccessPolicy }: { report: AstrologyReport; storedAccessTier?: string | null; initialAccessPolicy?: ReportAccessPolicy }) {
   const productAccess = useProductAccess(report.id);
   // HALLEUS_FREE_ALL_BIRTH_REPORT_BATCH1_R1
+  // HALLEUS_FREE_ALL_SERVER_SEED_STICKY_20260815
   const accessPolicy =
-    productAccess.status === "loading" && initialAccessPolicy
+    initialAccessPolicy &&
+    (productAccess.status === "loading" || productAccess.status === "unavailable")
       ? initialAccessPolicy
       : productAccess.access.policy;
   const freeAllAccess = accessPolicy.monetizationMode === "FREE_ALL";
@@ -319,7 +321,12 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
           data-report-flow-section="sky"
           id="report-sky"
         >
-          <HumanTransitReading data={transitData} />
+          {/* HALLEUS_FREE_ALL_TRANSIT_FALLBACK_GUARD_COMPAT_20260815 */}
+          {freeAllAccess ? (
+            <HumanTransitReading data={transitData} exhaustive={freeAllAccess} />
+          ) : (
+            <HumanTransitReading data={transitData} />
+          )}
         </section>
 
         <section
@@ -339,8 +346,13 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
             <div className={styles.wheelShell} data-screenshot-ready>
               <ReportBirthChartWheel report={report} />
             </div>
+            {/* HALLEUS_FREE_ALL_TECHNICAL_APPENDIX_EXHAUSTIVE_R4_20260815 */}
             {technicalAppendixVisible ? (
-              <ReportTechnicalAppendix contract={contract} report={report} />
+              <ReportTechnicalAppendix
+                contract={contract}
+                exhaustive={freeAllAccess}
+                report={report}
+              />
             ) : null}
           </div>
         </section>
@@ -349,7 +361,13 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
   );
 }
 
-function HumanTransitReading({ data }: { data: PersonalTransitReportDataBridge | null }) {
+function HumanTransitReading({
+  data,
+  exhaustive = false,
+}: {
+  data: PersonalTransitReportDataBridge | null;
+  exhaustive?: boolean;
+}) {
   if (!data) {
     return (
       <section className={styles.transitView}>
@@ -363,7 +381,8 @@ function HumanTransitReading({ data }: { data: PersonalTransitReportDataBridge |
   }
   const dateLabel = formatTransitLocalDate(data.transitLocalDate);
   const today = isTransitDateToday(data.transitLocalDate, data.location.currentResidenceTimezone);
-  const aspects = getVisibleTransitAspects(data).slice(0, 3);
+  // HALLEUS_FREE_ALL_ALL_TRANSIT_ASPECTS_20260815
+  const aspects = getVisibleTransitAspects(data, exhaustive);
   const missingResidence = data.status === "missing-current-residence";
 
   return (
@@ -402,6 +421,20 @@ function HumanTransitReading({ data }: { data: PersonalTransitReportDataBridge |
                   <strong>یک حرکت کوچک</strong>
                   <p>{aspect.interpretation.action}</p>
                 </div>
+                {exhaustive ? (
+                  <p>
+                    {aspect.transitBody}{" -> "}{aspect.natalBody}
+                    {" · "}{aspect.aspect}
+                    {typeof aspect.exactAngle === "number"
+                      ? " · exact " + aspect.exactAngle.toLocaleString("fa-IR") + "°"
+                      : ""}
+                    {typeof aspect.separation === "number"
+                      ? " · separation " + aspect.separation.toLocaleString("fa-IR") + "°"
+                      : ""}
+                    {" · orb "}{aspect.orb.toLocaleString("fa-IR")}
+                    {"° / "}{aspect.orbLimit.toLocaleString("fa-IR")}{"°"}
+                  </p>
+                ) : null}
               </div>
             </article>
           ))}
@@ -411,7 +444,54 @@ function HumanTransitReading({ data }: { data: PersonalTransitReportDataBridge |
           در این تصویر، تماس نزدیک و پررنگی انتخاب نشد. این یعنی لازم نیست برای این لحظه معنای مصنوعی بسازیم.
         </div>
       )}
+      {exhaustive ? <PersonalTransitEngineInventory data={data} /> : null}
     </section>
+  );
+}
+
+function PersonalTransitEngineInventory({
+  data,
+}: {
+  data: PersonalTransitReportDataBridge;
+}) {
+  const natalBodies = data.bodies?.natal ?? [];
+  const transitBodies = data.bodies?.transit ?? [];
+  if (natalBodies.length === 0 && transitBodies.length === 0) return null;
+
+  return (
+    <details
+      className={styles.readingMetadata}
+      data-personal-transit-engine-inventory="all"
+      open
+    >
+      <summary>{"تمام جایگاه‌های محاسبه‌شده ترنزیت"}</summary>
+      {[
+        { id: "natal", label: "بدنه‌های تولد", bodies: natalBodies },
+        { id: "transit", label: "بدنه‌های ترنزیت", bodies: transitBodies },
+      ].map((group) => (
+        <div key={group.id}>
+          <strong>{group.label}</strong>
+          <dl>
+            {group.bodies.map((body) => (
+              <div key={group.id + "-" + body.id}>
+                <dt>{body.label}</dt>
+                <dd>
+                  {body.signId}{" · "}
+                  {body.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 2 })}
+                  {"° · longitude "}
+                  {body.longitude.toLocaleString("fa-IR", { maximumFractionDigits: 2 })}
+                  {"° · "}{body.motion.status}{" · "}
+                  {body.motion.arcDegreesPerDay.toLocaleString("fa-IR", { maximumFractionDigits: 4 })}
+                  {"°/day · window "}
+                  {body.motion.sampleWindowHours.toLocaleString("fa-IR")}{"h"}
+                  {" · "}{body.motion.method}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ))}
+    </details>
   );
 }
 
@@ -428,12 +508,33 @@ function StoredMomentDetails({ data }: { data: PersonalTransitReportDataBridge }
   );
 }
 
-function getVisibleTransitAspects(data: PersonalTransitReportDataBridge): PersonalTransitReportDataBridgeSelectedAspectSummary[] {
-  if (Array.isArray(data.visibleAspectHighlights)) return data.visibleAspectHighlights.slice(0, 3);
-  return selectPersonalTransitHighlights(data.aspectHighlights, { audienceMode: data.audienceMode ?? "adult", maxVisible: 3 }).map((aspect) => ({
+function getVisibleTransitAspects(
+  data: PersonalTransitReportDataBridge,
+  exhaustive = false,
+): PersonalTransitReportDataBridgeSelectedAspectSummary[] {
+  if (exhaustive) {
+    return data.aspectHighlights.map((aspect) => ({
+      ...aspect,
+      relevanceScore: 0,
+      interpretation: buildPersonalTransitBehavioralInterpretation(
+        aspect,
+        data.audienceMode ?? "adult",
+      ),
+    }));
+  }
+  if (Array.isArray(data.visibleAspectHighlights)) {
+    return data.visibleAspectHighlights.slice(0, 3);
+  }
+  return selectPersonalTransitHighlights(data.aspectHighlights, {
+    audienceMode: data.audienceMode ?? "adult",
+    maxVisible: 3,
+  }).map((aspect) => ({
     ...aspect,
     relevanceScore: 0,
-    interpretation: buildPersonalTransitBehavioralInterpretation(aspect, data.audienceMode ?? "adult"),
+    interpretation: buildPersonalTransitBehavioralInterpretation(
+      aspect,
+      data.audienceMode ?? "adult",
+    ),
   }));
 }
 

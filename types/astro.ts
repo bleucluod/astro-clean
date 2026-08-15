@@ -48,11 +48,26 @@ export type MockChart = {
 export type RealEngineReportPlacement = {
   id: string;
   label: string;
+  pointType?:
+    | "luminary"
+    | "personal-planet"
+    | "social-planet"
+    | "outer-planet"
+    | "angle"
+    | "calculated-point"
+    | "unknown";
   longitude: number;
   signId: ZodiacKey;
   degreeInSign: number;
   house?: number | null;
   method: string;
+  // HALLEUS_FREE_ALL_ENGINE_MOTION_PERSISTENCE_20260815
+  motion?: {
+    status: "direct" | "retrograde" | "stationary";
+    arcDegreesPerDay: number;
+    sampleWindowHours: number;
+    method: "astronomy-engine-geocentric-ecliptic-daily-motion";
+  };
 };
 
 export type RealEngineChartElement = "fire" | "earth" | "air" | "water";

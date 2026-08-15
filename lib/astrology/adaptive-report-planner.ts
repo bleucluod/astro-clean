@@ -933,9 +933,9 @@ function buildHouseStories(
         evidence: [buildHouseEvidence(house, members)],
       };
     })
-    .filter((story) => !topClusterHouses.has(story.houseNumber) && story.score >= 32)
-    .sort((a, b) => b.score - a.score || a.houseNumber - b.houseNumber)
-    .slice(0, 3);
+    // HALLEUS_FREE_ALL_ALL_OCCUPIED_HOUSES_20260815
+    .filter((story) => !topClusterHouses.has(story.houseNumber))
+    .sort((a, b) => b.score - a.score || a.houseNumber - b.houseNumber);
 }
 
 function absorbSemanticDuplicates(candidates: AdaptiveNarrativeAnchor[]) {
@@ -1273,8 +1273,8 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
   const importantHouses = buildHouseStories(placements, chartRulerId, topStories);
   const consumedTopAspectIds = new Set(topStories.flatMap((story) => story.sourceAspectIds));
   const importantAspects = aspectAnchors
+    // HALLEUS_FREE_ALL_ALL_NARRATIVE_ASPECTS_20260815
     .filter((anchor) => !consumedTopAspectIds.has(anchor.sourceAspectIds[0]))
-    .slice(0, 4)
     .map((anchor) => ({
       aspect: aspects.find((aspect) => aspect.id === anchor.sourceAspectIds[0])!,
       title: anchor.title,
@@ -1297,7 +1297,7 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
       score: (involved.has(placement.id) ? 40 : 0) + (PERSONAL_PLANET_IDS.has(placement.id) ? 25 : 0) + (retrogrades.has(placement.id) ? 15 : 0),
     }))
     .sort((a, b) => b.score - a.score || MAJOR_PLANET_IDS.indexOf(a.placement.id as (typeof MAJOR_PLANET_IDS)[number]) - MAJOR_PLANET_IDS.indexOf(b.placement.id as (typeof MAJOR_PLANET_IDS)[number]))
-    .slice(0, 5)
+    // HALLEUS_FREE_ALL_ALL_PLANET_STORIES_20260815
     .map(({ placement }, index) => buildPlacementStory(placement, audienceMode, retrogrades, index < 2 ? "secondary" : "compact"));
 
   const weeklyActions = buildWeeklyActions(placements, audienceMode, retrogrades, topStories, balanceStory, nodeStory);

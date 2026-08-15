@@ -865,11 +865,14 @@ function toRealEnginePlacement(
   return {
     id: placement.id,
     label: placement.label,
+    pointType: placement.pointType,
     longitude: placement.longitude,
     signId: toZodiacKey(placement.signId),
     degreeInSign: placement.degreeInSign,
     house,
     method: placement.method,
+    // HALLEUS_FREE_ALL_ENGINE_MOTION_PERSISTENCE_20260815
+    motion: placement.motion,
   };
 }
 

@@ -34,8 +34,11 @@ export type PersonalTransitReportDataBridgeAspectSummary = {
   aspect: NatalToTransitProbeAspect["aspect"];
   transitBody: NatalToTransitProbeAspect["transitBody"];
   natalBody: NatalToTransitProbeAspect["natalBody"];
+  exactAngle?: number;
+  separation?: number;
   orb: number;
   orbLimit: number;
+  involvesMoon?: boolean;
   summaryKey: string;
 };
 
@@ -73,6 +76,11 @@ export type PersonalTransitReportDataBridge = {
   currentResidenceUtcIso: string | null;
   location: PersonalTransitReportDataBridgeLocationSummary;
   aspectHighlights: PersonalTransitReportDataBridgeAspectSummary[];
+  // HALLEUS_FREE_ALL_TRANSIT_BODY_INVENTORY_20260815
+  bodies?: {
+    natal: NatalToTransitCalculationProbeResult["bodies"]["natal"];
+    transit: NatalToTransitCalculationProbeResult["bodies"]["transit"];
+  };
   audienceMode?: BehavioralAudienceMode;
   relevanceVersion?: typeof PERSONAL_TRANSIT_RELEVANCE_VERSION;
   visibleAspectHighlights?: PersonalTransitReportDataBridgeSelectedAspectSummary[];
@@ -136,7 +144,12 @@ function buildReadyReportData(
       currentResidenceRequired: true,
       noSilentTehranDefaultForPersonalTransit: true,
     },
-    aspectHighlights: probeResult.aspects.slice(0, 8).map(toAspectSummary),
+    // HALLEUS_FREE_ALL_TRANSIT_FULL_INVENTORY_20260815
+    aspectHighlights: probeResult.aspects.map(toAspectSummary),
+    bodies: {
+      natal: probeResult.bodies.natal.map((body) => ({ ...body })),
+      transit: probeResult.bodies.transit.map((body) => ({ ...body })),
+    },
     audienceMode,
     relevanceVersion: PERSONAL_TRANSIT_RELEVANCE_VERSION,
     visibleAspectHighlights: selectedAspects.map((aspect) => ({
@@ -195,6 +208,7 @@ function buildMissingResidenceReportData(
       noSilentTehranDefaultForPersonalTransit: true,
     },
     aspectHighlights: [],
+    bodies: { natal: [], transit: [] },
     audienceMode: context.audienceMode ?? "adult",
     relevanceVersion: PERSONAL_TRANSIT_RELEVANCE_VERSION,
     visibleAspectHighlights: [],
@@ -219,8 +233,11 @@ function toAspectSummary(
     aspect: aspect.aspect,
     transitBody: aspect.transitBody,
     natalBody: aspect.natalBody,
+    exactAngle: roundToTwo(aspect.exactAngle),
+    separation: roundToTwo(aspect.separation),
     orb: roundToTwo(aspect.orb),
     orbLimit: aspect.orbLimit,
+    involvesMoon: aspect.involvesMoon,
     summaryKey: `personal-transit:${aspect.transitBody}:${aspect.aspect}:natal-${aspect.natalBody}`,
   };
 }

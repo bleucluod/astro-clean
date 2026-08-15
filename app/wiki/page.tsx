@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 import {
@@ -9,18 +10,11 @@ import styles from "./wiki.module.css";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicPageMetadata({
   title: "ویکی آسترولوژی هالیوس | راهنمای فارسی چارت تولد",
-  description:
-    "راهنمای فارسی آسترولوژی، چارت تولد، زودیاک تروپیکال و سایدرئال، جیوتیش، خانه‌ها، جنبه‌ها و دقت ساعت و شهر تولد.",
-  alternates: {
-    canonical: "/wiki",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+  description: "راهنمای فارسی آسترولوژی، چارت تولد، زودیاک تروپیکال و سایدرئال، جیوتیش، خانه‌ها، جنبه‌ها و دقت ساعت و شهر تولد.",
+  canonical: "/wiki",
+});
 
 const readingSteps = [
   {

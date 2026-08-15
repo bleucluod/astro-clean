@@ -1,3 +1,5 @@
+import { ensurePeriodicWikiLinkScanTriggerBestEffort, enqueueWikiLinkScanTriggerBestEffort } from "@/lib/wiki/wiki-link-admin-trigger";
+import { processPendingWikiLinkScanTriggers } from "@/lib/wiki/wiki-link-admin-service";
 import { timingSafeEqual } from "node:crypto";
 
 import { NextResponse } from "next/server";
@@ -31,8 +33,26 @@ export async function POST(request: Request) {
     if (result.publishedSlugs.length) {
       revalidateWikiPublicPaths(result.publishedSlugs);
     }
+    // HALLEUS_WIKI_LINK_MAINTENANCE_BEST_EFFORT
+    let linkMaintenance: Record<string, unknown>;
+    try {
+      if (result.publishedSlugs.length) {
+        await enqueueWikiLinkScanTriggerBestEffort({
+          triggerKind: "post_publish",
+          articleStableId: null,
+        });
+      }
+      const periodic = await ensurePeriodicWikiLinkScanTriggerBestEffort();
+      const scans = await processPendingWikiLinkScanTriggers(2);
+      linkMaintenance = { ok: true, periodic, scans };
+    } catch (error) {
+      linkMaintenance = {
+        ok: false,
+        error: error instanceof Error ? error.message.slice(0, 300) : "unknown",
+      };
+    }
     return NextResponse.json(
-      { ok: true, result },
+      { ok: true, result, linkMaintenance },
       { headers: { "cache-control": "private, no-store" } },
     );
   } catch {

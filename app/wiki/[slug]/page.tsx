@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
 import { WikiArticleBody, WikiInlineText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -55,17 +56,15 @@ export async function generateMetadata({
 
   const { article } = resolution;
 
-  return {
+  return buildPublicPageMetadata({
     title: article.seoTitle ?? `${article.title} | ویکی هالیوس`,
     description: article.metaDescription ?? article.summary,
-    alternates: {
-      canonical: `/wiki/${article.slug}`,
-    },
-    robots: {
-      index: true,
-      follow: true,
-    },
-  };
+    canonical: `/wiki/${article.slug}`,
+    type: "article",
+    image: article.image
+      ? { url: article.image.url, width: article.image.width, height: article.image.height, alt: article.image.alt }
+      : undefined,
+  });
 }
 
 function serializeJsonLd(value: unknown): string {
@@ -111,6 +110,9 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
       name: "Halleus",
       url: WIKI_BASE_URL,
     },
+    ...(article.image
+      ? { image: { "@type": "ImageObject", url: article.image.url, width: article.image.width, height: article.image.height } }
+      : {}),
   };
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -185,6 +187,24 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
             <h1>{article.title}</h1>
             <p><WikiInlineText text={article.intro} targets={internalLinkTargets} /></p>
           </header>
+
+          {article.image ? (
+            <figure className={styles.articleCover}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt={article.image.alt}
+                height={article.image.height}
+                loading="eager"
+                fetchPriority="high"
+                sizes="(max-width: 720px) 100vw, (max-width: 1100px) 72vw, 760px"
+                src={article.image.url}
+                srcSet={article.image.srcSet}
+                style={{ objectPosition: `${article.image.focalX * 100}% ${article.image.focalY * 100}%` }}
+                width={article.image.width}
+              />
+              {article.image.caption ? <figcaption>{article.image.caption}</figcaption> : null}
+            </figure>
+          ) : null}
 
           <WikiKeyPoints keyPoints={article.keyPoints} targets={internalLinkTargets} />
 
