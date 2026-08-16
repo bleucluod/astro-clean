@@ -77,10 +77,10 @@ function normalizeRules(raw: unknown): WikiLinkScanRules {
 
   const rules: WikiLinkScanRules = {
     outgoingMin: integer("outgoingMin", 0, 20),
-    outgoingMax: integer("outgoingMax", 1, 20),
+    outgoingMax: integer("outgoingMax", 0, 20),
     incomingMin: integer("incomingMin", 0, 50),
     incomingTarget: integer("incomingTarget", 0, 50),
-    incomingMax: integer("incomingMax", 1, 100),
+    incomingMax: integer("incomingMax", 0, 100),
     breadcrumbRequired: input.breadcrumbRequired !== false,
     categoryLinkMax: integer("categoryLinkMax", 0, 10),
     coreMax: integer("coreMax", 1, 5),
@@ -93,12 +93,12 @@ function normalizeRules(raw: unknown): WikiLinkScanRules {
     prohibitDuplicate: input.prohibitDuplicate !== false,
     prohibitUnpublishedTargets: input.prohibitUnpublishedTargets !== false,
   };
-  if (rules.outgoingMin > rules.outgoingMax) {
+  if (rules.outgoingMax > 0 && rules.outgoingMin > rules.outgoingMax) {
     throw new AdminAccessError(400, "Outgoing Wiki link minimum exceeds maximum.");
   }
   if (
     rules.incomingMin > rules.incomingTarget ||
-    rules.incomingTarget > rules.incomingMax
+    (rules.incomingMax > 0 && rules.incomingTarget > rules.incomingMax)
   ) {
     throw new AdminAccessError(400, "Incoming Wiki link thresholds are out of order.");
   }

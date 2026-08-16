@@ -72,6 +72,10 @@ for (const marker of [
   requireText("link service", service, marker);
 }
 forbidText("link service", service, "publishAdminWikiDraft");
+requireText("link service no-hard-max outgoing parser", service, 'outgoingMax: integer("outgoingMax", 0, 20),');
+requireText("link service no-hard-max incoming parser", service, 'incomingMax: integer("incomingMax", 0, 100),');
+requireText("link service no-hard-max outgoing ordering", service, "rules.outgoingMax > 0 && rules.outgoingMin > rules.outgoingMax");
+requireText("link service no-hard-max incoming ordering", service, "rules.incomingMax > 0 && rules.incomingTarget > rules.incomingMax");
 
 for (const marker of [
   'requireAdminCapability(request, "wiki.read")',
