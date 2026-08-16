@@ -40,20 +40,43 @@ for (const table of [
 for (const marker of [
   "wiki_link_rule_versions",
   "wiki_link_scan_triggers",
-  "batch2-final-292-v1",
+  "HALLEUS_BATCH4_R20B9_CURRENT_ANCHOR_BASELINE",
+  "batch4-current-292-v2",
   "baseline_edge_count <> 292",
   "baseline_article_count <> 92",
   "baseline_core_count <> 92",
   "'excludedStableIds', '[]'::jsonb",
   "halleus_link_authority_edges",
   "$halleus_authority_edges$",
-  "authority_present_count <> 292",
+  "halleus_link_authority_occurrences",
+  "halleus_link_current_authority_edges",
+  "current_authority_edge_count <> 292",
+  "current_authority_source_count <> 92",
+  "current_anchor_drift_count <> 31",
+  "duplicate_pair_count <> 2",
+  "mehr-woman-traits",
+  "mehr-man-traits",
+  "ordibehesht-woman-traits",
+  "ordibehesht-man-traits",
+  "pg_temp.halleus_r20b9_replace_json_text",
+  "Batch 4 R20B9 duplicate contextual pair normalization before link-admin baseline",
+  "baseline_graph_sha256",
   "suggested','edited','approved','rejected','conflict','applied','verified','rolled_back",
   "enable row level security",
   "revoke all on halleus_private.wiki_link_",
 ]) {
   requireText("migration", migration, marker);
 }
+forbidText(
+  "migration stale exact-frozen-anchor production gate",
+  migration,
+  "authority_present_count <> 292",
+);
+forbidText(
+  "migration stale baseline identity",
+  migration,
+  "batch2-final-292-v1",
+);
 
 for (const marker of [
   "scanWikiInternalLinks",

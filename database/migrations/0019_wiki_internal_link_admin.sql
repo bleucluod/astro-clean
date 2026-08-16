@@ -1,7 +1,9 @@
 -- Halleus Batch 4 Slice A: permanent Wiki internal-link administration.
 -- HALLEUS_BATCH4_R20_MIN3_NO_HARD_MAX_RULES
--- HALLEUS_BATCH4_R6_AUTHORITY_BASELINE: freeze the exact Batch 2 92/292 authority graph; runtime scans may contain later body links.
--- Additive only. Apply after 0017 and 0018. No production application from runners.
+-- HALLEUS_BATCH4_R20B9_CURRENT_ANCHOR_BASELINE
+-- HALLEUS_BATCH4_R6_AUTHORITY_BASELINE: preserve the exact Batch 2 92/292 source-target authority while accepting reviewed current anchor evolution.
+-- R20B9 normalizes exactly two observed duplicate source-target markers by demoting only the non-frozen duplicate marker to its identical visible anchor text, with revision/version history.
+-- Apply after 0017 and 0018. No production application from mutation runners.
 
 begin;
 
@@ -184,6 +186,47 @@ where not exists (
   select 1 from halleus_private.wiki_link_rule_versions where is_active = true
 );
 
+create or replace function pg_temp.halleus_r20b9_replace_json_text(
+  input_value jsonb,
+  needle text,
+  replacement text
+)
+returns jsonb
+language plpgsql
+immutable
+as $halleus_r20b9_json$
+declare
+  result jsonb;
+begin
+  if input_value is null then
+    return null;
+  end if;
+
+  case jsonb_typeof(input_value)
+    when 'string' then
+      return to_jsonb(replace(input_value #>> '{}', needle, replacement));
+    when 'array' then
+      select coalesce(
+        jsonb_agg(pg_temp.halleus_r20b9_replace_json_text(value, needle, replacement)),
+        '[]'::jsonb
+      )
+      into result
+      from jsonb_array_elements(input_value);
+      return result;
+    when 'object' then
+      select coalesce(
+        jsonb_object_agg(key, pg_temp.halleus_r20b9_replace_json_text(value, needle, replacement)),
+        '{}'::jsonb
+      )
+      into result
+      from jsonb_each(input_value);
+      return result;
+    else
+      return input_value;
+  end case;
+end;
+$halleus_r20b9_json$;
+
 do $halleus_link_baseline$
 declare
   rules_version_value integer;
@@ -194,7 +237,12 @@ declare
   total_live_count integer;
   authority_edge_count integer;
   authority_source_count integer;
-  authority_present_count integer;
+  current_authority_edge_count integer;
+  current_authority_source_count integer;
+  current_anchor_drift_count integer;
+  duplicate_pair_count integer;
+  cleanup_plan_count integer;
+  baseline_graph_sha256 text;
 begin
   if to_regclass('public.wiki_articles') is null then
     raise exception 'Wiki article storage is required before 0019.';
@@ -337,17 +385,380 @@ $halleus_authority_edges$::jsonb
     raise exception 'Batch 4 authority payload contains an invalid source/target pair.';
   end if;
 
-  select count(*)::integer into authority_present_count
-  from halleus_link_authority_edges as authority
-  join public.wiki_articles as article on article.stable_id = authority.source_stable_id
-  where strpos(
-    coalesce(article.body_markdown, ''),
-    '[[article:' || authority.target_stable_id || '|' || authority.anchor || ']]'
-  ) > 0;
+  lock table public.wiki_articles in share row exclusive mode;
+  lock table public.wiki_article_revisions in share row exclusive mode;
 
-  if authority_present_count <> 292 then
-    raise exception 'Batch 4 current bodies must still contain all 292 exact authority markers; found %.', authority_present_count;
+  create temporary table halleus_link_authority_occurrences (
+    source_stable_id text not null,
+    target_stable_id text not null,
+    current_anchor text not null,
+    full_marker text not null
+  ) on commit drop;
+
+  insert into halleus_link_authority_occurrences (
+    source_stable_id,
+    target_stable_id,
+    current_anchor,
+    full_marker
+  )
+  select
+    authority.source_stable_id,
+    authority.target_stable_id,
+    coalesce((edge.parts)[2], (edge.parts)[1]),
+    (edge.parts)[3]
+  from halleus_link_authority_edges authority
+  join public.wiki_articles article
+    on article.stable_id = authority.source_stable_id
+  cross join lateral regexp_matches(
+    coalesce(article.body_markdown, ''),
+    '(\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\])',
+    'g'
+  ) raw(parts)
+  cross join lateral (
+    select array[
+      (raw.parts)[2],
+      (raw.parts)[3],
+      (raw.parts)[1]
+    ]::text[] as parts
+  ) edge
+  where (edge.parts)[1] = authority.target_stable_id;
+
+  select count(*)::integer into current_authority_edge_count
+  from (
+    select source_stable_id, target_stable_id
+    from halleus_link_authority_occurrences
+    group by source_stable_id, target_stable_id
+  ) pairs;
+
+  select count(*)::integer into current_authority_source_count
+  from (
+    select distinct source_stable_id
+    from halleus_link_authority_occurrences
+  ) sources;
+
+  if current_authority_edge_count <> 292 then
+    raise exception 'Batch 4 current bodies must contain all 292 authority source-target pairs; found %.',
+      current_authority_edge_count;
   end if;
+
+  if current_authority_source_count <> 92 then
+    raise exception 'Batch 4 current bodies must retain all 92 authority sources; found %.',
+      current_authority_source_count;
+  end if;
+
+  select count(*)::integer into duplicate_pair_count
+  from (
+    select source_stable_id, target_stable_id, count(*)::integer as marker_count
+    from halleus_link_authority_occurrences
+    group by source_stable_id, target_stable_id
+    having count(*) > 1
+  ) duplicates;
+
+  if duplicate_pair_count <> 2 then
+    raise exception 'R20B9 requires exactly the two reviewed duplicate authority pairs; found %.',
+      duplicate_pair_count;
+  end if;
+
+  if exists (
+    select 1
+    from (
+      select source_stable_id, target_stable_id, count(*)::integer as marker_count
+      from halleus_link_authority_occurrences
+      group by source_stable_id, target_stable_id
+    ) pair_counts
+    where (
+      pair_counts.source_stable_id = 'mehr-woman-traits'
+      and pair_counts.target_stable_id = 'mehr-man-traits'
+      and pair_counts.marker_count <> 2
+    ) or (
+      pair_counts.source_stable_id = 'ordibehesht-woman-traits'
+      and pair_counts.target_stable_id = 'ordibehesht-man-traits'
+      and pair_counts.marker_count <> 2
+    ) or (
+      pair_counts.marker_count <> 1
+      and not (
+        (pair_counts.source_stable_id = 'mehr-woman-traits'
+         and pair_counts.target_stable_id = 'mehr-man-traits')
+        or
+        (pair_counts.source_stable_id = 'ordibehesht-woman-traits'
+         and pair_counts.target_stable_id = 'ordibehesht-man-traits')
+      )
+    )
+  ) then
+    raise exception 'R20B9 duplicate pair distribution differs from reviewed production evidence.';
+  end if;
+
+  create temporary table halleus_link_duplicate_cleanup_plan (
+    source_stable_id text primary key,
+    target_stable_id text not null,
+    frozen_anchor text not null,
+    demoted_anchor text not null,
+    demoted_marker text not null
+  ) on commit drop;
+
+  insert into halleus_link_duplicate_cleanup_plan (
+    source_stable_id,
+    target_stable_id,
+    frozen_anchor,
+    demoted_anchor,
+    demoted_marker
+  )
+  select
+    authority.source_stable_id,
+    authority.target_stable_id,
+    authority.anchor,
+    occurrence.current_anchor,
+    occurrence.full_marker
+  from halleus_link_authority_edges authority
+  join halleus_link_authority_occurrences occurrence
+    on occurrence.source_stable_id = authority.source_stable_id
+   and occurrence.target_stable_id = authority.target_stable_id
+  where (
+    (authority.source_stable_id = 'mehr-woman-traits'
+     and authority.target_stable_id = 'mehr-man-traits')
+    or
+    (authority.source_stable_id = 'ordibehesht-woman-traits'
+     and authority.target_stable_id = 'ordibehesht-man-traits')
+  )
+    and occurrence.current_anchor <> authority.anchor;
+
+  select count(*)::integer into cleanup_plan_count
+  from halleus_link_duplicate_cleanup_plan;
+
+  if cleanup_plan_count <> 2 then
+    raise exception 'R20B9 requires exactly one non-frozen duplicate marker for each reviewed pair; found %.',
+      cleanup_plan_count;
+  end if;
+
+  if exists (
+    select 1
+    from halleus_link_duplicate_cleanup_plan plan
+    join halleus_link_authority_edges authority
+      on authority.source_stable_id = plan.source_stable_id
+     and authority.target_stable_id = plan.target_stable_id
+    where (
+      select count(*)
+      from halleus_link_authority_occurrences occurrence
+      where occurrence.source_stable_id = plan.source_stable_id
+        and occurrence.target_stable_id = plan.target_stable_id
+        and occurrence.current_anchor = authority.anchor
+    ) <> 1
+  ) then
+    raise exception 'R20B9 reviewed duplicate pairs must each retain exactly one frozen authority marker.';
+  end if;
+
+  create temporary table halleus_link_duplicate_cleanup_articles
+  on commit drop
+  as
+  select
+    article.*,
+    plan.demoted_anchor,
+    plan.demoted_marker,
+    replace(
+      coalesce(article.body_markdown, ''),
+      plan.demoted_marker,
+      plan.demoted_anchor
+    ) as corrected_body_markdown,
+    case
+      when article.intro is null then null
+      else replace(article.intro, plan.demoted_marker, plan.demoted_anchor)
+    end as corrected_intro,
+    pg_temp.halleus_r20b9_replace_json_text(
+      article.key_points,
+      plan.demoted_marker,
+      plan.demoted_anchor
+    ) as corrected_key_points,
+    pg_temp.halleus_r20b9_replace_json_text(
+      article.sections,
+      plan.demoted_marker,
+      plan.demoted_anchor
+    ) as corrected_sections,
+    article.content_version + 1 as corrected_version
+  from public.wiki_articles article
+  join halleus_link_duplicate_cleanup_plan plan
+    on plan.source_stable_id = article.stable_id;
+
+  if (select count(*) from halleus_link_duplicate_cleanup_articles) <> 2 then
+    raise exception 'R20B9 duplicate cleanup article selection must contain exactly two rows.';
+  end if;
+
+  if exists (
+    select 1
+    from halleus_link_duplicate_cleanup_articles target
+    where strpos(coalesce(target.body_markdown, ''), target.demoted_marker) = 0
+       or strpos(target.corrected_body_markdown, target.demoted_marker) > 0
+  ) then
+    raise exception 'R20B9 duplicate cleanup marker replacement is not exact in article body.';
+  end if;
+
+  with inserted_cleanup_revisions as (
+    insert into public.wiki_article_revisions (
+      article_id, revision_number, snapshot, change_note, created_by,
+      revision_status, published_at
+    )
+    select
+      target.id,
+      (
+        select coalesce(max(existing.revision_number), 0)::integer + 1
+        from public.wiki_article_revisions existing
+        where existing.article_id = target.id
+      ),
+      jsonb_build_object(
+        'stableId', target.stable_id,
+        'slug', target.slug,
+        'title', target.title,
+        'shortTitle', target.short_title,
+        'seoTitle', target.seo_title,
+        'metaDescription', coalesce(target.meta_description, target.summary),
+        'categoryId', target.category_id,
+        'tags', target.tags,
+        'summary', target.summary,
+        'intro', target.corrected_intro,
+        'readingMinutes', target.reading_minutes,
+        'publicationPriority', target.publication_priority,
+        'contentCluster', coalesce(target.content_cluster, target.category_id),
+        'articleRole', target.article_role,
+        'relatedArticleIds', target.related_article_ids,
+        'indexable', target.is_indexable,
+        'bodyMarkdown', target.corrected_body_markdown,
+        'keyPoints', target.corrected_key_points,
+        'sections', target.corrected_sections,
+        'contextLinks', coalesce(target.context_links, '[]'::jsonb),
+        'sources', coalesce(target.sources, '[]'::jsonb),
+        'callToAction', target.call_to_action,
+        'contentVersion', target.corrected_version
+      ),
+      'Batch 4 R20B9 duplicate contextual pair normalization before link-admin baseline',
+      null,
+      'published',
+      now()
+    from halleus_link_duplicate_cleanup_articles target
+    returning article_id
+  )
+  update public.wiki_articles article
+  set
+    body_markdown = target.corrected_body_markdown,
+    intro = target.corrected_intro,
+    key_points = target.corrected_key_points,
+    sections = target.corrected_sections,
+    content_version = target.corrected_version
+  from halleus_link_duplicate_cleanup_articles target
+  where article.id = target.id
+    and exists (
+      select 1
+      from inserted_cleanup_revisions revision
+      where revision.article_id = article.id
+    );
+
+  if exists (
+    select 1
+    from public.wiki_articles article
+    join halleus_link_duplicate_cleanup_plan plan
+      on plan.source_stable_id = article.stable_id
+    where strpos(coalesce(article.body_markdown, ''), plan.demoted_marker) > 0
+       or strpos(coalesce(article.intro, ''), plan.demoted_marker) > 0
+       or strpos(coalesce(article.key_points::text, ''), plan.demoted_marker) > 0
+       or strpos(coalesce(article.sections::text, ''), plan.demoted_marker) > 0
+  ) then
+    raise exception 'R20B9 duplicate marker remains after synchronized projection cleanup.';
+  end if;
+
+  truncate table halleus_link_authority_occurrences;
+
+  insert into halleus_link_authority_occurrences (
+    source_stable_id,
+    target_stable_id,
+    current_anchor,
+    full_marker
+  )
+  select
+    authority.source_stable_id,
+    authority.target_stable_id,
+    coalesce((edge.parts)[2], (edge.parts)[1]),
+    (edge.parts)[3]
+  from halleus_link_authority_edges authority
+  join public.wiki_articles article
+    on article.stable_id = authority.source_stable_id
+  cross join lateral regexp_matches(
+    coalesce(article.body_markdown, ''),
+    '(\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\])',
+    'g'
+  ) raw(parts)
+  cross join lateral (
+    select array[
+      (raw.parts)[2],
+      (raw.parts)[3],
+      (raw.parts)[1]
+    ]::text[] as parts
+  ) edge
+  where (edge.parts)[1] = authority.target_stable_id;
+
+  if (select count(*) from halleus_link_authority_occurrences) <> 292 then
+    raise exception 'R20B9 normalized authority graph must contain exactly 292 marker occurrences; found %.',
+      (select count(*) from halleus_link_authority_occurrences);
+  end if;
+
+  if (
+    select count(*)
+    from (
+      select source_stable_id, target_stable_id
+      from halleus_link_authority_occurrences
+      group by source_stable_id, target_stable_id
+    ) pairs
+  ) <> 292 then
+    raise exception 'R20B9 normalized authority graph lost source-target uniqueness.';
+  end if;
+
+  select count(*)::integer into current_anchor_drift_count
+  from halleus_link_authority_occurrences occurrence
+  join halleus_link_authority_edges authority
+    on authority.source_stable_id = occurrence.source_stable_id
+   and authority.target_stable_id = occurrence.target_stable_id
+  where occurrence.current_anchor <> authority.anchor;
+
+  if current_anchor_drift_count <> 31 then
+    raise exception 'R20B9 reviewed current-anchor drift fingerprint must remain exactly 31; found %.',
+      current_anchor_drift_count;
+  end if;
+
+  create temporary table halleus_link_current_authority_edges (
+    source_stable_id text not null,
+    target_stable_id text not null,
+    anchor text not null,
+    primary key (source_stable_id, target_stable_id)
+  ) on commit drop;
+
+  insert into halleus_link_current_authority_edges (
+    source_stable_id,
+    target_stable_id,
+    anchor
+  )
+  select
+    source_stable_id,
+    target_stable_id,
+    current_anchor
+  from halleus_link_authority_occurrences;
+
+  select encode(
+    sha256(
+      convert_to(
+        string_agg(
+          source_stable_id || E'\x1f' || target_stable_id || E'\x1f' || anchor,
+          E'\n'
+          order by source_stable_id, target_stable_id, anchor
+        ),
+        'UTF8'
+      )
+    ),
+    'hex'
+  )
+  into baseline_graph_sha256
+  from halleus_link_current_authority_edges;
+
+  if baseline_graph_sha256 is null or char_length(baseline_graph_sha256) <> 64 then
+    raise exception 'R20B9 current authority graph hash could not be computed.';
+  end if;
+
   select count(*) into baseline_article_count
   from public.wiki_articles as article
   join halleus_link_baseline_ids as expected on expected.stable_id = article.stable_id
@@ -395,7 +806,7 @@ $halleus_authority_edges$::jsonb
   if not exists (
     select 1
     from halleus_private.wiki_link_scan_runs
-    where baseline_key = 'batch2-final-292-v1'
+    where baseline_key = 'batch4-current-292-v2'
   ) then
     select count(*) into total_live_count
     from public.wiki_articles
@@ -406,8 +817,8 @@ $halleus_authority_edges$::jsonb
       trigger_kind, status, rules_version, baseline_key, graph_sha256,
       article_count, edge_count, finding_count, suggestion_count, kpis, completed_at
     ) values (
-      'baseline', 'completed', rules_version_value, 'batch2-final-292-v1',
-      'e95b64f2d57b4b9a0e57dee0f80698c34f616924d9468e16dbe8c245e2368425',
+      'baseline', 'completed', rules_version_value, 'batch4-current-292-v2',
+      baseline_graph_sha256,
       92, 292, 0, 0,
       jsonb_build_object(
         'liveArticleCount', total_live_count,
@@ -447,12 +858,12 @@ $halleus_authority_edges$::jsonb
         ) as contextual_edges
       from public.wiki_articles as article
       join halleus_link_baseline_ids as expected on expected.stable_id = article.stable_id
-      join halleus_link_authority_edges as authority on authority.source_stable_id = article.stable_id
+      join halleus_link_current_authority_edges as authority on authority.source_stable_id = article.stable_id
       group by article.id, article.stable_id, article.content_version, article.body_markdown
     ),
     incoming_counts as (
       select target_stable_id as target_id, count(*)::integer as incoming
-      from halleus_link_authority_edges
+      from halleus_link_current_authority_edges
       group by target_stable_id
     ),
     core_edges as (
