@@ -16,6 +16,7 @@ const forbidText = (label, source, marker) => {
 
 const migration = read("database/migrations/0019_wiki_internal_link_admin.sql");
 const quotaRepairMigration = read("database/migrations/0021_wiki_global_contextual_link_quota_repair.sql");
+const ruleMigration = read("database/migrations/0022_wiki_link_rule_min3_unbounded.sql");
 const service = read("lib/wiki/wiki-link-admin-service.ts");
 const engineSource = read("lib/wiki/wiki-link-admin-engine.ts");
 const trigger = read("lib/wiki/wiki-link-admin-trigger.ts");
@@ -41,6 +42,10 @@ for (const marker of [
   "wiki_link_rule_versions",
   "wiki_link_scan_triggers",
   "HALLEUS_BATCH4_R20B9_CURRENT_ANCHOR_BASELINE",
+  "HALLEUS_BATCH4_R20B13_UNBOUNDED_CORE_LINKS",
+  "count(distinct article.stable_id)",
+  "at least one approved contextual core link",
+  "'coreMax', 0",
   "batch4-current-292-v2",
   "baseline_edge_count <> 292",
   "baseline_article_count <> 92",
@@ -97,6 +102,11 @@ for (const marker of [
 forbidText("link service", service, "publishAdminWikiDraft");
 requireText("link service no-hard-max outgoing parser", service, 'outgoingMax: integer("outgoingMax", 0, 20),');
 requireText("link service no-hard-max incoming parser", service, 'incomingMax: integer("incomingMax", 0, 100),');
+requireText("link service no-hard-max core parser", service, 'coreMax: integer("coreMax", 0, 5),');
+requireText("link engine unbounded core default", engineSource, "coreMax: 0,");
+requireText("link engine explicit positive core max only", engineSource, "rules.coreMax > 0 && core.length > rules.coreMax");
+requireText("link engine zero-max suggestion gate", engineSource, "rules.outgoingMax > 0 && summary.outgoing >= rules.outgoingMax");
+requireText("link engine multi-core representative destination", engineSource, "core.map((edge) => edge.href).sort()[0]");
 requireText("link service no-hard-max outgoing ordering", service, "rules.outgoingMax > 0 && rules.outgoingMin > rules.outgoingMax");
 requireText("link service no-hard-max incoming ordering", service, "rules.incomingMax > 0 && rules.incomingTarget > rules.incomingMax");
 
@@ -131,6 +141,22 @@ for (const marker of [
   "save_rules",
 ]) {
   requireText("WikiLinkAdminPanel", panel, marker);
+}
+
+for (const marker of [
+  "outgoingMax: 0",
+  "incomingMin: 3",
+  "incomingMax: 0",
+  "coreMax: 0",
+]) {
+  requireText("WikiLinkAdminPanel current rule fallback", panel, marker);
+}
+for (const marker of [
+  "HALLEUS_BATCH4_R20B13_UNBOUNDED_CORE_LINKS",
+  "'coreMax', 0",
+  "R20B13 forward rule version",
+]) {
+  requireText("0022 unbounded-core rule migration", ruleMigration, marker);
 }
 
 requireText(
@@ -269,6 +295,76 @@ if (baselineScan.findings.length !== 0) {
 }
 if (baselineScan.articles.length !== 92 || baselineScan.kpis.fullyCompliant !== 92) {
   failures.push("verified authority graph did not produce 92 compliant article summaries");
+}
+
+// R20B13 multi-core default fixture
+const r20b13MultiCoreRules = {
+  ...engine.DEFAULT_WIKI_LINK_SCAN_RULES,
+  outgoingMin: 0,
+  outgoingMax: 0,
+  incomingMin: 0,
+  incomingTarget: 0,
+  incomingMax: 0,
+  coreMax: 0,
+};
+const r20b13MultiCoreArticle = {
+  id: "r20b13-multi-core",
+  stableId: "r20b13-multi-core",
+  slug: "r20b13-multi-core",
+  title: "Multi Core",
+  shortTitle: "Multi Core",
+  categoryId: "foundations",
+  status: "published",
+  indexable: true,
+  publishedAt: "2026-08-15T00:00:00.000Z",
+  deletedAt: null,
+  contentVersion: 1,
+  bodyMarkdown: [
+    "[[page:/chart|Birth Chart Guide]]",
+    "[[page:/compare|Relationship Comparison]]",
+  ].join("\n\n"),
+  relatedArticleIds: [],
+  contextLinks: [],
+  callToAction: null,
+};
+const r20b13MultiCoreScan = engine.scanWikiInternalLinks(
+  [r20b13MultiCoreArticle],
+  r20b13MultiCoreRules,
+);
+const r20b13MultiCoreCodes = new Set(
+  r20b13MultiCoreScan.findings.map((item) => item.code),
+);
+if (
+  r20b13MultiCoreCodes.has("MULTIPLE_CORE_LINKS") ||
+  r20b13MultiCoreCodes.has("MISSING_CORE_LINK")
+) {
+  failures.push("R20B13 multi-core default fixture rejected valid contextual core multiplicity");
+}
+const r20b13MultiCoreSummary = r20b13MultiCoreScan.articles[0];
+if (!r20b13MultiCoreSummary || r20b13MultiCoreSummary.coreDestination !== "/chart") {
+  failures.push("R20B13 multi-core representative coreDestination is not deterministic");
+}
+const r20b13ExplicitCoreLimitScan = engine.scanWikiInternalLinks(
+  [r20b13MultiCoreArticle],
+  { ...r20b13MultiCoreRules, coreMax: 1 },
+);
+if (
+  !r20b13ExplicitCoreLimitScan.findings.some(
+    (item) => item.code === "MULTIPLE_CORE_LINKS",
+  )
+) {
+  failures.push("R20B13 explicit positive coreMax fixture did not enforce the configured maximum");
+}
+const r20b13MissingCoreScan = engine.scanWikiInternalLinks(
+  [{ ...r20b13MultiCoreArticle, bodyMarkdown: "No core marker." }],
+  r20b13MultiCoreRules,
+);
+if (
+  !r20b13MissingCoreScan.findings.some(
+    (item) => item.code === "MISSING_CORE_LINK",
+  )
+) {
+  failures.push("R20B13 missing-core minimum fixture did not remain enforced");
 }
 
 function independentArticleEdges(articles) {
@@ -544,6 +640,30 @@ const expectedSuggestion = natural.suggestions.find(
     item.sourceStableId === "source-article" &&
     item.targetStableId === "beta-target",
 );
+// R20B13 zero-sentinel suggestion fixture
+const r20b13UnboundedSuggestionRules = {
+  ...suggestionRules,
+  outgoingMax: 0,
+};
+const r20b13UnboundedSuggestionScan = engine.scanWikiInternalLinks(
+  suggestionArticles,
+  r20b13UnboundedSuggestionRules,
+);
+const r20b13UnboundedSuggestions = engine.buildNaturalWikiLinkSuggestions(
+  suggestionArticles,
+  r20b13UnboundedSuggestionScan,
+  r20b13UnboundedSuggestionRules,
+);
+if (
+  !r20b13UnboundedSuggestions.suggestions.some(
+    (item) =>
+      item.sourceStableId === "source-article" &&
+      item.targetStableId === "beta-target",
+  )
+) {
+  failures.push("R20B13 zero-sentinel suggestion fixture produced no natural suggestion");
+}
+
 if (!expectedSuggestion) {
   failures.push("natural paragraph fixture did not generate a suggestion");
 } else {
@@ -626,6 +746,7 @@ if (
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingTarget !== 3 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.outgoingMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingMax !== 0 ||
+  engine.DEFAULT_WIKI_LINK_SCAN_RULES.coreMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.excludedStableIds.length !== 0
 ) failures.push("R20B3 default min3/no-hard-max rule contract mismatch");
 
@@ -692,6 +813,8 @@ if (failures.length) {
 console.log("Wiki internal-link admin guard passed.");
 console.log("- six maintenance concepts are persisted separately with versioned rules");
 console.log("- verified 92-article authority graph is exactly 292 contextual edges");
+console.log("- every authority article requires at least one core link; contextual core multiplicity has no hard max by default");
+console.log("- zero-sentinel outgoing/core maxima remain operational in scans and suggestions");
 console.log("- engine graph equals an independent body crawler");
 console.log("- full body article markers are contextual; quota counts only distinct valid current-public targets, while CTA/structured Related/breadcrumb stay separate");
 console.log("- suggestions require a real paragraph and expose NO_NATURAL_PLACEMENT otherwise");

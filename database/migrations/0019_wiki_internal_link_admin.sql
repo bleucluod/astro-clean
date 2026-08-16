@@ -1,6 +1,7 @@
 -- Halleus Batch 4 Slice A: permanent Wiki internal-link administration.
 -- HALLEUS_BATCH4_R20_MIN3_NO_HARD_MAX_RULES
 -- HALLEUS_BATCH4_R20B9_CURRENT_ANCHOR_BASELINE
+-- HALLEUS_BATCH4_R20B13_UNBOUNDED_CORE_LINKS
 -- HALLEUS_BATCH4_R6_AUTHORITY_BASELINE: preserve the exact Batch 2 92/292 source-target authority while accepting reviewed current anchor evolution.
 -- R20B9 normalizes exactly two observed duplicate source-target markers by demoting only the non-frozen duplicate marker to its identical visible anchor text, with revision/version history.
 -- Apply after 0017 and 0018. No production application from mutation runners.
@@ -172,7 +173,7 @@ select jsonb_build_object(
   'incomingMax', 0,
   'breadcrumbRequired', true,
   'categoryLinkMax', 1,
-  'coreMax', 1,
+  'coreMax', 0,
   'coreRoutes', jsonb_build_array('/', '/chart', '/compare', '/sky', '/wiki'),
   'anchorMinChars', 3,
   'anchorMaxChars', 120,
@@ -778,8 +779,7 @@ $halleus_authority_edges$::jsonb
   if baseline_edge_count <> 292 then
     raise exception 'Batch 4 link-admin baseline graph must contain 292 contextual article edges; found %.', baseline_edge_count;
   end if;
-
-  select count(*) into baseline_core_count
+  select count(distinct article.stable_id) into baseline_core_count
   from public.wiki_articles as article
   join halleus_link_baseline_ids as expected on expected.stable_id = article.stable_id
   cross join lateral regexp_matches(
@@ -789,7 +789,7 @@ $halleus_authority_edges$::jsonb
   ) as core(parts);
 
   if baseline_core_count <> 92 then
-    raise exception 'Batch 4 link-admin baseline requires exactly 92 contextual core links; found %.', baseline_core_count;
+    raise exception 'Batch 4 link-admin baseline requires all 92 authority articles to contain at least one approved contextual core link; found % core-linked articles.', baseline_core_count;
   end if;
 
   if exists (

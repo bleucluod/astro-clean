@@ -65,13 +65,13 @@ const NUMERIC_RULE_FIELDS = [
 
 const emptyRules: WikiLinkScanRules = {
   outgoingMin: 3,
-  outgoingMax: 5,
-  incomingMin: 2,
+  outgoingMax: 0,
+  incomingMin: 3,
   incomingTarget: 3,
-  incomingMax: 6,
+  incomingMax: 0,
   breadcrumbRequired: true,
   categoryLinkMax: 1,
-  coreMax: 1,
+  coreMax: 0,
   coreRoutes: ["/", "/chart", "/compare", "/sky", "/wiki"],
   anchorMinChars: 3,
   anchorMaxChars: 120,

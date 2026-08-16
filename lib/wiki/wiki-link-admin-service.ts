@@ -83,7 +83,7 @@ function normalizeRules(raw: unknown): WikiLinkScanRules {
     incomingMax: integer("incomingMax", 0, 100),
     breadcrumbRequired: input.breadcrumbRequired !== false,
     categoryLinkMax: integer("categoryLinkMax", 0, 10),
-    coreMax: integer("coreMax", 1, 5),
+    coreMax: integer("coreMax", 0, 5),
     coreRoutes: strings("coreRoutes"),
     anchorMinChars: integer("anchorMinChars", 1, 80),
     anchorMaxChars: integer("anchorMaxChars", 2, 300),

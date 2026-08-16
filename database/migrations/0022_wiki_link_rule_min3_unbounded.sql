@@ -1,4 +1,5 @@
 -- Halleus R20B6: forward-only Wiki link rule version normalization.
+-- HALLEUS_BATCH4_R20B13_UNBOUNDED_CORE_LINKS
 -- Apply after 0021_wiki_global_contextual_link_quota_repair.sql.
 -- Preserves rule history; creates one new active rule version only when the
 -- current active rule is the reviewed v0.1.407 rule or the target rule is not
@@ -33,7 +34,7 @@ begin
     'incomingMax', 0,
     'breadcrumbRequired', true,
     'categoryLinkMax', 1,
-    'coreMax', 1,
+    'coreMax', 0,
     'coreRoutes', jsonb_build_array('/', '/chart', '/compare', '/sky', '/wiki'),
     'anchorMinChars', 3,
     'anchorMaxChars', 120,
@@ -83,7 +84,7 @@ begin
   values (
     target_config,
     true,
-    'R20B6 forward rule version: global contextual min3 with zero-sentinel unbounded maxima'
+    'R20B13 forward rule version: global contextual min3 with zero-sentinel unbounded maxima and core multiplicity'
   );
 end;
 $halleus_r20b6$;

@@ -1,4 +1,5 @@
 // HALLEUS_BATCH4_R6_VALID_DISTINCT_CONTEXTUAL_QUOTA
+// HALLEUS_BATCH4_R20B13_UNBOUNDED_CORE_LINKS
 import type {
   WikiLinkArticleInput,
   WikiLinkEdge,
@@ -22,7 +23,7 @@ export const DEFAULT_WIKI_LINK_SCAN_RULES: WikiLinkScanRules = {
   incomingMax: 0,
   breadcrumbRequired: true,
   categoryLinkMax: 1,
-  coreMax: 1,
+  coreMax: 0,
   coreRoutes: ["/", "/chart", "/compare", "/sky", "/wiki"],
   anchorMinChars: 3,
   anchorMaxChars: 120,
@@ -239,7 +240,7 @@ export function scanWikiInternalLinks(
 
     if (core.length === 0) {
       findings.push(finding("MISSING_CORE_LINK", "error", article.stableId, null, {}));
-    } else if (core.length > rules.coreMax) {
+    } else if (rules.coreMax > 0 && core.length > rules.coreMax) {
       findings.push(
         finding("MULTIPLE_CORE_LINKS", "error", article.stableId, null, {
           actual: core.length,
@@ -403,7 +404,7 @@ export function scanWikiInternalLinks(
       incoming: summaryIncomingCount,
       outgoing: summaryOutgoingCount,
       categoryLinks,
-      coreDestination: core.length === 1 ? core[0].href : null,
+      coreDestination: core.length > 0 ? core.map((edge) => edge.href).sort()[0] : null,
       breadcrumbOk: Boolean(article.categoryId),
       findingCount,
       compliant: findingCount === 0,
@@ -512,7 +513,11 @@ export function buildNaturalWikiLinkSuggestions(
   for (const sourceId of managedIds) {
     const source = allById.get(sourceId);
     const summary = summaryById.get(sourceId);
-    if (!source || !summary || summary.outgoing >= rules.outgoingMax) continue;
+    if (
+      !source ||
+      !summary ||
+      (rules.outgoingMax > 0 && summary.outgoing >= rules.outgoingMax)
+    ) continue;
     const needsOutgoing = sourcesNeedingHelp.has(sourceId);
     let createdForSource = 0;
 
