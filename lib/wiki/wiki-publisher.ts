@@ -57,6 +57,63 @@ async function publishClaimedJob(jobId: string) {
     if (unpublished.length) {
       throw new Error(`Scheduled Wiki dependencies are not published yet: ${unpublished.join(", ")}`);
     }
+    // HALLEUS_BATCH4_R19_PUBLISH_MIN3_GATE
+    // Keep the current-public contextual graph healthy at the publication boundary.
+    // This gate never invents or rewrites article prose: editorial links must already
+    // exist in the scheduled snapshot / current-public source articles.
+    if (snapshot.indexable) {
+      const contextualTargetIds = [...new Set(findWikiInternalArticleIds(snapshot.bodyMarkdown))]
+        .filter((stableId) => stableId !== snapshot.stableId);
+      const currentPublicTargetRows = contextualTargetIds.length
+        ? await tx`
+            select stable_id
+            from public.wiki_articles
+            where stable_id = any(${contextualTargetIds}::text[])
+              and status = 'published'
+              and is_indexable = true
+              and published_at is not null
+              and published_at <= now()
+              and scheduled_for is null
+              and deleted_at is null
+          `
+        : [];
+      const validOutgoingIds = new Set(
+        currentPublicTargetRows.map((item) => asString(item.stable_id)).filter(Boolean),
+      );
+      if (validOutgoingIds.size < 3) {
+        throw new Error(
+          `Scheduled Wiki min3 gate blocked publication: outgoing=${validOutgoingIds.size}; ` +
+          `article=${snapshot.stableId}; prepare at least 3 distinct contextual links to current-public articles.`,
+        );
+      }
+
+      const currentPublicSourceRows = await tx`
+        select stable_id, body_markdown
+        from public.wiki_articles
+        where id <> ${articleId}::uuid
+          and status = 'published'
+          and is_indexable = true
+          and published_at is not null
+          and published_at <= now()
+          and scheduled_for is null
+          and deleted_at is null
+      `;
+      const validIncomingSourceIds = new Set(
+        currentPublicSourceRows
+          .filter((item) =>
+            findWikiInternalArticleIds(asString(item.body_markdown)).includes(snapshot.stableId)
+          )
+          .map((item) => asString(item.stable_id))
+          .filter(Boolean),
+      );
+      if (validIncomingSourceIds.size < 3) {
+        throw new Error(
+          `Scheduled Wiki min3 gate blocked publication: incoming=${validIncomingSourceIds.size}; ` +
+          `article=${snapshot.stableId}; prepare contextual backlinks from at least 3 distinct current-public articles.`,
+        );
+      }
+    }
+
     const relatedSlugs = snapshot.relatedArticleIds
       .map((stableId) => dependencyMap.get(stableId))
       .map((item) => item ? asString(item.slug) : "")

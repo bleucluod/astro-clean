@@ -1,3 +1,4 @@
+// HALLEUS_BATCH4_R6_VALID_DISTINCT_CONTEXTUAL_QUOTA
 import type {
   WikiLinkArticleInput,
   WikiLinkEdge,
@@ -10,14 +11,15 @@ import type {
 const ARTICLE_LINK_RE =
   /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
 const CORE_LINK_RE =
-  /\[\[page:(\/(?:chart|compare|sky|wiki)?)(?:\|([^\]\r\n]+))\]\]/g;
+  /\[\[page:(\/(?:chart|compare|sky|wiki)?)(?:\|([^\]\r\n]+))\]\]/g;// HALLEUS_BATCH4_R20_MIN3_NO_HARD_MAX_RULES
+
 
 export const DEFAULT_WIKI_LINK_SCAN_RULES: WikiLinkScanRules = {
   outgoingMin: 3,
-  outgoingMax: 5,
-  incomingMin: 2,
+  outgoingMax: 0,
+  incomingMin: 3,
   incomingTarget: 3,
-  incomingMax: 6,
+  incomingMax: 0,
   breadcrumbRequired: true,
   categoryLinkMax: 1,
   coreMax: 1,
@@ -25,12 +27,7 @@ export const DEFAULT_WIKI_LINK_SCAN_RULES: WikiLinkScanRules = {
   anchorMinChars: 3,
   anchorMaxChars: 120,
   oneWordCoreAllowlist: ["هالیوس"],
-  excludedStableIds: [
-    "active-receptive-energy-in-astrology",
-    "missing-elements-in-natal-chart",
-    "ordibehesht-birth-month-compatibility",
-    "tir-born-traits",
-  ],
+  excludedStableIds: [],
   prohibitSelf: true,
   prohibitDuplicate: true,
   prohibitUnpublishedTargets: true,
@@ -72,6 +69,21 @@ function collectBodyLinks(article: WikiLinkArticleInput) {
     });
   }
   return links;
+}
+
+// HALLEUS_BATCH4_R7_TARGET_CLASSIFICATION_ORDER
+function isCurrentlyPublishedArticle(article: WikiLinkArticleInput, nowMs: number) {
+  const publishedAtMs = article.publishedAt ? Date.parse(article.publishedAt) : Number.NaN;
+  return (
+    article.status === "published" &&
+    Number.isFinite(publishedAtMs) &&
+    publishedAtMs <= nowMs &&
+    !article.deletedAt
+  );
+}
+
+function isCurrentPublicArticle(article: WikiLinkArticleInput, nowMs: number) {
+  return article.indexable && isCurrentlyPublishedArticle(article, nowMs);
 }
 
 function collectNonBodyLinks(article: WikiLinkArticleInput): WikiLinkEdge[] {
@@ -135,13 +147,9 @@ export function scanWikiInternalLinks(
   rules: WikiLinkScanRules = DEFAULT_WIKI_LINK_SCAN_RULES,
 ): WikiLinkScanResult {
   const allById = new Map(inputArticles.map((article) => [article.stableId, article]));
-  const liveArticles = inputArticles.filter(
-    (article) =>
-      article.status === "published" &&
-      article.indexable &&
-      Boolean(article.publishedAt) &&
-      !article.deletedAt,
-  );
+  const scanNow = Date.now();
+  const liveArticles = inputArticles.filter((article) => isCurrentPublicArticle(article, scanNow));
+  const liveTargetIds = new Set(liveArticles.map((article) => article.stableId));
   const excluded = new Set(rules.excludedStableIds);
   const managed = liveArticles.filter((article) => !excluded.has(article.stableId));
   const classifiedLinks = managed.flatMap((article) => [
@@ -167,6 +175,15 @@ export function scanWikiInternalLinks(
   for (const article of managed) {
     const outgoing = outgoingBySource.get(article.stableId) ?? [];
     const incoming = incomingByTarget.get(article.stableId) ?? [];
+    const outgoingCount = new Set(
+      outgoing
+        .map((edge) => edge.targetStableId)
+        .filter(
+          (target): target is string =>
+            typeof target === "string" && target !== article.stableId && liveTargetIds.has(target),
+        ),
+    ).size;
+    const incomingCount = new Set(incoming.map((edge) => edge.sourceStableId)).size;
     const core = classifiedLinks.filter(
       (edge) => edge.sourceStableId === article.stableId && edge.kind === "core",
     );
@@ -180,41 +197,41 @@ export function scanWikiInternalLinks(
       (edge) => edge.sourceStableId === article.stableId && edge.kind === "breadcrumb",
     );
 
-    if (outgoing.length < rules.outgoingMin) {
+    if (outgoingCount < rules.outgoingMin) {
       findings.push(
         finding("OUTGOING_UNDER_MIN", "error", article.stableId, null, {
-          actual: outgoing.length,
+          actual: outgoingCount,
           minimum: rules.outgoingMin,
         }),
       );
     }
-    if (outgoing.length > rules.outgoingMax) {
+    if (rules.outgoingMax > 0 && outgoingCount > rules.outgoingMax) {
       findings.push(
         finding("OUTGOING_OVER_MAX", "error", article.stableId, null, {
-          actual: outgoing.length,
+          actual: outgoingCount,
           maximum: rules.outgoingMax,
         }),
       );
     }
-    if (incoming.length < rules.incomingMin) {
+    if (incomingCount < rules.incomingMin) {
       findings.push(
         finding("INCOMING_UNDER_MIN", "error", article.stableId, null, {
-          actual: incoming.length,
+          actual: incomingCount,
           minimum: rules.incomingMin,
         }),
       );
-    } else if (incoming.length < rules.incomingTarget) {
+    } else if (incomingCount < rules.incomingTarget) {
       findings.push(
         finding("INCOMING_UNDER_TARGET", "warning", article.stableId, null, {
-          actual: incoming.length,
+          actual: incomingCount,
           target: rules.incomingTarget,
         }),
       );
     }
-    if (incoming.length > rules.incomingMax) {
+    if (rules.incomingMax > 0 && incomingCount > rules.incomingMax) {
       findings.push(
         finding("INCOMING_OVER_MAX", "warning", article.stableId, null, {
-          actual: incoming.length,
+          actual: incomingCount,
           maximum: rules.incomingMax,
         }),
       );
@@ -287,11 +304,12 @@ export function scanWikiInternalLinks(
         );
       } else if (
         rules.prohibitUnpublishedTargets &&
-        (target.status !== "published" || !target.publishedAt || target.deletedAt)
+        !isCurrentlyPublishedArticle(target, scanNow)
       ) {
         findings.push(
           finding("UNPUBLISHED_TARGET", "error", article.stableId, targetId, {
             status: target.status,
+            publishedAt: target.publishedAt,
           }),
         );
       } else if (rules.prohibitUnpublishedTargets && !target.indexable) {
@@ -363,6 +381,18 @@ export function scanWikiInternalLinks(
       (edge) => edge.sourceStableId === article.stableId && edge.kind === "core",
     );
     const findingCount = findingCountBySource.get(article.stableId) ?? 0;
+    const summaryIncomingCount = new Set(
+      incoming.map((edge) => edge.sourceStableId),
+    ).size;
+    const summaryOutgoingCount = new Set(
+      outgoing
+        .map((edge) => edge.targetStableId)
+        .filter(
+          (target): target is string =>
+            typeof target === "string" && target !== article.stableId && liveTargetIds.has(target),
+        ),
+    ).size;
+
     return {
       stableId: article.stableId,
       slug: article.slug,
@@ -370,8 +400,8 @@ export function scanWikiInternalLinks(
       categoryId: article.categoryId,
       status: article.status,
       indexable: article.indexable,
-      incoming: incoming.length,
-      outgoing: outgoing.length,
+      incoming: summaryIncomingCount,
+      outgoing: summaryOutgoingCount,
       categoryLinks,
       coreDestination: core.length === 1 ? core[0].href : null,
       breadcrumbOk: Boolean(article.categoryId),
@@ -396,7 +426,7 @@ export function scanWikiInternalLinks(
       underInlinked: articles.filter((article) => article.incoming < rules.incomingTarget).length,
       outgoingOutsideRange: articles.filter(
         (article) =>
-          article.outgoing < rules.outgoingMin || article.outgoing > rules.outgoingMax,
+          article.outgoing < rules.outgoingMin || (rules.outgoingMax > 0 && article.outgoing > rules.outgoingMax),
       ).length,
       missingCoreLink: findingSources(["MISSING_CORE_LINK", "MULTIPLE_CORE_LINKS"]),
       breadcrumbIssue: findingSources(["BREADCRUMB_ISSUE"]),
