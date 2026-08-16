@@ -17,6 +17,23 @@ const forbidText = (label, source, marker) => {
 const migration = read("database/migrations/0019_wiki_internal_link_admin.sql");
 const quotaRepairMigration = read("database/migrations/0021_wiki_global_contextual_link_quota_repair.sql");
 const ruleMigration = read("database/migrations/0022_wiki_link_rule_min3_unbounded.sql");
+// HALLEUS_BATCH4_R20B13E_0021_JSON_ALIAS_GUARD
+for (const marker of [
+  "as key_point(key_point_value)",
+  "key_point.key_point_value #>> '{}'",
+  "as section_item(section_value)",
+  "section_item.section_value -> 'paragraphs'",
+  "section_item.section_value -> 'bullets'",
+  "as visible_item(visible_value)",
+  "visible_item.visible_value #>> '{}'",
+]) {
+  requireText("R20B13E 0021 qualified JSON aliases", quotaRepairMigration, marker);
+}
+forbidText(
+  "R20B13E 0021 ambiguous section value alias",
+  quotaRepairMigration,
+  "from jsonb_array_elements(target.corrected_sections) section_item",
+);
 const service = read("lib/wiki/wiki-link-admin-service.ts");
 const engineSource = read("lib/wiki/wiki-link-admin-engine.ts");
 const trigger = read("lib/wiki/wiki-link-admin-trigger.ts");

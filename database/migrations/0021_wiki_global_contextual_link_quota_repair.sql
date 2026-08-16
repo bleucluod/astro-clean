@@ -369,18 +369,18 @@ begin
     select
       pg_temp.halleus_r20_count_occurrences(target.corrected_intro, pg_temp.halleus_r20_marker(item.target_stable_id, item.anchor))
       + coalesce((
-          select sum(pg_temp.halleus_r20_count_occurrences(value #>> '{}', pg_temp.halleus_r20_marker(item.target_stable_id, item.anchor)))
-          from jsonb_array_elements(target.corrected_key_points) value
-          where jsonb_typeof(value) = 'string'
+          select sum(pg_temp.halleus_r20_count_occurrences(key_point.key_point_value #>> '{}', pg_temp.halleus_r20_marker(item.target_stable_id, item.anchor)))
+          from jsonb_array_elements(target.corrected_key_points) as key_point(key_point_value)
+          where jsonb_typeof(key_point.key_point_value) = 'string'
         ), 0)
       + coalesce((
-          select sum(pg_temp.halleus_r20_count_occurrences(value #>> '{}', pg_temp.halleus_r20_marker(item.target_stable_id, item.anchor)))
-          from jsonb_array_elements(target.corrected_sections) section_item
+          select sum(pg_temp.halleus_r20_count_occurrences(visible_item.visible_value #>> '{}', pg_temp.halleus_r20_marker(item.target_stable_id, item.anchor)))
+          from jsonb_array_elements(target.corrected_sections) as section_item(section_value)
           cross join lateral jsonb_array_elements(
-            coalesce(section_item -> 'paragraphs', '[]'::jsonb)
-            || coalesce(section_item -> 'bullets', '[]'::jsonb)
-          ) value
-          where jsonb_typeof(value) = 'string'
+            coalesce(section_item.section_value -> 'paragraphs', '[]'::jsonb)
+            || coalesce(section_item.section_value -> 'bullets', '[]'::jsonb)
+          ) as visible_item(visible_value)
+          where jsonb_typeof(visible_item.visible_value) = 'string'
         ), 0)
     into visible_count
     from halleus_r20_target_rows target
