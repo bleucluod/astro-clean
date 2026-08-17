@@ -19,6 +19,7 @@ const quotaRepairMigration = read("database/migrations/0021_wiki_global_contextu
 const ruleMigration = read("database/migrations/0022_wiki_link_rule_min3_unbounded.sql");
 const optionalOutgoingRuleMigration = read("database/migrations/0023_wiki_link_rule_outgoing_optional.sql");
 const shahrivarSeoMigration = read("database/migrations/0024_wiki_shahrivar_1405_seo_refresh.sql");
+const shahrivarEncodingRepairMigration = read("database/migrations/0025_wiki_shahrivar_1405_encoding_repair.sql");
 // HALLEUS_BATCH4_R20B13E_0021_JSON_ALIAS_GUARD
 for (const marker of [
   "as key_point(key_point_value)",
@@ -197,6 +198,25 @@ for (const marker of [
   "p_sources",
 ]) {
   requireText("0024 Shahrivar SEO refresh migration", shahrivarSeoMigration, marker);
+}
+
+// HALLEUS_WIKI_SHAHRIVAR_1405_ENCODING_REPAIR_GUARD
+for (const marker of [
+  "HALLEUS_WIKI_SHAHRIVAR_1405_ENCODING_REPAIR",
+  "pg_temp.halleus_decode_windows1252_mojibake",
+  "ترنزیت شهریور ۱۴۰۵؛ ماه‌گرفتگی، طالع‌بینی و پیش‌بینی ۱۲ نشان",
+  "طالع‌بینی شهریور ۱۴۰۵؛ ماه‌گرفتگی و پیش‌بینی ۱۲ نشان | هالیوس",
+  "Repair Shahrivar 1405 UTF-8 mojibake from 0024",
+  "content_version = 3",
+  "article.content_version + 1 as repaired_content_version",
+]) {
+  requireText("0025 Shahrivar encoding repair migration", shahrivarEncodingRepairMigration, marker);
+}
+for (const marker of ["Ø", "Ù", "Û", "Ú", "Â", "â€"]) {
+  forbidText("0025 Persian mojibake guard", shahrivarEncodingRepairMigration, marker);
+}
+if (!/[ء-ی]/u.test(shahrivarEncodingRepairMigration)) {
+  failures.push("0025 encoding repair migration does not contain real Persian text");
 }
 
 requireText(
