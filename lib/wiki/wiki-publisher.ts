@@ -58,10 +58,26 @@ async function publishClaimedJob(jobId: string) {
       throw new Error(`Scheduled Wiki dependencies are not published yet: ${unpublished.join(", ")}`);
     }
     // HALLEUS_BATCH4_R19_PUBLISH_MIN3_GATE
-    // Keep the current-public contextual graph healthy at the publication boundary.
-    // This gate never invents or rewrites article prose: editorial links must already
-    // exist in the scheduled snapshot / current-public source articles.
+    // HALLEUS_WIKI_OUTGOING_MIN_RULE_DRIVEN
+    // Incoming backlinks keep the existing min3 publication gate. Outgoing contextual
+    // links follow the active admin rule, so outgoingMin=0 means no outgoing quota gate.
     if (snapshot.indexable) {
+      const activeLinkRuleRows = await tx`
+        select config
+        from halleus_private.wiki_link_rule_versions
+        where is_active = true
+        order by version desc
+        limit 2
+      `;
+      if (activeLinkRuleRows.length !== 1) {
+        throw new Error(`Scheduled Wiki publication requires exactly one active link rule; found ${activeLinkRuleRows.length}.`);
+      }
+      const activeLinkRuleConfig = asRecord(activeLinkRuleRows[0].config);
+      const outgoingMinimum = asNumber(activeLinkRuleConfig.outgoingMin);
+      if (!Number.isInteger(outgoingMinimum) || outgoingMinimum < 0 || outgoingMinimum > 20) {
+        throw new Error("Active Wiki outgoingMin rule is invalid.");
+      }
+
       const contextualTargetIds = [...new Set(findWikiInternalArticleIds(snapshot.bodyMarkdown))]
         .filter((stableId) => stableId !== snapshot.stableId);
       const currentPublicTargetRows = contextualTargetIds.length
@@ -80,10 +96,10 @@ async function publishClaimedJob(jobId: string) {
       const validOutgoingIds = new Set(
         currentPublicTargetRows.map((item) => asString(item.stable_id)).filter(Boolean),
       );
-      if (validOutgoingIds.size < 3) {
+      if (outgoingMinimum > 0 && validOutgoingIds.size < outgoingMinimum) {
         throw new Error(
-          `Scheduled Wiki min3 gate blocked publication: outgoing=${validOutgoingIds.size}; ` +
-          `article=${snapshot.stableId}; prepare at least 3 distinct contextual links to current-public articles.`,
+          `Scheduled Wiki outgoing rule blocked publication: outgoing=${validOutgoingIds.size}; minimum=${outgoingMinimum}; ` +
+          `article=${snapshot.stableId}; prepare the configured number of distinct contextual links to current-public articles.`,
         );
       }
 

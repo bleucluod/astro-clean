@@ -63,8 +63,9 @@ const NUMERIC_RULE_FIELDS = [
   string,
 ][];
 
+// HALLEUS_WIKI_OUTGOING_MIN_OPTIONAL
 const emptyRules: WikiLinkScanRules = {
-  outgoingMin: 3,
+  outgoingMin: 0,
   outgoingMax: 0,
   incomingMin: 3,
   incomingTarget: 3,

@@ -17,6 +17,8 @@ const forbidText = (label, source, marker) => {
 const migration = read("database/migrations/0019_wiki_internal_link_admin.sql");
 const quotaRepairMigration = read("database/migrations/0021_wiki_global_contextual_link_quota_repair.sql");
 const ruleMigration = read("database/migrations/0022_wiki_link_rule_min3_unbounded.sql");
+const optionalOutgoingRuleMigration = read("database/migrations/0023_wiki_link_rule_outgoing_optional.sql");
+const shahrivarSeoMigration = read("database/migrations/0024_wiki_shahrivar_1405_seo_refresh.sql");
 // HALLEUS_BATCH4_R20B13E_0021_JSON_ALIAS_GUARD
 for (const marker of [
   "as key_point(key_point_value)",
@@ -121,6 +123,7 @@ requireText("link service no-hard-max outgoing parser", service, 'outgoingMax: i
 requireText("link service no-hard-max incoming parser", service, 'incomingMax: integer("incomingMax", 0, 100),');
 requireText("link service no-hard-max core parser", service, 'coreMax: integer("coreMax", 0, 5),');
 requireText("link engine unbounded core default", engineSource, "coreMax: 0,");
+requireText("link engine optional outgoing default", engineSource, "outgoingMin: 0,");
 requireText("link engine explicit positive core max only", engineSource, "rules.coreMax > 0 && core.length > rules.coreMax");
 requireText("link engine zero-max suggestion gate", engineSource, "rules.outgoingMax > 0 && summary.outgoing >= rules.outgoingMax");
 requireText("link engine multi-core representative destination", engineSource, "core.map((edge) => edge.href).sort()[0]");
@@ -161,6 +164,7 @@ for (const marker of [
 }
 
 for (const marker of [
+  "outgoingMin: 0",
   "outgoingMax: 0",
   "incomingMin: 3",
   "incomingMax: 0",
@@ -174,6 +178,25 @@ for (const marker of [
   "R20B13 forward rule version",
 ]) {
   requireText("0022 unbounded-core rule migration", ruleMigration, marker);
+}
+
+for (const marker of [
+  "HALLEUS_WIKI_OUTGOING_MIN_OPTIONAL",
+  "jsonb_set(current_config, '{outgoingMin}', '0'::jsonb, true)",
+  "preserve all other active Wiki link rules",
+]) {
+  requireText("0023 optional outgoing migration", optionalOutgoingRuleMigration, marker);
+}
+for (const marker of [
+  "HALLEUS_WIKI_SHAHRIVAR_1405_SEO_REFRESH",
+  "shahrivar-1405-transit-guide",
+  "ØªØ±Ù†Ø²ÛŒØª Ø´Ù‡Ø±ÛŒÙˆØ± Û±Û´Û°ÛµØ› Ù…Ø§Ù‡â€ŒÚ¯Ø±ÙØªÚ¯ÛŒØŒ Ø·Ø§Ù„Ø¹â€ŒØ¨ÛŒÙ†ÛŒ Ùˆ Ù¾ÛŒØ´â€ŒØ¨ÛŒÙ†ÛŒ Û±Û² Ù†Ø´Ø§Ù†",
+  "wiki_article_revisions",
+  "wiki_internal_links",
+  "corrected_version",
+  "p_sources",
+]) {
+  requireText("0024 Shahrivar SEO refresh migration", shahrivarSeoMigration, marker);
 }
 
 requireText(
@@ -468,6 +491,7 @@ const contextualQuotaArticles = [
 ];
 const contextualQuotaRules = {
   ...engine.DEFAULT_WIKI_LINK_SCAN_RULES,
+  outgoingMin: 3,
   incomingMin: 0,
   incomingTarget: 0,
   incomingMax: 20,
@@ -747,7 +771,8 @@ for (const marker of [
 
 for (const marker of [
   "HALLEUS_BATCH4_R19_PUBLISH_MIN3_GATE",
-  "validOutgoingIds.size < 3",
+  "HALLEUS_WIKI_OUTGOING_MIN_RULE_DRIVEN",
+  "outgoingMinimum > 0 && validOutgoingIds.size < outgoingMinimum",
   "validIncomingSourceIds.size < 3",
   "findWikiInternalArticleIds(snapshot.bodyMarkdown)",
   "status = 'published'",
@@ -756,16 +781,38 @@ for (const marker of [
   "scheduled_for is null",
   "deleted_at is null",
 ]) requireText("R20B3 publisher min3 gate", r20b3Publisher, marker);
+forbidText("R20B3 publisher hardcoded outgoing min3", r20b3Publisher, "validOutgoingIds.size < 3");
 
 if (
-  engine.DEFAULT_WIKI_LINK_SCAN_RULES.outgoingMin !== 3 ||
+  engine.DEFAULT_WIKI_LINK_SCAN_RULES.outgoingMin !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingMin !== 3 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingTarget !== 3 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.outgoingMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.coreMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.excludedStableIds.length !== 0
-) failures.push("R20B3 default min3/no-hard-max rule contract mismatch");
+) failures.push("R20B3 default optional-outgoing/no-hard-max rule contract mismatch");
+
+// HALLEUS_WIKI_OPTIONAL_OUTGOING_FIXTURE
+const optionalOutgoingFixtureRules = {
+  ...engine.DEFAULT_WIKI_LINK_SCAN_RULES,
+  incomingMin: 0,
+  incomingTarget: 0,
+  incomingMax: 0,
+};
+const optionalOutgoingFixtureScan = engine.scanWikiInternalLinks([
+  {
+    id: "optional-outgoing", stableId: "optional-outgoing", slug: "optional-outgoing",
+    title: "Optional Outgoing", shortTitle: "Optional Outgoing", categoryId: "foundations",
+    status: "published", indexable: true, publishedAt: "2026-08-16T00:00:00.000Z",
+    deletedAt: null, contentVersion: 1,
+    bodyMarkdown: "[[page:/wiki|Valid Wiki Guide]]",
+    relatedArticleIds: [], contextLinks: [], callToAction: null,
+  },
+], optionalOutgoingFixtureRules);
+if (optionalOutgoingFixtureScan.findings.some((item) => item.code === "OUTGOING_UNDER_MIN")) {
+  failures.push("default outgoingMin=0 still emitted OUTGOING_UNDER_MIN");
+}
 
 const r20b3Now = "2026-08-16T00:00:00.000Z";
 const r20b3Targets = Array.from({ length: 8 }, (_, index) => `r20b3-target-${index + 1}`);

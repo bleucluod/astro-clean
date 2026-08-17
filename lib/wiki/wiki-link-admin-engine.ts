@@ -15,8 +15,9 @@ const CORE_LINK_RE =
   /\[\[page:(\/(?:chart|compare|sky|wiki)?)(?:\|([^\]\r\n]+))\]\]/g;// HALLEUS_BATCH4_R20_MIN3_NO_HARD_MAX_RULES
 
 
+// HALLEUS_WIKI_OUTGOING_MIN_OPTIONAL
 export const DEFAULT_WIKI_LINK_SCAN_RULES: WikiLinkScanRules = {
-  outgoingMin: 3,
+  outgoingMin: 0,
   outgoingMax: 0,
   incomingMin: 3,
   incomingTarget: 3,
