@@ -67,7 +67,8 @@ const NUMERIC_RULE_FIELDS = [
 const emptyRules: WikiLinkScanRules = {
   outgoingMin: 0,
   outgoingMax: 0,
-  incomingMin: 3,
+  // HALLEUS_WIKI_INCOMING_MIN_OPTIONAL_TARGET3
+  incomingMin: 0,
   incomingTarget: 3,
   incomingMax: 0,
   breadcrumbRequired: true,

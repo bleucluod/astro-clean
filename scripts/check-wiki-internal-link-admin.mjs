@@ -20,6 +20,8 @@ const ruleMigration = read("database/migrations/0022_wiki_link_rule_min3_unbound
 const optionalOutgoingRuleMigration = read("database/migrations/0023_wiki_link_rule_outgoing_optional.sql");
 const shahrivarSeoMigration = read("database/migrations/0024_wiki_shahrivar_1405_seo_refresh.sql");
 const shahrivarEncodingRepairMigration = read("database/migrations/0025_wiki_shahrivar_1405_encoding_repair.sql");
+const optionalIncomingRuleMigration = read("database/migrations/0026_wiki_link_rule_incoming_optional.sql");
+const publisherSource = read("lib/wiki/wiki-publisher.ts");
 // HALLEUS_BATCH4_R20B13E_0021_JSON_ALIAS_GUARD
 for (const marker of [
   "as key_point(key_point_value)",
@@ -125,6 +127,9 @@ requireText("link service no-hard-max incoming parser", service, 'incomingMax: i
 requireText("link service no-hard-max core parser", service, 'coreMax: integer("coreMax", 0, 5),');
 requireText("link engine unbounded core default", engineSource, "coreMax: 0,");
 requireText("link engine optional outgoing default", engineSource, "outgoingMin: 0,");
+requireText("link engine optional incoming default", engineSource, "incomingMin: 0,");
+requireText("link engine incoming advisory target", engineSource, "incomingTarget: 3,");
+requireText("link engine incoming target warning", engineSource, "incomingCount < rules.incomingTarget");
 requireText("link engine explicit positive core max only", engineSource, "rules.coreMax > 0 && core.length > rules.coreMax");
 requireText("link engine zero-max suggestion gate", engineSource, "rules.outgoingMax > 0 && summary.outgoing >= rules.outgoingMax");
 requireText("link engine multi-core representative destination", engineSource, "core.map((edge) => edge.href).sort()[0]");
@@ -167,7 +172,8 @@ for (const marker of [
 for (const marker of [
   "outgoingMin: 0",
   "outgoingMax: 0",
-  "incomingMin: 3",
+  "incomingMin: 0",
+  "incomingTarget: 3",
   "incomingMax: 0",
   "coreMax: 0",
 ]) {
@@ -188,6 +194,30 @@ for (const marker of [
 ]) {
   requireText("0023 optional outgoing migration", optionalOutgoingRuleMigration, marker);
 }
+for (const marker of [
+  "HALLEUS_WIKI_INCOMING_MIN_OPTIONAL_TARGET3",
+  "jsonb_set(current_config, '{incomingMin}', '0'::jsonb, true)",
+  "incomingTarget=3",
+  "Incoming backlinks are advisory for publication",
+]) {
+  requireText("0026 optional incoming migration", optionalIncomingRuleMigration, marker);
+}
+for (const marker of [
+  "HALLEUS_WIKI_INCOMING_MIN_RULE_DRIVEN",
+  "const incomingMinimum = asNumber(activeLinkRuleConfig.incomingMin);",
+  "incomingMinimum > 0",
+  "validIncomingSourceIds.size < incomingMinimum",
+  "Scheduled Wiki incoming rule blocked publication",
+]) {
+  requireText("publisher rule-driven incoming minimum", publisherSource, marker);
+}
+for (const marker of [
+  "validIncomingSourceIds.size < 3",
+  "Scheduled Wiki min3 gate blocked publication: incoming=",
+]) {
+  forbidText("publisher stale hardcoded incoming min3", publisherSource, marker);
+}
+
 for (const marker of [
   "HALLEUS_WIKI_SHAHRIVAR_1405_SEO_REFRESH",
   "shahrivar-1405-transit-guide",
@@ -256,6 +286,12 @@ fs.rmSync(tempDir, { recursive: true, force: true });
 
 if (engine.DEFAULT_WIKI_LINK_SCAN_RULES.excludedStableIds.length !== 0) {
   failures.push("default link-admin rules still exclude public articles from global quota");
+}
+if (engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingMin !== 0) {
+  failures.push("default link-admin incoming minimum must remain optional");
+}
+if (engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingTarget !== 3) {
+  failures.push("default link-admin incoming advisory target must remain 3");
 }
 
 const authoritySlugs = ["birth-chart-basics","sun-moon-rising","astrology-houses","major-aspects","why-birth-time-matters","why-birth-city-matters","birth-chart-without-birth-time","how-to-read-birth-chart","what-is-birth-chart-interpretation","planet-sign-house-difference","why-sun-sign-is-not-enough","planets-in-birth-chart","what-is-moon-sign","what-is-rising-sign","tehran-birth-chart-difference","what-is-astrology","what-is-tropical-astrology","what-is-sidereal-astrology","what-is-vedic-astrology","important-transits-tir-1405","astrology-transits-explained","first-house-in-natal-chart","sixth-house-in-natal-chart","seventh-house-in-natal-chart","eighth-house-in-natal-chart","ninth-house-in-natal-chart","tenth-house-in-natal-chart","four-elements-in-natal-chart","lunar-nodes-in-natal-chart","fourth-house-in-natal-chart","eleventh-house-in-natal-chart","twelfth-house-in-natal-chart","empty-houses-in-natal-chart","zodiac-modalities-in-natal-chart","degrees-in-natal-chart","north-node-vs-south-node","mordad-1405-transit-guide","transits-to-ascendant-and-midheaven","jupiter-in-natal-chart","retrograde-planets-explained","stellium-in-natal-chart","new-moon-vs-full-moon-astrology","saturn-return-explained","mercury-retrograde-guide","natal-chart-vs-transit-chart","astrology-aspect-orbs-explained","conjunction-aspect-explained","opposition-aspect-explained","square-aspect-explained","trine-aspect-explained","sextile-aspect-explained","mercury-in-natal-chart","venus-in-natal-chart","saturn-in-natal-chart","why-transits-differ-by-person","fast-vs-slow-astrology-transits","second-house-in-natal-chart","hard-aspects-explained","mars-in-natal-chart","uranus-in-natal-chart","third-house-in-natal-chart","fifth-house-in-natal-chart","reading-multiple-aspects-together","neptune-in-natal-chart","combine-planet-sign-house-and-aspect","pluto-in-natal-chart","sun-moon-aspects-in-natal-chart","venus-mars-aspects-in-natal-chart","jupiter-saturn-aspects-in-natal-chart","transits-to-natal-sun-and-moon","natal-chart-uses-and-limits","overall-chart-signature","chart-ruler-in-natal-chart","persian-birth-months-astrology-guide","shahrivar-birth-month-compatibility","mehr-born-traits","mordad-woman-traits","mordad-man-traits","mordad-birth-month-compatibility","ordibehesht-born-traits","shahrivar-born-traits","aban-born-traits","khordad-born-traits","mehr-woman-traits","mehr-man-traits","mehr-birth-month-compatibility","esfand-born-traits","farvardin-born-traits","mordad-born-traits","dey-born-traits","ordibehesht-woman-traits","ordibehesht-man-traits"];
@@ -792,26 +828,50 @@ for (const marker of [
 for (const marker of [
   "HALLEUS_BATCH4_R19_PUBLISH_MIN3_GATE",
   "HALLEUS_WIKI_OUTGOING_MIN_RULE_DRIVEN",
+  "HALLEUS_WIKI_INCOMING_MIN_RULE_DRIVEN",
   "outgoingMinimum > 0 && validOutgoingIds.size < outgoingMinimum",
-  "validIncomingSourceIds.size < 3",
+  "incomingMinimum > 0",
+  "validIncomingSourceIds.size < incomingMinimum",
   "findWikiInternalArticleIds(snapshot.bodyMarkdown)",
   "status = 'published'",
   "is_indexable = true",
   "published_at <= now()",
   "scheduled_for is null",
   "deleted_at is null",
-]) requireText("R20B3 publisher min3 gate", r20b3Publisher, marker);
+]) requireText("R20B3 publisher rule-driven quota gate", r20b3Publisher, marker);
 forbidText("R20B3 publisher hardcoded outgoing min3", r20b3Publisher, "validOutgoingIds.size < 3");
+forbidText("R20B3 publisher hardcoded incoming min3", r20b3Publisher, "validIncomingSourceIds.size < 3");
 
 if (
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.outgoingMin !== 0 ||
-  engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingMin !== 3 ||
+  engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingMin !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingTarget !== 3 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.outgoingMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.incomingMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.coreMax !== 0 ||
   engine.DEFAULT_WIKI_LINK_SCAN_RULES.excludedStableIds.length !== 0
-) failures.push("R20B3 default optional-outgoing/no-hard-max rule contract mismatch");
+) failures.push("R20B3 default optional publication minima/no-hard-max rule contract mismatch");
+
+// HALLEUS_WIKI_OPTIONAL_INCOMING_FIXTURE
+const optionalIncomingFixtureScan = engine.scanWikiInternalLinks([
+  {
+    id: "optional-incoming", stableId: "optional-incoming", slug: "optional-incoming",
+    title: "Optional Incoming", shortTitle: "Optional Incoming", categoryId: "foundations",
+    status: "published", indexable: true, publishedAt: "2026-08-16T00:00:00.000Z",
+    deletedAt: null, contentVersion: 1,
+    bodyMarkdown: "[[page:/wiki|Valid Wiki Guide]]",
+    relatedArticleIds: [], contextLinks: [], callToAction: null,
+  },
+]);
+const optionalIncomingFixtureCodes = new Set(
+  optionalIncomingFixtureScan.findings.map((item) => item.code),
+);
+if (optionalIncomingFixtureCodes.has("INCOMING_UNDER_MIN")) {
+  failures.push("default incomingMin=0 still emitted INCOMING_UNDER_MIN");
+}
+if (!optionalIncomingFixtureCodes.has("INCOMING_UNDER_TARGET")) {
+  failures.push("incomingTarget=3 advisory warning was not preserved");
+}
 
 // HALLEUS_WIKI_OPTIONAL_OUTGOING_FIXTURE
 const optionalOutgoingFixtureRules = {

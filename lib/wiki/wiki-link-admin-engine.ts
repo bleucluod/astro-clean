@@ -19,7 +19,8 @@ const CORE_LINK_RE =
 export const DEFAULT_WIKI_LINK_SCAN_RULES: WikiLinkScanRules = {
   outgoingMin: 0,
   outgoingMax: 0,
-  incomingMin: 3,
+  // HALLEUS_WIKI_INCOMING_MIN_OPTIONAL_TARGET3
+  incomingMin: 0,
   incomingTarget: 3,
   incomingMax: 0,
   breadcrumbRequired: true,
