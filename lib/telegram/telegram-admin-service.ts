@@ -7,6 +7,7 @@ import {
 } from "@/lib/admin/admin-database";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import type { TelegramCta, TelegramPlannedContent } from "@/lib/telegram/telegram-content";
+import { TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS } from "@/lib/telegram/telegram-queue";
 
 export type TelegramAdminQueueSummary = {
   currentPackId: string | null;
@@ -16,6 +17,8 @@ export type TelegramAdminQueueSummary = {
   publishedCount: number;
   failedCount: number;
   uncertainCount: number;
+  historicalFailedCount: number;
+  historicalUncertainCount: number;
   stalePublishingCount: number;
   futureScheduledCount: number;
   futureClearableCount: number;
@@ -30,16 +33,34 @@ export type TelegramAdminQueueSummary = {
 
 export async function getTelegramAdminQueueSummary(): Promise<TelegramAdminQueueSummary> {
   const sql = getAdminDatabase();
+  const activeFailureCutoff = new Date(
+    Date.now() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS,
+  ).toISOString();
+
   const rows = await sql`
     select
       count(*) filter (where status = 'draft')::int as draft_count,
       count(*) filter (where status = 'ready')::int as ready_count,
       count(*) filter (where status = 'ready' and attempt_count > 0)::int as retrying_count,
       count(*) filter (where status = 'published')::int as published_count,
-      count(*) filter (where status = 'failed')::int as failed_count,
       count(*) filter (
-        where status = 'failed' and last_error like '[delivery_uncertain]%'
+        where status = 'failed'
+          and scheduled_for > ${activeFailureCutoff}::timestamptz
+      )::int as failed_count,
+      count(*) filter (
+        where status = 'failed'
+          and last_error like '[delivery_uncertain]%'
+          and scheduled_for > ${activeFailureCutoff}::timestamptz
       )::int as uncertain_count,
+      count(*) filter (
+        where status = 'failed'
+          and scheduled_for <= ${activeFailureCutoff}::timestamptz
+      )::int as historical_failed_count,
+      count(*) filter (
+        where status = 'failed'
+          and last_error like '[delivery_uncertain]%'
+          and scheduled_for <= ${activeFailureCutoff}::timestamptz
+      )::int as historical_uncertain_count,
       count(*) filter (
         where status = 'publishing'
           and last_attempt_at < now() - interval '5 minutes'
@@ -91,11 +112,16 @@ export async function getTelegramAdminQueueSummary(): Promise<TelegramAdminQueue
         select last_error
         from halleus_private.telegram_content_queue
         where last_error is not null
+          and not (
+            status = 'failed'
+            and scheduled_for <= ${activeFailureCutoff}::timestamptz
+          )
         order by updated_at desc
         limit 1
       ) as last_error
     from halleus_private.telegram_content_queue
   `;
+
   const row = asRecord(rows[0]);
   return {
     currentPackId: asNullableString(row.current_pack_id),
@@ -105,6 +131,8 @@ export async function getTelegramAdminQueueSummary(): Promise<TelegramAdminQueue
     publishedCount: asNumber(row.published_count),
     failedCount: asNumber(row.failed_count),
     uncertainCount: asNumber(row.uncertain_count),
+    historicalFailedCount: asNumber(row.historical_failed_count),
+    historicalUncertainCount: asNumber(row.historical_uncertain_count),
     stalePublishingCount: asNumber(row.stale_publishing_count),
     futureScheduledCount: asNumber(row.future_scheduled_count),
     futureClearableCount: asNumber(row.future_clearable_count),
@@ -118,12 +146,14 @@ export async function getTelegramAdminQueueSummary(): Promise<TelegramAdminQueue
   };
 }
 
-
 function sanitizeTelegramAdminReason(value: unknown) {
   const raw = asNullableString(value);
   if (!raw) return null;
   if (raw.startsWith("[delivery_uncertain]")) {
     return "تحویل نامشخص است؛ ممکن است پیام ارسال شده باشد و retry برای جلوگیری از انتشار تکراری مسدود است.";
+  }
+  if (raw.startsWith("[expired_window]")) {
+    return "زمان خودکار این پیام گذشته و برای جلوگیری از ارسال دیرهنگام/backfill عمداً ارسال نشده است.";
   }
   if (raw.startsWith("[safe_retry]")) {
     return "خطای قابل‌تلاش مجددِ امن ثبت شده؛ سیستم می‌داند پیام قبلی تحویل نشده است.";
@@ -152,6 +182,7 @@ function sanitizeTelegramAdminReason(value: unknown) {
     .slice(0, 280);
 }
 
+// HALLEUS_TELEGRAM_RETIRED_HISTORY_IMPORT_R1
 export type TelegramContentPackImportConflict = {
   localDate: string;
   incomingCount: number;
@@ -166,6 +197,8 @@ export type TelegramContentPackImportInspection = {
   skippedDuplicateCount: number;
   duplicateDates: string[];
   conflictDates: TelegramContentPackImportConflict[];
+  ignoredRetiredCount: number;
+  ignoredRetiredDates: string[];
 };
 
 function tehranLocalDateFromIso(value: string) {
@@ -183,6 +216,8 @@ type ExistingTelegramImportItem = {
   contentType: string;
   scheduledFor: string;
   renderedText: string;
+  status: string;
+  telegramMessageId: string | null;
 };
 
 function sameStoredTelegramMessage(
@@ -196,15 +231,55 @@ function sameStoredTelegramMessage(
   );
 }
 
+function isBlockingTelegramContentPackExistingItem(
+  existing: ExistingTelegramImportItem,
+  nowMs: number,
+) {
+  if (existing.telegramMessageId) return true;
+  if (
+    ["draft", "ready", "publishing", "published"].includes(existing.status)
+  ) {
+    return true;
+  }
+  if (
+    existing.status === "failed" &&
+    Date.parse(existing.scheduledFor) > nowMs
+  ) {
+    return true;
+  }
+
+  // cancelled/skipped rows are intentionally retired. Failed rows whose send
+  // time is already past stay available in history/Failure Center but must not
+  // block a fresh future pack for the same Tehran date.
+  return false;
+}
+
+function telegramExistingPackIds(items: ExistingTelegramImportItem[]) {
+  return [
+    ...new Set(
+      items
+        .map((item) => item.packId)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ].sort();
+}
+
 export async function inspectTelegramContentPackImport(
   items: TelegramPlannedContent[],
+  now = new Date(),
 ): Promise<TelegramContentPackImportInspection> {
+  if (!Number.isFinite(now.getTime())) {
+    throw new Error("Telegram content-pack import inspection time is invalid.");
+  }
+
   if (items.length === 0) {
     return {
       newItems: [],
       skippedDuplicateCount: 0,
       duplicateDates: [],
       conflictDates: [],
+      ignoredRetiredCount: 0,
+      ignoredRetiredDates: [],
     };
   }
 
@@ -225,15 +300,21 @@ export async function inspectTelegramContentPackImport(
       rendered_payload ->> 'text' as rendered_text,
       scheduled_for::text as scheduled_for,
       (scheduled_for at time zone 'Asia/Tehran')::date::text as local_date,
-      writer_input #>> '{sourceFacts,packId}' as pack_id
+      writer_input #>> '{sourceFacts,packId}' as pack_id,
+      status,
+      telegram_message_id::text
     from halleus_private.telegram_content_queue
     where (scheduled_for at time zone 'Asia/Tehran')::date
       between ${rangeStart}::date and ${rangeEnd}::date
     order by scheduled_for, created_at
   `;
 
-  const existingByDate = new Map<string, ExistingTelegramImportItem[]>();
+  const allExistingByDate = new Map<string, ExistingTelegramImportItem[]>();
+  const blockingExistingByDate = new Map<string, ExistingTelegramImportItem[]>();
   const existingByKey = new Map<string, ExistingTelegramImportItem>();
+  const ignoredRetiredDates = new Set<string>();
+  let ignoredRetiredCount = 0;
+
   for (const raw of rows) {
     const row = asRecord(raw);
     const contentKey = asString(row.content_key);
@@ -244,11 +325,24 @@ export async function inspectTelegramContentPackImport(
       contentType: asString(row.content_type),
       scheduledFor: new Date(asString(row.scheduled_for)).toISOString(),
       renderedText: asString(row.rendered_text),
+      status: asString(row.status),
+      telegramMessageId: asNullableString(row.telegram_message_id),
     };
+
     existingByKey.set(contentKey, stored);
-    const bucket = existingByDate.get(localDate) ?? [];
-    bucket.push(stored);
-    existingByDate.set(localDate, bucket);
+
+    const allBucket = allExistingByDate.get(localDate) ?? [];
+    allBucket.push(stored);
+    allExistingByDate.set(localDate, allBucket);
+
+    if (isBlockingTelegramContentPackExistingItem(stored, now.getTime())) {
+      const blockingBucket = blockingExistingByDate.get(localDate) ?? [];
+      blockingBucket.push(stored);
+      blockingExistingByDate.set(localDate, blockingBucket);
+    } else {
+      ignoredRetiredCount += 1;
+      ignoredRetiredDates.add(localDate);
+    }
   }
 
   const incomingByDate = new Map<string, TelegramPlannedContent[]>();
@@ -259,16 +353,50 @@ export async function inspectTelegramContentPackImport(
     incomingByDate.set(localDate, bucket);
   }
 
-  const duplicateDates: string[] = [];
+  const duplicateDates = new Set<string>();
   const conflictDates: TelegramContentPackImportConflict[] = [];
   const newItems: TelegramPlannedContent[] = [];
   let skippedDuplicateCount = 0;
 
   for (const localDate of [...incomingByDate.keys()].sort()) {
     const incoming = incomingByDate.get(localDate) ?? [];
-    const existing = existingByDate.get(localDate) ?? [];
+    const existing = blockingExistingByDate.get(localDate) ?? [];
+    const allExisting = allExistingByDate.get(localDate) ?? [];
+
     if (existing.length === 0) {
-      newItems.push(...incoming);
+      const freshItems: TelegramPlannedContent[] = [];
+      let duplicateCount = 0;
+      let changedIdentityCount = 0;
+
+      for (const item of incoming) {
+        const sameKey = existingByKey.get(item.contentKey);
+        if (!sameKey) {
+          freshItems.push(item);
+          continue;
+        }
+
+        if (sameStoredTelegramMessage(sameKey, item)) {
+          duplicateCount += 1;
+        } else {
+          changedIdentityCount += 1;
+        }
+      }
+
+      if (changedIdentityCount > 0) {
+        conflictDates.push({
+          localDate,
+          incomingCount: incoming.length,
+          existingCount: allExisting.length,
+          existingPackIds: telegramExistingPackIds(allExisting),
+          changedIdentityCount,
+          freshCount: freshItems.length,
+        });
+        continue;
+      }
+
+      newItems.push(...freshItems);
+      skippedDuplicateCount += duplicateCount;
+      if (duplicateCount > 0) duplicateDates.add(localDate);
       continue;
     }
 
@@ -295,7 +423,7 @@ export async function inspectTelegramContentPackImport(
       freshCount === 0
     ) {
       skippedDuplicateCount += duplicateCount;
-      duplicateDates.push(localDate);
+      duplicateDates.add(localDate);
       continue;
     }
 
@@ -303,13 +431,7 @@ export async function inspectTelegramContentPackImport(
       localDate,
       incomingCount: incoming.length,
       existingCount: existing.length,
-      existingPackIds: [
-        ...new Set(
-          existing
-            .map((item) => item.packId)
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ].sort(),
+      existingPackIds: telegramExistingPackIds(existing),
       changedIdentityCount,
       freshCount,
     });
@@ -318,8 +440,10 @@ export async function inspectTelegramContentPackImport(
   return {
     newItems,
     skippedDuplicateCount,
-    duplicateDates,
+    duplicateDates: [...duplicateDates].sort(),
     conflictDates,
+    ignoredRetiredCount,
+    ignoredRetiredDates: [...ignoredRetiredDates].sort(),
   };
 }
 
@@ -1224,6 +1348,9 @@ export async function retryTelegramAdminQueueItem(input: {
     const row = await loadMutableTelegramRow(tx, input.id);
     const status = asString(row.status);
     const lastError = asNullableString(row.last_error);
+    const scheduledForMs = Date.parse(asString(row.scheduled_for));
+    const automaticExpiryCutoffMs =
+      Date.now() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS;
     ensureExpectedUpdatedAt(asString(row.updated_at), input.expectedUpdatedAt);
 
     if (status !== "failed") {
@@ -1242,6 +1369,15 @@ export async function retryTelegramAdminQueueItem(input: {
       throw new TelegramAdminMutationError(
         409,
         "delivery_uncertain هرگز Retry معمولی نمی‌گیرد؛ ممکن است پیام قبلاً ارسال شده باشد.",
+      );
+    }
+    if (
+      !Number.isFinite(scheduledForMs) ||
+      scheduledForMs <= automaticExpiryCutoffMs
+    ) {
+      throw new TelegramAdminMutationError(
+        409,
+        "زمان این پیام گذشته است و Retry خودکار/دستی برای جلوگیری از backfill دیرهنگام مسدود است؛ نسخهٔ تازه را در Content Pack آینده بساز.",
       );
     }
     if (!lastError?.startsWith("[safe_retry]")) {
@@ -1263,12 +1399,14 @@ export async function retryTelegramAdminQueueItem(input: {
         and status = 'failed'
         and updated_at = ${input.expectedUpdatedAt}::timestamptz
         and telegram_message_id is null
+        and scheduled_for > ${new Date(automaticExpiryCutoffMs).toISOString()}::timestamptz
       returning id::text, updated_at::text
     `;
+
     if (!updated[0]) {
       throw new TelegramAdminMutationError(
         409,
-        "وضعیت پیام هم‌زمان تغییر کرد؛ اول تازه‌سازی کن.",
+        "وضعیت پیام هم‌زمان تغییر کرد یا زمان امن Retry گذشته است؛ اول تازه‌سازی کن.",
       );
     }
 
@@ -1282,7 +1420,7 @@ export async function retryTelegramAdminQueueItem(input: {
         'manual_retry',
         'failed',
         'ready',
-        'Manual safe retry accepted; canonical due-publisher owns the next delivery attempt.',
+        'Manual safe retry accepted inside the automatic freshness window; canonical due-publisher owns the next delivery attempt.',
         0
       )
     `;
@@ -1508,6 +1646,9 @@ export async function getTelegramAdminControlSnapshot() {
   const sql = getAdminDatabase();
   const today = tehranDateFromIso(new Date().toISOString());
   const tomorrow = addLocalDateDays(today, 1);
+  const activeFailureCutoff = new Date(
+    Date.now() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS,
+  ).toISOString();
 
   const controlRows = await sql`
     select global_paused, updated_at::text
@@ -1525,6 +1666,7 @@ export async function getTelegramAdminControlSnapshot() {
       count(*) filter (
         where status = 'ready'
           and scheduled_for <= now()
+          and scheduled_for > ${activeFailureCutoff}::timestamptz
           and (retry_after is null or retry_after <= now())
       )::int as due_now,
       count(*) filter (
@@ -1536,7 +1678,12 @@ export async function getTelegramAdminControlSnapshot() {
       )::int as sent,
       count(*) filter (
         where status = 'failed'
+          and scheduled_for > ${activeFailureCutoff}::timestamptz
       )::int as failed,
+      count(*) filter (
+        where status = 'failed'
+          and scheduled_for <= ${activeFailureCutoff}::timestamptz
+      )::int as historical_failed,
       count(*) filter (
         where status = 'skipped'
       )::int as skipped,
@@ -1546,7 +1693,13 @@ export async function getTelegramAdminControlSnapshot() {
       count(*) filter (
         where status = 'failed'
           and last_error like '[delivery_uncertain]%'
+          and scheduled_for > ${activeFailureCutoff}::timestamptz
       )::int as uncertain,
+      count(*) filter (
+        where status = 'failed'
+          and last_error like '[delivery_uncertain]%'
+          and scheduled_for <= ${activeFailureCutoff}::timestamptz
+      )::int as historical_uncertain,
       count(*) filter (
         where status = 'ready'
           and attempt_count > 0
@@ -1596,6 +1749,7 @@ export async function getTelegramAdminControlSnapshot() {
       left(rendered_payload ->> 'text', 220) as preview_text
     from halleus_private.telegram_content_queue
     where status = 'ready'
+      and scheduled_for > now()
     order by greatest(
       scheduled_for,
       coalesce(retry_after, scheduled_for)
@@ -1698,6 +1852,8 @@ export async function getTelegramAdminControlSnapshot() {
   const dueNow = asNumber(counters.due_now);
   const failed = asNumber(counters.failed);
   const uncertain = asNumber(counters.uncertain);
+  const historicalFailed = asNumber(counters.historical_failed);
+  const historicalUncertain = asNumber(counters.historical_uncertain);
   const stalePublishing = asNumber(counters.stale_publishing);
   const pausedDays = pausedRows.map((raw) => {
     const row = asRecord(raw);
@@ -1738,6 +1894,14 @@ export async function getTelegramAdminControlSnapshot() {
       code: "delivery_uncertain",
       message:
         `${uncertain} پیام delivery_uncertain است؛ Retry معمولی برای آن‌ها عمداً مسدود است.`,
+    });
+  }
+  if (historicalFailed > 0) {
+    alerts.push({
+      level: "info",
+      code: "expired_failure_history",
+      message:
+        `${historicalFailed} پیام ناموفق منقضی فقط در تاریخچه مانده است؛ publisher آن‌ها را خودکار backfill/Retry نمی‌کند.${historicalUncertain > 0 ? ` ${historicalUncertain} مورد delivery_uncertain تاریخی است.` : ""}`,
     });
   }
   if (stalePublishing > 0) {
@@ -1785,10 +1949,12 @@ export async function getTelegramAdminControlSnapshot() {
       scheduled: asNumber(counters.scheduled),
       sent: asNumber(counters.sent),
       failed,
+      historicalFailedCount: historicalFailed,
       skipped: asNumber(counters.skipped),
       cancelled: asNumber(counters.cancelled),
       retryingCount: asNumber(counters.retrying),
       uncertainCount: uncertain,
+      historicalUncertainCount: historicalUncertain,
       stalePublishingCount: stalePublishing,
       todayRemaining: asNumber(counters.today_remaining),
       todayPublished: asNumber(counters.today_published),

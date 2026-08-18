@@ -116,7 +116,11 @@ async function processClaimedTelegramQueueItem(
       return { kind: "retry_scheduled" as const, id: item.id, retryAfter: outcome.retryAfter };
     }
     if (outcome.deliveryUncertain) {
-      return { kind: "delivery_uncertain" as const, id: item.id };
+      return {
+        kind: "delivery_uncertain" as const,
+        id: item.id,
+        autoPaused: outcome.autoPaused,
+      };
     }
     return { kind: "terminal_failed" as const, id: item.id };
   }
@@ -152,6 +156,17 @@ export async function processDueTelegramQueue(limit = 10) {
       retryScheduled.push({ id: outcome.id, retryAfter: outcome.retryAfter });
     } else if (outcome.kind === "delivery_uncertain") {
       deliveryUncertain.push(outcome.id);
+
+      // HALLEUS_TELEGRAM_UNCERTAIN_BATCH_HALT_R2
+      // The queue failure transition atomically arms global pause. Stop this
+      // batch too, so one uncertain transport event can never consume the
+      // remaining per-run publication budget.
+      if (!outcome.autoPaused) {
+        throw new Error(
+          "Telegram uncertain-delivery circuit breaker did not pause publishing.",
+        );
+      }
+      break;
     } else if (outcome.kind === "terminal_failed") {
       terminalFailed.push(outcome.id);
     } else {

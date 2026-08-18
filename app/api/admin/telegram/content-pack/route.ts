@@ -82,7 +82,11 @@ export async function POST(request: Request) {
       (item) => Date.parse(item.scheduledFor) > importStartedAt.getTime(),
     );
 
-    const inspection = await inspectTelegramContentPackImport(importableItems);
+    // HALLEUS_TELEGRAM_IMPORT_RETIRED_HISTORY_R1
+    const inspection = await inspectTelegramContentPackImport(
+      importableItems,
+      importStartedAt,
+    );
     if (inspection.conflictDates.length > 0) {
       const conflictText = inspection.conflictDates
         .map((conflict) => {
@@ -121,6 +125,8 @@ export async function POST(request: Request) {
         pastCutoff: importStartedAt.toISOString(),
         skippedDuplicateCount: inspection.skippedDuplicateCount,
         duplicateDates: inspection.duplicateDates,
+        ignoredRetiredCount: inspection.ignoredRetiredCount,
+        ignoredRetiredDates: inspection.ignoredRetiredDates,
         rangeStart: parsed.rangeStart,
         rangeEnd: parsed.rangeEnd,
         timezone: parsed.timezone,
@@ -142,6 +148,8 @@ export async function POST(request: Request) {
           pastCutoff: importStartedAt.toISOString(),
           skippedDuplicateCount: inspection.skippedDuplicateCount,
           duplicateDates: inspection.duplicateDates,
+          ignoredRetiredCount: inspection.ignoredRetiredCount,
+          ignoredRetiredDates: inspection.ignoredRetiredDates,
           alreadyImported:
             pastItems.length === 0 &&
             queued.length === 0 &&

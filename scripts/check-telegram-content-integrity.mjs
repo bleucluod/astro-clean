@@ -206,3 +206,67 @@ console.log("- Telegram HTML CTAs hide raw URLs and target Halleus routes");
 console.log("- queue claim/idempotency, bounded safe retry, and uncertain-delivery quarantine are explicit");
 console.log("- Iran VPS publishes only through the authenticated Cloudflare bridge and fixed channel target");
 console.log("HALLEUS_TELEGRAM_CONTENT_INTEGRITY_SLICE1_20260808");
+
+
+// HALLEUS_TELEGRAM_EXPIRED_BACKLOG_NO_BACKFILL_R1_GUARD
+{
+  const expiryQueue = read("lib/telegram/telegram-queue.ts");
+
+  for (const marker of [
+    "HALLEUS_TELEGRAM_EXPIRED_BACKLOG_NO_BACKFILL_R1",
+    "TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS = 30 * 60_000",
+    "expiredBeforeDispatch",
+    "[expired_window]",
+    "expired_without_backfill",
+    "scheduled_for <= ${automaticExpiryCutoff}::timestamptz",
+    "scheduled_for > ${automaticExpiryCutoff}::timestamptz",
+    "Automatic send freshness expired",
+  ]) {
+    assert(
+      expiryQueue.includes(marker),
+      "Telegram expired-backlog guard missing marker: " + marker,
+    );
+  }
+
+  assert(
+    expiryQueue.indexOf("scheduled_for <= ${automaticExpiryCutoff}::timestamptz") <
+      expiryQueue.indexOf("select queue.id::text"),
+    "Expired ready backlog must be retired before the next automatic claim.",
+  );
+}
+
+console.log("HALLEUS_TELEGRAM_EXPIRED_BACKLOG_NO_BACKFILL_R1_GUARD=PASS");
+
+
+// HALLEUS_TELEGRAM_UNCERTAIN_CIRCUIT_BREAKER_R2_GUARD
+for (const marker of [
+  "HALLEUS_TELEGRAM_UNCERTAIN_CIRCUIT_BREAKER_R2",
+  "autoPaused: boolean",
+  "input.failure.deliveryUncertain",
+  "update halleus_private.telegram_publish_control",
+  "global_paused = true",
+  "auto_pause_delivery_uncertain",
+]) {
+  assert(
+    queueSource.includes(marker),
+    "Telegram delivery-uncertain circuit breaker missing queue marker: " +
+      marker,
+  );
+}
+
+for (const marker of [
+  "HALLEUS_TELEGRAM_UNCERTAIN_BATCH_HALT_R2",
+  "autoPaused: outcome.autoPaused",
+  "if (!outcome.autoPaused)",
+  "break;",
+]) {
+  assert(
+    serviceSource.includes(marker),
+    "Telegram delivery-uncertain batch halt missing service marker: " +
+      marker,
+  );
+}
+
+console.log(
+  "HALLEUS_TELEGRAM_UNCERTAIN_CIRCUIT_BREAKER_R2_GUARD=PASS",
+);

@@ -18,6 +18,11 @@ import {
   type TelegramDeliveryFailure,
 } from "@/lib/telegram/telegram-publishing-hardening";
 
+// HALLEUS_TELEGRAM_EXPIRED_BACKLOG_NO_BACKFILL_R1
+// Automatic publishing gets a bounded freshness window. Older ready items are
+// retired as skipped history instead of being burst-sent after downtime.
+export const TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS = 30 * 60_000;
+
 export type TelegramQueueInitialStatus = "draft" | "ready";
 
 export type TelegramQueueItem = {
@@ -36,10 +41,12 @@ export type TelegramQueueFailureOutcome = {
   retried: boolean;
   terminal: boolean;
   deliveryUncertain: boolean;
+  autoPaused: boolean;
   retryAfter: string | null;
 };
 
 export type TelegramQueueRecoveryResult = {
+  expiredBeforeDispatch: number;
   recoveredBeforeDispatch: number;
   quarantinedUncertain: number;
 };
@@ -198,9 +205,48 @@ export async function enqueueTelegramContentPack(items: TelegramPlannedContent[]
 export async function recoverStaleTelegramQueueItems(
   now = new Date(),
 ): Promise<TelegramQueueRecoveryResult> {
-  const cutoff = new Date(now.getTime() - TELEGRAM_STALE_PUBLISHING_MS).toISOString();
+  const staleCutoff = new Date(
+    now.getTime() - TELEGRAM_STALE_PUBLISHING_MS,
+  ).toISOString();
+  const automaticExpiryCutoff = new Date(
+    now.getTime() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS,
+  ).toISOString();
   const sql = getAdminDatabase();
+
   return sql.begin(async (tx) => {
+    const expiredRows = await tx`
+      with moved as (
+        update halleus_private.telegram_content_queue
+        set status = 'skipped',
+            retry_after = null,
+            last_error = '[expired_window] stale pre-dispatch claim exceeded automatic send freshness; not backfilled',
+            updated_at = now()
+        where status = 'publishing'
+          and last_attempt_at < ${staleCutoff}::timestamptz
+          and dispatch_started_at is null
+          and scheduled_for <= ${automaticExpiryCutoff}::timestamptz
+          and telegram_message_id is null
+        returning id, attempt_count
+      ),
+      events as (
+        insert into halleus_private.telegram_queue_events (
+          queue_id, event_type, status_before, status_after,
+          reason, attempt_count
+        )
+        select
+          id,
+          'expired_without_backfill',
+          'publishing',
+          'skipped',
+          'Automatic send freshness expired before external dispatch; message intentionally not backfilled.',
+          attempt_count
+        from moved
+        returning queue_id
+      )
+      select count(*)::int as expired_count
+      from events
+    `;
+
     const recovered = await tx`
       update halleus_private.telegram_content_queue
       set status = 'ready',
@@ -209,10 +255,13 @@ export async function recoverStaleTelegramQueueItems(
           last_error = '[recovered_pre_dispatch] stale claim recovered before external dispatch',
           updated_at = now()
       where status = 'publishing'
-        and last_attempt_at < ${cutoff}::timestamptz
+        and last_attempt_at < ${staleCutoff}::timestamptz
         and dispatch_started_at is null
+        and scheduled_for > ${automaticExpiryCutoff}::timestamptz
+        and telegram_message_id is null
       returning id
     `;
+
     const uncertain = await tx`
       update halleus_private.telegram_content_queue
       set status = 'failed',
@@ -220,11 +269,15 @@ export async function recoverStaleTelegramQueueItems(
           last_error = '[delivery_uncertain] stale publishing item had already started external dispatch; automatic retry blocked',
           updated_at = now()
       where status = 'publishing'
-        and last_attempt_at < ${cutoff}::timestamptz
+        and last_attempt_at < ${staleCutoff}::timestamptz
         and dispatch_started_at is not null
       returning id
     `;
+
     return {
+      expiredBeforeDispatch: asNumber(
+        asRecord(expiredRows[0]).expired_count,
+      ),
       recoveredBeforeDispatch: recovered.length,
       quarantinedUncertain: uncertain.length,
     };
@@ -233,13 +286,50 @@ export async function recoverStaleTelegramQueueItems(
 
 // HALLEUS_TELEGRAM_PHASE2_R2_CANONICAL_CLAIM
 export async function claimDueTelegramQueueItem() {
+  const automaticExpiryCutoff = new Date(
+    Date.now() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS,
+  ).toISOString();
   const sql = getAdminDatabase();
+
   return sql.begin(async (tx) => {
+    await tx`
+      with moved as (
+        update halleus_private.telegram_content_queue
+        set status = 'skipped',
+            retry_after = null,
+            last_error = '[expired_window] automatic publisher skipped stale ready item; not backfilled',
+            updated_at = now()
+        where status = 'ready'
+          and scheduled_for <= ${automaticExpiryCutoff}::timestamptz
+          and telegram_message_id is null
+        returning id, attempt_count
+      ),
+      events as (
+        insert into halleus_private.telegram_queue_events (
+          queue_id, event_type, status_before, status_after,
+          reason, attempt_count
+        )
+        select
+          id,
+          'expired_without_backfill',
+          'ready',
+          'skipped',
+          'Automatic send freshness expired; message intentionally not backfilled.',
+          attempt_count
+        from moved
+        returning queue_id
+      )
+      select count(*)::int as expired_count
+      from events
+    `;
+
     const rows = await tx`
       select queue.id::text
       from halleus_private.telegram_content_queue as queue
       where queue.status = 'ready'
         and queue.scheduled_for <= now()
+        and queue.scheduled_for > ${automaticExpiryCutoff}::timestamptz
+        and queue.telegram_message_id is null
         and (retry_after is null or retry_after <= now())
         and queue.attempt_count < ${TELEGRAM_PUBLISH_MAX_ATTEMPTS}
         and not exists (
@@ -257,8 +347,10 @@ export async function claimDueTelegramQueueItem() {
       for update skip locked
       limit 1
     `;
+
     if (!rows[0]) return null;
     const id = asString(rows[0].id);
+
     const claimed = await tx`
       update halleus_private.telegram_content_queue
       set status = 'publishing',
@@ -270,11 +362,14 @@ export async function claimDueTelegramQueueItem() {
           last_error = null
       where id = ${id}::uuid
         and status = 'ready'
+        and scheduled_for > ${automaticExpiryCutoff}::timestamptz
+        and telegram_message_id is null
         and attempt_count < ${TELEGRAM_PUBLISH_MAX_ATTEMPTS}
       returning id::text, content_key, content_class, content_type,
                 rendered_payload, scheduled_for, status, attempt_count,
                 telegram_message_id::text
     `;
+
     return claimed[0] ? readQueueItem(claimed[0]) : null;
   });
 }
@@ -442,6 +537,7 @@ export async function markTelegramQueuePublished(
   });
 }
 
+// HALLEUS_TELEGRAM_UNCERTAIN_CIRCUIT_BREAKER_R2
 export async function markTelegramQueueDeliveryFailure(input: {
   id: string;
   attemptCount: number;
@@ -453,22 +549,65 @@ export async function markTelegramQueueDeliveryFailure(input: {
     failure: input.failure,
   });
   const delayMs = retry ? getTelegramSafeRetryDelayMs(input.attemptCount) : null;
-  const retryAfter = delayMs === null ? null : new Date(Date.now() + delayMs).toISOString();
+  const retryAfter =
+    delayMs === null ? null : new Date(Date.now() + delayMs).toISOString();
   const tag = telegramFailureTag(input.failure);
   const message = `[${tag}] ${input.failure.message}`.slice(0, 1200);
-  const rows = await sql`
-    update halleus_private.telegram_content_queue
-    set status = ${retry ? "ready" : "failed"},
-        retry_after = ${retryAfter}::timestamptz,
-        dispatch_started_at = case when ${retry} then null else dispatch_started_at end,
-        last_error = ${message},
-        updated_at = now()
-    where id = ${input.id}::uuid and status = 'publishing'
-    returning id::text
-  `;
-  if (!rows[0]) {
-    throw new Error("Telegram queue failure outcome could not be persisted.");
-  }
+
+  const persisted = await sql.begin(async (tx) => {
+    const rows = await tx`
+      update halleus_private.telegram_content_queue
+      set status = ${retry ? "ready" : "failed"},
+          retry_after = ${retryAfter}::timestamptz,
+          dispatch_started_at =
+            case when ${retry} then null else dispatch_started_at end,
+          last_error = ${message},
+          updated_at = now()
+      where id = ${input.id}::uuid
+        and status = 'publishing'
+      returning id::text
+    `;
+
+    if (!rows[0]) {
+      throw new Error(
+        "Telegram queue failure outcome could not be persisted.",
+      );
+    }
+
+    let autoPaused = false;
+    if (input.failure.deliveryUncertain) {
+      const changedControl = await tx`
+        update halleus_private.telegram_publish_control
+        set global_paused = true,
+            updated_by = null,
+            updated_at = now()
+        where singleton = true
+          and global_paused = false
+        returning global_paused
+      `;
+
+      if (changedControl[0]) {
+        autoPaused = changedControl[0].global_paused === true;
+      } else {
+        const currentControl = await tx`
+          select global_paused
+          from halleus_private.telegram_publish_control
+          where singleton = true
+          limit 1
+        `;
+        autoPaused = currentControl[0]?.global_paused === true;
+      }
+
+      if (!autoPaused) {
+        throw new Error(
+          "Delivery-uncertain failure could not arm the Telegram global pause circuit breaker.",
+        );
+      }
+    }
+
+    return { autoPaused };
+  });
+
   await recordTelegramQueueEventBestEffort({
     queueId: input.id,
     eventType: retry
@@ -481,13 +620,28 @@ export async function markTelegramQueueDeliveryFailure(input: {
     reason: message,
     attemptCount: input.attemptCount,
   });
+
+  if (input.failure.deliveryUncertain && persisted.autoPaused) {
+    await recordTelegramQueueEventBestEffort({
+      queueId: input.id,
+      eventType: "auto_pause_delivery_uncertain",
+      statusBefore: "failed",
+      statusAfter: "failed",
+      reason:
+        "Global Telegram publishing paused automatically after uncertain external delivery.",
+      attemptCount: input.attemptCount,
+    });
+  }
+
   return {
     retried: retry,
     terminal: !retry,
     deliveryUncertain: input.failure.deliveryUncertain,
+    autoPaused: persisted.autoPaused,
     retryAfter,
   };
 }
+
 export class TelegramQueueOperationError extends Error {
   readonly status: number;
 

@@ -341,3 +341,58 @@ console.log("HALLEUS_TELEGRAM_CONTENT_PACK_SLICE2_20260809");
 }
 
 console.log("HALLEUS_TELEGRAM_SMARTPACK_SMOKE_HARDENING_R13");
+
+
+// HALLEUS_TELEGRAM_RETIRED_HISTORY_IMPORT_R1_GUARD
+// HALLEUS_TELEGRAM_RETIRED_HISTORY_IMPORT_R2_GUARD_FIX
+{
+  const retiredAdmin = read("lib/telegram/telegram-admin-service.ts");
+  const retiredRoute = read("app/api/admin/telegram/content-pack/route.ts");
+
+  for (const marker of [
+    "HALLEUS_TELEGRAM_RETIRED_HISTORY_IMPORT_R1",
+    "isBlockingTelegramContentPackExistingItem",
+    "cancelled/skipped rows are intentionally retired",
+    'existing.status === "failed"',
+    "ignoredRetiredCount",
+    "ignoredRetiredDates",
+    "existingByKey",
+    "sameStoredTelegramMessage",
+    "historicalFailedCount",
+    "historicalUncertainCount",
+    "expired_failure_history",
+  ]) {
+    assert(
+      retiredAdmin.includes(marker),
+      "Telegram retired-history import policy missing marker: " + marker,
+    );
+  }
+
+  for (const marker of [
+    "HALLEUS_TELEGRAM_IMPORT_RETIRED_HISTORY_R1",
+    "inspectTelegramContentPackImport(",
+    "importStartedAt",
+    "ignoredRetiredCount",
+    "ignoredRetiredDates",
+  ]) {
+    assert(
+      retiredRoute.includes(marker),
+      "Telegram import route retired-history handoff missing marker: " + marker,
+    );
+  }
+
+  assert(
+    retiredAdmin.includes(
+      '["draft", "ready", "publishing", "published"].includes(existing.status)',
+    ),
+    "Active/published same-day content must continue blocking accidental overlap.",
+  );
+  assert(
+    retiredAdmin.includes(
+      "Failed rows whose send\n  // time is already past stay available in history/Failure Center",
+    ),
+    "Expired failed rows must remain historical rather than being silently deleted.",
+  );
+}
+
+console.log("HALLEUS_TELEGRAM_RETIRED_HISTORY_IMPORT_R1_GUARD=PASS");
