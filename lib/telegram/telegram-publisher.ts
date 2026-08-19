@@ -49,6 +49,49 @@ export function readTelegramPublishFailure(error: unknown): TelegramDeliveryFail
   };
 }
 
+// HALLEUS_TELEGRAM_BRIDGE_HEALTH_PROBE_R3
+export async function probeTelegramBridgeTransport() {
+  let bridge: ReturnType<typeof bridgeConfig>;
+  try {
+    bridge = bridgeConfig();
+  } catch {
+    return false;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
+  try {
+    const response = await fetch(
+      bridgeEndpoint(bridge.baseUrl, "/telegram/check-member"),
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-halleus-bridge-secret": bridge.secret,
+        },
+        body: JSON.stringify({
+          telegramUserId: "invalid-diagnostic-id",
+        }),
+        cache: "no-store",
+        signal: controller.signal,
+      },
+    );
+    const body = (await response.json().catch(() => null)) as
+      | { ok?: unknown; error?: unknown }
+      | null;
+
+    return (
+      response.status === 400 &&
+      body?.ok === false &&
+      typeof body.error === "string"
+    );
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function publishTelegramPayload(input: {
   queueId: string;
   payload: TelegramRenderedPayload;

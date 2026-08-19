@@ -284,6 +284,230 @@ export async function recoverStaleTelegramQueueItems(
   });
 }
 
+// HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3
+export const TELEGRAM_AUTO_PAUSE_RECOVERY_COOLDOWN_MS = 5 * 60_000;
+
+export type TelegramAutoPauseRecoveryResult = {
+  eligible: boolean;
+  bridgeHealthy: boolean | null;
+  resumed: boolean;
+  expiredSkipped: number;
+  reason:
+    | "not_paused"
+    | "manual_pause"
+    | "cooldown"
+    | "missing_circuit_event"
+    | "bridge_unhealthy"
+    | "state_changed"
+    | "resumed";
+};
+
+export async function recoverTelegramAutoPausedPublisher(input: {
+  checkBridge: () => Promise<boolean>;
+  now?: Date;
+}): Promise<TelegramAutoPauseRecoveryResult> {
+  const now = input.now ?? new Date();
+  const cooldownCutoff = new Date(
+    now.getTime() - TELEGRAM_AUTO_PAUSE_RECOVERY_COOLDOWN_MS,
+  ).toISOString();
+  const automaticExpiryCutoff = new Date(
+    now.getTime() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS,
+  ).toISOString();
+  const sql = getAdminDatabase();
+
+  const controlRows = await sql`
+    select global_paused, updated_by::text, updated_at::text
+    from halleus_private.telegram_publish_control
+    where singleton = true
+    limit 1
+  `;
+  if (!controlRows[0]) {
+    throw new Error("Telegram publish control row is missing.");
+  }
+
+  const control = asRecord(controlRows[0]);
+  if (control.global_paused !== true) {
+    return {
+      eligible: false,
+      bridgeHealthy: null,
+      resumed: false,
+      expiredSkipped: 0,
+      reason: "not_paused",
+    };
+  }
+  if (asNullableString(control.updated_by)) {
+    return {
+      eligible: false,
+      bridgeHealthy: null,
+      resumed: false,
+      expiredSkipped: 0,
+      reason: "manual_pause",
+    };
+  }
+
+  const controlUpdatedAt = new Date(asString(control.updated_at)).toISOString();
+  if (Date.parse(controlUpdatedAt) > Date.parse(cooldownCutoff)) {
+    return {
+      eligible: false,
+      bridgeHealthy: null,
+      resumed: false,
+      expiredSkipped: 0,
+      reason: "cooldown",
+    };
+  }
+
+  const causalRows = await sql`
+    select queue_id::text
+    from halleus_private.telegram_queue_events
+    where event_type = 'auto_pause_delivery_uncertain'
+      and created_at >= ${
+        new Date(Date.parse(controlUpdatedAt) - 15_000).toISOString()
+      }::timestamptz
+      and created_at <= ${
+        new Date(Date.parse(controlUpdatedAt) + 30_000).toISOString()
+      }::timestamptz
+    order by created_at asc
+    limit 1
+  `;
+  if (!causalRows[0]) {
+    return {
+      eligible: false,
+      bridgeHealthy: null,
+      resumed: false,
+      expiredSkipped: 0,
+      reason: "missing_circuit_event",
+    };
+  }
+  const causalQueueId = asString(causalRows[0].queue_id);
+
+  let bridgeHealthy = false;
+  try {
+    bridgeHealthy = await input.checkBridge();
+  } catch {
+    bridgeHealthy = false;
+  }
+  if (!bridgeHealthy) {
+    return {
+      eligible: true,
+      bridgeHealthy: false,
+      resumed: false,
+      expiredSkipped: 0,
+      reason: "bridge_unhealthy",
+    };
+  }
+
+  return sql.begin(async (tx) => {
+    const lockedRows = await tx`
+      select global_paused, updated_by::text, updated_at::text
+      from halleus_private.telegram_publish_control
+      where singleton = true
+      for update
+      limit 1
+    `;
+    if (!lockedRows[0]) {
+      throw new Error("Telegram publish control row is missing.");
+    }
+
+    const locked = asRecord(lockedRows[0]);
+    const lockedUpdatedAt = new Date(asString(locked.updated_at)).toISOString();
+    if (
+      locked.global_paused !== true ||
+      asNullableString(locked.updated_by) ||
+      lockedUpdatedAt !== controlUpdatedAt
+    ) {
+      return {
+        eligible: true,
+        bridgeHealthy: true,
+        resumed: false,
+        expiredSkipped: 0,
+        reason: "state_changed" as const,
+      };
+    }
+
+    const updatedRows = await tx`
+      update halleus_private.telegram_publish_control
+      set global_paused = false,
+          updated_by = null,
+          updated_at = now()
+      where singleton = true
+        and global_paused = true
+        and updated_by is null
+        and updated_at = ${controlUpdatedAt}::timestamptz
+      returning global_paused
+    `;
+    if (!updatedRows[0]) {
+      return {
+        eligible: true,
+        bridgeHealthy: true,
+        resumed: false,
+        expiredSkipped: 0,
+        reason: "state_changed" as const,
+      };
+    }
+
+    const skippedRows = await tx`
+      with moved as (
+        update halleus_private.telegram_content_queue
+        set status = 'skipped',
+            retry_after = null,
+            last_error = '[pause_resume_skip] expired while automatic publishing was paused; not backfilled',
+            updated_at = now()
+        where status = 'ready'
+          and telegram_message_id is null
+          and (
+            scheduled_for <= ${automaticExpiryCutoff}::timestamptz
+            or (scheduled_for at time zone 'Asia/Tehran')::date <
+              (now() at time zone 'Asia/Tehran')::date
+          )
+        returning id, attempt_count
+      ),
+      events as (
+        insert into halleus_private.telegram_queue_events (
+          queue_id, event_type, status_before, status_after,
+          reason, attempt_count
+        )
+        select
+          id,
+          'pause_resume_backlog_skipped',
+          'ready',
+          'skipped',
+          'Expired while automatic circuit-breaker pause was active; not backfilled.',
+          attempt_count
+        from moved
+        returning queue_id
+      )
+      select count(*)::int as skipped_count
+      from events
+    `;
+    const expiredSkipped = asNumber(asRecord(skippedRows[0]).skipped_count);
+
+    await tx`
+      insert into halleus_private.telegram_queue_events (
+        queue_id, event_type, status_before, status_after,
+        reason, attempt_count
+      )
+      select
+        id,
+        'auto_resume_delivery_uncertain',
+        'failed',
+        'failed',
+        'Automatic circuit-breaker pause recovered after cooldown and healthy authenticated bridge transport probe.',
+        attempt_count
+      from halleus_private.telegram_content_queue
+      where id = ${causalQueueId}::uuid
+      limit 1
+    `;
+
+    return {
+      eligible: true,
+      bridgeHealthy: true,
+      resumed: true,
+      expiredSkipped,
+      reason: "resumed" as const,
+    };
+  });
+}
+
 // HALLEUS_TELEGRAM_PHASE2_R2_CANONICAL_CLAIM
 export async function claimDueTelegramQueueItem() {
   const automaticExpiryCutoff = new Date(

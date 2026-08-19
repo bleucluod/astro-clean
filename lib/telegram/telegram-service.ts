@@ -10,9 +10,11 @@ import {
   markTelegramQueueDispatchStarted,
   markTelegramQueuePublished,
   recoverStaleTelegramQueueItems,
+  recoverTelegramAutoPausedPublisher,
   type TelegramQueueInitialStatus,
 } from "@/lib/telegram/telegram-queue";
 import {
+  probeTelegramBridgeTransport,
   publishTelegramPayload,
   readTelegramPublishFailure,
 } from "@/lib/telegram/telegram-publisher";
@@ -140,6 +142,9 @@ async function processClaimedTelegramQueueItem(
 export async function processDueTelegramQueue(limit = 10) {
   const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 10);
   const recovery = await recoverStaleTelegramQueueItems();
+  const autoPauseRecovery = await recoverTelegramAutoPausedPublisher({
+    checkBridge: probeTelegramBridgeTransport,
+  });
   const published: Array<{ id: string; messageId: number }> = [];
   const retryScheduled: Array<{ id: string; retryAfter: string | null }> = [];
   const terminalFailed: string[] = [];
@@ -181,6 +186,7 @@ export async function processDueTelegramQueue(limit = 10) {
     deliveryUncertain,
     finalizationPending,
     recovery,
+    autoPauseRecovery,
   };
 }
 

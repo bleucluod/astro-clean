@@ -15,6 +15,7 @@ const contentSource = read("lib/telegram/telegram-content.ts");
 const serviceSource = read("lib/telegram/telegram-service.ts");
 const queueSource = read("lib/telegram/telegram-queue.ts");
 const publisherSource = read("lib/telegram/telegram-publisher.ts");
+const adminServiceSource = read("lib/telegram/telegram-admin-service.ts");
 const bridgeSource = read("ops/cloudflare/telegram-bridge/worker.mjs");
 const wranglerSource = read("ops/cloudflare/telegram-bridge/wrangler.toml");
 const migrationSource = read("database/migrations/0011_telegram_content_queue.sql");
@@ -270,3 +271,63 @@ for (const marker of [
 console.log(
   "HALLEUS_TELEGRAM_UNCERTAIN_CIRCUIT_BREAKER_R2_GUARD=PASS",
 );
+
+// HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3_GUARD
+for (const marker of [
+  "HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3",
+  "TELEGRAM_AUTO_PAUSE_RECOVERY_COOLDOWN_MS = 5 * 60_000",
+  "updated_by::text",
+  "auto_pause_delivery_uncertain",
+  "auto_resume_delivery_uncertain",
+  "scheduled_for <= ${automaticExpiryCutoff}::timestamptz",
+  "at time zone 'Asia/Tehran'",
+]) {
+  assert(
+    queueSource.includes(marker),
+    "Telegram auto-pause recovery missing queue marker: " + marker,
+  );
+}
+
+for (const marker of [
+  "HALLEUS_TELEGRAM_BRIDGE_HEALTH_PROBE_R3",
+  "probeTelegramBridgeTransport",
+  '"/telegram/check-member"',
+  '"invalid-diagnostic-id"',
+  "response.status === 400",
+]) {
+  assert(
+    publisherSource.includes(marker),
+    "Telegram bridge health probe missing publisher marker: " + marker,
+  );
+}
+
+for (const marker of [
+  "recoverTelegramAutoPausedPublisher",
+  "checkBridge: probeTelegramBridgeTransport",
+  "autoPauseRecovery",
+]) {
+  assert(
+    serviceSource.includes(marker),
+    "Telegram service auto-recovery wiring missing marker: " + marker,
+  );
+}
+
+for (const marker of [
+  "HALLEUS_TELEGRAM_RESUME_FRESHNESS_R3",
+  "TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS",
+  "scheduled_for <= ${automaticExpiryCutoff}::timestamptz",
+  "at time zone 'Asia/Tehran'",
+]) {
+  assert(
+    adminServiceSource.includes(marker),
+    "Telegram admin resume freshness missing marker: " + marker,
+  );
+}
+
+assert(
+  bridgeSource.indexOf("if (!/^\\d{1,19}$/u.test(telegramUserId))") <
+    bridgeSource.indexOf('telegramRequest(env, "getChatMember"'),
+  "Bridge health probe contract changed: invalid member ids must fail before Telegram API dispatch.",
+);
+
+console.log("HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3_GUARD=PASS");

@@ -1465,6 +1465,13 @@ export async function setTelegramAdminGlobalPause(input: {
 
     let backlogSkipped = 0;
     if (!input.paused) {
+      // HALLEUS_TELEGRAM_RESUME_FRESHNESS_R3
+      // Keep same-day ready items inside the canonical 30-minute freshness
+      // window. Previous Tehran-day items never backfill after resume.
+      const automaticExpiryCutoff = new Date(
+        Date.now() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS,
+      ).toISOString();
+      const today = tehranDateFromIso(new Date().toISOString());
       const skippedRows = await tx`
         with moved as (
           update halleus_private.telegram_content_queue
@@ -1473,7 +1480,11 @@ export async function setTelegramAdminGlobalPause(input: {
               last_error = '[pause_resume_skip] missed while global publishing was paused; not backfilled',
               updated_at = now()
           where status = 'ready'
-            and scheduled_for <= now()
+            and (
+              scheduled_for <= ${automaticExpiryCutoff}::timestamptz
+              or (scheduled_for at time zone 'Asia/Tehran')::date <
+                ${today}::date
+            )
           returning id, attempt_count
         ),
         events as (
@@ -1594,6 +1605,12 @@ export async function resumeTelegramAdminDay(input: {
       };
     }
 
+    // HALLEUS_TELEGRAM_RESUME_FRESHNESS_R3_DAY
+    const automaticExpiryCutoff = new Date(
+      Date.now() - TELEGRAM_AUTOMATIC_SEND_MAX_LATE_MS,
+    ).toISOString();
+    const today = tehranDateFromIso(new Date().toISOString());
+
     const skippedRows = await tx`
       with moved as (
         update halleus_private.telegram_content_queue
@@ -1602,7 +1619,11 @@ export async function resumeTelegramAdminDay(input: {
             last_error = '[pause_resume_skip] missed while this Tehran day was paused; not backfilled',
             updated_at = now()
         where status = 'ready'
-          and scheduled_for <= now()
+          and (
+            scheduled_for <= ${automaticExpiryCutoff}::timestamptz
+            or (scheduled_for at time zone 'Asia/Tehran')::date <
+              ${today}::date
+          )
           and (scheduled_for at time zone 'Asia/Tehran')::date =
             ${input.localDate}::date
         returning id, attempt_count
