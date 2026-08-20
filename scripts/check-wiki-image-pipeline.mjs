@@ -14,6 +14,7 @@ const service = read("lib/wiki/wiki-image-service.ts");
 const zipSource = read("lib/wiki/wiki-image-zip.ts");
 const route = read("app/api/admin/wiki/image-pipeline/route.ts");
 const panel = read("components/admin/WikiImagePipelinePanel.tsx");
+const operationsCss = read("components/admin/wiki-image-pipeline.module.css");
 const wikiPanel = read("components/admin/WikiAdminPanel.tsx");
 const media = read("lib/wiki/wiki-media.ts");
 const repository = read("lib/wiki/wiki-repository.ts");
@@ -55,6 +56,14 @@ assert(service.includes("stageDirectWikiImage"), "direct upload path missing");
 assert(service.includes("stageExistingWikiAsset"), "asset selection path missing");
 assert(service.includes("wiki_article_image_history"), "image version history missing");
 assert(service.includes("reason"), "mutation reason/audit trail missing");
+assert(service.includes("HALLEUS_WIKI_IMAGE_EXPORT_SAFE_R1"), "safe export ordering marker missing");
+assert(service.includes("candidateRows.map"), "export must avoid fragile SQL array filtering");
+assert(!service.includes("article.stable_id = any("), "export must not use the failing array ANY filter");
+assert(service.indexOf("createWikiImageZip(entries)") < service.indexOf("insert into halleus_private.wiki_image_batches"), "ZIP must be built before batch persistence");
+assert(service.includes("identical AI image batch was exported in the last 5 minutes"), "ambiguous retry duplicate guard missing");
+assert(service.includes("ensureWikiImageStyleSnapshot"), "style snapshot invariant repair missing");
+assert(service.includes("libraryAssets"), "asset library state missing");
+assert(service.includes("mutateWikiImageAsset"), "asset metadata/archive mutation missing");
 
 assert(route.includes('requireAdminCapability(request, "wiki.read")'), "image read capability guard missing");
 assert(route.includes('requireAdminCapability(request, "wiki.media.write")'), "image mutation capability guard missing");
@@ -63,6 +72,10 @@ assert(route.includes("assertAdminUploadRequest(request)"), "upload origin guard
 assert(route.includes('action === "preview_import"'), "preview endpoint missing");
 assert(route.includes('action === "apply_import"'), "apply endpoint missing");
 assert(route.includes('action === "direct_upload"'), "direct upload endpoint missing");
+assert(route.includes('action === "asset_metadata" || action === "asset_archive"'), "asset library mutations missing");
+assert(route.includes("correlationId"), "pipeline correlation id missing");
+assert(route.includes("retrySafe"), "safe retry signal missing");
+assert(route.includes("stage = \"export_generate\""), "export error stage missing");
 
 assert(panel.includes("file.size > 400_000"), "client result package size validation missing");
 assert(panel.includes("signature[0] !== 0x50"), "client ZIP signature validation missing");
@@ -73,6 +86,17 @@ assert(panel.includes("آپلود مستقیم تصویر"), "direct image uploa
 assert(panel.includes("انتخاب asset آماده"), "existing asset selection UI missing");
 assert(panel.includes("تاریخچهٔ تصویر"), "image history UI missing");
 assert(panel.includes("انتشار بدون تصویر معتبر است"), "NO_IMAGE must not block publication");
+assert(panel.includes('data-halleus-wiki-image-operations-r1="true"'), "operations UI marker missing");
+assert(panel.includes("کتابخانه تصاویر"), "asset library tab missing");
+assert(panel.includes("تاریخچه Batchها"), "batch history tab missing");
+assert(panel.includes("انتخاب ۵ مورد اول این فیلتر"), "filtered max-5 selection missing");
+assert(panel.includes("دسته‌بندی"), "category filter missing");
+assert(panel.includes("نیازمند اقدام من"), "action-needed filter missing");
+assert(panel.includes('data-wiki-image-import-flow="three-step"'), "three-step import UI missing");
+assert(panel.includes("شناسه پیگیری"), "correlation-id error UI missing");
+assert(operationsCss.includes(".articleRow"), "row-based article UI CSS missing");
+assert(operationsCss.includes(".assetList"), "asset library CSS missing");
+assert(operationsCss.includes(".batchList"), "batch history CSS missing");
 assert(wikiPanel.includes("WikiImagePipelinePanel"), "Wiki Admin image module integration missing");
 assert(wikiPanel.includes("compactStableId={draft.stableId}"), "article editor image section missing");
 

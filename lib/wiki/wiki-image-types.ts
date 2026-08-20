@@ -41,6 +41,8 @@ export type WikiImageArticleRow = {
   stableId: string;
   slug: string;
   title: string;
+  categoryId: string;
+  categoryLabel: string;
   status: string;
   indexable: boolean;
   publicationPriority: number;
@@ -58,6 +60,49 @@ export type WikiImageArticleRow = {
   imageUrl: string | null;
   variants: WikiImageVariant[];
   updatedAt: string | null;
+};
+
+export type WikiImageLibraryUsage = {
+  stableId: string;
+  title: string;
+  state: WikiImageStoredState;
+};
+
+export type WikiImageLibraryAsset = {
+  id: string;
+  storagePath: string;
+  originalName: string;
+  mimeType: string;
+  byteSize: number;
+  alt: string;
+  createdAt: string;
+  deletedAt: string | null;
+  variants: WikiImageVariant[];
+  variantCount: number;
+  imageUrl: string | null;
+  usedBy: WikiImageLibraryUsage[];
+  bodyReferenceCount: number;
+  usageCount: number;
+};
+
+export type WikiImageBatchItemSummary = {
+  stableId: string;
+  slug: string;
+  title: string;
+  status: string;
+  attemptCount: number;
+};
+
+export type WikiImageBatchSummary = {
+  id: string;
+  batchNumber: string;
+  status: string;
+  articleCount: number;
+  attemptCount: number;
+  styleSnapshotVersion: string;
+  createdAt: string;
+  updatedAt: string;
+  items: WikiImageBatchItemSummary[];
 };
 
 export type WikiImageReturnManifestItem = {

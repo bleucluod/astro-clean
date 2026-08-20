@@ -77,6 +77,8 @@ export async function getWikiImagePipelineState(stableId?: string) {
       article.stable_id,
       article.slug,
       article.title,
+      article.category_id,
+      category.label as category_label,
       article.status,
       article.is_indexable,
       article.publication_priority,
@@ -108,6 +110,7 @@ export async function getWikiImagePipelineState(stableId?: string) {
         where variant.asset_id = assignment.asset_id
       ), '[]'::jsonb) as variants
     from public.wiki_articles as article
+    join public.wiki_categories as category on category.id = article.category_id
     left join halleus_private.wiki_article_images as assignment on assignment.article_id = article.id
     left join public.wiki_assets as asset on asset.id = assignment.asset_id and asset.deleted_at is null
     left join lateral (
@@ -137,6 +140,8 @@ export async function getWikiImagePipelineState(stableId?: string) {
       stableId: asString(row.stable_id),
       slug: asString(row.slug),
       title: asString(row.title),
+      categoryId: asString(row.category_id),
+      categoryLabel: asString(row.category_label),
       status: asString(row.status),
       indexable: Boolean(row.is_indexable),
       publicationPriority: asNumber(row.publication_priority),
@@ -169,12 +174,77 @@ export async function getWikiImagePipelineState(stableId?: string) {
     limit 100
   `;
 
+  const libraryAssetRows = await sql`
+    select
+      asset.id::text,
+      asset.storage_path,
+      asset.original_name,
+      asset.mime_type,
+      asset.byte_size,
+      asset.alt_text,
+      asset.created_at::text,
+      asset.deleted_at::text,
+      coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'width', variant.width,
+          'height', variant.height,
+          'storagePath', variant.storage_path,
+          'url', ${getWikiMediaPublicUrl("")} || variant.storage_path,
+          'mimeType', variant.mime_type,
+          'byteSize', variant.byte_size,
+          'contentHash', variant.content_hash,
+          'perceptualHash', variant.perceptual_hash
+        ) order by variant.width asc)
+        from halleus_private.wiki_asset_variants as variant
+        where variant.asset_id = asset.id
+      ), '[]'::jsonb) as variants,
+      coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'stableId', article.stable_id,
+          'title', article.title,
+          'state', image.state
+        ) order by article.title asc)
+        from halleus_private.wiki_article_images as image
+        join public.wiki_articles as article on article.id = image.article_id
+        where image.asset_id = asset.id and article.deleted_at is null
+      ), '[]'::jsonb) as dedicated_usages,
+      (
+        (select count(*) from public.wiki_articles as body_article
+          where body_article.deleted_at is null
+            and body_article.sections::text like ('%' || asset.storage_path || '%')) +
+        (select count(*) from public.wiki_article_drafts as draft
+          where draft.snapshot::text like ('%' || asset.storage_path || '%'))
+      )::int as body_reference_count
+    from public.wiki_assets as asset
+    order by asset.created_at desc
+    limit 250
+  `;
+
   const batches = await sql`
-    select id::text, batch_number::text, status, article_count, attempt_count,
-           style_snapshot_version, created_at::text, updated_at::text
-    from halleus_private.wiki_image_batches
-    order by created_at desc
-    limit 20
+    select
+      batch.id::text,
+      batch.batch_number::text,
+      batch.status,
+      batch.article_count,
+      batch.attempt_count,
+      batch.style_snapshot_version,
+      batch.created_at::text,
+      batch.updated_at::text,
+      coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'stableId', item.stable_id,
+          'slug', item.slug,
+          'title', article.title,
+          'status', item.status,
+          'attemptCount', item.attempt_count
+        ) order by item.stable_id asc)
+        from halleus_private.wiki_image_batch_items as item
+        join public.wiki_articles as article on article.id = item.article_id
+        where item.batch_id = batch.id
+      ), '[]'::jsonb) as items
+    from halleus_private.wiki_image_batches as batch
+    order by batch.created_at desc
+    limit 30
   `;
 
   return {
@@ -183,6 +253,39 @@ export async function getWikiImagePipelineState(stableId?: string) {
     reusableAssets: reusableAssetRows.map((raw) => {
       const row = asRecord(raw);
       return { id: asString(row.id), originalName: asString(row.original_name), alt: asString(row.alt_text), variantCount: asNumber(row.variant_count) };
+    }),
+    libraryAssets: libraryAssetRows.map((raw) => {
+      const row = asRecord(raw);
+      const variants = parseVariants(row.variants);
+      const usedBy = Array.isArray(row.dedicated_usages)
+        ? row.dedicated_usages.map((rawUsage) => {
+            const usage = safeRecord(rawUsage);
+            return {
+              stableId: asString(usage.stableId),
+              title: asString(usage.title),
+              state: imageState(usage.state) ?? "DRAFT_IMAGE",
+            };
+          })
+        : [];
+      const bodyReferenceCount = asNumber(row.body_reference_count);
+      return {
+        id: asString(row.id),
+        storagePath: asString(row.storage_path),
+        originalName: asString(row.original_name),
+        mimeType: asString(row.mime_type),
+        byteSize: asNumber(row.byte_size),
+        alt: asString(row.alt_text),
+        createdAt: asString(row.created_at),
+        deletedAt: row.deleted_at ? asString(row.deleted_at) : null,
+        variants,
+        variantCount: variants.length,
+        imageUrl: variants.find((item) => item.width === 480)?.url
+          ?? variants.find((item) => item.width === 1200)?.url
+          ?? getWikiMediaPublicUrl(asString(row.storage_path)),
+        usedBy,
+        bodyReferenceCount,
+        usageCount: usedBy.length + bodyReferenceCount,
+      };
     }),
     batches: batches.map((raw) => {
       const row = asRecord(raw);
@@ -195,6 +298,18 @@ export async function getWikiImagePipelineState(stableId?: string) {
         styleSnapshotVersion: asString(row.style_snapshot_version),
         createdAt: asString(row.created_at),
         updatedAt: asString(row.updated_at),
+        items: Array.isArray(row.items)
+          ? row.items.map((rawItem) => {
+              const item = safeRecord(rawItem);
+              return {
+                stableId: asString(item.stableId),
+                slug: asString(item.slug),
+                title: asString(item.title),
+                status: asString(item.status),
+                attemptCount: asNumber(item.attemptCount),
+              };
+            })
+          : [],
       };
     }),
   };
@@ -218,6 +333,33 @@ const STYLE_REFERENCE = {
   ],
 };
 
+const STYLE_SNAPSHOT_CONTRACT = {
+  language: "dark editorial minimal premium",
+  backgrounds: ["#020305", "#050609", "#08090c", "#0b0d11", "#101216"],
+  text: ["#ffffff", "#f4f6f8", "#edf2f7"],
+  accents: ["#dceeff", "#7dd3fc", "#c4b5fd"],
+  rules: [
+    "one main concept",
+    "vector-like forms",
+    "controlled gradients",
+    "no unintended text",
+    "no heavy grain or star clutter",
+    "no fake astronomical measurement",
+  ],
+};
+
+async function ensureWikiImageStyleSnapshot(sql: ReturnType<typeof getAdminDatabase>) {
+  await sql`
+    insert into halleus_private.wiki_image_style_snapshots (version, source_routes, contract)
+    values (
+      ${WIKI_IMAGE_STYLE_VERSION},
+      '["/", "/chart"]'::jsonb,
+      ${JSON.stringify(STYLE_SNAPSHOT_CONTRACT)}::jsonb
+    )
+    on conflict (version) do nothing
+  `;
+}
+
 function briefMarkdown(article: Record<string, unknown>, index: number) {
   return `# Halleus Wiki Image Brief ${index + 1}\n\n` +
     `Stable ID: ${asString(article.stable_id)}\n` +
@@ -233,7 +375,9 @@ export async function createWikiImageExport(actor: VerifiedAdminActor, requested
   const stableIds = [...new Set(requestedStableIds.map((item) => item.trim()).filter(Boolean))];
   if (stableIds.length > WIKI_IMAGE_MAX_BATCH) throw new AdminAccessError(400, "A Wiki image batch can contain at most 5 articles.");
 
-  const candidates = await sql`
+  await ensureWikiImageStyleSnapshot(sql);
+
+  const candidateRows = await sql`
     select article.id::text, article.stable_id, article.slug, article.title, article.category_id,
            article.summary, article.status, article.publication_priority,
            job.run_at::text as queued_at
@@ -247,14 +391,20 @@ export async function createWikiImageExport(actor: VerifiedAdminActor, requested
     ) as job on true
     where article.deleted_at is null
       and assignment.article_id is null
-      and (${stableIds.length} = 0 or article.stable_id = any(${stableIds}::text[]))
     order by
       case when job.run_at is not null then 0 when article.status = 'published' then 1 else 2 end,
       job.run_at asc nulls last,
       article.publication_priority desc,
       article.updated_at desc
-    limit ${WIKI_IMAGE_MAX_BATCH}
   `;
+
+  const candidateByStableId = new Map(
+    candidateRows.map((raw) => [asString(asRecord(raw).stable_id), raw] as const),
+  );
+  const candidates = stableIds.length
+    ? stableIds.map((stableId) => candidateByStableId.get(stableId)).filter(Boolean)
+    : candidateRows.slice(0, WIKI_IMAGE_MAX_BATCH);
+
   if (candidates.length < 1) throw new AdminAccessError(409, "No eligible no-image Wiki articles were found.");
   if (stableIds.length && candidates.length !== stableIds.length) throw new AdminAccessError(409, "One or more selected articles are missing, deleted, or already READY.");
 
@@ -283,6 +433,52 @@ export async function createWikiImageExport(actor: VerifiedAdminActor, requested
     items: manifestItems,
   };
 
+  const entries: Array<{ name: string; bytes: Uint8Array }> = [
+    {
+      name: "README.md",
+      bytes: encoder.encode("Halleus Wiki Image Pipeline export. Generate each article independently. Never create a collage/contact sheet. Return only reviewed 1200x675 WebP files and return-manifest.json. Max one regeneration per article, max 10 attempts total."),
+    },
+    { name: "batch-manifest.json", bytes: jsonBytes(batchManifest) },
+    { name: "style-reference.json", bytes: jsonBytes(STYLE_REFERENCE) },
+    {
+      name: "return-contract.md",
+      bytes: encoder.encode("Return: return-manifest.json plus images/<article-slug>-cover.webp. Max 5 files. Each must be WebP 1200x675 and <=50000 bytes. Package practical ceiling 400000 bytes. READY requires human visual QA and Persian alt draft. NEEDS_RETRY has no accepted image."),
+    },
+  ];
+  candidates.forEach((raw, index) => {
+    const article = asRecord(raw);
+    entries.push({ name: manifestItems[index].briefPath, bytes: encoder.encode(briefMarkdown(article, index)) });
+  });
+
+  // HALLEUS_WIKI_IMAGE_EXPORT_SAFE_R1: build the archive before persisting the batch.
+  // A ZIP-generation failure therefore cannot leave an exported batch behind.
+  const bytes = createWikiImageZip(entries);
+
+  const recentRows = await sql`
+    select batch.id::text, batch.batch_number::text,
+           coalesce(array_agg(item.stable_id order by item.stable_id) filter (where item.id is not null), '{}') as stable_ids
+    from halleus_private.wiki_image_batches as batch
+    left join halleus_private.wiki_image_batch_items as item on item.batch_id = batch.id
+    where batch.created_by = ${actor.userId}::uuid
+      and batch.status = 'exported'
+      and batch.created_at > now() - interval '5 minutes'
+    group by batch.id, batch.batch_number, batch.created_at
+    order by batch.created_at desc
+    limit 10
+  `;
+  const candidateKey = manifestItems.map((item) => item.stableId).sort().join("|");
+  const recentDuplicate = recentRows.find((raw) => {
+    const row = asRecord(raw);
+    const ids = Array.isArray(row.stable_ids) ? row.stable_ids.map(String).sort() : [];
+    return ids.join("|") === candidateKey;
+  });
+  if (recentDuplicate) {
+    throw new AdminAccessError(
+      409,
+      `An identical AI image batch was exported in the last 5 minutes (#${asString(asRecord(recentDuplicate).batch_number)}). Check Batch history before retrying.`,
+    );
+  }
+
   await sql.begin(async (tx) => {
     await tx`
       insert into halleus_private.wiki_image_batches (
@@ -304,24 +500,6 @@ export async function createWikiImageExport(actor: VerifiedAdminActor, requested
       `;
     }
   });
-
-  const entries: Array<{ name: string; bytes: Uint8Array }> = [
-    {
-      name: "README.md",
-      bytes: encoder.encode("Halleus Wiki Image Pipeline export. Generate each article independently. Never create a collage/contact sheet. Return only reviewed 1200x675 WebP files and return-manifest.json. Max one regeneration per article, max 10 attempts total."),
-    },
-    { name: "batch-manifest.json", bytes: jsonBytes(batchManifest) },
-    { name: "style-reference.json", bytes: jsonBytes(STYLE_REFERENCE) },
-    {
-      name: "return-contract.md",
-      bytes: encoder.encode("Return: return-manifest.json plus images/<article-slug>-cover.webp. Max 5 files. Each must be WebP 1200x675 and <=50000 bytes. Package practical ceiling 400000 bytes. READY requires human visual QA and Persian alt draft. NEEDS_RETRY has no accepted image."),
-    },
-  ];
-  candidates.forEach((raw, index) => {
-    const article = asRecord(raw);
-    entries.push({ name: manifestItems[index].briefPath, bytes: encoder.encode(briefMarkdown(article, index)) });
-  });
-  const bytes = createWikiImageZip(entries);
   return {
     bytes,
     filename: `Halleus-Wiki-Image-Batch-${batchId.slice(0, 8)}.zip`,
@@ -635,6 +813,91 @@ export async function stageDirectWikiImage(actor: VerifiedAdminActor, input: {
     if (storedPaths.length) await removeWikiMediaObjects(storedPaths).catch(() => undefined);
     throw error;
   }
+}
+
+// HALLEUS_WIKI_IMAGE_ASSET_LIBRARY_R1
+export async function mutateWikiImageAsset(actor: VerifiedAdminActor, input: {
+  action: "metadata" | "archive";
+  assetId: string;
+  altFa?: string;
+  reason: string;
+}) {
+  const sql = getAdminDatabase();
+  return sql.begin(async (tx) => {
+    const rows = await tx`
+      select id::text, storage_path, original_name, alt_text, deleted_at::text
+      from public.wiki_assets
+      where id = ${input.assetId}::uuid
+      for update
+    `;
+    if (!rows[0]) throw new AdminAccessError(404, "Wiki image asset was not found.");
+    const row = asRecord(rows[0]);
+    if (row.deleted_at) throw new AdminAccessError(409, "Archived Wiki image assets cannot be mutated.");
+
+    const before = {
+      alt: asString(row.alt_text),
+      storagePath: asString(row.storage_path),
+      archived: false,
+    };
+
+    if (input.action === "metadata") {
+      const altFa = input.altFa?.trim() ?? "";
+      if (altFa.length < 1 || altFa.length > 500) {
+        throw new AdminAccessError(400, "Asset alt must contain 1 to 500 characters.");
+      }
+      await tx`update public.wiki_assets set alt_text = ${altFa} where id = ${input.assetId}::uuid`;
+      await tx`
+        insert into halleus_private.admin_audit_events (
+          actor_user_id, actor_role, action, target_type, target_id, before_summary, after_summary,
+          reason, success, request_correlation_id
+        ) values (
+          ${actor.userId}::uuid, ${actor.role}, 'admin.wiki.image_asset_metadata', 'wiki_asset', ${input.assetId},
+          ${JSON.stringify(before)}::jsonb, ${JSON.stringify({ ...before, alt: altFa })}::jsonb,
+          ${input.reason}, true, ${actor.correlationId}
+        )
+      `;
+      return { assetId: input.assetId, archived: false, alt: altFa };
+    }
+
+    const storagePath = asString(row.storage_path);
+    const publicUrl = getWikiMediaPublicUrl(storagePath);
+    const storageNeedle = "%" + storagePath + "%";
+    const publicNeedle = "%" + publicUrl + "%";
+    const dedicatedRows = await tx`
+      select count(*)::int as count
+      from halleus_private.wiki_article_images
+      where asset_id = ${input.assetId}::uuid
+    `;
+    const bodyRows = await tx`
+      select (
+        (select count(*) from public.wiki_articles as article
+          where article.deleted_at is null and (
+            article.sections::text like ${storageNeedle} or
+            article.sections::text like ${publicNeedle}
+          )) +
+        (select count(*) from public.wiki_article_drafts as draft
+          where draft.snapshot::text like ${storageNeedle} or
+                draft.snapshot::text like ${publicNeedle})
+      )::int as count
+    `;
+    const usageCount = asNumber(dedicatedRows[0]?.count) + asNumber(bodyRows[0]?.count);
+    if (usageCount > 0) {
+      throw new AdminAccessError(409, "This image is still in use. Detach or replace every reference before archiving it.");
+    }
+
+    await tx`update public.wiki_assets set deleted_at = now() where id = ${input.assetId}::uuid`;
+    await tx`
+      insert into halleus_private.admin_audit_events (
+        actor_user_id, actor_role, action, target_type, target_id, before_summary, after_summary,
+        reason, success, request_correlation_id
+      ) values (
+        ${actor.userId}::uuid, ${actor.role}, 'admin.wiki.image_asset_archived', 'wiki_asset', ${input.assetId},
+        ${JSON.stringify(before)}::jsonb, ${JSON.stringify({ ...before, archived: true })}::jsonb,
+        ${input.reason}, true, ${actor.correlationId}
+      )
+    `;
+    return { assetId: input.assetId, archived: true };
+  });
 }
 
 export async function mutateWikiArticleImage(actor: VerifiedAdminActor, input: {
