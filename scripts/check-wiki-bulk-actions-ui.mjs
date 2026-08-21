@@ -55,7 +55,12 @@ requireText("articles import action", panelSource, "ورود بسته");
 requireText("bulk action route", routeSource, 'requireAdminCapability(request, "wiki.publish.write")');
 requireText("bulk action route", routeSource, 'action !== "delete" && action !== "publish"');
 requireText("bulk action route", routeSource, "publishAdminWikiDrafts");
-requireText("bulk action route", routeSource, "revalidateWikiPublicPaths()");
+requireText("bulk action route", routeSource, "revalidateWikiPublicPaths(");
+requireText(
+  "bulk delete immediate public invalidation",
+  routeSource,
+  'revalidateWikiPublicPaths([], { cachePolicy: "expire-now" })',
+);
 requireText("bulk delete service", serviceSource, "export async function softDeleteAdminWikiArticles");
 requireText("bulk publish service", serviceSource, "export async function publishAdminWikiDrafts");
 requireText("bulk publish eligibility", serviceSource, 'asString(row.status) !== "published"');

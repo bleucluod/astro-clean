@@ -39,7 +39,12 @@ const requiredFiles = [
   "database/migrations/0003_wiki_storage.sql",
   "database/seeds/0001_wiki_content.sql",
   "lib/wiki/wiki-content.ts",
+  "lib/wiki/wiki-cache.ts",
   "lib/wiki/wiki-repository.ts",
+  "lib/wiki/wiki-revalidation.ts",
+  "components/AppShell.tsx",
+  "app/api/admin/wiki/articles/bulk-actions/route.ts",
+  "app/api/admin/wiki/articles/[articleId]/actions/route.ts",
   "app/wiki/page.tsx",
   "app/wiki/[slug]/page.tsx",
   "app/sitemap.ts",
@@ -55,6 +60,10 @@ if (failures.length === 0) {
   const migration = read("database/migrations/0003_wiki_storage.sql");
   const seed = read("database/seeds/0001_wiki_content.sql");
   const repository = read("lib/wiki/wiki-repository.ts");
+  const revalidation = read("lib/wiki/wiki-revalidation.ts");
+  const appShell = read("components/AppShell.tsx");
+  const bulkActionsRoute = read("app/api/admin/wiki/articles/bulk-actions/route.ts");
+  const articleActionsRoute = read("app/api/admin/wiki/articles/[articleId]/actions/route.ts");
   const indexPage = read("app/wiki/page.tsx");
   const articlePage = read("app/wiki/[slug]/page.tsx");
   const sitemap = read("app/sitemap.ts");
@@ -89,6 +98,47 @@ if (failures.length === 0) {
   requireText("Wiki repository", repository, 'source: "database"');
   requireText("Wiki repository", repository, 'source: "code-fallback"');
   requireText("Wiki repository", repository, "redirect.http_status = 308");
+  requireText("Wiki repository persistent snapshot", repository, "unstable_cache");
+  requireText("Wiki repository persistent snapshot", repository, "WIKI_PUBLIC_SNAPSHOT_CACHE_TAG");
+  requireText("Wiki repository stale serving", repository, "HALLEUS_WIKI_STALE_SNAPSHOT_SERVED");
+  requireText("Wiki repository client recovery", repository, "HALLEUS_WIKI_DATABASE_CLIENT_RESET");
+  requireText("Wiki repository circuit breaker", repository, "WIKI_DATABASE_CIRCUIT_BREAKER_MS");
+  requireText(
+    "Wiki revalidation stale-while-revalidate",
+    revalidation,
+    'revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, "max")',
+  );
+  requireText(
+    "Wiki revalidation immediate expiry",
+    revalidation,
+    "revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, { expire: 0 })",
+  );
+  requireText(
+    "Wiki critical stale snapshot block",
+    revalidation,
+    "blockStaleWikiSnapshotServing()",
+  );
+  requireText(
+    "Wiki bulk destructive invalidation",
+    bulkActionsRoute,
+    'revalidateWikiPublicPaths([], { cachePolicy: "expire-now" })',
+  );
+  requireText(
+    "Wiki article destructive invalidation",
+    articleActionsRoute,
+    'action === "delete" ? { cachePolicy: "expire-now" } : undefined',
+  );
+  requireText("App shell Wiki isolation", appShell, "Promise.race");
+  requireText("App shell Wiki isolation", appShell, "HALLEUS_WIKI_FOOTER_DEGRADED");
+  requireText("App shell Wiki fallback", appShell, "FOOTER_WIKI_FALLBACK_ARTICLES");
+  for (const slug of [
+    "what-is-astrology",
+    "birth-chart-basics",
+    "how-to-read-birth-chart",
+    "planets-in-birth-chart",
+  ]) {
+    requireText("App shell Wiki fallback", appShell, `slug: "${slug}"`);
+  }
 
   requireText("Wiki index", indexPage, "getPublicWikiCatalog");
   forbidText("Wiki index", indexPage, 'from "@/lib/wiki/wiki-content"');

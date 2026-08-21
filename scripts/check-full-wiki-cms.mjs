@@ -33,6 +33,10 @@ const packageParser = read("lib/wiki/wiki-package.ts");
 const markdownParser = read("lib/wiki/wiki-markdown.ts");
 const publisher = read("lib/wiki/wiki-publisher.ts");
 const repository = read("lib/wiki/wiki-repository.ts");
+const revalidation = read("lib/wiki/wiki-revalidation.ts");
+const appShell = read("components/AppShell.tsx");
+const bulkActionsRoute = read("app/api/admin/wiki/articles/bulk-actions/route.ts");
+const articleActionsRoute = read("app/api/admin/wiki/articles/[articleId]/actions/route.ts");
 const releaseEngine = read("ops/vps/halleus-release.sh");
 const articlePage = read("app/wiki/[slug]/page.tsx");
 const articleRenderer = read("components/wiki/WikiArticleRender.tsx");
@@ -129,6 +133,31 @@ requireText("public repository", repository, "deleted_at is null");
 requireText("public repository production fail-closed", repository, "HALLEUS_WIKI_STORAGE_REQUIRED");
 requireText("public repository bounded DB retry", repository, "WIKI_DATABASE_READ_MAX_ATTEMPTS");
 requireText("public repository production gate", repository, 'process.env.NODE_ENV === "production"');
+requireText("public repository persistent snapshot", repository, "unstable_cache");
+requireText("public repository client recovery", repository, "HALLEUS_WIKI_DATABASE_CLIENT_RESET");
+requireText("public repository circuit breaker", repository, "WIKI_DATABASE_CIRCUIT_BREAKER_MS");
+requireText(
+  "public repository stale-while-revalidate",
+  revalidation,
+  'revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, "max")',
+);
+requireText(
+  "public repository immediate destructive invalidation",
+  revalidation,
+  "revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, { expire: 0 })",
+);
+requireText(
+  "bulk destructive invalidation",
+  bulkActionsRoute,
+  'revalidateWikiPublicPaths([], { cachePolicy: "expire-now" })',
+);
+requireText(
+  "article destructive invalidation",
+  articleActionsRoute,
+  'action === "delete" ? { cachePolicy: "expire-now" } : undefined',
+);
+requireText("app shell Wiki isolation", appShell, "HALLEUS_WIKI_FOOTER_DEGRADED");
+requireText("app shell fixed Wiki fallback", appShell, "FOOTER_WIKI_FALLBACK_ARTICLES");
 requireText("release engine root env loading", releaseEngine, 'source "$ENV_FILE"');
 requireText("release engine wiki fail-closed smoke", releaseEngine, "assert_local_wiki_catalog");
 requireText("release engine wiki fail-closed smoke", releaseEngine, "HALLEUS_WIKI_FALLBACK_CATALOG");

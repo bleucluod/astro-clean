@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import postgres from "postgres";
 
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
@@ -22,6 +23,11 @@ import type {
   WikiArticleSource,
   WikiCategory,
 } from "@/lib/wiki/wiki-content";
+import {
+  allowStaleWikiSnapshotServing,
+  canServeStaleWikiSnapshot,
+  WIKI_PUBLIC_SNAPSHOT_CACHE_TAG,
+} from "@/lib/wiki/wiki-cache";
 
 type WikiStorageSource = "database" | "code-fallback";
 
@@ -72,6 +78,10 @@ export type PublicWikiArticleResolution =
 
 let wikiSql: ReturnType<typeof postgres> | null = null;
 let fallbackWarningPrinted = false;
+let staleSnapshotWarningPrinted = false;
+let wikiDatabaseReadInFlight: Promise<WikiStorageSnapshot> | null = null;
+let lastKnownGoodWikiSnapshot: WikiStorageSnapshot | null = null;
+let wikiDatabaseCircuitOpenUntil = 0;
 
 function getWikiDatabase() {
   if (wikiSql) {
@@ -86,7 +96,7 @@ function getWikiDatabase() {
   wikiSql = postgres(databaseUrl, {
     max: 2,
     idle_timeout: 10,
-    connect_timeout: 10,
+    connect_timeout: 5,
     prepare: false,
   });
 
@@ -100,6 +110,56 @@ function storageErrorCode(error: unknown) {
 
   const code = Reflect.get(error, "code");
   return typeof code === "string" && code ? code : "unclassified";
+}
+
+const WIKI_DATABASE_RECOVERABLE_ERROR_CODES = new Set([
+  "08000",
+  "08001",
+  "08003",
+  "08004",
+  "08006",
+  "08007",
+  "08P01",
+  "57P01",
+  "57P02",
+  "57P03",
+  "CONNECTION_CLOSED",
+  "CONNECTION_DESTROYED",
+  "CONNECT_TIMEOUT",
+  "ECONNRESET",
+  "EPIPE",
+  "ETIMEDOUT",
+  "XX000",
+]);
+
+function isRecoverableWikiDatabaseError(error: unknown) {
+  return WIKI_DATABASE_RECOVERABLE_ERROR_CODES.has(storageErrorCode(error));
+}
+
+async function resetWikiDatabaseClient(
+  sql: ReturnType<typeof postgres>,
+  error: unknown,
+) {
+  if (!isRecoverableWikiDatabaseError(error)) {
+    return;
+  }
+
+  if (wikiSql === sql) {
+    wikiSql = null;
+  }
+
+  try {
+    await sql.end({ timeout: 0 });
+  } catch {
+    // The pool is already unusable; a fresh client will be created on the next attempt.
+  }
+
+  console.warn(
+    JSON.stringify({
+      marker: "HALLEUS_WIKI_DATABASE_CLIENT_RESET",
+      errorCode: storageErrorCode(error),
+    }),
+  );
 }
 
 function warnAboutFallback(reason: "database-not-configured" | "database-read-failed", error?: unknown) {
@@ -319,8 +379,9 @@ async function readDatabaseSnapshot(sql: ReturnType<typeof postgres>): Promise<W
   };
 }
 
-const WIKI_DATABASE_READ_MAX_ATTEMPTS = 3;
-const WIKI_DATABASE_READ_RETRY_MS = 1_500;
+const WIKI_DATABASE_READ_MAX_ATTEMPTS = 2;
+const WIKI_DATABASE_READ_RETRY_MS = 250;
+const WIKI_DATABASE_CIRCUIT_BREAKER_MS = 30_000;
 
 function isProductionWikiRuntime() {
   return process.env.NODE_ENV === "production";
@@ -345,9 +406,23 @@ function failClosedWikiStorage(
   throw new Error(`HALLEUS_WIKI_STORAGE_REQUIRED:${reason}`);
 }
 
-const loadWikiStorageSnapshot = cache(async (): Promise<WikiStorageSnapshot> => {
-  const sql = getWikiDatabase();
-  if (!sql) {
+function circuitOpenError() {
+  return Object.assign(new Error("HALLEUS_WIKI_DATABASE_CIRCUIT_OPEN"), {
+    code: "CIRCUIT_OPEN",
+  });
+}
+
+async function readFreshWikiStorageSnapshot(): Promise<WikiStorageSnapshot> {
+  if (Date.now() < wikiDatabaseCircuitOpenUntil) {
+    const error = circuitOpenError();
+    if (isProductionWikiRuntime()) {
+      failClosedWikiStorage("database-read-failed", error);
+    }
+
+    return fallbackSnapshot("database-read-failed", error);
+  }
+
+  if (!getWikiDatabase()) {
     if (isProductionWikiRuntime()) {
       failClosedWikiStorage("database-not-configured");
     }
@@ -358,10 +433,22 @@ const loadWikiStorageSnapshot = cache(async (): Promise<WikiStorageSnapshot> => 
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= WIKI_DATABASE_READ_MAX_ATTEMPTS; attempt += 1) {
+    const sql = getWikiDatabase();
+    if (!sql) {
+      lastError = new Error("Wiki database became unavailable during retry.");
+      break;
+    }
+
     try {
-      return await readDatabaseSnapshot(sql);
+      const snapshot = await readDatabaseSnapshot(sql);
+      wikiDatabaseCircuitOpenUntil = 0;
+      lastKnownGoodWikiSnapshot = snapshot;
+      staleSnapshotWarningPrinted = false;
+      allowStaleWikiSnapshotServing();
+      return snapshot;
     } catch (error) {
       lastError = error;
+      await resetWikiDatabaseClient(sql, error);
 
       if (attempt < WIKI_DATABASE_READ_MAX_ATTEMPTS) {
         console.warn(
@@ -377,11 +464,63 @@ const loadWikiStorageSnapshot = cache(async (): Promise<WikiStorageSnapshot> => 
     }
   }
 
+  wikiDatabaseCircuitOpenUntil = Date.now() + WIKI_DATABASE_CIRCUIT_BREAKER_MS;
+
   if (isProductionWikiRuntime()) {
     failClosedWikiStorage("database-read-failed", lastError);
   }
 
   return fallbackSnapshot("database-read-failed", lastError);
+}
+
+function readFreshWikiStorageSnapshotSingleFlight() {
+  if (wikiDatabaseReadInFlight) {
+    return wikiDatabaseReadInFlight;
+  }
+
+  wikiDatabaseReadInFlight = readFreshWikiStorageSnapshot().finally(() => {
+    wikiDatabaseReadInFlight = null;
+  });
+
+  return wikiDatabaseReadInFlight;
+}
+
+const loadPersistedWikiStorageSnapshot = unstable_cache(
+  readFreshWikiStorageSnapshotSingleFlight,
+  ["halleus-wiki-public-snapshot", "v1"],
+  {
+    tags: [WIKI_PUBLIC_SNAPSHOT_CACHE_TAG],
+    revalidate: false,
+  },
+);
+
+const loadWikiStorageSnapshot = cache(async (): Promise<WikiStorageSnapshot> => {
+  try {
+    const snapshot = await loadPersistedWikiStorageSnapshot();
+    if (snapshot.source === "database") {
+      lastKnownGoodWikiSnapshot = snapshot;
+    }
+    return snapshot;
+  } catch (error) {
+    if (
+      isProductionWikiRuntime() &&
+      lastKnownGoodWikiSnapshot &&
+      canServeStaleWikiSnapshot()
+    ) {
+      if (!staleSnapshotWarningPrinted) {
+        staleSnapshotWarningPrinted = true;
+        console.warn(
+          JSON.stringify({
+            marker: "HALLEUS_WIKI_STALE_SNAPSHOT_SERVED",
+            errorCode: storageErrorCode(error),
+          }),
+        );
+      }
+      return lastKnownGoodWikiSnapshot;
+    }
+
+    throw error;
+  }
 });
 
 export async function getPublicWikiCatalog(): Promise<PublicWikiCatalog> {

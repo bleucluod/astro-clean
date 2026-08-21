@@ -551,6 +551,11 @@ function checkIntegrationSources() {
   requireText("App shell", appShell, "getPublicWikiCatalog");
   requireText("App shell", appShell, "sortPublicWikiArticlesNewestFirst");
   requireText("App shell", appShell, ".slice(0, 4)");
+  requireText("App shell", appShell, "FOOTER_WIKI_FALLBACK_ARTICLES");
+  requireText("App shell", appShell, 'slug: "what-is-astrology"');
+  requireText("App shell", appShell, 'slug: "birth-chart-basics"');
+  requireText("App shell", appShell, 'slug: "how-to-read-birth-chart"');
+  requireText("App shell", appShell, 'slug: "planets-in-birth-chart"');
   requireText("App shell", appShell, "تازه‌ترین‌های ویکی");
   requireText("App shell", appShell, "href={`/wiki/${article.slug}`}");
   requireText(

@@ -44,7 +44,7 @@ export async function POST(request: Request, context: Context) {
     if (action === "unpublish") {
       const actor = await requireAdminCapability(request, "wiki.publish.write");
       await unpublishAdminWikiArticle({ actor, articleId, reason });
-      revalidateWikiPublicPaths();
+      revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
       return noStoreJsonResponse({ ok: true });
     }
     if (action === "rollback") {
@@ -63,7 +63,10 @@ export async function POST(request: Request, context: Context) {
         action === "delete" ? "wiki.publish.write" : "wiki.draft.write",
       );
       await setAdminWikiArticleDeleted({ actor, articleId, deleted: action === "delete", reason });
-      revalidateWikiPublicPaths();
+      revalidateWikiPublicPaths(
+        [],
+        action === "delete" ? { cachePolicy: "expire-now" } : undefined,
+      );
       return noStoreJsonResponse({ ok: true });
     }
     return noStoreJsonResponse({ ok: false, error: "Unsupported Wiki action." }, 400);

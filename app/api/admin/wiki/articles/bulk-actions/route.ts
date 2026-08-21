@@ -74,7 +74,7 @@ export async function POST(request: Request) {
         confirmation,
         reason,
       });
-      revalidateWikiPublicPaths();
+      revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
       return noStoreJsonResponse({ ok: true, result });
     }
     if (action === "publish") {
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
       articleIds,
       reason,
     });
-    revalidateWikiPublicPaths();
+    revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
     return noStoreJsonResponse({ ok: true, result });
   } catch (error) {
     return adminErrorResponse(error, "Wiki bulk action failed.");

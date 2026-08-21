@@ -6,6 +6,7 @@ import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
+import type { PublicWikiArticle } from "@/lib/wiki/wiki-repository";
 
 import styles from "./app-shell.module.css";
 import humanStyles from "./human-first-shell.module.css";
@@ -13,6 +14,8 @@ import humanStyles from "./human-first-shell.module.css";
 type AppShellProps = {
   children: ReactNode;
 };
+
+type FooterWikiArticle = Pick<PublicWikiArticle, "slug" | "title">;
 
 const footerLinks = [
   { href: "/chart", label: "ساخت چارت تولد" },
@@ -22,9 +25,70 @@ const footerLinks = [
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 
+const FOOTER_WIKI_TIMEOUT_MS = 1_000;
+const FOOTER_WIKI_FALLBACK_ARTICLES = [
+  {
+    slug: "what-is-astrology",
+    title: "آسترولوژی چیست و چه کاربردهایی دارد؟",
+  },
+  {
+    slug: "birth-chart-basics",
+    title: "چارت تولد چیست و چطور خوانده می‌شود؟",
+  },
+  {
+    slug: "how-to-read-birth-chart",
+    title: "چطور چارت تولد خودم را بخوانم؟",
+  },
+  {
+    slug: "planets-in-birth-chart",
+    title: "سیارات در چارت تولد یعنی چه؟",
+  },
+] as const satisfies readonly FooterWikiArticle[];
+let footerWikiDegradedWarningPrinted = false;
+
+function warnAboutFooterWikiDegradation(reason: "read-failed" | "read-timed-out") {
+  if (footerWikiDegradedWarningPrinted) {
+    return;
+  }
+
+  footerWikiDegradedWarningPrinted = true;
+  console.warn(
+    JSON.stringify({
+      marker: "HALLEUS_WIKI_FOOTER_DEGRADED",
+      reason,
+    }),
+  );
+}
+
+async function loadLatestFooterWikiArticles(): Promise<readonly FooterWikiArticle[]> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const catalogRead = getPublicWikiCatalog()
+    .then(({ articles }) => {
+      footerWikiDegradedWarningPrinted = false;
+      return sortPublicWikiArticlesNewestFirst(articles).slice(0, 4);
+    })
+    .catch(() => {
+      warnAboutFooterWikiDegradation("read-failed");
+      return FOOTER_WIKI_FALLBACK_ARTICLES;
+    });
+  const timeoutFallback = new Promise<readonly FooterWikiArticle[]>((resolve) => {
+    timeout = setTimeout(() => {
+      warnAboutFooterWikiDegradation("read-timed-out");
+      resolve(FOOTER_WIKI_FALLBACK_ARTICLES);
+    }, FOOTER_WIKI_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([catalogRead, timeoutFallback]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+}
+
 export async function AppShell({ children }: AppShellProps) {
-  const { articles: wikiArticles } = await getPublicWikiCatalog();
-  const latestWikiArticles = sortPublicWikiArticlesNewestFirst(wikiArticles).slice(0, 4);
+  const latestWikiArticles = await loadLatestFooterWikiArticles();
 
   return (
     <div className={`${styles.shell} ${humanStyles.humanShell}`}>
