@@ -21,6 +21,7 @@ import {
   stageDirectWikiImage,
   stageExistingWikiAsset,
 } from "@/lib/wiki/wiki-image-service";
+import { revalidateWikiPublicPaths } from "@/lib/wiki/wiki-revalidation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -205,6 +206,7 @@ export async function POST(request: Request) {
             ? (body.provenance as Record<string, unknown>)
             : undefined,
       });
+      revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
       return noStoreJsonResponse({ ok: true, result });
     }
 
