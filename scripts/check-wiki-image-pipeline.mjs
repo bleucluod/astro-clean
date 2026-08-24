@@ -62,6 +62,12 @@ assert(!service.includes("article.stable_id = any("), "export must not use the f
 assert(service.indexOf("createWikiImageZip(entries)") < service.indexOf("insert into halleus_private.wiki_image_batches"), "ZIP must be built before batch persistence");
 assert(service.includes("identical AI image batch was exported in the last 5 minutes"), "ambiguous retry duplicate guard missing");
 assert(service.includes("ensureWikiImageStyleSnapshot"), "style snapshot invariant repair missing");
+assert(service.includes("sql.json(STYLE_SNAPSHOT_CONTRACT)"), "style snapshot contract must use postgres JSON serialization");
+assert(service.includes("tx.json(batchManifest)"), "batch manifest must use postgres JSON serialization");
+const unsafeJsonbStringifyLines = service
+  .split("\n")
+  .filter((line) => line.includes("JSON.stringify") && line.includes("::jsonb"));
+assert(unsafeJsonbStringifyLines.length === 0, "image pipeline must not double-encode JSONB writes");
 assert(service.includes("libraryAssets"), "asset library state missing");
 assert(service.includes("mutateWikiImageAsset"), "asset metadata/archive mutation missing");
 

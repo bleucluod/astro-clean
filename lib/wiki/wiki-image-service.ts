@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { TransactionSql } from "postgres";
+import type { JSONValue, TransactionSql } from "postgres";
 
 import { AdminAccessError, type VerifiedAdminActor } from "@/lib/admin/admin-auth";
 import { asNumber, asRecord, asString, getAdminDatabase } from "@/lib/admin/admin-database";
@@ -34,6 +34,10 @@ const NEAR_DUPLICATE_DISTANCE = 6;
 
 function jsonBytes(value: unknown) {
   return encoder.encode(JSON.stringify(value, null, 2));
+}
+
+function asJsonValue(value: unknown) {
+  return value as JSONValue;
 }
 
 function safeRecord(value: unknown) {
@@ -354,7 +358,7 @@ async function ensureWikiImageStyleSnapshot(sql: ReturnType<typeof getAdminDatab
     values (
       ${WIKI_IMAGE_STYLE_VERSION},
       '["/", "/chart"]'::jsonb,
-      ${JSON.stringify(STYLE_SNAPSHOT_CONTRACT)}::jsonb
+      ${sql.json(STYLE_SNAPSHOT_CONTRACT)}
     )
     on conflict (version) do nothing
   `;
@@ -485,7 +489,7 @@ export async function createWikiImageExport(actor: VerifiedAdminActor, requested
         id, style_snapshot_version, status, article_count, attempt_count, manifest, created_by
       ) values (
         ${batchId}::uuid, ${WIKI_IMAGE_STYLE_VERSION}, 'exported', ${candidates.length}, 0,
-        ${JSON.stringify(batchManifest)}::jsonb, ${actor.userId}::uuid
+        ${tx.json(batchManifest)}, ${actor.userId}::uuid
       )
     `;
     for (let index = 0; index < candidates.length; index += 1) {
@@ -619,7 +623,7 @@ async function writeHistory(
       article_id, action, revision, before_snapshot, after_snapshot, actor_user_id, reason
     ) values (
       ${input.articleId}::uuid, ${input.action}, ${input.revision},
-      ${JSON.stringify(input.before)}::jsonb, ${JSON.stringify(input.after)}::jsonb,
+      ${tx.json(asJsonValue(input.before))}, ${tx.json(asJsonValue(input.after))},
       ${input.actor.userId}::uuid, ${input.reason}
     )
   `;
@@ -629,8 +633,8 @@ async function writeHistory(
       reason, success, request_correlation_id
     ) values (
       ${input.actor.userId}::uuid, ${input.actor.role}, ${`admin.wiki.image_${input.action}`},
-      'wiki_article_image', ${input.articleId}, ${JSON.stringify(input.before)}::jsonb,
-      ${JSON.stringify(input.after)}::jsonb, ${input.reason}, true, ${input.actor.correlationId}
+      'wiki_article_image', ${input.articleId}, ${tx.json(asJsonValue(input.before))},
+      ${tx.json(asJsonValue(input.after))}, ${input.reason}, true, ${input.actor.correlationId}
     )
   `;
 }
@@ -704,7 +708,7 @@ export async function applyWikiImageReturnPackage(actor: VerifiedAdminActor, pac
             brief_version,batch_item_id,updated_by
           ) values (
             ${articleId}::uuid,${stored.id}::uuid,'DRAFT_IMAGE',${nextRevision},${item.altFaDraft.trim()},'draft',null,
-            ${JSON.stringify(item.provenance ?? {})}::jsonb,${focalX},${focalY},'[]'::jsonb,
+            ${tx.json(asJsonValue(item.provenance ?? {}))},${focalX},${focalY},'[]'::jsonb,
             ${item.briefVersion},${asString(itemRow.id)}::uuid,${actor.userId}::uuid
           ) on conflict (article_id) do update set
             asset_id=excluded.asset_id,state='DRAFT_IMAGE',revision=excluded.revision,alt_fa=excluded.alt_fa,
@@ -852,7 +856,7 @@ export async function mutateWikiImageAsset(actor: VerifiedAdminActor, input: {
           reason, success, request_correlation_id
         ) values (
           ${actor.userId}::uuid, ${actor.role}, 'admin.wiki.image_asset_metadata', 'wiki_asset', ${input.assetId},
-          ${JSON.stringify(before)}::jsonb, ${JSON.stringify({ ...before, alt: altFa })}::jsonb,
+          ${tx.json(before)}, ${tx.json({ ...before, alt: altFa })},
           ${input.reason}, true, ${actor.correlationId}
         )
       `;
@@ -892,7 +896,7 @@ export async function mutateWikiImageAsset(actor: VerifiedAdminActor, input: {
         reason, success, request_correlation_id
       ) values (
         ${actor.userId}::uuid, ${actor.role}, 'admin.wiki.image_asset_archived', 'wiki_asset', ${input.assetId},
-        ${JSON.stringify(before)}::jsonb, ${JSON.stringify({ ...before, archived: true })}::jsonb,
+        ${tx.json(before)}, ${tx.json({ ...before, archived: true })},
         ${input.reason}, true, ${actor.correlationId}
       )
     `;
@@ -948,7 +952,7 @@ export async function mutateWikiArticleImage(actor: VerifiedAdminActor, input: {
     await tx`
       update halleus_private.wiki_article_images set
         state=${state}, revision=${nextRevision}, alt_fa=${altFa}, alt_state=${altState}, caption=${caption},
-        provenance=${JSON.stringify(provenance)}::jsonb, focal_x=${focalX}, focal_y=${focalY},
+        provenance=${tx.json(asJsonValue(provenance))}, focal_x=${focalX}, focal_y=${focalY},
         reviewed_by=${state === "READY" ? actor.userId : null}::uuid,
         reviewed_at=${state === "READY" ? new Date().toISOString() : null}::timestamptz,
         updated_by=${actor.userId}::uuid
