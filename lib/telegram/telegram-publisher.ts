@@ -49,7 +49,7 @@ export function readTelegramPublishFailure(error: unknown): TelegramDeliveryFail
   };
 }
 
-// HALLEUS_TELEGRAM_BRIDGE_HEALTH_PROBE_R3
+// HALLEUS_TELEGRAM_BRIDGE_HEALTH_PROBE_R4
 export async function probeTelegramBridgeTransport() {
   let bridge: ReturnType<typeof bridgeConfig>;
   try {
@@ -59,7 +59,7 @@ export async function probeTelegramBridgeTransport() {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5_000);
+  const timeout = setTimeout(() => controller.abort(), 8_000);
   try {
     const response = await fetch(
       bridgeEndpoint(bridge.baseUrl, "/telegram/check-member"),

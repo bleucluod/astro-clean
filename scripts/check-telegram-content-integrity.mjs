@@ -272,12 +272,13 @@ console.log(
   "HALLEUS_TELEGRAM_UNCERTAIN_CIRCUIT_BREAKER_R2_GUARD=PASS",
 );
 
-// HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3_GUARD
+// HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R4_GUARD
 for (const marker of [
-  "HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3",
+  "HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R4",
   "TELEGRAM_AUTO_PAUSE_RECOVERY_COOLDOWN_MS = 5 * 60_000",
   "updated_by::text",
   "auto_pause_delivery_uncertain",
+  "last_error like '[delivery_uncertain]%'",
   "auto_resume_delivery_uncertain",
   "scheduled_for <= ${automaticExpiryCutoff}::timestamptz",
   "at time zone 'Asia/Tehran'",
@@ -289,8 +290,9 @@ for (const marker of [
 }
 
 for (const marker of [
-  "HALLEUS_TELEGRAM_BRIDGE_HEALTH_PROBE_R3",
+  "HALLEUS_TELEGRAM_BRIDGE_HEALTH_PROBE_R4",
   "probeTelegramBridgeTransport",
+  "8_000",
   '"/telegram/check-member"',
   '"invalid-diagnostic-id"',
   "response.status === 400",
@@ -330,4 +332,4 @@ assert(
   "Bridge health probe contract changed: invalid member ids must fail before Telegram API dispatch.",
 );
 
-console.log("HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3_GUARD=PASS");
+console.log("HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R4_GUARD=PASS");
