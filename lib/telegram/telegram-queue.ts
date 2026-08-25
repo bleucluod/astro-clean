@@ -284,7 +284,7 @@ export async function recoverStaleTelegramQueueItems(
   });
 }
 
-// HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R3
+// HALLEUS_TELEGRAM_AUTO_PAUSE_RECOVERY_R4
 export const TELEGRAM_AUTO_PAUSE_RECOVERY_COOLDOWN_MS = 5 * 60_000;
 
 export type TelegramAutoPauseRecoveryResult = {
@@ -356,20 +356,36 @@ export async function recoverTelegramAutoPausedPublisher(input: {
     };
   }
 
+  const causalWindowStart = new Date(
+    Date.parse(controlUpdatedAt) - 15_000,
+  ).toISOString();
+  const causalWindowEnd = new Date(
+    Date.parse(controlUpdatedAt) + 30_000,
+  ).toISOString();
   const causalRows = await sql`
     select queue_id::text
     from halleus_private.telegram_queue_events
     where event_type = 'auto_pause_delivery_uncertain'
-      and created_at >= ${
-        new Date(Date.parse(controlUpdatedAt) - 15_000).toISOString()
-      }::timestamptz
-      and created_at <= ${
-        new Date(Date.parse(controlUpdatedAt) + 30_000).toISOString()
-      }::timestamptz
+      and created_at >= ${causalWindowStart}::timestamptz
+      and created_at <= ${causalWindowEnd}::timestamptz
     order by created_at asc
     limit 1
   `;
-  if (!causalRows[0]) {
+  const fallbackCausalRows = causalRows[0]
+    ? []
+    : await sql`
+        select id::text as queue_id
+        from halleus_private.telegram_content_queue
+        where status = 'failed'
+          and telegram_message_id is null
+          and last_error like '[delivery_uncertain]%'
+          and updated_at >= ${causalWindowStart}::timestamptz
+          and updated_at <= ${causalWindowEnd}::timestamptz
+        order by updated_at asc
+        limit 1
+      `;
+  const causalRow = causalRows[0] ?? fallbackCausalRows[0];
+  if (!causalRow) {
     return {
       eligible: false,
       bridgeHealthy: null,
@@ -378,7 +394,7 @@ export async function recoverTelegramAutoPausedPublisher(input: {
       reason: "missing_circuit_event",
     };
   }
-  const causalQueueId = asString(causalRows[0].queue_id);
+  const causalQueueId = asString(causalRow.queue_id);
 
   let bridgeHealthy = false;
   try {
