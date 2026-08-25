@@ -335,6 +335,16 @@
   line-height: 1.65;
 }
 
+.categoryTitleLink {
+  color: inherit;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.categoryTitleLink:hover {
+  color: #d8dde5;
+}
+
 .pathCard p,
 .categoryHubCard p {
   margin: 0;
