@@ -498,7 +498,22 @@ export async function createWikiImageExport(actor: VerifiedAdminActor, requested
         id, style_snapshot_version, status, article_count, attempt_count, manifest, created_by
       ) values (
         ${batchId}::uuid, ${WIKI_IMAGE_STYLE_VERSION}, 'exported', ${candidates.length}, 0,
-        ${JSON.stringify(batchManifest)}::jsonb, ${actor.userId}::uuid
+        jsonb_build_object(
+          'schemaVersion', 1,
+          'batchId', ${batchId}::text,
+          'styleSnapshotVersion', ${WIKI_IMAGE_STYLE_VERSION}::text,
+          'maxArticles', 5,
+          'maxAttemptsTotal', 10,
+          'maxAttemptsPerArticle', 2,
+          'primary', jsonb_build_object(
+            'mime', 'image/webp',
+            'width', 1200,
+            'height', 675,
+            'maxBytes', 50000
+          ),
+          'items', '[]'::jsonb
+        ),
+        ${actor.userId}::uuid
       )
     `;
     for (let index = 0; index < candidates.length; index += 1) {
