@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { JSONValue, TransactionSql } from "postgres";
+import type { TransactionSql } from "postgres";
 
 import { AdminAccessError, type VerifiedAdminActor } from "@/lib/admin/admin-auth";
 import { asNumber, asRecord, asString, getAdminDatabase } from "@/lib/admin/admin-database";
@@ -30,14 +30,10 @@ import { createWikiImageZip, readWikiImageZip } from "@/lib/wiki/wiki-image-zip"
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const RESULT_ZIP_MAX_BYTES = 400_000;
-const NEAR_DUPLICATE_DISTANCE = 6;
+const NEAR_DUPLICATE_WARNING_DISTANCE = 6;
 
 function jsonBytes(value: unknown) {
   return encoder.encode(JSON.stringify(value, null, 2));
-}
-
-function asJsonValue(value: unknown) {
-  return value as JSONValue;
 }
 
 function safeRecord(value: unknown) {
@@ -358,7 +354,7 @@ async function ensureWikiImageStyleSnapshot(sql: ReturnType<typeof getAdminDatab
     values (
       ${WIKI_IMAGE_STYLE_VERSION},
       '["/", "/chart"]'::jsonb,
-      ${sql.json(STYLE_SNAPSHOT_CONTRACT)}
+      ${JSON.stringify(STYLE_SNAPSHOT_CONTRACT)}::jsonb
     )
     on conflict (version) do nothing
   `;
@@ -489,7 +485,7 @@ export async function createWikiImageExport(actor: VerifiedAdminActor, requested
         id, style_snapshot_version, status, article_count, attempt_count, manifest, created_by
       ) values (
         ${batchId}::uuid, ${WIKI_IMAGE_STYLE_VERSION}, 'exported', ${candidates.length}, 0,
-        ${tx.json(batchManifest)}, ${actor.userId}::uuid
+        ${JSON.stringify(batchManifest)}::jsonb, ${actor.userId}::uuid
       )
     `;
     for (let index = 0; index < candidates.length; index += 1) {
@@ -530,6 +526,21 @@ function parseReturnManifest(bytes: Uint8Array): WikiImageReturnManifest {
 function validateVisualQa(item: WikiImageReturnManifestItem) {
   const qa = item.visualQa;
   return Boolean(qa?.cropOk && qa.noUnintendedText && qa.noWatermark && qa.noArtifacts && qa.geometryOk && qa.relevanceOk && qa.compressionOk);
+}
+
+function perceptualDuplicateWarning(candidateHash: string, rows: unknown[]) {
+  const nearest = rows.reduce<{ assetId: string; distance: number } | null>((best, raw) => {
+    const row = asRecord(raw);
+    const hash = asString(row.perceptual_hash);
+    if (!hash) return best;
+    const distance = perceptualDistance(hash, candidateHash);
+    if (distance > NEAR_DUPLICATE_WARNING_DISTANCE) return best;
+    if (best && best.distance <= distance) return best;
+    return { assetId: asString(row.asset_id), distance };
+  }, null);
+  if (!nearest) return null;
+  const suffix = nearest.assetId ? ` (${nearest.assetId.slice(0, 8)})` : "";
+  return `NEAR_PERCEPTUAL_DUPLICATE: فاصله بصری ${nearest.distance} با یک کاور موجود${suffix}.`;
 }
 
 export async function previewWikiImageReturnPackage(packageBytes: Uint8Array) {
@@ -587,16 +598,19 @@ export async function previewWikiImageReturnPackage(packageBytes: Uint8Array) {
     const variants = await prepareWikiImageVariants(imageBytes);
     const primary = variants.find((variant) => variant.width === 1200)!;
     const duplicateRows = await sql`
-      select variant.asset_id::text, variant.perceptual_hash
+      select variant.asset_id::text, variant.content_hash, variant.perceptual_hash
       from halleus_private.wiki_asset_variants as variant
       join public.wiki_assets as asset on asset.id = variant.asset_id and asset.deleted_at is null
       where variant.width = 1200
     `;
-    const nearDuplicate = duplicateRows.find((raw) => {
-      const candidate = asString(asRecord(raw).perceptual_hash);
-      return candidate && perceptualDistance(candidate, primary.perceptualHash) <= NEAR_DUPLICATE_DISTANCE;
+    const exactDuplicate = duplicateRows.find((raw) => {
+      const row = asRecord(raw);
+      return asString(row.content_hash) === item.checksum;
     });
-    if (nearDuplicate) throw new AdminAccessError(409, `Perceptual duplicate detected for ${item.slug}.`);
+    if (exactDuplicate) throw new AdminAccessError(409, `Exact image duplicate detected for ${item.slug}.`);
+    const warnings = [
+      perceptualDuplicateWarning(primary.perceptualHash, duplicateRows),
+    ].filter((warning): warning is string => Boolean(warning));
     previews.push({
       stableId: item.stableId,
       slug: item.slug,
@@ -605,7 +619,7 @@ export async function previewWikiImageReturnPackage(packageBytes: Uint8Array) {
       bytes: imageBytes.length,
       altFaDraft: item.altFaDraft.trim(),
       variants: variants.map(({ bytes, ...variant }) => ({ ...variant, byteSize: bytes.length })),
-      warnings: [],
+      warnings,
     });
   }
   const allowed = new Set(["return-manifest.json", ...manifest.items.filter((item) => item.status === "READY").map((item) => item.filename)]);
@@ -623,7 +637,7 @@ async function writeHistory(
       article_id, action, revision, before_snapshot, after_snapshot, actor_user_id, reason
     ) values (
       ${input.articleId}::uuid, ${input.action}, ${input.revision},
-      ${tx.json(asJsonValue(input.before))}, ${tx.json(asJsonValue(input.after))},
+      ${JSON.stringify(input.before)}::jsonb, ${JSON.stringify(input.after)}::jsonb,
       ${input.actor.userId}::uuid, ${input.reason}
     )
   `;
@@ -633,8 +647,8 @@ async function writeHistory(
       reason, success, request_correlation_id
     ) values (
       ${input.actor.userId}::uuid, ${input.actor.role}, ${`admin.wiki.image_${input.action}`},
-      'wiki_article_image', ${input.articleId}, ${tx.json(asJsonValue(input.before))},
-      ${tx.json(asJsonValue(input.after))}, ${input.reason}, true, ${input.actor.correlationId}
+      'wiki_article_image', ${input.articleId}, ${JSON.stringify(input.before)}::jsonb,
+      ${JSON.stringify(input.after)}::jsonb, ${input.reason}, true, ${input.actor.correlationId}
     )
   `;
 }
@@ -645,6 +659,7 @@ export async function applyWikiImageReturnPackage(actor: VerifiedAdminActor, pac
   const entries = readWikiImageZip(packageBytes, { maxEntries: 8, maxUncompressedBytes: 800_000 });
   const sql = getAdminDatabase();
   const storedPaths: string[] = [];
+  const previewWarningsByStableId = new Map(preview.previews.map((item) => [item.stableId, item.warnings ?? []] as const));
   try {
     for (const item of preview.manifest.items) {
       const itemRows = await sql`
@@ -702,18 +717,19 @@ export async function applyWikiImageReturnPackage(actor: VerifiedAdminActor, pac
         const nextRevision = current[0] ? asNumber(current[0].revision) + 1 : 1;
         const focalX = Math.min(1, Math.max(0, Number(item.focal?.x ?? 0.5)));
         const focalY = Math.min(1, Math.max(0, Number(item.focal?.y ?? 0.5)));
+        const warnings = previewWarningsByStableId.get(item.stableId) ?? [];
         await tx`
           insert into halleus_private.wiki_article_images (
             article_id,asset_id,state,revision,alt_fa,alt_state,caption,provenance,focal_x,focal_y,warnings,
             brief_version,batch_item_id,updated_by
           ) values (
             ${articleId}::uuid,${stored.id}::uuid,'DRAFT_IMAGE',${nextRevision},${item.altFaDraft.trim()},'draft',null,
-            ${tx.json(asJsonValue(item.provenance ?? {}))},${focalX},${focalY},'[]'::jsonb,
+            ${JSON.stringify(item.provenance ?? {})}::jsonb,${focalX},${focalY},${JSON.stringify(warnings)}::jsonb,
             ${item.briefVersion},${asString(itemRow.id)}::uuid,${actor.userId}::uuid
           ) on conflict (article_id) do update set
             asset_id=excluded.asset_id,state='DRAFT_IMAGE',revision=excluded.revision,alt_fa=excluded.alt_fa,
             alt_state='draft',caption=null,provenance=excluded.provenance,focal_x=excluded.focal_x,focal_y=excluded.focal_y,
-            warnings='[]'::jsonb,brief_version=excluded.brief_version,batch_item_id=excluded.batch_item_id,
+            warnings=excluded.warnings,brief_version=excluded.brief_version,batch_item_id=excluded.batch_item_id,
             reviewed_by=null,reviewed_at=null,updated_by=excluded.updated_by
         `;
         await tx`update halleus_private.wiki_image_batch_items set status='imported', result_asset_id=${stored.id}::uuid, attempt_count=least(2,attempt_count+1) where id=${asString(itemRow.id)}::uuid`;
@@ -779,14 +795,13 @@ export async function stageDirectWikiImage(actor: VerifiedAdminActor, input: {
   const primaryBytes = await normalizeWikiImagePrimary(input.bytes);
   const variants = await prepareWikiImageVariants(primaryBytes);
   const primaryHash = sha256(primaryBytes);
-  const primary = variants.find((variant) => variant.width === 1200)!;
   const sql = getAdminDatabase();
   const articleRows = await sql`select id::text from public.wiki_articles where stable_id=${input.stableId} and deleted_at is null limit 1`;
   const articleId = articleRows[0] ? asString(asRecord(articleRows[0]).id) : "";
   if (!articleId) throw new AdminAccessError(404, "Wiki article was not found.");
-  const duplicateRows = await sql`select perceptual_hash from halleus_private.wiki_asset_variants where width=1200`;
-  if (duplicateRows.some((raw) => perceptualDistance(asString(asRecord(raw).perceptual_hash), primary.perceptualHash) <= NEAR_DUPLICATE_DISTANCE)) {
-    throw new AdminAccessError(409, "Direct image is a perceptual duplicate of an existing Wiki cover.");
+  const duplicateRows = await sql`select content_hash from halleus_private.wiki_asset_variants where width=1200`;
+  if (duplicateRows.some((raw) => asString(asRecord(raw).content_hash) === primaryHash)) {
+    throw new AdminAccessError(409, "Direct image is an exact duplicate of an existing Wiki cover.");
   }
   const stored = await storeWikiMedia(actor, {
     originalName: input.originalName.replace(/\.[^.]+$/, "") + ".webp",
@@ -856,7 +871,7 @@ export async function mutateWikiImageAsset(actor: VerifiedAdminActor, input: {
           reason, success, request_correlation_id
         ) values (
           ${actor.userId}::uuid, ${actor.role}, 'admin.wiki.image_asset_metadata', 'wiki_asset', ${input.assetId},
-          ${tx.json(before)}, ${tx.json({ ...before, alt: altFa })},
+          ${JSON.stringify(before)}::jsonb, ${JSON.stringify({ ...before, alt: altFa })}::jsonb,
           ${input.reason}, true, ${actor.correlationId}
         )
       `;
@@ -896,7 +911,7 @@ export async function mutateWikiImageAsset(actor: VerifiedAdminActor, input: {
         reason, success, request_correlation_id
       ) values (
         ${actor.userId}::uuid, ${actor.role}, 'admin.wiki.image_asset_archived', 'wiki_asset', ${input.assetId},
-        ${tx.json(before)}, ${tx.json({ ...before, archived: true })},
+        ${JSON.stringify(before)}::jsonb, ${JSON.stringify({ ...before, archived: true })}::jsonb,
         ${input.reason}, true, ${actor.correlationId}
       )
     `;
@@ -952,7 +967,7 @@ export async function mutateWikiArticleImage(actor: VerifiedAdminActor, input: {
     await tx`
       update halleus_private.wiki_article_images set
         state=${state}, revision=${nextRevision}, alt_fa=${altFa}, alt_state=${altState}, caption=${caption},
-        provenance=${tx.json(asJsonValue(provenance))}, focal_x=${focalX}, focal_y=${focalY},
+        provenance=${JSON.stringify(provenance)}::jsonb, focal_x=${focalX}, focal_y=${focalY},
         reviewed_by=${state === "READY" ? actor.userId : null}::uuid,
         reviewed_at=${state === "READY" ? new Date().toISOString() : null}::timestamptz,
         updated_by=${actor.userId}::uuid

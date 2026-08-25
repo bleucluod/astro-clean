@@ -873,7 +873,10 @@ export function WikiImagePipelinePanel({ token, session, compactStableId }: Prop
                 <span>{importPreview.previews.filter((item) => item.status === "READY").length.toLocaleString("fa-IR")} آماده</span>
                 <span>{importPreview.previews.filter((item) => item.status === "NEEDS_RETRY").length.toLocaleString("fa-IR")} نیازمند تلاش دوباره</span>
                 {importPreview.previews.map((item) => (
-                  <p key={item.stableId}>{item.title} · {item.status}{item.bytes ? ` · ${formatBytes(item.bytes)}` : ""}</p>
+                  <p key={item.stableId}>
+                    {item.title} · {item.status}{item.bytes ? ` · ${formatBytes(item.bytes)}` : ""}
+                    {item.warnings.length ? ` · هشدار: ${item.warnings.join("، ")}` : ""}
+                  </p>
                 ))}
               </div>
             ) : null}
