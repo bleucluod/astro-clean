@@ -982,7 +982,7 @@ export async function mutateWikiArticleImage(actor: VerifiedAdminActor, input: {
     await tx`
       update halleus_private.wiki_article_images set
         state=${state}, revision=${nextRevision}, alt_fa=${altFa}, alt_state=${altState}, caption=${caption},
-        provenance=jsonb_build_object('source', ${provenanceSource}), focal_x=${focalX}, focal_y=${focalY},
+        provenance=jsonb_build_object('source', ${provenanceSource}::text), focal_x=${focalX}, focal_y=${focalY},
         reviewed_by=${state === "READY" ? actor.userId : null}::uuid,
         reviewed_at=${state === "READY" ? new Date().toISOString() : null}::timestamptz,
         updated_by=${actor.userId}::uuid
