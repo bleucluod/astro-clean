@@ -293,6 +293,139 @@
   text-decoration: none;
 }
 
+.pathGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.pathCard,
+.categoryHubCard,
+.compactArticleLink {
+  border: 1px solid var(--wiki-border);
+  background: linear-gradient(145deg, rgba(17, 20, 26, 0.96), rgba(8, 10, 14, 0.98));
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.pathCard {
+  display: grid;
+  gap: 0.8rem;
+  min-height: 220px;
+  padding: 1.25rem;
+  border-radius: 22px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.pathCard:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.pathCard h3,
+.categoryHubCard h3 {
+  margin: 0;
+  color: #f4f6f8;
+  font-size: 1.16rem;
+  line-height: 1.65;
+}
+
+.pathCard p,
+.categoryHubCard p {
+  margin: 0;
+  color: var(--wiki-muted);
+  line-height: 1.9;
+}
+
+.categoryHubGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.categoryHubCard {
+  display: grid;
+  gap: 1.1rem;
+  align-content: start;
+  padding: 1.25rem;
+  border-radius: 24px;
+}
+
+.categoryHubCard .articleLink {
+  margin-top: 0;
+  padding-top: 0;
+  color: var(--wiki-blue);
+  font-size: 0.84rem;
+}
+
+.compactLinkList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--wiki-border);
+}
+
+.compactLinkList li {
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+.compactLinkList a {
+  display: block;
+  padding: 0.75rem 0;
+  color: var(--wiki-text-soft);
+  font-weight: 800;
+  line-height: 1.75;
+  text-decoration: none;
+}
+
+.compactLinkList a:hover {
+  color: #f4f6f8;
+}
+
+.compactArticleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.compactArticleLink {
+  display: grid;
+  gap: 0.45rem;
+  min-height: 132px;
+  padding: 1rem;
+  border-radius: 18px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.compactArticleLink:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.compactArticleLink span,
+.compactArticleLink small {
+  color: var(--wiki-faint);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.compactArticleLink strong {
+  color: #f4f6f8;
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+
 .categoryGrid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -698,7 +831,10 @@
 }
 
 @media (max-width: 980px) {
-  .hero {
+  .hero,
+  .pathGrid,
+  .categoryHubGrid,
+  .compactArticleGrid {
     grid-template-columns: 1fr;
   }
 
@@ -734,6 +870,9 @@
 
   .articleGrid,
   .guideGrid,
+  .pathGrid,
+  .categoryHubGrid,
+  .compactArticleGrid,
   .relatedGrid,
   .stickyAside {
     grid-template-columns: 1fr;
