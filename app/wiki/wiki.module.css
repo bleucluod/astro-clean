@@ -3,12 +3,12 @@
   --wiki-surface-raised: #11141a;
   --wiki-border: rgba(255, 255, 255, 0.09);
   --wiki-border-strong: rgba(255, 255, 255, 0.16);
-  --wiki-text: #f4f6f8;
-  --wiki-text-soft: #e5eaf0;
-  --wiki-muted: #c7cfda;
-  --wiki-faint: #a9b2bd;
-  --wiki-blue: #7dd3fc;
-  --wiki-violet: #c4b5fd;
+  --wiki-text: #eef2f6;
+  --wiki-text-soft: #d6dde6;
+  --wiki-muted: #b7c0ca;
+  --wiki-faint: #8f98a4;
+  --wiki-blue: #d8dde5;
+  --wiki-violet: #8b929c;
   position: relative;
   display: grid;
   gap: 2rem;
@@ -49,8 +49,8 @@
   border: 1px solid var(--wiki-border);
   border-radius: 32px;
   background:
-    radial-gradient(circle at 82% 24%, rgba(125, 211, 252, 0.1), transparent 26rem),
-    radial-gradient(circle at 22% 70%, rgba(196, 181, 253, 0.07), transparent 30rem),
+    radial-gradient(circle at 82% 24%, rgba(255, 255, 255, 0.045), transparent 26rem),
+    radial-gradient(circle at 22% 70%, rgba(148, 163, 184, 0.035), transparent 30rem),
     linear-gradient(145deg, rgba(17, 20, 26, 0.96), rgba(8, 10, 14, 0.98));
   box-shadow:
     0 22px 64px rgba(0, 0, 0, 0.24),
@@ -63,7 +63,7 @@
   width: 420px;
   height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(125, 211, 252, 0.14), rgba(196, 181, 253, 0.06) 38%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.075), rgba(148, 163, 184, 0.035) 38%, transparent 70%);
   pointer-events: none;
 }
 
@@ -87,7 +87,7 @@
 .heroTitle {
   max-width: 760px;
   margin: 0.75rem 0 1rem;
-  color: #ffffff;
+  color: #f4f6f8;
   font-size: var(
     --halleus-public-h1-size,
     clamp(1.5rem, 2.35vw, 1.95rem)
@@ -128,7 +128,7 @@
 }
 
 .primaryButton {
-  color: #ffffff;
+  color: #f4f6f8;
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: linear-gradient(135deg, #2b3240, #161a22);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
@@ -176,7 +176,7 @@
 
 .heroSummary strong {
   margin-top: 0.4rem;
-  color: #ffffff;
+  color: #f4f6f8;
   font-size: clamp(1.45rem, 3vw, 2.15rem);
 }
 
@@ -242,7 +242,7 @@
   display: inline-flex;
   padding: 0.36rem 0.7rem;
   border-radius: 999px;
-  color: #dceeff;
+  color: #d8dde5;
   border: 1px solid var(--wiki-border);
   background: rgba(255, 255, 255, 0.04);
   font-size: 0.78rem;
@@ -448,7 +448,7 @@
 
 .articleHero h1 {
   margin: 1rem 0 0.85rem;
-  color: #ffffff;
+  color: #f4f6f8;
   font-size: var(
     --halleus-public-h1-size,
     clamp(1.5rem, 2.35vw, 1.95rem)
@@ -474,7 +474,7 @@
 }
 
 .inlineArticleLink:hover {
-  color: #dceeff;
+  color: #f4f6f8;
   opacity: 0.92;
 }
 
@@ -488,7 +488,7 @@
   padding: 1.4rem;
   border-radius: 22px;
   background:
-    radial-gradient(circle at 92% 16%, rgba(125, 211, 252, 0.1), transparent 15rem),
+    radial-gradient(circle at 92% 16%, rgba(255, 255, 255, 0.045), transparent 15rem),
     linear-gradient(145deg, rgba(17, 20, 26, 0.96), rgba(8, 10, 14, 0.98));
 }
 
@@ -595,28 +595,28 @@
 }
 
 .wikiArticleCta {
-  color: #ffffff;
+  color: #f4f6f8;
   background: linear-gradient(135deg, #2b3240, #161a22);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
   font-weight: 600;
 }
 
 .sideCard .wikiArticleCta {
-  color: #ffffff !important;
+  color: #f4f6f8 !important;
 }
 
 .sideCard .wikiArticleCta:visited {
-  color: #ffffff !important;
+  color: #f4f6f8 !important;
 }
 
 .sideCard .wikiArticleCta:hover {
-  color: #ffffff !important;
+  color: #f4f6f8 !important;
   background: linear-gradient(135deg, #374052, #1d222c);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
 }
 
 .sideCard .wikiArticleCta:focus-visible {
-  color: #ffffff !important;
+  color: #f4f6f8 !important;
   outline: 3px solid var(--wiki-blue);
   outline-offset: 3px;
 }
@@ -768,19 +768,19 @@
 }
 
 .page :where(h1, h2, h3, strong) {
-  color: #f8fafc !important;
+  color: #f4f6f8 !important;
 }
 
 .page :where(p, li) {
-  color: #e5eaf0 !important;
+  color: #d6dde6 !important;
 }
 
 .page :where(small, figcaption, .articleMeta, .breadcrumb, .categoryStatus) {
-  color: #a9b2bd !important;
+  color: #8f98a4 !important;
 }
 
 .page :where(.eyebrow, .sectionKicker, .categoryPill) {
-  color: #d8dde5 !important;
+  color: #b7c0ca !important;
 }
 
 .page :where(a, a:visited) {
@@ -799,5 +799,7 @@
 }
 
 .guideStep > span {
-  color: #050609 !important;
+  color: #d8dde5 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.045);
 }
