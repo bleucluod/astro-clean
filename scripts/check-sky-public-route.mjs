@@ -21,6 +21,7 @@ const archivePage = read("app/sky/[date]/page.tsx");
 const delivery = read("lib/sky-public/sky-public-delivery.ts");
 const reportInterpretation = read("lib/sky-public/sky-public-report-interpretation.ts");
 const experience = read("components/SkyPublicExperience.tsx");
+const editorialPage = read("components/FinalEditorialPage.tsx");
 const wheel = read("components/SkyPublicWheel.tsx");
 const cityPicker = read("components/SkyCityPicker.tsx");
 const cityRoute = read("app/api/sky/cities/route.ts");
@@ -31,10 +32,14 @@ requireAll("Public Sky page", page, [
   "deliverSkyPublicSnapshot",
   "searchParams",
   "آسمان امروز",
+  'includeSections={["sky-hero", "sky-controls"]}',
+  'slotOnlySections={["sky-controls"]}',
+  '"@type": "FAQPage"',
 ]);
 forbidAll("Public Sky page", page, ['"use client"', "buildSkyDailySnapshot", "birthTime"]);
 requireAll("Public Sky archive day", archivePage, ["deliverSkyPublicSnapshot", "robots: { index: false", "params"]);
-requireAll("Public Sky experience", experience, ["planetaryStates.map", "moonPhase", "snapshot.aspects", "snapshot.timeline", "SkyPublicWheel", "formatGregorianDate", "buildDailySummary", "buildSkyPublicReportInterpretation", "reportInterpretation.planetReadings", "reportInterpretation.aspectReadings", "data-interpretation-source", "heroOrbit", "INITIAL_ASPECT_COUNT", "moonEvents", "data-state"]);
+requireAll("Public Sky experience", experience, ["planetaryStates.map", "moonPhase", "snapshot.aspects", "snapshot.timeline", "SkyPublicWheel", "formatGregorianDate", "buildDailySummary", "buildSkyPublicReportInterpretation", "reportInterpretation.planetReadings", "reportInterpretation.aspectReadings", "data-interpretation-source", "heroOrbit", "INITIAL_ASPECT_COUNT", "moonEvents", "data-state", "وضعیت سیارات امروز", "فاز ماه امروز", "سیارات برگشتی امروز", "رویداد بعدی"]);
+requireAll("Final editorial slot isolation", editorialPage, ["includeSections", "slotOnlySections", "slotOnly"]);
 requireAll("Public Sky report interpretation", reportInterpretation, [
   "buildPlainDailyPlacementInterpretation",
   "buildPlainDailyAspectInterpretation",

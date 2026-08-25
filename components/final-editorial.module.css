@@ -116,6 +116,8 @@
 .action:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(77, 65, 155, 0.16); }
 .slot { margin-top: 24px; }
 
+.section[data-slot-only="true"] .slot { margin-top: 0; }
+
 .section:first-child > .slot {
   position: absolute;
   inset-inline-end: 24px;

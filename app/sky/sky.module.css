@@ -313,6 +313,11 @@
 .moonCard dt { color: #697b8b; }
 .moonCard dd { margin: 0; font-weight: 800; text-align: end; }
 
+.moonPhaseName {
+  color: #243447;
+  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+}
+
 .moreAspects {
   margin-top: 14px;
 }

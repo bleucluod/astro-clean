@@ -165,7 +165,7 @@ export function SkyPublicWheel({ snapshot }: { snapshot: SkyDailySnapshot }) {
       <header className="sky-astrochart-wheel-header">
         <div>
           <span>نمای تصویری</span>
-          <h2 id="sky-wheel-title">چرخ آسمان امروز</h2>
+          <h2 id="sky-wheel-title">چارت آسترولوژی امروز</h2>
         </div>
       </header>
 

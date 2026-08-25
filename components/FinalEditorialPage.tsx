@@ -56,13 +56,23 @@ function Block({ block }: { block: FinalEditorialBlock }) {
   return null;
 }
 
-export function FinalEditorialSectionView({ section, slot, hideActions = false }: { section: FinalEditorialSection; slot?: ReactNode; hideActions?: boolean }) {
+export function FinalEditorialSectionView({
+  section,
+  slot,
+  hideActions = false,
+  slotOnly = false,
+}: {
+  section: FinalEditorialSection;
+  slot?: ReactNode;
+  hideActions?: boolean;
+  slotOnly?: boolean;
+}) {
   const actions = section.blocks.filter((block): block is Extract<FinalEditorialBlock, { type: "action" }> => block.type === "action" && !hasUnresolvedPlaceholder(block.text));
   const content = section.blocks.filter((block) => block.type !== "action");
   return (
-    <section className={styles.section} id={section.id} data-final-editorial-section={section.id}>
-      {content.map((block, index) => <Block block={block} key={`${block.type}-${index}`} />)}
-      {!hideActions && actions.length ? <div className={styles.actions}>{actions.map((action) => <Link className={styles.action} href={destinationFor(action.text)} key={action.text}>{action.text}</Link>)}</div> : null}
+    <section className={styles.section} id={section.id} data-final-editorial-section={section.id} data-slot-only={slotOnly ? "true" : undefined}>
+      {slotOnly ? null : content.map((block, index) => <Block block={block} key={`${block.type}-${index}`} />)}
+      {!slotOnly && !hideActions && actions.length ? <div className={styles.actions}>{actions.map((action) => <Link className={styles.action} href={destinationFor(action.text)} key={action.text}>{action.text}</Link>)}</div> : null}
       {slot ? <div className={styles.slot}>{slot}</div> : null}
     </section>
   );
@@ -73,17 +83,31 @@ export function FinalEditorialPage({
   slots = {},
   omitSections = [],
   omitActionSections = [],
+  includeSections = [],
+  slotOnlySections = [],
 }: {
   pageKey: FinalEditorialPageKey;
   slots?: Record<string, ReactNode>;
   omitSections?: string[];
   omitActionSections?: string[];
+  includeSections?: string[];
+  slotOnlySections?: string[];
 }) {
   const page = getFinalEditorialPage(pageKey);
+  const sections = page.sections.filter((section) =>
+    !omitSections.includes(section.id) &&
+    (!includeSections.length || includeSections.includes(section.id))
+  );
   return (
     <main className={styles.page} data-final-editorial-page={pageKey}>
-      {page.sections.filter((section) => !omitSections.includes(section.id)).map((section) => (
-        <FinalEditorialSectionView key={section.id} section={section} slot={slots[section.id]} hideActions={omitActionSections.includes(section.id)} />
+      {sections.map((section) => (
+        <FinalEditorialSectionView
+          key={section.id}
+          section={section}
+          slot={slots[section.id]}
+          hideActions={omitActionSections.includes(section.id)}
+          slotOnly={slotOnlySections.includes(section.id)}
+        />
       ))}
     </main>
   );
