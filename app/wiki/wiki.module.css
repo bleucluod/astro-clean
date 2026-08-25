@@ -195,6 +195,32 @@
   gap: 1.15rem;
 }
 
+.prosePanel {
+  display: grid;
+  gap: 0.9rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--wiki-border);
+  border-radius: 26px;
+  background: linear-gradient(145deg, rgba(17, 20, 26, 0.96), rgba(8, 10, 14, 0.98));
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.prosePanel h2 {
+  margin: 0;
+  color: #f4f6f8;
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  line-height: 1.55;
+}
+
+.prosePanel p {
+  max-width: 860px;
+  margin: 0;
+  color: var(--wiki-text-soft);
+  line-height: 2.05;
+}
+
 .sectionHeader {
   display: flex;
   align-items: end;
@@ -493,6 +519,34 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.faqGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.faqCard {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.15rem;
+  border: 1px solid var(--wiki-border);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(17, 20, 26, 0.96), rgba(8, 10, 14, 0.98));
+}
+
+.faqCard h3 {
+  margin: 0;
+  color: #f4f6f8;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.faqCard p {
+  margin: 0;
+  color: var(--wiki-muted);
+  line-height: 1.95;
 }
 
 .guideStep {
@@ -880,6 +934,7 @@
 
   .articleGrid,
   .guideGrid,
+  .faqGrid,
   .pathGrid,
   .categoryHubGrid,
   .compactArticleGrid,
