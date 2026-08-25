@@ -354,7 +354,20 @@ async function ensureWikiImageStyleSnapshot(sql: ReturnType<typeof getAdminDatab
     values (
       ${WIKI_IMAGE_STYLE_VERSION},
       '["/", "/chart"]'::jsonb,
-      ${JSON.stringify(STYLE_SNAPSHOT_CONTRACT)}::jsonb
+      jsonb_build_object(
+        'language', 'dark editorial minimal premium',
+        'backgrounds', jsonb_build_array('#020305', '#050609', '#08090c', '#0b0d11', '#101216'),
+        'text', jsonb_build_array('#ffffff', '#f4f6f8', '#edf2f7'),
+        'accents', jsonb_build_array('#dceeff', '#7dd3fc', '#c4b5fd'),
+        'rules', jsonb_build_array(
+          'one main concept',
+          'vector-like forms',
+          'controlled gradients',
+          'no unintended text',
+          'no heavy grain or star clutter',
+          'no fake astronomical measurement'
+        )
+      )
     )
     on conflict (version) do nothing
   `;
