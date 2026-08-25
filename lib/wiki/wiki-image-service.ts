@@ -759,14 +759,15 @@ export async function applyWikiImageReturnPackage(actor: VerifiedAdminActor, pac
         const nextRevision = current[0] ? asNumber(current[0].revision) + 1 : 1;
         const focalX = Math.min(1, Math.max(0, Number(item.focal?.x ?? 0.5)));
         const focalY = Math.min(1, Math.max(0, Number(item.focal?.y ?? 0.5)));
-        const warnings = previewWarningsByStableId.get(item.stableId) ?? [];
+        const warning = (previewWarningsByStableId.get(item.stableId) ?? [])[0] ?? null;
         await tx`
           insert into halleus_private.wiki_article_images (
             article_id,asset_id,state,revision,alt_fa,alt_state,caption,provenance,focal_x,focal_y,warnings,
             brief_version,batch_item_id,updated_by
           ) values (
             ${articleId}::uuid,${stored.id}::uuid,'DRAFT_IMAGE',${nextRevision},${item.altFaDraft.trim()},'draft',null,
-            jsonb_build_object('source','ai_batch'),${focalX},${focalY},${JSON.stringify(warnings)}::jsonb,
+            jsonb_build_object('source','ai_batch'),${focalX},${focalY},
+            case when ${warning}::text is null then jsonb_build_array() else jsonb_build_array(${warning}::text) end,
             ${item.briefVersion},${asString(itemRow.id)}::uuid,${actor.userId}::uuid
           ) on conflict (article_id) do update set
             asset_id=excluded.asset_id,state='DRAFT_IMAGE',revision=excluded.revision,alt_fa=excluded.alt_fa,
