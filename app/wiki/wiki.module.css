@@ -3,10 +3,10 @@
   --wiki-surface-raised: #11141a;
   --wiki-border: rgba(255, 255, 255, 0.09);
   --wiki-border-strong: rgba(255, 255, 255, 0.16);
-  --wiki-text: #ffffff;
-  --wiki-text-soft: #f4f7fb;
-  --wiki-muted: #e0e6ed;
-  --wiki-faint: #d5dce5;
+  --wiki-text: #f4f6f8;
+  --wiki-text-soft: #e5eaf0;
+  --wiki-muted: #c7cfda;
+  --wiki-faint: #a9b2bd;
   --wiki-blue: #7dd3fc;
   --wiki-violet: #c4b5fd;
   position: relative;
@@ -767,12 +767,20 @@
   opacity: 0.78;
 }
 
-.page :where(h1, h2, h3, p, li, small, strong, figcaption, .articleMeta, .breadcrumb, .categoryStatus) {
-  color: #ffffff !important;
+.page :where(h1, h2, h3, strong) {
+  color: #f8fafc !important;
+}
+
+.page :where(p, li) {
+  color: #e5eaf0 !important;
+}
+
+.page :where(small, figcaption, .articleMeta, .breadcrumb, .categoryStatus) {
+  color: #a9b2bd !important;
 }
 
 .page :where(.eyebrow, .sectionKicker, .categoryPill) {
-  color: #ffffff !important;
+  color: #d8dde5 !important;
 }
 
 .page :where(a, a:visited) {
