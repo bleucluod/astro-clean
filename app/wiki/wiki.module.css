@@ -766,3 +766,30 @@
   font-size: 0.78rem;
   opacity: 0.78;
 }
+
+.page :where(h1, h2, h3, p, li, small, strong, figcaption, .articleMeta, .breadcrumb, .categoryStatus) {
+  color: #ffffff !important;
+}
+
+.page :where(.eyebrow, .sectionKicker, .categoryPill) {
+  color: #ffffff !important;
+}
+
+.page :where(a, a:visited) {
+  text-decoration: none;
+}
+
+.page :where(.inlineArticleLink, .inlineArticleLink:visited) {
+  color: var(--wiki-blue) !important;
+  font-weight: 850;
+  text-decoration: none !important;
+}
+
+.page :where(.breadcrumb a, .articleLink, .sideLinks a, .articleTitleLink:hover, .relatedCard:hover > span) {
+  color: var(--wiki-blue) !important;
+  text-decoration: none !important;
+}
+
+.guideStep > span {
+  color: #050609 !important;
+}
