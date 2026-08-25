@@ -34,6 +34,27 @@ const readingSteps = [
   },
 ] as const;
 
+const starterPaths = [
+  {
+    title: "چارت تولد را بفهم",
+    text: "برای شروع، اول معنی چارت تولد، نقش سیاره‌ها و تفاوت خانه‌ها را روشن کن.",
+    href: "/wiki/birth-chart-basics",
+    linkLabel: "شروع از چارت تولد",
+  },
+  {
+    title: "دقت ساعت و شهر را بسنج",
+    text: "اگر ساعت یا شهر تولد دقیق نباشد، بعضی بخش‌های چارت باید با احتیاط خوانده شوند.",
+    href: "/wiki/category/accuracy",
+    linkLabel: "مسیر دقت داده‌ها",
+  },
+  {
+    title: "خانه‌ها و زاویه‌ها را دنبال کن",
+    text: "خانه‌ها نشان می‌دهند هر موضوع بیشتر در کدام میدان زندگی دیده می‌شود.",
+    href: "/wiki/category/houses",
+    linkLabel: "مسیر خانه‌های چارت",
+  },
+] as const;
+
 export default async function WikiPage() {
   const { articles: catalogArticles, categories: wikiCategories } =
     await getPublicWikiCatalog();
@@ -42,9 +63,8 @@ export default async function WikiPage() {
     wikiArticles,
     wikiCategories,
   );
-  const categoryViewsById = new Map(
-    categoryViews.map((view) => [view.category.id, view]),
-  );
+  const latestArticles = wikiArticles.slice(0, 12);
+  const categoryArticlePreviewLimit = 5;
 
   return (
     <section className={styles.page} data-product-surface="Halleus Wiki">
@@ -82,41 +102,22 @@ export default async function WikiPage() {
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>از اینجا شروع کن</span>
-            <h2 id="wiki-start-title">از مفاهیم پایه تا دقت ساعت و شهر تولد</h2>
+            <h2 id="wiki-start-title">سه مسیر اصلی برای شروع مطالعه</h2>
           </div>
           <p>
-            از تعریف آسترولوژی و چارت تولد شروع کن، بعد به دقت داده و تفاوت
-            تروپیکال، سایدرئال و جیوتیش برس. مقاله‌ها روی یک زبان مشترک و
-            لینک‌های داخلی به‌هم‌پیوسته ساخته شده‌اند.
+            این صفحه نقش نقشهٔ راه دارد: اول مسیرهای اصلی را انتخاب کن، بعد
+            از صفحهٔ هر دسته به همهٔ مقاله‌های همان موضوع برس.
           </p>
         </div>
 
-        <div className={styles.articleGrid}>
-          {wikiArticles.map((article) => {
-            const category = wikiCategories.find(
-              (item) => item.id === article.categoryId,
-            );
-
-            return (
-              <article className={styles.articleCard} key={article.slug}>
-                <div className={styles.articleTopline}>
-                  <span className={styles.categoryPill}>{category?.label}</span>
-                  <span className={styles.articleMeta}>
-                    {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
-                  </span>
-                </div>
-                <h3>
-                  <Link
-                    className={styles.articleTitleLink}
-                    href={`/wiki/${article.slug}`}
-                  >
-                    {article.shortTitle}
-                  </Link>
-                </h3>
-                <p>{article.summary}</p>
-              </article>
-            );
-          })}
+        <div className={styles.pathGrid}>
+          {starterPaths.map((path) => (
+            <Link className={styles.pathCard} href={path.href} key={path.href}>
+              <span className={styles.categoryPill}>{path.linkLabel}</span>
+              <h3>{path.title}</h3>
+              <p>{path.text}</p>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -127,41 +128,87 @@ export default async function WikiPage() {
             <h2 id="wiki-map-title">مجموعه‌ای که مرحله‌به‌مرحله رشد می‌کند</h2>
           </div>
           <p>
-            مقاله‌های بنیادی، کلاستر دقت داده و راهنمای مکاتب اصلی منتشر
-            شده‌اند؛ دسته‌های بعدی پس از بررسی کیفیت اضافه می‌شوند.
+            هر دسته صفحهٔ مستقل خودش را دارد تا مقاله‌های جدید سریع‌تر از
+            مسیر داخلی کشف شوند، بدون اینکه صفحهٔ اصلی ویکی شلوغ شود.
           </p>
         </div>
 
-        <div className={styles.categoryGrid}>
-          {wikiCategories.map((category) => {
-            const categoryView = categoryViewsById.get(category.id);
-            const articleCount = categoryView?.articles.length ?? 0;
-            const content = (
-              <>
+        <div className={styles.categoryHubGrid}>
+          {categoryViews.map((categoryView) => {
+            const previewArticles = categoryView.articles.slice(
+              0,
+              categoryArticlePreviewLimit,
+            );
+            const remainingCount =
+              categoryView.articles.length - previewArticles.length;
+
+            return (
+              <article className={styles.categoryHubCard} key={categoryView.category.id}>
                 <div>
-                  <h3>{category.label}</h3>
-                  <p>{category.description}</p>
+                  <div className={styles.articleTopline}>
+                    <span className={styles.categoryPill}>
+                      {categoryView.articles.length.toLocaleString("fa-IR")} مقاله
+                    </span>
+                    <Link
+                      className={styles.articleLink}
+                      href={`/wiki/category/${categoryView.category.id}`}
+                    >
+                      همهٔ مقاله‌ها
+                      <span aria-hidden="true">←</span>
+                    </Link>
+                  </div>
+                  <h3>{categoryView.category.label}</h3>
+                  <p>{categoryView.category.description}</p>
                 </div>
-                <span className={styles.categoryStatus}>
-                  {articleCount > 0
-                    ? `${articleCount.toLocaleString("fa-IR")} مقاله`
-                    : "در صف ساخت"}
-                </span>
-              </>
+                <ul className={styles.compactLinkList}>
+                  {previewArticles.map((article) => (
+                    <li key={article.slug}>
+                      <Link href={`/wiki/${article.slug}`}>{article.shortTitle}</Link>
+                    </li>
+                  ))}
+                </ul>
+                {remainingCount > 0 ? (
+                  <Link
+                    className={styles.categoryStatus}
+                    href={`/wiki/category/${categoryView.category.id}`}
+                  >
+                    {remainingCount.toLocaleString("fa-IR")} مقالهٔ دیگر در این دسته
+                  </Link>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="wiki-latest-title">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>تازه منتشر شده‌ها</span>
+            <h2 id="wiki-latest-title">آخرین مقاله‌هایی که باید سریع‌تر دیده شوند</h2>
+          </div>
+          <p>
+            این بخش کمک می‌کند مقاله‌های تازه از صفحهٔ اصلی ویکی هم لینک
+            مستقیم بگیرند، اما صفحه همچنان خلوت و قابل اسکن بماند.
+          </p>
+        </div>
+
+        <div className={styles.compactArticleGrid}>
+          {latestArticles.map((article) => {
+            const category = wikiCategories.find(
+              (item) => item.id === article.categoryId,
             );
 
-            return categoryView ? (
+            return (
               <Link
-                className={`${styles.categoryCard} ${styles.categoryCardLink}`}
-                href={`/wiki/category/${category.id}`}
-                key={category.id}
+                className={styles.compactArticleLink}
+                href={`/wiki/${article.slug}`}
+                key={article.slug}
               >
-                {content}
+                <span>{category?.label ?? "ویکی هالیوس"}</span>
+                <strong>{article.shortTitle}</strong>
+                <small>{article.readingMinutes.toLocaleString("fa-IR")} دقیقه</small>
               </Link>
-            ) : (
-              <div className={styles.categoryCard} key={category.id}>
-                {content}
-              </div>
             );
           })}
         </div>
