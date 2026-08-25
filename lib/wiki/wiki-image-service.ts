@@ -528,6 +528,16 @@ function validateVisualQa(item: WikiImageReturnManifestItem) {
   return Boolean(qa?.cropOk && qa.noUnintendedText && qa.noWatermark && qa.noArtifacts && qa.geometryOk && qa.relevanceOk && qa.compressionOk);
 }
 
+function wikiImageProvenance(source: "ai_batch" | "asset_select" | "direct_upload") {
+  return { source };
+}
+
+function normalizeWikiImageProvenance(value: unknown) {
+  const source = asString(safeRecord(value).source);
+  if (source === "asset_select" || source === "direct_upload") return wikiImageProvenance(source);
+  return wikiImageProvenance("ai_batch");
+}
+
 function perceptualDuplicateWarning(candidateHash: string, rows: unknown[]) {
   const nearest = rows.reduce<{ assetId: string; distance: number } | null>((best, raw) => {
     const row = asRecord(raw);
@@ -724,7 +734,7 @@ export async function applyWikiImageReturnPackage(actor: VerifiedAdminActor, pac
             brief_version,batch_item_id,updated_by
           ) values (
             ${articleId}::uuid,${stored.id}::uuid,'DRAFT_IMAGE',${nextRevision},${item.altFaDraft.trim()},'draft',null,
-            ${JSON.stringify(item.provenance ?? {})}::jsonb,${focalX},${focalY},${JSON.stringify(warnings)}::jsonb,
+            ${JSON.stringify(wikiImageProvenance("ai_batch"))}::jsonb,${focalX},${focalY},${JSON.stringify(warnings)}::jsonb,
             ${item.briefVersion},${asString(itemRow.id)}::uuid,${actor.userId}::uuid
           ) on conflict (article_id) do update set
             asset_id=excluded.asset_id,state='DRAFT_IMAGE',revision=excluded.revision,alt_fa=excluded.alt_fa,
@@ -956,7 +966,7 @@ export async function mutateWikiArticleImage(actor: VerifiedAdminActor, input: {
     let altState = asString(row.alt_state);
     const altFa = input.altFa?.trim() ?? asString(row.alt_fa);
     const caption = input.caption === undefined ? (row.caption ? asString(row.caption) : null) : input.caption?.trim() || null;
-    const provenance = input.provenance ?? safeRecord(row.provenance);
+    const provenance = normalizeWikiImageProvenance(input.provenance ?? row.provenance);
     const focalX = input.focalX === undefined ? asNumber(row.focal_x) : Math.min(1, Math.max(0, input.focalX));
     const focalY = input.focalY === undefined ? asNumber(row.focal_y) : Math.min(1, Math.max(0, input.focalY));
     if (altFa.length < 3 || altFa.length > 500) throw new AdminAccessError(400, "Persian alt must contain 3 to 500 characters.");
