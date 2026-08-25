@@ -3,10 +3,10 @@
   --wiki-surface-raised: #11141a;
   --wiki-border: rgba(255, 255, 255, 0.09);
   --wiki-border-strong: rgba(255, 255, 255, 0.16);
-  --wiki-text: #f4f6f8;
-  --wiki-text-soft: #e5eaf0;
-  --wiki-muted: #c7cfda;
-  --wiki-faint: #a9b2bd;
+  --wiki-text: #ffffff;
+  --wiki-text-soft: #f4f7fb;
+  --wiki-muted: #e0e6ed;
+  --wiki-faint: #d5dce5;
   --wiki-blue: #7dd3fc;
   --wiki-violet: #c4b5fd;
   position: relative;
@@ -466,17 +466,16 @@
 
 .inlineArticleLink {
   color: var(--wiki-blue);
-  text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  font-weight: 850;
+  text-decoration: none;
   transition:
     color 160ms ease,
-    text-decoration-thickness 160ms ease;
+    opacity 160ms ease;
 }
 
 .inlineArticleLink:hover {
   color: #dceeff;
-  text-decoration-thickness: 2px;
+  opacity: 0.92;
 }
 
 .inlineArticleLink:focus-visible {
