@@ -16,6 +16,8 @@ export const metadata: Metadata = buildPublicPageMetadata({
   canonical: "/wiki",
 });
 
+const WIKI_BASE_URL = "https://halleus.ir";
+
 const readingSteps = [
   {
     number: "۱",
@@ -32,6 +34,13 @@ const readingSteps = [
     title: "در چارت خودت ببین",
     text: "بعد از یادگیری مفهوم، جایگاه واقعی آن را در گزارش شخصی بررسی کن.",
   },
+] as const;
+
+const wikiGuideParagraphs = [
+  "ویکی هالیوس برای این ساخته شده که مفاهیم آسترولوژی را از حالت جمله‌های پراکنده و کلیشه‌ای بیرون بیاورد. اینجا هر مقاله قرار است یک بخش مشخص از زبان چارت را روشن کند: سیاره‌ها چه نقشی دارند، نشان‌ها چه سبکی به آن نقش می‌دهند، خانه‌ها موضوع را در کدام میدان زندگی نشان می‌دهند و جنبه‌ها چطور این بخش‌ها را به هم وصل می‌کنند.",
+  "اگر تازه شروع کرده‌ای، بهتر است اول سراغ چارت تولد، خورشید و ماه و طالع، خانه‌ها و جنبه‌های اصلی بروی. بعد از آن می‌توانی وارد موضوع‌های دقیق‌تر شوی؛ مثل اهمیت ساعت تولد، تفاوت شهر تولد، سیستم‌های خانه‌بندی، آسترولوژی تروپیکال و سایدرئال یا معنی ترنزیت‌ها در خوانش روزانه.",
+  "هدف این صفحه این نیست که فهرست بلند و خسته‌کننده‌ای از لینک‌ها بسازد. صفحهٔ اصلی ویکی نقش نقشهٔ راه دارد: مسیرهای اصلی را نشان می‌دهد، مقاله‌های بنیادی هر دسته را جلو می‌آورد و تازه‌ترین به‌روزرسانی‌ها را جدا نگه می‌دارد. برای دیدن راهنماهای کامل هر موضوع، وارد صفحهٔ همان دسته شو.",
+  "خواندن ویکی زمانی مفیدتر می‌شود که هر مفهوم را بعداً در چارت واقعی خودت ببینی. به همین دلیل هالیوس تلاش می‌کند بین آموزش عمومی و گزارش شخصی فاصلهٔ روشنی نگه دارد: مقاله‌ها زبان و چارچوب می‌دهند، اما نتیجهٔ دقیق‌تر وقتی ساخته می‌شود که تاریخ، ساعت و شهر تولد هم وارد محاسبه شوند.",
 ] as const;
 
 const starterPaths = [
@@ -55,6 +64,28 @@ const starterPaths = [
   },
 ] as const;
 
+const wikiFaqs = [
+  {
+    question: "برای یادگیری آسترولوژی از کجا شروع کنم؟",
+    answer:
+      "از مقالهٔ چارت تولد شروع کن، بعد خورشید و ماه و طالع، خانه‌ها، جنبه‌ها و دقت ساعت تولد را بخوان. این ترتیب کمک می‌کند قبل از رفتن سراغ جزئیات، ساختار کلی چارت را بفهمی.",
+  },
+  {
+    question: "چارت تولد بدون ساعت دقیق قابل خواندن است؟",
+    answer:
+      "بخشی از چارت بدون ساعت دقیق هم قابل بررسی است، اما رایزینگ، خانه‌ها و بعضی نقاط حساس می‌توانند نامطمئن شوند. برای همین هالیوس بین دادهٔ دقیق، تقریبی و نامعلوم فرق می‌گذارد.",
+  },
+  {
+    question: "فرق ویکی هالیوس با فال روزانه چیست؟",
+    answer:
+      "ویکی هالیوس متن آموزشی است و مفهوم‌ها را توضیح می‌دهد. فال روزانه معمولاً پیش‌بینی کلی می‌دهد، اما اینجا تمرکز روی یادگیری زبان چارت، مرزهای خوانش و استفادهٔ مسئولانه از آسترولوژی است.",
+  },
+] as const;
+
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 export default async function WikiPage() {
   const { articles: catalogArticles, categories: wikiCategories } =
     await getPublicWikiCatalog();
@@ -65,9 +96,49 @@ export default async function WikiPage() {
   );
   const latestArticles = wikiArticles.slice(0, 12);
   const categoryArticlePreviewLimit = 5;
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "ویکی آسترولوژی هالیوس",
+    description:
+      "راهنمای فارسی آسترولوژی، چارت تولد، خانه‌ها، سیاره‌ها، جنبه‌ها، ترنزیت‌ها و دقت ساعت و شهر تولد.",
+    inLanguage: "fa-IR",
+    url: `${WIKI_BASE_URL}/wiki`,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: categoryViews.map((categoryView, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: categoryView.category.label,
+        url: `${WIKI_BASE_URL}/wiki/category/${categoryView.category.id}`,
+      })),
+    },
+  };
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    inLanguage: "fa-IR",
+    mainEntity: wikiFaqs.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
 
   return (
     <section className={styles.page} data-product-surface="Halleus Wiki">
+      <script
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(collectionJsonLd) }}
+        type="application/ld+json"
+      />
+      <script
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
+        type="application/ld+json"
+      />
+
       <section className={styles.hero}>
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
@@ -96,6 +167,14 @@ export default async function WikiPage() {
           <strong>{wikiArticles.length.toLocaleString("fa-IR")} مقالهٔ منتشرشده</strong>
           <p>مقاله‌های زنده و به‌هم‌پیوسته برای یادگیری مفاهیم و سنجیدن دقت داده‌های تولد.</p>
         </div>
+      </section>
+
+      <section className={styles.prosePanel} aria-labelledby="wiki-guide-title">
+        <span className={styles.sectionKicker}>راهنمای مطالعه</span>
+        <h2 id="wiki-guide-title">ویکی هالیوس را چطور بخوانیم؟</h2>
+        {wikiGuideParagraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
       </section>
 
       <section className={styles.section} aria-labelledby="wiki-start-title">
@@ -135,10 +214,15 @@ export default async function WikiPage() {
 
         <div className={styles.categoryHubGrid}>
           {categoryViews.map((categoryView) => {
-            const previewArticles = categoryView.articles.slice(
-              0,
-              categoryArticlePreviewLimit,
+            const pillarSlugs = new Set(
+              categoryView.pillarArticles.map((article) => article.slug),
             );
+            const previewArticles = [
+              ...categoryView.pillarArticles,
+              ...categoryView.articles.filter(
+                (article) => !pillarSlugs.has(article.slug),
+              ),
+            ].slice(0, categoryArticlePreviewLimit);
             const remainingCount =
               categoryView.articles.length - previewArticles.length;
 
@@ -181,12 +265,12 @@ export default async function WikiPage() {
       <section className={styles.section} aria-labelledby="wiki-latest-title">
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionKicker}>تازه‌ها</span>
-            <h2 id="wiki-latest-title">تازه‌ترین مقاله‌های ویکی آسترولوژی</h2>
+            <span className={styles.sectionKicker}>به‌روزرسانی‌ها</span>
+            <h2 id="wiki-latest-title">آخرین به‌روزرسانی‌های ویکی آسترولوژی</h2>
           </div>
           <p>
-            جدیدترین راهنماهای منتشرشده را از اینجا ببین؛ برای ادامهٔ مطالعه
-            می‌توانی وارد دستهٔ مرتبط هر مقاله شوی.
+            مقاله‌هایی که اخیراً منتشر یا ویرایش شده‌اند اینجا می‌آیند تا
+            مسیرهای تازهٔ مطالعه از صفحهٔ اصلی ویکی هم قابل دسترسی باشند.
           </p>
         </div>
 
@@ -208,6 +292,23 @@ export default async function WikiPage() {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="wiki-faq-title">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>پرسش‌های رایج</span>
+            <h2 id="wiki-faq-title">قبل از شروع مطالعه بدان</h2>
+          </div>
+        </div>
+        <div className={styles.faqGrid}>
+          {wikiFaqs.map((item) => (
+            <article className={styles.faqCard} key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </article>
+          ))}
         </div>
       </section>
 
