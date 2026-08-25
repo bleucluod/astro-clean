@@ -649,8 +649,10 @@ export async function previewWikiImageReturnPackage(packageBytes: Uint8Array) {
       const row = asRecord(raw);
       return asString(row.content_hash) === item.checksum;
     });
-    if (exactDuplicate) throw new AdminAccessError(409, `Exact image duplicate detected for ${item.slug}.`);
     const warnings = [
+      exactDuplicate
+        ? `EXACT_DUPLICATE_REUSED: این فایل قبلا به عنوان asset ذخیره شده و هنگام اعمال دوباره استفاده می‌شود (${asString(asRecord(exactDuplicate).asset_id).slice(0, 8)}).`
+        : null,
       perceptualDuplicateWarning(primary.perceptualHash, duplicateRows),
     ].filter((warning): warning is string => Boolean(warning));
     previews.push({
