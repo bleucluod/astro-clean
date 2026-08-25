@@ -105,8 +105,8 @@ export default async function WikiPage() {
             <h2 id="wiki-start-title">سه مسیر اصلی برای شروع مطالعه</h2>
           </div>
           <p>
-            این صفحه نقش نقشهٔ راه دارد: اول مسیرهای اصلی را انتخاب کن، بعد
-            از صفحهٔ هر دسته به همهٔ مقاله‌های همان موضوع برس.
+            این صفحه نقشهٔ راه ویکی است: اول یکی از مسیرهای اصلی را انتخاب کن،
+            بعد در صفحهٔ هر دسته، مقاله‌های همان موضوع را منظم‌تر دنبال کن.
           </p>
         </div>
 
@@ -125,11 +125,11 @@ export default async function WikiPage() {
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>نقشهٔ ویکی</span>
-            <h2 id="wiki-map-title">مجموعه‌ای که مرحله‌به‌مرحله رشد می‌کند</h2>
+            <h2 id="wiki-map-title">مسیرهای اصلی ویکی آسترولوژی</h2>
           </div>
           <p>
-            هر دسته صفحهٔ مستقل خودش را دارد تا مقاله‌های جدید سریع‌تر از
-            مسیر داخلی کشف شوند، بدون اینکه صفحهٔ اصلی ویکی شلوغ شود.
+            هر دسته چند مقالهٔ پیشنهادی برای شروع دارد. برای دیدن فهرست کامل،
+            روی عنوان همان دسته برو.
           </p>
         </div>
 
@@ -149,15 +149,15 @@ export default async function WikiPage() {
                     <span className={styles.categoryPill}>
                       {categoryView.articles.length.toLocaleString("fa-IR")} مقاله
                     </span>
+                  </div>
+                  <h3>
                     <Link
-                      className={styles.articleLink}
+                      className={styles.categoryTitleLink}
                       href={`/wiki/category/${categoryView.category.id}`}
                     >
-                      همهٔ مقاله‌ها
-                      <span aria-hidden="true">←</span>
+                      {categoryView.category.label}
                     </Link>
-                  </div>
-                  <h3>{categoryView.category.label}</h3>
+                  </h3>
                   <p>{categoryView.category.description}</p>
                 </div>
                 <ul className={styles.compactLinkList}>
@@ -168,12 +168,9 @@ export default async function WikiPage() {
                   ))}
                 </ul>
                 {remainingCount > 0 ? (
-                  <Link
-                    className={styles.categoryStatus}
-                    href={`/wiki/category/${categoryView.category.id}`}
-                  >
-                    {remainingCount.toLocaleString("fa-IR")} مقالهٔ دیگر در این دسته
-                  </Link>
+                  <span className={styles.categoryStatus}>
+                    {remainingCount.toLocaleString("fa-IR")} مقالهٔ دیگر در این مسیر
+                  </span>
                 ) : null}
               </article>
             );
@@ -184,12 +181,12 @@ export default async function WikiPage() {
       <section className={styles.section} aria-labelledby="wiki-latest-title">
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionKicker}>تازه منتشر شده‌ها</span>
-            <h2 id="wiki-latest-title">آخرین مقاله‌هایی که باید سریع‌تر دیده شوند</h2>
+            <span className={styles.sectionKicker}>تازه‌ها</span>
+            <h2 id="wiki-latest-title">تازه‌ترین مقاله‌های ویکی آسترولوژی</h2>
           </div>
           <p>
-            این بخش کمک می‌کند مقاله‌های تازه از صفحهٔ اصلی ویکی هم لینک
-            مستقیم بگیرند، اما صفحه همچنان خلوت و قابل اسکن بماند.
+            جدیدترین راهنماهای منتشرشده را از اینجا ببین؛ برای ادامهٔ مطالعه
+            می‌توانی وارد دستهٔ مرتبط هر مقاله شوی.
           </p>
         </div>
 
