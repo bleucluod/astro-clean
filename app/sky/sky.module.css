@@ -120,7 +120,7 @@
 }
 
 .skyPage :global([data-final-editorial-section="sky-hero"] > div:last-child) {
-  width: min(34%, 360px);
+  width: min(30%, 300px);
   inset-inline-end: clamp(18px, 4vw, 44px);
 }
 
@@ -299,7 +299,7 @@
 .liveHeroCard {
   position: relative;
   display: grid;
-  gap: 12px;
+  gap: 0;
   width: 100%;
   min-width: 0;
   overflow: visible;
@@ -333,10 +333,10 @@
 }
 
 .liveHeroSky {
-  --hero-orbit-radius: min(27vw, 112px);
+  --hero-orbit-radius: min(24vw, 104px);
   position: relative;
   display: grid;
-  width: min(100%, 270px);
+  width: min(100%, 246px);
   aspect-ratio: 1;
   place-items: center;
   justify-self: center;
@@ -436,39 +436,6 @@
   transform: rotate(var(--marker-angle));
   transform-origin: right center;
   opacity: 0.72;
-}
-
-.liveHeroFacts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0;
-  border-top: 0;
-}
-
-.liveHeroFacts div {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.105);
-  border-radius: 13px;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(12px);
-}
-
-.liveHeroFacts dt {
-  color: var(--sky-faint) !important;
-  font-size: 0.68rem;
-  font-weight: 850;
-}
-
-.liveHeroFacts dd {
-  margin: 0;
-  color: var(--sky-text-soft) !important;
-  font-size: 0.76rem;
-  font-weight: 800;
-  line-height: 1.65;
 }
 
 .hero p,
@@ -663,12 +630,12 @@
 .dailyBrief {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
-  gap: clamp(22px, 4vw, 44px);
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.75fr);
+  gap: clamp(18px, 3vw, 30px);
+  align-items: start;
   overflow: hidden;
-  padding: clamp(26px, 5vw, 48px);
-  border-radius: 24px;
+  padding: clamp(22px, 4vw, 34px);
+  border-radius: 18px;
   background:
     radial-gradient(circle at 86% 12%, rgba(255, 255, 255, 0.08), transparent 18rem),
     radial-gradient(circle at 4% 86%, rgba(255, 255, 255, 0.035), transparent 18rem),
@@ -697,20 +664,24 @@
 }
 
 .dailyBriefMain h2 {
-  max-width: 13ch;
-  font-size: clamp(1.85rem, 4vw, 3.2rem);
-  line-height: 1.35;
+  max-width: 20ch;
+  color: var(--sky-text) !important;
+  font-size: clamp(1.5rem, 2.7vw, 2.25rem);
+  line-height: 1.45;
 }
 
 .dailyBriefMain > p {
-  max-width: 55ch;
-  margin: 12px 0 0;
-  font-size: 1.02rem;
+  max-width: 58ch;
+  margin: 9px 0 0;
+  color: var(--sky-text-soft) !important;
+  font-size: 0.96rem;
+  line-height: 1.9;
 }
 
 .dailySignals {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  align-content: start;
 }
 
 .dailyReasons {
@@ -719,16 +690,16 @@
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .dailyReasons article {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   align-content: start;
   border: 1px solid var(--sky-border);
-  border-radius: 15px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 12px;
   background: rgba(255, 255, 255, 0.026);
 }
 
@@ -740,17 +711,18 @@
 
 .dailyReasons p {
   margin: 0;
-  color: var(--sky-muted) !important;
-  line-height: 1.9;
+  color: var(--sky-text-soft) !important;
+  font-size: 0.9rem;
+  line-height: 1.75;
 }
 
 .dailySignals div {
   display: grid;
-  gap: 5px;
+  gap: 4px;
   align-content: center;
-  min-height: 86px;
-  padding: 16px 18px;
-  border-radius: 16px;
+  min-height: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.032);
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
@@ -769,8 +741,8 @@
 
 .dailySignals strong {
   color: var(--sky-text) !important;
-  font-size: clamp(0.98rem, 1.5vw, 1.08rem);
-  line-height: 1.75;
+  font-size: 0.96rem;
+  line-height: 1.65;
 }
 
 .engineReading,
@@ -897,18 +869,18 @@
 
 .signGuideGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .signGuideCard {
   display: grid;
-  gap: 8px;
-  min-height: 176px;
+  gap: 6px;
+  min-height: 0;
   align-content: start;
   border: 1px solid var(--sky-border);
-  border-radius: 15px;
-  padding: 17px;
+  border-radius: 12px;
+  padding: 13px;
   background: rgba(255, 255, 255, 0.024);
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
@@ -920,13 +892,13 @@
 
 .signGuideCard strong {
   color: var(--sky-text) !important;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .signGuideTitle small {
   color: var(--sky-faint) !important;
   direction: ltr;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 850;
   letter-spacing: 0;
   text-align: start;
@@ -935,19 +907,21 @@
 .signGuideCard p {
   margin: 0;
   color: var(--sky-text-soft) !important;
-  line-height: 1.9;
+  font-size: 0.9rem;
+  line-height: 1.7;
 }
 
 .signGuideCard small {
   color: var(--sky-faint) !important;
-  line-height: 1.85;
+  font-size: 0.8rem;
+  line-height: 1.65;
 }
 
 .planetGrid,
 .aspectList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .planetItem {
@@ -962,8 +936,8 @@
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
   gap: 14px;
   align-items: center;
-  min-height: 78px;
-  padding: 14px 42px 14px 16px;
+  min-height: 60px;
+  padding: 12px 38px 12px 14px;
   cursor: pointer;
   list-style: none;
 }
@@ -987,20 +961,21 @@
 .planetPosition { text-align: end; }
 
 .engineCardReading {
-  margin: 0 16px 16px;
-  padding-top: 14px;
+  margin: 0 14px 14px;
+  padding-top: 10px;
   border-top: 1px solid var(--sky-border);
-  color: var(--sky-muted) !important;
-  font-size: 0.92rem;
+  color: var(--sky-text-soft) !important;
+  font-size: 0.86rem;
+  line-height: 1.75;
 }
 
 .aspectList article,
 .aspectList details {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
-  border-radius: 14px;
-  padding: 17px;
+  border-radius: 12px;
+  padding: 13px;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
@@ -1479,6 +1454,7 @@
   .skyPage :global([data-final-editorial-section="sky-hero"]) { padding-inline-end: min(36%, 330px); }
   .skyPage :global([data-final-editorial-section="sky-hero"] > div:last-child) { width: min(34%, 310px); }
   .skyPage :global([data-final-editorial-section="sky-hero"])::before { width: min(29vw, 260px); }
+  .signGuideGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
@@ -1540,7 +1516,6 @@
     --hero-orbit-radius: min(35vw, 116px);
     width: min(100%, 278px);
   }
-  .liveHeroFacts { grid-template-columns: 1fr; }
 
   .dayCard { display: grid; gap: 18px; padding: 20px; }
   .dateNav { display: grid; grid-template-columns: 1fr 1fr; }

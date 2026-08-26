@@ -161,31 +161,22 @@ export function SkyHeroLive({ result }: { result: SkyPublicDeliveryResult }) {
     </div>;
   }
 
-  const { snapshot, city } = result;
-  const now = new Date(result.viewedAt).getTime();
+  const { snapshot } = result;
   const moon = snapshot.planetaryStates.find((item) => item.body === "moon");
   const sun = snapshot.planetaryStates.find((item) => item.body === "sun");
   const mainAspect = snapshot.aspects[0];
-  const futureEvents = snapshot.timeline.filter((event) => {
-    const occurredAt = "occurredAt" in event ? event.occurredAt : undefined;
-    return occurredAt && new Date(occurredAt).getTime() >= now;
-  });
-  const nextEvent = futureEvents[0];
-  const moonIllumination = snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })}٪` : "ثبت نشده";
 
   return <div className={styles.liveHeroCard} data-sky-live-hero="moon-sun-aspect">
-    <div className={styles.liveHeroSky} aria-hidden="true">
+    <div
+      className={styles.liveHeroSky}
+      aria-label={moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} ${SKY_SIGN_ENGLISH_LABELS[moon.sign]}` : "نمایش زنده جایگاه ماه و خورشید"}
+      role="img"
+    >
       <div className={styles.liveHeroEarth}>زمین</div>
       {sun ? <span className={styles.liveHeroMarker} data-body="sun" style={markerStyle(sun.longitude)}><i>{SKY_BODY_SYMBOLS.sun}</i></span> : null}
       {moon ? <span className={styles.liveHeroMarker} data-body="moon" style={markerStyle(moon.longitude)}><i>{SKY_BODY_SYMBOLS.moon}</i></span> : null}
       {mainAspect ? <span className={styles.liveHeroAspectLine} style={markerStyle(snapshot.planetaryStates.find((item) => item.body === mainAspect.leftBody)?.longitude)} /> : null}
     </div>
-    <dl className={styles.liveHeroFacts} aria-label="داده‌های زنده آسمان امروز">
-      <div><dt>ماه الان</dt><dd>{moon ? `${SKY_SIGN_LABELS[moon.sign]} · ${SKY_SIGN_ENGLISH_LABELS[moon.sign]} · ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°` : "ثبت نشده"}</dd></div>
-      <div><dt>فاز ماه</dt><dd>{moonPhaseLabel(snapshot)} · {moonIllumination}</dd></div>
-      <div><dt>زاویه اصلی</dt><dd>{mainAspect ? `${SKY_ASPECT_LABELS[mainAspect.kind]} ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]}` : "زاویه برجسته‌ای ثبت نشده"}</dd></div>
-      <div><dt>رویداد بعدی</dt><dd>{nextEvent ? `${eventText(nextEvent)} · ${formatTime("occurredAt" in nextEvent ? nextEvent.occurredAt : undefined, city.timezone)}` : "رویدادی برای امروز نداریم"}</dd></div>
-    </dl>
   </div>;
 }
 
@@ -253,7 +244,6 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
         <h2>امروز برای تو از کجا شروع می‌شود؟</h2>
         <p>{dailyGuide.tone}</p>
         <p>{dailyGuide.personalLine}</p>
-        {reportInterpretation.summary ? <p className={styles.engineReading}>{reportInterpretation.summary}</p> : null}
       </div>
       <div className={styles.dailySignals} aria-label="خلاصه کاربردی آسمان امروز">
         <div><span>تمرکز روز</span><strong>{dailyGuide.focus}</strong></div>

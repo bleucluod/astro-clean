@@ -42,7 +42,7 @@ requireAll("Public Sky page", page, [
 forbidAll("Public Sky page", page, ['"use client"', "buildSkyDailySnapshot", "birthTime", 'slotOnlySections={["sky-controls"]}', '"sky-controls":']);
 requireAll("Public Sky archive day", archivePage, ["deliverSkyPublicSnapshot", "robots: { index: false", "params"]);
 requireAll("Public Sky experience", experience, ["planetaryStates.map", "moonPhase", "snapshot.aspects", "snapshot.timeline", "SkyPublicWheel", "SkyHeroLive", "markerStyle", "data-sky-live-hero=\"moon-sun-aspect\"", "formatGregorianDate", "buildDailySummary", "buildHumanDailyGuide", "buildSignGuide", "buildSkyPublicReportInterpretation", "reportInterpretation.planetReadings", "reportInterpretation.aspectReadings", "SKY_SIGN_ENGLISH_LABELS", "showControls = true", "data-interpretation-source", "heroOrbit", "INITIAL_ASPECT_COUNT = 3", "dailyBrief", "dailyReasons", "selectedDateNote", "signGuideTitle", "signGuideGrid", "skyDetailsPanel", "planetItem", "moonEvents", "data-state", "خواندن سریع امروز", "ترنزیت‌های امروز برای هر نشان", "وضعیت سیارات امروز", "فاز ماه امروز", "سیارات برگشتی امروز", "رویداد بعدی", "رویدادی برای این روز نداریم", "remainingAspects", "قرارداد، خرید بزرگ"]);
-forbidAll("Public Sky experience", experience, ["dateHref(", "روز قبل", "روز بعد", "نمایش {remainingAspects.length"]);
+forbidAll("Public Sky experience", experience, ["dateHref(", "روز قبل", "روز بعد", "نمایش {remainingAspects.length", "liveHeroFacts", "reportInterpretation.summary ?"]);
 requireAll("Final editorial slot isolation", editorialPage, ["includeSections", "slotOnlySections", "slotOnly"]);
 requireAll("Public Sky dark theme", skyStyles, ["--sky-bg: #050609", "--sky-surface: #0b0d11", "--sky-text: #fafafa", "--sky-muted: #d6d9de", "data-final-editorial-page=\"sky\"] p", "appearance: none", ".liveHeroSky", ".liveHeroMarker", "skyLiveWheelBreathe", "skyLiveMoonPulse", "skyWheelGlow", ".dailyBrief", ".dailyReasons", ".selectedDateNote", ".signGuideTitle", ".signGuideGrid", ".remainingAspects", ".skyDetailsPanel", "data-final-editorial-section=\"sky-hero\"", ".planetItem", ".relatedList", ".skyPage .cta a"]);
 forbidAll("Public Sky dark theme", skyStyles.toLowerCase(), ["#263f96", "#654db5", "#6657bd", "#8170d9", "#dceaf8", "#f5ddd8", "#f3e8ce", "#ddefe6"]);
@@ -50,8 +50,8 @@ requireAll("Public Sky report interpretation", reportInterpretation, [
   "buildPlainPublicPlacementReading",
   "buildPlainPublicAspectReading",
   '"sky-public-plain-language"',
-  "برای قرارداد، خرید بزرگ",
-  "سمت سختش هم این است",
+  "قرارداد، خرید بزرگ",
+  "احتیاط:",
 ]);
 forbidAll("Public Sky report interpretation", reportInterpretation, [
   "PLANET_SEMANTICS",
