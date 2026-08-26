@@ -21,6 +21,7 @@ const archivePage = read("app/sky/[date]/page.tsx");
 const delivery = read("lib/sky-public/sky-public-delivery.ts");
 const reportInterpretation = read("lib/sky-public/sky-public-report-interpretation.ts");
 const experience = read("components/SkyPublicExperience.tsx");
+const skyStyles = read("app/sky/sky.module.css");
 const editorialPage = read("components/FinalEditorialPage.tsx");
 const wheel = read("components/SkyPublicWheel.tsx");
 const cityPicker = read("components/SkyCityPicker.tsx");
@@ -38,8 +39,10 @@ requireAll("Public Sky page", page, [
 ]);
 forbidAll("Public Sky page", page, ['"use client"', "buildSkyDailySnapshot", "birthTime"]);
 requireAll("Public Sky archive day", archivePage, ["deliverSkyPublicSnapshot", "robots: { index: false", "params"]);
-requireAll("Public Sky experience", experience, ["planetaryStates.map", "moonPhase", "snapshot.aspects", "snapshot.timeline", "SkyPublicWheel", "formatGregorianDate", "buildDailySummary", "buildSkyPublicReportInterpretation", "reportInterpretation.planetReadings", "reportInterpretation.aspectReadings", "data-interpretation-source", "heroOrbit", "INITIAL_ASPECT_COUNT", "moonEvents", "data-state", "وضعیت سیارات امروز", "فاز ماه امروز", "سیارات برگشتی امروز", "رویداد بعدی"]);
+requireAll("Public Sky experience", experience, ["planetaryStates.map", "moonPhase", "snapshot.aspects", "snapshot.timeline", "SkyPublicWheel", "formatGregorianDate", "buildDailySummary", "buildSkyPublicReportInterpretation", "reportInterpretation.planetReadings", "reportInterpretation.aspectReadings", "data-interpretation-source", "heroOrbit", "INITIAL_ASPECT_COUNT = 3", "planetItem", "moonEvents", "data-state", "وضعیت سیارات امروز", "فاز ماه امروز", "سیارات برگشتی امروز", "رویداد بعدی"]);
 requireAll("Final editorial slot isolation", editorialPage, ["includeSections", "slotOnlySections", "slotOnly"]);
+requireAll("Public Sky dark theme", skyStyles, ["--sky-bg: #050609", "--sky-surface: #0b0d11", "--sky-text: #f4f6f8", "data-final-editorial-section=\"sky-hero\"", ".planetItem", ".relatedList"]);
+forbidAll("Public Sky dark theme", skyStyles.toLowerCase(), ["#263f96", "#654db5", "#6657bd", "#8170d9", "#dceaf8", "#f5ddd8", "#f3e8ce", "#ddefe6"]);
 requireAll("Public Sky report interpretation", reportInterpretation, [
   "buildPlainDailyPlacementInterpretation",
   "buildPlainDailyAspectInterpretation",
@@ -56,6 +59,7 @@ requireAll("Public Sky city search", cityRoute, ["filterIranCities", "MAX_RESULT
 forbidAll("Public Sky city picker", cityPicker, ["IRAN_CITY_OPTIONS", "navigator.geolocation"]);
 requireAll("Public Sky wheel", wheel, [
   'import("@astrodraw/astrochart")',
+  'COLOR_BACKGROUND: "#0B0D11"',
   "planetaryStates",
   "snapshot.aspects",
   "removeNatalOnlyLayers",

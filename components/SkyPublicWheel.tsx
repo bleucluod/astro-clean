@@ -39,11 +39,11 @@ const ASPECT_ANGLES: Record<SkyDailyAspectKind, number> = {
   opposition: 180,
 };
 const ASPECT_COLORS: Record<SkyDailyAspectKind, string> = {
-  conjunction: "#7F8C9B",
-  sextile: "#4C8B7B",
-  square: "#C86565",
-  trine: "#4C8B7B",
-  opposition: "#C86565",
+  conjunction: "#78818C",
+  sextile: "#6A8C7E",
+  square: "#956A6A",
+  trine: "#6A8C7E",
+  opposition: "#956A6A",
 };
 const SIGN_IDS = Object.keys(SKY_SIGN_LABELS) as Array<keyof typeof SKY_SIGN_LABELS>;
 
@@ -74,17 +74,17 @@ export function SkyPublicWheel({ snapshot }: { snapshot: SkyDailySnapshot }) {
 
         const chart = new Chart(chartId, ASTROCHART_SIZE, ASTROCHART_SIZE, {
           SYMBOL_SCALE: 1.12,
-          COLOR_BACKGROUND: "#F8FAFC",
-          POINTS_COLOR: "#243447",
-          SIGNS_COLOR: "#243447",
-          CIRCLE_COLOR: "#7F8C9B",
-          LINE_COLOR: "#7F8C9B",
-          CUSPS_FONT_COLOR: "#3A4A5C",
-          SYMBOL_AXIS_FONT_COLOR: "#243447",
+          COLOR_BACKGROUND: "#0B0D11",
+          POINTS_COLOR: "#F4F6F8",
+          SIGNS_COLOR: "#E5EAF0",
+          CIRCLE_COLOR: "#4B535E",
+          LINE_COLOR: "#3A424C",
+          CUSPS_FONT_COLOR: "#A9B2BD",
+          SYMBOL_AXIS_FONT_COLOR: "#F4F6F8",
           COLORS_SIGNS: [
-            "#F5DDD8", "#F3E8CE", "#DCEAF8", "#DDEFE6",
-            "#F5DDD8", "#F3E8CE", "#DCEAF8", "#DDEFE6",
-            "#F5DDD8", "#F3E8CE", "#DCEAF8", "#DDEFE6",
+            "#151922", "#101318", "#171B21", "#11151B",
+            "#151922", "#101318", "#171B21", "#11151B",
+            "#151922", "#101318", "#171B21", "#11151B",
           ],
           MARGIN: 48,
           PADDING: 22,
