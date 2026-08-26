@@ -131,12 +131,12 @@ function buildPlainPublicPlacementReading(state: SkyDailyPlanetaryState) {
   const body = BODY_DAILY_GUIDE[state.body];
   const sign = SIGN_DAILY_GUIDE[state.sign];
   const motionNote = state.motion === "retrograde"
-    ? "چون برگشتی است، امروز برای مرور، اصلاح متن‌ها و دوباره‌دیدن تصمیم‌ها بهتر از جواب نهایی است."
+    ? "چون برگشتی است، امروز بیشتر به درد بازبینی می‌خورد تا جواب نهایی."
     : state.motion === "stationing" || state.nearStation
-      ? "چون نزدیک تغییر جهت است، ممکن است ریتم این موضوع یک‌دفعه کند، حساس یا عوض‌شونده حس شود."
-      : "حرکتش مستقیم است، پس این موضوع راحت‌تر وارد کارهای روزمره می‌شود.";
+      ? "نزدیک تغییر جهت است؛ پس ریتمش می‌تواند کند یا حساس شود."
+      : "حرکتش مستقیم است، پس راحت‌تر وارد روزمره می‌شود.";
 
-  return `${SKY_BODY_LABELS[state.body]} امروز روی ${body.area} نور می‌اندازد. چون در ${SKY_SIGN_LABELS[state.sign]} است، این موضوع ${sign.style}. از آن برای امروز این‌طور استفاده کن: ${body.use} سمت سختش هم این است: ${body.watch} مخصوصاً اگر ${sign.watch} بالا آمد. ${motionNote}`;
+  return `${SKY_BODY_LABELS[state.body]} امروز روی ${body.area} نور می‌اندازد. در ${SKY_SIGN_LABELS[state.sign]}، این انرژی ${sign.style}. استفادهٔ امروز: ${body.use} احتیاط: ${body.watch} مخصوصاً اگر ${sign.watch} بالا آمد. ${motionNote}`;
 }
 
 function buildPlainPublicAspectReading(
@@ -157,12 +157,12 @@ function buildPlainPublicAspectReading(
     : "اورب این زاویه خیلی کم نیست، پس آن را به عنوان زمینه روز بخوان، نه حکم قطعی.";
 
   if (aspect.kind === "square" || aspect.kind === "opposition") {
-    return `اینجا بین ${left.area} و ${right.area} اصطکاک دیده می‌شود. ممکن است عجله، حساسیت، سوءبرداشت یا دو خواستهٔ متفاوت هم‌زمان بالا بیاید. برای قرارداد، خرید بزرگ، جواب تند یا تصمیمی که برگشت ندارد، بهتر است مکث کنی و جزئیات را دوباره ببینی. ${firstSign && secondSign ? `یک طرف ماجرا ${firstSign.style} و طرف دیگر ${secondSign.style}.` : ""} ${precision} ${retrogradeNote}`.trim();
+    return `فشار امروز بین ${left.area} و ${right.area} است. مراقب عجله، سوءبرداشت و جواب تند باش؛ قرارداد، خرید بزرگ یا تصمیم برگشت‌ناپذیر را با مکث جلو ببر. ${firstSign && secondSign ? `یک سمت ${firstSign.style} و سمت دیگر ${secondSign.style}.` : ""} ${precision} ${retrogradeNote}`.trim();
   }
 
   if (aspect.kind === "trine" || aspect.kind === "sextile") {
-    return `این زاویه کمک می‌کند ${left.area} و ${right.area} راحت‌تر با هم هماهنگ شوند. برای شروع آرام، گفت‌وگوی سبک، مرتب کردن برنامه یا برداشتن یک قدم واقعی مناسب‌تر است. فقط حواست باشد فرصت خوب هم اگر بدون مرز و زمان‌بندی باشد، می‌تواند پخش و بی‌نتیجه شود. ${precision} ${retrogradeNote}`.trim();
+    return `این زاویه بین ${left.area} و ${right.area} همکاری می‌سازد. برای گفت‌وگوی سبک، مرتب‌کردن برنامه یا یک قدم واقعی خوب است؛ فقط قول بزرگ و زمان‌بندی شلوغ نده. ${precision} ${retrogradeNote}`.trim();
   }
 
-  return `در ${SKY_ASPECT_LABELS[aspect.kind]}، ${left.area} و ${right.area} روی هم می‌افتند و توجه بیشتری می‌خواهند. این می‌تواند تمرکز و شروع بدهد، ولی اگر زیادش کنی ممکن است یک موضوع بیش از حد بزرگ یا شخصی شود. امروز بهتر است همان یک نقطه را روشن کنی و تصمیم‌های حساس را با شواهد بیشتر جلو ببری. ${precision} ${retrogradeNote}`.trim();
+  return `${SKY_ASPECT_LABELS[aspect.kind]} یعنی ${left.area} و ${right.area} امروز روی یک نقطه جمع می‌شوند. برای تمرکز خوب است، اما تصمیم حساس را با شاهد بیشتر بگیر و موضوع را زیادی شخصی نکن. ${precision} ${retrogradeNote}`.trim();
 }
