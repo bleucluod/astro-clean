@@ -51,10 +51,10 @@
 }
 
 .skyPage :global([data-final-editorial-section="sky-hero"]) {
-  min-height: 390px;
+  min-height: 380px;
   margin-top: 0;
   padding: clamp(44px, 7vw, 76px);
-  padding-inline-end: min(43%, 470px);
+  padding-inline-end: min(44%, 480px);
   overflow: hidden;
   border: 0;
   border-bottom: 1px solid var(--sky-border);
@@ -75,6 +75,7 @@
   aspect-ratio: 1;
   border-radius: 50%;
   pointer-events: none;
+  display: none;
 }
 
 .skyPage :global([data-final-editorial-section="sky-hero"])::before {
@@ -104,7 +105,7 @@
   z-index: 1;
   max-width: 700px;
   color: #fff;
-  font-size: clamp(1.9rem, 4vw, 3.15rem);
+  font-size: clamp(1.9rem, 3.7vw, 3rem);
   font-weight: 860;
   line-height: 1.55;
   text-shadow: 0 18px 55px rgba(255, 255, 255, 0.08);
@@ -289,6 +290,184 @@
 
 .heroOrbit > div strong { font-size: 1.08rem; }
 .heroOrbit > div small { color: var(--sky-faint); }
+
+.liveHeroCard {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--sky-border-strong);
+  border-radius: 22px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.095), transparent 10rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.022)),
+    rgba(10, 12, 16, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 28px 80px rgba(0, 0, 0, 0.22);
+}
+
+.liveHeroLabel {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--sky-border);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--sky-muted) !important;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.liveHeroCard > strong {
+  color: var(--sky-text) !important;
+  line-height: 1.7;
+}
+
+.liveHeroCard > small {
+  color: var(--sky-faint) !important;
+  line-height: 1.9;
+}
+
+.liveHeroSky {
+  --hero-orbit-radius: min(34vw, 138px);
+  position: relative;
+  display: grid;
+  width: min(100%, 330px);
+  aspect-ratio: 1;
+  place-items: center;
+  justify-self: center;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.055) 0 12%, transparent 12.5%),
+    repeating-conic-gradient(from -90deg, rgba(255, 255, 255, 0.18) 0 1deg, transparent 1deg 30deg),
+    radial-gradient(circle, transparent 0 56%, rgba(255, 255, 255, 0.05) 56.4% 57%, transparent 57.4%),
+    rgba(255, 255, 255, 0.012);
+  box-shadow:
+    inset 0 0 0 42px rgba(255, 255, 255, 0.012),
+    inset 0 0 0 86px rgba(255, 255, 255, 0.008),
+    0 0 52px rgba(255, 255, 255, 0.055);
+  animation: skyLiveWheelBreathe 9s ease-in-out infinite;
+}
+
+.liveHeroSky::before,
+.liveHeroSky::after {
+  position: absolute;
+  inset: 23%;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 50%;
+  content: "";
+}
+
+.liveHeroSky::after {
+  inset: 38%;
+  border-color: rgba(255, 255, 255, 0.11);
+}
+
+.liveHeroEarth {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 58px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 50%;
+  color: var(--sky-text-soft);
+  background:
+    radial-gradient(circle at 38% 34%, rgba(255, 255, 255, 0.22), transparent 1.4rem),
+    rgba(255, 255, 255, 0.04);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.liveHeroMarker {
+  --marker-angle: 0deg;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 3;
+  display: grid;
+  width: 34px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 26px rgba(255, 255, 255, 0.11);
+  transform: translate(-50%, -50%) rotate(var(--marker-angle)) translateY(calc(-1 * var(--hero-orbit-radius))) rotate(calc(-1 * var(--marker-angle)));
+}
+
+.liveHeroMarker i {
+  color: var(--sky-text);
+  font-style: normal;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.liveHeroMarker[data-body="sun"] {
+  width: 38px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.liveHeroMarker[data-body="moon"] {
+  background: rgba(255, 255, 255, 0.055);
+  animation: skyLiveMoonPulse 4.8s ease-in-out infinite;
+}
+
+.liveHeroMarker[data-body="moon"]::after {
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  content: "";
+  opacity: 0.6;
+}
+
+.liveHeroAspectLine {
+  --marker-angle: 0deg;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 54%;
+  border-top: 1px solid rgba(125, 148, 137, 0.5);
+  transform: rotate(var(--marker-angle));
+  transform-origin: right center;
+  opacity: 0.72;
+}
+
+.liveHeroFacts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--sky-border);
+}
+
+.liveHeroFacts div {
+  display: grid;
+  grid-template-columns: minmax(80px, 0.42fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.liveHeroFacts div:last-child { border-bottom: 0; }
+
+.liveHeroFacts dt {
+  color: var(--sky-faint) !important;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.liveHeroFacts dd {
+  margin: 0;
+  color: var(--sky-text-soft) !important;
+  font-size: 0.83rem;
+  font-weight: 800;
+  line-height: 1.8;
+}
 
 .hero p,
 .notice p,
@@ -1237,6 +1416,30 @@
   }
 }
 
+@keyframes skyLiveWheelBreathe {
+  0%,
+  100% {
+    filter: brightness(0.96);
+    transform: scale(0.992);
+  }
+
+  50% {
+    filter: brightness(1.12);
+    transform: scale(1.012);
+  }
+}
+
+@keyframes skyLiveMoonPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.09);
+  }
+
+  50% {
+    box-shadow: 0 0 34px rgba(255, 255, 255, 0.2);
+  }
+}
+
 @keyframes skyWheelGlow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -1269,7 +1472,7 @@
 
   .skyPage :global([data-final-editorial-section="sky-hero"]) {
     min-height: 330px;
-    padding: 42px 20px 150px;
+    padding: 42px 20px 28px;
   }
 
   .skyPage :global([data-final-editorial-section="sky-hero"])::before {
@@ -1311,6 +1514,12 @@
   .heroVisual { padding-top: 8px; }
   .heroOrbit { width: min(100%, 280px); }
   .heroOrbit > span { transform: translate(-50%, -50%) rotate(var(--sky-angle)) translateY(-112px) rotate(var(--sky-counter-angle)); }
+  .liveHeroCard { padding: 16px; }
+  .liveHeroSky {
+    --hero-orbit-radius: min(35vw, 116px);
+    width: min(100%, 278px);
+  }
+  .liveHeroFacts div { grid-template-columns: 1fr; gap: 4px; }
 
   .dayCard { display: grid; gap: 18px; padding: 20px; }
   .dateNav { display: grid; grid-template-columns: 1fr 1fr; }
@@ -1353,6 +1562,8 @@
 
   .hero,
   .heroOrbit,
+  .liveHeroSky,
+  .liveHeroMarker[data-body="moon"],
   .dailyBrief,
   .dailyBrief::before,
   .summaryGrid article,
