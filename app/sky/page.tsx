@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
 import { FinalEditorialPage } from "@/components/FinalEditorialPage";
-import { SkyPublicExperience } from "@/components/SkyPublicExperience";
+import { SkyHeroLive, SkyPublicExperience } from "@/components/SkyPublicExperience";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { selectPublicWikiArticlesByPreferredSlugs } from "@/lib/wiki/wiki-public-discovery";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
@@ -84,7 +84,10 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
         pageKey="sky"
         includeSections={["sky-hero", "sky-controls"]}
         slotOnlySections={["sky-controls"]}
-        slots={{ "sky-controls": <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles} embedded /> }}
+        slots={{
+          "sky-hero": <SkyHeroLive result={result} />,
+          "sky-controls": <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles} embedded />,
+        }}
       />
     </div>
   </>;

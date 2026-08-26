@@ -66,26 +66,26 @@ function buildHumanDailyGuide(snapshot: SkyDailySnapshot, timezone: string, refe
             ? `حال‌وهوای ${SKY_SIGN_LABELS[moon.sign]}`
             : "ریتم روز";
   const tone = mainAspect?.kind === "square" || mainAspect?.kind === "opposition"
-    ? "قبل از جواب‌دادن، خریدن یا تصمیم فوری، چند دقیقه فاصله بگذار."
+    ? "امروز لازم نیست سریع جواب بدهی. اگر فشار، عجله یا حساسیت بالا آمد، چند دقیقه فاصله بگیر و بعد تصمیم را سبک‌تر کن."
     : mainAspect?.kind === "trine" || mainAspect?.kind === "sextile"
-      ? "برای مرتب‌کردن برنامه، شروع کار سبک یا گفت‌وگوی آرام فضا نرم‌تر است."
+      ? "امروز بهترین شروع، یک قدم کوچک و واقعی است. لازم نیست همه‌چیز را حل کنی؛ یک کار نیمه‌مانده را بردار و ریتمش را بگیر."
       : mainAspect?.kind === "conjunction"
-        ? "یک موضوع بیشتر از بقیه توجه می‌خواهد؛ امروز پخش نشدن کمک می‌کند."
-        : "امروز را ساده بخوان: یک کار مهم، یک مکث کوتاه، یک تصمیم کمتر عجولانه.";
+        ? "امروز یک موضوع می‌تواند بیشتر از بقیه توجهت را بگیرد. به جای پخش شدن، همان نقطه را روشن کن و بعد سراغ بقیه برو."
+        : "امروز را ساده بخوان: یک کار مهم، یک مکث کوتاه، و یک تصمیم که لازم نیست عجولانه گرفته شود.";
   const action = mainAspect?.kind === "square" || mainAspect?.kind === "opposition"
-    ? "اگر چیزی فشار آورد، همان لحظه تصمیم نهایی نگیر."
+    ? "جواب نهایی را بعد از یک مکث کوتاه بده."
     : mainAspect?.kind === "trine" || mainAspect?.kind === "sextile"
-      ? "یک کار نیمه‌مانده را انتخاب کن و فقط همان را جلو ببر."
-      : "اولویت امروزت را با یک جمله بنویس و بقیه را سبک‌تر بگیر.";
+      ? "یک کار نیمه‌مانده را انتخاب کن و همان را جلو ببر."
+      : "اولویت امروزت را با یک جمله بنویس.";
 
   return {
     focus,
     tone,
     action,
-    personalLine: `اگر امروز برای تو کمی ${focus} پررنگ‌تر شد، لازم نیست آن را اتفاق قطعی بدانی؛ اول ببین همین ریتم در کار، رابطه یا تصمیم‌های کوچک روزت کجا خودش را نشان می‌دهد.`,
-    moonReason: moon ? `چون ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} است، واکنش‌های سریع روز بیشتر با ریتم ${SKY_SIGN_LABELS[moon.sign]} خوانده می‌شوند.` : "چون جایگاه ماه برای این روز ثبت نشده، خوانش احساسی با احتیاط بیشتری نمایش داده می‌شود.",
-    aspectReason: mainAspect ? `زاویهٔ اصلی امروز ${SKY_ASPECT_LABELS[mainAspect.kind]} میان ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]} است؛ همین رابطه دلیل اصلی لحن پیشنهادی امروز است.` : "زاویهٔ برجسته‌ای برای امروز ثبت نشده، پس خوانش سریع بیشتر از جایگاه ماه و وضعیت حرکت سیاره‌ها ساخته شده است.",
-    motionReason: retrogrades.length ? `${retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join(" و ")} برگشتی‌اند؛ برای همین مرور، اصلاح و آهسته‌تر تصمیم گرفتن می‌تواند مفیدتر باشد.` : "امروز سیارهٔ برگشتی فعالی در داده ثبت نشده؛ پس تاکید صفحه بیشتر روی فاز ماه و زاویه‌های روز است.",
+    personalLine: `این خوانش وقتی برای تو معنی پیدا می‌کند که آن را روی روز خودت امتحان کنی: الان در کار، رابطه یا تصمیم‌های کوچکت کجا ${focus} خودش را نشان می‌دهد؟`,
+    moonReason: moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} است؛ پس لایهٔ احساسی روز بیشتر با ریتم ${SKY_SIGN_LABELS[moon.sign]} خوانده می‌شود. اگر واکنشت تند یا متفاوت بود، اول اسمش را پیدا کن.` : "جایگاه ماه برای این روز ثبت نشده، پس خوانش احساسی با احتیاط بیشتری نمایش داده می‌شود.",
+    aspectReason: mainAspect ? `زاویهٔ اصلی امروز ${SKY_ASPECT_LABELS[mainAspect.kind]} میان ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]} است. این همان داده‌ای است که می‌گوید امروز بیشتر از چه جنسی جلو بروی: نرم، آهسته، متمرکز یا محتاط.` : "زاویهٔ برجسته‌ای برای امروز ثبت نشده، پس خوانش سریع بیشتر از جایگاه ماه و وضعیت حرکت سیاره‌ها ساخته شده است.",
+    motionReason: retrogrades.length ? `${retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join(" و ")} برگشتی‌اند؛ یعنی مرور، اصلاح و دوباره‌دیدن بعضی تصمیم‌ها می‌تواند از فشار برای نتیجهٔ فوری مفیدتر باشد.` : "امروز سیارهٔ برگشتی فعالی در داده ثبت نشده؛ پس تاکید صفحه بیشتر روی فاز ماه و زاویه‌های روز است.",
     nextEvent: nextEvent ? `${eventText(nextEvent)}${"occurredAt" in nextEvent && nextEvent.occurredAt ? ` · ${formatTime(nextEvent.occurredAt, timezone)}` : ""}` : "رویداد بعدی مهمی تا پایان روز ثبت نشده",
   };
 }
@@ -146,6 +146,47 @@ function AspectCard({ aspect, timezone, reading }: { aspect: SkyDailyAspect; tim
 function moonPhaseLabel(snapshot: SkyDailySnapshot) {
   if (!snapshot.moonPhase) return "فاز ثبت نشده";
   return ({ new: "ماه نو", waxing: "ماه افزاینده", full: "ماه کامل", waning: "ماه کاهنده" } as const)[snapshot.moonPhase.phase];
+}
+
+function markerStyle(longitude: number | undefined) {
+  return { "--marker-angle": `${longitude ?? 0}deg` } as CSSProperties;
+}
+
+export function SkyHeroLive({ result }: { result: SkyPublicDeliveryResult }) {
+  if (result.status !== "ready") {
+    return <div className={styles.liveHeroCard}>
+      <span className={styles.liveHeroLabel}>داده زنده امروز</span>
+      <strong>آسمان انتخاب‌شده آماده نیست</strong>
+      <small>وقتی دادهٔ معتبر این روز آماده باشد، جایگاه ماه، فاز ماه و رویداد بعدی همین‌جا نمایش داده می‌شود.</small>
+    </div>;
+  }
+
+  const { snapshot, city } = result;
+  const now = new Date(result.viewedAt).getTime();
+  const moon = snapshot.planetaryStates.find((item) => item.body === "moon");
+  const sun = snapshot.planetaryStates.find((item) => item.body === "sun");
+  const mainAspect = snapshot.aspects[0];
+  const futureEvents = snapshot.timeline.filter((event) => {
+    const occurredAt = "occurredAt" in event ? event.occurredAt : undefined;
+    return occurredAt && new Date(occurredAt).getTime() >= now;
+  });
+  const nextEvent = futureEvents[0];
+  const moonIllumination = snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })}٪` : "ثبت نشده";
+
+  return <div className={styles.liveHeroCard} data-sky-live-hero="moon-sun-aspect">
+    <div className={styles.liveHeroSky} aria-hidden="true">
+      <div className={styles.liveHeroEarth}>زمین</div>
+      {sun ? <span className={styles.liveHeroMarker} data-body="sun" style={markerStyle(sun.longitude)}><i>{SKY_BODY_SYMBOLS.sun}</i></span> : null}
+      {moon ? <span className={styles.liveHeroMarker} data-body="moon" style={markerStyle(moon.longitude)}><i>{SKY_BODY_SYMBOLS.moon}</i></span> : null}
+      {mainAspect ? <span className={styles.liveHeroAspectLine} style={markerStyle(snapshot.planetaryStates.find((item) => item.body === mainAspect.leftBody)?.longitude)} /> : null}
+    </div>
+    <dl className={styles.liveHeroFacts} aria-label="داده‌های زنده آسمان امروز">
+      <div><dt>ماه الان</dt><dd>{moon ? `${SKY_SIGN_LABELS[moon.sign]} · ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°` : "ثبت نشده"}</dd></div>
+      <div><dt>فاز ماه</dt><dd>{moonPhaseLabel(snapshot)} · {moonIllumination}</dd></div>
+      <div><dt>زاویه اصلی</dt><dd>{mainAspect ? `${SKY_ASPECT_LABELS[mainAspect.kind]} ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]}` : "زاویه برجسته‌ای ثبت نشده"}</dd></div>
+      <div><dt>رویداد بعدی</dt><dd>{nextEvent ? `${eventText(nextEvent)} · ${formatTime("occurredAt" in nextEvent ? nextEvent.occurredAt : undefined, city.timezone)}` : "رویدادی برای امروز نداریم"}</dd></div>
+    </dl>
+  </div>;
 }
 
 function SkyHero() {
