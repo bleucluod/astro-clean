@@ -5,6 +5,7 @@ import { SkyPublicExperience } from "@/components/SkyPublicExperience";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { selectPublicWikiArticlesByPreferredSlugs } from "@/lib/wiki/wiki-public-discovery";
 import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import styles from "./sky.module.css";
 
 export const dynamic = "force-dynamic";
 const SKY_TITLE = "آسترولوژی امروز | وضعیت ماه، سیارات و ترنزیت‌ها";
@@ -78,11 +79,13 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
   return <>
     <script dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageJsonLd) }} type="application/ld+json" />
     <script dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} type="application/ld+json" />
-    <FinalEditorialPage
-      pageKey="sky"
-      includeSections={["sky-hero", "sky-controls"]}
-      slotOnlySections={["sky-controls"]}
-      slots={{ "sky-controls": <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles} embedded /> }}
-    />
+    <div className={styles.skyPage}>
+      <FinalEditorialPage
+        pageKey="sky"
+        includeSections={["sky-hero", "sky-controls"]}
+        slotOnlySections={["sky-controls"]}
+        slots={{ "sky-controls": <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles} embedded /> }}
+      />
+    </div>
   </>;
 }
