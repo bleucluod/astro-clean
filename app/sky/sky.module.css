@@ -87,7 +87,8 @@
     inset 0 0 0 104px rgba(255, 255, 255, 0.01),
     inset 0 0 0 105px rgba(255, 255, 255, 0.06);
   transform: translateY(-50%);
-  animation: skyHeroOrbit 16s ease-in-out infinite;
+  transform-origin: center;
+  animation: skyHeroDiscMotion 18s ease-in-out infinite;
 }
 
 .skyPage :global([data-final-editorial-section="sky-hero"])::after {
@@ -95,7 +96,7 @@
   background: radial-gradient(circle, rgba(255, 255, 255, 0.84) 0 2px, rgba(255, 255, 255, 0.18) 3px, transparent 58%);
   box-shadow: 0 0 26px rgba(255, 255, 255, 0.13);
   transform: translate(112%, -164%);
-  animation: skyHeroStar 5.8s ease-in-out infinite;
+  animation: skyHeroStarTravel 8.4s ease-in-out infinite;
 }
 
 .skyPage :global([data-final-editorial-section="sky-hero"]) h1 {
@@ -186,6 +187,9 @@
 .hero,
 .controls,
 .dayCard,
+.dailyBrief,
+.dailySignals div,
+.skyDetailsPanel,
 .state,
 .notice,
 .summaryGrid article,
@@ -344,6 +348,9 @@
 
 .controls input {
   color: var(--sky-text) !important;
+  -webkit-text-fill-color: var(--sky-text);
+  appearance: none;
+  background-color: #111318 !important;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.018)),
     #111318;
@@ -460,6 +467,88 @@
 .notice h2,
 .state h2 { margin: 0; }
 
+.dailyBrief {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: clamp(22px, 4vw, 44px);
+  align-items: stretch;
+  overflow: hidden;
+  padding: clamp(26px, 5vw, 48px);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 86% 12%, rgba(255, 255, 255, 0.08), transparent 18rem),
+    radial-gradient(circle at 4% 86%, rgba(255, 255, 255, 0.035), transparent 18rem),
+    linear-gradient(145deg, rgba(17, 20, 26, 0.96), rgba(8, 10, 14, 0.98));
+  animation: skySectionIn 520ms ease both;
+}
+
+.dailyBrief::before {
+  position: absolute;
+  inset: -35% auto auto -10%;
+  width: 260px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.09), transparent 62%);
+  filter: blur(10px);
+  content: "";
+  opacity: 0.7;
+  animation: skyBriefGlow 9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.dailyBriefMain,
+.dailySignals {
+  position: relative;
+  z-index: 1;
+}
+
+.dailyBriefMain h2 {
+  max-width: 13ch;
+  font-size: clamp(1.85rem, 4vw, 3.2rem);
+  line-height: 1.35;
+}
+
+.dailyBriefMain > p {
+  max-width: 55ch;
+  margin: 12px 0 0;
+  font-size: 1.02rem;
+}
+
+.dailySignals {
+  display: grid;
+  gap: 10px;
+}
+
+.dailySignals div {
+  display: grid;
+  gap: 5px;
+  align-content: center;
+  min-height: 86px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.032);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.dailySignals div:hover {
+  border-color: var(--sky-border-strong);
+  background: rgba(255, 255, 255, 0.052);
+  transform: translateY(-2px);
+}
+
+.dailySignals span {
+  color: var(--sky-faint) !important;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.dailySignals strong {
+  color: var(--sky-text) !important;
+  font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+  line-height: 1.75;
+}
+
 .engineReading,
 .engineCardReading { color: var(--sky-muted) !important; line-height: 2; }
 
@@ -469,6 +558,69 @@
   padding: 13px 16px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.035);
+}
+
+.skyDetailsPanel {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.014)),
+    var(--sky-surface);
+}
+
+.skyDetailsPanel > summary {
+  display: grid;
+  gap: 6px;
+  padding: 22px 24px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.skyDetailsPanel > summary::-webkit-details-marker { display: none; }
+
+.skyDetailsPanel > summary span {
+  color: var(--sky-faint) !important;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.skyDetailsPanel > summary strong {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+}
+
+.skyDetailsPanel > summary strong::after {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--sky-border);
+  border-radius: 999px;
+  color: var(--sky-text);
+  background: rgba(255, 255, 255, 0.035);
+  content: "+";
+  font-size: 1rem;
+}
+
+.skyDetailsPanel[open] > summary strong::after { content: "−"; }
+
+.skyDetailsPanel > .contentSection,
+.skyDetailsPanel > :global(.sky-astrochart-wheel),
+.skyDetailsPanel > .moonCard,
+.skyDetailsPanel > .quality {
+  width: calc(100% - 48px);
+  margin-inline: auto;
+}
+
+.skyDetailsPanel > .contentSection:first-of-type {
+  padding-top: 22px;
 }
 
 .contentSection,
@@ -927,6 +1079,61 @@
   }
 }
 
+@keyframes skyHeroDiscMotion {
+  0%,
+  100% {
+    opacity: 0.78;
+    filter: brightness(0.92);
+    transform: translateY(-50%) rotate(-2deg) scale(0.985);
+  }
+
+  42% {
+    opacity: 1;
+    filter: brightness(1.18);
+    transform: translateY(-52%) rotate(8deg) scale(1.025);
+  }
+
+  70% {
+    opacity: 0.9;
+    filter: brightness(1.03);
+    transform: translateY(-48%) rotate(3deg) scale(1);
+  }
+}
+
+@keyframes skyHeroStarTravel {
+  0%,
+  100% {
+    opacity: 0.64;
+    filter: blur(0);
+    transform: translate(96%, -176%) scale(0.92);
+  }
+
+  46% {
+    opacity: 1;
+    filter: blur(0.4px);
+    transform: translate(128%, -150%) scale(1.08);
+  }
+
+  72% {
+    opacity: 0.78;
+    filter: blur(0);
+    transform: translate(116%, -162%) scale(0.98);
+  }
+}
+
+@keyframes skyBriefGlow {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: translate3d(0, 0, 0) scale(0.94);
+  }
+
+  50% {
+    opacity: 0.84;
+    transform: translate3d(18px, 14px, 0) scale(1.08);
+  }
+}
+
 @keyframes skyWheelGlow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -983,6 +1190,7 @@
 
   .controls,
   .hero,
+  .dailyBrief,
   .summaryGrid,
   .planetGrid,
   .aspectList,
@@ -991,6 +1199,8 @@
   :global(.sky-astrochart-wheel-guide) { grid-template-columns: 1fr; }
 
   .controls { padding: 12px; }
+  .dailyBrief { padding: 24px 20px; }
+  .dailyBriefMain h2 { max-width: none; }
   .hero { min-height: 0; padding: 32px 20px; }
   .heroVisual { padding-top: 8px; }
   .heroOrbit { width: min(100%, 280px); }
@@ -1014,6 +1224,12 @@
   .relatedList { display: grid; }
   .relatedList a,
   .cta a { width: 100%; }
+  .skyDetailsPanel > .contentSection,
+  .skyDetailsPanel > :global(.sky-astrochart-wheel),
+  .skyDetailsPanel > .moonCard,
+  .skyDetailsPanel > .quality {
+    width: calc(100% - 24px);
+  }
   :global(.sky-astrochart-wheel-canvas) { border-radius: 14px; }
   :global(.sky-astrochart-wheel-guide) { gap: 16px; }
 }
@@ -1030,6 +1246,8 @@
 
   .hero,
   .heroOrbit,
+  .dailyBrief,
+  .dailyBrief::before,
   .summaryGrid article,
   .skyPage :global([data-final-editorial-section="sky-hero"])::before,
   .skyPage :global([data-final-editorial-section="sky-hero"])::after,
