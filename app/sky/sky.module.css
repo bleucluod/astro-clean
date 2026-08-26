@@ -414,6 +414,18 @@
 .citySuggestions li[aria-selected="true"] { background: rgba(255, 255, 255, 0.07); }
 .citySuggestions li span { color: var(--sky-faint); font-weight: 500; }
 
+.selectedDateNote {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  border: 1px solid var(--sky-border);
+  border-radius: 12px;
+  padding: 11px 14px;
+  color: var(--sky-muted) !important;
+  background: rgba(255, 255, 255, 0.026);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
 .dayCard {
   display: flex;
   gap: 24px;
@@ -520,6 +532,37 @@
   gap: 10px;
 }
 
+.dailyReasons {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dailyReasons article {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  border: 1px solid var(--sky-border);
+  border-radius: 15px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.dailyReasons span {
+  color: var(--sky-faint) !important;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.dailyReasons p {
+  margin: 0;
+  color: var(--sky-muted) !important;
+  line-height: 1.9;
+}
+
 .dailySignals div {
   display: grid;
   gap: 5px;
@@ -562,8 +605,9 @@
 
 .skyDetailsPanel {
   display: grid;
-  gap: 0;
+  gap: 28px;
   overflow: hidden;
+  padding: 0 0 28px;
   border-radius: 22px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.014)),
@@ -659,7 +703,8 @@
 
 .summaryGrid article:hover,
 .planetItem:hover,
-.planetItem[open] {
+.planetItem[open],
+.signGuideCard:hover {
   border-color: var(--sky-border-strong);
   background: rgba(255, 255, 255, 0.045);
   transform: translateY(-2px);
@@ -668,6 +713,40 @@
 .summaryGrid strong { font-size: 1.35rem; line-height: 1.5; }
 .summaryGrid span,
 .summaryGrid small { color: var(--sky-faint) !important; }
+
+.signGuideGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.signGuideCard {
+  display: grid;
+  gap: 8px;
+  min-height: 176px;
+  align-content: start;
+  border: 1px solid var(--sky-border);
+  border-radius: 15px;
+  padding: 17px;
+  background: rgba(255, 255, 255, 0.024);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.signGuideCard strong {
+  color: var(--sky-text) !important;
+  font-size: 1.1rem;
+}
+
+.signGuideCard p {
+  margin: 0;
+  color: var(--sky-text-soft) !important;
+  line-height: 1.9;
+}
+
+.signGuideCard small {
+  color: var(--sky-faint) !important;
+  line-height: 1.85;
+}
 
 .planetGrid,
 .aspectList {
@@ -823,6 +902,18 @@
 
 .moreAspects { margin-top: 4px; }
 
+.remainingAspects {
+  display: grid;
+  gap: 12px;
+}
+
+.remainingAspects h3 {
+  margin: 6px 0 0;
+  color: var(--sky-text) !important;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
 .moreAspects > summary {
   width: fit-content;
   cursor: pointer;
@@ -908,6 +999,18 @@
   text-decoration: none;
   box-shadow: 0 14px 36px rgba(255, 255, 255, 0.06);
   transition: background 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.skyPage .cta a {
+  color: #06070a !important;
+  background: #f6f7f9 !important;
+}
+
+.skyPage .cta a:hover {
+  color: #050609 !important;
+  background: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(255, 255, 255, 0.1);
 }
 
 :global(.sky-astrochart-wheel) { width: 100%; }
@@ -1191,7 +1294,9 @@
   .controls,
   .hero,
   .dailyBrief,
+  .dailyReasons,
   .summaryGrid,
+  .signGuideGrid,
   .planetGrid,
   .aspectList,
   .moonCard,
@@ -1200,6 +1305,7 @@
 
   .controls { padding: 12px; }
   .dailyBrief { padding: 24px 20px; }
+  .dailyReasons { gap: 8px; }
   .dailyBriefMain h2 { max-width: none; }
   .hero { min-height: 0; padding: 32px 20px; }
   .heroVisual { padding-top: 8px; }
@@ -1209,6 +1315,7 @@
   .dayCard { display: grid; gap: 18px; padding: 20px; }
   .dateNav { display: grid; grid-template-columns: 1fr 1fr; }
   .summaryGrid article { min-height: 116px; }
+  .signGuideCard { min-height: 0; }
   .planetSummary { grid-template-columns: 1fr; gap: 5px; }
   .planetPosition { text-align: start; }
 
