@@ -82,10 +82,10 @@ function buildHumanDailyGuide(snapshot: SkyDailySnapshot, timezone: string, refe
     focus,
     tone,
     action,
-    personalLine: `این خوانش را روی روز خودت امتحان کن: اگر امروز در کار، رابطه یا تصمیم‌هایت ${focus} پررنگ شد، اول دلیلش را ببین و بعد واکنش بده.`,
-    moonReason: moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} است؛ یعنی بدن، حس و واکنش‌های سریع با لحن ${SKY_SIGN_LABELS[moon.sign]} بالا می‌آیند. اگر چیزی ناگهانی در دلت نشست، همان لحظه حکم نده؛ اول ببین نیاز واقعی‌ات چیست.` : "جایگاه ماه برای این روز ثبت نشده، پس خوانش احساسی با احتیاط بیشتری نمایش داده می‌شود.",
-    aspectReason: mainAspect ? `زاویهٔ اصلی امروز ${SKY_ASPECT_LABELS[mainAspect.kind]} میان ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]} است. از همین‌جا می‌فهمیم روز برای حرکت نرم‌تر است یا برای مکث، بازبینی و مراقبت از حرف‌های تند.` : "زاویهٔ برجسته‌ای برای امروز ثبت نشده، پس خوانش سریع بیشتر از جایگاه ماه و وضعیت حرکت سیاره‌ها ساخته شده است.",
-    motionReason: retrogrades.length ? `${retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join(" و ")} برگشتی‌اند؛ یعنی مرور، اصلاح و دوباره‌دیدن بعضی تصمیم‌ها می‌تواند از فشار برای نتیجهٔ فوری مفیدتر باشد.` : "امروز سیارهٔ برگشتی فعالی در داده ثبت نشده؛ پس تاکید صفحه بیشتر روی فاز ماه و زاویه‌های روز است.",
+    personalLine: `اگر امروز در کار، رابطه یا تصمیم‌هایت ${focus} پررنگ شد، اول دلیلش را ببین و بعد واکنش بده.`,
+    moonReason: moon ? `ماه در ${SKY_SIGN_LABELS[moon.sign]} است؛ حس و واکنش‌ها سریع‌تر از ذهن جلو می‌زنند.` : "جایگاه ماه برای این روز ثبت نشده؛ خوانش احساسی با احتیاط نمایش داده می‌شود.",
+    aspectReason: mainAspect ? `${SKY_ASPECT_LABELS[mainAspect.kind]} ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]} لحن روز را می‌سازد: حرکت نرم یا مکث و بازبینی.` : "زاویهٔ برجسته‌ای ثبت نشده؛ خوانش سریع بیشتر از ماه و حرکت سیاره‌ها ساخته شده است.",
+    motionReason: retrogrades.length ? `${retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join(" و ")} برگشتی‌اند؛ نتیجهٔ فوری را سبک‌تر بگیر.` : "سیارهٔ برگشتی فعالی ثبت نشده؛ تمرکز بیشتر روی ماه و زاویه‌های روز است.",
     nextEvent: nextEvent ? `${eventText(nextEvent)}${"occurredAt" in nextEvent && nextEvent.occurredAt ? ` · ${formatTime(nextEvent.occurredAt, timezone)}` : ""}` : "رویداد بعدی مهمی تا پایان روز ثبت نشده",
   };
 }
