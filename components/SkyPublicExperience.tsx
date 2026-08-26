@@ -56,6 +56,44 @@ function buildDailySummary(snapshot: SkyDailySnapshot, timezone: string, referen
   return parts.join(" ");
 }
 
+function buildHumanDailyGuide(snapshot: SkyDailySnapshot, timezone: string, referenceTime: number) {
+  const moon = snapshot.planetaryStates.find((item) => item.body === "moon");
+  const mainAspect = snapshot.aspects[0];
+  const nextEvent = snapshot.timeline.find((event) => "occurredAt" in event && event.occurredAt && new Date(event.occurredAt).getTime() >= referenceTime);
+  const bodies = mainAspect ? [mainAspect.leftBody, mainAspect.rightBody] : [];
+  const hasBody = (body: string) => bodies.includes(body as never);
+  const focus = hasBody("venus") || hasBody("moon")
+    ? "رابطه و احساس"
+    : hasBody("mercury")
+      ? "فکر و گفت‌وگو"
+      : hasBody("mars")
+        ? "انرژی و واکنش"
+        : hasBody("saturn")
+          ? "تعهد و مرزبندی"
+          : moon
+            ? `حال‌وهوای ${SKY_SIGN_LABELS[moon.sign]}`
+            : "ریتم روز";
+  const tone = mainAspect?.kind === "square" || mainAspect?.kind === "opposition"
+    ? "قبل از جواب‌دادن، خریدن یا تصمیم فوری، چند دقیقه فاصله بگذار."
+    : mainAspect?.kind === "trine" || mainAspect?.kind === "sextile"
+      ? "برای مرتب‌کردن برنامه، شروع کار سبک یا گفت‌وگوی آرام فضا نرم‌تر است."
+      : mainAspect?.kind === "conjunction"
+        ? "یک موضوع بیشتر از بقیه توجه می‌خواهد؛ امروز پخش نشدن کمک می‌کند."
+        : "امروز را ساده بخوان: یک کار مهم، یک مکث کوتاه، یک تصمیم کمتر عجولانه.";
+  const action = mainAspect?.kind === "square" || mainAspect?.kind === "opposition"
+    ? "اگر چیزی فشار آورد، همان لحظه تصمیم نهایی نگیر."
+    : mainAspect?.kind === "trine" || mainAspect?.kind === "sextile"
+      ? "یک کار نیمه‌مانده را انتخاب کن و فقط همان را جلو ببر."
+      : "اولویت امروزت را با یک جمله بنویس و بقیه را سبک‌تر بگیر.";
+
+  return {
+    focus,
+    tone,
+    action,
+    nextEvent: nextEvent ? `${eventText(nextEvent)}${"occurredAt" in nextEvent && nextEvent.occurredAt ? ` · ${formatTime(nextEvent.occurredAt, timezone)}` : ""}` : "رویداد بعدی مهمی تا پایان روز ثبت نشده",
+  };
+}
+
 function AspectCard({ aspect, timezone, reading }: { aspect: SkyDailyAspect; timezone: string; reading: string | undefined }) {
   return <article><strong>{SKY_BODY_LABELS[aspect.leftBody]} و {SKY_BODY_LABELS[aspect.rightBody]}</strong><span>{SKY_ASPECT_LABELS[aspect.kind]} · اورب {aspect.orb.toLocaleString("fa-IR", { maximumFractionDigits: 2 })} درجه</span><small>{aspect.phase === "applying" ? "در حال نزدیک‌شدن" : aspect.phase === "separating" ? "در حال دورشدن" : "دقیق"}{aspect.exactAt ? ` · زمان دقیق ${formatTime(aspect.exactAt, timezone)}` : ""}</small>{reading ? <p className={styles.engineCardReading}>{reading}</p> : null}</article>;
 }
@@ -114,6 +152,7 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
     return occurredAt && new Date(occurredAt).getTime() >= now;
   });
   const nextEvent = futureEvents[0];
+  const dailyGuide = buildHumanDailyGuide(snapshot, city.timezone, now);
 
   return <>
     <section className={styles.dayCard}>
@@ -128,83 +167,93 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
       </nav>
     </section>
 
-    <section className={styles.notice} data-interpretation-source={reportInterpretation.source}>
-      <span className={styles.eyebrow}>خلاصهٔ روز</span>
-      <h2>مهم‌ترین داده‌های امروز</h2>
-      <p>{buildDailySummary(snapshot, city.timezone, now)}</p>
-      {reportInterpretation.summary ? <p className={styles.engineReading}>{reportInterpretation.summary}</p> : null}
-    </section>
-
-    <section className={styles.contentSection} aria-labelledby="sky-today-at-a-glance">
-      <header>
-        <span className={styles.eyebrow}>در یک نگاه</span>
-        <h2 id="sky-today-at-a-glance">امروز در آسمان چه خبر است؟</h2>
-        <p className={styles.sectionIntro}>مهم‌ترین چیزهایی که برای بازدید روزانه تغییر می‌کنند، یک‌جا دیده می‌شوند.</p>
-      </header>
-      <div className={styles.summaryGrid}>
-        <article><span>جایگاه ماه امروز</span><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "ثبت نشده"}</strong><small>{moon ? `${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه` : "داده موجود نیست"}</small></article>
-        <article><span>فاز ماه امروز</span><strong>{moonPhaseLabel(snapshot)}</strong><small>{snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} درصد روشنایی` : "داده موجود نیست"}</small></article>
-        <article><span>رویداد بعدی</span><strong>{nextEvent ? formatTime("occurredAt" in nextEvent ? nextEvent.occurredAt : undefined, city.timezone) : "رویدادی نمانده"}</strong><small>{nextEvent ? eventText(nextEvent) : "تا پایان این روز"}</small></article>
-        <article><span>سیارات برگشتی امروز</span><strong>{retrogrades.length.toLocaleString("fa-IR")}</strong><small>{retrogrades.length ? retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join("، ") : "هیچ سیاره‌ای برگشتی نیست"}</small></article>
+    <section className={styles.dailyBrief} data-interpretation-source={reportInterpretation.source}>
+      <div className={styles.dailyBriefMain}>
+        <span className={styles.eyebrow}>خواندن سریع امروز</span>
+        <h2>امروز از کجا شروع کنم؟</h2>
+        <p>{dailyGuide.tone}</p>
+        {reportInterpretation.summary ? <p className={styles.engineReading}>{reportInterpretation.summary}</p> : null}
+      </div>
+      <div className={styles.dailySignals} aria-label="خلاصه کاربردی آسمان امروز">
+        <div><span>تمرکز روز</span><strong>{dailyGuide.focus}</strong></div>
+        <div><span>پیشنهاد کوتاه</span><strong>{dailyGuide.action}</strong></div>
+        <div><span>اتفاق بعدی آسمان</span><strong>{dailyGuide.nextEvent}</strong></div>
       </div>
     </section>
 
-    <SkyPublicWheel snapshot={snapshot}/>
+    <details className={styles.skyDetailsPanel}>
+      <summary><span>جزئیات نجومی امروز</span><strong>چرخ آسمان، سیارات، ترنزیت‌ها و خط زمانی</strong></summary>
+      <section className={styles.contentSection} aria-labelledby="sky-today-at-a-glance">
+        <header>
+          <span className={styles.eyebrow}>در یک نگاه</span>
+          <h2 id="sky-today-at-a-glance">داده‌های سریع امروز</h2>
+          <p className={styles.sectionIntro}>{buildDailySummary(snapshot, city.timezone, now)}</p>
+        </header>
+        <div className={styles.summaryGrid}>
+          <article><span>ماه امروز</span><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "ثبت نشده"}</strong><small>{moon ? `${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه` : "داده موجود نیست"}</small></article>
+          <article><span>فاز ماه</span><strong>{moonPhaseLabel(snapshot)}</strong><small>{snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} درصد روشنایی` : "داده موجود نیست"}</small></article>
+          <article><span>رویداد بعدی</span><strong>{nextEvent ? formatTime("occurredAt" in nextEvent ? nextEvent.occurredAt : undefined, city.timezone) : "رویدادی نمانده"}</strong><small>{nextEvent ? eventText(nextEvent) : "تا پایان این روز"}</small></article>
+          <article><span>سیارات برگشتی امروز</span><strong>{retrogrades.length.toLocaleString("fa-IR")}</strong><small>{retrogrades.length ? retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join("، ") : "هیچ سیاره‌ای برگشتی نیست"}</small></article>
+        </div>
+      </section>
 
-    <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
-      <header>
-        <span className={styles.eyebrow}>جایگاه‌ها</span>
-        <h2>وضعیت سیارات امروز</h2>
-        <p className={styles.sectionIntro}>موقعیت سیارات امروز نشان می‌دهد هر سیاره در کدام نشان و درجه است و مستقیم حرکت می‌کند یا برگشتی.</p>
-      </header>
-      <div className={styles.planetGrid}>
-        {snapshot.planetaryStates.map((state) => (
-          <details className={styles.planetItem} key={state.body}>
-            <summary className={styles.planetSummary}>
-              <span className={styles.planetIdentity}>
-                <strong>{SKY_BODY_SYMBOLS[state.body]} {SKY_BODY_LABELS[state.body]}</strong>
-                <small>{SKY_MOTION_LABELS[state.motion]}{state.nearStation ? " · نزدیک تغییر جهت" : ""}</small>
-              </span>
-              <span className={styles.planetPosition}>{SKY_SIGN_LABELS[state.sign]}، {state.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه</span>
-            </summary>
-            <p className={styles.engineCardReading}>{reportInterpretation.planetReadings[state.body]}</p>
-          </details>
-        ))}
-      </div>
-    </section>
+      <SkyPublicWheel snapshot={snapshot}/>
 
-    <section className={styles.moonCard}>
-      <div>
-        <span className={styles.eyebrow}>ماه امروز در چه برجی است؟</span>
-        <h2>فاز ماه امروز</h2>
-        <strong className={styles.moonPhaseName}>{moonPhaseLabel(snapshot)}</strong>
-        <p>{moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} و درجهٔ ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} قرار دارد.` : "جایگاه ماه ثبت نشده است"}</p>
-      </div>
-      <dl>
-        <div><dt>روشنایی</dt><dd>{snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} درصد` : "ثبت نشده"}</dd></div>
-        <div><dt>حرکت</dt><dd>{moon ? SKY_MOTION_LABELS[moon.motion] : "ثبت نشده"}</dd></div>
-        <div><dt>رویداد بعدی ماه</dt><dd>{upcomingMoonEvent ? `${eventText(upcomingMoonEvent)} در ${formatTime(upcomingMoonEvent.occurredAt, city.timezone)}` : "تغییر نشان دیگری تا پایان روز ثبت نشده"}</dd></div>
-      </dl>
-    </section>
+      <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
+        <header>
+          <span className={styles.eyebrow}>جایگاه‌ها</span>
+          <h2>وضعیت سیارات امروز</h2>
+          <p className={styles.sectionIntro}>اگر می‌خواهی دقیق‌تر ببینی داده از کجا آمده، اینجا جایگاه هر سیاره و حرکت مستقیم یا برگشتی آن آمده است.</p>
+        </header>
+        <div className={styles.planetGrid}>
+          {snapshot.planetaryStates.map((state) => (
+            <details className={styles.planetItem} key={state.body}>
+              <summary className={styles.planetSummary}>
+                <span className={styles.planetIdentity}>
+                  <strong>{SKY_BODY_SYMBOLS[state.body]} {SKY_BODY_LABELS[state.body]}</strong>
+                  <small>{SKY_MOTION_LABELS[state.motion]}{state.nearStation ? " · نزدیک تغییر جهت" : ""}</small>
+                </span>
+                <span className={styles.planetPosition}>{SKY_SIGN_LABELS[state.sign]}، {state.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه</span>
+              </summary>
+              <p className={styles.engineCardReading}>{reportInterpretation.planetReadings[state.body]}</p>
+            </details>
+          ))}
+        </div>
+      </section>
 
-    <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
-      <header>
-        <span className={styles.eyebrow}>روابط آسمان</span>
-        <h2>مهم‌ترین ترنزیت‌ها و زاویه‌های امروز</h2>
-        <p className={styles.sectionIntro}>این‌ها مهم‌ترین رابطه‌های امروز میان سیاره‌ها هستند. عدد کنار هر زاویه نشان می‌دهد چقدر به حالت دقیق نزدیک است؛ هرچه کمتر، دقیق‌تر.</p>
-      </header>
-      {snapshot.aspects.length ? <>
-        <div className={styles.aspectList}>{initialAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div>
-        {remainingAspects.length ? <details className={styles.moreAspects}><summary>نمایش {remainingAspects.length.toLocaleString("fa-IR")} زاویهٔ دیگر</summary><div className={styles.aspectList}>{remainingAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div></details> : null}
-      </> : <p className={styles.empty}>زاویهٔ مهمی در محدودهٔ معتبر امروز ثبت نشده است.</p>}
-    </section>
+      <section className={styles.moonCard}>
+        <div>
+          <span className={styles.eyebrow}>ماه امروز در چه برجی است؟</span>
+          <h2>فاز ماه امروز</h2>
+          <strong className={styles.moonPhaseName}>{moonPhaseLabel(snapshot)}</strong>
+          <p>{moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} و درجهٔ ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} قرار دارد.` : "جایگاه ماه ثبت نشده است"}</p>
+        </div>
+        <dl>
+          <div><dt>روشنایی</dt><dd>{snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} درصد` : "ثبت نشده"}</dd></div>
+          <div><dt>حرکت</dt><dd>{moon ? SKY_MOTION_LABELS[moon.motion] : "ثبت نشده"}</dd></div>
+          <div><dt>رویداد بعدی ماه</dt><dd>{upcomingMoonEvent ? `${eventText(upcomingMoonEvent)} در ${formatTime(upcomingMoonEvent.occurredAt, city.timezone)}` : "تغییر نشان دیگری تا پایان روز ثبت نشده"}</dd></div>
+        </dl>
+      </section>
 
-    <section className={styles.contentSection}>
-      <header><span className={styles.eyebrow}>به ترتیب زمان</span><h2>رویدادهای نجومی امروز</h2><p className={styles.sectionIntro}>خط زمانی امروز نشان می‌دهد چه رویدادی گذشته و چه چیزی تا پایان روز پیش رو است.</p></header>
-      {snapshot.timeline.length ? <ol className={styles.timeline}>{snapshot.timeline.map((event, index) => { const occurredAt = "occurredAt" in event ? event.occurredAt : undefined; const isPast = occurredAt ? new Date(occurredAt).getTime() < now : false; return <li key={`${event.type}-${index}`} data-state={occurredAt ? (isPast ? "past" : "future") : "untimed"}><time>{formatTime(occurredAt, city.timezone)}</time><span>{eventText(event)}</span><small>{occurredAt ? (isPast ? "گذشته" : "پیش رو") : "بدون زمان دقیق"}</small></li>; })}</ol> : <p className={styles.empty}>رویداد مهمی برای این روز نداریم.</p>}
-    </section>
+      <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
+        <header>
+          <span className={styles.eyebrow}>روابط آسمان</span>
+          <h2>مهم‌ترین ترنزیت‌ها و زاویه‌های امروز</h2>
+          <p className={styles.sectionIntro}>این‌ها رابطه‌های مهم امروز میان سیاره‌ها هستند. عدد اورب یعنی فاصله تا حالت دقیق؛ هرچه کمتر باشد، زاویه دقیق‌تر است.</p>
+        </header>
+        {snapshot.aspects.length ? <>
+          <div className={styles.aspectList}>{initialAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div>
+          {remainingAspects.length ? <details className={styles.moreAspects}><summary>نمایش {remainingAspects.length.toLocaleString("fa-IR")} زاویهٔ دیگر</summary><div className={styles.aspectList}>{remainingAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div></details> : null}
+        </> : <p className={styles.empty}>زاویهٔ مهمی در محدودهٔ معتبر امروز ثبت نشده است.</p>}
+      </section>
 
-    {snapshot.qualityFlags.length ? <section className={styles.quality} role="status"><h2>یک نکته دربارهٔ ساعت‌ها</h2><p>ساعت بعضی رویدادها تقریبی است.</p></section> : null}
+      <section className={styles.contentSection}>
+        <header><span className={styles.eyebrow}>به ترتیب زمان</span><h2>رویدادهای نجومی امروز</h2><p className={styles.sectionIntro}>خط زمانی امروز نشان می‌دهد چه رویدادی گذشته و چه چیزی تا پایان روز پیش رو است.</p></header>
+        {snapshot.timeline.length ? <ol className={styles.timeline}>{snapshot.timeline.map((event, index) => { const occurredAt = "occurredAt" in event ? event.occurredAt : undefined; const isPast = occurredAt ? new Date(occurredAt).getTime() < now : false; return <li key={`${event.type}-${index}`} data-state={occurredAt ? (isPast ? "past" : "future") : "untimed"}><time>{formatTime(occurredAt, city.timezone)}</time><span>{eventText(event)}</span><small>{occurredAt ? (isPast ? "گذشته" : "پیش رو") : "بدون زمان دقیق"}</small></li>; })}</ol> : <p className={styles.empty}>رویداد مهمی برای این روز نداریم.</p>}
+      </section>
+
+      {snapshot.qualityFlags.length ? <section className={styles.quality} role="status"><h2>یک نکته دربارهٔ ساعت‌ها</h2><p>ساعت بعضی رویدادها تقریبی است.</p></section> : null}
+    </details>
 
     <section className={styles.contentSection}>
       <header><span className={styles.eyebrow}>راهنمای کوتاه</span><h2>این داده‌ها را چگونه بخوانم؟</h2></header>
