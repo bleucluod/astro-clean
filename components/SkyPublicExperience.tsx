@@ -4,7 +4,7 @@ import { SkyCityPicker } from "@/components/SkyCityPicker";
 import { SkyPublicWheel } from "@/components/SkyPublicWheel";
 import type { SkyPublicDeliveryResult } from "@/lib/sky-public/sky-public-delivery";
 import type { SkyDailyAspect, SkyDailySnapshot, SkyDailyTimelineEvent, SkyDailyZodiacSign } from "@/lib/sky-daily/sky-daily-contract";
-import { SKY_ASPECT_LABELS, SKY_BODY_LABELS, SKY_BODY_SYMBOLS, SKY_MOTION_LABELS, SKY_SIGN_LABELS } from "@/lib/sky-public/sky-public-labels";
+import { SKY_ASPECT_LABELS, SKY_BODY_LABELS, SKY_BODY_SYMBOLS, SKY_MOTION_LABELS, SKY_SIGN_ENGLISH_LABELS, SKY_SIGN_LABELS } from "@/lib/sky-public/sky-public-labels";
 import {
   buildSkyPublicReportInterpretation,
   skyPublicAspectKey,
@@ -66,25 +66,25 @@ function buildHumanDailyGuide(snapshot: SkyDailySnapshot, timezone: string, refe
             ? `حال‌وهوای ${SKY_SIGN_LABELS[moon.sign]}`
             : "ریتم روز";
   const tone = mainAspect?.kind === "square" || mainAspect?.kind === "opposition"
-    ? "امروز لازم نیست سریع جواب بدهی. اگر فشار، عجله یا حساسیت بالا آمد، چند دقیقه فاصله بگیر و بعد تصمیم را سبک‌تر کن."
+    ? "امروز روز جواب فوری نیست. اگر فشار، عجله یا حساسیت بالا آمد، پیام مهم را کمی نگه دار، قرارداد را دوباره بخوان و تصمیم برگشت‌ناپذیر را سبک‌تر کن."
     : mainAspect?.kind === "trine" || mainAspect?.kind === "sextile"
-      ? "امروز بهترین شروع، یک قدم کوچک و واقعی است. لازم نیست همه‌چیز را حل کنی؛ یک کار نیمه‌مانده را بردار و ریتمش را بگیر."
+      ? "امروز برای جلو بردن یک کار واقعی بهتر است، نه برای پخش شدن در ده مسیر. یک کار نیمه‌مانده را بردار، اما قول بزرگ یا برنامهٔ خیلی فشرده نده."
       : mainAspect?.kind === "conjunction"
-        ? "امروز یک موضوع می‌تواند بیشتر از بقیه توجهت را بگیرد. به جای پخش شدن، همان نقطه را روشن کن و بعد سراغ بقیه برو."
-        : "امروز را ساده بخوان: یک کار مهم، یک مکث کوتاه، و یک تصمیم که لازم نیست عجولانه گرفته شود.";
+        ? "امروز یک موضوع می‌تواند بیشتر از بقیه توجهت را بگیرد. همان نقطه را روشن کن، ولی اگر حس کردی داری زیادی بزرگش می‌کنی، تصمیم نهایی را عقب بینداز."
+        : "امروز را ساده بخوان: یک کار مهم، یک مکث کوتاه، و تصمیمی که لازم نیست از روی شتاب گرفته شود.";
   const action = mainAspect?.kind === "square" || mainAspect?.kind === "opposition"
-    ? "جواب نهایی را بعد از یک مکث کوتاه بده."
+    ? "قرارداد، خرید بزرگ و جواب تند را بعد از بازبینی جلو ببر."
     : mainAspect?.kind === "trine" || mainAspect?.kind === "sextile"
-      ? "یک کار نیمه‌مانده را انتخاب کن و همان را جلو ببر."
-      : "اولویت امروزت را با یک جمله بنویس.";
+      ? "یک کار نیمه‌مانده را انتخاب کن و همان را کامل‌تر کن."
+      : "اولویت امروزت را بنویس و تصمیم حساس را با سند جلو ببر.";
 
   return {
     focus,
     tone,
     action,
-    personalLine: `این خوانش وقتی برای تو معنی پیدا می‌کند که آن را روی روز خودت امتحان کنی: الان در کار، رابطه یا تصمیم‌های کوچکت کجا ${focus} خودش را نشان می‌دهد؟`,
-    moonReason: moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} است؛ پس لایهٔ احساسی روز بیشتر با ریتم ${SKY_SIGN_LABELS[moon.sign]} خوانده می‌شود. اگر واکنشت تند یا متفاوت بود، اول اسمش را پیدا کن.` : "جایگاه ماه برای این روز ثبت نشده، پس خوانش احساسی با احتیاط بیشتری نمایش داده می‌شود.",
-    aspectReason: mainAspect ? `زاویهٔ اصلی امروز ${SKY_ASPECT_LABELS[mainAspect.kind]} میان ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]} است. این همان داده‌ای است که می‌گوید امروز بیشتر از چه جنسی جلو بروی: نرم، آهسته، متمرکز یا محتاط.` : "زاویهٔ برجسته‌ای برای امروز ثبت نشده، پس خوانش سریع بیشتر از جایگاه ماه و وضعیت حرکت سیاره‌ها ساخته شده است.",
+    personalLine: `این خوانش را روی روز خودت امتحان کن: اگر امروز در کار، رابطه یا تصمیم‌هایت ${focus} پررنگ شد، اول دلیلش را ببین و بعد واکنش بده.`,
+    moonReason: moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} است؛ یعنی بدن، حس و واکنش‌های سریع با لحن ${SKY_SIGN_LABELS[moon.sign]} بالا می‌آیند. اگر چیزی ناگهانی در دلت نشست، همان لحظه حکم نده؛ اول ببین نیاز واقعی‌ات چیست.` : "جایگاه ماه برای این روز ثبت نشده، پس خوانش احساسی با احتیاط بیشتری نمایش داده می‌شود.",
+    aspectReason: mainAspect ? `زاویهٔ اصلی امروز ${SKY_ASPECT_LABELS[mainAspect.kind]} میان ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]} است. از همین‌جا می‌فهمیم روز برای حرکت نرم‌تر است یا برای مکث، بازبینی و مراقبت از حرف‌های تند.` : "زاویهٔ برجسته‌ای برای امروز ثبت نشده، پس خوانش سریع بیشتر از جایگاه ماه و وضعیت حرکت سیاره‌ها ساخته شده است.",
     motionReason: retrogrades.length ? `${retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join(" و ")} برگشتی‌اند؛ یعنی مرور، اصلاح و دوباره‌دیدن بعضی تصمیم‌ها می‌تواند از فشار برای نتیجهٔ فوری مفیدتر باشد.` : "امروز سیارهٔ برگشتی فعالی در داده ثبت نشده؛ پس تاکید صفحه بیشتر روی فاز ماه و زاویه‌های روز است.",
     nextEvent: nextEvent ? `${eventText(nextEvent)}${"occurredAt" in nextEvent && nextEvent.occurredAt ? ` · ${formatTime(nextEvent.occurredAt, timezone)}` : ""}` : "رویداد بعدی مهمی تا پایان روز ثبت نشده",
   };
@@ -181,7 +181,7 @@ export function SkyHeroLive({ result }: { result: SkyPublicDeliveryResult }) {
       {mainAspect ? <span className={styles.liveHeroAspectLine} style={markerStyle(snapshot.planetaryStates.find((item) => item.body === mainAspect.leftBody)?.longitude)} /> : null}
     </div>
     <dl className={styles.liveHeroFacts} aria-label="داده‌های زنده آسمان امروز">
-      <div><dt>ماه الان</dt><dd>{moon ? `${SKY_SIGN_LABELS[moon.sign]} · ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°` : "ثبت نشده"}</dd></div>
+      <div><dt>ماه الان</dt><dd>{moon ? `${SKY_SIGN_LABELS[moon.sign]} · ${SKY_SIGN_ENGLISH_LABELS[moon.sign]} · ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°` : "ثبت نشده"}</dd></div>
       <div><dt>فاز ماه</dt><dd>{moonPhaseLabel(snapshot)} · {moonIllumination}</dd></div>
       <div><dt>زاویه اصلی</dt><dd>{mainAspect ? `${SKY_ASPECT_LABELS[mainAspect.kind]} ${SKY_BODY_LABELS[mainAspect.leftBody]} و ${SKY_BODY_LABELS[mainAspect.rightBody]}` : "زاویه برجسته‌ای ثبت نشده"}</dd></div>
       <div><dt>رویداد بعدی</dt><dd>{nextEvent ? `${eventText(nextEvent)} · ${formatTime("occurredAt" in nextEvent ? nextEvent.occurredAt : undefined, city.timezone)}` : "رویدادی برای امروز نداریم"}</dd></div>
@@ -213,17 +213,17 @@ function SkyHero() {
   </header>;
 }
 
-export function SkyPublicExperience({ result, cityQuery, relatedArticles = [], embedded = false }: { result: SkyPublicDeliveryResult; cityQuery?: string; relatedArticles?: Array<{ slug: string; title: string }>; embedded?: boolean }) {
+export function SkyPublicExperience({ result, cityQuery, relatedArticles = [], embedded = false, showControls = true }: { result: SkyPublicDeliveryResult; cityQuery?: string; relatedArticles?: Array<{ slug: string; title: string }>; embedded?: boolean; showControls?: boolean }) {
   const controlCity = result.city ?? { id: cityQuery ?? "tehran", faName: cityQuery ?? "تهران", provinceFaName: "" };
 
   return <div className={styles.shell}>
     {embedded ? null : <SkyHero />}
-    <form className={styles.controls} method="get" action="/sky">
+    {showControls ? <form className={styles.controls} method="get" action="/sky">
       <SkyCityPicker initialCity={controlCity}/>
       <label><span>تاریخ</span><input type="date" name="date" defaultValue={result.currentLocalDate ?? result.requestedDate ?? ""}/></label>
       <button type="submit">نمایش آسمان</button>
       {result.requestedDate && result.city ? <p className={styles.selectedDateNote}>آسمان {result.city.faName} برای {formatPersianDate(result.requestedDate, result.city.timezone)}، برابر با {formatGregorianDate(result.requestedDate, result.city.timezone)}</p> : null}
-    </form>
+    </form> : null}
     {result.status !== "ready" ? <section className={styles.state} role="status"><span>داده در دسترس نیست</span><h2>{result.message}</h2>{result.requestedDate && result.city ? <p>روز درخواستی: {formatPersianDate(result.requestedDate, result.city.timezone)} برابر با {formatGregorianDate(result.requestedDate, result.city.timezone)}. هالیوس فقط دادهٔ معتبر و ذخیره‌شده را نمایش می‌دهد و برای پرکردن آرشیو، آسمان روز دیگری را جایگزین نمی‌کند.</p> : <p>هیچ دادهٔ ساختگی یا دادهٔ روز دیگری نمایش داده نشده است.</p>}<Link href={`/sky?city=${encodeURIComponent(result.city?.id ?? "tehran")}`}>بازگشت به آسمان امروز</Link></section> : <ReadyExperience result={result} relatedArticles={relatedArticles}/>}
   </div>;
 }
@@ -271,12 +271,12 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
       <header>
         <span className={styles.eyebrow}>برای نشان تو</span>
         <h2>ترنزیت‌های امروز برای هر نشان</h2>
-        <p className={styles.sectionIntro}>این بخش خوانش شخصی قطعی نیست؛ نشان می‌دهد حال‌وهوای عمومی امروز با هر نشان چه نسبتی پیدا می‌کند و دلیلش را هم کنار همان کارت می‌نویسد.</p>
+        <p className={styles.sectionIntro}>نشان خودت را پیدا کن و ببین ریتم امروز بیشتر کجای روزت را لمس می‌کند. این بخش حکم قطعی نمی‌دهد، اما می‌گوید چرا ممکن است در رابطه، کار یا تصمیم‌هایت حال‌وهوای خاصی پررنگ‌تر شود.</p>
       </header>
       <div className={styles.signGuideGrid}>
         {signGuides.map((guide) => (
           <article className={styles.signGuideCard} key={guide.sign}>
-            <strong>{SKY_SIGN_LABELS[guide.sign]}</strong>
+            <div className={styles.signGuideTitle}><strong>{SKY_SIGN_LABELS[guide.sign]}</strong><small>{SKY_SIGN_ENGLISH_LABELS[guide.sign]}</small></div>
             <p>{guide.tone}</p>
             <small>{guide.reason}</small>
           </article>
@@ -292,7 +292,7 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
           <p className={styles.sectionIntro}>{buildDailySummary(snapshot, city.timezone, now)}</p>
         </header>
         <div className={styles.summaryGrid}>
-          <article><span>ماه امروز</span><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "ثبت نشده"}</strong><small>{moon ? `${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه` : "داده موجود نیست"}</small></article>
+          <article><span>ماه امروز</span><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "ثبت نشده"}</strong><small>{moon ? `${SKY_SIGN_ENGLISH_LABELS[moon.sign]} · ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه` : "داده موجود نیست"}</small></article>
           <article><span>فاز ماه</span><strong>{moonPhaseLabel(snapshot)}</strong><small>{snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} درصد روشنایی` : "داده موجود نیست"}</small></article>
           <article><span>رویداد بعدی</span><strong>{nextEvent ? formatTime("occurredAt" in nextEvent ? nextEvent.occurredAt : undefined, city.timezone) : "رویدادی برای امروز نداریم"}</strong><small>{nextEvent ? eventText(nextEvent) : "تا پایان این روز"}</small></article>
           <article><span>سیارات برگشتی امروز</span><strong>{retrogrades.length.toLocaleString("fa-IR")}</strong><small>{retrogrades.length ? retrogrades.map((item) => SKY_BODY_LABELS[item.body]).join("، ") : "هیچ سیاره‌ای برگشتی نیست"}</small></article>
@@ -305,7 +305,7 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
         <header>
           <span className={styles.eyebrow}>جایگاه‌ها</span>
           <h2>وضعیت سیارات امروز</h2>
-          <p className={styles.sectionIntro}>اگر می‌خواهی دقیق‌تر ببینی داده از کجا آمده، اینجا جایگاه هر سیاره و حرکت مستقیم یا برگشتی آن آمده است.</p>
+          <p className={styles.sectionIntro}>اینجا فقط نمی‌گوییم هر سیاره کجاست؛ می‌گوییم امروز آن جایگاه در کار، رابطه، پول، انرژی یا تصمیم‌گیری چه کاربردی دارد و کجا باید احتیاط کنی.</p>
         </header>
         <div className={styles.planetGrid}>
           {snapshot.planetaryStates.map((state) => (
@@ -315,7 +315,7 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
                   <strong>{SKY_BODY_SYMBOLS[state.body]} {SKY_BODY_LABELS[state.body]}</strong>
                   <small>{SKY_MOTION_LABELS[state.motion]}{state.nearStation ? " · نزدیک تغییر جهت" : ""}</small>
                 </span>
-                <span className={styles.planetPosition}>{SKY_SIGN_LABELS[state.sign]}، {state.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه</span>
+                <span className={styles.planetPosition}>{SKY_SIGN_LABELS[state.sign]} · {SKY_SIGN_ENGLISH_LABELS[state.sign]}، {state.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه</span>
               </summary>
               <p className={styles.engineCardReading}>{reportInterpretation.planetReadings[state.body]}</p>
             </details>
@@ -328,7 +328,7 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
           <span className={styles.eyebrow}>ماه امروز در چه برجی است؟</span>
           <h2>فاز ماه امروز</h2>
           <strong className={styles.moonPhaseName}>{moonPhaseLabel(snapshot)}</strong>
-          <p>{moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} و درجهٔ ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} قرار دارد.` : "جایگاه ماه ثبت نشده است"}</p>
+          <p>{moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} (${SKY_SIGN_ENGLISH_LABELS[moon.sign]}) و درجهٔ ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} قرار دارد.` : "جایگاه ماه ثبت نشده است"}</p>
         </div>
         <dl>
           <div><dt>روشنایی</dt><dd>{snapshot.moonPhase ? `${(snapshot.moonPhase.illuminationFraction * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} درصد` : "ثبت نشده"}</dd></div>
@@ -341,7 +341,7 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
         <header>
           <span className={styles.eyebrow}>روابط آسمان</span>
           <h2>مهم‌ترین ترنزیت‌ها و زاویه‌های امروز</h2>
-          <p className={styles.sectionIntro}>این‌ها رابطه‌های مهم امروز میان سیاره‌ها هستند. عدد اورب یعنی فاصله تا حالت دقیق؛ هرچه کمتر باشد، زاویه دقیق‌تر است.</p>
+          <p className={styles.sectionIntro}>این زاویه‌ها می‌گویند امروز کدام نیروها با هم راه می‌آیند و کجا ممکن است فشار، سوءبرداشت یا تصمیم عجولانه بالا بیاید. عدد اورب یعنی فاصله تا حالت دقیق؛ هرچه کمتر باشد، اثر آن در خوانش امروز جدی‌تر است.</p>
         </header>
         {snapshot.aspects.length ? <>
           <div className={styles.aspectList}>{initialAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div>

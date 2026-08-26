@@ -20,6 +20,11 @@ export const SKY_SIGN_LABELS: Record<SkyDailyZodiacSign, string> = {
   libra: "میزان", scorpio: "عقرب", sagittarius: "قوس", capricorn: "جدی", aquarius: "دلو", pisces: "حوت",
 };
 
+export const SKY_SIGN_ENGLISH_LABELS: Record<SkyDailyZodiacSign, string> = {
+  aries: "Aries", taurus: "Taurus", gemini: "Gemini", cancer: "Cancer", leo: "Leo", virgo: "Virgo",
+  libra: "Libra", scorpio: "Scorpio", sagittarius: "Sagittarius", capricorn: "Capricorn", aquarius: "Aquarius", pisces: "Pisces",
+};
+
 export const SKY_SIGN_SYMBOLS = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"] as const;
 
 export const SKY_ASPECT_LABELS: Record<SkyDailyAspectKind, string> = {

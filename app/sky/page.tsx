@@ -82,13 +82,12 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
     <div className={styles.skyPage}>
       <FinalEditorialPage
         pageKey="sky"
-        includeSections={["sky-hero", "sky-controls"]}
-        slotOnlySections={["sky-controls"]}
+        includeSections={["sky-hero"]}
         slots={{
           "sky-hero": <SkyHeroLive result={result} />,
-          "sky-controls": <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles} embedded />,
         }}
       />
+      <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles} embedded showControls={false} />
     </div>
   </>;
 }

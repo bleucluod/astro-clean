@@ -119,6 +119,11 @@
   line-height: 2.05;
 }
 
+.skyPage :global([data-final-editorial-section="sky-hero"] > div:last-child) {
+  width: min(34%, 360px);
+  inset-inline-end: clamp(18px, 4vw, 44px);
+}
+
 .skyPage :global([data-final-editorial-section="sky-hero"]) > span {
   position: relative;
   z-index: 1;
@@ -294,20 +299,15 @@
 .liveHeroCard {
   position: relative;
   display: grid;
-  gap: 18px;
+  gap: 12px;
   width: 100%;
   min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--sky-border-strong);
-  border-radius: 22px;
-  padding: 18px;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.095), transparent 10rem),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.022)),
-    rgba(10, 12, 16, 0.92);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 28px 80px rgba(0, 0, 0, 0.22);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .liveHeroLabel {
@@ -333,10 +333,10 @@
 }
 
 .liveHeroSky {
-  --hero-orbit-radius: min(34vw, 138px);
+  --hero-orbit-radius: min(27vw, 112px);
   position: relative;
   display: grid;
-  width: min(100%, 330px);
+  width: min(100%, 270px);
   aspect-ratio: 1;
   place-items: center;
   justify-self: center;
@@ -440,33 +440,35 @@
 
 .liveHeroFacts {
   display: grid;
-  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
   margin: 0;
-  border-top: 1px solid var(--sky-border);
+  border-top: 0;
 }
 
 .liveHeroFacts div {
   display: grid;
-  grid-template-columns: minmax(80px, 0.42fr) minmax(0, 1fr);
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  gap: 3px;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.105);
+  border-radius: 13px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(12px);
 }
-
-.liveHeroFacts div:last-child { border-bottom: 0; }
 
 .liveHeroFacts dt {
   color: var(--sky-faint) !important;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 850;
 }
 
 .liveHeroFacts dd {
   margin: 0;
   color: var(--sky-text-soft) !important;
-  font-size: 0.83rem;
+  font-size: 0.76rem;
   font-weight: 800;
-  line-height: 1.8;
+  line-height: 1.65;
 }
 
 .hero p,
@@ -911,9 +913,23 @@
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
+.signGuideTitle {
+  display: grid;
+  gap: 2px;
+}
+
 .signGuideCard strong {
   color: var(--sky-text) !important;
   font-size: 1.1rem;
+}
+
+.signGuideTitle small {
+  color: var(--sky-faint) !important;
+  direction: ltr;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-align: start;
 }
 
 .signGuideCard p {
@@ -1461,6 +1477,7 @@
 @media (max-width: 900px) {
   .summaryGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .skyPage :global([data-final-editorial-section="sky-hero"]) { padding-inline-end: min(36%, 330px); }
+  .skyPage :global([data-final-editorial-section="sky-hero"] > div:last-child) { width: min(34%, 310px); }
   .skyPage :global([data-final-editorial-section="sky-hero"])::before { width: min(29vw, 260px); }
 }
 
@@ -1492,6 +1509,10 @@
   }
 
   .skyPage :global([data-final-editorial-section="sky-hero"]) h1 { font-size: clamp(1.65rem, 8vw, 2.2rem); }
+  .skyPage :global([data-final-editorial-section="sky-hero"] > div:last-child) {
+    width: 100%;
+    inset-inline-end: auto;
+  }
   .shell { gap: 36px; }
 
   .controls,
@@ -1514,12 +1535,12 @@
   .heroVisual { padding-top: 8px; }
   .heroOrbit { width: min(100%, 280px); }
   .heroOrbit > span { transform: translate(-50%, -50%) rotate(var(--sky-angle)) translateY(-112px) rotate(var(--sky-counter-angle)); }
-  .liveHeroCard { padding: 16px; }
+  .liveHeroCard { padding: 0; }
   .liveHeroSky {
     --hero-orbit-radius: min(35vw, 116px);
     width: min(100%, 278px);
   }
-  .liveHeroFacts div { grid-template-columns: 1fr; gap: 4px; }
+  .liveHeroFacts { grid-template-columns: 1fr; }
 
   .dayCard { display: grid; gap: 18px; padding: 20px; }
   .dateNav { display: grid; grid-template-columns: 1fr 1fr; }
