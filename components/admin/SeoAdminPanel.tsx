@@ -53,6 +53,15 @@ type SearchConsoleInsight = {
   tone: "danger" | "attention" | "positive";
   stableId?: string;
 };
+type SearchConsoleFileParseResult = {
+  rows: SearchConsoleRow[];
+  sourceName: string;
+};
+type ZipCsvEntry = {
+  name: string;
+  text: string;
+};
+type BrowserDecompressionStreamConstructor = new (format: string) => TransformStream<Uint8Array, Uint8Array>;
 
 type Props = {
   token: string;
@@ -268,6 +277,16 @@ function findCsvColumn(headers: string[], aliases: string[]) {
   return headers.findIndex((header) => normalizedAliases.includes(normalizeCsvHeader(header)));
 }
 
+function hasSearchConsolePageHeaders(text: string) {
+  const rows = parseCsv(text);
+  return rows.some((row) => {
+    const headers = row.map(normalizeCsvHeader);
+    return headers.some((header) => ["top pages", "page", "pages", "landing page", "url", "صفحه"].includes(header)) &&
+      headers.some((header) => ["clicks", "کلیک", "کلیک‌ها"].includes(header)) &&
+      headers.some((header) => ["impressions", "impression", "نمایش", "نمایش‌ها"].includes(header));
+  });
+}
+
 function parseMetric(value: string) {
   const normalized = value.replace("%", "").replaceAll(",", "").trim();
   const parsed = Number(normalized);
@@ -321,6 +340,112 @@ function parseSearchConsoleCsv(text: string): SearchConsoleRow[] {
       position: positionIndex >= 0 ? parseMetric(row[positionIndex] ?? "") : 0,
     }))
     .filter((row) => row.path.startsWith("/wiki/") && row.impressions > 0);
+}
+
+function isZipUpload(file: File) {
+  const name = file.name.toLowerCase();
+  return name.endsWith(".zip") || file.type === "application/zip" || file.type === "application/x-zip-compressed";
+}
+
+function readUint16(view: DataView, offset: number) {
+  return view.getUint16(offset, true);
+}
+
+function readUint32(view: DataView, offset: number) {
+  return view.getUint32(offset, true);
+}
+
+function findZipEndOfCentralDirectory(view: DataView) {
+  const minOffset = Math.max(0, view.byteLength - 65_557);
+  for (let offset = view.byteLength - 22; offset >= minOffset; offset -= 1) {
+    if (readUint32(view, offset) === 0x06054b50) return offset;
+  }
+  return -1;
+}
+
+function decodeZipName(bytes: Uint8Array) {
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+async function inflateZipBytes(bytes: Uint8Array, entryName: string) {
+  const globalScope = globalThis as typeof globalThis & {
+    DecompressionStream?: BrowserDecompressionStreamConstructor;
+  };
+  const DecompressionStreamCtor = globalScope.DecompressionStream;
+  if (!DecompressionStreamCtor) {
+    throw new Error(`مرورگر نمی‌تواند فایل فشرده ${entryName} را باز کند؛ Pages.csv را جدا آپلود کن.`);
+  }
+  const payload = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(payload).set(bytes);
+  const stream = new Blob([payload]).stream().pipeThrough(new DecompressionStreamCtor("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function extractSearchConsoleCsvEntriesFromZip(buffer: ArrayBuffer): Promise<ZipCsvEntry[]> {
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+  const eocdOffset = findZipEndOfCentralDirectory(view);
+  if (eocdOffset < 0) throw new Error("فایل ZIP معتبر نیست.");
+
+  const entryCount = readUint16(view, eocdOffset + 10);
+  let cursor = readUint32(view, eocdOffset + 16);
+  const entries: ZipCsvEntry[] = [];
+
+  for (let index = 0; index < entryCount; index += 1) {
+    if (readUint32(view, cursor) !== 0x02014b50) break;
+    const compressionMethod = readUint16(view, cursor + 10);
+    const compressedSize = readUint32(view, cursor + 20);
+    const fileNameLength = readUint16(view, cursor + 28);
+    const extraLength = readUint16(view, cursor + 30);
+    const commentLength = readUint16(view, cursor + 32);
+    const localHeaderOffset = readUint32(view, cursor + 42);
+    const fileName = decodeZipName(bytes.slice(cursor + 46, cursor + 46 + fileNameLength));
+    cursor += 46 + fileNameLength + extraLength + commentLength;
+
+    if (!fileName.toLowerCase().endsWith(".csv")) continue;
+    if (readUint32(view, localHeaderOffset) !== 0x04034b50) continue;
+    const localNameLength = readUint16(view, localHeaderOffset + 26);
+    const localExtraLength = readUint16(view, localHeaderOffset + 28);
+    const dataOffset = localHeaderOffset + 30 + localNameLength + localExtraLength;
+    const compressedBytes = bytes.slice(dataOffset, dataOffset + compressedSize);
+    let csvBytes: Uint8Array;
+    if (compressionMethod === 0) {
+      csvBytes = compressedBytes;
+    } else if (compressionMethod === 8) {
+      csvBytes = await inflateZipBytes(compressedBytes, fileName);
+    } else {
+      continue;
+    }
+    entries.push({ name: fileName, text: new TextDecoder("utf-8").decode(csvBytes) });
+  }
+
+  return entries;
+}
+
+async function parseSearchConsoleUpload(file: File): Promise<SearchConsoleFileParseResult> {
+  if (!isZipUpload(file)) {
+    return { rows: parseSearchConsoleCsv(await file.text()), sourceName: file.name };
+  }
+
+  const entries = await extractSearchConsoleCsvEntriesFromZip(await file.arrayBuffer());
+  const candidates = entries.sort((left, right) => {
+    const leftScore = left.name.toLowerCase().endsWith("pages.csv") ? 0 : hasSearchConsolePageHeaders(left.text) ? 1 : 2;
+    const rightScore = right.name.toLowerCase().endsWith("pages.csv") ? 0 : hasSearchConsolePageHeaders(right.text) ? 1 : 2;
+    return leftScore - rightScore || left.name.localeCompare(right.name);
+  });
+
+  for (const entry of candidates) {
+    try {
+      return {
+        rows: parseSearchConsoleCsv(entry.text),
+        sourceName: `${file.name} / ${entry.name}`,
+      };
+    } catch {
+      // Keep trying other CSV files in the Search Console export.
+    }
+  }
+
+  throw new Error("داخل ZIP، فایل Pages.csv قابل خواندن Search Console پیدا نشد.");
 }
 
 function articlePath(article: WikiLinkGraphArticle) {
@@ -488,12 +613,13 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
       return;
     }
     try {
-      const rows = parseSearchConsoleCsv(await file.text());
+      const parsed = await parseSearchConsoleUpload(file);
+      const rows = parsed.rows;
       setSearchConsoleRows(rows);
-      setSearchConsoleFileName(file.name);
+      setSearchConsoleFileName(parsed.sourceName);
       emitAdminNotice({
         tone: "success",
-        title: "CSV سرچ کنسول خوانده شد",
+        title: isZipUpload(file) ? "ZIP سرچ کنسول خوانده شد" : "CSV سرچ کنسول خوانده شد",
         message: `${formatNumber(rows.length)} ردیف ویکی آماده تحلیل است.`,
       });
     } catch (error) {
@@ -1123,11 +1249,11 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
           <label className={styles.seoUploadBox}>
             <input
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,.zip,text/csv,application/zip,application/x-zip-compressed"
               onChange={(event) => void importSearchConsoleCsv(event.target.files?.[0] ?? null)}
             />
-            <strong>آپلود CSV سرچ کنسول</strong>
-            <span>Performance → Pages را از Search Console خروجی CSV بگیر و اینجا انتخاب کن.</span>
+            <strong>آپلود CSV یا ZIP سرچ کنسول</strong>
+            <span>Performance → Pages را به صورت CSV یا خروجی ZIP کامل Search Console اینجا انتخاب کن.</span>
           </label>
           {searchConsoleRows.length ? (
             <>
