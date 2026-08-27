@@ -11,6 +11,7 @@ import {
   setAdminWikiArticleDeleted,
   unpublishAdminWikiArticle,
 } from "@/lib/wiki/wiki-cms-service";
+import { submitWikiIndexNowUrlsBestEffort } from "@/lib/wiki/wiki-indexnow";
 import { revalidateWikiPublicPaths } from "@/lib/wiki/wiki-revalidation";
 
 export const runtime = "nodejs";
@@ -38,14 +39,25 @@ export async function POST(request: Request, context: Context) {
       });
       if (result.mode === "published") {
         revalidateWikiPublicPaths([result.slug, result.previousSlug]);
+        const discovery = await submitWikiIndexNowUrlsBestEffort(
+          [result.slug, result.previousSlug, "/wiki", "/sitemap.xml"],
+          "admin-wiki-publish",
+        );
+        return noStoreJsonResponse({ ok: true, result, discovery });
       }
       return noStoreJsonResponse({ ok: true, result });
     }
     if (action === "unpublish") {
       const actor = await requireAdminCapability(request, "wiki.publish.write");
-      await unpublishAdminWikiArticle({ actor, articleId, reason });
-      revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
-      return noStoreJsonResponse({ ok: true });
+      const result = await unpublishAdminWikiArticle({ actor, articleId, reason });
+      revalidateWikiPublicPaths([result.slug, ...result.inboundSourceSlugs], {
+        cachePolicy: "expire-now",
+      });
+      const discovery = await submitWikiIndexNowUrlsBestEffort(
+        [result.slug, ...result.inboundSourceSlugs, "/wiki", "/sitemap.xml"],
+        "admin-wiki-unpublish",
+      );
+      return noStoreJsonResponse({ ok: true, result, discovery });
     }
     if (action === "rollback") {
       const actor = await requireAdminCapability(request, "wiki.publish.write");
@@ -55,7 +67,11 @@ export async function POST(request: Request, context: Context) {
       }
       const result = await rollbackAdminWikiRevision({ actor, articleId, revisionNumber, reason });
       revalidateWikiPublicPaths([result.slug, result.previousSlug]);
-      return noStoreJsonResponse({ ok: true, result });
+      const discovery = await submitWikiIndexNowUrlsBestEffort(
+        [result.slug, result.previousSlug, "/wiki", "/sitemap.xml"],
+        "admin-wiki-rollback",
+      );
+      return noStoreJsonResponse({ ok: true, result, discovery });
     }
     if (action === "delete" || action === "restore") {
       const actor = await requireAdminCapability(

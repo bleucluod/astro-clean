@@ -598,8 +598,9 @@ function checkIntegrationSources() {
   requireText("Wiki index", wikiIndex, "<h1");
   requireText("Wiki index", wikiIndex, "sortPublicWikiArticlesNewestFirst");
   requireText("Wiki index", wikiIndex, "buildPublicWikiCategoryViews");
-  requireText("Wiki index", wikiIndex, "articleTitleLink");
-  requireText("Wiki index", wikiIndex, "href={`/wiki/category/${category.id}`}");
+  requireText("Wiki index", wikiIndex, "categoryTitleLink");
+  requireText("Wiki index", wikiIndex, "compactArticleLink");
+  requireText("Wiki index", wikiIndex, "href={`/wiki/category/${categoryView.category.id}`}");
   forbidText("Wiki index", wikiIndex, "خواندن مقاله");
 
   forbidText("Wiki category route", wikiCategory, '"use client"');

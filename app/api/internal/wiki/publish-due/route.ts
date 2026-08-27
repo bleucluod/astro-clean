@@ -4,6 +4,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { NextResponse } from "next/server";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
+import { submitWikiIndexNowUrlsBestEffort } from "@/lib/wiki/wiki-indexnow";
 import { processDueWikiPublishJobs } from "@/lib/wiki/wiki-publisher";
 import { revalidateWikiPublicPaths } from "@/lib/wiki/wiki-revalidation";
 
@@ -33,6 +34,10 @@ export async function POST(request: Request) {
     if (result.publishedSlugs.length) {
       revalidateWikiPublicPaths(result.publishedSlugs);
     }
+    const discovery = await submitWikiIndexNowUrlsBestEffort(
+      [...result.publishedSlugs, "/wiki", "/sitemap.xml"],
+      "scheduled-wiki-publish",
+    );
     // HALLEUS_WIKI_LINK_MAINTENANCE_BEST_EFFORT
     let linkMaintenance: Record<string, unknown>;
     try {
@@ -52,7 +57,7 @@ export async function POST(request: Request) {
       };
     }
     return NextResponse.json(
-      { ok: true, result, linkMaintenance },
+      { ok: true, result, discovery, linkMaintenance },
       { headers: { "cache-control": "private, no-store" } },
     );
   } catch {

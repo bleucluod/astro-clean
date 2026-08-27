@@ -34,6 +34,10 @@ import {
   findWikiPublicationDependencyIds,
 } from "@/lib/wiki/wiki-markdown";
 import {
+  syncPublishedWikiInternalLinks,
+  syncPublishedWikiInternalLinksBestEffort,
+} from "@/lib/wiki/wiki-link-materialization";
+import {
   computeWikiScheduleSlots,
   validateWikiScheduleSlot,
 } from "@/lib/wiki/wiki-scheduling";
@@ -1165,21 +1169,6 @@ async function applyPublishedSnapshot(input: {
           updated_at = now()
       `;
     }
-    await tx`delete from public.wiki_internal_links where source_article_id = ${input.articleId}::uuid`;
-    const inlineIds = [...new Set(findWikiInternalArticleIds(input.snapshot.bodyMarkdown))];
-    for (const targetId of inlineIds) {
-      await tx`
-        insert into public.wiki_internal_links (source_article_id, target_stable_id, link_kind, source_token)
-        values (${input.articleId}::uuid, ${targetId}, 'inline', ${`[[article:${targetId}]]`})
-      `;
-    }
-    for (const targetId of input.snapshot.relatedArticleIds) {
-      await tx`
-        insert into public.wiki_internal_links (source_article_id, target_stable_id, link_kind, source_token)
-        values (${input.articleId}::uuid, ${targetId}, 'related', ${targetId})
-        on conflict do nothing
-      `;
-    }
     await tx`delete from public.wiki_article_drafts where article_id = ${input.articleId}::uuid`;
     await tx`
       update halleus_private.wiki_publish_jobs
@@ -1201,8 +1190,19 @@ async function applyPublishedSnapshot(input: {
   };
   if (input.database) {
     await publish(input.database);
+    await syncPublishedWikiInternalLinks({
+      database: input.database,
+      sourceArticleId: input.articleId,
+      bodyMarkdown: input.snapshot.bodyMarkdown,
+      relatedArticleIds: input.snapshot.relatedArticleIds,
+    });
   } else {
     await sql.begin(publish);
+    await syncPublishedWikiInternalLinksBestEffort({
+      sourceArticleId: input.articleId,
+      bodyMarkdown: input.snapshot.bodyMarkdown,
+      relatedArticleIds: input.snapshot.relatedArticleIds,
+    });
   }
   return { revisionNumber, slug: input.snapshot.slug, previousSlug };
 }
@@ -1372,9 +1372,9 @@ export async function unpublishAdminWikiArticle(input: {
   actor: VerifiedAdminActor;
   articleId: string;
   reason: string;
-}) {
+}): Promise<{ slug: string; stableId: string; inboundSourceSlugs: string[] }> {
   const sql = getAdminDatabase();
-  await sql.begin(async (tx) => {
+  return sql.begin(async (tx) => {
     const runningJobs = await tx`
       select id
       from halleus_private.wiki_publish_jobs
@@ -1384,6 +1384,41 @@ export async function unpublishAdminWikiArticle(input: {
     if (runningJobs[0]) {
       throw new AdminAccessError(409, "A running Wiki publish job cannot be changed.");
     }
+    const articleRows = await tx`
+      select slug, stable_id
+      from public.wiki_articles
+      where id = ${input.articleId}::uuid and deleted_at is null
+      for update
+    `;
+    if (!articleRows[0]) {
+      throw new AdminAccessError(404, "Wiki article was not found.");
+    }
+    const slug = asString(articleRows[0].slug);
+    const stableId = asString(articleRows[0].stable_id);
+    const inboundSourceRows = await tx`
+      select distinct source.slug
+      from public.wiki_internal_links as link
+      join public.wiki_articles as source on source.id = link.source_article_id
+      where link.target_stable_id = ${stableId}
+        and link.activation_status = 'active'
+        and source.id <> ${input.articleId}::uuid
+        and source.status = 'published'
+        and source.is_indexable = true
+        and source.published_at is not null
+        and source.published_at <= now()
+        and source.scheduled_for is null
+        and source.deleted_at is null
+      order by source.slug
+    `;
+    const inboundSourceSlugs = inboundSourceRows.map((row) => asString(row.slug)).filter(Boolean);
+    await tx`
+      update public.wiki_internal_links
+      set activation_status = 'disabled',
+          disabled_at = now(),
+          last_verified_at = now()
+      where target_stable_id = ${stableId}
+        and activation_status = 'active'
+    `;
     const rows = await tx`
       update public.wiki_articles
       set status = 'archived', is_indexable = false, published_at = null, scheduled_for = null
@@ -1403,10 +1438,16 @@ export async function unpublishAdminWikiArticle(input: {
         reason, success, request_correlation_id
       ) values (
         ${input.actor.userId}::uuid, ${input.actor.role}, 'admin.wiki.article_unpublished',
-        'wiki_article', ${input.articleId}, ${tx.json({ status: 'archived', slug: rows[0].slug })},
+        'wiki_article', ${input.articleId}, ${tx.json({
+          status: 'archived',
+          slug: rows[0].slug,
+          disabledInboundLinks: inboundSourceSlugs.length,
+        })},
         ${input.reason}, true, ${input.actor.correlationId}
       )
     `;
+
+    return { slug, stableId, inboundSourceSlugs };
   });
 }
 
