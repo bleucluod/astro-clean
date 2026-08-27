@@ -27,7 +27,7 @@ const WikiLinkAdminPanel = dynamic(
   () => import("./WikiLinkAdminPanel").then((module) => module.WikiLinkAdminPanel),
   {
     ssr: false,
-    loading: () => <div className={styles.panelSkeleton}>Wiki links workspace is loading...</div>,
+    loading: () => <div className={styles.panelSkeleton}>پنل لینک‌های ویکی در حال آماده‌شدن است…</div>,
   },
 );
 
@@ -59,6 +59,19 @@ type TabId =
 type JsonPayload = Record<string, unknown>;
 type NavigationGroup = "main" | "content" | "operations";
 type TelegramWorkspaceSection = "overview" | "operations";
+type AdminNoticeTone = "info" | "success" | "error";
+type AdminNotice = {
+  id: number;
+  tone: AdminNoticeTone;
+  title: string;
+  message?: string;
+};
+type AdminNoticeEventDetail = {
+  tone?: AdminNoticeTone;
+  title: string;
+  message?: string;
+  durationMs?: number;
+};
 
 const PAGE_SIZE = 25;
 
@@ -187,6 +200,15 @@ function badgeTone(value: string) {
   return "neutral";
 }
 
+function parseAdminResponseError(status: number, text: string) {
+  const cleanText = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const suffix = cleanText ? ` جزئیات کوتاه: ${cleanText.slice(0, 140)}` : "";
+  if (status === 401 || status === 403) {
+    return `نشست ادمین معتبر نیست یا دسترسی این عملیات را نداری. صفحه را رفرش کن و دوباره وارد شو.${suffix}`;
+  }
+  return `پاسخ سرور قابل خواندن نبود. به جای JSON، صفحه HTML برگشت؛ معمولاً یعنی مسیر فنی این عملیات خطا داده یا نشست ادمین تمام شده است. کد HTTP: ${status}.${suffix}`;
+}
+
 function Paginator({
   page,
   itemCount,
@@ -243,6 +265,23 @@ export function AdminConsole({
   const [loading, setLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const [notice, setNotice] = useState<AdminNotice | null>(null);
+
+  const showNotice = useCallback((detail: AdminNoticeEventDetail) => {
+    const id = Date.now();
+    setNotice({
+      id,
+      tone: detail.tone ?? "info",
+      title: detail.title,
+      message: detail.message,
+    });
+    const durationMs = detail.durationMs ?? (detail.tone === "error" ? 0 : 4200);
+    if (durationMs > 0) {
+      window.setTimeout(() => {
+        setNotice((current) => (current?.id === id ? null : current));
+      }, durationMs);
+    }
+  }, []);
 
   const availableTabs = useMemo(
     () => tabs.filter((tab) => hasCapability(session, tab.capability)),
@@ -311,7 +350,20 @@ export function AdminConsole({
         cache: "no-store",
         headers,
       });
-      const payload = (await response.json()) as JsonPayload;
+      const contentType = response.headers.get("content-type") ?? "";
+      const isJson = contentType.includes("application/json");
+      let payload: JsonPayload | null = null;
+      if (isJson) {
+        try {
+          payload = (await response.json()) as JsonPayload;
+        } catch {
+          throw new Error("پاسخ سرور JSON معتبر نبود. صفحه را رفرش کن؛ اگر تکرار شد باید مسیر فنی همان عملیات بررسی شود.");
+        }
+      }
+      if (!payload) {
+        const text = await response.text();
+        throw new Error(parseAdminResponseError(response.status, text));
+      }
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           setSession(null);
@@ -322,7 +374,7 @@ export function AdminConsole({
           setAuditEvents([]);
         }
         throw new Error(
-          typeof payload.error === "string"
+          payload && typeof payload.error === "string"
             ? payload.error
             : "درخواست ادمین ناموفق بود.",
         );
@@ -331,6 +383,16 @@ export function AdminConsole({
     },
     [token],
   );
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<AdminNoticeEventDetail>).detail;
+      if (!detail?.title) return;
+      showNotice(detail);
+    };
+    window.addEventListener("halleus-admin-notification", handler);
+    return () => window.removeEventListener("halleus-admin-notification", handler);
+  }, [showNotice]);
 
   const loadTab = useCallback(async () => {
     if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "reports") {
@@ -359,11 +421,17 @@ export function AdminConsole({
       }
       setLastUpdatedAt(new Date().toISOString());
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "بارگذاری ناموفق بود.");
+      const nextError = loadError instanceof Error ? loadError.message : "بارگذاری ناموفق بود.";
+      setError(nextError);
+      showNotice({
+        tone: "error",
+        title: "بارگذاری ناموفق بود",
+        message: nextError,
+      });
     } finally {
       setLoading(false);
     }
-  }, [activeTab, page, request, searchApplied, session, token]);
+  }, [activeTab, page, request, searchApplied, session, showNotice, token]);
 
   useEffect(() => {
     // Data loading is the external synchronization owned by the active admin workspace.
@@ -390,9 +458,16 @@ export function AdminConsole({
     try {
       await request(path, { method: "PATCH", body: JSON.stringify(body) });
       setMessage(success);
+      showNotice({ tone: "success", title: success });
       await loadTab();
     } catch (mutationError) {
-      setError(mutationError instanceof Error ? mutationError.message : "عملیات ناموفق بود.");
+      const nextError = mutationError instanceof Error ? mutationError.message : "عملیات ناموفق بود.";
+      setError(nextError);
+      showNotice({
+        tone: "error",
+        title: "عملیات انجام نشد",
+        message: nextError,
+      });
     } finally {
       setLoading(false);
     }
@@ -520,6 +595,18 @@ export function AdminConsole({
 
   return (
     <div className={styles.console}>
+      {notice ? (
+        <aside className={styles.adminToast} data-tone={notice.tone} role="status" aria-live="polite">
+          <span className={styles.adminToastSpinner} aria-hidden="true" />
+          <div>
+            <strong>{notice.title}</strong>
+            {notice.message ? <small>{notice.message}</small> : null}
+          </div>
+          <button type="button" aria-label="بستن اعلان" onClick={() => setNotice(null)}>
+            ×
+          </button>
+        </aside>
+      ) : null}
       <header className={styles.mobileBar}>
         <button
           className={styles.menuButton}
