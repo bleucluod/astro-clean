@@ -19,7 +19,7 @@ import styles from "./admin-console.module.css";
 const FA = {
   title: "نگهداری لینک‌های داخلی",
   subtitle:
-    "اسکن، گراف، ایرادها و پیشنهادها بدون انتشار خودکار",
+    "سلامت لینک‌های متن مقاله‌ها، مقصدهای خراب و فرصت‌های لینک‌سازی",
   fullScan: "اسکن کامل ویکی",
   rescan: "اسکن دوباره این مقاله",
   noScan: "هنوز اسکنی ثبت نشده است.",
@@ -28,7 +28,7 @@ const FA = {
   suggestions: "پیشنهادها",
   outgoing: "لینک‌های خروجی",
   incoming: "لینک‌های ورودی",
-  rules: "قواعد اسکن",
+  rules: "تنظیمات فنی اسکن",
   saveRules: "ذخیره نسخه جدید قواعد",
   back: "بازگشت به همه مقاله‌ها",
   edit: "ویرایش پیشنهاد",
@@ -38,11 +38,11 @@ const FA = {
   rollback: "بازگردانی",
   readiness: "آمادگی ایندکس",
   readinessSubtitle:
-    "وضعیت فنی انتشار، sitemap و لینک‌های materialized؛ این بخش ادعای ایندکس گوگل نیست.",
+    "این بخش می‌گوید کدام صفحه‌ها از نظر انتشار، سایت‌مپ و لینک‌های داخلی آماده‌اند؛ ادعای ایندکس گوگل نیست.",
   graph: "خروجی هوشمند لینک‌سازی",
   graphSubtitle:
-    "نقشه body-only: لینک‌های متن مقاله حساب می‌شوند؛ هدر، فوتر، breadcrumb، CTA و related حساب نمی‌شوند.",
-  copyGraph: "کپی JSON برای AI",
+    "فقط لینک‌های داخل متن مقاله حساب می‌شوند؛ لینک‌های منو، فوتر، مسیر دسته‌بندی، بخش دعوت به اقدام و پیشنهادهای پایین مقاله کنار گذاشته شده‌اند.",
+  downloadGraph: "دانلود فایل داده",
   draftOnly:
     "اعمال پیشنهاد فقط پیش‌نویس می‌سازد؛ هیچ انتشار خودکاری انجام نمی‌شود.",
 };
@@ -68,14 +68,14 @@ type Props = {
 };
 
 const NUMERIC_RULE_FIELDS = [
-  ["outgoingMin", "Outgoing min"],
-  ["outgoingMax", "Outgoing max"],
-  ["incomingMin", "Incoming min"],
-  ["incomingTarget", "Incoming target"],
-  ["incomingMax", "Incoming max"],
-  ["categoryLinkMax", "Category max"],
-  ["anchorMinChars", "Anchor min"],
-  ["anchorMaxChars", "Anchor max"],
+  ["outgoingMin", "حداقل لینک خروجی"],
+  ["outgoingMax", "حداکثر لینک خروجی"],
+  ["incomingMin", "حداقل لینک ورودی"],
+  ["incomingTarget", "هدف لینک ورودی"],
+  ["incomingMax", "حداکثر لینک ورودی"],
+  ["categoryLinkMax", "حداکثر لینک دسته‌بندی"],
+  ["anchorMinChars", "حداقل طول متن لینک"],
+  ["anchorMaxChars", "حداکثر طول متن لینک"],
 ] as const satisfies readonly [
   keyof Pick<
     WikiLinkScanRules,
@@ -140,9 +140,25 @@ function formatNumber(value: number) {
 }
 
 function readinessLabel(article: WikiIndexabilityArticleStatus) {
-  if (article.severity === "blocked") return "BLOCKED";
-  if (article.severity === "warning") return "WATCH";
-  return "OK";
+  if (article.severity === "blocked") return "نیاز به اصلاح";
+  if (article.severity === "warning") return "بررسی شود";
+  return "سالم";
+}
+
+function readinessReasonLabel(reason: string) {
+  const labels: Record<string, string> = {
+    "Body links point to unpublished or missing Wiki targets.":
+      "در متن مقاله به صفحه‌ای لینک داده شده که هنوز منتشر نشده یا پیدا نمی‌شود.",
+    "Article is not public-ready.":
+      "مقاله هنوز برای نمایش عمومی آماده نیست.",
+    "Article is excluded from sitemap.":
+      "این صفحه داخل سایت‌مپ قرار نمی‌گیرد.",
+    "Published row is not technically public-ready.":
+      "مقاله منتشر شده، اما وضعیت فنی انتشار عمومی کامل نیست.",
+    "Article has no incoming body links.":
+      "هیچ مقاله‌ای از داخل متن به این صفحه لینک نداده است.",
+  };
+  return labels[reason] ?? reason;
 }
 
 function graphArticleStatus(article: WikiLinkGraphArticle) {
@@ -171,7 +187,7 @@ function graphTargetStateLabel(edge: WikiLinkGraphEdge) {
     published: "منتشر",
     scheduled: "زمان‌بندی",
     draft: "پیش‌نویس",
-    noindex: "noindex",
+    noindex: "خارج از ایندکس",
     missing: "پیدا نشد",
   };
   return labels[edge.targetState];
@@ -180,16 +196,37 @@ function graphTargetStateLabel(edge: WikiLinkGraphEdge) {
 function edgeListPreview(edges: WikiLinkGraphEdge[], direction: "out" | "in") {
   if (!edges.length) return <span className={styles.mutedInline}>-</span>;
   return (
-    <div className={styles.linkGraphList}>
-      {edges.slice(0, 5).map((edge, index) => (
-        <span key={`${edge.sourceStableId}-${edge.targetStableId}-${edge.anchor}-${index}`}>
-          {direction === "out" ? graphTargetLabel(edge) : edge.sourceTitle}
-          <small>{edge.anchor} · {graphTargetStateLabel(edge)}</small>
-        </span>
-      ))}
-      {edges.length > 5 ? <small>+{formatNumber(edges.length - 5)} لینک دیگر</small> : null}
-    </div>
+    <details className={styles.linkGraphDetails}>
+      <summary>نمایش {formatNumber(edges.length)} لینک</summary>
+      <div className={styles.linkGraphList}>
+        {edges.slice(0, 8).map((edge, index) => (
+          <span key={`${edge.sourceStableId}-${edge.targetStableId}-${edge.anchor}-${index}`}>
+            {direction === "out" ? graphTargetLabel(edge) : edge.sourceTitle}
+            <small>{edge.anchor} · {graphTargetStateLabel(edge)}</small>
+          </span>
+        ))}
+        {edges.length > 8 ? <small>+{formatNumber(edges.length - 8)} لینک دیگر</small> : null}
+      </div>
+    </details>
   );
+}
+
+function emitAdminNotice(detail: {
+  tone?: "info" | "success" | "error";
+  title: string;
+  message?: string;
+  durationMs?: number;
+}) {
+  window.dispatchEvent(new CustomEvent("halleus-admin-notification", { detail }));
+}
+
+function parseWikiAdminResponseError(status: number, text: string) {
+  const cleanText = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const suffix = cleanText ? ` جزئیات کوتاه: ${cleanText.slice(0, 140)}` : "";
+  if (status === 401 || status === 403) {
+    return `نشست ادمین معتبر نیست یا دسترسی این عملیات را نداری. صفحه را رفرش کن و دوباره وارد شو.${suffix}`;
+  }
+  return `پاسخ سرور قابل خواندن نبود. به جای JSON، صفحه HTML برگشت؛ معمولاً یعنی مسیر فنی این عملیات خطا داده یا نشست ادمین تمام شده است. کد HTTP: ${status}.${suffix}`;
 }
 
 export function WikiLinkAdminPanel({ token, session }: Props) {
@@ -205,8 +242,8 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
     useState<GraphIssueFilter>("problem");
   const [graphSort, setGraphSort] = useState<GraphSort>("problem");
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [, setMessage] = useState("");
+  const [, setError] = useState("");
 
   const canDraft = session.capabilities.includes("wiki.draft.write");
   const canPublish = session.capabilities.includes("wiki.publish.write");
@@ -222,7 +259,19 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
         cache: "no-store",
         headers,
       });
-      const payload = (await response.json()) as Record<string, unknown>;
+      const contentType = response.headers.get("content-type") ?? "";
+      let payload: Record<string, unknown> | null = null;
+      if (contentType.includes("application/json")) {
+        try {
+          payload = (await response.json()) as Record<string, unknown>;
+        } catch {
+          throw new Error("پاسخ سرور JSON معتبر نبود. صفحه را رفرش کن؛ اگر تکرار شد باید مسیر فنی اسکن لینک‌ها بررسی شود.");
+        }
+      }
+      if (!payload) {
+        const text = await response.text();
+        throw new Error(parseWikiAdminResponseError(response.status, text));
+      }
       if (!response.ok) {
         throw new Error(
           typeof payload.error === "string"
@@ -252,7 +301,13 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
         );
         setRuleDraft(next.rules);
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : "Load failed.");
+        const nextError = loadError instanceof Error ? loadError.message : "بارگذاری ناموفق بود.";
+        setError(nextError);
+        emitAdminNotice({
+          tone: "error",
+          title: "بارگذاری لینک‌های ویکی ناموفق بود",
+          message: nextError,
+        });
       } finally {
         setLoading(false);
       }
@@ -282,7 +337,13 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
       })
       .catch((loadError) => {
         if (cancelled) return;
-        setError(loadError instanceof Error ? loadError.message : "Load failed.");
+        const nextError = loadError instanceof Error ? loadError.message : "بارگذاری ناموفق بود.";
+        setError(nextError);
+        emitAdminNotice({
+          tone: "error",
+          title: "بارگذاری لینک‌های ویکی ناموفق بود",
+          message: nextError,
+        });
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -297,21 +358,33 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
     action: string,
     body: Record<string, unknown>,
     success: string,
+    pending = "عملیات در حال انجام است…",
   ) {
     setLoading(true);
     setError("");
     setMessage("");
+    emitAdminNotice({
+      tone: "info",
+      title: pending,
+      message: "لطفاً همین صفحه را باز نگه دار؛ نتیجه همین‌جا اعلام می‌شود.",
+      durationMs: 0,
+    });
     try {
       await request("/api/admin/wiki/link-maintenance", {
         method: "POST",
         body: JSON.stringify({ action, ...body }),
       });
       setMessage(success);
+      emitAdminNotice({ tone: "success", title: success });
       await load(selectedStableId);
     } catch (mutationError) {
-      setError(
-        mutationError instanceof Error ? mutationError.message : "Mutation failed.",
-      );
+      const nextError = mutationError instanceof Error ? mutationError.message : "عملیات ناموفق بود.";
+      setError(nextError);
+      emitAdminNotice({
+        tone: "error",
+        title: "عملیات انجام نشد",
+        message: nextError,
+      });
     } finally {
       setLoading(false);
     }
@@ -324,6 +397,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
       stableId
         ? "اسکن مقاله ثبت شد."
         : "اسکن کامل ثبت شد.",
+      stableId ? "اسکن این مقاله شروع شد" : "اسکن کامل ویکی شروع شد",
     );
   }
 
@@ -388,6 +462,16 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
   const suggestions = state?.detail?.suggestions ?? state?.suggestions ?? [];
   const readinessArticles =
     indexabilityState?.articles.filter((article) => article.severity !== "ok").slice(0, 8) ?? [];
+  const graphActionSummary = state?.graph
+    ? [
+        state.graph.summary.unresolvedOutgoing > 0
+          ? `${formatNumber(state.graph.summary.unresolvedOutgoing)} لینک در متن به مقصدی می‌رسد که باید اصلاح شود.`
+          : "لینک‌های مقصددارِ متن مشکل فوری ندارند.",
+        state.graph.summary.articlesWithoutIncoming > 0
+          ? `${formatNumber(state.graph.summary.articlesWithoutIncoming)} مقاله هنوز لینک ورودی از متن مقاله‌های دیگر ندارد.`
+          : "همه مقاله‌های این نما حداقل یک لینک ورودی متنی دارند.",
+      ].join(" ")
+    : "";
   const graphArticles = useMemo(() => {
     const normalizedQuery = graphQuery.trim().toLowerCase();
     const articles = [...(state?.graph.articles ?? [])].filter((article) => {
@@ -468,12 +552,12 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
     return articles;
   }, [graphIssueFilter, graphQuery, graphSort, graphStatusFilter, state?.graph.articles]);
 
-  async function copyGraphExport() {
+  async function downloadGraphExport() {
     if (!state?.graph) return;
     const exportPayload = {
+      schema: "halleus_wiki_body_link_graph_v1",
       generatedAt: state.graph.generatedAt,
-      scope: state.graph.scope,
-      notes: state.graph.notes,
+      scopeFa: "فقط لینک‌های داخل متن مقاله؛ منو، فوتر، مسیر دسته‌بندی، بخش دعوت به اقدام و لینک‌های پیشنهادی پایین مقاله حساب نشده‌اند.",
       filters: {
         query: graphQuery.trim(),
         status: graphStatusFilter,
@@ -481,34 +565,75 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
         sort: graphSort,
       },
       summary: state.graph.summary,
-      articles: graphArticles,
+      articles: graphArticles.map((article) => ({
+        stableId: article.stableId,
+        slug: article.slug,
+        title: article.title,
+        categoryId: article.categoryId,
+        status: graphArticleStatusLabel(article),
+        publicReady: article.publicReady,
+        scheduledFor: article.scheduledFor,
+        bodyOutgoingCount: article.bodyOutgoingCount,
+        bodyIncomingCount: article.bodyIncomingCount,
+        unresolvedOutgoingCount: article.unresolvedOutgoingCount,
+        practicalIssue:
+          article.unresolvedOutgoingCount > 0
+            ? `${article.unresolvedOutgoingCount} مقصد لینک در متن باید اصلاح شود.`
+            : article.bodyIncomingCount === 0
+              ? "این مقاله هنوز لینک ورودی از متن مقاله‌های دیگر ندارد."
+              : "از نظر لینک‌های متنی مشکل فوری ندارد.",
+        outgoingBodyLinks: article.outgoingBodyLinks.map((edge) => ({
+          anchor: edge.anchor,
+          targetStableId: edge.targetStableId,
+          targetTitle: edge.targetTitle,
+          targetSlug: edge.targetSlug,
+          targetState: graphTargetStateLabel(edge),
+          href: edge.href,
+        })),
+        incomingBodyLinks: article.incomingBodyLinks.map((edge) => ({
+          anchor: edge.anchor,
+          sourceStableId: edge.sourceStableId,
+          sourceTitle: edge.sourceTitle,
+          sourceSlug: edge.sourceSlug,
+        })),
+      })),
     };
-    await navigator.clipboard.writeText(JSON.stringify(exportPayload, null, 2));
-    setMessage("خروجی JSON گراف لینک‌سازی کپی شد.");
+    const fileName = `halleus-wiki-link-graph-${new Date().toISOString().slice(0, 10)}.json`;
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    setMessage("فایل JSON گراف لینک‌سازی دانلود شد.");
+    emitAdminNotice({
+      tone: "success",
+      title: "فایل گراف لینک‌ها آماده شد",
+      message: fileName,
+    });
   }
   const kpiRows = state?.kpis
     ? [
-        ["Live", state.kpis.liveArticleCount],
-        ["Managed", state.kpis.managedArticleCount],
-        ["Compliant", state.kpis.fullyCompliant],
-        ["Under incoming target", state.kpis.underInlinked],
-        ["Outgoing outside 3-5", state.kpis.outgoingOutsideRange],
-        ["Missing core", state.kpis.missingCoreLink],
-        ["Breadcrumb", state.kpis.breadcrumbIssue],
-        ["Target issues", state.kpis.internalTargetIssue],
-        ["One-word", state.kpis.oneWordViolation],
-        ["Anchor collision", state.kpis.anchorCollision],
-        ["Self", state.kpis.selfLink],
-        ["Duplicate", state.kpis.duplicate],
+        ["منتشر", state.kpis.liveArticleCount],
+        ["داخل اسکن", state.kpis.managedArticleCount],
+        ["سالم", state.kpis.fullyCompliant],
+        ["کمبود لینک ورودی", state.kpis.underInlinked],
+        ["خروجی خارج از بازه", state.kpis.outgoingOutsideRange],
+        ["لینک اصلی ندارد", state.kpis.missingCoreLink],
+        ["مشکل مسیر دسته‌بندی", state.kpis.breadcrumbIssue],
+        ["مشکل مقصد لینک", state.kpis.internalTargetIssue],
+        ["متن لینک خیلی کوتاه", state.kpis.oneWordViolation],
+        ["تداخل متن لینک", state.kpis.anchorCollision],
+        ["لینک به خودش", state.kpis.selfLink],
+        ["لینک تکراری", state.kpis.duplicate],
       ]
     : [];
 
   return (
     <div className={styles.wikiWorkspace}>
-      {error ? <p className={styles.error}>{error}</p> : null}
-      {message ? <p className={styles.success}>{message}</p> : null}
-      {loading ? <p className={styles.loading}>...</p> : null}
-
       <section className={styles.wikiPanel}>
         <div className={styles.wikiPanelHeader}>
           <div>
@@ -517,7 +642,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             <small>{FA.draftOnly}</small>
           </div>
           {canSettings ? (
-            <button type="button" onClick={() => void runScan(selectedStableId)}>
+            <button type="button" disabled={loading} onClick={() => void runScan(selectedStableId)}>
               {selectedStableId ? FA.rescan : FA.fullScan}
             </button>
           ) : null}
@@ -525,8 +650,8 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
 
         {state?.latestScan ? (
           <p>
-            Scan #{state.latestScan.id.slice(0, 8)} | {state.latestScan.edgeCount} edges |
-            {" "}{state.latestScan.findingCount} findings | {formatDate(state.latestScan.completedAt)}
+            اسکن #{state.latestScan.id.slice(0, 8)} | {formatNumber(state.latestScan.edgeCount)} لینک |
+            {" "}{formatNumber(state.latestScan.findingCount)} ایراد | {formatDate(state.latestScan.completedAt)}
           </p>
         ) : (
           <p>{FA.noScan}</p>
@@ -553,20 +678,20 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             <small>{formatDate(indexabilityState.generatedAt)}</small>
           </div>
           <div className={styles.recordMeta}>
-            <span><strong>{formatNumber(indexabilityState.summary.publicReady)}</strong> public-ready</span>
-            <span><strong>{formatNumber(indexabilityState.summary.sitemapEligible)}</strong> sitemap</span>
-            <span><strong>{formatNumber(indexabilityState.summary.blocked)}</strong> blocked</span>
-            <span><strong>{formatNumber(indexabilityState.summary.warning)}</strong> watch</span>
-            <span><strong>{formatNumber(indexabilityState.summary.failedLinks)}</strong> failed links</span>
-            <span><strong>{formatNumber(indexabilityState.summary.disabledLinks)}</strong> disabled links</span>
-            <span><strong>{formatNumber(indexabilityState.summary.unresolvedInlineTargets)}</strong> unresolved targets</span>
+            <span><strong>{formatNumber(indexabilityState.summary.publicReady)}</strong> آماده انتشار عمومی</span>
+            <span><strong>{formatNumber(indexabilityState.summary.sitemapEligible)}</strong> داخل سایت‌مپ</span>
+            <span><strong>{formatNumber(indexabilityState.summary.blocked)}</strong> نیازمند اصلاح</span>
+            <span><strong>{formatNumber(indexabilityState.summary.warning)}</strong> قابل بررسی</span>
+            <span><strong>{formatNumber(indexabilityState.summary.failedLinks)}</strong> لینک ناموفق</span>
+            <span><strong>{formatNumber(indexabilityState.summary.disabledLinks)}</strong> لینک غیرفعال</span>
+            <span><strong>{formatNumber(indexabilityState.summary.unresolvedInlineTargets)}</strong> مقصد نامعتبر</span>
           </div>
           {readinessArticles.length ? (
             <div className={styles.tableWrap}>
               <table>
                 <thead>
                   <tr>
-                    <th>Article</th><th>Path</th><th>State</th><th>Links</th><th>Reason</th>
+                    <th>مقاله</th><th>آدرس</th><th>وضعیت</th><th>لینک‌ها</th><th>دلیل</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -586,9 +711,9 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
                         </span>
                       </td>
                       <td>
-                        out {article.outgoing.active} / in {article.incoming.active}
+                        خروجی {formatNumber(article.outgoing.active)} / ورودی {formatNumber(article.incoming.active)}
                       </td>
-                      <td>{article.reasons[0] ?? "-"}</td>
+                      <td>{readinessReasonLabel(article.reasons[0] ?? "-")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -608,8 +733,8 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
               <p>{FA.graphSubtitle}</p>
               <small>آخرین خوانش زنده: {formatDate(state.graph.generatedAt)}</small>
             </div>
-            <button type="button" onClick={() => void copyGraphExport()}>
-              {FA.copyGraph}
+            <button type="button" onClick={() => void downloadGraphExport()}>
+              {FA.downloadGraph}
             </button>
           </div>
           <div className={styles.recordMeta}>
@@ -626,7 +751,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
               type="search"
               value={graphQuery}
               onChange={(event) => setGraphQuery(event.target.value)}
-              placeholder="جستجو در عنوان، slug، anchor یا مقصد لینک"
+              placeholder="جستجو در عنوان، شناسه لاتین، متن لینک یا مقصد"
             />
             <select
               value={graphStatusFilter}
@@ -645,7 +770,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
               <option value="problem">نیازمند کار</option>
               <option value="missing">مقصد پیدا نمی‌شود</option>
               <option value="unpublished">مقصد منتشر نشده</option>
-              <option value="noindex">مقصد noindex</option>
+              <option value="noindex">مقصد خارج از ایندکس</option>
               <option value="noIncoming">بدون لینک ورودی متنی</option>
             </select>
             <select
@@ -659,10 +784,14 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
               <option value="title">عنوان</option>
             </select>
           </div>
+          <div className={styles.linkGraphActionSummary}>
+            <strong>الان چه کار کنم؟</strong>
+            <span>{graphActionSummary}</span>
+          </div>
           <p className={styles.recordNote}>
-            کار عملی: مقاله‌هایی که «مقصد نیازمند بررسی» دارند را اصلاح کن؛ برای مقاله‌های بدون
-            ورودی متنی، از مقاله‌های مرتبط بهشان لینک بده. دکمه JSON همین جدول فیلترشده را برای
-            استفاده در AI کپی می‌کند.
+            کار عملی: اول مقاله‌هایی را اصلاح کن که مقصد لینک‌شان پیدا نمی‌شود، منتشر نشده یا خارج
+            از ایندکس است. بعد برای صفحه‌های بدون ورودی، از مقاله‌های مرتبط لینک متنی بساز. دکمه بالا
+            همین نمای فیلترشده را به شکل فایل JSON برای استفاده در AI دانلود می‌کند.
           </p>
           <div className={styles.tableWrap}>
             <table>
@@ -670,14 +799,14 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
                 <tr>
                   <th>مقاله</th>
                   <th>وضعیت</th>
-                  <th>به کجا لینک داده؟</th>
-                  <th>از کجا لینک گرفته؟</th>
+                  <th>لینک‌های خروجی متن</th>
+                  <th>لینک‌های ورودی متن</th>
                   <th>مشکل عملی</th>
                 </tr>
               </thead>
               <tbody>
                 {graphArticles.map((article) => (
-                  <tr key={article.stableId}>
+                  <tr key={article.stableId} className={styles.compactGraphRow}>
                     <td>
                       <strong>{article.title}</strong>
                       <small>{article.stableId}</small>
@@ -692,11 +821,11 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
                       <small>{article.scheduledFor ? formatDate(article.scheduledFor) : article.slug}</small>
                     </td>
                     <td>
-                      <strong>{formatNumber(article.bodyOutgoingCount)} خروجی متنی</strong>
+                      <strong>{formatNumber(article.bodyOutgoingCount)} لینک خروجی</strong>
                       {edgeListPreview(article.outgoingBodyLinks, "out")}
                     </td>
                     <td>
-                      <strong>{formatNumber(article.bodyIncomingCount)} ورودی متنی</strong>
+                      <strong>{formatNumber(article.bodyIncomingCount)} لینک ورودی</strong>
                       {edgeListPreview(article.incomingBodyLinks, "in")}
                     </td>
                     <td>
@@ -761,10 +890,10 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
               </button>
             </div>
             <div className={styles.recordMeta}>
-              <span>Incoming: {state.detail.article.incoming}</span>
-              <span>Outgoing: {state.detail.article.outgoing}</span>
-              <span>Core: {state.detail.article.coreDestination ?? "-"}</span>
-              <span>Findings: {state.detail.article.findingCount}</span>
+              <span>ورودی: {formatNumber(state.detail.article.incoming)}</span>
+              <span>خروجی: {formatNumber(state.detail.article.outgoing)}</span>
+              <span>لینک اصلی: {state.detail.article.coreDestination ?? "-"}</span>
+              <span>ایراد: {formatNumber(state.detail.article.findingCount)}</span>
             </div>
           </section>
 
@@ -773,7 +902,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             <div className={styles.tableWrap}>
               <table>
                 <thead>
-                  <tr><th>Type</th><th>Target</th><th>Anchor</th><th>Placement</th></tr>
+                  <tr><th>نوع</th><th>مقصد</th><th>متن لینک</th><th>جای لینک</th></tr>
                 </thead>
                 <tbody>
                   {state.detail.outgoing.map((edge, index) => (
@@ -794,7 +923,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             <div className={styles.tableWrap}>
               <table>
                 <thead>
-                  <tr><th>Source</th><th>Anchor</th><th>Placement</th></tr>
+                  <tr><th>مبدأ</th><th>متن لینک</th><th>جای لینک</th></tr>
                 </thead>
                 <tbody>
                   {state.detail.incoming.map((edge, index) => (
@@ -816,8 +945,8 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             <table>
               <thead>
                 <tr>
-                  <th>Article</th><th>Category</th><th>Incoming</th><th>Outgoing</th>
-                  <th>Core</th><th>Findings</th><th>Status</th>
+                  <th>مقاله</th><th>دسته</th><th>ورودی</th><th>خروجی</th>
+                  <th>لینک اصلی</th><th>ایراد</th><th>وضعیت</th>
                 </tr>
               </thead>
               <tbody>
@@ -836,7 +965,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
                     <td>{article.findingCount}</td>
                     <td>
                       <span className={styles.statusPill} data-tone={article.compliant ? "positive" : "attention"}>
-                        {article.compliant ? "PASS" : "REVIEW"}
+                        {article.compliant ? "سالم" : "بررسی شود"}
                       </span>
                     </td>
                   </tr>
@@ -852,7 +981,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
         {(state?.detail?.findings ?? state?.findings ?? []).length ? (
           <div className={styles.tableWrap}>
             <table>
-              <thead><tr><th>Severity</th><th>Code</th><th>Source</th><th>Target</th></tr></thead>
+              <thead><tr><th>شدت</th><th>کد</th><th>مبدأ</th><th>مقصد</th></tr></thead>
               <tbody>
                 {(state?.detail?.findings ?? state?.findings ?? []).map((item, index) => (
                   <tr key={`${item.sourceStableId}-${item.code}-${index}`}>
@@ -866,7 +995,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             </table>
           </div>
         ) : (
-          <p>-</p>
+          <p>ایرادی ثبت نشده است.</p>
         )}
       </section>
 
@@ -926,7 +1055,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             </article>
           ))
         ) : (
-          <p>-</p>
+          <p>پیشنهادی ثبت نشده است.</p>
         )}
       </section>
     </div>
