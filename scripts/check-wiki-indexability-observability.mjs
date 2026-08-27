@@ -62,7 +62,7 @@ requireText("observability route", route, "noStoreJsonResponse");
 requireText("admin panel", panel, "/api/admin/wiki/indexability");
 requireText("admin panel", panel, "آمادگی ایندکس");
 requireText("admin panel", panel, "ادعای ایندکس گوگل نیست");
-requireText("admin panel", panel, "unresolved targets");
+requireText("admin panel", panel, "مقصد نامعتبر");
 
 requireText("package scripts", packageJson, '"check:wiki-indexability-observability"');
 requireText("impact registry", impact, "check:wiki-indexability-observability");

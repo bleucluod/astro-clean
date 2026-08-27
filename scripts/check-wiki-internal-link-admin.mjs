@@ -171,16 +171,23 @@ for (const marker of [
   "rollback_suggestion",
   "save_rules",
   "خروجی هوشمند لینک‌سازی",
-  "لینک‌های متن مقاله حساب می‌شوند",
+  "فقط لینک‌های داخل متن مقاله حساب می‌شوند",
   "graphStatusFilter",
   "graphIssueFilter",
   "graphSort",
-  "کپی JSON برای AI",
+  "دانلود فایل داده",
+  "الان چه کار کنم؟",
+  "halleus_wiki_body_link_graph_v1",
+  "halleus-admin-notification",
   "outgoingBodyLinks",
   "incomingBodyLinks",
 ]) {
   requireText("WikiLinkAdminPanel", panel, marker);
 }
+forbidText("WikiLinkAdminPanel stale clipboard export", panel, "navigator.clipboard");
+forbidText("WikiLinkAdminPanel stale dot loader", panel, "styles.loading}>...</p>");
+requireText("AdminConsole global admin notice", consoleSource, "halleus-admin-notification");
+requireText("AdminConsole fixed admin toast", read("components/admin/admin-console.module.css"), ".adminToast");
 
 for (const marker of [
   "outgoingMin: 0",
