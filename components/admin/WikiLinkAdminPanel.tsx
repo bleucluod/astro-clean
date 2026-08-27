@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { AdminSessionPayload } from "@/lib/admin/admin-types";
 import type {
+  WikiIndexabilityArticleStatus,
+  WikiIndexabilityObservabilityState,
+} from "@/lib/wiki/wiki-indexability-observability-types";
+import type {
   WikiLinkAdminState,
   WikiLinkAdminSuggestion,
   WikiLinkScanRules,
@@ -30,6 +34,9 @@ const FA = {
   reject: "رد",
   apply: "اعمال در پیش‌نویس",
   rollback: "بازگردانی",
+  readiness: "آمادگی ایندکس",
+  readinessSubtitle:
+    "وضعیت فنی انتشار، sitemap و لینک‌های materialized؛ این بخش ادعای ایندکس گوگل نیست.",
   draftOnly:
     "اعمال پیشنهاد فقط پیش‌نویس می‌سازد؛ هیچ انتشار خودکاری انجام نمی‌شود.",
 };
@@ -107,8 +114,20 @@ function statusLabel(value: string) {
   return labels[value] ?? value;
 }
 
+function formatNumber(value: number) {
+  return value.toLocaleString("fa-IR");
+}
+
+function readinessLabel(article: WikiIndexabilityArticleStatus) {
+  if (article.severity === "blocked") return "BLOCKED";
+  if (article.severity === "warning") return "WATCH";
+  return "OK";
+}
+
 export function WikiLinkAdminPanel({ token, session }: Props) {
   const [state, setState] = useState<WikiLinkAdminState | null>(null);
+  const [indexabilityState, setIndexabilityState] =
+    useState<WikiIndexabilityObservabilityState | null>(null);
   const [selectedStableId, setSelectedStableId] = useState<string | null>(null);
   const [ruleDraft, setRuleDraft] = useState<WikiLinkScanRules>(emptyRules);
   const [loading, setLoading] = useState(true);
@@ -148,9 +167,15 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
       setError("");
       try {
         const query = stableId ? `?stableId=${encodeURIComponent(stableId)}` : "";
-        const payload = await request(`/api/admin/wiki/link-maintenance${query}`);
+        const [payload, indexabilityPayload] = await Promise.all([
+          request(`/api/admin/wiki/link-maintenance${query}`),
+          request("/api/admin/wiki/indexability"),
+        ]);
         const next = payload.state as WikiLinkAdminState;
         setState(next);
+        setIndexabilityState(
+          indexabilityPayload.state as WikiIndexabilityObservabilityState,
+        );
         setRuleDraft(next.rules);
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : "Load failed.");
@@ -167,11 +192,17 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
       ? `?stableId=${encodeURIComponent(selectedStableId)}`
       : "";
 
-    void request(`/api/admin/wiki/link-maintenance${query}`)
-      .then((payload) => {
+    void Promise.all([
+      request(`/api/admin/wiki/link-maintenance${query}`),
+      request("/api/admin/wiki/indexability"),
+    ])
+      .then(([payload, indexabilityPayload]) => {
         if (cancelled) return;
         const next = payload.state as WikiLinkAdminState;
         setState(next);
+        setIndexabilityState(
+          indexabilityPayload.state as WikiIndexabilityObservabilityState,
+        );
         setRuleDraft(next.rules);
         setError("");
       })
@@ -281,6 +312,8 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
   }
 
   const suggestions = state?.detail?.suggestions ?? state?.suggestions ?? [];
+  const readinessArticles =
+    indexabilityState?.articles.filter((article) => article.severity !== "ok").slice(0, 8) ?? [];
   const kpiRows = state?.kpis
     ? [
         ["Live", state.kpis.liveArticleCount],
@@ -337,6 +370,63 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
           </div>
         ) : null}
       </section>
+
+      {indexabilityState ? (
+        <section className={styles.wikiPanel}>
+          <div className={styles.wikiPanelHeader}>
+            <div>
+              <h3>{FA.readiness}</h3>
+              <p>{FA.readinessSubtitle}</p>
+            </div>
+            <small>{formatDate(indexabilityState.generatedAt)}</small>
+          </div>
+          <div className={styles.recordMeta}>
+            <span><strong>{formatNumber(indexabilityState.summary.publicReady)}</strong> public-ready</span>
+            <span><strong>{formatNumber(indexabilityState.summary.sitemapEligible)}</strong> sitemap</span>
+            <span><strong>{formatNumber(indexabilityState.summary.blocked)}</strong> blocked</span>
+            <span><strong>{formatNumber(indexabilityState.summary.warning)}</strong> watch</span>
+            <span><strong>{formatNumber(indexabilityState.summary.failedLinks)}</strong> failed links</span>
+            <span><strong>{formatNumber(indexabilityState.summary.disabledLinks)}</strong> disabled links</span>
+            <span><strong>{formatNumber(indexabilityState.summary.unresolvedInlineTargets)}</strong> unresolved targets</span>
+          </div>
+          {readinessArticles.length ? (
+            <div className={styles.tableWrap}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Article</th><th>Path</th><th>State</th><th>Links</th><th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {readinessArticles.map((article) => (
+                    <tr key={article.stableId}>
+                      <td>
+                        <strong>{article.title}</strong>
+                        <small>{article.stableId}</small>
+                      </td>
+                      <td>{article.expectedPath}</td>
+                      <td>
+                        <span
+                          className={styles.statusPill}
+                          data-tone={article.severity === "blocked" ? "danger" : "attention"}
+                        >
+                          {readinessLabel(article)}
+                        </span>
+                      </td>
+                      <td>
+                        out {article.outgoing.active} / in {article.incoming.active}
+                      </td>
+                      <td>{article.reasons[0] ?? "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p>همه مقاله‌های قابل انتشار از نظر readiness فعلی سالم‌اند.</p>
+          )}
+        </section>
+      ) : null}
 
       {canSettings && state ? (
         <details className={styles.wikiPanel}>

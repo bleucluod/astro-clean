@@ -705,10 +705,14 @@
       "patterns": [
         "app/wiki/**",
         "app/api/admin/wiki/**",
+        "app/api/admin/wiki/indexability/route.ts",
         "app/api/internal/wiki/**",
         "app/indexnow-key.txt/route.ts",
         "components/admin/WikiAdminPanel.tsx",
+        "components/admin/WikiLinkAdminPanel.tsx",
         "lib/wiki/**",
+        "lib/wiki/wiki-indexability-observability.ts",
+        "lib/wiki/wiki-indexability-observability-types.ts",
         "lib/wiki/wiki-link-materialization.ts",
         "lib/config/env.ts",
         "lib/config/wiki.ts",
@@ -734,6 +738,7 @@
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority",
         "check:wiki-indexnow-discovery",
+        "check:wiki-indexability-observability",
         "check:wiki-link-lifecycle-status",
         "check:wiki-safe-publish-link-materialization",
         "check:wiki-admin-completion",
@@ -748,7 +753,8 @@
       "exclusive": true,
       "patterns": [
         "app/admin/wiki/**",
-        "components/admin/WikiAdminPanel.tsx"
+        "components/admin/WikiAdminPanel.tsx",
+        "components/admin/WikiLinkAdminPanel.tsx"
       ],
       "guards": [
         "check:product-surface",
@@ -763,6 +769,7 @@
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority",
+        "check:wiki-indexability-observability",
         "check:wiki-admin-completion",
         "check:predeploy-admin-ia"
       ],
@@ -814,7 +821,8 @@
       "description": "Focused Wiki guards without a production runtime change.",
       "patterns": [
         "scripts/check-*wiki*.mjs",
-        "scripts/check-wiki-indexnow-discovery.mjs"
+        "scripts/check-wiki-indexnow-discovery.mjs",
+        "scripts/check-wiki-indexability-observability.mjs"
       ],
       "guards": [
         "check:wiki-content-foundation",
@@ -830,6 +838,7 @@
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority",
         "check:wiki-indexnow-discovery",
+        "check:wiki-indexability-observability",
         "check:wiki-link-lifecycle-status",
         "check:wiki-safe-publish-link-materialization",
         "check:wiki-admin-completion"

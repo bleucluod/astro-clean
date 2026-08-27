@@ -200,6 +200,7 @@
     "check:wiki-true-inline-contextual-graph": "node scripts/check-wiki-true-inline-contextual-graph.mjs",
     "check:wiki-contextual-publication-boundary": "node scripts/check-wiki-contextual-publication-boundary.mjs",
     "check:wiki-indexnow-discovery": "node scripts/check-wiki-indexnow-discovery.mjs",
+    "check:wiki-indexability-observability": "node scripts/check-wiki-indexability-observability.mjs",
     "check:wiki-link-lifecycle-status": "node scripts/check-wiki-link-lifecycle-status.mjs",
     "check:wiki-safe-publish-link-materialization": "node scripts/check-wiki-safe-publish-link-materialization.mjs",
     "check:wiki-article-link-cta-visibility": "node scripts/check-wiki-article-link-cta-visibility.mjs",
