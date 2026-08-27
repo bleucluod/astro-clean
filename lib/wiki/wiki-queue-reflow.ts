@@ -93,12 +93,19 @@ function orderCandidates(
       throw new Error("Wiki queue dependency graph contains a cycle.");
     }
     ready.sort((left, right) => {
-      if (pillarBeforeSupport && left.articleRole !== right.articleRole) {
-        return left.articleRole === "pillar" ? -1 : 1;
-      }
+      // HALLEUS_WIKI_PRIORITY_REFLOW_ORDER_R58
+      // For the explicit priority policy, semantic publication priority must
+      // outrank pillar/support preference. Dependencies remain the hard gate
+      // because only ready candidates reach this comparator.
       if (policy === "priority") {
         return right.publicationPriority - left.publicationPriority ||
+          (pillarBeforeSupport && left.articleRole !== right.articleRole
+            ? left.articleRole === "pillar" ? -1 : 1
+            : 0) ||
           (currentRank.get(left.stableId) ?? 0) - (currentRank.get(right.stableId) ?? 0);
+      }
+      if (pillarBeforeSupport && left.articleRole !== right.articleRole) {
+        return left.articleRole === "pillar" ? -1 : 1;
       }
       if (policy === "balanced_clusters") {
         return (clusterUse.get(left.contentCluster) ?? 0) -

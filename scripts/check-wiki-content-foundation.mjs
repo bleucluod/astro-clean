@@ -7,6 +7,7 @@ const requiredFiles = [
   "lib/wiki/wiki-content.ts",
   "lib/wiki/wiki-repository.ts",
   "lib/config/navigation.ts",
+  "lib/config/seo.ts",
   "docs/HALLEUS_IDEA_GARDEN.md",
   "docs/HALLEUS_PROJECT_CONTEXT.md",
 ];
@@ -53,8 +54,7 @@ if (failures.length === 0) {
     "نقشهٔ ویکی",
     "دقت ساعت و شهر تولد",
     "ساخت گزارش شخصی",
-    "index: true",
-    "follow: true",
+    "buildPublicPageMetadata",
   ]);
 
   assertExcludes("Wiki index", indexPage, [
@@ -83,8 +83,7 @@ if (failures.length === 0) {
     "article.callToAction",
     "index: false",
     "follow: false",
-    "index: true",
-    "follow: true",
+    "buildPublicPageMetadata",
   ]);
 
   assertExcludes("Wiki article template", articlePage, [
@@ -232,6 +231,11 @@ if (failures.length === 0) {
   assertIncludes("Public navigation", navigation, [
     'href: "/wiki"',
     'label: "ویکی"',
+  ]);
+
+  assertIncludes("Public metadata helper", seoConfig, [
+    "buildPublicPageMetadata",
+    "robots: { index: true, follow: true }",
   ]);
 
   if (!seoConfig.includes('path: "/wiki"')) {
