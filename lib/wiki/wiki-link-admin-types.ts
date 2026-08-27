@@ -74,6 +74,7 @@ export type WikiLinkArticleInput = {
   status: string;
   indexable: boolean;
   publishedAt: string | null;
+  scheduledFor: string | null;
   deletedAt: string | null;
   contentVersion: number;
   bodyMarkdown: string;
@@ -113,6 +114,69 @@ export type WikiLinkArticleSummary = {
   breadcrumbOk: boolean;
   findingCount: number;
   compliant: boolean;
+};
+
+export type WikiLinkGraphTargetState =
+  | "published"
+  | "scheduled"
+  | "draft"
+  | "noindex"
+  | "missing";
+
+export type WikiLinkGraphEdge = {
+  sourceStableId: string;
+  sourceTitle: string;
+  sourceSlug: string;
+  sourceStatus: string;
+  sourcePath: string | null;
+  targetStableId: string;
+  targetTitle: string | null;
+  targetSlug: string | null;
+  targetStatus: string | null;
+  targetPath: string | null;
+  targetIndexable: boolean | null;
+  targetScheduledFor: string | null;
+  targetPublishedAt: string | null;
+  targetState: WikiLinkGraphTargetState;
+  anchor: string;
+  href: string;
+  placement: string;
+};
+
+export type WikiLinkGraphArticle = {
+  stableId: string;
+  slug: string;
+  title: string;
+  categoryId: string;
+  status: string;
+  indexable: boolean;
+  publishedAt: string | null;
+  scheduledFor: string | null;
+  publicReady: boolean;
+  bodyOutgoingCount: number;
+  bodyIncomingCount: number;
+  unresolvedOutgoingCount: number;
+  outgoingBodyLinks: WikiLinkGraphEdge[];
+  incomingBodyLinks: WikiLinkGraphEdge[];
+};
+
+export type WikiLinkGraphState = {
+  generatedAt: string;
+  scope: "body-only";
+  notes: string[];
+  summary: {
+    totalArticles: number;
+    published: number;
+    scheduled: number;
+    draft: number;
+    bodyEdges: number;
+    unresolvedOutgoing: number;
+    missingTargets: number;
+    unpublishedTargets: number;
+    noindexTargets: number;
+    articlesWithoutIncoming: number;
+  };
+  articles: WikiLinkGraphArticle[];
 };
 
 export type WikiLinkScanKpis = {
@@ -181,6 +245,7 @@ export type WikiLinkAdminState = {
   rules: WikiLinkScanRules & { version: number };
   kpis: WikiLinkScanKpis | null;
   articles: WikiLinkArticleSummary[];
+  graph: WikiLinkGraphState;
   findings: WikiLinkFinding[];
   suggestions: WikiLinkAdminSuggestion[];
   detail: {

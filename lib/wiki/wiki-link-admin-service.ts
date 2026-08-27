@@ -17,6 +17,7 @@ import { parseWikiMarkdown } from "@/lib/wiki/wiki-markdown";
 import {
   applyWikiLinkParagraphChange,
   buildNaturalWikiLinkSuggestions,
+  collectBodyLinks,
   DEFAULT_WIKI_LINK_SCAN_RULES,
   rollbackWikiLinkParagraphChange,
   scanWikiInternalLinks,
@@ -28,6 +29,9 @@ import type {
   WikiLinkArticleSummary,
   WikiLinkEdge,
   WikiLinkFinding,
+  WikiLinkGraphEdge,
+  WikiLinkGraphState,
+  WikiLinkGraphTargetState,
   WikiLinkScanKpis,
   WikiLinkScanRules,
 } from "@/lib/wiki/wiki-link-admin-types";
@@ -164,6 +168,7 @@ function articleFromRow(raw: unknown): WikiLinkArticleInput {
     status: asString(row.status),
     indexable: asBoolean(row.is_indexable),
     publishedAt: asNullableString(row.published_at),
+    scheduledFor: asNullableString(row.scheduled_for),
     deletedAt: asNullableString(row.deleted_at),
     contentVersion: asNumber(row.content_version),
     bodyMarkdown,
@@ -191,6 +196,7 @@ async function loadScanArticles() {
       status,
       is_indexable,
       published_at::text,
+      scheduled_for::text,
       deleted_at::text,
       content_version,
       body_markdown,
@@ -204,6 +210,163 @@ async function loadScanArticles() {
     order by stable_id
   `;
   return rows.map(articleFromRow);
+}
+
+function isPublishedNow(article: WikiLinkArticleInput, nowMs: number) {
+  const publishedAtMs = article.publishedAt ? Date.parse(article.publishedAt) : Number.NaN;
+  return (
+    article.status === "published" &&
+    Number.isFinite(publishedAtMs) &&
+    publishedAtMs <= nowMs &&
+    !article.deletedAt
+  );
+}
+
+function isPublicReadyArticle(article: WikiLinkArticleInput, nowMs: number) {
+  return article.indexable && isPublishedNow(article, nowMs);
+}
+
+function isScheduledArticle(article: WikiLinkArticleInput, nowMs: number) {
+  const scheduledAtMs = article.scheduledFor ? Date.parse(article.scheduledFor) : Number.NaN;
+  return (
+    article.status === "scheduled" ||
+    (Number.isFinite(scheduledAtMs) && scheduledAtMs > nowMs)
+  );
+}
+
+function graphTargetState(
+  target: WikiLinkArticleInput | undefined,
+  nowMs: number,
+): WikiLinkGraphTargetState {
+  if (!target || target.deletedAt) return "missing";
+  if (!target.indexable) return "noindex";
+  if (isPublishedNow(target, nowMs)) return "published";
+  if (isScheduledArticle(target, nowMs)) return "scheduled";
+  return "draft";
+}
+
+async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
+  const now = new Date();
+  const nowMs = now.getTime();
+  const articles = (await loadScanArticles()).filter((article) => !article.deletedAt);
+  const byStableId = new Map(articles.map((article) => [article.stableId, article]));
+  const incomingByTarget = new Map<string, WikiLinkGraphEdge[]>();
+  const outgoingBySource = new Map<string, WikiLinkGraphEdge[]>();
+  const allEdges: WikiLinkGraphEdge[] = [];
+
+  for (const source of articles) {
+    const sourcePath = isPublicReadyArticle(source, nowMs) ? `/wiki/${source.slug}` : null;
+    const bodyArticleLinks = collectBodyLinks(source).filter(
+      (edge) => edge.kind === "article" && edge.targetStableId,
+    );
+    for (const edge of bodyArticleLinks) {
+      const targetStableId = edge.targetStableId ?? "";
+      const target = byStableId.get(targetStableId);
+      const targetPath = target && isPublicReadyArticle(target, nowMs)
+        ? `/wiki/${target.slug}`
+        : null;
+      const graphEdge: WikiLinkGraphEdge = {
+        sourceStableId: source.stableId,
+        sourceTitle: source.title,
+        sourceSlug: source.slug,
+        sourceStatus: source.status,
+        sourcePath,
+        targetStableId,
+        targetTitle: target?.title ?? null,
+        targetSlug: target?.slug ?? null,
+        targetStatus: target?.status ?? null,
+        targetPath,
+        targetIndexable: target?.indexable ?? null,
+        targetScheduledFor: target?.scheduledFor ?? null,
+        targetPublishedAt: target?.publishedAt ?? null,
+        targetState: graphTargetState(target, nowMs),
+        anchor: edge.anchor,
+        href: edge.href,
+        placement: edge.placement,
+      };
+      allEdges.push(graphEdge);
+      const outgoing = outgoingBySource.get(source.stableId) ?? [];
+      outgoing.push(graphEdge);
+      outgoingBySource.set(source.stableId, outgoing);
+      const incoming = incomingByTarget.get(targetStableId) ?? [];
+      incoming.push(graphEdge);
+      incomingByTarget.set(targetStableId, incoming);
+    }
+  }
+
+  const graphArticles = articles.map((article) => {
+    const outgoingBodyLinks = outgoingBySource.get(article.stableId) ?? [];
+    const incomingBodyLinks = incomingByTarget.get(article.stableId) ?? [];
+    return {
+      stableId: article.stableId,
+      slug: article.slug,
+      title: article.title,
+      categoryId: article.categoryId,
+      status: article.status,
+      indexable: article.indexable,
+      publishedAt: article.publishedAt,
+      scheduledFor: article.scheduledFor,
+      publicReady: isPublicReadyArticle(article, nowMs),
+      bodyOutgoingCount: outgoingBodyLinks.length,
+      bodyIncomingCount: new Set(
+        incomingBodyLinks.map((edge) => edge.sourceStableId),
+      ).size,
+      unresolvedOutgoingCount: outgoingBodyLinks.filter(
+        (edge) => edge.targetState !== "published",
+      ).length,
+      outgoingBodyLinks,
+      incomingBodyLinks,
+    };
+  });
+
+  return {
+    generatedAt: now.toISOString(),
+    scope: "body-only",
+    notes: [
+      "Only article links found inside bodyMarkdown are counted.",
+      "Header, footer, sidebar, breadcrumb, CTA, category, and related-article module links are excluded.",
+      "Draft and scheduled articles are included so AI link-building can plan ahead without crawling every page.",
+    ],
+    summary: {
+      totalArticles: graphArticles.length,
+      published: graphArticles.filter((article) => article.publicReady).length,
+      scheduled: graphArticles.filter(
+        (article) => {
+          const scheduledAtMs = article.scheduledFor
+            ? Date.parse(article.scheduledFor)
+            : Number.NaN;
+          return (
+            !article.publicReady &&
+            (article.status === "scheduled" ||
+              (Number.isFinite(scheduledAtMs) && scheduledAtMs > nowMs))
+          );
+        },
+      ).length,
+      draft: graphArticles.filter(
+        (article) => {
+          const scheduledAtMs = article.scheduledFor
+            ? Date.parse(article.scheduledFor)
+            : Number.NaN;
+          return (
+            !article.publicReady &&
+            article.status !== "scheduled" &&
+            (!Number.isFinite(scheduledAtMs) || scheduledAtMs <= nowMs)
+          );
+        },
+      ).length,
+      bodyEdges: allEdges.length,
+      unresolvedOutgoing: allEdges.filter((edge) => edge.targetState !== "published").length,
+      missingTargets: allEdges.filter((edge) => edge.targetState === "missing").length,
+      unpublishedTargets: allEdges.filter(
+        (edge) => edge.targetState === "scheduled" || edge.targetState === "draft",
+      ).length,
+      noindexTargets: allEdges.filter((edge) => edge.targetState === "noindex").length,
+      articlesWithoutIncoming: graphArticles.filter(
+        (article) => article.publicReady && article.bodyIncomingCount === 0,
+      ).length,
+    },
+    articles: graphArticles.sort((a, b) => a.title.localeCompare(b.title, "fa")),
+  };
 }
 
 function graphDigest(edges: WikiLinkEdge[]) {
@@ -436,6 +599,7 @@ export async function getWikiLinkAdminState(
 ): Promise<WikiLinkAdminState> {
   const sql = getAdminDatabase();
   const { version, rules } = await loadRules();
+  const graph = await buildWikiLinkGraphState();
   const runRows = await sql`
     select id::text, trigger_kind, status, rules_version,
            article_count, edge_count, finding_count, suggestion_count,
@@ -451,6 +615,7 @@ export async function getWikiLinkAdminState(
       rules: { ...rules, version },
       kpis: null,
       articles: [],
+      graph,
       findings: [],
       suggestions: [],
       detail: null,
@@ -523,6 +688,7 @@ export async function getWikiLinkAdminState(
     rules: { ...rules, version },
     kpis: asRecord(run.kpis) as WikiLinkScanKpis,
     articles,
+    graph,
     findings,
     suggestions,
     detail,

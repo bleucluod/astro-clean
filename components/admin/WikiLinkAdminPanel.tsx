@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { AdminSessionPayload } from "@/lib/admin/admin-types";
 import type {
@@ -9,6 +9,8 @@ import type {
 } from "@/lib/wiki/wiki-indexability-observability-types";
 import type {
   WikiLinkAdminState,
+  WikiLinkGraphArticle,
+  WikiLinkGraphEdge,
   WikiLinkAdminSuggestion,
   WikiLinkScanRules,
 } from "@/lib/wiki/wiki-link-admin-types";
@@ -37,9 +39,28 @@ const FA = {
   readiness: "آمادگی ایندکس",
   readinessSubtitle:
     "وضعیت فنی انتشار، sitemap و لینک‌های materialized؛ این بخش ادعای ایندکس گوگل نیست.",
+  graph: "خروجی هوشمند لینک‌سازی",
+  graphSubtitle:
+    "نقشه body-only: لینک‌های متن مقاله حساب می‌شوند؛ هدر، فوتر، breadcrumb، CTA و related حساب نمی‌شوند.",
+  copyGraph: "کپی JSON برای AI",
   draftOnly:
     "اعمال پیشنهاد فقط پیش‌نویس می‌سازد؛ هیچ انتشار خودکاری انجام نمی‌شود.",
 };
+
+type GraphStatusFilter = "all" | "published" | "scheduled" | "draft";
+type GraphIssueFilter =
+  | "all"
+  | "problem"
+  | "missing"
+  | "unpublished"
+  | "noindex"
+  | "noIncoming";
+type GraphSort =
+  | "problem"
+  | "title"
+  | "outgoingDesc"
+  | "incomingAsc"
+  | "scheduled";
 
 type Props = {
   token: string;
@@ -124,12 +145,65 @@ function readinessLabel(article: WikiIndexabilityArticleStatus) {
   return "OK";
 }
 
+function graphArticleStatus(article: WikiLinkGraphArticle) {
+  if (article.publicReady) return "published";
+  const scheduledAt = article.scheduledFor ? Date.parse(article.scheduledFor) : Number.NaN;
+  if (article.status === "scheduled" || (Number.isFinite(scheduledAt) && scheduledAt > Date.now())) {
+    return "scheduled";
+  }
+  return "draft";
+}
+
+function graphArticleStatusLabel(article: WikiLinkGraphArticle) {
+  const status = graphArticleStatus(article);
+  if (status === "published") return "منتشر";
+  if (status === "scheduled") return "زمان‌بندی";
+  return "پیش‌نویس";
+}
+
+function graphTargetLabel(edge: WikiLinkGraphEdge) {
+  if (edge.targetTitle) return edge.targetTitle;
+  return edge.targetStableId;
+}
+
+function graphTargetStateLabel(edge: WikiLinkGraphEdge) {
+  const labels: Record<WikiLinkGraphEdge["targetState"], string> = {
+    published: "منتشر",
+    scheduled: "زمان‌بندی",
+    draft: "پیش‌نویس",
+    noindex: "noindex",
+    missing: "پیدا نشد",
+  };
+  return labels[edge.targetState];
+}
+
+function edgeListPreview(edges: WikiLinkGraphEdge[], direction: "out" | "in") {
+  if (!edges.length) return <span className={styles.mutedInline}>-</span>;
+  return (
+    <div className={styles.linkGraphList}>
+      {edges.slice(0, 5).map((edge, index) => (
+        <span key={`${edge.sourceStableId}-${edge.targetStableId}-${edge.anchor}-${index}`}>
+          {direction === "out" ? graphTargetLabel(edge) : edge.sourceTitle}
+          <small>{edge.anchor} · {graphTargetStateLabel(edge)}</small>
+        </span>
+      ))}
+      {edges.length > 5 ? <small>+{formatNumber(edges.length - 5)} لینک دیگر</small> : null}
+    </div>
+  );
+}
+
 export function WikiLinkAdminPanel({ token, session }: Props) {
   const [state, setState] = useState<WikiLinkAdminState | null>(null);
   const [indexabilityState, setIndexabilityState] =
     useState<WikiIndexabilityObservabilityState | null>(null);
   const [selectedStableId, setSelectedStableId] = useState<string | null>(null);
   const [ruleDraft, setRuleDraft] = useState<WikiLinkScanRules>(emptyRules);
+  const [graphQuery, setGraphQuery] = useState("");
+  const [graphStatusFilter, setGraphStatusFilter] =
+    useState<GraphStatusFilter>("all");
+  const [graphIssueFilter, setGraphIssueFilter] =
+    useState<GraphIssueFilter>("problem");
+  const [graphSort, setGraphSort] = useState<GraphSort>("problem");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -314,6 +388,104 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
   const suggestions = state?.detail?.suggestions ?? state?.suggestions ?? [];
   const readinessArticles =
     indexabilityState?.articles.filter((article) => article.severity !== "ok").slice(0, 8) ?? [];
+  const graphArticles = useMemo(() => {
+    const normalizedQuery = graphQuery.trim().toLowerCase();
+    const articles = [...(state?.graph.articles ?? [])].filter((article) => {
+      if (graphStatusFilter !== "all" && graphArticleStatus(article) !== graphStatusFilter) {
+        return false;
+      }
+      if (
+        graphIssueFilter === "problem" &&
+        article.unresolvedOutgoingCount === 0 &&
+        article.bodyIncomingCount > 0
+      ) {
+        return false;
+      }
+      if (
+        graphIssueFilter === "missing" &&
+        !article.outgoingBodyLinks.some((edge) => edge.targetState === "missing")
+      ) {
+        return false;
+      }
+      if (
+        graphIssueFilter === "unpublished" &&
+        !article.outgoingBodyLinks.some(
+          (edge) => edge.targetState === "scheduled" || edge.targetState === "draft",
+        )
+      ) {
+        return false;
+      }
+      if (
+        graphIssueFilter === "noindex" &&
+        !article.outgoingBodyLinks.some((edge) => edge.targetState === "noindex")
+      ) {
+        return false;
+      }
+      if (graphIssueFilter === "noIncoming" && article.bodyIncomingCount > 0) {
+        return false;
+      }
+      if (!normalizedQuery) return true;
+      const haystack = [
+        article.title,
+        article.slug,
+        article.stableId,
+        article.categoryId,
+        ...article.outgoingBodyLinks.flatMap((edge) => [
+          edge.anchor,
+          edge.targetStableId,
+          edge.targetTitle ?? "",
+          edge.targetSlug ?? "",
+        ]),
+        ...article.incomingBodyLinks.flatMap((edge) => [
+          edge.anchor,
+          edge.sourceStableId,
+          edge.sourceTitle,
+          edge.sourceSlug,
+        ]),
+      ].join(" ").toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+
+    articles.sort((left, right) => {
+      if (graphSort === "title") return left.title.localeCompare(right.title, "fa");
+      if (graphSort === "outgoingDesc") {
+        return right.bodyOutgoingCount - left.bodyOutgoingCount ||
+          left.title.localeCompare(right.title, "fa");
+      }
+      if (graphSort === "incomingAsc") {
+        return left.bodyIncomingCount - right.bodyIncomingCount ||
+          left.title.localeCompare(right.title, "fa");
+      }
+      if (graphSort === "scheduled") {
+        return (Date.parse(left.scheduledFor ?? "") || Number.MAX_SAFE_INTEGER) -
+          (Date.parse(right.scheduledFor ?? "") || Number.MAX_SAFE_INTEGER) ||
+          left.title.localeCompare(right.title, "fa");
+      }
+      return right.unresolvedOutgoingCount - left.unresolvedOutgoingCount ||
+        left.bodyIncomingCount - right.bodyIncomingCount ||
+        left.title.localeCompare(right.title, "fa");
+    });
+    return articles;
+  }, [graphIssueFilter, graphQuery, graphSort, graphStatusFilter, state?.graph.articles]);
+
+  async function copyGraphExport() {
+    if (!state?.graph) return;
+    const exportPayload = {
+      generatedAt: state.graph.generatedAt,
+      scope: state.graph.scope,
+      notes: state.graph.notes,
+      filters: {
+        query: graphQuery.trim(),
+        status: graphStatusFilter,
+        issue: graphIssueFilter,
+        sort: graphSort,
+      },
+      summary: state.graph.summary,
+      articles: graphArticles,
+    };
+    await navigator.clipboard.writeText(JSON.stringify(exportPayload, null, 2));
+    setMessage("خروجی JSON گراف لینک‌سازی کپی شد.");
+  }
   const kpiRows = state?.kpis
     ? [
         ["Live", state.kpis.liveArticleCount],
@@ -425,6 +597,128 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
           ) : (
             <p>همه مقاله‌های قابل انتشار از نظر readiness فعلی سالم‌اند.</p>
           )}
+        </section>
+      ) : null}
+
+      {state?.graph ? (
+        <section className={styles.wikiPanel}>
+          <div className={styles.wikiPanelHeader}>
+            <div>
+              <h3>{FA.graph}</h3>
+              <p>{FA.graphSubtitle}</p>
+              <small>آخرین خوانش زنده: {formatDate(state.graph.generatedAt)}</small>
+            </div>
+            <button type="button" onClick={() => void copyGraphExport()}>
+              {FA.copyGraph}
+            </button>
+          </div>
+          <div className={styles.recordMeta}>
+            <span><strong>{formatNumber(state.graph.summary.totalArticles)}</strong> کل مقاله‌ها</span>
+            <span><strong>{formatNumber(state.graph.summary.published)}</strong> منتشر</span>
+            <span><strong>{formatNumber(state.graph.summary.scheduled)}</strong> زمان‌بندی</span>
+            <span><strong>{formatNumber(state.graph.summary.draft)}</strong> پیش‌نویس</span>
+            <span><strong>{formatNumber(state.graph.summary.bodyEdges)}</strong> لینک داخل متن</span>
+            <span><strong>{formatNumber(state.graph.summary.unresolvedOutgoing)}</strong> مقصد نیازمند بررسی</span>
+            <span><strong>{formatNumber(state.graph.summary.articlesWithoutIncoming)}</strong> بدون ورودی متنی</span>
+          </div>
+          <div className={styles.wikiFilters}>
+            <input
+              type="search"
+              value={graphQuery}
+              onChange={(event) => setGraphQuery(event.target.value)}
+              placeholder="جستجو در عنوان، slug، anchor یا مقصد لینک"
+            />
+            <select
+              value={graphStatusFilter}
+              onChange={(event) => setGraphStatusFilter(event.target.value as GraphStatusFilter)}
+            >
+              <option value="all">همه وضعیت‌ها</option>
+              <option value="published">منتشرشده</option>
+              <option value="scheduled">زمان‌بندی‌شده</option>
+              <option value="draft">پیش‌نویس</option>
+            </select>
+            <select
+              value={graphIssueFilter}
+              onChange={(event) => setGraphIssueFilter(event.target.value as GraphIssueFilter)}
+            >
+              <option value="all">همه مقاله‌ها</option>
+              <option value="problem">نیازمند کار</option>
+              <option value="missing">مقصد پیدا نمی‌شود</option>
+              <option value="unpublished">مقصد منتشر نشده</option>
+              <option value="noindex">مقصد noindex</option>
+              <option value="noIncoming">بدون لینک ورودی متنی</option>
+            </select>
+            <select
+              value={graphSort}
+              onChange={(event) => setGraphSort(event.target.value as GraphSort)}
+            >
+              <option value="problem">اول مشکل‌دارها</option>
+              <option value="incomingAsc">ورودی کمتر اول</option>
+              <option value="outgoingDesc">خروجی بیشتر اول</option>
+              <option value="scheduled">زمان‌بندی نزدیک‌تر</option>
+              <option value="title">عنوان</option>
+            </select>
+          </div>
+          <p className={styles.recordNote}>
+            کار عملی: مقاله‌هایی که «مقصد نیازمند بررسی» دارند را اصلاح کن؛ برای مقاله‌های بدون
+            ورودی متنی، از مقاله‌های مرتبط بهشان لینک بده. دکمه JSON همین جدول فیلترشده را برای
+            استفاده در AI کپی می‌کند.
+          </p>
+          <div className={styles.tableWrap}>
+            <table>
+              <thead>
+                <tr>
+                  <th>مقاله</th>
+                  <th>وضعیت</th>
+                  <th>به کجا لینک داده؟</th>
+                  <th>از کجا لینک گرفته؟</th>
+                  <th>مشکل عملی</th>
+                </tr>
+              </thead>
+              <tbody>
+                {graphArticles.map((article) => (
+                  <tr key={article.stableId}>
+                    <td>
+                      <strong>{article.title}</strong>
+                      <small>{article.stableId}</small>
+                    </td>
+                    <td>
+                      <span
+                        className={styles.statusPill}
+                        data-tone={article.publicReady ? "positive" : "attention"}
+                      >
+                        {graphArticleStatusLabel(article)}
+                      </span>
+                      <small>{article.scheduledFor ? formatDate(article.scheduledFor) : article.slug}</small>
+                    </td>
+                    <td>
+                      <strong>{formatNumber(article.bodyOutgoingCount)} خروجی متنی</strong>
+                      {edgeListPreview(article.outgoingBodyLinks, "out")}
+                    </td>
+                    <td>
+                      <strong>{formatNumber(article.bodyIncomingCount)} ورودی متنی</strong>
+                      {edgeListPreview(article.incomingBodyLinks, "in")}
+                    </td>
+                    <td>
+                      {article.unresolvedOutgoingCount > 0 ? (
+                        <span className={styles.statusPill} data-tone="danger">
+                          {formatNumber(article.unresolvedOutgoingCount)} مقصد اصلاح شود
+                        </span>
+                      ) : article.bodyIncomingCount === 0 ? (
+                        <span className={styles.statusPill} data-tone="attention">
+                          لینک ورودی بساز
+                        </span>
+                      ) : (
+                        <span className={styles.statusPill} data-tone="positive">
+                          آماده
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       ) : null}
 

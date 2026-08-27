@@ -118,6 +118,11 @@ for (const marker of [
   "draftOnly: true",
   "autoPublished: false",
   "processPendingWikiLinkScanTriggers",
+  "buildWikiLinkGraphState",
+  "collectBodyLinks",
+  'scope: "body-only"',
+  "Header, footer, sidebar, breadcrumb, CTA, category, and related-article module links are excluded.",
+  "Draft and scheduled articles are included",
 ]) {
   requireText("link service", service, marker);
 }
@@ -165,6 +170,14 @@ for (const marker of [
   "apply_suggestion",
   "rollback_suggestion",
   "save_rules",
+  "خروجی هوشمند لینک‌سازی",
+  "لینک‌های متن مقاله حساب می‌شوند",
+  "graphStatusFilter",
+  "graphIssueFilter",
+  "graphSort",
+  "کپی JSON برای AI",
+  "outgoingBodyLinks",
+  "incomingBodyLinks",
 ]) {
   requireText("WikiLinkAdminPanel", panel, marker);
 }
