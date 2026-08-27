@@ -44,6 +44,7 @@ const engineSource = read("lib/wiki/wiki-link-admin-engine.ts");
 const trigger = read("lib/wiki/wiki-link-admin-trigger.ts");
 const route = read("app/api/admin/wiki/link-maintenance/route.ts");
 const panel = read("components/admin/WikiLinkAdminPanel.tsx");
+const seoPanel = read("components/admin/SeoAdminPanel.tsx");
 const consoleSource = read("components/admin/AdminConsole.tsx");
 const wikiPanel = read("components/admin/WikiAdminPanel.tsx");
 const cms = read("lib/wiki/wiki-cms-service.ts");
@@ -154,13 +155,51 @@ for (const marker of [
 }
 
 for (const marker of [
-  "WikiLinkAdminPanel",
-  'id: "links"',
-  'wikiSection === "links"',
+  "SeoAdminPanel",
+  'id: "seo"',
+  "seoSections",
+  'label: "نمای کلی SEO"',
+  'label: "داده سرچ کنسول"',
+  'activeTab === "seo"',
+  'navigate("seo", { section })',
 ]) {
   requireText("AdminConsole", consoleSource, marker);
 }
+forbidText("AdminConsole direct Wiki link admin panel", consoleSource, "WikiLinkAdminPanel");
+forbidText(
+  "AdminConsole Wiki links subnav",
+  consoleSource,
+  '{ id: "links", label: "لینک‌ها", capability: "wiki.read" }',
+);
 requireText("WikiAdminPanel section union", wikiPanel, '| "links"');
+for (const marker of [
+  "HALLEUS_SEO_COMMAND_CENTER_R1",
+  "مرکز فرمان SEO",
+  "آمادگی ایندکس",
+  "لینک‌سازی داخلی",
+  "فرصت‌های رشد",
+  "خروجی AI",
+  "داده سرچ کنسول",
+  "تنظیمات اسکن",
+  "parseSearchConsoleCsv",
+  "Search Console",
+  "CSV سرچ کنسول",
+  "CATEGORY_LABELS",
+  "هدف لینک ورودی",
+  "halleus_seo_command_center_v1",
+  "/api/admin/wiki/link-maintenance",
+  "/api/admin/wiki/indexability",
+  "outgoingBodyLinks",
+  "incomingBodyLinks",
+  "approve_suggestion",
+  "reject_suggestion",
+  "apply_suggestion",
+  "rollback_suggestion",
+  "save_rules",
+  "halleus-admin-notification",
+]) {
+  requireText("SeoAdminPanel", seoPanel, marker);
+}
 for (const marker of [
   "incoming",
   "outgoing",

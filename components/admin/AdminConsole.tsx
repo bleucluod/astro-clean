@@ -13,6 +13,7 @@ import type {
   AdminUserSummary,
 } from "@/lib/admin/admin-types";
 import type { WikiWorkspaceSection } from "./WikiAdminPanel";
+import type { SeoWorkspaceSection } from "./SeoAdminPanel";
 import styles from "./admin-console.module.css";
 
 const WikiAdminPanel = dynamic(
@@ -23,11 +24,11 @@ const WikiAdminPanel = dynamic(
   },
 );
 
-const WikiLinkAdminPanel = dynamic(
-  () => import("./WikiLinkAdminPanel").then((module) => module.WikiLinkAdminPanel),
+const SeoAdminPanel = dynamic(
+  () => import("./SeoAdminPanel").then((module) => module.SeoAdminPanel),
   {
     ssr: false,
-    loading: () => <div className={styles.panelSkeleton}>پنل لینک‌های ویکی در حال آماده‌شدن است…</div>,
+    loading: () => <div className={styles.panelSkeleton}>مرکز SEO در حال آماده‌شدن است…</div>,
   },
 );
 
@@ -54,6 +55,7 @@ type TabId =
   | "premium"
   | "telegram"
   | "wiki"
+  | "seo"
   | "audit";
 
 type JsonPayload = Record<string, unknown>;
@@ -118,6 +120,13 @@ const tabs: {
     group: "content",
   },
   {
+    id: "seo",
+    label: "SEO",
+    shortLabel: "SEO",
+    capability: "wiki.read",
+    group: "content",
+  },
+  {
     id: "premium",
     label: "درخواست‌های پرمیوم",
     shortLabel: "پرمیوم",
@@ -147,11 +156,20 @@ const wikiSections: {
 }[] = [
   { id: "articles", label: "مقاله‌ها", capability: "wiki.read" },
   { id: "queue", label: "انتشار", capability: "wiki.read" },
-  { id: "links", label: "لینک‌ها", capability: "wiki.read" },
   { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write", showInNav: false },
   { id: "import", label: "ورود بسته", capability: "wiki.import.write" },
   { id: "media", label: "رسانه‌ها", capability: "wiki.read" },
   { id: "settings", label: "تنظیمات", capability: "wiki.read" },
+];
+
+const seoSections: { id: SeoWorkspaceSection; label: string }[] = [
+  { id: "overview", label: "نمای کلی SEO" },
+  { id: "readiness", label: "آمادگی ایندکس" },
+  { id: "links", label: "لینک‌سازی داخلی" },
+  { id: "opportunities", label: "فرصت‌های رشد" },
+  { id: "export", label: "خروجی AI" },
+  { id: "search-console", label: "داده سرچ کنسول" },
+  { id: "settings", label: "تنظیمات اسکن" },
 ];
 
 const premiumStatusLabels: Record<AdminPremiumRequestSummary["status"], string> = {
@@ -303,6 +321,9 @@ export function AdminConsole({
     availableWikiSections.find((item) => item.id === requestedWikiSection)?.id ??
     availableWikiSections[0]?.id ??
     "articles";
+  const requestedSeoSection = searchParams.get("section") as SeoWorkspaceSection | null;
+  const seoSection =
+    seoSections.find((item) => item.id === requestedSeoSection)?.id ?? "overview";
   const requestedTelegramSection = searchParams.get("section") as
     | TelegramWorkspaceSection
     | null;
@@ -315,7 +336,7 @@ export function AdminConsole({
     (
       tab: TabId,
       options?: {
-        section?: WikiWorkspaceSection | TelegramWorkspaceSection;
+        section?: WikiWorkspaceSection | TelegramWorkspaceSection | SeoWorkspaceSection;
         page?: number;
       },
     ) => {
@@ -323,6 +344,8 @@ export function AdminConsole({
       params.set("tab", tab);
       if (tab === "wiki") {
         params.set("section", options?.section ?? "articles");
+      } else if (tab === "seo") {
+        params.set("section", options?.section ?? "overview");
       } else if (tab === "telegram") {
         params.set("section", options?.section ?? "overview");
       } else {
@@ -395,7 +418,7 @@ export function AdminConsole({
   }, [showNotice]);
 
   const loadTab = useCallback(async () => {
-    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "reports") {
+    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "seo" || activeTab === "reports") {
       return;
     }
     setLoading(true);
@@ -713,6 +736,20 @@ export function AdminConsole({
                         ))}
                       </div>
                     ) : null}
+                    {tab.id === "seo" && activeTab === "seo" ? (
+                      <div className={styles.subnav} aria-label="بخش‌های مدیریت SEO">
+                        {seoSections.map((item) => (
+                          <button
+                            className={seoSection === item.id ? styles.activeSubnav : undefined}
+                            key={item.id}
+                            type="button"
+                            onClick={() => navigate("seo", { section: item.id })}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </section>
@@ -731,12 +768,12 @@ export function AdminConsole({
         </Link>
       </aside>
 
-      <main className={`${styles.main} ${activeTab === "wiki" ? styles.wikiMain : ""}`}>
-        <header className={`${styles.toolbar} ${activeTab === "wiki" ? styles.wikiToolbar : ""}`}>
+      <main className={`${styles.main} ${activeTab === "wiki" || activeTab === "seo" ? styles.wikiMain : ""}`}>
+        <header className={`${styles.toolbar} ${activeTab === "wiki" || activeTab === "seo" ? styles.wikiToolbar : ""}`}>
           <div className={styles.toolbarTitle}>
             <span className={styles.eyebrow}>پنل خصوصی هالیوس</span>
             <h2>{activeTabConfig?.label}</h2>
-            {lastUpdatedAt && activeTab !== "telegram" && activeTab !== "wiki" ? (
+            {lastUpdatedAt && activeTab !== "telegram" && activeTab !== "wiki" && activeTab !== "seo" ? (
               <small>آخرین بروزرسانی: {formatDate(lastUpdatedAt)}</small>
             ) : null}
           </div>
@@ -752,7 +789,7 @@ export function AdminConsole({
                 <button type="submit">جست‌وجو</button>
               </form>
             ) : null}
-            {activeTab !== "wiki" && activeTab !== "telegram" ? (
+            {activeTab !== "wiki" && activeTab !== "seo" && activeTab !== "telegram" ? (
               <button type="button" onClick={() => void loadTab()} disabled={loading}>
                 تازه‌سازی
               </button>
@@ -762,7 +799,7 @@ export function AdminConsole({
 
         {error ? <p className={styles.error}>{error}</p> : null}
         {message ? <p className={styles.success}>{message}</p> : null}
-        {loading && activeTab !== "wiki" && activeTab !== "telegram" && activeTab !== "reports" ? (
+        {loading && activeTab !== "wiki" && activeTab !== "seo" && activeTab !== "telegram" && activeTab !== "reports" ? (
           <div className={styles.loadingBar}>در حال دریافت داده…</div>
         ) : null}
 
@@ -1080,17 +1117,22 @@ export function AdminConsole({
           />
         ) : null}
 
+        {activeTab === "seo" ? (
+          <SeoAdminPanel
+            activeSection={seoSection}
+            onSectionChange={(section) => navigate("seo", { section })}
+            session={session}
+            token={token}
+          />
+        ) : null}
+
         {activeTab === "wiki" ? (
-          wikiSection === "links" ? (
-            <WikiLinkAdminPanel session={session} token={token} />
-          ) : (
-            <WikiAdminPanel
-              activeSection={wikiSection}
-              onSectionChange={(section) => navigate("wiki", { section })}
-              session={session}
-              token={token}
-            />
-          )
+          <WikiAdminPanel
+            activeSection={wikiSection}
+            onSectionChange={(section) => navigate("wiki", { section })}
+            session={session}
+            token={token}
+          />
         ) : null}
 
         {["users", "premium", "audit"].includes(activeTab) ? (

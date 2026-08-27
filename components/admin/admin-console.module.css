@@ -4444,3 +4444,552 @@
     display: grid;
   }
 }
+/* HALLEUS_SEO_COMMAND_CENTER_R1 */
+.seoWorkspace {
+  display: grid;
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  gap: 16px;
+}
+
+.seoWorkspace button,
+.seoWorkspace input,
+.seoWorkspace select {
+  font: inherit;
+}
+
+.seoWorkspace button,
+.seoRowActions a,
+.seoTaskList a,
+.seoUploadBox {
+  border: 1px solid #bcccdc;
+  border-radius: 10px;
+  background: #fff;
+  color: #243447;
+  cursor: pointer;
+  padding: 9px 12px;
+  text-decoration: none;
+}
+
+.seoWorkspace button:hover,
+.seoRowActions a:hover,
+.seoTaskList a:hover,
+.seoUploadBox:hover {
+  border-color: #8da2c0;
+  background: #f6f9fc;
+}
+
+.seoWorkspace button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.seoLoading,
+.seoEmpty {
+  padding: 18px;
+  border: 1px dashed #bcccdc;
+  border-radius: 14px;
+  background: #fff;
+  color: #637588;
+}
+
+.seoHero,
+.seoSection,
+.seoPriorityCard {
+  border: 1px solid #d9e2ec;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.seoHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 24px;
+}
+
+.seoHero h2,
+.seoSection h2,
+.seoPriorityCard h3,
+.seoDrawerHeader h3 {
+  margin: 4px 0 8px;
+}
+
+.seoHero p,
+.seoSectionHeader p,
+.seoPriorityCard p,
+.seoExportGrid p,
+.seoOpportunityList p,
+.seoSuggestions p {
+  margin: 0;
+  color: #637588;
+  line-height: 1.75;
+}
+
+.seoEyebrow {
+  display: inline-block;
+  color: #52657a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.seoHeroActions,
+.seoRowActions,
+.seoSectionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seoHeroActions {
+  justify-content: flex-end;
+}
+
+.seoMetricGrid,
+.seoPathGrid,
+.seoExportGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.seoMetricGrid button,
+.seoPathGrid button {
+  display: grid;
+  gap: 5px;
+  min-height: 104px;
+  padding: 16px;
+  text-align: right;
+}
+
+.seoMetricGrid strong {
+  font-size: 1.65rem;
+}
+
+.seoMetricGrid span,
+.seoPathGrid span {
+  color: #637588;
+  line-height: 1.55;
+}
+
+.seoPriorityCard {
+  padding: 22px;
+  border-color: #b9ccef;
+  background: #f7faff;
+}
+
+.seoPriorityCard > span {
+  color: #3457b1;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.seoPriorityCard button {
+  margin-top: 14px;
+  border-color: #8da2c0;
+  background: #d9eafd;
+}
+
+.seoPathGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.seoSection {
+  padding: 20px;
+}
+
+.seoSectionHeader,
+.seoTaskTop,
+.seoDrawerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.seoSectionHeader {
+  margin-bottom: 16px;
+}
+
+.seoSectionHeader small,
+.seoDrawerHeader small,
+.seoTaskTop small {
+  color: #637588;
+}
+
+.seoCompactMetrics {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.seoCompactMetrics span {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #f2f6fa;
+  color: #52657a;
+  font-size: 0.84rem;
+}
+
+.seoCompactMetrics strong {
+  color: #243447;
+}
+
+.seoTaskList,
+.seoOpportunityList,
+.seoSuggestions,
+.seoEdgeList {
+  display: grid;
+  gap: 10px;
+}
+
+.seoTaskList > article,
+.seoOpportunityList > article,
+.seoSuggestions > article,
+.seoExportGrid > article,
+.seoEdgeList > article {
+  border: 1px solid #d9e2ec;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.seoTaskList > article,
+.seoSuggestions > article {
+  padding: 15px;
+}
+
+.seoTaskTop > div,
+.seoDrawerHeader > div {
+  display: grid;
+  gap: 4px;
+}
+
+.seoTaskTop > span,
+.seoTableWrap td > span {
+  display: inline-flex;
+  width: max-content;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #eef2f6;
+  color: #52657a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.seoTaskTop > span[data-tone="danger"],
+.seoTableWrap td > span[data-tone="danger"] {
+  background: #fff0f1;
+  color: #842d34;
+}
+
+.seoTaskTop > span[data-tone="attention"],
+.seoTableWrap td > span[data-tone="attention"] {
+  background: #fff7e6;
+  color: #705221;
+}
+
+.seoTableWrap td > span[data-tone="positive"] {
+  background: #ecfff7;
+  color: #185236;
+}
+
+.seoTaskList dl {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.seoTaskList dl > div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.seoTaskList dt {
+  color: #52657a;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.seoTaskList dd {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.seoFilterToolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px;
+  border: 1px solid #d9e2ec;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.seoFilterToolbar input,
+.seoFilterToolbar select,
+.seoSettingsGrid input {
+  min-height: 40px;
+  border: 1px solid #bcccdc;
+  border-radius: 9px;
+  background: #fff;
+  color: #243447;
+  padding: 8px 10px;
+}
+
+.seoFilterToolbar > input[type="search"] {
+  flex: 1 1 260px;
+}
+
+.seoFilterToolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #52657a;
+  font-size: 0.8rem;
+}
+
+.seoFilterToolbar label input {
+  width: 142px;
+}
+
+.seoTableWrap {
+  overflow-x: auto;
+}
+
+.seoTableWrap table {
+  width: 100%;
+  min-width: 1080px;
+  border-collapse: collapse;
+}
+
+.seoTableWrap th,
+.seoTableWrap td {
+  padding: 10px 9px;
+  border-bottom: 1px solid #e6edf3;
+  text-align: right;
+  vertical-align: top;
+}
+
+.seoTableWrap th {
+  color: #52657a;
+  font-size: 0.78rem;
+}
+
+.seoTableWrap td strong,
+.seoTableWrap td small {
+  display: block;
+}
+
+.seoTableWrap td small {
+  margin-top: 4px;
+  color: #7a8999;
+}
+
+.seoOpportunityList > article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.65fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 15px;
+}
+
+.seoOpportunityList > article > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.seoOpportunityList small {
+  color: #637588;
+}
+
+.seoSuggestions {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.seoSuggestions h3 {
+  margin: 0 0 2px;
+}
+
+.seoExportGrid > article {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 180px;
+  padding: 16px;
+}
+
+.seoExportGrid button {
+  width: max-content;
+  margin-top: auto;
+}
+
+.seoUploadBox {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.seoUploadBox input {
+  max-width: 100%;
+}
+
+.seoUploadBox span {
+  color: #637588;
+  line-height: 1.55;
+}
+
+.seoSettingsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.seoSettingsGrid label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 13px;
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.seoSettingsGrid label > span {
+  font-weight: 700;
+}
+
+.seoSettingsGrid label > small {
+  grid-column: 1 / -1;
+  color: #637588;
+  line-height: 1.55;
+}
+
+.seoSectionActions {
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.seoDrawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 89;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: rgba(25, 39, 54, 0.28) !important;
+}
+
+.seoLinkDrawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  width: min(560px, 92vw);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px;
+  border-right: 1px solid #d9e2ec;
+  background: #fff;
+  box-shadow: 20px 0 55px rgba(36, 52, 71, 0.18);
+}
+
+.seoDrawerHeader > button {
+  min-width: 38px;
+  padding: 7px 10px;
+  font-size: 1.2rem;
+}
+
+.seoLinkDrawer section {
+  display: grid;
+  gap: 10px;
+}
+
+.seoLinkDrawer h4 {
+  margin: 0;
+}
+
+.seoEdgeList > article {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+}
+
+.seoEdgeList span,
+.seoEdgeList small {
+  color: #637588;
+}
+
+@media (max-width: 980px) {
+  .seoPathGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .seoOpportunityList > article {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .seoHero,
+  .seoSectionHeader,
+  .seoTaskTop,
+  .seoDrawerHeader {
+    display: grid;
+  }
+
+  .seoHeroActions,
+  .seoRowActions,
+  .seoSectionActions {
+    justify-content: stretch;
+  }
+
+  .seoHeroActions button,
+  .seoRowActions button,
+  .seoRowActions a,
+  .seoSectionActions button {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+
+  .seoMetricGrid,
+  .seoPathGrid,
+  .seoExportGrid,
+  .seoSettingsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .seoTaskList dl > div,
+  .seoSettingsGrid label {
+    grid-template-columns: 1fr;
+  }
+
+  .seoSettingsGrid label > small {
+    grid-column: auto;
+  }
+
+  .seoFilterToolbar > * {
+    width: 100%;
+  }
+
+  .seoFilterToolbar label {
+    justify-content: space-between;
+  }
+
+  .seoFilterToolbar label input {
+    width: min(62%, 180px);
+  }
+}
