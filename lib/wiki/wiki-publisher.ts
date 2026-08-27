@@ -5,11 +5,12 @@ import {
   findWikiInternalArticleIds,
   findWikiPublicationDependencyIds,
 } from "@/lib/wiki/wiki-markdown";
+import { syncPublishedWikiInternalLinksBestEffort } from "@/lib/wiki/wiki-link-materialization";
 
 async function publishClaimedJob(jobId: string) {
   const sql = getAdminDatabase();
   let publishedSlug = "";
-  await sql.begin(async (tx) => {
+  const materializationInput = await sql.begin(async (tx) => {
     const rows = await tx`
       select job.article_id::text, job.revision_number, revision.snapshot,
              article.slug as previous_slug
@@ -184,20 +185,6 @@ async function publishClaimedJob(jobId: string) {
           target_article_id = excluded.target_article_id, is_active = true, updated_at = now()
       `;
     }
-    await tx`delete from public.wiki_internal_links where source_article_id = ${articleId}::uuid`;
-    for (const targetId of [...new Set(findWikiInternalArticleIds(snapshot.bodyMarkdown))]) {
-      await tx`
-        insert into public.wiki_internal_links (source_article_id, target_stable_id, link_kind, source_token)
-        values (${articleId}::uuid, ${targetId}, 'inline', ${`[[article:${targetId}]]`})
-      `;
-    }
-    for (const targetId of snapshot.relatedArticleIds) {
-      await tx`
-        insert into public.wiki_internal_links (source_article_id, target_stable_id, link_kind, source_token)
-        values (${articleId}::uuid, ${targetId}, 'related', ${targetId})
-        on conflict do nothing
-      `;
-    }
     await tx`
       update halleus_private.wiki_publish_jobs
       set status = 'published', completed_at = now(), locked_at = null, last_error = null
@@ -227,7 +214,14 @@ async function publishClaimedJob(jobId: string) {
         'Due Wiki publish job', true, ${`wiki-publisher:${jobId}`}
       )
     `;
+
+    return {
+      sourceArticleId: articleId,
+      bodyMarkdown: snapshot.bodyMarkdown,
+      relatedArticleIds: snapshot.relatedArticleIds,
+    };
   });
+  await syncPublishedWikiInternalLinksBestEffort(materializationInput);
   return publishedSlug;
 }
 

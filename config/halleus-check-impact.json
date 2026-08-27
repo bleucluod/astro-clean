@@ -706,8 +706,11 @@
         "app/wiki/**",
         "app/api/admin/wiki/**",
         "app/api/internal/wiki/**",
+        "app/indexnow-key.txt/route.ts",
         "components/admin/WikiAdminPanel.tsx",
         "lib/wiki/**",
+        "lib/wiki/wiki-link-materialization.ts",
+        "lib/config/env.ts",
         "lib/config/wiki.ts",
         "database/migrations/*wiki*.sql",
         "database/seeds/*wiki*.sql",
@@ -730,6 +733,9 @@
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority",
+        "check:wiki-indexnow-discovery",
+        "check:wiki-link-lifecycle-status",
+        "check:wiki-safe-publish-link-materialization",
         "check:wiki-admin-completion",
         "check:predeploy-admin-ia"
       ],
@@ -807,7 +813,8 @@
       "id": "wiki-guard-tooling",
       "description": "Focused Wiki guards without a production runtime change.",
       "patterns": [
-        "scripts/check-*wiki*.mjs"
+        "scripts/check-*wiki*.mjs",
+        "scripts/check-wiki-indexnow-discovery.mjs"
       ],
       "guards": [
         "check:wiki-content-foundation",
@@ -822,6 +829,9 @@
         "check:wiki-queue-operations",
         "check:wiki-queue-priority",
         "check:wiki-content-guide-priority",
+        "check:wiki-indexnow-discovery",
+        "check:wiki-link-lifecycle-status",
+        "check:wiki-safe-publish-link-materialization",
         "check:wiki-admin-completion"
       ],
       "lint": true,
@@ -1004,7 +1014,11 @@
       "description": "Publisher scheduling, readiness, and VPS service contracts.",
       "patterns": [
         "app/api/admin/wiki/publication-jobs/**",
+        "app/api/admin/wiki/articles/[articleId]/actions/route.ts",
         "app/api/internal/wiki/**",
+        "app/indexnow-key.txt/route.ts",
+        "lib/wiki/wiki-indexnow.ts",
+        "lib/wiki/wiki-link-materialization.ts",
         "lib/wiki/wiki-publisher.ts",
         "lib/wiki/wiki-revalidation.ts",
         "lib/wiki/wiki-scheduling.ts",
@@ -1019,6 +1033,9 @@
         "check:full-wiki-cms",
         "check:wiki-scheduling-determinism",
         "check:vps-release-workflow",
+        "check:wiki-indexnow-discovery",
+        "check:wiki-link-lifecycle-status",
+        "check:wiki-safe-publish-link-materialization",
         "check:wiki-queue-operations",
         "check:wiki-queue-priority"
       ],
