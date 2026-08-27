@@ -46,7 +46,7 @@ function markerPlacement(text: string, offset: number) {
   return `body-block:${blockIndex}`;
 }
 
-function collectBodyLinks(article: WikiLinkArticleInput) {
+export function collectBodyLinks(article: WikiLinkArticleInput) {
   const links: WikiLinkEdge[] = [];
   for (const match of article.bodyMarkdown.matchAll(ARTICLE_LINK_RE)) {
     const target = match[1];

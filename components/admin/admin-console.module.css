@@ -1609,6 +1609,29 @@
   font-size: 0.79rem;
 }
 
+.mutedInline {
+  color: #718398;
+}
+
+.linkGraphList {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.linkGraphList span {
+  display: block;
+  padding: 6px 8px;
+  border: 1px solid #e8eef4;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #243447;
+}
+
+.linkGraphList small {
+  margin-top: 2px;
+}
+
 .recordNote {
   margin: 0;
   padding: 9px 10px;
