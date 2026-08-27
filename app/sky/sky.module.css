@@ -168,6 +168,36 @@
 .shell p { color: var(--sky-text-soft); }
 .shell a { color: var(--sky-text); }
 
+.skyPage .contentSection h2,
+.skyPage .contentSection h3,
+.skyPage .contentSection strong,
+.skyPage .contentSection summary,
+.skyPage .moonCard h2,
+.skyPage .moonCard strong,
+.skyPage .cta h2,
+.skyPage .quality h2,
+.skyPage :global(.sky-astrochart-wheel h2),
+.skyPage :global(.sky-astrochart-wheel h3),
+.skyPage :global(.sky-astrochart-wheel strong) {
+  color: var(--sky-text) !important;
+}
+
+.skyPage .contentSection p,
+.skyPage .contentSection li,
+.skyPage .contentSection small,
+.skyPage .sectionIntro,
+.skyPage .moonCard p,
+.skyPage .moonCard dt,
+.skyPage .moonCard dd,
+.skyPage .cta p,
+.skyPage .quality p,
+.skyPage :global(.sky-astrochart-wheel p),
+.skyPage :global(.sky-astrochart-wheel li),
+.skyPage :global(.sky-astrochart-wheel small),
+.skyPage :global(.sky-astrochart-wheel span) {
+  color: var(--sky-muted) !important;
+}
+
 .skyPage :global([data-final-editorial-page="sky"] h1),
 .skyPage :global([data-final-editorial-page="sky"] h2),
 .skyPage :global([data-final-editorial-page="sky"] h3),
@@ -631,11 +661,11 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.75fr);
-  gap: clamp(18px, 3vw, 30px);
+  gap: clamp(14px, 2.6vw, 24px);
   align-items: start;
   overflow: hidden;
-  padding: clamp(22px, 4vw, 34px);
-  border-radius: 18px;
+  padding: clamp(18px, 3.2vw, 28px);
+  border-radius: 16px;
   background:
     radial-gradient(circle at 86% 12%, rgba(255, 255, 255, 0.08), transparent 18rem),
     radial-gradient(circle at 4% 86%, rgba(255, 255, 255, 0.035), transparent 18rem),
@@ -664,18 +694,18 @@
 }
 
 .dailyBriefMain h2 {
-  max-width: 20ch;
+  max-width: 24ch;
   color: var(--sky-text) !important;
-  font-size: clamp(1.5rem, 2.7vw, 2.25rem);
+  font-size: clamp(1.35rem, 2.35vw, 1.95rem);
   line-height: 1.45;
 }
 
 .dailyBriefMain > p {
   max-width: 58ch;
-  margin: 9px 0 0;
+  margin: 7px 0 0;
   color: var(--sky-text-soft) !important;
-  font-size: 0.96rem;
-  line-height: 1.9;
+  font-size: 0.91rem;
+  line-height: 1.8;
 }
 
 .dailySignals {
@@ -690,17 +720,18 @@
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .dailyReasons article {
   display: grid;
-  gap: 6px;
+  grid-template-columns: minmax(82px, 0.34fr) minmax(0, 1fr);
+  gap: 10px;
   align-content: start;
   border: 1px solid var(--sky-border);
-  border-radius: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.026);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .dailyReasons span {
@@ -712,8 +743,8 @@
 .dailyReasons p {
   margin: 0;
   color: var(--sky-text-soft) !important;
-  font-size: 0.9rem;
-  line-height: 1.75;
+  font-size: 0.82rem;
+  line-height: 1.65;
 }
 
 .dailySignals div {
@@ -721,7 +752,7 @@
   gap: 4px;
   align-content: center;
   min-height: 0;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.032);
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
@@ -741,8 +772,8 @@
 
 .dailySignals strong {
   color: var(--sky-text) !important;
-  font-size: 0.96rem;
-  line-height: 1.65;
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .engineReading,
