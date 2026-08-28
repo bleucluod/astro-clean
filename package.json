@@ -203,6 +203,8 @@
     "check:wiki-indexability-observability": "node scripts/check-wiki-indexability-observability.mjs",
     "check:wiki-link-lifecycle-status": "node scripts/check-wiki-link-lifecycle-status.mjs",
     "check:wiki-safe-publish-link-materialization": "node scripts/check-wiki-safe-publish-link-materialization.mjs",
+    "check:wiki-under3-live-inbound-repair": "node scripts/check-wiki-under3-live-inbound-repair.mjs",
+    "repair:wiki-under3-live-inbound": "node scripts/repair-wiki-under3-live-inbound-links.mjs",
     "check:wiki-article-link-cta-visibility": "node scripts/check-wiki-article-link-cta-visibility.mjs",
     "check:sitewide-link-cta-contrast": "node scripts/check-sitewide-link-cta-contrast.mjs",
     "check:wiki-category-content": "node scripts/check-wiki-category-content.mjs",
