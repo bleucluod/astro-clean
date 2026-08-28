@@ -239,9 +239,10 @@ function graphTargetState(
   nowMs: number,
 ): WikiLinkGraphTargetState {
   if (!target || target.deletedAt) return "missing";
-  if (!target.indexable) return "noindex";
-  if (isPublishedNow(target, nowMs)) return "published";
+  if (isPublicReadyArticle(target, nowMs)) return "published";
   if (isScheduledArticle(target, nowMs)) return "scheduled";
+  if (target.status === "draft") return "draft";
+  if (!target.indexable) return "noindex";
   return "draft";
 }
 
@@ -295,8 +296,11 @@ async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
   }
 
   const graphArticles = articles.map((article) => {
+    const publicReady = isPublicReadyArticle(article, nowMs);
     const outgoingBodyLinks = outgoingBySource.get(article.stableId) ?? [];
     const incomingBodyLinks = incomingByTarget.get(article.stableId) ?? [];
+    const liveIncomingBodyLinks = incomingBodyLinks.filter((edge) => edge.sourcePath);
+    const plannedIncomingBodyLinks = incomingBodyLinks.filter((edge) => !edge.sourcePath);
     return {
       stableId: article.stableId,
       slug: article.slug,
@@ -306,12 +310,21 @@ async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
       indexable: article.indexable,
       publishedAt: article.publishedAt,
       scheduledFor: article.scheduledFor,
-      publicReady: isPublicReadyArticle(article, nowMs),
+      publicReady,
       bodyOutgoingCount: outgoingBodyLinks.length,
       bodyIncomingCount: new Set(
+        liveIncomingBodyLinks.map((edge) => edge.sourceStableId),
+      ).size,
+      bodyPlannedIncomingCount: new Set(
+        plannedIncomingBodyLinks.map((edge) => edge.sourceStableId),
+      ).size,
+      bodyTotalIncomingCount: new Set(
         incomingBodyLinks.map((edge) => edge.sourceStableId),
       ).size,
-      unresolvedOutgoingCount: outgoingBodyLinks.filter(
+      unresolvedOutgoingCount: publicReady ? outgoingBodyLinks.filter(
+        (edge) => edge.targetState !== "published",
+      ).length : 0,
+      plannedUnresolvedOutgoingCount: publicReady ? 0 : outgoingBodyLinks.filter(
         (edge) => edge.targetState !== "published",
       ).length,
       outgoingBodyLinks,
@@ -325,7 +338,8 @@ async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
     notes: [
       "Only article links found inside bodyMarkdown are counted.",
       "Header, footer, sidebar, breadcrumb, CTA, category, and related-article module links are excluded.",
-      "Draft and scheduled articles are included so AI link-building can plan ahead without crawling every page.",
+      "bodyIncomingCount counts only inbound links from current public-ready articles.",
+      "Draft and scheduled article links remain visible as planned links, but they do not count as live inbound authority.",
     ],
     summary: {
       totalArticles: graphArticles.length,
@@ -355,12 +369,15 @@ async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
         },
       ).length,
       bodyEdges: allEdges.length,
-      unresolvedOutgoing: allEdges.filter((edge) => edge.targetState !== "published").length,
-      missingTargets: allEdges.filter((edge) => edge.targetState === "missing").length,
+      liveBodyEdges: allEdges.filter((edge) => edge.sourcePath).length,
+      plannedBodyEdges: allEdges.filter((edge) => !edge.sourcePath).length,
+      unresolvedOutgoing: allEdges.filter((edge) => edge.sourcePath && edge.targetState !== "published").length,
+      plannedUnresolvedOutgoing: allEdges.filter((edge) => !edge.sourcePath && edge.targetState !== "published").length,
+      missingTargets: allEdges.filter((edge) => edge.sourcePath && edge.targetState === "missing").length,
       unpublishedTargets: allEdges.filter(
-        (edge) => edge.targetState === "scheduled" || edge.targetState === "draft",
+        (edge) => edge.sourcePath && (edge.targetState === "scheduled" || edge.targetState === "draft"),
       ).length,
-      noindexTargets: allEdges.filter((edge) => edge.targetState === "noindex").length,
+      noindexTargets: allEdges.filter((edge) => edge.sourcePath && edge.targetState === "noindex").length,
       articlesWithoutIncoming: graphArticles.filter(
         (article) => article.publicReady && article.bodyIncomingCount === 0,
       ).length,

@@ -187,7 +187,10 @@ function articleIssueLabel(article: WikiLinkGraphArticle) {
   if (article.unresolvedOutgoingCount > 0) {
     return `${formatNumber(article.unresolvedOutgoingCount)} مقصد لینک باید اصلاح شود`;
   }
-  if (article.bodyIncomingCount === 0) return "لینک ورودی متنی ندارد";
+  if (article.bodyIncomingCount === 0 && article.bodyPlannedIncomingCount > 0) {
+    return "فقط لینک ورودی برنامه‌ریزی‌شده دارد";
+  }
+  if (article.bodyIncomingCount === 0) return "لینک ورودی زنده ندارد";
   return "مشکل فوری ندارد";
 }
 
@@ -788,7 +791,9 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
           key: `${row.path}:incoming`,
           title: article.title,
           metric,
-          reason: "گوگل صفحه را دیده، اما از متن ویکی لینک ورودی ندارد.",
+          reason: article.bodyPlannedIncomingCount > 0
+            ? "گوگل صفحه را دیده، اما فقط از مقاله‌های منتشرنشده لینک برنامه‌ریزی‌شده دارد."
+            : "گوگل صفحه را دیده، اما از متن مقاله‌های منتشر لینک ورودی زنده ندارد.",
           action: "قبل از دستکاری متن، یک یا چند ورودی contextual بساز.",
           tone: "danger",
           stableId: article.stableId,
@@ -802,7 +807,9 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
         key: `${article.stableId}:missing-gsc`,
         title: article.title,
         metric: "در CSV سرچ کنسول دیده نشد",
-        reason: "ممکن است هنوز کشف نشده باشد یا impression کافی نگرفته باشد.",
+        reason: article.bodyPlannedIncomingCount > 0
+          ? "ممکن است لینک‌های برنامه‌ریزی‌شده هنوز برای گوگل قابل دیدن نباشند."
+          : "ممکن است هنوز کشف نشده باشد یا impression کافی نگرفته باشد.",
         action: article.bodyIncomingCount === 0 ? "اول برایش لینک ورودی متنی بساز." : "بعد از اسکن بعدی GSC دوباره بررسی کن.",
         tone: article.bodyIncomingCount === 0 ? "attention" : "positive",
         stableId: article.stableId,
@@ -871,8 +878,11 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
         publishedAt: article.publishedAt,
         scheduledFor: article.scheduledFor,
         bodyIncomingCount: article.bodyIncomingCount,
+        bodyPlannedIncomingCount: article.bodyPlannedIncomingCount,
+        bodyTotalIncomingCount: article.bodyTotalIncomingCount,
         bodyOutgoingCount: article.bodyOutgoingCount,
         unresolvedOutgoingCount: article.unresolvedOutgoingCount,
+        plannedUnresolvedOutgoingCount: article.plannedUnresolvedOutgoingCount,
         practicalIssue: articleIssueLabel(article),
         outgoingBodyLinks: article.outgoingBodyLinks.map((edge) => ({
           anchor: edge.anchor,
@@ -885,6 +895,8 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
           anchor: edge.anchor,
           sourceStableId: edge.sourceStableId,
           sourceTitle: edge.sourceTitle,
+          sourceStatus: edge.sourceStatus,
+          live: Boolean(edge.sourcePath),
         })),
       })),
     };
@@ -1107,7 +1119,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
             <table>
               <thead>
                 <tr>
-                  <th>مقاله</th><th>دسته</th><th>وضعیت</th><th>تاریخ</th><th>ورودی</th><th>خروجی</th><th>مشکل</th><th>اکشن</th>
+                  <th>مقاله</th><th>دسته</th><th>وضعیت</th><th>تاریخ</th><th>ورودی زنده</th><th>خروجی</th><th>مشکل</th><th>اکشن</th>
                 </tr>
               </thead>
               <tbody>
@@ -1117,7 +1129,12 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
                     <td>{CATEGORY_LABELS[article.categoryId] ?? article.categoryId}</td>
                     <td>{graphStatusLabel(article)}</td>
                     <td>{formatDate(article.publishedAt ?? article.scheduledFor)}</td>
-                    <td>{formatNumber(article.bodyIncomingCount)}</td>
+                    <td>
+                      <strong>{formatNumber(article.bodyIncomingCount)}</strong>
+                      {article.bodyPlannedIncomingCount > 0 ? (
+                        <small>{formatNumber(article.bodyPlannedIncomingCount)} برنامه‌ریزی‌شده</small>
+                      ) : null}
+                    </td>
                     <td>{formatNumber(article.bodyOutgoingCount)}</td>
                     <td>
                       <span data-tone={article.unresolvedOutgoingCount > 0 ? "danger" : article.bodyIncomingCount === 0 ? "attention" : "positive"}>
@@ -1358,7 +1375,8 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               <button type="button" aria-label="بستن" onClick={() => setSelectedStableId(null)}>×</button>
             </div>
             <div className={styles.seoCompactMetrics}>
-              <span><strong>{formatNumber(selectedArticle.bodyIncomingCount)}</strong> ورودی</span>
+              <span><strong>{formatNumber(selectedArticle.bodyIncomingCount)}</strong> ورودی زنده</span>
+              <span><strong>{formatNumber(selectedArticle.bodyPlannedIncomingCount)}</strong> ورودی برنامه‌ریزی‌شده</span>
               <span><strong>{formatNumber(selectedArticle.bodyOutgoingCount)}</strong> خروجی</span>
               <span><strong>{formatNumber(selectedArticle.unresolvedOutgoingCount)}</strong> مقصد مشکل‌دار</span>
             </div>
@@ -1384,6 +1402,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
                     <article key={`${edge.sourceStableId}-${edge.anchor}-${index}`}>
                       <strong>{edge.sourceTitle}</strong>
                       <span>{edge.anchor}</span>
+                      <small>{edge.sourcePath ? "زنده" : "برنامه‌ریزی‌شده"}</small>
                     </article>
                   ))}
                 </div>

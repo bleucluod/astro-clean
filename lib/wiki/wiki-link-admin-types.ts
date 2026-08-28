@@ -155,7 +155,10 @@ export type WikiLinkGraphArticle = {
   publicReady: boolean;
   bodyOutgoingCount: number;
   bodyIncomingCount: number;
+  bodyPlannedIncomingCount: number;
+  bodyTotalIncomingCount: number;
   unresolvedOutgoingCount: number;
+  plannedUnresolvedOutgoingCount: number;
   outgoingBodyLinks: WikiLinkGraphEdge[];
   incomingBodyLinks: WikiLinkGraphEdge[];
 };
@@ -170,7 +173,10 @@ export type WikiLinkGraphState = {
     scheduled: number;
     draft: number;
     bodyEdges: number;
+    liveBodyEdges: number;
+    plannedBodyEdges: number;
     unresolvedOutgoing: number;
+    plannedUnresolvedOutgoing: number;
     missingTargets: number;
     unpublishedTargets: number;
     noindexTargets: number;
