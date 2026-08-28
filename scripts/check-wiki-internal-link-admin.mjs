@@ -22,6 +22,7 @@ const shahrivarSeoMigration = read("database/migrations/0024_wiki_shahrivar_1405
 const shahrivarEncodingRepairMigration = read("database/migrations/0025_wiki_shahrivar_1405_encoding_repair.sql");
 const optionalIncomingRuleMigration = read("database/migrations/0026_wiki_link_rule_incoming_optional.sql");
 const publisherSource = read("lib/wiki/wiki-publisher.ts");
+const publicationReadiness = read("lib/wiki/wiki-publication-link-readiness.ts");
 // HALLEUS_BATCH4_R20B13E_0021_JSON_ALIAS_GUARD
 for (const marker of [
   "as key_point(key_point_value)",
@@ -264,13 +265,19 @@ for (const marker of [
   requireText("0026 optional incoming migration", optionalIncomingRuleMigration, marker);
 }
 for (const marker of [
-  "HALLEUS_WIKI_INCOMING_MIN_RULE_DRIVEN",
-  "const incomingMinimum = asNumber(activeLinkRuleConfig.incomingMin);",
-  "incomingMinimum > 0",
-  "validIncomingSourceIds.size < incomingMinimum",
-  "Scheduled Wiki incoming rule blocked publication",
+  "HALLEUS_WIKI_INCOMING_MIN3_LIVE_PUBLICATION_GATE",
+  "assertWikiPublicationLiveInboundReady",
 ]) {
-  requireText("publisher rule-driven incoming minimum", publisherSource, marker);
+  requireText("publisher live incoming minimum", publisherSource, marker);
+}
+for (const marker of [
+  "WIKI_PUBLICATION_LIVE_INBOUND_MINIMUM = 3",
+  "Math.max(",
+  "incomingTarget",
+  "findWikiInternalArticleIds",
+  "distinct current-public articles",
+]) {
+  requireText("publication live inbound readiness", publicationReadiness, marker);
 }
 for (const marker of [
   "validIncomingSourceIds.size < 3",
@@ -889,10 +896,9 @@ for (const marker of [
 for (const marker of [
   "HALLEUS_BATCH4_R19_PUBLISH_MIN3_GATE",
   "HALLEUS_WIKI_OUTGOING_MIN_RULE_DRIVEN",
-  "HALLEUS_WIKI_INCOMING_MIN_RULE_DRIVEN",
+  "HALLEUS_WIKI_INCOMING_MIN3_LIVE_PUBLICATION_GATE",
   "outgoingMinimum > 0 && validOutgoingIds.size < outgoingMinimum",
-  "incomingMinimum > 0",
-  "validIncomingSourceIds.size < incomingMinimum",
+  "assertWikiPublicationLiveInboundReady",
   "findWikiInternalArticleIds(snapshot.bodyMarkdown)",
   "status = 'published'",
   "is_indexable = true",

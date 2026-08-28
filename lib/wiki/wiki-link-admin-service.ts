@@ -32,6 +32,7 @@ import type {
   WikiLinkGraphEdge,
   WikiLinkGraphState,
   WikiLinkGraphTargetState,
+  WikiIndexNowAdminState,
   WikiLinkScanKpis,
   WikiLinkScanRules,
 } from "@/lib/wiki/wiki-link-admin-types";
@@ -322,7 +323,10 @@ async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
         incomingBodyLinks.map((edge) => edge.sourceStableId),
       ).size,
       unresolvedOutgoingCount: publicReady ? outgoingBodyLinks.filter(
-        (edge) => edge.targetState !== "published",
+        (edge) => edge.targetState !== "published" && edge.targetState !== "scheduled",
+      ).length : 0,
+      pendingTargetOutgoingCount: publicReady ? outgoingBodyLinks.filter(
+        (edge) => edge.targetState === "scheduled",
       ).length : 0,
       plannedUnresolvedOutgoingCount: publicReady ? 0 : outgoingBodyLinks.filter(
         (edge) => edge.targetState !== "published",
@@ -371,7 +375,12 @@ async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
       bodyEdges: allEdges.length,
       liveBodyEdges: allEdges.filter((edge) => edge.sourcePath).length,
       plannedBodyEdges: allEdges.filter((edge) => !edge.sourcePath).length,
-      unresolvedOutgoing: allEdges.filter((edge) => edge.sourcePath && edge.targetState !== "published").length,
+      unresolvedOutgoing: allEdges.filter(
+        (edge) => edge.sourcePath && edge.targetState !== "published" && edge.targetState !== "scheduled",
+      ).length,
+      pendingTargetOutgoing: allEdges.filter(
+        (edge) => edge.sourcePath && edge.targetState === "scheduled",
+      ).length,
       plannedUnresolvedOutgoing: allEdges.filter((edge) => !edge.sourcePath && edge.targetState !== "published").length,
       missingTargets: allEdges.filter((edge) => edge.sourcePath && edge.targetState === "missing").length,
       unpublishedTargets: allEdges.filter(
@@ -381,9 +390,52 @@ async function buildWikiLinkGraphState(): Promise<WikiLinkGraphState> {
       articlesWithoutIncoming: graphArticles.filter(
         (article) => article.publicReady && article.bodyIncomingCount === 0,
       ).length,
+      articlesBelowLiveIncomingTarget: graphArticles.filter(
+        (article) => article.publicReady && article.bodyIncomingCount < 3,
+      ).length,
     },
     articles: graphArticles.sort((a, b) => a.title.localeCompare(b.title, "fa")),
   };
+}
+
+async function loadIndexNowAdminState(): Promise<WikiIndexNowAdminState | null> {
+  const sql = getAdminDatabase();
+  try {
+    const [recentRows, summaryRows] = await Promise.all([
+      sql`
+        select id::text, reason, ok, skipped, url_count, status_code,
+               error_summary, submitted_urls, created_at::text
+        from halleus_private.wiki_indexnow_submissions
+        order by created_at desc
+        limit 8
+      `,
+      sql`
+        select coalesce(sum(url_count), 0)::integer as submitted
+        from halleus_private.wiki_indexnow_submissions
+        where ok = true
+          and skipped = false
+          and created_at >= now() - interval '24 hours'
+      `,
+    ]);
+    return {
+      totalSubmittedLast24h: asNumber(summaryRows[0]?.submitted ?? 0),
+      recent: recentRows.map((row) => ({
+        id: asString(row.id),
+        reason: asString(row.reason),
+        ok: Boolean(row.ok),
+        skipped: Boolean(row.skipped),
+        submitted: asNumber(row.url_count),
+        status: row.status_code === null || row.status_code === undefined
+          ? null
+          : asNumber(row.status_code),
+        error: asNullableString(row.error_summary),
+        createdAt: asString(row.created_at),
+        sampleUrls: jsonArray<string>(row.submitted_urls).slice(0, 5),
+      })),
+    };
+  } catch {
+    return null;
+  }
 }
 
 function graphDigest(edges: WikiLinkEdge[]) {
@@ -617,6 +669,7 @@ export async function getWikiLinkAdminState(
   const sql = getAdminDatabase();
   const { version, rules } = await loadRules();
   const graph = await buildWikiLinkGraphState();
+  const indexNow = await loadIndexNowAdminState();
   const runRows = await sql`
     select id::text, trigger_kind, status, rules_version,
            article_count, edge_count, finding_count, suggestion_count,
@@ -633,6 +686,7 @@ export async function getWikiLinkAdminState(
       kpis: null,
       articles: [],
       graph,
+      indexNow,
       findings: [],
       suggestions: [],
       detail: null,
@@ -706,6 +760,7 @@ export async function getWikiLinkAdminState(
     kpis: asRecord(run.kpis) as WikiLinkScanKpis,
     articles,
     graph,
+    indexNow,
     findings,
     suggestions,
     detail,

@@ -28,6 +28,7 @@ for (const marker of [
   "publicReady",
   "sitemapEligible",
   "unresolvedInlineTargets",
+  "publicBelowInboundTarget",
   "failedLinks",
 ]) {
   requireText("observability types", types, marker);
@@ -42,6 +43,8 @@ for (const marker of [
   "expectedPath: `/wiki/${article.slug}`",
   "sitemapEligible: ready",
   "Public article has no active inbound Wiki links yet.",
+  "Public article has fewer than three active inbound Wiki links.",
+  "LIVE_INBOUND_TARGET = 3",
 ]) {
   requireText("observability service", service, marker);
 }
@@ -63,6 +66,7 @@ requireText("admin panel", panel, "/api/admin/wiki/indexability");
 requireText("admin panel", panel, "آمادگی ایندکس");
 requireText("admin panel", panel, "ادعای ایندکس گوگل نیست");
 requireText("admin panel", panel, "مقصد نامعتبر");
+requireText("admin panel", panel, "۳ لینک ورودی فعال");
 
 requireText("package scripts", packageJson, '"check:wiki-indexability-observability"');
 requireText("impact registry", impact, "check:wiki-indexability-observability");

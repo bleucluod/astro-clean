@@ -36,6 +36,8 @@ type SeoIssueFilter =
   | "noIncoming";
 type SeoSort = "problem" | "incomingAsc" | "outgoingDesc" | "scheduled" | "title";
 type SeoExportKind = "all" | "problems" | "noIncoming" | "linkMap";
+const LIVE_INBOUND_TARGET = 3;
+
 type SearchConsoleRow = {
   page: string;
   path: string;
@@ -187,6 +189,12 @@ function articleIssueLabel(article: WikiLinkGraphArticle) {
   if (article.unresolvedOutgoingCount > 0) {
     return `${formatNumber(article.unresolvedOutgoingCount)} مقصد لینک باید اصلاح شود`;
   }
+  if (article.pendingTargetOutgoingCount > 0) {
+    return `${formatNumber(article.pendingTargetOutgoingCount)} لینک منتظر انتشار مقصد`;
+  }
+  if (article.publicReady && article.bodyIncomingCount < LIVE_INBOUND_TARGET) {
+    return `${formatNumber(LIVE_INBOUND_TARGET - article.bodyIncomingCount)} لینک ورودی زنده کم دارد`;
+  }
   if (article.bodyIncomingCount === 0 && article.bodyPlannedIncomingCount > 0) {
     return "فقط لینک ورودی برنامه‌ریزی‌شده دارد";
   }
@@ -208,6 +216,8 @@ function readinessReasonLabel(reason: string) {
       "هیچ مقاله‌ای از داخل متن به این صفحه لینک نداده است.",
     "Public article has no active inbound Wiki links yet.":
       "این صفحه منتشر است، اما هنوز از مقاله‌های منتشر دیگر لینک ورودی فعال ندارد.",
+    "Public article has fewer than three active inbound Wiki links.":
+      "این صفحه منتشر است، اما هنوز به ۳ لینک ورودی فعال از مقاله‌های منتشر دیگر نرسیده است.",
     "Public article has no active contextual outgoing Wiki links.":
       "این صفحه منتشر است، اما هنوز لینک خروجی متنی فعال ندارد.",
     "Some materialized links failed activation.":
@@ -223,7 +233,10 @@ function readinessAction(article: WikiIndexabilityArticleStatus) {
     return "مقصدهای لینک داخل متن را به صفحه منتشرشده و قابل ایندکس تغییر بده.";
   }
   if (article.incoming.active === 0) {
-    return "از یک یا چند مقاله مرتبط، لینک متنی طبیعی به این صفحه بساز.";
+    return "از سه مقاله مرتبط منتشرشده، لینک متنی طبیعی به این صفحه بساز.";
+  }
+  if (article.publicReady && article.incoming.active < LIVE_INBOUND_TARGET) {
+    return `از مقاله‌های مرتبط منتشرشده، ${formatNumber(LIVE_INBOUND_TARGET - article.incoming.active)} لینک ورودی طبیعی دیگر به این صفحه اضافه کن.`;
   }
   if (!article.publicReady) {
     return "وضعیت انتشار، indexable و زمان انتشار مقاله را بررسی کن.";
@@ -654,7 +667,12 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
     const articles = [...(state?.graph.articles ?? [])].filter((article) => {
       if (statusFilter !== "all" && graphStatus(article) !== statusFilter) return false;
       if (categoryFilter !== "all" && article.categoryId !== categoryFilter) return false;
-      if (issueFilter === "problem" && article.unresolvedOutgoingCount === 0 && article.bodyIncomingCount > 0) {
+      if (
+        issueFilter === "problem" &&
+        article.unresolvedOutgoingCount === 0 &&
+        article.pendingTargetOutgoingCount === 0 &&
+        (!article.publicReady || article.bodyIncomingCount >= LIVE_INBOUND_TARGET)
+      ) {
         return false;
       }
       if (
@@ -677,7 +695,10 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
       ) {
         return false;
       }
-      if (issueFilter === "noIncoming" && article.bodyIncomingCount > 0) return false;
+      if (
+        issueFilter === "noIncoming" &&
+        (!article.publicReady || article.bodyIncomingCount >= LIVE_INBOUND_TARGET)
+      ) return false;
 
       const effectiveDate = article.publishedAt ?? article.scheduledFor;
       const ymd = effectiveDate?.slice(0, 10) ?? "";
@@ -719,6 +740,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
       }
       return (
         right.unresolvedOutgoingCount - left.unresolvedOutgoingCount ||
+        right.pendingTargetOutgoingCount - left.pendingTargetOutgoingCount ||
         left.bodyIncomingCount - right.bodyIncomingCount ||
         left.title.localeCompare(right.title, "fa")
       );
@@ -748,13 +770,15 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
         .filter(
           (article) =>
             article.unresolvedOutgoingCount > 0 ||
-            article.bodyIncomingCount === 0,
+            article.pendingTargetOutgoingCount > 0 ||
+            (article.publicReady && article.bodyIncomingCount < LIVE_INBOUND_TARGET),
         )
         .sort((left, right) => {
           const leftScheduledNoIncoming = graphStatus(left) === "scheduled" && left.bodyIncomingCount === 0 ? 1 : 0;
           const rightScheduledNoIncoming = graphStatus(right) === "scheduled" && right.bodyIncomingCount === 0 ? 1 : 0;
           return (
             right.unresolvedOutgoingCount - left.unresolvedOutgoingCount ||
+            right.pendingTargetOutgoingCount - left.pendingTargetOutgoingCount ||
             rightScheduledNoIncoming - leftScheduledNoIncoming ||
             left.bodyIncomingCount - right.bodyIncomingCount ||
             left.title.localeCompare(right.title, "fa")
@@ -859,7 +883,9 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
       return articles.filter((article) => article.unresolvedOutgoingCount > 0);
     }
     if (kind === "noIncoming") {
-      return articles.filter((article) => article.bodyIncomingCount === 0);
+      return articles.filter(
+        (article) => article.publicReady && article.bodyIncomingCount < LIVE_INBOUND_TARGET,
+      );
     }
     return articles;
   }
@@ -904,6 +930,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
         bodyTotalIncomingCount: article.bodyTotalIncomingCount,
         bodyOutgoingCount: article.bodyOutgoingCount,
         unresolvedOutgoingCount: article.unresolvedOutgoingCount,
+        pendingTargetOutgoingCount: article.pendingTargetOutgoingCount,
         plannedUnresolvedOutgoingCount: article.plannedUnresolvedOutgoingCount,
         practicalIssue: articleIssueLabel(article),
         outgoingBodyLinks: article.outgoingBodyLinks.map((edge) => ({
@@ -948,7 +975,9 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
   }
 
   const unresolved = state?.graph.summary.unresolvedOutgoing ?? 0;
+  const pendingTargetOutgoing = state?.graph.summary.pendingTargetOutgoing ?? 0;
   const noIncoming = state?.graph.summary.articlesWithoutIncoming ?? 0;
+  const belowLiveIncomingTarget = state?.graph.summary.articlesBelowLiveIncomingTarget ?? noIncoming;
   const blocked = indexability?.summary.blocked ?? 0;
 
   const primaryPriority = unresolved > 0
@@ -970,14 +999,25 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
           action: "دیدن کارهای آمادگی ایندکس",
           run: () => onSectionChange("readiness"),
         }
-      : noIncoming > 0
+      : belowLiveIncomingTarget > 0
         ? {
             eyebrow: "اولویت اول",
-            title: `ساخت لینک ورودی برای ${formatNumber(noIncoming)} مقاله`,
-            body: "این مقاله‌ها از متن مقاله‌های دیگر ورودی ندارند و در ساختار داخلی ویکی ضعیف‌تر دیده می‌شوند.",
+            title: `تکمیل ۳ لینک ورودی زنده برای ${formatNumber(belowLiveIncomingTarget)} مقاله`,
+            body: "هر مقاله منتشر باید از حداقل سه مقاله منتشر دیگر لینک متنی طبیعی بگیرد؛ لینک‌های scheduled تا زمان انتشار مقصد فقط planned حساب می‌شوند.",
             action: "دیدن فرصت‌های لینک‌سازی",
             run: () => onSectionChange("opportunities"),
           }
+        : pendingTargetOutgoing > 0
+          ? {
+              eyebrow: "وضعیت فعلی",
+              title: `${formatNumber(pendingTargetOutgoing)} لینک منتظر انتشار مقصد است`,
+              body: "این‌ها مقصد خراب نیستند؛ وقتی مقاله مقصد منتشر شود، لینک‌های مرتبط فعال و برای IndexNow ارسال می‌شوند.",
+              action: "دیدن لینک‌سازی داخلی",
+              run: () => {
+                resetLinkFilters("unpublished");
+                onSectionChange("links");
+              },
+            }
         : {
             eyebrow: "وضعیت فعلی",
             title: "مشکل فوری در لینک‌های متنی و آمادگی ایندکس دیده نمی‌شود",
@@ -1000,8 +1040,8 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               <h2>
                 {unresolved > 0 || blocked > 0
                   ? "SEO ویکی نیازمند اصلاح است"
-                  : noIncoming > 0
-                    ? "ساختار لینک داخلی قابل تقویت است"
+                  : belowLiveIncomingTarget > 0
+                    ? "لینک‌سازی داخلی هنوز به ۳ ورودی زنده نرسیده"
                     : "وضعیت فنی SEO ویکی سالم است"}
               </h2>
               <p>این صفحه فقط چیزهایی را نشان می‌دهد که به تصمیم و اکشن بعدی کمک می‌کنند.</p>
@@ -1024,14 +1064,47 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               <span>مقصد لینک نیازمند اصلاح</span>
             </button>
             <button type="button" onClick={() => onSectionChange("opportunities")}>
-              <strong>{formatNumber(noIncoming)}</strong>
-              <span>مقاله بدون لینک ورودی متنی</span>
+              <strong>{formatNumber(belowLiveIncomingTarget)}</strong>
+              <span>مقاله زیر ۳ لینک ورودی زنده</span>
             </button>
             <button type="button" onClick={() => onSectionChange("readiness")}>
               <strong>{formatNumber(blocked)}</strong>
               <span>صفحه نیازمند اصلاح آمادگی ایندکس</span>
             </button>
+            <button type="button" onClick={() => { resetLinkFilters("unpublished"); onSectionChange("links"); }}>
+              <strong>{formatNumber(pendingTargetOutgoing)}</strong>
+              <span>لینک منتظر انتشار مقصد</span>
+            </button>
           </section>
+
+          {state?.indexNow ? (
+            <section className={styles.seoSection}>
+              <div className={styles.seoSectionHeader}>
+                <div>
+                  <span className={styles.seoEyebrow}>IndexNow</span>
+                  <h3>ارسال‌های اخیر Bing</h3>
+                  <p>کد ۲۰۰ یعنی Bing درخواست را دریافت کرده؛ crawl و index شدن را باید در Webmaster Tools بررسی کرد.</p>
+                </div>
+                <small>{formatNumber(state.indexNow.totalSubmittedLast24h)} URL موفق در ۲۴ ساعت اخیر</small>
+              </div>
+              <div className={styles.seoTaskList}>
+                {state.indexNow.recent.slice(0, 3).map((item) => (
+                  <article key={item.id}>
+                    <div className={styles.seoTaskTop}>
+                      <div>
+                        <strong>{item.reason}</strong>
+                        <small>{formatDate(item.createdAt)}</small>
+                      </div>
+                      <span data-tone={item.ok && !item.skipped ? "positive" : item.ok ? "attention" : "danger"}>
+                        {item.skipped ? "رد شد" : item.ok ? `HTTP ${item.status ?? "-"}` : "ناموفق"}
+                      </span>
+                    </div>
+                    <p>{formatNumber(item.submitted)} URL ارسال شده{item.error ? `؛ ${item.error}` : ""}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section className={styles.seoPriorityCard}>
             <span>{primaryPriority.eyebrow}</span>
@@ -1132,7 +1205,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               <option value="missing">مقصد پیدا نمی‌شود</option>
               <option value="unpublished">مقصد منتشر نشده</option>
               <option value="noindex">مقصد خارج از ایندکس</option>
-              <option value="noIncoming">بدون ورودی متنی</option>
+              <option value="noIncoming">زیر ۳ ورودی زنده</option>
             </select>
             <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
               <option value="all">همه دسته‌ها</option>
@@ -1171,7 +1244,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
                     </td>
                     <td>{formatNumber(article.bodyOutgoingCount)}</td>
                     <td>
-                      <span data-tone={article.unresolvedOutgoingCount > 0 ? "danger" : article.bodyIncomingCount === 0 ? "attention" : "positive"}>
+                      <span data-tone={article.unresolvedOutgoingCount > 0 ? "danger" : article.pendingTargetOutgoingCount > 0 || article.bodyIncomingCount < LIVE_INBOUND_TARGET ? "attention" : "positive"}>
                         {articleIssueLabel(article)}
                       </span>
                     </td>
@@ -1200,9 +1273,11 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
                 const scheduledNoIncoming = graphStatus(article) === "scheduled" && article.bodyIncomingCount === 0;
                 const label = article.unresolvedOutgoingCount > 0
                   ? "اول اصلاح مقصد لینک"
-                  : scheduledNoIncoming
-                    ? "قبل از انتشار لینک ورودی بساز"
-                    : "لینک ورودی بساز";
+                  : article.pendingTargetOutgoingCount > 0
+                    ? "منتظر انتشار مقصد لینک"
+                    : scheduledNoIncoming || article.bodyIncomingCount < LIVE_INBOUND_TARGET
+                      ? "۳ لینک ورودی زنده بساز"
+                      : "لینک ورودی بساز";
                 return (
                   <article key={article.stableId}>
                     <div>
@@ -1274,8 +1349,8 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               <button type="button" onClick={() => downloadSeoExport("problems")}>دانلود JSON</button>
             </article>
             <article>
-              <strong>مقاله‌های بدون ورودی</strong>
-              <p>برای ساخت برنامه لینک‌سازی قدیمی → جدید یا تقویت صفحات مهم.</p>
+              <strong>مقاله‌های زیر ۳ ورودی زنده</strong>
+              <p>برای ساخت برنامه لینک‌سازی افزایشی بدون حذف لینک‌های قبلی.</p>
               <button type="button" onClick={() => downloadSeoExport("noIncoming")}>دانلود JSON</button>
             </article>
             <article>
@@ -1418,6 +1493,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               <span><strong>{formatNumber(selectedArticle.bodyPlannedIncomingCount)}</strong> ورودی برنامه‌ریزی‌شده</span>
               <span><strong>{formatNumber(selectedArticle.bodyOutgoingCount)}</strong> خروجی</span>
               <span><strong>{formatNumber(selectedArticle.unresolvedOutgoingCount)}</strong> مقصد مشکل‌دار</span>
+              <span><strong>{formatNumber(selectedArticle.pendingTargetOutgoingCount)}</strong> منتظر انتشار مقصد</span>
             </div>
             <section>
               <h4>به کجا لینک داده؟</h4>

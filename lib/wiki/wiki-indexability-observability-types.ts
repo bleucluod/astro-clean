@@ -39,6 +39,7 @@ export type WikiIndexabilitySummary = {
   warning: number;
   blocked: number;
   publicWithoutInbound: number;
+  publicBelowInboundTarget: number;
   unresolvedInlineTargets: number;
   pendingInlineTargets: number;
   activeLinks: number;

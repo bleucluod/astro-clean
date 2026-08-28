@@ -12,6 +12,8 @@ import type {
   WikiIndexabilitySeverity,
 } from "@/lib/wiki/wiki-indexability-observability-types";
 
+const LIVE_INBOUND_TARGET = 3;
+
 type ArticleRow = {
   id: string;
   stableId: string;
@@ -178,6 +180,8 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
     }
     if (ready && incomingCounts.active === 0) {
       warnings.push("Public article has no active inbound Wiki links yet.");
+    } else if (ready && incomingCounts.active < LIVE_INBOUND_TARGET) {
+      warnings.push("Public article has fewer than three active inbound Wiki links.");
     }
     if (ready && outgoingCounts.active === 0) {
       warnings.push("Public article has no active contextual outgoing Wiki links.");
@@ -221,6 +225,9 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
       if (article.publicReady && article.incoming.active === 0) {
         current.publicWithoutInbound += 1;
       }
+      if (article.publicReady && article.incoming.active < LIVE_INBOUND_TARGET) {
+        current.publicBelowInboundTarget += 1;
+      }
       current.unresolvedInlineTargets += article.unresolvedInlineTargets.length;
       current.pendingInlineTargets += article.pendingInlineTargets.length;
       return current;
@@ -233,6 +240,7 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
       warning: 0,
       blocked: 0,
       publicWithoutInbound: 0,
+      publicBelowInboundTarget: 0,
       unresolvedInlineTargets: 0,
       pendingInlineTargets: 0,
       activeLinks,

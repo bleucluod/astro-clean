@@ -1,3 +1,4 @@
+import { getAdminDatabase } from "@/lib/admin/admin-database";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 
 export type WikiIndexNowSubmitResult = {
@@ -22,6 +23,34 @@ function normalizeDiscoveryPath(pathOrSlug: string) {
   }
 
   return `/wiki/${value}`;
+}
+
+async function recordWikiIndexNowSubmissionBestEffort(input: {
+  reason: string;
+  ok: boolean;
+  skipped: boolean;
+  urlList: readonly string[];
+  status?: number;
+  error?: string;
+}) {
+  try {
+    const sql = getAdminDatabase();
+    await sql`
+      insert into halleus_private.wiki_indexnow_submissions (
+        reason, ok, skipped, url_count, status_code, error_summary, submitted_urls
+      ) values (
+        ${input.reason},
+        ${input.ok},
+        ${input.skipped},
+        ${input.urlList.length},
+        ${input.status ?? null},
+        ${input.error ?? null},
+        ${sql.json(input.urlList.slice(0, 10000))}
+      )
+    `;
+  } catch {
+    // IndexNow delivery must not fail publishing if observability storage is not ready yet.
+  }
 }
 
 export function buildWikiDiscoveryUrls(pathsOrSlugs: readonly (string | null | undefined)[]) {
@@ -53,23 +82,37 @@ export async function submitWikiIndexNowUrlsBestEffort(
 ): Promise<WikiIndexNowSubmitResult> {
   const env = getHalleusRuntimeEnv();
   const key = env.indexNowKey;
+  const urlList = buildWikiDiscoveryUrls(pathsOrSlugs).slice(0, 10000);
   if (!key) {
-    return {
+    const result = {
       ok: true,
       skipped: true,
       reason: "indexnow-not-configured",
       submitted: 0,
     };
+    await recordWikiIndexNowSubmissionBestEffort({
+      reason: result.reason,
+      ok: result.ok,
+      skipped: result.skipped,
+      urlList,
+    });
+    return result;
   }
 
-  const urlList = buildWikiDiscoveryUrls(pathsOrSlugs).slice(0, 10000);
   if (!urlList.length) {
-    return {
+    const result = {
       ok: true,
       skipped: true,
       reason: "no-wiki-discovery-urls",
       submitted: 0,
     };
+    await recordWikiIndexNowSubmissionBestEffort({
+      reason: result.reason,
+      ok: result.ok,
+      skipped: result.skipped,
+      urlList,
+    });
+    return result;
   }
 
   const host = new URL(env.siteUrl).host;
@@ -92,30 +135,55 @@ export async function submitWikiIndexNowUrlsBestEffort(
     });
 
     if (!response.ok) {
-      return {
+      const result = {
         ok: false,
         skipped: false,
         reason,
         submitted: 0,
         status: response.status,
       };
+      await recordWikiIndexNowSubmissionBestEffort({
+        reason,
+        ok: result.ok,
+        skipped: result.skipped,
+        urlList,
+        status: response.status,
+      });
+      return result;
     }
 
-    return {
+    const result = {
       ok: true,
       skipped: false,
       reason,
       submitted: urlList.length,
       status: response.status,
     };
+    await recordWikiIndexNowSubmissionBestEffort({
+      reason,
+      ok: result.ok,
+      skipped: result.skipped,
+      urlList,
+      status: response.status,
+    });
+    return result;
   } catch (error) {
-    return {
+    const message = error instanceof Error ? error.message.slice(0, 300) : "unknown";
+    const result = {
       ok: false,
       skipped: false,
       reason,
       submitted: 0,
-      error: error instanceof Error ? error.message.slice(0, 300) : "unknown",
+      error: message,
     };
+    await recordWikiIndexNowSubmissionBestEffort({
+      reason,
+      ok: result.ok,
+      skipped: result.skipped,
+      urlList,
+      error: message,
+    });
+    return result;
   } finally {
     clearTimeout(timeout);
   }

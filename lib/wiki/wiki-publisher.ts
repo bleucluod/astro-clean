@@ -9,6 +9,7 @@ import {
   activatePublishedWikiTargetInboundLinksBestEffort,
   syncPublishedWikiInternalLinksBestEffort,
 } from "@/lib/wiki/wiki-link-materialization";
+import { assertWikiPublicationLiveInboundReady } from "@/lib/wiki/wiki-publication-link-readiness";
 
 async function publishClaimedJob(jobId: string) {
   const sql = getAdminDatabase();
@@ -65,9 +66,9 @@ async function publishClaimedJob(jobId: string) {
     }
     // HALLEUS_BATCH4_R19_PUBLISH_MIN3_GATE
     // HALLEUS_WIKI_OUTGOING_MIN_RULE_DRIVEN
-    // HALLEUS_WIKI_INCOMING_MIN_RULE_DRIVEN
-    // Publication quotas follow the active admin rule. A minimum of zero disables
-    // that hard gate while incomingTarget remains available to Link Admin as advisory QA.
+    // HALLEUS_WIKI_INCOMING_MIN3_LIVE_PUBLICATION_GATE
+    // Publication keeps outgoing rule-driven, while inbound authority is hard-gated
+    // at three distinct current-public source articles.
     if (snapshot.indexable) {
       const activeLinkRuleRows = await tx`
         select config
@@ -81,12 +82,8 @@ async function publishClaimedJob(jobId: string) {
       }
       const activeLinkRuleConfig = asRecord(activeLinkRuleRows[0].config);
       const outgoingMinimum = asNumber(activeLinkRuleConfig.outgoingMin);
-      const incomingMinimum = asNumber(activeLinkRuleConfig.incomingMin);
       if (!Number.isInteger(outgoingMinimum) || outgoingMinimum < 0 || outgoingMinimum > 20) {
         throw new Error("Active Wiki outgoingMin rule is invalid.");
-      }
-      if (!Number.isInteger(incomingMinimum) || incomingMinimum < 0 || incomingMinimum > 50) {
-        throw new Error("Active Wiki incomingMin rule is invalid.");
       }
 
       const contextualTargetIds = [...new Set(findWikiInternalArticleIds(snapshot.bodyMarkdown))]
@@ -114,34 +111,11 @@ async function publishClaimedJob(jobId: string) {
         );
       }
 
-      if (incomingMinimum > 0) {
-        const currentPublicSourceRows = await tx`
-          select stable_id, body_markdown
-          from public.wiki_articles
-          where id <> ${articleId}::uuid
-            and status = 'published'
-            and is_indexable = true
-            and published_at is not null
-            and published_at <= now()
-            and scheduled_for is null
-            and deleted_at is null
-        `;
-        const validIncomingSourceIds = new Set(
-          currentPublicSourceRows
-            .filter((item) =>
-              findWikiInternalArticleIds(asString(item.body_markdown)).includes(snapshot.stableId)
-            )
-            .map((item) => asString(item.stable_id))
-            .filter(Boolean),
-        );
-        if (validIncomingSourceIds.size < incomingMinimum) {
-          throw new Error(
-            `Scheduled Wiki incoming rule blocked publication: incoming=${validIncomingSourceIds.size}; ` +
-            `minimum=${incomingMinimum}; article=${snapshot.stableId}; ` +
-            `prepare the configured number of contextual backlinks from distinct current-public articles.`,
-          );
-        }
-      }
+      await assertWikiPublicationLiveInboundReady({
+        database: tx,
+        articleId,
+        stableId: snapshot.stableId,
+      });
     }
 
     const relatedSlugs = snapshot.relatedArticleIds

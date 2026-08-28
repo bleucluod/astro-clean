@@ -38,6 +38,7 @@ import {
   syncPublishedWikiInternalLinks,
   syncPublishedWikiInternalLinksBestEffort,
 } from "@/lib/wiki/wiki-link-materialization";
+import { assertWikiPublicationLiveInboundReady } from "@/lib/wiki/wiki-publication-link-readiness";
 import {
   computeWikiScheduleSlots,
   validateWikiScheduleSlot,
@@ -1125,6 +1126,14 @@ async function applyPublishedSnapshot(input: {
       .map((stableId) => slugById.get(stableId))
       .filter((slug): slug is string => Boolean(slug));
 
+    if (input.snapshot.indexable) {
+      await assertWikiPublicationLiveInboundReady({
+        database: tx,
+        articleId: input.articleId,
+        stableId: input.snapshot.stableId,
+      });
+    }
+
     await tx`
       insert into public.wiki_article_revisions (
         article_id, revision_number, snapshot, change_note, created_by,
@@ -1268,6 +1277,13 @@ export async function publishAdminWikiDraft(input: {
     `;
     if (!articleRows[0]) {
       throw new AdminAccessError(404, "Wiki article was not found.");
+    }
+    if (snapshot.indexable) {
+      await assertWikiPublicationLiveInboundReady({
+        database: tx,
+        articleId: input.articleId,
+        stableId: snapshot.stableId,
+      });
     }
     const revisionRows = await tx`
       select coalesce(max(revision_number), 0)::int + 1 as next_revision

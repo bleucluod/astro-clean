@@ -158,6 +158,7 @@ export type WikiLinkGraphArticle = {
   bodyPlannedIncomingCount: number;
   bodyTotalIncomingCount: number;
   unresolvedOutgoingCount: number;
+  pendingTargetOutgoingCount: number;
   plannedUnresolvedOutgoingCount: number;
   outgoingBodyLinks: WikiLinkGraphEdge[];
   incomingBodyLinks: WikiLinkGraphEdge[];
@@ -176,13 +177,30 @@ export type WikiLinkGraphState = {
     liveBodyEdges: number;
     plannedBodyEdges: number;
     unresolvedOutgoing: number;
+    pendingTargetOutgoing: number;
     plannedUnresolvedOutgoing: number;
     missingTargets: number;
     unpublishedTargets: number;
     noindexTargets: number;
     articlesWithoutIncoming: number;
+    articlesBelowLiveIncomingTarget: number;
   };
   articles: WikiLinkGraphArticle[];
+};
+
+export type WikiIndexNowAdminState = {
+  totalSubmittedLast24h: number;
+  recent: Array<{
+    id: string;
+    reason: string;
+    ok: boolean;
+    skipped: boolean;
+    submitted: number;
+    status: number | null;
+    error: string | null;
+    createdAt: string;
+    sampleUrls: string[];
+  }>;
 };
 
 export type WikiLinkScanKpis = {
@@ -252,6 +270,7 @@ export type WikiLinkAdminState = {
   kpis: WikiLinkScanKpis | null;
   articles: WikiLinkArticleSummary[];
   graph: WikiLinkGraphState;
+  indexNow: WikiIndexNowAdminState | null;
   findings: WikiLinkFinding[];
   suggestions: WikiLinkAdminSuggestion[];
   detail: {

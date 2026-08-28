@@ -16,6 +16,8 @@ import type {
 } from "@/lib/wiki/wiki-link-admin-types";
 import styles from "./admin-console.module.css";
 
+const LIVE_INBOUND_TARGET = 3;
+
 const FA = {
   title: "نگهداری لینک‌های داخلی",
   subtitle:
@@ -161,6 +163,8 @@ function readinessReasonLabel(reason: string) {
       "در متن مقاله به مقصدی لینک داده شده که پیدا نمی‌شود، پیش‌نویس است یا قابل ایندکس نیست.",
     "Public article has no active inbound Wiki links yet.":
       "این صفحه منتشر است، اما هنوز از مقاله‌های منتشر دیگر لینک ورودی فعال ندارد.",
+    "Public article has fewer than three active inbound Wiki links.":
+      "این صفحه منتشر است، اما هنوز به ۳ لینک ورودی فعال از مقاله‌های منتشر دیگر نرسیده است.",
     "Public article has no active contextual outgoing Wiki links.":
       "این صفحه منتشر است، اما هنوز لینک خروجی متنی فعال ندارد.",
     "Some materialized links failed activation.":
@@ -477,9 +481,9 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
         state.graph.summary.unresolvedOutgoing > 0
           ? `${formatNumber(state.graph.summary.unresolvedOutgoing)} لینک در متن به مقصدی می‌رسد که باید اصلاح شود.`
           : "لینک‌های مقصددارِ متن مشکل فوری ندارند.",
-        state.graph.summary.articlesWithoutIncoming > 0
-          ? `${formatNumber(state.graph.summary.articlesWithoutIncoming)} مقاله هنوز لینک ورودی از متن مقاله‌های دیگر ندارد.`
-          : "همه مقاله‌های این نما حداقل یک لینک ورودی متنی دارند.",
+        state.graph.summary.articlesBelowLiveIncomingTarget > 0
+          ? `${formatNumber(state.graph.summary.articlesBelowLiveIncomingTarget)} مقاله هنوز به ۳ لینک ورودی زنده نرسیده است.`
+          : "همه مقاله‌های این نما حداقل ۳ لینک ورودی زنده دارند.",
       ].join(" ")
     : "";
   const graphArticles = useMemo(() => {
@@ -491,7 +495,8 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
       if (
         graphIssueFilter === "problem" &&
         article.unresolvedOutgoingCount === 0 &&
-        article.bodyIncomingCount > 0
+        article.pendingTargetOutgoingCount === 0 &&
+        (!article.publicReady || article.bodyIncomingCount >= LIVE_INBOUND_TARGET)
       ) {
         return false;
       }
@@ -515,7 +520,10 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
       ) {
         return false;
       }
-      if (graphIssueFilter === "noIncoming" && article.bodyIncomingCount > 0) {
+      if (
+        graphIssueFilter === "noIncoming" &&
+        (!article.publicReady || article.bodyIncomingCount >= LIVE_INBOUND_TARGET)
+      ) {
         return false;
       }
       if (!normalizedQuery) return true;
@@ -586,11 +594,14 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
         bodyOutgoingCount: article.bodyOutgoingCount,
         bodyIncomingCount: article.bodyIncomingCount,
         unresolvedOutgoingCount: article.unresolvedOutgoingCount,
+        pendingTargetOutgoingCount: article.pendingTargetOutgoingCount,
         practicalIssue:
           article.unresolvedOutgoingCount > 0
             ? `${article.unresolvedOutgoingCount} مقصد لینک در متن باید اصلاح شود.`
-            : article.bodyIncomingCount === 0
-              ? "این مقاله هنوز لینک ورودی از متن مقاله‌های دیگر ندارد."
+            : article.pendingTargetOutgoingCount > 0
+              ? `${article.pendingTargetOutgoingCount} لینک منتظر انتشار مقصد دارد.`
+              : article.publicReady && article.bodyIncomingCount < LIVE_INBOUND_TARGET
+                ? `این مقاله هنوز ${LIVE_INBOUND_TARGET - article.bodyIncomingCount} لینک ورودی زنده کم دارد.`
               : "از نظر لینک‌های متنی مشکل فوری ندارد.",
         outgoingBodyLinks: article.outgoingBodyLinks.map((edge) => ({
           anchor: edge.anchor,
@@ -754,7 +765,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
             <span><strong>{formatNumber(state.graph.summary.draft)}</strong> پیش‌نویس</span>
             <span><strong>{formatNumber(state.graph.summary.bodyEdges)}</strong> لینک داخل متن</span>
             <span><strong>{formatNumber(state.graph.summary.unresolvedOutgoing)}</strong> مقصد نیازمند بررسی</span>
-            <span><strong>{formatNumber(state.graph.summary.articlesWithoutIncoming)}</strong> بدون ورودی متنی</span>
+            <span><strong>{formatNumber(state.graph.summary.articlesBelowLiveIncomingTarget)}</strong> زیر ۳ ورودی زنده</span>
           </div>
           <div className={styles.wikiFilters}>
             <input
@@ -781,7 +792,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
               <option value="missing">مقصد پیدا نمی‌شود</option>
               <option value="unpublished">مقصد منتشر نشده</option>
               <option value="noindex">مقصد خارج از ایندکس</option>
-              <option value="noIncoming">بدون لینک ورودی متنی</option>
+              <option value="noIncoming">زیر ۳ لینک ورودی زنده</option>
             </select>
             <select
               value={graphSort}
@@ -800,7 +811,7 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
           </div>
           <p className={styles.recordNote}>
             کار عملی: اول مقاله‌هایی را اصلاح کن که مقصد لینک‌شان پیدا نمی‌شود، منتشر نشده یا خارج
-            از ایندکس است. بعد برای صفحه‌های بدون ورودی، از مقاله‌های مرتبط لینک متنی بساز. دکمه بالا
+            از ایندکس است. بعد برای صفحه‌های زیر ۳ ورودی زنده، از مقاله‌های مرتبط لینک متنی بساز. دکمه بالا
             همین نمای فیلترشده را به شکل فایل JSON برای استفاده در AI دانلود می‌کند.
           </p>
           <div className={styles.tableWrap}>
@@ -843,9 +854,13 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
                         <span className={styles.statusPill} data-tone="danger">
                           {formatNumber(article.unresolvedOutgoingCount)} مقصد اصلاح شود
                         </span>
-                      ) : article.bodyIncomingCount === 0 ? (
+                      ) : article.pendingTargetOutgoingCount > 0 ? (
                         <span className={styles.statusPill} data-tone="attention">
-                          لینک ورودی بساز
+                          منتظر انتشار مقصد
+                        </span>
+                      ) : article.publicReady && article.bodyIncomingCount < LIVE_INBOUND_TARGET ? (
+                        <span className={styles.statusPill} data-tone="attention">
+                          تکمیل ۳ ورودی
                         </span>
                       ) : (
                         <span className={styles.statusPill} data-tone="positive">

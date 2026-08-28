@@ -20,6 +20,7 @@ const env = read("lib/config/env.ts");
 const envExample = read(".env.example");
 const keyRoute = read("app/indexnow-key.txt/route.ts");
 const service = read("lib/wiki/wiki-indexnow.ts");
+const logMigration = read("database/migrations/0030_wiki_indexnow_submission_log.sql");
 const adminActions = read("app/api/admin/wiki/articles/[articleId]/actions/route.ts");
 const scheduledPublisher = read("app/api/internal/wiki/publish-due/route.ts");
 const packageJson = read("package.json");
@@ -39,8 +40,14 @@ assertIncludes("IndexNow service", service, "https://api.indexnow.org/indexnow")
 assertIncludes("IndexNow service", service, "/indexnow-key.txt");
 assertIncludes("IndexNow service", service, "AbortController");
 assertIncludes("IndexNow service", service, "indexnow-not-configured");
+assertIncludes("IndexNow service", service, "recordWikiIndexNowSubmissionBestEffort");
+assertIncludes("IndexNow service", service, "wiki_indexnow_submissions");
 assertExcludes("IndexNow service", service, "indexing.googleapis.com");
 assertExcludes("IndexNow service", service, "searchconsole.googleapis.com");
+
+assertIncludes("IndexNow log migration", logMigration, "wiki_indexnow_submissions");
+assertIncludes("IndexNow log migration", logMigration, "submitted_urls");
+assertIncludes("IndexNow log migration", logMigration, "status_code");
 
 assertIncludes("admin Wiki actions", adminActions, "submitWikiIndexNowUrlsBestEffort");
 assertIncludes("admin Wiki actions", adminActions, "admin-wiki-publish");
