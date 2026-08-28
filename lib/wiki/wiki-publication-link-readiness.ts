@@ -5,6 +5,7 @@ import { asRecord, asString } from "@/lib/admin/admin-database";
 import { findWikiInternalArticleIds } from "@/lib/wiki/wiki-markdown";
 
 export const WIKI_PUBLICATION_LIVE_INBOUND_MINIMUM = 3;
+export const WIKI_PUBLICATION_INBOUND_SOURCE_MIN_AGE_DAYS = 10;
 
 function readRuleInteger(config: Record<string, unknown>, key: string, fallback: number) {
   const value = Number(config[key] ?? fallback);
@@ -50,6 +51,7 @@ export async function assertWikiPublicationLiveInboundReady(input: {
       and is_indexable = true
       and published_at is not null
       and published_at <= now()
+      and published_at <= now() - (${WIKI_PUBLICATION_INBOUND_SOURCE_MIN_AGE_DAYS} * interval '1 day')
       and scheduled_for is null
       and deleted_at is null
   `;
@@ -66,7 +68,8 @@ export async function assertWikiPublicationLiveInboundReady(input: {
     throw new AdminAccessError(
       409,
       `Wiki publication blocked: incoming=${sourceStableIds.size}; minimum=${minimum}; ` +
-        `article=${input.stableId}; prepare natural contextual inbound links from distinct current-public articles.`,
+        `article=${input.stableId}; prepare natural contextual inbound links from distinct current-public articles ` +
+        `published at least ${WIKI_PUBLICATION_INBOUND_SOURCE_MIN_AGE_DAYS} days ago.`,
     );
   }
 
