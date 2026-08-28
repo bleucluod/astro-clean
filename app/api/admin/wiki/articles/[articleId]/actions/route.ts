@@ -38,9 +38,14 @@ export async function POST(request: Request, context: Context) {
         publishAt: action === "schedule" ? readRequiredString(body.publishAt, "publishAt", 80) : null,
       });
       if (result.mode === "published") {
-        revalidateWikiPublicPaths([result.slug, result.previousSlug]);
+        const publicDiscoverySlugs = [
+          result.slug,
+          result.previousSlug,
+          ...result.activatedInboundSourceSlugs,
+        ];
+        revalidateWikiPublicPaths(publicDiscoverySlugs);
         const discovery = await submitWikiIndexNowUrlsBestEffort(
-          [result.slug, result.previousSlug, "/wiki", "/sitemap.xml"],
+          [...publicDiscoverySlugs, "/wiki", "/sitemap.xml"],
           "admin-wiki-publish",
         );
         return noStoreJsonResponse({ ok: true, result, discovery });

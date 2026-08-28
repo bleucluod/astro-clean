@@ -31,11 +31,15 @@ export async function POST(request: Request) {
   }
   try {
     const result = await processDueWikiPublishJobs();
-    if (result.publishedSlugs.length) {
-      revalidateWikiPublicPaths(result.publishedSlugs);
+    const publicDiscoverySlugs = [
+      ...result.publishedSlugs,
+      ...result.activatedInboundSourceSlugs,
+    ];
+    if (publicDiscoverySlugs.length) {
+      revalidateWikiPublicPaths(publicDiscoverySlugs);
     }
     const discovery = await submitWikiIndexNowUrlsBestEffort(
-      [...result.publishedSlugs, "/wiki", "/sitemap.xml"],
+      [...publicDiscoverySlugs, "/wiki", "/sitemap.xml"],
       "scheduled-wiki-publish",
     );
     // HALLEUS_WIKI_LINK_MAINTENANCE_BEST_EFFORT

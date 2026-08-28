@@ -34,6 +34,7 @@ import {
   findWikiPublicationDependencyIds,
 } from "@/lib/wiki/wiki-markdown";
 import {
+  activatePublishedWikiTargetInboundLinksBestEffort,
   syncPublishedWikiInternalLinks,
   syncPublishedWikiInternalLinksBestEffort,
 } from "@/lib/wiki/wiki-link-materialization";
@@ -1204,7 +1205,16 @@ async function applyPublishedSnapshot(input: {
       relatedArticleIds: input.snapshot.relatedArticleIds,
     });
   }
-  return { revisionNumber, slug: input.snapshot.slug, previousSlug };
+  const activatedInbound = await activatePublishedWikiTargetInboundLinksBestEffort({
+    database: input.database,
+    targetStableId: input.snapshot.stableId,
+  });
+  return {
+    revisionNumber,
+    slug: input.snapshot.slug,
+    previousSlug,
+    activatedInboundSourceSlugs: activatedInbound.sourceSlugs,
+  };
 }
 
 export async function publishAdminWikiDraft(input: {
@@ -1363,6 +1373,7 @@ export async function publishAdminWikiDrafts(input: {
       articleId,
       slug: result.slug,
       previousSlug: result.previousSlug,
+      activatedInboundSourceSlugs: result.activatedInboundSourceSlugs,
     });
   }
   return { articleIds, count: published.length, published };

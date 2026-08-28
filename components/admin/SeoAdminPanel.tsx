@@ -35,7 +35,7 @@ type SeoIssueFilter =
   | "noindex"
   | "noIncoming";
 type SeoSort = "problem" | "incomingAsc" | "outgoingDesc" | "scheduled" | "title";
-type SeoExportKind = "all" | "problems" | "noIncoming";
+type SeoExportKind = "all" | "problems" | "noIncoming" | "linkMap";
 type SearchConsoleRow = {
   page: string;
   path: string;
@@ -865,6 +865,18 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
         indexability: indexability.generatedAt,
       },
       scopeFa: "داده فنی SEO و لینک‌های داخل متن ویکی؛ بدون ادعای ایندکس گوگل یا داده Search Console.",
+      ...(kind === "linkMap" ? {
+        aiContract: {
+          mode: "add_only_internal_links",
+          preserveExistingLinks: true,
+          instructionFa:
+            "این خروجی برای ساخت لینک‌سازی داخلی افزایشی است. هیچ لینک موجودی را حذف، جابه‌جا یا بازنویسی نکن؛ فقط در پاراگراف‌های واقعاً مرتبط لینک‌های contextual تازه پیشنهاد بده.",
+          liveIncomingDefinitionFa:
+            "bodyIncomingCount فقط لینک ورودی از مقاله‌های منتشر و قابل ایندکس را می‌شمارد.",
+          plannedIncomingDefinitionFa:
+            "bodyPlannedIncomingCount لینک‌هایی است که از مقاله‌های منتشرنشده یا زمان‌بندی‌شده می‌آید و هنوز اعتبار زنده محسوب نمی‌شود.",
+        },
+      } : {}),
       summary: {
         linkGraph: state.graph.summary,
         indexability: indexability.summary,
@@ -889,18 +901,29 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
           href: edge.href,
           targetStableId: edge.targetStableId,
           targetTitle: edge.targetTitle,
+          targetSlug: edge.targetSlug,
+          targetPath: edge.targetPath,
+          targetStatus: edge.targetStatus,
           targetState: edge.targetState,
         })),
         incomingBodyLinks: article.incomingBodyLinks.map((edge) => ({
           anchor: edge.anchor,
           sourceStableId: edge.sourceStableId,
           sourceTitle: edge.sourceTitle,
+          sourceSlug: edge.sourceSlug,
+          sourcePath: edge.sourcePath,
           sourceStatus: edge.sourceStatus,
           live: Boolean(edge.sourcePath),
         })),
       })),
     };
-    const suffix = kind === "all" ? "all" : kind === "problems" ? "fix-list" : "no-incoming";
+    const suffix = kind === "all"
+      ? "all"
+      : kind === "problems"
+        ? "fix-list"
+        : kind === "linkMap"
+          ? "internal-link-map-ai"
+          : "no-incoming";
     const fileName = `halleus-seo-${suffix}-${new Date().toISOString().slice(0, 10)}.json`;
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json;charset=utf-8",
@@ -1248,6 +1271,11 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               <strong>خروجی کامل SEO</strong>
               <p>گراف لینک، وضعیت انتشار و خلاصه آمادگی ایندکس در یک فایل.</p>
               <button type="button" onClick={() => downloadSeoExport("all")}>دانلود JSON</button>
+            </article>
+            <article>
+              <strong>نقشه لینک‌سازی برای AI</strong>
+              <p>همه لینک‌های ورودی و خروجی هر صفحه، با قرارداد فقط افزودن لینک جدید.</p>
+              <button type="button" onClick={() => downloadSeoExport("linkMap")}>دانلود JSON</button>
             </article>
           </div>
         </section>

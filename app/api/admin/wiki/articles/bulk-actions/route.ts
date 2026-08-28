@@ -87,6 +87,7 @@ export async function POST(request: Request) {
         result.published.flatMap((article) => [
           article.slug,
           article.previousSlug,
+          ...article.activatedInboundSourceSlugs,
         ]),
       );
       return noStoreJsonResponse({ ok: true, result });

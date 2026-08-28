@@ -5,11 +5,15 @@ import {
   findWikiInternalArticleIds,
   findWikiPublicationDependencyIds,
 } from "@/lib/wiki/wiki-markdown";
-import { syncPublishedWikiInternalLinksBestEffort } from "@/lib/wiki/wiki-link-materialization";
+import {
+  activatePublishedWikiTargetInboundLinksBestEffort,
+  syncPublishedWikiInternalLinksBestEffort,
+} from "@/lib/wiki/wiki-link-materialization";
 
 async function publishClaimedJob(jobId: string) {
   const sql = getAdminDatabase();
   let publishedSlug = "";
+  let publishedStableId = "";
   const materializationInput = await sql.begin(async (tx) => {
     const rows = await tx`
       select job.article_id::text, job.revision_number, revision.snapshot,
@@ -30,6 +34,7 @@ async function publishClaimedJob(jobId: string) {
     const previousSlug = asString(row.previous_slug);
     const snapshot: WikiArticleSnapshot = readWikiArticleSnapshot(row.snapshot);
     publishedSlug = snapshot.slug;
+    publishedStableId = snapshot.stableId;
 
     const references = [...new Set([
       ...snapshot.relatedArticleIds,
@@ -222,7 +227,13 @@ async function publishClaimedJob(jobId: string) {
     };
   });
   await syncPublishedWikiInternalLinksBestEffort(materializationInput);
-  return publishedSlug;
+  const activatedInbound = await activatePublishedWikiTargetInboundLinksBestEffort({
+    targetStableId: publishedStableId,
+  });
+  return {
+    slug: publishedSlug,
+    activatedInboundSourceSlugs: activatedInbound.sourceSlugs,
+  };
 }
 
 async function failClaimedJob(jobId: string, error: unknown) {
@@ -264,7 +275,12 @@ export async function processDueWikiPublishJobs(limit = 10) {
     from halleus_private.wiki_schedule_settings where singleton = true
   `;
   if (settings[0]?.publishing_paused === true) {
-    return { paused: true, publishedSlugs: [], failed: 0 };
+    return {
+      paused: true,
+      publishedSlugs: [],
+      activatedInboundSourceSlugs: [],
+      failed: 0,
+    };
   }
   await sql`
     update halleus_private.wiki_publish_jobs
@@ -276,6 +292,7 @@ export async function processDueWikiPublishJobs(limit = 10) {
     where status = 'running' and locked_at < now() - interval '15 minutes'
   `;
   const publishedSlugs: string[] = [];
+  const activatedInboundSourceSlugs: string[] = [];
   let failed = 0;
   for (let index = 0; index < Math.min(Math.max(limit, 1), 25); index += 1) {
     const claimed = await sql.begin(async (tx) => {
@@ -310,11 +327,18 @@ export async function processDueWikiPublishJobs(limit = 10) {
       break;
     }
     try {
-      publishedSlugs.push(await publishClaimedJob(claimed));
+      const published = await publishClaimedJob(claimed);
+      publishedSlugs.push(published.slug);
+      activatedInboundSourceSlugs.push(...published.activatedInboundSourceSlugs);
     } catch (error) {
       failed += 1;
       await failClaimedJob(claimed, error);
     }
   }
-  return { paused: false, publishedSlugs, failed };
+  return {
+    paused: false,
+    publishedSlugs,
+    activatedInboundSourceSlugs: [...new Set(activatedInboundSourceSlugs)],
+    failed,
+  };
 }
