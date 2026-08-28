@@ -234,9 +234,11 @@ function isScheduledTarget(article, nowMs) {
   return (
     article.indexable &&
     !article.deletedAt &&
-    article.status === "scheduled" &&
-    Number.isFinite(scheduledAtMs) &&
-    scheduledAtMs > nowMs
+    !isCurrentPublic(article, nowMs) &&
+    (
+      article.status === "scheduled" ||
+      (Number.isFinite(scheduledAtMs) && scheduledAtMs > nowMs)
+    )
   );
 }
 

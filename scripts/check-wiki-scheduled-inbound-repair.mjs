@@ -17,6 +17,8 @@ function requireText(label, text, marker) {
 requireText("scheduled repair script", source, "const MINIMUM_INBOUND_TARGET = 3");
 requireText("scheduled repair script", source, "const SOURCE_MIN_AGE_DAYS = 10");
 requireText("scheduled repair script", source, "isOldEnoughSource(article, nowMs)");
+requireText("scheduled repair script", source, "!isCurrentPublic(article, nowMs)");
+requireText("scheduled repair script", source, "scheduledAtMs > nowMs");
 requireText("scheduled repair script", source, "hasTargetLink(source.bodyMarkdown, target.stableId)");
 requireText("scheduled repair script", source, "activationStatus === \"pending\"");
 requireText("scheduled repair script", source, "BUILT_IN_MIZFA_QUERIES");
