@@ -1272,7 +1272,11 @@ export async function processPendingWikiLinkScanTriggers(limit = 3) {
       return updated[0]
         ? {
             id: triggerId,
-            triggerKind: asString(rows[0].trigger_kind) as "post_publish" | "periodic",
+            triggerKind: asString(rows[0].trigger_kind) as
+              | "manual_full"
+              | "manual_article"
+              | "post_publish"
+              | "periodic",
             stableId: asNullableString(rows[0].article_stable_id),
           }
         : null;

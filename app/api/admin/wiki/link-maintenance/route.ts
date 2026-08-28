@@ -14,9 +14,9 @@ import {
   editWikiLinkSuggestion,
   getWikiLinkAdminState,
   rollbackWikiLinkSuggestion,
-  runWikiLinkAdminScan,
   saveWikiLinkRules,
 } from "@/lib/wiki/wiki-link-admin-service";
+import { enqueueWikiLinkScanTriggerBestEffort } from "@/lib/wiki/wiki-link-admin-trigger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,15 +46,14 @@ export async function POST(request: Request) {
     const action = readRequiredString(body.action, "action", 80);
 
     if (action === "scan") {
-      const actor = await requireAdminCapability(request, "wiki.settings.write");
+      await requireAdminCapability(request, "wiki.settings.write");
       const stableId =
         typeof body.stableId === "string" && body.stableId.trim()
           ? body.stableId.trim()
           : null;
-      const result = await runWikiLinkAdminScan({
-        actor,
+      const result = await enqueueWikiLinkScanTriggerBestEffort({
         triggerKind: stableId ? "manual_article" : "manual_full",
-        stableId,
+        articleStableId: stableId,
       });
       return noStoreJsonResponse({ ok: true, result });
     }

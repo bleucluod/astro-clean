@@ -157,6 +157,16 @@ function readinessReasonLabel(reason: string) {
       "مقاله منتشر شده، اما وضعیت فنی انتشار عمومی کامل نیست.",
     "Article has no incoming body links.":
       "هیچ مقاله‌ای از داخل متن به این صفحه لینک نداده است.",
+    "Body links point to unavailable or invalid Wiki targets.":
+      "در متن مقاله به مقصدی لینک داده شده که پیدا نمی‌شود، پیش‌نویس است یا قابل ایندکس نیست.",
+    "Public article has no active inbound Wiki links yet.":
+      "این صفحه منتشر است، اما هنوز از مقاله‌های منتشر دیگر لینک ورودی فعال ندارد.",
+    "Public article has no active contextual outgoing Wiki links.":
+      "این صفحه منتشر است، اما هنوز لینک خروجی متنی فعال ندارد.",
+    "Some materialized links failed activation.":
+      "بعضی لینک‌های ثبت‌شده فعال‌سازی ناموفق داشته‌اند.",
+    "Some links were disabled after a publish or unpublish lifecycle change.":
+      "بعضی لینک‌ها بعد از تغییر وضعیت انتشار غیرفعال شده‌اند.",
   };
   return labels[reason] ?? reason;
 }
@@ -395,9 +405,9 @@ export function WikiLinkAdminPanel({ token, session }: Props) {
       "scan",
       stableId ? { stableId } : {},
       stableId
-        ? "اسکن مقاله ثبت شد."
-        : "اسکن کامل ثبت شد.",
-      stableId ? "اسکن این مقاله شروع شد" : "اسکن کامل ویکی شروع شد",
+        ? "اسکن مقاله در صف ثبت شد و تا چند دقیقه بعد پردازش می‌شود."
+        : "اسکن کامل در صف ثبت شد و تا چند دقیقه بعد پردازش می‌شود.",
+      stableId ? "ثبت اسکن این مقاله" : "ثبت اسکن کامل ویکی",
     );
   }
 

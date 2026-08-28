@@ -123,10 +123,12 @@ for (const marker of [
   "collectBodyLinks",
   'scope: "body-only"',
   "Header, footer, sidebar, breadcrumb, CTA, category, and related-article module links are excluded.",
-  "Draft and scheduled articles are included",
+  "Draft and scheduled article links remain visible as planned links",
 ]) {
   requireText("link service", service, marker);
 }
+requireText("link maintenance route", route, "enqueueWikiLinkScanTriggerBestEffort");
+requireText("link maintenance route", route, 'triggerKind: stableId ? "manual_article" : "manual_full"');
 forbidText("link service", service, "publishAdminWikiDraft");
 requireText("link service no-hard-max outgoing parser", service, 'outgoingMax: integer("outgoingMax", 0, 20),');
 requireText("link service no-hard-max incoming parser", service, 'incomingMax: integer("incomingMax", 0, 100),');

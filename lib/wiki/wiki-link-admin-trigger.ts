@@ -1,7 +1,7 @@
 import { getAdminDatabase } from "@/lib/admin/admin-database";
 
 export async function enqueueWikiLinkScanTriggerBestEffort(input: {
-  triggerKind: "post_publish" | "periodic";
+  triggerKind: "manual_full" | "manual_article" | "post_publish" | "periodic";
   articleStableId?: string | null;
 }) {
   try {
