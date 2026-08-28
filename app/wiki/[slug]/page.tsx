@@ -8,6 +8,7 @@ import {
   listPublicWikiRouteSlugs,
 } from "@/lib/wiki/wiki-repository";
 import styles from "../wiki.module.css";
+import { WikiStickyCta } from "./WikiStickyCta";
 
 type WikiArticlePageProps = {
   params: Promise<{
@@ -16,6 +17,7 @@ type WikiArticlePageProps = {
 };
 
 const WIKI_BASE_URL = "https://halleus.ir";
+const WIKI_INLINE_CTA_ID = "wiki-article-inline-cta";
 
 export const dynamicParams = true;
 export const revalidate = 300;
@@ -244,7 +246,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
 
         <aside className={styles.articleAside}>
           <div className={styles.stickyAside}>
-            <section className={styles.sideCard}>
+            <section className={styles.sideCard} id={WIKI_INLINE_CTA_ID}>
               <span className={styles.sectionKicker}>در چارت خودت ببین</span>
               <h2>{callToAction.title}</h2>
               <p>{callToAction.text}</p>
@@ -259,6 +261,8 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
           </div>
         </aside>
       </article>
+
+      <WikiStickyCta callToAction={callToAction} inlineCtaId={WIKI_INLINE_CTA_ID} />
 
       <section className={styles.relatedSection} aria-labelledby="related-title">
         <div className={styles.sectionHeader}>
