@@ -25,6 +25,7 @@ type ArticleRow = {
 };
 
 type LinkStatus = "active" | "pending" | "disabled" | "failed";
+type InlineTargetState = "public" | "scheduled" | "draft" | "noindex" | "missing";
 
 const LINK_STATUSES: LinkStatus[] = ["active", "pending", "disabled", "failed"];
 
@@ -68,6 +69,23 @@ function isPublicReady(article: ArticleRow, now: Date) {
   return true;
 }
 
+function isScheduled(article: ArticleRow, now: Date) {
+  if (article.status === "scheduled") return true;
+  if (!article.scheduledFor) return false;
+  return new Date(article.scheduledFor) > now;
+}
+
+function inlineTargetState(
+  target: ArticleRow | undefined,
+  now: Date,
+): InlineTargetState {
+  if (!target) return "missing";
+  if (isPublicReady(target, now)) return "public";
+  if (isScheduled(target, now)) return "scheduled";
+  if (!target.indexable) return "noindex";
+  return "draft";
+}
+
 function severityFromReasons(blockers: string[], warnings: string[]): WikiIndexabilitySeverity {
   if (blockers.length > 0) return "blocked";
   if (warnings.length > 0) return "warning";
@@ -105,8 +123,8 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
   ]);
 
   const articles = articleRows.map(articleFromRow);
-  const publicStableIds = new Set(
-    articles.filter((article) => isPublicReady(article, now)).map((article) => article.stableId),
+  const articlesByStableId = new Map(
+    articles.map((article) => [article.stableId, article]),
   );
   const articleIdToStableId = new Map(
     articles.map((article) => [article.id, article.stableId]),
@@ -141,7 +159,13 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
     const incomingCounts = incoming.get(article.stableId) ?? emptyLinkCounts();
     const inlineTargets = [...new Set(findWikiInternalArticleIds(article.bodyMarkdown))];
     const unresolvedInlineTargets = inlineTargets.filter(
-      (targetStableId) => !publicStableIds.has(targetStableId),
+      (targetStableId) => {
+        const state = inlineTargetState(articlesByStableId.get(targetStableId), now);
+        return state === "missing" || state === "draft" || state === "noindex";
+      },
+    );
+    const pendingInlineTargets = inlineTargets.filter(
+      (targetStableId) => inlineTargetState(articlesByStableId.get(targetStableId), now) === "scheduled",
     );
     const blockers: string[] = [];
     const warnings: string[] = [];
@@ -150,7 +174,7 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
       blockers.push("Published row is not technically public-ready.");
     }
     if (ready && unresolvedInlineTargets.length > 0) {
-      blockers.push("Body links point to unpublished or missing Wiki targets.");
+      blockers.push("Body links point to unavailable or invalid Wiki targets.");
     }
     if (ready && incomingCounts.active === 0) {
       warnings.push("Public article has no active inbound Wiki links yet.");
@@ -182,6 +206,7 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
       severity: severityFromReasons(blockers, warnings),
       reasons,
       unresolvedInlineTargets,
+      pendingInlineTargets,
       outgoing: outgoingCounts,
       incoming: incomingCounts,
     };
@@ -197,6 +222,7 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
         current.publicWithoutInbound += 1;
       }
       current.unresolvedInlineTargets += article.unresolvedInlineTargets.length;
+      current.pendingInlineTargets += article.pendingInlineTargets.length;
       return current;
     },
     {
@@ -208,6 +234,7 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
       blocked: 0,
       publicWithoutInbound: 0,
       unresolvedInlineTargets: 0,
+      pendingInlineTargets: 0,
       activeLinks,
       pendingLinks,
       disabledLinks,

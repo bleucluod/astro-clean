@@ -198,6 +198,8 @@ function readinessReasonLabel(reason: string) {
   const labels: Record<string, string> = {
     "Body links point to unpublished or missing Wiki targets.":
       "در متن مقاله به صفحه‌ای لینک داده شده که هنوز منتشر نشده یا پیدا نمی‌شود.",
+    "Body links point to unavailable or invalid Wiki targets.":
+      "در متن مقاله به مقصدی لینک داده شده که پیدا نمی‌شود، پیش‌نویس است یا قابل ایندکس نیست.",
     "Article is not public-ready.": "مقاله هنوز برای نمایش عمومی آماده نیست.",
     "Article is excluded from sitemap.": "این صفحه داخل سایت‌مپ قرار نمی‌گیرد.",
     "Published row is not technically public-ready.":
@@ -1061,6 +1063,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
           <div className={styles.seoCompactMetrics}>
             <span><strong>{formatNumber(indexability?.summary.publicReady ?? 0)}</strong> آماده انتشار عمومی</span>
             <span><strong>{formatNumber(indexability?.summary.sitemapEligible ?? 0)}</strong> داخل سایت‌مپ</span>
+            <span><strong>{formatNumber(indexability?.summary.pendingInlineTargets ?? 0)}</strong> لینک منتظر انتشار مقصد</span>
             <span><strong>{formatNumber(readinessTasks.length)}</strong> نیازمند کار</span>
           </div>
           {readinessTasks.length ? (

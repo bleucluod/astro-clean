@@ -16,6 +16,7 @@ export type WikiIndexabilityArticleStatus = {
   severity: WikiIndexabilitySeverity;
   reasons: string[];
   unresolvedInlineTargets: string[];
+  pendingInlineTargets: string[];
   outgoing: {
     active: number;
     pending: number;
@@ -39,6 +40,7 @@ export type WikiIndexabilitySummary = {
   blocked: number;
   publicWithoutInbound: number;
   unresolvedInlineTargets: number;
+  pendingInlineTargets: number;
   activeLinks: number;
   pendingLinks: number;
   disabledLinks: number;
