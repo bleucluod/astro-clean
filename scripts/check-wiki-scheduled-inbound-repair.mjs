@@ -19,6 +19,10 @@ requireText("scheduled repair script", source, "const SOURCE_MIN_AGE_DAYS = 10")
 requireText("scheduled repair script", source, "isOldEnoughSource(article, nowMs)");
 requireText("scheduled repair script", source, "!isCurrentPublic(article, nowMs)");
 requireText("scheduled repair script", source, "scheduledAtMs > nowMs");
+requireText("scheduled repair script", source, "halleus_private.wiki_publish_jobs");
+requireText("scheduled repair script", source, "revision.snapshot as queued_snapshot");
+requireText("scheduled repair script", source, "pending_publish_at");
+requireText("scheduled repair script", source, "useQueuedSnapshot ? snapshot.indexable === true");
 requireText("scheduled repair script", source, "hasTargetLink(source.bodyMarkdown, target.stableId)");
 requireText("scheduled repair script", source, "activationStatus === \"pending\"");
 requireText("scheduled repair script", source, "BUILT_IN_MIZFA_QUERIES");
