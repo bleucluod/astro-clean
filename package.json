@@ -207,6 +207,7 @@
     "check:wiki-scheduled-inbound-repair": "node scripts/check-wiki-scheduled-inbound-repair.mjs",
     "repair:wiki-under3-live-inbound": "node scripts/repair-wiki-under3-live-inbound-links.mjs",
     "repair:wiki-scheduled-inbound": "node scripts/repair-wiki-scheduled-inbound-links.mjs",
+    "rollback:wiki-scheduled-inbound": "node scripts/rollback-wiki-scheduled-inbound-links.mjs",
     "check:wiki-article-link-cta-visibility": "node scripts/check-wiki-article-link-cta-visibility.mjs",
     "check:sitewide-link-cta-contrast": "node scripts/check-sitewide-link-cta-contrast.mjs",
     "check:wiki-category-content": "node scripts/check-wiki-category-content.mjs",

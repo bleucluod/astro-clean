@@ -23,6 +23,9 @@ const MONTHS = [
   ["esfand", "اسفند"],
 ];
 
+const PERSIAN_MONTH_LABELS = MONTHS.map(([, label]) => label);
+const STOP_WORDS = new Set(["چیست", "برای", "هایی", "های", "در", "با", "از", "به", "را", "یک", "این", "است", "شود", "کند", "کرد"]);
+
 const BUILT_IN_MIZFA_QUERIES = [
   "آسترولوژی امروز",
   "قهر زن شهریوری",
@@ -102,6 +105,27 @@ function normalizeText(value) {
     .replace(/[ك]/g, "ک")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function normalizeSearchText(value) {
+  return normalizeText(value)
+    .replace(/[؛،؟?!.:()«»|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function meaningfulWords(value) {
+  return normalizeSearchText(value)
+    .split(/\s+/)
+    .filter((word) => word.length >= 3 && !STOP_WORDS.has(word));
+}
+
+function sanitizeAnchorCandidate(value) {
+  return normalizeText(value)
+    .replace(/\s*\|\s*هالیوس\s*$/u, "")
+    .split(/[؛|]/u)[0]
+    ?.replace(/[؟?!.،]+$/u, "")
+    .trim() ?? "";
 }
 
 function stripWikiLinks(value) {
@@ -250,10 +274,7 @@ function isScheduledTarget(article, nowMs) {
 }
 
 function titleWords(article) {
-  return normalizeText(`${article.title} ${article.shortTitle} ${article.seoTitle}`)
-    .replace(/[؛،؟?!.:()«»]/g, " ")
-    .split(/\s+/)
-    .filter((word) => word.length >= 3 && !["چیست", "برای", "هایی", "های", "در", "با", "از", "به", "را"].includes(word));
+  return meaningfulWords(`${article.title} ${article.shortTitle} ${article.seoTitle}`);
 }
 
 function slugWords(stableId) {
@@ -281,6 +302,74 @@ function detectTopic(article) {
   return "general";
 }
 
+function topicGuardWords(topic) {
+  if (topic === "womanTraits") return ["زن"];
+  if (topic === "manTraits") return ["مرد"];
+  if (topic === "womanMarriage") return ["زن", "ازدواج"];
+  if (topic === "manMarriage") return ["مرد", "ازدواج"];
+  if (topic === "compatibility") return ["سازگار", "سازگاری", "رابطه", "ازدواج"];
+  if (topic === "bornTraits") return ["متولد", "خصوصیات"];
+  if (topic === "house") return ["خانه", "چارت", "زاویه"];
+  if (topic === "moon") return ["ماه", "چرخه"];
+  if (topic === "transit") return ["ترنزیت", "امروز", "ماه"];
+  if (topic === "system") return ["آسترولوژی", "چارت", "طالع"];
+  if (topic === "relationship") return ["رابطه", "عشق", "ازدواج"];
+  return [];
+}
+
+function anchorMatchesTarget(anchor, target) {
+  const cleaned = sanitizeAnchorCandidate(anchor);
+  if (!cleaned || cleaned.length < 3 || cleaned.length > 70 || /^مقاله\b/.test(cleaned)) return false;
+  const targetMonth = detectMonth(target)?.[1] ?? "";
+  const anchorMonth = PERSIAN_MONTH_LABELS.find((label) => normalizeSearchText(cleaned).includes(label));
+  if (targetMonth) {
+    if (anchorMonth && anchorMonth !== targetMonth) return false;
+    if (!normalizeSearchText(cleaned).includes(targetMonth)) return false;
+  } else if (anchorMonth) {
+    return false;
+  }
+
+  const topic = detectTopic(target);
+  const guardWords = topicGuardWords(topic);
+  if (guardWords.length && !guardWords.some((word) => normalizeSearchText(cleaned).includes(word))) {
+    return false;
+  }
+
+  const targetText = normalizeSearchText([
+    target.title,
+    target.shortTitle,
+    target.seoTitle,
+    target.summary,
+    target.stableId.replaceAll("-", " "),
+  ].join(" "));
+  const words = meaningfulWords(cleaned);
+  const hits = words.filter((word) => targetText.includes(word)).length;
+  return hits >= Math.min(targetMonth ? 1 : 2, words.length);
+}
+
+function mizfaQueryMatchesTarget(query, target) {
+  const cleaned = sanitizeAnchorCandidate(query);
+  if (!anchorMatchesTarget(cleaned, target)) return false;
+  const targetText = normalizeSearchText(`${target.title} ${target.shortTitle} ${target.seoTitle}`);
+  const words = meaningfulWords(cleaned);
+  const hits = words.filter((word) => targetText.includes(word)).length;
+  return hits >= Math.min(3, words.length);
+}
+
+function isRelatedSourceForTarget(target, source) {
+  const targetMonth = detectMonth(target)?.[1] ?? "";
+  const sourceMonth = detectMonth(source)?.[1] ?? "";
+  if (targetMonth && sourceMonth && targetMonth !== sourceMonth) return false;
+
+  const targetTopic = detectTopic(target);
+  const sourceTopic = detectTopic(source);
+  if (targetMonth && ["womanTraits", "manTraits", "womanMarriage", "manMarriage", "compatibility", "bornTraits"].includes(targetTopic)) {
+    return sourceMonth === targetMonth || normalizeSearchText(source.bodyMarkdown).includes(targetMonth);
+  }
+  if (targetTopic === "system" && ["womanTraits", "manTraits", "womanMarriage", "manMarriage"].includes(sourceTopic)) return false;
+  return true;
+}
+
 function anchorCandidates(article, queryHints) {
   const month = detectMonth(article);
   const topic = detectTopic(article);
@@ -295,19 +384,16 @@ function anchorCandidates(article, queryHints) {
     if (topic === "manMarriage") candidates.push(`ازدواج مرد متولد ${label}`, `مرد متولد ${label} در ازدواج`);
   }
 
-  const haystack = normalizeText(`${article.title} ${article.stableId.replaceAll("-", " ")}`);
   for (const query of queryHints) {
-    const queryWords = query.split(/\s+/).filter((word) => word.length >= 3);
-    const hits = queryWords.filter((word) => haystack.includes(word)).length;
-    if (hits >= Math.min(2, queryWords.length)) candidates.push(query);
+    if (mizfaQueryMatchesTarget(query, article)) candidates.push(query);
   }
 
-  const mainTitle = normalizeText(article.title).split(/[؛،?؟]/)[0]?.trim();
+  const mainTitle = sanitizeAnchorCandidate(article.title).split(/[،?؟]/)[0]?.trim();
   if (mainTitle) candidates.push(mainTitle);
   candidates.push(article.shortTitle, article.seoTitle);
 
-  return [...new Set(candidates.map(normalizeText))]
-    .filter((item) => item && item.length >= 3 && item.length <= 70 && !/^مقاله\b/.test(item));
+  return [...new Set(candidates.map(sanitizeAnchorCandidate))]
+    .filter((item) => anchorMatchesTarget(item, article));
 }
 
 function targetHints(article, queryHints) {
@@ -574,8 +660,46 @@ function assertSelfCheck() {
     "BUILT_IN_MIZFA_QUERIES",
     "INDEXNOW_TIMEOUT_MS",
     "hasTargetLink(source.bodyMarkdown, target.stableId)",
+    "sanitizeAnchorCandidate",
+    "anchorMatchesTarget",
+    "mizfaQueryMatchesTarget",
+    "isRelatedSourceForTarget",
   ]) {
     if (!source.includes(marker)) throw new Error(`self-check marker missing: ${marker}`);
+  }
+  const deyCompatibility = {
+    stableId: "dey-birth-month-compatibility",
+    title: "دی با چه ماهی سازگار است؟",
+    shortTitle: "سازگاری دی",
+    seoTitle: "سازگاری متولد دی",
+    summary: "",
+  };
+  const tirWoman = {
+    stableId: "tir-woman-traits",
+    title: "زن متولد تیر",
+    shortTitle: "خصوصیات زن تیر",
+    seoTitle: "زن متولد تیر در عشق",
+    summary: "",
+  };
+  const mordadWoman = {
+    stableId: "mordad-woman-traits",
+    title: "زن متولد مرداد",
+    shortTitle: "خصوصیات زن مرداد",
+    seoTitle: "زن متولد مرداد در عشق",
+    summary: "",
+    bodyMarkdown: "زن متولد مرداد در رابطه گرم و مستقیم است.",
+  };
+  if (anchorMatchesTarget("فرق ماه نو و ماه کامل", deyCompatibility)) {
+    throw new Error("self-check failed: unrelated moon query must not anchor Dey compatibility.");
+  }
+  if (anchorMatchesTarget("رگ خواب زن متولد آبان", tirWoman)) {
+    throw new Error("self-check failed: wrong-month anchor must not anchor Tir woman traits.");
+  }
+  if (!anchorMatchesTarget("زن متولد تیر", tirWoman)) {
+    throw new Error("self-check failed: direct target anchor should be accepted.");
+  }
+  if (isRelatedSourceForTarget(tirWoman, mordadWoman)) {
+    throw new Error("self-check failed: wrong-month trait source must not target Tir woman traits.");
   }
   console.log("Wiki scheduled inbound repair self-check OK");
 }
@@ -638,6 +762,7 @@ function planRepairs(articles, queryHints, options, nowMs) {
     const anchors = anchorCandidates(target, queryHints);
     const candidates = oldPublicSources
       .filter((source) => source.stableId !== target.stableId)
+      .filter((source) => isRelatedSourceForTarget(target, source))
       .filter((source) => !currentSources.has(source.stableId))
       .filter((source) => !hasTargetLink(source.bodyMarkdown, target.stableId))
       .map((source) => ({
@@ -655,7 +780,8 @@ function planRepairs(articles, queryHints, options, nowMs) {
       if (added >= needed) break;
       const existingForSource = sourceAdditions.get(candidate.source.stableId) ?? 0;
       if (existingForSource >= 5) continue;
-      const anchor = anchors[(added + candidate.source.stableId.length) % anchors.length] ?? target.title;
+      const anchor = anchors[(added + candidate.source.stableId.length) % anchors.length] ?? sanitizeAnchorCandidate(target.title);
+      if (!anchorMatchesTarget(anchor, target)) continue;
       placements.push({
         source: candidate.source.stableId,
         target: target.stableId,
