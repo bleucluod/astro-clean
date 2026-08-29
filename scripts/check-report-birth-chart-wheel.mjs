@@ -289,24 +289,33 @@ assert(
   ) && !componentSource.includes("RealChartWheel"),
   "report wheel must identify AstroChart and must not fall back to the legacy renderer",
 );
-for (const signLabel of [
-  "حمل",
-  "ثور",
-  "جوزا",
-  "سرطان",
-  "اسد",
-  "سنبله",
-  "میزان",
-  "عقرب",
-  "قوس",
-  "جدی",
-  "دلو",
-  "حوت",
+for (const signId of [
+  "aries",
+  "taurus",
+  "gemini",
+  "cancer",
+  "leo",
+  "virgo",
+  "libra",
+  "scorpio",
+  "sagittarius",
+  "capricorn",
+  "aquarius",
+  "pisces",
 ]) {
   assert(
-    componentSource.includes(`label: "${signLabel}"`),
-    `Persian wheel guide is missing sign: ${signLabel}`,
+    componentSource.includes(`label: ZODIAC_LABELS.${signId}.faName`),
+    `Wheel guide must read the canonical Halleus zodiac label for: ${signId}`,
   );
+}
+for (const darkToken of [
+  'COLOR_BACKGROUND: "#0B0D11"',
+  'POINTS_COLOR: "#F4F6F8"',
+  'SIGNS_COLOR: "#E5EAF0"',
+  'CIRCLE_COLOR: "#4B535E"',
+  'LINE_COLOR: "#3A424C"',
+]) {
+  assert(componentSource.includes(darkToken), `Report wheel lost /sky dark token: ${darkToken}`);
 }
 assert(
   componentSource.includes('data-report-birth-chart-wheel-guide="persian"') &&
@@ -368,10 +377,11 @@ assert(
 assert(
   readerSource.includes("ReportBirthChartWheel") &&
     (readerSource.match(/<ReportBirthChartWheel/g) ?? []).length === 1 &&
+    readerSource.includes('id="report-summary"') &&
     readerSource.includes('id="report-full"') &&
     readerSource.includes('id="report-chart"') &&
-    readerSource.includes("<ReportTechnicalAppendix contract={contract} report={report} />"),
-  "continuous reader must expose exactly one adapted wheel in the technical chart section",
+    readerSource.includes("<ReportTechnicalAppendix"),
+  "continuous reader must expose exactly one adapted wheel near the top and preserve the technical appendix",
 );
 assert(
   readerSource.includes('data-report-product-flow="continuous"') &&
@@ -408,9 +418,9 @@ assert(
   "the guide must stack same-width supplementary cards beside the retrograde status",
 );
 assert(
-  readerSource.indexOf("<ReportV3Experience") <
-    readerSource.indexOf("<ReportBirthChartWheel"),
-  "the full Persian reading remains before the technical chart wheel in reader source",
+  readerSource.indexOf("<ReportBirthChartWheel") <
+    readerSource.indexOf("<ReportV3Experience"),
+  "the birth-chart wheel must appear before the long narrative so the report starts from its visual evidence",
 );
 assert(
   packageJson.scripts?.["check:report-birth-chart-wheel"] ===

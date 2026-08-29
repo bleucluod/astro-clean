@@ -17,7 +17,7 @@ type AspectDefinition = {
 const MAJOR_ASPECTS: AspectDefinition[] = [
   {
     id: "conjunction",
-    label: "هم‌نشینی",
+    label: "مقارنه",
     glyph: "☌",
     angle: 0,
     orb: 8,
@@ -28,7 +28,7 @@ const MAJOR_ASPECTS: AspectDefinition[] = [
   },
   {
     id: "sextile",
-    label: "فرصت نرم",
+    label: "تسدیس",
     glyph: "⚹",
     angle: 60,
     orb: 5,
@@ -39,7 +39,7 @@ const MAJOR_ASPECTS: AspectDefinition[] = [
   },
   {
     id: "square",
-    label: "چالش سازنده",
+    label: "مربع",
     glyph: "□",
     angle: 90,
     orb: 6,
@@ -50,7 +50,7 @@ const MAJOR_ASPECTS: AspectDefinition[] = [
   },
   {
     id: "trine",
-    label: "جریان هماهنگ",
+    label: "تثلیث",
     glyph: "△",
     angle: 120,
     orb: 6,
@@ -61,7 +61,7 @@ const MAJOR_ASPECTS: AspectDefinition[] = [
   },
   {
     id: "opposition",
-    label: "قطبیت آگاه‌کننده",
+    label: "مقابله",
     glyph: "☍",
     angle: 180,
     orb: 8,

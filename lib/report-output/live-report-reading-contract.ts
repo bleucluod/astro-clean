@@ -179,13 +179,21 @@ export function selectPrimaryNarrativeAspects(
   return output;
 }
 
+const STANDARD_ASPECT_LABELS: Record<RealEngineReportAspect["aspectId"], string> = {
+  conjunction: "مقارنه",
+  sextile: "تسدیس",
+  square: "مربع",
+  trine: "تثلیث",
+  opposition: "مقابله",
+};
+
 export function buildTechnicalAspectRows(
   aspects: RealEngineReportAspect[],
 ): ReportTechnicalAspectRow[] {
   return aspects.map((aspect) => ({
     id: aspect.id,
     planets: `${aspect.firstPlanetLabel} — ${aspect.secondPlanetLabel}`,
-    type: aspect.aspectLabel,
+    type: STANDARD_ASPECT_LABELS[aspect.aspectId],
     exactAngle: aspect.angle,
     separation: aspect.separation,
     orb: aspect.orb,

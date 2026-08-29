@@ -4,6 +4,7 @@ import type {
   SkyDailyMotionState,
   SkyDailyZodiacSign,
 } from "@/lib/sky-daily/sky-daily-contract";
+import { ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
 
 export const SKY_BODY_LABELS: Record<SkyDailyBodyId, string> = {
   sun: "خورشید", moon: "ماه", mercury: "عطارد", venus: "زهره", mars: "مریخ",
@@ -16,8 +17,18 @@ export const SKY_BODY_SYMBOLS: Record<SkyDailyBodyId, string> = {
 };
 
 export const SKY_SIGN_LABELS: Record<SkyDailyZodiacSign, string> = {
-  aries: "حمل", taurus: "ثور", gemini: "جوزا", cancer: "سرطان", leo: "اسد", virgo: "سنبله",
-  libra: "میزان", scorpio: "عقرب", sagittarius: "قوس", capricorn: "جدی", aquarius: "دلو", pisces: "حوت",
+  aries: ZODIAC_LABELS.aries.faName,
+  taurus: ZODIAC_LABELS.taurus.faName,
+  gemini: ZODIAC_LABELS.gemini.faName,
+  cancer: ZODIAC_LABELS.cancer.faName,
+  leo: ZODIAC_LABELS.leo.faName,
+  virgo: ZODIAC_LABELS.virgo.faName,
+  libra: ZODIAC_LABELS.libra.faName,
+  scorpio: ZODIAC_LABELS.scorpio.faName,
+  sagittarius: ZODIAC_LABELS.sagittarius.faName,
+  capricorn: ZODIAC_LABELS.capricorn.faName,
+  aquarius: ZODIAC_LABELS.aquarius.faName,
+  pisces: ZODIAC_LABELS.pisces.faName,
 };
 
 export const SKY_SIGN_ENGLISH_LABELS: Record<SkyDailyZodiacSign, string> = {

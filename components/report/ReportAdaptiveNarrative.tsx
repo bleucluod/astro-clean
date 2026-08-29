@@ -23,6 +23,38 @@ import styles from "./human-first-report.module.css";
 
 export type BirthReportAccessMode = "free" | "premium";
 
+const PLANET_SYMBOLS: Record<string, string> = {
+  sun: "☉",
+  moon: "☽",
+  mercury: "☿",
+  venus: "♀",
+  mars: "♂",
+  jupiter: "♃",
+  saturn: "♄",
+  uranus: "♅",
+  neptune: "♆",
+  pluto: "♇",
+  asc: "ASC",
+};
+
+const STANDARD_ASPECT_LABELS: Record<string, string> = {
+  conjunction: "مقارنه",
+  sextile: "تسدیس",
+  square: "مربع",
+  trine: "تثلیث",
+  opposition: "مقابله",
+};
+
+function splitAstrologyHeadline(value: string) {
+  const separator = " — ";
+  const at = value.indexOf(separator);
+  if (at < 0) return { astrology: value, human: value };
+  return {
+    astrology: value.slice(0, at),
+    human: value.slice(at + separator.length),
+  };
+}
+
 type Props = {
   report: AstrologyReport;
   accessMode?: BirthReportAccessMode;
@@ -46,7 +78,7 @@ function EvidenceDisclosure({
 
   return (
     <details className={styles.adaptiveEvidence} data-adaptive-evidence>
-      <summary>چرا این نتیجه؟</summary>
+      <summary>مبنای این برداشت</summary>
       {visibleReasons.length > 0 ? (
         <ul>
           {visibleReasons.map((reason) => (
@@ -95,7 +127,7 @@ function StoryCard({ story, index, showAction, compactEvidence }: { story: Adapt
           ) : null}
           {story.friction ? (
             <div>
-              <strong>جایی که ممکن است گیر کند</strong>
+              <strong>وقتی فشار بالا می‌رود</strong>
               <p>{story.friction}</p>
             </div>
           ) : null}
@@ -126,24 +158,29 @@ function PlacementCard({
     <article className={styles.adaptivePlacementCard} data-adaptive-placement={story.planetId}>
       <header>
         <div>
-          <h3>{story.planetLabel}</h3>
+          <h3>
+            {`${PLANET_SYMBOLS[story.planetId] ?? ""} ${story.planetLabel}`.trim()} در {story.signLabel}
+          </h3>
           <p>
-            {story.signLabel}
-            {story.houseNumber ? ` · خانه ${story.houseNumber.toLocaleString("fa-IR")}` : ""}
+            {story.houseNumber ? `خانه ${story.houseNumber.toLocaleString("fa-IR")}` : "بدون خانهٔ قابل اتکا"}
             {story.retrograde ? " · پس‌رو" : ""}
+            {interpretation.focus ? ` · ${interpretation.focus}` : ""}
           </p>
         </div>
       </header>
+      {interpretation.plainMeaning ? (
+        <p className={styles.adaptiveLead}>{interpretation.plainMeaning}</p>
+      ) : null}
       {interpretation.dailyLifeExample ? <p>{interpretation.dailyLifeExample}</p> : null}
       {!condensed && story.importance !== "compact" && interpretation.healthyExpression ? (
         <p>
-          <strong>توان سالم: </strong>
+          <strong>وقتی روی فرم است: </strong>
           {interpretation.healthyExpression}
         </p>
       ) : null}
       {!condensed && story.importance !== "compact" && interpretation.possibleFriction ? (
         <p>
-          <strong>گیر محتمل: </strong>
+          <strong>وقتی فشار بالا می‌رود: </strong>
           {interpretation.possibleFriction}
         </p>
       ) : null}
@@ -287,13 +324,34 @@ export function ReportAdaptiveNarrative({
           <span>زمان تقریبی مطالعه: {plan.readingMinutes.toLocaleString("fa-IR")} دقیقه</span>
           <span>{plan.topStories.length.toLocaleString("fa-IR")} داستان اصلی</span>
         </div>
+
+      {visibleTopStories.length > 0 ? (
+          <div className={styles.adaptiveStoryList} data-adaptive-story-preview="three-headlines">
+            {visibleTopStories.map((story, index) => (
+              <article
+                className={styles.adaptiveStoryCard}
+                data-adaptive-preview-anchor={story.anchorId}
+                key={`preview-${story.anchorId}`}
+              >
+                <span className={styles.adaptiveIndex}>{(index + 1).toLocaleString("fa-IR")}</span>
+                <div className={styles.adaptiveStoryBody}>
+                  <h3>{story.title}</h3>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.adaptiveSection} id="inner-world" data-adaptive-report-section="big-three">
         <header className={styles.adaptiveSectionHeader}>
           <p className={styles.eyebrow}>برای شروع</p>
-          <h2>خورشید، ماه و رایزینگ</h2>
-          <p>این سه جایگاه جهت اولیه را می‌دهند؛ بعدتر می‌بینی کدام‌یک در همین چارت واقعاً وزن بیشتری گرفته و کجا خودش را در زندگی نشان می‌دهد.</p>
+          <h2>
+            {plan.bigThree.some((story) => story.planetId === "asc")
+              ? "خورشید، ماه، رایزینگ، عطارد، مریخ و زهره"
+              : "خورشید، ماه، عطارد، مریخ و زهره"}
+          </h2>
+          <p>این جایگاه‌ها سریع‌ترین تصویر را از هویت، نیاز عاطفی، حضور، فکر، شیوه اقدام و سبک رابطه می‌دهند. هر کارت از جایگاه واقعی همین چارت شروع می‌شود، نه از توصیف عمومی نشان‌ها.</p>
         </header>
         <div className={styles.adaptivePlacementGrid}>
           {plan.bigThree.map((story) => (
@@ -322,6 +380,25 @@ export function ReportAdaptiveNarrative({
         </div>
       </section>
 
+      {visiblePlacementStories.length > 0 ? (
+        <section className={styles.adaptiveSection} id="deeper-layers" data-adaptive-report-section="placements">
+          <header className={styles.adaptiveSectionHeader}>
+            <p className={styles.eyebrow}>بعد از جایگاه‌های اصلی</p>
+            <h2>سیاره‌ها در زندگی روزمره</h2>
+            <p>سیاره‌هایی که در داستان‌های اصلی نقش بیشتری دارند عمق بیشتری گرفته‌اند؛ بقیه کوتاه‌تر می‌مانند و بخش فنی پایین صفحه همچنان کامل است.</p>
+          </header>
+          <div className={styles.adaptivePlacementGrid}>
+            {visiblePlacementStories.map((story) => (
+              <PlacementCard
+                key={story.planetId}
+                story={story}
+                condensed={topStoryPlanetIds.has(story.planetId)}
+                showAction={showInlineAction(story.interpretation.smallExperiment)}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
       {visibleTopStories.length > 0 ? (
         <section className={styles.adaptiveSection} id="primary-patterns" data-adaptive-report-section="top-stories">
           <header className={styles.adaptiveSectionHeader} data-screenshot-ready>
@@ -347,9 +424,24 @@ export function ReportAdaptiveNarrative({
           <div className={styles.adaptiveHouseGrid}>
             {visibleHouses.map((house) => (
               <article key={house.houseNumber} className={styles.adaptiveHouseCard} data-adaptive-house={house.houseNumber}>
-                <h3>خانه {house.houseNumber.toLocaleString("fa-IR")}: {house.label}</h3>
-                <p>{house.reason}</p>
-                {house.livedExample ? <p className={styles.adaptiveLivedExample}>{house.livedExample}</p> : null}
+                <p className={styles.eyebrow}>
+                  خانه {house.houseNumber.toLocaleString("fa-IR")} · {house.label}
+                </p>
+                <p>{house.astrologyLabel}</p>
+                <h3>{house.headline}</h3>
+                <p>{house.synthesis}</p>
+                {house.livedExample ? (
+                  <p className={styles.adaptiveLivedExample}>
+                    <strong>در زندگی واقعی: </strong>
+                    {house.livedExample}
+                  </p>
+                ) : null}
+                {house.pressure ? (
+                  <div>
+                    <strong>وقتی فشار بالا می‌رود</strong>
+                    <p>{house.pressure}</p>
+                  </div>
+                ) : null}
                 <EvidenceDisclosure compact={compactEvidence} evidence={house.evidence} />
               </article>
             ))}
@@ -365,22 +457,37 @@ export function ReportAdaptiveNarrative({
             <p>اول رفتار قابل لمس را می‌خوانی؛ نام جنبه، اورب و جزئیات فنی در همان کارت و در بخش بازشونده می‌مانند.</p>
           </header>
           <div className={styles.adaptiveAspectList}>
-            {visibleAspects.map((story) => (
-              <article key={story.aspect.id} className={styles.adaptiveAspectCard} data-adaptive-aspect-id={story.aspect.id}>
-                <h3>{story.title}</h3>
-                {story.dailyLife ? <p>{story.dailyLife}</p> : null}
-                <div className={styles.adaptiveTwoColumn}>
-                  {story.healthy ? (
-                    <div><strong>وقتی خوب کار می‌کند</strong><p>{story.healthy}</p></div>
-                  ) : null}
-                  {story.friction ? (
-                    <div><strong>جایی که گیر می‌کند</strong><p>{story.friction}</p></div>
-                  ) : null}
-                </div>
-                {story.action && showInlineAction(story.action) ? <p className={styles.adaptiveActionLine}><strong>این هفته امتحان کن</strong>{story.action}</p> : null}
-                <EvidenceDisclosure compact={compactEvidence} evidence={story.evidence} reasons={[`${story.aspect.aspectLabel} · اورب ${story.aspect.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`]} />
-              </article>
-            ))}
+            {visibleAspects.map((story) => {
+              const title = splitAstrologyHeadline(story.title);
+              const aspectLabel =
+                STANDARD_ASPECT_LABELS[story.aspect.aspectId] ?? story.aspect.aspectId;
+              const angle = story.aspect.angle.toLocaleString("fa-IR");
+              const orb = story.aspect.orb.toLocaleString("fa-IR", {
+                maximumFractionDigits: 1,
+              });
+              return (
+                <article key={story.aspect.id} className={styles.adaptiveAspectCard} data-adaptive-aspect-id={story.aspect.id}>
+                  <p className={styles.eyebrow}>{title.astrology}</p>
+                  <h3>{title.human}</h3>
+                  <p>{aspectLabel} · {angle}° · اورب {orb}°</p>
+                  {story.dailyLife ? <p>{story.dailyLife}</p> : null}
+                  <div className={styles.adaptiveTwoColumn}>
+                    {story.healthy ? (
+                      <div><strong>وقتی خوب کار می‌کند</strong><p>{story.healthy}</p></div>
+                    ) : null}
+                    {story.friction ? (
+                      <div><strong>وقتی فشار بالا می‌رود</strong><p>{story.friction}</p></div>
+                    ) : null}
+                  </div>
+                  {story.action && showInlineAction(story.action) ? <p className={styles.adaptiveActionLine}><strong>این هفته امتحان کن</strong>{story.action}</p> : null}
+                  <EvidenceDisclosure
+                    compact={compactEvidence}
+                    evidence={story.evidence}
+                    reasons={[`${aspectLabel} ${angle}° · اورب ${orb}°`]}
+                  />
+                </article>
+              );
+            })}
           </div>
         </section>
       ) : null}
@@ -405,14 +512,14 @@ export function ReportAdaptiveNarrative({
         <section className={styles.adaptiveSection} id="growth-path" data-adaptive-report-section="lunar-node-axis">
           <header className={styles.adaptiveSectionHeader} data-screenshot-ready>
             <p className={styles.eyebrow}>الگوی آشنا، انتخاب تازه</p>
-            <h2>دست‌های ماه</h2>
-            <p>این بخش حکم سرنوشت نیست. فقط نشان می‌دهد در فشار کدام رفتار آشناتر است و چه رفتار دیگری را می‌شود عمداً تمرین کرد.</p>
+            <h2>گره‌های ماه</h2>
+            <p>گره جنوبی الگوی آشناتری را نشان می‌دهد که سریع‌تر به آن برمی‌گردی؛ گره شمالی مسیری است که زندگی بارها تو را به تمرین‌کردنش هل می‌دهد.</p>
           </header>
           <article className={styles.adaptiveNodeCard}>
-            <div><strong>در فشار، راه آشناتر</strong><p>{plan.nodeStory.familiarBehavior}</p></div>
+            <div><strong>☋ الگوی گره جنوبی</strong><p>{plan.nodeStory.familiarBehavior}</p></div>
             <div><strong>توان مفید همان راه</strong><p>{plan.nodeStory.usefulSkill}</p></div>
             <div><strong>وقتی زیادی به آن تکیه می‌کنی</strong><p>{plan.nodeStory.overuse}</p></div>
-            <div><strong>انتخاب تازه‌تر</strong><p>{plan.nodeStory.freshBehavior}</p></div>
+            <div><strong>☊ مسیر گره شمالی</strong><p>{plan.nodeStory.freshBehavior}</p></div>
             {showInlineAction(plan.nodeStory.experiment) ? <p className={styles.adaptiveActionLine}><strong>این هفته امتحان کن</strong>{plan.nodeStory.experiment}</p> : null}
             <p className={styles.adaptiveConfidence}>{plan.nodeStory.confidence}</p>
             <EvidenceDisclosure evidence={plan.nodeStory.evidence} />
@@ -455,25 +562,6 @@ export function ReportAdaptiveNarrative({
         </section>
       ) : null}
 
-      {visiblePlacementStories.length > 0 ? (
-        <section className={styles.adaptiveSection} id="deeper-layers" data-adaptive-report-section="placements">
-          <header className={styles.adaptiveSectionHeader}>
-            <p className={styles.eyebrow}>برای جزئیات بیشتر</p>
-            <h2>سیاره‌ها در زندگی روزمره</h2>
-            <p>سیاره‌هایی که در داستان‌های اصلی نقش بیشتری دارند عمق بیشتری گرفته‌اند؛ بقیه کوتاه‌تر می‌مانند و بخش فنی پایین صفحه همچنان کامل است.</p>
-          </header>
-          <div className={styles.adaptivePlacementGrid}>
-            {visiblePlacementStories.map((story) => (
-              <PlacementCard
-                key={story.planetId}
-                story={story}
-                condensed={topStoryPlanetIds.has(story.planetId)}
-                showAction={showInlineAction(story.interpretation.smallExperiment)}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

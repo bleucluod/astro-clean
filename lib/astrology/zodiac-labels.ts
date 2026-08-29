@@ -9,18 +9,18 @@ type ZodiacLabel = {
 };
 
 export const ZODIAC_LABELS: Record<ZodiacKey, ZodiacLabel> = {
-  aries: { faName: "حمل", enName: "Aries", aliases: ["قوچ"] },
-  taurus: { faName: "ثور", enName: "Taurus" },
-  gemini: { faName: "جوزا", enName: "Gemini", aliases: ["دوقلو"] },
-  cancer: { faName: "سرطان", enName: "Cancer", aliases: ["خرچنگ"] },
-  leo: { faName: "اسد", enName: "Leo" },
-  virgo: { faName: "سنبله", enName: "Virgo", aliases: ["خوشه"] },
-  libra: { faName: "میزان", enName: "Libra" },
-  scorpio: { faName: "عقرب", enName: "Scorpio" },
-  sagittarius: { faName: "قوس", enName: "Sagittarius", aliases: ["کماندار"] },
-  capricorn: { faName: "جدی", enName: "Capricorn" },
-  aquarius: { faName: "دلو", enName: "Aquarius" },
-  pisces: { faName: "حوت", enName: "Pisces", aliases: ["ماهی"] },
+  aries: { faName: "قوچ", enName: "Aries" },
+  taurus: { faName: "تارس", enName: "Taurus" },
+  gemini: { faName: "جمنای", enName: "Gemini" },
+  cancer: { faName: "کنسر", enName: "Cancer" },
+  leo: { faName: "لئو", enName: "Leo" },
+  virgo: { faName: "ویرگو", enName: "Virgo" },
+  libra: { faName: "لیبرا", enName: "Libra" },
+  scorpio: { faName: "اسکورپیو", enName: "Scorpio" },
+  sagittarius: { faName: "سجتریس", enName: "Sagittarius" },
+  capricorn: { faName: "کپریکورن", enName: "Capricorn" },
+  aquarius: { faName: "آکواریوس", enName: "Aquarius" },
+  pisces: { faName: "پایسیز", enName: "Pisces" },
 };
 
 export const ZODIAC_SIGN_ORDER = [
@@ -56,7 +56,8 @@ ${label.enName}` : `${faLabel} (${label.enName})`;
 }
 
 export function formatZodiacSign(sign: ZodiacSign): string {
-  return `${sign.faName} (${sign.enName})`;
+  const label = ZODIAC_LABELS[sign.key];
+  return `${label.faName} (${label.enName})`;
 }
 
 export function zodiacSignFromLongitude(longitude: number): ZodiacKey {

@@ -13,6 +13,7 @@ import type { RealEngineReportAspectKind } from "@/types/astro";
 import type { ChartPattern } from "@/lib/astrology/chart-patterns";
 import reportStyles from "@/components/report/human-first-report.module.css";
 import type { AstrologyReport } from "@/types/astro";
+import { ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
 
 type ReportBirthChartWheelProps = {
   report: AstrologyReport;
@@ -35,26 +36,26 @@ const PERSIAN_CUSP_DEGREE_FORMATTER = new Intl.NumberFormat("fa-IR", {
 });
 
 const ASPECT_COLORS: Record<RealEngineReportAspectKind, string> = {
-  conjunction: "#7F8C9B",
-  sextile: "#4C8B7B",
-  square: "#C86565",
-  trine: "#4C8B7B",
-  opposition: "#C86565",
+  conjunction: "#78818C",
+  sextile: "#6A8C7E",
+  square: "#956A6A",
+  trine: "#6A8C7E",
+  opposition: "#956A6A",
 };
 
 const WHEEL_SIGN_GUIDE = [
-  { id: "aries", symbol: "♈", label: "حمل" },
-  { id: "taurus", symbol: "♉", label: "ثور" },
-  { id: "gemini", symbol: "♊", label: "جوزا" },
-  { id: "cancer", symbol: "♋", label: "سرطان" },
-  { id: "leo", symbol: "♌", label: "اسد" },
-  { id: "virgo", symbol: "♍", label: "سنبله" },
-  { id: "libra", symbol: "♎", label: "میزان" },
-  { id: "scorpio", symbol: "♏", label: "عقرب" },
-  { id: "sagittarius", symbol: "♐", label: "قوس" },
-  { id: "capricorn", symbol: "♑", label: "جدی" },
-  { id: "aquarius", symbol: "♒", label: "دلو" },
-  { id: "pisces", symbol: "♓", label: "حوت" },
+  { id: "aries", symbol: "♈", label: ZODIAC_LABELS.aries.faName },
+  { id: "taurus", symbol: "♉", label: ZODIAC_LABELS.taurus.faName },
+  { id: "gemini", symbol: "♊", label: ZODIAC_LABELS.gemini.faName },
+  { id: "cancer", symbol: "♋", label: ZODIAC_LABELS.cancer.faName },
+  { id: "leo", symbol: "♌", label: ZODIAC_LABELS.leo.faName },
+  { id: "virgo", symbol: "♍", label: ZODIAC_LABELS.virgo.faName },
+  { id: "libra", symbol: "♎", label: ZODIAC_LABELS.libra.faName },
+  { id: "scorpio", symbol: "♏", label: ZODIAC_LABELS.scorpio.faName },
+  { id: "sagittarius", symbol: "♐", label: ZODIAC_LABELS.sagittarius.faName },
+  { id: "capricorn", symbol: "♑", label: ZODIAC_LABELS.capricorn.faName },
+  { id: "aquarius", symbol: "♒", label: ZODIAC_LABELS.aquarius.faName },
+  { id: "pisces", symbol: "♓", label: ZODIAC_LABELS.pisces.faName },
 ] as const;
 
 const WHEEL_AXIS_GUIDE = [
@@ -218,26 +219,26 @@ function AstroChartRadix({
 
         const chart = new Chart(chartId, ASTROCHART_SIZE, ASTROCHART_SIZE, {
           SYMBOL_SCALE: 1.12,
-          COLOR_BACKGROUND: "#F8FAFC",
-          POINTS_COLOR: "#243447",
-          SIGNS_COLOR: "#243447",
-          CIRCLE_COLOR: "#7F8C9B",
-          LINE_COLOR: "#7F8C9B",
-          CUSPS_FONT_COLOR: "#3A4A5C",
-          SYMBOL_AXIS_FONT_COLOR: "#243447",
+          COLOR_BACKGROUND: "#0B0D11",
+          POINTS_COLOR: "#F4F6F8",
+          SIGNS_COLOR: "#E5EAF0",
+          CIRCLE_COLOR: "#4B535E",
+          LINE_COLOR: "#3A424C",
+          CUSPS_FONT_COLOR: "#A9B2BD",
+          SYMBOL_AXIS_FONT_COLOR: "#F4F6F8",
           COLORS_SIGNS: [
-            "#F5DDD8",
-            "#F3E8CE",
-            "#DCEAF8",
-            "#DDEFE6",
-            "#F5DDD8",
-            "#F3E8CE",
-            "#DCEAF8",
-            "#DDEFE6",
-            "#F5DDD8",
-            "#F3E8CE",
-            "#DCEAF8",
-            "#DDEFE6",
+            "#151922",
+            "#101318",
+            "#171B21",
+            "#11151B",
+            "#151922",
+            "#101318",
+            "#171B21",
+            "#11151B",
+            "#151922",
+            "#101318",
+            "#171B21",
+            "#11151B",
           ],
           MARGIN: 48,
           PADDING: 22,
@@ -611,7 +612,7 @@ function appendPatternPlanetHighlights(
     circle.setAttribute("cy", y.toString());
     circle.setAttribute("r", "17");
     circle.setAttribute("fill", "none");
-    circle.setAttribute("stroke", "#1E40AF");
+    circle.setAttribute("stroke", "#E5EAF0");
     circle.setAttribute("stroke-width", "2.4");
     circle.setAttribute("stroke-opacity", "0.9");
     circle.setAttribute("data-pattern-planet-id", placement.id);
@@ -755,9 +756,9 @@ function applyReadingWheelFocus(
     circle.setAttribute("cx", point.x.toString());
     circle.setAttribute("cy", point.y.toString());
     circle.setAttribute("r", placement.id === "sun" || placement.id === "moon" ? "20" : "17");
-    circle.setAttribute("fill", "#F8FAFC");
+    circle.setAttribute("fill", "#151922");
     circle.setAttribute("fill-opacity", "0.18");
-    circle.setAttribute("stroke", "#1E40AF");
+    circle.setAttribute("stroke", "#E5EAF0");
     circle.setAttribute("stroke-width", "2.6");
     circle.setAttribute("data-report-reading-planet-focus", placement.id);
     wrapper.appendChild(circle);
@@ -769,8 +770,8 @@ function applyReadingWheelFocus(
     circle.setAttribute("cx", point.x.toString());
     circle.setAttribute("cy", point.y.toString());
     circle.setAttribute("r", "12");
-    circle.setAttribute("fill", "#D9EAFD");
-    circle.setAttribute("stroke", "#1E40AF");
+    circle.setAttribute("fill", "#101318");
+    circle.setAttribute("stroke", "#E5EAF0");
     circle.setAttribute("stroke-width", "2.4");
     circle.setAttribute("data-report-reading-asc-focus", "true");
     wrapper.appendChild(circle);
@@ -784,7 +785,7 @@ function applyReadingWheelFocus(
     line.setAttribute("y1", ASTROCHART_CENTER.toString());
     line.setAttribute("x2", point.x.toString());
     line.setAttribute("y2", point.y.toString());
-    line.setAttribute("stroke", "#1E40AF");
+    line.setAttribute("stroke", "#E5EAF0");
     line.setAttribute("stroke-width", "3");
     line.setAttribute("stroke-linecap", "round");
     line.setAttribute("data-report-reading-house-focus", String(focus.house));
@@ -814,7 +815,7 @@ function appendIntroMotionOverlay(
   ring.setAttribute("cy", ASTROCHART_CENTER.toString());
   ring.setAttribute("r", (ASTROCHART_RADIUS - 3).toString());
   ring.setAttribute("fill", "none");
-  ring.setAttribute("stroke", "#52657A");
+  ring.setAttribute("stroke", "#A9B2BD");
   ring.setAttribute("stroke-width", "1.4");
   ring.setAttribute("data-report-wheel-intro-ring", "true");
   wrapper.appendChild(ring);
@@ -826,7 +827,7 @@ function appendIntroMotionOverlay(
     line.setAttribute("y1", ASTROCHART_CENTER.toString());
     line.setAttribute("x2", point.x.toString());
     line.setAttribute("y2", point.y.toString());
-    line.setAttribute("stroke", "#9AA6B2");
+    line.setAttribute("stroke", "#3A424C");
     line.setAttribute("stroke-width", "1");
     line.setAttribute("data-report-wheel-intro-house", String(index + 1));
     line.style.setProperty("--report-motion-index", String(index));
@@ -839,7 +840,7 @@ function appendIntroMotionOverlay(
     circle.setAttribute("cx", point.x.toString());
     circle.setAttribute("cy", point.y.toString());
     circle.setAttribute("r", placement.id === "sun" || placement.id === "moon" ? "7" : "5");
-    circle.setAttribute("fill", placement.id === "sun" || placement.id === "moon" ? "#1E40AF" : "#52657A");
+    circle.setAttribute("fill", placement.id === "sun" || placement.id === "moon" ? "#E5EAF0" : "#A9B2BD");
     circle.setAttribute("data-report-wheel-intro-planet", placement.id);
     if (placement.id === "sun" || placement.id === "moon") {
       circle.setAttribute("data-report-wheel-intro-luminary", "true");
@@ -853,8 +854,8 @@ function appendIntroMotionOverlay(
   asc.setAttribute("cx", ascPoint.x.toString());
   asc.setAttribute("cy", ascPoint.y.toString());
   asc.setAttribute("r", "8");
-  asc.setAttribute("fill", "#D9EAFD");
-  asc.setAttribute("stroke", "#1E40AF");
+  asc.setAttribute("fill", "#101318");
+  asc.setAttribute("stroke", "#E5EAF0");
   asc.setAttribute("stroke-width", "2");
   asc.setAttribute("data-report-wheel-intro-asc", "true");
   wrapper.appendChild(asc);
@@ -947,6 +948,10 @@ function appendStoredCuspLabels(
     background.setAttribute("width", labelWidth.toString());
     background.setAttribute("height", "20");
     background.setAttribute("rx", "8");
+    background.style.fill = "#151922";
+    background.style.stroke = "#4B535E";
+    background.style.strokeWidth = "1";
+    text.style.fill = "#E5EAF0";
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "central");
     text.setAttribute("direction", "ltr");

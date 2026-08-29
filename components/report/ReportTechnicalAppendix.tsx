@@ -89,7 +89,6 @@ export function ReportTechnicalAppendix({
       <details
         className={styles.technicalDisclosure}
         data-free-all-engine-output={exhaustive ? "all" : "configured"}
-        open={exhaustive}
       >
         <summary className={styles.technicalHeading}>
           <span className={styles.eyebrow}>جزئیات نجومی</span>

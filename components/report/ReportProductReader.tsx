@@ -40,6 +40,63 @@ const FLOW_SECTIONS = [
 
 const LEGACY_ADAPTIVE_COMPATIBILITY_RENDER = false;
 
+const TRANSIT_BODY_LABELS: Record<string, string> = {
+  sun: "خورشید",
+  moon: "ماه",
+  mercury: "عطارد",
+  venus: "زهره",
+  mars: "مریخ",
+  jupiter: "مشتری",
+  saturn: "زحل",
+  uranus: "اورانوس",
+  neptune: "نپتون",
+  pluto: "پلوتو",
+};
+
+const TRANSIT_BODY_SYMBOLS: Record<string, string> = {
+  sun: "☉",
+  moon: "☽",
+  mercury: "☿",
+  venus: "♀",
+  mars: "♂",
+  jupiter: "♃",
+  saturn: "♄",
+  uranus: "♅",
+  neptune: "♆",
+  pluto: "♇",
+};
+
+const TRANSIT_ASPECT_LABELS: Record<string, string> = {
+  conjunction: "مقارنه",
+  sextile: "تسدیس",
+  square: "مربع",
+  trine: "تثلیث",
+  opposition: "مقابله",
+};
+
+const TRANSIT_ASPECT_SYMBOLS: Record<string, string> = {
+  conjunction: "☌",
+  sextile: "⚹",
+  square: "□",
+  trine: "△",
+  opposition: "☍",
+};
+
+function formatTransitAstrologyLabel(
+  aspect: Pick<
+    PersonalTransitReportDataBridgeSelectedAspectSummary,
+    "transitBody" | "natalBody" | "aspect" | "orb"
+  >,
+) {
+  const transit = TRANSIT_BODY_LABELS[aspect.transitBody] ?? aspect.transitBody;
+  const natal = TRANSIT_BODY_LABELS[aspect.natalBody] ?? aspect.natalBody;
+  const transitSymbol = TRANSIT_BODY_SYMBOLS[aspect.transitBody] ?? "";
+  const natalSymbol = TRANSIT_BODY_SYMBOLS[aspect.natalBody] ?? "";
+  const aspectSymbol = TRANSIT_ASPECT_SYMBOLS[aspect.aspect] ?? "";
+  const aspectLabel = TRANSIT_ASPECT_LABELS[aspect.aspect] ?? aspect.aspect;
+  return `${transitSymbol} ${transit} ترنزیت ${aspectSymbol} ${natalSymbol} ${natal} تولد · ${aspectLabel} · اورب ${aspect.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`;
+}
+
 export function ReportProductReader({ report, storedAccessTier = null, initialAccessPolicy }: { report: AstrologyReport; storedAccessTier?: string | null; initialAccessPolicy?: ReportAccessPolicy }) {
   const productAccess = useProductAccess(report.id);
   // HALLEUS_FREE_ALL_BIRTH_REPORT_BATCH1_R1
@@ -262,18 +319,30 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
       </details>
 
       <div className={styles.reportFlow}>
-        <section
-          className={styles.flowSection}
-          data-report-flow-section="summary"
-          id="report-summary"
-        >
-          {LEGACY_ADAPTIVE_COMPATIBILITY_RENDER ? (
-<FiveMinuteReportSummary
-            contract={contract}
-            onOpenFullReport={navigateTo}
-          />
-          ) : null}
-        </section>
+<section
+  className={styles.flowSection}
+  data-report-flow-section="summary"
+  id="report-summary"
+>
+  <div className={styles.chartDetails} data-screenshot-ready>
+    <div className={styles.chartHeading}>
+      <p className={styles.eyebrow}>چارت تولد تو</p>
+      <h1>نقشه‌ای که این خوانش از آن ساخته شده</h1>
+      <p>
+        اول خود چارت را می‌بینی؛ بعد گزارش از مهم‌ترین الگوها به جزئیات می‌رود.
+      </p>
+    </div>
+    <div className={styles.wheelShell}>
+      <ReportBirthChartWheel report={report} />
+    </div>
+  </div>
+  {LEGACY_ADAPTIVE_COMPATIBILITY_RENDER ? (
+    <FiveMinuteReportSummary
+      contract={contract}
+      onOpenFullReport={navigateTo}
+    />
+  ) : null}
+</section>
 
         <section
           className={styles.flowSection}
@@ -339,13 +408,10 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
               <p className={styles.eyebrow}>چارت و جزئیات نجومی</p>
               <h1>تمام داده‌های نجومی این گزارش</h1>
               <p>
-                چرخ، جایگاه‌ها، خانه‌ها، محورهای اصلی، جنبه‌ها و اورب‌ها در این بخش یک‌جا در دسترس‌اند.
+                جایگاه‌ها، خانه‌ها، محورهای اصلی، جنبه‌ها، اورب‌ها و روش محاسبه در این بخش یک‌جا در دسترس‌اند.
               </p>
             </div>
             {transitData ? <StoredMomentDetails data={transitData} /> : null}
-            <div className={styles.wheelShell} data-screenshot-ready>
-              <ReportBirthChartWheel report={report} />
-            </div>
             {/* HALLEUS_FREE_ALL_TECHNICAL_APPENDIX_EXHAUSTIVE_R4_20260815 */}
             {technicalAppendixVisible ? (
               <ReportTechnicalAppendix
@@ -382,7 +448,11 @@ function HumanTransitReading({
   const dateLabel = formatTransitLocalDate(data.transitLocalDate);
   const today = isTransitDateToday(data.transitLocalDate, data.location.currentResidenceTimezone);
   // HALLEUS_FREE_ALL_ALL_TRANSIT_ASPECTS_20260815
-  const aspects = getVisibleTransitAspects(data, exhaustive);
+  const aspects = getVisibleTransitAspects(data, 6);
+  const selectedAspectIds = new Set(aspects.map((aspect) => aspect.id));
+  const remainingAspects = exhaustive
+    ? data.aspectHighlights.filter((aspect) => !selectedAspectIds.has(aspect.id))
+    : [];
   const missingResidence = data.status === "missing-current-residence";
 
   return (
@@ -402,43 +472,56 @@ function HumanTransitReading({
           برای ساختن این بخش، محل زندگی فعلی لازم است. گزارش تولد بدون آن همچنان کامل است.
         </div>
       ) : aspects.length > 0 ? (
-        <div className={styles.transitPatternList}>
-          {aspects.map((aspect, index) => (
-            <article className={styles.transitPattern} data-screenshot-ready key={aspect.id}>
-              <span className={styles.patternNumber}>{(index + 1).toLocaleString("fa-IR")}</span>
-              <div>
-                <h2>{aspect.interpretation.theme}</h2>
-                <p>{aspect.interpretation.attention}</p>
-                <div className={styles.transitMoment}>
-                  <strong>ممکن است چطور خودش را نشان دهد؟</strong>
-                  <p>{aspect.interpretation.scenario}</p>
+        <>
+          <div className={styles.transitPatternList}>
+            {aspects.map((aspect, index) => (
+              <article className={styles.transitPattern} data-screenshot-ready key={aspect.id}>
+                <span className={styles.patternNumber}>{(index + 1).toLocaleString("fa-IR")}</span>
+                <div>
+                  <p className={styles.eyebrow}>{formatTransitAstrologyLabel(aspect)}</p>
+                  <h2>{aspect.interpretation.theme}</h2>
+                  <p>{aspect.interpretation.attention}</p>
+                  <div className={styles.transitMoment}>
+                    <strong>نشانه‌هایی که احتمالاً می‌بینی</strong>
+                    <p>{aspect.interpretation.scenario}</p>
+                  </div>
+                  <div className={styles.transitBalance}>
+                    <p><strong>وقتی خوب استفاده می‌شود</strong>{aspect.interpretation.helpful}</p>
+                    <p><strong>وقتی فشار بالا می‌رود</strong>{aspect.interpretation.friction}</p>
+                  </div>
+                  <div className={styles.practiceLine}>
+                    <strong>از این دوره چه استفاده‌ای بکنی</strong>
+                    <p>{aspect.interpretation.action}</p>
+                  </div>
+                  <details className={styles.readingMetadata}>
+                    <summary>مبنای این برداشت</summary>
+                    <p>{aspect.interpretation.technicalDetail}</p>
+                  </details>
                 </div>
-                <div className={styles.transitBalance}>
-                  <p><strong>وقتی خوب استفاده می‌شود</strong>{aspect.interpretation.helpful}</p>
-                  <p><strong>وقتی سخت می‌شود</strong>{aspect.interpretation.friction}</p>
-                </div>
-                <div className={styles.practiceLine}>
-                  <strong>یک حرکت کوچک</strong>
-                  <p>{aspect.interpretation.action}</p>
-                </div>
-                {exhaustive ? (
-                  <p>
-                    {aspect.transitBody}{" -> "}{aspect.natalBody}
-                    {" · "}{aspect.aspect}
-                    {typeof aspect.exactAngle === "number"
-                      ? " · exact " + aspect.exactAngle.toLocaleString("fa-IR") + "°"
-                      : ""}
-                    {typeof aspect.separation === "number"
-                      ? " · separation " + aspect.separation.toLocaleString("fa-IR") + "°"
-                      : ""}
-                    {" · orb "}{aspect.orb.toLocaleString("fa-IR")}
-                    {"° / "}{aspect.orbLimit.toLocaleString("fa-IR")}{"°"}
-                  </p>
-                ) : null}
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+          {remainingAspects.length > 0 ? (
+            <details className={styles.readingMetadata} data-all-active-transits>
+              <summary>
+                همهٔ ترنزیت‌های فعال ({data.aspectHighlights.length.toLocaleString("fa-IR")})
+              </summary>
+              <dl>
+                {remainingAspects.map((aspect) => (
+                  <div key={`remaining-${aspect.id}`}>
+                    <dt>{formatTransitAstrologyLabel(aspect)}</dt>
+                    <dd>
+                      {buildPersonalTransitBehavioralInterpretation(
+                        aspect,
+                        data.audienceMode ?? "adult",
+                      ).technicalDetail}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
+          ) : null}
+        </>
       ) : (
         <div className={styles.emptyTechnical}>
           در این تصویر، تماس نزدیک و پررنگی انتخاب نشد. این یعنی لازم نیست برای این لحظه معنای مصنوعی بسازیم.
@@ -462,7 +545,6 @@ function PersonalTransitEngineInventory({
     <details
       className={styles.readingMetadata}
       data-personal-transit-engine-inventory="all"
-      open
     >
       <summary>{"تمام جایگاه‌های محاسبه‌شده ترنزیت"}</summary>
       {[
@@ -510,24 +592,18 @@ function StoredMomentDetails({ data }: { data: PersonalTransitReportDataBridge }
 
 function getVisibleTransitAspects(
   data: PersonalTransitReportDataBridge,
-  exhaustive = false,
+  maxVisible = 6,
 ): PersonalTransitReportDataBridgeSelectedAspectSummary[] {
-  if (exhaustive) {
-    return data.aspectHighlights.map((aspect) => ({
-      ...aspect,
-      relevanceScore: 0,
-      interpretation: buildPersonalTransitBehavioralInterpretation(
-        aspect,
-        data.audienceMode ?? "adult",
-      ),
-    }));
-  }
   if (Array.isArray(data.visibleAspectHighlights)) {
-    return data.visibleAspectHighlights.slice(0, 3);
+    const stored = data.visibleAspectHighlights.slice(0, maxVisible);
+    if (stored.length >= Math.min(maxVisible, data.aspectHighlights.length)) {
+      return stored;
+    }
   }
+
   return selectPersonalTransitHighlights(data.aspectHighlights, {
     audienceMode: data.audienceMode ?? "adult",
-    maxVisible: 3,
+    maxVisible,
   }).map((aspect) => ({
     ...aspect,
     relevanceScore: 0,

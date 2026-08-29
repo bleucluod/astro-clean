@@ -225,12 +225,12 @@ const ASPECT_FRAME_FA: Record<
   { framework: string; helpful: string; friction: string }
 > = {
   conjunction: {
-    framework: "دو نیرو روی یک نقطه جمع می‌شدند و موضوع را فشرده‌تر می‌کردند",
+    framework: "دو نیرو روی یک نقطه جمع می‌شوند و موضوع را فشرده‌تر می‌کنند",
     helpful: "تمرکز را روی یک اولویت نگه داری",
     friction: "فاصله لازم برای دیدن انتخاب‌های دیگر کم شود",
   },
   opposition: {
-    framework: "دو قطب روبه‌روی هم قرار می‌گرفتند و تعادل می‌خواستند",
+    framework: "دو قطب روبه‌روی هم قرار می‌گیرند و تعادل می‌خواهند",
     helpful: "هر دو طرف موقعیت را ببینی و مذاکره کنی",
     friction: "یک قطب به فرد یا موقعیت بیرونی نسبت داده شود",
   },
@@ -240,12 +240,12 @@ const ASPECT_FRAME_FA: Record<
     friction: "عجله برای خلاص‌شدن از فشار، انتخاب ضعیف‌تری بسازد",
   },
   trine: {
-    framework: "جریان میان دو نیرو روان‌تر بود و استفاده آگاهانه می‌خواست",
+    framework: "جریان میان دو نیرو روان‌تر است و استفاده آگاهانه می‌خواهد",
     helpful: "استعداد یا امکان موجود را عمداً به کار بگیری",
     friction: "آسانی باعث شود موضوع جدی گرفته نشود",
   },
   sextile: {
-    framework: "یک فرصت کوچک و قابل استفاده میان دو نیرو باز می‌کرد",
+    framework: "یک فرصت کوچک و قابل استفاده میان دو نیرو باز می‌کند",
     helpful: "فرصت را با یک حرکت داوطلبانه فعال کنی",
     friction: "منتظر بمانی فرصت بدون اقدام خودش کامل شود",
   },
@@ -372,6 +372,17 @@ export function scorePersonalTransitRelevance(
   });
 }
 
+function makeTransitClauseDirect(value: string) {
+  return value
+    .replace(/ کند$/u, " می‌کند")
+    .replace(/ شود$/u, " می‌شود")
+    .replace(/ بدهد$/u, " می‌دهد")
+    .replace(/ ببرد$/u, " می‌برد")
+    .replace(/ بیندازد$/u, " می‌اندازد")
+    .replace(/ بیاورد$/u, " می‌آورد")
+    .replace(/ برود$/u, " می‌رود");
+}
+
 export function buildPersonalTransitBehavioralInterpretation(
   aspect: PersonalTransitAspectLike,
   audienceMode: BehavioralAudienceMode = "adult",
@@ -388,12 +399,12 @@ export function buildPersonalTransitBehavioralInterpretation(
 
   return {
     theme: natal.theme,
-    attention: `${transitLabel} ترنزیتی می‌توانسته ${transit.attention} و آن را به ${natal.field} در چارت تولد وصل کند؛ در این زاویه ${frame.framework}.`,
-    scenario: `اگر این تماس در تجربه همان بازه محسوس بوده، ممکن بود در ${scenario} خودش را نشان دهد.`,
-    helpful: `استفاده سازنده این بود که ${transit.helpful} و هم‌زمان ${natal.healthy}؛ در این حالت می‌شد ${frame.helpful}.`,
-    friction: `گیر محتمل این بود که ${transit.friction} و ${natal.friction}؛ در نتیجه ممکن بود ${frame.friction}.`,
+    attention: `${transitLabel} ترنزیتی ${makeTransitClauseDirect(transit.attention)} و این موضوع را مستقیم به ${natal.field} در چارت تولد وصل می‌کند؛ در این زاویه ${frame.framework}.`,
+    scenario: `این الگو معمولاً در ${scenario} خودش را نشان می‌دهد؛ همان‌جا زودتر متوجه می‌شوی این تماس برای تو چه چیزی را فعال کرده است.`,
+    helpful: `بهترین استفاده این است که ${transit.helpful} و هم‌زمان ${natal.healthy}؛ در این حالت بهتر می‌توانی ${frame.helpful}.`,
+    friction: `وقتی فشار بالا می‌رود، ممکن است ${transit.friction} و ${natal.friction}؛ در نتیجه احتمال این بیشتر می‌شود که ${frame.friction}.`,
     action,
-    technicalDetail: `اورب ${roundToTwo(aspect.orb)} درجه از سقف ${roundToTwo(aspect.orbLimit)} درجه؛ اورب کمتر فقط نزدیکی هندسی تماس را نشان می‌دهد، نه قطعیت رویداد.`,
+    technicalDetail: `اورب ${roundToTwo(aspect.orb)} درجه از سقف ${roundToTwo(aspect.orbLimit)} درجه؛ اورب کمتر نزدیکی هندسی تماس را نشان می‌دهد، نه قطعیت یک رویداد انسانی.`,
   };
 }
 

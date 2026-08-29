@@ -892,6 +892,155 @@ for (const forbiddenBlue of ["#1e40af", "#d9eafd", "30 64 175", "30, 64, 175"]) 
 assert(!editorialBatch2Reader.includes("ReportStoryMode"), "Story Mode must stay removed in Batch 2");
 // HALLEUS_REPORT_EDITORIAL_MOTION_BATCH2_GUARD_20260808
 
+
+// HALLEUS_REPORT_EXPERIENCE_ROADMAP_20260829_FINAL
+const roadmapAdaptive = read("components/report/ReportAdaptiveNarrative.tsx");
+const roadmapPlanner = read("lib/astrology/adaptive-report-planner.ts");
+const roadmapZodiac = read("lib/astrology/zodiac-labels.ts");
+const roadmapWheel = read("components/ReportBirthChartWheel.tsx");
+const roadmapSkyLabels = read("lib/sky-public/sky-public-labels.ts");
+const roadmapTransit = read("src/lib/report-output/personal-transit-relevance.ts");
+const roadmapReader = read("components/report/ReportProductReader.tsx");
+const roadmapTechnical = read("components/report/ReportTechnicalAppendix.tsx");
+const roadmapAspectEngine = read("lib/astrology/real-engine-aspects.ts");
+
+for (const label of [
+  "قوچ", "تارس", "جمنای", "کنسر", "لئو", "ویرگو",
+  "لیبرا", "اسکورپیو", "سجتریس", "کپریکورن", "آکواریوس", "پایسیز",
+]) {
+  assert(roadmapZodiac.includes(`faName: "${label}"`), `Roadmap zodiac label missing: ${label}`);
+}
+for (const oldLabel of [
+  "حمل", "ثور", "جوزا", "سرطان", "اسد", "سنبله",
+  "میزان", "عقرب", "قوس", "جدی", "دلو", "حوت",
+]) {
+  assert(!roadmapZodiac.includes(`faName: "${oldLabel}"`), `Retired primary zodiac label remains: ${oldLabel}`);
+}
+assert(
+  roadmapSkyLabels.includes("ZODIAC_LABELS.aries.faName") &&
+    roadmapWheel.includes("ZODIAC_LABELS.aquarius.faName"),
+  "Sky and report wheel must share canonical zodiac display labels",
+);
+assert(
+  roadmapAdaptive.includes('data-adaptive-story-preview="three-headlines"'),
+  "Top report reading must preview the three strongest chart stories",
+);
+assert(
+  roadmapPlanner.includes('for (const id of ["mercury", "mars", "venus"])') &&
+    roadmapPlanner.includes('const ascSign = report.realEngine?.angles?.asc?.signId;') &&
+    roadmapPlanner.includes("if (ascSign)"),
+  "Starter reading must add Mercury/Mars/Venus without inventing an unknown-time rising sign",
+);
+assert(
+  roadmapAdaptive.indexOf('data-adaptive-report-section="big-three"') <
+    roadmapAdaptive.indexOf('data-adaptive-report-section="placements"') &&
+    roadmapAdaptive.indexOf('data-adaptive-report-section="placements"') <
+    roadmapAdaptive.indexOf('data-adaptive-report-section="top-stories"'),
+  "Daily planets must sit immediately after the starter cards and before full important patterns",
+);
+assert(
+  roadmapPlanner.includes('!["sun", "moon", "mercury", "mars", "venus"].includes'),
+  "Starter planets must not be duplicated in the daily-planets section",
+);
+assert(
+  roadmapAdaptive.includes("PLANET_SYMBOLS[story.planetId]") &&
+    roadmapAdaptive.includes("interpretation.focus ?"),
+  "Planet cards must expose symbols, placement evidence, and a human takeaway",
+);
+assert(
+  roadmapAdaptive.includes("مبنای این برداشت") &&
+    !roadmapAdaptive.includes("چرا این نتیجه؟"),
+  "Evidence disclosure must use the calmer label",
+);
+assert(
+  roadmapAdaptive.includes("<h2>گره‌های ماه</h2>") &&
+    !roadmapAdaptive.includes("<h2>دست‌های ماه</h2>"),
+  "Lunar-node section must use گره‌های ماه",
+);
+assert(
+  !roadmapPlanner.includes("در فشار، معمولاً"),
+  "Node copy must not keep the ungrammatical direct-tone substitution",
+);
+assert(
+  roadmapPlanner.includes("selectDiverseAspectAnchors(") &&
+    roadmapPlanner.includes("const importantAspects = selectDiverseAspectAnchors("),
+  "Narrated aspects must use the bounded diversity selector",
+);
+const roadmapHouseBuilderSignature = /function buildHouseStories\(\s*placements: RealEngineReportPlacement\[\],\s*chartRulerId: string,\s*audienceMode: BehavioralAudienceMode,\s*retrogrades: Set<string>,\s*\): AdaptiveHouseStory\[\] \{/u;
+assert(
+  roadmapHouseBuilderSignature.test(roadmapPlanner) &&
+    roadmapPlanner.includes("buildHouseStories(placements, chartRulerId, audienceMode, retrogrades)"),
+  "Important-house builder signature must match its personalized call site",
+);
+assert(
+  roadmapPlanner.includes("includeHouse = true") &&
+    roadmapPlanner.includes("formatPlacementAstrologyLabel(firstPlacement, false)") &&
+    roadmapPlanner.includes("formatPlacementAstrologyLabel(secondPlacement, false)") &&
+    roadmapPlanner.includes('display.angle.toLocaleString("fa-IR")') &&
+    roadmapPlanner.includes('° با ${second} —'),
+  "Aspect headline must keep both signs, the exact major-aspect degree, and omit house clutter",
+);
+assert(
+  !roadmapPlanner.includes(".map(formatPlacementAstrologyLabel)") &&
+    roadmapPlanner.includes(".map((placement) => formatPlacementAstrologyLabel(placement))"),
+  "Placement astrology labels must use an explicit one-argument map callback",
+);
+// R7_MAP_CALLBACK_GUARD_20260829
+// R6_SCOPED_RESUME_GUARD_20260829
+assert(
+  roadmapAdaptive.includes("splitAstrologyHeadline") &&
+    roadmapAdaptive.includes("STANDARD_ASPECT_LABELS") &&
+    roadmapPlanner.includes('display.angle.toLocaleString("fa-IR")'),
+  "Aspect cards must use two-level evidence-first titles with standard aspect names",
+);
+assert(
+  roadmapPlanner.includes("astrologyLabel") &&
+    roadmapPlanner.includes("headline: stripLeadingPossibility(primaryBehavior.plainMeaning)") &&
+    roadmapAdaptive.includes("<p>{house.astrologyLabel}</p>"),
+  "Important houses must explain why this exact chart makes each house important",
+);
+for (const aspectName of ["مقارنه", "تسدیس", "مربع", "تثلیث", "مقابله"]) {
+  assert(roadmapAspectEngine.includes(`label: "${aspectName}"`), `Standard aspect label missing: ${aspectName}`);
+}
+for (const retiredAspectName of ["هم‌نشینی", "فرصت نرم", "چالش سازنده", "جریان هماهنگ", "قطبیت آگاه‌کننده"]) {
+  assert(!roadmapAspectEngine.includes(`label: "${retiredAspectName}"`), `Retired aspect label remains: ${retiredAspectName}`);
+}
+for (const darkToken of [
+  'COLOR_BACKGROUND: "#0B0D11"',
+  'POINTS_COLOR: "#F4F6F8"',
+  'SIGNS_COLOR: "#E5EAF0"',
+  'CIRCLE_COLOR: "#4B535E"',
+  'LINE_COLOR: "#3A424C"',
+]) {
+  assert(roadmapWheel.includes(darkToken), `Report wheel lost /sky dark token: ${darkToken}`);
+}
+assert(
+  (roadmapReader.match(/<ReportBirthChartWheel/g) ?? []).length === 1 &&
+    roadmapReader.indexOf("<ReportBirthChartWheel") < roadmapReader.indexOf("<ReportV3Experience"),
+  "One birth-chart wheel must appear before the long narrative",
+);
+assert(
+  roadmapReader.includes("نشانه‌هایی که احتمالاً می‌بینی") &&
+    roadmapReader.includes("همهٔ ترنزیت‌های فعال") &&
+    roadmapReader.includes("data-all-active-transits"),
+  "Transit section must foreground five-to-seven important forecasts while keeping all active contacts free",
+);
+assert(
+  roadmapTransit.includes("این الگو معمولاً") &&
+    roadmapTransit.includes("makeTransitClauseDirect(transit.attention)") &&
+    !roadmapTransit.includes("ترنزیتی می‌توانسته"),
+  "Transit copy must be more direct without deterministic event claims",
+);
+assert(
+  !roadmapTechnical.includes("open={exhaustive}"),
+  "Technical appendix must remain free but collapsed by default",
+);
+assert(
+  roadmapReader.includes('const freeAllAccess = accessPolicy.monetizationMode === "FREE_ALL";') &&
+    roadmapReader.includes('accessMode={premiumBirthUnlocked ? "premium" : "free"}'),
+  "FREE_ALL must keep the main report unlocked",
+);
+
 if (failures.length > 0) {
   console.error("Report product quality check failed:");
   for (const failure of failures) console.error(`- ${failure}`);

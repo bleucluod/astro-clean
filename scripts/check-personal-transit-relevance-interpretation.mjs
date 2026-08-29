@@ -74,8 +74,8 @@ const secondFingerprint = [adultTwo.attention, adultTwo.scenario, adultTwo.helpf
 
 assert(adultFingerprint !== secondFingerprint, "different transit contacts must not share generic copy");
 assert(adultOne.attention.includes("زحل") && adultOne.attention.includes("هویت"), "copy must use both transiting and natal roles");
-assert(adultOne.scenario.includes("ممکن"), "scenario must remain probabilistic and retrospective");
-assert(!adultFingerprint.includes("حتماً") && !adultFingerprint.includes("خواهد"), "copy must not claim certainty or predict future events");
+assert(adultOne.scenario.includes("معمولاً"), "scenario must use a direct recurring-pattern forecast without claiming certainty");
+assert(!adultFingerprint.includes("حتماً") && !adultFingerprint.includes("قطعاً"), "copy may forecast patterns but must not claim deterministic certainty");
 assert(caregiver.scenario.includes("کودک") || caregiver.action.includes("کودک"), "caregiver mode must speak to the caregiver about the child");
 assert(!caregiver.scenario.includes("شغل") && !caregiver.scenario.includes("عاشقانه"), "caregiver mode must avoid adult assumptions");
 assert(adultOne.technicalDetail.includes("اورب") && adultOne.technicalDetail.includes("قطعیت"), "each interpretation must keep technical orb detail without event certainty");
