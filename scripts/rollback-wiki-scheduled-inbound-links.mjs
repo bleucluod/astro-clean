@@ -245,7 +245,14 @@ async function main() {
 
     for (const [index, row] of candidates.entries()) {
       if (options.apply) console.error(`[rollback] ${index + 1}/${candidates.length} ${row.stable_id}`);
-      const item = await rollbackOne(sql, row, options.apply);
+      let item;
+      try {
+        item = await rollbackOne(sql, row, options.apply);
+      } catch (error) {
+        const message = error instanceof Error ? error.message.slice(0, 300) : "rollback failed";
+        item = { skipped: { stableId: row.stable_id, reason: "rollback-error", error: message } };
+        console.error(`[rollback] skipped ${row.stable_id}: ${message}`);
+      }
       if (item.restored) restored.push(item.restored);
       if (item.skipped) skipped.push(item.skipped);
     }
