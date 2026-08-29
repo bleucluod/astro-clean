@@ -232,6 +232,20 @@ run_curated_wiki_inbound_repair() {
     return 1
 }
 
+run_wiki_publish_due_once_best_effort() {
+    local release_dir="$1"
+    local publisher_runner="$release_dir/ops/vps/halleus-wiki-publisher.sh"
+
+    if [ ! -f "$publisher_runner" ]; then
+        printf 'Wiki publisher runner is missing after deploy: %s\n' "$publisher_runner" >&2
+        return 0
+    fi
+    printf '%s\n' "Running Wiki publish-due once after SEO repairs..."
+    if ! timeout 120s /bin/bash "$publisher_runner"; then
+        printf '%s\n' "WARN: Wiki publish-due still reported a failure after SEO repairs; inspect the JSON/service log." >&2
+    fi
+}
+
 write_release_metadata() {
     local release_dir="$1"
     local commit="$2"
@@ -394,6 +408,8 @@ deploy_release() {
         DEPLOY_ACTIVATED=0
         fail "SEO repair failed; previous release was restored successfully."
     fi
+
+    run_wiki_publish_due_once_best_effort "$release_dir"
 
     trap - EXIT
     printf '%s\n' "HALLEUS_RELEASE_DEPLOY_OK"
