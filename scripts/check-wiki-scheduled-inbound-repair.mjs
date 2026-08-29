@@ -57,6 +57,8 @@ requireText("scheduled repair script", source, "planner must not invent anchors 
 requireText("scheduled repair script", source, "PERSIAN_MONTH_LABELS");
 requireText("scheduled repair script", source, "INDEXNOW_TIMEOUT_MS");
 requireText("scheduled repair script", source, "controller.abort()");
+requireText("scheduled repair script", source, "await sql.end();");
+forbidText("scheduled repair script", source, "sql.end({ timeout");
 requireText("scheduled repair script", source, "system.wiki.scheduled_inbound_link_repair");
 requireText("scheduled repair script", source, "https://api.indexnow.org/indexnow");
 requireText("scheduled repair script", source, "Add natural pending inbound links");

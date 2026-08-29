@@ -1863,7 +1863,7 @@ async function main() {
       console.log(JSON.stringify(output, null, 2));
     }
   } finally {
-    await sql.end({ timeout: 2 });
+    await sql.end();
   }
 }
 

@@ -202,7 +202,7 @@ run_curated_wiki_inbound_repair() {
         return 1
     fi
     printf '%s\n' "Applying curated Mizfa Wiki inbound-link plan..."
-    for attempt in 1 2; do
+    for attempt in 1 2 3; do
         if output="$(
             timeout 120s "$NODE_BIN" "$repair_script" \
                 --apply \
@@ -212,7 +212,10 @@ run_curated_wiki_inbound_repair() {
             printf '%s\n' "$output"
             return 0
         fi
-        printf 'Curated Wiki inbound-link attempt %s failed; retrying idempotently.\n' "$attempt" >&2
+        if [ "$attempt" -lt 3 ]; then
+            printf 'Curated Wiki inbound-link attempt %s failed; retrying idempotently after a short lock drain.\n' "$attempt" >&2
+            sleep 15
+        fi
     done
     return 1
 }
