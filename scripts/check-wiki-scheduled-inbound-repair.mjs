@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { execFile } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const source = readFileSync(new URL("./repair-wiki-scheduled-inbound-links.mjs", import.meta.url), "utf8");
 const rollbackSource = readFileSync(new URL("./rollback-wiki-scheduled-inbound-links.mjs", import.meta.url), "utf8");
@@ -74,7 +75,11 @@ requireText("scheduled repair script", source, "system.wiki.scheduled_inbound_li
 requireText("scheduled repair script", source, "https://api.indexnow.org/indexnow");
 requireText("scheduled repair script", source, "Add natural pending inbound links");
 requireText("publication readiness", publicationReadiness, "WIKI_PUBLICATION_INBOUND_SOURCE_MIN_AGE_DAYS = 10");
-requireText("publication readiness", publicationReadiness, "published at least");
+requireText("publication readiness", publicationReadiness, "HALLEUS_WIKI_INBOUND_SOFT_TARGET_NON_GATING");
+requireText("publication readiness", publicationReadiness, "readWikiPublicationLiveInboundReadiness");
+requireText("publication readiness", publicationReadiness, "ready: incoming >= minimum");
+requireText("publication readiness", publicationReadiness, "deficit: Math.max(0, minimum - incoming)");
+forbidText("publication readiness", publicationReadiness, "Wiki publication blocked: incoming=");
 requireText("damaged content repair script", damagedContentRepairSource, "what-is-sidereal-astrology");
 requireText("damaged content repair script", damagedContentRepairSource, "Repair damaged public Wiki article body from canonical content");
 requireText("damaged content repair script", damagedContentRepairSource, "SIDEREAL_SECTIONS");
@@ -94,7 +99,7 @@ requireText("scheduled rollback script", rollbackSource, "deleteAddedInlineLinks
 await new Promise((resolve, reject) => {
   execFile(
     process.execPath,
-    [new URL("./repair-wiki-scheduled-inbound-links.mjs", import.meta.url).pathname, "--self-check"],
+    [fileURLToPath(new URL("./repair-wiki-scheduled-inbound-links.mjs", import.meta.url)), "--self-check"],
     { encoding: "utf8", maxBuffer: 1024 * 1024 },
     (error) => error ? reject(error) : resolve(),
   );
@@ -103,7 +108,7 @@ await new Promise((resolve, reject) => {
 await new Promise((resolve, reject) => {
   execFile(
     process.execPath,
-    [new URL("./rollback-wiki-scheduled-inbound-links.mjs", import.meta.url).pathname, "--self-check"],
+    [fileURLToPath(new URL("./rollback-wiki-scheduled-inbound-links.mjs", import.meta.url)), "--self-check"],
     { encoding: "utf8", maxBuffer: 1024 * 1024 },
     (error) => error ? reject(error) : resolve(),
   );
@@ -112,7 +117,7 @@ await new Promise((resolve, reject) => {
 await new Promise((resolve, reject) => {
   execFile(
     process.execPath,
-    [new URL("./repair-wiki-damaged-public-content.mjs", import.meta.url).pathname, "--self-check"],
+    [fileURLToPath(new URL("./repair-wiki-damaged-public-content.mjs", import.meta.url)), "--self-check"],
     { encoding: "utf8", maxBuffer: 1024 * 1024 },
     (error) => error ? reject(error) : resolve(),
   );

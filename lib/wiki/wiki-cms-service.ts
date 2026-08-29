@@ -38,7 +38,7 @@ import {
   syncPublishedWikiInternalLinks,
   syncPublishedWikiInternalLinksBestEffort,
 } from "@/lib/wiki/wiki-link-materialization";
-import { assertWikiPublicationLiveInboundReady } from "@/lib/wiki/wiki-publication-link-readiness";
+import { readWikiPublicationLiveInboundReadiness } from "@/lib/wiki/wiki-publication-link-readiness";
 import {
   computeWikiScheduleSlots,
   validateWikiScheduleSlot,
@@ -1127,7 +1127,7 @@ async function applyPublishedSnapshot(input: {
       .filter((slug): slug is string => Boolean(slug));
 
     if (input.snapshot.indexable) {
-      await assertWikiPublicationLiveInboundReady({
+      await readWikiPublicationLiveInboundReadiness({
         database: tx,
         articleId: input.articleId,
         stableId: input.snapshot.stableId,
@@ -1279,7 +1279,7 @@ export async function publishAdminWikiDraft(input: {
       throw new AdminAccessError(404, "Wiki article was not found.");
     }
     if (snapshot.indexable) {
-      await assertWikiPublicationLiveInboundReady({
+      await readWikiPublicationLiveInboundReadiness({
         database: tx,
         articleId: input.articleId,
         stableId: snapshot.stableId,

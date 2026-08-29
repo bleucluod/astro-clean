@@ -9,7 +9,7 @@ import {
   activatePublishedWikiTargetInboundLinksBestEffort,
   syncPublishedWikiInternalLinksBestEffort,
 } from "@/lib/wiki/wiki-link-materialization";
-import { assertWikiPublicationLiveInboundReady } from "@/lib/wiki/wiki-publication-link-readiness";
+import { readWikiPublicationLiveInboundReadiness } from "@/lib/wiki/wiki-publication-link-readiness";
 
 async function publishClaimedJob(jobId: string) {
   const sql = getAdminDatabase();
@@ -66,9 +66,9 @@ async function publishClaimedJob(jobId: string) {
     }
     // HALLEUS_BATCH4_R19_PUBLISH_MIN3_GATE
     // HALLEUS_WIKI_OUTGOING_MIN_RULE_DRIVEN
-    // HALLEUS_WIKI_INCOMING_MIN3_LIVE_PUBLICATION_GATE
-    // Publication keeps outgoing rule-driven, while inbound authority is hard-gated
-    // at three distinct current-public source articles.
+    // HALLEUS_WIKI_INBOUND_SOFT_TARGET_NON_GATING
+    // Publication keeps outgoing rules enforced, while inbound authority remains a
+    // quality target that repair/maintenance can satisfy without blocking the schedule.
     if (snapshot.indexable) {
       const activeLinkRuleRows = await tx`
         select config
@@ -111,7 +111,7 @@ async function publishClaimedJob(jobId: string) {
         );
       }
 
-      await assertWikiPublicationLiveInboundReady({
+      await readWikiPublicationLiveInboundReadiness({
         database: tx,
         articleId,
         stableId: snapshot.stableId,

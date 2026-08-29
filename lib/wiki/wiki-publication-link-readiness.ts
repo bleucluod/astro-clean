@@ -15,7 +15,7 @@ function readRuleInteger(config: Record<string, unknown>, key: string, fallback:
   return value;
 }
 
-export async function assertWikiPublicationLiveInboundReady(input: {
+export async function readWikiPublicationLiveInboundReadiness(input: {
   database: Sql | TransactionSql;
   articleId: string;
   stableId: string;
@@ -64,18 +64,14 @@ export async function assertWikiPublicationLiveInboundReady(input: {
       .filter(Boolean),
   );
 
-  if (sourceStableIds.size < minimum) {
-    throw new AdminAccessError(
-      409,
-      `Wiki publication blocked: incoming=${sourceStableIds.size}; minimum=${minimum}; ` +
-        `article=${input.stableId}; prepare natural contextual inbound links from distinct current-public articles ` +
-        `published at least ${WIKI_PUBLICATION_INBOUND_SOURCE_MIN_AGE_DAYS} days ago.`,
-    );
-  }
-
+  // HALLEUS_WIKI_INBOUND_SOFT_TARGET_NON_GATING:
+  // Three eligible live inbound links are a quality target, not a publication gate.
+  const incoming = sourceStableIds.size;
   return {
-    incoming: sourceStableIds.size,
+    incoming,
     minimum,
+    ready: incoming >= minimum,
+    deficit: Math.max(0, minimum - incoming),
     sourceStableIds: Array.from(sourceStableIds).sort(),
   };
 }

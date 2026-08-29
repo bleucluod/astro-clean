@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { execFile } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const source = readFileSync(new URL("./repair-wiki-under3-live-inbound-links.mjs", import.meta.url), "utf8");
 const packageJson = readFileSync(new URL("../package.json", import.meta.url), "utf8");
@@ -23,7 +24,7 @@ const plan = JSON.parse(
   await new Promise((resolve, reject) => {
     execFile(
       process.execPath,
-      [new URL("./repair-wiki-under3-live-inbound-links.mjs", import.meta.url).pathname, "--print-plan"],
+      [fileURLToPath(new URL("./repair-wiki-under3-live-inbound-links.mjs", import.meta.url)), "--print-plan"],
       { encoding: "utf8", maxBuffer: 2 * 1024 * 1024 },
       (error, stdout) => error ? reject(error) : resolve(stdout),
     );
