@@ -206,6 +206,31 @@ const CURATED_SCHEDULED_INBOUND_PLANS = [
       },
     ],
   },
+  {
+    target: "exact-birth-date-astrology",
+    placements: [
+      {
+        source: "why-birth-time-matters",
+        anchor: "ساعت دقیق تولد",
+        sentence: "در این نوع طالع‌بینی، [[article:exact-birth-date-astrology|ساعت دقیق تولد]] مشخص می‌کند کدام بخش‌های چارت واقعاً قابل اتکا خوانده می‌شوند.",
+      },
+      {
+        source: "birth-chart-without-birth-time",
+        anchor: "ساعت تولد",
+        sentence: "وقتی [[article:exact-birth-date-astrology|ساعت تولد]] معلوم نیست، بخش‌هایی مثل رایزینگ و خانه‌ها باید با احتیاط بیشتری تفسیر شوند.",
+      },
+      {
+        source: "tehran-birth-chart-difference",
+        anchor: "ساعت تولد",
+        sentence: "در کنار شهر، [[article:exact-birth-date-astrology|ساعت تولد]] همان داده‌ای است که نقشه را از یک تاریخ کلی به چارت شخصی‌تر نزدیک می‌کند.",
+      },
+      {
+        source: "what-is-rising-sign",
+        anchor: "ساعت دقیق تولد",
+        sentence: "برای محاسبه طالع، [[article:exact-birth-date-astrology|ساعت دقیق تولد]] تعیین می‌کند نقطه آغاز خانه‌های چارت کجا قرار بگیرد.",
+      },
+    ],
+  },
 ];
 
 const CURATED_PLANS_BY_TARGET = new Map(CURATED_SCHEDULED_INBOUND_PLANS.map((plan) => [plan.target, plan.placements]));
@@ -483,6 +508,7 @@ function targetIntentLabels(article) {
   if (/without-birth-time/.test(id) || identity.includes("بدون ساعت تولد")) labels.add("birthTimeMissing");
   if (/rectification/.test(id) || identity.includes("اصلاح ساعت تولد")) labels.add("birthTimeRectification");
   if (/birth-time/.test(id) || identity.includes("ساعت دقیق تولد")) labels.add("birthTimeAccuracy");
+  if (identity.includes("ساعت") && identity.includes("تولد")) labels.add("birthTimeAccuracy");
   if (/eighth-house/.test(id) || identity.includes("خانه هشتم")) labels.add("houseEighth");
   if (/fifth-house/.test(id) || identity.includes("خانه پنجم")) labels.add("houseFifth");
   if (/sixth-house/.test(id) || identity.includes("خانه ششم")) labels.add("houseSixth");
@@ -1312,6 +1338,13 @@ function assertSelfCheck() {
     seoTitle: "ساعت دقیق تولد در ثبت احوال",
     summary: "",
   };
+  const exactBirthDateAstrology = {
+    stableId: "exact-birth-date-astrology",
+    title: "طالع‌بینی بر اساس تاریخ دقیق تولد؛ تاریخ، ساعت و شهر چه چیزی را تغییر می‌دهند؟",
+    shortTitle: "طالع‌بینی تاریخ دقیق تولد",
+    seoTitle: "طالع‌بینی با تاریخ و ساعت تولد",
+    summary: "",
+  };
   const birthTimeRectification = {
     stableId: "birth-time-rectification",
     title: "اصلاح ساعت تولد چیست؟",
@@ -1401,6 +1434,16 @@ function assertSelfCheck() {
   );
   if (!curatedBirthTimeRecords || curatedBirthTimeRecords.placements.length !== 4) {
     throw new Error("self-check failed: curated birth-time records target should keep exact Mizfa placements.");
+  }
+  const curatedExactBirthDate = curatedPlacementsForTarget(
+    exactBirthDateAstrology,
+    [whyBirthTimeMatters, birthChartWithoutBirthTime, tehranBirthChartDifference, risingSign],
+    new Set(),
+    ["ساعت دقیق تولد", "ساعت تولد"],
+    new Map(),
+  );
+  if (!curatedExactBirthDate || curatedExactBirthDate.placements.length !== 4) {
+    throw new Error("self-check failed: curated exact birth-date target should keep exact Mizfa placements.");
   }
   const curatedFreeAnchors = curatedFreeChart.placements.map((item) => item.anchor);
   if (new Set(curatedFreeAnchors).size !== curatedFreeAnchors.length) {
