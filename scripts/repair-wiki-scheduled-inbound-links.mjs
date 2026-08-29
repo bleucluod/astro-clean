@@ -6,6 +6,7 @@ const RUN_ID = "wiki-scheduled-inbound-links-20260828";
 const MINIMUM_INBOUND_TARGET = 3;
 const DEFAULT_MAX_INBOUND_TARGET = 5;
 const SOURCE_MIN_AGE_DAYS = 10;
+const INDEXNOW_TIMEOUT_MS = 10_000;
 
 const MONTHS = [
   ["farvardin", "فروردین"],
@@ -536,17 +537,31 @@ async function submitIndexNowBestEffort(slugs) {
   const key = process.env.HALLEUS_INDEXNOW_KEY;
   const urlList = [...new Set(slugs.filter(Boolean).map((slug) => `${site}/wiki/${slug}`))].slice(0, 10000);
   if (!key || !urlList.length) return { ok: true, skipped: true, submitted: 0 };
-  const response = await fetch("https://api.indexnow.org/indexnow", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      host: new URL(site).host,
-      key,
-      keyLocation: `${site}/indexnow-key.txt`,
-      urlList,
-    }),
-  });
-  return { ok: response.ok, skipped: false, status: response.status, submitted: response.ok ? urlList.length : 0 };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), INDEXNOW_TIMEOUT_MS);
+  try {
+    const response = await fetch("https://api.indexnow.org/indexnow", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        host: new URL(site).host,
+        key,
+        keyLocation: `${site}/indexnow-key.txt`,
+        urlList,
+      }),
+    });
+    return { ok: response.ok, skipped: false, status: response.status, submitted: response.ok ? urlList.length : 0 };
+  } catch (error) {
+    return {
+      ok: false,
+      skipped: false,
+      submitted: 0,
+      error: error instanceof Error ? error.message.slice(0, 300) : "IndexNow request failed.",
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function assertSelfCheck() {
@@ -557,6 +572,7 @@ function assertSelfCheck() {
     "Add natural pending inbound links",
     "system.wiki.scheduled_inbound_link_repair",
     "BUILT_IN_MIZFA_QUERIES",
+    "INDEXNOW_TIMEOUT_MS",
     "hasTargetLink(source.bodyMarkdown, target.stableId)",
   ]) {
     if (!source.includes(marker)) throw new Error(`self-check marker missing: ${marker}`);

@@ -26,6 +26,8 @@ requireText("scheduled repair script", source, "useQueuedSnapshot ? snapshot.ind
 requireText("scheduled repair script", source, "hasTargetLink(source.bodyMarkdown, target.stableId)");
 requireText("scheduled repair script", source, "activationStatus === \"pending\"");
 requireText("scheduled repair script", source, "BUILT_IN_MIZFA_QUERIES");
+requireText("scheduled repair script", source, "INDEXNOW_TIMEOUT_MS");
+requireText("scheduled repair script", source, "controller.abort()");
 requireText("scheduled repair script", source, "system.wiki.scheduled_inbound_link_repair");
 requireText("scheduled repair script", source, "https://api.indexnow.org/indexnow");
 requireText("scheduled repair script", source, "Add natural pending inbound links");
