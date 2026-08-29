@@ -334,26 +334,156 @@ function targetIntentLabels(article) {
   if (/best-free-persian-birth-chart-site/.test(id)) labels.add("freePersianBirthChart");
   if (/online-free-astrology/.test(id)) labels.add("onlineAstrology");
   if (/birth-chart-basics|ai-birth-chart|build-birth-chart/.test(id) || identity.includes("ساخت چارت تولد")) labels.add("birthChartBuild");
+  if (/birth-chart-report|natal-chart-uses-and-limits|what-is-birth-chart|how-to-read-birth-chart/.test(id)) labels.add("birthChartCore");
   if (/birth-chart-interpretation|how-to-read-birth-chart|birth-chart-report/.test(id) || identity.includes("تفسیر چارت تولد") || identity.includes("تحلیل چارت تولد")) labels.add("birthChartInterpretation");
   if (/without-birth-time/.test(id) || identity.includes("بدون ساعت تولد")) labels.add("birthTimeMissing");
   if (/rectification/.test(id) || identity.includes("اصلاح ساعت تولد")) labels.add("birthTimeRectification");
   if (/birth-time/.test(id) || identity.includes("ساعت دقیق تولد")) labels.add("birthTimeAccuracy");
   if (/eighth-house/.test(id) || identity.includes("خانه هشتم")) labels.add("houseEighth");
   if (/fifth-house/.test(id) || identity.includes("خانه پنجم")) labels.add("houseFifth");
+  if (/sixth-house/.test(id) || identity.includes("خانه ششم")) labels.add("houseSixth");
+  if (/seventh-house/.test(id) || identity.includes("خانه هفتم")) labels.add("houseSeventh");
+  if (/eleventh-house/.test(id) || identity.includes("خانه یازدهم")) labels.add("houseEleventh");
   if (/empty-houses/.test(id) || identity.includes("خالی بودن خانه")) labels.add("emptyHouses");
   if (/astrology-houses/.test(id) || identity.includes("خانه های چارت تولد")) labels.add("houseInterpretation");
   if (/dominant-planets/.test(id) || identity.includes("سیاره غالب")) labels.add("dominantPlanets");
   if (/career/.test(id) || identity.includes("مسیر شغلی") || identity.includes("خانه دهم") || identity.includes("mc")) labels.add("careerPath");
+  if (/creativity/.test(id) || identity.includes("خلاقیت")) labels.add("creativity");
+  if (/children-gender/.test(id) || identity.includes("جنسیت فرزند") || identity.includes("تعداد فرزند")) labels.add("childrenGender");
   if (/orb/.test(id) || identity.includes("اورب")) labels.add("orb");
   if (/stellium/.test(id) || identity.includes("استلیوم")) labels.add("stellium");
   if (/south-node|north-node|lunar-nodes/.test(id) || identity.includes("نود جنوبی")) labels.add("lunarNodes");
   if (/vedic/.test(id) || identity.includes("ودیک")) labels.add("vedic");
   if (/tropical/.test(id) || identity.includes("تروپیکال")) labels.add("tropical");
+  if (/what-is-astrology|astrology-systems|types-of-astrology/.test(id) || identity.includes("انواع آسترولوژی")) labels.add("systemAstrology");
   if (/new-moon|full-moon|moon-phase/.test(id) || identity.includes("ماه نو") || identity.includes("ماه کامل")) labels.add("moonPhase");
   if (/today|daily|weekly|monthly|transit|1405/.test(id) || identity.includes("امروز") || identity.includes("سالانه")) labels.add("transitTiming");
   if (/financial|money/.test(id) || identity.includes("مالی")) labels.add("financialAstrology");
+  if (/woman-traits|man-traits|born-traits|birth-month-compatibility|marriage-compatibility/.test(id)) labels.add("monthPersona");
 
   return labels;
+}
+
+function sourceIntentLabels(article) {
+  return targetIntentLabels(article);
+}
+
+function hasAnyLabel(labels, values) {
+  return values.some((value) => labels.has(value));
+}
+
+function sourceMatchesAllowedLabels(sourceLabels, allowedLabels) {
+  return allowedLabels.some((label) => sourceLabels.has(label));
+}
+
+function sourceSupportsTargetIntent(target, source) {
+  const targetLabels = targetIntentLabels(target);
+  const sourceLabels = sourceIntentLabels(source);
+
+  if (targetLabels.has("freePersianBirthChart")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["birthChartCore", "birthChartBuild", "birthChartInterpretation"]);
+  }
+  if (hasAnyLabel(targetLabels, ["birthChartBuild", "birthChartInterpretation"])) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["birthChartCore", "birthChartBuild", "birthChartInterpretation"]);
+  }
+  if (hasAnyLabel(targetLabels, ["birthTimeMissing", "birthTimeRectification", "birthTimeAccuracy"])) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["birthTimeMissing", "birthTimeRectification", "birthTimeAccuracy", "birthChartCore"]);
+  }
+  if (targetLabels.has("careerPath")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["careerPath", "birthChartCore", "houseInterpretation"]);
+  }
+  if (targetLabels.has("childrenGender")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["childrenGender", "houseFifth"]);
+  }
+  if (targetLabels.has("creativity")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["creativity", "houseFifth"]);
+  }
+  if (targetLabels.has("houseFifth")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["houseFifth", "creativity", "childrenGender"]);
+  }
+  if (targetLabels.has("houseEighth")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["houseEighth", "houseInterpretation"]);
+  }
+  if (targetLabels.has("emptyHouses")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["emptyHouses", "houseInterpretation"]);
+  }
+  if (targetLabels.has("houseInterpretation")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["houseInterpretation", "houseFifth", "houseEighth", "emptyHouses"]);
+  }
+  if (targetLabels.has("vedic")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["vedic", "tropical", "systemAstrology"]);
+  }
+  if (targetLabels.has("tropical")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["tropical", "vedic", "systemAstrology"]);
+  }
+  if (targetLabels.has("lunarNodes")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["lunarNodes", "birthChartCore"]);
+  }
+  if (targetLabels.has("moonPhase")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["moonPhase", "transitTiming"]);
+  }
+  if (targetLabels.has("transitTiming")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["transitTiming", "moonPhase"]);
+  }
+  if (targetLabels.has("financialAstrology")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["financialAstrology", "birthChartCore"]);
+  }
+  if (targetLabels.has("dominantPlanets")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["dominantPlanets", "birthChartCore"]);
+  }
+
+  return true;
+}
+
+function sourceSupportsAnchorIntent(source, anchor) {
+  const anchorLabels = mizfaQueryIntentLabels(anchor);
+  const sourceLabels = sourceIntentLabels(source);
+  if (!anchorLabels.size) return true;
+
+  if (anchorLabels.has("freePersianBirthChart")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["birthChartCore", "birthChartBuild", "birthChartInterpretation"]);
+  }
+  if (hasAnyLabel(anchorLabels, ["birthChartBuild", "birthChartInterpretation"])) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["birthChartCore", "birthChartBuild", "birthChartInterpretation"]);
+  }
+  if (hasAnyLabel(anchorLabels, ["birthTimeMissing", "birthTimeRectification", "birthTimeAccuracy"])) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["birthTimeMissing", "birthTimeRectification", "birthTimeAccuracy", "birthChartCore"]);
+  }
+  if (anchorLabels.has("houseFifth")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["houseFifth", "creativity", "childrenGender"]);
+  }
+  if (anchorLabels.has("houseEighth")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["houseEighth", "houseInterpretation"]);
+  }
+  if (anchorLabels.has("houseInterpretation")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["houseInterpretation", "houseFifth", "houseEighth", "emptyHouses"]);
+  }
+  if (anchorLabels.has("emptyHouses")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["emptyHouses", "houseInterpretation"]);
+  }
+  if (anchorLabels.has("vedic")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["vedic", "tropical", "systemAstrology"]);
+  }
+  if (anchorLabels.has("tropical")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["tropical", "vedic", "systemAstrology"]);
+  }
+  if (anchorLabels.has("lunarNodes")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["lunarNodes", "birthChartCore"]);
+  }
+  if (anchorLabels.has("moonPhase")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["moonPhase", "transitTiming"]);
+  }
+  if (anchorLabels.has("transitTiming")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["transitTiming", "moonPhase"]);
+  }
+  if (anchorLabels.has("careerPath")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["careerPath", "birthChartCore", "houseInterpretation"]);
+  }
+  if (anchorLabels.has("dominantPlanets")) {
+    return sourceMatchesAllowedLabels(sourceLabels, ["dominantPlanets", "birthChartCore"]);
+  }
+
+  return [...anchorLabels].some((label) => sourceLabels.has(label));
 }
 
 function mizfaQueryIntentLabels(query) {
@@ -444,7 +574,7 @@ function isRelatedSourceForTarget(target, source) {
     return sourceMonth === targetMonth || normalizeSearchText(source.bodyMarkdown).includes(targetMonth);
   }
   if (targetTopic === "system" && ["womanTraits", "manTraits", "womanMarriage", "manMarriage"].includes(sourceTopic)) return false;
-  return true;
+  return sourceSupportsTargetIntent(target, source);
 }
 
 function anchorCandidates(article, queryHints) {
@@ -726,6 +856,9 @@ function assertSelfCheck() {
     "mizfaQueryMatchesTarget",
     "mizfaQueryIntentMatchesTarget",
     "targetIntentLabels",
+    "sourceIntentLabels",
+    "sourceSupportsTargetIntent",
+    "sourceSupportsAnchorIntent",
     "mizfaQueryIntentLabels",
     "targetIdentityText",
     "isRelatedSourceForTarget",
@@ -754,6 +887,54 @@ function assertSelfCheck() {
     seoTitle: "زن متولد مرداد در عشق",
     summary: "",
     bodyMarkdown: "زن متولد مرداد در رابطه گرم و مستقیم است.",
+  };
+  const khordadBornTraits = {
+    stableId: "khordad-born-traits",
+    title: "خصوصیات متولدین خرداد؛ عشق، دوگانگی، نقطه‌ضعف و قهر",
+    shortTitle: "خصوصیات متولدین خرداد",
+    seoTitle: "خصوصیات متولدین خرداد",
+    summary: "",
+    bodyMarkdown: "چارت تولد فارسی می‌تواند جزئیات بیشتری از عطارد نشان دهد.",
+  };
+  const northNodeVsSouthNode = {
+    stableId: "north-node-vs-south-node",
+    title: "تفاوت نود شمالی و جنوبی در چارت تولد چیست؟",
+    shortTitle: "نود شمالی و جنوبی",
+    seoTitle: "نود شمالی و نود جنوبی در چارت تولد",
+    summary: "",
+    bodyMarkdown: "برای خواندن محور نودها گاهی ساخت چارت تولد لازم است.",
+  };
+  const birthChartReportLayers = {
+    stableId: "birth-chart-report-layers",
+    title: "گزارش چارت تولد چه لایه‌هایی دارد؟",
+    shortTitle: "گزارش چارت تولد",
+    seoTitle: "گزارش چارت تولد",
+    summary: "",
+    bodyMarkdown: "گزارش چارت تولد بعد از ساخت چارت دقیق‌تر می‌شود.",
+  };
+  const sixthHouse = {
+    stableId: "sixth-house-in-natal-chart",
+    title: "خانه ششم در چارت تولد؛ کار روزانه، بدن و نظم",
+    shortTitle: "خانه ششم",
+    seoTitle: "خانه ششم چارت تولد",
+    summary: "",
+    bodyMarkdown: "در کنار خانه پنجم، خانه ششم درباره ریتم روزمره حرف می‌زند.",
+  };
+  const seventhHouse = {
+    stableId: "seventh-house-in-natal-chart",
+    title: "خانه هفتم در چارت تولد؛ رابطه، تعهد و آینه دیگران",
+    shortTitle: "خانه هفتم",
+    seoTitle: "خانه هفتم چارت تولد",
+    summary: "",
+    bodyMarkdown: "خانه پنجم و خانه هفتم هر دو در رابطه دیده می‌شوند.",
+  };
+  const fifthHouse = {
+    stableId: "fifth-house-in-natal-chart",
+    title: "خانه پنجم در چارت تولد؛ عشق، خلاقیت و فرزند",
+    shortTitle: "خانه پنجم",
+    seoTitle: "خانه پنجم چارت تولد",
+    summary: "",
+    bodyMarkdown: "خانه پنجم درباره خلاقیت، عشق و فرزند حرف می‌زند.",
   };
   const btsBirthDates = {
     stableId: "bts-members-birth-dates-zodiac",
@@ -796,6 +977,20 @@ function assertSelfCheck() {
     shortTitle: "خانه هشتم",
     seoTitle: "خانه هشتم چارت تولد",
     summary: "",
+  };
+  const birthChartCreativity = {
+    stableId: "birth-chart-and-creativity",
+    title: "چارت تولد و خلاقیت؛ خانه پنجم، ونوس و خورشید",
+    shortTitle: "چارت تولد و خلاقیت",
+    seoTitle: "چارت تولد و خلاقیت",
+    summary: "",
+  };
+  const childrenGender = {
+    stableId: "children-gender-astrology",
+    title: "آیا طالع‌بینی می‌تواند تعداد یا جنسیت فرزند را پیش‌بینی کند؟",
+    shortTitle: "طالع‌بینی جنسیت فرزند",
+    seoTitle: "جنسیت فرزند در طالع‌بینی",
+    summary: "در بعضی متن‌ها خانه پنجم به فرزند ربط داده می‌شود، اما source لینک باید خودش همین intent را داشته باشد.",
   };
   const birthTimeRectification = {
     stableId: "birth-time-rectification",
@@ -848,6 +1043,45 @@ function assertSelfCheck() {
   }
   if (!mizfaQueryMatchesTarget("چارت تولد رایگان فارسی", freeChart)) {
     throw new Error("self-check failed: free Persian birth chart query should anchor matching target.");
+  }
+  if (isRelatedSourceForTarget(freeChart, northNodeVsSouthNode)) {
+    throw new Error("self-check failed: lunar-node source must not target free Persian birth chart page.");
+  }
+  if (isRelatedSourceForTarget(freeChart, khordadBornTraits)) {
+    throw new Error("self-check failed: month-persona source must not target free Persian birth chart page.");
+  }
+  if (!isRelatedSourceForTarget(freeChart, birthChartReportLayers)) {
+    throw new Error("self-check failed: birth-chart core source should target free Persian birth chart page.");
+  }
+  if (sourceSupportsAnchorIntent(northNodeVsSouthNode, "چارت تولد رایگان فارسی")) {
+    throw new Error("self-check failed: lunar-node source must not support free Persian birth chart anchor.");
+  }
+  if (sourceSupportsAnchorIntent(khordadBornTraits, "چارت تولد رایگان فارسی")) {
+    throw new Error("self-check failed: month-persona source must not support free Persian birth chart anchor.");
+  }
+  if (!sourceSupportsAnchorIntent(birthChartReportLayers, "چارت تولد رایگان فارسی")) {
+    throw new Error("self-check failed: birth-chart core source should support free Persian birth chart anchor.");
+  }
+  if (isRelatedSourceForTarget(birthChartCreativity, sixthHouse)) {
+    throw new Error("self-check failed: sixth-house source must not target fifth-house creativity page.");
+  }
+  if (sourceSupportsAnchorIntent(sixthHouse, "خانه پنجم")) {
+    throw new Error("self-check failed: sixth-house source must not support fifth-house anchor.");
+  }
+  if (sourceSupportsAnchorIntent(seventhHouse, "خانه پنجم")) {
+    throw new Error("self-check failed: seventh-house source must not support fifth-house anchor.");
+  }
+  if (!isRelatedSourceForTarget(birthChartCreativity, fifthHouse)) {
+    throw new Error("self-check failed: fifth-house source should target creativity page.");
+  }
+  if (!sourceSupportsAnchorIntent(fifthHouse, "خانه پنجم")) {
+    throw new Error("self-check failed: fifth-house source should support fifth-house anchor.");
+  }
+  if (isRelatedSourceForTarget(childrenGender, seventhHouse)) {
+    throw new Error("self-check failed: seventh-house source must not target children-gender page.");
+  }
+  if (!isRelatedSourceForTarget(childrenGender, fifthHouse)) {
+    throw new Error("self-check failed: fifth-house source should target children-gender page.");
   }
   if (isRelatedSourceForTarget(tirWoman, mordadWoman)) {
     throw new Error("self-check failed: wrong-month trait source must not target Tir woman traits.");
@@ -942,8 +1176,13 @@ function planRepairs(articles, queryHints, options, nowMs) {
       if (added >= needed) break;
       const existingForSource = sourceAdditions.get(candidate.source.stableId) ?? 0;
       if (existingForSource >= 5) continue;
-      const anchor = anchors[(added + candidate.source.stableId.length) % anchors.length];
-      if (!anchorMatchesTarget(anchor, target)) continue;
+      const anchorOffset = (added + candidate.source.stableId.length) % anchors.length;
+      const orderedAnchors = [...anchors.slice(anchorOffset), ...anchors.slice(0, anchorOffset)];
+      const anchor = orderedAnchors.find((item) =>
+        anchorMatchesTarget(item, target) &&
+        sourceSupportsAnchorIntent(candidate.source, item)
+      );
+      if (!anchor) continue;
       placements.push({
         source: candidate.source.stableId,
         target: target.stableId,
