@@ -317,6 +317,74 @@ function topicGuardWords(topic) {
   return [];
 }
 
+function targetIdentityText(article) {
+  return normalizeSearchText(`${article.stableId.replaceAll("-", " ")} ${article.title} ${article.shortTitle} ${article.seoTitle}`);
+}
+
+function targetSearchText(article) {
+  return targetIdentityText(article);
+}
+
+function targetIntentLabels(article) {
+  const id = String(article.stableId ?? "");
+  const identity = targetIdentityText(article);
+  const labels = new Set();
+
+  if (/bts-members-birth-dates-zodiac/.test(id) || identity.includes("bts")) labels.add("celebrityBirthDates");
+  if (/best-free-persian-birth-chart-site/.test(id)) labels.add("freePersianBirthChart");
+  if (/online-free-astrology/.test(id)) labels.add("onlineAstrology");
+  if (/birth-chart-basics|ai-birth-chart|build-birth-chart/.test(id) || identity.includes("ساخت چارت تولد")) labels.add("birthChartBuild");
+  if (/birth-chart-interpretation|how-to-read-birth-chart|birth-chart-report/.test(id) || identity.includes("تفسیر چارت تولد") || identity.includes("تحلیل چارت تولد")) labels.add("birthChartInterpretation");
+  if (/without-birth-time/.test(id) || identity.includes("بدون ساعت تولد")) labels.add("birthTimeMissing");
+  if (/rectification/.test(id) || identity.includes("اصلاح ساعت تولد")) labels.add("birthTimeRectification");
+  if (/birth-time/.test(id) || identity.includes("ساعت دقیق تولد")) labels.add("birthTimeAccuracy");
+  if (/eighth-house/.test(id) || identity.includes("خانه هشتم")) labels.add("houseEighth");
+  if (/fifth-house/.test(id) || identity.includes("خانه پنجم")) labels.add("houseFifth");
+  if (/empty-houses/.test(id) || identity.includes("خالی بودن خانه")) labels.add("emptyHouses");
+  if (/astrology-houses/.test(id) || identity.includes("خانه های چارت تولد")) labels.add("houseInterpretation");
+  if (/dominant-planets/.test(id) || identity.includes("سیاره غالب")) labels.add("dominantPlanets");
+  if (/career/.test(id) || identity.includes("مسیر شغلی") || identity.includes("خانه دهم") || identity.includes("mc")) labels.add("careerPath");
+  if (/orb/.test(id) || identity.includes("اورب")) labels.add("orb");
+  if (/stellium/.test(id) || identity.includes("استلیوم")) labels.add("stellium");
+  if (/south-node|north-node|lunar-nodes/.test(id) || identity.includes("نود جنوبی")) labels.add("lunarNodes");
+  if (/vedic/.test(id) || identity.includes("ودیک")) labels.add("vedic");
+  if (/tropical/.test(id) || identity.includes("تروپیکال")) labels.add("tropical");
+  if (/new-moon|full-moon|moon-phase/.test(id) || identity.includes("ماه نو") || identity.includes("ماه کامل")) labels.add("moonPhase");
+  if (/today|daily|weekly|monthly|transit|1405/.test(id) || identity.includes("امروز") || identity.includes("سالانه")) labels.add("transitTiming");
+  if (/financial|money/.test(id) || identity.includes("مالی")) labels.add("financialAstrology");
+
+  return labels;
+}
+
+function mizfaQueryIntentLabels(query) {
+  const cleaned = normalizeSearchText(query);
+  const labels = new Set();
+
+  if (cleaned.includes("بدون ساعت تولد")) labels.add("birthTimeMissing");
+  if (cleaned.includes("اصلاح ساعت تولد")) labels.add("birthTimeRectification");
+  if (cleaned.includes("ساعت دقیق تولد")) labels.add("birthTimeAccuracy");
+  if (cleaned.includes("خانه هشتم")) labels.add("houseEighth");
+  if (cleaned.includes("خانه پنجم")) labels.add("houseFifth");
+  if (cleaned.includes("خالی بودن خانه")) labels.add("emptyHouses");
+  if (cleaned.includes("تفسیر خانه های چارت تولد")) labels.add("houseInterpretation");
+  if (cleaned.includes("چارت تولد رایگان فارسی")) labels.add("freePersianBirthChart");
+  if (cleaned.includes("ساخت چارت تولد") || cleaned === "چارت تولد فارسی") labels.add("birthChartBuild");
+  if (cleaned.includes("تحلیل چارت تولد") || cleaned.includes("تفسیر چارت تولد")) labels.add("birthChartInterpretation");
+  if (cleaned.includes("اورب")) labels.add("orb");
+  if (cleaned.includes("استلیوم")) labels.add("stellium");
+  if (cleaned.includes("نود جنوبی")) labels.add("lunarNodes");
+  if (cleaned.includes("آسترولوژی مالی")) labels.add("financialAstrology");
+  if (cleaned.includes("ودیک")) labels.add("vedic");
+  if (cleaned.includes("تروپیکال")) labels.add("tropical");
+  if (cleaned.includes("ماه نو") || cleaned.includes("ماه کامل")) labels.add("moonPhase");
+  if (cleaned.includes("آسترولوژی امروز") || cleaned.includes("وضعیت سیارات امروز") || cleaned.includes("وضعیت ماه امروز") || cleaned.includes("فال سالانه")) labels.add("transitTiming");
+  if (cleaned.includes("مسیر شغلی") || cleaned.includes("خانه دهم") || cleaned.includes("mc")) labels.add("careerPath");
+  if (cleaned.includes("سیاره غالب")) labels.add("dominantPlanets");
+  if (cleaned.includes("bts")) labels.add("celebrityBirthDates");
+
+  return labels;
+}
+
 function anchorMatchesTarget(anchor, target) {
   const cleaned = sanitizeAnchorCandidate(anchor);
   if (!cleaned || cleaned.length < 3 || cleaned.length > 70 || /^مقاله\b/.test(cleaned)) return false;
@@ -335,13 +403,7 @@ function anchorMatchesTarget(anchor, target) {
     return false;
   }
 
-  const targetText = normalizeSearchText([
-    target.title,
-    target.shortTitle,
-    target.seoTitle,
-    target.summary,
-    target.stableId.replaceAll("-", " "),
-  ].join(" "));
+  const targetText = targetIdentityText(target);
   const words = meaningfulWords(cleaned);
   const hits = words.filter((word) => targetText.includes(word)).length;
   return hits >= Math.min(targetMonth ? 1 : 2, words.length);
@@ -353,54 +415,18 @@ function mizfaQueryMatchesTarget(query, target) {
   return mizfaQueryIntentMatchesTarget(cleaned, target);
 }
 
-function targetSearchText(article) {
-  return normalizeSearchText(`${article.title} ${article.shortTitle} ${article.seoTitle} ${article.summary}`);
-}
-
 function mizfaQueryIntentMatchesTarget(query, target) {
   const cleaned = normalizeSearchText(query);
-  const targetId = String(target.stableId ?? "");
   const targetText = targetSearchText(target);
-  if (targetText.includes(cleaned)) return true;
+  const queryLabels = mizfaQueryIntentLabels(cleaned);
+  const targetLabels = targetIntentLabels(target);
 
-  if (cleaned.includes("بدون ساعت تولد")) {
-    return /without-birth-time/.test(targetId) || targetText.includes("بدون ساعت تولد");
+  for (const label of queryLabels) {
+    if (targetLabels.has(label)) return true;
   }
-  if (cleaned.includes("خانه هشتم")) return /eighth-house/.test(targetId) || targetText.includes("خانه هشتم");
-  if (cleaned.includes("خانه پنجم")) return /fifth-house/.test(targetId) || targetText.includes("خانه پنجم");
-  if (cleaned.includes("خالی بودن خانه")) return /empty-houses/.test(targetId) || targetText.includes("خالی بودن خانه");
-  if (cleaned.includes("تفسیر خانه های چارت تولد")) {
-    return /house/.test(targetId) || targetText.includes("خانه های چارت تولد");
-  }
-  if (cleaned.includes("اصلاح ساعت تولد") || cleaned.includes("ساعت دقیق تولد")) {
-    return /birth-time|rectification/.test(targetId) || targetText.includes("ساعت تولد");
-  }
-  if (cleaned.includes("اورب")) return /orb/.test(targetId) || targetText.includes("اورب");
-  if (cleaned.includes("استلیوم")) return /stellium/.test(targetId) || targetText.includes("استلیوم");
-  if (cleaned.includes("نود جنوبی")) return /south-node|lunar-nodes|north-node/.test(targetId) || targetText.includes("نود جنوبی");
-  if (cleaned.includes("آسترولوژی مالی")) return /financial|money/.test(targetId) || targetText.includes("آسترولوژی مالی");
-  if (cleaned.includes("ودیک")) return /vedic/.test(targetId) || targetText.includes("ودیک");
-  if (cleaned.includes("تروپیکال")) return /tropical/.test(targetId) || targetText.includes("تروپیکال");
-  if (cleaned.includes("ماه نو") || cleaned.includes("ماه کامل")) {
-    return /new-moon|full-moon|moon-phase/.test(targetId) || targetText.includes("ماه نو") || targetText.includes("ماه کامل");
-  }
-  if (cleaned.includes("آسترولوژی امروز") || cleaned.includes("وضعیت سیارات امروز") || cleaned.includes("وضعیت ماه امروز") || cleaned.includes("فال سالانه")) {
-    return /today|daily|weekly|monthly|transit|1405/.test(targetId) || targetText.includes("امروز") || targetText.includes("سالانه");
-  }
-  if (cleaned.includes("چارت تولد رایگان فارسی") || cleaned.includes("ساخت چارت تولد") || cleaned.includes("چارت تولد فارسی")) {
-    return /free-persian-birth-chart-site|birth-chart-basics|birth-chart-interpretation|ai-birth-chart/.test(targetId) ||
-      targetText.includes("رایگان") ||
-      targetText.includes("ساخت چارت تولد");
-  }
-  if (cleaned.includes("تحلیل چارت تولد") || cleaned.includes("تفسیر چارت تولد")) {
-    return /birth-chart-interpretation|how-to-read-birth-chart|birth-chart-report/.test(targetId) ||
-      targetText.includes("تحلیل چارت تولد") ||
-      targetText.includes("تفسیر چارت تولد");
-  }
-  if (cleaned.includes("چارت تولد")) {
-    const specificWords = meaningfulWords(cleaned).filter((word) => !["چارت", "تولد", "فارسی", "رایگان", "تحلیل", "تفسیر"].includes(word));
-    return specificWords.length > 0 && specificWords.every((word) => targetText.includes(word));
-  }
+  if (queryLabels.size > 0) return false;
+
+  if (targetText.includes(cleaned)) return true;
 
   const words = meaningfulWords(cleaned);
   const hits = words.filter((word) => targetText.includes(word)).length;
@@ -699,6 +725,9 @@ function assertSelfCheck() {
     "anchorMatchesTarget",
     "mizfaQueryMatchesTarget",
     "mizfaQueryIntentMatchesTarget",
+    "targetIntentLabels",
+    "mizfaQueryIntentLabels",
+    "targetIdentityText",
     "isRelatedSourceForTarget",
     "missing-related-mizfa-anchor",
   ]) {
@@ -731,7 +760,7 @@ function assertSelfCheck() {
     title: "تاریخ تولد اعضای BTS و برج ماه تولد هر کدام",
     shortTitle: "تاریخ تولد اعضای BTS",
     seoTitle: "تاریخ تولد اعضای BTS و برج‌ها",
-    summary: "",
+    summary: "اگر ساعت دقیق تولد یا چارت تولد بدون ساعت تولد اعضا منتشر نشده باشد، باید با احتیاط خوانده شود.",
   };
   const dominantPlanets = {
     stableId: "dominant-planets-in-natal-chart",
@@ -754,6 +783,27 @@ function assertSelfCheck() {
     seoTitle: "چارت تولد رایگان فارسی",
     summary: "",
   };
+  const onlineAstrology = {
+    stableId: "online-free-astrology",
+    title: "آسترولوژی آنلاین رایگان",
+    shortTitle: "آسترولوژی آنلاین",
+    seoTitle: "آسترولوژی آنلاین رایگان",
+    summary: "کاربر شاید دنبال چارت تولد رایگان فارسی هم باشد، اما این صفحه مقصد مستقیم آن نیست.",
+  };
+  const eighthHouse = {
+    stableId: "eighth-house-in-natal-chart",
+    title: "خانه هشتم در چارت تولد؛ بحران، صمیمیت و دگرگونی",
+    shortTitle: "خانه هشتم",
+    seoTitle: "خانه هشتم چارت تولد",
+    summary: "",
+  };
+  const birthTimeRectification = {
+    stableId: "birth-time-rectification",
+    title: "اصلاح ساعت تولد چیست؟",
+    shortTitle: "اصلاح ساعت تولد",
+    seoTitle: "اصلاح ساعت تولد",
+    summary: "",
+  };
   if (anchorMatchesTarget("فرق ماه نو و ماه کامل", deyCompatibility)) {
     throw new Error("self-check failed: unrelated moon query must not anchor Dey compatibility.");
   }
@@ -772,11 +822,29 @@ function assertSelfCheck() {
   if (mizfaQueryMatchesTarget("چارت تولد بدون ساعت تولد", btsBirthDates)) {
     throw new Error("self-check failed: birth-time query must not anchor BTS birth-date target.");
   }
+  if (mizfaQueryMatchesTarget("اصلاح ساعت تولد", btsBirthDates)) {
+    throw new Error("self-check failed: rectification query must not anchor BTS birth-date target.");
+  }
+  if (mizfaQueryMatchesTarget("ساعت دقیق تولد", btsBirthDates)) {
+    throw new Error("self-check failed: exact birth-time query must not anchor BTS birth-date target.");
+  }
+  if (anchorCandidates(btsBirthDates, ["چارت تولد بدون ساعت تولد", "اصلاح ساعت تولد", "ساعت دقیق تولد"]).length !== 0) {
+    throw new Error("self-check failed: BTS target must have no birth-time anchor candidates.");
+  }
   if (mizfaQueryMatchesTarget("چارت تولد بدون ساعت تولد", dominantPlanets)) {
     throw new Error("self-check failed: birth-time query must not anchor dominant-planets target.");
   }
   if (mizfaQueryMatchesTarget("خانه هشتم چارت تولد", careerPath)) {
     throw new Error("self-check failed: eighth-house query must not anchor career-path target.");
+  }
+  if (mizfaQueryMatchesTarget("چارت تولد رایگان فارسی", onlineAstrology)) {
+    throw new Error("self-check failed: free Persian birth chart query must not anchor generic online astrology target.");
+  }
+  if (!mizfaQueryMatchesTarget("خانه هشتم چارت تولد", eighthHouse)) {
+    throw new Error("self-check failed: eighth-house query should anchor matching target.");
+  }
+  if (!mizfaQueryMatchesTarget("اصلاح ساعت تولد", birthTimeRectification)) {
+    throw new Error("self-check failed: birth-time rectification query should anchor matching target.");
   }
   if (!mizfaQueryMatchesTarget("چارت تولد رایگان فارسی", freeChart)) {
     throw new Error("self-check failed: free Persian birth chart query should anchor matching target.");
