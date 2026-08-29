@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
 
 const ARTICLE_LINK_PATTERN = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
-const RUN_ID = "wiki-scheduled-inbound-links-curated-mizfa-20260829";
+const RUN_ID = "wiki-scheduled-inbound-links-full-mizfa-plus-20260829";
 const MINIMUM_INBOUND_TARGET = 3;
 const DEFAULT_MAX_INBOUND_TARGET = 5;
 const SOURCE_MIN_AGE_DAYS = 10;
@@ -469,6 +469,7 @@ function articleFromRow(row) {
     publishedAt: row.published_at ? String(row.published_at) : null,
     scheduledFor: scheduledFor ? String(scheduledFor) : null,
     deletedAt: row.deleted_at ? String(row.deleted_at) : null,
+    hasOpenDraft: row.has_open_draft === true,
     bodyMarkdown: String(snapshot.bodyMarkdown ?? row.body_markdown ?? "") || legacyMarkdown(row),
   };
 }
@@ -481,7 +482,8 @@ function isCurrentPublic(article, nowMs) {
     Number.isFinite(publishedAtMs) &&
     publishedAtMs <= nowMs &&
     !article.scheduledFor &&
-    !article.deletedAt
+    !article.deletedAt &&
+    !article.hasOpenDraft
   );
 }
 
@@ -793,6 +795,132 @@ function curatedPlacementsForTarget(target, oldPublicSources, currentSources, qu
   return { placements, skipped };
 }
 
+function generatedSentenceForPlacement(target, anchor, index) {
+  const link = `[[article:${target.stableId}|${anchor}]]`;
+  const topic = detectTopic(target);
+  const variants = {
+    womanMarriage: [
+      `در رابطه جدی، ${link} به این بستگی دارد که نیاز عاطفی، سبک گفت‌وگو و تحمل تفاوت‌ها چقدر کنار هم دوام می‌آورند.`,
+      `وقتی پای انتخاب شریک وسط است، ${link} فقط با شباهت ماه تولد جواب نمی‌گیرد و باید رفتار واقعی دو نفر هم دیده شود.`,
+      `برای تصمیم بلندمدت، ${link} زمانی معنی‌دارتر می‌شود که امنیت، احترام و شیوه حل اختلاف هم بررسی شوند.`,
+    ],
+    manMarriage: [
+      `در رابطه جدی، ${link} به این برمی‌گردد که نیاز او به اعتماد، احترام و همراهی عملی چطور پاسخ داده می‌شود.`,
+      `وقتی ازدواج مطرح می‌شود، ${link} فقط یک تطبیق ساده نیست و باید با سبک تعهد و مدیریت اختلاف سنجیده شود.`,
+      `برای انتخاب شریک، ${link} زمانی دقیق‌تر است که کنار رفتار واقعی، ثبات عاطفی و مرزهای رابطه خوانده شود.`,
+    ],
+    compatibility: [
+      `در سنجش رابطه، ${link} باید کنار نیاز عاطفی، شیوه گفت‌وگو و تحمل تفاوت‌های روزمره خوانده شود.`,
+      `اگر رابطه جدی‌تر شود، ${link} بیشتر از جذابیت اولیه به سازگاری رفتاری و شیوه حل اختلاف وابسته است.`,
+      `برای فهم دوام رابطه، ${link} زمانی مفید است که هم شباهت‌ها و هم نقاط اصطکاک دیده شوند.`,
+    ],
+    womanTraits: [
+      `در رابطه، ${link} را باید از روی رفتار تکرارشونده و نیاز عاطفی فهمید، نه فقط از یک توصیف کلی ماه تولد.`,
+      `وقتی این الگو وارد عشق می‌شود، ${link} بیشتر در شیوه اعتماد، توجه و واکنش به ناامنی خودش را نشان می‌دهد.`,
+      `برای خواندن دقیق‌تر، ${link} باید کنار ماه، ونوس و تجربه واقعی رابطه قرار بگیرد.`,
+    ],
+    manTraits: [
+      `در رابطه، ${link} بیشتر از رفتارهای عملی، شیوه اعتماد کردن و نوع واکنش او به فشار شناخته می‌شود.`,
+      `وقتی این الگو وارد عشق می‌شود، ${link} را باید کنار نیاز به احترام، امنیت و بیان مستقیم خواسته‌ها دید.`,
+      `برای خواندن دقیق‌تر، ${link} فقط نقطه شروع است و جایگاه‌های دیگر چارت هم تصویر را کامل می‌کنند.`,
+    ],
+    house: [
+      `در خواندن چارت، ${link} کمک می‌کند این بخش از نقشه تولد به جای یک معنی کلی، در زندگی واقعی فرد دیده شود.`,
+      `وقتی این بخش فعال باشد، ${link} نشان می‌دهد موضوع از سطح نماد به تجربه‌های روزمره و تصمیم‌های شخصی نزدیک می‌شود.`,
+      `برای تفسیر دقیق‌تر، ${link} باید کنار سیاره‌های درگیر، حاکم خانه و جنبه‌های مهم خوانده شود.`,
+    ],
+    moon: [
+      `در چرخه‌های ماه، ${link} کمک می‌کند تفاوت نمادین این وضعیت با برداشت‌های رایج روشن‌تر شود.`,
+      `برای خواندن زمان‌بندی، ${link} زمانی مفید است که کنار موقعیت خورشید، ماه و زمینه کلی چارت دیده شود.`,
+      `در آسترولوژی روزمره، ${link} بیشتر درباره ریتم و معناست، نه یک پیش‌بینی قطعی برای همه افراد.`,
+    ],
+    transit: [
+      `در خواندن زمان، ${link} وقتی دقیق‌تر می‌شود که اثر عمومی آسمان با چارت تولد هر فرد جداگانه سنجیده شود.`,
+      `برای استفاده عملی، ${link} باید از پیش‌بینی کلی جدا شود و با خانه‌ها و سیاره‌های شخصی مقایسه شود.`,
+      `در این نوع تحلیل، ${link} بیشتر نقش نقشه راه دارد تا حکم قطعی درباره اتفاق‌های بیرونی.`,
+    ],
+    system: [
+      `در مقایسه روش‌ها، ${link} کمک می‌کند معلوم شود این سنت از چه زبان، محاسبه و فرض‌هایی استفاده می‌کند.`,
+      `برای پرهیز از قاطی‌کردن نظام‌ها، ${link} باید جدا از آسترولوژی تروپیکال و کاربردهای رایج فارسی بررسی شود.`,
+      `وقتی سراغ روش‌های مختلف می‌رویم، ${link} نشان می‌دهد هر نظام چه چیزی را پررنگ می‌کند و چه محدودیتی دارد.`,
+    ],
+    relationship: [
+      `در رابطه، ${link} وقتی قابل استفاده است که کنار رفتار واقعی، مرزهای عاطفی و کیفیت گفت‌وگوی دو نفر خوانده شود.`,
+      `برای تصمیم جدی، ${link} نباید جای شناخت انسانی را بگیرد، اما می‌تواند پرسش‌های دقیق‌تری برای بررسی رابطه بسازد.`,
+      `در این موضوع، ${link} بیشتر به الگوهای تکرارشونده توجه می‌کند تا نتیجه‌گیری سریع از یک نشانه تنها.`,
+    ],
+    life: [
+      `در خواندن چارت، ${link} این موضوع را از حالت کلی بیرون می‌آورد و به بخش مشخصی از تجربه شخصی وصل می‌کند.`,
+      `برای تفسیر دقیق‌تر، ${link} باید کنار خانه‌های مرتبط، سیاره‌های فعال و الگوهای تکرارشونده زندگی دیده شود.`,
+      `وقتی این محور پررنگ باشد، ${link} نشان می‌دهد چارت چطور یک نیاز درونی را به انتخاب‌های بیرونی وصل می‌کند.`,
+    ],
+    general: [
+      `در این چارچوب، ${link} کمک می‌کند موضوع از یک برداشت کلی به پرسش دقیق‌تر و قابل بررسی‌تری تبدیل شود.`,
+      `برای خواندن دقیق‌تر، ${link} باید کنار زمینه مقاله و داده‌های واقعی چارت دیده شود.`,
+      `وقتی این موضوع مهم می‌شود، ${link} مرز میان نماد، تجربه و برداشت شخصی را روشن‌تر می‌کند.`,
+    ],
+  };
+  const list = variants[topic] ?? variants.general;
+  return list[index % list.length];
+}
+
+function automaticPlacementsForTarget(target, oldPublicSources, currentSources, queryHints, sourceAdditions, needed) {
+  const mizfaAnchors = mizfaAnchorCandidates(target, queryHints);
+  const generatedAnchors = generatedAnchorCandidates(target);
+  const anchors = [...new Set([...mizfaAnchors, ...generatedAnchors])];
+  const generatedOnlyAnchors = anchors.filter((item) => !mizfaAnchors.includes(item));
+  const candidates = [];
+  const skipped = [];
+
+  for (const source of oldPublicSources) {
+    if (currentSources.has(source.stableId) || hasTargetLink(source.bodyMarkdown, target.stableId)) {
+      skipped.push({ source: source.stableId, target: target.stableId, reason: "already-linked" });
+      continue;
+    }
+    if (!isFallbackRelatedSourceForTarget(target, source)) {
+      skipped.push({ source: source.stableId, target: target.stableId, reason: "fallback-source-not-related" });
+      continue;
+    }
+    const existingForSource = sourceAdditions.get(source.stableId) ?? 0;
+    if (existingForSource >= 5) {
+      skipped.push({ source: source.stableId, target: target.stableId, reason: "source-quota-full" });
+      continue;
+    }
+    const anchor = anchors.find((item) =>
+      mizfaAnchors.includes(item) ? sourceSupportsAnchorIntent(source, item) : true
+    );
+    if (!anchor) {
+      skipped.push({ source: source.stableId, target: target.stableId, reason: "fallback-anchor-not-supported" });
+      continue;
+    }
+    candidates.push({
+      source,
+      anchor,
+      score: overlapScore(target, source, queryHints) - existingForSource * 4,
+      planSource: mizfaAnchors.includes(anchor) ? "mizfa-scored" : "generated-related",
+    });
+  }
+
+  candidates.sort((left, right) => right.score - left.score || left.source.stableId.localeCompare(right.source.stableId));
+  const placements = [];
+  for (const candidate of candidates) {
+    if (placements.length >= needed) break;
+    const anchorIndex = placements.length % anchors.length;
+    const anchor = candidate.planSource === "mizfa-scored"
+      ? candidate.anchor
+      : (generatedOnlyAnchors[anchorIndex % Math.max(1, generatedOnlyAnchors.length)] ?? candidate.anchor);
+    placements.push({
+      source: candidate.source,
+      anchor: sanitizeAnchorCandidate(anchor),
+      sentence: generatedSentenceForPlacement(target, sanitizeAnchorCandidate(anchor), placements.length),
+      score: candidate.score,
+      planSource: candidate.planSource,
+    });
+  }
+
+  return { placements, skipped };
+}
+
 function mizfaQueryIntentLabels(query) {
   const cleaned = normalizeSearchText(query);
   const labels = new Set();
@@ -907,7 +1035,33 @@ function isRelatedSourceForTarget(target, source) {
   return sourceSupportsTargetIntent(target, source);
 }
 
-function anchorCandidates(article, queryHints) {
+function isFallbackRelatedSourceForTarget(target, source) {
+  if (isRelatedSourceForTarget(target, source)) return true;
+  const targetTopic = detectTopic(target);
+  const sourceTopic = detectTopic(source);
+  const sameCategory = Boolean(target.categoryId && target.categoryId === source.categoryId);
+  const sameCluster = Boolean(target.contentCluster && target.contentCluster === source.contentCluster);
+  const sameTopic = targetTopic !== "general" && targetTopic === sourceTopic;
+
+  const targetTerms = [...new Set([
+    ...titleWords(target),
+    ...slugWords(target.stableId),
+  ].map(normalizeText).filter((term) => term.length >= 4))];
+  const sourceText = normalizeSearchText(stripWikiLinks([
+    source.title,
+    source.shortTitle,
+    source.seoTitle,
+    source.summary,
+    source.bodyMarkdown.slice(0, 22000),
+  ].join(" ")));
+  const hits = targetTerms.filter((term) => sourceText.includes(term)).length;
+  if (sameCluster && hits >= 1) return true;
+  if (sameTopic && hits >= 1) return true;
+  if (sameCategory && hits >= 2) return true;
+  return hits >= 3;
+}
+
+function mizfaAnchorCandidates(article, queryHints) {
   const candidates = [];
   for (const query of queryHints) {
     if (mizfaQueryMatchesTarget(query, article)) candidates.push(query);
@@ -915,6 +1069,89 @@ function anchorCandidates(article, queryHints) {
 
   return [...new Set(candidates.map(sanitizeAnchorCandidate))]
     .filter((item) => anchorMatchesTarget(item, article));
+}
+
+function generatedAnchorCandidates(article) {
+  const month = detectMonth(article)?.[1] ?? "";
+  const topic = detectTopic(article);
+  const firstTitlePart = normalizeText(article.shortTitle || article.title)
+    .split(/[؛؟?]/u)[0]
+    .replace(/\s+/g, " ")
+    .trim();
+  const candidates = [];
+
+  if (topic === "womanMarriage" && month) {
+    candidates.push(`زن متولد ${month} با چه ماهی ازدواج کند`);
+    candidates.push(`ازدواج زن متولد ${month}`);
+    candidates.push(`سازگاری زن متولد ${month}`);
+  }
+  if (topic === "manMarriage" && month) {
+    candidates.push(`مرد متولد ${month} با چه ماهی ازدواج کند`);
+    candidates.push(`ازدواج مرد متولد ${month}`);
+    candidates.push(`سازگاری مرد متولد ${month}`);
+  }
+  if (topic === "compatibility" && month) {
+    candidates.push(`${month} با چه ماهی سازگار است`);
+    candidates.push(`سازگاری متولدین ${month}`);
+    candidates.push(`ازدواج متولد ${month}`);
+  }
+  if (topic === "womanTraits" && month) {
+    candidates.push(`خصوصیات زن متولد ${month}`);
+    candidates.push(`زن متولد ${month} در عشق`);
+    candidates.push(`رگ خواب زن متولد ${month}`);
+  }
+  if (topic === "manTraits" && month) {
+    candidates.push(`خصوصیات مرد متولد ${month}`);
+    candidates.push(`مرد متولد ${month} در عشق`);
+    candidates.push(`رگ خواب مرد متولد ${month}`);
+  }
+  if (topic === "bornTraits" && month) {
+    candidates.push(`خصوصیات متولدین ${month}`);
+    candidates.push(`متولدین ${month} در عشق`);
+    candidates.push(`نقطه ضعف متولدین ${month}`);
+  }
+  if (topic === "house") {
+    candidates.push(firstTitlePart);
+    candidates.push(firstTitlePart.replace(/؛.*$/u, ""));
+  }
+  if (topic === "moon") {
+    candidates.push(firstTitlePart);
+    if (article.title.includes("ماه کامل")) candidates.push("ماه کامل در آسترولوژی");
+    if (article.title.includes("ماه نو")) candidates.push("ماه نو در آسترولوژی");
+  }
+  if (topic === "transit") {
+    candidates.push(firstTitlePart);
+    if (article.title.includes("امروز")) candidates.push("آسترولوژی امروز");
+    if (article.title.includes("فردا")) candidates.push("طالع‌بینی فردا");
+  }
+  if (topic === "system") {
+    candidates.push(firstTitlePart.includes("آسترولوژی") ? firstTitlePart : `آسترولوژی ${firstTitlePart}`);
+  }
+  if (topic === "relationship") {
+    candidates.push(firstTitlePart);
+    if (article.title.includes("ازدواج")) candidates.push("طالع‌بینی ازدواج");
+    if (article.title.includes("عشق")) candidates.push("طالع‌بینی عشق");
+  }
+  if (topic === "life") {
+    candidates.push(firstTitlePart);
+    if (article.title.includes("پول")) candidates.push("چارت تولد و پول");
+    if (article.title.includes("مسیر شغلی")) candidates.push("چارت تولد و مسیر شغلی");
+    if (article.title.includes("خانواده")) candidates.push("چارت تولد و خانواده");
+    if (article.title.includes("خلاقیت")) candidates.push("چارت تولد و خلاقیت");
+  }
+
+  candidates.push(firstTitlePart);
+
+  return [...new Set(candidates.map(sanitizeAnchorCandidate))]
+    .map((item) => item.length > 70 ? item.slice(0, 70).trim() : item)
+    .filter((item) => anchorMatchesTarget(item, article));
+}
+
+function anchorCandidates(article, queryHints) {
+  return [...new Set([
+    ...mizfaAnchorCandidates(article, queryHints),
+    ...generatedAnchorCandidates(article),
+  ])];
 }
 
 function targetHints(article, queryHints) {
@@ -1118,7 +1355,7 @@ function assertSelfCheck() {
     "sourceSupportsAnchorIntent",
     "CURATED_SCHEDULED_INBOUND_PLANS",
     "curatedPlacementsForTarget",
-    "curated-plan-has-too-few-safe-links",
+    "generated-plan-incomplete",
     "planSource: placement.planSource",
     "sentence: placement.sentence",
     "mizfaQueryIntentLabels",
@@ -1127,7 +1364,10 @@ function assertSelfCheck() {
     "missing-related-mizfa-anchor",
     "requireCuratedComplete: false",
     "arg === \"--require-curated-complete\"",
-    "missing-curated-mizfa-plan",
+    "automaticPlacementsForTarget",
+    "generatedAnchorCandidates",
+    "generatedSentenceForPlacement",
+    "isFallbackRelatedSourceForTarget",
     "insertAddedInlineLink",
     "pg_try_advisory_xact_lock",
     "isOldEnoughForScheduledTarget",
@@ -1374,10 +1614,13 @@ function assertSelfCheck() {
   if (!anchorMatchesTarget("زن متولد تیر", tirWoman)) {
     throw new Error("self-check failed: direct target anchor should be accepted.");
   }
-  if (anchorCandidates(tirWoman, []).length !== 0) {
-    throw new Error("self-check failed: planner must not invent anchors without Mizfa data.");
+  if (mizfaAnchorCandidates(tirWoman, []).length !== 0) {
+    throw new Error("self-check failed: Mizfa candidate planner must not invent anchors without Mizfa data.");
   }
-  if (!anchorCandidates(tirWoman, ["زن متولد تیر"]).includes("زن متولد تیر")) {
+  if (!generatedAnchorCandidates(tirWoman).includes("خصوصیات زن متولد تیر")) {
+    throw new Error("self-check failed: generated fallback anchors should come from target identity.");
+  }
+  if (!mizfaAnchorCandidates(tirWoman, ["زن متولد تیر"]).includes("زن متولد تیر")) {
     throw new Error("self-check failed: planner should accept a matching Mizfa query anchor.");
   }
   if (mizfaQueryMatchesTarget("چارت تولد بدون ساعت تولد", btsBirthDates)) {
@@ -1389,7 +1632,7 @@ function assertSelfCheck() {
   if (mizfaQueryMatchesTarget("ساعت دقیق تولد", btsBirthDates)) {
     throw new Error("self-check failed: exact birth-time query must not anchor BTS birth-date target.");
   }
-  if (anchorCandidates(btsBirthDates, ["چارت تولد بدون ساعت تولد", "اصلاح ساعت تولد", "ساعت دقیق تولد"]).length !== 0) {
+  if (mizfaAnchorCandidates(btsBirthDates, ["چارت تولد بدون ساعت تولد", "اصلاح ساعت تولد", "ساعت دقیق تولد"]).length !== 0) {
     throw new Error("self-check failed: BTS target must have no birth-time anchor candidates.");
   }
   if (mizfaQueryMatchesTarget("چارت تولد بدون ساعت تولد", dominantPlanets)) {
@@ -1519,7 +1762,12 @@ async function loadArticles(tx) {
       article.is_indexable, article.body_markdown, article.status,
       article.published_at::text, article.scheduled_for::text,
       article.deleted_at::text, job.run_at::text as pending_publish_at,
-      revision.snapshot as queued_snapshot
+      revision.snapshot as queued_snapshot,
+      exists (
+        select 1
+        from public.wiki_article_drafts as draft
+        where draft.article_id = article.id
+      ) as has_open_draft
     from public.wiki_articles as article
     left join lateral (
       select active_job.article_id, active_job.revision_number, active_job.run_at
@@ -1603,6 +1851,35 @@ function planRepairs(articles, queryHints, options, nowMs) {
         currentSources.add(candidate.source.stableId);
         added += 1;
       }
+    }
+
+    const remainingNeeded = Math.max(0, Math.max(options.minInbound, desired) - currentSources.size);
+    if (remainingNeeded > 0) {
+      const automaticPlan = automaticPlacementsForTarget(
+        target,
+        oldPublicSources,
+        currentSources,
+        queryHints,
+        sourceAdditions,
+        remainingNeeded,
+      );
+      for (const candidate of automaticPlan.placements) {
+        placements.push({
+          source: candidate.source.stableId,
+          target: target.stableId,
+          anchor: candidate.anchor,
+          sentence: candidate.sentence,
+          hints,
+          score: candidate.score,
+          targetTitle: target.title,
+          targetScheduledFor: target.scheduledFor,
+          desired,
+          existingPreparedInbound: currentSources.size,
+          planSource: candidate.planSource,
+        });
+        sourceAdditions.set(candidate.source.stableId, (sourceAdditions.get(candidate.source.stableId) ?? 0) + 1);
+        currentSources.add(candidate.source.stableId);
+      }
       if (currentSources.size < options.minInbound) {
         incompleteTargets.push({
           stableId: target.stableId,
@@ -1610,28 +1887,21 @@ function planRepairs(articles, queryHints, options, nowMs) {
           scheduledFor: target.scheduledFor,
           preparedInbound: currentSources.size,
           minimum: options.minInbound,
-          reason: "curated-plan-has-too-few-safe-links",
-          skipped: curatedPlan.skipped,
+          reason: curatedPlan ? "curated-and-generated-plan-incomplete" : "generated-plan-incomplete",
+          skipped: [
+            ...(curatedPlan?.skipped ?? []),
+            ...automaticPlan.skipped.slice(0, 20),
+          ],
         });
       }
-      continue;
     }
-
-    incompleteTargets.push({
-      stableId: target.stableId,
-      title: target.title,
-      scheduledFor: target.scheduledFor,
-      preparedInbound: currentSources.size,
-      minimum: options.minInbound,
-      reason: "missing-curated-mizfa-plan",
-    });
   }
   const curatedCoverage = scheduledTargets
-    .filter((target) => CURATED_PLANS_BY_TARGET.has(target.stableId))
     .map((target) => ({
       stableId: target.stableId,
       title: target.title,
       scheduledFor: target.scheduledFor,
+      planSource: CURATED_PLANS_BY_TARGET.has(target.stableId) ? "curated-mizfa-first" : "generated-related",
       existingPreparedInbound: targetInitialSources.get(target.stableId)?.size ?? 0,
       plannedPreparedInbound: targetPreparedSources.get(target.stableId)?.size ?? 0,
       minimum: options.minInbound,
@@ -1799,7 +2069,7 @@ async function main() {
       );
       if (options.requireCuratedComplete && incompleteCuratedTargets.length) {
         throw new Error(
-          `Curated Mizfa plan is incomplete: ${incompleteCuratedTargets
+          `Scheduled inbound plan is incomplete: ${incompleteCuratedTargets
             .map((item) => `${item.stableId}=${item.finalPreparedInbound}/${item.minimum}`)
             .join(", ")}`,
         );
@@ -1859,12 +2129,19 @@ async function main() {
       console.log(JSON.stringify({
         mode: output.mode,
         runId: output.runId,
+        scannedScheduledTargets: output.scannedScheduledTargets,
+        eligibleOldPublicSources: output.eligibleOldPublicSources,
+        candidateCount: output.candidateCount,
+        plannedCount: output.plannedCount,
         appliedCount: output.appliedCount,
         changedSourceCount: output.changedSourceSlugs.length,
-        curatedCoverage: output.curatedCoverage,
-        incompleteCuratedTargets: output.incompleteCuratedTargets,
+        coverageCount: output.curatedCoverage.length,
+        completeCoverageCount: output.curatedCoverage.filter((item) => item.finalPreparedInbound >= item.minimum).length,
+        sampleCoverage: output.curatedCoverage.slice(0, 12),
+        incompleteScheduledTargets: output.incompleteCuratedTargets,
+        appliedSample: output.applied.slice(0, 20),
         discovery: output.discovery,
-      }));
+      }, null, 2));
     } else {
       console.log(JSON.stringify(output, null, 2));
     }
