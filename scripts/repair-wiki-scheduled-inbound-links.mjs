@@ -180,35 +180,41 @@ function legacyMarkdown(row) {
 }
 
 function articleFromRow(row) {
+  const queuedSnapshot = row.queued_snapshot && typeof row.queued_snapshot === "object"
+    ? row.queued_snapshot
+    : null;
+  const useQueuedSnapshot = String(row.status ?? "") !== "published" && Boolean(queuedSnapshot);
+  const snapshot = useQueuedSnapshot && queuedSnapshot ? queuedSnapshot : {};
+  const scheduledFor = row.scheduled_for ?? row.pending_publish_at ?? null;
   return {
     id: String(row.id),
-    stableId: String(row.stable_id ?? ""),
-    slug: String(row.slug ?? ""),
-    title: String(row.title ?? ""),
-    shortTitle: String(row.short_title ?? ""),
-    seoTitle: String(row.seo_title ?? ""),
-    metaDescription: row.meta_description ?? row.summary ?? "",
-    categoryId: String(row.category_id ?? ""),
-    tags: jsonArray(row.tags),
-    summary: String(row.summary ?? ""),
-    intro: String(row.intro ?? ""),
-    readingMinutes: Number(row.reading_minutes ?? 0),
-    keyPoints: jsonArray(row.key_points),
-    sections: jsonArray(row.sections),
-    contextLinks: jsonArray(row.context_links),
-    sources: jsonArray(row.sources),
-    callToAction: row.call_to_action ?? null,
-    relatedArticleIds: jsonArray(row.related_article_ids),
-    publicationPriority: Number(row.publication_priority ?? 999),
-    contentCluster: String(row.content_cluster ?? row.category_id ?? ""),
-    articleRole: String(row.article_role ?? ""),
-    contentVersion: Number(row.content_version ?? 1),
-    indexable: row.is_indexable === true,
+    stableId: String(snapshot.stableId ?? row.stable_id ?? ""),
+    slug: String(snapshot.slug ?? row.slug ?? ""),
+    title: String(snapshot.title ?? row.title ?? ""),
+    shortTitle: String(snapshot.shortTitle ?? row.short_title ?? ""),
+    seoTitle: String(snapshot.seoTitle ?? row.seo_title ?? ""),
+    metaDescription: snapshot.metaDescription ?? row.meta_description ?? row.summary ?? "",
+    categoryId: String(snapshot.categoryId ?? row.category_id ?? ""),
+    tags: jsonArray(snapshot.tags ?? row.tags),
+    summary: String(snapshot.summary ?? row.summary ?? ""),
+    intro: String(snapshot.intro ?? row.intro ?? ""),
+    readingMinutes: Number(snapshot.readingMinutes ?? row.reading_minutes ?? 0),
+    keyPoints: jsonArray(snapshot.keyPoints ?? row.key_points),
+    sections: jsonArray(snapshot.sections ?? row.sections),
+    contextLinks: jsonArray(snapshot.contextLinks ?? row.context_links),
+    sources: jsonArray(snapshot.sources ?? row.sources),
+    callToAction: snapshot.callToAction ?? row.call_to_action ?? null,
+    relatedArticleIds: jsonArray(snapshot.relatedArticleIds ?? row.related_article_ids),
+    publicationPriority: Number(snapshot.publicationPriority ?? row.publication_priority ?? 999),
+    contentCluster: String(snapshot.contentCluster ?? row.content_cluster ?? row.category_id ?? ""),
+    articleRole: String(snapshot.articleRole ?? row.article_role ?? ""),
+    contentVersion: Number(snapshot.contentVersion ?? row.content_version ?? 1),
+    indexable: useQueuedSnapshot ? snapshot.indexable === true : row.is_indexable === true,
     status: String(row.status ?? ""),
     publishedAt: row.published_at ? String(row.published_at) : null,
-    scheduledFor: row.scheduled_for ? String(row.scheduled_for) : null,
+    scheduledFor: scheduledFor ? String(scheduledFor) : null,
     deletedAt: row.deleted_at ? String(row.deleted_at) : null,
-    bodyMarkdown: String(row.body_markdown ?? "") || legacyMarkdown(row),
+    bodyMarkdown: String(snapshot.bodyMarkdown ?? row.body_markdown ?? "") || legacyMarkdown(row),
   };
 }
 
@@ -561,14 +567,31 @@ function assertSelfCheck() {
 async function loadArticles(tx) {
   const rows = await tx`
     select
-      id::text, stable_id, slug, title, short_title, seo_title, meta_description,
-      category_id, tags, summary, intro, reading_minutes, key_points, sections,
-      context_links, sources, call_to_action, related_article_ids, publication_priority,
-      content_cluster, article_role, content_version, is_indexable, body_markdown,
-      status, published_at::text, scheduled_for::text, deleted_at::text
-    from public.wiki_articles
-    where deleted_at is null
-    order by stable_id
+      article.id::text, article.stable_id, article.slug, article.title,
+      article.short_title, article.seo_title, article.meta_description,
+      article.category_id, article.tags, article.summary, article.intro,
+      article.reading_minutes, article.key_points, article.sections,
+      article.context_links, article.sources, article.call_to_action,
+      article.related_article_ids, article.publication_priority,
+      article.content_cluster, article.article_role, article.content_version,
+      article.is_indexable, article.body_markdown, article.status,
+      article.published_at::text, article.scheduled_for::text,
+      article.deleted_at::text, job.run_at::text as pending_publish_at,
+      revision.snapshot as queued_snapshot
+    from public.wiki_articles as article
+    left join lateral (
+      select active_job.article_id, active_job.revision_number, active_job.run_at
+      from halleus_private.wiki_publish_jobs as active_job
+      where active_job.article_id = article.id
+        and active_job.status in ('queued', 'running', 'retry')
+      order by active_job.run_at asc, active_job.created_at asc
+      limit 1
+    ) as job on true
+    left join public.wiki_article_revisions as revision
+      on revision.article_id = job.article_id
+     and revision.revision_number = job.revision_number
+    where article.deleted_at is null
+    order by article.stable_id
   `;
   return rows.map(articleFromRow);
 }
