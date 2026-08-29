@@ -31,6 +31,8 @@ requireText("scheduled repair script", source, "sanitizeAnchorCandidate");
 requireText("scheduled repair script", source, "anchorMatchesTarget");
 requireText("scheduled repair script", source, "mizfaQueryMatchesTarget");
 requireText("scheduled repair script", source, "isRelatedSourceForTarget");
+requireText("scheduled repair script", source, "missing-related-mizfa-anchor");
+requireText("scheduled repair script", source, "planner must not invent anchors without Mizfa data");
 requireText("scheduled repair script", source, "PERSIAN_MONTH_LABELS");
 requireText("scheduled repair script", source, "INDEXNOW_TIMEOUT_MS");
 requireText("scheduled repair script", source, "controller.abort()");

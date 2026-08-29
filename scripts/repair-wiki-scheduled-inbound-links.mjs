@@ -371,26 +371,10 @@ function isRelatedSourceForTarget(target, source) {
 }
 
 function anchorCandidates(article, queryHints) {
-  const month = detectMonth(article);
-  const topic = detectTopic(article);
   const candidates = [];
-  if (month) {
-    const label = month[1];
-    if (topic === "womanTraits") candidates.push(`زن متولد ${label}`);
-    if (topic === "manTraits") candidates.push(`مرد متولد ${label}`);
-    if (topic === "bornTraits") candidates.push(`خصوصیات متولدین ${label}`);
-    if (topic === "compatibility") candidates.push(`${label} با چه ماهی سازگار است`, `سازگاری ${label} در رابطه`);
-    if (topic === "womanMarriage") candidates.push(`ازدواج زن متولد ${label}`, `زن متولد ${label} در ازدواج`);
-    if (topic === "manMarriage") candidates.push(`ازدواج مرد متولد ${label}`, `مرد متولد ${label} در ازدواج`);
-  }
-
   for (const query of queryHints) {
     if (mizfaQueryMatchesTarget(query, article)) candidates.push(query);
   }
-
-  const mainTitle = sanitizeAnchorCandidate(article.title).split(/[،?؟]/)[0]?.trim();
-  if (mainTitle) candidates.push(mainTitle);
-  candidates.push(article.shortTitle, article.seoTitle);
 
   return [...new Set(candidates.map(sanitizeAnchorCandidate))]
     .filter((item) => anchorMatchesTarget(item, article));
@@ -664,6 +648,7 @@ function assertSelfCheck() {
     "anchorMatchesTarget",
     "mizfaQueryMatchesTarget",
     "isRelatedSourceForTarget",
+    "missing-related-mizfa-anchor",
   ]) {
     if (!source.includes(marker)) throw new Error(`self-check marker missing: ${marker}`);
   }
@@ -697,6 +682,12 @@ function assertSelfCheck() {
   }
   if (!anchorMatchesTarget("زن متولد تیر", tirWoman)) {
     throw new Error("self-check failed: direct target anchor should be accepted.");
+  }
+  if (anchorCandidates(tirWoman, []).length !== 0) {
+    throw new Error("self-check failed: planner must not invent anchors without Mizfa data.");
+  }
+  if (!anchorCandidates(tirWoman, ["زن متولد تیر"]).includes("زن متولد تیر")) {
+    throw new Error("self-check failed: planner should accept a matching Mizfa query anchor.");
   }
   if (isRelatedSourceForTarget(tirWoman, mordadWoman)) {
     throw new Error("self-check failed: wrong-month trait source must not target Tir woman traits.");
@@ -760,6 +751,17 @@ function planRepairs(articles, queryHints, options, nowMs) {
 
     const hints = targetHints(target, queryHints);
     const anchors = anchorCandidates(target, queryHints);
+    if (!anchors.length) {
+      incompleteTargets.push({
+        stableId: target.stableId,
+        title: target.title,
+        scheduledFor: target.scheduledFor,
+        preparedInbound: currentSources.size,
+        minimum: options.minInbound,
+        reason: "missing-related-mizfa-anchor",
+      });
+      continue;
+    }
     const candidates = oldPublicSources
       .filter((source) => source.stableId !== target.stableId)
       .filter((source) => isRelatedSourceForTarget(target, source))
@@ -780,7 +782,7 @@ function planRepairs(articles, queryHints, options, nowMs) {
       if (added >= needed) break;
       const existingForSource = sourceAdditions.get(candidate.source.stableId) ?? 0;
       if (existingForSource >= 5) continue;
-      const anchor = anchors[(added + candidate.source.stableId.length) % anchors.length] ?? sanitizeAnchorCandidate(target.title);
+      const anchor = anchors[(added + candidate.source.stableId.length) % anchors.length];
       if (!anchorMatchesTarget(anchor, target)) continue;
       placements.push({
         source: candidate.source.stableId,
