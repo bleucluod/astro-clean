@@ -994,6 +994,8 @@ function assertSelfCheck() {
     "CURATED_SCHEDULED_INBOUND_PLANS",
     "curatedPlacementsForTarget",
     "curated-plan-has-too-few-safe-links",
+    "planSource: placement.planSource",
+    "sentence: placement.sentence",
     "mizfaQueryIntentLabels",
     "targetIdentityText",
     "isRelatedSourceForTarget",
@@ -1526,6 +1528,8 @@ async function main() {
             source: placement.source,
             target: placement.target,
             anchor: placement.anchor,
+            sentence: placement.sentence,
+            planSource: placement.planSource ?? "scored-mizfa",
             score: placement.score,
             section: sections[picked.sectionIndex].title ?? "",
           });
