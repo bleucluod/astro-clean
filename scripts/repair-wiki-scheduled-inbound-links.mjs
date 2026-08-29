@@ -41,6 +41,8 @@ const BUILT_IN_MIZFA_QUERIES = [
   "ساخت چارت تولد",
   "چارت تولد فارسی",
   "تفسیر خانه های چارت تولد",
+  "چارت تولد رایگان ماریا",
+  "چارت تولد انلاین",
   "فال سالانه 1405",
   "نود جنوبی",
   "خانه هشتم چارت تولد",
@@ -67,6 +69,81 @@ const BUILT_IN_MIZFA_QUERIES = [
   "انواع آسترولوژی",
   "چارت ودیک",
 ];
+
+const CURATED_SCHEDULED_INBOUND_PLANS = [
+  {
+    target: "best-free-persian-birth-chart-site",
+    placements: [
+      {
+        source: "birth-chart-report-layers",
+        anchor: "چارت تولد رایگان فارسی",
+        sentence: "اگر کاربر هنوز در مرحله ساخت اولیه باشد، [[article:best-free-persian-birth-chart-site|چارت تولد رایگان فارسی]] کمک می‌کند قبل از ورود به لایه‌های گزارش، داده خام چارت را روشن کند.",
+      },
+      {
+        source: "natal-chart-uses-and-limits",
+        anchor: "ساخت چارت تولد",
+        sentence: "برای چنین استفاده‌ای، نقطه شروع معمولاً خودِ [[article:best-free-persian-birth-chart-site|ساخت چارت تولد]] است؛ جایی که داده‌های تولد به نقشه قابل خواندن تبدیل می‌شوند.",
+      },
+      {
+        source: "what-is-birth-chart-interpretation",
+        anchor: "چارت تولد فارسی",
+        sentence: "قبل از تفسیر، باید خودِ [[article:best-free-persian-birth-chart-site|چارت تولد فارسی]] درست و قابل اتکا ساخته شده باشد.",
+      },
+      {
+        source: "how-to-read-birth-chart",
+        anchor: "چارت تولد رایگان ماریا",
+        sentence: "اگر هنوز چارت را نساخته‌ای، مقایسه ابزارهایی مثل [[article:best-free-persian-birth-chart-site|چارت تولد رایگان ماریا]] کمک می‌کند بفهمی خروجی اولیه را از کجا شروع کنی.",
+      },
+    ],
+  },
+  {
+    target: "birth-chart-and-creativity",
+    placements: [
+      {
+        source: "fifth-house-in-natal-chart",
+        anchor: "خانه پنجم",
+        sentence: "همین‌جا است که [[article:birth-chart-and-creativity|خانه پنجم]] از یک معنی کلی به پرسش خلاقیت، بازی و لذت شخصی نزدیک می‌شود.",
+      },
+      {
+        source: "venus-in-natal-chart",
+        anchor: "خانه پنجم",
+        sentence: "در خواندن ونوس، [[article:birth-chart-and-creativity|خانه پنجم]] معمولاً جایی است که لذت، زیبایی و میل به خلق کردن واضح‌تر خودش را نشان می‌دهد.",
+      },
+    ],
+  },
+  {
+    target: "children-gender-astrology",
+    placements: [
+      {
+        source: "fifth-house-in-natal-chart",
+        anchor: "خانه پنجم",
+        sentence: "به همین دلیل، وقتی از فرزند در طالع‌بینی حرف می‌زنیم، [[article:children-gender-astrology|خانه پنجم]] معمولاً اولین جایی است که باید با احتیاط و بدون قطعیت بررسی شود.",
+      },
+    ],
+  },
+  {
+    target: "free-vedic-birth-chart",
+    placements: [
+      {
+        source: "what-is-vedic-astrology",
+        anchor: "چارت ودیک",
+        sentence: "اگر می‌خواهی این تفاوت را روی داده تولد خودت ببینی، [[article:free-vedic-birth-chart|چارت ودیک]] نقطه شروع عملی‌تری است.",
+      },
+      {
+        source: "what-is-tropical-astrology",
+        anchor: "چارت ودیک",
+        sentence: "برای مقایسه واقعی این دو نگاه، بهتر است کنار چارت تروپیکال، یک [[article:free-vedic-birth-chart|چارت ودیک]] هم داشته باشی.",
+      },
+      {
+        source: "what-is-astrology",
+        anchor: "چارت ودیک",
+        sentence: "در میان شاخه‌های مختلف، [[article:free-vedic-birth-chart|چارت ودیک]] نمونه‌ای است که محاسبه و زبان تفسیری جداگانه‌ای دارد.",
+      },
+    ],
+  },
+];
+
+const CURATED_PLANS_BY_TARGET = new Map(CURATED_SCHEDULED_INBOUND_PLANS.map((plan) => [plan.target, plan.placements]));
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -348,7 +425,7 @@ function targetIntentLabels(article) {
   if (/astrology-houses/.test(id) || identity.includes("خانه های چارت تولد")) labels.add("houseInterpretation");
   if (/dominant-planets/.test(id) || identity.includes("سیاره غالب")) labels.add("dominantPlanets");
   if (/career/.test(id) || identity.includes("مسیر شغلی") || identity.includes("خانه دهم") || identity.includes("mc")) labels.add("careerPath");
-  if (/creativity/.test(id) || identity.includes("خلاقیت")) labels.add("creativity");
+  if (/creativity|venus-in-natal-chart/.test(id) || identity.includes("خلاقیت") || identity.includes("ونوس")) labels.add("creativity");
   if (/children-gender/.test(id) || identity.includes("جنسیت فرزند") || identity.includes("تعداد فرزند")) labels.add("childrenGender");
   if (/orb/.test(id) || identity.includes("اورب")) labels.add("orb");
   if (/stellium/.test(id) || identity.includes("استلیوم")) labels.add("stellium");
@@ -486,6 +563,58 @@ function sourceSupportsAnchorIntent(source, anchor) {
   return [...anchorLabels].some((label) => sourceLabels.has(label));
 }
 
+function curatedPlacementsForTarget(target, oldPublicSources, currentSources, queryHints, sourceAdditions) {
+  const planned = CURATED_PLANS_BY_TARGET.get(target.stableId) ?? [];
+  if (!planned.length) return null;
+
+  const sourcesByStableId = new Map(oldPublicSources.map((source) => [source.stableId, source]));
+  const allowedQueries = new Set(queryHints.map(sanitizeAnchorCandidate).filter(Boolean));
+  const placements = [];
+  const skipped = [];
+
+  for (const item of planned) {
+    const source = sourcesByStableId.get(item.source);
+    const anchor = sanitizeAnchorCandidate(item.anchor);
+    if (!source) {
+      skipped.push({ source: item.source, target: target.stableId, anchor, reason: "curated-source-not-eligible" });
+      continue;
+    }
+    if (currentSources.has(source.stableId) || hasTargetLink(source.bodyMarkdown, target.stableId)) {
+      skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "already-linked" });
+      continue;
+    }
+    if (!allowedQueries.has(anchor)) {
+      skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "curated-anchor-not-in-mizfa-data" });
+      continue;
+    }
+    if (!String(item.sentence ?? "").includes(`[[article:${target.stableId}|${anchor}]]`)) {
+      skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "curated-sentence-missing-anchor-link" });
+      continue;
+    }
+    if (!mizfaQueryMatchesTarget(anchor, target)) {
+      skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "curated-anchor-not-target-match" });
+      continue;
+    }
+    if (!sourceSupportsTargetIntent(target, source) || !sourceSupportsAnchorIntent(source, anchor)) {
+      skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "curated-source-intent-mismatch" });
+      continue;
+    }
+    const existingForSource = sourceAdditions.get(source.stableId) ?? 0;
+    if (existingForSource >= 5) {
+      skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "source-quota-full" });
+      continue;
+    }
+    placements.push({
+      source,
+      anchor,
+      sentence: normalizeText(item.sentence),
+      score: overlapScore(target, source, queryHints),
+    });
+  }
+
+  return { placements, skipped };
+}
+
 function mizfaQueryIntentLabels(query) {
   const cleaned = normalizeSearchText(query);
   const labels = new Set();
@@ -497,8 +626,11 @@ function mizfaQueryIntentLabels(query) {
   if (cleaned.includes("خانه پنجم")) labels.add("houseFifth");
   if (cleaned.includes("خالی بودن خانه")) labels.add("emptyHouses");
   if (cleaned.includes("تفسیر خانه های چارت تولد")) labels.add("houseInterpretation");
-  if (cleaned.includes("چارت تولد رایگان فارسی")) labels.add("freePersianBirthChart");
-  if (cleaned.includes("ساخت چارت تولد") || cleaned === "چارت تولد فارسی") labels.add("birthChartBuild");
+  if (cleaned.includes("چارت تولد رایگان فارسی") || cleaned.includes("چارت تولد رایگان ماریا")) labels.add("freePersianBirthChart");
+  if (cleaned.includes("ساخت چارت تولد") || cleaned === "چارت تولد فارسی" || cleaned.includes("چارت تولد انلاین")) {
+    labels.add("birthChartBuild");
+    labels.add("freePersianBirthChart");
+  }
   if (cleaned.includes("تحلیل چارت تولد") || cleaned.includes("تفسیر چارت تولد")) labels.add("birthChartInterpretation");
   if (cleaned.includes("اورب")) labels.add("orb");
   if (cleaned.includes("استلیوم")) labels.add("stellium");
@@ -859,6 +991,9 @@ function assertSelfCheck() {
     "sourceIntentLabels",
     "sourceSupportsTargetIntent",
     "sourceSupportsAnchorIntent",
+    "CURATED_SCHEDULED_INBOUND_PLANS",
+    "curatedPlacementsForTarget",
+    "curated-plan-has-too-few-safe-links",
     "mizfaQueryIntentLabels",
     "targetIdentityText",
     "isRelatedSourceForTarget",
@@ -911,6 +1046,45 @@ function assertSelfCheck() {
     seoTitle: "گزارش چارت تولد",
     summary: "",
     bodyMarkdown: "گزارش چارت تولد بعد از ساخت چارت دقیق‌تر می‌شود.",
+  };
+  const natalChartUsesAndLimits = {
+    stableId: "natal-chart-uses-and-limits",
+    title: "چارت تولد چه چیزهایی را می‌تواند و نمی‌تواند به ما بگوید؟",
+    shortTitle: "کاربردها و محدودیت‌های چارت تولد",
+    seoTitle: "چارت تولد و محدودیت‌های آن",
+    summary: "",
+    bodyMarkdown: "قبل از ساخت چارت تولد باید بدانیم چارت چه چیزی را نشان می‌دهد.",
+    publishedAt: "2026-08-13T06:30:00.000Z",
+    scheduledFor: null,
+    deletedAt: null,
+    status: "published",
+    indexable: true,
+  };
+  const birthChartInterpretation = {
+    stableId: "what-is-birth-chart-interpretation",
+    title: "تفسیر چارت تولد چیست و چگونه انجام می‌شود؟",
+    shortTitle: "تفسیر چارت تولد",
+    seoTitle: "تفسیر چارت تولد",
+    summary: "",
+    bodyMarkdown: "تفسیر چارت تولد بعد از محاسبه دقیق چارت معنا پیدا می‌کند.",
+    publishedAt: "2026-07-29T10:30:00.000Z",
+    scheduledFor: null,
+    deletedAt: null,
+    status: "published",
+    indexable: true,
+  };
+  const howToReadBirthChart = {
+    stableId: "how-to-read-birth-chart",
+    title: "چگونه چارت تولد را بخوانیم؟ راهنمای قدم‌به‌قدم برای مبتدی‌ها",
+    shortTitle: "خواندن چارت تولد",
+    seoTitle: "چگونه چارت تولد را بخوانیم؟",
+    summary: "",
+    bodyMarkdown: "برای خواندن چارت، اول باید خود چارت را درست بسازیم.",
+    publishedAt: "2026-07-29T10:30:00.000Z",
+    scheduledFor: null,
+    deletedAt: null,
+    status: "published",
+    indexable: true,
   };
   const sixthHouse = {
     stableId: "sixth-house-in-natal-chart",
@@ -1053,6 +1227,29 @@ function assertSelfCheck() {
   if (!isRelatedSourceForTarget(freeChart, birthChartReportLayers)) {
     throw new Error("self-check failed: birth-chart core source should target free Persian birth chart page.");
   }
+  const oldEnoughSources = [birthChartReportLayers, natalChartUsesAndLimits, birthChartInterpretation, howToReadBirthChart]
+    .map((source) => ({
+      publishedAt: "2026-07-29T10:30:00.000Z",
+      scheduledFor: null,
+      deletedAt: null,
+      status: "published",
+      indexable: true,
+      ...source,
+    }));
+  const curatedFreeChart = curatedPlacementsForTarget(
+    freeChart,
+    oldEnoughSources,
+    new Set(),
+    ["چارت تولد رایگان فارسی", "ساخت چارت تولد", "چارت تولد فارسی", "چارت تولد رایگان ماریا"],
+    new Map(),
+  );
+  if (!curatedFreeChart || curatedFreeChart.placements.length !== 4) {
+    throw new Error("self-check failed: curated free-chart target should keep four exact Mizfa placements.");
+  }
+  const curatedFreeAnchors = curatedFreeChart.placements.map((item) => item.anchor);
+  if (new Set(curatedFreeAnchors).size !== curatedFreeAnchors.length) {
+    throw new Error("self-check failed: curated free-chart anchors should be intentionally varied.");
+  }
   if (sourceSupportsAnchorIntent(northNodeVsSouthNode, "چارت تولد رایگان فارسی")) {
     throw new Error("self-check failed: lunar-node source must not support free Persian birth chart anchor.");
   }
@@ -1156,6 +1353,43 @@ function planRepairs(articles, queryHints, options, nowMs) {
       });
       continue;
     }
+
+    const curatedPlan = curatedPlacementsForTarget(target, oldPublicSources, currentSources, queryHints, sourceAdditions);
+    if (curatedPlan) {
+      let added = 0;
+      for (const candidate of curatedPlan.placements) {
+        if (added >= needed) break;
+        placements.push({
+          source: candidate.source.stableId,
+          target: target.stableId,
+          anchor: candidate.anchor,
+          sentence: candidate.sentence,
+          hints,
+          score: candidate.score,
+          targetTitle: target.title,
+          targetScheduledFor: target.scheduledFor,
+          desired,
+          existingPreparedInbound: currentSources.size,
+          planSource: "curated-mizfa",
+        });
+        sourceAdditions.set(candidate.source.stableId, (sourceAdditions.get(candidate.source.stableId) ?? 0) + 1);
+        currentSources.add(candidate.source.stableId);
+        added += 1;
+      }
+      if (currentSources.size < options.minInbound) {
+        incompleteTargets.push({
+          stableId: target.stableId,
+          title: target.title,
+          scheduledFor: target.scheduledFor,
+          preparedInbound: currentSources.size,
+          minimum: options.minInbound,
+          reason: "curated-plan-has-too-few-safe-links",
+          skipped: curatedPlan.skipped,
+        });
+      }
+      continue;
+    }
+
     const candidates = oldPublicSources
       .filter((source) => source.stableId !== target.stableId)
       .filter((source) => isRelatedSourceForTarget(target, source))
@@ -1372,8 +1606,10 @@ async function main() {
         maxInbound: options.maxInbound,
         scannedScheduledTargets: plan.targetCount,
         eligibleOldPublicSources: plan.sourceCount,
-        plannedCount: plan.placements.length,
-        appliedCount: applied.length,
+        candidateCount: plan.placements.length,
+        plannedCount: applied.length,
+        appliedCount: options.apply ? applied.length : 0,
+        dryRunPlannedCount: options.apply ? null : applied.length,
         skippedCount: skipped.length,
         changedSourceSlugs,
         incompleteTargets: plan.incompleteTargets,
