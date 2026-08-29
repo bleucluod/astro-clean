@@ -36,6 +36,7 @@ The deploy command:
 - runs encoding, diff, and production-build checks before activation
 - atomically updates current/previous symlinks
 - restarts Halleus and rolls back automatically if smoke tests fail
+- applies the required curated Mizfa Wiki inbound-link plan transactionally
 
 The rollback command swaps current and previous, restarts Halleus, and restores
 the original state if smoke tests fail.
@@ -190,6 +191,32 @@ restart_and_smoke() {
     smoke_release
 }
 
+run_curated_wiki_inbound_repair() {
+    local release_dir="$1"
+    local repair_script="$release_dir/scripts/repair-wiki-scheduled-inbound-links.mjs"
+    local output
+    local attempt
+
+    if [ ! -f "$repair_script" ]; then
+        printf 'Missing scheduled inbound repair script: %s\n' "$repair_script" >&2
+        return 1
+    fi
+    printf '%s\n' "Applying curated Mizfa Wiki inbound-link plan..."
+    for attempt in 1 2; do
+        if output="$(
+            timeout 120s "$NODE_BIN" "$repair_script" \
+                --apply \
+                --require-curated-complete \
+                --compact
+        )"; then
+            printf '%s\n' "$output"
+            return 0
+        fi
+        printf 'Curated Wiki inbound-link attempt %s failed; retrying idempotently.\n' "$attempt" >&2
+    done
+    return 1
+}
+
 write_release_metadata() {
     local release_dir="$1"
     local commit="$2"
@@ -288,6 +315,7 @@ deploy_release() {
 
     printf '%s\n' "Running release checks..."
     as_deploy bash -lc "cd '$release_dir' && '$pnpm_bin' run check:encoding"
+    as_deploy bash -lc "cd '$release_dir' && '$pnpm_bin' run check:wiki-scheduled-inbound-repair"
     as_deploy git -C "$release_dir" --no-pager diff --check
 
     printf '%s\n' "Building release before activation..."
@@ -324,6 +352,19 @@ deploy_release() {
 
         DEPLOY_ACTIVATED=0
         fail "Activation failed; previous release was restored successfully."
+    fi
+
+    if ! run_curated_wiki_inbound_repair "$release_dir"; then
+        printf '%s\n' "Curated Wiki inbound-link repair failed. Restoring previous release..." >&2
+        atomic_link "$old_current" "$CURRENT"
+        systemctl restart "$SERVICE" || true
+
+        if ! smoke_release; then
+            fail "SEO repair failed and the automatic release restoration smoke test also failed."
+        fi
+
+        DEPLOY_ACTIVATED=0
+        fail "SEO repair failed; no partial database changes were committed and the previous release was restored."
     fi
 
     trap - EXIT

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
 
 const ARTICLE_LINK_PATTERN = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
-const RUN_ID = "wiki-scheduled-inbound-links-20260828";
+const RUN_ID = "wiki-scheduled-inbound-links-curated-mizfa-20260829";
 const MINIMUM_INBOUND_TARGET = 3;
 const DEFAULT_MAX_INBOUND_TARGET = 5;
 const SOURCE_MIN_AGE_DAYS = 10;
@@ -59,12 +59,15 @@ const BUILT_IN_MIZFA_QUERIES = [
   "چارت تولد بدون ساعت تولد",
   "استلیوم در چارت تولد",
   "نقطه ضعف زن متولد شهریور",
+  "مرد متولد مرداد با چه ماهی ازدواج کند",
   "اورب چیست",
   "اصلاح ساعت تولد",
   "استلیوم",
+  "مرد مردادی با چه ماهی ازدواج کند",
   "خانه پنجم",
   "خصوصیات زن متولد شهریور در عشق",
   "زن متولد اردیبهشت چه مردی را دوست دارد",
+  "زن متولد اردیبهشت با چه ماهی ازدواج کند",
   "ازدواج اردیبهشت با چه ماهی خوب است",
   "رگ خواب زن متولد فروردین",
   "مرد اردیبهشت با چه ماهی ازدواج کند",
@@ -81,6 +84,7 @@ const BUILT_IN_MIZFA_QUERIES = [
   "نقطه ضعف زن متولد اردیبهشت",
   "چارت سیناستری انلاین",
   "چگونه ساعت تولد خود را پیدا کنیم",
+  "زن متولد اسفند چه مردی را دوست دارد",
   "آسترولوژی تروپیکال چیست",
   "انواع آسترولوژی",
   "خصوصیات متولدین مرداد",
@@ -118,46 +122,6 @@ const CURATED_SCHEDULED_INBOUND_PLANS = [
         source: "how-to-read-birth-chart",
         anchor: "چارت تولد رایگان ماریا",
         sentence: "اگر هنوز چارت را نساخته‌ای، مقایسه ابزارهایی مثل [[article:best-free-persian-birth-chart-site|چارت تولد رایگان ماریا]] کمک می‌کند بفهمی خروجی اولیه را از کجا شروع کنی.",
-      },
-    ],
-  },
-  {
-    target: "birth-chart-and-creativity",
-    placements: [
-      {
-        source: "fifth-house-in-natal-chart",
-        anchor: "خانه پنجم",
-        sentence: "همین‌جا است که [[article:birth-chart-and-creativity|خانه پنجم]] از یک معنی کلی به پرسش خلاقیت، بازی و لذت شخصی نزدیک می‌شود.",
-      },
-      {
-        source: "venus-in-natal-chart",
-        anchor: "خانه پنجم",
-        sentence: "در خواندن ونوس، [[article:birth-chart-and-creativity|خانه پنجم]] معمولاً جایی است که لذت، زیبایی و میل به خلق کردن واضح‌تر خودش را نشان می‌دهد.",
-      },
-      {
-        source: "birth-chart-and-relationships",
-        anchor: "خانه پنجم",
-        sentence: "وقتی رابطه فقط تعهد نیست و پای شور و بازی هم وسط می‌آید، [[article:birth-chart-and-creativity|خانه پنجم]] بخش زنده‌تر و خلاق‌تر چارت را توضیح می‌دهد.",
-      },
-    ],
-  },
-  {
-    target: "children-gender-astrology",
-    placements: [
-      {
-        source: "fifth-house-in-natal-chart",
-        anchor: "خانه پنجم",
-        sentence: "به همین دلیل، وقتی از فرزند در طالع‌بینی حرف می‌زنیم، [[article:children-gender-astrology|خانه پنجم]] معمولاً اولین جایی است که باید با احتیاط و بدون قطعیت بررسی شود.",
-      },
-      {
-        source: "astrology-houses",
-        anchor: "خانه پنجم",
-        sentence: "در تقسیم‌بندی خانه‌ها، [[article:children-gender-astrology|خانه پنجم]] همان جایی است که موضوع فرزند باید محتاطانه و بدون وعده قطعی خوانده شود.",
-      },
-      {
-        source: "birth-chart-and-relationships",
-        anchor: "خانه پنجم",
-        sentence: "وقتی رابطه به موضوع خانواده و فرزند می‌رسد، [[article:children-gender-astrology|خانه پنجم]] فقط یک نشانه نمادین است و نباید به پیش‌بینی قطعی تبدیل شود.",
       },
     ],
   },
@@ -207,27 +171,122 @@ const CURATED_SCHEDULED_INBOUND_PLANS = [
     ],
   },
   {
-    target: "exact-birth-date-astrology",
+    target: "mordad-man-marriage-compatibility",
     placements: [
       {
-        source: "why-birth-time-matters",
-        anchor: "ساعت دقیق تولد",
-        sentence: "در این نوع طالع‌بینی، [[article:exact-birth-date-astrology|ساعت دقیق تولد]] مشخص می‌کند کدام بخش‌های چارت واقعاً قابل اتکا خوانده می‌شوند.",
+        source: "mordad-man-traits",
+        anchor: "مرد متولد مرداد با چه ماهی ازدواج کند",
+        sentence: "وقتی این ویژگی‌ها وارد یک رابطه جدی می‌شوند، پرسش [[article:mordad-man-marriage-compatibility|مرد متولد مرداد با چه ماهی ازدواج کند]] را باید با توجه به نیاز او به احترام، گرما و دیده‌شدن بررسی کرد.",
       },
       {
-        source: "birth-chart-without-birth-time",
-        anchor: "ساعت تولد",
-        sentence: "وقتی [[article:exact-birth-date-astrology|ساعت تولد]] معلوم نیست، بخش‌هایی مثل رایزینگ و خانه‌ها باید با احتیاط بیشتری تفسیر شوند.",
+        source: "mordad-birth-month-compatibility",
+        anchor: "مرد مردادی با چه ماهی ازدواج کند",
+        sentence: "در بخش ازدواج، پاسخ به اینکه [[article:mordad-man-marriage-compatibility|مرد مردادی با چه ماهی ازدواج کند]] فقط به ماه تولد محدود نیست، اما الگوی احترام و ابراز علاقه نقطه شروع مهمی است.",
       },
       {
-        source: "tehran-birth-chart-difference",
-        anchor: "ساعت تولد",
-        sentence: "در کنار شهر، [[article:exact-birth-date-astrology|ساعت تولد]] همان داده‌ای است که نقشه را از یک تاریخ کلی به چارت شخصی‌تر نزدیک می‌کند.",
+        source: "mordad-born-traits",
+        anchor: "مرد مرداد ماهی با چه ماهی ازدواج کند",
+        sentence: "برای تبدیل این شناخت کلی به انتخاب شریک، بررسی [[article:mordad-man-marriage-compatibility|مرد مرداد ماهی با چه ماهی ازدواج کند]] نشان می‌دهد کدام تفاوت‌ها سازنده‌اند و کدام‌ها به کشمکش تبدیل می‌شوند.",
+      },
+    ],
+  },
+  {
+    target: "ordibehesht-man-marriage-compatibility",
+    placements: [
+      {
+        source: "ordibehesht-man-traits",
+        anchor: "مرد اردیبهشت با چه ماهی ازدواج کند",
+        sentence: "وقتی رابطه به تعهد می‌رسد، پاسخ [[article:ordibehesht-man-marriage-compatibility|مرد اردیبهشت با چه ماهی ازدواج کند]] به میزان ثبات، اعتماد و هماهنگی دو نفر در زندگی روزمره وابسته است.",
       },
       {
-        source: "what-is-rising-sign",
-        anchor: "ساعت دقیق تولد",
-        sentence: "برای محاسبه طالع، [[article:exact-birth-date-astrology|ساعت دقیق تولد]] تعیین می‌کند نقطه آغاز خانه‌های چارت کجا قرار بگیرد.",
+        source: "ordibehesht-birth-month-compatibility",
+        anchor: "مرد متولد اردیبهشت با چه ماهی ازدواج کند",
+        sentence: "برای بررسی دقیق‌تر ازدواج، راهنمای [[article:ordibehesht-man-marriage-compatibility|مرد متولد اردیبهشت با چه ماهی ازدواج کند]] سازگاری را از زاویه نیازهای رابطه‌ای او دنبال می‌کند.",
+      },
+      {
+        source: "ordibehesht-born-traits",
+        anchor: "مرد متولد اردیبهشت با چه ماهی ازدواج کند",
+        sentence: "این ویژگی‌ها در انتخاب شریک هم اثر می‌گذارند؛ برای همین پرسش [[article:ordibehesht-man-marriage-compatibility|مرد متولد اردیبهشت با چه ماهی ازدواج کند]] باید کنار امنیت عاطفی و انعطاف هر دو نفر خوانده شود.",
+      },
+    ],
+  },
+  {
+    target: "ordibehesht-woman-marriage-compatibility",
+    placements: [
+      {
+        source: "ordibehesht-woman-traits",
+        anchor: "زن متولد اردیبهشت چه مردی را دوست دارد",
+        sentence: "در رابطه جدی، پاسخ [[article:ordibehesht-woman-marriage-compatibility|زن متولد اردیبهشت چه مردی را دوست دارد]] بیشتر به ثبات، احترام و قابل‌اعتمادبودن طرف مقابل برمی‌گردد.",
+      },
+      {
+        source: "ordibehesht-birth-month-compatibility",
+        anchor: "زن متولد اردیبهشت با چه ماهی ازدواج کند",
+        sentence: "برای دیدن سازگاری از زاویه انتخاب او، راهنمای [[article:ordibehesht-woman-marriage-compatibility|زن متولد اردیبهشت با چه ماهی ازدواج کند]] تفاوت نیازهای عاطفی ماه‌ها را کنار هم می‌گذارد.",
+      },
+      {
+        source: "ordibehesht-born-traits",
+        anchor: "زن متولد اردیبهشت با چه ماهی ازدواج کند",
+        sentence: "در تصمیم بلندمدت، پرسش [[article:ordibehesht-woman-marriage-compatibility|زن متولد اردیبهشت با چه ماهی ازدواج کند]] فقط با شباهت‌ها جواب نمی‌گیرد و به شیوه حل اختلاف هم وابسته است.",
+      },
+    ],
+  },
+  {
+    target: "esfand-woman-marriage-compatibility",
+    placements: [
+      {
+        source: "esfand-woman-traits",
+        anchor: "زن متولد اسفند چه مردی را دوست دارد",
+        sentence: "وقتی رابطه جدی می‌شود، پاسخ [[article:esfand-woman-marriage-compatibility|زن متولد اسفند چه مردی را دوست دارد]] به همدلی، مرزبندی روشن و احساس امنیت میان دو نفر بستگی دارد.",
+      },
+      {
+        source: "esfand-birth-month-compatibility",
+        anchor: "زن متولد اسفند چه مردی را دوست دارد",
+        sentence: "در میان الگوهای سازگاری، پرسش [[article:esfand-woman-marriage-compatibility|زن متولد اسفند چه مردی را دوست دارد]] زمانی دقیق‌تر می‌شود که خیال‌پردازی و نیازهای واقعی رابطه از هم جدا شوند.",
+      },
+      {
+        source: "esfand-born-traits",
+        anchor: "زن متولد اسفند چه مردی را دوست دارد",
+        sentence: "برای بردن این شناخت به سمت انتخاب شریک، بررسی [[article:esfand-woman-marriage-compatibility|زن متولد اسفند چه مردی را دوست دارد]] نشان می‌دهد همراهی عاطفی کجا مفید است و کجا به بی‌مرزی می‌رسد.",
+      },
+    ],
+  },
+  {
+    target: "mehr-woman-marriage-compatibility",
+    placements: [
+      {
+        source: "mehr-woman-traits",
+        anchor: "زن متولد مهر چه مردی را دوست دارد",
+        sentence: "در انتخاب جدی، پاسخ [[article:mehr-woman-marriage-compatibility|زن متولد مهر چه مردی را دوست دارد]] به انصاف، گفت‌وگو و توان تصمیم‌گیری مشترک در رابطه برمی‌گردد.",
+      },
+      {
+        source: "mehr-birth-month-compatibility",
+        anchor: "زن متولد مهر چه مردی را دوست دارد",
+        sentence: "برای بررسی سازگاری از زاویه نیازهای او، راهنمای [[article:mehr-woman-marriage-compatibility|زن متولد مهر چه مردی را دوست دارد]] میان جذابیت اولیه و دوام رابطه تفاوت می‌گذارد.",
+      },
+      {
+        source: "mehr-born-traits",
+        anchor: "زن متولد مهر چه مردی را دوست دارد",
+        sentence: "وقتی این ویژگی‌ها وارد ازدواج می‌شوند، پرسش [[article:mehr-woman-marriage-compatibility|زن متولد مهر چه مردی را دوست دارد]] با کیفیت تعامل و مرزهای دو نفر پاسخ روشن‌تری می‌گیرد.",
+      },
+    ],
+  },
+  {
+    target: "shahrivar-woman-marriage-compatibility",
+    placements: [
+      {
+        source: "shahrivar-woman-traits",
+        anchor: "زن متولد شهریور چه مردی را دوست دارد",
+        sentence: "در رابطه جدی، پاسخ [[article:shahrivar-woman-marriage-compatibility|زن متولد شهریور چه مردی را دوست دارد]] به مسئولیت‌پذیری، صداقت و توجه عملی طرف مقابل وابسته است.",
+      },
+      {
+        source: "shahrivar-birth-month-compatibility",
+        anchor: "زن متولد شهریور چه مردی را دوست دارد",
+        sentence: "برای دیدن سازگاری از زاویه نیازهای او، راهنمای [[article:shahrivar-woman-marriage-compatibility|زن متولد شهریور چه مردی را دوست دارد]] میان نظم سازنده و سخت‌گیری فرساینده مرز می‌گذارد.",
+      },
+      {
+        source: "shahrivar-born-traits",
+        anchor: "زن متولد شهریور چه مردی را دوست دارد",
+        sentence: "وقتی انتخاب شریک مطرح است، پرسش [[article:shahrivar-woman-marriage-compatibility|زن متولد شهریور چه مردی را دوست دارد]] با شیوه گفت‌وگو و تحمل تفاوت‌ها پاسخ واقعی‌تری می‌گیرد.",
       },
     ],
   },
@@ -244,7 +303,8 @@ function parseArgs() {
     maxInbound: DEFAULT_MAX_INBOUND_TARGET,
     maxTargets: Number.POSITIVE_INFINITY,
     gscQueriesCsv: process.env.HALLEUS_GSC_QUERIES_CSV ?? "",
-    allowDynamic: false,
+    requireCuratedComplete: false,
+    compact: false,
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -254,7 +314,8 @@ function parseArgs() {
     if (arg === "--max-inbound") options.maxInbound = Number(args[++index]);
     if (arg === "--max-targets") options.maxTargets = Number(args[++index]);
     if (arg === "--gsc-queries-csv") options.gscQueriesCsv = args[++index] ?? "";
-    if (arg === "--allow-dynamic") options.allowDynamic = true;
+    if (arg === "--require-curated-complete") options.requireCuratedComplete = true;
+    if (arg === "--compact") options.compact = true;
   }
   if (!Number.isInteger(options.minInbound) || options.minInbound < 1 || options.minInbound > 10) {
     throw new Error("--min-inbound must be an integer between 1 and 10.");
@@ -424,9 +485,13 @@ function isCurrentPublic(article, nowMs) {
   );
 }
 
-function isOldEnoughSource(article, nowMs) {
-  const publishedAtMs = article.publishedAt ? Date.parse(article.publishedAt) : Number.NaN;
-  return isCurrentPublic(article, nowMs) && publishedAtMs <= nowMs - SOURCE_MIN_AGE_DAYS * 24 * 60 * 60 * 1000;
+function isOldEnoughForScheduledTarget(source, target, nowMs) {
+  const publishedAtMs = source.publishedAt ? Date.parse(source.publishedAt) : Number.NaN;
+  const targetAtMs = target.scheduledFor ? Date.parse(target.scheduledFor) : Number.NaN;
+  const referenceMs = Number.isFinite(targetAtMs) ? targetAtMs : nowMs;
+  return isCurrentPublic(source, nowMs) &&
+    Number.isFinite(publishedAtMs) &&
+    publishedAtMs <= referenceMs - SOURCE_MIN_AGE_DAYS * 24 * 60 * 60 * 1000;
 }
 
 function isScheduledTarget(article, nowMs) {
@@ -530,6 +595,9 @@ function targetIntentLabels(article) {
   if (/today|daily|weekly|monthly|transit|1405/.test(id) || identity.includes("امروز") || identity.includes("سالانه")) labels.add("transitTiming");
   if (/financial|money/.test(id) || identity.includes("مالی")) labels.add("financialAstrology");
   if (/woman-traits|man-traits|born-traits|birth-month-compatibility|marriage-compatibility/.test(id)) labels.add("monthPersona");
+  if (/woman-marriage-compatibility/.test(id)) labels.add("womanMarriage");
+  if (/man-marriage-compatibility/.test(id)) labels.add("manMarriage");
+  if (/marriage-compatibility/.test(id)) labels.add("monthMarriage");
 
   return labels;
 }
@@ -608,6 +676,9 @@ function sourceSupportsTargetIntent(target, source) {
   if (targetLabels.has("dominantPlanets")) {
     return sourceMatchesAllowedLabels(sourceLabels, ["dominantPlanets", "birthChartCore"]);
   }
+  if (hasAnyLabel(targetLabels, ["womanMarriage", "manMarriage", "monthMarriage"])) {
+    return sourceLabels.has("monthPersona");
+  }
 
   return true;
 }
@@ -659,6 +730,9 @@ function sourceSupportsAnchorIntent(source, anchor) {
   if (anchorLabels.has("dominantPlanets")) {
     return sourceMatchesAllowedLabels(sourceLabels, ["dominantPlanets", "birthChartCore"]);
   }
+  if (hasAnyLabel(anchorLabels, ["womanMarriage", "manMarriage", "monthMarriage"])) {
+    return sourceLabels.has("monthPersona");
+  }
 
   return [...anchorLabels].some((label) => sourceLabels.has(label));
 }
@@ -693,6 +767,10 @@ function curatedPlacementsForTarget(target, oldPublicSources, currentSources, qu
     }
     if (!mizfaQueryMatchesTarget(anchor, target)) {
       skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "curated-anchor-not-target-match" });
+      continue;
+    }
+    if (!isRelatedSourceForTarget(target, source)) {
+      skipped.push({ source: source.stableId, target: target.stableId, anchor, reason: "curated-source-not-related" });
       continue;
     }
     if (!sourceSupportsTargetIntent(target, source) || !sourceSupportsAnchorIntent(source, anchor)) {
@@ -751,6 +829,18 @@ function mizfaQueryIntentLabels(query) {
   if (cleaned.includes("مسیر شغلی") || cleaned.includes("خانه دهم") || cleaned.includes("mc")) labels.add("careerPath");
   if (cleaned.includes("سیاره غالب")) labels.add("dominantPlanets");
   if (cleaned.includes("bts")) labels.add("celebrityBirthDates");
+  const month = PERSIAN_MONTH_LABELS.find((label) => cleaned.includes(label));
+  if (month && cleaned.includes("زن") && (cleaned.includes("ازدواج") || cleaned.includes("چه مردی"))) {
+    labels.add("womanMarriage");
+    labels.add("monthMarriage");
+  }
+  if (month && cleaned.includes("مرد") && cleaned.includes("ازدواج")) {
+    labels.add("manMarriage");
+    labels.add("monthMarriage");
+  }
+  if (month && cleaned.includes("ازدواج") && !cleaned.includes("زن") && !cleaned.includes("مرد")) {
+    labels.add("monthMarriage");
+  }
 
   return labels;
 }
@@ -881,69 +971,6 @@ function desiredInboundCount(article, queryHints, maxInbound) {
   return Math.min(maxInbound, desired);
 }
 
-function makeSentence(source, target, anchor) {
-  const topic = detectTopic(target);
-  const month = detectMonth(target)?.[1] ?? "";
-  const link = `[[article:${target.stableId}|${anchor}]]`;
-  const templates = {
-    compatibility: [
-      `در همین فضای رابطه، ${link} کمک می‌کند جذب، تعارض و انتظار عاطفی ${month ? `متولد ${month}` : "این الگو"} روشن‌تر دیده شود.`,
-      `وقتی بحث از انتخاب شریک جلوتر می‌رود، ${link} تصویر طبیعی‌تری از هماهنگی و اصطکاک می‌سازد.`,
-    ],
-    womanMarriage: [
-      `برای خواندن رابطه از زاویهٔ انتخاب جدی‌تر، ${link} جزئیات همین ماه را در عشق و ازدواج دقیق‌تر می‌کند.`,
-      `در کنار شناخت شخصیت، ${link} نشان می‌دهد این الگو در تصمیم عاطفی بلندمدت چطور خودش را نشان می‌دهد.`,
-    ],
-    manMarriage: [
-      `وقتی رابطه به تعهد نزدیک می‌شود، ${link} همین ویژگی‌ها را در ازدواج و انتخاب شریک دقیق‌تر می‌کند.`,
-      `برای دیدن رفتار رابطه‌ای در موقعیت جدی‌تر، ${link} ادامهٔ طبیعی همین بحث است.`,
-    ],
-    womanTraits: [
-      `در خوانش شخصی‌تر همین ماه، ${link} ظرافت‌های عاطفی و رفتاری را ملموس‌تر نشان می‌دهد.`,
-      `اگر بخواهی این ویژگی‌ها را در تجربهٔ زنانه ببینی، ${link} تصویر نزدیک‌تری می‌سازد.`,
-    ],
-    manTraits: [
-      `برای دیدن بیان مردانهٔ همین کیفیت‌ها، ${link} رفتار، قهر و صمیمیت را مشخص‌تر می‌کند.`,
-      `در ادامهٔ همین ماه، ${link} نشان می‌دهد این انرژی در رابطه و تصمیم‌گیری چطور بیرون می‌آید.`,
-    ],
-    bornTraits: [
-      `برای اینکه تصویر این ماه فقط به رابطه محدود نماند، ${link} پایهٔ شخصیتی آن را روشن‌تر می‌کند.`,
-      `شناخت ${link} کمک می‌کند نشانه‌های رفتاری این ماه را با دقت بیشتری کنار هم بگذاری.`,
-    ],
-    house: [
-      `در ادامهٔ همین خوانش، ${link} لایهٔ دقیق‌تری از خانه‌ها و زاویه‌های چارت را وارد تصویر می‌کند.`,
-      `اگر این بخش از چارت برایت مهم شده، ${link} کمک می‌کند نقش آن را در کل نقشه دقیق‌تر ببینی.`,
-    ],
-    moon: [
-      `در کنار چرخه‌های ماه، ${link} زمان، معنی و اثر نمادین این مرحله را واضح‌تر می‌کند.`,
-      `برای دنبال‌کردن ریتم ماه با جزئیات بیشتر، ${link} همین بحث را از زاویهٔ کاربردی‌تری ادامه می‌دهد.`,
-    ],
-    transit: [
-      `برای وصل‌کردن این معنی به زمان حال، ${link} کمک می‌کند اثر ترنزیت‌ها را در بازهٔ مشخص‌تری ببینی.`,
-      `وقتی زمان‌بندی مهم می‌شود، ${link} این خوانش را از حالت کلی به وضعیت روز و ماه نزدیک‌تر می‌کند.`,
-    ],
-    system: [
-      `برای مقایسهٔ روش‌ها، ${link} نشان می‌دهد این نگاه با چارت تولد رایج چه تفاوتی دارد.`,
-      `اگر روش‌های مختلف آسترولوژی را کنار هم می‌گذاری، ${link} مرز این رویکرد را روشن‌تر می‌کند.`,
-    ],
-    relationship: [
-      `در موضوع رابطه، ${link} کمک می‌کند خوانش از حد برداشت کلی بیرون بیاید و دقیق‌تر شود.`,
-      `وقتی پای عشق و انتخاب وسط است، ${link} لایهٔ رابطه‌ای همین بحث را شفاف‌تر می‌کند.`,
-    ],
-    life: [
-      `برای آوردن چارت به زندگی روزمره، ${link} همین نشانه‌ها را در یک حوزهٔ مشخص‌تر دنبال می‌کند.`,
-      `اگر می‌خواهی این معنی را کاربردی‌تر ببینی، ${link} آن را به تجربهٔ ملموس‌تری وصل می‌کند.`,
-    ],
-    general: [
-      `در ادامهٔ همین مسیر، ${link} یک لایهٔ مرتبط دیگر به این خوانش اضافه می‌کند.`,
-      `برای کامل‌تر شدن تصویر، ${link} کمک می‌کند این موضوع را از زاویهٔ نزدیک‌تری ببینی.`,
-    ],
-  };
-  const bucket = templates[topic] ?? templates.general;
-  const seed = source.stableId.length + target.stableId.length + anchor.length;
-  return bucket[seed % bucket.length];
-}
-
 function pickParagraph(sections, hints, usedParagraphs) {
   const candidates = [];
   for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
@@ -999,54 +1026,38 @@ function buildSnapshot(row, sections, bodyMarkdown, relatedArticleIds, contentVe
   };
 }
 
-async function syncInlineLinks(tx, sourceArticleId, bodyMarkdown, relatedArticleIds) {
-  const inlineIds = [...new Set(articleIdsFromBody(bodyMarkdown))];
-  const relatedIds = [...new Set(relatedArticleIds ?? [])];
-  const targetIds = [...new Set([...inlineIds, ...relatedIds])];
-  const publicRows = targetIds.length
-    ? await tx`
-        select stable_id
-        from public.wiki_articles
-        where stable_id = any(${targetIds}::text[])
-          and status = 'published'
-          and is_indexable = true
-          and published_at is not null
-          and published_at <= now()
-          and scheduled_for is null
-          and deleted_at is null
-      `
-    : [];
-  const publicReadyTargets = new Set(publicRows.map((row) => String(row.stable_id)));
-  const statusFor = (targetId) => publicReadyTargets.has(targetId) ? "active" : "pending";
-
-  await tx`delete from public.wiki_internal_links where source_article_id = ${sourceArticleId}::uuid`;
-  for (const targetId of inlineIds) {
-    const activationStatus = statusFor(targetId);
-    await tx`
-      insert into public.wiki_internal_links (
-        source_article_id, target_stable_id, link_kind, source_token,
-        activation_status, activated_at, last_verified_at, activation_error
-      ) values (
-        ${sourceArticleId}::uuid, ${targetId}, 'inline', ${`[[article:${targetId}]]`},
-        ${activationStatus}, now(), now(),
-        ${activationStatus === "pending" ? "target-not-public-ready" : null}
-      )
-    `;
-  }
-  for (const targetId of relatedIds) {
-    const activationStatus = statusFor(targetId);
-    await tx`
-      insert into public.wiki_internal_links (
-        source_article_id, target_stable_id, link_kind, source_token,
-        activation_status, activated_at, last_verified_at, activation_error
-      ) values (
-        ${sourceArticleId}::uuid, ${targetId}, 'related', ${targetId},
-        ${activationStatus}, now(), now(),
-        ${activationStatus === "pending" ? "target-not-public-ready" : null}
-      )
-      on conflict do nothing
-    `;
-  }
+async function insertAddedInlineLink(tx, sourceArticleId, targetId, anchor) {
+  const publicRows = await tx`
+    select stable_id
+    from public.wiki_articles
+    where stable_id = ${targetId}
+      and status = 'published'
+      and is_indexable = true
+      and published_at is not null
+      and published_at <= now()
+      and scheduled_for is null
+      and deleted_at is null
+    limit 1
+  `;
+  const activationStatus = publicRows[0] ? "active" : "pending";
+  const sourceToken = `[[article:${targetId}|${anchor}]]`;
+  await tx`
+    insert into public.wiki_internal_links (
+      source_article_id, target_stable_id, link_kind, source_token,
+      activation_status, activated_at, last_verified_at, activation_error
+    ) values (
+      ${sourceArticleId}::uuid, ${targetId}, 'inline', ${sourceToken},
+      ${activationStatus}, now(), now(),
+      ${activationStatus === "pending" ? "target-not-public-ready" : null}
+    )
+    on conflict (source_article_id, target_stable_id, link_kind, source_token)
+    do update set
+      activation_status = excluded.activation_status,
+      activated_at = excluded.activated_at,
+      last_verified_at = excluded.last_verified_at,
+      activation_error = excluded.activation_error,
+      disabled_at = null
+  `;
 }
 
 async function submitIndexNowBestEffort(slugs) {
@@ -1108,9 +1119,12 @@ function assertSelfCheck() {
     "targetIdentityText",
     "isRelatedSourceForTarget",
     "missing-related-mizfa-anchor",
-    "allowDynamic: false",
-    "arg === \"--allow-dynamic\"",
+    "requireCuratedComplete: false",
+    "arg === \"--require-curated-complete\"",
     "missing-curated-mizfa-plan",
+    "insertAddedInlineLink",
+    "pg_try_advisory_xact_lock",
+    "isOldEnoughForScheduledTarget",
   ]) {
     if (!source.includes(marker)) throw new Error(`self-check marker missing: ${marker}`);
   }
@@ -1338,13 +1352,6 @@ function assertSelfCheck() {
     seoTitle: "ساعت دقیق تولد در ثبت احوال",
     summary: "",
   };
-  const exactBirthDateAstrology = {
-    stableId: "exact-birth-date-astrology",
-    title: "طالع‌بینی بر اساس تاریخ دقیق تولد؛ تاریخ، ساعت و شهر چه چیزی را تغییر می‌دهند؟",
-    shortTitle: "طالع‌بینی تاریخ دقیق تولد",
-    seoTitle: "طالع‌بینی با تاریخ و ساعت تولد",
-    summary: "",
-  };
   const birthTimeRectification = {
     stableId: "birth-time-rectification",
     title: "اصلاح ساعت تولد چیست؟",
@@ -1435,16 +1442,6 @@ function assertSelfCheck() {
   if (!curatedBirthTimeRecords || curatedBirthTimeRecords.placements.length !== 4) {
     throw new Error("self-check failed: curated birth-time records target should keep exact Mizfa placements.");
   }
-  const curatedExactBirthDate = curatedPlacementsForTarget(
-    exactBirthDateAstrology,
-    [whyBirthTimeMatters, birthChartWithoutBirthTime, tehranBirthChartDifference, risingSign],
-    new Set(),
-    ["ساعت دقیق تولد", "ساعت تولد"],
-    new Map(),
-  );
-  if (!curatedExactBirthDate || curatedExactBirthDate.placements.length !== 4) {
-    throw new Error("self-check failed: curated exact birth-date target should keep exact Mizfa placements.");
-  }
   const curatedFreeAnchors = curatedFreeChart.placements.map((item) => item.anchor);
   if (new Set(curatedFreeAnchors).size !== curatedFreeAnchors.length) {
     throw new Error("self-check failed: curated free-chart anchors should be intentionally varied.");
@@ -1478,6 +1475,24 @@ function assertSelfCheck() {
   }
   if (!isRelatedSourceForTarget(childrenGender, fifthHouse)) {
     throw new Error("self-check failed: fifth-house source should target children-gender page.");
+  }
+  for (const unsafeTarget of ["birth-chart-and-creativity", "children-gender-astrology", "exact-birth-date-astrology"]) {
+    if (CURATED_PLANS_BY_TARGET.has(unsafeTarget)) {
+      throw new Error(`self-check failed: ambiguous Mizfa anchor target must not be curated: ${unsafeTarget}`);
+    }
+  }
+  for (const plan of CURATED_SCHEDULED_INBOUND_PLANS) {
+    if (plan.placements.length < MINIMUM_INBOUND_TARGET) {
+      throw new Error(`self-check failed: curated target has fewer than three placements: ${plan.target}`);
+    }
+    for (const placement of plan.placements) {
+      if (!BUILT_IN_MIZFA_QUERIES.includes(placement.anchor)) {
+        throw new Error(`self-check failed: curated anchor is not in Mizfa data: ${placement.anchor}`);
+      }
+      if (!placement.sentence.includes(`[[article:${plan.target}|${placement.anchor}]]`)) {
+        throw new Error(`self-check failed: curated sentence does not preserve its exact anchor: ${plan.target}`);
+      }
+    }
   }
   if (isRelatedSourceForTarget(tirWoman, mordadWoman)) {
     throw new Error("self-check failed: wrong-month trait source must not target Tir woman traits.");
@@ -1518,22 +1533,29 @@ async function loadArticles(tx) {
 }
 
 function planRepairs(articles, queryHints, options, nowMs) {
-  const oldPublicSources = articles.filter((article) => isOldEnoughSource(article, nowMs));
+  const currentPublicSources = articles.filter((article) => isCurrentPublic(article, nowMs));
   const scheduledTargets = articles
     .filter((article) => isScheduledTarget(article, nowMs))
     .sort((left, right) => Date.parse(left.scheduledFor) - Date.parse(right.scheduledFor))
     .slice(0, options.maxTargets);
   const sourceAdditions = new Map();
   const targetPreparedSources = new Map();
+  const targetInitialSources = new Map();
   const placements = [];
   const incompleteTargets = [];
+  const eligibleSourceIds = new Set();
 
   for (const target of scheduledTargets) {
+    const oldPublicSources = currentPublicSources.filter((source) =>
+      isOldEnoughForScheduledTarget(source, target, nowMs)
+    );
+    for (const source of oldPublicSources) eligibleSourceIds.add(source.stableId);
     const currentSources = new Set(
       oldPublicSources
         .filter((source) => hasTargetLink(source.bodyMarkdown, target.stableId))
         .map((source) => source.stableId),
     );
+    targetInitialSources.set(target.stableId, new Set(currentSources));
     targetPreparedSources.set(target.stableId, currentSources);
     const desired = desiredInboundCount(target, queryHints, options.maxInbound);
     const needed = Math.max(0, Math.max(options.minInbound, desired) - currentSources.size);
@@ -1589,72 +1611,32 @@ function planRepairs(articles, queryHints, options, nowMs) {
       continue;
     }
 
-    if (!options.allowDynamic) {
-      incompleteTargets.push({
-        stableId: target.stableId,
-        title: target.title,
-        scheduledFor: target.scheduledFor,
-        preparedInbound: currentSources.size,
-        minimum: options.minInbound,
-        reason: "missing-curated-mizfa-plan",
-      });
-      continue;
-    }
-
-    const candidates = oldPublicSources
-      .filter((source) => source.stableId !== target.stableId)
-      .filter((source) => isRelatedSourceForTarget(target, source))
-      .filter((source) => !currentSources.has(source.stableId))
-      .filter((source) => !hasTargetLink(source.bodyMarkdown, target.stableId))
-      .map((source) => ({
-        source,
-        score: overlapScore(target, source, queryHints),
-      }))
-      .filter((item) => item.score >= 12)
-      .sort((left, right) =>
-        right.score - left.score ||
-        (sourceAdditions.get(left.source.stableId) ?? 0) - (sourceAdditions.get(right.source.stableId) ?? 0)
-      );
-
-    let added = 0;
-    for (const candidate of candidates) {
-      if (added >= needed) break;
-      const existingForSource = sourceAdditions.get(candidate.source.stableId) ?? 0;
-      if (existingForSource >= 5) continue;
-      const anchorOffset = (added + candidate.source.stableId.length) % anchors.length;
-      const orderedAnchors = [...anchors.slice(anchorOffset), ...anchors.slice(0, anchorOffset)];
-      const anchor = orderedAnchors.find((item) =>
-        anchorMatchesTarget(item, target) &&
-        sourceSupportsAnchorIntent(candidate.source, item)
-      );
-      if (!anchor) continue;
-      placements.push({
-        source: candidate.source.stableId,
-        target: target.stableId,
-        anchor,
-        sentence: makeSentence(candidate.source, target, anchor),
-        hints,
-        score: candidate.score,
-        targetTitle: target.title,
-        targetScheduledFor: target.scheduledFor,
-        desired,
-        existingPreparedInbound: currentSources.size,
-      });
-      sourceAdditions.set(candidate.source.stableId, existingForSource + 1);
-      currentSources.add(candidate.source.stableId);
-      added += 1;
-    }
-    if (currentSources.size < options.minInbound) {
-      incompleteTargets.push({
-        stableId: target.stableId,
-        title: target.title,
-        scheduledFor: target.scheduledFor,
-        preparedInbound: currentSources.size,
-        minimum: options.minInbound,
-      });
-    }
+    incompleteTargets.push({
+      stableId: target.stableId,
+      title: target.title,
+      scheduledFor: target.scheduledFor,
+      preparedInbound: currentSources.size,
+      minimum: options.minInbound,
+      reason: "missing-curated-mizfa-plan",
+    });
   }
-  return { placements, incompleteTargets, targetCount: scheduledTargets.length, sourceCount: oldPublicSources.length };
+  const curatedCoverage = scheduledTargets
+    .filter((target) => CURATED_PLANS_BY_TARGET.has(target.stableId))
+    .map((target) => ({
+      stableId: target.stableId,
+      title: target.title,
+      scheduledFor: target.scheduledFor,
+      existingPreparedInbound: targetInitialSources.get(target.stableId)?.size ?? 0,
+      plannedPreparedInbound: targetPreparedSources.get(target.stableId)?.size ?? 0,
+      minimum: options.minInbound,
+    }));
+  return {
+    placements,
+    incompleteTargets,
+    curatedCoverage,
+    targetCount: scheduledTargets.length,
+    sourceCount: eligibleSourceIds.size,
+  };
 }
 
 async function main() {
@@ -1671,6 +1653,12 @@ async function main() {
 
   try {
     const result = await sql.begin(async (tx) => {
+      await tx`set local lock_timeout = '5s'`;
+      await tx`set local statement_timeout = '90s'`;
+      const repairLock = await tx`select pg_try_advisory_xact_lock(hashtext(${RUN_ID})) as acquired`;
+      if (repairLock[0]?.acquired !== true) {
+        throw new Error("Another scheduled inbound repair is already running.");
+      }
       const articles = await loadArticles(tx);
       const byStableId = new Map(articles.map((article) => [article.stableId, article]));
       const plan = planRepairs(articles, queryHints, options, nowMs);
@@ -1702,8 +1690,9 @@ async function main() {
         if (!source) continue;
         let bodyMarkdown = source.bodyMarkdown;
         const sections = JSON.parse(JSON.stringify(source.sections));
-        let relatedArticleIds = [...new Set(source.relatedArticleIds ?? [])];
+        const relatedArticleIds = [...new Set(source.relatedArticleIds ?? [])];
         const usedParagraphs = new Set();
+        const appliedForSource = [];
         let changed = false;
 
         for (const placement of items) {
@@ -1731,9 +1720,8 @@ async function main() {
           sections[picked.sectionIndex].paragraphs[picked.paragraphIndex] = after;
           usedParagraphs.add(`${picked.sectionIndex}:${picked.paragraphIndex}`);
           bodyMarkdown = nextBody;
-          relatedArticleIds = [...new Set([...relatedArticleIds, placement.target])];
           changed = true;
-          applied.push({
+          const appliedPlacement = {
             source: placement.source,
             target: placement.target,
             anchor: placement.anchor,
@@ -1741,7 +1729,9 @@ async function main() {
             planSource: placement.planSource ?? "scored-mizfa",
             score: placement.score,
             section: sections[picked.sectionIndex].title ?? "",
-          });
+          };
+          applied.push(appliedPlacement);
+          appliedForSource.push(appliedPlacement);
         }
 
         if (!changed) continue;
@@ -1760,7 +1750,6 @@ async function main() {
             update public.wiki_articles
             set sections = ${tx.json(sections)},
                 body_markdown = ${bodyMarkdown},
-                related_article_ids = ${tx.json(relatedArticleIds)},
                 content_version = ${nextVersion},
                 updated_at = now()
             where id = ${source.id}::uuid
@@ -1781,11 +1770,36 @@ async function main() {
               now()
             )
           `;
-          await syncInlineLinks(tx, source.id, bodyMarkdown, relatedArticleIds);
+          for (const placement of appliedForSource) {
+            await insertAddedInlineLink(tx, source.id, placement.target, placement.anchor);
+          }
         }
       }
 
-      if (options.apply) {
+      const appliedSourcesByTarget = new Map();
+      for (const placement of applied) {
+        const sources = appliedSourcesByTarget.get(placement.target) ?? new Set();
+        sources.add(placement.source);
+        appliedSourcesByTarget.set(placement.target, sources);
+      }
+      const curatedCoverage = plan.curatedCoverage.map((coverage) => ({
+        ...coverage,
+        appliedInbound: appliedSourcesByTarget.get(coverage.stableId)?.size ?? 0,
+        finalPreparedInbound: coverage.existingPreparedInbound +
+          (appliedSourcesByTarget.get(coverage.stableId)?.size ?? 0),
+      }));
+      const incompleteCuratedTargets = curatedCoverage.filter((item) =>
+        item.finalPreparedInbound < item.minimum
+      );
+      if (options.requireCuratedComplete && incompleteCuratedTargets.length) {
+        throw new Error(
+          `Curated Mizfa plan is incomplete: ${incompleteCuratedTargets
+            .map((item) => `${item.stableId}=${item.finalPreparedInbound}/${item.minimum}`)
+            .join(", ")}`,
+        );
+      }
+
+      if (options.apply && applied.length) {
         await tx`
           insert into halleus_private.admin_audit_events (
             actor_user_id, actor_role, action, target_type, target_id,
@@ -1826,13 +1840,28 @@ async function main() {
         skippedCount: skipped.length,
         changedSourceSlugs,
         incompleteTargets: plan.incompleteTargets,
+        curatedCoverage,
+        incompleteCuratedTargets,
         applied,
         skipped,
       };
     });
 
     const discovery = options.apply ? await submitIndexNowBestEffort(result.changedSourceSlugs) : null;
-    console.log(JSON.stringify({ ...result, discovery }, null, 2));
+    const output = { ...result, discovery };
+    if (options.compact) {
+      console.log(JSON.stringify({
+        mode: output.mode,
+        runId: output.runId,
+        appliedCount: output.appliedCount,
+        changedSourceCount: output.changedSourceSlugs.length,
+        curatedCoverage: output.curatedCoverage,
+        incompleteCuratedTargets: output.incompleteCuratedTargets,
+        discovery: output.discovery,
+      }));
+    } else {
+      console.log(JSON.stringify(output, null, 2));
+    }
   } finally {
     await sql.end({ timeout: 2 });
   }

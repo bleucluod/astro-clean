@@ -15,9 +15,15 @@ function requireText(label, text, marker) {
   }
 }
 
+function forbidText(label, text, marker) {
+  if (text.includes(marker)) {
+    throw new Error(`${label} must not include ${marker}`);
+  }
+}
+
 requireText("scheduled repair script", source, "const MINIMUM_INBOUND_TARGET = 3");
 requireText("scheduled repair script", source, "const SOURCE_MIN_AGE_DAYS = 10");
-requireText("scheduled repair script", source, "isOldEnoughSource(article, nowMs)");
+requireText("scheduled repair script", source, "isOldEnoughForScheduledTarget(source, target, nowMs)");
 requireText("scheduled repair script", source, "!isCurrentPublic(article, nowMs)");
 requireText("scheduled repair script", source, "scheduledAtMs > nowMs");
 requireText("scheduled repair script", source, "halleus_private.wiki_publish_jobs");
@@ -41,9 +47,12 @@ requireText("scheduled repair script", source, "mizfaQueryIntentLabels");
 requireText("scheduled repair script", source, "targetIdentityText");
 requireText("scheduled repair script", source, "isRelatedSourceForTarget");
 requireText("scheduled repair script", source, "missing-related-mizfa-anchor");
-requireText("scheduled repair script", source, "allowDynamic: false");
-requireText("scheduled repair script", source, "arg === \"--allow-dynamic\"");
+requireText("scheduled repair script", source, "requireCuratedComplete: false");
+requireText("scheduled repair script", source, "arg === \"--require-curated-complete\"");
 requireText("scheduled repair script", source, "missing-curated-mizfa-plan");
+requireText("scheduled repair script", source, "insertAddedInlineLink");
+requireText("scheduled repair script", source, "pg_try_advisory_xact_lock");
+forbidText("scheduled repair script", source, "delete from public.wiki_internal_links");
 requireText("scheduled repair script", source, "planner must not invent anchors without Mizfa data");
 requireText("scheduled repair script", source, "PERSIAN_MONTH_LABELS");
 requireText("scheduled repair script", source, "INDEXNOW_TIMEOUT_MS");
@@ -59,7 +68,7 @@ requireText("package scripts", packageJson, "\"check:wiki-scheduled-inbound-repa
 requireText("scheduled rollback script", rollbackSource, "ROLLBACK_NOTE");
 requireText("scheduled rollback script", rollbackSource, "where current_revision.change_note = ${CHANGE_NOTE}");
 requireText("scheduled rollback script", rollbackSource, "article.content_version = (current_revision.snapshot->>'contentVersion')::integer");
-requireText("scheduled rollback script", rollbackSource, "syncInlineLinks(tx, row.article_id");
+requireText("scheduled rollback script", rollbackSource, "deleteAddedInlineLinks(tx, lockedRow.article_id");
 
 await new Promise((resolve, reject) => {
   execFile(

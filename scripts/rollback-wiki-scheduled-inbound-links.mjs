@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import postgres from "postgres";
 
 const ARTICLE_LINK_PATTERN = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
-const RUN_ID = "wiki-scheduled-inbound-links-20260828";
+const RUN_ID = "wiki-scheduled-inbound-links-curated-mizfa-20260829";
 const CHANGE_NOTE = `Add natural pending inbound links for ${RUN_ID}`;
 const ROLLBACK_NOTE = `Rollback scheduled inbound links for ${RUN_ID}`;
 
@@ -32,54 +32,17 @@ function snapshotWithVersion(snapshot, contentVersion) {
   };
 }
 
-async function syncInlineLinks(tx, sourceArticleId, bodyMarkdown, relatedArticleIds) {
-  const inlineIds = [...new Set(articleIdsFromBody(bodyMarkdown))];
-  const relatedIds = [...new Set(relatedArticleIds ?? [])];
-  const targetIds = [...new Set([...inlineIds, ...relatedIds])];
-  const publicRows = targetIds.length
-    ? await tx`
-        select stable_id
-        from public.wiki_articles
-        where stable_id = any(${targetIds}::text[])
-          and status = 'published'
-          and is_indexable = true
-          and published_at is not null
-          and published_at <= now()
-          and scheduled_for is null
-          and deleted_at is null
-      `
-    : [];
-  const publicReadyTargets = new Set(publicRows.map((row) => String(row.stable_id)));
-  const statusFor = (targetId) => publicReadyTargets.has(targetId) ? "active" : "pending";
-
-  await tx`delete from public.wiki_internal_links where source_article_id = ${sourceArticleId}::uuid`;
-  for (const targetId of inlineIds) {
-    const activationStatus = statusFor(targetId);
-    await tx`
-      insert into public.wiki_internal_links (
-        source_article_id, target_stable_id, link_kind, source_token,
-        activation_status, activated_at, last_verified_at, activation_error
-      ) values (
-        ${sourceArticleId}::uuid, ${targetId}, 'inline', ${`[[article:${targetId}]]`},
-        ${activationStatus}, now(), now(),
-        ${activationStatus === "pending" ? "target-not-public-ready" : null}
-      )
-    `;
-  }
-  for (const targetId of relatedIds) {
-    const activationStatus = statusFor(targetId);
-    await tx`
-      insert into public.wiki_internal_links (
-        source_article_id, target_stable_id, link_kind, source_token,
-        activation_status, activated_at, last_verified_at, activation_error
-      ) values (
-        ${sourceArticleId}::uuid, ${targetId}, 'related', ${targetId},
-        ${activationStatus}, now(), now(),
-        ${activationStatus === "pending" ? "target-not-public-ready" : null}
-      )
-      on conflict do nothing
-    `;
-  }
+async function deleteAddedInlineLinks(tx, sourceArticleId, currentBodyMarkdown, previousBodyMarkdown) {
+  const currentIds = new Set(articleIdsFromBody(currentBodyMarkdown));
+  const previousIds = new Set(articleIdsFromBody(previousBodyMarkdown));
+  const addedTargetIds = [...currentIds].filter((targetId) => !previousIds.has(targetId));
+  if (!addedTargetIds.length) return;
+  await tx`
+    delete from public.wiki_internal_links
+    where source_article_id = ${sourceArticleId}::uuid
+      and target_stable_id = any(${addedTargetIds}::text[])
+      and link_kind = 'inline'
+  `;
 }
 
 function assertSelfCheck() {
@@ -94,7 +57,7 @@ function assertSelfCheck() {
     "where current_revision.change_note = ${CHANGE_NOTE}",
     "article.content_version = (current_revision.snapshot->>'contentVersion')::integer",
     "Rollback scheduled inbound links",
-    "syncInlineLinks(tx, row.article_id",
+    "deleteAddedInlineLinks(tx, lockedRow.article_id",
   ];
   const source = readFileSync(new URL(import.meta.url), "utf8");
   for (const marker of markers) {
@@ -224,7 +187,12 @@ async function rollbackOne(sql, row, apply) {
         now()
       )
     `;
-    await syncInlineLinks(tx, lockedRow.article_id, bodyMarkdown, relatedArticleIds);
+    await deleteAddedInlineLinks(
+      tx,
+      lockedRow.article_id,
+      String(lockedRow.current_snapshot?.bodyMarkdown ?? ""),
+      bodyMarkdown,
+    );
     return { restored };
   });
 }
