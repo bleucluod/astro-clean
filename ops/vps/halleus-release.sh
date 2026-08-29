@@ -191,6 +191,18 @@ restart_and_smoke() {
     smoke_release
 }
 
+run_wiki_damaged_public_content_repair() {
+    local release_dir="$1"
+    local repair_script="$release_dir/scripts/repair-wiki-damaged-public-content.mjs"
+
+    if [ ! -f "$repair_script" ]; then
+        printf 'Missing damaged Wiki content repair script: %s\n' "$repair_script" >&2
+        return 1
+    fi
+    printf '%s\n' "Repairing damaged public Wiki article bodies..."
+    timeout 120s "$NODE_BIN" "$repair_script" --apply --compact
+}
+
 run_curated_wiki_inbound_repair() {
     local release_dir="$1"
     local repair_script="$release_dir/scripts/repair-wiki-scheduled-inbound-links.mjs"
@@ -204,7 +216,7 @@ run_curated_wiki_inbound_repair() {
     printf '%s\n' "Applying scheduled Wiki inbound-link plan..."
     for attempt in 1 2 3; do
         if output="$(
-            timeout 300s "$NODE_BIN" "$repair_script" \
+            timeout 600s "$NODE_BIN" "$repair_script" \
                 --apply \
                 --require-curated-complete \
                 --compact
@@ -357,8 +369,21 @@ deploy_release() {
         fail "Activation failed; previous release was restored successfully."
     fi
 
+    if ! run_wiki_damaged_public_content_repair "$release_dir"; then
+        printf '%s\n' "Damaged Wiki content repair failed. Restoring previous release..." >&2
+        atomic_link "$old_current" "$CURRENT"
+        systemctl restart "$SERVICE" || true
+
+        if ! smoke_release; then
+            fail "Wiki content repair failed and the automatic release restoration smoke test also failed."
+        fi
+
+        DEPLOY_ACTIVATED=0
+        fail "Wiki content repair failed; previous release was restored successfully."
+    fi
+
     if ! run_curated_wiki_inbound_repair "$release_dir"; then
-        printf '%s\n' "Curated Wiki inbound-link repair failed. Restoring previous release..." >&2
+        printf '%s\n' "Scheduled Wiki inbound-link repair failed. Restoring previous release..." >&2
         atomic_link "$old_current" "$CURRENT"
         systemctl restart "$SERVICE" || true
 
@@ -367,7 +392,7 @@ deploy_release() {
         fi
 
         DEPLOY_ACTIVATED=0
-        fail "SEO repair failed; no partial database changes were committed and the previous release was restored."
+        fail "SEO repair failed; previous release was restored successfully."
     fi
 
     trap - EXIT

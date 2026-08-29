@@ -60,9 +60,13 @@ export async function POST(request: Request) {
         error: error instanceof Error ? error.message.slice(0, 300) : "unknown",
       };
     }
+    const ok = result.failed === 0;
     return NextResponse.json(
-      { ok: true, result, discovery, linkMaintenance },
-      { headers: { "cache-control": "private, no-store" } },
+      { ok, result, discovery, linkMaintenance },
+      {
+        status: ok ? 200 : 500,
+        headers: { "cache-control": "private, no-store" },
+      },
     );
   } catch {
     return NextResponse.json(

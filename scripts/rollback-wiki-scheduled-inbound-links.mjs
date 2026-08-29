@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import postgres from "postgres";
 
 const ARTICLE_LINK_PATTERN = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
-const RUN_ID = "wiki-scheduled-inbound-links-full-mizfa-plus-20260829";
+const RUN_ID = "wiki-scheduled-inbound-links-full-mizfa-plus-r2-20260829";
 const CHANGE_NOTE = `Add natural pending inbound links for ${RUN_ID}`;
 const ROLLBACK_NOTE = `Rollback scheduled inbound links for ${RUN_ID}`;
 

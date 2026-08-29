@@ -265,6 +265,18 @@ export async function processDueWikiPublishJobs(limit = 10) {
         last_error = 'Recovered a stale publisher lock.'
     where status = 'running' and locked_at < now() - interval '15 minutes'
   `;
+  await sql`
+    update halleus_private.wiki_publish_jobs
+    set status = 'retry',
+        attempt_count = 0,
+        locked_at = null,
+        completed_at = null,
+        run_at = now(),
+        last_error = 'Recovered inbound-gated publish job after scheduled link repair.'
+    where status = 'failed'
+      and completed_at > now() - interval '3 days'
+      and last_error like 'Wiki publication blocked: incoming=%'
+  `;
   const publishedSlugs: string[] = [];
   const activatedInboundSourceSlugs: string[] = [];
   let failed = 0;

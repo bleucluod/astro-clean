@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
 
 const ARTICLE_LINK_PATTERN = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
-const RUN_ID = "wiki-scheduled-inbound-links-full-mizfa-plus-20260829";
+const RUN_ID = "wiki-scheduled-inbound-links-full-mizfa-plus-r2-20260829";
 const MINIMUM_INBOUND_TARGET = 3;
 const DEFAULT_MAX_INBOUND_TARGET = 5;
 const SOURCE_MIN_AGE_DAYS = 10;
@@ -1930,7 +1930,7 @@ async function main() {
   try {
     const result = await sql.begin(async (tx) => {
       await tx`set local lock_timeout = '5s'`;
-      await tx`set local statement_timeout = '90s'`;
+      await tx`set local statement_timeout = '0'`;
       const repairLock = await tx`select pg_try_advisory_xact_lock(hashtext(${RUN_ID})) as acquired`;
       if (repairLock[0]?.acquired !== true) {
         throw new Error("Another scheduled inbound repair is already running.");
