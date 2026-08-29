@@ -7,9 +7,13 @@ const CHANGE_NOTE = `Add natural pending inbound links for ${RUN_ID}`;
 const ROLLBACK_NOTE = `Rollback scheduled inbound links for ${RUN_ID}`;
 
 function parseArgs() {
+  const args = process.argv.slice(2);
+  const limitIndex = args.indexOf("--limit");
+  const parsedLimit = limitIndex >= 0 ? Number(args[limitIndex + 1]) : Number.POSITIVE_INFINITY;
   return {
-    apply: process.argv.includes("--apply"),
-    selfCheck: process.argv.includes("--self-check"),
+    apply: args.includes("--apply"),
+    selfCheck: args.includes("--self-check"),
+    limit: Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.floor(parsedLimit) : Number.POSITIVE_INFINITY,
   };
 }
 
@@ -82,6 +86,11 @@ function assertSelfCheck() {
   const markers = [
     "CHANGE_NOTE",
     "ROLLBACK_NOTE",
+    "--limit",
+    "rollbackOne(sql, row",
+    "set local lock_timeout",
+    "set local statement_timeout",
+    "console.error(`[rollback]",
     "where current_revision.change_note = ${CHANGE_NOTE}",
     "article.content_version = (current_revision.snapshot->>'contentVersion')::integer",
     "Rollback scheduled inbound links",
@@ -94,8 +103,8 @@ function assertSelfCheck() {
   console.log("Wiki scheduled inbound rollback contract OK");
 }
 
-async function loadRollbackCandidates(tx) {
-  return tx`
+async function loadRollbackCandidates(sql, limit) {
+  const rows = await sql`
     select
       article.id::text as article_id,
       article.stable_id,
@@ -121,8 +130,103 @@ async function loadRollbackCandidates(tx) {
       and article.body_markdown = current_revision.snapshot->>'bodyMarkdown'
       and article.content_version = (current_revision.snapshot->>'contentVersion')::integer
     order by article.stable_id
+  `;
+  return Number.isFinite(limit) ? rows.slice(0, limit) : rows;
+}
+
+async function loadRollbackCandidateForUpdate(tx, articleId) {
+  const rows = await tx`
+    select
+      article.id::text as article_id,
+      article.stable_id,
+      article.slug,
+      article.content_version,
+      current_revision.revision_number as current_revision_number,
+      current_revision.snapshot as current_snapshot,
+      previous_revision.revision_number as previous_revision_number,
+      previous_revision.snapshot as previous_snapshot
+    from public.wiki_article_revisions as current_revision
+    join public.wiki_articles as article on article.id = current_revision.article_id
+    join lateral (
+      select previous.revision_number, previous.snapshot
+      from public.wiki_article_revisions as previous
+      where previous.article_id = current_revision.article_id
+        and previous.revision_number < current_revision.revision_number
+      order by previous.revision_number desc
+      limit 1
+    ) as previous_revision on true
+    where current_revision.change_note = ${CHANGE_NOTE}
+      and current_revision.revision_status = 'published'
+      and article.id = ${articleId}::uuid
+      and article.deleted_at is null
+      and article.body_markdown = current_revision.snapshot->>'bodyMarkdown'
+      and article.content_version = (current_revision.snapshot->>'contentVersion')::integer
+    limit 1
     for update of article
   `;
+  return rows[0] ?? null;
+}
+
+async function rollbackOne(sql, row, apply) {
+  return sql.begin(async (tx) => {
+    await tx`set local lock_timeout = '5s'`;
+    await tx`set local statement_timeout = '30s'`;
+
+    const lockedRow = apply ? await loadRollbackCandidateForUpdate(tx, row.article_id) : row;
+    if (!lockedRow) {
+      return { skipped: { stableId: row.stable_id, reason: "changed-after-dry-run" } };
+    }
+
+    const previousSnapshot = lockedRow.previous_snapshot && typeof lockedRow.previous_snapshot === "object"
+      ? lockedRow.previous_snapshot
+      : null;
+    if (!previousSnapshot || typeof previousSnapshot.bodyMarkdown !== "string") {
+      return { skipped: { stableId: lockedRow.stable_id, reason: "previous-snapshot-missing" } };
+    }
+
+    const nextVersion = Number(lockedRow.content_version ?? 1) + 1;
+    const bodyMarkdown = String(previousSnapshot.bodyMarkdown);
+    const sections = jsonArray(previousSnapshot.sections);
+    const relatedArticleIds = jsonArray(previousSnapshot.relatedArticleIds);
+    const rollbackSnapshot = snapshotWithVersion(previousSnapshot, nextVersion);
+    const restored = {
+      stableId: lockedRow.stable_id,
+      slug: lockedRow.slug,
+      fromRevision: Number(lockedRow.current_revision_number),
+      toRevision: Number(lockedRow.previous_revision_number),
+      nextVersion,
+    };
+
+    if (!apply) return { restored };
+
+    await tx`
+      update public.wiki_articles
+      set sections = ${tx.json(sections)},
+          body_markdown = ${bodyMarkdown},
+          related_article_ids = ${tx.json(relatedArticleIds)},
+          content_version = ${nextVersion},
+          updated_at = now()
+      where id = ${lockedRow.article_id}::uuid
+    `;
+    await tx`
+      insert into public.wiki_article_revisions (
+        article_id, revision_number, snapshot, change_note, created_by,
+        revision_status, published_at
+      ) values (
+        ${lockedRow.article_id}::uuid,
+        (select coalesce(max(existing.revision_number), 0)::integer + 1
+         from public.wiki_article_revisions as existing
+         where existing.article_id = ${lockedRow.article_id}::uuid),
+        ${tx.json(rollbackSnapshot)},
+        ${ROLLBACK_NOTE},
+        null,
+        'published',
+        now()
+      )
+    `;
+    await syncInlineLinks(tx, lockedRow.article_id, bodyMarkdown, relatedArticleIds);
+    return { restored };
+  });
 }
 
 async function main() {
@@ -135,65 +239,20 @@ async function main() {
 
   const sql = postgres(process.env.DATABASE_URL, { max: 1, prepare: false });
   try {
-    const result = await sql.begin(async (tx) => {
-      const candidates = await loadRollbackCandidates(tx);
-      const restored = [];
-      const skipped = [];
+    const candidates = await loadRollbackCandidates(sql, options.limit);
+    const restored = [];
+    const skipped = [];
 
-      for (const row of candidates) {
-        const previousSnapshot = row.previous_snapshot && typeof row.previous_snapshot === "object"
-          ? row.previous_snapshot
-          : null;
-        if (!previousSnapshot || typeof previousSnapshot.bodyMarkdown !== "string") {
-          skipped.push({ stableId: row.stable_id, reason: "previous-snapshot-missing" });
-          continue;
-        }
+    for (const [index, row] of candidates.entries()) {
+      if (options.apply) console.error(`[rollback] ${index + 1}/${candidates.length} ${row.stable_id}`);
+      const item = await rollbackOne(sql, row, options.apply);
+      if (item.restored) restored.push(item.restored);
+      if (item.skipped) skipped.push(item.skipped);
+    }
 
-        const nextVersion = Number(row.content_version ?? 1) + 1;
-        const bodyMarkdown = String(previousSnapshot.bodyMarkdown);
-        const sections = jsonArray(previousSnapshot.sections);
-        const relatedArticleIds = jsonArray(previousSnapshot.relatedArticleIds);
-        const rollbackSnapshot = snapshotWithVersion(previousSnapshot, nextVersion);
-
-        restored.push({
-          stableId: row.stable_id,
-          slug: row.slug,
-          fromRevision: Number(row.current_revision_number),
-          toRevision: Number(row.previous_revision_number),
-          nextVersion,
-        });
-
-        if (!options.apply) continue;
-
-        await tx`
-          update public.wiki_articles
-          set sections = ${tx.json(sections)},
-              body_markdown = ${bodyMarkdown},
-              related_article_ids = ${tx.json(relatedArticleIds)},
-              content_version = ${nextVersion},
-              updated_at = now()
-          where id = ${row.article_id}::uuid
-        `;
-        await tx`
-          insert into public.wiki_article_revisions (
-            article_id, revision_number, snapshot, change_note, created_by,
-            revision_status, published_at
-          ) values (
-            ${row.article_id}::uuid,
-            (select coalesce(max(existing.revision_number), 0)::integer + 1
-             from public.wiki_article_revisions as existing
-             where existing.article_id = ${row.article_id}::uuid),
-            ${tx.json(rollbackSnapshot)},
-            ${ROLLBACK_NOTE},
-            null,
-            'published',
-            now()
-          )
-        `;
-        await syncInlineLinks(tx, row.article_id, bodyMarkdown, relatedArticleIds);
-      }
-
-      if (options.apply) {
+    if (options.apply) {
+      await sql.begin(async (tx) => {
+        await tx`set local statement_timeout = '15s'`;
         await tx`
           insert into halleus_private.admin_audit_events (
             actor_user_id, actor_role, action, target_type, target_id,
@@ -208,17 +267,19 @@ async function main() {
             ${RUN_ID}
           )
         `;
-      }
+      });
+    }
 
-      return {
-        mode: options.apply ? "applied" : "dry-run",
-        runId: RUN_ID,
-        restoredCount: restored.length,
-        skippedCount: skipped.length,
-        restored,
-        skipped,
-      };
-    });
+    const result = {
+      mode: options.apply ? "applied" : "dry-run",
+      runId: RUN_ID,
+      limit: Number.isFinite(options.limit) ? options.limit : null,
+      scannedCount: candidates.length,
+      restoredCount: restored.length,
+      skippedCount: skipped.length,
+      restored,
+      skipped,
+    };
     console.log(JSON.stringify(result, null, 2));
   } finally {
     await sql.end({ timeout: 2 });
