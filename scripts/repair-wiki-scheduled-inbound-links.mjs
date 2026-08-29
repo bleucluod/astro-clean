@@ -43,7 +43,9 @@ const BUILT_IN_MIZFA_QUERIES = [
   "تفسیر خانه های چارت تولد",
   "چارت تولد رایگان ماریا",
   "چارت تولد انلاین",
+  "چارت تولد",
   "فال سالانه 1405",
+  "ویژگی های زن مردادی",
   "نود جنوبی",
   "خانه هشتم چارت تولد",
   "رگ خواب مرد متولد اسفند",
@@ -59,15 +61,38 @@ const BUILT_IN_MIZFA_QUERIES = [
   "نقطه ضعف زن متولد شهریور",
   "اورب چیست",
   "اصلاح ساعت تولد",
+  "استلیوم",
   "خانه پنجم",
   "خصوصیات زن متولد شهریور در عشق",
+  "زن متولد اردیبهشت چه مردی را دوست دارد",
   "ازدواج اردیبهشت با چه ماهی خوب است",
+  "رگ خواب زن متولد فروردین",
+  "مرد اردیبهشت با چه ماهی ازدواج کند",
+  "زن متولد مهر چه مردی را دوست دارد",
+  "مرد متولد اردیبهشت با چه ماهی ازدواج کند",
   "اورانوس در چارت تولد",
   "وضعیت ماه امروز",
+  "زن متولد شهریور",
+  "فال آسترولوژی چیست",
   "وضعیت سیارات امروز",
+  "ساعت تولد",
+  "قهر مرد متولد مرداد",
+  "نجوم تروپیکال",
+  "نقطه ضعف زن متولد اردیبهشت",
+  "چارت سیناستری انلاین",
+  "چگونه ساعت تولد خود را پیدا کنیم",
   "آسترولوژی تروپیکال چیست",
   "انواع آسترولوژی",
+  "خصوصیات متولدین مرداد",
+  "آبان چه برجی است",
+  "مرد مرداد ماهی با چه ماهی ازدواج کند",
+  "زن متولد شهریور چه مردی را دوست دارد",
+  "خصوصیات متولدین شهریور مرد",
+  "لرد خانه هفتم چارت تولد",
+  "دلتنگی مرد شهریوری",
+  "پلوتو در کماندار",
   "چارت ودیک",
+  "آسترولوژی روزانه",
 ];
 
 const CURATED_SCHEDULED_INBOUND_PLANS = [
@@ -109,6 +134,11 @@ const CURATED_SCHEDULED_INBOUND_PLANS = [
         anchor: "خانه پنجم",
         sentence: "در خواندن ونوس، [[article:birth-chart-and-creativity|خانه پنجم]] معمولاً جایی است که لذت، زیبایی و میل به خلق کردن واضح‌تر خودش را نشان می‌دهد.",
       },
+      {
+        source: "birth-chart-and-relationships",
+        anchor: "خانه پنجم",
+        sentence: "وقتی رابطه فقط تعهد نیست و پای شور و بازی هم وسط می‌آید، [[article:birth-chart-and-creativity|خانه پنجم]] بخش زنده‌تر و خلاق‌تر چارت را توضیح می‌دهد.",
+      },
     ],
   },
   {
@@ -118,6 +148,16 @@ const CURATED_SCHEDULED_INBOUND_PLANS = [
         source: "fifth-house-in-natal-chart",
         anchor: "خانه پنجم",
         sentence: "به همین دلیل، وقتی از فرزند در طالع‌بینی حرف می‌زنیم، [[article:children-gender-astrology|خانه پنجم]] معمولاً اولین جایی است که باید با احتیاط و بدون قطعیت بررسی شود.",
+      },
+      {
+        source: "astrology-houses",
+        anchor: "خانه پنجم",
+        sentence: "در تقسیم‌بندی خانه‌ها، [[article:children-gender-astrology|خانه پنجم]] همان جایی است که موضوع فرزند باید محتاطانه و بدون وعده قطعی خوانده شود.",
+      },
+      {
+        source: "birth-chart-and-relationships",
+        anchor: "خانه پنجم",
+        sentence: "وقتی رابطه به موضوع خانواده و فرزند می‌رسد، [[article:children-gender-astrology|خانه پنجم]] فقط یک نشانه نمادین است و نباید به پیش‌بینی قطعی تبدیل شود.",
       },
     ],
   },
@@ -141,6 +181,31 @@ const CURATED_SCHEDULED_INBOUND_PLANS = [
       },
     ],
   },
+  {
+    target: "birth-time-civil-registration-records",
+    placements: [
+      {
+        source: "why-birth-time-matters",
+        anchor: "ساعت دقیق تولد",
+        sentence: "اگر هنوز نمی‌دانی این زمان را از کجا پیدا کنی، [[article:birth-time-civil-registration-records|ساعت دقیق تولد]] باید از مسیرهای قابل پیگیری و نه حدس شخصی بررسی شود.",
+      },
+      {
+        source: "birth-chart-without-birth-time",
+        anchor: "ساعت تولد",
+        sentence: "وقتی [[article:birth-time-civil-registration-records|ساعت تولد]] پیدا نمی‌شود، بهتر است مرزهای تفسیر را روشن نگه داریم و جای حدس را با قطعیت پر نکنیم.",
+      },
+      {
+        source: "tehran-birth-chart-difference",
+        anchor: "چگونه ساعت تولد خود را پیدا کنیم",
+        sentence: "در کنار شهر تولد، پرسش عملی‌تر این است که [[article:birth-time-civil-registration-records|چگونه ساعت تولد خود را پیدا کنیم]] تا محاسبه چارت از پایه دقیق‌تر شود.",
+      },
+      {
+        source: "what-is-rising-sign",
+        anchor: "ساعت دقیق تولد",
+        sentence: "چون رایزینگ با زمان تولد جابه‌جا می‌شود، [[article:birth-time-civil-registration-records|ساعت دقیق تولد]] برای محاسبه طالع فقط یک جزئیات فرعی نیست.",
+      },
+    ],
+  },
 ];
 
 const CURATED_PLANS_BY_TARGET = new Map(CURATED_SCHEDULED_INBOUND_PLANS.map((plan) => [plan.target, plan.placements]));
@@ -154,6 +219,7 @@ function parseArgs() {
     maxInbound: DEFAULT_MAX_INBOUND_TARGET,
     maxTargets: Number.POSITIVE_INFINITY,
     gscQueriesCsv: process.env.HALLEUS_GSC_QUERIES_CSV ?? "",
+    allowDynamic: false,
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -163,6 +229,7 @@ function parseArgs() {
     if (arg === "--max-inbound") options.maxInbound = Number(args[++index]);
     if (arg === "--max-targets") options.maxTargets = Number(args[++index]);
     if (arg === "--gsc-queries-csv") options.gscQueriesCsv = args[++index] ?? "";
+    if (arg === "--allow-dynamic") options.allowDynamic = true;
   }
   if (!Number.isInteger(options.minInbound) || options.minInbound < 1 || options.minInbound > 10) {
     throw new Error("--min-inbound must be an integer between 1 and 10.");
@@ -442,7 +509,14 @@ function targetIntentLabels(article) {
 }
 
 function sourceIntentLabels(article) {
-  return targetIntentLabels(article);
+  const labels = targetIntentLabels(article);
+  const id = String(article.stableId ?? "");
+  const text = normalizeSearchText(`${article.title} ${article.shortTitle} ${article.seoTitle} ${article.bodyMarkdown ?? ""}`.slice(0, 22000));
+  const isDifferentSpecificHouse = /(?:first|second|third|fourth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)-house/.test(id);
+  if (text.includes("خانه پنجم") && !isDifferentSpecificHouse) labels.add("houseFifth");
+  if (text.includes("ساعت تولد") || text.includes("زمان تولد") || text.includes("رایزینگ") || text.includes("طالع")) labels.add("birthTimeAccuracy");
+  if (text.includes("شهر تولد") || text.includes("تهران") || text.includes("مختصات")) labels.add("birthTimeAccuracy");
+  return labels;
 }
 
 function hasAnyLabel(labels, values) {
@@ -470,10 +544,10 @@ function sourceSupportsTargetIntent(target, source) {
     return sourceMatchesAllowedLabels(sourceLabels, ["careerPath", "birthChartCore", "houseInterpretation"]);
   }
   if (targetLabels.has("childrenGender")) {
-    return sourceMatchesAllowedLabels(sourceLabels, ["childrenGender", "houseFifth"]);
+    return sourceMatchesAllowedLabels(sourceLabels, ["childrenGender", "houseFifth", "houseInterpretation", "relationship"]);
   }
   if (targetLabels.has("creativity")) {
-    return sourceMatchesAllowedLabels(sourceLabels, ["creativity", "houseFifth"]);
+    return sourceMatchesAllowedLabels(sourceLabels, ["creativity", "houseFifth", "relationship"]);
   }
   if (targetLabels.has("houseFifth")) {
     return sourceMatchesAllowedLabels(sourceLabels, ["houseFifth", "creativity", "childrenGender"]);
@@ -621,7 +695,15 @@ function mizfaQueryIntentLabels(query) {
 
   if (cleaned.includes("بدون ساعت تولد")) labels.add("birthTimeMissing");
   if (cleaned.includes("اصلاح ساعت تولد")) labels.add("birthTimeRectification");
-  if (cleaned.includes("ساعت دقیق تولد")) labels.add("birthTimeAccuracy");
+  if (
+    cleaned.includes("ساعت دقیق تولد") ||
+    cleaned.includes("ساعت تولد") ||
+    cleaned.includes("زمان تولد") ||
+    cleaned.includes("ساعت دقیق تولدم") ||
+    cleaned.includes("چگونه ساعت تولد خود را پیدا کنیم")
+  ) {
+    labels.add("birthTimeAccuracy");
+  }
   if (cleaned.includes("خانه هشتم")) labels.add("houseEighth");
   if (cleaned.includes("خانه پنجم")) labels.add("houseFifth");
   if (cleaned.includes("خالی بودن خانه")) labels.add("emptyHouses");
@@ -1000,6 +1082,9 @@ function assertSelfCheck() {
     "targetIdentityText",
     "isRelatedSourceForTarget",
     "missing-related-mizfa-anchor",
+    "allowDynamic: false",
+    "arg === \"--allow-dynamic\"",
+    "missing-curated-mizfa-plan",
   ]) {
     if (!source.includes(marker)) throw new Error(`self-check marker missing: ${marker}`);
   }
@@ -1088,6 +1173,58 @@ function assertSelfCheck() {
     status: "published",
     indexable: true,
   };
+  const whyBirthTimeMatters = {
+    stableId: "why-birth-time-matters",
+    title: "چرا ساعت دقیق تولد در چارت تولد مهم است؟",
+    shortTitle: "اهمیت ساعت تولد",
+    seoTitle: "ساعت دقیق تولد در چارت تولد",
+    summary: "",
+    bodyMarkdown: "ساعت دقیق تولد برای رایزینگ و خانه‌های چارت لازم است.",
+    publishedAt: "2026-07-29T10:30:00.000Z",
+    scheduledFor: null,
+    deletedAt: null,
+    status: "published",
+    indexable: true,
+  };
+  const birthChartWithoutBirthTime = {
+    stableId: "birth-chart-without-birth-time",
+    title: "چارت تولد بدون ساعت تولد؛ چه چیزهایی را می‌توان خواند؟",
+    shortTitle: "چارت بدون ساعت تولد",
+    seoTitle: "چارت تولد بدون ساعت تولد",
+    summary: "",
+    bodyMarkdown: "اگر ساعت تولد معلوم نباشد، باید بخش‌های وابسته به زمان را محتاطانه خواند.",
+    publishedAt: "2026-07-16T00:00:00.000Z",
+    scheduledFor: null,
+    deletedAt: null,
+    status: "published",
+    indexable: true,
+  };
+  const tehranBirthChartDifference = {
+    stableId: "tehran-birth-chart-difference",
+    title: "چارت تولد تهران چه فرقی با شهرهای دیگر دارد؟",
+    shortTitle: "چارت تولد تهران",
+    seoTitle: "تفاوت شهر تولد در چارت",
+    summary: "",
+    bodyMarkdown: "شهر تولد و ساعت تولد هر دو روی محاسبه دقیق خانه‌ها اثر می‌گذارند.",
+    publishedAt: "2026-07-16T00:00:00.000Z",
+    scheduledFor: null,
+    deletedAt: null,
+    status: "published",
+    indexable: true,
+  };
+  const risingSign = {
+    stableId: "what-is-rising-sign",
+    title: "رایزینگ یا طالع چیست و چگونه محاسبه می‌شود؟",
+    shortTitle: "رایزینگ یا طالع",
+    seoTitle: "محاسبه رایزینگ",
+    summary: "",
+    bodyMarkdown: "رایزینگ با ساعت تولد و شهر تولد محاسبه می‌شود.",
+    publishedAt: "2026-07-29T10:30:00.000Z",
+    scheduledFor: null,
+    deletedAt: null,
+    status: "published",
+    indexable: true,
+  };
   const sixthHouse = {
     stableId: "sixth-house-in-natal-chart",
     title: "خانه ششم در چارت تولد؛ کار روزانه، بدن و نظم",
@@ -1168,6 +1305,13 @@ function assertSelfCheck() {
     seoTitle: "جنسیت فرزند در طالع‌بینی",
     summary: "در بعضی متن‌ها خانه پنجم به فرزند ربط داده می‌شود، اما source لینک باید خودش همین intent را داشته باشد.",
   };
+  const birthTimeRecords = {
+    stableId: "birth-time-civil-registration-records",
+    title: "ساعت تولد در ثبت احوال ثبت می‌شود؟ راه‌های استعلام ساعت دقیق تولد",
+    shortTitle: "استعلام ساعت تولد",
+    seoTitle: "ساعت دقیق تولد در ثبت احوال",
+    summary: "",
+  };
   const birthTimeRectification = {
     stableId: "birth-time-rectification",
     title: "اصلاح ساعت تولد چیست؟",
@@ -1247,6 +1391,16 @@ function assertSelfCheck() {
   );
   if (!curatedFreeChart || curatedFreeChart.placements.length !== 4) {
     throw new Error("self-check failed: curated free-chart target should keep four exact Mizfa placements.");
+  }
+  const curatedBirthTimeRecords = curatedPlacementsForTarget(
+    birthTimeRecords,
+    [whyBirthTimeMatters, birthChartWithoutBirthTime, tehranBirthChartDifference, risingSign],
+    new Set(),
+    ["ساعت دقیق تولد", "ساعت تولد", "چگونه ساعت تولد خود را پیدا کنیم"],
+    new Map(),
+  );
+  if (!curatedBirthTimeRecords || curatedBirthTimeRecords.placements.length !== 4) {
+    throw new Error("self-check failed: curated birth-time records target should keep exact Mizfa placements.");
   }
   const curatedFreeAnchors = curatedFreeChart.placements.map((item) => item.anchor);
   if (new Set(curatedFreeAnchors).size !== curatedFreeAnchors.length) {
@@ -1389,6 +1543,18 @@ function planRepairs(articles, queryHints, options, nowMs) {
           skipped: curatedPlan.skipped,
         });
       }
+      continue;
+    }
+
+    if (!options.allowDynamic) {
+      incompleteTargets.push({
+        stableId: target.stableId,
+        title: target.title,
+        scheduledFor: target.scheduledFor,
+        preparedInbound: currentSources.size,
+        minimum: options.minInbound,
+        reason: "missing-curated-mizfa-plan",
+      });
       continue;
     }
 
