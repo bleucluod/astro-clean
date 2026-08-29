@@ -972,6 +972,7 @@ function desiredInboundCount(article, queryHints, maxInbound) {
 }
 
 function pickParagraph(sections, hints, usedParagraphs) {
+  const hintTerms = [...new Set(hints.flatMap((hint) => meaningfulWords(hint)))];
   const candidates = [];
   for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
     const section = sections[sectionIndex];
@@ -982,11 +983,16 @@ function pickParagraph(sections, hints, usedParagraphs) {
       if (!paragraph.trim() || usedParagraphs.has(key) || countArticleLinks(paragraph) >= 2) continue;
       const haystack = normalizeText(stripWikiLinks(`${section?.title ?? ""} ${paragraph}`));
       const hintScore = hints.filter((hint) => hint && haystack.includes(hint)).length;
-      if (hintScore <= 0) continue;
-      candidates.push({ sectionIndex, paragraphIndex, paragraph, hintScore, length: paragraph.length });
+      const termScore = hintTerms.filter((term) => haystack.includes(term)).length;
+      if (hintScore <= 0 && termScore < 2) continue;
+      candidates.push({ sectionIndex, paragraphIndex, paragraph, hintScore, termScore, length: paragraph.length });
     }
   }
-  candidates.sort((left, right) => right.hintScore - left.hintScore || right.length - left.length);
+  candidates.sort((left, right) =>
+    right.hintScore - left.hintScore ||
+    right.termScore - left.termScore ||
+    right.length - left.length
+  );
   return candidates[0] ?? null;
 }
 
