@@ -18,6 +18,7 @@ function forbidText(label, source, marker) {
 
 const cms = read("lib/wiki/wiki-cms-service.ts");
 const publisher = read("lib/wiki/wiki-publisher.ts");
+const publishDueRoute = read("app/api/internal/wiki/publish-due/route.ts");
 const readiness = read("lib/wiki/wiki-publication-link-readiness.ts");
 const materialization = read("lib/wiki/wiki-link-materialization.ts");
 const packageJson = read("package.json");
@@ -46,6 +47,8 @@ forbidText("Wiki inbound readiness", readiness, "assertWikiPublicationLiveInboun
 requireText("scheduled publisher", publisher, "readWikiPublicationLiveInboundReadiness");
 forbidText("scheduled publisher", publisher, "assertWikiPublicationLiveInboundReady");
 requireText("scheduled publisher", publisher, "HALLEUS_WIKI_INBOUND_SOFT_TARGET_NON_GATING");
+requireText("scheduled publish revalidation", publishDueRoute, 'revalidateWikiPublicPaths(publicDiscoverySlugs, { cachePolicy: "expire-now" });');
+forbidText("scheduled publish revalidation", publishDueRoute, "revalidateWikiPublicPaths(publicDiscoverySlugs);");
 requireText("scheduled publisher", publisher, "activatePublishedWikiTargetInboundLinksBestEffort");
 requireText("scheduled publisher legacy recovery", publisher, "last_error like 'Wiki publication blocked: incoming=%'");
 requireText("admin publish service", cms, "readWikiPublicationLiveInboundReadiness");

@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       ...result.activatedInboundSourceSlugs,
     ];
     if (publicDiscoverySlugs.length) {
-      revalidateWikiPublicPaths(publicDiscoverySlugs);
+      revalidateWikiPublicPaths(publicDiscoverySlugs, { cachePolicy: "expire-now" });
     }
     const discovery = await submitWikiIndexNowUrlsBestEffort(
       [...publicDiscoverySlugs, "/wiki", "/sitemap.xml"],

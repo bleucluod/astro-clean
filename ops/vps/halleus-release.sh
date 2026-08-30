@@ -36,7 +36,7 @@ The deploy command:
 - runs encoding, diff, and production-build checks before activation
 - atomically updates current/previous symlinks
 - restarts Halleus and rolls back automatically if smoke tests fail
-- applies the required curated Mizfa Wiki inbound-link plan transactionally
+- attempts the curated Mizfa Wiki inbound-link plan as bounded best-effort maintenance
 
 The rollback command swaps current and previous, restarts Halleus, and restores
 the original state if smoke tests fail.
@@ -203,33 +203,25 @@ run_wiki_damaged_public_content_repair() {
     timeout 120s "$NODE_BIN" "$repair_script" --apply --compact
 }
 
-run_curated_wiki_inbound_repair() {
+run_curated_wiki_inbound_repair_best_effort() {
     local release_dir="$1"
     local repair_script="$release_dir/scripts/repair-wiki-scheduled-inbound-links.mjs"
-    local output
-    local attempt
 
+    # HALLEUS_WIKI_INBOUND_REPAIR_RELEASE_BEST_EFFORT
+    # Inbound count is a quality target. A slow/blocked SEO maintenance pass must
+    # not roll back an otherwise healthy application release or block publishing.
     if [ ! -f "$repair_script" ]; then
-        printf 'Missing scheduled inbound repair script: %s\n' "$repair_script" >&2
-        return 1
+        printf 'WARN: scheduled inbound repair script is missing; release continues because inbound count is a non-gating quality target: %s\n' "$repair_script" >&2
+        return 0
     fi
-    printf '%s\n' "Applying scheduled Wiki inbound-link plan..."
-    for attempt in 1 2 3; do
-        if output="$(
-            timeout 600s "$NODE_BIN" "$repair_script" \
-                --apply \
-                --require-curated-complete \
-                --compact
-        )"; then
-            printf '%s\n' "$output"
-            return 0
-        fi
-        if [ "$attempt" -lt 3 ]; then
-            printf 'Scheduled Wiki inbound-link attempt %s failed; retrying idempotently after a short lock drain.\n' "$attempt" >&2
-            sleep 15
-        fi
-    done
-    return 1
+
+    printf '%s\n' "Attempting scheduled Wiki inbound-link maintenance (best effort, hard cap 45s + 5s kill grace)..."
+    if ! timeout --kill-after=5s 45s "$NODE_BIN" "$repair_script" \
+        --apply \
+        --compact; then
+        printf '%s\n' "WARN: scheduled Wiki inbound-link repair did not complete; release continues because inbound count is a non-gating quality target." >&2
+    fi
+    return 0
 }
 
 run_wiki_publish_due_once_best_effort() {
@@ -396,18 +388,7 @@ deploy_release() {
         fail "Wiki content repair failed; previous release was restored successfully."
     fi
 
-    if ! run_curated_wiki_inbound_repair "$release_dir"; then
-        printf '%s\n' "Scheduled Wiki inbound-link repair failed. Restoring previous release..." >&2
-        atomic_link "$old_current" "$CURRENT"
-        systemctl restart "$SERVICE" || true
-
-        if ! smoke_release; then
-            fail "SEO repair failed and the automatic release restoration smoke test also failed."
-        fi
-
-        DEPLOY_ACTIVATED=0
-        fail "SEO repair failed; previous release was restored successfully."
-    fi
+    run_curated_wiki_inbound_repair_best_effort "$release_dir"
 
     run_wiki_publish_due_once_best_effort "$release_dir"
 

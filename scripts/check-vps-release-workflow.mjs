@@ -145,6 +145,10 @@ requireMarkers("release workflow", releaseSource, [
   "HALLEUS_RELEASE_DEPLOY_OK",
   "HALLEUS_RELEASE_ROLLBACK_OK",
   "https://halleus.ir/api/engine/real-chart",
+  "HALLEUS_WIKI_INBOUND_REPAIR_RELEASE_BEST_EFFORT",
+  "run_curated_wiki_inbound_repair_best_effort",
+  "release continues because inbound count is a non-gating quality target",
+  "timeout --kill-after=5s 45s",
 ]);
 
 forbidMarkers("release workflow", releaseSource, [
@@ -158,6 +162,9 @@ forbidMarkers("release workflow", releaseSource, [
   "git reset --hard",
   'rm -rf "$SOURCE"',
   "BatchMode=yes",
+  "Scheduled Wiki inbound-link repair failed. Restoring previous release",
+  "SEO repair failed; previous release was restored successfully",
+  "--require-curated-complete",
 ]);
 
 requireMarkers("systemd template", serviceSource, [
