@@ -8,16 +8,19 @@ import styles from "../wiki.module.css";
 
 // HALLEUS_WIKI_MOBILE_STICKY_CTA
 const MOBILE_MEDIA_QUERY = "(max-width: 720px)";
-const REVEAL_PROGRESS = 0.25;
+// HALLEUS_WIKI_MOBILE_STICKY_CTA_CONTENT_PROGRESS
+const REVEAL_PROGRESS = 0.22;
 const DISMISS_LABEL = "بستن پیشنهاد";
 
 type WikiStickyCtaProps = {
   callToAction: WikiArticleCallToAction;
+  contentRootId: string;
   inlineCtaId: string;
 };
 
 export function WikiStickyCta({
   callToAction,
+  contentRootId,
   inlineCtaId,
 }: WikiStickyCtaProps) {
   const [eligible, setEligible] = useState(false);
@@ -34,9 +37,19 @@ export function WikiStickyCta({
         return;
       }
 
-      const maxScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+      const contentRoot = document.getElementById(contentRootId);
+      if (!contentRoot) {
+        setEligible(false);
+        return;
+      }
+
+      const contentTop =
+        contentRoot.getBoundingClientRect().top + window.scrollY;
+      const contentHeight = Math.max(contentRoot.scrollHeight, 1);
+      const progress = Math.min(
+        1,
+        Math.max(0, (window.scrollY - contentTop) / contentHeight),
+      );
       setEligible(progress >= REVEAL_PROGRESS);
     };
 
@@ -66,7 +79,7 @@ export function WikiStickyCta({
         window.cancelAnimationFrame(animationFrame.current);
       }
     };
-  }, []);
+  }, [contentRootId]);
 
   useEffect(() => {
     const inlineCta = document.getElementById(inlineCtaId);

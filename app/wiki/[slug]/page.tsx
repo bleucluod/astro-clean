@@ -17,6 +17,7 @@ type WikiArticlePageProps = {
 };
 
 const WIKI_BASE_URL = "https://halleus.ir";
+const WIKI_ARTICLE_CONTENT_ID = "wiki-article-content";
 const WIKI_INLINE_CTA_ID = "wiki-article-inline-cta";
 
 export const dynamicParams = true;
@@ -171,7 +172,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
       </nav>
 
       <article className={styles.articleLayout}>
-        <div className={styles.articleMain}>
+        <div className={styles.articleMain} id={WIKI_ARTICLE_CONTENT_ID}>
           <header className={styles.articleHero}>
             <div className={styles.articleTopline}>
               {category ? (
@@ -262,7 +263,11 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
         </aside>
       </article>
 
-      <WikiStickyCta callToAction={callToAction} inlineCtaId={WIKI_INLINE_CTA_ID} />
+      <WikiStickyCta
+        callToAction={callToAction}
+        contentRootId={WIKI_ARTICLE_CONTENT_ID}
+        inlineCtaId={WIKI_INLINE_CTA_ID}
+      />
 
       <section className={styles.relatedSection} aria-labelledby="related-title">
         <div className={styles.sectionHeader}>
