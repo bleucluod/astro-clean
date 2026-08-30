@@ -3854,3 +3854,52 @@
     transform: translate3d(0, -50%, 0) !important;
   }
 }
+/* HALLEUS_REPORT_MOBILE_VIEWPORT_CONTAINMENT_20260830 */
+@media (max-width: 760px) {
+  /*
+   * The editorial ambient emblem used to be a fixed 810–1120px box with a
+   * negative left offset on mobile. In RTL that can enlarge the horizontal
+   * scrollable area and shift otherwise-contained header/report content.
+   * Keep the same half-emblem mood as a viewport-sized decorative layer.
+   */
+  .ambientLogo {
+    top: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100svh !important;
+    aspect-ratio: auto !important;
+    background-size: min(200vw, 1120px) auto !important;
+    background-position: left center !important;
+    transform: none !important;
+    transform-origin: center !important;
+    will-change: auto !important;
+  }
+
+  .reader,
+  .reportFlow,
+  .flowSection,
+  .chartDetails,
+  .wheelShell,
+  .reader :global(.report-astrochart-wheel),
+  .reader :global(.report-astrochart-wheel-body),
+  .reader :global(.report-astrochart-wheel-canvas),
+  .reader :global(.report-astrochart-wheel-canvas svg) {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .reader,
+  .reportFlow,
+  .flowSection,
+  .wheelShell,
+  .reader :global(.report-astrochart-wheel) {
+    overflow-x: clip !important;
+  }
+
+  .reader :global(.report-astrochart-wheel-canvas svg) {
+    height: auto !important;
+  }
+}
