@@ -99,6 +99,19 @@ const BUILT_IN_MIZFA_QUERIES = [
   "آسترولوژی روزانه",
 ];
 
+const CHART_PRODUCT_RESERVED_ANCHORS = new Set([
+  "چارت تولد",
+  "چارت تولد رایگان",
+  "چارت تولد رایگان فارسی",
+  "ساخت چارت تولد",
+  "محاسبه چارت تولد",
+  "رسم چارت تولد",
+  "چارت تولد آنلاین",
+  "چارت تولد انلاین",
+  "چارت تولد فارسی",
+  "چارت تولد با هوش مصنوعی",
+]);
+
 const CURATED_SCHEDULED_INBOUND_PLANS = [
   {
     target: "best-free-persian-birth-chart-site",
@@ -739,6 +752,10 @@ function sourceSupportsAnchorIntent(source, anchor) {
   return [...anchorLabels].some((label) => sourceLabels.has(label));
 }
 
+function isReservedChartProductAnchor(anchor) {
+  return CHART_PRODUCT_RESERVED_ANCHORS.has(normalizeText(anchor));
+}
+
 function curatedPlacementsForTarget(target, oldPublicSources, currentSources, queryHints, sourceAdditions) {
   const planned = CURATED_PLANS_BY_TARGET.get(target.stableId) ?? [];
   if (!planned.length) return null;
@@ -751,6 +768,15 @@ function curatedPlacementsForTarget(target, oldPublicSources, currentSources, qu
   for (const item of planned) {
     const source = sourcesByStableId.get(item.source);
     const anchor = sanitizeAnchorCandidate(item.anchor);
+    if (isReservedChartProductAnchor(anchor)) {
+      skipped.push({
+        source: item.source,
+        target: target.stableId,
+        anchor,
+        reason: "reserved-chart-product-anchor",
+      });
+      continue;
+    }
     if (!source) {
       skipped.push({ source: item.source, target: target.stableId, anchor, reason: "curated-source-not-eligible" });
       continue;
@@ -1068,6 +1094,7 @@ function mizfaAnchorCandidates(article, queryHints) {
   }
 
   return [...new Set(candidates.map(sanitizeAnchorCandidate))]
+    .filter((item) => !isReservedChartProductAnchor(item))
     .filter((item) => anchorMatchesTarget(item, article));
 }
 
@@ -1343,6 +1370,9 @@ function assertSelfCheck() {
     "Add natural pending inbound links",
     "system.wiki.scheduled_inbound_link_repair",
     "BUILT_IN_MIZFA_QUERIES",
+    "CHART_PRODUCT_RESERVED_ANCHORS",
+    "isReservedChartProductAnchor",
+    "reserved-chart-product-anchor",
     "INDEXNOW_TIMEOUT_MS",
     "hasTargetLink(source.bodyMarkdown, target.stableId)",
     "sanitizeAnchorCandidate",
@@ -1678,8 +1708,22 @@ function assertSelfCheck() {
     ["چارت تولد رایگان فارسی", "ساخت چارت تولد", "چارت تولد فارسی", "چارت تولد رایگان ماریا"],
     new Map(),
   );
-  if (!curatedFreeChart || curatedFreeChart.placements.length !== 4) {
-    throw new Error("self-check failed: curated free-chart target should keep four exact Mizfa placements.");
+  if (!curatedFreeChart || curatedFreeChart.placements.length !== 1) {
+    throw new Error("self-check failed: free-chart Wiki target should keep only the non-reserved comparison anchor.");
+  }
+  if (curatedFreeChart.placements[0]?.anchor !== "چارت تولد رایگان ماریا") {
+    throw new Error("self-check failed: free-chart Wiki target must not own generic /chart product anchors.");
+  }
+  const reservedFreeChartSkips = curatedFreeChart.skipped.filter((item) => item.reason === "reserved-chart-product-anchor");
+  if (reservedFreeChartSkips.length !== 3) {
+    throw new Error("self-check failed: three reserved /chart product anchors must be rejected from the free-chart Wiki target.");
+  }
+  const filteredFreeChartAnchors = mizfaAnchorCandidates(
+    freeChart,
+    ["چارت تولد رایگان فارسی", "ساخت چارت تولد", "چارت تولد فارسی", "چارت تولد رایگان ماریا"],
+  );
+  if (filteredFreeChartAnchors.length !== 1 || filteredFreeChartAnchors[0] !== "چارت تولد رایگان ماریا") {
+    throw new Error("self-check failed: reserved generic chart queries must be filtered before Wiki anchor selection.");
   }
   const curatedBirthTimeRecords = curatedPlacementsForTarget(
     birthTimeRecords,

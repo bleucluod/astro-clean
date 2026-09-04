@@ -3,6 +3,10 @@ import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const source = readFileSync(new URL("./repair-wiki-scheduled-inbound-links.mjs", import.meta.url), "utf8");
+const publishedInboundRepairSource = readFileSync(
+  new URL("./repair-wiki-published-inbound-links.mjs", import.meta.url),
+  "utf8",
+);
 const rollbackSource = readFileSync(new URL("./rollback-wiki-scheduled-inbound-links.mjs", import.meta.url), "utf8");
 const damagedContentRepairSource = readFileSync(new URL("./repair-wiki-damaged-public-content.mjs", import.meta.url), "utf8");
 const publisherSource = readFileSync(new URL("../lib/wiki/wiki-publisher.ts", import.meta.url), "utf8");
@@ -39,6 +43,31 @@ requireText("scheduled repair script", source, "useQueuedSnapshot ? snapshot.ind
 requireText("scheduled repair script", source, "hasTargetLink(source.bodyMarkdown, target.stableId)");
 requireText("scheduled repair script", source, "activationStatus === \"pending\"");
 requireText("scheduled repair script", source, "BUILT_IN_MIZFA_QUERIES");
+requireText("scheduled repair script", source, "CHART_PRODUCT_RESERVED_ANCHORS");
+requireText("scheduled repair script", source, "isReservedChartProductAnchor");
+requireText("scheduled repair script", source, ".filter((item) => !isReservedChartProductAnchor(item))");
+requireText("scheduled repair script", source, "reserved-chart-product-anchor");
+requireText("published inbound repair", publishedInboundRepairSource, "const MINIMUM_INBOUND_TARGET = 3");
+requireText("published inbound repair", publishedInboundRepairSource, "const SOURCE_MIN_AGE_DAYS = 10");
+requireText("published inbound repair", publishedInboundRepairSource, "const MAX_SOURCE_ADDITIONS = 5");
+requireText("published inbound repair", publishedInboundRepairSource, 'const AI_ARTICLE_ID = "ai-birth-chart-interpretation"');
+requireText("published inbound repair", publishedInboundRepairSource, '"chinese-zodiac-snake"');
+requireText("published inbound repair", publishedInboundRepairSource, "[[page:/chart|چارت تولد با هوش مصنوعی]]");
+requireText("published inbound repair", publishedInboundRepairSource, "[[page:/chart|ساخت چارت تولد در هالیوس]]");
+requireText("published inbound repair", publishedInboundRepairSource, "ChatGPT");
+requireText("published inbound repair", publishedInboundRepairSource, "Claude");
+requireText("published inbound repair", publishedInboundRepairSource, 'href: "/chart"');
+requireText("published inbound repair", publishedInboundRepairSource, "EXPECTED_TARGETS.length !== 28");
+requireText("published inbound repair", publishedInboundRepairSource, "outOfScopeUnderTarget");
+requireText("published inbound repair", publishedInboundRepairSource, "source-open-draft");
+requireText("published inbound repair", publishedInboundRepairSource, "source-not-public-or-too-young");
+requireText("published inbound repair", publishedInboundRepairSource, "reserved-chart-product-anchor");
+requireText("published inbound repair", publishedInboundRepairSource, "post-apply verification");
+requireText("published inbound repair", publishedInboundRepairSource, "system.wiki.published_inbound_chart_ownership_repair");
+forbidText("published inbound repair", publishedInboundRepairSource, "delete from public.wiki_articles");
+forbidText("published inbound repair", publishedInboundRepairSource, "delete from public.wiki_internal_links");
+forbidText("published inbound repair", publishedInboundRepairSource, "update public.wiki_articles set is_indexable");
+forbidText("published inbound repair", publishedInboundRepairSource, "redirect(");
 requireText("scheduled repair script", source, "sanitizeAnchorCandidate");
 requireText("scheduled repair script", source, "anchorMatchesTarget");
 requireText("scheduled repair script", source, "mizfaQueryMatchesTarget");
@@ -123,4 +152,13 @@ await new Promise((resolve, reject) => {
   );
 });
 
-console.log("Wiki scheduled inbound repair contract OK");
+await new Promise((resolve, reject) => {
+  execFile(
+    process.execPath,
+    [fileURLToPath(new URL("./repair-wiki-published-inbound-links.mjs", import.meta.url)), "--self-check"],
+    { encoding: "utf8", maxBuffer: 1024 * 1024 },
+    (error) => error ? reject(error) : resolve(),
+  );
+});
+
+console.log("Wiki scheduled + published inbound ownership contract OK");
