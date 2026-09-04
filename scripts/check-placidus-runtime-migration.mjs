@@ -1,3 +1,4 @@
+// HALLEUS_R39_STAGE2_PLACIDUS_READER_OWNERSHIP_R4_20260902
 import {
   mkdtempSync,
   readFileSync,
@@ -17,6 +18,8 @@ const writerSource = readFileSync("lib/astrology/real-engine-report-writer.ts", 
 const wheelSource = readFileSync("components/RealChartWheel.tsx", "utf8");
 const reportCardSource = readFileSync("components/ReportCard.tsx", "utf8");
 const reportDetailSource = readFileSync("components/ReportDetail.tsx", "utf8");
+const reportProductReaderSource = readFileSync("components/report/ReportProductReader.tsx", "utf8");
+const reportTechnicalAppendixSource = readFileSync("components/report/ReportTechnicalAppendix.tsx", "utf8");
 const fixture = JSON.parse(
   readFileSync("src/lib/chart/placidus-house-validation.fixtures.json", "utf8"),
 );
@@ -79,7 +82,12 @@ for (const marker of [
 for (const [label, source, markers] of [
   ["wheel", wheelSource, ["houseAvailability", "houseUnavailableReason", "هیچ روش جایگزینی پنهانی اعمال نشده است"]],
   ["report card", reportCardSource, ["houseContext?.availability", "خانه‌های پلاسیدوس برای این چارت نمایش داده نمی‌شوند"]],
-  ["report detail", reportDetailSource, ["formatReportHouseSystemLabel", "داده جعلی نمایش داده نمی‌شود"]],
+  ["report detail orchestration", reportDetailSource, ["ReportProductReader"]],
+  ["report product reader", reportProductReaderSource, ["ReportTechnicalAppendix"]],
+  ["report technical appendix", reportTechnicalAppendixSource, [
+    "houseAvailability={chartData?.houseContext?.availability}",
+    'houseSystem === "placidus" && houseAvailability === "unavailable"',
+  ]],
 ]) {
   for (const marker of markers) {
     if (!source.includes(marker)) {

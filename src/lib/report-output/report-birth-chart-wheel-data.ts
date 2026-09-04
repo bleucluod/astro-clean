@@ -3,18 +3,20 @@ import type {
   RealEngineReportAngles,
   RealEngineReportAspect,
   RealEngineReportHouse,
+  RealEngineReportLilith,
   RealEngineReportPlacement,
 } from "@/types/astro";
 
 export const REPORT_BIRTH_CHART_WHEEL_DATA_VERSION =
-  "v0.1.323f-report-birth-chart-wheel-reading-guide" as const;
+  "v0.1.452-report-birth-chart-wheel-dark-lilith" as const;
+// HALLEUS_REPORT_CHARTWHEEL_DARK_LILITH_20260830
 
 export const REPORT_BIRTH_CHART_WHEEL_RETROGRADE_MARKER = -1 as const;
 export const REPORT_BIRTH_CHART_WHEEL_MIN_ASPECT_LINES = 8 as const;
 export const REPORT_BIRTH_CHART_WHEEL_MAX_ASPECT_LINES = 12 as const;
 export const REPORT_BIRTH_CHART_WHEEL_EXTRA_ASPECT_LINES = 4 as const;
 
-export const REPORT_BIRTH_CHART_WHEEL_PLANET_IDS = [
+export const REPORT_BIRTH_CHART_WHEEL_CORE_PLANET_IDS = [
   "sun",
   "moon",
   "mercury",
@@ -27,11 +29,23 @@ export const REPORT_BIRTH_CHART_WHEEL_PLANET_IDS = [
   "pluto",
 ] as const;
 
+export const REPORT_BIRTH_CHART_WHEEL_OPTIONAL_POINT_IDS = [
+  "lilith",
+] as const;
+
+export const REPORT_BIRTH_CHART_WHEEL_PLANET_IDS = [
+  ...REPORT_BIRTH_CHART_WHEEL_CORE_PLANET_IDS,
+  ...REPORT_BIRTH_CHART_WHEEL_OPTIONAL_POINT_IDS,
+] as const;
+
+export type ReportBirthChartWheelCorePlanetId =
+  (typeof REPORT_BIRTH_CHART_WHEEL_CORE_PLANET_IDS)[number];
+
 export type ReportBirthChartWheelPlanetId =
   (typeof REPORT_BIRTH_CHART_WHEEL_PLANET_IDS)[number];
 
 export const REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES: Record<
-  ReportBirthChartWheelPlanetId,
+  ReportBirthChartWheelCorePlanetId,
   | "Sun"
   | "Moon"
   | "Mercury"
@@ -56,12 +70,19 @@ export const REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES: Record<
 };
 
 export type ReportBirthChartWheelAstroChartPlanetName =
-  (typeof REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES)[ReportBirthChartWheelPlanetId];
+  (typeof REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES)[ReportBirthChartWheelCorePlanetId];
 
 export type ReportBirthChartWheelAstroChartPlanets = Record<
   ReportBirthChartWheelAstroChartPlanetName,
   [number] | [number, typeof REPORT_BIRTH_CHART_WHEEL_RETROGRADE_MARKER]
 >;
+
+export type ReportBirthChartWheelCorePlacement = Omit<
+  RealEngineReportPlacement,
+  "id"
+> & {
+  id: ReportBirthChartWheelCorePlanetId;
+};
 
 export type ReportBirthChartWheelPlacement = Omit<
   RealEngineReportPlacement,
@@ -78,7 +99,7 @@ export type ReportBirthChartWheelData = {
   houses: RealEngineReportHouse[];
   angles?: RealEngineReportAngles;
   aspects: RealEngineReportAspect[];
-  retrogradePlanetIds: ReportBirthChartWheelPlanetId[];
+  retrogradePlanetIds: ReportBirthChartWheelCorePlanetId[];
   houseSystem?: string;
   houseAvailability?: "ready" | "unavailable";
   houseUnavailableReason?: "polar-circle" | "non-convergence" | null;
@@ -94,8 +115,8 @@ export type ReportBirthChartWheelResult =
       reason: "missing-engine-data" | "incomplete-planet-data";
     };
 
-const WHEEL_PLANET_ID_SET = new Set<string>(
-  REPORT_BIRTH_CHART_WHEEL_PLANET_IDS,
+const WHEEL_CORE_PLANET_ID_SET = new Set<string>(
+  REPORT_BIRTH_CHART_WHEEL_CORE_PLANET_IDS,
 );
 
 export function buildReportBirthChartWheelData(
@@ -107,17 +128,22 @@ export function buildReportBirthChartWheelData(
     return { status: "unavailable", reason: "missing-engine-data" };
   }
 
-  const placements = REPORT_BIRTH_CHART_WHEEL_PLANET_IDS
+  const corePlacements = REPORT_BIRTH_CHART_WHEEL_CORE_PLANET_IDS
     .map((planetId) => findWheelPlacement(snapshot.placements, planetId))
     .filter(
       (
         placement,
-      ): placement is ReportBirthChartWheelPlacement => placement !== null,
+      ): placement is ReportBirthChartWheelCorePlacement => placement !== null,
     );
 
-  if (placements.length !== REPORT_BIRTH_CHART_WHEEL_PLANET_IDS.length) {
+  if (corePlacements.length !== REPORT_BIRTH_CHART_WHEEL_CORE_PLANET_IDS.length) {
     return { status: "unavailable", reason: "incomplete-planet-data" };
   }
+
+  const lilithPlacement = buildWheelLilithPlacement(snapshot.lilith);
+  const placements: ReportBirthChartWheelPlacement[] = lilithPlacement
+    ? [...corePlacements, lilithPlacement]
+    : corePlacements;
 
   const houses = getCompleteWheelHouses(
     snapshot.houses,
@@ -130,14 +156,14 @@ export function buildReportBirthChartWheelData(
   const retrogradePlanetIds =
     snapshot.retrogrades?.status === "calculated"
       ? snapshot.retrogrades.planetIds.filter(
-          (planetId): planetId is ReportBirthChartWheelPlanetId =>
-            WHEEL_PLANET_ID_SET.has(planetId),
+          (planetId): planetId is ReportBirthChartWheelCorePlanetId =>
+            WHEEL_CORE_PLANET_ID_SET.has(planetId),
         )
       : [];
 
   const data: ReportBirthChartWheelData = {
     planets: Object.fromEntries(
-      placements.map((placement) => {
+      corePlacements.map((placement) => {
         const longitude = placement.longitude;
         const rendererValue = retrogradePlanetIds.includes(placement.id)
           ? [longitude, REPORT_BIRTH_CHART_WHEEL_RETROGRADE_MARKER]
@@ -199,8 +225,8 @@ function isDrawableStoredWheelAspect(
   aspect: RealEngineReportAspect,
 ): boolean {
   return (
-    WHEEL_PLANET_ID_SET.has(aspect.firstPlanetId) &&
-    WHEEL_PLANET_ID_SET.has(aspect.secondPlanetId) &&
+    WHEEL_CORE_PLANET_ID_SET.has(aspect.firstPlanetId) &&
+    WHEEL_CORE_PLANET_ID_SET.has(aspect.secondPlanetId) &&
     Number.isFinite(aspect.angle) &&
     Number.isFinite(aspect.orb)
   );
@@ -226,14 +252,41 @@ function getWheelAspectKey(aspect: RealEngineReportAspect): string {
 
 function findWheelPlacement(
   placements: RealEngineReportPlacement[],
-  planetId: ReportBirthChartWheelPlanetId,
-): ReportBirthChartWheelPlacement | null {
+  planetId: ReportBirthChartWheelCorePlanetId,
+): ReportBirthChartWheelCorePlacement | null {
   const placement = placements.find(
     (candidate) =>
       candidate.id === planetId && Number.isFinite(candidate.longitude),
   );
 
   return placement ? { ...placement, id: planetId } : null;
+}
+
+function buildWheelLilithPlacement(
+  lilith: RealEngineReportLilith | undefined,
+): ReportBirthChartWheelPlacement | null {
+  if (!lilith || !("approvedForReportOutput" in lilith)) {
+    return null;
+  }
+
+  if (
+    lilith.status !== "calculated" ||
+    lilith.approvedForReportOutput !== true ||
+    !Number.isFinite(lilith.longitude)
+  ) {
+    return null;
+  }
+
+  return {
+    id: "lilith",
+    label: lilith.label,
+    pointType: "calculated-point",
+    longitude: lilith.longitude,
+    signId: lilith.signId,
+    degreeInSign: lilith.degreeInSign,
+    house: lilith.house ?? null,
+    method: lilith.method,
+  };
 }
 
 function getCompleteWheelHouses(

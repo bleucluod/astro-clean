@@ -1,3 +1,4 @@
+// HALLEUS_REPORT_MANUAL_MOBILE_REVIEW_REFINEMENT_R3_20260904
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 
@@ -249,10 +250,17 @@ for (const forbidden of [
   "personalTransit",
   "SkyPulse",
   "lunarNodes",
-  "lilith",
 ]) {
   assert(!adapterSource.includes(forbidden), `adapter crossed boundary: ${forbidden}`);
 }
+// HALLEUS_R39_WHEEL_GUARD_RECONCILIATION_R11_20260901
+assert(
+  adapterSource.includes("RealEngineReportLilith") &&
+    adapterSource.includes("buildWheelLilithPlacement(snapshot.lilith)") &&
+    adapterSource.includes("lilith.approvedForReportOutput !== true") &&
+    adapterSource.includes('id: "lilith"'),
+  "adapter may include only the approved stored Black Moon Lilith placement",
+);
 assert(
   componentSource.includes("buildReportBirthChartWheelData(report)") &&
     componentSource.includes('data-report-birth-chart-wheel-source="stored-report-engine-data"'),
@@ -351,12 +359,20 @@ for (const marker of [
   "♆",
   "♇",
   "رنگ رابطه‌های زاویه‌ای",
-  "تثلیث و تسدیس",
-  "مربع و مقابله",
-  "مقارنه",
+  'formatReportAspectDisplay("trine")',
+  'formatReportAspectDisplay("sextile")',
+  'formatReportAspectDisplay("square")',
+  'formatReportAspectDisplay("opposition")',
+  'formatReportAspectDisplay("conjunction")',
   "تعداد و ضخامت خط‌ها",
 ]) {
   assert(componentSource.includes(marker), `expanded wheel guide missing: ${marker}`);
+}
+for (const forbiddenAspectName of ["تثلیث", "تسدیس", "مربع", "مقابله", "مقارنه"]) {
+  assert(
+    !componentSource.includes(forbiddenAspectName),
+    `wheel guide leaked forbidden aspect name: ${forbiddenAspectName}`,
+  );
 }
 assert(
   componentSource.includes("appendStoredCuspLabels(svg, data)") &&
@@ -417,10 +433,19 @@ assert(
     globalCss.includes(".report-astrochart-wheel-retrogrades"),
   "the guide must stack same-width supplementary cards beside the retrograde status",
 );
-assert(
-  readerSource.indexOf("<ReportBirthChartWheel") <
-    readerSource.indexOf("<ReportV3Experience"),
-  "the birth-chart wheel must appear before the long narrative so the report starts from its visual evidence",
+assert((() => {
+  const activeReader = read("components/report/ReportProductReader.tsx");
+  const adaptive = read("components/report/ReportAdaptiveNarrative.tsx");
+  const wheelAt = activeReader.indexOf('id="report-summary"');
+  const flowAt = activeReader.indexOf('<div className={styles.reportFlow}>');
+  const fullAt = activeReader.indexOf('id="report-full"');
+  const skyAt = activeReader.indexOf('id="report-sky"');
+  const technicalAt = activeReader.indexOf('id="report-chart"');
+  const wheelCount = (activeReader.match(/<ReportBirthChartWheel/g) ?? []).length;
+  const slotAt = adaptive.indexOf('{afterOpening}');
+  const storiesAt = adaptive.indexOf('className={styles.adaptivePrimaryStories}');
+  return wheelCount === 1 && wheelAt >= 0 && wheelAt < flowAt && flowAt < fullAt && fullAt < skyAt && skyAt < technicalAt && slotAt >= 0 && slotAt < storiesAt;
+})(),"the single stored-data wheel must follow the two-paragraph opening and precede primary stories",
 );
 assert(
   packageJson.scripts?.["check:report-birth-chart-wheel"] ===

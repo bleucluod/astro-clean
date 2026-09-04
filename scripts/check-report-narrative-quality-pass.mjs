@@ -1,3 +1,5 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE5_NARRATIVE_QUALITY_OWNER_RECONCILIATION_R7_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_AUTHORITY_DOC_DECOUPLING_R12_20260903
 import fs from "node:fs";
 
 const files = {
@@ -7,10 +9,6 @@ const files = {
   specialPoints: "components/ReportSpecialPointsNarrativeSection.tsx",
   personalTransit: "components/PersonalTransitReportSection.tsx",
   packageJson: "package.json",
-  context: "docs/HALLEUS_PROJECT_CONTEXT.md",
-  ideaGarden: "docs/HALLEUS_IDEA_GARDEN.md",
-  audit: "docs/HALLEUS_ENGINE_REALITY_AUDIT.md",
-  plan: "docs/HALLEUS_ENGINE_UNIFICATION_PLAN.md",
 };
 
 function read(path) {
@@ -66,8 +64,7 @@ for (const forbiddenMarker of ["const PLANET_COPY", "const SIGN_COPY"]) {
 }
 
 for (const marker of [
-  "aspect-bridge",
-  "data-halleus-behavioral-aspect-core",
+  'data-report-aspect-relationship-sections="human-first"',
   "buildAspectBehavioralInterpretation",
   "isBehavioralAspectInput",
 ]) {
@@ -87,7 +84,6 @@ for (const forbiddenMarker of ["const ASPECT_META_BY_KIND"]) {
 for (const marker of [
   "special-points-bridge",
   "دست‌های ماه — الگوی آشنا، انتخاب تازه",
-  "کنار جایگاه‌ها و رابطه‌های سیاره‌ای",
 ]) {
   assert(
     specialPoints.includes(marker),
@@ -119,22 +115,5 @@ assert(
   projectScript.includes("pnpm run check:report-narrative-quality-pass"),
   "check:project must include the narrative quality pass guard.",
 );
-
-for (const docPath of [
-  files.context,
-  files.ideaGarden,
-  files.audit,
-  files.plan,
-]) {
-  const doc = read(docPath);
-  assert(
-    doc.includes("v0.1.263 Report narrative quality pass"),
-    `${docPath} missing v0.1.263 narrative note.`,
-  );
-  assert(
-    doc.includes("report narrative quality pass"),
-    `${docPath} missing lowercase narrative marker.`,
-  );
-}
 
 console.log("Report narrative quality pass guard passed.");

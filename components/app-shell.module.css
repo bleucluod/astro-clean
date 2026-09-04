@@ -2356,3 +2356,50 @@
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
+
+/* HALLEUS_REPORT_NATIVE_SITE_HEADER_R17_HEADER_ONLY_20260904: exact /reports/[reportId] mobile toolbar refinement. */
+@media (max-width: 760px) {
+  .mobileAccountFabReportReader {
+    display: none !important;
+  }
+
+  .mobileWordmarkTextReportReader {
+    transform: translateX(-17.5px) !important;
+  }
+
+/* HALLEUS_REPORT_NATIVE_SITE_HEADER_R18_WORDMARK_GAP_20260904: tiny report-toolbar-only spacing correction. */
+
+  .mobileNavLinksReportReader {
+    width: fit-content !important;
+    max-width: none !important;
+    margin: 0 !important;
+    justify-self: end !important;
+    padding: 2px 6px !important;
+    overflow: visible !important;
+  }
+
+  .mobileNavLinksReportReader :global(.nav-link-track) {
+    display: flex !important;
+    width: max-content !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 3px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .mobileNavLinksReportReader :global(.nav-link),
+  .mobileNavLinksReportReader :global(.nav-link:visited),
+  .mobileNavLinksReportReader :global(.nav-link:hover),
+  .mobileNavLinksReportReader :global(.nav-link[aria-current="page"]),
+  .mobileNavLinksReportReader :global(.nav-link.active) {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding-inline: 1px !important;
+  }
+}
+/* HALLEUS_REPORT_NATIVE_SITE_HEADER_R23_LINKS_PHYSICAL_LEFT_20260904: place the two report links at the physical left edge of the mobile toolbar. */

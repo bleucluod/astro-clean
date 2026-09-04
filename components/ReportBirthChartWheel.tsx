@@ -14,6 +14,13 @@ import type { ChartPattern } from "@/lib/astrology/chart-patterns";
 import reportStyles from "@/components/report/human-first-report.module.css";
 import type { AstrologyReport } from "@/types/astro";
 import { ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
+import {
+  buildReportAdvancedWheelPolicy,
+  type ReportAdvancedWheelLine,
+  type ReportAdvancedWheelMarker,
+  type ReportAdvancedWheelPolicy,
+} from "@/lib/astrology/report-advanced-wheel-policy";
+import { formatReportAspectDisplay } from "@/lib/astrology/report-aspect-display";
 
 type ReportBirthChartWheelProps = {
   report: AstrologyReport;
@@ -76,6 +83,7 @@ const WHEEL_PLANET_LABELS: Record<ReportBirthChartWheelPlanetId, string> = {
   uranus: "اورانوس",
   neptune: "نپتون",
   pluto: "پلوتو",
+  lilith: "لیلیت",
 };
 
 const WHEEL_PLANET_GUIDE: ReadonlyArray<{
@@ -92,26 +100,27 @@ const WHEEL_PLANET_GUIDE: ReadonlyArray<{
   { id: "uranus", symbol: "♅" },
   { id: "neptune", symbol: "♆" },
   { id: "pluto", symbol: "♇" },
+  { id: "lilith", symbol: "⚸" },
 ];
 
 const WHEEL_ASPECT_GUIDE = [
   {
     tone: "harmonious",
     label: "سبز",
-    glyphs: "△ / ⚹",
-    meaning: "تثلیث و تسدیس؛ جریان هماهنگ و فرصت همکاری",
+    glyphs: `${formatReportAspectDisplay("trine")} / ${formatReportAspectDisplay("sextile")}`,
+    meaning: "جریان هماهنگ و فرصت همکاری",
   },
   {
     tone: "dynamic",
     label: "قرمز",
-    glyphs: "□ / ☍",
-    meaning: "مربع و مقابله؛ تنش فعال و نیاز به آگاهی",
+    glyphs: `${formatReportAspectDisplay("square")} / ${formatReportAspectDisplay("opposition")}`,
+    meaning: "تنش فعال و نیاز به آگاهی",
   },
   {
     tone: "conjunction",
     label: "خاکستری",
-    glyphs: "☌",
-    meaning: "مقارنه؛ تمرکز دو نیروی سیاره‌ای در یک نقطه",
+    glyphs: formatReportAspectDisplay("conjunction"),
+    meaning: "تمرکز دو نیروی سیاره‌ای در یک نقطه",
   },
 ] as const;
 
@@ -121,6 +130,10 @@ export function ReportBirthChartWheel({
 }: ReportBirthChartWheelProps) {
   const wheelResult = useMemo(
     () => buildReportBirthChartWheelData(report),
+    [report],
+  );
+  const advancedWheel = useMemo(
+    () => buildReportAdvancedWheelPolicy(report),
     [report],
   );
 
@@ -143,6 +156,7 @@ export function ReportBirthChartWheel({
 
   return (
     <AstroChartRadix
+      advancedWheel={advancedWheel}
       data={wheelResult.data}
       patterns={patterns}
       reportId={report.id}
@@ -151,10 +165,12 @@ export function ReportBirthChartWheel({
 }
 
 function AstroChartRadix({
+  advancedWheel,
   data,
   patterns,
   reportId,
 }: {
+  advancedWheel: ReportAdvancedWheelPolicy;
   data: ReportBirthChartWheelData;
   patterns: ChartPattern[];
   reportId: string;
@@ -164,6 +180,8 @@ function AstroChartRadix({
   const [rendererState, setRendererState] =
     useState<RendererState>("loading");
   const [activePatternId, setActivePatternId] = useState<string | null>(null);
+  const [showAdvancedPoints, setShowAdvancedPoints] = useState(false);
+  const [showMobileGuide, setShowMobileGuide] = useState(false);
   const [readingFocus, setReadingFocus] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -259,8 +277,11 @@ function AstroChartRadix({
 
         const svg = chartHost.querySelector("svg");
         if (svg) {
+          applyStoredWheelDarkTheme(svg);
           styleStoredAspectLines(svg, data, activePattern);
           appendStoredCuspLabels(svg, data);
+          appendLilithOverlay(svg, data);
+          appendAdvancedWheelOverlay(svg, data, advancedWheel, showAdvancedPoints);
           appendPatternPlanetHighlights(svg, data, activePattern);
           if (!introPlayedRef.current) {
             const playIntroWhenVisible = () => {
@@ -291,7 +312,7 @@ function AstroChartRadix({
           svg.setAttribute("role", "img");
           svg.setAttribute(
             "aria-label",
-            "چرخ چارت تولد همراه با درجه آغاز خانه‌ها، بر پایه داده‌های ذخیره‌شده در گزارش هالیوس",
+            "چرخ چارت تولد همراه با سیاره‌ها، لیلیت، درجه آغاز خانه‌ها و جنبه‌های ذخیره‌شده در گزارش هالیوس",
           );
         }
         setRendererState("ready");
@@ -310,7 +331,7 @@ function AstroChartRadix({
       introObserver?.disconnect();
       chartHost.replaceChildren();
     };
-  }, [activePattern, chartId, data]);
+  }, [activePattern, advancedWheel, chartId, data, showAdvancedPoints]);
 
   useEffect(() => {
     if (rendererState !== "ready") return;
@@ -333,6 +354,8 @@ function AstroChartRadix({
       data-report-birth-chart-wheel={REPORT_BIRTH_CHART_WHEEL_DATA_VERSION}
       data-report-birth-chart-wheel-source="stored-report-engine-data"
       data-report-birth-chart-wheel-status={rendererState}
+      data-report-advanced-wheel-mode={showAdvancedPoints ? "advanced" : "default"}
+      data-report-advanced-wheel-policy={advancedWheel.version}
     >
       <header className="report-astrochart-wheel-header">
         <div>
@@ -368,6 +391,25 @@ function AstroChartRadix({
         </div>
       ) : null}
 
+      {advancedWheel.advancedMarkers.length > 0 || advancedWheel.relevantFixedStars.length > 0 ? (
+        <div
+          className={reportStyles.patternWheelControls}
+          data-report-advanced-wheel-controls="true"
+          aria-label="نمایش نقاط پیشرفته چارت"
+        >
+          <p>نقاط پیشرفته</p>
+          <button
+            className={reportStyles.patternWheelButton}
+            data-active={showAdvancedPoints}
+            onClick={() => setShowAdvancedPoints((value) => !value)}
+            type="button"
+          >
+            {showAdvancedPoints ? "نمای پیشرفته روشن" : "نمای پیشرفته"}
+          </button>
+          <small>نمای اصلی خلوت می‌ماند؛ این دکمه فقط نقاط پیشرفته و ستاره‌های واقعاً مرتبط را اضافه می‌کند.</small>
+        </div>
+      ) : null}
+
       <div className="report-astrochart-wheel-body">
         <div
           className="report-astrochart-wheel-canvas"
@@ -375,8 +417,25 @@ function AstroChartRadix({
           aria-busy={rendererState === "loading"}
         />
 
+        <button
+          aria-controls={`${chartId}-guide`}
+          aria-expanded={showMobileGuide}
+          className={reportStyles.mobileWheelGuideButton}
+          data-report-mobile-wheel-guide-toggle="true"
+          onClick={() => setShowMobileGuide((value) => !value)}
+          type="button"
+        >
+          <span>
+            <strong>راهنمای چارت</strong>
+            <small>نمادها، نشانه‌ها و جزئیات خواندن</small>
+          </span>
+          <b>{showMobileGuide ? "بستن" : "باز کردن"}</b>
+        </button>
+
         <aside
+          id={`${chartId}-guide`}
           className="report-astrochart-wheel-legend"
+          data-mobile-expanded={showMobileGuide}
           data-report-birth-chart-retrograde-source="stored-report-only"
           data-report-birth-chart-wheel-guide="persian"
           aria-label="راهنمای فارسی چرخ چارت تولد"
@@ -387,7 +446,7 @@ function AstroChartRadix({
 
           <div>
             <p className="report-astrochart-wheel-legend-label">
-              نماد سیاره‌ها
+              نماد سیاره‌ها و نقاط
             </p>
             <ul className="report-astrochart-wheel-planets" role="list">
               {WHEEL_PLANET_GUIDE.map((planet) => (
@@ -468,6 +527,33 @@ function AstroChartRadix({
             </dl>
           </div>
 
+          {(advancedWheel.defaultMarkers.length > 0 || (showAdvancedPoints && (advancedWheel.advancedMarkers.length > 0 || advancedWheel.relevantFixedStars.length > 0))) ? (
+            <div data-report-advanced-wheel-legend="true">
+              <p className="report-astrochart-wheel-legend-label">نقاط تکمیلی روی چرخ</p>
+              <dl className="report-astrochart-wheel-notations">
+                {[
+                  ...advancedWheel.defaultMarkers,
+                  ...(showAdvancedPoints ? advancedWheel.advancedMarkers : []),
+                  ...(showAdvancedPoints ? advancedWheel.relevantFixedStars : []),
+                ].map((point) => (
+                  <div key={point.id}>
+                    <dt dir="ltr">{point.glyph}</dt>
+                    <dd>{point.label}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : null}
+
+          {!advancedWheel.chironAvailable ? (
+            <div data-report-chiron-unavailable="true">
+              <p className="report-astrochart-wheel-legend-label">کایران</p>
+              <p className="report-astrochart-wheel-aspect-note">
+                دادهٔ معتبر کایران برای این گزارش در دسترس نیست؛ هالیوس موقعیت ساختگی روی چرخ نشان نمی‌دهد.
+              </p>
+            </div>
+          ) : null}
+
           {retrogradePlanetLabels.length > 0 ? (
             <div className="report-astrochart-wheel-retrograde-section">
               <p className="report-astrochart-wheel-legend-label">
@@ -509,6 +595,17 @@ function buildStoredAstroChartAspects(data: ReportBirthChartWheelData) {
 
     if (!firstPlacement || !secondPlacement) return [];
 
+    const firstAstroChartName =
+      firstPlacement.id === "lilith"
+        ? null
+        : REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES[firstPlacement.id];
+    const secondAstroChartName =
+      secondPlacement.id === "lilith"
+        ? null
+        : REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES[secondPlacement.id];
+
+    if (!firstAstroChartName || !secondAstroChartName) return [];
+
     return [
       {
         aspect: {
@@ -518,17 +615,103 @@ function buildStoredAstroChartAspects(data: ReportBirthChartWheelData) {
           color: ASPECT_COLORS[aspect.aspectId],
         },
         point: {
-          name: REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES[firstPlacement.id],
+          name: firstAstroChartName,
           position: firstPlacement.longitude,
         },
         toPoint: {
-          name: REPORT_BIRTH_CHART_WHEEL_ASTROCHART_NAMES[secondPlacement.id],
+          name: secondAstroChartName,
           position: secondPlacement.longitude,
         },
         precision: aspect.orb.toFixed(2),
       },
     ];
   });
+}
+
+function applyStoredWheelDarkTheme(svg: SVGSVGElement) {
+  svg.style.background = "#0B0D11";
+
+  const lightFills = new Set([
+    "#fff",
+    "#ffffff",
+    "white",
+    "#efede7",
+    "#f8fafc",
+  ]);
+
+  svg
+    .querySelectorAll<SVGElement>("path[fill], circle[fill], rect[fill], polygon[fill]")
+    .forEach((element) => {
+      const fill = (element.getAttribute("fill") ?? "").trim().toLowerCase();
+      if (lightFills.has(fill)) {
+        element.setAttribute("fill", "#10151C");
+      }
+    });
+
+  Array.from(svg.querySelectorAll<SVGCircleElement>("circle"))
+    .filter((circle) => {
+      const cx = Number(circle.getAttribute("cx"));
+      const cy = Number(circle.getAttribute("cy"));
+      const radius = Number(circle.getAttribute("r"));
+      const fill = (circle.getAttribute("fill") ?? "").trim().toLowerCase();
+
+      return (
+        Number.isFinite(cx) &&
+        Number.isFinite(cy) &&
+        Number.isFinite(radius) &&
+        Math.abs(cx - ASTROCHART_CENTER) <= 1 &&
+        Math.abs(cy - ASTROCHART_CENTER) <= 1 &&
+        radius >= 48 &&
+        fill !== "none"
+      );
+    })
+    .sort(
+      (first, second) =>
+        Number(second.getAttribute("r")) - Number(first.getAttribute("r")),
+    )
+    .forEach((circle, index) => {
+      circle.setAttribute("fill", index === 0 ? "#0B0D11" : "#10151C");
+      circle.setAttribute("stroke", index === 0 ? "#4B535E" : "#343D48");
+    });
+}
+
+// HALLEUS_REPORT_CHARTWHEEL_HERO_ROADMAP_POLISH_20260830
+function appendLilithOverlay(
+  svg: SVGSVGElement,
+  data: ReportBirthChartWheelData,
+) {
+  svg.querySelector('[data-halleus-lilith-overlay="true"]')?.remove();
+
+  const lilith = data.placements.find((placement) => placement.id === "lilith");
+  if (!lilith) return;
+
+  const point = getWheelPoint(
+    lilith.longitude,
+    data,
+    ASTROCHART_RADIUS / 1.34,
+  );
+  const wrapper = document.createElementNS(SVG_NAMESPACE, "g");
+  wrapper.setAttribute("data-halleus-lilith-overlay", "true");
+  wrapper.setAttribute("data-halleus-point-id", "lilith");
+  wrapper.setAttribute("data-halleus-lilith-style", "plain-glyph");
+  wrapper.setAttribute("pointer-events", "none");
+
+  const title = document.createElementNS(SVG_NAMESPACE, "title");
+  title.textContent = "لیلیت / Black Moon";
+  wrapper.appendChild(title);
+
+  const glyph = document.createElementNS(SVG_NAMESPACE, "text");
+  glyph.setAttribute("x", point.x.toString());
+  glyph.setAttribute("y", (point.y + 1).toString());
+  glyph.setAttribute("fill", "#F4F6F8");
+  glyph.setAttribute("font-size", "22");
+  glyph.setAttribute("font-weight", "600");
+  glyph.setAttribute("text-anchor", "middle");
+  glyph.setAttribute("dominant-baseline", "middle");
+  glyph.textContent = "⚸";
+  wrapper.appendChild(glyph);
+
+  svg.appendChild(wrapper);
 }
 
 function styleStoredAspectLines(
@@ -623,6 +806,87 @@ function appendPatternPlanetHighlights(
 
   svg.appendChild(wrapper);
 }
+
+function appendAdvancedWheelOverlay(
+  svg: SVGSVGElement,
+  data: ReportBirthChartWheelData,
+  policy: ReportAdvancedWheelPolicy,
+  showAdvancedPoints: boolean,
+) {
+  svg.querySelector('[data-halleus-advanced-wheel-overlay="true"]')?.remove();
+  const wrapper = document.createElementNS(SVG_NAMESPACE, "g");
+  wrapper.setAttribute("data-halleus-advanced-wheel-overlay", "true");
+  wrapper.setAttribute("data-halleus-advanced-wheel-mode", showAdvancedPoints ? "advanced" : "default");
+  wrapper.setAttribute("pointer-events", "none");
+
+  const lines: ReportAdvancedWheelLine[] = [
+    ...policy.defaultAspectLines,
+    ...(showAdvancedPoints ? policy.advancedAspectLines : []),
+  ];
+  lines.forEach((line) => {
+    const first = getWheelPoint(line.firstLongitude, data, ASTROCHART_RADIUS / 2.08);
+    const second = getWheelPoint(line.secondLongitude, data, ASTROCHART_RADIUS / 2.08);
+    const element = document.createElementNS(SVG_NAMESPACE, "line");
+    element.setAttribute("x1", first.x.toString());
+    element.setAttribute("y1", first.y.toString());
+    element.setAttribute("x2", second.x.toString());
+    element.setAttribute("y2", second.y.toString());
+    element.setAttribute("stroke", ASPECT_COLORS[line.aspectId]);
+    element.setAttribute("stroke-width", line.score >= 88 ? "2.2" : "1.6");
+    element.setAttribute("stroke-opacity", line.layer === "advanced" ? "0.72" : "0.82");
+    element.setAttribute("stroke-linecap", "round");
+    element.setAttribute("stroke-dasharray", line.layer === "advanced" ? "5 4" : "none");
+    element.setAttribute("data-halleus-advanced-aspect-id", line.id);
+    element.setAttribute("data-halleus-advanced-aspect-layer", line.layer);
+    wrapper.appendChild(element);
+  });
+
+  const markers: ReportAdvancedWheelMarker[] = [
+    ...policy.defaultMarkers,
+    ...(showAdvancedPoints ? policy.advancedMarkers : []),
+    ...(showAdvancedPoints ? policy.relevantFixedStars : []),
+  ];
+  markers.forEach((marker, index) => {
+    const radius = marker.layer === "fixed-star"
+      ? ASTROCHART_RADIUS / 1.08
+      : marker.layer === "advanced"
+        ? ASTROCHART_RADIUS / (index % 2 === 0 ? 1.13 : 1.18)
+        : ASTROCHART_RADIUS / (index % 2 === 0 ? 1.18 : 1.23);
+    const point = getWheelPoint(marker.longitude, data, radius);
+    const group = document.createElementNS(SVG_NAMESPACE, "g");
+    group.setAttribute("data-halleus-advanced-point-id", marker.id);
+    group.setAttribute("data-halleus-advanced-point-layer", marker.layer);
+    const degreeInSign = ((marker.longitude % 30) + 30) % 30;
+    const degreeLabel = PERSIAN_CUSP_DEGREE_FORMATTER.format(degreeInSign);
+    const title = document.createElementNS(SVG_NAMESPACE, "title");
+    title.textContent = `${marker.label} · ${degreeLabel}°`;
+    group.appendChild(title);
+    const glyph = document.createElementNS(SVG_NAMESPACE, "text");
+    glyph.setAttribute("x", point.x.toString());
+    glyph.setAttribute("y", (point.y + 1).toString());
+    glyph.setAttribute("fill", marker.layer === "fixed-star" ? "#D8CFA7" : "#F4F6F8");
+    glyph.setAttribute("font-size", marker.glyph.length > 1 ? "12" : marker.layer === "fixed-star" ? "15" : "18");
+    glyph.setAttribute("font-weight", "700");
+    glyph.setAttribute("text-anchor", "middle");
+    glyph.setAttribute("dominant-baseline", "middle");
+    glyph.textContent = marker.glyph;
+    group.appendChild(glyph);
+    const degreeText = document.createElementNS(SVG_NAMESPACE, "text");
+    degreeText.setAttribute("x", point.x.toString());
+    degreeText.setAttribute("y", (point.y + 18).toString());
+    degreeText.setAttribute("fill", marker.layer === "fixed-star" ? "#BFB795" : "#AAB4C2");
+    degreeText.setAttribute("font-size", "9");
+    degreeText.setAttribute("font-weight", "600");
+    degreeText.setAttribute("text-anchor", "middle");
+    degreeText.setAttribute("data-report-advanced-wheel-degree", "true");
+    degreeText.textContent = `${degreeLabel}°`;
+    group.appendChild(degreeText);
+    wrapper.appendChild(group);
+  });
+
+  if (wrapper.childNodes.length > 0) svg.appendChild(wrapper);
+}
+
 
 type ReadingWheelFocus = {
   planetIds: ReportBirthChartWheelPlanetId[];

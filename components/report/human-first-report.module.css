@@ -3017,7 +3017,7 @@
 .reader .wheelShell :global(.report-astrochart-wheel-canvas) {
   overflow: hidden;
   border-radius: 22px 22px 0 0;
-  background: #efede7;
+  background: radial-gradient(circle at 50% 46%, #151b24 0%, #10151c 48%, #0b0d11 100%);
 }
 
 .reader .wheelShell :global(.report-astrochart-wheel-legend) {
@@ -3058,7 +3058,7 @@
 .reader .reportChartRail :global(.report-astrochart-wheel-canvas) {
   overflow: hidden;
   border-radius: 18px;
-  background: #efede7;
+  background: radial-gradient(circle at 50% 46%, #151b24 0%, #10151c 48%, #0b0d11 100%);
 }
 
 .reader .reportChartRailSticky {
@@ -3901,5 +3901,1886 @@
 
   .reader :global(.report-astrochart-wheel-canvas svg) {
     height: auto !important;
+  }
+}
+
+/* HALLEUS_REPORT_CHARTWHEEL_DARK_LILITH_20260830 */
+.reader .wheelShell .patternWheelControls {
+  border-color: rgb(255 255 255 / 12%);
+  background: #0f1319;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
+.reader .wheelShell .patternWheelControls > p {
+  color: #c5cdd8;
+}
+
+.reader .wheelShell .patternWheelButton {
+  border-color: rgb(255 255 255 / 12%);
+  background: #161c24;
+  color: #f4f6f8;
+}
+
+.reader .wheelShell .patternWheelButton[data-active="true"] {
+  border-color: #90a7ff;
+  background: rgb(144 167 255 / 14%);
+  color: #dbe5ff;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-planets li),
+.reader .wheelShell :global(.report-astrochart-wheel-signs li),
+.reader .wheelShell :global(.report-astrochart-wheel-aspects li),
+.reader .wheelShell :global(.report-astrochart-wheel-axes div),
+.reader .wheelShell :global(.report-astrochart-wheel-notations div) {
+  border: 1px solid rgb(255 255 255 / 10%) !important;
+  background: #141922 !important;
+  color: #f4f6f8 !important;
+  box-shadow: none !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-planets li span),
+.reader .wheelShell :global(.report-astrochart-wheel-signs li span),
+.reader .wheelShell :global(.report-astrochart-wheel-axes dt),
+.reader .wheelShell :global(.report-astrochart-wheel-notations dt) {
+  color: #dbe2ec !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-legend-label),
+.reader .wheelShell :global(.report-astrochart-wheel-aspect-note),
+.reader .wheelShell :global(.report-astrochart-wheel-retrogrades) {
+  color: #d7dee8 !important;
+}
+
+/* HALLEUS_REPORT_CHARTWHEEL_HERO_ROADMAP_POLISH_20260830 */
+.reader > .adaptiveHero {
+  width: min(1120px, 100%);
+  margin: clamp(24px, 4vw, 48px) auto 0;
+  scroll-margin-top: 110px;
+}
+
+.adaptiveRoadmap {
+  display: grid;
+  gap: 16px;
+  margin-top: clamp(28px, 5vw, 48px);
+  border-top: 1px solid var(--editorial-line);
+  padding-top: clamp(20px, 3vw, 30px);
+}
+
+.adaptiveRoadmapIntro {
+  display: grid;
+  gap: 5px;
+}
+
+.adaptiveRoadmapIntro > span {
+  color: var(--editorial-ink) !important;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.adaptiveRoadmapIntro > p {
+  margin: 0;
+  color: var(--editorial-muted) !important;
+  font-size: 0.84rem;
+  line-height: 1.8;
+}
+
+.adaptiveRoadmapGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.adaptiveRoadmapLink {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 72px;
+  border: 1px solid var(--editorial-line);
+  border-radius: 16px;
+  padding: 11px 12px;
+  background: rgb(255 255 255 / 3%) !important;
+  text-decoration: none;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.adaptiveRoadmapLink:hover {
+  border-color: rgb(255 255 255 / 28%) !important;
+  background: rgb(255 255 255 / 6%) !important;
+  transform: translateY(-1px);
+}
+
+.adaptiveRoadmapLink > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 8%);
+  color: var(--editorial-ink) !important;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.adaptiveRoadmapLink > div {
+  display: grid;
+  gap: 3px;
+}
+
+.adaptiveRoadmapLink strong {
+  color: var(--editorial-ink) !important;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.adaptiveRoadmapLink small {
+  color: var(--editorial-muted) !important;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.reader .wheelShell {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel) {
+  overflow: visible !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-header) {
+  padding-inline: 2px;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-header .section-label),
+.reader .wheelShell :global(.report-astrochart-wheel-legend-heading .section-label) {
+  margin-bottom: 0 !important;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #141922 !important;
+  color: #f4f6f8 !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-canvas) {
+  width: 100% !important;
+  max-width: none !important;
+  overflow: hidden;
+  border: 1px solid var(--editorial-line) !important;
+  border-radius: 26px 26px 0 0 !important;
+  background: radial-gradient(circle at 50% 46%, #151b24 0%, #10151c 48%, #0b0d11 100%) !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-legend) {
+  border: 1px solid var(--editorial-line) !important;
+  border-top: 0 !important;
+  border-radius: 0 0 26px 26px !important;
+  background: #0d0e0e !important;
+  color: #e6ebf2 !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-aspect-note),
+.reader .wheelShell :global(.report-astrochart-wheel-retrogrades) {
+  border: 1px solid rgb(255 255 255 / 10%) !important;
+  background: #141922 !important;
+  color: #e6ebf2 !important;
+}
+
+.reader .wheelShell :global(.report-astrochart-wheel-aspects strong),
+.reader .wheelShell :global(.report-astrochart-wheel-axes dt),
+.reader .wheelShell :global(.report-astrochart-wheel-axes dd),
+.reader .wheelShell :global(.report-astrochart-wheel-notations dt),
+.reader .wheelShell :global(.report-astrochart-wheel-notations dd),
+.reader .wheelShell :global(.report-astrochart-wheel-retrogrades strong) {
+  color: #f4f6f8 !important;
+}
+
+@media (max-width: 900px) {
+  .adaptiveRoadmapGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .reader > .adaptiveHero {
+    margin-top: 14px;
+  }
+
+  .adaptiveRoadmapGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .adaptiveRoadmapLink {
+    grid-template-columns: 24px minmax(0, 1fr);
+    min-height: 58px;
+    padding: 9px 10px;
+  }
+
+  .adaptiveRoadmapLink > span {
+    width: 24px;
+    height: 24px;
+  }
+
+  .adaptiveRoadmapLink small {
+    display: none;
+  }
+
+  .reader .wheelShell :global(.report-astrochart-wheel-canvas) {
+    border-radius: 20px 20px 0 0 !important;
+  }
+
+  .reader .wheelShell :global(.report-astrochart-wheel-legend) {
+    border-radius: 0 0 20px 20px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adaptiveRoadmapLink {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* HALLEUS_REPORT_ROADMAP_VISIBLE_FIRST_R3_20260830 */
+
+/* HALLEUS_ADVANCED_ASTROLOGY_ROADMAP_SLICE1_R4_20260830 */
+.adaptiveTechnicalLine {
+  margin: -8px 0 0 !important;
+  color: #c5cdd8 !important;
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.9;
+}
+
+/* HALLEUS_ADVANCED_ASTROLOGY_FINAL_RECONCILIATION_R39_20260901 */
+.adaptiveOpeningStory {
+  display: grid;
+  gap: 16px;
+  max-width: 900px;
+  margin-top: 4px;
+}
+
+.adaptiveOpeningStory p {
+  margin: 0;
+  color: var(--editorial-body) !important;
+  font-size: clamp(1.02rem, 1.7vw, 1.16rem);
+  line-height: 2.08;
+}
+
+.adaptiveOpeningStory p:first-child {
+  color: var(--editorial-ink) !important;
+  font-size: clamp(1.08rem, 1.9vw, 1.26rem);
+}
+
+.reader :global([data-report-chiron-unavailable="true"]) {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  padding: 12px;
+  background: #141922;
+}
+
+
+/* HALLEUS_DEEP_NARRATIVE_SLICE5_FRESH_VISUAL_CONTAINMENT_R6_20260903 */
+.adaptiveAspectCard,
+.adaptiveNodeCard,
+.adaptiveActionLine {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* R5 removed the old label/text pair from action lines, so the former
+ * max-content first grid track now makes a single text node intrinsically wide. */
+.adaptiveActionLine {
+  grid-template-columns: minmax(0, 1fr);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.adaptiveTechnicalLine {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* HALLEUS_REPORT_MOBILE_READING_UX_SLICE_R1_20260903 */
+.mobileWheelGuideButton {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .reader > .adaptiveHero {
+    min-height: 0 !important;
+    gap: 16px !important;
+    margin-top: 10px;
+    padding: 20px 16px 24px !important;
+  }
+
+  .reader > .adaptiveHero h1 {
+    margin-block: 4px 8px;
+    font-size: clamp(1.85rem, 8vw, 2.35rem) !important;
+    line-height: 1.35;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] {
+    gap: 12px;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] > p {
+    font-size: 0.98rem !important;
+    line-height: 1.9 !important;
+  }
+
+  .adaptiveMetaRow {
+    margin-top: 10px;
+    gap: 7px;
+  }
+
+  .adaptiveRoadmap {
+    gap: 12px;
+    margin-top: 18px;
+    padding-top: 16px;
+  }
+
+  .adaptiveActionLine {
+    gap: 6px !important;
+    border: 1px solid rgb(144 167 255 / 18%);
+    border-inline-start: 3px solid #90a7ff !important;
+    border-radius: 14px !important;
+    padding: 13px 14px 14px !important;
+    background: rgb(144 167 255 / 7%);
+  }
+
+  .adaptiveActionLine::before {
+    content: "امتحانش کن";
+    display: block;
+    color: #b7c6ff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1.4;
+  }
+
+  .reader .wheelShell .mobileWheelGuideButton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    min-height: 58px;
+    margin-top: 10px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 16px;
+    padding: 10px 13px;
+    background: #141922;
+    color: #f4f6f8;
+    cursor: pointer;
+    text-align: start;
+    font: inherit;
+  }
+
+  .reader .wheelShell .mobileWheelGuideButton > span {
+    display: grid;
+    gap: 2px;
+  }
+
+  .reader .wheelShell .mobileWheelGuideButton strong {
+    color: #f4f6f8;
+    font-size: 0.84rem;
+  }
+
+  .reader .wheelShell .mobileWheelGuideButton small {
+    color: #aeb8c5;
+    font-size: 0.69rem;
+    line-height: 1.5;
+  }
+
+  .reader .wheelShell .mobileWheelGuideButton b {
+    flex: 0 0 auto;
+    color: #b7c6ff;
+    font-size: 0.72rem;
+  }
+
+  .reader .wheelShell :global(.report-astrochart-wheel-canvas) {
+    border-radius: 20px !important;
+  }
+
+  .reader .wheelShell :global(.report-astrochart-wheel-legend)[data-mobile-expanded="false"] {
+    display: none !important;
+  }
+
+  .reader .wheelShell :global(.report-astrochart-wheel-legend)[data-mobile-expanded="true"] {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    margin-top: 8px;
+    border: 1px solid var(--editorial-line) !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+  }
+}
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE1_20260903 */
+.reportMobileHeader {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .reader {
+    --report-mobile-bg: #050609;
+    --report-mobile-surface: #08090c;
+    --report-mobile-panel: #0b0d11;
+    --report-mobile-raised: #0c0e12;
+    --report-mobile-soft: #101216;
+    --report-mobile-text: #ffffff;
+    --report-mobile-text-soft: #edf2f7;
+    --report-mobile-muted: #b7c0ca;
+    --report-mobile-faint: #8f98a4;
+    --report-mobile-border: rgb(255 255 255 / 10%);
+    --report-mobile-border-strong: rgb(255 255 255 / 17%);
+    --report-mobile-micro-accent: #7dd3fc;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* HALLEUS_REPORT_NATIVE_SITE_HEADER_REUSE_R8_20260904: keep the shared SiteHeader/mobile navigation visible in the report reader. */
+
+  .reportMobileHeader {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 10020;
+    display: block;
+    width: 100%;
+    color: var(--report-mobile-text);
+    background: rgb(5 6 9 / 96%);
+    border-bottom: 1px solid var(--report-mobile-border);
+    box-shadow: 0 12px 30px rgb(0 0 0 / 16%);
+    transform: translateY(0);
+    opacity: 1;
+    transition: transform 180ms ease, opacity 160ms ease;
+  }
+
+  .reportMobileHeader[data-report-header-visibility="hidden"] {
+    transform: translateY(calc(-100% - 2px));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .reportMobileHeaderInner {
+    display: flex;
+    min-height: 56px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: max(8px, env(safe-area-inset-top)) 18px 8px;
+    direction: rtl;
+  }
+
+  .reportMobileBrand {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+    color: var(--report-mobile-text);
+    text-decoration: none;
+  }
+
+  .reportMobileBrandLogo {
+    display: block;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    object-fit: contain;
+    filter: none;
+    opacity: 0.96;
+  }
+
+  .reportMobileBrand span {
+    color: var(--report-mobile-text);
+    font-size: 1rem;
+    font-weight: 850;
+    line-height: 1;
+  }
+
+  .reportMobileAccount {
+    display: inline-grid;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    place-items: center;
+    border: 1px solid var(--report-mobile-border-strong);
+    border-radius: 12px;
+    color: var(--report-mobile-text-soft);
+    background: rgb(255 255 255 / 2.5%);
+    text-decoration: none;
+  }
+
+  .reportReadingProgress {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    background: rgb(255 255 255 / 7%);
+  }
+
+  .reportReadingProgress > span {
+    position: absolute;
+    inset: 0;
+    background: rgb(238 242 246 / 86%);
+    transform: scaleX(0);
+    transform-origin: right center;
+    will-change: transform;
+  }
+
+  .journeyNavigator {
+    display: none !important;
+  }
+
+  .reader > .adaptiveHero {
+    margin-top: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 18px 4px 26px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .reader > .adaptiveHero h1 {
+    max-width: 100%;
+    margin-block: 0 10px !important;
+    font-size: clamp(1.78rem, 7.4vw, 2.08rem) !important;
+    line-height: 1.42 !important;
+    letter-spacing: -0.025em;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] {
+    gap: 0 !important;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] > p {
+    font-size: 0.98rem !important;
+    font-weight: 560;
+    line-height: 2.02 !important;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] > p + p {
+    margin-top: 16px !important;
+    border-top: 1px solid rgb(255 255 255 / 9%);
+    padding-top: 18px;
+  }
+
+  .adaptiveMetaRow {
+    margin-top: 16px !important;
+    gap: 7px !important;
+  }
+
+  .adaptiveMetaRow > span {
+    border: 1px solid rgb(255 255 255 / 9%);
+    border-radius: 999px;
+    padding: 6px 9px;
+    color: var(--report-mobile-muted) !important;
+    background: rgb(255 255 255 / 3%);
+  }
+
+  .adaptiveStoryList[data-adaptive-story-preview="three-headlines"] {
+    gap: 8px !important;
+    margin-top: 4px;
+  }
+
+  .adaptiveStoryList[data-adaptive-story-preview="three-headlines"] .adaptiveStoryCard {
+    min-height: 0 !important;
+    border-color: rgb(255 255 255 / 9%) !important;
+    border-radius: 16px !important;
+    padding: 13px 14px !important;
+    background: rgb(255 255 255 / 2.5%) !important;
+  }
+
+  .adaptiveStoryList[data-adaptive-story-preview="three-headlines"] .adaptiveIndex {
+    color: var(--report-mobile-text-soft) !important;
+  }
+
+  .adaptiveRoadmap {
+    margin-top: 22px !important;
+  }
+
+  .adaptiveSectionHeader {
+    min-height: 0 !important;
+    align-content: start !important;
+    gap: 8px !important;
+    padding-block: 14px 10px !important;
+  }
+
+  .adaptiveActionLine {
+    border-color: rgb(255 255 255 / 11%) !important;
+    border-inline-start-color: rgb(255 255 255 / 22%) !important;
+    background: rgb(255 255 255 / 2.5%) !important;
+  }
+
+  .adaptiveActionLine::before {
+    color: var(--report-mobile-text-soft) !important;
+  }
+
+  .reader .wheelShell .mobileWheelGuideButton {
+    border-color: var(--report-mobile-border) !important;
+    background: var(--report-mobile-panel) !important;
+  }
+
+  .reader .wheelShell .mobileWheelGuideButton b {
+    color: var(--report-mobile-muted) !important;
+  }
+
+  .reader .wheelShell .patternWheelButton[data-active="true"] {
+    border-color: var(--report-mobile-border-strong) !important;
+    color: var(--report-mobile-text) !important;
+    background: rgb(255 255 255 / 7%) !important;
+  }
+
+  :global(body[data-halleus-report-reading="true"] a[aria-label="پرش به ابتدای محتوای صفحه"]) {
+    inset: auto auto calc(14px + env(safe-area-inset-bottom)) 14px !important;
+    min-height: 40px !important;
+    padding-inline: 12px !important;
+    border-color: rgb(255 255 255 / 17%) !important;
+    color: #edf2f7 !important;
+    background: rgb(11 13 17 / 96%) !important;
+    box-shadow: 0 12px 28px rgb(0 0 0 / 24%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(8px) scale(0.97) !important;
+    transition: opacity 160ms ease, transform 160ms ease !important;
+  }
+
+  :global(body[data-halleus-report-reading="true"][data-halleus-report-back-to-top="true"] a[aria-label="پرش به ابتدای محتوای صفحه"]) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .reportMobileHeader,
+  :global(body[data-halleus-report-reading="true"] a[aria-label="پرش به ابتدای محتوای صفحه"]) {
+    transition: none !important;
+  }
+
+  .reportReadingProgress > span {
+    will-change: auto;
+  }
+}
+
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE1_NEUTRAL_BRAND_R2_20260903 */
+@media (max-width: 760px) {
+  :global(body[data-halleus-report-reading="true"]) .reportMobileBrand,
+  :global(body[data-halleus-report-reading="true"]) .reportMobileBrand span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  :global(body[data-halleus-report-reading="true"]) .reportMobileAccount {
+    color: #edf2f7 !important;
+    -webkit-text-fill-color: #edf2f7 !important;
+  }
+}
+
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE2_OPENING_STORIES_CSS_R1_20260903 */
+@media (max-width: 760px) {
+  .reader > .adaptiveHero {
+    gap: 0 !important;
+    padding: 26px 4px 34px !important;
+  }
+
+  .reader > .adaptiveHero h1 {
+    margin: 0 0 16px !important;
+    color: #ffffff !important;
+    font-size: clamp(1.9rem, 8.15vw, 2.22rem) !important;
+    font-weight: 850 !important;
+    line-height: 1.46 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] {
+    display: grid !important;
+    gap: 15px !important;
+    max-width: 42rem;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] > p {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    color: #d6dde6 !important;
+    background: transparent !important;
+    font-size: 1rem !important;
+    font-weight: 430 !important;
+    line-height: 2.04 !important;
+  }
+
+  .reader > .adaptiveHero [data-adaptive-opening-story] > p + p {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+  }
+
+  .adaptiveMetaRow[data-report-opening-meta="editorial-inline"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 7px !important;
+    margin: 18px 0 0 !important;
+    padding: 0 !important;
+  }
+
+  .adaptiveMetaRow[data-report-opening-meta="editorial-inline"] > span {
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #8f98a4 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 0.76rem !important;
+    font-weight: 650 !important;
+    line-height: 1.6 !important;
+  }
+
+  .adaptiveMetaRow[data-report-opening-meta="editorial-inline"] > span[aria-hidden="true"] {
+    color: rgb(255 255 255 / 26%) !important;
+  }
+
+  .adaptivePrimaryStories {
+    display: grid;
+    gap: 15px;
+    margin-top: 42px;
+  }
+
+  .adaptivePrimaryStoriesHeader {
+    display: block;
+    padding: 0;
+  }
+
+  .adaptivePrimaryStoriesHeader h2 {
+    margin: 0 !important;
+    color: #eef2f6 !important;
+    font-size: clamp(1.28rem, 5.65vw, 1.48rem) !important;
+    font-weight: 790 !important;
+    line-height: 1.6 !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  .adaptivePrimaryStories .adaptiveStoryList[data-adaptive-story-preview="three-headlines"] {
+    display: grid !important;
+    gap: 12px !important;
+    margin: 0 !important;
+  }
+
+  .adaptivePrimaryStories .adaptiveStoryCard {
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 17px 16px !important;
+    border: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 18px !important;
+    background: #08090c !important;
+    box-shadow: none !important;
+  }
+
+  .adaptivePrimaryStories .adaptiveIndex {
+    align-self: start !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 2px 0 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #8f98a4 !important;
+    background: transparent !important;
+    font-size: 0.72rem !important;
+    font-weight: 760 !important;
+    line-height: 1.5 !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .adaptivePrimaryStories .adaptiveStoryBody {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  .adaptivePrimaryStories .adaptiveStoryBody h3 {
+    margin: 0 !important;
+    color: #eef2f6 !important;
+    font-size: 1.05rem !important;
+    font-weight: 790 !important;
+    line-height: 1.78 !important;
+  }
+
+  .adaptivePreviewStoryTeaser {
+    margin: 0 !important;
+    color: #b7c0ca !important;
+    font-size: 0.9rem !important;
+    font-weight: 430 !important;
+    line-height: 1.92 !important;
+  }
+
+  .adaptivePrimaryStories + .adaptiveRoadmap {
+    margin-top: 34px !important;
+  }
+}
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE2_EXACT_CHARCOAL_R3_20260903 */
+ @media (max-width: 760px) {
+   .adaptivePrimaryStories .adaptiveStoryList[data-adaptive-story-preview="three-headlines"] .adaptiveStoryCard {
+     background: #08090c !important;
+   }
+ }
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE3_CHAPTER_READING_R1_20260903 */
+@media (max-width: 760px) {
+  .adaptiveNarrative {
+    gap: 0 !important;
+  }
+
+  .adaptiveSection {
+    gap: 20px !important;
+    margin: 0 !important;
+    padding: 46px 4px !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .adaptiveSectionHeader {
+    gap: 8px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 0 4px !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .adaptiveSectionHeader .eyebrow {
+    color: #8f98a4 !important;
+    font-size: 0.72rem !important;
+    font-weight: 650 !important;
+  }
+
+  .adaptiveSectionHeader h2 {
+    margin: 0 !important;
+    color: #eef2f6 !important;
+    font-size: clamp(1.32rem, 5.8vw, 1.52rem) !important;
+    font-weight: 790 !important;
+    line-height: 1.62 !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  .adaptiveSectionHeader > p:last-child {
+    margin: 0 !important;
+    color: #b7c0ca !important;
+    font-size: 0.95rem !important;
+    font-weight: 430 !important;
+    line-height: 1.98 !important;
+  }
+
+  .adaptivePlacementGrid,
+  .adaptiveHouseGrid,
+  .adaptiveAspectList,
+  .adaptiveSection > .adaptiveStoryList {
+    gap: 0 !important;
+  }
+
+  .adaptiveSection .adaptiveStoryCard,
+  .adaptiveSection .adaptivePlacementCard,
+  .adaptiveSection .adaptiveHouseCard,
+  .adaptiveSection .adaptiveAspectCard,
+  .adaptiveSection .adaptiveBalanceCard,
+  .adaptiveSection .adaptiveRulerStrip,
+  .adaptiveSection .adaptiveNodeCard {
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 22px 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .adaptiveSection .adaptiveStoryCard {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .adaptiveSection .adaptiveIndex {
+    align-self: start !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 3px 0 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #8f98a4 !important;
+    background: transparent !important;
+    font-size: 0.7rem !important;
+    font-weight: 720 !important;
+  }
+
+  .adaptiveSection .adaptiveStoryBody,
+  .adaptiveSection .adaptivePlacementCard,
+  .adaptiveSection .adaptiveHouseCard,
+  .adaptiveSection .adaptiveAspectCard,
+  .adaptiveSection .adaptiveBalanceCard,
+  .adaptiveSection .adaptiveRulerStrip,
+  .adaptiveSection .adaptiveNodeCard {
+    gap: 12px !important;
+  }
+
+  .adaptiveSection .adaptiveStoryBody h3,
+  .adaptiveSection .adaptivePlacementCard h3,
+  .adaptiveSection .adaptiveHouseCard h3,
+  .adaptiveSection .adaptiveAspectCard h3,
+  .adaptiveSection .adaptiveBalanceCard h3 {
+    color: #eef2f6 !important;
+    font-size: 1.08rem !important;
+    font-weight: 770 !important;
+    line-height: 1.78 !important;
+  }
+
+  .adaptiveSection .adaptiveStoryBody p,
+  .adaptiveSection .adaptivePlacementCard p,
+  .adaptiveSection .adaptiveHouseCard p,
+  .adaptiveSection .adaptiveAspectCard p,
+  .adaptiveSection .adaptiveNodeCard p,
+  .adaptiveSection .adaptiveBalanceCard p,
+  .adaptiveSection .adaptiveRulerStrip p {
+    color: #d6dde6 !important;
+    font-size: 0.95rem !important;
+    font-weight: 430 !important;
+    line-height: 1.98 !important;
+  }
+
+  .adaptiveSection .adaptivePlacementCard header p,
+  .adaptiveSection .adaptiveTechnicalLine,
+  .adaptiveSection .adaptiveConfidence {
+    color: #8f98a4 !important;
+    font-size: 0.78rem !important;
+    font-weight: 520 !important;
+    line-height: 1.75 !important;
+  }
+
+  .adaptiveSection .adaptiveLivedBlock,
+  .adaptiveSection .adaptiveTwoColumn > div {
+    margin: 0 !important;
+    padding: 12px 0 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 7%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .adaptiveActionLine {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px !important;
+    margin: 2px 0 0 !important;
+    padding: 10px 0 10px 12px !important;
+    border: 0 !important;
+    border-inline-start: 2px solid rgb(255 255 255 / 24%) !important;
+    border-radius: 0 !important;
+    color: #d6dde6 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 0.92rem !important;
+    font-weight: 430 !important;
+    line-height: 1.9 !important;
+  }
+
+  .adaptiveActionLine::before {
+    content: "امتحانش کن" !important;
+    display: block !important;
+    margin-bottom: 1px !important;
+    color: #eef2f6 !important;
+    font-size: 0.72rem !important;
+    font-weight: 780 !important;
+    line-height: 1.45 !important;
+  }
+
+  .adaptiveEvidence {
+    margin: 2px 0 0 !important;
+    padding: 11px 0 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .adaptiveEvidence summary {
+    padding: 0 !important;
+    color: #a9b2bd !important;
+    background: transparent !important;
+    font-size: 0.78rem !important;
+    font-weight: 650 !important;
+    line-height: 1.7 !important;
+  }
+
+  .adaptiveEvidence[open] summary {
+    color: #d6dde6 !important;
+  }
+
+  .adaptiveEvidence ul,
+  .adaptiveEvidence dl {
+    gap: 0 !important;
+    margin: 12px 0 0 !important;
+  }
+
+  .adaptiveEvidence dl > div {
+    grid-template-columns: 1fr !important;
+    gap: 3px !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 7%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .adaptiveEvidence dt {
+    color: #8f98a4 !important;
+    font-size: 0.75rem !important;
+    font-weight: 650 !important;
+  }
+
+  .adaptiveEvidence dd,
+  .adaptiveEvidence li {
+    color: #d6dde6 !important;
+    font-size: 0.86rem !important;
+    font-weight: 430 !important;
+    line-height: 1.85 !important;
+  }
+
+  .adaptiveWeeklyActions {
+    gap: 0 !important;
+  }
+
+  .adaptiveWeeklyActions li {
+    margin: 0 !important;
+    padding: 15px 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 0 !important;
+    color: #d6dde6 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE3_ROUTE_SCOPED_CARD_RECONCILIATION_R9_20260903 */
+@media (max-width: 760px) {
+  :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-placement],
+  :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-house],
+  :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-aspect-id],
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveStoryCard,
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveBalanceCard,
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveRulerStrip,
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveNodeCard {
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 22px 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveLivedBlock,
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveTwoColumn > div,
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveNodeCard > div {
+    margin: 0 !important;
+    padding: 12px 0 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 7%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveActionLine {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px !important;
+    margin: 2px 0 0 !important;
+    padding: 10px 0 10px 12px !important;
+    border: 0 !important;
+    border-inline-start: 2px solid rgb(255 255 255 / 24%) !important;
+    border-radius: 0 !important;
+    color: #d6dde6 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveActionLine::before {
+    content: "امتحانش کن" !important;
+    display: block !important;
+    margin-bottom: 1px !important;
+    color: #eef2f6 !important;
+    font-size: 0.72rem !important;
+    font-weight: 780 !important;
+    line-height: 1.45 !important;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-evidence] {
+    margin: 2px 0 0 !important;
+    padding: 11px 0 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-evidence] summary {
+    padding: 0 !important;
+    color: #a9b2bd !important;
+    background: transparent !important;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-evidence] dl > div {
+    grid-template-columns: 1fr !important;
+    gap: 3px !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 7%) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveConfidence,
+  :global(.report-product-page) [data-adaptive-report-section] .adaptiveWeeklyActions li {
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE4_BOTTOM_SHEET_R1_20260903 */
+.mobileChapterNavigator,
+.mobileChapterDialog {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .adaptiveRoadmap {
+    display: none !important;
+  }
+
+  .mobileChapterNavigator {
+    position: relative;
+    z-index: 3;
+    display: block;
+    width: 100%;
+    margin: 18px 0 28px;
+    padding-inline: 4px;
+  }
+
+  .mobileChapterTrigger {
+    display: flex;
+    width: 100%;
+    min-height: 50px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid rgb(255 255 255 / 11%);
+    border-radius: 14px;
+    padding: 10px 13px;
+    color: #edf2f7 !important;
+    background: #08090c;
+    box-shadow: none;
+    cursor: pointer;
+    text-align: start;
+    font: inherit;
+  }
+
+  .mobileChapterTrigger span {
+    min-width: 0;
+    color: #d6dde6 !important;
+    font-size: 0.82rem;
+    font-weight: 760;
+    line-height: 1.6;
+  }
+
+  .mobileChapterTrigger svg {
+    flex: 0 0 auto;
+    color: #a9b2bd;
+  }
+
+  .mobileChapterDialog {
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    color: #eef2f6;
+    background: transparent;
+  }
+
+  .mobileChapterDialog[open] {
+    display: flex;
+    align-items: flex-end;
+    justify-content: stretch;
+  }
+
+  .mobileChapterDialog::backdrop {
+    background: rgb(0 0 0 / 72%);
+    backdrop-filter: blur(2px);
+  }
+
+  .mobileChapterSheet {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    width: 100%;
+    height: min(82svh, 720px);
+    max-height: calc(100svh - max(18px, env(safe-area-inset-top)));
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    padding: 9px 14px calc(14px + env(safe-area-inset-bottom));
+    background: #0b0d11;
+    box-shadow: 0 -20px 60px rgb(0 0 0 / 38%);
+    animation: reportMobileChapterSheetIn 180ms ease-out;
+  }
+
+  .mobileChapterSheetHandle {
+    width: 42px;
+    height: 4px;
+    margin: 2px auto 9px;
+    border-radius: 999px;
+    background: rgb(238 242 247 / 24%);
+  }
+
+  .mobileChapterSheetHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid rgb(255 255 255 / 9%);
+    padding: 6px 2px 13px;
+  }
+
+  .mobileChapterSheetHeader > div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .mobileChapterSheetHeader h2,
+  .mobileChapterSheetHeader p {
+    margin: 0;
+  }
+
+  .mobileChapterSheetHeader h2 {
+    color: #eef2f6 !important;
+    font-size: 1rem;
+    font-weight: 820;
+    line-height: 1.6;
+  }
+
+  .mobileChapterSheetHeader p {
+    color: #8f98a4 !important;
+    font-size: 0.72rem;
+    font-weight: 650;
+  }
+
+  .mobileChapterSheetClose {
+    display: grid;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 12px;
+    padding: 0;
+    color: #d6dde6 !important;
+    background: #101216;
+    cursor: pointer;
+  }
+
+  .mobileChapterSheetList {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px 0 4px;
+    scrollbar-width: thin;
+  }
+
+  .mobileChapterSheetList > button {
+    display: grid;
+    grid-template-columns: 4px 26px minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+    min-height: 50px;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid rgb(255 255 255 / 7%);
+    border-radius: 12px;
+    padding: 8px 10px;
+    color: #b7c0ca !important;
+    background: transparent;
+    cursor: pointer;
+    text-align: start;
+    font: inherit;
+  }
+
+  .mobileChapterSheetList > button[data-active="true"] {
+    color: #eef2f6 !important;
+    background: #101216;
+    font-weight: 820;
+  }
+
+  .mobileChapterActiveMarker {
+    width: 3px;
+    height: 22px;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .mobileChapterSheetList > button[data-active="true"] .mobileChapterActiveMarker {
+    background: #edf2f7;
+  }
+
+  .mobileChapterNumber {
+    color: #8f98a4 !important;
+    font-size: 0.72rem;
+    font-weight: 720;
+    text-align: center;
+  }
+
+  .mobileChapterSheetList strong {
+    color: inherit !important;
+    font-size: 0.86rem;
+    font-weight: inherit;
+    line-height: 1.65;
+  }
+
+  :global(.report-product-page) [data-adaptive-report-section] {
+    scroll-margin-top: calc(72px + env(safe-area-inset-top)) !important;
+  }
+
+  :global(body[data-halleus-report-chapter-sheet="open"] a[aria-label="پرش به ابتدای محتوای صفحه"]) {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+@keyframes reportMobileChapterSheetIn {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .mobileChapterSheet {
+    animation: none;
+  }
+}
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE4_FAILURESET_R2_20260903
+ * R1 visual contract is unchanged. This marker records failure-set reconciliation only.
+ */
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE5_LOWER_REPORT_LAYER_R1_20260903
+ * Lower-report visual reconciliation only:
+ * - keep AstroChart calculations/renderer untouched
+ * - keep stored-transit interpretation/data untouched
+ * - keep technical facts available but visually subordinate
+ */
+:global(.report-product-page) .reader :global(#report-summary) .chartDetails,
+:global(.report-product-page) .reader :global(#report-sky) .transitView,
+:global(.report-product-page) .reader :global(#report-chart) .chartDetails {
+  width: min(900px, 100%);
+  max-width: 100%;
+  margin-inline: auto;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) .wheelShell {
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: clamp(10px, 2vw, 20px) 0 clamp(24px, 4vw, 42px);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel-header) {
+  border: 0 !important;
+  padding-inline: 0 !important;
+  background: transparent !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel-body) {
+  gap: clamp(18px, 3vw, 30px);
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel-canvas) {
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%) !important;
+  border-radius: 18px;
+  background: #0b0d11 !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel button) {
+  border-color: rgb(255 255 255 / 11%) !important;
+  color: #d6dde6 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel button[data-active="true"]) {
+  border-color: #eef2f6 !important;
+  color: #050609 !important;
+  background: #eef2f6 !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel details),
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel-legend) {
+  border-color: rgb(255 255 255 / 10%) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel details > summary) {
+  color: #d6dde6 !important;
+  background: #0c0e12 !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .transitView {
+  gap: 28px;
+  padding-block: clamp(44px, 7vw, 68px);
+  border-top: 1px solid rgb(255 255 255 / 10%) !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .transitView > .sectionHeading {
+  min-height: 0 !important;
+  max-width: 760px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .transitPatternList {
+  gap: 0;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .transitPattern {
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  border: 0 !important;
+  border-bottom: 1px solid rgb(255 255 255 / 9%) !important;
+  border-radius: 0 !important;
+  padding: 26px 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .transitPattern > div {
+  gap: 14px;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .transitTechnicalLine {
+  margin-top: -2px !important;
+  color: #8f98a4 !important;
+  font-size: 0.76rem !important;
+  font-weight: 650;
+  line-height: 1.75 !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .transitMoment,
+:global(.report-product-page) .reader :global(#report-sky) .transitBalance > p,
+:global(.report-product-page) .reader :global(#report-sky) .practiceLine {
+  border: 0 !important;
+  border-top: 1px solid rgb(255 255 255 / 8%) !important;
+  border-radius: 0 !important;
+  padding: 13px 0 !important;
+  background: transparent !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .readingMetadata {
+  margin-bottom: 0;
+  border: 0 !important;
+  border-top: 1px solid rgb(255 255 255 / 9%) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .readingMetadata summary {
+  padding-inline: 0;
+  color: #a9b2bd !important;
+  background: transparent !important;
+}
+
+:global(.report-product-page) .reader :global(#report-sky) .emptyTechnical {
+  border: 0 !important;
+  border-top: 1px solid rgb(255 255 255 / 10%) !important;
+  border-radius: 0 !important;
+  padding: 18px 0;
+  color: #b7c0ca !important;
+  background: transparent !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .chartDetails {
+  gap: 20px;
+  padding-block: clamp(42px, 7vw, 64px);
+  border-top: 1px solid rgb(255 255 255 / 10%) !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .chartHeading[data-screenshot-ready] {
+  min-height: 0 !important;
+  max-width: 760px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 0 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalAppendix {
+  min-width: 0;
+  border-top: 1px solid rgb(255 255 255 / 9%);
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalDisclosure {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalHeading {
+  gap: 5px;
+  padding: 16px 0;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalHeading h2 {
+  font-size: clamp(1rem, 2vw, 1.15rem) !important;
+  line-height: 1.55;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalHeading p {
+  color: #8f98a4 !important;
+  font-size: 0.82rem;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalContent {
+  gap: 14px;
+  padding: 0 0 18px;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalTabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding-bottom: 3px;
+  background: transparent !important;
+  box-shadow: none !important;
+  scrollbar-width: thin;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalTabs button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  border: 1px solid rgb(255 255 255 / 10%) !important;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #a9b2bd !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0.72rem;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .technicalTabs button[data-active="true"] {
+  border-color: #eef2f6 !important;
+  color: #050609 !important;
+  background: #eef2f6 !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .dataTable,
+:global(.report-product-page) .reader :global(#report-chart) .contextFacts {
+  border-top-color: rgb(255 255 255 / 9%) !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .dataHead {
+  color: #8f98a4 !important;
+  font-size: 0.68rem;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .dataRow,
+:global(.report-product-page) .reader :global(#report-chart) .aspectRow,
+:global(.report-product-page) .reader :global(#report-chart) .contextFacts div,
+:global(.report-product-page) .reader :global(#report-chart) .evidenceList > div {
+  border-color: rgb(255 255 255 / 8%) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .dataRow,
+:global(.report-product-page) .reader :global(#report-chart) .aspectRow {
+  font-size: 0.78rem;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .contextFacts dt,
+:global(.report-product-page) .reader :global(#report-chart) .evidenceList span {
+  color: #8f98a4 !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) .contextFacts dd,
+:global(.report-product-page) .reader :global(#report-chart) .evidenceList strong {
+  color: #d6dde6 !important;
+}
+
+:global(.report-product-page) .reader :global(#report-chart) :global(.report-detail-chart-placeholder) {
+  border: 0 !important;
+  border-top: 1px solid rgb(255 255 255 / 10%) !important;
+  border-radius: 0 !important;
+  padding: 18px 0 !important;
+  color: #b7c0ca !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 760px) {
+  :global(.report-product-page) .reader :global(#report-summary) .chartDetails,
+  :global(.report-product-page) .reader :global(#report-sky) .transitView,
+  :global(.report-product-page) .reader :global(#report-chart) .chartDetails {
+    padding-inline: 4px !important;
+  }
+
+  :global(.report-product-page) .reader :global(#report-summary) .wheelShell {
+    padding-top: 6px;
+    padding-bottom: 30px;
+  }
+
+  :global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel-canvas) {
+    border-radius: 14px;
+  }
+
+  :global(.report-product-page) .reader :global(#report-summary) .mobileWheelGuideButton {
+    border: 1px solid rgb(255 255 255 / 10%) !important;
+    border-radius: 12px !important;
+    background: #0c0e12 !important;
+    box-shadow: none !important;
+  }
+
+  :global(.report-product-page) .reader :global(#report-summary) .mobileWheelGuideButton b {
+    color: #8f98a4 !important;
+  }
+
+  :global(.report-product-page) .reader :global(#report-summary) :global(.report-astrochart-wheel-legend)[data-mobile-expanded="true"] {
+    border: 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 0 !important;
+    padding: 14px 0 !important;
+    background: transparent !important;
+  }
+
+  :global(.report-product-page) .reader :global(#report-sky) .transitPattern {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 10px;
+    padding-block: 22px;
+  }
+
+  :global(.report-product-page) .reader :global(#report-sky) .transitBalance {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.report-product-page) .reader :global(#report-chart) .technicalHeading {
+    padding-block: 14px;
+  }
+
+  :global(.report-product-page) .reader :global(#report-chart) .dataHead {
+    display: none;
+  }
+
+  :global(.report-product-page) .reader :global(#report-chart) .dataRow,
+  :global(.report-product-page) .reader :global(#report-chart) .aspectRow {
+    grid-template-columns: 1fr !important;
+    gap: 5px;
+    border: 0 !important;
+    border-bottom: 1px solid rgb(255 255 255 / 8%) !important;
+    border-radius: 0 !important;
+    padding: 10px 0 !important;
+    background: transparent !important;
+  }
+
+  :global(.report-product-page) .reader :global(#report-chart) .contextFacts {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.report-product-page) .reader :global(#report-chart) .contextFacts div {
+    grid-template-columns: minmax(92px, 0.38fr) minmax(0, 1fr);
+    gap: 10px;
+    padding-block: 10px;
+  }
+}
+
+/* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE5_CSS_MODULE_GLOBAL_FLOW_IDS_R6_20260904 */
+
+/* HALLEUS_REPORT_MANUAL_MOBILE_REVIEW_REFINEMENT_R3_20260904 */
+@media (max-width: 760px) {
+  .reportMobileHeader {
+    background: rgb(5 6 9 / 97%);
+    border-bottom-color: rgb(255 255 255 / 9%);
+    box-shadow: none;
+  }
+
+  .reportMobileHeaderInner {
+    min-height: 58px;
+    gap: 8px;
+    padding: max(5px, env(safe-area-inset-top)) 6px 5px;
+  }
+
+  .reportMobileBrand {
+    flex: 0 0 auto;
+    gap: 6px;
+    padding-inline: 4px;
+  }
+
+  .reportMobileBrandLogo {
+    width: 28px;
+    height: 28px;
+  }
+
+  .reportMobileBrand span {
+    font-size: 0.9rem;
+    font-weight: 820;
+  }
+
+  .reportMobileToolbarLinks {
+    display: inline-flex;
+    width: fit-content;
+    max-width: calc(100vw - 116px);
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    margin-inline-start: auto;
+    padding: 2px 6px;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 999px;
+    background: rgb(20 24 30 / 96%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%);
+  }
+
+  .reportMobileToolbarLink {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 9px;
+    border-radius: 999px;
+    color: #d8dee6 !important;
+    background: transparent;
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    font-weight: 720;
+    line-height: 1;
+  }
+
+  .reportMobileToolbarLink:focus-visible,
+  .reportMobileToolbarLink:hover {
+    color: #ffffff !important;
+    background: rgb(255 255 255 / 6%);
+  }
+
+  .reader > .adaptiveHero {
+    margin-top: 0 !important;
+    padding: 8px 4px 28px !important;
+  }
+
+  .reader > .adaptiveHero h1 {
+    max-width: 18ch;
+    margin-bottom: 13px !important;
+    font-size: clamp(1.55rem, 6.3vw, 1.82rem) !important;
+    line-height: 1.5 !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  .reader h2 {
+    font-size: clamp(1.15rem, 4.8vw, 1.42rem) !important;
+    line-height: 1.55 !important;
+  }
+
+  .reader > .adaptiveHero > :global(#report-summary) {
+    margin: 28px 0 0 !important;
+    padding: 24px 0 0 !important;
+    border-top: 1px solid rgb(255 255 255 / 9%) !important;
+  }
+
+  .reader > .adaptiveHero > :global(#report-summary) .chartDetails {
+    gap: 16px !important;
+  }
+
+  .reader > .adaptiveHero > :global(#report-summary) .chartHeading h1 {
+    max-width: none;
+    font-size: clamp(1.28rem, 5.2vw, 1.55rem) !important;
+    line-height: 1.55 !important;
+  }
+
+  .adaptivePrimaryStories {
+    margin-top: 30px !important;
+  }
+
+  .adaptivePrimaryStoriesHeader h2 {
+    font-size: clamp(1.16rem, 4.75vw, 1.4rem) !important;
+    line-height: 1.58 !important;
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .reportMobileHeader {
+    transition: none !important;
   }
 }

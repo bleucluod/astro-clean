@@ -32,6 +32,8 @@ type ReportV3ExperienceProps = {
   accessPolicy?: ReportAccessPolicy;
   fullReportCredits?: number;
   onUnlockFullReport?: () => Promise<{ ok: boolean; error?: string }>;
+  renderAdaptiveOverview?: boolean;
+  // HALLEUS_REPORT_CHARTWHEEL_HERO_ROADMAP_POLISH_20260830
 };
 
 export function ReportV3Experience(props: ReportV3ExperienceProps) {
@@ -42,6 +44,7 @@ export function ReportV3Experience(props: ReportV3ExperienceProps) {
         accessPolicy={props.accessPolicy}
         fullReportCredits={props.fullReportCredits}
         onUnlockFullReport={props.onUnlockFullReport}
+        renderOverview={props.renderAdaptiveOverview ?? true}
         report={props.report}
       />
     );

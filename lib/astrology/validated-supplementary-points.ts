@@ -1,5 +1,8 @@
+import { ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
+import { getZodiacPosition } from "@/src/lib/chart/zodiac";
 import type {
   AstrologyReport,
+  RealEngineReportCalculatedSpecialPoint,
   RealEngineReportHouse,
   RealEngineReportHouseNumber,
   RealEngineReportPlacement,
@@ -7,10 +10,14 @@ import type {
 } from "@/types/astro";
 
 export const VALIDATED_SUPPLEMENTARY_POINTS_VERSION =
-  "validated-supplementary-points-v1" as const;
+  "validated-supplementary-points-v2-unified-special-points" as const;
+
+// HALLEUS_ADVANCED_ASTROLOGY_SLICE2_R1_20260830
 
 export const CHIRON_VALIDATION_DECISION =
-  "excluded-pending-independent-ephemeris-validation" as const;
+  "included-after-independent-ephemeris-validation" as const;
+
+// HALLEUS_R39_STAGE1_CHIRON_CONTRACT_20260901
 
 export type PartOfFortuneSect = "day" | "night";
 export type PartOfFortuneFormula =
@@ -25,9 +32,19 @@ export type ValidatedChironPoint = {
   house: RealEngineReportHouseNumber | null;
 };
 
+export type ValidatedVertexPoint = {
+  id: "vertex";
+  label: "ورتکس";
+  longitude: number;
+  signId: ZodiacKey;
+  signLabel: string;
+  degreeInSign: number;
+  house: RealEngineReportHouseNumber | null;
+};
+
 export type PartOfFortunePoint = {
   id: "part-of-fortune";
-  label: "سهم سعادت";
+  label: "فورچون";
   longitude: number;
   signId: ZodiacKey;
   signLabel: string;
@@ -45,41 +62,12 @@ export type ValidatedSupplementaryPointsProfile = {
   chiron: ValidatedChironPoint | null;
   chironValidationDecision: typeof CHIRON_VALIDATION_DECISION;
   partOfFortune: PartOfFortunePoint | null;
+  vertex: ValidatedVertexPoint | null;
   excludedTimeDependentFactors: string[];
 };
 
 export type BuildValidatedSupplementaryPointsOptions = {
   hasReliableBirthTime: boolean;
-};
-
-const SIGN_ORDER: ZodiacKey[] = [
-  "aries",
-  "taurus",
-  "gemini",
-  "cancer",
-  "leo",
-  "virgo",
-  "libra",
-  "scorpio",
-  "sagittarius",
-  "capricorn",
-  "aquarius",
-  "pisces",
-];
-
-const SIGN_LABELS: Record<ZodiacKey, string> = {
-  aries: "حمل",
-  taurus: "ثور",
-  gemini: "جوزا",
-  cancer: "سرطان",
-  leo: "اسد",
-  virgo: "سنبله",
-  libra: "میزان",
-  scorpio: "عقرب",
-  sagittarius: "قوس",
-  capricorn: "جدی",
-  aquarius: "دلو",
-  pisces: "حوت",
 };
 
 const DAY_HOUSES = new Set<RealEngineReportHouseNumber>([
@@ -113,25 +101,59 @@ export function buildValidatedSupplementaryPointsProfile(
   options: BuildValidatedSupplementaryPointsOptions,
 ): ValidatedSupplementaryPointsProfile {
   const excludedTimeDependentFactors: string[] = [];
+
   const partOfFortune = options.hasReliableBirthTime
     ? buildPartOfFortune(report)
     : null;
+  const vertex = options.hasReliableBirthTime
+    ? buildVertex(report)
+    : null;
+  const chiron = buildChiron(report);
 
   if (!options.hasReliableBirthTime) {
-    excludedTimeDependentFactors.push("part-of-fortune");
+    excludedTimeDependentFactors.push("part-of-fortune", "vertex");
   }
 
   return {
     version: VALIDATED_SUPPLEMENTARY_POINTS_VERSION,
     hasReliableBirthTime: options.hasReliableBirthTime,
-    chiron: null,
+    chiron,
     chironValidationDecision: CHIRON_VALIDATION_DECISION,
     partOfFortune,
+    vertex,
     excludedTimeDependentFactors,
   };
 }
 
 function buildPartOfFortune(
+  report: AstrologyReport,
+): PartOfFortunePoint | null {
+  const canonical = findCalculatedSpecialPoint(report, "part-of-fortune");
+
+  if (
+    canonical &&
+    canonical.house &&
+    (canonical.calculationContext?.sect === "day" ||
+      canonical.calculationContext?.sect === "night") &&
+    (canonical.calculationContext?.formulaId === "ascendant+moon-sun" ||
+      canonical.calculationContext?.formulaId === "ascendant+sun-moon")
+  ) {
+    return toPartOfFortunePoint({
+      report,
+      longitude: canonical.longitude,
+      signId: canonical.signId,
+      degreeInSign: canonical.degreeInSign,
+      house: canonical.house,
+      sect: canonical.calculationContext.sect,
+      formula: canonical.calculationContext.formulaId,
+      sourceLabel: "canonical special-point snapshot",
+    });
+  }
+
+  return buildLegacyPartOfFortune(report);
+}
+
+function buildLegacyPartOfFortune(
   report: AstrologyReport,
 ): PartOfFortunePoint | null {
   const snapshot = report.realEngine;
@@ -157,7 +179,9 @@ function buildPartOfFortune(
     ? "day"
     : "night";
   const formula: PartOfFortuneFormula =
-    sect === "day" ? "ascendant+moon-sun" : "ascendant+sun-moon";
+    sect === "day"
+      ? "ascendant+moon-sun"
+      : "ascendant+sun-moon";
   const longitude = calculatePartOfFortuneLongitude({
     ascendantLongitude,
     sunLongitude: sun.longitude,
@@ -168,32 +192,92 @@ function buildPartOfFortune(
 
   if (!house) return null;
 
-  const signId = signFromLongitude(longitude);
-  const signLabel = SIGN_LABELS[signId];
-  const degreeInSign = normalizeLongitude(longitude) % 30;
-  const sectLabel = sect === "day" ? "چارت روز" : "چارت شب";
+  const zodiac = getZodiacPosition(longitude);
+  const signId = zodiac.sign.id as ZodiacKey;
 
-  return {
-    id: "part-of-fortune",
-    label: "سهم سعادت",
-    longitude,
+  return toPartOfFortunePoint({
+    report,
+    longitude: zodiac.normalizedLongitude,
     signId,
-    signLabel,
-    degreeInSign,
+    degreeInSign: zodiac.degreeInSign,
     house: house.number,
     sect,
     formula,
+    sourceLabel: "legacy stored-report fallback",
+  });
+}
+
+function toPartOfFortunePoint(input: {
+  report: AstrologyReport;
+  longitude: number;
+  signId: ZodiacKey;
+  degreeInSign: number;
+  house: RealEngineReportHouseNumber;
+  sect: PartOfFortuneSect;
+  formula: PartOfFortuneFormula;
+  sourceLabel: string;
+}): PartOfFortunePoint {
+  const signLabel = ZODIAC_LABELS[input.signId].faName;
+  const sectLabel = input.sect === "day" ? "چارت روز" : "چارت شب";
+
+  return {
+    id: "part-of-fortune",
+    label: "فورچون",
+    longitude: input.longitude,
+    signId: input.signId,
+    signLabel,
+    degreeInSign: input.degreeInSign,
+    house: input.house,
+    sect: input.sect,
+    formula: input.formula,
     summary:
-      `سهم سعادت در ${signLabel} و خانه ${formatPersianNumber(house.number)} قرار می‌گیرد. ` +
-      "این نقطه از رابطهٔ طالع، خورشید و ماه ساخته می‌شود و در این گزارش فقط برای دیدن زمینه‌هایی به کار می‌رود که هماهنگی میان ریتم درونی و شیوهٔ حضور می‌تواند طبیعی‌تر شکل بگیرد؛ نه برای وعدهٔ شانس یا نتیجهٔ قطعی.",
+      `فورچون در ${signLabel} و خانه ${formatPersianNumber(input.house)} قرار می‌گیرد. ` +
+      "این نقطه از رابطهٔ طالع، خورشید و ماه ساخته می‌شود و در این گزارش برای زمینهٔ تحقق و شرایط بدنی/زیسته خوانده می‌شود؛ نه به‌عنوان وعدهٔ شانس یا نتیجهٔ قطعی.",
     evidence: [
-      `طالع ${formatDegree(ascendantLongitude)}`,
-      `خورشید ${formatDegree(sun.longitude)} در خانه ${formatPersianNumber(sunHouse)}`,
-      `ماه ${formatDegree(moon.longitude)}`,
-      `${sectLabel}: ${formatFormula(formula)}`,
-      `نتیجه ${formatDegree(longitude)}؛ ${signLabel} ${formatDegree(degreeInSign)}، خانه ${formatPersianNumber(house.number)}`,
+      `${sectLabel}: ${formatFormula(input.formula)}`,
+      `نتیجه ${formatDegree(input.longitude)}؛ ${signLabel} ${formatDegree(input.degreeInSign)}، خانه ${formatPersianNumber(input.house)}`,
+      `منبع: ${input.sourceLabel}`,
     ],
   };
+}
+
+function buildVertex(report: AstrologyReport): ValidatedVertexPoint | null {
+  const canonical = findCalculatedSpecialPoint(report, "vertex");
+  if (!canonical) return null;
+
+  return {
+    id: "vertex",
+    label: "ورتکس",
+    longitude: canonical.longitude,
+    signId: canonical.signId,
+    signLabel: ZODIAC_LABELS[canonical.signId].faName,
+    degreeInSign: canonical.degreeInSign,
+    house: canonical.house,
+  };
+}
+
+function buildChiron(report: AstrologyReport): ValidatedChironPoint | null {
+  const canonical = findCalculatedSpecialPoint(report, "chiron");
+  if (!canonical) return null;
+
+  return {
+    id: "chiron",
+    longitude: canonical.longitude,
+    signId: canonical.signId,
+    degreeInSign: canonical.degreeInSign,
+    house: canonical.house,
+  };
+}
+
+function findCalculatedSpecialPoint(
+  report: AstrologyReport,
+  id: "chiron" | "part-of-fortune" | "vertex",
+): RealEngineReportCalculatedSpecialPoint | null {
+  const point = report.realEngine?.specialPoints?.find(
+    (candidate) => candidate.id === id,
+  );
+
+  return point?.status === "calculated" ? point : null;
 }
 
 function resolveAscendantLongitude(report: AstrologyReport): number | null {
@@ -215,7 +299,11 @@ function resolveAscendantLongitude(report: AstrologyReport): number | null {
 function normalizeHouses(
   houses: RealEngineReportHouse[],
 ): RealEngineReportHouse[] {
-  const unique = new Map<RealEngineReportHouseNumber, RealEngineReportHouse>();
+  const unique = new Map<
+    RealEngineReportHouseNumber,
+    RealEngineReportHouse
+  >();
+
   for (const house of houses) {
     if (
       toHouseNumber(house.number) &&
@@ -225,16 +313,23 @@ function normalizeHouses(
       unique.set(house.number, house);
     }
   }
-  return [...unique.values()].sort((a, b) => a.number - b.number);
+
+  return [...unique.values()].sort(
+    (left, right) => left.number - right.number,
+  );
 }
 
 export function findHouseForLongitude(
   longitude: number,
   houses: RealEngineReportHouse[],
 ): RealEngineReportHouse | null {
-  if (!Number.isFinite(longitude) || houses.length !== 12) return null;
+  if (!Number.isFinite(longitude) || houses.length !== 12) {
+    return null;
+  }
+
   const ordered = normalizeHouses(houses);
   if (ordered.length !== 12) return null;
+
   const point = normalizeLongitude(longitude);
 
   for (let index = 0; index < ordered.length; index += 1) {
@@ -269,11 +364,6 @@ function toHouseNumber(
     value <= 12
     ? (value as RealEngineReportHouseNumber)
     : null;
-}
-
-function signFromLongitude(longitude: number): ZodiacKey {
-  const index = Math.floor(normalizeLongitude(longitude) / 30) % 12;
-  return SIGN_ORDER[index];
 }
 
 function normalizeLongitude(longitude: number): number {

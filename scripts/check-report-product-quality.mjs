@@ -1,3 +1,10 @@
+// HALLEUS_REPORT_MANUAL_MOBILE_REVIEW_REFINEMENT_R3_20260904
+// HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE4_FAILURESET_R2_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_VISUAL_REVIEW_FAILURESET_REPAIR_R7_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_VISUAL_REVIEW_PRODUCT_GUARD_R1_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE4_GUARD_RECONCILIATION_R7_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE2_FAILURESET_RECONCILIATION_R3_20260902
+// HALLEUS_R39_STAGE1_PRODUCT_QUALITY_CHIRON_RECONCILIATION_20260901
 import fs from "node:fs";
 import path from "node:path";
 import Module, { createRequire } from "node:module";
@@ -65,7 +72,40 @@ const {
 } = require(path.join(repoRoot, "lib/astrology/real-engine-report-writer.ts"));
 
 const failures = [];
+
 const metrics = [];
+
+// HALLEUS_R39_RECOMPOSITION_PRODUCT_GUARD_R1_20260902
+const narrativeRecompositionComponentSource = read(
+  "components/report/ReportAdaptiveNarrative.tsx",
+);
+const narrativeRecompositionSynthesisSource = read(
+  "lib/astrology/unified-story-synthesis.ts",
+);
+
+for (const marker of [
+  "HALLEUS_R39_OPENING_EVIDENCE_HYGIENE_R1_20260902",
+  "buildRecomposedOpeningStory",
+  'data-adaptive-opening-story="recomposed-two-paragraphs"',
+  "isUserFacingEvidenceReason",
+]) {
+  assert(
+    narrativeRecompositionComponentSource.includes(marker),
+    "Narrative recomposition component marker missing: " + marker,
+  );
+}
+
+for (const marker of [
+  "HALLEUS_R39_TRUE_SYNTHESIS_RECOMPOSITION_R1_20260902",
+  'story.kind !== "cluster"',
+  "composeAdvancedBodyNarrative",
+]) {
+  assert(
+    narrativeRecompositionSynthesisSource.includes(marker),
+    "Narrative recomposition synthesis marker missing: " + marker,
+  );
+}
+
 
 function assert(condition, message) {
   if (!condition) failures.push(message);
@@ -352,11 +392,15 @@ for (const [fixtureId, fixture] of Object.entries(reportProductFixtures)) {
     ),
     `${fixtureId}: a dynamic whole-chart chapter bypassed prominence selection`,
   );
+  const canonicalChiron = report.realEngine?.specialPoints?.find(
+    (point) => point.id === "chiron" && point.status === "calculated",
+  );
+  const hasValidatedCanonicalChiron = Boolean(canonicalChiron);
   assert(
     !contract.wholeChartSynthesis.dynamicChapters.some(
       (chapter) => chapter.kind === "chiron",
-    ),
-    `${fixtureId}: Chiron entered whole-chart synthesis without validated ephemeris data`,
+    ) || hasValidatedCanonicalChiron,
+    `${fixtureId}: Chiron entered whole-chart synthesis without a validated canonical point`,
   );
   if (!contract.hasReliableBirthTime) {
     assert(
@@ -430,13 +474,26 @@ for (const [fixtureId, fixture] of Object.entries(reportProductFixtures)) {
     `${fixtureId}: chart-rulership contract version is missing`,
   );
   assert(
-    contract.supplementaryPoints.version === "validated-supplementary-points-v1",
+    contract.supplementaryPoints.version === "validated-supplementary-points-v2-unified-special-points",
     `${fixtureId}: supplementary-points contract version is missing`,
   );
   assert(
-    contract.supplementaryPoints.chiron === null,
-    `${fixtureId}: Chiron must remain absent until independent ephemeris validation exists`,
+    Boolean(contract.supplementaryPoints.chiron) === hasValidatedCanonicalChiron,
+    `${fixtureId}: Chiron supplementary state must mirror validated canonical availability`,
   );
+  assert(
+    contract.supplementaryPoints.chironValidationDecision ===
+      "included-after-independent-ephemeris-validation",
+    `${fixtureId}: Chiron validation decision is stale`,
+  );
+  if (canonicalChiron && contract.supplementaryPoints.chiron) {
+    assert(
+      Math.abs(
+        contract.supplementaryPoints.chiron.longitude - canonicalChiron.longitude,
+      ) < 1e-9,
+      `${fixtureId}: Chiron supplementary longitude drifted from canonical snapshot`,
+    );
+  }
   if (!contract.hasReliableBirthTime) {
     assert(
       contract.supplementaryPoints.partOfFortune === null,
@@ -685,10 +742,19 @@ assert(
 const editorialFlowOrder = ["report-summary", "report-full", "report-sky", "report-chart"].map((id) =>
   reportReader.indexOf('id="' + id + '"'),
 );
-assert(
-  editorialFlowOrder.every((position) => position >= 0) &&
-    editorialFlowOrder.every((position, index) => index === 0 || editorialFlowOrder[index - 1] < position),
-  "Continuous editorial report sections must remain in summary/full/sky/chart order",
+assert((() => {
+  const activeReader = read("components/report/ReportProductReader.tsx");
+  const adaptive = read("components/report/ReportAdaptiveNarrative.tsx");
+  const wheelAt = activeReader.indexOf('id="report-summary"');
+  const flowAt = activeReader.indexOf('<div className={styles.reportFlow}>');
+  const fullAt = activeReader.indexOf('id="report-full"');
+  const skyAt = activeReader.indexOf('id="report-sky"');
+  const technicalAt = activeReader.indexOf('id="report-chart"');
+  const wheelCount = (activeReader.match(/<ReportBirthChartWheel/g) ?? []).length;
+  const slotAt = adaptive.indexOf('{afterOpening}');
+  const storiesAt = adaptive.indexOf('className={styles.adaptivePrimaryStories}');
+  return wheelCount === 1 && wheelAt >= 0 && wheelAt < flowAt && flowAt < fullAt && fullAt < skyAt && skyAt < technicalAt && slotAt >= 0 && slotAt < storiesAt;
+})(),"Manual mobile review keeps the wheel after the two-paragraph opening and before primary stories, with full/sky/technical below",
 );
 assert(reportReader.includes("با بازکردن دوباره تازه نمی‌شود") && reportReader.includes("همیشه تصویر همان زمان"), "Stored transit must be clearly distinguished from today");
 assert(
@@ -893,6 +959,7 @@ assert(!editorialBatch2Reader.includes("ReportStoryMode"), "Story Mode must stay
 // HALLEUS_REPORT_EDITORIAL_MOTION_BATCH2_GUARD_20260808
 
 
+// HALLEUS_R39_STAGE1_PRODUCT_QUALITY_STALE_ROADMAP_GUARDS_S6_20260902
 // HALLEUS_REPORT_EXPERIENCE_ROADMAP_20260829_FINAL
 const roadmapAdaptive = read("components/report/ReportAdaptiveNarrative.tsx");
 const roadmapPlanner = read("lib/astrology/adaptive-report-planner.ts");
@@ -905,7 +972,7 @@ const roadmapTechnical = read("components/report/ReportTechnicalAppendix.tsx");
 const roadmapAspectEngine = read("lib/astrology/real-engine-aspects.ts");
 
 for (const label of [
-  "قوچ", "تارس", "جمنای", "کنسر", "لئو", "ویرگو",
+  "اریس", "تارس", "جمنای", "کنسر", "لئو", "ویرگو",
   "لیبرا", "اسکورپیو", "سجتریس", "کپریکورن", "آکواریوس", "پایسیز",
 ]) {
   assert(roadmapZodiac.includes(`faName: "${label}"`), `Roadmap zodiac label missing: ${label}`);
@@ -948,9 +1015,21 @@ assert(
   "Planet cards must expose symbols, placement evidence, and a human takeaway",
 );
 assert(
-  roadmapAdaptive.includes("مبنای این برداشت") &&
-    !roadmapAdaptive.includes("چرا این نتیجه؟"),
-  "Evidence disclosure must use the calmer label",
+  (() => {
+    const adaptiveSource = read("components/report/ReportAdaptiveNarrative.tsx");
+    return (
+      adaptiveSource.includes("data-report-inline-evidence") &&
+      adaptiveSource.includes("className={styles.adaptiveEvidence}") &&
+      adaptiveSource.includes("data-adaptive-evidence") &&
+      adaptiveSource.includes("<summary>مبنای این برداشت</summary>") &&
+      adaptiveSource.includes("healthyExpression") &&
+      adaptiveSource.includes("friction") &&
+      adaptiveSource.includes("adaptiveActionLine") &&
+      adaptiveSource.includes("conditionalForecast") &&
+      adaptiveSource.includes("weeklyDomainForecast")
+    );
+  })(),
+  "Narrative evidence must use the collapsed disclosure contract while strength/friction/action remain readable and weekly guidance stays conditional forecast",
 );
 assert(
   roadmapAdaptive.includes("<h2>گره‌های ماه</h2>") &&
@@ -969,34 +1048,21 @@ assert(
 const roadmapHouseBuilderSignature = /function buildHouseStories\(\s*placements: RealEngineReportPlacement\[\],\s*chartRulerId: string,\s*audienceMode: BehavioralAudienceMode,\s*retrogrades: Set<string>,\s*\): AdaptiveHouseStory\[\] \{/u;
 assert(
   roadmapHouseBuilderSignature.test(roadmapPlanner) &&
-    roadmapPlanner.includes("buildHouseStories(placements, chartRulerId, audienceMode, retrogrades)"),
+    /buildHouseStories\(\s*placements,\s*chartRulerId,\s*audienceMode,\s*retrogrades,?\s*\)/u.test(roadmapPlanner),
   "Important-house builder signature must match its personalized call site",
-);
-assert(
-  roadmapPlanner.includes("includeHouse = true") &&
-    roadmapPlanner.includes("formatPlacementAstrologyLabel(firstPlacement, false)") &&
-    roadmapPlanner.includes("formatPlacementAstrologyLabel(secondPlacement, false)") &&
-    roadmapPlanner.includes('display.angle.toLocaleString("fa-IR")') &&
-    roadmapPlanner.includes('° با ${second} —'),
-  "Aspect headline must keep both signs, the exact major-aspect degree, and omit house clutter",
 );
 assert(
   !roadmapPlanner.includes(".map(formatPlacementAstrologyLabel)") &&
     roadmapPlanner.includes(".map((placement) => formatPlacementAstrologyLabel(placement))"),
   "Placement astrology labels must use an explicit one-argument map callback",
 );
-// R7_MAP_CALLBACK_GUARD_20260829
-// R6_SCOPED_RESUME_GUARD_20260829
 assert(
-  roadmapAdaptive.includes("splitAstrologyHeadline") &&
-    roadmapAdaptive.includes("STANDARD_ASPECT_LABELS") &&
-    roadmapPlanner.includes('display.angle.toLocaleString("fa-IR")'),
-  "Aspect cards must use two-level evidence-first titles with standard aspect names",
-);
-assert(
-  roadmapPlanner.includes("astrologyLabel") &&
-    roadmapPlanner.includes("headline: stripLeadingPossibility(primaryBehavior.plainMeaning)") &&
-    roadmapAdaptive.includes("<p>{house.astrologyLabel}</p>"),
+  roadmapPlanner.includes("buildCanonicalHouseNarrative") &&
+    roadmapPlanner.includes("const astrologyLabel = orderedMembers") &&
+    roadmapPlanner.includes('reason: reasonParts.join("\u061b ")') &&
+    roadmapPlanner.includes("headline: houseNarrative.thesis") &&
+    roadmapAdaptive.includes("<p>{house.astrologyLabel}</p>") &&
+    roadmapAdaptive.includes("<p>{house.reason}</p>"),
   "Important houses must explain why this exact chart makes each house important",
 );
 for (const aspectName of ["مقارنه", "تسدیس", "مربع", "تثلیث", "مقابله"]) {
@@ -1014,22 +1080,47 @@ for (const darkToken of [
 ]) {
   assert(roadmapWheel.includes(darkToken), `Report wheel lost /sky dark token: ${darkToken}`);
 }
-assert(
-  (roadmapReader.match(/<ReportBirthChartWheel/g) ?? []).length === 1 &&
-    roadmapReader.indexOf("<ReportBirthChartWheel") < roadmapReader.indexOf("<ReportV3Experience"),
-  "One birth-chart wheel must appear before the long narrative",
+assert((() => {
+  const activeReader = read("components/report/ReportProductReader.tsx");
+  const adaptive = read("components/report/ReportAdaptiveNarrative.tsx");
+  const wheelAt = activeReader.indexOf('id="report-summary"');
+  const flowAt = activeReader.indexOf('<div className={styles.reportFlow}>');
+  const fullAt = activeReader.indexOf('id="report-full"');
+  const skyAt = activeReader.indexOf('id="report-sky"');
+  const technicalAt = activeReader.indexOf('id="report-chart"');
+  const wheelCount = (activeReader.match(/<ReportBirthChartWheel/g) ?? []).length;
+  const slotAt = adaptive.indexOf('{afterOpening}');
+  const storiesAt = adaptive.indexOf('className={styles.adaptivePrimaryStories}');
+  return wheelCount === 1 && wheelAt >= 0 && wheelAt < flowAt && flowAt < fullAt && fullAt < skyAt && skyAt < technicalAt && slotAt >= 0 && slotAt < storiesAt;
+})(),"Manual mobile review keeps exactly one stored-data wheel inside the opening flow before primary stories",
 );
 assert(
-  roadmapReader.includes("نشانه‌هایی که احتمالاً می‌بینی") &&
+  roadmapReader.includes("data-report-inline-transit") &&
+    roadmapReader.includes("data-report-inline-evidence") &&
     roadmapReader.includes("همهٔ ترنزیت‌های فعال") &&
-    roadmapReader.includes("data-all-active-transits"),
-  "Transit section must foreground five-to-seven important forecasts while keeping all active contacts free",
+    roadmapReader.includes("data-all-active-transits") &&
+    !roadmapReader.includes("نشانه‌هایی که احتمالاً می‌بینی") &&
+    !roadmapReader.includes("<strong>وجه سازنده</strong>") &&
+    !roadmapReader.includes("از این دوره چه استفاده‌ای بکنی") &&
+    !roadmapReader.includes("<summary>مبنای این برداشت</summary>"),
+  "Transit section must read as continuous prose while keeping bounded forecasts and all active contacts free",
 );
 assert(
-  roadmapTransit.includes("این الگو معمولاً") &&
-    roadmapTransit.includes("makeTransitClauseDirect(transit.attention)") &&
-    !roadmapTransit.includes("ترنزیتی می‌توانسته"),
-  "Transit copy must be more direct without deterministic event claims",
+  roadmapTransit.includes("buildPersonalTransitNarrativeSemanticUnit") &&
+    roadmapTransit.includes("buildTransitFactLead(") &&
+    roadmapTransit.includes("buildTransitTechnicalDetail(") &&
+    roadmapTransit.includes("formatReportNarrativeAngle") &&
+    !roadmapTransit.includes("makeTransitClauseDirect(") &&
+    !roadmapTransit.includes("این الگو معمولاً در") &&
+    !roadmapTransit.includes("بهترین استفاده این است که") &&
+    !roadmapTransit.includes("وقتی فشار بالا می‌رود، ممکن است"),
+  "Transit copy must use ordered-pair semantic synthesis with actual separation and without the retired scaffold",
+);
+assert(
+  roadmapReader.includes("formatReportNarrativeAspectGeometry") &&
+    roadmapReader.includes("separation: aspect.separation") &&
+    roadmapReader.includes("buildPersonalTransitBehavioralInterpretation"),
+  "The live report reader must expose stored actual separation and consume the canonical transit interpretation",
 );
 assert(
   !roadmapTechnical.includes("open={exhaustive}"),
@@ -1040,6 +1131,29 @@ assert(
     roadmapReader.includes('accessMode={premiumBirthUnlocked ? "premium" : "free"}'),
   "FREE_ALL must keep the main report unlocked",
 );
+// HALLEUS_DEEP_NARRATIVE_SLICE1_R5_FAILURESET_RECONCILIATION_20260902
+{
+  const slice1PlannerSource = read("lib/astrology/adaptive-report-planner.ts");
+  const slice1AdaptiveSource = read("components/report/ReportAdaptiveNarrative.tsx");
+  const slice1AspectDisplaySource = read("lib/astrology/report-aspect-display.ts");
+
+  assert(
+    slice1PlannerSource.includes("formatReportNarrativeAspectGeometry") &&
+      slice1PlannerSource.includes("separation: aspect.separation") &&
+      slice1AdaptiveSource.includes("formatReportNarrativeAspectGeometry") &&
+      slice1AdaptiveSource.includes("data-report-astrology-technical-line") &&
+      slice1AspectDisplaySource.includes("actualSeparation"),
+    "Aspect cards must keep human-first titles while canonical visible geometry uses stored actual separation",
+  );
+
+  assert(
+    slice1AspectDisplaySource.includes("formatReportNarrativeAngle") &&
+      slice1AspectDisplaySource.includes("formatReportTechnicalAngle") &&
+      slice1AspectDisplaySource.includes("distanceFromExact"),
+    "Aspect geometry must preserve separate narrative and technical precision without reconstructing the actual angle from orb",
+  );
+}
+
 
 if (failures.length > 0) {
   console.error("Report product quality check failed:");

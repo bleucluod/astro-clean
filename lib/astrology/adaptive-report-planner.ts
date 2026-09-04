@@ -1,4 +1,9 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE3_NATAL_ASPECT_SYNTHESIS_R1_20260902
+// HALLEUS_DEEP_NARRATIVE_SLICE2_CANONICAL_PLACEMENT_SYNTHESIS_R2_20260902
+// HALLEUS_DEEP_NARRATIVE_SLICE1_EXACT_ANGLE_FACT_CONTRACT_R4_20260902
+import { buildAscendantSignNarrative, buildCanonicalHouseNarrative } from "@/lib/astrology/placement-narrative-semantic-matrix";
 import {
+  buildAspectBehavioralInterpretation,
   buildPlacementBehavioralInterpretation,
   type BehavioralAudienceMode,
   type PlacementBehavioralInterpretation,
@@ -8,6 +13,18 @@ import {
   type RealEngineAspectSelectionContext,
 } from "@/lib/astrology/real-engine-aspect-selection";
 import { buildRealEngineChartSignature } from "@/lib/astrology/real-engine-chart-signature";
+import {
+  formatReportAspectDisplay,
+  formatReportNarrativeAspectGeometry,
+} from "@/lib/astrology/report-aspect-display";
+import {
+  buildAdvancedRelevancePlan,
+  type AdvancedRelevancePlan,
+} from "@/lib/astrology/advanced-relevance-engine";
+import {
+  buildUnifiedStorySynthesis,
+  type UnifiedStorySynthesisDiagnostics,
+} from "@/lib/astrology/unified-story-synthesis";
 import { resolveBehavioralAudienceMode } from "@/lib/astrology/report-behavioral-context";
 import {
   ZODIAC_LABELS,
@@ -44,7 +61,8 @@ export type AdaptiveNarrativeAnchorKind =
   | "axis"
   | "ruler-story"
   | "lunar-node-axis"
-  | "element-modality";
+  | "element-modality"
+  | "advanced-pattern";
 
 export type AdaptiveNarrativeEvidence = {
   id: string;
@@ -59,6 +77,7 @@ export type AdaptiveNarrativeAnchor = {
   kind: AdaptiveNarrativeAnchorKind;
   semanticKey: string;
   title: string;
+  technicalLine?: string;
   summary: string;
   dailyLife: string;
   healthyExpression: string;
@@ -103,6 +122,7 @@ export type AdaptiveHouseStory = {
 export type AdaptiveAspectStory = {
   aspect: RealEngineReportAspect;
   title: string;
+  technicalLine: string;
   dailyLife: string;
   healthy: string;
   friction: string;
@@ -135,6 +155,8 @@ export type AdaptiveReportPlan = {
   chartRulerId: string;
   chartRulerLabel: string;
   topStories: AdaptiveNarrativeAnchor[];
+  advancedRelevance: AdvancedRelevancePlan;
+  unifiedSynthesis: UnifiedStorySynthesisDiagnostics;
   bigThree: AdaptivePlacementStory[];
   importantHouses: AdaptiveHouseStory[];
   importantAspects: AdaptiveAspectStory[];
@@ -190,17 +212,6 @@ const PLANET_SYMBOLS: Record<string, string> = {
   uranus: "♅",
   neptune: "♆",
   pluto: "♇",
-};
-
-const ASPECT_DISPLAY: Record<
-  RealEngineReportAspectKind,
-  { label: string; symbol: string; angle: number }
-> = {
-  conjunction: { label: "مقارنه", symbol: "☌", angle: 0 },
-  sextile: { label: "تسدیس", symbol: "⚹", angle: 60 },
-  square: { label: "مربع", symbol: "□", angle: 90 },
-  trine: { label: "تثلیث", symbol: "△", angle: 120 },
-  opposition: { label: "مقابله", symbol: "☍", angle: 180 },
 };
 
 const HOUSE_LABELS: Record<number, string> = {
@@ -295,6 +306,49 @@ function normalizePlanetId(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function formatStoryFactors(planetIds: string[]): string {
+  return uniq(planetIds)
+    .slice(0, 3)
+    .map((planetId) => PLANET_LABELS[normalizePlanetId(planetId)] ?? planetId)
+    .join("، ");
+}
+
+function buildNarrativeTechnicalLine(
+  evidence: AdaptiveNarrativeEvidence[],
+): string {
+  return evidence
+    .slice(0, 3)
+    .map((item) => `${item.label} · ${item.detail}`)
+    .join(" • ");
+}
+
+function placementHumanTheme(planetId: string): string {
+  switch (normalizePlanetId(planetId)) {
+    case "sun":
+      return "هویت و جهت";
+    case "moon":
+      return "نیاز و امنیت";
+    case "mercury":
+      return "فکر و بیان";
+    case "venus":
+      return "ارزش و رابطه";
+    case "mars":
+      return "انگیزه و اقدام";
+    case "jupiter":
+      return "رشد و باور";
+    case "saturn":
+      return "مرز و مسئولیت";
+    case "uranus":
+      return "آزادی و تغییر";
+    case "neptune":
+      return "خیال و مرز";
+    case "pluto":
+      return "قدرت و دگرگونی";
+    default:
+      return "نقش برجسته";
+  }
+}
+
 function getPlacement(placements: RealEngineReportPlacement[], id: string) {
   return placements.find((placement) => normalizePlanetId(placement.id) === normalizePlanetId(id));
 }
@@ -314,13 +368,22 @@ function getChartRulerId(report: AstrologyReport): string {
   return TRADITIONAL_RULERS[sign] ?? "sun";
 }
 
-function aspectEvidence(aspect: RealEngineReportAspect): AdaptiveNarrativeEvidence {
+function aspectEvidence(
+  aspect: RealEngineReportAspect,
+): AdaptiveNarrativeEvidence {
   return {
     id: `aspect:${aspect.id}`,
     kind: "aspect",
     sourceIds: [aspect.id, aspect.firstPlanetId, aspect.secondPlanetId],
-    label: `${PLANET_LABELS[aspect.firstPlanetId] ?? aspect.firstPlanetLabel} ${ASPECT_DISPLAY[aspect.aspectId].label} ${PLANET_LABELS[aspect.secondPlanetId] ?? aspect.secondPlanetLabel}`,
-    detail: `اورب ${aspect.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`,
+    label: `${PLANET_LABELS[aspect.firstPlanetId] ?? aspect.firstPlanetLabel} و ${
+      PLANET_LABELS[aspect.secondPlanetId] ?? aspect.secondPlanetLabel
+    }`,
+    detail: formatReportNarrativeAspectGeometry({
+      aspectId: aspect.aspectId,
+      referenceAngle: aspect.angle,
+      separation: aspect.separation,
+      distanceFromExact: aspect.orb,
+    }),
   };
 }
 
@@ -395,7 +458,7 @@ function buildPatternAnchors(
             anchorId: key,
             kind: "aspect-pattern",
             semanticKey: key,
-            title: `فشار چندجهته روی ${PLANET_LABELS[focal] ?? focal}`,
+            title: `${formatStoryFactors(triple)} — فشار چندجهته`,
             summary: `دو قطب روبه‌رو با دو زاویه چالشی به ${PLANET_LABELS[focal] ?? focal} وصل شده‌اند؛ این سه تماس یک داستان واحدند، نه سه کارت جدا.`,
             dailyLife: focalBehavior?.dailyLifeExample ?? "ممکن است چند خواسته هم‌زمان فعال شوند و واکنش اولیه را سریع‌تر از روشن‌شدن اولویت واقعی جلو بیندازند.",
             healthyExpression: focalBehavior?.healthyExpression ?? "دیدن هر سه بخش ماجرا پیش از تصمیم و تبدیل فشار به یک انتخاب مشخص.",
@@ -407,8 +470,8 @@ function buildPatternAnchors(
             sourceHouseIds: uniq(triple.map((id) => clampHouse(getPlacement(placements, id)?.house)).filter((value): value is RealEngineReportHouseNumber => value !== null)),
             sourcePatternId: key,
             sourceNodeIds: [],
-            rankingReasons: ["سه تماس اصلی یک T-square کامل می‌سازند", `نقطه مرکزی ${PLANET_LABELS[focal] ?? focal} در هر دو مربع حضور دارد`],
-            evidenceRefs: [{ id: key, kind: "pattern", sourceIds: [...edges.map((edge) => edge.id), ...triple], label: "T-square", detail: edges.map((edge) => `${PLANET_LABELS[edge.firstPlanetId] ?? edge.firstPlanetLabel} ${ASPECT_DISPLAY[edge.aspectId].label} ${PLANET_LABELS[edge.secondPlanetId] ?? edge.secondPlanetLabel} · ${edge.orb.toFixed(1)}°`).join(" · ") }],
+            rankingReasons: ["سه رابطهٔ اصلی یک الگوی تی‌اسکوئر کامل می‌سازند", `نقطه مرکزی ${PLANET_LABELS[focal] ?? focal} در هر دو رابطهٔ □ ۹۰° حضور دارد`],
+            evidenceRefs: [{ id: key, kind: "pattern", sourceIds: [...edges.map((edge) => edge.id), ...triple], label: "الگوی تی‌اسکوئر", detail: edges.map((edge) => `${PLANET_LABELS[edge.firstPlanetId] ?? edge.firstPlanetLabel} و ${PLANET_LABELS[edge.secondPlanetId] ?? edge.secondPlanetLabel} · ${formatReportAspectDisplay(edge.aspectId)} · اورب ${edge.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`).join(" • ") }],
             absorbedSemanticKeys: edges.map((edge) => `aspect:${edge.id}`),
           });
           continue;
@@ -422,8 +485,8 @@ function buildPatternAnchors(
             anchorId: key,
             kind: "aspect-pattern",
             semanticKey: key,
-            title: "سه توان که طبیعی‌تر با هم کار می‌کنند",
-            summary: "سه تثلیث یک حلقه هماهنگ ساخته‌اند؛ این الگو بیشتر منبع همراه است تا مسئله‌ای که مجبور باشی حلش کنی.",
+            title: `${formatStoryFactors(triple)} — جریان هماهنگ`,
+            summary: "سه رابطهٔ △ ۱۲۰° یک حلقه هماهنگ ساخته‌اند؛ این الگو بیشتر منبع همراه است تا مسئله‌ای که مجبور باشی حلش کنی.",
             dailyLife: "در موقعیت‌هایی که این سه بخش هم‌زمان لازم‌اند، ممکن است بدون فشار زیاد بتوانی از یکی به دیگری پل بزنی.",
             healthyExpression: "استفاده عمدی از این هماهنگی برای تمام‌کردن یک کار، نه فقط تکیه بر چیزی که همیشه آسان به نظر می‌رسد.",
             friction: "عادی فرض‌کردن توان و استفاده‌نکردن از آن تا زمانی که شرایط بیرونی مجبور کند.",
@@ -434,8 +497,8 @@ function buildPatternAnchors(
             sourceHouseIds: uniq(triple.map((id) => clampHouse(getPlacement(placements, id)?.house)).filter((value): value is RealEngineReportHouseNumber => value !== null)),
             sourcePatternId: key,
             sourceNodeIds: [],
-            rankingReasons: ["سه تثلیث کامل میان سه سیاره ثبت شده‌اند"],
-            evidenceRefs: [{ id: key, kind: "pattern", sourceIds: [...edges.map((edge) => edge.id), ...triple], label: "Grand Trine", detail: edges.map((edge) => `${PLANET_LABELS[edge.firstPlanetId] ?? edge.firstPlanetLabel} △ ${PLANET_LABELS[edge.secondPlanetId] ?? edge.secondPlanetLabel} · ${edge.orb.toFixed(1)}°`).join(" · ") }],
+            rankingReasons: ["سه رابطهٔ △ ۱۲۰° کامل میان سه سیاره ثبت شده‌اند"],
+            evidenceRefs: [{ id: key, kind: "pattern", sourceIds: [...edges.map((edge) => edge.id), ...triple], label: "الگوی مثلث هماهنگ", detail: edges.map((edge) => `${PLANET_LABELS[edge.firstPlanetId] ?? edge.firstPlanetLabel} و ${PLANET_LABELS[edge.secondPlanetId] ?? edge.secondPlanetLabel} · ${formatReportAspectDisplay(edge.aspectId)} · اورب ${edge.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`).join(" • ") }],
             absorbedSemanticKeys: edges.map((edge) => `aspect:${edge.id}`),
           });
         }
@@ -445,73 +508,98 @@ function buildPatternAnchors(
 
   return anchors.sort((a, b) => b.score - a.score || a.semanticKey.localeCompare(b.semanticKey));
 }
-
 function buildClusterAnchors(
   placements: RealEngineReportPlacement[],
   chartRulerId: string,
   audienceMode: BehavioralAudienceMode,
+  retrogrades: Set<string>,
 ): AdaptiveNarrativeAnchor[] {
   const anchors: AdaptiveNarrativeAnchor[] = [];
-  const byHouse = new Map<RealEngineReportHouseNumber, RealEngineReportPlacement[]>();
-  const bySign = new Map<ZodiacKey, RealEngineReportPlacement[]>();
-  const approved = placements.filter((placement) => MAJOR_PLANET_IDS.includes(normalizePlanetId(placement.id) as (typeof MAJOR_PLANET_IDS)[number]));
+  const houseTheme: Record<RealEngineReportHouseNumber, string> = {
+    1: "حضور روشن و شروع بی‌واسطه",
+    2: "امنیت با معیارهای خودت",
+    3: "ذهنی که از ارتباط زنده می‌شود",
+    4: "ریشه‌ای که باید امن باشد",
+    5: "چیزی با امضای خودت",
+    6: "نظمی که از تکرار ساخته می‌شود",
+    7: "نزدیکی بدون گم‌کردن خودت",
+    8: "اعتماد قبل از رهاکردن کنترل",
+    9: "افقی که باید بزرگ‌تر شود",
+    10: "جایگاهی که با عمل ساخته می‌شود",
+    11: "آینده‌ای که با آدم‌ها ساخته می‌شود",
+    12: "خلوتی که دوباره شارژت می‌کند",
+  };
 
-  for (const placement of approved) {
+  const houseGroups = new Map<RealEngineReportHouseNumber, RealEngineReportPlacement[]>();
+  for (const placement of placements) {
     const house = clampHouse(placement.house);
-    if (house) byHouse.set(house, [...(byHouse.get(house) ?? []), placement]);
-    bySign.set(placement.signId, [...(bySign.get(placement.signId) ?? []), placement]);
+    if (!house) continue;
+    houseGroups.set(house, [...(houseGroups.get(house) ?? []), placement]);
   }
-
-  for (const [house, members] of byHouse) {
+  for (const [house, members] of houseGroups) {
     if (members.length < 3) continue;
-    const key = `cluster:house:${house}`;
-    const main = members.find((member) => PERSONAL_PLANET_IDS.has(member.id)) ?? members[0];
     const behavior = buildPlacementBehavioralInterpretation({
-      planetId: main.id,
-      signId: main.signId,
+      planetId: members[0].id,
+      signId: members[0].signId,
       houseNumber: house,
       audienceMode,
+      retrograde: retrogrades.has(members[0].id),
     });
     const labels = members.map((member) => PLANET_LABELS[member.id] ?? member.label);
+    const title = `تمرکز خانه ${house.toLocaleString("fa-IR")} — ${houseTheme[house] ?? HOUSE_LABELS[house]}`;
     anchors.push({
-      anchorId: key,
+      anchorId: `cluster:house:${house}`,
       kind: "cluster",
-      semanticKey: key,
-      title: `تمرکز خانه ${house.toLocaleString("fa-IR")}: ${HOUSE_LABELS[house]}`,
-      summary: `${members.length.toLocaleString("fa-IR")} سیاره اصلی در یک حوزه جمع شده‌اند؛ برای همین بهتر است این بخش به‌عنوان یک سیستم خوانده شود، نه ${members.length.toLocaleString("fa-IR")} تفسیر جدا.`,
-      dailyLife: `${HOUSE_EVENT_EXAMPLES[house]}، چند لایه از هویت، فکر، ارزش یا عمل می‌توانند هم‌زمان درگیر شوند.`,
-      healthyExpression: `توان اصلی این تمرکز، هماهنگ‌کردن ${labels.slice(0, 3).join("، ")} در یک تصمیم واقعی است؛ ${behavior.healthyExpression}.`,
-      friction: `اگر همه این نیروها یک‌جا فشار بیاورند، ممکن است ارزش یک نتیجه یا رابطه بیش از حد به همین حوزه گره بخورد؛ ${behavior.possibleFriction}.`,
+      semanticKey: `cluster:house:${house}`,
+      title,
+      summary: `خانه ${house.toLocaleString("fa-IR")} در این چارت شلوغ است: ${labels.join("، ")} کنار هم قرار گرفته‌اند. برای همین ${HOUSE_LABELS[house]} فقط یک موضوع فرعی نیست و چند بخش شخصیت و تصمیم‌گیری را هم‌زمان به حرکت می‌اندازد.`,
+      dailyLife: `${HOUSE_EVENT_EXAMPLES[house]}، چند خواسته و توان با هم فعال می‌شوند و انتخابی که اینجا می‌کنی معمولاً روی بیش از یک بخش زندگی اثر می‌گذارد.`,
+      healthyExpression: behavior.healthyExpression,
+      friction: `وقتی فشار بالا می‌رود، همهٔ این نیروها می‌توانند روی یک نتیجه یا رابطه جمع شوند؛ ${behavior.possibleFriction}.`,
       action: behavior.smallExperiment,
       score: 155 + members.length * 7 + (members.some((member) => member.id === chartRulerId) ? 15 : 0),
       sourcePlanetIds: members.map((member) => member.id),
       sourceAspectIds: [],
       sourceHouseIds: [house],
-      sourcePatternId: key,
+      sourcePatternId: `cluster:house:${house}`,
       sourceNodeIds: [],
       rankingReasons: [`${members.length} سیاره اصلی در خانه ${house} قرار دارند`, ...(members.some((member) => member.id === chartRulerId) ? ["سیاره راهبر نیز عضو همین تمرکز است"] : [])],
-      evidenceRefs: [buildHouseEvidence(house, members), ...members.slice(0, 5).map(placementEvidence)],
+      evidenceRefs: members.map((member) => placementEvidence(member)),
+      // HALLEUS_R39_STAGE1_HOUSE_CLUSTER_SEMANTIC_OWNERSHIP_S3_20260901
       absorbedSemanticKeys: [`house:${house}:prominence`, `house:${house}`],
     });
   }
 
-  for (const [sign, members] of bySign) {
-    if (members.length < 3) continue;
-    const sameHouseCluster = members.every((member) => clampHouse(member.house) !== null && clampHouse(member.house) === clampHouse(members[0].house));
-    if (sameHouseCluster && byHouse.get(clampHouse(members[0].house)!)?.length === members.length) continue;
-    const key = `cluster:sign:${sign}`;
+  const signGroups = new Map<ZodiacKey, RealEngineReportPlacement[]>();
+  for (const placement of placements) {
+    signGroups.set(placement.signId, [
+      ...(signGroups.get(placement.signId) ?? []),
+      placement,
+    ]);
+  }
+  for (const [sign, members] of signGroups) {
+    if (members.length < 4) continue;
+    // HALLEUS_R39_STAGE1_NESTED_SIGN_CLUSTER_SUPPRESSION_S3_20260901
+    const firstHouse = clampHouse(members[0].house);
+    const nestedInsideSingleHouseCluster =
+      firstHouse !== null &&
+      members.every((member) => clampHouse(member.house) === firstHouse) &&
+      (houseGroups.get(firstHouse)?.length ?? 0) === members.length;
+    if (nestedInsideSingleHouseCluster) continue;
     const behavior = buildPlacementBehavioralInterpretation({
-      planetId: members.find((member) => PERSONAL_PLANET_IDS.has(member.id))?.id ?? members[0].id,
+      planetId: members[0].id,
       signId: sign,
-      houseNumber: members.find((member) => clampHouse(member.house))?.house,
+      houseNumber: clampHouse(members[0].house),
       audienceMode,
+      retrograde: retrogrades.has(members[0].id),
     });
+    const signLabel = SIGN_LABELS[sign] ?? sign;
     anchors.push({
-      anchorId: key,
+      anchorId: `cluster:sign:${sign}`,
       kind: "cluster",
-      semanticKey: key,
-      title: `چند سیاره با روش مشترک ${SIGN_LABELS[sign]}`,
-      summary: `${members.length.toLocaleString("fa-IR")} سیاره در ${SIGN_LABELS[sign]} قرار دارند؛ بنابراین روش این برج در چند کارکرد متفاوت تکرار می‌شود.`,
+      semanticKey: `cluster:sign:${sign}`,
+      title: `${signLabel} — یک زبان مشترک در چند بخش چارت`,
+      summary: `چند سیاره مهم این چارت در ${signLabel} قرار گرفته‌اند؛ بنابراین شیوهٔ ${signLabel} برای فکرکردن، خواستن یا واکنش‌نشان‌دادن در چند جای مختلف تکرار می‌شود و به یکی از امضاهای واضح چارت تبدیل می‌شود.`,
       dailyLife: behavior.dailyLifeExample,
       healthyExpression: behavior.healthyExpression,
       friction: behavior.possibleFriction,
@@ -520,15 +608,15 @@ function buildClusterAnchors(
       sourcePlanetIds: members.map((member) => member.id),
       sourceAspectIds: [],
       sourceHouseIds: uniq(members.map((member) => clampHouse(member.house)).filter((value): value is RealEngineReportHouseNumber => value !== null)),
-      sourcePatternId: key,
+      sourcePatternId: `cluster:sign:${sign}`,
       sourceNodeIds: [],
-      rankingReasons: [`${members.length} سیاره اصلی در ${SIGN_LABELS[sign]} قرار دارند`],
-      evidenceRefs: members.slice(0, 5).map(placementEvidence),
+      rankingReasons: [`${members.length} سیاره اصلی در ${signLabel} قرار دارند`],
+      evidenceRefs: members.map((member) => placementEvidence(member)),
       absorbedSemanticKeys: [],
     });
   }
 
-  return anchors.sort((a, b) => b.score - a.score || a.semanticKey.localeCompare(b.semanticKey));
+  return anchors;
 }
 
 function scorePlanet(
@@ -587,7 +675,7 @@ function buildPlanetAnchors(
         anchorId: `planet:${placement.id}:prominence`,
         kind: "planet" as const,
         semanticKey: `planet:${placement.id}:prominence`,
-        title: `${formatPlacementAstrologyLabel(placement)} — موضوعی که چند بار در این چارت به مرکز داستان برمی‌گردد`,
+        title: `${PLANET_LABELS[placement.id] ?? placement.label} — ${placementHumanTheme(placement.id)}`,
         summary: behavior.plainMeaning,
         dailyLife: behavior.dailyLifeExample,
         healthyExpression: behavior.healthyExpression,
@@ -622,71 +710,41 @@ function formatPlacementAstrologyLabel(
   const house = clampHouse(placement.house);
   return `${symbol ? `${symbol} ` : ""}${planet} در ${sign}${includeHouse && house ? ` · خانه ${house.toLocaleString("fa-IR")}` : ""}`;
 }
-
-function aspectHumanMeaning(aspect: RealEngineReportAspect) {
-  const a = normalizePlanetId(aspect.firstPlanetId);
-  const b = normalizePlanetId(aspect.secondPlanetId);
-  const pair = new Set([a, b]);
-
-  if (pair.has("moon") && pair.has("mars")) return "احساس و واکنش سریع باید یاد بگیرند با یک ریتم جلو بروند";
-  if (pair.has("moon") && pair.has("saturn")) return "نیاز به حمایت با مسئولیت و کنترل روبه‌رو می‌شود";
-  if (pair.has("sun") && pair.has("pluto")) return "دیده‌شدن، قدرت و تغییر عمیق هم‌زمان فعال می‌شوند";
-  if (pair.has("sun") && pair.has("neptune")) return "جهت شخصی وقتی ابهام بالا می‌رود به مرز روشن‌تری نیاز دارد";
-  if (pair.has("mars") && pair.has("saturn")) return "حرکت وقتی سخت‌تر می‌شود که مسئولیت، زمان یا محدودیت وارد ماجراست";
-  if (pair.has("moon") && pair.has("venus")) return "امنیت عاطفی و شیوه دریافت محبت همیشه از یک مسیر نمی‌آیند";
-  if (pair.has("mercury") && pair.has("jupiter")) return "جزئیات و تصویر بزرگ وقتی کنار هم قرار می‌گیرند، فکر را به تصمیم نزدیک‌تر می‌کنند";
-  if (pair.has("mars") && pair.has("jupiter")) return "انگیزه وقتی جهت بزرگ‌تری پیدا می‌کند، سریع‌تر به اقدام تبدیل می‌شود";
-  if (pair.has("jupiter") && pair.has("pluto")) return "باور و میل به تغییر می‌توانند شدت یکدیگر را بیشتر کنند";
-
-  const first = PLANET_LABELS[a] ?? aspect.firstPlanetLabel;
-  const second = PLANET_LABELS[b] ?? aspect.secondPlanetLabel;
+function aspectHumanTheme(aspect: RealEngineReportAspect): string {
+  const ids = [
+    normalizePlanetId(aspect.firstPlanetId),
+    normalizePlanetId(aspect.secondPlanetId),
+  ].sort();
+  const pair = ids.join(":");
+  const pairThemes: Record<string, string> = {
+    "mercury:uranus": "ذهنی که راه تازه پیدا می‌کند",
+    "mercury:pluto": "ذهنی که تا ریشه می‌رود",
+    "mars:saturn": "حرکت زیر فشار",
+    "mars:pluto": "اراده‌ای که عقب نمی‌کشد",
+    "moon:venus": "امنیت و محبت",
+    "jupiter:pluto": "گسترش با شدت و باور",
+    "jupiter:mercury": "جزئیات و تصویر بزرگ",
+    "mars:moon": "احساس و واکنش",
+    "moon:saturn": "نیاز و مسئولیت",
+    "pluto:sun": "هویت و دگرگونی",
+    "neptune:sun": "جهت و مرز",
+    "jupiter:mars": "انگیزه و گسترش",
+  };
+  if (pairThemes[pair]) return pairThemes[pair];
   return DYNAMIC_ASPECTS.has(aspect.aspectId)
-    ? `${first} و ${second} در این چارت همیشه پاسخ یکسانی نمی‌خواهند`
-    : `${first} و ${second} یک توان مشترک می‌سازند که وقتی آگاهانه استفاده شود بیشتر دیده می‌شود`;
+    ? "دو نیرویی که باید تنظیم شوند"
+    : "دو نیرویی که همدیگر را تقویت می‌کنند";
 }
+function aspectBehaviorTitle(aspect: RealEngineReportAspect) {
+  const first =
+    PLANET_LABELS[normalizePlanetId(aspect.firstPlanetId)] ??
+    aspect.firstPlanetLabel;
+  const second =
+    PLANET_LABELS[normalizePlanetId(aspect.secondPlanetId)] ??
+    aspect.secondPlanetLabel;
 
-function aspectBehaviorTitle(
-  aspect: RealEngineReportAspect,
-  placements: RealEngineReportPlacement[],
-) {
-  const firstPlacement = getPlacement(placements, aspect.firstPlanetId);
-  const secondPlacement = getPlacement(placements, aspect.secondPlanetId);
-  const first = firstPlacement
-    ? formatPlacementAstrologyLabel(firstPlacement, false)
-    : `${PLANET_SYMBOLS[normalizePlanetId(aspect.firstPlanetId)] ?? ""} ${PLANET_LABELS[normalizePlanetId(aspect.firstPlanetId)] ?? aspect.firstPlanetLabel}`.trim();
-  const second = secondPlacement
-    ? formatPlacementAstrologyLabel(secondPlacement, false)
-    : `${PLANET_SYMBOLS[normalizePlanetId(aspect.secondPlanetId)] ?? ""} ${PLANET_LABELS[normalizePlanetId(aspect.secondPlanetId)] ?? aspect.secondPlanetLabel}`.trim();
-  const display = ASPECT_DISPLAY[aspect.aspectId];
-
-  return `${first} ${display.symbol} ${display.angle.toLocaleString("fa-IR")}° با ${second} — ${aspectHumanMeaning(aspect)}`;
+  return `${first} و ${second} — ${aspectHumanTheme(aspect)}`;
 }
-
-function behaviorForPlanetInAspect(
-  planetId: string,
-  placements: RealEngineReportPlacement[],
-  otherPlanetId: string,
-  aspectId: string,
-  audienceMode: BehavioralAudienceMode,
-  retrogrades: Set<string>,
-) {
-  const placement = getPlacement(placements, planetId);
-  if (!placement) return null;
-  return buildPlacementBehavioralInterpretation({
-    planetId: placement.id,
-    signId: placement.signId,
-    houseNumber: placement.house,
-    retrograde: retrogrades.has(placement.id),
-    audienceMode,
-    majorAspect: { otherPlanetId, aspectId, primary: true },
-  });
-}
-
-// HALLEUS_REPORT_COPY_COMPOSITION_FINAL_QA_R19_20260808
-function stripLeadingPossibility(value: string) {
-  return value.replace(/^ممکن است\s+/u, "").trim();
-}
-
 function buildAspectAnchors(
   aspects: RealEngineReportAspect[],
   placements: RealEngineReportPlacement[],
@@ -710,35 +768,44 @@ function buildAspectAnchors(
   };
   const ranked = rankRealEngineAspects(aspects, context);
   return ranked.map((aspect, index) => {
-    const first = behaviorForPlanetInAspect(aspect.firstPlanetId, placements, aspect.secondPlanetId, aspect.aspectId, audienceMode, retrogrades);
-    const second = behaviorForPlanetInAspect(aspect.secondPlanetId, placements, aspect.firstPlanetId, aspect.aspectId, audienceMode, retrogrades);
+    const firstPlacement = getPlacement(placements, aspect.firstPlanetId);
+    const secondPlacement = getPlacement(placements, aspect.secondPlanetId);
+    const firstHouse = clampHouse(firstPlacement?.house);
+    const secondHouse = clampHouse(secondPlacement?.house);
+    const relationship = buildAspectBehavioralInterpretation({
+      firstPlanetId: aspect.firstPlanetId,
+      secondPlanetId: aspect.secondPlanetId,
+      firstSignId: firstPlacement?.signId ?? null,
+      secondSignId: secondPlacement?.signId ?? null,
+      firstSignLabel: firstPlacement ? ZODIAC_LABELS[firstPlacement.signId].faName : null,
+      secondSignLabel: secondPlacement ? ZODIAC_LABELS[secondPlacement.signId].faName : null,
+      firstHouseNumber: firstHouse,
+      secondHouseNumber: secondHouse,
+      aspectId: aspect.aspectId,
+      orb: aspect.orb,
+      canonicalAngle: aspect.angle,
+      actualSeparation: aspect.separation,
+      chartRulerId,
+      activeHouseNumbers,
+      retrogradePlanetIds: [...retrogrades],
+      audienceMode,
+    });
     const dynamic = DYNAMIC_ASPECTS.has(aspect.aspectId);
     const core = [aspect.firstPlanetId, aspect.secondPlanetId].some((id) => id === "sun" || id === "moon");
     const ruler = [aspect.firstPlanetId, aspect.secondPlanetId].includes(chartRulerId);
     const personal = [aspect.firstPlanetId, aspect.secondPlanetId].some((id) => PERSONAL_PLANET_IDS.has(id));
     const outerOnly = OUTER_PLANET_IDS.has(aspect.firstPlanetId) && OUTER_PLANET_IDS.has(aspect.secondPlanetId);
     const score = 125 - aspect.orb * 9 + (core ? 18 : 0) + (ruler ? 15 : 0) + (personal ? 12 : 0) + (aspect.orb <= 1.5 ? 18 : 0) - (outerOnly ? 45 : 0) + (dynamic ? 4 : 0) - index * 0.01;
-    const firstHouse = clampHouse(getPlacement(placements, aspect.firstPlanetId)?.house);
-    const secondHouse = clampHouse(getPlacement(placements, aspect.secondPlanetId)?.house);
-    const contextLine = firstHouse && secondHouse && firstHouse !== secondHouse
-      ? `${HOUSE_EVENT_EXAMPLES[firstHouse]} یا ${HOUSE_EVENT_EXAMPLES[secondHouse]}`
-      : firstHouse
-        ? HOUSE_EVENT_EXAMPLES[firstHouse]
-        : secondHouse
-          ? HOUSE_EVENT_EXAMPLES[secondHouse]
-          : "وقتی هر دو موضوع در یک تصمیم واقعی هم‌زمان فعال می‌شوند";
     return {
       anchorId: `aspect:${aspect.id}`,
       kind: "aspect" as const,
       semanticKey: `aspect:${aspect.id}`,
-      title: aspectBehaviorTitle(aspect, placements),
-      summary: dynamic
-        ? "این تماس دو واکنش واقعی را هم‌زمان فعال می‌کند؛ مسئله حذف یکی نیست، بلکه روشن‌کردن زمان و اولویت هر کدام است."
-        : "این تماس یک همکاری طبیعی‌تر میان دو بخش چارت می‌سازد؛ وقتی آن را به نتیجه‌ای واقعی وصل می‌کنی، توانش واضح‌تر دیده می‌شود.",
-      dailyLife: `${contextLine}، ${stripLeadingPossibility(first?.dailyLifeExample ?? "یک واکنش")} و هم‌زمان ${stripLeadingPossibility(second?.dailyLifeExample ?? "نیاز دیگری")}.`,
-      healthyExpression: first?.healthyExpression && second?.healthyExpression ? `${first.healthyExpression}؛ و در همان زمان ${second.healthyExpression}.` : first?.healthyExpression ?? second?.healthyExpression ?? aspect.meaning,
-      friction: dynamic ? `${first?.possibleFriction ?? "فشار بالا می‌رود"}؛ در کنار ${second?.possibleFriction ?? "واکنش دوم هم سخت‌تر می‌شود"}.` : `اگر این توان عادی فرض شود، ${first?.possibleFriction ?? second?.possibleFriction ?? "استفاده آگاهانه از آن عقب می‌افتد"}.`,
-      action: first?.smallExperiment ?? second?.smallExperiment ?? "یک رفتار کوچک و قابل مشاهده را برای این هفته انتخاب کن.",
+      title: aspectBehaviorTitle(aspect),
+      summary: relationship.plainMeaning,
+      dailyLife: relationship.dailyLifeExample,
+      healthyExpression: relationship.healthyExpression,
+      friction: relationship.possibleFriction,
+      action: relationship.smallExperiment,
       score,
       sourcePlanetIds: [aspect.firstPlanetId, aspect.secondPlanetId],
       sourceAspectIds: [aspect.id],
@@ -756,6 +823,7 @@ function buildAspectAnchors(
     };
   });
 }
+
 
 function selectDiverseAspectAnchors(
   anchors: AdaptiveNarrativeAnchor[],
@@ -789,7 +857,6 @@ function selectDiverseAspectAnchors(
 
   return selected;
 }
-
 function buildRulerAnchor(
   placements: RealEngineReportPlacement[],
   aspects: RealEngineReportAspect[],
@@ -799,21 +866,28 @@ function buildRulerAnchor(
 ): AdaptiveNarrativeAnchor | null {
   const placement = getPlacement(placements, chartRulerId);
   if (!placement) return null;
+  const house = clampHouse(placement.house);
   const behavior = buildPlacementBehavioralInterpretation({
     planetId: placement.id,
     signId: placement.signId,
-    houseNumber: placement.house,
-    retrograde: retrogrades.has(placement.id),
+    houseNumber: house,
     audienceMode,
+    retrograde: retrogrades.has(placement.id),
   });
-  const house = clampHouse(placement.house);
-  const tight = aspects.filter((aspect) => aspect.orb <= 2 && [aspect.firstPlanetId, aspect.secondPlanetId].includes(chartRulerId));
+  const tight = aspects
+    .filter(
+      (aspect) =>
+        aspect.orb <= 2.5 &&
+        [aspect.firstPlanetId, aspect.secondPlanetId].includes(chartRulerId),
+    )
+    .sort((a, b) => a.orb - b.orb);
+  const rulerLabel = PLANET_LABELS[chartRulerId] ?? chartRulerId;
   return {
     anchorId: `ruler:${chartRulerId}`,
     kind: "ruler-story",
     semanticKey: `ruler:${chartRulerId}`,
-    title: `سیاره راهبر: ${PLANET_LABELS[chartRulerId] ?? chartRulerId}`,
-    summary: `طالع این چارت با ${PLANET_LABELS[chartRulerId] ?? chartRulerId} هدایت می‌شود؛ در زبان فنی این همان حاکم سنتی طالع است. مهم‌تر از اسم اصطلاح، این است که سبک شروع و تصمیم‌گیری به جایگاه واقعی این سیاره وصل می‌شود.`,
+    title: `${rulerLabel} — نخ راهبر این چارت`,
+    summary: `${rulerLabel} در این چارت نقش راهبر دارد؛ یعنی شیوه‌ای که این سیاره فکر، انتخاب یا حرکت را شکل می‌دهد، در چند بخش دیگر چارت هم تکرار می‌شود.`,
     dailyLife: behavior.dailyLifeExample,
     healthyExpression: behavior.healthyExpression,
     friction: behavior.possibleFriction,
@@ -825,7 +899,7 @@ function buildRulerAnchor(
     sourcePatternId: null,
     sourceNodeIds: [],
     rankingReasons: ["این سیاره حاکم سنتی طالع است", ...(house ? [`در خانه ${house} قرار دارد`] : []), ...(tight.length ? [`${tight.length} تماس نزدیک اصلی دارد`] : [])],
-    evidenceRefs: [placementEvidence(placement), ...tight.slice(0, 2).map(aspectEvidence)],
+    evidenceRefs: [placementEvidence(placement), ...tight.slice(0, 2).map((aspect) => aspectEvidence(aspect))],
     absorbedSemanticKeys: [],
   };
 }
@@ -1000,17 +1074,20 @@ function buildHouseStories(
     const house = clampHouse(placement.house);
     if (house) counts.set(house, [...(counts.get(house) ?? []), placement]);
   }
+
   return [...counts.entries()]
     .map(([house, members]) => {
       let score = members.length * 20;
       if (members.some((member) => member.id === "sun" || member.id === "moon")) score += 18;
       if (members.some((member) => member.id === chartRulerId)) score += 20;
       if ([1, 4, 7, 10].includes(house)) score += 8;
+
       const reasonParts = [
         `${members.length.toLocaleString("fa-IR")} سیاره اصلی در این خانه قرار دارند`,
         members.some((member) => member.id === chartRulerId) ? "سیاره راهبر نیز اینجاست" : null,
         members.some((member) => member.id === "sun" || member.id === "moon") ? "خورشید یا ماه به این حوزه وزن داده" : null,
       ].filter((item): item is string => Boolean(item));
+
       const orderedMembers = [...members].sort((first, second) => {
         const weight = (placement: RealEngineReportPlacement) =>
           (placement.id === "sun" || placement.id === "moon" ? 40 : 0) +
@@ -1018,24 +1095,20 @@ function buildHouseStories(
           (PERSONAL_PLANET_IDS.has(placement.id) ? 20 : 0);
         return weight(second) - weight(first);
       });
-      const primary = orderedMembers[0];
-      const secondary = orderedMembers[1] ?? null;
-      const primaryBehavior = buildPlacementBehavioralInterpretation({
-        planetId: primary.id,
-        signId: primary.signId,
+
+      const houseNarrative = buildCanonicalHouseNarrative({
         houseNumber: house,
-        retrograde: retrogrades.has(primary.id),
+        members: orderedMembers.map((placement) => ({
+          planetId: placement.id,
+          signId: placement.signId,
+          retrograde: retrogrades.has(placement.id),
+        })),
         audienceMode,
       });
-      const secondaryBehavior = secondary
-        ? buildPlacementBehavioralInterpretation({
-            planetId: secondary.id,
-            signId: secondary.signId,
-            houseNumber: house,
-            retrograde: retrogrades.has(secondary.id),
-            audienceMode,
-          })
-        : null;
+      if (!houseNarrative) {
+        throw new Error(`Canonical house synthesis missing for house ${house}`);
+      }
+
       const astrologyLabel = orderedMembers
         .slice(0, 3)
         .map((placement) => formatPlacementAstrologyLabel(placement))
@@ -1048,26 +1121,13 @@ function buildHouseStories(
         planetIds: members.map((member) => member.id),
         reason: reasonParts.join("؛ "),
         astrologyLabel,
-        headline: stripLeadingPossibility(primaryBehavior.plainMeaning),
-        synthesis: [
-          `حضور ${formatPlacementAstrologyLabel(primary)} باعث می‌شود ${HOUSE_LABELS[house]} در این چارت مستقیماً به ${primaryBehavior.focus} وصل شود.`,
-          secondaryBehavior && secondary
-            ? `هم‌زمان ${formatPlacementAstrologyLabel(secondary)} یک لایه دیگر اضافه می‌کند: ${stripLeadingPossibility(secondaryBehavior.plainMeaning)}`
-            : null,
-        ]
-          .filter((item): item is string => Boolean(item))
-          .join(" "),
-        pressure: [
-          primaryBehavior.possibleFriction,
-          secondaryBehavior?.possibleFriction,
-        ]
-          .filter((item): item is string => Boolean(item))
-          .join("؛ "),
-        livedExample: HOUSE_EVENT_EXAMPLES[house],
+        headline: houseNarrative.thesis,
+        synthesis: houseNarrative.synthesis,
+        pressure: houseNarrative.frictionExpression,
+        livedExample: houseNarrative.everydayScene,
         evidence: [buildHouseEvidence(house, members), ...orderedMembers.slice(0, 3).map(placementEvidence)],
       };
     })
-    // HALLEUS_FREE_ALL_ALL_OCCUPIED_HOUSES_20260815
     .sort((a, b) => b.score - a.score || a.houseNumber - b.houseNumber);
 }
 
@@ -1093,6 +1153,26 @@ function absorbSemanticDuplicates(candidates: AdaptiveNarrativeAnchor[]) {
         owning.rankingReasons = uniq([...owning.rankingReasons, ...candidate.rankingReasons]);
         owning.evidenceRefs = dedupeEvidence([...owning.evidenceRefs, ...candidate.evidenceRefs]);
         owning.absorbedSemanticKeys.push(candidate.semanticKey);
+        continue;
+      }
+    }
+    // HALLEUS_R39_CLUSTER_HOUSE_OWNERSHIP_R11_20260901
+    if (candidate.kind === "house") {
+      const owningHouseCluster = accepted.find((story) =>
+        story.kind === "cluster" &&
+        story.semanticKey.startsWith("cluster:house:") &&
+        candidate.sourceHouseIds.length > 0 &&
+        candidate.sourceHouseIds.every((house) => story.sourceHouseIds.includes(house)) &&
+        candidate.sourcePlanetIds.every((planetId) => story.sourcePlanetIds.includes(planetId)),
+      );
+      if (owningHouseCluster) {
+        owningHouseCluster.rankingReasons = uniq([...owningHouseCluster.rankingReasons, ...candidate.rankingReasons]);
+        owningHouseCluster.evidenceRefs = dedupeEvidence([...owningHouseCluster.evidenceRefs, ...candidate.evidenceRefs]);
+        owningHouseCluster.absorbedSemanticKeys = uniq([
+          ...owningHouseCluster.absorbedSemanticKeys,
+          candidate.semanticKey,
+          ...candidate.absorbedSemanticKeys,
+        ]);
         continue;
       }
     }
@@ -1169,7 +1249,7 @@ function buildHouseAnchors(
       anchorId: `house:${house}:prominence`,
       kind: "house" as const,
       semanticKey: `house:${house}:prominence`,
-      title: `خانه مهم: ${HOUSE_LABELS[house]}`,
+      title: `خانه ${house.toLocaleString("fa-IR")} — ${HOUSE_LABELS[house]}`,
       summary: `${members.length.toLocaleString("fa-IR")} سیاره اصلی در خانه ${house.toLocaleString("fa-IR")} قرار دارند${members.some((member) => member.id === chartRulerId) ? " و سیاره راهبر هم در همین حوزه است" : ""}.`,
       dailyLife: HOUSE_EVENT_EXAMPLES[house],
       healthyExpression: "وقتی این حوزه خوب کار می‌کند، چند نیاز متفاوت را به یک تصمیم قابل مشاهده وصل می‌کنی و لازم نیست هر سیاره را جدا از زمینه زندگی بخوانی.",
@@ -1211,7 +1291,7 @@ function buildNodeAnchor(
     anchorId: key,
     kind: "lunar-node-axis",
     semanticKey: key,
-    title: "گره‌های ماه: الگویی که آشناست و مسیری که تو را جلوتر می‌برد",
+    title: "گره جنوبی و گره شمالی — مسیر آشنا و تازه",
     summary: nodeStory.familiarBehavior,
     dailyLife: nodeStory.overuse,
     healthyExpression: nodeStory.usefulSkill,
@@ -1232,6 +1312,29 @@ function buildNodeAnchor(
   };
 }
 
+// HALLEUS_R39_STAGE1_CLUSTER_HOUSE_SELECTION_DEDUPE_20260901
+// HALLEUS_R39_STAGE1_HOUSE_CLUSTER_SELECTION_SCOPE_S3_20260901
+function isHouseClusterStory(story: AdaptiveNarrativeAnchor): boolean {
+  return (
+    story.kind === "cluster" &&
+    story.semanticKey.startsWith("cluster:house:")
+  );
+}
+
+function storiesShareClusterHouseOwnership(
+  first: AdaptiveNarrativeAnchor,
+  second: AdaptiveNarrativeAnchor,
+): boolean {
+  const isClusterHousePair =
+    (isHouseClusterStory(first) && second.kind === "house") ||
+    (first.kind === "house" && isHouseClusterStory(second));
+
+  if (!isClusterHousePair) return false;
+
+  const secondHouseIds = new Set(second.sourceHouseIds);
+  return first.sourceHouseIds.some((houseId) => secondHouseIds.has(houseId));
+}
+
 function chooseTopStories(candidates: AdaptiveNarrativeAnchor[]) {
   const accepted = absorbSemanticDuplicates(candidates);
   const picked: AdaptiveNarrativeAnchor[] = [];
@@ -1244,7 +1347,10 @@ function chooseTopStories(candidates: AdaptiveNarrativeAnchor[]) {
       story.sourcePlanetIds.every((id) => candidate.sourcePlanetIds.includes(id)) &&
       candidate.sourcePlanetIds.every((id) => story.sourcePlanetIds.includes(id)),
     );
-    if (exactOverlap) continue;
+    const clusterHouseOverlap = picked.some((story) =>
+      storiesShareClusterHouseOwnership(story, candidate),
+    );
+    if (exactOverlap || clusterHouseOverlap) continue;
     picked.push(candidate);
   }
   return picked;
@@ -1361,13 +1467,15 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     : null;
   const nodeStory = buildNodeStory(nodes);
   const patterns = buildPatternAnchors(aspects, placements);
-  const clusters = buildClusterAnchors(placements, chartRulerId, audienceMode);
+  // HALLEUS_R39_ADAPTIVE_PLANNER_RUNTIME_FIX_R10_20260901
+  const clusters = buildClusterAnchors(placements, chartRulerId, audienceMode, retrogrades);
   const aspectAnchors = buildAspectAnchors(aspects, placements, chartRulerId, audienceMode, retrogrades);
   const planetAnchors = buildPlanetAnchors(placements, aspects, chartRulerId, audienceMode, retrogrades);
   const houseAnchors = buildHouseAnchors(placements, chartRulerId);
   const rulerAnchor = buildRulerAnchor(placements, aspects, chartRulerId, audienceMode, retrogrades);
   const nodeAnchor = buildNodeAnchor(nodes, nodeStory);
-  const topStories = chooseTopStories([
+  // HALLEUS_ADVANCED_RELEVANCE_SLICE4_20260901
+  const storyCandidates: AdaptiveNarrativeAnchor[] = [
     ...patterns,
     ...clusters,
     ...aspectAnchors,
@@ -1375,7 +1483,54 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     ...houseAnchors,
     ...(nodeAnchor ? [nodeAnchor] : []),
     ...(rulerAnchor ? [rulerAnchor] : []),
-  ]);
+  ];
+  const advancedRelevance = buildAdvancedRelevancePlan({
+    report,
+    storyCandidates,
+    chartRulerId,
+  });
+  const relevanceAwareCandidates = storyCandidates.map((story) => {
+    const adjustment = advancedRelevance.storyAdjustments.find(
+      (item) => item.semanticKey === story.semanticKey,
+    );
+    if (!adjustment) return story;
+
+    const advancedEvidence: AdaptiveNarrativeEvidence[] = adjustment.evidence.map(
+      (item) => ({
+        id: item.id,
+        kind: "pattern",
+        sourceIds: item.sourceIds,
+        label: item.label,
+        detail: item.detail,
+      }),
+    );
+
+    return {
+      ...story,
+      score: story.score + adjustment.scoreBoost,
+      rankingReasons: uniq([
+        ...story.rankingReasons,
+        ...adjustment.rankingReasons,
+      ]),
+      evidenceRefs: dedupeEvidence([
+        ...story.evidenceRefs,
+        ...advancedEvidence,
+      ]),
+      absorbedSemanticKeys: uniq([
+        ...story.absorbedSemanticKeys,
+        ...adjustment.absorbedEvidenceIds,
+      ]),
+    };
+  });
+  // HALLEUS_UNIFIED_SYNTHESIS_SLICE5_20260901
+  const unifiedSynthesis = buildUnifiedStorySynthesis({
+    stories: relevanceAwareCandidates,
+    relevance: advancedRelevance,
+  });
+  const topStories = chooseTopStories(unifiedSynthesis.storyCandidates).map((story) => ({
+    ...story,
+    technicalLine: buildNarrativeTechnicalLine(story.evidenceRefs),
+  }));
 
   const bigThree = ["sun", "moon"]
     .map((id) => getPlacement(placements, id))
@@ -1392,7 +1547,7 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
       houseNumber: 1,
       retrograde: false,
       importance: "core",
-      interpretation: {
+      interpretation: buildAscendantSignNarrative(ascSign) ?? {
         plainMeaning: `رایزینگ ${SIGN_LABELS[ascSign]} شیوه ورود، واکنش اولیه و چیزی را نشان می‌دهد که دیگران زودتر از تو می‌بینند.`,
         dailyLifeExample: HOUSE_EVENT_EXAMPLES[1],
         healthyExpression: `کیفیت ${SIGN_LABELS[ascSign]} را برای شروع به کار می‌گیری بدون اینکه آن را تمام شخصیت خودت فرض کنی.`,
@@ -1414,7 +1569,23 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     }
   }
 
-  const importantHouses = buildHouseStories(placements, chartRulerId, audienceMode, retrogrades);
+  const topClusterHouses = new Set(
+    topStories
+      .filter(
+        (story) =>
+          story.kind === "cluster" &&
+          story.semanticKey.startsWith("cluster:house:"),
+      )
+      .flatMap((story) => story.sourceHouseIds),
+  );
+  // HALLEUS_ADAPTIVE_IMPORTANT_HOUSE_CLUSTER_DEDUPE_R1
+  // HALLEUS_REPORT_CHARTWHEEL_HERO_ROADMAP_POLISH_20260830
+  const importantHouses = buildHouseStories(
+    placements,
+    chartRulerId,
+    audienceMode,
+    retrogrades,
+  ).filter((story) => !topClusterHouses.has(story.houseNumber));
   const consumedTopAspectIds = new Set(topStories.flatMap((story) => story.sourceAspectIds));
   const importantAspects = selectDiverseAspectAnchors(
     aspectAnchors.filter(
@@ -1425,6 +1596,8 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     .map((anchor) => ({
       aspect: aspects.find((aspect) => aspect.id === anchor.sourceAspectIds[0])!,
       title: anchor.title,
+      technicalLine:
+        anchor.technicalLine ?? buildNarrativeTechnicalLine(anchor.evidenceRefs),
       dailyLife: anchor.dailyLife,
       healthy: anchor.healthyExpression,
       friction: anchor.friction,
@@ -1455,6 +1628,8 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     chartRulerId,
     chartRulerLabel: PLANET_LABELS[chartRulerId] ?? chartRulerId,
     topStories,
+    advancedRelevance,
+    unifiedSynthesis: unifiedSynthesis.diagnostics,
     bigThree,
     importantHouses,
     importantAspects,
@@ -1467,6 +1642,32 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
 }
 
 export function assertAdaptiveAnchorIntegrity(plan: AdaptiveReportPlan) {
+  if (plan.unifiedSynthesis.corePlacementExpansion !== false) {
+    throw new Error("Unified synthesis must not expand core placement chapters with advanced points.");
+  }
+  if (plan.unifiedSynthesis.weakAdvancedPromotion !== false) {
+    throw new Error("Unified synthesis must not promote weak advanced evidence.");
+  }
+  for (const story of plan.topStories) {
+    const factorSide = story.title.split(" — ")[0] ?? "";
+    const factorCount = factorSide.split("،").map((item) => item.trim()).filter(Boolean).length;
+    if (factorCount > 3) {
+      throw new Error(`Adaptive title exceeds the three-factor contract: ${story.title}`);
+    }
+  }
+  if (plan.advancedRelevance.asteroidLabAutoPromotion !== false) {
+    throw new Error("Adaptive relevance must not auto-promote Asteroid Lab selections.");
+  }
+  if (plan.advancedRelevance.traditionalLotModernAspectDoctrineApplied !== false) {
+    throw new Error("Adaptive relevance must not apply automatic modern aspect doctrine to traditional Lots.");
+  }
+  for (const item of plan.advancedRelevance.decisions) {
+    if (item.sourceIds.length === 0) {
+      throw new Error(
+        `Adaptive advanced relevance evidence lost source provenance: ${item.id}.`,
+      );
+    }
+  }
   for (const anchor of plan.topStories) {
     if (!anchor.anchorId || !anchor.semanticKey) throw new Error("Adaptive anchor identity is missing.");
     if (anchor.evidenceRefs.length === 0) throw new Error(`Adaptive anchor ${anchor.anchorId} has no evidence.`);
@@ -1487,14 +1688,22 @@ export function assertAdaptiveAnchorIntegrity(plan: AdaptiveReportPlan) {
   }
   const semanticKeys = plan.topStories.map((story) => story.semanticKey);
   if (new Set(semanticKeys).size !== semanticKeys.length) throw new Error("Adaptive top stories contain semantic duplicates.");
-  const clusterHouses = new Set(plan.topStories.filter((story) => story.kind === "cluster").flatMap((story) => story.sourceHouseIds));
-  if (plan.topStories.some((story) => story.kind === "house" && story.sourceHouseIds.some((house) => clusterHouses.has(house)))) {
+  const houseClusterHouses = new Set(
+    plan.topStories
+      .filter(
+        (story) =>
+          story.kind === "cluster" &&
+          story.semanticKey.startsWith("cluster:house:"),
+      )
+      .flatMap((story) => story.sourceHouseIds),
+  );
+  if (plan.topStories.some((story) => story.kind === "house" && story.sourceHouseIds.some((house) => houseClusterHouses.has(house)))) {
     throw new Error("Adaptive top stories contain a cluster/house duplicate.");
   }
   if (plan.topStories.some((story) => story.kind === "planet" && plan.topStories.some((candidate) => candidate.kind === "cluster" && candidate.sourcePlanetIds.includes(story.sourcePlanetIds[0]) && candidate.sourceHouseIds.some((house) => story.sourceHouseIds.includes(house))))) {
     throw new Error("Adaptive top stories repeat a standalone planet already owned by a cluster.");
   }
-  if (plan.importantHouses.some((story) => clusterHouses.has(story.houseNumber))) {
+  if (plan.importantHouses.some((story) => houseClusterHouses.has(story.houseNumber))) {
     throw new Error("Adaptive important houses repeat a top cluster house instead of adding a new layer.");
   }
   const consumedTopAspectIds = new Set(plan.topStories.flatMap((story) => story.sourceAspectIds));

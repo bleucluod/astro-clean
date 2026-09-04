@@ -1,3 +1,4 @@
+// HALLEUS_R39_STAGE1_CHART_PROMINENCE_CHIRON_RECONCILIATION_20260901
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import Module from "node:module";
@@ -647,8 +648,10 @@ const unknownFortuneProfile = buildValidatedSupplementaryPointsProfile(
 );
 assert.equal(unknownFortuneProfile.partOfFortune, null);
 assert.equal(unknownFortuneProfile.chiron, null);
+// HALLEUS_R39_STAGE1_VERTEX_UNKNOWN_TIME_GUARD_S3_20260901
 assert.deepEqual(unknownFortuneProfile.excludedTimeDependentFactors, [
   "part-of-fortune",
+  "vertex",
 ]);
 
 const incompleteFortuneReport = {
@@ -756,7 +759,7 @@ assert.ok(
 );
 assert.ok(
   !fortuneSynthesis.dynamicChapters.some((chapter) => chapter.kind === "chiron"),
-  "Chiron must remain absent from Batch 7 without Batch 5 validation",
+  "Chiron must remain absent when no validated canonical Chiron point exists",
 );
 
 const rulershipSource = fs.readFileSync("lib/astrology/chart-rulership.ts", "utf8");
@@ -923,7 +926,7 @@ assert.ok(!supplementarySection.includes("Chiron"));
 assert.ok(!supplementarySection.includes("کایرون"));
 assert.ok(
   supplementarySource.includes(
-    'CHIRON_VALIDATION_DECISION =\n  "excluded-pending-independent-ephemeris-validation"',
+    'CHIRON_VALIDATION_DECISION =\n  "included-after-independent-ephemeris-validation"',
   ),
 );
 assert.ok(!supplementarySource.includes("astronomy-engine"));
@@ -977,9 +980,9 @@ console.log("- traditional house rulers, chart-ruler path, dispositor chain, and
 console.log("- unknown birth time removes house/Ascendant rulership while preserving time-independent planetary conditions");
 console.log("- HALLEUS_CHART_RULERSHIP_BATCH4_20260807");
 console.log("- Part of Fortune uses the explicit day/night formula and never appears without reliable birth time");
-console.log("- Chiron remains excluded until an independent ephemeris calculation is validated");
+console.log("- Chiron is admitted only from an independently validated canonical calculated point");
 console.log("- HALLEUS_VALIDATED_SUPPLEMENTARY_POINTS_BATCH5_20260807");
 console.log("- seven fixed whole-chart chapters, prominence-gated dynamic chapters, and ten life-area syntheses are fixture-verified");
-console.log("- unknown birth time suppresses house/Ascendant-dependent synthesis and Chiron remains excluded without validation");
+console.log("- unknown birth time suppresses house/Ascendant-dependent synthesis; unavailable Chiron remains fail-closed");
 console.log("- HALLEUS_WHOLE_CHART_SYNTHESIS_BATCH7_20260807");
 console.log("- HALLEUS_CHART_INTELLIGENCE_CONTINUOUS_READER_GUARD_20260808");

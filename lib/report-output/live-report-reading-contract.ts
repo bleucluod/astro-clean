@@ -25,6 +25,7 @@ import {
   type WholeChartSynthesisProfile,
 } from "@/lib/astrology/whole-chart-synthesis";
 import { formatZodiacLabel } from "@/lib/astrology/zodiac-labels";
+import { formatReportAspectDisplay } from "@/lib/astrology/report-aspect-display";
 import { enhanceReportOutputV3 } from "@/lib/report-output/report-v3";
 import type {
   AstrologyReport,
@@ -179,21 +180,13 @@ export function selectPrimaryNarrativeAspects(
   return output;
 }
 
-const STANDARD_ASPECT_LABELS: Record<RealEngineReportAspect["aspectId"], string> = {
-  conjunction: "مقارنه",
-  sextile: "تسدیس",
-  square: "مربع",
-  trine: "تثلیث",
-  opposition: "مقابله",
-};
-
 export function buildTechnicalAspectRows(
   aspects: RealEngineReportAspect[],
 ): ReportTechnicalAspectRow[] {
   return aspects.map((aspect) => ({
     id: aspect.id,
     planets: `${aspect.firstPlanetLabel} — ${aspect.secondPlanetLabel}`,
-    type: STANDARD_ASPECT_LABELS[aspect.aspectId],
+    type: formatReportAspectDisplay(aspect.aspectId),
     exactAngle: aspect.angle,
     separation: aspect.separation,
     orb: aspect.orb,

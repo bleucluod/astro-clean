@@ -1,3 +1,5 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE5_ADAPTIVE_DEPTH_VISUAL_RECONCILIATION_R7_20260903
+// HALLEUS_R39_NARRATIVE_RECOMPOSITION_GUARD_OWNERSHIP_R4_20260902
 import fs from "node:fs";
 import Module, { createRequire } from "node:module";
 import path from "node:path";
@@ -349,14 +351,22 @@ const transitBridgeSource = read("src/lib/report-output/personal-transit-report-
 const reportGenerationSource = read("lib/report-generation/report-generation-service.ts");
 
 for (const marker of [
-  "خلاصه", "خورشید، ماه و رایزینگ", "سیاره راهبر", "مهم‌ترین الگوهای این چارت", "خانه‌های مهم",
-  "رابطه‌های مهم", "دست‌های ماه", "ترکیب انرژی‌ها", "سه کار برای این هفته", "سیاره‌ها در زندگی روزمره",
+  "خوانش کلی", "خورشید، ماه، رایزینگ، عطارد، مریخ و زهره", "سیاره راهبر", "مهم‌ترین الگوهای این چارت", "خانه‌های مهم",
+  "رابطه‌های مهم", "گره‌های ماه", "ترکیب انرژی‌ها", "سه موقعیت که ممکن است این هفته پررنگ شوند", "سیاره‌ها در زندگی روزمره",
 ]) {
   assert(adaptiveSource.includes(marker), `adaptive visible architecture missing: ${marker}`);
 }
 for (const forbidden of ["یک چرخه که می‌شود زودتر دید", "دو روی یک الگو", "فصل نجومی", "سنتز نجومی", "امضای نجومی"]) {
   assert(!adaptiveSource.includes(forbidden), `adaptive primary UI keeps retired article-like copy: ${forbidden}`);
 }
+assert(
+  adaptiveSource.includes("buildRecomposedOpeningStory") &&
+    adaptiveSource.includes('data-adaptive-opening-story="recomposed-two-paragraphs"') &&
+    adaptiveSource.includes('data-report-opening-story="dynamic-two-paragraph"') &&
+    !adaptiveSource.includes("function buildOpeningStory(") &&
+    !adaptiveSource.includes("type AdaptiveOpeningStory ="),
+  "adaptive opening must keep the R39 dynamic two-paragraph topology contract",
+);
 assert(v3Source.includes("ReportAdaptiveNarrative") && v3Source.includes("HALLEUS_REPORT_ADAPTIVE_V3_COMPATIBILITY_20260808"), "ReportV3Experience must route canonical real-engine reports into adaptive narrative while keeping legacy compatibility");
 assert(readerSource.includes('data-report-adaptive-depth="20260808"'), "ProductReader missing adaptive-depth root marker");
 assert((readerSource.match(/<ReportBirthChartWheel/g) ?? []).length === 1, "ProductReader must render exactly one birth-chart wheel");
@@ -364,7 +374,7 @@ assert(readerSource.includes('data-adaptive-compatibility-suppressed='), "Produc
 assert(readerSource.includes("LEGACY_ADAPTIVE_COMPATIBILITY_RENDER = false"), "legacy compatibility surfaces must be explicitly non-rendering");
 if (readerSource.includes("ReportReadingNavigation")) {
   assert(readerSource.includes("ADAPTIVE_REPORT_NAVIGATION") && readerSource.includes("navigation={navigation}"), "canonical adaptive reports must use the product-facing adaptive navigation labels when a navigation surface exists");
-  for (const label of ["خلاصه", "خورشید، ماه و رایزینگ", "مهم‌ترین الگوها", "خانه‌های مهم", "رابطه‌های مهم", "دست‌های ماه", "ترکیب انرژی‌ها", "سه کار برای این هفته", "سیاره‌ها در زندگی روزمره"]) {
+  for (const label of ["خلاصه", "خورشید، ماه، رایزینگ، عطارد، مریخ و زهره", "مهم‌ترین الگوها", "خانه‌های مهم", "رابطه‌های مهم", "گره‌های ماه", "ترکیب انرژی‌ها", "سه موقعیت که ممکن است این هفته پررنگ شوند", "سیاره‌ها در زندگی روزمره"]) {
     assert(readerSource.includes(`label: "${label}"`), `adaptive report navigation missing: ${label}`);
   }
 }
@@ -398,7 +408,13 @@ assert(
   "dark document tail must not reintroduce an unscoped document selector outside the approved report-product scope",
 );
 assert(packageJson.scripts?.["check:report-adaptive-depth"] === "node scripts/check-report-adaptive-depth.mjs", "package.json must expose the focused adaptive-depth guard");
-assert(transitRelevanceSource.includes("HALLEUS_PERSONAL_TRANSIT_NATAL_HOUSE_CONTEXT_20260808") && transitRelevanceSource.includes("natalHouseNumber"), "report-local personal transit copy must consume natal-house context");
+// HALLEUS_DEEP_NARRATIVE_SLICE5_ADAPTIVE_DEPTH_TRANSIT_OWNERSHIP_R2_20260903
+assert(
+  transitBridgeSource.includes("houseNumber: context.natalHouseByBody?.[aspect.natalBody] ?? null") &&
+    transitBridgeSource.includes("signId: natalBody?.signId ?? null") &&
+    transitBridgeSource.includes('retrograde: natalBody?.motion?.status === "retrograde"'),
+  "stored personal transit synthesis must consume natal house/sign/retrograde context in the report data bridge",
+);
 assert(!transitRelevanceSource.includes("این جمله احتمال رفتاری است، نه گزارش یک رویداد قطعی"), "per-card transit disclaimer repetition must be removed in favor of the shared bridge disclaimer");
 assert(transitBridgeSource.includes("HALLEUS_PERSONAL_TRANSIT_REPORT_HOUSE_CONTEXT_BRIDGE_20260808"), "personal-transit bridge must pass natal-house context to the writer");
 assert(reportGenerationSource.includes("HALLEUS_PERSONAL_TRANSIT_SERVICE_HOUSE_CONTEXT_20260808") && reportGenerationSource.includes("natalHouseByBody"), "report generation must derive natal-house context from the stored real-engine snapshot");
@@ -444,9 +460,21 @@ assert(adaptiveSource.includes('plan.balanceStory.title !== "ترکیب انرژ
 assert(adaptiveSource.includes("condensed={topStoryPlanetIds.has(story.planetId)}"), "standalone planet prominence must condense the duplicate placement layer instead of repeating full interpretation");
 assert(read("lib/astrology/adaptive-report-planner.ts").includes("consumedTopAspectIds") && read("lib/astrology/adaptive-report-planner.ts").includes("!topClusterHouses.has(story.houseNumber)"), "planner must enforce top-story ownership across relationship and important-house sections");
 
-// HALLEUS_REPORT_COPY_COMPOSITION_GUARD_R19_20260808
-assert(read("lib/astrology/adaptive-report-planner.ts").includes("HALLEUS_REPORT_COPY_COMPOSITION_FINAL_QA_R19_20260808"), "planner missing R19 copy composition marker");
-assert(read("lib/astrology/adaptive-report-planner.ts").includes("stripLeadingPossibility(first?.dailyLifeExample"), "planner must normalize wrapper-owned leading possibility wording before composing visible aspect copy");
+// HALLEUS_DEEP_NARRATIVE_SLICE3_ASPECT_RELATIONSHIP_GUARD_R3_20260902
+const slice3PlannerSource = read("lib/astrology/adaptive-report-planner.ts");
+assert(
+  slice3PlannerSource.includes("HALLEUS_DEEP_NARRATIVE_SLICE3_NATAL_ASPECT_SYNTHESIS_R1_20260902"),
+  "planner missing Slice 3 canonical aspect synthesis marker",
+);
+assert(
+  slice3PlannerSource.includes("buildAspectBehavioralInterpretation({") &&
+    slice3PlannerSource.includes("actualSeparation: aspect.separation"),
+  "planner must build visible aspect copy from canonical relationship synthesis using stored actual separation",
+);
+assert(
+  !slice3PlannerSource.includes("stripLeadingPossibility(first?.dailyLifeExample"),
+  "planner must not retain the legacy R19 A+B aspect composition path",
+);
 
 if (failures.length > 0) {
   console.error("Adaptive report depth/evidence guard failed:");
@@ -462,9 +490,11 @@ console.log("- cluster ownership is order-independent when standalone planet pro
 console.log("- duplicate balance heading and standalone planet-placement repetition are suppressed");
 console.log("- HALLEUS_REPORT_SEMANTIC_FINAL_QA_GUARD_R18_20260808");
 console.log("- visible aspect copy cannot produce the doubled ممکن است ممکن است phrase");
-console.log("- HALLEUS_REPORT_COPY_COMPOSITION_GUARD_R19_20260808");
+console.log("- HALLEUS_DEEP_NARRATIVE_SLICE3_ASPECT_RELATIONSHIP_GUARD_R3_20260902");
 console.log("- smooth charts are not forced into a weak conflict narrative");
 console.log("- node-boundary confidence and caregiver mode remain explicit");
 console.log("- targeted sign/retrograde behaviors are concrete and planet-aware");
 console.log("- visible report architecture is adaptive, monochrome, one-wheel, and dark through the document tail");
 console.log("- HALLEUS_REPORT_ADAPTIVE_DEPTH_EVIDENCE_INTEGRITY_20260808");
+
+// HALLEUS_R39_ADAPTIVE_OPENING_GUARD_RECONCILIATION_R8_20260901

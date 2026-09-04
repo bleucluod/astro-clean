@@ -1,3 +1,4 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE4_PERSONAL_TRANSIT_SYNTHESIS_R1_20260902
 import {
   NATAL_TO_TRANSIT_CALCULATION_PROBE_STATUS,
   NATAL_TO_TRANSIT_CALCULATION_PROBE_VERSION,
@@ -152,18 +153,27 @@ function buildReadyReportData(
     },
     audienceMode,
     relevanceVersion: PERSONAL_TRANSIT_RELEVANCE_VERSION,
-    visibleAspectHighlights: selectedAspects.map((aspect) => ({
-      ...toAspectSummary(aspect),
-      relevanceScore: roundToTwo(scorePersonalTransitRelevance(aspect, context)),
-      interpretation: buildPersonalTransitBehavioralInterpretation(
-        aspect,
-        audienceMode,
-        context.natalHouseByBody?.[aspect.natalBody] ?? null,
-      ),
-      // HALLEUS_PERSONAL_TRANSIT_REPORT_HOUSE_CONTEXT_BRIDGE_20260808
-    })),
+    visibleAspectHighlights: selectedAspects.map((aspect) => {
+      const natalBody = probeResult.bodies.natal.find(
+        (body) => body.id === aspect.natalBody,
+      );
+      return {
+        ...toAspectSummary(aspect),
+        relevanceScore: roundToTwo(scorePersonalTransitRelevance(aspect, context)),
+        interpretation: buildPersonalTransitBehavioralInterpretation(
+          aspect,
+          audienceMode,
+          {
+            houseNumber: context.natalHouseByBody?.[aspect.natalBody] ?? null,
+            signId: natalBody?.signId ?? null,
+            retrograde: natalBody?.motion?.status === "retrograde",
+          },
+        ),
+        // HALLEUS_PERSONAL_TRANSIT_REPORT_HOUSE_CONTEXT_BRIDGE_20260808
+      };
+    }),
     technicalDisclaimer:
-      "این کارت‌ها از همان snapshot ذخیره‌شده انتخاب شده‌اند؛ اورب فقط نزدیکی هندسی را نشان می‌دهد و هیچ رویداد یا پیش‌بینی قطعی نمی‌سازد.",
+      "این کارت‌ها از همان snapshot ذخیره‌شده انتخاب شده‌اند؛ زاویهٔ واقعی و فاصله از زاویهٔ دقیق فقط هندسهٔ تماس را نشان می‌دهند و هیچ رویداد یا پیش‌بینی قطعی نمی‌سازند.",
     limitations: [
       "The stored personal-transit snapshot belongs to transitLocalDate/sampleLocalTime and must not be relabeled as today on later report views.",
       "Phase one uses calculated natal bodies and calculated current-residence transit bodies only; houses, angles, lunar nodes, and Lilith transits remain outside this comparison.",

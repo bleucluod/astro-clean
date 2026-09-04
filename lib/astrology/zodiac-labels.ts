@@ -9,7 +9,7 @@ type ZodiacLabel = {
 };
 
 export const ZODIAC_LABELS: Record<ZodiacKey, ZodiacLabel> = {
-  aries: { faName: "قوچ", enName: "Aries" },
+  aries: { faName: "اریس", enName: "Aries" },
   taurus: { faName: "تارس", enName: "Taurus" },
   gemini: { faName: "جمنای", enName: "Gemini" },
   cancer: { faName: "کنسر", enName: "Cancer" },

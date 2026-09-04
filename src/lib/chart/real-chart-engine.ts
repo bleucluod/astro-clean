@@ -1,4 +1,5 @@
 import * as Astronomy from "astronomy-engine";
+import type { RealEngineReportSpecialPoint, RealEngineReportSpecialistAstrology } from "@/types/astro";
 import {
   buildNormalizedChart,
   type NormalizedChart,
@@ -20,6 +21,10 @@ import {
   calculateLocalOsculatingBlackMoonLilith,
   type LilithInternalAdapterResult,
 } from "./lilith-internal-adapter";
+import {
+  buildUnifiedSpecialPoints,
+} from "./unified-special-points";
+import { buildSpecialistAstrologySlice3 } from "./specialist-astrology-slice3";
 
 export const REAL_CHART_WORKBENCH_VERSION = "0.1.284c" as const;
 
@@ -136,6 +141,8 @@ export type RealChartWorkbenchResult = {
   retrogradePlanetIds: string[];
   lunarNodes: RealChartCalculatedLunarNodes;
   lilith: RealChartCalculatedLilith;
+  specialPoints: RealEngineReportSpecialPoint[];
+  specialistAstrology: RealEngineReportSpecialistAstrology;
   normalizedChart: NormalizedChart;
 };
 
@@ -234,6 +241,22 @@ export function buildRealChartWorkbenchResult(
     })),
   });
 
+  const specialPoints = buildUnifiedSpecialPoints({
+    utcDate,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    ascendantLongitude,
+    normalizedChart,
+  });
+  const specialistAstrology = buildSpecialistAstrologySlice3({
+    utcDate,
+    chart: normalizedChart,
+    ascendantLongitude,
+    midheavenLongitude,
+    specialPoints,
+  });
+
+  // HALLEUS_ADVANCED_ASTROLOGY_SLICE2_R1_20260830
   return {
     version: REAL_CHART_WORKBENCH_VERSION,
     input,
@@ -252,6 +275,8 @@ export function buildRealChartWorkbenchResult(
       .map((placement) => placement.id),
     lunarNodes,
     lilith,
+    specialPoints,
+    specialistAstrology,
     normalizedChart,
     calculationNotes: [
       "Planetary positions are calculated from an Earth-centered vector and converted to the ecliptic plane with astronomy-engine.",
@@ -267,6 +292,7 @@ export function buildRealChartWorkbenchResult(
       "Retrograde motion is calculated from apparent geocentric ecliptic longitude sampled around the birth time.",
       "Local True/Osculating lunar nodes are calculated from Astronomy Engine GeoMoonState and the instantaneous lunar orbital plane; no external API or Swiss runtime dependency is used.",
       "Local True/Osculating Black Moon Lilith is calculated from the validated local Moon state-vector adapter; bounded natal-report interpretation is enabled after independent offline reference fixtures passed.",
+      "Fortune and Vertex use the unified local special-point contract; Chiron and external advanced bodies stay deferred until an approved offline ephemeris provider passes independent validation.",
       "Natal accuracy depends on exact civil birth time, timezone id, and city coordinates; uncertain birth time must be disclosed before paid/private reports.",
       "Timezone and midnight-boundary behavior is guarded by natal accuracy hardening checks before the report claims production-grade precision.",
       "This is the first user-visible real chart workbench, not the final paid report engine.",

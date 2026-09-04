@@ -256,6 +256,114 @@ export type RealEngineReportLilith =
   | RealEngineReportDeferredCalculation
   | RealEngineReportCalculatedLilith;
 
+
+// HALLEUS_ADVANCED_ASTROLOGY_SLICE2_R1_20260830
+export type RealEngineReportSpecialPointId =
+  | "chiron"
+  | "part-of-fortune"
+  | "vertex"
+  | "ceres"
+  | "pallas"
+  | "juno"
+  | "vesta"
+  | "eris"
+  | "pholus"
+  | "nessus";
+
+export type RealEngineReportSpecialPointCategory =
+  | "core-special-point"
+  | "advanced-body";
+
+export type RealEngineReportSpecialPointVisibility =
+  | "default-wheel"
+  | "advanced-wheel";
+
+export type RealEngineReportSpecialPointProvenance = {
+  provider: string;
+  reference: string | null;
+  validation: string;
+};
+
+export type RealEngineReportCalculatedSpecialPoint = {
+  status: "calculated";
+  id: RealEngineReportSpecialPointId;
+  labelFa: string;
+  labelEn: string;
+  category: RealEngineReportSpecialPointCategory;
+  visibility: RealEngineReportSpecialPointVisibility;
+  longitude: number;
+  signId: ZodiacKey;
+  degreeInSign: number;
+  house: RealEngineReportHouseNumber | null;
+  method: string;
+  source: string;
+  reliability: RealEngineReportDataReliability;
+  validationStatus:
+    | "existing-formula-preserved"
+    | "local-regression-fixture-passed"
+    | "cross-ephemeris-reference-fixtures-passed"
+    | "independent-reference-fixtures-passed";
+  provenance: RealEngineReportSpecialPointProvenance;
+  motion?: {
+    status: "direct" | "retrograde" | "stationary";
+    arcDegreesPerDay: number;
+    sampleWindowHours: number;
+    method: "jpl-spk-geocentric-apparent-ecliptic-of-date-central-difference";
+  };
+  calculationContext?: {
+    sect?: "day" | "night";
+    formulaId?: string;
+    geometry?: string;
+  };
+};
+
+export type RealEngineReportDeferredSpecialPoint = {
+  status: "deferred";
+  id: RealEngineReportSpecialPointId;
+  labelFa: string;
+  labelEn: string;
+  category: RealEngineReportSpecialPointCategory;
+  visibility: RealEngineReportSpecialPointVisibility;
+  method: null;
+  source: string;
+  reliability: "not-calculated";
+  validationStatus:
+    | "provider-blocked"
+    | "geometry-blocked"
+    | "input-blocked";
+  provenance: RealEngineReportSpecialPointProvenance;
+  limitation: string;
+};
+
+export type RealEngineReportSpecialPoint =
+  | RealEngineReportCalculatedSpecialPoint
+  | RealEngineReportDeferredSpecialPoint;
+
+
+// HALLEUS_ADVANCED_ASTROLOGY_SLICE3_SPECIALIST_LAYERS_20260831
+export type RealEngineReportFixedStar = {
+  id: string; labelFa: string; labelEn: string; longitude: number; signId: ZodiacKey;
+  degreeInSign: number; house: RealEngineReportHouseNumber | null; source: string; catalogueVersion: string;
+};
+export type RealEngineReportFixedStarContact = {
+  starId: string; starLabelFa: string; starLabelEn: string; anchorId: string; anchorLabel: string;
+  anchorClass: "core-angle-or-luminary" | "other-natal-placement"; orbDegrees: number;
+  narrativeEligibleByContactOnly: false;
+};
+export type RealEngineReportTraditionalLot = {
+  id: "fortune" | "spirit" | "eros" | "necessity" | "courage" | "victory" | "nemesis";
+  labelFa: string; labelEn: string; formulaId: string; tradition: string; sect: "day" | "night";
+  dayNightBehavior: "sect-reversing"; longitude: number; signId: ZodiacKey; degreeInSign: number;
+  house: RealEngineReportHouseNumber | null; houseSystemContext: "placidus-placement-only";
+  wholeSignInterpretationApplied: false; source: string;
+};
+export type RealEngineReportSpecialistAstrology = {
+  version: string;
+  fixedStars: { catalogueVersion: string; stars: RealEngineReportFixedStar[]; conjunctionCandidateOrbDegrees: number; conjunctionCandidates: RealEngineReportFixedStarContact[]; narrativePromotion: "deferred-to-slice4-relevance"; };
+  traditionalLots: { formulaSetVersion: string; lots: RealEngineReportTraditionalLot[]; houseInterpretationNote: string; };
+  asteroidLab: { catalogueVersion: string; surface: "separate-search"; mainReportPromotion: "not-automatic"; };
+};
+
 export type RealEngineReportRetrogradeStatus = {
   status: "not-calculated" | "calculated" | "blocked";
   method: string | null;
@@ -318,6 +426,8 @@ export type RealEngineReportSnapshot = {
   retrogrades?: RealEngineReportRetrogradeStatus;
   lunarNodes?: RealEngineReportLunarNodes;
   lilith?: RealEngineReportLilith;
+  specialPoints?: RealEngineReportSpecialPoint[];
+  specialistAstrology?: RealEngineReportSpecialistAstrology;
   chartSignature?: RealEngineChartSignature;
   placements: RealEngineReportPlacement[];
   aspects?: RealEngineReportAspect[];

@@ -1,3 +1,8 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE3_NATAL_ASPECT_SYNTHESIS_R1_20260902
+// HALLEUS_DEEP_NARRATIVE_SLICE2_FAILURESET_RECONCILIATION_R3_20260902
+// HALLEUS_DEEP_NARRATIVE_SLICE2_CANONICAL_PLACEMENT_SYNTHESIS_R2_20260902
+import { buildCanonicalPlacementNarrative } from "@/lib/astrology/placement-narrative-semantic-matrix";
+import { buildCanonicalNatalAspectNarrative } from "@/lib/astrology/natal-aspect-narrative-semantic-matrix";
 export type BehavioralPlanetId =
   | "sun"
   | "moon"
@@ -54,6 +59,17 @@ export type PlacementBehavioralInterpretation = {
   focus: string;
   smallExperiment: string;
   symbolicBody: string;
+  semanticKey?: string;
+  mechanism?: string;
+  contextExpression?: string;
+  specificity?: "targeted" | "matrix-composed";
+  facts?: {
+    planetId: string;
+    signId: string;
+    houseNumber: number;
+    retrograde: boolean;
+    sourceRefs: string[];
+  };
 };
 
 export type PlacementBehavioralInterpretationInput = {
@@ -855,8 +871,40 @@ export function buildPlacementBehavioralInterpretation(
   const signId = normalizeSignId(input.signId);
   const houseNumber = normalizeHouseNumber(input.houseNumber);
   const audienceMode = normalizeAudienceMode(input.audienceMode);
+  const canonical = buildCanonicalPlacementNarrative({
+    planetId,
+    signId,
+    houseNumber,
+    retrograde: input.retrograde,
+    audienceMode,
+  });
+  if (canonical) {
+    const canonicalAspectModifier = buildPlacementAspectModifier(
+      input.majorAspect,
+      audienceMode,
+    );
+    return {
+      plainMeaning: canonical.thesis,
+      dailyLifeExample: canonical.everydayScene,
+      healthyExpression: appendBehavioralModifier(
+        canonical.constructiveExpression,
+        canonicalAspectModifier.healthy,
+      ),
+      possibleFriction: appendBehavioralModifier(
+        canonical.frictionExpression,
+        canonicalAspectModifier.friction,
+      ),
+      focus: canonical.focus,
+      smallExperiment: canonical.actionCue,
+      symbolicBody: PLANET_SEMANTICS[planetId].symbolicBody,
+      semanticKey: canonical.semanticKey,
+      mechanism: canonical.mechanism,
+      contextExpression: canonical.contextExpression,
+      specificity: canonical.specificity,
+      facts: canonical.facts,
+    };
+  }
   const planet = PLANET_SEMANTICS[planetId];
-  const sign = SIGN_SEMANTICS[signId];
   const houseFocus = houseNumber
     ? HOUSE_FOCUS_LABELS[houseNumber]
     : "بخش ثبت‌شده زندگی";
@@ -1184,10 +1232,14 @@ export type AspectBehavioralInterpretationInput = {
   secondPlanetId: string;
   firstSignId?: string | null;
   secondSignId?: string | null;
+  firstSignLabel?: string | null;
+  secondSignLabel?: string | null;
   firstHouseNumber?: number | null;
   secondHouseNumber?: number | null;
   aspectId: string;
   orb?: number | null;
+  canonicalAngle?: number | null;
+  actualSeparation?: number | null;
   chartRulerId?: string | null;
   activeHouseNumbers?: number[];
   retrogradePlanetIds?: string[];
@@ -1297,7 +1349,6 @@ export function isBehavioralAspectInput(
     aspectId in ASPECT_FORM_SEMANTICS
   );
 }
-
 export function buildAspectBehavioralInterpretation(
   input: AspectBehavioralInterpretationInput,
 ): AspectBehavioralInterpretation {
@@ -1322,90 +1373,58 @@ export function buildAspectBehavioralInterpretation(
     patternKey,
     first,
     second,
-    form,
   );
-  const context = buildAspectContextSentence(first, second);
   const relevance = buildAspectRelevanceNote(input, first, second);
   const confidenceNote = buildAspectConfidenceNote(input.orb);
-  const narrativeSummary = buildAspectNarrativeSummary(
-    aspectId,
-    first,
-    second,
-  );
   const retrogradeNote = buildRetrogradeAspectNote(first, second);
+  const canonical = buildCanonicalNatalAspectNarrative({
+    firstPlanetId: first.id,
+    secondPlanetId: second.id,
+    firstSignLabel: input.firstSignLabel,
+    secondSignLabel: input.secondSignLabel,
+    firstHouseNumber: first.houseNumber,
+    secondHouseNumber: second.houseNumber,
+    aspectId,
+    actualSeparation: input.actualSeparation,
+    canonicalAngle: input.canonicalAngle,
+    retrogradePlanetIds: input.retrogradePlanetIds,
+  });
 
-  if (targeted) {
-    const targetedInterpretation: AspectBehavioralInterpretation = {
-      ...targeted,
-      titleFragment: form.titleFragment,
-      narrativeSummary: targeted.plainMeaning,
-      plainMeaning: joinBehavioralSentences(
-        targeted.plainMeaning,
-        context,
-      ),
-      healthyExpression: joinBehavioralSentences(
-        targeted.healthyExpression,
-        relevance,
-      ),
-      possibleFriction: appendBehavioralModifier(
-        targeted.possibleFriction,
-        retrogradeNote,
-      ),
-      focus: buildAspectFocus(first, second),
-      confidenceNote,
-      patternKey,
-    };
-
-    return adaptAspectInterpretationForAudience(
-      targetedInterpretation,
-      audienceMode,
-      first,
-      second,
-      aspectId,
-    );
-  }
-
-  const genericInterpretation: AspectBehavioralInterpretation = {
+  const interpretation: AspectBehavioralInterpretation = {
     titleFragment: form.titleFragment,
-    narrativeSummary,
+    narrativeSummary: canonical.thesis,
     plainMeaning: joinBehavioralSentences(
-      narrativeSummary,
-      context,
+      canonical.contextualThesis,
+      canonical.contextualMechanism,
     ),
-    dailyLifeExample: buildGenericAspectDailyLifeExample(
-      first,
-      second,
-      audienceMode,
-    ),
+    dailyLifeExample:
+      canonical.contextualEverydayScene ||
+      buildGenericAspectDailyLifeExample(first, second, audienceMode),
     healthyExpression: joinBehavioralSentences(
-      buildGenericAspectHealthyExpression(first, second),
+      canonical.contextualConstructiveExpression ||
+        buildGenericAspectHealthyExpression(first, second),
       relevance,
     ),
-    possibleFriction: buildGenericAspectFriction(
-      form,
-      first,
-      second,
-      retrogradeNote,
-    ),
-    smallExperiment: buildGenericAspectExperiment(
-      aspectId,
-      first,
-      second,
-      audienceMode,
-    ),
+    possibleFriction:
+      canonical.contextualFrictionExpression ||
+      buildGenericAspectFriction(form, first, second, retrogradeNote),
+    smallExperiment:
+      (targeted?.smallExperiment ?? canonical.actionCue) ||
+      buildGenericAspectExperiment(aspectId, first, second, audienceMode),
     confidenceNote,
-    focus: buildAspectFocus(first, second),
+    focus: canonical.themes.join(" / ") || buildAspectFocus(first, second),
     patternKey,
   };
 
   return adaptAspectInterpretationForAudience(
-    genericInterpretation,
+    interpretation,
     audienceMode,
     first,
     second,
     aspectId,
   );
 }
+
 
 export function buildPlainDailyAspectInterpretation(
   input: AspectBehavioralInterpretationInput,
@@ -1443,34 +1462,6 @@ function joinBehavioralSentences(
 
   return `${first.replace(/[.؟!]+$/u, "")}. ${second.replace(/[.؟!]+$/u, "")}`;
 }
-
-function buildAspectNarrativeSummary(
-  aspectId: BehavioralAspectId,
-  first: AspectParticipantContext,
-  second: AspectParticipantContext,
-): string {
-  const firstNeed = ASPECT_NEED_BY_PLANET[first.id];
-  const secondNeed = ASPECT_NEED_BY_PLANET[second.id];
-
-  if (aspectId === "conjunction") {
-    return `«${firstNeed}» و «${secondNeed}» تقریباً هم‌زمان فعال می‌شوند و صدای یکدیگر را بلندتر می‌کنند`;
-  }
-
-  if (aspectId === "sextile") {
-    return `«${firstNeed}» و «${secondNeed}» با تمرین آگاهانه می‌توانند به هم کمک کنند`;
-  }
-
-  if (aspectId === "square") {
-    return `میان «${firstNeed}» و «${secondNeed}» اصطکاکی شکل می‌گیرد که به یک تصمیم روشن نیاز دارد`;
-  }
-
-  if (aspectId === "trine") {
-    return `«${firstNeed}» و «${secondNeed}» راحت‌تر با هم همکاری می‌کنند و می‌توانند به یک توان عملی تبدیل شوند`;
-  }
-
-  return `«${firstNeed}» و «${secondNeed}» در دو سر یک محور قرار می‌گیرند و به تعادل نیاز دارند`;
-}
-
 function buildGenericAspectDailyLifeExample(
   first: AspectParticipantContext,
   second: AspectParticipantContext,
@@ -1568,7 +1559,6 @@ function buildTargetedAspectInterpretation(
   patternKey: string,
   first: AspectParticipantContext,
   second: AspectParticipantContext,
-  form: AspectFormSemantic,
 ): Omit<
   AspectBehavioralInterpretation,
   "titleFragment" | "narrativeSummary" | "confidenceNote" | "patternKey"
@@ -1737,31 +1727,6 @@ function buildAspectParticipantContext(
     retrograde: retrogradePlanetIds?.includes(normalizedPlanet) ?? false,
   };
 }
-
-function buildAspectContextSentence(
-  first: AspectParticipantContext,
-  second: AspectParticipantContext,
-): string {
-  const firstHouse = getAspectHouseFocus(first);
-  const secondHouse = getAspectHouseFocus(second);
-  const firstMethod = first.sign?.method;
-  const secondMethod = second.sign?.method;
-
-  if (
-    first.houseNumber &&
-    second.houseNumber &&
-    first.houseNumber === second.houseNumber
-  ) {
-    if (firstMethod && firstMethod === secondMethod) {
-      return `هر دو نیرو در «${firstHouse}»، ${firstMethod} فعال‌اند`;
-    }
-
-    return `هر دو نیرو در «${firstHouse}» فعال‌اند، اما با دو ریتم متفاوت پیش می‌روند`;
-  }
-
-  return `این رابطه میان میدان «${firstHouse}» و میدان «${secondHouse}» شکل می‌گیرد`;
-}
-
 function buildAspectRelevanceNote(
   input: AspectBehavioralInterpretationInput,
   first: AspectParticipantContext,

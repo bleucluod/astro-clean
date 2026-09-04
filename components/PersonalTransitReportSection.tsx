@@ -1,3 +1,4 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE4_PERSONAL_TRANSIT_SYNTHESIS_R1_20260902
 "use client";
 
 import type {
@@ -8,6 +9,7 @@ import {
   buildPersonalTransitBehavioralInterpretation,
   selectPersonalTransitHighlights,
 } from "@/src/lib/report-output/personal-transit-relevance";
+import { formatReportNarrativeAngle } from "@/lib/astrology/report-aspect-display";
 
 const BODY_LABELS_FA: Record<string, string> = {
   sun: "خورشید",
@@ -20,22 +22,6 @@ const BODY_LABELS_FA: Record<string, string> = {
   uranus: "اورانوس",
   neptune: "نپتون",
   pluto: "پلوتو",
-};
-
-const ASPECT_LABELS_FA: Record<string, string> = {
-  conjunction: "هم‌نشینی",
-  opposition: "مقابله",
-  trine: "مثلث",
-  square: "مربع",
-  sextile: "تسدیس",
-};
-
-const ASPECT_ANGLE_LABELS_FA: Record<string, string> = {
-  conjunction: "زاویه‌ی ۰ درجه",
-  opposition: "زاویه‌ی ۱۸۰ درجه",
-  trine: "زاویه‌ی ۱۲۰ درجه",
-  square: "زاویه‌ی ۹۰ درجه",
-  sextile: "زاویه‌ی ۶۰ درجه",
 };
 
 const PERSONAL_TRANSIT_VISIBLE_SECTION_VERSION =
@@ -160,7 +146,7 @@ export function PersonalTransitReportSection({
                   {group.aspects.map((aspect) => (
                     <article className="report-aspect-card" key={aspect.id}>
                       <span className="report-kicker">
-                        {getAspectAngleLabel(aspect.aspect)}
+                        {formatVisibleTransitGeometry(aspect)}
                       </span>
                       <h4>{formatAspectTitle(aspect)}</h4>
                       <p>
@@ -200,7 +186,7 @@ export function PersonalTransitReportSection({
         <div className="notice report-notice">
           <strong>تماس نزدیک قابل گزارش در {transitDateLabel} پیدا نشد.</strong>
           <p>
-            در محدوده رابطه‌های اصلی و اورب‌های تعریف‌شده، تماس نزدیکی پیدا نشد.
+            در محدودهٔ رابطه‌های اصلی و فاصله‌های هندسی تعریف‌شده، تماس نزدیکی پیدا نشد.
             نبود رابطه‌ی نزدیک هم یک نتیجه‌ی محاسباتی است و نباید با نشانه‌ی مصنوعی
             جایگزین شود.
           </p>
@@ -212,7 +198,7 @@ export function PersonalTransitReportSection({
         data-personal-transit-technical-disclaimer="true"
       >
         {data.technicalDisclaimer ??
-          "این مقایسه فقط از snapshot ذخیره‌شده‌ی سیاره‌ها و اورب‌های همان زمان استفاده می‌کند؛ دست‌های ماه، لیلیت، خانه‌ها و زاویه‌ها وارد این محاسبه نشده‌اند و هیچ رویداد قطعی یا پیش‌بینی آینده ساخته نمی‌شود."}
+          "این مقایسه فقط از snapshot ذخیره‌شدهٔ سیاره‌ها و فاصله‌های هندسی همان زمان استفاده می‌کند؛ دست‌های ماه، لیلیت، خانه‌ها و زاویه‌ها وارد این محاسبه نشده‌اند و هیچ رویداد قطعی یا پیش‌بینی آینده ساخته نمی‌شود."}
       </p>
     </section>
   );
@@ -258,19 +244,13 @@ function groupVisibleTransitAspects(
     theme,
     aspects: grouped,
   }));
-}
-
-function formatAspectTitle(
+}function formatAspectTitle(
   aspect: PersonalTransitReportDataBridgeSelectedAspectSummary,
 ): string {
-  return [
-    getBodyLabel(aspect.transitBody),
-    "در",
-    getAspectLabel(aspect.aspect),
-    "با",
-    getBodyLabel(aspect.natalBody),
-    "تولدی",
-  ].join(" ");
+  const base = `${getBodyLabel(aspect.transitBody)} → ${getBodyLabel(aspect.natalBody)} تولدی`;
+  return typeof aspect.separation === "number" && Number.isFinite(aspect.separation)
+    ? `${base} — ${formatReportNarrativeAngle(aspect.separation)}`
+    : base;
 }
 
 function formatStatusLabel(status: PersonalTransitReportDataBridge["status"]): string {
@@ -321,12 +301,10 @@ function formatLocalTime(sampleLocalTime: string | null | undefined): string | n
 
 function getBodyLabel(body: string): string {
   return BODY_LABELS_FA[body] ?? body;
-}
-
-function getAspectLabel(aspect: string): string {
-  return ASPECT_LABELS_FA[aspect] ?? aspect;
-}
-
-function getAspectAngleLabel(aspect: string): string {
-  return ASPECT_ANGLE_LABELS_FA[aspect] ?? "زاویه‌ی اصلی";
+}function formatVisibleTransitGeometry(
+  aspect: PersonalTransitReportDataBridgeSelectedAspectSummary,
+): string {
+  return typeof aspect.separation === "number" && Number.isFinite(aspect.separation)
+    ? `زاویهٔ واقعی ${formatReportNarrativeAngle(aspect.separation)}`
+    : "تماس ذخیره‌شده؛ زاویهٔ واقعی در snapshot موجود نیست";
 }

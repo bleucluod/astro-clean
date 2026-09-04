@@ -1,47 +1,104 @@
-import fs from "node:fs";
+// HALLEUS_DEEP_NARRATIVE_SLICE4_LIVE_TRANSIT_OWNERSHIP_GUARD_R8_20260903
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
-function read(file) { return fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n"); }
-function assert(condition, message) { if (!condition) throw new Error(message); }
+const repoRoot = path.resolve(process.argv[2] || process.cwd());
+const failures = [];
+
+function read(relativePath) {
+  return readFileSync(path.join(repoRoot, relativePath), "utf8").replace(/\r\n/g, "\n");
+}
+
+function assert(condition, message) {
+  if (!condition) failures.push(message);
+}
 
 const routePage = read("app/reports/[reportId]/page.tsx");
 const reportDetail = read("components/ReportDetail.tsx");
-const personalTransit = read("components/PersonalTransitReportSection.tsx");
-const reconciliation = read("scripts/check-report-live-feature-reconciliation.mjs");
-const projectContext = read("docs/HALLEUS_PROJECT_CONTEXT.md");
+const productReader = read("components/report/ReportProductReader.tsx");
+const transit = read("src/lib/report-output/personal-transit-relevance.ts");
+const bridge = read("src/lib/report-output/personal-transit-report-data-bridge.ts");
+const probe = read("src/lib/chart/natal-to-transit-calculation-probe.ts");
 
-assert(routePage.includes("ReportDetail"), "Live report route must render ReportDetail.");
-assert(reportDetail.includes('from "@/components/PersonalTransitReportSection"'), "ReportDetail must import PersonalTransitReportSection.");
-assert(reportDetail.includes("personalTransitReportData"), "ReportDetail must use personalTransitReportData.");
-assert(reportDetail.includes("engineData") && reportDetail.includes("personalTransitReportData"), "ReportDetail must read personal transit from stored engineData.");
-assert(reportDetail.includes("<PersonalTransitReportSection data={personalTransitReportData} />"), "ReportDetail must render PersonalTransitReportSection with stored report data.");
-assert(reportDetail.includes('id="personal-transit"'), "ReportDetail must expose the personal-transit anchor.");
-assert(reportDetail.includes("آسمان ثبت‌شده"), "ReportDetail must expose the stored-sky personal transit tab label.");
-assert(reportDetail.includes("v0.1.288-report-special-points-transit-final-qa"), "ReportDetail missing v0.1.288 personal transit marker.");
-assert(reportDetail.includes("تهران را پیش‌فرض نمی‌گیرد"), "ReportDetail must preserve no silent Tehran missing-state copy.");
-assert(reportDetail.includes("هنگام بازکردن گزارش قدیمی داده‌ی تازه‌ای جایگزین نمی‌کند"), "ReportDetail must preserve stored-snapshot trust copy.");
+assert(
+  routePage.includes('from "@/components/ReportDetail"') &&
+    routePage.includes("<ReportDetail"),
+  "Live report route must render ReportDetail.",
+);
 
-const personalTransitReaderIndex = reportDetail.indexOf("getPersonalTransitReportData");
-const personalTransitSectionIndex = reportDetail.indexOf("report-detail-live-personal-transit-card");
-assert(personalTransitReaderIndex >= 0, "ReportDetail must contain the personal transit data reader.");
-assert(personalTransitSectionIndex >= 0, "ReportDetail must contain the live personal transit section.");
+assert(
+  reportDetail.includes('from "@/components/report/ReportProductReader"') &&
+    reportDetail.includes("<ReportProductReader"),
+  "ReportDetail must delegate the live report reading surface to ReportProductReader.",
+);
 
-const personalTransitContext = [
-  reportDetail.slice(personalTransitReaderIndex, personalTransitReaderIndex + 900),
-  reportDetail.slice(personalTransitSectionIndex, personalTransitSectionIndex + 1800),
-].join("\n");
-assert(!personalTransitContext.includes("localStorage"), "Personal transit bridge must not read localStorage.");
-assert(!personalTransitContext.includes("navigator.geolocation"), "Personal transit bridge must not infer browser geolocation.");
-assert(!personalTransitContext.includes("window.location"), "Personal transit bridge must not infer browser location.");
-assert(!personalTransitContext.includes("currentResidence: {"), "Personal transit bridge must not construct fake currentResidence data.");
+assert(
+  productReader.includes("engineData?.personalTransitReportData") &&
+    productReader.includes("function HumanTransitReading") &&
+    productReader.includes("<HumanTransitReading data={transitData}") &&
+    productReader.includes('data-report-reader-mode="stored-transit"'),
+  "ReportProductReader must own the live stored-transit reading.",
+);
 
-assert(personalTransit.includes("export function PersonalTransitReportSection"), "PersonalTransitReportSection must exist.");
-assert(personalTransit.includes("missing-current-residence"), "PersonalTransitReportSection must preserve missing residence state.");
-assert(personalTransit.includes("بدون پیش‌فرض پنهان تهران"), "PersonalTransitReportSection must preserve no silent Tehran copy.");
-assert(personalTransit.includes("formatTransitLocalDate"), "PersonalTransitReportSection must format the stored transit date.");
-assert(!personalTransit.includes("آسمان امروز نسبت به چارت تولد تو"), "Stored personal transit must not be relabeled as today.");
+assert(
+  productReader.includes("formatReportNarrativeAspectGeometry") &&
+    productReader.includes("separation: aspect.separation") &&
+    productReader.includes("buildPersonalTransitBehavioralInterpretation"),
+  "Live transit reading must expose stored actual separation and consume the canonical transit interpretation.",
+);
 
-assert(!reconciliation.includes('["PersonalTransitReportSection", personalTransitSection]'), "Reconciliation guard must not count personal transit as non-live.");
-assert(reconciliation.includes("<PersonalTransitReportSection data={personalTransitReportData} />"), "Reconciliation guard must assert live personal transit render.");
-assert(projectContext.includes("v0.1.288 report special-points/transit final QA"), "Project context must record v0.1.288 personal transit trust boundary.");
+assert(
+  productReader.includes("const today = isTransitDateToday(data.transitLocalDate") &&
+    productReader.includes('const missingResidence = data.status === "missing-current-residence"') &&
+    productReader.includes("formatTransitLocalDate(data.transitLocalDate)") &&
+    productReader.includes("today ?"),
+  "Live transit reading must preserve stored-date and missing-residence behavior.",
+);
+
+assert(
+  !productReader.includes("navigator.geolocation") &&
+    !productReader.includes("currentResidence: {") &&
+    !productReader.includes("localStorage.getItem"),
+  "Live transit reader must not infer or fabricate current residence.",
+);
+
+assert(
+  transit.includes("HALLEUS_DEEP_NARRATIVE_SLICE4_PERSONAL_TRANSIT_SYNTHESIS_R1_20260902") &&
+    transit.includes("buildPersonalTransitNarrativeSemanticUnit") &&
+    transit.includes("buildTransitFactLead(") &&
+    transit.includes("buildTransitTechnicalDetail(") &&
+    transit.includes("formatReportNarrativeAngle"),
+  "Personal transit writer must use ordered-pair synthesis with actual-separation presentation.",
+);
+
+assert(
+  !transit.includes("makeTransitClauseDirect("),
+  "Retired transit composition helper must remain removed.",
+);
+
+assert(
+  bridge.includes("visibleAspectHighlights") &&
+    bridge.includes("natalBody?.signId") &&
+    bridge.includes('motion?.status === "retrograde"') &&
+    bridge.includes("probeResult.aspects.map(toAspectSummary)") &&
+    bridge.includes("currentResidenceRequired: true") &&
+    bridge.includes("noSilentTehranDefaultForPersonalTransit: true") &&
+    bridge.includes("missing-current-residence"),
+  "Stored bridge must preserve natal context, complete snapshot, and current-residence trust boundary.",
+);
+
+assert(
+  probe.includes("return aspects.sort((left, right) => left.orb - right.orb);"),
+  "Raw personal-transit calculation output/order must remain unchanged.",
+);
+
+if (failures.length > 0) {
+  console.error("Report live personal transit guard failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
 
 console.log("Report live personal transit guard passed.");
+console.log("- ReportProductReader is the live stored-transit owner.");
+console.log("- ordered-pair synthesis and stored actual separation are preserved.");
+console.log("- stored-date/current-residence trust behavior is checked structurally without localized string matching.");

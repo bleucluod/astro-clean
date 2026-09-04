@@ -219,6 +219,9 @@ export function buildRealEngineSnapshot(
     retrogrades: buildCalculatedRetrogradeStatus(realChart),
     lunarNodes: buildCalculatedLunarNodes(realChart),
     lilith: buildCalculatedLilith(realChart),
+    // HALLEUS_ADVANCED_ASTROLOGY_SLICE2_R1_20260830
+    specialPoints: realChart.specialPoints,
+          specialistAstrology: realChart.specialistAstrology,
     chartSignature: buildRealEngineChartSignature(placements),
     ...(chartReportEnrichment
       ? { houseContext: toRealEngineReportHouseContext(chartReportEnrichment) }

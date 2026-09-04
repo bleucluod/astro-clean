@@ -1,13 +1,12 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE2_FAILURESET_RECONCILIATION_R3_20260902
+// HALLEUS_DEEP_NARRATIVE_SLICE2_CANONICAL_PLACEMENT_SYNTHESIS_R2_20260902
 import type {
   AstrologyReport,
   RealEngineReportAspect,
   RealEngineReportHouseNumber,
   RealEngineReportPlacement,
 } from "@/types/astro";
-import {
-  buildPlacementBehavioralInterpretation,
-  type PlacementBehavioralInterpretation,
-} from "@/lib/astrology/report-behavioral-interpretation";
+import { buildPlacementBehavioralInterpretation } from "@/lib/astrology/report-behavioral-interpretation";
 import {
   getReportBehavioralAudienceMode,
   selectPlacementMajorAspectModifier,
@@ -91,14 +90,6 @@ const PLANET_LABELS: Record<PersonalPlanetId, string> = {
   mercury: "عطارد",
   venus: "زهره",
   mars: "مریخ",
-};
-
-const PLANET_ROLES: Record<PersonalPlanetId, string> = {
-  sun: "هویت، جهت شخصی و شیوه‌ای که انتخاب‌های خودت را به جهان نشان می‌دهی",
-  moon: "امنیت عاطفی، واکنش‌های غریزی، ریتم بدن و حس تعلق",
-  mercury: "فکر، یادگیری، نام‌گذاری تجربه و تبدیل آن به گفت‌وگو یا تصمیم",
-  venus: "ارزش، لذت، جذب، نزدیکی و شیوه انتخاب در رابطه",
-  mars: "میل، اقدام، خشم، جرئت و دفاع از مرزهای شخصی",
 };
 
 const HOUSE_FIELDS: Record<RealEngineReportHouseNumber, string> = {
@@ -234,12 +225,6 @@ function buildPlanetChapter(
     audienceMode,
     majorAspect,
   });
-  const signReading = buildPlacementBehavioralInterpretation({
-    planetId,
-    signId: placement.signId,
-    houseNumber: null,
-    audienceMode,
-  });
   const condition = options.rulership.planetConditions.find(
     (item) => item.planetId === planetId,
   );
@@ -263,19 +248,14 @@ function buildPlanetChapter(
 
   const sections: PersonalPlanetChapterSection[] = [
     section("position", `${label} در ${position}.`, evidence.slice(0, 2)),
-    section("core-meaning", PLANET_ROLES[planetId]),
+    section("core-meaning", cleanSentence(reading.plainMeaning)),
     section(
       "sign-expression",
-      cleanSentence(
-        signReading.plainMeaning ||
-          `${label} در برج ${formatZodiacLabel(placement.signId)} شیوه بیان این سیاره را رنگ می‌زند.`,
-      ),
+      cleanSentence(reading.mechanism ?? reading.plainMeaning),
     ),
     section(
       "house-expression",
-      houseNumber
-        ? `خانه ${formatFa(houseNumber)} این انرژی را بیشتر وارد میدان ${HOUSE_FIELDS[houseNumber]} می‌کند.`
-        : "بدون ساعت تولد معتبر، اثر خانه وارد این فصل نمی‌شود.",
+      houseNumber ? cleanSentence(reading.contextExpression ?? reading.plainMeaning) : "بدون ساعت تولد معتبر، اثر خانه وارد این فصل نمی‌شود.",
     ),
     section(
       "planet-condition",
@@ -341,7 +321,7 @@ function buildPlanetChapter(
     title: `${label}؛ ${chapterTitleSuffix(planetId)}`,
     navigationId,
     available: true,
-    summary: `${label} در ${position}؛ این فصل برج، خانه، وضعیت کلاسیک، جنبه‌ها و تجربه روزمره را در یک مسیر واحد می‌خواند.`,
+    summary: cleanSentence(reading.plainMeaning),
     sections,
   };
 }

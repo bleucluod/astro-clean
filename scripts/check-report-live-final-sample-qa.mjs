@@ -1,3 +1,4 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE5_LIVE_SAMPLE_OWNER_RECONCILIATION_R7_20260903
 import fs from "node:fs";
 
 const repairMarker = "HALLEUS_REPORT_LIVE_CONTINUOUS_EDITORIAL_BATCH1_20260808";
@@ -25,7 +26,9 @@ assertIncludes(routePage, "ReportDetail", "Live report route must render ReportD
 assert(!routePage.includes("ReportCard"), "Live report route must not render ReportCard.");
 for (const marker of [
   "ReportProductReader",
-  '<ReportProductReader report={report} />',
+  "initialAccessPolicy={initialAccessPolicy}",
+  "report={report}",
+  "storedAccessTier={storedAccessTier}",
   'from "@/lib/report-output/visible-report-language"',
   "sanitizeVisibleReportValue(initialReport)",
   "sanitizeVisibleReportText(message)",

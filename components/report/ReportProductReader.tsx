@@ -1,8 +1,18 @@
+// HALLEUS_REPORT_NATIVE_SITE_HEADER_REUSE_R8_20260904
+// HALLEUS_REPORT_MANUAL_MOBILE_REVIEW_REFINEMENT_R3_20260904
+// HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE6_HIERARCHY_RECONCILIATION_R3_20260904
+// HALLEUS_REPORT_EDITORIAL_COHESION_SLICE_R1_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_FINAL_VISUAL_LANGUAGE_RECONCILIATION_R1_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_VISUAL_REVIEW_FAILURESET_REPAIR_R7_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_VISUAL_REVIEW_RECONCILIATION_R1_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_WHOLE_REPORT_RECONCILIATION_R1_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE1_EXACT_ANGLE_FACT_CONTRACT_R4_20260902
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ReportBirthChartWheel } from "@/components/ReportBirthChartWheel";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
+import { ReportAdaptiveOverview } from "@/components/report/ReportAdaptiveNarrative";
 import { buildLiveReportReadingContract } from "@/lib/report-output/live-report-reading-contract";
 import { HUMAN_FIRST_REPORT_NAVIGATION } from "@/lib/report-output/human-first-report-reading";
 import {
@@ -23,6 +33,13 @@ import { FiveMinuteReportSummary } from "@/components/report/FiveMinuteReportSum
 import { ReportTechnicalAppendix } from "@/components/report/ReportTechnicalAppendix";
 import { useProductAccess } from "@/lib/monetization/product-access-client";
 import type { ReportAccessPolicy } from "@/lib/monetization/access-policy";
+import {
+  formatReportNarrativeAspectGeometry,
+} from "@/lib/astrology/report-aspect-display";
+import {
+  joinReportNarrativeSentences,
+  realizeReportSurfaceText,
+} from "@/lib/astrology/report-surface-language-planner";
 import styles from "./human-first-report.module.css";
 
 type ReportWithTransit = AstrologyReport & {
@@ -32,7 +49,7 @@ type ReportWithTransit = AstrologyReport & {
 };
 
 const FLOW_SECTIONS = [
-  { id: "report-summary", label: "خلاصهٔ چارت" },
+  { id: "report-summary", label: "چارت تولد" },
   { id: "report-full", label: "گزارش کامل چارت تولد" },
   { id: "report-sky", label: "آسمان و تو" },
   { id: "report-chart", label: "چارت و جزئیات" },
@@ -53,6 +70,27 @@ const TRANSIT_BODY_LABELS: Record<string, string> = {
   pluto: "پلوتو",
 };
 
+const TRANSIT_SIGN_LABELS: Record<string, string> = {
+  aries: "اریس",
+  taurus: "تارس",
+  gemini: "جمنای",
+  cancer: "کنسر",
+  leo: "لئو",
+  virgo: "ویرگو",
+  libra: "لیبرا",
+  scorpio: "اسکورپیو",
+  sagittarius: "سجتریس",
+  capricorn: "کپریکورن",
+  aquarius: "آکواریوس",
+  pisces: "پایسیز",
+};
+
+function formatTransitMotionLabel(value: string) {
+  if (value === "retrograde") return "پس‌رو";
+  if (value === "stationary") return "ایستا";
+  return "مستقیم";
+}
+
 const TRANSIT_BODY_SYMBOLS: Record<string, string> = {
   sun: "☉",
   moon: "☽",
@@ -66,35 +104,30 @@ const TRANSIT_BODY_SYMBOLS: Record<string, string> = {
   pluto: "♇",
 };
 
-const TRANSIT_ASPECT_LABELS: Record<string, string> = {
-  conjunction: "مقارنه",
-  sextile: "تسدیس",
-  square: "مربع",
-  trine: "تثلیث",
-  opposition: "مقابله",
-};
-
-const TRANSIT_ASPECT_SYMBOLS: Record<string, string> = {
-  conjunction: "☌",
-  sextile: "⚹",
-  square: "□",
-  trine: "△",
-  opposition: "☍",
-};
-
 function formatTransitAstrologyLabel(
   aspect: Pick<
     PersonalTransitReportDataBridgeSelectedAspectSummary,
-    "transitBody" | "natalBody" | "aspect" | "orb"
+    | "transitBody"
+    | "natalBody"
+    | "aspect"
+    | "exactAngle"
+    | "separation"
+    | "orb"
   >,
 ) {
-  const transit = TRANSIT_BODY_LABELS[aspect.transitBody] ?? aspect.transitBody;
+  const transit =
+    TRANSIT_BODY_LABELS[aspect.transitBody] ?? aspect.transitBody;
   const natal = TRANSIT_BODY_LABELS[aspect.natalBody] ?? aspect.natalBody;
   const transitSymbol = TRANSIT_BODY_SYMBOLS[aspect.transitBody] ?? "";
   const natalSymbol = TRANSIT_BODY_SYMBOLS[aspect.natalBody] ?? "";
-  const aspectSymbol = TRANSIT_ASPECT_SYMBOLS[aspect.aspect] ?? "";
-  const aspectLabel = TRANSIT_ASPECT_LABELS[aspect.aspect] ?? aspect.aspect;
-  return `${transitSymbol} ${transit} ترنزیت ${aspectSymbol} ${natalSymbol} ${natal} تولد · ${aspectLabel} · اورب ${aspect.orb.toLocaleString("fa-IR", { maximumFractionDigits: 1 })}°`;
+  const geometry = formatReportNarrativeAspectGeometry({
+    aspectId: aspect.aspect,
+    referenceAngle: aspect.exactAngle,
+    separation: aspect.separation,
+    distanceFromExact: aspect.orb,
+  });
+
+  return `${transitSymbol} ${transit} ترنزیت · ${geometry} · ${natalSymbol} ${natal} تولد`;
 }
 
 export function ReportProductReader({ report, storedAccessTier = null, initialAccessPolicy }: { report: AstrologyReport; storedAccessTier?: string | null; initialAccessPolicy?: ReportAccessPolicy }) {
@@ -123,14 +156,153 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
     initialProgress?.sectionId ?? "overview",
   );
   const [activeFlowSection, setActiveFlowSection] = useState<(typeof FLOW_SECTIONS)[number]["id"]>(
-    "report-summary",
+    "report-full",
   );
+  const [mobileChapterSheetOpen, setMobileChapterSheetOpen] = useState(false);
+  const mobileChapterDialogRef = useRef<HTMLDialogElement>(null);
+  const mobileChapterTriggerRef = useRef<HTMLButtonElement>(null);
   const activeSectionLabel = useMemo(
     () =>
       HUMAN_FIRST_REPORT_NAVIGATION.find((item) => item.id === activeSection)?.label ??
       "امضای چارت",
     [activeSection],
   );
+  const activeChapterIndex = Math.max(
+    0,
+    HUMAN_FIRST_REPORT_NAVIGATION.findIndex((item) => item.id === activeSection),
+  );
+
+  // HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE4_BOTTOM_SHEET_R1_20260903
+  // HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE4_FAILURESET_R2_20260903
+  useEffect(() => {
+    const dialog = mobileChapterDialogRef.current;
+    if (!dialog) return;
+
+    if (!mobileChapterSheetOpen) {
+      if (dialog.open) dialog.close();
+      return;
+    }
+
+    const trigger = mobileChapterTriggerRef.current;
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    const previousOverscrollBehavior = body.style.overscrollBehavior;
+
+    body.dataset.halleusReportChapterSheet = "open";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+
+    if (!dialog.open) dialog.showModal();
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      dialog
+        .querySelector<HTMLButtonElement>('button[data-active="true"]')
+        ?.focus({ preventScroll: true });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      if (dialog.open) dialog.close();
+      body.style.overflow = previousOverflow;
+      body.style.overscrollBehavior = previousOverscrollBehavior;
+      delete body.dataset.halleusReportChapterSheet;
+      trigger?.focus({ preventScroll: true });
+    };
+  }, [mobileChapterSheetOpen]);
+
+  // HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE1_20260903
+  useEffect(() => {
+    const body = document.body;
+    const rootElement = document.querySelector<HTMLElement>(
+      '[data-report-product-reader="human-first-report-experience"]',
+    );
+    const reportHeader = rootElement?.querySelector<HTMLElement>(
+      '[data-report-mobile-header="editorial-v1"]',
+    );
+    const progressFill = rootElement?.querySelector<HTMLElement>(
+      '[data-report-reading-progress-fill="editorial-v1"]',
+    );
+    if (!rootElement) return;
+
+    let frame = 0;
+    let lastScrollY = window.scrollY;
+    let accumulatedDistance = 0;
+    let activeDirection: "up" | "down" | null = null;
+    const hideThreshold = 6;
+
+    const setHeaderVisibility = (visible: boolean) => {
+      if (!reportHeader) return;
+      reportHeader.dataset.reportHeaderVisibility = visible ? "visible" : "hidden";
+    };
+
+    const syncReportChrome = () => {
+      frame = 0;
+      body.dataset.halleusReportReading = "true";
+
+      const reportTop = rootElement.getBoundingClientRect().top + window.scrollY;
+      const reportScrollableDistance = Math.max(
+        rootElement.scrollHeight - window.innerHeight,
+        1,
+      );
+      const reportScrollProgress = Math.min(
+        1,
+        Math.max(0, (window.scrollY - reportTop) / reportScrollableDistance),
+      );
+
+      body.dataset.halleusReportBackToTop =
+        reportScrollProgress >= 0.35 ? "true" : "false";
+      rootElement.dataset.reportScrollProgress = reportScrollProgress.toFixed(4);
+      if (progressFill) {
+        progressFill.style.transform = "scaleX(" + reportScrollProgress.toFixed(4) + ")";
+      }
+
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY;
+
+      if (currentScrollY < reportTop + 96) {
+        setHeaderVisibility(true);
+        accumulatedDistance = 0;
+        activeDirection = null;
+      } else if (scrollDelta !== 0) {
+        const direction = scrollDelta > 0 ? "down" : "up";
+        if (activeDirection !== direction) {
+          activeDirection = direction;
+          accumulatedDistance = Math.abs(scrollDelta);
+        } else {
+          accumulatedDistance += Math.abs(scrollDelta);
+        }
+        if (accumulatedDistance >= hideThreshold) {
+          setHeaderVisibility(direction === "up");
+          accumulatedDistance = 0;
+        }
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    const scheduleSync = () => {
+      if (frame === 0) frame = window.requestAnimationFrame(syncReportChrome);
+    };
+
+    setHeaderVisibility(true);
+    syncReportChrome();
+    window.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("resize", scheduleSync);
+    window.addEventListener("orientationchange", scheduleSync);
+    window.addEventListener("pageshow", scheduleSync);
+
+    return () => {
+      if (frame !== 0) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("resize", scheduleSync);
+      window.removeEventListener("orientationchange", scheduleSync);
+      window.removeEventListener("pageshow", scheduleSync);
+      delete body.dataset.halleusReportReading;
+      delete body.dataset.halleusReportBackToTop;
+      delete rootElement.dataset.reportScrollProgress;
+      progressFill?.style.removeProperty("transform");
+    };
+  }, []);
 
   useEffect(() => {
     const restoreFrame = window.requestAnimationFrame(() => {
@@ -240,6 +412,7 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
     setActiveFlowSection("report-full");
     setActiveSection(sectionId);
     saveReportReadingProgress("reader", report.id, sectionId);
+    setMobileChapterSheetOpen(false);
     closeJourneyNavigator();
     window.requestAnimationFrame(() => {
       document.getElementById(sectionId)?.scrollIntoView({
@@ -260,6 +433,42 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
     });
   }
 
+  // HALLEUS_REPORT_CHARTWHEEL_HERO_ROADMAP_POLISH_20260830
+  function scrollToReportTarget(targetId: string) {
+    const flowTarget = FLOW_SECTIONS.find((section) => section.id === targetId);
+    if (flowTarget) {
+      scrollToFlowSection(flowTarget.id);
+      return;
+    }
+
+    if (targetId === "report-chart-wheel") {
+      setActiveFlowSection("report-summary");
+      closeJourneyNavigator();
+      window.requestAnimationFrame(() => {
+        document.getElementById(targetId)?.scrollIntoView({
+          behavior: prefersReducedMotion() ? "auto" : "smooth",
+          block: "start",
+        });
+      });
+      return;
+    }
+
+    const readingTarget = HUMAN_FIRST_REPORT_NAVIGATION.find(
+      (item) => item.id === targetId,
+    );
+    if (readingTarget) {
+      navigateTo(readingTarget.id as ReportReadingSectionId);
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+  }
+
   return (
     <section
       className={styles.reader}
@@ -272,14 +481,57 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
       data-report-adaptive-depth="20260808"
       data-adaptive-compatibility-suppressed="FiveMinuteReportSummary"
       data-effective-monetization-mode={accessPolicy.monetizationMode}
+      data-report-app-like-mobile="20260903"
+      data-report-editorial-mobile="slice1-20260903"
     >
+
       <div aria-hidden="true" className={styles.ambientLogo} data-report-ambient-logo="parallax" />
+
+
+      {(report.realEngine?.placements?.length ?? 0) > 0 ? (
+        <ReportAdaptiveOverview
+          accessMode={premiumBirthUnlocked ? "premium" : "free"}
+          accessPolicy={accessPolicy}
+          onNavigate={scrollToReportTarget}
+          report={report}
+          afterOpening={
+            <section
+              className={styles.flowSection}
+              data-report-flow-section="summary"
+              id="report-summary"
+              data-report-narrative-layer="chart-after-opening"
+            >
+              <div className={styles.chartDetails} data-screenshot-ready>
+                <div className={styles.chartHeading}>
+                  <p className={styles.eyebrow}>چارت تولد</p>
+                  <h1>{report.input.name?.trim() ? `چارت تولد ${report.input.name.trim()}` : "چارت تولد"}</h1>
+                  <p>
+                    {report.input.name?.trim()
+                      ? `اینجا می‌توانی ببینی داستان ${report.input.name.trim()} از کجای آسمان شروع شده است.`
+                      : "این همان نقشه‌ای است که خوانش گزارش از آن شروع می‌شود."}
+                  </p>
+                </div>
+                <div className={styles.wheelShell} id="report-chart-wheel">
+                  <ReportBirthChartWheel report={report} />
+                </div>
+              </div>
+              {LEGACY_ADAPTIVE_COMPATIBILITY_RENDER ? (
+                <FiveMinuteReportSummary
+                  contract={contract}
+                  onOpenFullReport={navigateTo}
+                />
+              ) : null}
+            </section>
+          }
+        />
+      ) : null}
+
       <details
         className={styles.journeyNavigator}
         data-report-journey-navigator
       >
         <summary>
-          <span>فهرست گزارش</span>
+          <span>بخش‌ها</span>
           <strong>
             {activeFlowSection === "report-full"
               ? activeSectionLabel
@@ -318,33 +570,110 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
         </div>
       </details>
 
+      <div
+        className={styles.mobileChapterNavigator}
+        data-report-mobile-chapter-navigator="slice4-20260903"
+      >
+        <button
+          aria-controls="report-mobile-chapter-sheet"
+          aria-expanded={mobileChapterSheetOpen}
+          aria-haspopup="dialog"
+          className={styles.mobileChapterTrigger}
+          data-report-mobile-chapter-trigger="slice4-20260903"
+          onClick={() => setMobileChapterSheetOpen(true)}
+          ref={mobileChapterTriggerRef}
+          type="button"
+        >
+          <span>
+            {(activeChapterIndex + 1).toLocaleString("fa-IR")} از{" "}
+            {HUMAN_FIRST_REPORT_NAVIGATION.length.toLocaleString("fa-IR")} ·{" "}
+            {activeSectionLabel}
+          </span>
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            viewBox="0 0 24 24"
+            width="16"
+          >
+            <path d="m7 9 5 5 5-5" />
+          </svg>
+        </button>
+
+        <dialog
+          aria-labelledby="report-mobile-chapter-sheet-title"
+          aria-modal="true"
+          className={styles.mobileChapterDialog}
+          data-report-mobile-chapter-dialog="slice4-20260903"
+          id="report-mobile-chapter-sheet"
+          onCancel={(event) => {
+            event.preventDefault();
+            setMobileChapterSheetOpen(false);
+          }}
+          onClose={() => setMobileChapterSheetOpen(false)}
+          ref={mobileChapterDialogRef}
+        >
+          <div className={styles.mobileChapterSheet}>
+            <div aria-hidden="true" className={styles.mobileChapterSheetHandle} />
+            <header className={styles.mobileChapterSheetHeader}>
+              <div>
+                <h2 id="report-mobile-chapter-sheet-title">بخش‌های گزارش</h2>
+                <p>
+                  {(activeChapterIndex + 1).toLocaleString("fa-IR")} از{" "}
+                  {HUMAN_FIRST_REPORT_NAVIGATION.length.toLocaleString("fa-IR")}
+                </p>
+              </div>
+              <button
+                aria-label="بستن بخش‌های گزارش"
+                className={styles.mobileChapterSheetClose}
+                onClick={() => setMobileChapterSheetOpen(false)}
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="18"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  viewBox="0 0 24 24"
+                  width="18"
+                >
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </header>
+            <nav
+              aria-label="بخش‌های گزارش"
+              className={styles.mobileChapterSheetList}
+            >
+              {HUMAN_FIRST_REPORT_NAVIGATION.map((item, index) => (
+                <button
+                  data-active={item.id === activeSection}
+                  data-report-chapter-id={item.id}
+                  data-report-chapter-index={index}
+                  key={item.id}
+                  onClick={() => navigateTo(item.id)}
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={styles.mobileChapterActiveMarker}
+                  />
+                  <span className={styles.mobileChapterNumber}>
+                    {(index + 1).toLocaleString("fa-IR")}
+                  </span>
+                  <strong>{item.label}</strong>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </dialog>
+      </div>
+
       <div className={styles.reportFlow}>
 <section
-  className={styles.flowSection}
-  data-report-flow-section="summary"
-  id="report-summary"
->
-  <div className={styles.chartDetails} data-screenshot-ready>
-    <div className={styles.chartHeading}>
-      <p className={styles.eyebrow}>چارت تولد تو</p>
-      <h1>نقشه‌ای که این خوانش از آن ساخته شده</h1>
-      <p>
-        اول خود چارت را می‌بینی؛ بعد گزارش از مهم‌ترین الگوها به جزئیات می‌رود.
-      </p>
-    </div>
-    <div className={styles.wheelShell}>
-      <ReportBirthChartWheel report={report} />
-    </div>
-  </div>
-  {LEGACY_ADAPTIVE_COMPATIBILITY_RENDER ? (
-    <FiveMinuteReportSummary
-      contract={contract}
-      onOpenFullReport={navigateTo}
-    />
-  ) : null}
-</section>
-
-        <section
           className={styles.flowSection}
           data-report-flow-section="full-report"
           id="report-full"
@@ -370,6 +699,7 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
                 accessPolicy={accessPolicy}
                 fullReportCredits={productAccess.access.balances.fullReport}
                 onUnlockFullReport={() => productAccess.unlockReport(report.id)}
+                renderAdaptiveOverview={false}
                 report={report}
                 readingContract={contract}
               />
@@ -397,6 +727,8 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
             <HumanTransitReading data={transitData} />
           )}
         </section>
+
+
 
         <section
           className={styles.flowSection}
@@ -427,6 +759,164 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
   );
 }
 
+function cleanTransitNarrativeSurface(value: string): string {
+  return value
+    .replace(/^[^.؟!؛]*با زاویهٔ واقعی [^.؟!؛]+(?:رسیده|رسیده است)[؛.!؟]\s*/u, "")
+    .replace(/^از نظر روایی،\s*/u, "")
+    .replace(/^اینجا مسئله فقط حضور دو سیاره نیست:\s*/u, "")
+    .replace(/در نتیجه نحوهٔ پاسخ [^.؟!]+ اهمیت پیدا می‌کند[.؟!]?/gu, "")
+    .replace(/برای فهمیدن این تماس در زندگی روزمره،\s*/gu, "")
+    .replace(/\s+در حوزهٔ [^؛.!؟]+[؛.]?/gu, ". ")
+    .replace(/در چنین وضعی\s*/gu, "")
+    .replace(/\s+([،؛.!؟])/gu, "$1")
+    .replace(/([؛،])\s*([؛،])/gu, "$1")
+    .replace(/؛\s*\./gu, ".")
+    .replace(/\.\s*\./gu, ".")
+    .replace(/([^.!؟])\s+(اصطکاک میان|میان دو نیرو|دو قطب روبه‌روی)/gu, "$1. $2")
+    .replace(/[؛،]+\s*$/u, "")
+    .replace(/\s{2,}/gu, " ")
+    .trim();
+}
+
+const TRANSIT_EDITORIAL_REWRITES: ReadonlyArray<readonly [string, string]> = [
+  ["بدن فرصت پیدا کند علامتش را بدهد و بعد انتخاب انجام شود", "اول به واکنش بدن فرصت بده و بعد تصمیم بگیر"],
+  ["موضوع با زبان دقیق و قابل بررسی بیان شود", "موضوع را دقیق و قابل بررسی بیان کن"],
+  ["انرژی به اقدام روشن و اندازه‌دار تبدیل شود", "انرژی را به یک اقدام روشن و اندازه‌دار تبدیل کن"],
+  ["خواست واقعی پیش از سازگار شدن با نگاه بیرونی نام برده شود", "پیش از سازگار شدن با نگاه بیرونی، خواست واقعی‌ات را نام ببر"],
+  ["احساس حاضر و نیاز اصلی دو چیز جدا دیده شوند", "احساس لحظه‌ای را از نیاز اصلی جدا ببین"],
+  ["موج احساس با خواستهٔ اصلی یکی گرفته نشود", "موج احساس را با خواستهٔ اصلی یکی نگیر"],
+];
+
+function naturalizeTransitDirective(value: string): string {
+  let text = value;
+  for (const [source, replacement] of TRANSIT_EDITORIAL_REWRITES) {
+    text = text.replace(source, replacement);
+  }
+  return text;
+}
+
+function normalizeTransitToken(value: string): string {
+  return value.replace(/[،؛.!؟:]+$/gu, "");
+}
+
+function sharedTransitPrefixLength(primary: string, secondary: string): number {
+  const primaryTokens = primary.split(/\s+/u).filter(Boolean);
+  const secondaryTokens = secondary.split(/\s+/u).filter(Boolean);
+  let best = 0;
+
+  for (let start = 0; start < primaryTokens.length; start += 1) {
+    let matched = 0;
+    while (
+      start + matched < primaryTokens.length &&
+      matched < secondaryTokens.length &&
+      normalizeTransitToken(primaryTokens[start + matched]) ===
+        normalizeTransitToken(secondaryTokens[matched])
+    ) {
+      matched += 1;
+    }
+    if (matched > best) best = matched;
+  }
+
+  return best;
+}
+
+function stripSharedTransitLead(primary: string, secondary: string): string {
+  let result = secondary;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const secondaryTokens = result.split(/\s+/u).filter(Boolean);
+    const shared = sharedTransitPrefixLength(primary, result);
+    if (shared < 5 || shared >= secondaryTokens.length) break;
+
+    const remainder = secondaryTokens
+      .slice(shared)
+      .join(" ")
+      .replace(/^(?:و|اما)\s+/u, "")
+      .replace(/^[،؛.\s]+/u, "")
+      .trim();
+
+    if (!remainder || remainder === result) break;
+    result = remainder;
+  }
+
+  return result;
+}
+
+function compactTransitNarrativeUnit(value: string, limit = 1): string {
+  const fragments = cleanTransitNarrativeSurface(value)
+    .split(/(?<=[.؟!؛])\s+/u)
+    .map((part) => part.trim().replace(/؛$/u, "."))
+    .filter(Boolean);
+  if (fragments.length <= limit) return fragments.join(" ");
+  return fragments.slice(0, limit).join(" ");
+}
+
+const TRANSIT_REPEATED_PHRASE_VARIANTS: ReadonlyArray<{
+  source: string;
+  variants: readonly string[];
+}> = [
+  {
+    source: "اول نیاز اصلی روشن شود و بعد پاسخ بیرونی بیاید",
+    variants: [
+      "اول نیاز اصلی روشن شود و بعد پاسخ بیرونی بیاید",
+      "پاسخ بیرونی بعد از روشن شدن نیاز اصلی شکل بگیرد",
+      "قبل از واکنش بیرونی، نیاز اصلی اسم پیدا کند",
+    ],
+  },
+  {
+    source: "نشانهٔ عملی‌تری از یک پیش‌بینی کلی است",
+    variants: [
+      "نشانهٔ عملی‌تری از یک پیش‌بینی کلی است",
+      "برای خواندن این تماس از یک پیش‌بینی کلی قابل‌اتکاتر است",
+      "به‌جای پیش‌بینی کلی، سرنخ روزمرهٔ روشن‌تری می‌دهد",
+    ],
+  },
+  {
+    source: "نیاز به اثبات خود یا واکنش به نگاه دیگران جای انتخاب واقعی را بگیرد",
+    variants: [
+      "نیاز به اثبات خود یا واکنش به نگاه دیگران جای انتخاب واقعی را بگیرد",
+      "اثبات خود یا واکنش به نگاه دیگران انتخاب واقعی را عقب بزند",
+      "نگاه بیرونی بیشتر از خواست واقعی جهت تصمیم را تعیین کند",
+    ],
+  },
+];
+
+function diversifyTransitRepeatedPhrases(value: string, sequenceIndex: number): string {
+  let text = value;
+  for (const entry of TRANSIT_REPEATED_PHRASE_VARIANTS) {
+    if (!text.includes(entry.source)) continue;
+    const replacement =
+      entry.variants[sequenceIndex % entry.variants.length] ?? entry.source;
+    text = text.replace(entry.source, replacement);
+  }
+  return text;
+}
+
+function surfaceTransitText(
+  data: PersonalTransitReportDataBridge,
+  aspect: PersonalTransitReportDataBridgeSelectedAspectSummary,
+  purpose: "thesis" | "scene" | "strength" | "friction" | "development",
+  text: string,
+  index: number,
+): string {
+  return naturalizeTransitDirective(
+    diversifyTransitRepeatedPhrases(
+      cleanTransitNarrativeSurface(
+        realizeReportSurfaceText(text, {
+          reportKey: `${data.transitLocalDate ?? "stored"}:${data.location.currentResidenceTimezone ?? "unknown"}`,
+          semanticKey: `transit:${aspect.transitBody}:${aspect.aspect}:${aspect.natalBody}:${purpose}`,
+          purpose,
+          sequenceIndex: index,
+          presentation: "direct",
+        }).text,
+      ),
+      index,
+    ),
+  );
+}
+
+// HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE5_TRANSIT_AST_R4_20260903
+// HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE5_LOWER_REPORT_LAYER_R1_20260903
 function HumanTransitReading({
   data,
   exhaustive = false,
@@ -436,7 +926,7 @@ function HumanTransitReading({
 }) {
   if (!data) {
     return (
-      <section className={styles.transitView}>
+      <section className={styles.transitView} data-report-current-sky-layer="slice5-20260903">
         <div className={styles.sectionHeading} data-screenshot-ready>
           <p className={styles.eyebrow}>آسمان و تو</p>
           <h1>این گزارش تصویر ترنزیت ذخیره‌شده ندارد</h1>
@@ -456,13 +946,13 @@ function HumanTransitReading({
   const missingResidence = data.status === "missing-current-residence";
 
   return (
-    <section className={styles.transitView} data-report-reader-mode="stored-transit">
+    <section className={styles.transitView} data-report-reader-mode="stored-transit" data-report-current-sky-layer="slice5-20260903">
       <div className={styles.sectionHeading} data-screenshot-ready>
         <p className={styles.eyebrow}>آسمان و تو</p>
         <h1>{today ? "امروز کدام بخش‌های تو پررنگ‌ترند؟" : `در ${dateLabel} کدام بخش‌های تو پررنگ‌تر بود؟`}</h1>
         <p>
           {today
-            ? "آسمان امروز را کنار چارت تولدت گذاشته‌ایم تا ببینی این روزها کدام بخش‌های تو بیشتر به حرکت، توجه یا تغییر دعوت می‌شوند."
+            ? "آسمان امروز را کنار چارت تولدت گذاشته‌ایم تا فقط تماس‌هایی را ببینی که الان بیشترین وزن را دارند؛ متن هر کارت کوتاه می‌ماند و جزئیات هندسی جدا زیر آن می‌آید."
             : `این تصویر در ${dateLabel} همراه گزارش ثبت شده است و با بازکردن دوباره تازه نمی‌شود؛ همیشه تصویر همان زمان را نگه می‌دارد.`}
         </p>
       </div>
@@ -474,32 +964,89 @@ function HumanTransitReading({
       ) : aspects.length > 0 ? (
         <>
           <div className={styles.transitPatternList}>
-            {aspects.map((aspect, index) => (
-              <article className={styles.transitPattern} data-screenshot-ready key={aspect.id}>
-                <span className={styles.patternNumber}>{(index + 1).toLocaleString("fa-IR")}</span>
-                <div>
-                  <p className={styles.eyebrow}>{formatTransitAstrologyLabel(aspect)}</p>
-                  <h2>{aspect.interpretation.theme}</h2>
-                  <p>{aspect.interpretation.attention}</p>
-                  <div className={styles.transitMoment}>
-                    <strong>نشانه‌هایی که احتمالاً می‌بینی</strong>
-                    <p>{aspect.interpretation.scenario}</p>
+            {aspects.map((aspect, index) => {
+              const thesis = compactTransitNarrativeUnit(
+                surfaceTransitText(
+                  data,
+                  aspect,
+                  "thesis",
+                  aspect.interpretation.attention,
+                  index,
+                ),
+                2,
+              );
+              const scene = compactTransitNarrativeUnit(
+                surfaceTransitText(
+                  data,
+                  aspect,
+                  "scene",
+                  aspect.interpretation.scenario,
+                  index,
+                ),
+                1,
+              );
+              const strength = compactTransitNarrativeUnit(
+                stripSharedTransitLead(
+                  thesis,
+                  surfaceTransitText(
+                    data,
+                    aspect,
+                    "strength",
+                    aspect.interpretation.helpful,
+                    index,
+                  ),
+                ),
+                1,
+              );
+              const friction = compactTransitNarrativeUnit(
+                surfaceTransitText(
+                  data,
+                  aspect,
+                  "friction",
+                  aspect.interpretation.friction,
+                  index,
+                ),
+                1,
+              );
+              const development = compactTransitNarrativeUnit(
+                surfaceTransitText(
+                  data,
+                  aspect,
+                  "development",
+                  aspect.interpretation.action,
+                  index,
+                ),
+                1,
+              );
+              return (
+                <article className={styles.transitPattern} data-screenshot-ready key={aspect.id}>
+                  <span className={styles.patternNumber}>{(index + 1).toLocaleString("fa-IR")}</span>
+                  <div>
+
+                    <h2>{aspect.interpretation.theme}</h2>
+                    <p data-report-inline-transit data-report-transit-narrative-attention="before-technical">
+                      {joinReportNarrativeSentences([thesis, scene])}
+                    </p>
+                    <p
+                      className={styles.transitTechnicalLine}
+                      data-report-transit-technical-line="after-narrative"
+                    >
+                      {formatTransitAstrologyLabel(aspect)}
+                    </p>
+                    <p>
+                      {joinReportNarrativeSentences([
+                        strength,
+                        friction,
+                        development,
+                      ])}
+                    </p>
+                    <p className={styles.readingMetadata} data-report-inline-evidence>
+                      {aspect.interpretation.technicalDetail}
+                    </p>
                   </div>
-                  <div className={styles.transitBalance}>
-                    <p><strong>وقتی خوب استفاده می‌شود</strong>{aspect.interpretation.helpful}</p>
-                    <p><strong>وقتی فشار بالا می‌رود</strong>{aspect.interpretation.friction}</p>
-                  </div>
-                  <div className={styles.practiceLine}>
-                    <strong>از این دوره چه استفاده‌ای بکنی</strong>
-                    <p>{aspect.interpretation.action}</p>
-                  </div>
-                  <details className={styles.readingMetadata}>
-                    <summary>مبنای این برداشت</summary>
-                    <p>{aspect.interpretation.technicalDetail}</p>
-                  </details>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
           {remainingAspects.length > 0 ? (
             <details className={styles.readingMetadata} data-all-active-transits>
@@ -556,17 +1103,16 @@ function PersonalTransitEngineInventory({
           <dl>
             {group.bodies.map((body) => (
               <div key={group.id + "-" + body.id}>
-                <dt>{body.label}</dt>
+                <dt>{TRANSIT_BODY_LABELS[body.id] ?? body.label}</dt>
                 <dd>
-                  {body.signId}{" · "}
+                  {TRANSIT_SIGN_LABELS[body.signId] ?? body.signId}{" · درجه "}
                   {body.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 2 })}
-                  {"° · longitude "}
+                  {"° · طول دایره‌البروجی "}
                   {body.longitude.toLocaleString("fa-IR", { maximumFractionDigits: 2 })}
-                  {"° · "}{body.motion.status}{" · "}
+                  {"° · حرکت "}{formatTransitMotionLabel(body.motion.status)}{" · سرعت روزانه "}
                   {body.motion.arcDegreesPerDay.toLocaleString("fa-IR", { maximumFractionDigits: 4 })}
-                  {"°/day · window "}
-                  {body.motion.sampleWindowHours.toLocaleString("fa-IR")}{"h"}
-                  {" · "}{body.motion.method}
+                  {"° · بازهٔ نمونه "}
+                  {body.motion.sampleWindowHours.toLocaleString("fa-IR")}{" ساعت"}
                 </dd>
               </div>
             ))}

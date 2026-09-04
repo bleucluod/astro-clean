@@ -3,6 +3,7 @@
 import { getImageProps } from "next/image";
 import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { NavLinks } from "@/components/NavLinks";
 
@@ -51,7 +52,12 @@ function ResponsiveChromeImage({
 const HEADER_HIDE_OFFSET = 96;
 const HEADER_SCROLL_DELTA = 6;
 
+// HALLEUS_REPORT_NATIVE_SITE_HEADER_R17_HEADER_ONLY_20260904
 export function SiteHeader() {
+  const pathname = usePathname();
+  const reportSegments = pathname.split("/").filter(Boolean);
+  const isReportReader =
+    reportSegments.length === 2 && reportSegments[0] === "reports";
   const lastScrollYRef = useRef(0);
   // HALLEUS_MOBILE_NAV_INDEPENDENT_REF_20260805
   const mobileNavRef = useRef<HTMLElement | null>(null);
@@ -384,6 +390,7 @@ export function SiteHeader() {
             <nav
         ref={mobileNavRef}
         className={styles.mobileNav}
+        data-report-reader-header={isReportReader ? "true" : undefined}
         aria-label="ناوبری اصلی موبایل"
         data-mobile-nav="independent-final-v1"
       >
@@ -403,20 +410,20 @@ export function SiteHeader() {
         </IntentPrefetchLink>
 
         <span
-          className={styles.mobileWordmarkText}
+          className={isReportReader ? `${styles.mobileWordmarkText} ${styles.mobileWordmarkTextReportReader}` : styles.mobileWordmarkText}
           aria-hidden="true"
           data-mobile-wordmark-text="site-font-v1"
         >
           هالیوس
         </span>
 
-        <div className={styles.mobileNavLinks}>
+        <div className={isReportReader ? `${styles.mobileNavLinks} ${styles.mobileNavLinksReportReader}` : styles.mobileNavLinks}>
           <NavLinks />
         </div>
       </nav>
 
 <IntentPrefetchLink
-        className={styles.mobileAccountFab}
+        className={isReportReader ? `${styles.mobileAccountFab} ${styles.mobileAccountFabReportReader}` : styles.mobileAccountFab}
         href="/profile"
         aria-label="حساب من"
         data-mobile-account-fab="structural-v1"

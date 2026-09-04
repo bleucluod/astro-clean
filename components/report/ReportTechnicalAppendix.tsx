@@ -1,4 +1,12 @@
+// HALLEUS_DEEP_NARRATIVE_SLICE5_FAILURESET_RECONCILIATION_R2_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE5_WHOLE_REPORT_RECONCILIATION_R1_20260903
+// HALLEUS_DEEP_NARRATIVE_SLICE1_R5_FAILURESET_RECONCILIATION_20260902
+// HALLEUS_DEEP_NARRATIVE_SLICE1_EXACT_ANGLE_FACT_CONTRACT_R4_20260902
 "use client";
+import {
+  formatReportTechnicalAngle,
+} from "@/lib/astrology/report-aspect-display";
+
 
 import { useState, type ReactNode } from "react";
 import { formatZodiacLabel } from "@/lib/astrology/zodiac-labels";
@@ -29,7 +37,7 @@ type AstrologyTab =
 
 const ASTROLOGY_TABS: Array<{ id: AstrologyTab; label: string }> = [
   // HALLEUS_FREE_ALL_ENGINE_OUTPUT_TAB_20260815
-  { id: "engine", label: "خروجی کامل موتور" },
+  { id: "engine", label: "دادهٔ خام محاسبه" },
   { id: "placements", label: "جایگاه‌ها" },
   { id: "houses", label: "خانه‌ها" },
   { id: "aspects", label: "رابطه‌های زاویه‌ای" },
@@ -72,7 +80,7 @@ export function ReportTechnicalAppendix({
   exhaustive?: boolean;
 }) {
   const [activeTab, setActiveTab] =
-    useState<AstrologyTab>(exhaustive ? "engine" : "placements");
+    useState<AstrologyTab>("placements");
   const chartData = report.realEngine;
   const placements = chartData?.placements ?? [];
   const houses = chartData?.houses ?? [];
@@ -96,7 +104,7 @@ export function ReportTechnicalAppendix({
             همهٔ جایگاه‌ها و زاویه‌ها در یک نگاه
           </h2>
           <p>
-            اینجا همهٔ جایگاه‌ها، خانه‌ها، محورهای اصلی، جنبه‌ها و اورب‌ها را یک‌جا می‌بینی.
+            اینجا همهٔ جایگاه‌ها، خانه‌ها، محورهای اصلی و هندسهٔ زاویه‌ها را یک‌جا می‌بینی؛ زاویهٔ مرجع، زاویهٔ واقعی و فاصله از حالت دقیق جدا نمایش داده می‌شوند.
           </p>
         </summary>
 
@@ -164,7 +172,7 @@ export function ReportTechnicalAppendix({
 }
 
 
-const ENGINE_PLANET_LABELS: Record<string, string> = {
+const ENGINE_BODY_LABELS: Record<string, string> = {
   sun: "خورشید",
   moon: "ماه",
   mercury: "عطارد",
@@ -175,11 +183,28 @@ const ENGINE_PLANET_LABELS: Record<string, string> = {
   uranus: "اورانوس",
   neptune: "نپتون",
   pluto: "پلوتو",
+  chiron: "کایران",
+  ceres: "سرس",
+  pallas: "پالاس",
+  juno: "جونو",
+  vesta: "وستا",
+  eris: "اریس",
+  pholus: "فولوس",
+  nessus: "نسوس",
+  lilith: "لیلیت",
+  "black-moon-lilith": "لیلیت سیاه",
+  "north-node": "گره شمالی ماه",
+  "south-node": "گره جنوبی ماه",
 };
 
 function formatEngineList(values: readonly string[] | undefined) {
   if (!values?.length) return "هیچ‌کدام";
-  return values.map((value) => ENGINE_PLANET_LABELS[value] ?? value).join("، ");
+  return values.map((value) => ENGINE_BODY_LABELS[value] ?? value).join("، ");
+}
+
+function formatTechnicalBodyLabel(id: string, fallback: string): string {
+  const persian = ENGINE_BODY_LABELS[id];
+  return persian ? `${persian} (${id})` : fallback;
 }
 
 function formatEngineStatus(value: unknown) {
@@ -253,22 +278,22 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
         {chartData.placements.map((placement) => (
           <div key={"engine-placement-" + placement.id}>
             <strong>
-              {placement.label}{" · "}{formatZodiacLabel(placement.signId)}{" "}
+              {formatTechnicalBodyLabel(placement.id, placement.label)}{" · "}{formatZodiacLabel(placement.signId)}{" "}
               {formatDegree(placement.degreeInSign)}
             </strong>
             <span>
-              {"longitude "}{formatDegree(placement.longitude)}
+              {"طول دایره‌البروجی "}{formatDegree(placement.longitude)}
               {typeof placement.house === "number"
                 ? " · خانه " + formatPersianNumber(placement.house)
                 : ""}
-              {placement.pointType ? " · " + placement.pointType : ""}
-              {" · "}{placement.method}
+              {placement.pointType ? " · نوع نقطه: " + placement.pointType : ""}
+              {" · روش: "}{placement.method}
               {placement.motion
-                ? " · " + placement.motion.status +
-                  " · " + formatPersianNumber(placement.motion.arcDegreesPerDay) +
-                  "°/day · window " +
+                ? " · وضعیت حرکت: " + placement.motion.status +
+                  " · سرعت روزانه: " + formatPersianNumber(placement.motion.arcDegreesPerDay) +
+                  "° · بازه نمونه: " +
                   formatPersianNumber(placement.motion.sampleWindowHours) +
-                  "h · " + placement.motion.method
+                  " ساعت · روش حرکت: " + placement.motion.method
                 : ""}
             </span>
           </div>
@@ -285,7 +310,7 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
                 {formatZodiacLabel(angle.signId)}{" "}{formatDegree(angle.degreeInSign)}
               </strong>
               <span>
-                {"longitude "}{formatDegree(angle.longitude)}{" · "}
+                {"طول دایره‌البروجی "}{formatDegree(angle.longitude)}{" · "}
                 {angle.source}{" · "}{angle.reliability}{" · "}{angle.method}
                 {angle.limitation ? " · " + angle.limitation : ""}
               </span>
@@ -304,10 +329,10 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
                 {formatZodiacLabel(house.signId)}{" "}{formatDegree(house.degreeInSign)}
               </strong>
               <span>
-                {"cusp "}{formatDegree(house.cuspLongitude)}{" · "}
-                {house.system}{" · "}{house.method}{" · "}{house.reliability}
-                {house.planetIds.length ? " · planets=" + house.planetIds.join(",") : ""}
-                {house.angleIds.length ? " · angles=" + house.angleIds.join(",") : ""}
+                {"سرخانه "}{formatDegree(house.cuspLongitude)}{" · سیستم: "}
+                {house.system}{" · روش: "}{house.method}{" · اتکا: "}{house.reliability}
+                {house.planetIds.length ? " · سیاره‌ها=" + house.planetIds.map((id) => ENGINE_BODY_LABELS[id] ?? id).join(",") : ""}
+                {house.angleIds.length ? " · محورها=" + house.angleIds.join(",") : ""}
                 {house.limitation ? " · " + house.limitation : ""}
               </span>
             </div>
@@ -321,13 +346,12 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
           {chartData.aspects.map((aspect) => (
             <div key={"engine-aspect-" + aspect.id}>
               <strong>
-                {aspect.firstPlanetLabel}{" — "}{aspect.secondPlanetLabel}
-                {" · "}{aspect.aspectLabel}
+                {formatTechnicalBodyLabel(aspect.firstPlanetId, aspect.firstPlanetLabel)}{" — "}{formatTechnicalBodyLabel(aspect.secondPlanetId, aspect.secondPlanetLabel)}
               </strong>
               <span>
-                {"exact "}{formatDegree(aspect.angle)}
-                {" · separation "}{formatDegree(aspect.separation)}
-                {" · orb "}{formatDegree(aspect.orb)}
+                {"زاویه مرجع "}{formatDegree(aspect.angle)}
+                {" · زاویه واقعی "}{formatDegree(aspect.separation)}
+                {" · فاصله از دقیق "}{formatDegree(aspect.orb)}
               </span>
             </div>
           ))}
@@ -342,7 +366,7 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
             <span>{`${houseContext.availability} · ${houseContext.confidence}`}</span>
           </div>
           <div>
-            <strong>{"Ascendant"}</strong>
+            <strong>{"رایزینگ / ASC"}</strong>
             <span>
               {houseContext.ascendantLongitude === null
                 ? "ثبت نشده"
@@ -352,7 +376,7 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
             </span>
           </div>
           <div>
-            <strong>{"1st house cusp"}</strong>
+            <strong>{"سرخانهٔ اول"}</strong>
             <span>{formatDegree(houseContext.firstHouseCuspLongitude)}</span>
           </div>
           {houseContext.cuspLongitudes?.map((longitude, index) => (
@@ -366,7 +390,7 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
           ))}
           {houseContext.calculationMethod ? (
             <div>
-              <strong>{"method"}</strong>
+              <strong>{"روش محاسبه"}</strong>
               <span>{houseContext.calculationMethod}</span>
             </div>
           ) : null}
@@ -488,7 +512,7 @@ function EngineOutputPanel({ report }: { report: AstrologyReport }) {
           </div>
           {signature.evidence.map((item) => (
             <div key={`signature-${item.placementId}`}>
-              <strong>{ENGINE_PLANET_LABELS[item.placementId] ?? item.placementId}</strong>
+              <strong>{ENGINE_BODY_LABELS[item.placementId] ?? item.placementId}</strong>
               <span>{`${item.signId} · ${item.element} · ${item.modality} · ${item.expression}`}</span>
             </div>
           ))}
@@ -629,9 +653,9 @@ function AspectTable({ aspects }: { aspects: RealEngineReportAspect[] }) {
     <div className={styles.dataTable} data-technical-table="aspects">
       <div className={`${styles.dataHead} ${styles.aspectHead}`}>
         <span>دو نقطه</span>
-        <span>نوع رابطه</span>
-        <span>فاصلهٔ زاویه‌ای</span>
-        <span>اورب</span>
+        <span>زاویهٔ مرجع</span>
+        <span>زاویهٔ واقعی</span>
+        <span>فاصله از دقیق</span>
       </div>
       {rows.map((row) => (
         <div
@@ -639,11 +663,9 @@ function AspectTable({ aspects }: { aspects: RealEngineReportAspect[] }) {
           key={row.id}
         >
           <strong>{row.planets}</strong>
-          <span>
-            {row.type} ({formatDegree(row.exactAngle)})
-          </span>
-          <span>{formatDegree(row.separation)}</span>
-          <span>{formatDegree(row.orb)}</span>
+          <span>{row.type} · {formatReportTechnicalAngle(row.exactAngle)}</span>
+          <span>{formatReportTechnicalAngle(row.separation)}</span>
+          <span>{formatReportTechnicalAngle(row.orb)}</span>
         </div>
       ))}
     </div>
