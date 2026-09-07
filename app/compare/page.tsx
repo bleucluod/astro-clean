@@ -1,23 +1,27 @@
 import type { Metadata } from "next";
+
+import { ComparisonLanding } from "@/components/comparison/ComparisonLanding";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 
-import { FinalEditorialPage } from "@/components/FinalEditorialPage";
-import { ComparisonComposer } from "@/components/comparison/ComparisonComposer";
-import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
-
-export const dynamic = "force-dynamic";
+const title = "چارت ازدواج آنلاین رایگان | مقایسه دو چارت تولد";
+const description =
+  "چارت ازدواج دو نفر را رایگان بسازید؛ مقایسه دو چارت تولد، تحلیل رابطه، کشش، امنیت عاطفی و جنبه‌های سیناستری، حتی بدون ساعت دقیق تولد.";
 
 export const metadata: Metadata = {
   ...buildPublicPageMetadata({
-  title: "چارت سیناستری آنلاین | مقایسه دو چارت تولد",
-  description: "دو چارت تولد را در چارت سیناستری هالیوس کنار هم بگذار و گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و اصطکاک را در یک نتیجه خصوصی و بدون درصد سازگاری بررسی کن.",
-  canonical: "/compare",
+    title,
+    description,
+    canonical: "/compare",
+    image: {
+      url: "/halleus-compare-og.png",
+      width: 1200,
+      height: 630,
+      alt: "چارت سیناستری هالیوس؛ تحلیل رابطه و ازدواج دو نفر",
+    },
   }),
   robots: { index: true, follow: true },
 };
 
-export default async function ComparePage() {
-  // HALLEUS_SERVER_SEEDED_COMPARE_ACCESS_BATCH1_R1
-  const policy = await getReportAccessPolicy();
-  return <FinalEditorialPage pageKey="compare" slots={{ "chart-selection": <ComparisonComposer embedded initialMonetizationMode={policy.monetizationMode} /> }} />;
+export default function ComparePage() {
+  return <ComparisonLanding />;
 }

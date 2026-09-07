@@ -103,6 +103,15 @@ for (const [page, count] of Object.entries(expectedSections)) {
         !route.includes("<FinalEditorialPage"),
       "Chart must use its dedicated product composition rather than the shared editorial renderer",
     );
+  } else if (page === "compare") {
+    assert.ok(
+      route.includes("ComparisonLanding"),
+      "Compare is missing its dedicated product landing composition",
+    );
+    assert.ok(
+      route.includes("buildPublicPageMetadata") && !route.includes("FinalEditorialPage"),
+      "Compare must use dedicated static metadata/composition rather than the shared editorial renderer",
+    );
   } else if (["product", "pricing", "order"].includes(page)) {
     const componentName = page === "product" ? "ProductCommerceSurface" : page === "pricing" ? "PricingCommerceSurface" : "OrderCommerceSurface";
     assert.ok(route.includes(componentName), page + " is missing its dedicated commerce composition");
@@ -340,7 +349,7 @@ console.log(
   "- all 84 reviewed public sections remain generated and connected",
 );
 console.log(
-  "- Homepage and Chart use dedicated product compositions with real data sources",
+  "- Homepage, Chart, and Compare use dedicated product compositions while preserving reviewed content contracts",
 );
 console.log(
   "- Chart uses a centered form, compact report strip, collapsed FAQ, and Persian user-facing copy",

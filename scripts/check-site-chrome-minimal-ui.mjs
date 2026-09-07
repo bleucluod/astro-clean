@@ -7,7 +7,7 @@ const globals = readFileSync("app/globals.css", "utf8");
 const appShellCss = readFileSync("components/app-shell.module.css", "utf8");
 const homePage = `${readFileSync("app/page.tsx", "utf8")}\n${readFileSync("content/public-editorial-final/03-homepage.md", "utf8")}`;
 const privacyPage = `${readFileSync("app/privacy/page.tsx", "utf8")}\n${readFileSync("content/public-editorial-final/10-privacy.md", "utf8")}`;
-const compareLayout = readFileSync("app/compare/layout.tsx", "utf8");
+const comparePage = readFileSync("app/compare/page.tsx", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 const failures = [];
@@ -244,8 +244,8 @@ for (const marker of [
   }
 }
 
-if (!compareLayout.includes("چارت سیناستری آنلاین | مقایسه دو چارت تولد")) {
-  failures.push("Compare layout is missing the approved public synastry title");
+if (!comparePage.includes("چارت ازدواج آنلاین رایگان | مقایسه دو چارت تولد")) {
+  failures.push("Compare page is missing the approved public compare title");
 }
 
 if (packageJson.scripts?.["check:site-chrome-minimal-ui"] !== "node scripts/check-site-chrome-minimal-ui.mjs") {

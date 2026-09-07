@@ -1,4 +1,5 @@
 import type {
+  RealEngineSynastryCoverageField,
   RealSynastryReport,
   SynastryBirthTimeStatus,
   SynastryRelationshipContext,
@@ -17,7 +18,7 @@ export type ComparisonPrivacy = {
   version: typeof COMPARISON_PRIVACY_VERSION;
   visibility: "private";
   indexingPolicy: "noindex";
-  secondPersonConsentConfirmedAt: string;
+  secondPersonConsentConfirmedAt?: string; // legacy records only
   rawBirthInputStored: false;
 };
 
@@ -29,6 +30,21 @@ export type ComparisonPrimaryPattern = HumanFirstDirectionalNarrativeBlock & {
   relevanceScore: number;
 };
 
+export type ComparisonNarrativeChapterId =
+  | "communication"
+  | "emotional-security"
+  | "attraction-intimacy"
+  | "boundaries-commitment"
+  | "friction-repair";
+export type ComparisonNarrativeChapter = {
+  id: ComparisonNarrativeChapterId;
+  eyebrow: string;
+  title: string;
+  ownerContactId: string | null;
+  crossReferencePatternId: string | null;
+  crossReferencePatternTitle: string | null;
+  block: HumanFirstDirectionalNarrativeBlock;
+};
 export type ComparisonGrowthReading = {
   personASkill: string;
   personBSkill: string;
@@ -37,9 +53,111 @@ export type ComparisonGrowthReading = {
   evidence: HumanFirstEvidence[];
 };
 
+// HALLEUS_COMPARE_FULL_INTERPRETATION_SLICE2_R5
+export type ComparisonInterpretationCoverageState =
+  | "interpreted"
+  | "technically-explained"
+  | "deferred-with-reason"
+  | "unavailable-with-reason";
+
+export type ComparisonInterpretationCoverageEntry = {
+  field: RealEngineSynastryCoverageField;
+  status: ComparisonInterpretationCoverageState;
+  chartADataState: "preserved" | "unavailable";
+  chartBDataState: "preserved" | "unavailable";
+  reasonFa: string | null;
+  evidenceIds: string[];
+};
+
+export type ComparisonOpeningEvidence = {
+  sentenceId: string;
+  paragraph: 1 | 2;
+  evidenceIds: string[];
+};
+
+export type ComparisonContactInterpretation = {
+  id: string;
+  titleFa: string;
+  pointAFactFa: string;
+  pointBFactFa: string;
+  aspectFa: string;
+  importanceFa: string;
+  healthyFa: string;
+  stressFa: string;
+  contextFa: string;
+  natalContextFa: string;
+  overlayContextFa: string;
+  confidenceFa: string;
+  evidenceIds: string[];
+};
+
+export type ComparisonOverlayInterpretation = {
+  id: string;
+  directionFa: string;
+  titleFa: string;
+  meaningFa: string;
+  contextFa: string;
+  supportiveFa: string;
+  stressFa: string;
+  confidenceFa: string;
+  relatedContactIds: string[];
+  evidenceIds: string[];
+};
+
+export type ComparisonDeepLayerItem = {
+  id: string;
+  titleFa: string;
+  meaningFa: string;
+  relationshipExpressionFa: string;
+  supportiveExpressionFa: string;
+  stressExpressionFa: string;
+  contextualExpressionFa: string;
+  confidenceFa: string;
+  evidenceIds: string[];
+};
+
+export type ComparisonDeepLayer = {
+  id: string;
+  titleFa: string;
+  summaryFa: string;
+  items: ComparisonDeepLayerItem[];
+};
+
+export type ComparisonNatalContext = {
+  chartSide: "a" | "b";
+  chartLabel: string;
+  summaryFa: string;
+  factsFa: string[];
+  evidenceIds: string[];
+};
+
+export type ComparisonCalculationExplanation = {
+  summaryFa: string;
+  confidenceFa: string;
+  methodNotesFa: string[];
+  warningsFa: string[];
+};
+
+export type ComparisonFullInterpretation = {
+  version: "comparison-full-interpretation-v1";
+  fingerprint: string;
+  openingParagraphsFa: [string, string];
+  openingEvidence: ComparisonOpeningEvidence[];
+  contacts: ComparisonContactInterpretation[];
+  overlays: ComparisonOverlayInterpretation[];
+  deepLayers: ComparisonDeepLayer[];
+  natalContexts: [ComparisonNatalContext, ComparisonNatalContext];
+  coverage: ComparisonInterpretationCoverageEntry[];
+  calculation: ComparisonCalculationExplanation;
+};
+
 export type ComparisonReading = {
   overviewFa: string;
+  overviewParagraphsFa: [string, string];
+  fullInterpretation?: ComparisonFullInterpretation;
   primaryPatterns: ComparisonPrimaryPattern[];
+  chapters: ComparisonNarrativeChapter[];
+  conversationQuestionsFa: [string, string, string];
   support: HumanFirstDirectionalNarrativeBlock;
   misunderstanding: HumanFirstDirectionalNarrativeBlock;
   communication: HumanFirstDirectionalNarrativeBlock;
@@ -82,13 +200,11 @@ export type CreateComparisonInput = {
   chartABirthTimeStatus: SynastryBirthTimeStatus;
   chartBBirthTimeStatus: SynastryBirthTimeStatus;
   relationshipContext: SynastryRelationshipContext;
-  secondPersonConsentConfirmed: boolean;
   generatedAt?: string;
   recordId?: string;
 };
 
 export type ComparisonProductFailureCode =
-  | "consent-required"
   | "same-chart"
   | "chart-a-missing-engine"
   | "chart-b-missing-engine"

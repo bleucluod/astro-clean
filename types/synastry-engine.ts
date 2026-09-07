@@ -1,16 +1,18 @@
 import type {
   RealEngineReportAspectKind,
+  RealEngineReportDataReliability,
   RealEngineReportHouseNumber,
   RealEngineHouseSystem,
   RealEngineReportSnapshot,
   ZodiacKey,
 } from "./astro.js";
 
-export const REAL_SYNASTRY_CONTRACT_VERSION = "real-synastry-v1" as const;
+export const REAL_SYNASTRY_CONTRACT_VERSION = "real-synastry-v2" as const;
 export const REAL_SYNASTRY_WRITER_VERSION = "real-synastry-persian-v1" as const;
 
 export type RealSynastryContractVersion =
-  typeof REAL_SYNASTRY_CONTRACT_VERSION;
+  | "real-synastry-v1"
+  | typeof REAL_SYNASTRY_CONTRACT_VERSION;
 export type RealSynastryWriterVersion = typeof REAL_SYNASTRY_WRITER_VERSION;
 
 export type SynastryChartSide = "a" | "b";
@@ -24,7 +26,83 @@ export type SynastryRelationshipContext =
 
 export type SynastryBirthTimeStatus = "exact" | "unknown";
 
-export type SynastryPointKind = "planet" | "angle";
+export type SynastryPointKind =
+  | "planet"
+  | "angle"
+  | "lunar-node"
+  | "lilith"
+  | "special-point"
+  | "advanced-body"
+  | "traditional-lot"
+  | "fixed-star";
+
+export type SynastryPointContactPolicy =
+  | "major-aspects-v1"
+  | "angle-major-aspects-v1"
+  | "deferred-no-approved-orb-policy"
+  | "not-contact-eligible";
+
+export type SynastryPointHouseOverlayPolicy =
+  | "derived-house-overlay-v1"
+  | "requires-exact-birth-time"
+  | "not-overlay-eligible";
+
+export type SynastryPointMotion = {
+  status: "direct" | "retrograde" | "stationary";
+  arcDegreesPerDay: number;
+  sampleWindowHours: number;
+  method: string;
+};
+
+export const REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS = [
+  "version",
+  "generatedAt",
+  "behavioralAudienceMode",
+  "cityLabel",
+  "utcIso",
+  "ascendantLongitude",
+  "houseContext",
+  "houseSystem",
+  "houses",
+  "angles",
+  "calculationQuality",
+  "retrogrades",
+  "lunarNodes",
+  "lilith",
+  "specialPoints",
+  "specialistAstrology",
+  "chartSignature",
+  "placements",
+  "aspects",
+  "aspectHighlights",
+  "note",
+] as const satisfies readonly (keyof RealEngineReportSnapshot)[];
+
+export type RealEngineSynastryCoverageField =
+  (typeof REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS)[number];
+
+type AssertNever<T extends never> = T;
+export type SynastryMissingRealEngineCoverageFieldsMustStayNever = AssertNever<
+  Exclude<keyof RealEngineReportSnapshot, RealEngineSynastryCoverageField>
+>;
+
+export type SynastryEngineDataCoverageState = "preserved" | "unavailable";
+export type SynastryEngineInterpretationState =
+  | "pending-slice2"
+  | "technical-explanation-required"
+  | "not-applicable";
+
+export type SynastryEngineCoverageEntry = {
+  field: RealEngineSynastryCoverageField;
+  dataState: SynastryEngineDataCoverageState;
+  interpretationState: SynastryEngineInterpretationState;
+  reason: string | null;
+};
+
+export type SynastryEngineCoverageManifest = Record<
+  RealEngineSynastryCoverageField,
+  SynastryEngineCoverageEntry
+>;
 
 export type SynastryAspectPolarity =
   | "supportive"
@@ -50,8 +128,20 @@ export type SynastryNatalPoint = {
   signId: ZodiacKey;
   degreeInSign: number;
   sourceMethod: string;
-};
 
+  /**
+   * Fields below are optional for legacy real-synastry-v1 records.
+   * createSynastryNatalSnapshot always populates them for v2 output.
+   */
+  natalHouse?: RealEngineReportHouseNumber | null;
+  sourceReliability?: RealEngineReportDataReliability | null;
+  motion?: SynastryPointMotion | null;
+  contactPolicy?: SynastryPointContactPolicy;
+  houseOverlayPolicy?: SynastryPointHouseOverlayPolicy;
+  requiresExactBirthTime?: boolean;
+  analysisEligible?: boolean;
+  analysisLimitation?: string | null;
+};
 export type SynastryHouseCusp = {
   number: RealEngineReportHouseNumber;
   cuspLongitude: number;
@@ -68,13 +158,22 @@ export type SynastryNatalSnapshot = {
   birthTimeStatus: SynastryBirthTimeStatus;
   chartRulerId: string | null;
   chartRulerMethod: "traditional-ruler-from-ascendant" | null;
+
+  /**
+   * Legacy v1 comparison records may not contain these parity fields.
+   * New v2 snapshots produced by createSynastryNatalSnapshot always do.
+   */
+  engineParityVersion?: "real-engine-synastry-parity-v1";
+  engineSnapshot?: RealEngineReportSnapshot;
+  engineCoverage?: SynastryEngineCoverageManifest;
+  points?: SynastryNatalPoint[];
+
   placements: SynastryNatalPoint[];
   angles: SynastryNatalPoint[];
   houses: SynastryHouseCusp[];
   houseSystem: RealEngineHouseSystem | null;
   limitations: string[];
 };
-
 export type BuildSynastryNatalSnapshotInput = {
   chartId: string;
   label?: string | null;
@@ -176,20 +275,31 @@ export type SynastryBiWheelData = {
   outerChartSide: "b";
   innerPoints: SynastryBiWheelPoint[];
   outerPoints: SynastryBiWheelPoint[];
+  /**
+   * Added for the later shared Halleus wheel slice.
+   * Optional keeps already-saved v1 comparison reports readable.
+   */
+  fullInnerPoints?: SynastryBiWheelPoint[];
+  fullOuterPoints?: SynastryBiWheelPoint[];
   aspectLines: SynastryBiWheelAspectLine[];
 };
-
 export type SynastryQuality = {
   status: "complete" | "partial";
   planetToPlanetAvailable: boolean;
   angleContactsAvailable: boolean;
   houseOverlaysAvailable: boolean;
+  /**
+   * Parity counters are present on new v2 reports and optional on legacy v1.
+   */
+  engineParityComplete?: boolean;
+  engineCoverageFieldCount?: number;
+  normalizedPointCount?: number;
+  deferredContactPointCount?: number;
   contactCount: number;
   supportivePatternCount: number;
   tensionPatternCount: number;
   limitations: string[];
 };
-
 export type RealSynastryReport = {
   contractVersion: RealSynastryContractVersion;
   generatedAt: string;

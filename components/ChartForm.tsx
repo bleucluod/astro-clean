@@ -394,8 +394,17 @@ function ChartSelect({
   );
 }
 
-export function ChartForm() {
+export type ChartFormMode = "standalone" | "comparison";
+
+export function ChartForm({
+  mode = "standalone",
+  onComparisonChartSaved,
+}: {
+  mode?: ChartFormMode;
+  onComparisonChartSaved?: (report: AstrologyReport) => void;
+} = {}) {
   const router = useRouter();
+  const comparisonMode = mode === "comparison";
   const [form, setForm] = useState<BirthInput>(initialForm);
   const [dateMode, setDateMode] = useState<BirthDateMode>("jalali");
   const [birthDateParts, setBirthDateParts] = useState<JalaliBirthDateParts>(
@@ -860,7 +869,9 @@ export function ChartForm() {
     }
 
     const { normalizedForm, engineCity } = normalizedBirth;
-    const saveClientPromise = import("@/lib/storage/account-report-save-client");
+    const saveClientPromise = comparisonMode
+      ? null
+      : import("@/lib/storage/account-report-save-client");
     let realEngineResult: RealChartApiResponse | null = null;
 
     try {
@@ -893,7 +904,32 @@ export function ChartForm() {
         engineCity,
       );
 
-      const { saveGeneratedReportWithAccountFallback } = await saveClientPromise;
+      if (comparisonMode) {
+        if (!nextReport.realEngine) {
+          throw new Error(
+            "برای تحلیل رابطه، چارت محاسبه‌شده لازم است. محاسبه دقیق را دوباره امتحان کن.",
+          );
+        }
+        const { saveGeneratedReport } = await import(
+          "@/lib/storage/report-write-service"
+        );
+        const localRecord = await saveGeneratedReport(nextReport);
+        notifyLocalDataChanged();
+        submissionInFlightRef.current = false;
+        setIsSubmitting(false);
+        setSaveMessage(
+          "چارت فقط روی همین دستگاه ذخیره شد و به مقایسه برگشت.",
+        );
+        setRealEngineRequest({
+          status: "ready",
+          message: "چارت آماده شد.",
+        });
+        onComparisonChartSaved?.(localRecord.report);
+        return;
+      }
+
+      const { saveGeneratedReportWithAccountFallback } =
+        await saveClientPromise!;
       const saveResult = await saveGeneratedReportWithAccountFallback(
         nextReport,
         { navigationGraceMs: 2200 },
@@ -1269,7 +1305,8 @@ export function ChartForm() {
                 <FieldError message={fieldErrors.birthCity} />
               </div>
 
-              <label className="chart-transit-choice chart-field-full">
+              {!comparisonMode ? (
+                <label className="chart-transit-choice chart-field-full">
                 <input
                   type="checkbox"
                   checked={includeTransitReading}
@@ -1285,6 +1322,7 @@ export function ChartForm() {
                   </small>
                 </span>
               </label>
+              ) : null}
 
               {includeTransitReading ? (
                 <div className="chart-field chart-city-field chart-city-card chart-transit-location">
@@ -1336,21 +1374,22 @@ export function ChartForm() {
             </div>
           </form>
 
-          <div className="chart-account-option">
-            <label className="chart-account-option-toggle">
-              <input
-                type="checkbox"
-                checked={showAccountPanel}
-                onChange={(event) => setShowAccountPanel(event.target.checked)}
-              />
-              <span className="chart-account-option-copy">
-                <strong>گزارشم را در حساب هالیوس نگه دار</strong>
-              </span>
-            </label>
+          {!comparisonMode ? (
+            <div className="chart-account-option">
+              <label className="chart-account-option-toggle">
+                <input
+                  type="checkbox"
+                  checked={showAccountPanel}
+                  onChange={(event) => setShowAccountPanel(event.target.checked)}
+                />
+                <span className="chart-account-option-copy">
+                  <strong>گزارشم را در حساب هالیوس نگه دار</strong>
+                </span>
+              </label>
 
-            {showAccountPanel ? <LazySupabaseAuthPanel compact /> : null}
-          </div>
-
+              {showAccountPanel ? <LazySupabaseAuthPanel compact /> : null}
+            </div>
+          ) : null}
           <div className="chart-form-actions">
             <button
               className="button chart-submit-button"
@@ -1366,7 +1405,13 @@ export function ChartForm() {
                   width={1400}
                 />
               </span>
-              {isSubmitting ? "در حال ساخت گزارش…" : "ساخت گزارش"}
+              {isSubmitting
+                ? comparisonMode
+                  ? "در حال ساخت چارت…"
+                  : "در حال ساخت گزارش…"
+                : comparisonMode
+                  ? "ساخت چارت برای مقایسه"
+                  : "ساخت گزارش"}
             </button>
           </div>
 

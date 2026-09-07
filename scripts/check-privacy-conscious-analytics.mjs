@@ -29,6 +29,8 @@ const privacyPage = `${read("app/privacy/page.tsx")}\n${read("content/public-edi
 const packageJson = JSON.parse(read("package.json"));
 const ideaGarden = read("docs/HALLEUS_IDEA_GARDEN.md");
 const projectContext = read("docs/HALLEUS_PROJECT_CONTEXT.md");
+const compareComposer = read("components/comparison/ComparisonComposer.tsx");
+const compareBuilderLink = read("components/comparison/ComparisonBuilderLink.tsx");
 
 requireText("analytics config", analyticsConfig, 'measurementId: "G-W3WBZCTL7G"');
 requireText("analytics config", analyticsConfig, 'consentStorageKey: "halleus-analytics-consent-v1"');
@@ -39,6 +41,39 @@ for (const blockedPath of ["/reports", "/admin", "/dashboard", "/profile", "/eng
   }
 }
 
+for (const eventName of [
+  "compare_landing_view",
+  "compare_builder_started",
+  "compare_slot_completed",
+  "compare_relationship_selected",
+  "compare_generation_started",
+]) {
+  requireText("analytics config", analyticsConfig, eventName);
+}
+requireText("analytics config", analyticsConfig, "trackComparePublicAggregateEvent");
+requireText("analytics config", analyticsConfig, 'pathname !== "/compare"');
+requireText("analytics config", analyticsConfig, 'gtag?.("event", eventName)');
+for (const forbiddenAnalyticsProperty of [
+  "reportId",
+  "comparisonId",
+  "birthDate",
+  "birthTime",
+  "birthCity",
+  "relationshipContext:",
+  "chartAId",
+  "chartBId",
+]) {
+  if (analyticsConfig.includes(forbiddenAnalyticsProperty)) {
+    failures.push(`aggregate compare analytics unexpectedly accepts/sends sensitive property: ${forbiddenAnalyticsProperty}`);
+  }
+}
+requireText("compare composer", compareComposer, 'trackComparePublicAggregateEvent("compare_landing_view")');
+requireText("compare composer", compareComposer, 'trackComparePublicAggregateEvent("compare_slot_completed")');
+requireText("compare composer", compareComposer, 'trackComparePublicAggregateEvent("compare_relationship_selected")');
+requireText("compare composer", compareComposer, 'trackComparePublicAggregateEvent("compare_generation_started")');
+forbidText("analytics config", analyticsConfig, "compare_consent_completed");
+forbidText("compare composer", compareComposer, 'trackComparePublicAggregateEvent("compare_consent_completed")');
+requireText("compare builder link", compareBuilderLink, 'trackComparePublicAggregateEvent("compare_builder_started")');
 requireText("analytics component", analyticsComponent, '"use client"');
 requireText("analytics component", analyticsComponent, "readStoredChoice()");
 requireText(
@@ -171,7 +206,7 @@ if (failures.length > 0) {
 console.log("Default public analytics check passed.");
 console.log("- approved public routes enable analytics when no stored opt-out exists");
 console.log("- the first-visit consent banner is removed");
-console.log("- Halleus emits only sanitized public-route page_view events");
+console.log("- Halleus emits sanitized public-route page_view plus allowlisted aggregate /compare funnel events with no personal properties");
 console.log("- report, account, and internal routes remain outside analytics");
 console.log("- ad personalization and Google Signals remain disabled");
 console.log("- the visitor can opt out or re-enable analytics from shared settings");

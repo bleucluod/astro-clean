@@ -4,8 +4,16 @@ import Link from "next/link";
 import { AccountProductAccessCard } from "@/components/monetization/ProductAccessCards";
 import { ProductLockedOffer } from "@/components/monetization/ProductAccessCards";
 import { useProductAccess } from "@/lib/monetization/product-access-client";
+import { trackComparePublicAggregateEvent } from "@/lib/config/analytics";
 import { useRouter } from "next/navigation";
-import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   createPrivateComparison,
@@ -68,7 +76,12 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     productAccess.status === "loading"
       ? initialMonetizationMode
       : productAccess.access.policy.monetizationMode;
-  const freeAllAccess = effectiveMonetizationMode === "FREE_ALL";
+  // TEMPORARY_COMPARE_FREE_ACCESS_2026_09
+  // Product decision: /compare is free during the current launch phase.
+  // Keep the configured credit path dormant so this can be reversed later.
+  const temporaryFreeRelationshipAccess = true;
+  const freeAllAccess =
+    temporaryFreeRelationshipAccess || effectiveMonetizationMode === "FREE_ALL";
   const [reports, setReports] = useState<AstrologyReport[]>([]);
   const [history, setHistory] = useState<ComparisonRecord[]>([]);
   const [chartAId, setChartAId] = useState("");
@@ -79,11 +92,15 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     useState<SynastryBirthTimeStatus>("unknown");
   const [relationshipContext, setRelationshipContext] =
     useState<SynastryRelationshipContext>("romantic");
-  const [consentConfirmed, setConsentConfirmed] = useState(false);
   const [message, setMessage] = useState("");
   const [isWorking, setIsWorking] = useState(false);
   const [productLocked, setProductLocked] = useState(false);
 
+  const generationInFlightRef = useRef(false);
+  const pendingGenerationRef = useRef<{
+    signature: string;
+    recordId: string;
+  } | null>(null);
   const refreshLibrary = useCallback(() => {
     setReports(loadReports());
     setHistory(loadPrivateComparisons());
@@ -116,8 +133,24 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     [chartBId, usableReports],
   );
 
+  useEffect(() => {
+    trackComparePublicAggregateEvent("compare_landing_view");
+  }, []);
+
+  useEffect(() => {
+    if (chartAId || usableReports.length !== 1) return;
+    const [onlyReport] = usableReports;
+    const frame = window.requestAnimationFrame(() => {
+      setChartAId(onlyReport.id);
+      setChartATimeStatus(getDefaultComparisonBirthTimeStatus(onlyReport));
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [chartAId, usableReports]);
+
+
   function selectChartA(nextId: string) {
     setChartAId(nextId);
+    if (nextId) trackComparePublicAggregateEvent("compare_slot_completed");
     const report = usableReports.find((item) => item.id === nextId);
     if (report) setChartATimeStatus(getDefaultComparisonBirthTimeStatus(report));
     setMessage("");
@@ -125,22 +158,23 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
 
   function selectChartB(nextId: string) {
     setChartBId(nextId);
+    if (nextId) trackComparePublicAggregateEvent("compare_slot_completed");
     const report = usableReports.find((item) => item.id === nextId);
     if (report) setChartBTimeStatus(getDefaultComparisonBirthTimeStatus(report));
     setMessage("");
   }
 
   async function generateComparison() {
+    if (generationInFlightRef.current) return;
     if (!chartA || !chartB) {
       setMessage("دو چارت محاسبه‌شده را انتخاب کن.");
       return;
     }
-
-    if (productAccess.status === "loading") {
+    if (!freeAllAccess && productAccess.status === "loading") {
       setMessage("وضعیت دسترسی هنوز در حال بررسی است.");
       return;
     }
-    if (productAccess.status === "unavailable") {
+    if (!freeAllAccess && productAccess.status === "unavailable") {
       setMessage("وضعیت دسترسی فعلاً قابل تأیید نیست.");
       return;
     }
@@ -150,10 +184,20 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       return;
     }
 
+    generationInFlightRef.current = true;
+    trackComparePublicAggregateEvent("compare_generation_started");
     setProductLocked(false);
     setIsWorking(true);
     setMessage("");
 
+    const signature = [
+      chartA.id,
+      chartB.id,
+      chartATimeStatus,
+      chartBTimeStatus,
+      relationshipContext,
+    ].join("|");
+    const pending = pendingGenerationRef.current;
     const result = createPrivateComparison(chartA, chartB, {
       chartAId: chartA.id,
       chartBId: chartB.id,
@@ -162,19 +206,25 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       chartABirthTimeStatus: chartATimeStatus,
       chartBBirthTimeStatus: chartBTimeStatus,
       relationshipContext,
-      secondPersonConsentConfirmed: consentConfirmed,
+      recordId: pending?.signature === signature ? pending.recordId : undefined,
     });
-
     if (!result.ok) {
+      generationInFlightRef.current = false;
       setIsWorking(false);
       setMessage(result.message);
       return;
     }
 
+    pendingGenerationRef.current = {
+      signature,
+      recordId: result.record.id,
+    };
+
     // HALLEUS_CONFIGURED_RELATIONSHIP_CONSUME_BATCH1_R1
     if (!freeAllAccess) {
       const consume = await productAccess.consumeRelationship(result.record.id);
       if (!consume.ok) {
+        generationInFlightRef.current = false;
         setProductLocked(true);
         setIsWorking(false);
         setMessage(consume.error ?? "مصرف اعتبار تحلیل رابطه انجام نشد.");
@@ -184,14 +234,17 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
 
     const storageResult = savePrivateComparison(result.record);
     if (!storageResult.ok) {
+      generationInFlightRef.current = false;
       setIsWorking(false);
-      setMessage(storageResult.message);
+      setMessage(
+        `${storageResult.message} تلاش دوباره با همان شناسه انجام می‌شود و اعتبار دوباره مصرف نمی‌شود.`,
+      );
       return;
     }
 
+    pendingGenerationRef.current = null;
     router.push(`/compare/${encodeURIComponent(result.record.id)}`);
   }
-
   function removeComparison(comparisonId: string) {
     const result = deletePrivateComparison(comparisonId);
     if (!result.ok) {
@@ -201,8 +254,25 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     setHistory(result.records);
   }
 
+  const accessResolved =
+    freeAllAccess ||
+    (productAccess.status !== "loading" && productAccess.status !== "unavailable");
+  const hasRelationshipCredit =
+    freeAllAccess || productAccess.access.balances.relationship >= 1;
+  const generationDisabled =
+    isWorking ||
+    !chartA ||
+    !chartB ||
+    !accessResolved ||
+    !hasRelationshipCredit;
   return (
-    <div className={styles.product} data-halleus-progressive-compare="batch4-r1">
+    <div
+      className={styles.product}
+      data-halleus-progressive-compare="batch4-r1"
+      data-embedded={embedded ? "true" : undefined}
+      data-app-like-builder="r11"
+      data-builder-simplified="r12"
+    >
       {!embedded ? <>
       <section className={styles.hero}>
         <div>
@@ -213,8 +283,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
           </p>
         </div>
         <div className={styles.privacyBadge}>
-          <strong>این خوانش خصوصی می‌ماند</strong>
-          <span>فقط روی همین دستگاه ذخیره می‌شود و لینک عمومی ندارد.</span>
+          <strong>خوانش چندلایه، نه یک نمره</strong>
+          <span>الگوهای رابطه جداگانه توضیح داده می‌شوند تا نتیجه قابل‌استفاده‌تر باشد.</span>
         </div>
       </section>
 
@@ -272,181 +342,156 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       <section className={styles.landingBoundary} aria-labelledby="synastry-boundary-title">
         <div>
           <p className={styles.eyebrow}>مرز خوانش</p>
-          <h2 id="synastry-boundary-title">نتیجه خصوصی است و حکم قطعی نیست</h2>
+          <h2 id="synastry-boundary-title">این خوانش حکم قطعی دربارهٔ رابطه نمی‌دهد</h2>
           <p>
-            هالیوس درصد سازگاری نمی‌سازد و دربارهٔ آینده یا ارزش رابطه داوری نمی‌کند. نتیجه فقط روی همین دستگاه نگه‌داری می‌شود، لینک عمومی ندارد و برای ساخت آن باید اجازهٔ استفاده از اطلاعات نفر دوم را تأیید کنی.
+            هالیوس درصد سازگاری نمی‌سازد و دربارهٔ آینده یا ارزش رابطه داوری نمی‌کند. هدف این خوانش روشن‌ترکردن الگوهایی است که میان دو نفر تکرار می‌شوند.
           </p>
         </div>
         <div className={styles.landingLinks}>
           <Link href="/chart">ساخت چارت تولد</Link>
-          <Link href="/privacy">خواندن حریم خصوصی</Link>
         </div>
       </section>
 
       </> : null}
 
-      <ol className={styles.flowRail} aria-label="مراحل ساخت تحلیل رابطه">
-        <li><span>۱</span>چارت اول</li>
-        <li><span>۲</span>چارت دوم</li>
-        <li><span>۳</span>نوع رابطه</li>
-        <li><span>۴</span>رضایت</li>
-        <li><span>۵</span>{freeAllAccess ? "ساخت تحلیل" : "اعتبار و ساخت"}</li>
-      </ol>
-
-      <section className={styles.composerCard} aria-labelledby="comparison-builder-title">
+      <section
+        className={styles.composerCard}
+        aria-busy={isWorking}
+        aria-labelledby="comparison-builder-title"
+      >
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>ساخت تحلیل رابطه</p>
           <h2 id="comparison-builder-title">دو چارت را انتخاب کن</h2>
           <p>
-            فقط بخش‌هایی از دو چارت که برای این خوانش لازم‌اند کنار هم قرار می‌گیرند. تاریخ، شهر و ساعت خام نفر دوم داخل مقایسه نگه‌داری نمی‌شود.
+            دو چارت ذخیره‌شده را انتخاب کن و بعد نوع رابطه را مشخص کن.
           </p>
         </div>
 
         {usableReports.length < 2 ? (
-          <div className={styles.emptyState}>
-            <strong>برای شروع به دو چارت محاسبه‌شده نیاز داری.</strong>
-            <p>
-              چارت دوم را در یک تب تازه بساز. وقتی به این صفحه برگردی، فهرست به‌صورت
-              خودکار تازه می‌شود.
-            </p>
-            <Link className={styles.primaryButton} href="/chart" target="_blank" rel="noreferrer noopener">
-              ساخت چارت دوم در تب تازه
-            </Link>
+          <div className={styles.builderNotice}>
+            <p>برای مقایسه به دو چارت ذخیره‌شده نیاز داری.</p>
+            <Link className={styles.libraryLink} href="/chart">ساخت چارت تولد</Link>
           </div>
-        ) : (
-          <>
-            <section className={styles.flowStep} data-flow-step="charts">
-              <div className={styles.stepHeading}><span>۱–۲</span><div><h3>دو چارت را انتخاب کن</h3><p>اول چارت خودت و بعد چارت نفر دوم را انتخاب کن؛ ساخت چارت دوم همچنان در تب تازه انجام می‌شود.</p></div></div>
-              <div className={styles.chartGrid}>
-              <ChartPicker
-                label="چارت اول"
-                value={chartAId}
-                reports={usableReports}
-                excludedId={chartBId}
-                timeStatus={chartATimeStatus}
-                onChange={selectChartA}
-                onTimeStatusChange={setChartATimeStatus}
-              />
-              <ChartPicker
-                label="چارت دوم"
-                value={chartBId}
-                reports={usableReports}
-                excludedId={chartAId}
-                timeStatus={chartBTimeStatus}
-                onChange={selectChartB}
-                onTimeStatusChange={setChartBTimeStatus}
-              />
-            </div>
-            </section>
+        ) : null}
 
-            <div className={styles.builderToolbar}>
-              <Link className={styles.secondaryButton} href="/chart" target="_blank" rel="noreferrer noopener">
-                ساخت چارت تازه
-              </Link>
-              <button className={styles.textButton} type="button" onClick={refreshLibrary}>
-                به‌روزرسانی فهرست چارت‌ها
-              </button>
+        <section className={styles.flowStep} data-flow-step="charts">
+          <div className={styles.stepHeading}>
+            <span>۱–۲</span>
+            <div>
+              <h3>دو چارت متفاوت را آماده کن</h3>
+              <p>می‌توانی از چارت‌های آماده انتخاب کنی یا برای ساخت چارت تازه به صفحهٔ <Link href="/chart">چارت تولد</Link> بروی.</p>
             </div>
+          </div>
+          <div className={styles.chartGrid}>
+            <ChartPicker
+              label="من"
+              value={chartAId}
+              reports={reports}
+              excludedId={chartBId}
+              timeStatus={chartATimeStatus}
+              onChange={selectChartA}
+              onTimeStatusChange={setChartATimeStatus}
+            />
+            <ChartPicker
+              label="طرف مقابل"
+              value={chartBId}
+              reports={reports}
+              excludedId={chartAId}
+              timeStatus={chartBTimeStatus}
+              onChange={selectChartB}
+              onTimeStatusChange={setChartBTimeStatus}
+            />
+          </div>
+        </section>
 
-            <section className={styles.flowStep} data-flow-step="relationship">
-              <div className={styles.stepHeading}><span>۳</span><div><h3>زمینهٔ رابطه را مشخص کن</h3><p>این انتخاب فقط لحن و تمرکز خوانش را تنظیم می‌کند و حکم قطعی درباره آینده رابطه نمی‌دهد.</p></div></div>
-              <fieldset className={styles.relationshipFieldset}>
-              <legend>نوع رابطه</legend>
-              <div className={styles.relationshipGrid}>
-                {RELATIONSHIP_OPTIONS.map((option) => (
-                  <label
-                    className={styles.relationshipOption}
-                    data-selected={relationshipContext === option.value}
-                    key={option.value}
-                  >
-                    <input
-                      type="radio"
-                      name="relationship-context"
-                      value={option.value}
-                      checked={relationshipContext === option.value}
-                      onChange={() => setRelationshipContext(option.value)}
-                    />
-                    <span>
-                      <strong>{option.label}</strong>
-                      <small>{option.description}</small>
-                    </span>
-                  </label>
-                ))}
+        <section className={styles.flowStep} data-flow-step="relationship">
+          <div className={styles.stepHeading}>
+            <span>۳</span>
+            <div>
+              <h3>زمینهٔ رابطه را مشخص کن</h3>
+              <p>این انتخاب فقط لحن و تمرکز خوانش را تنظیم می‌کند و حکم قطعی درباره آینده رابطه نمی‌دهد.</p>
+            </div>
+          </div>
+          <fieldset className={styles.relationshipFieldset}>
+            <legend>نوع رابطه</legend>
+            <div className={styles.relationshipGrid}>
+              {RELATIONSHIP_OPTIONS.map((option) => (
+                <label
+                  className={styles.relationshipOption}
+                  data-selected={relationshipContext === option.value}
+                  key={option.value}
+                >
+                  <input
+                    type="radio"
+                    name="relationship-context"
+                    value={option.value}
+                    checked={relationshipContext === option.value}
+                    onChange={() => {
+                      setRelationshipContext(option.value);
+                      trackComparePublicAggregateEvent("compare_relationship_selected");
+                      setMessage("");
+                    }}
+                  />
+                  <span>
+                    <strong>{option.label}</strong>
+                    <small>{option.description}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </section>
+
+        {message ? <p className={styles.errorMessage} role="alert">{message}</p> : null}
+
+        {!freeAllAccess &&
+        (productLocked || !hasRelationshipCredit) &&
+        chartA &&
+        chartB ? (
+          <ProductLockedOffer
+            productCode="relationship"
+            title={`خوانش کامل ${getComparisonChartLabel(chartA)} و ${getComparisonChartLabel(chartB)}`}
+            description={`برای زمینهٔ ${RELATIONSHIP_OPTIONS.find((item) => item.value === relationshipContext)?.label ?? "عمومی"}، پاسخ‌های این دو چارت پشت دسترسی Relationship می‌ماند؛ دادهٔ تولد نفر دوم برای بررسی اعتبار به سرور فرستاده نمی‌شود.`}
+            items={["گفت‌وگو و سوءبرداشت", "امنیت عاطفی و نزدیکی", "اصطکاک، مرزها و ترمیم", "این نتیجه بعد از ساخت دوباره اعتبار مصرف نمی‌کند"]}
+            href="/pricing"
+          />
+        ) : null}
+
+        {!freeAllAccess ? (
+<section className={styles.creditStage} data-flow-step="credit">
+            <div className={styles.stepHeading}>
+              <span>۵</span>
+              <div>
+                <h3>اعتبار رابطه و ساخت تحلیل</h3>
+                <p>ساخت یک تحلیل تازه یک اعتبار رابطه مصرف می‌کند. بازکردن نتیجهٔ ذخیره‌شده اعتبار دیگری مصرف نمی‌کند.</p>
               </div>
-            </fieldset>
-            </section>
+            </div>
+            <div className={styles.creditWidget}><AccountProductAccessCard /></div>
+            <Link className={styles.purchasePath} href="/pricing">اعتبار کافی نداری؟ بسته‌های فعال را ببین</Link>
+          </section>
+        ) : null}
 
-            <section className={styles.flowStep} data-flow-step="consent">
-              <div className={styles.stepHeading}><span>۴</span><div><h3>رضایت نفر دوم را تأیید کن</h3><p>تحلیل رابطه خصوصی می‌ماند و اطلاعات خام تولد نفر دوم برای بررسی اعتبار ارسال نمی‌شود.</p></div></div>
-              <label className={styles.consentBox}>
-              <input
-                type="checkbox"
-                checked={consentConfirmed}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => setConsentConfirmed(event.target.checked)}
-              />
-              <span>
-                <strong>اجازه استفاده از اطلاعات نفر دوم را دارم</strong>
-                <small>
-                  این اجازه فقط برای ساخت همین خوانش خصوصی است و اطلاعات نفر دوم را عمومی نمی‌کند.
-                </small>
-              </span>
-            </label>
-            </section>
-
-            {message ? <p className={styles.errorMessage} role="alert">{message}</p> : null}
-
-            {!freeAllAccess && productLocked && chartA && chartB ? (
-              <ProductLockedOffer
-                productCode="relationship"
-                title={`خوانش کامل ${getComparisonChartLabel(chartA)} و ${getComparisonChartLabel(chartB)}`}
-                description={`برای زمینهٔ ${RELATIONSHIP_OPTIONS.find((item) => item.value === relationshipContext)?.label ?? "عمومی"}، پاسخ‌های این دو چارت پشت دسترسی Relationship می‌ماند؛ دادهٔ تولد نفر دوم برای بررسی اعتبار به سرور فرستاده نمی‌شود.`}
-                items={["گفت‌وگو و سوءبرداشت", "امنیت عاطفی و نزدیکی", "اصطکاک، مرزها و ترمیم", "این نتیجه بعد از ساخت دوباره اعتبار مصرف نمی‌کند"]}
-                href="/pricing"
-              />
-            ) : null}
-
-            {freeAllAccess ? (
-              <section className={styles.creditStage} data-flow-step="credit" data-free-all-relationship-access="true">
-                <div className={styles.stepHeading}>
-                  <span>۵</span>
-                  <div>
-                    <h3>ساخت تحلیل رابطه</h3>
-                    <p>در حالت فعلی، ساخت تحلیل رابطه بدون خرید و بدون مصرف اعتبار انجام می‌شود.</p>
-                  </div>
-                </div>
-              </section>
-            ) : (
-              <section className={styles.creditStage} data-flow-step="credit">
-                <div className={styles.stepHeading}><span>۵</span><div><h3>اعتبار رابطه و ساخت تحلیل</h3><p>ساخت یک تحلیل تازه یک اعتبار رابطه مصرف می‌کند. بازکردن نتیجهٔ ذخیره‌شده اعتبار دیگری مصرف نمی‌کند.</p></div></div>
-                <div className={styles.creditWidget}><AccountProductAccessCard /></div>
-                <Link className={styles.purchasePath} href="/pricing">اعتبار کافی نداری؟ بسته‌های فعال را ببین</Link>
-              </section>
-            )}
-
-            <button
-              className={styles.primaryButton}
-              type="button"
-              disabled={isWorking || productAccess.status === "loading" || productAccess.status === "unavailable" || !chartA || !chartB}
-              onClick={generateComparison}
-            >
-              {isWorking ? "در حال ساخت خوانش…" : "ساخت تحلیل رابطه"}
-            </button>
-          </>
-        )}
+        <button
+          className={styles.primaryButton}
+          type="button"
+          disabled={generationDisabled}
+          onClick={generateComparison}
+        >
+          {isWorking
+            ? "در حال ساخت خوانش…"
+            : freeAllAccess
+              ? "ساخت تحلیل رابطه"
+              : "ساخت تحلیل رابطه — مصرف ۱ اعتبار"}
+        </button>
       </section>
 
-      <section className={styles.historySection} aria-labelledby="comparison-history-title">
-        <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>خوانش‌های قبلی</p>
-          <h2 id="comparison-history-title">مقایسه‌هایی که روی این دستگاه مانده‌اند</h2>
-          <p>تا شش مقایسه در همین مرورگر نگه‌داری می‌شود و هر زمان بخواهی می‌توانی آن‌ها را پاک کنی.</p>
-        </div>
-
-        {history.length === 0 ? (
-          <div className={styles.emptyState}>
-            <strong>هنوز مقایسه‌ای ذخیره نشده است.</strong>
+      {history.length > 0 ? (
+        <section className={styles.historySection} aria-labelledby="comparison-history-title">
+          <div className={styles.sectionHeading}>
+            <p className={styles.eyebrow}>خوانش‌های قبلی</p>
+            <h2 id="comparison-history-title">مقایسه‌های قبلی</h2>
+            <p>مقایسه‌های اخیرت را می‌توانی از همین‌جا باز یا حذف کنی.</p>
           </div>
-        ) : (
           <div className={styles.historyGrid}>
             {history.map((record) => (
               <article className={styles.historyCard} key={record.id}>
@@ -470,8 +515,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               </article>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -493,22 +538,38 @@ function ChartPicker({
   onChange: (value: string) => void;
   onTimeStatusChange: (value: SynastryBirthTimeStatus) => void;
 }) {
+  const selected = reports.find((report) => report.id === value) ?? null;
   return (
     <div className={styles.chartPicker}>
       <label>
         <span>{label}</span>
-        <select value={value} onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)}>
+        <select
+          value={value}
+          onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+            onChange(event.target.value)
+          }
+        >
           <option value="">انتخاب چارت</option>
           {reports
             .filter((report) => report.id !== excludedId)
             .map((report) => (
-              <option key={report.id} value={report.id}>
+              <option
+                disabled={!report.realEngine}
+                key={report.id}
+                value={report.id}
+              >
                 {getComparisonChartLabel(report)} · {report.input.birthCity}
+                {!report.realEngine ? " · محاسبه کامل نیست" : ""}
               </option>
             ))}
         </select>
       </label>
-
+      {selected?.realEngine ? (
+        <div className={styles.chartSelectionSummary}>
+          <strong>{getComparisonChartLabel(selected)}</strong>
+          <span>{selected.input.birthDate} · {selected.input.birthCity}</span>
+        </div>
+      ) : null}
       {value ? (
         <label className={styles.timeAccuracyChoice}>
           <input
@@ -529,7 +590,6 @@ function ChartPicker({
     </div>
   );
 }
-
 function formatRelationshipContext(context: SynastryRelationshipContext) {
   return RELATIONSHIP_OPTIONS.find((option) => option.value === context)?.label ?? "عمومی";
 }

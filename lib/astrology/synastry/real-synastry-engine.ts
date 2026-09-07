@@ -8,14 +8,19 @@ import type {
   SynastryBiWheelData,
   SynastryChartSide,
   SynastryContactCategory,
+  SynastryEngineCoverageManifest,
   SynastryHouseCusp,
   SynastryHouseOverlay,
   SynastryInterChartAspect,
   SynastryNatalPoint,
   SynastryNatalSnapshot,
+  RealEngineSynastryCoverageField,
   SynastryPointReference,
 } from "../../../types/synastry-engine";
-import { REAL_SYNASTRY_CONTRACT_VERSION } from "../../../types/synastry-engine";
+import {
+  REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS,
+  REAL_SYNASTRY_CONTRACT_VERSION,
+} from "../../../types/synastry-engine";
 import {
   buildSynastryContactEvidenceFa,
   buildSynastryContactGrowthFa,
@@ -104,11 +109,16 @@ export function createSynastryNatalSnapshot(
   const chartId = input.chartId.trim();
   const label = input.label?.trim() || "چارت";
   const source = input.snapshot;
-  const limitations = [...(source.calculationQuality?.limitations ?? [])];
-  const placements = normalizePlacements(source.placements);
+  const limitations = [
+    ...(source.calculationQuality?.limitations ?? []),
+    ...(source.calculationQuality?.warnings ?? []),
+  ];
   const exactTime = input.birthTimeStatus === "exact";
+  const placements = normalizePlacements(source.placements, exactTime);
   const angles = exactTime ? normalizeAngles(source.angles) : [];
   const houses = exactTime ? normalizeHouses(source.houses) : [];
+  const points = normalizeFullEnginePoints(source, exactTime, placements, angles);
+  const engineCoverage = buildEngineCoverageManifest(source);
   const ascendant = angles.find((angle) => angle.id === "asc") ?? null;
   const chartRulerId = ascendant
     ? TRADITIONAL_CHART_RULER_BY_SIGN[ascendant.signId]
@@ -116,7 +126,7 @@ export function createSynastryNatalSnapshot(
 
   if (!exactTime) {
     limitations.push(
-      "ساعت تولد نامشخص است؛ زاویه‌ها، حاکم چارت و خانه‌ها برای مقایسه استفاده نمی‌شوند.",
+      "ساعت تولد نامشخص است؛ زاویه‌ها، حاکم چارت، خانه‌ها و نقاط وابسته به زمان برای محاسبات رابطه استفاده نمی‌شوند؛ دادهٔ خام موتور همچنان در snapshot حفظ شده است.",
     );
   } else if (angles.length === 0) {
     limitations.push(
@@ -136,6 +146,15 @@ export function createSynastryNatalSnapshot(
     );
   }
 
+  const deferredContactPoints = points.filter(
+    (point) => point.contactPolicy === "deferred-no-approved-orb-policy",
+  );
+  if (deferredContactPoints.length > 0) {
+    limitations.push(
+      "نودها، لیلیت و نقاط پیشرفتهٔ محاسبه‌شده در قرارداد سیناستری حفظ شده‌اند؛ تا وقتی orb policy معتبر برای این گروه‌ها تعریف نشود، موتور برایشان جنبهٔ بین‌چارتی تازه جعل نمی‌کند.",
+    );
+  }
+
   return {
     contractVersion: REAL_SYNASTRY_CONTRACT_VERSION,
     chartId,
@@ -147,6 +166,10 @@ export function createSynastryNatalSnapshot(
     chartRulerMethod: chartRulerId
       ? "traditional-ruler-from-ascendant"
       : null,
+    engineParityVersion: "real-engine-synastry-parity-v1",
+    engineSnapshot: source,
+    engineCoverage,
+    points,
     placements,
     angles,
     houses,
@@ -160,7 +183,6 @@ export function createSynastryNatalSnapshot(
     limitations: uniqueStrings(limitations),
   };
 }
-
 export function buildRealSynastry(
   input: BuildRealSynastryInput,
 ): RealSynastryResult {
@@ -249,6 +271,16 @@ export function buildRealSynastry(
       planetToPlanetAvailable: true,
       angleContactsAvailable,
       houseOverlaysAvailable,
+      engineParityComplete:
+        getCoverageCount(input.chartA) === REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS.length &&
+        getCoverageCount(input.chartB) === REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS.length,
+      engineCoverageFieldCount: REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS.length,
+      normalizedPointCount:
+        getPointInventory(input.chartA).length + getPointInventory(input.chartB).length,
+      deferredContactPointCount: [
+        ...getPointInventory(input.chartA),
+        ...getPointInventory(input.chartB),
+      ].filter((point) => point.contactPolicy === "deferred-no-approved-orb-policy").length,
       contactCount: contacts.length,
       supportivePatternCount: supportivePatterns.length,
       tensionPatternCount: tensionPatterns.length,
@@ -362,6 +394,7 @@ export function calculateHouseOverlays(
 
 function normalizePlacements(
   placements: readonly RealEngineReportPlacement[],
+  exactTime: boolean,
 ): SynastryNatalPoint[] {
   const seen = new Set<string>();
   const result: SynastryNatalPoint[] = [];
@@ -384,6 +417,14 @@ function normalizePlacements(
       signId: placement.signId,
       degreeInSign: normalizeDegreeInSign(placement.degreeInSign),
       sourceMethod: placement.method,
+      natalHouse: exactTime ? asHouseNumber(placement.house) : null,
+      sourceReliability: null,
+      motion: placement.motion ? { ...placement.motion } : null,
+      contactPolicy: "major-aspects-v1",
+      houseOverlayPolicy: "derived-house-overlay-v1",
+      requiresExactBirthTime: false,
+      analysisEligible: true,
+      analysisLimitation: null,
     });
   }
 
@@ -407,10 +448,225 @@ function normalizeAngles(
       signId: angle.signId,
       degreeInSign: normalizeDegreeInSign(angle.degreeInSign),
       sourceMethod: angle.method,
+      natalHouse: asHouseNumber(angle.house),
+      sourceReliability: angle.reliability,
+      motion: null,
+      contactPolicy: "angle-major-aspects-v1" as const,
+      houseOverlayPolicy: "not-overlay-eligible" as const,
+      requiresExactBirthTime: true,
+      analysisEligible: true,
+      analysisLimitation: angle.limitation,
     }))
     .sort((left, right) => left.id.localeCompare(right.id));
 }
 
+function normalizeFullEnginePoints(
+  source: BuildSynastryNatalSnapshotInput["snapshot"],
+  exactTime: boolean,
+  placements: readonly SynastryNatalPoint[],
+  angles: readonly SynastryNatalPoint[],
+): SynastryNatalPoint[] {
+  const points = new Map<string, SynastryNatalPoint>();
+  const add = (point: SynastryNatalPoint) => {
+    if (!points.has(point.id)) points.set(point.id, point);
+  };
+
+  placements.forEach(add);
+  angles.forEach(add);
+
+  const nodes = source.lunarNodes;
+  if (
+    nodes &&
+    nodes.status === "calculated" &&
+    "northNode" in nodes &&
+    "southNode" in nodes
+  ) {
+    for (const node of [nodes.northNode, nodes.southNode]) {
+      add({
+        id: node.id,
+        label: node.id === "north-node" ? "گره شمالی" : "گره جنوبی",
+        kind: "lunar-node",
+        longitude: normalizeLongitude(node.longitude),
+        signId: node.signId,
+        degreeInSign: normalizeDegreeInSign(node.degreeInSign),
+        sourceMethod: node.method,
+        natalHouse: exactTime ? asHouseNumber(node.house) : null,
+        sourceReliability: node.reliability,
+        motion: null,
+        contactPolicy: "deferred-no-approved-orb-policy",
+        houseOverlayPolicy: "derived-house-overlay-v1",
+        requiresExactBirthTime: false,
+        analysisEligible: true,
+        analysisLimitation: node.limitation,
+      });
+    }
+  }
+
+  const lilith = source.lilith;
+  if (
+    lilith &&
+    lilith.status === "calculated" &&
+    "longitude" in lilith &&
+    "approvedForReportOutput" in lilith
+  ) {
+    const approved = lilith.approvedForReportOutput === true;
+    add({
+      id: lilith.id,
+      label: "لیلیت سیاه",
+      kind: "lilith",
+      longitude: normalizeLongitude(lilith.longitude),
+      signId: lilith.signId,
+      degreeInSign: normalizeDegreeInSign(lilith.degreeInSign),
+      sourceMethod: lilith.method,
+      natalHouse: exactTime ? asHouseNumber(lilith.house) : null,
+      sourceReliability: lilith.reliability,
+      motion: null,
+      contactPolicy: "deferred-no-approved-orb-policy",
+      houseOverlayPolicy: approved
+        ? "derived-house-overlay-v1"
+        : "not-overlay-eligible",
+      requiresExactBirthTime: false,
+      analysisEligible: approved,
+      analysisLimitation: approved
+        ? lilith.limitation
+        : "دادهٔ لیلیت حفظ شده اما برای خروجی تحلیلی تأیید نشده است.",
+    });
+  }
+
+  for (const point of source.specialPoints ?? []) {
+    if (point.status !== "calculated") continue;
+
+    const requiresExactBirthTime =
+      point.id === "part-of-fortune" || point.id === "vertex";
+    const analysisEligible = !requiresExactBirthTime || exactTime;
+
+    add({
+      id: point.id,
+      label: point.labelFa,
+      kind:
+        point.category === "advanced-body"
+          ? "advanced-body"
+          : "special-point",
+      longitude: normalizeLongitude(point.longitude),
+      signId: point.signId,
+      degreeInSign: normalizeDegreeInSign(point.degreeInSign),
+      sourceMethod: point.method,
+      natalHouse: exactTime ? asHouseNumber(point.house) : null,
+      sourceReliability: point.reliability,
+      motion: point.motion ? { ...point.motion } : null,
+      contactPolicy: "deferred-no-approved-orb-policy",
+      houseOverlayPolicy: analysisEligible
+        ? "derived-house-overlay-v1"
+        : "requires-exact-birth-time",
+      requiresExactBirthTime,
+      analysisEligible,
+      analysisLimitation: analysisEligible
+        ? null
+        : "این نقطه به ساعت تولد معتبر وابسته است.",
+    });
+  }
+
+  for (const lot of source.specialistAstrology?.traditionalLots.lots ?? []) {
+    const analysisEligible = exactTime;
+    add({
+      id: `lot:${lot.id}`,
+      label: lot.labelFa,
+      kind: "traditional-lot",
+      longitude: normalizeLongitude(lot.longitude),
+      signId: lot.signId,
+      degreeInSign: normalizeDegreeInSign(lot.degreeInSign),
+      sourceMethod: lot.source,
+      natalHouse: exactTime ? asHouseNumber(lot.house) : null,
+      sourceReliability: "calculated",
+      motion: null,
+      contactPolicy: "deferred-no-approved-orb-policy",
+      houseOverlayPolicy: analysisEligible
+        ? "derived-house-overlay-v1"
+        : "requires-exact-birth-time",
+      requiresExactBirthTime: true,
+      analysisEligible,
+      analysisLimitation: analysisEligible
+        ? null
+        : "Traditional Lot به زمان و زاویه‌های معتبر وابسته است.",
+    });
+  }
+
+  for (const star of source.specialistAstrology?.fixedStars.stars ?? []) {
+    add({
+      id: `fixed-star:${star.id}`,
+      label: star.labelFa,
+      kind: "fixed-star",
+      longitude: normalizeLongitude(star.longitude),
+      signId: star.signId,
+      degreeInSign: normalizeDegreeInSign(star.degreeInSign),
+      sourceMethod: star.source,
+      natalHouse: exactTime ? asHouseNumber(star.house) : null,
+      sourceReliability: "calculated",
+      motion: null,
+      contactPolicy: "not-contact-eligible",
+      houseOverlayPolicy: "not-overlay-eligible",
+      requiresExactBirthTime: false,
+      analysisEligible: true,
+      analysisLimitation: null,
+    });
+  }
+
+  return [...points.values()].sort(
+    (left, right) =>
+      left.longitude - right.longitude || left.id.localeCompare(right.id),
+  );
+}
+
+function buildEngineCoverageManifest(
+  source: BuildSynastryNatalSnapshotInput["snapshot"],
+): SynastryEngineCoverageManifest {
+  const interpretiveFields = new Set<RealEngineSynastryCoverageField>([
+    "houseSystem",
+    "houses",
+    "angles",
+    "retrogrades",
+    "lunarNodes",
+    "lilith",
+    "specialPoints",
+    "specialistAstrology",
+    "chartSignature",
+    "placements",
+    "aspects",
+    "aspectHighlights",
+  ]);
+  const manifest = {} as SynastryEngineCoverageManifest;
+
+  for (const field of REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS) {
+    const available = typeof source[field] !== "undefined";
+    manifest[field] = {
+      field,
+      dataState: available ? "preserved" : "unavailable",
+      interpretationState: interpretiveFields.has(field)
+        ? "pending-slice2"
+        : "technical-explanation-required",
+      reason: available
+        ? null
+        : `RealEngine field "${field}" در snapshot این چارت موجود نیست.`,
+    };
+  }
+
+  return manifest;
+}
+
+function asHouseNumber(
+  value: number | null | undefined,
+): RealEngineReportHouseNumber | null {
+  if (!Number.isInteger(value) || value == null || value < 1 || value > 12) {
+    return null;
+  }
+  return value as RealEngineReportHouseNumber;
+}
+
+function getPointInventory(
+  snapshot: SynastryNatalSnapshot,
+): SynastryNatalPoint[] {
+  return snapshot.points ?? [...snapshot.placements, ...snapshot.angles];
+}
 function normalizeHouses(
   houses: readonly RealEngineReportHouse[] | undefined,
 ): SynastryHouseCusp[] {
@@ -451,34 +707,70 @@ function validateSnapshot(
   label: string,
 ): string[] {
   const issues: string[] = [];
+
   if (!snapshot || typeof snapshot !== "object") {
     return [`${label} موجود نیست.`];
   }
-  if (snapshot.contractVersion !== REAL_SYNASTRY_CONTRACT_VERSION) {
+
+  if (
+    snapshot.contractVersion !== "real-synastry-v1" &&
+    snapshot.contractVersion !== REAL_SYNASTRY_CONTRACT_VERSION
+  ) {
     issues.push(`${label} نسخه contract معتبر ندارد.`);
   }
+
   if (!snapshot.chartId.trim()) issues.push(`${label} شناسه ندارد.`);
+
   if (!snapshot.natalSnapshotVersion) {
     issues.push(`${label} نسخه natal snapshot ندارد.`);
   }
+
+  if (snapshot.contractVersion === REAL_SYNASTRY_CONTRACT_VERSION) {
+    if (snapshot.engineParityVersion !== "real-engine-synastry-parity-v1") {
+      issues.push(`${label} نسخه parity معتبر ندارد.`);
+    }
+
+    if (!snapshot.engineSnapshot || typeof snapshot.engineSnapshot !== "object") {
+      issues.push(`${label} full-fidelity engine snapshot ندارد.`);
+    }
+
+    if (
+      getCoverageCount(snapshot) !==
+      REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS.length
+    ) {
+      issues.push(`${label} coverage کامل RealEngine ندارد.`);
+    }
+
+    if (!Array.isArray(snapshot.points)) {
+      issues.push(`${label} inventory کامل نقاط engine ندارد.`);
+    }
+  }
+
   if (!Array.isArray(snapshot.placements)) {
     issues.push(`${label} فهرست جایگاه سیاره‌ای معتبر ندارد.`);
     return uniqueStrings(issues);
   }
+
   if (snapshot.placements.length < 2) {
     issues.push(`${label} حداقل دو جایگاه سیاره‌ای معتبر نیاز دارد.`);
   }
+
   const ids = new Set<string>();
+
   for (const placement of snapshot.placements) {
     if (!placement.id.trim()) issues.push(`${label} جایگاه بدون شناسه دارد.`);
+
     if (ids.has(placement.id)) {
       issues.push(`${label} جایگاه تکراری ${placement.id} دارد.`);
     }
+
     ids.add(placement.id);
+
     if (!Number.isFinite(placement.longitude)) {
       issues.push(`${label} طول دایرةالبروجی نامعتبر دارد.`);
     }
   }
+
   if (snapshot.birthTimeStatus === "unknown") {
     if (snapshot.angles.length > 0 || snapshot.houses.length > 0) {
       issues.push(
@@ -486,19 +778,31 @@ function validateSnapshot(
       );
     }
   }
+
   return uniqueStrings(issues);
 }
-
 function toPointReferences(
   snapshot: SynastryNatalSnapshot,
   chartSide: SynastryChartSide,
   includeAngles: boolean,
 ): SynastryPointReference[] {
-  return [...snapshot.placements, ...(includeAngles ? snapshot.angles : [])].map(
-    (point) => ({ ...point, chartSide, chartId: snapshot.chartId }),
-  );
-}
+  return getPointInventory(snapshot)
+    .filter((point) => {
+      if (point.analysisEligible === false) return false;
+      if (point.kind === "angle" && !includeAngles) return false;
 
+      if (point.contactPolicy) {
+        return (
+          point.contactPolicy === "major-aspects-v1" ||
+          point.contactPolicy === "angle-major-aspects-v1"
+        );
+      }
+
+      // Backward-compatible fallback for legacy v1 points.
+      return point.kind === "planet" || point.kind === "angle";
+    })
+    .map((point) => ({ ...point, chartSide, chartId: snapshot.chartId }));
+}
 function findAspect(
   pointA: SynastryPointReference,
   pointB: SynastryPointReference,
@@ -666,6 +970,38 @@ function buildBiWheelData(
     outerChartSide: "b",
     innerPoints: toWheelPoints(chartA, "a"),
     outerPoints: toWheelPoints(chartB, "b"),
+    fullInnerPoints: getPointInventory(chartA)
+      .filter((point) => point.analysisEligible !== false)
+      .map((point) => ({
+        chartSide: "a" as const,
+        chartId: chartA.chartId,
+        pointId: point.id,
+        pointKind: point.kind,
+        longitude: point.longitude,
+        signId: point.signId,
+        label: point.label,
+      }))
+      .sort(
+        (left, right) =>
+          left.longitude - right.longitude ||
+          left.pointId.localeCompare(right.pointId),
+      ),
+    fullOuterPoints: getPointInventory(chartB)
+      .filter((point) => point.analysisEligible !== false)
+      .map((point) => ({
+        chartSide: "b" as const,
+        chartId: chartB.chartId,
+        pointId: point.id,
+        pointKind: point.kind,
+        longitude: point.longitude,
+        signId: point.signId,
+        label: point.label,
+      }))
+      .sort(
+        (left, right) =>
+          left.longitude - right.longitude ||
+          left.pointId.localeCompare(right.pointId),
+      ),
     aspectLines: contacts.map((contact) => ({
       contactId: contact.id,
       fromChartSide: contact.pointA.chartSide,
@@ -677,6 +1013,10 @@ function buildBiWheelData(
       relevanceScore: contact.relevanceScore,
     })),
   };
+}
+
+function getCoverageCount(snapshot: SynastryNatalSnapshot): number {
+  return snapshot.engineCoverage ? Object.keys(snapshot.engineCoverage).length : 0;
 }
 
 function buildPairLimitations(
@@ -717,8 +1057,14 @@ function buildDirectionalOverlays(
   targetSide: SynastryChartSide,
 ): SynastryHouseOverlay[] {
   const direction = sourceSide === "a" ? "a-in-b" : "b-in-a";
-  return source.placements
-    .filter((placement) => OVERLAY_PLANET_IDS.has(placement.id))
+  return getPointInventory(source)
+    .filter((placement) => {
+      if (placement.analysisEligible === false) return false;
+      if (placement.houseOverlayPolicy) {
+        return placement.houseOverlayPolicy === "derived-house-overlay-v1";
+      }
+      return OVERLAY_PLANET_IDS.has(placement.id);
+    })
     .map((placement) => {
       const targetHouse = assignHouseFromCusps(
         placement.longitude,

@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { ComparisonBiWheel } from "@/components/comparison/ComparisonBiWheel";
 import {
   buildHumanFirstComparisonReading,
   rebuildPrivateComparison,
@@ -16,7 +22,11 @@ import {
   subscribeToPrivateComparisons,
 } from "@/lib/comparison/comparison-storage";
 import { loadReports } from "@/lib/storage/reports-storage";
-import type { ComparisonRecord } from "@/types/comparison-product";
+import type {
+  ComparisonFullInterpretation,
+  ComparisonNarrativeChapter,
+  ComparisonRecord,
+} from "@/types/comparison-product";
 import type {
   HumanFirstDirectionalNarrativeBlock,
   HumanFirstEvidence,
@@ -27,6 +37,33 @@ import type {
 } from "@/types/synastry-engine";
 
 import styles from "./comparison.module.css";
+
+const INITIAL_TECHNICAL_CONTACT_LIMIT = 8;
+type TechnicalContactCategory =
+  | "all"
+  | "communication"
+  | "emotional"
+  | "attraction"
+  | "boundaries"
+  | "pressure"
+  | "houses";
+type TechnicalContactPolarity = "all" | "supportive" | "tension" | "intense" | "neutral";
+type TechnicalContactSort = "relevance" | "orb";
+
+const ComparisonBiWheel = dynamic(
+  () =>
+    import("@/components/comparison/ComparisonBiWheel").then(
+      (module) => module.ComparisonBiWheel,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className={styles.lazyWheelPlaceholder} role="status" aria-live="polite">
+        چرخ فنی در حال آماده‌شدن است…
+      </div>
+    ),
+  },
+);
 
 type ComparisonReportProps = {
   comparisonId: string;
@@ -41,6 +78,10 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
   const [message, setMessage] = useState("");
   const [isWorking, setIsWorking] = useState(false);
   const [mode, setMode] = useState<ComparisonMode>("reading");
+  const [showAllContacts, setShowAllContacts] = useState(false);
+  const [technicalCategory, setTechnicalCategory] = useState<TechnicalContactCategory>("all");
+  const [technicalPolarity, setTechnicalPolarity] = useState<TechnicalContactPolarity>("all");
+  const [technicalSort, setTechnicalSort] = useState<TechnicalContactSort>("relevance");
 
   const loadRecord = useCallback(() => {
     setRecord(getPrivateComparison(comparisonId));
@@ -116,17 +157,17 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
 
   if (!isReady) {
     return (
-      <main className={styles.product}>
+      <div className={styles.product}>
         <div className={styles.emptyState} role="status">
           <strong>در حال باز کردن مقایسه…</strong>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!record || !reading) {
     return (
-      <main className={styles.product}>
+      <div className={styles.product}>
         <div className={styles.emptyState}>
           <strong>این مقایسه روی این دستگاه پیدا نشد.</strong>
           <p>ممکن است پاک شده باشد یا در مرورگر دیگری ساخته شده باشد.</p>
@@ -134,7 +175,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             برگشت به مقایسه‌ها
           </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -142,9 +183,39 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     a: normalizePersonLabel(record.chartALabel, "نفر اول"),
     b: normalizePersonLabel(record.chartBLabel, "نفر دوم"),
   };
+  const filteredTechnicalContacts = filterTechnicalContacts(
+    record.report.contacts,
+    technicalCategory,
+    technicalPolarity,
+    technicalSort,
+  );
+  const visibleTechnicalContacts = showAllContacts
+    ? filteredTechnicalContacts
+    : filteredTechnicalContacts.slice(0, INITIAL_TECHNICAL_CONTACT_LIMIT);
+
+  function handleTabKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    current: ComparisonMode,
+  ) {
+    const key = event.key;
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(key)) return;
+    event.preventDefault();
+    const next: ComparisonMode =
+      key === "Home"
+        ? "reading"
+        : key === "End"
+          ? "technical"
+          : current === "reading"
+            ? "technical"
+            : "reading";
+    setMode(next);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`comparison-tab-${next}`)?.focus();
+    });
+  }
 
   return (
-    <main
+    <div
       className={`${styles.product} ${styles.humanFirstProduct}`}
       data-comparison-reading="human-first"
     >
@@ -159,7 +230,11 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             {formatRelationshipContext(record.relationshipContext)}
           </p>
           <h1>این رابطه از چه داستانی می‌گوید؟</h1>
-          <p className={styles.heroLead}>{reading.overviewFa}</p>
+          <div className={styles.overviewParagraphs}>
+            {reading.overviewParagraphsFa.map((paragraph, index) => (
+              <p className={styles.heroLead} key={index}>{paragraph}</p>
+            ))}
+          </div>
           <p className={styles.privateNote}>
             این خوانش خصوصی می‌ماند و فقط روی همین دستگاه ذخیره می‌شود.
           </p>
@@ -177,19 +252,27 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
         aria-label="بخش‌های مقایسه"
       >
         <button
+          id="comparison-tab-reading"
+          aria-controls="comparison-panel-reading"
           aria-selected={mode === "reading"}
           data-active={mode === "reading"}
           onClick={() => setMode("reading")}
+          onKeyDown={(event) => handleTabKeyDown(event, "reading")}
           role="tab"
+          tabIndex={mode === "reading" ? 0 : -1}
           type="button"
         >
           خوانش رابطه
         </button>
         <button
+          id="comparison-tab-technical"
+          aria-controls="comparison-panel-technical"
           aria-selected={mode === "technical"}
           data-active={mode === "technical"}
           onClick={() => setMode("technical")}
+          onKeyDown={(event) => handleTabKeyDown(event, "technical")}
           role="tab"
+          tabIndex={mode === "technical" ? 0 : -1}
           type="button"
         >
           جزئیات نجومی
@@ -197,20 +280,18 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
       </div>
 
       {mode === "reading" ? (
-        <div className={styles.readingFlow}>
-          <section
-            className={styles.relationshipChapter}
-            aria-labelledby="comparison-primary-patterns-title"
-          >
+        <div
+          className={styles.readingFlow}
+          id="comparison-panel-reading"
+          role="tabpanel"
+          aria-labelledby="comparison-tab-reading"
+          tabIndex={0}
+        >
+          <section className={styles.relationshipChapter} aria-labelledby="comparison-primary-patterns-title">
             <div className={styles.sectionHeading}>
               <p className={styles.eyebrow}>سه الگوی اصلی میان شما</p>
-              <h2 id="comparison-primary-patterns-title">
-                سه چرخه‌ای که بهتر است زودتر بشناسید
-              </h2>
-              <p>
-                هر الگو را کامل بخوان و بعد سراغ بعدی برو؛ قرار نیست سه روایت
-                فشرده را هم‌زمان کنار هم نگه داری.
-              </p>
+              <h2 id="comparison-primary-patterns-title">سه چرخه‌ای که بهتر است زودتر بشناسید</h2>
+              <p>این سه الگو فقط همین‌جا کامل توضیح داده می‌شوند؛ فصل‌های بعدی تماس اصلی دیگری می‌گیرند یا به این بخش ارجاع کوتاه می‌دهند.</p>
             </div>
             <div className={styles.relationshipPatternList}>
               {reading.primaryPatterns.map((pattern, index) => (
@@ -225,59 +306,32 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             </div>
           </section>
 
-          <RelationshipChapter
-            eyebrow="جایی که راحت‌تر به هم نزدیک می‌شوید"
-            title="وقتی تفاوت‌ها به کمک هم می‌آیند"
-            blocks={[reading.support]}
-            labels={labels}
-          />
+          <div className={styles.chapterSequence}>
+            {reading.chapters.map((chapter) => (
+              <NarrativeChapter chapter={chapter} key={chapter.id} />
+            ))}
+          </div>
 
-          <RelationshipChapter
-            eyebrow="گفت‌وگو"
-            title="جایی که ممکن است حرف هم را سخت‌تر بشنوید"
-            intro="گاهی مسئله خودِ حرف نیست؛ سرعت پاسخ‌دادن، نیاز به مکث یا برداشتی است که هر نفر از سکوت و توضیح دیگری می‌سازد."
-            blocks={[reading.misunderstanding, reading.communication]}
-            labels={labels}
-          />
-
-          <RelationshipChapter
-            eyebrow="امنیت و صمیمیت"
-            title="چطور نزدیک می‌شوید و چقدر به فاصله نیاز دارید؟"
-            intro="امنیت برای هر دو نفر می‌تواند معنای متفاوتی داشته باشد. این تفاوت وقتی گفته شود، به‌جای فاصله می‌تواند تبدیل به راهنمای نزدیکی شود."
-            blocks={[reading.emotionalSecurity, reading.closenessIndependence]}
-            labels={labels}
-          />
-
-          <RelationshipChapter
-            eyebrow="مرز و ترمیم"
-            title="وقتی رابطه گیر می‌کند، چطور دوباره به هم برمی‌گردید؟"
-            intro="مرز روشن و ترمیم به‌موقع دو چیز جدا نیستند؛ هر دو کمک می‌کنند اختلاف به زخمی طولانی تبدیل نشود."
-            blocks={[reading.boundariesCommitment, reading.frictionRepair]}
-            labels={labels}
-          />
+          <FullInterpretationReading full={reading.fullInterpretation} />
 
           <section className={styles.relationshipChapter} id="comparison-growth">
             <div className={styles.sectionHeading}>
-              <p className={styles.eyebrow}>جهت رشد رابطه</p>
-              <h2>این رابطه از هر نفر چه مهارتی می‌خواهد؟</h2>
+              <p className={styles.eyebrow}>گام بعدی</p>
+              <h2>از این خوانش چه چیزی را وارد گفت‌وگوی واقعی کنید؟</h2>
             </div>
             <div className={styles.growthFlow}>
-              <article>
-                <span>{labels.a}</span>
-                <p>{reading.growth.personASkill}</p>
-              </article>
-              <article>
-                <span>{labels.b}</span>
-                <p>{reading.growth.personBSkill}</p>
-              </article>
-            </div>
-            <div className={styles.cycleLine}>
-              <strong>چرخه‌ای که بهتر است زودتر ببینید</strong>
-              <p>{reading.growth.cycleToNotice}</p>
+              <article><span>{labels.a}</span><p>{reading.growth.personASkill}</p></article>
+              <article><span>{labels.b}</span><p>{reading.growth.personBSkill}</p></article>
             </div>
             <div className={styles.practiceLine}>
               <strong>یک کار کوچک که می‌تواند کمک کند</strong>
               <p>{reading.growth.practicalStep}</p>
+            </div>
+            <div className={styles.conversationQuestions}>
+              <strong>سه سؤال برای گفت‌وگو</strong>
+              <ol>
+                {reading.conversationQuestionsFa.map((question) => <li key={question}>{question}</li>)}
+              </ol>
             </div>
           </section>
 
@@ -287,56 +341,88 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
           </section>
         </div>
       ) : null}
-
       {mode === "technical" ? (
-        <div className={styles.technicalFlow}>
-          <section className={styles.wheelSection}>
-            <div className={styles.sectionHeading}>
-              <p className={styles.eyebrow}>چرخ دو چارت</p>
-              <h2>جایگاه دو چارت را روی یک تصویر ببین</h2>
-              <p>
-                این تصویر کمک می‌کند تماس‌هایی را که در خوانش دیدی روی چرخ
-                پیدا کنی، بدون اینکه جای روایت انسانی را بگیرد.
-              </p>
-            </div>
-            <ComparisonBiWheel report={record.report} />
-          </section>
+        <div
+          className={styles.technicalFlow}
+          id="comparison-panel-technical"
+          role="tabpanel"
+          aria-labelledby="comparison-tab-technical"
+          tabIndex={0}
+        >
+          <ComparisonBiWheel report={record.report} />
 
           <section className={styles.technicalDetails}>
             <div className={styles.sectionHeading}>
-              <p className={styles.eyebrow}>همهٔ تماس‌ها</p>
-              <h2>نام تماس، فاصلهٔ زاویه‌ای و اورب</h2>
-              <p>
-                نام تماس‌ها، جهت آن‌ها و فاصله از زاویهٔ دقیق را یک‌جا ببین.
-              </p>
+              <p className={styles.eyebrow}>جزئیات فنی</p>
+              <h2>تماس‌ها را مرحله‌به‌مرحله باز کن</h2>
+              <p>در شروع فقط هشت تماس مهم دیده می‌شود. دسته، polarity و ترتیب نمایش را می‌توانی بدون تغییر خود محاسبه فیلتر کنی.</p>
             </div>
-            <div className={styles.contactList}>
-              {record.report.contacts.map((contact) => (
-                <article
-                  className={styles.contactCard}
-                  data-polarity={contact.polarity}
-                  key={contact.id}
-                >
-                  <div>
-                    <span>{contact.aspectLabel}</span>
-                    <strong>{contact.titleFa}</strong>
-                  </div>
-                  <dl className={styles.contactFacts}>
-                    <div>
-                      <dt>فاصلهٔ زاویه‌ای</dt>
-                      <dd>{formatDegree(contact.separation)}</dd>
-                    </div>
-                    <div>
-                      <dt>اورب</dt>
-                      <dd>{formatDegree(contact.orb)}</dd>
-                    </div>
-                  </dl>
-                </article>
-              ))}
+            <div className={styles.technicalToolbar}>
+              <label className={styles.technicalControl}>
+                <span>دسته</span>
+                <select value={technicalCategory} onChange={(event) => { setTechnicalCategory(event.target.value as TechnicalContactCategory); setShowAllContacts(false); }}>
+                  <option value="all">همه</option>
+                  <option value="communication">گفت‌وگو</option>
+                  <option value="emotional">عاطفه و امنیت</option>
+                  <option value="attraction">کشش و صمیمیت</option>
+                  <option value="boundaries">مرز و استقلال</option>
+                  <option value="pressure">فشار و اصطکاک</option>
+                  <option value="houses">خانه‌ها</option>
+                </select>
+              </label>
+              <label className={styles.technicalControl}>
+                <span>کیفیت تماس</span>
+                <select value={technicalPolarity} onChange={(event) => { setTechnicalPolarity(event.target.value as TechnicalContactPolarity); setShowAllContacts(false); }}>
+                  <option value="all">همه</option>
+                  <option value="supportive">حمایتی</option>
+                  <option value="tension">تنش</option>
+                  <option value="intense">فشرده</option>
+                  <option value="neutral">خنثی</option>
+                </select>
+              </label>
+              <label className={styles.technicalControl}>
+                <span>مرتب‌سازی</span>
+                <select value={technicalSort} onChange={(event) => setTechnicalSort(event.target.value as TechnicalContactSort)}>
+                  <option value="relevance">اهمیت</option>
+                  <option value="orb">اورب کمتر</option>
+                </select>
+              </label>
             </div>
-          </section>
 
-          {record.report.houseOverlays.length > 0 ? (
+            {technicalCategory === "houses" ? (
+              <p className={styles.technicalEmpty}>فیلتر خانه‌ها فعال است؛ هم‌پوشانی‌های جهت‌دار پایین نمایش داده می‌شوند.</p>
+            ) : visibleTechnicalContacts.length > 0 ? (
+              <>
+                <div className={styles.contactList}>
+                  {visibleTechnicalContacts.map((contact) => (
+                    <article className={styles.contactCard} data-polarity={contact.polarity} key={contact.id}>
+                      <div>
+                        <span>{contact.aspectLabel}</span>
+                        <strong data-person-direction="true">{directionalAspectTitle(contact, labels)}</strong>
+                        <small className={styles.contactDirection}>{contact.titleFa}</small>
+                      </div>
+                      <p className={styles.contactReason}>{describeContactImportance(contact)}</p>
+                      <div className={styles.contactCategoryTags}>
+                        {contact.categories.map((category) => <span key={category}>{formatContactCategory(category)}</span>)}
+                      </div>
+                      <dl className={styles.contactFacts}>
+                        <div><dt>فاصلهٔ زاویه‌ای</dt><dd>{formatDegree(contact.separation)}</dd></div>
+                        <div><dt>اورب</dt><dd>{formatDegree(contact.orb)}</dd></div>
+                      </dl>
+                    </article>
+                  ))}
+                </div>
+                {filteredTechnicalContacts.length > INITIAL_TECHNICAL_CONTACT_LIMIT ? (
+                  <button className={styles.showAllContacts} type="button" aria-expanded={showAllContacts} onClick={() => setShowAllContacts((value) => !value)}>
+                    {showAllContacts ? "نمایش تماس‌های مهم" : "نمایش همهٔ " + filteredTechnicalContacts.length.toLocaleString("fa-IR") + " تماس"}
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              <p className={styles.technicalEmpty}>با این فیلتر تماس دیگری برای نمایش نیست.</p>
+            )}
+          </section>
+          {(technicalCategory === "all" || technicalCategory === "houses") && record.report.houseOverlays.length > 0 ? (
             <section className={styles.technicalDetails}>
               <div className={styles.sectionHeading}>
                 <p className={styles.eyebrow}>هم‌پوشانی خانه‌ها</p>
@@ -424,9 +510,9 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
               </div>
             </section>
           ) : null}
+
         </div>
       ) : null}
-
       {message ? (
         <p className={styles.statusMessage} role="status">
           {message}
@@ -449,39 +535,332 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
           حذف این مقایسه
         </button>
       </section>
-    </main>
+    </div>
   );
 }
 
-function RelationshipChapter({
-  eyebrow,
-  title,
-  intro,
-  blocks,
-  labels,
+// HALLEUS_COMPARE_FULL_INTERPRETATION_SLICE2_R5
+function FullInterpretationReading({
+  full,
 }: {
-  eyebrow: string;
-  title: string;
-  intro?: string;
-  blocks: HumanFirstDirectionalNarrativeBlock[];
-  labels: { a: string; b: string };
+  full: ComparisonFullInterpretation | undefined;
 }) {
+  if (!full) return null;
+
   return (
-    <section className={styles.relationshipChapter}>
+    <>
+      <section
+        className={styles.relationshipChapter}
+        id="comparison-deeper-layers"
+        data-full-interpretation="deeper-layers"
+      >
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>لایه‌های عمیق‌تر</p>
+          <h2>چیزهایی که فقط با تماس‌های اصلی توضیح داده نمی‌شوند</h2>
+          <p>
+            این بخش نودها، لیلیت، کایرون و نقاط پیشرفته، سهم‌های سنتی، ستاره‌های
+            ثابت، حرکت بازگشتی، امضای چارت و جنبه‌های تولد را فقط در محدودهٔ
+            داده‌ای که موتور واقعاً دارد توضیح می‌دهد.
+          </p>
+        </div>
+        <div className={styles.fullInterpretationStack}>
+          {full.deepLayers.map((layer) => (
+            <details className={styles.fullInterpretationDetails} key={layer.id}>
+              <summary>
+                <span>{layer.titleFa}</span>
+                <small>{layer.items.length.toLocaleString("fa-IR")} مورد</small>
+              </summary>
+              <p>{layer.summaryFa}</p>
+              <div className={styles.fullInterpretationItems}>
+                {layer.items.map((item) => (
+                  <article className={styles.fullInterpretationItem} key={item.id}>
+                    <h3>{item.titleFa}</h3>
+                    <p>{item.meaningFa}</p>
+                    <p>{item.relationshipExpressionFa}</p>
+                    <div className={styles.interpretationContrast}>
+                      <div>
+                        <strong>وقتی سازنده‌تر کار می‌کند</strong>
+                        <p>{item.supportiveExpressionFa}</p>
+                      </div>
+                      <div>
+                        <strong>وقتی زیر فشار می‌رود</strong>
+                        <p>{item.stressExpressionFa}</p>
+                      </div>
+                    </div>
+                    <p>{item.contextualExpressionFa}</p>
+                    <small>{item.confidenceFa}</small>
+                    <EvidenceIds ids={item.evidenceIds} />
+                  </article>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section
+        className={styles.relationshipChapter}
+        id="comparison-all-contact-interpretations"
+        data-full-interpretation="all-contacts"
+      >
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>تمام تماس‌های محاسبه‌شده</p>
+          <h2>هیچ تماس محاسبه‌شده‌ای فقط به خاطر وزن کمتر حذف نشده است</h2>
+          <p>
+            ترتیب همچنان بر اساس اهمیت است، اما همهٔ تماس‌های موجود explanation،
+            زمینهٔ natal، اثر context و evidence خودشان را دارند.
+          </p>
+        </div>
+        <div className={styles.fullInterpretationStack}>
+          {full.contacts.map((contact) => (
+            <details className={styles.fullInterpretationDetails} key={contact.id}>
+              <summary>
+                <span>{contact.titleFa}</span>
+                <small>{contact.aspectFa}</small>
+              </summary>
+              <div className={styles.fullInterpretationItem}>
+                <p>{contact.pointAFactFa}</p>
+                <p>{contact.pointBFactFa}</p>
+                <p>{contact.importanceFa}</p>
+                <div className={styles.interpretationContrast}>
+                  <div>
+                    <strong>حالت سالم‌تر</strong>
+                    <p>{contact.healthyFa}</p>
+                  </div>
+                  <div>
+                    <strong>زیر فشار</strong>
+                    <p>{contact.stressFa}</p>
+                  </div>
+                </div>
+                <p>{contact.contextFa}</p>
+                <p>{contact.natalContextFa}</p>
+                <p>{contact.overlayContextFa}</p>
+                <small>{contact.confidenceFa}</small>
+                <EvidenceIds ids={contact.evidenceIds} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {full.overlays.length > 0 ? (
+        <section
+          className={styles.relationshipChapter}
+          id="comparison-all-overlay-interpretations"
+          data-full-interpretation="all-overlays"
+        >
+          <div className={styles.sectionHeading}>
+            <p className={styles.eyebrow}>تمام هم‌پوشانی‌های خانه‌ای</p>
+            <h2>اثر هر نفر در زندگی دیگری، با جهت و context روشن</h2>
+          </div>
+          <div className={styles.fullInterpretationStack}>
+            {full.overlays.map((overlay) => (
+              <details className={styles.fullInterpretationDetails} key={overlay.id}>
+                <summary>
+                  <span>{overlay.titleFa}</span>
+                  <small>{overlay.directionFa}</small>
+                </summary>
+                <div className={styles.fullInterpretationItem}>
+                  <p>{overlay.meaningFa}</p>
+                  <p>{overlay.contextFa}</p>
+                  <div className={styles.interpretationContrast}>
+                    <div>
+                      <strong>ظرفیت</strong>
+                      <p>{overlay.supportiveFa}</p>
+                    </div>
+                    <div>
+                      <strong>فشار</strong>
+                      <p>{overlay.stressFa}</p>
+                    </div>
+                  </div>
+                  <small>{overlay.confidenceFa}</small>
+                  <EvidenceIds ids={overlay.evidenceIds} />
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section
+        className={styles.relationshipChapter}
+        id="comparison-natal-context"
+        data-full-interpretation="natal-context"
+      >
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>زمینهٔ natal هر دو نفر</p>
+          <h2>چرا یک تماس مشابه برای این دو نفر الزاماً یکسان تجربه نمی‌شود؟</h2>
+        </div>
+        <div className={styles.fullInterpretationStack}>
+          {full.natalContexts.map((context) => (
+            <details className={styles.fullInterpretationDetails} key={context.chartSide}>
+              <summary>{context.chartLabel}</summary>
+              <div className={styles.fullInterpretationItem}>
+                <p>{context.summaryFa}</p>
+                <ul className={styles.fullInterpretationFacts}>
+                  {context.factsFa.map((fact, index) => (
+                    <li key={`${context.chartSide}-${index}`}>{fact}</li>
+                  ))}
+                </ul>
+                <EvidenceIds ids={context.evidenceIds} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section
+        className={styles.relationshipChapter}
+        id="comparison-calculation-quality"
+        data-full-interpretation="calculation-quality"
+      >
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>کیفیت و محدودیت محاسبات</p>
+          <h2>کجا می‌شود مطمئن‌تر خواند و کجا باید محتاط‌تر بود؟</h2>
+        </div>
+        <div className={styles.fullInterpretationItem}>
+          <p>{full.calculation.summaryFa}</p>
+          <p>{full.calculation.confidenceFa}</p>
+          <details className={styles.inlineTechnicalDetails}>
+            <summary>روش‌ها و provenance</summary>
+            <ul className={styles.fullInterpretationFacts}>
+              {full.calculation.methodNotesFa.map((item, index) => (
+                <li key={`method-${index}`}>{item}</li>
+              ))}
+            </ul>
+          </details>
+          {full.calculation.warningsFa.length > 0 ? (
+            <details className={styles.inlineTechnicalDetails}>
+              <summary>هشدارها و محدودیت‌ها</summary>
+              <ul className={styles.fullInterpretationFacts}>
+                {full.calculation.warningsFa.map((item, index) => (
+                  <li key={`warning-${index}`}>{item}</li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
+      </section>
+    </>
+  );
+}
+
+function TechnicalEngineAudit({
+  report,
+  full,
+}: {
+  report: ComparisonRecord["report"];
+  full: ComparisonFullInterpretation | undefined;
+}) {
+  if (!full) return null;
+  return (
+    <section
+      className={styles.technicalDetails}
+      data-full-interpretation="technical-audit"
+    >
       <div className={styles.sectionHeading}>
-        <p className={styles.eyebrow}>{eyebrow}</p>
-        <h2>{title}</h2>
-        {intro ? <p>{intro}</p> : null}
+        <p className={styles.eyebrow}>Audit کامل موتور</p>
+        <h2>پوشش تفسیری و snapshot کامل هر دو چارت</h2>
+        <p>
+          این بخش برای audit است: هیچ field موتور به دلیل technical بودن حذف نشده و
+          snapshot کامل در progressive disclosure قابل بررسی است.
+        </p>
       </div>
-      <div className={styles.chapterBlocks}>
-        {blocks.map((block) => (
-          <article className={styles.chapterBlock} key={block.id}>
-            <h3>{block.title}</h3>
-            <DirectionalStory block={block} labels={labels} />
+      <div className={styles.coverageGrid}>
+        {full.coverage.map((entry) => (
+          <article className={styles.coverageItem} key={entry.field}>
+            <strong>{entry.field}</strong>
+            <span>{entry.status}</span>
+            <small>
+              A: {entry.chartADataState} · B: {entry.chartBDataState}
+            </small>
+            <p>{entry.reasonFa}</p>
           </article>
         ))}
       </div>
+      <details className={styles.rawEngineDetails}>
+        <summary>Full normalized engine snapshot — نفر اول</summary>
+        <pre className={styles.technicalJson}>
+          {JSON.stringify(report.chartA.engineSnapshot ?? null, null, 2)}
+        </pre>
+      </details>
+      <details className={styles.rawEngineDetails}>
+        <summary>Full normalized engine snapshot — نفر دوم</summary>
+        <pre className={styles.technicalJson}>
+          {JSON.stringify(report.chartB.engineSnapshot ?? null, null, 2)}
+        </pre>
+      </details>
+      <details className={styles.rawEngineDetails}>
+        <summary>Full normalized point inventory</summary>
+        <pre className={styles.technicalJson}>
+          {JSON.stringify(
+            {
+              chartA: report.chartA.points ?? [
+                ...report.chartA.placements,
+                ...report.chartA.angles,
+              ],
+              chartB: report.chartB.points ?? [
+                ...report.chartB.placements,
+                ...report.chartB.angles,
+              ],
+            },
+            null,
+            2,
+          )}
+        </pre>
+      </details>
     </section>
+  );
+}
+
+function EvidenceIds({ ids }: { ids: string[] }) {
+  if (ids.length === 0) return null;
+  return (
+    <details className={styles.inlineTechnicalDetails}>
+      <summary>شواهد این ادعا</summary>
+      <ul className={styles.evidenceIdList}>
+        {ids.map((id) => (
+          <li key={id}>{id}</li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function NarrativeChapter({ chapter }: { chapter: ComparisonNarrativeChapter }) {
+  return (
+    <section className={styles.relationshipChapter} data-owner-contact={chapter.ownerContactId ?? "fallback"}>
+      <div className={styles.sectionHeading}>
+        <p className={styles.eyebrow}>{chapter.eyebrow}</p>
+        <h2>{chapter.title}</h2>
+        {chapter.crossReferencePatternTitle ? (
+          <p className={styles.chapterCrossReference}>این محور در الگوی اصلی «{chapter.crossReferencePatternTitle}» هم دیده شد؛ اینجا به‌جای تکرار همان روایت، فقط کاربرد روزمره‌اش را می‌بینی.</p>
+        ) : null}
+      </div>
+      <ChapterStory block={chapter.block} />
+    </section>
+  );
+}
+
+function ChapterStory({ block }: { block: HumanFirstDirectionalNarrativeBlock }) {
+  return (
+    <article className={styles.chapterStory}>
+      <h3>{block.title}</h3>
+      <p className={styles.storyLead}>{block.humanExperience}</p>
+      <div className={styles.chapterExample}>
+        <strong>در زندگی روزمره</strong>
+        <p>{block.dailySituation}</p>
+      </div>
+      <div className={styles.chapterMomentGrid}>
+        <p><strong>در حالت سالم</strong>{block.strength}</p>
+        <p><strong>زیر فشار</strong>{block.challenge}</p>
+      </div>
+      <div className={styles.practiceLine}>
+        <strong>یک پیشنهاد عملی</strong>
+        <p>{block.practicalStep}</p>
+      </div>
+      <EvidenceDisclosure evidence={block.evidence} />
+    </article>
   );
 }
 
@@ -549,6 +928,66 @@ function EvidenceDisclosure({ evidence }: { evidence: HumanFirstEvidence[] }) {
   );
 }
 
+
+function directionalAspectTitle(
+  contact: { pointA: { label: string; chartSide: "a" | "b" }; pointB: { label: string; chartSide: "a" | "b" }; aspectLabel: string },
+  labels: { a: string; b: string },
+) {
+  return `${contact.pointA.label}ِ ${labels[contact.pointA.chartSide]} در ${contact.aspectLabel} با ${contact.pointB.label}ِ ${labels[contact.pointB.chartSide]}`;
+}
+
+function filterTechnicalContacts(
+  contacts: ComparisonRecord["report"]["contacts"],
+  category: TechnicalContactCategory,
+  polarity: TechnicalContactPolarity,
+  sort: TechnicalContactSort,
+) {
+  if (category === "houses") return [];
+  return [...contacts]
+    .filter((contact) => polarity === "all" || contact.polarity === polarity)
+    .filter((contact) => matchesTechnicalCategory(contact, category))
+    .sort((left, right) =>
+      sort === "orb"
+        ? left.orb - right.orb || right.relevanceScore - left.relevanceScore
+        : right.relevanceScore - left.relevanceScore || left.orb - right.orb,
+    );
+}
+
+function matchesTechnicalCategory(
+  contact: ComparisonRecord["report"]["contacts"][number],
+  category: TechnicalContactCategory,
+) {
+  if (category === "all") return true;
+  const ids = new Set([contact.pointA.id, contact.pointB.id]);
+  if (category === "communication") return contact.categories.includes("communication") || ids.has("mercury");
+  if (category === "emotional") return contact.categories.includes("closeness") || ids.has("moon") || ids.has("venus") || ids.has("saturn");
+  if (category === "attraction") return contact.categories.includes("closeness") || ids.has("venus") || ids.has("mars");
+  if (category === "boundaries") return contact.categories.includes("independence") || ids.has("saturn") || ids.has("uranus") || ids.has("pluto");
+  if (category === "pressure") return contact.polarity === "tension" || contact.polarity === "intense" || ids.has("saturn") || ids.has("pluto");
+  return true;
+}
+
+function describeContactImportance(contact: ComparisonRecord["report"]["contacts"][number]) {
+  if (contact.categories.includes("communication")) return "این تماس مستقیماً روی شیوهٔ شنیدن، توضیح‌دادن یا سوءبرداشت میان دو نفر اثر می‌گذارد.";
+  if (contact.categories.includes("closeness")) return "این تماس به کشش، صمیمیت یا تعریف هر نفر از نزدیکی وزن بیشتری می‌دهد.";
+  if (contact.categories.includes("independence")) return "این تماس برای مرز، آزادی عمل و نحوهٔ تنظیم فاصله مهم است.";
+  if (contact.polarity === "tension" || contact.polarity === "intense") return "به‌خاطر فشار یا شدت بالاتر، این تماس می‌تواند زودتر در چرخهٔ تعارض دیده شود.";
+  return "این تماس به‌خاطر relevance بالاتر در میان شواهد فنی این خوانش زودتر نمایش داده شده است.";
+}
+
+function formatContactCategory(category: string) {
+  const labels: Record<string, string> = {
+    luminary: "نورها",
+    "personal-planet": "سیاره‌های شخصی",
+    "saturn-outer": "زحل و بیرونی‌ها",
+    angle: "زاویه‌ها",
+    "chart-ruler": "حاکم چارت",
+    communication: "گفت‌وگو",
+    closeness: "نزدیکی",
+    independence: "استقلال",
+  };
+  return labels[category] ?? category;
+}
 
 type HouseOverlayNarrative = {
   title: string;

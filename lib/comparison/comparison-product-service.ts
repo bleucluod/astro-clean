@@ -2,8 +2,10 @@ import {
   buildRealSynastry,
   createSynastryNatalSnapshot,
 } from "@/lib/astrology/synastry/real-synastry-engine";
+import { buildFullComparisonInterpretation } from "@/lib/comparison/comparison-full-interpretation";
 import type { AstrologyReport } from "@/types/astro";
 import type {
+  ComparisonNarrativeChapter,
   ComparisonPrimaryPattern,
   ComparisonReading,
   ComparisonRecord,
@@ -32,14 +34,6 @@ export function createPrivateComparison(
   chartBReport: AstrologyReport,
   input: CreateComparisonInput,
 ): CreateComparisonResult {
-  if (!input.secondPersonConsentConfirmed) {
-    return {
-      ok: false,
-      code: "consent-required",
-      message: "برای استفاده از اطلاعات تولد نفر دوم، تأیید رضایت لازم است.",
-      issues: ["رضایت استفاده خصوصی از اطلاعات نفر دوم تأیید نشده است."],
-    };
-  }
 
   if (input.chartAId === input.chartBId) {
     return {
@@ -113,7 +107,6 @@ export function createPrivateComparison(
       version: COMPARISON_PRIVACY_VERSION,
       visibility: "private",
       indexingPolicy: "noindex",
-      secondPersonConsentConfirmedAt: generatedAt,
       rawBirthInputStored: false,
     },
     report: synastryResult.report,
@@ -141,7 +134,6 @@ export function rebuildPrivateComparison(
     chartABirthTimeStatus: existing.chartABirthTimeStatus,
     chartBBirthTimeStatus: existing.chartBBirthTimeStatus,
     relationshipContext: existing.relationshipContext,
-    secondPersonConsentConfirmed: true,
     recordId: existing.id,
   });
 
@@ -159,17 +151,17 @@ export function rebuildPrivateComparison(
 export function getDefaultComparisonBirthTimeStatus(
   report: AstrologyReport,
 ): "exact" | "unknown" {
+  if (report.input.birthTimeAccuracy === "known") return "exact";
+  if (report.input.birthTimeAccuracy === "unknown") return "unknown";
+
   const hasAngles = Boolean(
     report.realEngine?.angles && Object.keys(report.realEngine.angles).length > 0,
   );
   const hasTwelveHouses = report.realEngine?.houses?.length === 12;
-
   if (!hasAngles || !hasTwelveHouses) return "unknown";
-  if (report.input.birthTime.trim() === "12:00") return "unknown";
 
   return "exact";
 }
-
 export function getComparisonChartLabel(
   report: AstrologyReport,
   fallback = "چارت بدون نام",
@@ -190,77 +182,29 @@ export function buildHumanFirstComparisonReading(
     a: normalizePersonLabel(context.chartALabel, "نفر اول"),
     b: normalizePersonLabel(context.chartBLabel, "نفر دوم"),
   };
-  const supportContact = findContact(
-    report,
-    (contact) => contact.polarity === "supportive",
-  );
-  const tensionContact = findContact(
-    report,
-    (contact) =>
-      contact.polarity === "tension" || contact.polarity === "intense",
-  );
-  const communicationContact = findContact(
-    report,
-    (contact) => contact.categories.includes("communication"),
-  );
-  const emotionalContact = findContact(report, isEmotionalContact);
-  const closenessContact = findContact(
-    report,
-    (contact) =>
-      contact.categories.includes("closeness") ||
-      contact.categories.includes("independence"),
-  );
-  const boundaryContact = findContact(
-    report,
-    (contact) =>
-      contact.categories.includes("independence") ||
-      BOUNDARY_POINT_IDS.has(contact.pointA.id) ||
-      BOUNDARY_POINT_IDS.has(contact.pointB.id),
-  );
-  const repairContact = tensionContact ?? boundaryContact;
   const primaryPatterns = selectPrimaryPatterns(report, labels);
+  const narrativeOwner = new Set(
+    primaryPatterns.flatMap((pattern) => pattern.contactIds),
+  );
+  const chapters = buildNarrativeChapters(
+    report,
+    labels,
+    primaryPatterns,
+    narrativeOwner,
+  );
+  const chapterById = new Map(chapters.map((chapter) => [chapter.id, chapter]));
+  const communication = chapterById.get("communication")!.block;
+  const emotionalSecurity = chapterById.get("emotional-security")!.block;
+  const closenessIndependence = chapterById.get("attraction-intimacy")!.block;
+  const boundariesCommitment = chapterById.get("boundaries-commitment")!.block;
+  const frictionRepair = chapterById.get("friction-repair")!.block;
   const support = buildDirectionalBlock(
     "support",
-    supportContact,
+    report.contacts.find((contact) => contact.polarity === "supportive") ?? null,
     labels,
     report.synthesis.supportiveFa,
   );
-  const misunderstanding = buildDirectionalBlock(
-    "misunderstanding",
-    tensionContact,
-    labels,
-    report.synthesis.tensionFa,
-  );
-  const communication = buildDirectionalBlock(
-    "communication",
-    communicationContact,
-    labels,
-    report.dynamics.communicationFa,
-  );
-  const emotionalSecurity = buildDirectionalBlock(
-    "emotional-security",
-    emotionalContact,
-    labels,
-    "امنیت عاطفی زمانی بیشتر می‌شود که سرعت پاسخ‌دادن، نیاز به مکث و شیوه درخواست حمایت به زبان روشن گفته شوند.",
-  );
-  const closenessIndependence = buildDirectionalBlock(
-    "closeness-independence",
-    closenessContact,
-    labels,
-    report.dynamics.closenessIndependenceFa,
-  );
-  const boundariesCommitment = buildDirectionalBlock(
-    "boundaries-commitment",
-    boundaryContact,
-    labels,
-    "تعهد وقتی قابل اعتمادتر می‌شود که مرز، مسئولیت و حق خلوت هر دو نفر از قبل روشن باشد.",
-  );
-  const frictionRepair = buildDirectionalBlock(
-    "friction-repair",
-    repairContact,
-    labels,
-    report.synthesis.tensionFa,
-  );
+  const misunderstanding = frictionRepair;
   const growthEvidence = uniqueEvidence([
     ...primaryPatterns.flatMap((pattern) => pattern.evidence),
     ...frictionRepair.evidence,
@@ -270,11 +214,25 @@ export function buildHumanFirstComparisonReading(
     context.chartBBirthTimeStatus,
   );
 
-  return {
-    overviewFa: humanizeComparisonText(
-      `${report.synthesis.openingFa} ${report.synthesis.wholePairFa}`,
-    ),
+  const fallbackOverviewParagraphsFa = buildWeightedComparisonOverview(
+    report,
     primaryPatterns,
+  );
+  const fullInterpretation = buildFullComparisonInterpretation(report, {
+    labels,
+    chartABirthTimeStatus: context.chartABirthTimeStatus,
+    chartBBirthTimeStatus: context.chartBBirthTimeStatus,
+    fallbackOverviewParagraphsFa,
+  });
+  const overviewParagraphsFa = fullInterpretation.openingParagraphsFa;
+  const conversationQuestionsFa = buildConversationQuestions(labels);
+  return {
+    overviewFa: overviewParagraphsFa.join(" "),
+    overviewParagraphsFa,
+    fullInterpretation,
+    primaryPatterns,
+    chapters,
+    conversationQuestionsFa,
     support,
     misunderstanding,
     communication,
@@ -298,6 +256,139 @@ export function buildHumanFirstComparisonReading(
     closenessIndependenceFa: closenessIndependence.humanExperience,
     boundariesRepairFa: frictionRepair.practicalStep,
   };
+}
+
+function buildNarrativeChapters(
+  report: RealSynastryReport,
+  labels: { a: string; b: string },
+  primaryPatterns: ComparisonPrimaryPattern[],
+  narrativeOwner: Set<string>,
+): ComparisonNarrativeChapter[] {
+  const specs: Array<{
+    id: ComparisonNarrativeChapter["id"];
+    eyebrow: string;
+    title: string;
+    section:
+      | "communication"
+      | "emotional-security"
+      | "closeness-independence"
+      | "boundaries-commitment"
+      | "friction-repair";
+    fallback: string;
+    predicate: (contact: SynastryInterChartAspect) => boolean;
+  }> = [
+    {
+      id: "communication",
+      eyebrow: "گفت‌وگو",
+      title: "چرا گاهی حرف هم را متفاوت می‌شنوید؟",
+      section: "communication",
+      fallback: report.dynamics.communicationFa,
+      predicate: (contact) => contact.categories.includes("communication"),
+    },
+    {
+      id: "emotional-security",
+      eyebrow: "امنیت عاطفی",
+      title: "چه چیزی حس دیده‌شدن یا ناامنی را فعال می‌کند؟",
+      section: "emotional-security",
+      fallback: "امنیت عاطفی وقتی بیشتر می‌شود که نیاز به پاسخ، مکث و حمایت به زبان روشن گفته شود.",
+      predicate: isEmotionalContact,
+    },
+    {
+      id: "attraction-intimacy",
+      eyebrow: "کشش و صمیمیت",
+      title: "چه چیزی شما را نزدیک می‌کند و کجا به فاصله نیاز دارید؟",
+      section: "closeness-independence",
+      fallback: report.dynamics.closenessIndependenceFa,
+      predicate: (contact) =>
+        contact.categories.includes("closeness") ||
+        ["venus", "mars"].includes(contact.pointA.id) ||
+        ["venus", "mars"].includes(contact.pointB.id),
+    },
+    {
+      id: "boundaries-commitment",
+      eyebrow: "مرز و تعهد",
+      title: "کجا تعریف مسئولیت، استقلال یا تعهد متفاوت می‌شود؟",
+      section: "boundaries-commitment",
+      fallback: "تعهد وقتی قابل اعتمادتر می‌شود که مرز، مسئولیت و حق خلوت هر دو نفر از قبل روشن باشد.",
+      predicate: (contact) =>
+        contact.categories.includes("independence") ||
+        BOUNDARY_POINT_IDS.has(contact.pointA.id) ||
+        BOUNDARY_POINT_IDS.has(contact.pointB.id),
+    },
+    {
+      id: "friction-repair",
+      eyebrow: "اصطکاک و ترمیم",
+      title: "وقتی سخت می‌شود، چرخهٔ تنش چطور شروع و متوقف می‌شود؟",
+      section: "friction-repair",
+      fallback: report.synthesis.tensionFa,
+      predicate: (contact) =>
+        contact.polarity === "tension" || contact.polarity === "intense",
+    },
+  ];
+
+  return specs.map((spec) => {
+    const contact = findOwnedContact(report, narrativeOwner, spec.predicate);
+    if (contact) narrativeOwner.add(contact.id);
+    const crossReference = contact
+      ? null
+      : primaryPatterns.find((pattern) =>
+          pattern.contactIds.some((contactId) => {
+            const patternContact = report.contacts.find((item) => item.id === contactId);
+            return patternContact ? spec.predicate(patternContact) : false;
+          }),
+        ) ?? null;
+    return {
+      id: spec.id,
+      eyebrow: spec.eyebrow,
+      title: spec.title,
+      ownerContactId: contact?.id ?? null,
+      crossReferencePatternId: crossReference?.id ?? null,
+      crossReferencePatternTitle: crossReference?.title ?? null,
+      block: buildDirectionalBlock(spec.section, contact, labels, spec.fallback),
+    };
+  });
+}
+
+function findOwnedContact(
+  report: RealSynastryReport,
+  narrativeOwner: Set<string>,
+  predicate: (contact: SynastryInterChartAspect) => boolean,
+): SynastryInterChartAspect | null {
+  return (
+    [...report.contacts]
+      .filter((contact) => !narrativeOwner.has(contact.id) && predicate(contact))
+      .sort(
+        (left, right) =>
+          right.relevanceScore - left.relevanceScore ||
+          left.orb - right.orb ||
+          left.id.localeCompare(right.id),
+      )[0] ?? null
+  );
+}
+
+function buildWeightedComparisonOverview(
+  report: RealSynastryReport,
+  primaryPatterns: ComparisonPrimaryPattern[],
+): [string, string] {
+  const first = humanizeComparisonText(
+    `${report.synthesis.openingFa} ${report.synthesis.wholePairFa}`,
+  );
+  const patternTitles = primaryPatterns
+    .map((pattern) => pattern.title)
+    .filter(Boolean)
+    .slice(0, 3);
+  const second = patternTitles.length
+    ? `سه محور پررنگ این خوانش «${patternTitles.join("»، «")}» هستند. این‌ها حکم دربارهٔ آیندهٔ رابطه نیستند؛ بهتر است ببینید هرکدام در گفت‌وگو، امنیت، صمیمیت، مرز و شیوهٔ ترمیم شما چه شکلی پیدا می‌کنند.`
+    : "این خوانش به‌جای حکم دربارهٔ آینده، روی الگوهایی تمرکز می‌کند که در گفت‌وگو، امنیت، صمیمیت، مرز و شیوهٔ ترمیم رابطه قابل مشاهده‌اند.";
+  return [first, second];
+}
+
+function buildConversationQuestions(labels: { a: string; b: string }): [string, string, string] {
+  return [
+    `وقتی گفت‌وگو سخت می‌شود، ${labels.a} و ${labels.b} هرکدام بیشتر به پاسخ فوری نیاز دارند یا به مکث؟`,
+    "چه رفتار کوچکی برای هرکدام از شما نشانهٔ امنیت و چه رفتاری نشانهٔ فشار یا فاصله است؟",
+    "یک مرز، انتظار یا درخواست کوچک که اگر این هفته روشن شود، کدام سوءبرداشت تکراری را کمتر می‌کند؟",
+  ];
 }
 
 function selectPrimaryPatterns(
@@ -650,12 +741,6 @@ function buildReadingLimit(
   return base;
 }
 
-function findContact(
-  report: RealSynastryReport,
-  predicate: (contact: SynastryInterChartAspect) => boolean,
-): SynastryInterChartAspect | null {
-  return report.contacts.find(predicate) ?? null;
-}
 
 function isEmotionalContact(contact: SynastryInterChartAspect): boolean {
   return (

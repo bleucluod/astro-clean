@@ -7,8 +7,8 @@ const assert = (condition, message) => { if (!condition) failures.push(message);
 const dashboard = read("app/dashboard/page.tsx");
 const dashboardCss = read("app/dashboard/dashboard.module.css");
 const composer = read("components/comparison/ComparisonComposer.tsx");
+const comparisonService = read("lib/comparison/comparison-product-service.ts");
 const comparisonCss = read("components/comparison/comparison.module.css");
-const accessClient = read("lib/monetization/product-access-client.ts");
 const detailLayout = read("app/compare/[comparisonId]/layout.tsx");
 const packageJson = JSON.parse(read("package.json"));
 
@@ -16,25 +16,56 @@ for (const marker of [
   'data-halleus-progressive-compare="batch4-r1"',
   'data-flow-step="charts"',
   'data-flow-step="relationship"',
-  'data-flow-step="consent"',
-  'data-flow-step="credit"',
+  'data-builder-simplified="r12"',
   "ساخت تحلیل رابطه",
-  "اجازه استفاده از اطلاعات نفر دوم را دارم",
   "savePrivateComparison",
-  'href="/pricing"',
-  "ProductAccessCards",
-]) assert(composer.includes(marker), "Compare missing Batch 4 marker: " + marker);
+  "generationInFlightRef",
+  "pendingGenerationRef",
+  "generationDisabled",
+]) assert(composer.includes(marker), "Compare missing simplified R12 marker: " + marker);
 
 const clientImport = composer.match(/import\s+\{([^}]*)\}\s+from\s+"@\/lib\/monetization\/product-access-client";/m);
-assert(Boolean(clientImport), "Compare must keep importing the Batch 2 product-access client.");
+assert(Boolean(clientImport), "Compare must keep importing the product-access client.");
 const importedClientNames = clientImport
   ? clientImport[1].split(",").map((item) => item.trim()).filter(Boolean).map((item) => {
       const parts = item.split(/\s+as\s+/);
       return (parts[1] ?? parts[0]).trim();
     })
   : [];
-assert(importedClientNames.some((name) => composer.includes(name)), "Compare must keep referencing the Batch 2 product-access client.");
+assert(importedClientNames.some((name) => composer.includes(name)), "Compare must keep referencing the product-access client.");
 assert(!/\bfetch\s*\(/.test(composer), "Compare must not send second-person birth data through a direct fetch path.");
+for (const retired of [
+  'import { ChartForm } from "@/components/ChartForm";',
+  "chartCreationSlot",
+  "inlineChartDialog",
+  "onComparisonChartSaved",
+  'data-flow-step="consent"',
+  "consentConfirmed",
+  "compare_consent_completed",
+  "چارت خودت را انتخاب یا بساز.",
+  "فعلاً ساخت تحلیل رابطه رایگان است و هیچ اعتبار رابطه‌ای مصرف نمی‌شود.",
+]) assert(!composer.includes(retired), "Compare still contains retired R12 UI/flow: " + retired);
+assert(
+  composer.includes("pendingGenerationRef") &&
+    composer.includes("recordId: pending?.signature === signature ? pending.recordId : undefined"),
+  "Compare retry must preserve a stable relationship result key.",
+);
+assert(
+  comparisonService.includes('report.input.birthTimeAccuracy === "known"') &&
+    comparisonService.includes('report.input.birthTimeAccuracy === "unknown"') &&
+    !comparisonService.includes('birthTime.trim() === "12:00"'),
+  "Comparison birth-time status must use explicit accuracy before legacy structural fallback.",
+);
+assert(
+  !comparisonService.includes("input.secondPersonConsentConfirmed") &&
+    !comparisonService.includes('"consent-required"'),
+  "Comparison service must not retain the removed explicit-consent gate.",
+);
+assert(
+  composer.includes("history.length > 0") &&
+    !composer.includes("history.length === 0"),
+  "Empty comparison history must not occupy the public landing body.",
+);
 assert(!composer.includes("compatibilityPercent") && !composer.includes("compatibilityScore"), "Compare must not introduce compatibility percentages.");
 for (const marker of ["index: false", "follow: false", "noarchive: true", "nosnippet: true"]) assert(detailLayout.includes(marker), "Private comparison metadata missing: " + marker);
 
@@ -67,7 +98,8 @@ if (failures.length) {
   process.exit(1);
 }
 console.log("Halleus Pre-Deploy Batch 4 consumer product UX check passed.");
-console.log("- Compare is progressive while preserving private synastry, consent and Batch 2 credit consumption");
+console.log("- Compare is a simplified stored-chart-only journey; chart creation is routed to /chart");
+console.log("- retry preserves the same relationship result key and the retired consent/inline-create UI stays absent");
 console.log("- relationship balance is visible before the creation CTA and pricing is the no-credit path");
 console.log("- Dashboard is the personal Halleus home with credits, continuation, recent reports and integrated auth");
 console.log("HALLEUS_PREDEPLOY_CONSUMER_PRODUCT_UX_BATCH4_R2=PASS");
