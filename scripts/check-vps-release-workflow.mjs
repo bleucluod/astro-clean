@@ -149,6 +149,9 @@ requireMarkers("release workflow", releaseSource, [
   "run_curated_wiki_inbound_repair_best_effort",
   "release continues because inbound count is a non-gating quality target",
   "timeout --kill-after=5s 45s",
+  "HALLEUS_WIKI_INBOUND_REPAIR_RELEASE_DISABLED",
+  "Skipping scheduled Wiki inbound-link repair during release",
+  "leaves curated Wiki inbound-link repair to an explicit maintenance action",
 ]);
 
 forbidMarkers("release workflow", releaseSource, [
@@ -165,6 +168,7 @@ forbidMarkers("release workflow", releaseSource, [
   "Scheduled Wiki inbound-link repair failed. Restoring previous release",
   "SEO repair failed; previous release was restored successfully",
   "--require-curated-complete",
+  '    run_curated_wiki_inbound_repair_best_effort "$release_dir"',
 ]);
 
 requireMarkers("systemd template", serviceSource, [

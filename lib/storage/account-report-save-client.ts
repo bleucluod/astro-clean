@@ -2,6 +2,7 @@
 
 import { getSupabaseBrowserAuthClient, getSupabaseBrowserLoginConfig } from "@/lib/auth/supabase-browser-client";
 import { saveGeneratedReport } from "@/lib/storage/report-write-service";
+import { createReportRecord } from "@/lib/storage/report-records";
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportRecord } from "@/types/storage";
 
@@ -13,6 +14,7 @@ export type AccountReportSaveClientConfig = {
 
 export type AccountReportSaveResult = {
   localRecord: ReportRecord;
+  localAvailable: boolean;
   accountRecord: ReportRecord | null;
   accountStatus:
     | "account-saved"
@@ -101,6 +103,7 @@ export type AccountReportSaveOptions = {
 };
 
 const DEFAULT_ACCOUNT_SAVE_NAVIGATION_GRACE_MS = 2200;
+const LOCAL_UNAVAILABLE_REMOTE_GRACE_MS = 8000;
 
 type RemoteSaveRace =
   | { kind: "settled"; result: AccountReportSaveResult }
@@ -110,20 +113,44 @@ export async function saveGeneratedReportWithAccountFallback(
   report: AstrologyReport,
   options: AccountReportSaveOptions = {},
 ): Promise<AccountReportSaveResult> {
-  const localRecord = await saveGeneratedReport(report);
+  // HALLEUS_LOCAL_REPORT_PERSISTENCE_FALLBACK_V2
+  let localAvailable = true;
+  let localRecord: ReportRecord;
+
+  try {
+    localRecord = await saveGeneratedReport(report);
+  } catch {
+    localAvailable = false;
+    localRecord = createReportRecord(report);
+  }
+
   const config = getAccountReportSaveClientConfig();
   const navigationGraceMs = Math.max(
     0,
     options.navigationGraceMs ?? DEFAULT_ACCOUNT_SAVE_NAVIGATION_GRACE_MS,
   );
-  const remoteSavePromise = attemptRemoteReportSave(localRecord, config);
+  const effectiveNavigationGraceMs = localAvailable
+    ? navigationGraceMs
+    : Math.max(navigationGraceMs, LOCAL_UNAVAILABLE_REMOTE_GRACE_MS);
+  const remoteSavePromise = attemptRemoteReportSave(localRecord, config).then(
+    (result): AccountReportSaveResult => ({
+      ...result,
+      localAvailable,
+      accountMessage:
+        !localAvailable && !result.accountRecord
+          ? "ذخیره گزارش روی دستگاه در دسترس نبود و ذخیره آنلاین هم کامل نشد. دوباره تلاش کن."
+          : result.accountMessage,
+    }),
+  );
   const race = await Promise.race<RemoteSaveRace>([
     remoteSavePromise.then((result) => ({ kind: "settled", result })),
     new Promise<RemoteSaveRace>((resolve) => {
-      window.setTimeout(() => resolve({ kind: "timeout" }), navigationGraceMs);
+      window.setTimeout(
+        () => resolve({ kind: "timeout" }),
+        effectiveNavigationGraceMs,
+      );
     }),
   ]);
-
   if (race.kind === "settled") {
     return race.result;
   }
@@ -132,17 +159,18 @@ export async function saveGeneratedReportWithAccountFallback(
 
   return {
     localRecord,
+    localAvailable,
     accountRecord: null,
     accountStatus: "account-skipped",
-    accountMessage:
-      "نسخه همین دستگاه آماده است؛ ذخیره آنلاین بدون متوقف‌کردن بازشدن گزارش ادامه پیدا می‌کند.",
+    accountMessage: localAvailable
+      ? "نسخه همین دستگاه آماده است؛ ذخیره آنلاین بدون متوقف‌کردن بازشدن گزارش ادامه پیدا می‌کند."
+      : "ذخیره روی دستگاه در دسترس نبود و ذخیره آنلاین هنوز پاسخ نداده است. دوباره تلاش کن.",
   };
 }
-
 async function attemptRemoteReportSave(
   localRecord: ReportRecord,
   config: AccountReportSaveClientConfig,
-): Promise<AccountReportSaveResult> {
+): Promise<Omit<AccountReportSaveResult, "localAvailable">> {
   let accessToken: string | undefined;
   let authErrorMessage: string | undefined;
   const client = getSupabaseBrowserAuthClient();

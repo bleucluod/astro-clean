@@ -36,7 +36,7 @@ The deploy command:
 - runs encoding, diff, and production-build checks before activation
 - atomically updates current/previous symlinks
 - restarts Halleus and rolls back automatically if smoke tests fail
-- attempts the curated Mizfa Wiki inbound-link plan as bounded best-effort maintenance
+- leaves curated Wiki inbound-link repair to an explicit maintenance action
 
 The rollback command swaps current and previous, restarts Halleus, and restores
 the original state if smoke tests fail.
@@ -232,9 +232,9 @@ run_wiki_publish_due_once_best_effort() {
         printf 'Wiki publisher runner is missing after deploy: %s\n' "$publisher_runner" >&2
         return 0
     fi
-    printf '%s\n' "Running Wiki publish-due once after SEO repairs..."
+    printf '%s\n' "Running Wiki publish-due once after release activation..."
     if ! timeout 120s /bin/bash "$publisher_runner"; then
-        printf '%s\n' "WARN: Wiki publish-due still reported a failure after SEO repairs; inspect the JSON/service log." >&2
+        printf '%s\n' "WARN: Wiki publish-due reported a failure after release activation; inspect the JSON/service log." >&2
     fi
 }
 
@@ -388,7 +388,10 @@ deploy_release() {
         fail "Wiki content repair failed; previous release was restored successfully."
     fi
 
-    run_curated_wiki_inbound_repair_best_effort "$release_dir"
+    # HALLEUS_WIKI_INBOUND_REPAIR_RELEASE_DISABLED
+    # Scheduled inbound-link repair mutates article bodies and must be an
+    # explicit maintenance action, never an implicit deploy side effect.
+    printf '%s\n' "Skipping scheduled Wiki inbound-link repair during release; run it explicitly as maintenance."
 
     run_wiki_publish_due_once_best_effort "$release_dir"
 

@@ -934,6 +934,12 @@ export function ChartForm({
         nextReport,
         { navigationGraceMs: 2200 },
       );
+      if (!saveResult.localAvailable && !saveResult.accountRecord) {
+        throw new Error(
+          saveResult.accountMessage ||
+            "ذخیره گزارش روی این دستگاه یا سرور کامل نشد. دوباره تلاش کن.",
+        );
+      }
       notifyLocalDataChanged();
 
       let nextPath = `/reports/${saveResult.localRecord.id}`;
