@@ -15,6 +15,12 @@ import reportStyles from "@/components/report/human-first-report.module.css";
 import type { AstrologyReport } from "@/types/astro";
 import { ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
 import {
+  HALLEUS_WHEEL_ASPECT_COLORS,
+  HALLEUS_WHEEL_SYSTEM_VERSION,
+  HALLEUS_WHEEL_THEME,
+  HALLEUS_ZODIAC_GUIDE,
+} from "@/components/HalleusWheelCore";
+import {
   buildReportAdvancedWheelPolicy,
   type ReportAdvancedWheelLine,
   type ReportAdvancedWheelMarker,
@@ -42,28 +48,13 @@ const PERSIAN_CUSP_DEGREE_FORMATTER = new Intl.NumberFormat("fa-IR", {
   useGrouping: false,
 });
 
-const ASPECT_COLORS: Record<RealEngineReportAspectKind, string> = {
-  conjunction: "#78818C",
-  sextile: "#6A8C7E",
-  square: "#956A6A",
-  trine: "#6A8C7E",
-  opposition: "#956A6A",
-};
+const ASPECT_COLORS: Record<RealEngineReportAspectKind, string> =
+  HALLEUS_WHEEL_ASPECT_COLORS;
 
-const WHEEL_SIGN_GUIDE = [
-  { id: "aries", symbol: "♈", label: ZODIAC_LABELS.aries.faName },
-  { id: "taurus", symbol: "♉", label: ZODIAC_LABELS.taurus.faName },
-  { id: "gemini", symbol: "♊", label: ZODIAC_LABELS.gemini.faName },
-  { id: "cancer", symbol: "♋", label: ZODIAC_LABELS.cancer.faName },
-  { id: "leo", symbol: "♌", label: ZODIAC_LABELS.leo.faName },
-  { id: "virgo", symbol: "♍", label: ZODIAC_LABELS.virgo.faName },
-  { id: "libra", symbol: "♎", label: ZODIAC_LABELS.libra.faName },
-  { id: "scorpio", symbol: "♏", label: ZODIAC_LABELS.scorpio.faName },
-  { id: "sagittarius", symbol: "♐", label: ZODIAC_LABELS.sagittarius.faName },
-  { id: "capricorn", symbol: "♑", label: ZODIAC_LABELS.capricorn.faName },
-  { id: "aquarius", symbol: "♒", label: ZODIAC_LABELS.aquarius.faName },
-  { id: "pisces", symbol: "♓", label: ZODIAC_LABELS.pisces.faName },
-] as const;
+const WHEEL_SIGN_GUIDE = HALLEUS_ZODIAC_GUIDE.map((sign) => ({
+  ...sign,
+  label: ZODIAC_LABELS[sign.id].faName,
+}));
 
 const WHEEL_AXIS_GUIDE = [
   { abbreviation: "As", label: "رایزینگ" },
@@ -237,13 +228,13 @@ function AstroChartRadix({
 
         const chart = new Chart(chartId, ASTROCHART_SIZE, ASTROCHART_SIZE, {
           SYMBOL_SCALE: 1.12,
-          COLOR_BACKGROUND: "#0B0D11",
-          POINTS_COLOR: "#F4F6F8",
-          SIGNS_COLOR: "#E5EAF0",
-          CIRCLE_COLOR: "#4B535E",
-          LINE_COLOR: "#3A424C",
-          CUSPS_FONT_COLOR: "#A9B2BD",
-          SYMBOL_AXIS_FONT_COLOR: "#F4F6F8",
+          COLOR_BACKGROUND: HALLEUS_WHEEL_THEME.background,
+          POINTS_COLOR: HALLEUS_WHEEL_THEME.point,
+          SIGNS_COLOR: HALLEUS_WHEEL_THEME.sign,
+          CIRCLE_COLOR: HALLEUS_WHEEL_THEME.ring,
+          LINE_COLOR: HALLEUS_WHEEL_THEME.line,
+          CUSPS_FONT_COLOR: HALLEUS_WHEEL_THEME.muted,
+          SYMBOL_AXIS_FONT_COLOR: HALLEUS_WHEEL_THEME.point,
           COLORS_SIGNS: [
             "#151922",
             "#101318",
@@ -344,6 +335,8 @@ function AstroChartRadix({
   return (
     <section
       className="report-astrochart-wheel"
+      data-halleus-wheel-system={HALLEUS_WHEEL_SYSTEM_VERSION}
+      data-halleus-wheel-mode="natal"
       data-active-chart-pattern={activePattern?.id ?? readingWheelFocus.pattern?.id ?? "all"}
       data-astrochart-aspect-mode="stored-report-only"
       data-report-reading-focus={readingFocus ?? "none"}

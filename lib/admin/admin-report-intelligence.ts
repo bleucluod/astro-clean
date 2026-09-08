@@ -86,6 +86,11 @@ export function normalizeAdminReportRow(raw: unknown): AdminReportSummary {
     ownerUserId: asString(row.user_id),
     ownerDisplayName: cleanNullable(row.owner_display_name),
     subjectName: cleanNullable(row.subject_name),
+    comparisonChartALabel: cleanNullable(row.comparison_chart_a_label),
+    comparisonChartBLabel: cleanNullable(row.comparison_chart_b_label),
+    comparisonRelationshipContext: cleanNullable(
+      row.comparison_relationship_context,
+    ),
     birthDate,
     birthTime: cleanNullable(row.birth_time),
     birthTimeAccuracy: ["known", "unknown"].includes(birthTimeAccuracyRaw)
@@ -188,6 +193,9 @@ function includesSearch(report: AdminReportSummary, search: string) {
     report.ownerUserId,
     report.ownerDisplayName,
     report.subjectName,
+    report.comparisonChartALabel,
+    report.comparisonChartBLabel,
+    report.comparisonRelationshipContext,
     report.birthCity,
     report.birthCountry,
     report.source,

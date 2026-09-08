@@ -353,7 +353,20 @@ export async function listAdminReports(
       ) as title,
       u.display_name as owner_display_name,
       u.plan as account_plan,
-      r.report_json #>> '{input,name}' as subject_name,
+      coalesce(
+        r.report_json #>> '{input,name}',
+        nullif(
+          concat_ws(
+            ' و ',
+            r.report_json #>> '{comparison,chartALabel}',
+            r.report_json #>> '{comparison,chartBLabel}'
+          ),
+          ''
+        )
+      ) as subject_name,
+      r.report_json #>> '{comparison,chartALabel}' as comparison_chart_a_label,
+      r.report_json #>> '{comparison,chartBLabel}' as comparison_chart_b_label,
+      r.report_json #>> '{comparison,relationshipContext}' as comparison_relationship_context,
       r.report_json #>> '{input,birthDate}' as birth_date,
       r.report_json #>> '{input,birthTime}' as birth_time,
       r.report_json #>> '{input,birthTimeAccuracy}' as birth_time_accuracy,
@@ -383,6 +396,9 @@ export async function listAdminReports(
         or coalesce(r.title, '') ilike ${query}
         or coalesce(u.display_name, '') ilike ${query}
         or coalesce(r.report_json #>> '{input,name}', '') ilike ${query}
+        or coalesce(r.report_json #>> '{comparison,chartALabel}', '') ilike ${query}
+        or coalesce(r.report_json #>> '{comparison,chartBLabel}', '') ilike ${query}
+        or coalesce(r.report_json #>> '{comparison,relationshipContext}', '') ilike ${query}
         or coalesce(r.report_json #>> '{input,birthCity}', '') ilike ${query}
         or coalesce(r.report_json #>> '{input,birthCountry}', '') ilike ${query}
       )
@@ -414,6 +430,11 @@ export async function listAdminReports(
       ownerUserId: asString(row.user_id),
       ownerDisplayName: asNullableString(row.owner_display_name),
       subjectName: asNullableString(row.subject_name),
+      comparisonChartALabel: asNullableString(row.comparison_chart_a_label),
+      comparisonChartBLabel: asNullableString(row.comparison_chart_b_label),
+      comparisonRelationshipContext: asNullableString(
+        row.comparison_relationship_context,
+      ),
       birthDate,
       birthTime: asNullableString(row.birth_time),
       birthTimeAccuracy: ["known", "unknown"].includes(birthTimeAccuracyRaw)

@@ -10,6 +10,11 @@ import {
   saveServerGeneratedReport,
 } from "@/lib/storage/server-report-persistence";
 import type { AstrologyReport } from "@/types/astro";
+import {
+  isComparisonRecordCandidate,
+  isStoredComparisonReport,
+  saveComparisonAccountReport,
+} from "@/lib/comparison/comparison-account-persistence";
 import { readReportPage } from "@/lib/reports/report-access-contract";
 import {
   enableOwnedReportSharing,
@@ -180,6 +185,13 @@ export async function PATCH(request: Request) {
     const reportId = readString(body.reportId);
     const action = readString(body.action);
     if (!reportId || !action) return errorResponse(400, "Report id and action are required.");
+    if (["enable_sharing", "revoke_sharing", "publish", "unpublish"].includes(action)) {
+      const owned = await getOwnedReport(user.id, reportId);
+      if (!owned) return errorResponse(404, "Report was not found.");
+      if (isStoredComparisonReport(owned.report)) {
+        return errorResponse(409, "Comparison reports are private and cannot be shared or published.");
+      }
+    }
     if (action === "title") return NextResponse.json({ ok: await updateOwnedReportTitle(user.id, reportId, body.title) });
     if (action === "favorite") {
       if (typeof body.favorite !== "boolean") {
@@ -267,6 +279,39 @@ export async function POST(request: Request) {
 
   if (!isRecord(body)) {
     return errorResponse(400, "Request body must be a JSON object.");
+  }
+
+  const comparison = body.comparison;
+  if (isComparisonRecordCandidate(comparison)) {
+    if (!authorizationHeader) {
+      return errorResponse(401, "Comparison account save requires an authenticated account.");
+    }
+    const guard = accountReportSaveGuard();
+    if (!guard.ok) {
+      return errorResponse(guard.status, guard.error, guard.blockers);
+    }
+    try {
+      const user = await readAuthenticatedAccountUser(request);
+      await ensureAccountPersistenceUser({
+        databaseUrl: guard.databaseUrl,
+        userId: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        provider: user.provider,
+      });
+      const accessTier = await getEffectiveTelegramRewardAccessTier(user.id);
+      const reportRecord = await saveComparisonAccountReport({
+        userId: user.id,
+        comparison,
+        accessTier,
+      });
+      return NextResponse.json({ ok: true, reportRecord });
+    } catch (error) {
+      return errorResponse(
+        error instanceof Error && error.message.includes("bearer token") ? 401 : 500,
+        error instanceof Error ? error.message : "Comparison account persistence save failed.",
+      );
+    }
   }
 
   const report = body.report;

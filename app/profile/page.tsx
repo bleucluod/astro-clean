@@ -6,8 +6,8 @@ import { TelegramJoinRewardCard } from "@/components/TelegramJoinRewardCard";
 import { useEffect, useState } from "react";
 import { getAccountRepository } from "@/lib/account/account-repository";
 import { listReportSummaries } from "@/lib/storage/report-query-service";
+import { listAccountReportSummaries } from "@/lib/storage/account-report-read-client";
 import type { AuthSession } from "@/types/account";
-import type { ReportRecordSummary } from "@/types/storage";
 
 const accountRepository = getAccountRepository();
 
@@ -17,24 +17,30 @@ function formatProfileName(session: AuthSession | null) {
 
 export default function ProfilePage() {
   const [session, setSession] = useState<AuthSession | null>(null);
-  const [reports, setReports] = useState<ReportRecordSummary[]>([]);
+  const [reportTotal, setReportTotal] = useState(0);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     let isActive = true;
 
     async function loadProfile() {
-      const [nextSession, nextReports] = await Promise.all([
-        accountRepository.getCurrentSession(),
-        listReportSummaries(),
-      ]);
+      const nextSession = await accountRepository.getCurrentSession();
+      const localReports = await listReportSummaries();
+      let nextTotal = localReports.length;
+
+      if (nextSession) {
+        const accountReports = await listAccountReportSummaries(1);
+        if (accountReports.status === "account-read-ready") {
+          nextTotal = accountReports.total;
+        }
+      }
 
       if (!isActive) {
         return;
       }
 
       setSession(nextSession);
-      setReports(nextReports);
+      setReportTotal(nextTotal);
       setIsReady(true);
     }
 
@@ -107,7 +113,7 @@ export default function ProfilePage() {
 
           <div>
             <strong>گزارش‌های ذخیره‌شده</strong>
-            <span>{reports.length.toLocaleString("fa-IR")}</span>
+            <span>{reportTotal.toLocaleString("fa-IR")}</span>
           </div>
 
           <div>

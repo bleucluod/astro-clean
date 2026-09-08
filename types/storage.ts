@@ -1,4 +1,5 @@
 import type { AstrologyReport, BirthInput } from "@/types/astro";
+import type { ComparisonRecord } from "@/types/comparison-product";
 import type {
   ReportAccessTier,
   ReportIdentityConsentState,
@@ -105,3 +106,41 @@ export type DatabaseReportRow = {
   created_at: string;
   updated_at: string;
 };
+
+export const STORED_COMPARISON_REPORT_VERSION = "stored-comparison-v1" as const;
+
+export type StoredComparisonReport = {
+  version: typeof STORED_COMPARISON_REPORT_VERSION;
+  id: string;
+  createdAt: string;
+  reportType: "comparison";
+  metadata: {
+    reportType: "comparison";
+    reportVersion: typeof STORED_COMPARISON_REPORT_VERSION;
+    indexingPolicy: "noindex";
+  };
+  title: string;
+  relationshipContext: ComparisonRecord["relationshipContext"];
+  chartAId: string;
+  chartBId: string;
+  chartALabel: string;
+  chartBLabel: string;
+  comparison: ComparisonRecord;
+};
+
+export type ComparisonReportRecord = {
+  id: string;
+  userId: string;
+  title: string;
+  report: StoredComparisonReport;
+  input: Record<string, never>;
+  createdAt: string;
+  updatedAt: string;
+  favorite: boolean;
+  note?: string;
+  visibility: "private";
+  source: "account";
+  publication: StoredReportPublication;
+};
+
+export type StoredReportRecord = ReportRecord | ComparisonReportRecord;

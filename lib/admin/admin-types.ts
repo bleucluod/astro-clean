@@ -76,6 +76,9 @@ export type AdminReportSummary = {
   ownerDisplayName: string | null;
   // HALLEUS_REPORT_SUBJECT_FIELDS_R44
   subjectName: string | null;
+  comparisonChartALabel: string | null;
+  comparisonChartBLabel: string | null;
+  comparisonRelationshipContext: string | null;
   birthDate: string | null;
   birthTime: string | null;
   birthTimeAccuracy: "known" | "unknown" | null;

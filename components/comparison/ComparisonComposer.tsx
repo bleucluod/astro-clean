@@ -27,6 +27,7 @@ import {
   subscribeToPrivateComparisons,
 } from "@/lib/comparison/comparison-storage";
 import { loadReports } from "@/lib/storage/reports-storage";
+import { saveComparisonToAccount } from "@/lib/comparison/comparison-account-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ComparisonRecord } from "@/types/comparison-product";
 import type {
@@ -242,6 +243,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       return;
     }
 
+    await saveComparisonToAccount(result.record, { navigationGraceMs: 1200 });
     pendingGenerationRef.current = null;
     router.push(`/compare/${encodeURIComponent(result.record.id)}`);
   }

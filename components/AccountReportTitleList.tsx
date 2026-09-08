@@ -43,7 +43,7 @@ export function AccountReportTitleList() {
       <ul className="report-title-list">
         {reports.map((report) => (
           <li key={report.id}>
-            <Link prefetch={false} href={`/reports/${report.id}?source=account`}>
+            <Link prefetch={false} href={report.reportType === "comparison" ? `/compare/${report.id}` : `/reports/${report.id}?source=account`}>
               {report.title ?? "گزارش ذخیره‌شده"}
             </Link>
           </li>

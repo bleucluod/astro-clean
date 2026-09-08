@@ -12,6 +12,9 @@ const paths = {
   chartForm: "components/ChartForm.tsx",
   report: "components/comparison/ComparisonReport.tsx",
   wheel: "components/comparison/ComparisonBiWheel.tsx",
+  sharedWheel: "components/HalleusWheelCore.tsx",
+  accountClient: "lib/comparison/comparison-account-client.ts",
+  accountPersistence: "lib/comparison/comparison-account-persistence.ts",
   styles: "components/comparison/comparison.module.css",
   landingStyles: "components/comparison/comparison-landing.module.css",
   service: "lib/comparison/comparison-product-service.ts",
@@ -247,10 +250,10 @@ requireMarkers("comparison concise five-chapter result", sources.report, [
   "data-person-direction",
   "directionalAspectTitle",
 ]);
-requireMarkers("comparison wheel collision and disclosure", sources.wheel, [
+requireMarkers("comparison wheel collision and disclosure", sources.sharedWheel, [
   "resolveLabelCollision",
   "collisionShifted",
-  "wheelLeaderLine",
+  "styles.leader",
   "IMPORTANT_ASPECT_LIMIT",
   "showAllAspects",
   "tabIndex={0}",
@@ -265,13 +268,18 @@ requireMarkers("comparison report", sources.report, [
   "حذف این مقایسه",
   "ComparisonBiWheel",
 ]);
-requireMarkers("comparison bi-wheel", sources.wheel, [
-  "synastry",
+requireMarkers("comparison bi-wheel adapter", sources.wheel, [
+  "HalleusSynastryWheel",
+  'data-halleus-wheel-adapter="synastry"',
+  "حلقهٔ داخلی",
+  "حلقهٔ بیرونی",
+]);
+requireMarkers("shared comparison wheel inventory", sources.sharedWheel, [
   "innerPoints",
   "outerPoints",
   "aspectLines",
-  "حلقهٔ داخلی",
-  "حلقهٔ بیرونی",
+  "fullInnerPoints",
+  "fullOuterPoints",
 ]);
 requireMarkers("comparison contract", sources.types, [
   'visibility: "private"',
@@ -279,6 +287,17 @@ requireMarkers("comparison contract", sources.types, [
   "secondPersonConsentConfirmedAt?: string",
   "rawBirthInputStored: false",
   "ComparisonReading",
+]);
+requireMarkers("comparison private account persistence", sources.accountClient, [
+  "saveComparisonToAccount",
+  'fetch("/api/reports/account"',
+  "getAccountComparisonRecord",
+]);
+requireMarkers("comparison private persistence policy", sources.accountPersistence, [
+  "STORED_COMPARISON_REPORT_VERSION",
+  'visibility: "private"',
+  'publicationState: "private"',
+  "share_enabled = false",
 ]);
 requireMarkers("comparison navigation", sources.navigation, [
   'href: "/compare"',
@@ -447,8 +466,8 @@ console.log("Comparison product check passed.");
 console.log("- /compare uses a dedicated static dark landing with final metadata, schema, social image, and builder anchor");
 console.log("- /compare selects stored natal charts only; chart creation lives on /chart");
 console.log("- relationship context remains; the explicit consent gate and inline creation flow are removed");
-console.log("- comparison records are local-only, private, noindex, and raw-birth-input-free");
+console.log("- comparison records keep a private local copy and can add an authenticated private account copy");
 console.log("- three patterns, support/friction, communication, emotional security, boundaries, repair, and bi-wheel remain visible");
 console.log("- history, delete, refresh, and retry flows remain present");
 console.log("- only the public landing is discoverable and analytics-eligible; private result paths remain excluded");
-console.log("- no public result sharing, network persistence, or compatibility percentage is introduced");
+console.log("- no public comparison sharing or compatibility percentage is introduced; account persistence is authenticated and private");

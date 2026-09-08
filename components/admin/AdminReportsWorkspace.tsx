@@ -31,6 +31,25 @@ const EMPTY_FILTERS: AdminReportFilters = {
 
 type ReportsWorkspaceView = "overview" | "operations" | "access";
 
+type AdminComparisonDetail = {
+  version: "stored-comparison-v1";
+  title: string;
+  relationshipContext: string;
+  chartALabel: string;
+  chartBLabel: string;
+  comparison: {
+    reading?: { overviewParagraphsFa?: string[] };
+    report?: {
+      contacts?: unknown[];
+      houseOverlays?: unknown[];
+      quality?: {
+        engineParityComplete?: boolean;
+        normalizedPointCount?: number;
+      };
+    };
+  };
+};
+
 function formatDate(value: string | null) {
   if (!value) return "—";
   try {
@@ -184,6 +203,8 @@ export function AdminReportsWorkspace({
     email?: string | null;
     phone?: string | null;
   } | null>(null);
+  const [comparisonDetail, setComparisonDetail] =
+    useState<AdminComparisonDetail | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
@@ -313,6 +334,52 @@ export function AdminReportsWorkspace({
     setContact(result.contact ?? null);
   }
 
+
+  async function readComparisonDetail(report: AdminReportSummary) {
+    const reason = window.prompt(
+      "دلیل مشاهدهٔ محتوای خصوصی این گزارش رابطه را ثبت کن:",
+    );
+    if (!reason?.trim()) return;
+
+    const response = await fetch(
+      `/api/admin/reports/${encodeURIComponent(report.id)}/private-content`,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+          "x-halleus-admin-origin": window.location.origin,
+        },
+        body: JSON.stringify({ reason: reason.trim() }),
+      },
+    );
+
+    const payload = (await response.json()) as {
+      content?: { report?: unknown };
+      error?: string;
+    };
+
+    if (!response.ok || !payload.content?.report) {
+      throw new Error(
+        payload.error ?? "محتوای خصوصی گزارش رابطه دریافت نشد.",
+      );
+    }
+
+    const stored = payload.content.report as Partial<AdminComparisonDetail>;
+    if (
+      stored.version !== "stored-comparison-v1" ||
+      !stored.comparison ||
+      typeof stored.chartALabel !== "string" ||
+      typeof stored.chartBLabel !== "string" ||
+      typeof stored.relationshipContext !== "string"
+    ) {
+      throw new Error("محتوای خصوصی این رکورد گزارش رابطهٔ معتبر نیست.");
+    }
+
+    setComparisonDetail(stored as AdminComparisonDetail);
+    setMessage("مشاهدهٔ محتوای خصوصی در audit ثبت شد.");
+  }
   async function exportActiveCohort() {
     setLoading(true);
     setError("");
@@ -433,8 +500,18 @@ export function AdminReportsWorkspace({
             <div className={styles.detailGrid}>
               <div><span>نوع گزارش</span><strong>{detail.reportType}</strong></div>
               <div><span>سوژه</span><strong>{detail.subjectName ?? "—"}</strong></div>
-              <div><span>تولد</span><strong>{formatBirthLine(detail)}</strong></div>
-              <div><span>محل تولد</span><strong>{formatBirthPlace(detail)}</strong></div>
+              {detail.reportType === "comparison" ? (
+                <>
+                  <div><span>نفر اول</span><strong>{detail.comparisonChartALabel ?? "—"}</strong></div>
+                  <div><span>نفر دوم</span><strong>{detail.comparisonChartBLabel ?? "—"}</strong></div>
+                  <div><span>نوع رابطه</span><strong>{detail.comparisonRelationshipContext ?? "—"}</strong></div>
+                </>
+              ) : (
+                <>
+                  <div><span>تولد</span><strong>{formatBirthLine(detail)}</strong></div>
+                  <div><span>محل تولد</span><strong>{formatBirthPlace(detail)}</strong></div>
+                </>
+              )}
               <div><span>نوع مالک</span><strong>{detail.ownerKind}</strong></div>
               <div><span>پلن حساب</span><strong>{detail.accountPlan ?? "—"}</strong></div>
               <div><span>دسترسی</span><strong>{detail.accessTier}</strong></div>
@@ -446,7 +523,61 @@ export function AdminReportsWorkspace({
               <div><span>حجم report JSON</span><strong>{formatBytes(detail.reportJsonBytes)}</strong></div>
               <div><span>ساخته‌شده</span><strong>{formatDate(detail.createdAt)}</strong></div>
             </div>
+            {comparisonDetail ? (
+              <section
+                className={styles.contactCard}
+                data-admin-comparison-detail="true"
+              >
+                <strong>خوانش رابطه</strong>
+                <span>
+                  {comparisonDetail.chartALabel} و {comparisonDetail.chartBLabel}
+                  {" · "}
+                  {comparisonDetail.relationshipContext}
+                </span>
+                {(comparisonDetail.comparison.reading?.overviewParagraphsFa ?? []).map(
+                  (paragraph) => <p key={paragraph}>{paragraph}</p>,
+                )}
+                <span>
+                  تماس‌ها:{" "}
+                  {(comparisonDetail.comparison.report?.contacts?.length ?? 0).toLocaleString("fa-IR")}
+                </span>
+                <span>
+                  هم‌پوشانی خانه‌ها:{" "}
+                  {(comparisonDetail.comparison.report?.houseOverlays?.length ?? 0).toLocaleString("fa-IR")}
+                </span>
+                <span>
+                  پوشش موتور:{" "}
+                  {comparisonDetail.comparison.report?.quality?.engineParityComplete
+                    ? "کامل"
+                    : "جزئی"}
+                </span>
+                <span>
+                  نقاط نرمال‌شده:{" "}
+                  {(comparisonDetail.comparison.report?.quality?.normalizedPointCount ?? 0).toLocaleString("fa-IR")}
+                </span>
+                <details>
+                  <summary>Technical JSON</summary>
+                  <pre>{JSON.stringify(comparisonDetail, null, 2)}</pre>
+                </details>
+              </section>
+            ) : null}
             <div className={styles.recordActions}>
+              {detail.reportType === "comparison" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void readComparisonDetail(detail).catch((cause) =>
+                      setError(
+                        cause instanceof Error
+                          ? cause.message
+                          : "محتوای خصوصی گزارش رابطه دریافت نشد.",
+                      ),
+                    )
+                  }
+                >
+                  مشاهدهٔ محتوای خصوصی رابطه
+                </button>
+              ) : null}
               <button type="button" onClick={() => void readContact(detail)}>مشاهدهٔ ثبت‌شدهٔ اطلاعات تماس</button>
               <button type="button" onClick={() => void mutate(detail, "update_title")}>ویرایش عنوان</button>
               <button type="button" onClick={() => void mutate(detail, "restrict_visibility")}>محدودسازی</button>

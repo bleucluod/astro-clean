@@ -34,6 +34,7 @@ const adapterSource = read(
   "src/lib/report-output/report-birth-chart-wheel-data.ts",
 );
 const componentSource = read("components/ReportBirthChartWheel.tsx");
+const sharedWheelSource = read("components/HalleusWheelCore.tsx");
 const readerSource = read("components/report/ReportProductReader.tsx");
 const globalCss = read("app/globals.css");
 const packageJson = JSON.parse(read("package.json"));
@@ -312,19 +313,29 @@ for (const signId of [
   "pisces",
 ]) {
   assert(
-    componentSource.includes(`label: ZODIAC_LABELS.${signId}.faName`),
-    `Wheel guide must read the canonical Halleus zodiac label for: ${signId}`,
+    componentSource.includes("ZODIAC_LABELS[sign.id].faName") &&
+      sharedWheelSource.includes(`id: "${signId}"`),
+    `Wheel guide must preserve canonical Halleus zodiac entry: ${signId}`,
   );
 }
 for (const darkToken of [
-  'COLOR_BACKGROUND: "#0B0D11"',
-  'POINTS_COLOR: "#F4F6F8"',
-  'SIGNS_COLOR: "#E5EAF0"',
-  'CIRCLE_COLOR: "#4B535E"',
-  'LINE_COLOR: "#3A424C"',
+  'background: "#0B0D11"',
+  'point: "#F4F6F8"',
+  'sign: "#E5EAF0"',
+  'ring: "#4B535E"',
+  'line: "#3A424C"',
 ]) {
-  assert(componentSource.includes(darkToken), `Report wheel lost /sky dark token: ${darkToken}`);
+  assert(
+    sharedWheelSource.includes(darkToken),
+    `Shared Halleus wheel lost dark token: ${darkToken}`,
+  );
 }
+assert(
+  componentSource.includes("HALLEUS_WHEEL_THEME") &&
+    componentSource.includes("HALLEUS_ZODIAC_GUIDE") &&
+    componentSource.includes('data-halleus-wheel-mode="natal"'),
+  "report wheel must consume shared Halleus wheel tokens while preserving the natal AstroChart renderer",
+);
 assert(
   componentSource.includes('data-report-birth-chart-wheel-guide="persian"') &&
     componentSource.includes(

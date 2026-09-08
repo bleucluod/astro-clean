@@ -22,6 +22,14 @@ import {
   subscribeToPrivateComparisons,
 } from "@/lib/comparison/comparison-storage";
 import { loadReports } from "@/lib/storage/reports-storage";
+import {
+  deleteComparisonFromAccount,
+  getAccountComparisonRecord,
+  saveComparisonToAccount,
+  setComparisonFavorite,
+  setComparisonNote,
+  type ComparisonAccountStatus,
+} from "@/lib/comparison/comparison-account-client";
 import type {
   ComparisonFullInterpretation,
   ComparisonNarrativeChapter,
@@ -82,22 +90,51 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
   const [technicalCategory, setTechnicalCategory] = useState<TechnicalContactCategory>("all");
   const [technicalPolarity, setTechnicalPolarity] = useState<TechnicalContactPolarity>("all");
   const [technicalSort, setTechnicalSort] = useState<TechnicalContactSort>("relevance");
+  const [accountStatus, setAccountStatus] =
+    useState<ComparisonAccountStatus>("in-progress");
+  const [accountFavorite, setAccountFavorite] = useState(false);
+  const [accountNote, setAccountNote] = useState("");
 
-  const loadRecord = useCallback(() => {
-    setRecord(getPrivateComparison(comparisonId));
+
+  const loadRecord = useCallback(async () => {
+    const local = getPrivateComparison(comparisonId);
+    if (local) {
+      setRecord(local);
+      setIsReady(true);
+      void getAccountComparisonRecord(comparisonId).then((account) => {
+        setAccountStatus(account.status);
+        setAccountFavorite(account.favorite);
+        setAccountNote(account.note);
+      });
+      return;
+    }
+
+    const account = await getAccountComparisonRecord(comparisonId);
+    setAccountStatus(account.status);
+    setAccountFavorite(account.favorite);
+    setAccountNote(account.note);
+    if (account.comparison) {
+      savePrivateComparison(account.comparison);
+      setRecord(account.comparison);
+    } else {
+      setRecord(null);
+    }
     setIsReady(true);
   }, [comparisonId]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(loadRecord);
-    const unsubscribe = subscribeToPrivateComparisons(loadRecord);
+    const frame = window.requestAnimationFrame(() => {
+      void loadRecord();
+    });
+    const unsubscribe = subscribeToPrivateComparisons(() => {
+      void loadRecord();
+    });
 
     return () => {
       window.cancelAnimationFrame(frame);
       unsubscribe();
     };
   }, [loadRecord]);
-
   const reading = useMemo(() => {
     if (!record) return null;
     return buildHumanFirstComparisonReading(record.report, {
@@ -108,12 +145,11 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     });
   }, [record]);
 
-  function regenerate() {
+  async function regenerate() {
     if (!record) return;
 
     setIsWorking(true);
     setMessage("");
-
     const reports = loadReports();
     const chartA = reports.find((report) => report.id === record.chartAId);
     const chartB = reports.find((report) => report.id === record.chartBId);
@@ -140,12 +176,66 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
       return;
     }
 
+    if (accountStatus === "saved") {
+      await saveComparisonToAccount(rebuilt.record, { navigationGraceMs: 0 });
+    }
+
     setRecord(rebuilt.record);
     setIsWorking(false);
     setMessage("خوانش با اطلاعات فعلی دو چارت دوباره ساخته شد.");
   }
 
-  function remove() {
+  async function saveToAccount() {
+    if (!record) return;
+    const result = await saveComparisonToAccount(record, {
+      navigationGraceMs: 0,
+    });
+    setAccountStatus(result.status);
+    setMessage(result.message);
+  }
+
+  async function toggleFavorite() {
+    if (accountStatus !== "saved") return;
+    const next = !accountFavorite;
+    try {
+      await setComparisonFavorite(comparisonId, next);
+      setAccountFavorite(next);
+      setMessage(
+        next
+          ? "به علاقه‌مندی‌های حساب اضافه شد."
+          : "از علاقه‌مندی‌ها برداشته شد.",
+      );
+    } catch {
+      setMessage("تغییر علاقه‌مندی در حساب کامل نشد.");
+    }
+  }
+
+  async function editAccountNote() {
+    if (accountStatus !== "saved") return;
+    const next = window.prompt("یادداشت خصوصی برای این گزارش:", accountNote);
+    if (next === null) return;
+
+    try {
+      await setComparisonNote(comparisonId, next);
+      setAccountNote(next);
+      setMessage("یادداشت خصوصی حساب ذخیره شد.");
+    } catch {
+      setMessage("ذخیره یادداشت در حساب کامل نشد.");
+    }
+  }
+
+  async function remove() {
+    if (accountStatus === "saved") {
+      try {
+        await deleteComparisonFromAccount(comparisonId);
+      } catch {
+        setMessage(
+          "حذف نسخهٔ حساب کامل نشد و نسخهٔ روی دستگاه دست‌نخورده ماند.",
+        );
+        return;
+      }
+    }
+
     const result = deletePrivateComparison(comparisonId);
     if (!result.ok) {
       setMessage(result.message);
@@ -236,7 +326,9 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             ))}
           </div>
           <p className={styles.privateNote}>
-            این خوانش خصوصی می‌ماند و فقط روی همین دستگاه ذخیره می‌شود.
+            {accountStatus === "saved"
+              ? "این خوانش خصوصی در حساب تو و روی همین دستگاه در دسترس است."
+              : "این خوانش خصوصی روی همین دستگاه می‌ماند؛ اگر وارد حساب باشی می‌توانی همان نسخه را در حساب خصوصی‌ات هم نگه داری."}
           </p>
         </div>
         <aside className={styles.pairCard} aria-label="دو نفر این مقایسه">
@@ -527,11 +619,42 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
           className={styles.secondaryButton}
           type="button"
           disabled={isWorking}
-          onClick={regenerate}
+          onClick={() => void regenerate()}
         >
           {isWorking ? "در حال بازسازی…" : "ساخت دوباره با اطلاعات فعلی"}
         </button>
-        <button className={styles.dangerButton} type="button" onClick={remove}>
+        {accountStatus !== "saved" ? (
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            onClick={() => void saveToAccount()}
+          >
+            ذخیره در حساب
+          </button>
+        ) : (
+          <>
+            <button
+              className={styles.secondaryButton}
+              type="button"
+              aria-pressed={accountFavorite}
+              onClick={() => void toggleFavorite()}
+            >
+              {accountFavorite ? "★ علاقه‌مندی" : "☆ افزودن به علاقه‌مندی"}
+            </button>
+            <button
+              className={styles.secondaryButton}
+              type="button"
+              onClick={() => void editAccountNote()}
+            >
+              {accountNote ? "ویرایش یادداشت حساب" : "افزودن یادداشت حساب"}
+            </button>
+          </>
+        )}
+        <button
+          className={styles.dangerButton}
+          type="button"
+          onClick={() => void remove()}
+        >
           حذف این مقایسه
         </button>
       </section>
