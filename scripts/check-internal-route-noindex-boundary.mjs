@@ -24,12 +24,29 @@ const internalRouteFamilies = [
   { route: "/admin", layout: "app/admin/layout.tsx" },
   { route: "/dashboard", layout: "app/dashboard/layout.tsx" },
   { route: "/profile", layout: "app/profile/layout.tsx" },
-  { route: "/roadmap", layout: "app/roadmap/layout.tsx" },
-  { route: "/engine", layout: "app/engine/layout.tsx" },
-  { route: "/quality", layout: "app/quality/layout.tsx" },
-  { route: "/interpretation", layout: "app/interpretation/layout.tsx" },
-  { route: "/language", layout: "app/language/layout.tsx" },
 ];
+
+// retired-route-absence-guard-20260911
+const retiredRoutePages = [
+  "app/roadmap/page.tsx",
+  "app/language/page.tsx",
+  "app/quality/page.tsx",
+  "app/quality/mvp-checkpoint/page.tsx",
+  "app/interpretation/page.tsx",
+  "app/engine/page.tsx",
+  "app/engine/decision/page.tsx",
+  "app/engine/real/page.tsx",
+  "app/engine/real-chart/page.tsx",
+  "app/engine/report-flow/page.tsx",
+  "app/engine/report-preview/page.tsx",
+  "app/asteroid-lab/page.tsx",
+];
+
+for (const retiredPage of retiredRoutePages) {
+  if (fs.existsSync(path.join(root, retiredPage))) {
+    failures.push(`Retired route page still exists: ${retiredPage}`);
+  }
+}
 
 const noindexPattern =
   /robots:\s*\{\s*index:\s*false,\s*follow:\s*false,\s*\}/s;
@@ -117,7 +134,7 @@ if (failures.length > 0) {
 }
 
 console.log("Internal-route noindex boundary check passed.");
-console.log("- admin, account, roadmap, engine, quality, interpretation, and language routes are noindex/nofollow");
-console.log("- nested engine and quality pages inherit the parent noindex boundary");
-console.log("- internal routes remain outside seoRoutes and sitemap generation");
+console.log("- retained admin/account routes are noindex/nofollow");
+console.log("- retired legacy page routes are absent");
+console.log("- retained internal routes remain outside seoRoutes and sitemap generation");
 console.log("- public root indexing and report-family noindex remain unchanged");

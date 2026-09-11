@@ -7,7 +7,6 @@ const requiredFiles = [
   "lib/chart-engine/chart-engine-factory.ts",
   "lib/chart-engine/chart-engine-readiness.ts",
   "lib/chart-engine/chart-engine-fixtures.ts",
-  "app/engine/page.tsx",
   "docs/CHART_ENGINE_FOUNDATION.md",
   "docs/CHART_ENGINE_STRATEGY.md",
 ];
@@ -18,7 +17,6 @@ const requiredContent = [
   ["lib/chart-engine/chart-engine-driver.ts", "ChartEngineDriver"],
   ["lib/chart-engine/mock-preview-engine.ts", "createMockPreviewChartEngine"],
   ["lib/chart-engine/chart-engine-readiness.ts", "getChartEngineReadinessReport"],
-  ["app/engine/page.tsx", "Halleus Engine"],
   ["docs/CHART_ENGINE_FOUNDATION.md", "real chart engine path"],
 ];
 

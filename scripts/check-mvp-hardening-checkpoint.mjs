@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 
 const requiredFiles = [
   "src/lib/product/mvp-hardening-checkpoint.ts",
-  "app/quality/mvp-checkpoint/page.tsx",
   "scripts/check-mvp-hardening-checkpoint.mjs",
 ];
 
@@ -17,7 +16,6 @@ const requiredExports = [
 
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const source = readFileSync(requiredFiles[0], "utf8");
-const pageSource = readFileSync(requiredFiles[1], "utf8");
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
 const failures = [];
 
@@ -51,17 +49,6 @@ for (const marker of [
   }
 }
 
-for (const marker of [
-  "MvpHardeningCheckpointPage",
-  "چک‌پوینت آمادگی MVP",
-  "Manual check",
-  "MVP_HARDENING_CHECKPOINT_VERSION",
-]) {
-  if (!pageSource.includes(marker)) {
-    failures.push(`MVP hardening page missing marker: ${marker}`);
-  }
-}
-
 if (
   packageJson.scripts?.["check:mvp-hardening-checkpoint"] !==
   "node scripts/check-mvp-hardening-checkpoint.mjs"
@@ -81,4 +68,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("MVP hardening checkpoint check passed for 3 files.");
+console.log("MVP hardening checkpoint check passed for 2 files.");

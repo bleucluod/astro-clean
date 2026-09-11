@@ -6,8 +6,6 @@ const requiredFiles = [
   "lib/chart-engine/astronomy-engine-loader.ts",
   "lib/chart-engine/astronomy-engine-prototype.ts",
   "lib/chart-engine/chart-engine-factory.ts",
-  "app/engine/real/page.tsx",
-  "lib/product/product-surface.ts",
   "docs/ASTRONOMY_ENGINE_PROTOTYPE.md",
 ];
 
@@ -17,8 +15,6 @@ const requiredContent = [
   ["lib/chart-engine/astronomy-engine-loader.ts", "loadAstronomyEnginePackage"],
   ["lib/chart-engine/astronomy-engine-prototype.ts", "createAstronomyEnginePrototypeDriver"],
   ["lib/chart-engine/chart-engine-factory.ts", "createAstronomyEnginePrototypeDriver"],
-  ["app/engine/real/page.tsx", "نمونه اولیه موتور واقعی چارت"],
-  ["lib/product/product-surface.ts", "/engine/real"],
   ["docs/ASTRONOMY_ENGINE_PROTOTYPE.md", "pnpm add astronomy-engine@2.1.19"],
 ];
 

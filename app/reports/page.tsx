@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AccountReportTitleList } from "@/components/AccountReportTitleList";
+
 import { ReportsList } from "@/components/ReportsList";
 
+import styles from "./reports-page.module.css";
+
 export const metadata: Metadata = {
-  title: "گزارش‌های من | Halleus",
+  title: "گزارش‌های من | هالیوس",
   description:
-    "بازگشت آرام به گزارش‌های تولد ذخیره‌شده در هالیوس؛ گزارش‌هایی که در این دستگاه یا حساب تو پیدا می‌شوند.",
+    "گزارش‌های ذخیره‌شده در حساب هالیوس یا روی همین دستگاه را دوباره باز کن، جستجو کن و مدیریت کن.",
   alternates: {
     canonical: "/reports",
   },
@@ -31,45 +33,58 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const isAccountSource = reportSource === "account";
 
   return (
-    <section className="grid reports-sales-shell reports-return-shell">
-      <div className="card reports-sales-cta reports-return-hero">
-        <div>
-          <span className="badge">گزارش‌های من</span>
-          <h1>{isAccountSource ? "گزارش‌های حساب" : "کتابخانه گزارش‌ها"}</h1>
+    <div className={styles.page} data-reports-library="account-home-v1">
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.eyebrow}>کتابخانه شخصی</span>
+          <h1>گزارش‌های من</h1>
           <p>
-            {isAccountSource
-              ? "گزارش‌هایی که به حساب تو وصل هستند، اینجا دیده می‌شوند. برای خواندن یا ساخت گزارش تازه، مسیر ساده و آرام نگه داشته شده است."
-              : "گزارش‌هایی که در این دستگاه پیدا می‌شوند، اینجا کنار هم می‌آیند تا دوباره به خوانش‌های قبلی برگردی."}
+            گزارش‌هایی که به حسابت وصل شده‌اند یا روی همین دستگاه ذخیره شده‌اند،
+            از اینجا دوباره در دسترس‌اند؛ بدون اینکه مسیر خواندن و مدیریتشان قاطی شود.
           </p>
         </div>
 
-        <div className="actions">
-          <Link className="button" href="/chart">
+        <div className={styles.heroActions}>
+          <Link className={styles.primaryAction} href="/chart">
             ساخت گزارش جدید
           </Link>
-
-          <Link className="button secondary" href="/dashboard">
-            پنل من
+          <Link className={styles.secondaryAction} href="/privacy">
+            حریم گزارش‌ها
           </Link>
-
-          <Link className="button secondary" href="/profile">
-            حساب و پروفایل
-          </Link>
-
-          {isAccountSource ? (
-            <Link className="button secondary" href="/reports?source=local">
-              گزارش‌های این دستگاه
-            </Link>
-          ) : null}
         </div>
-      </div>
+      </section>
 
-      {isAccountSource ? (
-        <AccountReportTitleList />
-      ) : (
-        <ReportsList reportSource="local" />
-      )}
-      <span className="reports-page-copy-detox-marker" aria-hidden="true" hidden />
-    </section>
+      <nav className={styles.sourceSwitch} aria-label="محل نگهداری گزارش‌ها">
+        <Link
+          aria-current={isAccountSource ? "page" : undefined}
+          className={isAccountSource ? styles.sourceLinkActive : styles.sourceLink}
+          href="/reports"
+        >
+          <strong>گزارش‌های حساب</strong>
+          <span>برای گزارش‌هایی که بعد از ورود به حساب ذخیره شده‌اند</span>
+        </Link>
+        <Link
+          aria-current={!isAccountSource ? "page" : undefined}
+          className={!isAccountSource ? styles.sourceLinkActive : styles.sourceLink}
+          href="/reports?source=local"
+        >
+          <strong>گزارش‌های این دستگاه</strong>
+          <span>برای گزارش‌هایی که فقط در همین مرورگر نگه داشته شده‌اند</span>
+        </Link>
+      </nav>
+
+      <ReportsList reportSource={reportSource} />
+
+      <aside className={styles.privacyNote}>
+        <div>
+          <strong>عمومی یا خصوصی بودن هر گزارش جداست.</strong>
+          <p>
+            وضعیت دسترسی را روی همان گزارش می‌بینی. تحلیل رابطه همیشه خصوصی می‌ماند و
+            گزارش‌های تولد می‌توانند بسته به نوع و انتخاب تو وضعیت متفاوتی داشته باشند.
+          </p>
+        </div>
+        <Link href="/privacy">جزئیات حریم خصوصی</Link>
+      </aside>
+    </div>
   );
 }

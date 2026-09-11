@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 const requiredFiles = [
   "src/lib/report-output/chart-form-report-flow.ts",
   "components/ChartFormReportFlowClient.tsx",
-  "app/engine/report-flow/page.tsx",
   "scripts/check-chart-form-report-flow.mjs",
 ];
 
@@ -22,7 +21,6 @@ const flowExports = [
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const flowSource = readFileSync(requiredFiles[0], "utf8");
 const clientSource = readFileSync(requiredFiles[1], "utf8");
-const pageSource = readFileSync(requiredFiles[2], "utf8");
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
 const checkReports = packageJson.scripts?.["check:reports"] ?? "";
 const failures = [];
@@ -68,16 +66,6 @@ for (const marker of [
   }
 }
 
-for (const marker of [
-  "ChartFormReportFlowPage",
-  "ChartFormReportFlowClient",
-  "تست مسیر ساخت گزارش از فرم تولد",
-]) {
-  if (!pageSource.includes(marker)) {
-    failures.push(`Flow page missing marker: ${marker}`);
-  }
-}
-
 if (
   packageJson.scripts?.["check:chart-form-report-flow"] !==
   "node scripts/check-chart-form-report-flow.mjs"
@@ -101,4 +89,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Chart form report flow check passed for 4 files.");
+console.log("Chart form report flow check passed for 3 files.");

@@ -50,51 +50,9 @@ export const PRODUCT_SURFACE_LINKS: ProductSurfaceLink[] = [
     status: "live",
   },
   {
-    href: "/roadmap",
-    label: "نقشه راه",
-    description: "مسیر محصول از نسخه آزمایشی تا حساب کاربری و پرداخت.",
-    status: "preview",
-  },
-  {
     href: "/wiki",
     label: "راهنما",
     description: "راهنمای مفهومی Halleus و گزارش‌های نمادین.",
-    status: "preview",
-  },
-  {
-    href: "/engine",
-    label: "موتور چارت",
-    description: "وضعیت زیرساخت جایگزینی خروجی آزمایشی با محاسبه واقعی.",
-    status: "preview",
-  },
-  {
-    href: "/engine/decision",
-    label: "تصمیم موتور واقعی",
-    description: "مقایسه مسیرهای محاسبه واقعی چارت و انتخاب مسیر MVP.",
-    status: "preview",
-  },
-  {
-    href: "/engine/real",
-    label: "نمونه موتور واقعی",
-    description: "نمونه اولیه اتصال astronomy-engine به مسیر گزارش.",
-    status: "preview",
-  },
-  {
-    href: "/quality",
-    label: "کیفیت گزارش",
-    description: "استاندارد لحن، بخش‌ها و ایمنی برای گزارش‌های آینده.",
-    status: "preview",
-  },
-  {
-    href: "/interpretation",
-    label: "تفسیر گزارش",
-    description: "ماژول‌های ترکیب گزارش و مسیر تفسیر آینده.",
-    status: "preview",
-  },
-  {
-    href: "/language",
-    label: "زبان محصول",
-    description: "لایه فارسی‌سازی، متن‌های مرکزی و مسیر کنترل‌شده Finglish به فارسی.",
     status: "preview",
   },
 ];

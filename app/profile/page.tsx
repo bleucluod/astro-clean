@@ -1,18 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { TelegramJoinRewardCard } from "@/components/TelegramJoinRewardCard";
-import { useEffect, useState } from "react";
 import { getAccountRepository } from "@/lib/account/account-repository";
-import { listReportSummaries } from "@/lib/storage/report-query-service";
 import { listAccountReportSummaries } from "@/lib/storage/account-report-read-client";
+import { listReportSummaries } from "@/lib/storage/report-query-service";
 import type { AuthSession } from "@/types/account";
+
+import styles from "./profile-page.module.css";
 
 const accountRepository = getAccountRepository();
 
 function formatProfileName(session: AuthSession | null) {
-  return session?.user.displayName || session?.user.email || "هنوز وارد نشده‌ای";
+  return session?.user.displayName?.trim() || "حساب هالیوس";
 }
 
 export default function ProfilePage() {
@@ -53,98 +56,116 @@ export default function ProfilePage() {
 
   if (!isReady) {
     return (
-      <section className="grid">
-        <div className="card">
-          <span className="badge">پروفایل</span>
-          <h1>در حال آماده‌سازی پروفایل</h1>
-          <p>اطلاعات حساب و گزارش‌های تو آماده می‌شود.</p>
-        </div>
-        <span className="profile-copy-detox-marker" aria-hidden="true" hidden />
-      </section>
+      <div className={styles.page} data-halleus-profile="account-home-v2">
+        <section className={styles.loadingPanel} aria-live="polite">
+          <span className={styles.eyebrow}>حساب هالیوس</span>
+          <h1>داریم اطلاعات حسابت را آماده می‌کنیم</h1>
+          <p>وضعیت ورود و گزارش‌های ذخیره‌شده در حال بررسی‌اند.</p>
+        </section>
+      </div>
     );
   }
 
+  const signedIn = Boolean(session);
+
   return (
-    <section className="grid">
-      <div className="card">
-        <span className="badge">پروفایل هالیوس</span>
+    <div className={styles.page} data-halleus-profile="account-home-v2">
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.eyebrow}>فضای شخصی هالیوس</span>
+          <h1>{signedIn ? `سلام ${formatProfileName(session)}؛ اینجا فضای شخصی توست` : "حساب هالیوس؛ برای برگشت راحت‌تر به گزارش‌ها"}</h1>
+          <p>
+            {signedIn
+              ? "از این صفحه می‌توانی وضعیت حسابت را ببینی، به گزارش‌ها برگردی و تنظیمات مرتبط با حساب و حریم خصوصی را پیدا کنی."
+              : "بدون حساب هم می‌توانی از هالیوس استفاده کنی. اگر حساب بسازی، گزارش‌های متصل به حسابت را راحت‌تر پیدا می‌کنی و لازم نیست فقط به همین مرورگر وابسته باشی."}
+          </p>
 
-        <h1>حساب و اطلاعات من</h1>
-
-        <p>
-          اینجا می‌توانی وضعیت ورود، اطلاعات اصلی حساب و مسیر برگشت به گزارش‌هایت
-          را ببینی.
-        </p>
-
-        <div className="actions">
-          <Link className="button" href="/dashboard">
-            رفتن به پنل
-          </Link>
-
-          <Link className="button secondary" href="/reports">
-            گزارش‌های من
-          </Link>
-
-          <Link className="button secondary" href="/privacy">
-            حریم خصوصی
-          </Link>
+          <div className={styles.heroActions}>
+            <Link className={styles.primaryAction} href="/reports">
+              گزارش‌های من
+            </Link>
+            <Link className={styles.secondaryAction} href="/chart">
+              ساخت چارت جدید
+            </Link>
+            <Link className={styles.textAction} href="/privacy">
+              حریم خصوصی
+            </Link>
+          </div>
         </div>
-      </div>
 
-      <SupabaseAuthPanel />
-
-      <TelegramJoinRewardCard />
-
-      <section className="card">
-        <span className="badge">وضعیت حساب</span>
-
-        <h2>اطلاعات اصلی</h2>
-
-        <div className="profile-grid">
-          <div>
-            <strong>وضعیت ورود</strong>
-            <span>{session ? "وارد شده‌ای" : "هنوز وارد نشده‌ای"}</span>
-          </div>
-
-          <div>
-            <strong>نام حساب</strong>
-            <span>{formatProfileName(session)}</span>
-          </div>
-
-          <div>
-            <strong>گزارش‌های ذخیره‌شده</strong>
-            <span>{reportTotal.toLocaleString("fa-IR")}</span>
-          </div>
-
-          <div>
-            <strong>حریم گزارش‌ها</strong>
-            <span>خصوصی</span>
-          </div>
+        <div className={styles.summaryGrid} aria-label="خلاصه حساب">
+          <article className={styles.summaryCard}>
+            <span>وضعیت ورود</span>
+            <strong>{signedIn ? "وارد شده‌ای" : "مهمان"}</strong>
+          </article>
+          <article className={styles.summaryCard}>
+            <span>گزارش‌های در دسترس</span>
+            <strong>{reportTotal.toLocaleString("fa-IR")}</strong>
+          </article>
+          <article className={styles.summaryCard}>
+            <span>محل اصلی دسترسی</span>
+            <strong>{signedIn ? "حساب هالیوس" : "همین دستگاه"}</strong>
+          </article>
         </div>
       </section>
 
-      <section className="card">
-        <span className="badge">گزارش‌های من</span>
+      <section className={styles.contentGrid}>
+        <div className={styles.primaryColumn}>
+          <div className={styles.sectionIntro}>
+            <span className={styles.eyebrow}>ورود و حساب</span>
+            <h2>حسابت را از همین‌جا مدیریت کن</h2>
+            <p>ورود، ثبت‌نام و خروج از حساب در همین بخش انجام می‌شود.</p>
+          </div>
+          <div className={styles.authSurface}>
+            <SupabaseAuthPanel />
+          </div>
+        </div>
 
-        <h2>برگشت سریع به خوانش‌ها</h2>
+        <aside className={styles.sideColumn} aria-label="دسترسی‌های حساب">
+          <section className={styles.infoPanel}>
+            <span className={styles.eyebrow}>دسترسی سریع</span>
+            <h2>از کجا ادامه بدهی؟</h2>
+            <div className={styles.linkList}>
+              <Link href="/dashboard">
+                <strong>پنل من</strong>
+                <span>آخرین گزارش‌ها و مسیرهای بعدی</span>
+              </Link>
+              <Link href="/reports">
+                <strong>گزارش‌های من</strong>
+                <span>گزارش‌های حساب یا همین دستگاه</span>
+              </Link>
+              <Link href="/compare">
+                <strong>تحلیل رابطه</strong>
+                <span>مقایسه خصوصی دو چارت تولد</span>
+              </Link>
+            </div>
+          </section>
 
-        <p>
-          هر گزارشی که ذخیره شود، از بخش گزارش‌ها دوباره در دسترس است. برای ساخت
-          گزارش تازه هم می‌توانی از صفحه ساخت گزارش شروع کنی.
-        </p>
+          <section className={styles.infoPanel}>
+            <span className={styles.eyebrow}>حریم گزارش‌ها</span>
+            <h2>عمومی یا خصوصی بودن، برای همه گزارش‌ها یکسان نیست</h2>
+            <p>
+              وضعیت انتشار هر گزارش به نوع گزارش و انتخاب‌های مربوط به انتشار آن بستگی دارد. تحلیل رابطه خصوصی می‌ماند و مسیر عمومی انتشار ندارد.
+            </p>
+            <Link className={styles.inlineLink} href="/privacy">
+              جزئیات حریم خصوصی هالیوس
+            </Link>
+          </section>
+        </aside>
+      </section>
 
-        <div className="actions">
-          <Link className="button" href="/chart">
-            ساخت گزارش جدید
-          </Link>
-
-          <Link className="button secondary" href="/reports">
-            دیدن گزارش‌ها
-          </Link>
+      <section className={styles.rewardSection}>
+        <div className={styles.sectionIntro}>
+          <span className={styles.eyebrow}>هدیه تلگرام</span>
+          <h2>اگر خواستی، هدیه عضویت را هم از همین حساب بگیر</h2>
+          <p>اتصال تلگرام اختیاری است و فقط برای بررسی عضویت و فعال‌کردن همان هدیه استفاده می‌شود.</p>
+        </div>
+        <div className={styles.rewardSurface}>
+          <TelegramJoinRewardCard />
         </div>
       </section>
 
-      <span className="profile-copy-detox-marker" aria-hidden="true" hidden />
-    </section>
+      <span className="profile-account-home-v2-marker" aria-hidden="true" hidden />
+    </div>
   );
 }

@@ -4,7 +4,6 @@ const requiredFiles = [
   "src/lib/chart/real-chart-engine.ts",
   "app/api/engine/real-chart/route.ts",
   "components/RealChartWorkbenchClient.tsx",
-  "app/engine/real-chart/page.tsx",
   "scripts/check-real-chart-workbench.mjs",
 ];
 
@@ -29,7 +28,6 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const engineSource = readFileSync(requiredFiles[0], "utf8");
 const apiSource = readFileSync(requiredFiles[1], "utf8");
 const clientSource = readFileSync(requiredFiles[2], "utf8");
-const pageSource = readFileSync(requiredFiles[3], "utf8");
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
 const failures = [];
 
@@ -116,16 +114,6 @@ for (const marker of [
 
 if (clientSource.includes("../src/lib/chart/real-chart-engine")) {
   failures.push("Client component must not import the server real chart engine.");
-}
-
-for (const marker of [
-  "RealChartWorkbenchPage",
-  "RealChartWorkbenchClient",
-  "چارت واقعی‌تر و قابل دیدن",
-]) {
-  if (!pageSource.includes(marker)) {
-    failures.push(`Real chart page missing marker: ${marker}`);
-  }
 }
 
 if (
@@ -235,4 +223,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Real chart workbench check passed for 5 files.");
+console.log("Real chart workbench check passed for 4 files.");

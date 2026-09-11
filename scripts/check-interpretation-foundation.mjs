@@ -7,7 +7,6 @@ const requiredFiles = [
   "lib/interpretation/mock-interpretation-driver.ts",
   "lib/interpretation/interpretation-factory.ts",
   "lib/interpretation/sample-interpretation.ts",
-  "app/interpretation/page.tsx",
   "docs/INTERPRETATION_MODULES_FOUNDATION.md",
   "docs/REPORT_COMPOSITION_PIPELINE.md",
 ];
@@ -18,7 +17,6 @@ const requiredContent = [
   ["lib/interpretation/mock-interpretation-driver.ts", "createMockInterpretationDriver"],
   ["lib/interpretation/interpretation-factory.ts", "getInterpretationDriver"],
   ["lib/interpretation/sample-interpretation.ts", "getSampleInterpretationPreview"],
-  ["app/interpretation/page.tsx", "زیرساخت تفسیر گزارش"],
 ];
 
 let failed = false;

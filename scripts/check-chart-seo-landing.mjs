@@ -58,8 +58,16 @@ if (/<main(?:\s|>)/i.test(page)) {
 const heroIndex = page.indexOf('className={styles.hero}');
 const workspaceIndex = page.indexOf('className={styles.workspace}');
 const reportStripIndex = page.indexOf('className={styles.reportStrip}');
+const reportDetailsIndex = page.indexOf('id="chart-report-details"');
+const sampleIndex = page.indexOf('className={styles.reportSample}');
 if (!(heroIndex >= 0 && workspaceIndex > heroIndex && reportStripIndex > workspaceIndex)) {
   failures.push("chart direct content order must begin Hero -> Workspace/Form -> report summary strip");
+}
+if (!(reportDetailsIndex > reportStripIndex && sampleIndex > reportDetailsIndex)) {
+  failures.push("chart sample image must live inside the report output section after the form/report summary");
+}
+if (page.includes('className={styles.previewPanel}')) {
+  failures.push("chart sample image must not render as a sidebar beside the form");
 }
 
 for (const marker of [
@@ -78,7 +86,7 @@ for (const marker of [
   'loading="lazy"',
   'sizes="(max-width: 760px) calc(100vw - 36px), 360px"',
   'alt="نمونه چارت تولد فارسی هالیوس با نمایش سیاره‌ها، خانه‌ها، رایزینگ و جنبه‌های اصلی"',
-  'نمونه ناشناس‌شده از چارت تولد فارسی هالیوس؛ جایگاه سیاره‌ها، خانه‌ها، محورهای اصلی و جنبه‌های برجسته روی یک چرخ نمایش داده شده‌اند.',
+  'اطلاعات شخصی این نمونه حذف شده؛ اینجا می‌توانی شکل چرخ چارت، خانه‌ها، سیاره‌ها و جنبه‌های اصلی را ببینی.',
 ]) {
   requireMarker("chart sample image", page, marker);
 }

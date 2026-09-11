@@ -55,7 +55,7 @@ for (const marker of [
 for (const marker of [
   ".workspace",
   ".formPanel",
-  ".previewPanel",
+  ".reportSample",
   ".sampleFigure",
   ".sampleImage",
   "/* chart-seo-handoff-20260911 */",

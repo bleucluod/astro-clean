@@ -1,7 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import styles from "./commerce-surfaces.module.css";
+import orderStyles from "./order-surface.module.css";
 
 const wikiLinks = [
   { href: "/wiki/birth-chart-basics", label: "چارت تولد چیست؟" },
@@ -237,93 +239,255 @@ export function ProductCommerceSurface({ accessAndPackages, proof, freeAll = fal
 }
 
 export function OrderCommerceSurface({
-  selectedPackageCode,
-  catalog,
+  selectedPackage,
   requestForm,
   freeAll = false,
 }: {
-  selectedPackageCode: string;
-  catalog: ReactNode;
+  selectedPackage: {
+    code: string;
+    name: string;
+    description: string;
+    priceLabel: string;
+    fullReportCredits: number;
+    relationshipCredits: number;
+    badge: string | null;
+  };
   requestForm: ReactNode;
   freeAll?: boolean;
 }) {
   // HALLEUS_FREE_ALL_ORDER_SURFACE_BATCH1_R1
   if (freeAll) {
     return (
-      <main className={styles.page} data-commerce-surface="order" data-effective-access-mode="FREE_ALL">
-        <section className={styles.hero}>
-          <div className={styles.heroInner}>
-            <Eyebrow>خرید لازم نیست</Eyebrow>
-            <h1>گزارش‌ها در حالت فعلی بدون خرید در دسترس‌اند</h1>
-            <p>در FREE_ALL درخواست خرید تازه ثبت نمی‌شود و اعتبارهای قبلی هم مصرف نمی‌شوند. برای ادامه مستقیم به گزارش یا تحلیل رابطه برو.</p>
-            <div className={styles.actions}>
-              <PrimaryLink href="/chart">ساخت گزارش</PrimaryLink>
-              <SecondaryLink href="/compare">ساخت تحلیل رابطه</SecondaryLink>
-            </div>
+      <main
+        className={orderStyles.orderPage}
+        data-commerce-surface="order"
+        data-effective-access-mode="FREE_ALL"
+      >
+        <section className={orderStyles.freeAllHero}>
+          <span className={orderStyles.kicker}>خرید لازم نیست</span>
+          <h1>گزارش کامل و تحلیل رابطه فعلاً رایگان‌اند</h1>
+          <p>
+            تا وقتی دسترسی رایگان فعال است، نه خرید تازه لازم داری و نه از
+            اعتبارهای قبلی چیزی کم می‌شود. مستقیم برو سراغ گزارش یا تحلیل رابطه.
+          </p>
+          <div className={orderStyles.freeAllActions}>
+            <Link className={orderStyles.primaryAction} href="/chart">
+              ساخت گزارش
+            </Link>
+            <Link className={orderStyles.secondaryAction} href="/compare">
+              ساخت تحلیل رابطه
+            </Link>
           </div>
         </section>
       </main>
     );
   }
+
   return (
-    <main className={styles.page} data-commerce-surface="order" data-halleus-predeploy-commerce="batch3-r2">
-      <section className={styles.hero}>
-        <div className={styles.heroInner}>
-          <Eyebrow>خرید دستی؛ بدون وانمودکردن به پرداخت آنلاین</Eyebrow>
-          <h1>هماهنگی خرید اعتبار هالیوس</h1>
-          <p>
-            بسته را از کاتالوگ فعال انتخاب می‌کنی، هماهنگی پرداخت با @lbleu انجام می‌شود و بعد از تأیید واقعی، اعتبار به حساب اضافه می‌شود. این صفحه checkout یا درگاه پرداخت نیست.
-          </p>
-          <div className={styles.actions}>
-            <a className={styles.primaryButton} href="https://t.me/lbleu" rel="noreferrer" target="_blank">پیام به @lbleu در تلگرام</a>
-            <SecondaryLink href="/pricing">برگشت به قیمت‌ها</SecondaryLink>
+    <main
+      className={orderStyles.orderPage}
+      data-commerce-surface="order"
+      data-halleus-order="checkout-request-v2"
+    >
+      <section className={orderStyles.hero}>
+        <div className={orderStyles.heroGrid}>
+          <div className={orderStyles.heroVisual}>
+            <Image
+              className={orderStyles.heroImage}
+              src="/halleus-order-hero.webp"
+              alt="تصویر نمادین خرید اعتبار در هالیوس"
+              fill
+              priority
+              sizes="(max-width: 900px) calc(100vw - 40px), 1120px"
+            />
+            <div className={orderStyles.heroScrim} aria-hidden="true" />
+
+            <div className={orderStyles.heroCopy}>
+              <span className={orderStyles.kicker}>خرید اعتبار</span>
+              <h1>بسته‌ات آماده است؛ حالا خرید را هماهنگ کن</h1>
+              <p>
+                پرداخت در هالیوس فعلاً دستی است. جزئیات بسته را پایین می‌بینی؛
+                اگر همه‌چیز درست بود، در تلگرام پیام بده. اعتبار فقط بعد از تأیید
+                پرداخت به حسابت اضافه می‌شود.
+              </p>
+              <div
+                className={orderStyles.heroTrust}
+                aria-label="ویژگی‌های مسیر خرید"
+              >
+                <span>پرداخت دستی</span>
+                <span>اعتبار بعد از تأیید</span>
+                <span>بدون اشتراک ماهانه</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="order-package-title">
-        <div className={styles.sectionIntro}>
-          <Eyebrow>بستهٔ انتخابی</Eyebrow>
-          <h2 id="order-package-title">قیمت و اعتبارها از کاتالوگ فعلی هالیوس</h2>
-          {selectedPackageCode ? (
-            <p>انتخاب این درخواست با شناسهٔ <code className={styles.packageCode}>{selectedPackageCode}</code> حفظ شده است. نام، قیمت و اعتبارهای بسته در کارت canonical زیر نمایش داده می‌شود.</p>
-          ) : (
-            <p>اگر هنوز بسته‌ای انتخاب نکرده‌ای، یکی از بسته‌های فعال زیر را ببین و از صفحهٔ قیمت‌گذاری وارد همین مسیر شو.</p>
-          )}
+      <section
+        className={orderStyles.packageSection}
+        aria-labelledby="order-package-title"
+      >
+        <div className={orderStyles.sectionHeading}>
+          <span className={orderStyles.kicker}>بسته‌ای که انتخاب کردی</span>
+          <h2 id="order-package-title">یک‌بار جزئیاتش را چک کن</h2>
+          <p>
+            قیمت و تعداد اعتبارها را ببین. اگر بستهٔ دیگری می‌خواهی، برگرد به
+            صفحهٔ قیمت‌ها.
+          </p>
         </div>
-        <div className={styles.canonicalSurface} data-canonical-commerce-source="product-access-cards">{catalog}</div>
+
+        <article className={orderStyles.packageCard}>
+          <div className={orderStyles.packageIdentity}>
+            {selectedPackage.badge ? (
+              <span className={orderStyles.packageBadge}>
+                {selectedPackage.badge}
+              </span>
+            ) : null}
+            <h2>{selectedPackage.name}</h2>
+            <p>{selectedPackage.description}</p>
+          </div>
+
+          <div className={orderStyles.packagePrice}>
+            <span>قیمت</span>
+            <strong>{selectedPackage.priceLabel}</strong>
+          </div>
+        </article>
+
+        <div className={orderStyles.creditGrid}>
+          <div className={orderStyles.creditCard}>
+            <span>گزارش کامل</span>
+            <strong>
+              {selectedPackage.fullReportCredits > 0
+                ? `${selectedPackage.fullReportCredits.toLocaleString("fa-IR")} اعتبار`
+                : "ندارد"}
+            </strong>
+          </div>
+          <div className={orderStyles.creditCard}>
+            <span>تحلیل رابطه</span>
+            <strong>
+              {selectedPackage.relationshipCredits > 0
+                ? `${selectedPackage.relationshipCredits.toLocaleString("fa-IR")} اعتبار`
+                : "ندارد"}
+            </strong>
+          </div>
+        </div>
+
+        <div className={orderStyles.packageFooter}>
+          <p>
+            هر اعتبار برای بازکردن یک گزارش کامل یا ساخت یک تحلیل رابطه استفاده
+            می‌شود؛ این بسته اشتراک ماهانه نیست.
+          </p>
+          <Link className={orderStyles.textLink} href="/pricing">
+            تغییر بسته
+          </Link>
+        </div>
       </section>
 
-      <section className={styles.splitSection}>
-        <article className={styles.infoCard}>
-          <Eyebrow>بعدش چه می‌شود؟</Eyebrow>
-          <h2>تأیید واقعی، بعد تخصیص اعتبار</h2>
-          <ol className={styles.steps}>
-            <li>با @lbleu دربارهٔ همان بسته هماهنگ می‌کنی.</li>
-            <li>برای دریافت اعتبار، خرید باید به یک حساب هالیوس متصل شود.</li>
-            <li>بعد از تأیید، اعتبار واقعی به حساب اضافه می‌شود.</li>
-            <li>اعتبار گزارش کامل فقط روی گزارشی که خودت باز می‌کنی مصرف می‌شود.</li>
-          </ol>
-        </article>
-        <article className={styles.infoCard}>
-          <Eyebrow>حریم خصوصی</Eyebrow>
-          <h2>اعتبار مساوی انتشار نیست</h2>
-          <p>بازکردن گزارش کامل آن را خودکار عمومی نمی‌کند. تحلیل رابطه هم خصوصی می‌ماند و دادهٔ نفر دوم برای چک‌کردن اعتبار به مسیر عمومی فرستاده نمی‌شود.</p>
-          <Link href="/privacy">حریم خصوصی هالیوس</Link>
-        </article>
+      <section
+        className={orderStyles.completionSection}
+        aria-labelledby="order-completion-title"
+      >
+        <div className={orderStyles.sectionHeading}>
+          <span className={orderStyles.kicker}>مرحلهٔ بعد</span>
+          <h2 id="order-completion-title">برای ادامه، در تلگرام پیام بده</h2>
+          <p>
+            ثبت فرم پایین اختیاری است. اگر می‌خواهی درخواستت داخل هالیوس هم
+            بماند و بعداً راحت‌تر پیگیری شود، فرم را هم پر کن.
+          </p>
+        </div>
+
+        <div className={orderStyles.completionGrid}>
+          <article
+            className={`${orderStyles.completionCard} ${orderStyles.completionCardPrimary}`}
+          >
+            <span>هماهنگی در تلگرام</span>
+            <h3>هماهنگی پرداخت</h3>
+            <p>
+              اسم همین بسته را بفرست تا روش پرداخت را بگیری. بعد از تأیید،
+              اعتبار به حسابت اضافه می‌شود.
+            </p>
+            <a
+              className={orderStyles.primaryAction}
+              href="https://t.me/lbleu"
+              rel="noreferrer"
+              target="_blank"
+            >
+              پیام به @lbleu
+            </a>
+          </article>
+
+          <article className={orderStyles.completionCard}>
+            <span>ثبت در هالیوس</span>
+            <h3>درخواستت را اینجا هم ثبت کن</h3>
+            <p>
+              این فرم فقط برای پیگیری است و جای پرداخت را نمی‌گیرد.
+            </p>
+            <a
+              className={orderStyles.secondaryAction}
+              href="#order-request-form"
+            >
+              رفتن به فرم درخواست
+            </a>
+          </article>
+        </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="order-ledger-title">
-        <div className={styles.sectionIntro}>
-          <Eyebrow>ثبت درخواست داخل هالیوس</Eyebrow>
-          <h2 id="order-ledger-title">اختیاری؛ برای نگه‌داشتن درخواست در مسیر فعلی</h2>
-          <p>اگر لازم است درخواست در ledger فعلی هالیوس ثبت شود، فرم موجود را باز کن. این فرم پرداخت انجام نمی‌دهد و CTA اصلی خرید همچنان گفت‌وگوی تلگرام است.</p>
+      <section
+        className={orderStyles.formSection}
+        aria-labelledby="order-form-title"
+      >
+        <div className={orderStyles.sectionHeading}>
+          <span className={orderStyles.kicker}>فرم درخواست</span>
+          <h2 id="order-form-title">اگر می‌خواهی درخواستت در هالیوس هم ثبت شود</h2>
+          <p>
+            نام و راه ارتباطی‌ات را وارد کن. برای پرداخت همچنان باید از تلگرام
+            هماهنگ کنی.
+          </p>
         </div>
-        <details className={styles.requestDetails}>
-          <summary>بازکردن فرم ثبت درخواست</summary>
-          <div className={styles.requestForm}>{requestForm}</div>
-        </details>
+        {requestForm}
       </section>
+
+      <section
+        className={orderStyles.stepsSection}
+        aria-labelledby="order-steps-title"
+      >
+        <div className={orderStyles.sectionHeading}>
+          <span className={orderStyles.kicker}>بعد از پرداخت</span>
+          <h2 id="order-steps-title">از پرداخت تا استفاده از اعتبار</h2>
+        </div>
+
+        <div className={orderStyles.stepsGrid}>
+          <article className={orderStyles.step}>
+            <span className={orderStyles.stepIndex}>۱</span>
+            <h3>هماهنگی پرداخت</h3>
+            <p>روش پرداخت را در تلگرام می‌گیری و همان بسته را هماهنگ می‌کنی.</p>
+          </article>
+          <article className={orderStyles.step}>
+            <span className={orderStyles.stepIndex}>۲</span>
+            <h3>تأیید خرید</h3>
+            <p>بعد از تأیید پرداخت، اعتبار بسته به حساب هالیوس اضافه می‌شود.</p>
+          </article>
+          <article className={orderStyles.step}>
+            <span className={orderStyles.stepIndex}>۳</span>
+            <h3>استفاده از اعتبار</h3>
+            <p>
+              {selectedPackage.relationshipCredits > 0
+                ? "بعدش می‌توانی اعتبارها را برای گزارش کامل یا تحلیل رابطه استفاده کنی."
+                : "بعدش می‌توانی اعتبارها را برای بازکردن گزارش‌های کامل استفاده کنی."}
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <aside className={orderStyles.privacyStrip}>
+        <p>
+          خرید یا استفاده از اعتبار، گزارشت را خودکار عمومی نمی‌کند. تحلیل
+          رابطه هم همیشه خصوصی می‌ماند.
+        </p>
+        <Link className={orderStyles.textLink} href="/privacy">
+          جزئیات حریم خصوصی
+        </Link>
+      </aside>
     </main>
   );
 }

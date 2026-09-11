@@ -6,7 +6,6 @@ const requiredFiles = [
   "lib/language/finglish-to-persian.ts",
   "lib/language/persian-product-copy.ts",
   "lib/language/language-readiness.ts",
-  "app/language/page.tsx",
   "docs/PERSIAN_LANGUAGE_SYSTEM.md",
   "docs/FINGLISH_COPY_WORKFLOW.md",
 ];
@@ -17,7 +16,6 @@ const requiredContent = [
   ["lib/language/finglish-to-persian.ts", "convertControlledFinglishToPersian"],
   ["lib/language/persian-product-copy.ts", "PERSIAN_PRODUCT_COPY"],
   ["lib/language/language-readiness.ts", "getLanguageReadinessReport"],
-  ["app/language/page.tsx", "زبان محصول Halleus"],
   ["docs/PERSIAN_LANGUAGE_SYSTEM.md", "centralized language layer"],
   ["docs/FINGLISH_COPY_WORKFLOW.md", "Finglish is a drafting format"],
 ];
