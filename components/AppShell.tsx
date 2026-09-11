@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 
 import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { SiteHeader } from "@/components/SiteHeader";
-import { getLatestPublicWikiFooterArticles } from "@/lib/wiki/wiki-repository";
-import type { PublicWikiFooterArticle } from "@/lib/wiki/wiki-repository";
+
+
 
 import styles from "./app-shell.module.css";
 import humanStyles from "./human-first-shell.module.css";
@@ -14,7 +14,7 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-type FooterWikiArticle = Pick<PublicWikiFooterArticle, "slug" | "title">;
+
 
 const footerLinks = [
   { href: "/chart", label: "ساخت چارت تولد" },
@@ -24,70 +24,8 @@ const footerLinks = [
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 
-const FOOTER_WIKI_TIMEOUT_MS = 1_000;
-const FOOTER_WIKI_FALLBACK_ARTICLES = [
-  {
-    slug: "what-is-astrology",
-    title: "آسترولوژی چیست و چه کاربردهایی دارد؟",
-  },
-  {
-    slug: "birth-chart-basics",
-    title: "چارت تولد چیست و چطور خوانده می‌شود؟",
-  },
-  {
-    slug: "how-to-read-birth-chart",
-    title: "چطور چارت تولد خودم را بخوانم؟",
-  },
-  {
-    slug: "planets-in-birth-chart",
-    title: "سیارات در چارت تولد یعنی چه؟",
-  },
-] as const satisfies readonly FooterWikiArticle[];
-let footerWikiDegradedWarningPrinted = false;
+export function AppShell({ children }: AppShellProps) {
 
-function warnAboutFooterWikiDegradation(reason: "read-failed" | "read-timed-out") {
-  if (footerWikiDegradedWarningPrinted) {
-    return;
-  }
-
-  footerWikiDegradedWarningPrinted = true;
-  console.warn(
-    JSON.stringify({
-      marker: "HALLEUS_WIKI_FOOTER_DEGRADED",
-      reason,
-    }),
-  );
-}
-
-async function loadLatestFooterWikiArticles(): Promise<readonly FooterWikiArticle[]> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  const footerRead = getLatestPublicWikiFooterArticles()
-    .then((articles) => {
-      footerWikiDegradedWarningPrinted = false;
-      return articles;
-    })
-    .catch(() => {
-      warnAboutFooterWikiDegradation("read-failed");
-      return FOOTER_WIKI_FALLBACK_ARTICLES;
-    });
-  const timeoutFallback = new Promise<readonly FooterWikiArticle[]>((resolve) => {
-    timeout = setTimeout(() => {
-      warnAboutFooterWikiDegradation("read-timed-out");
-      resolve(FOOTER_WIKI_FALLBACK_ARTICLES);
-    }, FOOTER_WIKI_TIMEOUT_MS);
-  });
-
-  try {
-    return await Promise.race([footerRead, timeoutFallback]);
-  } finally {
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-  }
-}
-
-export async function AppShell({ children }: AppShellProps) {
-  const latestWikiArticles = await loadLatestFooterWikiArticles();
 
   return (
     <div className={`${styles.shell} ${humanStyles.humanShell}`}>
@@ -187,27 +125,26 @@ export async function AppShell({ children }: AppShellProps) {
           </div>
 
           <div
-            className={styles.footerWikiBlock}
-            aria-label="تازه‌ترین مقاله‌های ویکی"
+            className={styles.footerNavBlock}
+            aria-label="نماد اعتماد الکترونیکی"
           >
-            <span className={styles.footerNavTitle}>تازه‌ترین‌های ویکی</span>
-            {latestWikiArticles.length > 0 ? (
-              <div className={styles.footerWikiLinks}>
-                {latestWikiArticles.map((article) => (
-                  <IntentPrefetchLink
-                    className={styles.footerWikiLink}
-                    href={`/wiki/${article.slug}`}
-                    key={article.slug}
-                  >
-                    {article.title}
-                  </IntentPrefetchLink>
-                ))}
-              </div>
-            ) : (
-              <IntentPrefetchLink className={styles.footerWikiEmpty} href="/wiki">
-                رفتن به ویکی هالیوس
-              </IntentPrefetchLink>
-            )}
+            <span className={styles.footerNavTitle}>نماد اعتماد الکترونیکی</span>
+            <a
+              referrerPolicy="origin"
+              target="_blank"
+              href="https://trustseal.enamad.ir/?id=7712150&Code=REotxbaOeOKqzFNRhbT9IMjWC8IqBTAA"
+              aria-label="نماد اعتماد الکترونیکی هالیوس"
+              title="نماد اعتماد الکترونیکی هالیوس"
+              style={{ width: "fit-content" }}
+            >
+              <img
+                referrerPolicy="origin"
+                src="https://trustseal.enamad.ir/logo.aspx?id=7712150&Code=REotxbaOeOKqzFNRhbT9IMjWC8IqBTAA"
+                alt=""
+                style={{ cursor: "pointer", display: "block" }}
+                {...{ code: "REotxbaOeOKqzFNRhbT9IMjWC8IqBTAA" }}
+              />
+            </a>
           </div>
         </div>
 

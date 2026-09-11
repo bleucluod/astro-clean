@@ -117,6 +117,29 @@ for (const marker of [
   }
 }
 
+for (const marker of [
+  'href="https://trustseal.enamad.ir/?id=7712150&Code=REotxbaOeOKqzFNRhbT9IMjWC8IqBTAA"',
+  'src="https://trustseal.enamad.ir/logo.aspx?id=7712150&Code=REotxbaOeOKqzFNRhbT9IMjWC8IqBTAA"',
+  '{...{ code: "REotxbaOeOKqzFNRhbT9IMjWC8IqBTAA" }}',
+]) {
+  if (!appShell.includes(marker)) {
+    failures.push(`Footer missing eNamad marker: ${marker}`);
+  }
+}
+
+for (const staleFooterWikiMarker of [
+  "getLatestPublicWikiFooterArticles",
+  "PublicWikiFooterArticle",
+  "FooterWikiArticle",
+  "FOOTER_WIKI_TIMEOUT_MS",
+  "latestWikiArticles",
+  "HALLEUS_WIKI_FOOTER_DEGRADED",
+  "footerWikiBlock",
+]) {
+  if (appShell.includes(staleFooterWikiMarker)) {
+    failures.push(`Footer still contains removed latest-Wiki marker: ${staleFooterWikiMarker}`);
+  }
+}
 for (const forbiddenMarker of ["AnalyticsPreferencesLink"]) {
   if (appShell.includes(forbiddenMarker)) {
     failures.push(`Minimal footer still exposes removed control/title: ${forbiddenMarker}`);

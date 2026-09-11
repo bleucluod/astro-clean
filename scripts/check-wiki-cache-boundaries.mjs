@@ -108,9 +108,10 @@ for (const marker of [
 }
 assert.ok(!imagePipeline.includes("revalidateWikiPublicPaths"), "Image pipeline still imports the removed global Wiki invalidation API.");
 
-assert.ok(appShell.includes("getLatestPublicWikiFooterArticles"), "Footer does not use its dedicated four-row Wiki reader.");
+assert.ok(!appShell.includes("getLatestPublicWikiFooterArticles"), "Footer must not query latest Wiki articles after eNamad replaces the third column.");
 assert.ok(!appShell.includes("getPublicWikiIndex"), "Footer must not depend on the Wiki index.");
-assert.ok(appShell.includes("Promise.race"), "Footer one-second timeout guard must remain.");
+assert.ok(!appShell.includes("HALLEUS_WIKI_FOOTER_DEGRADED"), "Removed footer Wiki reader must not leave its degradation marker in AppShell.");
+assert.ok(!appShell.includes("Promise.race"), "Removed footer Wiki reader must not leave its timeout race in AppShell.");
 
 for (const marker of [
   'REPORT_ACCESS_POLICY_PUBLIC_CACHE_TAG = "halleus-report-access-policy-v1"',
