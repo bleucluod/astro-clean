@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, statSync } from "node:fs";
 
 const failures = [];
 
@@ -11,113 +12,137 @@ function requireMarker(label, source, marker) {
 }
 
 function forbidMarker(label, source, marker) {
-  if (source.includes(marker)) failures.push(`${label} exposes internal marker: ${marker}`);
+  if (source.includes(marker)) failures.push(`${label} contains forbidden marker: ${marker}`);
+}
+
+function count(source, marker) {
+  return source.split(marker).length - 1;
 }
 
 const page = read("app/chart/page.tsx");
-const layout = read("app/chart/layout.tsx");
 const form = read("components/ChartForm.tsx");
-const chartCss = read("app/chart/chart-shell.module.css");
-const authPanel = read("components/SupabaseAuthPanel.tsx");
-const navigation = read("lib/config/navigation.ts");
-const wikiContent = read("lib/wiki/wiki-content.ts");
 const packageJson = JSON.parse(read("package.json"));
+const checkProject = packageJson.scripts?.["check:project"] ?? "";
+const assetPath = "public/halleus-chart-wheel-sample-polished-centered.webp";
 
 for (const marker of [
-  'title: "ساخت چارت تولد رایگان | گزارش تولد فارسی هالیوس"',
-  "با تاریخ، ساعت و شهر تولد",
-  "محدودیت‌های رایزینگ و خانه‌ها",
+  'title: "چارت تولد رایگان فارسی با تفسیر | هالیوس"',
+  '"چارت تولد رایگان فارسی خودت را با تاریخ شمسی، ساعت و شهر تولد بساز و رایزینگ، نشان ماه، خانه‌ها، جنبه‌ها و تفسیر شخصی را آنلاین ببین."',
   'canonical: "/chart"',
+  "چارت تولد رایگان فارسی",
 ]) {
-  requireMarker("chart metadata", page, marker);
+  requireMarker("chart SEO metadata/content", page, marker);
+}
+
+if (count(page, "<h1") !== 1) {
+  failures.push(`chart page must contain exactly one H1; found ${count(page, "<h1")}`);
+}
+requireMarker("static chart route", page, 'export const dynamic = "force-static";');
+requireMarker("static chart route", page, "export const revalidate = false;");
+for (const marker of [
+  'force-dynamic',
+  'getPublicWikiIndex',
+  'getPublicWikiCatalog',
+  'findWikiArticle',
+  'wikiLink(',
+  'linksForSection(',
+  'getFinalEditorialPage',
+]) {
+  forbidMarker("static chart shell", page, marker);
+}
+
+if (/<main(?:\s|>)/i.test(page)) {
+  failures.push("app/chart/page.tsx must not render its own <main> landmark");
+}
+
+const heroIndex = page.indexOf('className={styles.hero}');
+const workspaceIndex = page.indexOf('className={styles.workspace}');
+const reportStripIndex = page.indexOf('className={styles.reportStrip}');
+if (!(heroIndex >= 0 && workspaceIndex > heroIndex && reportStripIndex > workspaceIndex)) {
+  failures.push("chart direct content order must begin Hero -> Workspace/Form -> report summary strip");
 }
 
 for (const marker of [
-  'import Link from "next/link"',
-  'data-chart-seo-landing="transactional-birth-chart"',
-  'data-chart-seo-education="wiki-guides"',
-  "<h1 className={styles.title}>ساخت چارت تولد و گزارش تولد فارسی</h1>",
+  'id="chart-report-details"',
+  'id="chart-birth-data-form"',
+  'aria-labelledby="birth-data-heading"',
 ]) {
-  requireMarker("chart landing", layout, marker);
+  const source = marker === 'id="chart-birth-data-form"' || marker.startsWith("aria-labelledby") ? form : page;
+  requireMarker("chart accessibility/anchors", source, marker);
 }
 
-const educationCardCount =
-  layout.match(/<article className=\{styles\.educationCard\}>/g)?.length ?? 0;
-if (educationCardCount !== 3) {
-  failures.push(`chart landing must render three education cards; found ${educationCardCount}`);
+for (const marker of [
+  'src="/halleus-chart-wheel-sample-polished-centered.webp"',
+  'width={1254}',
+  'height={1254}',
+  'loading="lazy"',
+  'sizes="(max-width: 760px) calc(100vw - 36px), 360px"',
+  'alt="نمونه چارت تولد فارسی هالیوس با نمایش سیاره‌ها، خانه‌ها، رایزینگ و جنبه‌های اصلی"',
+  'نمونه ناشناس‌شده از چارت تولد فارسی هالیوس؛ جایگاه سیاره‌ها، خانه‌ها، محورهای اصلی و جنبه‌های برجسته روی یک چرخ نمایش داده شده‌اند.',
+]) {
+  requireMarker("chart sample image", page, marker);
 }
+forbidMarker("chart page image", page, "Halleus-Chart-Wheel-Sample-Polished-Centered.png");
 
-const linkedSlugs = [
-  "birth-chart-basics",
-  "why-birth-time-matters",
-  "why-birth-city-matters",
-  "birth-chart-without-birth-time",
-  "what-is-rising-sign",
-  "what-is-moon-sign",
-  "astrology-houses",
-  "major-aspects",
-];
-
-const availableSlugs = new Set(
-  [...wikiContent.matchAll(/slug:\s*"([a-z0-9-]+)"/g)].map((match) => match[1]),
-);
-
-for (const slug of linkedSlugs) {
-  requireMarker("chart Wiki links", layout, `href="/wiki/${slug}"`);
-  if (!availableSlugs.has(slug)) {
-    failures.push(`chart links to missing Wiki slug: ${slug}`);
+if (!existsSync(assetPath)) {
+  failures.push(`missing chart sample asset: ${assetPath}`);
+} else {
+  const asset = readFileSync(assetPath);
+  if (statSync(assetPath).size > 100 * 1024) {
+    failures.push(`chart sample WebP exceeds 100 KiB: ${statSync(assetPath).size} bytes`);
+  }
+  if (
+    asset.length < 12 ||
+    asset.subarray(0, 4).toString("ascii") !== "RIFF" ||
+    asset.subarray(8, 12).toString("ascii") !== "WEBP"
+  ) {
+    failures.push("chart sample asset is not a RIFF/WEBP file");
+  }
+  const assetHash = createHash("sha256").update(asset).digest("hex");
+  if (assetHash !== "09a915623dcfab54409eb0208c86dca0f15b0621c3920532236c5f220a270877") {
+    failures.push(`chart sample WebP hash changed: ${assetHash}`);
   }
 }
 
-requireMarker("shared navigation", navigation, 'href: "/wiki"');
 for (const marker of [
-  'id="chart-birth-data-form"',
-  'aria-label="انتخاب تاریخ تولد میلادی"',
-  'className="birth-time-picker-grid"',
-  "TIME_HOUR_OPTIONS",
-  "selectBirthCity(city)",
-  "selectCurrentResidenceCity(city)",
-  "getIranCityDisplayName(city)",
-  "showAccountPanel",
-  "گزارشم را در حساب هالیوس نگه دار",
-  "<SupabaseAuthPanel compact />",
-  'form="chart-birth-data-form"',
+  '"@type": "WebPage"',
+  '"@type": "ImageObject"',
+  '"@type": "WebApplication"',
+  'name: "چارت تولد هالیوس"',
+  'applicationCategory: "LifestyleApplication"',
+  'operatingSystem: "Web"',
+  'isAccessibleForFree: true',
 ]) {
-  requireMarker("streamlined chart form", form, marker);
+  requireMarker("chart structured data", page, marker);
 }
-requireMarker("chart submit color", chartCss, "#7658e8");
-requireMarker("button-like Wiki links", chartCss, ".educationLinks a:hover");
-requireMarker(
-  "direct compact auth",
-  authPanel,
-  '<div className="chart-account-disclosure">',
-);
-if (form.includes('className="chart-reference-visual"')) {
-  failures.push("ChartForm must not render the redundant lower decorative panel");
+if (count(page, '"@type":') !== 3) {
+  failures.push(`chart structured-data graph must contain exactly three @type nodes; found ${count(page, '"@type":')}`);
+}
+forbidMarker("chart structured data", page, "FAQPage");
+
+const allowedLinks = [
+  ["حریم خصوصی و نگهداری اطلاعات تولد", "/privacy"],
+  ["راهنمای چارت تولد بدون ساعت تولد", "/wiki/birth-chart-without-birth-time"],
+  ["چگونه ساعت تولد خود را پیدا کنیم؟", "/wiki/find-exact-birth-time"],
+];
+
+if (count(page, 'data-chart-content-link="allowed"') !== 3) {
+  failures.push(`chart page must expose exactly three allowed content-link markers; found ${count(page, 'data-chart-content-link="allowed"')}`);
+}
+for (const [label, href] of allowedLinks) {
+  requireMarker("allowed chart content link", page, label);
+  requireMarker("allowed chart content link", page, `href="${href}"`);
+  if (count(page, `href="${href}"`) !== 1) {
+    failures.push(`allowed chart content destination must appear exactly once: ${href}`);
+  }
 }
 
-for (const removedFormMarker of [
-  "اطلاعات تولد",
-  "ورودی‌های اصلی",
-  "یادآوری:",
-  "نیک‌نیم",
-  'type="date"',
-  'type="time"',
-  "birth-city-hint",
-  "current-residence-city-hint",
-  'href="/reports"',
-]) {
-  forbidMarker("streamlined chart form", form, removedFormMarker);
+const firstContentLink = page.indexOf('data-chart-content-link="allowed"');
+if (firstContentLink >= 0 && firstContentLink < workspaceIndex) {
+  failures.push("content links must not appear before the form workspace");
 }
-
-for (const removedChip of [
-  "<li>تاریخ شمسی یا میلادی</li>",
-  "<li>ساعت و شهر تولد</li>",
-  "<li>چارت واقعی</li>",
-  "<li>گزارش فارسی</li>",
-  "<li>خوانش نمادین، نه حکم قطعی</li>",
-]) {
-  forbidMarker("chart landing chips", layout, removedChip);
+for (const href of ["/product", "/reports", "/sky", "/wiki"]) {
+  forbidMarker("chart content links", page, `href="${href}"`);
 }
 
 for (const internalMarker of [
@@ -126,10 +151,9 @@ for (const internalMarker of [
   "BETA_READINESS_SMOKE",
   "Local smoke",
   "Deploy smoke",
+  "placeholder copy",
 ]) {
   forbidMarker("public chart page", page, internalMarker);
-  forbidMarker("public chart layout", layout, internalMarker);
-  forbidMarker("public ChartForm", form, internalMarker);
 }
 
 if (
@@ -139,6 +163,19 @@ if (
   failures.push("package.json is missing check:chart-seo-landing");
 }
 
+const productCheck = "pnpm run check:chart-page-product-polish";
+const seoCheck = "pnpm run check:chart-seo-landing";
+const productIndex = checkProject.indexOf(productCheck);
+const seoIndex = checkProject.indexOf(seoCheck);
+if (productIndex < 0 || seoIndex < 0 || seoIndex <= productIndex) {
+  failures.push("check:project must run check:chart-seo-landing after check:chart-page-product-polish");
+} else {
+  const between = checkProject.slice(productIndex + productCheck.length, seoIndex);
+  if (between.trim() !== "&&") {
+    failures.push("check:chart-seo-landing must run immediately after check:chart-page-product-polish");
+  }
+}
+
 if (failures.length > 0) {
   console.error("Chart SEO landing guard failed:");
   for (const failure of failures) console.error(`- ${failure}`);
@@ -146,9 +183,7 @@ if (failures.length > 0) {
 }
 
 console.log("Chart SEO landing guard passed.");
-console.log("- /chart has transactional Persian metadata and one server-rendered H1");
-console.log("- three lightweight education cards link only to existing Wiki slugs");
-console.log("- public chart UI contains no beta, smoke, or test copy");
-console.log("- redundant chips and the lower decorative panel stay out of the form path");
-console.log("- select-based date/time, aligned city fields, optional auth, and a vivid submit CTA stay present");
-console.log("- form logic, storage, auth, privacy, and engine paths remain outside this guard");
+console.log("- static /chart metadata, one H1, and page-local no-Wiki/no-DB shell markers are intact");
+console.log("- Hero is followed immediately by the form workspace; report/content sections follow the form");
+console.log("- sample WebP, alt/caption, three-node schema, and exactly three fixed content links are present");
+console.log("- ChartForm anchor/aria contract and check:project ordering are intact");

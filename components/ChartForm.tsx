@@ -993,6 +993,7 @@ export function ChartForm({
           <form
             className="chart-reference-form"
             id="chart-birth-data-form"
+            aria-labelledby="birth-data-heading"
             onSubmit={handleSubmit}
             ref={formRef}
           >
