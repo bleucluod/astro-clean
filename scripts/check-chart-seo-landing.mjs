@@ -38,7 +38,15 @@ if (count(page, "<h1") !== 1) {
   failures.push(`chart page must contain exactly one H1; found ${count(page, "<h1")}`);
 }
 requireMarker("static chart route", page, 'export const dynamic = "force-static";');
-requireMarker("static chart route", page, "export const revalidate = false;");
+requireMarker("static chart route", page, "export const revalidate = 300;");
+for (const phrase of [
+  "محاسبه چارت تولد رایگان",
+  "دریافت چارت تولد رایگان",
+]) {
+  if (count(page, phrase) !== 1) {
+    failures.push(`chart visible exact-match must appear exactly once: ${phrase}`);
+  }
+}
 for (const marker of [
   'force-dynamic',
   'getPublicWikiIndex',

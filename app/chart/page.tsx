@@ -8,7 +8,7 @@ import { buildPublicPageMetadata } from "@/lib/config/seo";
 import styles from "./chart-shell.module.css";
 
 export const dynamic = "force-static";
-export const revalidate = false;
+export const revalidate = 300;
 
 const chartDescription =
   "چارت تولد رایگان فارسی خودت را با تاریخ شمسی، ساعت و شهر تولد بساز و رایزینگ، نشان ماه، خانه‌ها، جنبه‌ها و تفسیر شخصی را آنلاین ببین.";
@@ -287,6 +287,9 @@ export default function ChartPage() {
         <div className={styles.supportStack}>
           <article className={styles.supportSection}>
             <div className={styles.supportSectionCopy}>
+              <p className={styles.detailParagraph}>
+                برای محاسبه چارت تولد رایگان، تاریخ، ساعت و شهر تولدت را وارد کن. بعد از ثبت همین اطلاعات، برای دریافت چارت تولد رایگان به مرحلهٔ دیگری نیاز نداری و چرخ چارت همراه با تفسیر فارسی بخش‌های اصلی نمایش داده می‌شود.
+              </p>
               <p className={styles.detailParagraph}>
                 هالیوس تاریخ، ساعت و شهر تولد را به یک لحظه و مکان مشخص تبدیل می‌کند. بعد جای سیاره‌ها، محورهای اصلی، خانه‌ها و زاویه‌های مهم محاسبه می‌شوند و روی چرخ چارت قرار می‌گیرند. از همین اطلاعات برای نوشتن تفسیر فارسی استفاده می‌شود.
               </p>

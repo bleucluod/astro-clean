@@ -17,7 +17,7 @@ function assertNotIncludes(haystack, needle, message) {
 }
 
 const route = read("app/api/sky-pulse/today/route.ts");
-const component = read("components/SkyPulseDateCard.tsx");
+const component = read("components/HomepageLiveSky.tsx");
 const page = read("app/page.tsx");
 const transitSource = read("src/lib/chart/sky-only-transit-probe.ts");
 const interpretation = read("lib/sky-pulse/sky-pulse-persian-interpretation.ts");
@@ -131,28 +131,61 @@ assertNotIncludes(interpretation, "نحس", "Persian copy must avoid scary/fatal
 assertNotIncludes(interpretation, "شوم", "Persian copy must avoid scary/fatalistic wording.");
 assertNotIncludes(interpretation, "سرنوشت", "Persian copy must avoid deterministic fate wording.");
 
-// Homepage UI hardening: visible public scope, real interpretation, no fake/no login/premium drift.
+// Homepage live-sky UI hardening: source-backed state, no fake daily claim, no account/payment drift.
 assertIncludes(
   component,
-  "data?.transit?.interpretation",
-  "Homepage card must keep using the existing transit.interpretation API shape.",
+  "resolveHomepageSkyState",
+  "Homepage live-sky card must resolve the bounded public sky state.",
 );
-assertIncludes(component, "interpretation.summary", "Homepage must expose the real Persian summary.");
-assertIncludes(component, "interpretation.skyMood", "Homepage must expose حال و هوای آسمان امروز.");
-assertIncludes(component, "interpretation.technicalTrustNote", "Homepage must keep technical trust visible.");
-assertIncludes(component, "interpretation.publicScopeNote", "Homepage must keep public scope visible.");
-assertIncludes(component, "رایگان و بدون لاگین", "Homepage must visibly state free/no-login public Sky Pulse.");
-assertIncludes(component, "تهران / ایران", "Homepage must visibly state the current Tehran/Iran scope.");
 assertIncludes(
   component,
-  "به‌جای ساختن ادعای مصنوعی",
-  "Homepage must show no-fake-copy fallback when no close aspect exists.",
+  "snapshot.planetaryStates",
+  "Homepage live-sky card must render calculated planetary state.",
+);
+assertIncludes(
+  component,
+  "snapshot.moonPhase",
+  "Homepage live-sky card must render calculated moon phase data.",
+);
+assertIncludes(
+  component,
+  "snapshot.timeline",
+  "Homepage live-sky card must render source-backed timeline events.",
+);
+assertIncludes(
+  component,
+  'data-sky-state={state.status}',
+  "Homepage live-sky card must expose its bounded delivery state.",
+);
+assertIncludes(
+  component,
+  "دادهٔ امروز آماده است",
+  "Homepage live-sky card must distinguish current data from stale/unavailable data.",
+);
+assertIncludes(
+  component,
+  "هالیوس برای پرکردن این بخش دادهٔ ساختگی یا دادهٔ روز",
+  "Homepage live-sky fallback must refuse fabricated replacement data.",
+);
+assertIncludes(
+  component,
+  "این داده با برچسب امروز نمایش داده نمی‌شود",
+  "Homepage stale state must not masquerade as current-day data.",
+);
+assertIncludes(
+  page,
+  'import { HomepageLiveSky } from "@/components/HomepageLiveSky";',
+  "Homepage must render through the current server-fed live-sky component.",
+);
+assertIncludes(
+  page,
+  "deliverSkyPublicSnapshot",
+  "Homepage must keep its source-backed public sky delivery.",
 );
 assertIncludes(page, "آسمان امروز", "Homepage metadata/body must keep آسمان امروز wording.");
-assertIncludes(page, "ترنزیت روزانه تهران", "Homepage must keep public daily transit wording.");
-assertNotIncludes(component, "birthTime", "v0.1.251 must not add birth-time/personal transit UI.");
-assertNotIncludes(component, "payment", "v0.1.251 must not add payment/premium UI.");
-assertNotIncludes(component, "account", "v0.1.251 must not make Sky Pulse account-gated.");
+assertNotIncludes(component, "birthTime", "Homepage public sky UI must not add birth-time/personal transit inputs.");
+assertNotIncludes(component, "payment", "Homepage public sky UI must not add payment/premium coupling.");
+assertNotIncludes(component, "account", "Homepage public sky UI must not become account-gated.");
 
 // Guard and roadmap sync.
 assertIncludes(
@@ -165,17 +198,25 @@ assertIncludes(
   "check:public-sky-pulse-qa-hardening",
   "Engine check chain must include the public Sky Pulse QA hardening guard.",
 );
-assertIncludes(context, "v0.1.251 Public Sky Pulse QA hardening", "Project context must record v0.1.251.");
-assertIncludes(ideaGarden, "v0.1.251 Public Sky Pulse QA hardening", "Idea Garden must record v0.1.251.");
 assertIncludes(
   context,
-  "User-visible, hardened public Sky Pulse",
-  "Project context must record the hardened stage status after v0.1.251.",
+  "Sky Pulse only when its transit source is verified and its claims remain bounded.",
+  "Project context must keep the bounded verified-source Sky Pulse direction.",
+);
+assertIncludes(
+  context,
+  "Sky Pulse must not expand beyond verified transit/calculation sources.",
+  "Project context must keep the verified-source expansion boundary.",
 );
 assertIncludes(
   ideaGarden,
-  "User-visible, hardened public Sky Pulse",
-  "Idea Garden must record the hardened stage status after v0.1.251.",
+  "Sky Pulse or personal timing may expand only with a verified calculation/source layer.",
+  "Idea Garden must keep the verified calculation/source requirement.",
+);
+assertIncludes(
+  ideaGarden,
+  "retain only source-backed behavior",
+  "Idea Garden must keep Sky Pulse source-backed behavior bounded.",
 );
 
 console.log("Public Sky Pulse QA hardening guard passed.");

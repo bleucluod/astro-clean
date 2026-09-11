@@ -99,7 +99,7 @@ export function FinalEditorialPage({
     (!includeSections.length || includeSections.includes(section.id))
   );
   return (
-    <main className={styles.page} data-final-editorial-page={pageKey}>
+    <div className={styles.page} data-final-editorial-page={pageKey}>
       {sections.map((section) => (
         <FinalEditorialSectionView
           key={section.id}
@@ -109,6 +109,6 @@ export function FinalEditorialPage({
           slotOnly={slotOnlySections.includes(section.id)}
         />
       ))}
-    </main>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 const appShell = readFileSync("components/AppShell.tsx", "utf8");
+const finalEditorialPage = readFileSync("components/FinalEditorialPage.tsx", "utf8");
 const siteHeader = readFileSync("components/SiteHeader.tsx", "utf8");
 const navigation = readFileSync("lib/config/navigation.ts", "utf8");
 const globals = readFileSync("app/globals.css", "utf8");
@@ -11,6 +12,22 @@ const comparePage = readFileSync("app/compare/page.tsx", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 const failures = [];
+
+const appShellMainMarker = '<main className={styles.main} id="main-content">';
+if (appShell.split(appShellMainMarker).length - 1 !== 1) {
+  failures.push("AppShell must contain exactly one <main id=main-content> ownership marker");
+}
+
+for (const marker of ["<main", "</main>"]) {
+  if (finalEditorialPage.includes(marker)) {
+    failures.push(`FinalEditorialPage must not render a main landmark: ${marker}`);
+  }
+}
+
+const finalEditorialRootMarker = '<div className={styles.page} data-final-editorial-page={pageKey}>';
+if (finalEditorialPage.split(finalEditorialRootMarker).length - 1 !== 1) {
+  failures.push("FinalEditorialPage must use the approved div root exactly once");
+}
 
 const obsoleteAppShellMarkers = [
   "مسیر سریع فروش",
