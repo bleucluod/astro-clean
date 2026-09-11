@@ -537,7 +537,7 @@ function checkIntegrationSources() {
   forbidText("Homepage", homepage, '"use client"');
   forbidText("Homepage", homepage, "'use client'");
   requireText("Homepage", homepage, "<h1");
-  requireText("Homepage", homepage, "getPublicWikiCatalog");
+  requireText("Homepage", homepage, "getPublicWikiIndex");
   requireText("Homepage", homepage, "sortPublicWikiArticlesNewestFirst");
   requireText("Homepage", homepage, '"/sky"');
   requireText("Homepage Live Sky", homepageLiveSky, 'href="/sky"');
@@ -548,9 +548,9 @@ function checkIntegrationSources() {
   forbidText("Homepage", homepage, 'href: "#sky-pulse"');
 
   requireText("App shell", appShell, "export async function AppShell");
-  requireText("App shell", appShell, "getPublicWikiCatalog");
-  requireText("App shell", appShell, "sortPublicWikiArticlesNewestFirst");
-  requireText("App shell", appShell, ".slice(0, 4)");
+  requireText("App shell", appShell, "getLatestPublicWikiFooterArticles");
+  forbidText("App shell", appShell, "getPublicWikiIndex");
+  forbidText("App shell", appShell, "sortPublicWikiArticlesNewestFirst");
   requireText("App shell", appShell, "FOOTER_WIKI_FALLBACK_ARTICLES");
   requireText("App shell", appShell, 'slug: "what-is-astrology"');
   requireText("App shell", appShell, 'slug: "birth-chart-basics"');
@@ -587,11 +587,12 @@ function checkIntegrationSources() {
   requireText("Chart discovery styles", chartStyles, ".discoveryPrimary");
   requireText("Chart discovery styles", chartStyles, ".contextLinks");
 
-  requireText(
-    "Wiki publication revalidation",
-    wikiRevalidation,
-    'revalidatePath("/", "layout")',
-  );
+  requireText("Wiki publication revalidation", wikiRevalidation, "revalidateWikiPublicChange");
+  requireText("Wiki publication revalidation", wikiRevalidation, "WIKI_PUBLIC_INDEX_CACHE_TAG");
+  requireText("Wiki publication revalidation", wikiRevalidation, "wikiPublicArticleCacheTag(slug)");
+  forbidText("Wiki publication revalidation", wikiRevalidation, 'revalidatePath("/", "layout")');
+  forbidText("Wiki publication revalidation", wikiRevalidation, 'revalidatePath("/wiki/[slug]", "page")');
+  forbidText("Wiki publication revalidation", wikiRevalidation, 'revalidatePath("/wiki/category/[categoryId]", "page")');
 
   forbidText("Wiki index", wikiIndex, '"use client"');
   forbidText("Wiki index", wikiIndex, "'use client'");
@@ -637,7 +638,7 @@ function checkIntegrationSources() {
     "`${WIKI_BASE_URL}/wiki/category/${category.id}`",
   );
 
-  requireText("Wiki repository", repository, "PublicWikiArticle = DatedWikiArticle");
+  requireText("Wiki repository", repository, "getPublicWikiArticleBySlug");
   requireText("Wiki repository", repository, "listPublicWikiSitemapCategories");
   requireText("Wiki repository", repository, "buildPublicWikiCategoryViews");
   requireText("Wiki repository", repository, "buildPublicWikiRelatedArticles");

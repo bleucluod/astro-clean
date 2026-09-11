@@ -14,7 +14,10 @@ import {
   publishAdminWikiDrafts,
   softDeleteAdminWikiArticles,
 } from "@/lib/wiki/wiki-cms-service";
-import { revalidateWikiPublicPaths } from "@/lib/wiki/wiki-revalidation";
+import {
+  readWikiPublicRevalidationStates,
+  revalidateWikiPublicChange,
+} from "@/lib/wiki/wiki-revalidation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +44,25 @@ function readArticleIds(value: unknown) {
   return articleIds;
 }
 
+async function readStates(articleIds: readonly string[]) {
+  return readWikiPublicRevalidationStates(articleIds);
+}
+
+function revalidateStates(
+  before: Awaited<ReturnType<typeof readStates>>,
+  after: Awaited<ReturnType<typeof readStates>>,
+  extrasByArticleId: Map<string, readonly string[]> = new Map(),
+) {
+  for (let index = 0; index < before.length; index += 1) {
+    const articleId = before[index]?.articleId ?? after[index]?.articleId ?? "";
+    revalidateWikiPublicChange({
+      before: before[index],
+      after: after[index],
+      extraArticleSlugs: extrasByArticleId.get(articleId) ?? [],
+    });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     assertAdminMutationRequest(request);
@@ -62,6 +84,8 @@ export async function POST(request: Request) {
 
     const articleIds = readArticleIds(body.articleIds);
     const reason = readRequiredString(body.reason, "reason", 1000);
+    const before = await readStates(articleIds);
+
     if (action === "permanent_delete") {
       const confirmation = readRequiredString(
         body.confirmation,
@@ -74,22 +98,25 @@ export async function POST(request: Request) {
         confirmation,
         reason,
       });
-      revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
+      const after = await readStates(articleIds);
+      revalidateStates(before, after);
       return noStoreJsonResponse({ ok: true, result });
     }
+
     if (action === "publish") {
       const result = await publishAdminWikiDrafts({
         actor,
         articleIds,
         reason,
       });
-      revalidateWikiPublicPaths(
-        result.published.flatMap((article) => [
-          article.slug,
-          article.previousSlug,
-          ...article.activatedInboundSourceSlugs,
-        ]),
+      const after = await readStates(articleIds);
+      const extras = new Map(
+        result.published.map((article) => [
+          article.articleId,
+          article.activatedInboundSourceSlugs,
+        ] as const),
       );
+      revalidateStates(before, after, extras);
       return noStoreJsonResponse({ ok: true, result });
     }
 
@@ -98,7 +125,8 @@ export async function POST(request: Request) {
       articleIds,
       reason,
     });
-    revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
+    const after = await readStates(articleIds);
+    revalidateStates(before, after);
     return noStoreJsonResponse({ ok: true, result });
   } catch (error) {
     return adminErrorResponse(error, "Wiki bulk action failed.");

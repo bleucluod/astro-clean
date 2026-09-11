@@ -3,9 +3,9 @@ import { buildPublicPageMetadata } from "@/lib/config/seo";
 
 import { ProductOfferGrid } from "@/components/monetization/ProductAccessCards";
 import { PricingCommerceSurface } from "@/components/commerce/CommerceSurfaces";
-import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
+import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildPublicPageMetadata({
   title: "قیمت گزارش چارت تولد کامل و اعتبارها | هالیوس",
@@ -15,7 +15,7 @@ export const metadata: Metadata = buildPublicPageMetadata({
 
 export default async function PricingPage() {
   // HALLEUS_FREE_ALL_PRICING_PAGE_BATCH1_R1
-  const policy = await getReportAccessPolicy();
+  const policy = await getPublicReportAccessPolicy();
   const freeAll = policy.monetizationMode === "FREE_ALL";
   return (
     <PricingCommerceSurface

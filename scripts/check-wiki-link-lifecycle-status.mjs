@@ -49,7 +49,7 @@ for (const marker of [
   requireText("unpublish service", cms, marker);
 }
 
-requireText("admin unpublish route", actions, "[result.slug, ...result.inboundSourceSlugs]");
+requireText("admin unpublish route", actions, "extraArticleSlugs: result.inboundSourceSlugs");
 requireText("admin unpublish route", actions, "admin-wiki-unpublish");
 requireText("admin publish route", actions, "activatedInboundSourceSlugs");
 requireText("scheduled publish route", publisher, "activatedInboundSourceSlugs");

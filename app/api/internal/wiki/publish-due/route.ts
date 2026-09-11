@@ -6,7 +6,10 @@ import { NextResponse } from "next/server";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import { submitWikiIndexNowUrlsBestEffort } from "@/lib/wiki/wiki-indexnow";
 import { processDueWikiPublishJobs } from "@/lib/wiki/wiki-publisher";
-import { revalidateWikiPublicPaths } from "@/lib/wiki/wiki-revalidation";
+import {
+  readWikiPublicRevalidationState,
+  revalidateWikiPublicChange,
+} from "@/lib/wiki/wiki-revalidation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,13 +34,19 @@ export async function POST(request: Request) {
   }
   try {
     const result = await processDueWikiPublishJobs();
+    for (const change of result.publishedChanges) {
+      const after = await readWikiPublicRevalidationState(change.articleId);
+      revalidateWikiPublicChange({
+        before: change.before,
+        after,
+        extraArticleSlugs: change.activatedInboundSourceSlugs,
+      });
+    }
+
     const publicDiscoverySlugs = [
       ...result.publishedSlugs,
       ...result.activatedInboundSourceSlugs,
     ];
-    if (publicDiscoverySlugs.length) {
-      revalidateWikiPublicPaths(publicDiscoverySlugs, { cachePolicy: "expire-now" });
-    }
     const discovery = await submitWikiIndexNowUrlsBestEffort(
       [...publicDiscoverySlugs, "/wiki", "/sitemap.xml"],
       "scheduled-wiki-publish",

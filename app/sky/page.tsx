@@ -4,7 +4,7 @@ import { FinalEditorialPage } from "@/components/FinalEditorialPage";
 import { SkyHeroLive, SkyPublicExperience } from "@/components/SkyPublicExperience";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { selectPublicWikiArticlesByPreferredSlugs } from "@/lib/wiki/wiki-public-discovery";
-import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
 import styles from "./sky.module.css";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
   const query = await searchParams;
   const first = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
   const city = first(query.city);
-  const [result, catalog] = await Promise.all([deliverSkyPublicSnapshot({ city, date: first(query.date) }), getPublicWikiCatalog()]);
+  const [result, catalog] = await Promise.all([deliverSkyPublicSnapshot({ city, date: first(query.date) }), getPublicWikiIndex()]);
   const relatedArticles = selectPublicWikiArticlesByPreferredSlugs(catalog.articles, ["what-is-moon-sign", "astrology-transits-explained", "retrograde-planets-explained", "mordad-1405-transit-guide"]).map((article) => ({ slug: article.slug, title: article.shortTitle }));
   const webPageJsonLd = {
     "@context": "https://schema.org",

@@ -3,7 +3,7 @@ import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
 import { getWikiCategoryR8Body } from "@/lib/wiki/wiki-category-r8-content";
 import {
   buildPublicWikiCategoryViews,
@@ -22,7 +22,7 @@ export const dynamicParams = true;
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  const { articles, categories } = await getPublicWikiCatalog();
+  const { articles, categories } = await getPublicWikiIndex();
 
   return buildPublicWikiCategoryViews(articles, categories).map((view) => ({
     categoryId: view.category.id,
@@ -33,7 +33,7 @@ export async function generateMetadata({
   params,
 }: WikiCategoryPageProps): Promise<Metadata> {
   const { categoryId } = await params;
-  const { articles, categories } = await getPublicWikiCatalog();
+  const { articles, categories } = await getPublicWikiIndex();
   const categoryView = findPublicWikiCategoryView(
     categoryId,
     articles,
@@ -64,7 +64,7 @@ export default async function WikiCategoryPage({
   params,
 }: WikiCategoryPageProps) {
   const { categoryId } = await params;
-  const { articles, categories } = await getPublicWikiCatalog();
+  const { articles, categories } = await getPublicWikiIndex();
   const categoryView = findPublicWikiCategoryView(
     categoryId,
     articles,

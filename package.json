@@ -187,6 +187,7 @@
     "check:public-content-crawlability": "node scripts/check-public-content-crawlability.mjs",
     "check:wiki-first-seo-indexability": "node scripts/check-wiki-first-seo-indexability.mjs",
     "check:wiki-storage-public-read": "node scripts/check-wiki-storage-public-read.mjs",
+    "check:wiki-cache-boundaries": "node scripts/check-wiki-cache-boundaries.mjs",
     "check:full-wiki-cms": "node scripts/check-full-wiki-cms.mjs",
     "check:wiki-publication-queue-readonly": "node scripts/check-wiki-publication-queue-readonly.mjs",
     "check:wiki-bulk-scheduling": "node scripts/check-wiki-bulk-scheduling.mjs",

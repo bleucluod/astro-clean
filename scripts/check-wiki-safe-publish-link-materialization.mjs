@@ -47,8 +47,10 @@ forbidText("Wiki inbound readiness", readiness, "assertWikiPublicationLiveInboun
 requireText("scheduled publisher", publisher, "readWikiPublicationLiveInboundReadiness");
 forbidText("scheduled publisher", publisher, "assertWikiPublicationLiveInboundReady");
 requireText("scheduled publisher", publisher, "HALLEUS_WIKI_INBOUND_SOFT_TARGET_NON_GATING");
-requireText("scheduled publish revalidation", publishDueRoute, 'revalidateWikiPublicPaths(publicDiscoverySlugs, { cachePolicy: "expire-now" });');
-forbidText("scheduled publish revalidation", publishDueRoute, "revalidateWikiPublicPaths(publicDiscoverySlugs);");
+requireText("scheduled publish revalidation", publishDueRoute, "for (const change of result.publishedChanges)");
+requireText("scheduled publish revalidation", publishDueRoute, "revalidateWikiPublicChange({");
+requireText("scheduled publish revalidation", publishDueRoute, "extraArticleSlugs: change.activatedInboundSourceSlugs");
+forbidText("scheduled publish revalidation", publishDueRoute, "revalidateWikiPublicPaths");
 requireText("scheduled publisher", publisher, "activatePublishedWikiTargetInboundLinksBestEffort");
 requireText("scheduled publisher legacy recovery", publisher, "last_error like 'Wiki publication blocked: incoming=%'");
 requireText("admin publish service", cms, "readWikiPublicationLiveInboundReadiness");

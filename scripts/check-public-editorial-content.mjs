@@ -70,7 +70,7 @@ for (const [page, count] of Object.entries(expectedSections)) {
       "HomepageLiveSky",
       "HomepageProductProof",
       "HomeHowItWorks",
-      "getPublicWikiCatalog",
+      "getPublicWikiIndex",
       "sortPublicWikiArticlesNewestFirst",
     ]) {
       assert.ok(
@@ -89,7 +89,7 @@ for (const [page, count] of Object.entries(expectedSections)) {
       'data-editorial-source="reviewed-public-editorial-chart"',
       "ChartForm",
       "chart-shell.module.css",
-      "getPublicWikiCatalog",
+      "getPublicWikiIndex",
       "sortPublicWikiArticlesNewestFirst",
     ]) {
       assert.ok(

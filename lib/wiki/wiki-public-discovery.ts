@@ -5,13 +5,17 @@ import {
   type WikiCategoryContent,
 } from "@/lib/wiki/wiki-category-content";
 
-export type DatedWikiArticle = WikiArticle & {
+export type DatedWikiArticle = Pick<
+  WikiArticle,
+  "slug" | "categoryId" | "title" | "shortTitle" | "summary" | "readingMinutes"
+> & {
   updatedAt: string;
 };
 
 export type PublicWikiRelationshipArticle = DatedWikiArticle & {
   stableId: string;
   relatedArticleIds: readonly string[];
+  relatedSlugs: readonly string[];
 };
 
 export type PublicWikiCategoryView = {

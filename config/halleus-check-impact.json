@@ -257,6 +257,7 @@
         "lib/config/navigation.ts",
         "lib/config/seo.ts",
         "lib/wiki/wiki-repository.ts",
+        "lib/wiki/wiki-cache.ts",
         "lib/wiki/wiki-public-discovery.ts",
         "lib/wiki/wiki-revalidation.ts",
         "app/chart/layout.tsx",
@@ -270,12 +271,25 @@
         "check:wiki-article-link-cta-visibility",
         "check:sitewide-link-cta-contrast",
         "check:site-chrome-minimal-ui",
-        "check:wiki-storage-public-read"
+        "check:wiki-storage-public-read",
+        "check:wiki-cache-boundaries"
       ],
       "lint": true,
       "build": true
     },
     {
+      "id": "wiki-cache-boundaries-guard-tooling",
+      "description": "Focused self-verification for the Wiki cache, targeted revalidation, and public policy cache boundaries.",
+      "exclusive": true,
+      "patterns": [
+        "scripts/check-wiki-cache-boundaries.mjs"
+      ],
+      "guards": [
+        "check:wiki-cache-boundaries"
+      ],
+      "lint": false,
+      "build": false
+    },    {
       "id": "public-discovery-guard-tooling",
       "description": "Focused verification for the public discovery and site-chrome contracts.",
       "exclusive": true,
@@ -1121,7 +1135,8 @@
         "check:auth-readiness",
         "check:comparison-product",
         "check:product-surface",
-        "check:credit-monetization"
+        "check:credit-monetization",
+        "check:wiki-cache-boundaries"
       ],
       "lint": true,
       "build": true

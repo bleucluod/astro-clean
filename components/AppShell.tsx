@@ -4,9 +4,8 @@ import type { ReactNode } from "react";
 
 import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { SiteHeader } from "@/components/SiteHeader";
-import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
-import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
-import type { PublicWikiArticle } from "@/lib/wiki/wiki-repository";
+import { getLatestPublicWikiFooterArticles } from "@/lib/wiki/wiki-repository";
+import type { PublicWikiFooterArticle } from "@/lib/wiki/wiki-repository";
 
 import styles from "./app-shell.module.css";
 import humanStyles from "./human-first-shell.module.css";
@@ -15,7 +14,7 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-type FooterWikiArticle = Pick<PublicWikiArticle, "slug" | "title">;
+type FooterWikiArticle = Pick<PublicWikiFooterArticle, "slug" | "title">;
 
 const footerLinks = [
   { href: "/chart", label: "ساخت چارت تولد" },
@@ -62,10 +61,10 @@ function warnAboutFooterWikiDegradation(reason: "read-failed" | "read-timed-out"
 
 async function loadLatestFooterWikiArticles(): Promise<readonly FooterWikiArticle[]> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
-  const catalogRead = getPublicWikiCatalog()
-    .then(({ articles }) => {
+  const footerRead = getLatestPublicWikiFooterArticles()
+    .then((articles) => {
       footerWikiDegradedWarningPrinted = false;
-      return sortPublicWikiArticlesNewestFirst(articles).slice(0, 4);
+      return articles;
     })
     .catch(() => {
       warnAboutFooterWikiDegradation("read-failed");
@@ -79,7 +78,7 @@ async function loadLatestFooterWikiArticles(): Promise<readonly FooterWikiArticl
   });
 
   try {
-    return await Promise.race([catalogRead, timeoutFallback]);
+    return await Promise.race([footerRead, timeoutFallback]);
   } finally {
     if (timeout) {
       clearTimeout(timeout);

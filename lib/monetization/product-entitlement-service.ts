@@ -1,3 +1,5 @@
+import { revalidateTag, unstable_cache } from "next/cache";
+
 import {
   asBoolean,
   asNullableString,
@@ -145,6 +147,31 @@ export async function getReportAccessControlState(): Promise<ReportAccessControl
       storage: "fail_safe",
       reportTypes: DISCOVERED_MONETIZED_REPORT_TYPES,
     };
+  }
+}
+
+export const REPORT_ACCESS_POLICY_PUBLIC_CACHE_TAG = "halleus-report-access-policy-v1";
+
+const loadPersistedPublicReportAccessPolicy = unstable_cache(
+  async () => {
+    const state = await getReportAccessControlState();
+    if (state.storage !== "database") {
+      throw new Error("HALLEUS_PUBLIC_REPORT_ACCESS_POLICY_STORAGE_UNAVAILABLE");
+    }
+    return state.policy;
+  },
+  ["halleus-report-access-policy-v1"],
+  {
+    tags: [REPORT_ACCESS_POLICY_PUBLIC_CACHE_TAG],
+    revalidate: 300,
+  },
+);
+
+export async function getPublicReportAccessPolicy(): Promise<ReportAccessPolicy> {
+  try {
+    return await loadPersistedPublicReportAccessPolicy();
+  } catch {
+    return DEFAULT_REPORT_ACCESS_POLICY;
   }
 }
 
@@ -479,7 +506,7 @@ export async function saveReportAccessPolicy(input: {
     );
   }
   const sql = getAdminDatabase();
-  return sql.begin(async (tx) => {
+  const policy = await sql.begin(async (tx) => {
     const rows = await tx`
       select version
       from halleus_private.report_access_policy
@@ -487,13 +514,13 @@ export async function saveReportAccessPolicy(input: {
       for update
     `;
     const nextVersion = (rows.length ? asNumber(rows[0].version) : 0) + 1;
-    const policy = normalizeReportAccessPolicy(input.config, nextVersion);
+    const nextPolicy = normalizeReportAccessPolicy(input.config, nextVersion);
     await tx`
       insert into halleus_private.report_access_policy (
         singleton_id, version, config, updated_at, updated_by
       )
       values (
-        1, ${nextVersion}, ${tx.json(policy)}, now(),
+        1, ${nextVersion}, ${tx.json(nextPolicy)}, now(),
         ${input.actorUserId}::uuid
       )
       on conflict (singleton_id)
@@ -503,8 +530,10 @@ export async function saveReportAccessPolicy(input: {
         updated_at = excluded.updated_at,
         updated_by = excluded.updated_by
     `;
-    return policy;
+    return nextPolicy;
   });
+  revalidateTag(REPORT_ACCESS_POLICY_PUBLIC_CACHE_TAG, { expire: 0 });
+  return policy;
 }
 
 export async function saveProductPackage(input: {

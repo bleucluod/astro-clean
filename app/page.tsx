@@ -7,12 +7,12 @@ import { HomepageProductProof } from "@/components/HomepageProductProof";
 import { HomeHowItWorks } from "@/components/home/HomeHowItWorks";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
-import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
-import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
+import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
+import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
 import styles from "./home.module.css";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildPublicPageMetadata({
   title: "هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه",
@@ -129,9 +129,9 @@ const faqItems = [
 export default async function Home() {
   // HALLEUS_FREE_ALL_HOME_COPY_BATCH1_R1
   const [catalogResult, skyResult, accessPolicyResult] = await Promise.allSettled([
-    getPublicWikiCatalog(),
+    getPublicWikiIndex(),
     deliverSkyPublicSnapshot({}),
-    getReportAccessPolicy(),
+    getPublicReportAccessPolicy(),
   ]);
   const freeAllAccess =
     accessPolicyResult.status === "fulfilled" &&

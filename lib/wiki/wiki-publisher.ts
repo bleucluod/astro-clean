@@ -15,10 +15,34 @@ async function publishClaimedJob(jobId: string) {
   const sql = getAdminDatabase();
   let publishedSlug = "";
   let publishedStableId = "";
+  let publishedArticleId = "";
+  let beforePublicState: {
+    articleId: string;
+    slug: string;
+    categoryId: string;
+    title: string;
+    shortTitle: string;
+    summary: string;
+    readingMinutes: number;
+    updatedAt: string;
+    isPublic: boolean;
+    aliases: string[];
+  } | null = null;
   const materializationInput = await sql.begin(async (tx) => {
     const rows = await tx`
       select job.article_id::text, job.revision_number, revision.snapshot,
-             article.slug as previous_slug
+             article.slug as previous_slug,
+             article.category_id as previous_category_id,
+             article.title as previous_title,
+             article.short_title as previous_short_title,
+             article.summary as previous_summary,
+             article.reading_minutes as previous_reading_minutes,
+             article.updated_at::text as previous_updated_at,
+             article.status as previous_status,
+             article.is_indexable as previous_is_indexable,
+             article.published_at::text as previous_published_at,
+             article.scheduled_for::text as previous_scheduled_for,
+             article.deleted_at::text as previous_deleted_at
       from halleus_private.wiki_publish_jobs as job
       join public.wiki_article_revisions as revision
         on revision.article_id = job.article_id and revision.revision_number = job.revision_number
@@ -33,6 +57,24 @@ async function publishClaimedJob(jobId: string) {
     const articleId = asString(row.article_id);
     const revisionNumber = asNumber(row.revision_number);
     const previousSlug = asString(row.previous_slug);
+    publishedArticleId = articleId;
+    beforePublicState = {
+      articleId,
+      slug: previousSlug,
+      categoryId: asString(row.previous_category_id),
+      title: asString(row.previous_title),
+      shortTitle: asString(row.previous_short_title),
+      summary: asString(row.previous_summary),
+      readingMinutes: asNumber(row.previous_reading_minutes),
+      updatedAt: asString(row.previous_updated_at),
+      isPublic:
+        asString(row.previous_status) === "published" &&
+        row.previous_is_indexable === true &&
+        Boolean(row.previous_published_at) &&
+        !row.previous_scheduled_for &&
+        !row.previous_deleted_at,
+      aliases: [],
+    };
     const snapshot: WikiArticleSnapshot = readWikiArticleSnapshot(row.snapshot);
     publishedSlug = snapshot.slug;
     publishedStableId = snapshot.stableId;
@@ -205,7 +247,9 @@ async function publishClaimedJob(jobId: string) {
     targetStableId: publishedStableId,
   });
   return {
+    articleId: publishedArticleId,
     slug: publishedSlug,
+    before: beforePublicState,
     activatedInboundSourceSlugs: activatedInbound.sourceSlugs,
   };
 }
@@ -252,6 +296,7 @@ export async function processDueWikiPublishJobs(limit = 10) {
     return {
       paused: true,
       publishedSlugs: [],
+      publishedChanges: [],
       activatedInboundSourceSlugs: [],
       failed: 0,
     };
@@ -278,6 +323,7 @@ export async function processDueWikiPublishJobs(limit = 10) {
       and last_error like 'Wiki publication blocked: incoming=%'
   `;
   const publishedSlugs: string[] = [];
+  const publishedChanges: Array<Awaited<ReturnType<typeof publishClaimedJob>>> = [];
   const activatedInboundSourceSlugs: string[] = [];
   let failed = 0;
   for (let index = 0; index < Math.min(Math.max(limit, 1), 25); index += 1) {
@@ -315,6 +361,7 @@ export async function processDueWikiPublishJobs(limit = 10) {
     try {
       const published = await publishClaimedJob(claimed);
       publishedSlugs.push(published.slug);
+      publishedChanges.push(published);
       activatedInboundSourceSlugs.push(...published.activatedInboundSourceSlugs);
     } catch (error) {
       failed += 1;
@@ -324,6 +371,7 @@ export async function processDueWikiPublishJobs(limit = 10) {
   return {
     paused: false,
     publishedSlugs,
+    publishedChanges,
     activatedInboundSourceSlugs: [...new Set(activatedInboundSourceSlugs)],
     failed,
   };

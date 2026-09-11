@@ -99,34 +99,34 @@ if (failures.length === 0) {
   requireText("Wiki repository", repository, 'source: "code-fallback"');
   requireText("Wiki repository", repository, "redirect.http_status = 308");
   requireText("Wiki repository persistent snapshot", repository, "unstable_cache");
-  requireText("Wiki repository persistent snapshot", repository, "WIKI_PUBLIC_SNAPSHOT_CACHE_TAG");
+  requireText("Wiki repository persistent snapshot", repository, "WIKI_PUBLIC_INDEX_CACHE_TAG");
   requireText("Wiki repository stale serving", repository, "HALLEUS_WIKI_STALE_SNAPSHOT_SERVED");
   requireText("Wiki repository client recovery", repository, "HALLEUS_WIKI_DATABASE_CLIENT_RESET");
   requireText("Wiki repository circuit breaker", repository, "WIKI_DATABASE_CIRCUIT_BREAKER_MS");
   requireText(
     "Wiki revalidation stale-while-revalidate",
     revalidation,
-    'revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, "max")',
+    'revalidateTag(WIKI_PUBLIC_INDEX_CACHE_TAG, { expire: 0 })',
   );
   requireText(
     "Wiki revalidation immediate expiry",
     revalidation,
-    "revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, { expire: 0 })",
+    "revalidateTag(wikiPublicArticleCacheTag(slug), { expire: 0 })",
   );
   requireText(
     "Wiki critical stale snapshot block",
     revalidation,
-    "blockStaleWikiSnapshotServing()",
+    "blockStaleWikiIndexServing()",
   );
   requireText(
     "Wiki bulk destructive invalidation",
     bulkActionsRoute,
-    'revalidateWikiPublicPaths([], { cachePolicy: "expire-now" })',
+    'revalidateWikiPublicChange',
   );
   requireText(
     "Wiki article destructive invalidation",
     articleActionsRoute,
-    'action === "delete" ? { cachePolicy: "expire-now" } : undefined',
+    'revalidateWikiPublicChange',
   );
   requireText("App shell Wiki isolation", appShell, "Promise.race");
   requireText("App shell Wiki isolation", appShell, "HALLEUS_WIKI_FOOTER_DEGRADED");
@@ -140,7 +140,7 @@ if (failures.length === 0) {
     requireText("App shell Wiki fallback", appShell, `slug: "${slug}"`);
   }
 
-  requireText("Wiki index", indexPage, "getPublicWikiCatalog");
+  requireText("Wiki index", indexPage, "getPublicWikiIndex");
   forbidText("Wiki index", indexPage, 'from "@/lib/wiki/wiki-content"');
   requireText("Wiki article route", articlePage, "getPublicWikiArticleResolution");
   requireText("Wiki article route", articlePage, "listPublicWikiRouteSlugs");

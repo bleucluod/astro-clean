@@ -10,11 +10,11 @@ import {
   type FinalEditorialSection,
 } from "@/lib/public-content/final-editorial-content";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
-import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
 
 import styles from "./chart-shell.module.css";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildPublicPageMetadata({
   title: "چارت تولد رایگان فارسی با تفسیر | هالیوس",
@@ -23,7 +23,7 @@ export const metadata: Metadata = buildPublicPageMetadata({
 });
 
 type WikiArticle = Awaited<
-  ReturnType<typeof getPublicWikiCatalog>
+  ReturnType<typeof getPublicWikiIndex>
 >["articles"][number];
 
 type ContextLink = {
@@ -388,7 +388,7 @@ export default async function ChartPage() {
   let wikiArticles: WikiArticle[] = [];
 
   try {
-    const catalog = await getPublicWikiCatalog();
+    const catalog = await getPublicWikiIndex();
     wikiArticles = sortPublicWikiArticlesNewestFirst(catalog.articles);
   } catch {
     wikiArticles = [];

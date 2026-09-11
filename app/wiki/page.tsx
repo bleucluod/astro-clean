@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
-import { getPublicWikiCatalog } from "@/lib/wiki/wiki-repository";
+import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
 import {
   buildPublicWikiCategoryViews,
   sortPublicWikiArticlesNewestFirst,
@@ -88,7 +88,7 @@ function serializeJsonLd(value: unknown): string {
 
 export default async function WikiPage() {
   const { articles: catalogArticles, categories: wikiCategories } =
-    await getPublicWikiCatalog();
+    await getPublicWikiIndex();
   const wikiArticles = sortPublicWikiArticlesNewestFirst(catalogArticles);
   const categoryViews = buildPublicWikiCategoryViews(
     wikiArticles,

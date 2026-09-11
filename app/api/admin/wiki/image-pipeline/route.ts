@@ -21,7 +21,10 @@ import {
   stageDirectWikiImage,
   stageExistingWikiAsset,
 } from "@/lib/wiki/wiki-image-service";
-import { revalidateWikiPublicPaths } from "@/lib/wiki/wiki-revalidation";
+import {
+  readWikiPublicRevalidationStateByStableId,
+  revalidateWikiPublicChange,
+} from "@/lib/wiki/wiki-revalidation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -187,9 +190,10 @@ export async function POST(request: Request) {
     if (["metadata", "approve", "reject", "retry", "detach"].includes(action)) {
       stage = `article_${action}`;
       retrySafe = action === "metadata";
+      const stableId = readRequiredString(body.stableId, "stableId", 180);
       const result = await mutateWikiArticleImage(actor, {
         action: action as "metadata" | "approve" | "reject" | "retry" | "detach",
-        stableId: readRequiredString(body.stableId, "stableId", 180),
+        stableId,
         expectedRevision: Number(body.expectedRevision),
         reason: readRequiredString(body.reason, "reason", 1000),
         altFa: typeof body.altFa === "string" ? body.altFa : undefined,
@@ -206,7 +210,10 @@ export async function POST(request: Request) {
             ? (body.provenance as Record<string, unknown>)
             : undefined,
       });
-      revalidateWikiPublicPaths([], { cachePolicy: "expire-now" });
+      const publicState = await readWikiPublicRevalidationStateByStableId(stableId);
+      if (publicState?.isPublic) {
+        revalidateWikiPublicChange({ before: publicState, after: publicState });
+      }
       return noStoreJsonResponse({ ok: true, result });
     }
 

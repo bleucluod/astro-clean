@@ -1,21 +1,43 @@
-export const WIKI_PUBLIC_SNAPSHOT_CACHE_TAG = "halleus-wiki-public-snapshot-v1";
+export const WIKI_PUBLIC_INDEX_CACHE_TAG = "halleus-wiki-index-v2";
+export const WIKI_PUBLIC_ARTICLE_CACHE_TAG_PREFIX = "halleus-wiki-article-v2:";
+export const WIKI_PUBLIC_FOOTER_CACHE_TAG = "halleus-wiki-footer-v2";
 
 const wikiCacheRuntime = globalThis as typeof globalThis & {
-  __halleusStaleWikiSnapshotServingAllowed?: boolean;
+  __halleusStaleWikiIndexServingAllowed?: boolean;
+  __halleusStaleWikiArticleServingBlocked?: Set<string>;
 };
 
-function staleWikiSnapshotServingAllowed() {
-  return wikiCacheRuntime.__halleusStaleWikiSnapshotServingAllowed !== false;
+function blockedArticleSlugs() {
+  if (!wikiCacheRuntime.__halleusStaleWikiArticleServingBlocked) {
+    wikiCacheRuntime.__halleusStaleWikiArticleServingBlocked = new Set<string>();
+  }
+  return wikiCacheRuntime.__halleusStaleWikiArticleServingBlocked;
 }
 
-export function blockStaleWikiSnapshotServing() {
-  wikiCacheRuntime.__halleusStaleWikiSnapshotServingAllowed = false;
+export function wikiPublicArticleCacheTag(slug: string) {
+  return `${WIKI_PUBLIC_ARTICLE_CACHE_TAG_PREFIX}${slug}`;
 }
 
-export function allowStaleWikiSnapshotServing() {
-  wikiCacheRuntime.__halleusStaleWikiSnapshotServingAllowed = true;
+export function blockStaleWikiIndexServing() {
+  wikiCacheRuntime.__halleusStaleWikiIndexServingAllowed = false;
 }
 
-export function canServeStaleWikiSnapshot() {
-  return staleWikiSnapshotServingAllowed();
+export function allowStaleWikiIndexServing() {
+  wikiCacheRuntime.__halleusStaleWikiIndexServingAllowed = true;
+}
+
+export function canServeStaleWikiIndex() {
+  return wikiCacheRuntime.__halleusStaleWikiIndexServingAllowed !== false;
+}
+
+export function blockStaleWikiArticleServing(slug: string) {
+  blockedArticleSlugs().add(slug);
+}
+
+export function allowStaleWikiArticleServing(slug: string) {
+  blockedArticleSlugs().delete(slug);
+}
+
+export function canServeStaleWikiArticle(slug: string) {
+  return !blockedArticleSlugs().has(slug);
 }

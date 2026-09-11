@@ -139,22 +139,22 @@ requireText("public repository circuit breaker", repository, "WIKI_DATABASE_CIRC
 requireText(
   "public repository stale-while-revalidate",
   revalidation,
-  'revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, "max")',
+  'revalidateTag(WIKI_PUBLIC_INDEX_CACHE_TAG, { expire: 0 })',
 );
 requireText(
   "public repository immediate destructive invalidation",
   revalidation,
-  "revalidateTag(WIKI_PUBLIC_SNAPSHOT_CACHE_TAG, { expire: 0 })",
+  "revalidateTag(wikiPublicArticleCacheTag(slug), { expire: 0 })",
 );
 requireText(
   "bulk destructive invalidation",
   bulkActionsRoute,
-  'revalidateWikiPublicPaths([], { cachePolicy: "expire-now" })',
+  'revalidateWikiPublicChange',
 );
 requireText(
   "article destructive invalidation",
   articleActionsRoute,
-  'action === "delete" ? { cachePolicy: "expire-now" } : undefined',
+  'revalidateWikiPublicChange',
 );
 requireText("app shell Wiki isolation", appShell, "HALLEUS_WIKI_FOOTER_DEGRADED");
 requireText("app shell fixed Wiki fallback", appShell, "FOOTER_WIKI_FALLBACK_ARTICLES");

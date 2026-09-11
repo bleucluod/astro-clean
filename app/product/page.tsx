@@ -4,9 +4,9 @@ import { buildPublicPageMetadata } from "@/lib/config/seo";
 import { ProductOfferGrid } from "@/components/monetization/ProductAccessCards";
 import { HomepageProductProof } from "@/components/HomepageProductProof";
 import { ProductCommerceSurface } from "@/components/commerce/CommerceSurfaces";
-import { getReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
+import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildPublicPageMetadata({
   title: "تفسیر چارت تولد فارسی | گزارش تولد شخصی هالیوس",
@@ -16,7 +16,7 @@ export const metadata: Metadata = buildPublicPageMetadata({
 
 export default async function ProductPage() {
   // HALLEUS_FREE_ALL_PRODUCT_PAGE_BATCH1_R1
-  const policy = await getReportAccessPolicy();
+  const policy = await getPublicReportAccessPolicy();
   const freeAll = policy.monetizationMode === "FREE_ALL";
   return (
     <ProductCommerceSurface
