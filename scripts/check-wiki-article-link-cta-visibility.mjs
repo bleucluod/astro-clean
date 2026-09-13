@@ -210,8 +210,9 @@ requireText("Wiki reviewed runtime", appShell, "HALLEUS_WIKI_CTA_RUNTIME_V18");
 requireText("Wiki reviewed body progress", appShell, "const revealProgress = 0.35;");
 requireText("Wiki reviewed active duration", appShell, "const visibleDurationMs = 12000;");
 requireText("Wiki reviewed exit duration", appShell, "const exitDurationMs = 300;");
-requireText("Wiki reviewed short viewport guard", appShell, "const minSafeViewportHeight = 320;");
-requireText("Wiki reviewed motion polish", appShell, "HALLEUS_WIKI_CTA_MOTION_POLISH_V21");
+forbidText("Wiki reviewed short viewport suppression", appShell, "minSafeViewportHeight");
+requireText("Wiki reviewed short viewport hotfix", appShell, "HALLEUS_WIKI_CTA_SHORT_VIEWPORT_V22");
+requireText("Wiki reviewed V22 runtime", appShell, "__HALLEUS_WIKI_CTA_RUNTIME_V22__");
 requireText("Wiki reviewed controls-out choreography", appShell, "const controlExitDurationMs = 220;");
 requireText("Wiki reviewed choreography gap", appShell, "const choreographyGapMs = 70;");
 requireText("Wiki reviewed enter duration", appShell, "const enterDurationMs = 300;");
@@ -231,6 +232,10 @@ requireText("Wiki chrome collision CSS", appShellStyles, "HALLEUS_WIKI_CTA_CHROM
 requireText("Wiki chrome choreography CSS", appShellStyles, "HALLEUS_WIKI_CTA_CHROME_CHOREOGRAPHY_V21");
 requireText("Wiki chrome slide-down CSS", appShellStyles, "transform: translateY(140px) !important;");
 requireText("Wiki SSR hidden card CSS", styles, ".editorialMobileCta[hidden]");
+requireText("Wiki reviewed compact short viewport CSS", styles, "@media (max-width: 720px) and (max-height: 520px)");
+requireText("Wiki reviewed compact short viewport height", styles, "max-height: min(164px, calc(100dvh - 24px - env(safe-area-inset-bottom)));");
+requireText("Wiki reviewed exact CTA surface", styles, "background: #11141a;");
+requireText("Wiki reviewed exact CTA button surface", styles, "background: #e8ecf0;");
 forbidText("Wiki reviewed mobile CTA", editorialMobile, "line-clamp");
 
 if (failures.length > 0) {
@@ -246,4 +251,5 @@ console.log("- contextual article links keep the current dark Wiki treatment");
 console.log("- inline Wiki CTA retains visible hover and focus styling");
 console.log("- reviewed editorial CTA reveals at 35% body progress with no attention-time gate");
 console.log("- reviewed editorial CTA holds for 12 seconds after entrance and coordinates mobile chrome motion");
+console.log("- short mobile viewports use compact CTA layout without runtime suppression or timer pause");
 console.log("- legacy sticky CTA behavior remains isolated to non-reviewed Wiki routes");

@@ -1147,7 +1147,7 @@
 
 
 /* HALLEUS_WIKI_EDITORIAL_MOBILE_CTA_V12 */
-/* HALLEUS_WIKI_EDITORIAL_MOBILE_CTA_POLISH_V21 */
+/* HALLEUS_WIKI_EDITORIAL_MOBILE_CTA_SHORT_VIEWPORT_V22 */
 .editorialMobileCta {
   display: none;
 }
@@ -1171,8 +1171,8 @@
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 16px;
     color: #f4f6f8;
-    background: rgba(11, 13, 17, 0.97);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+    background: #11141a;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
     opacity: 0;
     transform: translateY(28px);
     isolation: isolate;
@@ -1206,7 +1206,7 @@
     min-height: 0;
     padding: 4px 38px 0 2px;
     overflow: auto;
-    color: #eef2f6;
+    color: #d6dde6;
     font-size: 15px;
     line-height: 1.75;
     overscroll-behavior: contain;
@@ -1224,7 +1224,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     color: #11141a !important;
-    background: #e4e8ed;
+    background: #e8ecf0;
     font-size: 0.92rem;
     font-weight: 820;
     line-height: 1.45;
@@ -1312,7 +1312,7 @@
 @media (max-width: 720px) and (max-height: 520px) {
   .editorialMobileCta {
     gap: 6px;
-    max-height: min(164px, 36dvh);
+    max-height: min(164px, calc(100dvh - 24px - env(safe-area-inset-bottom)));
     padding: 11px 10px 10px;
   }
 
@@ -1323,7 +1323,7 @@
   }
 
   .editorialMobileCtaButton {
-    min-height: 42px;
+    min-height: 48px;
     padding-block: 7px;
   }
 }
