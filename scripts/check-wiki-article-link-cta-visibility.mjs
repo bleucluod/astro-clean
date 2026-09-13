@@ -4,6 +4,10 @@ const page = readFileSync("app/wiki/[slug]/page.tsx", "utf8");
 const stickyCta = readFileSync("app/wiki/[slug]/WikiStickyCta.tsx", "utf8");
 const renderer = readFileSync("components/wiki/WikiArticleRender.tsx", "utf8");
 const styles = readFileSync("app/wiki/wiki.module.css", "utf8");
+const editorialMobile = readFileSync("app/wiki/[slug]/WikiEditorialMobileCta.tsx", "utf8");
+const coordinator = readFileSync("app/wiki/[slug]/WikiArticleCtaCoordinator.tsx", "utf8");
+const appShell = readFileSync("components/AppShell.tsx", "utf8");
+const appShellStyles = readFileSync("components/app-shell.module.css", "utf8");
 const failures = [];
 
 function requireText(label, source, marker) {
@@ -114,7 +118,7 @@ requireText(
 requireText(
   "Wiki sticky CTA renderer",
   page,
-  "<WikiStickyCta callToAction={callToAction} inlineCtaId={WIKI_INLINE_CTA_ID} />",
+  "callToAction={callToAction}",
 );
 requireText(
   "Wiki sticky CTA mobile query",
@@ -124,7 +128,7 @@ requireText(
 requireText(
   "Wiki sticky CTA reveal threshold",
   stickyCta,
-  "const REVEAL_PROGRESS = 0.25;",
+  "const LEGACY_REVEAL_PROGRESS = 0.22;",
 );
 requireText(
   "Wiki sticky CTA initial scheduling",
@@ -189,6 +193,36 @@ if (/^(?:a|\.page|\.articlePage)\s+a\b/m.test(styles)) {
     "Wiki inline link styling must not target all links in the page or module.",
   );
 }
+
+// HALLEUS_WIKI_EDITORIAL_VISIBILITY_GUARD_V18
+requireText("Wiki reviewed CTA overlay", page, "getWikiEditorialCta(article.slug)");
+requireText("Wiki reviewed route marker", page, 'data-wiki-editorial-reviewed={editorialCta ? "true" : undefined}');
+requireText("Wiki reviewed coordinator", page, "<WikiArticleCtaCoordinator");
+requireText("Wiki reviewed no-card branch", coordinator, "if (!mobileCard) return null;");
+requireText("Wiki reviewed SSR card", coordinator, "<WikiEditorialMobileCta");
+requireText("Wiki reviewed card copy", editorialMobile, "{mobileCard.text}");
+requireText("Wiki reviewed card label", editorialMobile, "{mobileCard.label}");
+requireText("Wiki reviewed card href", editorialMobile, "href={href}");
+requireText("Wiki reviewed card marker", editorialMobile, 'data-wiki-editorial-mobile-cta="true"');
+requireText("Wiki reviewed progress marker", editorialMobile, 'data-wiki-cta-progress="true"');
+requireText("Wiki reviewed dismiss marker", editorialMobile, 'data-wiki-cta-dismiss="true"');
+requireText("Wiki reviewed runtime", appShell, "HALLEUS_WIKI_CTA_RUNTIME_V18");
+requireText("Wiki reviewed body progress", appShell, "const revealProgress = 0.35;");
+requireText("Wiki reviewed visible attention", appShell, "const visibleAttentionMs = 15000;");
+requireText("Wiki reviewed active duration", appShell, "const visibleDurationMs = 8000;");
+requireText("Wiki reviewed exit duration", appShell, "const exitDurationMs = 240;");
+requireText("Wiki reviewed short viewport guard", appShell, "const minSafeViewportHeight = 320;");
+requireText("Wiki reviewed end observer", appShell, "new IntersectionObserver");
+requireText("Wiki reviewed card state", appShell, "data-wiki-card-active");
+requireText("Wiki end CTA state", appShell, "data-wiki-end-cta-in-view");
+requireText("Wiki visible-tab accounting", appShell, "visibilitychange");
+requireText("Wiki pointer pause", appShell, "pointerdown");
+requireText("Wiki focus pause", appShell, "focusin");
+requireText("Wiki reduced motion", appShell, "prefers-reduced-motion: reduce");
+requireText("Wiki back-to-top selector", appShell, "data-wiki-chrome-control=\"back-to-top\"");
+requireText("Wiki chrome collision CSS", appShellStyles, "HALLEUS_WIKI_CTA_CHROME_COLLISION_V12");
+requireText("Wiki SSR hidden card CSS", styles, ".editorialMobileCta[hidden]");
+forbidText("Wiki reviewed mobile CTA", editorialMobile, "line-clamp");
 
 if (failures.length > 0) {
   console.error("Wiki article link and CTA visibility check failed:");

@@ -5,24 +5,51 @@ import { useEffect, useRef, useState } from "react";
 
 import type { WikiArticleCallToAction } from "@/lib/wiki/wiki-content";
 import styles from "../wiki.module.css";
+import type { WikiEditorialMobileCard } from "@/lib/wiki/wiki-editorial-cta";
+import { WikiEditorialMobileCta } from "./WikiEditorialMobileCta";
 
 // HALLEUS_WIKI_MOBILE_STICKY_CTA
 const MOBILE_MEDIA_QUERY = "(max-width: 720px)";
 // HALLEUS_WIKI_MOBILE_STICKY_CTA_CONTENT_PROGRESS
-const REVEAL_PROGRESS = 0.22;
+const LEGACY_REVEAL_PROGRESS = 0.22;
 const DISMISS_LABEL = "بستن پیشنهاد";
 
-type WikiStickyCtaProps = {
+type WikiLegacyStickyCtaProps = {
   callToAction: WikiArticleCallToAction;
   contentRootId: string;
   inlineCtaId: string;
 };
 
-export function WikiStickyCta({
+
+type WikiEditorialStickyCtaProps = {
+  articleBodyId: string;
+  editorialCard: WikiEditorialMobileCard;
+  endCtaReached: boolean;
+  href: string;
+};
+
+type WikiStickyCtaProps = WikiLegacyStickyCtaProps | WikiEditorialStickyCtaProps;
+
+// HALLEUS_WIKI_STICKY_CTA_EDITORIAL_BRANCH_V12
+export function WikiStickyCta(props: WikiStickyCtaProps) {
+  if ("editorialCard" in props) {
+    return (
+      <WikiEditorialMobileCta
+        articleBodyId={props.articleBodyId}
+        endCtaReached={props.endCtaReached}
+        href={props.href}
+        mobileCard={props.editorialCard}
+      />
+    );
+  }
+  return <WikiLegacyStickyCta {...props} />;
+}
+
+function WikiLegacyStickyCta({
   callToAction,
   contentRootId,
   inlineCtaId,
-}: WikiStickyCtaProps) {
+}: WikiLegacyStickyCtaProps) {
   const [eligible, setEligible] = useState(false);
   const [inlineCtaReached, setInlineCtaReached] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -50,7 +77,7 @@ export function WikiStickyCta({
         1,
         Math.max(0, (window.scrollY - contentTop) / contentHeight),
       );
-      setEligible(progress >= REVEAL_PROGRESS);
+      setEligible(progress >= LEGACY_REVEAL_PROGRESS);
     };
 
     const scheduleEligibilityUpdate = () => {

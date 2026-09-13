@@ -7,8 +7,10 @@ import {
   getPublicWikiArticleResolution,
   listPublicWikiRouteSlugs,
 } from "@/lib/wiki/wiki-repository";
+import { getWikiEditorialCta } from "@/lib/wiki/wiki-editorial-cta";
 import styles from "../wiki.module.css";
 import { WikiStickyCta } from "./WikiStickyCta";
+import { WikiArticleCtaCoordinator } from "./WikiArticleCtaCoordinator";
 
 type WikiArticlePageProps = {
   params: Promise<{
@@ -19,6 +21,9 @@ type WikiArticlePageProps = {
 const WIKI_BASE_URL = "https://halleus.ir";
 const WIKI_ARTICLE_CONTENT_ID = "wiki-article-content";
 const WIKI_INLINE_CTA_ID = "wiki-article-inline-cta";
+const WIKI_ARTICLE_BODY_ID = "wiki-article-body";
+// HALLEUS_WIKI_EDITORIAL_CTA_199_V12
+// HALLEUS_WIKI_CTA_EARLY_CLIENT_BOUNDARY_V17
 
 export const dynamicParams = true;
 export const revalidate = 300;
@@ -143,7 +148,15 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
       },
     ],
   };
-  const callToAction = article.callToAction ?? {
+  const editorialCta = getWikiEditorialCta(article.slug);
+  const callToAction = editorialCta
+    ? {
+        title: editorialCta.endTitle,
+        text: editorialCta.endText,
+        label: editorialCta.endLabel,
+        href: editorialCta.href,
+      }
+    : article.callToAction ?? {
     title: "تعریف وقتی واقعی می‌شود که به چارت شخصی وصل شود",
     text: "گزارش هالیوس جایگاه‌ها، خانه‌ها و جنبه‌های واقعی چارت را کنار هم می‌گذارد تا فقط با یک تعریف عمومی روبه‌رو نباشی.",
     label: "ساخت گزارش تولد",
@@ -151,7 +164,10 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
   };
 
   return (
-    <section className={`${styles.page} ${styles.articlePage}`}>
+    <section
+      className={`${styles.page} ${styles.articlePage}`}
+      data-wiki-editorial-reviewed={editorialCta ? "true" : undefined}
+    >
       <script
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleJsonLd) }}
         type="application/ld+json"
@@ -170,6 +186,15 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
           <span>مقاله</span>
         )}
       </nav>
+
+      {editorialCta ? (
+        <WikiArticleCtaCoordinator
+          articleBodyId={WIKI_ARTICLE_BODY_ID}
+          href={editorialCta.href}
+          inlineCtaId={WIKI_INLINE_CTA_ID}
+          mobileCard={editorialCta.mobileCard}
+        />
+      ) : null}
 
       <article className={styles.articleLayout}>
         <div className={styles.articleMain} id={WIKI_ARTICLE_CONTENT_ID}>
@@ -238,6 +263,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
           ) : null}
 
           <WikiArticleBody
+            rootId={WIKI_ARTICLE_BODY_ID}
             sections={article.sections}
             contextLinks={article.contextLinks ?? []}
             sources={article.sources ?? []}
@@ -263,11 +289,13 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
         </aside>
       </article>
 
-      <WikiStickyCta
-        callToAction={callToAction}
-        contentRootId={WIKI_ARTICLE_CONTENT_ID}
-        inlineCtaId={WIKI_INLINE_CTA_ID}
-      />
+      {!editorialCta ? (
+        <WikiStickyCta
+          callToAction={callToAction}
+          contentRootId={WIKI_ARTICLE_CONTENT_ID}
+          inlineCtaId={WIKI_INLINE_CTA_ID}
+        />
+      ) : null}
 
       <section className={styles.relatedSection} aria-labelledby="related-title">
         <div className={styles.sectionHeader}>

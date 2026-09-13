@@ -1144,3 +1144,142 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.045);
 }
+
+
+/* HALLEUS_WIKI_EDITORIAL_MOBILE_CTA_V12 */
+.editorialMobileCta {
+  display: none;
+}
+
+.editorialMobileCta[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  .editorialMobileCta {
+    position: fixed;
+    z-index: 80;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 10px;
+    width: min(360px, calc(100vw - 32px));
+    max-height: min(220px, 35dvh);
+    padding: 18px 14px 14px;
+    border: 1px solid #35516a;
+    border-radius: 18px;
+    color: #f4f8fc;
+    background: #111923;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .24);
+    opacity: 1;
+    transform: translateY(0);
+    isolation: isolate;
+    animation: wikiEditorialCtaIn 180ms ease both;
+  }
+
+  .editorialMobileCta[data-exiting="true"] {
+    opacity: 0;
+    transition: opacity 240ms ease;
+    pointer-events: none;
+  }
+
+  .editorialMobileCtaText {
+    min-height: 0;
+    padding: 8px 42px 2px 2px;
+    overflow: auto;
+    color: #f4f8fc;
+    font-size: 16px;
+    line-height: 1.65;
+    overscroll-behavior: contain;
+  }
+
+  .editorialMobileCtaButton {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    width: 100%;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 13px;
+    color: #092235 !important;
+    background: #b9e5ff;
+    font-weight: 850;
+    line-height: 1.45;
+    text-align: center;
+    text-decoration: none !important;
+  }
+
+  .editorialMobileCtaButton:visited,
+  .editorialMobileCtaButton:hover {
+    color: #092235 !important;
+  }
+
+  .editorialMobileCtaButton:focus-visible,
+  .editorialMobileCtaDismiss:focus-visible {
+    outline: 3px solid #a9dfff;
+    outline-offset: 3px;
+  }
+
+  .editorialMobileCtaDismiss {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 3;
+    display: inline-grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    color: #f4f8fc;
+    background: transparent;
+    font: inherit;
+    font-size: 1.35rem;
+    cursor: pointer;
+  }
+
+  .editorialMobileCtaProgress {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .editorialMobileCtaProgressRect {
+    stroke: #a9dfff;
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 3px rgba(169, 223, 255, .28));
+  }
+}
+
+@keyframes wikiEditorialCtaIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorialMobileCta {
+    animation: none;
+    transition: none;
+  }
+  .editorialMobileCta[data-exiting="true"] {
+    transition: none;
+  }
+}
+
+
+/* HALLEUS_WIKI_EDITORIAL_MOBILE_CTA_HIDDEN_TAB_V12 */
+@media (max-width: 720px) {
+  .editorialMobileCta[data-tab-visible="false"] {
+    pointer-events: none;
+  }
+}

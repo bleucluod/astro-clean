@@ -2403,3 +2403,16 @@
   }
 }
 /* HALLEUS_REPORT_NATIVE_SITE_HEADER_R23_LINKS_PHYSICAL_LEFT_20260904: place the two report links at the physical left edge of the mobile toolbar. */
+
+
+/* HALLEUS_WIKI_CTA_CHROME_COLLISION_V12 */
+@media (max-width: 760px) {
+  :global(body[data-wiki-card-active="true"]) :global([data-mobile-account-fab]),
+  :global(body[data-wiki-end-cta-in-view="true"]) :global([data-mobile-account-fab]),
+  :global(body[data-wiki-card-active="true"]) .backToTop,
+  :global(body[data-wiki-end-cta-in-view="true"]) .backToTop {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}

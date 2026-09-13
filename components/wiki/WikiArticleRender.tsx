@@ -69,6 +69,7 @@ export function WikiInlineText({
   });
 }
 
+// HALLEUS_WIKI_KEY_POINTS_COUNT_V12
 export function WikiKeyPoints({
   keyPoints,
   targets,
@@ -76,13 +77,28 @@ export function WikiKeyPoints({
   keyPoints: readonly string[];
   targets: WikiInternalLinkTargets;
 }) {
+  const visibleKeyPoints = keyPoints.filter((point) => point.trim().length > 0);
+  const count = visibleKeyPoints.length;
+
+  if (count === 0) {
+    return null;
+  }
+
+  const title = count === 1
+    ? "یک نکته که باید با خودت ببری"
+    : count === 2
+      ? "دو نکته که باید با خودت ببری"
+      : count === 3
+        ? "سه نکته‌ای که باید با خودت ببری"
+        : `${new Intl.NumberFormat("fa-IR", { useGrouping: false }).format(count)} نکته که باید با خودت ببری`;
+
   return (
     <section className={styles.keyPoints} aria-labelledby="key-points-title">
       <span className={styles.sectionKicker}>خلاصهٔ مقاله</span>
-      <h2 id="key-points-title">سه نکته‌ای که باید با خودت ببری</h2>
+      <h2 id="key-points-title">{title}</h2>
       <ul>
-        {keyPoints.map((point) => (
-          <li key={point}>
+        {visibleKeyPoints.map((point, index) => (
+          <li key={`${point}-${index}`}>
             <WikiInlineText text={point} targets={targets} />
           </li>
         ))}
@@ -96,14 +112,16 @@ export function WikiArticleBody({
   contextLinks,
   sources,
   targets,
+  rootId,
 }: {
   sections: readonly WikiArticleSection[];
   contextLinks: readonly WikiArticleLink[];
   sources: readonly (string | WikiArticleSource)[];
   targets: WikiInternalLinkTargets;
+  rootId?: string;
 }) {
   return (
-    <div className={styles.articleBody}>
+    <div className={styles.articleBody} id={rootId}>
       {sections.map((section) => (
         <section className={styles.bodySection} key={section.title}>
           <h2>{section.title}</h2>

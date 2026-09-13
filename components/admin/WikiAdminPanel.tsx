@@ -44,6 +44,7 @@ import type { WikiQueueReflowPolicy } from "@/lib/wiki/wiki-cms-types";
 import type { WikiImportMergePlan } from "@/lib/wiki/wiki-import-merge";
 import { WikiArticleBody, WikiInlineText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
 import wikiPublicStyles from "@/app/wiki/wiki.module.css";
+import { getWikiEditorialCta } from "@/lib/wiki/wiki-editorial-cta"; // HALLEUS_WIKI_ADMIN_EDITORIAL_CTA_V12
 import { WikiImagePipelinePanel } from "./WikiImagePipelinePanel";
 import styles from "./admin-console.module.css";
 
@@ -1392,6 +1393,16 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
     [draft.sources],
   );
 
+  const draftEditorialCta = getWikiEditorialCta(draft.slug);
+  const previewEffectiveCta = previewData
+    ? (() => {
+        const editorial = getWikiEditorialCta(previewData.snapshot.slug);
+        return editorial
+          ? { title: editorial.endTitle, text: editorial.endText, label: editorial.endLabel, href: editorial.href }
+          : previewData.snapshot.callToAction;
+      })()
+    : null;
+
   function updateSourceRow(
     index: number,
     field: "label" | "href",
@@ -2343,12 +2354,12 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
                 sources={previewData.snapshot.sources}
                 targets={previewData.internalLinkTargets}
               />
-              {previewData.snapshot.callToAction ? (
+              {previewEffectiveCta ? (
                 <section className={wikiPublicStyles.sideCard}>
-                  <h2>{previewData.snapshot.callToAction.title}</h2>
-                  <p>{previewData.snapshot.callToAction.text}</p>
+                  <h2>{previewEffectiveCta.title}</h2>
+                  <p>{previewEffectiveCta.text}</p>
                   <span className={`${wikiPublicStyles.primaryButton} ${wikiPublicStyles.wikiArticleCta}`}>
-                    {previewData.snapshot.callToAction.label}
+                    {previewEffectiveCta.label}
                   </span>
                 </section>
               ) : null}
@@ -2435,7 +2446,15 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
 
                   <div className={styles.wikiStructuredList}>
                     <strong>CTA</strong>
-                    {draft.callToAction ? (
+                    {draftEditorialCta ? (
+                      <>
+                        <small>متن این CTA از فایل تأییدشدهٔ CTAها می‌آید و برای این مقاله فقط‌خواندنی است.</small>
+                        <label>عنوان CTA<input readOnly value={draftEditorialCta.endTitle} /></label>
+                        <label>متن دکمهٔ CTA<input readOnly value={draftEditorialCta.endLabel} /></label>
+                        <label className={styles.wideField}>توضیح CTA<textarea readOnly value={draftEditorialCta.endText} /></label>
+                        <label className={styles.wideField}>مسیر CTA<input readOnly value={draftEditorialCta.href} /></label>
+                      </>
+                    ) : draft.callToAction ? (
                       <>
                         <label>عنوان CTA<input value={draft.callToAction.title} onChange={(event) => updateDraft("callToAction", { ...draft.callToAction!, title: event.target.value })} /></label>
                         <label>متن دکمهٔ CTA<input value={draft.callToAction.label} onChange={(event) => updateDraft("callToAction", { ...draft.callToAction!, label: event.target.value })} /></label>
