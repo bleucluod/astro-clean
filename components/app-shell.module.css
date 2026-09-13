@@ -2406,13 +2406,39 @@
 
 
 /* HALLEUS_WIKI_CTA_CHROME_COLLISION_V12 */
+/* HALLEUS_WIKI_CTA_CHROME_CHOREOGRAPHY_V21 */
 @media (max-width: 760px) {
+  :global([data-mobile-account-fab]),
+  .backToTop {
+    will-change: transform, opacity;
+    transition:
+      transform 220ms cubic-bezier(.22, 1, .36, 1),
+      opacity 180ms ease,
+      visibility 0s linear 0s !important;
+  }
+
   :global(body[data-wiki-card-active="true"]) :global([data-mobile-account-fab]),
   :global(body[data-wiki-end-cta-in-view="true"]) :global([data-mobile-account-fab]),
   :global(body[data-wiki-card-active="true"]) .backToTop,
   :global(body[data-wiki-end-cta-in-view="true"]) .backToTop {
     opacity: 0 !important;
     visibility: hidden !important;
+    transform: translateY(140px) !important;
     pointer-events: none !important;
+    transition:
+      transform 220ms cubic-bezier(.22, 1, .36, 1),
+      opacity 180ms ease,
+      visibility 0s linear 220ms !important;
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  :global([data-mobile-account-fab]),
+  .backToTop,
+  :global(body[data-wiki-card-active="true"]) :global([data-mobile-account-fab]),
+  :global(body[data-wiki-end-cta-in-view="true"]) :global([data-mobile-account-fab]),
+  :global(body[data-wiki-card-active="true"]) .backToTop,
+  :global(body[data-wiki-end-cta-in-view="true"]) .backToTop {
+    transition: none !important;
   }
 }

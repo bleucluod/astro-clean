@@ -25,27 +25,11 @@ export function WikiEditorialMobileCta({
       data-wiki-editorial-mobile-cta="true"
       hidden
     >
-      <svg
+      <span
         aria-hidden="true"
         className={styles.editorialMobileCtaProgress}
-        focusable="false"
-        preserveAspectRatio="none"
-        viewBox="0 0 100 100"
-      >
-        <rect
-          className={styles.editorialMobileCtaProgressRect}
-          data-wiki-cta-progress="true"
-          fill="none"
-          height="98"
-          pathLength="100"
-          rx="18"
-          ry="18"
-          strokeDasharray="100 100"
-          width="98"
-          x="1"
-          y="1"
-        />
-      </svg>
+        data-wiki-cta-progress="true"
+      />
 
       <button
         aria-label="بستن پیشنهاد"

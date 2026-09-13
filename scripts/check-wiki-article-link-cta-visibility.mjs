@@ -208,10 +208,17 @@ requireText("Wiki reviewed progress marker", editorialMobile, 'data-wiki-cta-pro
 requireText("Wiki reviewed dismiss marker", editorialMobile, 'data-wiki-cta-dismiss="true"');
 requireText("Wiki reviewed runtime", appShell, "HALLEUS_WIKI_CTA_RUNTIME_V18");
 requireText("Wiki reviewed body progress", appShell, "const revealProgress = 0.35;");
-requireText("Wiki reviewed visible attention", appShell, "const visibleAttentionMs = 15000;");
-requireText("Wiki reviewed active duration", appShell, "const visibleDurationMs = 8000;");
-requireText("Wiki reviewed exit duration", appShell, "const exitDurationMs = 240;");
+requireText("Wiki reviewed active duration", appShell, "const visibleDurationMs = 12000;");
+requireText("Wiki reviewed exit duration", appShell, "const exitDurationMs = 300;");
 requireText("Wiki reviewed short viewport guard", appShell, "const minSafeViewportHeight = 320;");
+requireText("Wiki reviewed motion polish", appShell, "HALLEUS_WIKI_CTA_MOTION_POLISH_V21");
+requireText("Wiki reviewed controls-out choreography", appShell, "const controlExitDurationMs = 220;");
+requireText("Wiki reviewed choreography gap", appShell, "const choreographyGapMs = 70;");
+requireText("Wiki reviewed enter duration", appShell, "const enterDurationMs = 300;");
+requireText("Wiki reviewed committed entrance frame", appShell, "void card.offsetHeight;");
+requireText("Wiki reviewed controls return delay", appShell, "const controlReturnDelayMs = 70;");
+requireText("Wiki reviewed moving perimeter", appShell, "--wiki-cta-progress-angle");
+forbidText("Wiki reviewed attention gate", appShell, "visibleAttentionMs");
 requireText("Wiki reviewed end observer", appShell, "new IntersectionObserver");
 requireText("Wiki reviewed card state", appShell, "data-wiki-card-active");
 requireText("Wiki end CTA state", appShell, "data-wiki-end-cta-in-view");
@@ -221,6 +228,8 @@ requireText("Wiki focus pause", appShell, "focusin");
 requireText("Wiki reduced motion", appShell, "prefers-reduced-motion: reduce");
 requireText("Wiki back-to-top selector", appShell, "data-wiki-chrome-control=\"back-to-top\"");
 requireText("Wiki chrome collision CSS", appShellStyles, "HALLEUS_WIKI_CTA_CHROME_COLLISION_V12");
+requireText("Wiki chrome choreography CSS", appShellStyles, "HALLEUS_WIKI_CTA_CHROME_CHOREOGRAPHY_V21");
+requireText("Wiki chrome slide-down CSS", appShellStyles, "transform: translateY(140px) !important;");
 requireText("Wiki SSR hidden card CSS", styles, ".editorialMobileCta[hidden]");
 forbidText("Wiki reviewed mobile CTA", editorialMobile, "line-clamp");
 
@@ -235,5 +244,6 @@ if (failures.length > 0) {
 console.log("Wiki article link and CTA visibility check passed.");
 console.log("- contextual article links keep the current dark Wiki treatment");
 console.log("- inline Wiki CTA retains visible hover and focus styling");
-console.log("- mobile sticky CTA reuses each article CTA target and label");
-console.log("- sticky CTA is mobile-only, delayed, safe-area aware, and hides at the inline CTA");
+console.log("- reviewed editorial CTA reveals at 35% body progress with no attention-time gate");
+console.log("- reviewed editorial CTA holds for 12 seconds after entrance and coordinates mobile chrome motion");
+console.log("- legacy sticky CTA behavior remains isolated to non-reviewed Wiki routes");
