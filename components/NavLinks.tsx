@@ -6,8 +6,8 @@ import { Fragment } from "react";
 import { navItems } from "@/lib/config/navigation";
 // HALLEUS_REPORT_NATIVE_SITE_HEADER_REUSE_R8_20260904
 const reportReaderNavItems = [
-  { href: "/profile", label: "Ø­Ø³Ø§Ø¨ Ú©Ø§Ø±Ø¨Ø±ÛŒ" },
-  { href: "/compare", label: "Ø³ÛŒÙ†Ø§Ø³ØªØ±ÛŒ" },
+  { href: "/profile", label: "حساب کاربری" },
+  { href: "/compare", label: "سیناستری" },
 ] as const;
 
 function resolveNavItems(pathname: string) {
