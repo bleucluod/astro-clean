@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { formatAdminDateOnly, formatAdminDateTime } from "@/lib/admin/admin-date";
 import type {
   AdminAuditEventSummary,
   AdminCapability,
@@ -182,15 +183,7 @@ const premiumStatusLabels: Record<AdminPremiumRequestSummary["status"], string> 
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "—";
-  try {
-    return new Intl.DateTimeFormat("fa-IR", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(value));
-  } catch {
-    return value;
-  }
+  return formatAdminDateTime(value);
 }
 
 function hasCapability(
@@ -867,10 +860,11 @@ export function AdminConsole({
                   <table>
                     <thead>
                       <tr>
-                        <th>کاربر</th>
+                        <th>کاربر / تماس</th>
                         <th>وضعیت / پلن</th>
+                        <th>پروفایل</th>
                         <th>گزارش‌ها</th>
-                        <th>آخرین ورود</th>
+                        <th>فعالیت / عضویت</th>
                         <th>یادداشت</th>
                         <th>عملیات</th>
                       </tr>
@@ -881,6 +875,7 @@ export function AdminConsole({
                           <td>
                             <strong>{user.displayName || "بدون نام نمایشی"}</strong>
                             <small>{user.email || user.id}</small>
+                            <small>{user.phone ? `${user.phone} · ${user.phoneConfirmedAt ? "موبایل تأییدشده" : "موبایل تأییدنشده"}` : "بدون شماره موبایل"}</small>
                           </td>
                           <td>
                             <span className={styles.statusPill} data-tone={badgeTone(user.status)}>
@@ -889,10 +884,17 @@ export function AdminConsole({
                             <small>{user.plan}</small>
                           </td>
                           <td>
-                            {user.reportCount.toLocaleString("fa-IR")}
-                            <small>{formatDate(user.lastReportAt)}</small>
+                            <span>{user.profileBirthDate ? formatAdminDateOnly(user.profileBirthDate) : "تاریخ تولد ثبت نشده"}</span>
+                            <small>{[user.residenceCity, user.residenceCountry].filter(Boolean).join("، ") || "محل سکونت ثبت نشده"}</small>
                           </td>
-                          <td>{formatDate(user.lastSignInAt)}</td>
+                          <td>
+                            {user.reportCount.toLocaleString("fa-IR")}
+                            <small>تولد {user.natalReportCount.toLocaleString("fa-IR")} · سیناستری {user.synastryReportCount.toLocaleString("fa-IR")}</small>
+                          </td>
+                          <td>
+                            {formatDate(user.lastActivityAt)}
+                            <small>عضویت: {formatDate(user.createdAt)}</small>
+                          </td>
                           <td>{user.latestNote || "—"}</td>
                           <td>
                             <details className={styles.actionMenu}>
@@ -923,6 +925,7 @@ export function AdminConsole({
                         <div>
                           <strong>{user.displayName || "بدون نام نمایشی"}</strong>
                           <small>{user.email || user.id}</small>
+                          <small>{user.phone ? `${user.phone} · ${user.phoneConfirmedAt ? "تأییدشده" : "تأییدنشده"}` : "بدون موبایل"}</small>
                         </div>
                         <span className={styles.statusPill} data-tone={badgeTone(user.status)}>
                           {user.status}
@@ -930,8 +933,11 @@ export function AdminConsole({
                       </div>
                       <div className={styles.recordMeta}>
                         <span>پلن: {user.plan}</span>
-                        <span>گزارش: {user.reportCount.toLocaleString("fa-IR")}</span>
-                        <span>آخرین ورود: {formatDate(user.lastSignInAt)}</span>
+                        <span>تولد: {user.profileBirthDate ? formatAdminDateOnly(user.profileBirthDate) : "—"}</span>
+                        <span>سکونت: {[user.residenceCity, user.residenceCountry].filter(Boolean).join("، ") || "—"}</span>
+                        <span>گزارش: {user.reportCount.toLocaleString("fa-IR")} · تولد {user.natalReportCount.toLocaleString("fa-IR")} · سیناستری {user.synastryReportCount.toLocaleString("fa-IR")}</span>
+                        <span>آخرین فعالیت: {formatDate(user.lastActivityAt)}</span>
+                        <span>عضویت: {formatDate(user.createdAt)}</span>
                       </div>
                       {user.latestNote ? <p className={styles.recordNote}>{user.latestNote}</p> : null}
                       <div className={styles.recordActions}>

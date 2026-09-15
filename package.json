@@ -238,6 +238,8 @@
     "check:wiki-internal-link-admin": "node scripts/check-wiki-internal-link-admin.mjs",
     "check:wiki-image-pipeline": "node scripts/check-wiki-image-pipeline.mjs",
     "check:reports-intelligence": "node scripts/check-reports-intelligence.mjs",
+    "check:admin-profile-cities-completion": "node scripts/check-admin-profile-cities-completion.mjs",
+    "check:chart-city-pair-ux": "node scripts/check-chart-city-pair-ux.mjs",
     "check:monetization-products": "node scripts/check-monetization-products.mjs",
     "check:predeploy-admin-ia": "node scripts/check-predeploy-admin-ia.mjs",
     "check:credit-monetization": "node scripts/check-credit-monetization.mjs",

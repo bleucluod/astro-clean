@@ -581,3 +581,127 @@
   border-color: var(--profile-border-strong) !important;
   background: #0b0e13 !important;
 }
+
+/* Halleus account profile DOB/residence editor — 2026-09-15 */
+.profileEditorSurface {
+  margin-top: 22px;
+}
+
+.accountProfileEditor {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--profile-border);
+  border-radius: 20px;
+  background: rgba(3, 5, 8, 0.5);
+}
+
+.profileEditorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profileEditorGrid label {
+  position: relative;
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  font-weight: 750;
+}
+
+.profileEditorGrid input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--profile-border-strong);
+  border-radius: 13px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--profile-text);
+  outline: none;
+}
+
+.profileEditorGrid input:focus {
+  border-color: rgba(125, 211, 252, 0.58);
+  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.08);
+}
+
+.profileCitySuggestions {
+  position: absolute;
+  z-index: 12;
+  inset: calc(100% + 4px) 0 auto;
+  display: grid;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--profile-border-strong);
+  border-radius: 14px;
+  padding: 6px;
+  background: #0b0e13;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
+}
+
+.profileCitySuggestions button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: transparent;
+  color: var(--profile-text);
+  text-align: right;
+  cursor: pointer;
+}
+
+.profileCitySuggestions button:hover,
+.profileCitySuggestions button:focus-visible {
+  background: rgba(125, 211, 252, 0.09);
+}
+
+.profileCitySuggestions small,
+.profileEditorActions small,
+.profileEditorHint {
+  color: var(--profile-faint) !important;
+}
+
+.profileEditorActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.profileEditorActions button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 13px;
+  padding: 0 16px;
+  background: var(--profile-accent-soft);
+  color: #071018;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.profileEditorActions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.profileEditorSuccess {
+  color: #9ce9c3 !important;
+}
+
+.profileEditorError {
+  color: #ffb4b4 !important;
+}
+
+@media (max-width: 760px) {
+  .profileEditorGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .accountProfileEditor {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}

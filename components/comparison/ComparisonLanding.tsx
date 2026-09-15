@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { siteConfig } from "@/lib/config/seo";
+import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
 import { ComparisonBuilderLink } from "./ComparisonBuilderLink";
 import { ComparisonComposer } from "./ComparisonComposer";
@@ -74,7 +75,15 @@ function jsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-export function ComparisonLanding() {
+// HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
+export async function ComparisonLanding() {
+  const accessPolicy = await getPublicReportAccessPolicy();
+  const freeAllAccess = accessPolicy.monetizationMode === "FREE_ALL";
+  const effectiveFaqItems = freeAllAccess
+    ? faqItems
+    : faqItems.filter(
+        (item) => item.question !== "آیا چارت ازدواج هالیوس رایگان است؟",
+      );
   const pageUrl = `${siteConfig.url}/compare`;
   const heroImageUrl = `${siteConfig.url}/halleus-synastry-chart-comparison.webp`;
   const schemas = [
@@ -104,6 +113,16 @@ export function ComparisonLanding() {
       image: heroImageUrl,
       description:
         "ابزار مقایسه دو چارت تولد برای تحلیل رابطه و ازدواج بدون درصد سازگاری یا حکم قطعی.",
+      ...(freeAllAccess
+        ? {
+            isAccessibleForFree: true,
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "IRR",
+            },
+          }
+        : {}),
     },
     {
       "@context": "https://schema.org",
@@ -116,7 +135,7 @@ export function ComparisonLanding() {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: faqItems.map((item) => ({
+      mainEntity: effectiveFaqItems.map((item) => ({
         "@type": "Question",
         name: item.question,
         acceptedAnswer: { "@type": "Answer", text: item.answer },

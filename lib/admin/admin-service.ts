@@ -137,9 +137,38 @@ export async function listAdminUsers(
       u.status,
       u.plan,
       u.created_at::text as created_at,
+      coalesce(
+        nullif(a.phone, ''),
+        nullif(a.raw_user_meta_data ->> 'mobile_phone', ''),
+        nullif(a.raw_user_meta_data ->> 'phone', '')
+      ) as phone,
+      a.phone_confirmed_at::text as phone_confirmed_at,
       a.last_sign_in_at::text as last_sign_in_at,
+      u.profile_birth_date::text as profile_birth_date,
+      u.residence_city,
+      u.residence_country,
       count(r.id)::int as report_count,
+      count(r.id) filter (
+        where coalesce(
+          nullif(r.report_json #>> '{metadata,reportType}', ''),
+          nullif(r.report_json ->> 'reportType', ''),
+          'natal'
+        ) = 'comparison'
+      )::int as synastry_report_count,
+      count(r.id) filter (
+        where coalesce(
+          nullif(r.report_json #>> '{metadata,reportType}', ''),
+          nullif(r.report_json ->> 'reportType', ''),
+          'natal'
+        ) <> 'comparison'
+      )::int as natal_report_count,
       max(r.created_at)::text as last_report_at,
+      greatest(
+        coalesce(a.last_sign_in_at, '1970-01-01'::timestamptz),
+        coalesce(max(r.created_at), '1970-01-01'::timestamptz),
+        coalesce(u.profile_updated_at, '1970-01-01'::timestamptz),
+        u.created_at
+      )::text as last_activity_at,
       (
         select n.body
         from halleus_private.admin_notes n
@@ -149,14 +178,22 @@ export async function listAdminUsers(
       ) as latest_note
     from public.halleus_users u
     left join auth.users a on a.id::text = u.id
-    left join public.halleus_reports r on r.user_id = u.id
+    left join public.halleus_reports r on r.user_id = u.id and r.deleted_at is null
     where (
       ${query}::text is null
       or u.id ilike ${query}
       or coalesce(u.email, '') ilike ${query}
       or coalesce(u.display_name, '') ilike ${query}
+      or coalesce(a.phone, '') ilike ${query}
+      or coalesce(a.raw_user_meta_data ->> 'mobile_phone', '') ilike ${query}
+      or coalesce(u.residence_city, '') ilike ${query}
+      or coalesce(u.residence_country, '') ilike ${query}
     )
-    group by u.id, u.email, u.display_name, u.status, u.plan, u.created_at, a.last_sign_in_at
+    group by
+      u.id, u.email, u.display_name, u.status, u.plan, u.created_at,
+      u.profile_birth_date, u.residence_city, u.residence_country,
+      u.profile_updated_at, a.last_sign_in_at, a.phone, a.phone_confirmed_at,
+      a.raw_user_meta_data
     order by u.created_at desc
     limit ${limit}
     offset ${offset}
@@ -175,11 +212,17 @@ export async function listAdminUsers(
       lastSignInAt: asNullableString(row.last_sign_in_at),
       createdAt: asString(row.created_at),
       latestNote: asNullableString(row.latest_note),
+      phone: asNullableString(row.phone),
+      phoneConfirmedAt: asNullableString(row.phone_confirmed_at),
+      profileBirthDate: asNullableString(row.profile_birth_date),
+      residenceCity: asNullableString(row.residence_city),
+      residenceCountry: asNullableString(row.residence_country),
+      natalReportCount: asNumber(row.natal_report_count),
+      synastryReportCount: asNumber(row.synastry_report_count),
+      lastActivityAt: asString(row.last_activity_at),
     };
   });
-}
-
-export async function setAdminUserStatus(input: {
+}export async function setAdminUserStatus(input: {
   actor: VerifiedAdminActor;
   userId: string;
   status: "active" | "suspended";
@@ -372,6 +415,8 @@ export async function listAdminReports(
       r.report_json #>> '{input,birthTimeAccuracy}' as birth_time_accuracy,
       r.report_json #>> '{input,birthCity}' as birth_city,
       r.report_json #>> '{input,birthCountry}' as birth_country,
+      r.report_json #>> '{input,currentResidenceCity}' as current_residence_city,
+      r.report_json #>> '{input,currentResidenceCountry}' as current_residence_country,
       nullif(r.report_json #>> '{metadata,reportType}', '') as metadata_report_type,
       nullif(r.report_json ->> 'reportType', '') as top_level_report_type,
       coalesce(
@@ -401,6 +446,8 @@ export async function listAdminReports(
         or coalesce(r.report_json #>> '{comparison,relationshipContext}', '') ilike ${query}
         or coalesce(r.report_json #>> '{input,birthCity}', '') ilike ${query}
         or coalesce(r.report_json #>> '{input,birthCountry}', '') ilike ${query}
+        or coalesce(r.report_json #>> '{input,currentResidenceCity}', '') ilike ${query}
+        or coalesce(r.report_json #>> '{input,currentResidenceCountry}', '') ilike ${query}
       )
     order by r.created_at desc
     limit ${limit}
@@ -442,6 +489,8 @@ export async function listAdminReports(
         : null,
       birthCity: asNullableString(row.birth_city),
       birthCountry: asNullableString(row.birth_country),
+      currentResidenceCity: asNullableString(row.current_residence_city),
+      currentResidenceCountry: asNullableString(row.current_residence_country),
       ownerKind: asString(row.publication_owner_kind) || "unknown",
       accountPlan: asNullableString(row.account_plan),
       reportType:

@@ -15,6 +15,7 @@ import {
   isStoredComparisonReport,
   saveComparisonAccountReport,
 } from "@/lib/comparison/comparison-account-persistence";
+import { initializeAccountProfileFromBirthInput } from "@/lib/account/account-profile-service";
 import { readReportPage } from "@/lib/reports/report-access-contract";
 import {
   enableOwnedReportSharing,
@@ -373,6 +374,13 @@ export async function POST(request: Request) {
       displayName: user.displayName,
       provider: user.provider,
     });
+
+    try {
+      await initializeAccountProfileFromBirthInput(user.id, report.input);
+    } catch {
+      // Profile defaults are best-effort and must never corrupt a valid report save.
+      // The additive profile migration is applied only at the approved release boundary.
+    }
 
     const accessTier = await getEffectiveTelegramRewardAccessTier(user.id);
 

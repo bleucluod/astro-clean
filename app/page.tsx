@@ -1,5 +1,6 @@
+// HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 import type { Metadata } from "next";
-import { buildPublicPageMetadata } from "@/lib/config/seo";
+import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
 import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 
 import { HomepageLiveSky } from "@/components/HomepageLiveSky";
@@ -15,8 +16,9 @@ import styles from "./home.module.css";
 export const revalidate = 300;
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "هالیوس | آسترولوژی فارسی، چارت تولد و تحلیل رابطه",
-  description: "در هالیوس چارت تولد فارسی بساز، دو چارت را برای تحلیل خصوصی رابطه کنار هم بگذار، وضعیت واقعی آسمان امروز را ببین و آسترولوژی را مرحله‌به‌مرحله یاد بگیر.",
+  title: "هالیوس | آسترولوژی فارسی، چارت تولد، رابطه‌ها و آسمان امروز",
+  description:
+    "در هالیوس چارت تولدت را بساز، گزارش فارسی و شخصی‌ات را بخوان، چارت ازدواج و سیناستری دو نفر را برای تحلیل رابطه ببین و وضعیت واقعی آسمان امروز را دنبال کن.",
   canonical: "/",
 });
 
@@ -25,66 +27,57 @@ const productPaths = [
     number: "۰۱",
     title: "چارت تولد فارسی",
     description:
-      "تاریخ، ساعت و شهر تولدت را وارد کن تا خورشید، ماه، رایزینگ، خانه‌ها و جنبه‌ها محاسبه شوند و نتیجه را در یک گزارش فارسی ببینی.",
+      "جایگاه سیاره‌ها، رایزینگ، خانه‌ها و جنبه‌ها را ببین و گزارش شخصی چارتت را بخوان.",
     href: "/chart",
     action: "ساخت چارت تولد",
-    tone: "chart",
   },
   {
     number: "۰۲",
-    title: "تحلیل رابطه",
+    title: "چارت ازدواج و سیناستری",
     description:
-      "دو چارت را برای دیدن الگوهای گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و اصطکاک کنار هم بگذار؛ بدون درصد سازگاری یا حکم قطعی.",
+      "دو چارت را کنار هم بگذار و کشش، گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و مسیرهای رشد رابطه را ببین.",
     href: "/compare",
-    action: "شروع تحلیل خصوصی",
-    tone: "compare",
+    action: "ساخت چارت ازدواج",
   },
   {
     number: "۰۳",
     title: "آسمان امروز",
     description:
-      "جایگاه ماه و سیاره‌ها، فاز ماه، حرکت‌های برگشتی و رویدادهای نزدیک روز را براساس داده محاسبه‌شده ببین.",
+      "فاز ماه، جایگاه سیاره‌ها، حرکت‌های برگشتی و رویدادهای مهم آسمان امروز را ببین.",
     href: "/sky",
-    action: "دیدن وضعیت امروز",
-    tone: "sky",
+    action: "دیدن آسمان امروز",
   },
   {
     number: "۰۴",
     title: "ویکی هالیوس",
     description:
-      "مفاهیم چارت تولد، رایزینگ، خانه‌ها، جنبه‌ها، ساعت تولد و ترنزیت‌ها را روشن و فارسی یاد بگیر.",
+      "رایزینگ، خانه‌ها، جنبه‌ها، ترنزیت‌ها و بقیه مفاهیم آسترولوژی را ساده و فارسی یاد بگیر.",
     href: "/wiki",
-    action: "ورود به ویکی",
-    tone: "wiki",
+    action: "یادگیری در ویکی",
   },
 ] as const;
 
-const relationshipContexts = ["عاطفی", "دوستی", "خانواده", "کاری", "عمومی"] as const;
 const relationshipThemes = [
+  "کشش",
   "گفت‌وگو",
   "امنیت عاطفی",
   "نزدیکی",
   "مرزها",
-  "اصطکاک",
   "رشد",
 ] as const;
 
 const trustItems = [
   {
     title: "محاسبه واقعی",
-    text: "جایگاه‌ها از موتور محاسبه هالیوس می‌آیند؛ نه از حدس یا متن تولیدشده.",
+    text: "جایگاه‌ها و الگوهای چارت از موتور محاسبه هالیوس می‌آیند.",
   },
   {
-    title: "انتشار روشن",
-    text: "گزارش‌های مهمان و حساب رایگان به‌صورت پیش‌فرض عمومی‌اند؛ گزارش Premium خصوصی شروع می‌شود.",
+    title: "مسیر پیش رو",
+    text: "ترنزیت‌ها و حرکت‌های فعلی آسمان کمک می‌کنند دوره‌ها، فرصت‌ها و فشارهای پیش رو را در کنار چارت تولد ببینی.",
   },
   {
-    title: "رابطه همیشه خصوصی",
-    text: "تحلیل رابطه لینک عمومی ندارد و استفاده از اطلاعات نفر دوم نیازمند اجازه اوست.",
-  },
-  {
-    title: "داده شخصی خارج از آمار",
-    text: "داده تولد یا متن گزارش نباید برای آمار بازدید ارسال شوند.",
+    title: "حریم خصوصی",
+    text: "چارت ازدواج و سیناستری خصوصی می‌ماند و داده‌های شخصی تولد وارد آمار بازدید نمی‌شوند.",
   },
 ] as const;
 
@@ -92,42 +85,69 @@ const faqItems = [
   {
     question: "هالیوس چیست؟",
     answer:
-      "هالیوس یک تجربه فارسی برای ساخت چارت تولد، خواندن گزارش شخصی، تحلیل خصوصی رابطه، دیدن آسمان امروز و یادگیری مفاهیم آسترولوژی است.",
-  },
-  {
-    question: "چارت تولد چگونه محاسبه می‌شود؟",
-    answer:
-      "تاریخ، ساعت و شهر تولد برای محاسبه جایگاه خورشید، ماه، سیاره‌ها، رایزینگ، خانه‌ها و جنبه‌ها استفاده می‌شوند. هرجا اطلاعات کافی نباشد، محدودیت نتیجه باید روشن نمایش داده شود.",
+      "هالیوس یک تجربه فارسی برای ساخت و خواندن چارت تولد، چارت ازدواج و سیناستری، دیدن آسمان امروز و یادگیری آسترولوژی است.",
   },
   {
     question: "آیا ساخت چارت رایگان است؟",
     answer:
-      "نسخه پایه چارت تولد رایگان است. مسیرهای عمیق‌تر و امکانات Premium می‌توانند قواعد دسترسی جداگانه داشته باشند.",
+      "بله. در حال حاضر ساخت چارت تولد، خواندن گزارش کامل و ساخت چارت ازدواج و سیناستری بدون خرید در دسترس‌اند.",
   },
   {
-    question: "بدون ساعت دقیق تولد چه می‌شود؟",
+    question: "بدون ساعت دقیق تولد هم می‌توانم چارت بسازم؟",
     answer:
-      "هنوز می‌توانی بخشی از چارت را ببینی، اما رایزینگ، خانه‌ها و محورهای اصلی قابل اتکای کامل نیستند و ممکن است جایگاه ماه نیز به ساعت حساس باشد.",
+      "بله. می‌توانی شروع کنی؛ فقط رایزینگ، خانه‌ها و بعضی بخش‌های وابسته به ساعت با محدودیت روشن نمایش داده می‌شوند.",
   },
   {
-    question: "تحلیل رابطه چه فرقی با درصد سازگاری دارد؟",
+    question: "چارت ازدواج و سیناستری چه چیزی نشان می‌دهد؟",
     answer:
-      "هالیوس درصد موفقیت نمی‌دهد و رابطه را خوب یا بد اعلام نمی‌کند. تحلیل روی گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها، اصطکاک و مسیرهای رشد تمرکز دارد.",
+      "هالیوس کشش، گفت‌وگو، امنیت عاطفی، نزدیکی، مرزها و الگوهای رشد میان دو چارت را کنار هم می‌گذارد تا تصویر کامل‌تری از رابطه ببینی.",
   },
   {
-    question: "آسمان امروز از کجا می‌آید؟",
+    question: "هالیوس درباره مسیر پیش رو چه چیزی نشان می‌دهد؟",
     answer:
-      "صفحه آسمان از همان منبع محاسبه معتبر هالیوس استفاده می‌کند. داده ناقص یا قدیمی با برچسب امروز و عدد ساختگی جایگزین نمی‌شود.",
-  },
-  {
-    question: "گزارش‌ها عمومی‌اند یا خصوصی؟",
-    answer:
-      "گزارش مهمان و حساب رایگان به‌صورت پیش‌فرض عمومی است. گزارش Premium خصوصی شروع می‌شود و تحلیل رابطه همیشه خصوصی می‌ماند. نمایش نام نیز انتخابی جداگانه می‌خواهد.",
+      "هالیوس با ترنزیت‌ها و الگوهای زمانی چارت، دوره‌ها، فرصت‌ها و تنش‌های احتمالی پیش رو را توضیح می‌دهد تا تصویر روشن‌تری از مسیرت داشته باشی.",
   },
 ] as const;
 
+const learningSeeds = [
+  { title: "شروع از چارت تولد", preferredSlug: "birth-chart-basics" },
+  { title: "خورشید، ماه و رایزینگ", preferredSlug: "sun-moon-rising" },
+  { title: "خانه‌ها و جنبه‌ها", preferredSlug: "major-aspects" },
+  { title: "ساعت تولد و دقت چارت", preferredSlug: "why-birth-time-matters" },
+  { title: "ترنزیت‌ها و آسمان امروز", preferredSlug: "astrology-transits-explained" },
+] as const;
+
+function serializeJsonLd(value: unknown) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
+const homeEntityGraph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${siteConfig.url}/#website`,
+      url: `${siteConfig.url}/`,
+      name: "هالیوس",
+      alternateName: "Halleus",
+      inLanguage: "fa-IR",
+      publisher: { "@id": `${siteConfig.url}/#organization` },
+    },
+    {
+      "@type": "Organization",
+      "@id": `${siteConfig.url}/#organization`,
+      url: `${siteConfig.url}/`,
+      name: "هالیوس",
+      alternateName: "Halleus",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteConfig.url}/halleus-logo/logo-horizontal-bilingual-final-20260804.png`,
+      },
+    },
+  ],
+};
+
 export default async function Home() {
-  // HALLEUS_FREE_ALL_HOME_COPY_BATCH1_R1
   const [catalogResult, skyResult, accessPolicyResult] = await Promise.allSettled([
     getPublicWikiIndex(),
     deliverSkyPublicSnapshot({}),
@@ -142,51 +162,22 @@ export default async function Home() {
       : { articles: [], categories: [] };
   const articles = sortPublicWikiArticlesNewestFirst(catalog.articles);
   const sky = skyResult.status === "fulfilled" ? skyResult.value : null;
-  const effectiveTrustItems = freeAllAccess
-    ? trustItems.map((item) =>
-        item.title === "انتشار روشن"
-          ? {
-              ...item,
-              text: "دسترسی کامل فعلاً رایگان است؛ رایگان‌شدن دسترسی، قواعد انتشار و حریم خصوصی را تغییر نمی‌دهد.",
-            }
-          : item,
-      )
-    : trustItems;
+  const categoryLabelById = new Map(
+    catalog.categories.map((category) => [category.id, category.label]),
+  );
   const effectiveFaqItems = freeAllAccess
-    ? faqItems.map((item) =>
-        item.question === "آیا ساخت چارت رایگان است؟"
-          ? {
-              ...item,
-              answer: "بله. در حالت فعلی، ساخت چارت، خواندن گزارش کامل و ساخت تحلیل رابطه بدون خرید و بدون مصرف اعتبار در دسترس‌اند.",
-            }
-          : item,
-      )
-    : faqItems;
-
-  const usedWikiSlugs = new Set<string>();
-  const learningSeeds = [
-    { title: "شروع از چارت تولد", keywords: ["چارت تولد", "چارت"] },
-    { title: "خورشید، ماه و رایزینگ", keywords: ["خورشید", "ماه", "رایزینگ", "طالع"] },
-    { title: "خانه‌ها و جنبه‌ها", keywords: ["خانه", "جنبه"] },
-    { title: "ساعت و شهر تولد", keywords: ["ساعت تولد", "شهر تولد", "زمان تولد"] },
-    { title: "ترنزیت‌ها و آسمان امروز", keywords: ["ترنزیت", "آسمان امروز", "سیاره"] },
-  ];
+    ? faqItems
+    : faqItems.filter(
+        (item) => item.question !== "آیا ساخت چارت رایگان است؟",
+      );
   const learningPaths = learningSeeds.map((seed) => {
-    const article =
-      articles.find(
-        (candidate) =>
-          !usedWikiSlugs.has(candidate.slug) &&
-          seed.keywords.some((keyword) =>
-            `${candidate.title} ${candidate.shortTitle} ${candidate.summary}`.includes(keyword),
-          ),
-      ) ?? articles.find((candidate) => !usedWikiSlugs.has(candidate.slug));
-
-    if (article) usedWikiSlugs.add(article.slug);
-
+    const article = articles.find(
+      (candidate) => candidate.slug === seed.preferredSlug,
+    );
     return {
       title: seed.title,
       href: article ? `/wiki/${article.slug}` : "/wiki",
-      articleTitle: article?.shortTitle ?? "ورود به مسیر آموزشی ویکی",
+      articleTitle: article?.shortTitle ?? "ورود به ویکی هالیوس",
     };
   });
 
@@ -197,6 +188,11 @@ export default async function Home() {
       data-editorial-source="reviewed-public-editorial-home"
       data-product-surface="Halleus Home"
     >
+      <script
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(homeEntityGraph) }}
+        type="application/ld+json"
+      />
+
       <section className={styles.hero} aria-labelledby="home-hero-title">
         <div className={styles.heroAtmosphere} aria-hidden="true">
           <span className={styles.heroHalo} />
@@ -207,14 +203,16 @@ export default async function Home() {
         </div>
 
         <div className={styles.heroContent}>
-          <span className={styles.eyebrow}>هالیوس؛ تجربه فارسی آسترولوژی</span>
+          <span className={styles.eyebrow}>
+            هالیوس؛ آسترولوژی فارسی، شخصی و قابل‌فهم
+          </span>
           <h1 id="home-hero-title">
-            آسترولوژی فارسی برای شناخت چارت تولد، رابطه‌ها و آسمان امروز
+            آسترولوژی فارسی؛ از چارت تولد تا رابطه‌ها و آسمان امروز
           </h1>
           <p className={styles.heroLead}>
-            هالیوس اطلاعات تولد را محاسبه می‌کند و نتیجه را به شکلی فارسی و
-            قابل‌مرور نشان می‌دهد. از چارت تولد و تحلیل خصوصی رابطه تا وضعیت
-            واقعی آسمان امروز و آموزش مرحله‌به‌مرحله آسترولوژی.
+            اطلاعات تولدت را وارد کن؛ هالیوس چارت را محاسبه می‌کند و به یک گزارش
+            فارسی، شخصی و قابل‌خواندن تبدیل می‌کند. برای رابطه‌ها، آسمان امروز و
+            یادگیری آسترولوژی هم مسیرهای جدا داری.
           </p>
 
           <div className={styles.heroActions}>
@@ -223,7 +221,7 @@ export default async function Home() {
               <span aria-hidden="true">←</span>
             </IntentPrefetchLink>
             <IntentPrefetchLink className={styles.secondaryButton} href="/compare">
-              تحلیل رابطه
+              چارت ازدواج
             </IntentPrefetchLink>
           </div>
 
@@ -232,24 +230,24 @@ export default async function Home() {
           </IntentPrefetchLink>
 
           <p className={styles.heroMicrocopy}>
-            تاریخ شمسی یا میلادی فرقی ندارد. ساعت دقیق را هم نمی‌دانی؟ باز
-            می‌توانی شروع کنی و محدودیت‌ها را در نتیجه ببینی.
+            تاریخ شمسی یا میلادی؛ با ساعت دقیق یا بدون آن. اگر بخشی از چارت قابل
+            اتکا نباشد، هالیوس همان‌جا می‌گوید.
           </p>
         </div>
 
         <div className={styles.heroSignal} aria-hidden="true">
-          <span>موتور محاسبه هالیوس</span>
-          <strong>داده واقعی، خوانش فارسی</strong>
+          <span>هالیوس</span>
+          <strong>محاسبه واقعی · خوانش فارسی</strong>
           <i />
         </div>
       </section>
 
       <section className={styles.pathsSection} aria-labelledby="paths-title">
         <header className={styles.sectionHeaderCentered}>
-          <h2 id="paths-title">از یک نقطه شروع کن؛ مسیرها به هم وصل‌اند</h2>
+          <h2 id="paths-title">هالیوس را از اینجا شروع کن</h2>
           <p>
-            هالیوس یک مجموعه صفحه جدا از هم نیست. چارت تولد، تحلیل رابطه، آسمان
-            امروز و ویکی چهار مسیر یک تجربه مشترک‌اند.
+            چه دنبال چارت خودت باشی، چه چارت ازدواج، آسمان امروز یا یادگیری، هر مسیر
+            مستقیم به ابزار خودش می‌رسد.
           </p>
         </header>
 
@@ -259,7 +257,9 @@ export default async function Home() {
               <small>نقطه شروع پیشنهادی</small>
               <h3>{productPaths[0].title}</h3>
               <p>{productPaths[0].description}</p>
-              <IntentPrefetchLink href={productPaths[0].href}>{productPaths[0].action}</IntentPrefetchLink>
+              <IntentPrefetchLink href={productPaths[0].href}>
+                {productPaths[0].action}
+              </IntentPrefetchLink>
             </div>
 
             <div className={styles.chartInterface} aria-hidden="true">
@@ -267,12 +267,12 @@ export default async function Home() {
                 <span />
                 <span />
                 <span />
-                <small>birth-chart.halleus</small>
+                <small>چارت تولد هالیوس</small>
               </div>
               <div className={styles.miniChartWheel}>
                 <span>☉</span>
                 <span>☽</span>
-                <span>ASC</span>
+                <span>طالع</span>
                 <i />
               </div>
               <div className={styles.chartInterfaceLines}>
@@ -289,13 +289,12 @@ export default async function Home() {
 
           <div className={styles.pathSecondaryGrid}>
             {productPaths.slice(1).map((path) => (
-              <article
-                className={styles.pathCard}
-                key={path.href}
-              >
+              <article className={styles.pathCard} key={path.href}>
                 <h3>{path.title}</h3>
                 <p>{path.description}</p>
-                <IntentPrefetchLink href={path.href}>{path.action}</IntentPrefetchLink>
+                <IntentPrefetchLink href={path.href}>
+                  {path.action}
+                </IntentPrefetchLink>
               </article>
             ))}
           </div>
@@ -310,7 +309,7 @@ export default async function Home() {
             <h2 id="products-title">از داده خام تا روایتی که می‌شود خواند</h2>
           </div>
           <p>
-            گزارش تولد و تحلیل رابطه دو خروجی متفاوت‌اند؛ هر دو بر داده واقعی،
+            گزارش تولد و چارت ازدواج دو خروجی متفاوت‌اند؛ هر دو بر داده واقعی،
             مرزهای روشن و زبان قابل‌فهم تکیه دارند.
           </p>
         </header>
@@ -320,22 +319,23 @@ export default async function Home() {
 
           <article className={styles.relationshipPanel}>
             <div className={styles.relationshipHeader}>
-              <span className={styles.productBadge}>تحلیل رابطه</span>
+              <span className={styles.productBadge}>چارت ازدواج و سیناستری</span>
               <span className={styles.privateBadge}>همیشه خصوصی</span>
             </div>
-            <h3>دو چارت را کنار هم بگذار؛ رابطه را بدون حکم قطعی بخوان</h3>
+            <h3>چارت ازدواج و سیناستری؛ الگوی رابطه بین دو نفر</h3>
             <p>
-              تحلیل رابطه هالیوس نشان می‌دهد دو نفر گفت‌وگو، امنیت، نزدیکی،
-              فاصله و مرزها را چگونه تجربه می‌کنند.
+              هالیوس دو چارت را کنار هم می‌گذارد تا کشش، گفت‌وگو، امنیت عاطفی،
+              نزدیکی، مرزها، اصطکاک و مسیرهای رشد را ببینی.
+            </p>
+            <p>
+              ترکیب این الگوها نشان می‌دهد کجاها رابطه روان‌تر پیش می‌رود، کجاها
+              کشش بیشتری شکل می‌گیرد و کدام بخش‌ها به توجه بیشتری نیاز دارند.
             </p>
 
-            <div className={styles.relationshipContexts} aria-label="نوع رابطه">
-              {relationshipContexts.map((context) => (
-                <span key={context}>{context}</span>
-              ))}
-            </div>
-
-            <div className={styles.relationshipThemes}>
+            <div
+              className={styles.relationshipThemes}
+              aria-label="موضوع‌های اصلی چارت ازدواج و سیناستری"
+            >
               {relationshipThemes.map((theme) => (
                 <div key={theme}>
                   <strong>{theme}</strong>
@@ -343,16 +343,8 @@ export default async function Home() {
               ))}
             </div>
 
-            <div className={styles.relationshipBoundary}>
-              <strong>مرز خوانش</strong>
-              <p>
-                نتیجه درصد موفقیت نمی‌دهد، رابطه را خوب یا بد اعلام نمی‌کند و
-                استفاده از اطلاعات نفر دوم نیازمند اجازه اوست.
-              </p>
-            </div>
-
             <IntentPrefetchLink className={styles.primaryButton} href="/compare">
-              شروع تحلیل خصوصی رابطه
+              ساخت چارت ازدواج
               <span aria-hidden="true">←</span>
             </IntentPrefetchLink>
           </article>
@@ -364,11 +356,11 @@ export default async function Home() {
       <section className={styles.wikiSection} aria-labelledby="wiki-title">
         <header className={styles.sectionHeaderSplit}>
           <div>
-            <h2 id="wiki-title">آسترولوژی را فارسی و مرحله‌به‌مرحله یاد بگیر</h2>
+            <h2 id="wiki-title">آسترولوژی را ساده و فارسی یاد بگیر</h2>
           </div>
           <p>
-            مسیرهای آموزشی از Catalog واقعی ویکی ساخته می‌شوند؛ عنوان یا URL
-            حدسی به صفحه اضافه نمی‌شود.
+            اگر وسط گزارش به مفهومی رسیدی که نمی‌شناسی، ویکی هالیوس از پایه تا
+            لایه‌های پیشرفته توضیحش می‌دهد.
           </p>
         </header>
 
@@ -388,15 +380,20 @@ export default async function Home() {
           <div className={styles.wikiRecent}>
             <span className={styles.productBadge}>تازه‌ترین مقاله‌ها</span>
             <div className={styles.wikiGrid}>
-              {articles.slice(0, 4).map((article) => (
-                <article className={styles.wikiCard} key={article.slug}>
-                  <span>{article.categoryId}</span>
-                  <h3>
-                    <IntentPrefetchLink href={`/wiki/${article.slug}`}>{article.shortTitle}</IntentPrefetchLink>
-                  </h3>
-                  <p>{article.summary}</p>
-                </article>
-              ))}
+              {articles.slice(0, 4).map((article) => {
+                const categoryLabel = categoryLabelById.get(article.categoryId);
+                return (
+                  <article className={styles.wikiCard} key={article.slug}>
+                    {categoryLabel ? <span>{categoryLabel}</span> : null}
+                    <h3>
+                      <IntentPrefetchLink href={`/wiki/${article.slug}`}>
+                        {article.shortTitle}
+                      </IntentPrefetchLink>
+                    </h3>
+                    <p>{article.summary}</p>
+                  </article>
+                );
+              })}
             </div>
             <IntentPrefetchLink className={styles.secondaryButton} href="/wiki">
               ورود به ویکی هالیوس
@@ -407,15 +404,15 @@ export default async function Home() {
 
       <section className={styles.trustSection} aria-labelledby="trust-title">
         <header className={styles.sectionHeaderCentered}>
-          <h2 id="trust-title">محاسبه روشن، انتشار روشن</h2>
+          <h2 id="trust-title">محاسبه روشن، خوانش عمیق‌تر</h2>
           <p>
-            هالیوس ابزار پیش‌گویی قطعی نیست. داده محاسبه می‌شود، محدودیت‌ها دیده
-            می‌شوند و انتخاب‌های انتشار از هم جدا می‌مانند.
+            هالیوس داده‌های چارت را محاسبه می‌کند و آن‌ها را برای شناخت الگوها،
+            رابطه‌ها و دوره‌های پیش رو به یک خوانش فارسی و شخصی تبدیل می‌کند.
           </p>
         </header>
 
         <div className={styles.trustGrid}>
-          {effectiveTrustItems.map((item) => (
+          {trustItems.map((item) => (
             <article key={item.title}>
               <h3>{item.title}</h3>
               <p>{item.text}</p>
@@ -424,7 +421,7 @@ export default async function Home() {
         </div>
 
         <IntentPrefetchLink className={styles.textLink} href="/privacy">
-          خواندن حریم خصوصی هالیوس
+          حریم خصوصی هالیوس
           <span aria-hidden="true">←</span>
         </IntentPrefetchLink>
       </section>
@@ -432,7 +429,7 @@ export default async function Home() {
       <section className={styles.faqSection} aria-labelledby="faq-title">
         <div className={styles.faqMain}>
           <header>
-            <h2 id="faq-title">قبل از شروع، پاسخ سؤال‌های اصلی را ببین</h2>
+            <h2 id="faq-title">قبل از شروع</h2>
           </header>
 
           <div className={styles.faqList}>
@@ -447,39 +444,19 @@ export default async function Home() {
             ))}
           </div>
         </div>
-
-        <aside className={styles.faqTrustPanel}>
-          <span className={styles.statusDot}>وضعیت هالیوس</span>
-          <h3>داده واقعی، مرز روشن، استفاده مسئولانه</h3>
-          <ul>
-            <li>منبع محاسبه مشخص</li>
-            <li>محدودیت ساعت نامعلوم</li>
-            <li>تحلیل رابطه خصوصی</li>
-            <li>بدون پیش‌بینی قطعی</li>
-          </ul>
-          <IntentPrefetchLink className={styles.primaryButton} href="/privacy">
-            بررسی حریم خصوصی
-          </IntentPrefetchLink>
-        </aside>
       </section>
 
       <section className={styles.finalCta} aria-labelledby="final-cta-title">
         <div className={styles.finalCtaOrbit} aria-hidden="true" />
         <span className={styles.sectionIndex}>شروع مسیر</span>
-        <h2 id="final-cta-title">از کدام مسیر شروع می‌کنی؟</h2>
-        <p>یک انتخاب کافی است؛ بقیه مسیرها هر وقت لازم شوند کنار تو می‌مانند.</p>
+        <h2 id="final-cta-title">چارتت را ببین؛ از خودت شروع کن</h2>
+        <p>چند دقیقه برای وارد کردن اطلاعات تولد کافی است.</p>
         <div className={styles.finalCtaActions}>
           <IntentPrefetchLink className={styles.primaryButton} href="/chart">
             ساخت چارت تولد
           </IntentPrefetchLink>
           <IntentPrefetchLink className={styles.secondaryButton} href="/compare">
-            تحلیل رابطه
-          </IntentPrefetchLink>
-          <IntentPrefetchLink className={styles.secondaryButton} href="/sky">
-            دیدن آسمان امروز
-          </IntentPrefetchLink>
-          <IntentPrefetchLink className={styles.secondaryButton} href="/wiki">
-            یادگیری در ویکی
+            چارت ازدواج
           </IntentPrefetchLink>
         </div>
       </section>

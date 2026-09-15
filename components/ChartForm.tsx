@@ -19,11 +19,11 @@ import type {
 } from "@/types/astro";
 import type { GeneratedReportContract } from "@/types/report-generation";
 import {
-  IRAN_CITY_OPTIONS,
-  filterIranCities,
-  findIranCityByName,
-  getIranCityDisplayName,
-} from "@/lib/locations/iran-cities";
+  HALLEUS_CITY_OPTIONS,
+  filterHalleusCities,
+  findHalleusCityByName,
+  getHalleusCityDisplayName,
+} from "@/lib/locations/cities";
 import {
   loadLastStudyLocation,
   saveLastStudyLocation,
@@ -124,7 +124,7 @@ const initialBirthTimeParts: BirthTimeParts = {
   minute: "",
 };
 
-type IranCityOption = (typeof IRAN_CITY_OPTIONS)[number];
+type HalleusCityOption = (typeof HALLEUS_CITY_OPTIONS)[number];
 
 type RealEnginePlacement = {
   id: string;
@@ -469,7 +469,7 @@ export function ChartForm({
       return [];
     }
 
-    return filterIranCities(form.birthCity).slice(
+    return filterHalleusCities(form.birthCity).slice(
       0,
       MAX_CITY_SUGGESTIONS,
     );
@@ -483,7 +483,7 @@ export function ChartForm({
       return [];
     }
 
-    return filterIranCities(currentResidenceCity).slice(
+    return filterHalleusCities(currentResidenceCity).slice(
       0,
       MAX_CITY_SUGGESTIONS,
     );
@@ -510,7 +510,7 @@ export function ChartForm({
         : gregorianBirthDateParts;
     const hasSelectedCity = Boolean(
       form.birthCity.trim() &&
-        (selectedBirthCityId || findIranCityByName(form.birthCity)),
+        (selectedBirthCityId || findHalleusCityByName(form.birthCity)),
     );
     const steps = [
       { id: "name", label: "نام", complete: Boolean((form.name ?? "").trim()) },
@@ -563,8 +563,8 @@ export function ChartForm({
     setCurrentResidenceCity(value);
   }
 
-  function selectCurrentResidenceCity(city: IranCityOption) {
-    const cityName = getIranCityDisplayName(city);
+  function selectCurrentResidenceCity(city: HalleusCityOption) {
+    const cityName = getHalleusCityDisplayName(city);
     clearFieldError("currentResidence");
     setSelectedCurrentResidenceCityId(city.id);
     setCurrentResidenceCity(cityName);
@@ -577,10 +577,10 @@ export function ChartForm({
     updateField("birthCity", value);
   }
 
-  function selectBirthCity(city: IranCityOption) {
+  function selectBirthCity(city: HalleusCityOption) {
     clearFieldError("birthCity");
     setSelectedBirthCityId(city.id);
-    updateField("birthCity", getIranCityDisplayName(city));
+    updateField("birthCity", getHalleusCityDisplayName(city));
   }
 
   function updateField(field: keyof BirthInput, value: string) {
@@ -694,14 +694,14 @@ export function ChartForm({
     }
 
     const selectedCity =
-      IRAN_CITY_OPTIONS.find((city) => city.id === selectedBirthCityId) ??
-      findIranCityByName(normalizedCityName);
+      HALLEUS_CITY_OPTIONS.find((city) => city.id === selectedBirthCityId) ??
+      findHalleusCityByName(normalizedCityName);
 
     if (!selectedCity) {
       throw new ChartFormValidationError("birthCity", "فعلاً این شهر در فهرست ایران پیدا نشد. نزدیک‌ترین شهر پیشنهادی را انتخاب کن.");
     }
 
-    let selectedCurrentResidenceCity: IranCityOption | null = null;
+    let selectedCurrentResidenceCity: HalleusCityOption | null = null;
 
     if (includeTransitReading) {
       const normalizedCurrentResidenceCityName = currentResidenceCity.trim();
@@ -714,9 +714,9 @@ export function ChartForm({
       }
 
       selectedCurrentResidenceCity =
-        IRAN_CITY_OPTIONS.find(
+        HALLEUS_CITY_OPTIONS.find(
           (city) => city.id === selectedCurrentResidenceCityId,
-        ) ?? findIranCityByName(normalizedCurrentResidenceCityName) ?? null;
+        ) ?? findHalleusCityByName(normalizedCurrentResidenceCityName) ?? null;
 
       if (!selectedCurrentResidenceCity) {
         throw new ChartFormValidationError(
@@ -740,7 +740,7 @@ export function ChartForm({
       birthTime: normalizedBirthTime,
       birthTimeAccuracy: birthTimeMode,
       birthCity: selectedCity.faName,
-      birthCountry: initialForm.birthCountry,
+      birthCountry: selectedCity.countryFaName,
       birthCityId: selectedCity.id,
       birthLatitude: selectedCity.latitude,
       birthLongitude: selectedCity.longitude,
@@ -748,7 +748,7 @@ export function ChartForm({
       ...(selectedCurrentResidenceCity
         ? {
             currentResidenceCity: selectedCurrentResidenceCity.faName,
-            currentResidenceCountry: initialForm.birthCountry,
+            currentResidenceCountry: selectedCurrentResidenceCity.countryFaName,
             currentResidenceCityId: selectedCurrentResidenceCity.id,
             currentResidenceLatitude: selectedCurrentResidenceCity.latitude,
             currentResidenceLongitude: selectedCurrentResidenceCity.longitude,
@@ -765,7 +765,7 @@ export function ChartForm({
 
   async function requestRealEngineReportData(
     normalizedForm: BirthInput,
-    engineCity: IranCityOption,
+    engineCity: HalleusCityOption,
   ) {
     setRealEngineRequest({
       status: "loading",
@@ -784,7 +784,7 @@ export function ChartForm({
           birthTime: normalizedForm.birthTime,
           birthTimeAccuracy: normalizedForm.birthTimeAccuracy,
           timezone: engineCity.timezone,
-          placeName: getIranCityDisplayName(engineCity),
+          placeName: getHalleusCityDisplayName(engineCity),
           latitude: engineCity.latitude,
           longitude: engineCity.longitude,
           currentResidencePlaceName: normalizedForm.currentResidenceCity,
@@ -1304,7 +1304,7 @@ export function ChartForm({
                         className="city-suggestion-chip"
                         onClick={() => selectBirthCity(city)}
                       >
-                        {getIranCityDisplayName(city)}
+                        {getHalleusCityDisplayName(city)}
                       </button>
                     ))}
                   </div>
@@ -1370,7 +1370,7 @@ export function ChartForm({
                           onClick={() => selectCurrentResidenceCity(city)}
                           className="city-suggestion-chip"
                         >
-                          {getIranCityDisplayName(city)}
+                          {getHalleusCityDisplayName(city)}
                         </button>
                       ))}
                     </div>
@@ -1536,7 +1536,7 @@ function FieldError({ message }: { message?: string }) {
 async function buildReportForSave(
   normalizedForm: BirthInput,
   payload: RealChartApiResponse | null,
-  engineCity: IranCityOption,
+  engineCity: HalleusCityOption,
 ): Promise<AstrologyReport> {
   if (payload?.report) {
     return attachReportGenerationContext(payload.report, payload);
@@ -1587,7 +1587,7 @@ function attachReportGenerationContext(
 async function buildLocalFallbackReport(
   normalizedForm: BirthInput,
   payload: RealChartApiResponse | null,
-  engineCity: IranCityOption,
+  engineCity: HalleusCityOption,
 ): Promise<AstrologyReport> {
   const [{ createMockReport }, { enhanceReportOutputV2 }] = await Promise.all([
     import("@/lib/astrology/mock-engine"),
@@ -1601,7 +1601,7 @@ async function buildLocalFallbackReport(
 async function attachRealEngineSnapshotToReport(
   report: AstrologyReport,
   payload: RealChartApiResponse | null,
-  engineCity: IranCityOption,
+  engineCity: HalleusCityOption,
 ): Promise<AstrologyReport> {
   if (!payload?.ok || !payload.realChart) {
     return report;
@@ -1610,7 +1610,7 @@ async function attachRealEngineSnapshotToReport(
   const realEngine: RealEngineReportSnapshot = {
     version: "real-engine-preview-v1",
     generatedAt: new Date().toISOString(),
-    cityLabel: getIranCityDisplayName(engineCity),
+    cityLabel: getHalleusCityDisplayName(engineCity),
     utcIso: payload.realChart.utcIso,
     ascendantLongitude: payload.realChart.ascendantLongitude,
     placements: payload.realChart.placements,

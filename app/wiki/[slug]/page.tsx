@@ -22,6 +22,7 @@ const WIKI_BASE_URL = "https://halleus.ir";
 const WIKI_ARTICLE_CONTENT_ID = "wiki-article-content";
 const WIKI_INLINE_CTA_ID = "wiki-article-inline-cta";
 const WIKI_ARTICLE_BODY_ID = "wiki-article-body";
+// HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 // HALLEUS_WIKI_EDITORIAL_CTA_199_V12
 // HALLEUS_WIKI_CTA_EARLY_CLIENT_BOUNDARY_V17
 
@@ -79,6 +80,15 @@ function serializeJsonLd(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
+function formatPersianWikiDate(value: string) {
+  return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Tehran",
+  }).format(new Date(value));
+}
+
 export default async function WikiArticlePage({ params }: WikiArticlePageProps) {
   const { slug } = await params;
   const resolution = await getPublicWikiArticleResolution(slug);
@@ -108,18 +118,28 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
     description: article.metaDescription ?? article.summary,
     inLanguage: "fa-IR",
     mainEntityOfPage: articleUrl,
+    datePublished: article.publishedAt,
+    ...(article.contentModifiedAt
+      ? { dateModified: article.contentModifiedAt }
+      : {}),
     author: {
-      "@type": "Organization",
-      name: "Halleus",
-      url: WIKI_BASE_URL,
+      "@id": `${WIKI_BASE_URL}/#organization`,
     },
     publisher: {
-      "@type": "Organization",
-      name: "Halleus",
-      url: WIKI_BASE_URL,
+      "@id": `${WIKI_BASE_URL}/#organization`,
+    },
+    isPartOf: {
+      "@id": `${WIKI_BASE_URL}/#website`,
     },
     ...(article.image
-      ? { image: { "@type": "ImageObject", url: article.image.url, width: article.image.width, height: article.image.height } }
+      ? {
+          image: {
+            "@type": "ImageObject",
+            url: article.image.url,
+            width: article.image.width,
+            height: article.image.height,
+          },
+        }
       : {}),
   };
   const breadcrumbJsonLd = {
@@ -208,12 +228,19 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
                   {category.label}
                 </Link>
               ) : null}
-              <span className={styles.articleMeta}>
-                زمان مطالعه: {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
-              </span>
             </div>
             <h1>{article.title}</h1>
             <p><WikiInlineText text={article.intro} targets={internalLinkTargets} /></p>
+            <div className={styles.articleDates} aria-label="تاریخ مقاله">
+              <span className={styles.articleMeta}>
+                منتشرشده در {formatPersianWikiDate(article.publishedAt)}
+              </span>
+              {article.contentModifiedAt ? (
+                <span className={styles.articleMeta}>
+                  به‌روزرسانی در {formatPersianWikiDate(article.contentModifiedAt)}
+                </span>
+              ) : null}
+            </div>
           </header>
 
           {article.image ? (

@@ -2672,3 +2672,53 @@
 .learningPaths a > div {
   min-width: 0;
 }
+/* HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1 */
+.hero h1 {
+  font-size: clamp(2.15rem, 4.2vw, 3.45rem);
+  line-height: 1.35;
+}
+
+.heroMicrocopy,
+.pathCard p,
+.reportLimitNote,
+.relationshipBoundary p,
+.reportLayerList small,
+.howStep p,
+.howStepActive p,
+.howCanvasBody > p,
+.learningPaths small,
+.wikiCard p,
+.trustGrid p,
+.faqList p {
+  font-size: 0.88rem;
+}
+
+.reportLayerList > div {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.reportLayerList strong,
+.learningPaths strong {
+  font-size: 0.9rem;
+}
+
+.howStep,
+.howStepActive {
+  grid-template-columns: minmax(0, 1fr) 14px;
+}
+
+.learningPaths a {
+  grid-template-columns: minmax(0, 1fr) 24px;
+}
+
+.wikiCard > span {
+  direction: rtl;
+}
+
+.trustGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+}
+
+.faqSection {
+  grid-template-columns: minmax(0, 1fr);
+}

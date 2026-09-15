@@ -243,7 +243,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       return;
     }
 
-    await saveComparisonToAccount(result.record, { navigationGraceMs: 1200 });
+    await saveComparisonToAccount(result.record, { navigationGraceMs: 0 });
     pendingGenerationRef.current = null;
     router.push(`/compare/${encodeURIComponent(result.record.id)}`);
   }

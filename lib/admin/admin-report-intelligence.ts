@@ -38,15 +38,21 @@ function allowedVisibility(value: string): AdminReportSummary["visibility"] {
     : "unknown";
 }
 
-function parseBirthParts(value: string | null) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
-  if (!match) return { year: null, month: null };
-  const month = Number(match[2]);
-  if (month < 1 || month > 12) return { year: null, month: null };
-  return { year: match[1], month: match[2] };
-}
+const PERSIAN_BIRTH_PARTS = new Intl.DateTimeFormat("en-US-u-ca-persian", {
+  year: "numeric",
+  month: "2-digit",
+  timeZone: "UTC",
+});
 
-function tehranDay(value: string) {
+function parseBirthParts(value: string | null) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value ?? "")) return { year: null, month: null };
+  const date = new Date(`${value}T12:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return { year: null, month: null };
+  const parts = PERSIAN_BIRTH_PARTS.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value ?? null;
+  const month = parts.find((part) => part.type === "month")?.value?.padStart(2, "0") ?? null;
+  return { year, month };
+}function tehranDay(value: string) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: TEHRAN_TIMEZONE,
     year: "numeric",
@@ -88,9 +94,7 @@ export function normalizeAdminReportRow(raw: unknown): AdminReportSummary {
     subjectName: cleanNullable(row.subject_name),
     comparisonChartALabel: cleanNullable(row.comparison_chart_a_label),
     comparisonChartBLabel: cleanNullable(row.comparison_chart_b_label),
-    comparisonRelationshipContext: cleanNullable(
-      row.comparison_relationship_context,
-    ),
+    comparisonRelationshipContext: cleanNullable(row.comparison_relationship_context),
     birthDate,
     birthTime: cleanNullable(row.birth_time),
     birthTimeAccuracy: ["known", "unknown"].includes(birthTimeAccuracyRaw)
@@ -98,6 +102,8 @@ export function normalizeAdminReportRow(raw: unknown): AdminReportSummary {
       : null,
     birthCity: cleanNullable(row.birth_city),
     birthCountry: cleanNullable(row.birth_country),
+    currentResidenceCity: cleanNullable(row.current_residence_city),
+    currentResidenceCountry: cleanNullable(row.current_residence_country),
     birthYear: birthParts.year,
     birthMonth: birthParts.month,
     ownerKind: cleanNullable(row.publication_owner_kind) ?? "unknown",
@@ -109,8 +115,7 @@ export function normalizeAdminReportRow(raw: unknown): AdminReportSummary {
     accessTier: cleanNullable(row.access_tier) ?? "unknown",
     engineVersion: cleanNullable(row.engine_version),
     reportVersion: cleanNullable(row.report_version),
-    publicationConsentState:
-      cleanNullable(row.publication_consent_state) ?? "unknown",
+    publicationConsentState: cleanNullable(row.publication_consent_state) ?? "unknown",
     identityConsentState: cleanNullable(row.identity_consent_state) ?? "unknown",
     shareEnabled: asBoolean(row.share_enabled),
     storageBytes: asNumber(row.storage_bytes),
@@ -134,12 +139,27 @@ async function loadCanonicalAdminReports() {
       ) as title,
       u.display_name as owner_display_name,
       u.plan as account_plan,
-      r.report_json #>> '{input,name}' as subject_name,
+      coalesce(
+        nullif(r.report_json #>> '{input,name}', ''),
+        nullif(
+          concat_ws(
+            ' ↔ ',
+            r.report_json #>> '{comparison,chartALabel}',
+            r.report_json #>> '{comparison,chartBLabel}'
+          ),
+          ''
+        )
+      ) as subject_name,
+      r.report_json #>> '{comparison,chartALabel}' as comparison_chart_a_label,
+      r.report_json #>> '{comparison,chartBLabel}' as comparison_chart_b_label,
+      r.report_json #>> '{comparison,relationshipContext}' as comparison_relationship_context,
       r.report_json #>> '{input,birthDate}' as birth_date,
       r.report_json #>> '{input,birthTime}' as birth_time,
       r.report_json #>> '{input,birthTimeAccuracy}' as birth_time_accuracy,
       r.report_json #>> '{input,birthCity}' as birth_city,
       r.report_json #>> '{input,birthCountry}' as birth_country,
+      r.report_json #>> '{input,currentResidenceCity}' as current_residence_city,
+      r.report_json #>> '{input,currentResidenceCountry}' as current_residence_country,
       nullif(r.report_json #>> '{metadata,reportType}', '') as metadata_report_type,
       nullif(r.report_json ->> 'reportType', '') as top_level_report_type,
       r.publication_owner_kind,
@@ -179,9 +199,7 @@ async function loadCanonicalAdminReports() {
     );
   }
   return rows.map(normalizeAdminReportRow);
-}
-
-function normalizeFilterText(value: string | null) {
+}function normalizeFilterText(value: string | null) {
   return value?.trim().toLocaleLowerCase("fa") ?? "";
 }
 
@@ -198,6 +216,8 @@ function includesSearch(report: AdminReportSummary, search: string) {
     report.comparisonRelationshipContext,
     report.birthCity,
     report.birthCountry,
+    report.currentResidenceCity,
+    report.currentResidenceCountry,
     report.source,
     report.reportType,
   ].some((value) =>

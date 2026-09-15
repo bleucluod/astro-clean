@@ -67,6 +67,14 @@ export type AdminUserSummary = {
   lastSignInAt: string | null;
   createdAt: string;
   latestNote: string | null;
+  phone: string | null;
+  phoneConfirmedAt: string | null;
+  profileBirthDate: string | null;
+  residenceCity: string | null;
+  residenceCountry: string | null;
+  natalReportCount: number;
+  synastryReportCount: number;
+  lastActivityAt: string;
 };
 
 export type AdminReportSummary = {
@@ -84,6 +92,8 @@ export type AdminReportSummary = {
   birthTimeAccuracy: "known" | "unknown" | null;
   birthCity: string | null;
   birthCountry: string | null;
+  currentResidenceCity: string | null;
+  currentResidenceCountry: string | null;
   ownerKind: string;
   accountPlan: string | null;
   reportType: string;

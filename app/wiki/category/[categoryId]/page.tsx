@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { buildPublicPageMetadata } from "@/lib/config/seo";
+import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -20,6 +20,21 @@ type WikiCategoryPageProps = {
 
 export const dynamicParams = true;
 export const revalidate = 300;
+
+// HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
+const RELATED_WIKI_CATEGORY_IDS: Record<string, readonly string[]> = {
+  foundations: ["houses", "aspects"],
+  houses: ["planets", "aspects"],
+  aspects: ["planets", "houses"],
+  transits: ["planets"],
+  accuracy: ["foundations", "houses"],
+  systems: ["foundations", "houses"],
+  planets: ["aspects", "houses"],
+};
+
+function serializeJsonLd(value: unknown) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
 
 export async function generateStaticParams() {
   const { articles, categories } = await getPublicWikiIndex();
@@ -76,12 +91,76 @@ export default async function WikiCategoryPage({
   }
 
   const r8Body = getWikiCategoryR8Body(categoryId);
+  const publicCategoryViews = buildPublicWikiCategoryViews(articles, categories);
+  const publicCategoryById = new Map(
+    publicCategoryViews.map((view) => [view.category.id, view.category]),
+  );
+  const relatedCategories = (RELATED_WIKI_CATEGORY_IDS[categoryId] ?? [])
+    .flatMap((relatedId) => {
+      const related = publicCategoryById.get(relatedId);
+      return related ? [related] : [];
+    })
+    .slice(0, 3);
+  const categoryUrl = `${siteConfig.url}/wiki/category/${categoryView.category.id}`;
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "@id": `${categoryUrl}#collectionpage`,
+      url: categoryUrl,
+      name: categoryView.content.h1,
+      description: categoryView.content.metaDescription,
+      inLanguage: "fa-IR",
+      isPartOf: { "@id": `${siteConfig.url}/#website` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "ویکی هالیوس",
+          item: `${siteConfig.url}/wiki`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: categoryView.category.label,
+          item: categoryUrl,
+        },
+      ],
+    },
+    ...(categoryView.pillarArticles.length
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "@id": `${categoryUrl}#start-here`,
+            itemListElement: categoryView.pillarArticles.map((article, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              name: article.shortTitle,
+              url: `${siteConfig.url}/wiki/${article.slug}`,
+            })),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <section
       className={styles.page}
       data-product-surface="Halleus Wiki Category"
     >
+      {structuredData.map((schema, index) => (
+        <script
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
+          key={index}
+          type="application/ld+json"
+        />
+      ))}
+
       <nav className={styles.breadcrumb} aria-label="مسیر دستهٔ ویکی">
         <Link href="/wiki">ویکی هالیوس</Link>
         <span aria-hidden="true">/</span>
@@ -132,9 +211,7 @@ export default async function WikiCategoryPage({
                 <span className={styles.categoryPill}>
                   گام {(index + 1).toLocaleString("fa-IR")}
                 </span>
-                <span className={styles.articleMeta}>
-                  {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
-                </span>
+
               </div>
               <h3>
                 <Link
@@ -176,6 +253,40 @@ export default async function WikiCategoryPage({
         </section>
       ) : null}
 
+      {relatedCategories.length > 0 || categoryId === "transits" ? (
+        <section className={styles.section} aria-labelledby="category-related-title">
+          <div className={styles.sectionHeader}>
+            <div>
+              <span className={styles.sectionKicker}>مسیرهای مرتبط</span>
+              <h2 id="category-related-title">بعد از این دسته کجا برویم؟</h2>
+            </div>
+          </div>
+          <div className={styles.guideGrid}>
+            {relatedCategories.map((related) => (
+              <div className={styles.guideStep} key={related.id}>
+                <p>
+                  <Link
+                    className={styles.articleTitleLink}
+                    href={`/wiki/category/${related.id}`}
+                  >
+                    {related.label}
+                  </Link>
+                </p>
+              </div>
+            ))}
+            {categoryId === "transits" ? (
+              <div className={styles.guideStep}>
+                <p>
+                  <Link className={styles.articleTitleLink} href="/sky">
+                    آسمان امروز
+                  </Link>
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
       <section className={styles.section} aria-labelledby="category-articles-title">
         <div className={styles.sectionHeader}>
           <div>
@@ -197,9 +308,7 @@ export default async function WikiCategoryPage({
                 <span className={styles.categoryPill}>
                   {categoryView.category.label}
                 </span>
-                <span className={styles.articleMeta}>
-                  {article.readingMinutes.toLocaleString("fa-IR")} دقیقه
-                </span>
+
               </div>
               <h3>
                 <Link

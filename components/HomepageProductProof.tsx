@@ -1,78 +1,68 @@
+// HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 import Link from "next/link";
 
 import styles from "@/app/home.module.css";
-import {
-  HOME_REPORT_PREVIEW_LAYERS,
-  HOME_REPORT_PREVIEW_SECTIONS,
-} from "@/lib/report-preview/homepage-report-preview";
+
+const reportFeatures = [
+  {
+    title: "شروع شخصی",
+    text: "گزارش با مهم‌ترین داستان‌ها و الگوهای خود چارت تو شروع می‌شود.",
+  },
+  {
+    title: "لایه‌های عمیق‌تر",
+    text: "گره‌های ماه، لیلیت، کایران و نقاط ویژه فقط وقتی برجسته می‌شوند که چیزی به خوانش اضافه کنند.",
+  },
+  {
+    title: "زمان حال",
+    text: "اگر بخش آسمان شخصی را انتخاب کنی، ترنزیت‌های مرتبط هم در کنار چارت تولدت خوانده می‌شوند.",
+  },
+] as const;
 
 export function HomepageProductProof() {
-  const preview = HOME_REPORT_PREVIEW_SECTIONS[0];
-
   return (
     <article
       className={styles.reportPanel}
       id="report-preview"
-      aria-label="نمونه کوتاه گزارش هالیوس"
+      aria-label="معرفی گزارش شخصی چارت تولد هالیوس"
     >
       <header className={styles.reportPanelHeader}>
-        <span className={styles.productBadge}>گزارش تولد فارسی</span>
-        <span className={styles.calculationBadge}>ردپای محاسبه محفوظ</span>
+        <span className={styles.productBadge}>گزارش شخصی چارت تولد</span>
       </header>
 
-      <h3>چارت تولد فقط یک جدول نیست</h3>
+      <h3>چارتت فقط خورشید و ماه نیست</h3>
       <p className={styles.reportPanelLead}>
-        گزارش با یک تصویر کلی شروع می‌شود و بعد خورشید، ماه، رایزینگ، خانه‌ها،
-        جنبه‌ها و الگوهای برجسته را در فصل‌هایی مرتبط کنار هم می‌گذارد.
+        هالیوس از سیاره‌ها، رایزینگ، خانه‌ها و جنبه‌ها شروع می‌کند و اگر در چارتت
+        مهم باشند، گره‌های ماه، لیلیت، کایران، سهم بخت، ورتکس و لایه‌های
+        پیشرفته‌تر را هم وارد خوانش می‌کند.
+      </p>
+      <p className={styles.reportPanelLead}>
+        هدف، فهرست‌کردن همه‌چیز نیست. مهم‌ترین الگوهای چارت کنار هم قرار می‌گیرند
+        تا به‌جای چند معنی جدا، یک روایت شخصی و قابل‌خواندن داشته باشی.
       </p>
 
-      <div className={styles.reportPreviewWindow}>
-        <div className={styles.reportPreviewToolbar} aria-hidden="true">
-          <div>
-            <span />
-            <span />
-            <span />
-          </div>
-          <small>نمونه گزارش هالیوس</small>
-        </div>
-
-        {preview ? (
-          <div className={styles.reportPreviewContent}>
-            <span>تصویر کلی گزارش</span>
-            <h4>{preview.title}</h4>
-            <p>{preview.body}</p>
-            <div className={styles.reportEvidence}>
-              <strong>ردپای محاسبه</strong>
-              <span>{preview.evidence}</span>
-            </div>
-            <blockquote>{preview.reflection}</blockquote>
-          </div>
-        ) : null}
-      </div>
-
-      <div className={styles.reportLayerList} aria-label="ساختار گزارش کامل">
-        {HOME_REPORT_PREVIEW_LAYERS.map((layer) => (
-          <div key={layer.label}>
+      <div className={styles.reportLayerList} aria-label="ویژگی‌های گزارش شخصی">
+        {reportFeatures.map((feature) => (
+          <div key={feature.title}>
             <p>
-              <strong>{layer.label}</strong>
-              <small>{layer.description}</small>
+              <strong>{feature.title}</strong>
+              <small>{feature.text}</small>
             </p>
           </div>
         ))}
       </div>
 
       <p className={styles.reportLimitNote}>
-        اگر ساعت تولد نامعلوم باشد، محدودیت رایزینگ و خانه‌ها داخل گزارش پنهان
-        نمی‌شود.
+        اگر ساعت تولدت دقیق نباشد، هالیوس بخش‌های وابسته به ساعت را با محدودیت
+        روشن نشان می‌دهد.
       </p>
 
       <div className={styles.reportActions}>
-        <Link className={styles.secondaryButton} href="/product">
-          داخل گزارش چه می‌بینی؟
-        </Link>
         <Link className={styles.primaryButton} href="/chart">
           ساخت گزارش شخصی
           <span aria-hidden="true">←</span>
+        </Link>
+        <Link className={styles.secondaryButton} href="/product">
+          دیدن نمونه گزارش
         </Link>
       </div>
     </article>

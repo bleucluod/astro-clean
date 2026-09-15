@@ -68,6 +68,7 @@ export async function saveComparisonToAccount(
     try {
       const response = await fetch("/api/reports/account", {
         method: "POST",
+        keepalive: true,
         headers: {
           Authorization: `Bearer ${auth.accessToken}`,
           "Content-Type": "application/json",

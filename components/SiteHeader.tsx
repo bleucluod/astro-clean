@@ -295,6 +295,14 @@ export function SiteHeader() {
     };
   }, []);
 
+  const isAdminRoute =
+    pathname === "/admini" ||
+    pathname.startsWith("/admini/") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/");
+
+  if (isAdminRoute) return null;
+
   const headerClassName = [
     "site-header",
     "site-header-app",

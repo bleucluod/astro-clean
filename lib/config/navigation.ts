@@ -5,7 +5,7 @@ export const navItems = [
   },
   {
     href: "/compare",
-    label: "تحلیل رابطه",
+    label: "چارت ازدواج",
   },
   {
     href: "/sky",

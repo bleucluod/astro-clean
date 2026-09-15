@@ -197,6 +197,7 @@ function SkyMoonVisual({
   );
 }
 
+// HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 export function HomepageLiveSky({
   result,
 }: {
@@ -244,14 +245,16 @@ export function HomepageLiveSky({
       : null;
   const stateLabel =
     state.status === "ready"
-      ? "دادهٔ امروز آماده است"
+      ? "داده زنده آسمان"
       : state.status === "partial"
         ? "بخشی از داده آماده است"
         : "دادهٔ تازه در دسترس نیست";
   const heading =
-    state.status === "stale"
-      ? "آخرین دادهٔ معتبر آسمان"
-      : "آسمان امروز در یک نگاه";
+    state.status === "ready"
+      ? "آسمان امروز، همین حالا"
+      : state.status === "stale"
+        ? "آخرین دادهٔ معتبر آسمان"
+        : "آسمان امروز در یک نگاه";
   const moonLabel = moon
     ? `${SKY_SIGN_LABELS[moon.sign]}، ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} درجه`
     : "ثبت نشده";
@@ -274,8 +277,15 @@ export function HomepageLiveSky({
             <span className={styles.stateBadge}>{stateLabel}</span>
             <h2 id="home-live-sky-title">{heading}</h2>
             <p>
-              {city.faName} · {formatPersianDate(currentLocalDate, city.timezone)}
+              {state.status === "ready"
+                ? "وضعیت ماه، سیاره‌ها و رویدادهای مهم امروز را با داده محاسبه‌شده ببین."
+                : `${city.faName} · ${formatPersianDate(currentLocalDate, city.timezone)}`}
             </p>
+            {state.status === "ready" ? (
+              <p>
+                {city.faName} · {formatPersianDate(currentLocalDate, city.timezone)}
+              </p>
+            ) : null}
           </div>
           <Link className={styles.secondaryButton} href="/sky">
             دیدن گزارش کامل آسمان

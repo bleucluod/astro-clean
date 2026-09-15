@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 
 import { ChartForm } from "@/components/ChartForm";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
+import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
 
 import styles from "./chart-shell.module.css";
 
@@ -25,7 +26,9 @@ export const metadata: Metadata = buildPublicPageMetadata({
   },
 });
 
-const chartStructuredData = {
+// HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
+function buildChartStructuredData(freeAllAccess: boolean) {
+  return {
   "@context": "https://schema.org",
   "@graph": [
     {
@@ -54,13 +57,28 @@ const chartStructuredData = {
       url: "https://halleus.ir/chart",
       applicationCategory: "LifestyleApplication",
       operatingSystem: "Web",
-      isAccessibleForFree: true,
+      ...(freeAllAccess
+        ? {
+            isAccessibleForFree: true,
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "IRR",
+            },
+          }
+        : {}),
       inLanguage: "fa-IR",
     },
   ],
-};
+  };
+}
 
-export default function ChartPage() {
+export default async function ChartPage() {
+  const accessPolicy = await getPublicReportAccessPolicy();
+  const chartStructuredData = buildChartStructuredData(
+    accessPolicy.monetizationMode === "FREE_ALL",
+  );
+
   return (
     <div
       className={styles.page}

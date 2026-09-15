@@ -288,7 +288,7 @@ export default async function WikiPage() {
               >
                 <span>{category?.label ?? "ویکی هالیوس"}</span>
                 <strong>{article.shortTitle}</strong>
-                <small>{article.readingMinutes.toLocaleString("fa-IR")} دقیقه</small>
+
               </Link>
             );
           })}

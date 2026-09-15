@@ -18,7 +18,7 @@ type AppShellProps = {
 
 const footerLinks = [
   { href: "/chart", label: "ساخت چارت تولد" },
-  { href: "/compare", label: "تحلیل رابطه" },
+  { href: "/compare", label: "چارت ازدواج" },
   { href: "/sky", label: "آسمان امروز" },
   { href: "/wiki", label: "ویکی آسترولوژی" },
   { href: "/privacy", label: "حریم خصوصی" },
@@ -81,11 +81,11 @@ export function AppShell({ children }: AppShellProps) {
             </IntentPrefetchLink>
 
             <p className={`footer-note ${styles.footerNote}`}>
-              تجربه‌ای فارسی برای دیدن آسمان امروز، ساخت چارت تولد و یادگیری معنای نمادین چارت.
+              آسترولوژی فارسی برای چارت تولد، چارت ازدواج و سیناستری، آسمان امروز و مسیرهای پیش رو.
             </p>
 
             <p className={styles.footerResponsibility}>
-              برای خودشناسی نمادین، نه تصمیم‌گیری قطعی
+              برای شناخت چارت، رابطه‌ها و مسیرهای پیش رو
             </p>
 
             <a
@@ -165,7 +165,7 @@ export function AppShell({ children }: AppShellProps) {
             })}{" "}
             هالیوس
           </span>
-          <span className={styles.footerBottomNote}>داده واقعی · خوانش فارسی · مرزهای روشن</span>
+          <span className={styles.footerBottomNote}>داده واقعی · خوانش فارسی · نگاه به مسیر پیش رو</span>
         </div>
 
       </footer>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { AccountProfileEditor } from "@/components/AccountProfileEditor";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { TelegramJoinRewardCard } from "@/components/TelegramJoinRewardCard";
 import { getAccountRepository } from "@/lib/account/account-repository";
@@ -118,6 +119,9 @@ export default function ProfilePage() {
           </div>
           <div className={styles.authSurface}>
             <SupabaseAuthPanel />
+          </div>
+          <div className={styles.profileEditorSurface}>
+            <AccountProfileEditor />
           </div>
         </div>
 

@@ -42,6 +42,8 @@ type StoredWikiArticle = WikiArticle & {
   stableId: string;
   relatedArticleIds: readonly string[];
   updatedAt: string;
+  publishedAt: string;
+  contentModifiedAt?: string;
 };
 
 export type PublicWikiArticle = StoredWikiArticle;
@@ -227,6 +229,18 @@ function normalizeArticle(
   image?: WikiArticleImage,
 ): StoredWikiArticle {
   const callToAction = row.call_to_action;
+  const publishedAt = normalizePublicWikiUpdatedAt(
+    asString(row.publication_published_at),
+  );
+  const modifiedCandidate = asNullableString(row.publication_modified_at);
+  const normalizedModifiedAt = modifiedCandidate
+    ? normalizePublicWikiUpdatedAt(modifiedCandidate)
+    : undefined;
+  const contentModifiedAt =
+    normalizedModifiedAt &&
+    new Date(normalizedModifiedAt).getTime() > new Date(publishedAt).getTime()
+      ? normalizedModifiedAt
+      : undefined;
 
   return {
     stableId: asString(row.stable_id),
@@ -259,6 +273,8 @@ function normalizeArticle(
       "related_article_ids",
     ),
     updatedAt: normalizePublicWikiUpdatedAt(asString(row.updated_at)),
+    publishedAt,
+    contentModifiedAt,
     image,
   };
 }
@@ -324,6 +340,8 @@ function fallbackStoredArticles(): StoredWikiArticle[] {
     stableId: article.slug,
     relatedArticleIds: article.relatedSlugs,
     updatedAt: "2026-07-16T00:00:00.000Z",
+    publishedAt: "2026-07-16T00:00:00.000Z",
+    contentModifiedAt: undefined,
   }));
 }
 
@@ -457,6 +475,101 @@ async function readDatabaseIndex(
   return { articles, categories, source: "database" };
 }
 
+// HALLEUS_WIKI_PUBLICATION_HISTORY_RESILIENT_R4
+let wikiRevisionPublicationHistoryAvailable: boolean | null = null;
+let wikiJobPublicationHistoryAvailable: boolean | null = null;
+let wikiPublicationHistoryWarningPrinted = false;
+
+function pushWikiPublicationEvent(events: string[], value: unknown) {
+  const text = asNullableString(value);
+  if (!text) return;
+  events.push(normalizePublicWikiUpdatedAt(text));
+}
+
+async function readWikiPublicationDates(
+  sql: ReturnType<typeof postgres>,
+  articleId: string,
+  currentPublishedAt: string,
+) {
+  const events: string[] = [];
+  pushWikiPublicationEvent(events, currentPublishedAt);
+
+  if (wikiRevisionPublicationHistoryAvailable !== false) {
+    try {
+      const revisions = await sql`
+        select revision_number, revision_status,
+               created_at::text as created_at,
+               published_at::text as published_at
+        from public.wiki_article_revisions
+        where article_id = ${articleId}::uuid
+        order by revision_number asc
+      `;
+      wikiRevisionPublicationHistoryAvailable = true;
+      for (const revision of revisions) {
+        if (revision.published_at) {
+          pushWikiPublicationEvent(events, revision.published_at);
+          continue;
+        }
+        if (
+          Number(revision.revision_number) === 1 &&
+          (asString(revision.revision_status) === "published" ||
+            asString(revision.revision_status) === "superseded")
+        ) {
+          pushWikiPublicationEvent(events, revision.created_at);
+        }
+      }
+    } catch (error) {
+      wikiRevisionPublicationHistoryAvailable = false;
+      if (!wikiPublicationHistoryWarningPrinted) {
+        wikiPublicationHistoryWarningPrinted = true;
+        console.warn(
+          JSON.stringify({
+            marker: "HALLEUS_WIKI_PUBLICATION_HISTORY_PARTIAL",
+            source: "revisions",
+            errorCode: storageErrorCode(error),
+          }),
+        );
+      }
+    }
+  }
+
+  if (wikiJobPublicationHistoryAvailable !== false) {
+    try {
+      const jobs = await sql`
+        select completed_at::text as completed_at
+        from halleus_private.wiki_publish_jobs
+        where article_id = ${articleId}::uuid
+          and status = 'published'
+          and completed_at is not null
+        order by completed_at asc
+      `;
+      wikiJobPublicationHistoryAvailable = true;
+      for (const job of jobs) {
+        pushWikiPublicationEvent(events, job.completed_at);
+      }
+    } catch {
+      // Scheduled-job history is useful when available, but public Wiki reads
+      // must not fail merely because a build/runtime DB role cannot read it.
+      wikiJobPublicationHistoryAvailable = false;
+    }
+  }
+
+  const ordered = [...new Set(events)].sort(
+    (left, right) => new Date(left).getTime() - new Date(right).getTime(),
+  );
+  const publishedAt =
+    ordered[0] ?? normalizePublicWikiUpdatedAt(currentPublishedAt);
+  const latest = ordered.at(-1);
+  return {
+    publishedAt,
+    contentModifiedAt:
+      latest &&
+      new Date(latest).getTime() > new Date(publishedAt).getTime()
+        ? latest
+        : undefined,
+  };
+}
+
 async function readDatabaseArticleBySlug(
   sql: ReturnType<typeof postgres>,
   slug: string,
@@ -481,7 +594,8 @@ async function readDatabaseArticleBySlug(
       call_to_action,
       related_slugs,
       related_article_ids,
-      updated_at::text as updated_at
+      updated_at::text as updated_at,
+      published_at::text as current_published_at
     from public.wiki_articles
     where slug = ${slug}
       and status = 'published'
@@ -494,8 +608,22 @@ async function readDatabaseArticleBySlug(
   `;
   if (!rows[0]) return null;
 
-  const image = await readReadyWikiImage(sql, asString(rows[0].article_id));
-  return normalizeArticle(rows[0], image);
+  const [image, publication] = await Promise.all([
+    readReadyWikiImage(sql, asString(rows[0].article_id)),
+    readWikiPublicationDates(
+      sql,
+      asString(rows[0].article_id),
+      asString(rows[0].current_published_at),
+    ),
+  ]);
+  return normalizeArticle(
+    {
+      ...rows[0],
+      publication_published_at: publication.publishedAt,
+      publication_modified_at: publication.contentModifiedAt ?? null,
+    },
+    image,
+  );
 }
 
 async function readCategoryById(

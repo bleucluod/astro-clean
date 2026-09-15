@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { formatAdminDateOnly, formatAdminDateTime } from "@/lib/admin/admin-date";
+import { parseJalaliDateInput } from "@/lib/date/jalali";
 import type {
   AdminReportCohortPayload,
   AdminReportFilters,
@@ -51,16 +53,19 @@ type AdminComparisonDetail = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "—";
-  try {
-    return new Intl.DateTimeFormat("fa-IR", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Tehran",
-    }).format(new Date(value));
-  } catch {
-    return value;
-  }
+  return formatAdminDateTime(value);
+}
+
+function formatReportType(value: string) {
+  if (value === "comparison") return "چارت ازدواج و سیناستری";
+  if (["natal", "birth-chart", "birth_chart", "unknown"].includes(value)) return "چارت تولد";
+  return value;
+}
+
+function formatTrendKey(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return formatAdminDateOnly(value);
+  if (/^\d{4}-\d{2}$/.test(value)) return formatAdminDateOnly(`${value}-01`);
+  return value;
 }
 
 function formatBytes(value: number) {
@@ -82,7 +87,7 @@ function formatBytes(value: number) {
 }
 
 function formatBirthLine(report: AdminReportSummary) {
-  const date = report.birthDate ?? "—";
+  const date = report.birthDate ? formatAdminDateOnly(report.birthDate) : "—";
   const time =
     report.birthTimeAccuracy === "unknown"
       ? "ساعت نامشخص"
@@ -92,6 +97,10 @@ function formatBirthLine(report: AdminReportSummary) {
 
 function formatBirthPlace(report: AdminReportSummary) {
   return [report.birthCity, report.birthCountry].filter(Boolean).join("، ") || "—";
+}
+
+function formatResidencePlace(report: AdminReportSummary) {
+  return [report.currentResidenceCity, report.currentResidenceCountry].filter(Boolean).join("، ") || "—";
 }
 
 function reportTone(visibility: AdminReportSummary["visibility"]) {
@@ -158,7 +167,7 @@ function Trend({
       <div>
         {items.map((item) => (
           <span key={item.key}>
-            <time>{item.key}</time>
+            <time>{formatTrendKey(item.key)}</time>
             <strong>{item.count.toLocaleString("fa-IR")}</strong>
           </span>
         ))}
@@ -436,8 +445,23 @@ export function AdminReportsWorkspace({
   }
 
   function applyFilters() {
-    setPage(1);
-    setActiveFilters({ ...draftFilters });
+    const convertDate = (value: string | null, label: string) => {
+      if (!value) return null;
+      const parsed = parseJalaliDateInput(value);
+      if (!parsed.ok) throw new Error(`${label}: ${parsed.message}`);
+      return parsed.gregorianIso;
+    };
+    try {
+      setPage(1);
+      setActiveFilters({
+        ...draftFilters,
+        dateFrom: convertDate(draftFilters.dateFrom, "از تاریخ"),
+        dateTo: convertDate(draftFilters.dateTo, "تا تاریخ"),
+      });
+      setError("");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "تاریخ شمسی فیلتر معتبر نیست.");
+    }
   }
 
   function clearFilters() {
@@ -498,7 +522,7 @@ export function AdminReportsWorkspace({
               </span>
             </div>
             <div className={styles.detailGrid}>
-              <div><span>نوع گزارش</span><strong>{detail.reportType}</strong></div>
+              <div><span>نوع گزارش</span><strong>{formatReportType(detail.reportType)}</strong></div>
               <div><span>سوژه</span><strong>{detail.subjectName ?? "—"}</strong></div>
               {detail.reportType === "comparison" ? (
                 <>
@@ -510,6 +534,7 @@ export function AdminReportsWorkspace({
                 <>
                   <div><span>تولد</span><strong>{formatBirthLine(detail)}</strong></div>
                   <div><span>محل تولد</span><strong>{formatBirthPlace(detail)}</strong></div>
+                  <div><span>محل سکونت</span><strong>{formatResidencePlace(detail)}</strong></div>
                 </>
               )}
               <div><span>نوع مالک</span><strong>{detail.ownerKind}</strong></div>
@@ -650,14 +675,15 @@ export function AdminReportsWorkspace({
                       <article className={styles.reportRecentRow} key={report.id}>
                         <div className={styles.reportRecentMain}>
                           <strong>{report.subjectName ?? report.title}</strong>
-                          <small>{report.reportType} · {formatDate(report.createdAt)}</small>
+                          <small>{formatReportType(report.reportType)} · {formatDate(report.createdAt)}</small>
                         </div>
                         <div className={styles.reportRecentMeta}>
                           <span>{report.ownerDisplayName || report.ownerUserId || "مهمان"}</span>
                           <span>{report.ownerKind}</span>
                           <span>{report.accessTier}</span>
                           <span>{report.visibility}</span>
-                          {report.birthCity ? <span>{report.birthCity}</span> : null}
+                          {report.birthCity ? <span>تولد: {formatBirthPlace(report)}</span> : null}
+                          {report.currentResidenceCity ? <span>سکونت: {formatResidencePlace(report)}</span> : null}
                         </div>
                         <div className={styles.reportRecentActions}>
                           <Link href={`/admini/reports/${report.id}`}>جزئیات</Link>
@@ -740,11 +766,11 @@ export function AdminReportsWorkspace({
                         placeholder="شناسه، عنوان، سوژه، صاحب حساب، شهر یا کشور"
                       />
                     </label>
-                    <label>نوع گزارش<select value={draftFilters.reportType ?? ""} onChange={(event) => updateFilter("reportType", event.target.value || null)}><option value="">همه</option>{payload?.options.reportTypes.map((value) => <option key={value}>{value}</option>)}</select></label>
+                    <label>نوع گزارش<select value={draftFilters.reportType ?? ""} onChange={(event) => updateFilter("reportType", event.target.value || null)}><option value="">همه</option>{payload?.options.reportTypes.map((value) => <option key={value} value={value}>{formatReportType(value)}</option>)}</select></label>
                     <label>Guest / Account<select value={draftFilters.ownerKind ?? ""} onChange={(event) => updateFilter("ownerKind", event.target.value || null)}><option value="">همه</option>{payload?.options.ownerKinds.map((value) => <option key={value}>{value}</option>)}</select></label>
                     <label>Free / Premium<select value={draftFilters.accessTier ?? ""} onChange={(event) => updateFilter("accessTier", event.target.value || null)}><option value="">همه</option>{payload?.options.accessTiers.map((value) => <option key={value}>{value}</option>)}</select></label>
-                    <label>از تاریخ<input type="date" value={draftFilters.dateFrom ?? ""} onChange={(event) => updateFilter("dateFrom", event.target.value || null)} /></label>
-                    <label>تا تاریخ<input type="date" value={draftFilters.dateTo ?? ""} onChange={(event) => updateFilter("dateTo", event.target.value || null)} /></label>
+                    <label>از تاریخ شمسی<input type="text" inputMode="numeric" placeholder="۱۴۰۵/۰۱/۰۱" value={draftFilters.dateFrom ?? ""} onChange={(event) => updateFilter("dateFrom", event.target.value || null)} /></label>
+                    <label>تا تاریخ شمسی<input type="text" inputMode="numeric" placeholder="۱۴۰۵/۱۲/۲۹" value={draftFilters.dateTo ?? ""} onChange={(event) => updateFilter("dateTo", event.target.value || null)} /></label>
 
                     <details className={styles.reportMoreFilters}>
                       <summary>فیلترهای بیشتر</summary>
