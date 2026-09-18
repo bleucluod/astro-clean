@@ -14,6 +14,7 @@ import {
   isComparisonRecordCandidate,
   isStoredComparisonReport,
   saveComparisonAccountReport,
+  saveGuestComparisonReport,
 } from "@/lib/comparison/comparison-account-persistence";
 import { initializeAccountProfileFromBirthInput } from "@/lib/account/account-profile-service";
 import { readReportPage } from "@/lib/reports/report-access-contract";
@@ -285,8 +286,43 @@ export async function POST(request: Request) {
   const comparison = body.comparison;
   if (isComparisonRecordCandidate(comparison)) {
     if (!authorizationHeader) {
-      return errorResponse(401, "Comparison account save requires an authenticated account.");
+      // HALLEUS_GUEST_SYNASTRY_ADMIN_CAPTURE_R1
+      // Guest comparisons remain private/noindex and are never share-enabled.
+      // Reuse the existing system guest owner so no new schema or migration is needed.
+      const guard = publicReportWriteGuard();
+      if (!guard.ok) {
+        return errorResponse(guard.status, guard.error, guard.blockers);
+      }
+
+      try {
+        await ensureAccountPersistenceUser({
+          databaseUrl: guard.databaseUrl,
+          userId: PUBLIC_REPORT_OWNER_USER_ID,
+          email: PUBLIC_REPORT_OWNER_EMAIL,
+          displayName: PUBLIC_REPORT_OWNER_DISPLAY_NAME,
+          provider: "email",
+        });
+
+        const reportRecord = await saveGuestComparisonReport({
+          userId: PUBLIC_REPORT_OWNER_USER_ID,
+          comparison,
+        });
+
+        return NextResponse.json({
+          ok: true,
+          reportRecord,
+          persistence: "guest-private",
+        });
+      } catch (error) {
+        return errorResponse(
+          500,
+          error instanceof Error
+            ? error.message
+            : "Guest comparison persistence save failed.",
+        );
+      }
     }
+
     const guard = accountReportSaveGuard();
     if (!guard.ok) {
       return errorResponse(guard.status, guard.error, guard.blockers);

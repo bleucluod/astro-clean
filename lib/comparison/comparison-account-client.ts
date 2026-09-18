@@ -15,6 +15,7 @@ import type { StoredComparisonReport } from "@/types/storage";
 
 export type ComparisonAccountStatus =
   | "saved"
+  | "guest-saved"
   | "not-authenticated"
   | "disabled"
   | "failed"
@@ -57,20 +58,18 @@ export async function saveComparisonToAccount(
   options: { navigationGraceMs?: number } = {},
 ): Promise<ComparisonAccountSaveResult> {
   const auth = await readAccessToken();
-  if (auth.status === "disabled") {
-    return { status: "disabled", message: "ذخیره در حساب در این محیط فعال نیست." };
-  }
-  if (auth.status === "not-authenticated" || !auth.accessToken) {
-    return { status: "not-authenticated", message: "برای ذخیره در حساب وارد شو." };
-  }
+  const accessToken = auth.status === "ready" ? auth.accessToken : null;
 
+  // HALLEUS_GUEST_SYNASTRY_ADMIN_CAPTURE_R1
+  // Authenticated comparisons stay account-owned. Signed-out/disabled-account-save
+  // comparisons still receive a private, noindex server copy for admin operations.
   const remote = (async (): Promise<ComparisonAccountSaveResult> => {
     try {
       const response = await fetch("/api/reports/account", {
         method: "POST",
         keepalive: true,
         headers: {
-          Authorization: `Bearer ${auth.accessToken}`,
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ comparison }),
@@ -84,14 +83,19 @@ export async function saveComparisonToAccount(
           message: payload?.error ?? "ذخیره در حساب کامل نشد.",
         };
       }
-      return {
-        status: "saved",
-        message: "این مقایسه در حساب خصوصی تو ذخیره شد.",
-      };
+      return accessToken
+        ? {
+            status: "saved",
+            message: "این مقایسه در حساب خصوصی تو ذخیره شد.",
+          }
+        : {
+            status: "guest-saved",
+            message: "این مقایسه به‌صورت خصوصی روی سرور ثبت شد.",
+          };
     } catch {
       return {
         status: "failed",
-        message: "ذخیره در حساب موقتاً در دسترس نیست.",
+        message: "ذخیره خصوصی روی سرور موقتاً در دسترس نیست.",
       };
     }
   })();

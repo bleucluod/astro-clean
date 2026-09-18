@@ -15,6 +15,7 @@ const paths = {
   sharedWheel: "components/HalleusWheelCore.tsx",
   accountClient: "lib/comparison/comparison-account-client.ts",
   accountPersistence: "lib/comparison/comparison-account-persistence.ts",
+  accountRoute: "app/api/reports/account/route.ts",
   styles: "components/comparison/comparison.module.css",
   landingStyles: "components/comparison/comparison-landing.module.css",
   service: "lib/comparison/comparison-product-service.ts",
@@ -294,16 +295,31 @@ requireMarkers("comparison contract", sources.types, [
   "rawBirthInputStored: false",
   "ComparisonReading",
 ]);
-requireMarkers("comparison private account persistence", sources.accountClient, [
+requireMarkers("comparison private server persistence client", sources.accountClient, [
   "saveComparisonToAccount",
+  '"guest-saved"',
   'fetch("/api/reports/account"',
+  '...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})',
   "getAccountComparisonRecord",
 ]);
 requireMarkers("comparison private persistence policy", sources.accountPersistence, [
   "STORED_COMPARISON_REPORT_VERSION",
+  "saveGuestComparisonReport",
+  'ownerKind: "guest"',
+  'source: "account"',
   'visibility: "private"',
   'publicationState: "private"',
   "share_enabled = false",
+]);
+requireMarkers("comparison guest admin capture route", sources.accountRoute, [
+  "HALLEUS_GUEST_SYNASTRY_ADMIN_CAPTURE_R1",
+  "saveGuestComparisonReport",
+  "PUBLIC_REPORT_OWNER_USER_ID",
+  'persistence: "guest-private"',
+  "publicReportWriteGuard()",
+]);
+forbidMarkers("comparison guest capture auth gate", sources.accountRoute, [
+  "Comparison account save requires an authenticated account.",
 ]);
 requireMarkers("comparison navigation", sources.navigation, [
   'href: "/compare"',
@@ -472,7 +488,7 @@ console.log("Comparison product check passed.");
 console.log("- /compare uses a dedicated static dark landing with final metadata, schema, social image, and builder anchor");
 console.log("- /compare selects stored natal charts only; chart creation lives on /chart");
 console.log("- relationship context remains; the explicit consent gate and inline creation flow are removed");
-console.log("- comparison records keep a private local copy and can add an authenticated private account copy");
+console.log("- comparison records keep a private local copy and persist a private server copy for guest or authenticated account flows");
 console.log("- three patterns, support/friction, communication, emotional security, boundaries, repair, and bi-wheel remain visible");
 console.log("- history, delete, refresh, and retry flows remain present");
 console.log("- only the public landing is discoverable and analytics-eligible; private result paths remain excluded");

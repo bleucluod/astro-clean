@@ -78,10 +78,16 @@ export function isStoredComparisonReport(
   );
 }
 
-function storedPublication(accessTier: ReportAccessTier): StoredReportPublication {
+type ComparisonPersistenceOwnerKind = "account" | "guest";
+type PersistedComparisonReport = ComparisonReportRecord;
+
+function storedPublication(
+  accessTier: ReportAccessTier,
+  ownerKind: ComparisonPersistenceOwnerKind,
+): StoredReportPublication {
   return {
     policyVersion: "1",
-    ownerKind: "account",
+    ownerKind,
     accessTier,
     publicationIntent: "default",
     publicationState: "private",
@@ -90,11 +96,12 @@ function storedPublication(accessTier: ReportAccessTier): StoredReportPublicatio
   };
 }
 
-export async function saveComparisonAccountReport(input: {
+async function persistComparisonReport(input: {
   userId: string;
   comparison: ComparisonRecord;
   accessTier: ReportAccessTier;
-}): Promise<ComparisonReportRecord> {
+  ownerKind: ComparisonPersistenceOwnerKind;
+}): Promise<PersistedComparisonReport> {
   const sql = getAdminDatabase();
   const stored = buildStoredComparisonReport(input.comparison);
 
@@ -129,7 +136,7 @@ export async function saveComparisonAccountReport(input: {
       false,
       'private',
       'account',
-      'account',
+      ${input.ownerKind},
       ${input.accessTier},
       'default',
       'private',
@@ -146,7 +153,7 @@ export async function saveComparisonAccountReport(input: {
         title = excluded.title,
         visibility = 'private',
         source = 'account',
-        publication_owner_kind = 'account',
+        publication_owner_kind = excluded.publication_owner_kind,
         access_tier = excluded.access_tier,
         publication_intent = 'default',
         publication_state = 'private',
@@ -171,7 +178,7 @@ export async function saveComparisonAccountReport(input: {
 
   const row = asRecord(rows[0]);
   if (!row.id) {
-    throw new Error("Comparison account save was rejected by ownership constraints.");
+    throw new Error("Comparison save was rejected by ownership constraints.");
   }
 
   return {
@@ -184,8 +191,37 @@ export async function saveComparisonAccountReport(input: {
     favorite: Boolean(row.favorite),
     visibility: "private",
     source: "account",
-    publication: storedPublication(input.accessTier),
+    publication: storedPublication(input.accessTier, input.ownerKind),
     createdAt: asString(row.created_at),
     updatedAt: asString(row.updated_at),
   };
+}
+
+export async function saveComparisonAccountReport(input: {
+  userId: string;
+  comparison: ComparisonRecord;
+  accessTier: ReportAccessTier;
+}): Promise<ComparisonReportRecord> {
+  const record = await persistComparisonReport({
+    ...input,
+    ownerKind: "account",
+  });
+
+  return {
+    ...record,
+    source: "account",
+  };
+}
+
+export async function saveGuestComparisonReport(input: {
+  userId: string;
+  comparison: ComparisonRecord;
+}): Promise<PersistedComparisonReport> {
+  // HALLEUS_GUEST_SYNASTRY_ADMIN_CAPTURE_R1
+  return persistComparisonReport({
+    userId: input.userId,
+    comparison: input.comparison,
+    accessTier: "free",
+    ownerKind: "guest",
+  });
 }
