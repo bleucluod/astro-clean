@@ -522,7 +522,21 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       return;
     }
 
-    await saveComparisonToAccount(result.record, { navigationGraceMs: 0 });
+    const accountSaveResult = await saveComparisonToAccount(result.record, {
+      navigationGraceMs: 0,
+    });
+    if (
+      accountSaveResult.status !== "saved" &&
+      accountSaveResult.status !== "guest-saved"
+    ) {
+      generationInFlightRef.current = false;
+      setIsWorking(false);
+      setMessage(
+        `${accountSaveResult.message} نسخهٔ خصوصی روی همین دستگاه محفوظ است؛ برای ثبت در گزارش‌های هالیوس دوباره تلاش کن.`,
+      );
+      return;
+    }
+
     pendingGenerationRef.current = null;
     router.push(`/compare/${encodeURIComponent(result.record.id)}`);
   }

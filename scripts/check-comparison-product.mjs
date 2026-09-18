@@ -298,9 +298,21 @@ requireMarkers("comparison contract", sources.types, [
 requireMarkers("comparison private server persistence client", sources.accountClient, [
   "saveComparisonToAccount",
   '"guest-saved"',
+  "HALLEUS_COMPARISON_LARGE_PAYLOAD_SERVER_SAVE_R1",
   'fetch("/api/reports/account"',
   '...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})',
+  "body: JSON.stringify({ comparison })",
   "getAccountComparisonRecord",
+]);
+forbidMarkers("comparison large-payload transport", sources.accountClient, [
+  "keepalive: true",
+]);
+requireMarkers("comparison server-save acknowledgement", sources.composer, [
+  "const accountSaveResult = await saveComparisonToAccount",
+  'accountSaveResult.status !== "saved"',
+  'accountSaveResult.status !== "guest-saved"',
+  "نسخهٔ خصوصی روی همین دستگاه محفوظ است؛ برای ثبت در گزارش‌های هالیوس دوباره تلاش کن.",
+  'router.push(`/compare/${encodeURIComponent(result.record.id)}`)',
 ]);
 requireMarkers("comparison private persistence policy", sources.accountPersistence, [
   "STORED_COMPARISON_REPORT_VERSION",

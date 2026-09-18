@@ -65,9 +65,11 @@ export async function saveComparisonToAccount(
   // comparisons still receive a private, noindex server copy for admin operations.
   const remote = (async (): Promise<ComparisonAccountSaveResult> => {
     try {
+      // HALLEUS_COMPARISON_LARGE_PAYLOAD_SERVER_SAVE_R1
+      // Do not use fetch keepalive here. Synastry payloads are large enough to
+      // exceed the browser keepalive request-body budget before nginx sees them.
       const response = await fetch("/api/reports/account", {
         method: "POST",
-        keepalive: true,
         headers: {
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           "Content-Type": "application/json",
