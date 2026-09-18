@@ -153,10 +153,17 @@ forbidMarkers("comparison retired dashboard progress R12", sources.composer, [
 
 
 
-requireMarkers("comparison R16 compact chips dark CTA and chart link", sources.composer, [
+requireMarkers("comparison R21 empty picker chart-creation path", sources.composer, [
   'href="/chart"',
-  "برای ساخت چارت تازه به صفحهٔ",
-  ">چارت تولد</Link>",
+  'target="_blank"',
+  'rel="noreferrer noopener"',
+  "اول چارت تولد را بساز و بعد به این صفحه برگرد.",
+  ">ساخت چارت تولد</Link>",
+]);
+forbidMarkers("comparison R21 retired repetitive builder copy", sources.composer, [
+  "چارت آماده نداری؟",
+  "نام یا شهر را جست‌وجو کن و چارت مناسب هر نفر را انتخاب کن.",
+  "چارت موردنظرت اینجا نیست؟",
 ]);
 forbidMarkers("comparison retired inline-chart helper copy R16", sources.composer, [
   "می‌توانی از چارت‌های آماده انتخاب کنی یا بدون ترک این صفحه چارت تازه بسازی.",
@@ -210,7 +217,6 @@ requireMarkers("comparison composer", sources.composer, [
   "ساعت تولد این چارت دقیق است",
 ]);
 forbidMarkers("comparison stored-chart-only journey R12", sources.composer, [
-  'target="_blank"',
   "ChartForm",
   "chartCreationSlot",
   "inlineChartDialog",

@@ -3394,3 +3394,1595 @@
   }
 }
 /* END HALLEUS_COMPARE_FULL_INTERPRETATION_SLICE2_R5 */
+/* HALLEUS_COMPARE_PREMIUM_PAIR_BUILDER_R18 */
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-premium-pair-builder="r18"]{
+  width:min(100%,960px);margin-inline:auto;padding:clamp(24px,4vw,38px);border-radius:30px;
+  border:1px solid rgba(255,255,255,.11);
+  background:radial-gradient(circle at 50% -15%,rgba(78,96,154,.13),transparent 30rem),linear-gradient(180deg,#0d1015,#090b0e);
+  box-shadow:0 28px 80px rgba(0,0,0,.26)
+}
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderProgress{
+  display:grid;gap:8px;margin:20px 0 8px;padding:14px 16px;border:1px solid rgba(255,255,255,.075);border-radius:17px;background:rgba(255,255,255,.022)
+}
+.builderProgress>div{display:flex;justify-content:space-between;gap:12px;color:rgba(244,246,248,.58);font-size:.75rem}
+.builderProgress>div strong{color:#fff}.builderProgress>i{display:block;height:3px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.07)}
+.builderProgress>i b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#737f9f,#f1f3f7);transition:width .28s ease}
+.builderProgress>small{color:rgba(244,246,248,.43);font-size:.7rem}
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderNotice{border:1px solid rgba(255,255,255,.09);border-radius:18px;background:rgba(255,255,255,.025)}
+.builderNotice>div{display:grid;gap:4px}.builderNotice strong{color:#fff;font-size:.86rem}.builderNotice p{color:rgba(244,246,248,.48)!important;font-size:.74rem!important}
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid{position:relative;gap:72px}
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid:before{
+  content:"";position:absolute;left:calc(50% - 22px);top:50%;width:44px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(205,214,239,.52),transparent);opacity:.32
+}
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .chartGrid:before{opacity:1;animation:pairPulse 3.4s ease-in-out infinite}
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCard{
+  display:grid;gap:14px;padding:18px;border:1px solid rgba(255,255,255,.085);border-radius:24px;background:#0b0e12;box-shadow:inset 0 1px rgba(255,255,255,.025)
+}
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCard[data-selected="true"]{border-color:rgba(174,187,222,.25);background:radial-gradient(circle at 50% 0,rgba(83,100,154,.1),transparent 18rem),#0b0e12}
+.personCardHeader{display:flex;align-items:center;justify-content:space-between;gap:12px}.personCardHeader>div{display:grid;gap:2px;min-width:0}
+.personCardHeader small{color:rgba(244,246,248,.43);font-size:.7rem}.personCardHeader strong{overflow:hidden;color:#fff;text-overflow:ellipsis;white-space:nowrap}
+.personCardHeader>span{flex:0 0 auto;padding:5px 9px;border:1px solid rgba(255,255,255,.08);border-radius:99px;color:rgba(244,246,248,.48);font-size:.66rem}
+.personCard[data-selected="true"] .personCardHeader>span{border-color:rgba(128,166,145,.22);color:#d9eadf;background:rgba(61,101,79,.12)}
+.personEmpty,.personSummary{display:grid;min-height:128px;align-content:center;gap:5px;padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.016)}
+.personEmpty{text-align:center;justify-items:center;border-style:dashed}.personEmpty b{display:grid;width:30px;height:30px;place-items:center;border-radius:50%;background:rgba(255,255,255,.045);color:rgba(244,246,248,.62)}
+.personEmpty strong,.personSummary strong{color:#fff}.personEmpty span,.personSummary span{color:rgba(244,246,248,.42);font-size:.72rem;line-height:1.7}
+.personSelect{display:grid;gap:7px;color:rgba(244,246,248,.47);font-size:.7rem}.personSelect select{width:100%;min-height:46px;border:1px solid rgba(255,255,255,.11);border-radius:13px;padding-inline:12px;background:#11151b;color:#f7f8fa;font:inherit}
+.personCreateLink{display:flex;min-height:43px;align-items:center;justify-content:space-between;gap:12px;padding:0 13px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:rgba(255,255,255,.027);color:#f4f6f8;font-size:.76rem;font-weight:760;text-decoration:none}
+.personCreateLink:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.05)}
+.personCard .timeAccuracyChoice{padding-top:12px;border-top:1px solid rgba(255,255,255,.06)}
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="false"] .flowStep[data-flow-step="relationship"]{display:none}
+.pairGate{display:grid;gap:4px;padding:14px 0 2px;border-top:1px solid rgba(255,255,255,.055)}.pairGate strong{color:rgba(244,246,248,.4);font-size:.68rem}.pairGate span{color:rgba(244,246,248,.46);font-size:.75rem}
+.relationshipContextNote{display:grid;gap:3px;margin-top:12px;padding:11px 13px;border-inline-start:2px solid rgba(177,191,228,.38);background:rgba(255,255,255,.018)}
+.relationshipContextNote strong{color:#fff;font-size:.74rem}.relationshipContextNote span{color:rgba(244,246,248,.47);font-size:.72rem;line-height:1.7}
+.pairReview{display:grid;gap:13px;margin-top:5px;padding:18px;border:1px solid rgba(177,191,228,.16);border-radius:21px;background:radial-gradient(circle at 50% 0,rgba(91,107,161,.09),transparent 20rem),rgba(255,255,255,.018)}
+.pairReview header{display:grid;gap:3px;text-align:center}.pairReview header small{color:rgba(244,246,248,.4)}.pairReview header strong{color:#fff;font-size:1.06rem}.pairReview header span{color:rgba(244,246,248,.55);font-size:.73rem}
+.pairReviewPeople{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.pairReviewPeople p{display:grid;gap:4px;margin:0;padding:12px;border:1px solid rgba(255,255,255,.065);border-radius:13px;background:rgba(255,255,255,.015)}
+.pairReviewPeople b{color:#fff}.pairReviewPeople span{color:rgba(244,246,248,.42);font-size:.7rem}.pairReviewPeople small{color:rgba(218,232,224,.7);font-size:.67rem}
+.pairReviewTopics,.builderTrustLine{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}.pairReviewTopics span{padding:5px 8px;border:1px solid rgba(255,255,255,.065);border-radius:99px;color:rgba(244,246,248,.47);font-size:.65rem}
+.builderTrustLine{margin-top:17px;color:rgba(244,246,248,.38);font-size:.67rem}.builderTrustLine span:not(:last-child):after{content:" ·";color:rgba(244,246,248,.2)}
+@keyframes pairPulse{0%,100%{opacity:.36}50%{opacity:1}}
+@media(max-width:760px){
+ .product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-premium-pair-builder="r18"]{padding:22px 14px 18px;border-radius:24px}
+ .product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid{gap:34px}
+ .product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid:before{left:50%;top:calc(50% - 17px);width:1px;height:34px}
+ .personCard{padding:15px!important}.pairReviewPeople{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.builderProgress>i b{transition:none}.product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid:before{animation:none!important}}
+/* END HALLEUS_COMPARE_PREMIUM_PAIR_BUILDER_R18 */
+/* HALLEUS_COMPARE_ACCOUNT_MOTION_R11 */
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.72fr);
+  gap: 14px 18px;
+  align-items: center;
+  margin: 18px 0 16px;
+  padding: 16px;
+  border: 1px solid rgba(164, 178, 214, 0.12);
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(88, 105, 162, 0.1), transparent 22rem),
+    rgba(255, 255, 255, 0.018);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayCopy {
+  display: grid;
+  gap: 4px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayCopy > span {
+  color: rgba(206, 216, 239, 0.5);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayCopy > strong {
+  color: #f8fafc;
+  font-size: 0.86rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayCopy > p {
+  max-width: 38rem;
+  margin: 0;
+  color: rgba(225, 230, 240, 0.48);
+  font-size: 0.72rem;
+  line-height: 1.8;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayAction {
+  min-width: 0;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-compact) {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-save-note),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-greeting),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.file-hint) {
+  margin: 0;
+  color: rgba(229, 234, 244, 0.62);
+  font-size: 0.72rem;
+  line-height: 1.7;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-disclosure) {
+  margin: 0;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-disclosure > summary) {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid rgba(183, 196, 229, 0.18);
+  border-radius: 12px;
+  padding: 0 13px;
+  color: #f7f9fc;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.73rem;
+  font-weight: 780;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-disclosure > summary::-webkit-details-marker) {
+  display: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-disclosure-body) {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  background: rgba(5, 8, 13, 0.58);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-form),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.field) {
+  display: grid;
+  gap: 8px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.field > span) {
+  color: rgba(229, 234, 244, 0.62);
+  font-size: 0.69rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.field input) {
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 11px;
+  padding-inline: 11px;
+  color: #f8fafc;
+  background: #0c1016;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.actions) {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.button) {
+  min-height: 40px;
+  border: 1px solid rgba(189, 201, 232, 0.2);
+  border-radius: 11px;
+  padding-inline: 12px;
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.045);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayStatus {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayStatus p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: rgba(222, 228, 240, 0.46);
+  font-size: 0.69rem;
+  line-height: 1.65;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayStatus button {
+  flex: 0 0 auto;
+  cursor: pointer;
+  border: 0;
+  padding: 4px 0;
+  color: rgba(220, 228, 246, 0.68);
+  background: transparent;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 740;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountStatusDot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba(157, 169, 199, 0.58);
+  box-shadow: 0 0 0 4px rgba(157, 169, 199, 0.06);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway[data-account-state="ready"] .accountStatusDot {
+  background: rgba(143, 188, 161, 0.9);
+  box-shadow: 0 0 0 4px rgba(143, 188, 161, 0.08);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid {
+  grid-template-columns: minmax(0, 1fr) 66px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid::before {
+  display: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit {
+  position: relative;
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .orbitRing {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border: 1px dashed rgba(184, 197, 229, 0.22);
+  border-radius: 50%;
+  animation: compareOrbitR11 12s linear infinite;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .orbitCore {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(187, 200, 233, 0.18), transparent 68%);
+  animation: compareOrbitCoreR11 3.8s ease-in-out infinite;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .orbitLine {
+  position: absolute;
+  width: 58px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(185, 198, 230, 0.45),
+    transparent
+  );
+  transform: scaleX(0.55);
+  transform-origin: center;
+  transition: transform 300ms ease, opacity 300ms ease;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .orbitNodeA,
+.product[data-embedded="true"][data-builder-simplified="r12"] .orbitNodeB {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(225, 231, 245, 0.46);
+  border-radius: 50%;
+  background: #111721;
+  box-shadow: 0 0 0 4px rgba(182, 195, 226, 0.05);
+  transition: background 300ms ease, box-shadow 300ms ease;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .orbitNodeA {
+  inset-inline-start: 4px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .orbitNodeB {
+  inset-inline-end: 4px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="idle"] {
+  opacity: 0.38;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="partial"] {
+  opacity: 0.68;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="ready"] {
+  opacity: 1;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="ready"] .orbitLine {
+  transform: scaleX(1);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="ready"] .orbitNodeA,
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="ready"] .orbitNodeB {
+  background: rgba(193, 205, 235, 0.82);
+  box-shadow:
+    0 0 0 4px rgba(193, 205, 235, 0.07),
+    0 0 18px rgba(117, 136, 190, 0.2);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelect {
+  gap: 8px;
+  color: inherit;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelectLabel {
+  display: grid;
+  gap: 2px;
+  padding-inline: 2px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelectLabel strong {
+  color: rgba(223, 230, 244, 0.78);
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelectLabel small {
+  color: rgba(176, 188, 211, 0.42);
+  font-size: 0.64rem;
+  font-weight: 520;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelect select {
+  min-height: 47px;
+  border-color: rgba(185, 198, 226, 0.16);
+  color: rgba(245, 247, 252, 0.96);
+  background: #111720;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.022);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelect select:focus-visible {
+  outline: 2px solid rgba(151, 171, 226, 0.62);
+  outline-offset: 2px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelect select option {
+  color: #17202c;
+  background: #f7f9fc;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSummary small {
+  color: rgba(184, 197, 220, 0.46);
+  font-size: 0.66rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCard[data-selected="true"] {
+  animation: compareCardSettleR11 520ms ease both;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .pairReview,
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .flowStep[data-flow-step="relationship"] {
+  animation: compareRevealR11 420ms ease both;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .primaryButton:not(:disabled) {
+  position: relative;
+  overflow: hidden;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .primaryButton:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 22%,
+    rgba(255, 255, 255, 0.12) 46%,
+    transparent 68%
+  );
+  transform: translateX(-140%);
+  animation: compareCtaPassR11 5.2s ease-in-out infinite;
+}
+
+@keyframes compareOrbitR11 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes compareOrbitCoreR11 {
+  0%, 100% { transform: scale(0.78); opacity: 0.38; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+
+@keyframes compareCardSettleR11 {
+  from {
+    transform: translateY(3px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  }
+  to {
+    transform: translateY(0);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.025),
+      0 16px 42px rgba(41, 54, 91, 0.12);
+  }
+}
+
+@keyframes compareRevealR11 {
+  from { opacity: 0.45; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes compareCtaPassR11 {
+  0%, 72% { transform: translateX(-140%); }
+  100% { transform: translateX(140%); }
+}
+
+@media (max-width: 760px) {
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountGatewayStatus {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit {
+    min-height: 58px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .orbitLine {
+    width: 1px;
+    height: 48px;
+    transform: scaleY(0.55);
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="ready"] .orbitLine {
+    transform: scaleY(1);
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .orbitNodeA {
+    inset-inline-start: auto;
+    top: 2px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .orbitNodeB {
+    inset-inline-end: auto;
+    bottom: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product[data-embedded="true"][data-builder-simplified="r12"] .orbitRing,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .orbitCore,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .personCard[data-selected="true"],
+  .product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .pairReview,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .flowStep[data-flow-step="relationship"],
+  .product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="true"] .primaryButton:not(:disabled)::after {
+    animation: none !important;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .orbitLine {
+    transition: none !important;
+  }
+}
+/* END HALLEUS_COMPARE_ACCOUNT_MOTION_R11 */
+
+/* HALLEUS_COMPARE_DARK_CONTROLS_DISCLOSURE_R16 */
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure {
+  min-width: 0;
+  align-self: stretch;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure > summary {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid rgba(185, 198, 226, 0.16);
+  border-radius: 13px;
+  padding: 0 13px;
+  color: rgba(246, 248, 252, 0.94);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.75rem;
+  font-weight: 790;
+  user-select: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure > summary small {
+  color: rgba(190, 202, 226, 0.52);
+  font-size: 0.66rem;
+  font-weight: 620;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure > summary::after {
+  content: "＋";
+  color: rgba(222, 229, 244, 0.62);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure[open] > summary::after {
+  content: "−";
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure[open] > summary {
+  border-color: rgba(185, 198, 226, 0.25);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure .accountGatewayAction {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 14px;
+  background: rgba(4, 7, 11, 0.58) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-compact),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-disclosure),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-disclosure-body),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-form) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.chart-account-save-note) {
+  display: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.auth-mode-tabs) {
+  border-color: rgba(185, 198, 226, 0.13) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.auth-mode-tabs button) {
+  color: rgba(218, 225, 240, 0.62) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.auth-mode-tabs button.is-active) {
+  color: #f8fafc !important;
+  background: linear-gradient(135deg, #4f5d83, #303a58) !important;
+  box-shadow: 0 8px 20px rgba(12, 17, 31, 0.32) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.field input),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.field input:focus) {
+  border-color: rgba(185, 198, 226, 0.17) !important;
+  color: rgba(246, 248, 252, 0.96) !important;
+  background: #0c1118 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.field input::placeholder) {
+  color: rgba(185, 196, 216, 0.42) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway :global(.button) {
+  border-color: rgba(185, 198, 226, 0.16) !important;
+  color: rgba(248, 250, 252, 0.94) !important;
+  background: #171d28 !important;
+  box-shadow: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelect select,
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelect select:focus {
+  border-color: rgba(185, 198, 226, 0.18) !important;
+  color: rgba(247, 249, 252, 0.96) !important;
+  background: #111720 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  color-scheme: dark;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSelect select option {
+  color: #f7f9fc !important;
+  background: #111720 !important;
+}
+
+@media (max-width: 760px) {
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure {
+    width: 100%;
+  }
+}
+/* END HALLEUS_COMPARE_DARK_CONTROLS_DISCLOSURE_R16 */
+
+/* HALLEUS_COMPARE_FINAL_PREMIUM_BUILDER_R17 */
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-final-product-builder="r17"] {
+  width: min(100%, 980px);
+  padding: clamp(26px, 4vw, 42px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 50% -8%, rgba(94, 110, 168, 0.13), transparent 28rem),
+    linear-gradient(180deg, #0d1015 0%, #090b0f 100%);
+  box-shadow:
+    0 34px 100px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .finalBuilderHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .finalBuilderHeader > div {
+  min-width: 0;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .finalBuilderHeader h2 {
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .finalBuilderHeader p:last-child {
+  max-width: 38rem;
+  margin: 0;
+  color: rgba(227, 232, 242, 0.54);
+  font-size: 0.78rem;
+  line-height: 1.9;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButton {
+  display: flex;
+  min-width: 190px;
+  min-height: 54px;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border: 1px solid rgba(181, 195, 228, 0.16);
+  border-radius: 16px;
+  padding: 9px 12px;
+  color: #f8fafc;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.022));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  text-align: start;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(181, 195, 228, 0.28);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButton > span:nth-child(2) {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButton strong {
+  color: #f8fafc;
+  font-size: 0.74rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButton small {
+  overflow: hidden;
+  color: rgba(210, 220, 240, 0.46);
+  font-size: 0.64rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButton b {
+  color: rgba(214, 223, 243, 0.5);
+  font-size: 0.8rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButtonDot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba(157, 169, 199, 0.55);
+  box-shadow: 0 0 0 4px rgba(157, 169, 199, 0.055);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountButton[data-state="ready"] .accountButtonDot {
+  background: #8eb39a;
+  box-shadow:
+    0 0 0 4px rgba(142, 179, 154, 0.08),
+    0 0 18px rgba(142, 179, 154, 0.18);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderProgress {
+  margin: 22px 0 8px;
+  padding: 12px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderProgress > div {
+  color: rgba(226, 232, 242, 0.48);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderProgress > i {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderProgress > i b {
+  background: linear-gradient(90deg, #627194, #cbd4e9);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderHelper {
+  margin: 0 0 26px;
+  color: rgba(213, 221, 237, 0.42) !important;
+  font-size: 0.7rem !important;
+  line-height: 1.8 !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderHelper a {
+  color: rgba(235, 240, 250, 0.82);
+  text-decoration: underline;
+  text-decoration-color: rgba(197, 209, 235, 0.25);
+  text-underline-offset: 4px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountGateway,
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountDisclosure {
+  display: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 4, 8, 0.72);
+  backdrop-filter: blur(18px) saturate(0.85);
+  animation: compareModalBackdropR17 180ms ease both;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModal {
+  width: min(100%, 510px);
+  max-height: min(86vh, 760px);
+  overflow: auto;
+  border: 1px solid rgba(189, 201, 230, 0.17);
+  border-radius: 26px;
+  padding: 18px;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 50% -15%, rgba(86, 103, 159, 0.14), transparent 22rem),
+    #0b0f15;
+  box-shadow:
+    0 40px 120px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  animation: compareModalPanelR17 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 4px 2px 16px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalHeader > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalHeader small {
+  color: rgba(196, 208, 233, 0.46);
+  font-size: 0.66rem;
+  font-weight: 760;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalHeader h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalHeader p {
+  margin: 0;
+  color: rgba(220, 227, 240, 0.48);
+  font-size: 0.72rem;
+  line-height: 1.8;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalHeader > button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  color: rgba(241, 245, 249, 0.75);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 1.15rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 19px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.chart-account-compact),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.chart-account-disclosure),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.chart-account-disclosure-body),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.chart-account-form) {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.chart-account-save-note) {
+  display: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.chart-account-greeting),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.file-hint) {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.68);
+  font-size: 0.76rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.auth-mode-tabs) {
+  border-color: rgba(184, 198, 228, 0.13) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.auth-mode-tabs button) {
+  color: rgba(218, 225, 240, 0.62) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.auth-mode-tabs button.is-active) {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #5c6a92, #35405f) !important;
+  box-shadow: 0 10px 24px rgba(12, 17, 31, 0.3) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.field) {
+  display: grid;
+  gap: 7px;
+  color: rgba(225, 231, 243, 0.68);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.field input),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.field input:focus) {
+  min-height: 46px;
+  border-color: rgba(185, 198, 226, 0.16) !important;
+  border-radius: 13px !important;
+  color: #f8fafc !important;
+  background: #0d131c !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.field input::placeholder) {
+  color: rgba(184, 195, 216, 0.38) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.actions) {
+  margin-top: 2px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.button) {
+  min-height: 44px;
+  border-color: rgba(185, 198, 226, 0.16) !important;
+  border-radius: 13px !important;
+  color: #f8fafc !important;
+  background: #171e2a !important;
+  box-shadow: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 11px 3px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalStatus p {
+  flex: 1;
+  margin: 0;
+  color: rgba(216, 224, 240, 0.48);
+  font-size: 0.69rem;
+  line-height: 1.7;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalStatus button {
+  cursor: pointer;
+  border: 0;
+  color: rgba(233, 238, 248, 0.72);
+  background: transparent;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 760;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalStatus[data-state="ready"] .accountStatusDot {
+  background: #8eb39a;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .flowStep[data-flow-step="charts"] {
+  margin-top: 4px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .flowStep .stepHeading > span {
+  display: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .flowStep .stepHeading h3 {
+  color: #f8fafc;
+  font-size: 0.88rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .flowStep .stepHeading p {
+  color: rgba(216, 224, 240, 0.45) !important;
+  font-size: 0.72rem !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid {
+  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCard {
+  position: relative;
+  gap: 13px;
+  overflow: visible;
+  padding: 18px;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(78, 94, 143, 0.055), transparent 18rem),
+    #0b0e13;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCard[data-selected="true"] {
+  border-color: rgba(178, 192, 226, 0.2);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(87, 104, 160, 0.1), transparent 19rem),
+    #0b0e13;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCardHeader small {
+  color: rgba(211, 220, 239, 0.46);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCardHeader > span {
+  padding: 5px 9px;
+  color: rgba(222, 229, 243, 0.44);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestial {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 54px;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  opacity: 0.42;
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestial[data-active="true"] {
+  opacity: 0.9;
+  transform: scale(1.03);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialRingOuter,
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialRingInner,
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialAxis,
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialCore {
+  position: absolute;
+  display: block;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialRingOuter {
+  inset: 0;
+  border: 1px solid rgba(193, 205, 235, 0.25);
+  border-radius: 50%;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialRingInner {
+  inset: 8px;
+  border: 1px dashed rgba(193, 205, 235, 0.28);
+  border-radius: 50%;
+  animation: comparePersonOrbitR17 9s linear infinite;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialAxis {
+  top: 50%;
+  right: 3px;
+  left: 3px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(193, 205, 235, 0.28), transparent);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialCore {
+  top: calc(50% - 3px);
+  left: calc(50% - 3px);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(209, 218, 239, 0.76);
+  box-shadow: 0 0 12px rgba(151, 169, 214, 0.25);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personEmpty,
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSummary {
+  min-height: 86px;
+  align-content: center;
+  justify-items: start;
+  text-align: start;
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personEmpty strong,
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSummary strong {
+  color: rgba(248, 250, 252, 0.96);
+  font-size: 0.82rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personEmpty span,
+.product[data-embedded="true"][data-builder-simplified="r12"] .personSummary span {
+  color: rgba(215, 223, 239, 0.43);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerShell {
+  position: relative;
+  z-index: 25;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerTrigger {
+  display: flex;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(185, 198, 226, 0.15);
+  border-radius: 15px;
+  padding: 9px 12px;
+  color: #f8fafc;
+  background: #111720;
+  text-align: start;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerTrigger > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerTrigger small {
+  color: rgba(192, 203, 226, 0.4);
+  font-size: 0.62rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerTrigger strong {
+  overflow: hidden;
+  color: rgba(248, 250, 252, 0.94);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerTrigger b {
+  color: rgba(214, 223, 243, 0.52);
+  font-size: 0.72rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerPopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline: 0;
+  z-index: 45;
+  overflow: hidden;
+  border: 1px solid rgba(185, 198, 226, 0.16);
+  border-radius: 18px;
+  background: #0d1219;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.48);
+  animation: comparePickerR17 160ms ease both;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerSearch {
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerSearch > span {
+  color: rgba(206, 216, 237, 0.46);
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerSearch input,
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerSearch input:focus {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(185, 198, 226, 0.15) !important;
+  border-radius: 12px !important;
+  padding: 0 11px !important;
+  color: #f8fafc !important;
+  background: #111720 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerSearch input::placeholder {
+  color: rgba(186, 197, 217, 0.38);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerResults {
+  max-height: 330px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerGroup {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerGroup + .chartPickerGroup {
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerGroup > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px 6px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerGroup > header strong {
+  color: rgba(218, 226, 242, 0.48);
+  font-size: 0.64rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerGroup > header span {
+  color: rgba(185, 197, 221, 0.38);
+  font-size: 0.62rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerGroup > div {
+  display: grid;
+  gap: 4px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerOption {
+  display: flex;
+  width: 100%;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  padding: 9px 10px;
+  color: inherit;
+  background: transparent;
+  text-align: start;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerOption:hover,
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerOption[data-selected="true"] {
+  border-color: rgba(185, 198, 226, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerOption > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerOption strong {
+  overflow: hidden;
+  color: rgba(248, 250, 252, 0.94);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerOption small {
+  overflow: hidden;
+  color: rgba(205, 214, 232, 0.43);
+  font-size: 0.64rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerOption em {
+  flex: 0 0 auto;
+  color: rgba(190, 202, 226, 0.38);
+  font-size: 0.6rem;
+  font-style: normal;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerEmpty {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 28px 16px;
+  text-align: center;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerEmpty strong {
+  color: rgba(244, 247, 252, 0.76);
+  font-size: 0.75rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerEmpty span {
+  color: rgba(202, 211, 229, 0.4);
+  font-size: 0.66rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCreatePrompt {
+  margin: -2px 2px 0;
+  color: rgba(205, 214, 232, 0.4) !important;
+  font-size: 0.67rem !important;
+  line-height: 1.7 !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .personCreatePrompt a {
+  color: rgba(239, 243, 250, 0.76);
+  text-decoration: underline;
+  text-decoration-color: rgba(193, 205, 232, 0.22);
+  text-underline-offset: 4px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit {
+  opacity: 0.5;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit[data-state="ready"] {
+  opacity: 1;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-pair-ready="false"] .flowStep[data-flow-step="relationship"] {
+  display: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .relationshipGrid {
+  gap: 8px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .relationshipOption {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .relationshipOption small {
+  display: none;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .relationshipContextNote {
+  margin-top: 10px;
+  border-inline-start-color: rgba(177, 191, 228, 0.24);
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReview {
+  position: relative;
+  overflow: hidden;
+  margin-top: 18px;
+  padding: 20px;
+  border-color: rgba(182, 195, 227, 0.14);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 30% 0%, rgba(84, 102, 158, 0.1), transparent 18rem),
+    radial-gradient(circle at 70% 0%, rgba(111, 91, 150, 0.07), transparent 18rem),
+    rgba(255, 255, 255, 0.014);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReview::before,
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReview::after {
+  content: "";
+  position: absolute;
+  top: -88px;
+  width: 180px;
+  height: 180px;
+  pointer-events: none;
+  border: 1px solid rgba(182, 195, 227, 0.08);
+  border-radius: 50%;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReview::before {
+  inset-inline-start: 18%;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReview::after {
+  inset-inline-end: 18%;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReview header,
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReviewPeople,
+.product[data-embedded="true"][data-builder-simplified="r12"] .pairReviewTopics {
+  position: relative;
+  z-index: 1;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .primaryButton {
+  min-height: 50px;
+  margin-top: 18px;
+  border: 1px solid rgba(190, 201, 226, 0.18);
+  border-radius: 15px;
+  color: #f8fafc !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.045)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 12px 28px rgba(0, 0, 0, 0.15) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .primaryButton:not(:disabled):hover {
+  border-color: rgba(190, 201, 226, 0.28);
+  background: rgba(255, 255, 255, 0.085) !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .primaryButton:disabled {
+  opacity: 0.45;
+}
+
+@keyframes compareModalBackdropR17 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes compareModalPanelR17 {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes comparePickerR17 {
+  from { opacity: 0; transform: translateY(-4px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes comparePersonOrbitR17 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-final-product-builder="r17"] {
+    padding: 22px 14px 20px;
+    border-radius: 25px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .finalBuilderHeader {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountButton {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountModalBackdrop {
+    padding: 12px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountModal {
+    max-height: 92vh;
+    border-radius: 22px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .chartGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .pairOrbit {
+    min-height: 54px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerPopover {
+    position: fixed;
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    z-index: 130;
+    max-height: min(76vh, 620px);
+    border-radius: 20px;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerResults {
+    max-height: min(58vh, 470px);
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .personCelestial {
+    inset-inline-end: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountModalBackdrop,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountModal,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerPopover,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .personCelestialRingInner {
+    animation: none !important;
+  }
+
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountButton,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .personCelestial {
+    transition: none !important;
+  }
+}
+/* END HALLEUS_COMPARE_FINAL_PREMIUM_BUILDER_R17 */
+
+/* HALLEUS_COMPARE_EMPTY_PICKER_PHONE_R21 */
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.phone-country-input) {
+  display: flex !important;
+  width: 100%;
+  min-height: 46px;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid rgba(185, 198, 226, 0.16) !important;
+  border-radius: 13px !important;
+  background: #0d131c !important;
+  box-shadow: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.phone-country-input > span) {
+  display: inline-flex !important;
+  min-width: 58px;
+  align-items: center;
+  justify-content: center;
+  border: 0 !important;
+  border-inline-end: 1px solid rgba(185, 198, 226, 0.12) !important;
+  color: rgba(220, 228, 244, 0.68) !important;
+  background: #111720 !important;
+  font-weight: 760;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.phone-country-input > input),
+.product[data-embedded="true"][data-builder-simplified="r12"] .accountModalPanel :global(.phone-country-input > input:focus) {
+  min-width: 0;
+  min-height: 44px;
+  flex: 1;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #f8fafc !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroState {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 30px 18px 26px;
+  text-align: center;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroOrbit {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 3px;
+  border: 1px solid rgba(190, 203, 232, 0.18);
+  border-radius: 50%;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroOrbit::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px dashed rgba(190, 203, 232, 0.22);
+  border-radius: 50%;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroOrbit::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 3px);
+  left: calc(50% - 3px);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(211, 220, 241, 0.68);
+  box-shadow: 0 0 14px rgba(145, 164, 214, 0.2);
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroState strong {
+  color: rgba(248, 250, 252, 0.94);
+  font-size: 0.78rem;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroState p {
+  max-width: 18rem;
+  margin: 0;
+  color: rgba(207, 217, 236, 0.46) !important;
+  font-size: 0.67rem !important;
+  line-height: 1.8 !important;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroState a {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5px;
+  border: 1px solid rgba(190, 203, 232, 0.17);
+  border-radius: 12px;
+  padding: 0 14px;
+  color: rgba(248, 250, 252, 0.94);
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 0.7rem;
+  font-weight: 780;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroState a:hover {
+  transform: translateY(-1px);
+  border-color: rgba(190, 203, 232, 0.28);
+  background: rgba(255, 255, 255, 0.075);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product[data-embedded="true"][data-builder-simplified="r12"] .chartPickerZeroState a {
+    transition: none !important;
+  }
+}
+/* END HALLEUS_COMPARE_EMPTY_PICKER_PHONE_R21 */
