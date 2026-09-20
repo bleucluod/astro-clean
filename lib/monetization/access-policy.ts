@@ -84,7 +84,7 @@ export type ReportAccessPolicy = {
 
 export const DEFAULT_REPORT_ACCESS_POLICY: ReportAccessPolicy = {
   version: 1,
-  monetizationMode: "CONFIGURED",
+  monetizationMode: "FREE_ALL",
   topStoriesFreeCount: 1,
   importantHousesFreeCount: 1,
   importantAspectsFreeCount: 1,

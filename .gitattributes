@@ -22,3 +22,5 @@
 *.png binary
 *.woff2 binary
 *.zip binary
+
+vendor/spiceql-wasm/spiceql_wasm.data binary

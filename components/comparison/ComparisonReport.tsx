@@ -22,6 +22,8 @@ import {
   subscribeToPrivateComparisons,
 } from "@/lib/comparison/comparison-storage";
 import { loadReports } from "@/lib/storage/reports-storage";
+import { getAccountReportRecord } from "@/lib/storage/account-report-read-client";
+import { ensureServerCanonicalReport } from "@/lib/storage/account-report-save-client";
 import {
   deleteComparisonFromAccount,
   getAccountComparisonRecord,
@@ -97,28 +99,19 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
 
 
   const loadRecord = useCallback(async () => {
-    const local = getPrivateComparison(comparisonId);
-    if (local) {
-      setRecord(local);
-      setIsReady(true);
-      void getAccountComparisonRecord(comparisonId).then((account) => {
-        setAccountStatus(account.status);
-        setAccountFavorite(account.favorite);
-        setAccountNote(account.note);
-      });
-      return;
-    }
-
     const account = await getAccountComparisonRecord(comparisonId);
     setAccountStatus(account.status);
     setAccountFavorite(account.favorite);
     setAccountNote(account.note);
+
     if (account.comparison) {
-      savePrivateComparison(account.comparison);
       setRecord(account.comparison);
-    } else {
-      setRecord(null);
+      setIsReady(true);
+      return;
     }
+
+    const legacyLocal = getPrivateComparison(comparisonId);
+    setRecord(legacyLocal);
     setIsReady(true);
   }, [comparisonId]);
 
@@ -151,14 +144,30 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     setIsWorking(true);
     setMessage("");
     const reports = loadReports();
-    const chartA = reports.find((report) => report.id === record.chartAId);
-    const chartB = reports.find((report) => report.id === record.chartBId);
+
+    async function resolveCanonicalNatal(reportId: string) {
+      const server = await getAccountReportRecord(reportId);
+      if (server.reportRecord?.report) {
+        return server.reportRecord.report;
+      }
+
+      const legacyLocal = reports.find((report) => report.id === reportId);
+      if (!legacyLocal) {
+        return null;
+      }
+
+      const claimed = await ensureServerCanonicalReport(legacyLocal);
+      return claimed?.report ?? null;
+    }
+
+    const [chartA, chartB] = await Promise.all([
+      resolveCanonicalNatal(record.chartAId),
+      resolveCanonicalNatal(record.chartBId),
+    ]);
 
     if (!chartA || !chartB) {
       setIsWorking(false);
-      setMessage(
-        "یکی از چارت‌های اصلی دیگر روی این دستگاه پیدا نمی‌شود؛ برای بازسازی، دوباره آن چارت را بساز.",
-      );
+      setMessage("یکی از دو چارت اصلی در هالیوس پیدا نشد؛ داده‌ای را حدس نمی‌زنیم.");
       return;
     }
 
@@ -169,17 +178,17 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
       return;
     }
 
-    const saved = savePrivateComparison(rebuilt.record);
-    if (!saved.ok) {
+    const remoteSave = await saveComparisonToAccount(rebuilt.record, {
+      navigationGraceMs: 0,
+    });
+    if (remoteSave.status !== "saved" && remoteSave.status !== "guest-saved") {
       setIsWorking(false);
-      setMessage(saved.message);
+      setMessage(remoteSave.message);
       return;
     }
 
-    if (accountStatus === "saved") {
-      await saveComparisonToAccount(rebuilt.record, { navigationGraceMs: 0 });
-    }
-
+    savePrivateComparison(rebuilt.record);
+    setAccountStatus(remoteSave.status);
     setRecord(rebuilt.record);
     setIsWorking(false);
     setMessage("خوانش با اطلاعات فعلی دو چارت دوباره ساخته شد.");
@@ -225,7 +234,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
   }
 
   async function remove() {
-    if (accountStatus === "saved") {
+    if (accountStatus === "saved" || accountStatus === "guest-saved") {
       try {
         await deleteComparisonFromAccount(comparisonId);
       } catch {

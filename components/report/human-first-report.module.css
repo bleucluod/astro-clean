@@ -1,3 +1,4 @@
+/* HALLEUS_REPORT_MOBILE_CANONICAL_DESKTOP_R5_20260919 */
 .reader,
 .reader * {
   min-width: 0;
@@ -4590,7 +4591,7 @@
 
 
 /* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE2_OPENING_STORIES_CSS_R1_20260903 */
-@media (max-width: 760px) {
+@media (min-width: 0px) {
   .reader > .adaptiveHero {
     gap: 0 !important;
     padding: 26px 4px 34px !important;
@@ -4736,14 +4737,14 @@
   }
 }
 /* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE2_EXACT_CHARCOAL_R3_20260903 */
- @media (max-width: 760px) {
+ @media (min-width: 0px) {
    .adaptivePrimaryStories .adaptiveStoryList[data-adaptive-story-preview="three-headlines"] .adaptiveStoryCard {
      background: #08090c !important;
    }
  }
 
 /* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE3_CHAPTER_READING_R1_20260903 */
-@media (max-width: 760px) {
+@media (min-width: 0px) {
   .adaptiveNarrative {
     gap: 0 !important;
   }
@@ -4987,7 +4988,7 @@
 }
 
 /* HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE3_ROUTE_SCOPED_CARD_RECONCILIATION_R9_20260903 */
-@media (max-width: 760px) {
+@media (min-width: 0px) {
   :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-placement],
   :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-house],
   :global(.report-product-page) [data-adaptive-report-section] [data-adaptive-aspect-id],
@@ -5082,7 +5083,7 @@
   display: none;
 }
 
-@media (max-width: 760px) {
+@media (min-width: 0px) {
   .adaptiveRoadmap {
     display: none !important;
   }
@@ -5782,5 +5783,469 @@
 @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
   .reportMobileHeader {
     transition: none !important;
+  }
+}
+
+/* HALLEUS_REPORT_ACCOUNT_CTA_WIKI_PARITY_R3_20260919 */
+.reportAccountStickyCta {
+  position: fixed;
+  z-index: 10030;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+  width: min(352px, calc(100vw - 28px));
+  max-height: min(188px, 34dvh);
+  padding: 13px 12px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  color: #f4f6f8;
+  background: #11141a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transform: translateY(28px);
+  isolation: isolate;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition:
+    transform 300ms cubic-bezier(.22, 1, .36, 1),
+    opacity 220ms ease;
+}
+
+.reportAccountStickyCta[data-state="visible"] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.reportAccountStickyCta[data-state="entering"],
+.reportAccountStickyCta[data-state="exiting"],
+.reportAccountStickyCta[data-exiting="true"] {
+  opacity: 0;
+  transform: translateY(28px);
+  pointer-events: none;
+}
+
+.reportAccountStickyCtaText {
+  min-height: 0;
+  padding: 4px 38px 0 2px;
+  overflow: auto;
+  color: #d6dde6;
+  font-size: 15px;
+  line-height: 1.75;
+  overscroll-beavior: contain;
+}
+
+.reportAccountStickyCtaButton {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #11141a !important;
+  background: #e8ecf0;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 820;
+  line-height: 1.45;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.reportAccountStickyCtaButton:hover {
+  background: #d8dde5;
+}
+
+.reportAccountStickyCtaButton:active {
+  transform: translateY(1px);
+}
+
+.reportAccountStickyCtaDismiss {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 3;
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  color: #aeb4be;
+  background: transparent;
+  font: inherit;
+  font-size: 1.12rem;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.reportAccountStickyCtaDismiss:hover {
+  color: #f4f6f8;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.reportAccountStickyCtaButton:focus-visible,
+.reportAccountStickyCtaDismiss:focus-visible {
+  outline: 2px solid #d8dde5;
+  outline-offset: 3px;
+}
+
+.reportAccountStickyCtaProgress {
+  --wiki-cta-progress-angle: 0turn;
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--wiki-cta-progress-angle),
+    transparent 0 86%,
+    rgba(216, 221, 229, 0.18) 89%,
+    #d8dde5 92% 97%,
+    transparent 100%
+  );
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 2px rgba(216, 221, 229, 0.14));
+}
+
+.reportAccountStickyCta[data-tab-visible="false"] {
+  pointer-events: none;
+}
+
+.reportAccountAuthBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.74);
+  backdrop-filter: blur(3px);
+}
+
+.reportAccountAuthDialog {
+  position: relative;
+  width: min(460px, 100%);
+  max-height: min(86dvh, 760px);
+  overflow: auto;
+  padding: 54px 18px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  background: #0b0d11;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+}
+
+.reportAccountAuthClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #d6dde6;
+  background: #101216;
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+@media (max-height: 520px) {
+  .reportAccountStickyCta {
+    gap: 6px;
+    max-height: min(164px, calc(100dvh - 24px - env(safe-area-inset-bottom)));
+    padding: 11px 10px 10px;
+  }
+
+  .reportAccountStickyCtaText {
+    padding-top: 2px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .reportAccountStickyCtaButton {
+    min-height: 48px;
+    padding-block: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reportAccountStickyCta {
+    transition: none;
+    transform: none;
+  }
+
+  .reportAccountStickyCta[data-state="entering"],
+  .reportAccountStickyCta[data-state="visible"],
+  .reportAccountStickyCta[data-state="exiting"],
+  .reportAccountStickyCta[data-exiting="true"] {
+    transform: none;
+  }
+}
+
+/* HALLEUS_REPORT_DESKTOP_GEOMETRY_FINISH_R2_20260919 */
+.reportAccountStickyCtaTitle {
+  display: block;
+  margin: 0;
+  color: #f4f6f8 !important;
+  font-size: 0.98rem;
+  font-weight: 850;
+  line-height: 1.72;
+}
+
+.reportAccountStickyCtaBody {
+  margin: 5px 0 0;
+  color: #b9c2cd !important;
+  font-size: 0.86rem;
+  font-weight: 430;
+  line-height: 1.78;
+}
+
+/* HALLEUS_REPORT_AUTH_DARK_SURFACE_FINISH_R2_20260919 */
+.reportAccountAuthDialog :global(.chart-account-save-note) {
+  display: none !important;
+}
+
+.reportAccountAuthDialog :global(.chart-account-compact),
+.reportAccountAuthDialog :global(.chart-account-disclosure),
+.reportAccountAuthDialog :global(.chart-account-disclosure-body),
+.reportAccountAuthDialog :global(.chart-account-form),
+.reportAccountAuthDialog :global(.form-grid) {
+  color-scheme: dark;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.reportAccountAuthDialog :global(.field),
+.reportAccountAuthDialog :global(.field > span),
+.reportAccountAuthDialog :global(.file-hint),
+.reportAccountAuthDialog :global(.success-message) {
+  color: #cbd3dc !important;
+}
+
+.reportAccountAuthDialog :global(.auth-mode-tabs) {
+  border-color: rgb(255 255 255 / 11%) !important;
+  background: #080a0e !important;
+}
+
+.reportAccountAuthDialog :global(.auth-mode-tabs button) {
+  color: #aeb8c5 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.reportAccountAuthDialog :global(.auth-mode-tabs button:hover) {
+  color: #f4f6f8 !important;
+  background: rgb(255 255 255 / 5%) !important;
+}
+
+.reportAccountAuthDialog :global(.auth-mode-tabs button.is-active) {
+  color: #080909 !important;
+  background: #f0eee7 !important;
+  box-shadow: none !important;
+}
+
+.reportAccountAuthDialog :global(input),
+.reportAccountAuthDialog :global(.phone-country-input) {
+  border-color: rgb(255 255 255 / 12%) !important;
+  color: #f4f6f8 !important;
+  background: #0f1217 !important;
+  box-shadow: none !important;
+}
+
+.reportAccountAuthDialog :global(input::placeholder) {
+  color: #727c88 !important;
+}
+
+.reportAccountAuthDialog :global(input:focus),
+.reportAccountAuthDialog :global(.phone-country-input:focus-within) {
+  border-color: rgb(240 238 231 / 42%) !important;
+  box-shadow: 0 0 0 3px rgb(240 238 231 / 7%) !important;
+}
+
+.reportAccountAuthDialog :global(.phone-country-input > span) {
+  border-inline-end-color: rgb(255 255 255 / 9%) !important;
+  color: #d7dee8 !important;
+  background: #141820 !important;
+}
+
+.reportAccountAuthDialog :global(.button),
+.reportAccountAuthDialog :global(button[type="submit"]) {
+  border-color: #f0eee7 !important;
+  color: #080909 !important;
+  background: #f0eee7 !important;
+  box-shadow: none !important;
+}
+
+.reportAccountAuthDialog :global(.button:hover),
+.reportAccountAuthDialog :global(button[type="submit"]:hover) {
+  background: #ffffff !important;
+}
+
+.reportAccountClaimStatus,
+.reportAccountClaimError {
+  margin: 12px 0 0;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+  padding: 11px 12px;
+  color: #cbd3dc;
+  background: #101319;
+  font-size: 0.84rem;
+  line-height: 1.75;
+}
+
+.reportAccountClaimError {
+  border-color: rgb(244 114 182 / 22%);
+}
+
+.reportAccountClaimError p {
+  margin: 0;
+  color: #e1e6ec !important;
+}
+
+.reportAccountClaimRetry {
+  margin-top: 8px;
+  border: 1px solid rgb(255 255 255 / 13%);
+  border-radius: 10px;
+  padding: 8px 11px;
+  color: #f4f6f8;
+  background: #171b22;
+  font: inherit;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+@media (min-width: 761px) {
+  .reader {
+    width: min(1180px, calc(100% - 40px)) !important;
+    padding-inline: clamp(22px, 3vw, 38px) !important;
+  }
+
+  .reader > .adaptiveHero {
+    width: min(1040px, 100%) !important;
+    min-height: 0 !important;
+    margin-inline: auto !important;
+    padding: clamp(34px, 4vw, 52px) clamp(30px, 4vw, 54px) !important;
+  }
+
+  .adaptiveNarrative {
+    width: min(1040px, 100%);
+    gap: 0 !important;
+  }
+
+  .adaptiveSection {
+    width: min(920px, 100%);
+    margin-inline: auto !important;
+    padding: clamp(50px, 5vw, 72px) clamp(18px, 2.5vw, 30px) !important;
+  }
+
+  .adaptivePrimaryStories {
+    margin-top: 34px !important;
+  }
+
+  .adaptivePrimaryStories .adaptiveStoryList[data-adaptive-story-preview="three-headlines"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  .adaptivePrimaryStories .adaptiveStoryCard {
+    grid-template-columns: 28px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 18px !important;
+  }
+
+  .adaptivePlacementGrid,
+  .adaptiveHouseGrid,
+  .adaptiveAspectList {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  .adaptiveSection .adaptivePlacementCard,
+  .adaptiveSection .adaptiveHouseCard,
+  .adaptiveSection .adaptiveAspectCard,
+  .adaptiveSection .adaptiveBalanceCard,
+  .adaptiveSection .adaptiveRulerStrip,
+  .adaptiveSection .adaptiveNodeCard {
+    min-height: 0 !important;
+    padding: 22px !important;
+    border: 1px solid rgb(255 255 255 / 9%) !important;
+    border-radius: 18px !important;
+    background: #0b0d11 !important;
+  }
+
+  .adaptiveTwoColumn {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .fullReportStage {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .flowSectionHeader[data-screenshot-ready],
+  .reader .transitView .sectionHeading[data-screenshot-ready],
+  .reader .chartHeading[data-screenshot-ready],
+  .reader .transitPattern {
+    min-height: 0 !important;
+    align-content: start !important;
+  }
+
+  .reader .transitPattern {
+    width: min(900px, 100%);
+    align-items: start !important;
+    padding: clamp(28px, 4vw, 46px) !important;
+  }
+
+  .reader > .adaptiveHero > .flowSection {
+    margin-top: clamp(26px, 3vw, 38px);
+    padding: clamp(26px, 3vw, 36px) 0 0 !important;
+  }
+
+  .reader > .adaptiveHero > .flowSection .chartDetails {
+    gap: clamp(22px, 3vw, 34px) !important;
+  }
+
+  .mobileChapterNavigator {
+    width: min(920px, 100%);
+    margin: 22px auto 34px;
+    padding-inline: 0;
+  }
+
+  .mobileChapterDialog[open] {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .mobileChapterSheet {
+    width: min(640px, calc(100vw - 48px));
+    height: min(72vh, 640px);
+    max-height: calc(100vh - 48px);
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 22px;
+    padding: 14px 16px 16px;
+    box-shadow: 0 24px 80px rgb(0 0 0 / 44%);
+  }
+
+  .mobileChapterSheetHandle {
+    display: none;
   }
 }

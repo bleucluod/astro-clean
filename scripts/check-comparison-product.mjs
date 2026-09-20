@@ -15,7 +15,7 @@ const paths = {
   sharedWheel: "components/HalleusWheelCore.tsx",
   accountClient: "lib/comparison/comparison-account-client.ts",
   accountPersistence: "lib/comparison/comparison-account-persistence.ts",
-  accountRoute: "app/api/reports/account/route.ts",
+  accountRoute: "app/api/reports/owner/route.ts",
   styles: "components/comparison/comparison.module.css",
   landingStyles: "components/comparison/comparison-landing.module.css",
   service: "lib/comparison/comparison-product-service.ts",
@@ -299,7 +299,7 @@ requireMarkers("comparison private server persistence client", sources.accountCl
   "saveComparisonToAccount",
   '"guest-saved"',
   "HALLEUS_COMPARISON_LARGE_PAYLOAD_SERVER_SAVE_R1",
-  'fetch("/api/reports/account"',
+  'fetch("/api/reports/owner"',
   '...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})',
   "body: JSON.stringify({ comparison })",
   "getAccountComparisonRecord",
@@ -311,7 +311,8 @@ requireMarkers("comparison server-save acknowledgement", sources.composer, [
   "const accountSaveResult = await saveComparisonToAccount",
   'accountSaveResult.status !== "saved"',
   'accountSaveResult.status !== "guest-saved"',
-  "نسخهٔ خصوصی روی همین دستگاه محفوظ است؛ برای ثبت در گزارش‌های هالیوس دوباره تلاش کن.",
+  "ثبت خصوصی روی هالیوس کامل نشد؛ دوباره تلاش کن.",
+  "savePrivateComparison(result.record)",
   'router.push(`/compare/${encodeURIComponent(result.record.id)}`)',
 ]);
 requireMarkers("comparison private persistence policy", sources.accountPersistence, [
@@ -324,18 +325,18 @@ requireMarkers("comparison private persistence policy", sources.accountPersisten
   "share_enabled = false",
 ]);
 requireMarkers("comparison guest admin capture route", sources.accountRoute, [
-  "HALLEUS_GUEST_SYNASTRY_ADMIN_CAPTURE_R1",
+  "GUEST_REPORT_COOKIE_NAME",
+  "readGuestReportSession",
   "saveGuestComparisonReport",
-  "PUBLIC_REPORT_OWNER_USER_ID",
-  'persistence: "guest-private"',
-  "publicReportWriteGuard()",
+  '"guest-private"',
+  'action === "claim_guest"',
 ]);
 forbidMarkers("comparison guest capture auth gate", sources.accountRoute, [
   "Comparison account save requires an authenticated account.",
 ]);
 requireMarkers("comparison navigation", sources.navigation, [
   'href: "/compare"',
-  'label: "تحلیل رابطه"',
+  'label: "چارت ازدواج"',
 ]);
 requireMarkers("comparison public discovery", sources.seo, ['path: "/compare"']);
 requireMarkers("comparison footer", sources.shell, ['href: "/compare"']);

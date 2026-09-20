@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { reconcileServerCanonicalReports } from "@/lib/account/server-canonical-report-migration-client";
+import { getSupabaseBrowserAccessState } from "@/lib/auth/supabase-browser-client";
 import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 
 import styles from "@/app/reports/reports-page.module.css";
@@ -9,7 +11,7 @@ import { createReportRecord } from "@/lib/storage/report-records";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
   deleteAccountReport,
-  getAccountReportReadClientConfig,
+
   listAccountReportSummaries,
   mutateAccountReport,
   type AccountReportReadStatus,
@@ -338,12 +340,13 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
   const [accountPage, setAccountPage] = useState(1);
   const [accountTotal, setAccountTotal] = useState(0);
   const [accountStatus, setAccountStatus] = useState<AccountReportReadStatus | null>(null);
+  const [libraryOwnerKind, setLibraryOwnerKind] = useState<"account" | "guest">("guest");
 
   const searchTerm = normalizeSearchText(searchInput);
   const isBetaDatabaseSource = reportSource === "beta-db";
   const isAccountSource = reportSource === "account";
   const isRemoteSummarySource = isBetaDatabaseSource || isAccountSource;
-  const accountReadConfig = useMemo(() => getAccountReportReadClientConfig(), []);
+
 
   const favoriteCount = isRemoteSummarySource
     ? databaseSummaries.filter((summary) => summary.favorite).length
@@ -387,6 +390,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       const result = await listAccountReportSummaries(accountPage);
 
       setAccountStatus(result.status);
+      setLibraryOwnerKind(result.ownerKind);
       setDatabaseSummaries(result.summaries);
       setReports([]);
       setFavoriteReportIds(
@@ -491,7 +495,29 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
     const timer = window.setTimeout(() => {
       setFilterMode("all");
       setSearchInput("");
-      void refreshReports();
+      void (async () => {
+        // Render the current server-owned library first. Legacy migration is
+        // account-only follow-up work and must never block guest reads.
+        await refreshReports();
+
+        if (!isAccountSource) return;
+
+        const auth = await getSupabaseBrowserAccessState();
+        if (auth.kind !== "account") return;
+
+        const result = await reconcileServerCanonicalReports(
+          auth.accessToken,
+        ).catch(() => null);
+
+        if (
+          result &&
+          (result.guestClaimed > 0 ||
+            result.localReportsMigrated > 0 ||
+            result.localComparisonsMigrated > 0)
+        ) {
+          await refreshReports();
+        }
+      })();
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -653,31 +679,19 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
 
   if (isAccountSource) {
     if (databaseSummaries.length === 0) {
-      const needsAccount =
-        !accountReadConfig.canAttemptAccountReportRead || accountStatus === "not-authenticated";
       const loadFailed = accountStatus === "account-read-failed";
 
       return (
         <LibraryEmptyState
-          eyebrow="گزارش‌های حساب"
-          title={
-            needsAccount
-              ? "برای دیدن گزارش‌های حسابت وارد شو"
-              : loadFailed
-                ? "گزارش‌های حساب بارگذاری نشد"
-                : "هنوز گزارشی در حسابت نیست"
-          }
+          eyebrow="گزارش‌های هالیوس"
+          title={loadFailed ? "گزارش‌های هالیوس بارگذاری نشد" : "هنوز گزارشی در هالیوس نداری"}
           description={
-            needsAccount
-              ? "بعد از ورود، گزارش‌هایی که به حسابت وصل شده‌اند از همین‌جا در دسترس خواهند بود. گزارش‌های این دستگاه هم جداگانه باقی می‌مانند."
-              : loadFailed
-                ? "ارتباط با گزارش‌های حساب در این لحظه برقرار نشد. می‌توانی گزارش‌های همین دستگاه را ببینی یا بعداً دوباره برگردی."
-                : "اولین گزارش را بساز؛ بعد از ذخیره، سریع‌ترین مسیر برگشت به آن همین صفحه است."
+            loadFailed
+              ? "ارتباط با کتابخانه هالیوس در این لحظه برقرار نشد. دوباره تلاش کن."
+              : "اولین گزارش را بساز؛ هالیوس آن را برای همین مالک مهمان یا حساب نگه می‌دارد."
           }
-          actionHref={needsAccount ? "/profile" : loadFailed ? "/reports?source=local" : "/chart"}
-          actionLabel={needsAccount ? "ورود به حساب" : loadFailed ? "گزارش‌های این دستگاه" : "ساخت اولین گزارش"}
-          secondaryHref={needsAccount ? "/reports?source=local" : undefined}
-          secondaryLabel={needsAccount ? "گزارش‌های این دستگاه" : undefined}
+          actionHref={loadFailed ? "/reports" : "/chart"}
+          actionLabel={loadFailed ? "تلاش دوباره" : "ساخت اولین گزارش"}
         />
       );
     }
@@ -686,8 +700,10 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
       <section className={styles.library} aria-labelledby="account-reports-title">
         <div className={styles.libraryHeader}>
           <div>
-            <span className={styles.eyebrow}>گزارش‌های حساب</span>
-            <h2 id="account-reports-title">گزارش‌های وصل‌شده به حسابت</h2>
+            <span className={styles.eyebrow}>گزارش‌های هالیوس</span>
+            <h2 id="account-reports-title">
+              {libraryOwnerKind === "account" ? "گزارش‌های حساب تو" : "گزارش‌های این نشست"}
+            </h2>
             <p>جستجو کن، فیلتر کن و از همان جایی که لازم داری ادامه بده.</p>
           </div>
           <span className={styles.totalCount}>{accountTotal.toLocaleString("fa-IR")} گزارش</span>
@@ -772,7 +788,7 @@ export function ReportsList({ reportSource = "local" }: ReportsListProps) {
                       <div className={styles.actionMenuPanel}>
                         <button type="button" onClick={() => void manageAccountReport(summary, "favorite")}>{summary.favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}</button>
                         <button type="button" onClick={() => void manageAccountReport(summary, "title")}>ویرایش عنوان</button>
-                        {!isComparison ? (
+                        {libraryOwnerKind === "account" && !isComparison ? (
                           summary.visibility === "shared_by_link" ? (
                             <button type="button" onClick={() => void manageAccountReport(summary, "revoke_sharing")}>غیرفعال‌کردن لینک امن</button>
                           ) : (

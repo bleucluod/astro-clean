@@ -1,7 +1,9 @@
 "use client";
 
-import { getSupabaseBrowserAuthClient, getSupabaseBrowserLoginConfig } from "@/lib/auth/supabase-browser-client";
-import { saveGeneratedReport } from "@/lib/storage/report-write-service";
+import {
+  getSupabaseBrowserAccessState,
+  getSupabaseBrowserLoginConfig,
+} from "@/lib/auth/supabase-browser-client";
 import { createReportRecord } from "@/lib/storage/report-records";
 import type { AstrologyReport } from "@/types/astro";
 import type { ReportRecord } from "@/types/storage";
@@ -14,87 +16,39 @@ export type AccountReportSaveClientConfig = {
 
 export type AccountReportSaveResult = {
   localRecord: ReportRecord;
-  localAvailable: boolean;
+  localAvailable: false;
   accountRecord: ReportRecord | null;
   accountStatus:
     | "account-saved"
-    | "public-saved"
+    | "guest-saved"
     | "account-disabled"
     | "not-authenticated"
     | "account-skipped";
   accountMessage: string;
 };
 
-type AccountReportSaveResponse = {
+type OwnerSaveResponse = {
   ok?: boolean;
   error?: string;
   reportRecord?: ReportRecord;
+  ownerKind?: "account" | "guest";
   blockers?: string[];
 };
 
 function createSafeAccountReportSaveMessage(message?: string) {
-  const normalizedMessage = message?.trim() ?? "";
-  const lowerMessage = normalizedMessage.toLowerCase();
-  const looksLikeNetworkTimeout =
-    lowerMessage.includes("connect_timeout") ||
-    lowerMessage.includes("timeout") ||
-    lowerMessage.includes("pooler") ||
-    lowerMessage.includes("supabase") ||
-    lowerMessage.includes("failed to fetch") ||
-    lowerMessage.includes("network");
-
-  if (looksLikeNetworkTimeout) {
-    return "ذخیره آنلاین موقتاً پاسخ نداد؛ نسخه همین دستگاه استفاده شد.";
+  const normalized = message?.trim() ?? "";
+  if (!normalized) {
+    return "ذخیره گزارش روی هالیوس کامل نشد. دوباره تلاش کن.";
   }
-
-  if (!normalizedMessage) {
-    return "ذخیره آنلاین کامل نشد؛ نسخه همین دستگاه استفاده شد.";
-  }
-
-  if (
-    lowerMessage.includes("not configured") ||
-    lowerMessage.includes("disabled") ||
-    lowerMessage.includes("missing")
-  ) {
-    return "ذخیره آنلاین در این محیط کامل فعال نیست؛ نسخه همین دستگاه استفاده شد.";
-  }
-
-  return "ذخیره آنلاین کامل نشد؛ نسخه همین دستگاه استفاده شد.";
-}
-
-const accountReportSavePublicEnv = {
-  NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE:
-    process.env.NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE,
-} as const;
-
-type AccountReportSavePublicEnvName = keyof typeof accountReportSavePublicEnv;
-
-function getPublicEnv(name: AccountReportSavePublicEnvName) {
-  const value = accountReportSavePublicEnv[name]?.trim();
-
-  return value ? value : undefined;
-}
-
-function isPublicFlagEnabled(name: AccountReportSavePublicEnvName) {
-  return getPublicEnv(name)?.toLowerCase() === "true";
+  return "ذخیره گزارش روی هالیوس کامل نشد. اتصال را بررسی کن و دوباره تلاش کن.";
 }
 
 export function getAccountReportSaveClientConfig(): AccountReportSaveClientConfig {
   const loginConfig = getSupabaseBrowserLoginConfig();
-  const accountSaveFlagEnabled = isPublicFlagEnabled(
-    "NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE",
-  );
-  const missingConfig = [...loginConfig.missingConfig];
-
-  if (!accountSaveFlagEnabled) {
-    missingConfig.push("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=true");
-  }
-
   return {
     enabled: true,
-    canAttemptAccountReportSave:
-      accountSaveFlagEnabled && loginConfig.canUseRealSupabaseLogin,
-    missingConfig: [...new Set(missingConfig)],
+    canAttemptAccountReportSave: loginConfig.canUseRealSupabaseLogin,
+    missingConfig: loginConfig.missingConfig,
   };
 }
 
@@ -102,147 +56,120 @@ export type AccountReportSaveOptions = {
   navigationGraceMs?: number;
 };
 
-const DEFAULT_ACCOUNT_SAVE_NAVIGATION_GRACE_MS = 2200;
-const LOCAL_UNAVAILABLE_REMOTE_GRACE_MS = 8000;
+async function readOptionalAccessToken() {
+  const auth = await getSupabaseBrowserAccessState();
 
-type RemoteSaveRace =
-  | { kind: "settled"; result: AccountReportSaveResult }
-  | { kind: "timeout" };
-
-export async function saveGeneratedReportWithAccountFallback(
-  report: AstrologyReport,
-  options: AccountReportSaveOptions = {},
-): Promise<AccountReportSaveResult> {
-  // HALLEUS_LOCAL_REPORT_PERSISTENCE_FALLBACK_V2
-  let localAvailable = true;
-  let localRecord: ReportRecord;
-
-  try {
-    localRecord = await saveGeneratedReport(report);
-  } catch {
-    localAvailable = false;
-    localRecord = createReportRecord(report);
+  if (auth.kind === "unavailable") {
+    return {
+      accessToken: undefined as string | undefined,
+      error: auth.error,
+    };
   }
-
-  const config = getAccountReportSaveClientConfig();
-  const navigationGraceMs = Math.max(
-    0,
-    options.navigationGraceMs ?? DEFAULT_ACCOUNT_SAVE_NAVIGATION_GRACE_MS,
-  );
-  const effectiveNavigationGraceMs = localAvailable
-    ? navigationGraceMs
-    : Math.max(navigationGraceMs, LOCAL_UNAVAILABLE_REMOTE_GRACE_MS);
-  const remoteSavePromise = attemptRemoteReportSave(localRecord, config).then(
-    (result): AccountReportSaveResult => ({
-      ...result,
-      localAvailable,
-      accountMessage:
-        !localAvailable && !result.accountRecord
-          ? "ذخیره گزارش روی دستگاه در دسترس نبود و ذخیره آنلاین هم کامل نشد. دوباره تلاش کن."
-          : result.accountMessage,
-    }),
-  );
-  const race = await Promise.race<RemoteSaveRace>([
-    remoteSavePromise.then((result) => ({ kind: "settled", result })),
-    new Promise<RemoteSaveRace>((resolve) => {
-      window.setTimeout(
-        () => resolve({ kind: "timeout" }),
-        effectiveNavigationGraceMs,
-      );
-    }),
-  ]);
-  if (race.kind === "settled") {
-    return race.result;
-  }
-
-  void remoteSavePromise.catch(() => undefined);
 
   return {
-    localRecord,
-    localAvailable,
-    accountRecord: null,
-    accountStatus: "account-skipped",
-    accountMessage: localAvailable
-      ? "نسخه همین دستگاه آماده است؛ ذخیره آنلاین بدون متوقف‌کردن بازشدن گزارش ادامه پیدا می‌کند."
-      : "ذخیره روی دستگاه در دسترس نبود و ذخیره آنلاین هنوز پاسخ نداده است. دوباره تلاش کن.",
+    accessToken: auth.kind === "account" ? auth.accessToken : undefined,
+    error: undefined as string | undefined,
   };
 }
-async function attemptRemoteReportSave(
-  localRecord: ReportRecord,
-  config: AccountReportSaveClientConfig,
-): Promise<Omit<AccountReportSaveResult, "localAvailable">> {
-  let accessToken: string | undefined;
-  let authErrorMessage: string | undefined;
-  const client = getSupabaseBrowserAuthClient();
 
-  if (client && config.canAttemptAccountReportSave) {
-    const { data, error } = await client.auth.getSession();
+function ownerHeaders(accessToken?: string): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  };
+}
 
-    accessToken = data.session?.access_token;
-    authErrorMessage = error?.message;
-  }
+async function postOwnerReport(
+  report: AstrologyReport,
+): Promise<AccountReportSaveResult> {
+  const localRecord = createReportRecord(report);
+  const auth = await readOptionalAccessToken();
 
-  if (
-    client &&
-    config.canAttemptAccountReportSave &&
-    authErrorMessage &&
-    !accessToken
-  ) {
+  if (auth.error && !auth.accessToken) {
     return {
       localRecord,
+      localAvailable: false,
       accountRecord: null,
       accountStatus: "account-skipped",
-      accountMessage: createSafeAccountReportSaveMessage(authErrorMessage),
+      accountMessage: createSafeAccountReportSaveMessage(auth.error),
     };
   }
 
   try {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
-    if (accessToken) {
-      headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    const response = await fetch("/api/reports/account", {
+    const response = await fetch("/api/reports/owner", {
       method: "POST",
-      headers,
-      body: JSON.stringify({
-        report: localRecord.report,
-      }),
+      headers: ownerHeaders(auth.accessToken),
+      body: JSON.stringify({ report }),
     });
     const payload = (await response.json().catch(() => null)) as
-      | AccountReportSaveResponse
+      | OwnerSaveResponse
       | null;
 
     if (!response.ok || !payload?.ok || !payload.reportRecord) {
       return {
         localRecord,
+        localAvailable: false,
         accountRecord: null,
-        accountStatus: accessToken ? "account-skipped" : "not-authenticated",
-        accountMessage: createSafeAccountReportSaveMessage(
-          payload?.error ?? authErrorMessage,
-        ),
+        accountStatus: "account-skipped",
+        accountMessage: createSafeAccountReportSaveMessage(payload?.error),
       };
     }
 
+    const accountOwned = payload.ownerKind === "account";
     return {
       localRecord,
+      localAvailable: false,
       accountRecord: payload.reportRecord,
-      accountStatus: accessToken ? "account-saved" : "public-saved",
-      accountMessage: accessToken
-        ? "گزارش در حساب ذخیره شد و نسخه عمومیِ بدون جزئیات تولد فعال است."
-        : "گزارش روی سرور ذخیره شد و نسخه عمومیِ بدون جزئیات تولد فعال است.",
+      accountStatus: accountOwned ? "account-saved" : "guest-saved",
+      accountMessage: accountOwned
+        ? "گزارش در حساب هالیوس ذخیره شد."
+        : "گزارش روی هالیوس ذخیره شد. با ساخت حساب می‌توانی آن را از دستگاه‌های دیگر هم داشته باشی.",
     };
   } catch (error) {
     return {
       localRecord,
+      localAvailable: false,
       accountRecord: null,
       accountStatus: "account-skipped",
       accountMessage: createSafeAccountReportSaveMessage(
         error instanceof Error ? error.message : undefined,
       ),
     };
+  }
+}
+
+export async function saveGeneratedReportWithAccountFallback(
+  report: AstrologyReport,
+  _options: AccountReportSaveOptions = {},
+): Promise<AccountReportSaveResult> {
+  // HALLEUS_SERVER_CANONICAL_REPORT_SAVE_R1_20260919
+  // New reports are not written to browser localStorage. Navigation continues
+  // only after Halleus acknowledges the canonical server record.
+  return postOwnerReport(report);
+}
+
+export async function ensureServerCanonicalReport(
+  report: AstrologyReport,
+): Promise<ReportRecord | null> {
+  const auth = await readOptionalAccessToken();
+  if (auth.error && !auth.accessToken) return null;
+
+  try {
+    const response = await fetch("/api/reports/owner", {
+      method: "POST",
+      headers: ownerHeaders(auth.accessToken),
+      body: JSON.stringify({
+        action: "claim_legacy_report",
+        report,
+      }),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | OwnerSaveResponse
+      | null;
+    return response.ok && payload?.ok && payload.reportRecord
+      ? payload.reportRecord
+      : null;
+  } catch {
+    return null;
   }
 }

@@ -219,19 +219,19 @@
 }
 {
     "apollo15": {
-        "spk" : {
-            "reconstructed" : {
+        "spk" : { 
+            "reconstructed" : { 
                 "kernels" : ["AS15_M_REV[0-9].bsp$","AS15_M_REV[0-9][0-9].bsp$","AS15_M_REV[0-9][0-9]_v2.bsp$"]
             },
-            "smithed" : {
+            "smithed" : { 
                 "kernels" : ["AS15_M_REV[0-9][0-9]_SMITHED_V01.bsp$","AS15_M_REV[0-9][0-9]_SMITHED_V02.bsp$"]
             }
         },
-        "ck" : {
-            "reconstructed" : {
+        "ck" : { 
+            "reconstructed" : { 
                 "kernels" : ["AS15_M_REV[0-9].bc$","AS15_M_REV[0-9][0-9].bc$", "AS15_M_REV[0-9][0-9]_v2.bc$"]
             },
-            "smithed" : {
+            "smithed" : { 
                 "kernels" : ["AS15_M_REV[0-9][0-9]_SMITHED_V01.bc$", "AS15_M_REV[0-9][0-9]_SMITHED_V02.bc$"]
             }
         },
@@ -303,7 +303,7 @@
       "iak": {
         "kernels": "apollo16MetricAddendum[0-9]{3}.ti"
       },
-      "pck" : {
+      "pck" : { 
         "deps" : ["/base/pck"]
       }
     },
@@ -381,7 +381,7 @@
       "kernels" : ["pck0000[0-9].tpc"]
     }
   },
-  "mars" : {
+  "mars" : { 
     "tspk" : {
       "noquality": {
         "kernels" : ["^mar[0-9]{3}.bsp$"]
@@ -389,7 +389,7 @@
     },
     "deps" : ["/base"]
   },
-  "moon" : {
+  "moon" : { 
     "tspk" : {
       "noquality": {
         "kernels": ["moon_pa_de421_1900-2050.bpc$"]
@@ -403,15 +403,15 @@
   "iau_moon" : {
     "deps" : ["/moon"]
   },
-  "neptune" : {
+  "neptune" : { 
     "tspk" : {
       "noquality": {
         "kernels": ["^nep[0-9]{3}.bsp$"]
       },
       "deps" : ["/base"]
-    }
+    } 
   },
-  "saturn" : {
+  "saturn" : { 
     "tspk" : {
       "noquality": {
         "kernels": ["^sat[0-9]{3}.bsp$"]
@@ -419,7 +419,7 @@
     },
     "deps" : ["/base"]
   },
-  "uranus" : {
+  "uranus" : { 
     "tspk" : {
       "noquality": {
         "kernels": ["^ura[0-9]{3}.bsp$"]
@@ -427,7 +427,7 @@
     },
     "deps" : ["/base"]
   },
-  "jupiter" : {
+  "jupiter" : { 
     "tspk" : {
       "noquality": {
         "kernels": ["^jup[0-9]{3}.bsp$"]
@@ -435,7 +435,7 @@
     },
     "deps" : ["/base"]
   },
-  "pluto" :  {
+  "pluto" :  { 
     "tspk" : {
       "noquality": {
         "kernels": ["^plu[0-9]{3}.bsp$"]
@@ -443,13 +443,13 @@
     },
     "deps" : ["/base"]
   },
-  "io" : {
+  "io" : { 
     "deps" : ["/jupiter"]
   },
-  "europa" : {
+  "europa" : { 
     "deps" : ["/jupiter"]
-  },
-  "ganymede" : {
+  }, 
+  "ganymede" : { 
     "deps" : ["/jupiter"]
   },
   "callisto" : {
@@ -493,182 +493,182 @@
   },
   "deimos" : {
     "deps" : ["/mars"]
-  },
-  "mimas" : {
+  }, 
+  "mimas" : { 
     "deps" : ["/saturn"]
   },
-  "enceladus" : {
+  "enceladus" : { 
     "deps" : ["/saturn"]
   },
-  "tethys" : {
+  "tethys" : { 
     "deps" : ["/saturn"]
   },
-  "dione" : {
+  "dione" : { 
     "deps" : ["/saturn"]
   },
-  "rhea" : {
+  "rhea" : { 
     "deps" : ["/saturn"]
   },
-  "titan" : {
+  "titan" : { 
     "deps" : ["/saturn"]
   },
-  "hyperion" : {
+  "hyperion" : { 
     "deps" : ["/saturn"]
   },
-  "iapetus" : {
+  "iapetus" : { 
     "deps" : ["/saturn"]
   },
-  "phoebe" : {
+  "phoebe" : { 
     "deps" : ["/saturn"]
   },
-  "helene" : {
+  "helene" : { 
     "deps" : ["/saturn"]
   },
-  "telesto" : {
+  "telesto" : { 
     "deps" : ["/saturn"]
   },
-  "calypso" : {
+  "calypso" : { 
     "deps" : ["/saturn"]
   },
-  "methone" : {
+  "methone" : { 
     "deps" : ["/saturn"]
   },
-  "polydeuces" : {
+  "polydeuces" : { 
     "deps" : ["/saturn"]
   },
-  "janus" : {
+  "janus" : { 
     "deps" : ["/saturn"]
   },
-  "epimetheus" : {
+  "epimetheus" : { 
     "deps" : ["/saturn"]
   },
-  "atlas" : {
+  "atlas" : { 
     "deps" : ["/saturn"]
   },
-  "prometheus" : {
+  "prometheus" : { 
     "deps" : ["/saturn"]
   },
-  "pandora" : {
+  "pandora" : { 
     "deps" : ["/saturn"]
   },
-  "pallene" : {
+  "pallene" : { 
     "deps" : ["/saturn"]
   },
-  "anthe" : {
+  "anthe" : { 
     "deps" : ["/saturn"]
   },
-  "aegaeon" : {
+  "aegaeon" : { 
     "deps" : ["/saturn"]
   },
-  "naiad" : {
+  "naiad" : { 
     "deps" : ["/neptune"]
   },
-  "thalassa" :  {
+  "thalassa" :  { 
     "deps" : ["/neptune"]
   },
-  "despina" :  {
+  "despina" :  { 
     "deps" : ["/neptune"]
   },
-  "galatea" :  {
+  "galatea" :  { 
     "deps" : ["/neptune"]
   },
-  "larissa" :  {
+  "larissa" :  { 
     "deps" : ["/neptune"]
   },
-  "proteus" :  {
+  "proteus" :  { 
     "deps" : ["/neptune"]
   },
-  "halimede" :  {
+  "halimede" :  { 
     "deps" : ["/neptune"]
   },
-  "psamathe" :  {
+  "psamathe" :  { 
     "deps" : ["/neptune"]
   },
-  "sao" :  {
+  "sao" :  { 
     "deps" : ["/neptune"]
   },
-  "laomedeia" :  {
+  "laomedeia" :  { 
     "deps" : ["/neptune"]
   },
-  "neso" :  {
+  "neso" :  { 
     "deps" : ["/neptune"]
   },
-  "triton" :  {
+  "triton" :  { 
     "deps" : ["/neptune"]
   },
-  "nereid" :  {
+  "nereid" :  { 
     "deps" : ["/neptune"]
   },
-  "ariel" :  {
+  "ariel" :  { 
     "deps" : ["/uranus"]
   },
-  "umbriel" :  {
+  "umbriel" :  { 
     "deps" : ["/uranus"]
   },
-  "titania" :  {
+  "titania" :  { 
     "deps" : ["/uranus"]
   },
-  "oberon" :  {
+  "oberon" :  { 
     "deps" : ["/uranus"]
   },
-  "caliban" :  {
+  "caliban" :  { 
     "deps" : ["/uranus"]
   },
-  "sycorax" :  {
+  "sycorax" :  { 
     "deps" : ["/uranus"]
   },
-  "prospero" :  {
+  "prospero" :  { 
     "deps" : ["/uranus"]
   },
-  "setebos" :  {
+  "setebos" :  { 
     "deps" : ["/uranus"]
   },
-  "stephano" :   {
+  "stephano" :   { 
     "deps" : ["/uranus"]
   },
-  "trinculo" :  {
+  "trinculo" :  { 
     "deps" : ["/uranus"]
   },
-  "francisco" :  {
+  "francisco" :  { 
     "deps" : ["/uranus"]
   },
-  "margaret" :  {
+  "margaret" :  { 
     "deps" : ["/uranus"]
   },
-  "ferdinand" :  {
+  "ferdinand" :  { 
     "deps" : ["/uranus"]
   },
-  "cordelia" :  {
+  "cordelia" :  { 
+    "deps" : ["/uranus"]
+  }, 
+  "ophelia" :  { 
     "deps" : ["/uranus"]
   },
-  "ophelia" :  {
+  "bianca" :  { 
     "deps" : ["/uranus"]
   },
-  "bianca" :  {
+  "cressida" :  { 
     "deps" : ["/uranus"]
   },
-  "cressida" :  {
+  "juliet" :  { 
     "deps" : ["/uranus"]
   },
-  "juliet" :  {
+  "rosalind" :  { 
     "deps" : ["/uranus"]
   },
-  "rosalind" :  {
+  "belinda" :  { 
     "deps" : ["/uranus"]
   },
-  "belinda" :  {
+  "puck" :  { 
     "deps" : ["/uranus"]
   },
-  "puck" :  {
+  "perdita" :  { 
     "deps" : ["/uranus"]
   },
-  "perdita" :  {
+  "mab" :  { 
     "deps" : ["/uranus"]
   },
-  "mab" :  {
-    "deps" : ["/uranus"]
-  },
-  "cupid" :  {
+  "cupid" :  { 
     "deps" : ["/uranus"]
   },
   "chariklo" : {
@@ -678,10 +678,10 @@
       }
     }
   },
-  "haumea" : {
+  "haumea" : { 
       "deps" : ["/chariklo"]
-  },
-  "makemake" : {
+  }, 
+  "makemake" : { 
       "deps" : ["/chariklo"]
   },
   "arawn" : {
@@ -691,22 +691,22 @@
       }
     }
   },
-  "jj124" : {
+  "jj124" : { 
     "deps" : ["/arawn"]
-  },
-  "chiron" : {
+  }, 
+  "chiron" : { 
     "deps" : ["/arawn"]
-  },
-  "ixion" : {
+  }, 
+  "ixion" : { 
     "deps" : ["/arawn"]
-  },
-  "astroid_307261" : {
+  }, 
+  "astroid_307261" : { 
     "deps" : ["/arawn"]
-  },
-  "quaoar" : {
+  }, 
+  "quaoar" : { 
     "deps" : ["/arawn"]
-  },
-  "astroid_486958" : {
+  }, 
+  "astroid_486958" : { 
     "deps" : ["/arawn"]
   },
   "mu69" : {
@@ -716,55 +716,55 @@
       }
     }
   },
-  "steins" : {
+  "steins" : { 
     "tspk" : {
       "noquality": {
         "kernels" : ["^2867_STEINS_2004_2016.BSP$", "^ORHO_______________[a-zA-Z0-9]{5}.BSP$"]
       }
     },
-    "pck" : {
+    "pck" : { 
       "kernels" : ["ROS_STEINS_V[a-zA-Z0-9]{2}.TPC$"]
     },
     "deps" : ["/base"]
   },
-  "lutetia" : {
+  "lutetia" : { 
     "tspk" : {
       "noquality": {
         "kernels" : ["^21_LUTETIA_2004_2016.BSP$", "^ORHS_______________[a-zA-Z0-9]{5}.BSP$"]
       }
     },
-    "pck" : {
+    "pck" : { 
       "kernels" : ["ROS_LUTETIA_RSOC_V[a-zA-Z0-9]{2}.TPC$"]
     },
-    "fk" : {
+    "fk" : { 
       "kernels" : ["ROS_LUTETIA_RSOC_V[a-zA-Z0-9]{2}.TF$"]
     },
     "deps" : ["/base"]
   },
-  "67P/CHURYUMOV-GERASIMENKO 1 (1969 R1)" : {
+  "67P/CHURYUMOV-GERASIMENKO 1 (1969 R1)" : { 
     "tspk" : {
       "noquality": {
         "kernels" : ["^67P_CHURY_GERAS_2004_2016.BSP$", "^CATT_DV_197_01_______[a-zA-Z0-9]{5}.BC$"]
       }
     },
-    "fk" : {
+    "fk" : { 
       "kernels" : ["^ROS_V[0-9]{2}.TF$$"]
     },
-    "pck" : {
+    "pck" : { 
       "kernels" : ["^ROS_CG_RAD_V[a-zA-Z0-9]{2}.TPC$", "^CATT_DV_257_03_______[a-zA-Z0-9]{5}.BC$"]
     },
     "deps" : ["/base"]
   },
-  "67P/CHURYUMOV-GERASIMENKO (1969 R1)" : {
+  "67P/CHURYUMOV-GERASIMENKO (1969 R1)" : { 
     "tspk" : {
       "noquality": {
         "kernels" : ["^CORB_DV_257_03___T19_[a-zA-Z0-9]{5}.BSP$"]
       }
     },
-    "fk" : {
+    "fk" : { 
       "kernels" : ["^ROS_V[0-9]{2}.TF$$"]
     },
-    "pck" : {
+    "pck" : { 
       "kernels" : ["^ROS_CG_RAD_V[a-zA-Z0-9]{2}.TPC$", "^CATT_DV_223_02_______[a-zA-Z0-9]{5}.BC$"]
     },
     "deps" : ["/base"]
@@ -822,7 +822,7 @@
           "^[0-9]{6}.*P_SCPSE_[0-9]{5}_[0-9]{5}.bsp$"
         ]
       },
-      "reconstructed": {
+      "reconstructed": { 
       "kernels": [
           "^010420R_SCPSE_EP1_JP83.bsp$",
           "^[0-9]{6}R*_SCPSE_[0-9]{5}_[0-9]{5}.bsp$"
@@ -833,34 +833,34 @@
 }
 {
     "chandrayaan1" : {
-        "ck" : {
+        "ck" : { 
             "reconstructed" : {
                 "kernels" : ["M3.*_V03_L1B_nadir-jig_2016-04-29.bc$"]
             }
         },
-        "fk" : {
+        "fk" : { 
             "kernels" : ["chand1_v001.tf$"]
         },
-        "sclk" : {
+        "sclk" : { 
             "kernels" : ["aig_ch1_sclk_complete_biased_m1p816.tsc$"]
         }
     },
-    "mrffr" : {
-        "iak" : {
+    "mrffr" : { 
+        "iak" : { 
             "kernels" : ["mrffrAddendum[0-9]{3}.ti$"]
         },
-        "spk" : {
+        "spk" : { 
             "reconstructed" : {
                 "kernels" : ["chan1_short_20081022_00.bsp$"]
             }
         },
         "deps" : ["/chandrayaan1"]
     },
-    "m3" : {
-        "iak" : {
+    "m3" : { 
+        "iak" : { 
             "kernels" : ["m3Addendum[0-9]{3}.ti$"]
         },
-        "spk" : {
+        "spk" : { 
             "reconstructed" : {
                 "kernels" : ["M3.*_V03_L1B_nadir-jig_2016-04-29.bsp$"]
             }
@@ -870,37 +870,37 @@
 }
 {
     "chandrayaan2" : {
-        "ck" : {
+        "ck" : { 
             "reconstructed" : {
                 "kernels" : ["^ch2_att_[0-9]{2}[A-Za-z]{3}[0-9]{4}_[0-9]{2}[A-Za-z]{3}[0-9]{4}_v[0-9]+\\.bc$"]
             }
         },
-        "fk" : {
+        "fk" : { 
             "kernels" : ["^ch2_v[0-9]{2}.tf$"]
         },
-        "sclk" : {
+        "sclk" : { 
             "kernels" : ["^ch2_sclk_v[0-9]+.tsc$"]
         },
-        "spk" : {
+        "spk" : { 
             "reconstructed" : {
                 "kernels" : ["^ch2_(orb|eph)_[0-9]{2}[A-Za-z]{3}[0-9]{4}_[0-9]{2}[A-Za-z]{3}[0-9]{4}_v[0-9]+\\.bsp$"]
             }
         }
     },
-    "ohrc" : {
-        "iak" : {
+    "ohrc" : { 
+        "iak" : { 
             "kernels" : ["^ohrcAddendum[0-9]{3}.ti$"]
         },
-        "ik" : {
+        "ik" : { 
             "kernels" : ["^ch2_ohr_v[0-9]{2}.ti$"]
         },
         "deps" : ["/chandrayaan2"]
     },
-    "tmc2" : {
-        "iak" : {
+    "tmc2" : { 
+        "iak" : { 
             "kernels" : ["^tmc2Addendum[0-9]{3}.ti$"]
         },
-        "ik" : {
+        "ik" : { 
             "kernels" : ["^ch2_tmc_v[0-9]{2}.ti$"]
         },
         "deps" : ["/chandrayaan2"]
@@ -946,7 +946,7 @@
 }
 {
     "clipper": {
-        "spk" : {
+        "spk" : { 
             "predicted" : {
                 "kernels" : ["trj_[0-9]{6}-[0-9]{6}-dco[0-9]{10}-cruise[0-9]{3}-predict-OD[0-9]{3}-v[0-9].bsp$"]
             },
@@ -986,11 +986,11 @@
             "predicted" : {
                 "kernels" : ["dawn_ql_[0-9]{6}-.*.bsp$"]
             },
-            "reconstructed" : {
+            "reconstructed" : { 
                 "kernels" : ["dawn_rec_[0-9]{6}-.*.bsp$"]
             }
         },
-        "ck" : {
+        "ck" : { 
             "reconstructed" : {
                 "kernels" : ["dawn_sc_[0-9]{6}_[0-9]{6}.bc$"]
             }
@@ -1038,10 +1038,10 @@
         },
         "deps" : ["/dawn"]
     },
-    "dawn_vesta" : {
+    "dawn_vesta" : { 
        "pck" : {
           "kernels" : ["dawn_vesta_v[0-9]{2}.tpc$", "dawn_vesta_v[0-9]{2}.tf$"]
-       }
+       } 
     },
     "dawn_ceres" : {
         "pck": {
@@ -1108,7 +1108,7 @@
     },
     "amica": {
         "spk" : {
-            "reconstructed": {
+            "reconstructed": { 
                 "kernels" : ["hay_osbj_[0-9]{6}_[0-9]{6}_v1n.bsp", "hay_jaxa_[0-9]{6}_[0-9]{6}_v1n.bsp"]
             }
         },
@@ -1119,7 +1119,7 @@
     },
     "nirs": {
         "spk" : {
-            "reconstructed": {
+            "reconstructed": { 
                 "kernels" : ["hayabusa_[0-9]{8}_[0-9]{8}_v{2}.bsp", "hay_osbj_[0-9]{6}_[0-9]{6}_v1n.bsp", "hay_jaxa_[0-9]{6}_[0-9]{6}_v1n.bsp"]
             }
         },
@@ -1130,19 +1130,19 @@
     }
 }
 {
-    "hayabusa2" : {
-        "ck" : {
-            "reconstructed" : {
-                "kernels" : ["hyb2_.*_[0-9]{4}_v[0-9]{2}.bc"]
+    "hayabusa2" : { 
+        "ck" : { 
+            "reconstructed" : { 
+                "kernels" : ["hyb2_.*_[0-9]{4}_v[0-9]{2}.bc"]    
             }
         },
-        "fk" : {
+        "fk" : { 
             "kernels" : ["hyb2_v[0-9]{2}.tf$", "hyb2_ryugu_v[0-9]{2}.tf$", "hyb2_hp_v[0-9]{2}.tf$"]
         },
-        "sclk" : {
+        "sclk" : { 
             "kernels" : ["hyb2_20141203-[0-9]{4}1231_v01.tsc$"]
         },
-        "tspk" : {
+        "tspk" : { 
             "kernels" : ["de430.bsp$", "[0-9]{7}_ryugu_[0-9]{8}-[0-9]{8}_[0-9]{4}_[0-9]{8}.bsp$", "jup329.bsp", "sat375.bsp", "[0-9]{7}_Ryugu.bsp$", "[0-9]{7}_ryugu_[0-9]{8}-[0-9]{8}_[0-9]{4}_[0-9]{8}.bsp"]
         }
     },
@@ -1154,7 +1154,7 @@
             "kernels" : ["hyb2oncAddendum[0-9]{4}.ti$"]
         },
         "spk" : {
-            "reconstructed" : {
+            "reconstructed" : { 
                 "kernels" : ["hyb2_[0-9]{8}-[0-9]{8}_[0-9]{4}[a-z]{1}_final_ver[0-9]{1}.oem.bsp$", "hyb2_hpk_[0-9]{8}_[0-9]{8}_v[0-9]{2}.bsp$", "hyb2_approach_od_v[0-9]{14}.bsp","lidar_derived_trj_[0-9]{8}_[0-9]{14}_[0-9]{14}_v[0-9]{2}.bsp$"]
             }
         },
@@ -1251,19 +1251,19 @@ Modifications:
 
 2012, Jan. 5    NJB  Modified file to account for the leapsecond that
                      will occur on June 30, 2012.
-
+                     
 2008, Jul. 7    NJB  Modified file to account for the leapsecond that
                      will occur on December 31, 2008.
-
+                     
 2005, Aug. 3    NJB  Modified file to account for the leapsecond that
                      will occur on December 31, 2005.
-
+                     
 1998, Jul  17   WLT  Modified file to account for the leapsecond that
                      will occur on December 31, 1998.
-
+                     
 1997, Feb  22   WLT  Modified file to account for the leapsecond that
                      will occur on June 30, 1997.
-
+                     
 1995, Dec  14   KSZ  Corrected date of last leapsecond from 1-1-95
                      to 1-1-96.
 
@@ -1279,19 +1279,19 @@ Modifications:
 1992, Mar. 6   HAN   Modified file to account for the leapsecond on
                      June 30, 1992.
 
-1990, Oct. 8   HAN   Modified file to account for the leapsecond on
-                     Dec. 31, 1990.
+1990, Oct. 8   HAN   Modified file to account for the leapsecond on 
+                     Dec. 31, 1990.  
 
 
 Explanation:
 ------------
 
-The contents of this file are used by the routine DELTET to compute the
+The contents of this file are used by the routine DELTET to compute the 
 time difference
 
-[1]       DELTA_ET  =  ET - UTC
-
-the increment to be applied to UTC to give ET.
+[1]       DELTA_ET  =  ET - UTC                                         
+          
+the increment to be applied to UTC to give ET. 
 
 The difference between UTC and TAI,
 
@@ -1307,17 +1307,17 @@ is declared. Combining [1] and [2] gives
 
 The difference (ET - TAI) is periodic, and is given by
 
-[4]       ET - TAI  =  DELTA_T_A  + K sin E
+[4]       ET - TAI  =  DELTA_T_A  + K sin E 
 
-where DELTA_T_A and K are constant, and E is the eccentric anomaly of the
-heliocentric orbit of the Earth-Moon barycenter. Equation [4], which ignores
+where DELTA_T_A and K are constant, and E is the eccentric anomaly of the 
+heliocentric orbit of the Earth-Moon barycenter. Equation [4], which ignores 
 small-period fluctuations, is accurate to about 0.000030 seconds.
 
-The eccentric anomaly E is given by
+The eccentric anomaly E is given by 
 
 [5]       E = M + EB sin M
 
-where M is the mean anomaly, which in turn is given by
+where M is the mean anomaly, which in turn is given by 
 
 [6]       M = M  +  M t
                0     1
@@ -1335,7 +1335,7 @@ Thus, in order to compute DELTA_ET, the following items are necessary.
 
 The numbers, and the formulation, are taken from the following sources.
 
-     1) Moyer, T.D., Transformation from Proper Time on Earth to
+     1) Moyer, T.D., Transformation from Proper Time on Earth to 
         Coordinate Time in Solar System Barycentric Space-Time Frame
         of Reference, Parts 1 and 2, Celestial Mechanics 23 (1981),
         33-56 and 57-68.
@@ -1344,7 +1344,7 @@ The numbers, and the formulation, are taken from the following sources.
         Reference System on Algorithms for Computing Time Differences
         and Clock Rates, JPL IOM 314.5--942, 1 October 1985.
 
-The variable names used above are consistent with those used in the
+The variable names used above are consistent with those used in the 
 Astronomical Almanac.
 
 \begindata
@@ -1355,32 +1355,32 @@ DELTET/EB              =    1.671D-2
 DELTET/M               = (  6.239996D0   1.99096871D-7 )
 
 DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
-                           11,   @1972-JUL-1
-                           12,   @1973-JAN-1
-                           13,   @1974-JAN-1
-                           14,   @1975-JAN-1
-                           15,   @1976-JAN-1
-                           16,   @1977-JAN-1
-                           17,   @1978-JAN-1
-                           18,   @1979-JAN-1
-                           19,   @1980-JAN-1
-                           20,   @1981-JUL-1
-                           21,   @1982-JUL-1
-                           22,   @1983-JUL-1
-                           23,   @1985-JUL-1
-                           24,   @1988-JAN-1
+                           11,   @1972-JUL-1     
+                           12,   @1973-JAN-1     
+                           13,   @1974-JAN-1     
+                           14,   @1975-JAN-1          
+                           15,   @1976-JAN-1          
+                           16,   @1977-JAN-1          
+                           17,   @1978-JAN-1          
+                           18,   @1979-JAN-1          
+                           19,   @1980-JAN-1          
+                           20,   @1981-JUL-1          
+                           21,   @1982-JUL-1          
+                           22,   @1983-JUL-1          
+                           23,   @1985-JUL-1          
+                           24,   @1988-JAN-1 
                            25,   @1990-JAN-1
-                           26,   @1991-JAN-1
+                           26,   @1991-JAN-1 
                            27,   @1992-JUL-1
                            28,   @1993-JUL-1
                            29,   @1994-JUL-1
-                           30,   @1996-JAN-1
+                           30,   @1996-JAN-1 
                            31,   @1997-JUL-1
                            32,   @1999-JAN-1
                            33,   @2006-JAN-1
                            34,   @2009-JAN-1
                            35,   @2012-JUL-1
-                           36,   @2015-JUL-1
+                           36,   @2015-JUL-1 
                            37,   @2017-JAN-1 )
 
 \begintext
@@ -1507,46 +1507,46 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "sclk": {
             "kernels": "mariner10.[0-9]{4}.tsc$"
         },
-        "iak" : {
+        "iak" : { 
             "kernels" : ["mariner10Addendum[0-9]{3}.ti$"]
         }
     },
     "m10_vidicon_a": {
-        "spk" : {
-            "smithed" : {
+        "spk" : { 
+            "smithed" : { 
                 "kernels" : ["MERCURY_MARINER_10_A.bsp$"]
             },
-            "reconstructed" : {
+            "reconstructed" : { 
                 "kernels" : ["MARINER_10_A_gem.bsp$"]
             }
         },
-        "ck" : {
-            "smithed" : {
+        "ck" : { 
+            "smithed" : { 
                 "kernels" : ["MERCURY_MARINER_10_A.bc$"]
             },
-            "reconstructed" : {
+            "reconstructed" : { 
                 "kernels" : ["MARINER_10_A_gem.bc$"]
             }
         },
-        "iak" : {
+        "iak" : { 
             "kernels" : ["mariner10Addendum[0-9]{3}.ti$"]
         },
-        "deps" : ["/mariner10"]
+        "deps" : ["/mariner10"] 
     },
     "m10_vidicon_b": {
-        "spk" : {
-            "smithed" : {
+        "spk" : { 
+            "smithed" : { 
                 "kernels" : ["MERCURY_MARINER_10_B.bsp$"]
             },
-            "reconstructed" : {
+            "reconstructed" : { 
                 "kernels" : ["MARINER_10_B_gem.bsp$"]
             }
         },
-        "ck" : {
-            "smithed" : {
+        "ck" : { 
+            "smithed" : { 
                 "kernels" : ["MERCURY_MARINER_10_B.bc$"]
             },
-            "reconstructed" : {
+            "reconstructed" : { 
                 "kernels" : ["MARINER_10_B_gem.bc$"]
             }
         },
@@ -1584,7 +1584,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "ik" : {
           "kernels" :"mer1_[a-z]{2}_([a-z][0-9]_)?[0-9]{8}_c[0-9]{2,3}.ti$"
         },
-        "sclk" : {
+        "sclk" : { 
           "kernels" : ["MER_253_SCLKSCET.[0-9]{5}.tsc$",
                        "mer1_hlst_tm20b3_v[0-9]{1}.tsc",
                        "mer1.tsc$"]
@@ -1626,7 +1626,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "ik" : {
           "kernels" :"mer2_[a-z]{2}_([a-z][0-9]_)?[0-9]{8}_c[0-9]{2,3}.ti$"
         },
-        "sclk" : {
+        "sclk" : { 
           "kernels" : ["MER_254_SCLKSCET.[0-9]{5}.tsc$",
                        "mer2(_hlst_[a-z]{2}[0-9]{2}[a-z][0-9]([a-z])?_v[0-9]{1})?.tsc"]
         },
@@ -1770,18 +1770,18 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
     }
 }
 {
-    "mro" : {
+    "mro" : { 
         "spk" : {
             "predicted" : {
                 "kernels" : ["mro_psp.bsp$"]
             },
             "reconstructed" : {
-                "kernels": ["mro_cruise.bsp$",
-                            "mro_ab.bsp$",
-                            "mro_psp[0-9].bsp$",
-                            "mro_psp[0-9]{2}.bsp$",
-                            "mro_psp_rec.bsp$",
-                            "mro_psp.*_ssd_mro95a.bsp$",
+                "kernels": ["mro_cruise.bsp$", 
+                            "mro_ab.bsp$", 
+                            "mro_psp[0-9].bsp$", 
+                            "mro_psp[0-9]{2}.bsp$", 
+                            "mro_psp_rec.bsp$", 
+                            "mro_psp.*_ssd_mro95a.bsp$", 
                             "mro_psp.*_ssd_mro110c.bsp$"]
             }
         },
@@ -1790,9 +1790,9 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
             "kernels" : ["mro_sc_psp_[0-9]{6}_[0-9]{6}p.bc$"]
           },
           "reconstructed" : {
-            "kernels" : ["mro_sc_cru_[0-9]{6}_[0-9]{6}.bc$",
-                         "mro_sc_ab_[0-9]{6}_[0-9]{6}.bc$",
-                         "mro_sc_psp_[0-9]{6}_[0-9]{6}.bc$",
+            "kernels" : ["mro_sc_cru_[0-9]{6}_[0-9]{6}.bc$", 
+                         "mro_sc_ab_[0-9]{6}_[0-9]{6}.bc$", 
+                         "mro_sc_psp_[0-9]{6}_[0-9]{6}.bc$", 
                          "mro_sc_psp_[0-9]{6}_[0-9]{6}_v2.bc$"]
           }
         },
@@ -1802,7 +1802,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "fk" : {
           "kernels" : ["mro_v[0-9]{2}.tf"]
         },
-        "pck" : {
+        "pck" : { 
             "deps" : ["/base/pck"]
         }
     },
@@ -1902,19 +1902,19 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
 {
     "near": {
         "ck": {
-            "reconstructed" : {
+            "reconstructed" : { 
                 "kernels" : ["near_[0-9]{7}_v[0-9]{2}.bc$"]
             }
         },
         "spk" : {
             "reconstructed" : {
                 "kernels" : ["near_cruise_nav_v[0-9].bsp$", "near_erosorbit_nav_v[0-9].bsp$", "near_eroslanded_nav_v[0-9].bsp$"]
-            }
+            } 
         },
         "sclk": {
             "kernels": ["near_[0-9]{3}.tsc$"]
         },
-        "fk" : {
+        "fk" : { 
             "kernels" : ["eros_fixed.tf$"]
         }
     },
@@ -1922,7 +1922,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "ik": {
             "kernels": "msi15.ti$"
         },
-        "iak" : {
+        "iak" : { 
             "kernels" : ["msiAddendum[0-9]{3}.ti$"]
         },
         "deps": ["/near"]
@@ -1939,55 +1939,55 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "sclk": {
             "kernels": "new_horizons_[0-9]{4}.tsc$"
         },
-        "ck" : {
+        "ck" : { 
             "reconstructed" : {
                 "kernels" : ["merged_nhpc_20[0-9]{2}_v[0-9]{3}.bc$"]
             },
-            "smithed" : {
+            "smithed" : { 
                 "kernels" : ["nh_lorri_wcs_v[0-9]{3}.bc$"]
             }
         },
-        "spk" : {
-            "reconstructed" : {
+        "spk" : { 
+            "reconstructed" : { 
                 "kernels" : ["nh_recon_.*.bsp$"]
             }
         }
     },
-    "lorri" : {
-        "ik" : {
+    "lorri" : { 
+        "ik" : { 
             "kernels" : ["nh_lorri_v[0-9]{3}.ti$"]
         },
         "iak" : {
             "kernels" : ["nh_lorriAddendum_v[0-9]{3}.ti"]
         },
         "deps" : ["/newhorizons"]
-    },
-    "ralph" : {
-        "ik" : {
+    }, 
+    "ralph" : { 
+        "ik" : { 
             "kernels" : ["nh_ralph_v[0-9]{3}u.ti"]
         },
         "deps" : ["/newhorizons"]
     },
-    "mvic" : {
-        "ik" : {
+    "mvic" : { 
+        "ik" : { 
             "kernels" : ["nh_ralph_v[0-9]{3}u.ti"]
         },
         "deps" : ["/newhorizons"]
     },
-    "mvic_tdi" : {
+    "mvic_tdi" : { 
         "iak" : {
             "kernels" : ["mvicAddendum[0-9]{3}.ti$"]
         },
         "deps" : ["/newhorizons"]
     },
-    "mvic_framing" : {
+    "mvic_framing" : { 
         "iak" : {
             "kernels" : ["mvicAddendum[0-9]{3}.ti$"]
         },
-        "deps" : ["/newhorizons"]
+        "deps" : ["/newhorizons"]        
     },
-    "leisa" : {
-        "ik" : {
+    "leisa" : { 
+        "ik" : { 
             "kernels" : ["nh_ralph_v[0-9]{3}u.ti$"]
         },
         "iak" : {
@@ -2016,13 +2016,13 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
             }
         }
     },
-    "nh_charon" : {
+    "nh_charon" : { 
         "deps" : ["/pluto"]
     },
-    "nh_nix" : {
+    "nh_nix" : { 
         "deps" : ["/pluto"]
     },
-    "nh_hydra" : {
+    "nh_hydra" : { 
         "deps" : ["/pluto"]
     },
     "nh_callirrhoe" :{
@@ -2032,10 +2032,10 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         }
       }
     },
-    "nh_styx" : {
+    "nh_styx" : { 
         "deps" : ["/nh_callirrhoe"]
     },
-    "nh_kerberos" : {
+    "nh_kerberos" : { 
         "deps" : ["/nh_callirrhoe"]
     }
 }
@@ -2101,14 +2101,14 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
 }
 {
     "rosetta": {
-        "ck": {
-            "predicted" : {
+        "ck": { 
+            "predicted" : { 
                 "kernels" : ["ATNR_P.*_[0-9]{5}.BC$",
                              "RATT_DV_145_[0-9]{2}_[0-9]{2}_T6_[0-9]{5}.BC$",
                              "RATT_DV_223_[0-9]{2}_[0-9]{2}_T6_[0-9]{5}.BC$",
                              "RATT_DV_257_[0-9]{2}_[0-9]{2}_T6_[0-9]{5}.BC$"]
             },
-            "smithed" : {
+            "smithed" : { 
                 "kernels" : ["ROS_SC_DLR_S4S_1408_1409_V[0-9].BC$"]
             }
         },
@@ -2118,17 +2118,17 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "sclk": {
             "kernels": "ROS_[a-zA-Z0-9]{6}_STEP.TSC$"
         },
-        "spk" : {
+        "spk" : { 
             "predicted" : {
-                "kernels": ["ORFR_______________[0-9]{5}.BSP$",
-                            "ORGR_______________{5}.BSP",
+                "kernels": ["ORFR_______________[0-9]{5}.BSP$", 
+                            "ORGR_______________{5}.BSP", 
                             "RORL_D[a-zA-Z0-9]_[a-zA-Z0-9]{3}_[a-zA-Z0-9]{2}_[a-zA-Z0-9]{2}_[a-zA-Z0-9]_*[a-zA-Z0-9]{5}.BSP$"]
             },
             "reconstructed" : {
                 "kernels" : ["ORER_______________[0-9]{5}.BSP$",
                              "ORHR_______________[0-9]{5}.BSP$",
-                             "ORMR_______________[0-9]{5}.BSP$",
-                             "RORB_D[a-zA-Z0-9]_[a-zA-Z0-9]{3}_[a-zA-Z0-9]{2}_[a-zA-Z0-9]_*[a-zA-Z0-9]{5}.BSP$",
+                             "ORMR_______________[0-9]{5}.BSP$", 
+                             "RORB_D[a-zA-Z0-9]_[a-zA-Z0-9]{3}_[a-zA-Z0-9]{2}_[a-zA-Z0-9]_*[a-zA-Z0-9]{5}.BSP$", 
                              "RORB_D[a-zA-Z0-9]_[a-zA-Z0-9]{3}_[a-zA-Z0-9]{2}_[a-zA-Z0-9]_T19_[0-9]{5}.BSP$"]
             }
         }
@@ -2140,7 +2140,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "ik": {
             "kernels": ["ROS_OSIRIS_V[0-9]{2}.TI$"]
         },
-        "ck" : {
+        "ck" : { 
             "predicted" : {
                 "kernels" : [
                     "ATNR_P[a-zA-Z0-9]{12}_[a-zA-Z0-9]{5}.BC$",
@@ -2156,7 +2156,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
                     "ROS_SC_REC_160101_160601_V[a-zA-Z0-9]{2}.BC$"
                 ]
             },
-            "smithed" : {
+            "smithed" : { 
                 "kernels" : ["ROS_SC_DLR_S4S_1408_1409_V[0-9]{1}.BC$" ]
             }
         },
@@ -2169,7 +2169,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
         "deps" : ["/rosetta"]
     },
     "virtis": {
-        "ck" : {
+        "ck" : { 
             "reconstructed" : {
                 "kernels" : ["ROS_VIRTIS_ZERO_V1.BC$"]
             }
@@ -2356,7 +2356,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
                 "kernels": ["ATNS_P[0-9]{12}_[0-9]{5}.BC$"]
             }
         },
-        "fk": {
+        "fk": { 
             "kernels": ["SMART1_V[0-9]{0,4}.TF$"]
         },
         "ik": {
@@ -2437,7 +2437,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
       "iak": {
         "kernels": "tgoCassisAddendum[0-9]{3}.ti"
       },
-      "deps" : ["/tgo"]
+      "deps" : ["/tgo"]     
     }
   }
 {
@@ -2503,7 +2503,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
                 "kernels": ["vg1_eur_usgs2020.bc$"]
             }
         },
-        "fk": {
+        "fk": { 
             "kernels": ["vg1_v[0-9]{2}.tf$"]
         },
         "iak": {
@@ -2539,7 +2539,7 @@ DELTET/DELTA_AT        = ( 10,   @1972-JAN-1
                 "kernels": ["vg2_eur_usgs2020.bc$"]
             }
         },
-        "fk": {
+        "fk": { 
             "kernels": ["vg2_v[0-9]{2}.tf$"]
         },
         "iak": {

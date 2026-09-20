@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  getSupabaseBrowserAuthClient,
+  getSupabaseBrowserAccessState,
   getSupabaseBrowserLoginConfig,
 } from "@/lib/auth/supabase-browser-client";
 import type { ReportRecord, ReportRecordSummary } from "@/types/storage";
@@ -18,6 +18,8 @@ export type AccountReportReadStatus =
   | "not-authenticated"
   | "account-read-failed";
 
+export type CurrentReportOwnerKind = "account" | "guest";
+
 export type AccountReportListResult = {
   status: AccountReportReadStatus;
   summaries: ReportRecordSummary[];
@@ -25,6 +27,7 @@ export type AccountReportListResult = {
   blockers: string[];
   page: number;
   total: number;
+  ownerKind: CurrentReportOwnerKind;
 };
 
 export type AccountReportDetailResult = {
@@ -32,166 +35,95 @@ export type AccountReportDetailResult = {
   reportRecord: ReportRecord | null;
   message: string;
   blockers: string[];
+  ownerKind: CurrentReportOwnerKind;
 };
 
-type AccountReportListResponse = {
+type OwnerListResponse = {
   ok?: boolean;
   error?: string;
   summaries?: ReportRecordSummary[];
   blockers?: string[];
   page?: number;
   total?: number;
+  ownerKind?: CurrentReportOwnerKind;
 };
 
-type AccountReportDetailResponse = {
+type OwnerDetailResponse = {
   ok?: boolean;
   error?: string;
   reportRecord?: ReportRecord;
   blockers?: string[];
+  ownerKind?: CurrentReportOwnerKind;
 };
 
-type AccountReportAccessTokenResult =
-  | { ok: true; accessToken: string }
-  | {
-      ok: false;
-      status: Exclude<AccountReportReadStatus, "account-read-ready">;
-      message: string;
-      blockers: string[];
-    };
-
-const accountReportReadPublicEnv = {
-  NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE:
-    process.env.NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE,
-} as const;
-
-type AccountReportReadPublicEnvName = keyof typeof accountReportReadPublicEnv;
-
-function getPublicEnv(name: AccountReportReadPublicEnvName) {
-  const value = accountReportReadPublicEnv[name]?.trim();
-
-  return value ? value : undefined;
-}
-
-function isPublicFlagEnabled(name: AccountReportReadPublicEnvName) {
-  return getPublicEnv(name)?.toLowerCase() === "true";
-}
-
 export function getAccountReportReadClientConfig(): AccountReportReadClientConfig {
-  const loginConfig = getSupabaseBrowserLoginConfig();
-  const enabled = isPublicFlagEnabled("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE");
-  const missingConfig = [...loginConfig.missingConfig];
-
-  if (!enabled) {
-    missingConfig.push("NEXT_PUBLIC_HALLEUS_ENABLE_ACCOUNT_REPORT_SAVE=true");
-  }
-
+  const login = getSupabaseBrowserLoginConfig();
   return {
-    enabled,
-    canAttemptAccountReportRead: enabled && loginConfig.canUseRealSupabaseLogin,
-    missingConfig: [...new Set(missingConfig)],
+    enabled: true,
+    canAttemptAccountReportRead: true,
+    missingConfig: login.missingConfig,
   };
 }
 
-async function readAccountAccessToken(): Promise<AccountReportAccessTokenResult> {
-  const config = getAccountReportReadClientConfig();
-
-  if (!config.canAttemptAccountReportRead) {
-    return {
-      ok: false,
-      status: "account-read-disabled",
-      message: "Account report reading is disabled; use local-preview reports.",
-      blockers: config.missingConfig,
-    };
+async function readOptionalAccessToken() {
+  const auth = await getSupabaseBrowserAccessState();
+  if (auth.kind === "unavailable") {
+    throw new Error(auth.error);
   }
-
-  const client = getSupabaseBrowserAuthClient();
-
-  if (!client) {
-    return {
-      ok: false,
-      status: "account-read-disabled",
-      message: "Supabase login client is not configured; use local-preview reports.",
-      blockers: ["Supabase browser client is not available."],
-    };
-  }
-
-  const { data, error } = await client.auth.getSession();
-  const accessToken = data.session?.access_token;
-
-  if (error || !accessToken) {
-    return {
-      ok: false,
-      status: "not-authenticated",
-      message: error?.message ?? "Sign in before reading account reports.",
-      blockers: ["A signed-in Supabase session is required."],
-    };
-  }
-
-  return {
-    ok: true,
-    accessToken,
-  };
+  return auth.kind === "account" ? auth.accessToken : undefined;
 }
 
-function createAuthHeaders(accessToken: string) {
-  return {
-    Authorization: `Bearer ${accessToken}`,
-  };
+function ownerHeaders(accessToken?: string): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return headers;
 }
 
-export async function listAccountReportSummaries(page = 1): Promise<AccountReportListResult> {
-  const tokenResult = await readAccountAccessToken();
-
-  if (!tokenResult.ok) {
-    return {
-      status: tokenResult.status,
-      summaries: [],
-      message: tokenResult.message,
-      blockers: tokenResult.blockers,
-      page,
-      total: 0,
-    };
-  }
-
+export async function listAccountReportSummaries(
+  page = 1,
+): Promise<AccountReportListResult> {
   try {
-    const response = await fetch(`/api/reports/account?page=${page}`, {
-      headers: createAuthHeaders(tokenResult.accessToken),
+    const accessToken = await readOptionalAccessToken();
+    const response = await fetch(`/api/reports/owner?page=${page}`, {
+      headers: ownerHeaders(accessToken),
     });
     const payload = (await response.json().catch(() => null)) as
-      | AccountReportListResponse
+      | OwnerListResponse
       | null;
 
     if (!response.ok || !payload?.ok || !Array.isArray(payload.summaries)) {
       return {
         status: "account-read-failed",
         summaries: [],
-        message:
-          payload?.error ?? "Account report summaries could not be loaded.",
+        message: payload?.error ?? "گزارش‌های هالیوس بارگذاری نشدند.",
         blockers: payload?.blockers ?? [],
         page,
         total: 0,
+        ownerKind: payload?.ownerKind ?? "guest",
       };
     }
 
     return {
       status: "account-read-ready",
       summaries: payload.summaries,
-      message: "Account report summaries loaded.",
+      message: "گزارش‌های هالیوس بارگذاری شدند.",
       blockers: [],
       page: payload.page ?? page,
       total: payload.total ?? payload.summaries.length,
+      ownerKind: payload.ownerKind ?? (accessToken ? "account" : "guest"),
     };
   } catch (error) {
     return {
       status: "account-read-failed",
       summaries: [],
       message:
-        error instanceof Error
-          ? error.message
-          : "Account report summaries could not be loaded.",
+        error instanceof Error ? error.message : "گزارش‌های هالیوس بارگذاری نشدند.",
       blockers: [],
       page,
       total: 0,
+      ownerKind: "guest",
     };
   }
 }
@@ -200,13 +132,13 @@ export async function getPublicReportRecord(
   reportId: string,
 ): Promise<AccountReportDetailResult> {
   const normalizedReportId = reportId.trim();
-
   if (!normalizedReportId) {
     return {
       status: "account-read-failed",
       reportRecord: null,
-      message: "A report id is required before reading a public report.",
+      message: "شناسه گزارش لازم است.",
       blockers: ["Missing report id."],
+      ownerKind: "guest",
     };
   }
 
@@ -215,33 +147,31 @@ export async function getPublicReportRecord(
       `/api/reports/account?reportId=${encodeURIComponent(normalizedReportId)}`,
     );
     const payload = (await response.json().catch(() => null)) as
-      | AccountReportDetailResponse
+      | OwnerDetailResponse
       | null;
-
     if (!response.ok || !payload?.ok || !payload.reportRecord) {
       return {
         status: "account-read-failed",
         reportRecord: null,
-        message: payload?.error ?? "Public report could not be loaded.",
+        message: payload?.error ?? "گزارش عمومی پیدا نشد.",
         blockers: payload?.blockers ?? [],
+        ownerKind: "guest",
       };
     }
-
     return {
       status: "account-read-ready",
       reportRecord: payload.reportRecord,
-      message: "Public report loaded.",
+      message: "گزارش عمومی بارگذاری شد.",
       blockers: [],
+      ownerKind: "guest",
     };
   } catch (error) {
     return {
       status: "account-read-failed",
       reportRecord: null,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Public report could not be loaded.",
+      message: error instanceof Error ? error.message : "گزارش عمومی پیدا نشد.",
       blockers: [],
+      ownerKind: "guest",
     };
   }
 }
@@ -250,62 +180,48 @@ export async function getAccountReportRecord(
   reportId: string,
 ): Promise<AccountReportDetailResult> {
   const normalizedReportId = reportId.trim();
-
   if (!normalizedReportId) {
     return {
       status: "account-read-failed",
       reportRecord: null,
-      message: "A report id is required before reading an account report.",
+      message: "شناسه گزارش لازم است.",
       blockers: ["Missing report id."],
-    };
-  }
-
-  const tokenResult = await readAccountAccessToken();
-
-  if (!tokenResult.ok) {
-    return {
-      status: tokenResult.status,
-      reportRecord: null,
-      message: tokenResult.message,
-      blockers: tokenResult.blockers,
+      ownerKind: "guest",
     };
   }
 
   try {
+    const accessToken = await readOptionalAccessToken();
     const response = await fetch(
-      `/api/reports/account?reportId=${encodeURIComponent(normalizedReportId)}`,
-      {
-        headers: createAuthHeaders(tokenResult.accessToken),
-      },
+      `/api/reports/owner?reportId=${encodeURIComponent(normalizedReportId)}`,
+      { headers: ownerHeaders(accessToken) },
     );
     const payload = (await response.json().catch(() => null)) as
-      | AccountReportDetailResponse
+      | OwnerDetailResponse
       | null;
-
     if (!response.ok || !payload?.ok || !payload.reportRecord) {
       return {
         status: "account-read-failed",
         reportRecord: null,
-        message: payload?.error ?? "Account report could not be loaded.",
+        message: payload?.error ?? "گزارش پیدا نشد.",
         blockers: payload?.blockers ?? [],
+        ownerKind: payload?.ownerKind ?? (accessToken ? "account" : "guest"),
       };
     }
-
     return {
       status: "account-read-ready",
       reportRecord: payload.reportRecord,
-      message: "Account report loaded.",
+      message: "گزارش بارگذاری شد.",
       blockers: [],
+      ownerKind: payload.ownerKind ?? (accessToken ? "account" : "guest"),
     };
   } catch (error) {
     return {
       status: "account-read-failed",
       reportRecord: null,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Account report could not be loaded.",
+      message: error instanceof Error ? error.message : "گزارش پیدا نشد.",
       blockers: [],
+      ownerKind: "guest",
     };
   }
 }
@@ -322,22 +238,37 @@ export async function mutateAccountReport(input: {
   favorite?: boolean;
   note?: string;
 }) {
-  const tokenResult = await readAccountAccessToken();
-  if (!tokenResult.ok) throw new Error(tokenResult.message);
-  const response = await fetch("/api/reports/account", {
+  const accessToken = await readOptionalAccessToken();
+  const response = await fetch("/api/reports/owner", {
     method: "PATCH",
-    headers: { ...createAuthHeaders(tokenResult.accessToken), "content-type": "application/json" },
+    headers: {
+      ...ownerHeaders(accessToken),
+      "content-type": "application/json",
+    },
     body: JSON.stringify(input),
   });
-  const payload = await response.json().catch(() => null) as { ok?: boolean; error?: string; sharePath?: string } | null;
-  if (!response.ok || !payload?.ok) throw new Error(payload?.error ?? "Report update failed.");
+  const payload = (await response.json().catch(() => null)) as
+    | { ok?: boolean; error?: string; sharePath?: string }
+    | null;
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.error ?? "مدیریت گزارش انجام نشد.");
+  }
   return payload;
 }
 
 export async function deleteAccountReport(reportId: string) {
-  const tokenResult = await readAccountAccessToken();
-  if (!tokenResult.ok) throw new Error(tokenResult.message);
-  const response = await fetch(`/api/reports/account?reportId=${encodeURIComponent(reportId)}`, { method: "DELETE", headers: createAuthHeaders(tokenResult.accessToken) });
-  const payload = await response.json().catch(() => null) as { ok?: boolean; error?: string } | null;
-  if (!response.ok || !payload?.ok) throw new Error(payload?.error ?? "Report deletion failed.");
+  const accessToken = await readOptionalAccessToken();
+  const response = await fetch(
+    `/api/reports/owner?reportId=${encodeURIComponent(reportId)}`,
+    {
+      method: "DELETE",
+      headers: ownerHeaders(accessToken),
+    },
+  );
+  const payload = (await response.json().catch(() => null)) as
+    | { ok?: boolean; error?: string }
+    | null;
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.error ?? "حذف گزارش انجام نشد.");
+  }
 }

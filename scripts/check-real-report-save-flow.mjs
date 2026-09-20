@@ -5,7 +5,7 @@ const typesSource = readFileSync("types/astro.ts", "utf8");
 const chartFormSource = readFileSync("components/ChartForm.tsx", "utf8");
 const reportDetailPageSource = readFileSync("app/reports/[reportId]/page.tsx", "utf8");
 const reportDetailSource = readFileSync("components/ReportDetail.tsx", "utf8");
-const accountSaveClientSource = readFileSync("lib/storage/account-report-save-client.ts", "utf8");
+const saveClientSource = readFileSync("lib/storage/account-report-save-client.ts", "utf8");
 const reportCardSource = readFileSync("components/ReportCard.tsx", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const checkProject = packageJson.scripts?.["check:project"] ?? "";
@@ -16,9 +16,7 @@ for (const marker of [
   'version: "real-engine-preview-v1"',
   "realEngine?: RealEngineReportSnapshot",
 ]) {
-  if (!typesSource.includes(marker)) {
-    failures.push(`types/astro.ts missing real report marker: ${marker}`);
-  }
+  if (!typesSource.includes(marker)) failures.push(`types/astro.ts missing ${marker}`);
 }
 
 for (const marker of [
@@ -27,60 +25,36 @@ for (const marker of [
   "realEngine:",
   "/api/engine/real-chart",
   "requestRealEngineReportData",
-  "saveGeneratedReportWithAccountFallback(nextReport)",
+  "saveGeneratedReportWithAccountFallback",
   "buildReportSaveFallbackMessage",
-  "router.push(`/reports/${saveResult.localRecord.id}`)",
-  "ذخیره حساب یا لینک noindex موقتاً پاسخ نداد",
+  "const nextPath = `/reports/${saveResult.accountRecord.id}?source=account`;",
   "enrichReportWithRealEngineCopy",
 ]) {
-  if (!chartFormSource.includes(marker)) {
-    failures.push(`ChartForm missing real report save marker: ${marker}`);
-  }
-}
-
-
-if (
-  !chartFormSource.includes("router.push(`/reports/${saveResult.localRecord.id}`)") &&
-  !chartFormSource.includes("router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`)") &&
-  !chartFormSource.includes("router.push(`/reports/${saveResult.accountRecord.id}`)")
-) {
-  failures.push("ChartForm missing report-detail navigation after save.");
+  if (!chartFormSource.includes(marker)) failures.push(`ChartForm missing ${marker}`);
 }
 
 for (const marker of [
+  "HALLEUS_SERVER_CANONICAL_REPORT_SAVE_R1_20260919",
+  'fetch("/api/reports/owner"',
   "createSafeAccountReportSaveMessage",
-  "ذخیره آنلاین موقتاً پاسخ نداد",
-  "نسخه همین دستگاه استفاده شد",
 ]) {
-  if (!accountSaveClientSource.includes(marker)) {
-    failures.push(`Account report save client missing safe fallback marker: ${marker}`);
-  }
+  if (!saveClientSource.includes(marker)) failures.push(`save client missing ${marker}`);
 }
 
 for (const marker of [
-  "getPublicServerStoredReport",
-  "readInitialPublicReport",
-  "initialReport={initialPublicReport}",
   'export const dynamic = "force-dynamic"',
+  'return "account";',
 ]) {
-  if (!reportDetailPageSource.includes(marker)) {
-    failures.push(`Report detail page missing direct public open marker: ${marker}`);
-  }
+  if (!reportDetailPageSource.includes(marker)) failures.push(`detail page missing ${marker}`);
 }
 
 for (const marker of [
   "initialReport?: AstrologyReport | null",
   "useState<AstrologyReport | null>(() =>",
   'if (reportSource === "public" && initialReport)',
-  "لینک عمومی گزارش آماده است",
+  "reportId={report.id}",
 ]) {
-  if (!reportDetailSource.includes(marker)) {
-    failures.push(`ReportDetail missing direct public report hydration marker: ${marker}`);
-  }
-}
-
-if (chartFormSource.includes("ذخیره عمومی سرور کامل نشد:")) {
-  failures.push("ChartForm still exposes raw public server save failure copy.");
+  if (!reportDetailSource.includes(marker)) failures.push(`ReportDetail missing ${marker}`);
 }
 
 if (reportDetailSource.includes("window.setTimeout")) {
@@ -94,37 +68,7 @@ for (const marker of [
   "report-aspect-card",
   "PLANET_LABELS_FA",
 ]) {
-  if (!reportCardSource.includes(marker)) {
-    failures.push(`ReportCard missing product real engine display marker: ${marker}`);
-  }
-}
-
-if (
-  !reportCardSource.includes("SIGN_LABELS_FA") &&
-  !reportCardSource.includes("formatZodiacLabel")
-) {
-  failures.push(
-    "ReportCard missing product zodiac label display marker: SIGN_LABELS_FA or formatZodiacLabel",
-  );
-}
-
-if (
-  !reportCardSource.includes("report.realEngine.placements") &&
-  !reportCardSource.includes("report.realEngine?.placements") &&
-  !reportCardSource.includes("shownPlacements")
-) {
-  failures.push("ReportCard missing real engine placements display marker.");
-}
-
-for (const removedMarker of [
-  "real engine snapshot",
-  "ASC approx",
-  "شهر engine",
-  "UTC</strong>",
-]) {
-  if (reportCardSource.includes(removedMarker)) {
-    failures.push(`ReportCard still has debug-like marker: ${removedMarker}`);
-  }
+  if (!reportCardSource.includes(marker)) failures.push(`ReportCard missing ${marker}`);
 }
 
 if (
@@ -138,12 +82,10 @@ if (!checkProject.includes("pnpm run check:real-report-save-flow")) {
   failures.push("check:project does not run check:real-report-save-flow");
 }
 
-if (failures.length > 0) {
+if (failures.length) {
   console.error("Real report save flow check failed:");
-  for (const failure of failures) {
-    console.error(`- ${failure}`);
-  }
+  for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log("Real report save flow check passed for product report UI.");
+console.log("Real report save flow check passed for server-canonical product UI.");

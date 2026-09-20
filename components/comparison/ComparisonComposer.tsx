@@ -35,6 +35,7 @@ import {
 } from "@/lib/storage/account-report-read-client";
 import type { ReportRecordSummary } from "@/types/storage";
 import { saveComparisonToAccount } from "@/lib/comparison/comparison-account-client";
+import { ensureServerCanonicalReport } from "@/lib/storage/account-report-save-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ComparisonRecord } from "@/types/comparison-product";
 import type {
@@ -470,6 +471,17 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     setIsWorking(true);
     setMessage("");
 
+    const [serverChartA, serverChartB] = await Promise.all([
+      ensureServerCanonicalReport(chartA),
+      ensureServerCanonicalReport(chartB),
+    ]);
+    if (!serverChartA || !serverChartB) {
+      generationInFlightRef.current = false;
+      setIsWorking(false);
+      setMessage("ثبت یکی از دو چارت روی هالیوس کامل نشد؛ دوباره تلاش کن.");
+      return;
+    }
+
     const signature = [
       chartA.id,
       chartB.id,
@@ -512,16 +524,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       }
     }
 
-    const storageResult = savePrivateComparison(result.record);
-    if (!storageResult.ok) {
-      generationInFlightRef.current = false;
-      setIsWorking(false);
-      setMessage(
-        `${storageResult.message} تلاش دوباره با همان شناسه انجام می‌شود و اعتبار دوباره مصرف نمی‌شود.`,
-      );
-      return;
-    }
-
     const accountSaveResult = await saveComparisonToAccount(result.record, {
       navigationGraceMs: 0,
     });
@@ -532,11 +534,12 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       generationInFlightRef.current = false;
       setIsWorking(false);
       setMessage(
-        `${accountSaveResult.message} نسخهٔ خصوصی روی همین دستگاه محفوظ است؛ برای ثبت در گزارش‌های هالیوس دوباره تلاش کن.`,
+        `${accountSaveResult.message} ثبت خصوصی روی هالیوس کامل نشد؛ دوباره تلاش کن.`,
       );
       return;
     }
 
+    savePrivateComparison(result.record);
     pendingGenerationRef.current = null;
     router.push(`/compare/${encodeURIComponent(result.record.id)}`);
   }

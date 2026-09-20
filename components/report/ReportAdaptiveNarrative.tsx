@@ -1099,6 +1099,8 @@ export function ReportAdaptiveNarrative({
   }, [report]);
 
   const isPremium = accessMode === "premium";
+  const monetizationConfigured =
+    accessPolicy.monetizationMode === "CONFIGURED";
   const selectedTopStories = isPremium
     ? plan.topStories
     : plan.topStories.slice(0, accessPolicy.topStoriesFreeCount);
@@ -1381,7 +1383,7 @@ export function ReportAdaptiveNarrative({
         </section>
       ) : null}
 
-            {!isPremium && lockedItems.length > 0 ? (
+            {monetizationConfigured && !isPremium && lockedItems.length > 0 ? (
         <ProductLockedOffer
           productCode="full_report"
           title={accessPolicy.upgradeTitle ?? "ادامهٔ همین گزارش کامل"}

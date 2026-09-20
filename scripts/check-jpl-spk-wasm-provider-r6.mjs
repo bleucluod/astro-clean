@@ -203,6 +203,71 @@ for (const fileName of [
   );
 }
 
+// HALLEUS_SPICEQL_DATA_INTEGRITY_R19_20260919
+{
+  const crypto = require("node:crypto");
+  const loaderSource = read("vendor/spiceql-wasm/spiceql_wasm.js");
+  const dataPath = path.join(
+    repoRoot,
+    "vendor",
+    "spiceql-wasm",
+    "spiceql_wasm.data",
+  );
+  const data = fs.readFileSync(dataPath);
+  const packageSizeMatch = loaderSource.match(
+    /"remote_package_size":(\d+)/u,
+  );
+  const signatureRangeMatch = loaderSource.match(
+    /"filename":"\/spiceql\/SpiceQL\/naifspice_sigs\.json","start":(\d+),"end":(\d+)/u,
+  );
+
+  assert(
+    packageSizeMatch !== null &&
+      signatureRangeMatch !== null,
+    "SpiceQL preload metadata must expose package size and signature range",
+  );
+
+  if (packageSizeMatch && signatureRangeMatch) {
+    const expectedSize = Number(packageSizeMatch[1]);
+    const signatureStart = Number(signatureRangeMatch[1]);
+    const signatureEnd = Number(signatureRangeMatch[2]);
+    const dataSha256 =
+      crypto.createHash("sha256").update(data).digest("hex");
+
+    assert(
+      expectedSize === 443066 &&
+        data.length === expectedSize,
+      `SpiceQL data package size mismatch: expected ${expectedSize}, got ${data.length}`,
+    );
+
+    assert(
+      dataSha256 ===
+        "44a3a033ab6e86fd5d8a6e90951e65de2f6aa6b424379534f33106828cb58c54",
+      "SpiceQL data package must match the official 1.7.0 release bytes",
+    );
+
+    try {
+      const signatures = JSON.parse(
+        data
+          .subarray(signatureStart, signatureEnd)
+          .toString("utf8"),
+      );
+
+      assert(
+        typeof signatures.spkez_c === "object" &&
+          typeof signatures.str2et_c === "object",
+        "SpiceQL signature table is missing required CSPICE functions",
+      );
+    } catch (error) {
+      assert(
+        false,
+        `SpiceQL preloaded signature table is invalid JSON: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+}
 assert(
   provenance.includes(
     "5517ed41ed9b512991642f0afd34634e7cfc0cbe4a6401d595484b35aede3859",

@@ -932,35 +932,22 @@ export function ChartForm({
         await saveClientPromise!;
       const saveResult = await saveGeneratedReportWithAccountFallback(
         nextReport,
-        { navigationGraceMs: 2200 },
+        { navigationGraceMs: 0 },
       );
-      if (!saveResult.localAvailable && !saveResult.accountRecord) {
+      if (!saveResult.accountRecord) {
         throw new Error(
-          saveResult.accountMessage ||
-            "ذخیره گزارش روی این دستگاه یا سرور کامل نشد. دوباره تلاش کن.",
+          buildReportSaveFallbackMessage(
+            saveResult.accountMessage ||
+              "ذخیره گزارش روی هالیوس کامل نشد. دوباره تلاش کن.",
+          ),
         );
       }
-      notifyLocalDataChanged();
 
-      let nextPath = `/reports/${saveResult.localRecord.id}`;
-      let nextMessage =
-        "گزارش روی همین دستگاه آماده شد. ذخیره آنلاین در صورت امکان بدون متوقف‌کردن بازشدن گزارش ادامه پیدا می‌کند.";
-
-      if (saveResult.accountStatus === "account-saved") {
-        nextPath = `/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}?source=account`;
-        nextMessage =
-          "گزارش در حساب ذخیره شد؛ نسخه عمومی بدون جزئیات تولد فعال است و نسخه دستگاه هم باقی ماند.";
-      } else if (
-        saveResult.accountStatus === "public-saved" &&
-        saveResult.accountRecord
-      ) {
-        nextPath = `/reports/${saveResult.accountRecord.id}?source=public`;
-        nextMessage =
-          "گزارش عمومی ذخیره شد؛ نام فقط با رضایت جداگانه نمایش داده می‌شود و جزئیات تولد در نسخه عمومی پنهان است.";
-      } else if (saveResult.accountMessage) {
-        nextMessage = buildReportSaveFallbackMessage(saveResult.accountMessage);
-      }
-
+      const nextPath = `/reports/${saveResult.accountRecord.id}?source=account`;
+      const nextMessage =
+        saveResult.accountStatus === "account-saved"
+          ? "گزارش در حساب هالیوس ذخیره شد."
+          : "گزارش روی هالیوس ذخیره شد؛ بعد از خواندن می‌توانی آن را به حسابت وصل کنی.";
       setGeneratedReportPath(nextPath);
       setSaveMessage(nextMessage);
       setRealEngineRequest({

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { reconcileServerCanonicalReports } from "@/lib/account/server-canonical-report-migration-client";
 import { getSupabaseBrowserAuthClient, getSupabaseBrowserLoginConfig } from "@/lib/auth/supabase-browser-client";
 import { getAccountReportSaveClientConfig } from "@/lib/storage/account-report-save-client";
 import { getAccountReportReadClientConfig } from "@/lib/storage/account-report-read-client";
@@ -16,6 +17,7 @@ type AuthMode = "sign-in" | "sign-up";
 
 type SupabaseAuthPanelProps = Readonly<{
   compact?: boolean;
+  initialMode?: AuthMode;
 }>;
 
 function formatUserLabel(session: AuthSession | null) {
@@ -44,11 +46,11 @@ function buildIranPhoneNumber(value: string) {
   return localDigits ? `+98${localDigits}` : "";
 }
 
-export function SupabaseAuthPanel({ compact = false }: SupabaseAuthPanelProps) {
+export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in" }: SupabaseAuthPanelProps) {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
   const accountSaveConfig = useMemo(() => getAccountReportSaveClientConfig(), []);
   const accountReadConfig = useMemo(() => getAccountReportReadClientConfig(), []);
-  const [mode, setMode] = useState<AuthMode>("sign-in");
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [session, setSession] = useState<AuthSession | null>(null);
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -98,12 +100,22 @@ export function SupabaseAuthPanel({ compact = false }: SupabaseAuthPanelProps) {
 
       setSession(mapSupabaseSessionToHalleusSession(data.session));
       setIsReady(true);
+      if (data.session?.access_token) {
+        void reconcileServerCanonicalReports(data.session.access_token).catch(
+          () => undefined,
+        );
+      }
     }
 
     void loadSession();
 
     const { data } = authClient.auth.onAuthStateChange((_event, nextSession) => {
       setSession(mapSupabaseSessionToHalleusSession(nextSession));
+      if (nextSession?.access_token) {
+        void reconcileServerCanonicalReports(nextSession.access_token).catch(
+          () => undefined,
+        );
+      }
     });
 
     return () => {

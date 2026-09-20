@@ -965,6 +965,7 @@ const roadmapAdaptive = read("components/report/ReportAdaptiveNarrative.tsx");
 const roadmapPlanner = read("lib/astrology/adaptive-report-planner.ts");
 const roadmapZodiac = read("lib/astrology/zodiac-labels.ts");
 const roadmapWheel = read("components/ReportBirthChartWheel.tsx");
+const roadmapSharedWheel = read("components/HalleusWheelCore.tsx");
 const roadmapSkyLabels = read("lib/sky-public/sky-public-labels.ts");
 const roadmapTransit = read("src/lib/report-output/personal-transit-relevance.ts");
 const roadmapReader = read("components/report/ReportProductReader.tsx");
@@ -985,7 +986,7 @@ for (const oldLabel of [
 }
 assert(
   roadmapSkyLabels.includes("ZODIAC_LABELS.aries.faName") &&
-    roadmapWheel.includes("ZODIAC_LABELS.aquarius.faName"),
+    roadmapWheel.includes("ZODIAC_LABELS[sign.id].faName"),
   "Sky and report wheel must share canonical zodiac display labels",
 );
 assert(
@@ -1072,13 +1073,16 @@ for (const retiredAspectName of ["هم‌نشینی", "فرصت نرم", "چال
   assert(!roadmapAspectEngine.includes(`label: "${retiredAspectName}"`), `Retired aspect label remains: ${retiredAspectName}`);
 }
 for (const darkToken of [
-  'COLOR_BACKGROUND: "#0B0D11"',
-  'POINTS_COLOR: "#F4F6F8"',
-  'SIGNS_COLOR: "#E5EAF0"',
-  'CIRCLE_COLOR: "#4B535E"',
-  'LINE_COLOR: "#3A424C"',
+  'background: "#0B0D11"',
+  'point: "#F4F6F8"',
+  'sign: "#E5EAF0"',
+  'ring: "#4B535E"',
+  'line: "#3A424C"',
 ]) {
-  assert(roadmapWheel.includes(darkToken), `Report wheel lost /sky dark token: ${darkToken}`);
+  assert(
+    roadmapSharedWheel.includes(darkToken),
+    `Shared Halleus wheel lost dark theme token: ${darkToken}`,
+  );
 }
 assert((() => {
   const activeReader = read("components/report/ReportProductReader.tsx");

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ReportProductReader } from "@/components/report/ReportProductReader";
+import { ReportAccountCta } from "@/components/report/ReportAccountCta";
 import { getReportRepository } from "@/lib/storage/report-repository";
 import {
   deleteAccountReport,
@@ -59,7 +60,7 @@ function getReportTitle(report: AstrologyReport) {
 }
 
 function getSourceBadge(reportSource: ReportDetailSource) {
-  if (reportSource === "account") return "ذخیره‌شده در حساب";
+  if (reportSource === "account") return "ذخیره‌شده در هالیوس";
   if (reportSource === "public") return "لینک مستقیم";
   if (reportSource === "beta-db") return "گزارش ذخیره‌شده";
   return "روی همین دستگاه";
@@ -98,6 +99,7 @@ export function ReportDetail({
     useState<ReportVisibility>("private");
   const [favorite, setFavorite] = useState(false);
   const [storedAccessTier, setStoredAccessTier] = useState<string | null>(null);
+  const [accountOwnerKind, setAccountOwnerKind] = useState<"account" | "guest">("guest");
 
   useEffect(() => {
     let isActive = true;
@@ -146,6 +148,7 @@ export function ReportDetail({
         setNote(result.reportRecord.note ?? "");
         setFavorite(Boolean(result.reportRecord.favorite));
         setAccountVisibility(result.reportRecord.visibility);
+        setAccountOwnerKind(result.ownerKind);
         setMessage("");
         setIsReady(true);
         return;
@@ -337,6 +340,17 @@ export function ReportDetail({
       data-report-source={reportSource}
     >
       <ReportProductReader initialAccessPolicy={initialAccessPolicy} report={report} storedAccessTier={storedAccessTier} />
+      {reportSource === "account" && accountOwnerKind === "guest" ? (
+        <ReportAccountCta
+          reportId={report.id}
+          onClaimed={(result) => {
+            setAccountOwnerKind("account");
+            if (result.profileSync && !result.profileSync.ok) {
+              setMessage("چارت در حسابت ذخیره شد؛ ثبت تاریخ تولد کامل نشد.");
+            }
+          }}
+        />
+      ) : null}
 
       <details className="report-product-reader-tools">
         <summary>ذخیره و مدیریت گزارش</summary>
@@ -389,7 +403,7 @@ export function ReportDetail({
             </details>
           ) : null}
 
-          {reportSource === "account" ? (
+          {reportSource === "account" && accountOwnerKind === "account" ? (
             <details className="report-product-inline-tool">
               <summary>تنظیمات حساب و اشتراک</summary>
               <div className="actions">

@@ -1,15 +1,12 @@
 "use client";
 
-import {
-  getSupabaseBrowserAuthClient,
-  getSupabaseBrowserLoginConfig,
-} from "@/lib/auth/supabase-browser-client";
+import { getSupabaseBrowserAccessState } from "@/lib/auth/supabase-browser-client";
 import {
   deleteAccountReport,
   getAccountReportRecord,
   mutateAccountReport,
 } from "@/lib/storage/account-report-read-client";
-import { getAccountReportSaveClientConfig } from "@/lib/storage/account-report-save-client";
+
 import type { ComparisonRecord } from "@/types/comparison-product";
 import type { StoredComparisonReport } from "@/types/storage";
 
@@ -39,18 +36,29 @@ function readStoredComparison(value: unknown): StoredComparisonReport | null {
 }
 
 async function readAccessToken() {
-  const login = getSupabaseBrowserLoginConfig();
-  const save = getAccountReportSaveClientConfig();
-  if (!login.canUseRealSupabaseLogin || !save.canAttemptAccountReportSave) {
-    return { status: "disabled" as const, accessToken: null };
+  const auth = await getSupabaseBrowserAccessState();
+
+  if (auth.kind === "unavailable") {
+    return {
+      status: "failed" as const,
+      accessToken: null,
+      error: auth.error,
+    };
   }
-  const client = getSupabaseBrowserAuthClient();
-  if (!client) return { status: "disabled" as const, accessToken: null };
-  const { data, error } = await client.auth.getSession();
-  if (error || !data.session?.access_token) {
-    return { status: "not-authenticated" as const, accessToken: null };
+
+  if (auth.kind === "guest") {
+    return {
+      status: "guest" as const,
+      accessToken: null,
+      error: null,
+    };
   }
-  return { status: "ready" as const, accessToken: data.session.access_token };
+
+  return {
+    status: "ready" as const,
+    accessToken: auth.accessToken,
+    error: null,
+  };
 }
 
 export async function saveComparisonToAccount(
@@ -58,6 +66,12 @@ export async function saveComparisonToAccount(
   options: { navigationGraceMs?: number } = {},
 ): Promise<ComparisonAccountSaveResult> {
   const auth = await readAccessToken();
+  if (auth.status === "failed") {
+    return {
+      status: "failed",
+      message: auth.error ?? "وضعیت ورود هالیوس در دسترس نیست.",
+    };
+  }
   const accessToken = auth.status === "ready" ? auth.accessToken : null;
 
   // HALLEUS_GUEST_SYNASTRY_ADMIN_CAPTURE_R1
@@ -68,7 +82,7 @@ export async function saveComparisonToAccount(
       // HALLEUS_COMPARISON_LARGE_PAYLOAD_SERVER_SAVE_R1
       // Do not use fetch keepalive here. Synastry payloads are large enough to
       // exceed the browser keepalive request-body budget before nginx sees them.
-      const response = await fetch("/api/reports/account", {
+      const response = await fetch("/api/reports/owner", {
         method: "POST",
         headers: {
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
@@ -155,7 +169,7 @@ export async function getAccountComparisonRecord(reportId: string): Promise<{
   }
 
   return {
-    status: "saved",
+    status: detail.ownerKind === "account" ? "saved" : "guest-saved",
     comparison: stored.comparison,
     favorite: Boolean(record.favorite),
     note: typeof record.note === "string" ? record.note : "",

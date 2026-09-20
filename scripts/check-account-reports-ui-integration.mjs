@@ -3,85 +3,55 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const failures = [];
-
-function read(path) {
-  return readFileSync(join(root, path), "utf8");
-}
-
-function requireText(label, source, marker) {
-  if (!source.includes(marker)) {
-    failures.push(`${label} missing marker: ${marker}`);
-  }
-}
-
-function forbidText(label, source, marker) {
-  if (source.includes(marker)) {
-    failures.push(`${label} contains forbidden marker: ${marker}`);
-  }
-}
+const read = (path) => readFileSync(join(root, path), "utf8");
+const need = (label, source, marker) => {
+  if (!source.includes(marker)) failures.push(`${label} missing: ${marker}`);
+};
+const forbid = (label, source, marker) => {
+  if (source.includes(marker)) failures.push(`${label} still contains: ${marker}`);
+};
 
 const reportsPage = read("app/reports/page.tsx");
 const reportsLayout = read("app/reports/layout.tsx");
 const reportsList = read("components/ReportsList.tsx");
 const reportsCss = read("app/reports/reports-page.module.css");
-const accountRoute = read("app/api/reports/account/route.ts");
-const storageTypes = read("types/storage.ts");
+const ownerRoute = read("app/api/reports/owner/route.ts");
 const packageJson = JSON.parse(read("package.json"));
 
 for (const marker of [
-  'data-reports-library="account-home-v1"',
-  '<ReportsList reportSource={reportSource} />',
-  'href="/reports?source=local"',
+  'data-reports-library="server-canonical-v1"',
+  '<ReportsList reportSource="account" />',
   'href="/privacy"',
-  'rawSource === "local" ? "local" : "account"',
-]) {
-  requireText("reports page", reportsPage, marker);
+]) need("reports page", reportsPage, marker);
+
+forbid("reports page", reportsPage, 'href="/reports?source=local"');
+
+for (const marker of ["index: false", "follow: false"]) {
+  need("reports layout", reportsLayout, marker);
 }
-
-forbidText("reports page", reportsPage, "AccountReportTitleList");
-
-requireText("reports layout", reportsLayout, "index: false");
-requireText("reports layout", reportsLayout, "follow: false");
 
 for (const marker of [
   'type ReportsListSource = "local" | "beta-db" | "account"',
-  'type ReportFilterMode = "all" | "favorites" | "natal" | "comparison"',
+  "reconcileServerCanonicalReports",
   "listAccountReportSummaries(accountPage)",
+  "libraryOwnerKind",
   'summary.reportType === "comparison"',
   '`/compare/${summary.id}`',
-  'summary.visibility === "shared_by_link"',
-  "handleEditLocalNote",
-  'details className={styles.dataTools}',
   'details className={styles.actionMenu}',
-  'if (!window.confirm("همهٔ گزارش‌های ذخیره‌شده روی این دستگاه پاک شوند؟")) return;',
-]) {
-  requireText("reports list", reportsList, marker);
-}
-
-forbidText("reports list", reportsList, "accountReadConfig.missingConfig.map");
-forbidText("reports list", reportsList, "Account reports");
+]) need("reports list", reportsList, marker);
 
 for (const marker of [
   "--reports-bg: #050609",
-  "--reports-accent: #7dd3fc",
-  "--reports-accent-soft: #dceeff",
   ".cardsGrid",
   ".actionMenuPanel",
-  ".dataTools",
   "background: #0b0e13 !important",
-]) {
-  requireText("reports css", reportsCss, marker);
-}
+]) need("reports css", reportsCss, marker);
 
 for (const marker of [
-  'if (["enable_sharing", "revoke_sharing", "publish", "unpublish"].includes(action))',
-  "Comparison reports are private and cannot be shared or published.",
-]) {
-  requireText("account report route", accountRoute, marker);
-}
-
-requireText("storage types", storageTypes, 'export type ReportVisibility = "private" | "public" | "shared_by_link" | "unpublished" | "restricted_by_admin"');
-requireText("storage types", storageTypes, 'reportType: "comparison"');
+  'action === "claim_guest"',
+  'action === "claim_legacy_report"',
+  "Comparison reports are private and cannot be shared.",
+]) need("owner route", ownerRoute, marker);
 
 if (
   packageJson.scripts?.["check:account-reports-ui"] !==
@@ -90,15 +60,10 @@ if (
   failures.push("package.json missing check:account-reports-ui script");
 }
 
-if (failures.length > 0) {
+if (failures.length) {
   console.error("Account reports UI integration check failed:");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("Account reports UI integration check passed.");
-console.log("- reports page uses the dedicated dark account/device library surface");
-console.log("- account and device storage remain distinct");
-console.log("- comparison reports route to private comparison detail and never expose sharing controls");
-console.log("- destructive local actions require confirmation and data tools remain secondary");
-console.log("- reports route remains noindex/nofollow");

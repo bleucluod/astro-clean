@@ -42,7 +42,7 @@ function resolveReportSource(rawSource: string | undefined): ReportDetailSource 
     return "local";
   }
 
-  return "local";
+  return "account";
 }
 
 export default async function ReportDetailPage({
