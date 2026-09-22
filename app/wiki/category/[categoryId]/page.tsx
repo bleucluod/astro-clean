@@ -30,6 +30,7 @@ const RELATED_WIKI_CATEGORY_IDS: Record<string, readonly string[]> = {
   accuracy: ["foundations", "houses"],
   systems: ["foundations", "houses"],
   planets: ["aspects", "houses"],
+  "famous-birth-charts": ["foundations", "planets"],
 };
 
 function serializeJsonLd(value: unknown) {
@@ -195,6 +196,19 @@ export default async function WikiCategoryPage({
         </div>
       </section>
 
+      {categoryView.content.heroImage ? (
+        <figure className={styles.articleMedia}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt={categoryView.content.heroImage.alt}
+            height={675}
+            loading="eager"
+            src={categoryView.content.heroImage.src}
+            width={1200}
+          />
+        </figure>
+      ) : null}
+
       <section className={styles.section} aria-labelledby="category-start-title">
         <div className={styles.sectionHeader}>
           <div>
@@ -235,6 +249,19 @@ export default async function WikiCategoryPage({
           ))}
         </div>
       </section>
+
+      {categoryView.content.bodyImage ? (
+        <figure className={styles.articleMedia}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt={categoryView.content.bodyImage.alt}
+            height={675}
+            loading="lazy"
+            src={categoryView.content.bodyImage.src}
+            width={1200}
+          />
+        </figure>
+      ) : null}
 
       {r8Body ? (
         <section className={styles.section} data-r8-category-body="true">

@@ -5,7 +5,8 @@ export type WikiCategoryId =
   | "houses"
   | "aspects"
   | "transits"
-  | "systems";
+  | "systems"
+  | "famous-birth-charts";
 
 export type WikiCategory = {
   id: string;
@@ -111,6 +112,12 @@ export const wikiCategories = [
     label: "انواع و نظام‌های آسترولوژی",
     description:
       "راهنمای مقایسهٔ تروپیکال، سایدرئال و ودیک و فهم نقش زودیاک، آیانامشا، خانه‌بندی و سنت تفسیری در تفاوت نتیجهٔ چارت‌ها.",
+  },
+  {
+    id: "famous-birth-charts",
+    label: "چارت تولد افراد مشهور",
+    description:
+      "مجموعهٔ پروفایل‌های مستند چارت تولد افراد مشهور با تمرکز بر اعتبار تاریخ و ساعت تولد و محدودیت واقعی هر تحلیل.",
   },
 ] as const satisfies readonly WikiCategory[];
 
