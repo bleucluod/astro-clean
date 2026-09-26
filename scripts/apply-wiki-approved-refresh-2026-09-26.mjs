@@ -54,11 +54,12 @@ function findArticleStart(source) {
 }
 function resolveArticleTarget(key, lookup, label) {
   const normalized = String(key ?? "").trim();
-  const direct = lookup.byStableId.get(normalized);
+  const resolvedKey = normalized === "houses-in-birth-chart" ? "astrology-houses" : normalized;
+  const direct = lookup.byStableId.get(resolvedKey);
   if (direct) return direct.stableId;
-  const bySlug = lookup.bySlug.get(normalized);
+  const bySlug = lookup.bySlug.get(resolvedKey);
   if (bySlug) return bySlug.stableId;
-  if (lookup.allowUnresolved) return normalized;
+  if (lookup.allowUnresolved) return resolvedKey;
   throw new Error(`Missing internal Wiki target ${normalized} while converting ${label}.`);
 }
 function addSource(externalSources, label, href) {
