@@ -273,7 +273,18 @@ function snapshotFromRow(row, converted) {
 function rowFingerprint(row) {
   return sha256(JSON.stringify({ slug: row.slug, stable_id: row.stable_id, content_version: Number(row.content_version), body_markdown: row.body_markdown, updated_at: row.updated_at }));
 }
-function sameJson(left, right) { return JSON.stringify(left ?? null) === JSON.stringify(right ?? null); }
+function canonicalJson(value) {
+  if (Array.isArray(value)) return value.map(canonicalJson);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.keys(value).sort().map((key) => [key, canonicalJson(value[key])]),
+    );
+  }
+  return value;
+}
+function sameJson(left, right) {
+  return JSON.stringify(canonicalJson(left ?? null)) === JSON.stringify(canonicalJson(right ?? null));
+}
 function candidateChanged(row, article, snapshot) {
   return sha256(String(row.body_markdown ?? "")) !== article.bodyHash
     || String(row.title ?? "") !== snapshot.title
@@ -419,6 +430,10 @@ function printPreview(preview) {
   for (const item of preview.candidates) console.log(`PREVIEW | ${item.article.slug} | stable_id=${item.row.stable_id} | version=${item.row.content_version}->${item.snapshot.contentVersion} | changed=${item.changed} | sections=${item.snapshot.sections.length} | links=${extractInlineIds(item.snapshot.bodyMarkdown).length}`);
 }
 function selfCheck() {
+  if (!sameJson(
+    [{ label: "Example", href: "https://example.com/source" }],
+    [{ href: "https://example.com/source", label: "Example" }],
+  )) throw new Error("Canonical JSON comparison self-check failed.");
   if (ARTICLES.length !== EXPECTED_ARTICLE_COUNT || new Set(TARGET_SLUGS).size !== EXPECTED_ARTICLE_COUNT) throw new Error("Self-check batch cardinality failed.");
   const sourceSetMaterial = ARTICLES.map((item) => `${item.slug}\t${item.sha256}`).join("\n") + "\n";
   if (sha256(sourceSetMaterial) !== APPROVED_SOURCE_SET_SHA256) throw new Error("Approved source-set hash mismatch.");
