@@ -130,7 +130,7 @@ export function WikiArticleBody({
               <WikiInlineText text={paragraph} targets={targets} />
             </p>
           ))}
-          {section.bullets ? (
+          {section.bullets?.length ? (
             <ul className={styles.bodyList}>
               {section.bullets.map((bullet) => (
                 <li key={bullet}>
