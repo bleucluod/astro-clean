@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { SkyCityPicker } from "@/components/SkyCityPicker";
+import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
+import { SKY_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import { SkyPublicWheel } from "@/components/SkyPublicWheel";
 import type { SkyPublicDeliveryResult } from "@/lib/sky-public/sky-public-delivery";
 import type { SkyDailyAspect, SkyDailySnapshot, SkyDailyTimelineEvent, SkyDailyZodiacSign } from "@/lib/sky-daily/sky-daily-contract";
@@ -207,7 +209,8 @@ function SkyHero() {
 export function SkyPublicExperience({ result, cityQuery, relatedArticles = [], embedded = false, showControls = true }: { result: SkyPublicDeliveryResult; cityQuery?: string; relatedArticles?: Array<{ slug: string; title: string }>; embedded?: boolean; showControls?: boolean }) {
   const controlCity = result.city ?? { id: cityQuery ?? "tehran", faName: cityQuery ?? "تهران", provinceFaName: "" };
 
-  return <div className={styles.shell}>
+  return <div className={styles.shell} id="sky-public-experience">
+    {result.status === "ready" ? <EditorialStickyCtaSequence campaign={SKY_STICKY_CTA_CAMPAIGN} endId="sky-personal-chart-cta" rootId="sky-public-experience" /> : null}
     {embedded ? null : <SkyHero />}
     {showControls ? <form className={styles.controls} method="get" action="/sky">
       <SkyCityPicker initialCity={controlCity}/>
@@ -359,6 +362,6 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
       <div className={styles.aspectList}><details open><summary>آیا آسترولوژی امروز همان فال روزانه است؟</summary><p>خیر. این صفحه جایگاه واقعی سیارات، فاز ماه و زاویه‌های روز را نشان می‌دهد و اتفاق شخصی را پیش‌بینی نمی‌کند.</p></details><details open><summary>وضعیت سیارات امروز برای کدام شهر نمایش داده می‌شود؟</summary><p>ساعت رویدادها براساس شهر و منطقهٔ زمانی انتخاب‌شده نمایش داده می‌شود.</p></details><details open><summary>فاز ماه امروز چگونه محاسبه می‌شود؟</summary><p>فاز و درصد روشنایی ماه از دادهٔ محاسبه‌شدهٔ همان تاریخ به دست می‌آید و از روز دیگری جایگزین نمی‌شود.</p></details><details open><summary>چرا بعضی روزها داده نمایش داده نمی‌شود؟</summary><p>اگر دادهٔ معتبر موجود نباشد، هالیوس روز دیگری یا نتیجهٔ تخمینی را جایگزین نمی‌کند.</p></details></div>
     </section>
 
-    <section className={styles.cta}><div><span className={styles.eyebrow}>چارت شخصی</span><h2>می‌خواهی ارتباط این آسمان را با چارت تولدت ببینی؟</h2><p>تاریخ، ساعت و شهر تولدت را وارد کن تا چارت شخصی خودت را ببینی.</p></div><Link href="/chart">ساخت چارت تولد</Link></section>
+    <section className={styles.cta} id="sky-personal-chart-cta"><div><span className={styles.eyebrow}>چارت شخصی</span><h2>می‌خواهی ارتباط این آسمان را با چارت تولدت ببینی؟</h2><p>تاریخ، ساعت و شهر تولدت را وارد کن تا چارت شخصی خودت را ببینی.</p></div><Link href="/chart">ساخت چارت تولد</Link></section>
   </>;
 }

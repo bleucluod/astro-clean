@@ -146,6 +146,7 @@ export async function ComparisonLanding() {
   return (
     <div
       className={styles.page}
+      id="compare-public-landing"
       data-editorial-source="reviewed-public-editorial-compare"
       data-halleus-compare-landing="roadmap-slice1"
     >

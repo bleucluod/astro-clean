@@ -34,6 +34,8 @@ import {
   listAccountReportSummaries,
 } from "@/lib/storage/account-report-read-client";
 import type { ReportRecordSummary } from "@/types/storage";
+import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
+import { COMPARE_FIRST_CHART_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import { saveComparisonToAccount } from "@/lib/comparison/comparison-account-client";
 import { ensureServerCanonicalReport } from "@/lib/storage/account-report-save-client";
 import type { AstrologyReport } from "@/types/astro";
@@ -570,6 +572,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
   const selectedRelationship =
     RELATIONSHIP_OPTIONS.find((item) => item.value === relationshipContext) ??
     RELATIONSHIP_OPTIONS[0]!;
+  const showFirstChartStickyCta =
+    embedded && accountChartsState === "signed-out" && chartOptions.length === 0;
 
   return (
     <div
@@ -579,6 +583,12 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       data-app-like-builder="r11"
       data-builder-simplified="r12"
     >
+      {showFirstChartStickyCta ? (
+        <EditorialStickyCtaSequence
+          campaign={COMPARE_FIRST_CHART_STICKY_CTA_CAMPAIGN}
+          rootId="compare-public-landing"
+        />
+      ) : null}
       {!embedded ? <>
       <section className={styles.hero}>
         <div>

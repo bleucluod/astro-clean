@@ -196,7 +196,7 @@ if (/^(?:a|\.page|\.articlePage)\s+a\b/m.test(styles)) {
 
 // HALLEUS_WIKI_EDITORIAL_VISIBILITY_GUARD_V18
 requireText("Wiki reviewed CTA overlay", page, "getWikiEditorialCta(article.slug)");
-requireText("Wiki reviewed route marker", page, 'data-wiki-editorial-reviewed={editorialCta ? "true" : undefined}');
+requireText("Wiki reviewed route marker", page, 'data-wiki-editorial-reviewed={editorialCta && !stickyCtaCampaign ? "true" : undefined}');
 requireText("Wiki reviewed coordinator", page, "<WikiArticleCtaCoordinator");
 requireText("Wiki reviewed no-card branch", coordinator, "if (!mobileCard) return null;");
 requireText("Wiki reviewed SSR card", coordinator, "<WikiEditorialMobileCta");
@@ -212,7 +212,11 @@ requireText("Wiki reviewed active duration", appShell, "const visibleDurationMs 
 requireText("Wiki reviewed exit duration", appShell, "const exitDurationMs = 300;");
 forbidText("Wiki reviewed short viewport suppression", appShell, "minSafeViewportHeight");
 requireText("Wiki reviewed short viewport hotfix", appShell, "HALLEUS_WIKI_CTA_SHORT_VIEWPORT_V22");
-requireText("Wiki reviewed V22 runtime", appShell, "__HALLEUS_WIKI_CTA_RUNTIME_V22__");
+requireText("Wiki reviewed V23 runtime", appShell, "__HALLEUS_WIKI_CTA_RUNTIME_V23__");
+requireText("Wiki reviewed global dismiss marker", appShell, "HALLEUS_WIKI_CTA_GLOBAL_DISMISS_V23");
+requireText("Wiki reviewed global dismiss key", appShell, "halleus_sticky_cta_dismissed");
+requireText("Wiki reviewed global dismiss read", appShell, "window.localStorage.getItem(dismissStorageKey)");
+requireText("Wiki reviewed global dismiss write", appShell, "window.localStorage.setItem(dismissStorageKey");
 requireText("Wiki reviewed controls-out choreography", appShell, "const controlExitDurationMs = 220;");
 requireText("Wiki reviewed choreography gap", appShell, "const choreographyGapMs = 70;");
 requireText("Wiki reviewed enter duration", appShell, "const enterDurationMs = 300;");
@@ -250,6 +254,6 @@ console.log("Wiki article link and CTA visibility check passed.");
 console.log("- contextual article links keep the current dark Wiki treatment");
 console.log("- inline Wiki CTA retains visible hover and focus styling");
 console.log("- reviewed editorial CTA reveals at 35% body progress with no attention-time gate");
-console.log("- reviewed editorial CTA holds for 12 seconds after entrance and coordinates mobile chrome motion");
+console.log("- reviewed editorial CTA holds for 12 seconds after entrance, coordinates mobile chrome motion, and honors persistent dismissal");
 console.log("- short mobile viewports use compact CTA layout without runtime suppression or timer pause");
 console.log("- legacy sticky CTA behavior remains isolated to non-reviewed Wiki routes");

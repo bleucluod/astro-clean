@@ -8,6 +8,8 @@ import {
   listPublicWikiRouteSlugs,
 } from "@/lib/wiki/wiki-repository";
 import { getWikiEditorialCta } from "@/lib/wiki/wiki-editorial-cta";
+import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
+import { getWikiStickyCtaCampaign } from "@/lib/cta/editorial-sticky-cta";
 import styles from "../wiki.module.css";
 import { WikiStickyCta } from "./WikiStickyCta";
 import { WikiArticleCtaCoordinator } from "./WikiArticleCtaCoordinator";
@@ -169,6 +171,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
     ],
   };
   const editorialCta = getWikiEditorialCta(article.slug);
+  const stickyCtaCampaign = getWikiStickyCtaCampaign(article.slug);
   const callToAction = editorialCta
     ? {
         title: editorialCta.endTitle,
@@ -186,7 +189,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
   return (
     <section
       className={`${styles.page} ${styles.articlePage}`}
-      data-wiki-editorial-reviewed={editorialCta ? "true" : undefined}
+      data-wiki-editorial-reviewed={editorialCta && !stickyCtaCampaign ? "true" : undefined}
     >
       <script
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleJsonLd) }}
@@ -207,7 +210,13 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
         )}
       </nav>
 
-      {editorialCta ? (
+      {stickyCtaCampaign ? (
+        <EditorialStickyCtaSequence
+          campaign={stickyCtaCampaign}
+          endId={WIKI_INLINE_CTA_ID}
+          rootId={WIKI_ARTICLE_BODY_ID}
+        />
+      ) : editorialCta ? (
         <WikiArticleCtaCoordinator
           articleBodyId={WIKI_ARTICLE_BODY_ID}
           href={editorialCta.href}
@@ -316,7 +325,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
         </aside>
       </article>
 
-      {!editorialCta ? (
+      {!editorialCta && !stickyCtaCampaign ? (
         <WikiStickyCta
           callToAction={callToAction}
           contentRootId={WIKI_ARTICLE_CONTENT_ID}

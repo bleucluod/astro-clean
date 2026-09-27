@@ -32,6 +32,8 @@ import type { AstrologyReport } from "@/types/astro";
 import { FiveMinuteReportSummary } from "@/components/report/FiveMinuteReportSummary";
 import { ReportTechnicalAppendix } from "@/components/report/ReportTechnicalAppendix";
 import { useProductAccess } from "@/lib/monetization/product-access-client";
+import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
+import { REPORT_COMPARE_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import type { ReportAccessPolicy } from "@/lib/monetization/access-policy";
 import {
   formatReportNarrativeAspectGeometry,
@@ -130,7 +132,7 @@ function formatTransitAstrologyLabel(
   return `${transitSymbol} ${transit} ترنزیت · ${geometry} · ${natalSymbol} ${natal} تولد`;
 }
 
-export function ReportProductReader({ report, storedAccessTier = null, initialAccessPolicy }: { report: AstrologyReport; storedAccessTier?: string | null; initialAccessPolicy?: ReportAccessPolicy }) {
+export function ReportProductReader({ report, storedAccessTier = null, initialAccessPolicy, stickyCompareCtaEnabled = false }: { report: AstrologyReport; storedAccessTier?: string | null; initialAccessPolicy?: ReportAccessPolicy; stickyCompareCtaEnabled?: boolean }) {
   const productAccess = useProductAccess(report.id);
   // HALLEUS_FREE_ALL_BIRTH_REPORT_BATCH1_R1
   // HALLEUS_FREE_ALL_SERVER_SEED_STICKY_20260815
@@ -472,6 +474,7 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
   return (
     <section
       className={styles.reader}
+      id="report-product-reader-content"
       data-report-product-reader="human-first-report-experience"
       data-report-product-flow="continuous"
       data-report-reading-position={activeSection}
@@ -484,6 +487,13 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
       data-report-app-like-mobile="20260903"
       data-report-editorial-mobile="slice1-20260903"
     >
+      {stickyCompareCtaEnabled ? (
+        <EditorialStickyCtaSequence
+          campaign={REPORT_COMPARE_STICKY_CTA_CAMPAIGN}
+          endId="report-product-relationship-cta"
+          rootId="report-product-reader-content"
+        />
+      ) : null}
 
       <div aria-hidden="true" className={styles.ambientLogo} data-report-ambient-logo="parallax" />
 

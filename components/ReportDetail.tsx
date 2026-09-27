@@ -339,7 +339,7 @@ export function ReportDetail({
       className="report-detail-reader-page report-product-page"
       data-report-source={reportSource}
     >
-      <ReportProductReader initialAccessPolicy={initialAccessPolicy} report={report} storedAccessTier={storedAccessTier} />
+      <ReportProductReader initialAccessPolicy={initialAccessPolicy} report={report} storedAccessTier={storedAccessTier} stickyCompareCtaEnabled={reportSource !== "public"} />
       {reportSource === "account" && accountOwnerKind === "guest" ? (
         <ReportAccountCta
           reportId={report.id}
@@ -426,7 +426,7 @@ export function ReportDetail({
         </p>
       ) : null}
 
-      <section className="report-product-endpoint report-product-relationship-cta">
+      <section className="report-product-endpoint report-product-relationship-cta" id="report-product-relationship-cta">
         <div>
           <span className="section-label">گام بعدی</span>
           <h2>رابطه‌تان را از زاویهٔ دو چارت ببینید</h2>
