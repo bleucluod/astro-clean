@@ -14,6 +14,9 @@ DEPLOY_GROUP="deploy"
 NODE_BIN="/usr/local/bin/node"
 HOST="127.0.0.1"
 PORT="3000"
+# HALLEUS_STORAGE_BOUNDED_RELEASE_V1
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STORAGE_CONTRACT_FILE="$SCRIPT_DIR/halleus-release-storage.env"
 DEPLOY_RELEASE_DIR=""
 DEPLOY_ACTIVATED=0
 DEPLOY_WORKTREE_CREATED=0
@@ -75,6 +78,123 @@ resolve_pnpm() {
     pnpm_bin="$(as_deploy bash -lc 'command -v pnpm')"
     [ -n "$pnpm_bin" ] || fail "pnpm was not found for the deploy user."
     printf '%s\n' "$pnpm_bin"
+}
+
+load_storage_contract() {
+    test -f "$STORAGE_CONTRACT_FILE" || fail "Missing Halleus storage contract: $STORAGE_CONTRACT_FILE"
+    # shellcheck disable=SC1090
+    source "$STORAGE_CONTRACT_FILE"
+    local name value
+    for name in \
+        HALLEUS_STORAGE_CONTRACT_VERSION \
+        HALLEUS_RUNTIME_BASELINE_BYTES \
+        HALLEUS_RUNTIME_BUDGET_BYTES \
+        HALLEUS_DEPENDENCY_BUDGET_BYTES \
+        HALLEUS_BUILD_OUTPUT_BUDGET_BYTES \
+        HALLEUS_PUBLIC_BUDGET_BYTES \
+        HALLEUS_HEADROOM_RUNTIME_COPIES \
+        HALLEUS_KEEP_RELEASES; do
+        value="${!name:-}"
+        [[ "$value" =~ ^[1-9][0-9]*$ ]] || fail "Invalid storage contract value: $name=$value"
+    done
+    [ "$HALLEUS_KEEP_RELEASES" -eq 2 ] || fail "Halleus retention contract must keep exactly current + previous."
+}
+
+path_bytes() {
+    du -sb -- "$1" | awk '{print $1}'
+}
+
+path_inodes() {
+    find "$1" -xdev -printf '.' | wc -c | tr -d '[:space:]'
+}
+
+free_bytes() {
+    df -B1 --output=avail "$ROOT" | tail -n 1 | tr -d '[:space:]'
+}
+
+free_inodes() {
+    df -Pi --output=iavail "$ROOT" | tail -n 1 | tr -d '[:space:]'
+}
+
+assert_storage_headroom() {
+    local current current_inodes required_bytes required_inodes available_bytes available_inodes
+    current="$(current_target)"
+    [ -n "$current" ] || fail "Current release is required for storage headroom calculation."
+    validate_runtime_target "$current"
+    current_inodes="$(path_inodes "$current")"
+    required_bytes=$((HALLEUS_RUNTIME_BUDGET_BYTES * HALLEUS_HEADROOM_RUNTIME_COPIES))
+    required_inodes=$((current_inodes * 2))
+    available_bytes="$(free_bytes)"
+    available_inodes="$(free_inodes)"
+    printf 'STORAGE_GATE project=halleus free_bytes=%s required_bytes=%s free_inodes=%s required_inodes=%s\n' \
+        "$available_bytes" "$required_bytes" "$available_inodes" "$required_inodes"
+    [ "$available_bytes" -ge "$required_bytes" ] || fail "INSUFFICIENT_STORAGE_HEADROOM bytes=$available_bytes required=$required_bytes"
+    [ "$available_inodes" -ge "$required_inodes" ] || fail "INSUFFICIENT_STORAGE_HEADROOM inodes=$available_inodes required=$required_inodes"
+}
+
+assert_component_budget() {
+    local path="$1"
+    local budget="$2"
+    local label="$3"
+    local bytes=0
+    if [ -e "$path" ]; then
+        bytes="$(path_bytes "$path")"
+    fi
+    printf 'STORAGE_COMPONENT project=halleus component=%s bytes=%s budget=%s\n' "$label" "$bytes" "$budget"
+    [ "$bytes" -le "$budget" ] || fail "${label}_BUDGET_EXCEEDED bytes=$bytes budget=$budget"
+}
+
+assert_candidate_storage_budget() {
+    local release_dir="$1"
+    local total
+    test ! -e "$release_dir/.sites-runtime" || fail "RUNTIME_ARTIFACT_FORBIDDEN_PATH .sites-runtime"
+    total="$(path_bytes "$release_dir")"
+    printf 'STORAGE_CANDIDATE project=halleus bytes=%s budget=%s\n' "$total" "$HALLEUS_RUNTIME_BUDGET_BYTES"
+    [ "$total" -le "$HALLEUS_RUNTIME_BUDGET_BYTES" ] || fail "RUNTIME_BUDGET_EXCEEDED bytes=$total budget=$HALLEUS_RUNTIME_BUDGET_BYTES"
+    assert_component_budget "$release_dir/node_modules" "$HALLEUS_DEPENDENCY_BUDGET_BYTES" "dependencies"
+    assert_component_budget "$release_dir/.next" "$HALLEUS_BUILD_OUTPUT_BUDGET_BYTES" "build_output"
+    assert_component_budget "$release_dir/public" "$HALLEUS_PUBLIC_BUDGET_BYTES" "public"
+}
+
+storage_report() {
+    local phase="$1"
+    local current previous current_bytes=0 previous_bytes=0
+    current="$(current_target)"
+    previous="$(previous_target)"
+    [ -z "$current" ] || current_bytes="$(path_bytes "$current")"
+    [ -z "$previous" ] || previous_bytes="$(path_bytes "$previous")"
+    printf 'STORAGE_REPORT project=halleus phase=%s free_bytes=%s free_inodes=%s current_bytes=%s previous_bytes=%s\n' \
+        "$phase" "$(free_bytes)" "$(free_inodes)" "$current_bytes" "$previous_bytes"
+}
+
+cleanup_old_release_worktrees() {
+    local current previous worktree cleanup_failed=0
+    current="$(current_target)"
+    previous="$(previous_target)"
+    [ -n "$current" ] || return 1
+    [ -n "$previous" ] || return 1
+
+    as_deploy git -C "$SOURCE" worktree prune || cleanup_failed=1
+    while IFS= read -r worktree; do
+        case "$worktree" in
+            "$RELEASES"/*)
+                if [ "$worktree" != "$current" ] && [ "$worktree" != "$previous" ]; then
+                    printf 'STORAGE_CLEANUP project=halleus action=remove_worktree path=%s\n' "$worktree"
+                    as_deploy git -C "$SOURCE" worktree remove --force "$worktree" || cleanup_failed=1
+                fi
+                ;;
+        esac
+    done < <(as_deploy git -C "$SOURCE" worktree list --porcelain | sed -n 's/^worktree //p')
+    as_deploy git -C "$SOURCE" worktree prune || cleanup_failed=1
+
+    local dir
+    for dir in "$RELEASES"/*; do
+        [ -d "$dir" ] || continue
+        if [ "$dir" != "$current" ] && [ "$dir" != "$previous" ]; then
+            printf 'STORAGE_CLEANUP_WARNING project=halleus reason=OWNERSHIP_UNPROVEN path=%s\n' "$dir" >&2
+        fi
+    done
+    return "$cleanup_failed"
 }
 
 validate_runtime_target() {
@@ -282,6 +402,9 @@ deploy_release() {
 
     assert_base_layout
     assert_source_clean
+    load_storage_contract
+    assert_storage_headroom
+    storage_report "pre-build"
 
     printf '%s\n' "Fetching origin and tags..."
     as_deploy git -C "$SOURCE" fetch --tags --prune origin
@@ -353,6 +476,7 @@ deploy_release() {
     created_utc="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
     write_release_metadata "$release_dir" "$commit" "$tag" "$build_id" "$created_utc"
     validate_release_target "$release_dir"
+    assert_candidate_storage_budget "$release_dir"
 
     [ -n "$old_current" ] || fail "Current symlink is missing. Run the controlled VPS bootstrap first."
     validate_runtime_target "$old_current"
@@ -394,6 +518,11 @@ deploy_release() {
     printf '%s\n' "Skipping scheduled Wiki inbound-link repair during release; run it explicitly as maintenance."
 
     run_wiki_publish_due_once_best_effort "$release_dir"
+
+    if ! cleanup_old_release_worktrees; then
+        printf '%s\n' "STORAGE_CLEANUP_WARNING project=halleus reason=cleanup_failed release_remains_healthy=true" >&2
+    fi
+    storage_report "post-success"
 
     trap - EXIT
     printf '%s\n' "HALLEUS_RELEASE_DEPLOY_OK"

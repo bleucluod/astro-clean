@@ -23,6 +23,7 @@ function forbidMarkers(label, source, markers) {
 }
 
 const releasePath = "ops/vps/halleus-release.sh";
+const storageContractPath = "ops/vps/halleus-release-storage.env";
 const servicePath = "ops/vps/halleus.service";
 const deploymentNotesPath = "DEPLOYMENT_NOTES.md";
 const recoveryNotesPath = "RECOVERY_NOTES.md";
@@ -114,6 +115,7 @@ function validatePnpmDependencyBuildPolicy(workspaceSource, lockSource) {
 }
 
 const releaseSource = read(releasePath);
+const storageContract = read(storageContractPath);
 const serviceSource = read(servicePath);
 const deploymentNotes = read(deploymentNotesPath);
 const recoveryNotes = read(recoveryNotesPath);
@@ -154,6 +156,28 @@ requireMarkers("release workflow", releaseSource, [
   "leaves curated Wiki inbound-link repair to an explicit maintenance action",
 ]);
 
+requireMarkers("storage release workflow", releaseSource, [
+  "# HALLEUS_STORAGE_BOUNDED_RELEASE_V1",
+  "load_storage_contract",
+  "assert_storage_headroom",
+  "assert_candidate_storage_budget",
+  "cleanup_old_release_worktrees",
+  "STORAGE_CLEANUP_WARNING",
+  'worktree remove --force "$worktree"',
+]);
+
+requireMarkers("storage release contract", storageContract, [
+  "HALLEUS_STORAGE_CONTRACT_VERSION=1",
+  "HALLEUS_RUNTIME_BUDGET_BYTES=639515015",
+  "HALLEUS_KEEP_RELEASES=2",
+]);
+
+forbidMarkers("storage release workflow", releaseSource, [
+  "docker system prune",
+  "docker builder prune",
+  "docker volume prune",
+  "/var/lib/containerd",
+]);
 forbidMarkers("release workflow", releaseSource, [
   "local activated=0",
   "local worktree_created=0",
