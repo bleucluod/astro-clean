@@ -113,7 +113,7 @@ free_bytes() {
 }
 
 free_inodes() {
-    df -Pi --output=iavail "$ROOT" | tail -n 1 | tr -d '[:space:]'
+    df --output=iavail "$ROOT" | tail -n 1 | tr -d '[:space:]'
 }
 
 assert_storage_headroom() {
