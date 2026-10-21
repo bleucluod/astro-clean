@@ -1,13 +1,23 @@
 name: Halleus verify
 
 on:
-  pull_request:
+  # Manual-only per account-wide owner request; PR checks won't run automatically.
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: "Optional base SHA (default: parent of HEAD)"
+        required: false
+        type: string
+      head_sha:
+        description: "Optional head SHA (default: HEAD)"
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: halleus-verify-${{ github.event.pull_request.number }}
+  group: halleus-verify-manual-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,6 +54,9 @@ jobs:
 
       - name: Run impact-based verification
         env:
-          HALLEUS_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HALLEUS_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: pnpm run verify --base "$HALLEUS_BASE_SHA" --head "$HALLEUS_HEAD_SHA"
+          HALLEUS_BASE_SHA: ${{ inputs.base_sha }}
+          HALLEUS_HEAD_SHA: ${{ inputs.head_sha }}
+        run: |
+          BASE="${HALLEUS_BASE_SHA:-$(git rev-parse HEAD^)}"
+          HEAD="${HALLEUS_HEAD_SHA:-$(git rev-parse HEAD)}"
+          pnpm run verify --base "$BASE" --head "$HEAD"
