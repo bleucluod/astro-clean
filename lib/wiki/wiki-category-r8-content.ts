@@ -379,7 +379,7 @@ const bodies = [
         "subsections": []
       }
     ]
-  }
+  },
   {
     "id": "foundations",
     "sections": [
@@ -474,7 +474,7 @@ const bodies = [
         "subsections": []
       }
     ]
-  }
+  },
   {
     "id": "systems",
     "sections": [
