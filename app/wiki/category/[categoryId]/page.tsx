@@ -173,9 +173,11 @@ export default async function WikiCategoryPage({
         <div className={styles.heroContent}>
           <span className={styles.eyebrow}>دستهٔ ویکی هالیوس</span>
           <h1 className={styles.heroTitle}>{categoryView.content.h1}</h1>
-          {categoryView.content.intro.map((paragraph) => (
+          {categoryView.content.intro.map((paragraph, index) => (
             <p className={styles.heroText} key={paragraph}>
-              {paragraph}
+              {categoryId === "aspects" && index === 1
+                ? "از معنی خطوط داخل چارت شروع کن، بعد پنج جنبهٔ اصلی و اورب را بشناس و یاد بگیر چطور چند ارتباط سیاره‌ای به یک الگوی بزرگ‌تر تبدیل می‌شوند."
+                : paragraph}
             </p>
           ))}
           <div className={styles.heroActions}>
@@ -215,7 +217,7 @@ export default async function WikiCategoryPage({
             <span className={styles.sectionKicker}>از اینجا شروع کن</span>
             <h2 id="category-start-title">{categoryView.content.startTitle}</h2>
           </div>
-          <p>{categoryView.content.startText}</p>
+          <p>{categoryId === "aspects" ? "ابتدا پنج جنبهٔ اصلی را از هم تشخیص بده، سپس فاصلهٔ هر تماس تا زاویهٔ دقیق را با اورب بسنج و در آخر الگوهای مرتبط را در متن کل چارت بخوان." : categoryView.content.startText}</p>
         </div>
 
         <div className={styles.articleGrid}>
@@ -244,7 +246,7 @@ export default async function WikiCategoryPage({
           {categoryView.content.readingPath.map((step, index) => (
             <div className={styles.guideStep} key={step}>
               <span>{(index + 1).toLocaleString("fa-IR")}</span>
-              <p>{step}</p>
+              <p>{categoryId === "aspects" && index === 1 ? "فاصلهٔ زاویه‌ای یا اورب هر جنبه را هنگام اولویت‌بندی در نظر بگیر." : step}</p>
             </div>
           ))}
         </div>
@@ -268,11 +270,35 @@ export default async function WikiCategoryPage({
           {r8Body.sections.map((section) => (
             <section className={styles.bodySection} key={section.title}>
               <h2>{section.title}</h2>
-              {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph}>
+                  {categoryId === "aspects" && section.title === "خواندن جنبه‌ها را از کجا شروع کنیم؟"
+                    ? "اول جنبه‌های اصلی چارت را بخوان. هم‌نشینی یا اتصال، تسدیس، مربع، تثلیث و مقابله پنج شکل رایج ارتباط میان سیاره‌ها هستند. بعد از شناخت نوع جنبه، فاصلهٔ واقعی آن با زاویهٔ دقیق را بسنج؛ همین فاصله یا اورب کمک می‌کند تماس‌ها را بر اساس دقت و نقششان در کل چارت اولویت‌بندی کنی."
+                    : categoryId === "foundations" && section.title === "چارت تولد از چه لایه‌هایی ساخته می‌شود؟"
+                      ? "چارت تولد را می‌شود در چهار لایه خواند. سیاره‌ها موضوع یا کارکرد نمادین را نشان می‌دهند؛ نشان‌ها شیوهٔ بروز آن را، خانه‌ها عرصهٔ تجربه را و جنبه‌ها رابطهٔ این بخش‌ها با یکدیگر را. مثلاً برای بررسی عطارد در یک چارت، اول جایگاهش را پیدا کن، بعد نشان و خانه‌اش را بخوان و در آخر ببین با کدام سیاره‌ها زاویه دارد. این ترتیب از تفسیرهای جدا و نامرتبط جلوگیری می‌کند."
+                      : paragraph}
+                </p>
+              ))}
+
               {section.subsections.map((subsection) => (
                 <div key={subsection.title}>
                   <h3>{subsection.title}</h3>
                   {subsection.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                  {categoryId === "foundations" && subsection.title === "۴. از تعریف‌های جدا به ترکیب برسید" ? (
+                    <p>
+                      فرض کن می‌خواهی جنبهٔ مربع را در چارتت بخوانی: اول نقش دو سیاره را بشناس، بعد خود جنبه را بررسی کن و تازه آن‌وقت سراغ خانه‌ها برو.
+                      مسیر <Link href="/wiki/astrology-learning-roadmap">اموزش استرولوژی</Link> همین ترتیب را برای موضوع‌های بعدی هم روشن می‌کند.
+                      به‌جای حفظ‌کردن معنی‌های پراکنده، هر مفهوم تازه را روی یک چارت واقعی امتحان کن.
+                    </p>
+                  ) : null}
+                  {categoryId === "aspects" && subsection.title === "۳. اورب را برای تشخیص اولویت ببینید" ? (
+                    <p>
+                      اگر فاصلهٔ دو سیاره ۹۴ درجه باشد، مربع ۹۰ درجه‌ایِ آن‌ها اورب چهار درجه دارد.
+                      حالا اگر می‌پرسی «<Link href="/wiki/astrology-aspect-orbs-explained">اورب چیست</Link>»،
+                      جواب همین فاصله تا زاویهٔ دقیق است. اهمیت این تماس را باید با توجه به خود سیاره‌ها و بقیهٔ چارت سنجید؛
+                      هیچ عددی به‌تنهایی نتیجهٔ یک رویداد را تعیین نمی‌کند.
+                    </p>
+                  ) : null}
                 </div>
               ))}
             </section>
