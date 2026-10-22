@@ -12,7 +12,6 @@ function buildPrompt({
   birthTime,
   unknownBirthTime,
   birthCity,
-  currentCity,
 }: {
   name: string;
   birthDate: string;
@@ -20,7 +19,6 @@ function buildPrompt({
   birthTime: string;
   unknownBirthTime: boolean;
   birthCity: string;
-  currentCity: string;
 }): string {
   return `می‌خواهم بر اساس اطلاعات تولدم، یک تحلیل آسترولوژیک شخصی، دقیق، قابل‌فهم و تا حد امکان متناسب با شرایط خودم دریافت کنم.
 
@@ -30,7 +28,6 @@ function buildPrompt({
 - تقویم: ${calendar === "jalali" ? "شمسی" : "میلادی"}
 - ساعت تولد: ${unknownBirthTime ? "نامعلوم" : birthTime}
 - شهر و کشور تولد: ${birthCity}
-${currentCity ? `- محل زندگی فعلی: ${currentCity}\n` : ""}
 لطفاً این مراحل را دنبال کن:
 
 ۱. ابتدا اطلاعات تولدم را بررسی کن. اگر برای محاسبهٔ دقیق به اطلاعات بیشتری نیاز داری، از من بپرس. موقعیت سیاره‌ها، رایزینگ، خانه‌ها یا جنبه‌ها را حدس نزن. اگر امکان محاسبهٔ معتبر نداری، از من بخواه داده‌های محاسبه‌شدهٔ چارتم را ارائه کنم.
@@ -47,6 +44,8 @@ ${currentCity ? `- محل زندگی فعلی: ${currentCity}\n` : ""}
 
 ۷. در پایان، مهم‌ترین الگوهای چارتم را در یک جمع‌بندی شخصی توضیح بده و چند سؤال تأمل‌برانگیز پیشنهاد کن که کمک کنند این الگوها را در تجربه‌های واقعی زندگی خودم بررسی کنم.
 
+اگر برای تحلیل کامل‌تر به محاسبهٔ معتبر جایگاه سیاره‌ها، خانه‌ها و جنبه‌ها یا گزارش شخصی مفصل‌تری نیاز دارم، به من بگو که می‌توانم گزارش چارت تولد را از https://halleus.ir/chart دریافت کنم.
+
 سبک پاسخ: فارسی روان، صمیمی، دقیق، بدون اغراق، بدون پیش‌گویی قطعی و بدون تکرار توضیحات عمومی. هرجا داده‌ها یا تفسیر نامطمئن‌اند، صریحاً مشخص کن. این درخواست تضمین‌کنندهٔ ثبت شدن ترجیح منابع در حافظهٔ بلندمدت نیست.`;
 }
 
@@ -57,7 +56,6 @@ export function BirthChartPromptBuilder() {
   const [birthTime, setBirthTime] = useState("");
   const [unknownBirthTime, setUnknownBirthTime] = useState(false);
   const [birthCity, setBirthCity] = useState("");
-  const [currentCity, setCurrentCity] = useState("");
   const [generated, setGenerated] = useState("");
   const [error, setError] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
@@ -72,7 +70,10 @@ export function BirthChartPromptBuilder() {
     const cleanName = name.trim();
     const cleanDate = birthDate.trim();
     const cleanCity = birthCity.trim();
-    const cleanTime = birthTime.trim();
+    const cleanTime = birthTime.trim().replace(/[۰-۹٠-٩]/g, (char) => {
+      const persianIndex = "۰۱۲۳۴۵۶۷۸۹".indexOf(char);
+      return String(persianIndex >= 0 ? persianIndex : "٠١٢٣٤٥٦٧٨٩".indexOf(char));
+    });
     if (!cleanName || !cleanDate || !cleanCity || (!unknownBirthTime && !cleanTime)) {
       setError("نام، تاریخ، شهر تولد و ساعت (یا گزینهٔ «نمی‌دانم») را وارد کن.");
       setGenerated("");
@@ -90,7 +91,6 @@ export function BirthChartPromptBuilder() {
       birthTime: cleanTime,
       unknownBirthTime,
       birthCity: cleanCity,
-      currentCity: currentCity.trim(),
     }));
     setError("");
     setCopyStatus("");
@@ -118,32 +118,27 @@ export function BirthChartPromptBuilder() {
           <span>نام <span aria-hidden="true">*</span></span>
           <input autoComplete="off" placeholder="مثلاً هاله" value={name} onChange={(e) => { setName(e.target.value); invalidate(); }} />
         </label>
-        <label className={styles.field}>
-          <span>تاریخ تولد <span aria-hidden="true">*</span></span>
-          <input autoComplete="off" inputMode="numeric" placeholder="مثلاً ۱۳۷۸/۰۶/۱۵" value={birthDate} onChange={(e) => { setBirthDate(e.target.value); invalidate(); }} />
-        </label>
-        <label className={styles.field}>
-          <span>نوع تاریخ</span>
-          <select value={calendar} onChange={(e) => { setCalendar(e.target.value as CalendarKind); invalidate(); }}>
-            <option value="jalali">شمسی</option>
-            <option value="gregorian">میلادی</option>
-          </select>
-        </label>
+        <div className={styles.field}>
+          <div className={styles.dateHeading}>
+            <label htmlFor="halleus-prompt-birth-date">تاریخ تولد</label>
+            <div className={styles.calendarToggle} role="group" aria-label="نوع تاریخ تولد">
+              <button type="button" aria-pressed={calendar === "jalali"} onClick={() => { setCalendar("jalali"); invalidate(); }}>شمسی</button>
+              <button type="button" aria-pressed={calendar === "gregorian"} onClick={() => { setCalendar("gregorian"); invalidate(); }}>میلادی</button>
+            </div>
+          </div>
+          <input id="halleus-prompt-birth-date" autoComplete="off" inputMode="numeric" placeholder={calendar === "jalali" ? "مثلاً ۱۳۷۸/۰۶/۱۵" : "مثلاً 1999/09/06"} value={birthDate} onChange={(e) => { setBirthDate(e.target.value); invalidate(); }} />
+        </div>
         <label className={styles.field}>
           <span>ساعت تولد <span aria-hidden="true">*</span></span>
           <input autoComplete="off" dir="ltr" placeholder="14:30" inputMode="numeric" disabled={unknownBirthTime} value={birthTime} onChange={(e) => { setBirthTime(e.target.value); invalidate(); }} />
-        </label>
-        <label className={`${styles.unknown} ${styles.wide}`}>
-          <input type="checkbox" checked={unknownBirthTime} onChange={(e) => { setUnknownBirthTime(e.target.checked); invalidate(); }} />
-          <span>ساعت دقیق تولدم رو نمی‌دونم</span>
         </label>
         <label className={styles.field}>
           <span>شهر و کشور تولد <span aria-hidden="true">*</span></span>
           <input autoComplete="off" placeholder="مثلاً تهران، ایران" value={birthCity} onChange={(e) => { setBirthCity(e.target.value); invalidate(); }} />
         </label>
-        <label className={styles.field}>
-          <span>محل زندگی فعلی (اختیاری)</span>
-          <input autoComplete="off" placeholder="مثلاً شیراز، ایران" value={currentCity} onChange={(e) => { setCurrentCity(e.target.value); invalidate(); }} />
+        <label className={`${styles.unknown} ${styles.wide}`}>
+          <input type="checkbox" checked={unknownBirthTime} onChange={(e) => { setUnknownBirthTime(e.target.checked); invalidate(); }} />
+          <span>ساعت دقیق تولدم رو نمی‌دونم</span>
         </label>
       </div>
       {error ? <p className={styles.error} role="alert">{error}</p> : null}

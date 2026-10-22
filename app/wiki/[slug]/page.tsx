@@ -111,6 +111,10 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
     relatedArticles,
     internalLinkTargets,
   } = resolution;
+  const isAiPromptArticle = article.slug === "ai-birth-chart-interpretation";
+  const introParagraphs = isAiPromptArticle
+    ? article.intro.split(/\n\s*\n/).filter(Boolean)
+    : [article.intro];
   const category =
     categories.find((item) => item.id === article.categoryId) ?? null;
   const articleUrl = `${WIKI_BASE_URL}/wiki/${article.slug}`;
@@ -240,7 +244,17 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               ) : null}
             </div>
             <h1>{article.title}</h1>
-            <p><WikiInlineText text={article.intro} targets={internalLinkTargets} /></p>
+            {isAiPromptArticle ? (
+              <>
+                <p><WikiInlineText text={introParagraphs[0] ?? article.intro} targets={internalLinkTargets} /></p>
+                <BirthChartPromptBuilder />
+                {introParagraphs.slice(1).map((paragraph, index) => (
+                  <p key={index}><WikiInlineText text={paragraph} targets={internalLinkTargets} /></p>
+                ))}
+              </>
+            ) : (
+              <p><WikiInlineText text={article.intro} targets={internalLinkTargets} /></p>
+            )
             <div className={styles.articleDates} aria-label="تاریخ مقاله">
               <span className={styles.articleMeta}>
                 منتشرشده در {formatPersianWikiDate(article.publishedAt)}
@@ -305,8 +319,6 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
             contextLinks={article.contextLinks ?? []}
             sources={article.sources ?? []}
             targets={internalLinkTargets}
-            afterSectionTitle={article.slug === "ai-birth-chart-interpretation" ? "پیش از استفاده از AI چه اطلاعاتی لازم است" : undefined}
-            afterSectionContent={article.slug === "ai-birth-chart-interpretation" ? <BirthChartPromptBuilder /> : undefined}
           />
         </div>
 

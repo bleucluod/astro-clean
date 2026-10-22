@@ -1,41 +1,54 @@
 .root {
-  border: 1px solid var(--wiki-border-strong, #444);
-  border-radius: 1rem;
+  border: 1px solid var(--wiki-border-strong, rgba(255,255,255,.16));
+  border-radius: 20px;
   padding: clamp(1rem, 3vw, 1.5rem);
   display: grid;
   gap: 1rem;
-  background: var(--wiki-surface-raised, #15171c);
-  color: var(--wiki-text, #f6f7fa);
-  margin: 1.5rem 0 2rem;
+  background: linear-gradient(145deg, #171c25, #0d1118);
+  color: var(--wiki-text, #eef2f6);
+  color-scheme: dark;
+  margin: 1.3rem 0;
 }
-.intro { display: grid; gap: .5rem; }
-.intro h2 { font-size: clamp(1.15rem, 2vw, 1.5rem); margin: 0; line-height: 1.65; }
-.intro p, .privacy { color: var(--wiki-muted, #c4cad3); line-height: 1.9; margin: 0; }
-.eyebrow { font-size: .8rem; color: var(--wiki-text-soft, #d6dde6); }
-.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
-.field { display: grid; gap: .45rem; font-size: .92rem; min-width: 0; }
-.field input, .field select, .result textarea {
-  min-width: 0; width: 100%; box-sizing: border-box; border: 1px solid var(--wiki-border-strong, #555);
-  border-radius: .65rem; background: var(--wiki-surface, #0b0d11); color: var(--wiki-text, white);
-  padding: .72rem .8rem; font: inherit; line-height: 1.6;
+.intro { display: grid; gap: .4rem; }
+.intro h2 { color: #eef2f6; font-size: clamp(1.1rem, 2vw, 1.4rem); margin: 0; line-height: 1.6; }
+.intro p, .privacy { color: var(--wiki-muted, #b7c0ca); line-height: 1.9; margin: 0; }
+.eyebrow { color: var(--wiki-text-soft, #d6dde6); font-size: .8rem; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+.field { display: grid; align-content: start; gap: .45rem; font-size: .9rem; min-width: 0; }
+.field > span, .dateHeading > label { color: #d6dde6; font-weight: 650; }
+.root .field input, .root .result textarea {
+  display: block; min-width: 0; width: 100%; box-sizing: border-box;
+  border: 1px solid #454f61 !important; border-radius: 11px;
+  background: #10151e !important; color: #eef2f6 !important;
+  padding: .7rem .85rem; font: inherit; line-height: 1.6;
 }
-.field input::placeholder { color: var(--wiki-faint, #9ba3ae); }
-.field input:focus-visible, .field select:focus-visible, .result textarea:focus-visible,
-.primaryButton:focus-visible, .copyButton:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.field input:disabled { opacity: .55; }
-.unknown { display: flex; align-items: center; gap: .55rem; font-size: .9rem; }
-.unknown input { width: 1.1rem; height: 1.1rem; accent-color: #a5b3ca; }
+.root .field input::placeholder { color: #8f98a4 !important; opacity: 1; }
+.root .field input:focus-visible, .root .result textarea:focus-visible {
+  outline: 2px solid #aab8d0 !important; outline-offset: 1px;
+  border-color: #aab8d0 !important; box-shadow: 0 0 0 3px rgba(170,184,208,.14) !important;
+}
+.root .field input:disabled { opacity: .55; cursor: not-allowed; }
+.dateHeading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .35rem; min-height: 28px; }
+.calendarToggle { display: inline-flex; gap: 2px; border: 1px solid rgba(255,255,255,.14); border-radius: 9px; padding: 2px; }
+.calendarToggle button { width: auto; border: 0; border-radius: 7px; background: transparent; color: #b7c0ca; cursor: pointer; padding: .15rem .55rem; font: inherit; font-size: .77rem; }
+.calendarToggle button[aria-pressed="true"] { background: #343d4c; color: #f4f6f8; }
+.calendarToggle button:focus-visible { outline: 2px solid #aab8d0; outline-offset: 2px; }
+.unknown { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: #b7c0ca; cursor: pointer; }
+.root .unknown input { width: 1rem; height: 1rem; flex: none; accent-color: #aab8d0; }
 .wide { grid-column: 1 / -1; }
-.primaryButton, .copyButton { border: 1px solid var(--wiki-border-strong, #8a8f99); border-radius: .65rem;
-  cursor: pointer; font: inherit; padding: .7rem 1.1rem; width: fit-content; max-width: 100%; }
-.primaryButton { background: #e4e9f0; color: #171b21; font-weight: 700; }
-.copyButton { background: transparent; color: inherit; }
-.primaryButton:hover { background: #f5f7fa; }
-.copyButton:hover { background: rgba(255,255,255,.08); }
+.primaryButton, .copyButton { cursor: pointer; font: inherit; border-radius: 11px; padding: .7rem 1.05rem; width: fit-content; max-width: 100%; }
+.primaryButton { border: 1px solid #c0cad6; background: #dce4ee; color: #1c2633; font-weight: 750; }
+.primaryButton:hover { background: #f0f4f9; }
+.copyButton { border: 1px solid #556070; background: #252d39; color: #eef2f6; }
+.copyButton:hover { background: #333d4c; }
+.primaryButton:focus-visible, .copyButton:focus-visible { outline: 2px solid #aab8d0; outline-offset: 2px; }
 .error { margin: 0; color: #ffb6b6; }
-.result { display: grid; gap: .65rem; }
-.result label { font-weight: 600; }
-.result textarea { resize: vertical; }
+.result { display: grid; gap: .65rem; min-width: 0; }
+.result > label { font-weight: 650; }
+.root .result textarea { resize: vertical; max-height: 24rem; }
 .status { margin: 0; font-size: .9rem; }
 .privacy { font-size: .8rem; }
-@media (max-width: 620px) { .fields { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 620px) {
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .primaryButton { width: 100%; }
+}
