@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
 import { WikiArticleBody, WikiInlineText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
+import { BirthChartPromptBuilder } from "@/components/wiki/BirthChartPromptBuilder";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
   getPublicWikiArticleResolution,
@@ -304,6 +305,8 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
             contextLinks={article.contextLinks ?? []}
             sources={article.sources ?? []}
             targets={internalLinkTargets}
+            afterSectionTitle={article.slug === "ai-birth-chart-interpretation" ? "پیش از استفاده از AI چه اطلاعاتی لازم است" : undefined}
+            afterSectionContent={article.slug === "ai-birth-chart-interpretation" ? <BirthChartPromptBuilder /> : undefined}
           />
         </div>
 
