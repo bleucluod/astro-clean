@@ -376,7 +376,7 @@ function inlineArticleIds(article: WikiArticle) {
   ];
   const ids: string[] = [];
   const seen = new Set<string>();
-  const pattern = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)\]\]/g;
+  const pattern = /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|[^\]\r\n]+)?\]\]/g;
 
   for (const text of texts) {
     for (const match of text.matchAll(pattern)) {
