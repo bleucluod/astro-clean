@@ -254,7 +254,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               </>
             ) : (
               <p><WikiInlineText text={article.intro} targets={internalLinkTargets} /></p>
-            )
+            )}
             <div className={styles.articleDates} aria-label="تاریخ مقاله">
               <span className={styles.articleMeta}>
                 منتشرشده در {formatPersianWikiDate(article.publishedAt)}
