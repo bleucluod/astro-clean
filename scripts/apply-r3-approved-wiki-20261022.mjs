@@ -39,12 +39,38 @@
   };
   const snapshot=r=>({stableId:r.stable_id,slug:r.slug,title:r.title,shortTitle:r.short_title,seoTitle:r.seo_title||undefined,metaDescription:r.meta_description||undefined,categoryId:r.category_id,tags:r.tags||[],summary:r.summary,intro:r.intro,readingMinutes:Number(r.reading_minutes),publicationPriority:Number(r.publication_priority||0),contentCluster:r.content_cluster||r.category_id,articleRole:r.article_role,relatedArticleIds:r.related_article_ids||[],indexable:!!r.is_indexable,bodyMarkdown:r.body_markdown||"",keyPoints:r.key_points||[],sections:r.sections||[],contextLinks:r.context_links||[],sources:r.sources||[],callToAction:r.call_to_action,contentVersion:Number(r.content_version)});
   const buildMd=n=>[n.intro,...(n.keyPoints.length?["## نکات کلیدی",...n.keyPoints.map(x=>"- "+x)]:[]),...n.sections.flatMap(s=>["## "+s.title,...s.paragraphs,...(s.bullets||[]).map(x=>"- "+x)])].join("\n\n")+"\n";
+  const extractInline=body=>[...new Set([...body.matchAll(/\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|[^\]]+)?\]\]/g)].map(m=>m[1]))];
+  async function validateTargets(db,body,slug){
+    const ids=extractInline(body);if(!ids.length)return ids;
+    const rows=await db`select stable_id from public.wiki_articles where stable_id=any(${ids}::text[]) and status='published' and is_indexable=true and published_at<=now() and scheduled_for is null and deleted_at is null`;
+    const found=new Set(rows.map(x=>String(x.stable_id))),missing=ids.filter(id=>!found.has(id));
+    if(missing.length)throw Error("SAFETY_FATAL unpublished R3 links in "+slug+": "+missing.join(","));
+    return ids;
+  }
+  async function replaceArticleLinks(tx,row,body){
+    const inline=await validateTargets(tx,body,row.slug);
+    const related=[...new Set(Array.isArray(row.related_article_ids)?row.related_article_ids:[])].filter(Boolean);
+    const targets=[...new Set([...inline,...related])];
+    const pub=targets.length?await tx`select stable_id from public.wiki_articles where stable_id=any(${targets}::text[]) and status='published' and is_indexable=true and published_at<=now() and scheduled_for is null and deleted_at is null`:[];
+    const ready=new Set(pub.map(x=>String(x.stable_id)));
+    await tx`delete from public.wiki_internal_links where source_article_id=${row.id}::uuid`;
+    for(const target of inline){
+      const state=ready.has(target)?"active":"pending",token="[[article:"+target+"]]";
+      await tx`insert into public.wiki_internal_links(source_article_id,target_stable_id,link_kind,source_token,activation_status,activated_at,last_verified_at) values(${row.id}::uuid,${target},'inline',${token},${state},now(),now())`;
+    }
+    for(const target of related){
+      const state=ready.has(target)?"active":"pending";
+      await tx`insert into public.wiki_internal_links(source_article_id,target_stable_id,link_kind,source_token,activation_status,activated_at,last_verified_at) values(${row.id}::uuid,${target},'related',${target},${state},now(),now()) on conflict do nothing`;
+    }
+    console.log("LINK_GRAPH_SYNC | "+row.slug+" inline="+inline.length+" related="+related.length);
+  }
   try{
     if(mode[0]==="--check"){
       const state=check(await sql`select * from public.wiki_articles where stable_id = any(${slugs}::text[])`);
       for(const d of state.items)console.log((d.already?"ALREADY_APPLIED":"READY")+" | "+d.item.slug);
       for(const s of state.fail)console.error("SAFETY_FATAL | "+s);
       if(state.fail.length)throw Error("Read-only source preflight failed; no data changed");
+      for(const {item,row,already} of state.items){if(!already){const c=item.change,body=c.body_markdown??buildMd({intro:c.intro,keyPoints:c.key_points??row.key_points,sections:c.sections});await validateTargets(sql,body,item.slug);}}
       console.log("PASS | READ_ONLY_PREFLIGHT");return;
     }
     if(process.env.HALLEUS_R3_APPROVED_DEPLOY!=="YES")throw Error("SAFETY_FATAL requires HALLEUS_R3_APPROVED_DEPLOY=YES");
@@ -62,6 +88,7 @@
         const updated=await tx`update public.wiki_articles set title=${n.title},summary=${n.summary},intro=${n.intro},meta_description=${n.metaDescription},key_points=${tx.json(n.keyPoints)}::jsonb,sections=${tx.json(n.sections)}::jsonb,body_markdown=${n.bodyMarkdown},content_version=${item.version+1},updated_at=now() where id=${row.id}::uuid and content_version=${item.version} and status='published' returning *`;
         if(updated.length!==1)throw Error("SAFETY_FATAL concurrent version mutation: "+item.slug);
         await tx`insert into public.wiki_article_revisions (article_id,revision_number,snapshot,change_note,created_by,revision_status,published_at) values (${row.id}::uuid,${first+1},${tx.json(snapshot(updated[0]))}::jsonb,${"R3 user-approved editorial 20261022"},null,'published',now())`;
+        await replaceArticleLinks(tx,row,n.bodyMarkdown);
         saved.push({slug:item.slug,result:"UPDATED"});
       }
       return saved;

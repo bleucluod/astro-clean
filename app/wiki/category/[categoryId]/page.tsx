@@ -18,6 +18,11 @@ type WikiCategoryPageProps = {
   }>;
 };
 
+const r3FamousHeroTitle = "چارت تولد افراد مشهور؛ پروفایل‌های مستند و قابل‌اعتماد";
+const r3FamousHeroIntro = ["چارت یک فرد مشهور وقتی جذاب‌تر می‌شود که بتوانی از پشتِ روایت زندگی او، داده‌های واقعی تولدش را ببینی. تاریخ تولد به ما می‌گوید سیاره‌ها در چه جایگاهی بوده‌اند؛ ساعت و محل تولد هم تعیین می‌کنند کدام خانه‌ها و محورهای چارت را می‌شود با دقت بررسی کرد. بدون این اطلاعات، حتی یک تفسیر خوش‌خوان هم ممکن است به نتیجه‌ای برسد که داده‌هایش پشتیبانی نمی‌کنند.","در مجموعهٔ چارت تولد افراد مشهور هالیوس سراغ ورزشکاران، خوانندگان، بازیگران، دانشمندان و چهره‌های تاریخی می‌روی. در هر پروفایل، اعتبار اطلاعات تولد باید کنار خودِ خوانش دیده شود؛ چون یک چارت با ساعت مستند را نمی‌شود با چارتی که فقط تاریخ تولدش معلوم است یکسان خواند. این تفاوت چیزی از جذابیت مقایسه کم نمی‌کند؛ کمک می‌کند بفهمی کدام بخش واقعاً به آن فرد تعلق دارد."] as const;
+const r3FamousStartTitle = "از پروفایل‌هایی با دادهٔ تولد قوی شروع کن";
+const r3FamousStartText = "برای شروع، می‌توانی پروفایل لیونل مسی و مرلین مونرو را در مجموعه دنبال کنی. مقایسهٔ این دو، پیش از هر تفسیر، یک سؤال مهم پیش می‌کشد: اطلاعات تولد هر کدام از کجا آمده و ساعت ثبت‌شده تا چه اندازه قابل اعتماد است؟ بعد از پاسخ‌دادن به همین سؤال می‌شود سراغ نشان‌ها، جنبه‌ها، رایزینگ و خانه‌ها رفت.";
+
 export const dynamicParams = true;
 export const revalidate = 300;
 
@@ -172,8 +177,8 @@ export default async function WikiCategoryPage({
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
           <span className={styles.eyebrow}>دستهٔ ویکی هالیوس</span>
-          <h1 className={styles.heroTitle}>{categoryView.content.h1}</h1>
-          {categoryView.content.intro.map((paragraph, index) => (
+          <h1 className={styles.heroTitle}>{categoryId === "famous-birth-charts" ? r3FamousHeroTitle : categoryView.content.h1}</h1>
+          {(categoryId === "famous-birth-charts" ? r3FamousHeroIntro : categoryView.content.intro).map((paragraph, index) => (
             <p className={styles.heroText} key={paragraph}>
               {categoryId === "aspects" && index === 1
                 ? "از معنی خطوط داخل چارت شروع کن، بعد پنج جنبهٔ اصلی و اورب را بشناس و یاد بگیر چطور چند ارتباط سیاره‌ای به یک الگوی بزرگ‌تر تبدیل می‌شوند."
@@ -215,9 +220,9 @@ export default async function WikiCategoryPage({
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>از اینجا شروع کن</span>
-            <h2 id="category-start-title">{categoryView.content.startTitle}</h2>
+            <h2 id="category-start-title">{categoryId === "famous-birth-charts" ? r3FamousStartTitle : categoryView.content.startTitle}</h2>
           </div>
-          <p>{categoryId === "aspects" ? "ابتدا پنج جنبهٔ اصلی را از هم تشخیص بده، سپس فاصلهٔ هر تماس تا زاویهٔ دقیق را با اورب بسنج و در آخر الگوهای مرتبط را در متن کل چارت بخوان." : categoryView.content.startText}</p>
+          <p>{categoryId === "aspects" ? "ابتدا پنج جنبهٔ اصلی را از هم تشخیص بده، سپس فاصلهٔ هر تماس تا زاویهٔ دقیق را با اورب بسنج و در آخر الگوهای مرتبط را در متن کل چارت بخوان." : categoryId === "famous-birth-charts" ? r3FamousStartText : categoryView.content.startText}</p>
         </div>
 
         <div className={styles.articleGrid}>
