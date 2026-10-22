@@ -18,10 +18,43 @@ type WikiCategoryPageProps = {
   }>;
 };
 
+const r3CategoryCopy = {
+  "aspects": {
+    "heroTitle": "مسیر یادگیری جنبه‌ها و الگوهای چارت تولد",
+    "heroIntro": [
+      "جنبه‌ها رابطهٔ زاویه‌ای میان سیاره‌ها را نشان می‌دهند و کمک می‌کنند جایگاه‌ها را جدا از هم نخوانیم.",
+      "از معنی خطوط داخل چارت شروع کن، بعد پنج جنبهٔ اصلی و اورب را بشناس و یاد بگیر چطور چند ارتباط سیاره‌ای به یک الگوی بزرگ‌تر تبدیل می‌شوند."
+    ],
+    "startTitle": "از پنج جنبهٔ اصلی شروع کن",
+    "startText": "ابتدا پنج جنبهٔ اصلی را از هم تشخیص بده، سپس فاصلهٔ هر تماس تا زاویهٔ دقیق را با اورب بسنج و در آخر الگوهای مرتبط را در متن کل چارت بخوان.",
+    "readingPath": [
+      "پنج جنبهٔ اصلی و تفاوت نقش آن‌ها را بشناس.",
+      "فاصلهٔ زاویه‌ای یا اورب هر جنبه را هنگام اولویت‌بندی در نظر بگیر.",
+      "هیچ جنبه‌ای را جدا از سیاره‌ها و کل چارت حکم قطعی ندان."
+    ]
+  },
+  "foundations": {
+    "heroTitle": "آموزش آسترولوژی از صفر؛ مسیر یادگیری چارت تولد",
+    "heroIntro": [
+      "این مسیر برای زمانی است که می‌خواهی چارت تولد را از پایه بفهمی، نه اینکه میان اصطلاح‌های پراکنده گم شوی. اینجا اجزای اصلی چارت و تفاوت نقش هرکدام روشن می‌شود.",
+      "بهتر است ابتدا ساختار کلی چارت را بشناسی، سپس روش خواندن و ترکیب سیاره، نشان و خانه را یاد بگیری؛ بعد می‌توانی سراغ دسته‌های تخصصی‌تر بروی."
+    ],
+    "startTitle": "از نقشهٔ کلی چارت شروع کن",
+    "startText": "سه راهنمای زیر ستون‌های اصلی این مسیرند و برای خواندن مقاله‌های تخصصی‌تر پیش‌نیاز می‌سازند.",
+    "readingPath": [
+      "اول با اجزای چارت و داده‌های لازم آشنا شو.",
+      "بعد ترتیب خواندن یک چارت کامل را یاد بگیر.",
+      "در پایان فرق سیاره، نشان و خانه را در تفسیر تثبیت کن."
+    ]
+  }
+} as const;
+
 const r3FamousHeroTitle = "چارت تولد افراد مشهور؛ پروفایل‌های مستند و قابل‌اعتماد";
 const r3FamousHeroIntro = ["چارت یک فرد مشهور وقتی جذاب‌تر می‌شود که بتوانی از پشتِ روایت زندگی او، داده‌های واقعی تولدش را ببینی. تاریخ تولد به ما می‌گوید سیاره‌ها در چه جایگاهی بوده‌اند؛ ساعت و محل تولد هم تعیین می‌کنند کدام خانه‌ها و محورهای چارت را می‌شود با دقت بررسی کرد. بدون این اطلاعات، حتی یک تفسیر خوش‌خوان هم ممکن است به نتیجه‌ای برسد که داده‌هایش پشتیبانی نمی‌کنند.","در مجموعهٔ چارت تولد افراد مشهور هالیوس سراغ ورزشکاران، خوانندگان، بازیگران، دانشمندان و چهره‌های تاریخی می‌روی. در هر پروفایل، اعتبار اطلاعات تولد باید کنار خودِ خوانش دیده شود؛ چون یک چارت با ساعت مستند را نمی‌شود با چارتی که فقط تاریخ تولدش معلوم است یکسان خواند. این تفاوت چیزی از جذابیت مقایسه کم نمی‌کند؛ کمک می‌کند بفهمی کدام بخش واقعاً به آن فرد تعلق دارد."] as const;
 const r3FamousStartTitle = "از پروفایل‌هایی با دادهٔ تولد قوی شروع کن";
 const r3FamousStartText = "برای شروع، می‌توانی پروفایل لیونل مسی و مرلین مونرو را در مجموعه دنبال کنی. مقایسهٔ این دو، پیش از هر تفسیر، یک سؤال مهم پیش می‌کشد: اطلاعات تولد هر کدام از کجا آمده و ساعت ثبت‌شده تا چه اندازه قابل اعتماد است؟ بعد از پاسخ‌دادن به همین سؤال می‌شود سراغ نشان‌ها، جنبه‌ها، رایزینگ و خانه‌ها رفت.";
+
+const r3FamousStartExtra = ["پروفایل کریستیانو رونالدو و مقالهٔ تاریخ تولد اعضای BTS هم برای دیدن تفاوتِ میزان اطلاعات مفیدند. دربارهٔ ساعت تولد رونالدو گزارش‌های یکسانی وجود ندارد و نباید یکی از آن‌ها را بی‌دلیل قطعی گرفت. برای اعضای BTS نیز تاریخ تولد و نشان خورشیدی را می‌شود بررسی کرد، اما نبودِ ساعت معتبر مجوز ساختن رایزینگ یا خانه‌های خیالی نیست.","**از اینجا شروع کن:** اول منبع تاریخ و ساعت را بخوان، بعد ببین کدام قسمت‌های چارت محاسبه‌شدنی‌اند و در پایان تفسیر را کنار زندگی واقعی فرد قرار بده. این ترتیب باعث می‌شود داستان مشهورشدن یک نفر را به هر قیمتی به چارتش تحمیل نکنی."] as const;
 
 export const dynamicParams = true;
 export const revalidate = 300;
@@ -37,6 +70,13 @@ const RELATED_WIKI_CATEGORY_IDS: Record<string, readonly string[]> = {
   planets: ["aspects", "houses"],
   "famous-birth-charts": ["foundations", "planets"],
 };
+
+function renderR3CategoryInline(text: string) {
+  return text.split(/(\[[^\]]+\]\(https:\/\/halleus\.ir\/[^)]+\))/g).map((part, index) => {
+    const match = /^\[([^\]]+)\]\(https:\/\/halleus\.ir(\/[^)]+)\)$/.exec(part);
+    return match ? <Link key={index} href={match[2]}>{match[1]}</Link> : part.replaceAll("**", "");
+  });
+}
 
 function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
@@ -177,12 +217,10 @@ export default async function WikiCategoryPage({
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
           <span className={styles.eyebrow}>دستهٔ ویکی هالیوس</span>
-          <h1 className={styles.heroTitle}>{categoryId === "famous-birth-charts" ? r3FamousHeroTitle : categoryView.content.h1}</h1>
-          {(categoryId === "famous-birth-charts" ? r3FamousHeroIntro : categoryView.content.intro).map((paragraph, index) => (
+          <h1 className={styles.heroTitle}>{categoryId === "famous-birth-charts" ? r3FamousHeroTitle : (categoryId === "aspects" || categoryId === "foundations") ? r3CategoryCopy[categoryId].heroTitle : categoryView.content.h1}</h1>
+          {(categoryId === "famous-birth-charts" ? r3FamousHeroIntro : (categoryId === "aspects" || categoryId === "foundations") ? r3CategoryCopy[categoryId].heroIntro : categoryView.content.intro).map((paragraph, index) => (
             <p className={styles.heroText} key={paragraph}>
-              {categoryId === "aspects" && index === 1
-                ? "از معنی خطوط داخل چارت شروع کن، بعد پنج جنبهٔ اصلی و اورب را بشناس و یاد بگیر چطور چند ارتباط سیاره‌ای به یک الگوی بزرگ‌تر تبدیل می‌شوند."
-                : paragraph}
+              {paragraph}
             </p>
           ))}
           <div className={styles.heroActions}>
@@ -220,9 +258,10 @@ export default async function WikiCategoryPage({
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>از اینجا شروع کن</span>
-            <h2 id="category-start-title">{categoryId === "famous-birth-charts" ? r3FamousStartTitle : categoryView.content.startTitle}</h2>
+            <h2 id="category-start-title">{categoryId === "famous-birth-charts" ? r3FamousStartTitle : (categoryId === "aspects" || categoryId === "foundations") ? r3CategoryCopy[categoryId].startTitle : categoryView.content.startTitle}</h2>
           </div>
-          <p>{categoryId === "aspects" ? "ابتدا پنج جنبهٔ اصلی را از هم تشخیص بده، سپس فاصلهٔ هر تماس تا زاویهٔ دقیق را با اورب بسنج و در آخر الگوهای مرتبط را در متن کل چارت بخوان." : categoryId === "famous-birth-charts" ? r3FamousStartText : categoryView.content.startText}</p>
+          <p>{(categoryId === "aspects" || categoryId === "foundations") ? r3CategoryCopy[categoryId].startText : categoryId === "famous-birth-charts" ? r3FamousStartText : categoryView.content.startText}</p>
+          {categoryId === "famous-birth-charts" ? r3FamousStartExtra.map((paragraph) => <p key={paragraph}>{renderR3CategoryInline(paragraph)}</p>) : null}
         </div>
 
         <div className={styles.articleGrid}>
@@ -248,10 +287,10 @@ export default async function WikiCategoryPage({
         </div>
 
         <div className={styles.guideGrid}>
-          {categoryView.content.readingPath.map((step, index) => (
+          {((categoryId === "aspects" || categoryId === "foundations") ? r3CategoryCopy[categoryId].readingPath : categoryView.content.readingPath).map((step, index) => (
             <div className={styles.guideStep} key={step}>
               <span>{(index + 1).toLocaleString("fa-IR")}</span>
-              <p>{categoryId === "aspects" && index === 1 ? "فاصلهٔ زاویه‌ای یا اورب هر جنبه را هنگام اولویت‌بندی در نظر بگیر." : step}</p>
+              <p>{step}</p>
             </div>
           ))}
         </div>
@@ -276,34 +315,13 @@ export default async function WikiCategoryPage({
             <section className={styles.bodySection} key={section.title}>
               <h2>{section.title}</h2>
               {section.paragraphs.map((paragraph) => (
-                <p key={paragraph}>
-                  {categoryId === "aspects" && section.title === "خواندن جنبه‌ها را از کجا شروع کنیم؟"
-                    ? "اول جنبه‌های اصلی چارت را بخوان. هم‌نشینی یا اتصال، تسدیس، مربع، تثلیث و مقابله پنج شکل رایج ارتباط میان سیاره‌ها هستند. بعد از شناخت نوع جنبه، فاصلهٔ واقعی آن با زاویهٔ دقیق را بسنج؛ همین فاصله یا اورب کمک می‌کند تماس‌ها را بر اساس دقت و نقششان در کل چارت اولویت‌بندی کنی."
-                    : categoryId === "foundations" && section.title === "چارت تولد از چه لایه‌هایی ساخته می‌شود؟"
-                      ? "چارت تولد را می‌شود در چهار لایه خواند. سیاره‌ها موضوع یا کارکرد نمادین را نشان می‌دهند؛ نشان‌ها شیوهٔ بروز آن را، خانه‌ها عرصهٔ تجربه را و جنبه‌ها رابطهٔ این بخش‌ها با یکدیگر را. مثلاً برای بررسی عطارد در یک چارت، اول جایگاهش را پیدا کن، بعد نشان و خانه‌اش را بخوان و در آخر ببین با کدام سیاره‌ها زاویه دارد. این ترتیب از تفسیرهای جدا و نامرتبط جلوگیری می‌کند."
-                      : paragraph}
-                </p>
+                <p key={paragraph}>{renderR3CategoryInline(paragraph)}</p>
               ))}
 
               {section.subsections.map((subsection) => (
                 <div key={subsection.title}>
                   <h3>{subsection.title}</h3>
-                  {subsection.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-                  {categoryId === "foundations" && subsection.title === "۴. از تعریف‌های جدا به ترکیب برسید" ? (
-                    <p>
-                      فرض کن می‌خواهی جنبهٔ مربع را در چارتت بخوانی: اول نقش دو سیاره را بشناس، بعد خود جنبه را بررسی کن و تازه آن‌وقت سراغ خانه‌ها برو.
-                      مسیر <Link href="/wiki/astrology-learning-roadmap">اموزش استرولوژی</Link> همین ترتیب را برای موضوع‌های بعدی هم روشن می‌کند.
-                      به‌جای حفظ‌کردن معنی‌های پراکنده، هر مفهوم تازه را روی یک چارت واقعی امتحان کن.
-                    </p>
-                  ) : null}
-                  {categoryId === "aspects" && subsection.title === "۳. اورب را برای تشخیص اولویت ببینید" ? (
-                    <p>
-                      اگر فاصلهٔ دو سیاره ۹۴ درجه باشد، مربع ۹۰ درجه‌ایِ آن‌ها اورب چهار درجه دارد.
-                      حالا اگر می‌پرسی «<Link href="/wiki/astrology-aspect-orbs-explained">اورب چیست</Link>»،
-                      جواب همین فاصله تا زاویهٔ دقیق است. اهمیت این تماس را باید با توجه به خود سیاره‌ها و بقیهٔ چارت سنجید؛
-                      هیچ عددی به‌تنهایی نتیجهٔ یک رویداد را تعیین نمی‌کند.
-                    </p>
-                  ) : null}
+                  {subsection.paragraphs.map((paragraph) => <p key={paragraph}>{renderR3CategoryInline(paragraph)}</p>)}
                 </div>
               ))}
             </section>

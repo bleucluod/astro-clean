@@ -1,3 +1,4 @@
+import { R3ApprovedVisibleCopy } from "@/components/r3-approved-visible-copy";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -497,6 +498,8 @@ export default async function ChartPage() {
           </Link>
         </div>
       </section>
+
+      <R3ApprovedVisibleCopy page="chart" />
 
       <section className={styles.finalCta}>
         <span className={styles.sectionEyebrow}>ساخت گزارش</span>

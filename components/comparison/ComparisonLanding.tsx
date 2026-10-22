@@ -1,3 +1,4 @@
+import { R3ApprovedVisibleCopy } from "@/components/r3-approved-visible-copy";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -336,6 +337,8 @@ export async function ComparisonLanding() {
           <p>سیناستری بر اساس ساختار دو چارت تولد و ارتباط میان آن‌ها انجام می‌شود.</p>
         </div>
       </section>
+
+      <R3ApprovedVisibleCopy page="compare" />
 
       <section className={styles.learningSection} aria-labelledby="compare-learning-title">
         <div>

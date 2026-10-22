@@ -1,0 +1,42 @@
+.container {
+  width: min(calc(100% - 2rem), 920px);
+  margin: 3rem auto;
+  color: inherit;
+  direction: rtl;
+}
+.section {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(160, 177, 200, 0.16);
+}
+.section:last-child {
+  border-bottom: 0;
+}
+.section h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+  line-height: 1.65;
+  font-weight: 700;
+}
+.subsection {
+  margin-top: 1.3rem;
+}
+.subsection h3 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.03rem, 2vw, 1.22rem);
+  line-height: 1.8;
+  font-weight: 600;
+}
+.section p {
+  margin: 0.6rem 0;
+  line-height: 2.1;
+  font-size: clamp(0.97rem, 1.6vw, 1.07rem);
+  overflow-wrap: anywhere;
+}
+.section a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+.section strong {
+  font-weight: 700;
+}

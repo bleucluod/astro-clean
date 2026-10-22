@@ -1,3 +1,4 @@
+import { R3ApprovedVisibleCopy } from "@/components/r3-approved-visible-copy";
 // HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 import type { Metadata } from "next";
 import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
@@ -395,6 +396,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <R3ApprovedVisibleCopy page="home" />
 
       <section className={styles.trustSection} aria-labelledby="trust-title">
         <header className={styles.sectionHeaderCentered}>
