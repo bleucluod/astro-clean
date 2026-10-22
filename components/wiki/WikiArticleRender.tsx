@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Fragment, type ReactNode } from "react";
 import type {
   WikiArticleLink,
   WikiArticleSection,
@@ -113,17 +114,22 @@ export function WikiArticleBody({
   sources,
   targets,
   rootId,
+  afterSectionTitle,
+  afterSectionContent,
 }: {
   sections: readonly WikiArticleSection[];
   contextLinks: readonly WikiArticleLink[];
   sources: readonly (string | WikiArticleSource)[];
   targets: WikiInternalLinkTargets;
   rootId?: string;
+  afterSectionTitle?: string;
+  afterSectionContent?: ReactNode;
 }) {
   return (
     <div className={styles.articleBody} id={rootId}>
       {sections.map((section) => (
-        <section className={styles.bodySection} key={section.title}>
+        <Fragment key={section.title}>
+          <section className={styles.bodySection}>
           <h2>{section.title}</h2>
           {section.paragraphs.map((paragraph) => (
             <p key={paragraph}>
@@ -147,7 +153,9 @@ export function WikiArticleBody({
               {media.caption ? <figcaption>{media.caption}</figcaption> : null}
             </figure>
           ))}
-        </section>
+          </section>
+          {section.title === afterSectionTitle ? afterSectionContent : null}
+        </Fragment>
       ))}
 
       {contextLinks.length ? (
