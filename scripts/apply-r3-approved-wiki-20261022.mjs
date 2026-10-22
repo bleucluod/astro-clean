@@ -31,7 +31,8 @@
     for(const item of docs){
       const row=by.get(item.slug);if(!row){fail.push(item.slug+": missing row");continue}
       if(row.stable_id!==item.slug||row.status!=="published"||!row.is_indexable||row.deleted_at||!row.published_at||row.scheduled_for)fail.push(item.slug+": unsafe publication state");
-      const already=row.content_version===item.version+1&&Object.entries(item.change).every(([k,v])=>equal(row[k],v));
+      const after=makeExpected(row,item.change);
+      const already=row.content_version===item.version+1&&Object.entries(after).every(([k,v])=>equal(row[k],v));
       if(!already&&row.content_version!==item.version)fail.push(item.slug+": version drift current="+row.content_version+" required="+item.version);
       items.push({item,row,already});
     }
@@ -39,6 +40,24 @@
   };
   const snapshot=r=>({stableId:r.stable_id,slug:r.slug,title:r.title,shortTitle:r.short_title,seoTitle:r.seo_title||undefined,metaDescription:r.meta_description||undefined,categoryId:r.category_id,tags:r.tags||[],summary:r.summary,intro:r.intro,readingMinutes:Number(r.reading_minutes),publicationPriority:Number(r.publication_priority||0),contentCluster:r.content_cluster||r.category_id,articleRole:r.article_role,relatedArticleIds:r.related_article_ids||[],indexable:!!r.is_indexable,bodyMarkdown:r.body_markdown||"",keyPoints:r.key_points||[],sections:r.sections||[],contextLinks:r.context_links||[],sources:r.sources||[],callToAction:r.call_to_action,contentVersion:Number(r.content_version)});
   const buildMd=n=>[n.intro,...(n.keyPoints.length?["## نکات کلیدی",...n.keyPoints.map(x=>"- "+x)]:[]),...n.sections.flatMap(s=>["## "+s.title,...s.paragraphs,...(s.bullets||[]).map(x=>"- "+x)])].join("\n\n")+"\n";
+  // Rebuild body_markdown from the authoritative visible fields. Older approved
+  // MD drafts may contain H3s, unsupported by the Wiki CMS markdown parser.
+  const makeExpected=(row,c)=>{
+    const fields={
+      title:c.title??row.title,
+      summary:c.summary??row.summary,
+      intro:c.intro,
+      meta_description:c.meta_description??row.meta_description,
+      key_points:c.key_points??row.key_points,
+      sections:c.sections,
+    };
+    return {
+      ...fields,
+      body_markdown:buildMd({
+        intro:fields.intro,keyPoints:fields.key_points,sections:fields.sections,
+      }),
+    };
+  };
   const extractInline=body=>[...new Set([...body.matchAll(/\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|[^\]]+)?\]\]/g)].map(m=>m[1]))];
   async function validateTargets(db,body,slug){
     const ids=extractInline(body);if(!ids.length)return ids;
@@ -70,7 +89,7 @@
       for(const d of state.items)console.log((d.already?"ALREADY_APPLIED":"READY")+" | "+d.item.slug);
       for(const s of state.fail)console.error("SAFETY_FATAL | "+s);
       if(state.fail.length)throw Error("Read-only source preflight failed; no data changed");
-      for(const {item,row,already} of state.items){if(!already){const c=item.change,body=c.body_markdown??buildMd({intro:c.intro,keyPoints:c.key_points??row.key_points,sections:c.sections});await validateTargets(sql,body,item.slug);}}
+      for(const {item,row,already} of state.items){if(!already){const body=makeExpected(row,item.change).body_markdown;await validateTargets(sql,body,item.slug);}}
       console.log("PASS | READ_ONLY_PREFLIGHT");return;
     }
     if(process.env.HALLEUS_R3_APPROVED_DEPLOY!=="YES")throw Error("SAFETY_FATAL requires HALLEUS_R3_APPROVED_DEPLOY=YES");
@@ -80,8 +99,8 @@
       const saved=[];
       for(const {item,row,already} of state.items){
         if(already){saved.push({slug:item.slug,result:"RESUMED_PASS"});continue}
-        const c=item.change,n={title:c.title??row.title,summary:c.summary??row.summary,intro:c.intro,metaDescription:c.meta_description??row.meta_description,keyPoints:c.key_points??row.key_points,sections:c.sections};
-        n.bodyMarkdown=c.body_markdown??buildMd(n);
+        const next=makeExpected(row,item.change);
+        const n={title:next.title,summary:next.summary,intro:next.intro,metaDescription:next.meta_description,keyPoints:next.key_points,sections:next.sections,bodyMarkdown:next.body_markdown};
         const revision=await tx`select coalesce(max(revision_number),0)::int as n from public.wiki_article_revisions where article_id=${row.id}::uuid`;
         const first=Number(revision[0].n)+1;
         await tx`insert into public.wiki_article_revisions (article_id,revision_number,snapshot,change_note,created_by,revision_status,published_at) values (${row.id}::uuid,${first},${tx.json(snapshot(row))}::jsonb,${"R3 pre-change snapshot 20261022"},null,'published',now())`;
