@@ -1,4 +1,4 @@
-import { R3ApprovedVisibleCopy } from "@/components/r3-approved-visible-copy";
+import { R3ApprovedInlineParagraphs } from "@/components/r3-approved-visible-copy";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -191,6 +191,7 @@ export async function ComparisonLanding() {
         tabIndex={-1}
       >
         <ComparisonComposer embedded />
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="دو چارت را انتخاب کن" />
       </section>
 
       <section className={styles.section} aria-labelledby="compare-what-title">
@@ -210,6 +211,7 @@ export async function ComparisonLanding() {
         <p>
           به همین دلیل هالیوس رابطه را با یک برچسب «خوب» یا «بد» خلاصه نمی‌کند. هدف <strong>تحلیل رابطه با چارت تولد</strong> این است که الگوهای مهم میان دو نفر واضح‌تر شوند.
         </p>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="چارت ازدواج چیست؟" />
       </section>
 
       <section className={styles.section} aria-labelledby="compare-output-title">
@@ -234,6 +236,7 @@ export async function ComparisonLanding() {
             اطلاعات تولد دو نفر را وارد کن
           </ComparisonBuilderLink>
         </div>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="در تحلیل چارت ازدواج چه چیزهایی می‌بینی؟" />
       </section>
 
       <section className={styles.splitSection} aria-labelledby="compare-method-title">
@@ -251,6 +254,7 @@ export async function ComparisonLanding() {
           <strong>هالیوس نتیجه را به یک نمرهٔ کلی تبدیل نمی‌کند.</strong>
           <p>اطلاعات به شکل الگوهای قابل‌خواندن دربارهٔ رابطه ارائه می‌شوند.</p>
         </div>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="مقایسه دو چارت تولد چطور انجام می‌شود؟" />
       </section>
 
       <section className={styles.trustSection} aria-labelledby="compare-compatibility-title">
@@ -278,6 +282,7 @@ export async function ComparisonLanding() {
             <p>چه موضوعاتی ارزش گفت‌وگوی بیشتری دارند.</p>
           </article>
         </div>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="آیا چارت ازدواج درصد سازگاری می‌دهد؟" />
       </section>
 
       <section className={styles.section} aria-labelledby="compare-technical-title">
@@ -302,6 +307,7 @@ export async function ComparisonLanding() {
         <p>
           این بخش برای کسانی است که می‌خواهند علاوه بر متن گزارش، ساختار فنی چارت را هم بررسی کنند.
         </p>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="بخش فنی چارت سیناستری" />
       </section>
 
       <section className={styles.splitSection} aria-labelledby="compare-time-title">
@@ -319,6 +325,7 @@ export async function ComparisonLanding() {
           <strong>ساعت دقیق جزئیات بیشتری باز می‌کند.</strong>
           <p>بعضی بخش‌های چارت به ساعت دقیق تولد وابسته‌اند؛ اگر ساعت را می‌دانید آن را وارد کنید.</p>
         </div>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="سیناستری بدون ساعت تولد" />
       </section>
 
       <section className={styles.splitSection} aria-labelledby="compare-name-title">
@@ -336,9 +343,10 @@ export async function ComparisonLanding() {
           <strong>طالع بینی ازدواج با اسم دو طرف یک روش متفاوت است.</strong>
           <p>سیناستری بر اساس ساختار دو چارت تولد و ارتباط میان آن‌ها انجام می‌شود.</p>
         </div>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="فرق چارت ازدواج با طالع‌بینی ازدواج با اسم چیست؟" />
       </section>
 
-      <R3ApprovedVisibleCopy page="compare" />
+
 
       <section className={styles.learningSection} aria-labelledby="compare-learning-title">
         <div>
@@ -378,6 +386,7 @@ export async function ComparisonLanding() {
         <ComparisonBuilderLink className={styles.primaryButton}>
           ساخت چارت ازدواج رایگان
         </ComparisonBuilderLink>
+              <R3ApprovedInlineParagraphs page="compare" sectionTitle="الگوهای میان دو چارت را واضح‌تر ببین" />
       </section>
     </div>
   );

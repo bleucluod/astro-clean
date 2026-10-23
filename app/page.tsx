@@ -1,4 +1,4 @@
-import { R3ApprovedVisibleCopy } from "@/components/r3-approved-visible-copy";
+import { R3ApprovedInlineParagraphs } from "@/components/r3-approved-visible-copy";
 // HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 import type { Metadata } from "next";
 import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
@@ -295,9 +295,11 @@ export default async function Home() {
             ))}
           </div>
         </div>
+              <R3ApprovedInlineParagraphs page="home" sectionTitle="هالیوس را از اینجا شروع کن" />
       </section>
 
       <HomepageLiveSky result={sky} />
+      <R3ApprovedInlineParagraphs page="home" sectionTitle="آسمان امروز، همین حالا" />
 
       <section className={styles.productsSection} aria-labelledby="products-title">
         <header className={styles.sectionHeaderSplit}>
@@ -345,6 +347,7 @@ export default async function Home() {
             </IntentPrefetchLink>
           </article>
         </div>
+              <R3ApprovedInlineParagraphs page="home" sectionTitle="از دادهٔ چارت تا گزارشی که به زندگی تو نزدیک‌تر است" />
       </section>
 
       <HomeHowItWorks />
@@ -395,9 +398,10 @@ export default async function Home() {
             </IntentPrefetchLink>
           </div>
         </div>
+              <R3ApprovedInlineParagraphs page="home" sectionTitle="آسترولوژی را ساده و فارسی یاد بگیر" />
       </section>
 
-      <R3ApprovedVisibleCopy page="home" />
+
 
       <section className={styles.trustSection} aria-labelledby="trust-title">
         <header className={styles.sectionHeaderCentered}>
@@ -421,6 +425,7 @@ export default async function Home() {
           حریم خصوصی هالیوس
           <span aria-hidden="true">←</span>
         </IntentPrefetchLink>
+              <R3ApprovedInlineParagraphs page="home" sectionTitle="محاسبهٔ روشن، خوانش عمیق‌تر" />
       </section>
 
       <section className={styles.faqSection} aria-labelledby="faq-title">
@@ -456,6 +461,7 @@ export default async function Home() {
             چارت ازدواج
           </IntentPrefetchLink>
         </div>
+              <R3ApprovedInlineParagraphs page="home" sectionTitle="چارتت را ببین؛ از خودت شروع کن" />
       </section>
     </div>
   );

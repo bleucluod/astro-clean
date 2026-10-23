@@ -1,4 +1,3 @@
-import { R3ApprovedVisibleCopy } from "@/components/r3-approved-visible-copy";
 import type { Metadata } from "next";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
@@ -338,7 +337,7 @@ export default async function WikiPage() {
         </div>
       </section>
 
-      <R3ApprovedVisibleCopy page="wiki" />
+
 
       <section className={styles.safetyCard}>
         <div>

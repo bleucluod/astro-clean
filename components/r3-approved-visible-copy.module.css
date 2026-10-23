@@ -40,3 +40,28 @@
 .section strong {
   font-weight: 700;
 }
+
+.inline {
+  margin-top: 1rem;
+}
+.inline p {
+  margin: 0.75rem 0;
+  line-height: 2;
+  overflow-wrap: anywhere;
+}
+.inline p:last-child {
+  margin-bottom: 0;
+}
+.inline a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.inline ul {
+  margin: 0.75rem 0;
+  padding-inline-start: 1.3rem;
+  line-height: 2;
+}
+.inline li + li {
+  margin-top: 0.4rem;
+}
