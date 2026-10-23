@@ -18,6 +18,9 @@ def clean(value):
     value = html.unescape(str(value)).replace("\u200e", "").replace("\u200f", "")
     return re.sub(r"\s+", " ", value).strip()
 
+def heading_key(value):
+    return re.sub(r"^\d+\s*[.)]\s*", "", clean(value))
+
 class PageHTML(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -115,6 +118,9 @@ def check_page(page):
     canonical = urlsplit(parsed.metadata.get("canonical", "")).path or "/"
     if canonical.rstrip("/") != page["canonical"].rstrip("/"):
         failures.append("CANONICAL expected=" + page["canonical"] + " actual=" + canonical)
+    for forbidden in page.get("forbidden_visible", []):
+        if clean(forbidden) in visible:
+            failures.append("LEGACY_COPY_STILL_VISIBLE " + forbidden)
     if clean(page["h1"]) not in [entry[0] for entry in parsed.blocks["h1"]]:
         failures.append("H1_NOT_EXACT " + page["h1"][:80])
     blocked_sky = path == "/sky" and 'data-r3-approved-inline="sky"' not in markup
@@ -125,12 +131,15 @@ def check_page(page):
             break
         text = clean(heading["text"])
         counts["headings"] += 1
-        if text in [entry[0] for entry in parsed.blocks["h"+str(heading["level"])]]:
+        if heading_key(text) in [heading_key(entry[0]) for entry in parsed.blocks["h"+str(heading["level"])]]:
             continue
-        if text in visible:
+        if heading_key(text) in visible:
             warnings.append("NON_SEMANTIC_HEADING " + text[:70])
         else:
             failures.append("MISSING_HEADING " + text[:100])
+    for label in page.get("labels", []):
+        if clean(label).rstrip(":") not in visible:
+            failures.append("MISSING_APPROVED_LABEL " + label)
     rendered_paragraphs = [entry[0] for entry in parsed.blocks["p"]]
     for paragraph in page["paragraphs"]:
         if blocked_sky:

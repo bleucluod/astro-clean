@@ -263,15 +263,15 @@ export async function ComparisonLanding() {
         <div className={styles.trustGrid}>
           <article>
             <strong>نقاط نزدیک‌کننده</strong>
-            <p>چه الگوهایی دو نفر را به هم نزدیک می‌کنند.</p>
+            <p>کدام الگوها فهم و همراهی را آسان‌تر می‌کنند؟</p>
           </article>
           <article>
             <strong>تفاوت‌های تکرارشونده</strong>
-            <p>چه تفاوت‌هایی احتمالاً بیشتر خودشان را نشان می‌دهند.</p>
+            <p>کدام تفاوت‌ها در شرایط فشار یا صمیمیت بیشتر به چشم می‌آیند؟</p>
           </article>
           <article>
             <strong>موضوع‌های گفت‌وگو</strong>
-            <p>چه موضوعاتی ارزش گفت‌وگوی بیشتری دارند.</p>
+            <p>کجا لازم است دربارهٔ انتظارها، مرزها یا خواسته‌ها صریح‌تر حرف بزنید؟</p>
           </article>
         </div>
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="آیا چارت ازدواج درصد سازگاری می‌دهد؟" />
