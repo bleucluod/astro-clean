@@ -301,7 +301,7 @@ export default async function Home() {
       <section className={styles.productsSection} aria-labelledby="products-title">
         <header className={styles.sectionHeaderSplit}>
           <div>
-            <h2 id="products-title">از داده خام تا روایتی که می‌شود خواند</h2>
+            <h2 id="products-title">از دادهٔ چارت تا گزارشی که به زندگی تو نزدیک‌تر است</h2>
           </div>
         </header>
 
@@ -390,7 +390,7 @@ export default async function Home() {
 
       <section className={styles.trustSection} aria-labelledby="trust-title">
         <header className={styles.sectionHeaderCentered}>
-          <h2 id="trust-title">محاسبه روشن، خوانش عمیق‌تر</h2>
+          <h2 id="trust-title">محاسبهٔ روشن، خوانش عمیق‌تر</h2>
         </header>
 
         <div className={styles.trustGrid}>

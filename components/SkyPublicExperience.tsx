@@ -245,7 +245,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
     <section className={styles.dailyBrief} data-interpretation-source={reportInterpretation.source}>
       <div className={styles.dailyBriefMain}>
         <span className={styles.eyebrow}>خواندن سریع امروز</span>
-        <h2>امروز برای تو از کجا شروع می‌شود؟</h2>
+        <h2>امروز از کدام بخش آسمان شروع کنی؟</h2>
         <p>{dailyGuide.tone}</p>
         <p>{dailyGuide.personalLine}</p>
       </div>
@@ -265,7 +265,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
     <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
       <header>
         <span className={styles.eyebrow}>برای نشان تو</span>
-        <h2>ترنزیت‌های امروز برای هر نشان</h2>
+        <h2>ترنزیت‌های امروز برای دوازده نشان</h2>
       </header>
       <div className={styles.signGuideGrid}>
         {signGuides.map((guide) => (
@@ -283,7 +283,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
       <section className={styles.contentSection} aria-labelledby="sky-today-at-a-glance">
         <header>
           <span className={styles.eyebrow}>در یک نگاه</span>
-          <h2 id="sky-today-at-a-glance">داده‌های سریع امروز</h2>
+          <h2 id="sky-today-at-a-glance">خلاصهٔ آسمان در یک نگاه</h2>
           <p className={styles.sectionIntro}>{buildDailySummary(snapshot, city.timezone, now)}</p>
         </header>
         <div className={styles.summaryGrid}>
@@ -300,7 +300,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
       <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
         <header>
           <span className={styles.eyebrow}>جایگاه‌ها</span>
-          <h2>وضعیت سیارات امروز</h2>
+          <h2>وضعیت سیارات امروز؛ هر جسم کجاست و چگونه حرکت می‌کند؟</h2>
         </header>
         <div className={styles.planetGrid}>
           {snapshot.planetaryStates.map((state) => (
@@ -322,7 +322,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
       <section className={styles.moonCard}>
         <div>
           <span className={styles.eyebrow}>ماه امروز در چه برجی است؟</span>
-          <h2>فاز ماه امروز</h2>
+          <h2>وضعیت ماه امروز؛ نشان، فاز و روشنایی</h2>
           <strong className={styles.moonPhaseName}>{moonPhaseLabel(snapshot)}</strong>
           <p>{moon ? `ماه امروز در ${SKY_SIGN_LABELS[moon.sign]} (${SKY_SIGN_ENGLISH_LABELS[moon.sign]}) و درجهٔ ${moon.degreeInSign.toLocaleString("fa-IR", { maximumFractionDigits: 1 })} قرار دارد.` : "جایگاه ماه ثبت نشده است"}</p>
         </div>
@@ -337,7 +337,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
       <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
         <header>
           <span className={styles.eyebrow}>روابط آسمان</span>
-          <h2>مهم‌ترین ترنزیت‌ها و زاویه‌های امروز</h2>
+          <h2>مهم‌ترین ترنزیت‌ها و زاویه‌های روز</h2>
         </header>
         {snapshot.aspects.length ? <>
           <div className={styles.aspectList}>{initialAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div>
@@ -347,7 +347,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
       </section>
 
       <section className={styles.contentSection}>
-        <header><span className={styles.eyebrow}>به ترتیب زمان</span><h2>رویدادهای نجومی امروز</h2><p className={styles.sectionIntro}>خط زمانی امروز نشان می‌دهد چه رویدادی گذشته و چه چیزی تا پایان روز پیش رو است.</p></header>
+        <header><span className={styles.eyebrow}>به ترتیب زمان</span><h2>رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟</h2><p className={styles.sectionIntro}>خط زمانی امروز نشان می‌دهد چه رویدادی گذشته و چه چیزی تا پایان روز پیش رو است.</p></header>
         {snapshot.timeline.length ? <ol className={styles.timeline}>{snapshot.timeline.map((event, index) => { const occurredAt = "occurredAt" in event ? event.occurredAt : undefined; const isPast = occurredAt ? new Date(occurredAt).getTime() < now : false; return <li key={`${event.type}-${index}`} data-state={occurredAt ? (isPast ? "past" : "future") : "untimed"}><time>{formatTime(occurredAt, city.timezone)}</time><span>{eventText(event)}</span><small>{occurredAt ? (isPast ? "گذشته" : "پیش رو") : "بدون زمان دقیق"}</small></li>; })}</ol> : <p className={styles.empty}>رویدادی برای این روز نداریم.</p>}
       </section>
 
@@ -356,19 +356,19 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
       </section>
 
     <section className={styles.contentSection}>
-      <header><span className={styles.eyebrow}>راهنمای کوتاه</span><h2>این داده‌ها را چگونه بخوانم؟</h2></header>
+      <header><span className={styles.eyebrow}>راهنمای کوتاه</span><h2>این داده‌ها را چگونه به زندگی خودت ربط بدهی؟</h2></header>
       <div className={styles.aspectList}><details open><summary>ترنزیت چیست؟</summary><p>ترنزیت به جایگاه و حرکت فعلی سیاره‌ها گفته می‌شود. این صفحه وضعیت عمومی روز را نشان می‌دهد؛ ارتباط فردی فقط با مقایسه با چارت تولد بررسی می‌شود.</p></details><details open><summary>چرا شهر و منطقه زمانی مهم‌اند؟</summary><p>تاریخ محلی و ساعت رویدادها به منطقه زمانی شهر وابسته‌اند و ممکن است برای دو شهر متفاوت نمایش داده شوند.</p></details><details open><summary>آیا حرکت برگشتی یعنی اتفاق بد؟</summary><p>خیر. رتروگراد یک وضعیت محاسباتی است و به‌تنهایی نتیجهٔ قطعی دربارهٔ زندگی فرد نمی‌دهد.</p></details></div>
             <R3ApprovedInlineParagraphs page="sky" sectionTitle="این داده‌ها را چگونه به زندگی خودت ربط بدهی؟" />
       </section>
 
 
     <section className={styles.contentSection}>
-      <header><span className={styles.eyebrow}>پرسش‌های رایج</span><h2>دربارهٔ آسترولوژی امروز</h2></header>
-      <div className={styles.aspectList}><details open><summary>آیا آسترولوژی امروز همان فال روزانه است؟</summary><p>نه. داده‌های جایگاه سیارات، فاز ماه و زاویه‌های روز از محاسبه می‌آیند. فال روزانه معمولاً متنی تفسیری برای یک نشان است. این صفحه علاوه بر توضیح‌های نمادین، خودِ داده‌ها و خط زمانی را هم نشان می‌دهد؛ بنابراین می‌توانی میان محاسبه و برداشت فرق بگذاری.</p></details><details open><summary>وضعیت سیارات امروز برای کدام شهر نمایش داده می‌شود؟</summary><p>ساعت‌ها بر اساس منطقهٔ زمانی شهری که داده برای آن به دست آمده نمایش داده می‌شوند. در نمای فعلی، تهران پیش‌فرض است و انتخاب‌گر عمومیِ تغییر شهر و تاریخ دیده نمی‌شود. برای یک تاریخ واحد، ساعت محلی همان رویداد در شهرهای مختلف می‌تواند فرق کند.</p></details><details open><summary>فاز ماه امروز چگونه محاسبه می‌شود؟</summary><p>نام فاز و درصد روشنایی از دادهٔ محاسبه‌شدهٔ همان روز به دست می‌آیند. فاز ماه با نشان ماه یکی نیست: فاز از هندسهٔ روشنایی صحبت می‌کند و نشان از محل ماه در زودیاک.</p></details><details open><summary>چرا بعضی روزها داده نمایش داده نمی‌شود؟</summary><p>اگر تاریخ خواسته‌شده خارج از روز پشتیبانی‌شده باشد یا دادهٔ معتبر آن درخواست در دسترس نباشد، هالیوس وضعیت نبود داده را نشان می‌دهد و روز دیگری را بی‌خبر جایگزین نمی‌کند. این رفتار از نمایش عددی ظاهراً دقیق ولی نامربوط بهتر است.</p></details></div>
+      <header><span className={styles.eyebrow}>پرسش‌های رایج</span><h2>پرسش‌های رایج دربارهٔ آسمان امروز</h2></header>
+      <div className={styles.aspectList}><details open><summary>آیا آسترولوژی امروز همان فال روزانه است؟</summary><p>نه. داده‌های جایگاه سیارات، فاز ماه و زاویه‌های روز از محاسبه می‌آیند. فال روزانه معمولاً متنی تفسیری برای یک نشان است. این صفحه علاوه بر توضیح‌های نمادین، خودِ داده‌ها و خط زمانی را هم نشان می‌دهد؛ بنابراین می‌توانی میان محاسبه و برداشت فرق بگذاری.</p></details><details open><summary>ساعت رویدادها برای کدام شهر است؟</summary><p>ساعت‌ها بر اساس منطقهٔ زمانی شهری که داده برای آن به دست آمده نمایش داده می‌شوند. در نمای فعلی، تهران پیش‌فرض است و انتخاب‌گر عمومیِ تغییر شهر و تاریخ دیده نمی‌شود. برای یک تاریخ واحد، ساعت محلی همان رویداد در شهرهای مختلف می‌تواند فرق کند.</p></details><details open><summary>فاز ماه امروز چگونه محاسبه می‌شود؟</summary><p>نام فاز و درصد روشنایی از دادهٔ محاسبه‌شدهٔ همان روز به دست می‌آیند. فاز ماه با نشان ماه یکی نیست: فاز از هندسهٔ روشنایی صحبت می‌کند و نشان از محل ماه در زودیاک.</p></details><details open><summary>چرا بعضی روزها داده نمایش داده نمی‌شود؟</summary><p>اگر تاریخ خواسته‌شده خارج از روز پشتیبانی‌شده باشد یا دادهٔ معتبر آن درخواست در دسترس نباشد، هالیوس وضعیت نبود داده را نشان می‌دهد و روز دیگری را بی‌خبر جایگزین نمی‌کند. این رفتار از نمایش عددی ظاهراً دقیق ولی نامربوط بهتر است.</p></details></div>
     </section>
 
 
 
-    <section className={styles.cta} id="sky-personal-chart-cta"><div><span className={styles.eyebrow}>چارت شخصی</span><h2>می‌خواهی ارتباط این آسمان را با چارت تولدت ببینی؟</h2><p>اگر بخواهی بفهمی وضعیت این روز با الگوهای تولدی خودت چه ارتباطی دارد، از ابزار ساخت چارت تولد هالیوس شروع کن. تاریخ، شهر و اگر می‌دانی ساعت دقیق تولدت را وارد کن تا نقشهٔ شخصی‌ات شکل بگیرد. وقتی ساعت تولدت دقیق باشد، رایزینگ و خانه‌ها هم در نقشهٔ شخصی‌ات قابل خواندن‌اند؛ این‌ها از صفحهٔ عمومی آسمان برای تو ساخته نمی‌شوند. آن‌وقت تفاوت میان یک موقعیت عمومی آسمان و ارتباطش با چارت خودت روشن‌تر می‌شود.</p></div><Link href="/chart">ساخت چارت تولد</Link></section>
+    <section className={styles.cta} id="sky-personal-chart-cta"><div><span className={styles.eyebrow}>چارت شخصی</span><h2>آسمان امروز را کنار چارت تولدت بخوان</h2><p>اگر بخواهی بفهمی وضعیت این روز با الگوهای تولدی خودت چه ارتباطی دارد، از ابزار ساخت چارت تولد هالیوس شروع کن. تاریخ، شهر و اگر می‌دانی ساعت دقیق تولدت را وارد کن تا نقشهٔ شخصی‌ات شکل بگیرد. وقتی ساعت تولدت دقیق باشد، رایزینگ و خانه‌ها هم در نقشهٔ شخصی‌ات قابل خواندن‌اند؛ این‌ها از صفحهٔ عمومی آسمان برای تو ساخته نمی‌شوند. آن‌وقت تفاوت میان یک موقعیت عمومی آسمان و ارتباطش با چارت خودت روشن‌تر می‌شود.</p></div><Link href="/chart">ساخت چارت تولد</Link></section>
   </>;
 }

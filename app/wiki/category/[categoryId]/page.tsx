@@ -286,6 +286,9 @@ export default async function WikiCategoryPage({
           ))}
         </div>
 
+        {(categoryId === "aspects" || categoryId === "foundations") ? (
+          <h3>{categoryId === "aspects" ? "سه گام برای خواندن این دسته" : "سه گام مطالعه"}</h3>
+        ) : null}
         <div className={styles.guideGrid}>
           {((categoryId === "aspects" || categoryId === "foundations") ? r3CategoryCopy[categoryId].readingPath : categoryView.content.readingPath).map((step, index) => (
             <div className={styles.guideStep} key={step}>

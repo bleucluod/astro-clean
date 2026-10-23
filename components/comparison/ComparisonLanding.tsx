@@ -211,7 +211,7 @@ export async function ComparisonLanding() {
       <section className={styles.section} aria-labelledby="compare-output-title">
         <div className={styles.sectionHeading}>
           <span className={styles.eyebrow}>داخل گزارش</span>
-          <h2 id="compare-output-title">در تحلیل چارت ازدواج چه چیزهایی می‌بینید؟</h2>
+          <h2 id="compare-output-title">در تحلیل چارت ازدواج چه چیزهایی می‌بینی؟</h2>
         </div>
         <div className={styles.outputGrid}>
           {relationshipAreas.map((item, index) => (
@@ -342,7 +342,7 @@ export async function ComparisonLanding() {
       <section className={styles.finalCta} aria-labelledby="compare-final-title">
         <div>
           <span className={styles.eyebrow}>رابطه‌تان را از زاویهٔ دیگری ببینید</span>
-          <h2 id="compare-final-title">الگوهای میان دو چارت را واضح‌تر ببینید</h2>
+          <h2 id="compare-final-title">الگوهای میان دو چارت را واضح‌تر ببین</h2>
         </div>
         <ComparisonBuilderLink className={styles.primaryButton}>
           ساخت چارت ازدواج رایگان
