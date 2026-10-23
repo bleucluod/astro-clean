@@ -190,6 +190,7 @@ export async function ComparisonLanding() {
         aria-label="سازنده چارت ازدواج و سیناستری"
         tabIndex={-1}
       >
+        <h2 className={styles.builderTitle}>دو چارت را انتخاب کن</h2>
         <ComparisonComposer embedded />
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="دو چارت را انتخاب کن" />
       </section>

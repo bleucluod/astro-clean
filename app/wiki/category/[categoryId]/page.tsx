@@ -371,7 +371,11 @@ export default async function WikiCategoryPage({
           <div>
             <span className={styles.sectionKicker}>مسیر مطالعه</span>
             <h2 id="category-articles-title">
-              همهٔ مقاله‌های {categoryView.category.label}
+              {categoryId === "aspects"
+                ? "همهٔ مقاله‌های جنبه‌ها و الگوهای چارت تولد"
+                : categoryId === "foundations"
+                  ? "همهٔ مقاله‌های آموزش از صفر"
+                  : `همهٔ مقاله‌های ${categoryView.category.label}`}
             </h2>
           </div>
           <p>

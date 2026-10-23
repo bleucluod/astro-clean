@@ -179,6 +179,12 @@
   outline: none;
 }
 
+.builderTitle {
+  font-size: clamp(1.2rem, 2.7vw, 1.75rem);
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
 .builderShell:focus-visible {
   border-radius: 28px;
   box-shadow: 0 0 0 3px rgba(216, 221, 229, 0.28);
