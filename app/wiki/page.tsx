@@ -198,11 +198,13 @@ export default async function WikiPage() {
 
         <div className={styles.pathGrid}>
           {starterPaths.map((path) => (
-            <Link className={styles.pathCard} href={path.href} key={path.href}>
-              <span className={styles.categoryPill}>{path.linkLabel}</span>
+            <article className={styles.pathCard} key={path.href}>
+              <Link className={styles.pathCardLink} href={path.href}>
+                <span className={styles.categoryPill}>{path.linkLabel}</span>
+              </Link>
               <h3>{path.title}</h3>
               <p>{path.text}</p>
-            </Link>
+            </article>
           ))}
         </div>
       </section>

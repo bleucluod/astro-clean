@@ -26,7 +26,7 @@ export const metadata: Metadata = buildPublicPageMetadata({
 const productPaths = [
   {
     number: "۰۱",
-    title: "چارت تولد فارسی",
+    title: "چارت تولد و گزارش شخصی",
     description:
       "جایگاه سیاره‌ها، رایزینگ، خانه‌ها و جنبه‌ها را ببین و گزارش شخصی چارتت را بخوان.",
     href: "/chart",
@@ -69,11 +69,11 @@ const relationshipThemes = [
 
 const trustItems = [
   {
-    title: "محاسبه واقعی",
+    title: "محاسبهٔ واقعی",
     text: "جایگاه‌ها و الگوهای چارت از موتور محاسبه هالیوس می‌آیند.",
   },
   {
-    title: "مسیر پیش رو",
+    title: "مسیری که پیش رو داری",
     text: "ترنزیت‌ها و حرکت‌های فعلی آسمان کمک می‌کنند دوره‌ها، فرصت‌ها و فشارهای پیش رو را در کنار چارت تولد ببینی.",
   },
   {
@@ -313,7 +313,7 @@ export default async function Home() {
               <span className={styles.productBadge}>چارت ازدواج و سیناستری</span>
               <span className={styles.privateBadge}>همیشه خصوصی</span>
             </div>
-            <h3>چارت ازدواج و سیناستری؛ الگوی رابطه بین دو نفر</h3>
+            <h3>رابطهٔ دو نفر؛ بیشتر از یک نمرهٔ سازگاری</h3>
 
             <div
               className={styles.relationshipThemes}

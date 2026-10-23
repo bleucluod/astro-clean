@@ -336,6 +336,7 @@
 }
 
 .pathCard {
+  position: relative;
   display: grid;
   gap: 0.8rem;
   min-height: 220px;
@@ -351,6 +352,23 @@
 .pathCard:hover {
   border-color: rgba(255, 255, 255, 0.18);
   transform: translateY(-2px);
+}
+
+.pathCard:focus-within {
+  outline: 2px solid var(--wiki-blue);
+  outline-offset: 2px;
+}
+
+.pathCardLink {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.pathCardLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
 }
 
 .pathCard h3,
