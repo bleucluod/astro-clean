@@ -495,36 +495,6 @@ export default async function ChartPage() {
         </div>
       </section>
 
-      <section className={styles.education} data-chart-section="resources">
-        <div className={styles.educationHeading}>
-          <span className={styles.sectionEyebrow}>راهنمای تکمیلی</span>
-          <h2>راهنمای تکمیلی و حریم خصوصی</h2>
-          <p>
-            اگر ساعت تولدت را نمی‌دانی یا می‌خواهی پیدایش کنی، این دو راهنما می‌توانند کمکت کنند. برای اینکه بدانی اطلاعات تولدت چطور نگهداری یا نمایش داده می‌شوند هم صفحهٔ حریم خصوصی را ببین.
-          </p>
-        </div>
-        <div className={styles.contextLinks}>
-          <Link data-chart-content-link="allowed" href="/privacy">
-            حریم خصوصی و نگهداری اطلاعات تولد
-            <span aria-hidden="true">←</span>
-          </Link>
-          <Link
-            data-chart-content-link="allowed"
-            href="/wiki/birth-chart-without-birth-time"
-          >
-            راهنمای چارت تولد بدون ساعت تولد
-            <span aria-hidden="true">←</span>
-          </Link>
-          <Link
-            data-chart-content-link="allowed"
-            href="/wiki/find-exact-birth-time"
-          >
-            چگونه ساعت تولد خود را پیدا کنیم؟
-            <span aria-hidden="true">←</span>
-          </Link>
-        </div>
-      </section>
-
       <section className={styles.finalCta}>
         <span className={styles.sectionEyebrow}>ساخت گزارش</span>
         <h2>چارت تولد شخصی خودت را بساز</h2>

@@ -226,10 +226,7 @@ export default async function Home() {
             دیدن نمونه گزارش
           </IntentPrefetchLink>
 
-          <p className={styles.heroMicrocopy}>
-            تاریخ شمسی یا میلادی؛ با ساعت دقیق یا بدون آن. اگر بخشی از چارت قابل
-            اتکا نباشد، هالیوس همان‌جا می‌گوید.
-          </p>
+          <p className={styles.heroMicrocopy}>تاریخ تولدت را شمسی یا میلادی وارد کن. اگر ساعت دقیق را نمی‌دانی، همان را در فرم مشخص کن؛ هالیوس بخش‌های وابسته به ساعت را مثل یک نتیجهٔ قطعی نمایش نمی‌دهد.</p>
         </div>
 
         <div className={styles.heroSignal} aria-hidden="true">
@@ -306,10 +303,6 @@ export default async function Home() {
           <div>
             <h2 id="products-title">از داده خام تا روایتی که می‌شود خواند</h2>
           </div>
-          <p>
-            گزارش تولد و چارت ازدواج دو خروجی متفاوت‌اند؛ هر دو بر داده واقعی،
-            مرزهای روشن و زبان قابل‌فهم تکیه دارند.
-          </p>
         </header>
 
         <div className={styles.productBento}>
@@ -321,14 +314,6 @@ export default async function Home() {
               <span className={styles.privateBadge}>همیشه خصوصی</span>
             </div>
             <h3>چارت ازدواج و سیناستری؛ الگوی رابطه بین دو نفر</h3>
-            <p>
-              هالیوس دو چارت را کنار هم می‌گذارد تا کشش، گفت‌وگو، امنیت عاطفی،
-              نزدیکی، مرزها، اصطکاک و مسیرهای رشد را ببینی.
-            </p>
-            <p>
-              ترکیب این الگوها نشان می‌دهد کجاها رابطه روان‌تر پیش می‌رود، کجاها
-              کشش بیشتری شکل می‌گیرد و کدام بخش‌ها به توجه بیشتری نیاز دارند.
-            </p>
 
             <div
               className={styles.relationshipThemes}
@@ -406,10 +391,6 @@ export default async function Home() {
       <section className={styles.trustSection} aria-labelledby="trust-title">
         <header className={styles.sectionHeaderCentered}>
           <h2 id="trust-title">محاسبه روشن، خوانش عمیق‌تر</h2>
-          <p>
-            هالیوس داده‌های چارت را محاسبه می‌کند و آن‌ها را برای شناخت الگوها،
-            رابطه‌ها و دوره‌های پیش رو به یک خوانش فارسی و شخصی تبدیل می‌کند.
-          </p>
         </header>
 
         <div className={styles.trustGrid}>

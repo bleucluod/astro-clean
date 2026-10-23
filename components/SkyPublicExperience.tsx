@@ -187,7 +187,7 @@ function SkyHero() {
   return <header className={styles.hero}>
     <div className={styles.heroGlow} aria-hidden="true" />
     <div className={styles.heroContent}>
-      <h1>آسترولوژی امروز؛ وضعیت ماه، سیارات و ترنزیت‌ها</h1>
+      <h1>آسترولوژی امروز؛ ماه، سیارات و ترنزیت‌های روز</h1>
       <p>ببین امروز سیاره‌ها کجا هستند، ماه در چه نشانی قرار دارد و چه زاویه‌هایی در آسمان شکل گرفته‌اند. این صفحه دادهٔ محاسبه‌شده را نشان می‌دهد؛ نه فال روزانه یا پیش‌بینی قطعی.</p>
     </div>
     <div className={styles.heroVisual} aria-hidden="true">
@@ -223,7 +223,7 @@ export function SkyPublicExperience({ result, cityQuery, relatedArticles = [], e
   </div>;
 }
 
-function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPublicDeliveryResult, { status: "ready" }>; relatedArticles: Array<{ slug: string; title: string }> }) {
+function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, { status: "ready" }>; relatedArticles: Array<{ slug: string; title: string }> }) {
   const { snapshot, city } = result;
   const moon = snapshot.planetaryStates.find((item) => item.body === "moon");
   const moonEvents = snapshot.timeline.filter((event) => event.type === "ingress" && event.body === "moon");
@@ -266,7 +266,6 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
       <header>
         <span className={styles.eyebrow}>برای نشان تو</span>
         <h2>ترنزیت‌های امروز برای هر نشان</h2>
-        <p className={styles.sectionIntro}>نشان خودت را پیدا کن و ببین ریتم امروز بیشتر کجای روزت را لمس می‌کند. این بخش حکم قطعی نمی‌دهد، اما می‌گوید چرا ممکن است در رابطه، کار یا تصمیم‌هایت حال‌وهوای خاصی پررنگ‌تر شود.</p>
       </header>
       <div className={styles.signGuideGrid}>
         {signGuides.map((guide) => (
@@ -302,7 +301,6 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
         <header>
           <span className={styles.eyebrow}>جایگاه‌ها</span>
           <h2>وضعیت سیارات امروز</h2>
-          <p className={styles.sectionIntro}>اینجا فقط نمی‌گوییم هر سیاره کجاست؛ می‌گوییم امروز آن جایگاه در کار، رابطه، پول، انرژی یا تصمیم‌گیری چه کاربردی دارد و کجا باید احتیاط کنی.</p>
         </header>
         <div className={styles.planetGrid}>
           {snapshot.planetaryStates.map((state) => (
@@ -340,7 +338,6 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
         <header>
           <span className={styles.eyebrow}>روابط آسمان</span>
           <h2>مهم‌ترین ترنزیت‌ها و زاویه‌های امروز</h2>
-          <p className={styles.sectionIntro}>این زاویه‌ها می‌گویند امروز کدام نیروها با هم راه می‌آیند و کجا ممکن است فشار، سوءبرداشت یا تصمیم عجولانه بالا بیاید. عدد اورب یعنی فاصله تا حالت دقیق؛ هرچه کمتر باشد، اثر آن در خوانش امروز جدی‌تر است.</p>
         </header>
         {snapshot.aspects.length ? <>
           <div className={styles.aspectList}>{initialAspects.map((aspect) => <AspectCard key={`${aspect.leftBody}-${aspect.rightBody}-${aspect.kind}`} aspect={aspect} timezone={city.timezone} reading={reportInterpretation.aspectReadings[skyPublicAspectKey(aspect)]}/>)}</div>
@@ -364,7 +361,6 @@ function ReadyExperience({ result, relatedArticles }: { result: Extract<SkyPubli
             <R3ApprovedInlineParagraphs page="sky" sectionTitle="این داده‌ها را چگونه به زندگی خودت ربط بدهی؟" />
       </section>
 
-    {relatedArticles.length ? <section className={styles.contentSection}><header><span className={styles.eyebrow}>یادگیری بیشتر</span><h2>راهنماهای مرتبط ویکی</h2></header><div className={styles.relatedList}>{relatedArticles.map((article) => <Link href={`/wiki/${article.slug}`} key={article.slug}>{article.title}</Link>)}</div></section> : null}
 
     <section className={styles.contentSection}>
       <header><span className={styles.eyebrow}>پرسش‌های رایج</span><h2>دربارهٔ آسترولوژی امروز</h2></header>

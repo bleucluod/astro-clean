@@ -17,21 +17,27 @@ function renderEditorialInline(content: string) {
   });
 }
 
+function renderApprovedParagraph(paragraph: string, key: string) {
+  if (paragraph.startsWith("- ")) {
+    return <ul key={key}>{paragraph.split("\n").map((line, index) => (
+      <li key={`${key}-${index}`}>{renderEditorialInline(line.replace(/^- /, ""))}</li>
+    ))}</ul>;
+  }
+  return <p key={key}>{renderEditorialInline(paragraph)}</p>;
+}
+
 export function R3ApprovedInlineParagraphs({page,sectionTitle}: {page: ApprovedPage; sectionTitle: string}) {
-  const block = approvedExtra[page].find((item)=>item.title===sectionTitle);
+  const block = approvedExtra[page].find((item) => item.title === sectionTitle);
   if (!block) return null;
-  const paragraphs = [...block.paras,...block.subsections.flatMap((item)=>item.paras)];
-  if (!paragraphs.length) return null;
   return (
     <div className={styles.inline} data-r3-approved-inline={page}>
-      {paragraphs.map((paragraph) => {
-        if (paragraph.startsWith("- ")) {
-          return <ul key={paragraph}>{paragraph.split("\n").map((line) => (
-            <li key={line}>{renderEditorialInline(line.replace(/^- /, ""))}</li>
-          ))}</ul>;
-        }
-        return <p key={paragraph}>{renderEditorialInline(paragraph)}</p>;
-      })}
+      {block.paras.map((paragraph, index) => renderApprovedParagraph(paragraph, `main-${index}`))}
+      {block.subsections.map((subsection, index) => (
+        <div className={styles.subsection} key={`${index}-${subsection.title}`}>
+          {page !== "home" ? <h3>{subsection.title}</h3> : null}
+          {subsection.paras.map((paragraph, index) => renderApprovedParagraph(paragraph, `${subsection.title}-${index}`))}
+        </div>
+      ))}
     </div>
   );
 }

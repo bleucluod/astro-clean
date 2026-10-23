@@ -9,7 +9,7 @@ import styles from "./sky.module.css";
 
 export const dynamic = "force-dynamic";
 const SKY_TITLE = "آسترولوژی امروز | وضعیت ماه، سیارات و ترنزیت‌ها";
-const SKY_DESCRIPTION = "آسمان امروز و آسترولوژی امروز را با دادهٔ واقعی ببین: فاز ماه، وضعیت سیارات، چارت آسمان، سیارات برگشتی و زمان ترنزیت‌ها برای شهر انتخاب‌شده.";
+const SKY_DESCRIPTION = "آسترولوژی امروز و آسمان امروز را با داده‌های محاسبه‌شده ببین؛ جایگاه ماه و سیارات، فاز ماه، حرکت‌های برگشتی، زاویه‌ها و ساعت رویدادهای روز.";
 
 export const metadata: Metadata = {
   ...buildPublicPageMetadata({

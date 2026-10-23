@@ -136,28 +136,30 @@ if (count(page, '"@type":') !== 3) {
 }
 forbidMarker("chart structured data", page, "FAQPage");
 
-const allowedLinks = [
-  ["حریم خصوصی و نگهداری اطلاعات تولد", "/privacy"],
-  ["راهنمای چارت تولد بدون ساعت تولد", "/wiki/birth-chart-without-birth-time"],
-  ["چگونه ساعت تولد خود را پیدا کنیم؟", "/wiki/find-exact-birth-time"],
+const selectedR3Links = [
+  ["محاسبه چارت ازدواج رایگان", "/compare"],
+  ["چارت آسترولوژی امروز", "/sky"],
 ];
 
-if (count(page, 'data-chart-content-link="allowed"') !== 3) {
-  failures.push(`chart page must expose exactly three allowed content-link markers; found ${count(page, 'data-chart-content-link="allowed"')}`);
+if (count(page, 'data-chart-content-link="allowed"') !== 0) {
+  failures.push("chart contains legacy editorial link marker; the three old links must be removed");
 }
-for (const [label, href] of allowedLinks) {
-  requireMarker("allowed chart content link", page, label);
-  requireMarker("allowed chart content link", page, `href="${href}"`);
+for (const [label, href] of selectedR3Links) {
+  requireMarker("selected R3 chart editorial link", page, label);
+  requireMarker("selected R3 chart editorial link", page, `href="${href}"`);
   if (count(page, `href="${href}"`) !== 1) {
-    failures.push(`allowed chart content destination must appear exactly once: ${href}`);
+    failures.push(`selected R3 chart link must occur exactly once: ${href}`);
   }
 }
+for (const href of ["/privacy", "/wiki/birth-chart-without-birth-time", "/wiki/find-exact-birth-time"]) {
+  forbidMarker("retired chart editorial link", page, `href="${href}"`);
+}
 
-const firstContentLink = page.indexOf('data-chart-content-link="allowed"');
+const firstContentLink = Math.min(page.indexOf('href="/compare"'), page.indexOf('href="/sky"'));
 if (firstContentLink >= 0 && firstContentLink < workspaceIndex) {
   failures.push("content links must not appear before the form workspace");
 }
-for (const href of ["/product", "/reports", "/sky", "/wiki"]) {
+for (const href of ["/product", "/reports", "/wiki"]) {
   forbidMarker("chart content links", page, `href="${href}"`);
 }
 
@@ -201,5 +203,5 @@ if (failures.length > 0) {
 console.log("Chart SEO landing guard passed.");
 console.log("- static /chart metadata, one H1, and page-local no-Wiki/no-DB shell markers are intact");
 console.log("- Hero is followed immediately by the form workspace; report/content sections follow the form");
-console.log("- sample WebP, alt/caption, three-node schema, and exactly three fixed content links are present");
+console.log("- sample WebP, alt/caption, three-node schema, and exactly two selected R3 content links are present");
 console.log("- ChartForm anchor/aria contract and check:project ordering are intact");

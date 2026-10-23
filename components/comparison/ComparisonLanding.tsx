@@ -1,6 +1,6 @@
 import { R3ApprovedInlineParagraphs } from "@/components/r3-approved-visible-copy";
 import Image from "next/image";
-import Link from "next/link";
+
 
 import { siteConfig } from "@/lib/config/seo";
 import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
@@ -205,12 +205,6 @@ export async function ComparisonLanding() {
         <p>
           به این روش <strong>سیناستری</strong> یا <strong>چارت سیناستری</strong> گفته می‌شود.
         </p>
-        <p>
-          برای مثال، ممکن است بعضی ارتباط‌ها با احساس نزدیکی و درک عاطفی همراه باشند و بعضی دیگر اختلاف در شیوهٔ حرف زدن، واکنش نشان دادن یا نزدیک شدن را برجسته کنند.
-        </p>
-        <p>
-          به همین دلیل هالیوس رابطه را با یک برچسب «خوب» یا «بد» خلاصه نمی‌کند. هدف <strong>تحلیل رابطه با چارت تولد</strong> این است که الگوهای مهم میان دو نفر واضح‌تر شوند.
-        </p>
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="چارت ازدواج چیست؟" />
       </section>
 
@@ -218,9 +212,6 @@ export async function ComparisonLanding() {
         <div className={styles.sectionHeading}>
           <span className={styles.eyebrow}>داخل گزارش</span>
           <h2 id="compare-output-title">در تحلیل چارت ازدواج چه چیزهایی می‌بینید؟</h2>
-          <p>
-            گزارش هالیوس ارتباط‌های مهم میان دو چارت را پیدا می‌کند و آن‌ها را در چند موضوع اصلی توضیح می‌دهد.
-          </p>
         </div>
         <div className={styles.outputGrid}>
           {relationshipAreas.map((item, index) => (
@@ -301,12 +292,6 @@ export async function ComparisonLanding() {
             </article>
           ))}
         </div>
-        <p>
-          برای هر ارتباط مشخص است کدام سیاره متعلق به کدام نفر است. همچنین در <strong>چرخ دوگانه چارت تولد</strong> می‌توانید هر دو چارت و ارتباط‌های مهم میان آن‌ها را به شکل بصری ببینید.
-        </p>
-        <p>
-          این بخش برای کسانی است که می‌خواهند علاوه بر متن گزارش، ساختار فنی چارت را هم بررسی کنند.
-        </p>
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="بخش فنی چارت سیناستری" />
       </section>
 
@@ -317,13 +302,9 @@ export async function ComparisonLanding() {
           <p>
           اگر ساعت تولد یکی از شما نامعلوم است، هنوز بخش‌هایی از سیناستری قابل بررسی‌اند. جای بسیاری از سیاره‌ها و ارتباط‌های میان آن‌ها بدون ساعت دقیق هم به دست می‌آیند؛ اما رایزینگ، محورهای حساس و هم‌پوشانی خانه‌های دو نفر به زمان دقیق وابسته‌اند.
         </p>
-          <p>
-            هالیوس ساعت نامشخص را با یک ساعت ساختگی جایگزین نمی‌کند. در عوض فقط از اطلاعاتی استفاده می‌شود که با داده‌های موجود قابل محاسبه‌اند.
-          </p>
         </div>
         <div className={styles.methodCard}>
           <strong>ساعت دقیق جزئیات بیشتری باز می‌کند.</strong>
-          <p>بعضی بخش‌های چارت به ساعت دقیق تولد وابسته‌اند؛ اگر ساعت را می‌دانید آن را وارد کنید.</p>
         </div>
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="سیناستری بدون ساعت تولد" />
       </section>
@@ -335,29 +316,12 @@ export async function ComparisonLanding() {
           <p>
           طالع‌بینی ازدواج با اسم دو طرف، ابجد یا اسم مادر، روشی متفاوت از سیناستری است. هالیوس برای محاسبهٔ سیناستری به اسم افراد امتیاز نمی‌دهد؛ مبنا، دو چارت تولد و ارتباط‌های میان آن‌هاست. حتی دو نفر با اسم یکسان می‌توانند چارت‌های تولد کاملاً متفاوتی داشته باشند.
         </p>
-          <p>
-            این روش با چیزی که در هالیوس انجام می‌شود یکی نیست. در هالیوس، نتیجه بر اساس اسم افراد ساخته نمی‌شود؛ تاریخ تولد و در صورت وجود ساعت و محل تولد هر دو نفر گرفته می‌شود، دو چارت تولد محاسبه می‌شوند و سپس ارتباط میان آن‌ها بررسی می‌شود.
-          </p>
         </div>
         <div className={styles.methodCard}>
           <strong>طالع بینی ازدواج با اسم دو طرف یک روش متفاوت است.</strong>
           <p>سیناستری بر اساس ساختار دو چارت تولد و ارتباط میان آن‌ها انجام می‌شود.</p>
         </div>
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="فرق چارت ازدواج با طالع‌بینی ازدواج با اسم چیست؟" />
-      </section>
-
-
-
-      <section className={styles.learningSection} aria-labelledby="compare-learning-title">
-        <div>
-          <span className={styles.eyebrow}>برای فهم بیشتر</span>
-          <h2 id="compare-learning-title">اصطلاحات چارت را در ویکی هالیوس دنبال کنید</h2>
-          <p>اگر قبل یا بعد از تحلیل به توضیح مفاهیم پایه نیاز داشتید، بخش آموزشی هالیوس جدا از ابزار در دسترس است.</p>
-        </div>
-        <div className={styles.linkGrid}>
-          <Link href="/wiki">مطالعه در ویکی هالیوس</Link>
-          <Link href="/chart">ساخت چارت تولد</Link>
-        </div>
       </section>
 
       <section className={styles.section} aria-labelledby="compare-faq-title">
@@ -379,9 +343,6 @@ export async function ComparisonLanding() {
         <div>
           <span className={styles.eyebrow}>رابطه‌تان را از زاویهٔ دیگری ببینید</span>
           <h2 id="compare-final-title">الگوهای میان دو چارت را واضح‌تر ببینید</h2>
-          <p>
-            بعضی الگوها در یک رابطه بارها تکرار می‌شوند. با <strong>مقایسه دو چارت تولد</strong> می‌توانید آن‌ها را واضح‌تر ببینید؛ نه برای اینکه چارت دربارهٔ آیندهٔ رابطه تصمیم بگیرد، بلکه برای اینکه رابطه را بهتر بشناسید.
-          </p>
         </div>
         <ComparisonBuilderLink className={styles.primaryButton}>
           ساخت چارت ازدواج رایگان
