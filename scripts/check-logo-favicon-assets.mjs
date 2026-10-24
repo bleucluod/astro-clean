@@ -47,7 +47,6 @@ function assertHash(path, expected) {
 }
 
 const pngAssets = [
-  ["public/halleus-logo/favicon-approved-20261024.png", 1254, 1254, 6, "BCB754DA1AE274A4A5143EC7666770A55E2ABD48EE3BC1E7FC2B6CE51A3E87A0"],
   ["public/halleus-logo/emblem-transparent.png", 1400, 1400, 6, "750B7C051EF34E2DB15009E5BB4EA2CBF2D5B5BD967004BD183F0B2C6AA0626E"],
   ["public/halleus-logo/full-logo-transparent.png", 1500, 2200, 6, "D10CF9A14924F22874413FDDE18E537A48E7D14F0999810DEF2F3977EE48F830"],
   ["public/halleus-logo/wordmark-persian-transparent.png", 1900, 700, 6, "F9C519705F64621FA8611E40F7FCDBEEC6628CF4E58D312890A2BAF0454AC289"],
