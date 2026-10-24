@@ -47,6 +47,7 @@ function assertHash(path, expected) {
 }
 
 const pngAssets = [
+  ["public/halleus-logo/favicon-approved-20261024.png", 1254, 1254, 6, "BCB754DA1AE274A4A5143EC7666770A55E2ABD48EE3BC1E7FC2B6CE51A3E87A0"],
   ["public/halleus-logo/emblem-transparent.png", 1400, 1400, 6, "750B7C051EF34E2DB15009E5BB4EA2CBF2D5B5BD967004BD183F0B2C6AA0626E"],
   ["public/halleus-logo/full-logo-transparent.png", 1500, 2200, 6, "D10CF9A14924F22874413FDDE18E537A48E7D14F0999810DEF2F3977EE48F830"],
   ["public/halleus-logo/wordmark-persian-transparent.png", 1900, 700, 6, "F9C519705F64621FA8611E40F7FCDBEEC6628CF4E58D312890A2BAF0454AC289"],
@@ -56,15 +57,15 @@ const pngAssets = [
   ["public/halleus-logo/symbol-transparent-black.png", 1400, 1400, 6, "750B7C051EF34E2DB15009E5BB4EA2CBF2D5B5BD967004BD183F0B2C6AA0626E"],
   ["public/halleus-logo/wordmark-bilingual-transparent-white.png", 1900, 950, 6, "6ABACC86FE815239255DEA207255D564A22C08B9A8664EBC1A957C562A8D2B04"],
   ["public/halleus-logo/wordmark-bilingual-transparent-black.png", 1900, 950, 6, "36501400793983181E9B18222FF28951D6ECEA3BCE75756062FAD75CE6BDF2F5"],
-  ["public/halleus-logo/favicon-32x32.png", 32, 32, 6, "2073CF3CEB3B6AC19E9C1B57E8B1D920BCA3507F497EACD47E3148F97DE97E9D"],
-  ["public/halleus-logo/favicon-192x192.png", 192, 192, 6, "B8AB97A0716C76D1F890A8E91FFF446E943F6BBECAA173BE7850B6E3A2A01D27"],
-  ["public/halleus-logo/favicon-512x512.png", 512, 512, 6, "18D3B7FA70FD7602FA834630016EF9CB0D4408734998E4EDAFAEA67533C514F1"],
+  ["public/halleus-logo/favicon-32x32.png", 32, 32, 6, "305091222B657509A2FC1197E0E47610E443CDA8F256C465C13FCAE7F0F99F28"],
+  ["public/halleus-logo/favicon-192x192.png", 192, 192, 6, "B95AB0A427E3668C62611B2A8A213D66597B6A500FC2A1E1266FA91726FFB098"],
+  ["public/halleus-logo/favicon-512x512.png", 512, 512, 6, "4C9909521890DC98B84F37BB9BC5D3BE0858BAFF8B366AAB88BDF99C86387BA8"],
   ["public/halleus-logo/social-share-light-1200x630.png", 1200, 630, 2, "EA1AFB3BDB7B9B80B86626B11B1A49C1468E3E7BF547C7480AC9C48B18819E27"],
   ["public/halleus-logo/social-share-dark-1200x630.png", 1200, 630, 2, "FF32368AF782E02D924D57F8CF1E412B58BD361E971AB7D7FE06DDA363A11379"],
-  ["public/apple-touch-icon.png", 180, 180, 6, "FEF69C362E6AA86D213AB56AF0EDF3CCD129B29AB305EE047B1529A3BD9F57EA"],
-  ["app/apple-icon.png", 180, 180, 6, "FEF69C362E6AA86D213AB56AF0EDF3CCD129B29AB305EE047B1529A3BD9F57EA"],
-  ["public/icon.png", 512, 512, 6, "18D3B7FA70FD7602FA834630016EF9CB0D4408734998E4EDAFAEA67533C514F1"],
-  ["app/icon.png", 512, 512, 6, "18D3B7FA70FD7602FA834630016EF9CB0D4408734998E4EDAFAEA67533C514F1"],
+  ["public/apple-touch-icon.png", 180, 180, 6, "C07E2A650B66090758BFDBFDA7339E6EC992E38C45A58E74EBB491CBAAAB93F3"],
+  ["app/apple-icon.png", 180, 180, 6, "C07E2A650B66090758BFDBFDA7339E6EC992E38C45A58E74EBB491CBAAAB93F3"],
+  ["public/icon.png", 512, 512, 6, "4C9909521890DC98B84F37BB9BC5D3BE0858BAFF8B366AAB88BDF99C86387BA8"],
+  ["app/icon.png", 512, 512, 6, "4C9909521890DC98B84F37BB9BC5D3BE0858BAFF8B366AAB88BDF99C86387BA8"],
 ];
 
 for (const [path, width, height, colorType, hash] of pngAssets) {
@@ -76,7 +77,7 @@ for (const [path, width, height, colorType, hash] of pngAssets) {
 for (const path of ["public/favicon.ico", "app/favicon.ico"]) {
   assertFile(path);
   assertIco(path);
-  assertHash(path, "A364E1C0BE50A1EAE843AA1E9F3D8D1FC6E9A1C589475AFE6AC90E10979CB3C5");
+  assertHash(path, "CC57A9B704441677E96931C5CCB61637A3D79264D14099A284EBC70B7ADCD5A0");
 }
 
 const header = read("components/SiteHeader.tsx");
@@ -85,9 +86,15 @@ const styles = read("components/app-shell.module.css");
 const layout = read("app/layout.tsx");
 const manifest = read("app/manifest.ts");
 
+// The current header uses separate white assets; the approved footer uses
+// the complete horizontal lockup with a white filter, not separate images.
+mustContain("dark header", header, "/halleus-logo/symbol-transparent-white.png");
+mustContain("dark header", header, "/halleus-logo/wordmark-bilingual-transparent-white.png");
+mustContain("mobile header", header, "/halleus-logo/symbol-dark-final-20260804.png");
+mustContain("approved footer lockup", shell, "/halleus-logo/logo-horizontal-bilingual-final-20260804.png");
+mustContain("approved footer lockup", shell, 'data-logo-variant="approved-final"');
+mustContain("white footer lockup", shell, 'filter: "brightness(0) invert(1)"');
 for (const source of [header, shell]) {
-  mustContain("dark site chrome", source, "/halleus-logo/symbol-transparent-white.png");
-  mustContain("dark site chrome", source, "/halleus-logo/wordmark-bilingual-transparent-white.png");
   mustNotContain("dark site chrome", source, "data-logo-variant=\"dark\"");
 }
 
@@ -111,7 +118,7 @@ for (const token of [
 ]) mustContain("web app manifest", manifest, token);
 
 console.log("Final Halleus brand asset check passed.");
-console.log("- dark header and footer use transparent white symbol and bilingual wordmark assets");
+console.log("- dark header uses white symbol/wordmark; footer retains the approved inverted horizontal lockup");
 console.log("- matching transparent black variants remain available for light surfaces");
 console.log("- favicon, app, Apple, transparent, and social assets match approved package hashes");
 console.log("- PNG dimensions, alpha expectations, manifest, and social metadata are verified");
