@@ -1,0 +1,118 @@
+{
+  "schema": "HALLEUS_R3_BATCH02_MANIFEST_V1",
+  "state": "USER_APPROVED_CONTENT_RELEASE_READY",
+  "archive_sha256": "6557efc1315ba214ce0f70be3b7dbdbb3d88cdab7cd6dc7cae15b75725bc8274",
+  "approval_state_head": "6952fd004ae3d3456afa2baedb0cbccd406cff21",
+  "records": [
+    {
+      "id": "W018",
+      "slug": "birth-time-rectification",
+      "source_version": 2,
+      "selected_links": 5,
+      "native_sections": 30,
+      "article_record_sha256": "21bae8ed5d8d8de13bb73ff73e11f3bf142b764199f7f456598285ee056cabf8",
+      "artifact_sha256": "afadceaf0791fae2491f93c05e4bd91fb96dd56baf33c01da540ac5f6e2cc069",
+      "related_links": 0,
+      "file": "content/r3-batch02/wiki/W018.json"
+    },
+    {
+      "id": "W019",
+      "slug": "find-exact-birth-time",
+      "source_version": 4,
+      "selected_links": 5,
+      "native_sections": 27,
+      "article_record_sha256": "8fdfef818ad17e46dd689c0f3532c00524f463f2fbf060714d73f74c66827d9b",
+      "artifact_sha256": "b10da265c31b767c6ed7ce0bab86aef3df5244ed84881cbb7944aa16b150354a",
+      "related_links": 0,
+      "file": "content/r3-batch02/wiki/W019.json"
+    },
+    {
+      "id": "W020",
+      "slug": "birth-chart-without-birth-time",
+      "source_version": 7,
+      "selected_links": 6,
+      "native_sections": 31,
+      "article_record_sha256": "60062ce6600f04c629da92baeae22827e66655cc5f72bf75439b4fe735d89f4d",
+      "artifact_sha256": "dbac0b15bd923ebb88cfd4f2ff7af9a66801c13fd5a263e9e0910f4d655d3f33",
+      "related_links": 0,
+      "file": "content/r3-batch02/wiki/W020.json"
+    },
+    {
+      "id": "W021",
+      "slug": "tehran-birth-chart-difference",
+      "source_version": 8,
+      "selected_links": 4,
+      "native_sections": 34,
+      "article_record_sha256": "a948fa5fb5ea75894380f91964cf4553d1e31bf984047d24a59f7ae16e123582",
+      "artifact_sha256": "acf1e35cf05d6b088d77c4f2e6038a67c87b53d3456e9afa96bcca5600b8b1de",
+      "related_links": 0,
+      "file": "content/r3-batch02/wiki/W021.json"
+    },
+    {
+      "id": "W022",
+      "slug": "why-birth-city-matters",
+      "source_version": 8,
+      "selected_links": 6,
+      "native_sections": 26,
+      "article_record_sha256": "3be01b4d3e48f9fb79b23e3d7d636bb1c4cdab54f80e1b39d29b484e5e8b6f08",
+      "artifact_sha256": "e5e7a31b0255b2e6b2e9ceef775866e611646a43be4566cf955bb56a7b920289",
+      "related_links": 0,
+      "file": "content/r3-batch02/wiki/W022.json"
+    },
+    {
+      "id": "W023",
+      "slug": "exact-birth-date-astrology",
+      "source_version": 4,
+      "selected_links": 5,
+      "native_sections": 24,
+      "article_record_sha256": "f327f3d6b227ec75090f231eb77032e8c4eebaaffc2d1d4dbd7c02b521e466bc",
+      "artifact_sha256": "3feb7e72edb12da51bbec550abdbfe6563b39f9ede8d7082b8673f0ba476bc63",
+      "related_links": 0,
+      "file": "content/r3-batch02/wiki/W023.json"
+    },
+    {
+      "id": "W024",
+      "slug": "what-is-tropical-astrology",
+      "source_version": 10,
+      "selected_links": 7,
+      "native_sections": 32,
+      "article_record_sha256": "8120a9670645c7a0e1a0682bb6a420e458d915656da77076cc38b1c834ee846a",
+      "artifact_sha256": "d615972a0cddfb1ff1f32e8c77ecfea9e7e9aa623df0abadfe773da2ef546fd7",
+      "related_links": 0,
+      "file": "content/r3-batch02/wiki/W024.json"
+    },
+    {
+      "id": "W025",
+      "slug": "what-is-vedic-astrology",
+      "source_version": 11,
+      "selected_links": 6,
+      "native_sections": 34,
+      "article_record_sha256": "3df5894f6d57de8aca7426dc063f539480b4d4c61a4d7b5b51cb8beba531bcdf",
+      "artifact_sha256": "43a5835125b2948ebf441e4210f4a4eb99bb4c20b778b7acf1c83422287dea8d",
+      "related_links": 5,
+      "file": "content/r3-batch02/wiki/W025.json"
+    },
+    {
+      "id": "W026",
+      "slug": "what-is-sidereal-astrology",
+      "source_version": 8,
+      "selected_links": 6,
+      "native_sections": 24,
+      "article_record_sha256": "0970baf0dcb8ac7f3ad8c445ab03aa5e352984f0f0549b8f6258c9280955f912",
+      "artifact_sha256": "c1bc16efd9ecdec4c3e66e276dec2e4fb81e45122e6f4dff678f004d0d506a04",
+      "related_links": 5,
+      "file": "content/r3-batch02/wiki/W026.json"
+    },
+    {
+      "id": "W027",
+      "slug": "free-vedic-birth-chart",
+      "source_version": 5,
+      "selected_links": 5,
+      "native_sections": 23,
+      "article_record_sha256": "60c5ea7f5481420dc883f342891ae78f5113bf47a2b1939ce884fcd18b42f4dc",
+      "artifact_sha256": "2ca5b201bfa0c761d212e5ed277a69fa2f646cbc2e105307357727543c84f6ec",
+      "related_links": 4,
+      "file": "content/r3-batch02/wiki/W027.json"
+    }
+  ]
+}
