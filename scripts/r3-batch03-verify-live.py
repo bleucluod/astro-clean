@@ -86,7 +86,7 @@ def check(doc,markup):
         if i>=len(p.sections):break
         media_matches=[IMAGE_MARKDOWN.fullmatch(x) for x in section['paragraphs']]
         expected_paragraphs=[x for x,m in zip(section['paragraphs'],media_matches) if not m]
-        expected_images=[(m.group(2),m.group(1)) for m in media_matches if m]
+        expected_images=[(m.group(2),m.group(1)) for m in media_matches if m]+[(media['src'],media['alt']) for media in section.get('media',[])]
         for field,expected in (('h2',[section['title']]),('p',expected_paragraphs),('li',section.get('bullets',[]))):
             got=[norm(x) for x in p.sections[i][field]]
             if got!=[norm(plain(x)) for x in expected]:bad.append(f'section[{i}].{field} parity mismatch')
@@ -113,7 +113,7 @@ def fixture(doc):
         if m:return '<figure><img alt="'+html.escape(m.group(1),quote=True)+'" src="'+html.escape(m.group(2),quote=True)+'"></figure>'
         return f'<p>{render(t)}</p>'
     for section in c['sections']:
-        s+=['<section><h2>'+html.escape(section['title'])+'</h2>']+[render_paragraph(t) for t in section['paragraphs']]+[f'<li>{render(t)}</li>' for t in section.get('bullets',[])]+['</section>']
+        s+=['<section><h2>'+html.escape(section['title'])+'</h2>']+[render_paragraph(t) for t in section['paragraphs']]+[f'<li>{render(t)}</li>' for t in section.get('bullets',[])]+['<figure><img alt="'+html.escape(m['alt'],quote=True)+'" src="'+html.escape(m['src'],quote=True)+'"></figure>' for m in section.get('media',[])]+['</section>']
     if c['sources']:s+=['<section><h2>منابع و مطالعهٔ بیشتر</h2></section>']
     return ''.join(s+['</div></article></body></html>'])
 
@@ -128,11 +128,11 @@ def main():
             if not check(d,markup.replace('id="wiki-article-body"','id="bad"'))[0]:failures.append((i,'failed missing-body negative'))
             if not check(d,markup.replace('href="/chart"','href="/wrong"'))[0]:failures.append((i,'failed anchor negative'))
             if not check(d,markup.replace(html.escape(d['content']['meta_description'],quote=True),'INVALID',1))[0]:failures.append((i,'failed meta negative'))
-            if any(IMAGE_MARKDOWN.fullmatch(t) for sec in d['content']['sections'] for t in sec['paragraphs']):
+            if any(sec.get('media') or any(IMAGE_MARKDOWN.fullmatch(t) for t in sec['paragraphs']) for sec in d['content']['sections']):
                 if not check(d,markup.replace('src="https://halleus.ir/storage/v1/object/public/wiki-media/', 'src="/wrong/',1))[0]:failures.append((i,'failed image src negative'))
                 if not check(d,markup.replace('alt="', 'alt="WRONG ',1))[0]:failures.append((i,'failed image alt negative'))
         if failures:sys.exit('FAIL | fixtures '+repr(failures[:6]))
-        print('PASS | SELF_CHECK 30 real native records + missing-body, anchor and SEO negative fixtures; no network')
+        print('PASS | SELF_CHECK 30 real native records + approved inline/native media, missing-body, anchor, SEO and media negative fixtures; no network')
         return
     if sys.argv[1:]!=['--live']:sys.exit('Usage: --self-check | --live')
     failures=0
