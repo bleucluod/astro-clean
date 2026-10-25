@@ -14,6 +14,7 @@ IDS = tuple(f'W{x:03}' for x in range(28,58))
 SKIP={'script','style','svg','noscript','template'}
 VOID={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
 TOKEN=re.compile(r'\[\[(article|page):([^\]\|]+)\|([^\]]+)\]\]')
+IMAGE_MARKDOWN=re.compile(r'^!\[([^\]\r\n]{1,220})\]\((https://halleus\.ir/storage/v1/object/public/wiki-media/[a-f0-9]{2}/[a-f0-9]{64}\.webp)\)$')
 
 def norm(s):return re.sub(r'\s+', '', html.unescape(str(s)).replace('\u200e','').replace('\u200f',''))
 def plain(s):return TOKEN.sub(lambda m:m.group(3),s)
@@ -30,10 +31,13 @@ class ArticleParser(HTMLParser):
         inside=self.within('wiki-article-content') or aid=='wiki-article-content'
         bodysec=self.within('wiki-article-body') and tag=='section' and bool(self.stack) and self.stack[-1]['id']=='wiki-article-body'
         if tag not in VOID:self.stack.append({'tag':tag,'id':aid,'section':len(self.sections) if bodysec else None})
-        if bodysec:self.sections.append({'h2':[],'p':[],'li':[]})
+        if bodysec:self.sections.append({'h2':[],'p':[],'li':[],'img':[]})
         if aid=='wiki-article-content':self.main_found=True
         if aid=='wiki-article-body':self.body_found=True
         if self.skipped():return
+        if inside and tag=='img':
+            section=next((x['section'] for x in reversed(self.stack) if x['section'] is not None),None)
+            if section is not None:self.sections[section]['img'].append((attrs.get('src',''),attrs.get('alt','')))
         if tag=='title':self.active.append({'tag':tag,'kind':'title','buf':[],'section':None,'href':''})
         if inside and tag in ('h1','h2','p','li','a'):
             section=next((x['section'] for x in reversed(self.stack) if x['section'] is not None),None)
@@ -70,7 +74,7 @@ def check(doc,markup):
     if p.canonical.rstrip('/')!=doc['expected_url']:bad.append('canonical')
     if norm(c['title']) not in [norm(x) for x in p.h1]:bad.append('H1')
     visible=norm(''.join(p.main))
-    blocks=[c['intro'],*c['key_points'],*[v for section in c['sections'] for v in [section['title'],*section['paragraphs'],*section.get('bullets',[])] ]]
+    blocks=[c['intro'],*c['key_points'],*[v for section in c['sections'] for v in [section['title'],*[x for x in section['paragraphs'] if not IMAGE_MARKDOWN.fullmatch(x)],*section.get('bullets',[])] ]]
     cursor=0
     for i,b in enumerate(blocks):
         expected=norm(plain(b));n=visible.find(expected,cursor)
@@ -80,9 +84,13 @@ def check(doc,markup):
     if len(p.sections)!=required_sections:bad.append(f'body native section count {len(p.sections)} != {required_sections}')
     for i,section in enumerate(c['sections']):
         if i>=len(p.sections):break
-        for field,expected in (('h2',[section['title']]),('p',section['paragraphs']),('li',section.get('bullets',[]))):
+        media_matches=[IMAGE_MARKDOWN.fullmatch(x) for x in section['paragraphs']]
+        expected_paragraphs=[x for x,m in zip(section['paragraphs'],media_matches) if not m]
+        expected_images=[(m.group(2),m.group(1)) for m in media_matches if m]
+        for field,expected in (('h2',[section['title']]),('p',expected_paragraphs),('li',section.get('bullets',[]))):
             got=[norm(x) for x in p.sections[i][field]]
             if got!=[norm(plain(x)) for x in expected]:bad.append(f'section[{i}].{field} parity mismatch')
+        if p.sections[i]['img']!=expected_images:bad.append(f'section[{i}].img parity mismatch')
     if c['sources'] and len(p.sections)>len(c['sections']):
         if [norm(x) for x in p.sections[-1]['h2']]!=[norm('منابع و مطالعهٔ بیشتر')]:bad.append('sources heading')
     found=[(urlsplit(url).path,norm(label)) for url,label,sec in p.links]
@@ -100,8 +108,12 @@ def fixture(doc):
         return TOKEN.sub(lambda m:f'<a href="'+('/wiki/'+m.group(2) if m.group(1)=='article' else m.group(2))+'">'+m.group(3)+'</a>',x)
     # Actual real UI renders intro as one paragraph; explicit newline stays in the paragraph text.
     s+=['<p>'+render(c['intro'])+'</p>','<section><h2>خلاصهٔ مقاله</h2><ul>']+[f'<li>{render(k)}</li>' for k in c['key_points']]+['</ul></section>','<div id="wiki-article-body">']
+    def render_paragraph(t):
+        m=IMAGE_MARKDOWN.fullmatch(t)
+        if m:return '<figure><img alt="'+html.escape(m.group(1),quote=True)+'" src="'+html.escape(m.group(2),quote=True)+'"></figure>'
+        return f'<p>{render(t)}</p>'
     for section in c['sections']:
-        s+=['<section><h2>'+html.escape(section['title'])+'</h2>']+[f'<p>{render(t)}</p>' for t in section['paragraphs']]+[f'<li>{render(t)}</li>' for t in section.get('bullets',[])]+['</section>']
+        s+=['<section><h2>'+html.escape(section['title'])+'</h2>']+[render_paragraph(t) for t in section['paragraphs']]+[f'<li>{render(t)}</li>' for t in section.get('bullets',[])]+['</section>']
     if c['sources']:s+=['<section><h2>منابع و مطالعهٔ بیشتر</h2></section>']
     return ''.join(s+['</div></article></body></html>'])
 
@@ -116,6 +128,9 @@ def main():
             if not check(d,markup.replace('id="wiki-article-body"','id="bad"'))[0]:failures.append((i,'failed missing-body negative'))
             if not check(d,markup.replace('href="/chart"','href="/wrong"'))[0]:failures.append((i,'failed anchor negative'))
             if not check(d,markup.replace(html.escape(d['content']['meta_description'],quote=True),'INVALID',1))[0]:failures.append((i,'failed meta negative'))
+            if any(IMAGE_MARKDOWN.fullmatch(t) for sec in d['content']['sections'] for t in sec['paragraphs']):
+                if not check(d,markup.replace('src="https://halleus.ir/storage/v1/object/public/wiki-media/', 'src="/wrong/',1))[0]:failures.append((i,'failed image src negative'))
+                if not check(d,markup.replace('alt="', 'alt="WRONG ',1))[0]:failures.append((i,'failed image alt negative'))
         if failures:sys.exit('FAIL | fixtures '+repr(failures[:6]))
         print('PASS | SELF_CHECK 30 real native records + missing-body, anchor and SEO negative fixtures; no network')
         return

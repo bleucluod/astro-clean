@@ -69,6 +69,13 @@ export function WikiInlineText({
   });
 }
 
+const TRUSTED_WIKI_INLINE_IMAGE = /^!\[([^\]\r\n]{1,220})\]\((https:\/\/halleus\.ir\/storage\/v1\/object\/public\/wiki-media\/[a-f0-9]{2}\/[a-f0-9]{64}\.webp)\)$/;
+
+function wikiInlineImage(paragraph: string): { alt: string; src: string } | null {
+  const match = paragraph.match(TRUSTED_WIKI_INLINE_IMAGE);
+  return match ? { alt: match[1], src: match[2] } : null;
+}
+
 // HALLEUS_WIKI_KEY_POINTS_COUNT_V12
 export function WikiKeyPoints({
   keyPoints,
@@ -125,11 +132,19 @@ export function WikiArticleBody({
       {sections.map((section) => (
         <section className={styles.bodySection} key={section.title}>
           <h2>{section.title}</h2>
-          {section.paragraphs.map((paragraph) => (
-            <p key={paragraph}>
-              <WikiInlineText text={paragraph} targets={targets} />
-            </p>
-          ))}
+          {section.paragraphs.map((paragraph) => {
+            const image = wikiInlineImage(paragraph);
+            return image ? (
+              <figure className={styles.articleMedia} key={paragraph}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img alt={image.alt} loading="lazy" src={image.src} />
+              </figure>
+            ) : (
+              <p key={paragraph}>
+                <WikiInlineText text={paragraph} targets={targets} />
+              </p>
+            );
+          })}
           {section.bullets?.length ? (
             <ul className={styles.bodyList}>
               {section.bullets.map((bullet) => (

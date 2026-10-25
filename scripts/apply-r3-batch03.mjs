@@ -28,7 +28,7 @@ for(const entry of manifest.records){
   if(doc.schema!=='HALLEUS_R3_BATCH03_NATIVE_V1'||doc.page_id!==entry.id||doc.approved_file_sha256!==entry.artifact_sha256||doc.baseline_content_version!==entry.source_version||d.content_version!==entry.source_version||d.slug!==entry.slug||d.stable_id!==d.slug||doc.expected_url!==`https://halleus.ir/wiki/${d.slug}`)throw Error('article identity/version/approval hash');
   if(!d.title||!d.seo_title||!d.meta_description||!d.summary||!d.intro||d.sections.length<5||!Array.isArray(d.key_points)||!Array.isArray(d.context_links)||d.context_links.length||!Array.isArray(d.related_article_ids)||!Array.isArray(d.related_slugs))throw Error('native fields invalid');
   if(d.sections.some(s=>!s.title||!Array.isArray(s.paragraphs)||s.paragraphs.some(x=>typeof x!=='string')||(s.bullets&&!Array.isArray(s.bullets))))throw Error('native sections invalid');
-  if(compact(structureOf(d))!==compact(d.body_markdown)||sha(d.body_markdown.trim())!==doc.approved_body_sha256)throw Error('full source/body parity failed');
+  if(compact(structureOf(d))!==compact(d.body_markdown))throw Error('full source/body parity failed');
 
   const approvedBody=doc.content.body_markdown.trim()+(doc.approved_body_digest_mode==='trailing_newline'?'\n':'');
   if(!['trimmed','trailing_newline'].includes(doc.approved_body_digest_mode)||sha(approvedBody)!==doc.approved_body_sha256)throw Error('approved body digest mismatch');
@@ -39,13 +39,17 @@ for(const entry of manifest.records){
   const actual=tokensOf(textOf(d)),approved=doc.selected_exact_tokens;
   if(actual.length!==entry.selected_links||actual.length!==approved.length||doc.selected_edges.length!==approved.length||approved.some(x=>actual.filter(y=>x===y).length!==1)||actual.some(x=>!approved.includes(x))||doc.selected_edges.some((v,i)=>v.token!==approved[i])||!actual[0]?.startsWith('[[page:/chart|'))throw Error('exact contextual outgoing links mismatch');
   if(d.related_article_ids.length!==entry.related_links)throw Error('related-link preservation mismatch');
-  for(const value of d.sections.flatMap(x=>[...x.paragraphs,...(x.bullets||[])]))if(/\*\*|`|\[([^\]]+)\]\([^)]+\)/.test(value))throw Error('unsupported native inline markdown');
+  const nativeImage=/^!\[([^\]\r\n]{1,220})\]\((https:\/\/halleus\.ir\/storage\/v1\/object\/public\/wiki-media\/[a-f0-9]{2}\/[a-f0-9]{64}\.webp)\)$/;
+  for(const value of d.sections.flatMap(x=>[...x.paragraphs,...(x.bullets||[])])){
+    if(nativeImage.test(value))continue;
+    if(/\*\*|`|\[([^\]]+)\]\([^)]+\)/.test(value))throw Error('unsupported native inline markdown');
+  }
   docs.push(doc);
  }catch(e){bad.push(entry.id+': '+e.message);}
 }
 if(bad.length){for(const item of bad)console.error('CANDIDATE_FAILURE | '+item);throw Error('CANDIDATE_FAILURE | '+bad.length+' independent article failures');}
 const total=docs.reduce((n,d)=>n+d.selected_exact_tokens.length,0);
-if(total!==161)throw Error('SAFETY_FATAL: selected links not 55');
+if(total!==161)throw Error('SAFETY_FATAL: selected links not 161');
 console.log('PASS | APPROVED_NATIVE_ARTIFACTS=30 EXACT_LINKS=161 SHA256_MATCH FULL_TEXT_NATIVE_PARITY');
 const fields=['title','seo_title','meta_description','summary','intro','key_points','sections','body_markdown','context_links','related_article_ids','related_slugs'];
 function expected(doc){const d=doc.content;return Object.fromEntries(fields.map(k=>[k,d[k]]));}
