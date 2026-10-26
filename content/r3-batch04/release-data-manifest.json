@@ -1,0 +1,529 @@
+{
+  "schema": "HALLEUS_R3_BATCH04_MANIFEST_V1",
+  "archive_sha256": "6557efc1315ba214ce0f70be3b7dbdbb3d88cdab7cd6dc7cae15b75725bc8274",
+  "approved_source_commit": "f13ce25b208fcda5f66e1de1366e7350d9f1d9e3",
+  "release_approval": "User explicit release authorization: 2026-10-26, 'taeede. tu github doros kon command bede tu vps bezanam bere ru site.'",
+  "scope": {
+    "first": "W058",
+    "last": "W107",
+    "count": 50
+  },
+  "known_approved_link_order_exception": {
+    "page_id": "W065",
+    "first_link": "[[page:/sky|وضعیت ستاره شناسی امروز]]",
+    "second_link": "[[page:/chart|چارت تولد آنلاین]]",
+    "note": "Exact user-approved source preserved; first-body-link=/chart editorial rule has an unresolved exception; release checker must surface this explicitly."
+  },
+  "known_missing_state_link_ids_recovered": {
+    "page_id": "W087",
+    "edge_ids": [
+      "E0358",
+      "E0375",
+      "E0419",
+      "E1234"
+    ],
+    "source": "frozen R3 link plan, cross-checked to exact selected tokens"
+  },
+  "records": [
+    {
+      "id": "W058",
+      "slug": "sun-in-natal-chart",
+      "source_version": 1,
+      "file": "content/r3-batch04/wiki/W058.json",
+      "article_record_git_blob_sha1": "15bd445e7b6082c5c3c4e0929e273ba1763b15d9",
+      "artifact_sha256": "53c076cd3f981469417f6c66e5080e2cd40496ea6b3a4adfcb11cf53c72f888b",
+      "selected_links": 6,
+      "body_sha256": "95c4a71588f9a4d85bbb73081e729c9029ced2c74a3f6ed3c79b5a5367c91f2f"
+    },
+    {
+      "id": "W059",
+      "slug": "saturn-in-natal-chart",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W059.json",
+      "article_record_git_blob_sha1": "40950af84c08ef61f8ed356c7b9c007adf05229e",
+      "artifact_sha256": "cefe22fd62125863d185a1dcf5b94b5325510119379609669369dae707530017",
+      "selected_links": 6,
+      "body_sha256": "8e032e5c6d53e20a0bcac74dc60a8010a99acb5c595944aad2ecf27e5fb246ea"
+    },
+    {
+      "id": "W060",
+      "slug": "venus-in-natal-chart",
+      "source_version": 10,
+      "file": "content/r3-batch04/wiki/W060.json",
+      "article_record_git_blob_sha1": "42f9a1b6f431524fb5295eb1c681106ecc4ccd03",
+      "artifact_sha256": "de1ede81f39f9d29af8a85059a579b49f5836e8586beb83590539080b8882b3a",
+      "selected_links": 7,
+      "body_sha256": "9692595a22981d1ae6f894a434c323a68a084bfa1b3d45361c8d8bcce1f6dfa4"
+    },
+    {
+      "id": "W061",
+      "slug": "pluto-in-houses",
+      "source_version": 1,
+      "file": "content/r3-batch04/wiki/W061.json",
+      "article_record_git_blob_sha1": "7c5764e2ea2abbde36c4d380abe626781f930df1",
+      "artifact_sha256": "28845558c50c4293bd0d4f2b026bb45bfeda9ef419c0d40b89c935aa33f69192",
+      "selected_links": 3,
+      "body_sha256": "eac2ed95f93967ea093d2437a0fc6d85036bf9d9593db543228e4a1e700f96ce"
+    },
+    {
+      "id": "W062",
+      "slug": "north-node-vs-south-node",
+      "source_version": 8,
+      "file": "content/r3-batch04/wiki/W062.json",
+      "article_record_git_blob_sha1": "5b5a9e2de0c6783a616beccd81321539f3f020b3",
+      "artifact_sha256": "d09ad32d25867a3a518d435fa73acc345605bb633ca028a109d6357202b39c53",
+      "selected_links": 6,
+      "body_sha256": "32e8ea8806715df5d6974f4bc329917176f90e2a8004f3eeaf5c257fa9df5372"
+    },
+    {
+      "id": "W063",
+      "slug": "saturn-retrograde-in-natal-chart",
+      "source_version": 1,
+      "file": "content/r3-batch04/wiki/W063.json",
+      "article_record_git_blob_sha1": "c8e4f19f09ec98b6d3f00c1a0bbdbccd92aad55b",
+      "artifact_sha256": "04844acf5b37ee8fdb0b3b4f6845bcbd8d823b23d3e207ecb4ff0f8be8fec0ec",
+      "selected_links": 4,
+      "body_sha256": "9d925d0786decb02a2d73cd6e05fa72c538d53cbdd5cc06eaa72baf1b4a264b3"
+    },
+    {
+      "id": "W064",
+      "slug": "zodiac-sign-ruling-planets",
+      "source_version": 1,
+      "file": "content/r3-batch04/wiki/W064.json",
+      "article_record_git_blob_sha1": "b994c3a526f072d2bc860703637e76288afd8ae7",
+      "artifact_sha256": "bf8eacb9a5f65d93c76104b0c756883b0265b945719a2d108975e63ceb37ecbc",
+      "selected_links": 4,
+      "body_sha256": "6b9db332f11a3457024e1d18b75b1f26d4302e44a2f22a55168f9239840a317b"
+    },
+    {
+      "id": "W065",
+      "slug": "retrograde-planets-explained",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W065.json",
+      "article_record_git_blob_sha1": "2f5aaa2947162591432ef62a77d6a4f31f34aad8",
+      "artifact_sha256": "1a27b7589dfcdaf4442aeb66a5f1c5f3d4a4f904ff33f5cd55e1cdc8ceb3c149",
+      "selected_links": 8,
+      "body_sha256": "5e763e049b24e92313e015cebf667098333ce90a5d26585ba0c57351c1f66626"
+    },
+    {
+      "id": "W066",
+      "slug": "mercury-retrograde-in-natal-chart",
+      "source_version": 1,
+      "file": "content/r3-batch04/wiki/W066.json",
+      "article_record_git_blob_sha1": "6beccd2ed997a51252e9a5e4d44b7787531c0362",
+      "artifact_sha256": "e4ff64b8eea54fe0562c17ae4fd53b80f280a117182aaa3a39bef6eda783c51f",
+      "selected_links": 6,
+      "body_sha256": "8abe2ac2582dce55e75eb9e66696caaa9d8bca986566375b0710a2ac86394806"
+    },
+    {
+      "id": "W067",
+      "slug": "lunar-nodes-in-natal-chart",
+      "source_version": 7,
+      "file": "content/r3-batch04/wiki/W067.json",
+      "article_record_git_blob_sha1": "9e65e6085dc337a3e0c8d10299433056bae7ac25",
+      "artifact_sha256": "e5e87d2707751e80a7ee121ec68d21b60cc3cc570c9fc0a9887cbb7197b2185a",
+      "selected_links": 6,
+      "body_sha256": "5917e922614e02d4a700ce3db8a6720fbe5a42ab7aa4b65473a0baa85ea598c2"
+    },
+    {
+      "id": "W068",
+      "slug": "mars-in-natal-chart",
+      "source_version": 8,
+      "file": "content/r3-batch04/wiki/W068.json",
+      "article_record_git_blob_sha1": "77fb229673f6ffba381fc5bcd3a39e49c127c254",
+      "artifact_sha256": "07b76b97b32a883990f29678f2c8f362161ba8c36adf98380562f8b46e374644",
+      "selected_links": 10,
+      "body_sha256": "39365a3569617bc5ea0e423728a16c265f573f26301a8422fa63a793e5667b93"
+    },
+    {
+      "id": "W069",
+      "slug": "mars-retrograde-in-natal-chart",
+      "source_version": 1,
+      "file": "content/r3-batch04/wiki/W069.json",
+      "article_record_git_blob_sha1": "d05b42201ed4a477c1c1490dedbbb4e4b8d05553",
+      "artifact_sha256": "28e74e335e3526976164f3098a59235c8a7d6a98f34ab0e532110c44c53d56ea",
+      "selected_links": 4,
+      "body_sha256": "a3ee02383b4ba742b43ff470bac3d12d93cc5a8da884dce79afaa42e14b1ec8b"
+    },
+    {
+      "id": "W070",
+      "slug": "jupiter-in-natal-chart",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W070.json",
+      "article_record_git_blob_sha1": "8b54d032da82fb628eaf722b2c5a619c085da432",
+      "artifact_sha256": "ab36b8cd34b8c8bc8fbca163408ec24edef162bb7bf33cdc1fda80aa9c5e732b",
+      "selected_links": 6,
+      "body_sha256": "071774c747fef026e4e291ddef7c0baeee854f2c2c1cc89c626860ea9c30c879"
+    },
+    {
+      "id": "W071",
+      "slug": "neptune-in-natal-chart",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W071.json",
+      "article_record_git_blob_sha1": "a99cfd3103f1c4482879d6a3318025df87849cdb",
+      "artifact_sha256": "b9f2a681bd526480dc247d227d70395d677a449f02ea67a9935bda572e141fa7",
+      "selected_links": 5,
+      "body_sha256": "0067c8c1a3eca856ca8bb42ae2c1a927d81334050f8509a93652bad90b18d57a"
+    },
+    {
+      "id": "W072",
+      "slug": "mean-lilith-vs-true-lilith",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W072.json",
+      "article_record_git_blob_sha1": "d3b8c5a99a011b74045c639586222f2113746f4e",
+      "artifact_sha256": "13c84e243828206b3127172e21a54c1cbc9fe0de23656dff78ea93b77e8e6890",
+      "selected_links": 3,
+      "body_sha256": "21fd6de4420e96e2672bb5c764f78e0451eac14771e1bee9d205369a11b85f4f"
+    },
+    {
+      "id": "W073",
+      "slug": "mean-node-vs-true-node",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W073.json",
+      "article_record_git_blob_sha1": "dffb54b305b77d51c03440583c46c3ac50e8afc6",
+      "artifact_sha256": "7cd2924e8651157c079595a15132eb1d69c39f38d3f662614d20107dc0d3a824",
+      "selected_links": 3,
+      "body_sha256": "f190138407144b7ed099ee7bbbe5e05c7939ff75fee63170b45415c611fe7c98"
+    },
+    {
+      "id": "W074",
+      "slug": "astrology-houses",
+      "source_version": 12,
+      "file": "content/r3-batch04/wiki/W074.json",
+      "article_record_git_blob_sha1": "15ce308776b6d0304aea783656b981438f03a9e8",
+      "artifact_sha256": "cc743a3af58511e536e21e49b179ef6ca9ccdb05e32e3a9cd907ac98cb6c3309",
+      "selected_links": 17,
+      "body_sha256": "eb0802480dc242cbeb7d6770378bc2240412ab39984b386b4f6df15c797c8015"
+    },
+    {
+      "id": "W075",
+      "slug": "chart-ruler-in-natal-chart",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W075.json",
+      "article_record_git_blob_sha1": "347546c5ee5474aed6cd21133ce3ca7eff308b98",
+      "artifact_sha256": "c3d1f8d73d98bd3fb79c5a498cb0bf4b7a1e94e82076180dbcfc1f50ea126860",
+      "selected_links": 4,
+      "body_sha256": "6638a3631a176d9f3bb519586af2d8ccebbcb0f640ba0d21b35df3e7a27ef4b7"
+    },
+    {
+      "id": "W076",
+      "slug": "first-house-in-natal-chart",
+      "source_version": 7,
+      "file": "content/r3-batch04/wiki/W076.json",
+      "article_record_git_blob_sha1": "2d213822ac7adc9e5a1a00e53c33126d977aaee6",
+      "artifact_sha256": "44cd0affadfe412d17c53e860ff32dda2195d57dde1efe4eec43d9b26a348969",
+      "selected_links": 7,
+      "body_sha256": "f02890f67f6e97a336272d8f09fb3a27d1aba301a36c8775cd92b484a3e481ec"
+    },
+    {
+      "id": "W077",
+      "slug": "house-rulers-in-natal-chart",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W077.json",
+      "article_record_git_blob_sha1": "385ee17307067ef8430894d3087d7a6a768d49e5",
+      "artifact_sha256": "94201ff4f78e65a100806ca339234fe8251f84c06d3357c68dad1eb5c46cb553",
+      "selected_links": 4,
+      "body_sha256": "71e7d034182e2cc961a74d0446474f92c9d773cef2f52ee828155d33772155d4"
+    },
+    {
+      "id": "W078",
+      "slug": "rising-signs-meaning",
+      "source_version": 1,
+      "file": "content/r3-batch04/wiki/W078.json",
+      "article_record_git_blob_sha1": "29c73d97e90b4d99543fda285c6ab71420a5484b",
+      "artifact_sha256": "7dd3b0d5720dda7d82ecd4e8ae21d4e26c1bab05561d2bdec07d5c593a335347",
+      "selected_links": 5,
+      "body_sha256": "5dfd49a1aa2e3b03a80090213a1c8a1aa58246c724c6896b4b89b344e6578589"
+    },
+    {
+      "id": "W079",
+      "slug": "fifth-house-in-natal-chart",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W079.json",
+      "article_record_git_blob_sha1": "ee9a5871b79e34c438713dadc3a72e46679de1ea",
+      "artifact_sha256": "19e7edcdc22b98d2c6007ec72b16533d438678496f1d9aec279acf60f04e5db7",
+      "selected_links": 6,
+      "body_sha256": "c034b07c0a9a95dc9f6aad240767ca56756f3987c8c642720cc76895a0b8afc3"
+    },
+    {
+      "id": "W080",
+      "slug": "seventh-house-in-natal-chart",
+      "source_version": 13,
+      "file": "content/r3-batch04/wiki/W080.json",
+      "article_record_git_blob_sha1": "5b7b8602446ea95d83aa3d18e1a5c91ee089b928",
+      "artifact_sha256": "409043e32d61b1b34020660ad7507b255d1712a9dd46d637dcda59f9c5e609d1",
+      "selected_links": 9,
+      "body_sha256": "eefd78f67027e0a5997102bea79676e2c7e7d964b5cdaf555330ec61ed82d23f"
+    },
+    {
+      "id": "W081",
+      "slug": "fourth-house-in-natal-chart",
+      "source_version": 11,
+      "file": "content/r3-batch04/wiki/W081.json",
+      "article_record_git_blob_sha1": "5330efe90ce1ffc626eb30f1ed9fa6fc22481002",
+      "artifact_sha256": "8ecce75d14f09a0d10af040ea9cdae319392749a8161520ddbda411f8507d24d",
+      "selected_links": 6,
+      "body_sha256": "4f2b56c4ea0088c6a73b1300fd2ce2db0b01bdf29d354f43360dcb6641d2a9f6"
+    },
+    {
+      "id": "W082",
+      "slug": "tenth-house-in-natal-chart",
+      "source_version": 10,
+      "file": "content/r3-batch04/wiki/W082.json",
+      "article_record_git_blob_sha1": "751f7acffae497e7b890880ca3b0bfb481bf2038",
+      "artifact_sha256": "169593257d7eb6d7b5bf5dd600fd59cb34b1c3bfbc95ab91fa7b448090258cdc",
+      "selected_links": 7,
+      "body_sha256": "76093a42a0c5a0c10cf3aeeb86064a442e3a92d810d0b6c7d6ad815423437ea9"
+    },
+    {
+      "id": "W083",
+      "slug": "sixth-house-in-natal-chart",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W083.json",
+      "article_record_git_blob_sha1": "e8855abc4e0e7ebdda9fb10000a2805ed2b5b49a",
+      "artifact_sha256": "c7f83e2b5bc17ffd31c8be7382907fb52eb3c2ed0a09bb4d7e6eac62c9d89f90",
+      "selected_links": 5,
+      "body_sha256": "967399bb91f7969eee528c9390bc527d9f49df63dfc2dd037b465efee534b9a3"
+    },
+    {
+      "id": "W084",
+      "slug": "four-angles-in-natal-chart",
+      "source_version": 4,
+      "file": "content/r3-batch04/wiki/W084.json",
+      "article_record_git_blob_sha1": "bcbd84d4f4ad2eec25ef1b67cbe8919e76134415",
+      "artifact_sha256": "959e9f2c34c0d459922b43d46861f3a4a7bb701b152fcca0083b1a17f09395b3",
+      "selected_links": 5,
+      "body_sha256": "675f7ab7fcddb3c70073ae43918967da7f5a198085c870a3e027a547e09cf961"
+    },
+    {
+      "id": "W085",
+      "slug": "empty-houses-in-natal-chart",
+      "source_version": 7,
+      "file": "content/r3-batch04/wiki/W085.json",
+      "article_record_git_blob_sha1": "c49172349ca8ad5b4b960fa5bbaf2f97740a613c",
+      "artifact_sha256": "eff0df5b9179cacd199c46bb093d93dee0cbef66c6494640e5a5d2092cd7ce50",
+      "selected_links": 3,
+      "body_sha256": "918ccaf2a18ab49d7a7f3625f3f0cf6eaa219d6d1b366b6a5ef0a74917498cee"
+    },
+    {
+      "id": "W086",
+      "slug": "second-house-in-natal-chart",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W086.json",
+      "article_record_git_blob_sha1": "7e00b42987c6da022c3e6ca720a0d64ec44115ae",
+      "artifact_sha256": "a60e54b3e320f7c91ab901ec946835bd4547cb0ee235c543a767e8d337a59416",
+      "selected_links": 7,
+      "body_sha256": "6d895d0709e3d43ba13cf8f6e530653925461370260817b9abd4805f7139d698"
+    },
+    {
+      "id": "W087",
+      "slug": "third-house-in-natal-chart",
+      "source_version": 8,
+      "file": "content/r3-batch04/wiki/W087.json",
+      "article_record_git_blob_sha1": "896d6e2d176dec484fa50a9d4b1f59a8f6e57435",
+      "artifact_sha256": "7f10666780a23dbe35ecf00a32c33b404f88ed2a7b51d3d9c22e1830b27634bd",
+      "selected_links": 4,
+      "body_sha256": "f9c2caebbc56e2eb72884fefc36cff684b00e044eaa37e3d54e92017b686ed6c"
+    },
+    {
+      "id": "W088",
+      "slug": "ninth-house-in-natal-chart",
+      "source_version": 5,
+      "file": "content/r3-batch04/wiki/W088.json",
+      "article_record_git_blob_sha1": "3ac9b66d248fb777a9b14cafa05f3080aae74211",
+      "artifact_sha256": "e32935b244c9059729616cd9beb63f7414913e823b692ceacd0e5b3cfa0f9e28",
+      "selected_links": 4,
+      "body_sha256": "23bfcf8ca760e20d3ea4ab585f89908fab08270faa706fb6f2a0f6ebe5fd34f1"
+    },
+    {
+      "id": "W089",
+      "slug": "eighth-house-in-natal-chart",
+      "source_version": 8,
+      "file": "content/r3-batch04/wiki/W089.json",
+      "article_record_git_blob_sha1": "5b684941c0530b1fcf4bba60dff8ca0b9f41031d",
+      "artifact_sha256": "cae32523188080cbcf98ffbb2f2b8d3dcbc4d080432a37e09d832a3700e8ed82",
+      "selected_links": 7,
+      "body_sha256": "e7361172df555a15b28aa1c2df027f9e0cee998bf50ef774a5b7881d4f147816"
+    },
+    {
+      "id": "W090",
+      "slug": "twelfth-house-in-natal-chart",
+      "source_version": 8,
+      "file": "content/r3-batch04/wiki/W090.json",
+      "article_record_git_blob_sha1": "83a43f4dde73c55bc6bf052493dd291763f2f7a5",
+      "artifact_sha256": "024260ca1b5c418eb65c310b0ac16368da9f6a53e58e8daa902ba921acef597e",
+      "selected_links": 5,
+      "body_sha256": "ef7ac74ae5ec3604e200b5cd92f671b16f42c11d90b685c29854f3173966cbb4"
+    },
+    {
+      "id": "W091",
+      "slug": "descendant-dsc-in-natal-chart",
+      "source_version": 4,
+      "file": "content/r3-batch04/wiki/W091.json",
+      "article_record_git_blob_sha1": "97398cb55c6c386385610728a570d0e3f154043a",
+      "artifact_sha256": "7d9278d721536927e50918d8a76f6b0f48066aff1c5d185c2cdbe69dada79dd2",
+      "selected_links": 5,
+      "body_sha256": "01efcad6853bc07ec44b5f23ecb1626de000b3a8f3d46ab02a90a18d47f99774"
+    },
+    {
+      "id": "W092",
+      "slug": "eleventh-house-in-natal-chart",
+      "source_version": 7,
+      "file": "content/r3-batch04/wiki/W092.json",
+      "article_record_git_blob_sha1": "96d65dc8464a0935ae2fdc496d4356cd82f31939",
+      "artifact_sha256": "21fb5319c128739de22cf727f97efbedd43f136313f6cb7902c0154e6382b1d5",
+      "selected_links": 3,
+      "body_sha256": "feada6537701ee85406abd9513c334469a77d41a6e81b5811c1445a89a456e1e"
+    },
+    {
+      "id": "W093",
+      "slug": "what-is-rising-sign",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W093.json",
+      "article_record_git_blob_sha1": "8f745623b13ee2c474df1dde47e155c9c61ef428",
+      "artifact_sha256": "821b96d86c4d7350d07df3a124ba67eae792e7a3e6ffb76cb0acc351e44b4e8a",
+      "selected_links": 9,
+      "body_sha256": "a80bd26efee1d7d6e4e2db9d0d9f0667cd1e9099b8a52dd789d934cf7a4f17ab"
+    },
+    {
+      "id": "W094",
+      "slug": "moon-in-fifth-house",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W094.json",
+      "article_record_git_blob_sha1": "213e83a065f4ce8f2ed58164cd8c1a0cb88a33f5",
+      "artifact_sha256": "28ca6d1f25b899a873fe4fd12ad3ddd8c5122477825850a9a94ac3a477168c4d",
+      "selected_links": 3,
+      "body_sha256": "a38ffa2927b29e6c3511ddeb7e37afd26a3e4f43b8f305ea8a1c62fab4ad479e"
+    },
+    {
+      "id": "W095",
+      "slug": "moon-in-fourth-house",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W095.json",
+      "article_record_git_blob_sha1": "d65f4bf22b222656bfdb4e7e9d9ba1da477fb05b",
+      "artifact_sha256": "bb213089a99602093ede38045dd3b5c0d8d7012913b9323123bbda5b42c7f534",
+      "selected_links": 3,
+      "body_sha256": "acfaf191f5df8d2c96a947e6f75e25251acf76b0c0a2fd8130a6c94b6458473a"
+    },
+    {
+      "id": "W096",
+      "slug": "moon-in-second-house",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W096.json",
+      "article_record_git_blob_sha1": "00f1d0e1afe488ec9d6e02d763e5d7840312d8df",
+      "artifact_sha256": "40519b415674dde3b32fe6ba838ade4b7c81df37ff6ab6888d8daa7a572ba15c",
+      "selected_links": 3,
+      "body_sha256": "3246d426ada6db6acc5a9b8a6c66727be0d781d4e573a46d3a275f386e524ea9"
+    },
+    {
+      "id": "W097",
+      "slug": "moon-in-third-house",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W097.json",
+      "article_record_git_blob_sha1": "ca23215ee19c7f086a884df224263a3960109d59",
+      "artifact_sha256": "122db290a1c81066b4ec3749dd74b10da5374fc9e29a74c66f8383c46aebe972",
+      "selected_links": 3,
+      "body_sha256": "12420a6c18fc63c407a0a81562a1b31633bb7468ead19ca7d8172c80e4743589"
+    },
+    {
+      "id": "W098",
+      "slug": "moon-in-sixth-house",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W098.json",
+      "article_record_git_blob_sha1": "45ee48c86b4729a246addd8f45b8244938249b5e",
+      "artifact_sha256": "c3b89c16d6c7e68ca0700634c8479637b94c15154dd273dff026b9d9f4a2f48c",
+      "selected_links": 3,
+      "body_sha256": "e52759dd54b9d41ffd801435b4fdd8f802286c9e1192787219300aa5bfd9eb7d"
+    },
+    {
+      "id": "W099",
+      "slug": "moon-in-eighth-house",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W099.json",
+      "article_record_git_blob_sha1": "a6fb678eac6dd5aab1e12a87a52a42db91d445d3",
+      "artifact_sha256": "815251f3cc0d5802cf961e61f93de61467a97650b9c375d1ca1d4a070c664b2e",
+      "selected_links": 3,
+      "body_sha256": "bcb119e2f9a393307d78da5b6105e90f34c599f1381302dd0adc09c82e6a86b6"
+    },
+    {
+      "id": "W100",
+      "slug": "moon-in-seventh-house",
+      "source_version": 2,
+      "file": "content/r3-batch04/wiki/W100.json",
+      "article_record_git_blob_sha1": "3f45599c5f21f98e4c40287ff142f9087b4ff578",
+      "artifact_sha256": "f234de3bef2486fdbd14111a3190060d39cc6349a74037769805ae1de4cf93b1",
+      "selected_links": 3,
+      "body_sha256": "56f191a03b27db0f10f4c6fd3b56ddee5bbd64e5b1589b090391cf8f48e2b154"
+    },
+    {
+      "id": "W101",
+      "slug": "moon-in-first-house",
+      "source_version": 3,
+      "file": "content/r3-batch04/wiki/W101.json",
+      "article_record_git_blob_sha1": "aa33a817ed694785e8dfef8c92b92f5afaf59c24",
+      "artifact_sha256": "95792361ad64f4242e3b11303771d238be916ef1dd632ca1eea5e536fb8aa80b",
+      "selected_links": 4,
+      "body_sha256": "10de769a0c425275151a42e945bfbcf8da2f81bf32342d7bae9d84a5491baac4"
+    },
+    {
+      "id": "W102",
+      "slug": "midheaven-mc-in-natal-chart",
+      "source_version": 3,
+      "file": "content/r3-batch04/wiki/W102.json",
+      "article_record_git_blob_sha1": "ec6494bc85de187cd437b5deafad344d8e8ac833",
+      "artifact_sha256": "5958496462333f9a891995754de6ec16044a038f36ff5ce4d1af7bf3ab8ab2bf",
+      "selected_links": 5,
+      "body_sha256": "b3e437dc09ab62963b54eb76dc03d9216679f19cd97b616f233cfdef0a795f3d"
+    },
+    {
+      "id": "W103",
+      "slug": "imum-coeli-ic-in-natal-chart",
+      "source_version": 4,
+      "file": "content/r3-batch04/wiki/W103.json",
+      "article_record_git_blob_sha1": "a917d12a59b959eaf8c2cbf7292a004f850d1c54",
+      "artifact_sha256": "aa747fe1c43dfcd5510ec41dea3f2cc2a03b226ef78a5c705584d76a2859e11f",
+      "selected_links": 7,
+      "body_sha256": "63d48d38ed444d4b51ec503d96ade202e6fe7dc8cc8bbc0d5d665f167af69a12"
+    },
+    {
+      "id": "W104",
+      "slug": "astrology-aspect-orbs-explained",
+      "source_version": 5,
+      "file": "content/r3-batch04/wiki/W104.json",
+      "article_record_git_blob_sha1": "a11ae26a1674daa6fd0dd74740cebfed2f5b5411",
+      "artifact_sha256": "23866813ed36d5e7dd5c0ce57309c533ca3e3eab7c9ab9b9af0cf9c86ffa70df",
+      "selected_links": 5,
+      "body_sha256": "db987d09749a3f10b24fc35e7f0effda575afd5f119a48ede3f9fef523f10bbe"
+    },
+    {
+      "id": "W105",
+      "slug": "major-aspects",
+      "source_version": 9,
+      "file": "content/r3-batch04/wiki/W105.json",
+      "article_record_git_blob_sha1": "b4a0b90095546e23bff2318c0ce49b702caf4de2",
+      "artifact_sha256": "f975d40ce72a1655cf1afabb2ad30f8038f421e2b134ae37ca41574e78f0a342",
+      "selected_links": 8,
+      "body_sha256": "86fd9972f74df3bbea0b9a6d1d3992a7a4ec056522f1c48fa279dc8f3825e394"
+    },
+    {
+      "id": "W106",
+      "slug": "reading-multiple-aspects-together",
+      "source_version": 5,
+      "file": "content/r3-batch04/wiki/W106.json",
+      "article_record_git_blob_sha1": "9cc7a53b1a4343576e2ff4d7cb17d46e4391b14c",
+      "artifact_sha256": "192e72587cdebdc4655737968f6fd6c11d682176d959e0f84767843ddf6f622d",
+      "selected_links": 7,
+      "body_sha256": "7b0607ebae9a33eac40f8907762d47f74a05ffb676f809b2f585ac59c134e30f"
+    },
+    {
+      "id": "W107",
+      "slug": "sextile-aspect-explained",
+      "source_version": 6,
+      "file": "content/r3-batch04/wiki/W107.json",
+      "article_record_git_blob_sha1": "a04b07d143c59e300dad06bae3c3b3f9e995645a",
+      "artifact_sha256": "6f6965b9cf5dc32b55860b450becb879aef6ff31696edb0ab19e236d515a1c15",
+      "selected_links": 5,
+      "body_sha256": "648155a8682119899e91076a4c92795e787ad55915d09654cccc5316050d4b48"
+    }
+  ]
+}
