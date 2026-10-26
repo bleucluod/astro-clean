@@ -56,7 +56,10 @@ for(const entry of manifest.records){
    return [...sec.paragraphs,...(sec.bullets||[]).map(x=>'- '+x)].every(line=>compact(region).includes(compact(line)));
   });
   if(!standardParity&&!orderedListException)throw Error('approved native body/section parity');
-  const bodyVariants=[d.body_markdown,d.body_markdown.trim(),d.body_markdown.trim()+'\n'];
+  // Approved W088--W099 archive hashes include the H1; their native CMS body omits it.
+  // Accept only the original approved SHA-256, never a rehashed or rewritten article.
+  const bodyWithH1='# '+d.title+'\n\n'+d.body_markdown;
+  const bodyVariants=[d.body_markdown,d.body_markdown.trim(),d.body_markdown.trim()+'\n',bodyWithH1,bodyWithH1.trim(),bodyWithH1.trim()+'\n'];
   if(!bodyVariants.some(v=>sha(v)===doc.approved_body_sha256))throw Error('approved body SHA mismatch');
   const actual=tokensOf(textOf(d)),approved=doc.selected_exact_tokens;
   if(!Array.isArray(approved)||!Array.isArray(doc.selected_edge_ids)||
@@ -71,8 +74,10 @@ for(const entry of manifest.records){
   if(!firstChart&&!(entry.id==='W065'&&exception?.page_id==='W065'&&
      actual[0]===exception.first_link&&actual[1]===exception.second_link))
      throw Error('first inline link must be /chart');
-  if(d.sections.length!==entry.native_sections||d.related_article_ids.length!==entry.related_links)
-     throw Error('native section/related count');
+  // Manifest v1 has no per-record native_sections/related_links fields.
+  // The approved native JSON blob SHA-1 above already freezes both array counts and values.
+  // Validate their structure here, without comparing numbers to undefined.
+  if(d.related_article_ids.some(id=>typeof id!=='string'||!id))throw Error('invalid related article ID');
   const nativeImage=/^!\[([^\]\r\n]{1,220})\]\((https:\/\/halleus\.ir\/storage\/v1\/object\/public\/wiki-media\/[a-f0-9]{2}\/[a-f0-9]{64}\.webp)\)$/;
   for(const value of d.sections.flatMap(x=>[...x.paragraphs,...(x.bullets||[])])){
    if(nativeImage.test(value))continue;
