@@ -469,6 +469,20 @@ deploy_release() {
     set +a
     as_deploy bash -lc "cd '$release_dir'; '$pnpm_bin' build"
 
+    # Build-time Next cache is regenerable and must not consume bounded runtime
+    # storage. Keep prerendered .next/server and all other build outputs intact.
+    local build_cache="$release_dir/.next/cache"
+    if [ -e "$build_cache" ] || [ -L "$build_cache" ]; then
+        [ ! -L "$build_cache" ] || fail "Refusing to prune symlinked Next build cache."
+        [ -d "$build_cache" ] || fail "Unexpected Next build cache path type."
+        local cache_bytes
+        cache_bytes="$(path_bytes "$build_cache")"
+        printf 'STORAGE_BUILD_CACHE_PRUNE project=halleus bytes=%s path=.next/cache\n' "$cache_bytes"
+        as_deploy rm -rf -- "$build_cache"
+        [ ! -e "$build_cache" ] || fail "Build cache prune failed."
+    fi
+
+
     local build_id
     local created_utc
     build_id="$(cat "$release_dir/.next/BUILD_ID")"
