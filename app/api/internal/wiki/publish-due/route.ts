@@ -4,6 +4,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { NextResponse } from "next/server";
 import r3Batch03Manifest from "@/content/r3-batch03/release-data-manifest.json";
+import r3Batch04Manifest from "@/content/r3-batch04/release-data-manifest.json";
 import { getAdminDatabase } from "@/lib/admin/admin-database";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import { submitWikiIndexNowUrlsBestEffort } from "@/lib/wiki/wiki-indexnow";
@@ -98,6 +99,82 @@ async function revalidateApprovedR3Batch03() {
   );
 }
 
+// R3 batch04 was committed directly to the database after release activation.
+// Its approved article pages need one authenticated, DB-guarded cache invalidation.
+async function revalidateApprovedR3Batch04() {
+  const records = r3Batch04Manifest.records;
+  if (
+    r3Batch04Manifest.schema !== "HALLEUS_R3_BATCH04_MANIFEST_V1" ||
+    r3Batch04Manifest.archive_sha256 !== "6557efc1315ba214ce0f70be3b7dbdbb3d88cdab7cd6dc7cae15b75725bc8274" ||
+    r3Batch04Manifest.approved_source_commit !== "f13ce25b208fcda5f66e1de1366e7350d9f1d9e3" ||
+    r3Batch04Manifest.scope.first !== "W058" ||
+    r3Batch04Manifest.scope.last !== "W107" ||
+    r3Batch04Manifest.scope.count !== 50 ||
+    records.length !== 50 ||
+    records.some((record, index) =>
+      record.id !== `W${String(index + 58).padStart(3, "0")}` ||
+      !Number.isInteger(record.source_version) ||
+      record.source_version < 0 ||
+      !/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(record.slug)
+    ) ||
+    new Set(records.map((record) => record.slug)).size !== 50
+  ) {
+    return NextResponse.json(
+      { ok: false, reason: "approved-batch04-manifest-invalid" },
+      { status: 409, headers: { "cache-control": "private, no-store" } },
+    );
+  }
+
+  // Refuse cache invalidation unless all 50 approved database updates are committed.
+  const sql = getAdminDatabase();
+  const slugs = records.map((record) => record.slug);
+  const rows = await sql`
+    select id::text as id, stable_id, slug, content_version
+    from public.wiki_articles
+    where stable_id = any(${slugs}::text[])
+      and status = 'published'
+      and is_indexable = true
+      and published_at <= now()
+      and scheduled_for is null
+      and deleted_at is null
+  `;
+  const byStableId = new Map(rows.map((row) => [String(row.stable_id), row]));
+  if (
+    rows.length !== 50 ||
+    records.some((record) => {
+      const row = byStableId.get(record.slug);
+      return !row ||
+        String(row.slug) !== record.slug ||
+        Number(row.content_version) !== record.source_version + 1;
+    })
+  ) {
+    return NextResponse.json(
+      { ok: false, reason: "batch04-database-parity-not-ready" },
+      { status: 409, headers: { "cache-control": "private, no-store" } },
+    );
+  }
+
+  const states = await readWikiPublicRevalidationStates(
+    records.map((record) => String(byStableId.get(record.slug)!.id)),
+  );
+  if (states.some((state, index) =>
+    !state || !state.isPublic || state.slug !== records[index].slug
+  )) {
+    return NextResponse.json(
+      { ok: false, reason: "batch04-public-state-mismatch" },
+      { status: 409, headers: { "cache-control": "private, no-store" } },
+    );
+  }
+
+  for (const state of states) {
+    if (state) revalidateWikiPublicChange({ before: null, after: state });
+  }
+  return NextResponse.json(
+    { ok: true, kind: "approved-r3-batch04-cache-revalidated", count: states.length },
+    { headers: { "cache-control": "private, no-store" } },
+  );
+}
+
 export async function POST(request: Request) {
   if (!authorized(request)) {
     return NextResponse.json(
@@ -109,6 +186,9 @@ export async function POST(request: Request) {
     // Explicit one-off after the audited R3 database transaction; never run on timer requests.
     if (request.headers.get("x-halleus-wiki-cache-revalidate") === "r3-batch03") {
       return await revalidateApprovedR3Batch03();
+    }
+    if (request.headers.get("x-halleus-wiki-cache-revalidate") === "r3-batch04") {
+      return await revalidateApprovedR3Batch04();
     }
     const result = await processDueWikiPublishJobs();
     for (const change of result.publishedChanges) {
