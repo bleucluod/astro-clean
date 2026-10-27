@@ -1,3 +1,4 @@
+import { rankNarrativeCandidates, finalizeNarrativeSelection, hasReliableNarrativeTime, type NarrativeSelection } from "./report-narrative-selection";
 // HALLEUS_DEEP_NARRATIVE_SLICE3_NATAL_ASPECT_SYNTHESIS_R1_20260902
 // HALLEUS_DEEP_NARRATIVE_SLICE2_CANONICAL_PLACEMENT_SYNTHESIS_R2_20260902
 // HALLEUS_DEEP_NARRATIVE_SLICE1_EXACT_ANGLE_FACT_CONTRACT_R4_20260902
@@ -149,6 +150,7 @@ export type AdaptiveBalanceStory = {
 };
 
 export type AdaptiveReportPlan = {
+  selection: NarrativeSelection;
   version: typeof ADAPTIVE_REPORT_PLANNER_VERSION;
   mode: AdaptiveNarrativeMode;
   audienceMode: BehavioralAudienceMode;
@@ -1336,10 +1338,31 @@ function storiesShareClusterHouseOwnership(
 }
 
 function chooseTopStories(candidates: AdaptiveNarrativeAnchor[]) {
-  const accepted = absorbSemanticDuplicates(candidates);
+  const accepted = absorbSemanticDuplicates(candidates).sort((a, b) => b.score - a.score || a.semanticKey.localeCompare(b.semanticKey));
   const picked: AdaptiveNarrativeAnchor[] = [];
   for (const candidate of accepted) {
-    if (picked.length >= 3) break;
+    const owner = picked.find(story => {
+      const shared = candidate.sourcePlanetIds.filter(id => story.sourcePlanetIds.includes(id));
+      const clusterDetail = story.kind === "cluster" && shared.length > 0
+        && shared.length === candidate.sourcePlanetIds.length
+        && ["aspect", "planet", "ruler-story"].includes(candidate.kind);
+      const nearIdenticalClusters = story.kind === "cluster" && candidate.kind === "cluster"
+        && shared.length >= 3 && candidate.sourcePlanetIds.length - shared.length <= 1;
+      const patternDetail = story.kind === "aspect-pattern" && candidate.kind === "aspect"
+        && candidate.sourceAspectIds.every(id => story.sourceAspectIds.includes(id));
+      const samePlacement = ["planet", "ruler-story"].includes(story.kind)
+        && ["planet", "ruler-story"].includes(candidate.kind)
+        && shared.length === 1 && story.sourcePlanetIds.length === 1;
+      return clusterDetail || nearIdenticalClusters || patternDetail || samePlacement;
+    });
+    if (owner) {
+      owner.absorbedSemanticKeys = uniq([...owner.absorbedSemanticKeys, candidate.semanticKey, ...candidate.absorbedSemanticKeys]);
+      owner.evidenceRefs = dedupeEvidence([...owner.evidenceRefs, ...candidate.evidenceRefs]);
+      // Evidence is merged; cluster membership is never expanded to imply a false shared house/sign.
+      owner.sourceAspectIds = uniq([...owner.sourceAspectIds, ...candidate.sourceAspectIds]);
+      continue;
+    }
+    if (picked.length >= 3) continue;
     const exactOverlap = picked.some((story) =>
       story.kind === candidate.kind &&
       story.sourcePlanetIds.length > 0 &&
@@ -1351,7 +1374,7 @@ function chooseTopStories(candidates: AdaptiveNarrativeAnchor[]) {
       storiesShareClusterHouseOwnership(story, candidate),
     );
     if (exactOverlap || clusterHouseOverlap) continue;
-    picked.push(candidate);
+    picked.push({ ...candidate, evidenceRefs: [...candidate.evidenceRefs], sourceAspectIds: [...candidate.sourceAspectIds], absorbedSemanticKeys: [...candidate.absorbedSemanticKeys] });
   }
   return picked;
 }
@@ -1435,7 +1458,7 @@ function buildWeeklyActions(
   return uniq([...primary, ...fallback]).slice(0, 3);
 }
 
-function estimateReadingMinutes(plan: Omit<AdaptiveReportPlan, "readingMinutes">) {
+function estimateReadingMinutes(plan: Omit<AdaptiveReportPlan, "readingMinutes" | "selection">) {
   const strings = [
     ...plan.topStories.flatMap((story) => [story.title, story.summary, story.dailyLife, story.healthyExpression, story.friction, story.action, ...story.rankingReasons, ...story.evidenceRefs.flatMap((evidence) => [evidence.label, evidence.detail])]),
     ...plan.bigThree.flatMap((story) => Object.values(story.interpretation).filter((value): value is string => typeof value === "string")),
@@ -1452,17 +1475,18 @@ function estimateReadingMinutes(plan: Omit<AdaptiveReportPlan, "readingMinutes">
 }
 
 export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReportPlan {
-  const placements = (report.realEngine?.placements ?? []).filter((placement) => MAJOR_PLANET_IDS.includes(normalizePlanetId(placement.id) as (typeof MAJOR_PLANET_IDS)[number]));
+  const timeReliable = hasReliableNarrativeTime(report);
+  const placements = (report.realEngine?.placements ?? []).map(p => timeReliable ? p : { ...p, house: null }).filter((placement) => MAJOR_PLANET_IDS.includes(normalizePlanetId(placement.id) as (typeof MAJOR_PLANET_IDS)[number]));
   const aspects = report.realEngine?.aspects ?? report.realEngine?.aspectHighlights ?? [];
   const audienceMode = getAudienceMode(report);
-  const chartRulerId = getChartRulerId(report);
+  const chartRulerId = timeReliable ? getChartRulerId(report) : "";
   const retrogrades = new Set(
     report.realEngine?.retrogrades?.status === "calculated"
       ? report.realEngine.retrogrades.planetIds.map(normalizePlanetId)
       : [],
   );
 
-  const nodes = report.realEngine?.lunarNodes?.status === "calculated"
+  const nodes = timeReliable && report.realEngine?.lunarNodes?.status === "calculated"
     ? (report.realEngine.lunarNodes as RealEngineReportCalculatedLunarNodes)
     : null;
   const nodeStory = buildNodeStory(nodes);
@@ -1527,6 +1551,8 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     stories: relevanceAwareCandidates,
     relevance: advancedRelevance,
   });
+  const selectionRanking = rankNarrativeCandidates(report, unifiedSynthesis.storyCandidates, chartRulerId);
+  unifiedSynthesis.storyCandidates = selectionRanking.candidates;
   const topStories = chooseTopStories(unifiedSynthesis.storyCandidates).map((story) => ({
     ...story,
     technicalLine: buildNarrativeTechnicalLine(story.evidenceRefs),
@@ -1537,7 +1563,7 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     .filter((placement): placement is RealEngineReportPlacement => Boolean(placement))
     .map((placement) => buildPlacementStory(placement, audienceMode, retrogrades, "core"));
 
-  const ascSign = report.realEngine?.angles?.asc?.signId;
+  const ascSign = timeReliable ? report.realEngine?.angles?.asc?.signId : undefined;
   if (ascSign) {
     const ascPlacement: AdaptivePlacementStory = {
       planetId: "asc",
@@ -1588,7 +1614,7 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
   ).filter((story) => !topClusterHouses.has(story.houseNumber));
   const consumedTopAspectIds = new Set(topStories.flatMap((story) => story.sourceAspectIds));
   const importantAspects = selectDiverseAspectAnchors(
-    aspectAnchors.filter(
+    selectionRanking.candidates.filter((anchor) => anchor.kind === "aspect").filter(
       (anchor) => !consumedTopAspectIds.has(anchor.sourceAspectIds[0]),
     ),
     7,
@@ -1621,7 +1647,7 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     .map(({ placement }, index) => buildPlacementStory(placement, audienceMode, retrogrades, index < 2 ? "secondary" : "compact"));
 
   const weeklyActions = buildWeeklyActions(placements, audienceMode, retrogrades, topStories, balanceStory, nodeStory);
-  const partial: Omit<AdaptiveReportPlan, "readingMinutes"> = {
+  const partial: Omit<AdaptiveReportPlan, "readingMinutes" | "selection"> = {
     version: ADAPTIVE_REPORT_PLANNER_VERSION,
     mode: storyMode(topStories),
     audienceMode,
@@ -1638,7 +1664,7 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     weeklyActions,
     placementStories,
   };
-  return { ...partial, readingMinutes: estimateReadingMinutes(partial) };
+  return { ...partial, selection: finalizeNarrativeSelection(report, selectionRanking, partial), readingMinutes: estimateReadingMinutes(partial) };
 }
 
 export function assertAdaptiveAnchorIntegrity(plan: AdaptiveReportPlan) {

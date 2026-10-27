@@ -1,0 +1,126 @@
+{
+  "base": "1dca157663aab36bb58627cab093f8fbb5c1c421",
+  "generatedAt": "2026-10-27T08:00:00.000Z",
+  "samples": [
+    {
+      "id": "A",
+      "stories": [
+        {
+          "semanticKey": "pattern:t-square:jupiter:moon:saturn",
+          "title": "مشتری، زحل، ماه — فشار چندجهته",
+          "score": 197.18373398233643
+        },
+        {
+          "semanticKey": "cluster:house:10",
+          "title": "تمرکز خانه ۱۰ — جایگاهی که با عمل ساخته می‌شود",
+          "score": 191
+        },
+        {
+          "semanticKey": "cluster:house:1",
+          "title": "تمرکز خانه ۱ — حضور روشن و شروع بی‌واسطه",
+          "score": 176
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "stories": [
+        {
+          "semanticKey": "cluster:house:9",
+          "title": "تمرکز خانه ۹ — افقی که باید بزرگ‌تر شود",
+          "score": 213
+        },
+        {
+          "semanticKey": "cluster:house:2",
+          "title": "تمرکز خانه ۲ — امنیت با معیارهای خودت",
+          "score": 198
+        },
+        {
+          "semanticKey": "aspect:sun-conjunction-venus",
+          "title": "خورشید و زهره — دو نیرویی که همدیگر را تقویت می‌کنند",
+          "score": 164.9627435745095
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "stories": [
+        {
+          "semanticKey": "cluster:house:5",
+          "title": "تمرکز خانه ۵ — چیزی با امضای خودت",
+          "score": 200
+        },
+        {
+          "semanticKey": "cluster:house:6",
+          "title": "تمرکز خانه ۶ — نظمی که از تکرار ساخته می‌شود",
+          "score": 192
+        },
+        {
+          "semanticKey": "aspect:moon-square-saturn",
+          "title": "ماه و زحل — نیاز و مسئولیت",
+          "score": 169.36919388154263
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "stories": [
+        {
+          "semanticKey": "aspect:moon-sextile-venus",
+          "title": "ماه و زهره — امنیت و محبت",
+          "score": 183.14013250151748
+        },
+        {
+          "semanticKey": "planet:moon:prominence",
+          "title": "ماه — نیاز و امنیت",
+          "score": 178
+        },
+        {
+          "semanticKey": "aspect:moon-conjunction-neptune",
+          "title": "ماه و نپتون — دو نیرویی که همدیگر را تقویت می‌کنند",
+          "score": 177.78402905463838
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "stories": [
+        {
+          "semanticKey": "cluster:house:7",
+          "title": "تمرکز خانه ۷ — نزدیکی بدون گم‌کردن خودت",
+          "score": 183
+        },
+        {
+          "semanticKey": "cluster:house:6",
+          "title": "تمرکز خانه ۶ — نظمی که از تکرار ساخته می‌شود",
+          "score": 177
+        },
+        {
+          "semanticKey": "aspect:moon-conjunction-pluto",
+          "title": "ماه و پلوتو — دو نیرویی که همدیگر را تقویت می‌کنند",
+          "score": 171.89485254911938
+        }
+      ]
+    },
+    {
+      "id": "F",
+      "stories": [
+        {
+          "semanticKey": "cluster:house:10",
+          "title": "تمرکز خانه ۱۰ — جایگاهی که با عمل ساخته می‌شود",
+          "score": 192
+        },
+        {
+          "semanticKey": "cluster:sign:aquarius",
+          "title": "آکواریوس — یک زبان مشترک در چند بخش چارت",
+          "score": 159
+        },
+        {
+          "semanticKey": "axis:nodes:south-node:north-node",
+          "title": "گره جنوبی و گره شمالی — مسیر آشنا و تازه",
+          "score": 148
+        }
+      ]
+    }
+  ]
+}

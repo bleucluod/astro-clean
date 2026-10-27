@@ -15,6 +15,20 @@
   },
   "areas": [
     {
+      "id": "report-narrative-selection",
+      "description": "Shared narrative ranking, evidence ownership, fixed computed sample and sensitivity checks.",
+      "patterns": [
+        "lib/astrology/report-narrative-selection.ts",
+        "lib/astrology/adaptive-report-planner.ts",
+        "scripts/check-report-narrative-selection.mjs"
+      ],
+      "guards": [
+        "check:report-narrative-selection"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "final-brand-assets",
       "description": "Approved Halleus logo lockup, favicon and app icons, web manifest, social previews, and responsive site chrome.",
       "exclusive": true,
@@ -149,7 +163,8 @@
         "check:report-quality",
         "check:vps-release-workflow",
         "check:monetization-products",
-        "check:credit-monetization"
+        "check:credit-monetization",
+        "check:report-narrative-selection"
       ],
       "lint": true,
       "build": true
@@ -289,7 +304,8 @@
       ],
       "lint": false,
       "build": false
-    },    {
+    },
+    {
       "id": "public-discovery-guard-tooling",
       "description": "Focused verification for the public discovery and site-chrome contracts.",
       "exclusive": true,

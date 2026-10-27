@@ -995,7 +995,7 @@ assert(
 );
 assert(
   roadmapPlanner.includes('for (const id of ["mercury", "mars", "venus"])') &&
-    roadmapPlanner.includes('const ascSign = report.realEngine?.angles?.asc?.signId;') &&
+    roadmapPlanner.includes('const ascSign = timeReliable ? report.realEngine?.angles?.asc?.signId : undefined;') &&
     roadmapPlanner.includes("if (ascSign)"),
   "Starter reading must add Mercury/Mars/Venus without inventing an unknown-time rising sign",
 );

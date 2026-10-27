@@ -725,38 +725,9 @@ export function buildRecomposedOpeningStory(
     OPENING_MAJOR_BODY_IDS.has(item.id.toLowerCase()),
   );
 
-  const houseCounts = new Map<number, number>();
-  const signCounts = new Map<string, number>();
-  for (const placement of placements) {
-    if (typeof placement.house === "number") {
-      houseCounts.set(
-        placement.house,
-        (houseCounts.get(placement.house) ?? 0) + 1,
-      );
-    }
-    if (placement.signId) {
-      signCounts.set(
-        placement.signId,
-        (signCounts.get(placement.signId) ?? 0) + 1,
-      );
-    }
-  }
-
-  const dominantHouseEntry = [...houseCounts.entries()].sort(
-    (a, b) => b[1] - a[1] || a[0] - b[0],
-  )[0];
-  const dominantSignEntry = [...signCounts.entries()].sort(
-    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
-  )[0];
-
-  const dominantHouse =
-    dominantHouseEntry && dominantHouseEntry[1] >= 4
-      ? dominantHouseEntry[0]
-      : null;
-  const dominantSign =
-    dominantSignEntry && dominantSignEntry[1] >= 4
-      ? dominantSignEntry[0]
-      : null;
+  // Selection is shared with the chapters; never combine independent house/sign winners.
+  const dominantHouse = plan.selection.opening.house;
+  const dominantSign = plan.selection.opening.sign;
 
   const mercuryUranus = openingAspect(report, "mercury", "uranus");
   const marsSaturn = openingAspect(report, "mars", "saturn");
