@@ -15,6 +15,21 @@
   },
   "areas": [
     {
+      "id": "report-personal-opening",
+      "description": "Active reader opening synthesis, chart evidence, ownership and exact rendered review samples.",
+      "patterns": [
+        "lib/astrology/report-personal-opening.ts",
+        "components/report/ReportAdaptiveNarrative.tsx",
+        "scripts/check-report-personal-opening.mjs"
+      ],
+      "guards": [
+        "check:report-personal-opening",
+        "check:report-narrative-selection"
+      ],
+      "lint": true,
+      "build": true
+    },
+    {
       "id": "report-narrative-selection",
       "description": "Shared narrative ranking, evidence ownership, fixed computed sample and sensitivity checks.",
       "patterns": [
@@ -164,7 +179,8 @@
         "check:vps-release-workflow",
         "check:monetization-products",
         "check:credit-monetization",
-        "check:report-narrative-selection"
+        "check:report-narrative-selection",
+        "check:report-personal-opening"
       ],
       "lint": true,
       "build": true

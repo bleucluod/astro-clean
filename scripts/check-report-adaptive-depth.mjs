@@ -361,11 +361,11 @@ for (const forbidden of ["یک چرخه که می‌شود زودتر دید", "
 }
 assert(
   adaptiveSource.includes("buildRecomposedOpeningStory") &&
-    adaptiveSource.includes('data-adaptive-opening-story="recomposed-two-paragraphs"') &&
-    adaptiveSource.includes('data-report-opening-story="dynamic-two-paragraph"') &&
+    adaptiveSource.includes('data-adaptive-opening-story="selected-topic-synthesis"') &&
+    adaptiveSource.includes('data-report-opening-story="personal-three-paragraph"') &&
     !adaptiveSource.includes("function buildOpeningStory(") &&
     !adaptiveSource.includes("type AdaptiveOpeningStory ="),
-  "adaptive opening must keep the R39 dynamic two-paragraph topology contract",
+  "adaptive opening must keep the selected-topic personal opening topology contract",
 );
 assert(v3Source.includes("ReportAdaptiveNarrative") && v3Source.includes("HALLEUS_REPORT_ADAPTIVE_V3_COMPATIBILITY_20260808"), "ReportV3Experience must route canonical real-engine reports into adaptive narrative while keeping legacy compatibility");
 assert(readerSource.includes('data-report-adaptive-depth="20260808"'), "ProductReader missing adaptive-depth root marker");

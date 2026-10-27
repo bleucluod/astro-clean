@@ -246,7 +246,8 @@
     "check:predeploy-commerce-surfaces": "node scripts/check-predeploy-commerce-surfaces.mjs",
     "check:predeploy-consumer-product-ux": "node scripts/check-predeploy-consumer-product-ux.mjs",
     "check:predeploy-home-chart-performance": "node scripts/check-predeploy-home-chart-performance.mjs",
-    "check:report-narrative-selection": "node scripts/check-report-narrative-selection.mjs"
+    "check:report-narrative-selection": "node scripts/check-report-narrative-selection.mjs",
+    "check:report-personal-opening": "node scripts/check-report-personal-opening.mjs"
   },
   "dependencies": {
     "@astrodraw/astrochart": "3.0.2",

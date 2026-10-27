@@ -86,7 +86,7 @@ const narrativeRecompositionSynthesisSource = read(
 for (const marker of [
   "HALLEUS_R39_OPENING_EVIDENCE_HYGIENE_R1_20260902",
   "buildRecomposedOpeningStory",
-  'data-adaptive-opening-story="recomposed-two-paragraphs"',
+  'data-adaptive-opening-story="selected-topic-synthesis"',
   "isUserFacingEvidenceReason",
 ]) {
   assert(

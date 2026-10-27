@@ -39,7 +39,7 @@ import {
   formatReportNarrativeAspectGeometry,
 } from "@/lib/astrology/report-aspect-display";
 
-import { ZODIAC_LABELS } from "@/lib/astrology/zodiac-labels";
+import { buildPersonalOpening } from "@/lib/astrology/report-personal-opening";
 import {
   joinReportNarrativeSentences,
   realizeReportSurfaceText,
@@ -644,247 +644,9 @@ function buildAdaptiveRoadmap(plan: AdaptiveOverviewPlan): AdaptiveRoadmapItem[]
     },
   ].filter((item) => item.visible !== false);
 }
-type RecomposedOpeningStory = {
-  title: string;
-  paragraphs: [string, string];
-};
-
-const OPENING_MAJOR_BODY_IDS = new Set([
-  "sun",
-  "moon",
-  "mercury",
-  "venus",
-  "mars",
-  "jupiter",
-  "saturn",
-  "uranus",
-  "neptune",
-  "pluto",
-]);
-
-const OPENING_HOUSE_THEMES: Record<number, string> = {
-  1: "بدن، حضور، شروع‌کردن و اعلام خواسته",
-  2: "ارزش، پول، مالکیت و احساس اتکا به خود",
-  3: "یادگیری، حرف‌زدن، پیام و رفت‌وآمد روزمره",
-  4: "خانه، ریشه، خانواده و امنیت خصوصی",
-  5: "خلاقیت، عشق، لذت، دیده‌شدن و ساختن چیزی با امضای شخصی",
-  6: "کار روزمره، عادت، نظم، مهارت و رسیدگی به بدن",
-  7: "رابطهٔ نزدیک، شراکت، مذاکره و مرز دوطرفه",
-  8: "اعتماد، صمیمیت، آسیب‌پذیری و منابع مشترک",
-  9: "افق فکری، معنا، سفر، تحصیل و دیدن تصویر بزرگ‌تر",
-  10: "مسیر عمومی، کار، مسئولیت و چیزی که می‌خواهی با نام تو دیده شود",
-  11: "دوستی، گروه، آینده، شبکه و سهم تو در جمع",
-  12: "خلوت، استراحت، پشت‌صحنه، رهاکردن و چیزهایی که هنوز نام روشنی ندارند",
-};
-
-const OPENING_HOUSE_EXAMPLES: Record<number, string> = {
-  1: "وقتی باید بدون معطل‌شدن شروع کنی یا خواسته‌ات را زودتر نشان بدهی",
-  2: "وقتی باید بین ارزش واقعی، امنیت مالی و چیزی که فقط آشناست فرق بگذاری",
-  3: "وقتی یک پیام مهم می‌فرستی، چیزی تازه یاد می‌گیری یا باید ایده‌ای را روشن توضیح بدهی",
-  4: "وقتی بیرون شلوغ است و باید بفهمی در خانه یا خلوت خودت واقعاً چه چیزی امنیت می‌دهد",
-  5: "وقتی از چند موضوع نامرتبط ایدهٔ یک پروژه، محصول یا راه‌حل غیرمعمول درمی‌آوری و باید آن را تمام و قابل دیدن کنی",
-  6: "وقتی کارهای کوچک زیاد می‌شوند و باید از میان آن‌ها یک ریتم قابل ادامه بسازی",
-  7: "وقتی در رابطه یا همکاری باید سهم، خواسته یا مرز هر دو طرف روشن شود",
-  8: "وقتی پای اعتماد، پول مشترک، آسیب‌پذیری یا گفتن چیزی که پنهان مانده وسط است",
-  9: "وقتی یک تجربه، درس یا سفر باید به تصویر بزرگ‌تری از زندگی وصل شود",
-  10: "وقتی کاری که ساخته‌ای قرار است دیده شود و باید مسئولیت نتیجه‌اش را هم بپذیری",
-  11: "وقتی بین جایگاه خودت در یک جمع و مسیری که برای آینده مهم است تصمیم می‌گیری",
-  12: "وقتی قبل از قدم بعدی به خلوت، خواب یا فاصله از سروصدا نیاز داری",
-};
-
-function openingSignLabel(signId: string | null | undefined) {
-  if (!signId) return "";
-  return (
-    ZODIAC_LABELS[signId as keyof typeof ZODIAC_LABELS]?.faName ??
-    signId
-  );
-}
-
-function openingAspect(
-  report: AstrologyReport,
-  firstId: string,
-  secondId: string,
-) {
-  const aspects =
-    report.realEngine?.aspects ?? report.realEngine?.aspectHighlights ?? [];
-  return aspects.find((aspect) => {
-    const pair = new Set([
-      aspect.firstPlanetId.toLowerCase(),
-      aspect.secondPlanetId.toLowerCase(),
-    ]);
-    return pair.has(firstId) && pair.has(secondId);
-  });
-}
-
-export function buildRecomposedOpeningStory(
-  report: AstrologyReport,
-  plan: AdaptiveOverviewPlan,
-): RecomposedOpeningStory {
-  const name = report.input.name?.trim() || "این چارت";
-  const placements = (report.realEngine?.placements ?? []).filter((item) =>
-    OPENING_MAJOR_BODY_IDS.has(item.id.toLowerCase()),
-  );
-
-  // Selection is shared with the chapters; never combine independent house/sign winners.
-  const dominantHouse = plan.selection.opening.house;
-  const dominantSign = plan.selection.opening.sign;
-
-  const mercuryUranus = openingAspect(report, "mercury", "uranus");
-  const marsSaturn = openingAspect(report, "mars", "saturn");
-  const moon = placements.find((item) => item.id.toLowerCase() === "moon");
-  const mars = placements.find((item) => item.id.toLowerCase() === "mars");
-  const saturn = placements.find((item) => item.id.toLowerCase() === "saturn");
-  const retrogradeIds = new Set(
-    report.realEngine?.retrogrades?.status === "calculated"
-      ? report.realEngine.retrogrades.planetIds.map((id) => id.toLowerCase())
-      : [],
-  );
-
-  let firstParagraph: string;
-  if (dominantHouse) {
-    const houseFa = dominantHouse.toLocaleString("fa-IR");
-    const houseTheme = OPENING_HOUSE_THEMES[dominantHouse];
-    const houseExample = OPENING_HOUSE_EXAMPLES[dominantHouse];
-    const signLabel = openingSignLabel(dominantSign);
-
-    firstParagraph =
-      "آسمان تولد " +
-      name +
-      " یک مرکز ثقل روشن دارد: " +
-      (dominantSign
-        ? "بخش بزرگی از چارت در خانه " +
-          houseFa +
-          " و " +
-          signLabel +
-          " جمع شده؛ جایی که " +
-          houseTheme +
-          " به هم می‌رسند."
-        : "خانه " +
-          houseFa +
-          " این چارت آن‌قدر شلوغ است که " +
-          houseTheme +
-          " به یک محور مشترک تبدیل می‌شوند.");
-
-    if (mercuryUranus && mercuryUranus.orb <= 2) {
-      firstParagraph +=
-        " عطارد و اورانوس هم خیلی نزدیک‌اند؛ ذهن سریع‌تر از مسیر آشنا رابطه‌های تازه را می‌بیند و ایده را به راهی متفاوت می‌رساند.";
-    }
-
-    firstParagraph +=
-      " در زندگی روزمره، " +
-      houseExample +
-      ".";
-
-    firstParagraph +=
-      dominantSign === "aquarius" ||
-      (mercuryUranus && mercuryUranus.orb <= 2)
-        ? " روی دیگر همین نیرو، تازگی گاهی از ماندن جلو می‌زند؛ شروع‌کردن آسان‌تر از تمام‌کردن می‌شود."
-        : " روی دیگر همین تمرکز، هم‌زمان‌شدن چند خواسته است؛ انتخاب اولویت اهمیت بیشتری پیدا می‌کند.";
-  } else {
-    const lead = plan.topStories[0];
-    const second = plan.topStories[1];
-    const leadHouse = lead?.sourceHouseIds[0] ?? null;
-    const secondHouse = second?.sourceHouseIds[0] ?? null;
-
-    firstParagraph =
-      "چارت " +
-      name +
-      " به‌جای یک مرکز واحد، چند نیروی نزدیک به هم دارد. " +
-      (lead?.title ?? "یک الگوی اصلی") +
-      " اول دیده می‌شود" +
-      (leadHouse
-        ? "؛ بیشتر در " +
-          (OPENING_HOUSE_THEMES[leadHouse] ?? "زندگی روزمره")
-        : "") +
-      ". " +
-      (leadHouse
-        ? OPENING_HOUSE_EXAMPLES[leadHouse]
-        : "در یک تصمیم واقعی، مهم است ببینی کدام نیرو زودتر از بقیه جلو می‌آید") +
-      ".";
-
-    if (second) {
-      firstParagraph +=
-        " " +
-        second.title +
-        " لایهٔ دوم این تصویر است" +
-        (secondHouse
-          ? "، به‌ویژه وقتی " +
-            (OPENING_HOUSE_EXAMPLES[secondHouse] ??
-              "چند نیاز هم‌زمان فعال می‌شوند")
-          : "") +
-        ".";
-    }
-  }
-
-  let secondParagraph: string;
-  if (moon) {
-    const moonSign = openingSignLabel(moon.signId);
-    const moonHouse = typeof moon.house === "number" ? moon.house : null;
-    const moonTheme =
-      moonHouse && OPENING_HOUSE_THEMES[moonHouse]
-        ? OPENING_HOUSE_THEMES[moonHouse]
-        : "امنیت عاطفی";
-    const moonExample =
-      moonHouse && OPENING_HOUSE_EXAMPLES[moonHouse]
-        ? OPENING_HOUSE_EXAMPLES[moonHouse]
-        : "وقتی باید نیاز واقعی خودت را پیش از واکنش نام ببری";
-
-    secondParagraph =
-      moon.signId === "taurus" && moonHouse === 8
-        ? "اما " +
-          name +
-          " فقط از آزادی و تازگی ساخته نشده. ماه در " +
-          moonSign +
-          " و خانه ۸ امنیتی می‌خواهد که در رفتار ثابت و قابل لمس ساخته شود."
-        : "لایهٔ دیگر چارت " +
-          name +
-          " به ماه در " +
-          moonSign +
-          (moonHouse
-            ? " و خانه " + moonHouse.toLocaleString("fa-IR")
-            : "") +
-          " برمی‌گردد؛ جایی که " +
-          moonTheme +
-          " باید در تجربهٔ واقعی حس شود.";
-
-    if (
-      marsSaturn &&
-      ["square", "opposition"].includes(marsSaturn.aspectId) &&
-      marsSaturn.orb <= 2.5 &&
-      mars &&
-      saturn
-    ) {
-      const marsSign = openingSignLabel(mars.signId);
-      const saturnSign = openingSignLabel(saturn.signId);
-      const retro = retrogradeIds.has("mars") ? " پس‌رو" : "";
-      secondParagraph +=
-        " هم‌زمان مریخ" +
-        retro +
-        " در " +
-        marsSign +
-        " و تماس نزدیکش با زحل در " +
-        saturnSign +
-        " نشان می‌دهند که خواستن و عمل‌کردن همیشه بی‌اصطکاک نیست؛ گاهی واکنش طرف مقابل آن‌قدر سنجیده می‌شود که خواستهٔ خودت دیرتر به زبان می‌آید.";
-    }
-
-    secondParagraph +=
-      " در زندگی روزمره، " +
-      moonExample +
-      ". وقتی نیاز و مرز زودتر روشن شوند، همین ترکیب می‌تواند به قوتی تبدیل شود که هم پیوند را نگه می‌دارد و هم خودت را از معادله حذف نمی‌کند.";
-  } else {
-    const second = plan.topStories[1] ?? plan.topStories[0];
-    secondParagraph =
-      "در کنار آن محور اول، " +
-      (second?.title ?? "یک محور دوم") +
-      " یادآوری می‌کند که این چارت با یک نیرو توضیح داده نمی‌شود. در یک تصمیم واقعی، ببین کدام نیرو اول فعال می‌شود و کجا لازم است نیاز یا مرز دوم را هم زودتر وارد ماجرا کنی.";
-  }
-
-  return {
-    title: report.input.name?.trim()
-      ? "آسمانِ لحظه‌ای که " + report.input.name.trim() + " به دنیا آمد"
-      : "آسمانِ لحظهٔ تولد",
-    paragraphs: [firstParagraph.trim(), secondParagraph.trim()],
-  };
+// Keep the public helper for consumers; composition has one engine-side implementation.
+export function buildRecomposedOpeningStory(report: AstrologyReport, plan: AdaptiveOverviewPlan) {
+  return buildPersonalOpening(report, plan);
 }
 
 // HALLEUS_REPORT_MOBILE_EDITORIAL_REDESIGN_SLICE2_OPENING_STORIES_R1_20260903
@@ -905,15 +667,7 @@ function AdaptiveOverviewCard({
 }) {
   const roadmap = buildAdaptiveRoadmap(plan);
   const opening = buildRecomposedOpeningStory(report, plan);
-  const surfacedOpening = opening.paragraphs.map((text, index) => ({
-    text: surfaceNarrativeText(
-      `${reportSurfaceKey(report)}:opening`,
-      `${plan.version}:opening:${index}`,
-      index === 0 ? "thesis" : "development",
-      text,
-      index,
-    ),
-  }));
+
 
   return (
     <section
@@ -921,14 +675,14 @@ function AdaptiveOverviewCard({
       id="overview"
       data-adaptive-report-section="overview"
       data-report-hero-position="before-chart-wheel"
-      data-report-editorial-opening="slice2-20260903"
+      data-report-editorial-opening={opening.version}
       data-screenshot-ready
     >
       <h1>{opening.title}</h1>
-      <div data-adaptive-opening-story="recomposed-two-paragraphs"
-        data-report-opening-story="dynamic-two-paragraph">
-        {surfacedOpening.map((paragraph, index) => (
-          <p key={`opening-${index}`}>{paragraph.text}</p>
+      <div data-adaptive-opening-story="selected-topic-synthesis"
+        data-report-opening-story="personal-three-paragraph">
+        {opening.paragraphs.map((paragraph, index) => (
+          <p key={`opening-${index}`}>{paragraph}</p>
         ))}
       </div>
 

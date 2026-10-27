@@ -217,8 +217,8 @@ const unified = read("lib/astrology/unified-story-synthesis.ts");
 for (const marker of [
   "HALLEUS_R39_OPENING_EVIDENCE_HYGIENE_R1_20260902",
   "buildRecomposedOpeningStory",
-  'data-adaptive-opening-story="recomposed-two-paragraphs"',
-  'data-report-opening-story="dynamic-two-paragraph"',
+  'data-adaptive-opening-story="selected-topic-synthesis"',
+  'data-report-opening-story="personal-three-paragraph"',
   "isUserFacingEvidenceReason",
   "compactEvidenceText",
   "joinReportNarrativeSentences",

@@ -287,10 +287,10 @@ assert(
     return (
       currentOpeningSource.includes("buildRecomposedOpeningStory") &&
       currentOpeningSource.includes(
-        'data-adaptive-opening-story="recomposed-two-paragraphs"',
+        'data-adaptive-opening-story="selected-topic-synthesis"',
       ) &&
       currentOpeningSource.includes(
-        'data-report-opening-story="dynamic-two-paragraph"',
+        'data-report-opening-story="personal-three-paragraph"',
       ) &&
       !currentOpeningSource.includes("function buildOpeningStory(") &&
       !currentOpeningSource.includes("type AdaptiveOpeningStory =")

@@ -1,4 +1,5 @@
 import { rankNarrativeCandidates, finalizeNarrativeSelection, hasReliableNarrativeTime, marginalNarrativeScore, coverNarrativeDecision, NARRATIVE_WEIGHTS, type NarrativeWeights, type NarrativeCoverage, type SelectionDecision, type NarrativeSelection } from "./report-narrative-selection";
+import { buildPersonalOpening } from "./report-personal-opening";
 // HALLEUS_DEEP_NARRATIVE_SLICE3_NATAL_ASPECT_SYNTHESIS_R1_20260902
 // HALLEUS_DEEP_NARRATIVE_SLICE2_CANONICAL_PLACEMENT_SYNTHESIS_R2_20260902
 // HALLEUS_DEEP_NARRATIVE_SLICE1_EXACT_ANGLE_FACT_CONTRACT_R4_20260902
@@ -1658,7 +1659,16 @@ export function buildAdaptiveReportPlan(report: AstrologyReport, weights: Narrat
     weeklyActions,
     placementStories,
   };
-  return { ...partial, selection: finalizeNarrativeSelection(report, selectionRanking, partial), readingMinutes: estimateReadingMinutes(partial) };
+  const plan = { ...partial, selection: finalizeNarrativeSelection(report, selectionRanking, partial), readingMinutes: estimateReadingMinutes(partial) };
+  const opening = buildPersonalOpening(report, plan);
+  const reservation = plan.selection.ownership.reservations.find(item => item.id === "insight:opening");
+  if (reservation) {
+    reservation.claimId = opening.ownership.claimIds[0] ?? null;
+    reservation.sceneId = opening.ownership.sceneId;
+    reservation.evidenceIds = [...new Set(opening.evidence.flatMap(item => item.sourceIds))];
+    reservation.purpose = opening.paragraphs.join("\n\n");
+  }
+  return plan;
 }
 
 export function assertAdaptiveAnchorIntegrity(plan: AdaptiveReportPlan) {
