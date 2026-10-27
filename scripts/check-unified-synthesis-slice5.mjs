@@ -22,7 +22,7 @@ const synthesis = fs.readFileSync(synthesisPath, "utf8");
 for (const marker of [
   "HALLEUS_UNIFIED_SYNTHESIS_SLICE5_20260901",
   "buildUnifiedStorySynthesis({",
-  "chooseTopStories(unifiedSynthesis.storyCandidates)",
+  "chooseTopStories(unifiedSynthesis.storyCandidates, selectionRanking.decisions, weights)",
   "unifiedSynthesis: unifiedSynthesis.diagnostics",
   'for (const id of ["mercury", "mars", "venus"])',
   "consumedTopAspectIds",

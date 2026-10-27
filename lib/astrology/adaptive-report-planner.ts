@@ -1,4 +1,4 @@
-import { rankNarrativeCandidates, finalizeNarrativeSelection, hasReliableNarrativeTime, type NarrativeSelection } from "./report-narrative-selection";
+import { rankNarrativeCandidates, finalizeNarrativeSelection, hasReliableNarrativeTime, marginalNarrativeScore, coverNarrativeDecision, NARRATIVE_WEIGHTS, type NarrativeWeights, type NarrativeCoverage, type SelectionDecision, type NarrativeSelection } from "./report-narrative-selection";
 // HALLEUS_DEEP_NARRATIVE_SLICE3_NATAL_ASPECT_SYNTHESIS_R1_20260902
 // HALLEUS_DEEP_NARRATIVE_SLICE2_CANONICAL_PLACEMENT_SYNTHESIS_R2_20260902
 // HALLEUS_DEEP_NARRATIVE_SLICE1_EXACT_ANGLE_FACT_CONTRACT_R4_20260902
@@ -1316,65 +1316,59 @@ function buildNodeAnchor(
 
 // HALLEUS_R39_STAGE1_CLUSTER_HOUSE_SELECTION_DEDUPE_20260901
 // HALLEUS_R39_STAGE1_HOUSE_CLUSTER_SELECTION_SCOPE_S3_20260901
-function isHouseClusterStory(story: AdaptiveNarrativeAnchor): boolean {
-  return (
-    story.kind === "cluster" &&
-    story.semanticKey.startsWith("cluster:house:")
-  );
-}
-
-function storiesShareClusterHouseOwnership(
-  first: AdaptiveNarrativeAnchor,
-  second: AdaptiveNarrativeAnchor,
-): boolean {
-  const isClusterHousePair =
-    (isHouseClusterStory(first) && second.kind === "house") ||
-    (first.kind === "house" && isHouseClusterStory(second));
-
-  if (!isClusterHousePair) return false;
-
-  const secondHouseIds = new Set(second.sourceHouseIds);
-  return first.sourceHouseIds.some((houseId) => secondHouseIds.has(houseId));
-}
-
-function chooseTopStories(candidates: AdaptiveNarrativeAnchor[]) {
-  const accepted = absorbSemanticDuplicates(candidates).sort((a, b) => b.score - a.score || a.semanticKey.localeCompare(b.semanticKey));
-  const picked: AdaptiveNarrativeAnchor[] = [];
-  for (const candidate of accepted) {
-    const owner = picked.find(story => {
-      const shared = candidate.sourcePlanetIds.filter(id => story.sourcePlanetIds.includes(id));
-      const clusterDetail = story.kind === "cluster" && shared.length > 0
-        && shared.length === candidate.sourcePlanetIds.length
-        && ["aspect", "planet", "ruler-story"].includes(candidate.kind);
-      const nearIdenticalClusters = story.kind === "cluster" && candidate.kind === "cluster"
-        && shared.length >= 3 && candidate.sourcePlanetIds.length - shared.length <= 1;
-      const patternDetail = story.kind === "aspect-pattern" && candidate.kind === "aspect"
-        && candidate.sourceAspectIds.every(id => story.sourceAspectIds.includes(id));
-      const samePlacement = ["planet", "ruler-story"].includes(story.kind)
-        && ["planet", "ruler-story"].includes(candidate.kind)
-        && shared.length === 1 && story.sourcePlanetIds.length === 1;
-      return clusterDetail || nearIdenticalClusters || patternDetail || samePlacement;
-    });
-    if (owner) {
-      owner.absorbedSemanticKeys = uniq([...owner.absorbedSemanticKeys, candidate.semanticKey, ...candidate.absorbedSemanticKeys]);
-      owner.evidenceRefs = dedupeEvidence([...owner.evidenceRefs, ...candidate.evidenceRefs]);
-      // Evidence is merged; cluster membership is never expanded to imply a false shared house/sign.
-      owner.sourceAspectIds = uniq([...owner.sourceAspectIds, ...candidate.sourceAspectIds]);
-      continue;
+export function chooseTopStories(candidates: AdaptiveNarrativeAnchor[], decisions: SelectionDecision[], weights: NarrativeWeights) {
+  // Copy before legacy evidence reconciliation: raw scoring provenance must remain immutable.
+  const accepted = absorbSemanticDuplicates(candidates.map(c => ({...c, evidenceRefs:[...c.evidenceRefs], absorbedSemanticKeys:[...c.absorbedSemanticKeys]})))
+    .sort((a,b) => b.score-a.score || a.semanticKey.localeCompare(b.semanticKey));
+  const byKey = new Map(decisions.map(d => [d.semanticKey,d]));
+  const absorbed = new Set<string>();
+  const merge = (owner: AdaptiveNarrativeAnchor, member: AdaptiveNarrativeAnchor) => {
+    owner.absorbedSemanticKeys = uniq([...owner.absorbedSemanticKeys, member.semanticKey, ...member.absorbedSemanticKeys]);
+    owner.evidenceRefs = dedupeEvidence([...owner.evidenceRefs, ...member.evidenceRefs]);
+    owner.sourceAspectIds = uniq([...owner.sourceAspectIds, ...member.sourceAspectIds]);
+    absorbed.add(member.semanticKey);
+  };
+  // A house and sign can describe the same personal core from different perspectives.
+  // Require substantial overlap in BOTH directions; never merge through a chain of weak overlaps.
+  for (const owner of accepted.filter(c => c.kind === "cluster")) {
+    if (absorbed.has(owner.semanticKey)) continue;
+    for (const member of accepted.filter(c => c.kind === "cluster")) {
+      if (member === owner || absorbed.has(member.semanticKey) || accepted.indexOf(member) < accepted.indexOf(owner)) continue;
+      const shared = member.sourcePlanetIds.filter(id => owner.sourcePlanetIds.includes(id));
+      const oppositePerspectives = owner.semanticKey.startsWith("cluster:house:") !== member.semanticKey.startsWith("cluster:house:");
+      if (oppositePerspectives && shared.length >= 2 && shared.some(id => PERSONAL_PLANET_IDS.has(id))
+        && shared.length * 2 >= owner.sourcePlanetIds.length && shared.length * 2 >= member.sourcePlanetIds.length) merge(owner,member);
     }
-    if (picked.length >= 3) continue;
-    const exactOverlap = picked.some((story) =>
-      story.kind === candidate.kind &&
-      story.sourcePlanetIds.length > 0 &&
-      candidate.sourcePlanetIds.length > 0 &&
-      story.sourcePlanetIds.every((id) => candidate.sourcePlanetIds.includes(id)) &&
-      candidate.sourcePlanetIds.every((id) => story.sourcePlanetIds.includes(id)),
-    );
-    const clusterHouseOverlap = picked.some((story) =>
-      storiesShareClusterHouseOwnership(story, candidate),
-    );
-    if (exactOverlap || clusterHouseOverlap) continue;
-    picked.push({ ...candidate, evidenceRefs: [...candidate.evidenceRefs], sourceAspectIds: [...candidate.sourceAspectIds], absorbedSemanticKeys: [...candidate.absorbedSemanticKeys] });
+  }
+  // Absorb only facts wholly inside a recorded perspective, not invented joint membership.
+  for (const owner of accepted.filter(c => !absorbed.has(c.semanticKey) && (c.kind === "cluster" || c.kind === "aspect-pattern"))) {
+    const perspectives = [owner,...candidates.filter(c => c.kind === "cluster" && owner.absorbedSemanticKeys.includes(c.semanticKey))];
+    for (const member of accepted) {
+      if (member === owner || absorbed.has(member.semanticKey)) continue;
+      const clusterDetail = ["aspect","house","planet","ruler-story"].includes(member.kind)
+        && member.sourcePlanetIds.length > 0 && perspectives.some(p => p.kind === "cluster" && member.sourcePlanetIds.every(id => p.sourcePlanetIds.includes(id)));
+      const patternDetail = owner.kind === "aspect-pattern" && member.kind === "aspect" && member.sourceAspectIds.every(id => owner.sourceAspectIds.includes(id));
+      if (clusterDetail || patternDetail) merge(owner,member);
+    }
+  }
+  const remaining = accepted.filter(c => !absorbed.has(c.semanticKey));
+  const picked: AdaptiveNarrativeAnchor[] = [];
+  const coverage: NarrativeCoverage = new Map();
+  const directlyPersonal = (story: AdaptiveNarrativeAnchor) => byKey.get(story.semanticKey)!.terms.some(t => ["luminary","personal","ruler"].includes(t.key));
+  while (remaining.length && picked.length < 3) {
+    // Diversity must not promote an outer-only topic over an available personal reading.
+    remaining.sort((a,b) => Number(directlyPersonal(b))-Number(directlyPersonal(a)) || marginalNarrativeScore(byKey.get(b.semanticKey)!,coverage,weights)-marginalNarrativeScore(byKey.get(a.semanticKey)!,coverage,weights)
+      || b.score-a.score || a.semanticKey.localeCompare(b.semanticKey));
+    const candidate = remaining.shift()!;
+    const d = byKey.get(candidate.semanticKey)!;
+    d.selectionScore = marginalNarrativeScore(d,coverage,weights);
+    d.reusedPoints = Math.round((d.score-d.selectionScore)*1000)/1000;
+    d.alternatives = remaining.slice(0,3).map(c => ({key:c.semanticKey,score:marginalNarrativeScore(byKey.get(c.semanticKey)!,coverage,weights),directlyPersonal:directlyPersonal(c)}));
+    picked.push(candidate);
+    // Supporting evidence alone does not consume a topic; merged primary perspectives do.
+    for (const key of [candidate.semanticKey,...candidate.absorbedSemanticKeys.filter(key => key.startsWith("cluster:"))]) {
+      const member = byKey.get(key); if(member) coverNarrativeDecision(member,coverage);
+    }
   }
   return picked;
 }
@@ -1474,7 +1468,7 @@ function estimateReadingMinutes(plan: Omit<AdaptiveReportPlan, "readingMinutes" 
   return Math.max(12, Math.min(18, Math.ceil(words / 155)));
 }
 
-export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReportPlan {
+export function buildAdaptiveReportPlan(report: AstrologyReport, weights: NarrativeWeights = NARRATIVE_WEIGHTS): AdaptiveReportPlan {
   const timeReliable = hasReliableNarrativeTime(report);
   const placements = (report.realEngine?.placements ?? []).map(p => timeReliable ? p : { ...p, house: null }).filter((placement) => MAJOR_PLANET_IDS.includes(normalizePlanetId(placement.id) as (typeof MAJOR_PLANET_IDS)[number]));
   const aspects = report.realEngine?.aspects ?? report.realEngine?.aspectHighlights ?? [];
@@ -1551,9 +1545,9 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
     stories: relevanceAwareCandidates,
     relevance: advancedRelevance,
   });
-  const selectionRanking = rankNarrativeCandidates(report, unifiedSynthesis.storyCandidates, chartRulerId);
+  const selectionRanking = rankNarrativeCandidates(report, unifiedSynthesis.storyCandidates, chartRulerId, weights);
   unifiedSynthesis.storyCandidates = selectionRanking.candidates;
-  const topStories = chooseTopStories(unifiedSynthesis.storyCandidates).map((story) => ({
+  const topStories = chooseTopStories(unifiedSynthesis.storyCandidates, selectionRanking.decisions, weights).map((story) => ({
     ...story,
     technicalLine: buildNarrativeTechnicalLine(story.evidenceRefs),
   }));
@@ -1596,7 +1590,7 @@ export function buildAdaptiveReportPlan(report: AstrologyReport): AdaptiveReport
   }
 
   const topClusterHouses = new Set(
-    topStories
+    topStories.flatMap(story => [story,...selectionRanking.candidates.filter(c => c.kind === "cluster" && story.absorbedSemanticKeys.includes(c.semanticKey))])
       .filter(
         (story) =>
           story.kind === "cluster" &&

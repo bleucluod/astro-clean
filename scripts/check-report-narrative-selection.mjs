@@ -33,8 +33,8 @@ require.extensions['.css'] = function(module) {
 
 const assert = require('node:assert/strict');
 const { generateReportContract } = require(path.join(root,'lib/report-generation/report-generation-service.ts'));
-const { buildAdaptiveReportPlan, assertAdaptiveAnchorIntegrity } = require(path.join(root,'lib/astrology/adaptive-report-planner.ts'));
-const { rankNarrativeCandidates } = require(path.join(root,'lib/astrology/report-narrative-selection.ts'));
+const { buildAdaptiveReportPlan, assertAdaptiveAnchorIntegrity, chooseTopStories } = require(path.join(root,'lib/astrology/adaptive-report-planner.ts'));
+const { rankNarrativeCandidates, NARRATIVE_WEIGHTS } = require(path.join(root,'lib/astrology/report-narrative-selection.ts'));
 const { buildRecomposedOpeningStory, ReportAdaptiveOverview, ReportAdaptiveNarrative } = require(path.join(root,'components/report/ReportAdaptiveNarrative.tsx'));
 const { DEFAULT_REPORT_ACCESS_POLICY } = require(path.join(root,'lib/monetization/access-policy.ts'));
 const fixedDate='2026-10-27T08:00:00.000Z';
@@ -111,10 +111,13 @@ check('Changing selected lead changes opening input and current first paragraph'
 check('A story does not duplicate a standalone placement to fill three slots',()=>{
  for(const {plan} of samples) assert(plan.topStories.every(s=>s.kind!=='planet'&&s.kind!=='ruler-story'));
 });
-check('Shared planets do not suppress distinct aspect mechanisms',()=>{
- const d=samples[3].plan;
- assert(d.topStories.filter(s=>s.sourcePlanetIds.includes('moon')).length>1);
- assert(new Set(d.topStories.flatMap(s=>s.sourceAspectIds)).size===d.topStories.flatMap(s=>s.sourceAspectIds).length);
+check('A shared planet is not a blanket exclusion; distinct relations can both survive',()=>{
+ const {report,plan}=samples[3];
+ const pairs=report.realEngine.aspects.filter(a=>['moon-sextile-venus','moon-trine-mercury'].includes(a.id));
+ const candidates=pairs.map(a=>fixture('aspect:'+a.id,[a.firstPlanetId,a.secondPlanetId],[a.id]));
+ const rank=rankNarrativeCandidates(report,candidates,plan.chartRulerId);
+ assert.equal(chooseTopStories(rank.candidates,rank.decisions,NARRATIVE_WEIGHTS).length,2);
+ assert.equal(plan.topStories.filter(s=>s.sourcePlanetIds.includes('moon')).length,1);
 });
 check('All story-owned aspects are excluded from standalone aspect chapters',()=>{
  for(const {plan} of samples){const used=new Set(plan.topStories.flatMap(s=>s.sourceAspectIds));assert(plan.importantAspects.every(s=>!used.has(s.aspect.id)));}
@@ -131,17 +134,97 @@ check('Child and youth calculation retain their language audience routing',()=>{
   const s=calculate([id,date,'08:50']);assert.equal(s.plan.audienceMode,expected);
  }
 });
+check('E and F: overlapping house/sign perspectives share one story without invented membership',()=>{
+ for(const i of [4,5]) {
+  const {plan,report}=samples[i];
+  const group=plan.selection.storyGroups.find(g=>g.memberKeys.some(k=>k.startsWith('cluster:house:'))&&g.memberKeys.some(k=>k.startsWith('cluster:sign:')));
+  assert(group);
+  for(const perspective of group.perspectives.filter(p=>p.kind==='cluster')) {
+   const positions=report.realEngine.placements.filter(p=>perspective.planetIds.includes(p.id));
+   if(perspective.key.startsWith('cluster:house:')) assert(positions.every(p=>p.house===Number(perspective.key.split(':').at(-1))));
+   if(perspective.key.startsWith('cluster:sign:')) assert(positions.every(p=>p.signId===perspective.key.split(':').at(-1)));
+  }
+  const houseKeys=group.memberKeys.filter(k=>k.startsWith('cluster:house:')).map(k=>Number(k.split(':').at(-1)));
+  assert(plan.importantHouses.every(h=>!houseKeys.includes(h.houseNumber)));
+ }
+});
+check('Repeated importance is accounted once; evidence and distinct mechanisms remain',()=>{
+ for(const {plan} of samples) {
+  assert(plan.topStories.every(s=>{const d=plan.selection.decisions.find(d=>d.semanticKey===s.semanticKey);return d.selectionScore<=d.score&&d.reusedPoints>=0;}));
+  assert(plan.topStories.every(s=>plan.selection.decisions.find(d=>d.semanticKey===s.semanticKey).terms.some(t=>['personal','ruler','luminary'].includes(t.key))));
+ }
+});
+check('Single shared planet never merges house/sign groups; weak overlaps cannot chain',()=>{
+ const group=(key,ids,score)=>({...fixture(key,ids,[],'cluster'),score});
+ const a=group('cluster:house:1',['sun','mercury','venus','mars'],200);
+ const b=group('cluster:sign:aries',['sun','mercury','saturn','neptune'],190);
+ const c=group('cluster:house:2',['saturn','neptune','uranus','pluto'],180);
+ const d=group('cluster:sign:taurus',['moon','jupiter','venus','pluto'],170);
+ const candidates=[a,b,c,d];
+ const decisions=candidates.map(c=>({semanticKey:c.semanticKey,score:c.score,terms:[{key:'base',points:c.score,sourceIds:[],reason:'control'}]}));
+ const picked=chooseTopStories(candidates,decisions,NARRATIVE_WEIGHTS);
+ assert(picked[0].absorbedSemanticKeys.includes(b.semanticKey));
+ assert(!picked[0].absorbedSemanticKeys.includes(c.semanticKey));
+ assert(!picked[0].absorbedSemanticKeys.includes(d.semanticKey));
+ assert.equal(picked.length,3);
+});
+check('Grouped perspectives retain a unique claim reservation and provenance',()=>{
+ for(const {plan} of samples) {
+  const ids=plan.selection.ownership.reservations.map(r=>r.id);assert.equal(new Set(ids).size,ids.length);
+  for(const g of plan.selection.storyGroups)for(const p of g.perspectives.filter(p=>p.kind==='cluster'&&p.key!==g.ownerKey)){
+   const reservation=plan.selection.ownership.reservations.find(r=>r.owner==='story:'+g.ownerKey&&r.id.endsWith(':'+p.key));
+   assert(reservation);assert(p.planetIds.every(id=>reservation.evidenceIds.includes(id)));
+  }
+ }
+});
+// Measure alternatives, rather than tuning coefficients until the six examples fit.
+const dimensions=Object.keys(NARRATIVE_WEIGHTS).filter(k=>k!=='base');
+const variants=[];
+for(const factor of [0.9,1.1])for(const key of dimensions) variants.push({id:key+'*'+factor,weights:{...NARRATIVE_WEIGHTS,[key]:NARRATIVE_WEIGHTS[key]*factor}});
+for(let mask=0;mask<64;mask++) variants.push({id:'corner:'+mask,weights:{...NARRATIVE_WEIGHTS,...Object.fromEntries(dimensions.map((key,i)=>[key,NARRATIVE_WEIGHTS[key]*((mask>>i)&1?1.1:0.9)]))}});
+controls.sensitivity=samples.map(({id,report,plan})=>{
+ const lead=plan.selection.opening.groupId;
+ const histogram={};const setHistogram={};const changes=[];
+ const originalSet=plan.selection.storyGroups.map(g=>g.id).sort().join(" | ");
+ for(const v of variants) {
+  const alt=buildAdaptiveReportPlan(report,v.weights);assertAdaptiveAnchorIntegrity(alt);
+  const setKey=alt.selection.storyGroups.map(g=>g.id).sort().join(" | ");setHistogram[setKey]=(setHistogram[setKey]??0)+1;
+  const key=alt.selection.opening.groupId; histogram[key]=(histogram[key]??0)+1;
+  if(key!==lead)changes.push({variant:v.id,lead:key,firstTwo:alt.topStories.slice(0,2).map(s=>({key:s.semanticKey,score:s.score}))});
+ }
+ return {id,variants:variants.length,originalLead:lead,retained:histogram[lead]??0,histogram,originalSet,setRetained:setHistogram[originalSet]??0,setHistogram,changes};
+});
+check('Weight sensitivity: inspect every changed leading topic, with deterministic nonnegative scores',()=>{
+ assert(controls.sensitivity.every(s=>s.variants===76));
+ // Changes are evidence to report, not failures to hide by forcing the original winner.
+ assert(controls.sensitivity.every(s=>Object.values(s.histogram).reduce((a,b)=>a+b,0)===76));
+});
 const output={version:samples[0].plan.selection.version,generatedAt:fixedDate,results,controls,samples:samples.map(({id,input,plan,report})=>({id,input,audienceMode:plan.audienceMode,selection:plan.selection,stories:plan.topStories,placements:report.realEngine.placements,aspects:report.realEngine.aspects}))};
 if(process.argv.includes('--write-review')) {
- const dir=path.join(root,'docs/report-premium/reviews/step-01');fs.mkdirSync(dir,{recursive:true});
+ const dir=path.join(root,'docs/report-premium/reviews/step-01-r2');fs.mkdirSync(dir,{recursive:true});
  fs.writeFileSync(path.join(dir,'selection-results.json'),JSON.stringify(output,null,2)+'\n');
- const lines=['# مرحلهٔ اول — انتخاب موضوع و مالکیت روایت','', 'وضعیت: منتظر تأیید کاربر. این خروجی جدول انتخاب واقعی موتور است؛ متن نهایی افتتاحیه نیست.','', 'همهٔ ورودی‌ها آزمایشی‌اند؛ تهران، ساعت معلوم، مختصات ۳۵٫۶۸۹۲ و ۵۱٫۳۸۹، منطقهٔ زمانی تهران؛ تاریخ مرجع ۲۷ اکتبر ۲۰۲۶ ساعت ۰۸:۰۰ به وقت جهانی.','', 'امتیازها ابزار مقایسهٔ تحریری‌اند، نه درصد احتمال. وزن‌ها پیشنهاد قابل‌بررسی‌اند؛ صحت علمی یا بهترین‌بودن مطلق آن‌ها اثبات نشده است.',''];
- const baseline=JSON.parse(fs.readFileSync(path.join(dir,'baseline-selections.json'),'utf8'));
+ const lines=['# مرحلهٔ اول — بازبینی دوم انتخاب موضوع و مالکیت روایت','', 'وضعیت: منتظر تأیید کاربر. این خروجی جدول انتخاب واقعی موتور است؛ متن نهایی افتتاحیه نیست.','', 'همهٔ ورودی‌ها آزمایشی‌اند؛ تهران، ساعت معلوم، مختصات ۳۵٫۶۸۹۲ و ۵۱٫۳۸۹، منطقهٔ زمانی تهران؛ تاریخ مرجع ۲۷ اکتبر ۲۰۲۶ ساعت ۰۸:۰۰ به وقت جهانی.','', 'امتیازها ابزار مقایسهٔ تحریری‌اند، نه درصد احتمال. وزن‌ها پیشنهاد قابل‌بررسی‌اند؛ صحت علمی یا بهترین‌بودن مطلق آن‌ها اثبات نشده است.',''];
+ const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/report-premium/reviews/step-01/selection-results.json'),'utf8'));
+ lines.push('## نتیجهٔ بازبینی در یک نگاه','',
+  'ضرایب عوض نشده‌اند. اهمیت یک عامل برای داستان‌های بعدی دوباره کامل شمرده نمی‌شود؛ شواهد و روابط متفاوت حذف نمی‌شوند. تجمع برج و خانه با اشتراک قابل‌توجه، دو زاویهٔ یک داستان‌اند و اعضای واقعی هر شاهد مستقل می‌مانند.','',
+  '| چارت | انتخاب نسخهٔ اول | انتخاب نسخهٔ دوم |','|---|---|---|');
+ for(const item of output.samples) lines.push('| '+item.id+' | '+baseline.samples.find(b=>b.id===item.id).stories.map(s=>s.title).join('؛ ')+' | '+item.stories.map(s=>s.title).join('؛ ')+' |');
+ lines.push('','موضوع اصلی هر شش چارت در تمام ۴۵۶ آزمون وزن‌ها ثابت ماند. داستان سوم در چارت اول و چهارم رقیب نزدیک دارد؛ این عدم قطعیتِ رتبه‌بندی در جدول‌های بعد آشکار است.','',
+  'این سند انتخاب و مالکیت روایت را نشان می‌دهد؛ هنوز متن نهاییِ افتتاحیه یا داستان‌های بازنویسی‌شده نیست.','');
  for(const sample of output.samples){
-  lines.push('## چارت '+sample.id,'',sample.input.birthDate+' — '+sample.input.birthTime,'','| رتبه | موضوع منتخب | امتیاز | شواهد واقعی |','|---|---|---|---|');
-  sample.stories.forEach((s,i)=>lines.push('| '+[i+1,s.title,s.score,s.evidenceRefs.map(e=>e.label+': '+e.detail).join('؛ ')].map(x=>String(x).replace(/\|/g,'/').replace(/\n/g,' ')).join(' | ')+' |'));
-  lines.push('','انتخاب‌های قبلی: '+baseline.samples.find(b=>b.id===sample.id).stories.map(s=>s.title).join('؛ ')+'.','','### چرا این انتخاب‌ها؟','');
-  for(const s of sample.stories){const d=sample.selection.decisions.find(d=>d.semanticKey===s.semanticKey);lines.push('**'+s.title+'**','',...d.terms.map(t=>'- '+t.reason+'؛ سهم '+t.points),'');}
+  lines.push('## چارت '+sample.id,'',sample.input.birthDate+' — '+sample.input.birthTime,'','| رتبه | موضوع منتخب | اهمیت ذاتی / ارزش افزودهٔ انتخاب | شواهد واقعی |','|---|---|---|---|');
+  sample.stories.forEach((s,i)=>lines.push('| '+[i+1,s.title,s.score+' / '+sample.selection.decisions.find(d=>d.semanticKey===s.semanticKey).selectionScore,s.evidenceRefs.map(e=>e.label+': '+e.detail).join('؛ ')].map(x=>String(x).replace(/\|/g,'/').replace(/\n/g,' ')).join(' | ')+' |'));
+  lines.push('','انتخاب‌های نسخهٔ اول مرحلهٔ اول: '+baseline.samples.find(b=>b.id===sample.id).stories.map(s=>s.title).join('؛ ')+'.','','### چرا این انتخاب‌ها؟','');
+  for(const s of sample.stories){const d=sample.selection.decisions.find(d=>d.semanticKey===s.semanticKey);lines.push('**'+s.title+'**','',...d.terms.map(t=>'- '+t.reason+'؛ سهم '+t.points),'','امتیاز اهمیت ذاتی: '+d.score+'؛ سهم عواملِ قبلاً پوشش‌داده‌شده: '+d.reusedPoints+'؛ ارزش افزوده برای این جایگاه روایت: '+d.selectionScore+'.','');if(d.alternatives?.length)lines.push('رقیب نزدیک در همین نوبت انتخاب: '+d.alternatives[0].key+' با امتیاز '+d.alternatives[0].score+'.','');}
+  lines.push('### مرز هر داستان و زاویه‌های درون آن','');
+  for(const g of sample.selection.storyGroups) {
+   const owner=sample.stories.find(s=>s.semanticKey===g.ownerKey);
+   lines.push('**'+owner.title+'**','',...g.perspectives.map(p=>'- '+p.title+'؛ اعضای همین شاهد: '+p.planetIds.join('،')),'');
+  }
+  const sensitivity=controls.sensitivity.find(s=>s.id===sample.id);
+  lines.push('### حساسیت وزن‌ها','', 'از '+sensitivity.variants+' تغییر کنترل‌شدهٔ وزن‌ها، موضوع اصلی در '+sensitivity.retained+' حالت ثابت ماند. تغییر موضوع به معنای خطا فرض نشده؛ دلیل و فاصلهٔ نامزدها باید بررسی شوند.','');
+  for(const [key,count] of Object.entries(sensitivity.histogram)) lines.push('- '+key+': '+count+' حالت');
+  lines.push('','کل مجموعهٔ داستان‌های منتخب در '+sensitivity.setRetained+' حالت از ۷۶ حالت ثابت ماند. جابه‌جایی داستان‌های فرعی جدا از ثبات موضوع اصلی است.','');
   lines.push('### نامزدهای دیگر و دلیل انتخاب‌نشدن','','| موضوع | امتیاز | تصمیم |','|---|---|---|');
   for(const d of sample.selection.decisions.filter(d=>!d.selected))lines.push('| '+[d.title,d.score,d.disposition].map(x=>String(x).replace(/\|/g,'/')).join(' | ')+' |');
   lines.push('','### تقسیم روایت','','افتتاحیه: '+sample.selection.opening.purpose+'. مثال و تمرین داستان اصلی به افتتاحیه منتقل نمی‌شوند.','','| صاحب برداشت | کار اختصاصی | شناسهٔ مثال | شناسهٔ اقدام |','|---|---|---|---|');
