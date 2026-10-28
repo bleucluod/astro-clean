@@ -18,6 +18,11 @@ export type WikiArticleSection = {
   title: string;
   paragraphs: readonly string[];
   bullets?: readonly string[];
+  /** Optional approved-order layout for articles interleaving paragraphs and bullet lists. */
+  orderedBlocks?: readonly (
+    | { kind: "paragraph"; text: string }
+    | { kind: "list"; items: readonly string[] }
+  )[];
   media?: readonly {
     src: string;
     alt: string;

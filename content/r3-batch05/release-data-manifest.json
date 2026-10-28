@@ -1,0 +1,260 @@
+{
+  "schema": "HALLEUS_R3_BATCH05_MANIFEST_V1",
+  "source_repo": "bleucluod/halleus-gsc-private-backup",
+  "source_commit": "f090fb380f74e267b426b48e46e6dd932f7267e3",
+  "frozen_archive_sha256": "6557efc1315ba214ce0f70be3b7dbdbb3d88cdab7cd6dc7cae15b75725bc8274",
+  "release_scope": "50 distinct approved URLs; W140 W142 W145 historical duplicates excluded",
+  "release_approval": "User 2026-10-28: do all work in GitHub then provide one VPS sync command",
+  "records": [
+    {
+      "id": "W108",
+      "path": "content/r3-batch05/wiki/W108.json",
+      "blob_sha1": "6310bdfc88347af839c233fc66a1754657f7c82a"
+    },
+    {
+      "id": "W109",
+      "path": "content/r3-batch05/wiki/W109.json",
+      "blob_sha1": "a40071122938cf86b3bb19ef2815aaa4d7df27ec"
+    },
+    {
+      "id": "W110",
+      "path": "content/r3-batch05/wiki/W110.json",
+      "blob_sha1": "4d52b1348d70e04f2c87a6ec0121a4aaec8ccc65"
+    },
+    {
+      "id": "W111",
+      "path": "content/r3-batch05/wiki/W111.json",
+      "blob_sha1": "388132b035f3803529284248a672a1c5d4bc8681"
+    },
+    {
+      "id": "W112",
+      "path": "content/r3-batch05/wiki/W112.json",
+      "blob_sha1": "94ad606545c111bb0b959f9df15fac93f57da94d"
+    },
+    {
+      "id": "W113",
+      "path": "content/r3-batch05/wiki/W113.json",
+      "blob_sha1": "2996997f16d8704c5d67bf2b45be42c34947f470"
+    },
+    {
+      "id": "W114",
+      "path": "content/r3-batch05/wiki/W114.json",
+      "blob_sha1": "c8fc1b1055939750b9c70380fc640d29cc436a8f"
+    },
+    {
+      "id": "W115",
+      "path": "content/r3-batch05/wiki/W115.json",
+      "blob_sha1": "1f5001f34336286971d5a02531aa967c52ba8e7c"
+    },
+    {
+      "id": "W116",
+      "path": "content/r3-batch05/wiki/W116.json",
+      "blob_sha1": "ace9862111d833c79c9798bafa7284638d276c56"
+    },
+    {
+      "id": "W117",
+      "path": "content/r3-batch05/wiki/W117.json",
+      "blob_sha1": "0ca0f1dc7d346860ad8c1d372f38e9ff51e54709"
+    },
+    {
+      "id": "W118",
+      "path": "content/r3-batch05/wiki/W118.json",
+      "blob_sha1": "48bf392f22cc69df49cce205ebc5f5132a2e80b7"
+    },
+    {
+      "id": "W120",
+      "path": "content/r3-batch05/wiki/W120.json",
+      "blob_sha1": "0a495d9f08f722a095dbe027a2c138600249f20d"
+    },
+    {
+      "id": "W121",
+      "path": "content/r3-batch05/wiki/W121.json",
+      "blob_sha1": "2c7c86efe01209c4480976fc9360e07008549adf"
+    },
+    {
+      "id": "W122",
+      "path": "content/r3-batch05/wiki/W122.json",
+      "blob_sha1": "eb4a527d1bb8921b4cd520d9eca9f383e0e15d5d"
+    },
+    {
+      "id": "W123",
+      "path": "content/r3-batch05/wiki/W123.json",
+      "blob_sha1": "2baa536c0b10d4ae9f2eb54fbb183bec76ffd938"
+    },
+    {
+      "id": "W124",
+      "path": "content/r3-batch05/wiki/W124.json",
+      "blob_sha1": "d17520be79ff4d147ce3b212e71badbf030fc6ef"
+    },
+    {
+      "id": "W125",
+      "path": "content/r3-batch05/wiki/W125.json",
+      "blob_sha1": "c09bed8be21acf06e8b2edef1cee00a0ec329ff7"
+    },
+    {
+      "id": "W126",
+      "path": "content/r3-batch05/wiki/W126.json",
+      "blob_sha1": "90a00601b724f404aecaeac52eef265da3187f7b"
+    },
+    {
+      "id": "W127",
+      "path": "content/r3-batch05/wiki/W127.json",
+      "blob_sha1": "b9f41f076230fbf5e37f319263f4fe6adf870263"
+    },
+    {
+      "id": "W128",
+      "path": "content/r3-batch05/wiki/W128.json",
+      "blob_sha1": "1c30f7c0ae050272bb75860393511a6ef890df98"
+    },
+    {
+      "id": "W129",
+      "path": "content/r3-batch05/wiki/W129.json",
+      "blob_sha1": "aeb0e298e04e3e73f12861c3547ec8371572c87a"
+    },
+    {
+      "id": "W130",
+      "path": "content/r3-batch05/wiki/W130.json",
+      "blob_sha1": "1dc9cdfcf7b8e281d8fd95d284fe8c5b15c096a7"
+    },
+    {
+      "id": "W133",
+      "path": "content/r3-batch05/wiki/W133.json",
+      "blob_sha1": "ba7e4086017c1e1c3b66769b7b02911f5b49da6c"
+    },
+    {
+      "id": "W134",
+      "path": "content/r3-batch05/wiki/W134.json",
+      "blob_sha1": "293cbe709420942464971239d59276b76062fec6"
+    },
+    {
+      "id": "W135",
+      "path": "content/r3-batch05/wiki/W135.json",
+      "blob_sha1": "c4f753ffe21ba373e5fad303bed27763cf4ffb89"
+    },
+    {
+      "id": "W136",
+      "path": "content/r3-batch05/wiki/W136.json",
+      "blob_sha1": "d33aa0233fca901f083a65dd45cb6ad7c9215af5"
+    },
+    {
+      "id": "W137",
+      "path": "content/r3-batch05/wiki/W137.json",
+      "blob_sha1": "c72ba694c7bdf2a784233fc26bf4dfd878bef309"
+    },
+    {
+      "id": "W138",
+      "path": "content/r3-batch05/wiki/W138.json",
+      "blob_sha1": "3d611a74582086567ddc18aca459c636f7a052b9"
+    },
+    {
+      "id": "W141",
+      "path": "content/r3-batch05/wiki/W141.json",
+      "blob_sha1": "8ddb9807667d9c3950fece9a4f781e579d7d14bf"
+    },
+    {
+      "id": "W143",
+      "path": "content/r3-batch05/wiki/W143.json",
+      "blob_sha1": "b30050efb9052d758f55370ad0522e74829f290a"
+    },
+    {
+      "id": "W144",
+      "path": "content/r3-batch05/wiki/W144.json",
+      "blob_sha1": "2b2b8737df4d618ac85010773ad158b2f476f342"
+    },
+    {
+      "id": "W146",
+      "path": "content/r3-batch05/wiki/W146.json",
+      "blob_sha1": "2cb5a9bd08dfa1797f1a2c0acdbe9fa70d047890"
+    },
+    {
+      "id": "W147",
+      "path": "content/r3-batch05/wiki/W147.json",
+      "blob_sha1": "03d0fa2d5de70da063ac46487e36e6e71d2e398b"
+    },
+    {
+      "id": "W148",
+      "path": "content/r3-batch05/wiki/W148.json",
+      "blob_sha1": "9e8a0571fcff10e5d0d347857bb858925f856d3e"
+    },
+    {
+      "id": "W149",
+      "path": "content/r3-batch05/wiki/W149.json",
+      "blob_sha1": "da01cd531868bafe7a11da0933446ddab031de07"
+    },
+    {
+      "id": "W150",
+      "path": "content/r3-batch05/wiki/W150.json",
+      "blob_sha1": "437ddeae7f71365e0d2682ad653b1959ae96f8dc"
+    },
+    {
+      "id": "W151",
+      "path": "content/r3-batch05/wiki/W151.json",
+      "blob_sha1": "42e41798a62d55e717386f5b3165a3c5fdf7a31e"
+    },
+    {
+      "id": "W152",
+      "path": "content/r3-batch05/wiki/W152.json",
+      "blob_sha1": "9afb57d8e20ae3841643686ac5461554ad34503b"
+    },
+    {
+      "id": "W153",
+      "path": "content/r3-batch05/wiki/W153.json",
+      "blob_sha1": "60a7e093dcd3fc40c6115dce65e151de9fef376f"
+    },
+    {
+      "id": "W154",
+      "path": "content/r3-batch05/wiki/W154.json",
+      "blob_sha1": "39b24daaa952bb8cd4bef64f5e050d19920b904e"
+    },
+    {
+      "id": "W155",
+      "path": "content/r3-batch05/wiki/W155.json",
+      "blob_sha1": "9d620268744700154c720066df37e8585051f8cc"
+    },
+    {
+      "id": "W156",
+      "path": "content/r3-batch05/wiki/W156.json",
+      "blob_sha1": "3681f1dd05df2404b64366a4f332af315a6dcd5c"
+    },
+    {
+      "id": "W157",
+      "path": "content/r3-batch05/wiki/W157.json",
+      "blob_sha1": "6306b4ded49980c8c41449ccfe8777b49fa2a9a1"
+    },
+    {
+      "id": "W158",
+      "path": "content/r3-batch05/wiki/W158.json",
+      "blob_sha1": "55ec3b481261a514dcce4a3440e6b35debb30a1f"
+    },
+    {
+      "id": "W159",
+      "path": "content/r3-batch05/wiki/W159.json",
+      "blob_sha1": "d9e1ccd35f3d2aec28af4d601b0ea7247d816b73"
+    },
+    {
+      "id": "W160",
+      "path": "content/r3-batch05/wiki/W160.json",
+      "blob_sha1": "bf7b0462d13fb5f18d64606069b90d2368b16591"
+    },
+    {
+      "id": "W162",
+      "path": "content/r3-batch05/wiki/W162.json",
+      "blob_sha1": "c40bf45b3f779bcb45f1a1206e89793b1d1cdfc1"
+    },
+    {
+      "id": "W163",
+      "path": "content/r3-batch05/wiki/W163.json",
+      "blob_sha1": "b3df7251a57a4042e16d7df68dba34c479d69d44"
+    },
+    {
+      "id": "W164",
+      "path": "content/r3-batch05/wiki/W164.json",
+      "blob_sha1": "5ccd25387247a2d51abdc6870f61d67ef536a153"
+    },
+    {
+      "id": "W165",
+      "path": "content/r3-batch05/wiki/W165.json",
+      "blob_sha1": "d1a638385fdf3315e4b58000600ec300a896a593"
+    }
+  ]
+}

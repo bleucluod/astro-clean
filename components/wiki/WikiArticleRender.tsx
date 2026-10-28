@@ -132,28 +132,57 @@ export function WikiArticleBody({
       {sections.map((section) => (
         <section className={styles.bodySection} key={section.title}>
           <h2>{section.title}</h2>
-          {section.paragraphs.map((paragraph) => {
-            const image = wikiInlineImage(paragraph);
-            return image ? (
-              <figure className={styles.articleMedia} key={paragraph}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt={image.alt} loading="lazy" src={image.src} />
-              </figure>
-            ) : (
-              <p key={paragraph}>
-                <WikiInlineText text={paragraph} targets={targets} />
-              </p>
-            );
-          })}
-          {section.bullets?.length ? (
-            <ul className={styles.bodyList}>
-              {section.bullets.map((bullet) => (
-                <li key={bullet}>
-                  <WikiInlineText text={bullet} targets={targets} />
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          {section.orderedBlocks ? (
+            section.orderedBlocks.map((block, index) => {
+              if (block.kind === "list") {
+                return (
+                  <ul className={styles.bodyList} key={`list-${index}`}>
+                    {block.items.map((item, itemIndex) => (
+                      <li key={`${itemIndex}-${item}`}>
+                        <WikiInlineText text={item} targets={targets} />
+                      </li>
+                    ))}
+                  </ul>
+                );
+              }
+              const image = wikiInlineImage(block.text);
+              return image ? (
+                <figure className={styles.articleMedia} key={`paragraph-${index}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img alt={image.alt} loading="lazy" src={image.src} />
+                </figure>
+              ) : (
+                <p key={`paragraph-${index}`}>
+                  <WikiInlineText text={block.text} targets={targets} />
+                </p>
+              );
+            })
+          ) : (
+            <>
+            {section.paragraphs.map((paragraph) => {
+              const image = wikiInlineImage(paragraph);
+              return image ? (
+                <figure className={styles.articleMedia} key={paragraph}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img alt={image.alt} loading="lazy" src={image.src} />
+                </figure>
+              ) : (
+                <p key={paragraph}>
+                  <WikiInlineText text={paragraph} targets={targets} />
+                </p>
+              );
+            })}
+            {section.bullets?.length ? (
+              <ul className={styles.bodyList}>
+                {section.bullets.map((bullet) => (
+                  <li key={bullet}>
+                    <WikiInlineText text={bullet} targets={targets} />
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            </>
+          )}
           {section.media?.map((media) => (
             <figure className={styles.articleMedia} key={media.src}>
               {/* CMS media is signature-validated and served from the dedicated public bucket. */}
