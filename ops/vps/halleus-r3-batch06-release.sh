@@ -61,16 +61,21 @@ if ! "$NODE" "$TMP/scripts/apply-r3-batch06.mjs" --check; then
   stage_fail CANDIDATE_FAILURE 'Read-only DB preflight failed; no production data changed'
 fi
 printf 'HALLEUS_R3_BATCH06 | PREFLIGHT_PASS | 56 unique native pages / 282 links\n'
-if as_deploy git -C "$SOURCE" rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null 2>&1; then
-  EXISTING="$(as_deploy git -C "$SOURCE" rev-list -n 1 "$TAG")"
-  [ "$EXISTING" = "$COMMIT" ] || fail 'Tag conflict with another release'
+if [ -f "$ACTIVE/.halleus-release" ] && grep -Fxq "commit=$COMMIT" "$ACTIVE/.halleus-release"; then
+  NEW_CURRENT="$ACTIVE"
+  printf 'HALLEUS_R3_BATCH06 | RESUMED_PASS | release already active at pinned commit\n'
 else
-  as_deploy git -C "$SOURCE" tag "$TAG" "$COMMIT" || stage_fail EXTERNAL_BLOCK 'Unable to create exact-commit local release tag'
+  if as_deploy git -C "$SOURCE" rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null 2>&1; then
+    EXISTING="$(as_deploy git -C "$SOURCE" rev-list -n 1 "$TAG")"
+    [ "$EXISTING" = "$COMMIT" ] || fail 'Tag conflict with another release'
+  else
+    as_deploy git -C "$SOURCE" tag "$TAG" "$COMMIT" || stage_fail EXTERNAL_BLOCK 'Unable to create exact-commit local release tag'
+  fi
+  if ! bash "$TMP/$RELEASE_SCRIPT" deploy --commit "$COMMIT" --tag "$TAG"; then
+    stage_fail EXTERNAL_BLOCK 'Official release failed; inspect current/previous symlinks before retry'
+  fi
+  NEW_CURRENT="$(readlink -f "$CURRENT")"
 fi
-if ! bash "$TMP/$RELEASE_SCRIPT" deploy --commit "$COMMIT" --tag "$TAG"; then
-  stage_fail EXTERNAL_BLOCK 'Official release failed; inspect current/previous symlinks before retry'
-fi
-NEW_CURRENT="$(readlink -f "$CURRENT")"
 test -f "$NEW_CURRENT/.halleus-release" || fail 'Active release metadata missing'
 grep -Fxq "commit=$COMMIT" "$NEW_CURRENT/.halleus-release" || fail 'Active release does not match target'
 printf 'HALLEUS_R3_BATCH06 | RELEASE_ACTIVE | %s\n' "$NEW_CURRENT"
