@@ -1,0 +1,360 @@
+{
+  "schema": "HALLEUS_R3_NATIVE_60_APPROVALS_56_UNIQUE_V1",
+  "source_repo": "bleucluod/halleus-gsc-private-backup",
+  "source_branch": "main",
+  "source_head_before_native_staging": "7269c201bedfd29f19109daebaa00499e319d36b",
+  "frozen_archive_sha256": "6557efc1315ba214ce0f70be3b7dbdbb3d88cdab7cd6dc7cae15b75725bc8274",
+  "editorial_approvals_examined": 60,
+  "unique_page_records": 56,
+  "duplicate_approvals_excluded": 4,
+  "approved_inline_link_tokens": 282,
+  "scope": "CMS native editorial candidate only: no DB, deployment, publish or release authorization by this manifest",
+  "duplicate_selection": [
+    {
+      "canonical_page_id": "W213",
+      "selected_approval_id": "W190",
+      "discarded_approval_id": "W213",
+      "slug": "ordibehesht-birth-month-compatibility",
+      "reason": "W190 has substantially fuller original-section coverage and more naturally placed GSC headings; canonical ID W213 is preserved"
+    },
+    {
+      "canonical_page_id": "W215",
+      "selected_approval_id": "W215",
+      "discarded_approval_id": "W198",
+      "slug": "ordibehesht-woman-marriage-compatibility",
+      "reason": "W215 is more complete, covers 12 pairings, and has correct canonical roadmap ID"
+    },
+    {
+      "canonical_page_id": "W216",
+      "selected_approval_id": "W216",
+      "discarded_approval_id": "W194",
+      "slug": "khordad-birth-month-compatibility",
+      "reason": "W216 has materially richer full article and correct canonical roadmap ID"
+    },
+    {
+      "canonical_page_id": "W219",
+      "selected_approval_id": "W219",
+      "discarded_approval_id": "W193",
+      "slug": "tir-birth-month-compatibility",
+      "reason": "W219 has more extensive complete article and correct canonical roadmap ID"
+    }
+  ],
+  "misassigned_historical_approval_ids": {
+    "W188": "W193",
+    "W189": "W233",
+    "W190": "W213",
+    "W191": "W242",
+    "W192": "W239",
+    "W193": "W219",
+    "W194": "W216",
+    "W195": "W236",
+    "W196": "W231",
+    "W197": "W235",
+    "W198": "W215",
+    "W199": "W244"
+  },
+  "renderer_contract": {
+    "headings": "H2 only; H3 promoted to H2",
+    "tables": "all table cells preserved in native ordered list blocks",
+    "inline_bold": "markdown formatting marks removed; text preserved",
+    "wiki_internal_links": "page:/wiki/slug tokens converted to article:slug with unchanged labels",
+    "metadata": "complete editable fields, source identity/version; preserve unrelated original DB fields on apply"
+  },
+  "checks": {
+    "unique_urls": "PASS_56",
+    "source_identity": "PASS_FROZEN_ARCHIVE",
+    "approved_blob_readback": "PASS_60_CONSIDERED",
+    "native_ordered_blocks_body_parity": "PASS_56",
+    "duplicate_heading_keys": "PASS_56",
+    "inline_link_count_and_order": "PASS_56",
+    "offline_link_target_in_snapshot": "PASS_56",
+    "summary": "approved meta description",
+    "local_converter_fixture": "PASS_8_CASES",
+    "production_db": "NOT_RUN",
+    "runtime_build": "NOT_RUN",
+    "live_render": "NOT_RUN",
+    "vps_release": "NOT_RUN"
+  },
+  "records": [
+    {
+      "page_id": "W166",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W166.json",
+      "blob_sha1": "7a76b4c0cde5829317ab1e189878529fb9d23162"
+    },
+    {
+      "page_id": "W167",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W167.json",
+      "blob_sha1": "d85aba7014d37f9eac689fd289c4baf75ead902d"
+    },
+    {
+      "page_id": "W168",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W168.json",
+      "blob_sha1": "638e51f1aa747dbca4bdf0952f35ebe48473713a"
+    },
+    {
+      "page_id": "W169",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W169.json",
+      "blob_sha1": "6aa59da48832d132e3d7cb46aab294baf44c1ba0"
+    },
+    {
+      "page_id": "W170",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W170.json",
+      "blob_sha1": "558b11f94c2cab634e0f570b6a8ddb4bb4719683"
+    },
+    {
+      "page_id": "W171",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W171.json",
+      "blob_sha1": "d0cf2c0c3d8395029f7c1314cdda590e5b663a84"
+    },
+    {
+      "page_id": "W172",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W172.json",
+      "blob_sha1": "6f3bfb93ed4577ef5792aca18e6325b03a529cd3"
+    },
+    {
+      "page_id": "W173",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W173.json",
+      "blob_sha1": "147e3572513060947758b8a1b1197ade94fbb244"
+    },
+    {
+      "page_id": "W174",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W174.json",
+      "blob_sha1": "5afdd621474799d13ef65a114d2e898741d3bd47"
+    },
+    {
+      "page_id": "W175",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W175.json",
+      "blob_sha1": "71eee330c52aa2b3b80867c97af46a7a212d6b9e"
+    },
+    {
+      "page_id": "W176",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W176.json",
+      "blob_sha1": "9d0f15d99fabdc61d8ba8385618117438258f081"
+    },
+    {
+      "page_id": "W177",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W177.json",
+      "blob_sha1": "d211178430ff5cb3eb5abe185fea05c234964af9"
+    },
+    {
+      "page_id": "W178",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W178.json",
+      "blob_sha1": "0816890496de5cf3d78114da90c2c43cbed4f600"
+    },
+    {
+      "page_id": "W179",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W179.json",
+      "blob_sha1": "95f12c9ea1bdd4afe226720bd2180a4870ce0403"
+    },
+    {
+      "page_id": "W180",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W180.json",
+      "blob_sha1": "154495218391bd0bb87bdd7d67ffacd198a355b5"
+    },
+    {
+      "page_id": "W181",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W181.json",
+      "blob_sha1": "16f71fdbd268cf4de0bc5973a9ccb4177c6951e3"
+    },
+    {
+      "page_id": "W182",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W182.json",
+      "blob_sha1": "f4ce50d7f250446c155da30d85b05625fabef4b5"
+    },
+    {
+      "page_id": "W183",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W183.json",
+      "blob_sha1": "e36ef9bfcf79ced860beebbb8ec4e3cc00c3dcb7"
+    },
+    {
+      "page_id": "W184",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W184.json",
+      "blob_sha1": "446e68fff5e43ae0780c27589e5ef0eec560bc9d"
+    },
+    {
+      "page_id": "W185",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W185.json",
+      "blob_sha1": "bf1a83a995eb88b92116ac77b4d78c137d896912"
+    },
+    {
+      "page_id": "W186",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W186.json",
+      "blob_sha1": "784cfc3c91b5d87c90a623eb6b2524602ec09a8f"
+    },
+    {
+      "page_id": "W187",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W187.json",
+      "blob_sha1": "90ca0ab97b897ee291d2e66a2de4018ae55cf9d4"
+    },
+    {
+      "page_id": "W193",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W193.json",
+      "blob_sha1": "648a7fed3a190cb6c6a218c19d588b64ea9603a8"
+    },
+    {
+      "page_id": "W200",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W200.json",
+      "blob_sha1": "df0f26f6ed6bf694f2327bf527b43d69f6dbf313"
+    },
+    {
+      "page_id": "W201",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W201.json",
+      "blob_sha1": "ff721a403f3061f02145fe5111d80fa1df1b1a80"
+    },
+    {
+      "page_id": "W202",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W202.json",
+      "blob_sha1": "7631a914104fc7be689aeaad520da769c101c09c"
+    },
+    {
+      "page_id": "W203",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W203.json",
+      "blob_sha1": "54f8d753d488fbdc6f21088b4e8bbf99cee06b6b"
+    },
+    {
+      "page_id": "W204",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W204.json",
+      "blob_sha1": "74465c1b0a96a54a03689943389dc59d15d500a2"
+    },
+    {
+      "page_id": "W205",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W205.json",
+      "blob_sha1": "3b6f1eeebb6f4c32abad47d4f64e797b618720ca"
+    },
+    {
+      "page_id": "W206",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W206.json",
+      "blob_sha1": "43e8ff7d76cdd2fbfeb75ef3028333eda3b87648"
+    },
+    {
+      "page_id": "W207",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W207.json",
+      "blob_sha1": "19593c77bf125b307f5bad2ae5bfd5cee7b9575c"
+    },
+    {
+      "page_id": "W208",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W208.json",
+      "blob_sha1": "51696b2a466331a148fe6078e162bbf0be877ac9"
+    },
+    {
+      "page_id": "W209",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W209.json",
+      "blob_sha1": "9e566cb7848226dd9a82da0569956e786a3a2b4e"
+    },
+    {
+      "page_id": "W210",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W210.json",
+      "blob_sha1": "4f0e4ee8395f78e686dc686218ee0b4af065df2e"
+    },
+    {
+      "page_id": "W211",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W211.json",
+      "blob_sha1": "00320ef6582ed3e55a1c5af1547ba68ebb73978d"
+    },
+    {
+      "page_id": "W212",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W212.json",
+      "blob_sha1": "3994e37c9bbe0dd3ad24828f840a65dcfd86e0db"
+    },
+    {
+      "page_id": "W213",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W213.json",
+      "blob_sha1": "1eb5067b3beff840511cd6b3d95ec14c103263b3"
+    },
+    {
+      "page_id": "W214",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W214.json",
+      "blob_sha1": "aac1ce8263e6288d96176e88741c502481b46c18"
+    },
+    {
+      "page_id": "W215",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W215.json",
+      "blob_sha1": "22ca6948d51e15e189ff857e221626dd39cbeb2e"
+    },
+    {
+      "page_id": "W216",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W216.json",
+      "blob_sha1": "b60f4084e5698f418a1a708a556ea6cb42c238a3"
+    },
+    {
+      "page_id": "W217",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W217.json",
+      "blob_sha1": "7777c1fe955fe0b9430826d5c834bd65263ce3e0"
+    },
+    {
+      "page_id": "W218",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W218.json",
+      "blob_sha1": "a1dd09dbf94439ddd79c5428fccd73a972e86022"
+    },
+    {
+      "page_id": "W219",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W219.json",
+      "blob_sha1": "20756f9397c5138584282ad6c8ce30bd40c53330"
+    },
+    {
+      "page_id": "W220",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W220.json",
+      "blob_sha1": "81bede844b29960c4dbab1adeb4994da275301b1"
+    },
+    {
+      "page_id": "W221",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W221.json",
+      "blob_sha1": "6b5cac22b41cb0b490f84553cbc10ca416603b1e"
+    },
+    {
+      "page_id": "W222",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W222.json",
+      "blob_sha1": "5e79bb1200049095d226f54c51993a186d4b7c06"
+    },
+    {
+      "page_id": "W223",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W223.json",
+      "blob_sha1": "b2818de4566520e9fe68db2cc1ba145291f841b8"
+    },
+    {
+      "page_id": "W224",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W224.json",
+      "blob_sha1": "2a3b05d578a98717386487abba7a214d315a7aa3"
+    },
+    {
+      "page_id": "W225",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W225.json",
+      "blob_sha1": "563cbbd3d7e82a56c779f2a611ced73ac0dbe68d"
+    },
+    {
+      "page_id": "W231",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W231.json",
+      "blob_sha1": "d15f176897f807d5bd8f3e59982a000bcb494985"
+    },
+    {
+      "page_id": "W233",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W233.json",
+      "blob_sha1": "dad8ad5b17c018ce868e82b1752a9c37924c4f2a"
+    },
+    {
+      "page_id": "W235",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W235.json",
+      "blob_sha1": "660f83ffda40df26086872a1fc6864d2772d883e"
+    },
+    {
+      "page_id": "W236",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W236.json",
+      "blob_sha1": "5d3979525dd4d2f20594e40b43b2cae14c882c48"
+    },
+    {
+      "page_id": "W239",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W239.json",
+      "blob_sha1": "39d4374877744ed1fa8ced63ea0342821c10e8af"
+    },
+    {
+      "page_id": "W242",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W242.json",
+      "blob_sha1": "68619241a3ce4e6dbcd6a7f91a57a84f627ad706"
+    },
+    {
+      "page_id": "W244",
+      "path": "Halleus-Content-Refresh-R3/execution/native-60-candidate/W244.json",
+      "blob_sha1": "476baedac5b81a641ad85bb135ad6c9d44259c2c"
+    }
+  ]
+}
