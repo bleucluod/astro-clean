@@ -11,7 +11,7 @@ SOURCE=/srv/halleus/source
 CURRENT=/srv/halleus/current
 ENV_FILE=/etc/halleus/halleus.env
 NODE=/usr/local/bin/node
-TAG=v2026.11.01-r3-batch07-wiki74
+TAG=v2026.11.01-r3-batch07-wiki74-r2
 RELEASE_SCRIPT=ops/vps/halleus-release.sh
 TMP=''
 cleanup() { if [[ -n "$TMP" && -d "$TMP" ]]; then rm -rf -- "$TMP"; fi; }
