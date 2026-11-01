@@ -16,7 +16,9 @@ const decode=x=>x.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp|zwnj|rlm)
   if(w[0]==='#'){const n=w[1]==='x'?parseInt(w.slice(2),16):parseInt(w.slice(1),10);return n>0&&n<=0x10ffff?String.fromCodePoint(n):'';}
   return {amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' ',zwnj:'\u200c',rlm:'\u200f'}[w]||' ';
 });
-const textOnly=x=>decode(x.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<!--[\s\S]*?-->/g,' ').replace(/<[^>]+>/g,' ')).replace(/\s+/g,' ').trim();
+// Keep inline-tag boundaries adjacent to punctuation; block tags still add spacing.
+const textOnly=x=>decode(x.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<!--[\s\S]*?-->/g,' ').replace(/<\/?(?:a|strong|em|b|i|code|span)\b[^>]*>/gi,'').replace(/<[^>]+>/g,' ')).replace(/\s+/g,' ').trim();
+if(textOnly('alpha <strong>beta</strong>, gamma')!=='alpha beta, gamma') throw Error('CANDIDATE_FAILURE: inline HTML text fixture');
 const expectedText=x=>x.replace(/\[\[(?:page|article):[^|\]]+\|([^\]]+)\]\]/g,'$1').replace(/\*\*|`/g,'').replace(/\s+/g,' ').trim();
 function anchors(html){
   const out=[];
