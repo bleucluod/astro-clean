@@ -73,9 +73,17 @@ function verifyArticle(doc, html) {
   }
   const deleted = extras.get(doc.slug);
   if (deleted) {
+    const plain = deleted.split('|')[1].slice(0, -2);
     const target = '/wiki/' + deleted.match(/^\[\[article:([^|]+)/)[1];
-    if (pageLinks.some((link) => link.href === target)) return 'extra editorial link still visible: ' + target;
-    if (!text.includes(deleted.split('|')[1].slice(0, -2))) return 'delinked anchor prose missing';
+    const source = blocks.find((block) => block.kind === 'paragraph' && block.text.includes(deleted));
+    if (!source) return 'approved delink paragraph missing from source';
+    const expected = textExpected(source.text.replace(deleted, plain));
+    const matchingParagraphs = [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+      .filter((paragraph) => textOnly(paragraph[1]) === expected);
+    if (!matchingParagraphs.length) return 'delinked paragraph text absent';
+    if (matchingParagraphs.some((paragraph) => anchors(paragraph[0]).some((link) => link.href === target && link.label === plain))) {
+      return 'unplanned inline link still visible: ' + target;
+    }
   }
   return null;
 }
