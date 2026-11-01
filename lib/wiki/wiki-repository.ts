@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import postgres from "postgres";
 
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
+import { isHistoricalWikiRedirectSource } from "@/lib/wiki/wiki-canonical-redirects";
 import {
   wikiArticles as fallbackWikiArticles,
   wikiCategories as fallbackWikiCategories,
@@ -1211,7 +1212,7 @@ export async function listPublicWikiRouteSlugs() {
 
 export async function listPublicWikiSitemapArticles() {
   const index = await getPublicWikiIndex();
-  return index.articles.map((article) => ({
+  return index.articles.filter((article) => !isHistoricalWikiRedirectSource(article.slug)).map((article) => ({
     slug: article.slug,
     updatedAt: article.updatedAt,
   }));

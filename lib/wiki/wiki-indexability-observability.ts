@@ -6,6 +6,7 @@ import {
   getAdminDatabase,
 } from "@/lib/admin/admin-database";
 import { findWikiInternalArticleIds } from "@/lib/wiki/wiki-markdown";
+import { isHistoricalWikiRedirectSource } from "@/lib/wiki/wiki-canonical-redirects";
 import type {
   WikiIndexabilityArticleStatus,
   WikiIndexabilityObservabilityState,
@@ -124,7 +125,11 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
     `,
   ]);
 
-  const articles = articleRows.map(articleFromRow);
+  // Redirect-source records remain in the database for rollback/history, but
+  // they are not canonical pages or valid inbound-link sources for SEO.
+  const articles = articleRows.map(articleFromRow).filter(
+    (article) => !isHistoricalWikiRedirectSource(article.slug),
+  );
   const articlesByStableId = new Map(
     articles.map((article) => [article.stableId, article]),
   );
@@ -140,7 +145,8 @@ export async function getWikiIndexabilityObservabilityState(): Promise<WikiIndex
     const targetStableId = asString(row.target_stable_id);
     const status = asString(row.activation_status);
     const count = Number(row.count ?? 0);
-    if (sourceStableId) addLinkCount(outgoing, sourceStableId, status, count);
+    if (!sourceStableId) continue;
+    addLinkCount(outgoing, sourceStableId, status, count);
     addLinkCount(incoming, targetStableId, status, count);
   }
 

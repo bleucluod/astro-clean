@@ -13,6 +13,7 @@ import { AdminAccessError, type VerifiedAdminActor } from "@/lib/admin/admin-aut
 import { recordAdminAuditEvent } from "@/lib/admin/admin-service";
 import { saveAdminWikiDraft } from "@/lib/wiki/wiki-cms-service";
 import { readWikiArticleSnapshot } from "@/lib/wiki/wiki-cms-validation";
+import { isHistoricalWikiRedirectSource } from "@/lib/wiki/wiki-canonical-redirects";
 import { parseWikiMarkdown } from "@/lib/wiki/wiki-markdown";
 import {
   applyWikiLinkParagraphChange,
@@ -210,7 +211,7 @@ async function loadScanArticles() {
     from public.wiki_articles
     order by stable_id
   `;
-  return rows.map(articleFromRow);
+  return rows.map(articleFromRow).filter((article) => !isHistoricalWikiRedirectSource(article.slug));
 }
 
 function isPublishedNow(article: WikiLinkArticleInput, nowMs: number) {

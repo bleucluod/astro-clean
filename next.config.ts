@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { WIKI_CANONICAL_REDIRECTS } from "./lib/wiki/wiki-canonical-redirects";
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -6,18 +7,11 @@ const nextConfig: NextConfig = {
     cpus: 2,
   },
   async redirects() {
-    return [
-      {
-        source: "/wiki/pluto-in-twelve-houses",
-        destination: "/wiki/pluto-in-houses",
-        statusCode: 301,
-      },
-      {
-        source: "/wiki/bts-members-birth-chart",
-        destination: "/wiki/bts-members-birth-dates-zodiac",
-        statusCode: 301,
-      },
-    ];
+    return WIKI_CANONICAL_REDIRECTS.map(({ sourceSlug, destinationSlug }) => ({
+      source: `/wiki/${sourceSlug}`,
+      destination: `/wiki/${destinationSlug}`,
+      statusCode: 301 as const,
+    }));
   },
 };
 

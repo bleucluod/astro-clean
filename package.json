@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:encoding": "node scripts/check-encoding.mjs",
+    "check:wiki-r3-final-closeout": "node scripts/check-r3-final-closeout.mjs",
     "check:canonical-chart-signature": "node scripts/check-canonical-chart-signature.mjs",
     "check:report-tone-voice": "node scripts/check-report-tone-voice.mjs",
     "check:personal-opening": "node scripts/check-personal-opening.mjs",

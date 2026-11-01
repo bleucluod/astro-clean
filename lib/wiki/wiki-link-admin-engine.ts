@@ -10,7 +10,7 @@ import type {
 } from "@/lib/wiki/wiki-link-admin-types";
 
 const ARTICLE_LINK_RE =
-  /\[\[article:([a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\|([^\]\r\n]+))?\]\]/g;
+  /\[\[(?:article:([a-z0-9]+(?:[._-][a-z0-9]+)*)|page:\/wiki\/([a-z0-9]+(?:[._-][a-z0-9]+)*))(?:\|([^\]\r\n]+))?\]\]/g;
 const CORE_LINK_RE =
   /\[\[page:(\/(?:chart|compare|sky|wiki)?)(?:\|([^\]\r\n]+))\]\]/g;// HALLEUS_BATCH4_R20_MIN3_NO_HARD_MAX_RULES
 
@@ -49,8 +49,8 @@ function markerPlacement(text: string, offset: number) {
 export function collectBodyLinks(article: WikiLinkArticleInput) {
   const links: WikiLinkEdge[] = [];
   for (const match of article.bodyMarkdown.matchAll(ARTICLE_LINK_RE)) {
-    const target = match[1];
-    const anchor = (match[2] ?? target).trim();
+    const target = match[1] ?? match[2];
+    const anchor = (match[3] ?? target).trim();
     links.push({
       sourceStableId: article.stableId,
       targetStableId: target,
