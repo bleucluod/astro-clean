@@ -22,6 +22,12 @@ export type WikiArticleSection = {
   orderedBlocks?: readonly (
     | { kind: "paragraph"; text: string }
     | { kind: "list"; items: readonly string[] }
+    | { kind: "numbered-list"; items: readonly string[] }
+    | { kind: "heading"; level: 3; text: string }
+    | { kind: "table"; header: readonly string[]; rows: readonly (readonly string[])[] }
+    | { kind: "image"; src: string; alt: string; caption?: string }
+    | { kind: "quote"; text: string }
+    | { kind: "divider" }
   )[];
   media?: readonly {
     src: string;

@@ -1,0 +1,677 @@
+{
+  "schema": "HALLEUS_R3_BATCH07_MANIFEST_V1",
+  "source_backup_commit": "c90a9b401592eab2b470d7e5920f5f6b40f73c6d",
+  "site_reference_commit": "557c1db3c7d84e90a029bc885b941a9352c464c6",
+  "approval_count": 74,
+  "record_count": 74,
+  "release_authorized": false,
+  "publication_authorized": false,
+  "records": [
+    {
+      "page_id": "W287",
+      "slug": "bts-members-birth-dates-zodiac",
+      "canonical_url": "https://halleus.ir/wiki/bts-members-birth-dates-zodiac",
+      "baseline_content_version": 3,
+      "approved_sha256": "c5c66269f98063b7d3250a3cb8c350d27d7796d8bb1797cd4e117cb7527ed79d",
+      "approved_blob_sha1": "ff0a19f9435ee4448b6ac956b5b5ebb131382e89",
+      "candidate_json_sha256": "f9ba072dd9ffcfa4538087dde187eaa6ebe4765020d98be6fe60e270d364a576"
+    },
+    {
+      "page_id": "W161",
+      "slug": "full-moon-calendar-1405",
+      "canonical_url": "https://halleus.ir/wiki/full-moon-calendar-1405",
+      "baseline_content_version": 4,
+      "approved_sha256": "f8c033da903e5480c77d0e64e72ec82400ae83c7e862c4ad449bf120a2edfee1",
+      "approved_blob_sha1": "004bb0b15b04c77add541f1595121477a73c8d27",
+      "candidate_json_sha256": "5a2f59a89fc50c36fd88c1c84f4184f0a0d2cc88bc11eb3a01bf6f384990d23e"
+    },
+    {
+      "page_id": "W270",
+      "slug": "cristiano-ronaldo-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/cristiano-ronaldo-birth-chart",
+      "baseline_content_version": 6,
+      "approved_sha256": "6efd2ab5355769aa1afc60ee34a32fd7088e3a96f6bb47a35dd019f2d52f1139",
+      "approved_blob_sha1": "1ac715070ed986bd4d101a10e7d5140cf5017e9e",
+      "candidate_json_sha256": "996bf6023dac36a99b6534afdcaac3b9dca9d5049dfc13cc40e2d6bc1201c9a8"
+    },
+    {
+      "page_id": "W190",
+      "slug": "shahrivar-man-traits",
+      "canonical_url": "https://halleus.ir/wiki/shahrivar-man-traits",
+      "baseline_content_version": 5,
+      "approved_sha256": "e6cce4f5c07139c66f976a0d70bc4e13a02d8d6d2bd927530fbf22bbec8b65b2",
+      "approved_blob_sha1": "aba7d284aee9142d89d5577a97597e4e8542f0a2",
+      "candidate_json_sha256": "d887962a805fb98a8bbca97223f97abd622b4b71d92df2b86cda5dda1ad9632a"
+    },
+    {
+      "page_id": "W160",
+      "slug": "new-moon-calendar-1405",
+      "canonical_url": "https://halleus.ir/wiki/new-moon-calendar-1405",
+      "baseline_content_version": 3,
+      "approved_sha256": "a92b585977598d5073de0675c86ea8b046f9cc90b43a6e024bb42f356ca3d20d",
+      "approved_blob_sha1": "49627d03c3a03c07f6ccf047192fc26eececf588",
+      "candidate_json_sha256": "fefd55fbed5d40108db9ce6f874edd85c300ef6570c69a4e92cdcf6a82e988dd"
+    },
+    {
+      "page_id": "W262",
+      "slug": "somayeh-name-abjad-astrology",
+      "canonical_url": "https://halleus.ir/wiki/somayeh-name-abjad-astrology",
+      "baseline_content_version": 3,
+      "approved_sha256": "8426e422ed75725e67fea7c89e2d935318fb682e67cee3ca2f2ac6d15f035011",
+      "approved_blob_sha1": "eb674ec970b2b346d00b28c637a6ce12dac02a0d",
+      "candidate_json_sha256": "b6c0c2b85c6ab328b22e7a2bf8f91ddf275b5a5584b96e6bf0e6f3958fbce31f"
+    },
+    {
+      "page_id": "W196",
+      "slug": "aban-man-traits",
+      "canonical_url": "https://halleus.ir/wiki/aban-man-traits",
+      "baseline_content_version": 4,
+      "approved_sha256": "9045ad31d06f0775da08e6233b4317accd3499efcef4c0e11f7680853a84c567",
+      "approved_blob_sha1": "506288bb3c870283ea75feb4391bfba9a65caf61",
+      "candidate_json_sha256": "5acaa2c45c97201470736362af5d1c32b8022ce5190f4c0dda9077ceef05af68"
+    },
+    {
+      "page_id": "W191",
+      "slug": "shahrivar-woman-traits",
+      "canonical_url": "https://halleus.ir/wiki/shahrivar-woman-traits",
+      "baseline_content_version": 6,
+      "approved_sha256": "46d144c06331f837f8b596c02e0ae5bfeec4f7a6a4a568a6d5b5aeef515183c6",
+      "approved_blob_sha1": "d05e7dbed5f631905c16f809786b0b2d206cefbc",
+      "candidate_json_sha256": "dcd3e9a911981875c956976c029c0c2228216100e9cb06ca28bcc94a35fd6ff7"
+    },
+    {
+      "page_id": "W254",
+      "slug": "chinese-zodiac-rat",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-rat",
+      "baseline_content_version": 2,
+      "approved_sha256": "0cd35837edd65a629d4553992e56845a1481942a035543012e32ca9002c82a50",
+      "approved_blob_sha1": "7ff0b41559ee0ef55130eddfd7dbf924792351af",
+      "candidate_json_sha256": "626fab9ea49e1a6c0360739f60bc06c9b3d893918d5ea1b6c9114897ba8033dd"
+    },
+    {
+      "page_id": "W248",
+      "slug": "chinese-zodiac-monkey",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-monkey",
+      "baseline_content_version": 2,
+      "approved_sha256": "0c490b37de12ba92438351a3447c9963356f00985c1481f9c949a68dd77fb2b1",
+      "approved_blob_sha1": "99021118b39359e0f0b225456b7b8b2b3c53b5b9",
+      "candidate_json_sha256": "d1cc050d257f5fa02dc85d73bacda108234197de6c7d4f6d87ff2c2b4177f715"
+    },
+    {
+      "page_id": "W197",
+      "slug": "aban-woman-traits",
+      "canonical_url": "https://halleus.ir/wiki/aban-woman-traits",
+      "baseline_content_version": 6,
+      "approved_sha256": "4fd22f0f50a84761409df8787c677b54fd2619817914e44eb8bb61a22d68f13e",
+      "approved_blob_sha1": "359ddd658a0e54d68ff78fecdbf48a0c8312b3da",
+      "candidate_json_sha256": "e0a8c8a59da510bf00be7e58dbf0400eabb8c9a3ad7658526470e15bec18fee9"
+    },
+    {
+      "page_id": "W246",
+      "slug": "chinese-zodiac-birth-year-table",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-birth-year-table",
+      "baseline_content_version": 4,
+      "approved_sha256": "5894a303081004a419a0b9815c9cab16fe7d83bb20000aa067c91f0c38e44af2",
+      "approved_blob_sha1": "e1097629983c51ed6ce77fc983962553ab8a14a4",
+      "candidate_json_sha256": "0a95187c4cacb212e83862b039c5a146a4585540f083f423d46a9bc7d1e99bc5"
+    },
+    {
+      "page_id": "W250",
+      "slug": "chinese-zodiac-ox",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-ox",
+      "baseline_content_version": 3,
+      "approved_sha256": "537b58da2cfef428efa2403eebce528c1e066c8664ee17e3a40e55a447bb1ea4",
+      "approved_blob_sha1": "f7b263006abb019571a2f462904e96e23c333c43",
+      "candidate_json_sha256": "2cf4a73aee7acd304ceeef9ee3c3c76136e81cad78140dcada5ab597763ed08f"
+    },
+    {
+      "page_id": "W253",
+      "slug": "chinese-zodiac-rooster",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-rooster",
+      "baseline_content_version": 1,
+      "approved_sha256": "8f47b568d04352eaadafb134942b608e96d5b59856539b5ba88adfe923fa8967",
+      "approved_blob_sha1": "662c3dbb827311ad31a448c0e8f888323ed6f489",
+      "candidate_json_sha256": "0c0825678e6ea9f7988609428468c84935d8bb673b1f7065325b41ee027a6772"
+    },
+    {
+      "page_id": "W245",
+      "slug": "chinese-zodiac-compatibility-marriage",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-compatibility-marriage",
+      "baseline_content_version": 4,
+      "approved_sha256": "4e2f3c968052896fe2f4052d709bea2bee2270ee40e79ea15506b264ab629530",
+      "approved_blob_sha1": "bf09371fbbfb6ae1cc16afd1a064542b1f92c913",
+      "candidate_json_sha256": "9de5536c67ae8b18ebb4c532d6df0c3afa88a1c5932d3a0010ca86b837933766"
+    },
+    {
+      "page_id": "W226",
+      "slug": "shahrivar-man-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/shahrivar-man-marriage-compatibility",
+      "baseline_content_version": 1,
+      "approved_sha256": "ec2de0ef9b87dcb244aaad57f133ca54d629be2c2a00d48bbbc3a75287ba1a32",
+      "approved_blob_sha1": "bca7aa0dcc6285bb731cd91b6e71a8296ec5f7b8",
+      "candidate_json_sha256": "35f520a3b8dd4b0d4c45a3e8f3ae89e9d9c9ddaae07ee43d5bb800465908f98a"
+    },
+    {
+      "page_id": "W263",
+      "slug": "mother-name-astrology",
+      "canonical_url": "https://halleus.ir/wiki/mother-name-astrology",
+      "baseline_content_version": 2,
+      "approved_sha256": "df8c7f45111909284ae18b5c72983cb00e28c9f7b91b94411c63ce06ef9ef027",
+      "approved_blob_sha1": "fc8a52f005ad190f58dd2d991f40ad49d3ec92f6",
+      "candidate_json_sha256": "ee1c36816c517e8389ec41ce4ce2fb6ae18a3491a1b0c2af0550df29fff7f614"
+    },
+    {
+      "page_id": "W132",
+      "slug": "best-woman-birth-month-for-marriage",
+      "canonical_url": "https://halleus.ir/wiki/best-woman-birth-month-for-marriage",
+      "baseline_content_version": 2,
+      "approved_sha256": "a693b8b19c473023f9de56ca8c9c4ff1e82b0f146da466b11d9ca81b7e83e60d",
+      "approved_blob_sha1": "ba9c3ed4089e425d6c604b801745ff6310785f34",
+      "candidate_json_sha256": "d8467ae0b5a46928829bbeb0cf26bf0c81700e2eaa751f63eeddc0b08ced3846"
+    },
+    {
+      "page_id": "W232",
+      "slug": "aban-man-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/aban-man-marriage-compatibility",
+      "baseline_content_version": 2,
+      "approved_sha256": "9ed5b7cec0ebb25a130eb56960184bf6f2f57f82216bed72280471fc8e19140e",
+      "approved_blob_sha1": "31eafca5c21bc53740fee620153fe354b10ae290",
+      "candidate_json_sha256": "5a4b89cab0505612427ddf9efa43823e40b3615bacb25459c493b845f17acba0"
+    },
+    {
+      "page_id": "W237",
+      "slug": "dey-man-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/dey-man-marriage-compatibility",
+      "baseline_content_version": 1,
+      "approved_sha256": "fb5be696b9ee5156178dc37549a6cedf4663d7c3e9952465e3c7b41481a467bb",
+      "approved_blob_sha1": "802f62be3d3df64543bd42beda119b8be641c815",
+      "candidate_json_sha256": "d73c97ef42a0bc61d95bef695589d4eeef98f2feee8501e96c81ba39ba67280b"
+    },
+    {
+      "page_id": "W257",
+      "slug": "chinese-zodiac-snake",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-snake",
+      "baseline_content_version": 4,
+      "approved_sha256": "3cac2cb65d813c0d25b79835bd331815febc7642f6a4f2ab748c0b0f92e9d968",
+      "approved_blob_sha1": "fc040278f9b1ce48c712ef0954f7cf020a1484dc",
+      "candidate_json_sha256": "115fb3a0ad6a05517cf0fc1e876be64458b15ffa23cae51eccd73ad697c51bc5"
+    },
+    {
+      "page_id": "W164",
+      "slug": "real-full-moon-photos",
+      "canonical_url": "https://halleus.ir/wiki/real-full-moon-photos",
+      "baseline_content_version": 2,
+      "approved_sha256": "41969daf5aa9c9b90df64ae4661e6cf37cd6312b7feeec7d43441f27add68f27",
+      "approved_blob_sha1": "65cbb230f219e3cb0c88bb741e7b6bb6e3be913a",
+      "candidate_json_sha256": "f79616058f2a44ea7e8967d275e30c3f36dd2115b428d36752a54a1a8506b247"
+    },
+    {
+      "page_id": "W188",
+      "slug": "mordad-woman-traits",
+      "canonical_url": "https://halleus.ir/wiki/mordad-woman-traits",
+      "baseline_content_version": 6,
+      "approved_sha256": "358618af22216a2d59fb4c32e08635264e2fe2715dc2ae02a546dfa063f5b73f",
+      "approved_blob_sha1": "cd0c73ebaf50ebd527fde673ff2c68b23c9ed790",
+      "candidate_json_sha256": "81f815617fc951e5ddfbdbab066ca73345b7d2d7d0e8408f602d2c6c40efc7d9"
+    },
+    {
+      "page_id": "W228",
+      "slug": "mehr-birth-month-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/mehr-birth-month-compatibility",
+      "baseline_content_version": 7,
+      "approved_sha256": "38880e0505d94dd52db5c4074e3c7874a3cabb960ba603992c28840bc129b93e",
+      "approved_blob_sha1": "e6d39c289e9d23605dc264a0568bde469b8a562c",
+      "candidate_json_sha256": "cb7759e350461f47ed48ca5120eb57cb06b2a3c4f2e1fcf23e36215cd1a5c3f4"
+    },
+    {
+      "page_id": "W256",
+      "slug": "chinese-zodiac-tiger",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-tiger",
+      "baseline_content_version": 2,
+      "approved_sha256": "0d1c2d1f5bfa8fb41150d291a03eb187b31b242746cac3562fe767207cccf9e4",
+      "approved_blob_sha1": "f54842dfda6fa094962686fdc1646448b6cf72f9",
+      "candidate_json_sha256": "b8417b1985216d5cdfcca38ad6ba694c7227536aa83190db7ad20b8f55d2cb1f"
+    },
+    {
+      "page_id": "W249",
+      "slug": "chinese-zodiac-exact-birth-date-calculator",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-exact-birth-date-calculator",
+      "baseline_content_version": 3,
+      "approved_sha256": "6b2ab57589e06795b199745ddfadaeb034b4b9da8b32cbc007ae6d7627899e4f",
+      "approved_blob_sha1": "f95c6a9085d337fa141405e8f9081f49c39f9e4f",
+      "candidate_json_sha256": "d4b4a6e3126e5f8daeedc140eb6130fdecac5fdf362883cfdc6ca1acff7d1674"
+    },
+    {
+      "page_id": "W240",
+      "slug": "bahman-man-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/bahman-man-marriage-compatibility",
+      "baseline_content_version": 4,
+      "approved_sha256": "dd6b78cb8ccf3f6823ac553c6d46e76547cd90ccde52f0af2c3123ffaa2227c9",
+      "approved_blob_sha1": "65de890f5b805de90fb7f472f35eec552dd03a38",
+      "candidate_json_sha256": "0f302e1f7b4ff360335d23b832ca0226c64beabbe6d33ff1e3bf0488c5545f24"
+    },
+    {
+      "page_id": "W255",
+      "slug": "chinese-zodiac-dog",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-dog",
+      "baseline_content_version": 1,
+      "approved_sha256": "658fd9400e50c9eab4d8860c98296a4a8b3c0ffd49b307bab5334390855a2ec9",
+      "approved_blob_sha1": "b7d19e8f32d1badb723de7af35a2f844b65c0a1c",
+      "candidate_json_sha256": "04bfacd10d66cf519c70d2e6b8199796123dcea6c250014795d84abdd3850300"
+    },
+    {
+      "page_id": "W238",
+      "slug": "dey-woman-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/dey-woman-marriage-compatibility",
+      "baseline_content_version": 2,
+      "approved_sha256": "acf913106d8b8afc0cc4c478125bf1f92f3bc3b52c80e88da57ff798ab5647fb",
+      "approved_blob_sha1": "b1b5aca7dc8ed5ff359a76c1d52219e2fbb81159",
+      "candidate_json_sha256": "df63562f2992c2c83cd0fd77966d50880b8d092b4ac0dbadda0645a4cc15783d"
+    },
+    {
+      "page_id": "W230",
+      "slug": "mehr-woman-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/mehr-woman-marriage-compatibility",
+      "baseline_content_version": 2,
+      "approved_sha256": "0689c1204c8d72286bf7ae6a576ed2c5f79989d65857283dba32df5877618b85",
+      "approved_blob_sha1": "b5280203d32283d8cbc9a39ccfb47070517b0a78",
+      "candidate_json_sha256": "e989ac2ccc399683bb4f46a2b353033f72dbf5d8af8ec7fd4c11b8cdcfb255b4"
+    },
+    {
+      "page_id": "W234",
+      "slug": "azar-man-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/azar-man-marriage-compatibility",
+      "baseline_content_version": 4,
+      "approved_sha256": "8520ba212a21c7218a69eeb590ad6c36cc357515b2cc17ae5a978cc3fdec33a6",
+      "approved_blob_sha1": "edd8a61dfaf391385979a8bc272db031b7de7cad",
+      "candidate_json_sha256": "6f5c28b3bcf3b159c93bbe8ec78ecc9f71822b85934f44bb7e1297c062dd602a"
+    },
+    {
+      "page_id": "W251",
+      "slug": "chinese-zodiac-snake-woman",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-snake-woman",
+      "baseline_content_version": 2,
+      "approved_sha256": "419fe6fcb100b2bea44f13573b0fa0adb773b3470aee4453a730598b49d6f741",
+      "approved_blob_sha1": "d64150571d0e1eb6730318583fee858c9c69c35c",
+      "candidate_json_sha256": "e7614d682ac5e2da2869522ebbea35e76a20715002bdb52a32f488fca9f03932"
+    },
+    {
+      "page_id": "W260",
+      "slug": "chinese-vietnamese-zodiac-cat-rabbit",
+      "canonical_url": "https://halleus.ir/wiki/chinese-vietnamese-zodiac-cat-rabbit",
+      "baseline_content_version": 1,
+      "approved_sha256": "f51c89cdd6b88c75cb571b3efe1dc6b7ef0cad76fe975bd0a4a7be24126df756",
+      "approved_blob_sha1": "f4bc2fbc96d35c829630a788649b43c267acb037",
+      "candidate_json_sha256": "5f74be22f0fa9a40ffb9d5bf2d098cf422673b217bf4be0429ad7c4cb56e4a10"
+    },
+    {
+      "page_id": "W264",
+      "slug": "abjad-astrology",
+      "canonical_url": "https://halleus.ir/wiki/abjad-astrology",
+      "baseline_content_version": 2,
+      "approved_sha256": "e0791ebaa6e08ed463e2d3cde0cdd9f273f891d52a68ce42bfa2599db3899c5b",
+      "approved_blob_sha1": "37405d14198534e3c9afe61679b5337dd2856c07",
+      "candidate_json_sha256": "fa55b89c2ad8870e1bfd301d46b34717a078fa14747f7c217d25c12bf8a69db3"
+    },
+    {
+      "page_id": "W199",
+      "slug": "azar-man-traits",
+      "canonical_url": "https://halleus.ir/wiki/azar-man-traits",
+      "baseline_content_version": 2,
+      "approved_sha256": "a1299f5d9b835984029d4a0df469e66e9b2d4f8b17a7c2dc883baea66306ab52",
+      "approved_blob_sha1": "e8dbb7f931117b0affdb8c7da0aa5f3948bd3820",
+      "candidate_json_sha256": "8247de45797c9d3d5caf49afc207f200942a2b2c773acbbf66b3fbe384d7d01a"
+    },
+    {
+      "page_id": "W258",
+      "slug": "year-of-horse-1405-chinese-astrology",
+      "canonical_url": "https://halleus.ir/wiki/year-of-horse-1405-chinese-astrology",
+      "baseline_content_version": 2,
+      "approved_sha256": "7f5c38743ea3e3a98539c4df027573e515b5a5ed95535ed006203681ce73d2bb",
+      "approved_blob_sha1": "889a09c72c77ed838622d71d203d6f265a904f16",
+      "candidate_json_sha256": "34c013cb7f30dbf9acc1327c8ba3ad7c016097a1a37a5705f162a8dfdb65e026"
+    },
+    {
+      "page_id": "W265",
+      "slug": "name-first-letter-astrology",
+      "canonical_url": "https://halleus.ir/wiki/name-first-letter-astrology",
+      "baseline_content_version": 2,
+      "approved_sha256": "d8c3e3948212f8ce3561bcb695c525ecf2540f0937fbe40605ca0f7f3561f6c8",
+      "approved_blob_sha1": "73d87f4e3c9e4c5faeffd91f89ea123d7027a96d",
+      "candidate_json_sha256": "a16c2d249acba146ecd0c38289c55b264ccba7fa3c077d806abc60af2a834070"
+    },
+    {
+      "page_id": "W194",
+      "slug": "mehr-woman-traits",
+      "canonical_url": "https://halleus.ir/wiki/mehr-woman-traits",
+      "baseline_content_version": 8,
+      "approved_sha256": "46e243bc8b145b86eebb31961f455da14fcad0c99166ff04740387b9d28aa239",
+      "approved_blob_sha1": "3addf23b069c17a0f2d5d2e2be72a95cdf99fea2",
+      "candidate_json_sha256": "758dc3af7076113829f489ae088fb239482ea599c2ab8120399b809232c9a5ae"
+    },
+    {
+      "page_id": "W241",
+      "slug": "bahman-woman-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/bahman-woman-marriage-compatibility",
+      "baseline_content_version": 2,
+      "approved_sha256": "c6a5d6f2dcfa23f94302ebeac94767db7b3dc4fcb2c70b30235511a05b7b5993",
+      "approved_blob_sha1": "e96262626e5453cfc97c240225ee1f8ce8afe37c",
+      "candidate_json_sha256": "fd3cd0d380de35701da75d91951fefbc6e44f467173559ac230f901c93ad587f"
+    },
+    {
+      "page_id": "W243",
+      "slug": "esfand-man-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/esfand-man-marriage-compatibility",
+      "baseline_content_version": 1,
+      "approved_sha256": "bfee2b08b9727fb2f04d131303322d6daa43c75e65231a8990e7569ed4bab5b5",
+      "approved_blob_sha1": "1df0a63e796051554ba388c89b75518adff509f1",
+      "candidate_json_sha256": "6e628465b6e5da7a86f3690a61b23b7e1a9173831684d7a50a736122dab656d5"
+    },
+    {
+      "page_id": "W229",
+      "slug": "mehr-man-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/mehr-man-marriage-compatibility",
+      "baseline_content_version": 2,
+      "approved_sha256": "0d05c8290fc49011e9077d85324226504ce84d1437c83cf6c13465bfca18db12",
+      "approved_blob_sha1": "04d2267310259aabaa19a1e9b6f918a46204c297",
+      "candidate_json_sha256": "12f5a9ccf52522fc042f3d2761cee9f12cd918f4eb9db116d7bda93e41b4683a"
+    },
+    {
+      "page_id": "W261",
+      "slug": "chinese-zodiac-pig",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-pig",
+      "baseline_content_version": 4,
+      "approved_sha256": "36ac50b05cf94fbd5219d85c2e921410f981f7bc59129d9b69e0e7e234c8f7cf",
+      "approved_blob_sha1": "5b0b673ef1c6c11d18e2c57ff7ba2aa938bd7ffe",
+      "candidate_json_sha256": "77de1628a93205ac70c51f73c215bb75037b486ca1503075ec33a6f4b6d6ec9d"
+    },
+    {
+      "page_id": "W280",
+      "slug": "lionel-messi-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/lionel-messi-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "754809745822e6c6cb66222f81ba340a2a1f8720b551322f8672719a6ac21df1",
+      "approved_blob_sha1": "2429036cd2afec15e19011f1bfa7e63d8cc4e6d1",
+      "candidate_json_sha256": "93f33ba2a0868b94b6b95279775929e72337e7ea75b537924fc48d2991328aa1"
+    },
+    {
+      "page_id": "W227",
+      "slug": "shahrivar-woman-marriage-compatibility",
+      "canonical_url": "https://halleus.ir/wiki/shahrivar-woman-marriage-compatibility",
+      "baseline_content_version": 2,
+      "approved_sha256": "ce5ab77755a1685bc58c64e975a7a183054278eed40664c8f4b1a6e38900871d",
+      "approved_blob_sha1": "984597205712657efe7e3d6218daa03b90d7de50",
+      "candidate_json_sha256": "2711987958c90e1d61433c085e76374fb33722436bc2abff267de9d0a4dcf0c2"
+    },
+    {
+      "page_id": "W119",
+      "slug": "death-timing-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/death-timing-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "399cb195e42bec8f84660d233b0d03afa87e9f4e468bee2a9a15546114b6a7ef",
+      "approved_blob_sha1": "9a94523c8e8c83c665a7ac52a2ddb85764c51128",
+      "candidate_json_sha256": "f773a1587a12f6be0f34aea7d5a6aa33ea3e7cff4b716648731c1875966a4046"
+    },
+    {
+      "page_id": "W131",
+      "slug": "marriage-timing-in-natal-chart",
+      "canonical_url": "https://halleus.ir/wiki/marriage-timing-in-natal-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "c70f4c31f57ec1c314f01635a0fdba770d5be398b9a75b376e69eded64482c8c",
+      "approved_blob_sha1": "b823a2455ee3a65e2558f379a15c9e2454f412ad",
+      "candidate_json_sha256": "04579093bb6e77da6111f5b4ba869a2655a29e22da32f865b2eb897bb62bfe69"
+    },
+    {
+      "page_id": "W165",
+      "slug": "real-new-moon-photos",
+      "canonical_url": "https://halleus.ir/wiki/real-new-moon-photos",
+      "baseline_content_version": 1,
+      "approved_sha256": "f255fb75dc487cf5c399b7ae05b3a1b170a56ebd01f3c2115d9150528f08be5b",
+      "approved_blob_sha1": "eb82411c2dad5cac467ff3d1213938b3d470e100",
+      "candidate_json_sha256": "f7ec836cb50a3b0b74b2ab9502544cc828abc0d2369f54af4540079c911a42bb"
+    },
+    {
+      "page_id": "W252",
+      "slug": "chinese-zodiac-birth-month-inner-animal",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-birth-month-inner-animal",
+      "baseline_content_version": 4,
+      "approved_sha256": "bab3b9fcd54bdfa762182bd62f03d1e84f27252abeecb7786882a4b7f24f9ea7",
+      "approved_blob_sha1": "dc3e8764a2bb4abe9a28eec3f725cbb3eedc8104",
+      "candidate_json_sha256": "37b51a3d3943cfb8c7e28f5bc1385870ddca5c9e2f9126235bce3ed3899e2dc9"
+    },
+    {
+      "page_id": "W259",
+      "slug": "chinese-zodiac-dragon",
+      "canonical_url": "https://halleus.ir/wiki/chinese-zodiac-dragon",
+      "baseline_content_version": 1,
+      "approved_sha256": "facead366b76086a46ec57a88e52727b9b31adeda0871cc80f0258864a182e4f",
+      "approved_blob_sha1": "7be6dca2284bcd651fd859642825845fe5539ad8",
+      "candidate_json_sha256": "83a1b470d6933fae61980734b4a75d2a68f1e37eda6031afb90aad1d8fe13406"
+    },
+    {
+      "page_id": "W286",
+      "slug": "jungkook-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/jungkook-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "2c9ebae6382702b2a2daf1914046f623bb260a2d5e6d308a1f5e094e02a5f02d",
+      "approved_blob_sha1": "580f26ada2c5e50d35aad386fe18673f0cd98308",
+      "candidate_json_sha256": "63d1f5077ed54d25a316526b755bf070fc84cd78f7ca64d18407f190a2b083ec"
+    },
+    {
+      "page_id": "W192",
+      "slug": "mehr-born-traits",
+      "canonical_url": "https://halleus.ir/wiki/mehr-born-traits",
+      "baseline_content_version": 6,
+      "approved_sha256": "2edbe4a69ae9f6ee1fa786450c7ad6892dd0985752e2e73237f50d6b05ab9b2d",
+      "approved_blob_sha1": "fb7d145af57126b8b7dea883fb0599184fb7e3fb",
+      "candidate_json_sha256": "18ae7d49686bf4356467596e7faf3a153684e088ac53afdf21bf4e82b183a072"
+    },
+    {
+      "page_id": "W139",
+      "slug": "marriage-astrology-name-vs-synastry",
+      "canonical_url": "https://halleus.ir/wiki/marriage-astrology-name-vs-synastry",
+      "baseline_content_version": 5,
+      "approved_sha256": "d00b0440a852f598322bae5fcb39af0d83bdb618b0e98cd500f55c549d22e9d5",
+      "approved_blob_sha1": "124a5d5f3c20d8eb106971b75cdb5c56debb7d99",
+      "candidate_json_sha256": "3e4288d9966a45ddcedd27af864a1341008aa4ed862b7c2cd54ce14bc86d5789"
+    },
+    {
+      "page_id": "W195",
+      "slug": "aban-born-traits",
+      "canonical_url": "https://halleus.ir/wiki/aban-born-traits",
+      "baseline_content_version": 4,
+      "approved_sha256": "f5c5e1875acec948afca4265f0aae6fcd325ad364ecb58625da183ff27692826",
+      "approved_blob_sha1": "b5ae54524ac354c13ece14665961376b9acd0bb6",
+      "candidate_json_sha256": "d6711199db5039e98de677d12e23e3439275de32cbf271f6686da4ecad96285c"
+    },
+    {
+      "page_id": "W198",
+      "slug": "azar-born-traits",
+      "canonical_url": "https://halleus.ir/wiki/azar-born-traits",
+      "baseline_content_version": 2,
+      "approved_sha256": "d54385b3a933452a932ed1becbf01d0bf5353772a0b4e75b029f90d4b7dddcf0",
+      "approved_blob_sha1": "0524bf84e97e1c7b12bfab2cf7892997930fcec6",
+      "candidate_json_sha256": "3691d0604023bbc841b1cdf5f4ec653b8eef0c1073979c28c9ffca4e7ebf878c"
+    },
+    {
+      "page_id": "W189",
+      "slug": "shahrivar-born-traits",
+      "canonical_url": "https://halleus.ir/wiki/shahrivar-born-traits",
+      "baseline_content_version": 6,
+      "approved_sha256": "9cda6ccb877971554b86839dd1484ae3ff133ef7ff9c58bdbc74e0be219cce54",
+      "approved_blob_sha1": "79aa5295d8d331a6b3fea1b481229d2c9e1a6458",
+      "candidate_json_sha256": "d4c9029e0554688776b4cbcd6a4e280138a61d64d5c2f5eabe59a73bccbd37e7"
+    },
+    {
+      "page_id": "W247",
+      "slug": "what-is-chinese-astrology",
+      "canonical_url": "https://halleus.ir/wiki/what-is-chinese-astrology",
+      "baseline_content_version": 6,
+      "approved_sha256": "6e69e620d8e63b9ed1cd8594da6b0838b87bb737452d56f00785d79553b317a6",
+      "approved_blob_sha1": "4d3998d18129efc0764d2557be087231ae9290ff",
+      "candidate_json_sha256": "7eaffc8cc24ed1e0ce7420343e137b7075d72996159b054ceeb47271ee134ec4"
+    },
+    {
+      "page_id": "W266",
+      "slug": "palmistry-vs-astrology",
+      "canonical_url": "https://halleus.ir/wiki/palmistry-vs-astrology",
+      "baseline_content_version": 1,
+      "approved_sha256": "036394b9834979a3cf0b8dd696ab7c452242744582611993ed38868f1b8bbc93",
+      "approved_blob_sha1": "87304f169f4d78b03e18c0a526460ac6fa2858c0",
+      "candidate_json_sha256": "bff959ec2b4930e6ad089024be1e8ab039d04b7af53f8a8d5e17c676f92f5e8d"
+    },
+    {
+      "page_id": "W267",
+      "slug": "symbolic-chart-stone",
+      "canonical_url": "https://halleus.ir/wiki/symbolic-chart-stone",
+      "baseline_content_version": 3,
+      "approved_sha256": "ec3f134eb5957dc45f5de937fe9108dc388fce095bc7e75dc6191d0f675b84ea",
+      "approved_blob_sha1": "5626275e27bb568cec164f7abc5ef69db7966ad6",
+      "candidate_json_sha256": "2bbc4555e2c05a5dc24dd60414cd941a48e44cc4f763de509343d23ba837bee8"
+    },
+    {
+      "page_id": "W268",
+      "slug": "birth-month-flowers",
+      "canonical_url": "https://halleus.ir/wiki/birth-month-flowers",
+      "baseline_content_version": 3,
+      "approved_sha256": "95752f49ca00bb6a92ba9a832e58890c0b781ccb33e48bc89a854c2db144777b",
+      "approved_blob_sha1": "9f6d14382f82cd7c5de46f426ea7c3085bcd3e34",
+      "candidate_json_sha256": "06991444611e7c223c33d209b8e6f5ecfa9b76eaf6de8bb078dcb7a657aa8a8e"
+    },
+    {
+      "page_id": "W269",
+      "slug": "shahrivar-birth-flower",
+      "canonical_url": "https://halleus.ir/wiki/shahrivar-birth-flower",
+      "baseline_content_version": 1,
+      "approved_sha256": "20483e30ce1ebd83cb3156a6a1c140799c6152c8d33df6a7f8a85833f4ecf8cd",
+      "approved_blob_sha1": "d2189f8d3c17d989f2c375c284cf30c23399c027",
+      "candidate_json_sha256": "0f204ebcb0c491ea7071bb4861d0e8e576214b762b13166be96ecffe105a2fa5"
+    },
+    {
+      "page_id": "W272",
+      "slug": "albert-einstein-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/albert-einstein-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "3784a7800eef3652280ccca11e34ced475c1874c712f9386538c8999ca20563a",
+      "approved_blob_sha1": "4aa186bb84c4a4b33c9fadd0047951bd8e3c941a",
+      "candidate_json_sha256": "99bdb8750a90e9130ce02bd600c0edbd211f46f48acb446c91fd1f11df46f31f"
+    },
+    {
+      "page_id": "W273",
+      "slug": "bill-gates-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/bill-gates-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "8e9a56e248963938f4a8b113c258ce37f3fad1d25ebc0215a8caef42b9db9342",
+      "approved_blob_sha1": "27922392394eeb3d95d1cec3678170fa5368a204",
+      "candidate_json_sha256": "00a864387111ce713ecc82544876d75926019f136729900406c3154b5a50728f"
+    },
+    {
+      "page_id": "W274",
+      "slug": "princess-diana-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/princess-diana-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "9661b63df40f0222790fef0894fa1ad4a952010097e083d4bcc6089a84d3f344",
+      "approved_blob_sha1": "a5fb16e27604aef5a075842ec5b77905bfe3de08",
+      "candidate_json_sha256": "07a75248f04a24df3956801699e35e7829eb82ea463f972193f8286294df96b5"
+    },
+    {
+      "page_id": "W275",
+      "slug": "jennifer-lopez-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/jennifer-lopez-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "301e358997a6353569bfad2080422a5296c8fd7f86fb68c7d190e8d29ac8e7a8",
+      "approved_blob_sha1": "baeed85949cbc6b35d2e8707fde5aa17e95b1ac1",
+      "candidate_json_sha256": "4d65d6906e9155bea71a5effd0f1948966650eed1127a3b980f66605a5dee61a"
+    },
+    {
+      "page_id": "W271",
+      "slug": "georgina-rodriguez-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/georgina-rodriguez-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "09e2fb49314ad871b3948ba61c92d259342450039fa6e12a8895cdb4ed28bb58",
+      "approved_blob_sha1": "26dcefce55569071c164e5ce49054cbcb136d067",
+      "candidate_json_sha256": "26cdbcb6224e467aa2f49a34f90a37f7a9deee61e623b9ddf8a50aca99b9334d"
+    },
+    {
+      "page_id": "W276",
+      "slug": "selena-gomez-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/selena-gomez-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "3913787fbac4ab1512f9b6c019e12743c19bedef193c1ff89c25fc3a995670ec",
+      "approved_blob_sha1": "c22223cc5f335499850cc9b917cee7766de2ad83",
+      "candidate_json_sha256": "43dc075e48a9300e5cec614e194e82312c999452fb6c6f0514d7ffa2fc815fc8"
+    },
+    {
+      "page_id": "W277",
+      "slug": "shakira-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/shakira-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "16fecfbffda951fbad3fefcfcb9f5709eaffc608f7f56fd1444c336105318eb1",
+      "approved_blob_sha1": "7caf0fce9697bfab586eaa07779181e655073ef0",
+      "candidate_json_sha256": "1c3b3e53099ba6675c70ccac8509b41350954b04306aca8144c884417fd2d36d"
+    },
+    {
+      "page_id": "W278",
+      "slug": "kylie-jenner-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/kylie-jenner-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "e900c3a55402d3c4b87cf177cd61a4cca3c4475c51a22e98c7e3ef394d81682d",
+      "approved_blob_sha1": "f942679940e020dc9a452a69bc5d4f7d17541faf",
+      "candidate_json_sha256": "11694f720480e9fbb013b31851af588c12e59b105cf9c37674764fc84558a389"
+    },
+    {
+      "page_id": "W279",
+      "slug": "cyrus-the-great-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/cyrus-the-great-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "87f9af2cee6b3db95a6ef5ed1d2b61ebeca9dd8da4d97da1047822d252d7b936",
+      "approved_blob_sha1": "7f8f65b39de02ae4b9c890ca9c82dba91addd018",
+      "candidate_json_sha256": "56310bb83bebb6ff6e9936ba6b0498fabcb266b82b0ba4637f8870223fb89e3c"
+    },
+    {
+      "page_id": "W281",
+      "slug": "michael-jackson-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/michael-jackson-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "5f159fc5cad3a2606f537f1269740b24cf67ba6af79c2e6a68045d728fc583ff",
+      "approved_blob_sha1": "db9a0fda36092a723ec3948a3202fba9988f11d3",
+      "candidate_json_sha256": "7ecdb830f850320e2cf8b172720263a34b4e62592d0e84a9f89076cfb5f7b07a"
+    },
+    {
+      "page_id": "W282",
+      "slug": "matthew-perry-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/matthew-perry-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "6b96bf224b53b64543ba48044f79657f763620d1d212c8e6416908a53373f418",
+      "approved_blob_sha1": "8410ce69c0ebe2fe0c2fa8da963b81299b145772",
+      "candidate_json_sha256": "c22b5aa77a51ec385a126327af54cdc35b30edd1348d2e03b631e6103bacb956"
+    },
+    {
+      "page_id": "W283",
+      "slug": "marilyn-monroe-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/marilyn-monroe-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "a4232ebc2f1e34c8e51df719d522b6347925e8ad3a46780bad60a46fecf3b702",
+      "approved_blob_sha1": "ec0babd10b376624378a7652c57f02185c04357e",
+      "candidate_json_sha256": "80e6818429be5cb113be2a30763825caf27b27b4bab18696d1e4c89669ad22dd"
+    },
+    {
+      "page_id": "W284",
+      "slug": "nikola-tesla-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/nikola-tesla-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "f6659361860dc44d8064d22312f872719330f090e7054d745d6e12a6df89ebf8",
+      "approved_blob_sha1": "e7858fdd9e13967f6f2ccdbce42178752b05daa3",
+      "candidate_json_sha256": "401eebc8d4d47d8825fd60b21044dfb0411400477ccbe0f168c66763f7921ed3"
+    },
+    {
+      "page_id": "W285",
+      "slug": "carl-jung-birth-chart",
+      "canonical_url": "https://halleus.ir/wiki/carl-jung-birth-chart",
+      "baseline_content_version": 1,
+      "approved_sha256": "92ef9437601bebfa63f2aee477c530dfdd63f5000006c55c91df7a13ae0a6d43",
+      "approved_blob_sha1": "7a0cb7fb218cd15f7ae63d00275f60a11e57120d",
+      "candidate_json_sha256": "ce44302aa298bbbeb69f54b6663c8f346c52df37e357226e69f781b77eef86c8"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
-import { WikiArticleBody, WikiInlineText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
+import { WikiArticleBody, WikiInlineText, WikiIntroText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
 import { BirthChartPromptBuilder } from "@/components/wiki/BirthChartPromptBuilder";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
@@ -253,7 +253,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
                 ))}
               </>
             ) : (
-              <p><WikiInlineText text={article.intro} targets={internalLinkTargets} /></p>
+              <WikiIntroText text={article.intro} targets={internalLinkTargets} />
             )}
             <div className={styles.articleDates} aria-label="تاریخ مقاله">
               <span className={styles.articleMeta}>

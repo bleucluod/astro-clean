@@ -800,6 +800,59 @@
   color: #f4f6f8;
 }
 
+/* R3 editorial tables are scrollable on narrow screens without truncating data. */
+.bodyTableScroll {
+  max-width: 100%;
+  margin: 1rem 0 1.25rem;
+  overflow-x: auto;
+  border: 1px solid var(--wiki-border-strong);
+  border-radius: 14px;
+  scrollbar-width: thin;
+}
+
+.bodyTable {
+  width: 100%;
+  min-width: 440px;
+  border-collapse: collapse;
+  color: var(--wiki-text-soft);
+  line-height: 1.85;
+  font-size: 0.96rem;
+}
+
+.bodyTable th,
+.bodyTable td {
+  padding: 0.8rem 0.9rem;
+  text-align: start;
+  vertical-align: top;
+  border-bottom: 1px solid var(--wiki-border);
+  border-inline-end: 1px solid var(--wiki-border);
+}
+
+.bodyTable th {
+  color: var(--wiki-text);
+  font-weight: 800;
+  background: rgba(188, 204, 220, 0.09);
+}
+
+.bodyTable tr:last-child td { border-bottom: 0; }
+.bodyTable :is(th, td):last-child { border-inline-end: 0; }
+
+.bodyQuote {
+  margin: 1.1rem 0;
+  padding: 0.75rem 1.1rem;
+  border-inline-start: 3px solid #9aa6b2;
+  border-radius: 10px;
+  color: var(--wiki-text-soft);
+  background: rgba(188, 204, 220, 0.055);
+  line-height: 2;
+}
+
+.bodyDivider {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--wiki-border-strong);
+}
+
 .articleAside {
   min-width: 0;
 }
