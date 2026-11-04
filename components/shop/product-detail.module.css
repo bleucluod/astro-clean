@@ -24,11 +24,8 @@
 .page :is(.galleryCaption, .introduction, .actionFootnote, .sizeNote, .faqItem p, .editorialSection p) { color: #c8d7e5 !important; }
 .page :is(.storyCopy p, .craftCopy p, .centerIntro p) { color: #d0dce8 !important; }
 .page .formError { color: #ffbdc1 !important; }
-.personalizeDialog :is(label, small, p) { color: #d9eafd !important; }
-.personalizeDialog .formError { color: #ffbdc1 !important; }
 .page :is(button, input, textarea, select) { font: inherit; }
 .page :is(button, a, summary, input, textarea, select):focus-visible,
-.personalizeDialog :is(button, input, textarea, select):focus-visible,
 .zoomDialog button:focus-visible { outline: 2px solid #b6ddf5; outline-offset: 3px; }
 .page button { cursor: pointer; }
 
@@ -78,19 +75,17 @@
 .portraitPhoto { object-fit: contain; }
 .zoomHint {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 12px;
+  left: 14px;
+  bottom: 14px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
   border: 1px solid rgba(255, 255, 255, .35);
-  border-radius: 6px;
+  border-radius: 11px;
   background: rgba(7, 9, 13, .78);
   color: #fff;
-  font-size: 11px;
 }
-.zoomHint span { font-size: 16px; }
 .thumbnails { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 14px; direction: rtl; }
 .thumbnail {
   position: relative;
@@ -119,7 +114,7 @@
 .productHeading h1 { margin: 10px 0 8px; font-size: 44px; font-weight: 800; line-height: 1.48; letter-spacing: -.035em; }
 .tagline { color: #edf6fd; font-size: 16px; font-weight: 650; line-height: 2; }
 .introduction { max-width: 492px; color: #c8d7e5; font-size: 15px; line-height: 2.15; }
-.priceBlock { margin-top: 18px; }
+.priceBlock { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; margin-top: 20px; padding: 17px 0; border-bottom: 1px solid var(--pdp-line); }
 .priceLabel { color: #bac9d5; font-size: 13px; }
 .price { display: flex; align-items: baseline; gap: 8px; margin-top: 3px !important; color: #f8fafc; font-size: 32px; font-weight: 800; line-height: 1.7; }
 .price span { font-size: 15px; font-weight: 600; }
@@ -134,7 +129,7 @@
   justify-content: center;
   gap: 5px;
   min-width: 0;
-  min-height: 70px;
+  min-height: 62px;
   padding: 8px 4px;
   border: 1px solid #495362;
   border-radius: 10px;
@@ -144,33 +139,31 @@
   transition: border-color 180ms ease, background-color 180ms ease;
 }
 .sizeChoice > span { font-size: 15px; font-weight: 750; white-space: nowrap; }
-.sizeChoice small { font-size: 11px; font-weight: 500; white-space: nowrap; }
 .sizeChoice:hover { border-color: #8abbd5; }
 .sizeSelected { border: 2px solid #d9eafd; background: #1a222c; }
-.sizeGuideLink { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-top: 11px; color: #d9eafd; font-size: 13px; font-weight: 700; text-underline-offset: 4px; }
+.sizeGuideLink { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-top: 8px; color: #d9eafd; font-size: 13px; font-weight: 700; text-underline-offset: 4px; }
 .sizeGuideLink span { font-size: 18px; }
-.specification { display: grid; gap: 4px; margin-top: 20px; color: #c5d6e3; font-size: 12px; line-height: 1.9; }
+.specification { display: grid; gap: 5px; margin-top: 24px; color: #c5d6e3; font-size: 12px; line-height: 1.9; }
 .specification span::before { display: inline-block; width: 4px; height: 4px; margin-left: 8px; border-radius: 50%; background: #a7cce4; content: ''; vertical-align: middle; }
-.mainAction, .modalSubmit {
+.confirmAction {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
   width: 100%;
-  min-height: 54px;
-  margin-top: 24px;
-  border: 1px solid #899daf;
+  min-height: 50px;
+  margin-top: 4px;
+  border: 1px solid #d9eafd;
   border-radius: 10px;
-  background: #242a31;
-  color: #fff;
+  background: #d9eafd;
+  color: #243447;
   font-size: 15px;
   font-weight: 750;
   transition: background-color 180ms ease;
 }
-.mainAction:hover, .modalSubmit:hover { background: #303b47; }
-.mainAction span, .modalSubmit span { font-size: 19px; }
-.actionFootnote { margin-top: 12px !important; color: #aec0ce; font-size: 12px; line-height: 1.9; }
-.personalSummary { display: grid; gap: 4px; margin-top: 16px; padding: 15px; border: 1px solid #3b4b5a; border-radius: 10px; color: #cfdbe6; font-size: 13px; line-height: 2; }
+.confirmAction:hover { background: #c6ddf3; }
+.confirmAction span { font-size: 19px; }
+.personalSummary { display: grid; gap: 4px; margin-top: 6px; padding: 14px; border: 1px solid #405464; border-radius: 10px; background: #111b23; color: #cfdbe6; font-size: 13px; line-height: 2; }
 .personalSummary strong { color: #f8fafc; font-size: 14px; }
 
 .storySection, .craftSection { display: grid; align-items: center; gap: 52px; direction: ltr; }
@@ -267,25 +260,28 @@
 .mobilePurchaseBar { display: none; }
 .mobilePurchaseBarHidden { transform: translateY(110%); opacity: 0; pointer-events: none; }
 
-.personalizeDialog, .zoomDialog { position: fixed; inset: 0; max-height: calc(100dvh - 80px); margin: auto; padding: 0; border: 1px solid #344557; border-radius: 16px; background: #101218; color: #f8fafc; box-shadow: 0 30px 100px #000b; }
-.personalizeDialog::backdrop, .zoomDialog::backdrop { background: rgba(0, 0, 0, .83); backdrop-filter: blur(5px); }
-.personalizeDialog { width: min(560px, calc(100% - 32px)); overflow-y: auto; direction: rtl; }
-.personalizeForm { display: grid; gap: 18px; padding: 28px; }
-.modalHeader { display: flex; justify-content: space-between; gap: 20px; }
-.modalHeader h2 { margin: 7px 0 0; color: #f8fafc; font-size: 24px; font-weight: 800; }
-.modalClose, .dialogClose { display: grid; place-items: center; flex: none; width: 42px; height: 42px; padding: 0; border: 1px solid #536575; border-radius: 8px; background: #161c23; color: #fff; font-size: 25px; cursor: pointer; }
-.modalSelectedSize { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 12px; padding: 14px; border: 1px solid #3f4b5b; border-radius: 10px; color: #c5d4df; font-size: 13px; }
-.modalSelectedSize strong { color: #fff; }
-.modalSelectedSize span { margin-right: auto; color: #f8fafc; font-weight: 750; }
+.personalizeForm { display: grid; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--pdp-line); scroll-margin-top: 96px; }
+.formTitle { color: #f8fafc; font-size: 19px; font-weight: 800; line-height: 1.65; }
+.dateFields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 12px; }
+.dateFields > * { min-width: 0; }
 .formField { display: grid; gap: 9px; }
 .formField label { color: #f8fafc; font-size: 14px; font-weight: 700; }
-.formField input, .formField textarea, .formField select { width: 100%; min-height: 52px; padding: 12px 15px; border: 1px solid #506172; border-radius: 10px; background: #181d24; color: #fff; font-size: 14px; }
+.page .formField label small { color: #a9bccc !important; font-size: 12px; font-weight: 400; }
+.formField input, .formField textarea, .formField select { width: 100%; min-height: 50px; padding: 11px 13px; border: 1px solid #506172; border-radius: 10px; background: #11171f; color: #fff; font-size: 14px; }
 .formField textarea { min-height: 88px; resize: vertical; }
 .formField input::placeholder, .formField textarea::placeholder { color: #9fafbe; }
 .formField small { color: #a9c1d2; font-size: 11px; }
 .formHint { margin: -7px 0; color: #b8cad9; font-size: 12px; line-height: 1.9; }
 .formError { margin: 0; color: #ffbdc1; font-size: 13px; }
-.modalSubmit { margin-top: 6px; min-height: 50px; }
+.optionalFields { border-bottom: 1px solid var(--pdp-line); }
+.optionalFields summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 42px; color: #d9eafd; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
+.optionalFields summary::-webkit-details-marker { display: none; }
+.optionalFields summary span { font-size: 20px; font-weight: 400; }
+.optionalFields[open] summary span { transform: rotate(45deg); }
+.optionalFieldsInner { display: grid; gap: 14px; padding: 4px 0 20px; }
+.zoomDialog { position: fixed; inset: 0; max-height: calc(100dvh - 80px); margin: auto; padding: 0; border: 1px solid #344557; border-radius: 16px; background: #101218; color: #f8fafc; box-shadow: 0 30px 100px #000b; }
+.zoomDialog::backdrop { background: rgba(0, 0, 0, .83); backdrop-filter: blur(5px); }
+.dialogClose { display: grid; place-items: center; flex: none; width: 42px; height: 42px; padding: 0; border: 1px solid #536575; border-radius: 8px; background: #161c23; color: #fff; font-size: 25px; cursor: pointer; }
 .zoomDialog { width: min(900px, calc(100% - 24px)); max-height: calc(100dvh - 36px); }
 .zoomInner { position: relative; display: grid; gap: 12px; padding: 18px; }
 .dialogClose { position: absolute; z-index: 2; top: 25px; left: 25px; }
@@ -322,20 +318,22 @@
   .thumbnail { aspect-ratio: 82 / 70; }
   .galleryCaption { font-size: 11px; line-height: 1.9; }
   .eyebrow, .sectionKicker { font-size: 12px; }
-  .purchaseCard { padding: 18px 15px 20px; border: 1px solid #2e3d4b; border-radius: 14px; background: linear-gradient(160deg, #131c25, #0d1219); }
+  .purchasePanel { padding: 0; }
   .introduction { margin-top: 0 !important; font-size: 14px; line-height: 1.9; }
-  .priceBlock { margin-top: 14px; }
+  .priceBlock { margin-top: 16px; padding: 14px 0; }
   .price { font-size: 27px; }
   .price span { font-size: 13px; }
   .sizes { margin-top: 15px; }
   .sizeGrid { gap: 8px; }
-  .sizeChoice { min-height: 72px; padding: 8px 2px; }
+  .sizeChoice { min-height: 56px; padding: 8px 2px; }
   .sizeChoice > span { font-size: 14px; }
-  .sizeChoice small { font-size: 11px; }
-  .specification { margin-top: 15px; font-size: 12px; }
-  .mainAction { min-height: 48px; margin-top: 16px; border-color: #d9eafd; background: #d9eafd; color: #243447; font-size: 14px; }
-  .mainAction:hover { background: #c6ddf3; }
-  .actionFootnote { margin-top: 10px !important; font-size: 11px; }
+  .specification { margin-top: 20px; font-size: 11px; }
+  .personalizeForm { gap: 14px; margin-top: 20px; padding-top: 20px; }
+  .formTitle { font-size: 18px; }
+  .dateFields { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; }
+  .formField label { font-size: 13px; }
+  .formField input, .formField select { min-height: 48px; padding: 10px; }
+  .confirmAction { min-height: 48px; font-size: 14px; }
   .storySection { margin-top: 48px; }
   .storyImage { height: 240px; }
   .storyCopy h2, .craftCopy h2 { font-size: 26px; line-height: 1.65; }
@@ -388,25 +386,22 @@
   .mobilePurchaseBar small { color: #bcccdc; font-size: 11px; }
   .mobilePurchaseBar strong { color: #f8fafc; font-size: 17px; font-weight: 800; white-space: nowrap; }
   .mobilePurchaseBar strong span { font-size: 11px; font-weight: 550; }
-  .mobilePurchaseBar button { flex: 0 0 156px; min-height: 46px; padding: 7px 10px; border: 1px solid #d9eafd; border-radius: 10px; background: #d9eafd; color: #243447; font-size: 13px; font-weight: 800; cursor: pointer; }
+  .mobilePurchaseBar a { display: grid; place-items: center; flex: 0 0 156px; min-height: 46px; padding: 7px 10px; border: 1px solid #d9eafd; border-radius: 10px; background: #d9eafd; color: #243447; font-size: 13px; font-weight: 800; text-align: center; text-decoration: none; }
   .mobilePurchaseBarHidden { transform: translateY(110%); opacity: 0; pointer-events: none; }
-  .personalizeDialog { inset: 0; width: 100%; height: 100dvh; max-height: 100dvh; border: 0; border-radius: 0; }
-  .personalizeForm { gap: 18px; padding: 22px 20px calc(30px + env(safe-area-inset-bottom)); }
-  .modalHeader h2 { font-size: 22px; }
   .zoomDialog { width: calc(100% - 16px); }
   .zoomInner { padding: 8px; }
   .zoomPhoto { height: min(76dvh, 590px); }
 }
 
 @media (max-width: 359px) {
-  .sizeChoice small { font-size: 10px; }
+  .dateFields { grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr); }
   .sizeIllustration { gap: 5px; padding-inline: 6px; }
-  .mobilePurchaseBar button { flex-basis: 142px; font-size: 12px; }
+  .mobilePurchaseBar a { flex-basis: 142px; font-size: 12px; }
   .mobilePurchaseBar strong { font-size: 15px; line-height: 1.3; white-space: normal; }
   .mobilePurchaseBar strong span { display: block; font-size: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mainPhotoButton img, .thumbnail, .sizeChoice, .mainAction, .relatedImage img, .modalSubmit { transition: none; }
+  .mainPhotoButton img, .thumbnail, .sizeChoice, .confirmAction, .relatedImage img { transition: none; }
   .mainPhotoButton:hover img, .relatedCard:hover .relatedImage img { transform: none; }
 }

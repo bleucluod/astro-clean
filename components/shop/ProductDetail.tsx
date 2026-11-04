@@ -57,21 +57,12 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const [sizeIndex, setSizeIndex] = useState(1);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isZoomOpen, setZoomOpen] = useState(false);
-  const [isPersonalizeOpen, setPersonalizeOpen] = useState(false);
   const [form, setForm] = useState<PersonalDetails>(emptyDetails);
   const [confirmed, setConfirmed] = useState<PersonalDetails | null>(null);
   const [formError, setFormError] = useState('');
   const [isFooterVisible, setFooterVisible] = useState(false);
-  const personalizeDialog = useRef<HTMLDialogElement>(null);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const price = SHOP_SIZES[sizeIndex].price;
-
-  useEffect(() => {
-    const dialog = personalizeDialog.current;
-    if (!dialog) return;
-    if (isPersonalizeOpen && !dialog.open) dialog.showModal();
-    if (!isPersonalizeOpen && dialog.open) dialog.close();
-  }, [isPersonalizeOpen]);
 
   useEffect(() => {
     const dialog = zoomDialog.current;
@@ -93,6 +84,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   function updateForm(field: keyof PersonalDetails, value: string) {
     setForm((previous) => ({ ...previous, [field]: value }));
+    setConfirmed(null);
     setFormError('');
   }
 
@@ -120,7 +112,6 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       return;
     }
     setConfirmed({ ...form });
-    setPersonalizeOpen(false);
   }
 
   return (
@@ -128,6 +119,11 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       <div className={styles.content}>
         <section className={styles.productHero} aria-label={product.title}>
           <div className={styles.gallery}>
+            <nav className={styles.breadcrumbs} aria-label="مسیر صفحه">
+              <Link href="/">هالیوس</Link><span aria-hidden="true">/</span>
+              <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
+              <span aria-current="page">{product.title}</span>
+            </nav>
             <button className={styles.mainPhotoButton} type="button" onClick={() => setZoomOpen(true)} aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
               <Image
                 key={product.gallery[photoIndex].src}
@@ -138,7 +134,12 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
                 className={photoIndex === 0 ? styles.primaryPhoto : styles.portraitPhoto}
               />
-              <span className={styles.zoomHint} aria-hidden="true">بزرگ‌نمایی <span>↗</span></span>
+              <span className={styles.zoomHint} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="10.5" cy="10.5" r="6.5" />
+                  <path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" />
+                </svg>
+              </span>
             </button>
             <div className={styles.thumbnails} aria-label="تصاویر محصول">
               {product.gallery.map((photo, index) => (
@@ -154,21 +155,16 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 </button>
               ))}
             </div>
-            <p className={styles.galleryCaption}>{product.galleryNote}</p>
+            {product.galleryNote ? <p className={styles.galleryCaption}>{product.galleryNote}</p> : null}
           </div>
 
           <div className={styles.productInfo}>
             <div className={styles.productHeading}>
-              <nav className={styles.breadcrumbs} aria-label="مسیر صفحه">
-                <Link href="/">هالیوس</Link><span aria-hidden="true">/</span>
-                <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
-                <span aria-current="page">{product.title}</span>
-              </nav>
               <span className={styles.eyebrow}>از مجموعهٔ آثار هالیوس</span>
               <h1>{product.title}</h1>
               <p className={styles.tagline}>{product.tagline}</p>
             </div>
-            <div className={styles.purchaseCard}>
+            <div className={styles.purchasePanel}>
               <p className={styles.introduction}>{product.introduction}</p>
               <fieldset className={styles.sizes}>
                 <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
@@ -181,7 +177,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                       aria-pressed={sizeIndex === i}
                       onClick={() => setSizeIndex(i)}
                     >
-                      <span dir="ltr">{size.label}</span><small>{formatPrice(size.price)} تومان</small>
+                      <span dir="ltr">{size.label}</span>
                     </button>
                   ))}
                 </div>
@@ -191,26 +187,67 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 <p className={styles.price} aria-live="polite">{formatPrice(price)} <span>تومان</span></p>
               </div>
               <a className={styles.sizeGuideLink} href="#size-guide">مقایسهٔ اندازه‌ها روی دیوار <span aria-hidden="true">↓</span></a>
+              <form id="personalize" onSubmit={confirmDetails} className={styles.personalizeForm} aria-label={`شخصی‌سازی ${product.title}`}>
+                <h2 className={styles.formTitle}>تابلوی خودت را بساز</h2>
+                <div className={styles.dateFields}>
+                  <div className={styles.formField}>
+                    <label htmlFor="product-date-mode">تقویم</label>
+                    <select id="product-date-mode" value={form.calendar} onChange={(event) => { updateForm('calendar', event.target.value as PersonalDetails['calendar']); updateForm('date', ''); }}>
+                      <option value="jalali">شمسی</option><option value="gregorian">میلادی</option>
+                    </select>
+                  </div>
+                  <div className={styles.formField}>
+                    <label htmlFor="product-date">{id === 'p02' ? 'تاریخ تولد' : id === 'p03' ? 'تاریخ خاطره (اختیاری)' : 'تاریخ لحظهٔ عزیز تو'}</label>
+                    <input id="product-date" dir="ltr" required={id !== 'p03'} value={form.date} type={form.calendar === 'gregorian' ? 'date' : 'text'} inputMode={form.calendar === 'jalali' ? 'numeric' : undefined} placeholder={form.calendar === 'jalali' ? '۱۴۰۳/۰۶/۱۲' : undefined} onChange={(event) => updateForm('date', event.target.value)} />
+                  </div>
+                </div>
+                {id === 'p02' ? (
+                  <>
+                    <div className={styles.dateFields}>
+                      <div className={styles.formField}><label htmlFor="product-time">ساعت دقیق تولد</label><input id="product-time" type="time" dir="ltr" required value={form.time} onChange={(event) => updateForm('time', event.target.value)} /></div>
+                      <div className={styles.formField}><label htmlFor="product-city">شهر تولد</label><input id="product-city" type="text" required maxLength={100} placeholder="نام شهر تولد" value={form.city} onChange={(event) => updateForm('city', event.target.value)} /></div>
+                    </div>
+                    <p className={styles.formHint}>برای نقشهٔ ستاره‌ها، تاریخ، ساعت و شهر دقیق تولد اهمیت دارند.</p>
+                  </>
+                ) : null}
+                <div className={styles.formField}>
+                  <label htmlFor="product-names">{id === 'p03' ? 'نام‌های شما' : 'نام روی تابلو'} <small>(اختیاری)</small></label>
+                  <input id="product-names" type="text" maxLength={60} placeholder={id === 'p03' ? 'مثلاً هاله و آراد' : 'نام دلخواه'} value={form.names} onChange={(event) => updateForm('names', event.target.value)} />
+                </div>
+                <details className={styles.optionalFields}>
+                  <summary>{id === 'p01' ? 'افزودن جزئیات بیشتر' : 'افزودن پیام دلخواه'} <span aria-hidden="true">+</span></summary>
+                  <div className={styles.optionalFieldsInner}>
+                    {id === 'p01' ? (
+                      <div className={styles.dateFields}>
+                        <div className={styles.formField}><label htmlFor="product-time">ساعت (اختیاری)</label><input id="product-time" type="time" dir="ltr" value={form.time} onChange={(event) => updateForm('time', event.target.value)} /></div>
+                        <div className={styles.formField}><label htmlFor="product-city">شهر (اختیاری)</label><input id="product-city" type="text" maxLength={100} placeholder="نام شهر، اگر دوست داری" value={form.city} onChange={(event) => updateForm('city', event.target.value)} /></div>
+                      </div>
+                    ) : null}
+                    <div className={styles.formField}>
+                      <label htmlFor="product-message">پیام کوتاه (اختیاری)</label>
+                      <textarea id="product-message" maxLength={60} rows={2} placeholder="چند کلمه که فقط برای شما معنا دارد…" value={form.message} onChange={(event) => updateForm('message', event.target.value)} />
+                      <small>حداکثر ۶۰ نویسه</small>
+                    </div>
+                  </div>
+                </details>
+                {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
+                <button className={styles.confirmAction} type="submit">تأیید انتخاب‌ها <span aria-hidden="true">←</span></button>
+                {confirmed ? (
+                  <div className={styles.personalSummary} aria-live="polite">
+                    <strong>انتخاب‌های تو تأیید شدند</strong>
+                    <span><bdi dir="ltr">{SHOP_SIZES[sizeIndex].label}</bdi> سانتی‌متر</span>
+                    {confirmed.date ? <span>تاریخ: {confirmed.date} ({confirmed.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</span> : null}
+                    {confirmed.time ? <span>ساعت: {confirmed.time}</span> : null}
+                    {confirmed.city ? <span>شهر: {confirmed.city}</span> : null}
+                    {confirmed.names ? <span>نام: {confirmed.names}</span> : null}
+                    {confirmed.message ? <span>پیام: {confirmed.message}</span> : null}
+                  </div>
+                ) : null}
+              </form>
               <div className={styles.specification}>
                 <span>{product.highlight}</span>
-                <span>ارسال با پست یا تیپاکس؛ تحویل به شرکت حمل‌ونقل تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span>
+                <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span>
               </div>
-              <button className={styles.mainAction} type="button" onClick={() => setPersonalizeOpen(true)}>
-                {confirmed ? 'ویرایش مشخصات تابلو' : 'شخصی‌سازی تابلو'}
-                <span aria-hidden="true">←</span>
-              </button>
-              {confirmed ? (
-                <div className={styles.personalSummary} aria-live="polite">
-                  <strong>انتخاب‌های تو</strong>
-                  <span><bdi dir="ltr">{SHOP_SIZES[sizeIndex].label}</bdi> سانتی‌متر</span>
-                  {confirmed.date ? <span>تاریخ: {confirmed.date} ({confirmed.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</span> : null}
-                  {confirmed.time ? <span>ساعت: {confirmed.time}</span> : null}
-                  {confirmed.city ? <span>شهر: {confirmed.city}</span> : null}
-                  {confirmed.names ? <span>نام: {confirmed.names}</span> : null}
-                  {confirmed.message ? <span>پیام: {confirmed.message}</span> : null}
-                </div>
-              ) : null}
-              <p className={styles.actionFootnote}>تاریخ، نام و پیام دلخواهت را هنگام شخصی‌سازی وارد می‌کنی.</p>
             </div>
           </div>
         </section>
@@ -301,7 +338,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
       <div className={`${styles.mobilePurchaseBar} ${isFooterVisible ? styles.mobilePurchaseBarHidden : ''}`} inert={isFooterVisible} aria-hidden={isFooterVisible}>
         <div><small>قیمت انتخابی</small><strong>{formatPrice(price)} <span>تومان</span></strong></div>
-        <button type="button" onClick={() => setPersonalizeOpen(true)}>{confirmed ? 'ویرایش مشخصات' : 'شخصی‌سازی تابلو'}</button>
+        <a href="#personalize">{confirmed ? 'ویرایش انتخاب‌ها' : 'تکمیل مشخصات'}</a>
       </div>
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>
@@ -316,36 +353,6 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
         </div>
       </dialog>
 
-      <dialog ref={personalizeDialog} onClose={() => setPersonalizeOpen(false)} className={styles.personalizeDialog} aria-labelledby="personalize-heading">
-        <form onSubmit={confirmDetails} className={styles.personalizeForm}>
-          <div className={styles.modalHeader}>
-            <div><span className={styles.sectionKicker}>برای تو ساخته می‌شود</span><h2 id="personalize-heading">شخصی‌سازی {product.title}</h2></div>
-            <button className={styles.modalClose} type="button" onClick={() => setPersonalizeOpen(false)} aria-label="بستن">×</button>
-          </div>
-          <div className={styles.modalSelectedSize}>اندازهٔ انتخابی: <strong><bdi dir="ltr">{SHOP_SIZES[sizeIndex].label}</bdi> سانتی‌متر</strong><span>{formatPrice(price)} تومان</span></div>
-          <div className={styles.formField}>
-            <label htmlFor="product-date-mode">تقویم</label>
-            <select id="product-date-mode" value={form.calendar} onChange={(event) => { updateForm('calendar', event.target.value); updateForm('date', ''); }}>
-              <option value="jalali">شمسی</option><option value="gregorian">میلادی</option>
-            </select>
-          </div>
-          <div className={styles.formField}>
-            <label htmlFor="product-date">{id === 'p02' ? 'تاریخ تولد' : id === 'p03' ? 'تاریخ خاطره (اختیاری)' : 'تاریخ لحظهٔ عزیز تو'}</label>
-            <input id="product-date" dir="ltr" required={id !== 'p03'} value={form.date} type={form.calendar === 'gregorian' ? 'date' : 'text'} inputMode={form.calendar === 'jalali' ? 'numeric' : undefined} placeholder={form.calendar === 'jalali' ? '۱۴۰۳/۰۶/۱۲' : undefined} onChange={(event) => updateForm('date', event.target.value)} />
-          </div>
-          {id === 'p02' || id === 'p01' ? (
-            <>
-              <div className={styles.formField}><label htmlFor="product-time">{id === 'p02' ? 'ساعت دقیق تولد' : 'ساعت (اختیاری)'}</label><input id="product-time" type="time" dir="ltr" required={id === 'p02'} value={form.time} onChange={(event) => updateForm('time', event.target.value)} /></div>
-              <div className={styles.formField}><label htmlFor="product-city">{id === 'p02' ? 'شهر تولد' : 'شهر (اختیاری)'}</label><input id="product-city" type="text" required={id === 'p02'} maxLength={100} placeholder={id === 'p02' ? 'نام شهر تولد' : 'نام شهر، اگر دوست داری'} value={form.city} onChange={(event) => updateForm('city', event.target.value)} /></div>
-              {id === 'p02' ? <p className={styles.formHint}>برای نقشهٔ ستاره‌ها، تاریخ، ساعت و شهر دقیق تولد اهمیت دارند.</p> : null}
-            </>
-          ) : null}
-          <div className={styles.formField}><label htmlFor="product-names">{id === 'p03' ? 'نام‌های شما (اختیاری)' : 'نام روی تابلو (اختیاری)'}</label><input id="product-names" type="text" maxLength={60} placeholder={id === 'p03' ? 'مثلاً هاله و آراد' : 'نام دلخواه'} value={form.names} onChange={(event) => updateForm('names', event.target.value)} /></div>
-          <div className={styles.formField}><label htmlFor="product-message">پیام کوتاه (اختیاری)</label><textarea id="product-message" maxLength={60} rows={2} placeholder="چند کلمه که فقط برای شما معنا دارد…" value={form.message} onChange={(event) => updateForm('message', event.target.value)} /><small>حداکثر ۶۰ نویسه</small></div>
-          {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
-          <button className={styles.modalSubmit} type="submit">تأیید انتخاب‌ها <span aria-hidden="true">←</span></button>
-        </form>
-      </dialog>
     </div>
   );
 }
