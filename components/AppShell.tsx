@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ShopAwareBackToTop } from "@/components/shop/ShopAwareBackToTop";
 
 
 
@@ -43,15 +44,7 @@ export function AppShell({ children }: AppShellProps) {
 
       <script dangerouslySetInnerHTML={{ __html: WIKI_EDITORIAL_CTA_RUNTIME }} />
 
-      <IntentPrefetchLink
-        className={styles.backToTop}
-        data-wiki-chrome-control="back-to-top"
-        href="#main-content"
-        aria-label="پرش به ابتدای محتوای صفحه"
-      >
-        <span aria-hidden="true">↑</span>
-        پرش به بالا
-      </IntentPrefetchLink>
+      <ShopAwareBackToTop />
 
       <footer
         data-approved-lockup="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"

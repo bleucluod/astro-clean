@@ -55,6 +55,7 @@ const HEADER_SCROLL_DELTA = 6;
 // HALLEUS_REPORT_NATIVE_SITE_HEADER_R17_HEADER_ONLY_20260904
 export function SiteHeader() {
   const pathname = usePathname();
+  const isShopRoute = pathname === '/shop' || pathname.startsWith('/shop/');
   const reportSegments = pathname.split("/").filter(Boolean);
   const isReportReader =
     reportSegments.length === 2 && reportSegments[0] === "reports";
@@ -363,6 +364,7 @@ export function SiteHeader() {
           </div>
 
           <div className={styles.headerActions}>
+            {!isShopRoute && (
             <IntentPrefetchLink
               className={styles.accountLink}
               href="/profile"
@@ -383,6 +385,7 @@ export function SiteHeader() {
               </svg>
               <span className={styles.accountLabel}>حساب من</span>
             </IntentPrefetchLink>
+            )}
 
             <IntentPrefetchLink
               className={`site-nav-cta site-header-cta ${styles.headerCta}`}
@@ -430,7 +433,7 @@ export function SiteHeader() {
         </div>
       </nav>
 
-<IntentPrefetchLink
+{!isShopRoute && <IntentPrefetchLink
         className={isReportReader ? `${styles.mobileAccountFab} ${styles.mobileAccountFabReportReader}` : styles.mobileAccountFab}
         href="/profile"
         aria-label="حساب من"
@@ -448,7 +451,7 @@ export function SiteHeader() {
           <circle cx="12" cy="8" r="3.25" />
           <path d="M5.5 19c.8-3.3 3-5 6.5-5s5.7 1.7 6.5 5" />
         </svg>
-      </IntentPrefetchLink>
+      </IntentPrefetchLink>}
     </>
   );
 }
