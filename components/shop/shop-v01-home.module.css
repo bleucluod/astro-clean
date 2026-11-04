@@ -5,7 +5,7 @@
   --shop-accent: #91c7e8;
   font-family: var(--font-vazirmatn), sans-serif;
   color: var(--shop-ink);
-  background: #f4f8fc;
+  background: #101a25;
   padding-top: 32px;
   overflow: clip;
 }
@@ -63,6 +63,7 @@
 .shopHome .heroLead {
   margin-top: 20px;
   color: #f0f5fa;
+  -webkit-text-fill-color: #f0f5fa;
   font-size: clamp(17px, 1.7vw, 21px);
   font-weight: 650;
   line-height: 2;
@@ -72,6 +73,7 @@
   max-width: 440px;
   margin-top: 7px;
   color: #c4d0dc;
+  -webkit-text-fill-color: #c4d0dc;
   font-size: 14px;
   line-height: 2.1;
 }
@@ -254,8 +256,7 @@
   line-height: 1.9;
 }
 
-.productAction,
-.demoNote {
+.productAction {
   display: inline-flex;
   align-items: center;
   gap: 13px;
@@ -273,11 +274,6 @@
   color: #113c58;
   text-decoration: underline;
   text-underline-offset: 4px;
-}
-
-.demoNote {
-  color: #52657a;
-  font-weight: 500;
 }
 
 .previewDisclosure {
@@ -317,6 +313,7 @@
 
 .shopHome .closing p {
   color: #c6d2dc;
+  -webkit-text-fill-color: #c6d2dc;
   font-size: 14px;
   line-height: 2;
 }
@@ -494,7 +491,7 @@
   .shopHome .productHeading h3 { font-size: 19px; }
   .sampleBadge { margin-top: 5px; }
   .shopHome .productDetails p { font-size: 12px; line-height: 1.75; }
-  .productAction, .demoNote { margin-top: 8px; font-size: 12px; }
+  .productAction { margin-top: 8px; font-size: 12px; }
   .previewDisclosure { margin-top: 27px !important; font-size: 11px; text-align: right; }
   .closingInner { display: block; padding: 30px 0; }
   .shopHome .closing h2 { font-size: 25px; }

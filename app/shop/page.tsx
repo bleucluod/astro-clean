@@ -26,7 +26,7 @@ const previewCatalog: ShopV01Item[] = [
   {
     id: 'DEMO-02',
     title: 'آسمان تولد',
-    subtitle: 'نقشه‌ای از ستاره‌ها؛ فعلاً فقط برای بررسی چیدمان.',
+    subtitle: 'نقشه‌ای از ستاره‌های یک روز خاص.',
     category: 'نمونهٔ نمایشی',
     href: null,
     priceToman: null,
@@ -38,7 +38,7 @@ const previewCatalog: ShopV01Item[] = [
   {
     id: 'DEMO-03',
     title: 'شبِ ما',
-    subtitle: 'یک آسمان پرستاره؛ فعلاً فقط برای بررسی چیدمان.',
+    subtitle: 'یادگاری از یک شب پرستاره.',
     category: 'نمونهٔ نمایشی',
     href: null,
     priceToman: null,

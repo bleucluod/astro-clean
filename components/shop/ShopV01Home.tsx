@@ -85,9 +85,7 @@ export function ShopV01Home({ products, previewMode = false }: { products: ShopV
                     {item.isDemo && <span className={styles.sampleBadge}>نمونهٔ نمایشی</span>}
                   </div>
                   <p>{item.subtitle}</p>
-                  {item.isDemo ? (
-                    <span className={styles.demoNote}>این طرح فقط برای بررسی ظاهر فروشگاه است.</span>
-                  ) : (
+                  {!item.isDemo && (
                     <Link className={styles.productAction} href={item.href ?? '/shop'}>
                       مشاهدهٔ اثر <span aria-hidden="true">←</span>
                     </Link>
