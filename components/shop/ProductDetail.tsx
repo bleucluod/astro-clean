@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { siteConfig } from '@/lib/config/seo';
+import { buildShopProductStructuredData } from './product-schema';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId } from './product-detail-data';
 import styles from './product-detail.module.css';
 
@@ -42,6 +44,7 @@ function SizeIllustration({ image, title }: { image: string; title: string }) {
             <div className={`${styles.sizeImage} ${styles[`sizeImage${i}`]}`}>
               <Image src={image} alt="" fill sizes="(max-width: 760px) 80px, 190px" />
             </div>
+            {i === 2 ? <span className={styles.sizePencil} /> : null}
           </div>
           <span dir="ltr">{size.label}</span>
           <small>سانتی‌متر</small>
@@ -57,12 +60,17 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const [sizeIndex, setSizeIndex] = useState(1);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isZoomOpen, setZoomOpen] = useState(false);
+  const [isSizeZoomOpen, setSizeZoomOpen] = useState(false);
   const [form, setForm] = useState<PersonalDetails>(emptyDetails);
   const [confirmed, setConfirmed] = useState<PersonalDetails | null>(null);
   const [formError, setFormError] = useState('');
   const [isFooterVisible, setFooterVisible] = useState(false);
+  const [isFormVisible, setFormVisible] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
+  const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const price = SHOP_SIZES[sizeIndex].price;
+  const hideMobileBar = isFooterVisible || isFormVisible;
+  const structuredData = buildShopProductStructuredData(product, siteConfig.url);
 
   useEffect(() => {
     const dialog = zoomDialog.current;
@@ -72,6 +80,13 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   }, [isZoomOpen]);
 
   useEffect(() => {
+    const dialog = sizeZoomDialog.current;
+    if (!dialog) return;
+    if (isSizeZoomOpen && !dialog.open) dialog.showModal();
+    if (!isSizeZoomOpen && dialog.open) dialog.close();
+  }, [isSizeZoomOpen]);
+
+  useEffect(() => {
     const footer = document.querySelector('footer.site-footer');
     if (!footer || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(
@@ -79,6 +94,14 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       { rootMargin: '0px 0px 90px 0px' },
     );
     observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const formElement = document.getElementById('personalize');
+    if (!formElement || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => setFormVisible(entry.isIntersecting));
+    observer.observe(formElement);
     return () => observer.disconnect();
   }, []);
 
@@ -116,6 +139,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   return (
     <div className={styles.page} data-shop-page="product" dir="rtl">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
       <div className={styles.content}>
         <section className={styles.productHero} aria-label={product.title}>
           <div className={styles.gallery}>
@@ -160,7 +184,6 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
           <div className={styles.productInfo}>
             <div className={styles.productHeading}>
-              <span className={styles.eyebrow}>از مجموعهٔ آثار هالیوس</span>
               <h1>{product.title}</h1>
               <p className={styles.tagline}>{product.tagline}</p>
             </div>
@@ -175,7 +198,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                       type="button"
                       className={`${styles.sizeChoice} ${sizeIndex === i ? styles.sizeSelected : ''}`}
                       aria-pressed={sizeIndex === i}
-                      onClick={() => setSizeIndex(i)}
+                      onClick={() => { setSizeIndex(i); setConfirmed(null); }}
                     >
                       <span dir="ltr">{size.label}</span>
                     </button>
@@ -254,7 +277,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
         <section className={styles.storySection} aria-labelledby="story-heading">
           <div className={styles.storyImage}>
-            <Image src={product.gallery[1].src} alt={product.gallery[1].alt} fill sizes="(max-width: 760px) calc(100vw - 32px), 690px" />
+            <Image src={product.gallery[1].src} alt={product.gallery[1].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />
           </div>
           <div className={styles.storyCopy}>
             <span className={styles.sectionKicker}>داستان این اثر</span>
@@ -271,7 +294,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <div className={styles.craftLabels}><span>سطح مات</span><span>چاپ روی شاسی</span><span>سه اندازه</span></div>
           </div>
           <div className={styles.craftImage}>
-            <Image src={product.gallery[3].src} alt={product.gallery[3].alt} fill sizes="(max-width: 760px) calc(100vw - 32px), 500px" />
+            <Image src={product.gallery[3].src} alt={product.gallery[3].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />
           </div>
         </section>
 
@@ -281,8 +304,14 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <h2 id="dimensions-heading">کدام اندازه برای فضای تو مناسب‌تر است؟</h2>
             <p>هر سه اندازه، نسبت تصویر یکسانی دارند؛ تفاوت در جایی است که می‌خواهی تابلو دیده شود.</p>
           </div>
-          <SizeIllustration image={product.gallery[0].src} title={product.title} />
-          <p className={styles.sizeNote}>این مقایسه نسبت اندازه‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ را روی دیواری نمونه نشان می‌دهد. هر سه اندازه با چاپ مات روی شاسی آماده می‌شوند.</p>
+          <div className={styles.sizeGuideFrame}>
+            <SizeIllustration image={product.gallery[3].src} title={product.title} />
+            <button type="button" className={styles.sizeZoomButton} onClick={() => setSizeZoomOpen(true)} aria-label="بزرگ‌نمایی مقایسهٔ اندازه‌ها">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" /></svg>
+              <span>بزرگ‌نمایی</span>
+            </button>
+          </div>
+          <p className={styles.sizeNote}>اندازه‌ها با نسبت واقعی کنار هم‌اند؛ مدادِ ۱۸ سانتی‌متری هم با همان مقیاس نمایش داده شده است. هر سه اندازه با چاپ مات روی شاسی آماده می‌شوند.</p>
         </section>
 
         <section className={styles.dispatchStrip} aria-label="چاپ و ارسال">
@@ -309,7 +338,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           <h2 id="editorial-heading">{product.editorialTitle}</h2>
           {product.editorialIntro.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           <details className={styles.readMore}>
-            <summary>بیشتر بخوان <span aria-hidden="true">↓</span></summary>
+            <summary><span className={styles.readMoreClosedLabel}>بیشتر دربارهٔ این اثر بخوان</span><span className={styles.readMoreOpenLabel}>کمتر بخوان</span><span className={styles.readMoreArrow} aria-hidden="true">⌄</span></summary>
             <div className={styles.readMoreContent}>
               {product.editorial.map((section) => (
                 <div key={section.title} className={styles.editorialSubsection}>
@@ -336,7 +365,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
         </section>
       </div>
 
-      <div className={`${styles.mobilePurchaseBar} ${isFooterVisible ? styles.mobilePurchaseBarHidden : ''}`} inert={isFooterVisible} aria-hidden={isFooterVisible}>
+      <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
         <div><small>قیمت انتخابی</small><strong>{formatPrice(price)} <span>تومان</span></strong></div>
         <a href="#personalize">{confirmed ? 'ویرایش انتخاب‌ها' : 'تکمیل مشخصات'}</a>
       </div>
@@ -350,6 +379,15 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <span>{formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)}</span>
             <button type="button" onClick={() => setPhotoIndex((photoIndex + 1) % product.gallery.length)}>تصویر بعد</button>
           </div>
+        </div>
+      </dialog>
+
+      <dialog ref={sizeZoomDialog} onClose={() => setSizeZoomOpen(false)} className={styles.zoomDialog} aria-label={`بزرگ‌نمایی مقایسهٔ اندازه‌های ${product.title}`}>
+        <div className={styles.zoomInner}>
+          <button type="button" className={styles.dialogClose} onClick={() => setSizeZoomOpen(false)} aria-label="بستن مقایسهٔ اندازه‌ها">×</button>
+          <h2 className={styles.sizeZoomTitle}>مقایسهٔ اندازه‌ها با مداد ۱۸ سانتی‌متری</h2>
+          <div className={styles.sizeZoomContent}><SizeIllustration image={product.gallery[3].src} title={product.title} /></div>
+          <p className={styles.sizeZoomNote}>نسبت طول و عرض تابلوها و مداد در یک مقیاس است؛ اندازهٔ نمایش به صفحه‌نمایش تو بستگی دارد.</p>
         </div>
       </dialog>
 
