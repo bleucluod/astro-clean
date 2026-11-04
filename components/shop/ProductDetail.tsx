@@ -23,23 +23,6 @@ function formatPrice(amount: number) {
   return new Intl.NumberFormat('fa-IR').format(amount);
 }
 
-function displayPrice(amount: number, compact = false) {
-  if (amount >= 1_000_000 && amount % 1_000 === 0) {
-    const millions = Math.floor(amount / 1_000_000);
-    const thousands = (amount % 1_000_000) / 1_000;
-    if (!compact) {
-      return thousands > 0
-        ? { value: `${formatPrice(millions)} میلیون و ${formatPrice(thousands)}`, unit: 'هزار تومان' }
-        : { value: formatPrice(millions), unit: 'میلیون تومان' };
-    }
-    return { value: formatPrice(amount / 1_000_000), unit: 'میلیون تومان' };
-  }
-  if (amount >= 1_000 && amount % 1_000 === 0) {
-    return { value: formatPrice(amount / 1_000), unit: 'هزار تومان' };
-  }
-  return { value: formatPrice(amount), unit: 'تومان' };
-}
-
 function TextWithLinks({ children }: { children: string }) {
   const parts = children.split(/(<a href="\/shop\/p0[123]">[^<]+<\/a>)/g);
   return (
@@ -52,20 +35,28 @@ function TextWithLinks({ children }: { children: string }) {
   );
 }
 
-function SizeIllustration({ image, title }: { image: string; title: string }) {
+const sizeScenes = [
+  'روی میز، کنار یک ماگ',
+  'روی دیوار، بالای میز کار',
+  'روی دیوار، بالای مبل',
+];
+
+function SizeIllustration({ id, title }: { id: ShopProductId; title: string }) {
   return (
-    <div className={styles.sizeIllustration} aria-label={`مقایسهٔ نسبت اندازه‌های تابلوی ${title}`}>
+    <div className={styles.sizeIllustration} aria-label={`مقایسهٔ اندازه‌های تابلوی ${title} در فضای واقعی`} tabIndex={0}>
       {SHOP_SIZES.map((size, i) => (
-        <div className={styles.sizeSample} key={size.dimension}>
-          <div className={styles.sizeWall} aria-hidden="true">
-            <div className={`${styles.sizeImage} ${styles[`sizeImage${i}`]}`}>
-              <Image src={image} alt="" fill sizes="(max-width: 760px) 80px, 190px" />
-            </div>
-            {i === 2 ? <span className={styles.sizePencil} /> : null}
+        <figure className={styles.sizeScene} key={size.dimension}>
+          <div className={styles.sizeScenePhoto}>
+            <Image
+              src={`/shop-preview/size-guide-${id}.webp`}
+              alt={`تابلوی ${title} در اندازهٔ ${size.label} سانتی‌متر؛ ${sizeScenes[i]}`}
+              fill
+              sizes="(max-width: 760px) 78vw, (max-width: 1023px) 28vw, 370px"
+              style={{ objectPosition: `${i * 50}% center` }}
+            />
           </div>
-          <span dir="ltr">{size.label}</span>
-          <small>سانتی‌متر</small>
-        </div>
+          <figcaption><strong dir="ltr">{size.label}</strong><span>{sizeScenes[i]}</span></figcaption>
+        </figure>
       ))}
     </div>
   );
@@ -86,9 +77,6 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const price = SHOP_SIZES[sizeIndex].price;
-  const shownPrice = displayPrice(price);
-  const stickyPrice = displayPrice(price, true);
-  const startingPrice = displayPrice(SHOP_SIZES[0].price);
   const formCopy = {
     p01: {
       title: 'کدام روز را به ماه می‌سپاری؟',
@@ -157,10 +145,17 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
     setFormError('');
   }
 
+  function updateJalaliPart(index: 0 | 1 | 2, value: string) {
+    const parts = form.date.split('/');
+    const next = [parts[0] || '', parts[1] || '', parts[2] || ''];
+    next[index] = value.replace(/[^0-9۰-۹٠-٩]/g, '').slice(0, index === 0 ? 4 : 2);
+    updateForm('date', next.some(Boolean) ? next.join('/') : '');
+  }
+
   function confirmDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const needsDate = id !== 'p03';
-    const digits = form.date.replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)));
+    const digits = form.date.replace(/[۰-۹٠-٩]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩'.indexOf(digit) % 10));
     if (needsDate && !form.date.trim()) {
       setFormError('لطفاً تاریخ این لحظه را وارد کن.');
       return;
@@ -172,7 +167,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       const day = Number(match?.[3]);
       const maxDay = month <= 6 ? 31 : 30;
       if (!match || year < 1 || year > 9999 || month < 1 || month > 12 || day < 1 || day > maxDay) {
-        setFormError('تاریخ شمسی معتبر را به شکل ۱۴۰۳/۰۶/۱۲ وارد کن.');
+        setFormError('سال، ماه و روز شمسی را بررسی کن؛ مثل ۱۴۰۳/۰۶/۱۲.');
         return;
       }
     }
@@ -253,7 +248,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
               </fieldset>
               <div className={styles.priceBlock}>
                 <p className={styles.priceLabel}>قیمت</p>
-                <p className={styles.price} aria-live="polite"><bdi>{shownPrice.value}</bdi><span>{shownPrice.unit}</span></p>
+                <p className={styles.price} aria-live="polite"><bdi>{formatPrice(price)}</bdi><span>تومان</span></p>
               </div>
               <a className={styles.sizeGuideLink} href="#size-guide">مقایسهٔ اندازه‌ها روی دیوار <span aria-hidden="true">↓</span></a>
               <form id="personalize" onSubmit={confirmDetails} className={styles.personalizeForm} aria-label={`شخصی‌سازی ${product.title}`}>
@@ -277,15 +272,25 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                   </div>
                 </div>
                 <div className={styles.formField}>
-                  <label htmlFor="product-date">{formCopy.date}</label>
-                  <div className={styles.dateInputShell}>
-                    <input id="product-date" dir="ltr" required={id !== 'p03'} value={form.date} type={form.calendar === 'gregorian' ? 'date' : 'text'} inputMode={form.calendar === 'jalali' ? 'numeric' : undefined} placeholder={form.calendar === 'jalali' ? '۱۴۰۳/۰۶/۱۲' : undefined} onChange={(event) => updateForm('date', event.target.value)} />
-                    {form.calendar === 'jalali' ? (
-                      <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 10h18M8 14h2M14 14h2M8 18h2" />
-                      </svg>
-                    ) : null}
-                  </div>
+                  <label htmlFor={form.calendar === 'jalali' ? 'jalali-year' : 'product-date'}>{formCopy.date}</label>
+                  {form.calendar === 'jalali' ? (
+                    <div className={styles.jalaliDateParts} role="group" aria-label="تاریخ شمسی: سال، ماه و روز">
+                      {([
+                        { label: 'سال', placeholder: '۱۴۰۳', id: 'jalali-year', length: 4 },
+                        { label: 'ماه', placeholder: '۰۶', id: 'jalali-month', length: 2 },
+                        { label: 'روز', placeholder: '۱۲', id: 'jalali-day', length: 2 },
+                      ] as const).map(({ label, placeholder, id: inputId, length }, index) => (
+                        <div className={styles.jalaliDatePart} key={inputId}>
+                          <label htmlFor={inputId}>{label}</label>
+                          <input id={inputId} type="text" inputMode="numeric" autoComplete="off" dir="ltr" required={id !== 'p03'} maxLength={length} placeholder={placeholder} value={form.date.split('/')[index] || ''} onChange={(event) => updateJalaliPart(index as 0 | 1 | 2, event.target.value)} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.dateInputShell}>
+                      <input id="product-date" dir="ltr" required={id !== 'p03'} value={form.date} type="date" onChange={(event) => updateForm('date', event.target.value)} />
+                    </div>
+                  )}
                 </div>
                 {id === 'p02' ? (
                   <>
@@ -317,7 +322,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                   </div>
                 </details>
                 {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
-                <button className={styles.confirmAction} type="submit">{formCopy.submit} <span aria-hidden="true">←</span></button>
+                <button className={styles.confirmAction} type="submit">
+                  <span className={styles.confirmLabel}>{formCopy.submit}</span>
+                  <span className={styles.confirmIcon} aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg></span>
+                </button>
                 {confirmed ? (
                   <div className={styles.personalSummary} aria-live="polite">
                     <strong>انتخاب‌های تو تأیید شدند</strong>
@@ -368,13 +376,13 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <p>هر سه اندازه، نسبت تصویر یکسانی دارند؛ تفاوت در جایی است که می‌خواهی تابلو دیده شود.</p>
           </div>
           <div className={styles.sizeGuideFrame}>
-            <SizeIllustration image={product.gallery[3].src} title={product.title} />
+            <SizeIllustration id={id} title={product.title} />
             <button type="button" className={styles.sizeZoomButton} onClick={() => setSizeZoomOpen(true)} aria-label="بزرگ‌نمایی مقایسهٔ اندازه‌ها">
               <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" /></svg>
               <span>بزرگ‌نمایی</span>
             </button>
           </div>
-          <p className={styles.sizeNote}>اندازه‌ها با نسبت واقعی کنار هم‌اند؛ مدادِ ۱۸ سانتی‌متری هم با همان مقیاس نمایش داده شده است. هر سه اندازه با چاپ مات روی شاسی آماده می‌شوند.</p>
+          <p className={styles.sizeNote}>سه تصویر برای تصور جای هر اندازه در خانه‌اند؛ برای مقایسه، ماگ و وسایل معمولی کنار تابلو قرار گرفته‌اند. ابعاد دقیق زیر هر تصویر نوشته شده است. در موبایل، تصویرها را به طرفین ورق بزن.</p>
         </section>
 
         <section className={styles.dispatchStrip} aria-label="چاپ و ارسال">
@@ -400,17 +408,14 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           <span className={styles.sectionKicker}>بیشتر دربارهٔ این اثر</span>
           <h2 id="editorial-heading">{product.editorialTitle}</h2>
           {product.editorialIntro.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-          <details className={styles.readMore}>
-            <summary><span className={styles.readMoreClosedLabel}>بیشتر دربارهٔ این اثر بخوان</span><span className={styles.readMoreOpenLabel}>کمتر بخوان</span><span className={styles.readMoreArrow} aria-hidden="true">⌄</span></summary>
-            <div className={styles.readMoreContent}>
+          <div className={styles.editorialBody}>
               {product.editorial.map((section) => (
                 <div key={section.title} className={styles.editorialSubsection}>
                   <h3>{section.title}</h3>
                   {section.paragraphs.map((paragraph) => <p key={paragraph}><TextWithLinks>{paragraph}</TextWithLinks></p>)}
                 </div>
               ))}
-            </div>
-          </details>
+          </div>
         </section>
 
         <section className={styles.relatedSection} aria-labelledby="related-heading">
@@ -421,7 +426,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 <span className={styles.relatedImage}><Image src={item.gallery[0].src} alt={item.gallery[0].alt} fill sizes="(max-width: 760px) calc(100vw - 32px), 584px" /></span>
                 <span className={styles.relatedTitle}>{item.title}<span aria-hidden="true">←</span></span>
                 <span className={styles.relatedDescription}>{item.tagline}</span>
-                <span className={styles.relatedPrice}>از {startingPrice.value} {startingPrice.unit}</span>
+                <span className={styles.relatedPrice}>از {formatPrice(SHOP_SIZES[0].price)} تومان</span>
               </Link>
             ))}
           </div>
@@ -429,7 +434,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       </div>
 
       <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
-        <div><small>قیمت</small><strong><bdi>{stickyPrice.value}</bdi> <span>{stickyPrice.unit}</span></strong></div>
+        <div><small>قیمت</small><strong><bdi>{formatPrice(price)}</bdi> <span>تومان</span></strong></div>
         <a href="#personalize">{confirmed ? 'ویرایش انتخاب‌ها' : 'شخصی‌سازی اثر'}</a>
       </div>
 
@@ -448,9 +453,9 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       <dialog ref={sizeZoomDialog} onClose={() => setSizeZoomOpen(false)} className={styles.zoomDialog} aria-label={`بزرگ‌نمایی مقایسهٔ اندازه‌های ${product.title}`}>
         <div className={styles.zoomInner}>
           <button type="button" className={styles.dialogClose} onClick={() => setSizeZoomOpen(false)} aria-label="بستن مقایسهٔ اندازه‌ها">×</button>
-          <h2 className={styles.sizeZoomTitle}>مقایسهٔ اندازه‌ها با مداد ۱۸ سانتی‌متری</h2>
-          <div className={styles.sizeZoomContent}><SizeIllustration image={product.gallery[3].src} title={product.title} /></div>
-          <p className={styles.sizeZoomNote}>نسبت طول و عرض تابلوها و مداد در یک مقیاس است؛ اندازهٔ نمایش به صفحه‌نمایش تو بستگی دارد.</p>
+          <h2 className={styles.sizeZoomTitle}>سه اندازه، سه جای واقعی در خانه</h2>
+          <div className={styles.sizeZoomContent}><SizeIllustration id={id} title={product.title} /></div>
+          <p className={styles.sizeZoomNote}>این‌ها عکس‌های نمایشی برای تصور اندازه‌ها هستند، نه اندازه‌گیری دقیق روی صفحه‌نمایش.</p>
         </div>
       </dialog>
 
