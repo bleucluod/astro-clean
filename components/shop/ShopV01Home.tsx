@@ -15,18 +15,15 @@ export type ShopV01Item = {
   isDemo?: boolean;
 };
 
-function ProductImage({ item, hero = false }: { item: ShopV01Item; hero?: boolean }) {
+function ProductImage({ item }: { item: ShopV01Item }) {
   return (
-    <div className={hero ? styles.heroVisual : styles.productVisual}>
+    <div className={styles.productVisual}>
       {item.imageSrc ? (
         <Image
           src={item.imageSrc}
           alt={item.imageAlt ?? item.title}
           fill
-          priority={hero}
-          sizes={hero
-            ? '(max-width: 767px) 100vw, 50vw'
-            : '(max-width: 640px) 45vw, (max-width: 1024px) 48vw, 32vw'}
+          sizes="(max-width: 767px) 126px, (max-width: 1024px) 46vw, 30vw"
           className={styles.productImage}
         />
       ) : (
@@ -37,7 +34,6 @@ function ProductImage({ item, hero = false }: { item: ShopV01Item; hero?: boolea
 }
 
 export function ShopV01Home({ products, previewMode = false }: { products: ShopV01Item[]; previewMode?: boolean }) {
-  const featured = products.find((item) => !item.isDemo) ?? products[0];
   const sampleCount = products.filter((item) => item.isDemo).length;
 
   return (
@@ -46,20 +42,13 @@ export function ShopV01Home({ products, previewMode = false }: { products: ShopV
         <div className={styles.hero}>
           <div className={styles.heroCopy}>
             <span className={styles.heroKicker}>فروشگاه هالیوس</span>
-            <h1 id="shop-title">لحظه‌هایی که<br />می‌مانند.</h1>
-            <p className={styles.heroLead}>آسمان یک روز خاص، در قاب خاطره‌های تو.</p>
-            <p className={styles.heroSupporting}>بعضی روزها آن‌قدر عزیزند که دلت می‌خواهد چیزی از آسمانشان برای همیشه کنارت بماند.</p>
+            <h1 id="shop-title">آسمان آن روز،<br />برای همیشه.</h1>
+            <p className={styles.heroLead}>آسمان یک لحظهٔ عزیز، برای هر روز خانهٔ تو.</p>
             <a className={styles.heroButton} href="#products">
-              دیدن آثار
+              دیدن مجموعه
               <span aria-hidden="true">←</span>
             </a>
           </div>
-          {featured && (
-            <div className={styles.heroMedia}>
-              <ProductImage item={featured} hero />
-              {previewMode && <span className={styles.heroImageNote}>تصویر مفهومی · محصول نهایی نیست</span>}
-            </div>
-          )}
         </div>
       </section>
 
@@ -67,7 +56,6 @@ export function ShopV01Home({ products, previewMode = false }: { products: ShopV
         <div className={styles.collectionInner}>
           <header className={styles.collectionHeader}>
             <h2 id="collection-heading">مجموعه آثار</h2>
-            <p>یک یادگاری از آسمان، برای لحظه‌هایی که فراموش نمی‌شوند.</p>
           </header>
           <div className={styles.productGrid}>
             {products.map((item) => (
@@ -81,31 +69,18 @@ export function ShopV01Home({ products, previewMode = false }: { products: ShopV
                 )}
                 <div className={styles.productDetails}>
                   <div className={styles.productHeading}>
-                    <h3>{item.title}</h3>
+                    <h3>{item.isDemo ? item.title : <Link href={item.href ?? '/shop'}>{item.title}</Link>}</h3>
                     {item.isDemo && <span className={styles.sampleBadge}>نمونهٔ نمایشی</span>}
                   </div>
-                  <p>{item.subtitle}</p>
-                  {!item.isDemo && (
-                    <Link className={styles.productAction} href={item.href ?? '/shop'}>
-                      مشاهدهٔ اثر <span aria-hidden="true">←</span>
-                    </Link>
-                  )}
                 </div>
               </article>
             ))}
           </div>
           {previewMode && sampleCount > 0 && (
             <p className={styles.previewDisclosure}>
-              این صفحه پیش‌نمایش طراحی است. فقط «ماه آن روز» محصول برنامه‌ریزی‌شدهٔ هالیوس است؛ دو تصویر دیگر برای آزمایش نمایش سه محصول کنار هم هستند. قیمت‌گذاری و سفارش هنوز فعال نیست.
+              این صفحه پیش‌نمایش طراحی است. فقط «ماه آن روز» محصول برنامه‌ریزی‌شده است؛ دو اثر دیگر نمونهٔ چیدمان‌اند. قیمت‌گذاری و سفارش هنوز فعال نیست.
             </p>
           )}
-        </div>
-      </section>
-
-      <section className={styles.closing} aria-labelledby="closing-title">
-        <div className={styles.closingInner}>
-          <h2 id="closing-title">هر آسمان، یک داستان.</h2>
-          <p>برای خاطره‌هایی که دلت می‌خواهد هر روز ببینی‌شان.</p>
         </div>
       </section>
     </div>
