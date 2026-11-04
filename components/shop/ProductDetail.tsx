@@ -324,7 +324,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
                 <button className={styles.confirmAction} type="submit">
                   <span className={styles.confirmLabel}>{formCopy.submit}</span>
-                  <span className={styles.confirmIcon} aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg></span>
+                  <span className={styles.confirmArrow} aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg></span>
                 </button>
                 {confirmed ? (
                   <div className={styles.personalSummary} aria-live="polite">

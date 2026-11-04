@@ -150,31 +150,44 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
   width: 100%;
-  min-height: 62px;
+  min-height: 60px;
   margin-top: 4px;
-  padding: 8px 10px 8px 18px;
-  border: 1px solid #83b4d4;
-  border-radius: 15px;
-  background: linear-gradient(112deg, #203b53 0%, #162838 58%, #1b364e 100%);
-  color: #f0f8ff;
+  padding: 12px 52px;
+  overflow: hidden;
+  border: 1px solid #deeffb;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #c4dff1 0%, #e2f1fc 52%, #c2def1 100%);
+  color: #22384d;
   font-size: 15px;
   font-weight: 800;
-  box-shadow: inset 0 1px 0 #d9eafd23, 0 9px 28px #07141f5c;
-  animation: confirmBreathing 4.2s ease-in-out infinite;
+  box-shadow: inset 0 1px 0 #ffffffba, 0 8px 22px #8ebbd329;
+  animation: confirmBreathing 5s ease-in-out infinite;
   transition: filter 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
-.confirmAction:hover { filter: brightness(1.18); transform: translateY(-2px); box-shadow: 0 12px 28px rgba(103, 163, 205, .2); }
+.confirmAction::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 39%, #ffffff85 50%, transparent 61%);
+  content: '';
+  pointer-events: none;
+  transform: translateX(140%);
+  animation: confirmGlint 6.4s ease-in-out infinite;
+}
+.confirmAction:hover { filter: brightness(1.055); transform: translateY(-2px); box-shadow: 0 12px 26px #8ebbd345; }
 .confirmAction:active { transform: scale(.985); animation: none; }
-.confirmLabel { padding-inline-start: 10px; }
-.confirmIcon { display: grid; place-items: center; flex: none; width: 43px; height: 43px; border-radius: 11px; background: #d9eafd; color: #1c3a50; box-shadow: inset 0 1px 1px #fff7; transition: transform 200ms ease; }
-.confirmAction:hover .confirmIcon { transform: translateX(-3px); }
-.page .confirmAction { background: linear-gradient(112deg, #203b53 0%, #162838 58%, #1b364e 100%) !important; border-color: #83b4d4 !important; color: #f0f8ff !important; }
+.confirmLabel { position: relative; z-index: 1; text-align: center; }
+.confirmArrow { position: absolute; z-index: 1; top: 50%; left: 20px; display: grid; place-items: center; color: #385873; transform: translateY(-50%); transition: transform 200ms ease; }
+.confirmAction:hover .confirmArrow { transform: translate(-4px, -50%); }
+.page .confirmAction { background: linear-gradient(120deg, #c4dff1 0%, #e2f1fc 52%, #c2def1 100%) !important; border-color: #deeffb !important; color: #22384d !important; }
 @keyframes confirmBreathing {
-  0%, 100% { box-shadow: inset 0 1px 0 #d9eafd23, 0 9px 28px #07141f5c, 0 0 0 0 #a2cfeb00; }
-  50% { box-shadow: inset 0 1px 0 #d9eafd23, 0 9px 28px #07141f5c, 0 0 0 4px #a2cfeb1b; }
+  0%, 100% { box-shadow: inset 0 1px 0 #ffffffba, 0 8px 22px #8ebbd329, 0 0 0 0 #b1d8f000; }
+  50% { box-shadow: inset 0 1px 0 #ffffffba, 0 8px 22px #8ebbd329, 0 0 0 3px #b1d8f026; }
+}
+@keyframes confirmGlint {
+  0%, 59% { transform: translateX(140%); }
+  85%, 100% { transform: translateX(-140%); }
 }
 .personalSummary { display: grid; gap: 4px; margin-top: 6px; padding: 14px; border: 1px solid #405464; border-radius: 10px; background: #111b23; color: #cfdbe6; font-size: 13px; line-height: 2; }
 .personalSummary strong { color: #f8fafc; font-size: 14px; }
@@ -420,7 +433,8 @@
   .mainPhotoButton img, .thumbnail, .sizeChoice, .confirmAction, .relatedImage img { transition: none; }
   .mainPhotoButton:hover img, .relatedCard:hover .relatedImage img { transform: none; }
   .confirmAction { animation: none; }
-  .confirmAction:hover .confirmIcon { transform: none; }
+  .confirmAction::before { display: none; animation: none; }
+  .confirmArrow, .confirmAction:hover .confirmArrow { transition: none; transform: translateY(-50%); }
   .mobilePurchaseBar a { animation: none; }
   .page .calendarOption, .page .formField :is(input, textarea, select), .optionalFields summary span { transition: none; }
 }
