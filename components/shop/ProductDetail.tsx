@@ -38,14 +38,15 @@ function SizeIllustration({ image, title }: { image: string; title: string }) {
     <div className={styles.sizeIllustration} aria-label={`مقایسهٔ نسبت اندازه‌های تابلوی ${title}`}>
       {SHOP_SIZES.map((size, i) => (
         <div className={styles.sizeSample} key={size.dimension}>
-          <div className={`${styles.sizeImage} ${styles[`sizeImage${i}`]}`}>
-            <Image src={image} alt="" fill sizes="(max-width: 760px) 145px, 208px" />
+          <div className={styles.sizeWall} aria-hidden="true">
+            <div className={`${styles.sizeImage} ${styles[`sizeImage${i}`]}`}>
+              <Image src={image} alt="" fill sizes="(max-width: 760px) 80px, 190px" />
+            </div>
           </div>
-          <span>{size.label}</span>
+          <span dir="ltr">{size.label}</span>
           <small>سانتی‌متر</small>
         </div>
       ))}
-      <span className={styles.sizeGround} aria-hidden="true" />
     </div>
   );
 }
@@ -60,6 +61,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const [form, setForm] = useState<PersonalDetails>(emptyDetails);
   const [confirmed, setConfirmed] = useState<PersonalDetails | null>(null);
   const [formError, setFormError] = useState('');
+  const [isFooterVisible, setFooterVisible] = useState(false);
   const personalizeDialog = useRef<HTMLDialogElement>(null);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const price = SHOP_SIZES[sizeIndex].price;
@@ -77,6 +79,17 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
     if (isZoomOpen && !dialog.open) dialog.showModal();
     if (!isZoomOpen && dialog.open) dialog.close();
   }, [isZoomOpen]);
+
+  useEffect(() => {
+    const footer = document.querySelector('footer.site-footer');
+    if (!footer || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { rootMargin: '0px 0px 90px 0px' },
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   function updateForm(field: keyof PersonalDetails, value: string) {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -112,14 +125,8 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   return (
     <div className={styles.page} data-shop-page="product" dir="rtl">
-      <nav className={styles.breadcrumbs} aria-label="مسیر صفحه">
-        <Link href="/">هالیوس</Link><span aria-hidden="true">/</span>
-        <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
-        <span aria-current="page">{product.title}</span>
-      </nav>
-
       <div className={styles.content}>
-        <section className={styles.productHero} aria-labelledby="product-title">
+        <section className={styles.productHero} aria-label={product.title}>
           <div className={styles.gallery}>
             <button className={styles.mainPhotoButton} type="button" onClick={() => setZoomOpen(true)} aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
               <Image
@@ -151,49 +158,60 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           </div>
 
           <div className={styles.productInfo}>
-            <span className={styles.eyebrow}>از مجموعه آثار هالیوس</span>
-            <h1 id="product-title">{product.title}</h1>
-            <p className={styles.tagline}>{product.tagline}</p>
-            <p className={styles.introduction}>{product.introduction}</p>
-            <div className={styles.thinRule} />
-            <p className={styles.priceLabel}>قیمت تابلو در اندازهٔ انتخابی</p>
-            <p className={styles.price} aria-live="polite">{formatPrice(price)} <span>تومان</span></p>
-            <fieldset className={styles.sizes}>
-              <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
-              <div className={styles.sizeGrid}>
-                {SHOP_SIZES.map((size, i) => (
-                  <button
-                    key={size.dimension}
-                    type="button"
-                    className={`${styles.sizeChoice} ${sizeIndex === i ? styles.sizeSelected : ''}`}
-                    aria-pressed={sizeIndex === i}
-                    onClick={() => setSizeIndex(i)}
-                  >
-                    <span>{size.label}</span><small>{formatPrice(size.price)} تومان</small>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <div className={styles.specification}>
-              <span>{product.highlight}</span>
-              <span>آماده‌سازی و سپردن به حمل تا ۳ روز کاری پس از تأیید پرداخت</span>
+            <div className={styles.productHeading}>
+              <nav className={styles.breadcrumbs} aria-label="مسیر صفحه">
+                <Link href="/">هالیوس</Link><span aria-hidden="true">/</span>
+                <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
+                <span aria-current="page">{product.title}</span>
+              </nav>
+              <span className={styles.eyebrow}>از مجموعهٔ آثار هالیوس</span>
+              <h1>{product.title}</h1>
+              <p className={styles.tagline}>{product.tagline}</p>
             </div>
-            <button className={styles.mainAction} type="button" onClick={() => setPersonalizeOpen(true)}>
-              {confirmed ? 'ویرایش مشخصات تابلو' : 'شخصی‌سازی تابلو'}
-              <span aria-hidden="true">←</span>
-            </button>
-            {confirmed ? (
-              <div className={styles.personalSummary} aria-live="polite">
-                <strong>انتخاب‌های تو</strong>
-                <span>{SHOP_SIZES[sizeIndex].label} سانتی‌متر</span>
-                {confirmed.date ? <span>تاریخ: {confirmed.date} ({confirmed.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</span> : null}
-                {confirmed.time ? <span>ساعت: {confirmed.time}</span> : null}
-                {confirmed.city ? <span>شهر: {confirmed.city}</span> : null}
-                {confirmed.names ? <span>نام: {confirmed.names}</span> : null}
-                {confirmed.message ? <span>پیام: {confirmed.message}</span> : null}
+            <div className={styles.purchaseCard}>
+              <p className={styles.introduction}>{product.introduction}</p>
+              <fieldset className={styles.sizes}>
+                <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
+                <div className={styles.sizeGrid}>
+                  {SHOP_SIZES.map((size, i) => (
+                    <button
+                      key={size.dimension}
+                      type="button"
+                      className={`${styles.sizeChoice} ${sizeIndex === i ? styles.sizeSelected : ''}`}
+                      aria-pressed={sizeIndex === i}
+                      onClick={() => setSizeIndex(i)}
+                    >
+                      <span dir="ltr">{size.label}</span><small>{formatPrice(size.price)} تومان</small>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <div className={styles.priceBlock}>
+                <p className={styles.priceLabel}>قیمت اندازهٔ انتخابی</p>
+                <p className={styles.price} aria-live="polite">{formatPrice(price)} <span>تومان</span></p>
               </div>
-            ) : null}
-            <p className={styles.actionFootnote}>انتخاب تاریخ، نام و پیام در مرحلهٔ شخصی‌سازی انجام می‌شود.</p>
+              <a className={styles.sizeGuideLink} href="#size-guide">مقایسهٔ اندازه‌ها روی دیوار <span aria-hidden="true">↓</span></a>
+              <div className={styles.specification}>
+                <span>{product.highlight}</span>
+                <span>ارسال با پست یا تیپاکس؛ تحویل به شرکت حمل‌ونقل تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span>
+              </div>
+              <button className={styles.mainAction} type="button" onClick={() => setPersonalizeOpen(true)}>
+                {confirmed ? 'ویرایش مشخصات تابلو' : 'شخصی‌سازی تابلو'}
+                <span aria-hidden="true">←</span>
+              </button>
+              {confirmed ? (
+                <div className={styles.personalSummary} aria-live="polite">
+                  <strong>انتخاب‌های تو</strong>
+                  <span><bdi dir="ltr">{SHOP_SIZES[sizeIndex].label}</bdi> سانتی‌متر</span>
+                  {confirmed.date ? <span>تاریخ: {confirmed.date} ({confirmed.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</span> : null}
+                  {confirmed.time ? <span>ساعت: {confirmed.time}</span> : null}
+                  {confirmed.city ? <span>شهر: {confirmed.city}</span> : null}
+                  {confirmed.names ? <span>نام: {confirmed.names}</span> : null}
+                  {confirmed.message ? <span>پیام: {confirmed.message}</span> : null}
+                </div>
+              ) : null}
+              <p className={styles.actionFootnote}>تاریخ، نام و پیام دلخواهت را هنگام شخصی‌سازی وارد می‌کنی.</p>
+            </div>
           </div>
         </section>
 
@@ -213,27 +231,27 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <span className={styles.sectionKicker}>جزئیات و کیفیت</span>
             <h2 id="craft-heading">{product.qualityTitle}</h2>
             {product.quality.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-            <div className={styles.craftLabels}><span>سطح مات</span><span>بدون قاب</span><span>سه اندازه</span></div>
+            <div className={styles.craftLabels}><span>سطح مات</span><span>چاپ روی شاسی</span><span>سه اندازه</span></div>
           </div>
           <div className={styles.craftImage}>
             <Image src={product.gallery[3].src} alt={product.gallery[3].alt} fill sizes="(max-width: 760px) calc(100vw - 32px), 500px" />
           </div>
         </section>
 
-        <section className={styles.dimensionsSection} aria-labelledby="dimensions-heading">
+        <section id="size-guide" className={styles.dimensionsSection} aria-labelledby="dimensions-heading">
           <div className={styles.centerIntro}>
             <span className={styles.sectionKicker}>راهنمای انتخاب اندازه</span>
             <h2 id="dimensions-heading">کدام اندازه برای فضای تو مناسب‌تر است؟</h2>
             <p>هر سه اندازه، نسبت تصویر یکسانی دارند؛ تفاوت در جایی است که می‌خواهی تابلو دیده شود.</p>
           </div>
           <SizeIllustration image={product.gallery[0].src} title={product.title} />
-          <p className={styles.sizeNote}>تصویر بالا نسبت ابعاد را برای مقایسه نشان می‌دهد. اندازهٔ دقیق هر تابلو همان سانتی‌متر نوشته‌شده است.</p>
+          <p className={styles.sizeNote}>این مقایسه نسبت اندازه‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ را روی دیواری نمونه نشان می‌دهد. هر سه اندازه با چاپ مات روی شاسی آماده می‌شوند.</p>
         </section>
 
         <section className={styles.dispatchStrip} aria-label="چاپ و ارسال">
           <div><strong>سه اندازهٔ انتخابی</strong><span>۱۰×۱۵، ۲۰×۳۰، ۳۰×۴۵ سانتی‌متر</span></div>
-          <div><strong>چاپ مات و بدون قاب</strong><span>آماده برای نصب و هدیه‌دادن</span></div>
-          <div><strong>کد رهگیری تا ۳ روز کاری</strong><span>پس از تأیید پرداخت؛ پست یا تیپاکس</span></div>
+          <div><strong>چاپ مات روی شاسی</strong><span>آماده برای نصب و هدیه‌دادن</span></div>
+          <div><strong>ارسال با پست یا تیپاکس</strong><span>تحویل به شرکت حمل‌ونقل تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری. زمان رسیدن بسته به مقصد بستگی دارد.</span></div>
         </section>
 
         <section className={styles.faqSection} aria-labelledby="faq-heading">
@@ -281,7 +299,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
         </section>
       </div>
 
-      <div className={styles.mobilePurchaseBar}>
+      <div className={`${styles.mobilePurchaseBar} ${isFooterVisible ? styles.mobilePurchaseBarHidden : ''}`} inert={isFooterVisible} aria-hidden={isFooterVisible}>
         <div><small>قیمت انتخابی</small><strong>{formatPrice(price)} <span>تومان</span></strong></div>
         <button type="button" onClick={() => setPersonalizeOpen(true)}>{confirmed ? 'ویرایش مشخصات' : 'شخصی‌سازی تابلو'}</button>
       </div>
@@ -304,7 +322,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <div><span className={styles.sectionKicker}>برای تو ساخته می‌شود</span><h2 id="personalize-heading">شخصی‌سازی {product.title}</h2></div>
             <button className={styles.modalClose} type="button" onClick={() => setPersonalizeOpen(false)} aria-label="بستن">×</button>
           </div>
-          <div className={styles.modalSelectedSize}>اندازهٔ انتخابی: <strong>{SHOP_SIZES[sizeIndex].label} سانتی‌متر</strong><span>{formatPrice(price)} تومان</span></div>
+          <div className={styles.modalSelectedSize}>اندازهٔ انتخابی: <strong><bdi dir="ltr">{SHOP_SIZES[sizeIndex].label}</bdi> سانتی‌متر</strong><span>{formatPrice(price)} تومان</span></div>
           <div className={styles.formField}>
             <label htmlFor="product-date-mode">تقویم</label>
             <select id="product-date-mode" value={form.calendar} onChange={(event) => { updateForm('calendar', event.target.value); updateForm('date', ''); }}>
