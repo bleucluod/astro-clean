@@ -9,9 +9,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// V01 is a visual approval surface, not a live catalog. The existing R29/R31
-// shop/database candidate has NOT been committed; never invent availability,
-// prices, additional products or permission to accept orders here.
+// Review-only catalog. Only P01 is planned; the other two are layout samples.
+// There are no active orders, prices, or production catalog entries here.
 const previewCatalog: ShopV01Item[] = [
   {
     id: 'P01',
@@ -21,8 +20,32 @@ const previewCatalog: ShopV01Item[] = [
     href: '/shop/p01',
     priceToman: null,
     availability: 'coming-soon',
-    imageSrc: null,
-    imageAlt: null,
+    imageSrc: '/shop-preview/moon-that-day.webp',
+    imageAlt: 'نمای مفهومی شاسی مات بدون قاب با تصویر ماه روی دیوار روشن',
+  },
+  {
+    id: 'DEMO-02',
+    title: 'آسمان تولد',
+    subtitle: 'نقشه‌ای از ستاره‌ها؛ فعلاً فقط برای بررسی چیدمان.',
+    category: 'نمونهٔ نمایشی',
+    href: null,
+    priceToman: null,
+    availability: 'unavailable',
+    imageSrc: '/shop-preview/birth-sky-demo.webp',
+    imageAlt: 'نمونهٔ مفهومی شاسی بدون قاب با نقشهٔ ستاره‌ها روی زمینهٔ آبی تیره',
+    isDemo: true,
+  },
+  {
+    id: 'DEMO-03',
+    title: 'شبِ ما',
+    subtitle: 'یک آسمان پرستاره؛ فعلاً فقط برای بررسی چیدمان.',
+    category: 'نمونهٔ نمایشی',
+    href: null,
+    priceToman: null,
+    availability: 'unavailable',
+    imageSrc: '/shop-preview/our-night-demo.webp',
+    imageAlt: 'نمونهٔ مفهومی شاسی بدون قاب با راه شیری و منظرهٔ کوهستان',
+    isDemo: true,
   },
 ];
 
