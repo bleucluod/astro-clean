@@ -12,7 +12,6 @@ export type ShopV01Item = {
   availability: 'available' | 'unavailable' | 'coming-soon';
   imageSrc: string | null;
   imageAlt: string | null;
-  isDemo?: boolean;
 };
 
 function ProductImage({ item }: { item: ShopV01Item }) {
@@ -33,9 +32,7 @@ function ProductImage({ item }: { item: ShopV01Item }) {
   );
 }
 
-export function ShopV01Home({ products, previewMode = false }: { products: ShopV01Item[]; previewMode?: boolean }) {
-  const sampleCount = products.filter((item) => item.isDemo).length;
-
+export function ShopV01Home({ products }: { products: ShopV01Item[] }) {
   return (
     <div className={styles.shopHome}>
       <section className={styles.heroSection} aria-labelledby="shop-title">
@@ -56,27 +53,21 @@ export function ShopV01Home({ products, previewMode = false }: { products: ShopV
           <div className={styles.productGrid}>
             {products.map((item) => (
               <article className={styles.productCard} key={item.id}>
-                {item.isDemo ? (
-                  <ProductImage item={item} />
-                ) : (
-                  <Link className={styles.visualLink} href={item.href ?? '/shop'} aria-label={`مشاهدهٔ ${item.title}`}>
+                {item.href ? (
+                  <Link className={styles.visualLink} href={item.href} aria-label={`مشاهدهٔ ${item.title}`}>
                     <ProductImage item={item} />
                   </Link>
+                ) : (
+                  <ProductImage item={item} />
                 )}
                 <div className={styles.productDetails}>
                   <div className={styles.productHeading}>
-                    <h3>{item.isDemo ? item.title : <Link href={item.href ?? '/shop'}>{item.title}</Link>}</h3>
-                    {item.isDemo && <span className={styles.sampleBadge}>نمونهٔ نمایشی</span>}
+                    <h3>{item.href ? <Link href={item.href}>{item.title}</Link> : item.title}</h3>
                   </div>
                 </div>
               </article>
             ))}
           </div>
-          {previewMode && sampleCount > 0 && (
-            <p className={styles.previewDisclosure}>
-              این صفحه پیش‌نمایش طراحی است. فقط «ماه آن روز» محصول برنامه‌ریزی‌شده است؛ دو اثر دیگر نمونهٔ چیدمان‌اند. قیمت‌گذاری و سفارش هنوز فعال نیست.
-            </p>
-          )}
         </div>
       </section>
     </div>

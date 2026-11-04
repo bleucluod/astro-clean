@@ -4,14 +4,14 @@ import styles from '@/components/shop/shop-v01-home.module.css';
 
 export const metadata: Metadata = {
   title: 'فروشگاه هالیوس | آثار شخصی از آسمان',
-  description: 'آثار هنری شخصی‌سازی‌شده از آسمان؛ نخستین اثر هالیوس، ماه آن روز، در حال آماده‌سازی است.',
+  description: 'مجموعهٔ آثار شخصی هالیوس: ماه آن روز، آسمان تولد و شب ما؛ لحظه‌های آسمان در قالب تابلو.',
   alternates: { canonical: '/shop' },
   robots: { index: false, follow: false },
 };
 
-// Review-only catalog. Only P01 is planned; the other two are layout samples.
-// There are no active orders, prices, or production catalog entries here.
-const previewCatalog: ShopV01Item[] = [
+// The launch lineup is P01, P02 and P03. Checkout and pricing stay disabled
+// until each product passes its own design, astronomy and fulfillment gates.
+const launchCatalog: ShopV01Item[] = [
   {
     id: 'P01',
     title: 'ماه آن روز',
@@ -21,31 +21,29 @@ const previewCatalog: ShopV01Item[] = [
     priceToman: null,
     availability: 'coming-soon',
     imageSrc: '/shop-preview/moon-that-day.webp',
-    imageAlt: 'نمای مفهومی شاسی مات بدون قاب با تصویر ماه روی دیوار روشن',
+    imageAlt: 'تابلوی ماه آن روز با تصویر ماه روی شاسی مات بدون قاب در دکور روشن',
   },
   {
-    id: 'DEMO-02',
+    id: 'P02',
     title: 'آسمان تولد',
-    subtitle: 'نقشه‌ای از ستاره‌های یک روز خاص.',
-    category: 'نمونهٔ نمایشی',
+    subtitle: 'آسمان لحظه‌ای که داستان تو آغاز شد.',
+    category: 'آثار آسمان',
     href: null,
     priceToman: null,
-    availability: 'unavailable',
-    imageSrc: '/shop-preview/birth-sky-demo.webp',
-    imageAlt: 'نمونهٔ مفهومی شاسی بدون قاب با نقشهٔ ستاره‌ها روی زمینهٔ آبی تیره',
-    isDemo: true,
+    availability: 'coming-soon',
+    imageSrc: '/shop-preview/birth-sky.webp',
+    imageAlt: 'تابلوی آسمان تولد با طرح دایره‌ای ستاره‌ها روی شاسی مات تیره',
   },
   {
-    id: 'DEMO-03',
+    id: 'P03',
     title: 'شبِ ما',
     subtitle: 'یادگاری از یک شب پرستاره.',
-    category: 'نمونهٔ نمایشی',
+    category: 'آثار شب',
     href: null,
     priceToman: null,
-    availability: 'unavailable',
-    imageSrc: '/shop-preview/our-night-demo.webp',
-    imageAlt: 'نمونهٔ مفهومی شاسی بدون قاب با راه شیری و منظرهٔ کوهستان',
-    isDemo: true,
+    availability: 'coming-soon',
+    imageSrc: '/shop-preview/our-night.webp',
+    imageAlt: 'تابلوی شب ما با راه شیری بر فراز کوهستان روی شاسی مات تیره',
   },
 ];
 
@@ -62,5 +60,5 @@ export default function ShopPage() {
     );
   }
 
-  return <ShopV01Home products={previewCatalog} previewMode />;
+  return <ShopV01Home products={launchCatalog} />;
 }

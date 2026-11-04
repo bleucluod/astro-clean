@@ -3,7 +3,9 @@
 Last reconciled: 2026-11-04 (Asia/Tehran)
 Repository: `bleucluod/astro-clean` / `main`
 Observed baseline: `e179284dd0167b18d6c33990bbfbd2c4c9871910`
-State: **ACTIVE — awaiting the first `/shop` candidate and user visual approval**.
+State: **HISTORICAL V01–V07 review plan — superseded for execution by the shop master roadmap §۰.۹–۰.۱۰**.
+
+> **Scope decision — 2026-11-04:** The owner replaced the earlier P01-only launch with one coordinated launch of **P01 «ماه آن روز», P02 «آسمان تولد» and P03 «شبِ ما»**. The authoritative execution queue is S1–S6 in the separately maintained shop master roadmap, not the V01–V07 table below. All three products require their own approved details, legitimate astronomical claims, four product photos, prices, private fulfillment and passing purchase tests before any public checkout or VPS release. The current `/shop` design review must not show test/demo badges or explanatory preview copy. No production capability is authorized by this note.
 
 ## Intent and acceptance protocol
 

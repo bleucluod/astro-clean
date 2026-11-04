@@ -5,7 +5,7 @@
   font-family: var(--font-vazirmatn), sans-serif;
   color: var(--shop-ink);
   background: #050609;
-  margin-top: -72px;
+  margin-top: 32px;
   overflow: clip;
 }
 
@@ -193,16 +193,6 @@
   text-underline-offset: 4px;
 }
 
-.sampleBadge {
-  display: inline-flex;
-  padding: 3px 7px;
-  border-radius: 4px;
-  color: #e0e7ee;
-  background: rgba(5, 6, 9, .72);
-  font-size: 10px;
-  font-weight: 650;
-}
-
 .shopHome .productDetails p {
   margin-top: 3px;
   color: #53667b;
@@ -228,19 +218,6 @@
   color: #113c58;
   text-decoration: underline;
   text-underline-offset: 4px;
-}
-
-.previewDisclosure {
-  max-width: 810px;
-  margin: 40px auto 0 !important;
-  padding: 10px 18px;
-  border: 1px solid #292d33;
-  border-radius: 6px;
-  color: #bdcedd;
-  background: #050609;
-  font-size: 11px;
-  line-height: 2;
-  text-align: center;
 }
 
 .closing {
@@ -453,8 +430,6 @@
   .productDetails { padding: 64px 18px 18px; direction: rtl; text-align: right; }
   .productHeading { display: flex; align-items: center; }
   .shopHome .productHeading h3 { font-size: 19px; }
-  .sampleBadge { font-size: 10px; }
-  .previewDisclosure { margin-top: 30px !important; padding: 11px 12px; font-size: 10px; text-align: center; }
   .closingInner { display: block; padding: 30px 0; }
   .shopHome .closing h2 { font-size: 25px; }
   .shopHome .closing p { margin-top: 6px; font-size: 12px; }
