@@ -4,7 +4,7 @@
   --shop-ice: #b6ddf5;
   font-family: var(--font-vazirmatn), sans-serif;
   color: var(--shop-ink);
-  background: #101a25;
+  background: #050609;
   margin-top: -72px;
   overflow: clip;
 }
@@ -20,20 +20,20 @@
 }
 
 .heroSection {
-  background: #101a25;
+  background: #050609;
 }
 
 .hero {
   position: relative;
   height: 500px;
   overflow: hidden;
-  background: #101a25 url('/shop-preview/hero-desktop-v012.webp') center center / cover no-repeat;
+  background: #050609 url('/shop-preview/hero-desktop-v012.webp') center center / cover no-repeat;
 }
 
 .hero::before {
   position: absolute;
   inset: 0;
-  background: linear-gradient(270deg, rgba(9, 19, 30, .53) 0%, rgba(9, 19, 30, .19) 46%, transparent 72%);
+  background: linear-gradient(270deg, rgba(0, 0, 0, .38) 0%, rgba(0, 0, 0, .10) 46%, transparent 72%);
   content: '';
 }
 
@@ -75,43 +75,13 @@
   line-height: 1.95;
 }
 
-.heroButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 132px;
-  min-height: 36px;
-  margin-top: 20px;
-  padding: 7px 12px;
-  border-radius: 5px;
-  color: #102132;
-  background: #b6ddf5;
-  font-size: 11px;
-  font-weight: 750;
-  text-decoration: none;
-  transition: background-color 180ms ease, transform 180ms ease;
-}
-
-.heroButton:hover {
-  color: #102132;
-  background: #d9eafd;
-  transform: translateY(-2px);
-}
-
-.heroButton span {
-  font-family: Arial, sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-}
-
 .productVisual {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: 4px;
-  background: #31465a;
+  background: #17191c;
 }
 
 .productImage {
@@ -134,7 +104,7 @@
 
 .collection {
   padding: 54px max(24px, calc((100vw - 1200px) / 2)) 72px;
-  background: #142435;
+  background: #050609;
   scroll-margin-top: 88px;
 }
 
@@ -163,7 +133,10 @@
 }
 
 .productCard {
+  position: relative;
   min-width: 0;
+  overflow: hidden;
+  border-radius: 6px;
 }
 
 .visualLink {
@@ -186,7 +159,11 @@
 }
 
 .productDetails {
-  padding: 11px 1px 0;
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  padding: 60px 18px 16px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, .86), rgba(0, 0, 0, .46) 48%, transparent);
   text-align: right;
 }
 
@@ -220,8 +197,8 @@
   display: inline-flex;
   padding: 3px 7px;
   border-radius: 4px;
-  color: #c6ddec;
-  background: #293e52;
+  color: #e0e7ee;
+  background: rgba(5, 6, 9, .72);
   font-size: 10px;
   font-weight: 650;
 }
@@ -257,10 +234,10 @@
   max-width: 810px;
   margin: 40px auto 0 !important;
   padding: 10px 18px;
-  border: 1px solid #375066;
+  border: 1px solid #292d33;
   border-radius: 6px;
   color: #bdcedd;
-  background: #1b3043;
+  background: #050609;
   font-size: 11px;
   line-height: 2;
   text-align: center;
@@ -444,14 +421,14 @@
 }
 
 @media (max-width: 767px) {
-  .shopHome { margin-top: -68px; }
+  .shopHome { margin-top: 0; }
   .hero {
     height: 450px;
     background-image: url('/shop-preview/hero-mobile-v012.webp');
     background-position: center center;
   }
   .hero::before {
-    background: linear-gradient(0deg, rgba(9, 19, 30, .68) 0%, rgba(9, 19, 30, .22) 36%, transparent 70%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, .47) 0%, rgba(0, 0, 0, .10) 36%, transparent 70%);
   }
   .heroCopy {
     top: auto;
@@ -463,28 +440,20 @@
   .heroKicker { margin-bottom: 6px; font-size: 11px; }
   .shopHome .heroCopy h1 { font-size: 17px; line-height: 1.6; }
   .shopHome .heroLead { margin-top: 7px; font-size: 11px; line-height: 1.85; }
-  .heroButton { min-height: 36px; margin-top: 14px; padding: 7px 12px; font-size: 11px; }
   .collection { padding: 38px 18px 50px; scroll-margin-top: 72px; }
   .collectionHeader { margin-bottom: 24px; }
   .shopHome .collectionHeader h2 { font-size: 25px; }
   .productGrid { grid-template-columns: 1fr; gap: 22px; }
-  .productCard {
-    display: grid;
-    grid-template-columns: 126px minmax(0, 1fr);
-    align-items: center;
-    gap: 17px;
-    direction: ltr;
-  }
   .productCard > .productVisual, .visualLink > .productVisual {
-    width: 126px;
-    height: 96px;
-    aspect-ratio: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 6 / 5;
   }
-  .visualLink { width: 126px; height: 96px; }
-  .productDetails { padding: 0; direction: rtl; text-align: right; }
-  .productHeading { display: block; }
-  .shopHome .productHeading h3 { font-size: 16px; }
-  .sampleBadge { margin-top: 5px; font-size: 9px; }
+  .visualLink { width: 100%; height: auto; }
+  .productDetails { padding: 64px 18px 18px; direction: rtl; text-align: right; }
+  .productHeading { display: flex; align-items: center; }
+  .shopHome .productHeading h3 { font-size: 19px; }
+  .sampleBadge { font-size: 10px; }
   .previewDisclosure { margin-top: 30px !important; padding: 11px 12px; font-size: 10px; text-align: center; }
   .closingInner { display: block; padding: 30px 0; }
   .shopHome .closing h2 { font-size: 25px; }
@@ -497,13 +466,10 @@
 @media (max-width: 359px) {
   .heroCopy { right: 16px; }
   .collection { padding-inline: 16px; }
-  .productCard { grid-template-columns: 110px minmax(0, 1fr); gap: 13px; }
-  .productCard > .productVisual, .visualLink > .productVisual { width: 110px; height: 88px; }
-  .visualLink { width: 110px; height: 88px; }
+  .productDetails { padding-inline: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .heroButton, .visualLink .productImage { transition: none; }
-  .heroButton:hover { transform: none; }
+  .visualLink .productImage { transition: none; }
   .visualLink:hover .productImage { transform: none; }
 }

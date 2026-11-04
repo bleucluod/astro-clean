@@ -23,7 +23,7 @@ function ProductImage({ item }: { item: ShopV01Item }) {
           src={item.imageSrc}
           alt={item.imageAlt ?? item.title}
           fill
-          sizes="(max-width: 767px) 126px, (max-width: 1024px) 46vw, 30vw"
+          sizes="(max-width: 767px) calc(100vw - 36px), (max-width: 1024px) 46vw, 30vw"
           className={styles.productImage}
         />
       ) : (
@@ -44,10 +44,6 @@ export function ShopV01Home({ products, previewMode = false }: { products: ShopV
             <span className={styles.heroKicker}>فروشگاه هالیوس</span>
             <h1 id="shop-title">آسمان آن روز،<br />برای همیشه.</h1>
             <p className={styles.heroLead}>آسمان یک لحظهٔ عزیز، برای هر روز خانهٔ تو.</p>
-            <a className={styles.heroButton} href="#products">
-              دیدن مجموعه
-              <span aria-hidden="true">←</span>
-            </a>
           </div>
         </div>
       </section>
