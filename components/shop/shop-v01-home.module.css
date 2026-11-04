@@ -326,22 +326,9 @@
 }
 
 .detailArt img {
-  width: 53%;
-  height: auto;
-  border-radius: 50%;
-  filter: grayscale(1);
-  box-shadow: 0 0 60px rgba(0, 0, 0, .4);
-}
-
-.detailArt span {
-  position: absolute;
-  right: 15px;
-  bottom: 14px;
-  padding: 5px 9px;
-  border-radius: 4px;
-  color: #e1e5ea;
-  background: rgba(0, 0, 0, .55);
-  font-size: 11px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .detailCopy h1 {

@@ -4,19 +4,19 @@ import Image from 'next/image';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
 export const metadata: Metadata = {
-  title: 'ماه آن روز | پیش‌نمایش محصول هالیوس',
-  description: 'تابلوی شخصی از فاز ماه در یک تاریخ دلخواه، روی شاسی مات بدون قاب. صفحهٔ محصول در حال آماده‌سازی است.',
+  title: 'ماه آن روز | تابلوی ماه شخصی هالیوس',
+  description: 'فاز واقعی ماه در تاریخ عزیز تو، روی تابلوی شاسی مات بدون قاب؛ با امکان افزودن نام یا پیام دلخواه.',
   robots: { index: false, follow: false },
 };
 
-// Only a navigation destination required to review V01. The interactive
-// product detail, price, gallery and checkout remain gated to V02/V03.
-export default function P01ReviewDestination() {
+// Product copy can be reviewed locally. Ordering remains closed until the
+// approved product photography, pricing and fulfillment gates are complete.
+export default function P01ProductPage() {
   if (process.env.NODE_ENV === 'production') {
     return (
       <div className={styles.closed}>
         <h1>ماه آن روز</h1>
-        <p>این اثر هنوز برای سفارش آماده نیست.</p>
+        <p>به‌زودی می‌توانی ماهِ لحظهٔ عزیزت را به بخشی از خانه‌ات تبدیل کنی.</p>
         <Link className={styles.backLink} href="/shop">بازگشت به فروشگاه</Link>
       </div>
     );
@@ -30,21 +30,20 @@ export default function P01ReviewDestination() {
         <span>ماه آن روز</span>
       </nav>
       <div className={styles.detailPreview}>
-        <div className={styles.detailArt} aria-label="نمای مفهومی محصول، نه عکس نهایی چاپ">
-          <Image src="/halleus-visuals/moon-apollo11.webp" alt="تصویر ماه برای نمایش فضای بصری اثر، نه عکس محصول چاپ‌شده" width={900} height={900} sizes="(max-width: 760px) 100vw, 460px" />
-          <span>نمای مفهومی · عکس نهایی در انتظار تأیید</span>
+        <div className={styles.detailArt}>
+          <Image src="/shop-preview/moon-that-day.webp" alt="تابلوی ماه آن روز بر دیوار روشن با گلدان و نور پنجره" width={900} height={900} sizes="(max-width: 760px) calc(100vw - 32px), 50vw" />
         </div>
         <div className={styles.detailCopy}>
-          <span className={styles.eyebrow}>HALLEUS / P01</span>
+          <span className={styles.eyebrow}>از مجموعه آثار هالیوس</span>
           <h1>ماه آن روز</h1>
           <p className={styles.detailLead}>بعضی لحظه‌ها ارزش دارند شکل دیگری از ماندن پیدا کنند.</p>
           <p>فاز ماه در تاریخی که انتخاب می‌کنی، روی شاسی مات بدون قاب؛ با نام یا پیام دلخواه، اگر بخواهی.</p>
           <ul>
-            <li>تاریخ انتخابی شمسی یا میلادی</li>
-            <li>اندازه‌های برنامه‌ریزی‌شده: ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر</li>
-            <li>قیمت و تصاویر چاپ واقعی هنوز تأیید نشده‌اند</li>
+            <li>انتخاب تاریخ به شمسی یا میلادی</li>
+            <li>امکان افزودن نام یا پیام دلخواه</li>
+            <li>شاسی مات بدون قاب در اندازه‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر</li>
           </ul>
-          <span className={styles.unavailable}>در حال آماده‌سازی · ثبت سفارش غیرفعال</span>
+          <span className={styles.unavailable}>به‌زودی</span>
           <Link className={styles.backLink} href="/shop#products">بازگشت به مجموعه آثار <span aria-hidden="true">←</span></Link>
         </div>
       </div>
