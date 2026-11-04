@@ -411,7 +411,38 @@
   .mobilePurchaseBar strong { display: flex; align-items: baseline; gap: 5px; color: #f8fafc; font-size: 20px; font-weight: 800; white-space: nowrap; }
   .mobilePurchaseBar strong bdi { font-variant-numeric: tabular-nums; }
   .mobilePurchaseBar strong span { font-size: 10px; font-weight: 550; }
-  .mobilePurchaseBar a { display: grid; place-items: center; flex: 0 0 156px; min-height: 46px; padding: 7px 10px; border: 1px solid #d9eafd; border-radius: 10px; background: #d9eafd; color: #243447; font-size: 13px; font-weight: 800; text-align: center; text-decoration: none; animation: confirmBreathing 4.4s ease-in-out infinite; }
+  .mobilePurchaseBar a {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 156px;
+    min-height: 46px;
+    padding: 7px 10px;
+    overflow: hidden;
+    border: 1px solid #709cbb;
+    border-radius: 12px;
+    background: linear-gradient(120deg, #10151d 0%, #1b2b3b 52%, #101820 100%);
+    color: #e9f5ff;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: inset 0 1px 0 #b0d9f024, 0 8px 22px #030a1199;
+    animation: confirmBreathing 5s ease-in-out infinite;
+    transition: filter 200ms ease, transform 200ms ease;
+  }
+  .mobilePurchaseBar a::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 39%, #b9dcf27d 50%, transparent 61%);
+    content: '';
+    pointer-events: none;
+    transform: translateX(140%);
+    animation: confirmGlint 3.4s ease-in-out infinite;
+  }
+  .mobilePurchaseBar a span { position: relative; z-index: 1; }
+  .mobilePurchaseBar a:hover { filter: brightness(1.12); transform: translateY(-2px); }
+  .mobilePurchaseBar a:active { transform: scale(.985); animation: none; }
   .mobilePurchaseBarHidden { transform: translateY(110%); opacity: 0; pointer-events: none; }
   .zoomDialog { width: calc(100% - 16px); }
   .zoomInner { padding: 8px; }
@@ -435,6 +466,7 @@
   .confirmAction { animation: none; }
   .confirmAction::before { display: none; animation: none; }
   .confirmArrow, .confirmAction:hover .confirmArrow { transition: none; transform: translateY(-50%); }
-  .mobilePurchaseBar a { animation: none; }
+  .mobilePurchaseBar a { animation: none; transition: none; }
+  .mobilePurchaseBar a::before { display: none; animation: none; }
   .page .calendarOption, .page .formField :is(input, textarea, select), .optionalFields summary span { transition: none; }
 }

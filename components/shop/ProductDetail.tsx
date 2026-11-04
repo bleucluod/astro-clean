@@ -84,7 +84,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       date: 'تاریخ آن لحظه',
       names: 'نامی برای ماندن',
       details: 'حرف دیگری هم برای این خاطره داری؟',
-      submit: 'تأیید این لحظه',
+      submit: 'تأیید مشخصات تابلو',
     },
     p02: {
       title: 'آسمان کدام لحظه را نگه داریم؟',
@@ -92,7 +92,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       date: 'تاریخ تولد',
       names: 'نامی کنار ستاره‌ها',
       details: 'پیامی هم کنار این آسمان می‌گذاری؟',
-      submit: 'تأیید این آسمان',
+      submit: 'تأیید مشخصات تابلو',
     },
     p03: {
       title: 'این شب، یادگار کدام قصه است؟',
@@ -100,7 +100,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       date: 'تاریخ خاطره (اختیاری)',
       names: 'نام‌های این قصه',
       details: 'حرف دیگری هم برای این قصه داری؟',
-      submit: 'تأیید این قصه',
+      submit: 'تأیید مشخصات تابلو',
     },
   }[id];
   const hideMobileBar = isFooterVisible || isFormVisible;
@@ -435,7 +435,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
       <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
         <div><small>قیمت</small><strong><bdi>{formatPrice(price)}</bdi> <span>تومان</span></strong></div>
-        <a href="#personalize">{confirmed ? 'ویرایش انتخاب‌ها' : 'شخصی‌سازی اثر'}</a>
+        <a href="#personalize"><span>{confirmed ? 'ویرایش انتخاب‌ها' : 'انتخاب مشخصات تابلو'}</span></a>
       </div>
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>
