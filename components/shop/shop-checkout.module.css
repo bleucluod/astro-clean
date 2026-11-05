@@ -129,7 +129,7 @@
 .shippingChoice { display: flex; align-items: center; gap: 10px; min-height: 87px; padding: 12px 14px; border: 1px solid #394f61; border-radius: 12px; background: #0b121b; cursor: pointer; }
 .shippingSelected { border-color: #86b5d1; background: #172634; }
 .shippingChoice input { flex: 0 0 17px; width: 17px; height: 17px; accent-color: #a8d6f0; }
-.shippingLogo { display: grid; flex: 0 0 52px; place-items: center; width: 52px; height: 52px; border: 1px solid #ffffff1a; border-radius: 10px; background: #e8f2fa; overflow: hidden; }
+.shippingLogo { display: grid; flex: 0 0 52px; place-items: center; width: 52px; height: 52px; }
 .shippingLogo img { width: 44px; height: 44px; object-fit: contain; }
 .shippingChoice:has(input[value='tipax']) .shippingLogo img { width: 48px; height: auto; }
 .carrierText { display: grid; flex: 1 1 auto; min-width: 0; gap: 3px; }
@@ -158,8 +158,6 @@
 .paymentDue strong { white-space: nowrap; color: #f4faff; font-size: 17px; }
 .orDivider { display: flex; align-items: center; gap: 15px; color: #97afc2; font-size: 12px; }
 .orDivider::before, .orDivider::after { flex: 1; height: 1px; background: #354c5f; content: ''; }
-.receiptPicker { position: relative; display: grid; place-items: center; min-height: 52px; padding: 10px 15px; overflow: hidden; border: 1px dashed #709cbb; border-radius: 12px; background: #10202f; color: #d0e6f5; font-size: 12px; cursor: pointer; overflow-wrap: anywhere; }
-.field .receiptPicker input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; opacity: 0; cursor: pointer; }
 @keyframes actionBreathing { 0%, 100% { box-shadow: inset 0 1px 0 #b0d9f024, 0 8px 22px #030a1199, 0 0 0 0 #b1d8f000; } 50% { box-shadow: inset 0 1px 0 #b0d9f024, 0 8px 22px #030a1199, 0 0 0 3px #b1d8f026; } }
 @keyframes actionGlint { 0%, 40% { transform: translateX(140%); } 78%, 100% { transform: translateX(-140%); } }
 @keyframes actionHalo { 0%, 100% { box-shadow: inset 0 0 0 1px #b1d8f000; } 50% { box-shadow: inset 0 0 0 1px #b1d8f065, inset 0 0 12px #709cbb28; } }

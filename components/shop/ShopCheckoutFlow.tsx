@@ -66,7 +66,7 @@ function PageShell({ step, title, subtitle, children }: { step: number; title: s
         </nav>
         <div className={styles.titleBlock}><span className={styles.eyebrow}>HALLEUS / STUDIO</span><h1>{title}</h1><p>{subtitle}</p></div>
         {children}
-        <p className={styles.deliveryPromise}>تحویل به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت؛ همراه با کد رهگیری.</p>
+        <p className={styles.deliveryPromise}>تحویل به پست یا تیپاکس نهایتا تا ۳ روز کاری پس از تأیید پرداخت؛ همراه با کد رهگیری.</p>
       </div>
     </div>
   );
@@ -205,10 +205,10 @@ export function ShopCheckoutScreen() {
             <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>۳. روش ارسال</h2></div>
               <div className={styles.shippingChoices}>
-                <label className={`${styles.shippingChoice} ${form.carrier === 'post' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="post" checked={form.carrier === 'post'} onChange={() => update('carrier', 'post')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/post.png" alt="نشان شرکت ملی پست" width={50} height={50} /></span><span className={styles.carrierText}><strong>پست</strong><small>ارسال با کد رهگیری</small></span><em><bdi>{money(100_000)}</bdi> تومان</em></label>
-                <label className={`${styles.shippingChoice} ${form.carrier === 'tipax' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="tipax" checked={form.carrier === 'tipax'} onChange={() => update('carrier', 'tipax')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/tipax.png" alt="نشان تیپاکس" width={62} height={35} /></span><span className={styles.carrierText}><strong>تیپاکس</strong><small>حمل به‌صورت پس‌کرایه</small></span><em><bdi>{money(50_000)}</bdi> تومان بسته‌بندی</em></label>
+                <label className={`${styles.shippingChoice} ${form.carrier === 'post' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="post" checked={form.carrier === 'post'} onChange={() => update('carrier', 'post')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/post.png" alt="نشان شرکت ملی پست" width={50} height={50} /></span><span className={styles.carrierText}><strong>پست</strong><small>پست پیشتاز</small></span><em><bdi>{money(100_000)}</bdi> تومان</em></label>
+                <label className={`${styles.shippingChoice} ${form.carrier === 'tipax' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="tipax" checked={form.carrier === 'tipax'} onChange={() => update('carrier', 'tipax')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/tipax.png" alt="نشان تیپاکس" width={62} height={35} /></span><span className={styles.carrierText}><strong>تیپاکس</strong><small>پس کرایه</small></span><em><bdi>{money(50_000)}</bdi> تومان بسته‌بندی</em></label>
               </div>
-              <p className={styles.fieldNote}>ارسال به شرکت حمل تا ۷۲ ساعت کاری پس از تأیید واریز؛ زمان رسیدن بسته به شهر مقصد بستگی دارد.</p>
+              <p className={styles.fieldNote}>نهایتا تا ۳ روز کاری</p>
             </section>
             {error ? <p role="alert" className={styles.error}>{error}</p> : null}
             {submitted ? (
@@ -234,7 +234,6 @@ export function ShopPaymentScreen() {
   const [checkout] = useState<ShippingForm | null>(() => readCheckoutSession(readShopCart()));
   const [trackingNumber, setTrackingNumber] = useState('');
   const [transferTime, setTransferTime] = useState('');
-  const [receiptName, setReceiptName] = useState('');
   const [copyState, setCopyState] = useState<'card' | 'iban' | ''>('');
   const [error, setError] = useState('');
   async function copyNumber(value: string, key: 'card' | 'iban') {
@@ -278,10 +277,8 @@ export function ShopPaymentScreen() {
               <label className={styles.field}>شمارهٔ پیگیری تراکنش<input inputMode="numeric" maxLength={50} value={trackingNumber} onChange={(event) => { setTrackingNumber(event.target.value); setError(''); }} placeholder="شمارهٔ پیگیری واریز" /></label>
               <div className={styles.orDivider}>یا</div>
               <label className={styles.field}>زمان تراکنش<input type="time" value={transferTime} onChange={(event) => { setTransferTime(event.target.value); setError(''); }} /></label>
-              <label className={styles.field}>تصویر رسید <small>(اختیاری)</small><span className={styles.receiptPicker}><input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(event) => { setReceiptName(event.target.files?.[0]?.name ?? ''); setError(''); }} /><span>{receiptName || 'انتخاب تصویر یا فایل رسید'}</span></span></label>
               {error ? <p role="alert" className={styles.error}>{error}</p> : null}
               <button className={styles.primaryAction} type="submit"><span>اعلام واریز</span><span aria-hidden="true">←</span></button>
-              <p className={styles.fieldNote}>اعلام واریز به معنی تأیید پرداخت نیست؛ بعد از بررسی، وضعیت سفارش مشخص می‌شود.</p>
             </form>
           </div>
           <div className={styles.summaryColumn}><Summary items={items} carrier={checkout.carrier} /><Link className={styles.textLink} href="/shop/checkout">→ بازگشت به اطلاعات ارسال</Link></div>
