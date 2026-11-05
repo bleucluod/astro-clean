@@ -239,25 +239,8 @@ function notifyLocalDataChanged() {
 }
 
 function buildReportSaveFallbackMessage(message: string) {
-  const normalizedMessage = message.trim();
-  const lowerMessage = normalizedMessage.toLowerCase();
-  const looksLikeNetworkTimeout =
-    lowerMessage.includes("connect_timeout") ||
-    lowerMessage.includes("timeout") ||
-    lowerMessage.includes("pooler") ||
-    lowerMessage.includes("supabase") ||
-    lowerMessage.includes("failed to fetch") ||
-    lowerMessage.includes("network");
-
-  if (looksLikeNetworkTimeout) {
-    return "گزارش ساخته شد، اما ذخیره در حساب یا ساخت لینک موقتاً پاسخ نداد. نسخهٔ همین دستگاه باز می‌شود.";
-  }
-
-  if (!normalizedMessage) {
-    return "گزارش ساخته شد، اما ذخیره در حساب یا ساخت لینک کامل نشد. نسخهٔ همین دستگاه باز می‌شود.";
-  }
-
-    return "گزارش ساخته شد، اما ذخیره در حساب یا ساخت لینک کامل نشد. نسخهٔ همین دستگاه باز می‌شود.";
+  void message;
+  return "ذخیرهٔ گزارش روی هالیوس تأیید نشد؛ گزارشی باز نمی‌شود. اتصال را بررسی کن و دوباره تلاش کن.";
 }
 
 type ChartSelectOption = {
@@ -796,17 +779,18 @@ export function ChartForm({
         }),
       });
 
-      const payload = (await response.json()) as RealChartApiResponse;
+      const payload = (await response.json().catch(() => null)) as RealChartApiResponse | null;
 
-      if (!response.ok && !payload.report) {
+      if (!response.ok || !payload?.ok) {
         throw new Error(
-          payload.error ?? "محاسبه چارت برای این ورودی کامل نشد.",
+          payload?.error ?? "محاسبه چارت برای این ورودی کامل نشد.",
         );
       }
 
-      if (!payload.report && !payload.realChart) {
+      if (!payload.report || !payload.realChart || payload.fallback?.used
+          || payload.reportGeneration?.status === "fallback-preview") {
         throw new Error(
-          payload.error ?? "سرویس گزارش در این لحظه خروجی قابل ذخیره نداد.",
+          "محاسبهٔ معتبر چارت کامل نشد؛ لطفاً دوباره تلاش کن.",
         );
       }
 
@@ -869,24 +853,8 @@ export function ChartForm({
     }
 
     const { normalizedForm, engineCity } = normalizedBirth;
-    const saveClientPromise = comparisonMode
-      ? null
-      : import("@/lib/storage/account-report-save-client");
-    let realEngineResult: RealChartApiResponse | null = null;
-
     try {
-      try {
-        realEngineResult = await requestRealEngineReportData(
-          normalizedForm,
-          engineCity,
-        );
-      } catch {
-        setRealEngineRequest({
-          status: "loading",
-          message:
-            "محاسبه دقیق کامل نشد؛ نسخه امن گزارش در حال آماده‌سازی است…",
-        });
-      }
+      const realEngineResult = await requestRealEngineReportData(normalizedForm, engineCity);
 
       if (
         normalizedForm.currentResidenceCityId &&
@@ -898,38 +866,10 @@ export function ChartForm({
         });
       }
 
-      const nextReport = await buildReportForSave(
-        normalizedForm,
-        realEngineResult,
-        engineCity,
-      );
-
-      if (comparisonMode) {
-        if (!nextReport.realEngine) {
-          throw new Error(
-            "برای تحلیل رابطه، چارت محاسبه‌شده لازم است. محاسبه دقیق را دوباره امتحان کن.",
-          );
-        }
-        const { saveGeneratedReport } = await import(
-          "@/lib/storage/report-write-service"
-        );
-        const localRecord = await saveGeneratedReport(nextReport);
-        notifyLocalDataChanged();
-        submissionInFlightRef.current = false;
-        setIsSubmitting(false);
-        setSaveMessage(
-          "چارت فقط روی همین دستگاه ذخیره شد و به مقایسه برگشت.",
-        );
-        setRealEngineRequest({
-          status: "ready",
-          message: "چارت آماده شد.",
-        });
-        onComparisonChartSaved?.(localRecord.report);
-        return;
-      }
+      const nextReport = attachReportGenerationContext(realEngineResult.report!, realEngineResult);
 
       const { saveGeneratedReportWithAccountFallback } =
-        await saveClientPromise!;
+        await import("@/lib/storage/account-report-save-client");
       const saveResult = await saveGeneratedReportWithAccountFallback(
         nextReport,
         { navigationGraceMs: 0 },
@@ -941,6 +881,16 @@ export function ChartForm({
               "ذخیره گزارش روی هالیوس کامل نشد. دوباره تلاش کن.",
           ),
         );
+      }
+
+      if (comparisonMode) {
+        notifyLocalDataChanged();
+        submissionInFlightRef.current = false;
+        setIsSubmitting(false);
+        setSaveMessage("چارت روی هالیوس ذخیره شد و به مقایسه برگشت.");
+        setRealEngineRequest({ status: "ready", message: "چارت آماده شد." });
+        onComparisonChartSaved?.(saveResult.accountRecord.report);
+        return;
       }
 
       const nextPath = `/reports/${saveResult.accountRecord.id}?source=account`;
@@ -1520,18 +1470,6 @@ function FieldError({ message }: { message?: string }) {
   ) : null;
 }
 
-async function buildReportForSave(
-  normalizedForm: BirthInput,
-  payload: RealChartApiResponse | null,
-  engineCity: HalleusCityOption,
-): Promise<AstrologyReport> {
-  if (payload?.report) {
-    return attachReportGenerationContext(payload.report, payload);
-  }
-
-  return buildLocalFallbackReport(normalizedForm, payload, engineCity);
-}
-
 function attachReportGenerationContext(
   report: AstrologyReport,
   payload: RealChartApiResponse,
@@ -1569,51 +1507,4 @@ function attachReportGenerationContext(
       warnings: engineData.warnings,
     },
   } as ReportWithGenerationContext;
-}
-
-async function buildLocalFallbackReport(
-  normalizedForm: BirthInput,
-  payload: RealChartApiResponse | null,
-  engineCity: HalleusCityOption,
-): Promise<AstrologyReport> {
-  const [{ createMockReport }, { enhanceReportOutputV2 }] = await Promise.all([
-    import("@/lib/astrology/mock-engine"),
-    import("@/lib/report-output/report-v2"),
-  ]);
-  const baseReport = enhanceReportOutputV2(createMockReport(normalizedForm));
-
-  return attachRealEngineSnapshotToReport(baseReport, payload, engineCity);
-}
-
-async function attachRealEngineSnapshotToReport(
-  report: AstrologyReport,
-  payload: RealChartApiResponse | null,
-  engineCity: HalleusCityOption,
-): Promise<AstrologyReport> {
-  if (!payload?.ok || !payload.realChart) {
-    return report;
-  }
-
-  const realEngine: RealEngineReportSnapshot = {
-    version: "real-engine-preview-v1",
-    generatedAt: new Date().toISOString(),
-    cityLabel: getHalleusCityDisplayName(engineCity),
-    utcIso: payload.realChart.utcIso,
-    ascendantLongitude: payload.realChart.ascendantLongitude,
-    placements: payload.realChart.placements,
-    note:
-      "این داده محاسبه‌شده از همان تاریخ، ساعت و شهر تولد ساخته شده و برای خوانش فارسی گزارش ذخیره شده است.",
-  };
-
-  const { enrichReportWithRealEngineCopy } = await import(
-    "@/lib/astrology/real-engine-report-writer"
-  );
-
-  return enrichReportWithRealEngineCopy(
-    {
-      ...report,
-      realEngine,
-    },
-    realEngine,
-  );
 }

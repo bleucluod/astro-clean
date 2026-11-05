@@ -12,13 +12,9 @@ for (const marker of [
   'dynamic(',
   'import("@/components/SupabaseAuthPanel")',
   'import("@/lib/storage/account-report-save-client")',
-  'import("@/lib/astrology/mock-engine")',
-  'import("@/lib/report-output/report-v2")',
-  '"@/lib/astrology/real-engine-report-writer"',
   "saveGeneratedReportWithAccountFallback",
-  "createMockReport",
-  "enhanceReportOutputV2",
-  "enrichReportWithRealEngineCopy",
+  'onComparisonChartSaved?.(saveResult.accountRecord.report)',
+  'const realEngineResult = await requestRealEngineReportData(normalizedForm, engineCity)',
 ]) {
   if (!chart.includes(marker)) failures.push("ChartForm missing deferred-runtime marker: " + marker);
 }
@@ -28,6 +24,10 @@ for (const forbidden of [
   'import { enrichReportWithRealEngineCopy } from',
   'import { saveGeneratedReportWithAccountFallback } from',
   'import { enhanceReportOutputV2 } from',
+  'import("@/lib/astrology/mock-engine")',
+  'import("@/lib/storage/report-write-service")',
+  'function buildLocalFallbackReport(',
+  'function attachRealEngineSnapshotToReport(',
 ]) {
   if (chart.includes(forbidden)) failures.push("ChartForm still has initial static import: " + forbidden);
 }
