@@ -25,6 +25,8 @@ export const ADMIN_CAPABILITIES = [
   "reports.export",
   "premium_requests.read",
   "premium_requests.write",
+  "shop_orders.read",
+  "shop_orders.write",
   "audit.read",
   "memberships.manage",
   "telegram.read",

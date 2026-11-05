@@ -49,10 +49,16 @@ const AdminReportsWorkspace = dynamic(
   },
 );
 
+const ShopOrdersWorkspace = dynamic(
+  () => import('./ShopOrdersWorkspace').then((module) => module.ShopOrdersWorkspace),
+  { ssr: false, loading: () => <div className={styles.panelSkeleton}>سفارش‌ها در حال آماده‌شدن است…</div> },
+);
+
 type TabId =
   | "overview"
   | "users"
   | "reports"
+  | "orders"
   | "premium"
   | "telegram"
   | "wiki"
@@ -104,6 +110,13 @@ const tabs: {
     label: "گزارش‌ها",
     shortLabel: "گزارش‌ها",
     capability: "reports.read",
+    group: "main",
+  },
+  {
+    id: "orders",
+    label: "سفارش‌های فروشگاه",
+    shortLabel: "سفارش‌ها",
+    capability: "shop_orders.read",
     group: "main",
   },
   {
@@ -295,7 +308,8 @@ export function AdminConsole({
   }, []);
 
   const availableTabs = useMemo(
-    () => tabs.filter((tab) => hasCapability(session, tab.capability)),
+    () => tabs.filter((tab) => hasCapability(session, tab.capability)
+      && (tab.id !== 'orders' || process.env.NODE_ENV !== 'production')),
     [session],
   );
 
@@ -411,7 +425,7 @@ export function AdminConsole({
   }, [showNotice]);
 
   const loadTab = useCallback(async () => {
-    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "seo" || activeTab === "reports") {
+    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "seo" || activeTab === "reports" || activeTab === "orders") {
       return;
     }
     setLoading(true);
@@ -970,6 +984,10 @@ export function AdminConsole({
               canManageAccess={hasCapability(session, "memberships.manage")}
             embedded
           />
+        ) : null}
+
+        {activeTab === "orders" && session?.role === "owner" ? (
+          <ShopOrdersWorkspace accessToken={token} />
         ) : null}
 
         {activeTab === "premium" ? (

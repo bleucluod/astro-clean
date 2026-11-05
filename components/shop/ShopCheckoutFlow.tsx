@@ -3,10 +3,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { getShopProduct } from './product-detail-data';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
+import {
+  cancelShopOrder, createShopOrderRequest, fetchShopOrder, readShopOrderReceipt,
+  rememberShopOrderReceipt, submitShopTransfer,
+  type ShopOrderReceipt,
+} from './shop-order-client';
+import type { ShopOrderPublicState } from '@/lib/shop/shop-order-store';
 import {
   blankShipping, clearCheckoutSession, englishDigits, normalizeMobileTail,
   readCheckoutSession, saveCheckoutSession, SHOP_SHIPPING_AND_PACKAGING, validateShipping,
@@ -17,6 +23,13 @@ import {
   type ShopCartItem,
 } from './shop-cart';
 import styles from './shop-checkout.module.css';
+
+const customerStatus: Record<ShopOrderPublicState['status'], string> = {
+  awaiting_transfer: 'در انتظار واریز', transfer_declared: 'در انتظار بررسی واریز',
+  payment_verified: 'پرداخت تأیید شد', payment_rejected: 'نیاز به بررسی مجدد پرداخت',
+  preparing: 'در حال آماده‌سازی', shipped: 'تحویل شرکت حمل شد', delivered: 'تحویل داده شد',
+  cancel_requested: 'درخواست لغو در حال بررسی', canceled: 'لغوشده',
+};
 
 const steps = [
   { href: '/shop/cart', label: 'سبد خرید' },
@@ -169,6 +182,7 @@ export function ShopCheckoutScreen() {
   const [quotedCart, setQuotedCart] = useState('');
   const [pendingCart, setPendingCart] = useState('');
   const [checkingQuote, setCheckingQuote] = useState(false);
+  const [creatingOrder, setCreatingOrder] = useState(false);
   const quoteRequest = useRef(0);
   const cartKey = JSON.stringify(items);
   const activeQuote = quotedCart === cartKey ? quote : null;
@@ -202,10 +216,19 @@ export function ShopCheckoutScreen() {
       if (requestId === quoteRequest.current) setCheckingQuote(false);
     }
   }
-  function continueToPayment() {
-    if (!activeQuote || activeQuote.carrier !== form.carrier) return;
-    if (!saveCheckoutSession(form, items)) { setError('اطلاعات ارسال ذخیره نشد؛ یک‌بار دیگر تلاش کن.'); return; }
-    router.push('/shop/payment');
+  async function continueToPayment() {
+    if (!activeQuote || activeQuote.carrier !== form.carrier || creatingOrder) return;
+    if (validateShipping(form)) { setError('اطلاعات تحویل را دوباره بررسی کن.'); return; }
+    setCreatingOrder(true);
+    setError('');
+    try {
+      await createShopOrderRequest(items, form, activeQuote.total);
+      if (!saveCheckoutSession(form, items)) throw new Error('اطلاعات ارسال ذخیره نشد؛ دوباره تلاش کن.');
+      router.push('/shop/payment');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'ثبت سفارش انجام نشد. دوباره تلاش کن.');
+      setCreatingOrder(false);
+    }
   }
   return (
     <PageShell step={1} title="آدرسِ رسیدن به تو">
@@ -218,7 +241,7 @@ export function ShopCheckoutScreen() {
                 <label className={styles.field}>نام و نام خانوادگی گیرنده<input autoComplete="name" required maxLength={100} value={form.name} onChange={(event) => update('name', event.target.value)} placeholder="نام گیرنده" /></label>
                 <label className={styles.field}>شمارهٔ موبایل<span className={styles.phoneControl} dir="ltr"><span className={styles.phonePrefix}>+98</span><input autoComplete="tel-national" inputMode="numeric" dir="ltr" required maxLength={10} value={form.mobile} onChange={(event) => update('mobile', normalizeMobileTail(event.target.value))} placeholder="۹۱۲۳۴۵۶۷۸۹" aria-label="شماره موبایل پس از کد +۹۸" /></span></label>
               </div>
-              <p className={styles.fieldNote}>پیگیری سفارش و کد رهگیری به این شماره اطلاع داده می‌شود.</p>
+              <p className={styles.fieldNote}>این شماره برای هماهنگی تحویل سفارشت ثبت می‌شود.</p>
             </section>
             <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>۲. نشانی تحویل</h2></div>
@@ -245,7 +268,7 @@ export function ShopCheckoutScreen() {
                 <p>{form.province}، {form.city}، {form.address} · کد پستی <bdi>{englishDigits(form.postalCode)}</bdi></p>
                 <div className={styles.reviewPrice}><span>مبلغ قابل واریز با هزینه ارسال و بسته‌بندی</span><strong><bdi>{money(activeQuote.total)}</bdi> تومان</strong></div>
                 {form.carrier === 'tipax' ? <p>هزینهٔ حمل تیپاکس را هنگام تحویل بسته پرداخت می‌کنی.</p> : null}
-                <button type="button" onClick={continueToPayment} className={styles.primaryAction}><span>تأیید و ادامه به پرداخت</span><span aria-hidden="true">←</span></button>
+                <button type="button" onClick={() => void continueToPayment()} disabled={creatingOrder} className={styles.primaryAction}><span>{creatingOrder ? 'در حال ثبت سفارش…' : 'تأیید و ادامه به پرداخت'}</span><span aria-hidden="true">←</span></button>
               </section>
             ) : <button type="submit" disabled={activeChecking} className={styles.primaryAction}><span>{activeChecking ? 'در حال بررسی…' : 'بررسی سفارش'}</span><span aria-hidden="true">←</span></button>}
           </form>
@@ -257,56 +280,70 @@ export function ShopCheckoutScreen() {
 }
 
 export function ShopPaymentScreen() {
-  const { items, ready } = useShopCart();
-  const checkout = useMemo(() => ready ? readCheckoutSession(items) : null, [ready, items]);
-  const [quoteResult, setQuoteResult] = useState<{ key: string; quote?: ShopQuote; error?: string } | null>(null);
-  const [quoteRetry, setQuoteRetry] = useState(0);
-  const quoteKey = JSON.stringify({ items, carrier: checkout?.carrier, quoteRetry });
-  const quote = quoteResult?.key === quoteKey ? quoteResult.quote : null;
-  const quoteError = quoteResult?.key === quoteKey ? quoteResult.error : '';
-  const quoteLoading = !quote && !quoteError;
+  const { save } = useShopCart();
+  const [receipt, setReceipt] = useState<ShopOrderReceipt | null>(null);
+  const [order, setOrder] = useState<ShopOrderPublicState | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [requestError, setRequestError] = useState('');
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    if (!ready || !checkout || items.length === 0) return;
-    let cancelled = false;
-    fetchShopQuote(items, checkout.carrier).then((verified) => {
-      if (!cancelled) setQuoteResult({ key: quoteKey, quote: verified });
+    const saved = readShopOrderReceipt();
+    let active = true;
+    if (!saved) {
+      void Promise.resolve().then(() => { if (active) setLoading(false); });
+      return () => { active = false; };
+    }
+    fetchShopOrder(saved).then((result) => {
+      if (!active) return;
+      setReceipt(saved); setOrder(result); setRequestError(''); setLoading(false);
     }).catch((cause: unknown) => {
-      if (!cancelled) setQuoteResult({ key: quoteKey, error: cause instanceof Error ? cause.message : 'محاسبهٔ مبلغ انجام نشد. دوباره تلاش کن.' });
+      if (!active) return;
+      setRequestError(cause instanceof Error ? cause.message : 'سفارش دریافت نشد.');
+      setLoading(false);
     });
-    return () => { cancelled = true; };
-  }, [ready, items, checkout, quoteRetry, quoteKey]);
+    return () => { active = false; };
+  }, [retry]);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [transferTime, setTransferTime] = useState('');
-  const [copyState, setCopyState] = useState<'card' | 'iban' | ''>('');
+  const [copyState, setCopyState] = useState<'card' | 'iban' | 'code' | ''>('');
   const [error, setError] = useState('');
-  async function copyNumber(value: string, key: 'card' | 'iban') {
+  const [submitting, setSubmitting] = useState(false);
+  async function copyNumber(value: string, key: 'card' | 'iban' | 'code') {
     try { await navigator.clipboard.writeText(value); setCopyState(key); }
     catch { setCopyState(''); setError('کپی انجام نشد. شماره را انتخاب و کپی کن.'); }
   }
-  function declareTransfer(event: FormEvent<HTMLFormElement>) {
+  async function declareTransfer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!receipt || !order || submitting) return;
     if (!englishDigits(trackingNumber).trim() && !transferTime) {
       setError('شمارهٔ پیگیری یا زمان تراکنش را وارد کن.');
       return;
     }
-    setError('تا قطعی‌شدن سفارش، لطفاً مبلغی واریز نکن. اعلام واریز در حال حاضر دریافت نمی‌شود.');
+    setSubmitting(true); setError('');
+    try {
+      await submitShopTransfer(receipt, englishDigits(trackingNumber).trim(), transferTime);
+      setOrder({ ...order, status: 'transfer_declared' });
+      save([]); clearCheckoutSession();
+      try { setOrder(await fetchShopOrder(receipt)); }
+      catch { /* The server accepted the transfer; keep the locally confirmed state. */ }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'اعلام واریز انجام نشد. دوباره تلاش کن.');
+    } finally { setSubmitting(false); }
   }
   return (
     <PageShell step={2} title="پرداخت و اعلام واریز">
-      {!ready ? <p className={styles.loading}>در حال خواندن سبد…</p> : items.length === 0 ? <EmptyCart /> : !checkout ? (
+      {loading ? <p className={styles.loading}>در حال دریافت سفارش…</p> : requestError ? (
+        <div className={styles.empty}><h2>سفارش دریافت نشد</h2><p role="alert">{requestError}</p><button className={styles.primaryAction} type="button" onClick={() => { setLoading(true); setRetry((value) => value + 1); }}>تلاش دوباره</button></div>
+      ) : !receipt || !order ? (
         <div className={styles.empty}>
-          <h2>اول اطلاعات ارسال رو کامل کن</h2>
-          <p>برای اینکه مبلغ درست رو ببینی، باید روش ارسال و نشانی رو تأیید کنی.</p>
+          <h2>اول سفارش رو ثبت کن</h2>
+          <p>پس از تأیید نشانی، شمارهٔ سفارش و مبلغ نهایی ثبت می‌شود.</p>
           <Link href="/shop/checkout" className={styles.primaryAction}><span>تکمیل اطلاعات ارسال</span><span aria-hidden="true">←</span></Link>
         </div>
       ) : (
-        !quote ? <div className={styles.empty}>
-          <h2>{quoteLoading ? 'در حال بررسی مبلغ سفارش…' : 'مبلغ سفارش بررسی نشد'}</h2>
-          {quoteError ? <p role="alert">{quoteError}</p> : null}
-          {!quoteLoading ? <button type="button" className={styles.primaryAction} onClick={() => setQuoteRetry((value) => value + 1)}><span>تلاش دوباره</span><span aria-hidden="true">←</span></button> : null}
-        </div> : (
         <div className={styles.twoColumns}>
           <div className={styles.checkoutForm}>
+            {order.status === 'awaiting_transfer' || order.status === 'payment_rejected' ? <>
             <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>۱. اطلاعات کارت‌به‌کارت</h2><span>بانک سامان</span></div>
               <div className={styles.bankPanel}>
@@ -316,8 +353,8 @@ export function ShopPaymentScreen() {
                 <span>شمارهٔ شبا</span>
                 <div className={styles.bankNumber}><strong dir="ltr">IR840560611828015359847901</strong><button type="button" onClick={() => copyNumber('IR840560611828015359847901', 'iban')} aria-label="کپی شماره شبا">{copyState === 'iban' ? 'کپی شد ✓' : 'کپی شماره شبا'}</button></div>
               </div>
-              <p className={styles.paymentDue}>مبلغ سفارش با هزینه ارسال و بسته‌بندی: <strong><bdi>{money(quote.total)}</bdi> تومان</strong></p>
-              {checkout.carrier === 'tipax' ? <p className={styles.fieldNote}>هزینهٔ حمل تیپاکس هنگام تحویل بسته، جداگانه و به‌صورت پس‌کرایه پرداخت می‌شود.</p> : null}
+              <p className={styles.paymentDue}>مبلغ سفارش با هزینه ارسال و بسته‌بندی: <strong><bdi>{money(order.totalToman)}</bdi> تومان</strong></p>
+              {order.carrier === 'tipax' ? <p className={styles.fieldNote}>هزینهٔ حمل تیپاکس هنگام تحویل بسته، جداگانه و به‌صورت پس کرایه پرداخت می‌شود.</p> : null}
             </section>
             <form className={styles.formCard} onSubmit={declareTransfer}>
               <div className={styles.sectionHeading}><h2>۲. اعلام واریز</h2></div>
@@ -326,13 +363,95 @@ export function ShopPaymentScreen() {
               <div className={styles.orDivider}>یا</div>
               <label className={styles.field}>زمان تراکنش<input type="time" value={transferTime} onChange={(event) => { setTransferTime(event.target.value); setError(''); }} /></label>
               {error ? <p role="alert" className={styles.error}>{error}</p> : null}
-              <button className={styles.primaryAction} type="submit"><span>اعلام واریز</span><span aria-hidden="true">←</span></button>
+              <button className={styles.primaryAction} type="submit" disabled={submitting}><span>{submitting ? 'در حال ثبت…' : 'اعلام واریز'}</span><span aria-hidden="true">←</span></button>
             </form>
+            </> : <section className={styles.formCard}>
+              <div className={styles.sectionHeading}><h2>وضعیت سفارش</h2><span>شمارهٔ {money(Number(order.orderNumber))}</span></div>
+              <p>{order.status === 'transfer_declared' ? 'اعلام واریزت ثبت شد و منتظر بررسی پرداخت است.' : order.status === 'payment_verified' || order.status === 'preparing' ? 'پرداخت تأیید شده و سفارشت در حال آماده‌سازی است.' : order.status === 'shipped' ? 'سفارشت تحویل شرکت حمل شده است.' : order.status === 'delivered' ? 'سفارشت تحویل داده شده است.' : order.status === 'cancel_requested' ? 'درخواست لغو ثبت شده و در حال بررسی است.' : 'این سفارش لغو شده است.'}</p>
+              {order.trackingCode ? <p>کد رهگیری ارسال: <bdi>{order.trackingCode}</bdi></p> : null}
+            </section>}
           </div>
-          <div className={styles.summaryColumn}><Summary items={items} carrier={checkout.carrier} quote={quote} /><Link className={styles.textLink} href="/shop/checkout">→ بازگشت به اطلاعات ارسال</Link></div>
+          <aside className={styles.summaryColumn}>
+            <section className={styles.summary}>
+              <h2>سفارش شمارهٔ <bdi>{money(Number(order.orderNumber))}</bdi></h2>
+              <div className={styles.summaryRow}><span>تعداد محصولات</span><strong>{money(order.itemCount)}</strong></div>
+              <div className={styles.summaryRow}><span>روش ارسال</span><strong>{order.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'}</strong></div>
+              <div className={styles.summaryTotal}><span>مبلغ قابل واریز</span><strong><bdi>{money(order.totalToman)}</bdi> تومان</strong></div>
+              <p className={styles.fieldNote}>کد خصوصی پیگیری رو برای بررسی سفارش نگه دار.</p>
+              <div className={styles.privateCode}><bdi dir="ltr">{receipt.accessCode}</bdi></div>
+              <button type="button" className={styles.secondaryAction} onClick={() => void copyNumber(receipt.accessCode, 'code')}>{copyState === 'code' ? 'کپی شد ✓' : 'کپی کد پیگیری'}</button>
+              <Link className={styles.textLink} href="/shop/track">پیگیری سفارش ←</Link>
+            </section>
+          </aside>
         </div>
-        )
       )}
+    </PageShell>
+  );
+}
+
+export function ShopOrderTrackScreen() {
+  const [number, setNumber] = useState('');
+  const [code, setCode] = useState('');
+  const [order, setOrder] = useState<ShopOrderPublicState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    const receipt = readShopOrderReceipt();
+    let active = true;
+    if (receipt) void Promise.resolve().then(() => {
+      if (active) { setNumber(receipt.orderNumber); setCode(receipt.accessCode); }
+    });
+    return () => { active = false; };
+  }, []);
+  async function loadOrder(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
+    setBusy(true); setError(''); setOrder(null);
+    try {
+      const receipt = { orderNumber: englishDigits(number).trim(), accessCode: code.trim() };
+      const result = await fetchShopOrder(receipt);
+      rememberShopOrderReceipt(receipt);
+      setOrder(result);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'سفارش پیدا نشد.');
+    } finally { setBusy(false); }
+  }
+  async function requestCancel() {
+    if (!order || busy || !window.confirm('برای لغو این سفارش مطمئنی؟')) return;
+    setBusy(true); setError('');
+    try {
+      const receipt = { orderNumber: englishDigits(number).trim(), accessCode: code.trim() };
+      await cancelShopOrder(receipt);
+      setOrder(await fetchShopOrder(receipt));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'درخواست لغو انجام نشد.');
+    } finally { setBusy(false); }
+  }
+  return (
+    <PageShell step={2} title="پیگیری سفارش">
+      <div className={styles.trackLayout}>
+        <form className={styles.formCard} onSubmit={(event) => void loadOrder(event)}>
+          <div className={styles.sectionHeading}><h2>شمارهٔ سفارش و کد خصوصی</h2></div>
+          <label className={styles.field}>شمارهٔ سفارش<input required inputMode="numeric" autoComplete="off" value={number} onChange={(event) => setNumber(englishDigits(event.target.value))} placeholder="شمارهٔ سفارش" /></label>
+          <label className={styles.field}>کد خصوصی پیگیری<input required autoComplete="off" dir="ltr" spellCheck={false} value={code} maxLength={64} onChange={(event) => setCode(event.target.value.toLowerCase())} placeholder="کدی که هنگام ثبت سفارش دریافت کردی" /></label>
+          <p className={styles.fieldNote}>این کد مخصوص سفارش توست؛ به دیگران نده.</p>
+          <button type="submit" className={styles.primaryAction} disabled={busy}>{busy ? 'در حال بررسی…' : 'نمایش سفارش'}</button>
+        </form>
+        {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+        {order ? <section className={styles.formCard} aria-live="polite">
+          <div className={styles.sectionHeading}><h2>سفارش شمارهٔ {money(Number(order.orderNumber))}</h2><span>{customerStatus[order.status]}</span></div>
+          <p>تعداد محصولات: {money(order.itemCount)}</p>
+          <p>مبلغ سفارش: <bdi>{money(order.totalToman)}</bdi> تومان</p>
+          <p>روش ارسال: {order.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'}</p>
+          {order.trackingCode ? <p>کد رهگیری بسته: <bdi>{order.trackingCode}</bdi></p> : null}
+          <div className={styles.trackHistory}>
+            <h3>روند سفارش</h3>
+            {order.events.map((event, index) => <p key={`${event.at}-${index}`}><span>{customerStatus[event.status as ShopOrderPublicState['status']] ?? 'به‌روزرسانی سفارش'}</span><time dateTime={event.at}>{new Date(event.at).toLocaleDateString('fa-IR')}</time></p>)}
+          </div>
+          {(order.status === 'awaiting_transfer' || order.status === 'payment_rejected') ? <Link className={styles.textLink} href="/shop/payment">بازگشت به پرداخت</Link> : null}
+          {['awaiting_transfer', 'payment_rejected', 'transfer_declared'].includes(order.status) ?
+            <button type="button" className={styles.secondaryAction} disabled={busy} onClick={() => void requestCancel()}>{order.status === 'transfer_declared' ? 'درخواست لغو سفارش' : 'لغو سفارش'}</button> : null}
+        </section> : null}
+      </div>
     </PageShell>
   );
 }

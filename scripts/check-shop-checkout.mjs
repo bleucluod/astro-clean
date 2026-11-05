@@ -143,22 +143,24 @@ assert.equal(quoteFetchBody.items[0].quantity, 1);
 assert.equal(quoteFetchBody.items[0].details, undefined);
 assert.equal(quoteFetchBody.items[0].key, undefined);
 
-for (const route of ['cart', 'checkout', 'payment']) {
+for (const route of ['cart', 'checkout', 'payment', 'track']) {
   const source = readFileSync(resolve(root, `app/shop/${route}/page.tsx`), 'utf8');
   assert.match(source, /process\.env\.NODE_ENV === 'production'/);
   assert.match(source, /index: false/);
 }
 const paymentSource = readFileSync(resolve(root, 'components/shop/ShopCheckoutFlow.tsx'), 'utf8');
-assert.match(paymentSource, /<span>اعلام واریز<\/span>/);
+assert.match(paymentSource, /submitShopTransfer\(/);
+assert.match(paymentSource, /createShopOrderRequest\(/);
+assert.match(paymentSource, /fetchShopOrder\(/);
+assert.match(paymentSource, /cancelShopOrder\(/);
 assert.match(paymentSource, /هزینه ارسال و بسته‌بندی/);
 assert.match(paymentSource, /6219861495472721/);
 assert.match(paymentSource, /IR840560611828015359847901/);
 assert.doesNotMatch(paymentSource, /بدون ثبت‌نام|MVP|نرخ در انتظار تعیین|پیش‌نمایش صفحهٔ پرداخت|disabled><span>اعلام واریز/);
 assert.match(paymentSource, /fetchShopQuote\(items, form\.carrier\)/);
-assert.match(paymentSource, /fetchShopQuote\(items, checkout\.carrier\)/);
-assert.match(paymentSource, /money\(quote\.total\)/);
+assert.match(paymentSource, /money\(order\.totalToman\)/);
 for (const name of ['post', 'tipax']) {
   const png = readFileSync(resolve(root, `public/shop-shipping/${name}.png`));
   assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
 }
-console.log('Shop checkout: cart, server-canonical quote/rejections, payment repricing, no private details in quote request, shipping, transfer inputs, PNG assets and production locks passed.');
+console.log('Shop checkout: cart, server-canonical quote/rejections, private persisted order flow, shipping, transfer inputs, PNG assets and production locks passed.');

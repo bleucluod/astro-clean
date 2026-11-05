@@ -18,6 +18,8 @@ const ROLE_CAPABILITIES: Record<AdminRole, readonly AdminCapability[]> = {
     "reports.private_content.read",
     "premium_requests.read",
     "premium_requests.write",
+    "shop_orders.read",
+    "shop_orders.write",
     "audit.read",
     "memberships.manage",
     "telegram.read",
