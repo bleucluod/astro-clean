@@ -112,11 +112,13 @@ const shipping = {
 assert.equal(checkout.validateShipping(shipping), null);
 assert.match(checkout.validateShipping({ ...shipping, mobile: '09123456789' }), /شماره/);
 assert.match(checkout.validateShipping({ ...shipping, postalCode: '123' }), /پستی/);
-assert.equal(checkout.saveCheckoutSession(shipping, [first]), true);
-assert.equal(checkout.readCheckoutSession([first]).mobile, shipping.mobile);
-assert.equal(checkout.readCheckoutSession([{ ...first, quantity: 2 }]), null);
+data.set('halleus.shop.checkout.session.v1', JSON.stringify({
+  form: shipping, cartFingerprint: JSON.stringify([first]), savedAt: Date.now(),
+}));
 checkout.clearCheckoutSession();
-assert.equal(checkout.readCheckoutSession([first]), null);
+assert.equal(data.has('halleus.shop.checkout.session.v1'), false, 'erase old saved delivery address');
+assert.equal(checkout.readCheckoutSession, undefined, 'never restore recipient PII from browser storage');
+assert.equal(checkout.saveCheckoutSession, undefined, 'never persist recipient PII in browser storage');
 
 const minimalLine = { productId: 'p01', size: '20x30', quantity: 2 };
 const quotedPost = quote.quoteShopItems({ carrier: 'post', items: [minimalLine] });
@@ -241,6 +243,8 @@ assert.match(paymentSource, /6219861495472721/);
 assert.match(paymentSource, /IR840560611828015359847901/);
 assert.doesNotMatch(paymentSource, /بدون ثبت‌نام|MVP|نرخ در انتظار تعیین|پیش‌نمایش صفحهٔ پرداخت|disabled><span>اعلام واریز/);
 assert.match(paymentSource, /fetchShopQuote\(items, form\.carrier\)/);
+assert.match(paymentSource, /clearLegacyShopOrderIntent\(\)/);
+assert.doesNotMatch(paymentSource, /readCheckoutSession|saveCheckoutSession/);
 assert.match(paymentSource, /money\(order\.totalToman\)/);
 for (const name of ['post', 'tipax']) {
   const png = readFileSync(resolve(root, `public/shop-shipping/${name}.png`));

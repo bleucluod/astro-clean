@@ -8,7 +8,7 @@ import { getShopProduct } from './product-detail-data';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
-  cancelShopOrder, createShopOrderRequest, downloadShopOrderReceipt, fetchShopOrder, readShopOrderReceipt,
+  cancelShopOrder, clearLegacyShopOrderIntent, createShopOrderRequest, downloadShopOrderReceipt, fetchShopOrder, readShopOrderReceipt,
   rememberShopOrderReceipt, submitShopTransfer,
   type ShopOrderReceipt,
 } from './shop-order-client';
@@ -16,7 +16,7 @@ import type { ShopOrderPublicState } from '@/lib/shop/shop-order-store';
 import { formatShopInteger } from '@/lib/shop/shop-order-number';
 import {
   blankShipping, clearCheckoutSession, englishDigits, normalizeMobileTail,
-  readCheckoutSession, saveCheckoutSession, SHOP_SHIPPING_AND_PACKAGING, validateShipping,
+  SHOP_SHIPPING_AND_PACKAGING, validateShipping,
   type ShippingForm, type ShopCarrier,
 } from './shop-checkout-state';
 import {
@@ -176,7 +176,7 @@ export function ShopCartScreen() {
 export function ShopCheckoutScreen() {
   const router = useRouter();
   const { items, ready } = useShopCart();
-  const [form, setForm] = useState<ShippingForm>(() => readCheckoutSession(readShopCart()) ?? blankShipping);
+  const [form, setForm] = useState<ShippingForm>(blankShipping);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [quote, setQuote] = useState<ShopQuote | null>(null);
@@ -188,11 +188,12 @@ export function ShopCheckoutScreen() {
   const cartKey = JSON.stringify(items);
   const activeQuote = quotedCart === cartKey ? quote : null;
   const activeChecking = checkingQuote && pendingCart === cartKey;
+  useEffect(() => { clearCheckoutSession(); clearLegacyShopOrderIntent(); }, []);
   useEffect(() => { quoteRequest.current += 1; }, [items]);
   function update<K extends keyof ShippingForm>(field: K, value: ShippingForm[K]) {
     quoteRequest.current += 1;
     setForm((old) => ({ ...old, [field]: value })); setError(''); setSubmitted(false);
-    setQuote(null); setQuotedCart(''); setCheckingQuote(false); clearCheckoutSession();
+    setQuote(null); setQuotedCart(''); setCheckingQuote(false);
   }
   async function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -224,7 +225,6 @@ export function ShopCheckoutScreen() {
     setError('');
     try {
       await createShopOrderRequest(items, form, activeQuote.total);
-      if (!saveCheckoutSession(form, items)) throw new Error('اطلاعات ارسال ذخیره نشد؛ دوباره تلاش کن.');
       router.push('/shop/payment');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'ثبت سفارش انجام نشد. دوباره تلاش کن.');
@@ -288,6 +288,8 @@ export function ShopPaymentScreen() {
   const [requestError, setRequestError] = useState('');
   const [retry, setRetry] = useState(0);
   useEffect(() => {
+    clearCheckoutSession();
+    clearLegacyShopOrderIntent();
     const saved = readShopOrderReceipt();
     let active = true;
     if (!saved) {

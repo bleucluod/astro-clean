@@ -1,5 +1,3 @@
-import type { ShopCartItem } from './shop-cart';
-
 export type ShopCarrier = 'post' | 'tipax';
 export type ShippingForm = {
   name: string;
@@ -12,7 +10,7 @@ export type ShippingForm = {
   carrier: ShopCarrier;
 };
 
-export const SHOP_CHECKOUT_SESSION_KEY = 'halleus.shop.checkout.session.v1';
+const LEGACY_CHECKOUT_SESSION_KEY = 'halleus.shop.checkout.session.v1';
 export const SHOP_SHIPPING_AND_PACKAGING: Record<ShopCarrier, number> = {
   post: 100_000,
   tipax: 50_000,
@@ -40,32 +38,9 @@ export function validateShipping(form: ShippingForm): string | null {
   return null;
 }
 
-type CheckoutSession = { form: ShippingForm; cartFingerprint: string; savedAt: number };
-
-function cartFingerprint(items: ShopCartItem[]): string { return JSON.stringify(items); }
-
+// Earlier checkout drafts stored recipient PII in sessionStorage. Never restore
+// or write those drafts; remove any old copy when the flow is opened.
 export function clearCheckoutSession() {
   if (typeof window === 'undefined') return;
-  try { window.sessionStorage.removeItem(SHOP_CHECKOUT_SESSION_KEY); } catch { /* No browser storage available. */ }
-}
-
-export function saveCheckoutSession(form: ShippingForm, items: ShopCartItem[]): boolean {
-  if (typeof window === 'undefined' || validateShipping(form) || items.length === 0) return false;
-  try {
-    window.sessionStorage.setItem(SHOP_CHECKOUT_SESSION_KEY, JSON.stringify({ form, cartFingerprint: cartFingerprint(items), savedAt: Date.now() }));
-    return true;
-  } catch { return false; }
-}
-
-export function readCheckoutSession(items: ShopCartItem[]): ShippingForm | null {
-  if (typeof window === 'undefined' || items.length === 0) return null;
-  try {
-    const raw = window.sessionStorage.getItem(SHOP_CHECKOUT_SESSION_KEY);
-    if (!raw) return null;
-    const session: CheckoutSession = JSON.parse(raw);
-    if (!session || !session.form || session.cartFingerprint !== cartFingerprint(items)
-        || !Number.isFinite(session.savedAt) || Date.now() - session.savedAt > 2 * 60 * 60 * 1000
-        || !['post', 'tipax'].includes(session.form.carrier) || validateShipping(session.form)) return null;
-    return session.form;
-  } catch { return null; }
+  try { window.sessionStorage.removeItem(LEGACY_CHECKOUT_SESSION_KEY); } catch { /* No browser storage available. */ }
 }

@@ -20,7 +20,7 @@ function load(relative, dependencies = {}, mocks = {}) {
   const mod = { exports: {} };
   const factory = vm.runInNewContext(`(function(module,exports,require){${outputText}\n})`, {
     crypto: webcrypto, sessionStorage, window: { sessionStorage },
-    Buffer, Response, Request, fetch: mocks.fetch,
+    Buffer, Response, Request, TextEncoder, fetch: mocks.fetch,
     process: { env: { NODE_ENV: 'development' } },
   });
   factory(mod, mod.exports, (name) => {
@@ -127,11 +127,23 @@ const client = load('components/shop/shop-order-client.ts', {
 const receipt = await client.createShopOrderRequest([item], address, 3_298_000);
 assert.equal(receipt.orderNumber, '1842');
 assert.equal(receipt.accessCode.length, 64);
+const persistedIntent = JSON.parse(storage.get('halleus.shop.order.intent.v1'));
+assert.match(persistedIntent.fingerprint, /^[a-f0-9]{64}$/, 'persist a digest, not a raw shipping record');
+for (const privateValue of [address.name, address.mobile, address.address, address.postalCode]) {
+  assert.equal(storage.get('halleus.shop.order.intent.v1').includes(privateValue), false,
+    'private shipping field must not appear in stored idempotency intent');
+}
 assert.equal(requests[0].body.expectedTotal, 3_298_000);
 assert.equal(requests[0].body.shipping.address, address.address);
 const repeat = await client.createShopOrderRequest([item], address, 3_298_000);
 assert.equal(repeat.accessCode, receipt.accessCode);
 assert.equal(requests[0].body.idempotencyKey, requests[1].body.idempotencyKey);
+assert.equal(storage.get('halleus.shop.order.intent.v1').includes('shipping'), false);
+assert.equal(storage.get('halleus.shop.order.intent.v1').includes('fingerprint'), true);
+await client.createShopOrderRequest([item], { ...address, address: address.address + ' تغییر' }, 3_298_000);
+assert.notEqual(requests[2].body.idempotencyKey, requests[1].body.idempotencyKey,
+  'changed shipping must not replay an old idempotent order');
+client.rememberShopOrderReceipt(receipt);
 assert.equal(JSON.stringify(client.readShopOrderReceipt()), JSON.stringify(receipt));
 assert.equal((await client.fetchShopOrder(receipt)).status, 'awaiting_transfer');
 await client.submitShopTransfer(receipt, '123456', '');
@@ -152,6 +164,15 @@ assert.doesNotMatch(paymentSource, /Number\(order\.orderNumber\)/);
 assert.match(ownerSource, /function formatNumber\(value: number \| string\) \{ return formatShopInteger\(value\); \}/);
 storage.set('halleus.shop.order.receipt.v1', '{broken json');
 assert.equal(client.readShopOrderReceipt(), null);
+storage.set('halleus.shop.order.intent.v1', JSON.stringify({
+  fingerprint: JSON.stringify({ items: [item], shipping: address }), savedAt: Date.now(),
+  idempotencyKey: 'legacy-intent', guestAccessCode: 'legacy-secret',
+}));
+client.clearLegacyShopOrderIntent();
+assert.equal(storage.has('halleus.shop.order.intent.v1'), false, 'erase legacy plaintext shipping intent');
+storage.set('halleus.shop.order.intent.v1', '{bad json');
+client.clearLegacyShopOrderIntent();
+assert.equal(storage.has('halleus.shop.order.intent.v1'), false, 'erase invalid legacy intent');
 
 for (const route of [
   'app/api/shop/orders/route.ts', 'app/api/shop/orders/track/route.ts',

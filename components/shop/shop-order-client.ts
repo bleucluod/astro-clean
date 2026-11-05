@@ -14,8 +14,11 @@ function randomAccessCode() {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-function getIntent(items: ShopCartItem[], shipping: ShippingForm) {
-  const fingerprint = JSON.stringify({ items, shipping });
+async function getIntent(items: ShopCartItem[], shipping: ShippingForm) {
+  // Store only a one-way comparison digest, never a serialized delivery address.
+  const bytes = new TextEncoder().encode(JSON.stringify({ items, shipping }));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
   try {
     const saved = JSON.parse(sessionStorage.getItem(INTENT_KEY) ?? 'null');
     if (saved && saved.fingerprint === fingerprint && Number.isFinite(saved.savedAt)
@@ -28,6 +31,19 @@ function getIntent(items: ShopCartItem[], shipping: ShippingForm) {
   try { sessionStorage.setItem(INTENT_KEY, JSON.stringify({ ...intent, fingerprint, savedAt: Date.now() })); }
   catch { throw new Error('امکان نگهداری کد پیگیری در این مرورگر نیست. فضای ذخیره‌سازی را بررسی کن.'); }
   return intent;
+}
+
+export function clearLegacyShopOrderIntent() {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = sessionStorage.getItem(INTENT_KEY);
+    if (!raw) return;
+    const saved: unknown = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object' || !('fingerprint' in saved)
+        || typeof saved.fingerprint !== 'string' || !/^[a-f\d]{64}$/.test(saved.fingerprint)) {
+      sessionStorage.removeItem(INTENT_KEY);
+    }
+  } catch { try { sessionStorage.removeItem(INTENT_KEY); } catch { /* Storage unavailable. */ } }
 }
 
 async function shopRequest(path: string, body: unknown) {
@@ -49,7 +65,7 @@ async function shopRequest(path: string, body: unknown) {
 }
 
 export async function createShopOrderRequest(items: ShopCartItem[], shipping: ShippingForm, expectedTotal: number) {
-  const intent = getIntent(items, shipping);
+  const intent = await getIntent(items, shipping);
   const data = await shopRequest('/api/shop/orders', {
     items, shipping, expectedTotal, ...intent,
   });
