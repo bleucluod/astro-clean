@@ -10,6 +10,6 @@ export async function POST(request: Request) {
   try {
     const draft = parseShopOrderDraft(await readShopRequest(request));
     const created = await createShopOrder(draft);
-    return shopJson({ ok: true, orderNumber: created.orderNumber, status: 'awaiting_transfer' }, created.created ? 201 : 200);
+    return shopJson({ ok: true, orderNumber: created.orderNumber, status: created.status }, created.created ? 201 : 200);
   } catch (error) { return shopErrorResponse(error); }
 }

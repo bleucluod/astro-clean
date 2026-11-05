@@ -45,17 +45,19 @@ export async function createShopOrder(draft: ShopOrderDraft) {
         insert into halleus_private.shop_order_events (order_id, action, after_status)
         values (${inserted[0].id}::uuid, 'order.created', 'awaiting_transfer')
       `;
-      return { orderNumber: String(inserted[0].display_number), created: true };
+      return { orderNumber: String(inserted[0].display_number), created: true,
+        status: 'awaiting_transfer' as const };
     }
     const rows = await tx`
-      select display_number, guest_access_hash, payload_hash
+      select display_number, guest_access_hash, payload_hash, status
       from halleus_private.shop_orders where idempotency_hash = ${draft.idempotencyHash} limit 1
     `;
     if (!rows.length || rows[0].guest_access_hash !== draft.guestAccessHash
         || rows[0].payload_hash !== draft.payloadHash) {
       throw new ShopOrderStateError('این سفارش تغییر کرده؛ لطفاً دوباره آن را بررسی کن.');
     }
-    return { orderNumber: String(rows[0].display_number), created: false };
+    return { orderNumber: String(rows[0].display_number), created: false,
+      status: rows[0].status as ShopOrderStatus };
   });
 }
 

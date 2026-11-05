@@ -125,6 +125,7 @@ const draft = makeDraft(1);
 const replays = await Promise.all(Array.from({ length: 12 }, () => createShopOrder(draft)));
 assert.equal(new Set(replays.map((item) => item.orderNumber)).size, 1);
 assert.equal(replays.filter((item) => item.created).length, 1);
+assert.ok(replays.every((item) => item.status === 'awaiting_transfer'));
 assert.equal(db.orders.length, 1);
 assert.equal(db.events.filter((event) => event.action === 'order.created').length, 1);
 await assert.rejects(createShopOrder({ ...draft, payloadHash: 'changed' }), { status: 409 });
@@ -142,6 +143,9 @@ const evidence = { ...receipt, reference: '12345', time: '12:34' };
 const transferReplays = await Promise.all(Array.from({ length: 8 }, () => declareShopTransfer(evidence)));
 assert.ok(transferReplays.every((result) => result.status === 'transfer_declared'));
 assert.equal(db.events.filter((event) => event.action === 'transfer.declared').length, 1);
+assert.deepEqual({ ...(await createShopOrder(draft)) }, {
+  orderNumber: receipt.orderNumber, created: false, status: 'transfer_declared',
+});
 await assert.rejects(declareShopTransfer({ ...evidence, reference: '99999' }), { status: 409 });
 
 const owner = { userId: 'owner-test-id', role: 'owner', correlationId: 'correlation-test' };
@@ -151,6 +155,7 @@ const settled = await Promise.allSettled(Array.from({ length: 7 }, () => applyAd
 assert.equal(settled.filter((result) => result.status === 'fulfilled').length, 1);
 assert.ok(settled.filter((result) => result.status === 'rejected').every((result) => result.reason.status === 409));
 assert.equal(db.orders[0].status, 'payment_verified');
+assert.equal((await createShopOrder(draft)).status, 'payment_verified');
 assert.equal(db.orders[0].version, 3);
 assert.equal(db.events.filter((event) => event.action === 'verify_payment').length, 1);
 assert.equal(db.audits.length, 1);
