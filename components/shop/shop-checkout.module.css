@@ -16,19 +16,16 @@
 .shopFlow :is(a, button, input, select, textarea):focus-visible { outline: 2px solid #b6ddf5; outline-offset: 3px; }
 .shopFlow button { cursor: pointer; }
 .container { width: min(1160px, calc(100% - 32px)); margin-inline: auto; }
-.flowHeader { display: flex; align-items: center; gap: 16px; height: 64px; border-bottom: 1px solid var(--shop-line); }
-.back { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border: 1px solid #344a5e; border-radius: 10px; color: #e9f5ff; font-size: 22px; text-decoration: none; }
-.headerTitle { flex: 1; color: #eff7ff; font-size: 14px; font-weight: 800; }
-.headerStep { color: #adc8dd; font-size: 12px; white-space: nowrap; }
-.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 24px 0 32px; }
-.step { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; padding: 12px 4px; border-bottom: 2px solid #364655; color: #91a9bd; font-size: 13px; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0 27px; }
+.step { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; min-height: 48px; padding: 12px 4px; border-bottom: 2px solid #364655; color: #91a9bd; font-size: 13px; }
+.stepLink { color: #c4dceb; text-decoration: none; border-radius: 8px 8px 0 0; transition: background-color .2s ease, color .2s ease; }
+.stepLink:hover { background: #152331; color: #e9f5ff; }
 .stepNumber { display: grid; place-items: center; flex: none; width: 26px; height: 26px; border: 1px solid #425569; border-radius: 50%; font-size: 12px; }
 .activeStep { border-color: #a2cbe7; color: #f8fafc; font-weight: 800; }
 .activeStep .stepNumber { border-color: #92b9d3; background: #1d364a; color: #edf7ff; }
 .pastStep { border-color: #567d9b; color: #c4dceb; }
 .pastStep .stepNumber { border-color: #6f9db9; color: #cdefff; }
 .titleBlock { display: grid; gap: 8px; margin: 0 0 28px; }
-.eyebrow { color: #89b6d2; font-size: 11px; font-weight: 700; letter-spacing: .13em; }
 .titleBlock h1 { font-size: clamp(26px, 3vw, 38px); font-weight: 850; line-height: 1.6; }
 .titleBlock p { color: #b4c6d6 !important; font-size: 14px; line-height: 1.95; }
 .twoColumns { display: grid; grid-template-columns: minmax(0, 1fr) 366px; align-items: start; gap: 32px; }
@@ -168,8 +165,7 @@
 }
 @media (max-width: 640px) {
   .shopFlow { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
-  .flowHeader { gap: 12px; }
-  .steps { gap: 4px; margin: 16px 0 27px; }
+  .steps { gap: 4px; }
   .step { gap: 5px; font-size: 11px; }
   .stepNumber { width: 22px; height: 22px; font-size: 11px; }
   .titleBlock { margin-bottom: 22px; }

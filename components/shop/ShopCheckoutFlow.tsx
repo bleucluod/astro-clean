@@ -48,23 +48,20 @@ function useShopCart() {
   return { items, ready, save: (next: ShopCartItem[]) => writeShopCart(next) };
 }
 
-function PageShell({ step, title, subtitle, children }: { step: number; title: string; subtitle: string; children: ReactNode }) {
+function PageShell({ step, title, subtitle, children }: { step: number; title: string; subtitle?: string; children: ReactNode }) {
   return (
     <div className={styles.shopFlow} dir="rtl" data-shop-page={steps[step].label}>
       <div className={styles.container}>
-        <header className={styles.flowHeader}>
-          <Link className={styles.back} href={step === 0 ? '/shop' : steps[step - 1].href} aria-label="بازگشت به مرحلهٔ قبل">→</Link>
-          <span className={styles.headerTitle}>فروشگاه هالیوس</span>
-          <span className={styles.headerStep}>مرحلهٔ <bdi>{money(step + 1)}</bdi> از ۳</span>
-        </header>
         <nav className={styles.steps} aria-label="مراحل خرید">
-          {steps.map((item, index) => (
-            <div key={item.href} className={`${styles.step} ${index === step ? styles.activeStep : ''} ${index < step ? styles.pastStep : ''}`} aria-current={index === step ? 'step' : undefined}>
-              <span className={styles.stepNumber}>{index < step ? '✓' : money(index + 1)}</span><span>{item.label}</span>
-            </div>
-          ))}
+          {steps.map((item, index) => {
+            const className = `${styles.step} ${index === step ? styles.activeStep : ''} ${index < step ? styles.pastStep : ''}`;
+            const content = <><span className={styles.stepNumber}>{index < step ? '✓' : money(index + 1)}</span><span>{item.label}</span></>;
+            return index < step
+              ? <Link key={item.href} className={`${className} ${styles.stepLink}`} href={item.href} aria-label={`بازگشت به ${item.label}`}>{content}</Link>
+              : <span key={item.href} className={className} aria-current={index === step ? 'step' : undefined}>{content}</span>;
+          })}
         </nav>
-        <div className={styles.titleBlock}><span className={styles.eyebrow}>HALLEUS / STUDIO</span><h1>{title}</h1><p>{subtitle}</p></div>
+        <div className={styles.titleBlock}><h1>{title}</h1>{subtitle ? <p>{subtitle}</p> : null}</div>
         {children}
         <p className={styles.deliveryPromise}>تحویل به پست یا تیپاکس نهایتا تا ۳ روز کاری پس از تأیید پرداخت؛ همراه با کد رهگیری.</p>
       </div>
@@ -180,7 +177,7 @@ export function ShopCheckoutScreen() {
     router.push('/shop/payment');
   }
   return (
-    <PageShell step={1} title="آدرسِ رسیدن به تو" subtitle="اطلاعات گیرنده و روش ارسال رو همین‌جا، یک‌جا وارد کن.">
+    <PageShell step={1} title="آدرسِ رسیدن به تو">
       {!ready ? <p className={styles.loading}>در حال خواندن سبد…</p> : items.length === 0 ? <EmptyCart /> : (
         <div className={styles.twoColumns}>
           <form id="shipping-form" className={styles.checkoutForm} onSubmit={review}>
@@ -248,7 +245,7 @@ export function ShopPaymentScreen() {
     setError('تا قطعی‌شدن سفارش، لطفاً مبلغی واریز نکن. اعلام واریز در حال حاضر دریافت نمی‌شود.');
   }
   return (
-    <PageShell step={2} title="پرداخت و اعلام واریز" subtitle="مبلغ سفارشت رو مرور کن، و بعد از واریز اطلاعات تراکنش رو ثبت کن.">
+    <PageShell step={2} title="پرداخت و اعلام واریز">
       {!ready ? <p className={styles.loading}>در حال خواندن سبد…</p> : items.length === 0 ? <EmptyCart /> : !checkout ? (
         <div className={styles.empty}>
           <h2>اول اطلاعات ارسال رو کامل کن</h2>
