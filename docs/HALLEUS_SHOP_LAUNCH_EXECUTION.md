@@ -6,6 +6,14 @@ Approved working branch: `shop/launch-completion-20261105`
 Approved starting point: `4bd0a0aa645b15a03154b8121050303daa6f53fe`
 Source of truth: the current source, this ledger, and `HALLEUS_SHOP_ORDER_RELEASE_GATE.md`.
 
+## Owner clarification — manual payment & local verification (2026-11-05)
+
+- Launch payment is **manual card-to-card transfer only**. The owner independently reconciles actual bank payments and manually changes order status; no automated verification, online checkout or live payment gateway is enabled.
+- The owner is responsible for final physical print-lab samples/proofs. The project still requires correct digital print-master implementation and privacy/DB checks; owner physical acceptance is not a coding task.
+- A provider-neutral interface may be prepared **disabled** for a future provider. Actual provider choice, credentials, private payment-attempt persistence, secure callbacks and activation are deferred and require new approval. Explicit unsupported paymentMethod requests fail closed.
+- The owner wants one Windows command to fetch the **approved shop branch into a separate worktree** and collect all safe shop guards, TypeScript, scoped lint and a build attempt. This is a local code/fixture run, not a substitute for an actual disconnected, real-shape PostgreSQL guest/owner E2E or physical printing.
+- Do not change `main`, start VPS release, use real production payment credentials, or mutate production DB for this verification.
+
 ## Authorization and release boundary
 
 The owner authorized completing **only the physical shop**, recording intermediate work on a separate GitHub branch, and receiving **one final pull** of `main` after explicit final integration approval. Intermediate commits/pushes to the shop branch are allowed. Do not modify `main`, create a release tag, open production shop routes, apply a production migration, or deploy to the VPS without a new explicit approval. A shop feature-branch commit is neither a live acceptance nor an approved print run.

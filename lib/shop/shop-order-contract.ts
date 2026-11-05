@@ -5,6 +5,7 @@ import {
   englishDigits, normalizeMobileTail, validateShipping, type ShippingForm,
 } from '@/components/shop/shop-checkout-state';
 import { quoteShopItems, type ShopQuote } from './shop-quote';
+import { isShopManualPaymentSelection } from './shop-payment-gateway';
 
 export class ShopOrderInputError extends Error {
   constructor(message = 'اطلاعات سفارش کامل یا معتبر نیست.') { super(message); }
@@ -32,6 +33,9 @@ export function parseShopOrderDraft(value: unknown): ShopOrderDraft {
   const body = record(value);
   if (!body || !Array.isArray(body.items) || !body.items.length || body.items.length > 20) {
     throw new ShopOrderInputError();
+  }
+  if (!isShopManualPaymentSelection(body.paymentMethod)) {
+    throw new ShopOrderInputError('روش پرداخت انتخاب‌شده فعلاً فعال نیست.');
   }
   const items = parseShopCart(body.items);
   if (items.length !== body.items.length) throw new ShopOrderInputError('یک مورد از سبد خرید معتبر نیست.');
