@@ -1,6 +1,7 @@
 import type { ShopCartItem } from './shop-cart';
 import type { ShippingForm } from './shop-checkout-state';
 import type { ShopOrderPublicState } from '@/lib/shop/shop-order-store';
+import { isValidShopOrderNumber } from '@/lib/shop/shop-order-number';
 
 const INTENT_KEY = 'halleus.shop.order.intent.v1';
 const RECEIPT_KEY = 'halleus.shop.order.receipt.v1';
@@ -52,7 +53,7 @@ export async function createShopOrderRequest(items: ShopCartItem[], shipping: Sh
   const data = await shopRequest('/api/shop/orders', {
     items, shipping, expectedTotal, ...intent,
   });
-  if (typeof data.orderNumber !== 'string' || !/^[1-9]\d{0,17}$/.test(data.orderNumber)) {
+  if (!isValidShopOrderNumber(data.orderNumber)) {
     throw new Error('شمارهٔ سفارش دریافت نشد. دوباره تلاش کن.');
   }
   const receipt = { orderNumber: data.orderNumber, accessCode: intent.guestAccessCode };
@@ -61,7 +62,7 @@ export async function createShopOrderRequest(items: ShopCartItem[], shipping: Sh
 }
 
 export function rememberShopOrderReceipt(receipt: ShopOrderReceipt) {
-  if (!/^[1-9]\d{0,17}$/.test(receipt.orderNumber) || !/^[a-f0-9]{64}$/.test(receipt.accessCode)) {
+  if (!isValidShopOrderNumber(receipt.orderNumber) || !/^[a-f0-9]{64}$/.test(receipt.accessCode)) {
     throw new Error('شمارهٔ سفارش یا کد پیگیری معتبر نیست.');
   }
   try { sessionStorage.setItem(RECEIPT_KEY, JSON.stringify(receipt)); }
@@ -69,7 +70,7 @@ export function rememberShopOrderReceipt(receipt: ShopOrderReceipt) {
 }
 
 export function formatShopOrderReceipt(receipt: ShopOrderReceipt) {
-  if (!/^[1-9]\d{0,17}$/.test(receipt.orderNumber) || !/^[a-f0-9]{64}$/.test(receipt.accessCode)) {
+  if (!isValidShopOrderNumber(receipt.orderNumber) || !/^[a-f0-9]{64}$/.test(receipt.accessCode)) {
     throw new Error('اطلاعات پیگیری سفارش معتبر نیست.');
   }
   return [
@@ -96,7 +97,7 @@ export function readShopOrderReceipt(): ShopOrderReceipt | null {
   if (typeof window === 'undefined') return null;
   try {
     const data = JSON.parse(sessionStorage.getItem(RECEIPT_KEY) ?? 'null');
-    if (typeof data?.orderNumber === 'string' && /^[1-9]\d{0,17}$/.test(data.orderNumber)
+    if (isValidShopOrderNumber(data?.orderNumber)
         && typeof data.accessCode === 'string' && /^[a-f0-9]{64}$/.test(data.accessCode)) {
       return { orderNumber: data.orderNumber, accessCode: data.accessCode };
     }

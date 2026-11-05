@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ShopCatalogReadiness } from './ShopCatalogReadiness';
+import { formatShopInteger } from '@/lib/shop/shop-order-number';
 import styles from './shop-orders-workspace.module.css';
 
 type ShopOrderRow = {
@@ -48,7 +49,7 @@ const actions: Record<string, { action: Action; label: string }[]> = {
   ],
 };
 
-function formatNumber(value: number | string) { return Number(value).toLocaleString('fa-IR'); }
+function formatNumber(value: number | string) { return formatShopInteger(value); }
 
 export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   const [rows, setRows] = useState<ShopOrderRow[]>([]);

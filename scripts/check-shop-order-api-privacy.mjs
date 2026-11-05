@@ -45,9 +45,11 @@ const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': products,
   '@/components/shop/shop-checkout-state': shipping,
 });
+const orderNumber = load('lib/shop/shop-order-number.ts');
 const contract = load('lib/shop/shop-order-contract.ts', {
   'node:crypto': { createHash }, '@/components/shop/shop-cart': cart,
   '@/components/shop/shop-checkout-state': shipping, './shop-quote': quote,
+  './shop-order-number': orderNumber,
 });
 const secret = 'f'.repeat(64);
 const accessHash = createHash('sha256').update(secret).digest('hex');

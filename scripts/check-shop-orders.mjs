@@ -50,11 +50,13 @@ const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': product,
   '@/components/shop/shop-checkout-state': shipping,
 });
+const orderNumber = load('lib/shop/shop-order-number.ts');
 const contract = load('lib/shop/shop-order-contract.ts', {
   'node:crypto': { createHash },
   '@/components/shop/shop-cart': cart,
   '@/components/shop/shop-checkout-state': shipping,
   './shop-quote': quote,
+  './shop-order-number': orderNumber,
 });
 const details = { calendar: 'jalali', date: '1403/08/15', time: '', city: '', names: 'آزمایش', message: '' };
 const item = { key: 'fixed-order-key', productId: 'p01', size: '20x30', quantity: 2, details };
@@ -92,6 +94,20 @@ for (const evidence of [{}, { reference: 'abc' }, { time: '24:00' }, { reference
 }
 assert.equal(contract.parseGuestAccess({ orderNumber: '۱۲۳', accessCode: payload.guestAccessCode }).orderNumber, '123');
 assert.throws(() => contract.parseGuestAccess({ orderNumber: '123', accessCode: 'guess' }));
+const maxOrderNumber = '9223372036854775807';
+assert.equal(orderNumber.isValidShopOrderNumber(maxOrderNumber), true);
+assert.equal(orderNumber.isValidShopOrderNumber('9223372036854775808'), false);
+assert.equal(orderNumber.isValidShopOrderNumber('0009'), false);
+assert.equal(orderNumber.isValidShopOrderNumber('9007199254740993'), true);
+assert.equal(orderNumber.formatShopInteger('9007199254740993'),
+  new Intl.NumberFormat('fa-IR').format(9007199254740993n));
+assert.notEqual(orderNumber.formatShopInteger('9007199254740993'),
+  new Intl.NumberFormat('fa-IR').format(Number('9007199254740993')));
+assert.equal(orderNumber.formatShopInteger(1_699_000),
+  new Intl.NumberFormat('fa-IR').format(1_699_000));
+assert.equal(contract.parseGuestAccess({ orderNumber: maxOrderNumber, accessCode: payload.guestAccessCode }).orderNumber,
+  maxOrderNumber);
+assert.throws(() => contract.parseGuestAccess({ orderNumber: '9223372036854775808', accessCode: payload.guestAccessCode }));
 
 let requests = [];
 const fakeFetch = async (path, options) => {
@@ -105,7 +121,9 @@ const fakeFetch = async (path, options) => {
   if (path.endsWith('/cancel')) return Response.json({ ok: true, status: 'canceled' });
   throw new Error('Unexpected path');
 };
-const client = load('components/shop/shop-order-client.ts', {}, { fetch: fakeFetch });
+const client = load('components/shop/shop-order-client.ts', {
+  '@/lib/shop/shop-order-number': orderNumber,
+}, { fetch: fakeFetch });
 const receipt = await client.createShopOrderRequest([item], address, 3_298_000);
 assert.equal(receipt.orderNumber, '1842');
 assert.equal(receipt.accessCode.length, 64);
@@ -125,6 +143,13 @@ assert.match(receiptFile, /https:\/\/halleus\.ir\/shop\/track/);
 assert.ok(receiptFile.includes(receipt.orderNumber));
 assert.ok(receiptFile.includes(receipt.accessCode));
 assert.throws(() => client.formatShopOrderReceipt({ orderNumber: '1', accessCode: 'invalid' }));
+assert.ok(client.formatShopOrderReceipt({ orderNumber: maxOrderNumber, accessCode: receipt.accessCode }).includes(maxOrderNumber));
+assert.throws(() => client.formatShopOrderReceipt({ orderNumber: '9223372036854775808', accessCode: receipt.accessCode }));
+const paymentSource = readFileSync(resolve(root, 'components/shop/ShopCheckoutFlow.tsx'), 'utf8');
+const ownerSource = readFileSync(resolve(root, 'components/admin/ShopOrdersWorkspace.tsx'), 'utf8');
+assert.equal((paymentSource.match(/formatShopInteger\(order\.orderNumber\)/g) ?? []).length, 3);
+assert.doesNotMatch(paymentSource, /Number\(order\.orderNumber\)/);
+assert.match(ownerSource, /function formatNumber\(value: number \| string\) \{ return formatShopInteger\(value\); \}/);
 storage.set('halleus.shop.order.receipt.v1', '{broken json');
 assert.equal(client.readShopOrderReceipt(), null);
 

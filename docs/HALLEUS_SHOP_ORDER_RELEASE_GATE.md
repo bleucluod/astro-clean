@@ -22,6 +22,7 @@ Last edited: 2026-11-05. This is a source-code review candidate, **not a live st
 5. Decide and test guest order abuse/rate controls and real notification method. This candidate only records the phone for delivery coordination; it does **not** claim SMS delivery.
 6. Complete the actual validated artwork renderer, physical print QA and **private** artwork retention for each custom product. The production brief alone must never be sent to a print shop as a finished design.
 7. Reconcile remaining catalog/print-asset workflow, coupon/shipping campaigns and the shop master roadmap. Obtain explicit approval for the DB migration, opening production routes and release via `ops/vps/halleus-release.sh`.
+8. Independently verify the intended bank-transfer recipient, card/IBAN and reconciliation workflow with the owner; source-defined development checkout details alone are not approval to collect live payments.
 
 ## Check results for this source candidate
 
@@ -29,6 +30,7 @@ Last edited: 2026-11-05. This is a source-code review candidate, **not a live st
 - T02 chart source candidate: TypeScript, affected-file ESLint, `scripts/check-shop-t02-report-gate.mjs` (mocked real engine response/error/fallback cases), real-chart workbench, product-surface guard, encoding and `git diff --check`: **passed**. Actual server/database persistence E2E: **not run**.
 - Isolated PostgreSQL E2E and production schema examination: **not run** (no DB connection/environment).
 - Full webpack build: **unrelated baseline failures** from pre-existing CSS Module selectors in `app/sky/sky.module.css`, `components/app-shell.module.css`, and `components/report/human-first-report.module.css`.
+- S3 initial integration: all 16 focused shop/proof checks passed. Exact guest/admin order-number formatting and validation now preserve positive PostgreSQL BIGINT identifiers (including 19-digit values) without JavaScript `Number` rounding; `tsc`, affected ESLint, encoding and `git diff --check` passed. No isolated DB, verified bank recipient or production build success is claimed.
 - Existing admin core and admini UI guards: **unrelated baseline failures** on premium-consent copy and `components/SiteHeader.tsx` legacy `/admin` links.
 - Other existing guard failures observed during T02 review: workflow-acceleration requires a missing PR workflow marker; predeploy-home-chart-performance expects older `AppShell.tsx` footer markers; local True Node fixture expects Lilith to remain deferred although the current engine now calculates it. These do not originate in the T02 chart change. No unrelated workflow, UI or engine files were edited.
 

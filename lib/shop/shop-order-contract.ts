@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { isValidShopOrderNumber } from './shop-order-number';
 import { parseShopCart, type ShopCartItem } from '@/components/shop/shop-cart';
 import {
   englishDigits, normalizeMobileTail, validateShipping, type ShippingForm,
@@ -100,7 +101,7 @@ export function parseGuestAccess(value: unknown) {
   const body = record(value);
   const number = typeof body?.orderNumber === 'string' ? englishDigits(body.orderNumber).trim() : '';
   const code = body?.accessCode;
-  if (!/^[1-9]\d{0,17}$/.test(number) || typeof code !== 'string' || !/^[a-f\d]{64}$/.test(code)) {
+  if (!isValidShopOrderNumber(number) || typeof code !== 'string' || !/^[a-f\d]{64}$/.test(code)) {
     throw new ShopOrderInputError('شمارهٔ سفارش یا کد دسترسی معتبر نیست.');
   }
   return { orderNumber: number, accessHash: hashSecret(code) };

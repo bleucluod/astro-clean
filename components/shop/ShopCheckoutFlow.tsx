@@ -13,6 +13,7 @@ import {
   type ShopOrderReceipt,
 } from './shop-order-client';
 import type { ShopOrderPublicState } from '@/lib/shop/shop-order-store';
+import { formatShopInteger } from '@/lib/shop/shop-order-number';
 import {
   blankShipping, clearCheckoutSession, englishDigits, normalizeMobileTail,
   readCheckoutSession, saveCheckoutSession, SHOP_SHIPPING_AND_PACKAGING, validateShipping,
@@ -366,14 +367,14 @@ export function ShopPaymentScreen() {
               <button className={styles.primaryAction} type="submit" disabled={submitting}><span>{submitting ? 'در حال ثبت…' : 'اعلام واریز'}</span><span aria-hidden="true">←</span></button>
             </form>
             </> : <section className={styles.formCard}>
-              <div className={styles.sectionHeading}><h2>وضعیت سفارش</h2><span>شمارهٔ {money(Number(order.orderNumber))}</span></div>
+              <div className={styles.sectionHeading}><h2>وضعیت سفارش</h2><span>شمارهٔ {formatShopInteger(order.orderNumber)}</span></div>
               <p>{order.status === 'transfer_declared' ? 'اعلام واریزت ثبت شد و منتظر بررسی پرداخت است.' : order.status === 'payment_verified' || order.status === 'preparing' ? 'پرداخت تأیید شده و سفارشت در حال آماده‌سازی است.' : order.status === 'shipped' ? 'سفارشت تحویل شرکت حمل شده است.' : order.status === 'delivered' ? 'سفارشت تحویل داده شده است.' : order.status === 'cancel_requested' ? 'درخواست لغو ثبت شده و در حال بررسی است.' : 'این سفارش لغو شده است.'}</p>
               {order.trackingCode ? <p>کد رهگیری ارسال: <bdi>{order.trackingCode}</bdi></p> : null}
             </section>}
           </div>
           <aside className={styles.summaryColumn}>
             <section className={styles.summary}>
-              <h2>سفارش شمارهٔ <bdi>{money(Number(order.orderNumber))}</bdi></h2>
+              <h2>سفارش شمارهٔ <bdi>{formatShopInteger(order.orderNumber)}</bdi></h2>
               <div className={styles.summaryRow}><span>تعداد محصولات</span><strong>{money(order.itemCount)}</strong></div>
               <div className={styles.summaryRow}><span>روش ارسال</span><strong>{order.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'}</strong></div>
               <div className={styles.summaryTotal}><span>مبلغ قابل واریز</span><strong><bdi>{money(order.totalToman)}</bdi> تومان</strong></div>
@@ -439,7 +440,7 @@ export function ShopOrderTrackScreen() {
         </form>
         {error ? <p role="alert" className={styles.error}>{error}</p> : null}
         {order ? <section className={styles.formCard} aria-live="polite">
-          <div className={styles.sectionHeading}><h2>سفارش شمارهٔ {money(Number(order.orderNumber))}</h2><span>{customerStatus[order.status]}</span></div>
+          <div className={styles.sectionHeading}><h2>سفارش شمارهٔ {formatShopInteger(order.orderNumber)}</h2><span>{customerStatus[order.status]}</span></div>
           <p>تعداد محصولات: {money(order.itemCount)}</p>
           <p>مبلغ سفارش: <bdi>{money(order.totalToman)}</bdi> تومان</p>
           <p>روش ارسال: {order.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'}</p>
