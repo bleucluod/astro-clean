@@ -16,7 +16,7 @@ export type ShopSkyBrightStar = {
   y: number;
 };
 
-export function calculateShopBrightStarProof(input: {
+export function parseShopSkyReference(input: {
   referenceUtc: string;
   latitude: number;
   longitude: number;
@@ -34,6 +34,16 @@ export function calculateShopBrightStarProof(input: {
     throw new Error('Invalid observer coordinates for bright-star proof.');
   }
 
+  return date;
+}
+
+export function calculateShopBrightStarProof(input: {
+  referenceUtc: string;
+  latitude: number;
+  longitude: number;
+}) {
+  const { referenceUtc, latitude, longitude } = input;
+  const date = parseShopSkyReference(input);
   const observer = new Astronomy.Observer(latitude, longitude, 0);
   const rotation = Astronomy.Rotation_EQJ_HOR(date, observer);
   const years = (date.getTime() - J2000_MS) / JULIAN_YEAR_MS;
