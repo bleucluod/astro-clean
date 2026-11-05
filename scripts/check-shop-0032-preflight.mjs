@@ -7,6 +7,7 @@ const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const migration = read('database/migrations/0032_private_shop_orders_shared_numbers.sql');
 const inventory = read('database/preflight/0032_shop_orders_readonly_inventory.sql');
 const optional = read('database/preflight/0032_shop_existing_numbers_optional.sql');
+const liveMetadata = read('database/preflight/0032_shop_live_schema_metadata.sql');
 
 function checkReadOnlySql(name, source) {
   const clean = source.replace(/--[^\n]*/g, '').trim();
@@ -26,6 +27,14 @@ function checkReadOnlySql(name, source) {
 
 checkReadOnlySql('metadata inventory', inventory);
 checkReadOnlySql('conditional existing numbers', optional);
+checkReadOnlySql('live catalog metadata', liveMetadata);
+assert.match(liveMetadata, /to_regclass\('public\.halleus_reports'\)/);
+assert.match(liveMetadata, /to_regclass\('supabase_migrations\.schema_migrations'\)/);
+assert.match(liveMetadata, /pg_catalog\.pg_get_indexdef/);
+assert.match(liveMetadata, /pg_catalog\.pg_get_triggerdef/);
+assert.match(liveMetadata, /pg_catalog\.pg_total_relation_size/);
+assert.doesNotMatch(liveMetadata.replace(/--[^\n]*/g, ''), /\bcount\s*\(|\bpg_authid\b|\bpg_dump\b|\bsetval\s*\(|\bnextval\s*\(/i,
+  'Live metadata preflight cannot count/read production rows or mutate sequence state.');
 assert.match(inventory, /to_regclass\('public\.halleus_reports'\)/);
 assert.match(inventory, /to_regclass\('auth\.users'\)/);
 assert.match(inventory, /to_regprocedure\('halleus_private\.reject_audit_event_mutation\(\)'\)/);
@@ -69,5 +78,5 @@ assert.match(release, /SOURCE="\$ROOT\/source"/);
 assert.match(release, /ENV_FILE="\/etc\/halleus\/halleus\.env"/);
 assert.doesNotMatch(release, /0032_private_shop_orders_shared_numbers|shop_orders_readonly_inventory/);
 
-console.log('Shop S2 schema preflight: migration 0032 actual-source dependencies, report ID/sequence/lock/RLS assumptions, strict read-only preflight, optional number scan and no automatic release migration passed.');
+console.log('Shop S2 schema preflight: migration 0032 actual-source dependencies, report ID/sequence/lock/RLS assumptions, isolated read-only preflight, production catalog-only metadata, optional clone number scan and no automatic release migration passed.');
 console.log('EXTERNAL_BLOCK: no isolated real-shape PostgreSQL execution or live VPS schema evidence is claimed by this static check.');
