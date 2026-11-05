@@ -102,6 +102,11 @@ await client.submitShopTransfer(receipt, '123456', '');
 await client.cancelShopOrder(receipt);
 assert.equal(requests.at(-1).path, '/api/shop/orders/cancel');
 assert.equal(requests.at(-1).body.accessCode, receipt.accessCode);
+const receiptFile = client.formatShopOrderReceipt(receipt);
+assert.match(receiptFile, /https:\/\/halleus\.ir\/shop\/track/);
+assert.ok(receiptFile.includes(receipt.orderNumber));
+assert.ok(receiptFile.includes(receipt.accessCode));
+assert.throws(() => client.formatShopOrderReceipt({ orderNumber: '1', accessCode: 'invalid' }));
 storage.set('halleus.shop.order.receipt.v1', '{broken json');
 assert.equal(client.readShopOrderReceipt(), null);
 

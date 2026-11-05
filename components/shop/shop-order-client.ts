@@ -68,6 +68,30 @@ export function rememberShopOrderReceipt(receipt: ShopOrderReceipt) {
   catch { throw new Error('کد پیگیری ذخیره نشد. فضای ذخیره‌سازی مرورگر را بررسی کن.'); }
 }
 
+export function formatShopOrderReceipt(receipt: ShopOrderReceipt) {
+  if (!/^[1-9]\d{0,17}$/.test(receipt.orderNumber) || !/^[a-f0-9]{64}$/.test(receipt.accessCode)) {
+    throw new Error('اطلاعات پیگیری سفارش معتبر نیست.');
+  }
+  return [
+    'هالیوس | اطلاعات خصوصی پیگیری سفارش',
+    `شمارهٔ سفارش: ${receipt.orderNumber}`,
+    `کد خصوصی پیگیری: ${receipt.accessCode}`,
+    'نشانی پیگیری: https://halleus.ir/shop/track',
+    'این کد فقط برای صاحب سفارش است؛ فایل را محرمانه نگهداری کن.',
+  ].join('\n');
+}
+
+export function downloadShopOrderReceipt(receipt: ShopOrderReceipt) {
+  const content = formatShopOrderReceipt(receipt);
+  const file = new Blob(['\uFEFF', content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `halleus-order-${receipt.orderNumber}-access.txt`;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export function readShopOrderReceipt(): ShopOrderReceipt | null {
   if (typeof window === 'undefined') return null;
   try {

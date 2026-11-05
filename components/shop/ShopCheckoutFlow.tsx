@@ -8,7 +8,7 @@ import { getShopProduct } from './product-detail-data';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
-  cancelShopOrder, createShopOrderRequest, fetchShopOrder, readShopOrderReceipt,
+  cancelShopOrder, createShopOrderRequest, downloadShopOrderReceipt, fetchShopOrder, readShopOrderReceipt,
   rememberShopOrderReceipt, submitShopTransfer,
   type ShopOrderReceipt,
 } from './shop-order-client';
@@ -380,6 +380,7 @@ export function ShopPaymentScreen() {
               <p className={styles.fieldNote}>کد خصوصی پیگیری رو برای بررسی سفارش نگه دار.</p>
               <div className={styles.privateCode}><bdi dir="ltr">{receipt.accessCode}</bdi></div>
               <button type="button" className={styles.secondaryAction} onClick={() => void copyNumber(receipt.accessCode, 'code')}>{copyState === 'code' ? 'کپی شد ✓' : 'کپی کد پیگیری'}</button>
+              <button type="button" className={styles.secondaryAction} onClick={() => downloadShopOrderReceipt(receipt)}>دانلود اطلاعات پیگیری</button>
               <Link className={styles.textLink} href="/shop/track">پیگیری سفارش ←</Link>
             </section>
           </aside>
@@ -447,6 +448,7 @@ export function ShopOrderTrackScreen() {
             <h3>روند سفارش</h3>
             {order.events.map((event, index) => <p key={`${event.at}-${index}`}><span>{customerStatus[event.status as ShopOrderPublicState['status']] ?? 'به‌روزرسانی سفارش'}</span><time dateTime={event.at}>{new Date(event.at).toLocaleDateString('fa-IR')}</time></p>)}
           </div>
+          <button type="button" className={styles.secondaryAction} onClick={() => downloadShopOrderReceipt({ orderNumber: englishDigits(number).trim(), accessCode: code.trim() })}>دانلود اطلاعات پیگیری</button>
           {(order.status === 'awaiting_transfer' || order.status === 'payment_rejected') ? <Link className={styles.textLink} href="/shop/payment">بازگشت به پرداخت</Link> : null}
           {['awaiting_transfer', 'payment_rejected', 'transfer_declared'].includes(order.status) ?
             <button type="button" className={styles.secondaryAction} disabled={busy} onClick={() => void requestCancel()}>{order.status === 'transfer_declared' ? 'درخواست لغو سفارش' : 'لغو سفارش'}</button> : null}

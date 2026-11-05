@@ -28,6 +28,7 @@ const labels: Record<string, string> = {
   cancel_requested: 'درخواست لغو', canceled: 'لغوشده',
 };
 const productNames: Record<string, string> = { p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما' };
+const printHandoffStatuses = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
 const actions: Record<string, { action: Action; label: string }[]> = {
   awaiting_transfer: [{ action: 'cancel', label: 'لغو سفارش' }],
@@ -116,6 +117,29 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     finally { setBusy(false); }
   }
 
+  async function downloadPrintBrief() {
+    if (!detail || busy || !printHandoffStatuses.has(detail.status)) return;
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${detail.id}/print`, {
+        headers: { Authorization: `Bearer ${accessToken}` }, cache: 'no-store',
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error || 'دریافت اطلاعات چاپ انجام نشد.');
+      }
+      const file = await response.blob();
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `halleus-order-${detail.display_number}-print-brief.json`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setSuccess('اطلاعات تولید این سفارش دریافت شد؛ برای چاپ، فایل هنری نهایی هنوز باید آماده شود.');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت فایل انجام نشد.'); }
+    finally { setBusy(false); }
+  }
+
   function doSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPage(1); setSearch(searchDraft.trim());
   }
@@ -170,6 +194,10 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
         {item.details.names ? <p>نام: {item.details.names}</p> : null}
         {item.details.message ? <p>متن روی تابلو: {item.details.message}</p> : null}
       </article>)}</div>
+      {printHandoffStatuses.has(detail.status) ? <div className={styles.printHandoff}>
+        <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود مشخصات خصوصی چاپ</button>
+        <p>فایل شامل تاریخ، نام و پیام هر محصول است؛ فایل هنری نهاییِ قابل چاپ نیست.</p>
+      </div> : <p className={styles.printNote}>تحویل اطلاعات سفارش به چاپ بعد از تأیید دریافت وجه فعال می‌شود.</p>}
       <h4>سوابق سفارش</h4>
       <div className={styles.history}>{detail.events.map((event, index) => <p key={`${event.created_at}-${index}`}>{new Date(event.created_at).toLocaleString('fa-IR')} · {event.action} · {labels[event.after_status] ?? event.after_status}{event.reason ? ` · ${event.reason}` : ''}</p>)}</div>
       {actions[detail.status]?.length ? <div className={styles.actions}>

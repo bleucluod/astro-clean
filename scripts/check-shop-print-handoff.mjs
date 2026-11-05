@@ -1,0 +1,127 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import vm from 'node:vm';
+import ts from 'typescript';
+
+const root = resolve(import.meta.dirname, '..');
+const runtimeEnv = { NODE_ENV: 'development' };
+
+function load(relativePath, dependencies = {}) {
+  const source = readFileSync(resolve(root, relativePath), 'utf8');
+  const { outputText } = ts.transpileModule(source, {
+    fileName: relativePath,
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  });
+  const mod = { exports: {} };
+  const factory = vm.runInNewContext(`(function(module,exports,require){${outputText}\n})`, {
+    Response, Request, process: { env: runtimeEnv },
+  });
+  factory(mod, mod.exports, (name) => {
+    if (!(name in dependencies)) throw new Error(`Unexpected test dependency ${name}`);
+    return dependencies[name];
+  });
+  return mod.exports;
+}
+
+const products = load('components/shop/product-detail-data.ts');
+const cart = load('components/shop/shop-cart.ts', { './product-detail-data': products });
+const handoff = load('lib/shop/shop-print-handoff.ts', { '@/components/shop/shop-cart': cart });
+
+const item = {
+  key: 'print-line-01', productId: 'p01', size: '20x30', quantity: 2,
+  details: { calendar: 'jalali', date: '1403/08/15', time: '', city: '', names: 'نام خصوصی', message: 'پیام خصوصی' },
+};
+const order = {
+  display_number: '920', status: 'payment_verified', items: [item],
+  recipient_mobile: '+989121234567', address: 'خیابان کاملاً خصوصی',
+  transfer_reference: '12344321', guest_access_hash: 'never-include-secret',
+};
+const result = handoff.buildPrivateShopPrintHandoff(order);
+assert.equal(result.orderNumber, '920');
+assert.equal(result.documentKind, 'production-brief-not-print-ready-artwork');
+assert.equal(result.prints[0].quantity, 2);
+assert.equal(result.prints[0].sizeCm, '20x30');
+assert.equal(result.prints[0].personalization.message, 'پیام خصوصی');
+assert.equal(result.prints[0].printArtworkReady, false);
+const text = JSON.stringify(result);
+for (const sensitive of ['+989121234567', 'خیابان کاملاً خصوصی', '12344321', 'never-include-secret']) {
+  assert.ok(!text.includes(sensitive), `Unexpected sensitive field: ${sensitive}`);
+}
+for (const status of ['awaiting_transfer', 'transfer_declared', 'payment_rejected', 'cancel_requested', 'canceled']) {
+  assert.throws(() => handoff.buildPrivateShopPrintHandoff({ ...order, status }));
+}
+for (const bad of [[], [{ ...item, size: '999x999' }], [item, item]]) {
+  assert.throws(() => handoff.buildPrivateShopPrintHandoff({ ...order, items: bad }));
+}
+assert.equal(handoff.buildPrivateShopPrintHandoff({ ...order, status: 'preparing' }).prints.length, 1);
+for (const invalid of [null, [], {}, { ...order, display_number: 'order-920' }, { ...order, items: null }]) {
+  assert.throws(() => handoff.buildPrivateShopPrintHandoff(invalid));
+}
+
+const route = readFileSync(resolve(root, 'app/api/admin/shop/orders/[id]/print/route.ts'), 'utf8');
+for (const required of [
+  /NODE_ENV === 'production'/,
+  /requireAdminCapability\(request, 'shop_orders\.read'\)/,
+  /actor\.role !== 'owner'/,
+  /recordAdminAuditEvent/,
+  /application\/json; charset=utf-8/,
+  /private, no-store/,
+  /X-Content-Type-Options/,
+]) assert.match(route, required);
+
+let role = 'owner';
+let auditCalls = 0;
+let auditFailure = false;
+let databaseReads = 0;
+let stored = order;
+const api = load('app/api/admin/shop/orders/[id]/print/route.ts', {
+  '@/lib/admin/admin-auth': { requireAdminCapability: async () => ({ role, userId: 'owner-id' }) },
+  '@/lib/admin/admin-http': {
+    noStoreJsonResponse: (body, status = 200) => Response.json(body, { status }),
+    adminErrorResponse: () => Response.json({ ok: false }, { status: 503 }),
+  },
+  '@/lib/admin/admin-service': { recordAdminAuditEvent: async () => {
+    auditCalls++;
+    if (auditFailure) throw new Error('No audit available');
+  } },
+  '@/lib/shop/shop-print-handoff': handoff,
+  '@/lib/shop/shop-order-store': { getAdminShopOrder: async () => { databaseReads++; return stored; } },
+});
+const id = 'f8d1143a-1c64-4c01-bdb8-928a1c19b6e7';
+const get = () => api.GET(new Request(`http://localhost/api/admin/shop/orders/${id}/print`), {
+  params: Promise.resolve({ id }),
+});
+
+runtimeEnv.NODE_ENV = 'production';
+assert.equal((await get()).status, 404);
+assert.equal(databaseReads, 0);
+runtimeEnv.NODE_ENV = 'development';
+role = 'admin';
+assert.equal((await get()).status, 403);
+assert.equal(databaseReads, 0);
+role = 'owner';
+stored = { ...order, status: 'transfer_declared' };
+assert.equal((await get()).status, 409);
+assert.equal(auditCalls, 0);
+stored = order;
+const validResponse = await get();
+assert.equal(validResponse.status, 200);
+assert.equal(validResponse.headers.get('cache-control'), 'private, no-store');
+assert.equal(validResponse.headers.get('x-content-type-options'), 'nosniff');
+assert.match(validResponse.headers.get('content-disposition'), /920-print-brief\.json/);
+const downloaded = await validResponse.json();
+assert.equal(downloaded.prints[0].personalization.names, 'نام خصوصی');
+assert.equal(downloaded.recipient_mobile, undefined);
+assert.equal(auditCalls, 1);
+auditFailure = true;
+assert.equal((await get()).status, 503);
+assert.equal(auditCalls, 2);
+
+const client = readFileSync(resolve(root, 'components/shop/shop-order-client.ts'), 'utf8');
+assert.match(client, /formatShopOrderReceipt/);
+assert.match(client, /downloadShopOrderReceipt/);
+assert.match(client, /URL\.createObjectURL/);
+assert.match(client, /\.access\.txt|access\.txt/);
+
+console.log('Shop print handoff: payment gate, private fields, product metadata, artwork-not-ready boundary, owner/audit route and guest receipt export passed.');
