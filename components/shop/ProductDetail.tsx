@@ -433,7 +433,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
       <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
         <div><small>قیمت</small><strong><bdi>{formatPrice(price)}</bdi> <span>تومان</span></strong></div>
-        <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'مشخصات و افزودن به سبد'}</span></a>
+        <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'افزودن به سبد'}</span></a>
       </div>
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>

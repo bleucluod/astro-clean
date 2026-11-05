@@ -208,7 +208,6 @@ export function ShopCheckoutScreen() {
                 <label className={`${styles.shippingChoice} ${form.carrier === 'post' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="post" checked={form.carrier === 'post'} onChange={() => update('carrier', 'post')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/post.png" alt="نشان شرکت ملی پست" width={50} height={50} /></span><span className={styles.carrierText}><strong>پست</strong><small>پست پیشتاز</small></span><em><bdi>{money(100_000)}</bdi> تومان</em></label>
                 <label className={`${styles.shippingChoice} ${form.carrier === 'tipax' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="tipax" checked={form.carrier === 'tipax'} onChange={() => update('carrier', 'tipax')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/tipax.png" alt="نشان تیپاکس" width={62} height={35} /></span><span className={styles.carrierText}><strong>تیپاکس</strong><small>پس کرایه</small></span><em><bdi>{money(50_000)}</bdi> تومان بسته‌بندی</em></label>
               </div>
-              <p className={styles.fieldNote}>نهایتا تا ۳ روز کاری</p>
             </section>
             {error ? <p role="alert" className={styles.error}>{error}</p> : null}
             {submitted ? (
@@ -220,7 +219,7 @@ export function ShopCheckoutScreen() {
                 {form.carrier === 'tipax' ? <p>هزینهٔ حمل تیپاکس را هنگام تحویل بسته پرداخت می‌کنی.</p> : null}
                 <button type="button" onClick={continueToPayment} className={styles.primaryAction}><span>تأیید و ادامه به پرداخت</span><span aria-hidden="true">←</span></button>
               </section>
-            ) : <button type="submit" className={styles.primaryAction}><span>بررسی اطلاعات و هزینه ارسال و بسته‌بندی</span><span aria-hidden="true">←</span></button>}
+            ) : <button type="submit" className={styles.primaryAction}><span>بررسی سفارش</span><span aria-hidden="true">←</span></button>}
           </form>
           <div className={styles.summaryColumn}><Summary items={items} carrier={form.carrier} /><Link className={styles.textLink} href="/shop/cart">→ بازگشت و ویرایش سبد</Link></div>
         </div>
