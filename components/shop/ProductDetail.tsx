@@ -2,22 +2,15 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { siteConfig } from '@/lib/config/seo';
 import { buildShopProductStructuredData } from './product-schema';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId } from './product-detail-data';
+import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
 import styles from './product-detail.module.css';
 
-type PersonalDetails = {
-  calendar: 'jalali' | 'gregorian';
-  date: string;
-  time: string;
-  city: string;
-  names: string;
-  message: string;
-};
-
-const emptyDetails: PersonalDetails = { calendar: 'jalali', date: '', time: '', city: '', names: '', message: '' };
+const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: '', city: '', names: '', message: '' };
 
 function formatPrice(amount: number) {
   return new Intl.NumberFormat('fa-IR').format(amount);
@@ -63,14 +56,15 @@ function SizeIllustration({ id, title }: { id: ShopProductId; title: string }) {
 }
 
 export function ProductDetail({ id }: { id: ShopProductId }) {
+  const router = useRouter();
   const product = getShopProduct(id);
   const related = getRelatedProducts(id);
   const [sizeIndex, setSizeIndex] = useState(1);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isZoomOpen, setZoomOpen] = useState(false);
   const [isSizeZoomOpen, setSizeZoomOpen] = useState(false);
-  const [form, setForm] = useState<PersonalDetails>(emptyDetails);
-  const [confirmed, setConfirmed] = useState<PersonalDetails | null>(null);
+  const [form, setForm] = useState<ShopPersonalization>(emptyDetails);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [formError, setFormError] = useState('');
   const [isFooterVisible, setFooterVisible] = useState(false);
   const [isFormVisible, setFormVisible] = useState(false);
@@ -84,7 +78,6 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       date: 'تاریخ آن لحظه',
       names: 'نامی برای ماندن',
       details: 'حرف دیگری هم برای این خاطره داری؟',
-      submit: 'تأیید مشخصات تابلو',
     },
     p02: {
       title: 'آسمان کدام لحظه را نگه داریم؟',
@@ -92,7 +85,6 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       date: 'تاریخ تولد',
       names: 'نامی کنار ستاره‌ها',
       details: 'پیامی هم کنار این آسمان می‌گذاری؟',
-      submit: 'تأیید مشخصات تابلو',
     },
     p03: {
       title: 'این شب، یادگار کدام قصه است؟',
@@ -100,11 +92,24 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       date: 'تاریخ خاطره (اختیاری)',
       names: 'نام‌های این قصه',
       details: 'حرف دیگری هم برای این قصه داری؟',
-      submit: 'تأیید مشخصات تابلو',
     },
   }[id];
   const hideMobileBar = isFooterVisible || isFormVisible;
   const structuredData = buildShopProductStructuredData(product, siteConfig.url);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const key = new URLSearchParams(window.location.search).get('edit');
+      if (!key) return;
+      const item = readShopCart().find((entry) => entry.key === key && entry.productId === id);
+      if (!item) return;
+      const index = SHOP_SIZES.findIndex((size) => size.dimension === item.size);
+      if (index >= 0) setSizeIndex(index);
+      setForm(item.details);
+      setEditingKey(item.key);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [id]);
 
   useEffect(() => {
     const dialog = zoomDialog.current;
@@ -139,9 +144,8 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
     return () => observer.disconnect();
   }, []);
 
-  function updateForm(field: keyof PersonalDetails, value: string) {
+  function updateForm(field: keyof ShopPersonalization, value: string) {
     setForm((previous) => ({ ...previous, [field]: value }));
-    setConfirmed(null);
     setFormError('');
   }
 
@@ -175,7 +179,11 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       setFormError('برای آسمان تولد، ساعت و شهر تولد هم ضروری‌اند.');
       return;
     }
-    setConfirmed({ ...form });
+    if (!addShopCartItem(id, SHOP_SIZES[sizeIndex].dimension, { ...form }, editingKey ?? undefined)) {
+      setFormError('افزودن به سبد ممکن نشد؛ فضای ذخیرهٔ مرورگر یا تعداد آثار را بررسی کن.');
+      return;
+    }
+    router.push('/shop/cart');
   }
 
   return (
@@ -239,7 +247,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                       type="button"
                       className={`${styles.sizeChoice} ${sizeIndex === i ? styles.sizeSelected : ''}`}
                       aria-pressed={sizeIndex === i}
-                      onClick={() => { setSizeIndex(i); setConfirmed(null); }}
+                      onClick={() => setSizeIndex(i)}
                     >
                       <span dir="ltr">{size.label}</span>
                     </button>
@@ -266,7 +274,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                         type="button"
                         className={`${styles.calendarOption} ${form.calendar === calendar ? styles.calendarActive : ''}`}
                         aria-pressed={form.calendar === calendar}
-                        onClick={() => { if (form.calendar !== calendar) { setForm((previous) => ({ ...previous, calendar, date: '' })); setConfirmed(null); setFormError(''); } }}
+                        onClick={() => { if (form.calendar !== calendar) { setForm((previous) => ({ ...previous, calendar, date: '' })); setFormError(''); } }}
                       >{label}</button>
                     ))}
                   </div>
@@ -323,21 +331,11 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 </details>
                 {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
                 <button className={styles.confirmAction} type="submit">
-                  <span className={styles.confirmLabel}>{formCopy.submit}</span>
+                  <span className={styles.confirmLabel}>{editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن به سبد خرید'}</span>
                   <span className={styles.confirmArrow} aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg></span>
                 </button>
-                {confirmed ? (
-                  <div className={styles.personalSummary} aria-live="polite">
-                    <strong>انتخاب‌های تو تأیید شدند</strong>
-                    <span><bdi dir="ltr">{SHOP_SIZES[sizeIndex].label}</bdi> سانتی‌متر</span>
-                    {confirmed.date ? <span>تاریخ: {confirmed.date} ({confirmed.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</span> : null}
-                    {confirmed.time ? <span>ساعت: {confirmed.time}</span> : null}
-                    {confirmed.city ? <span>شهر: {confirmed.city}</span> : null}
-                    {confirmed.names ? <span>نام: {confirmed.names}</span> : null}
-                    {confirmed.message ? <span>پیام: {confirmed.message}</span> : null}
-                  </div>
-                ) : null}
               </form>
+              <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link>
               <div className={styles.specification}>
                 <span>{product.highlight}</span>
                 <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span>
@@ -435,7 +433,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
       <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
         <div><small>قیمت</small><strong><bdi>{formatPrice(price)}</bdi> <span>تومان</span></strong></div>
-        <a href="#personalize"><span>{confirmed ? 'ویرایش انتخاب‌ها' : 'انتخاب مشخصات تابلو'}</span></a>
+        <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'مشخصات و افزودن به سبد'}</span></a>
       </div>
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>
