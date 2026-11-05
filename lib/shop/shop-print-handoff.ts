@@ -1,4 +1,5 @@
-import { parseShopCart } from '@/components/shop/shop-cart';
+import { parseShopCart, type ShopCartItem } from '@/components/shop/shop-cart';
+import { validateShopMoment } from './shop-personalization';
 import { getShopPrintSpec } from './shop-print-spec';
 
 const readyForHandoff = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
@@ -9,6 +10,12 @@ const names: Record<string, string> = {
 
 export class ShopPrintHandoffError extends Error {
   constructor(message: string, readonly status = 409) { super(message); }
+}
+
+function getGregorianDate(item: ShopCartItem): string | null {
+  const validated = validateShopMoment(item.productId, item.details);
+  if (!validated.ok) throw new ShopPrintHandoffError('تاریخ شخصی‌سازی سفارش معتبر نیست.', 422);
+  return validated.gregorianIso;
 }
 
 export function buildPrivateShopPrintHandoff(raw: unknown) {
@@ -50,6 +57,8 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
       personalization: {
         calendar: item.details.calendar,
         date: item.details.date,
+        // Source date is normalized, but its reference UTC instant is not guessed.
+        gregorianDate: getGregorianDate(item),
         time: item.details.time,
         city: item.details.city,
         names: item.details.names,

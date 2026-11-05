@@ -8,6 +8,7 @@ import { siteConfig } from '@/lib/config/seo';
 import { buildShopProductStructuredData } from './product-schema';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId } from './product-detail-data';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
+import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import styles from './product-detail.module.css';
 
 const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: '', city: '', names: '', message: '' };
@@ -158,25 +159,9 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   function confirmDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const needsDate = id !== 'p03';
-    const digits = form.date.replace(/[۰-۹٠-٩]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩'.indexOf(digit) % 10));
-    if (needsDate && !form.date.trim()) {
-      setFormError('لطفاً تاریخ این لحظه را وارد کن.');
-      return;
-    }
-    if (form.date.trim() && form.calendar === 'jalali') {
-      const match = digits.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-      const year = Number(match?.[1]);
-      const month = Number(match?.[2]);
-      const day = Number(match?.[3]);
-      const maxDay = month <= 6 ? 31 : 30;
-      if (!match || year < 1 || year > 9999 || month < 1 || month > 12 || day < 1 || day > maxDay) {
-        setFormError('سال، ماه و روز شمسی را بررسی کن؛ مثل ۱۴۰۳/۰۶/۱۲.');
-        return;
-      }
-    }
-    if (id === 'p02' && (!form.time || !form.city.trim())) {
-      setFormError('برای آسمان تولد، ساعت و شهر تولد هم ضروری‌اند.');
+    const validated = validateShopMoment(id, form);
+    if (!validated.ok) {
+      setFormError(validated.message);
       return;
     }
     if (!addShopCartItem(id, SHOP_SIZES[sizeIndex].dimension, { ...form }, editingKey ?? undefined)) {

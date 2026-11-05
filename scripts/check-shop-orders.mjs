@@ -31,7 +31,11 @@ function load(relative, dependencies = {}, mocks = {}) {
 }
 
 const product = load('components/shop/product-detail-data.ts');
-const cart = load('components/shop/shop-cart.ts', { './product-detail-data': product });
+const jalali = load('lib/date/jalali.ts');
+const moment = load('lib/shop/shop-personalization.ts', { '@/lib/date/jalali': jalali });
+const cart = load('components/shop/shop-cart.ts', {
+  './product-detail-data': product, '@/lib/shop/shop-personalization': moment,
+});
 const shipping = load('components/shop/shop-checkout-state.ts');
 const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': product,
@@ -66,6 +70,8 @@ for (const invalid of [
   { ...payload, guestAccessCode: 'short' },
   { ...payload, items: [{ ...item, quantity: 100 }] },
   { ...payload, items: [item, item] },
+  { ...payload, items: [{ ...item, details: { ...details, date: '1400/12/30' } }] },
+  { ...payload, items: [{ ...item, details: { ...details, calendar: 'gregorian', date: '2023-02-29' } }] },
 ]) assert.throws(() => contract.parseShopOrderDraft(invalid));
 assert.deepEqual({ ...contract.parseTransferEvidence({ reference: '۱۲۳۴', time: '' }) }, { reference: '1234', time: null });
 assert.deepEqual({ ...contract.parseTransferEvidence({ reference: '', time: '13:05' }) }, { reference: null, time: '13:05' });

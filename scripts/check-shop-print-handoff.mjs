@@ -25,9 +25,15 @@ function load(relativePath, dependencies = {}) {
 }
 
 const products = load('components/shop/product-detail-data.ts');
-const cart = load('components/shop/shop-cart.ts', { './product-detail-data': products });
+const jalali = load('lib/date/jalali.ts');
+const moment = load('lib/shop/shop-personalization.ts', { '@/lib/date/jalali': jalali });
+const cart = load('components/shop/shop-cart.ts', {
+  './product-detail-data': products, '@/lib/shop/shop-personalization': moment,
+});
 const printSpec = load('lib/shop/shop-print-spec.ts', { '@/components/shop/product-detail-data': products });
-const handoff = load('lib/shop/shop-print-handoff.ts', { '@/components/shop/shop-cart': cart, './shop-print-spec': printSpec });
+const handoff = load('lib/shop/shop-print-handoff.ts', {
+  '@/components/shop/shop-cart': cart, './shop-personalization': moment, './shop-print-spec': printSpec,
+});
 
 const item = {
   key: 'print-line-01', productId: 'p01', size: '20x30', quantity: 2,
@@ -45,6 +51,7 @@ assert.equal(result.prints[0].quantity, 2);
 assert.equal(result.prints[0].sizeCm, '20x30');
 assert.deepEqual(JSON.parse(JSON.stringify(result.prints[0].prepressRequirements.minimumNativePixels)), { width: 2363, height: 3544 });
 assert.equal(result.prints[0].personalization.message, 'پیام خصوصی');
+assert.equal(result.prints[0].personalization.gregorianDate, '2024-11-05');
 assert.equal(result.prints[0].printArtworkReady, false);
 const text = JSON.stringify(result);
 for (const sensitive of ['+989121234567', 'خیابان کاملاً خصوصی', '12344321', 'never-include-secret']) {

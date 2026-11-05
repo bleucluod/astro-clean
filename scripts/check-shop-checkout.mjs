@@ -43,7 +43,11 @@ function loadTypeScript(relativePath, dependencies = {}) {
 }
 
 const productData = loadTypeScript('components/shop/product-detail-data.ts');
-const cart = loadTypeScript('components/shop/shop-cart.ts', { './product-detail-data': productData });
+const jalali = loadTypeScript('lib/date/jalali.ts');
+const moment = loadTypeScript('lib/shop/shop-personalization.ts', { '@/lib/date/jalali': jalali });
+const cart = loadTypeScript('components/shop/shop-cart.ts', {
+  './product-detail-data': productData, '@/lib/shop/shop-personalization': moment,
+});
 const checkout = loadTypeScript('components/shop/shop-checkout-state.ts');
 const quote = loadTypeScript('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': productData,

@@ -1,6 +1,6 @@
 # Halleus physical-shop launch — active execution ledger
 
-Last reconciled: 2026-11-05 (Asia/Tehran)
+Last reconciled: 2026-11-05 (Asia/Tehran), S1 candidate B
 Repository: `bleucluod/astro-clean`
 Approved working branch: `shop/launch-completion-20261105`
 Approved starting point: `4bd0a0aa645b15a03154b8121050303daa6f53fe`
@@ -46,7 +46,8 @@ Pass numbers are planning buckets, not guarantees of an exact number of messages
 | Checkpoint | Candidate SHA | Result | Next safe action |
 | --- | --- | --- | --- |
 | 2026-11-05, authorized start | `4bd0a0aa645b15a03154b8121050303daa6f53fe` | Fresh clean shop worktree created from `origin/main`; old dirty worktree left untouched. | Prepare S1 real print inputs and prepress checks; record evidence and branch SHA after independent verification. |
-| 2026-11-05, S1 candidate A | First shop-branch commit after this entry | Generated a standalone P03 1024×1536 RGB master *proof* from the existing gallery visual; added strict 300 PPI native-size/sRGB/approval prepress checks for all three sizes and a print-brief size contract. Proof has no customer data and is not approved for printing. | Complete actual high-resolution print masters, verifiable P01 lunar and P02 sky calculations, private personalized rendering/storage and owner controls. |
+| 2026-11-05, S1 candidate A | `e5fa8d43589b5f62bbfdc52224113e12d889c501` | Generated a standalone P03 1024×1536 RGB *proof* from the existing gallery visual; added strict 300 PPI native-size/sRGB/approval prepress checks for all three sizes and a print-brief size contract. Proof has no customer data and is not approved for printing. | Validate real product date/phase contracts before personalized art. |
+| 2026-11-05, S1 candidate B | Current branch commit containing this ledger entry | Centralized Gregorian/Jalali leap-date, optional-date, time and required-city validation shared by PDP, cart and server order intake; print brief now contains normalized Gregorian civil date. Added geocentric lunar-phase calculation using the installed astronomy engine and an explicitly supplied UTC instant; **no unapproved date-only timezone policy is assumed**. | Continue independent high-resolution artwork proof and P02 coordinate/timezone disambiguation. Do not call any product print-ready until personal/physical review and relevant decisions close. |
 
 ### S1 candidate A check record
 
@@ -54,6 +55,20 @@ Pass numbers are planning buckets, not guarantees of an exact number of messages
 - `UNRELATED_BASELINE_FAILURE`: Webpack build still fails on existing CSS Module selectors in `app/sky/sky.module.css`, `components/app-shell.module.css`, `components/report/human-first-report.module.css` (the same failures seen before this candidate).
 - `EXTERNAL_BLOCK`: normal `pnpm` wrapper attempted a dependency-install check that could not complete in this linked isolated worktree; equivalent native `node` guards, `tsc`, ESLint and Next Webpack entrypoint were run directly. Default Turbopack build also rejects an out-of-project `node_modules` symlink; Webpack was used to reveal the independent existing CSS failures.
 - `BLOCKED_BY_DEPENDENCY`: production DB schema/migrations and isolated real-shape Postgres E2E require verified DB topology and test environment. P03 proof's native pixels are insufficient for **even 10×15 cm at 300 PPI**; its approval and final high-resolution master are still pending.
+
+### S1 candidate B check record
+
+- PASS: new lunar/date guard (Gregorian leap and invalid day; Jalali leap and invalid Esfand; required date/time/city; cart rejection; new/full moon fixtures at exact UTC instants); checkout, order and print-brief guards; prepress guard; product surface; workflow optimization; TypeScript; affected ESLint; encoding; impact-plan generation; `git diff --check`.
+- `UNRELATED_BASELINE_FAILURE`: Webpack production build still fails at the already-known CSS Modules selectors in sky, app-shell and human-first-report files. The unrelated workflow-acceleration guard still expects an absent `pull_request:` marker.
+- `BLOCKED_BY_DEPENDENCY`: real customer-specific raster output, P02 starfield, isolated database tests, and physical/owner print acceptance are not demonstrated by these pure calculation tests. Production routes and database remain untouched.
+
+## Deferred decisions — must not be silently completed
+
+| ID | Decision / options | Recommended option | Dependent work |
+| --- | --- | --- | --- |
+| D-S1-01 | For date-only P01, choose **A:** local noon for a specified market timezone, **B:** UTC noon, or **C:** require an exact local hour and city. | A, with the reference timezone stated transparently in product copy and private art metadata. The exact timezone requires owner approval. | Render/label the **date-only** lunar artwork. The ephemeris function only accepts an explicit UTC instant until this is resolved. |
+| D-S1-02 | P02 city entries: **A:** select a unique city/coordinates/timezone from the verified catalog, **B:** accept unverified free text and resolve manually. | A; avoid guessing a city when names repeat, require explicit matching and historical time-zone reconciliation. | Accurate birth-sky coordinates and personalized P02 print output. |
+| D-S1-03 | Physical art acceptance: **A:** owner reviews per-product and lab-proofs the high-resolution RGB/sRGB print masters, **B:** publish from unapproved screenshots/proofs. | A; the present P03 1024×1536 proof fails native 300 PPI even at the smallest size. | Approval flags, final print masters and production opening. |
 
 ### Verification and recovery contract
 

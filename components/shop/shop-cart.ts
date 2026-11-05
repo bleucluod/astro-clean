@@ -1,4 +1,5 @@
 import { SHOP_SIZES, type ShopProductId } from './product-detail-data';
+import { validateShopMoment } from '@/lib/shop/shop-personalization';
 
 export type ShopPersonalization = {
   calendar: 'jalali' | 'gregorian';
@@ -46,8 +47,7 @@ export function parseShopCart(value: unknown): ShopCartItem[] {
     if ((['date', 'time', 'city', 'names', 'message'] as const).some(
       (field) => typeof details[field] !== 'string' || (details[field] as string).length > detailLimits[field],
     )) continue;
-    if (item.productId !== 'p03' && !(details.date as string).trim()) continue;
-    if (item.productId === 'p02' && (!(details.time as string).trim() || !(details.city as string).trim())) continue;
+    if (!validateShopMoment(item.productId as ShopProductId, details as ShopPersonalization).ok) continue;
     seen.add(item.key);
     items.push({
       key: item.key, productId: item.productId as ShopProductId, size: item.size as ShopSize,
