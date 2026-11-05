@@ -25,7 +25,7 @@ function loadTypeScript(relativePath, dependencies = {}) {
   const sandboxModule = { exports: {} };
   const factory = vm.runInNewContext(`(function (module, exports, require) { ${outputText}\n})`, {
     window: windowMock, crypto: { randomUUID: () => 'new-item' }, Event: class Event {},
-    Response, Request, process: { env: runtimeEnv },
+    Response, Request, URL, Buffer, TextDecoder, process: { env: runtimeEnv },
     fetch: async (path, options) => {
       assert.equal(path, '/api/shop/quote');
       quoteFetchCalls += 1;
@@ -62,7 +62,18 @@ const quote = loadTypeScript('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': productData,
   '@/components/shop/shop-checkout-state': checkout,
 });
-const quoteRoute = loadTypeScript('app/api/shop/quote/route.ts', { '@/lib/shop/shop-quote': quote });
+const origin = loadTypeScript('lib/admin/admin-origin.ts');
+const http = loadTypeScript('lib/shop/shop-order-http.ts', {
+  '@/lib/admin/admin-origin': origin,
+  '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },
+  './shop-order-contract': { ShopOrderInputError: class ShopOrderInputError extends Error {} },
+  './shop-order-store': { ShopOrderStateError: class ShopOrderStateError extends Error {
+    constructor(message, status = 409) { super(message); this.status = status; }
+  } },
+});
+const quoteRoute = loadTypeScript('app/api/shop/quote/route.ts', {
+  '@/lib/shop/shop-quote': quote, '@/lib/shop/shop-order-http': http,
+});
 const quoteClient = loadTypeScript('components/shop/shop-quote-client.ts');
 const details = { calendar: 'jalali', date: '1403/06/12', time: '', city: '', names: 'نام', message: '' };
 
@@ -128,19 +139,78 @@ for (const payload of [
 }
 
 const apiResponse = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
-  method: 'POST', body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
 }));
 assert.equal(apiResponse.status, 200);
 assert.equal(apiResponse.headers.get('cache-control'), 'private, no-store');
 assert.equal((await apiResponse.json()).quote.total, 3_298_000);
 for (const body of ['{', '{}', JSON.stringify({ carrier: 'post', items: [{ ...minimalLine, quantity: -1 }] })]) {
-  const invalidResponse = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', { method: 'POST', body }));
+  const invalidResponse = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+  }));
   assert.equal(invalidResponse.status, 400);
 }
 const oversized = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
-  method: 'POST', body: JSON.stringify({ carrier: 'post', items: [minimalLine], filler: 'z'.repeat(8001) }),
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ carrier: 'post', items: [minimalLine], filler: 'z'.repeat(8001) }),
 }));
 assert.equal(oversized.status, 413);
+const foreignQuote = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://attacker.invalid' },
+  body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
+}));
+assert.equal(foreignQuote.status, 403);
+const trustedQuote = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8', Origin: 'https://halleus.ir' },
+  body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
+}));
+assert.equal(trustedQuote.status, 200);
+const splitQuoteBody = new TextEncoder().encode(JSON.stringify({ carrier: 'post', items: [minimalLine] }));
+const streamedQuote = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, duplex: 'half',
+  body: new ReadableStream({
+    start(controller) {
+      controller.enqueue(splitQuoteBody.subarray(0, 17));
+      controller.enqueue(splitQuoteBody.subarray(17));
+      controller.close();
+    },
+  }),
+}));
+assert.equal(streamedQuote.status, 200, 'accept valid JSON split over multiple network chunks');
+for (const contentType of ['text/plain', 'application/jsonp', 'application/x-www-form-urlencoded']) {
+  const response = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+    method: 'POST', headers: { 'Content-Type': contentType }, body: '{}',
+  }));
+  assert.equal(response.status, 415, `${contentType} must not masquerade as JSON`);
+}
+const declaredOversize = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': '999999' }, body: '{}',
+}));
+assert.equal(declaredOversize.status, 413);
+let canceledLargeStream = false;
+const chunkedOversize = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, duplex: 'half',
+  body: new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(5_000));
+      controller.enqueue(new Uint8Array(5_000));
+    },
+    cancel() { canceledLargeStream = true; },
+  }),
+}));
+assert.equal(chunkedOversize.status, 413);
+assert.equal(canceledLargeStream, true, 'stop consuming oversized requests instead of buffering them');
+const invalidUtf8 = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: Uint8Array.from([0xc3, 0x28]),
+}));
+assert.equal(invalidUtf8.status, 400);
+const persianOversize = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ carrier: 'post', items: [minimalLine], filler: 'آ'.repeat(4_001) }),
+}));
+assert.equal(persianOversize.status, 413, 'enforce UTF-8 bytes, not JavaScript character count');
 runtimeEnv.NODE_ENV = 'production';
 const closed = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
   method: 'POST', body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
