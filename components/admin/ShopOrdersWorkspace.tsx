@@ -140,6 +140,29 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     finally { setBusy(false); }
   }
 
+  async function downloadSkyProof(line: number) {
+    if (!detail || busy || !printHandoffStatuses.has(detail.status) || detail.items[line - 1]?.productId !== 'p02') return;
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${detail.id}/print/preview?line=${line}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }, cache: 'no-store',
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error || 'ساخت پیش‌نمایش اختصاصی انجام نشد.');
+      }
+      const file = await response.blob();
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `halleus-order-${detail.display_number}-p02-line-${line}-proof.svg`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setSuccess('پیش‌نمایش اختصاصی دریافت شد. حاوی نام و پیام خصوصی است و هنوز برای چاپ تأیید نشده.');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت پیش‌نمایش انجام نشد.'); }
+    finally { setBusy(false); }
+  }
+
   function doSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPage(1); setSearch(searchDraft.trim());
   }
@@ -196,7 +219,10 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       </article>)}</div>
       {printHandoffStatuses.has(detail.status) ? <div className={styles.printHandoff}>
         <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود مشخصات خصوصی چاپ</button>
-        <p>فایل شامل تاریخ، نام و پیام هر محصول است؛ فایل هنری نهاییِ قابل چاپ نیست.</p>
+        {detail.items.map((item, index) => item.productId === 'p02' ? <button
+          key={item.key} type="button" disabled={busy} onClick={() => void downloadSkyProof(index + 1)}
+        >دانلود پیش‌نمایش اختصاصی آسمان تولد · ردیف {formatNumber(index + 1)}</button> : null)}
+        <p>پیش‌نمایش اختصاصی فقط برای آسمان تولد آماده است؛ فایل شامل نام و پیام خصوصی است، روی سرور بایگانی نمی‌شود و برای چاپ نهایی تأیید نشده.</p>
       </div> : <p className={styles.printNote}>تحویل اطلاعات سفارش به چاپ بعد از تأیید دریافت وجه فعال می‌شود.</p>}
       <h4>سوابق سفارش</h4>
       <div className={styles.history}>{detail.events.map((event, index) => <p key={`${event.created_at}-${index}`}>{new Date(event.created_at).toLocaleString('fa-IR')} · {event.action} · {labels[event.after_status] ?? event.after_status}{event.reason ? ` · ${event.reason}` : ''}</p>)}</div>
