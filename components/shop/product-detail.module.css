@@ -295,6 +295,10 @@
 .page .jalaliDatePart input { text-align: center; font-size: 16px; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .formField small { color: #a9c1d2; font-size: 11px; }
 .formHint { margin: -7px 0; color: #b8cad9; font-size: 12px; line-height: 1.9; }
+.citySuggestions { display: grid; gap: 3px; max-height: 240px; overflow-y: auto; margin: 0; padding: 5px; border: 1px solid #475d72; border-radius: 12px; background: #101c29; list-style: none; }
+.citySuggestions button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 42px; gap: 10px; padding: 8px 12px; border: 0; border-radius: 8px; background: transparent; color: #f2f7fc; text-align: right; cursor: pointer; }
+.citySuggestions button:hover, .citySuggestions button:focus-visible { background: #203348; outline: 1px solid #90b8d6; }
+.citySuggestions button small { color: #b5c8d9; font-size: 11px; }
 .formError { margin: 0; color: #ffbdc1; font-size: 13px; }
 .optionalFields { border-bottom: 1px solid #314353; }
 .optionalFields summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; color: #d9eafd; font-size: 13px; font-weight: 650; cursor: pointer; list-style: none; }

@@ -44,9 +44,18 @@ function loadTypeScript(relativePath, dependencies = {}) {
 
 const productData = loadTypeScript('components/shop/product-detail-data.ts');
 const jalali = loadTypeScript('lib/date/jalali.ts');
-const moment = loadTypeScript('lib/shop/shop-personalization.ts', { '@/lib/date/jalali': jalali });
+const iranCities = loadTypeScript('lib/locations/iran-cities.ts');
+const globalCities = loadTypeScript('lib/locations/global-cities.ts');
+const cities = loadTypeScript('lib/locations/cities.ts', {
+  '@/lib/locations/iran-cities': iranCities, '@/lib/locations/global-cities': globalCities,
+});
+const civilTime = loadTypeScript('lib/shop/shop-civil-time.ts');
+const moment = loadTypeScript('lib/shop/shop-personalization.ts', {
+  '@/lib/date/jalali': jalali, '@/lib/locations/cities': cities, './shop-civil-time': civilTime,
+});
 const cart = loadTypeScript('components/shop/shop-cart.ts', {
   './product-detail-data': productData, '@/lib/shop/shop-personalization': moment,
+  '@/lib/locations/cities': cities,
 });
 const checkout = loadTypeScript('components/shop/shop-checkout-state.ts');
 const quote = loadTypeScript('lib/shop/shop-quote.ts', {

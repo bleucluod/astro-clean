@@ -26,13 +26,23 @@ function load(relativePath, dependencies = {}) {
 
 const products = load('components/shop/product-detail-data.ts');
 const jalali = load('lib/date/jalali.ts');
-const moment = load('lib/shop/shop-personalization.ts', { '@/lib/date/jalali': jalali });
+const iranCities = load('lib/locations/iran-cities.ts');
+const globalCities = load('lib/locations/global-cities.ts');
+const cities = load('lib/locations/cities.ts', {
+  '@/lib/locations/iran-cities': iranCities, '@/lib/locations/global-cities': globalCities,
+});
+const civilTime = load('lib/shop/shop-civil-time.ts');
+const moment = load('lib/shop/shop-personalization.ts', {
+  '@/lib/date/jalali': jalali, '@/lib/locations/cities': cities, './shop-civil-time': civilTime,
+});
 const cart = load('components/shop/shop-cart.ts', {
   './product-detail-data': products, '@/lib/shop/shop-personalization': moment,
+  '@/lib/locations/cities': cities,
 });
 const printSpec = load('lib/shop/shop-print-spec.ts', { '@/components/shop/product-detail-data': products });
 const handoff = load('lib/shop/shop-print-handoff.ts', {
   '@/components/shop/shop-cart': cart, './shop-personalization': moment, './shop-print-spec': printSpec,
+  '@/lib/locations/cities': cities,
 });
 
 const item = {
@@ -53,6 +63,16 @@ assert.deepEqual(JSON.parse(JSON.stringify(result.prints[0].prepressRequirements
 assert.equal(result.prints[0].personalization.message, 'پیام خصوصی');
 assert.equal(result.prints[0].personalization.gregorianDate, '2024-11-05');
 assert.equal(result.prints[0].printArtworkReady, false);
+assert.equal(result.prints[0].birthSkyReference, null);
+const birthSkyItem = { ...item, productId: 'p02', details: {
+  ...item.details, calendar: 'gregorian', date: '2024-07-01', time: '12:30',
+  city: 'برلین، آلمان', cityId: 'de-berlin',
+} };
+const birthSkyBrief = handoff.buildPrivateShopPrintHandoff({ ...order, items: [birthSkyItem] });
+assert.equal(birthSkyBrief.prints[0].birthSkyReference.referenceUtc, '2024-07-01T10:30:00.000Z');
+assert.equal(birthSkyBrief.prints[0].birthSkyReference.timezone, 'Europe/Berlin');
+assert.equal(birthSkyBrief.prints[0].birthSkyReference.cityId, 'de-berlin');
+assert.equal(birthSkyBrief.prints[0].printArtworkReady, false);
 const text = JSON.stringify(result);
 for (const sensitive of ['+989121234567', 'خیابان کاملاً خصوصی', '12344321', 'never-include-secret']) {
   assert.ok(!text.includes(sensitive), `Unexpected sensitive field: ${sensitive}`);

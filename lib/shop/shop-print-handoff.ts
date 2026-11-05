@@ -1,6 +1,7 @@
 import { parseShopCart, type ShopCartItem } from '@/components/shop/shop-cart';
 import { validateShopMoment } from './shop-personalization';
 import { getShopPrintSpec } from './shop-print-spec';
+import { findHalleusCityById } from '@/lib/locations/cities';
 
 const readyForHandoff = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
@@ -16,6 +17,20 @@ function getGregorianDate(item: ShopCartItem): string | null {
   const validated = validateShopMoment(item.productId, item.details);
   if (!validated.ok) throw new ShopPrintHandoffError('تاریخ شخصی‌سازی سفارش معتبر نیست.', 422);
   return validated.gregorianIso;
+}
+
+function getBirthSkyReference(item: ShopCartItem) {
+  if (item.productId !== 'p02') return null;
+  const city = findHalleusCityById(item.details.cityId);
+  const validated = validateShopMoment(item.productId, item.details);
+  if (!city || !validated.ok || !validated.referenceUtc) {
+    throw new ShopPrintHandoffError('مکان و زمان آسمان تولد هنوز معتبر نیست.', 422);
+  }
+  return {
+    source: 'halleus-city-catalog-and-iana-timezone',
+    cityId: city.id, latitude: city.latitude, longitude: city.longitude,
+    timezone: city.timezone, referenceUtc: validated.referenceUtc,
+  };
 }
 
 export function buildPrivateShopPrintHandoff(raw: unknown) {
@@ -52,6 +67,7 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
       productTitle: names[item.productId],
       sizeCm: item.size,
       prepressRequirements: getShopPrintSpec(item.size),
+      birthSkyReference: getBirthSkyReference(item),
       quantity: item.quantity,
       material: 'matte-print-on-unframed-shasi',
       personalization: {
@@ -61,6 +77,7 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
         gregorianDate: getGregorianDate(item),
         time: item.details.time,
         city: item.details.city,
+        cityId: item.details.cityId,
         names: item.details.names,
         message: item.details.message,
       },

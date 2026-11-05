@@ -1,11 +1,13 @@
 import { SHOP_SIZES, type ShopProductId } from './product-detail-data';
-import { validateShopMoment } from '@/lib/shop/shop-personalization';
+import { matchUniqueShopBirthCity, validateShopMoment } from '@/lib/shop/shop-personalization';
+import { getHalleusCityDisplayName } from '@/lib/locations/cities';
 
 export type ShopPersonalization = {
   calendar: 'jalali' | 'gregorian';
   date: string;
   time: string;
   city: string;
+  cityId: string;
   names: string;
   message: string;
 };
@@ -27,7 +29,7 @@ const MAX_QUANTITY = 10;
 
 const validProductIds: ShopProductId[] = ['p01', 'p02', 'p03'];
 const detailLimits: Record<keyof ShopPersonalization, number> = {
-  calendar: 9, date: 20, time: 10, city: 100, names: 60, message: 60,
+  calendar: 9, date: 20, time: 10, city: 100, cityId: 60, names: 60, message: 60,
 };
 
 export function parseShopCart(value: unknown): ShopCartItem[] {
@@ -47,14 +49,24 @@ export function parseShopCart(value: unknown): ShopCartItem[] {
     if ((['date', 'time', 'city', 'names', 'message'] as const).some(
       (field) => typeof details[field] !== 'string' || (details[field] as string).length > detailLimits[field],
     )) continue;
-    if (!validateShopMoment(item.productId as ShopProductId, details as ShopPersonalization).ok) continue;
+    if (details.cityId !== undefined && (typeof details.cityId !== 'string' || details.cityId.length > detailLimits.cityId)) continue;
+    const normalizedDetails = { ...details, cityId: (details.cityId as string | undefined) ?? '' } as ShopPersonalization;
+    if (item.productId === 'p02' && !normalizedDetails.cityId) {
+      const legacyCity = matchUniqueShopBirthCity(normalizedDetails.city);
+      if (legacyCity) {
+        normalizedDetails.cityId = legacyCity.id;
+        normalizedDetails.city = getHalleusCityDisplayName(legacyCity);
+      }
+    }
+    if (!validateShopMoment(item.productId as ShopProductId, normalizedDetails).ok) continue;
     seen.add(item.key);
     items.push({
       key: item.key, productId: item.productId as ShopProductId, size: item.size as ShopSize,
       quantity: item.quantity as number,
       details: {
         calendar: details.calendar, date: details.date as string, time: details.time as string,
-        city: details.city as string, names: details.names as string, message: details.message as string,
+        city: normalizedDetails.city, cityId: normalizedDetails.cityId,
+        names: details.names as string, message: details.message as string,
       },
     });
   }

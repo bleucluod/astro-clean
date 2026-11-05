@@ -23,9 +23,18 @@ function load(relativePath, dependencies = {}) {
 
 const product = load('components/shop/product-detail-data.ts');
 const jalali = load('lib/date/jalali.ts');
-const moment = load('lib/shop/shop-personalization.ts', { '@/lib/date/jalali': jalali });
+const iranCities = load('lib/locations/iran-cities.ts');
+const globalCities = load('lib/locations/global-cities.ts');
+const cities = load('lib/locations/cities.ts', {
+  '@/lib/locations/iran-cities': iranCities, '@/lib/locations/global-cities': globalCities,
+});
+const civilTime = load('lib/shop/shop-civil-time.ts');
+const moment = load('lib/shop/shop-personalization.ts', {
+  '@/lib/date/jalali': jalali, '@/lib/locations/cities': cities, './shop-civil-time': civilTime,
+});
 const cart = load('components/shop/shop-cart.ts', {
   './product-detail-data': product, '@/lib/shop/shop-personalization': moment,
+  '@/lib/locations/cities': cities,
 });
 const moon = load('lib/shop/shop-moon-ephemeris.ts', { 'astronomy-engine': astronomy });
 
@@ -44,12 +53,30 @@ assert.equal(check('p01', { calendar: 'gregorian', date: '2024-02-29' }).ok, tru
 assert.equal(check('p01', { calendar: 'gregorian', date: '2023-02-29' }).ok, false);
 assert.equal(check('p01', { calendar: 'gregorian', date: '2024-04-31' }).ok, false);
 assert.equal(check('p01', { calendar: 'gregorian', date: '2024-13-01' }).ok, false);
-assert.equal(check('p02', { time: '23:59', city: 'تهران' }).ok, true);
+const tehran = cities.findHalleusCityByName('تهران');
+assert.ok(tehran);
+assert.equal(check('p02', { time: '23:59', city: cities.getHalleusCityDisplayName(tehran), cityId: tehran.id }).ok, true);
 assert.equal(check('p02', { time: '24:00', city: 'تهران' }).ok, false);
 assert.equal(check('p02', { time: '01:60', city: 'تهران' }).ok, false);
 assert.equal(check('p02', { time: '12:00', city: '' }).ok, false);
 assert.equal(check('p02', { time: '', city: 'تهران' }).ok, false);
 assert.equal(check('p01', { time: '25:12' }).ok, false);
+assert.equal(check('p02', { time: '12:00', city: 'تهران', cityId: 'de-berlin' }).ok, false);
+const birthSky = check('p02', { calendar: 'gregorian', date: '2024-07-01',
+  time: '12:30', city: 'برلین، آلمان', cityId: 'de-berlin' });
+assert.equal(birthSky.ok, true);
+assert.equal(birthSky.referenceUtc, '2024-07-01T10:30:00.000Z');
+assert.deepEqual(JSON.parse(JSON.stringify(civilTime.resolveShopCivilTimeUtc('2024-07-01', '12:30', 'Europe/Berlin'))),
+  { status: 'resolved', utcIso: '2024-07-01T10:30:00.000Z' });
+assert.equal(civilTime.resolveShopCivilTimeUtc('2024-03-31', '02:30', 'Europe/Berlin').status, 'nonexistent');
+assert.equal(civilTime.resolveShopCivilTimeUtc('2024-10-27', '02:30', 'Europe/Berlin').status, 'ambiguous');
+assert.equal(civilTime.resolveShopCivilTimeUtc('2024-07-01', '12:00', 'Asia/Tehran').utcIso, '2024-07-01T08:30:00.000Z');
+assert.equal(civilTime.resolveShopCivilTimeUtc('2021-07-01', '12:00', 'Asia/Tehran').utcIso, '2021-07-01T07:30:00.000Z');
+assert.equal(civilTime.resolveShopCivilTimeUtc('2024-07-01', '12:00', 'INVALID/Zone').status, 'invalid-timezone');
+assert.equal(check('p02', { calendar: 'gregorian', date: '2024-03-31', time: '02:30',
+  city: 'برلین، آلمان', cityId: 'de-berlin' }).ok, false);
+assert.equal(check('p02', { calendar: 'gregorian', date: '2024-10-27', time: '02:30',
+  city: 'برلین، آلمان', cityId: 'de-berlin' }).ok, false);
 
 const line = (p, date, calendar = 'jalali') => ({
   key: `item-${p}`, productId: p, size: '20x30', quantity: 1,
@@ -59,6 +86,10 @@ assert.equal(cart.parseShopCart([line('p01', '1400/12/30')]).length, 0);
 assert.equal(cart.parseShopCart([line('p01', '1399/12/30')]).length, 1);
 assert.equal(cart.parseShopCart([line('p01', '2023-02-29', 'gregorian')]).length, 0);
 assert.equal(cart.parseShopCart([line('p03', '')]).length, 1);
+const legacyBirthSky = { ...line('p02', '1403/06/12'), details: {
+  ...details, time: '12:00', city: 'تهران',
+} };
+assert.equal(cart.parseShopCart([legacyBirthSky])[0].details.cityId, tehran.id);
 
 const newMoon = astronomy.SearchMoonPhase(0, new Date('2024-04-01T00:00:00Z'), 30).date.toISOString();
 const fullMoon = astronomy.SearchMoonPhase(180, new Date('2024-03-20T00:00:00Z'), 30).date.toISOString();

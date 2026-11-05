@@ -1,16 +1,29 @@
 import { normalizePersianDigits, parseJalaliDateInput } from '@/lib/date/jalali';
 import type { ShopProductId } from '@/components/shop/product-detail-data';
+import { HALLEUS_CITY_OPTIONS, findHalleusCityById, getHalleusCityDisplayName, normalizeHalleusCitySearch } from '@/lib/locations/cities';
+import { resolveShopCivilTimeUtc } from './shop-civil-time';
 
 type ShopMomentInput = {
   calendar: 'jalali' | 'gregorian';
   date: string;
   time: string;
   city: string;
+  cityId?: string;
 };
 
 export type ShopMomentValidation =
-  | { ok: true; gregorianIso: string | null }
+  | { ok: true; gregorianIso: string | null; referenceUtc: string | null }
   | { ok: false; message: string };
+
+/** Only migrate a legacy text-only cart value if it identifies exactly one city. */
+export function matchUniqueShopBirthCity(text: string) {
+  const normalized = normalizeHalleusCitySearch(text);
+  if (!normalized) return null;
+  const matches = HALLEUS_CITY_OPTIONS.filter((city) => [
+    city.faName, getHalleusCityDisplayName(city), ...city.aliases,
+  ].some((name) => normalizeHalleusCitySearch(name) === normalized));
+  return matches.length === 1 ? matches[0] : null;
+}
 
 function parseGregorianDate(value: string): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -51,8 +64,20 @@ export function validateShopMoment(productId: ShopProductId, input: ShopMomentIn
   if (time && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) {
     return { ok: false, message: 'ساعت را با قالب ۲۴ساعته و دقیقهٔ معتبر وارد کن.' };
   }
-  if (productId === 'p02' && !input.city.trim()) {
-    return { ok: false, message: 'برای آسمان تولد، شهر تولد هم ضروری است.' };
+  let referenceUtc: string | null = null;
+  if (productId === 'p02') {
+    const city = findHalleusCityById(input.cityId ?? '');
+    if (!city || normalizeHalleusCitySearch(input.city) !== normalizeHalleusCitySearch(getHalleusCityDisplayName(city))) {
+      return { ok: false, message: 'برای محاسبهٔ آسمان تولد، شهر را از فهرست پیشنهادی انتخاب کن.' };
+    }
+    const instant = resolveShopCivilTimeUtc(gregorianIso!, time, city.timezone);
+    if (instant.status === 'ambiguous') {
+      return { ok: false, message: 'این ساعت در شهر انتخابی دو بار اتفاق افتاده؛ لطفاً زمان دقیق را با پشتیبانی هماهنگ کن.' };
+    }
+    if (instant.status !== 'resolved') {
+      return { ok: false, message: 'این ساعت با تاریخ و منطقهٔ زمانی شهر سازگار نیست؛ زمان را بررسی کن.' };
+    }
+    referenceUtc = instant.utcIso;
   }
-  return { ok: true, gregorianIso };
+  return { ok: true, gregorianIso, referenceUtc };
 }

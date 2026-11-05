@@ -32,9 +32,18 @@ function load(relative, dependencies = {}, mocks = {}) {
 
 const product = load('components/shop/product-detail-data.ts');
 const jalali = load('lib/date/jalali.ts');
-const moment = load('lib/shop/shop-personalization.ts', { '@/lib/date/jalali': jalali });
+const iranCities = load('lib/locations/iran-cities.ts');
+const globalCities = load('lib/locations/global-cities.ts');
+const cities = load('lib/locations/cities.ts', {
+  '@/lib/locations/iran-cities': iranCities, '@/lib/locations/global-cities': globalCities,
+});
+const civilTime = load('lib/shop/shop-civil-time.ts');
+const moment = load('lib/shop/shop-personalization.ts', {
+  '@/lib/date/jalali': jalali, '@/lib/locations/cities': cities, './shop-civil-time': civilTime,
+});
 const cart = load('components/shop/shop-cart.ts', {
   './product-detail-data': product, '@/lib/shop/shop-personalization': moment,
+  '@/lib/locations/cities': cities,
 });
 const shipping = load('components/shop/shop-checkout-state.ts');
 const quote = load('lib/shop/shop-quote.ts', {
@@ -72,6 +81,9 @@ for (const invalid of [
   { ...payload, items: [item, item] },
   { ...payload, items: [{ ...item, details: { ...details, date: '1400/12/30' } }] },
   { ...payload, items: [{ ...item, details: { ...details, calendar: 'gregorian', date: '2023-02-29' } }] },
+  { ...payload, items: [{ ...item, productId: 'p02', details: {
+    ...details, time: '12:00', city: 'تهران', cityId: 'de-berlin',
+  } }] },
 ]) assert.throws(() => contract.parseShopOrderDraft(invalid));
 assert.deepEqual({ ...contract.parseTransferEvidence({ reference: '۱۲۳۴', time: '' }) }, { reference: '1234', time: null });
 assert.deepEqual({ ...contract.parseTransferEvidence({ reference: '', time: '13:05' }) }, { reference: null, time: '13:05' });

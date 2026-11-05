@@ -3,15 +3,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { siteConfig } from '@/lib/config/seo';
 import { buildShopProductStructuredData } from './product-schema';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId } from './product-detail-data';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
+import { filterHalleusCities, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import styles from './product-detail.module.css';
 
-const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: '', city: '', names: '', message: '' };
+const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: '', city: '', cityId: '', names: '', message: '' };
 
 function formatPrice(amount: number) {
   return new Intl.NumberFormat('fa-IR').format(amount);
@@ -72,6 +73,8 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const price = SHOP_SIZES[sizeIndex].price;
+  const citySuggestions = useMemo(() => id === 'p02' && !form.cityId && form.city.trim().length >= 2
+    ? filterHalleusCities(form.city).slice(0, 8) : [], [id, form.city, form.cityId]);
   const formCopy = {
     p01: {
       title: 'کدام روز را به ماه می‌سپاری؟',
@@ -146,7 +149,14 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   }, []);
 
   function updateForm(field: keyof ShopPersonalization, value: string) {
-    setForm((previous) => ({ ...previous, [field]: value }));
+    setForm((previous) => field === 'city'
+      ? { ...previous, city: value, cityId: '' }
+      : { ...previous, [field]: value });
+    setFormError('');
+  }
+
+  function selectBirthCity(cityId: string, cityLabel: string) {
+    setForm((previous) => ({ ...previous, city: cityLabel, cityId }));
     setFormError('');
   }
 
@@ -289,7 +299,26 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                   <>
                     <div className={styles.dateFields}>
                       <div className={styles.formField}><label htmlFor="product-time">ساعت دقیق تولد</label><input id="product-time" type="time" dir="ltr" required value={form.time} onChange={(event) => updateForm('time', event.target.value)} /></div>
-                      <div className={styles.formField}><label htmlFor="product-city">شهر تولد</label><input id="product-city" type="text" required maxLength={100} placeholder="نام شهر تولد" value={form.city} onChange={(event) => updateForm('city', event.target.value)} /></div>
+                      <div className={styles.formField}>
+                        <label htmlFor="product-city">شهر تولد</label>
+                        <input id="product-city" type="text" required maxLength={100} autoComplete="off"
+                          placeholder="نام شهر را بنویس و انتخاب کن" value={form.city}
+                          onChange={(event) => updateForm('city', event.target.value)}
+                          aria-describedby="shop-city-hint" />
+                        {citySuggestions.length ? (
+                          <ul className={styles.citySuggestions} aria-label="شهرهای پیشنهادی">
+                            {citySuggestions.map((city) => (
+                              <li key={city.id}>
+                                <button type="button" onClick={() => selectBirthCity(city.id, getHalleusCityDisplayName(city))}>
+                                  <span>{getHalleusCityDisplayName(city)}</span>
+                                  <small>{city.countryFaName}</small>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                        <small id="shop-city-hint">برای نقشهٔ واقعی آسمان، شهر را حتماً از فهرست انتخاب کن.</small>
+                      </div>
                     </div>
                     <p className={styles.formHint}>برای نقشهٔ ستاره‌ها، تاریخ، ساعت و شهر دقیق تولد اهمیت دارند.</p>
                   </>

@@ -1,6 +1,6 @@
 # Halleus physical-shop launch — active execution ledger
 
-Last reconciled: 2026-11-05 (Asia/Tehran), S1 candidate B
+Last reconciled: 2026-11-05 (Asia/Tehran), S1 candidate C
 Repository: `bleucluod/astro-clean`
 Approved working branch: `shop/launch-completion-20261105`
 Approved starting point: `4bd0a0aa645b15a03154b8121050303daa6f53fe`
@@ -47,7 +47,8 @@ Pass numbers are planning buckets, not guarantees of an exact number of messages
 | --- | --- | --- | --- |
 | 2026-11-05, authorized start | `4bd0a0aa645b15a03154b8121050303daa6f53fe` | Fresh clean shop worktree created from `origin/main`; old dirty worktree left untouched. | Prepare S1 real print inputs and prepress checks; record evidence and branch SHA after independent verification. |
 | 2026-11-05, S1 candidate A | `e5fa8d43589b5f62bbfdc52224113e12d889c501` | Generated a standalone P03 1024×1536 RGB *proof* from the existing gallery visual; added strict 300 PPI native-size/sRGB/approval prepress checks for all three sizes and a print-brief size contract. Proof has no customer data and is not approved for printing. | Validate real product date/phase contracts before personalized art. |
-| 2026-11-05, S1 candidate B | Current branch commit containing this ledger entry | Centralized Gregorian/Jalali leap-date, optional-date, time and required-city validation shared by PDP, cart and server order intake; print brief now contains normalized Gregorian civil date. Added geocentric lunar-phase calculation using the installed astronomy engine and an explicitly supplied UTC instant; **no unapproved date-only timezone policy is assumed**. | Continue independent high-resolution artwork proof and P02 coordinate/timezone disambiguation. Do not call any product print-ready until personal/physical review and relevant decisions close. |
+| 2026-11-05, S1 candidate B | `aa6843cfae091872940b0a75b0221dcecb292038` | Centralized Gregorian/Jalali leap-date, optional-date, time and required-city validation shared by PDP, cart and server order intake; print brief now contains normalized Gregorian civil date. Added geocentric lunar-phase calculation using the installed astronomy engine and an explicitly supplied UTC instant; **no unapproved date-only timezone policy is assumed**. | Prepare unambiguous P02 city/time resolution in an unreleased branch candidate. |
+| 2026-11-05, S1 candidate C | Current branch commit containing this ledger entry | Prepared proposed **catalog-selected** P02 city input (stable city ID, not a guessed first name match), exact IANA historical timezone-to-UTC resolution, DST gap/fold rejection, matching server cart/order validation and owner-only private print-brief coordinates/time reference. All output still explicitly `printArtworkReady: false`; no sky raster or production DB change. **D-S1-02 is not resolved by preparing this branch candidate and must be owner-approved before merge/release.** | Continue independent original-resolution artwork/sky-catalog proof while awaiting decisions and lab assets. |
 
 ### S1 candidate A check record
 
@@ -62,12 +63,18 @@ Pass numbers are planning buckets, not guarantees of an exact number of messages
 - `UNRELATED_BASELINE_FAILURE`: Webpack production build still fails at the already-known CSS Modules selectors in sky, app-shell and human-first-report files. The unrelated workflow-acceleration guard still expects an absent `pull_request:` marker.
 - `BLOCKED_BY_DEPENDENCY`: real customer-specific raster output, P02 starfield, isolated database tests, and physical/owner print acceptance are not demonstrated by these pure calculation tests. Production routes and database remain untouched.
 
+### S1 candidate C check record
+
+- PASS: city ID and name consistency; civil-time resolution using IANA timezone history; 2024 Berlin DST spring gap and autumn repeated hour rejection; historical and current Tehran offsets; private P02 UTC/coordinates in owner-only print brief; server invalid-city rejection; existing shop checkout/orders/handoff/prepress guards; product surface; TypeScript; affected lint; encoding and `git diff --check`.
+- `UNRELATED_BASELINE_FAILURE`: unchanged CSS Modules selectors prevent the Webpack production build; workflow-acceleration's pre-existing PR marker expectation is unrelated to shop changes.
+- `BLOCKED_BY_DEPENDENCY`: P02 customer-specific starfield renderer is not finished; production city-selection design is **proposed** and awaits the owner's D-S1-02 decision before merging. No live site, migration, payment or print activity.
+
 ## Deferred decisions — must not be silently completed
 
 | ID | Decision / options | Recommended option | Dependent work |
 | --- | --- | --- | --- |
 | D-S1-01 | For date-only P01, choose **A:** local noon for a specified market timezone, **B:** UTC noon, or **C:** require an exact local hour and city. | A, with the reference timezone stated transparently in product copy and private art metadata. The exact timezone requires owner approval. | Render/label the **date-only** lunar artwork. The ephemeris function only accepts an explicit UTC instant until this is resolved. |
-| D-S1-02 | P02 city entries: **A:** select a unique city/coordinates/timezone from the verified catalog, **B:** accept unverified free text and resolve manually. | A; avoid guessing a city when names repeat, require explicit matching and historical time-zone reconciliation. | Accurate birth-sky coordinates and personalized P02 print output. |
+| D-S1-02 | P02 city entries: **A:** select a unique city/coordinates/timezone from the verified catalog, **B:** accept unverified free text and resolve manually. | A; a reversible implementation candidate now exists **only in the unreleased branch**, not as a final owner decision. | Owner approval of the P02 interaction before any merge/release, then accurate birth-sky coordinates and personalized print output. |
 | D-S1-03 | Physical art acceptance: **A:** owner reviews per-product and lab-proofs the high-resolution RGB/sRGB print masters, **B:** publish from unapproved screenshots/proofs. | A; the present P03 1024×1536 proof fails native 300 PPI even at the smallest size. | Approval flags, final print masters and production opening. |
 
 ### Verification and recovery contract
