@@ -1,6 +1,6 @@
 # Halleus physical-shop launch — active execution ledger
 
-Last reconciled: 2026-11-05 (Asia/Tehran), S1 candidate C
+Last reconciled: 2026-11-05 (Asia/Tehran), S1 candidate D
 Repository: `bleucluod/astro-clean`
 Approved working branch: `shop/launch-completion-20261105`
 Approved starting point: `4bd0a0aa645b15a03154b8121050303daa6f53fe`
@@ -49,6 +49,7 @@ Pass numbers are planning buckets, not guarantees of an exact number of messages
 | 2026-11-05, S1 candidate A | `e5fa8d43589b5f62bbfdc52224113e12d889c501` | Generated a standalone P03 1024×1536 RGB *proof* from the existing gallery visual; added strict 300 PPI native-size/sRGB/approval prepress checks for all three sizes and a print-brief size contract. Proof has no customer data and is not approved for printing. | Validate real product date/phase contracts before personalized art. |
 | 2026-11-05, S1 candidate B | `aa6843cfae091872940b0a75b0221dcecb292038` | Centralized Gregorian/Jalali leap-date, optional-date, time and required-city validation shared by PDP, cart and server order intake; print brief now contains normalized Gregorian civil date. Added geocentric lunar-phase calculation using the installed astronomy engine and an explicitly supplied UTC instant; **no unapproved date-only timezone policy is assumed**. | Prepare unambiguous P02 city/time resolution in an unreleased branch candidate. |
 | 2026-11-05, S1 candidate C | Current branch commit containing this ledger entry | Prepared proposed **catalog-selected** P02 city input (stable city ID, not a guessed first name match), exact IANA historical timezone-to-UTC resolution, DST gap/fold rejection, matching server cart/order validation and owner-only private print-brief coordinates/time reference. All output still explicitly `printArtworkReady: false`; no sky raster or production DB change. **D-S1-02 is not resolved by preparing this branch candidate and must be owner-approved before merge/release.** | Continue independent original-resolution artwork/sky-catalog proof while awaiting decisions and lab assets. |
+| 2026-11-05, S1 candidate D | Current branch commit containing this ledger entry; parent `2b7c24b25242ff534bb072d6fa1fc176cdb8d9b2` | Calculated actual topocentric horizon positions from the existing 14-star curated J2000/proper-motion catalog and exact P02 UTC/city coordinates. Added a deterministic north-up/east-right **calculation proof** SVG and owner-only print-brief numeric positions, with explicit partial-catalog and non-print status. The Berlin fixture places 10 of these 14 **above the geometric/apparent horizon**, not necessarily observable in daylight. The catalog is too sparse to claim a complete personalized birth-sky scene. | Obtain a vetted dense stellar source and build an original full-scene high-resolution P02 master (while preserving decision D-S1-02), continue independent catalog/artwork and prepress work without owner/print approval claims. |
 
 ### S1 candidate A check record
 
@@ -68,6 +69,13 @@ Pass numbers are planning buckets, not guarantees of an exact number of messages
 - PASS: city ID and name consistency; civil-time resolution using IANA timezone history; 2024 Berlin DST spring gap and autumn repeated hour rejection; historical and current Tehran offsets; private P02 UTC/coordinates in owner-only print brief; server invalid-city rejection; existing shop checkout/orders/handoff/prepress guards; product surface; TypeScript; affected lint; encoding and `git diff --check`.
 - `UNRELATED_BASELINE_FAILURE`: unchanged CSS Modules selectors prevent the Webpack production build; workflow-acceleration's pre-existing PR marker expectation is unrelated to shop changes.
 - `BLOCKED_BY_DEPENDENCY`: P02 customer-specific starfield renderer is not finished; production city-selection design is **proposed** and awaits the owner's D-S1-02 decision before merging. No live site, migration, payment or print activity.
+
+### S1 candidate D check record
+
+- PASS: independent calculation proof guard verifies 14-star source reuse, above-horizon filtering, reference UTC and observer-location sensitivity, J2000-to-horizon transform against a separate astronomy-engine route, north-up/east-right projection, invalid inputs, SVG escaping and no-print marking. Private print-brief guard verifies that owner-only P02 records include coordinates and deterministic partial-catalog star positions, while owner/payment/audit and sensitive-field gates remain intact. Existing checkout/order/moon/prepress guards, TypeScript, affected lint, encoding and impact-plan generation also pass.
+- R1 `CANDIDATE_FAILURE`: the private-print-brief test runner omitted its host `Date` constructor from the isolated VM context, causing astronomy-engine to reject the test-created UTC `Date`. R2 repaired this **test harness only** and reran affected checks successfully; no production data or astronomical input was changed.
+- `UNRELATED_BASELINE_FAILURE`: Webpack production build still fails on the previously recorded CSS Modules pure-selector errors in sky, app-shell and human-first-report files; not introduced by this candidate. The impact planner identifies the same unrelated workflow-acceleration marker guard as before.
+- `BLOCKED_BY_DEPENDENCY`: the existing curated 14-star subset is not a complete sky atlas and is inadequate for an original full-scene P02 print master; the 900×1300 sample SVG is neither final artwork nor sufficient high-resolution print proof. No physical print approval, customer image retention, DB migration or production release has occurred.
 
 ## Deferred decisions — must not be silently completed
 

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
+import * as astronomy from 'astronomy-engine';
 
 const root = resolve(import.meta.dirname, '..');
 const runtimeEnv = { NODE_ENV: 'development' };
@@ -15,7 +16,7 @@ function load(relativePath, dependencies = {}) {
   });
   const mod = { exports: {} };
   const factory = vm.runInNewContext(`(function(module,exports,require){${outputText}\n})`, {
-    Response, Request, process: { env: runtimeEnv },
+    Response, Request, Date, process: { env: runtimeEnv },
   });
   factory(mod, mod.exports, (name) => {
     if (!(name in dependencies)) throw new Error(`Unexpected test dependency ${name}`);
@@ -40,9 +41,17 @@ const cart = load('components/shop/shop-cart.ts', {
   '@/lib/locations/cities': cities,
 });
 const printSpec = load('lib/shop/shop-print-spec.ts', { '@/components/shop/product-detail-data': products });
+const catalog = load('src/lib/chart/fixed-star-catalog.ts', {
+  'astronomy-engine': astronomy,
+  './normalized-chart': { normalizeChartPlacement: () => { throw new Error('Not used by shop proof'); } },
+});
+const sky = load('lib/shop/shop-sky-stars.ts', {
+  'astronomy-engine': astronomy,
+  '@/src/lib/chart/fixed-star-catalog': catalog,
+});
 const handoff = load('lib/shop/shop-print-handoff.ts', {
   '@/components/shop/shop-cart': cart, './shop-personalization': moment, './shop-print-spec': printSpec,
-  '@/lib/locations/cities': cities,
+  '@/lib/locations/cities': cities, './shop-sky-stars': sky,
 });
 
 const item = {
@@ -72,6 +81,10 @@ const birthSkyBrief = handoff.buildPrivateShopPrintHandoff({ ...order, items: [b
 assert.equal(birthSkyBrief.prints[0].birthSkyReference.referenceUtc, '2024-07-01T10:30:00.000Z');
 assert.equal(birthSkyBrief.prints[0].birthSkyReference.timezone, 'Europe/Berlin');
 assert.equal(birthSkyBrief.prints[0].birthSkyReference.cityId, 'de-berlin');
+assert.equal(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.catalogueStarCount, 14);
+assert.ok(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.aboveHorizonStarCount > 0);
+assert.equal(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.printArtworkReady, false);
+assert.equal(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.referenceUtc, '2024-07-01T10:30:00.000Z');
 assert.equal(birthSkyBrief.prints[0].printArtworkReady, false);
 const text = JSON.stringify(result);
 for (const sensitive of ['+989121234567', 'خیابان کاملاً خصوصی', '12344321', 'never-include-secret']) {

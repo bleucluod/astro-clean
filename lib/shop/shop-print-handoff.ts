@@ -2,6 +2,7 @@ import { parseShopCart, type ShopCartItem } from '@/components/shop/shop-cart';
 import { validateShopMoment } from './shop-personalization';
 import { getShopPrintSpec } from './shop-print-spec';
 import { findHalleusCityById } from '@/lib/locations/cities';
+import { calculateShopBrightStarProof } from './shop-sky-stars';
 
 const readyForHandoff = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
@@ -30,6 +31,10 @@ function getBirthSkyReference(item: ShopCartItem) {
     source: 'halleus-city-catalog-and-iana-timezone',
     cityId: city.id, latitude: city.latitude, longitude: city.longitude,
     timezone: city.timezone, referenceUtc: validated.referenceUtc,
+    brightStarProof: calculateShopBrightStarProof({
+      referenceUtc: validated.referenceUtc,
+      latitude: city.latitude, longitude: city.longitude,
+    }),
   };
 }
 
