@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { ShopCatalogReadiness } from './ShopCatalogReadiness';
 import styles from './shop-orders-workspace.module.css';
 
 type ShopOrderRow = {
@@ -170,6 +171,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   }
 
   return <div className={styles.workspace} dir="rtl">
+    <ShopCatalogReadiness />
     <div className={styles.toolbar}>
       <form onSubmit={doSearch} className={styles.search}>
         <input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} maxLength={64} placeholder="شماره سفارش، نام یا موبایل" aria-label="جست‌وجوی سفارش" />
