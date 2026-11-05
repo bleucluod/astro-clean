@@ -86,7 +86,17 @@
   animation: actionBreathing 5s ease-in-out infinite;
   transition: filter 200ms ease, transform 200ms ease;
 }
+.shopFlow button.primaryAction,
+.shopFlow button.primaryAction:hover,
+.shopFlow button.primaryAction:focus-visible {
+  border: 1px solid #709cbb !important;
+  background: linear-gradient(120deg, #10151d 0%, #1b2b3b 52%, #101820 100%) !important;
+  color: #e9f5ff !important;
+  opacity: 1 !important;
+  box-shadow: inset 0 1px 0 #b0d9f024, 0 8px 22px #030a1199, 0 0 0 1px #7cacc034 !important;
+}
 .primaryAction::before { position: absolute; inset: 0; background: linear-gradient(110deg, transparent 39%, #b9dcf27d 50%, transparent 61%); content: ''; pointer-events: none; transform: translateX(140%); animation: actionGlint 3.4s ease-in-out infinite; }
+.primaryAction::after { position: absolute; inset: 0; border-radius: inherit; content: ''; pointer-events: none; animation: actionHalo 5s ease-in-out infinite; }
 .primaryAction > span { position: relative; z-index: 1; }
 .primaryAction > span:last-child { position: absolute; left: 22px; font-size: 19px; }
 .primaryAction:hover:not(:disabled) { filter: brightness(1.13); transform: translateY(-2px); }
@@ -111,14 +121,21 @@
 .field textarea { min-height: 84px; resize: vertical; }
 .field input[type='file']:disabled, .field input:disabled { opacity: .48; }
 .fieldNote { color: #abbfce !important; font-size: 12px; line-height: 2; }
+.phoneControl { display: flex; align-items: stretch; min-height: 52px; border: 1px solid #405465; border-radius: 12px; background: #0a1119; overflow: hidden; }
+.phoneControl:focus-within { border-color: #9bc7e2; box-shadow: 0 0 0 3px #88bdd522; }
+.phonePrefix { display: grid; place-items: center; flex: 0 0 60px; border-right: 1px solid #405465; color: #d9eafd; font-size: 14px; font-weight: 800; user-select: none; }
+.field .phoneControl input { width: 100%; min-width: 0; min-height: 50px; border: none !important; background: transparent !important; border-radius: 0; box-shadow: none !important; }
 .shippingChoices { display: grid; gap: 12px; }
-.shippingChoice { display: flex; align-items: center; gap: 12px; min-height: 79px; padding: 12px 14px; border: 1px solid #394f61; border-radius: 12px; background: #0b121b; cursor: pointer; }
+.shippingChoice { display: flex; align-items: center; gap: 10px; min-height: 87px; padding: 12px 14px; border: 1px solid #394f61; border-radius: 12px; background: #0b121b; cursor: pointer; }
 .shippingSelected { border-color: #86b5d1; background: #172634; }
-.shippingChoice input { width: 17px; height: 17px; accent-color: #a8d6f0; }
-.shippingChoice > span { display: grid; flex: 1; gap: 3px; }
+.shippingChoice input { flex: 0 0 17px; width: 17px; height: 17px; accent-color: #a8d6f0; }
+.shippingLogo { display: grid; flex: 0 0 52px; place-items: center; width: 52px; height: 52px; border: 1px solid #ffffff1a; border-radius: 10px; background: #e8f2fa; overflow: hidden; }
+.shippingLogo img { width: 44px; height: 44px; object-fit: contain; }
+.shippingChoice:has(input[value='tipax']) .shippingLogo img { width: 48px; height: auto; }
+.carrierText { display: grid; flex: 1 1 auto; min-width: 0; gap: 3px; }
 .shippingChoice strong { color: #eff8ff; font-size: 14px; }
 .shippingChoice small { color: #a8c0d2 !important; font-size: 11px; }
-.shippingChoice em { color: #b0cad9; font-size: 11px; font-style: normal; text-align: left; }
+.shippingChoice em { flex: 0 0 auto; max-width: 110px; color: #d2e7f4; font-size: 11px; font-weight: 700; font-style: normal; text-align: left; }
 .error { padding: 12px; border: 1px solid #9b545b; border-radius: 10px; background: #3b1c23; color: #ffccd0 !important; font-size: 13px; }
 .lockNote { color: #9eb5c7 !important; font-size: 12px; line-height: 2; }
 .previewNotice { padding: 16px; border: 1px solid #557e9a; border-radius: 14px; background: #142435; color: #d9edfa; font-size: 13px; line-height: 2; }
@@ -126,11 +143,26 @@
 .previewNotice p { margin-top: 8px; color: #c5ddeb !important; font-size: 12px; }
 .summaryColumn .textLink { margin: 3px 6px; }
 .subtlePreview { margin: 2px 6px; color: #90b4cb; font-size: 11px; text-decoration: underline; text-underline-offset: 4px; }
+.reviewCard { display: grid; gap: 12px; padding: 22px; border: 1px solid #648ba8; border-radius: 16px; background: #152536; }
+.reviewCard p { color: #cddfeb !important; font-size: 12px; line-height: 2; overflow-wrap: anywhere; }
+.reviewPrice { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid #41617a; color: #e6f4ff; font-size: 12px; }
+.reviewPrice strong { font-size: 16px; white-space: nowrap; }
+.reviewCard .primaryAction { margin-top: 8px; }
 .bankPanel { display: grid; gap: 9px; padding: 22px 18px; border: 1px solid #46657d; border-radius: 14px; background: linear-gradient(145deg, #1b3143, #101c2a); }
 .bankPanel span { color: #b7d0e1; font-size: 12px; line-height: 1.8; }
-.bankPanel strong { color: #e8f4fc; font-family: sans-serif; font-size: clamp(18px, 3vw, 25px); letter-spacing: .05em; text-align: left; }
+.bankNumber { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 9px; }
+.bankNumber strong { color: #e8f4fc; font-family: sans-serif; font-size: clamp(15px, 2.5vw, 22px); letter-spacing: .04em; direction: ltr; text-align: left; overflow-wrap: anywhere; }
+.bankNumber button { flex: 0 0 auto; min-height: 38px; padding: 7px 12px; border: 1px solid #709cbb; border-radius: 10px; background: #203a50; color: #f0f8ff; font-size: 11px; cursor: pointer; }
+.bankNumber button:hover { background: #2d5169; }
+.paymentDue { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: #d0e5f3 !important; font-size: 13px; }
+.paymentDue strong { white-space: nowrap; color: #f4faff; font-size: 17px; }
+.orDivider { display: flex; align-items: center; gap: 15px; color: #97afc2; font-size: 12px; }
+.orDivider::before, .orDivider::after { flex: 1; height: 1px; background: #354c5f; content: ''; }
+.receiptPicker { position: relative; display: grid; place-items: center; min-height: 52px; padding: 10px 15px; overflow: hidden; border: 1px dashed #709cbb; border-radius: 12px; background: #10202f; color: #d0e6f5; font-size: 12px; cursor: pointer; overflow-wrap: anywhere; }
+.field .receiptPicker input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; opacity: 0; cursor: pointer; }
 @keyframes actionBreathing { 0%, 100% { box-shadow: inset 0 1px 0 #b0d9f024, 0 8px 22px #030a1199, 0 0 0 0 #b1d8f000; } 50% { box-shadow: inset 0 1px 0 #b0d9f024, 0 8px 22px #030a1199, 0 0 0 3px #b1d8f026; } }
 @keyframes actionGlint { 0%, 40% { transform: translateX(140%); } 78%, 100% { transform: translateX(-140%); } }
+@keyframes actionHalo { 0%, 100% { box-shadow: inset 0 0 0 1px #b1d8f000; } 50% { box-shadow: inset 0 0 0 1px #b1d8f065, inset 0 0 12px #709cbb28; } }
 @media (max-width: 850px) {
   .twoColumns { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .summary { position: static; }
@@ -154,11 +186,15 @@
   .summary { padding: 18px; }
   .formCard { padding: 18px; }
   .fieldGrid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .shippingChoice { padding: 11px; }
-  .shippingChoice em { max-width: 90px; }
+  .shippingChoice { gap: 8px; padding: 11px; }
+  .shippingLogo { flex-basis: 43px; width: 43px; height: 43px; }
+  .shippingLogo img { width: 37px; height: 37px; }
+  .shippingChoice:has(input[value='tipax']) .shippingLogo img { width: 39px; }
+  .shippingChoice em { max-width: 90px; font-size: 10px; }
+  .paymentDue { display: grid; }
   .deliveryPromise { margin-top: 30px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .primaryAction { animation: none; transition: none; }
-  .primaryAction::before { display: none; animation: none; }
+  .primaryAction::before, .primaryAction::after { display: none; animation: none; }
 }

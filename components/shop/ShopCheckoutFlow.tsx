@@ -2,8 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { getShopProduct } from './product-detail-data';
+import {
+  blankShipping, clearCheckoutSession, englishDigits, normalizeMobileTail,
+  readCheckoutSession, saveCheckoutSession, SHOP_SHIPPING_AND_PACKAGING, validateShipping,
+  type ShippingForm, type ShopCarrier,
+} from './shop-checkout-state';
 import {
   getShopSize, readShopCart, shopCartSubtotal, writeShopCart, SHOP_CART_CHANGED_EVENT,
   type ShopCartItem,
@@ -113,17 +119,19 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
   );
 }
 
-function Summary({ items, next }: { items: ShopCartItem[]; next?: 'checkout' }) {
+function Summary({ items, next, carrier }: { items: ShopCartItem[]; next?: 'checkout'; carrier?: ShopCarrier }) {
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = shopCartSubtotal(items);
+  const shipping = carrier ? SHOP_SHIPPING_AND_PACKAGING[carrier] : null;
   return (
     <aside className={styles.summary} aria-label="خلاصهٔ خرید">
       <h2>خلاصهٔ سفارش</h2>
-      <div className={styles.summaryRow}><span>محصولات ({money(count)})</span><strong><bdi>{money(shopCartSubtotal(items))}</bdi> تومان</strong></div>
-      <div className={styles.summaryRow}><span>هزینهٔ ارسال</span><span className={styles.pending}>هنوز مشخص نشده</span></div>
-      <div className={styles.summaryTotal}><span>مبلغ نهایی</span><strong>در انتظار محاسبهٔ ارسال</strong></div>
-      <p className={styles.summaryHint}>مبلغ نهایی فقط پس از مشخص‌شدن هزینهٔ ارسال نمایش داده می‌شود. هیچ پرداختی در این پیش‌نمایش انجام نمی‌شود.</p>
+      <div className={styles.summaryRow}><span>محصولات ({money(count)})</span><strong><bdi>{money(subtotal)}</bdi> تومان</strong></div>
+      {carrier ? <div className={styles.summaryRow}><span>روش ارسال</span><strong>{carrier === 'post' ? 'پست' : 'تیپاکس · پس‌کرایه'}</strong></div> : null}
+      <div className={styles.summaryRow}><span>هزینه ارسال و بسته‌بندی</span>{shipping === null ? <span className={styles.pending}>در مرحلهٔ بعد</span> : <strong><bdi>{money(shipping)}</bdi> تومان</strong>}</div>
+      <div className={styles.summaryTotal}><span>{shipping === null ? 'جمع محصولات' : 'مبلغ قابل واریز'}</span><strong><bdi>{money(subtotal + (shipping ?? 0))}</bdi> تومان</strong></div>
+      {carrier === 'tipax' ? <p className={styles.summaryHint}>هزینهٔ حمل تیپاکس هنگام تحویل بسته به‌صورت پس‌کرایه پرداخت می‌شود؛ مبلغ بالا شامل ۵۰ هزار تومان بسته‌بندی است.</p> : null}
       {next === 'checkout' ? <Link className={styles.primaryAction} href="/shop/checkout"><span>ادامه و ثبت نشانی</span><span aria-hidden="true">←</span></Link> : null}
-      <span className={styles.reassurance}>بدون نیاز به ساخت حساب کاربری</span>
     </aside>
   );
 }
@@ -152,33 +160,35 @@ export function ShopCartScreen() {
   );
 }
 
-type ShippingForm = { name: string; mobile: string; province: string; city: string; postalCode: string; address: string; note: string; carrier: 'post' | 'tipax' };
-const blankShipping: ShippingForm = { name: '', mobile: '', province: '', city: '', postalCode: '', address: '', note: '', carrier: 'post' };
-const englishDigits = (value: string) => value.replace(/[۰-۹٠-٩]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩'.indexOf(digit) % 10));
-
 export function ShopCheckoutScreen() {
+  const router = useRouter();
   const { items, ready } = useShopCart();
-  const [form, setForm] = useState<ShippingForm>(blankShipping);
+  const [form, setForm] = useState<ShippingForm>(() => readCheckoutSession(readShopCart()) ?? blankShipping);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  function update<K extends keyof ShippingForm>(field: K, value: ShippingForm[K]) { setForm((old) => ({ ...old, [field]: value })); setError(''); setSubmitted(false); }
-  function preview(event: FormEvent<HTMLFormElement>) {
+  function update<K extends keyof ShippingForm>(field: K, value: ShippingForm[K]) {
+    setForm((old) => ({ ...old, [field]: value })); setError(''); setSubmitted(false); clearCheckoutSession();
+  }
+  function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!/^09\d{9}$/.test(englishDigits(form.mobile))) { setError('شمارهٔ موبایل باید ۱۱ رقم و با ۰۹ شروع شود.'); return; }
-    if (!/^\d{10}$/.test(englishDigits(form.postalCode))) { setError('کد پستی باید دقیقاً ۱۰ رقم باشد.'); return; }
-    if (!form.name.trim() || !form.province || !form.city.trim() || form.address.trim().length < 10) { setError('لطفاً نام گیرنده و نشانی کامل را وارد کن.'); return; }
+    const issue = validateShipping(form);
+    if (issue) { setError(issue); return; }
     setSubmitted(true);
+  }
+  function continueToPayment() {
+    if (!saveCheckoutSession(form, items)) { setError('اطلاعات ارسال ذخیره نشد؛ یک‌بار دیگر تلاش کن.'); return; }
+    router.push('/shop/payment');
   }
   return (
     <PageShell step={1} title="آدرسِ رسیدن به تو" subtitle="اطلاعات گیرنده و روش ارسال رو همین‌جا، یک‌جا وارد کن.">
       {!ready ? <p className={styles.loading}>در حال خواندن سبد…</p> : items.length === 0 ? <EmptyCart /> : (
         <div className={styles.twoColumns}>
-          <form id="shipping-form" className={styles.checkoutForm} onSubmit={preview}>
+          <form id="shipping-form" className={styles.checkoutForm} onSubmit={review}>
             <section className={styles.formCard}>
-              <div className={styles.sectionHeading}><h2>۱. مشخصات گیرنده</h2><span>بدون ثبت‌نام</span></div>
+              <div className={styles.sectionHeading}><h2>۱. مشخصات گیرنده</h2></div>
               <div className={styles.fieldGrid}>
                 <label className={styles.field}>نام و نام خانوادگی گیرنده<input autoComplete="name" required maxLength={100} value={form.name} onChange={(event) => update('name', event.target.value)} placeholder="نام گیرنده" /></label>
-                <label className={styles.field}>شمارهٔ موبایل<input autoComplete="tel" inputMode="tel" dir="ltr" required maxLength={13} value={form.mobile} onChange={(event) => update('mobile', event.target.value)} placeholder="۰۹۱۲۳۴۵۶۷۸۹" /></label>
+                <label className={styles.field}>شمارهٔ موبایل<span className={styles.phoneControl} dir="ltr"><span className={styles.phonePrefix}>+98</span><input autoComplete="tel-national" inputMode="numeric" dir="ltr" required maxLength={10} value={form.mobile} onChange={(event) => update('mobile', normalizeMobileTail(event.target.value))} placeholder="۹۱۲۳۴۵۶۷۸۹" aria-label="شماره موبایل پس از کد +۹۸" /></span></label>
               </div>
               <p className={styles.fieldNote}>پیگیری سفارش و کد رهگیری به این شماره اطلاع داده می‌شود.</p>
             </section>
@@ -195,17 +205,24 @@ export function ShopCheckoutScreen() {
             <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>۳. روش ارسال</h2></div>
               <div className={styles.shippingChoices}>
-                <label className={`${styles.shippingChoice} ${form.carrier === 'post' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" checked={form.carrier === 'post'} onChange={() => update('carrier', 'post')} /><span><strong>پست</strong><small>تحویل با کد رهگیری</small></span><em>نرخ در انتظار تعیین</em></label>
-                <label className={`${styles.shippingChoice} ${form.carrier === 'tipax' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" checked={form.carrier === 'tipax'} onChange={() => update('carrier', 'tipax')} /><span><strong>تیپاکس</strong><small>بسته به پوشش مقصد</small></span><em>نرخ در انتظار تعیین</em></label>
+                <label className={`${styles.shippingChoice} ${form.carrier === 'post' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="post" checked={form.carrier === 'post'} onChange={() => update('carrier', 'post')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/post.png" alt="نشان شرکت ملی پست" width={50} height={50} /></span><span className={styles.carrierText}><strong>پست</strong><small>ارسال با کد رهگیری</small></span><em><bdi>{money(100_000)}</bdi> تومان</em></label>
+                <label className={`${styles.shippingChoice} ${form.carrier === 'tipax' ? styles.shippingSelected : ''}`}><input type="radio" name="carrier" value="tipax" checked={form.carrier === 'tipax'} onChange={() => update('carrier', 'tipax')} /><span className={styles.shippingLogo}><Image src="/shop-shipping/tipax.png" alt="نشان تیپاکس" width={62} height={35} /></span><span className={styles.carrierText}><strong>تیپاکس</strong><small>حمل به‌صورت پس‌کرایه</small></span><em><bdi>{money(50_000)}</bdi> تومان بسته‌بندی</em></label>
               </div>
               <p className={styles.fieldNote}>ارسال به شرکت حمل تا ۷۲ ساعت کاری پس از تأیید واریز؛ زمان رسیدن بسته به شهر مقصد بستگی دارد.</p>
             </section>
             {error ? <p role="alert" className={styles.error}>{error}</p> : null}
-            {submitted ? <p className={styles.previewNotice} role="status">اطلاعات فرم از نظر ظاهری کامل است؛ اما ثبت سفارش و دریافت نشانی هنوز فعال نیست. اطلاعات واردشده به سرور ارسال یا در سبد ذخیره نشده‌اند.</p> : null}
-            <button type="submit" className={styles.primaryAction}><span>بررسی اطلاعات و هزینهٔ ارسال</span><span aria-hidden="true">←</span></button>
-            <p className={styles.lockNote}>تا زمانی که نرخ ارسال و ثبت سفارش سمت سرور آماده نباشند، ورود به پرداخت واقعی ممکن نیست.</p>
+            {submitted ? (
+              <section className={styles.reviewCard} aria-label="مرور اطلاعات ارسال">
+                <div className={styles.sectionHeading}><h2>همه‌چیز درسته؟</h2><span>مرور سفارش</span></div>
+                <p>{form.name} · <bdi dir="ltr">+98{form.mobile}</bdi></p>
+                <p>{form.province}، {form.city}، {form.address} · کد پستی <bdi>{englishDigits(form.postalCode)}</bdi></p>
+                <div className={styles.reviewPrice}><span>مبلغ قابل واریز با هزینه ارسال و بسته‌بندی</span><strong><bdi>{money(shopCartSubtotal(items) + SHOP_SHIPPING_AND_PACKAGING[form.carrier])}</bdi> تومان</strong></div>
+                {form.carrier === 'tipax' ? <p>هزینهٔ حمل تیپاکس را هنگام تحویل بسته پرداخت می‌کنی.</p> : null}
+                <button type="button" onClick={continueToPayment} className={styles.primaryAction}><span>تأیید و ادامه به پرداخت</span><span aria-hidden="true">←</span></button>
+              </section>
+            ) : <button type="submit" className={styles.primaryAction}><span>بررسی اطلاعات و هزینه ارسال و بسته‌بندی</span><span aria-hidden="true">←</span></button>}
           </form>
-          <div className={styles.summaryColumn}><Summary items={items} /><Link className={styles.textLink} href="/shop/cart">→ بازگشت و ویرایش سبد</Link><Link className={styles.subtlePreview} href="/shop/payment">دیدن پیش‌نمایش صفحهٔ پرداخت</Link></div>
+          <div className={styles.summaryColumn}><Summary items={items} carrier={form.carrier} /><Link className={styles.textLink} href="/shop/cart">→ بازگشت و ویرایش سبد</Link></div>
         </div>
       )}
     </PageShell>
@@ -214,29 +231,60 @@ export function ShopCheckoutScreen() {
 
 export function ShopPaymentScreen() {
   const { items, ready } = useShopCart();
+  const [checkout] = useState<ShippingForm | null>(() => readCheckoutSession(readShopCart()));
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [transferTime, setTransferTime] = useState('');
+  const [receiptName, setReceiptName] = useState('');
+  const [copyState, setCopyState] = useState<'card' | 'iban' | ''>('');
+  const [error, setError] = useState('');
+  async function copyNumber(value: string, key: 'card' | 'iban') {
+    try { await navigator.clipboard.writeText(value); setCopyState(key); }
+    catch { setCopyState(''); setError('کپی انجام نشد. شماره را انتخاب و کپی کن.'); }
+  }
+  function declareTransfer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!englishDigits(trackingNumber).trim() && !transferTime) {
+      setError('شمارهٔ پیگیری یا زمان تراکنش را وارد کن.');
+      return;
+    }
+    setError('تا قطعی‌شدن سفارش، لطفاً مبلغی واریز نکن. اعلام واریز در حال حاضر دریافت نمی‌شود.');
+  }
   return (
-    <PageShell step={2} title="پرداخت و اعلام واریز" subtitle="پس از ثبت سفارش، مبلغ قطعی و اطلاعات واریز در این بخش نمایش داده می‌شود.">
-      {!ready ? <p className={styles.loading}>در حال خواندن سبد…</p> : items.length === 0 ? <EmptyCart /> : (
+    <PageShell step={2} title="پرداخت و اعلام واریز" subtitle="مبلغ سفارشت رو مرور کن، و بعد از واریز اطلاعات تراکنش رو ثبت کن.">
+      {!ready ? <p className={styles.loading}>در حال خواندن سبد…</p> : items.length === 0 ? <EmptyCart /> : !checkout ? (
+        <div className={styles.empty}>
+          <h2>اول اطلاعات ارسال رو کامل کن</h2>
+          <p>برای اینکه مبلغ درست رو ببینی، باید روش ارسال و نشانی رو تأیید کنی.</p>
+          <Link href="/shop/checkout" className={styles.primaryAction}><span>تکمیل اطلاعات ارسال</span><span aria-hidden="true">←</span></Link>
+        </div>
+      ) : (
         <div className={styles.twoColumns}>
           <div className={styles.checkoutForm}>
-            <div className={styles.previewNotice}><strong>پیش‌نمایش صفحهٔ پرداخت</strong><p>هنوز هیچ سفارشی ثبت نشده و هیچ مبلغی برای پرداخت درخواست نمی‌شود.</p></div>
             <section className={styles.formCard}>
-              <div className={styles.sectionHeading}><h2>۱. اطلاعات کارت‌به‌کارت</h2><span>پس از ثبت سفارش</span></div>
+              <div className={styles.sectionHeading}><h2>۱. اطلاعات کارت‌به‌کارت</h2><span>بانک سامان</span></div>
               <div className={styles.bankPanel}>
-                <span>شمارهٔ کارت مقصد</span><strong dir="ltr">•••• •••• •••• ••••</strong>
-                <span>نام صاحب کارت و مبلغ قابل پرداخت پس از تعیین هزینهٔ ارسال نمایش داده می‌شوند.</span>
+                <span>به نام شهریار قربانی · بانک سامان</span>
+                <span>شمارهٔ کارت</span>
+                <div className={styles.bankNumber}><strong dir="ltr">6219 8614 9547 2721</strong><button type="button" onClick={() => copyNumber('6219861495472721', 'card')} aria-label="کپی شماره کارت">{copyState === 'card' ? 'کپی شد ✓' : 'کپی شماره کارت'}</button></div>
+                <span>شمارهٔ شبا</span>
+                <div className={styles.bankNumber}><strong dir="ltr">IR840560611828015359847901</strong><button type="button" onClick={() => copyNumber('IR840560611828015359847901', 'iban')} aria-label="کپی شماره شبا">{copyState === 'iban' ? 'کپی شد ✓' : 'کپی شماره شبا'}</button></div>
               </div>
-              <p className={styles.fieldNote}>مبلغ را فقط پس از دریافت خلاصهٔ سفارش قطعی و مشخصات معتبر واریز کن.</p>
+              <p className={styles.paymentDue}>مبلغ سفارش با هزینه ارسال و بسته‌بندی: <strong><bdi>{money(shopCartSubtotal(items) + SHOP_SHIPPING_AND_PACKAGING[checkout.carrier])}</bdi> تومان</strong></p>
+              {checkout.carrier === 'tipax' ? <p className={styles.fieldNote}>هزینهٔ حمل تیپاکس هنگام تحویل بسته، جداگانه و به‌صورت پس‌کرایه پرداخت می‌شود.</p> : null}
             </section>
-            <section className={styles.formCard}>
+            <form className={styles.formCard} onSubmit={declareTransfer}>
               <div className={styles.sectionHeading}><h2>۲. اعلام واریز</h2></div>
-              <label className={styles.field}>شمارهٔ پیگیری تراکنش<input disabled placeholder="شمارهٔ پیگیری واریز" /></label>
-              <label className={styles.field}>تصویر رسید <small>(اختیاری)</small><input disabled type="file" accept="image/png,image/jpeg,image/webp,application/pdf" /></label>
-              <button className={styles.primaryAction} type="button" disabled><span>اعلام واریز</span><span aria-hidden="true">←</span></button>
-              <p className={styles.lockNote}>اعلام واریز به‌معنای تأیید پرداخت نیست. پس از فعال‌شدن سامانه، سفارش برای بررسی مدیر در وضعیت «در انتظار بررسی واریز» قرار می‌گیرد.</p>
-            </section>
+              <p className={styles.fieldNote}>حداقل یکی از دو مورد زیر رو وارد کن.</p>
+              <label className={styles.field}>شمارهٔ پیگیری تراکنش<input inputMode="numeric" maxLength={50} value={trackingNumber} onChange={(event) => { setTrackingNumber(event.target.value); setError(''); }} placeholder="شمارهٔ پیگیری واریز" /></label>
+              <div className={styles.orDivider}>یا</div>
+              <label className={styles.field}>زمان تراکنش<input type="time" value={transferTime} onChange={(event) => { setTransferTime(event.target.value); setError(''); }} /></label>
+              <label className={styles.field}>تصویر رسید <small>(اختیاری)</small><span className={styles.receiptPicker}><input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(event) => { setReceiptName(event.target.files?.[0]?.name ?? ''); setError(''); }} /><span>{receiptName || 'انتخاب تصویر یا فایل رسید'}</span></span></label>
+              {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+              <button className={styles.primaryAction} type="submit"><span>اعلام واریز</span><span aria-hidden="true">←</span></button>
+              <p className={styles.fieldNote}>اعلام واریز به معنی تأیید پرداخت نیست؛ بعد از بررسی، وضعیت سفارش مشخص می‌شود.</p>
+            </form>
           </div>
-          <div className={styles.summaryColumn}><Summary items={items} /><Link className={styles.textLink} href="/shop/checkout">→ بازگشت به اطلاعات ارسال</Link></div>
+          <div className={styles.summaryColumn}><Summary items={items} carrier={checkout.carrier} /><Link className={styles.textLink} href="/shop/checkout">→ بازگشت به اطلاعات ارسال</Link></div>
         </div>
       )}
     </PageShell>

@@ -9,8 +9,9 @@ const data = new Map();
 const storage = {
   getItem(key) { return data.get(key) ?? null; },
   setItem(key, value) { data.set(key, value); },
+  removeItem(key) { data.delete(key); },
 };
-const windowMock = { localStorage: storage, dispatchEvent() {} };
+const windowMock = { localStorage: storage, sessionStorage: storage, dispatchEvent() {} };
 
 function loadTypeScript(relativePath, dependencies = {}) {
   const source = readFileSync(resolve(root, relativePath), 'utf8');
@@ -31,6 +32,7 @@ function loadTypeScript(relativePath, dependencies = {}) {
 
 const productData = loadTypeScript('components/shop/product-detail-data.ts');
 const cart = loadTypeScript('components/shop/shop-cart.ts', { './product-detail-data': productData });
+const checkout = loadTypeScript('components/shop/shop-checkout-state.ts');
 const details = { calendar: 'jalali', date: '1403/06/12', time: '', city: '', names: 'نام', message: '' };
 
 assert.deepEqual(Array.from(cart.parseShopCart(null)), []);
@@ -55,12 +57,38 @@ assert.equal(cart.addShopCartItem('p01', '10x15', details, 'missing'), false);
 data.set(cart.SHOP_CART_STORAGE_KEY, '{invalid json');
 assert.deepEqual(Array.from(cart.readShopCart()), []);
 
+assert.equal(checkout.SHOP_SHIPPING_AND_PACKAGING.post, 100_000);
+assert.equal(checkout.SHOP_SHIPPING_AND_PACKAGING.tipax, 50_000);
+assert.equal(checkout.normalizeMobileTail('+989123456789'), '9123456789');
+assert.equal(checkout.normalizeMobileTail('۰۹۱۲۳۴۵۶۷۸۹'), '9123456789');
+assert.equal(checkout.normalizeMobileTail('۹۱۲۳۴۵۶۷۸۹'), '9123456789');
+
+const shipping = {
+  ...checkout.blankShipping, name: 'نام گیرنده', mobile: '9123456789', province: 'تهران',
+  city: 'تهران', address: 'خیابان نمونه، پلاک ۱۲', postalCode: '1234567890',
+};
+assert.equal(checkout.validateShipping(shipping), null);
+assert.match(checkout.validateShipping({ ...shipping, mobile: '09123456789' }), /شماره/);
+assert.match(checkout.validateShipping({ ...shipping, postalCode: '123' }), /پستی/);
+assert.equal(checkout.saveCheckoutSession(shipping, [first]), true);
+assert.equal(checkout.readCheckoutSession([first]).mobile, shipping.mobile);
+assert.equal(checkout.readCheckoutSession([{ ...first, quantity: 2 }]), null);
+checkout.clearCheckoutSession();
+assert.equal(checkout.readCheckoutSession([first]), null);
+
 for (const route of ['cart', 'checkout', 'payment']) {
   const source = readFileSync(resolve(root, `app/shop/${route}/page.tsx`), 'utf8');
   assert.match(source, /process\.env\.NODE_ENV === 'production'/);
   assert.match(source, /index: false/);
 }
 const paymentSource = readFileSync(resolve(root, 'components/shop/ShopCheckoutFlow.tsx'), 'utf8');
-assert.match(paymentSource, /disabled><span>اعلام واریز/);
-assert.match(paymentSource, /هزینهٔ ارسال/);
-console.log('Shop checkout preview: cart parsing, persistence, edit, subtotal and production locks passed.');
+assert.match(paymentSource, /<span>اعلام واریز<\/span>/);
+assert.match(paymentSource, /هزینه ارسال و بسته‌بندی/);
+assert.match(paymentSource, /6219861495472721/);
+assert.match(paymentSource, /IR840560611828015359847901/);
+assert.doesNotMatch(paymentSource, /بدون ثبت‌نام|MVP|نرخ در انتظار تعیین|پیش‌نمایش صفحهٔ پرداخت|disabled><span>اعلام واریز/);
+for (const name of ['post', 'tipax']) {
+  const png = readFileSync(resolve(root, `public/shop-shipping/${name}.png`));
+  assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+}
+console.log('Shop checkout: cart, shipping prices, mobile prefix, session review, transfer inputs, PNG assets and production locks passed.');
