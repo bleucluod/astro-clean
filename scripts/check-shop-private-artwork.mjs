@@ -64,8 +64,10 @@ const figures = load('lib/shop/shop-constellation-lines.ts', {
   './shop-sky-stars': brightStars,
 });
 const renderer = load('lib/shop/shop-sky-atlas-svg.ts');
+const artworkText = load('lib/shop/shop-artwork-text.ts', { './shop-print-handoff': handoff });
 const artwork = load('lib/shop/shop-private-artwork.ts', {
   './shop-print-handoff': handoff,
+  './shop-artwork-text': artworkText,
   './shop-sky-atlas': stars,
   './shop-constellation-lines': figures,
   './shop-sky-atlas-svg': renderer,
@@ -154,6 +156,7 @@ const route = load('app/api/admin/shop/orders/[id]/print/preview/route.ts', {
     if (failAudit) throw new Error('Audit is unavailable');
   } },
   '@/lib/shop/shop-private-artwork': artwork,
+  '@/lib/shop/shop-night-artwork': { buildPrivateShopNightArtworkProof: async () => { throw new Error('P03 is covered by its own test'); } },
   '@/lib/shop/shop-print-handoff': handoff,
   '@/lib/shop/shop-order-store': { getAdminShopOrder: async () => { reads++; return stored; } },
 });
@@ -201,8 +204,9 @@ assert.equal((await get()).status, 503);
 assert.equal(audits.length, 2);
 
 const ui = readFileSync(resolve(root, 'components/admin/ShopOrdersWorkspace.tsx'), 'utf8');
-assert.match(ui, /downloadSkyProof\(index \+ 1\)/);
+assert.match(ui, /downloadArtworkProof\(index \+ 1\)/);
 assert.match(ui, /item\.productId === 'p02'/);
+assert.match(ui, /item\.productId === 'p03'/);
 assert.match(ui, /print\/preview\?line=/);
 for (const sourceFile of [
   'lib/shop/shop-private-artwork.ts', 'app/api/admin/shop/orders/[id]/print/preview/route.ts',

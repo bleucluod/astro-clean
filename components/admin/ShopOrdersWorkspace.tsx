@@ -140,8 +140,10 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     finally { setBusy(false); }
   }
 
-  async function downloadSkyProof(line: number) {
-    if (!detail || busy || !printHandoffStatuses.has(detail.status) || detail.items[line - 1]?.productId !== 'p02') return;
+  async function downloadArtworkProof(line: number) {
+    if (!detail || busy || !printHandoffStatuses.has(detail.status) ||
+        !['p02', 'p03'].includes(detail.items[line - 1]?.productId)) return;
+    const productId = detail.items[line - 1].productId;
     setBusy(true); setError(''); setSuccess('');
     try {
       const response = await fetch(`/api/admin/shop/orders/${detail.id}/print/preview?line=${line}`, {
@@ -155,7 +157,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       const url = URL.createObjectURL(file);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `halleus-order-${detail.display_number}-p02-line-${line}-proof.svg`;
+      link.download = `halleus-order-${detail.display_number}-${productId}-line-${line}-proof.${productId === 'p03' ? 'png' : 'svg'}`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       setSuccess('پیش‌نمایش اختصاصی دریافت شد. حاوی نام و پیام خصوصی است و هنوز برای چاپ تأیید نشده.');
@@ -219,10 +221,10 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       </article>)}</div>
       {printHandoffStatuses.has(detail.status) ? <div className={styles.printHandoff}>
         <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود مشخصات خصوصی چاپ</button>
-        {detail.items.map((item, index) => item.productId === 'p02' ? <button
-          key={item.key} type="button" disabled={busy} onClick={() => void downloadSkyProof(index + 1)}
-        >دانلود پیش‌نمایش اختصاصی آسمان تولد · ردیف {formatNumber(index + 1)}</button> : null)}
-        <p>پیش‌نمایش اختصاصی فقط برای آسمان تولد آماده است؛ فایل شامل نام و پیام خصوصی است، روی سرور بایگانی نمی‌شود و برای چاپ نهایی تأیید نشده.</p>
+        {detail.items.map((item, index) => item.productId === 'p02' || item.productId === 'p03' ? <button
+          key={item.key} type="button" disabled={busy} onClick={() => void downloadArtworkProof(index + 1)}
+        >دانلود پیش‌نمایش اختصاصی {productNames[item.productId]} · ردیف {formatNumber(index + 1)}</button> : null)}
+        <p>پیش‌نمایش شامل نام و پیام خصوصی است و روی سرور بایگانی نمی‌شود. تصویر «شبِ ما» در وضوح نمونه است و هیچ‌کدام از فایل‌ها برای چاپ نهایی تأیید نشده‌اند.</p>
       </div> : <p className={styles.printNote}>تحویل اطلاعات سفارش به چاپ بعد از تأیید دریافت وجه فعال می‌شود.</p>}
       <h4>سوابق سفارش</h4>
       <div className={styles.history}>{detail.events.map((event, index) => <p key={`${event.created_at}-${index}`}>{new Date(event.created_at).toLocaleString('fa-IR')} · {event.action} · {labels[event.after_status] ?? event.after_status}{event.reason ? ` · ${event.reason}` : ''}</p>)}</div>

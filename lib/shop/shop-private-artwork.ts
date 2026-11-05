@@ -2,19 +2,7 @@ import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from './shop-prin
 import { calculateShopStarAtlas } from './shop-sky-atlas';
 import { calculateShopConstellationLines } from './shop-constellation-lines';
 import { renderShopStarAtlasProofSvg } from './shop-sky-atlas-svg';
-
-/** SVG/XML must not contain control codes or bidi override characters from customer text. */
-function safePrintText(value: string, label: string, maxLength = 60): string {
-  if (value.length > maxLength ||
-      /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069\ufeff\ufffe\uffff]/u.test(value) ||
-      Array.from(value).some((character) => {
-        const point = character.codePointAt(0)!;
-        return point >= 0xd800 && point <= 0xdfff;
-      })) {
-    throw new ShopPrintHandoffError(`${label} برای نمایش روی طرح معتبر نیست.`, 422);
-  }
-  return value.trim();
-}
+import { safeShopArtworkText } from './shop-artwork-text';
 
 /**
  * Deterministic, ephemeral and owner-only *proof* generation from verified order data.
@@ -37,11 +25,11 @@ export function buildPrivateShopSkyArtworkProof(rawOrder: unknown, lineNumber: n
     latitude: reference.latitude,
     longitude: reference.longitude,
   };
-  const names = safePrintText(print.personalization.names, 'نام');
-  const message = safePrintText(print.personalization.message, 'پیام');
-  const dateLabel = safePrintText(print.personalization.date, 'تاریخ');
-  const timeLabel = safePrintText(print.personalization.time, 'زمان');
-  const city = safePrintText(print.personalization.city, 'شهر', 100);
+  const names = safeShopArtworkText(print.personalization.names, 'نام');
+  const message = safeShopArtworkText(print.personalization.message, 'پیام');
+  const dateLabel = safeShopArtworkText(print.personalization.date, 'تاریخ');
+  const timeLabel = safeShopArtworkText(print.personalization.time, 'زمان');
+  const city = safeShopArtworkText(print.personalization.city, 'شهر', 100);
   const atlas = calculateShopStarAtlas(input);
   const figures = calculateShopConstellationLines(input);
   const svg = renderShopStarAtlasProofSvg(atlas, city, figures, {
