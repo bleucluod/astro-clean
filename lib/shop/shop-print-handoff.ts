@@ -1,4 +1,5 @@
 import { parseShopCart } from '@/components/shop/shop-cart';
+import { getShopPrintSpec } from './shop-print-spec';
 
 const readyForHandoff = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
@@ -43,6 +44,7 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
       productId: item.productId,
       productTitle: names[item.productId],
       sizeCm: item.size,
+      prepressRequirements: getShopPrintSpec(item.size),
       quantity: item.quantity,
       material: 'matte-print-on-unframed-shasi',
       personalization: {
