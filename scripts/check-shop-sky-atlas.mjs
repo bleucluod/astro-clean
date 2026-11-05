@@ -52,9 +52,44 @@ const atlas = load('lib/shop/shop-sky-atlas.ts', {
   './catalog/bsc5-bright-stars-mag6.json': source,
   './shop-sky-stars': sky,
 });
+const constellationData = JSON.parse(readFileSync(resolve(root, 'lib/shop/catalog/constellations-d3-celestial-v1.json'), 'utf8'));
+const constellationLicense = readFileSync(resolve(root, 'lib/shop/catalog/constellations-d3-celestial-LICENSE.txt'), 'utf8');
+assert.equal(constellationData.type, 'FeatureCollection');
+assert.equal(constellationData.features.length, 89);
+assert.match(constellationLicense, /Copyright \(c\) 2015, Olaf Frohn/);
+assert.match(constellationLicense, /Redistribution and use in source and binary forms/);
+assert.equal(new Set(constellationData.features.map((feature) => feature.id)).size, 88);
+assert.equal(constellationData.features.filter((feature) => feature.id === 'Ser').length, 2);
+const constellation = load('lib/shop/shop-constellation-lines.ts', {
+  'astronomy-engine': astronomy,
+  './catalog/constellations-d3-celestial-v1.json': constellationData,
+  './shop-sky-stars': sky,
+});
 const { renderShopStarAtlasProofSvg } = load('lib/shop/shop-sky-atlas-svg.ts');
 const fixture = { referenceUtc: '2024-07-01T10:30:00.000Z', latitude: 52.52, longitude: 13.405 };
 const result = atlas.calculateShopStarAtlas(fixture);
+const figures = constellation.calculateShopConstellationLines(fixture);
+assert.equal(figures.featureCount, 89);
+assert.equal(figures.sourcePolylines, 150);
+assert.equal(figures.sourceVertices, 893);
+assert.equal(figures.projectedVisiblePieces, figures.lines.length);
+assert.ok(figures.lines.length > 30);
+assert.equal(figures.printArtworkReady, false);
+assert.equal(figures.sourceGitBlob, 'ce64cf3c18b627f4d9749b9076cd4693b777697e');
+for (const line of figures.lines) {
+  assert.ok(line.points.length >= 2);
+  assert.match(line.constellationId, /^[A-Za-z]{3}$/);
+  assert.ok([1, 2, 3].includes(line.rank));
+  for (let i = 0; i < line.points.length; i++) {
+    const point = line.points[i];
+    assert.ok(Number.isFinite(point.x) && Number.isFinite(point.y));
+    assert.ok(Math.hypot(point.x, point.y) <= 1 + 1e-6, 'No figure may cross the physical horizon circle.');
+    if (i > 0) {
+      const previous = line.points[i - 1];
+      assert.ok(Math.hypot(point.x - previous.x, point.y - previous.y) < 0.12, 'No long shortcut across the hidden sky.');
+    }
+  }
+}
 assert.equal(result.catalogueCount, 5080);
 assert.equal(result.brightnessLimit, 6);
 assert.equal(result.properMotionIncluded, false);
@@ -86,23 +121,35 @@ const differentPlace = atlas.calculateShopStarAtlas({ ...fixture, latitude: -34,
 assert.notEqual(result.aboveHorizonCount, differentTime.aboveHorizonCount);
 assert.notEqual(result.aboveHorizonCount, differentPlace.aboveHorizonCount);
 assert.deepEqual(JSON.parse(JSON.stringify(result)), JSON.parse(JSON.stringify(atlas.calculateShopStarAtlas(fixture))));
+assert.notDeepEqual(JSON.parse(JSON.stringify(figures.lines)), JSON.parse(JSON.stringify(constellation.calculateShopConstellationLines({
+  ...fixture, referenceUtc: '2024-07-01T22:30:00.000Z',
+}).lines)));
+assert.notDeepEqual(JSON.parse(JSON.stringify(figures.lines)), JSON.parse(JSON.stringify(constellation.calculateShopConstellationLines({
+  ...fixture, latitude: -34, longitude: 151,
+}).lines)));
 for (const bad of [
   { ...fixture, latitude: 120 }, { ...fixture, longitude: Infinity },
   { ...fixture, referenceUtc: '2024-07-01T10:30:00' },
 ]) assert.throws(() => atlas.calculateShopStarAtlas(bad));
 
 const svg = renderShopStarAtlasProofSvg(result, 'Berlin / Demonstration only');
+const figuresSvg = renderShopStarAtlasProofSvg(result, 'Berlin / Demonstration only', figures);
 assert.match(svg, /width="3544" height="5315"/);
 assert.equal((svg.match(/<circle cx="[\d.]+" cy="[\d.]+" r="[\d.]+" fill="#ecf7ff"/g) ?? []).length, result.aboveHorizonCount);
 assert.match(svg, /NOT APPROVED FOR PRINT/);
 assert.ok(!svg.includes('NO SUCH FAKE STAR'));
 assert.ok(!svg.includes('نام خصوصی'));
+assert.equal((figuresSvg.match(/<path d="M [\d.]+ [\d.]+ L /g) ?? []).length, figures.projectedVisiblePieces);
+assert.equal((figuresSvg.match(/<circle cx="[\d.]+" cy="[\d.]+" r="[\d.]+" fill="#ecf7ff"/g) ?? []).length, result.aboveHorizonCount);
+assert.throws(() => renderShopStarAtlasProofSvg(result, 'Berlin', {
+  ...figures, longitude: figures.longitude + 1,
+}));
 assert.match(renderShopStarAtlasProofSvg(result, '<script>x</script>'), /&lt;script&gt;/);
 assert.ok(!renderShopStarAtlasProofSvg(result, '<script>x</script>').includes('<script>'));
 
 if (process.argv.includes('--write-proof')) {
   const path = resolve(root, 'assets/shop-print/p02-bsc5-star-atlas-proof-v1.svg');
-  writeFileSync(path, svg, 'utf8');
+  writeFileSync(path, figuresSvg, 'utf8');
   console.log('Wrote original unapproved star-atlas vector sample:', path);
 }
-console.log(`Shop dense sky atlas: ${result.aboveHorizonCount}/5080 sourced stars above horizon; data/projection/input/render checks passed.`);
+console.log(`Shop sky atlas: ${result.aboveHorizonCount}/5080 real stars; ${figures.projectedVisiblePieces} sourced clipped constellation pieces; geometry/input/render guards passed.`);
