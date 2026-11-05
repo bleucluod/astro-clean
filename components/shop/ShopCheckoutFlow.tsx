@@ -3,8 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { getShopProduct } from './product-detail-data';
+import { fetchShopQuote } from './shop-quote-client';
+import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
   blankShipping, clearCheckoutSession, englishDigits, normalizeMobileTail,
   readCheckoutSession, saveCheckoutSession, SHOP_SHIPPING_AND_PACKAGING, validateShipping,
@@ -116,10 +118,10 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
   );
 }
 
-function Summary({ items, next, carrier }: { items: ShopCartItem[]; next?: 'checkout'; carrier?: ShopCarrier }) {
+function Summary({ items, next, carrier, quote }: { items: ShopCartItem[]; next?: 'checkout'; carrier?: ShopCarrier; quote?: ShopQuote | null }) {
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = shopCartSubtotal(items);
-  const shipping = carrier ? SHOP_SHIPPING_AND_PACKAGING[carrier] : null;
+  const subtotal = quote?.subtotal ?? shopCartSubtotal(items);
+  const shipping = quote?.shippingAndPackaging ?? (carrier ? SHOP_SHIPPING_AND_PACKAGING[carrier] : null);
   return (
     <aside className={styles.summary} aria-label="خلاصهٔ خرید">
       <h2>خلاصهٔ سفارش</h2>
@@ -163,16 +165,45 @@ export function ShopCheckoutScreen() {
   const [form, setForm] = useState<ShippingForm>(() => readCheckoutSession(readShopCart()) ?? blankShipping);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [quote, setQuote] = useState<ShopQuote | null>(null);
+  const [quotedCart, setQuotedCart] = useState('');
+  const [pendingCart, setPendingCart] = useState('');
+  const [checkingQuote, setCheckingQuote] = useState(false);
+  const quoteRequest = useRef(0);
+  const cartKey = JSON.stringify(items);
+  const activeQuote = quotedCart === cartKey ? quote : null;
+  const activeChecking = checkingQuote && pendingCart === cartKey;
+  useEffect(() => { quoteRequest.current += 1; }, [items]);
   function update<K extends keyof ShippingForm>(field: K, value: ShippingForm[K]) {
-    setForm((old) => ({ ...old, [field]: value })); setError(''); setSubmitted(false); clearCheckoutSession();
+    quoteRequest.current += 1;
+    setForm((old) => ({ ...old, [field]: value })); setError(''); setSubmitted(false);
+    setQuote(null); setQuotedCart(''); setCheckingQuote(false); clearCheckoutSession();
   }
-  function review(event: FormEvent<HTMLFormElement>) {
+  async function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const issue = validateShipping(form);
     if (issue) { setError(issue); return; }
-    setSubmitted(true);
+    const requestId = ++quoteRequest.current;
+    setCheckingQuote(true);
+    setPendingCart(cartKey);
+    setError('');
+    setQuote(null);
+    setSubmitted(false);
+    try {
+      const verified = await fetchShopQuote(items, form.carrier);
+      if (requestId !== quoteRequest.current) return;
+      setQuote(verified);
+      setQuotedCart(cartKey);
+      setSubmitted(true);
+    } catch (error) {
+      if (requestId !== quoteRequest.current) return;
+      setError(error instanceof Error ? error.message : 'محاسبهٔ مبلغ انجام نشد. دوباره تلاش کن.');
+    } finally {
+      if (requestId === quoteRequest.current) setCheckingQuote(false);
+    }
   }
   function continueToPayment() {
+    if (!activeQuote || activeQuote.carrier !== form.carrier) return;
     if (!saveCheckoutSession(form, items)) { setError('اطلاعات ارسال ذخیره نشد؛ یک‌بار دیگر تلاش کن.'); return; }
     router.push('/shop/payment');
   }
@@ -207,18 +238,18 @@ export function ShopCheckoutScreen() {
               </div>
             </section>
             {error ? <p role="alert" className={styles.error}>{error}</p> : null}
-            {submitted ? (
+            {submitted && activeQuote ? (
               <section className={styles.reviewCard} aria-label="مرور اطلاعات ارسال">
                 <div className={styles.sectionHeading}><h2>همه‌چیز درسته؟</h2><span>مرور سفارش</span></div>
                 <p>{form.name} · <bdi dir="ltr">+98{form.mobile}</bdi></p>
                 <p>{form.province}، {form.city}، {form.address} · کد پستی <bdi>{englishDigits(form.postalCode)}</bdi></p>
-                <div className={styles.reviewPrice}><span>مبلغ قابل واریز با هزینه ارسال و بسته‌بندی</span><strong><bdi>{money(shopCartSubtotal(items) + SHOP_SHIPPING_AND_PACKAGING[form.carrier])}</bdi> تومان</strong></div>
+                <div className={styles.reviewPrice}><span>مبلغ قابل واریز با هزینه ارسال و بسته‌بندی</span><strong><bdi>{money(activeQuote.total)}</bdi> تومان</strong></div>
                 {form.carrier === 'tipax' ? <p>هزینهٔ حمل تیپاکس را هنگام تحویل بسته پرداخت می‌کنی.</p> : null}
                 <button type="button" onClick={continueToPayment} className={styles.primaryAction}><span>تأیید و ادامه به پرداخت</span><span aria-hidden="true">←</span></button>
               </section>
-            ) : <button type="submit" className={styles.primaryAction}><span>بررسی سفارش</span><span aria-hidden="true">←</span></button>}
+            ) : <button type="submit" disabled={activeChecking} className={styles.primaryAction}><span>{activeChecking ? 'در حال بررسی…' : 'بررسی سفارش'}</span><span aria-hidden="true">←</span></button>}
           </form>
-          <div className={styles.summaryColumn}><Summary items={items} carrier={form.carrier} /><Link className={styles.textLink} href="/shop/cart">→ بازگشت و ویرایش سبد</Link></div>
+          <div className={styles.summaryColumn}><Summary items={items} carrier={form.carrier} quote={activeQuote} /><Link className={styles.textLink} href="/shop/cart">→ بازگشت و ویرایش سبد</Link></div>
         </div>
       )}
     </PageShell>
@@ -227,7 +258,23 @@ export function ShopCheckoutScreen() {
 
 export function ShopPaymentScreen() {
   const { items, ready } = useShopCart();
-  const [checkout] = useState<ShippingForm | null>(() => readCheckoutSession(readShopCart()));
+  const checkout = useMemo(() => ready ? readCheckoutSession(items) : null, [ready, items]);
+  const [quoteResult, setQuoteResult] = useState<{ key: string; quote?: ShopQuote; error?: string } | null>(null);
+  const [quoteRetry, setQuoteRetry] = useState(0);
+  const quoteKey = JSON.stringify({ items, carrier: checkout?.carrier, quoteRetry });
+  const quote = quoteResult?.key === quoteKey ? quoteResult.quote : null;
+  const quoteError = quoteResult?.key === quoteKey ? quoteResult.error : '';
+  const quoteLoading = !quote && !quoteError;
+  useEffect(() => {
+    if (!ready || !checkout || items.length === 0) return;
+    let cancelled = false;
+    fetchShopQuote(items, checkout.carrier).then((verified) => {
+      if (!cancelled) setQuoteResult({ key: quoteKey, quote: verified });
+    }).catch((cause: unknown) => {
+      if (!cancelled) setQuoteResult({ key: quoteKey, error: cause instanceof Error ? cause.message : 'محاسبهٔ مبلغ انجام نشد. دوباره تلاش کن.' });
+    });
+    return () => { cancelled = true; };
+  }, [ready, items, checkout, quoteRetry, quoteKey]);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [transferTime, setTransferTime] = useState('');
   const [copyState, setCopyState] = useState<'card' | 'iban' | ''>('');
@@ -253,6 +300,11 @@ export function ShopPaymentScreen() {
           <Link href="/shop/checkout" className={styles.primaryAction}><span>تکمیل اطلاعات ارسال</span><span aria-hidden="true">←</span></Link>
         </div>
       ) : (
+        !quote ? <div className={styles.empty}>
+          <h2>{quoteLoading ? 'در حال بررسی مبلغ سفارش…' : 'مبلغ سفارش بررسی نشد'}</h2>
+          {quoteError ? <p role="alert">{quoteError}</p> : null}
+          {!quoteLoading ? <button type="button" className={styles.primaryAction} onClick={() => setQuoteRetry((value) => value + 1)}><span>تلاش دوباره</span><span aria-hidden="true">←</span></button> : null}
+        </div> : (
         <div className={styles.twoColumns}>
           <div className={styles.checkoutForm}>
             <section className={styles.formCard}>
@@ -264,7 +316,7 @@ export function ShopPaymentScreen() {
                 <span>شمارهٔ شبا</span>
                 <div className={styles.bankNumber}><strong dir="ltr">IR840560611828015359847901</strong><button type="button" onClick={() => copyNumber('IR840560611828015359847901', 'iban')} aria-label="کپی شماره شبا">{copyState === 'iban' ? 'کپی شد ✓' : 'کپی شماره شبا'}</button></div>
               </div>
-              <p className={styles.paymentDue}>مبلغ سفارش با هزینه ارسال و بسته‌بندی: <strong><bdi>{money(shopCartSubtotal(items) + SHOP_SHIPPING_AND_PACKAGING[checkout.carrier])}</bdi> تومان</strong></p>
+              <p className={styles.paymentDue}>مبلغ سفارش با هزینه ارسال و بسته‌بندی: <strong><bdi>{money(quote.total)}</bdi> تومان</strong></p>
               {checkout.carrier === 'tipax' ? <p className={styles.fieldNote}>هزینهٔ حمل تیپاکس هنگام تحویل بسته، جداگانه و به‌صورت پس‌کرایه پرداخت می‌شود.</p> : null}
             </section>
             <form className={styles.formCard} onSubmit={declareTransfer}>
@@ -277,8 +329,9 @@ export function ShopPaymentScreen() {
               <button className={styles.primaryAction} type="submit"><span>اعلام واریز</span><span aria-hidden="true">←</span></button>
             </form>
           </div>
-          <div className={styles.summaryColumn}><Summary items={items} carrier={checkout.carrier} /><Link className={styles.textLink} href="/shop/checkout">→ بازگشت به اطلاعات ارسال</Link></div>
+          <div className={styles.summaryColumn}><Summary items={items} carrier={checkout.carrier} quote={quote} /><Link className={styles.textLink} href="/shop/checkout">→ بازگشت به اطلاعات ارسال</Link></div>
         </div>
+        )
       )}
     </PageShell>
   );
