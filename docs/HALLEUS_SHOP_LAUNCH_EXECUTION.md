@@ -1,6 +1,6 @@
 # Halleus physical-shop launch — active execution ledger
 
-Last reconciled: 2026-11-05 (Asia/Tehran), D-S2-01 owner A approval and schema inspection preparation V
+Last reconciled: 2026-11-05 (Asia/Tehran), owner-directed three-step final consolidation and local admin preview
 Repository: `bleucluod/astro-clean`
 Approved working branch: `shop/launch-completion-20261105`
 Approved starting point: `4bd0a0aa645b15a03154b8121050303daa6f53fe`
@@ -11,6 +11,15 @@ Source of truth: the current source, this ledger, and `HALLEUS_SHOP_ORDER_RELEAS
 The owner authorized completing **only the physical shop**, recording intermediate work on a separate GitHub branch, and receiving **one final pull** of `main` after explicit final integration approval. Intermediate commits/pushes to the shop branch are allowed. Do not modify `main`, create a release tag, open production shop routes, apply a production migration, or deploy to the VPS without a new explicit approval. A shop feature-branch commit is neither a live acceptance nor an approved print run.
 
 Every `next` resumes from the branch HEAD and this ledger, inspecting actual state before work. Avoid unbounded micro-batches. Continue safe independent work if an external dependency blocks another task; do not count blocked items as complete. Never re-create recorded work. Preserve unrelated working trees, credentials and customer data.
+
+## Owner override — final three user-facing steps (2026-11-05)
+The owner requested the shortest possible last-mile execution: **no more than three user-facing milestones, no unrelated extra phases or repeated micro-batches**. Preserve all work already committed on the approved shop branch; do not merge to `main` yet. The old S1–S4 buckets below remain technical acceptance evidence **inside** these three milestones, not four additional approvals or deliveries.
+
+1. **Local admin inspection and preservation (NOW):** preserve the feature-branch HEAD; give the owner one safe, separate Windows local-worktree preview of `/admini`. Clearly distinguish a development-only visual/admin shell preview with synthetic credentials and **no database access** from full owner/order E2E. Do not copy production environment values or expose shop routes live. Record owner UI feedback as one consolidated acceptance list.
+2. **One consolidated shop-completion and isolated-acceptance candidate:** close only genuine launch blockers for all three approved products, private art/print requirements, catalog/owner decisions, source and real-shape isolated PostgreSQL 0032/guest/admin/report E2E, shared anti-abuse/notification decisions, payment recipient verification and final build/privacy checks. Batch related fixes; do not create a separate user-facing step for every guard or database prerequisite. Unavailable real DB access, rights-cleared high-resolution masters and lab proofs remain **external owner evidence**, not finished code.
+3. **One final approval and release:** after consolidated evidence, ask once for approval to integrate the feature branch into `main`; require separately explicit authorization for production migration and VPS activation. Release only through the inspected script and verify live/rollback state. Do not call the roadmap complete before these real checks pass.
+
+Owner can inspect the locally rendered admin panel immediately, but current direct admin/order APIs require configured admin credentials and a real database for functional operations. A no-database preview must never be described as a passed order E2E. **No production data access or live release is authorized by this override.**
 
 ## Locked commercial and product scope
 
