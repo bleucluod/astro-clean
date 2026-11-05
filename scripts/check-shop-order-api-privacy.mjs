@@ -196,6 +196,16 @@ assert.equal(createCalls, 2);
 runtime.NODE_ENV = 'development';
 
 let role = 'owner';
+let ownerWrites = 0;
+const ownerWriteStore = {
+  ...store,
+  applyAdminShopAction: async (input) => {
+    ownerWrites++;
+    assert.equal(input.action, 'start_preparation');
+    assert.equal(input.reason, 'synthetic owner review');
+    return { status: 'preparing', version: 2 };
+  },
+};
 const adminDetail = load('app/api/admin/shop/orders/[id]/route.ts', {
   '@/lib/admin/admin-auth': {
     requireAdminCapability: async () => ({ role, userId: 'owner-synthetic' }),
@@ -207,7 +217,9 @@ const adminDetail = load('app/api/admin/shop/orders/[id]/route.ts', {
     }),
     adminErrorResponse: () => Response.json({ ok: false }, { status: 503 }),
   },
-  '@/lib/shop/shop-order-store': store,
+  '@/lib/shop/shop-order-store': ownerWriteStore,
+  '@/lib/shop/shop-order-contract': contract,
+  '@/lib/shop/shop-order-http': http,
 });
 const ownerGet = () => adminDetail.GET(new Request('http://localhost/api/admin/shop/orders/' + privateRecord.id), {
   params: Promise.resolve({ id: privateRecord.id }),
@@ -223,10 +235,35 @@ assert.equal(adminData.order.recipient_mobile, privateRecord.recipient_mobile);
 for (const value of [accessHash, 'IDEMPOTENCY-SYNTH', 'PAYLOAD-SYNTH']) {
   assert.equal(JSON.stringify(adminData).includes(value), false);
 }
+const ownerPatch = (body, headers = {}) => adminDetail.PATCH(new Request(
+  'http://localhost/api/admin/shop/orders/' + privateRecord.id, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', ...headers }, body,
+  }), { params: Promise.resolve({ id: privateRecord.id }) });
+const goodChange = JSON.stringify({ action: 'start_preparation', version: 1,
+  reason: 'synthetic owner review' });
+response = await ownerPatch(goodChange);
+assert.equal(response.status, 200);
+assert.equal(response.headers.get('cache-control'), 'private, no-store');
+assert.equal(ownerWrites, 1);
+assert.equal((await ownerPatch(goodChange, { 'Content-Length': '2001' })).status, 413);
+assert.equal((await ownerPatch(goodChange + ' '.repeat(2500))).status, 413,
+  'streamed oversized admin mutation must be rejected before JSON parsing');
+assert.equal((await ownerPatch(goodChange + ' ' + 'آ'.repeat(1100))).status, 413,
+  'admin mutation cap counts UTF-8 bytes, not characters');
+assert.equal((await ownerPatch('{broken json')).status, 400);
+assert.equal((await ownerPatch(goodChange, { Origin: 'https://forged.invalid' })).status, 403);
+assert.equal((await ownerPatch(goodChange, { 'Content-Type': 'text/plain' })).status, 415);
+assert.equal(ownerWrites, 1, 'rejected admin mutations must not write');
+role = 'viewer';
+assert.equal((await ownerPatch(goodChange)).status, 403);
+role = 'owner';
+assert.equal(ownerWrites, 1);
 runtime.NODE_ENV = 'production';
+assert.equal((await ownerPatch(goodChange)).status, 404);
+assert.equal(ownerWrites, 1);
 const readsBeforeAdminClosure = databaseCalls;
 assert.equal((await ownerGet()).status, 404);
 assert.equal(databaseCalls, readsBeforeAdminClosure);
 
-console.log('Shop order HTTP privacy: canonical new/replay status, 4 guest routes, secret rejection, private field projection, owner-only detail, no-store and production-closed gates passed.');
+console.log('Shop order HTTP privacy: canonical replay, 4 guest routes, secret rejection, private projection, bounded owner PATCH, no-store and production locks passed.');
 console.log('EXTERNAL_BLOCK: PostgreSQL-backed HTTP E2E, trusted ingress controls and notification delivery remain unverified.');

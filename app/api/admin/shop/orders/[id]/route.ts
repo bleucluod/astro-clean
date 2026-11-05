@@ -4,6 +4,8 @@ import {
   applyAdminShopAction, getAdminShopOrder, ShopOrderStateError,
   type AdminShopAction,
 } from '@/lib/shop/shop-order-store';
+import { ShopOrderInputError } from '@/lib/shop/shop-order-contract';
+import { readShopRequest } from '@/lib/shop/shop-order-http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,9 +36,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (actor.role !== 'owner') return noStoreJsonResponse({ ok: false }, 403);
     const { id } = await context.params;
     if (!uuidPattern.test(id)) return noStoreJsonResponse({ ok: false }, 400);
-    const body = await request.text();
-    if (Buffer.byteLength(body, 'utf8') > 2_000) return noStoreJsonResponse({ ok: false }, 413);
-    const parsed = JSON.parse(body) as Record<string, unknown>;
+    const parsed = await readShopRequest(request, 2_000) as Record<string, unknown>;
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)
         || !actions.includes(parsed.action as AdminShopAction)
         || !Number.isInteger(parsed.version) || Number(parsed.version) < 1
@@ -50,6 +50,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     });
     return noStoreJsonResponse({ ok: true, ...result });
   } catch (error) {
+    if (error instanceof ShopOrderInputError) return noStoreJsonResponse({ ok: false }, 400);
     if (error instanceof ShopOrderStateError) return noStoreJsonResponse({ ok: false, error: error.message }, error.status);
     if (error instanceof SyntaxError) return noStoreJsonResponse({ ok: false }, 400);
     return adminErrorResponse(error);

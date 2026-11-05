@@ -396,6 +396,7 @@ export function ShopPaymentScreen() {
 export function ShopOrderTrackScreen() {
   const [number, setNumber] = useState('');
   const [code, setCode] = useState('');
+  const [showAccessCode, setShowAccessCode] = useState(false);
   const [order, setOrder] = useState<ShopOrderPublicState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -436,7 +437,8 @@ export function ShopOrderTrackScreen() {
         <form className={styles.formCard} onSubmit={(event) => void loadOrder(event)}>
           <div className={styles.sectionHeading}><h2>شمارهٔ سفارش و کد خصوصی</h2></div>
           <label className={styles.field}>شمارهٔ سفارش<input required inputMode="numeric" autoComplete="off" value={number} onChange={(event) => setNumber(englishDigits(event.target.value))} placeholder="شمارهٔ سفارش" /></label>
-          <label className={styles.field}>کد خصوصی پیگیری<input required autoComplete="off" dir="ltr" spellCheck={false} value={code} maxLength={64} onChange={(event) => setCode(event.target.value.toLowerCase())} placeholder="کدی که هنگام ثبت سفارش دریافت کردی" /></label>
+          <label className={styles.field}>کد خصوصی پیگیری<input id="shop-guest-access-code" type={showAccessCode ? 'text' : 'password'} required autoComplete="off" dir="ltr" spellCheck={false} value={code} maxLength={64} onChange={(event) => setCode(event.target.value.toLowerCase())} placeholder="کدی که هنگام ثبت سفارش دریافت کردی" /></label>
+          <button type="button" className={styles.secondaryAction} aria-controls="shop-guest-access-code" aria-pressed={showAccessCode} onClick={() => setShowAccessCode((visible) => !visible)}>{showAccessCode ? 'مخفی‌کردن کد خصوصی' : 'نمایش کد خصوصی'}</button>
           <p className={styles.fieldNote}>این کد مخصوص سفارش توست؛ به دیگران نده.</p>
           <button type="submit" className={styles.primaryAction} disabled={busy}>{busy ? 'در حال بررسی…' : 'نمایش سفارش'}</button>
         </form>

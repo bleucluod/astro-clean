@@ -161,6 +161,10 @@ const paymentSource = readFileSync(resolve(root, 'components/shop/ShopCheckoutFl
 const ownerSource = readFileSync(resolve(root, 'components/admin/ShopOrdersWorkspace.tsx'), 'utf8');
 assert.equal((paymentSource.match(/formatShopInteger\(order\.orderNumber\)/g) ?? []).length, 3);
 assert.doesNotMatch(paymentSource, /Number\(order\.orderNumber\)/);
+assert.match(paymentSource, /const \[showAccessCode, setShowAccessCode\] = useState\(false\)/);
+assert.match(paymentSource, /type=\{showAccessCode \? 'text' : 'password'\}/);
+assert.match(paymentSource, /aria-pressed=\{showAccessCode\}/);
+assert.match(paymentSource, /setShowAccessCode\(\(visible\) => !visible\)/);
 assert.match(ownerSource, /function formatNumber\(value: number \| string\) \{ return formatShopInteger\(value\); \}/);
 storage.set('halleus.shop.order.receipt.v1', '{broken json');
 assert.equal(client.readShopOrderReceipt(), null);
@@ -190,4 +194,6 @@ assert.match(migration, /shop_order_events_no_delete/);
 const adminRoute = readFileSync(resolve(root, 'app/api/admin/shop/orders/[id]/route.ts'), 'utf8');
 assert.match(adminRoute, /actor\.role !== 'owner'/);
 assert.match(adminRoute, /assertAdminMutationRequest/);
+assert.match(adminRoute, /readShopRequest\(request, 2_000\)/);
+assert.doesNotMatch(adminRoute, /await request\.text\(\)/);
 console.log('Shop orders: canonical amounts, tamper rejection, private code, idempotent client intent, guest operations, owner controls and production locks passed.');
