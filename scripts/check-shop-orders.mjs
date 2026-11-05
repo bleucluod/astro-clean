@@ -51,12 +51,14 @@ const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/shop-checkout-state': shipping,
 });
 const orderNumber = load('lib/shop/shop-order-number.ts');
+const paymentGateway = load('lib/shop/shop-payment-gateway.ts');
 const contract = load('lib/shop/shop-order-contract.ts', {
   'node:crypto': { createHash },
   '@/components/shop/shop-cart': cart,
   '@/components/shop/shop-checkout-state': shipping,
   './shop-quote': quote,
   './shop-order-number': orderNumber,
+  './shop-payment-gateway': paymentGateway,
 });
 const details = { calendar: 'jalali', date: '1403/08/15', time: '', city: '', names: 'آزمایش', message: '' };
 const item = { key: 'fixed-order-key', productId: 'p01', size: '20x30', quantity: 2, details };
@@ -74,7 +76,10 @@ assert.equal(draft.shipping.mobile, '9123456789');
 assert.equal(draft.idempotencyHash, createHash('sha256').update(payload.idempotencyKey).digest('hex'));
 assert.equal(draft.guestAccessHash, createHash('sha256').update(payload.guestAccessCode).digest('hex'));
 assert.equal(contract.parseShopOrderDraft({ ...payload, items: [{ ...item, price: 1 }] }).quote.total, 3_298_000);
+assert.equal(contract.parseShopOrderDraft({ ...payload, paymentMethod: 'manual_transfer' }).quote.total, 3_298_000);
 for (const invalid of [
+  { ...payload, paymentMethod: 'online_gateway' },
+  { ...payload, paymentMethod: 'unknown' },
   { ...payload, expectedTotal: 1 }, { ...payload, items: [] },
   { ...payload, shipping: { ...address, mobile: '912345678900' } },
   { ...payload, shipping: { ...address, postalCode: '123' } },
