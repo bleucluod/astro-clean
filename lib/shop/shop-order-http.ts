@@ -2,6 +2,7 @@ import { isTrustedAdminRequestOrigin } from '@/lib/admin/admin-origin';
 import { getHalleusRuntimeEnv } from '@/lib/config/env';
 import { ShopOrderInputError } from './shop-order-contract';
 import { ShopOrderStateError } from './shop-order-store';
+import { enforceShopSharedRateLimit } from './shop-shared-rate-limit';
 
 export function shopJson(body: Record<string, unknown>, status = 200) {
   return Response.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } });
@@ -23,6 +24,7 @@ export async function readShopRequest(request: Request, maxBytes = 16_000): Prom
       || Number(declaredLength) > maxBytes)) {
     throw new ShopOrderStateError('اطلاعات سفارش بیش از حد طولانی است.', 413);
   }
+  await enforceShopSharedRateLimit(request);
   const reader = request.body?.getReader();
   if (!reader) throw new ShopOrderInputError();
   const chunks: Uint8Array[] = [];

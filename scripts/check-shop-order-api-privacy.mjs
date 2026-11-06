@@ -109,6 +109,7 @@ const http = load('lib/shop/shop-order-http.ts', {
   '@/lib/admin/admin-origin': origin,
   '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },
   './shop-order-contract': contract, './shop-order-store': store,
+  './shop-shared-rate-limit': { enforceShopSharedRateLimit: async () => {} },
 });
 let createCalls = 0;
 let replay = false;

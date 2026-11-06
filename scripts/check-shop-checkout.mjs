@@ -66,6 +66,7 @@ const origin = loadTypeScript('lib/admin/admin-origin.ts');
 const http = loadTypeScript('lib/shop/shop-order-http.ts', {
   '@/lib/admin/admin-origin': origin,
   '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },
+  './shop-shared-rate-limit': { enforceShopSharedRateLimit: async () => {} },
   './shop-order-contract': { ShopOrderInputError: class ShopOrderInputError extends Error {} },
   './shop-order-store': { ShopOrderStateError: class ShopOrderStateError extends Error {
     constructor(message, status = 409) { super(message); this.status = status; }
