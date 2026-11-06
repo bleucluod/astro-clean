@@ -29,7 +29,7 @@ fail() {
 usage() {
     cat <<'EOF'
 Usage:
-  sudo bash ops/vps/halleus-release.sh deploy --commit <40-char-sha> --tag <tag>
+  sudo bash ops/vps/halleus-release.sh deploy --commit <40-char-sha> --tag <tag> [--skip-wiki-maintenance]
   sudo bash ops/vps/halleus-release.sh rollback
   sudo bash ops/vps/halleus-release.sh status
 
@@ -40,6 +40,7 @@ The deploy command:
 - atomically updates current/previous symlinks
 - restarts Halleus and rolls back automatically if smoke tests fail
 - leaves curated Wiki inbound-link repair to an explicit maintenance action
+- optionally skips one-time Wiki content repair/publish-due for a closed-shop release
 
 The rollback command swaps current and previous, restarts Halleus, and restores
 the original state if smoke tests fail.
@@ -378,6 +379,7 @@ EOF
 deploy_release() {
     local commit=""
     local tag=""
+    local skip_wiki_maintenance=0
 
     while [ "$#" -gt 0 ]; do
         case "$1" in
@@ -390,6 +392,10 @@ deploy_release() {
                 [ "$#" -ge 2 ] || fail "--tag requires a value."
                 tag="$2"
                 shift 2
+                ;;
+            --skip-wiki-maintenance)
+                skip_wiki_maintenance=1
+                shift
                 ;;
             *)
                 fail "Unknown deploy argument: $1"
@@ -513,25 +519,29 @@ deploy_release() {
         fail "Activation failed; previous release was restored successfully."
     fi
 
-    if ! run_wiki_damaged_public_content_repair "$release_dir"; then
-        printf '%s\n' "Damaged Wiki content repair failed. Restoring previous release..." >&2
-        atomic_link "$old_current" "$CURRENT"
-        systemctl restart "$SERVICE" || true
+    if [ "$skip_wiki_maintenance" -eq 1 ]; then
+        printf '%s\n' "Skipping one-time Wiki repair and publish-due for this closed-shop release."
+    else
+        if ! run_wiki_damaged_public_content_repair "$release_dir"; then
+            printf '%s\n' "Damaged Wiki content repair failed. Restoring previous release..." >&2
+            atomic_link "$old_current" "$CURRENT"
+            systemctl restart "$SERVICE" || true
 
-        if ! smoke_release; then
-            fail "Wiki content repair failed and the automatic release restoration smoke test also failed."
+            if ! smoke_release; then
+                fail "Wiki content repair failed and the automatic release restoration smoke test also failed."
+            fi
+
+            DEPLOY_ACTIVATED=0
+            fail "Wiki content repair failed; previous release was restored successfully."
         fi
 
-        DEPLOY_ACTIVATED=0
-        fail "Wiki content repair failed; previous release was restored successfully."
+        run_wiki_publish_due_once_best_effort "$release_dir"
     fi
 
     # HALLEUS_WIKI_INBOUND_REPAIR_RELEASE_DISABLED
     # Scheduled inbound-link repair mutates article bodies and must be an
     # explicit maintenance action, never an implicit deploy side effect.
     printf '%s\n' "Skipping scheduled Wiki inbound-link repair during release; run it explicitly as maintenance."
-
-    run_wiki_publish_due_once_best_effort "$release_dir"
 
     if ! cleanup_old_release_worktrees; then
         printf '%s\n' "STORAGE_CLEANUP_WARNING project=halleus reason=cleanup_failed release_remains_healthy=true" >&2
