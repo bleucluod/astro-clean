@@ -308,8 +308,7 @@ export function AdminConsole({
   }, []);
 
   const availableTabs = useMemo(
-    () => tabs.filter((tab) => hasCapability(session, tab.capability)
-      && (tab.id !== 'orders' || process.env.NODE_ENV !== 'production')),
+    () => tabs.filter((tab) => hasCapability(session, tab.capability)),
     [session],
   );
 

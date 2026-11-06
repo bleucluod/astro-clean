@@ -81,4 +81,18 @@ for (const [body, headers, status] of [
 assert.equal(calls.length, 1, 'Failed requests must not create ZIPs.');
 assert.ok(!source.includes('isShopMvpActive'), 'Sample route must work with public shop closed.');
 assert.ok(!source.includes('getAdminShopOrder'), 'Sample route must not access production orders.');
+const adminConsoleSource = readFileSync(resolve(root, 'components/admin/AdminConsole.tsx'), 'utf8');
+const adminAst = ts.createSourceFile('AdminConsole.tsx', adminConsoleSource, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TSX);
+let availableTabsExpression = '';
+function inspectNode(node) {
+  if (ts.isVariableDeclaration(node) && node.name.getText(adminAst) === 'availableTabs') {
+    availableTabsExpression = node.initializer?.getText(adminAst) ?? '';
+  }
+  ts.forEachChild(node, inspectNode);
+}
+inspectNode(adminAst);
+assert.ok(availableTabsExpression.includes('hasCapability(session, tab.capability)'), 'Admin tabs must require capabilities.');
+assert.ok(!availableTabsExpression.includes('NODE_ENV'), 'Owner shop tab must be visible in production.');
+assert.ok(!availableTabsExpression.includes('isShopMvpActive'), 'Admin panel must remain open with public shop closed.');
+assert.ok(adminConsoleSource.includes('activeTab === "orders" && session?.role === "owner"'), 'Orders workspace remains owner-only.');
 console.log('SHOP_SYNTHETIC_DESIGN_ZIP=PASS');
