@@ -1,0 +1,245 @@
+{
+  "warning": "Proposed unmeasured phrases; not CSV observations or guaranteed quick wins",
+  "suggestions": [
+    {
+      "id": "S001",
+      "owner_id": "P01",
+      "keyword": "خرید تابلو فاز ماه در تاریخ دلخواه",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S002",
+      "owner_id": "P01",
+      "keyword": "تابلو فاز ماه با تاریخ شمسی",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S003",
+      "owner_id": "P01",
+      "keyword": "تابلو فاز ماه با نام و تاریخ تولد",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S004",
+      "owner_id": "P01",
+      "keyword": "تابلو فاز ماه برای سالگرد ازدواج",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S005",
+      "owner_id": "P01",
+      "keyword": "تابلو فاز ماه روی شاسی بدون قاب",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S006",
+      "owner_id": "P01",
+      "keyword": "سفارش تابلو فاز ماه با پیام دلخواه",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S007",
+      "owner_id": "P01",
+      "keyword": "تابلو ماه روز تولد با تاریخ شمسی",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S008",
+      "owner_id": "P01",
+      "keyword": "قیمت تابلو فاز ماه ۲۰ در ۳۰",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S009",
+      "owner_id": "P02",
+      "keyword": "خرید تابلو نقشه آسمان شب تولد",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S010",
+      "owner_id": "P02",
+      "keyword": "تابلو آسمان تولد با ساعت و شهر",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S011",
+      "owner_id": "P02",
+      "keyword": "تابلو ستاره های شب تولد با نام",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S012",
+      "owner_id": "P02",
+      "keyword": "تابلو نقشه آسمان تولد روی شاسی",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S013",
+      "owner_id": "P02",
+      "keyword": "سفارش تابلو آسمان تولد با پیام دلخواه",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S014",
+      "owner_id": "P02",
+      "keyword": "قیمت تابلو آسمان تولد ۲۰ در ۳۰",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S015",
+      "owner_id": "P03",
+      "keyword": "تابلو راه شیری با نام و تاریخ",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S016",
+      "owner_id": "P03",
+      "keyword": "تابلو راه شیری با اسم دو نفر",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S017",
+      "owner_id": "P03",
+      "keyword": "تابلو راه شیری برای سالگرد آشنایی",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S018",
+      "owner_id": "P03",
+      "keyword": "تابلو راه شیری روی شاسی بدون قاب",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S019",
+      "owner_id": "P03",
+      "keyword": "سفارش تابلو راه شیری با پیام دلخواه",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S020",
+      "owner_id": "P03",
+      "keyword": "تابلو کهکشان برای خاطره سفر دونفره",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S021",
+      "owner_id": "SHOP",
+      "keyword": "خرید هدیه خاص و ماندگار",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S022",
+      "owner_id": "SHOP",
+      "keyword": "فروشگاه هدیه های خاص هالیوس",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S023",
+      "owner_id": "C-ART",
+      "keyword": "خرید تابلو",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S024",
+      "owner_id": "B-ART-COMPARISON",
+      "keyword": "تفاوت تابلو فاز ماه و نقشه آسمان تولد",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S025",
+      "owner_id": "B-ART-COMPARISON",
+      "keyword": "تابلو ماه یا آسمان تولد کدام بهتر است",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S026",
+      "owner_id": "B-ART-COMPARISON",
+      "keyword": "تفاوت تابلو راه شیری با نقشه آسمان",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S027",
+      "owner_id": "F-PLACE-MAP",
+      "keyword": "تابلو نقشه محل آشنایی",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S028",
+      "owner_id": "F-PLACE-MAP",
+      "keyword": "تابلو نقشه شهر با نام و تاریخ",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S029",
+      "owner_id": "F-SOUND-ART",
+      "keyword": "تابلو موج صدا با پیام صوتی",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "id": "S030",
+      "owner_id": "F-SOUND-ART",
+      "keyword": "تابلو صدای دلخواه با نام و تاریخ",
+      "evidence": "proposed_unmeasured",
+      "search_volume": null,
+      "keyword_difficulty": null
+    }
+  ]
+}

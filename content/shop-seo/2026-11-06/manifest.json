@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-06",
+  "timezone": "Asia/Tehran",
+  "source_commit": "818c086998fa492b1f1c6e41eaf82051f6d0e52b",
+  "scope": "Parallel post-MVP SEO research. P01 launch is not blocked; P02/P03 deferred.",
+  "approval": "proposal_for_review",
+  "counts": {
+    "raw_rows": 7548,
+    "exact_unique": 3964,
+    "normalized_unique": 3951,
+    "duplicate_occurrences_merged": 3597,
+    "excluded_unique": 1167,
+    "retained_unique": 2784,
+    "unresolved_within_retained": 21,
+    "retained_clusters": 72,
+    "all_clusters": 82,
+    "partitions": {
+      "excluded": 1167,
+      "existing-content-review": 105,
+      "editorial": 344,
+      "categories": 949,
+      "reserved": 650,
+      "future-products": 635,
+      "page-targets": 80,
+      "unresolved": 21
+    }
+  },
+  "inputs": [
+    {
+      "id": "95",
+      "filename": "Keyword Shitter2 - The Bulk Keyword Tool (95).csv",
+      "rows": 2554,
+      "original_file_sha256_from_prior_byte_read": "df23d8fcec635131b2217bdc15630068d73869ebaf67d44d115660d964fe7c71"
+    },
+    {
+      "id": "96",
+      "filename": "Keyword Shitter2 - The Bulk Keyword Tool (96).csv",
+      "rows": 1957,
+      "original_file_sha256_from_prior_byte_read": "3a04fa52450447515fb12c41ef8fd29983b13b67d143ef78d7c413f8411d5d31"
+    },
+    {
+      "id": "97",
+      "filename": "Keyword Shitter2 - The Bulk Keyword Tool (97).csv",
+      "rows": 1284,
+      "original_file_sha256_from_prior_byte_read": "34b2017c6f9c82cd2876a1ed239dfaea598839f6af783ed36cedb30f693864c3"
+    },
+    {
+      "id": "98",
+      "filename": "Keyword Shitter2 - The Bulk Keyword Tool (98).csv",
+      "rows": 1753,
+      "original_file_sha256_from_prior_byte_read": "feacf7c168dbda580aa9ff991bf29f72f4214b35a1a0805f6c99bebb2f7f1f7d"
+    }
+  ],
+  "source_refs_schema": [
+    "source_file_number",
+    "csv_line_including_header",
+    "original_id",
+    "Search_column_seed_probe_NOT_volume"
+  ],
+  "normalization": [
+    "NFKC",
+    "Arabic yeh/kaf to Persian",
+    "Persian and Arabic digits to ASCII",
+    "remove diacritics/tatweel/bidi",
+    "ZWNJ to space, collapse whitespace, lowercase",
+    "no synonym/fuzzy deduplication; preserve originals"
+  ],
+  "metrics": {
+    "search_volume": null,
+    "keyword_difficulty": null,
+    "semrush": "no_api_units; unavailable"
+  },
+  "limits": [
+    "Not a full query-by-query SERP audit",
+    "Live CMS/GSC ownership not audited",
+    "21 ambiguous records have no owner",
+    "Rule-assisted future groups require semantic/SERP review before activation",
+    "All prior local files became unavailable when execution environment disconnected; all four original CSVs reread completely through Library; IDs and raw totals reconciled. Final recovered classification supersedes interim counts."
+  ],
+  "no_runtime_changes": true,
+  "no_production_changes": true
+}
