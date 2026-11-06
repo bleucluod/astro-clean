@@ -88,16 +88,8 @@ const birthSkyItem = { ...item, productId: 'p02', details: {
   ...item.details, calendar: 'gregorian', date: '2024-07-01', time: '12:30',
   city: 'برلین، آلمان', cityId: 'de-berlin',
 } };
-const birthSkyBrief = handoff.buildPrivateShopPrintHandoff({ ...order, items: [birthSkyItem] });
-assert.equal(birthSkyBrief.prints[0].birthSkyReference.referenceUtc, '2024-07-01T10:30:00.000Z');
-assert.equal(birthSkyBrief.prints[0].birthSkyReference.timezone, 'Europe/Berlin');
-assert.equal(birthSkyBrief.prints[0].moonReference, null);
-assert.equal(birthSkyBrief.prints[0].birthSkyReference.cityId, 'de-berlin');
-assert.equal(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.catalogueStarCount, 14);
-assert.ok(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.aboveHorizonStarCount > 0);
-assert.equal(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.printArtworkReady, false);
-assert.equal(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.referenceUtc, '2024-07-01T10:30:00.000Z');
-assert.equal(birthSkyBrief.prints[0].printArtworkReady, false);
+assert.throws(() => handoff.buildPrivateShopPrintHandoff({ ...order, items: [birthSkyItem] }),
+  'postponed P02 must not enter the first live print workflow');
 const text = JSON.stringify(result);
 for (const sensitive of ['+989121234567', 'خیابان کاملاً خصوصی', '12344321', 'never-include-secret']) {
   assert.ok(!text.includes(sensitive), `Unexpected sensitive field: ${sensitive}`);
@@ -115,7 +107,7 @@ for (const invalid of [null, [], {}, { ...order, display_number: 'order-920' }, 
 
 const route = readFileSync(resolve(root, 'app/api/admin/shop/orders/[id]/print/route.ts'), 'utf8');
 for (const required of [
-  /NODE_ENV === 'production'/,
+  /!isShopMvpActive\(\)/,
   /requireAdminCapability\(request, 'shop_orders\.read'\)/,
   /actor\.role !== 'owner'/,
   /recordAdminAuditEvent/,
@@ -130,6 +122,7 @@ let auditFailure = false;
 let databaseReads = 0;
 let stored = order;
 const api = load('app/api/admin/shop/orders/[id]/print/route.ts', {
+  '@/lib/shop/shop-mvp-activation': { isShopMvpActive: () => runtimeEnv.NODE_ENV !== 'production' },
   '@/lib/admin/admin-auth': { requireAdminCapability: async () => ({ role, userId: 'owner-id' }) },
   '@/lib/admin/admin-http': {
     noStoreJsonResponse: (body, status = 200) => Response.json(body, { status }),

@@ -18,7 +18,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-const productIds: ReadonlySet<string> = new Set(['p01', 'p02', 'p03']);
+// Only the moon product can be purchased in the first release.
+const productIds: ReadonlySet<string> = new Set(['p01']);
 
 export function quoteShopItems(value: unknown): ShopQuote {
   if (!isRecord(value) || (value.carrier !== 'post' && value.carrier !== 'tipax')

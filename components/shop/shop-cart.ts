@@ -27,7 +27,7 @@ export const SHOP_CART_CHANGED_EVENT = 'halleus:shop-cart-changed';
 const MAX_LINES = 20;
 const MAX_QUANTITY = 10;
 
-const validProductIds: ShopProductId[] = ['p01', 'p02', 'p03'];
+const validProductIds: ShopProductId[] = ['p01'];
 const detailLimits: Record<keyof ShopPersonalization, number> = {
   calendar: 9, date: 20, time: 10, city: 100, cityId: 60, names: 60, message: 60,
 };

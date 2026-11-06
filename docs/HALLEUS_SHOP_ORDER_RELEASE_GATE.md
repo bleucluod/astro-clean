@@ -2,6 +2,8 @@
 
 Last edited: 2026-11-05. This is a source-code review candidate, **not a live store release**.
 
+**2026-11-06 MVP scope override:** The first live shop launch sells **P01 (ماه آن روز) only**. P02/P03, full SEO keyword mapping and their final production artwork are postponed until a later release; previous multi-product tests below remain historical evidence. Server quote/cart/print handoff must reject new P02/P03 purchases. Production shop pages and APIs remain closed until the operator explicitly enables `HALLEUS_SHOP_MVP_ENABLED=true` alongside the shared-rate/verified-ingress and private-print environment contract. Environment flags alone do not prove a database migration, legal artwork approval or release authorization.
+
 ## Scope in this candidate
 
 - Guest cart and shipping are priced by the server; checkout creates an idempotent order before showing bank-transfer details.
@@ -11,7 +13,7 @@ Last edited: 2026-11-05. This is a source-code review candidate, **not a live st
 - Existing `/admini` gets an owner-only order workspace with search, detail, manual bank verification, rejection, preparation, dispatch with Post/Tipax tracking, delivery and cancellation review. Owner transitions append order and admin audit events.
 - After manual payment verification, the owner can download a private per-order JSON **production brief** listing product, size, quantity, dates, city, names and short messages. The server rejects unpaid/canceled orders, limits access to the owner, records a download audit event, disables caching and omits recipient/shipping/bank/access-code fields. This brief is **not print-ready artwork**, is not an astronomical calculation, and is not uploaded to a public repository.
 - Migration `0032_private_shop_orders_shared_numbers.sql` creates private order tables and one report/order display-number sequence, preserving report UUID/text IDs.
-- **All shop pages and new guest/owner order APIs are still closed when `NODE_ENV=production`.** No production database or server was changed by committing the source.
+- **Shop pages and guest/owner APIs stay closed in production by default.** The reviewed activation gate is necessary but not sufficient for a live sale; P02/P03 stay closed regardless of MVP activation. No production database or server was changed by this candidate.
 
 ## Required before live activation
 
@@ -20,8 +22,8 @@ Last edited: 2026-11-05. This is a source-code review candidate, **not a live st
 3. Finish and verify the approved **server-canonical report persistence** gate (T02 in the historical shop plan). The chart form now rejects failed/preview-only engine output and requires a confirmed server-owned save in both normal and comparison modes; browser-only comparison saves and mock fallback were removed. **This is only a source-level gate:** full server generation/storage integrity and isolated authenticated/guest DB E2E remain unverified. The new sequence does not solve them.
 4. Run isolated PostgreSQL-backed E2E for cart → quote → create → refresh/retry → transfer → owner verification → fulfillment → guest tracking and cancellation, including duplicate/invalid requests, owner role boundaries, audit immutability and secret leakage checks.
 5. Decide and test guest order abuse/rate controls and real notification method. This candidate only records the phone for delivery coordination; it does **not** claim SMS delivery.
-6. Complete the actual validated artwork renderer, physical print QA and **private** artwork retention for each custom product. The production brief alone must never be sent to a print shop as a finished design.
-7. Reconcile remaining catalog/print-asset workflow, coupon/shipping campaigns and the shop master roadmap. Obtain explicit approval for the DB migration, opening production routes and release via `ops/vps/halleus-release.sh`.
+6. Complete the actual validated artwork renderer, physical print QA and **private** artwork retention for **P01**. P02/P03 are deferred. The production brief alone must never be sent to a print shop as a finished design.
+7. Confirm MVP catalog P01-only and the active roadmap. Coupons, shipping campaigns and multi-product release are deferred. Obtain explicit approval for the DB migration, private-storage/ingress activation and release via `ops/vps/halleus-release.sh`.
 8. Independently verify the intended bank-transfer recipient, card/IBAN and reconciliation workflow with the owner; source-defined development checkout details alone are not approval to collect live payments.
 
 ## Check results for this source candidate

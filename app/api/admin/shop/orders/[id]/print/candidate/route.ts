@@ -9,6 +9,7 @@ import { archivePrivateShopPrintCandidate } from '@/lib/shop/shop-print-archive'
 import { readShopRequest } from '@/lib/shop/shop-order-http';
 import { ShopOrderInputError } from '@/lib/shop/shop-order-contract';
 import { ShopOrderStateError } from '@/lib/shop/shop-order-store';
+import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ function getLineNumber(request: Request) {
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   // The shop's private print artifacts remain unavailable in production until
   // the separate shop release/data/privacy approval has been completed.
-  if (process.env.NODE_ENV === 'production') return noStoreJsonResponse({ ok: false }, 404);
+  if (!isShopMvpActive()) return noStoreJsonResponse({ ok: false }, 404);
   try {
     const actor = await requireAdminCapability(request, 'shop_orders.read');
     if (actor.role !== 'owner') return noStoreJsonResponse({ ok: false }, 403);
@@ -70,7 +71,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
 /** Explicit owner-only retention of an approval-PENDING candidate (never a print authorization). */
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
-  if (process.env.NODE_ENV === 'production') return noStoreJsonResponse({ ok: false }, 404);
+  if (!isShopMvpActive()) return noStoreJsonResponse({ ok: false }, 404);
   try {
     assertAdminMutationRequest(request);
     const actor = await requireAdminCapability(request, 'shop_orders.write');

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ProductDetail } from '@/components/shop/ProductDetail';
+import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
 export const metadata: Metadata = {
@@ -10,8 +11,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function P01ProductPage() {
-  if (process.env.NODE_ENV === 'production') {
+  if (!isShopMvpActive()) {
     return <div className={styles.closed} data-shop-page="closed"><h1>ماه آن روز</h1><p>به‌زودی می‌توانی ماهِ لحظهٔ عزیزت را به بخشی از خانه‌ات تبدیل کنی.</p><Link className={styles.backLink} href="/shop">بازگشت به فروشگاه</Link></div>;
   }
   return <ProductDetail id="p01" />;

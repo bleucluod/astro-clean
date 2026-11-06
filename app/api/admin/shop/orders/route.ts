@@ -1,12 +1,13 @@
 import { requireAdminCapability } from '@/lib/admin/admin-auth';
 import { adminErrorResponse, noStoreJsonResponse } from '@/lib/admin/admin-http';
 import { listAdminShopOrders } from '@/lib/shop/shop-order-store';
+import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  if (process.env.NODE_ENV === 'production') return noStoreJsonResponse({ ok: false }, 404);
+  if (!isShopMvpActive()) return noStoreJsonResponse({ ok: false }, 404);
   try {
     const actor = await requireAdminCapability(request, 'shop_orders.read');
     if (actor.role !== 'owner') return noStoreJsonResponse({ ok: false }, 403);

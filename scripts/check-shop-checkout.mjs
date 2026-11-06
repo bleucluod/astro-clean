@@ -63,10 +63,12 @@ const quote = loadTypeScript('lib/shop/shop-quote.ts', {
   '@/components/shop/shop-checkout-state': checkout,
 });
 const origin = loadTypeScript('lib/admin/admin-origin.ts');
+const activation = loadTypeScript('lib/shop/shop-mvp-activation.ts');
 const http = loadTypeScript('lib/shop/shop-order-http.ts', {
   '@/lib/admin/admin-origin': origin,
   '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },
   './shop-shared-rate-limit': { enforceShopSharedRateLimit: async () => {} },
+  './shop-mvp-activation': activation,
   './shop-order-contract': { ShopOrderInputError: class ShopOrderInputError extends Error {} },
   './shop-order-store': { ShopOrderStateError: class ShopOrderStateError extends Error {
     constructor(message, status = 409) { super(message); this.status = status; }
@@ -134,6 +136,8 @@ for (const payload of [
   { carrier: 'courier', items: [minimalLine] },
   { carrier: 'post', items: [{ ...minimalLine, size: 'unknown' }] },
   { carrier: 'post', items: [{ ...minimalLine, productId: 'p04' }] },
+  { carrier: 'post', items: [{ ...minimalLine, productId: 'p02' }] },
+  { carrier: 'post', items: [{ ...minimalLine, productId: 'p03' }] },
   { carrier: 'post', items: [{ ...minimalLine, quantity: 11 }] },
   { carrier: 'post', items: [{ ...minimalLine, quantity: 0 }] },
   { carrier: 'post', items: [{ ...minimalLine, quantity: 1.5 }] },
@@ -219,6 +223,11 @@ const closed = await quoteRoute.POST(new Request('http://localhost/api/shop/quot
   method: 'POST', body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
 }));
 assert.equal(closed.status, 404);
+runtimeEnv.HALLEUS_SHOP_MVP_ENABLED = 'true';
+assert.equal((await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
+  method: 'POST', body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
+}))).status, 404, 'a shop toggle alone cannot bypass ingress or private-storage gates');
+runtimeEnv.HALLEUS_SHOP_MVP_ENABLED = undefined;
 runtimeEnv.NODE_ENV = 'development';
 
 const clientPrice = await quoteClient.fetchShopQuote([first], 'tipax');
@@ -231,7 +240,7 @@ assert.equal(quoteFetchBody.items[0].key, undefined);
 
 for (const route of ['cart', 'checkout', 'payment', 'track']) {
   const source = readFileSync(resolve(root, `app/shop/${route}/page.tsx`), 'utf8');
-  assert.match(source, /process\.env\.NODE_ENV === 'production'/);
+  assert.match(source, /!isShopMvpActive\(\)/);
   assert.match(source, /index: false/);
 }
 const paymentSource = readFileSync(resolve(root, 'components/shop/ShopCheckoutFlow.tsx'), 'utf8');

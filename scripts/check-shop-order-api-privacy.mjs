@@ -105,11 +105,13 @@ for (const field of ['idempotency_hash', 'guest_access_hash', 'payload_hash']) {
 }
 
 const origin = load('lib/admin/admin-origin.ts');
+const activation = load('lib/shop/shop-mvp-activation.ts');
 const http = load('lib/shop/shop-order-http.ts', {
   '@/lib/admin/admin-origin': origin,
   '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },
   './shop-order-contract': contract, './shop-order-store': store,
   './shop-shared-rate-limit': { enforceShopSharedRateLimit: async () => {} },
+  './shop-mvp-activation': activation,
 });
 let createCalls = 0;
 let replay = false;
@@ -223,6 +225,7 @@ const adminDetail = load('app/api/admin/shop/orders/[id]/route.ts', {
   '@/lib/shop/shop-order-store': ownerWriteStore,
   '@/lib/shop/shop-order-contract': contract,
   '@/lib/shop/shop-order-http': http,
+  '@/lib/shop/shop-mvp-activation': activation,
 });
 const ownerGet = () => adminDetail.GET(new Request('http://localhost/api/admin/shop/orders/' + privateRecord.id), {
   params: Promise.resolve({ id: privateRecord.id }),

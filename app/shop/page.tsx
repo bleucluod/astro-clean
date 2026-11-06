@@ -1,16 +1,18 @@
 import type { Metadata } from 'next';
 import { ShopV01Home, type ShopV01Item } from '@/components/shop/ShopV01Home';
+import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
 export const metadata: Metadata = {
   title: 'فروشگاه هالیوس | آثار شخصی از آسمان',
-  description: 'مجموعهٔ آثار شخصی هالیوس: ماه آن روز، آسمان تولد و شب ما؛ لحظه‌های آسمان در قالب تابلو.',
+  description: 'تابلوی شخصی ماه آن روز؛ فاز ماه در تاریخ انتخابی تو، چاپ مات در سه اندازه.',
   alternates: { canonical: '/shop' },
   robots: { index: false, follow: false },
 };
 
-// The launch lineup is P01, P02 and P03. Checkout and pricing stay disabled
-// until each product passes its own design, astronomy and fulfillment gates.
+export const dynamic = 'force-dynamic';
+
+// Preserve future product definitions without offering them for sale in the MVP.
 const launchCatalog: ShopV01Item[] = [
   {
     id: 'P01',
@@ -48,9 +50,7 @@ const launchCatalog: ShopV01Item[] = [
 ];
 
 export default function ShopPage() {
-  // A GitHub review commit must never activate an unfinished public shop if
-  // another release happens to deploy main before visual approval.
-  if (process.env.NODE_ENV === 'production') {
+  if (!isShopMvpActive()) {
     return (
       <div className={styles.closed}>
         <span className={styles.eyebrow}>HALLEUS / STUDIO</span>
@@ -60,5 +60,5 @@ export default function ShopPage() {
     );
   }
 
-  return <ShopV01Home products={launchCatalog} />;
+  return <ShopV01Home products={launchCatalog.filter((product) => product.id === 'P01')} />;
 }

@@ -84,8 +84,9 @@ const readinessSource = readFileSync(resolve(root, 'lib/shop/shop-catalog-readin
 assert.doesNotMatch(readinessSource, /\b(writeFile|createWriteStream|localStorage|sessionStorage|fetch)\b/);
 const shopPage = readFileSync(resolve(root, 'app/shop/page.tsx'), 'utf8');
 const orderHttp = readFileSync(resolve(root, 'lib/shop/shop-order-http.ts'), 'utf8');
-assert.match(shopPage, /process\.env\.NODE_ENV === 'production'/);
-assert.match(orderHttp, /process\.env\.NODE_ENV === 'production'/);
+assert.match(shopPage, /!isShopMvpActive\(\)/);
+assert.match(shopPage, /product\.id === 'P01'/);
+assert.match(orderHttp, /!isShopMvpActive\(\)/);
 
 const manifest = readFileSync(resolve(root, 'docs/HALLEUS_SHOP_LAUNCH_EXECUTION.md'), 'utf8');
 for (const pending of readiness.flatMap((item) => item.pendingDecisions)) {

@@ -119,12 +119,14 @@ const priorWrites = writes;
 await firstWorker(guest('/api/admin/shop/orders'));
 assert.equal(writes, priorWrites, 'Owner routes are not secretly subject to guest limits');
 
+const activation = load('lib/shop/shop-mvp-activation.ts', {});
 const http = load('lib/shop/shop-order-http.ts', {
   '@/lib/admin/admin-origin': { isTrustedAdminRequestOrigin: () => true },
   '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },
   './shop-order-contract': { ShopOrderInputError: class extends Error {} },
   './shop-order-store': { ShopOrderStateError },
   './shop-shared-rate-limit': { enforceShopSharedRateLimit: firstWorker },
+  './shop-mvp-activation': activation,
 });
 const parsed = await http.readShopRequest(new Request('https://halleus.ir/api/shop/quote', {
   method: 'POST', headers: { 'content-type': 'application/json', 'x-halleus-shop-client-ip': '203.0.113.40' },

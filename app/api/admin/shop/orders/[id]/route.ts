@@ -6,6 +6,7 @@ import {
 } from '@/lib/shop/shop-order-store';
 import { ShopOrderInputError } from '@/lib/shop/shop-order-contract';
 import { readShopRequest } from '@/lib/shop/shop-order-http';
+import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,7 +18,7 @@ const actions: AdminShopAction[] = [
 ];
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
-  if (process.env.NODE_ENV === 'production') return noStoreJsonResponse({ ok: false }, 404);
+  if (!isShopMvpActive()) return noStoreJsonResponse({ ok: false }, 404);
   try {
     const actor = await requireAdminCapability(request, 'shop_orders.read');
     if (actor.role !== 'owner') return noStoreJsonResponse({ ok: false }, 403);
@@ -29,7 +30,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  if (process.env.NODE_ENV === 'production') return noStoreJsonResponse({ ok: false }, 404);
+  if (!isShopMvpActive()) return noStoreJsonResponse({ ok: false }, 404);
   try {
     assertAdminMutationRequest(request);
     const actor = await requireAdminCapability(request, 'shop_orders.write');

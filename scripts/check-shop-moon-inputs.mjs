@@ -88,11 +88,11 @@ const line = (p, date, calendar = 'jalali') => ({
 assert.equal(cart.parseShopCart([line('p01', '1400/12/30')]).length, 0);
 assert.equal(cart.parseShopCart([line('p01', '1399/12/30')]).length, 1);
 assert.equal(cart.parseShopCart([line('p01', '2023-02-29', 'gregorian')]).length, 0);
-assert.equal(cart.parseShopCart([line('p03', '')]).length, 1);
+assert.equal(cart.parseShopCart([line('p03', '')]).length, 0, 'P03 is postponed for the first launch');
 const legacyBirthSky = { ...line('p02', '1403/06/12'), details: {
   ...details, time: '12:00', city: 'تهران',
 } };
-assert.equal(cart.parseShopCart([legacyBirthSky])[0].details.cityId, tehran.id);
+assert.equal(cart.parseShopCart([legacyBirthSky]).length, 0, 'P02 is postponed for the first launch');
 
 const newMoon = astronomy.SearchMoonPhase(0, new Date('2024-04-01T00:00:00Z'), 30).date.toISOString();
 const fullMoon = astronomy.SearchMoonPhase(180, new Date('2024-03-20T00:00:00Z'), 30).date.toISOString();

@@ -169,6 +169,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   function confirmDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (id !== 'p01') {
+      setFormError('این اثر هنوز برای سفارش فعال نشده است.');
+      return;
+    }
     const validated = validateShopMoment(id, form);
     if (!validated.ok) {
       setFormError(validated.message);
@@ -341,12 +345,12 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                   </div>
                 </details>
                 {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
-                <button className={styles.confirmAction} type="submit">
-                  <span className={styles.confirmLabel}>{editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن به سبد خرید'}</span>
+                <button className={styles.confirmAction} type="submit" disabled={id !== 'p01'}>
+                  <span className={styles.confirmLabel}>{id !== 'p01' ? 'به‌زودی قابل سفارش' : editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن به سبد خرید'}</span>
                   <span className={styles.confirmArrow} aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg></span>
                 </button>
               </form>
-              <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link>
+              {id === 'p01' ? <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link> : null}
               <div className={styles.specification}>
                 <span>{product.highlight}</span>
                 <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span>
@@ -427,7 +431,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           </div>
         </section>
 
-        <section className={styles.relatedSection} aria-labelledby="related-heading">
+        {id !== 'p01' ? <section className={styles.relatedSection} aria-labelledby="related-heading">
           <div className={styles.relatedHeading}><span className={styles.sectionKicker}>از همین مجموعه</span><h2 id="related-heading">شاید این آثار را هم دوست داشته باشی</h2></div>
           <div className={styles.relatedGrid}>
             {related.map((item) => (
@@ -439,12 +443,12 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
               </Link>
             ))}
           </div>
-        </section>
+        </section> : null}
       </div>
 
       <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
         <div><small>قیمت</small><strong><bdi>{formatPrice(price)}</bdi> <span>تومان</span></strong></div>
-        <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'افزودن به سبد'}</span></a>
+        {id === 'p01' ? <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'افزودن به سبد'}</span></a> : <span>به‌زودی</span>}
       </div>
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>
