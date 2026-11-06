@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import sharp from 'sharp';
+import { normalizePersianDigits } from '@/lib/date/jalali';
 import { calculateShopStarAtlas } from './shop-sky-atlas';
 import { calculateShopConstellationLines } from './shop-constellation-lines';
 import { calculateShopMoonAtUtc, type ShopMoonEphemeris } from './shop-moon-ephemeris';
-import { shopMoonIlluminationPath } from './shop-moon-artwork';
 import { safeShopArtworkText, xmlShopArtworkText } from './shop-artwork-text';
 import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from './shop-print-handoff';
 import { getShopPrintSpec } from './shop-print-spec';
@@ -152,11 +152,79 @@ async function projectMoonMapToDisc(map: ShopSourceMaster, diameter: number): Pr
   return sharp(result, { raw: { width: diameter, height: diameter, channels: 3 } }).png().toBuffer();
 }
 
+/** HALLEUS_P01_NATURAL_MOON_MASTER_V1 */
+export function formatShopP01DisplayDate(value: string, calendar: string): string {
+  if (calendar !== 'jalali') return value;
+  const normalized = normalizePersianDigits(value).replaceAll('/', '-');
+  const parts = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(normalized);
+  if (!parts) return value;
+  const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+  const month = Number(parts[2]);
+  if (month < 1 || month > 12) return value;
+  const localDigits = (v: string) => v.replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
+  return `${localDigits(String(Number(parts[3])))} ${months[month - 1]} ${localDigits(parts[1])}`;
+}
+
+/** Orthographic sphere lighting from the illuminated fraction. North-up phase
+ * presentation, not a reconstruction of observer tilt, libration or earthshine.
+ */
+async function shadeShopMoonDisc(texture: Buffer, diameter: number, phase: ShopMoonEphemeris): Promise<Buffer> {
+  const { data, info } = await sharp(texture).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  if (info.width !== diameter || info.height !== diameter || info.channels !== 4) {
+    throw new Error('Unexpected projected moon texture dimensions.');
+  }
+  const output = Buffer.alloc(diameter * diameter * 4);
+  const radius = diameter / 2;
+  const cosPhase = Math.max(-1, Math.min(1, 2 * phase.illuminatedFraction - 1));
+  const sunX = (phase.phaseAngleDegrees <= 180 ? 1 : -1) *
+    Math.sqrt(Math.max(0, 1 - cosPhase * cosPhase));
+  for (let y = 0; y < diameter; y += 1) {
+    const north = (radius - y - .5) / radius;
+    for (let x = 0; x < diameter; x += 1) {
+      const east = (x + .5 - radius) / radius;
+      const squared = east * east + north * north;
+      if (squared >= 1) continue;
+      const normalZ = Math.sqrt(1 - squared);
+      const incidence = Math.max(0, east * sunX + normalZ * cosPhase);
+      const exposure = .003 + .92 * Math.pow(incidence, .62);
+      const edge = Math.max(0, Math.min(1, (1 - Math.sqrt(squared)) * radius + .15));
+      const index = (y * diameter + x) * 4;
+      output[index] = Math.round(data[index] * exposure);
+      output[index + 1] = Math.round(data[index + 1] * exposure);
+      output[index + 2] = Math.round(data[index + 2] * exposure);
+      output[index + 3] = Math.round(edge * 255);
+    }
+  }
+  return sharp(output, { raw: { width: diameter, height: diameter, channels: 4 } })
+    .png().toBuffer();
+}
+
+/** Sparse decorative stars; this is not a reconstructed birth sky. */
+function makeShopMoonSky(width: number, height: number): Buffer {
+  const points = [
+    [.09, .11, .48], [.24, .08, .28], [.46, .13, .34], [.74, .06, .32], [.89, .16, .50],
+    [.12, .29, .34], [.82, .25, .43], [.94, .36, .26], [.07, .48, .45], [.89, .55, .25],
+    [.13, .64, .25], [.30, .59, .24], [.79, .64, .29], [.92, .73, .29], [.08, .80, .22],
+    [.21, .89, .20], [.78, .86, .23], [.90, .94, .16], [.46, .05, .17], [.61, .71, .22],
+  ];
+  const stars = points.map(([x, y, opacity], index) =>
+    `<circle cx="${(x * width).toFixed(1)}" cy="${(y * height).toFixed(1)}" r="${(width * (index % 5 === 0 ? .00048 : .00032)).toFixed(2)}" fill="#dbe7f1" opacity="${opacity}"/>`
+  ).join('');
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+    <defs><radialGradient id="night" cx="50%" cy="38%" r="86%">
+      <stop stop-color="#202e3c"/><stop offset=".68" stop-color="#14212f"/>
+      <stop offset="1" stop-color="#0d1823"/>
+    </radialGradient></defs><rect width="${width}" height="${height}" fill="url(#night)"/>
+    ${stars}
+  </svg>`, 'utf8');
+}
+
 async function makeMoonBackground(
   width: number, height: number, moon: ShopSourceMaster, phase: ShopMoonEphemeris,
   originalKind: 'disc' | 'equirectangular-map',
 ) {
-  const disc = Math.floor(width * .76);
+  const disc = Math.floor(width * .69);
   let moonDisc: Buffer;
   if (originalKind === 'equirectangular-map') {
     moonDisc = await projectMoonMapToDisc(moon, disc);
@@ -168,19 +236,9 @@ async function makeMoonBackground(
     moonDisc = await sharp(moon.bytes).extract({ left, top, width: side, height: side })
       .resize(disc, disc).png().toBuffer();
   }
-  const circular = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${disc}" height="${disc}"><circle cx="${disc / 2}" cy="${disc / 2}" r="${disc / 2 - 1}" fill="white"/></svg>`);
-  const phaseMask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${disc}" height="${disc}"><path d="${shopMoonIlluminationPath(phase.illuminatedFraction, phase.phaseAngleDegrees <= 180, disc / 2)}" fill="white"/></svg>`);
-  const dark = await sharp(moonDisc).modulate({ brightness: .11 })
-    .composite([{ input: circular, blend: 'dest-in' }]).png().toBuffer();
-  const lit = await sharp(moonDisc).composite([
-    { input: phaseMask, blend: 'dest-in' }, { input: circular, blend: 'dest-in' },
-  ]).png().toBuffer();
-  const background = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <defs><radialGradient id="back"><stop stop-color="#273441"/><stop offset="1" stop-color="#101821"/></radialGradient></defs>
-    <rect width="${width}" height="${height}" fill="url(#back)"/>
-  </svg>`);
+  const shaded = await shadeShopMoonDisc(moonDisc, disc, phase);
   const xy = { left: Math.floor((width - disc) / 2), top: Math.floor(height * .42 - disc / 2) };
-  return sharp(background).composite([{ input: dark, ...xy }, { input: lit, ...xy }]).png().toBuffer();
+  return sharp(makeShopMoonSky(width, height)).composite([{ input: shaded, ...xy }]).png().toBuffer();
 }
 
 /**
@@ -204,6 +262,7 @@ export async function buildPrivateShopFinalPrintCandidate(
   const names = safeShopArtworkText(personal.names, 'نام');
   const message = safeShopArtworkText(personal.message, 'پیام');
   const date = safeShopArtworkText(personal.date, 'تاریخ');
+  const printDate = item.productId === 'p01' ? formatShopP01DisplayDate(date, personal.calendar) : date;
   const dateTimeCity = item.productId === 'p02'
     ? [date, safeShopArtworkText(personal.time, 'زمان'), safeShopArtworkText(personal.city, 'شهر', 100)]
       .filter(Boolean).join(' · ')
@@ -242,11 +301,29 @@ export async function buildPrivateShopFinalPrintCandidate(
   }
 
   const isPhoto = item.productId === 'p03';
-  const textLayers = await renderTextLayers(width, height, inset, [
+  // P01 visual contract: name, Persian date, optional message and HALLEUS.
+  // 20x30cm is the design anchor; smaller sizes retain minimum type size.
+  const p01Scale = width / Math.ceil(20 / 2.54 * 300);
+  const p01PointSize = (targetPt: number, minimumPt: number) =>
+    Math.round(Math.max(targetPt * p01Scale, minimumPt) * 300 / 72);
+  const brandBoxHeight = Math.floor(height * .031);
+  const p01TextLines: TextLine[] = [
+    { text: names, top: height * .704, height: height * .140,
+      fontPx: p01PointSize(72, 24), color: '#E7EDF4' },
+    { text: printDate, top: height * (message ? .824 : .842), height: height * .060,
+      fontPx: p01PointSize(18, 11), color: '#AAB9C9' },
+    { text: message, top: height * (p01Scale < .8 ? .882 : .892), height: height * .050,
+      fontPx: p01PointSize(14, 9), color: '#B7C6D5' },
+    { text: 'H A L L E U S', top: height - inset - brandBoxHeight,
+      height: brandBoxHeight, fontPx: p01PointSize(9, 7), color: '#8196AA' },
+  ];
+  const genericTextLines: TextLine[] = [
     { text: names, top: height * .79, height: height * .06, fontPx: width * .04 },
     { text: message, top: height * .857, height: height * .05, fontPx: width * .029 },
     { text: dateTimeCity, top: height * .915, height: height * .043, fontPx: width * .023, color: '#c4d4df' },
-  ]);
+  ];
+  const textLayers = await renderTextLayers(width, height, inset,
+    item.productId === 'p01' ? p01TextLines : genericTextLines);
   const compositing = isPhoto
     ? [{ input: makePhotoFade(width, height) }, ...textLayers]
     : textLayers;

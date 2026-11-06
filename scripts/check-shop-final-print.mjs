@@ -124,6 +124,28 @@ const nightOrder = { ...order, items: [nightItem] };
 const moon = await renderer.buildPrivateShopFinalPrintCandidate(moonOrder, 1, { moonDisc: moonSource });
 assert.equal(moon.productId, 'p01');
 await assertJpeg(moon, '10x15');
+assert.equal(renderer.formatShopP01DisplayDate('1375-11-25', 'jalali'), '۲۵ بهمن ۱۳۷۵');
+assert.equal(renderer.formatShopP01DisplayDate('2024-07-01', 'gregorian'), '2024-07-01');
+// A flat synthetic moon must exhibit actual phase-dependent directional lighting.
+const handoff = load('lib/shop/shop-print-handoff.ts').buildPrivateShopPrintHandoff(moonOrder);
+const referenceUtc = handoff.prints[0].moonReference.referenceUtc;
+const phase = load('lib/shop/shop-moon-ephemeris.ts').calculateShopMoonAtUtc(referenceUtc);
+const pixels = await sharp(moon.bytes).raw().toBuffer({ resolveWithObject: true });
+const sampleMoon = (relativeX) => {
+  const diameter = Math.floor(pixels.info.width * .69);
+  const x = Math.floor(pixels.info.width / 2 + relativeX * diameter);
+  const y = Math.floor(pixels.info.height * .42);
+  const index = (y * pixels.info.width + x) * pixels.info.channels;
+  return (pixels.data[index] + pixels.data[index + 1] + pixels.data[index + 2]) / 3;
+};
+const leftBrightness = sampleMoon(-.43);
+const rightBrightness = sampleMoon(.43);
+const expectedDifference = phase.phaseAngleDegrees <= 180
+  ? rightBrightness - leftBrightness : leftBrightness - rightBrightness;
+assert.ok(expectedDifference > 20,
+  `Natural Moon shading must follow the ephemeris: ${expectedDifference}`);
+const moonAgain = await renderer.buildPrivateShopFinalPrintCandidate(moonOrder, 1, { moonDisc: moonSource });
+assert.deepEqual(moonAgain.bytes, moon.bytes, 'P01 output must be deterministic.');
 const mapSource = source(await sharp({ create: {
   width: 2048, height: 1024, channels: 3, background: '#aabdc8',
 } }).png().toBuffer());
