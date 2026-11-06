@@ -1,5 +1,7 @@
 # Halleus physical-shop launch — active execution ledger
 
+> **Active roadmap update — 2026-11-06:** The owner approved the [five-step VPS launch roadmap](HALLEUS_SHOP_VPS_FIVE_STEP_ROADMAP.md), with keyword research running in parallel in the planning chat. That document now owns the active queue, progress and next action. This ledger retains historical execution evidence and approvals. Older queue/status rows below must not reopen already approved choices or erase the later R4–R8a evidence. This documentation update does not authorize or perform a main merge, production migration, shop opening or VPS release.
+
 Last reconciled: 2026-11-06 (Asia/Tehran), active two-milestone shop closeout and isolated final-print candidate
 Repository: `bleucluod/astro-clean`
 Approved working branch: `shop/launch-completion-20261105`
