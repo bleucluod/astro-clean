@@ -1,6 +1,7 @@
 import { parseShopCart, type ShopCartItem } from '@/components/shop/shop-cart';
 import { validateShopMoment } from './shop-personalization';
 import { getShopPrintSpec } from './shop-print-spec';
+import { isValidShopOrderNumber } from './shop-order-number';
 import { findHalleusCityById } from '@/lib/locations/cities';
 import { calculateShopBrightStarProof } from './shop-sky-stars';
 
@@ -18,6 +19,18 @@ function getGregorianDate(item: ShopCartItem): string | null {
   const validated = validateShopMoment(item.productId, item.details);
   if (!validated.ok) throw new ShopPrintHandoffError('تاریخ شخصی‌سازی سفارش معتبر نیست.', 422);
   return validated.gregorianIso;
+}
+
+function getMoonReference(item: ShopCartItem) {
+  if (item.productId !== 'p01') return null;
+  const validated = validateShopMoment(item.productId, item.details);
+  if (!validated.ok || !validated.gregorianIso || !validated.referenceUtc) {
+    throw new ShopPrintHandoffError('تاریخ ماه آن روز هنوز معتبر نیست.', 422);
+  }
+  return {
+    source: 'local-noon-asia-tehran', timezone: 'Asia/Tehran', localTime: '12:00',
+    gregorianDate: validated.gregorianIso, referenceUtc: validated.referenceUtc,
+  };
 }
 
 function getBirthSkyReference(item: ShopCartItem) {
@@ -50,9 +63,10 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
   if (!Array.isArray(order.items) || !items.length || items.length !== order.items.length) {
     throw new ShopPrintHandoffError('مشخصات محصولات برای تحویل به چاپ کامل نیست.', 422);
   }
-  const number = typeof order.display_number === 'number' || typeof order.display_number === 'string'
-    ? String(order.display_number) : '';
-  if (!/^[1-9]\d{0,17}$/.test(number)) {
+  const number = typeof order.display_number === 'string' ? order.display_number
+    : typeof order.display_number === 'number' && Number.isSafeInteger(order.display_number)
+      ? String(order.display_number) : '';
+  if (!isValidShopOrderNumber(number)) {
     throw new ShopPrintHandoffError('شمارهٔ سفارش معتبر نیست.', 422);
   }
   return {
@@ -72,13 +86,14 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
       productTitle: names[item.productId],
       sizeCm: item.size,
       prepressRequirements: getShopPrintSpec(item.size),
+      moonReference: getMoonReference(item),
       birthSkyReference: getBirthSkyReference(item),
       quantity: item.quantity,
       material: 'matte-print-on-unframed-shasi',
       personalization: {
         calendar: item.details.calendar,
         date: item.details.date,
-        // Source date is normalized, but its reference UTC instant is not guessed.
+        // Product-specific astronomical reference instants are recorded above.
         gregorianDate: getGregorianDate(item),
         time: item.details.time,
         city: item.details.city,

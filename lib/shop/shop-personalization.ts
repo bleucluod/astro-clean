@@ -33,8 +33,8 @@ function parseGregorianDate(value: string): string | null {
 }
 
 /**
- * Shared client/server input boundary. This only normalizes a civil date;
- * choosing the exact UTC instant for astronomical art is a separate decision.
+ * Shared client/server input boundary. P01 uses local noon in Asia/Tehran;
+ * P02 resolves the submitted civil time in its catalog city's IANA timezone.
  */
 export function validateShopMoment(productId: ShopProductId, input: ShopMomentInput): ShopMomentValidation {
   if (input.calendar !== 'jalali' && input.calendar !== 'gregorian') {
@@ -65,6 +65,13 @@ export function validateShopMoment(productId: ShopProductId, input: ShopMomentIn
     return { ok: false, message: 'ساعت را با قالب ۲۴ساعته و دقیقهٔ معتبر وارد کن.' };
   }
   let referenceUtc: string | null = null;
+  if (productId === 'p01') {
+    const instant = resolveShopCivilTimeUtc(gregorianIso!, '12:00', 'Asia/Tehran');
+    if (instant.status !== 'resolved') {
+      return { ok: false, message: 'تاریخ انتخابی برای محاسبهٔ ماه معتبر نیست.' };
+    }
+    referenceUtc = instant.utcIso;
+  }
   if (productId === 'p02') {
     const city = findHalleusCityById(input.cityId ?? '');
     if (!city || normalizeHalleusCitySearch(input.city) !== normalizeHalleusCitySearch(getHalleusCityDisplayName(city))) {

@@ -29,7 +29,7 @@ export function buildShopProductStructuredData(product: ShopProduct, siteUrl: st
         url,
         brand: { '@type': 'Brand', name: 'هالیوس' },
         category: 'تابلوی شخصی‌سازی‌شده',
-        material: 'چاپ مات روی شاسی بدون قاب',
+        material: 'چاپ مات روی شاسی',
         size: SHOP_SIZES.map(({ label }) => `${label} سانتی‌متر`),
       },
       {

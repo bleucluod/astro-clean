@@ -49,9 +49,11 @@ const sky = load('lib/shop/shop-sky-stars.ts', {
   'astronomy-engine': astronomy,
   '@/src/lib/chart/fixed-star-catalog': catalog,
 });
+const orderNumber = load('lib/shop/shop-order-number.ts');
 const handoff = load('lib/shop/shop-print-handoff.ts', {
   '@/components/shop/shop-cart': cart, './shop-personalization': moment, './shop-print-spec': printSpec,
   '@/lib/locations/cities': cities, './shop-sky-stars': sky,
+  './shop-order-number': orderNumber,
 });
 
 const item = {
@@ -73,6 +75,15 @@ assert.equal(result.prints[0].personalization.message, 'پیام خصوصی');
 assert.equal(result.prints[0].personalization.gregorianDate, '2024-11-05');
 assert.equal(result.prints[0].printArtworkReady, false);
 assert.equal(result.prints[0].birthSkyReference, null);
+assert.deepEqual(JSON.parse(JSON.stringify(result.prints[0].moonReference)), {
+  source: 'local-noon-asia-tehran', timezone: 'Asia/Tehran', localTime: '12:00',
+  gregorianDate: '2024-11-05', referenceUtc: '2024-11-05T08:30:00.000Z',
+});
+assert.equal(handoff.buildPrivateShopPrintHandoff({ ...order, display_number: '9223372036854775807' }).orderNumber,
+  '9223372036854775807');
+for (const display_number of ['9223372036854775808', '10000000000000000000', 9007199254740992]) {
+  assert.throws(() => handoff.buildPrivateShopPrintHandoff({ ...order, display_number }));
+}
 const birthSkyItem = { ...item, productId: 'p02', details: {
   ...item.details, calendar: 'gregorian', date: '2024-07-01', time: '12:30',
   city: 'برلین، آلمان', cityId: 'de-berlin',
@@ -80,6 +91,7 @@ const birthSkyItem = { ...item, productId: 'p02', details: {
 const birthSkyBrief = handoff.buildPrivateShopPrintHandoff({ ...order, items: [birthSkyItem] });
 assert.equal(birthSkyBrief.prints[0].birthSkyReference.referenceUtc, '2024-07-01T10:30:00.000Z');
 assert.equal(birthSkyBrief.prints[0].birthSkyReference.timezone, 'Europe/Berlin');
+assert.equal(birthSkyBrief.prints[0].moonReference, null);
 assert.equal(birthSkyBrief.prints[0].birthSkyReference.cityId, 'de-berlin');
 assert.equal(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.catalogueStarCount, 14);
 assert.ok(birthSkyBrief.prints[0].birthSkyReference.brightStarProof.aboveHorizonStarCount > 0);

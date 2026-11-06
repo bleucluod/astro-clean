@@ -7,6 +7,9 @@ export type ShopPrintSpec = {
   widthCm: number;
   heightCm: number;
   targetPpi: number;
+  finalFormat: 'JPEG';
+  safeAreaMm: 5;
+  minimumSafeInsetPixels: number;
   minimumNativePixels: { width: number; height: number };
   colorMode: 'RGB';
   preferredProfile: 'sRGB';
@@ -24,6 +27,9 @@ export function getShopPrintSpec(size: string): ShopPrintSpec {
   return {
     sizeCm: size, widthCm, heightCm,
     targetPpi: SHOP_PRINT_TARGET_PPI,
+    finalFormat: 'JPEG',
+    safeAreaMm: 5,
+    minimumSafeInsetPixels: Math.ceil(0.5 / 2.54 * SHOP_PRINT_TARGET_PPI),
     minimumNativePixels: {
       width: Math.ceil(widthCm / 2.54 * SHOP_PRINT_TARGET_PPI),
       height: Math.ceil(heightCm / 2.54 * SHOP_PRINT_TARGET_PPI),

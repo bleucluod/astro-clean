@@ -35,7 +35,7 @@ export async function createShopOrder(draft: ShopOrderDraft) {
         ${draft.idempotencyHash}, ${draft.guestAccessHash}, ${draft.payloadHash},
         ${shipping.name}, ${`+98${shipping.mobile}`}, ${shipping.province}, ${shipping.city},
         ${shipping.address}, ${shipping.postalCode}, ${shipping.note || null},
-        ${shipping.carrier}, ${JSON.stringify(draft.items)}::jsonb,
+        ${shipping.carrier}, ${JSON.stringify(draft.items)}::text::jsonb,
         ${quote.itemCount}, ${quote.subtotal}, ${quote.shippingAndPackaging}, ${quote.total}
       ) on conflict (idempotency_hash) do nothing
       returning id, display_number

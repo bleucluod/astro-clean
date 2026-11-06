@@ -295,6 +295,9 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                     </div>
                   )}
                 </div>
+                {id === 'p01' ? (
+                  <p className={styles.formHint}>برای محاسبهٔ فاز ماه، ساعت ۱۲ ظهر به وقت تهران در تاریخ انتخابی مبناست؛ نیازی به واردکردن ساعت یا شهر نیست.</p>
+                ) : null}
                 {id === 'p02' ? (
                   <>
                     <div className={styles.dateFields}>
@@ -330,12 +333,6 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 <details className={styles.optionalFields}>
                   <summary>{formCopy.details} <span aria-hidden="true">+</span></summary>
                   <div className={styles.optionalFieldsInner}>
-                    {id === 'p01' ? (
-                      <div className={styles.dateFields}>
-                        <div className={styles.formField}><label htmlFor="product-time">ساعت (اختیاری)</label><input id="product-time" type="time" dir="ltr" value={form.time} onChange={(event) => updateForm('time', event.target.value)} /></div>
-                        <div className={styles.formField}><label htmlFor="product-city">شهر (اختیاری)</label><input id="product-city" type="text" maxLength={100} placeholder="نام شهر، اگر دوست داری" value={form.city} onChange={(event) => updateForm('city', event.target.value)} /></div>
-                      </div>
-                    ) : null}
                     <div className={styles.formField}>
                       <label htmlFor="product-message">پیام کوتاه (اختیاری)</label>
                       <textarea id="product-message" maxLength={60} rows={2} placeholder="چند کلمه که فقط برای شما معنا دارد…" value={form.message} onChange={(event) => updateForm('message', event.target.value)} />

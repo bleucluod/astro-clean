@@ -42,6 +42,9 @@ const details = { calendar: 'jalali', date: '۱۴۰۳/۰۶/۱۲', time: '', city
 const check = (productId, overrides = {}) => moment.validateShopMoment(productId, { ...details, ...overrides });
 assert.equal(check('p01').ok, true);
 assert.equal(check('p01').gregorianIso, '2024-09-02');
+assert.equal(check('p01').referenceUtc, '2024-09-02T08:30:00.000Z');
+assert.equal(check('p01', { calendar: 'gregorian', date: '2021-07-01' }).referenceUtc,
+  '2021-07-01T07:30:00.000Z');
 assert.equal(check('p01', { date: '۱۳۹۹/۱۲/۳۰' }).ok, true);
 assert.equal(check('p01', { date: '۱۴۰۰/۱۲/۳۰' }).ok, false);
 assert.equal(check('p01', { date: '۱۴۰۳/۰۷/۳۱' }).ok, false);

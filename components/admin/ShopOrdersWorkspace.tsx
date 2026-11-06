@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ShopCatalogReadiness } from './ShopCatalogReadiness';
 import { formatShopInteger } from '@/lib/shop/shop-order-number';
+import { buildShopManualCustomerNotice } from '@/lib/shop/shop-manual-notice';
 import styles from './shop-orders-workspace.module.css';
 
 type ShopOrderRow = {
@@ -144,7 +145,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
 
   async function downloadArtworkProof(line: number) {
     if (!detail || busy || !printHandoffStatuses.has(detail.status) ||
-        !['p02', 'p03'].includes(detail.items[line - 1]?.productId)) return;
+        !['p01', 'p02', 'p03'].includes(detail.items[line - 1]?.productId)) return;
     const productId = detail.items[line - 1].productId;
     setBusy(true); setError(''); setSuccess('');
     try {
@@ -159,12 +160,52 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       const url = URL.createObjectURL(file);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `halleus-order-${detail.display_number}-${productId}-line-${line}-proof.${productId === 'p03' ? 'png' : 'svg'}`;
+      link.download = `halleus-order-${detail.display_number}-${productId}-line-${line}-proof.${productId === 'p02' ? 'svg' : 'png'}`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       setSuccess('پیش‌نمایش اختصاصی دریافت شد. حاوی نام و پیام خصوصی است و هنوز برای چاپ تأیید نشده.');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت پیش‌نمایش انجام نشد.'); }
     finally { setBusy(false); }
+  }
+
+  async function downloadNativePrintCandidate(line: number) {
+    if (!detail || busy || !printHandoffStatuses.has(detail.status) ||
+        !['p01', 'p02', 'p03'].includes(detail.items[line - 1]?.productId ?? '')) return;
+    const productId = detail.items[line - 1].productId;
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${detail.id}/print/candidate?line=${line}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }, cache: 'no-store',
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error || 'آماده‌سازی فایل بررسی چاپ انجام نشد.');
+      }
+      const file = await response.blob();
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `halleus-order-${detail.display_number}-${productId}-line-${line}-prepress-candidate.jpg`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setSuccess('فایل JPG با اندازهٔ واقعی برای بررسی دریافت شد؛ تأیید طراحی و چاپخانه همچنان لازم است.');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت فایل بررسی چاپ انجام نشد.'); }
+    finally { setBusy(false); }
+  }
+
+  async function copyManualStatusNotice() {
+    if (!detail || busy) return;
+    const message = buildShopManualCustomerNotice({
+      orderNumber: detail.display_number, status: detail.status,
+      carrier: detail.carrier, trackingCode: detail.tracking_code,
+    });
+    if (!message) return;
+    try {
+      await navigator.clipboard.writeText(message);
+      setSuccess('متن پیام کپی شد؛ ارسال نشده است. گیرنده و کانال مورد تأیید را خودت بررسی و پیام را دستی ارسال کن.');
+    } catch {
+      setError('کپی پیام ممکن نشد. ارسال خودکاری انجام نشده است.');
+    }
   }
 
   function doSearch(event: FormEvent<HTMLFormElement>) {
@@ -224,11 +265,21 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       </article>)}</div>
       {printHandoffStatuses.has(detail.status) ? <div className={styles.printHandoff}>
         <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود مشخصات خصوصی چاپ</button>
-        {detail.items.map((item, index) => item.productId === 'p02' || item.productId === 'p03' ? <button
+        {detail.items.map((item, index) => ['p01', 'p02', 'p03'].includes(item.productId) ? <button
           key={item.key} type="button" disabled={busy} onClick={() => void downloadArtworkProof(index + 1)}
         >دانلود پیش‌نمایش اختصاصی {productNames[item.productId]} · ردیف {formatNumber(index + 1)}</button> : null)}
-        <p>پیش‌نمایش شامل نام و پیام خصوصی است و روی سرور بایگانی نمی‌شود. تصویر «شبِ ما» در وضوح نمونه است و هیچ‌کدام از فایل‌ها برای چاپ نهایی تأیید نشده‌اند.</p>
+        {detail.items.map((item, index) => ['p01', 'p02', 'p03'].includes(item.productId) ? <button
+          key={`${item.key}-native`} type="button" disabled={busy} onClick={() => void downloadNativePrintCandidate(index + 1)}
+        >JPG اندازهٔ واقعی برای بررسی چاپ {productNames[item.productId]} · ردیف {formatNumber(index + 1)}</button> : null)}
+        <p>دانلود JPG ماه و راه شیری فقط پس از ثبت اصل تصویر مجاز و بررسی اثرانگشت در فضای خصوصی ممکن است. پیش‌نمایش‌های PNG/SVG فایل نهایی چاپ نیستند؛ هیچ فایلی بدون اقدام صریح مالک بایگانی نمی‌شود.</p>
       </div> : <p className={styles.printNote}>تحویل اطلاعات سفارش به چاپ بعد از تأیید دریافت وجه فعال می‌شود.</p>}
+      {buildShopManualCustomerNotice({
+        orderNumber: detail.display_number, status: detail.status,
+        carrier: detail.carrier, trackingCode: detail.tracking_code,
+      }) ? <div className={styles.printHandoff}>
+        <button type="button" disabled={busy} onClick={() => void copyManualStatusNotice()}>کپی متن اطلاع‌رسانی وضعیت سفارش</button>
+        <p>این فقط متن پیشنهادی است؛ پیامک یا اعلان خودکاری ارسال نمی‌شود. پیش از ارسال دستی، گیرنده و راه ارتباطی را تأیید کن.</p>
+      </div> : null}
       <h4>سوابق سفارش</h4>
       <div className={styles.history}>{detail.events.map((event, index) => <p key={`${event.created_at}-${index}`}>{new Date(event.created_at).toLocaleString('fa-IR')} · {event.action} · {labels[event.after_status] ?? event.after_status}{event.reason ? ` · ${event.reason}` : ''}</p>)}</div>
       {actions[detail.status]?.length ? <div className={styles.actions}>

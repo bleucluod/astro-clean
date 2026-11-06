@@ -49,10 +49,11 @@ const starCatalog = load('src/lib/chart/fixed-star-catalog.ts', {
 const skyStars = load('lib/shop/shop-sky-stars.ts', {
   'astronomy-engine': astronomy, '@/src/lib/chart/fixed-star-catalog': starCatalog,
 });
+const orderNumber = load('lib/shop/shop-order-number.ts');
 const handoff = load('lib/shop/shop-print-handoff.ts', {
   '@/components/shop/shop-cart': cart, './shop-personalization': moment,
   './shop-print-spec': printSpec, '@/lib/locations/cities': cities,
-  './shop-sky-stars': skyStars,
+  './shop-sky-stars': skyStars, './shop-order-number': orderNumber,
 });
 const text = load('lib/shop/shop-artwork-text.ts', { './shop-print-handoff': handoff });
 const sourcePath = resolve(root, 'assets/shop-print/p03-milky-way-proof-v1.webp');
@@ -163,6 +164,7 @@ const route = load('app/api/admin/shop/orders/[id]/print/preview/route.ts', {
     if (failedAudit) throw new Error('Audit failed');
   } },
   '@/lib/shop/shop-private-artwork': { buildPrivateShopSkyArtworkProof: () => { throw new Error('Wrong product route'); } },
+  '@/lib/shop/shop-private-moon-artwork': { buildPrivateShopMoonArtworkProof: async () => { throw new Error('P01 has its own guard'); } },
   '@/lib/shop/shop-night-artwork': night,
   '@/lib/shop/shop-print-handoff': handoff,
   '@/lib/shop/shop-order-store': { getAdminShopOrder: async () => { reads++; return stored; } },
@@ -196,7 +198,7 @@ failedAudit = true;
 assert.equal((await get()).status, 503);
 
 const ui = readFileSync(resolve(root, 'components/admin/ShopOrdersWorkspace.tsx'), 'utf8');
-assert.match(ui, /item\.productId === 'p03'/);
+assert.match(ui, /\['p01', 'p02', 'p03'\]\.includes\(item\.productId\)/);
 assert.match(ui, /downloadArtworkProof\(index \+ 1\)/);
 const source = readFileSync(resolve(root, 'lib/shop/shop-night-artwork.ts'), 'utf8');
 assert.doesNotMatch(source, /(?:writeFile|createWriteStream|mkdir|public\/shop-preview)/);

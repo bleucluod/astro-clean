@@ -48,10 +48,11 @@ const fixedStars = load('src/lib/chart/fixed-star-catalog.ts', {
 const brightStars = load('lib/shop/shop-sky-stars.ts', {
   'astronomy-engine': astronomy, '@/src/lib/chart/fixed-star-catalog': fixedStars,
 });
+const orderNumber = load('lib/shop/shop-order-number.ts');
 const handoff = load('lib/shop/shop-print-handoff.ts', {
   '@/components/shop/shop-cart': cart, './shop-personalization': moment,
   './shop-print-spec': printSpec, '@/lib/locations/cities': cities,
-  './shop-sky-stars': brightStars,
+  './shop-sky-stars': brightStars, './shop-order-number': orderNumber,
 });
 const bsc5 = JSON.parse(readFileSync(resolve(root, 'lib/shop/catalog/bsc5-bright-stars-mag6.json'), 'utf8'));
 const stars = load('lib/shop/shop-sky-atlas.ts', {
@@ -156,6 +157,7 @@ const route = load('app/api/admin/shop/orders/[id]/print/preview/route.ts', {
     if (failAudit) throw new Error('Audit is unavailable');
   } },
   '@/lib/shop/shop-private-artwork': artwork,
+  '@/lib/shop/shop-private-moon-artwork': { buildPrivateShopMoonArtworkProof: async () => { throw new Error('P01 has its own guard'); } },
   '@/lib/shop/shop-night-artwork': { buildPrivateShopNightArtworkProof: async () => { throw new Error('P03 is covered by its own test'); } },
   '@/lib/shop/shop-print-handoff': handoff,
   '@/lib/shop/shop-order-store': { getAdminShopOrder: async () => { reads++; return stored; } },
@@ -184,7 +186,7 @@ assert.equal((await get()).status, 404);
 stored = { ...order, status: 'transfer_declared' };
 assert.equal((await get()).status, 409);
 stored = order;
-assert.equal((await get('?line=1')).status, 422);
+// P01 has its own real-PNG route guard now; this guard focuses on P02.
 assert.equal(audits.length, 0);
 const response = await get();
 assert.equal(response.status, 200);
@@ -205,8 +207,8 @@ assert.equal(audits.length, 2);
 
 const ui = readFileSync(resolve(root, 'components/admin/ShopOrdersWorkspace.tsx'), 'utf8');
 assert.match(ui, /downloadArtworkProof\(index \+ 1\)/);
-assert.match(ui, /item\.productId === 'p02'/);
-assert.match(ui, /item\.productId === 'p03'/);
+assert.match(ui, /\['p01', 'p02', 'p03'\]\.includes\(item\.productId\)/);
+assert.match(ui, /productId === 'p02' \? 'svg' : 'png'/);
 assert.match(ui, /print\/preview\?line=/);
 for (const sourceFile of [
   'lib/shop/shop-private-artwork.ts', 'app/api/admin/shop/orders/[id]/print/preview/route.ts',
