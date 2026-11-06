@@ -111,6 +111,21 @@ for (const sensitive of ['+989121234567', 'خیابان کاملاً خصوصی'
   assert.ok(!zipBytes.includes(Buffer.from(sensitive)), `ZIP includes forbidden data: ${sensitive}`);
 }
 assert.deepEqual(designZip.buildPrivateShopDesignHandoffZip(result), zipBytes, 'ZIP must be repeatable.');
+const syntheticOrder = {
+  display_number: '1', status: 'payment_verified',
+  items: ['10x15', '20x30', '30x45'].map((size) => ({
+    ...item, key: `synthetic-${size}`, size, quantity: 1,
+    details: { ...item.details, names: 'نام نمونه', message: '' },
+  })),
+};
+const syntheticHandoff = handoff.buildPrivateShopPrintHandoff(syntheticOrder);
+assert.equal(syntheticHandoff.prints.length, 3);
+const syntheticZip = designZip.buildPrivateShopDesignHandoffZip(syntheticHandoff, { sampleOnly: true });
+assert.ok(syntheticZip.includes(Buffer.from('"sampleOnly": true')));
+assert.ok(syntheticZip.includes(Buffer.from('"orderNumber": null')));
+assert.ok(syntheticZip.includes(Buffer.from('"lineCount": 3')));
+assert.ok(syntheticZip.includes(Buffer.from('"artworkGenerated": false')));
+assert.ok(!syntheticZip.includes(Buffer.from('"orderNumber": "1"')));
 for (const status of ['awaiting_transfer', 'transfer_declared', 'payment_rejected', 'cancel_requested', 'canceled']) {
   assert.throws(() => handoff.buildPrivateShopPrintHandoff({ ...order, status }));
 }

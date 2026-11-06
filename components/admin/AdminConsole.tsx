@@ -114,8 +114,8 @@ const tabs: {
   },
   {
     id: "orders",
-    label: "سفارش‌های فروشگاه",
-    shortLabel: "سفارش‌ها",
+    label: "مدیریت فروشگاه",
+    shortLabel: "فروشگاه",
     capability: "shop_orders.read",
     group: "main",
   },

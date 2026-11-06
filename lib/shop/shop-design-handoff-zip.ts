@@ -103,25 +103,31 @@ function designPrompt(productId: string, line: number, size: string) {
   ].join('\n');
 }
 
-export function buildPrivateShopDesignHandoffZip(handoff: PrintHandoff): Buffer {
+export function buildPrivateShopDesignHandoffZip(
+  handoff: PrintHandoff, options: { sampleOnly?: boolean } = {},
+): Buffer {
   if (handoff.documentKind !== 'production-brief-not-print-ready-artwork' ||
       !/^[1-9]\d{0,18}$/.test(handoff.orderNumber) ||
       !handoff.prints.length || handoff.prints.length > 20) {
     throw new Error('Invalid private design handoff.');
   }
 
+  const sampleOnly = options.sampleOnly === true;
+  const orderNumber = sampleOnly ? null : handoff.orderNumber;
   const entries: ZipEntry[] = [
     textEntry('README-fa.md', [
-      '# بستهٔ خصوصی سفارش برای طراحی توسط دستیار',
+      sampleOnly ? '# بستهٔ نمونهٔ ساختگی P01 برای طراحی توسط دستیار' : '# بستهٔ خصوصی سفارش برای طراحی توسط دستیار',
       '',
+      ...(sampleOnly ? ['این یک نمونهٔ آزمایشی است؛ سفارش واقعی یا پرداخت مشتری وجود ندارد.', 'شامل سه اندازهٔ چاپ P01 با یک تاریخ و دادهٔ نمونه است.', ''] : []),
       'این بسته حاوی داده و پرامپت است، نه عکس یا فایل چاپی تولیدشده.',
-      'پس از طراحی فایل نهایی را دستی به سفارش مربوط متصل کنید.',
+      sampleOnly ? 'ابتدا دستیار طرح را بسازد؛ مالک و چاپخانه باید آن را جداگانه تأیید کنند.' : 'پس از طراحی فایل نهایی را دستی به سفارش مربوط متصل کنید.',
       'اطلاعات نشانی، موبایل، دسترسی مهمان و مستندات بانکی نباید در این بسته باشند.',
       'این ZIP را عمومی یا در GitHub منتشر نکنید؛ نام و تاریخ شخصی محرمانه‌اند.',
     ].join('\n')),
     jsonEntry('manifest.json', {
       format: 'halleus.shop.manual-design-handoff.v1',
-      orderNumber: handoff.orderNumber,
+      sampleOnly,
+      orderNumber,
       lineCount: handoff.prints.length,
       workflow: 'admin-zip-to-assistant-to-manual-owner-upload',
       artworkGenerated: false,
@@ -146,7 +152,8 @@ export function buildPrivateShopDesignHandoffZip(handoff: PrintHandoff): Buffer 
     } : { kind: 'artistic-milky-way-no-astronomical-reconstruction' };
     entries.push(jsonEntry(`${base}/data.json`, {
       format: 'halleus.shop.manual-design-line.v1',
-      orderNumber: handoff.orderNumber,
+      sampleOnly,
+      orderNumber,
       line: print.line,
       productId: print.productId,
       productTitle: print.productTitle,

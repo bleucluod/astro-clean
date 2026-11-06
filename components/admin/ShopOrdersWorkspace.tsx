@@ -33,6 +33,10 @@ const labels: Record<string, string> = {
 const productNames: Record<string, string> = { p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما' };
 const printHandoffStatuses = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
+class ShopRequestError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
+
 const actions: Record<string, { action: Action; label: string }[]> = {
   awaiting_transfer: [{ action: 'cancel', label: 'لغو سفارش' }],
   transfer_declared: [
@@ -66,6 +70,14 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   const [reason, setReason] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
   const [refresh, setRefresh] = useState(0);
+  const [ordersClosed, setOrdersClosed] = useState(false);
+  const [sampleCalendar, setSampleCalendar] = useState<'jalali' | 'gregorian'>('jalali');
+  const [sampleDate, setSampleDate] = useState('۱۴۰۳/۰۸/۱۵');
+  const [sampleNames, setSampleNames] = useState('نام نمونه');
+  const [sampleMessage, setSampleMessage] = useState('');
+  const [sampleBusy, setSampleBusy] = useState(false);
+  const [sampleFeedback, setSampleFeedback] = useState('');
+  const [sampleError, setSampleError] = useState('');
 
   const request = useCallback(async (path: string, init?: RequestInit) => {
     const response = await fetch(path, {
@@ -74,7 +86,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     });
     const data = await response.json().catch(() => null) as Record<string, unknown> | null;
     if (!response.ok || !data?.ok) {
-      throw new Error(typeof data?.error === 'string' ? data.error : `دریافت سفارش انجام نشد (${response.status}).`);
+      throw new ShopRequestError(typeof data?.error === 'string' ? data.error : `دریافت سفارش انجام نشد (${response.status}).`, response.status);
     }
     return data;
   }, [accessToken]);
@@ -84,9 +96,12 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     const query = new URLSearchParams({ page: String(page), status, search });
     request(`/api/admin/shop/orders?${query}`).then((data) => {
       if (!active) return;
-      setRows(data.orders as ShopOrderRow[]); setTotal(Number(data.total)); setError('');
+      setRows(data.orders as ShopOrderRow[]); setTotal(Number(data.total)); setError(''); setOrdersClosed(false);
     }).catch((cause: unknown) => {
-      if (active) setError(cause instanceof Error ? cause.message : 'دریافت فهرست انجام نشد.');
+      if (!active) return;
+      if (cause instanceof ShopRequestError && cause.status === 404) {
+        setOrdersClosed(true); setRows([]); setTotal(0); setError('');
+      } else setError(cause instanceof Error ? cause.message : 'دریافت فهرست انجام نشد.');
     });
     return () => { active = false; };
   }, [request, page, status, search, refresh]);
@@ -143,6 +158,31 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     finally { setBusy(false); }
   }
 
+  async function downloadSampleZip(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (sampleBusy) return;
+    setSampleBusy(true); setSampleError(''); setSampleFeedback('');
+    try {
+      const response = await fetch('/api/admin/shop/design-sample', {
+        method: 'POST', cache: 'no-store',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ calendar: sampleCalendar, date: sampleDate.trim(), names: sampleNames.trim(), message: sampleMessage.trim() }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error || `دریافت ZIP نمونه ممکن نشد (${response.status}).`);
+      }
+      const file = await response.blob();
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url; link.download = 'halleus-p01-synthetic-design-data.zip';
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setSampleFeedback('ZIP اطلاعات نمونه دانلود شد؛ آن را برای طراحی دستی به دستیار بفرست. هیچ تصویری در پنل ساخته نشده است.');
+    } catch (cause) { setSampleError(cause instanceof Error ? cause.message : 'دریافت نمونه انجام نشد.'); }
+    finally { setSampleBusy(false); }
+  }
+
   async function copyManualStatusNotice() {
     if (!detail || busy) return;
     const message = buildShopManualCustomerNotice({
@@ -164,6 +204,31 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
 
   return <div className={styles.workspace} dir="rtl">
     <ShopCatalogReadiness />
+    <section className={styles.sampleHandoff} aria-labelledby="shop-sample-heading">
+      <h3 id="shop-sample-heading">بستهٔ اطلاعات نمونهٔ «ماه آن روز»</h3>
+      <p>برای طراحی نسخهٔ اول، همین‌جا ZIP دادهٔ ساختگی بگیر و برای من بفرست. شامل محاسبات واقعی ماه، مشخصات سه اندازه و دستور طراحی است؛ هیچ تصویری ساخته نمی‌شود و به سفارش یا دیتابیس وصل نیست.</p>
+      <form onSubmit={(event) => void downloadSampleZip(event)} className={styles.sampleForm}>
+        <label>تقویم نمونه
+          <select value={sampleCalendar} onChange={(event) => { setSampleCalendar(event.target.value as 'jalali' | 'gregorian'); setSampleDate(''); }}>
+            <option value="jalali">شمسی</option><option value="gregorian">میلادی</option>
+          </select>
+        </label>
+        <label>تاریخ نمونه
+          <input required dir="ltr" maxLength={20} value={sampleDate} placeholder={sampleCalendar === 'jalali' ? '۱۴۰۳/۰۸/۱۵' : '2024-11-05'} onChange={(event) => setSampleDate(event.target.value)} />
+        </label>
+        <label>نام آزمایشی
+          <input maxLength={60} value={sampleNames} onChange={(event) => setSampleNames(event.target.value)} />
+        </label>
+        <label>پیام آزمایشی (اختیاری)
+          <input maxLength={60} value={sampleMessage} onChange={(event) => setSampleMessage(event.target.value)} />
+        </label>
+        <button type="submit" disabled={sampleBusy}>{sampleBusy ? 'در حال ساخت ZIP داده…' : 'دانلود ZIP اطلاعات سه اندازه'}</button>
+      </form>
+      {sampleError ? <p className={styles.error} role="alert">{sampleError}</p> : null}
+      {sampleFeedback ? <p className={styles.success} role="status">{sampleFeedback}</p> : null}
+    </section>
+    {ordersClosed ? <p className={styles.printNote}>دریافت سفارش‌ها تا زمان بازشدن فروشگاه غیرفعال است؛ بخش نمونه‌سازی بالا مستقل و قابل استفاده است.</p> : null}
+    {!ordersClosed ? <>
     <div className={styles.toolbar}>
       <form onSubmit={doSearch} className={styles.search}>
         <input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} maxLength={64} placeholder="شماره سفارش، نام یا موبایل" aria-label="جست‌وجوی سفارش" />
@@ -194,6 +259,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       <span>صفحه {formatNumber(page)} · {formatNumber(total)} سفارش</span>
       <button type="button" disabled={page * 25 >= total} onClick={() => setPage((value) => value + 1)}>صفحه بعد</button>
     </div>
+    </> : null}
     {detail ? <section className={styles.detail}>
       <div className={styles.heading}><h3>سفارش {formatNumber(detail.display_number)} · {labels[detail.status] ?? detail.status}</h3><button type="button" onClick={() => setDetail(null)}>بستن</button></div>
       <div className={styles.info}>
