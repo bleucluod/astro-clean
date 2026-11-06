@@ -21,10 +21,12 @@ type SourceDefinition = {
   rightsConfirmed: true;
 };
 
-const approvedNames: Record<SourceDefinition['kind'], string> = {
-  'moon-map': 'moon-map.tif',
-  'moon-disc': 'moon-disc.jpg',
-  'milky-way-photo': 'milky-way-photo.jpg',
+const approvedNames: Record<SourceDefinition['kind'], readonly string[]> = {
+  // Moon maps are distributed as either native 8-bit RGB TIFF or JPEG;
+  // the renderer independently checks the decoded image and native pixels.
+  'moon-map': ['moon-map.tif', 'moon-map.jpg'],
+  'moon-disc': ['moon-disc.jpg'],
+  'milky-way-photo': ['milky-way-photo.jpg'],
 };
 
 function rejectOriginal(message: string, status = 409): never {
@@ -77,8 +79,8 @@ function parseDefinition(value: unknown, productId: 'p01' | 'p03'): SourceDefini
       (productId === 'p03' && kind !== 'milky-way-photo')) {
     rejectOriginal('نوع منبع تصویری با محصول سفارش هماهنگ نیست.', 422);
   }
-  const name = approvedNames[kind as SourceDefinition['kind']];
-  if (item.filename !== name || typeof item.sha256 !== 'string' ||
+  const names = approvedNames[kind as SourceDefinition['kind']];
+  if (!names?.includes(item.filename as string) || typeof item.sha256 !== 'string' ||
       !shaPattern.test(item.sha256) || item.rightsConfirmed !== true ||
       typeof item.creator !== 'string' || !item.creator.trim() ||
       typeof item.sourceUrl !== 'string' || !/^https:\/\/[^\s/]+\//.test(item.sourceUrl) ||

@@ -52,6 +52,14 @@ try {
   assert.deepEqual(good.moonMap.bytes, bytes);
   assert.equal(good.moonMap.attribution, definition.attribution);
   assert.equal(good.moonMap.sha256, sha256);
+  const jpegOriginalPath = join(directory, 'moon-map.jpg');
+  await writeFile(jpegOriginalPath, bytes, { mode: 0o600, flag: 'wx' });
+  await store({ ...definition, filename: 'moon-map.jpg' });
+  assert.deepEqual((await loader.loadPrivateShopFinalPrintSources('p01', directory)).moonMap.bytes, bytes);
+  await store({ ...definition, filename: 'moon-map.png' });
+  await assert.rejects(() => loader.loadPrivateShopFinalPrintSources('p01', directory),
+    (error) => error.status === 422);
+  await rm(jpegOriginalPath);
   await store({ ...definition, rightsConfirmed: false });
   await assert.rejects(() => loader.loadPrivateShopFinalPrintSources('p01', directory),
     (error) => error.status === 422);
