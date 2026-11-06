@@ -175,11 +175,12 @@
       "proposed_keyword_ids": [
         "S021",
         "S022"
-      ]
+      ],
+      "current_url": "/shop"
     },
     {
       "page_id": "P01",
-      "url": "/shop/p01",
+      "url": "/shop/moon-phase-print",
       "name": "ماه آن روز",
       "primary": "تابلو فاز ماه",
       "secondary": [
@@ -246,11 +247,23 @@
         "S006",
         "S007",
         "S008"
-      ]
+      ],
+      "current_url": "/shop/p01",
+      "slug": "moon-phase-print",
+      "slug_status": "selected_for_execution",
+      "url_migration": {
+        "from": "/shop/p01",
+        "to": "/shop/moon-phase-print",
+        "status": "not_implemented",
+        "permanent_status": 308,
+        "preserve_query": true,
+        "change_internal_product_id": false,
+        "release_boundary": "coordinate with current P01 candidate; do not interrupt existing E2E"
+      }
     },
     {
       "page_id": "P02",
-      "url": "/shop/p02",
+      "url": "/shop/birth-sky-map",
       "name": "آسمان تولد",
       "primary": "تابلو آسمان شب تولد",
       "secondary": [
@@ -324,11 +337,23 @@
         "S012",
         "S013",
         "S014"
-      ]
+      ],
+      "current_url": "/shop/p02",
+      "slug": "birth-sky-map",
+      "slug_status": "selected_for_execution",
+      "url_migration": {
+        "from": "/shop/p02",
+        "to": "/shop/birth-sky-map",
+        "status": "not_implemented",
+        "permanent_status": 308,
+        "preserve_query": true,
+        "change_internal_product_id": false,
+        "release_boundary": "deferred product activation"
+      }
     },
     {
       "page_id": "P03",
-      "url": "/shop/p03",
+      "url": "/shop/milky-way-print",
       "name": "شبِ ما",
       "primary": "تابلو کهکشان راه شیری",
       "secondary": [
@@ -378,13 +403,33 @@
         "S018",
         "S019",
         "S020"
-      ]
+      ],
+      "current_url": "/shop/p03",
+      "slug": "milky-way-print",
+      "slug_status": "selected_for_execution",
+      "url_migration": {
+        "from": "/shop/p03",
+        "to": "/shop/milky-way-print",
+        "status": "not_implemented",
+        "permanent_status": 308,
+        "preserve_query": true,
+        "change_internal_product_id": false,
+        "release_boundary": "deferred product activation"
+      }
     }
   ],
   "link_contract": {
     "rule": "Anchor describes the target in natural context. Ownership is primary intent, not a ban on shared vocabulary.",
     "current_wiki_parser": "package-v1 in lib/wiki/wiki-markdown.ts accepts structured wiki links only; [[page:/shop/p01|...]] must not be assumed valid.",
-    "pending_integration": "Expose approved registry via current content-guide/admin flow and implement tested allowlisted shop-link materialization. No private, unpublished or reserved route links. Do not create meta keywords."
+    "pending_integration": "Expose approved registry via current content-guide/admin flow and implement tested allowlisted shop-link materialization. No private, unpublished or reserved route links. Do not create meta keywords.",
+    "pending_slug_rule": "Resolve publication links against current_url until the target route migration is verified. Then use url consistently in internal links, canonical, product schema and sitemap; never publish both as independent product pages."
   },
-  "product_growth_rule": "Stable product URL independent of category; size/color/message variants stay on same product. Reallocate a broad family query to a category only when multiple meaningful products and intent justify it; log ownership transfer and update anchors."
+  "product_growth_rule": "Stable product URL independent of category; size/color/message variants stay on same product. Reallocate a broad family query to a category only when multiple meaningful products and intent justify it; log ownership transfer and update anchors.",
+  "url_semantics": "pages[].url is the selected SEO target. current_url is the existing runtime route. A target is not live until its migration is implemented and released.",
+  "slug_decision": {
+    "date": "2026-11-06",
+    "scope": "Selected three product slugs in the SEO research plan; runtime migration is pending in execution chat.",
+    "internal_product_ids_unchanged": true,
+    "category_independent": true
+  }
 }
