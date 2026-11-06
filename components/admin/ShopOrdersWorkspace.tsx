@@ -135,61 +135,11 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       const url = URL.createObjectURL(file);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `halleus-order-${detail.display_number}-print-brief.json`;
+      link.download = `halleus-order-${detail.display_number}-design-handoff.zip`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setSuccess('اطلاعات تولید این سفارش دریافت شد؛ برای چاپ، فایل هنری نهایی هنوز باید آماده شود.');
+      setSuccess('بستهٔ خصوصی طراحی دریافت شد؛ آن را برای ساخت اثر به دستیار بده و فایل نهایی را بعداً دستی ثبت کن.');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت فایل انجام نشد.'); }
-    finally { setBusy(false); }
-  }
-
-  async function downloadArtworkProof(line: number) {
-    if (!detail || busy || !printHandoffStatuses.has(detail.status) ||
-        !['p01', 'p02', 'p03'].includes(detail.items[line - 1]?.productId)) return;
-    const productId = detail.items[line - 1].productId;
-    setBusy(true); setError(''); setSuccess('');
-    try {
-      const response = await fetch(`/api/admin/shop/orders/${detail.id}/print/preview?line=${line}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }, cache: 'no-store',
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => null) as { error?: string } | null;
-        throw new Error(data?.error || 'ساخت پیش‌نمایش اختصاصی انجام نشد.');
-      }
-      const file = await response.blob();
-      const url = URL.createObjectURL(file);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `halleus-order-${detail.display_number}-${productId}-line-${line}-proof.${productId === 'p02' ? 'svg' : 'png'}`;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setSuccess('پیش‌نمایش اختصاصی دریافت شد. حاوی نام و پیام خصوصی است و هنوز برای چاپ تأیید نشده.');
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت پیش‌نمایش انجام نشد.'); }
-    finally { setBusy(false); }
-  }
-
-  async function downloadNativePrintCandidate(line: number) {
-    if (!detail || busy || !printHandoffStatuses.has(detail.status) ||
-        !['p01', 'p02', 'p03'].includes(detail.items[line - 1]?.productId ?? '')) return;
-    const productId = detail.items[line - 1].productId;
-    setBusy(true); setError(''); setSuccess('');
-    try {
-      const response = await fetch(`/api/admin/shop/orders/${detail.id}/print/candidate?line=${line}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }, cache: 'no-store',
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => null) as { error?: string } | null;
-        throw new Error(data?.error || 'آماده‌سازی فایل بررسی چاپ انجام نشد.');
-      }
-      const file = await response.blob();
-      const url = URL.createObjectURL(file);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `halleus-order-${detail.display_number}-${productId}-line-${line}-prepress-candidate.jpg`;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setSuccess('فایل JPG با اندازهٔ واقعی برای بررسی دریافت شد؛ تأیید طراحی و چاپخانه همچنان لازم است.');
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت فایل بررسی چاپ انجام نشد.'); }
     finally { setBusy(false); }
   }
 
@@ -264,14 +214,8 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
         {item.details.message ? <p>متن روی تابلو: {item.details.message}</p> : null}
       </article>)}</div>
       {printHandoffStatuses.has(detail.status) ? <div className={styles.printHandoff}>
-        <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود مشخصات خصوصی چاپ</button>
-        {detail.items.map((item, index) => ['p01', 'p02', 'p03'].includes(item.productId) ? <button
-          key={item.key} type="button" disabled={busy} onClick={() => void downloadArtworkProof(index + 1)}
-        >دانلود پیش‌نمایش اختصاصی {productNames[item.productId]} · ردیف {formatNumber(index + 1)}</button> : null)}
-        {detail.items.map((item, index) => ['p01', 'p02', 'p03'].includes(item.productId) ? <button
-          key={`${item.key}-native`} type="button" disabled={busy} onClick={() => void downloadNativePrintCandidate(index + 1)}
-        >JPG اندازهٔ واقعی برای بررسی چاپ {productNames[item.productId]} · ردیف {formatNumber(index + 1)}</button> : null)}
-        <p>دانلود JPG ماه و راه شیری فقط پس از ثبت اصل تصویر مجاز و بررسی اثرانگشت در فضای خصوصی ممکن است. پیش‌نمایش‌های PNG/SVG فایل نهایی چاپ نیستند؛ هیچ فایلی بدون اقدام صریح مالک بایگانی نمی‌شود.</p>
+        <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود ZIP اطلاعات و دستور طراحی</button>
+        <p>این ZIP فقط دادهٔ نجومی، جزئیات مجاز سفارش و دستور طراحی را دارد؛ پنل هیچ تصویری تولید نمی‌کند. ZIP را برای طراحی دستی بفرست و پس از دریافت اثر، فایل چاپی نهایی را جداگانه ثبت کن.</p>
       </div> : <p className={styles.printNote}>تحویل اطلاعات سفارش به چاپ بعد از تأیید دریافت وجه فعال می‌شود.</p>}
       {buildShopManualCustomerNotice({
         orderNumber: detail.display_number, status: detail.status,

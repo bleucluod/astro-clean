@@ -49,6 +49,8 @@ function load(relativePath) {
 }
 
 const renderer = load('lib/shop/shop-final-print.ts');
+const actualArtworkMode = load('lib/shop/shop-artwork-mode.ts');
+assert.equal(actualArtworkMode.isShopAutomaticArtworkEnabled(), false);
 const spec = load('lib/shop/shop-print-spec.ts');
 assert.equal(spec.getShopPrintSpec('10x15').minimumSafeInsetPixels, 60);
 assert.equal(spec.getShopPrintSpec('30x45').finalFormat, 'JPEG');
@@ -184,6 +186,10 @@ mocks['@/lib/shop/shop-order-store'] = {
 };
 mocks['@/lib/shop/shop-order-http'] = { readShopRequest: async (request) => request.json() };
 mocks['@/lib/shop/shop-order-contract'] = { ShopOrderInputError: class extends Error {} };
+let legacyArtworkTestEnabled = true;
+mocks['@/lib/shop/shop-artwork-mode'] = {
+  isShopAutomaticArtworkEnabled: () => legacyArtworkTestEnabled,
+};
 let savedArchiveCalls = 0;
 mocks['@/lib/shop/shop-print-archive'] = {
   archivePrivateShopPrintCandidate: async (_root, _id, candidate) => {
@@ -244,6 +250,11 @@ if (process.platform === 'linux') {
   assert.equal(savedArchiveCalls, 1);
   runtimeEnv.HALLEUS_SHOP_PRINT_ARCHIVE_ROOT = undefined;
 }
+legacyArtworkTestEnabled = false;
+const readsWhenDisabled = reads;
+assert.equal((await route.GET(request(), context)).status, 404);
+assert.equal((await route.POST(post(), context)).status, 404);
+assert.equal(reads, readsWhenDisabled, 'Disabled automated artwork must not read orders.');
 
 // The archive must live outside repo/releases/public, with an operator-owned
 // private marker; it does not get exercised against a live storage root.

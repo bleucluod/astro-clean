@@ -7,6 +7,7 @@ import { buildPrivateShopMoonArtworkProof } from '@/lib/shop/shop-private-moon-a
 import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from '@/lib/shop/shop-print-handoff';
 import { getAdminShopOrder } from '@/lib/shop/shop-order-store';
 import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
+import { isShopAutomaticArtworkEnabled } from '@/lib/shop/shop-artwork-mode';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,7 @@ export const dynamic = 'force-dynamic';
 const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+  if (!isShopAutomaticArtworkEnabled()) return noStoreJsonResponse({ ok: false }, 404);
   if (!isShopMvpActive()) return noStoreJsonResponse({ ok: false }, 404);
   try {
     const actor = await requireAdminCapability(request, 'shop_orders.read');

@@ -2,6 +2,7 @@ import { requireAdminCapability } from '@/lib/admin/admin-auth';
 import { adminErrorResponse, noStoreJsonResponse } from '@/lib/admin/admin-http';
 import { recordAdminAuditEvent } from '@/lib/admin/admin-service';
 import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from '@/lib/shop/shop-print-handoff';
+import { buildPrivateShopDesignHandoffZip } from '@/lib/shop/shop-design-handoff-zip';
 import { getAdminShopOrder } from '@/lib/shop/shop-order-store';
 import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 
@@ -20,18 +21,21 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const order = await getAdminShopOrder(id);
     if (!order) return noStoreJsonResponse({ ok: false }, 404);
     const handoff = buildPrivateShopPrintHandoff(order);
+    const archive = buildPrivateShopDesignHandoffZip(handoff);
     await recordAdminAuditEvent({
-      actor, action: 'shop.print_brief.downloaded', targetType: 'shop_order',
+      actor, action: 'shop.manual_design_zip.downloaded', targetType: 'shop_order',
       targetId: id, afterSummary: { orderNumber: handoff.orderNumber, lines: handoff.prints.length },
       success: true,
     });
-    return new Response(JSON.stringify(handoff, null, 2), {
+    return new Response(new Uint8Array(archive), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Content-Disposition': `attachment; filename="halleus-order-${handoff.orderNumber}-print-brief.json"`,
-        'Cache-Control': 'private, no-store',
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="halleus-order-${handoff.orderNumber}-design-handoff.zip"`,
+        'Cache-Control': 'private, no-store, max-age=0',
         'X-Content-Type-Options': 'nosniff',
+        'X-Robots-Tag': 'noindex, nofollow',
+        'Referrer-Policy': 'no-referrer',
       },
     });
   } catch (error) {

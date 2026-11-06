@@ -147,6 +147,7 @@ let audits = [];
 let failAudit = false;
 let stored = order;
 const route = load('app/api/admin/shop/orders/[id]/print/preview/route.ts', {
+  '@/lib/shop/shop-artwork-mode': { isShopAutomaticArtworkEnabled: () => true },
   '@/lib/admin/admin-auth': { requireAdminCapability: async () => ({ role, userId: 'test-owner' }) },
   '@/lib/admin/admin-http': {
     noStoreJsonResponse: (body, status = 200) => Response.json(body, { status }),
