@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { siteConfig } from '@/lib/config/seo';
 import { buildShopProductStructuredData } from './product-schema';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
-import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId } from './product-detail-data';
+import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId, type ShopCopySection } from './product-detail-data';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { filterHalleusCities, getHalleusCityDisplayName } from '@/lib/locations/cities';
@@ -17,6 +17,27 @@ const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: 
 
 function formatPrice(amount: number) {
   return new Intl.NumberFormat('fa-IR').format(amount);
+}
+
+function ApprovedProductCopy({ sections }: { sections: ShopCopySection[] }) {
+  return (
+    <section className={styles.editorialSection} aria-label="روایت و جزئیات اثر">
+      <div className={styles.editorialBody}>
+        {sections.map((section) => (
+          <div key={section.title} className={styles.editorialSubsection}>
+            <h2>{section.title}</h2>
+            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {section.subheading ? (
+              <div className={styles.editorialSubsectionInner}>
+                <h3>{section.subheading.title}</h3>
+                {section.subheading.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function TextWithLinks({ children }: { children: string }) {
@@ -233,7 +254,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
           <div className={styles.productInfo}>
             <div className={styles.productHeading}>
-              <h1>{product.title}</h1>
+              <h1 className={product.seoHeading ? styles.seoProductHeading : undefined}>{product.seoHeading ?? product.title}</h1>
               <p className={styles.tagline}>{product.tagline}</p>
             </div>
             <div className={styles.purchasePanel}>
@@ -371,6 +392,8 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           </div>
         </section>
 
+        {product.preCraftSections?.length ? <ApprovedProductCopy sections={product.preCraftSections} /> : null}
+
         <section className={styles.craftSection} aria-labelledby="craft-heading">
           <div className={styles.craftCopy}>
             <span className={styles.sectionKicker}>جزئیات و کیفیت</span>
@@ -405,9 +428,11 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           <div><strong>ارسال با پست یا تیپاکس</strong><span>تحویل به شرکت حمل‌ونقل تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری. زمان رسیدن بسته به مقصد بستگی دارد.</span></div>
         </section>
 
+        {product.postCraftSections?.length ? <ApprovedProductCopy sections={product.postCraftSections} /> : null}
+
         <section className={styles.faqSection} aria-labelledby="faq-heading">
           <span className={styles.sectionKicker}>برای انتخاب مطمئن‌تر</span>
-          <h2 id="faq-heading">پرسش‌های متداول دربارهٔ {product.title}</h2>
+          <h2 id="faq-heading">{product.faqHeading ?? `پرسش‌های متداول دربارهٔ ${product.title}`}</h2>
           <div className={styles.faqList}>
             {product.faq.map(({ question, answer }) => (
               <details key={question} className={styles.faqItem}>
@@ -418,7 +443,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           </div>
         </section>
 
-        <section className={styles.editorialSection} aria-labelledby="editorial-heading">
+        {id !== 'p01' ? <section className={styles.editorialSection} aria-labelledby="editorial-heading">
           <span className={styles.sectionKicker}>بیشتر دربارهٔ این اثر</span>
           <h2 id="editorial-heading">{product.editorialTitle}</h2>
           {product.editorialIntro.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -430,7 +455,15 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 </div>
               ))}
           </div>
-        </section>
+        </section> : null}
+
+        {product.closingCopy ? (
+          <section className={styles.p01Closing} aria-labelledby="p01-closing-heading">
+            <h2 id="p01-closing-heading">{product.closingCopy.title}</h2>
+            <p>{product.closingCopy.text}</p>
+            <a href="#personalize">{product.closingCopy.button}</a>
+          </section>
+        ) : null}
 
         {id !== 'p01' ? <section className={styles.relatedSection} aria-labelledby="related-heading">
           <div className={styles.relatedHeading}><span className={styles.sectionKicker}>از همین مجموعه</span><h2 id="related-heading">شاید این آثار را هم دوست داشته باشی</h2></div>
