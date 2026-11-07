@@ -29,6 +29,7 @@
 - [فهرست خوانای خوشه‌ها](CLUSTERS.md)، [فهرست ساختاری](clusters.json).
 - [چهار صفحه](keyword-data/page-targets.json)، [دسته‌ها](keyword-data/categories.json)، [محصولات آینده](keyword-data/future-products.json)، [محتوا](keyword-data/editorial.json)، [هم‌پوشانی با محتوای موجود](keyword-data/existing-content-review.json)، [تحقیق رزروشده](keyword-data/reserved.json)، [موارد مبهم](keyword-data/unresolved.json)، [حذف‌شده‌ها](keyword-data/excluded.json).
 - [لانگ‌تیل‌های پیشنهادی](long-tail-candidates.json)، [مقاله‌ها و مرز آنها](editorial-backlog.json)، [محصولات پیشنهادی](future-products.json).
+- [کیوردهای تکمیلی تحقیق رقبا، ۷ نوامبر ۲۰۲۶](competitor-keywords-2026-11-07.json): ۴۴ صورت عبارت پیشنهادی (۴۳ پس از نرمال‌سازی پایه) در کنار ۶۲ عبارت اصلی SHOP، ۱۴ ایده/سؤال شامل ۴ موضوع عمومی. شواهد و مالکیت پیشنهادی تفکیک شده‌اند؛ هیچ کدام به‌عنوان دادهٔ اندازه‌گیری‌شده یا هدف‌گذاری اجرایی قطعی ثبت نمی‌شوند.
 - [منشأ و تعدادها](manifest.json)، [قواعد دسته‌بندی](classifier-config.json) و [تابع دسته‌بندی](classify.mjs)، [بررسی تمامیت](verify.mjs).
 
 ستون Search در CSV پروب autocomplete است، نه حجم جست‌وجو. Semrush به علت no_api_units داده نداد؛ حجم و سختی null هستند. لانگ‌تیل یا تعداد کلمات بیشتر، تضمین رقابت کم و fast win نیست.

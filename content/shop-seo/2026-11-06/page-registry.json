@@ -176,7 +176,13 @@
         "S021",
         "S022"
       ],
-      "current_url": "/shop"
+      "current_url": "/shop",
+      "competitor_keyword_research": {
+        "path": "content/shop-seo/2026-11-06/competitor-keywords-2026-11-07.json",
+        "status": "research_only_not_runtime",
+        "candidate_phrases": 44,
+        "idea_and_longtail_candidates": 14
+      }
     },
     {
       "page_id": "P01",

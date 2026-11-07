@@ -1,0 +1,544 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-11-07",
+  "query_primary": "خرید کادو خاص",
+  "query_secondary": "خرید هدیه خاص",
+  "serp_scope": "first_10_retrieved_search_results_not_verified_google_ir_rankings",
+  "evidence_warning": "This is a secondary recording of an earlier research pass: 10 retrievable results were reviewed, not Google IR top 10 verified. page_phrase_reported is not re-verified here. Metrics are unknown. theme_derived and proposed_unmeasured are not measured queries.",
+  "registry_relation": "44 literal phrase forms absent from SHOP's 62 CSV-observed keywords; 43 after basic orthographic normalization; many share existing intent, no new primary owner assigned.",
+  "activation": "research_only_not_runtime_not_indexing_no_new_pages",
+  "counts": {
+    "candidate_phrases": 44,
+    "normalized_candidate_phrases": 43,
+    "shop_supporting": 13,
+    "future_category": 9,
+    "editorial_or_occasion": 22,
+    "ideas_total": 14,
+    "short_broad_topics": 4,
+    "longer_ideas_or_questions": 10
+  },
+  "group_rules": {
+    "SHOP_SUPPORTING": "Possible natural supporting language on /shop; no new primary or forced exact-match repetition.",
+    "FUTURE_CATEGORY": "Reserved for future categories only with real inventory and separate search intent.",
+    "EDITORIAL_OR_OCCASION": "Potential gift guides or occasion collections; do not assign to /shop primary.",
+    "LONGTAIL": "Unmeasured proposals. Do not infer low competition or demand."
+  },
+  "competitor_sources": {
+    "kadooyab": "https://kadooyab.com/",
+    "kadopia": "https://kadopia.store/",
+    "solinbazar": "https://solinbazar.com/product-category/gift/",
+    "gift_finder": "https://yukikado.com/gift-finder/",
+    "yukikado_special": "https://yukikado.com/product-category/gifts/special-gifts/",
+    "kadobaaz": "https://kadobaaz.ir/",
+    "moochichi_gifts": "https://moochichi.com/gifts",
+    "sheyshopp": "https://sheyshopp.ir/product-category/gifts-and-occasions/",
+    "onekado": "https://onekado.ir/",
+    "ekado_mirror": "https://ekado.ir.atlaq.com/",
+    "kadopia_custom": "https://kadopia.store/customized-gift",
+    "masterkado": "https://www.masterkado.com/",
+    "moochichi_fantasy": "https://moochichi.com/collections/fantasy-gifts",
+    "titigift": "https://titigift.com/fa/category/custom-gifts"
+  },
+  "candidate_keywords": [
+    {
+      "phrase": "هدیه ماندگار",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه به‌یادماندنی",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه به یادماندنی",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "orthographic_variant",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه دکوری",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه مناسبتی",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadobaaz",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه هنری",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "theme_derived",
+      "source_key": "titigift",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدایای خاص",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "page_phrase_reported",
+      "source_key": "yukikado_special",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادوهای خاص",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "orthographic_variant",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "انتخاب هدیه",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "page_phrase_reported",
+      "source_key": "gift_finder",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "انتخاب کادو",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "page_phrase_reported",
+      "source_key": "gift_finder",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "خرید آنلاین هدیه",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "page_phrase_reported",
+      "source_key": "solinbazar",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "خرید کادو آنلاین",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "orthographic_variant",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "خرید کادو شیک",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "evidence": "proposed_unmeasured",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو شخصی‌سازی‌شده",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia_custom",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه سفارشی",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "page_phrase_reported",
+      "source_key": "titigift",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو سفارشی",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه شخصی‌شده",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه اختصاصی",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه با اسم",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه با تاریخ",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو با اسم",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "theme_derived",
+      "source_key": null,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو دکوری",
+      "proposed_owner": "FUTURE_CATEGORY",
+      "evidence": "theme_derived",
+      "source_key": "kadobaaz",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "ایده کادو",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadooyab",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "پیشنهاد هدیه",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "kadooyab",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای دوست",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "kadooyab",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای دوست صمیمی",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "kadooyab",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو برای دوست",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "kadooyab",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای دوست دختر",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "masterkado",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای دوست پسر",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "masterkado",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای خانم‌ها",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "yukikado_special",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای آقایان",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "yukikado_special",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای قدردانی",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "gift_finder",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو برای تشکر",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو بدون مناسبت",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو ماهگرد رابطه",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو سالگرد",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو تولد",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه سالگرد",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه تولد",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو برای خودم",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای خودم",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "kadopia",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو چی بخرم",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "theme_derived",
+      "source_key": "gift_finder",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "راهنمای انتخاب کادو",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "gift_finder",
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه لوکس",
+      "proposed_owner": "EDITORIAL_OR_OCCASION",
+      "evidence": "page_phrase_reported",
+      "source_key": "yukikado_special",
+      "search_volume": null,
+      "keyword_difficulty": null
+    }
+  ],
+  "idea_and_longtail_candidates": [
+    {
+      "phrase": "کادو چی بخرم",
+      "kind": "short_broad_topic",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "gift_finder",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "راهنمای انتخاب کادو",
+      "kind": "short_broad_topic",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "gift_finder",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "ایده کادو",
+      "kind": "short_broad_topic",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "kadooyab",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "پیشنهاد هدیه",
+      "kind": "short_broad_topic",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "kadooyab",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه کوچک برای یادگاری",
+      "kind": "long_tail",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "kadooyab",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "ایده کادو برای دوست صمیمی",
+      "kind": "long_tail",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "kadooyab",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "برای کسی که همه‌چیز دارد چه کادویی بخرم؟",
+      "kind": "question",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "kadooyab",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "راهنمای خرید هدیه فانتزی و خاص",
+      "kind": "long_tail",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "moochichi_gifts",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه فانتزی اقتصادی تا ۳۰۰ هزار تومان",
+      "kind": "long_tail",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "moochichi_gifts",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": true,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "انتخاب کادو بر اساس سلیقه و مناسبت",
+      "kind": "long_tail",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "moochichi_gifts",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه برای کسی که سلیقه‌اش را نمی‌شناسیم",
+      "kind": "long_tail",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "moochichi_gifts",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادو برای تشکر از یک دوست",
+      "kind": "long_tail",
+      "proposed_owner": "B-GIFT-GUIDE",
+      "source_key": "kadopia",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "هدیه شخصی با تاریخ خاص",
+      "kind": "long_tail",
+      "proposed_owner": "FUTURE_PERSONALIZATION_CATEGORY",
+      "source_key": "titigift",
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    },
+    {
+      "phrase": "کادوی ماندگار برای خانه",
+      "kind": "long_tail",
+      "proposed_owner": "SHOP_SUPPORTING",
+      "source_key": null,
+      "evidence": "theme_derived_or_unmeasured_proposal",
+      "defer_or_exclude_now": false,
+      "search_volume": null,
+      "keyword_difficulty": null
+    }
+  ],
+  "guardrails": [
+    "Preserve all 62 observed SHOP keywords and P01/P02/P03 owners.",
+    "Do not add target pages, change URLs or claim quick wins without evidence.",
+    "No pricing, unlimited customization, instant shipping, volume or KD claims.",
+    "No live SEO metadata or product copy altered by this record."
+  ]
+}
