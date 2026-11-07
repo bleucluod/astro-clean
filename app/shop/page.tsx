@@ -23,8 +23,8 @@ const launchCatalog: ShopV01Item[] = [
     href: getShopProductUrl('p01'),
     priceToman: null,
     availability: 'coming-soon',
-    imageSrc: '/shop-preview/p01/mockup-gibbous.webp',
-    imageAlt: 'تابلوی ماه آن روز با رندر واقعی ماه کوژ و متن شخصی در موکاپ سرد خاکستری',
+    imageSrc: '/shop-preview/p01/mockup-frameless-gibbous-daylight.webp',
+    imageAlt: 'شاسی بدون قاب تابلو ماه آن روز در موکاپ خاکستری با نور طبیعی سرد',
   },
   {
     id: 'P02',

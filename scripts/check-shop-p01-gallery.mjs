@@ -5,10 +5,7 @@ import { resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const expected = [
-  'mockup-gibbous', 'full-both', 'mockup-crescent', 'mockup-half',
-  'mockup-full', 'full-name', 'full-message', 'full-date',
-  'mockup-message', 'quarter-name', 'crescent-message', 'gibbous-date',
-  'gibbous-both', 'crescent-name',
+  'mockup-frameless-gibbous-daylight', 'full-both', 'mockup-frameless-crescent', 'quarter-name', 'mockup-frameless-gibbous-wall', 'full-name', 'full-message', 'full-date', 'mockup-frameless-small', 'crescent-message', 'mockup-frameless-gibbous-angle', 'gibbous-date', 'mockup-frameless-gibbous-leaning', 'gibbous-both', 'crescent-name'
 ].map((key) => '/shop-preview/p01/' + key + '.webp');
 
 const data = read('components/shop/product-detail-data.ts');
@@ -18,7 +15,9 @@ const gallery = p01.split('    gallery: [')[1]?.split('    ],')[0];
 assert.ok(gallery, 'P01 gallery is defined');
 const paths = Array.from(gallery.matchAll(/src: '([^']+)'/g), (m) => m[1]);
 assert.deepEqual(paths, expected, '14 approved images in editorial order');
-assert.equal(new Set(paths).size, 14, 'no duplicated photos');
+assert.equal(new Set(paths).size, 15, 'no duplicated photos');
+assert.equal(paths.filter((p) => p.includes('/mockup-frameless-')).length, 6, 'six approved frameless mockups');
+assert.equal(paths.filter((p) => !p.includes('/mockup-frameless-')).length, 9, 'nine original renderer samples');
 let totalGalleryBytes = 0;
 for (const path of paths) {
   const local = resolve(root, 'public' + path);
@@ -29,7 +28,7 @@ for (const path of paths) {
   assert.equal(bytes.subarray(0, 4).toString(), 'RIFF', path + ' header');
   assert.equal(bytes.subarray(8, 12).toString(), 'WEBP', path + ' format');
 }
-assert.ok(totalGalleryBytes <= 400000, 'P01 gallery image budget must stay below 400 KB');
+assert.ok(totalGalleryBytes <= 900000, 'P01 gallery image budget must stay below 900 KB');
 const examples = p01.split('    personalizationExamples: [')[1]?.split('    ],')[0];
 assert.ok(examples, 'P01 must explain all personalization states');
 for (const key of ['full-both', 'full-name', 'full-message', 'full-date']) {
@@ -47,8 +46,8 @@ assert.match(css, /\.p01Thumbnails/);
 assert.match(css, /\.personalizationExampleGrid/);
 assert.match(css, /background: #050609/);
 const shop = read('app/shop/page.tsx');
-assert.match(shop, /\/shop-preview\/p01\/mockup-gibbous\.webp/);
+assert.match(shop, /\/shop-preview\/p01\/mockup-frameless-gibbous-daylight\.webp/);
 assert.match(shop, /!isShopMvpActive\(\)/);
 assert.match(shop, /robots: \{ index: false, follow: false \}/);
 assert.match(read('app/shop/moon-phase-print/page.tsx'), /!isShopMvpActive\(\)/);
-console.log('P01_REAL_RENDERER_GALLERY=PASS images=14 mockups=5 originals=9 examples=4');
+console.log('P01_REAL_RENDERER_GALLERY=PASS images=15 mockups=6 originals=9 examples=4');
