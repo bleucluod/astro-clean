@@ -146,6 +146,21 @@ assert.ok(expectedDifference > 20,
   `Natural Moon shading must follow the ephemeris: ${expectedDifference}`);
 const moonAgain = await renderer.buildPrivateShopFinalPrintCandidate(moonOrder, 1, { moonDisc: moonSource });
 assert.deepEqual(moonAgain.bytes, moon.bytes, 'P01 output must be deterministic.');
+const approvedR9b = load('lib/shop/shop-p01-r9b-master.ts');
+assert.equal(approvedR9b.SHOP_P01_R9B_STYLE.id, 'halleus.p01.r9b.approved-composition.v1');
+assert.equal(approvedR9b.SHOP_P01_R9B_STYLE.moonDiameterRatio, .70);
+const pinnedSky = readFileSync(join(root, approvedR9b.SHOP_P01_R9B_STYLE.skyAsset));
+assert.equal(createHash('sha256').update(pinnedSky).digest('hex'),
+  approvedR9b.SHOP_P01_R9B_STYLE.approvedSkySha256);
+assert.equal(approvedR9b.shopP01R9bPrintDate('1375/11/25', 'jalali'), '۲۵ بهمن ۱۳۷۵');
+const personalizedMoon = await renderer.buildPrivateShopFinalPrintCandidate({
+  ...moonOrder, items: [{ ...moonItem, details: {
+    ...moonItem.details, names: 'نام آزمایشی دیگر', message: 'پیام متفاوت', date: '2024-07-02',
+  } }],
+}, 1, { moonDisc: moonSource });
+await assertJpeg(personalizedMoon, '10x15');
+assert.notDeepEqual(personalizedMoon.bytes, moon.bytes, 'Different P01 orders must not reuse another customer artwork.');
+console.log('[PASS] P01 R9b: pinned sky, Persian date, independent personalized native artwork');
 const mapSource = source(await sharp({ create: {
   width: 2048, height: 1024, channels: 3, background: '#aabdc8',
 } }).png().toBuffer());

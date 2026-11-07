@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import sharp from 'sharp';
+import { buildShopP01R9bArtwork } from './shop-p01-r9b-master';
 import { normalizePersianDigits } from '@/lib/date/jalali';
 import { calculateShopStarAtlas } from './shop-sky-atlas';
 import { calculateShopConstellationLines } from './shop-constellation-lines';
-import { calculateShopMoonAtUtc, type ShopMoonEphemeris } from './shop-moon-ephemeris';
+import { calculateShopMoonAtUtc } from './shop-moon-ephemeris';
 import { safeShopArtworkText, xmlShopArtworkText } from './shop-artwork-text';
 import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from './shop-print-handoff';
 import { getShopPrintSpec } from './shop-print-spec';
@@ -115,43 +116,6 @@ function makePhotoFade(width: number, height: number): Buffer {
   </svg>`, 'utf8');
 }
 
-/** Orthographic near-side projection of the source's 0°-centered lunar map. */
-async function projectMoonMapToDisc(map: ShopSourceMaster, diameter: number): Promise<Buffer> {
-  const metadata = await inspectOriginal(map, diameter * 2, diameter);
-  if (Math.abs(metadata.width! / metadata.height! - 2) > .005 || metadata.depth !== 'uchar') {
-    throw new ShopPrintHandoffError('نقشهٔ اصلی ماه باید RGB هشت‌بیتی با نسبت ۲ به ۱ باشد.', 422);
-  }
-  const { data, info } = await sharp(map.bytes, { limitInputPixels: 200_000_000 })
-    .raw().toBuffer({ resolveWithObject: true });
-  const result = Buffer.alloc(diameter * diameter * 3);
-  const radius = diameter / 2;
-  for (let py = 0; py < diameter; py += 1) {
-    const north = (radius - py - .5) / radius;
-    for (let px = 0; px < diameter; px += 1) {
-      const east = (px + .5 - radius) / radius;
-      const squared = east * east + north * north;
-      if (squared >= 1) continue;
-      const longitude = Math.atan2(east, Math.sqrt(1 - squared));
-      const latitude = Math.asin(north);
-      const sourceX = (longitude / (2 * Math.PI) + .5) * info.width - .5;
-      const sourceY = (0.5 - latitude / Math.PI) * info.height - .5;
-      const x0 = Math.max(0, Math.min(info.width - 2, Math.floor(sourceX)));
-      const y0 = Math.max(0, Math.min(info.height - 2, Math.floor(sourceY)));
-      const fx = Math.max(0, Math.min(1, sourceX - x0));
-      const fy = Math.max(0, Math.min(1, sourceY - y0));
-      const one = (y0 * info.width + x0) * 3;
-      const out = (py * diameter + px) * 3;
-      for (let channel = 0; channel < 3; channel += 1) {
-        const upper = data[one + channel] * (1 - fx) + data[one + channel + 3] * fx;
-        const lower = data[one + channel + info.width * 3] * (1 - fx) +
-          data[one + channel + info.width * 3 + 3] * fx;
-        result[out + channel] = Math.round(upper * (1 - fy) + lower * fy);
-      }
-    }
-  }
-  return sharp(result, { raw: { width: diameter, height: diameter, channels: 3 } }).png().toBuffer();
-}
-
 /** HALLEUS_P01_NATURAL_MOON_MASTER_V1 */
 export function formatShopP01DisplayDate(value: string, calendar: string): string {
   if (calendar !== 'jalali') return value;
@@ -164,81 +128,6 @@ export function formatShopP01DisplayDate(value: string, calendar: string): strin
   if (month < 1 || month > 12) return value;
   const localDigits = (v: string) => v.replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
   return `${localDigits(String(Number(parts[3])))} ${months[month - 1]} ${localDigits(parts[1])}`;
-}
-
-/** Orthographic sphere lighting from the illuminated fraction. North-up phase
- * presentation, not a reconstruction of observer tilt, libration or earthshine.
- */
-async function shadeShopMoonDisc(texture: Buffer, diameter: number, phase: ShopMoonEphemeris): Promise<Buffer> {
-  const { data, info } = await sharp(texture).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  if (info.width !== diameter || info.height !== diameter || info.channels !== 4) {
-    throw new Error('Unexpected projected moon texture dimensions.');
-  }
-  const output = Buffer.alloc(diameter * diameter * 4);
-  const radius = diameter / 2;
-  const cosPhase = Math.max(-1, Math.min(1, 2 * phase.illuminatedFraction - 1));
-  const sunX = (phase.phaseAngleDegrees <= 180 ? 1 : -1) *
-    Math.sqrt(Math.max(0, 1 - cosPhase * cosPhase));
-  for (let y = 0; y < diameter; y += 1) {
-    const north = (radius - y - .5) / radius;
-    for (let x = 0; x < diameter; x += 1) {
-      const east = (x + .5 - radius) / radius;
-      const squared = east * east + north * north;
-      if (squared >= 1) continue;
-      const normalZ = Math.sqrt(1 - squared);
-      const incidence = Math.max(0, east * sunX + normalZ * cosPhase);
-      const exposure = .003 + .92 * Math.pow(incidence, .62);
-      const edge = Math.max(0, Math.min(1, (1 - Math.sqrt(squared)) * radius + .15));
-      const index = (y * diameter + x) * 4;
-      output[index] = Math.round(data[index] * exposure);
-      output[index + 1] = Math.round(data[index + 1] * exposure);
-      output[index + 2] = Math.round(data[index + 2] * exposure);
-      output[index + 3] = Math.round(edge * 255);
-    }
-  }
-  return sharp(output, { raw: { width: diameter, height: diameter, channels: 4 } })
-    .png().toBuffer();
-}
-
-/** Sparse decorative stars; this is not a reconstructed birth sky. */
-function makeShopMoonSky(width: number, height: number): Buffer {
-  const points = [
-    [.09, .11, .48], [.24, .08, .28], [.46, .13, .34], [.74, .06, .32], [.89, .16, .50],
-    [.12, .29, .34], [.82, .25, .43], [.94, .36, .26], [.07, .48, .45], [.89, .55, .25],
-    [.13, .64, .25], [.30, .59, .24], [.79, .64, .29], [.92, .73, .29], [.08, .80, .22],
-    [.21, .89, .20], [.78, .86, .23], [.90, .94, .16], [.46, .05, .17], [.61, .71, .22],
-  ];
-  const stars = points.map(([x, y, opacity], index) =>
-    `<circle cx="${(x * width).toFixed(1)}" cy="${(y * height).toFixed(1)}" r="${(width * (index % 5 === 0 ? .00048 : .00032)).toFixed(2)}" fill="#dbe7f1" opacity="${opacity}"/>`
-  ).join('');
-  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <defs><radialGradient id="night" cx="50%" cy="38%" r="86%">
-      <stop stop-color="#202e3c"/><stop offset=".68" stop-color="#14212f"/>
-      <stop offset="1" stop-color="#0d1823"/>
-    </radialGradient></defs><rect width="${width}" height="${height}" fill="url(#night)"/>
-    ${stars}
-  </svg>`, 'utf8');
-}
-
-async function makeMoonBackground(
-  width: number, height: number, moon: ShopSourceMaster, phase: ShopMoonEphemeris,
-  originalKind: 'disc' | 'equirectangular-map',
-) {
-  const disc = Math.floor(width * .69);
-  let moonDisc: Buffer;
-  if (originalKind === 'equirectangular-map') {
-    moonDisc = await projectMoonMapToDisc(moon, disc);
-  } else {
-    const metadata = await inspectOriginal(moon, disc, disc);
-    const side = Math.min(metadata.width!, metadata.height!);
-    const left = Math.floor((metadata.width! - side) / 2);
-    const top = Math.floor((metadata.height! - side) / 2);
-    moonDisc = await sharp(moon.bytes).extract({ left, top, width: side, height: side })
-      .resize(disc, disc).png().toBuffer();
-  }
-  const shaded = await shadeShopMoonDisc(moonDisc, disc, phase);
-  const xy = { left: Math.floor((width - disc) / 2), top: Math.floor(height * .42 - disc / 2) };
-  return sharp(makeShopMoonSky(width, height)).composite([{ input: shaded, ...xy }]).png().toBuffer();
 }
 
 /**
@@ -286,8 +175,17 @@ export async function buildPrivateShopFinalPrintCandidate(
     const master = sources.moonMap ?? sources.moonDisc;
     if (!master) throw new ShopPrintHandoffError('تصویر اصلی ماه برای چاپ تأمین نشده است.', 409);
     const phase = calculateShopMoonAtUtc(reference.referenceUtc);
-    background = await makeMoonBackground(width, height, master, phase,
-      sources.moonMap ? 'equirectangular-map' : 'disc');
+    const moonDiameter = Math.floor(width * .70);
+    await inspectOriginal(master, sources.moonMap ? moonDiameter * 2 : moonDiameter, moonDiameter);
+    // HALLEUS_P01_R9B_ACTIVE: renderer is offline-only; V1 manual ZIP workflow remains unchanged.
+    background = await buildShopP01R9bArtwork({
+      width, height, safeInsetPx: inset, moonBytes: master.bytes,
+      sourceKind: sources.moonMap ? 'equirectangular-map' : 'disc',
+      illuminatedFraction: phase.illuminatedFraction,
+      waxing: phase.phaseAngleDegrees <= 180,
+      name: names, dateLabel: printDate,
+      city: safeShopArtworkText(personal.city, 'شهر', 100), message,
+    });
     sourceManifest = { creator: master.creator, sourceUrl: master.sourceUrl, license: master.license,
       sha256: master.sha256, attribution: master.attribution ?? master.creator };
   } else {
@@ -301,29 +199,12 @@ export async function buildPrivateShopFinalPrintCandidate(
   }
 
   const isPhoto = item.productId === 'p03';
-  // P01 visual contract: name, Persian date, optional message and HALLEUS.
-  // 20x30cm is the design anchor; smaller sizes retain minimum type size.
-  const p01Scale = width / Math.ceil(20 / 2.54 * 300);
-  const p01PointSize = (targetPt: number, minimumPt: number) =>
-    Math.round(Math.max(targetPt * p01Scale, minimumPt) * 300 / 72);
-  const brandBoxHeight = Math.floor(height * .031);
-  const p01TextLines: TextLine[] = [
-    { text: names, top: height * .704, height: height * .140,
-      fontPx: p01PointSize(72, 24), color: '#E7EDF4' },
-    { text: printDate, top: height * (message ? .824 : .842), height: height * .060,
-      fontPx: p01PointSize(18, 11), color: '#AAB9C9' },
-    { text: message, top: height * (p01Scale < .8 ? .882 : .892), height: height * .050,
-      fontPx: p01PointSize(14, 9), color: '#B7C6D5' },
-    { text: 'H A L L E U S', top: height - inset - brandBoxHeight,
-      height: brandBoxHeight, fontPx: p01PointSize(9, 7), color: '#8196AA' },
-  ];
-  const genericTextLines: TextLine[] = [
+  // The approved P01 master already includes its own typography. Do not overlay it twice.
+  const textLayers = item.productId === 'p01' ? [] : await renderTextLayers(width, height, inset, [
     { text: names, top: height * .79, height: height * .06, fontPx: width * .04 },
     { text: message, top: height * .857, height: height * .05, fontPx: width * .029 },
     { text: dateTimeCity, top: height * .915, height: height * .043, fontPx: width * .023, color: '#c4d4df' },
-  ];
-  const textLayers = await renderTextLayers(width, height, inset,
-    item.productId === 'p01' ? p01TextLines : genericTextLines);
+  ]);
   const compositing = isPhoto
     ? [{ input: makePhotoFade(width, height) }, ...textLayers]
     : textLayers;
