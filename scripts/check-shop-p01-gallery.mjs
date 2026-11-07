@@ -19,14 +19,17 @@ assert.ok(gallery, 'P01 gallery is defined');
 const paths = Array.from(gallery.matchAll(/src: '([^']+)'/g), (m) => m[1]);
 assert.deepEqual(paths, expected, '14 approved images in editorial order');
 assert.equal(new Set(paths).size, 14, 'no duplicated photos');
+let totalGalleryBytes = 0;
 for (const path of paths) {
   const local = resolve(root, 'public' + path);
   assert.ok(existsSync(local), path + ' must exist in the Git tree');
   const bytes = readFileSync(local);
-  assert.ok(bytes.length > 20000, path + ' must not be an empty stub');
+  totalGalleryBytes += bytes.length;
+  assert.ok(bytes.length > 6000, path + ' must not be an empty stub');
   assert.equal(bytes.subarray(0, 4).toString(), 'RIFF', path + ' header');
   assert.equal(bytes.subarray(8, 12).toString(), 'WEBP', path + ' format');
 }
+assert.ok(totalGalleryBytes <= 400000, 'P01 gallery image budget must stay below 400 KB');
 const examples = p01.split('    personalizationExamples: [')[1]?.split('    ],')[0];
 assert.ok(examples, 'P01 must explain all personalization states');
 for (const key of ['full-both', 'full-name', 'full-message', 'full-date']) {
