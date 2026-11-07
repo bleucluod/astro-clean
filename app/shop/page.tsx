@@ -4,8 +4,8 @@ import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
 export const metadata: Metadata = {
-  title: 'فروشگاه هالیوس | آثار شخصی از آسمان',
-  description: 'تابلوی شخصی ماه آن روز؛ فاز ماه در تاریخ انتخابی تو، چاپ مات در سه اندازه.',
+  title: 'خرید هدیه خاص و ماندگار | فروشگاه هالیوس',
+  description: 'خرید هدیه خاص از هالیوس؛ هدیه هنری و کادو شیک با طرح‌های الهام‌گرفته از آسمان، شخصی‌سازی متناسب با هر اثر و امکان پیگیری سفارش.',
   alternates: { canonical: '/shop' },
   robots: { index: false, follow: false },
 };
@@ -23,7 +23,7 @@ const launchCatalog: ShopV01Item[] = [
     priceToman: null,
     availability: 'coming-soon',
     imageSrc: '/shop-preview/moon-that-day.webp',
-    imageAlt: 'تابلوی ماه آن روز با تصویر ماه روی شاسی مات بدون قاب در دکور روشن',
+    imageAlt: 'تابلو فاز ماه «ماه آن روز» روی شاسی مات بدون قاب در دکور روشن',
   },
   {
     id: 'P02',
