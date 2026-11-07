@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "source_commit": "818c086998fa492b1f1c6e41eaf82051f6d0e52b",
+  "status": "research_with_owner_approved_slug_contract_pending_runtime",
+  "product_count_limit": null,
+  "pages": [
+    {
+      "page_id": "SHOP",
+      "url": "/shop",
+      "name": "فروشگاه هالیوس",
+      "primary": "خرید هدیه خاص",
+      "secondary": [
+        "خرید هدیه",
+        "خرید کادو",
+        "خرید کادو خاص",
+        "فروشگاه کادو"
+      ],
+      "title": "خرید هدیه خاص و ماندگار | فروشگاه هالیوس",
+      "h1": "فروشگاه هالیوس؛ هدیه‌های خاص برای لحظه‌های ماندگار",
+      "description": "هدیه‌ای برای یک خاطره خاص انتخاب کن؛ آثار شخصی هالیوس با نام، تاریخ یا پیام دلخواه. مشخصات، اندازه‌ها و روش سفارش را ببین.",
+      "anchors": [
+        "خرید هدیه خاص",
+        "فروشگاه هالیوس",
+        "هدیه‌های خاص هالیوس"
+      ],
+      "exclude": [
+        "تابلو ماه",
+        "تابلو آسمان شب",
+        "هدیه تولد",
+        "هدیه سالگرد ازدواج",
+        "هدیه شخصی سازی شده"
+      ],
+      "outline": [
+        "انتخاب از محصولات واقعاً موجود",
+        "تفاوت محصولات؛ نه تکرار متن صفحه محصول",
+        "روش سفارش و ارسال واقعی"
+      ],
+      "faq": [
+        "چه چیزهایی را می‌توان شخصی کرد؟",
+        "سفارش چه زمانی به شرکت حمل تحویل می‌شود؟"
+      ],
+      "truth": "MVP فعلی فقط P01؛ کپی توسعه فروشگاه پس از افزایش موجودی. وعده موجودی P02/P03 نده.",
+      "phase": "MVP hub; SEO expansion deferred",
+      "observed_keyword_ids": [
+        "K0756",
+        "K1240",
+        "K1241",
+        "K1253",
+        "K1256",
+        "K1300",
+        "K1343",
+        "K1351",
+        "K1356",
+        "K1373",
+        "K1411",
+        "K1421",
+        "K1497",
+        "K1551",
+        "K1556",
+        "K1560",
+        "K1561",
+        "K1563",
+        "K1583",
+        "K1722",
+        "K1723",
+        "K1724",
+        "K1739",
+        "K1835",
+        "K1836",
+        "K1837",
+        "K1912",
+        "K1943",
+        "K1960",
+        "K1971",
+        "K2442",
+        "K2548",
+        "K2549",
+        "K2551",
+        "K2553",
+        "K2584",
+        "K2661",
+        "K2746",
+        "K2833",
+        "K2840",
+        "K2860",
+        "K2943",
+        "K2951",
+        "K3046",
+        "K3059",
+        "K3090",
+        "K3156",
+        "K3182",
+        "K3722",
+        "K3786",
+        "K3798",
+        "K3822",
+        "K3842",
+        "K3846",
+        "K3857",
+        "K3869",
+        "K3904",
+        "K3913",
+        "K3915",
+        "K3938",
+        "K3941",
+        "K3951"
+      ],
+      "observed_keywords": [
+        "خرید اینترنتی کادو و هدیه",
+        "خرید هدیه",
+        "خرید هدیه آنلاین",
+        "خرید هدیه انلاین",
+        "خرید هدیه اینترنتی",
+        "خرید هدیه خاص",
+        "خرید هدیه شیک",
+        "خرید هدیه فانتزی",
+        "خرید هدیه لاکچری",
+        "خرید هدیه نفیس",
+        "خرید کادو",
+        "خرید کادو انلاین",
+        "خرید کادو خاص",
+        "خرید کادو فانتزی",
+        "خرید کادو لاکچری",
+        "خرید کادو های خاص",
+        "خرید کادو هدیه",
+        "خرید کادو و هدیه",
+        "خرید کادو کوچک",
+        "سایت هدیه خاص",
+        "سایت کادو خاص",
+        "سایت کادو های خاص",
+        "سفارش هدیه",
+        "فروشگاه خرید کادو",
+        "فروشگاه هدیه خاص",
+        "فروشگاه کادو",
+        "محصولات هدیه",
+        "هدیه",
+        "هدیه ای خاص",
+        "هدیه اینترنتی",
+        "هدیه خاص",
+        "هدیه خاص و شیک",
+        "هدیه خاص و لاکچری",
+        "هدیه خاص و لوکس",
+        "هدیه خاص و متفاوت",
+        "هدیه خیلی خاص",
+        "هدیه زیبا",
+        "هدیه شیک",
+        "هدیه فانتزی",
+        "هدیه فروشگاه",
+        "هدیه لاکچری",
+        "هدیه ها",
+        "هدیه های خاص",
+        "هدیه کادو",
+        "هدیه کوچولو",
+        "هدیه ی خاص",
+        "پیج کادو های خاص",
+        "کادو",
+        "کادو خاص",
+        "کادو خاص و لاکچری",
+        "کادو خیلی خاص",
+        "کادو زیبا",
+        "کادو شیک",
+        "کادو شیک و خاص",
+        "کادو لوکس",
+        "کادو های خاص",
+        "کادو ی خاص",
+        "کادوی لوکس",
+        "کادویی خاص",
+        "یه هدیه خاص",
+        "یه کادو خاص",
+        "یک کادو خاص"
+      ],
+      "primary_evidence": "observed_csv",
+      "approval": "proposal_awaiting_review",
+      "runtime_applied": false,
+      "proposed_keyword_ids": [
+        "S021",
+        "S022"
+      ],
+      "current_url": "/shop"
+    },
+    {
+      "page_id": "P01",
+      "url": "/shop/moon-phase-print",
+      "name": "ماه آن روز",
+      "primary": "تابلو فاز ماه",
+      "secondary": [
+        "تابلو ماه در روز تولد",
+        "تابلو عکس ماه روز تولد",
+        "تابلو ماه سالگرد"
+      ],
+      "title": "تابلو فاز ماه در تاریخ دلخواه؛ ماه آن روز | هالیوس",
+      "h1": "ماه آن روز؛ تابلو فاز ماه در تاریخ دلخواه",
+      "description": "تابلو فاز ماه براساس تاریخ دلخواه شمسی یا میلادی، با نام و پیام اختیاری و چاپ مات روی شاسی. اندازه‌ها و مشخصات سفارش را ببین.",
+      "anchors": [
+        "تابلو فاز ماه در تاریخ دلخواه",
+        "تابلوی ماه آن روز",
+        "تابلو ماه در روز تولد"
+      ],
+      "exclude": [
+        "ماه در روز تولد",
+        "عکس ماه در روز تولد",
+        "تابلو ماه",
+        "تابلو ماه چراغ دار",
+        "تابلو ماه تکسچر",
+        "تابلو نماد ماه تولد",
+        "تابلو آسمان شب تولد"
+      ],
+      "outline": [
+        "فاز ماه براساس کدام تاریخ محاسبه می‌شود؟",
+        "نام، تاریخ و پیام دلخواه",
+        "اندازه‌ها و چاپ مات روی شاسی",
+        "تفاوت با نقشه آسمان تولد"
+      ],
+      "faq": [
+        "آیا تصویر ماه برای تاریخ انتخابی محاسبه می‌شود؟",
+        "آیا ساعت و شهر تولد لازم است؟",
+        "آیا می‌توان تاریخ شمسی وارد کرد؟",
+        "آیا تابلو چراغ‌دار یا برجسته است؟"
+      ],
+      "truth": "مبنای تاریخ فقط ظهر تهران؛ نه عکس واقعی همان شب یا ساعت دقیق تولد. چاپ مات روی شاسی؛ نام و پیام اختیاری تا ۶۰ نویسه. ارسال تا ۷۲ ساعت کاری پس از تأیید پرداخت به شرکت حمل، نه تضمین تحویل به مقصد.",
+      "phase": "MVP product; SEO expansion deferred",
+      "observed_keyword_ids": [
+        "K0372",
+        "K0376",
+        "K0472",
+        "K0491",
+        "K0506",
+        "K0520"
+      ],
+      "observed_keywords": [
+        "تابلو عکس ماه روز تولد",
+        "تابلو فاز ماه",
+        "تابلو ماه در روز تولد",
+        "تابلو ماه روز تولد",
+        "تابلو ماه سالگرد",
+        "تابلو ماه شب تولد"
+      ],
+      "primary_evidence": "observed_csv",
+      "approval": "proposal_awaiting_review",
+      "runtime_applied": false,
+      "proposed_keyword_ids": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "current_url": "/shop/p01",
+      "slug": "moon-phase-print",
+      "slug_status": "owner_approved_runtime_pending",
+      "url_migration": {
+        "from": "/shop/p01",
+        "to": "/shop/moon-phase-print",
+        "status": "direct_route_pending",
+        "legacy_route_behavior": "404_no_redirect_no_rewrite",
+        "permanent_status": null,
+        "preserve_query": null,
+        "change_internal_product_id": false,
+        "release_boundary": "MVP gating remains"
+      },
+      "slug_approved_by_owner": true
+    },
+    {
+      "page_id": "P02",
+      "url": "/shop/birth-sky-map",
+      "name": "آسمان تولد",
+      "primary": "تابلو آسمان شب تولد",
+      "secondary": [
+        "تابلو آسمان تولد",
+        "تابلو ستاره های شب تولد",
+        "سفارش تابلو آسمان شب تولد",
+        "قیمت تابلو آسمان شب تولد"
+      ],
+      "title": "تابلو آسمان شب تولد؛ نقشه ستاره‌ها | هالیوس",
+      "h1": "آسمان تولد؛ تابلو نقشه آسمان شب تولد",
+      "description": "نقشه ستاره‌ها براساس تاریخ، ساعت و شهر تولد، با نام یا پیام دلخواه و چاپ مات روی شاسی. اطلاعات لازم و اندازه‌ها را ببین.",
+      "anchors": [
+        "تابلو نقشه آسمان تولد",
+        "تابلوی آسمان تولد",
+        "تابلو ستاره‌های شب تولد"
+      ],
+      "exclude": [
+        "نقشه آسمان شب تولد",
+        "تابلو آسمان شب",
+        "تابلو کهکشان",
+        "تابلو فاز ماه",
+        "چارت تولد",
+        "تابلو نماد ماه تولد"
+      ],
+      "outline": [
+        "نقشه ستاره‌ها با تاریخ، ساعت و شهر تولد",
+        "اطلاعات لازم برای سفارش",
+        "چاپ و اندازه‌ها",
+        "تفاوت نقشه آسمان با تصویر هنری راه شیری"
+      ],
+      "faq": [
+        "چرا ساعت و شهر تولد لازم است؟",
+        "آیا این عکس واقعی آسمان است؟",
+        "اگر ساعت تولد معلوم نباشد چه می‌شود؟"
+      ],
+      "truth": "نقشه محاسبه‌شده؛ نه عکس تاریخی و نه گزارش آسترولوژی. محصول معوق است و لینک خرید زنده فعلاً ممنوع.",
+      "phase": "deferred product",
+      "observed_keyword_ids": [
+        "K0217",
+        "K0218",
+        "K0220",
+        "K0287",
+        "K0292",
+        "K0294",
+        "K0308",
+        "K0357",
+        "K0718",
+        "K1731",
+        "K1846"
+      ],
+      "observed_keywords": [
+        "تابلو آسمان تولد",
+        "تابلو آسمان روز تولد",
+        "تابلو آسمان شب تولد",
+        "تابلو ستاره تولد",
+        "تابلو ستاره روز تولد",
+        "تابلو ستاره شب تولد",
+        "تابلو ستاره های شب تولد",
+        "تابلو صورت فلکی روز تولد",
+        "تابلوی آسمان شب تولد",
+        "سفارش تابلو آسمان شب تولد",
+        "قیمت تابلو آسمان شب تولد"
+      ],
+      "primary_evidence": "observed_csv",
+      "approval": "proposal_awaiting_review",
+      "runtime_applied": false,
+      "proposed_keyword_ids": [
+        "S009",
+        "S010",
+        "S011",
+        "S012",
+        "S013",
+        "S014"
+      ],
+      "current_url": "/shop/p02",
+      "slug": "birth-sky-map",
+      "slug_status": "owner_approved_runtime_pending",
+      "url_migration": {
+        "from": "/shop/p02",
+        "to": "/shop/birth-sky-map",
+        "status": "direct_route_pending",
+        "legacy_route_behavior": "404_no_redirect_no_rewrite",
+        "permanent_status": null,
+        "preserve_query": null,
+        "change_internal_product_id": false,
+        "release_boundary": "deferred product remains closed"
+      },
+      "slug_approved_by_owner": true
+    },
+    {
+      "page_id": "P03",
+      "url": "/shop/milky-way-print",
+      "name": "شبِ ما",
+      "primary": "تابلو کهکشان راه شیری",
+      "secondary": [
+        "تابلو کهکشان راه شیری"
+      ],
+      "title": "تابلو راه شیری با نام و تاریخ؛ شب ما | هالیوس",
+      "h1": "شبِ ما؛ تابلو راه شیری با نام و تاریخ",
+      "description": "تابلو هنری راه شیری و کوهستان با نام دو نفر، تاریخ یا پیام دلخواه و چاپ مات روی شاسی. مشخصات و اندازه‌های سفارش را ببین.",
+      "anchors": [
+        "تابلو راه شیری با نام و تاریخ",
+        "تابلوی شبِ ما",
+        "تابلو هنری راه شیری"
+      ],
+      "exclude": [
+        "تابلو کهکشان",
+        "هدیه سالگرد ازدواج",
+        "تابلو آسمان شب تولد",
+        "نقشه آسمان شب تولد",
+        "تابلو ماه در روز تولد"
+      ],
+      "outline": [
+        "منظره هنری راه شیری و کوهستان",
+        "دو نام، یک تاریخ یا پیام کوتاه",
+        "چاپ و اندازه‌ها",
+        "تفاوت با نقشه آسمان تولد"
+      ],
+      "faq": [
+        "آیا تصویر براساس تاریخ ما محاسبه می‌شود؟",
+        "می‌توان نام دو نفر و تاریخ آشنایی اضافه کرد؟",
+        "سفارش بدون نوشته ممکن است؟"
+      ],
+      "truth": "تصویر هنری ثابت؛ نوشته‌ها قابل تغییرند، آسمان براساس تاریخ محاسبه نمی‌شود. محصول معوق است.",
+      "phase": "deferred product",
+      "observed_keyword_ids": [
+        "K0706"
+      ],
+      "observed_keywords": [
+        "تابلو کهکشان راه شیری"
+      ],
+      "primary_evidence": "observed_csv",
+      "approval": "proposal_awaiting_review",
+      "runtime_applied": false,
+      "proposed_keyword_ids": [
+        "S015",
+        "S016",
+        "S017",
+        "S018",
+        "S019",
+        "S020"
+      ],
+      "current_url": "/shop/p03",
+      "slug": "milky-way-print",
+      "slug_status": "owner_approved_runtime_pending",
+      "url_migration": {
+        "from": "/shop/p03",
+        "to": "/shop/milky-way-print",
+        "status": "direct_route_pending",
+        "legacy_route_behavior": "404_no_redirect_no_rewrite",
+        "permanent_status": null,
+        "preserve_query": null,
+        "change_internal_product_id": false,
+        "release_boundary": "deferred product remains closed"
+      },
+      "slug_approved_by_owner": true
+    }
+  ],
+  "link_contract": {
+    "rule": "Anchor describes the target in natural context. Ownership is primary intent, not a ban on shared vocabulary.",
+    "current_wiki_parser": "package-v1 in lib/wiki/wiki-markdown.ts accepts structured wiki links only; [[page:/shop/p01|...]] must not be assumed valid.",
+    "pending_integration": "Expose approved registry via current content-guide/admin flow and implement tested allowlisted shop-link materialization. No private, unpublished or reserved route links. Do not create meta keywords.",
+    "pending_slug_rule": "Approved pages[].url are the sole target routes after verification; current_url fields identify legacy URLs only and MUST NOT be linked or redirected. Legacy product URLs return 404. Deferred products stay closed. No automatic indexable URLs."
+  },
+  "product_growth_rule": "Stable product URL independent of category; size/color/message variants stay on same product. Reallocate a broad family query to a category only when multiple meaningful products and intent justify it; log ownership transfer and update anchors.",
+  "url_semantics": "pages[].url is the selected SEO target. current_url is the existing runtime route. A target is not live until its migration is implemented and released.",
+  "slug_decision": {
+    "date": "2026-11-07",
+    "scope": "Owner approved three direct product URLs; runtime migration pending. Old product routes 404 without redirect or rewrite.",
+    "internal_product_ids_unchanged": true,
+    "category_independent": true,
+    "no_redirect": true,
+    "text_authoring": "one complete page/article per separate editorial turn"
+  }
+}
