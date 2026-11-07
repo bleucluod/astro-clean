@@ -124,8 +124,8 @@ const nightOrder = { ...order, items: [nightItem] };
 const moon = await renderer.buildPrivateShopFinalPrintCandidate(moonOrder, 1, { moonDisc: moonSource });
 assert.equal(moon.productId, 'p01');
 await assertJpeg(moon, '10x15');
-assert.equal(renderer.formatShopP01DisplayDate('1375-11-25', 'jalali'), '۲۵ بهمن ۱۳۷۵');
-assert.equal(renderer.formatShopP01DisplayDate('2024-07-01', 'gregorian'), '2024-07-01');
+assert.equal(renderer.formatShopP01DisplayDate('1375-11-25', 'jalali'), '1375/11/25');
+assert.equal(renderer.formatShopP01DisplayDate('2024-07-01', 'gregorian'), '2024/07/01');
 // A flat synthetic moon must exhibit actual phase-dependent directional lighting.
 const handoff = load('lib/shop/shop-print-handoff.ts').buildPrivateShopPrintHandoff(moonOrder);
 const referenceUtc = handoff.prints[0].moonReference.referenceUtc;
@@ -152,7 +152,7 @@ assert.equal(approvedR9b.SHOP_P01_R9B_STYLE.moonDiameterRatio, .70);
 const pinnedSky = readFileSync(join(root, approvedR9b.SHOP_P01_R9B_STYLE.skyAsset));
 assert.equal(createHash('sha256').update(pinnedSky).digest('hex'),
   approvedR9b.SHOP_P01_R9B_STYLE.approvedSkySha256);
-assert.equal(approvedR9b.shopP01R9bPrintDate('1375/11/25', 'jalali'), '۲۵ بهمن ۱۳۷۵');
+assert.equal(approvedR9b.shopP01R9bPrintDate('1375/11/25', 'jalali'), '1375/11/25');
 const personalizedMoon = await renderer.buildPrivateShopFinalPrintCandidate({
   ...moonOrder, items: [{ ...moonItem, details: {
     ...moonItem.details, names: 'نام آزمایشی دیگر', message: 'پیام متفاوت', date: '2024-07-02',

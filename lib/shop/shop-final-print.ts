@@ -116,18 +116,13 @@ function makePhotoFade(width: number, height: number): Buffer {
   </svg>`, 'utf8');
 }
 
-/** HALLEUS_P01_NATURAL_MOON_MASTER_V1 */
+/** Render P01 dates in explicit year/month/day order without affecting astronomy. */
 export function formatShopP01DisplayDate(value: string, calendar: string): string {
-  if (calendar !== 'jalali') return value;
+  if (calendar !== 'jalali' && calendar !== 'gregorian') return value;
   const normalized = normalizePersianDigits(value).replaceAll('/', '-');
-  const parts = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(normalized);
-  if (!parts) return value;
-  const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
-  const month = Number(parts[2]);
-  if (month < 1 || month > 12) return value;
-  const localDigits = (v: string) => v.replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
-  return `${localDigits(String(Number(parts[3])))} ${months[month - 1]} ${localDigits(parts[1])}`;
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(normalized);
+  if (!match) return value;
+  return `${match[1]}/${match[2].padStart(2, '0')}/${match[3].padStart(2, '0')}`;
 }
 
 /**
@@ -210,7 +205,7 @@ export async function buildPrivateShopFinalPrintCandidate(
     : textLayers;
   const jpeg = await sharp(background).composite(compositing)
     .flatten({ background: '#101821' }).toColourspace('srgb')
-    .jpeg({ quality: 94, chromaSubsampling: '4:4:4' })
+    .jpeg({ quality: item.productId === 'p01' ? 96 : 94, chromaSubsampling: '4:4:4' })
     .withMetadata({ density: 300, icc: 'srgb' }).toBuffer();
   const output = await sharp(jpeg).metadata();
   if (output.format !== 'jpeg' || output.width !== width || output.height !== height ||

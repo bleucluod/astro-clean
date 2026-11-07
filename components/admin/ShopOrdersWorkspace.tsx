@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import Image from 'next/image';
 import { ShopCatalogReadiness } from './ShopCatalogReadiness';
 import { formatShopInteger } from '@/lib/shop/shop-order-number';
 import { buildShopManualCustomerNotice } from '@/lib/shop/shop-manual-notice';
@@ -78,6 +79,13 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   const [sampleBusy, setSampleBusy] = useState(false);
   const [sampleFeedback, setSampleFeedback] = useState('');
   const [sampleError, setSampleError] = useState('');
+  const [sampleSize, setSampleSize] = useState<'10x15' | '20x30' | '30x45'>('20x30');
+  const [sampleCity, setSampleCity] = useState('');
+  const [samplePreviewUrl, setSamplePreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => { if (samplePreviewUrl) URL.revokeObjectURL(samplePreviewUrl); };
+  }, [samplePreviewUrl]);
 
   const request = useCallback(async (path: string, init?: RequestInit) => {
     const response = await fetch(path, {
@@ -158,8 +166,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     finally { setBusy(false); }
   }
 
-  async function downloadSampleZip(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function downloadSampleZip() {
     if (sampleBusy) return;
     setSampleBusy(true); setSampleError(''); setSampleFeedback('');
     try {
@@ -181,6 +188,43 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       setSampleFeedback('ZIP اطلاعات نمونه دانلود شد؛ آن را برای طراحی دستی به دستیار بفرست. هیچ تصویری در پنل ساخته نشده است.');
     } catch (cause) { setSampleError(cause instanceof Error ? cause.message : 'دریافت نمونه انجام نشد.'); }
     finally { setSampleBusy(false); }
+  }
+
+  async function downloadSampleArtwork(mode: 'preview' | 'download') {
+    if (sampleBusy) return;
+    setSampleBusy(true); setSampleError(''); setSampleFeedback('');
+    try {
+      const response = await fetch('/api/admin/shop/design-sample/artwork', {
+        method: 'POST', cache: 'no-store',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          calendar: sampleCalendar, date: sampleDate.trim(), names: sampleNames.trim(),
+          message: sampleMessage.trim(), city: sampleCity.trim(), size: sampleSize,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error || `ساخت نمونهٔ تصویری ممکن نشد (${response.status}).`);
+      }
+      if (!response.headers.get('content-type')?.includes('image/jpeg')) {
+        throw new Error('پاسخ تصویر معتبر نبود.');
+      }
+      const image = await response.blob();
+      if (mode === 'preview') {
+        setSamplePreviewUrl(URL.createObjectURL(image));
+        setSampleFeedback('پیش‌نمایش اختصاصی ساخته شد؛ هنوز تأیید چاپخانه ندارد.');
+      } else {
+        const url = URL.createObjectURL(image);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `halleus-p01-r9b-owner-sample-${sampleSize}.jpg`;
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setSampleFeedback('فایل JPG چاپی نمونه دانلود شد؛ پیش از چاپ فیزیکی بررسی شود.');
+      }
+    } catch (cause) {
+      setSampleError(cause instanceof Error ? cause.message : 'ساخت فایل تصویری انجام نشد.');
+    } finally { setSampleBusy(false); }
   }
 
   async function copyManualStatusNotice() {
@@ -205,25 +249,40 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   return <div className={styles.workspace} dir="rtl">
     <ShopCatalogReadiness />
     <section className={styles.sampleHandoff} aria-labelledby="shop-sample-heading">
-      <h3 id="shop-sample-heading">بستهٔ اطلاعات نمونهٔ «ماه آن روز»</h3>
-      <p>برای طراحی نسخهٔ اول، همین‌جا ZIP دادهٔ ساختگی بگیر و برای من بفرست. شامل محاسبات واقعی ماه، مشخصات سه اندازه و دستور طراحی است؛ هیچ تصویری ساخته نمی‌شود و به سفارش یا دیتابیس وصل نیست.</p>
-      <form onSubmit={(event) => void downloadSampleZip(event)} className={styles.sampleForm}>
+      <h3 id="shop-sample-heading">نمونه‌سازی تابلوی ماه R9b</h3>
+      <p>فقط برای مالک: پیش‌نمایش و فایل JPG با رندرر واقعی ماه و سبک تأییدشدهٔ R9b ساخته می‌شود. این نمونه به سفارش، پرداخت یا دیتابیس متصل نیست و خودکار آرشیو نمی‌شود.</p>
+      <form onSubmit={(event) => { event.preventDefault(); void downloadSampleArtwork('download'); }} className={styles.sampleForm}>
         <label>تقویم نمونه
-          <select value={sampleCalendar} onChange={(event) => { setSampleCalendar(event.target.value as 'jalali' | 'gregorian'); setSampleDate(''); }}>
+          <select value={sampleCalendar} onChange={(event) => { setSampleCalendar(event.target.value as 'jalali' | 'gregorian'); setSampleDate(''); setSamplePreviewUrl(null); }}>
             <option value="jalali">شمسی</option><option value="gregorian">میلادی</option>
           </select>
         </label>
         <label>تاریخ نمونه
-          <input required dir="ltr" maxLength={20} value={sampleDate} placeholder={sampleCalendar === 'jalali' ? '۱۴۰۳/۰۸/۱۵' : '2024-11-05'} onChange={(event) => setSampleDate(event.target.value)} />
+          <input required dir="ltr" maxLength={20} value={sampleDate} placeholder={sampleCalendar === 'jalali' ? '۱۴۰۳/۰۸/۱۵' : '2024-11-05'} onChange={(event) => { setSampleDate(event.target.value); setSamplePreviewUrl(null); }} />
         </label>
         <label>نام آزمایشی
-          <input maxLength={60} value={sampleNames} onChange={(event) => setSampleNames(event.target.value)} />
+          <input maxLength={60} value={sampleNames} onChange={(event) => { setSampleNames(event.target.value); setSamplePreviewUrl(null); }} />
         </label>
         <label>پیام آزمایشی (اختیاری)
-          <input maxLength={60} value={sampleMessage} onChange={(event) => setSampleMessage(event.target.value)} />
+          <input maxLength={60} value={sampleMessage} onChange={(event) => { setSampleMessage(event.target.value); setSamplePreviewUrl(null); }} />
         </label>
-        <button type="submit" disabled={sampleBusy}>{sampleBusy ? 'در حال ساخت ZIP داده…' : 'دانلود ZIP اطلاعات سه اندازه'}</button>
+        <label>شهر روی تابلو (اختیاری)
+          <input maxLength={100} value={sampleCity} onChange={(event) => { setSampleCity(event.target.value); setSamplePreviewUrl(null); }} />
+        </label>
+        <label>اندازهٔ چاپ
+          <select value={sampleSize} onChange={(event) => { setSampleSize(event.target.value as '10x15' | '20x30' | '30x45'); setSamplePreviewUrl(null); }}>
+            <option value="10x15">۱۰×۱۵ سانتی‌متر</option>
+            <option value="20x30">۲۰×۳۰ سانتی‌متر</option>
+            <option value="30x45">۳۰×۴۵ سانتی‌متر</option>
+          </select>
+        </label>
+        <button type="button" disabled={sampleBusy} onClick={() => void downloadSampleArtwork('preview')}>نمایش پیش‌نمایش</button>
+        <button type="submit" disabled={sampleBusy}>{sampleBusy ? 'در حال رندر…' : 'دانلود JPG چاپی'}</button>
+        <button type="button" disabled={sampleBusy} onClick={() => void downloadSampleZip()}>دانلود ZIP اطلاعات (اختیاری)</button>
       </form>
+      {samplePreviewUrl ? <div className={styles.samplePreview}>
+        <Image unoptimized src={samplePreviewUrl} width={500} height={750} alt="پیش‌نمایش تابلوی شخصی‌سازی‌شدهٔ ماه" />
+      </div> : null}
       {sampleError ? <p className={styles.error} role="alert">{sampleError}</p> : null}
       {sampleFeedback ? <p className={styles.success} role="status">{sampleFeedback}</p> : null}
     </section>

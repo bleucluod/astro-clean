@@ -41,20 +41,17 @@ const escapeXml = (s: string) => s.replace(/[&<>"']/g, (ch) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;',
 })[ch]!);
 
-const persianMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
 const digitToPersian = (value: string) => value.replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
+/** Display Gregorian or Jalali dates as YEAR/MONTH/DAY, independent of surrounding RTL text. */
 export function shopP01R9bPrintDate(rawDate: string, calendar: string): string {
-  if (calendar !== 'jalali') return rawDate;
+  if (calendar !== 'jalali' && calendar !== 'gregorian') return rawDate;
   const normalized = rawDate.replace(/[۰-۹٠-٩]/g, (d) => {
-    const p = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
-    return String(p >= 0 ? p : '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const fa = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+    return String(fa >= 0 ? fa : '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
   }).replaceAll('/', '-');
   const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(normalized);
   if (!match) return rawDate;
-  const month = Number(match[2]);
-  if (month < 1 || month > 12) return rawDate;
-  return `${digitToPersian(String(Number(match[3])))} ${persianMonths[month - 1]} ${digitToPersian(match[1])}`;
+  return `${match[1]}/${match[2].padStart(2, '0')}/${match[3].padStart(2, '0')}`;
 }
 
 async function projectText(text: string, width: number, height: number,
@@ -126,6 +123,7 @@ async function projectMoon(input: ShopP01R9bInput, diameter: number): Promise<Bu
       const grade = Math.min(1.15, Math.max(.55, .1815 + 1.613 * lightSide -
         .687 * lightSide * lightSide + .319 * north * north));
       const out = (py * diameter + px) * 4;
+      let luminosity = 0;
       let tone: number;
       if (input.sourceKind === 'equirectangular-map') {
         const longitude = Math.atan2(east, z);
@@ -137,7 +135,7 @@ async function projectMoon(input: ShopP01R9bInput, diameter: number): Promise<Bu
         const dx = Math.max(0, Math.min(1, sourceX - sx));
         const dy = Math.max(0, Math.min(1, sourceY - sy));
         const k = (sy * info.width + sx) * 3;
-        let luminosity = 0;
+        luminosity = 0;
         for (let c = 0; c < 3; c++) {
           const top = data[k + c] * (1 - dx) + data[k + c + 3] * dx;
           const bottom = data[k + info.width * 3 + c] * (1 - dx) +
@@ -147,15 +145,19 @@ async function projectMoon(input: ShopP01R9bInput, diameter: number): Promise<Bu
         tone = (.75 * luminosity + .25 * 185) * light;
       } else {
         const k = (py * diameter + px) * 3;
-        tone = (.30 * data[k] + .59 * data[k + 1] + .11 * data[k + 2]) * light;
+        luminosity = (.30 * data[k] + .59 * data[k + 1] + .11 * data[k + 2]);
+        tone = luminosity * light;
       }
-      const clamped = Math.max(0, Math.min(255, tone * grade));
+      // Earthshine-style near-black lunar hemisphere. Keep the actual sphere opaque
+      // so decorative stars cannot shine through the dark side of the moon.
+      // These subtle surface tones are an artistic grade, not a historic Earthshine measurement.
+      const earthshine = 8.6 + 3.6 * z + 2.0 * east + .014 * (luminosity - 150);
+      const clamped = Math.max(0, Math.min(255, Math.max(tone * grade, earthshine)));
       result[out] = Math.round(clamped * 1.02);
       result[out + 1] = Math.round(clamped * 1.00);
       result[out + 2] = Math.round(clamped * .99);
       const limbCoverage = Math.min(1, Math.max(0, (1 - Math.sqrt(rho2)) * radius + .5));
-      const sunCoverage = Math.min(1, Math.max(0, incidence * radius * 2));
-      result[out + 3] = Math.round(255 * limbCoverage * sunCoverage);
+      result[out + 3] = Math.round(255 * limbCoverage);
     }
   }
   return sharp(result, { raw: { width: diameter, height: diameter, channels: 4 } }).png().toBuffer();
@@ -174,14 +176,20 @@ export async function buildShopP01R9bArtwork(input: ShopP01R9bInput): Promise<Bu
   const diameter = Math.floor(input.width * SHOP_P01_R9B_STYLE.moonDiameterRatio);
   const moon = await projectMoon(input, diameter);
   const canvas = await sharp(sky).resize(input.width, input.height, { fit: 'fill' }).png().toBuffer();
-  const personalInfo = [input.name, input.dateLabel, input.city?.trim()].filter(Boolean).join('  ·  ');
+  const canonical = input.dateLabel.replace(/[۰-۹٠-٩]/g, d => {
+    const fa = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+    return String(fa >= 0 ? fa : '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+  }).replaceAll('-', '/');
+  const parsed = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(canonical);
+  const datePrinted = parsed ? `\u2066${digitToPersian([parsed[1], parsed[2].padStart(2, '0'), parsed[3].padStart(2, '0')].join('/'))}\u2069` : input.dateLabel;
+  const personalInfo = [input.name, datePrinted, input.city?.trim()].filter(Boolean).join('  ·  ');
   const text = (await Promise.all([
     projectText(personalInfo, input.width, input.height, input.safeInsetPx,
-      input.message ? .729 : .762, 63, 28, '#BFC4CA', 'Estedad-Regular.ttf'),
+      input.message ? .729 : .762, 66, 28, '#BFC4CA', 'Estedad-Regular.ttf'),
     projectText(input.message, input.width, input.height, input.safeInsetPx,
-      .794, 57, 26, '#9499A0', 'Estedad-Light.ttf'),
+      .794, 60, 26, '#9499A0', 'Estedad-Light.ttf'),
     projectText('H  A  L  L  E  U  S', input.width, input.height, input.safeInsetPx,
-      .953, 40, 24, '#8A96A1', 'Estedad-Regular.ttf'),
+      .950, 44, 24, '#8A96A1', 'Estedad-Regular.ttf'),
   ])).filter((layer): layer is { input: Buffer; left: number; top: number } => layer !== null);
   const moonCenterY = Math.floor(input.height * SHOP_P01_R9B_STYLE.moonCenterYRatio);
   const moonLeft = Math.floor((input.width - diameter) / 2);

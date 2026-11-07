@@ -34,3 +34,5 @@
 .actions label { display: grid; gap: 6px; font-size: 12px; }
 .actions > div { display: flex; flex-wrap: wrap; gap: 10px; }
 .actions small { color: #52657a; }
+.samplePreview { display: flex; justify-content: center; padding: 12px; border-radius: 12px; background: #111418; }
+.samplePreview img { display: block; width: 100%; max-width: 400px; height: auto; object-fit: contain; border-radius: 3px; }
