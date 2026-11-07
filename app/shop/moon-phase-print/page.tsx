@@ -7,7 +7,7 @@ import styles from '@/components/shop/shop-v01-home.module.css';
 export const metadata: Metadata = {
   title: 'ماه آن روز | تابلوی فاز ماه شخصی هالیوس',
   description: 'تابلوی فاز ماه در تاریخ انتخابی تو؛ چاپ مات روی شاسی بدون قاب با سه اندازه و امکان افزودن نام و پیام.',
-  alternates: { canonical: '/shop/p01' },
+  alternates: { canonical: '/shop/moon-phase-print' },
   robots: { index: false, follow: false },
 };
 

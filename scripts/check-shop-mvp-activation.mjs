@@ -40,7 +40,7 @@ for (const [name, replacement] of [
   assert.equal(active(), false, `production gate must reject invalid ${name}`);
   env[name] = previous;
 }
-const guardedPages = ['app/shop/page.tsx', 'app/shop/p01/page.tsx',
+const guardedPages = ['app/shop/page.tsx', 'app/shop/moon-phase-print/page.tsx',
   ...['cart', 'checkout', 'payment', 'track'].map((page) => `app/shop/${page}/page.tsx`)];
 const guardedAdmin = ['app/api/admin/shop/orders/route.ts',
   'app/api/admin/shop/orders/[id]/route.ts',
@@ -50,10 +50,10 @@ for (const path of [...guardedPages, ...guardedAdmin]) {
   const contents = readFileSync(resolve(root, path), 'utf8');
   assert.match(contents, /!isShopMvpActive\(\)/, `${path} must honor the closed release boundary`);
 }
-for (const product of ['p02', 'p03']) {
-  const page = readFileSync(resolve(root, `app/shop/${product}/page.tsx`), 'utf8');
+for (const productSlug of ['birth-sky-map', 'milky-way-print']) {
+  const page = readFileSync(resolve(root, `app/shop/${productSlug}/page.tsx`), 'utf8');
   assert.match(page, /process\.env\.NODE_ENV === 'production'/,
-    `${product} must remain closed even if the first product is activated`);
+    `${productSlug} must remain closed even if the first product is activated`);
 }
 for (const [path, expected] of [
   ['lib/shop/shop-quote.ts', "new Set(['p01'])"],

@@ -1,9 +1,10 @@
 import { SHOP_SIZES, type ShopProduct } from './product-detail-data';
+import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 
 /** Data displayed on the preview PDP; do not advertise offers until checkout is live. */
 export function buildShopProductStructuredData(product: ShopProduct, siteUrl: string) {
   const base = siteUrl.replace(/\/$/, '');
-  const url = `${base}/shop/${product.id}`;
+  const url = `${base}${getShopProductUrl(product.id)}`;
   const breadcrumbId = `${url}#breadcrumb`;
   const productId = `${url}#product`;
 

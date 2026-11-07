@@ -6,7 +6,7 @@ import styles from '@/components/shop/shop-v01-home.module.css';
 export const metadata: Metadata = {
   title: 'آسمان تولد | تابلوی نقشهٔ ستاره‌های تولد هالیوس',
   description: 'تابلوی آسمان تولد با نقشهٔ ستاره‌ها براساس تاریخ، ساعت و شهر تولد؛ شاسی مات بدون قاب در سه اندازه.',
-  alternates: { canonical: '/shop/p02' },
+  alternates: { canonical: '/shop/birth-sky-map' },
   robots: { index: false, follow: false },
 };
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { getShopProduct } from './product-detail-data';
+import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
@@ -102,7 +103,7 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
   return (
     <article className={styles.itemCard}>
       <div className={styles.itemTop}>
-        <Link className={styles.itemImage} href={`/shop/${item.productId}`} aria-label={`مشاهدهٔ ${product.title}`}>
+        <Link className={styles.itemImage} href={getShopProductUrl(item.productId)} aria-label={`مشاهدهٔ ${product.title}`}>
           <Image src={product.gallery[0].src} alt={product.gallery[0].alt} fill sizes="(max-width: 640px) 108px, 142px" />
         </Link>
         <div className={styles.itemInfo}>
@@ -124,7 +125,7 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
           <output aria-live="polite">{money(item.quantity)}</output>
           <button type="button" onClick={() => onQuantity(item.quantity + 1)} disabled={item.quantity >= 10} aria-label="افزایش تعداد">+</button>
         </div>
-        <Link href={`/shop/${item.productId}?edit=${encodeURIComponent(item.key)}#personalize`}>ویرایش مشخصات</Link>
+        <Link href={`${getShopProductUrl(item.productId)}?edit=${encodeURIComponent(item.key)}#personalize`}>ویرایش مشخصات</Link>
         <button type="button" className={styles.remove} onClick={onRemove}>حذف</button>
       </div>
       {item.quantity > 1 ? <p className={styles.lineTotal}>جمع این اثر: <bdi>{money(size.price * item.quantity)}</bdi> تومان</p> : null}

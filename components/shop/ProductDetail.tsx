@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { siteConfig } from '@/lib/config/seo';
 import { buildShopProductStructuredData } from './product-schema';
+import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId } from './product-detail-data';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
@@ -19,11 +20,11 @@ function formatPrice(amount: number) {
 }
 
 function TextWithLinks({ children }: { children: string }) {
-  const parts = children.split(/(<a href="\/shop\/p0[123]">[^<]+<\/a>)/g);
+  const parts = children.split(/(<a href="\/shop\/(?:moon-phase-print|birth-sky-map|milky-way-print)">[^<]+<\/a>)/g);
   return (
     <>
       {parts.map((part, i) => {
-        const link = part.match(/^<a href="(\/shop\/p0[123])">([^<]+)<\/a>$/);
+        const link = part.match(/^<a href="(\/shop\/(?:moon-phase-print|birth-sky-map|milky-way-print))">([^<]+)<\/a>$/);
         return link ? <Link key={i} href={link[1]}>{link[2]}</Link> : <span key={i}>{part}</span>;
       })}
     </>
@@ -435,7 +436,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           <div className={styles.relatedHeading}><span className={styles.sectionKicker}>از همین مجموعه</span><h2 id="related-heading">شاید این آثار را هم دوست داشته باشی</h2></div>
           <div className={styles.relatedGrid}>
             {related.map((item) => (
-              <Link key={item.id} href={`/shop/${item.id}`} className={styles.relatedCard}>
+              <Link key={item.id} href={getShopProductUrl(item.id)} className={styles.relatedCard}>
                 <span className={styles.relatedImage}><Image src={item.gallery[0].src} alt={item.gallery[0].alt} fill sizes="(max-width: 760px) calc(100vw - 32px), 584px" /></span>
                 <span className={styles.relatedTitle}>{item.title}<span aria-hidden="true">←</span></span>
                 <span className={styles.relatedDescription}>{item.tagline}</span>

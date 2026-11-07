@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ShopV01Home, type ShopV01Item } from '@/components/shop/ShopV01Home';
 import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
+import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ const launchCatalog: ShopV01Item[] = [
     title: 'ماه آن روز',
     subtitle: 'فاز ماه در تاریخی که برای تو معنا دارد',
     category: 'آثار ماه',
-    href: '/shop/p01',
+    href: getShopProductUrl('p01'),
     priceToman: null,
     availability: 'coming-soon',
     imageSrc: '/shop-preview/moon-that-day.webp',
@@ -30,7 +31,7 @@ const launchCatalog: ShopV01Item[] = [
     title: 'آسمان تولد',
     subtitle: 'آسمان لحظه‌ای که داستان تو آغاز شد.',
     category: 'آثار آسمان',
-    href: '/shop/p02',
+    href: getShopProductUrl('p02'),
     priceToman: null,
     availability: 'coming-soon',
     imageSrc: '/shop-preview/birth-sky.webp',
@@ -41,7 +42,7 @@ const launchCatalog: ShopV01Item[] = [
     title: 'شبِ ما',
     subtitle: 'یادگاری از یک شب پرستاره.',
     category: 'آثار شب',
-    href: '/shop/p03',
+    href: getShopProductUrl('p03'),
     priceToman: null,
     availability: 'coming-soon',
     imageSrc: '/shop-preview/our-night.webp',

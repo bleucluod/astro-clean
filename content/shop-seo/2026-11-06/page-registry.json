@@ -260,7 +260,7 @@
       "url_migration": {
         "from": "/shop/p01",
         "to": "/shop/moon-phase-print",
-        "status": "direct_route_pending",
+        "status": "code_candidate_pending_release",
         "legacy_route_behavior": "404_no_redirect_no_rewrite",
         "permanent_status": null,
         "preserve_query": null,
@@ -352,7 +352,7 @@
       "url_migration": {
         "from": "/shop/p02",
         "to": "/shop/birth-sky-map",
-        "status": "direct_route_pending",
+        "status": "code_candidate_pending_release",
         "legacy_route_behavior": "404_no_redirect_no_rewrite",
         "permanent_status": null,
         "preserve_query": null,
@@ -420,7 +420,7 @@
       "url_migration": {
         "from": "/shop/p03",
         "to": "/shop/milky-way-print",
-        "status": "direct_route_pending",
+        "status": "code_candidate_pending_release",
         "legacy_route_behavior": "404_no_redirect_no_rewrite",
         "permanent_status": null,
         "preserve_query": null,
@@ -440,7 +440,7 @@
   "url_semantics": "pages[].url is the selected SEO target. current_url is the existing runtime route. A target is not live until its migration is implemented and released.",
   "slug_decision": {
     "date": "2026-11-07",
-    "scope": "Owner approved three direct product URLs; runtime migration pending. Old product routes 404 without redirect or rewrite.",
+    "scope": "Owner approved three direct product URLs; code candidate now contains routes and links. Release and production verification still pending; old routes must 404 without redirect or rewrite.",
     "internal_product_ids_unchanged": true,
     "category_independent": true,
     "no_redirect": true,
