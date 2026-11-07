@@ -218,7 +218,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
               <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
               <span aria-current="page">{product.title}</span>
             </nav>
-            <button className={styles.mainPhotoButton} type="button" onClick={() => setZoomOpen(true)} aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
+            <button className={`${styles.mainPhotoButton} ${id === 'p01' ? styles.p01MainPhoto : ''}`} type="button" onClick={() => setZoomOpen(true)} aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
               <Image
                 key={product.gallery[photoIndex].src}
                 src={product.gallery[photoIndex].src}
@@ -226,7 +226,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 fill
                 priority={photoIndex === 0}
                 sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
-                className={photoIndex === 0 ? styles.primaryPhoto : styles.portraitPhoto}
+                className={id === 'p01' ? styles.portraitPhoto : photoIndex === 0 ? styles.primaryPhoto : styles.portraitPhoto}
               />
               <span className={styles.zoomHint} aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -235,7 +235,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 </svg>
               </span>
             </button>
-            <div className={styles.thumbnails} aria-label="تصاویر محصول">
+            <div className={`${styles.thumbnails} ${id === 'p01' ? styles.p01Thumbnails : ''}`} aria-label="تصاویر محصول">
               {product.gallery.map((photo, index) => (
                 <button
                   type="button"
@@ -249,6 +249,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 </button>
               ))}
             </div>
+            {id === 'p01' ? <p className={styles.galleryPosition} aria-live="polite">تصویر {formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)} · {product.gallery[photoIndex].label}</p> : null}
             {product.galleryNote ? <p className={styles.galleryCaption}>{product.galleryNote}</p> : null}
           </div>
 
@@ -380,6 +381,28 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             </div>
           </div>
         </section>
+
+        {product.personalizationExamples?.length ? (
+          <section className={styles.personalizationExamples} aria-labelledby="p01-personalization-examples-heading">
+            <div className={styles.personalizationExampleHeading}>
+              <span className={styles.sectionKicker}>چند نمونه از یک تاریخ</span>
+              <h2 id="p01-personalization-examples-heading">«ماه آن روز» چطور شخصی می‌شه؟</h2>
+              <p>تاریخ رو انتخاب می‌کنی و هالیوس فاز ماه همون روز رو به تصویر می‌کشه. بعد می‌تونی نام، پیام کوتاه، هر دو یا هیچ‌کدوم رو اضافه کنی. این چهار نمونه تاریخ یکسانی دارن تا تفاوت فقط در نوشته‌ها دیده بشه؛ نام بالای تاریخ قرار می‌گیره و پیام زیرش.</p>
+            </div>
+            <div className={styles.personalizationExampleGrid}>
+              {product.personalizationExamples.map((example) => (
+                <div key={example.src} className={styles.personalizationExampleCard}>
+                  <div className={styles.personalizationExampleImage}>
+                    <Image src={example.src} alt={example.alt} fill sizes="(max-width: 760px) 42vw, 220px" />
+                  </div>
+                  <h3>{example.title}</h3>
+                  <p>{example.description}</p>
+                </div>
+              ))}
+            </div>
+            <p className={styles.personalizationExampleFoot}>می‌تونی تاریخ رو شمسی یا میلادی وارد کنی؛ فاز ماه از همون تاریخ انتخابی تو ساخته می‌شه و برای هر روز می‌تونه شکل متفاوتی داشته باشه.</p>
+          </section>
+        ) : null}
 
         <section className={styles.storySection} aria-labelledby="story-heading">
           <div className={styles.storyImage}>

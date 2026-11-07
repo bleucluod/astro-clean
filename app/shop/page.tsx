@@ -23,8 +23,8 @@ const launchCatalog: ShopV01Item[] = [
     href: getShopProductUrl('p01'),
     priceToman: null,
     availability: 'coming-soon',
-    imageSrc: '/shop-preview/moon-that-day.webp',
-    imageAlt: 'تابلو فاز ماه «ماه آن روز» روی شاسی مات بدون قاب در دکور روشن',
+    imageSrc: '/shop-preview/p01/mockup-gibbous.webp',
+    imageAlt: 'تابلوی ماه آن روز با رندر واقعی ماه کوژ و متن شخصی در موکاپ سرد خاکستری',
   },
   {
     id: 'P02',

@@ -15,6 +15,7 @@ export type ShopProduct = {
   highlight: string;
   galleryNote: string;
   gallery: { src: string; alt: string; label: string }[];
+  personalizationExamples?: { src: string; alt: string; title: string; description: string }[];
   storyTitle: string;
   story: string[];
   qualityTitle: string;
@@ -40,12 +41,28 @@ const products: Record<ShopProductId, ShopProduct> = {
     tagline: "بعضی روزها از تقویم می‌گذرن، اما از دل نه. هالیوس ماهِ تاریخ عزیزت رو به تصویری تبدیل می‌کنه که می‌تونه هر روز، بی‌هیچ کلمه‌ای، همون حس آشنا رو برگردونه. یک ماهِ روشن، یک تاریخِ موندگار و داستانی که فقط تو معنای کاملش رو می‌دونی.",
     introduction: "تاریخ عزیزت رو انتخاب کن؛ هالیوس چهرهٔ ماهِ همون روز رو در یک تابلوی شخصی به تصویر می‌کشه. اثری آرام برای خانه، با امکان اضافه‌کردن نام یا پیامی که دلت می‌خواد بمونه.",
     highlight: "فاز ماه در تاریخ انتخابی · تاریخ شمسی یا میلادی · نام و پیام اختیاری · چاپ مات روی شاسی",
-    galleryNote: '',
+    galleryNote: "این تصاویر با رندرر واقعی هالیوس ساخته شده‌اند: با انتخاب هر تاریخ، شکل ماه هم تغییر می‌کنه. نام و پیام هر دو اختیاری‌ان؛ می‌تونی هر دو، فقط یکی یا هیچ‌کدوم رو وارد کنی. تاریخ رو هم می‌شه شمسی یا میلادی انتخاب کرد. موکاپ‌ها فقط کمک می‌کنن حضور تابلو رو در فضای خانه ببینی.",
     gallery: [
-      { src: '/shop-preview/moon-that-day.webp', alt: "تابلوی ماه آن روز با ماه نقره‌ای روی زمینهٔ تیره، نصب‌شده روی دیوار روشن", label: 'نمای اصلی' },
-      { src: '/shop-preview/p01-room.webp', alt: "تابلوی ماه آن روز بالای مبل خاکستری در نشیمن مینیمال", label: 'در فضای خانه' },
-      { src: '/shop-preview/p01-angle.webp', alt: "نمای مایل تابلوی ماه آن روز با چاپ مات روی شاسی", label: 'نمای کناری' },
-      { src: '/shop-preview/p01-closeup.webp', alt: "جزئیات بافت ماه و چاپ مات در تابلوی ماه آن روز", label: 'جزئیات چاپ' },
+      { src: '/shop-preview/p01/mockup-gibbous.webp', alt: "موکاپ سرد تابلوی ماه کوژ، با نام و پیام، روی دیوار خاکستری", label: "ماه کوژ در دکور سرد" },
+      { src: '/shop-preview/p01/full-both.webp', alt: "رندر واقعی تابلو برای تاریخ میلادی ۲۰۲۶/۱۱/۲۴ با نام هاله و آراد و پیام عاشقانه", label: "خروجی واقعی با نام و پیام" },
+      { src: '/shop-preview/p01/mockup-crescent.webp', alt: "موکاپ خنک تابلوی هلال کاهنده و نام باران روی دیوار", label: "هلال ماه روی دیوار" },
+      { src: '/shop-preview/p01/mockup-half.webp', alt: "موکاپ خنک تابلوی تربیع اول ماه با نام آوا و تاریخ شمسی", label: "نیمه‌ماه در فضای خانه" },
+      { src: '/shop-preview/p01/mockup-full.webp', alt: "موکاپ تابلوی ماه نزدیک به کامل با نام و پیام در فضای خاکستری", label: "ماه کامل در فضای خاکستری" },
+      { src: '/shop-preview/p01/full-name.webp', alt: "رندر ماه تقریباً کامل با نام هاله و آراد و تاریخ میلادی، بدون پیام", label: "فقط نام و تاریخ" },
+      { src: '/shop-preview/p01/full-message.webp', alt: "رندر ماه تقریباً کامل با تاریخ میلادی و پیام، بدون نام", label: "فقط پیام و تاریخ" },
+      { src: '/shop-preview/p01/full-date.webp', alt: "رندر ماه تقریباً کامل تنها با تاریخ میلادی و بدون نام و پیام", label: "فقط تاریخ، بدون نام و پیام" },
+      { src: '/shop-preview/p01/mockup-message.webp', alt: "موکاپ سرد هلال ماه با تاریخ شمسی و پیام کوتاه، بدون نام", label: "هلال ماه با پیام دلخواه" },
+      { src: '/shop-preview/p01/quarter-name.webp', alt: "رندر نیمه‌ماه در تاریخ ۱۴۰۵/۰۸/۲۶ با نام آوا", label: "نیمه‌ماه و نام" },
+      { src: '/shop-preview/p01/crescent-message.webp', alt: "رندر هلال افزاینده در تاریخ ۱۴۰۵/۰۸/۲۲ با پیام دلخواه، بدون نام", label: "هلال افزاینده و پیام" },
+      { src: '/shop-preview/p01/gibbous-date.webp', alt: "رندر ماه کوژ در تاریخ ۱۴۰۵/۰۸/۳۰ بدون نام یا پیام", label: "ماه کوژ فقط با تاریخ شمسی" },
+      { src: '/shop-preview/p01/gibbous-both.webp', alt: "رندر ماه کوژ با نام آوا و نیما و یک پیام شخصی", label: "ماه کوژ همراه نام و پیام" },
+      { src: '/shop-preview/p01/crescent-name.webp', alt: "رندر هلال کاهنده در تاریخ ۱۴۰۵/۰۸/۱۴ با نام باران و بدون پیام", label: "هلال کاهنده فقط با نام" },
+    ],
+    personalizationExamples: [
+      { src: '/shop-preview/p01/full-both.webp', alt: "تابلوی ماه آن روز با حالت نام و پیام", title: "نام و پیام", description: "نام بالای تاریخ می‌آد و پیام کوتاه زیر تاریخ قرار می‌گیره." },
+      { src: '/shop-preview/p01/full-name.webp', alt: "تابلوی ماه آن روز با حالت فقط نام", title: "فقط نام", description: "پیام رو خالی می‌گذاری؛ نام و تاریخ روی تابلو می‌مونن." },
+      { src: '/shop-preview/p01/full-message.webp', alt: "تابلوی ماه آن روز با حالت فقط پیام", title: "فقط پیام", description: "نام رو خالی می‌گذاری؛ تاریخ و جملهٔ تو نمایش داده می‌شن." },
+      { src: '/shop-preview/p01/full-date.webp', alt: "تابلوی ماه آن روز با حالت فقط تاریخ", title: "فقط تاریخ", description: "نام و پیام رو خالی می‌گذاری؛ ماه و تاریخ، طرح رو کامل می‌کنن." },
     ],
     storyTitle: "هر تاریخ، ماهِ خودش را دارد",
     story: [
