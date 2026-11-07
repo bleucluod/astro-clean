@@ -17,8 +17,8 @@ export const dynamic = 'force-dynamic';
 const launchCatalog: ShopV01Item[] = [
   {
     id: 'P01',
-    title: 'ماه آن روز',
-    subtitle: 'تصویری از فاز ماه در تاریخ دلخواه تو، روی شاسی مات و بدون قاب.',
+    title: 'تابلوی ماه آن روز',
+    subtitle: 'ماه آسمان در تاریخی که برای تو معنا دارد؛ یادگاری از لحظه‌ای که هنوز در خاطرت روشن است.',
     category: 'آثار ماه',
     href: getShopProductUrl('p01'),
     priceToman: null,
