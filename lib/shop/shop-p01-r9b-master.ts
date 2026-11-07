@@ -19,6 +19,8 @@ export type ShopP01R9bInput = {
   dateLabel: string;
   city?: string;
   message: string;
+  /** Owner sample A/B only; absent means the unchanged approved R9b moon grade. */
+  moonTone?: 'original' | 'lifted';
 };
 
 const skyAsset = 'assets/shop-print/p01-r9b-approved-sky.webp';
@@ -152,7 +154,10 @@ async function projectMoon(input: ShopP01R9bInput, diameter: number): Promise<Bu
       // so decorative stars cannot shine through the dark side of the moon.
       // These subtle surface tones are an artistic grade, not a historic Earthshine measurement.
       const earthshine = 8.6 + 3.6 * z + 2.0 * east + .014 * (luminosity - 150);
-      const clamped = Math.max(0, Math.min(255, Math.max(tone * grade, earthshine)));
+      // Lift only the illuminated surface for the optional owner comparison.
+      // The baseline and dark-side earthshine remain unchanged.
+      const gradedTone = tone * grade * (input.moonTone === 'lifted' ? 1.14 : 1);
+      const clamped = Math.max(0, Math.min(255, Math.max(gradedTone, earthshine)));
       result[out] = Math.round(clamped * 1.02);
       result[out + 1] = Math.round(clamped * 1.00);
       result[out + 2] = Math.round(clamped * .99);
@@ -166,7 +171,8 @@ async function projectMoon(input: ShopP01R9bInput, diameter: number): Promise<Bu
 export async function buildShopP01R9bArtwork(input: ShopP01R9bInput): Promise<Buffer> {
   if (input.width < 800 || input.height < 1000 ||
       !Number.isFinite(input.illuminatedFraction) || input.illuminatedFraction < 0 ||
-      input.illuminatedFraction > 1 || !Buffer.isBuffer(input.moonBytes)) {
+      input.illuminatedFraction > 1 || !Buffer.isBuffer(input.moonBytes) ||
+      (input.moonTone !== undefined && input.moonTone !== 'original' && input.moonTone !== 'lifted')) {
     throw new Error('Invalid P01 R9b print input.');
   }
   const sky = await readFile(join(process.cwd(), skyAsset));
@@ -182,12 +188,21 @@ export async function buildShopP01R9bArtwork(input: ShopP01R9bInput): Promise<Bu
   }).replaceAll('-', '/');
   const parsed = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(canonical);
   const datePrinted = parsed ? `\u2066${digitToPersian([parsed[1], parsed[2].padStart(2, '0'), parsed[3].padStart(2, '0')].join('/'))}\u2069` : input.dateLabel;
-  const personalInfo = [input.name, datePrinted, input.city?.trim()].filter(Boolean).join('  ·  ');
+  // Independent centered lines: name above date, optional message below.
+  // Empty fields do not leave blank placeholders; the stack recenters itself.
+  const hasName = Boolean(input.name.trim());
+  const hasMessage = Boolean(input.message.trim());
+  const dateLine = [datePrinted, input.city?.trim()].filter(Boolean).join('  ·  ');
+  const nameY = hasMessage ? .736 : .749;
+  const dateY = hasName ? (hasMessage ? .777 : .790) : (hasMessage ? .755 : .771);
+  const messageY = hasName ? .837 : .822;
   const text = (await Promise.all([
-    projectText(personalInfo, input.width, input.height, input.safeInsetPx,
-      input.message ? .729 : .762, 66, 28, '#BFC4CA', 'Estedad-Regular.ttf'),
+    projectText(input.name, input.width, input.height, input.safeInsetPx,
+      nameY, 66, 28, '#C4CBD2', 'Estedad-Medium.ttf'),
+    projectText(dateLine, input.width, input.height, input.safeInsetPx,
+      dateY, 52, 25, '#BFC4CA', 'Estedad-Regular.ttf'),
     projectText(input.message, input.width, input.height, input.safeInsetPx,
-      .794, 60, 26, '#9499A0', 'Estedad-Light.ttf'),
+      messageY, 60, 26, '#9499A0', 'Estedad-Light.ttf'),
     projectText('H  A  L  L  E  U  S', input.width, input.height, input.safeInsetPx,
       .950, 44, 24, '#8A96A1', 'Estedad-Regular.ttf'),
   ])).filter((layer): layer is { input: Buffer; left: number; top: number } => layer !== null);

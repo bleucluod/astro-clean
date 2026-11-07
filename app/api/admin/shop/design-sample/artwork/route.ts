@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const allowedSizes = new Set(['10x15', '20x30', '30x45']);
-const allowedKeys = new Set(['calendar', 'date', 'names', 'message', 'city', 'size']);
+const allowedKeys = new Set(['calendar', 'date', 'names', 'message', 'city', 'size', 'moonTone']);
 const maxBodyBytes = 2048;
 let inFlight = false;
 
@@ -41,7 +41,8 @@ export async function POST(request: Request) {
         typeof data.names !== 'string' || data.names.length > 60 ||
         typeof data.message !== 'string' || data.message.length > 60 ||
         (data.city !== undefined && (typeof data.city !== 'string' || data.city.length > 100)) ||
-        typeof data.size !== 'string' || !allowedSizes.has(data.size)) {
+        typeof data.size !== 'string' || !allowedSizes.has(data.size) ||
+        (data.moonTone !== undefined && data.moonTone !== 'original' && data.moonTone !== 'lifted')) {
       return noStoreJsonResponse({ ok: false, error: 'اطلاعات نمونه یا اندازهٔ چاپ معتبر نیست.' }, 422);
     }
     const details = {
@@ -69,12 +70,15 @@ export async function POST(request: Request) {
         items: [{ key: 'owner-sample-p01', productId: 'p01', size: data.size,
           quantity: 1, details }],
       };
-      const artwork = await buildPrivateShopFinalPrintCandidate(sample, 1, sources);
+      // Only this owner-only synthetic route can request a temporary brighter comparison.
+      // All existing print call sites omit the option and retain the baseline grade.
+      const moonTone = data.moonTone === 'lifted' ? 'lifted' : 'original';
+      const artwork = await buildPrivateShopFinalPrintCandidate(sample, 1, sources, { ownerP01MoonTone: moonTone });
       return new Response(new Uint8Array(artwork.bytes), {
         status: 200,
         headers: {
           'Content-Type': 'image/jpeg',
-          'Content-Disposition': `attachment; filename="halleus-p01-r9b-owner-sample-${data.size}.jpg"`,
+          'Content-Disposition': `attachment; filename="halleus-p01-r9b-owner-sample-${data.size}-${moonTone}.jpg"`,
           'Cache-Control': 'private, no-store, max-age=0',
           'X-Content-Type-Options': 'nosniff',
           'X-Robots-Tag': 'noindex, nofollow',

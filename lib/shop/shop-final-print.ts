@@ -132,6 +132,7 @@ export function formatShopP01DisplayDate(value: string, calendar: string): strin
  */
 export async function buildPrivateShopFinalPrintCandidate(
   rawOrder: unknown, lineNumber: number, sources: ShopFinalPrintSources = {},
+  options: { ownerP01MoonTone?: 'original' | 'lifted' } = {},
 ) {
   const handoff = buildPrivateShopPrintHandoff(rawOrder);
   if (!Number.isSafeInteger(lineNumber) || lineNumber < 1 || lineNumber > handoff.prints.length) {
@@ -180,6 +181,7 @@ export async function buildPrivateShopFinalPrintCandidate(
       waxing: phase.phaseAngleDegrees <= 180,
       name: names, dateLabel: printDate,
       city: safeShopArtworkText(personal.city, 'شهر', 100), message,
+      moonTone: options.ownerP01MoonTone,
     });
     sourceManifest = { creator: master.creator, sourceUrl: master.sourceUrl, license: master.license,
       sha256: master.sha256, attribution: master.attribution ?? master.creator };
