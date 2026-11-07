@@ -81,7 +81,6 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   const [sampleError, setSampleError] = useState('');
   const [sampleSize, setSampleSize] = useState<'10x15' | '20x30' | '30x45'>('20x30');
   const [sampleCity, setSampleCity] = useState('');
-  const [sampleMoonTone, setSampleMoonTone] = useState<'original' | 'lifted'>('original');
   const [samplePreviewUrl, setSamplePreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -201,7 +200,6 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
         body: JSON.stringify({
           calendar: sampleCalendar, date: sampleDate.trim(), names: sampleNames.trim(),
           message: sampleMessage.trim(), city: sampleCity.trim(), size: sampleSize,
-          moonTone: sampleMoonTone,
         }),
       });
       if (!response.ok) {
@@ -219,7 +217,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
         const url = URL.createObjectURL(image);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `halleus-p01-r9b-owner-sample-${sampleSize}-${sampleMoonTone}.jpg`;
+        link.download = `halleus-p01-r9b-owner-sample-${sampleSize}.jpg`;
         link.click();
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
         setSampleFeedback('فایل JPG چاپی نمونه دانلود شد؛ پیش از چاپ فیزیکی بررسی شود.');
@@ -252,7 +250,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     <ShopCatalogReadiness />
     <section className={styles.sampleHandoff} aria-labelledby="shop-sample-heading">
       <h3 id="shop-sample-heading">نمونه‌سازی تابلوی ماه R9b</h3>
-      <p>فقط برای مالک: نام بالای تاریخ و پیام زیر آن در نمونهٔ R9b نمایش داده می‌شود. حالت A روشنایی فعلی است؛ حالت B فقط برای مقایسهٔ بصری ۱۴٪ روشن‌تر می‌شود. این نمونه به سفارش یا پرداخت متصل نیست و خودکار آرشیو نمی‌شود.</p>
+      <p>فقط برای مالک: در نمونهٔ R9b نام در سطر اول، تاریخ در سطر دوم و پیام اختیاری زیر آن نمایش داده می‌شود. روشنایی ماه همان نسخهٔ تأییدشده است؛ این نمونه به سفارش یا پرداخت متصل نیست و خودکار آرشیو نمی‌شود.</p>
       <form onSubmit={(event) => { event.preventDefault(); void downloadSampleArtwork('download'); }} className={styles.sampleForm}>
         <label>تقویم نمونه
           <select value={sampleCalendar} onChange={(event) => { setSampleCalendar(event.target.value as 'jalali' | 'gregorian'); setSampleDate(''); setSamplePreviewUrl(null); }}>
@@ -276,12 +274,6 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
             <option value="10x15">۱۰×۱۵ سانتی‌متر</option>
             <option value="20x30">۲۰×۳۰ سانتی‌متر</option>
             <option value="30x45">۳۰×۴۵ سانتی‌متر</option>
-          </select>
-        </label>
-        <label>روشنایی ماه (مقایسهٔ نمونه)
-          <select value={sampleMoonTone} onChange={(event) => { setSampleMoonTone(event.target.value as 'original' | 'lifted'); setSamplePreviewUrl(null); }}>
-            <option value="original">A — روشنایی فعلی R9b</option>
-            <option value="lifted">B — ۱۴٪ روشن‌تر (آزمایشی)</option>
           </select>
         </label>
         <button type="button" disabled={sampleBusy} onClick={() => void downloadSampleArtwork('preview')}>نمایش پیش‌نمایش</button>

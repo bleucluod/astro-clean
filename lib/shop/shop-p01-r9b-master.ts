@@ -19,8 +19,6 @@ export type ShopP01R9bInput = {
   dateLabel: string;
   city?: string;
   message: string;
-  /** Owner sample A/B only; absent means the unchanged approved R9b moon grade. */
-  moonTone?: 'original' | 'lifted';
 };
 
 const skyAsset = 'assets/shop-print/p01-r9b-approved-sky.webp';
@@ -154,9 +152,9 @@ async function projectMoon(input: ShopP01R9bInput, diameter: number): Promise<Bu
       // so decorative stars cannot shine through the dark side of the moon.
       // These subtle surface tones are an artistic grade, not a historic Earthshine measurement.
       const earthshine = 8.6 + 3.6 * z + 2.0 * east + .014 * (luminosity - 150);
-      // Lift only the illuminated surface for the optional owner comparison.
-      // The baseline and dark-side earthshine remain unchanged.
-      const gradedTone = tone * grade * (input.moonTone === 'lifted' ? 1.14 : 1);
+      // Owner-approved B grade: lift the illuminated lunar surface only.
+      // Dark-side earthshine, phase and decorative sky remain unchanged.
+      const gradedTone = tone * grade * 1.14;
       const clamped = Math.max(0, Math.min(255, Math.max(gradedTone, earthshine)));
       result[out] = Math.round(clamped * 1.02);
       result[out + 1] = Math.round(clamped * 1.00);
@@ -171,8 +169,7 @@ async function projectMoon(input: ShopP01R9bInput, diameter: number): Promise<Bu
 export async function buildShopP01R9bArtwork(input: ShopP01R9bInput): Promise<Buffer> {
   if (input.width < 800 || input.height < 1000 ||
       !Number.isFinite(input.illuminatedFraction) || input.illuminatedFraction < 0 ||
-      input.illuminatedFraction > 1 || !Buffer.isBuffer(input.moonBytes) ||
-      (input.moonTone !== undefined && input.moonTone !== 'original' && input.moonTone !== 'lifted')) {
+      input.illuminatedFraction > 1 || !Buffer.isBuffer(input.moonBytes)) {
     throw new Error('Invalid P01 R9b print input.');
   }
   const sky = await readFile(join(process.cwd(), skyAsset));
@@ -193,14 +190,16 @@ export async function buildShopP01R9bArtwork(input: ShopP01R9bInput): Promise<Bu
   const hasName = Boolean(input.name.trim());
   const hasMessage = Boolean(input.message.trim());
   const dateLine = [datePrinted, input.city?.trim()].filter(Boolean).join('  ·  ');
-  const nameY = hasMessage ? .736 : .749;
-  const dateY = hasName ? (hasMessage ? .777 : .790) : (hasMessage ? .755 : .771);
-  const messageY = hasName ? .837 : .822;
+  // Each adjacent visible text line has an equal 0.044 canvas-height center spacing.
+  // When a field is blank, the remaining content stays vertically balanced.
+  const nameY = hasMessage ? .742 : .754;
+  const dateY = hasName ? (hasMessage ? .786 : .798) : (hasMessage ? .764 : .782);
+  const messageY = hasName ? .830 : .808;
   const text = (await Promise.all([
     projectText(input.name, input.width, input.height, input.safeInsetPx,
-      nameY, 66, 28, '#C4CBD2', 'Estedad-Medium.ttf'),
+      nameY, 66, 28, '#CDD3D9', 'Estedad-Medium.ttf'),
     projectText(dateLine, input.width, input.height, input.safeInsetPx,
-      dateY, 52, 25, '#BFC4CA', 'Estedad-Regular.ttf'),
+      dateY, 52, 25, '#9499A0', 'Estedad-Regular.ttf'),
     projectText(input.message, input.width, input.height, input.safeInsetPx,
       messageY, 60, 26, '#9499A0', 'Estedad-Light.ttf'),
     projectText('H  A  L  L  E  U  S', input.width, input.height, input.safeInsetPx,
