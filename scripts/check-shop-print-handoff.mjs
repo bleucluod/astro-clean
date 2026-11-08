@@ -166,6 +166,8 @@ const api = load('app/api/admin/shop/orders/[id]/print/route.ts', {
   } },
   '@/lib/shop/shop-print-handoff': handoff,
   '@/lib/shop/shop-design-handoff-zip': designZip,
+  // GET handoff never invokes the owner-only JPG POST path; that path has its own focused guard.
+  '@/lib/shop/shop-manual-print-archive': {},
   '@/lib/shop/shop-order-store': { getAdminShopOrder: async () => { databaseReads++; return stored; } },
 });
 const id = 'f8d1143a-1c64-4c01-bdb8-928a1c19b6e7';
