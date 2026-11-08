@@ -164,12 +164,16 @@ assert.ok(client.formatShopOrderReceipt({ orderNumber: maxOrderNumber, accessCod
 assert.throws(() => client.formatShopOrderReceipt({ orderNumber: '9223372036854775808', accessCode: receipt.accessCode }));
 const paymentSource = readFileSync(resolve(root, 'components/shop/ShopCheckoutFlow.tsx'), 'utf8');
 const ownerSource = readFileSync(resolve(root, 'components/admin/ShopOrdersWorkspace.tsx'), 'utf8');
-assert.equal((paymentSource.match(/formatShopInteger\(order\.orderNumber\)/g) ?? []).length, 3);
+// The order identifier is not an amount; never group its digits.
+assert.match(paymentSource, /formatShopOrderNumber\(order\.orderNumber\)/);
+assert.doesNotMatch(paymentSource, /formatShopInteger\(order\.orderNumber\)/);
 assert.doesNotMatch(paymentSource, /Number\(order\.orderNumber\)/);
-assert.match(paymentSource, /const \[showAccessCode, setShowAccessCode\] = useState\(false\)/);
-assert.match(paymentSource, /type=\{showAccessCode \? 'text' : 'password'\}/);
-assert.match(paymentSource, /aria-pressed=\{showAccessCode\}/);
-assert.match(paymentSource, /setShowAccessCode\(\(visible\) => !visible\)/);
+// The old long private access code stays in storage for mutations but is not presented to customers.
+assert.doesNotMatch(paymentSource, /showAccessCode|setShowAccessCode/);
+assert.doesNotMatch(paymentSource, /\{receipt\.accessCode\}<\/bdi>/);
+assert.match(paymentSource, /readShopOrderReceipt\(\)/);
+assert.match(paymentSource, /fetchShopOrderWithMobile\(/);
+assert.match(paymentSource, /href="\/shop\/track"/);
 assert.match(ownerSource, /function formatNumber\(value: number \| string\) \{ return formatShopInteger\(value\); \}/);
 storage.set('halleus.shop.order.receipt.v1', '{broken json');
 assert.equal(client.readShopOrderReceipt(), null);

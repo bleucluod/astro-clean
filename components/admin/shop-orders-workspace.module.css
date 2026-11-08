@@ -143,4 +143,3 @@
 @media (prefers-reduced-motion: reduce) {
   .workspace :is(button, a, summary) { transition: none; }
 }
-

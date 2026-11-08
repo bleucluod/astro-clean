@@ -10,7 +10,7 @@ import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
   cancelShopOrder, clearLegacyShopOrderIntent, createShopOrderRequest, fetchShopOrder, readShopOrderReceipt,
-  rememberShopOrderReceipt, submitShopTransfer, fetchShopOrderWithMobile,
+  submitShopTransfer, fetchShopOrderWithMobile,
   type ShopOrderReceipt,
 } from './shop-order-client';
 import type { ShopOrderPublicState } from '@/lib/shop/shop-order-store';

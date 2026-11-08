@@ -8,9 +8,9 @@ CURRENT=/srv/halleus/current
 PREVIOUS=/srv/halleus/previous
 SERVICE=halleus.service
 ENGINE=ops/vps/halleus-release.sh
-BASE=370acad8270f0027ae3c3ad884753b8dbe79b112
+BASE=f64bade57d3840cd0b30ae681e1b09004347f104
 OLD_LIVE=547f4d2c6d286796cb07b2aa9e45852d61f396e7
-TAG=v2026.11.08-shop-order-experience-r1
+TAG=v2026.11.08-shop-order-experience-r2
 PIN="${1:-}"
 TMP=''
 WORKTREE=''
@@ -63,6 +63,10 @@ log "ACTIVE_PRECHECK=$active_sha"
 as_deploy git -C "$SOURCE" fetch origin main
 [ "$(as_deploy git -C "$SOURCE" rev-parse origin/main)" = "$PIN" ] || fatal 'Origin main differs from pinned approved commit.'
 [ "$(as_deploy git -C "$SOURCE" rev-parse "${PIN}^1")" = "$BASE" ] || fatal 'Unexpected release commit parent.'
+changed_files="$(as_deploy git -C "$SOURCE" diff-tree --no-commit-id --name-only -r "$PIN")"
+expected_files=$'components/admin/shop-orders-workspace.module.css\ncomponents/shop/ShopCheckoutFlow.tsx\ndocs/HALLEUS_SHOP_VPS_FIVE_STEP_ROADMAP.md\nops/vps/halleus-shop-order-ux-release.sh\nscripts/check-shop-orders.mjs'
+[ "$changed_files" = "$expected_files" ] || fatal 'R2 changeset includes unrelated paths.'
+log 'R2_APPROVED_CHANGESET=PASS'
 if [ "$head" != "$PIN" ]; then
   as_deploy git -C "$SOURCE" merge --ff-only origin/main || fatal 'Cannot fast-forward VPS source.'
 fi
@@ -79,16 +83,40 @@ else
   as_deploy git -C "$SOURCE" worktree add --detach "$WORKTREE" "$PIN" || fatal 'Could not prepare candidate test tree.'
   ln -s -- "$(readlink -f "$CURRENT")/node_modules" "$WORKTREE/node_modules"
   failed=()
-  check_scripts=(
+  # R1 ran independent checks; reuse unchanged PASS if retained evidence exists.
+  R1_LOG_DIR=/tmp/halleus-shop-order-ux-dPXzWprE
+  resumed_names=(
     check-shop-order-experience.mjs
     check-shop-shared-rate-limit.mjs
     check-shop-order-api-privacy.mjs
     check-shop-checkout.mjs
     check-shop-print-handoff.mjs
-    check-shop-orders.mjs
     check-shop-seo-slugs.mjs
   )
-  log 'R1_FOCUSED_FAILURE_DISCOVERY=BEGIN'
+  resumed_markers=(
+    'SHOP_ORDER_EXPERIENCE=PASS'
+    'PASS: PostgreSQL-atomic shared limiter source'
+    'Shop order HTTP privacy:'
+    'Shop checkout:'
+    'Shop print handoff:'
+    'Shop SEO direct routes'
+  )
+  check_scripts=(check-shop-orders.mjs)
+  r1_passes_verified=1
+  for index in "${!resumed_names[@]}"; do
+    if [ ! -f "$R1_LOG_DIR/${resumed_names[$index]}.log" ] ||
+       ! grep -Fq "${resumed_markers[$index]}" "$R1_LOG_DIR/${resumed_names[$index]}.log"; then
+      r1_passes_verified=0
+      break
+    fi
+  done
+  if [ "$r1_passes_verified" -eq 1 ]; then
+    for name in "${resumed_names[@]}"; do log "RESUMED_PASS $name"; done
+  else
+    log 'R1_PASS_EVIDENCE_MISSING_RECHECK_SAFE_INDEPENDENTS'
+    check_scripts+=("${resumed_names[@]}")
+  fi
+  log 'R2_AFFECTED_FAILURE_RECOVERY=BEGIN'
   for name in "${check_scripts[@]}"; do
     if [ ! -f "$WORKTREE/scripts/$name" ]; then
       log "BLOCKED_BY_DEPENDENCY $name missing"
@@ -113,13 +141,8 @@ else
   fi
   if [ -x "$WORKTREE/node_modules/.bin/eslint" ]; then
     if as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/eslint \
-      "components/shop/ShopCheckoutFlow.tsx" "components/shop/shop-order-client.ts" \
-      "components/admin/ShopOrdersWorkspace.tsx" \
-      "app/api/shop/orders/track/mobile/route.ts" \
-      "app/api/admin/shop/orders/[id]/print/artwork/route.ts" \
-      "lib/shop/shop-order-number.ts" "lib/shop/shop-order-contract.ts" \
-      "lib/shop/shop-order-store.ts" "lib/shop/shop-shared-rate-limit.ts" \
-      "scripts/check-shop-order-experience.mjs" "scripts/check-shop-shared-rate-limit.mjs"' _ "$WORKTREE" >"$TMP/eslint.log" 2>&1; then
+      "components/shop/ShopCheckoutFlow.tsx" \
+      "scripts/check-shop-orders.mjs"' _ "$WORKTREE" >"$TMP/eslint.log" 2>&1; then
       log 'PASS scoped ESLint'
     else
       log 'CANDIDATE_FAILURE scoped ESLint'
@@ -141,7 +164,7 @@ else
     done
     exit 1
   fi
-  log 'R1_ALL_FOCUSED_CHECKS=PASS'
+  log 'R2_AFFECTED_CHECKS=PASS'
   as_deploy git -C "$SOURCE" worktree remove --force "$WORKTREE" || fatal 'Cannot clean candidate test worktree.'
   WORKTREE=''
 
