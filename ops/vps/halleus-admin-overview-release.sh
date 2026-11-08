@@ -8,12 +8,12 @@ CURRENT=/srv/halleus/current
 PREVIOUS=/srv/halleus/previous
 ENGINE=ops/vps/halleus-release.sh
 SERVICE=halleus.service
-BASE=961a653c9479cd66a6ad7c4fb96bcab5f9c5781e
-PREVIOUS_BASE=7bdcd9bddbfeffb69f95cae0f557c6d0da663d31
+BASE=976e8a1be26f0d95eea3deb426541c0710f9f737
+PREVIOUS_BASE=961a653c9479cd66a6ad7c4fb96bcab5f9c5781e
 FIRST_BASE=f160ced6f5bd6a947067b27a1a80f4a8fb4a14f3
 R1_LOG_DIR=/tmp/halleus-admin-overview-U10DNsyU
 OLD_LIVE=6fdfaa60aaa826b9815c03be9275da5c2f7627f1
-TAG=v2026.11.08-admin-overview-r3
+TAG=v2026.11.08-admin-overview-r4
 PIN="$1"
 NODE=/usr/local/bin/node
 TMP=''
@@ -66,7 +66,7 @@ as_deploy git -C "$SOURCE" fetch origin main || fatal 'Fetch failed.'
 [ "$(as_deploy git -C "$SOURCE" rev-parse "$PIN^1")" = "$BASE" ] || fatal 'Unexpected parent commit.'
 as_deploy git -C "$SOURCE" merge-base --is-ancestor "$head" "$PIN" || fatal 'Verified source HEAD is not an ancestor of pinned release.'
 changed="$(as_deploy git -C "$SOURCE" diff-tree --no-commit-id --name-only -r "$PIN")"
-expected=$'docs/HALLEUS_ADMIN_OVERVIEW_ROADMAP.md\nops/vps/halleus-admin-overview-release.sh\nscripts/check-admin-ux-consolidation.mjs\nscripts/check-admini-ui-routes.mjs\nscripts/check-secure-admin-core.mjs'
+expected=$'docs/HALLEUS_ADMIN_OVERVIEW_ROADMAP.md\nops/vps/halleus-admin-overview-release.sh\nscripts/check-admin-ux-consolidation.mjs'
 [ "$changed" = "$expected" ] || fatal 'Unexpected release changeset.'
 log 'SAFETY_PREFLIGHT=PASS'
 if [ "$head" != "$PIN" ]; then

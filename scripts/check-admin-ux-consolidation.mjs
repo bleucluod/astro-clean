@@ -49,18 +49,19 @@ assert(
     telegramSource.includes("setFile(event.target.files?.[0] ?? null)"),
   "Telegram JSON file picker must retain its accessible label, input, MIME guard and state handoff",
 );
-assert(telegramSource.includes('سلامت سیستم انتشار'), "Telegram system-health disclosure is missing");
+assert(telegramSource.includes("telegramAlertStack") && telegramSource.includes("telegramTimeline"), "Telegram actual status and daily timeline must remain visible");
 assert(!telegramSource.includes('Choose File'), "native English file-picker copy leaked into Telegram source");
-assert(telegramSource.includes('دانلود Smart Transit Pack'), "Slice 2 Telegram compatibility marker is missing");
+assert(telegramSource.includes("ساخت و دانلود بستهٔ هوشمند") && telegramSource.includes("downloadTransitPack()"), "Telegram pack generation and download must remain available");
 
-assert(reportsSource.includes('const PAGE_SIZE = 25;'), "standalone reports must stay paginated");
-assert(reportsSource.includes('limit=25'), "standalone reports must preserve the canonical 25-row request marker");
-assert(reportsSource.includes('styles.mobileCards'), "standalone reports need mobile cards");
+assert(reportsSource.includes("const OPERATIONS_PAGE_SIZE = 25;") && reportsSource.includes("const OVERVIEW_PAGE_SIZE = 10;"),
+  "reports must keep 10-row daily overview and 25-row operations pagination");
+assert(reportsSource.includes("limit: String(pageSize)") && reportsSource.includes("OPERATIONS_PAGE_SIZE"), "reports must submit the selected page-size to the API");
+assert(reportsSource.includes("styles.reportRecentList") && reportsSource.includes("styles.reportRecentRow"), "reports daily overview must preserve readable report cards");
 assert(reportsSource.includes('/admini?tab=reports'), "standalone report route must return to unified admin reports tab");
 
 assert(wikiSource.includes('styles.wikiAdvanced'), "Wiki advanced settings must be collapsible");
-assert(wikiSource.includes('تنظیمات پیشرفتهٔ مقاله'), "Wiki advanced settings summary is missing");
-assert(wikiSource.indexOf('Markdown و بخش‌ها') < wikiSource.indexOf('تنظیمات پیشرفتهٔ مقاله'), "Wiki daily writing fields must appear before advanced metadata");
+assert(wikiSource.includes("<summary>Advanced</summary>"), "Wiki advanced article settings must remain in a disclosure");
+assert(wikiSource.indexOf("Markdown و بخش‌ها") < wikiSource.indexOf("<summary>Advanced</summary>"), "Wiki daily writing fields must appear before advanced metadata");
 
 assert(cssSource.includes('Admin UX Consolidation 2026-08-09'), "Admin UX CSS marker is missing");
 assert(cssSource.includes('.sidebarOpen'), "mobile drawer CSS is missing");
