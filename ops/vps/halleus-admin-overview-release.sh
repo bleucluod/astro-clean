@@ -8,10 +8,12 @@ CURRENT=/srv/halleus/current
 PREVIOUS=/srv/halleus/previous
 ENGINE=ops/vps/halleus-release.sh
 SERVICE=halleus.service
-BASE=7bdcd9bddbfeffb69f95cae0f557c6d0da663d31
-PREVIOUS_BASE=f160ced6f5bd6a947067b27a1a80f4a8fb4a14f3
+BASE=961a653c9479cd66a6ad7c4fb96bcab5f9c5781e
+PREVIOUS_BASE=7bdcd9bddbfeffb69f95cae0f557c6d0da663d31
+FIRST_BASE=f160ced6f5bd6a947067b27a1a80f4a8fb4a14f3
+R1_LOG_DIR=/tmp/halleus-admin-overview-U10DNsyU
 OLD_LIVE=6fdfaa60aaa826b9815c03be9275da5c2f7627f1
-TAG=v2026.11.08-admin-overview-r2
+TAG=v2026.11.08-admin-overview-r3
 PIN="$1"
 NODE=/usr/local/bin/node
 TMP=''
@@ -50,7 +52,7 @@ origin="$(as_deploy git -C "$SOURCE" remote get-url origin)"
 [[ "$origin" =~ github\.com[:/]bleucluod/astro-clean(\.git)?$ ]] || fatal 'Wrong GitHub origin.'
 [ -z "$(as_deploy git -C "$SOURCE" status --porcelain=v1 --untracked-files=all)" ] || fatal 'Dirty source.'
 head="$(as_deploy git -C "$SOURCE" rev-parse HEAD)"
-[[ "$head" = "$OLD_LIVE" || "$head" = "$PREVIOUS_BASE" || "$head" = "$BASE" || "$head" = "$PIN" ]] || fatal "Unexpected source HEAD: $head"
+[[ "$head" = "$OLD_LIVE" || "$head" = "$FIRST_BASE" || "$head" = "$PREVIOUS_BASE" || "$head" = "$BASE" || "$head" = "$PIN" ]] || fatal "Unexpected source HEAD: $head"
 log "VERIFIED_SOURCE_HEAD=$head"
 [ -f "$CURRENT/.halleus-release" ] || fatal 'Active release metadata missing.'
 active_sha="$(sed -n 's/^commit=//p' "$CURRENT/.halleus-release")"
@@ -64,7 +66,7 @@ as_deploy git -C "$SOURCE" fetch origin main || fatal 'Fetch failed.'
 [ "$(as_deploy git -C "$SOURCE" rev-parse "$PIN^1")" = "$BASE" ] || fatal 'Unexpected parent commit.'
 as_deploy git -C "$SOURCE" merge-base --is-ancestor "$head" "$PIN" || fatal 'Verified source HEAD is not an ancestor of pinned release.'
 changed="$(as_deploy git -C "$SOURCE" diff-tree --no-commit-id --name-only -r "$PIN")"
-expected=$'docs/HALLEUS_ADMIN_OVERVIEW_ROADMAP.md\nops/vps/halleus-admin-overview-release.sh'
+expected=$'docs/HALLEUS_ADMIN_OVERVIEW_ROADMAP.md\nops/vps/halleus-admin-overview-release.sh\nscripts/check-admin-ux-consolidation.mjs\nscripts/check-admini-ui-routes.mjs\nscripts/check-secure-admin-core.mjs'
 [ "$changed" = "$expected" ] || fatal 'Unexpected release changeset.'
 log 'SAFETY_PREFLIGHT=PASS'
 if [ "$head" != "$PIN" ]; then
@@ -96,18 +98,31 @@ else
       failures="$failures $label"
     fi
   }
-  log 'R1_FULL_INDEPENDENT_FAILURE_DISCOVERY=BEGIN'
-  run_stage focused_dashboard as_deploy bash -c 'cd "$1"; exec "$2" scripts/check-admin-overview-dashboard.mjs' _ "$WORKTREE" "$NODE"
+  log 'R2_RESUME_R1_INDEPENDENT_PASSES=BEGIN'
+  # The only changed files are these three guards, release script and roadmap.
+  # Reuse unchanged passed stages only when R1 evidence is retained.
+  if [ -f "$R1_LOG_DIR/focused_dashboard.log" ] &&
+     grep -Fq 'ADMIN_OVERVIEW_DASHBOARD=PASS' "$R1_LOG_DIR/focused_dashboard.log"; then
+    log 'RESUMED_PASS focused_dashboard'
+  else
+    run_stage focused_dashboard as_deploy bash -c 'cd "$1"; exec "$2" scripts/check-admin-overview-dashboard.mjs' _ "$WORKTREE" "$NODE"
+  fi
+  if [ -f "$R1_LOG_DIR/admin_ia.log" ] &&
+     grep -Fq 'Admin IA' "$R1_LOG_DIR/admin_ia.log"; then
+    log 'RESUMED_PASS admin_ia'
+  else
+    run_stage admin_ia as_deploy bash -c 'cd "$1"; exec "$2" scripts/check-predeploy-admin-ia.mjs' _ "$WORKTREE" "$NODE"
+  fi
+  if [ -f "$R1_LOG_DIR/typescript.log" ] && [ ! -s "$R1_LOG_DIR/typescript.log" ]; then
+    log 'RESUMED_PASS typescript'
+  else
+    run_stage typescript as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/tsc --noEmit --incremental false' _ "$WORKTREE"
+  fi
+  log 'R2_SURFACED_GUARD_FAILURE_RECOVERY=BEGIN'
   run_stage admin_ux as_deploy bash -c 'cd "$1"; exec "$2" scripts/check-admin-ux-consolidation.mjs' _ "$WORKTREE" "$NODE"
   run_stage admin_routes as_deploy bash -c 'cd "$1"; exec "$2" scripts/check-admini-ui-routes.mjs' _ "$WORKTREE" "$NODE"
-  run_stage admin_ia as_deploy bash -c 'cd "$1"; exec "$2" scripts/check-predeploy-admin-ia.mjs' _ "$WORKTREE" "$NODE"
   run_stage secure_admin as_deploy bash -c 'cd "$1"; exec "$2" scripts/check-secure-admin-core.mjs' _ "$WORKTREE" "$NODE"
-  run_stage typescript as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/tsc --noEmit --incremental false' _ "$WORKTREE"
-  run_stage eslint as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/eslint \
-    components/admin/AdminConsole.tsx components/admin/AdminOverviewDashboard.tsx \
-    app/api/admin/overview/trends/route.ts lib/admin/admin-overview-trends.ts \
-    scripts/check-admin-overview-dashboard.mjs scripts/check-admin-overview-db-readonly.mjs \
-    scripts/check-admin-ux-consolidation.mjs' _ "$WORKTREE"
+  run_stage eslint as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/eslint scripts/check-admin-ux-consolidation.mjs scripts/check-admini-ui-routes.mjs scripts/check-secure-admin-core.mjs' _ "$WORKTREE"
   run_stage diff_check as_deploy git -C "$WORKTREE" --no-pager diff "$OLD_LIVE" "$PIN" --check
 
   pid="$(systemctl show -P MainPID "$SERVICE" 2>/dev/null || true)"
@@ -125,7 +140,7 @@ else
   fi
 
   if [ -n "$failures" ]; then
-    log "R1_CONSOLIDATED_FAILURES=$failures"
+    log "R2_CONSOLIDATED_FAILURES=$failures"
     for item in $failures; do
       if [ -s "$TMP/$item.log" ]; then
         log "EVIDENCE=$TMP/$item.log"
@@ -134,7 +149,7 @@ else
     done
     exit 1
   fi
-  log 'R1_ALL_CHECKS_AND_LIVE_READONLY_QUERIES=PASS'
+  log 'R2_AFFECTED_CHECKS_AND_LIVE_READONLY_QUERIES=PASS'
   as_deploy git -C "$SOURCE" worktree remove --force "$WORKTREE" || fatal 'Cannot clean candidate worktree.'
   WORKTREE=''
 

@@ -28,6 +28,14 @@
 
 ## وضعیت و نقطهٔ ادامه
 
+### R1 کامل و ادامهٔ R2 — ۲۰۲۶-۱۱-۰۸
+
+- **GitHub base/Commit آزموده‌شده:** `961a653c9479cd66a6ad7c4fb96bcab5f9c5781e`. در خروجی واقعی VPS، سورس `main` به این Commit رسید و گیت‌های ایمنی `SAFETY_PREFLIGHT=PASS` شدند. کاندیدای worktree جداگانه ایجاد شد ولی Deploy شروع نشد.
+- **R1 پاس‌شده:** `focused_dashboard`، `admin_ia`، `typescript`، `eslint`، `diff_check` و `live_database_readonly`، با شواهد `/tmp/halleus-admin-overview-U10DNsyU`.
+- **R1 شکست‌های مستقل:** `admin_ux` در Assertion نام قدیمی فایل‌پیکر تلگرام؛ `admin_routes` در تشخیص شرط `pathname === "/admin"` و `pathname.startsWith("/admin/")` در هدر به‌عنوان لینک ناوبری؛ `secure_admin` در متن قدیمی رضایت انتشار پرمیوم. تطبیق سورس واقعی نشان داد فایل‌پیکر کنونی `styles.telegramFileField` به همراه `type="file"` و JSON accept دارد؛ شرط‌های هدر صرفاً برای جداسازی chrome خصوصی‌اند؛ فرم پرمیوم پیش‌فرض `not_requested` و انتخاب صریح `public_with_consent` دارد.
+- **R2:** فقط سه گارد فوق مطابق قرارداد عملی فعلی اصلاح شوند. برش به صفحهٔ دیگر، متن درخواست پرمیوم، دسترسی‌های ادمین، داده و قوانین Supabase، تلگرام یا محصول فروشگاه دست نمی‌زند. R2 مراحل PASS با ورودی بدون تغییر را فقط با وجود شواهد لاگ `RESUMED_PASS` می‌کند؛ سه گارد شکست‌خورده، ESLint گاردها، `git diff --check` و خوانش read-only دیتابیس را دوباره اجرا می‌کند. شکست‌های معمول جمع‌آوری شوند و تا پیش از پاس‌بودن همهٔ گیت‌ها Build و Deploy رسمی انجام نشود.
+- **انتشار:** فقط با موتور `ops/vps/halleus-release.sh`، تگ جدید و بررسی current/previous، service و live smoke. `ROADMAP_COMPLETE` فقط بعد از تأیید واقعی این مرحله روی سایت زنده مجاز است.
+
 ### اصلاح گیت ایمنی R2 — ۲۰۲۶-۱۱-۰۸
 
 - **نتیجهٔ تلاش قبلی:** دستور VPS مربوط به Commit `7bdcd9bddbfeffb69f95cae0f557c6d0da663d31` پیش از Fetch، ساخت کاندیدا یا Deploy با `SAFETY_FATAL: Unexpected HEAD` متوقف شد؛ اجرای هیچ‌یک از آزمون‌ها آغاز نشده است. `HEAD` واقعی VPS در آن خروجی چاپ نشده، بنابراین وضعیت دقیق آن را حدس نمی‌زنیم.

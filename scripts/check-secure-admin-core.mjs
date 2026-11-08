@@ -185,16 +185,22 @@ const orderPage = read("app/order/page.tsx");
 requireText("order page", orderPage, "PremiumRequestForm");
 
 const premiumRequestForm = read("components/PremiumRequestForm.tsx");
-requireText(
-  "premium request publication consent",
-  premiumRequestForm,
-  "انتخاب انتشار گزارش جدا از ثبت درخواست است و بدون رضایت صریح تغییر نمی‌کند.",
-);
-requireText(
-  "premium request publication consent",
-  premiumRequestForm,
-  "فقط با رضایت صریح من عمومی شود",
-);
+// Guard consent semantics and the privacy-default decision rather than stale copy.
+for (const marker of [
+  '>("not_requested")',
+  'checked={publicationChoice === "not_requested"}',
+  'checked={publicationChoice === "private"}',
+  'checked={publicationChoice === "public_with_consent"}',
+  'onChange={() => setPublicationChoice("not_requested")}',
+  'onChange={() => setPublicationChoice("private")}',
+  'setPublicationChoice("public_with_consent")',
+  "خرید روی حریم خصوصی گزارشت اثری ندارد.",
+  "گزارش خصوصی می‌ماند.",
+  "نمایش نام یا هویت، رضایت جداگانه می‌خواهد.",
+]) {
+  requireText("premium request publication consent", premiumRequestForm, marker);
+}
+requireText("premium intake", premiumRoute, "publicationChoice");
 
 const packageJson = JSON.parse(read("package.json"));
 if (

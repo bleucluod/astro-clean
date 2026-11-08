@@ -59,8 +59,21 @@ for (const relative of [...new Set(candidates)].sort()) {
   const source = read(relative);
   if (!isUiRuntimeFile(relative, source)) continue;
 
-  const literalMatches = source.match(legacyLiteral) ?? [];
-  const absoluteMatches = source.match(legacyAbsolute) ?? [];
+  // SiteHeader must identify both private admin prefixes to suppress the public
+  // chrome. These predicates are NOT navigation: keep them while auditing links.
+  let navigableSource = source;
+  if (relative === "components/SiteHeader.tsx") {
+    const privatePageEquality = 'pathname === "/admin"';
+    const privatePagePrefix = 'pathname.startsWith("/admin/")';
+    if (!source.includes(privatePageEquality) || !source.includes(privatePagePrefix)) {
+      failures.push(relative + " -> private legacy-admin chrome isolation guard is missing");
+    } else {
+      navigableSource = source.replace(privatePageEquality, "").replace(privatePagePrefix, "");
+    }
+  }
+
+  const literalMatches = navigableSource.match(legacyLiteral) ?? [];
+  const absoluteMatches = navigableSource.match(legacyAbsolute) ?? [];
 
   if (literalMatches.length || absoluteMatches.length) {
     failures.push(

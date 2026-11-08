@@ -42,7 +42,13 @@ assert(dashboardSource.includes('onNavigate("orders")') || dashboardSource.inclu
   "overview actions must lead to their relevant workspace");
 
 assert(telegramSource.includes('telegramStatusStrip'), "Telegram cockpit status strip is missing");
-assert(telegramSource.includes('filePicker'), "Telegram custom file picker is missing");
+assert(
+  telegramSource.includes("className={styles.telegramFileField}") &&
+    telegramSource.includes('type="file"') &&
+    telegramSource.includes('accept=".json,application/json"') &&
+    telegramSource.includes("setFile(event.target.files?.[0] ?? null)"),
+  "Telegram JSON file picker must retain its accessible label, input, MIME guard and state handoff",
+);
 assert(telegramSource.includes('سلامت سیستم انتشار'), "Telegram system-health disclosure is missing");
 assert(!telegramSource.includes('Choose File'), "native English file-picker copy leaked into Telegram source");
 assert(telegramSource.includes('دانلود Smart Transit Pack'), "Slice 2 Telegram compatibility marker is missing");
