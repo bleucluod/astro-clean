@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import Image from 'next/image';
 import { ShopCatalogReadiness } from './ShopCatalogReadiness';
-import { formatShopInteger } from '@/lib/shop/shop-order-number';
+import { formatShopInteger, formatShopOrderNumber } from '@/lib/shop/shop-order-number';
 import { buildShopManualCustomerNotice } from '@/lib/shop/shop-manual-notice';
 import styles from './shop-orders-workspace.module.css';
 
@@ -84,6 +84,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
 
   const [samplePreviewUrl, setSamplePreviewUrl] = useState<string | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [generatedArtwork, setGeneratedArtwork] = useState<{ line: number; blob: Blob; url: string } | null>(null);
   const [uploadLine, setUploadLine] = useState(1);
   const [confirmOrderMatch, setConfirmOrderMatch] = useState(false);
   const [confirmLabPrint, setConfirmLabPrint] = useState(false);
@@ -91,6 +92,9 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   useEffect(() => {
     return () => { if (samplePreviewUrl) URL.revokeObjectURL(samplePreviewUrl); };
   }, [samplePreviewUrl]);
+  useEffect(() => {
+    return () => { if (generatedArtwork) URL.revokeObjectURL(generatedArtwork.url); };
+  }, [generatedArtwork]);
 
   const request = useCallback(async (path: string, init?: RequestInit) => {
     const response = await fetch(path, {
@@ -124,7 +128,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     try {
       const data = await request(`/api/admin/shop/orders/${id}`);
       setDetail(data.order as ShopOrderDetail); setReason(''); setTrackingCode('');
-      setUploadFile(null); setUploadLine(1); setConfirmOrderMatch(false); setConfirmLabPrint(false);
+      setUploadFile(null); setUploadLine(1); setGeneratedArtwork(null); setConfirmOrderMatch(false); setConfirmLabPrint(false);
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'سفارش باز نشد.'); }
     finally { setBusy(false); }
   }
@@ -143,7 +147,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       });
       const data = await request(`/api/admin/shop/orders/${detail.id}`);
       setDetail(data.order as ShopOrderDetail);
-      setReason(''); setTrackingCode(''); setSuccess('وضعیت سفارش ثبت شد.');
+      setGeneratedArtwork(null); setReason(''); setTrackingCode(''); setSuccess('وضعیت سفارش ثبت شد.');
       setRefresh((value) => value + 1);
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'ثبت تغییر انجام نشد.'); }
     finally { setBusy(false); }
@@ -172,11 +176,43 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     finally { setBusy(false); }
   }
 
-async function uploadFinalPrint() {
+
+  async function generateOrderArtwork() {
+    if (!detail || busy || !['payment_verified', 'preparing'].includes(detail.status)) return;
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      const response = await fetch('/api/admin/shop/orders/' + detail.id + '/print/artwork', {
+        method: 'POST', cache: 'no-store',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ line: uploadLine }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error || 'ساخت طرح سفارش انجام نشد.');
+      }
+      if (!response.headers.get('content-type')?.includes('image/jpeg')) {
+        throw new Error('خروجی تصویری معتبر نیست.');
+      }
+      const blob = await response.blob();
+      if (blob.size < 1024 || blob.size > 8 * 1024 * 1024) {
+        throw new Error('حجم فایل تولیدشده با محدودیت آرشیو تطابق ندارد.');
+      }
+      setGeneratedArtwork({ line: uploadLine, blob, url: URL.createObjectURL(blob) });
+      setUploadFile(null); setConfirmOrderMatch(false); setConfirmLabPrint(false);
+      setSuccess('طرح همین سفارش تولید شد. تاریخ، نام، پیام و اندازه را قبل از ثبت نهایی بررسی کن.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'ساخت طرح سفارش ناموفق بود.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function uploadFinalPrint() {
+    const chosenArtwork = generatedArtwork?.line === uploadLine ? generatedArtwork.blob : uploadFile;
     if (!detail || busy || !['payment_verified', 'preparing'].includes(detail.status) ||
-        !uploadFile || !confirmOrderMatch || !confirmLabPrint) return;
-    if (uploadFile.size > 8 * 1024 * 1024 || uploadFile.size < 1024 ||
-        uploadFile.type !== 'image/jpeg') {
+        !chosenArtwork || !confirmOrderMatch || !confirmLabPrint) return;
+    if (chosenArtwork.size > 8 * 1024 * 1024 || chosenArtwork.size < 1024 ||
+        chosenArtwork.type !== 'image/jpeg') {
       setError('فایل باید JPG معتبر و کوچک‌تر از ۸ مگابایت باشد.'); return;
     }
     setBusy(true); setError(''); setSuccess('');
@@ -189,13 +225,13 @@ async function uploadFinalPrint() {
           'X-Halleus-Artwork-Matches-Order': 'confirmed',
           'X-Halleus-Print-Lab-Approved': 'confirmed',
         },
-        body: uploadFile,
+        body: chosenArtwork,
       });
       const result = await response.json().catch(() => null) as { ok?: boolean; error?: string; idempotent?: boolean } | null;
       if (!response.ok || !result?.ok) {
         throw new Error(result?.error || `فایل چاپ ثبت نشد (${response.status}).`);
       }
-      setUploadFile(null); setConfirmOrderMatch(false); setConfirmLabPrint(false);
+      setUploadFile(null); setGeneratedArtwork(null); setConfirmOrderMatch(false); setConfirmLabPrint(false);
       setSuccess(result.idempotent ? 'این فایل قبلاً ثبت شده بود و بدون تغییر تأیید شد.' : 'فایل نهایی این ردیف در آرشیو خصوصی ثبت شد.');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'ثبت فایل چاپ انجام نشد.'); }
     finally { setBusy(false); }
@@ -282,6 +318,127 @@ async function uploadFinalPrint() {
   }
 
   return <div className={styles.workspace} dir="rtl">
+    <header className={styles.pageIntro}>
+      <div>
+        <span className={styles.eyebrow}>HALLEUS / ORDERS</span>
+        <h2>مدیریت سفارش‌ها</h2>
+        <p>از بررسی واریز تا ساخت اثر اختصاصی و تحویل به شرکت حمل.</p>
+      </div>
+      <div className={styles.orderCount}><strong>{formatNumber(total)}</strong><span>سفارش در فیلتر فعلی</span></div>
+    </header>
+    {ordersClosed ? <p className={styles.printNote}>دریافت سفارش‌ها تا زمان بازشدن فروشگاه غیرفعال است؛ بخش نمونه‌سازی بالا مستقل و قابل استفاده است.</p> : null}
+    {!ordersClosed && !detail ? <>
+    <div className={styles.toolbar}>
+      <form onSubmit={doSearch} className={styles.search}>
+        <input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} maxLength={64} placeholder="شماره سفارش، نام یا موبایل" aria-label="جست‌وجوی سفارش" />
+        <button type="submit">جست‌وجو</button>
+      </form>
+      <select aria-label="فیلتر وضعیت سفارش" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
+        <option value="">همهٔ وضعیت‌ها</option>
+        {Object.entries(labels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+      </select>
+      <button type="button" onClick={() => setRefresh((value) => value + 1)}>تازه‌سازی</button>
+    </div>
+    {error ? <p className={styles.error} role="alert">{error}</p> : null}
+    {success ? <p className={styles.success} role="status">{success}</p> : null}
+    <div className={styles.tableScroll}>
+      <table>
+        <thead><tr><th>شماره</th><th>مشتری</th><th>مبلغ</th><th>وضعیت</th><th>تاریخ</th><th>جزئیات</th></tr></thead>
+        <tbody>{rows.map((row) => <tr key={row.id}>
+          <td className={styles.orderId}><bdi dir="ltr">{formatShopOrderNumber(row.display_number)}</bdi></td><td>{row.recipient_name}</td>
+          <td>{formatNumber(row.total_toman)} تومان</td><td><span className={styles.statusPill} data-status={row.status}>{labels[row.status] ?? row.status}</span></td>
+          <td>{new Date(row.created_at).toLocaleDateString('fa-IR')}</td>
+          <td><button type="button" disabled={busy} onClick={() => void selectOrder(row.id)}>مشاهدهٔ سفارش ←</button></td>
+        </tr>)}</tbody>
+      </table>
+      {!rows.length ? <p>سفارشی با این مشخصات پیدا نشد.</p> : null}
+    </div>
+    <div className={styles.pagination}>
+      <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>صفحه قبل</button>
+      <span>صفحه {formatNumber(page)} · {formatNumber(total)} سفارش</span>
+      <button type="button" disabled={page * 25 >= total} onClick={() => setPage((value) => value + 1)}>صفحه بعد</button>
+    </div>
+    </> : null}
+    {detail ? <section className={styles.detail}>
+      <div className={styles.heading}>
+        <div><span className={styles.eyebrow}>پروندهٔ سفارش</span><h3>سفارش <bdi dir="ltr">{formatShopOrderNumber(detail.display_number)}</bdi></h3>
+          <span className={styles.statusPill} data-status={detail.status}>{labels[detail.status] ?? detail.status}</span>
+        </div>
+        <button type="button" onClick={() => setDetail(null)}>← بازگشت به سفارش‌ها</button>
+      </div>
+      <div className={styles.info}>
+        <p><strong>گیرنده:</strong> {detail.recipient_name} · <bdi>{detail.recipient_mobile}</bdi></p>
+        <p><strong>نشانی:</strong> {detail.province}، {detail.city}، {detail.address} · {detail.postal_code}</p>
+        {detail.delivery_note ? <p><strong>توضیح تحویل:</strong> {detail.delivery_note}</p> : null}
+        <p><strong>ارسال:</strong> {detail.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'} · <strong>مبلغ:</strong> {formatNumber(detail.total_toman)} تومان</p>
+        <p><strong>مستند واریز:</strong> {detail.transfer_reference ? `شماره ${detail.transfer_reference}` : ''} {detail.transfer_time ? `ساعت ${detail.transfer_time}` : ''}</p>
+        {detail.tracking_code ? <p><strong>کد رهگیری مرسوله:</strong> {detail.tracking_code}</p> : null}
+      </div>
+      <h4>مشخصات محصولات</h4>
+      <div className={styles.items}>{detail.items.map((item) => <article key={item.key}>
+        <strong>{productNames[item.productId] ?? item.productId} · {item.size} سانتی‌متر · {formatNumber(item.quantity)} عدد</strong>
+        {item.details.date ? <p>تاریخ: {item.details.date} ({item.details.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</p> : null}
+        {item.details.time ? <p>ساعت: {item.details.time}</p> : null}
+        {item.details.city ? <p>شهر: {item.details.city}</p> : null}
+        {item.details.names ? <p>نام: {item.details.names}</p> : null}
+        {item.details.message ? <p>متن روی تابلو: {item.details.message}</p> : null}
+      </article>)}</div>
+      {['payment_verified', 'preparing'].includes(detail.status) ? <section className={styles.production} aria-labelledby="shop-production-title">
+        <div className={styles.productionHeader}>
+          <span className={styles.eyebrow}>ساخت اثر / مرحلهٔ چاپ</span>
+          <h4 id="shop-production-title">طرح «ماه آن روز» همین سفارش</h4>
+          <p>همان مستر R9b با تاریخ، نام، پیام و اندازهٔ سفارش ساخته می‌شود. فایل ابتدا فقط برای بازبینی توست؛ بدون تأیید نهایی ذخیره نمی‌شود.</p>
+        </div>
+        <form className={styles.productionGrid} onSubmit={(event) => { event.preventDefault(); void uploadFinalPrint(); }}>
+          <div className={styles.productionControls}>
+            <label>ردیف سفارش
+              <select value={uploadLine} disabled={busy} onChange={(event) => { setUploadLine(Number(event.target.value)); setGeneratedArtwork(null); setUploadFile(null); setConfirmOrderMatch(false); setConfirmLabPrint(false); }}>
+                {detail.items.map((item, index) => <option key={item.key} value={index + 1}>{index + 1} · {productNames[item.productId] ?? item.productId} · {item.size}</option>)}
+              </select>
+            </label>
+            <button className={styles.primaryAction} type="button" disabled={busy || detail.items[uploadLine - 1]?.productId !== 'p01'} onClick={() => void generateOrderArtwork()}>{busy ? 'در حال ساخت…' : 'ساخت طرح این سفارش'}</button>
+            {generatedArtwork?.line === uploadLine ? <a className={styles.downloadAction} href={generatedArtwork.url} download={'halleus-order-' + detail.display_number + '-p01-line-' + uploadLine + '.jpg'}>دانلود JPG چاپی برای بررسی</a> : null}
+            <details className={styles.alternativeUpload}>
+              <summary>یا استفاده از فایل آمادهٔ دیگر</summary>
+              <label>JPG جایگزین (حداکثر ۸ مگابایت)
+                <input type="file" accept="image/jpeg,.jpg,.jpeg" disabled={busy} onChange={(event) => { setGeneratedArtwork(null); setUploadFile(event.currentTarget.files?.[0] ?? null); setConfirmOrderMatch(false); setConfirmLabPrint(false); }} />
+              </label>
+            </details>
+            <label className={styles.confirm}><input type="checkbox" checked={confirmOrderMatch} onChange={(event) => setConfirmOrderMatch(event.target.checked)} /> تاریخ، نام، پیام و اندازه را با سفارش تطبیق داده‌ام.</label>
+            <label className={styles.confirm}><input type="checkbox" checked={confirmLabPrint} onChange={(event) => setConfirmLabPrint(event.target.checked)} /> فایل را برای چاپ نهایی تأیید کرده‌ام.</label>
+            <button className={styles.archiveAction} type="submit" disabled={busy || !(generatedArtwork?.line === uploadLine || uploadFile) || !confirmOrderMatch || !confirmLabPrint}>تأیید و ثبت در آرشیو خصوصی</button>
+            <p className={styles.note}>همان JPG ساخته‌شده ذخیره می‌شود؛ نیازی به بارگذاری دوباره نیست. جایگزینی فایل ثبت‌شده بررسی جداگانه می‌خواهد.</p>
+          </div>
+          <div className={styles.productionPreview}>
+            {generatedArtwork?.line === uploadLine ? <Image unoptimized src={generatedArtwork.url} width={360} height={540} alt="پیش‌نمایش اختصاصی فایل این سفارش" /> :
+              <div className={styles.previewEmpty}><strong>پیش‌نمایش اثر</strong><span>برای نمایش اثر، «ساخت طرح این سفارش» را بزن.</span></div>}
+          </div>
+        </form>
+        <details className={styles.secondaryTool}>
+          <summary>اطلاعات نجومی و دستور طراحی (ZIP اختیاری)</summary>
+          <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دریافت ZIP اطلاعات سفارش</button>
+          <p>ابزار پشتیبان برای طراحی دستی است؛ فایل تصویر نیست.</p>
+        </details>
+      </section> : printHandoffStatuses.has(detail.status) ? <p className={styles.printNote}>این سفارش از مرحلهٔ طراحی عبور کرده؛ آماده‌سازی فایل چاپ دیگر فعال نیست.</p> : <p className={styles.printNote}>ساخت اثر اختصاصی بعد از تأیید دریافت وجه فعال می‌شود.</p>}
+      {buildShopManualCustomerNotice({
+        orderNumber: detail.display_number, status: detail.status,
+        carrier: detail.carrier, trackingCode: detail.tracking_code,
+      }) ? <div className={styles.printHandoff}>
+        <button type="button" disabled={busy} onClick={() => void copyManualStatusNotice()}>کپی متن اطلاع‌رسانی وضعیت سفارش</button>
+        <p>این فقط متن پیشنهادی است؛ پیامک یا اعلان خودکاری ارسال نمی‌شود. پیش از ارسال دستی، گیرنده و راه ارتباطی را تأیید کن.</p>
+      </div> : null}
+      <h4>سوابق سفارش</h4>
+      <div className={styles.history}>{detail.events.map((event, index) => <p key={`${event.created_at}-${index}`}>{new Date(event.created_at).toLocaleString('fa-IR')} · {event.action} · {labels[event.after_status] ?? event.after_status}{event.reason ? ` · ${event.reason}` : ''}</p>)}</div>
+      {actions[detail.status]?.length ? <div className={styles.actions}>
+        <label>یادداشت تصمیم (اختیاری)<input value={reason} maxLength={500} onChange={(event) => setReason(event.target.value)} placeholder="توضیحات مربوط به این اقدام" /></label>
+        {detail.status === 'preparing' ? <label>کد رهگیری مرسوله<input value={trackingCode} maxLength={100} onChange={(event) => setTrackingCode(event.target.value)} placeholder="کد پست یا تیپاکس" /></label> : null}
+        <div>{actions[detail.status].map(({ action, label }) => <button key={action} type="button" disabled={busy} onClick={() => void runAction(action)}>{label}</button>)}</div>
+        <small>تأیید پرداخت فقط پس از بررسی واقعی ورود وجه به حساب بانکی انجام شود.</small>
+      </div> : null}
+    </section> : null}
+    <details className={styles.ownerTools}>
+      <summary>ابزارهای مستقل نمونه‌سازی و بررسی کاتالوگ</summary>
+      <div className={styles.ownerToolsBody}>
     <ShopCatalogReadiness />
     <section className={styles.sampleHandoff} aria-labelledby="shop-sample-heading">
       <h3 id="shop-sample-heading">نمونه‌سازی تابلوی ماه R9b</h3>
@@ -321,93 +478,7 @@ async function uploadFinalPrint() {
       {sampleError ? <p className={styles.error} role="alert">{sampleError}</p> : null}
       {sampleFeedback ? <p className={styles.success} role="status">{sampleFeedback}</p> : null}
     </section>
-    {ordersClosed ? <p className={styles.printNote}>دریافت سفارش‌ها تا زمان بازشدن فروشگاه غیرفعال است؛ بخش نمونه‌سازی بالا مستقل و قابل استفاده است.</p> : null}
-    {!ordersClosed ? <>
-    <div className={styles.toolbar}>
-      <form onSubmit={doSearch} className={styles.search}>
-        <input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} maxLength={64} placeholder="شماره سفارش، نام یا موبایل" aria-label="جست‌وجوی سفارش" />
-        <button type="submit">جست‌وجو</button>
-      </form>
-      <select aria-label="فیلتر وضعیت سفارش" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
-        <option value="">همهٔ وضعیت‌ها</option>
-        {Object.entries(labels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-      </select>
-      <button type="button" onClick={() => setRefresh((value) => value + 1)}>تازه‌سازی</button>
-    </div>
-    {error ? <p className={styles.error} role="alert">{error}</p> : null}
-    {success ? <p className={styles.success} role="status">{success}</p> : null}
-    <div className={styles.tableScroll}>
-      <table>
-        <thead><tr><th>شماره</th><th>مشتری</th><th>مبلغ</th><th>وضعیت</th><th>تاریخ</th><th>جزئیات</th></tr></thead>
-        <tbody>{rows.map((row) => <tr key={row.id}>
-          <td>{formatNumber(row.display_number)}</td><td>{row.recipient_name}</td>
-          <td>{formatNumber(row.total_toman)} تومان</td><td>{labels[row.status] ?? row.status}</td>
-          <td>{new Date(row.created_at).toLocaleDateString('fa-IR')}</td>
-          <td><button type="button" disabled={busy} onClick={() => void selectOrder(row.id)}>باز کردن</button></td>
-        </tr>)}</tbody>
-      </table>
-      {!rows.length ? <p>سفارشی با این مشخصات پیدا نشد.</p> : null}
-    </div>
-    <div className={styles.pagination}>
-      <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>صفحه قبل</button>
-      <span>صفحه {formatNumber(page)} · {formatNumber(total)} سفارش</span>
-      <button type="button" disabled={page * 25 >= total} onClick={() => setPage((value) => value + 1)}>صفحه بعد</button>
-    </div>
-    </> : null}
-    {detail ? <section className={styles.detail}>
-      <div className={styles.heading}><h3>سفارش {formatNumber(detail.display_number)} · {labels[detail.status] ?? detail.status}</h3><button type="button" onClick={() => setDetail(null)}>بستن</button></div>
-      <div className={styles.info}>
-        <p><strong>گیرنده:</strong> {detail.recipient_name} · <bdi>{detail.recipient_mobile}</bdi></p>
-        <p><strong>نشانی:</strong> {detail.province}، {detail.city}، {detail.address} · {detail.postal_code}</p>
-        {detail.delivery_note ? <p><strong>توضیح تحویل:</strong> {detail.delivery_note}</p> : null}
-        <p><strong>ارسال:</strong> {detail.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'} · <strong>مبلغ:</strong> {formatNumber(detail.total_toman)} تومان</p>
-        <p><strong>مستند واریز:</strong> {detail.transfer_reference ? `شماره ${detail.transfer_reference}` : ''} {detail.transfer_time ? `ساعت ${detail.transfer_time}` : ''}</p>
-        {detail.tracking_code ? <p><strong>کد رهگیری مرسوله:</strong> {detail.tracking_code}</p> : null}
       </div>
-      <h4>مشخصات محصولات</h4>
-      <div className={styles.items}>{detail.items.map((item) => <article key={item.key}>
-        <strong>{productNames[item.productId] ?? item.productId} · {item.size} سانتی‌متر · {formatNumber(item.quantity)} عدد</strong>
-        {item.details.date ? <p>تاریخ: {item.details.date} ({item.details.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</p> : null}
-        {item.details.time ? <p>ساعت: {item.details.time}</p> : null}
-        {item.details.city ? <p>شهر: {item.details.city}</p> : null}
-        {item.details.names ? <p>نام: {item.details.names}</p> : null}
-        {item.details.message ? <p>متن روی تابلو: {item.details.message}</p> : null}
-      </article>)}</div>
-      {printHandoffStatuses.has(detail.status) ? <div className={styles.printHandoff}>
-        <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود ZIP اطلاعات و دستور طراحی</button>
-        <p>این ZIP فقط دادهٔ نجومی، جزئیات مجاز سفارش و دستور طراحی را دارد؛ پنل هیچ تصویری تولید نمی‌کند. ZIP را برای طراحی دستی بفرست و پس از دریافت اثر، فایل چاپی نهایی را جداگانه ثبت کن.</p>
-      </div> : <p className={styles.printNote}>تحویل اطلاعات سفارش به چاپ بعد از تأیید دریافت وجه فعال می‌شود.</p>}
-{['payment_verified', 'preparing'].includes(detail.status) ? <form className={styles.printHandoff} onSubmit={(event) => { event.preventDefault(); void uploadFinalPrint(); }}>
-        <h4>ثبت دستی JPG نهایی چاپ</h4>
-        <p>فقط بعد از طراحی اختصاصی، تطبیق با سفارش و تأیید فایل برای چاپ. فایل در فضای خصوصی سرور نگهداری می‌شود و عمومی نیست.</p>
-        <label>ردیف سفارش
-          <select value={uploadLine} onChange={(event) => setUploadLine(Number(event.target.value))} disabled={busy}>
-            {detail.items.map((item, index) => <option key={item.key} value={index + 1}>{index + 1} · {productNames[item.productId] ?? item.productId} · {item.size}</option>)}
-          </select>
-        </label>
-        <label>فایل JPG چاپی (حداکثر ۸ مگابایت)
-          <input type="file" accept="image/jpeg,.jpg,.jpeg" required disabled={busy}
-            onChange={(event) => setUploadFile(event.currentTarget.files?.[0] ?? null)} />
-        </label>
-        <label><input type="checkbox" checked={confirmOrderMatch} onChange={(event) => setConfirmOrderMatch(event.target.checked)} required /> طراحی، تاریخ، نام و اندازه را با این سفارش تطبیق داده‌ام.</label>
-        <label><input type="checkbox" checked={confirmLabPrint} onChange={(event) => setConfirmLabPrint(event.target.checked)} required /> همین فایل نهایی برای چاپ تأیید شده است.</label>
-        <button type="submit" disabled={busy || !uploadFile || !confirmOrderMatch || !confirmLabPrint}>ثبت امن فایل در آرشیو خصوصی</button>
-      </form> : null}
-      {buildShopManualCustomerNotice({
-        orderNumber: detail.display_number, status: detail.status,
-        carrier: detail.carrier, trackingCode: detail.tracking_code,
-      }) ? <div className={styles.printHandoff}>
-        <button type="button" disabled={busy} onClick={() => void copyManualStatusNotice()}>کپی متن اطلاع‌رسانی وضعیت سفارش</button>
-        <p>این فقط متن پیشنهادی است؛ پیامک یا اعلان خودکاری ارسال نمی‌شود. پیش از ارسال دستی، گیرنده و راه ارتباطی را تأیید کن.</p>
-      </div> : null}
-      <h4>سوابق سفارش</h4>
-      <div className={styles.history}>{detail.events.map((event, index) => <p key={`${event.created_at}-${index}`}>{new Date(event.created_at).toLocaleString('fa-IR')} · {event.action} · {labels[event.after_status] ?? event.after_status}{event.reason ? ` · ${event.reason}` : ''}</p>)}</div>
-      {actions[detail.status]?.length ? <div className={styles.actions}>
-        <label>یادداشت تصمیم (اختیاری)<input value={reason} maxLength={500} onChange={(event) => setReason(event.target.value)} placeholder="توضیحات مربوط به این اقدام" /></label>
-        {detail.status === 'preparing' ? <label>کد رهگیری مرسوله<input value={trackingCode} maxLength={100} onChange={(event) => setTrackingCode(event.target.value)} placeholder="کد پست یا تیپاکس" /></label> : null}
-        <div>{actions[detail.status].map(({ action, label }) => <button key={action} type="button" disabled={busy} onClick={() => void runAction(action)}>{label}</button>)}</div>
-        <small>تأیید پرداخت فقط پس از بررسی واقعی ورود وجه به حساب بانکی انجام شود.</small>
-      </div> : null}
-    </section> : null}
+    </details>
   </div>;
 }

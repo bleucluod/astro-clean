@@ -3,12 +3,13 @@ import { isIP } from 'node:net';
 import { getAdminDatabase } from '@/lib/admin/admin-database';
 import { ShopOrderStateError } from './shop-order-store';
 
-type GuestScope = 'quote' | 'orders' | 'track' | 'transfer' | 'cancel';
+type GuestScope = 'quote' | 'orders' | 'track' | 'mobile_track' | 'transfer' | 'cancel';
 
 const guestScopes: Record<string, GuestScope> = {
   '/api/shop/quote': 'quote',
   '/api/shop/orders': 'orders',
   '/api/shop/orders/track': 'track',
+  '/api/shop/orders/track/mobile': 'mobile_track',
   '/api/shop/orders/transfer': 'transfer',
   '/api/shop/orders/cancel': 'cancel',
 };
@@ -17,6 +18,8 @@ const policies: Record<GuestScope, { maxHits: number; windowSeconds: number }> =
   quote: { maxHits: 120, windowSeconds: 300 },
   orders: { maxHits: 20, windowSeconds: 900 },
   track: { maxHits: 120, windowSeconds: 600 },
+  // Sequential order numbers plus known mobile must not permit high-volume enumeration.
+  mobile_track: { maxHits: 8, windowSeconds: 900 },
   transfer: { maxHits: 40, windowSeconds: 900 },
   cancel: { maxHits: 30, windowSeconds: 900 },
 };

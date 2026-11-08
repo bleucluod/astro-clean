@@ -110,3 +110,20 @@ export function parseGuestAccess(value: unknown) {
   }
   return { orderNumber: number, accessHash: hashSecret(code) };
 }
+
+/** Full registered mobile unlocks read-only tracking on a different device. */
+export function parseGuestMobileLookup(value: unknown) {
+  const body = record(value);
+  if (!body || Object.keys(body).sort().join(',') !== 'mobile,orderNumber') {
+    throw new ShopOrderInputError('شمارهٔ سفارش و موبایل ثبت‌شده را وارد کن.');
+  }
+  const orderNumber = typeof body.orderNumber === 'string' ? englishDigits(body.orderNumber).trim().replace(/^#/, '') : '';
+  const rawMobile = typeof body.mobile === 'string' ? englishDigits(body.mobile).trim() : '';
+  const mobileDigits = rawMobile.replace(/^\+/, '');
+  if (!isValidShopOrderNumber(orderNumber) || !/^(?:0098|98|0)?9\d{9}$/.test(mobileDigits)) {
+    throw new ShopOrderInputError('شمارهٔ سفارش یا موبایل معتبر نیست.');
+  }
+  const mobile = normalizeMobileTail(rawMobile);
+  if (!/^9\d{9}$/.test(mobile)) throw new ShopOrderInputError('موبایل ثبت‌شده معتبر نیست.');
+  return { orderNumber, recipientMobile: '+98' + mobile };
+}

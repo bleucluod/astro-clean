@@ -9,12 +9,12 @@ import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
-  cancelShopOrder, clearLegacyShopOrderIntent, createShopOrderRequest, downloadShopOrderReceipt, fetchShopOrder, readShopOrderReceipt,
-  rememberShopOrderReceipt, submitShopTransfer,
+  cancelShopOrder, clearLegacyShopOrderIntent, createShopOrderRequest, fetchShopOrder, readShopOrderReceipt,
+  rememberShopOrderReceipt, submitShopTransfer, fetchShopOrderWithMobile,
   type ShopOrderReceipt,
 } from './shop-order-client';
 import type { ShopOrderPublicState } from '@/lib/shop/shop-order-store';
-import { formatShopInteger } from '@/lib/shop/shop-order-number';
+import { formatShopOrderNumber } from '@/lib/shop/shop-order-number';
 import {
   blankShipping, clearCheckoutSession, englishDigits, normalizeMobileTail,
   SHOP_SHIPPING_AND_PACKAGING, validateShipping,
@@ -309,10 +309,10 @@ export function ShopPaymentScreen() {
   }, [retry]);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [transferTime, setTransferTime] = useState('');
-  const [copyState, setCopyState] = useState<'card' | 'iban' | 'code' | ''>('');
+  const [copyState, setCopyState] = useState<'card' | 'iban' | 'order' | ''>('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  async function copyNumber(value: string, key: 'card' | 'iban' | 'code') {
+  async function copyNumber(value: string, key: 'card' | 'iban' | 'order') {
     try { await navigator.clipboard.writeText(value); setCopyState(key); }
     catch { setCopyState(''); setError('کپی انجام نشد. شماره را انتخاب و کپی کن.'); }
   }
@@ -370,22 +370,20 @@ export function ShopPaymentScreen() {
               <button className={styles.primaryAction} type="submit" disabled={submitting}><span>{submitting ? 'در حال ثبت…' : 'اعلام واریز'}</span><span aria-hidden="true">←</span></button>
             </form>
             </> : <section className={styles.formCard}>
-              <div className={styles.sectionHeading}><h2>وضعیت سفارش</h2><span>شمارهٔ {formatShopInteger(order.orderNumber)}</span></div>
+              <div className={styles.sectionHeading}><h2>وضعیت سفارش</h2><span>شمارهٔ {formatShopOrderNumber(order.orderNumber)}</span></div>
               <p>{order.status === 'transfer_declared' ? 'اعلام واریزت ثبت شد و منتظر بررسی پرداخت است.' : order.status === 'payment_verified' || order.status === 'preparing' ? 'پرداخت تأیید شده و سفارشت در حال آماده‌سازی است.' : order.status === 'shipped' ? 'سفارشت تحویل شرکت حمل شده است.' : order.status === 'delivered' ? 'سفارشت تحویل داده شده است.' : order.status === 'cancel_requested' ? 'درخواست لغو ثبت شده و در حال بررسی است.' : 'این سفارش لغو شده است.'}</p>
               {order.trackingCode ? <p>کد رهگیری ارسال: <bdi>{order.trackingCode}</bdi></p> : null}
             </section>}
           </div>
           <aside className={styles.summaryColumn}>
             <section className={styles.summary}>
-              <h2>سفارش شمارهٔ <bdi>{formatShopInteger(order.orderNumber)}</bdi></h2>
+              <h2>سفارش شمارهٔ <bdi>{formatShopOrderNumber(order.orderNumber)}</bdi></h2>
               <div className={styles.summaryRow}><span>تعداد محصولات</span><strong>{money(order.itemCount)}</strong></div>
               <div className={styles.summaryRow}><span>روش ارسال</span><strong>{order.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'}</strong></div>
               <div className={styles.summaryTotal}><span>مبلغ قابل واریز</span><strong><bdi>{money(order.totalToman)}</bdi> تومان</strong></div>
-              <p className={styles.fieldNote}>کد خصوصی پیگیری رو برای بررسی سفارش نگه دار.</p>
-              <div className={styles.privateCode}><bdi dir="ltr">{receipt.accessCode}</bdi></div>
-              <button type="button" className={styles.secondaryAction} onClick={() => void copyNumber(receipt.accessCode, 'code')}>{copyState === 'code' ? 'کپی شد ✓' : 'کپی کد پیگیری'}</button>
-              <button type="button" className={styles.secondaryAction} onClick={() => downloadShopOrderReceipt(receipt)}>دانلود اطلاعات پیگیری</button>
-              <Link className={styles.textLink} href="/shop/track">پیگیری سفارش ←</Link>
+              <p className={styles.fieldNote}>برای پیگیری، همین شمارهٔ سفارش و موبایلی که ثبت کردی کافیه.</p>
+              <button type="button" className={styles.secondaryAction} onClick={() => void copyNumber(order.orderNumber, 'order')}>{copyState === 'order' ? 'شماره کپی شد ✓' : 'کپی شمارهٔ سفارش'}</button>
+              <Link className={styles.orderTrackAction} href="/shop/track">پیگیری سفارش <span aria-hidden="true">←</span></Link>
             </section>
           </aside>
         </div>
@@ -396,68 +394,81 @@ export function ShopPaymentScreen() {
 
 export function ShopOrderTrackScreen() {
   const [number, setNumber] = useState('');
-  const [code, setCode] = useState('');
-  const [showAccessCode, setShowAccessCode] = useState(false);
+  const [mobile, setMobile] = useState('');
+  const [privateReceipt, setPrivateReceipt] = useState<ShopOrderReceipt | null>(null);
+  const [hasPrivateAccess, setHasPrivateAccess] = useState(false);
   const [order, setOrder] = useState<ShopOrderPublicState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   useEffect(() => {
-    const receipt = readShopOrderReceipt();
-    let active = true;
-    if (receipt) void Promise.resolve().then(() => {
-      if (active) { setNumber(receipt.orderNumber); setCode(receipt.accessCode); }
+    const saved = readShopOrderReceipt();
+    if (saved) void Promise.resolve().then(() => {
+      setPrivateReceipt(saved); setNumber(saved.orderNumber);
     });
-    return () => { active = false; };
   }, []);
+  const normalizedNumber = englishDigits(number).trim().replace(/^#/, '');
+  const canUsePrivateReceipt = Boolean(privateReceipt && privateReceipt.orderNumber === normalizedNumber);
   async function loadOrder(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
+    if (busy) return;
     setBusy(true); setError(''); setOrder(null);
     try {
-      const receipt = { orderNumber: englishDigits(number).trim(), accessCode: code.trim() };
-      const result = await fetchShopOrder(receipt);
-      rememberShopOrderReceipt(receipt);
+      const saved = privateReceipt?.orderNumber === normalizedNumber ? privateReceipt : null;
+      const result = saved
+        ? await fetchShopOrder(saved)
+        : await fetchShopOrderWithMobile(normalizedNumber, mobile);
+      setHasPrivateAccess(Boolean(saved));
       setOrder(result);
     } catch (cause) {
+      setHasPrivateAccess(false);
       setError(cause instanceof Error ? cause.message : 'سفارش پیدا نشد.');
     } finally { setBusy(false); }
   }
   async function requestCancel() {
-    if (!order || busy || !window.confirm('برای لغو این سفارش مطمئنی؟')) return;
+    const saved = privateReceipt?.orderNumber === normalizedNumber ? privateReceipt : null;
+    if (!order || !saved || busy || !window.confirm('برای لغو این سفارش مطمئنی؟')) return;
     setBusy(true); setError('');
     try {
-      const receipt = { orderNumber: englishDigits(number).trim(), accessCode: code.trim() };
-      await cancelShopOrder(receipt);
-      setOrder(await fetchShopOrder(receipt));
+      await cancelShopOrder(saved);
+      setOrder(await fetchShopOrder(saved));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'درخواست لغو انجام نشد.');
     } finally { setBusy(false); }
   }
   return (
-    <PageShell step={2} title="پیگیری سفارش">
+    <PageShell step={2} title="پیگیری سفارش" subtitle="بدون کد طولانی؛ با شمارهٔ سفارش و در صورت نیاز موبایل ثبت‌شده.">
       <div className={styles.trackLayout}>
         <form className={styles.formCard} onSubmit={(event) => void loadOrder(event)}>
-          <div className={styles.sectionHeading}><h2>شمارهٔ سفارش و کد خصوصی</h2></div>
-          <label className={styles.field}>شمارهٔ سفارش<input required inputMode="numeric" autoComplete="off" value={number} onChange={(event) => setNumber(englishDigits(event.target.value))} placeholder="شمارهٔ سفارش" /></label>
-          <label className={styles.field}>کد خصوصی پیگیری<input id="shop-guest-access-code" type={showAccessCode ? 'text' : 'password'} required autoComplete="off" dir="ltr" spellCheck={false} value={code} maxLength={64} onChange={(event) => setCode(event.target.value.toLowerCase())} placeholder="کدی که هنگام ثبت سفارش دریافت کردی" /></label>
-          <button type="button" className={styles.secondaryAction} aria-controls="shop-guest-access-code" aria-pressed={showAccessCode} onClick={() => setShowAccessCode((visible) => !visible)}>{showAccessCode ? 'مخفی‌کردن کد خصوصی' : 'نمایش کد خصوصی'}</button>
-          <p className={styles.fieldNote}>این کد مخصوص سفارش توست؛ به دیگران نده.</p>
-          <button type="submit" className={styles.primaryAction} disabled={busy}>{busy ? 'در حال بررسی…' : 'نمایش سفارش'}</button>
+          <div className={styles.sectionHeading}><h2>سفارشت کجاست؟</h2></div>
+          <label className={styles.field}>شمارهٔ سفارش
+            <input required inputMode="numeric" autoComplete="off" value={number}
+              onChange={(event) => setNumber(englishDigits(event.target.value).replace(/[^\d#]/g, ''))}
+              placeholder="مثلاً ۱۲۰۶" />
+          </label>
+          {!canUsePrivateReceipt ? <label className={styles.field}>موبایل ثبت‌شده هنگام خرید
+            <input required inputMode="tel" autoComplete="tel" dir="ltr" value={mobile}
+              onChange={(event) => setMobile(event.target.value)} placeholder="۰۹۱۲۱۲۳۴۵۶۷" />
+            <small>برای حفظ حریم خصوصی، پیگیری از دستگاه جدید به موبایل ثبت‌شده نیاز داره.</small>
+          </label> : <p className={styles.fieldNote}>سفارشت در همین مرورگر شناخته شده؛ نیازی به ورود کد نیست.</p>}
+          <button type="submit" className={styles.primaryAction} disabled={busy}>
+            <span>{busy ? 'در حال بررسی…' : 'مشاهدهٔ وضعیت سفارش'}</span><span aria-hidden="true">←</span>
+          </button>
         </form>
         {error ? <p role="alert" className={styles.error}>{error}</p> : null}
         {order ? <section className={styles.formCard} aria-live="polite">
-          <div className={styles.sectionHeading}><h2>سفارش شمارهٔ {formatShopInteger(order.orderNumber)}</h2><span>{customerStatus[order.status]}</span></div>
+          <div className={styles.sectionHeading}><h2>سفارش <bdi dir="ltr">{formatShopOrderNumber(order.orderNumber)}</bdi></h2><span>{customerStatus[order.status]}</span></div>
           <p>تعداد محصولات: {money(order.itemCount)}</p>
           <p>مبلغ سفارش: <bdi>{money(order.totalToman)}</bdi> تومان</p>
           <p>روش ارسال: {order.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'}</p>
-          {order.trackingCode ? <p>کد رهگیری بسته: <bdi>{order.trackingCode}</bdi></p> : null}
+          {order.trackingCode ? <p>کد رهگیری بسته: <bdi dir="ltr">{order.trackingCode}</bdi></p> : null}
           <div className={styles.trackHistory}>
             <h3>روند سفارش</h3>
-            {order.events.map((event, index) => <p key={`${event.at}-${index}`}><span>{customerStatus[event.status as ShopOrderPublicState['status']] ?? 'به‌روزرسانی سفارش'}</span><time dateTime={event.at}>{new Date(event.at).toLocaleDateString('fa-IR')}</time></p>)}
+            {order.events.map((event, index) => <p key={event.at + '-' + index}><span>{customerStatus[event.status as ShopOrderPublicState['status']] ?? 'به‌روزرسانی سفارش'}</span><time dateTime={event.at}>{new Date(event.at).toLocaleDateString('fa-IR')}</time></p>)}
           </div>
-          <button type="button" className={styles.secondaryAction} onClick={() => downloadShopOrderReceipt({ orderNumber: englishDigits(number).trim(), accessCode: code.trim() })}>دانلود اطلاعات پیگیری</button>
-          {(order.status === 'awaiting_transfer' || order.status === 'payment_rejected') ? <Link className={styles.textLink} href="/shop/payment">بازگشت به پرداخت</Link> : null}
-          {['awaiting_transfer', 'payment_rejected', 'transfer_declared'].includes(order.status) ?
+          {(order.status === 'awaiting_transfer' || order.status === 'payment_rejected') && hasPrivateAccess ? <Link className={styles.textLink} href="/shop/payment">بازگشت به پرداخت</Link> : null}
+          {hasPrivateAccess && ['awaiting_transfer', 'payment_rejected', 'transfer_declared'].includes(order.status) ?
             <button type="button" className={styles.secondaryAction} disabled={busy} onClick={() => void requestCancel()}>{order.status === 'transfer_declared' ? 'درخواست لغو سفارش' : 'لغو سفارش'}</button> : null}
+          {!hasPrivateAccess ? <p className={styles.fieldNote}>این مشاهده فقط‌خواندنی است. برای تغییر یا لغو سفارش با پشتیبانی تماس بگیر.</p> : null}
         </section> : null}
       </div>
     </PageShell>

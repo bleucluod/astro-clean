@@ -159,6 +159,38 @@ export async function getGuestShopOrder(input: { orderNumber: string; accessHash
   };
 }
 
+
+/** Read-only phone lookup, preserving the existing public status projection. */
+export async function getGuestShopOrderByMobile(input: { orderNumber: string; recipientMobile: string }): Promise<ShopOrderPublicState | null> {
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select id, display_number, status, carrier, item_count, total_toman,
+           tracking_code, created_at, updated_at
+    from halleus_private.shop_orders
+    where display_number = ${input.orderNumber}::bigint and recipient_mobile = ${input.recipientMobile}
+    limit 1
+  `;
+  if (!rows.length) return null;
+  const order = rows[0];
+  const events = await sql`
+    select action, after_status, created_at from halleus_private.shop_order_events
+    where order_id = ${order.id}::uuid order by created_at asc, id asc
+  `;
+  return {
+    orderNumber: String(order.display_number),
+    status: order.status as ShopOrderStatus,
+    carrier: order.carrier as 'post' | 'tipax',
+    itemCount: Number(order.item_count), totalToman: Number(order.total_toman),
+    trackingCode: order.tracking_code ?? null,
+    createdAt: new Date(order.created_at).toISOString(),
+    updatedAt: new Date(order.updated_at).toISOString(),
+    events: events.map((event) => ({
+      action: event.action, status: event.after_status,
+      at: new Date(event.created_at).toISOString(),
+    })),
+  };
+}
+
 export async function listAdminShopOrders(input: { page: number; status: string; search: string }) {
   const sql = getAdminDatabase();
   const term = `%${input.search}%`;

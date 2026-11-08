@@ -17,3 +17,9 @@ export function formatShopInteger(value: string | number): string {
   }
   return Number.isSafeInteger(value) ? persianInteger.format(value) : String(value);
 }
+
+/** Order identifiers are strings, with Persian digits and no thousands separators. */
+export function formatShopOrderNumber(value: string): string {
+  if (!isValidShopOrderNumber(value)) return value;
+  return '#' + value.replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
+}

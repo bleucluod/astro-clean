@@ -134,6 +134,14 @@ const parsed = await http.readShopRequest(new Request('https://halleus.ir/api/sh
 }));
 assert.equal(parsed.itemCount, 1, 'Actual common request parser enforces limit before body decoding');
 
+// Phone+sequential-order lookup has a separate, intentionally smaller IP bucket.
+for (let attempt = 0; attempt < 8; attempt++) {
+  await firstWorker(guest('/api/shop/orders/track/mobile'));
+}
+await assert.rejects(firstWorker(guest('/api/shop/orders/track/mobile')), { status: 429 });
+await firstWorker(guest('/api/shop/orders/track')); // Existing secret-backed tracking has its own bucket.
+assert.ok(state.size >= 4, 'mobile route has a distinct atomic limiter scope');
+
 const migration = read('database/migrations/0033_private_shop_shared_rate_limits.sql');
 assert.match(migration, /create table if not exists halleus_private\.shop_rate_limits/);
 assert.match(migration, /revoke all on halleus_private\.shop_rate_limits from public, anon, authenticated/);

@@ -10,8 +10,8 @@ type ShopManualNoticeInput = {
 /** Copy-only text. No provider is contacted and no send is claimed or recorded. */
 export function buildShopManualCustomerNotice(input: ShopManualNoticeInput): string | null {
   if (!isValidShopOrderNumber(input.orderNumber)) return null;
-  const opening = `سلام، سفارش شمارهٔ ${input.orderNumber} شما در هالیوس`;
-  const tracking = '\nبرای پیگیری وضعیت سفارش به halleus.ir/shop/track مراجعه کنید و کد خصوصی سفارش خودتان را وارد کنید.';
+  const opening = `سلام، سفارش #${input.orderNumber} شما در هالیوس`;
+  const tracking = '\nبرای پیگیری به halleus.ir/shop/track مراجعه کنید؛ شمارهٔ سفارش و موبایل ثبت‌شده کافی است.';
   if (input.status === 'payment_verified') {
     return `${opening} پس از بررسی واریز، تأیید شد. آماده‌سازی سفارش شروع خواهد شد.${tracking}`;
   }

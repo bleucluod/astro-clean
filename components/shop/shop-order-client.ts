@@ -136,3 +136,10 @@ export async function submitShopTransfer(receipt: ShopOrderReceipt, reference: s
 export async function cancelShopOrder(receipt: ShopOrderReceipt) {
   return shopRequest('/api/shop/orders/cancel', receipt);
 }
+
+/** Read-only tracking on another device. Modifying an order still needs its private receipt. */
+export async function fetchShopOrderWithMobile(orderNumber: string, mobile: string): Promise<ShopOrderPublicState> {
+  const data = await shopRequest('/api/shop/orders/track/mobile', { orderNumber, mobile });
+  if (!data.order || typeof data.order !== 'object') throw new Error('وضعیت سفارش دریافت نشد.');
+  return data.order as ShopOrderPublicState;
+}
