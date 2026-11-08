@@ -19,6 +19,14 @@
 - فایل SVG در داخل مرورگر برای رندر تصویر محاسبه می‌شود؛ PNG بررسی با رزولوشن ۱۵۰۰×۲۲۵۰ خروجی مرورگر است و مبنای مجوز چاپ نیست.
 - هیچ فایل فونت یا اثر اصلی خصوصی به GitHub اضافه نمی‌شود.
 
+## وضعیت واقعی R1 و ادامهٔ امن R2 — ۲۰۲۶-۱۱-۰۸
+
+- GitHub پایه و سورس VPS: `fb7d4111b41a66985deddd378b60d98d4e3764b3`. اجرای R1 روی VPS سورس را به همین HEAD رسانده و کاندیدای معتبر را در `/tmp/halleus-p02-review-fb7d4111b41a/worktree` نگه داشته است.
+- R1 PASS: `p02_artwork`, `seo_routes`, `shop_activation`, `sky_atlas`, `star_catalog`, `checkout_safety`, `typescript`, `diff_check`. R1 FAILURE: تنها `eslint`، با قانون `react-hooks/set-state-in-effect` روی فراخوانی هم‌زمان `generate(initial, true)` در mount.
+- اصلاح کوچک R2: زمان‌بندی محاسبهٔ اولیه با `queueMicrotask` و پرچم لغو روی unmount/Strict Mode؛ محاسبات نجومی، فرم، طراحی، دانلود PNG، قیمت/سفارش و کاتالوگ بدون تغییر هستند.
+- ادامه از کاندیدای R1 با fast-forward غیرمخرب و استفاده از شاهدِ `.pass` برای مراحل بدون تغییر: `seo_routes`, `sky_atlas`, `star_catalog`, `checkout_safety`. مراحل متاثر `p02_artwork`, `shop_activation`, `typescript`, `eslint`, `diff_check` از نو اجرا شوند و شکست‌های مستقل تجمیع گردند.
+- انتشار VPS هنوز **انجام نشده**؛ تگ جدید و `ops/vps/halleus-release.sh` فقط پس از PASS همهٔ گیت‌های R2. نسخهٔ فعال قبلی `c8fd31c63210d31c2b7bd8390b8a9acd08716bc5` باقی می‌ماند تا خروجی فعال‌سازی و Smoke خلاف آن را اثبات کند. تصمیم‌های طراحی نهایی، موکاپ، قیمت و آزمایش چاپ همچنان معوق‌اند.
+
 ## Gateها و نقطهٔ ادامه
 - سطح: **LEVEL 2 — flow مستقل نمایش P02**؛ تغییر checkout یا پرداخت نداریم. مرحلهٔ انتشار VPS به دلیل اثر روی سایت عمومی مشمول preflight و smoke است.
 - حداقل آزمون‌ها: `scripts/check-shop-p02-live-product.mjs`، `scripts/check-shop-seo-slugs.mjs`، `scripts/check-shop-mvp-activation.mjs`، star atlas و ورودی‌های زمان/شهر؛ ESLint فایل‌های تغییرکرده؛ TypeScript؛ `git diff --check`؛ build رسمی پیش از فعال‌سازی.

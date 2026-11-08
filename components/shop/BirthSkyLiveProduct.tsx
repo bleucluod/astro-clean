@@ -87,8 +87,16 @@ export function BirthSkyLiveProduct() {
   }, []);
 
   useEffect(() => {
-    void generate(initial, true);
-    return () => { operation.current += 1; };
+    // Defer the initial calculation outside the synchronous effect phase.
+    // An unmounted or Strict Mode replayed effect must not launch stale work.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void generate(initial, true);
+    });
+    return () => {
+      cancelled = true;
+      operation.current += 1;
+    };
   }, [generate]);
 
   function change<K extends keyof Personalization>(field: K, value: Personalization[K]) {
