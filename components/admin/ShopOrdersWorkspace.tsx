@@ -81,7 +81,12 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   const [sampleError, setSampleError] = useState('');
   const [sampleSize, setSampleSize] = useState<'10x15' | '20x30' | '30x45'>('20x30');
   const [sampleCity, setSampleCity] = useState('');
+
   const [samplePreviewUrl, setSamplePreviewUrl] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadLine, setUploadLine] = useState(1);
+  const [confirmOrderMatch, setConfirmOrderMatch] = useState(false);
+  const [confirmLabPrint, setConfirmLabPrint] = useState(false);
 
   useEffect(() => {
     return () => { if (samplePreviewUrl) URL.revokeObjectURL(samplePreviewUrl); };
@@ -119,6 +124,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
     try {
       const data = await request(`/api/admin/shop/orders/${id}`);
       setDetail(data.order as ShopOrderDetail); setReason(''); setTrackingCode('');
+      setUploadFile(null); setUploadLine(1); setConfirmOrderMatch(false); setConfirmLabPrint(false);
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'سفارش باز نشد.'); }
     finally { setBusy(false); }
   }
@@ -163,6 +169,35 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       setSuccess('بستهٔ خصوصی طراحی دریافت شد؛ آن را برای ساخت اثر به دستیار بده و فایل نهایی را بعداً دستی ثبت کن.');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'دریافت فایل انجام نشد.'); }
+    finally { setBusy(false); }
+  }
+
+async function uploadFinalPrint() {
+    if (!detail || busy || !['payment_verified', 'preparing'].includes(detail.status) ||
+        !uploadFile || !confirmOrderMatch || !confirmLabPrint) return;
+    if (uploadFile.size > 8 * 1024 * 1024 || uploadFile.size < 1024 ||
+        uploadFile.type !== 'image/jpeg') {
+      setError('فایل باید JPG معتبر و کوچک‌تر از ۸ مگابایت باشد.'); return;
+    }
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${detail.id}/print?line=${uploadLine}`, {
+        method: 'POST', cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'image/jpeg',
+          'X-Halleus-Artwork-Matches-Order': 'confirmed',
+          'X-Halleus-Print-Lab-Approved': 'confirmed',
+        },
+        body: uploadFile,
+      });
+      const result = await response.json().catch(() => null) as { ok?: boolean; error?: string; idempotent?: boolean } | null;
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || `فایل چاپ ثبت نشد (${response.status}).`);
+      }
+      setUploadFile(null); setConfirmOrderMatch(false); setConfirmLabPrint(false);
+      setSuccess(result.idempotent ? 'این فایل قبلاً ثبت شده بود و بدون تغییر تأیید شد.' : 'فایل نهایی این ردیف در آرشیو خصوصی ثبت شد.');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'ثبت فایل چاپ انجام نشد.'); }
     finally { setBusy(false); }
   }
 
@@ -342,6 +377,22 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
         <button type="button" disabled={busy} onClick={() => void downloadPrintBrief()}>دانلود ZIP اطلاعات و دستور طراحی</button>
         <p>این ZIP فقط دادهٔ نجومی، جزئیات مجاز سفارش و دستور طراحی را دارد؛ پنل هیچ تصویری تولید نمی‌کند. ZIP را برای طراحی دستی بفرست و پس از دریافت اثر، فایل چاپی نهایی را جداگانه ثبت کن.</p>
       </div> : <p className={styles.printNote}>تحویل اطلاعات سفارش به چاپ بعد از تأیید دریافت وجه فعال می‌شود.</p>}
+{['payment_verified', 'preparing'].includes(detail.status) ? <form className={styles.printHandoff} onSubmit={(event) => { event.preventDefault(); void uploadFinalPrint(); }}>
+        <h4>ثبت دستی JPG نهایی چاپ</h4>
+        <p>فقط بعد از طراحی اختصاصی، تطبیق با سفارش و تأیید فایل برای چاپ. فایل در فضای خصوصی سرور نگهداری می‌شود و عمومی نیست.</p>
+        <label>ردیف سفارش
+          <select value={uploadLine} onChange={(event) => setUploadLine(Number(event.target.value))} disabled={busy}>
+            {detail.items.map((item, index) => <option key={item.key} value={index + 1}>{index + 1} · {productNames[item.productId] ?? item.productId} · {item.size}</option>)}
+          </select>
+        </label>
+        <label>فایل JPG چاپی (حداکثر ۸ مگابایت)
+          <input type="file" accept="image/jpeg,.jpg,.jpeg" required disabled={busy}
+            onChange={(event) => setUploadFile(event.currentTarget.files?.[0] ?? null)} />
+        </label>
+        <label><input type="checkbox" checked={confirmOrderMatch} onChange={(event) => setConfirmOrderMatch(event.target.checked)} required /> طراحی، تاریخ، نام و اندازه را با این سفارش تطبیق داده‌ام.</label>
+        <label><input type="checkbox" checked={confirmLabPrint} onChange={(event) => setConfirmLabPrint(event.target.checked)} required /> همین فایل نهایی برای چاپ تأیید شده است.</label>
+        <button type="submit" disabled={busy || !uploadFile || !confirmOrderMatch || !confirmLabPrint}>ثبت امن فایل در آرشیو خصوصی</button>
+      </form> : null}
       {buildShopManualCustomerNotice({
         orderNumber: detail.display_number, status: detail.status,
         carrier: detail.carrier, trackingCode: detail.tracking_code,

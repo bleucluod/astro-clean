@@ -27,7 +27,13 @@ for (const [id, slug] of slugs) {
   assert.equal(existsSync(resolve(root, newPath)), true, newPath + ' must exist');
   const page = read(newPath);
   assert.ok(page.includes("canonical: '" + url + "'"), newPath + ' canonical');
-  assert.ok(page.includes('index: false'), newPath + ' prelaunch index boundary');
+
+  if (id === 'p01') {
+    assert.match(page, /const indexable = isShopMvpActive\(\)/, 'P01 indexability follows runtime activation');
+    assert.match(page, /index: indexable, follow: indexable/, 'P01 robots gated by activation');
+  } else {
+    assert.ok(page.includes('index: false'), newPath + ' postponed products remain noindex');
+  }
   assert.ok(urlMap.includes(id + ": '" + url + "'"), id + ' mapping');
   assert.ok(catalog.includes("href: getShopProductUrl('" + id + "')"), id + ' catalog link');
   const registered = registry.pages.find((item) => item.page_id === id.toUpperCase());
@@ -38,7 +44,12 @@ assert.match(read('app/shop/moon-phase-print/page.tsx'), /!isShopMvpActive\(\)/)
 for (const slug of ['birth-sky-map', 'milky-way-print']) {
   assert.match(read('app/shop/' + slug + '/page.tsx'), /process\.env\.NODE_ENV === 'production'/);
 }
+
 assert.match(catalog, /product\.id === 'P01'/);
+assert.match(catalog, /const indexable = isShopMvpActive\(\)/);
+const sitemap = read('app/sitemap.ts');
+assert.match(sitemap, /shopPageEntries: MetadataRoute\.Sitemap = isShopMvpActive\(\)/);
+assert.match(sitemap, /shop\/moon-phase-print/);
 assert.match(checkout, /getShopProductUrl\(item\.productId\)/);
 assert.match(detail, /getShopProductUrl\(item\.id\)/);
 assert.match(schema, /getShopProductUrl\(product\.id\)/);

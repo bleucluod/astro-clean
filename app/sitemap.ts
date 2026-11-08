@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { seoRoutes, siteConfig } from "@/lib/config/seo";
+import { isShopMvpActive } from "@/lib/shop/shop-mvp-activation";
 import {
   listPublicWikiSitemapArticles,
   listPublicWikiSitemapCategories,
@@ -19,6 +20,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
+  const shopPageEntries: MetadataRoute.Sitemap = isShopMvpActive() ? [
+    { url: `${siteConfig.url}/shop`, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${siteConfig.url}/shop/moon-phase-print`, changeFrequency: "weekly", priority: 0.8 },
+  ] : [];
+
   const wikiCategoryEntries: MetadataRoute.Sitemap = wikiCategories.map(
     (category) => ({
       url: `${siteConfig.url}/wiki/category/${category.id}`,
@@ -37,5 +43,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
-  return [...publicPageEntries, ...wikiCategoryEntries, ...wikiArticleEntries];
+  return [...publicPageEntries, ...shopPageEntries, ...wikiCategoryEntries, ...wikiArticleEntries];
 }

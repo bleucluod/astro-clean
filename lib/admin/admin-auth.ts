@@ -163,3 +163,11 @@ export function assertAdminUploadRequest(request: Request) {
     "Cross-origin admin upload was rejected.",
   );
 }
+
+/** Validate raw owner JPG without weakening JSON or multipart admin guards. */
+export function assertAdminJpegUploadRequest(request: Request) {
+  if (request.headers.get("content-type")?.trim().toLowerCase() !== "image/jpeg") {
+    throw new AdminAccessError(415, "Admin print uploads require JPEG.");
+  }
+  assertTrustedAdminRequestOrigin(request, "Cross-origin admin print upload was rejected.");
+}

@@ -4,12 +4,15 @@ import { ProductDetail } from '@/components/shop/ProductDetail';
 import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
-export const metadata: Metadata = {
+export function generateMetadata(): Metadata {
+  const indexable = isShopMvpActive();
+  return {
   title: "تابلو فاز ماه در تاریخ دلخواه | ماه آن روز | هالیوس",
   description: "تابلوی «ماه آن روز» از هالیوس؛ تابلو فاز ماه برای تاریخ دلخواهت، با امکان افزودن نام و پیام، چاپ مات روی شاسی و سه اندازه. خاطره‌ات را به روشنای ماه بسپار.",
   alternates: { canonical: '/shop/moon-phase-print' },
-  robots: { index: false, follow: false },
-};
+  robots: { index: indexable, follow: indexable },
+  };
+}
 
 export const dynamic = 'force-dynamic';
 
