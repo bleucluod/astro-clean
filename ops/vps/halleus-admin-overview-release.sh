@@ -8,9 +8,10 @@ CURRENT=/srv/halleus/current
 PREVIOUS=/srv/halleus/previous
 ENGINE=ops/vps/halleus-release.sh
 SERVICE=halleus.service
-BASE=f160ced6f5bd6a947067b27a1a80f4a8fb4a14f3
+BASE=7bdcd9bddbfeffb69f95cae0f557c6d0da663d31
+PREVIOUS_BASE=f160ced6f5bd6a947067b27a1a80f4a8fb4a14f3
 OLD_LIVE=6fdfaa60aaa826b9815c03be9275da5c2f7627f1
-TAG=v2026.11.08-admin-overview-r1
+TAG=v2026.11.08-admin-overview-r2
 PIN="$1"
 NODE=/usr/local/bin/node
 TMP=''
@@ -49,7 +50,8 @@ origin="$(as_deploy git -C "$SOURCE" remote get-url origin)"
 [[ "$origin" =~ github\.com[:/]bleucluod/astro-clean(\.git)?$ ]] || fatal 'Wrong GitHub origin.'
 [ -z "$(as_deploy git -C "$SOURCE" status --porcelain=v1 --untracked-files=all)" ] || fatal 'Dirty source.'
 head="$(as_deploy git -C "$SOURCE" rev-parse HEAD)"
-[[ "$head" = "$BASE" || "$head" = "$PIN" ]] || fatal 'Unexpected source HEAD.'
+[[ "$head" = "$OLD_LIVE" || "$head" = "$PREVIOUS_BASE" || "$head" = "$BASE" || "$head" = "$PIN" ]] || fatal "Unexpected source HEAD: $head"
+log "VERIFIED_SOURCE_HEAD=$head"
 [ -f "$CURRENT/.halleus-release" ] || fatal 'Active release metadata missing.'
 active_sha="$(sed -n 's/^commit=//p' "$CURRENT/.halleus-release")"
 [[ "$active_sha" = "$OLD_LIVE" || "$active_sha" = "$PIN" ]] || fatal 'Unexpected active release.'
@@ -60,8 +62,9 @@ flock -n /run/lock/halleus-release.lock -c true || fatal 'Official engine is bus
 as_deploy git -C "$SOURCE" fetch origin main || fatal 'Fetch failed.'
 [ "$(as_deploy git -C "$SOURCE" rev-parse origin/main)" = "$PIN" ] || fatal 'GitHub HEAD changed.'
 [ "$(as_deploy git -C "$SOURCE" rev-parse "$PIN^1")" = "$BASE" ] || fatal 'Unexpected parent commit.'
+as_deploy git -C "$SOURCE" merge-base --is-ancestor "$head" "$PIN" || fatal 'Verified source HEAD is not an ancestor of pinned release.'
 changed="$(as_deploy git -C "$SOURCE" diff-tree --no-commit-id --name-only -r "$PIN")"
-expected=$'docs/HALLEUS_ADMIN_OVERVIEW_ROADMAP.md\nops/vps/halleus-admin-overview-release.sh\nscripts/check-admin-overview-db-readonly.mjs\nscripts/check-admin-ux-consolidation.mjs'
+expected=$'docs/HALLEUS_ADMIN_OVERVIEW_ROADMAP.md\nops/vps/halleus-admin-overview-release.sh'
 [ "$changed" = "$expected" ] || fatal 'Unexpected release changeset.'
 log 'SAFETY_PREFLIGHT=PASS'
 if [ "$head" != "$PIN" ]; then
@@ -105,7 +108,7 @@ else
     app/api/admin/overview/trends/route.ts lib/admin/admin-overview-trends.ts \
     scripts/check-admin-overview-dashboard.mjs scripts/check-admin-overview-db-readonly.mjs \
     scripts/check-admin-ux-consolidation.mjs' _ "$WORKTREE"
-  run_stage diff_check as_deploy git -C "$WORKTREE" --no-pager diff "$BASE" "$PIN" --check
+  run_stage diff_check as_deploy git -C "$WORKTREE" --no-pager diff "$OLD_LIVE" "$PIN" --check
 
   pid="$(systemctl show -P MainPID "$SERVICE" 2>/dev/null || true)"
   if [[ "$pid" =~ ^[1-9][0-9]{0,9}$ ]]; then
