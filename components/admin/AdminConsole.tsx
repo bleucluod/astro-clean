@@ -15,6 +15,7 @@ import type {
 } from "@/lib/admin/admin-types";
 import type { WikiWorkspaceSection } from "./WikiAdminPanel";
 import type { SeoWorkspaceSection } from "./SeoAdminPanel";
+import { AdminOverviewDashboard } from "./AdminOverviewDashboard";
 import styles from "./admin-console.module.css";
 
 const WikiAdminPanel = dynamic(
@@ -810,59 +811,16 @@ export function AdminConsole({
         ) : null}
 
         {activeTab === "overview" && overview ? (
-          <div className={styles.overviewStack}>
-            <section className={styles.metricGrid}>
-              {[
-                ["کاربران", overview.users],
-                ["همه گزارش‌ها", overview.reports],
-                ["گزارش عمومی", overview.publicReports],
-                ["گزارش خصوصی", overview.privateReports],
-                ["درخواست باز", overview.openPremiumRequests],
-                ["رویداد ممیزی ۲۴ ساعت", overview.auditEvents24h],
-              ].map(([label, value]) => (
-                <article key={String(label)} className={styles.metricCompact}>
-                  <span>{label}</span>
-                  <strong>{Number(value).toLocaleString("fa-IR")}</strong>
-                </article>
-              ))}
-            </section>
-
-            <section className={styles.attentionPanel}>
-              <div>
-                <span className={styles.eyebrow}>نیازمند توجه</span>
-                <h3>کارهایی که احتمالاً الان مهم‌ترند</h3>
-              </div>
-              <div className={styles.attentionItems}>
-                <button type="button" onClick={() => selectTab("premium")}>
-                  <strong>{overview.openPremiumRequests.toLocaleString("fa-IR")}</strong>
-                  <span>درخواست پرمیوم باز</span>
-                </button>
-                <button type="button" onClick={() => selectTab("audit")}>
-                  <strong>{overview.auditEvents24h.toLocaleString("fa-IR")}</strong>
-                  <span>رویداد ممیزی در ۲۴ ساعت</span>
-                </button>
-              </div>
-            </section>
-
-            <section className={styles.quickActions}>
-              <button type="button" onClick={() => selectTab("telegram")}>
-                <strong>تلگرام</strong>
-                <span>صف، پوشش و ورود Content Pack</span>
-              </button>
-              <button type="button" onClick={() => navigate("wiki", { section: "queue" })}>
-                <strong>صف ویکی</strong>
-                <span>انتشارهای آینده و وضعیت jobها</span>
-              </button>
-              <button type="button" onClick={() => navigate("wiki", { section: "articles" })}>
-                <strong>مقاله‌ها</strong>
-                <span>جست‌وجو، ویرایش و ساخت مقاله</span>
-              </button>
-              <button type="button" onClick={() => selectTab("reports")}>
-                <strong>گزارش‌ها</strong>
-                <span>جست‌وجو و مدیریت دسترسی</span>
-              </button>
-            </section>
-          </div>
+          <AdminOverviewDashboard
+            accessToken={token}
+            overview={overview}
+            onNavigate={(tab, section) => {
+              if (tab === "wiki") navigate("wiki", { section: section === "queue" ? "queue" : "articles" });
+              else if (tab === "seo") navigate("seo", { section: "overview" });
+              else if (tab === "telegram") navigate("telegram", { section: section === "operations" ? "operations" : "overview" });
+              else navigate(tab);
+            }}
+          />
         ) : null}
 
         {activeTab === "users" ? (
