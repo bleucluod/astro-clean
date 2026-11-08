@@ -8,8 +8,8 @@ CURRENT=/srv/halleus/current
 ENV_FILE=/etc/halleus/halleus.env
 SERVICE=halleus.service
 NODE=/usr/local/bin/node
-EXPECTED_PARENT=dbb5ca1117e0066a858c2fe51e9ab084781f60d4
-RELEASE_TAG=v2026.11.08-p01-go-live
+EXPECTED_PARENT=a16b5e5c232bec9c5f02145c9b1548835786d703
+RELEASE_TAG=v2026.11.08-p01-go-live-fix1
 COMMIT="${1:-}"
 
 fatal() { printf 'SAFETY_FATAL: %s\n' "$*" >&2; exit 2; }
@@ -69,7 +69,8 @@ origin="$(exec_deploy git -C "$SOURCE" remote get-url origin)"
 [ "$(exec_deploy git -C "$SOURCE" rev-parse origin/main)" = "$COMMIT" ] || fatal 'origin/main is not the pinned go-live commit.'
 exec_deploy git -C "$SOURCE" merge-base --is-ancestor "$EXPECTED_PARENT" "$COMMIT" || fatal 'P01 implementation is not an ancestor.'
 changed_files="$(exec_deploy git -C "$SOURCE" diff-tree --no-commit-id --name-only -r "$COMMIT")"
-[ "$changed_files" = 'ops/vps/halleus-shop-p01-go-live.sh' ] || fatal 'Go-live commit changes unexpected paths.'
+expected_files=$'app/api/admin/shop/orders/[id]/print/route.ts\nops/vps/halleus-shop-p01-go-live.sh'
+[ "$changed_files" = "$expected_files" ] || fatal 'Go-live commit changes unexpected paths.'
 log "GITHUB_COMMIT_VERIFIED=$COMMIT"
 
 # Check release prerequisites without repeating the R3 database migrations or Nginx edits.

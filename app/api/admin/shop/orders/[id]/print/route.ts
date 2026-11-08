@@ -74,7 +74,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     const order = await getAdminShopOrder(id);
     if (!order) return noStoreJsonResponse({ ok: false }, 404);
-    if (!['payment_verified', 'preparing'].includes(order.status)) {
+    if (!('status' in order) || typeof order.status !== 'string' ||
+        !['payment_verified', 'preparing'].includes(order.status)) {
       return noStoreJsonResponse({ ok: false, error: 'بارگذاری فایل فقط پیش از ارسال سفارش مجاز است.' }, 409);
     }
     const handoff = buildPrivateShopPrintHandoff(order);
