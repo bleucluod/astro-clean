@@ -12,6 +12,7 @@ function assert(condition, message) {
 }
 
 const consoleSource = read("components/admin/AdminConsole.tsx");
+const dashboardSource = read("components/admin/AdminOverviewDashboard.tsx");
 const telegramSource = read("components/admin/TelegramAdminPanel.tsx");
 const reportsSource = read("components/admin/AdminReportsWorkspace.tsx");
 const wikiSource = read("components/admin/WikiAdminPanel.tsx");
@@ -34,7 +35,11 @@ assert(consoleSource.includes('styles.wikiToolbar'), "Wiki toolbar compatibility
 assert(consoleSource.includes('className={styles.drawerBackdrop}'), "mobile drawer boundary is missing");
 assert(consoleSource.includes('styles.mobileCards'), "mobile card lists are missing");
 assert(consoleSource.includes('styles.actionMenu'), "compact row actions are missing");
-assert(consoleSource.includes('styles.quickActions'), "overview quick actions are missing");
+assert(consoleSource.includes('<AdminOverviewDashboard'), "overview dashboard must be mounted inside AdminConsole");
+assert(dashboardSource.includes('styles.actionPanel') && dashboardSource.includes('styles.contentPanel'),
+  "overview actions and content summaries must remain visible");
+assert(dashboardSource.includes('onNavigate("orders")') || dashboardSource.includes('onNavigate(alert.tab'),
+  "overview actions must lead to their relevant workspace");
 
 assert(telegramSource.includes('telegramStatusStrip'), "Telegram cockpit status strip is missing");
 assert(telegramSource.includes('filePicker'), "Telegram custom file picker is missing");
