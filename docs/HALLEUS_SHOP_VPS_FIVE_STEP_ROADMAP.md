@@ -4,6 +4,13 @@
 
 ### اجرای R1 و ادامهٔ R2 — ۲۰۲۶-۱۱-۰۸
 
+### R2 ناموفق و نقطهٔ ادامهٔ R3 — ۲۰۲۶-۱۱-۰۸
+
+- **R2 ثبت‌شده در GitHub:** `559cd8238830e9c258496b92e5c7f8b89f4b96c3`. اجرای VPS گیت تغییرات، شش `RESUMED_PASS`، TypeScript و ESLint را PASS کرد؛ فقط تست `check-shop-orders.mjs` شکست خورد. خطای گزارش‌شده مربوط به `assert.doesNotMatch(paymentSource, /Number\\(order\\.orderNumber\\)/)` بود: Regex قدیمی اشتباهاً زیررشتهٔ `Number(order.orderNumber)` داخل نام مجاز `formatShopOrderNumber(order.orderNumber)` را هم می‌یافت.
+- **آثار و وضعیت امن:** R2 فقط کاندیدای آزمایشی در worktree ساخت؛ هیچ `OFFICIAL_RELEASE=START` یا Deploy انجام نشده است. نسخهٔ زندهٔ قبلی `547f4d2c6d286796cb07b2aa9e45852d61f396e7` و فروش P01 فعال باقی ماندند. لاگ R2 در `/tmp/halleus-shop-order-ux-gMIH7mZg` و لاگ R1 در `/tmp/halleus-shop-order-ux-dPXzWprE` گزارش شده‌اند؛ وضعیت این مسیرها باید پیش از استفاده مجدد بررسی شود.
+- **R3 (فقط اصلاح همان ریشه):** Regex به مرز واژهٔ `\\bNumber(...)` مقید شود تا تبدیل مستقیم شناسه به Number ممنوع، ولی نام تابع `formatShopOrderNumber` مجاز باشد. کد TSX، قرارداد سفارش، دیتابیس و CSS دست‌نخورده؛ در R3 تست شکست‌خورده، ESLint آن و `git diff --check` دوباره اجرا شوند. شش تست R1 و TypeScript پاس‌شدهٔ R2 فقط با وجود شواهد و عدم تغییر ورودی، `RESUMED_PASS` هستند؛ در نبود شواهد، بررسی مستقل مربوطه اجرا شود.
+- **مرحلهٔ بعد:** پس از عبور گاردهای R3، تنها از `ops/vps/halleus-release.sh` برای ساخت و انتشار استفاده شود؛ `current/previous`، وضعیت سرویس و HTTP smoke تأیید شوند. **GitHub Commit به‌معنای انتشار VPS نیست**؛ هیچ مهاجرت، دست‌کاری Nginx/Env و بازنشانی یا حذف کاندیدای معتبر مجاز نیست.
+
 - **GitHub / مجوز:** اجرای یکپارچهٔ اصلاح UX با Commit `f64bade57d3840cd0b30ae681e1b09004347f104` تأیید مالک را دارد و بر سرور فقط به‌صورت worktree کاندیدا آزموده شد.
 - **R1 مستند از خروجی VPS:** شش تست مستقل `check-shop-order-experience`، `check-shop-shared-rate-limit`، `check-shop-order-api-privacy`، `check-shop-checkout`، `check-shop-print-handoff`، `check-shop-seo-slugs` به‌همراه TypeScript پاس شدند؛ ESLint بدون خطا ولی با یک هشدار Import استفاده‌نشده پاس شد. سه علت جمع‌آوری‌شده: assertionهای قدیمی `check-shop-orders.mjs` هنوز به شمارهٔ سفارش فرمت‌شده و نمایش رمز طولانی اشاره می‌کردند؛ انتهای CSS یک خط خالی اضافه داشت؛ import `rememberShopOrderReceipt` در کامپوننت UI استفاده نمی‌شد. عملیات پیش از release متوقف شد؛ runtime تولید همان `547f4d2` باقی مانده و فروش فعلی نباید متوقف شود.
 - **نقطهٔ ادامهٔ R2:** اصلاح هر سه مورد در همان برش؛ حفظ آزمون‌های PASS با شواهد R1؛ اجرای دوبارهٔ تست شکست‌خورده، TypeScript، ESLint مربوط به فایل‌های تغییرکرده و `git diff --check`. فقط پس از پاس‌شدن همهٔ این‌ها، Build و انتشار با `ops/vps/halleus-release.sh` و smoke/rollback رسمی مجاز است. نتیجهٔ R2 و تأیید نسخهٔ زنده صرفاً با خروجی VPS ثبت خواهد شد.

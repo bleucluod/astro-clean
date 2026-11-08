@@ -167,7 +167,7 @@ const ownerSource = readFileSync(resolve(root, 'components/admin/ShopOrdersWorks
 // The order identifier is not an amount; never group its digits.
 assert.match(paymentSource, /formatShopOrderNumber\(order\.orderNumber\)/);
 assert.doesNotMatch(paymentSource, /formatShopInteger\(order\.orderNumber\)/);
-assert.doesNotMatch(paymentSource, /Number\(order\.orderNumber\)/);
+assert.doesNotMatch(paymentSource, /\bNumber\(order\.orderNumber\)/);
 // The old long private access code stays in storage for mutations but is not presented to customers.
 assert.doesNotMatch(paymentSource, /showAccessCode|setShowAccessCode/);
 assert.doesNotMatch(paymentSource, /\{receipt\.accessCode\}<\/bdi>/);

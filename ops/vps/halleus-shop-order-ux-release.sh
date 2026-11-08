@@ -8,9 +8,9 @@ CURRENT=/srv/halleus/current
 PREVIOUS=/srv/halleus/previous
 SERVICE=halleus.service
 ENGINE=ops/vps/halleus-release.sh
-BASE=f64bade57d3840cd0b30ae681e1b09004347f104
+BASE=559cd8238830e9c258496b92e5c7f8b89f4b96c3
 OLD_LIVE=547f4d2c6d286796cb07b2aa9e45852d61f396e7
-TAG=v2026.11.08-shop-order-experience-r2
+TAG=v2026.11.08-shop-order-experience-r3
 PIN="${1:-}"
 TMP=''
 WORKTREE=''
@@ -64,9 +64,9 @@ as_deploy git -C "$SOURCE" fetch origin main
 [ "$(as_deploy git -C "$SOURCE" rev-parse origin/main)" = "$PIN" ] || fatal 'Origin main differs from pinned approved commit.'
 [ "$(as_deploy git -C "$SOURCE" rev-parse "${PIN}^1")" = "$BASE" ] || fatal 'Unexpected release commit parent.'
 changed_files="$(as_deploy git -C "$SOURCE" diff-tree --no-commit-id --name-only -r "$PIN")"
-expected_files=$'components/admin/shop-orders-workspace.module.css\ncomponents/shop/ShopCheckoutFlow.tsx\ndocs/HALLEUS_SHOP_VPS_FIVE_STEP_ROADMAP.md\nops/vps/halleus-shop-order-ux-release.sh\nscripts/check-shop-orders.mjs'
-[ "$changed_files" = "$expected_files" ] || fatal 'R2 changeset includes unrelated paths.'
-log 'R2_APPROVED_CHANGESET=PASS'
+expected_files=$'docs/HALLEUS_SHOP_VPS_FIVE_STEP_ROADMAP.md\nops/vps/halleus-shop-order-ux-release.sh\nscripts/check-shop-orders.mjs'
+[ "$changed_files" = "$expected_files" ] || fatal 'R3 changeset includes unrelated paths.'
+log 'R3_APPROVED_CHANGESET=PASS'
 if [ "$head" != "$PIN" ]; then
   as_deploy git -C "$SOURCE" merge --ff-only origin/main || fatal 'Cannot fast-forward VPS source.'
 fi
@@ -116,7 +116,7 @@ else
     log 'R1_PASS_EVIDENCE_MISSING_RECHECK_SAFE_INDEPENDENTS'
     check_scripts+=("${resumed_names[@]}")
   fi
-  log 'R2_AFFECTED_FAILURE_RECOVERY=BEGIN'
+  log 'R3_SINGLE_ASSERTION_RECOVERY=BEGIN'
   for name in "${check_scripts[@]}"; do
     if [ ! -f "$WORKTREE/scripts/$name" ]; then
       log "BLOCKED_BY_DEPENDENCY $name missing"
@@ -128,22 +128,27 @@ else
       failed+=("$name:FAIL")
     fi
   done
-  if [ -x "$WORKTREE/node_modules/.bin/tsc" ]; then
-    if as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/tsc --noEmit --incremental false' _ "$WORKTREE" >"$TMP/typescript.log" 2>&1; then
-      log 'PASS TypeScript'
-    else
-      log 'CANDIDATE_FAILURE TypeScript'
-      failed+=(typescript)
-    fi
+  # No TS/TSX inputs changed since the passing R2 typecheck.
+  # Retain its completion only when the archived R2 evidence file exists.
+  R2_LOG_DIR=/tmp/halleus-shop-order-ux-gMIH7mZg
+  if [ -f "$R2_LOG_DIR/typescript.log" ] && [ -f "$R2_LOG_DIR/eslint.log" ]; then
+    log 'RESUMED_PASS TypeScript (unchanged TS inputs; R2 evidence retained)'
   else
-    log 'BLOCKED_BY_DEPENDENCY TypeScript unavailable'
-    failed+=(typescript_missing)
+    if [ -x "$WORKTREE/node_modules/.bin/tsc" ]; then
+      if as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/tsc --noEmit --incremental false' _ "$WORKTREE" >"$TMP/typescript.log" 2>&1; then
+        log 'PASS TypeScript'
+      else
+        log 'CANDIDATE_FAILURE TypeScript'
+        failed+=(typescript)
+      fi
+    else
+      log 'BLOCKED_BY_DEPENDENCY TypeScript unavailable'
+      failed+=(typescript_missing)
+    fi
   fi
   if [ -x "$WORKTREE/node_modules/.bin/eslint" ]; then
-    if as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/eslint \
-      "components/shop/ShopCheckoutFlow.tsx" \
-      "scripts/check-shop-orders.mjs"' _ "$WORKTREE" >"$TMP/eslint.log" 2>&1; then
-      log 'PASS scoped ESLint'
+    if as_deploy bash -c 'cd "$1"; exec ./node_modules/.bin/eslint "scripts/check-shop-orders.mjs"' _ "$WORKTREE" >"$TMP/eslint.log" 2>&1; then
+      log 'PASS scoped ESLint on changed test'
     else
       log 'CANDIDATE_FAILURE scoped ESLint'
       failed+=(eslint)
@@ -154,7 +159,7 @@ else
   fi
   as_deploy git -C "$WORKTREE" --no-pager diff "$BASE" "$PIN" --check >"$TMP/diff-check.log" 2>&1 || failed+=(diff_check)
   if [ "${#failed[@]}" -gt 0 ]; then
-    log "R1_CONSOLIDATED_FAILURES=${failed[*]}"
+    log "R3_CONSOLIDATED_FAILURES=${failed[*]}"
     for filename in "$TMP"/*.log; do
       [ -f "$filename" ] || continue
       if [ -s "$filename" ]; then
@@ -164,7 +169,7 @@ else
     done
     exit 1
   fi
-  log 'R2_AFFECTED_CHECKS=PASS'
+  log 'R3_AFFECTED_CHECKS=PASS'
   as_deploy git -C "$SOURCE" worktree remove --force "$WORKTREE" || fatal 'Cannot clean candidate test worktree.'
   WORKTREE=''
 
