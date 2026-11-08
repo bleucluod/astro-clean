@@ -57,9 +57,10 @@ export function BirthSkyLiveProduct() {
     try {
       const names = safeShopArtworkText(values.names, 'نام');
       const message = safeShopArtworkText(values.message, 'پیام');
-      const [starModule, constellationModule, artModule] = await Promise.all([
+      const [starModule, constellationModule, galaxyModule, artModule] = await Promise.all([
         import('@/lib/shop/shop-sky-atlas'),
         import('@/lib/shop/shop-constellation-lines'),
+        import('@/lib/shop/shop-galactic-atmosphere'),
         import('@/lib/shop/shop-birth-sky-artwork'),
       ]);
       if (version !== operation.current) return;
@@ -70,18 +71,19 @@ export function BirthSkyLiveProduct() {
       };
       const stars = starModule.calculateShopStarAtlas(reference);
       const figures = constellationModule.calculateShopConstellationLines(reference);
+      const atmosphere = galaxyModule.calculateShopGalacticAtmosphere(reference);
       const svg = artModule.renderShopBirthSkyArtwork(stars, figures, {
         names, message,
         date: values.date,
         time: values.time,
         city: getHalleusCityDisplayName(city),
-      });
+      }, { atmosphere });
       if (version === operation.current) {
         // The same computed catalog scene is used by the preview and PNG.
         skyOnlyArtwork.current = artModule.renderShopBirthSkyArtwork(stars, figures, {
           names, message, date: values.date, time: values.time,
           city: getHalleusCityDisplayName(city),
-        }, { typography: false });
+        }, { typography: false, atmosphere });
         setArtwork(svg);
       }
     } catch (failure) {

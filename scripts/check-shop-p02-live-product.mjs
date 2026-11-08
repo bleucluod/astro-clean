@@ -56,7 +56,7 @@ const details = { names: '<نام & آزمون>', message: 'برای تو & من
   date: '۱۴۰۳/۰۸/۱۵', time: '21:00', city: 'تهران' };
 const art = render(atlas, figures, details);
 assert.match(art, /viewBox="0 0 3000 4500"/);
-assert.match(art, /<circle cx="1500.00" cy="1930.00"/);
+assert.match(art, /<circle cx="1500.00" cy="1920.00"/);
 assert.match(art, /<path d="M/);
 assert.match(art, /&lt;نام &amp; آزمون&gt;/);
 assert.match(art, /برای تو &amp; من/);
@@ -79,6 +79,7 @@ assert.ok(!route.includes("process.env.NODE_ENV === 'production'"),
 for (const marker of [
   "validateShopMoment('p02', values)", 'findHalleusCityById(values.cityId)',
   "import('@/lib/shop/shop-sky-atlas')", "import('@/lib/shop/shop-constellation-lines')",
+  "import('@/lib/shop/shop-galactic-atmosphere')",
   "import('@/lib/shop/shop-birth-sky-artwork')",
   'dangerouslySetInnerHTML={{ __html: artwork }}',
   "canvas.toBlob(", "URL.revokeObjectURL(svgUrl)",

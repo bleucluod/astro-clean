@@ -1,8 +1,10 @@
 import type { calculateShopStarAtlas } from './shop-sky-atlas';
 import type { calculateShopConstellationLines } from './shop-constellation-lines';
+import type { calculateShopGalacticAtmosphere } from './shop-galactic-atmosphere';
 
 type Sky = ReturnType<typeof calculateShopStarAtlas>;
 type Figures = ReturnType<typeof calculateShopConstellationLines>;
+type Atmosphere = ReturnType<typeof calculateShopGalacticAtmosphere>;
 
 export type BirthSkyPersonalDetails = {
   names: string;
@@ -104,16 +106,23 @@ export function renderShopBirthSkyArtwork(
   atlas: Sky,
   figures: Figures,
   details: BirthSkyPersonalDetails,
-  options: { typography?: boolean } = {},
+  options: { typography?: boolean; atmosphere?: Atmosphere } = {},
 ): string {
   if (atlas.referenceUtc !== figures.referenceUtc ||
       atlas.latitude !== figures.latitude || atlas.longitude !== figures.longitude) {
     throw new Error('Star and constellation geometry must share one reference instant and location.');
   }
+  const atmosphere = options.atmosphere;
+  if (atmosphere && (atmosphere.referenceUtc !== atlas.referenceUtc ||
+      atmosphere.latitude !== atlas.latitude || atmosphere.longitude !== atlas.longitude)) {
+    throw new Error('Galactic atmosphere and catalog stars must share the same sky reference.');
+  }
   const { x: cx, y: cy, radius } = F.circle;
   const inside = (x: number, y: number) =>
     Number.isFinite(x) && Number.isFinite(y) && x * x + y * y <= 1.00001;
 
+  // A real star at each light source. Brightness hierarchy and subtle
+  // four-point glints are graphic treatments, not new or relocated stars.
   const stars = atlas.aboveHorizonStars.map((star) => {
     if (!inside(star.x, star.y) || !Number.isFinite(star.visualMagnitude)) {
       throw new Error('Invalid projected catalog star.');
@@ -121,17 +130,26 @@ export function renderShopBirthSkyArtwork(
     const x = (cx + star.x * radius).toFixed(2);
     const y = (cy + star.y * radius).toFixed(2);
     const magnitude = star.visualMagnitude;
-    const r = Math.max(1.45, Math.min(8.5, 5.4 * Math.pow(10, (2.0 - magnitude) / 7)));
-    const opacity = Math.max(.42, Math.min(1, 1.02 - (magnitude - 1) * .115));
-    const isBright = magnitude <= 2.5;
-    return `<circle cx="${x}" cy="${y}" r="${r.toFixed(2)}" fill="${F.colors.white}"
-      opacity="${opacity.toFixed(2)}"/>` +
-      (isBright ? `<circle cx="${x}" cy="${y}" r="${(r * 3.8).toFixed(2)}"
-        fill="url(#p02-star-halo)" opacity=".61"/>` : '');
+    const r = Math.max(1.48, Math.min(7.2, 4.75 * Math.pow(10, (2 - magnitude) / 7)));
+    const opacity = Math.max(.50, Math.min(1, 1.05 - (magnitude - 1) * .115));
+    const bright = magnitude <= 2.25;
+    const prominent = magnitude <= 1.0;
+    const glow = bright ? `<circle cx="${x}" cy="${y}" r="${(r * 5.8).toFixed(2)}"
+       fill="url(#p02-star-halo)" opacity=".76"/>` : '';
+    const sparkle = prominent ? `<g stroke="${F.colors.icy}" stroke-linecap="round"
+       stroke-width="1.25" opacity=".58">
+       <path d="M${(Number(x) - r * 4.5).toFixed(2)} ${y} h${(r * 9).toFixed(2)}
+         M${x} ${(Number(y) - r * 5.2).toFixed(2)} v${(r * 10.4).toFixed(2)}"/>
+       </g>` : '';
+    return glow + sparkle + `<circle cx="${x}" cy="${y}" r="${r.toFixed(2)}"
+      fill="${F.colors.white}" opacity="${opacity.toFixed(2)}"/>`;
   }).join('');
 
+  // Rank 1 includes the strongest, recognized sourced constellation figures.
+  // We intentionally exclude ranks 2 and 3 rather than drawing every sourced
+  // path: all included line geometry still comes from the real sky projection.
   const constellationPaths = figures.lines
-    .filter((line) => line.rank <= 2)
+    .filter((line) => line.rank === 1)
     .map((line) => {
       const path = line.points.map((point, index) => {
         if (!inside(point.x, point.y)) throw new Error('Invalid projected constellation point.');
@@ -140,18 +158,36 @@ export function renderShopBirthSkyArtwork(
           (cy + point.y * radius).toFixed(2);
       }).join(' ');
       return `<path d="${path}" stroke="${F.colors.icy}" fill="none"
-        stroke-width="${line.rank === 1 ? 2.2 : 1.3}"
-        stroke-opacity="${line.rank === 1 ? '.43' : '.21'}"/>`;
+        stroke-linecap="round" stroke-linejoin="round"
+        stroke-width="1.7" stroke-opacity=".34"/>`;
     }).join('');
 
-  // Restrained dust-like atmosphere follows real projected stellar positions;
-  // never overlay an invented, fixed-position photographic Milky Way.
-  const haze = atlas.aboveHorizonStars
-    .filter((star) => star.visualMagnitude >= 3 && star.visualMagnitude <= 5.5)
-    .filter((_, index) => index % 19 === 0)
-    .map((star) => `<circle cx="${(cx + star.x * radius).toFixed(1)}"
-      cy="${(cy + star.y * radius).toFixed(1)}" r="79" fill="url(#p02-dust)"/>`)
-    .join('');
+  // Fine-grained mist is oriented by the J2000 galactic equator in the same
+  // live instant and location as the catalog. This is atmospheric illustration,
+  // NEVER a claim that the Galactic dust was visible to the naked eye.
+  const galaxySpine = (atmosphere?.band ?? []).map((polyline) => {
+    const path = polyline.map((point, index) => {
+      if (!inside(point.x, point.y)) throw new Error('Invalid galactic plane projection.');
+      return (index ? 'L' : 'M') + (cx + point.x * radius).toFixed(2) +
+        ' ' + (cy + point.y * radius).toFixed(2);
+    }).join(' ');
+    return `<path d="${path}" fill="none" stroke="${F.colors.icy}"
+      stroke-width="230" stroke-opacity=".095" stroke-linecap="round"
+      filter="url(#p02-galactic-soften)"/>`;
+  }).join('');
+
+  const dustClouds = (atmosphere?.clouds ?? []).map((point) => {
+    if (!inside(point.x, point.y)) throw new Error('Invalid galactic cloud projection.');
+    return `<circle cx="${(cx + point.x * radius).toFixed(1)}"
+      cy="${(cy + point.y * radius).toFixed(1)}" r="${point.size.toFixed(1)}"
+      fill="url(#p02-dust)" opacity="${point.brightness.toFixed(3)}"/>`;
+  }).join('');
+  const galacticGrain = (atmosphere?.grains ?? []).map((point) => {
+    if (!inside(point.x, point.y)) throw new Error('Invalid galactic grain projection.');
+    return `<circle cx="${(cx + point.x * radius).toFixed(1)}"
+      cy="${(cy + point.y * radius).toFixed(1)}" r="${point.size.toFixed(2)}"
+      fill="${F.colors.secondary}" opacity="${point.brightness.toFixed(3)}"/>`;
+  }).join('');
 
   const north = cy - radius;
   const south = cy + radius;
@@ -162,6 +198,14 @@ export function renderShopBirthSkyArtwork(
     ['W', west - 80, cy + 19], ['E', east + 80, cy + 19],
   ].map(([label, x, y]) => textElement(Number(x), Number(y), 52, 400,
     F.colors.secondary, String(label), 'ltr')).join('');
+  const cardinalFlares = [
+    [cx, north], [cx, south], [west, cy], [east, cy],
+  ].map(([x, y]) => `<g>
+    <circle cx="${x}" cy="${y}" r="33" fill="url(#p02-star-halo)"/>
+    <path d="M${x - 24} ${y} H${x + 24} M${x} ${y - 26} V${y + 26}"
+      fill="none" stroke="${F.colors.icy}" stroke-width="1.6" stroke-opacity=".86"/>
+    <circle cx="${x}" cy="${y}" r="3.6" fill="${F.colors.white}"/>
+  </g>`).join('');
   const ticks = `<g stroke="${F.colors.icy}" stroke-width="2.4" opacity=".85">
     <path d="M${cx} ${north - 20} v44 M${cx} ${south - 24} v44
       M${west - 20} ${cy} h44 M${east - 24} ${cy} h44"/>
@@ -174,18 +218,32 @@ export function renderShopBirthSkyArtwork(
     <desc>نقشهٔ محاسباتی ستاره‌های بالای افق، نه تصویر تاریخی آسمان</desc>
     <defs>
       <clipPath id="p02-circle"><circle cx="${cx}" cy="${cy}" r="${radius}"/></clipPath>
-      <radialGradient id="p02-star-halo"><stop offset="0" stop-color="#F8FAFC" stop-opacity=".4"/>
+      <radialGradient id="p02-star-halo"><stop offset="0" stop-color="#F8FAFC" stop-opacity=".62"/>
+        <stop offset=".20" stop-color="#D9EAFD" stop-opacity=".23"/>
         <stop offset="1" stop-color="#D9EAFD" stop-opacity="0"/></radialGradient>
-      <radialGradient id="p02-dust"><stop offset="0" stop-color="#BCCCDC" stop-opacity=".048"/>
+      <radialGradient id="p02-dust"><stop offset="0" stop-color="#D9EAFD" stop-opacity=".20"/>
+        <stop offset=".48" stop-color="#BCCCDC" stop-opacity=".085"/>
         <stop offset="1" stop-color="#BCCCDC" stop-opacity="0"/></radialGradient>
+      <filter id="p02-ring-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="7"/>
+      </filter>
+      <filter id="p02-galactic-soften" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="26"/>
+      </filter>
     </defs>
     <rect width="${F.width}" height="${F.height}" fill="${F.background}"/>
-    <g clip-path="url(#p02-circle)">${haze}${constellationPaths}${stars}</g>
-    <g fill="none" stroke="${F.colors.icy}">
-      <circle cx="${cx}" cy="${cy}" r="${radius}" stroke-width="2.5" opacity=".76"/>
-      <circle cx="${cx}" cy="${cy}" r="${radius + 10}" stroke-width="1.1" opacity=".20"/>
+    <g clip-path="url(#p02-circle)">
+      <g id="p02-galactic-atmosphere">${galaxySpine}${dustClouds}${galacticGrain}</g>
+      <g id="p02-sourced-constellations">${constellationPaths}</g>
+      <g id="p02-sourced-stars">${stars}</g>
     </g>
-    ${ticks}${compass}
+    <g fill="none" stroke="${F.colors.icy}">
+      <circle cx="${cx}" cy="${cy}" r="${radius}" stroke-width="14" opacity=".24"
+        filter="url(#p02-ring-glow)"/>
+      <circle cx="${cx}" cy="${cy}" r="${radius}" stroke-width="2.4" opacity=".87"/>
+      <circle cx="${cx}" cy="${cy}" r="${radius + 10}" stroke-width="1.1" opacity=".26"/>
+    </g>
+    ${ticks}${cardinalFlares}${compass}
     ${options.typography === false ? '' : posterTypography(details)}
   </svg>`;
 }
