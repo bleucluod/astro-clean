@@ -100,10 +100,10 @@ assert.ok(svg.includes('stroke-opacity=".30"'));
 assert.doesNotMatch(svg, /stroke-opacity=".47"|stroke-opacity=".21"/);
 assert.match(svg, /id="p02-sky-grain"/);
 assert.match(svg, /id="p02-galactic-atmosphere" opacity=".045"/);
-assert.doesNotMatch(renderer, /centralLane|Math\\.random/);
+assert.doesNotMatch(renderer, /centralLane|Math\.random/);
 const grainPath = svg.match(/<path id="p02-sky-grain" d="([^"]+)"/)?.[1];
 assert.ok(grainPath);
-const grainPoints = [...grainPath.matchAll(/M([\\d.]+) ([\\d.]+)h[\\d.]+/g)];
+const grainPoints = [...grainPath.matchAll(/M([\d.]+) ([\d.]+)h[\d.]+/g)];
 assert.ok(grainPoints.length > 3500 && grainPoints.length < 6500);
 const quadrants = [0, 0, 0, 0];
 for (const [, sx, sy] of grainPoints) {
