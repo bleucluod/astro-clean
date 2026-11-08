@@ -35,6 +35,7 @@ export function BirthSkyLiveProduct() {
   const [error, setError] = useState('');
   const [downloadBusy, setDownloadBusy] = useState(false);
   const operation = useRef(0);
+  const skyOnlyArtwork = useRef<string | null>(null);
   const citySuggestions = useMemo(() => (
     input.cityId || input.city.trim().length < 2
       ? [] : filterHalleusCities(input.city).slice(0, 8)
@@ -75,9 +76,17 @@ export function BirthSkyLiveProduct() {
         time: values.time,
         city: getHalleusCityDisplayName(city),
       });
-      if (version === operation.current) setArtwork(svg);
+      if (version === operation.current) {
+        // The same computed catalog scene is used by the preview and PNG.
+        skyOnlyArtwork.current = artModule.renderShopBirthSkyArtwork(stars, figures, {
+          names, message, date: values.date, time: values.time,
+          city: getHalleusCityDisplayName(city),
+        }, { typography: false });
+        setArtwork(svg);
+      }
     } catch (failure) {
       if (version === operation.current) {
+        skyOnlyArtwork.current = null;
         setArtwork(null);
         setError(failure instanceof Error ? failure.message : 'محاسبهٔ این آسمان انجام نشد.');
       }
@@ -101,6 +110,7 @@ export function BirthSkyLiveProduct() {
 
   function change<K extends keyof Personalization>(field: K, value: Personalization[K]) {
     operation.current += 1;
+    skyOnlyArtwork.current = null;
     setArtwork(null);
     setBusy(false);
     setError('');
@@ -113,6 +123,7 @@ export function BirthSkyLiveProduct() {
     const city = findHalleusCityById(cityId);
     if (!city) return;
     operation.current += 1;
+    skyOnlyArtwork.current = null;
     setInput((previous) => ({
       ...previous, cityId: city.id, city: getHalleusCityDisplayName(city),
     }));
@@ -131,7 +142,13 @@ export function BirthSkyLiveProduct() {
     if (!artwork || downloadBusy) return;
     setDownloadBusy(true);
     setError('');
-    const svgUrl = URL.createObjectURL(new Blob([artwork], { type: 'image/svg+xml;charset=utf-8' }));
+    const bareSky = skyOnlyArtwork.current;
+    if (!bareSky) {
+      setError('نقشه هنوز برای خروجی آماده نیست.');
+      setDownloadBusy(false);
+      return;
+    }
+    const svgUrl = URL.createObjectURL(new Blob([bareSky], { type: 'image/svg+xml;charset=utf-8' }));
     try {
       const image = new window.Image();
       await new Promise<void>((resolve, reject) => {
@@ -145,6 +162,26 @@ export function BirthSkyLiveProduct() {
       const context = canvas.getContext('2d');
       if (!context) throw new Error('امکان ذخیرهٔ تصویر در این مرورگر وجود ندارد.');
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const fontRoot = document.querySelector('[data-shop-page="p02-live-product"]');
+      const family = fontRoot
+        ? getComputedStyle(fontRoot).getPropertyValue('--font-p02-estedad').trim()
+        : '';
+      if (!family) throw new Error('فونت اختصاصی اثر هنوز آماده نیست.');
+      const city = findHalleusCityById(input.cityId);
+      if (!city) throw new Error('شهر انتخابی معتبر نیست.');
+      const artModule = await import('@/lib/shop/shop-birth-sky-artwork');
+      context.save();
+      context.scale(0.5, 0.5);
+      try {
+        await artModule.paintShopBirthSkyTypography(context, {
+          names: safeShopArtworkText(input.names, 'نام'),
+          message: safeShopArtworkText(input.message, 'پیام'),
+          city: getHalleusCityDisplayName(city),
+          date: input.date, time: input.time,
+        }, family);
+      } finally {
+        context.restore();
+      }
       const png = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((result) => result ? resolve(result) : reject(new Error('فایل PNG ساخته نشد.')), 'image/png');
       });
@@ -209,6 +246,7 @@ export function BirthSkyLiveProduct() {
                     setInput((previous) => ({
                       ...previous, calendar: event.target.value as Personalization['calendar'], date: '',
                     }));
+                    skyOnlyArtwork.current = null;
                     setArtwork(null); setError(''); setBusy(false);
                   }}>
                   <option value="jalali">شمسی</option><option value="gregorian">میلادی</option>

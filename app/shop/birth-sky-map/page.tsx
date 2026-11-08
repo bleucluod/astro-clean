@@ -1,5 +1,18 @@
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import { BirthSkyLiveProduct } from '@/components/shop/BirthSkyLiveProduct';
+
+// Same Estedad Light/Regular/Medium assets used by the approved P01 R9b
+// native renderer. Keep the live SVG and downloaded PNG typography aligned.
+const estedad = localFont({
+  src: [
+    { path: '../../../assets/shop-print/fonts/Estedad-Light.ttf', weight: '300', style: 'normal' },
+    { path: '../../../assets/shop-print/fonts/Estedad-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../../../assets/shop-print/fonts/Estedad-Medium.ttf', weight: '500', style: 'normal' },
+  ],
+  variable: '--font-p02-estedad',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'آسمان تولد | نقشهٔ واقعی ستاره‌های لحظهٔ تولد | هالیوس',
@@ -10,5 +23,5 @@ export const metadata: Metadata = {
 };
 
 export default function BirthSkyProductPage() {
-  return <BirthSkyLiveProduct />;
+  return <div className={estedad.variable}><BirthSkyLiveProduct /></div>;
 }
