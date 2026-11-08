@@ -96,8 +96,22 @@ assert.match(svg, /id="p02-sky-depth"/);
 assert.match(svg, /<feTurbulence type="fractalNoise"/);
 assert.ok(!renderer.includes('Math.random'), 'Art texture must be deterministic');
 assert.ok(!renderer.includes('<image href='), 'No stock sky or static mapped stars allowed');
-assert.ok(svg.includes('stroke-opacity=".47"'));
-assert.doesNotMatch(svg, /stroke-opacity=".21"/, 'Only the strongest sourced constellation rank is included');
+assert.ok(svg.includes('stroke-opacity=".30"'));
+assert.doesNotMatch(svg, /stroke-opacity=".47"|stroke-opacity=".21"/);
+assert.match(svg, /id="p02-sky-grain"/);
+assert.match(svg, /id="p02-galactic-atmosphere" opacity=".045"/);
+assert.doesNotMatch(renderer, /centralLane|Math\\.random/);
+const grainPath = svg.match(/<path id="p02-sky-grain" d="([^"]+)"/)?.[1];
+assert.ok(grainPath);
+const grainPoints = [...grainPath.matchAll(/M([\\d.]+) ([\\d.]+)h[\\d.]+/g)];
+assert.ok(grainPoints.length > 3500 && grainPoints.length < 6500);
+const quadrants = [0, 0, 0, 0];
+for (const [, sx, sy] of grainPoints) {
+  const x = Number(sx), y = Number(sy);
+  quadrants[(y >= 1920 ? 2 : 0) + (x >= 1500 ? 1 : 0)]++;
+}
+assert.ok(quadrants.every((count) => count > 600),
+  'Background texture must cover all four quadrants, including upper-left');
 assert.doesNotMatch(svg, /<image|shop-preview|A MOMENT WRITTEN|radialGradient id="birth-sky-surface"/);
 assert.doesNotMatch(noText, /id="p02-poster-typography"/);
 assert.match(noText, /<circle/);

@@ -76,8 +76,10 @@ assert.match(svg, /id="p02-illustrative-atmosphere"/);
 assert.match(svg, /id="p02-nebula-fractal"/);
 assert.match(svg, /filter="url\(#p02-galactic-soften\)"/);
 assert.match(svg, /id="p02-sourced-stars"/);
-assert.match(svg, /stroke-opacity=".47"/);
-assert.doesNotMatch(svg, /stroke-opacity=".21"/);
+assert.match(svg, /stroke-opacity=".30"/);
+assert.doesNotMatch(svg, /stroke-opacity=".47"|stroke-opacity=".21"/);
+assert.match(svg, /id="p02-sky-grain"/);
+assert.match(svg, /id="p02-galactic-atmosphere" opacity=".045"/);
 assert.ok(svg.includes('fill="#000000"') && svg.includes('p02-star-halo'));
 assert.notEqual(svg, render(atlas, figures, personal, { atmosphere: moved }));
 assert.throws(() => render(atlas, figures, personal, {

@@ -131,14 +131,14 @@ export function renderShopBirthSkyArtwork(
     const y = (cy + star.y * radius).toFixed(2);
     const magnitude = star.visualMagnitude;
     const r = Math.max(1.48, Math.min(7.2, 4.75 * Math.pow(10, (2 - magnitude) / 7)));
-    const opacity = Math.max(.50, Math.min(1, 1.05 - (magnitude - 1) * .115));
+    const opacity = Math.max(.62, Math.min(1, 1.08 - (magnitude - 1) * .105));
     const bright = magnitude <= 2.2;
-    const prominent = magnitude <= 1.85;
-    const glow = bright ? `<circle cx="${x}" cy="${y}" r="${(r * 5.8).toFixed(2)}"
-       fill="url(#p02-star-halo)" opacity=".76"/>` : '';
-    const flareScale = magnitude <= .55 ? 4.5 : 2.7;
+    const prominent = magnitude <= .95;
+    const glow = bright ? `<circle cx="${x}" cy="${y}" r="${(r * 3.05).toFixed(2)}"
+       fill="url(#p02-star-halo)" opacity=".33"/>` : '';
+    const flareScale = magnitude <= .55 ? 3.65 : 2.65;
     const sparkle = prominent ? `<g stroke="${F.colors.icy}" stroke-linecap="round"
-       stroke-width="${magnitude <= .55 ? '1.25' : '.8'}" opacity="${magnitude <= .55 ? '.58' : '.28'}">
+       stroke-width="${magnitude <= .55 ? '1.25' : '.85'}" opacity="${magnitude <= .55 ? '.56' : '.30'}">
        <path d="M${(Number(x) - r * flareScale).toFixed(2)} ${y} h${(r * flareScale * 2).toFixed(2)}
          M${x} ${(Number(y) - r * flareScale * 1.1).toFixed(2)} v${(r * flareScale * 2.2).toFixed(2)}"/>
        </g>` : '';
@@ -160,7 +160,7 @@ export function renderShopBirthSkyArtwork(
       }).join(' ');
       return `<path d="${path}" stroke="${F.colors.icy}" fill="none"
         stroke-linecap="round" stroke-linejoin="round"
-        stroke-width="1.9" stroke-opacity=".47"/>`;
+        stroke-width="1.45" stroke-opacity=".30"/>`;
     }).join('');
 
   // Decorative Milky Way-like atmosphere: deliberately illustrative, not an
@@ -182,6 +182,26 @@ export function renderShopBirthSkyArtwork(
   const fbm = (x: number, y: number): number =>
     .46 * noise(x * 2, y * 2, 5) + .29 * noise(x * 5.4, y * 5.4, 6) +
     .16 * noise(x * 13.6, y * 13.6, 8) + .09 * noise(x * 32, y * 32, 10);
+  // Subtle deterministic painterly grain distinct from real catalog stars.
+  // A modest north-west boost prevents blank areas without inventing bright stars.
+  const skyGrainSegments: string[] = [];
+  const grainSteps = 124;
+  for (let iy = 0; iy < grainSteps; iy++) {
+    const y = -1 + (iy + .5) * 2 / grainSteps;
+    for (let ix = 0; ix < grainSteps; ix++) {
+      const x = -1 + (ix + .5) * 2 / grainSteps;
+      if (x * x + y * y > .98) continue;
+      const northWest = Math.max(0, -x) * Math.max(0, -y);
+      if (hash(ix, iy, 41) > .43 + .15 * northWest) continue;
+      const px = cx + radius * x + (hash(ix, iy, 42) - .5) * 9;
+      const py = cy + radius * y + (hash(ix, iy, 43) - .5) * 9;
+      const length = .75 + 1.05 * hash(ix, iy, 44);
+      skyGrainSegments.push(`M${px.toFixed(1)} ${py.toFixed(1)}h${length.toFixed(1)}`);
+    }
+  }
+  const skyGrain = `<path id="p02-sky-grain" d="${skyGrainSegments.join(' ')}"
+    stroke="${F.colors.secondary}" stroke-width="1.15" stroke-linecap="round"
+    fill="none" opacity=".38"/>`;
   const atmospherePuffs: string[] = [];
   const atmosphereDust: string[] = [];
   const nebulaSteps = 146;
@@ -194,33 +214,33 @@ export function renderShopBirthSkyArtwork(
       // from southwest to northeast. Its angle is NOT an astronomy result.
       const along = (x - y) * .70710678;
       const across = (x + y) * .70710678;
-      const warped = across - .045 * Math.sin(along * 9) -
-        .035 * Math.sin(along * 19 + .8);
-      const broad = Math.exp(-.5 * Math.pow(warped / .105, 2));
-      const core = Math.exp(-.5 * Math.pow((warped + .018) / .057, 2));
+      const warped = across - .035 * Math.sin(along * 8) -
+        .025 * Math.sin(along * 18 + .8);
+      const broad = Math.exp(-.5 * Math.pow(warped / .15, 2));
+      const core = Math.exp(-.5 * Math.pow((warped + .014) / .074, 2));
       const n = fbm(along + .7, warped * 3.5 + .5);
-      const notch = noise(along * 10 + 4, warped * 22, 12);
+      const notch = noise(along * 11 + 4, warped * 22, 12);
       const cloud = Math.max(0, Math.min(1,
-        (broad * (.20 + .68 * n) + core * .12) * (.55 + notch * .65)));
-      const stripe = Math.exp(-.5 * Math.pow((warped + .004) / .035, 2));
-      const asymmetricLane = .44 - .23 * Math.tanh(along * 2.5);
-      const lane = 1 - stripe * (1 - asymmetricLane);
+        (broad * (.40 + .64 * n) + core * .18) * (.70 + notch * .55)));
+      // A narrow winding dust lane adds depth without erasing the band centre.
+      const laneCentre = .014 * Math.sin(along * 6 + .8);
+      const stripe = Math.exp(-.5 * Math.pow((warped - laneCentre) / .023, 2));
+      const lane = 1 - stripe * (.32 + .24 * notch);
       const amplitude = cloud * lane;
-      if (amplitude < .09) continue;
+      if (amplitude < .045) continue;
       const px = cx + x * radius, py = cy + y * radius;
-      const size = 25 + 16 * hash(ix, iy, 3);
-      const alongTaper = Math.max(.46, Math.min(1.14, .82 - .34 * along));
-      const centralLane = 1 - .70 * Math.exp(-.5 * Math.pow(along / .24, 2));
-      const strength = Math.min(.37, amplitude * .46 * alongTaper * centralLane);
+      const size = 25 + 17 * hash(ix, iy, 3);
+      const alongTaper = Math.max(.76, Math.min(1.02, .90 - .09 * along));
+      const strength = Math.min(.57, amplitude * .56 * alongTaper);
       atmospherePuffs.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${size.toFixed(1)}"
          fill="url(#p02-cloud)" opacity="${strength.toFixed(2)}"/>`);
       // Fine stellar-looking grains are painterly atmosphere, not catalog stars.
-      if (hash(ix, iy, 11) < Math.min(.85, amplitude * 1.45)) {
+      if (hash(ix, iy, 11) < Math.min(.92, .24 + amplitude * 1.14)) {
         const dx = (hash(ix, iy, 13) - .5) * 14;
         const dy = (hash(ix, iy, 17) - .5) * 14;
         atmosphereDust.push(`<circle cx="${(px+dx).toFixed(1)}" cy="${(py+dy).toFixed(1)}"
-          r="${(.55 + 1.1 * hash(ix, iy, 18)).toFixed(2)}"
-          fill="${F.colors.icy}" opacity="${(.16 + amplitude * .46).toFixed(2)}"/>`);
+          r="${(.55 + 1.05 * hash(ix, iy, 18)).toFixed(2)}"
+          fill="${F.colors.icy}" opacity="${(.12 + amplitude * .42).toFixed(2)}"/>`);
       }
     }
   }
@@ -267,10 +287,10 @@ export function renderShopBirthSkyArtwork(
   ].map(([x, y]) => `<g>
     <circle cx="${x}" cy="${y}" r="33" fill="url(#p02-star-halo)"/>
     <path d="M${x - 24} ${y} H${x + 24} M${x} ${y - 26} V${y + 26}"
-      fill="none" stroke="${F.colors.icy}" stroke-width="1.6" stroke-opacity=".86"/>
+      fill="none" stroke="${F.colors.icy}" stroke-width="1.6" stroke-opacity=".74"/>
     <circle cx="${x}" cy="${y}" r="3.6" fill="${F.colors.white}"/>
   </g>`).join('');
-  const ticks = `<g stroke="${F.colors.icy}" stroke-width="2.4" opacity=".85">
+  const ticks = `<g stroke="${F.colors.icy}" stroke-width="2.4" opacity=".72">
     <path d="M${cx} ${north - 20} v44 M${cx} ${south - 24} v44
       M${west - 20} ${cy} h44 M${east - 24} ${cy} h44"/>
   </g>`;
@@ -293,8 +313,8 @@ export function renderShopBirthSkyArtwork(
         <stop offset=".74" stop-color="#07121F" stop-opacity=".19"/>
         <stop offset="1" stop-color="#030A11" stop-opacity=".08"/>
       </radialGradient>
-      <radialGradient id="p02-cloud"><stop offset="0" stop-color="#B9D5E7" stop-opacity=".17"/>
-        <stop offset=".35" stop-color="#93BCD6" stop-opacity=".06"/>
+      <radialGradient id="p02-cloud"><stop offset="0" stop-color="#B9D5E7" stop-opacity=".25"/>
+        <stop offset=".35" stop-color="#93BCD6" stop-opacity=".09"/>
         <stop offset="1" stop-color="#BCCCDC" stop-opacity="0"/></radialGradient>
       <filter id="p02-nebula-fractal" x="0" y="0" width="100%" height="100%">
         <feTurbulence type="fractalNoise" baseFrequency=".010" numOctaves="4" seed="11"
@@ -327,18 +347,19 @@ export function renderShopBirthSkyArtwork(
     <rect width="${F.width}" height="${F.height}" fill="${F.background}"/>
     <g clip-path="url(#p02-circle)">
       <circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#p02-sky-depth)"/>
+      ${skyGrain}
       ${nebulaArt}
       <rect x="${cx-radius}" y="${cy-radius}" width="${radius*2}" height="${radius*2}"
         filter="url(#p02-nebula-fractal)" mask="url(#p02-nebula-band-mask)"
-        opacity=".11"/>
-      <g id="p02-galactic-atmosphere" opacity=".012">${galaxySpine}${dustClouds}${galacticGrain}</g>
+        opacity=".16"/>
+      <g id="p02-galactic-atmosphere" opacity=".045">${galaxySpine}${dustClouds}${galacticGrain}</g>
       <g id="p02-sourced-constellations">${constellationPaths}</g>
       <g id="p02-sourced-stars">${stars}</g>
     </g>
     <g fill="none" stroke="${F.colors.icy}">
-      <circle cx="${cx}" cy="${cy}" r="${radius}" stroke-width="14" opacity=".24"
+      <circle cx="${cx}" cy="${cy}" r="${radius}" stroke-width="14" opacity=".19"
         filter="url(#p02-ring-glow)"/>
-      <circle cx="${cx}" cy="${cy}" r="${radius}" stroke-width="2.4" opacity=".87"/>
+      <circle cx="${cx}" cy="${cy}" r="${radius}" stroke-width="2.4" opacity=".85"/>
       <circle cx="${cx}" cy="${cy}" r="${radius + 10}" stroke-width="1.1" opacity=".26"/>
     </g>
     ${ticks}${cardinalFlares}${compass}
