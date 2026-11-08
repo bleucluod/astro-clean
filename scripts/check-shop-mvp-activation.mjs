@@ -50,11 +50,14 @@ for (const path of [...guardedPages, ...guardedAdmin]) {
   const contents = readFileSync(resolve(root, path), 'utf8');
   assert.match(contents, /!isShopMvpActive\(\)/, `${path} must honor the closed release boundary`);
 }
-for (const productSlug of ['birth-sky-map', 'milky-way-print']) {
-  const page = readFileSync(resolve(root, `app/shop/${productSlug}/page.tsx`), 'utf8');
-  assert.match(page, /process\.env\.NODE_ENV === 'production'/,
-    `${productSlug} must remain closed even if the first product is activated`);
-}
+const p02Page = readFileSync(resolve(root, 'app/shop/birth-sky-map/page.tsx'), 'utf8');
+const p02Preview = readFileSync(resolve(root, 'components/shop/BirthSkyLiveProduct.tsx'), 'utf8');
+assert.match(p02Page, /<BirthSkyLiveProduct\s*\/>/, 'P02 must be previewable as a real computed artwork');
+assert.match(p02Page, /index: false/, 'P02 must remain noindex during print/gallery review');
+assert.match(p02Preview, /validateShopMoment\('p02', values\)/, 'P02 date, clock and city must be validated');
+assert.doesNotMatch(p02Preview, /addShopCartItem|fetch\(/, 'P02 artwork must not place an order or transmit birth inputs');
+assert.match(readFileSync(resolve(root, 'app/shop/milky-way-print/page.tsx'), 'utf8'),
+  /process\.env\.NODE_ENV === 'production'/, 'P03 must remain closed even when P02 is previewable');
 for (const [path, expected] of [
   ['lib/shop/shop-quote.ts', "new Set(['p01'])"],
   ['components/shop/shop-cart.ts', "['p01']"],

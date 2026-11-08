@@ -74,6 +74,14 @@ export function ShopV01Home({ products }: { products: ShopV01Item[] }) {
               );
             })}
           </div>
+          <aside className={styles.p02Invitation} aria-label="مشاهدهٔ طرح واقعی آسمان تولد">
+            <div>
+              <span>محصول دوم هالیوس · پیش از آغاز فروش</span>
+              <h3>آسمان تولد، از روی ستاره‌های واقعی</h3>
+              <p>تاریخ، ساعت و شهر تولد رو انتخاب کن و تصویر خودِ تابلو رو ببین؛ هنوز هیچ موکاپ یا عکس تبلیغاتی جایگزین این نقشه نشده.</p>
+            </div>
+            <Link href="/shop/birth-sky-map">ساخت و دیدن آسمان تولد</Link>
+          </aside>
         </div>
       </section>
 

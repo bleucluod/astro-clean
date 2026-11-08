@@ -41,9 +41,11 @@ for (const [id, slug] of slugs) {
   assert.ok(!page.includes("canonical: '/shop/" + id + "'"));
 }
 assert.match(read('app/shop/moon-phase-print/page.tsx'), /!isShopMvpActive\(\)/);
-for (const slug of ['birth-sky-map', 'milky-way-print']) {
-  assert.match(read('app/shop/' + slug + '/page.tsx'), /process\.env\.NODE_ENV === 'production'/);
-}
+const p02Page = read('app/shop/birth-sky-map/page.tsx');
+assert.match(p02Page, /<BirthSkyLiveProduct\s*\/>/, 'P02 must show the actual computed artwork');
+assert.match(p02Page, /index: false/, 'P02 remains noindex until approved for sale and content');
+assert.doesNotMatch(p02Page, /process\.env\.NODE_ENV === 'production'/, 'P02 display is publicly reviewable');
+assert.match(read('app/shop/milky-way-print/page.tsx'), /process\.env\.NODE_ENV === 'production'/);
 
 assert.match(catalog, /product\.id === 'P01'/);
 assert.match(catalog, /const indexable = isShopMvpActive\(\)/);
