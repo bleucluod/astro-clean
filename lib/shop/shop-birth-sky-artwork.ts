@@ -132,14 +132,15 @@ export function renderShopBirthSkyArtwork(
     const magnitude = star.visualMagnitude;
     const r = Math.max(1.48, Math.min(7.2, 4.75 * Math.pow(10, (2 - magnitude) / 7)));
     const opacity = Math.max(.50, Math.min(1, 1.05 - (magnitude - 1) * .115));
-    const bright = magnitude <= 2.25;
-    const prominent = magnitude <= 1.0;
+    const bright = magnitude <= 2.2;
+    const prominent = magnitude <= 1.85;
     const glow = bright ? `<circle cx="${x}" cy="${y}" r="${(r * 5.8).toFixed(2)}"
        fill="url(#p02-star-halo)" opacity=".76"/>` : '';
+    const flareScale = magnitude <= .55 ? 4.5 : 2.7;
     const sparkle = prominent ? `<g stroke="${F.colors.icy}" stroke-linecap="round"
-       stroke-width="1.25" opacity=".58">
-       <path d="M${(Number(x) - r * 4.5).toFixed(2)} ${y} h${(r * 9).toFixed(2)}
-         M${x} ${(Number(y) - r * 5.2).toFixed(2)} v${(r * 10.4).toFixed(2)}"/>
+       stroke-width="${magnitude <= .55 ? '1.25' : '.8'}" opacity="${magnitude <= .55 ? '.58' : '.28'}">
+       <path d="M${(Number(x) - r * flareScale).toFixed(2)} ${y} h${(r * flareScale * 2).toFixed(2)}
+         M${x} ${(Number(y) - r * flareScale * 1.1).toFixed(2)} v${(r * flareScale * 2.2).toFixed(2)}"/>
        </g>` : '';
     return glow + sparkle + `<circle cx="${x}" cy="${y}" r="${r.toFixed(2)}"
       fill="${F.colors.white}" opacity="${opacity.toFixed(2)}"/>`;
@@ -159,8 +160,71 @@ export function renderShopBirthSkyArtwork(
       }).join(' ');
       return `<path d="${path}" stroke="${F.colors.icy}" fill="none"
         stroke-linecap="round" stroke-linejoin="round"
-        stroke-width="1.7" stroke-opacity=".34"/>`;
+        stroke-width="1.9" stroke-opacity=".47"/>`;
     }).join('');
+
+  // Decorative Milky Way-like atmosphere: deliberately illustrative, not an
+  // observational Milky Way image and not a statement of galactic orientation.
+  // Stellar coordinates and constellation lines remain 100% catalog-derived.
+  const hash = (x: number, y: number, salt: number): number => {
+    const n = Math.sin(x * 127.1 + y * 311.7 + salt * 74.7) * 43758.5453123;
+    return n - Math.floor(n);
+  };
+  const smoother = (t: number) => t * t * (3 - 2 * t);
+  const noise = (x: number, y: number, salt: number): number => {
+    const ix = Math.floor(x), iy = Math.floor(y);
+    const fx = smoother(x - ix), fy = smoother(y - iy);
+    const n00 = hash(ix, iy, salt), n10 = hash(ix + 1, iy, salt);
+    const n01 = hash(ix, iy + 1, salt), n11 = hash(ix + 1, iy + 1, salt);
+    return (n00 * (1 - fx) + n10 * fx) * (1 - fy) +
+      (n01 * (1 - fx) + n11 * fx) * fy;
+  };
+  const fbm = (x: number, y: number): number =>
+    .46 * noise(x * 2, y * 2, 5) + .29 * noise(x * 5.4, y * 5.4, 6) +
+    .16 * noise(x * 13.6, y * 13.6, 8) + .09 * noise(x * 32, y * 32, 10);
+  const atmospherePuffs: string[] = [];
+  const atmosphereDust: string[] = [];
+  const nebulaSteps = 146;
+  for (let iy = 0; iy < nebulaSteps; iy++) {
+    const y = -1 + (iy + .5) * 2 / nebulaSteps;
+    for (let ix = 0; ix < nebulaSteps; ix++) {
+      const x = -1 + (ix + .5) * 2 / nebulaSteps;
+      if (x*x + y*y > .99) continue;
+      // The approved art direction places an *illustrative* atmospheric band
+      // from southwest to northeast. Its angle is NOT an astronomy result.
+      const along = (x - y) * .70710678;
+      const across = (x + y) * .70710678;
+      const warped = across - .045 * Math.sin(along * 9) -
+        .035 * Math.sin(along * 19 + .8);
+      const broad = Math.exp(-.5 * Math.pow(warped / .105, 2));
+      const core = Math.exp(-.5 * Math.pow((warped + .018) / .057, 2));
+      const n = fbm(along + .7, warped * 3.5 + .5);
+      const notch = noise(along * 10 + 4, warped * 22, 12);
+      const cloud = Math.max(0, Math.min(1,
+        (broad * (.20 + .68 * n) + core * .12) * (.55 + notch * .65)));
+      const stripe = Math.exp(-.5 * Math.pow((warped + .004) / .035, 2));
+      const asymmetricLane = .44 - .23 * Math.tanh(along * 2.5);
+      const lane = 1 - stripe * (1 - asymmetricLane);
+      const amplitude = cloud * lane;
+      if (amplitude < .09) continue;
+      const px = cx + x * radius, py = cy + y * radius;
+      const size = 25 + 16 * hash(ix, iy, 3);
+      const alongTaper = Math.max(.46, Math.min(1.14, .82 - .34 * along));
+      const centralLane = 1 - .70 * Math.exp(-.5 * Math.pow(along / .24, 2));
+      const strength = Math.min(.37, amplitude * .46 * alongTaper * centralLane);
+      atmospherePuffs.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${size.toFixed(1)}"
+         fill="url(#p02-cloud)" opacity="${strength.toFixed(2)}"/>`);
+      // Fine stellar-looking grains are painterly atmosphere, not catalog stars.
+      if (hash(ix, iy, 11) < Math.min(.85, amplitude * 1.45)) {
+        const dx = (hash(ix, iy, 13) - .5) * 14;
+        const dy = (hash(ix, iy, 17) - .5) * 14;
+        atmosphereDust.push(`<circle cx="${(px+dx).toFixed(1)}" cy="${(py+dy).toFixed(1)}"
+          r="${(.55 + 1.1 * hash(ix, iy, 18)).toFixed(2)}"
+          fill="${F.colors.icy}" opacity="${(.16 + amplitude * .46).toFixed(2)}"/>`);
+      }
+    }
+  }
+  const nebulaArt = `<g id="p02-illustrative-atmosphere">${atmospherePuffs.join('')}${atmosphereDust.join('')}</g>`;
 
   // Fine-grained mist is oriented by the J2000 galactic equator in the same
   // live instant and location as the catalog. This is atmospheric illustration,
@@ -224,6 +288,35 @@ export function renderShopBirthSkyArtwork(
       <radialGradient id="p02-dust"><stop offset="0" stop-color="#D9EAFD" stop-opacity=".20"/>
         <stop offset=".48" stop-color="#BCCCDC" stop-opacity=".085"/>
         <stop offset="1" stop-color="#BCCCDC" stop-opacity="0"/></radialGradient>
+      <radialGradient id="p02-sky-depth">
+        <stop offset="0" stop-color="#0D1C2A" stop-opacity=".22"/>
+        <stop offset=".74" stop-color="#07121F" stop-opacity=".19"/>
+        <stop offset="1" stop-color="#030A11" stop-opacity=".08"/>
+      </radialGradient>
+      <radialGradient id="p02-cloud"><stop offset="0" stop-color="#B9D5E7" stop-opacity=".17"/>
+        <stop offset=".35" stop-color="#93BCD6" stop-opacity=".06"/>
+        <stop offset="1" stop-color="#BCCCDC" stop-opacity="0"/></radialGradient>
+      <filter id="p02-nebula-fractal" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".010" numOctaves="4" seed="11"
+          stitchTiles="stitch" result="noise"/>
+        <feColorMatrix in="noise" type="matrix" values="
+          0 0 0 0 .70
+          0 0 0 0 .83
+          0 0 0 0 .95
+          0 0 0 1.9 -.84"/>
+      </filter>
+      <linearGradient id="p02-nebula-band">
+        <stop offset="0" stop-color="black"/>
+        <stop offset=".345" stop-color="black"/>
+        <stop offset=".475" stop-color="white"/>
+        <stop offset=".525" stop-color="white"/>
+        <stop offset=".655" stop-color="black"/>
+        <stop offset="1" stop-color="black"/>
+      </linearGradient>
+      <mask id="p02-nebula-band-mask" maskUnits="userSpaceOnUse">
+        <rect x="0" y="0" width="3000" height="4500" transform="rotate(45 1500 1920)"
+          fill="url(#p02-nebula-band)"/>
+      </mask>
       <filter id="p02-ring-glow" x="-20%" y="-20%" width="140%" height="140%">
         <feGaussianBlur stdDeviation="7"/>
       </filter>
@@ -233,7 +326,12 @@ export function renderShopBirthSkyArtwork(
     </defs>
     <rect width="${F.width}" height="${F.height}" fill="${F.background}"/>
     <g clip-path="url(#p02-circle)">
-      <g id="p02-galactic-atmosphere">${galaxySpine}${dustClouds}${galacticGrain}</g>
+      <circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#p02-sky-depth)"/>
+      ${nebulaArt}
+      <rect x="${cx-radius}" y="${cy-radius}" width="${radius*2}" height="${radius*2}"
+        filter="url(#p02-nebula-fractal)" mask="url(#p02-nebula-band-mask)"
+        opacity=".11"/>
+      <g id="p02-galactic-atmosphere" opacity=".012">${galaxySpine}${dustClouds}${galacticGrain}</g>
       <g id="p02-sourced-constellations">${constellationPaths}</g>
       <g id="p02-sourced-stars">${stars}</g>
     </g>

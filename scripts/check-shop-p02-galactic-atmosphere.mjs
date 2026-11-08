@@ -72,9 +72,11 @@ const personal = { names: 'آراد', message: 'آسمان واقعی',
   city: 'میانه، آذربایجان شرقی', date: '۱۳۷۵/۱۱/۲۵', time: '20:21' };
 const svg = render(atlas, figures, personal, { atmosphere: a });
 assert.match(svg, /id="p02-galactic-atmosphere"/);
+assert.match(svg, /id="p02-illustrative-atmosphere"/);
+assert.match(svg, /id="p02-nebula-fractal"/);
 assert.match(svg, /filter="url\(#p02-galactic-soften\)"/);
 assert.match(svg, /id="p02-sourced-stars"/);
-assert.match(svg, /stroke-opacity=".34"/);
+assert.match(svg, /stroke-opacity=".47"/);
 assert.doesNotMatch(svg, /stroke-opacity=".21"/);
 assert.ok(svg.includes('fill="#000000"') && svg.includes('p02-star-halo'));
 assert.notEqual(svg, render(atlas, figures, personal, { atmosphere: moved }));
