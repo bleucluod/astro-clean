@@ -152,3 +152,15 @@ This later owner approval supersedes the temporary no-mockup/no-watermark review
 - Independent `p02` prices: 10×15 = 1,100,000 toman; 20×30 = 1,900,000 toman; 30×45 = 2,900,000 toman. Leave the shared P01 prices untouched.
 - Preserve P02 noindex and all approved product SEO copy, gallery descriptions, FAQ and editorial blocks other than the owner-selected preview CTA; leave P02 quote/cart/payment/order activation closed. P01 and P03 unchanged.
 - This is a code/gallery review boundary, **not a VPS deployment or public sales activation**. On local pull, the user visually checks typography, mockups, personal previews and dimensions before any subsequent release.
+
+## 2026-11-09 — مالک: اصلاح نام/واترمارک و اجازهٔ مسیر سفارش P02
+
+تصمیم جدید مالک، برش پیش‌نمایش قبلی را برای **مسیر فروش P02** تغییر می‌دهد:
+- **نام و پیام همچنان اختیاری‌اند.** در رندرر واقعی R9 و SVG نمونهٔ خصوصی، نام خالی هیچ جایگزین تبلیغاتی («آسمان تولد») روی اثر اضافه نمی‌کند؛ زمان، شهر، ستاره‌ها و راهنما مستقل باقی می‌مانند.
+- تصویر پیش‌نمایش مرورگر همچنان 720×1080 و WebP است، اما فقط **یک** نوشتهٔ مرکزی «پیش‌نمایش هالیوس» روی پیکسل‌ها دارد؛ SVG تمیز برای صفحه یا دانلود عمومی ارائه نمی‌شود. حفاظت مطلق از تصویری که در مرورگر محاسبه می‌شود ادعا نشود.
+- بعد از محاسبهٔ موفق، دکمهٔ **افزودن تابلو به سبد خرید** فعال می‌شود؛ فرم «edit» سبد هم می‌تواند همان محصول و اندازه را باز کند. ورودی بدون پیش‌نمایش تازه قابل سفارش نیست.
+- سه قیمت P02 مستقل از P01 و در صفحه/سبد/Quote سمت سرور یکسان‌اند: 10×15: 1,100,000، 20×30: 1,900,000، 30×45: 2,900,000 تومان.
+- P02 در سبد، ثبت سفارش مهمان، کارت‌به‌کارت با تأیید دستی، پیگیری و بستهٔ طراحی **خصوصی** مالک پذیرفته می‌شود. P03 هنوز غیرقابل خرید است. پرداخت آنلاین، تأیید خودکار و اتصال خودکار فایل چاپی فعال نیست.
+- برای جلوگیری از آغاز فروش ناخواسته در VPS، قابلیت **production** فقط با ترکیب گیت عمومی فعال فروشگاه و `HALLEUS_SHOP_P02_ORDERS_ENABLED=true` قابل دسترسی است. این متغیر در هیچ فرمان Pull خودکار تغییر نمی‌کند. در `pnpm dev` مسیر سفارش P02 برای آزمون محلی فعال است.
+- تا اعلام جداگانهٔ تأیید آماده‌سازی چاپ/حساب بانکی و انتشار، **VPS و DB دست‌نخورده** و robots P02 روی noindex باقی می‌ماند. Push کد به GitHub به‌تنهایی به معنای فعال‌شدن فروش زنده نیست.
+- تست‌های مربوط: `scripts/check-shop-p02-live-product.mjs`، `scripts/check-shop-p02-r9-runtime.mjs`، `scripts/check-shop-mvp-activation.mjs`، `scripts/check-shop-checkout.mjs`، `scripts/check-shop-orders.mjs`، `scripts/check-shop-print-handoff.mjs`، `scripts/check-shop-order-api-privacy.mjs` و `scripts/check-shop-seo-slugs.mjs`. تست دیتابیس فقط در fixture ایزولهٔ تأییدشده؛ اجرای زنده مجاز نیست.

@@ -34,6 +34,24 @@ export const SHOP_SIZES = [
   { label: '۳۰ × ۴۵', dimension: '30x45', price: 2_300_000 },
 ] as const;
 
+// Separate P02 prices; shared P01 prices and the physical size labels stay unchanged.
+export const SHOP_P02_SIZES = [
+  { label: '۱۰ × ۱۵', dimension: '10x15', price: 1_100_000 },
+  { label: '۲۰ × ۳۰', dimension: '20x30', price: 1_900_000 },
+  { label: '۳۰ × ۴۵', dimension: '30x45', price: 2_900_000 },
+] as const;
+
+/** Canonical product-specific price used by both cart and server quote. */
+export function getShopProductPrice(productId: string, dimension: string): number | null {
+  if (productId === 'p01') {
+    return SHOP_SIZES.find((size) => size.dimension === dimension)?.price ?? null;
+  }
+  if (productId === 'p02') {
+    return SHOP_P02_SIZES.find((size) => size.dimension === dimension)?.price ?? null;
+  }
+  return null;
+}
+
 const products: Record<ShopProductId, ShopProduct> = {
   p01: {
     id: 'p01',

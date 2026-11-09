@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { filterHalleusCities, findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import { safeShopArtworkText } from '@/lib/shop/shop-artwork-text';
@@ -9,9 +10,9 @@ import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { BIRTH_SKY_HERO } from './birth-sky-content';
 import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
-import { SHOP_SIZES } from './product-detail-data';
+import { SHOP_P02_SIZES } from './product-detail-data';
+import { addShopCartItem, readShopCart } from './shop-cart';
 
-const P02_PRICES = [1_100_000, 1_900_000, 2_900_000] as const;
 const PREVIEW_SIZE = { width: 720, height: 1080 } as const;
 const formatPrice = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
 import pdStyles from './product-detail.module.css';
@@ -68,20 +69,16 @@ async function makeWatermarkedPreview(svg: string, fontFamily: string): Promise<
     } finally {
       context.restore();
     }
-    await window.document.fonts.load('500 23px ' + fontFamily);
+    await window.document.fonts.load('500 31px ' + fontFamily);
     context.save();
     context.direction = 'rtl';
-    context.translate(canvas.width / 2, canvas.height / 2);
-    context.rotate(-Math.PI / 8);
-    context.font = '500 23px ' + fontFamily;
+    context.font = '500 31px ' + fontFamily;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillStyle = 'rgba(231, 242, 252, 0.24)';
-    for (let y = -620; y <= 620; y += 220) {
-      for (let x = -640; x <= 640; x += 350) {
-        context.fillText('پیش‌نمایش هالیوس', x + (Math.abs(y) % 440 ? 175 : 0), y);
-      }
-    }
+    context.shadowColor = 'rgba(1, 11, 22, 0.78)';
+    context.shadowBlur = 8;
+    context.fillStyle = 'rgba(231, 242, 252, 0.42)';
+    context.fillText('پیش‌نمایش هالیوس', canvas.width / 2, canvas.height / 2);
     context.restore();
     return canvas.toDataURL('image/webp', 0.78);
   } finally {
@@ -89,7 +86,9 @@ async function makeWatermarkedPreview(svg: string, fontFamily: string): Promise<
   }
 }
 
-export function BirthSkyLiveProduct() {
+export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: boolean }) {
+  const router = useRouter();
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [input, setInput] = useState<Personalization>(initial);
   const [artwork, setArtwork] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -166,6 +165,25 @@ export function BirthSkyLiveProduct() {
   }, []);
 
   useEffect(() => {
+    const key = new URLSearchParams(window.location.search).get('edit');
+    if (!purchaseEnabled || !key) return;
+    const item = readShopCart().find((entry) => entry.key === key && entry.productId === 'p02');
+    if (!item) return;
+    const index = SHOP_P02_SIZES.findIndex((size) => size.dimension === item.size);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setInput(item.details);
+      setEditingKey(item.key);
+      if (index >= 0) {
+        setSizeIndex(index);
+        setPhotoIndex([5, 3, 1][index]);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [purchaseEnabled]);
+
+  useEffect(() => {
     const dialog = zoomDialog.current;
     if (!dialog) return;
     if (zoomOpen && !dialog.open) dialog.showModal();
@@ -207,6 +225,29 @@ export function BirthSkyLiveProduct() {
     event.preventDefault();
     if (busy) return;
     void generate(input);
+  }
+
+  function addToCart() {
+    if (!purchaseEnabled || !artwork || busy) return;
+    const validated = validateShopMoment('p02', input);
+    if (!validated.ok) {
+      setError(validated.message);
+      return;
+    }
+    try {
+      const details = {
+        ...input,
+        names: safeShopArtworkText(input.names, 'نام'),
+        message: safeShopArtworkText(input.message, 'پیام'),
+      };
+      if (!addShopCartItem('p02', SHOP_P02_SIZES[sizeIndex].dimension, details, editingKey ?? undefined)) {
+        setError('افزودن به سبد انجام نشد؛ فضای ذخیرهٔ مرورگر یا تعداد آثار را بررسی کن.');
+        return;
+      }
+      router.push('/shop/cart');
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'ذخیرهٔ مشخصات تابلو انجام نشد.');
+    }
   }
 
   const galleryCount = BIRTH_SKY_GALLERY.length + 1;
@@ -279,12 +320,12 @@ export function BirthSkyLiveProduct() {
             <p className={pdStyles.introduction}>{BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
             <div className={pdStyles.priceBlock} aria-live="polite">
               <span className={pdStyles.priceLabel}>قیمت این اندازه</span>
-              <p className={pdStyles.price}><bdi>{formatPrice(P02_PRICES[sizeIndex])}</bdi><span>تومان</span></p>
+              <p className={pdStyles.price}><bdi>{formatPrice(SHOP_P02_SIZES[sizeIndex].price)}</bdi><span>تومان</span></p>
             </div>
             <fieldset className={pdStyles.sizes}>
               <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
               <div className={pdStyles.sizeGrid}>
-                {SHOP_SIZES.map((size, i) => <button type="button" key={size.dimension}
+                {SHOP_P02_SIZES.map((size, i) => <button type="button" key={size.dimension}
                   className={[pdStyles.sizeChoice, sizeIndex === i ? pdStyles.sizeSelected : ''].filter(Boolean).join(' ')}
                   aria-pressed={sizeIndex === i}
                   onClick={() => { setSizeIndex(i); setPhotoIndex([5, 3, 1][i]); }}>
@@ -294,7 +335,7 @@ export function BirthSkyLiveProduct() {
             </fieldset>
             <a className={pdStyles.sizeGuideLink} href="#p02-size-guide">مقایسهٔ اندازه‌ها در فضای خانه <span aria-hidden="true">↓</span></a>
 
-            <form id="p02-personalize" className={pdStyles.personalizeForm} onSubmit={submit}
+            <form id="personalize" className={pdStyles.personalizeForm} onSubmit={submit}
               aria-label="شخصی‌سازی آسمان تولد">
               <div className={pdStyles.formIntro}>
                 <span className={pdStyles.formKicker}>شخصی‌سازی اثر</span>
@@ -383,8 +424,17 @@ export function BirthSkyLiveProduct() {
                 <span className={pdStyles.confirmLabel}>{busy ? 'در حال ساخت آسمان…' : BIRTH_SKY_HERO.button}</span>
                 <span className={pdStyles.confirmArrow} aria-hidden="true">←</span>
               </button>
-              
-              <p className={styles.previewAvailability}>پیش‌نمایش شخصی‌سازی فعال است؛ امکان ثبت سفارش و پرداخت این محصول هنوز فعال نشده است.</p>
+
+              {purchaseEnabled ? <>
+                <button type="button" className={styles.orderAction}
+                  disabled={!artwork || busy} onClick={addToCart}>
+                  {editingKey ? 'ثبت تغییرات تابلو در سبد' : 'افزودن تابلو به سبد خرید'}
+                </button>
+                <p className={styles.previewAvailability}>
+                  {artwork ? 'طرح شخصی‌ات آماده است. اندازه را انتخاب کن و تابلو را به سبد خرید اضافه کن؛ پرداخت در مرحلهٔ بعد با کارت‌به‌کارت و تأیید دستی انجام می‌شود.' :
+                    'برای سفارش، ابتدا با دکمهٔ بالا پیش‌نمایش تابلویت را بساز.'}
+                </p>
+              </> : <p className={styles.previewAvailability}>پیش‌نمایش فعال است؛ ثبت سفارش این محصول تا زمان تأیید انتشار فروش بسته می‌ماند.</p>}
             </form>
             <div className={pdStyles.specification}>
               <span>محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر</span>

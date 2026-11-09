@@ -92,8 +92,14 @@ const birthSkyItem = { ...item, productId: 'p02', details: {
   ...item.details, calendar: 'gregorian', date: '2024-07-01', time: '12:30',
   city: 'برلین، آلمان', cityId: 'de-berlin',
 } };
-assert.throws(() => handoff.buildPrivateShopPrintHandoff({ ...order, items: [birthSkyItem] }),
-  'postponed P02 must not enter the first live print workflow');
+const birthSkyHandoff = handoff.buildPrivateShopPrintHandoff({ ...order, items: [birthSkyItem] });
+assert.equal(birthSkyHandoff.prints[0].productId, 'p02');
+assert.equal(birthSkyHandoff.prints[0].personalization.city, 'برلین، آلمان');
+assert.ok(birthSkyHandoff.prints[0].birthSkyReference?.referenceUtc,
+  'verified P02 orders must include real computed sky reference for private handoff');
+const birthZip = designZip.buildPrivateShopDesignHandoffZip(birthSkyHandoff);
+assert.ok(birthZip.includes(Buffer.from('"productId": "p02"')),
+  'P02 must reach the same owner-only manual design ZIP workflow');
 const text = JSON.stringify(result);
 for (const sensitive of ['+989121234567', 'خیابان کاملاً خصوصی', '12344321', 'never-include-secret']) {
   assert.ok(!text.includes(sensitive), `Unexpected sensitive field: ${sensitive}`);

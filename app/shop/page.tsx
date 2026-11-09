@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ShopV01Home, type ShopV01Item } from '@/components/shop/ShopV01Home';
-import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
+import { isShopMvpActive, isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
@@ -16,7 +16,7 @@ export function generateMetadata(): Metadata {
 
 export const dynamic = 'force-dynamic';
 
-// Preserve future product definitions without offering them for sale in the MVP.
+// Keep P03 closed; P02 appears in the catalog only when its purchase gate is open.
 const launchCatalog: ShopV01Item[] = [
   {
     id: 'P01',
@@ -35,10 +35,10 @@ const launchCatalog: ShopV01Item[] = [
     subtitle: 'آسمان لحظه‌ای که داستان تو آغاز شد.',
     category: 'آثار آسمان',
     href: getShopProductUrl('p02'),
-    priceToman: null,
-    availability: 'coming-soon',
-    imageSrc: '/shop-preview/birth-sky.webp',
-    imageAlt: 'تابلوی آسمان تولد با طرح دایره‌ای ستاره‌ها روی شاسی مات تیره',
+    priceToman: 1_100_000,
+    availability: 'available',
+    imageSrc: '/shop-preview/p02/05-raha-parsa-30x45-wall.webp',
+    imageAlt: 'تابلو آسمان تولد رها و پارسا روی شاسی بدون قاب با طراحی R9 هالیوس',
   },
   {
     id: 'P03',
@@ -64,5 +64,8 @@ export default function ShopPage() {
     );
   }
 
-  return <ShopV01Home products={launchCatalog.filter((product) => product.id === 'P01')} />;
+  const p02Enabled = isShopP02OrderEnabled();
+  return <ShopV01Home
+    products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02'))}
+    showP02Invitation={!p02Enabled} />;
 }

@@ -234,13 +234,13 @@ function personalNameText(name:string,size:number):string {
 }
 
 function posterTypography(details:BirthSkyPersonalDetails,guide:string,numerals:PosterNumerals) {
-  const name=posterDigits(details.names.trim()||'آسمان تولد',numerals);
+  const name=posterDigits(details.names.trim(),numerals);
   const message=posterDigits(details.message.trim(),numerals);
   const city=posterDigits(details.city.trim(),numerals);
   const date=posterDigits(details.date.trim()+'  ·  '+details.time.trim(),numerals);
   const size=(v:string,a:number,b:number,c:number)=>[...v].length>34?c:[...v].length>20?b:a;
   return `<g id="r9-poster-typography">
-    ${personalNameText(name,size(name,221,169,121))}
+    ${name?personalNameText(name,size(name,221,169,121)):''}
     ${message?fontText(message,2720,3730,size(message,73,62,48),300,'#D9EAFD'):''}
     ${fontText(city,2720,4028,size(city,52,46,38),400,'#BCCCDC')}
     ${fontText(date,2720,4137,55,400,'#BCCCDC',{anchor:'end',dir:'ltr'})}

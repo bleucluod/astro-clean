@@ -15,9 +15,12 @@ vm.runInNewContext(`(function(module,exports){${compiled}\n})`, {
   Buffer, process: { env },
 })(mod, mod.exports);
 const active = mod.exports.isShopMvpActive;
+const p02Active = mod.exports.isShopP02OrderEnabled;
+assert.equal(p02Active(), true, 'P02 preview/sale is locally testable in development');
 assert.equal(active(), true, 'development remains previewable');
 env.NODE_ENV = 'production';
 assert.equal(active(), false, 'production must stay closed by default');
+assert.equal(p02Active(), false, 'P02 must remain separately locked in production');
 env.HALLEUS_SHOP_MVP_ENABLED = 'true';
 assert.equal(active(), false, 'an opt-in alone is insufficient');
 Object.assign(env, {
@@ -28,6 +31,12 @@ Object.assign(env, {
   HALLEUS_SHOP_PRINT_ARCHIVE_ROOT: '/private/fixture-archive',
 });
 assert.equal(active(), true, 'all explicit release prerequisites permit the intended activation');
+assert.equal(p02Active(), false, 'P01 live must never implicitly unlock P02');
+env.HALLEUS_SHOP_P02_ORDERS_ENABLED = 'true';
+assert.equal(p02Active(), true, 'separate P02 approval plus shop prerequisites');
+env.HALLEUS_SHOP_P02_ORDERS_ENABLED = 'false';
+assert.equal(p02Active(), false, 'P02 opt-out closes orders');
+env.HALLEUS_SHOP_P02_ORDERS_ENABLED = 'true';
 for (const [name, replacement] of [
   ['HALLEUS_SHOP_SHARED_RATE_ENABLED', 'false'],
   ['HALLEUS_SHOP_TRUSTED_CLIENT_IP', 'unverified'],
@@ -38,6 +47,7 @@ for (const [name, replacement] of [
   const previous = env[name];
   env[name] = replacement;
   assert.equal(active(), false, `production gate must reject invalid ${name}`);
+  assert.equal(p02Active(), false, `P02 must reject invalid ${name}`);
   env[name] = previous;
 }
 const guardedPages = ['app/shop/page.tsx', 'app/shop/moon-phase-print/page.tsx',
@@ -52,17 +62,19 @@ for (const path of [...guardedPages, ...guardedAdmin]) {
 }
 const p02Page = readFileSync(resolve(root, 'app/shop/birth-sky-map/page.tsx'), 'utf8');
 const p02Preview = readFileSync(resolve(root, 'components/shop/BirthSkyLiveProduct.tsx'), 'utf8');
-assert.match(p02Page, /<BirthSkyLiveProduct\s*\/>/, 'P02 must be previewable as a real computed artwork');
+assert.match(p02Page, /<BirthSkyLiveProduct purchaseEnabled=\{isShopP02OrderEnabled\(\)\} \/>/,
+  'P02 cart action must honor separate server gate');
 assert.match(p02Page, /index: false/, 'P02 must remain noindex during print/gallery review');
 assert.match(p02Preview, /validateShopMoment\('p02', values\)/, 'P02 date, clock and city must be validated');
-assert.doesNotMatch(p02Preview, /addShopCartItem|fetch\(/, 'P02 artwork must not place an order or transmit birth inputs');
+assert.match(p02Preview, /addShopCartItem\('p02'/, 'P02 must add real personalized items to cart');
+assert.doesNotMatch(p02Preview, /fetch\(/, 'P02 preview must not transmit birth inputs');
 assert.match(readFileSync(resolve(root, 'app/shop/milky-way-print/page.tsx'), 'utf8'),
   /process\.env\.NODE_ENV === 'production'/, 'P03 must remain closed even when P02 is previewable');
 for (const [path, expected] of [
-  ['lib/shop/shop-quote.ts', "new Set(['p01'])"],
-  ['components/shop/shop-cart.ts', "['p01']"],
+  ['lib/shop/shop-quote.ts', "new Set(['p01', 'p02'])"],
+  ['components/shop/shop-cart.ts', "['p01', 'p02']"],
 ]) {
   const contents = readFileSync(resolve(root, path), 'utf8');
-  assert.ok(contents.includes(expected), `${path} must refuse postponed products`);
+  assert.ok(contents.includes(expected), `${path} allows P01/P02 only; P03 remains blocked`);
 }
-console.log('Shop MVP activation: default production closure, explicit ingress/private gates, P01-only sale and postponed P02/P03 passed.');
+console.log('Shop MVP activation: default production closure, explicit ingress/private gates, P01 plus separately gated P02; P03 remains closed passed.');

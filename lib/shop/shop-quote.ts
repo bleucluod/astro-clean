@@ -1,4 +1,5 @@
-import { SHOP_SIZES } from '@/components/shop/product-detail-data';
+import { getShopProductPrice } from '@/components/shop/product-detail-data';
+import { isShopP02OrderEnabled } from './shop-mvp-activation';
 import { SHOP_SHIPPING_AND_PACKAGING, type ShopCarrier } from '@/components/shop/shop-checkout-state';
 
 export type ShopQuote = {
@@ -18,8 +19,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-// Only the moon product can be purchased in the first release.
-const productIds: ReadonlySet<string> = new Set(['p01']);
+// The third product remains postponed. P02 requires a separate production gate.
+const productIds: ReadonlySet<string> = new Set(['p01', 'p02']);
 
 export function quoteShopItems(value: unknown): ShopQuote {
   if (!isRecord(value) || (value.carrier !== 'post' && value.carrier !== 'tipax')
@@ -35,11 +36,12 @@ export function quoteShopItems(value: unknown): ShopQuote {
         || (raw.quantity as number) < 1 || (raw.quantity as number) > 10) {
       throw new ShopQuoteError();
     }
-    const size = SHOP_SIZES.find((entry) => entry.dimension === raw.size);
-    if (!size) throw new ShopQuoteError();
+    if (raw.productId === 'p02' && !isShopP02OrderEnabled()) throw new ShopQuoteError();
+    const price = getShopProductPrice(raw.productId, raw.size);
+    if (price === null) throw new ShopQuoteError();
     const quantity = raw.quantity as number;
     itemCount += quantity;
-    subtotal += size.price * quantity;
+    subtotal += price * quantity;
   }
 
   const carrier = value.carrier;

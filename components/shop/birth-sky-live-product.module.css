@@ -80,7 +80,7 @@
 .livePreview { margin: 35px 0 0; padding-top: 28px; border-top: 1px solid #34485b; scroll-margin-top: 90px; }
 .livePreview h2 { margin: 0 0 6px; font-size: 22px; color: #f5faff; }
 .livePreview > p { margin: 0 0 15px; color: #c5d7e4; font-size: 13px; line-height: 2; }
-#p02-personalize { scroll-margin-top: 90px; }
+#personalize { scroll-margin-top: 90px; }
 .editorialRoot { margin-top: 60px; }
 .editorialSection { margin-top: 64px; max-width: 920px; margin-inline: auto; }
 .editorialSectionHeader { margin-bottom: 20px; }
@@ -186,3 +186,22 @@
 .previewThumb:disabled { cursor: default; opacity: .58; }
 .previewThumbEmpty { position: absolute; inset: 0; display: grid; place-content: center; padding: 6px; color: #d9eafd; font-size: 12px; font-weight: 650; line-height: 1.6; text-align: center; }
 .page .previewCaption { margin: 12px 0 0; color: #b9cfe0 !important; font-size: 12px; line-height: 2; }
+
+/* P02-only purchase action; preserve the established P01 details shell. */
+.orderAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 51px;
+  padding: 11px 18px;
+  border: 1px solid #83b4d3;
+  border-radius: 9px;
+  background: #24557a;
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.orderAction:hover:not(:disabled) { background: #2b638e; }
+.orderAction:disabled { opacity: .5; cursor: not-allowed; }

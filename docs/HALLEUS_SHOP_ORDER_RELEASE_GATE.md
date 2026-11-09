@@ -39,3 +39,11 @@ Last edited: 2026-11-05. This is a source-code review candidate, **not a live st
 - Other existing guard failures observed during T02 review: workflow-acceleration requires a missing PR workflow marker; predeploy-home-chart-performance expects older `AppShell.tsx` footer markers; local True Node fixture expects Lilith to remain deferred although the current engine now calculates it. These do not originate in the T02 chart change. No unrelated workflow, UI or engine files were edited.
 
 Rollback is not an automatic `DROP TABLE`: once report/order numbering or private orders are in use, choose a verified backup/roll-forward plan based on the live records. Do not remove customer orders or their audit trail.
+
+## 2026-11-09 — P02 customer-order code approved, separate production release gate
+
+Owner now authorizes the P02 **code path** for manual-transfer purchase after a personal R9 gallery preview. The previous P01-only design gates above are historical and remain valid for P01. P02 pricing is product-specific and server quoted. The P03 order path and online payment remain disabled.
+
+For production, require BOTH the existing shop MVP ingress/rate/private-storage gate AND the explicitly approved `HALLEUS_SHOP_P02_ORDERS_ENABLED=true` setting. Merely pulling this commit or deploying another change must not silently open P02 payments. Local development can exercise the new order path with synthetic checkout data.
+
+Before any real P02 release: run focused/cart/quote/order/private-ZIP verification, a safe isolated DB lifecycle test if available, print-resolution and physical-lab acceptance, confirm the existing bank recipient with the owner, and receive separate VPS-release permission. Do not enable P02 in production or perform real financial/DB operations during the GitHub implementation review.

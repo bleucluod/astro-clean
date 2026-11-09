@@ -42,7 +42,7 @@ for (const [id, slug] of slugs) {
 }
 assert.match(read('app/shop/moon-phase-print/page.tsx'), /!isShopMvpActive\(\)/);
 const p02Page = read('app/shop/birth-sky-map/page.tsx');
-assert.match(p02Page, /<BirthSkyLiveProduct\s*\/>/, 'P02 must show the actual computed artwork');
+assert.match(p02Page, /<BirthSkyLiveProduct purchaseEnabled=\{isShopP02OrderEnabled\(\)\} \/>/, 'P02 must show real computed artwork and gated purchase');
 assert.match(p02Page, /index: false/, 'P02 remains noindex until approved for sale and content');
 assert.doesNotMatch(p02Page, /process\.env\.NODE_ENV === 'production'/, 'P02 display is publicly reviewable');
 assert.match(read('app/shop/milky-way-print/page.tsx'), /process\.env\.NODE_ENV === 'production'/);

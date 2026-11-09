@@ -4,7 +4,7 @@ import { parseShopCart, type ShopCartItem } from '@/components/shop/shop-cart';
 import {
   englishDigits, normalizeMobileTail, validateShipping, type ShippingForm,
 } from '@/components/shop/shop-checkout-state';
-import { quoteShopItems, type ShopQuote } from './shop-quote';
+import { quoteShopItems, ShopQuoteError, type ShopQuote } from './shop-quote';
 import { isShopManualPaymentSelection } from './shop-payment-gateway';
 
 export class ShopOrderInputError extends Error {
@@ -73,10 +73,16 @@ export function parseShopOrderDraft(value: unknown): ShopOrderDraft {
     throw new ShopOrderInputError();
   }
 
-  const quote = quoteShopItems({
-    carrier: shipping.carrier,
-    items: items.map((item) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
-  });
+  let quote: ShopQuote;
+  try {
+    quote = quoteShopItems({
+      carrier: shipping.carrier,
+      items: items.map((item) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
+    });
+  } catch (error) {
+    if (error instanceof ShopQuoteError) throw new ShopOrderInputError('سبد خرید یا وضعیت فروش محصول معتبر نیست.');
+    throw error;
+  }
   if (!Number.isSafeInteger(body.expectedTotal) || body.expectedTotal !== quote.total) {
     throw new ShopOrderInputError('مبلغ سفارش تغییر کرده؛ لطفاً دوباره آن را بررسی کن.');
   }

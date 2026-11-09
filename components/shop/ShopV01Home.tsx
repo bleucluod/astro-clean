@@ -32,7 +32,7 @@ function ProductImage({ item }: { item: ShopV01Item }) {
   );
 }
 
-export function ShopV01Home({ products }: { products: ShopV01Item[] }) {
+export function ShopV01Home({ products, showP02Invitation = true }: { products: ShopV01Item[]; showP02Invitation?: boolean }) {
   return (
     <div className={styles.shopHome}>
       <section className={styles.heroSection} aria-labelledby="shop-title">
@@ -74,14 +74,14 @@ export function ShopV01Home({ products }: { products: ShopV01Item[] }) {
               );
             })}
           </div>
-          <aside className={styles.p02Invitation} aria-label="مشاهدهٔ طرح واقعی آسمان تولد">
+          {showP02Invitation ? <aside className={styles.p02Invitation} aria-label="مشاهدهٔ طرح واقعی آسمان تولد">
             <div>
-              <span>محصول دوم هالیوس · پیش از آغاز فروش</span>
+              <span>محصول دوم هالیوس · پیش‌نمایش طراحی</span>
               <h3>آسمان تولد، از روی ستاره‌های واقعی</h3>
-              <p>تاریخ، ساعت و شهر تولد رو انتخاب کن و تصویر خودِ تابلو رو ببین؛ هنوز هیچ موکاپ یا عکس تبلیغاتی جایگزین این نقشه نشده.</p>
+              <p>تاریخ، ساعت و شهر رو انتخاب کن و پیش‌نمایش نقشهٔ محاسبه‌شدهٔ خودت رو کنار موکاپ‌های تأییدشده ببین.</p>
             </div>
             <Link href="/shop/birth-sky-map">ساخت و دیدن آسمان تولد</Link>
-          </aside>
+          </aside> : null}
         </div>
       </section>
 

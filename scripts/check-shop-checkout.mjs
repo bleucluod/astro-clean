@@ -58,12 +58,13 @@ const cart = loadTypeScript('components/shop/shop-cart.ts', {
   '@/lib/locations/cities': cities,
 });
 const checkout = loadTypeScript('components/shop/shop-checkout-state.ts');
+const activation = loadTypeScript('lib/shop/shop-mvp-activation.ts');
 const quote = loadTypeScript('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': productData,
   '@/components/shop/shop-checkout-state': checkout,
+  './shop-mvp-activation': activation,
 });
 const origin = loadTypeScript('lib/admin/admin-origin.ts');
-const activation = loadTypeScript('lib/shop/shop-mvp-activation.ts');
 const http = loadTypeScript('lib/shop/shop-order-http.ts', {
   '@/lib/admin/admin-origin': origin,
   '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },
@@ -97,6 +98,18 @@ assert.equal(cart.addShopCartItem('p01', '10x15', { ...details, names: 'ویرا
 assert.equal(cart.readShopCart()[0].quantity, 2);
 assert.equal(cart.readShopCart()[0].details.names, 'ویرایش');
 assert.equal(cart.shopCartSubtotal(cart.readShopCart()), 1_800_000);
+const p02Details = {
+  calendar: 'gregorian', date: '2024-07-01', time: '12:30',
+  city: 'برلین، آلمان', cityId: 'de-berlin', names: '', message: '',
+};
+const p02Line = {
+  key: 'p02-valid', productId: 'p02', size: '20x30', quantity: 1, details: p02Details,
+};
+const p02Parsed = cart.parseShopCart([p02Line]);
+assert.equal(p02Parsed.length, 1, 'valid P02, including blank optional name, enters cart');
+assert.equal(cart.shopCartSubtotal(p02Parsed), 1_900_000);
+assert.equal(cart.shopCartSubtotal([first, ...p02Parsed]), 3_499_000,
+  'mixed P01/P02 cart uses each product own price');
 assert.equal(cart.addShopCartItem('p01', '10x15', details, 'missing'), false);
 
 data.set(cart.SHOP_CART_STORAGE_KEY, '{invalid json');
@@ -131,12 +144,15 @@ assert.equal(quotedPost.total, 3_298_000);
 assert.equal(quotedPost.itemCount, 2);
 assert.equal(quote.quoteShopItems({ carrier: 'tipax', items: [minimalLine] }).total, 3_248_000);
 assert.equal(quote.quoteShopItems({ carrier: 'post', items: [{ ...minimalLine, price: 1 }] }).total, 3_298_000);
+const skyLine = { productId: 'p02', size: '20x30', quantity: 2 };
+assert.equal(quote.quoteShopItems({ carrier: 'post', items: [skyLine] }).total, 3_900_000);
+assert.equal(quote.quoteShopItems({ carrier: 'tipax', items: [minimalLine, skyLine] }).total,
+  7_048_000, 'server must quote mixed baskets canonically');
 for (const payload of [
   null, { carrier: 'post', items: [] }, { carrier: 'post', items: Array(21).fill(minimalLine) },
   { carrier: 'courier', items: [minimalLine] },
   { carrier: 'post', items: [{ ...minimalLine, size: 'unknown' }] },
   { carrier: 'post', items: [{ ...minimalLine, productId: 'p04' }] },
-  { carrier: 'post', items: [{ ...minimalLine, productId: 'p02' }] },
   { carrier: 'post', items: [{ ...minimalLine, productId: 'p03' }] },
   { carrier: 'post', items: [{ ...minimalLine, quantity: 11 }] },
   { carrier: 'post', items: [{ ...minimalLine, quantity: 0 }] },
@@ -227,6 +243,21 @@ runtimeEnv.HALLEUS_SHOP_MVP_ENABLED = 'true';
 assert.equal((await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
   method: 'POST', body: JSON.stringify({ carrier: 'post', items: [minimalLine] }),
 }))).status, 404, 'a shop toggle alone cannot bypass ingress or private-storage gates');
+// A live P01 deployment cannot accidentally open P02 payments.
+Object.assign(runtimeEnv, {
+  HALLEUS_SHOP_MVP_ENABLED: 'true',
+  HALLEUS_SHOP_SHARED_RATE_ENABLED: 'true',
+  HALLEUS_SHOP_TRUSTED_CLIENT_IP: 'nginx-overwrite-v1',
+  HALLEUS_SHOP_RATE_SECRET: 'a'.repeat(48),
+  HALLEUS_SHOP_PRINT_ORIGINALS_DIR: '/private/synthetic-originals',
+  HALLEUS_SHOP_PRINT_ARCHIVE_ROOT: '/private/synthetic-archive',
+});
+assert.equal(quote.quoteShopItems({ carrier: 'post', items: [minimalLine] }).total, 3_298_000);
+assert.throws(() => quote.quoteShopItems({ carrier: 'post', items: [skyLine] }),
+  /Invalid shop quote request/, 'P02 locked until separate production toggle');
+runtimeEnv.HALLEUS_SHOP_P02_ORDERS_ENABLED = 'true';
+assert.equal(quote.quoteShopItems({ carrier: 'post', items: [skyLine] }).total, 3_900_000);
+runtimeEnv.HALLEUS_SHOP_P02_ORDERS_ENABLED = undefined;
 runtimeEnv.HALLEUS_SHOP_MVP_ENABLED = undefined;
 runtimeEnv.NODE_ENV = 'development';
 

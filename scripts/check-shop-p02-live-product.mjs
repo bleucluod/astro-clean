@@ -36,15 +36,22 @@ for (const key of [
   'setArtwork(null)',
   'galleryCount = BIRTH_SKY_GALLERY.length + 1',
   'disabled={!artwork}',
-  'P02_PRICES[sizeIndex]',
+  'SHOP_P02_SIZES[sizeIndex].price',
+  "addShopCartItem('p02'",
+  'disabled={!artwork || busy}',
+  'purchaseEnabled',
+  "router.push('/shop/cart')",
+  "window.document.fonts.load('500 31px '",
+  "context.fillText('پیش‌نمایش هالیوس', canvas.width / 2, canvas.height / 2)",
   '<BirthSkyEditorial />',
 ]) assert.ok(client.includes(key), 'P02 missing contract: ' + key);
 for (const forbidden of [
   'downloadPng', 'skyOnlyArtwork', 'canvas.toBlob(', 'dangerouslySetInnerHTML',
-  'addShopCartItem(', 'fetch(', 'p02-live-preview',
+  'fetch(', 'p02-live-preview',
 ]) assert.ok(!client.includes(forbidden), 'Unsafe/outdated preview behavior: ' + forbidden);
 
-assert.match(client, /P02_PRICES = \[1_100_000, 1_900_000, 2_900_000\]/);
+assert.match(read('components/shop/product-detail-data.ts'),
+  /SHOP_P02_SIZES = \[/);
 assert.match(client, /PREVIEW_SIZE = \{ width: 720, height: 1080 \}/);
 assert.match(client, /context\.fillText\(/);
 assert.match(client, /URL\.revokeObjectURL\(url\)/);
@@ -54,8 +61,15 @@ assert.match(css, /\.previewCaption/);
 assert.match(copy, /"button": "پیش‌نمایش تابلوی من"/);
 assert.match(route, /index: false/);
 assert.ok(!client.includes('initial, true'), 'No automatic initial personal preview');
-assert.match(quote, /new Set\(\['p01'\]\)/);
-assert.match(cart, /validProductIds: ShopProductId\[\] = \['p01'\]/);
+assert.match(quote, /new Set\(\['p01', 'p02'\]\)/);
+assert.match(quote, /isShopP02OrderEnabled\(\)/);
+assert.match(cart, /validProductIds: ShopProductId\[\] = \['p01', 'p02'\]/);
+assert.equal((client.match(/context\.fillText\('پیش‌نمایش هالیوس'/g) ?? []).length, 1,
+  'exactly one baked-in centered watermark');
+assert.doesNotMatch(client, /for \(let y = -620|for \(let x = -640/);
+assert.match(client, /galleryRef\.current\?\.scrollIntoView/);
+assert.match(read('app/shop/birth-sky-map/page.tsx'), /purchaseEnabled=\{isShopP02OrderEnabled\(\)\}/);
+assert.match(read('lib/shop/shop-birth-sky-r9.ts'), /name\?personalNameText\(/);
 
 const expected = [
   'public/shop-preview/p02/01-arad-10x15-tabletop.webp',
@@ -72,4 +86,4 @@ assert.equal((gallery.match(/"src":/g) ?? []).length, 6);
 assert.ok(!gallery.includes('01-hale-10x15-tabletop.webp'));
 assert.ok(!gallery.includes('02-hale-arad-10x15-pair.webp'));
 assert.match(renderer, /export function renderShopBirthSkyR9/);
-console.log('SHOP_P02_GALLERY_WATERMARK_PRICING=PASS six_mockups_one_locked_preview_no_sales');
+console.log('SHOP_P02_GALLERY_WATERMARK_ORDER=PASS six_mockups_one_center_watermark_p02_cart_separate_gate');

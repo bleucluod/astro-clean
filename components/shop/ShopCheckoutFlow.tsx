@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { getShopProduct } from './product-detail-data';
+import { getShopProduct, getShopProductPrice } from './product-detail-data';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
@@ -100,6 +100,7 @@ function EmptyCart() {
 function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuantity: (quantity: number) => void; onRemove: () => void }) {
   const product = getShopProduct(item.productId);
   const size = getShopSize(item.size);
+  const unitPrice = getShopProductPrice(item.productId, item.size) ?? 0;
   return (
     <article className={styles.itemCard}>
       <div className={styles.itemTop}>
@@ -109,7 +110,7 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
         <div className={styles.itemInfo}>
           <h2>{product.title}</h2>
           <p>{size.label} سانتی‌متر · چاپ مات روی شاسی</p>
-          <strong><bdi>{money(size.price)}</bdi> تومان</strong>
+          <strong><bdi>{money(unitPrice)}</bdi> تومان</strong>
         </div>
       </div>
       <div className={styles.itemDetails}>
@@ -128,7 +129,7 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
         <Link href={`${getShopProductUrl(item.productId)}?edit=${encodeURIComponent(item.key)}#personalize`}>ویرایش مشخصات</Link>
         <button type="button" className={styles.remove} onClick={onRemove}>حذف</button>
       </div>
-      {item.quantity > 1 ? <p className={styles.lineTotal}>جمع این اثر: <bdi>{money(size.price * item.quantity)}</bdi> تومان</p> : null}
+      {item.quantity > 1 ? <p className={styles.lineTotal}>جمع این اثر: <bdi>{money(unitPrice * item.quantity)}</bdi> تومان</p> : null}
     </article>
   );
 }

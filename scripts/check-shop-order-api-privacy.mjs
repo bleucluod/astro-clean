@@ -41,9 +41,11 @@ const cart = load('components/shop/shop-cart.ts', {
   '@/lib/locations/cities': cities,
 });
 const shipping = load('components/shop/shop-checkout-state.ts');
+const activation = load('lib/shop/shop-mvp-activation.ts');
 const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': products,
   '@/components/shop/shop-checkout-state': shipping,
+  './shop-mvp-activation': activation,
 });
 const orderNumber = load('lib/shop/shop-order-number.ts');
 const paymentGateway = load('lib/shop/shop-payment-gateway.ts');

@@ -13,3 +13,10 @@ export function isShopMvpActive() {
     Boolean(process.env.HALLEUS_SHOP_PRINT_ORIGINALS_DIR) &&
     Boolean(process.env.HALLEUS_SHOP_PRINT_ARCHIVE_ROOT);
 }
+
+/** P02 has its own production launch gate; approving code or a P01 release
+ * never silently opens a second product to real customer payments. */
+export function isShopP02OrderEnabled(): boolean {
+  if (process.env.NODE_ENV !== 'production') return true;
+  return isShopMvpActive() && process.env.HALLEUS_SHOP_P02_ORDERS_ENABLED === 'true';
+}

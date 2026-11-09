@@ -161,5 +161,9 @@ assert.ok(!client.includes('shop-solar-system') && !client.includes('calculateSh
 assert.ok(!source.includes('options.solarSystem') && !source.includes('solarSystem?:'),
   'Rejected planetary overlay must not remain in R9 renderer API');
 assert.ok(!client.includes('renderShopBirthSkyArtwork('));
-assert.ok(!client.includes('addShopCartItem(')&&!client.includes('fetch('));
-console.log('P02_R9_V5_REAL_DYNAMIC=PASS same_paths dynamic_labels_exact_scene_font_parity_no_sales');
+assert.ok(client.includes("addShopCartItem('p02'") && !client.includes('fetch('));
+const nameless = render(atlas, figures, named, { ...details, names: '', message: '' });
+assert.doesNotMatch(nameless, /id="r9-personal-name"/,
+  'Optional name must not render an artificial title');
+assert.ok(nameless.includes('id="r9-poster-typography"'), 'Date, city and legend remain');
+console.log('P02_R9_V5_REAL_DYNAMIC=PASS same_paths optional_names_font_parity_separate_sales_gate');

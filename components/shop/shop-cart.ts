@@ -1,4 +1,4 @@
-import { SHOP_SIZES, type ShopProductId } from './product-detail-data';
+import { SHOP_SIZES, getShopProductPrice, type ShopProductId } from './product-detail-data';
 import { matchUniqueShopBirthCity, validateShopMoment } from '@/lib/shop/shop-personalization';
 import { getHalleusCityDisplayName } from '@/lib/locations/cities';
 
@@ -27,7 +27,7 @@ export const SHOP_CART_CHANGED_EVENT = 'halleus:shop-cart-changed';
 const MAX_LINES = 20;
 const MAX_QUANTITY = 10;
 
-const validProductIds: ShopProductId[] = ['p01'];
+const validProductIds: ShopProductId[] = ['p01', 'p02'];
 const detailLimits: Record<keyof ShopPersonalization, number> = {
   calendar: 9, date: 20, time: 10, city: 100, cityId: 60, names: 60, message: 60,
 };
@@ -78,7 +78,7 @@ export function getShopSize(size: ShopSize) {
 }
 
 export function shopCartSubtotal(items: ShopCartItem[]) {
-  return items.reduce((sum, item) => sum + getShopSize(item.size).price * item.quantity, 0);
+  return items.reduce((sum, item) => sum + (getShopProductPrice(item.productId, item.size) ?? 0) * item.quantity, 0);
 }
 
 export function readShopCart(): ShopCartItem[] {

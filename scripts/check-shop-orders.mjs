@@ -46,9 +46,11 @@ const cart = load('components/shop/shop-cart.ts', {
   '@/lib/locations/cities': cities,
 });
 const shipping = load('components/shop/shop-checkout-state.ts');
+const activation = load('lib/shop/shop-mvp-activation.ts');
 const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': product,
   '@/components/shop/shop-checkout-state': shipping,
+  './shop-mvp-activation': activation,
 });
 const orderNumber = load('lib/shop/shop-order-number.ts');
 const paymentGateway = load('lib/shop/shop-payment-gateway.ts');
@@ -72,6 +74,13 @@ const payload = {
 };
 const draft = contract.parseShopOrderDraft(payload);
 assert.equal(draft.quote.total, 3_298_000);
+const p02Item = { ...item, key: 'p02-order-key', productId: 'p02', size: '10x15',
+  quantity: 1, details: { calendar: 'gregorian', date: '2024-07-01', time: '12:30',
+    city: 'برلین، آلمان', cityId: 'de-berlin', names: '', message: '' } };
+const skyPayload = { ...payload, items: [p02Item], expectedTotal: 1_200_000 };
+const skyDraft = contract.parseShopOrderDraft(skyPayload);
+assert.equal(skyDraft.quote.total, 1_200_000);
+assert.equal(skyDraft.items[0].details.names, '', 'optional name preserved blank in private order');
 assert.equal(draft.shipping.mobile, '9123456789');
 assert.equal(draft.idempotencyHash, createHash('sha256').update(payload.idempotencyKey).digest('hex'));
 assert.equal(draft.guestAccessHash, createHash('sha256').update(payload.guestAccessCode).digest('hex'));

@@ -45,7 +45,7 @@ export function renderShopStarAtlasProofSvg(
   }).join('');
 
   const personalCaption = personal ? `
-    <text x="1500" y="3485" font-size="62" font-family="Vazirmatn, 'Noto Naskh Arabic', sans-serif" direction="rtl">${xml(personal.names || 'آسمان تولد')}</text>
+    ${personal.names.trim() ? `<text x="1500" y="3485" font-size="62" font-family="Vazirmatn, 'Noto Naskh Arabic', sans-serif" direction="rtl">${xml(personal.names.trim())}</text>` : ''}
     <text x="1500" y="3585" font-size="43" font-family="Vazirmatn, 'Noto Naskh Arabic', sans-serif" direction="rtl">${xml(personal.message)}</text>
     <text x="1500" y="3675" font-size="34" fill="#a9bdcc" font-family="Vazirmatn, 'Noto Naskh Arabic', sans-serif" direction="rtl">${xml(`${personal.dateLabel} · ${personal.timeLabel}`)}</text>` : `
     <text x="1500" y="3590" font-size="40" letter-spacing="8">A MOMENT IN THE SKY</text>
