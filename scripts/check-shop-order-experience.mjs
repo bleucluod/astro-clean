@@ -124,7 +124,7 @@ const artworkRoute = load('app/api/admin/shop/orders/[id]/print/artwork/route.ts
     buildPrivateShopPrintHandoff: () => ({ prints: [{ productId: 'p01' }] }),
   },
   '@/lib/shop/shop-final-print': { buildPrivateShopFinalPrintCandidate: async () => ({
-    bytes: Buffer.from('synthetic-jpeg-bytes'), orderNumber: '1206', lineNumber: 1,
+    bytes: Buffer.from('synthetic-jpeg-bytes'), orderNumber: '1206', lineNumber: 1, productId: 'p01',
   }) },
   '@/lib/shop/shop-private-print-originals': { loadPrivateShopFinalPrintSources: async () => ({
     moonMap: { sha256: 'EXPECTED_PRIVATE_SOURCE' },

@@ -388,7 +388,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       {['payment_verified', 'preparing'].includes(detail.status) ? <section className={styles.production} aria-labelledby="shop-production-title">
         <div className={styles.productionHeader}>
           <span className={styles.eyebrow}>ساخت اثر / مرحلهٔ چاپ</span>
-          <h4 id="shop-production-title">طرح «{productNames[detail.items[uploadLine - 1]?.productId] ?? 'اثر'}» همین سفارش</h4>
+          <h4 id="shop-production-title">طرح «{productNames[detail.items[uploadLine - 1]?.productId ?? ''] ?? 'اثر'}» همین سفارش</h4>
           <p>همان مستر R9b با تاریخ، نام، پیام و اندازهٔ سفارش ساخته می‌شود. فایل ابتدا فقط برای بازبینی توست؛ بدون تأیید نهایی ذخیره نمی‌شود.</p>
         </div>
         <form className={styles.productionGrid} onSubmit={(event) => { event.preventDefault(); void uploadFinalPrint(); }}>

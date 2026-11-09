@@ -57,7 +57,8 @@ assert.match(nativeSource, /Estedad-Regular\.ttf/,
 assert.doesNotMatch(nativeSource, /پیش‌نمایش هالیوس/, 'Final print must not include the preview watermark');
 const renderer = load('lib/shop/shop-final-print.ts');
 const archive = load('lib/shop/shop-print-archive.ts');
-const spec = load('lib/shop/shop-print-spec.ts').getShopPrintSpec('20x30');
+const printSize = process.argv.includes('--large') ? '30x45' : '20x30';
+const spec = load('lib/shop/shop-print-spec.ts').getShopPrintSpec(printSize);
 const orderId = '77e512d9-2964-4d83-9ac1-2ecda5480775';
 const privateValues = {
   recipient_mobile: 'test-private-mobile-09120000000',
@@ -66,7 +67,7 @@ const privateValues = {
 };
 const order = {
   display_number: '920', status: 'payment_verified', ...privateValues,
-  items: [{ key: 'stage2-middle-sky', productId: 'p02', size: '20x30', quantity: 1,
+  items: [{ key: 'stage2-middle-sky', productId: 'p02', size: printSize, quantity: 1,
     details: { calendar: 'gregorian', date: '2024-07-01', time: '12:30',
       city: 'برلین، آلمان', cityId: 'de-berlin',
       names: 'نام‌های آزمایشی', message: 'یک پیام آزمایشی' } }],
@@ -88,7 +89,7 @@ assert.equal(candidate.retainedOnServer, false);
 for (const secret of Object.values(privateValues)) {
   assert.ok(!candidate.bytes.includes(Buffer.from(secret)));
 }
-console.log(`P02_MIDDLE_NATIVE_PASS: ${output.width}x${output.height} RGB/ICC 300PPI elapsedMs=${Math.round(performance.now() - start)}`);
+console.log(`P02_NATIVE_PASS_${printSize}: ${output.width}x${output.height} RGB/ICC 300PPI elapsedMs=${Math.round(performance.now() - start)}`);
 
 if (process.platform === 'linux') {
   const root = await mkdtemp(join(tmpdir(), 'halleus-shop-middle-sky-archive-'));
@@ -119,4 +120,4 @@ if (process.env.HALLEUS_SHOP_MIDDLE_SKY_PREVIEW_PATH) {
   assert.ok(isAbsolute(destination) && (delta === '..' || delta.startsWith(`..${sep}`)));
   await sharp(candidate.bytes).resize({ width: 700 }).jpeg({ quality: 87 }).toFile(destination);
 }
-console.log('P02_MIDDLE_NATIVE_TEST_DONE (synthetic data; owner/lab approval pending).');
+console.log(`P02_NATIVE_${printSize}_TEST_DONE (synthetic data; owner/lab approval pending).`);

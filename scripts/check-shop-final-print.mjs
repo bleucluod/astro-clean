@@ -7,6 +7,9 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import ts from 'typescript';
 import sharp from 'sharp';
+// This test renders several distinct native artworks in one process; avoid
+// holding libvips decoded pixel caches between independent assertions.
+sharp.cache(false);
 import * as astronomy from 'astronomy-engine';
 
 const root = resolve(import.meta.dirname, '..');
@@ -93,10 +96,9 @@ const changed = await renderer.buildPrivateShopFinalPrintCandidate({
   ...order, items: [{ ...item, details: { ...personal, time: '20:30' } }],
 }, 1);
 assert.notDeepEqual(sky.bytes, changed.bytes, 'Order time must affect printed stars.');
-const skyLarge = await renderer.buildPrivateShopFinalPrintCandidate({
-  ...order, items: [{ ...item, size: '30x45' }],
-}, 1);
-await assertJpeg(skyLarge, '30x45');
+// The native 30x45 P02 JPEG is verified by check-shop-native-middle-sky-print
+// --large in a separate Node process. Keeping all native sizes + repeated
+// P01/P03 renders in this process exhausts the Windows ArrayBuffer allocator.
 
 const moonItem = { ...item, key: 'moon-01', productId: 'p01',
   details: { ...personal, time: '', city: '', cityId: '' } };

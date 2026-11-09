@@ -183,7 +183,10 @@ export async function buildPrivateShopFinalPrintCandidate(
   const compositing = isPhoto
     ? [{ input: makePhotoFade(width, height) }, ...textLayers]
     : textLayers;
-  const jpeg = await sharp(background).composite(compositing)
+  // P02 native R9 already produced the final 300ppi sRGB JPEG. Re-encoding
+  // its full-size pixels again doubled peak memory and introduced generation
+  // loss on larger posters. P01/P03 keep their existing compositing contract.
+  const jpeg = item.productId === 'p02' ? background : await sharp(background).composite(compositing)
     .flatten({ background: '#101821' }).toColourspace('srgb')
     .jpeg({ quality: item.productId === 'p01' ? 96 : 94, chromaSubsampling: '4:4:4' })
     .withMetadata({ density: 300, icc: 'srgb' }).toBuffer();

@@ -139,8 +139,14 @@ export async function renderShopP02R9NativeJpeg(input: {
   if (embedded.includes('__R9_NATIVE_TEXT_') || embedded.includes('<text ')) {
     throw new Error('R9 glyph replacement incomplete');
   }
+  // Render the single original R9 viewBox directly at the final native size.
+  // Avoid allocating a full 3000x4500 SVG raster and another large resize
+  // buffer for 30x45 prints. Text overlays are already scaled for this size.
+  const rootDimensions = `viewBox="0 0 3000 4500" width="3000" height="4500"`;
+  if (!embedded.includes(rootDimensions)) throw new Error('R9 SVG root dimensions changed');
+  embedded = embedded.replace(rootDimensions,
+    `viewBox="0 0 3000 4500" width="${width}" height="${height}"`);
   return sharp(Buffer.from(embedded, 'utf8'), { limitInputPixels: 26_000_000 })
-    .resize(width, height, { fit: 'fill' })
     .flatten({ background: '#000000' })
     .toColourspace('srgb').jpeg({ quality: 94, chromaSubsampling: '4:4:4' })
     .withMetadata({ density: 300, icc: 'srgb' }).toBuffer();
