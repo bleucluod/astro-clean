@@ -226,7 +226,7 @@ function posterTypography(details:BirthSkyPersonalDetails,guide:string) {
 /** Approved R9-v5 scene, built from live BSC5, constellation and named-star geometry. */
 export function renderShopBirthSkyR9(
   atlas:Atlas,figures:Figures,named:NamedStars,details:BirthSkyPersonalDetails,
-  options:{typography?:boolean}={},
+  options:{typography?:boolean;solarSystem?:string}={},
 ):string {
   if(![figures,named].every(v=>v.referenceUtc===atlas.referenceUtc&&v.latitude===atlas.latitude&&v.longitude===atlas.longitude)) {
     throw new Error('R9 stellar, figure, and name data must share the same UTC instant and location');
@@ -267,6 +267,7 @@ export function renderShopBirthSkyR9(
       <g id="r9-constellations">${arts.map(a=>a.original).join('')}</g>
       <g id="r9-sourced-stars">${markup}</g>
     </g>
+    ${options.solarSystem||''}
     ${namedLabels(named,starCoords)}
     ${options.typography===false?'':posterTypography(details,guide)}
   </svg>`;

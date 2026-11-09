@@ -57,10 +57,11 @@ export function BirthSkyLiveProduct() {
     try {
       const names = safeShopArtworkText(values.names, 'نام');
       const message = safeShopArtworkText(values.message, 'پیام');
-      const [starModule, constellationModule, namedModule, artModule] = await Promise.all([
+      const [starModule, constellationModule, namedModule, solarModule, artModule] = await Promise.all([
         import('@/lib/shop/shop-sky-atlas'),
         import('@/lib/shop/shop-constellation-lines'),
         import('@/lib/shop/shop-sky-stars'),
+        import('@/lib/shop/shop-solar-system'),
         import('@/lib/shop/shop-birth-sky-r9'),
       ]);
       if (version !== operation.current) return;
@@ -72,12 +73,14 @@ export function BirthSkyLiveProduct() {
       const stars = starModule.calculateShopStarAtlas(reference);
       const figures = constellationModule.calculateShopConstellationLines(reference);
       const named = namedModule.calculateShopBrightStarProof(reference);
+      const solarSystem = solarModule.calculateShopSolarSystem(reference);
+      const solarArtwork = solarModule.renderShopSolarSystem(solarSystem);
       const svg = artModule.renderShopBirthSkyR9(stars, figures, named, {
         names, message,
         date: values.date,
         time: values.time,
         city: getHalleusCityDisplayName(city),
-      });
+      }, { solarSystem: solarArtwork });
       if (version === operation.current) {
         // One computed SVG is the single source for the page and PNG output.
         skyOnlyArtwork.current = svg;

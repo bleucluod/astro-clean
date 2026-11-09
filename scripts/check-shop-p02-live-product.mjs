@@ -81,6 +81,7 @@ for (const marker of [
   "import('@/lib/shop/shop-sky-atlas')", "import('@/lib/shop/shop-constellation-lines')",
   "import('@/lib/shop/shop-sky-stars')",
   "import('@/lib/shop/shop-birth-sky-r9')",
+  "import('@/lib/shop/shop-solar-system')",
   'dangerouslySetInnerHTML={{ __html: artwork }}',
   "canvas.toBlob(", "URL.revokeObjectURL(svgUrl)",
   'از داده‌های نجومی واقعی', 'امکان خرید، پرداخت و سفارش',
