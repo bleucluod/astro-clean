@@ -57,11 +57,11 @@ export function BirthSkyLiveProduct() {
     try {
       const names = safeShopArtworkText(values.names, 'نام');
       const message = safeShopArtworkText(values.message, 'پیام');
-      const [starModule, constellationModule, galaxyModule, artModule] = await Promise.all([
+      const [starModule, constellationModule, namedModule, artModule] = await Promise.all([
         import('@/lib/shop/shop-sky-atlas'),
         import('@/lib/shop/shop-constellation-lines'),
-        import('@/lib/shop/shop-galactic-atmosphere'),
-        import('@/lib/shop/shop-birth-sky-artwork'),
+        import('@/lib/shop/shop-sky-stars'),
+        import('@/lib/shop/shop-birth-sky-r9'),
       ]);
       if (version !== operation.current) return;
       const reference = {
@@ -71,19 +71,16 @@ export function BirthSkyLiveProduct() {
       };
       const stars = starModule.calculateShopStarAtlas(reference);
       const figures = constellationModule.calculateShopConstellationLines(reference);
-      const atmosphere = galaxyModule.calculateShopGalacticAtmosphere(reference);
-      const svg = artModule.renderShopBirthSkyArtwork(stars, figures, {
+      const named = namedModule.calculateShopBrightStarProof(reference);
+      const svg = artModule.renderShopBirthSkyR9(stars, figures, named, {
         names, message,
         date: values.date,
         time: values.time,
         city: getHalleusCityDisplayName(city),
-      }, { atmosphere });
+      });
       if (version === operation.current) {
-        // The same computed catalog scene is used by the preview and PNG.
-        skyOnlyArtwork.current = artModule.renderShopBirthSkyArtwork(stars, figures, {
-          names, message, date: values.date, time: values.time,
-          city: getHalleusCityDisplayName(city),
-        }, { typography: false, atmosphere });
+        // One computed SVG is the single source for the page and PNG output.
+        skyOnlyArtwork.current = svg;
         setArtwork(svg);
       }
     } catch (failure) {
@@ -144,12 +141,23 @@ export function BirthSkyLiveProduct() {
     if (!artwork || downloadBusy) return;
     setDownloadBusy(true);
     setError('');
-    const bareSky = skyOnlyArtwork.current;
-    if (!bareSky) {
+    const fullScene = skyOnlyArtwork.current;
+    if (!fullScene) {
       setError('نقشه هنوز برای خروجی آماده نیست.');
       setDownloadBusy(false);
       return;
     }
+    // Canvas cannot reliably resolve the external Next localFont when an SVG
+    // is loaded as an Image. Rasterize identical geometry without its text;
+    // paint the exact SVG text nodes with loaded Estedad on the same canvas.
+    const printDom = new DOMParser().parseFromString(fullScene, 'image/svg+xml');
+    if (printDom.querySelector('parsererror')) {
+      setError('خواندن تصویر آسمان برای PNG انجام نشد.');
+      setDownloadBusy(false);
+      return;
+    }
+    printDom.querySelectorAll('text').forEach((element) => element.remove());
+    const bareSky = new XMLSerializer().serializeToString(printDom.documentElement);
     const svgUrl = URL.createObjectURL(new Blob([bareSky], { type: 'image/svg+xml;charset=utf-8' }));
     try {
       const image = new window.Image();
@@ -171,16 +179,11 @@ export function BirthSkyLiveProduct() {
       if (!family) throw new Error('فونت اختصاصی اثر هنوز آماده نیست.');
       const city = findHalleusCityById(input.cityId);
       if (!city) throw new Error('شهر انتخابی معتبر نیست.');
-      const artModule = await import('@/lib/shop/shop-birth-sky-artwork');
+      const artModule = await import('@/lib/shop/shop-birth-sky-r9');
       context.save();
       context.scale(0.5, 0.5);
       try {
-        await artModule.paintShopBirthSkyTypography(context, {
-          names: safeShopArtworkText(input.names, 'نام'),
-          message: safeShopArtworkText(input.message, 'پیام'),
-          city: getHalleusCityDisplayName(city),
-          date: input.date, time: input.time,
-        }, family);
+        await artModule.paintShopBirthSkyR9Text(context, fullScene, family);
       } finally {
         context.restore();
       }
