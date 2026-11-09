@@ -81,13 +81,14 @@ for (const marker of [
   "import('@/lib/shop/shop-sky-atlas')", "import('@/lib/shop/shop-constellation-lines')",
   "import('@/lib/shop/shop-sky-stars')",
   "import('@/lib/shop/shop-birth-sky-r9')",
-  "import('@/lib/shop/shop-solar-system')",
   'dangerouslySetInnerHTML={{ __html: artwork }}',
   "canvas.toBlob(", "URL.revokeObjectURL(svgUrl)",
   'از داده‌های نجومی واقعی', 'امکان خرید، پرداخت و سفارش',
 ]) assert.ok(client.includes(marker), 'Missing P02 live-preview contract: ' + marker);
 assert.ok(!client.includes('/shop-preview/') && !client.includes('addShopCartItem('));
 assert.ok(!client.includes("fetch("), 'Personal birth inputs must not be sent to a server for this preview');
+assert.ok(!client.includes("shop-solar-system") && !client.includes("calculateShopSolarSystem("),
+  'Rejected Solar System layer must not be imported by this page');
 assert.ok(cityCatalog.includes('"id": "iran-229"') && cityCatalog.includes('"faName": "تهران"'));
 assert.ok(times.includes("resolveShopCivilTimeUtc(gregorianIso!, time, city.timezone)"));
 assert.ok(home.includes('href="/shop/birth-sky-map"') && home.includes('styles.p02Invitation'));

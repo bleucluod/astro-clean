@@ -43,6 +43,8 @@ const details={names:'<آراد & من>',message:'برای تو',city:'میان�
 const art=render(atlas,figures,named,details);
 assert.match(art,/viewBox="0 0 3000 4500"/);
 assert.match(art,/id="r9-actual-named-star-labels"/);
+assert.doesNotMatch(art,/r9-solar-system-bodies|data-solar-body=/,
+  'Rejected Solar System layer must not appear in source SVG');
 assert.match(art,/سیریوس/);
 assert.doesNotMatch(art,/نام اشتباه/);
 assert.match(art,/&lt;آراد &amp; من&gt;/);
@@ -104,6 +106,9 @@ assert.ok(client.includes("import('@/lib/shop/shop-birth-sky-r9')"));
 assert.ok(client.includes("import('@/lib/shop/shop-sky-stars')"));
 assert.ok(client.includes('renderShopBirthSkyR9(stars, figures, named'));
 assert.ok(client.includes('paintShopBirthSkyR9Text'));
+assert.ok(!client.includes('shop-solar-system') && !client.includes('calculateShopSolarSystem('));
+assert.ok(!source.includes('options.solarSystem') && !source.includes('solarSystem?:'),
+  'Rejected planetary overlay must not remain in R9 renderer API');
 assert.ok(!client.includes('renderShopBirthSkyArtwork('));
 assert.ok(!client.includes('addShopCartItem(')&&!client.includes('fetch('));
 console.log('P02_R9_V5_REAL_DYNAMIC=PASS same_paths dynamic_labels_exact_scene_font_parity_no_sales');
