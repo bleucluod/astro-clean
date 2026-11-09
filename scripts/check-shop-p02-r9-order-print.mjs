@@ -57,6 +57,19 @@ assert.match(preview, /renderShopBirthSkyR9\(stars, figures, named/);
 assert.match(finalPrint, /renderShopP02R9NativeJpeg\(/);
 assert.doesNotMatch(finalPrint, /function makeSkySvg\(/);
 assert.doesNotMatch(native, /پیش‌نمایش هالیوس/);
+assert.match(native, /rasterBackgroundAtPreviewSize\(svg\)/,
+  'diffuse R9 turbulence must be rendered once at fixed preview size');
+assert.match(native, /injectDiffusedBackground\(svg, diffuse\)/,
+  'only the diffuse background is rasterized early');
+assert.match(native, /const tileLimit = 1024/,
+  'native artwork must tile vector geometry to bound memory and time');
+assert.match(native, /tileWidth \* SOURCE_W \/ width/,
+  'star vector geometry must retain exact original R9 coordinates');
+assert.match(native, /tiles\.push\(\{ input, left, top \}\)/,
+  'tile output must cover the native canvas');
+assert.doesNotMatch(native, /\.resize\(width, height, \{ fit: 'fill' \}\)/,
+  'never rasterize a huge SVG only to resample its pixels');
+
 assert.match(finalPrint, /item\.productId === 'p01' \|\| item\.productId === 'p02' \? \[\]/);
 assert.match(finalPrint, /getHalleusCityDisplayName\(city\)/);
 assert.match(finalPrint, /personal\.calendar === 'jalali' \? 'fa' : 'en'/);

@@ -48,6 +48,49 @@ function extractText(svg: string): { skeleton: string; entries: SourceText[] } {
   return { skeleton, entries };
 }
 
+/** The original R9 artistic haze uses fractal turbulence. Rendering that
+ * expensive blur at 19 megapixels takes many minutes on ordinary hardware.
+ * Bake ONLY the diffuse scene background at preview resolution; leave real
+ * BSC5 stars, constellation paths, labels and typography native and crisp.
+ */
+async function rasterBackgroundAtPreviewSize(svg: string): Promise<Buffer> {
+  const skyOpen = '<g id="r9-sky" mask="url(#r9-text-clearance)">';
+  const starOpen = '<g id="r9-constellations">';
+  const skyAt = svg.indexOf(skyOpen);
+  const starsAt = svg.indexOf(starOpen, skyAt);
+  const rootDimensions = 'viewBox="0 0 3000 4500" width="3000" height="4500"';
+  if (skyAt < 0 || starsAt < 0 || starsAt <= skyAt ||
+      svg.indexOf(skyOpen, skyAt + 1) >= 0 ||
+      !svg.includes(rootDimensions)) throw new Error('R9 sky-layer contract changed');
+  const prefix = svg.slice(0, skyAt).replace(rootDimensions,
+    'viewBox="0 0 3000 4500" width="720" height="1080"');
+  const diffuseLayer = svg.slice(skyAt, starsAt);
+  if (!diffuseLayer.includes('id="r9-artistic-haze"') ||
+      !diffuseLayer.includes('id="r9-cloud-warp"') && !prefix.includes('id="r9-cloud-warp"')) {
+    throw new Error('R9 artistic haze contract changed');
+  }
+  // The original outer black backing + R9 cloud/gradient layer. The print
+  // SVG applies the clearance mask once, after embedding this diffuse raster.
+  const backgroundSvg = prefix +
+    diffuseLayer.replace(' mask="url(#r9-text-clearance)"', '') +
+    '</g></svg>';
+  return sharp(Buffer.from(backgroundSvg, 'utf8'), { limitInputPixels: 1_000_000 })
+    .png().toBuffer();
+}
+
+function injectDiffusedBackground(svg: string, raster: Buffer): string {
+  const skyOpen = '<g id="r9-sky" mask="url(#r9-text-clearance)">';
+  const skyAt = svg.indexOf(skyOpen);
+  const starsAt = svg.indexOf('<g id="r9-constellations">', skyAt);
+  if (skyAt < 0 || starsAt < 0 || starsAt <= skyAt) {
+    throw new Error('R9 sky scene changed');
+  }
+  const image = '<image x="0" y="0" width="3000" height="4500" ' +
+    'preserveAspectRatio="none" href="data:image/png;base64,' +
+    raster.toString('base64') + '"/>';
+  return svg.slice(0, skyAt) + skyOpen + image + svg.slice(starsAt);
+}
+
 // The background uses the exact approved R9 vector. Native Estedad glyphs
 // use the approved TTFs, with no browser font fallback or watermark.
 async function rasterText(source: SourceText, scaleX: number, scaleY: number) {
@@ -119,7 +162,9 @@ export async function renderShopP02R9NativeJpeg(input: {
   const figures = calculateShopConstellationLines(reference);
   const named = calculateShopBrightStarProof(reference);
   const svg = renderShopBirthSkyR9(stars, figures, named, actualDetails, { numerals: input.numerals });
-  const { skeleton, entries } = extractText(svg);
+  const diffuse = await rasterBackgroundAtPreviewSize(svg);
+  const printScene = injectDiffusedBackground(svg, diffuse);
+  const { skeleton, entries } = extractText(printScene);
   const scaleX = width / SOURCE_W, scaleY = height / SOURCE_H;
   const glyphs = await Promise.all(entries.map((entry) => rasterText(entry, scaleX, scaleY)));
   let embedded = skeleton;
@@ -139,15 +184,40 @@ export async function renderShopP02R9NativeJpeg(input: {
   if (embedded.includes('__R9_NATIVE_TEXT_') || embedded.includes('<text ')) {
     throw new Error('R9 glyph replacement incomplete');
   }
-  // Render the single original R9 viewBox directly at the final native size.
-  // Avoid allocating a full 3000x4500 SVG raster and another large resize
-  // buffer for 30x45 prints. Text overlays are already scaled for this size.
-  const rootDimensions = `viewBox="0 0 3000 4500" width="3000" height="4500"`;
+  // Paint the authored vector at native 300-PPI geometry, but never in one
+  // giant SVG raster. Tiling avoids libvips/librsvg's high memory/time cost
+  // when a dense BSC5 star field is rendered on a 30x45 poster.
+  const rootDimensions = 'viewBox="0 0 3000 4500" width="3000" height="4500"';
   if (!embedded.includes(rootDimensions)) throw new Error('R9 SVG root dimensions changed');
-  embedded = embedded.replace(rootDimensions,
-    `viewBox="0 0 3000 4500" width="${width}" height="${height}"`);
-  return sharp(Buffer.from(embedded, 'utf8'), { limitInputPixels: 26_000_000 })
-    .flatten({ background: '#000000' })
-    .toColourspace('srgb').jpeg({ quality: 94, chromaSubsampling: '4:4:4' })
+  const tileLimit = 1024;
+  const columns = Math.ceil(width / tileLimit);
+  const rows = Math.ceil(height / tileLimit);
+  const tiles: Array<{ input: Buffer; left: number; top: number }> = [];
+  for (let row = 0; row < rows; row++) {
+    const top = row * tileLimit;
+    const tileHeight = Math.min(tileLimit, height - top);
+    for (let col = 0; col < columns; col++) {
+      const left = col * tileLimit;
+      const tileWidth = Math.min(tileLimit, width - left);
+      const viewBox = [
+        (left * SOURCE_W / width).toFixed(8),
+        (top * SOURCE_H / height).toFixed(8),
+        (tileWidth * SOURCE_W / width).toFixed(8),
+        (tileHeight * SOURCE_H / height).toFixed(8),
+      ].join(' ');
+      const tileSvg = embedded.replace(rootDimensions,
+        'viewBox="' + viewBox + '" width="' + tileWidth + '" height="' + tileHeight + '"');
+      const input = await sharp(Buffer.from(tileSvg, 'utf8'), {
+        limitInputPixels: tileLimit * tileLimit,
+      }).png().toBuffer();
+      tiles.push({ input, left, top });
+    }
+  }
+  // The tiled source remains one identical R9 coordinate system: the
+  // background alone was sampled at preview size; no star is downscaled.
+  return sharp({ create: {
+    width, height, channels: 3, background: '#000000',
+  } }).composite(tiles).toColourspace('srgb')
+    .jpeg({ quality: 94, chromaSubsampling: '4:4:4' })
     .withMetadata({ density: 300, icc: 'srgb' }).toBuffer();
 }
