@@ -25,7 +25,10 @@ function load(file, dependencies = {}) {
   return mod.exports;
 }
 
-const products = load('components/shop/product-detail-data.ts');
+const gallery = load('components/shop/birth-sky-gallery.ts');
+const products = load('components/shop/product-detail-data.ts', {
+  './birth-sky-gallery': gallery,
+});
 const jalali = load('lib/date/jalali.ts');
 const iran = load('lib/locations/iran-cities.ts');
 const global = load('lib/locations/global-cities.ts');
@@ -107,7 +110,6 @@ for (const field of ['idempotency_hash', 'guest_access_hash', 'payload_hash']) {
 }
 
 const origin = load('lib/admin/admin-origin.ts');
-const activation = load('lib/shop/shop-mvp-activation.ts');
 const http = load('lib/shop/shop-order-http.ts', {
   '@/lib/admin/admin-origin': origin,
   '@/lib/config/env': { getHalleusRuntimeEnv: () => ({ siteUrl: 'https://halleus.ir' }) },

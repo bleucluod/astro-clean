@@ -42,7 +42,10 @@ function loadTypeScript(relativePath, dependencies = {}) {
   return sandboxModule.exports;
 }
 
-const productData = loadTypeScript('components/shop/product-detail-data.ts');
+const gallery = loadTypeScript('components/shop/birth-sky-gallery.ts');
+const productData = loadTypeScript('components/shop/product-detail-data.ts', {
+  './birth-sky-gallery': gallery,
+});
 const jalali = loadTypeScript('lib/date/jalali.ts');
 const iranCities = loadTypeScript('lib/locations/iran-cities.ts');
 const globalCities = loadTypeScript('lib/locations/global-cities.ts');

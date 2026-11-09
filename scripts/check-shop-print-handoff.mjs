@@ -25,7 +25,10 @@ function load(relativePath, dependencies = {}) {
   return mod.exports;
 }
 
-const products = load('components/shop/product-detail-data.ts');
+const gallery = load('components/shop/birth-sky-gallery.ts');
+const products = load('components/shop/product-detail-data.ts', {
+  './birth-sky-gallery': gallery,
+});
 const jalali = load('lib/date/jalali.ts');
 const iranCities = load('lib/locations/iran-cities.ts');
 const globalCities = load('lib/locations/global-cities.ts');
