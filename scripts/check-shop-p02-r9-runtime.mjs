@@ -121,6 +121,23 @@ const selected=ranked.match(/data-constellations="([^"]*)"/)?.[1]||'';
 assert.ok(selected.split(',').includes('Ori'),'central readable silhouette must be selected');
 assert.ok(selected.split(',').includes('Tau'),'second visible silhouette must be selected');
 assert.ok(!selected.split(',').includes('Eri'),'cropped, faded edge figure must not be selected');
+
+/** Footer baseline matches the last guide row, with 0–3 selected figures. */
+assert.match(source,/const rowY=3862\+index\*131/);
+assert.match(source,/const guideShift=chosen\.length>0\?\(3-chosen\.length\)\*131:0/);
+assert.match(art,/<text x="2720\.00" y="4137\.00" font-size="55"/,
+  'Date/time baseline must match the final constellation guide row');
+assert.match(art,/<text x="2720\.00" y="4028\.00" font-size="52"/,
+  'City stays 109 units above date and time');
+assert.match(art,/<path d="M2390 4222H2720"/,
+  'Separator must remain below the adjusted date');
+const oneVisible=render(atlas,{...figures,lines:[central]},named,details);
+const twoVisible=render(atlas,{...figures,lines:[central,side]},named,details);
+assert.match(oneVisible,/transform="translate\(0 262\)"/,
+  'Single constellation remains bottom-aligned with date');
+assert.match(twoVisible,/transform="translate\(0 131\)"/,
+  'Two constellations remain bottom-aligned with date');
+
 assert.match(ranked,/stroke-width="1\.85" stroke-opacity="\.67"/,
   'actual source lines must be readable when preview is scaled');
 assert.match(ranked,/stroke-width="4\.1" stroke-opacity="\.17"/,

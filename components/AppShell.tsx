@@ -22,6 +22,7 @@ const footerLinks = [
   { href: "/compare", label: "چارت ازدواج" },
   { href: "/sky", label: "آسمان امروز" },
   { href: "/wiki", label: "ویکی آسترولوژی" },
+  { href: "/shop", label: "فروشگاه" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 

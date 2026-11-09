@@ -8,6 +8,7 @@ import { navItems } from "@/lib/config/navigation";
 const reportReaderNavItems = [
   { href: "/profile", label: "حساب کاربری" },
   { href: "/compare", label: "سیناستری" },
+  { href: "/shop", label: "فروشگاه" },
 ] as const;
 
 function resolveNavItems(pathname: string) {

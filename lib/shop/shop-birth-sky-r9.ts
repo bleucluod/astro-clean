@@ -242,9 +242,9 @@ function posterTypography(details:BirthSkyPersonalDetails,guide:string,numerals:
   return `<g id="r9-poster-typography">
     ${personalNameText(name,size(name,221,169,121))}
     ${message?fontText(message,2720,3730,size(message,73,62,48),300,'#D9EAFD'):''}
-    ${fontText(city,2720,3978,size(city,52,46,38),400,'#BCCCDC')}
-    ${fontText(date,2720,4087,55,400,'#BCCCDC',{anchor:'end',dir:'ltr'})}
-    <path d="M2390 4172H2720" stroke="#9AA6B2" stroke-width="1.4" opacity=".46"/>
+    ${fontText(city,2720,4028,size(city,52,46,38),400,'#BCCCDC')}
+    ${fontText(date,2720,4137,55,400,'#BCCCDC',{anchor:'end',dir:'ltr'})}
+    <path d="M2390 4222H2720" stroke="#9AA6B2" stroke-width="1.4" opacity=".46"/>
     ${guide}
     ${fontText('H  A  L  L  E  U  S',1500,4310,52,400,'#8A96A1',{anchor:'middle',dir:'ltr',opacity:.52})}
   </g>`;
@@ -262,10 +262,13 @@ export function renderShopBirthSkyR9(
   const {markup,starCoords}=renderStars(atlas);
   const arts=chosen.map((f,i)=>figureSvg(f,i,starCoords));
   const ids=chosen.map(f=>f.id);
+  // Keep the final constellation guide row level with the date even when
+  // fewer than three constellations meet the visibility threshold.
+  const guideShift=chosen.length>0?(3-chosen.length)*131:0;
   const guide=`<g id="r9-dynamic-constellation-guide" data-constellations="${xml(ids.join(','))}">
-    <path d="M232 3715V4203" stroke="#9AA6B2" stroke-width="1.25" opacity=".34"/>
-    ${fontText('راهنمای صورت‌های فلکی',770,3765,45,400,'#D9EAFD')}
-    ${arts.map(a=>a.icon).join('')}
+    <path d="M232 ${3715+guideShift}V4203" stroke="#9AA6B2" stroke-width="1.25" opacity=".34"/>
+    ${fontText('راهنمای صورت‌های فلکی',770,3765+guideShift,45,400,'#D9EAFD')}
+    <g transform="translate(0 ${guideShift})">${arts.map(a=>a.icon).join('')}</g>
   </g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 4500" width="3000" height="4500" role="img"
     aria-label="نقشهٔ آسمان تولد با ستارگان واقعی و صورت‌های فلکی محاسبه‌شده">

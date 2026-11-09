@@ -15,4 +15,8 @@ export const navItems = [
     href: "/wiki",
     label: "ویکی",
   },
+  {
+    href: "/shop",
+    label: "فروشگاه",
+  },
 ] as const;
