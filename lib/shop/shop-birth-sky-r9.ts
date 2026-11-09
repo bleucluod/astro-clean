@@ -40,34 +40,72 @@ function fontText(text:string,x:number,y:number,size:number,weight:number,fill:s
     direction="${opts.dir || 'rtl'}" text-anchor="${opts.anchor || 'start'}"${opts.opacity==null?'':` opacity="${opts.opacity}"`}>${xml(text)}</text>`;
 }
 
-function scoredFigures(lines: FigureLine[]) {
-  const grouped=new Map<string,{id:string,lines:FigureLine[],length:number,segments:number}>();
-  for(const line of lines) {
-    if(line.rank!==1 || line.points.length<2) continue;
-    if(!line.points.every(safe)) throw new Error('Invalid R9 constellation source geometry');
-    let length=0;
-    for(let i=1;i<line.points.length;i++) {
-      length+=Math.hypot(line.points[i].x-line.points[i-1].x,line.points[i].y-line.points[i-1].y);
-    }
-    if(length<.025) continue;
-    const slot=grouped.get(line.constellationId)||{id:line.constellationId,lines:[],length:0,segments:0};
-    slot.lines.push(line);slot.length+=length;slot.segments++;
-    grouped.set(slot.id,slot);
-  }
-  // A tiny horizon fragment must never win over a recognizable constellation.
-  return [...grouped.values()].filter(c=>c.length>=.22 && c.segments>=1)
-    .sort((a,b)=>(b.length+Math.min(b.segments,5)*.13)-(a.length+Math.min(a.segments,5)*.13)||a.id.localeCompare(b.id))
-    .slice(0,3);
+/** A constellation must be readable on the PRINT, not merely above the horizon.
+ * The R9 sky mask fades above y≈1100 and below y≈3060; the personalized
+ * text sits beneath y≈3500. This weight evaluates the actual fixed layout,
+ * without changing any star/constellation astronomical coordinates.
+ */
+function visibleFigureWeight(point: SourcePoint): number {
+  const p = project(point);
+  const x = Math.min(clamp((p.x - 125) / 285, 0, 1), clamp((2875 - p.x) / 285, 0, 1));
+  const y = Math.min(clamp((p.y - 810) / 425, 0, 1), clamp((3430 - p.y) / 505, 0, 1));
+  return x * y;
 }
 
+function scoredFigures(lines: FigureLine[]) {
+  const grouped = new Map<string, {
+    id: string; lines: FigureLine[]; total: number; readable: number; landmarks: number;
+  }>();
+  for (const line of lines) {
+    if (line.rank !== 1 || line.points.length < 2) continue;
+    if (!line.points.every(safe)) throw new Error('Invalid R9 constellation source geometry');
+    let total = 0, readable = 0, landmarks = 0;
+    for (let i = 0; i < line.points.length; i++) {
+      if (visibleFigureWeight(line.points[i]) >= .52) landmarks++;
+      if (i === 0) continue;
+      const a = line.points[i - 1], b = line.points[i];
+      const length = Math.hypot(b.x - a.x, b.y - a.y) * SHOP_P02_R9_LAYOUT.sky.radius;
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      const weight = (visibleFigureWeight(a) + 2 * visibleFigureWeight(mid) + visibleFigureWeight(b)) / 4;
+      total += length;
+      readable += length * weight;
+    }
+    if (total < 44) continue; // do not select tiny horizon fragments
+    const slot = grouped.get(line.constellationId) || {
+      id: line.constellationId, lines: [], total: 0, readable: 0, landmarks: 0,
+    };
+    slot.lines.push(line);
+    slot.total += total;
+    slot.readable += readable;
+    slot.landmarks += landmarks;
+    grouped.set(slot.id, slot);
+  }
+  return [...grouped.values()]
+    .filter(c => c.readable >= 185 && c.readable / c.total >= .30 && c.landmarks >= 2)
+    .sort((a, b) => {
+      // Keep the entire actual path, but prefer a complete, central silhouette
+      // over a longer river-like shape mostly lost beyond the frame/mask.
+      const score = (c: typeof a) => 4.6 * c.readable / c.total +
+        .42 * Math.log1p(c.readable) + .10 * Math.min(c.landmarks, 12) +
+        .11 * Math.min(c.lines.length, 4);
+      return score(b) - score(a) || a.id.localeCompare(b.id);
+    })
+    .slice(0, 3);
+}
 function figureSvg(figure:ReturnType<typeof scoredFigures>[number],index:number,sourceStars:ReturnType<typeof renderStars>['starCoords']) {
   const rawPaths=figure.lines.map((line,i) => {
     const d=line.points.map((p,j)=>`${j?'L':'M'}${num(project(p).x)} ${num(project(p).y)}`).join(' ');
     return {d,i};
   });
-  const original=rawPaths.map(({d,i})=>`<path data-constellation="${xml(figure.id)}" data-part="${i}" d="${d}"
-    fill="none" stroke="#D9EAFD" stroke-width="1.14" stroke-opacity=".31"
-    stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  // The low-opacity path from R9-v5 became almost invisible at preview size.
+  // A soft under-stroke plus a legible source path preserves exact geometry.
+  const original=rawPaths.map(({d,i})=>`<g data-sourced-figure-part="${xml(figure.id)}">
+    <path d="${d}" fill="none" stroke="#A9CADF" stroke-width="4.1" stroke-opacity=".17"
+      stroke-linecap="round" stroke-linejoin="round"/>
+    <path data-constellation="${xml(figure.id)}" data-part="${i}" d="${d}"
+      fill="none" stroke="#D9EAFD" stroke-width="1.85" stroke-opacity=".67"
+      stroke-linecap="round" stroke-linejoin="round"/>
+    </g>`).join('') + starVertices(figure, sourceStars, 1, true);
   const points=figure.lines.flatMap(line=>line.points.map(project));
   const minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x));
   const minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
@@ -88,7 +126,7 @@ function figureSvg(figure:ReturnType<typeof scoredFigures>[number],index:number,
   return {original,icon};
 }
 
-function starVertices(figure:ReturnType<typeof scoredFigures>[number],sourceStars:ReturnType<typeof renderStars>['starCoords'],scale:number) {
+function starVertices(figure:ReturnType<typeof scoredFigures>[number],sourceStars:ReturnType<typeof renderStars>['starCoords'],scale:number,emphasize=false) {
   const used=new Set<string>();const nodes:string[]=[];
   for(const line of figure.lines) {
     const endpoints=[line.points[0],line.points[line.points.length-1]].map(project);
@@ -101,7 +139,19 @@ function starVertices(figure:ReturnType<typeof scoredFigures>[number],sourceStar
       const key=`${num(nearest.x)}:${num(nearest.y)}`;
       if(used.has(key))continue;
       used.add(key);
-      nodes.push(`<circle cx="${num(nearest.x)}" cy="${num(nearest.y)}" r="${num(2.15/scale)}" fill="#F8FAFC" opacity=".96"/>`);
+      if (emphasize) {
+        // An accent is allowed only at the same real BSC5 star coordinate.
+        // Never invent a luminous point at an arbitrary constellation vertex.
+        if (nearest.mag <= 4.25) {
+          nodes.push(`<circle cx="${num(nearest.x)}" cy="${num(nearest.y)}" r="12"
+            fill="url(#r9-halo)" opacity=".24"/>`);
+          nodes.push(`<circle cx="${num(nearest.x)}" cy="${num(nearest.y)}" r="3.3"
+            fill="#F8FAFC" opacity=".96"/>`);
+        }
+      } else {
+        nodes.push(`<circle cx="${num(nearest.x)}" cy="${num(nearest.y)}"
+          r="${num(2.15/scale)}" fill="#F8FAFC" opacity=".96"/>`);
+      }
     }
   }
   return nodes.join('');

@@ -62,10 +62,39 @@ assert.doesNotMatch(plain,/H  A  L  L  E  U  S|راهنمای صورت‌های 
 // Each guide icon literally reuses the same original SVG path data; it must
 // never linearly reconnect multiple independent source paths.
 const sourcePaths=[...art.matchAll(/<path data-constellation="([^"]+)" data-part="\d+" d="([^"]+)"/g)];
-assert.ok(sourcePaths.length>=4);
+assert.ok(sourcePaths.length>=2);
 for(const [,id,d] of sourcePaths){
   assert.ok(art.includes(`d="${d}" fill="none" stroke="#A9CADF"`),`missing exact miniature for ${id}`);
 }
+
+// Visual selection regressions: geometry-heavy fragments near a masked/cropped
+// edge must not outrank a compact, genuinely legible central constellation.
+const central={constellationId:'Ori',rank:1,points:[
+  {x:-.26,y:-.20},{x:-.1,y:-.08},{x:.10,y:-.18},{x:.30,y:-.08},
+  {x:.16,y:.06},{x:-.10,y:.10},
+]};
+const edge={constellationId:'Eri',rank:1,points:[
+  {x:.79,y:-.45},{x:.94,y:-.28},{x:.78,y:.01},{x:.92,y:.29},
+  {x:.82,y:.53},{x:.72,y:.65},
+]};
+const side={constellationId:'Tau',rank:1,points:[
+  {x:.12,y:.05},{x:.31,y:.12},{x:.20,y:.26},{x:.39,y:.29},
+]};
+const ranked=render(atlas,{...figures,lines:[edge,central,side]},named,details);
+const selected=ranked.match(/data-constellations="([^"]*)"/)?.[1]||'';
+assert.ok(selected.split(',').includes('Ori'),'central readable silhouette must be selected');
+assert.ok(selected.split(',').includes('Tau'),'second visible silhouette must be selected');
+assert.ok(!selected.split(',').includes('Eri'),'cropped, faded edge figure must not be selected');
+assert.match(ranked,/stroke-width="1\.85" stroke-opacity="\.67"/,
+  'actual source lines must be readable when preview is scaled');
+assert.match(ranked,/stroke-width="4\.1" stroke-opacity="\.17"/,
+  'source-matched soft glow must preserve premium appearance');
+assert.doesNotMatch(ranked,/data-constellation="Aqr"/);
+// All figure highlights are sourced from actual catalog stars; the scene must
+// not create arbitrary vertex stars when no catalog point is within 12px.
+const starless=render({...atlas,aboveHorizonStars:[]},{...figures,lines:[central]},named,details);
+assert.ok(!starless.includes('r="3.3"'),'no invented star highlights');
+
 for(const f of ['Estedad-Light.ttf','Estedad-Regular.ttf','Estedad-Medium.ttf']) {
   assert.ok(page.includes(f),`P02 missing approved font ${f}`);
   assert.ok(p01.includes(f)||f==='Estedad-Light.ttf'&&p01.includes('fontDir'),`P01 font parity missing ${f}`);
