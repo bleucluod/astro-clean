@@ -9,6 +9,8 @@ import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { BIRTH_SKY_HERO } from './birth-sky-content';
 import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
+import { SHOP_SIZES } from './product-detail-data';
+import pdStyles from './product-detail.module.css';
 import styles from './birth-sky-live-product.module.css';
 
 type Personalization = {
@@ -39,6 +41,7 @@ export function BirthSkyLiveProduct() {
   const [error, setError] = useState('');
   const [downloadBusy, setDownloadBusy] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [sizeIndex, setSizeIndex] = useState(2);
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const operation = useRef(0);
@@ -145,6 +148,13 @@ export function BirthSkyLiveProduct() {
     setError('');
   }
 
+  function updateJalaliPart(index: 0 | 1 | 2, value: string) {
+    const parts = input.date.split('/');
+    const next = [parts[0] || '', parts[1] || '', parts[2] || ''];
+    next[index] = value.replace(/[^0-9۰-۹٠-٩]/g, '').slice(0, index === 0 ? 4 : 2);
+    change('date', next.join('/'));
+  }
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
@@ -220,141 +230,221 @@ export function BirthSkyLiveProduct() {
     }
   }
 
-  return <main className={styles.page} dir="rtl" data-shop-page="p02-live-product">
-    <div className={styles.wrap}>
-      <nav className={styles.crumb} aria-label="مسیر صفحه">
-        <Link href="/shop">فروشگاه هالیوس</Link>
-        <span aria-hidden="true">/</span>
-        <span aria-current="page">آسمان تولد</span>
-      </nav>
-
-      <div className={styles.hero}>
-        <section className={styles.artPanel} aria-label="گالری و پیش‌نمایش آسمان تولد">
-          <div className={styles.gallery}>
-            <button type="button" className={styles.galleryMain} onClick={() => setZoomOpen(true)}
-              aria-label={`بزرگ‌نمایی تصویر ${photoIndex + 1}: ${BIRTH_SKY_GALLERY[photoIndex].label}`}>
-              <Image key={BIRTH_SKY_GALLERY[photoIndex].src} src={BIRTH_SKY_GALLERY[photoIndex].src}
-                alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill priority={photoIndex === 0}
-                sizes="(max-width: 760px) calc(100vw - 30px), (max-width: 980px) 580px, 650px" />
-              <span className={styles.galleryZoomHint} aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="10.5" cy="10.5" r="6.5" />
-                  <path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" />
-                </svg>
-              </span>
-            </button>
-            <div className={styles.galleryThumbs} aria-label="تصاویر محصول">
-              {BIRTH_SKY_GALLERY.map((photo, index) => <button type="button" key={photo.src}
-                className={`${styles.galleryThumb} ${photoIndex === index ? styles.galleryThumbActive : ''}`}
-                onClick={() => setPhotoIndex(index)} aria-pressed={photoIndex === index}
-                aria-label={`نمایش تصویر ${index + 1}: ${photo.label}`}>
-                <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 76px, 112px" />
-              </button>)}
-            </div>
-            <p className={styles.galleryPosition} aria-live="polite">تصویر {new Intl.NumberFormat('fa-IR').format(photoIndex + 1)} از {new Intl.NumberFormat('fa-IR').format(BIRTH_SKY_GALLERY.length)} · {BIRTH_SKY_GALLERY[photoIndex].label}</p>
-            <p className={styles.galleryCaption}>شش نمای واقعی از شاسی‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متری، در فضای خانه؛ هر آسمان با نام و لحظهٔ خودش.</p>
+  return <main className={[pdStyles.page, styles.page].join(' ')} dir="rtl" data-shop-page="p02-live-product">
+    <div className={pdStyles.content}>
+      <section className={pdStyles.productHero} aria-label="تابلو آسمان تولد">
+        <div className={pdStyles.gallery}>
+          <nav className={pdStyles.breadcrumbs} aria-label="مسیر صفحه">
+            <Link href="/">هالیوس</Link><span aria-hidden="true">/</span>
+            <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
+            <span aria-current="page">آسمان تولد</span>
+          </nav>
+          <button type="button" className={[pdStyles.mainPhotoButton, pdStyles.p01MainPhoto].join(' ')}
+            onClick={() => setZoomOpen(true)}
+            aria-label={'بزرگ‌نمایی '+BIRTH_SKY_GALLERY[photoIndex].label}>
+            <Image key={BIRTH_SKY_GALLERY[photoIndex].src}
+              src={BIRTH_SKY_GALLERY[photoIndex].src}
+              alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill priority={photoIndex === 0}
+              sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+              className={pdStyles.portraitPhoto} />
+            <span className={pdStyles.zoomHint} aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" />
+              </svg>
+            </span>
+          </button>
+          <div className={[pdStyles.thumbnails, pdStyles.p01Thumbnails].join(' ')} aria-label="تصاویر محصول">
+            {BIRTH_SKY_GALLERY.map((photo, index) => <button type="button" key={photo.src}
+              className={[pdStyles.thumbnail, photoIndex === index ? pdStyles.thumbnailActive : ''].filter(Boolean).join(' ')}
+              onClick={() => setPhotoIndex(index)} aria-pressed={photoIndex === index}
+              aria-label={'نمایش تصویر '+(index + 1)+': '+photo.label}>
+              <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 68px, 88px" />
+            </button>)}
           </div>
-          <section className={styles.livePreview} id="p02-live-preview" aria-labelledby="p02-live-preview-title">
-            <h2 id="p02-live-preview-title">آسمانِ مخصوص تو</h2>
-            <p>با انتخاب تاریخ، ساعت و شهر، نقشهٔ ستاره‌های آن لحظه همین‌جا شکل می‌گیرد.</p>
-            <div className={styles.artwork}>
-              {artwork ? <div className={styles.svgArtwork} role="img"
-                aria-label="طرح محاسبه‌شدهٔ نقشهٔ ستاره‌های آسمان تولد"
-                dangerouslySetInnerHTML={{ __html: artwork }} /> :
-                <div className={styles.emptyArtwork} role="status">
-                  <span className={styles.emptySymbol} aria-hidden="true">✧</span>
-                  <strong>{busy ? 'در حال محاسبهٔ ستاره‌ها…' : 'آسمان انتخابی‌ات اینجا شکل می‌گیرد'}</strong>
-                  <p>نقشه با تاریخ، ساعت و شهر انتخابی تو ساخته می‌شود.</p>
-                </div>}
-            </div>
-            {artwork ? <div className={styles.imageActions}>
-              <span>طرح شخصی تو، پیش از انتخاب شاسی</span>
-              <button type="button" disabled={downloadBusy} onClick={() => void downloadPng()}>
-                {downloadBusy ? 'در حال آماده‌سازی PNG…' : 'دریافت تصویر (PNG)'}
-              </button>
-            </div> : null}
-          </section>
-        </section>
+          <p className={pdStyles.galleryPosition} aria-live="polite">
+            تصویر {new Intl.NumberFormat('fa-IR').format(photoIndex + 1)} از {new Intl.NumberFormat('fa-IR').format(BIRTH_SKY_GALLERY.length)} · {BIRTH_SKY_GALLERY[photoIndex].label}
+          </p>
+          <p className={pdStyles.galleryCaption}>شش موکاپ تأییدشده از شاسی‌های بدون قاب در سه اندازهٔ ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر.</p>
+        </div>
 
-        <section className={styles.details} aria-labelledby="birth-sky-title">
-          <span className={styles.eyebrow}>HALLEUS / CELESTIAL ART / P02</span>
-          <h1 id="birth-sky-title">{BIRTH_SKY_HERO.h1}</h1>
-          <p className={styles.tagline}>{BIRTH_SKY_HERO.tagline}</p>
-          {BIRTH_SKY_HERO.intro.map((paragraph, i) => <p key={i} className={styles.intro}>{paragraph.replaceAll('**', '')}</p>)}
-          
-
-          <form id="p02-personalize" className={styles.form} onSubmit={submit} aria-label="شخصی‌سازی آسمان تولد">
-            <h2>آسمانِ آن لحظه را بساز</h2>
-            <div className={styles.dateRow}>
-              <label>تقویم
-                <select disabled={busy} value={input.calendar}
-                  onChange={(event) => {
-                    operation.current += 1;
-                    setInput((previous) => ({
-                      ...previous, calendar: event.target.value as Personalization['calendar'], date: '',
-                    }));
-                    skyOnlyArtwork.current = null;
-                    setArtwork(null); setError(''); setBusy(false);
-                  }}>
-                  <option value="jalali">شمسی</option><option value="gregorian">میلادی</option>
-                </select>
-              </label>
-              <label>تاریخ آن لحظه
-                <input required disabled={busy} dir="ltr" maxLength={20}
-                  value={input.date} placeholder={input.calendar === 'jalali' ? '۱۴۰۳/۰۸/۱۵' : '2024-11-05'}
-                  onChange={(event) => change('date', event.target.value)} />
-              </label>
-            </div>
-            <div className={styles.dateRow}>
-              <label>ساعت دقیق آن لحظه
-                <input type="time" required dir="ltr" disabled={busy} value={input.time}
-                  onChange={(event) => change('time', event.target.value)} />
-              </label>
-              <div className={styles.cityField}>
-                <label htmlFor="p02-birth-city">شهر آن لحظه</label>
-                <input id="p02-birth-city" required maxLength={100} autoComplete="off" disabled={busy}
-                  placeholder="نام شهر را بنویس" value={input.city}
-                  onChange={(event) => change('city', event.target.value)} />
-                {citySuggestions.length ? <ul className={styles.cityOptions} aria-label="انتخاب شهر تولد">
-                  {citySuggestions.map((city) => <li key={city.id}>
-                    <button type="button" onClick={() => pickCity(city.id)}>
-                      {getHalleusCityDisplayName(city)}
-                    </button>
-                  </li>)}
-                </ul> : null}
+        <div className={pdStyles.productInfo}>
+          <div className={pdStyles.productHeading}>
+            <h1 className={pdStyles.seoProductHeading}>{BIRTH_SKY_HERO.h1}</h1>
+            <p className={pdStyles.tagline}>{BIRTH_SKY_HERO.tagline}</p>
+          </div>
+          <div className={pdStyles.purchasePanel}>
+            <p className={pdStyles.introduction}>{BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
+            <fieldset className={pdStyles.sizes}>
+              <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
+              <div className={pdStyles.sizeGrid}>
+                {SHOP_SIZES.map((size, i) => <button type="button" key={size.dimension}
+                  className={[pdStyles.sizeChoice, sizeIndex === i ? pdStyles.sizeSelected : ''].filter(Boolean).join(' ')}
+                  aria-pressed={sizeIndex === i}
+                  onClick={() => { setSizeIndex(i); setPhotoIndex([4, 2, 0][i]); }}>
+                  <span dir="ltr">{size.label}</span>
+                </button>)}
               </div>
+            </fieldset>
+            <a className={pdStyles.sizeGuideLink} href="#p02-size-guide">مقایسهٔ اندازه‌ها در فضای خانه <span aria-hidden="true">↓</span></a>
+
+            <form id="p02-personalize" className={pdStyles.personalizeForm} onSubmit={submit}
+              aria-label="شخصی‌سازی آسمان تولد">
+              <div className={pdStyles.formIntro}>
+                <span className={pdStyles.formKicker}>شخصی‌سازی اثر</span>
+                <h2 className={pdStyles.formTitle}>آسمان کدام لحظه را نگه داریم؟</h2>
+                <p className={pdStyles.formPoem}>تاریخ، ساعت و شهر را انتخاب کن تا هالیوس آسمان همان لحظه را برای تو به تصویر بکشد.</p>
+              </div>
+              <div className={pdStyles.calendarChooser}>
+                <span className={pdStyles.calendarLabel}>تقویم</span>
+                <div className={pdStyles.calendarSwitch} role="group" aria-label="نوع تقویم">
+                  {([['jalali', 'شمسی'], ['gregorian', 'میلادی']] as const).map(([calendar, label]) =>
+                    <button key={calendar} type="button"
+                      className={[pdStyles.calendarOption, input.calendar === calendar ? pdStyles.calendarActive : ''].filter(Boolean).join(' ')}
+                      aria-pressed={input.calendar === calendar} disabled={busy}
+                      onClick={() => {
+                        if (input.calendar !== calendar) {
+                          operation.current += 1;
+                          skyOnlyArtwork.current = null;
+                          setArtwork(null); setBusy(false); setError('');
+                          setInput((previous) => ({ ...previous, calendar, date: '' }));
+                        }
+                      }}>{label}</button>)}
+                </div>
+              </div>
+              <div className={pdStyles.formField}>
+                <label htmlFor={input.calendar === 'jalali' ? 'p02-jalali-year' : 'p02-gregorian-date'}>تاریخ آن لحظه</label>
+                {input.calendar === 'jalali'
+                  ? <div className={pdStyles.jalaliDateParts} role="group" aria-label="تاریخ شمسی: سال، ماه و روز">
+                    {([
+                      { label: 'سال', placeholder: '۱۴۰۳', id: 'p02-jalali-year', length: 4 },
+                      { label: 'ماه', placeholder: '۰۸', id: 'p02-jalali-month', length: 2 },
+                      { label: 'روز', placeholder: '۱۵', id: 'p02-jalali-day', length: 2 },
+                    ] as const).map(({ label, placeholder, id, length }, index) =>
+                      <div className={pdStyles.jalaliDatePart} key={id}>
+                        <label htmlFor={id}>{label}</label>
+                        <input id={id} type="text" inputMode="numeric" dir="ltr" required
+                          maxLength={length} placeholder={placeholder} disabled={busy}
+                          value={input.date.split('/')[index] || ''}
+                          onChange={(event) => updateJalaliPart(index as 0 | 1 | 2, event.target.value)} />
+                      </div>)}
+                  </div>
+                  : <div className={pdStyles.dateInputShell}>
+                    <input id="p02-gregorian-date" type="date" required dir="ltr"
+                      disabled={busy} value={input.date}
+                      onChange={(event) => change('date', event.target.value)} />
+                  </div>}
+              </div>
+              <div className={pdStyles.dateFields}>
+                <div className={pdStyles.formField}>
+                  <label htmlFor="p02-time">ساعت دقیق آن لحظه</label>
+                  <input id="p02-time" type="time" dir="ltr" required disabled={busy}
+                    value={input.time} onChange={(event) => change('time', event.target.value)} />
+                </div>
+                <div className={pdStyles.formField}>
+                  <label htmlFor="p02-birth-city">شهر آن لحظه</label>
+                  <input id="p02-birth-city" required maxLength={100} autoComplete="off" disabled={busy}
+                    placeholder="نام شهر را بنویس و انتخاب کن" value={input.city}
+                    onChange={(event) => change('city', event.target.value)} />
+                  {citySuggestions.length ? <ul className={pdStyles.citySuggestions} aria-label="شهرهای پیشنهادی">
+                    {citySuggestions.map((city) => <li key={city.id}>
+                      <button type="button" onClick={() => pickCity(city.id)}>
+                        {getHalleusCityDisplayName(city)}
+                      </button>
+                    </li>)}
+                  </ul> : null}
+                </div>
+              </div>
+              <div className={pdStyles.formField}>
+                <label htmlFor="p02-names">نام روی تابلو <small>(اختیاری)</small></label>
+                <input id="p02-names" maxLength={60} disabled={busy} value={input.names}
+                  placeholder="نامی که این آسمان متعلق به اوست"
+                  onChange={(event) => change('names', event.target.value)} />
+              </div>
+              <details className={pdStyles.optionalFields}>
+                <summary>پیامی هم کنار این آسمان می‌گذاری؟ <span aria-hidden="true">+</span></summary>
+                <div className={pdStyles.optionalFieldsInner}>
+                  <div className={pdStyles.formField}>
+                    <label htmlFor="p02-message">پیام کوتاه <small>(اختیاری)</small></label>
+                    <textarea id="p02-message" maxLength={60} rows={2} disabled={busy}
+                      placeholder="چند کلمه برای این لحظه" value={input.message}
+                      onChange={(event) => change('message', event.target.value)} />
+                  </div>
+                </div>
+              </details>
+              {error ? <p className={pdStyles.formError} role="alert">{error}</p> : null}
+              <button className={pdStyles.confirmAction} type="submit" disabled={busy || !input.cityId}>
+                <span className={pdStyles.confirmLabel}>{busy ? 'در حال ساخت آسمان…' : BIRTH_SKY_HERO.button}</span>
+                <span className={pdStyles.confirmArrow} aria-hidden="true">←</span>
+              </button>
+              <a className={styles.previewJump} href="#p02-live-preview">دیدن نقشهٔ محاسبه‌شدهٔ آسمان من <span aria-hidden="true">↓</span></a>
+              <p className={styles.previewAvailability}>پیش‌نمایش شخصی‌سازی فعال است؛ امکان ثبت سفارش و پرداخت این محصول هنوز فعال نشده است.</p>
+            </form>
+            <div className={pdStyles.specification}>
+              <span>محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر</span>
+              <span>چاپ مات روی شاسی بدون قاب در سه اندازه</span>
             </div>
-            <label>نام روی تابلو (اختیاری)
-              <input maxLength={60} disabled={busy} value={input.names}
-                placeholder="نامی که این آسمان متعلق به اوست"
-                onChange={(event) => change('names', event.target.value)} />
-            </label>
-            <label>پیام کوتاه (اختیاری)
-              <input maxLength={60} disabled={busy} value={input.message}
-                placeholder="چند کلمه برای این لحظه"
-                onChange={(event) => change('message', event.target.value)} />
-            </label>
-            {error ? <p className={styles.error} role="alert">{error}</p> : null}
-            <button className={styles.primaryAction} type="submit" disabled={busy || !input.cityId}>
-              {busy ? 'در حال ساخت آسمان…' : BIRTH_SKY_HERO.button}
-            </button>
-          </form>
-          <div className={styles.availability}>
-            <strong>این اثر فعلاً برای تماشای طرح واقعی باز است.</strong>
-            <p>امکان خرید، پرداخت و سفارش آسمان تولد هنوز فعال نشده. بعد از تأیید نهایی طرح و نمونهٔ چاپی، فروشش باز می‌شه.</p>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+
+      <section className={styles.p02PreviewSection} id="p02-live-preview" aria-labelledby="p02-live-preview-heading">
+        <div className={styles.p02PreviewCopy}>
+          <span className={pdStyles.sectionKicker}>نمای زندهٔ اثر</span>
+          <h2 id="p02-live-preview-heading">آسمانِ مخصوص تو</h2>
+          <p>این نقشه از تاریخ، ساعت و شهر انتخابی‌ات محاسبه می‌شود. وقتی اطلاعات را تغییر می‌دهی و «ساخت آسمان» را می‌زنی، ستاره‌ها نیز جای تازه‌ای پیدا می‌کنند.</p>
+          {artwork ? <div className={styles.imageActions}>
+            <button type="button" disabled={downloadBusy} onClick={() => void downloadPng()}>
+              {downloadBusy ? 'در حال آماده‌سازی PNG…' : 'دریافت تصویر شخصی من (PNG)'}
+            </button>
+          </div> : null}
+        </div>
+        <div className={styles.p02PreviewArtwork}>
+          <div className={styles.artwork}>
+            {artwork ? <div className={styles.svgArtwork} role="img"
+              aria-label="نقشهٔ محاسبه‌شدهٔ ستاره‌های همان لحظه"
+              dangerouslySetInnerHTML={{ __html: artwork }} />
+              : <div className={styles.emptyArtwork} role="status">
+                <span className={styles.emptySymbol} aria-hidden="true">✧</span>
+                <strong>{busy ? 'در حال محاسبهٔ ستاره‌ها…' : 'آسمان انتخابی‌ات اینجا شکل می‌گیرد'}</strong>
+              </div>}
+          </div>
+        </div>
+      </section>
+
+      <section className={pdStyles.dimensionsSection} id="p02-size-guide" aria-labelledby="p02-size-heading">
+        <div className={pdStyles.centerIntro}>
+          <span className={pdStyles.sectionKicker}>راهنمای انتخاب اندازه</span>
+          <h2 id="p02-size-heading">کدام اندازه برای فضای تو مناسب‌تر است؟</h2>
+          <p>شاسی‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متری را در محیط واقعی ببین.</p>
+        </div>
+        <div className={pdStyles.sizeIllustration}>
+          {[
+            { src: BIRTH_SKY_GALLERY[4].src, alt: BIRTH_SKY_GALLERY[4].alt, size: '۱۰ × ۱۵', label: 'میز و شلف' },
+            { src: BIRTH_SKY_GALLERY[2].src, alt: BIRTH_SKY_GALLERY[2].alt, size: '۲۰ × ۳۰', label: 'دیوار اتاق' },
+            { src: BIRTH_SKY_GALLERY[0].src, alt: BIRTH_SKY_GALLERY[0].alt, size: '۳۰ × ۴۵', label: 'دیوار اصلی' },
+          ].map((item) => <figure key={item.size} className={pdStyles.sizeScene}>
+            <div className={pdStyles.sizeScenePhoto}>
+              <Image src={item.src} alt={item.alt} fill sizes="(max-width: 760px) 78vw, 370px"
+                className={styles.sizePhoto} />
+            </div>
+            <figcaption><strong>{item.size}</strong><span>{item.label}</span></figcaption>
+          </figure>)}
+        </div>
+      </section>
+
       <BirthSkyEditorial />
-      <dialog ref={zoomDialog} className={styles.galleryDialog} aria-label="بزرگ‌نمایی تصاویر آسمان تولد"
-        onClose={() => setZoomOpen(false)}>
-        <div className={styles.galleryDialogInner}>
-          <button type="button" className={styles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
-          <div className={styles.dialogImage}><Image src={BIRTH_SKY_GALLERY[photoIndex].src}
-            alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill sizes="95vw" /></div>
-          <div className={styles.dialogActions}>
-            <button type="button" onClick={() => setPhotoIndex((photoIndex - 1 + BIRTH_SKY_GALLERY.length) % BIRTH_SKY_GALLERY.length)}>تصویر قبل</button>
-            <span>{photoIndex + 1} از {BIRTH_SKY_GALLERY.length}</span>
+
+      <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)}
+        className={pdStyles.zoomDialog} aria-label="بزرگ‌نمایی تصاویر آسمان تولد">
+        <div className={pdStyles.zoomInner}>
+          <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
+          <div className={pdStyles.zoomPhoto}>
+            <Image src={BIRTH_SKY_GALLERY[photoIndex].src}
+              alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill sizes="95vw" />
+          </div>
+          <div className={pdStyles.zoomActions}>
+            <button type="button" onClick={() => setPhotoIndex((photoIndex + BIRTH_SKY_GALLERY.length - 1) % BIRTH_SKY_GALLERY.length)}>تصویر قبل</button>
+            <span>{new Intl.NumberFormat('fa-IR').format(photoIndex + 1)} از {new Intl.NumberFormat('fa-IR').format(BIRTH_SKY_GALLERY.length)}</span>
             <button type="button" onClick={() => setPhotoIndex((photoIndex + 1) % BIRTH_SKY_GALLERY.length)}>تصویر بعد</button>
           </div>
         </div>

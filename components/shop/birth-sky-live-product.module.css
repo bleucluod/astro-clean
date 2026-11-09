@@ -124,3 +124,59 @@
   .galleryDialog { padding: 11px; }
   .dialogImage { height: 65vh; }
 }
+
+/* P02 borrows the exact P01 product-detail shell; only live-preview elements differ. */
+.page {
+  background: #050609;
+  padding: 18px 0 96px;
+  color: #f8fafc;
+}
+.page :is(h1, h2, h3) {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc;
+}
+.page :is(p, li, label, small) {
+  color: #d5e1ec !important;
+  -webkit-text-fill-color: currentColor;
+}
+.page .previewAvailability {
+  color: #bacbd9 !important;
+  font-size: 12px;
+  line-height: 2;
+}
+.previewJump {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: #d9eafd;
+  font-size: 13px;
+  font-weight: 650;
+  text-underline-offset: 4px;
+}
+.p02PreviewSection {
+  display: grid;
+  grid-template-columns: minmax(0, 458fr) minmax(0, 690fr);
+  align-items: center;
+  direction: rtl;
+  gap: 52px;
+  margin-top: 88px;
+  padding-top: 42px;
+  border-top: 1px solid #34404c;
+  scroll-margin-top: 90px;
+}
+.p02PreviewCopy { display: grid; align-content: center; gap: 14px; min-width: 0; }
+.p02PreviewCopy h2 { font-size: clamp(23px, 2.8vw, 30px); line-height: 1.65; }
+.p02PreviewCopy p { max-width: 440px; font-size: 15px; line-height: 2.15; }
+.p02PreviewArtwork { width: min(100%, 440px); min-width: 0; margin-inline: auto; }
+.p02PreviewArtwork .artwork { width: 100%; }
+.p02PreviewCopy .imageActions { padding: 8px 0; }
+.sizePhoto { object-fit: contain !important; }
+@media (max-width: 1023px) {
+  .p02PreviewSection { grid-template-columns: minmax(0,1fr); gap: 28px; margin-top: 65px; }
+}
+@media (max-width: 760px) {
+  .page { padding: 14px 0 70px; }
+  .p02PreviewSection { margin-top: 50px; padding-top: 30px; }
+  .p02PreviewCopy p { font-size: 14px; }
+}
