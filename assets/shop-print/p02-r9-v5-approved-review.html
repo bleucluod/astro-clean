@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>هالیوس | R9 — آسمان بدون عنوان بالایی، برند مرکزی و راهنمای بالاتر</title>
+<style>
+@font-face{font-family:'Estedad Preview';src:url('https://raw.githubusercontent.com/bleucluod/astro-clean/main/assets/shop-print/fonts/Estedad-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:'Estedad Preview';src:url('https://raw.githubusercontent.com/bleucluod/astro-clean/main/assets/shop-print/fonts/Estedad-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Estedad Preview';src:url('https://raw.githubusercontent.com/bleucluod/astro-clean/main/assets/shop-print/fonts/Estedad-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+:root{--fg:#f8fafc;--muted:#aabcc9;--line:#394e60;--panel:#0b121b;--accent:#c4dcec;--font-p02-estedad:'Estedad Preview'}
+*{box-sizing:border-box}body{margin:0;color:var(--fg);background:#080d13;font-family:'Estedad Preview',Tahoma,Arial,sans-serif}button,a,input{font:inherit}
+.wrap{max-width:1620px;margin:auto;padding:24px clamp(12px,3.4vw,45px) 40px}
+.header{display:flex;align-items:start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-weight:500;font-size:clamp(20px,2.1vw,29px);margin:0 0 8px}
+p{color:var(--muted);font-size:13px;line-height:2;margin:0}.mark{font:400 11px/1.7 sans-serif;letter-spacing:.21em;color:#b9d6e8;white-space:nowrap;margin-top:7px}
+.toolbar{border:1px solid var(--line);border-radius:12px;background:#101a25;display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:11px 13px;margin-bottom:18px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{background:transparent;color:#c4d4df;border:1px solid #52697b;border-radius:7px;padding:8px 12px;cursor:pointer;font-size:13px}.tabs button[aria-pressed="true"]{background:#29475f;color:#fff;border-color:#aecde2}
+.slider{display:flex;align-items:center;gap:9px;margin-inline-start:auto;white-space:nowrap;font-size:12px;color:#b3c6d5}.slider input{accent-color:#b8d7e8;width:120px}.slider output{min-width:45px;direction:ltr;text-align:center}
+.frame{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}.frame.compare{grid-template-columns:repeat(2,minmax(0,1fr))}
+.panel{min-width:0;border:1px solid #314353;border-radius:10px;background:#05080c;padding:14px}
+.panel h2{margin:2px 0 12px;text-align:center;font-size:15px;font-weight:400;color:#d1e1ed}
+.viewport{height:min(78vh,1100px);min-height:370px;overflow:auto;background:black;overscroll-behavior:contain;border:1px solid #293a48}
+.art{width:100%;min-height:150px;display:flex;justify-content:flex-start;align-items:flex-start}
+.art svg{display:block;flex:0 0 auto;width:var(--zoom,100%);height:auto;max-width:none;--font-p02-estedad:'Estedad Preview'}
+.actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px}
+.actions button{background:#152b3c;color:#eaf5fc;border:1px solid #6286a0;border-radius:6px;padding:9px 14px;cursor:pointer;font-size:12px}.actions button:hover:not(:disabled){background:#274860}.actions button:disabled{opacity:.5;cursor:default}
+.status{margin:0 0 13px;border:1px solid #35495c;background:#112030;border-radius:8px;padding:10px 13px;color:#deedf7;font-size:13px;line-height:1.9}.status.fail{border-color:#b46e74;background:#301e26}.status.ok{border-color:#395365;background:#101d29}
+.foot{margin:19px 0 0;border-top:1px solid #293a48;padding-top:15px}.foot p{font-size:12px;color:#9cb5c4}
+.note{font-size:11px;color:#92aab9;margin-top:8px;text-align:center}
+[hidden]{display:none!important}
+@media(max-width:850px){.frame.compare{grid-template-columns:1fr}.slider{margin-inline-start:0}.viewport{height:min(72vh,850px)}.wrap{padding:17px 10px 32px}.panel{padding:9px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div><h1>خروجی واقعی R9 — ترکیب‌بندی مینیمال و امضای پایین</h1><p>رندر محاسباتی واقعی R9 با شش نام ستارهٔ شاخص، خوانایی بهتر نقاط نورانی و راهنمایی که مسیر اصلی هر صورت فلکی را دقیقاً، بدون اتصال ساختگی، کوچک می‌کند. ستاره‌ها و خطوط همان مختصات علمی نمونهٔ قبلی را دارند؛ رندرر دایره‌ای تغییر نکرده است.</p></div>
+    <div class="mark">HALLEUS / P02 / R9 REFINED</div>
+  </header>
+  <div id="status" class="status" role="status">در حال دریافت SVG واقعی R9 از GitHub… (نیاز به اینترنت)</div>
+  <div class="toolbar" aria-label="ابزارهای بررسی تصویر">
+    <div class="tabs" role="group" aria-label="انتخاب نما">
+      <button type="button" data-mode="compare" aria-pressed="false">مقایسهٔ کنار هم</button>
+      <button type="button" data-mode="full" aria-pressed="true">فقط تمام‌سطح</button>
+      <button type="button" data-mode="circle" aria-pressed="false">فقط دایره‌ای</button>
+    </div>
+    <label class="slider">بزرگ‌نمایی <input id="zoom" type="range" min="100" max="350" step="25" value="100"><output id="zoomValue">100%</output></label>
+  </div>
+  <div id="frame" class="frame">
+    <section id="panelCircle" class="panel" hidden>
+      <h2>رندرر اصلی دایره‌ای — بدون تغییر</h2>
+      <div class="viewport" tabindex="0" aria-label="پوستر دایره‌ای قابل بزرگ‌نمایی"><div id="artCircle" class="art"></div></div>
+      <div class="actions"><button id="svgCircle" disabled>دریافت SVG دایره‌ای</button><button id="pngCircle" disabled>PNG آزمایشی دایره‌ای</button></div>
+    </section>
+    <section id="panelFull" class="panel">
+      <h2>رندرر تمام‌سطح R9 — بدون عنوان بالایی، امضای مرکزی</h2>
+      <div class="viewport" tabindex="0" aria-label="پوستر تمام‌سطح قابل بزرگ‌نمایی"><div id="artFull" class="art"></div></div>
+      <div class="actions"><button id="zoomGuide" type="button">نمای دقیق راهنمای نقشه</button><button id="svgFull" disabled>دریافت SVG اصلاح‌شده</button><button id="pngFull" disabled>دریافت PNG واقعی اصلاح‌شده</button></div>
+    </section>
+  </div>
+  <p class="note">فقط موقعیت واقعی ستارگان BSC5 منبع نقاط نورانی است؛ خطوط صورت‌های فلکی نیز از داده‌های واقعی انتخاب شده‌اند. برای دیدن اسامی ستاره‌های شاخص و خطوط نمونه در پوستر، تا ۳۵۰٪ زوم کن.</p>
+  <div class="foot"><p>ورودی نمونهٔ آراد: ۲۵۷۵ ستارهٔ واقعیِ بالای افق، شش ستارهٔ نام‌دارِ متصل به نقاط کاتالوگ و مینیاتورِ کپی‌شده از مسیرهای واقعی دب اکبر، شکارچی و آندرومدا. مه کهکشانی جلوهٔ هنری است، نه جایگاه علمی راه شیری. در این فایل، تاریخ و شهر متعلق به همان نمونهٔ واقعی آراد هستند؛ نام‌های راهنما از خطوط همان SVG خوانده می‌شوند. این نام‌گذاری به دادهٔ همان نمونه وابسته است و برای سفارش‌های دیگر باید از محاسبهٔ نجومی تازه ساخته شود. سیاره‌ها در R9 فعلی رسم نشده‌اند؛ نام سیاره‌ها به جای ستاره‌ها گذاشته نشده است. این خروجی هنوز برای چاپ یا فروش تأیید نشده است. VPS دست‌نخورده است.</p></div>
+</div>
+<script>
+'use strict';
+const API='https://api.github.com/repos/bleucluod/astro-clean/git/blobs/';
+const SOURCES={circle:'4307471821ad428ce763efa80fe26edd8c1c67e8',full:'52e5c9c135ac589499ed4db31474f450dd4e04a0'};
+const originals={circle:null,full:null};
+const originalSource={circle:null,full:null};
+const $=id=>document.getElementById(id);
+const status=$('status');
+function info(message,failed=false){status.textContent=message;status.className='status '+(failed?'fail':'ok')}
+// The public GitHub blobs contain final, precomputed 3000 × 4500 SVGs from
+// the actual original circular and R9 full-bleed renderer functions and the identical real catalog inputs.
+async function readBlob(sha){
+  const reply=await fetch(API+sha,{cache:'force-cache',headers:{Accept:'application/vnd.github+json'}});
+  if(!reply.ok)throw Error('GitHub HTTP '+reply.status);
+  const payload=await reply.json();
+  if(payload.encoding!=='base64'||!payload.content)throw Error('GitHub did not return SVG bytes');
+  const raw=atob(payload.content.replace(/\s/g,''));
+  const bytes=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+  const svg=new TextDecoder('utf-8').decode(bytes);
+  if(!svg.includes('viewBox="0 0 3000 4500"') || !(svg.includes('r9-poster-typography') || svg.includes('p02-poster-typography')))throw Error('Unexpected SVG content');
+  return svg;
+}
+// R9 optical and legend refinement: transform only the fetched REAL GitHub SVG.
+// Catalog star coordinates and sourced constellation line paths are never generated or moved.
+const SVG_NS='http://www.w3.org/2000/svg';
+const CONSTELLATION_FA={
+  And:'آندرومدا',Ant:'ماشین بادی',Aps:'مرغ بهشتی',Aqr:'دلو',Aql:'عقاب',Ara:'محراب',Ari:'حمل',Aur:'ارابه‌ران',
+  Boo:'گاوران',Cam:'زرافه',Cap:'جدی',Car:'شاه‌تخته',Cas:'ذات‌الکرسی',Cen:'قنطورس',Cep:'قیفاووس',Cet:'قیطس',
+  CMa:'سگ بزرگ',CMi:'سگ کوچک',Cnc:'سرطان',Col:'کبوتر',Com:'گیسو',CrA:'تاج جنوبی',CrB:'تاج شمالی',
+  Crt:'جام',Cru:'صلیب جنوبی',Crv:'کلاغ',CVn:'سگ‌های شکاری',Cyg:'ماکیان',Del:'دلفین',Dra:'اژدها',
+  Equ:'اسب کوچک',Eri:'نهر',Gem:'جوزا',Gru:'درنا',Her:'جاثی',Hya:'مار آبی',Leo:'اسد',Lep:'خرگوش',
+  Lib:'میزان',LMi:'شیر کوچک',Lup:'گرگ',Lyn:'سیاه‌گوش',Lyr:'شلیاق',Mon:'تک‌شاخ',Oph:'مارافسای',
+  Ori:'شکارچی',Peg:'اسب بالدار',Per:'برساوش',Phe:'ققنوس',PsA:'ماهی جنوبی',Psc:'حوت',Pup:'پاشنهٔ کشتی',
+  Sco:'عقرب',Sct:'سپر',Ser:'مار',Sgr:'قوس',Tau:'ثور',Tri:'مثلث',UMa:'دب اکبر',UMi:'دب اصغر',
+  Vel:'بادبان',Vir:'سنبله',Vul:'روباه'
+};
+function svgNode(tag,attrs={},value){
+  const node=document.createElementNS(SVG_NS,tag);
+  for(const [key,val] of Object.entries(attrs))node.setAttribute(key,String(val));
+  if(value!==undefined)node.textContent=value;
+  return node;
+}
+
+// Every constellation icon is a scaled clone of the ORIGINAL SVG paths.
+// Never parse M/L commands into a new polyline: that would join separate
+// subpaths and change the astronomical geometry.
+const SAMPLE_NAMED_STARS=Object.freeze([
+  {name:'سیریوس',en:'Sirius',x:1919.29,y:3238.42,minRadius:6.0},
+  {name:'الدبران',en:'Aldebaran',x:1230.01,y:2575.45,minRadius:2.6},
+  {name:'بتلگیز',en:'Betelgeuse',x:1628.48,y:2772.24,minRadius:3.0},
+  {name:'پولوکس',en:'Pollux',x:2091.57,y:2258.48,minRadius:2.3},
+  {name:'پروسیون',en:'Procyon',x:2175.93,y:2730.76,minRadius:3.1},
+  {name:'رگولوس',en:'Regulus',x:2839.15,y:2234.26,minRadius:2.2},
+]);
+function parseSourcePathBounds(pathData){
+  const tokens=(pathData.match(/[ML][-+]?\d+(?:\.\d+)?(?:\s+[-+]?\d+(?:\.\d+)?)/g)||[]);
+  const pts=tokens.map(token=>{
+    const values=token.slice(1).trim().split(/\s+/).map(Number);
+    return {x:values[0],y:values[1]};
+  }).filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
+  if(pts.length<2)throw Error('Invalid original R9 constellation path coordinates');
+  return pts;
+}
+function originalConstellationIcon(id,sourcePaths,rowY,sourceStars){
+  const points=sourcePaths.flatMap(path=>parseSourcePathBounds(path.getAttribute('d')||''));
+  if(!points.length)throw Error('Missing R9 source constellation geometry: '+id);
+  const left=Math.min(...points.map(p=>p.x));
+  const right=Math.max(...points.map(p=>p.x));
+  const top=Math.min(...points.map(p=>p.y));
+  const bottom=Math.max(...points.map(p=>p.y));
+  const iconWidth=260,iconHeight=82,iconCenterX=376,iconCenterY=rowY;
+  const scale=Math.min(iconWidth/Math.max(1,right-left), iconHeight/Math.max(1,bottom-top));
+  const translateX=iconCenterX-((left+right)/2)*scale;
+  const translateY=iconCenterY-((top+bottom)/2)*scale;
+  const icon=svgNode('g',{'data-guide-constellation':id,
+    'data-mirrors-source-paths':String(sourcePaths.length)});
+  // The source R9 SVG is a single ground-truth astronomical drawing.
+  // Clone its paths literally (including independent M subpaths and bends).
+  const scaled=svgNode('g',{transform:`matrix(${scale.toFixed(8)} 0 0 ${scale.toFixed(8)} ${translateX.toFixed(5)} ${translateY.toFixed(5)})`});
+  sourcePaths.forEach(original=>{
+    const clone=original.cloneNode(true);
+    clone.removeAttribute('id');
+    clone.removeAttribute('stroke');
+    clone.setAttribute('stroke','#A9CADF');
+    clone.setAttribute('stroke-width',String(1.45/scale));
+    clone.setAttribute('stroke-linejoin','round');
+    clone.setAttribute('stroke-linecap','round');
+    clone.setAttribute('opacity','.94');
+    clone.setAttribute('fill','none');
+    scaled.append(clone);
+  });
+  // Represent catalog stars nearest to source endpoints, never invent nodes
+  // at intermediate curve/interpolation vertices.
+  const seen=new Set();
+  const vertices=sourcePaths.flatMap(original=>{
+    const pts=parseSourcePathBounds(original.getAttribute('d')||'');
+    return [pts[0],pts[pts.length-1]];
+  });
+  for(const vertex of vertices){
+    let nearest=null, bestDistance=12;
+    for(const star of sourceStars){
+      const distance=Math.hypot(star.x-vertex.x,star.y-vertex.y);
+      if(distance<bestDistance){nearest=star;bestDistance=distance;}
+    }
+    if(!nearest)continue;
+    const key=`${nearest.x.toFixed(2)}:${nearest.y.toFixed(2)}`;
+    if(seen.has(key))continue;
+    seen.add(key);
+    scaled.append(svgNode('circle',{cx:nearest.x,cy:nearest.y,r:2.15/scale,
+      fill:'#F8FAFC',opacity:'.96'}));
+  }
+  icon.append(scaled);
+  icon.append(svgNode('text',{x:770,y:rowY+13,'font-size':40,'font-weight':300,
+    'font-family':'var(--font-p02-estedad), Estedad, sans-serif',
+    direction:'rtl','text-anchor':'start',fill:'#D9EAFD'},CONSTELLATION_FA[id]||id));
+  return icon;
+}
+function trueNamedStarLabels(sourceStars){
+  const group=svgNode('g',{'id':'r9-actual-named-star-labels',
+    'aria-label':'نام ستاره‌های شاخص، با اتصال به نقاط واقعی کاتالوگ'});
+  const known=[];
+  for(const item of SAMPLE_NAMED_STARS){
+    const anchor=sourceStars.find(star=>Math.hypot(star.x-item.x,star.y-item.y)<.08 && star.r>=item.minRadius);
+    if(!anchor)throw Error('Named R9 sample star is not present in the actual BSC5 SVG: '+item.en);
+    known.push({...item,x:anchor.x,y:anchor.y});
+  }
+  const placements=[
+    {dx:136,dy:-87},  // Sirius
+    {dx:-120,dy:-67}, // Aldebaran
+    {dx:126,dy:-64},  // Betelgeuse
+    {dx:128,dy:-81},  // Pollux
+    {dx:132,dy:-67},  // Procyon
+    {dx:-140,dy:-65}, // Regulus, label inward from poster edge
+  ];
+  known.forEach((star,index)=>{
+    const p=placements[index];
+    const textX=star.x+p.dx, textY=star.y+p.dy;
+    const endX=star.x+p.dx*.34,endY=star.y+p.dy*.57;
+    const side=p.dx<0?-1:1;
+    group.append(svgNode('path',{d:`M${star.x.toFixed(2)} ${star.y.toFixed(2)} L${endX.toFixed(2)} ${endY.toFixed(2)}`,
+      stroke:'#9AA6B2','stroke-width':'1.5',opacity:'.54',fill:'none'}));
+    group.append(svgNode('circle',{cx:star.x,cy:star.y,r:7.5,fill:'none',stroke:'#D9EAFD',
+      'stroke-width':1.05,opacity:'.42'}));
+    group.append(svgNode('text',{x:textX,y:textY,'font-size':45,'font-weight':300,
+      'font-family':'var(--font-p02-estedad), Estedad, sans-serif',
+      'text-anchor':'middle',direction:'rtl',fill:'#D9EAFD',opacity:'.92'},star.name));
+    group.append(svgNode('text',{x:textX,y:textY+38,'font-size':24,'font-weight':300,
+      'font-family':'var(--font-p02-estedad), Estedad, sans-serif',
+      'text-anchor':'middle',direction:'ltr',fill:'#9AA6B2',opacity:'.65'},star.en.toUpperCase()));
+  });
+  return group;
+}
+function refineRealR9(realSvg){
+  const doc=new DOMParser().parseFromString(realSvg,'image/svg+xml');
+  if(doc.querySelector('parsererror')||doc.documentElement.localName!=='svg')throw Error('R9 source SVG is invalid');
+  const figures=doc.querySelector('#r9-constellations');
+  const typography=doc.querySelector('#r9-poster-typography');
+  const sky=doc.querySelector('#r9-sky');
+  if(!figures||!typography||!sky)throw Error('R9 source groups were not found');
+  const paths=[...figures.querySelectorAll('path[data-constellation]')];
+  const catalog=[...sky.querySelectorAll('circle.r9-catalog-star')];
+  if(catalog.length!==2575)throw Error('Expected 2575 actual BSC5 stars from the verified R9 sample');
+  const sourceStars=catalog.map(el=>({el,x:Number(el.getAttribute('cx')),y:Number(el.getAttribute('cy')),
+    r:Number(el.getAttribute('r'))}));
+  if(sourceStars.some(s=>![s.x,s.y,s.r].every(Number.isFinite)))throw Error('Invalid BSC5 SVG star');
+  // R9 sample original glows + four-point glints stay; only existing star
+  // radii/opacity gain visibility at realistic preview scale, never star positions.
+  const secondaryHalos=svgNode('g',{id:'r9-secondary-catalog-halos',
+    'aria-label':'هاله‌های محدود فقط روی ستاره‌های واقعی کاتالوگ'});
+  catalog.forEach(el=>{
+    const originalRadius=Number(el.getAttribute('r'));
+    const originalOpacity=Number(el.getAttribute('opacity'));
+    if(originalRadius>=1.05&&originalRadius<2.0){
+      secondaryHalos.append(svgNode('circle',{
+        cx:el.getAttribute('cx'),cy:el.getAttribute('cy'),
+        r:(originalRadius*6.8).toFixed(2),fill:'url(#r9-halo)',opacity:'.21'
+      }));
+    }
+    const radius=originalRadius<.9?Math.max(1.75,originalRadius*2.75)
+      :originalRadius<2?originalRadius*1.7:originalRadius*1.18;
+    el.setAttribute('r',radius.toFixed(2));
+    el.setAttribute('opacity',Math.min(.99,originalOpacity+(originalRadius<.9?.23:.09)).toFixed(2));
+  });
+  const sourcedGroup=sky.querySelector('#r9-sourced-stars');
+  if(!sourcedGroup)throw Error('Missing R9 sourced star group');
+  sky.insertBefore(secondaryHalos,sourcedGroup);
+  // Keep source star IDs and names separate from planet positions. This
+  // R9 sample is a stellar/constellation sky; no invented planet markers.
+  sky.append(trueNamedStarLabels(sourceStars));
+  const ids=[...new Set(paths.map(path=>path.getAttribute('data-constellation')).filter(Boolean))].slice(0,3);
+  for(const node of [...typography.querySelectorAll('text')]){
+    if(['راهنمای نقشه','ستارهٔ واقعی','صورت فلکی','صورت‌های فلکی این آسمان'].includes((node.textContent||'').trim()))node.remove();
+  }
+  typography.querySelector('#r9-map-guide')?.remove();
+  typography.querySelector('#r9-dynamic-constellation-guide')?.remove();
+  const legend=svgNode('g',{id:'r9-dynamic-constellation-guide','data-constellations':ids.join(','),
+    'aria-label':'شکل‌های کوچک همان مسیرهای اصل نقشه'});
+  legend.append(svgNode('path',{d:'M232 3870V4358',stroke:'#9AA6B2',
+    'stroke-width':1.25,opacity:'.34'}));
+  legend.append(svgNode('text',{x:770,y:3920,'font-size':45,'font-weight':400,
+    'font-family':'var(--font-p02-estedad), Estedad, sans-serif',
+    fill:'#D9EAFD',direction:'rtl','text-anchor':'start'},'راهنمای صورت‌های فلکی'));
+  ids.forEach((id,index)=>{
+    const itemPaths=paths.filter(path=>path.getAttribute('data-constellation')===id);
+    legend.append(originalConstellationIcon(id,itemPaths,4017+index*131,sourceStars));
+  });
+  // Preserve the exact sourced constellation paths; reposition the whole guide
+  // without rewriting its stars, paths or 1:1 miniature transformations.
+  legend.setAttribute('transform','translate(0 -155)');
+  typography.append(legend);
+  // Remove only the original poster header (English strapline, Farsi headline,
+  // and their two ornament paths). Do not touch customer details.
+  const originalTexts=[...typography.querySelectorAll('text')];
+  const sourceHeader=originalTexts.find(node=>node.textContent?.trim()==='H A L L E U S  /  T H E  S K Y  A T  B I R T H');
+  const sourceHeadline=originalTexts.find(node=>node.textContent?.trim()==='آسمان لحظهٔ تولد');
+  const bottomBrand=originalTexts.find(node=>node.textContent?.trim()==='H  A  L  L  E  U  S');
+  if(!sourceHeader||!sourceHeadline||!bottomBrand)throw Error('R9 original poster typography did not match the approved sample');
+  sourceHeader.remove();
+  sourceHeadline.remove();
+  const ornaments=[...typography.children].filter(node=>node.localName==='path'&&
+    (/^M1130\s+392H1425/.test(node.getAttribute('d')||'')||
+     /^M1500\s+374l10/.test(node.getAttribute('d')||'')));
+  if(ornaments.length!==2)throw Error('R9 header ornaments differ from the approved source');
+  ornaments.forEach(node=>node.remove());
+  // Mirror P01 R9b: understated, centered signature near the lower print edge.
+  bottomBrand.setAttribute('x','1500');
+  bottomBrand.setAttribute('y','4310');
+  bottomBrand.setAttribute('text-anchor','middle');
+  bottomBrand.setAttribute('fill','#8A96A1');
+  bottomBrand.setAttribute('opacity','.52');
+  bottomBrand.setAttribute('font-size','52');
+  bottomBrand.setAttribute('font-weight','400');
+  return new XMLSerializer().serializeToString(doc.documentElement);
+}
+
+
+function install(kind,text){
+  originals[kind]=text;
+  // Keep SVG inline so the browser re-renders vector paths at every zoom level
+  // and can use the real Estedad font. Namespace definitions to avoid cross-SVG
+  // id collisions when both poster versions are displayed side by side.
+  const namespaced=text.replace(/id="(p02-[^"]+)"/g,(_,id)=>'id="'+kind+'-'+id+'"')
+    .replace(/url\(#(p02-[^)]+)\)/g,(_,id)=>'url(#'+kind+'-'+id+')')
+    .replace(/href="#(p02-[^"]+)"/g,(_,id)=>'href="#'+kind+'-'+id+'"');
+  const doc=new DOMParser().parseFromString(namespaced,'image/svg+xml');
+  if(doc.querySelector('parsererror')||doc.documentElement.localName!=='svg')throw Error('Invalid SVG XML for '+kind);
+  doc.querySelectorAll('script,foreignObject').forEach(node=>node.remove());
+  for(const el of [doc.documentElement,...doc.documentElement.querySelectorAll('*')]){
+    for(const attr of [...el.attributes]){
+      if(/^on/i.test(attr.name)||/javascript:/i.test(attr.value))el.removeAttribute(attr.name);
+    }
+  }
+  const container=$(kind==='circle'?'artCircle':'artFull');
+  const svg=document.importNode(doc.documentElement,true);
+  svg.removeAttribute('width');svg.removeAttribute('height');
+  svg.style.fontFamily="'Estedad Preview',Tahoma,Arial,sans-serif";
+  container.replaceChildren(svg);
+  $(kind==='circle'?'svgCircle':'svgFull').disabled=false;
+  $(kind==='circle'?'pngCircle':'pngFull').disabled=false;
+}
+function choose(mode){
+  $('frame').classList.toggle('compare',mode==='compare');
+  $('panelCircle').hidden=mode==='full';
+  $('panelFull').hidden=mode==='circle';
+  for(const b of document.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
+}
+async function switchMode(mode){
+  choose(mode);
+  if(mode!=='full' && !originals.circle){
+    info('در حال بارگذاری نسخهٔ دایره‌ای برای مقایسه…');
+    try { install('circle',await readBlob(SOURCES.circle)); info('نسخهٔ دایره‌ای هم بارگذاری شد.'); }
+    catch(e){ info('بارگذاری نسخهٔ دایره‌ای ناموفق بود: '+e.message,true); }
+  }
+}
+for(const b of document.querySelectorAll('[data-mode]'))
+  b.addEventListener('click',()=>void switchMode(b.dataset.mode));
+$('zoom').addEventListener('input',()=>{
+  const z=Number($('zoom').value);
+  $('zoomValue').textContent=z+'%';
+  // Width actually changes: this makes Chromium redraw SVG geometry rather than
+  // scaling an old bitmap, preserving crisp star/line edges.
+  for(const n of document.querySelectorAll('.art svg'))n.style.width=z+'%';
+});
+function saveText(content,file,type){
+  const url=URL.createObjectURL(new Blob([content],{type}));
+  const a=document.createElement('a');a.href=url;a.download=file;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+function downloadedSvg(kind){
+  if(!originals[kind])return;
+  saveText(originals[kind],`halleus-r9-${kind}-real.svg`,'image/svg+xml;charset=utf-8');
+}
+async function downloadedPng(kind){
+  if(!originals[kind])return;
+  const button=$(kind==='circle'?'pngCircle':'pngFull');button.disabled=true;
+  const previous=status.textContent;
+  try{
+    info('در حال آماده‌سازی PNG کامل؛ تصویر ممکن است چند لحظه پردازش شود…');
+    if(document.fonts?.ready)await document.fonts.ready;
+    // Serialize the precise same inline SVG. Embed the actual Estedad font files for Canvas.
+    const clone=$(kind==='circle'?'artCircle':'artFull').querySelector('svg').cloneNode(true);
+    clone.setAttribute('width','3000');clone.setAttribute('height','4500');
+    const style=document.createElementNS('http://www.w3.org/2000/svg','style');
+    const weights=[300,400,500];
+    const names={300:'Light',400:'Regular',500:'Medium'};
+    const embedded=[];
+    for(const weight of weights){
+      const res=await fetch(`https://raw.githubusercontent.com/bleucluod/astro-clean/main/assets/shop-print/fonts/Estedad-${names[weight]}.ttf`);
+      if(!res.ok)throw Error('Cannot embed Estedad '+weight+': HTTP '+res.status);
+      const bin=new Uint8Array(await res.arrayBuffer());
+      let str='';for(let i=0;i<bin.length;i+=16384)str+=String.fromCharCode(...bin.slice(i,i+16384));
+      embedded.push(`@font-face{font-family:'R9Print';src:url(data:font/ttf;base64,${btoa(str)}) format('truetype');font-weight:${weight};}`);
+    }
+    style.textContent=embedded.join('')+`text{font-family:'R9Print',sans-serif!important;}`;
+    clone.insertBefore(style,clone.firstChild);
+    const content=new XMLSerializer().serializeToString(clone);
+    const url=URL.createObjectURL(new Blob([content],{type:'image/svg+xml;charset=utf-8'}));
+    const img=new Image();
+    try{
+      await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Canvas image load failed'));img.src=url});
+      const canvas=document.createElement('canvas');canvas.width=3000;canvas.height=4500;
+      const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas unavailable');
+      ctx.drawImage(img,0,0,3000,4500);
+      const png=await new Promise((resolve,reject)=>canvas.toBlob(x=>x?resolve(x):reject(new Error('PNG conversion failed')),'image/png'));
+      const out=URL.createObjectURL(png),a=document.createElement('a');a.href=out;a.download=`halleus-r9-${kind}-3000x4500.png`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(out),3000);
+    }finally{URL.revokeObjectURL(url)}
+    info('PNG ذخیره شد. برای بررسی جزئیات، همچنان پیش‌نمایش SVG برداری دقیق‌تر است.');
+  }catch(e){info('ذخیرهٔ PNG در مرورگر موفق نبود؛ فایل SVG برداری بالای همین تابلو قابل دریافت است. '+e.message,true)}
+  finally{button.disabled=false}
+}
+$('zoomGuide').addEventListener('click',()=>{
+  const viewport=document.querySelector('#panelFull .viewport');
+  const image=viewport?.querySelector('svg');
+  if(!image)return;
+  $('zoom').value='175';$('zoomValue').textContent='175%';
+  image.style.width='175%';
+  viewport.scrollTop=viewport.scrollHeight;
+  viewport.scrollLeft=0;
+});
+$('svgCircle').addEventListener('click',()=>downloadedSvg('circle'));
+$('svgFull').addEventListener('click',()=>downloadedSvg('full'));
+$('pngCircle').addEventListener('click',()=>downloadedPng('circle'));
+$('pngFull').addEventListener('click',()=>downloadedPng('full'));
+(async()=>{
+  try {
+    const fetched=await readBlob(SOURCES.full);
+    originalSource.full=fetched;
+    const refined=refineRealR9(fetched);
+    install('full',refined);
+    info('خروجی واقعی R9: عنوان و امضای بالایی حذف شدند؛ راهنمای صورت‌های فلکی ۱۵۵ واحد بالا رفت و HALLEUS با الهام از ماه آن روز در مرکز پایین با شفافیت کمتر قرار گرفت. ۲۵۷۵ ستاره، نام‌ها و مسیرهای واقعی دست‌نخورده‌اند.');
+  } catch(e) {
+    info('بارگذاری R9 از GitHub ناموفق بود: '+e.message+
+      '. اتصال اینترنت و api.github.com را بررسی کن.',true);
+  }
+})();
+</script>
+</body>
+</html>
