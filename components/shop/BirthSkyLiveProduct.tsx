@@ -1,10 +1,14 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { filterHalleusCities, findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import { safeShopArtworkText } from '@/lib/shop/shop-artwork-text';
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
+import { BIRTH_SKY_HERO } from './birth-sky-content';
+import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
+import { BirthSkyEditorial } from './BirthSkyEditorial';
 import styles from './birth-sky-live-product.module.css';
 
 type Personalization = {
@@ -34,6 +38,9 @@ export function BirthSkyLiveProduct() {
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
   const [downloadBusy, setDownloadBusy] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const zoomDialog = useRef<HTMLDialogElement>(null);
   const operation = useRef(0);
   const skyOnlyArtwork = useRef<string | null>(null);
   const citySuggestions = useMemo(() => (
@@ -106,6 +113,13 @@ export function BirthSkyLiveProduct() {
       operation.current += 1;
     };
   }, [generate]);
+
+  useEffect(() => {
+    const dialog = zoomDialog.current;
+    if (!dialog) return;
+    if (zoomOpen && !dialog.open) dialog.showModal();
+    if (!zoomOpen && dialog.open) dialog.close();
+  }, [zoomOpen]);
 
   function change<K extends keyof Personalization>(field: K, value: Personalization[K]) {
     operation.current += 1;
@@ -215,34 +229,62 @@ export function BirthSkyLiveProduct() {
       </nav>
 
       <div className={styles.hero}>
-        <section className={styles.artPanel} aria-label="تصویر محاسبه‌شدهٔ آسمان تولد">
-          <div className={styles.artwork}>
-            {artwork ? <div className={styles.svgArtwork} role="img"
-              aria-label="طرح واقعی نقشهٔ ستاره‌های آسمان تولد"
-              dangerouslySetInnerHTML={{ __html: artwork }} /> :
-              <div className={styles.emptyArtwork} role="status">
-                <span className={styles.emptySymbol} aria-hidden="true">✧</span>
-                <strong>{busy ? 'در حال محاسبهٔ ستاره‌ها…' : 'آسمان انتخابی‌ات اینجا شکل می‌گیرد'}</strong>
-                <p>این بخش از داده‌های نجومی واقعی ساخته می‌شود، نه از تصویر آماده.</p>
-              </div>}
-          </div>
-          {artwork ? <div className={styles.imageActions}>
-            <span>خروجی محاسبه‌شده، بدون موکاپ و قاب</span>
-            <button type="button" disabled={downloadBusy} onClick={() => void downloadPng()}>
-              {downloadBusy ? 'در حال آماده‌سازی PNG…' : 'دریافت تصویر واقعی (PNG)'}
+        <section className={styles.artPanel} aria-label="گالری و پیش‌نمایش آسمان تولد">
+          <div className={styles.gallery}>
+            <button type="button" className={styles.galleryMain} onClick={() => setZoomOpen(true)}
+              aria-label={`بزرگ‌نمایی تصویر ${photoIndex + 1}: ${BIRTH_SKY_GALLERY[photoIndex].label}`}>
+              <Image key={BIRTH_SKY_GALLERY[photoIndex].src} src={BIRTH_SKY_GALLERY[photoIndex].src}
+                alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill priority={photoIndex === 0}
+                sizes="(max-width: 760px) calc(100vw - 30px), (max-width: 980px) 580px, 650px" />
+              <span className={styles.galleryZoomHint} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="10.5" cy="10.5" r="6.5" />
+                  <path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" />
+                </svg>
+              </span>
             </button>
-          </div> : null}
+            <div className={styles.galleryThumbs} aria-label="تصاویر محصول">
+              {BIRTH_SKY_GALLERY.map((photo, index) => <button type="button" key={photo.src}
+                className={`${styles.galleryThumb} ${photoIndex === index ? styles.galleryThumbActive : ''}`}
+                onClick={() => setPhotoIndex(index)} aria-pressed={photoIndex === index}
+                aria-label={`نمایش تصویر ${index + 1}: ${photo.label}`}>
+                <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 76px, 112px" />
+              </button>)}
+            </div>
+            <p className={styles.galleryPosition} aria-live="polite">تصویر {new Intl.NumberFormat('fa-IR').format(photoIndex + 1)} از {new Intl.NumberFormat('fa-IR').format(BIRTH_SKY_GALLERY.length)} · {BIRTH_SKY_GALLERY[photoIndex].label}</p>
+            <p className={styles.galleryCaption}>شش نمای واقعی از شاسی‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متری، در فضای خانه؛ هر آسمان با نام و لحظهٔ خودش.</p>
+          </div>
+          <section className={styles.livePreview} id="p02-live-preview" aria-labelledby="p02-live-preview-title">
+            <h2 id="p02-live-preview-title">آسمانِ مخصوص تو</h2>
+            <p>با انتخاب تاریخ، ساعت و شهر، نقشهٔ ستاره‌های آن لحظه همین‌جا شکل می‌گیرد.</p>
+            <div className={styles.artwork}>
+              {artwork ? <div className={styles.svgArtwork} role="img"
+                aria-label="طرح محاسبه‌شدهٔ نقشهٔ ستاره‌های آسمان تولد"
+                dangerouslySetInnerHTML={{ __html: artwork }} /> :
+                <div className={styles.emptyArtwork} role="status">
+                  <span className={styles.emptySymbol} aria-hidden="true">✧</span>
+                  <strong>{busy ? 'در حال محاسبهٔ ستاره‌ها…' : 'آسمان انتخابی‌ات اینجا شکل می‌گیرد'}</strong>
+                  <p>نقشه با تاریخ، ساعت و شهر انتخابی تو ساخته می‌شود.</p>
+                </div>}
+            </div>
+            {artwork ? <div className={styles.imageActions}>
+              <span>طرح شخصی تو، پیش از انتخاب شاسی</span>
+              <button type="button" disabled={downloadBusy} onClick={() => void downloadPng()}>
+                {downloadBusy ? 'در حال آماده‌سازی PNG…' : 'دریافت تصویر (PNG)'}
+              </button>
+            </div> : null}
+          </section>
         </section>
 
         <section className={styles.details} aria-labelledby="birth-sky-title">
           <span className={styles.eyebrow}>HALLEUS / CELESTIAL ART / P02</span>
-          <h1 id="birth-sky-title">آسمان تولد</h1>
-          <p className={styles.tagline}>هر آدمی، یک آسمانِ شروع دارد.</p>
-          <p className={styles.intro}>تاریخ، ساعت و شهر تولد رو انتخاب کن تا هالیوس ستاره‌هایی رو که در اون لحظه بالای افق بودن، به یک اثر شخصی تبدیل کنه.</p>
-          <p className={styles.subnote}>این نقشه از موقعیت محاسبه‌شدهٔ ستاره‌ها ساخته می‌شه؛ نور و مهِ کهکشانی، جلوهٔ هنری تابلو هستن، نه عکس واقعی یا موکاپ.</p>
+          <h1 id="birth-sky-title">{BIRTH_SKY_HERO.h1}</h1>
+          <p className={styles.tagline}>{BIRTH_SKY_HERO.tagline}</p>
+          {BIRTH_SKY_HERO.intro.map((paragraph, i) => <p key={i} className={styles.intro}>{paragraph.replaceAll('**', '')}</p>)}
+          
 
-          <form className={styles.form} onSubmit={submit} aria-label="شخصی‌سازی آسمان تولد">
-            <h2>آسمانت رو بساز</h2>
+          <form id="p02-personalize" className={styles.form} onSubmit={submit} aria-label="شخصی‌سازی آسمان تولد">
+            <h2>آسمانِ آن لحظه را بساز</h2>
             <div className={styles.dateRow}>
               <label>تقویم
                 <select disabled={busy} value={input.calendar}
@@ -257,19 +299,19 @@ export function BirthSkyLiveProduct() {
                   <option value="jalali">شمسی</option><option value="gregorian">میلادی</option>
                 </select>
               </label>
-              <label>تاریخ تولد
+              <label>تاریخ آن لحظه
                 <input required disabled={busy} dir="ltr" maxLength={20}
                   value={input.date} placeholder={input.calendar === 'jalali' ? '۱۴۰۳/۰۸/۱۵' : '2024-11-05'}
                   onChange={(event) => change('date', event.target.value)} />
               </label>
             </div>
             <div className={styles.dateRow}>
-              <label>ساعت دقیق تولد
+              <label>ساعت دقیق آن لحظه
                 <input type="time" required dir="ltr" disabled={busy} value={input.time}
                   onChange={(event) => change('time', event.target.value)} />
               </label>
               <div className={styles.cityField}>
-                <label htmlFor="p02-birth-city">شهر تولد</label>
+                <label htmlFor="p02-birth-city">شهر آن لحظه</label>
                 <input id="p02-birth-city" required maxLength={100} autoComplete="off" disabled={busy}
                   placeholder="نام شهر را بنویس" value={input.city}
                   onChange={(event) => change('city', event.target.value)} />
@@ -294,7 +336,7 @@ export function BirthSkyLiveProduct() {
             </label>
             {error ? <p className={styles.error} role="alert">{error}</p> : null}
             <button className={styles.primaryAction} type="submit" disabled={busy || !input.cityId}>
-              {busy ? 'در حال ساخت آسمان…' : 'ساخت تصویر آسمان من'}
+              {busy ? 'در حال ساخت آسمان…' : BIRTH_SKY_HERO.button}
             </button>
           </form>
           <div className={styles.availability}>
@@ -303,11 +345,20 @@ export function BirthSkyLiveProduct() {
           </div>
         </section>
       </div>
-      <section className={styles.information} aria-label="دربارهٔ نقشهٔ آسمان تولد">
-        <h2>این ستاره‌ها از کجا میان؟</h2>
-        <p>هالیوس از کاتالوگ واقعی ستاره‌ها، زمان محلی تولد و مختصات شهر انتخابی استفاده می‌کنه و جای ستاره‌های بالای افق رو محاسبه می‌کنه. جایگاه ستاره‌ها با تغییر تاریخ، ساعت و شهر عوض می‌شه. بافت مه‌آلود روی نقشه فقط برای زیبایی اثره و جای دقیق کهکشان در اون لحظه رو نمایش نمی‌ده؛ این خروجی عکس تاریخی آسمان نیست.</p>
-        <p>خروجی صفحه فقط برای بررسی طراحی و انتخاب جزئیاته؛ فایل نهایی چاپ، قیمت سه اندازه و چهار عکس حرفه‌ای بعد از تأیید همین اثر نهایی می‌شن.</p>
-      </section>
+      <BirthSkyEditorial />
+      <dialog ref={zoomDialog} className={styles.galleryDialog} aria-label="بزرگ‌نمایی تصاویر آسمان تولد"
+        onClose={() => setZoomOpen(false)}>
+        <div className={styles.galleryDialogInner}>
+          <button type="button" className={styles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
+          <div className={styles.dialogImage}><Image src={BIRTH_SKY_GALLERY[photoIndex].src}
+            alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill sizes="95vw" /></div>
+          <div className={styles.dialogActions}>
+            <button type="button" onClick={() => setPhotoIndex((photoIndex - 1 + BIRTH_SKY_GALLERY.length) % BIRTH_SKY_GALLERY.length)}>تصویر قبل</button>
+            <span>{photoIndex + 1} از {BIRTH_SKY_GALLERY.length}</span>
+            <button type="button" onClick={() => setPhotoIndex((photoIndex + 1) % BIRTH_SKY_GALLERY.length)}>تصویر بعد</button>
+          </div>
+        </div>
+      </dialog>
     </div>
   </main>;
 }

@@ -64,3 +64,63 @@
   .imageActions button { width: 100%; }
   .information h2 { font-size: 21px; }
 }
+
+/* P02 product gallery follows P01's hero, thumbnails and zoom patterns. */
+.gallery { display: grid; gap: 12px; }
+.galleryMain { position: relative; display: block; width: 100%; aspect-ratio: 1 / 1; border: 1px solid #354b5b; background: #131c29; border-radius: 10px; overflow: hidden; padding: 0; cursor: zoom-in; }
+.galleryMain img { object-fit: contain; transition: transform 230ms ease; }
+.galleryMain:hover img { transform: scale(1.014); }
+.galleryZoomHint { position: absolute; left: 14px; bottom: 14px; z-index: 1; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #172737d9; border: 1px solid #7599b3; color: #f7fbff; font-size: 26px; }
+.galleryThumbs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; }
+.galleryThumb { position: relative; aspect-ratio: .8 / 1; padding: 0; border: 1px solid #4a5b6c; border-radius: 7px; background: #152232; overflow: hidden; cursor: pointer; }
+.galleryThumb img { object-fit: cover; }
+.galleryThumbActive { border: 2px solid #d9eafd; }
+.galleryPosition, .galleryCaption { margin: 0; color: #bfd2e1; font-size: 12px; line-height: 2; }
+.galleryPosition { color: #eff6fc; }
+.livePreview { margin: 35px 0 0; padding-top: 28px; border-top: 1px solid #34485b; scroll-margin-top: 90px; }
+.livePreview h2 { margin: 0 0 6px; font-size: 22px; color: #f5faff; }
+.livePreview > p { margin: 0 0 15px; color: #c5d7e4; font-size: 13px; line-height: 2; }
+#p02-personalize { scroll-margin-top: 90px; }
+.editorialRoot { margin-top: 60px; }
+.editorialSection { margin-top: 64px; max-width: 920px; margin-inline: auto; }
+.editorialSectionHeader { margin-bottom: 20px; }
+.editorialKicker { display: block; color: #a3c3d9; font-size: 11px; font-weight: 600; letter-spacing: .06em; }
+.editorialSection h2, .faqSection h2, .finalEditorial h2 { margin: 9px 0 17px; color: #f8fafc; font-size: clamp(23px, 2.7vw, 30px); line-height: 1.7; }
+.editorialBody { display: grid; gap: 15px; }
+.editorialBody h3 { color: #ecf5fd; font-size: 19px; margin: 15px 0 3px; line-height: 1.8; }
+.page .editorialBody p, .page .editorialBody li, .page .finalEditorial p, .page .faqItem p { color: #cbd9e6; font-size: 15px; line-height: 2.3; margin: 0; }
+.editorialBody strong, .page .faqItem strong { color: #f1f8ff; font-weight: 650; }
+.editorialBody ol { margin: 0; padding-inline-start: 27px; display: grid; gap: 11px; }
+.editorialBody li::marker { color: #a9d2ee; }
+.sizeCards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-block: 7px 13px; }
+.sizeCards > div { padding: 18px 15px; border: 1px solid #395061; border-radius: 9px; background: #14202c; }
+.sizeCards strong { display: block; color: #e8f4fd; font-size: 15px; margin-bottom: 8px; }
+.page .sizeCards p { font-size: 13px; }
+.faqSection { max-width: 820px; margin: 75px auto 0; }
+.faqList { display: grid; gap: 8px; }
+.faqItem { border: 1px solid #344658; border-radius: 9px; padding: 0; background: #101925; }
+.faqItem summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 54px; padding: 14px 18px; list-style: none; cursor: pointer; color: #f2f9ff; font-size: 14px; line-height: 2; }
+.faqItem summary::-webkit-details-marker { display:none; }
+.faqItem summary span { font-size: 20px; color: #b4d1e5; }
+.faqItem[open] summary span { transform: rotate(45deg); }
+.page .faqItem p { padding: 0 18px 17px; font-size: 14px; }
+.finalEditorial { max-width: 820px; margin: 75px auto 0; padding: 34px 0; border-top: 1px solid #344658; text-align: center; }
+.finalEditorial a { display: inline-flex; margin-top: 24px; padding: 12px 25px; border: 1px solid #9dbfd6; border-radius: 8px; background: #244e70; color: #fff; text-decoration: none; font-size: 14px; font-weight: 650; }
+.galleryDialog { max-width: min(950px,96vw); max-height: 96vh; width: 96vw; margin: auto; padding: 17px; border: 1px solid #536a7d; border-radius: 12px; background: #0d1722; color: #e5eff8; }
+.galleryDialog::backdrop { background: rgba(0,5,12,.84); }
+.galleryDialogInner { position: relative; display: grid; gap: 12px; }
+.dialogClose { position: absolute; z-index: 4; left: 0; top: 0; width: 40px; height: 40px; border: 1px solid #73899e; border-radius: 50%; background: #14283a; color: #fff; font-size: 25px; cursor: pointer; }
+.dialogImage { position: relative; width: 100%; height: min(77vh,930px); }
+.dialogImage img { object-fit: contain; }
+.dialogActions { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.dialogActions button { padding: 8px 13px; border: 1px solid #6e8ea7; border-radius: 7px; background: #223b50; color: #fff; font: inherit; cursor: pointer; }
+@media (max-width: 600px) {
+  .galleryThumbs { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+  .galleryThumb { aspect-ratio: 1.35 / 1; }
+  .sizeCards { grid-template-columns: 1fr; }
+  .editorialRoot { margin-top: 42px; }
+  .editorialSection { margin-top: 47px; }
+  .page .editorialBody p, .page .editorialBody li { font-size: 14px; }
+  .galleryDialog { padding: 11px; }
+  .dialogImage { height: 65vh; }
+}

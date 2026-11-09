@@ -1,3 +1,5 @@
+import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
+
 export type ShopProductId = 'p01' | 'p02' | 'p03';
 
 export type ShopCopySection = { title: string; paragraphs: string[]; subheading?: { title: string; paragraphs: string[] } };
@@ -127,16 +129,11 @@ const products: Record<ShopProductId, ShopProduct> = {
   },
   p02: {
     id: 'p02', title: 'آسمان تولد',
-    tagline: 'هر آدمی، یک آسمانِ شروع دارد.',
+    tagline: 'بعضی لحظه‌ها می‌گذرند، اما آسمانشان می‌تواند با ما بماند.',
     introduction: 'نقشهٔ ستاره‌های لحظهٔ تولد، با تاریخ، ساعت و شهر تو؛ یادگاری آرام از آغازی که فقط یک‌بار اتفاق افتاده.',
     highlight: 'نقشهٔ آسمان مطابق زمان و مکان تولد · روی شاسی · نام یا پیام دلخواه',
-    galleryNote: 'چیدمان ستاره‌ها در اثر نهایی براساس تاریخ، ساعت و شهر تولد انتخابی تو خواهد بود.',
-    gallery: [
-      { src: '/shop-preview/birth-sky.webp', alt: 'تابلوی آسمان تولد با نقشهٔ دایره‌ای ستاره‌ها روی شاسی تیره در نور روز', label: 'نمای اصلی' },
-      { src: '/shop-preview/p02-room.webp', alt: 'تابلوی آسمان تولد بالای مبل خاکستری در یک نشیمن مینیمال', label: 'در فضای خانه' },
-      { src: '/shop-preview/p02-angle.webp', alt: 'نمای کناری شاسی مات تابلوی آسمان تولد با نقش دایره‌ای ستارگان', label: 'نمای کناری' },
-      { src: '/shop-preview/p02-closeup.webp', alt: 'نمای نزدیک از جزئیات ستاره‌ها و خطوط ظریف تابلوی آسمان تولد', label: 'جزئیات چاپ' },
-    ],
+    galleryNote: 'شش نمای شاسی در سه اندازه؛ آسمان انتخابی تو هم با تاریخ، ساعت و شهرش شخصی‌سازی می‌شود.',
+    gallery: BIRTH_SKY_GALLERY,
     storyTitle: 'آسمانِ لحظه‌ای که همه‌چیز شروع شد.',
     story: [
       'روز تولد را همه می‌دانند. اما آسمانی که بالای سرمان بوده، فقط متعلق به همان ساعت و همان نقطه از زمین است. «آسمان تولد» این جزئیات را در یک تصویر مینیمال کنار هم می‌نشاند.',
