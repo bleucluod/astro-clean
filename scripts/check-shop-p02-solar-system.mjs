@@ -70,10 +70,18 @@ for(const id of ['mercury','venus','mars','jupiter','saturn','uranus','neptune',
   assert.match(image,new RegExp('data-solar-body="'+id+'"'));
 }
 assert.match(image,/data-illuminated-fraction="0.280000"/,'real lunar illumination is retained');
-assert.match(image,/M0 -59\.00 A59\.00 59\.00/,'Moon shows a true phase-shaped illuminated region');
-assert.match(image,/rx="90"/,'Saturn rings are present');
+assert.match(image,/M0 -44\.00 A44\.00 44\.00/,'Moon shows a true phase-shaped illuminated region');
+assert.match(image,/rx="65"/,'Saturn rings remain visible');
 assert.match(image,/data-solar-body="jupiter"/,'Jupiter has its own disk');
-assert.ok(image.includes('fill="#B6756A"'),'Jupiter red spot drawn');
+assert.ok(image.includes('fill="#A7979C"'),'muted Jupiter spot retained');
+// The approved cool blue-grey sky must not gain warm, photorealistic stickers.
+assert.doesNotMatch(source, /#D49B82|#9E5549|#B6756A|#E3D7C5|#F2E7D8/,
+  'old high-contrast sticker palette must not return');
+assert.match(source,/jupiter: \{ radius: 39,/,'Jupiter disk should not dominate the sky');
+assert.match(source,/saturn: \{ radius: 32,/,'Saturn disk should stay subtle');
+assert.match(source,/moon: \{ radius: 44,/,'Moon phase must stay legible at smaller scale');
+assert.match(image,/stroke="#B7CAD5"/,'Saturn ring must stay recognizable');
+assert.match(image,/data-solar-body="moon"/,'Moon remains included');
 assert.doesNotMatch(image,/<image\b|<foreignObject\b|https?:\/\//,
   'no image assets, remote requests, or CORS-dependent textures');
 assert.doesNotMatch(image,/<text\b|راهنمای سیاره|<script/,'no printed planet legend or labels');
