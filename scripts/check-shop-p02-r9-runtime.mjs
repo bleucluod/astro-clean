@@ -53,6 +53,40 @@ assert.match(art,/x="1500\.00" y="4310\.00"[^>]*opacity="0\.52"/);
 assert.match(art,/data-constellations="(?:[^"<>]+)"/);
 assert.doesNotMatch(art,/data-constellation="Aqr"/);
 assert.equal(art,render(atlas,figures,named,details),'deterministic SVG');
+
+/** Only the large name has the approved cool icy finish. */
+assert.match(art,/id="r9-personal-name"/);
+assert.match(art,/id="r9-name-ice-gradient"/);
+assert.match(art,/data-r9-name-layer="glow"/);
+assert.match(art,/data-r9-name-layer="face"/);
+assert.match(art,/filter="url\(#r9-name-soft-glow\)"/);
+assert.match(art,/fill="url\(#r9-name-ice-gradient\)"/);
+assert.equal((art.match(/data-r9-name-layer=/g)||[]).length,2,
+  'Only the personal name can have styling layers');
+assert.match(source,/canvas\.createLinearGradient/,'PNG reproduces name gradient');
+assert.match(source,/canvas\.shadowBlur=24/,'PNG reproduces name glow');
+
+const numberDetails={...details,
+  names:'هاله 123۴٥',message:'یادگار 1۲٣',city:'همدان 4',
+  date:'1399/12/12',time:'19:05'};
+const faArt=render(atlas,figures,named,numberDetails,{numerals:'fa'});
+const enArt=render(atlas,figures,named,numberDetails,{numerals:'en'});
+const posterText=svg=>[...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(m=>m[1]).join('|');
+assert.match(posterText(faArt),/هاله ۱۲۳۴۵/);
+assert.match(posterText(faArt),/یادگار ۱۲۳/);
+assert.match(posterText(faArt),/همدان ۴/);
+assert.match(posterText(faArt),/۱۳۹۹\/۱۲\/۱۲  ·  ۱۹:۰۵/);
+assert.doesNotMatch(posterText(faArt),/[0-9٠-٩]/,
+  'Jalali artwork must use exclusively Persian digits');
+assert.match(posterText(enArt),/هاله 12345/);
+assert.match(posterText(enArt),/یادگار 123/);
+assert.match(posterText(enArt),/همدان 4/);
+assert.match(posterText(enArt),/1399\/12\/12  ·  19:05/);
+assert.doesNotMatch(posterText(enArt),/[۰-۹٠-٩]/,
+  'Gregorian artwork must use exclusively English digits');
+assert.match(client,/numerals: values\.calendar === 'jalali' \? 'fa' : 'en'/);
+assert.notEqual(faArt,enArt);
+
 assert.notEqual(art,render({...atlas,aboveHorizonStars:atlas.aboveHorizonStars.map(s=>({...s,x:s.x+.05}))},figures,named,details));
 assert.notEqual(art,render(atlas,{...figures,lines:figures.lines.map(l=>({...l,points:l.points.map(p=>({...p,y:p.y+.05}))}))},named,details));
 assert.throws(()=>render(atlas,{...figures,referenceUtc:'2023-11-05T17:30:00.000Z'},named,details));

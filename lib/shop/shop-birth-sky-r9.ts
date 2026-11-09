@@ -34,6 +34,22 @@ const project = (p: SourcePoint) => ({x: SHOP_P02_R9_LAYOUT.sky.x + p.x * SHOP_P
   y: SHOP_P02_R9_LAYOUT.sky.y + p.y * SHOP_P02_R9_LAYOUT.sky.radius});
 const safe = (p: SourcePoint) => Number.isFinite(p.x) && Number.isFinite(p.y) && p.x*p.x+p.y*p.y<=1.0001;
 
+/** Numerals from any keyboard must match the poster's calendar. */
+type PosterNumerals='fa'|'en';
+const latinDigits='0123456789';
+const persianDigits='۰۱۲۳۴۵۶۷۸۹';
+const arabicDigits='٠١٢٣٤٥٦٧٨٩';
+function posterDigits(value:string,numerals:PosterNumerals):string {
+  const target=numerals==='fa'?persianDigits:latinDigits;
+  return value.replace(/[0-9۰-۹٠-٩]/g,glyph=>{
+    const ascii=latinDigits.indexOf(glyph);
+    const persian=persianDigits.indexOf(glyph);
+    const arabic=arabicDigits.indexOf(glyph);
+    const index=ascii>=0?ascii:persian>=0?persian:arabic;
+    return index<0?glyph:target[index];
+  });
+}
+
 function fontText(text:string,x:number,y:number,size:number,weight:number,fill:string,opts:{anchor?:'start'|'middle'|'end',dir?:'rtl'|'ltr',opacity?:number}={}) {
   return `<text x="${num(x)}" y="${num(y)}" font-size="${size}" font-weight="${weight}"
     font-family="var(--font-p02-estedad), Estedad, sans-serif" fill="${fill}"
@@ -207,13 +223,24 @@ function namedLabels(named:NamedStars,stars:ReturnType<typeof renderStars>['star
   return `<g id="r9-actual-named-star-labels">${nodes.join('')}</g>`;
 }
 
-function posterTypography(details:BirthSkyPersonalDetails,guide:string) {
-  const name=details.names.trim()||'آسمان تولد';
-  const message=details.message.trim();const city=details.city.trim();
-  const date=details.date.trim()+'  ·  '+details.time.trim();
+
+/** A subtle, name-only icy gradient and glow from the approved preview. */
+function personalNameText(name:string,size:number):string {
+  const glow=fontText(name,2720,3520,size,500,'#C2D9E9',{opacity:.34})
+    .replace('<text ','<text data-r9-name-layer="glow" filter="url(#r9-name-soft-glow)" ');
+  const face=fontText(name,2720,3520,size,500,'url(#r9-name-ice-gradient)')
+    .replace('<text ','<text data-r9-name-layer="face" stroke="#EAF3FA" stroke-width="1.2" stroke-opacity=".26" paint-order="stroke fill" ');
+  return `<g id="r9-personal-name">${glow}${face}</g>`;
+}
+
+function posterTypography(details:BirthSkyPersonalDetails,guide:string,numerals:PosterNumerals) {
+  const name=posterDigits(details.names.trim()||'آسمان تولد',numerals);
+  const message=posterDigits(details.message.trim(),numerals);
+  const city=posterDigits(details.city.trim(),numerals);
+  const date=posterDigits(details.date.trim()+'  ·  '+details.time.trim(),numerals);
   const size=(v:string,a:number,b:number,c:number)=>[...v].length>34?c:[...v].length>20?b:a;
   return `<g id="r9-poster-typography">
-    ${fontText(name,2720,3520,size(name,221,169,121),500,'#F8FAFC')}
+    ${personalNameText(name,size(name,221,169,121))}
     ${message?fontText(message,2720,3730,size(message,73,62,48),300,'#D9EAFD'):''}
     ${fontText(city,2720,3978,size(city,52,46,38),400,'#BCCCDC')}
     ${fontText(date,2720,4087,55,400,'#BCCCDC',{anchor:'end',dir:'ltr'})}
@@ -226,7 +253,7 @@ function posterTypography(details:BirthSkyPersonalDetails,guide:string) {
 /** Approved R9-v5 scene, built from live BSC5, constellation and named-star geometry. */
 export function renderShopBirthSkyR9(
   atlas:Atlas,figures:Figures,named:NamedStars,details:BirthSkyPersonalDetails,
-  options:{typography?:boolean}={},
+  options:{typography?:boolean;numerals?:PosterNumerals}={},
 ):string {
   if(![figures,named].every(v=>v.referenceUtc===atlas.referenceUtc&&v.latitude===atlas.latitude&&v.longitude===atlas.longitude)) {
     throw new Error('R9 stellar, figure, and name data must share the same UTC instant and location');
@@ -245,6 +272,14 @@ export function renderShopBirthSkyR9(
     <title>آسمان تولد — ${xml(details.names.trim()||'هالیوس')}</title>
     <desc>ستارگان از کاتالوگ واقعی BSC5 محاسبه شده‌اند؛ مه کهکشانی زمینه صرفاً هنری است</desc>
     <defs>
+      <linearGradient id="r9-name-ice-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#F8FAFC"/>
+        <stop offset="47%" stop-color="#E2EDF5"/>
+        <stop offset="100%" stop-color="#ADC2D2"/>
+      </linearGradient>
+      <filter id="r9-name-soft-glow" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation="13"/>
+      </filter>
       <radialGradient id="r9-depth"><stop offset="0" stop-color="#0B1723" stop-opacity=".8"/><stop offset=".63" stop-color="#050C15" stop-opacity=".45"/><stop offset="1" stop-color="#000000" stop-opacity="0"/></radialGradient>
       <radialGradient id="r9-halo"><stop offset="0" stop-color="#F8FAFC" stop-opacity=".75"/><stop offset=".12" stop-color="#D9EAFD" stop-opacity=".34"/><stop offset=".45" stop-color="#BCCCDC" stop-opacity=".09"/><stop offset="1" stop-color="#BCCCDC" stop-opacity="0"/></radialGradient>
       <radialGradient id="r9-cloud"><stop offset="0" stop-color="#BCCCDC" stop-opacity=".28"/><stop offset=".26" stop-color="#9CB9D0" stop-opacity=".13"/><stop offset=".75" stop-color="#526F8A" stop-opacity=".035"/><stop offset="1" stop-color="#304C67" stop-opacity="0"/></radialGradient>
@@ -268,7 +303,7 @@ export function renderShopBirthSkyR9(
       <g id="r9-sourced-stars">${markup}</g>
     </g>
     ${namedLabels(named,starCoords)}
-    ${options.typography===false?'':posterTypography(details,guide)}
+    ${options.typography===false?'':posterTypography(details,guide,options.numerals||'fa')}
   </svg>`;
 }
 
@@ -302,8 +337,35 @@ export async function paintShopBirthSkyR9Text(
       const anchor=item.getAttribute('text-anchor')||'start';
       canvas.textAlign=anchor==='middle'?'center':anchor==='end'?'end':'start';
       canvas.globalAlpha=clamp(Number(item.getAttribute('opacity')||1),0,1);
-      canvas.fillStyle=item.getAttribute('fill')||'#F8FAFC';
-      canvas.fillText(str,x,y,2450);
+      // The name has SVG effects but PNG strips text and draws it with the
+      // genuine Estedad font: mirror those effects in the canvas text pass.
+      canvas.shadowColor='transparent';
+      canvas.shadowBlur=0;
+      canvas.shadowOffsetX=0;
+      canvas.shadowOffsetY=0;
+      const nameLayer=item.getAttribute('data-r9-name-layer');
+      if(nameLayer==='glow') {
+        canvas.fillStyle='#C2D9E9';
+        canvas.shadowColor='#B8D1E3';
+        canvas.shadowBlur=24;
+        canvas.fillText(str,x,y,2450);
+      } else if(nameLayer==='face') {
+        const ice=canvas.createLinearGradient(x,y-size*.96,x,y+size*.13);
+        ice.addColorStop(0,'#F8FAFC');
+        ice.addColorStop(.47,'#E2EDF5');
+        ice.addColorStop(1,'#ADC2D2');
+        canvas.fillStyle=ice;
+        canvas.shadowColor='rgba(12,29,44,.30)';
+        canvas.shadowOffsetY=2;
+        canvas.shadowBlur=2;
+        canvas.strokeStyle='rgba(234,243,250,.26)';
+        canvas.lineWidth=1.2;
+        canvas.strokeText(str,x,y,2450);
+        canvas.fillText(str,x,y,2450);
+      } else {
+        canvas.fillStyle=item.getAttribute('fill')||'#F8FAFC';
+        canvas.fillText(str,x,y,2450);
+      }
     }
   }finally{canvas.restore();}
 }

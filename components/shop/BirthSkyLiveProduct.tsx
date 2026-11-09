@@ -77,7 +77,7 @@ export function BirthSkyLiveProduct() {
         date: values.date,
         time: values.time,
         city: getHalleusCityDisplayName(city),
-      });
+      }, { numerals: values.calendar === 'jalali' ? 'fa' : 'en' });
       if (version === operation.current) {
         // One computed SVG is the single source for the page and PNG output.
         skyOnlyArtwork.current = svg;
