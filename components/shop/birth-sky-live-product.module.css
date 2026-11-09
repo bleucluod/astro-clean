@@ -180,3 +180,9 @@
   .p02PreviewSection { margin-top: 50px; padding-top: 30px; }
   .p02PreviewCopy p { font-size: 14px; }
 }
+
+/* P02-only gallery preview: disabled until a real watermarked raster exists. */
+.previewThumb { background: #121d29; }
+.previewThumb:disabled { cursor: default; opacity: .58; }
+.previewThumbEmpty { position: absolute; inset: 0; display: grid; place-content: center; padding: 6px; color: #d9eafd; font-size: 12px; font-weight: 650; line-height: 1.6; text-align: center; }
+.page .previewCaption { margin: 12px 0 0; color: #b9cfe0 !important; font-size: 12px; line-height: 2; }

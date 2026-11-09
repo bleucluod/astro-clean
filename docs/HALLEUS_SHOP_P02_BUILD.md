@@ -139,3 +139,16 @@
 - برای یکسان‌بودن خروجی، PNG از همان SVG و سه وزن فونت Estedad پروژه استفاده می‌کند. چون متن SVG پیش از rasterization حذف و سپس جداگانه با فونت واقعی در Canvas رسم می‌شود، لایهٔ روشنایی و گرادیان اسم در Canvas هم پیاده‌سازی شده است. تست دیداری چاپ و مرورگر هنوز لازم است.
 - **قانون یکدست‌بودن اعداد همهٔ متن‌های چاپی** (نام، پیام، شهر، تاریخ و ساعت): در حالت تقویم شمسی، رقم‌های انگلیسی/فارسی/عربی همگی فارسی می‌شوند؛ در حالت تقویم میلادی، همگی انگلیسی می‌شوند. این تغییر صرفاً شکل رقم‌هاست و تاریخ/ساعت اصلی و متن را دست‌کاری نمی‌کند.
 - محاسبات نجومی، انتخاب صورت‌های فلکی، حذف سیاره‌ها، noindex و بسته بودن فروش، P01، پرداخت، DB و VPS تغییر نمی‌کنند.
+
+
+## 2026-11-09 — P02 approved gallery, pricing and interactive preview
+
+This later owner approval supersedes the temporary no-mockup/no-watermark review rules above, **only for the P02 product surface**.
+
+- Preserve the four approved medium/large mockups. Replace the former two 10×15 mockups with the two directly owner-approved compositions: Arad alone on a tabletop, and Arad plus Haleh together beside scale-reference home objects. Final approved compositions are stored as WebP in `public/shop-preview/p02/`. Six mockups remain in the gallery.
+- Match P01's detail shell. A seventh gallery slot, labeled «پیش‌نمایش تابلوی من», is positioned before the static photos but never auto-generates when the page loads. The first displayed image remains the approved large mockup.
+- User submits date/time/city/name/message and then sees a watermark-burned-in 720×1080 WebP in the first gallery slot. Switch/scroll to that slot only after successful computation. Invalidating any source input clears the prior preview. No separate preview section or downloadable PNG button exists.
+- Continue to use the real R9 renderer and local astronomy calculations. The page never inserts unwatermarked SVG into the DOM and does not expose a raw full-resolution image action. Client-only calculations cannot guarantee absolute anti-extraction protection.
+- Independent `p02` prices: 10×15 = 1,100,000 toman; 20×30 = 1,900,000 toman; 30×45 = 2,900,000 toman. Leave the shared P01 prices untouched.
+- Preserve P02 noindex and all approved product SEO copy, gallery descriptions, FAQ and editorial blocks other than the owner-selected preview CTA; leave P02 quote/cart/payment/order activation closed. P01 and P03 unchanged.
+- This is a code/gallery review boundary, **not a VPS deployment or public sales activation**. On local pull, the user visually checks typography, mockups, personal previews and dimensions before any subsequent release.

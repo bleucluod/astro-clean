@@ -10,6 +10,10 @@ import { BIRTH_SKY_HERO } from './birth-sky-content';
 import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
 import { SHOP_SIZES } from './product-detail-data';
+
+const P02_PRICES = [1_100_000, 1_900_000, 2_900_000] as const;
+const PREVIEW_SIZE = { width: 720, height: 1080 } as const;
+const formatPrice = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
 import pdStyles from './product-detail.module.css';
 import styles from './birth-sky-live-product.module.css';
 
@@ -34,29 +38,79 @@ const initial: Personalization = {
   message: '',
 };
 
+
+/** P02 page preview: 720x1080 raster, with watermark burned into the pixels.
+ * The actual R9 SVG is never inserted into the page or exposed by a download action. */
+async function makeWatermarkedPreview(svg: string, fontFamily: string): Promise<string> {
+  const parsed = new DOMParser().parseFromString(svg, 'image/svg+xml');
+  if (parsed.querySelector('parsererror')) throw new Error('ساخت پیش‌نمایش انجام نشد.');
+  parsed.querySelectorAll('text').forEach((item) => item.remove());
+  const bare = new XMLSerializer().serializeToString(parsed.documentElement);
+  const url = URL.createObjectURL(new Blob([bare], { type: 'image/svg+xml;charset=utf-8' }));
+  try {
+    const picture = new window.Image();
+    await new Promise<void>((resolve, reject) => {
+      picture.onload = () => resolve();
+      picture.onerror = () => reject(new Error('ساخت تصویر آسمان انجام نشد.'));
+      picture.src = url;
+    });
+    const canvas = window.document.createElement('canvas');
+    canvas.width = PREVIEW_SIZE.width;
+    canvas.height = PREVIEW_SIZE.height;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('پیش‌نمایش در این مرورگر ساخته نشد.');
+    context.drawImage(picture, 0, 0, canvas.width, canvas.height);
+    const { paintShopBirthSkyR9Text } = await import('@/lib/shop/shop-birth-sky-r9');
+    context.save();
+    context.scale(PREVIEW_SIZE.width / 3000, PREVIEW_SIZE.height / 4500);
+    try {
+      await paintShopBirthSkyR9Text(context, svg, fontFamily);
+    } finally {
+      context.restore();
+    }
+    await window.document.fonts.load('500 23px ' + fontFamily);
+    context.save();
+    context.direction = 'rtl';
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.rotate(-Math.PI / 8);
+    context.font = '500 23px ' + fontFamily;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillStyle = 'rgba(231, 242, 252, 0.24)';
+    for (let y = -620; y <= 620; y += 220) {
+      for (let x = -640; x <= 640; x += 350) {
+        context.fillText('پیش‌نمایش هالیوس', x + (Math.abs(y) % 440 ? 175 : 0), y);
+      }
+    }
+    context.restore();
+    return canvas.toDataURL('image/webp', 0.78);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export function BirthSkyLiveProduct() {
   const [input, setInput] = useState<Personalization>(initial);
   const [artwork, setArtwork] = useState<string | null>(null);
-  const [busy, setBusy] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [downloadBusy, setDownloadBusy] = useState(false);
-  const [photoIndex, setPhotoIndex] = useState(0);
+  const [photoIndex, setPhotoIndex] = useState(1);
   const [sizeIndex, setSizeIndex] = useState(2);
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
   const operation = useRef(0);
-  const skyOnlyArtwork = useRef<string | null>(null);
   const citySuggestions = useMemo(() => (
     input.cityId || input.city.trim().length < 2
       ? [] : filterHalleusCities(input.city).slice(0, 8)
   ), [input.city, input.cityId]);
 
-  const generate = useCallback(async (values: Personalization, first = false) => {
+  const generate = useCallback(async (values: Personalization) => {
     const version = ++operation.current;
-    if (!first) {
-      setBusy(true);
-      setError('');
-    }
+    setBusy(true);
+    setArtwork(null);
+    setPhotoIndex((previous) => previous === 0 ? 1 : previous);
+    setError('');
     const city = findHalleusCityById(values.cityId);
     const validated = validateShopMoment('p02', values);
     if (!city || !validated.ok || !validated.referenceUtc) {
@@ -88,14 +142,21 @@ export function BirthSkyLiveProduct() {
         time: values.time,
         city: getHalleusCityDisplayName(city),
       }, { numerals: values.calendar === 'jalali' ? 'fa' : 'en' });
+      const fontRoot = window.document.querySelector('[data-shop-page="p02-live-product"]');
+      const fontFamily = fontRoot
+        ? getComputedStyle(fontRoot).getPropertyValue('--font-p02-estedad').trim()
+        : '';
+      if (!fontFamily) throw new Error('فونت پیش‌نمایش هنوز آماده نیست.');
+      const preview = await makeWatermarkedPreview(svg, fontFamily);
       if (version === operation.current) {
-        // One computed SVG is the single source for the page and PNG output.
-        skyOnlyArtwork.current = svg;
-        setArtwork(svg);
+        setArtwork(preview);
+        setPhotoIndex(0);
+        window.requestAnimationFrame(() => {
+          galleryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
       }
     } catch (failure) {
       if (version === operation.current) {
-        skyOnlyArtwork.current = null;
         setArtwork(null);
         setError(failure instanceof Error ? failure.message : 'محاسبهٔ این آسمان انجام نشد.');
       }
@@ -103,19 +164,6 @@ export function BirthSkyLiveProduct() {
       if (version === operation.current) setBusy(false);
     }
   }, []);
-
-  useEffect(() => {
-    // Defer the initial calculation outside the synchronous effect phase.
-    // An unmounted or Strict Mode replayed effect must not launch stale work.
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) void generate(initial, true);
-    });
-    return () => {
-      cancelled = true;
-      operation.current += 1;
-    };
-  }, [generate]);
 
   useEffect(() => {
     const dialog = zoomDialog.current;
@@ -126,8 +174,8 @@ export function BirthSkyLiveProduct() {
 
   function change<K extends keyof Personalization>(field: K, value: Personalization[K]) {
     operation.current += 1;
-    skyOnlyArtwork.current = null;
     setArtwork(null);
+    setPhotoIndex((previous) => previous === 0 ? 1 : previous);
     setBusy(false);
     setError('');
     setInput((previous) => field === 'city'
@@ -139,7 +187,7 @@ export function BirthSkyLiveProduct() {
     const city = findHalleusCityById(cityId);
     if (!city) return;
     operation.current += 1;
-    skyOnlyArtwork.current = null;
+    setPhotoIndex((previous) => previous === 0 ? 1 : previous);
     setInput((previous) => ({
       ...previous, cityId: city.id, city: getHalleusCityDisplayName(city),
     }));
@@ -161,109 +209,64 @@ export function BirthSkyLiveProduct() {
     void generate(input);
   }
 
-  async function downloadPng() {
-    if (!artwork || downloadBusy) return;
-    setDownloadBusy(true);
-    setError('');
-    const fullScene = skyOnlyArtwork.current;
-    if (!fullScene) {
-      setError('نقشه هنوز برای خروجی آماده نیست.');
-      setDownloadBusy(false);
-      return;
-    }
-    // Canvas cannot reliably resolve the external Next localFont when an SVG
-    // is loaded as an Image. Rasterize identical geometry without its text;
-    // paint the exact SVG text nodes with loaded Estedad on the same canvas.
-    const printDom = new DOMParser().parseFromString(fullScene, 'image/svg+xml');
-    if (printDom.querySelector('parsererror')) {
-      setError('خواندن تصویر آسمان برای PNG انجام نشد.');
-      setDownloadBusy(false);
-      return;
-    }
-    printDom.querySelectorAll('text').forEach((element) => element.remove());
-    const bareSky = new XMLSerializer().serializeToString(printDom.documentElement);
-    const svgUrl = URL.createObjectURL(new Blob([bareSky], { type: 'image/svg+xml;charset=utf-8' }));
-    try {
-      const image = new window.Image();
-      await new Promise<void>((resolve, reject) => {
-        image.onload = () => resolve();
-        image.onerror = () => reject(new Error('تبدیل تصویر آسمان انجام نشد.'));
-        image.src = svgUrl;
-      });
-      const canvas = document.createElement('canvas');
-      canvas.width = 1500;
-      canvas.height = 2250;
-      const context = canvas.getContext('2d');
-      if (!context) throw new Error('امکان ذخیرهٔ تصویر در این مرورگر وجود ندارد.');
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      const fontRoot = document.querySelector('[data-shop-page="p02-live-product"]');
-      const family = fontRoot
-        ? getComputedStyle(fontRoot).getPropertyValue('--font-p02-estedad').trim()
-        : '';
-      if (!family) throw new Error('فونت اختصاصی اثر هنوز آماده نیست.');
-      const city = findHalleusCityById(input.cityId);
-      if (!city) throw new Error('شهر انتخابی معتبر نیست.');
-      const artModule = await import('@/lib/shop/shop-birth-sky-r9');
-      context.save();
-      context.scale(0.5, 0.5);
-      try {
-        await artModule.paintShopBirthSkyR9Text(context, fullScene, family);
-      } finally {
-        context.restore();
-      }
-      const png = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('فایل PNG ساخته نشد.')), 'image/png');
-      });
-      const pngUrl = URL.createObjectURL(png);
-      const link = document.createElement('a');
-      link.href = pngUrl;
-      link.download = 'halleus-birth-sky-real-map.png';
-      document.body.append(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(pngUrl), 1500);
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : 'دانلود تصویر انجام نشد.');
-    } finally {
-      URL.revokeObjectURL(svgUrl);
-      setDownloadBusy(false);
-    }
+  const galleryCount = BIRTH_SKY_GALLERY.length + 1;
+  const currentPhoto = BIRTH_SKY_GALLERY[Math.max(0, photoIndex - 1)];
+  const showingPreview = photoIndex === 0 && Boolean(artwork);
+  const displayLabel = showingPreview ? 'پیش‌نمایش تابلوی من' : currentPhoto.label;
+  const displayAlt = showingPreview ? 'پیش‌نمایش واترمارک‌دار تابلوی شخصی‌سازی‌شده' : currentPhoto.alt;
+
+  function changePhoto(step: number) {
+    const first = artwork ? 0 : 1;
+    const count = galleryCount - first;
+    setPhotoIndex((index) => first + ((index - first + step + count) % count));
   }
+
 
   return <main className={[pdStyles.page, styles.page].join(' ')} dir="rtl" data-shop-page="p02-live-product">
     <div className={pdStyles.content}>
       <section className={pdStyles.productHero} aria-label="تابلو آسمان تولد">
-        <div className={pdStyles.gallery}>
+        <div ref={galleryRef} className={pdStyles.gallery} style={{ scrollMarginTop: 88 }}>
           <nav className={pdStyles.breadcrumbs} aria-label="مسیر صفحه">
             <Link href="/">هالیوس</Link><span aria-hidden="true">/</span>
             <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
             <span aria-current="page">آسمان تولد</span>
           </nav>
           <button type="button" className={[pdStyles.mainPhotoButton, pdStyles.p01MainPhoto].join(' ')}
-            onClick={() => setZoomOpen(true)}
-            aria-label={'بزرگ‌نمایی '+BIRTH_SKY_GALLERY[photoIndex].label}>
-            <Image key={BIRTH_SKY_GALLERY[photoIndex].src}
-              src={BIRTH_SKY_GALLERY[photoIndex].src}
-              alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill priority={photoIndex === 0}
-              sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
-              className={pdStyles.portraitPhoto} />
+            onClick={() => setZoomOpen(true)} aria-label={'بزرگ‌نمایی ' + displayLabel}>
+            {showingPreview && artwork
+              ? <Image unoptimized src={artwork} alt={displayAlt} fill
+                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+                  className={pdStyles.portraitPhoto} />
+              : <Image key={currentPhoto.src} src={currentPhoto.src} alt={currentPhoto.alt} fill
+                  priority={photoIndex === 1}
+                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+                  className={pdStyles.portraitPhoto} />}
             <span className={pdStyles.zoomHint} aria-hidden="true">
               <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" />
               </svg>
             </span>
           </button>
-          <div className={[pdStyles.thumbnails, pdStyles.p01Thumbnails].join(' ')} aria-label="تصاویر محصول">
+          <div className={[pdStyles.thumbnails, pdStyles.p01Thumbnails].join(' ')} aria-label="تصاویر محصول و پیش‌نمایش">
+            <button type="button" disabled={!artwork}
+              className={[pdStyles.thumbnail, styles.previewThumb, showingPreview ? pdStyles.thumbnailActive : ''].filter(Boolean).join(' ')}
+              onClick={() => setPhotoIndex(0)} aria-pressed={showingPreview}
+              aria-label={artwork ? 'نمایش پیش‌نمایش تابلوی من' : 'پس از شخصی‌سازی، پیش‌نمایش تابلوی من اینجا ظاهر می‌شود'}>
+              {artwork
+                ? <Image unoptimized src={artwork} alt="" fill sizes="88px" />
+                : <span className={styles.previewThumbEmpty}>پیش‌نمایش تابلوی من</span>}
+            </button>
             {BIRTH_SKY_GALLERY.map((photo, index) => <button type="button" key={photo.src}
-              className={[pdStyles.thumbnail, photoIndex === index ? pdStyles.thumbnailActive : ''].filter(Boolean).join(' ')}
-              onClick={() => setPhotoIndex(index)} aria-pressed={photoIndex === index}
-              aria-label={'نمایش تصویر '+(index + 1)+': '+photo.label}>
+              className={[pdStyles.thumbnail, photoIndex === index + 1 ? pdStyles.thumbnailActive : ''].filter(Boolean).join(' ')}
+              onClick={() => setPhotoIndex(index + 1)} aria-pressed={photoIndex === index + 1}
+              aria-label={'نمایش تصویر ' + (index + 2) + ': ' + photo.label}>
               <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 68px, 88px" />
             </button>)}
           </div>
           <p className={pdStyles.galleryPosition} aria-live="polite">
-            تصویر {new Intl.NumberFormat('fa-IR').format(photoIndex + 1)} از {new Intl.NumberFormat('fa-IR').format(BIRTH_SKY_GALLERY.length)} · {BIRTH_SKY_GALLERY[photoIndex].label}
+            تصویر {formatPrice(photoIndex + 1)} از {formatPrice(galleryCount)} · {displayLabel}
           </p>
+          {showingPreview ? <p className={styles.previewCaption}>چیدمان ستاره‌ها و صورت‌های فلکی بر اساس تاریخ، ساعت و شهر انتخابی تو ساخته شده و مبنای طراحی تابلوی نهایی خواهد بود. این تصویر، پیش‌نمایش کم‌رزولوشن و واترمارک‌دار است.</p> : null}
           <p className={pdStyles.galleryCaption}>شش موکاپ تأییدشده از شاسی‌های بدون قاب در سه اندازهٔ ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر.</p>
         </div>
 
@@ -274,13 +277,17 @@ export function BirthSkyLiveProduct() {
           </div>
           <div className={pdStyles.purchasePanel}>
             <p className={pdStyles.introduction}>{BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
+            <div className={pdStyles.priceBlock} aria-live="polite">
+              <span className={pdStyles.priceLabel}>قیمت این اندازه</span>
+              <p className={pdStyles.price}><bdi>{formatPrice(P02_PRICES[sizeIndex])}</bdi><span>تومان</span></p>
+            </div>
             <fieldset className={pdStyles.sizes}>
               <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
               <div className={pdStyles.sizeGrid}>
                 {SHOP_SIZES.map((size, i) => <button type="button" key={size.dimension}
                   className={[pdStyles.sizeChoice, sizeIndex === i ? pdStyles.sizeSelected : ''].filter(Boolean).join(' ')}
                   aria-pressed={sizeIndex === i}
-                  onClick={() => { setSizeIndex(i); setPhotoIndex([4, 2, 0][i]); }}>
+                  onClick={() => { setSizeIndex(i); setPhotoIndex([5, 3, 1][i]); }}>
                   <span dir="ltr">{size.label}</span>
                 </button>)}
               </div>
@@ -304,8 +311,8 @@ export function BirthSkyLiveProduct() {
                       onClick={() => {
                         if (input.calendar !== calendar) {
                           operation.current += 1;
-                          skyOnlyArtwork.current = null;
-                          setArtwork(null); setBusy(false); setError('');
+                          setArtwork(null); setPhotoIndex((previous) => previous === 0 ? 1 : previous);
+                          setBusy(false); setError('');
                           setInput((previous) => ({ ...previous, calendar, date: '' }));
                         }
                       }}>{label}</button>)}
@@ -376,37 +383,13 @@ export function BirthSkyLiveProduct() {
                 <span className={pdStyles.confirmLabel}>{busy ? 'در حال ساخت آسمان…' : BIRTH_SKY_HERO.button}</span>
                 <span className={pdStyles.confirmArrow} aria-hidden="true">←</span>
               </button>
-              <a className={styles.previewJump} href="#p02-live-preview">دیدن نقشهٔ محاسبه‌شدهٔ آسمان من <span aria-hidden="true">↓</span></a>
+              
               <p className={styles.previewAvailability}>پیش‌نمایش شخصی‌سازی فعال است؛ امکان ثبت سفارش و پرداخت این محصول هنوز فعال نشده است.</p>
             </form>
             <div className={pdStyles.specification}>
               <span>محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر</span>
               <span>چاپ مات روی شاسی بدون قاب در سه اندازه</span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.p02PreviewSection} id="p02-live-preview" aria-labelledby="p02-live-preview-heading">
-        <div className={styles.p02PreviewCopy}>
-          <span className={pdStyles.sectionKicker}>نمای زندهٔ اثر</span>
-          <h2 id="p02-live-preview-heading">آسمانِ مخصوص تو</h2>
-          <p>این نقشه از تاریخ، ساعت و شهر انتخابی‌ات محاسبه می‌شود. وقتی اطلاعات را تغییر می‌دهی و «ساخت آسمان» را می‌زنی، ستاره‌ها نیز جای تازه‌ای پیدا می‌کنند.</p>
-          {artwork ? <div className={styles.imageActions}>
-            <button type="button" disabled={downloadBusy} onClick={() => void downloadPng()}>
-              {downloadBusy ? 'در حال آماده‌سازی PNG…' : 'دریافت تصویر شخصی من (PNG)'}
-            </button>
-          </div> : null}
-        </div>
-        <div className={styles.p02PreviewArtwork}>
-          <div className={styles.artwork}>
-            {artwork ? <div className={styles.svgArtwork} role="img"
-              aria-label="نقشهٔ محاسبه‌شدهٔ ستاره‌های همان لحظه"
-              dangerouslySetInnerHTML={{ __html: artwork }} />
-              : <div className={styles.emptyArtwork} role="status">
-                <span className={styles.emptySymbol} aria-hidden="true">✧</span>
-                <strong>{busy ? 'در حال محاسبهٔ ستاره‌ها…' : 'آسمان انتخابی‌ات اینجا شکل می‌گیرد'}</strong>
-              </div>}
           </div>
         </div>
       </section>
@@ -439,13 +422,14 @@ export function BirthSkyLiveProduct() {
         <div className={pdStyles.zoomInner}>
           <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
           <div className={pdStyles.zoomPhoto}>
-            <Image src={BIRTH_SKY_GALLERY[photoIndex].src}
-              alt={BIRTH_SKY_GALLERY[photoIndex].alt} fill sizes="95vw" />
+            {showingPreview && artwork
+              ? <Image unoptimized src={artwork} alt={displayAlt} fill sizes="95vw" />
+              : <Image src={currentPhoto.src} alt={currentPhoto.alt} fill sizes="95vw" />}
           </div>
           <div className={pdStyles.zoomActions}>
-            <button type="button" onClick={() => setPhotoIndex((photoIndex + BIRTH_SKY_GALLERY.length - 1) % BIRTH_SKY_GALLERY.length)}>تصویر قبل</button>
-            <span>{new Intl.NumberFormat('fa-IR').format(photoIndex + 1)} از {new Intl.NumberFormat('fa-IR').format(BIRTH_SKY_GALLERY.length)}</span>
-            <button type="button" onClick={() => setPhotoIndex((photoIndex + 1) % BIRTH_SKY_GALLERY.length)}>تصویر بعد</button>
+            <button type="button" onClick={() => changePhoto(-1)}>تصویر قبل</button>
+            <span>{formatPrice(photoIndex + 1)} از {formatPrice(galleryCount)}</span>
+            <button type="button" onClick={() => changePhoto(1)}>تصویر بعد</button>
           </div>
         </div>
       </dialog>

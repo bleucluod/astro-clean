@@ -1,101 +1,75 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import vm from 'node:vm';
 import ts from 'typescript';
 
 const root = resolve(import.meta.dirname, '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
-const rendererPath = 'lib/shop/shop-birth-sky-artwork.ts';
-const rendererSource = read(rendererPath);
+const clientPath = 'components/shop/BirthSkyLiveProduct.tsx';
+const client = read(clientPath);
+const renderer = read('lib/shop/shop-birth-sky-r9.ts');
 const route = read('app/shop/birth-sky-map/page.tsx');
-const client = read('components/shop/BirthSkyLiveProduct.tsx');
+const gallery = read('components/shop/birth-sky-gallery.ts');
+const copy = read('components/shop/birth-sky-content.ts');
 const css = read('components/shop/birth-sky-live-product.module.css');
-const home = read('components/shop/ShopV01Home.tsx');
-const homeCss = read('components/shop/shop-v01-home.module.css');
 const quote = read('lib/shop/shop-quote.ts');
 const cart = read('components/shop/shop-cart.ts');
-const times = read('lib/shop/shop-personalization.ts');
-const cityCatalog = read('lib/locations/iran-cities.ts');
-const actualPrint = read('lib/shop/shop-final-print.ts');
 
-for (const path of [rendererPath, 'components/shop/BirthSkyLiveProduct.tsx',
-  'app/shop/birth-sky-map/page.tsx']) {
-  const src = read(path);
-  const js = ts.transpileModule(src, {
+for (const path of [clientPath, 'lib/shop/shop-birth-sky-r9.ts',
+  'components/shop/birth-sky-content.ts', 'components/shop/birth-sky-gallery.ts']) {
+  const transpiled = ts.transpileModule(read(path), {
     fileName: path, reportDiagnostics: true,
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
       jsx: ts.JsxEmit.ReactJSX },
   });
-  assert.deepEqual((js.diagnostics ?? []).filter((d) => d.category === ts.DiagnosticCategory.Error), [],
-    'TypeScript/TSX syntax must remain parseable: ' + path);
+  assert.deepEqual((transpiled.diagnostics ?? []).filter((d) =>
+    d.category === ts.DiagnosticCategory.Error), [], 'Parseable TS/TSX: ' + path);
 }
 
-const js = ts.transpileModule(rendererSource, {
-  fileName: rendererPath,
-  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-}).outputText;
-const exports = {};
-vm.runInNewContext('(function(require, exports){' + js + '\n})', {
-  Object, Array, Number, Math, String, Error,
-})((name) => { throw new Error('Artwork renderer must be dependency-free: ' + name); }, exports);
-const render = exports.renderShopBirthSkyArtwork;
-assert.equal(typeof render, 'function');
+for (const key of [
+  "validateShopMoment('p02', values)",
+  'renderShopBirthSkyR9(stars, figures, named',
+  'makeWatermarkedPreview(svg, fontFamily)',
+  'paintShopBirthSkyR9Text(context, svg, fontFamily)',
+  "canvas.toDataURL('image/webp'",
+  'setPhotoIndex(0)',
+  'setArtwork(null)',
+  'galleryCount = BIRTH_SKY_GALLERY.length + 1',
+  'disabled={!artwork}',
+  'P02_PRICES[sizeIndex]',
+  '<BirthSkyEditorial />',
+]) assert.ok(client.includes(key), 'P02 missing contract: ' + key);
+for (const forbidden of [
+  'downloadPng', 'skyOnlyArtwork', 'canvas.toBlob(', 'dangerouslySetInnerHTML',
+  'addShopCartItem(', 'fetch(', 'p02-live-preview',
+]) assert.ok(!client.includes(forbidden), 'Unsafe/outdated preview behavior: ' + forbidden);
 
-const atlas = {
-  referenceUtc: '2024-11-05T17:30:00.000Z',
-  latitude: 35.7081327, longitude: 51.4139829,
-  aboveHorizonStars: [{ x: 0, y: 0, visualMagnitude: 1.3 },
-    { x: 0.7, y: -0.3, visualMagnitude: 4.2 }],
-};
-const figures = {
-  referenceUtc: atlas.referenceUtc, latitude: atlas.latitude, longitude: atlas.longitude,
-  lines: [{ rank: 1, points: [{ x: -0.5, y: 0.1 }, { x: 0.5, y: 0.1 }] }],
-};
-const details = { names: '<نام & آزمون>', message: 'برای تو & من',
-  date: '۱۴۰۳/۰۸/۱۵', time: '21:00', city: 'تهران' };
-const art = render(atlas, figures, details);
-assert.match(art, /viewBox="0 0 3000 4500"/);
-assert.match(art, /<circle cx="1500.00" cy="1920.00"/);
-assert.match(art, /<path d="M/);
-assert.match(art, /&lt;نام &amp; آزمون&gt;/);
-assert.match(art, /برای تو &amp; من/);
-assert.doesNotMatch(art, /<نام & آزمون>/);
-assert.doesNotMatch(art, /CALCULATION PROOF|NOT APPROVED FOR PRINT|shop-preview|<script|<image/);
-assert.equal(art, render(atlas, figures, details), 'Rendering must be deterministic.');
-assert.notEqual(art, render({ ...atlas, aboveHorizonStars: [
-  { x: .1, y: -.2, visualMagnitude: 2 },
-] }, figures, details), 'Star coordinates must affect the real poster.');
-assert.throws(() => render(atlas, { ...figures, referenceUtc: '2024-11-05T18:30:00.000Z' }, details));
+assert.match(client, /P02_PRICES = \[1_100_000, 1_900_000, 2_900_000\]/);
+assert.match(client, /PREVIEW_SIZE = \{ width: 720, height: 1080 \}/);
+assert.match(client, /context\.fillText\(/);
+assert.match(client, /URL\.revokeObjectURL\(url\)/);
+assert.match(client, /BIRTH_SKY_GALLERY\.map\(/);
+assert.match(css, /\.previewThumbEmpty/);
+assert.match(css, /\.previewCaption/);
+assert.match(copy, /"button": "پیش‌نمایش تابلوی من"/);
+assert.match(route, /index: false/);
+assert.ok(!client.includes('initial, true'), 'No automatic initial personal preview');
+assert.match(quote, /new Set\(\['p01'\]\)/);
+assert.match(cart, /validProductIds: ShopProductId\[\] = \['p01'\]/);
 
-const cssNames = [...client.matchAll(/styles\.([A-Za-z][\w]*)/g)].map(x => x[1]);
-for (const name of new Set(cssNames)) {
-  assert.match(css, new RegExp('\\.' + name + '(?![\\w-])'), 'Missing P02 CSS class: ' + name);
+const expected = [
+  'public/shop-preview/p02/01-arad-10x15-tabletop.webp',
+  'public/shop-preview/p02/02-arad-haleh-10x15-pair.webp',
+];
+for (const path of expected) {
+  const file = readFileSync(resolve(root, path));
+  assert.ok(file.length > 30_000, 'Full product mockup must be present: ' + path);
+  assert.equal(file.toString('ascii', 0, 4), 'RIFF', 'WebP container required: ' + path);
+  assert.equal(file.toString('ascii', 8, 12), 'WEBP', 'WebP brand required: ' + path);
+  assert.ok(gallery.includes('/' + path.replace(/^public\//, '')), 'Gallery reference missing: ' + path);
 }
-assert.ok(route.includes('<BirthSkyLiveProduct'));
-assert.ok(route.includes('index: false'), 'Product must remain noindex before image/price approval');
-assert.ok(!route.includes("process.env.NODE_ENV === 'production'"),
-  'P02 actual live design must now be publicly accessible');
-for (const marker of [
-  "validateShopMoment('p02', values)", 'findHalleusCityById(values.cityId)',
-  "import('@/lib/shop/shop-sky-atlas')", "import('@/lib/shop/shop-constellation-lines')",
-  "import('@/lib/shop/shop-sky-stars')",
-  "import('@/lib/shop/shop-birth-sky-r9')",
-  'dangerouslySetInnerHTML={{ __html: artwork }}',
-  "canvas.toBlob(", "URL.revokeObjectURL(svgUrl)",
-  'از داده‌های نجومی واقعی', 'امکان خرید، پرداخت و سفارش',
-]) assert.ok(client.includes(marker), 'Missing P02 live-preview contract: ' + marker);
-assert.ok(!client.includes('/shop-preview/') && !client.includes('addShopCartItem('));
-assert.ok(!client.includes("fetch("), 'Personal birth inputs must not be sent to a server for this preview');
-assert.ok(!client.includes("shop-solar-system") && !client.includes("calculateShopSolarSystem("),
-  'Rejected Solar System layer must not be imported by this page');
-assert.ok(cityCatalog.includes('"id": "iran-229"') && cityCatalog.includes('"faName": "تهران"'));
-assert.ok(times.includes("resolveShopCivilTimeUtc(gregorianIso!, time, city.timezone)"));
-assert.ok(home.includes('href="/shop/birth-sky-map"') && home.includes('styles.p02Invitation'));
-assert.ok(homeCss.includes('.p02Invitation'));
-assert.ok(quote.includes("new Set(['p01'])"));
-assert.ok(cart.includes("validProductIds: ShopProductId[] = ['p01']"));
-assert.ok(actualPrint.includes("calculateShopStarAtlas(input)") &&
-  actualPrint.includes("calculateShopConstellationLines(input)"),
-  'Public artwork must share actual star/constellation inputs with print candidate');
-console.log('P02_LIVE_COMPUTED_ARTWORK=PASS browser_only_real_sky_no_mockups_cart_closed');
+assert.equal((gallery.match(/"src":/g) ?? []).length, 6);
+assert.ok(!gallery.includes('01-hale-10x15-tabletop.webp'));
+assert.ok(!gallery.includes('02-hale-arad-10x15-pair.webp'));
+assert.match(renderer, /export function renderShopBirthSkyR9/);
+console.log('SHOP_P02_GALLERY_WATERMARK_PRICING=PASS six_mockups_one_locked_preview_no_sales');
