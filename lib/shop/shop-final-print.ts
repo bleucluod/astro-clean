@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import sharp from 'sharp';
 import { buildShopP01R9bArtwork } from './shop-p01-r9b-master';
 import { normalizePersianDigits } from '@/lib/date/jalali';
-import { calculateShopStarAtlas } from './shop-sky-atlas';
-import { calculateShopConstellationLines } from './shop-constellation-lines';
+import { renderShopP02R9NativeJpeg } from './shop-p02-r9-native-print';
+import { findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import { calculateShopMoonAtUtc } from './shop-moon-ephemeris';
 import { safeShopArtworkText, xmlShopArtworkText } from './shop-artwork-text';
 import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from './shop-print-handoff';
@@ -82,32 +82,6 @@ async function inspectOriginal(master: ShopSourceMaster | undefined, neededWidth
   return metadata;
 }
 
-function makeSkySvg(width: number, height: number, atlas: ReturnType<typeof calculateShopStarAtlas>,
-  figures: ReturnType<typeof calculateShopConstellationLines>, inset: number): Buffer {
-  if (atlas.referenceUtc !== figures.referenceUtc || atlas.latitude !== figures.latitude ||
-      atlas.longitude !== figures.longitude) throw new Error('Mismatched sky geometry.');
-  const cx = width / 2;
-  const cy = height * 0.425;
-  const r = Math.min(width * 0.385, cx - inset - 4, cy - inset - 4);
-  const stars = atlas.aboveHorizonStars.map((star) => {
-    const x = (cx + star.x * r).toFixed(2);
-    const y = (cy + star.y * r).toFixed(2);
-    const dot = Math.min(3.5, Math.max(0.9, 1.65 * Math.pow(10, (2.3 - star.visualMagnitude) / 8)));
-    return `<circle cx="${x}" cy="${y}" r="${dot.toFixed(2)}" fill="#e6eff6" opacity=".88"/>`;
-  }).join('');
-  const figuresSvg = figures.lines.map((line) => {
-    const d = line.points.map((point, i) => `${i ? 'L' : 'M'} ${(cx + point.x * r).toFixed(2)} ${(cy + point.y * r).toFixed(2)}`).join(' ');
-    return `<path d="${d}" fill="none" stroke="#93b4c8" stroke-opacity="${line.rank === 1 ? '.62' : '.38'}" stroke-width="${Math.max(0.7, width / 1100).toFixed(2)}"/>`;
-  }).join('');
-  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <defs><radialGradient id="night" cx="50%" cy="43%" r="85%"><stop stop-color="#27384b"/><stop offset="1" stop-color="#101c2a"/></radialGradient>
-      <clipPath id="disc"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
-    <rect width="${width}" height="${height}" fill="url(#night)"/>
-    <g stroke="#acc8d7" fill="none" stroke-width="${Math.max(0.8, width / 1200).toFixed(2)}" opacity=".55"><circle cx="${cx}" cy="${cy}" r="${r}"/></g>
-    <g clip-path="url(#disc)">${figuresSvg}${stars}</g>
-  </svg>`, 'utf8');
-}
-
 function makePhotoFade(width: number, height: number): Buffer {
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
     <defs><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#09131b" stop-opacity="0"/>
@@ -160,7 +134,13 @@ export async function buildPrivateShopFinalPrintCandidate(
     const reference = item.birthSkyReference;
     if (!reference) throw new ShopPrintHandoffError('مرجع آسمان تولد ناقص است.', 422);
     const input = { referenceUtc: reference.referenceUtc, latitude: reference.latitude, longitude: reference.longitude };
-    background = makeSkySvg(width, height, calculateShopStarAtlas(input), calculateShopConstellationLines(input), inset);
+    const city = findHalleusCityById(reference.cityId);
+    if (!city) throw new ShopPrintHandoffError('شهر سفارش برای فایل چاپ معتبر نیست.', 422);
+    background = await renderShopP02R9NativeJpeg({
+      reference: input, width, height, numerals: personal.calendar === 'jalali' ? 'fa' : 'en',
+      details: { names, message, date, time: safeShopArtworkText(personal.time, 'زمان'),
+        city: getHalleusCityDisplayName(city) },
+    });
   } else if (item.productId === 'p01') {
     const reference = item.moonReference;
     if (!reference) throw new ShopPrintHandoffError('مرجع ماه آن روز ناقص است.', 422);
@@ -195,7 +175,7 @@ export async function buildPrivateShopFinalPrintCandidate(
 
   const isPhoto = item.productId === 'p03';
   // The approved P01 master already includes its own typography. Do not overlay it twice.
-  const textLayers = item.productId === 'p01' ? [] : await renderTextLayers(width, height, inset, [
+  const textLayers = item.productId === 'p01' || item.productId === 'p02' ? [] : await renderTextLayers(width, height, inset, [
     { text: names, top: height * .79, height: height * .06, fontPx: width * .04 },
     { text: message, top: height * .857, height: height * .05, fontPx: width * .029 },
     { text: dateTimeCity, top: height * .915, height: height * .043, fontPx: width * .023, color: '#c4d4df' },

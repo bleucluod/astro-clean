@@ -18,14 +18,14 @@ export async function archiveOwnerSuppliedShopPrint(input: {
   orderId: string;
   orderNumber: string;
   lineNumber: number;
-  productId: 'p01';
+  productId: 'p01' | 'p02';
   size: string;
   jpeg: Buffer;
 }) {
   if (process.platform !== 'linux' || !isAbsolute(input.root) || !orderIdPattern.test(input.orderId) ||
       !isValidShopOrderNumber(input.orderNumber) ||
       !Number.isSafeInteger(input.lineNumber) || input.lineNumber < 1 || input.lineNumber > 20 ||
-      input.productId !== 'p01' || !Buffer.isBuffer(input.jpeg) ||
+      !['p01', 'p02'].includes(input.productId) || !Buffer.isBuffer(input.jpeg) ||
       input.jpeg.length < 1024 || input.jpeg.length > MAX_JPEG_BYTES) {
     throw new ShopManualPrintArchiveError('فایل چاپ یا مسیر آرشیو معتبر نیست.', 422);
   }
@@ -70,12 +70,12 @@ export async function archiveOwnerSuppliedShopPrint(input: {
     throw new ShopManualPrintArchiveError('مسیر خصوصی سفارش معتبر نیست.');
   }
   const sha256 = createHash('sha256').update(input.jpeg).digest('hex');
-  const filename = `line-${input.lineNumber}-p01-${input.size}-manual-final`;
+  const filename = `line-${input.lineNumber}-${input.productId}-${input.size}-manual-final`;
   const target = join(orderFolder, filename);
   const manifest = {
     contract: 'halleus.shop.owner-supplied-manual-print.v1',
     orderId: input.orderId.toLowerCase(), orderNumber: input.orderNumber,
-    line: input.lineNumber, productId: 'p01', size: input.size,
+    line: input.lineNumber, productId: input.productId, size: input.size,
     jpegSha256: sha256, jpegBytes: input.jpeg.length,
     nativePixels: spec.minimumNativePixels, targetPpi: 300,
     colorSpace: 'sRGB', safeAreaMm: 5,

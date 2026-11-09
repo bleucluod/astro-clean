@@ -73,6 +73,17 @@ if (process.platform === 'linux') {
     assert.equal(manifest.printArtworkReady, true);
     assert.equal(manifest.orderNumber, input.orderNumber);
     assert.equal(manifest.approvedBy, 'owner-manual-upload-confirmation');
+    const p02 = { ...input, productId: 'p02' };
+    const skyFirst = await archive.archiveOwnerSuppliedShopPrint(p02);
+    assert.equal(skyFirst.idempotent, false, 'P02 has a separate private archive entry');
+    const skyFolder = join(temp, id, 'line-1-p02-10x15-manual-final');
+    assert.ok(existsSync(join(skyFolder, 'artwork.jpg')));
+    const skyManifest = JSON.parse(await readFile(join(skyFolder, 'manifest.json'), 'utf8'));
+    assert.equal(skyManifest.productId, 'p02');
+    assert.equal(skyManifest.printArtworkReady, true);
+    assert.equal((await archive.archiveOwnerSuppliedShopPrint(p02)).idempotent, true);
+    await assert.rejects(() => archive.archiveOwnerSuppliedShopPrint({ ...input, productId: 'p03' }),
+      'P03 must remain blocked from the manual approved archive');
     await assert.rejects(() => archive.archiveOwnerSuppliedShopPrint({ ...input, jpeg: Buffer.alloc(9 * 1024 * 1024) }));
     await assert.rejects(() => archive.archiveOwnerSuppliedShopPrint({ ...input, orderId: '../invalid' }));
     await chmod(join(folder, 'manifest.json'), 0o644);

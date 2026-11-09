@@ -44,6 +44,17 @@ function load(relativePath) {
   return record.exports;
 }
 
+const finalSource = readFileSync(resolve(repo, 'lib/shop/shop-final-print.ts'), 'utf8');
+const nativeSource = readFileSync(resolve(repo, 'lib/shop/shop-p02-r9-native-print.ts'), 'utf8');
+assert.match(finalSource, /renderShopP02R9NativeJpeg\(/, 'P02 must use the R9 native source');
+assert.doesNotMatch(finalSource, /function makeSkySvg\(/, 'Legacy circular P02 print must not return');
+assert.match(nativeSource, /renderShopBirthSkyR9\(stars, figures, named, actualDetails/,
+  'Print must reuse the approved R9 scene and astronomical inputs');
+assert.match(nativeSource, /calculateShopBrightStarProof\(reference\)/,
+  'Print must include the same named stars as the page');
+assert.match(nativeSource, /Estedad-Regular\.ttf/,
+  'Native P02 typography must use bundled Estedad');
+assert.doesNotMatch(nativeSource, /پیش‌نمایش هالیوس/, 'Final print must not include the preview watermark');
 const renderer = load('lib/shop/shop-final-print.ts');
 const archive = load('lib/shop/shop-print-archive.ts');
 const spec = load('lib/shop/shop-print-spec.ts').getShopPrintSpec('20x30');

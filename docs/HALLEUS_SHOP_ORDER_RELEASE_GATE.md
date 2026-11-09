@@ -47,3 +47,11 @@ Owner now authorizes the P02 **code path** for manual-transfer purchase after a 
 For production, require BOTH the existing shop MVP ingress/rate/private-storage gate AND the explicitly approved `HALLEUS_SHOP_P02_ORDERS_ENABLED=true` setting. Merely pulling this commit or deploying another change must not silently open P02 payments. Local development can exercise the new order path with synthetic checkout data.
 
 Before any real P02 release: run focused/cart/quote/order/private-ZIP verification, a safe isolated DB lifecycle test if available, print-resolution and physical-lab acceptance, confirm the existing bank recipient with the owner, and receive separate VPS-release permission. Do not enable P02 in production or perform real financial/DB operations during the GitHub implementation review.
+
+## 2026-11-09 — P02 production boundary follow-up
+
+The owner requested completion of the R9 P02 order and print flow. VPS metadata supplied by the owner verifies the private orders/events/sequence/rate-limits objects exist, but **does not establish that a live order write succeeds**. The previous localhost checkout returned a generic 503 before the payment step, so no real payment/order completion is claimed. Keep existing production DB content and all customer data unchanged during code validation.
+
+P02 native print uses the same approved R9 graphics/sky data as browser preview, with bundled Estedad through server-side Pango. Pixel-level font/filter parity, 300-PPI representative owner review and physical lab signoff are external acceptance criteria. The owner may generate/inspect and archive a P02 JPEG only after the actual order has been marked paid; archive requires explicit owner print-match and lab-approval headers and retains strict private-path/size checks.
+
+**Current release boundary:** production P02 toggle `HALLEUS_SHOP_P02_ORDERS_ENABLED` was OFF in the 2026-11-09 owner VPS read-only output. Keep OFF until explicit bank-recipient verification, live database-backed order E2E or isolated equivalent, correct order-to-print visuals, real specimen quality, and release approval. Tag/deploy ONLY through `ops/vps/halleus-release.sh`, preserving current/previous and smoke+rollback behavior.

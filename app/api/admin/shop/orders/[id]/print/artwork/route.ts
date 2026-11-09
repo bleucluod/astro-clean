@@ -5,10 +5,10 @@ import { getAdminShopOrder } from '@/lib/shop/shop-order-store';
 import { readShopRequest } from '@/lib/shop/shop-order-http';
 import { ShopOrderInputError } from '@/lib/shop/shop-order-contract';
 import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from '@/lib/shop/shop-print-handoff';
-import { buildPrivateShopFinalPrintCandidate } from '@/lib/shop/shop-final-print';
+import { buildPrivateShopFinalPrintCandidate, type ShopFinalPrintSources } from '@/lib/shop/shop-final-print';
 import { loadPrivateShopFinalPrintSources } from '@/lib/shop/shop-private-print-originals';
 import { SHOP_P01_R9B_STYLE } from '@/lib/shop/shop-p01-r9b-master';
-import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
+import { isShopMvpActive, isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -41,13 +41,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     const handoff = buildPrivateShopPrintHandoff(order);
     const print = handoff.prints[line - 1];
-    if (!print || print.productId !== 'p01') return noStoreJsonResponse({ ok: false }, 422);
+    if (!print || !['p01', 'p02'].includes(print.productId)) return noStoreJsonResponse({ ok: false }, 422);
+    if (print.productId === 'p02' && !isShopP02OrderEnabled()) return noStoreJsonResponse({ ok: false }, 404);
     if (rendering) return noStoreJsonResponse({ ok: false, error: 'رندر دیگری در حال انجام است؛ دوباره تلاش کن.' }, 429);
     rendering = true;
     try {
-      const sources = await loadPrivateShopFinalPrintSources('p01');
-      if (!sources.moonMap || sources.moonDisc ||
-          sources.moonMap.sha256 !== SHOP_P01_R9B_STYLE.preferredMapSha256) {
+      // P01 remains pinned to the verified lunar source; P02 uses the
+      // same R9 scene as the customer preview with its own order reference.
+      const sources: ShopFinalPrintSources = print.productId === 'p01'
+        ? await loadPrivateShopFinalPrintSources('p01') : {};
+      if (print.productId === 'p01' &&
+          (!sources.moonMap || sources.moonDisc ||
+           sources.moonMap.sha256 !== SHOP_P01_R9B_STYLE.preferredMapSha256)) {
         return noStoreJsonResponse({ ok: false, error: 'منبع تأییدشدهٔ ماه در فضای خصوصی آماده نیست.' }, 409);
       }
       const candidate = await buildPrivateShopFinalPrintCandidate(order, line, sources);
@@ -57,14 +62,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       await recordAdminAuditEvent({
         actor, action: 'shop.owner_order_artwork.rendered', targetType: 'shop_order',
         targetId: id, afterSummary: { orderNumber: candidate.orderNumber,
-          line: candidate.lineNumber, productId: 'p01', approvedForPrint: false },
+          line: candidate.lineNumber, productId: candidate.productId, approvedForPrint: false },
         success: true,
       });
       return new Response(new Uint8Array(candidate.bytes), {
         status: 200,
         headers: {
           'Content-Type': 'image/jpeg',
-          'Content-Disposition': `attachment; filename="halleus-order-${candidate.orderNumber}-p01-line-${line}-review.jpg"`,
+          'Content-Disposition': `attachment; filename="halleus-order-${candidate.orderNumber}-${candidate.productId}-line-${line}-review.jpg"`,
           'Cache-Control': 'private, no-store, max-age=0',
           'X-Content-Type-Options': 'nosniff',
           'X-Robots-Tag': 'noindex, nofollow',

@@ -178,7 +178,8 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
 
 
   async function generateOrderArtwork() {
-    if (!detail || busy || !['payment_verified', 'preparing'].includes(detail.status)) return;
+    if (!detail || busy || !['payment_verified', 'preparing'].includes(detail.status) ||
+        !['p01', 'p02'].includes(detail.items[uploadLine - 1]?.productId ?? '')) return;
     setBusy(true); setError(''); setSuccess('');
     try {
       const response = await fetch('/api/admin/shop/orders/' + detail.id + '/print/artwork', {
@@ -210,6 +211,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   async function uploadFinalPrint() {
     const chosenArtwork = generatedArtwork?.line === uploadLine ? generatedArtwork.blob : uploadFile;
     if (!detail || busy || !['payment_verified', 'preparing'].includes(detail.status) ||
+        !['p01', 'p02'].includes(detail.items[uploadLine - 1]?.productId ?? '') ||
         !chosenArtwork || !confirmOrderMatch || !confirmLabPrint) return;
     if (chosenArtwork.size > 8 * 1024 * 1024 || chosenArtwork.size < 1024 ||
         chosenArtwork.type !== 'image/jpeg') {
@@ -386,7 +388,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       {['payment_verified', 'preparing'].includes(detail.status) ? <section className={styles.production} aria-labelledby="shop-production-title">
         <div className={styles.productionHeader}>
           <span className={styles.eyebrow}>ساخت اثر / مرحلهٔ چاپ</span>
-          <h4 id="shop-production-title">طرح «ماه آن روز» همین سفارش</h4>
+          <h4 id="shop-production-title">طرح «{productNames[detail.items[uploadLine - 1]?.productId] ?? 'اثر'}» همین سفارش</h4>
           <p>همان مستر R9b با تاریخ، نام، پیام و اندازهٔ سفارش ساخته می‌شود. فایل ابتدا فقط برای بازبینی توست؛ بدون تأیید نهایی ذخیره نمی‌شود.</p>
         </div>
         <form className={styles.productionGrid} onSubmit={(event) => { event.preventDefault(); void uploadFinalPrint(); }}>
@@ -396,8 +398,8 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
                 {detail.items.map((item, index) => <option key={item.key} value={index + 1}>{index + 1} · {productNames[item.productId] ?? item.productId} · {item.size}</option>)}
               </select>
             </label>
-            <button className={styles.primaryAction} type="button" disabled={busy || detail.items[uploadLine - 1]?.productId !== 'p01'} onClick={() => void generateOrderArtwork()}>{busy ? 'در حال ساخت…' : 'ساخت طرح این سفارش'}</button>
-            {generatedArtwork?.line === uploadLine ? <a className={styles.downloadAction} href={generatedArtwork.url} download={'halleus-order-' + detail.display_number + '-p01-line-' + uploadLine + '.jpg'}>دانلود JPG چاپی برای بررسی</a> : null}
+            <button className={styles.primaryAction} type="button" disabled={busy || !['p01', 'p02'].includes(detail.items[uploadLine - 1]?.productId ?? '')} onClick={() => void generateOrderArtwork()}>{busy ? 'در حال ساخت…' : 'ساخت طرح این سفارش'}</button>
+            {generatedArtwork?.line === uploadLine ? <a className={styles.downloadAction} href={generatedArtwork.url} download={'halleus-order-' + detail.display_number + '-' + detail.items[uploadLine - 1]?.productId + '-line-' + uploadLine + '.jpg'}>دانلود JPG چاپی برای بررسی</a> : null}
             <details className={styles.alternativeUpload}>
               <summary>یا استفاده از فایل آمادهٔ دیگر</summary>
               <label>JPG جایگزین (حداکثر ۸ مگابایت)

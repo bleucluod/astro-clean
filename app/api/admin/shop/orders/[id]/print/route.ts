@@ -5,7 +5,7 @@ import { buildPrivateShopPrintHandoff, ShopPrintHandoffError } from '@/lib/shop/
 import { buildPrivateShopDesignHandoffZip } from '@/lib/shop/shop-design-handoff-zip';
 import { getAdminShopOrder } from '@/lib/shop/shop-order-store';
 
-import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
+import { isShopMvpActive, isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
 import { archiveOwnerSuppliedShopPrint, ShopManualPrintArchiveError } from '@/lib/shop/shop-manual-print-archive';
 
 export const runtime = 'nodejs';
@@ -80,7 +80,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     const handoff = buildPrivateShopPrintHandoff(order);
     const print = handoff.prints[Number(lineValues[0]) - 1];
-    if (!print || print.productId !== 'p01') return noStoreJsonResponse({ ok: false }, 422);
+    if (!print || !['p01', 'p02'].includes(print.productId)) return noStoreJsonResponse({ ok: false }, 422);
+    if (print.productId === 'p02' && !isShopP02OrderEnabled()) return noStoreJsonResponse({ ok: false }, 404);
     const root = process.env.HALLEUS_SHOP_PRINT_ARCHIVE_ROOT;
     if (!root) return noStoreJsonResponse({ ok: false, error: 'آرشیو خصوصی هنوز آماده نیست.' }, 409);
     const reader = request.body?.getReader();
@@ -101,13 +102,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     } finally { reader.releaseLock(); }
     const saved = await archiveOwnerSuppliedShopPrint({
       root, orderId: id, orderNumber: handoff.orderNumber,
-      lineNumber: print.line, productId: 'p01', size: print.sizeCm,
+      lineNumber: print.line, productId: print.productId as 'p01' | 'p02', size: print.sizeCm,
       jpeg: Buffer.concat(buffers, size),
     });
     await recordAdminAuditEvent({
       actor, action: 'shop.manual_final_print.archived', targetType: 'shop_order', targetId: id,
       afterSummary: { orderNumber: handoff.orderNumber, line: print.line,
-        productId: 'p01', size: print.sizeCm, sha256: saved.sha256,
+        productId: print.productId, size: print.sizeCm, sha256: saved.sha256,
         idempotent: saved.idempotent, approvedManually: true },
       success: true,
     });
