@@ -41,7 +41,7 @@
   position: absolute;
   z-index: 1;
   top: 191px;
-  right: max(76px, calc((100vw - 1288px) / 2));
+  right: clamp(24px, 6%, 76px);
   width: 350px;
   max-width: calc(100% - 48px);
   text-align: right;
@@ -103,7 +103,7 @@
 }
 
 .collection {
-  padding: 54px max(24px, calc((100vw - 1200px) / 2)) 72px;
+  padding: 54px 24px 72px;
   background: #050609;
   scroll-margin-top: 88px;
 }
