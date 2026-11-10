@@ -119,12 +119,39 @@ fi
 
 # Candidate QA takes place in a disposable detached worktree with locked
 # dependencies, BEFORE production migration. Do not delete a failed candidate.
-QA="/srv/halleus/releases/.shop-prices-preflight-${PIN:0:12}"
+# Resume the existing valid R1 candidate rather than reinstalling/building it.
+# R1 was fully discovered: seven focused guards, TypeScript and diff passed;
+# only the two legacy payment-status SQL mocks failed.
+R1=86d9ec457d29a41ee59cd8433e90328b32ccb4ed
+QA="/srv/halleus/releases/.shop-prices-preflight-86d9ec457d29"
+expected_resume_changes="$(printf '%s\n' \
+  'docs/HALLEUS_SHOP_BITPAY_EASY_WINS_ROADMAP_2026-11-10.md' \
+  'ops/vps/halleus-shop-prices-release.sh' \
+  'scripts/check-shop-order-api-privacy.mjs' \
+  'scripts/check-shop-order-experience.mjs')"
+observed_resume_changes="$(as_deploy git -C "$SOURCE" diff --name-only "$R1" "$PIN")"
+resume_qa=0
 if [ -e "$QA" ]; then
-  [ "$(as_deploy git -C "$QA" rev-parse HEAD 2>/dev/null)" = "$PIN" ] ||
-    fail 'Existing preflight directory belongs to another candidate.'
-  printf '%s\n' 'SHOP_PRICES: reused_existing_candidate=PASS'
+  current_qa_sha="$(as_deploy git -C "$QA" rev-parse HEAD 2>/dev/null)" ||
+    fail 'Existing R1 candidate is not a valid Git worktree.'
+  [ -z "$(as_deploy git -C "$QA" status --porcelain=v1 --untracked-files=all)" ] ||
+    fail 'Existing R1 candidate has unreviewed changes; preserve it.'
+  if [ "$observed_resume_changes" = "$expected_resume_changes" ] &&
+    [ "$current_qa_sha" = "$R1" ]; then
+    as_deploy git -C "$QA" merge --ff-only "$PIN" ||
+      fail 'Fast-forward of existing R1 candidate failed. Candidate preserved.'
+    resume_qa=1
+  elif [ "$observed_resume_changes" = "$expected_resume_changes" ] &&
+       [ "$current_qa_sha" = "$PIN" ]; then
+    resume_qa=1
+  else
+    fail 'R1 candidate or change fingerprint differs; preserve existing worktree.'
+  fi
+  printf 'SHOP_PRICES: R1_candidate_preserved_and_resumed=PASS sha=%s\n' "$PIN"
 else
+  # Defensive fallback if the prior VPS candidate was removed independently.
+  QA="/srv/halleus/releases/.shop-prices-preflight-${PIN:0:12}"
+  [ ! -e "$QA" ] || fail 'Unexpected alternate QA worktree: preserve it.'
   as_deploy git -C "$SOURCE" worktree add --detach "$QA" "$PIN" ||
     fail 'Could not stage isolated price candidate.'
 fi
@@ -135,30 +162,46 @@ if [ ! -d "$QA/node_modules/typescript" ]; then
     fail 'Preflight dependency install failed; candidate preserved.'
 fi
 failures=0
-for check in \
-  scripts/check-shop-live-prices.mjs \
-  scripts/check-shop-orders.mjs \
-  scripts/check-shop-checkout.mjs \
-  scripts/check-shop-order-api-privacy.mjs \
-  scripts/check-shop-order-experience.mjs \
-  scripts/check-shop-p02-live-product.mjs \
-  scripts/check-shop-postgres-http-e2e.mjs \
-  scripts/check-shop-bitpay-full-integration.mjs \
-  scripts/check-shop-bitpay-flow.mjs; do
-  check_args=()
-  [ "$check" = scripts/check-shop-postgres-http-e2e.mjs ] && check_args=(--code-smoke)
-  if as_deploy bash -c 'cd "$1"; shift; exec /usr/local/bin/node "$@"' _ "$QA" "$check" "${check_args[@]}"; then
-    printf 'SHOP_PRICES_PREFLIGHT: %s=PASS\n' "$check"
+if [ "$resume_qa" -eq 1 ]; then
+  # The non-fixture source and dependencies did not change since R1.
+  for check in \
+    scripts/check-shop-order-api-privacy.mjs \
+    scripts/check-shop-order-experience.mjs; do
+    if as_deploy bash -c 'cd "$1"; shift; exec /usr/local/bin/node "$@"' _ "$QA" "$check"; then
+      printf 'SHOP_PRICES_R2: %s=PASS\n' "$check"
+    else
+      printf 'SHOP_PRICES_R2: %s=FAIL\n' "$check" >&2
+      failures=1
+    fi
+  done
+  printf '%s\n' 'SHOP_PRICES_R2: R1_other_focused_checks=RESUMED_PASS'
+  printf '%s\n' 'SHOP_PRICES_R2: R1_complete_TypeScript=RESUMED_PASS'
+else
+  for check in \
+    scripts/check-shop-live-prices.mjs \
+    scripts/check-shop-orders.mjs \
+    scripts/check-shop-checkout.mjs \
+    scripts/check-shop-order-api-privacy.mjs \
+    scripts/check-shop-order-experience.mjs \
+    scripts/check-shop-p02-live-product.mjs \
+    scripts/check-shop-postgres-http-e2e.mjs \
+    scripts/check-shop-bitpay-full-integration.mjs \
+    scripts/check-shop-bitpay-flow.mjs; do
+    check_args=()
+    [ "$check" = scripts/check-shop-postgres-http-e2e.mjs ] && check_args=(--code-smoke)
+    if as_deploy bash -c 'cd "$1"; shift; exec /usr/local/bin/node "$@"' _ "$QA" "$check" "${check_args[@]}"; then
+      printf 'SHOP_PRICES_PREFLIGHT: %s=PASS\n' "$check"
+    else
+      printf 'SHOP_PRICES_PREFLIGHT: %s=FAIL\n' "$check" >&2
+      failures=1
+    fi
+  done
+  if as_deploy "$pnpm_bin" --dir "$QA" exec tsc -p tsconfig.json --noEmit; then
+    printf '%s\n' 'SHOP_PRICES_PREFLIGHT: complete_TypeScript=PASS'
   else
-    printf 'SHOP_PRICES_PREFLIGHT: %s=FAIL\n' "$check" >&2
+    printf '%s\n' 'SHOP_PRICES_PREFLIGHT: complete_TypeScript=FAIL' >&2
     failures=1
   fi
-done
-if as_deploy "$pnpm_bin" --dir "$QA" exec tsc -p tsconfig.json --noEmit; then
-  printf '%s\n' 'SHOP_PRICES_PREFLIGHT: complete_TypeScript=PASS'
-else
-  printf '%s\n' 'SHOP_PRICES_PREFLIGHT: complete_TypeScript=FAIL' >&2
-  failures=1
 fi
 if as_deploy git -C "$SOURCE" --no-pager diff --check "$BASE" "$PIN"; then
   printf '%s\n' 'SHOP_PRICES_PREFLIGHT: diff_check=PASS'

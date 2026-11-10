@@ -88,9 +88,19 @@ const event = { action: 'mark_shipped', after_status: 'shipped',
   created_at: '2026-11-05T10:00:00Z', reason: 'ADMIN-REASON-SYNTH',
   actor_user_id: 'ADMIN-ID-SYNTH' };
 let databaseCalls = 0;
+let hasOnlineAttempt = false;
 const sql = async (parts, ...values) => {
   databaseCalls++;
   const query = parts.join('?').replace(/\s+/g, ' ').toLowerCase();
+  if (query === "select to_regclass('halleus_private.shop_payment_attempts') as ledger") {
+    assert.equal(values.length, 0, 'ledger existence probe must not take customer input');
+    return [{ ledger: 'halleus_private.shop_payment_attempts' }];
+  }
+  if (query.includes('from halleus_private.shop_payment_attempts')) {
+    assert.match(query, /order_id = \?::uuid/);
+    assert.match(query, /status in \('created', 'redirect_ready', 'verify_pending', 'review_required'\)/);
+    return hasOnlineAttempt && values[0] === privateRecord.id ? [{ exists: 1 }] : [];
+  }
   if (query.includes('from halleus_private.shop_orders') && query.includes('guest_access_hash')) {
     assert.match(query, /display_number = \?::bigint and guest_access_hash = \?/);
     return String(privateRecord.display_number) === values[0] && accessHash === values[1]
@@ -107,13 +117,18 @@ const store = load('lib/shop/shop-order-store.ts', {
 });
 const actualGuest = await store.getGuestShopOrder({ orderNumber: '3210', accessHash });
 assert.ok(actualGuest);
+assert.equal(actualGuest.onlinePaymentPending, false, 'no pending BitPay attempt');
 assert.deepEqual(Object.keys(actualGuest).sort(),
   ['orderNumber', 'status', 'carrier', 'itemCount', 'totalToman', 'trackingCode',
-    'createdAt', 'updatedAt', 'events'].sort());
+    'onlinePaymentPending', 'createdAt', 'updatedAt', 'events'].sort());
 assert.deepEqual(Object.keys(actualGuest.events[0]).sort(), ['action', 'status', 'at'].sort());
 for (const field of [...sensitive, 'ADMIN-REASON-SYNTH', 'ADMIN-ID-SYNTH']) {
   assert.equal(JSON.stringify(actualGuest).includes(field), false, `Guest response leaked ${field}`);
 }
+hasOnlineAttempt = true;
+const pendingGuest = await store.getGuestShopOrder({ orderNumber: '3210', accessHash });
+assert.equal(pendingGuest.onlinePaymentPending, true, 'active online attempt stays visible as boolean only');
+hasOnlineAttempt = false;
 const ownerOrder = await store.getAdminShopOrder(privateRecord.id);
 assert.equal(ownerOrder.recipient_mobile, privateRecord.recipient_mobile, 'owner view needs delivery details');
 for (const field of ['idempotency_hash', 'guest_access_hash', 'payload_hash']) {

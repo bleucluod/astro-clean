@@ -55,8 +55,18 @@ const privateRow = {
   updated_at: new Date('2026-11-08T08:00:00Z'),
   address: 'NOT_PUBLIC', postal_code: 'PRIVATE', guest_access_hash: 'PRIVATE_HASH',
 };
+let hasOnlineAttempt = false;
 const sql = async (strings, ...values) => {
   const query = strings.join('?').replace(/\s+/g, ' ').toLowerCase();
+  if (query === "select to_regclass('halleus_private.shop_payment_attempts') as ledger") {
+    assert.equal(values.length, 0, 'ledger schema probe must not use personal data');
+    return [{ ledger: 'halleus_private.shop_payment_attempts' }];
+  }
+  if (query.includes('from halleus_private.shop_payment_attempts')) {
+    assert.match(query, /order_id = \?::uuid/);
+    assert.match(query, /status in \('created', 'redirect_ready', 'verify_pending', 'review_required'\)/);
+    return hasOnlineAttempt && values[0] === orderId ? [{ exists: 1 }] : [];
+  }
   if (query.includes('from halleus_private.shop_orders')) {
     assert.match(query, /display_number = \?::bigint and recipient_mobile = \?/);
     return values[0] === '1206' && values[1] === '+989121234567' ? [privateRow] : [];
@@ -74,6 +84,13 @@ const byPhone = await store.getGuestShopOrderByMobile({
 });
 assert.equal(byPhone.orderNumber, '1206');
 assert.equal(byPhone.status, 'transfer_declared');
+assert.equal(byPhone.onlinePaymentPending, false);
+hasOnlineAttempt = true;
+const pendingByPhone = await store.getGuestShopOrderByMobile({
+  orderNumber: '1206', recipientMobile: '+989121234567',
+});
+assert.equal(pendingByPhone.onlinePaymentPending, true, 'pending payment visibility is boolean only');
+hasOnlineAttempt = false;
 for (const privateValue of ['NOT_PUBLIC', 'PRIVATE', '+989121234567', 'PRIVATE_HASH']) {
   assert.equal(JSON.stringify(byPhone).includes(privateValue), false, 'status projection must remain private');
 }
