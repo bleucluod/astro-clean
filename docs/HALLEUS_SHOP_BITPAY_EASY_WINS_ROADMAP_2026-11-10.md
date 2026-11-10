@@ -197,3 +197,15 @@
 - **شواهد واقعی موجود:** Preflight فقط‌خواندنی VPS کاربر، `db_probe=READONLY_METADATA_PASS`؛ Node runtime و DB اتصال دارند ولی `pg_dump` به DB runtime، ساخت backup، اجرای Migration، full release build، گاردهای اجراشده روی VPS و اولین پرداخت واقعی هنوز **اثبات نشده‌اند**. بررسی ایستای اسکریپت `bash -n` و آزمون ساختاری روی کاندید محلی PASS؛ تست خود اسکریپت در VPS اجرا نشده است. هر وابستگی که FAIL شود **BLOCKED/EXTERNAL_BLOCK** است و درگاه نباید روشن اعلام شود.
 - **احتیاط فعال‌سازی:** مستندات منتشرشدهٔ BitPay.ir قدیمی‌اند؛ تطابق فعلی API/amount/callback ویژهٔ حساب باید با پنل صاحب حساب کنترل شود. بعد از فعال‌سازی فنی، یک پرداخت واقعی کنترل‌شده و تطبیق شماره سفارش، مبلغ و تأیید سروری قبل از تبلیغ عمومی لازم است. حتی `ONLINE_GATE_ENABLED=PASS` مدرک پرداخت موفق نیست.
 - **وضعیت فعلی:** `S1=IN_PROGRESS`, `VPS_OPERATOR_ACTION_PENDING`؛ فقط ثبت اسکریپت روی GitHub، نه Migration، نه tag/deploy و نه فعال‌شدن درگاه توسط Agent. `S2..S4=NOT_STARTED`.
+
+## BITPAY_S1_BACKUP_FAILURE_REPAIR — ۲۰۲۶-۱۱-۱۱
+
+**واقعیت گزارش‌شدهٔ VPS:** اجرای نخست اسکریپت `9de8b3c` این نتایج را ثبت کرد: `pinned GitHub preflight`، `live_shop_contract=PASS`، `preflight=PASS`، `shop_schema=PASS`، سپس `BITPAY_RELEASE_HOLD: pg_dump failed; do not deploy (1)`. اجرای اول در گیت بکاپ توقف داشته است؛ بر اساس مسیر کد هیچ Release Tag، Deploy، Migration 0034 یا فعال‌سازی Env رخ نداده است. وجود بکاپ سالم نیز اثبات نشده و هیچ فایل ناموفق نباید به‌عنوان بکاپ مورد استفاده قرار گیرد.
+
+**Root cause discovery:** پیغام قدیمی فقط exit code را چاپ می‌کرد و stderr مربوط به `pg_dump` را عمداً پنهان کرده بود؛ پس از خروجی کاربر نمی‌توان تعیین کرد که عامل اصلی ناسازگاری نسخهٔ کلاینت، اتصال libpq از `PGDATABASE` یا مجوزهای SQL است. PostgreSQL فعال نسخهٔ 17 است، اما نسخهٔ نصب‌شدهٔ pg_dump روی VPS هنوز مشخص نیست؛ آن را حدس نزن.
+
+**اصلاح در همین کاندید، بدون بازسازی یا دوباره‌کاری:** `ops/vps/halleus-bitpay-pg-backup.cjs` از `DATABASE_URL` خودِ فرآیند Node و اتصال PostgreSQL واقعی، major سرور را می‌خواند، کلاینت `pg_dump` و `pg_restore` هم‌نسخه/جدیدتر را از مسیرهای موجود انتخاب می‌کند و مقادیر URI را بدون افشای رمز به environment ایمن libpq منتقل می‌کند. archive format بکاپ را با همان نسخهٔ `pg_restore` می‌سنجد. در صورت نبود نسخهٔ سازگار یا هر خطا فقط نام دستهٔ شکست و majorهای کلاینت را می‌نویسد؛ هرگز URL، کلید یا stderr خام را چاپ نمی‌کند. اجرای همهٔ مراحل بعدی تنها با PASS این گیت ممکن است.
+
+`ops/vps/halleus-bitpay-activate.sh` تنها بخش شکست‌خوردهٔ backup را به helper فوق وصل می‌کند؛ safety preflight همچنان هر بار لازم است و مرحلهٔ پاس‌شدهٔ قبلی به‌عنوان کاندید سالم حفظ شده است. **شواهد محدود:** `bash -n` اسکریپت و `node --check` helper و واحدهای مصنوعی نسخهٔ 16/17، URI با کاراکترهای رمزگذاری‌شده، گزینهٔ ناشناخته و طبقه‌بندی خطا PASS؛ Backup روی VPS و PostgreSQL واقعی، Migration، Build، Deploy و پرداخت واقعی در این revision اجرا نشده‌اند.
+
+**وضعیت:** `S1=IN_PROGRESS`، `VPS_BACKUP_RESUME_REQUIRED`، `S2..S4=NOT_STARTED`. اگر کلاینت PG17+ موجود نباشد یا خطای واقعی دیگری آشکار شود، بدون دستکاری DB متوقف شو؛ فقط همان کلاسِ خطا را رفع و از گیت BackUp ادامه بده. هیچ مجوزی برای عبور از گیت بکاپ یا حذف داده‌های پرداخت داده نشده است.

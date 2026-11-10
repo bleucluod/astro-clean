@@ -80,45 +80,13 @@ install -d -m 0700 -o root -g root "$BACKUP_DIR"
 space_kib="$(df -Pk "$BACKUP_DIR" | awk 'END {print $4}')"
 [[ "$space_kib" =~ ^[0-9]+$ ]] && [ "$space_kib" -ge 6291456 ] || fail 'Less than 6 GiB free for release + private DB backup.'
 
-"$NODE" - "$service_pid" "$BACKUP_FILE" <<'NODE_BACKUP'
-const {readFileSync}=require('node:fs');
-const {spawnSync}=require('node:child_process');
-const {createRequire}=require('node:module');
-const pid=process.argv[2], output=process.argv[3];
-let url='';
-try {url=readFileSync(`/proc/${pid}/environ`).toString('utf8').split('\0')
-  .find(x=>x.startsWith('DATABASE_URL='))?.slice('DATABASE_URL='.length)||'';}catch{}
-if(!url){console.error('BITPAY_RELEASE_HOLD: runtime database URL unavailable');process.exit(3)}
-const pg=createRequire('/srv/halleus/current/package.json')('postgres');
-(async()=>{
-  const sql=pg(url,{max:1,connect_timeout:8,prepare:false});
-  try {
-    const [data]=await sql`select current_database() as name, pg_database_size(current_database()) as bytes,
-      to_regclass('halleus_private.shop_orders') is not null as orders,
-      to_regclass('halleus_private.shop_order_events') is not null as events,
-      to_regclass('halleus_private.shop_payment_attempts') is not null as bitpay`;
-    if(!data?.orders||!data?.events){
-      console.error('BITPAY_RELEASE_HOLD: missing base shop schema');
-      process.exitCode=4;return;
-    }
-    if(data.bitpay) {
-      console.log('BITPAY_RELEASE: existing_attempt_ledger=present; will verify structure after release');
-    }
-    console.log('BITPAY_RELEASE: shop_schema=PASS');
-  } catch(err){console.error('BITPAY_RELEASE_HOLD: database metadata unavailable ('+String(err?.code||'query')+')');process.exitCode=4}
-  finally{await sql.end({timeout:2});}
-  if(process.exitCode)return;
-  // PGDATABASE uses the actual connection string, not a guessed host/port.
-  const res=spawnSync('pg_dump',['--format=custom','--no-owner','--file',output],{
-    env:{...process.env,PGDATABASE:url,PGCONNECT_TIMEOUT:'10'},stdio:['ignore','ignore','pipe'],timeout:240000});
-  url='';
-  if(res.status!==0){console.error('BITPAY_RELEASE_HOLD: pg_dump failed; do not deploy ('+String(res.error?.code||res.status)+')');process.exitCode=5;return}
-  console.log('BITPAY_RELEASE: production_database_backup=PASS');
-})().catch(e=>{console.error('BITPAY_RELEASE_HOLD: backup preflight error');process.exitCode=5});
-NODE_BACKUP
+# Resume from the last valid checkpoint: the previous run only failed at pg_dump.
+# Query the running service's DB and use a compatible pg_dump/pg_restore pair.
+# Credentials are passed to libpq only through the child environment, never argv.
+as_deploy git -C "$SOURCE" show "${PIN}:ops/vps/halleus-bitpay-pg-backup.cjs" |
+  "$NODE" - "$service_pid" "$BACKUP_FILE" || fail 'Compatible PostgreSQL backup gate failed; no deployment or migration attempted.'
 [ -s "$BACKUP_FILE" ] || fail 'Verified database backup file is missing or empty.'
 chmod 0600 "$BACKUP_FILE"
-pg_restore -l "$BACKUP_FILE" >/dev/null || fail 'Backup archive failed pg_restore structure check.'
 pass backup_archive_readable
 
 # The tag is pushed before release/migration so rollback has an exact source ref.
