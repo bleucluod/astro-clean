@@ -19,13 +19,14 @@ const errors = (compiled.diagnostics ?? []).filter((diagnostic) => diagnostic.ca
 assert.equal(errors.length, 0, 'Gateway typescript syntax must be valid');
 
 const mod = { exports: {} };
-const factory = vm.runInNewContext(`(function (module, exports) {
+const factory = vm.runInNewContext(`(function (module, exports, process) {
 ${compiled.outputText}
 })`);
-factory(mod, mod.exports);
+factory(mod, mod.exports, { env: {} });
 const gateway = mod.exports;
 
-assert.equal(gateway.SHOP_ONLINE_GATEWAY_ENABLED, false, 'An online gateway must remain disabled');
+assert.equal(gateway.SHOP_ONLINE_GATEWAY_ENABLED, false, 'Gateway must default to disabled');
+assert.match(policySource, /SHOP_ONLINE_GATEWAY_ENABLED = process\.env\.HALLEUS_BITPAY_SOURCE_READY === 'true'/);
 assert.deepEqual(
   Array.from(gateway.SHOP_ENABLED_PAYMENT_METHODS),
   ['manual_transfer'],
@@ -42,5 +43,5 @@ assert.match(contractSource, /!isShopManualPaymentSelection\(body\.paymentMethod
 assert.match(orderApiSource, /parseShopOrderDraft\(/);
 assert.match(orderStoreSource, /'awaiting_transfer'/);
 assert.match(orderStoreSource, /'verify_payment'/);
-assert.doesNotMatch(policySource, /process\.env|\bfetch\s*\(|\bpayment_verified\s*\(/);
-console.log('shop payment gateway guard: manual transfer only; future adapter contract remains inactive (PASS)');
+assert.doesNotMatch(policySource, /\bfetch\s*\(|\bpayment_verified\s*\(/);
+console.log('shop payment gateway guard: default-off operator switch, manual transfer remains available (PASS)');

@@ -87,6 +87,11 @@ async function run() {
         to_regclass('halleus_private.shop_order_events') is not null as events,
         to_regclass('halleus_private.shared_display_numbers_seq') is not null as shared_numbers,
         to_regclass('halleus_private.shop_rate_limits') is not null as rate_limits,
+        to_regclass('halleus_private.shop_payment_attempts') is not null as bitpay_attempts,
+        to_regclass('halleus_private.shop_bitpay_one_unresolved_per_order') is not null as bitpay_unique_index,
+        exists (select 1 from pg_catalog.pg_class c join pg_catalog.pg_namespace n
+          on n.oid = c.relnamespace where n.nspname = 'halleus_private'
+            and c.relname = 'shop_payment_attempts' and c.relrowsecurity) as bitpay_rls_enabled,
         to_regclass('halleus_private.admin_memberships') is not null as admin_memberships,
         to_regrole('anon') is not null as anon,
         to_regrole('authenticated') is not null as authenticated
@@ -102,8 +107,9 @@ async function run() {
         (n.nspname = 'public' and c.relname = 'halleus_reports'
           and a.attname in ('id', 'created_at', 'display_number'))
         or (n.nspname = 'halleus_private'
-          and c.relname in ('shop_orders', 'shop_order_events', 'shop_rate_limits')
-          and a.attname in ('id', 'display_number', 'version', 'scope_hash', 'hits')))
+          and c.relname in ('shop_orders', 'shop_order_events', 'shop_rate_limits', 'shop_payment_attempts')
+          and a.attname in ('id', 'display_number', 'version', 'scope_hash', 'hits',
+            'amount_toman', 'amount_rial', 'status', 'provider_payment_id', 'provider_transaction_id')))
       order by n.nspname, c.relname, a.attname
     `);
     for (const item of columns) print('db_column', `${item.schema}.${item.relation}.${item.field}:${item.type}`);

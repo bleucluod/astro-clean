@@ -24,7 +24,7 @@ const page = read('app/shop/payment/page.tsx');
 const ui = read('components/shop/ShopCheckoutFlow.tsx');
 const migration = read('database/migrations/0034_private_shop_bitpay_attempts.sql');
 const route = read('app/api/shop/payments/bitpay/return/route.ts');
-assert.match(read('lib/shop/shop-payment-gateway.ts'), /SHOP_ONLINE_GATEWAY_ENABLED = false/);
+assert.match(read('lib/shop/shop-payment-gateway.ts'), /SHOP_ONLINE_GATEWAY_ENABLED = process\.env\.HALLEUS_BITPAY_SOURCE_READY === 'true'/);
 for (const name of ['HALLEUS_BITPAY_LEDGER_READY', 'HALLEUS_BITPAY_PAYMENTS_ENABLED', 'HALLEUS_BITPAY_CALLBACK_SECRET']) {
   assert.ok(readiness.includes(name), 'mandatory live gate ' + name);
 }

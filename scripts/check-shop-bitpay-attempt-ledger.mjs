@@ -153,6 +153,6 @@ assert.match(migration, /provider_transaction_id text unique/);
 assert.match(source, /for update/g);
 assert.match(source, /insert into halleus_private\.shop_order_events/);
 assert.doesNotMatch(source, /process\.env|console\.(?:log|warn|error)|fetch\(/);
-assert.match(gateway, /SHOP_ONLINE_GATEWAY_ENABLED = false/);
+assert.match(gateway, /SHOP_ONLINE_GATEWAY_ENABLED = process\.env\.HALLEUS_BITPAY_SOURCE_READY === 'true'/);
 assert.doesNotMatch(api, /BitPay|bitpay|shop-bitpay/);
 console.log('BITPAY_ATTEMPT_LEDGER_R2=PASS: synthetic lifecycle, idempotency, fallback, duplicates, mismatch, rollback, private migration boundary');

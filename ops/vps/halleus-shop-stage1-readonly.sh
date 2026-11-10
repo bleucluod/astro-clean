@@ -11,6 +11,7 @@ if [ "${EUID}" -ne 0 ]; then
 fi
 
 echo 'HALLEUS_SHOP_S1_READONLY_V1'
+if command -v pg_dump >/dev/null 2>&1; then echo 'pg_dump=present'; else echo 'pg_dump=missing'; fi
 if systemctl is-active --quiet halleus.service >/dev/null 2>&1; then
   echo 'service_active=yes'
 else
@@ -58,7 +59,9 @@ fi
 echo 'env_file=present'
 for name in DATABASE_URL NEXT_PUBLIC_SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY \
   HALLEUS_SHOP_PRINT_ARCHIVE_ROOT HALLEUS_SHOP_PRINT_ORIGINALS_DIR \
-  HALLEUS_SHOP_SHARED_RATE_ENABLED HALLEUS_SHOP_TRUSTED_CLIENT_IP HALLEUS_SHOP_RATE_SECRET; do
+  HALLEUS_SHOP_SHARED_RATE_ENABLED HALLEUS_SHOP_TRUSTED_CLIENT_IP HALLEUS_SHOP_RATE_SECRET \
+  HALLEUS_BITPAY_SOURCE_READY HALLEUS_BITPAY_LEDGER_READY HALLEUS_BITPAY_PAYMENTS_ENABLED \
+  HALLEUS_BITPAY_API_KEY HALLEUS_BITPAY_CALLBACK_SECRET; do
   if grep -Eq "^[[:space:]]*${name}=" "$env_file"; then
     printf 'env_key_%s=present\n' "$name"
   else
@@ -130,7 +133,9 @@ select 'database', current_setting('server_version_num'),
   to_regclass('halleus_private.shop_orders') is not null,
   to_regclass('halleus_private.shop_order_events') is not null,
   to_regclass('halleus_private.shared_display_numbers_seq') is not null,
-  to_regclass('halleus_private.shop_rate_limits') is not null;
+  to_regclass('halleus_private.shop_rate_limits') is not null,
+  to_regclass('halleus_private.shop_payment_attempts') is not null,
+  to_regclass('halleus_private.shop_bitpay_one_unresolved_per_order') is not null;
 select 'roles', to_regrole('anon') is not null,
   to_regrole('authenticated') is not null,
   to_regprocedure('halleus_private.reject_audit_event_mutation()') is not null;

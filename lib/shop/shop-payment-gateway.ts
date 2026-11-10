@@ -1,8 +1,9 @@
 /**
  * Future provider-neutral online payment boundary for the physical shop.
  *
- * The only launch method is manual bank transfer. This module deliberately has
- * no provider credentials, network calls, callback handler or activation via env.
+ * Bank transfer remains the default until an operator enables the online gateway
+ * after verifying the merchant contract, private ledger and release checks.
+ * This shared module must never hold credentials or perform network calls.
  * Never turn a browser callback or transfer declaration into payment_verified.
  *
  * A future provider integration must: persist attempts in a private database,
@@ -10,10 +11,10 @@
  * validate trusted callback origin/signature, re-query the provider server-side,
  * compare order/attempt/amount/currency, record immutable audit events, and
  * handle retries before changing any fulfillment status.
- * Provider connection, DB migration and activation require separate approval.
+ * Environment flags alone do not prove that the required migration has been applied.
  */
 
-export const SHOP_ONLINE_GATEWAY_ENABLED = false as const;
+export const SHOP_ONLINE_GATEWAY_ENABLED = process.env.HALLEUS_BITPAY_SOURCE_READY === 'true';
 export const SHOP_ENABLED_PAYMENT_METHODS = Object.freeze(['manual_transfer'] as const);
 
 export type ShopActivePaymentMethod = (typeof SHOP_ENABLED_PAYMENT_METHODS)[number];

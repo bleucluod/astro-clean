@@ -1,7 +1,7 @@
 import { SHOP_ONLINE_GATEWAY_ENABLED } from './shop-payment-gateway';
 
 /**
- * Independent operator gate. This remains false at source level until the
+ * Independent operator gate. This remains false by default until the
  * merchant contract, isolated DB E2E and production release are approved.
  * Never import this server-only module from a client component.
  */
