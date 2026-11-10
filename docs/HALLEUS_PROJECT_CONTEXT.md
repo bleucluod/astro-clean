@@ -203,9 +203,15 @@ Each batch should contain at most:
 
 Small changes must remain small. Combine only changes with the same runtime path, failure boundary, and verification plan.
 
-### Runner artifact
+### GitHub-first / Pull-first handoff — owner policy 2026-11-10
 
-A modifying artifact must be a ZIP whose root contains exactly one uniquely named `.ps1` runner.
+**Default for every roadmap and agent:** work from inspected real GitHub source, implement and validate the approved change directly in GitHub when safe, and give the owner a minimal safe Pull/sync instruction. Do not hand off ZIPs or mutation runners for already-completed GitHub work. Obtain explicit permission for each commit/push boundary; starting a multi-step roadmap does not authorize intermediate commits, a migration, payment activation or release.
+
+Before any Pull instruction, inspect the **actual** local branch, staged/unstaged and untracked files. Preserve unrelated dirty work; do not reset/clean/stash/force or overwrite it. Prefer a clean isolated worktree if a direct Pull would conflict. Detached-HEAD worktrees need an explicit safe update method, not a normal Pull. The owner previously retrieved the inactive BitPay candidate in such a detached worktree; that does not prove the primary checkout is clean. Source sync is distinct from VPS deployment, which still requires a separately approved official release and smoke verification. Never commit production credentials.
+
+### Runner artifact — exceptional fallback only
+
+If a direct GitHub-first handoff is genuinely unavailable or unsafe, explain the blocker; only then consider a local mutation artifact. Any such artifact must be a ZIP whose root contains exactly one uniquely named `.ps1` runner.
 
 The runner must:
 
@@ -258,12 +264,12 @@ After a delivered runner fails, discard it and enter diagnosis-only mode. Restar
 
 After required checks pass:
 
-1. Stage only approved project files.
-2. Never stage runners, ZIPs, collected context, generated artifacts, or unrelated files.
-3. Show staged status and diff summary.
-4. Wait for explicit release confirmation.
-5. On confirmation, combine commit, tag, atomic push, deploy, release status, and smoke verification when practical.
-6. Stop immediately on unresolved failure.
+1. Report the exact changed files, diff summary and passed/failed/blocked checks.
+2. Wait for explicit approval before commit/push/release unless that **specific** boundary was already authorized.
+3. At an authorized GitHub boundary, publish only approved project files and provide one short safe Pull/worktree sync instruction; do not make the owner reapply changes with a runner.
+4. Never stage runners, ZIPs, collected context, generated artifacts or unrelated files; preserve the user's dirty checkout.
+5. At an independently authorized production boundary, deploy solely through the official atomic release script and verify current/previous/service/smoke. Financial migrations and secrets need separate approval.
+6. Stop on safety-fatal risks; collect independent ordinary failures and resume valid candidates according to the active roadmap.
 
 ## 8. Current sequence
 
