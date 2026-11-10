@@ -10,7 +10,7 @@ import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
   cancelShopOrder, clearLegacyShopOrderIntent, createShopOrderRequest, fetchShopOrder, readShopOrderReceipt,
-  submitShopTransfer, fetchShopOrderWithMobile,
+  submitShopTransfer, fetchShopOrderWithMobile, startShopBitPayPayment,
   type ShopOrderReceipt,
 } from './shop-order-client';
 import type { ShopOrderPublicState } from '@/lib/shop/shop-order-store';
@@ -282,14 +282,16 @@ export function ShopCheckoutScreen() {
   );
 }
 
-export function ShopPaymentScreen() {
+export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: boolean }) {
   const { save } = useShopCart();
   const [receipt, setReceipt] = useState<ShopOrderReceipt | null>(null);
   const [order, setOrder] = useState<ShopOrderPublicState | null>(null);
   const [loading, setLoading] = useState(true);
   const [requestError, setRequestError] = useState('');
   const [retry, setRetry] = useState(0);
+  const [returnedPending, setReturnedPending] = useState(false);
   useEffect(() => {
+    setReturnedPending(new URLSearchParams(window.location.search).get('bitpay') === 'pending');
     clearCheckoutSession();
     clearLegacyShopOrderIntent();
     const saved = readShopOrderReceipt();
@@ -301,6 +303,9 @@ export function ShopPaymentScreen() {
     fetchShopOrder(saved).then((result) => {
       if (!active) return;
       setReceipt(saved); setOrder(result); setRequestError(''); setLoading(false);
+      if (['payment_verified', 'preparing', 'shipped', 'delivered'].includes(result.status)) {
+        writeShopCart([]); clearCheckoutSession();
+      }
     }).catch((cause: unknown) => {
       if (!active) return;
       setRequestError(cause instanceof Error ? cause.message : 'سفارش دریافت نشد.');
@@ -313,6 +318,20 @@ export function ShopPaymentScreen() {
   const [copyState, setCopyState] = useState<'card' | 'iban' | 'order' | ''>('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [onlineStarting, setOnlineStarting] = useState(false);
+  const [onlineError, setOnlineError] = useState('');
+  async function goToBitPay() {
+    if (!onlineEnabled || !receipt || !order || onlineStarting
+        || !['awaiting_transfer', 'payment_rejected'].includes(order.status)) return;
+    setOnlineStarting(true); setOnlineError('');
+    try {
+      const redirect = await startShopBitPayPayment(receipt);
+      window.location.assign(redirect);
+    } catch (cause) {
+      setOnlineError(cause instanceof Error ? cause.message : 'امکان اتصال به درگاه نیست. وضعیت سفارش را بررسی کن.');
+      setOnlineStarting(false);
+    }
+  }
   async function copyNumber(value: string, key: 'card' | 'iban' | 'order') {
     try { await navigator.clipboard.writeText(value); setCopyState(key); }
     catch { setCopyState(''); setError('کپی انجام نشد. شماره را انتخاب و کپی کن.'); }
@@ -349,6 +368,15 @@ export function ShopPaymentScreen() {
         <div className={styles.twoColumns}>
           <div className={styles.checkoutForm}>
             {order.status === 'awaiting_transfer' || order.status === 'payment_rejected' ? <>
+            {onlineEnabled ? <section className={styles.formCard}>
+              <div className={styles.sectionHeading}><h2>پرداخت آنلاین امن</h2><span>بیت‌پی</span></div>
+              <p className={styles.fieldNote}>پرداخت پس از تأیید مستقیم درگاه به همین سفارش متصل می‌شود.</p>
+              {returnedPending || order.onlinePaymentPending ? <p className={styles.fieldNote} role="status">نتیجهٔ پرداخت قبلی هنوز قطعی نیست. اگر به درگاه رفتی، پیش از واریز دوباره وضعیت سفارش را بررسی کن.</p> : null}
+              {onlineError ? <p role="alert" className={styles.error}>{onlineError}</p> : null}
+              <button type="button" className={styles.primaryAction} disabled={onlineStarting}
+                onClick={() => void goToBitPay()}><span>{onlineStarting ? 'در حال اتصال…' : order.onlinePaymentPending ? 'ادامهٔ پرداخت قبلی' : 'پرداخت آنلاین با بیت‌پی'}</span><span aria-hidden="true">←</span></button>
+            </section> : null}
+            {!order.onlinePaymentPending ? <>
             <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>۱. اطلاعات کارت‌به‌کارت</h2><span>بانک سامان</span></div>
               <div className={styles.bankPanel}>
@@ -370,6 +398,11 @@ export function ShopPaymentScreen() {
               {error ? <p role="alert" className={styles.error}>{error}</p> : null}
               <button className={styles.primaryAction} type="submit" disabled={submitting}><span>{submitting ? 'در حال ثبت…' : 'اعلام واریز'}</span><span aria-hidden="true">←</span></button>
             </form>
+            </> : <section className={styles.formCard}>
+              <div className={styles.sectionHeading}><h2>پرداخت در حال بررسی است</h2></div>
+              <p className={styles.fieldNote}>برای جلوگیری از دریافت دوبارهٔ وجه، تا مشخص‌شدن نتیجهٔ پرداخت آنلاین، کارت‌به‌کارت و لغو فوری این سفارش موقتاً غیرفعال است.</p>
+              <Link className={styles.textLink} href="/shop/track">پیگیری وضعیت سفارش</Link>
+            </section>}
             </> : <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>وضعیت سفارش</h2><span>شمارهٔ {formatShopOrderNumber(order.orderNumber)}</span></div>
               <p>{order.status === 'transfer_declared' ? 'اعلام واریزت ثبت شد و منتظر بررسی پرداخت است.' : order.status === 'payment_verified' || order.status === 'preparing' ? 'پرداخت تأیید شده و سفارشت در حال آماده‌سازی است.' : order.status === 'shipped' ? 'سفارشت تحویل شرکت حمل شده است.' : order.status === 'delivered' ? 'سفارشت تحویل داده شده است.' : order.status === 'cancel_requested' ? 'درخواست لغو ثبت شده و در حال بررسی است.' : 'این سفارش لغو شده است.'}</p>

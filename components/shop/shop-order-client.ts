@@ -77,6 +77,21 @@ export async function createShopOrderRequest(items: ShopCartItem[], shipping: Sh
   return receipt;
 }
 
+/** The provider URL must be one of BitPay.ir's canonical hosted GET pages. */
+export async function startShopBitPayPayment(receipt: ShopOrderReceipt): Promise<string> {
+  const result = await shopRequest('/api/shop/payments/bitpay/start', receipt);
+  if (typeof result.redirectUrl !== 'string') throw new Error('آدرس درگاه معتبر نیست.');
+  let parsed: URL;
+  try { parsed = new URL(result.redirectUrl); }
+  catch { throw new Error('آدرس درگاه معتبر نیست.'); }
+  if (parsed.protocol !== 'https:' || parsed.hostname !== 'bitpay.ir'
+      || parsed.port || parsed.username || parsed.password || parsed.search || parsed.hash
+      || !/^\/payment\/gateway-[1-9][0-9]*-get$/.test(parsed.pathname)) {
+    throw new Error('آدرس درگاه معتبر نیست.');
+  }
+  return parsed.toString();
+}
+
 export function rememberShopOrderReceipt(receipt: ShopOrderReceipt) {
   if (!isValidShopOrderNumber(receipt.orderNumber) || !/^[a-f0-9]{64}$/.test(receipt.accessCode)) {
     throw new Error('شمارهٔ سفارش یا کد پیگیری معتبر نیست.');

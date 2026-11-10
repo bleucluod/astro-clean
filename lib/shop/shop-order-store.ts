@@ -17,6 +17,7 @@ export type ShopOrderPublicState = {
   itemCount: number;
   totalToman: number;
   trackingCode: string | null;
+  onlinePaymentPending?: boolean;
   createdAt: string;
   updatedAt: string;
   events: { action: string; status: string; at: string }[];
@@ -84,6 +85,16 @@ export async function declareShopTransfer(input: {
     if (current.status !== 'awaiting_transfer' && current.status !== 'payment_rejected') {
       throw new ShopOrderStateError('این سفارش در مرحلهٔ دیگری از بررسی است.');
     }
+    const bitpayTable = await tx`select to_regclass('halleus_private.shop_payment_attempts') as ledger`;
+    if (bitpayTable[0]?.ledger) {
+      const online = await tx`
+        select 1 from halleus_private.shop_payment_attempts
+        where order_id = ${current.id}::uuid
+          and status in ('created', 'redirect_ready', 'verify_pending', 'review_required', 'verified')
+        limit 1
+      `;
+      if (online.length) throw new ShopOrderStateError('پرداخت آنلاین این سفارش در حال بررسی است؛ تا تعیین نتیجه امکان تغییر روش یا لغو وجود ندارد.');
+    }
     await tx`
       update halleus_private.shop_orders
       set status = 'transfer_declared', transfer_reference = ${input.reference},
@@ -110,6 +121,16 @@ export async function cancelGuestShopOrder(input: { orderNumber: string; accessH
     if (!rows.length) throw new ShopOrderStateError('سفارش پیدا نشد.', 404);
     const current = rows[0];
     if (current.status === 'canceled' || current.status === 'cancel_requested') return { status: current.status as ShopOrderStatus };
+    const bitpayTable = await tx`select to_regclass('halleus_private.shop_payment_attempts') as ledger`;
+    if (bitpayTable[0]?.ledger) {
+      const online = await tx`
+        select 1 from halleus_private.shop_payment_attempts
+        where order_id = ${current.id}::uuid
+          and status in ('created', 'redirect_ready', 'verify_pending', 'review_required', 'verified')
+        limit 1
+      `;
+      if (online.length) throw new ShopOrderStateError('پرداخت آنلاین این سفارش در حال بررسی است؛ تا تعیین نتیجه امکان تغییر روش یا لغو وجود ندارد.');
+    }
     let status: ShopOrderStatus;
     if (current.status === 'awaiting_transfer' || current.status === 'payment_rejected') status = 'canceled';
     else if (current.status === 'transfer_declared') status = 'cancel_requested';
@@ -127,6 +148,19 @@ export async function cancelGuestShopOrder(input: { orderNumber: string; accessH
     `;
     return { status };
   });
+}
+
+async function hasPendingShopBitPayAttempt(orderId: string): Promise<boolean> {
+  const sql = getAdminDatabase();
+  const table = await sql`select to_regclass('halleus_private.shop_payment_attempts') as ledger`;
+  if (!table[0]?.ledger) return false;
+  const rows = await sql`
+    select 1 from halleus_private.shop_payment_attempts
+    where order_id = ${orderId}::uuid
+      and status in ('created', 'redirect_ready', 'verify_pending', 'review_required')
+    limit 1
+  `;
+  return rows.length > 0;
 }
 
 export async function getGuestShopOrder(input: { orderNumber: string; accessHash: string }): Promise<ShopOrderPublicState | null> {
@@ -150,6 +184,7 @@ export async function getGuestShopOrder(input: { orderNumber: string; accessHash
     carrier: order.carrier as 'post' | 'tipax',
     itemCount: Number(order.item_count), totalToman: Number(order.total_toman),
     trackingCode: order.tracking_code ?? null,
+    onlinePaymentPending: await hasPendingShopBitPayAttempt(String(order.id)),
     createdAt: new Date(order.created_at).toISOString(),
     updatedAt: new Date(order.updated_at).toISOString(),
     events: events.map((event) => ({
@@ -182,6 +217,7 @@ export async function getGuestShopOrderByMobile(input: { orderNumber: string; re
     carrier: order.carrier as 'post' | 'tipax',
     itemCount: Number(order.item_count), totalToman: Number(order.total_toman),
     trackingCode: order.tracking_code ?? null,
+    onlinePaymentPending: await hasPendingShopBitPayAttempt(String(order.id)),
     createdAt: new Date(order.created_at).toISOString(),
     updatedAt: new Date(order.updated_at).toISOString(),
     events: events.map((event) => ({
@@ -256,6 +292,18 @@ export async function applyAdminShopAction(input: {
         'payment_rejected', 'cancel_requested'], resume_cancel: ['cancel_requested'],
     };
     if (!allowed[input.action].includes(current.status)) throw new ShopOrderStateError('این تغییر وضعیت مجاز نیست.');
+    if (['verify_payment', 'reject_payment', 'cancel', 'resume_cancel'].includes(input.action)) {
+      const bitpayTable = await tx`select to_regclass('halleus_private.shop_payment_attempts') as ledger`;
+      if (bitpayTable[0]?.ledger) {
+      const online = await tx`
+        select 1 from halleus_private.shop_payment_attempts
+        where order_id = ${input.id}::uuid
+          and status in ('created', 'redirect_ready', 'verify_pending', 'review_required', 'verified')
+        limit 1
+      `;
+      if (online.length) throw new ShopOrderStateError('پرداخت بیت‌پی هنوز باز یا تأییدشده است؛ این اقدام نیاز به بررسی وضعیت درگاه دارد.');
+      }
+    }
     const nextStatus: Record<AdminShopAction, ShopOrderStatus> = {
       verify_payment: 'payment_verified', reject_payment: 'payment_rejected',
       start_preparation: 'preparing', mark_shipped: 'shipped', mark_delivered: 'delivered',

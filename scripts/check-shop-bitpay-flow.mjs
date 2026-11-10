@@ -13,7 +13,7 @@ function compile(path, dependencies, env = {}) {
   assert.equal((js.diagnostics ?? []).filter(x => x.category === ts.DiagnosticCategory.Error).length, 0);
   const mod = { exports: {} };
   const loader = vm.runInNewContext('(function(module,exports,require){\n' + js.outputText + '\n})', {
-    URL, URLSearchParams, Buffer, Request, Response, process: { env },
+    URL, URLSearchParams, Buffer, TextDecoder, Request, Response, process: { env },
   });
   loader(mod, mod.exports, key => {
     assert.ok(key in dependencies, `Unexpected dependency: ${key}`);
@@ -64,7 +64,7 @@ const deps = {
     recordBitPayRedirect: async input => { assert.equal(input.attemptId, attemptId); id = input.providerPaymentId; },
     getBitPayReturnAttempt: async input => input.attemptId === attemptId
       && input.callbackTokenHash === current.callbackTokenHash && id
-      ? { attemptId, orderNumber, amountToman: 100000, providerPaymentId: id } : null,
+      ? { attemptId, orderNumber, amountToman: 100000, providerPaymentId: id, status: 'redirect_ready' } : null,
     settleVerifiedBitPayAttempt: async input => { settleCalls++; assert.equal(input.trustedVerification.status, 'paid'); },
   },
 };
@@ -97,7 +97,8 @@ assert.equal(providerCalls, 2, 'ambiguous payment cannot be requested twice');
 const missing = compile('lib/shop/shop-bitpay-flow.ts', deps, {});
 await assert.rejects(missing.startBitPayPayment({ orderNumber, accessHash }));
 const closedDeps = {
-  '@/lib/shop/shop-payment-gateway': { SHOP_ONLINE_GATEWAY_ENABLED: false },
+  '@/lib/shop/shop-bitpay-readiness': { isShopBitPayAvailable: () => false },
+  '@/lib/shop/shop-bitpay-attempt-store': { ShopBitPayAttemptError: class extends Error {} },
   '@/lib/shop/shop-order-contract': { parseGuestAccess: () => { throw new Error('closed'); } },
   '@/lib/shop/shop-order-http': { shopClosed: () => false,
     shopJson: (body, status) => Response.json(body, { status }),
@@ -111,7 +112,7 @@ const ret = compile('app/api/shop/payments/bitpay/return/route.ts', closedDeps);
 assert.equal((await start.POST(new Request('https://halleus.ir/api/shop/payments/bitpay/start'))).status, 404);
 assert.equal((await ret.GET(new Request(callback))).status, 404);
 const allowed = { ...closedDeps,
-  '@/lib/shop/shop-payment-gateway': { SHOP_ONLINE_GATEWAY_ENABLED: true },
+  '@/lib/shop/shop-bitpay-readiness': { isShopBitPayAvailable: () => true },
   '@/lib/shop/shop-order-http': { ...closedDeps['@/lib/shop/shop-order-http'],
     readShopRequest: async () => ({}), shopErrorResponse: () => Response.json({ ok: false }, { status: 503 }) },
   '@/lib/shop/shop-order-contract': { parseGuestAccess: () => ({ orderNumber, accessHash }) },
@@ -124,6 +125,22 @@ assert.equal(response.status, 303);
 assert.equal(response.headers.get('Location'), 'https://halleus.ir/shop/payment?bitpay=paid');
 assert.equal(response.headers.get('Referrer-Policy'), 'no-referrer');
 assert.ok(!response.headers.get('Location').includes(proof));
+const post = await open.POST(new Request(
+  'https://halleus.ir/api/shop/payments/bitpay/return?attempt=' + attemptId + '&proof=' + proof,
+  { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: 'id_get=12345678&trans_id=99887' },
+));
+assert.equal(post.status, 303, 'form POST callback supported');
+const longBody = await open.POST(new Request('https://halleus.ir/api/shop/payments/bitpay/return', {
+  method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+  body: 'a=' + 'b'.repeat(2200),
+}));
+assert.equal(longBody.status, 413, 'oversize callbacks denied');
+const wrongType = await open.POST(new Request('https://halleus.ir/api/shop/payments/bitpay/return', {
+  method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+}));
+assert.equal(wrongType.status, 415, 'untrusted JSON callbacks denied');
+
 const rate = readFileSync(resolve(root, 'lib/shop/shop-shared-rate-limit.ts'), 'utf8');
 assert.match(rate, /'\/api\/shop\/payments\/bitpay\/start': 'bitpay_start'/);
 assert.match(rate, /'\/api\/shop\/payments\/bitpay\/return': 'bitpay_return'/);
@@ -131,4 +148,4 @@ const ledger = readFileSync(resolve(root, 'lib/shop/shop-bitpay-attempt-store.ts
 assert.match(ledger, /callback_token_hash = /);
 assert.match(ledger, /createdNow: false/);
 assert.match(ledger, /createdNow: true/);
-console.log('BITPAY_R3_FLOW=PASS: safe redirect, authenticated callback, pending, replay, disabled route and rate limits');
+console.log('BITPAY_R3_FLOW=PASS: GET/POST callback, duplicate safety, bounded form, disabled route and rate limits');
