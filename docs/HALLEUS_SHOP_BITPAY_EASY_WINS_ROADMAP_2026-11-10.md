@@ -101,3 +101,10 @@
 **تأیید فعلی مالک فقط ثبت همین رودمپ در GitHub است.** هیچ کد/Secret/Migration/Env/Tag/Deploy به اتکای این ثبت تغییر نمی‌کند. هنگام اجرای آینده، ابتدا HEAD/origin/branch/worktree و Authority فعلی را بازبینی کن و تغییرات غیرمرتبط لوکال را حفظ کن. وضعیت شکست و تصمیم‌های باز را در همین فایل به‌روز کن؛ هیچ مرحلهٔ وابسته را بدون تأیید لازم کامل نشمار.
 
 `ROADMAP_COMPLETE` فقط وقتی مجاز است که اتصال BitPay، هر ۷ Easy Win، تأییدهای طراحی/مالی، و انتشار و Verification نهایی واقعاً کامل شده باشند.
+
+## BITPAY_R1_PROVIDER_CLIENT_CANDIDATE — checkpoint source-only (۲۰۲۶-۱۱-۱۰)
+
+- Two files added: `lib/shop/bitpay-ir-client.ts` (inert provider transport and fail-closed response validation) and `scripts/check-shop-bitpay-ir-client.mjs` (synthetic fixtures). Both are disconnected from all runtime checkout routes and no real payment is enabled.
+- Fixture result verified in isolated local draft: `BITPAY_IR_CLIENT_R1=PASS`; standalone TypeScript strict `tsc --noEmit` passed. Full Next.js build, affected full-repo ESLint and live provider/DB E2E not run; do not claim them passed. Affected source is inactive pending current merchant docs.
+- **BLOCKED_BY_DEPENDENCY:** Merchant-specific current BitPay.ir API documentation, verified amount unit/field contract, private DB attempt ledger schema and isolation, secure VPS secret staging and explicit authorization for any production migration/activation.
+- No real secret, migration, payment, change to live checkout, Tag, or VPS release in this checkpoint. Next action: validate provider documentation, then finish S1 integration as one scoped candidate; preserve existing working store and manual transfer.
