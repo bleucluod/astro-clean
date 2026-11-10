@@ -5,6 +5,7 @@ import {
   englishDigits, normalizeMobileTail, validateShipping, type ShippingForm,
 } from '@/components/shop/shop-checkout-state';
 import { quoteShopItems, ShopQuoteError, type ShopQuote } from './shop-quote';
+import type { ShopPriceMap } from './shop-price-store';
 import { isShopManualPaymentSelection } from './shop-payment-gateway';
 
 export class ShopOrderInputError extends Error {
@@ -29,7 +30,7 @@ export function hashSecret(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex');
 }
 
-export function parseShopOrderDraft(value: unknown): ShopOrderDraft {
+export function parseShopOrderDraft(value: unknown, prices: ShopPriceMap): ShopOrderDraft {
   const body = record(value);
   if (!body || !Array.isArray(body.items) || !body.items.length || body.items.length > 20) {
     throw new ShopOrderInputError();
@@ -78,7 +79,7 @@ export function parseShopOrderDraft(value: unknown): ShopOrderDraft {
     quote = quoteShopItems({
       carrier: shipping.carrier,
       items: items.map((item) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
-    });
+    }, prices);
   } catch (error) {
     if (error instanceof ShopQuoteError) throw new ShopOrderInputError('سبد خرید یا وضعیت فروش محصول معتبر نیست.');
     throw error;

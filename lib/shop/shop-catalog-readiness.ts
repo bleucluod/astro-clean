@@ -1,4 +1,4 @@
-import { getShopProduct, SHOP_SIZES, type ShopProductId } from '@/components/shop/product-detail-data';
+import { getShopProduct, SHOP_SIZES, SHOP_P02_SIZES, type ShopProductId } from '@/components/shop/product-detail-data';
 
 type ProofKind = 'explicit-utc-design-only' | 'private-order-svg-proof' | 'private-order-low-res-png';
 
@@ -42,7 +42,7 @@ export function getShopCatalogReadiness() {
       id,
       title: product.title,
       gallery: product.gallery.map(({ src, alt, label }) => ({ src, alt, label })),
-      sizes: SHOP_SIZES.map(({ label, dimension, price }) => ({ label, dimension, priceToman: price })),
+      sizes: (id === 'p02' ? SHOP_P02_SIZES : SHOP_SIZES).map(({ label, dimension, price }) => ({ label, dimension, priceToman: price })),
       ...evidence,
       hasApprovedFinalArtwork: false as const,
       isReadyForProduction: false as const,

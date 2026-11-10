@@ -11,6 +11,7 @@ import { BIRTH_SKY_HERO } from './birth-sky-content';
 import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
 import { SHOP_P02_SIZES } from './product-detail-data';
+import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
 import { addShopCartItem, readShopCart } from './shop-cart';
 
 const PREVIEW_SIZE = { width: 720, height: 1080 } as const;
@@ -95,6 +96,8 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
   const [error, setError] = useState('');
   const [photoIndex, setPhotoIndex] = useState(1);
   const [sizeIndex, setSizeIndex] = useState(2);
+  const livePrices = useShopLivePrices();
+  const selectedPrice = liveShopPrice(livePrices.prices, 'p02', SHOP_P02_SIZES[sizeIndex].dimension);
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -229,6 +232,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
 
   function addToCart() {
     if (!purchaseEnabled || !artwork || busy) return;
+    if (selectedPrice === null) { setError('قیمت فروشگاه قابل بررسی نیست؛ دوباره تلاش کن.'); return; }
     const validated = validateShopMoment('p02', input);
     if (!validated.ok) {
       setError(validated.message);
@@ -320,7 +324,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
             <p className={pdStyles.introduction}>{BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
             <div className={pdStyles.priceBlock} aria-live="polite">
               <span className={pdStyles.priceLabel}>قیمت این اندازه</span>
-              <p className={pdStyles.price}><bdi>{formatPrice(SHOP_P02_SIZES[sizeIndex].price)}</bdi><span>تومان</span></p>
+              <p className={pdStyles.price}><bdi>{selectedPrice === null ? 'در حال دریافت…' : formatPrice(selectedPrice)}</bdi><span>تومان</span></p>
             </div>
             <fieldset className={pdStyles.sizes}>
               <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
@@ -427,7 +431,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
 
               {purchaseEnabled ? <>
                 <button type="button" className={styles.orderAction}
-                  disabled={!artwork || busy} onClick={addToCart}>
+                  disabled={!artwork || busy || selectedPrice === null} onClick={addToCart}>
                   {editingKey ? 'ثبت تغییرات تابلو در سبد' : 'افزودن تابلو به سبد خرید'}
                 </button>
                 <p className={styles.previewAvailability}>

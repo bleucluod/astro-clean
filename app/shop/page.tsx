@@ -3,6 +3,7 @@ import { ShopV01Home, type ShopV01Item } from '@/components/shop/ShopV01Home';
 import { isShopMvpActive, isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
+import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
 
 export function generateMetadata(): Metadata {
   return {
@@ -52,7 +53,7 @@ const launchCatalog: ShopV01Item[] = [
   },
 ];
 
-export default function ShopPage() {
+export default async function ShopPage() {
   if (!isShopMvpActive()) {
     return (
       <div className={styles.closed}>
@@ -64,7 +65,11 @@ export default function ShopPage() {
   }
 
   const p02Enabled = isShopP02OrderEnabled();
+  const { prices } = await readShopPriceCatalog();
   return <ShopV01Home
-    products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02'))}
+    products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02'))
+      .map(product => ({ ...product,
+        priceToman: product.id === 'P01' ? prices['p01:10x15']
+          : product.id === 'P02' ? prices['p02:10x15'] : product.priceToman }))}
     showP02Invitation={!p02Enabled} />;
 }

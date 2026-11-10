@@ -43,12 +43,23 @@ const cart = load('components/shop/shop-cart.ts', {
   './product-detail-data': products, '@/lib/shop/shop-personalization': personalization,
   '@/lib/locations/cities': cities,
 });
+const priceMap = {
+  'p01:10x15': 900_000, 'p01:20x30': 1_599_000, 'p01:30x45': 2_300_000,
+  'p02:10x15': 1_100_000, 'p02:20x30': 1_900_000, 'p02:30x45': 2_900_000,
+};
+const pricing = {
+  shopPriceKey: (productId, size) => productId + ':' + size,
+  assertShopPriceMap: prices => {
+    for (const key of Object.keys(priceMap)) assert.equal(Number.isSafeInteger(prices[key]), true, key);
+  },
+};
 const shipping = load('components/shop/shop-checkout-state.ts');
 const activation = load('lib/shop/shop-mvp-activation.ts');
 const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': products,
   '@/components/shop/shop-checkout-state': shipping,
   './shop-mvp-activation': activation,
+  './shop-price-store': pricing,
 });
 const orderNumber = load('lib/shop/shop-order-number.ts');
 const paymentGateway = load('lib/shop/shop-payment-gateway.ts');
@@ -134,6 +145,7 @@ const modules = {
     '@/lib/shop/shop-order-contract': contract,
     '@/lib/shop/shop-order-store': controlledStore,
     '@/lib/shop/shop-order-http': http,
+    '@/lib/shop/shop-price-store': { readShopPriceCatalog: async () => ({ prices: priceMap }) },
   }),
   track: load('app/api/shop/orders/track/route.ts', {
     '@/lib/shop/shop-order-contract': contract,

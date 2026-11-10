@@ -164,6 +164,9 @@ async function exercise() {
   overrides['@/components/shop/shop-cart'] = cart;
   const shipping = load('components/shop/shop-checkout-state.ts');
   overrides['@/components/shop/shop-checkout-state'] = shipping;
+  const priceStore = load('lib/shop/shop-price-store.ts');
+  overrides['./shop-price-store'] = priceStore;
+  overrides['@/lib/shop/shop-price-store'] = priceStore;
   const quote = load('lib/shop/shop-quote.ts');
   overrides['./shop-quote'] = quote;
   const numbering = load('lib/shop/shop-order-number.ts');

@@ -5,6 +5,7 @@ import { isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
 import { siteConfig } from '@/lib/config/seo';
 import { getShopProduct } from '@/components/shop/product-detail-data';
 import { buildShopProductStructuredData } from '@/components/shop/product-schema';
+import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
 
 // Same Estedad Light/Regular/Medium assets used by the approved P01 R9b
 // native renderer. Keep the live SVG and downloaded PNG typography aligned.
@@ -28,9 +29,10 @@ export const metadata: Metadata = {
 // Read the P02 order gate per request, not once during a build.
 export const dynamic = 'force-dynamic';
 
-export default function BirthSkyProductPage() {
+export default async function BirthSkyProductPage() {
+  const catalog = await readShopPriceCatalog();
   const structuredData = buildShopProductStructuredData(
-    getShopProduct('p02'), siteConfig.url, isShopP02OrderEnabled(),
+    getShopProduct('p02'), siteConfig.url, isShopP02OrderEnabled(), catalog.prices,
   );
   return <div className={estedad.variable}>
     <script type="application/ld+json" dangerouslySetInnerHTML={{

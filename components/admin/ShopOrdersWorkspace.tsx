@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import Image from 'next/image';
 import { ShopCatalogReadiness } from './ShopCatalogReadiness';
+import { ShopPriceEditor } from './ShopPriceEditor';
 import { formatShopInteger, formatShopOrderNumber } from '@/lib/shop/shop-order-number';
 import { buildShopManualCustomerNotice } from '@/lib/shop/shop-manual-notice';
 import styles from './shop-orders-workspace.module.css';
@@ -438,6 +439,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
         <small>تأیید پرداخت فقط پس از بررسی واقعی ورود وجه به حساب بانکی انجام شود.</small>
       </div> : null}
     </section> : null}
+    <ShopPriceEditor accessToken={accessToken} />
     <details className={styles.ownerTools}>
       <summary>ابزارهای مستقل نمونه‌سازی و بررسی کاتالوگ</summary>
       <div className={styles.ownerToolsBody}>

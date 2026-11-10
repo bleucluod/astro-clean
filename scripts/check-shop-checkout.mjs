@@ -60,12 +60,23 @@ const cart = loadTypeScript('components/shop/shop-cart.ts', {
   './product-detail-data': productData, '@/lib/shop/shop-personalization': moment,
   '@/lib/locations/cities': cities,
 });
+const priceMap = {
+  'p01:10x15': 900_000, 'p01:20x30': 1_599_000, 'p01:30x45': 2_300_000,
+  'p02:10x15': 1_100_000, 'p02:20x30': 1_900_000, 'p02:30x45': 2_900_000,
+};
+const pricing = {
+  shopPriceKey: (productId, size) => productId + ':' + size,
+  assertShopPriceMap: prices => {
+    for (const key of Object.keys(priceMap)) assert.equal(Number.isSafeInteger(prices[key]), true, key);
+  },
+};
 const checkout = loadTypeScript('components/shop/shop-checkout-state.ts');
 const activation = loadTypeScript('lib/shop/shop-mvp-activation.ts');
 const quote = loadTypeScript('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': productData,
   '@/components/shop/shop-checkout-state': checkout,
   './shop-mvp-activation': activation,
+  './shop-price-store': pricing,
 });
 const origin = loadTypeScript('lib/admin/admin-origin.ts');
 const http = loadTypeScript('lib/shop/shop-order-http.ts', {
@@ -80,7 +91,9 @@ const http = loadTypeScript('lib/shop/shop-order-http.ts', {
 });
 const quoteRoute = loadTypeScript('app/api/shop/quote/route.ts', {
   '@/lib/shop/shop-quote': quote, '@/lib/shop/shop-order-http': http,
+  '@/lib/shop/shop-price-store': { readShopPriceCatalog: async () => ({ prices: priceMap }) },
 });
+const quoteItems = body => quote.quoteShopItems(body, priceMap);
 const quoteClient = loadTypeScript('components/shop/shop-quote-client.ts');
 const details = { calendar: 'jalali', date: '1403/06/12', time: '', city: '', names: 'نام', message: '' };
 
@@ -140,16 +153,16 @@ assert.equal(checkout.readCheckoutSession, undefined, 'never restore recipient P
 assert.equal(checkout.saveCheckoutSession, undefined, 'never persist recipient PII in browser storage');
 
 const minimalLine = { productId: 'p01', size: '20x30', quantity: 2 };
-const quotedPost = quote.quoteShopItems({ carrier: 'post', items: [minimalLine] });
+const quotedPost = quoteItems({ carrier: 'post', items: [minimalLine] });
 assert.equal(quotedPost.subtotal, 3_198_000);
 assert.equal(quotedPost.shippingAndPackaging, 100_000);
 assert.equal(quotedPost.total, 3_298_000);
 assert.equal(quotedPost.itemCount, 2);
-assert.equal(quote.quoteShopItems({ carrier: 'tipax', items: [minimalLine] }).total, 3_248_000);
-assert.equal(quote.quoteShopItems({ carrier: 'post', items: [{ ...minimalLine, price: 1 }] }).total, 3_298_000);
+assert.equal(quoteItems({ carrier: 'tipax', items: [minimalLine] }).total, 3_248_000);
+assert.equal(quoteItems({ carrier: 'post', items: [{ ...minimalLine, price: 1 }] }).total, 3_298_000);
 const skyLine = { productId: 'p02', size: '20x30', quantity: 2 };
-assert.equal(quote.quoteShopItems({ carrier: 'post', items: [skyLine] }).total, 3_900_000);
-assert.equal(quote.quoteShopItems({ carrier: 'tipax', items: [minimalLine, skyLine] }).total,
+assert.equal(quoteItems({ carrier: 'post', items: [skyLine] }).total, 3_900_000);
+assert.equal(quoteItems({ carrier: 'tipax', items: [minimalLine, skyLine] }).total,
   7_048_000, 'server must quote mixed baskets canonically');
 for (const payload of [
   null, { carrier: 'post', items: [] }, { carrier: 'post', items: Array(21).fill(minimalLine) },
@@ -161,7 +174,7 @@ for (const payload of [
   { carrier: 'post', items: [{ ...minimalLine, quantity: 0 }] },
   { carrier: 'post', items: [{ ...minimalLine, quantity: 1.5 }] },
 ]) {
-  assert.throws(() => quote.quoteShopItems(payload), /Invalid shop quote request/);
+  assert.throws(() => quoteItems(payload), /Invalid shop quote request/);
 }
 
 const apiResponse = await quoteRoute.POST(new Request('http://localhost/api/shop/quote', {
@@ -255,11 +268,11 @@ Object.assign(runtimeEnv, {
   HALLEUS_SHOP_PRINT_ORIGINALS_DIR: '/private/synthetic-originals',
   HALLEUS_SHOP_PRINT_ARCHIVE_ROOT: '/private/synthetic-archive',
 });
-assert.equal(quote.quoteShopItems({ carrier: 'post', items: [minimalLine] }).total, 3_298_000);
-assert.throws(() => quote.quoteShopItems({ carrier: 'post', items: [skyLine] }),
+assert.equal(quoteItems({ carrier: 'post', items: [minimalLine] }).total, 3_298_000);
+assert.throws(() => quoteItems({ carrier: 'post', items: [skyLine] }),
   /Invalid shop quote request/, 'P02 locked until separate production toggle');
 runtimeEnv.HALLEUS_SHOP_P02_ORDERS_ENABLED = 'true';
-assert.equal(quote.quoteShopItems({ carrier: 'post', items: [skyLine] }).total, 3_900_000);
+assert.equal(quoteItems({ carrier: 'post', items: [skyLine] }).total, 3_900_000);
 runtimeEnv.HALLEUS_SHOP_P02_ORDERS_ENABLED = undefined;
 runtimeEnv.HALLEUS_SHOP_MVP_ENABLED = undefined;
 runtimeEnv.NODE_ENV = 'development';

@@ -22,7 +22,8 @@ function load(path, dependencies = {}) {
   return record.exports;
 }
 
-const sourceCatalog = load('components/shop/product-detail-data.ts');
+const gallery = load('components/shop/birth-sky-gallery.ts');
+const sourceCatalog = load('components/shop/product-detail-data.ts', { './birth-sky-gallery': gallery });
 const readiness = load('lib/shop/shop-catalog-readiness.ts', {
   '@/components/shop/product-detail-data': sourceCatalog,
 }).getShopCatalogReadiness();
@@ -41,7 +42,7 @@ for (const entry of readiness) {
   assert.ok(entry.pendingDecisions.includes('D-S1-04'));
   for (let index = 0; index < entry.sizes.length; index++) {
     const rendered = entry.sizes[index];
-    const canonical = sourceCatalog.SHOP_SIZES[index];
+    const canonical = (entry.id === 'p02' ? sourceCatalog.SHOP_P02_SIZES : sourceCatalog.SHOP_SIZES)[index];
     assert.deepEqual({ label: rendered.label, dimension: rendered.dimension, price: rendered.priceToman },
       { label: canonical.label, dimension: canonical.dimension, price: canonical.price });
     assert.ok(Number.isSafeInteger(rendered.priceToman) && rendered.priceToman > 0);
@@ -78,7 +79,10 @@ const board = readFileSync(resolve(root, 'components/admin/ShopCatalogReadiness.
 assert.match(admin, /activeTab === "orders" && session\?\.role === "owner"/);
 assert.match(workspace, /<ShopCatalogReadiness\s*\/>/);
 assert.match(board, /getShopCatalogReadiness\(\)/);
-assert.match(board, /تغییر قیمت، تصویر یا مجوز چاپ از این پنل انجام نمی‌شود/);
+assert.match(board, /قیمت فعلی را در «مدیریت قیمت محصولات»/);
+assert.match(workspace, /<ShopPriceEditor accessToken=\{accessToken\} \/>/);
+assert.match(readFileSync(resolve(root, 'components/admin/ShopPriceEditor.tsx'), 'utf8'),
+  /بازگردانی قیمت اصلی/);
 assert.doesNotMatch(board, /\b(onClick|onSubmit|fetch|PATCH|POST|PUT|DELETE)\b/);
 const readinessSource = readFileSync(resolve(root, 'lib/shop/shop-catalog-readiness.ts'), 'utf8');
 assert.doesNotMatch(readinessSource, /\b(writeFile|createWriteStream|localStorage|sessionStorage|fetch)\b/);
@@ -92,4 +96,4 @@ const manifest = readFileSync(resolve(root, 'docs/HALLEUS_SHOP_LAUNCH_EXECUTION.
 for (const pending of readiness.flatMap((item) => item.pendingDecisions)) {
   assert.ok(manifest.includes(`| ${pending} |`), `Decision missing in durable ledger: ${pending}`);
 }
-console.log('Shop catalog owner review: 3 canonical products, 12 actual gallery assets, identical 3-size prices, original-proof boundaries, pending decisions, read-only owner-only UI and production closures passed.');
+console.log('Shop catalog owner review: 3 canonical products, proof assets, base prices and owner-only separate live price editor boundaries passed.');

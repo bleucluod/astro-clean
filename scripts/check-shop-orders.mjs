@@ -48,12 +48,23 @@ const cart = load('components/shop/shop-cart.ts', {
   './product-detail-data': product, '@/lib/shop/shop-personalization': moment,
   '@/lib/locations/cities': cities,
 });
+const priceMap = {
+  'p01:10x15': 900_000, 'p01:20x30': 1_599_000, 'p01:30x45': 2_300_000,
+  'p02:10x15': 1_100_000, 'p02:20x30': 1_900_000, 'p02:30x45': 2_900_000,
+};
+const pricing = {
+  shopPriceKey: (productId, size) => productId + ':' + size,
+  assertShopPriceMap: prices => {
+    for (const key of Object.keys(priceMap)) assert.equal(Number.isSafeInteger(prices[key]), true, key);
+  },
+};
 const shipping = load('components/shop/shop-checkout-state.ts');
 const activation = load('lib/shop/shop-mvp-activation.ts');
 const quote = load('lib/shop/shop-quote.ts', {
   '@/components/shop/product-detail-data': product,
   '@/components/shop/shop-checkout-state': shipping,
   './shop-mvp-activation': activation,
+  './shop-price-store': pricing,
 });
 const orderNumber = load('lib/shop/shop-order-number.ts');
 const paymentGateway = load('lib/shop/shop-payment-gateway.ts');
@@ -65,6 +76,7 @@ const contract = load('lib/shop/shop-order-contract.ts', {
   './shop-order-number': orderNumber,
   './shop-payment-gateway': paymentGateway,
 });
+const parseDraft = body => contract.parseShopOrderDraft(body, priceMap);
 const details = { calendar: 'jalali', date: '1403/08/15', time: '', city: '', names: 'آزمایش', message: '' };
 const item = { key: 'fixed-order-key', productId: 'p01', size: '20x30', quantity: 2, details };
 const address = { ...shipping.blankShipping, name: 'نام آزمایشی', mobile: '9123456789',
@@ -75,20 +87,20 @@ const payload = {
   idempotencyKey: '28cdd805-a6a7-4215-9777-0b13558a0e2d',
   guestAccessCode: '7f'.repeat(32),
 };
-const draft = contract.parseShopOrderDraft(payload);
+const draft = parseDraft(payload);
 assert.equal(draft.quote.total, 3_298_000);
 const p02Item = { ...item, key: 'p02-order-key', productId: 'p02', size: '10x15',
   quantity: 1, details: { calendar: 'gregorian', date: '2024-07-01', time: '12:30',
     city: 'برلین، آلمان', cityId: 'de-berlin', names: '', message: '' } };
 const skyPayload = { ...payload, items: [p02Item], expectedTotal: 1_200_000 };
-const skyDraft = contract.parseShopOrderDraft(skyPayload);
+const skyDraft = parseDraft(skyPayload);
 assert.equal(skyDraft.quote.total, 1_200_000);
 assert.equal(skyDraft.items[0].details.names, '', 'optional name preserved blank in private order');
 assert.equal(draft.shipping.mobile, '9123456789');
 assert.equal(draft.idempotencyHash, createHash('sha256').update(payload.idempotencyKey).digest('hex'));
 assert.equal(draft.guestAccessHash, createHash('sha256').update(payload.guestAccessCode).digest('hex'));
-assert.equal(contract.parseShopOrderDraft({ ...payload, items: [{ ...item, price: 1 }] }).quote.total, 3_298_000);
-assert.equal(contract.parseShopOrderDraft({ ...payload, paymentMethod: 'manual_transfer' }).quote.total, 3_298_000);
+assert.equal(parseDraft({ ...payload, items: [{ ...item, price: 1 }] }).quote.total, 3_298_000);
+assert.equal(parseDraft({ ...payload, paymentMethod: 'manual_transfer' }).quote.total, 3_298_000);
 for (const invalid of [
   { ...payload, paymentMethod: 'online_gateway' },
   { ...payload, paymentMethod: 'unknown' },
@@ -103,7 +115,7 @@ for (const invalid of [
   { ...payload, items: [{ ...item, productId: 'p02', details: {
     ...details, time: '12:00', city: 'تهران', cityId: 'de-berlin',
   } }] },
-]) assert.throws(() => contract.parseShopOrderDraft(invalid));
+]) assert.throws(() => parseDraft(invalid));
 assert.deepEqual({ ...contract.parseTransferEvidence({ reference: '۱۲۳۴', time: '' }) }, { reference: '1234', time: null });
 assert.deepEqual({ ...contract.parseTransferEvidence({ reference: '', time: '13:05' }) }, { reference: null, time: '13:05' });
 for (const evidence of [{}, { reference: 'abc' }, { time: '24:00' }, { reference: '1'.repeat(51) }]) {

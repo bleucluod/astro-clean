@@ -3,13 +3,13 @@ import styles from './shop-catalog-readiness.module.css';
 
 const money = (value: number) => value.toLocaleString('fa-IR');
 
-/** Source-controlled owner review only. No live catalog writes or print approvals. */
+/** Source-controlled print proof review. Live prices are managed separately above. */
 export function ShopCatalogReadiness() {
   return <section className={styles.board} aria-labelledby="shop-catalog-readiness-title">
     <div className={styles.heading}>
       <div>
         <h3 id="shop-catalog-readiness-title">آمادگی محصولات و فایل‌های چاپ</h3>
-        <p>اطلاعات این بخش از سورس فروشگاه است؛ تغییر قیمت، تصویر یا مجوز چاپ از این پنل انجام نمی‌شود. تصاویر گالری نمونه‌های نمایشی‌اند و برای چاپ استفاده نمی‌شوند.</p>
+        <p>اطلاعات فایل‌های چاپ و قیمت‌های اصلی این بخش از سورس فروشگاه است؛ قیمت فعلی را در «مدیریت قیمت محصولات» بالای همین قسمت ببین و تغییر بده. تصاویر گالری نمونه‌های نمایشی‌اند و برای چاپ استفاده نمی‌شوند.</p>
       </div>
       <span className={styles.notReady}>۳ محصول · آمادهٔ انتشار نیست</span>
     </div>
@@ -19,7 +19,7 @@ export function ShopCatalogReadiness() {
         <span>{product.id.toUpperCase()}</span>
       </div>
       <p className={styles.proof}>{product.proofDescription}</p>
-      <dl className={styles.prices}>{product.sizes.map((size) => <div key={size.dimension}>
+      <dl className={styles.prices} aria-label="قیمت‌های اصلی (نه قیمت‌های فعلی)">{product.sizes.map((size) => <div key={size.dimension}>
         <dt>{size.label} سانتی‌متر</dt>
         <dd>{money(size.priceToman)} تومان</dd>
       </div>)}</dl>

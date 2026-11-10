@@ -12,6 +12,7 @@ import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { filterHalleusCities, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import styles from './product-detail.module.css';
+import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
 
 const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: '', city: '', cityId: '', names: '', message: '' };
 
@@ -94,7 +95,8 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const [isFormVisible, setFormVisible] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
-  const price = SHOP_SIZES[sizeIndex].price;
+  const livePrices = useShopLivePrices();
+  const price = liveShopPrice(livePrices.prices, id, SHOP_SIZES[sizeIndex].dimension);
   const citySuggestions = useMemo(() => id === 'p02' && !form.cityId && form.city.trim().length >= 2
     ? filterHalleusCities(form.city).slice(0, 8) : [], [id, form.city, form.cityId]);
   const formCopy = {
@@ -121,7 +123,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
     },
   }[id];
   const hideMobileBar = isFooterVisible || isFormVisible;
-  const structuredData = buildShopProductStructuredData(product, siteConfig.url);
+  const structuredData = livePrices.prices ? buildShopProductStructuredData(product, siteConfig.url, id === 'p01', livePrices.prices) : null;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -191,6 +193,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   function confirmDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (price === null) {
+      setFormError('قیمت فروشگاه قابل بررسی نیست؛ دوباره تلاش کن.');
+      return;
+    }
     if (id !== 'p01') {
       setFormError('این اثر هنوز برای سفارش فعال نشده است.');
       return;
@@ -209,7 +215,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   return (
     <div className={styles.page} data-shop-page="product" dir="rtl">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
+      {structuredData ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} /> : null}
       <div className={styles.content}>
         <section className={styles.productHero} aria-label={product.title}>
           <div className={styles.gallery}>
@@ -278,7 +284,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
               </fieldset>
               <div className={styles.priceBlock}>
                 <p className={styles.priceLabel}>قیمت</p>
-                <p className={styles.price} aria-live="polite"><bdi>{formatPrice(price)}</bdi><span>تومان</span></p>
+                <p className={styles.price} aria-live="polite"><bdi>{price === null ? 'در حال دریافت…' : formatPrice(price)}</bdi><span>تومان</span></p>
               </div>
               <a className={styles.sizeGuideLink} href="#size-guide">مقایسهٔ اندازه‌ها روی دیوار <span aria-hidden="true">↓</span></a>
               <form id="personalize" onSubmit={confirmDetails} className={styles.personalizeForm} aria-label={`شخصی‌سازی ${product.title}`}>
@@ -496,7 +502,8 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 <span className={styles.relatedImage}><Image src={item.gallery[0].src} alt={item.gallery[0].alt} fill sizes="(max-width: 760px) calc(100vw - 32px), 584px" /></span>
                 <span className={styles.relatedTitle}>{item.title}<span aria-hidden="true">←</span></span>
                 <span className={styles.relatedDescription}>{item.tagline}</span>
-                <span className={styles.relatedPrice}>از {formatPrice(SHOP_SIZES[0].price)} تومان</span>
+                <span className={styles.relatedPrice}>{liveShopPrice(livePrices.prices, item.id, '10x15') === null
+                  ? 'در حال دریافت قیمت' : `از ${formatPrice(liveShopPrice(livePrices.prices, item.id, '10x15') ?? 0)} تومان`}</span>
               </Link>
             ))}
           </div>
@@ -504,7 +511,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       </div>
 
       <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
-        <div><small>قیمت</small><strong><bdi>{formatPrice(price)}</bdi> <span>تومان</span></strong></div>
+        <div><small>قیمت</small><strong><bdi>{price === null ? 'در حال دریافت…' : formatPrice(price)}</bdi> <span>تومان</span></strong></div>
         {id === 'p01' ? <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'افزودن به سبد'}</span></a> : <span>به‌زودی</span>}
       </div>
 

@@ -1,6 +1,7 @@
 import { SHOP_SIZES, SHOP_P02_SIZES, type ShopProduct } from './product-detail-data';
 import { SHOP_SHIPPING_AND_PACKAGING } from './shop-checkout-state';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
+import type { ShopPriceMap } from '@/lib/shop/shop-price-store';
 
 /**
  * Google Product/Merchant Listing markup mirrors the initially selected size.
@@ -13,6 +14,7 @@ export function buildShopProductStructuredData(
   product: ShopProduct,
   siteUrl: string,
   purchasable = product.id === 'p01',
+  prices?: ShopPriceMap,
 ) {
   const base = siteUrl.replace(/\/$/, '');
   const url = `${base}${getShopProductUrl(product.id)}`;
@@ -27,7 +29,7 @@ export function buildShopProductStructuredData(
   const offer = product.id === 'p03' ? null : {
     '@type': 'Offer',
     url,
-    price: defaultSize.price * 10,
+    price: (prices?.[product.id + ':' + defaultSize.dimension] ?? defaultSize.price) * 10,
     priceCurrency: 'IRR',
     availability: purchasable ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     itemCondition: 'https://schema.org/NewCondition',

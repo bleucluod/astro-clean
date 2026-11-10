@@ -4,7 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { getShopProduct, getShopProductPrice } from './product-detail-data';
+import { getShopProduct } from './product-detail-data';
+import { liveShopPrice, useShopLivePrices } from './use-shop-live-prices';
+import type { ShopPriceMap } from '@/lib/shop/shop-price-store';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
@@ -21,7 +23,7 @@ import {
   type ShippingForm, type ShopCarrier,
 } from './shop-checkout-state';
 import {
-  getShopSize, readShopCart, shopCartSubtotal, writeShopCart, SHOP_CART_CHANGED_EVENT,
+  getShopSize, readShopCart, writeShopCart, SHOP_CART_CHANGED_EVENT,
   type ShopCartItem,
 } from './shop-cart';
 import styles from './shop-checkout.module.css';
@@ -97,10 +99,10 @@ function EmptyCart() {
   );
 }
 
-function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuantity: (quantity: number) => void; onRemove: () => void }) {
+function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; prices: ShopPriceMap | null; onQuantity: (quantity: number) => void; onRemove: () => void }) {
   const product = getShopProduct(item.productId);
   const size = getShopSize(item.size);
-  const unitPrice = getShopProductPrice(item.productId, item.size) ?? 0;
+  const unitPrice = liveShopPrice(prices, item.productId, item.size);
   return (
     <article className={styles.itemCard}>
       <div className={styles.itemTop}>
@@ -110,7 +112,7 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
         <div className={styles.itemInfo}>
           <h2>{product.title}</h2>
           <p>{size.label} سانتی‌متر · چاپ مات روی شاسی</p>
-          <strong><bdi>{money(unitPrice)}</bdi> تومان</strong>
+          <strong>{unitPrice === null ? 'در حال دریافت قیمت…' : <><bdi>{money(unitPrice)}</bdi> تومان</>}</strong>
         </div>
       </div>
       <div className={styles.itemDetails}>
@@ -129,30 +131,32 @@ function CartLine({ item, onQuantity, onRemove }: { item: ShopCartItem; onQuanti
         <Link href={`${getShopProductUrl(item.productId)}?edit=${encodeURIComponent(item.key)}#personalize`}>ویرایش مشخصات</Link>
         <button type="button" className={styles.remove} onClick={onRemove}>حذف</button>
       </div>
-      {item.quantity > 1 ? <p className={styles.lineTotal}>جمع این اثر: <bdi>{money(unitPrice * item.quantity)}</bdi> تومان</p> : null}
+      {item.quantity > 1 && unitPrice !== null ? <p className={styles.lineTotal}>جمع این اثر: <bdi>{money(unitPrice * item.quantity)}</bdi> تومان</p> : null}
     </article>
   );
 }
 
-function Summary({ items, next, carrier, quote }: { items: ShopCartItem[]; next?: 'checkout'; carrier?: ShopCarrier; quote?: ShopQuote | null }) {
+function Summary({ items, prices, next, carrier, quote }: { items: ShopCartItem[]; prices: ShopPriceMap | null; next?: 'checkout'; carrier?: ShopCarrier; quote?: ShopQuote | null }) {
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = quote?.subtotal ?? shopCartSubtotal(items);
+  const subtotal = quote?.subtotal ?? (prices === null ? null
+    : items.reduce((sum, item) => sum + (liveShopPrice(prices, item.productId, item.size) ?? 0) * item.quantity, 0));
   const shipping = quote?.shippingAndPackaging ?? (carrier ? SHOP_SHIPPING_AND_PACKAGING[carrier] : null);
   return (
     <aside className={styles.summary} aria-label="خلاصهٔ خرید">
       <h2>خلاصهٔ سفارش</h2>
-      <div className={styles.summaryRow}><span>محصولات ({money(count)})</span><strong><bdi>{money(subtotal)}</bdi> تومان</strong></div>
+      <div className={styles.summaryRow}><span>محصولات ({money(count)})</span><strong>{subtotal === null ? 'در حال دریافت…' : <><bdi>{money(subtotal)}</bdi> تومان</>}</strong></div>
       {carrier ? <div className={styles.summaryRow}><span>روش ارسال</span><strong>{carrier === 'post' ? 'پست' : 'تیپاکس · پس‌کرایه'}</strong></div> : null}
       <div className={styles.summaryRow}><span>هزینه ارسال و بسته‌بندی</span>{shipping === null ? <span className={styles.pending}>در مرحلهٔ بعد</span> : <strong><bdi>{money(shipping)}</bdi> تومان</strong>}</div>
-      <div className={styles.summaryTotal}><span>{shipping === null ? 'جمع محصولات' : 'مبلغ قابل واریز'}</span><strong><bdi>{money(subtotal + (shipping ?? 0))}</bdi> تومان</strong></div>
+      <div className={styles.summaryTotal}><span>{shipping === null ? 'جمع محصولات' : 'مبلغ قابل واریز'}</span><strong>{subtotal === null ? 'در حال دریافت…' : <><bdi>{money(subtotal + (shipping ?? 0))}</bdi> تومان</>}</strong></div>
       {carrier === 'tipax' ? <p className={styles.summaryHint}>هزینهٔ حمل تیپاکس هنگام تحویل بسته به‌صورت پس‌کرایه پرداخت می‌شود؛ مبلغ بالا شامل ۵۰ هزار تومان بسته‌بندی است.</p> : null}
-      {next === 'checkout' ? <Link className={styles.primaryAction} href="/shop/checkout"><span>ادامه و ثبت نشانی</span><span aria-hidden="true">←</span></Link> : null}
+      {next === 'checkout' && prices !== null ? <Link className={styles.primaryAction} href="/shop/checkout"><span>ادامه و ثبت نشانی</span><span aria-hidden="true">←</span></Link> : null}
     </aside>
   );
 }
 
 export function ShopCartScreen() {
   const { items, ready, save } = useShopCart();
+  const livePrices = useShopLivePrices();
   const [error, setError] = useState('');
   function change(itemsNext: ShopCartItem[]) {
     if (!save(itemsNext)) setError('ذخیرهٔ سبد در این مرورگر ممکن نشد. فضای ذخیره‌سازی را بررسی کن.');
@@ -164,11 +168,11 @@ export function ShopCartScreen() {
         <div className={styles.twoColumns}>
           <section className={styles.cartList} aria-label="آثار انتخاب‌شده">
             <div className={styles.sectionHeading}><h2>آثار انتخاب‌شده</h2><span>{money(items.length)} مدل</span></div>
-            {items.map((item) => <CartLine key={item.key} item={item} onQuantity={(quantity) => change(items.map((line) => line.key === item.key ? { ...line, quantity } : line))} onRemove={() => change(items.filter((line) => line.key !== item.key))} />)}
+            {items.map((item) => <CartLine key={item.key} item={item} prices={livePrices.prices} onQuantity={(quantity) => change(items.map((line) => line.key === item.key ? { ...line, quantity } : line))} onRemove={() => change(items.filter((line) => line.key !== item.key))} />)}
             {error ? <p role="alert" className={styles.error}>{error}</p> : null}
             <Link className={styles.textLink} href="/shop">+ افزودن اثر دیگری به سبد</Link>
           </section>
-          <Summary items={items} next="checkout" />
+          <Summary items={items} prices={livePrices.prices} next="checkout" />
         </div>
       )}
     </PageShell>
@@ -177,6 +181,7 @@ export function ShopCartScreen() {
 
 export function ShopCheckoutScreen() {
   const router = useRouter();
+  const livePrices = useShopLivePrices();
   const { items, ready } = useShopCart();
   const [form, setForm] = useState<ShippingForm>(blankShipping);
   const [error, setError] = useState('');
@@ -199,6 +204,7 @@ export function ShopCheckoutScreen() {
   }
   async function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!livePrices.prices) { setError('دریافت قیمت زنده ممکن نیست؛ دوباره تلاش کن.'); return; }
     const issue = validateShipping(form);
     if (issue) { setError(issue); return; }
     const requestId = ++quoteRequest.current;
@@ -275,7 +281,7 @@ export function ShopCheckoutScreen() {
               </section>
             ) : <button type="submit" disabled={activeChecking} className={styles.primaryAction}><span>{activeChecking ? 'در حال بررسی…' : 'بررسی سفارش'}</span><span aria-hidden="true">←</span></button>}
           </form>
-          <div className={styles.summaryColumn}><Summary items={items} carrier={form.carrier} quote={activeQuote} /><Link className={styles.textLink} href="/shop/cart">→ بازگشت و ویرایش سبد</Link></div>
+          <div className={styles.summaryColumn}><Summary items={items} prices={livePrices.prices} carrier={form.carrier} quote={activeQuote} /><Link className={styles.textLink} href="/shop/cart">→ بازگشت و ویرایش سبد</Link></div>
         </div>
       )}
     </PageShell>
