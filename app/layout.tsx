@@ -67,6 +67,30 @@ export const metadata: Metadata = {
   },
 };
 
+const baseUrl = siteConfig.url;
+const globalStructuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${baseUrl}/#organization`,
+      name: 'هالیوس',
+      alternateName: 'Halleus',
+      url: baseUrl,
+      logo: `${baseUrl}/halleus-logo/favicon-192x192.png`,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${baseUrl}/#website`,
+      url: baseUrl,
+      name: 'هالیوس',
+      alternateName: 'Halleus',
+      inLanguage: 'fa-IR',
+      publisher: { '@id': `${baseUrl}/#organization` },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -75,6 +99,9 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{
+          __html: JSON.stringify(globalStructuredData).replace(/</g, '\\u003c'),
+        }} />
         <AppShell>{children}</AppShell>
       </body>
     </html>
