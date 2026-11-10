@@ -233,3 +233,15 @@
 **شواهد مستقل فعلی:** TypeScript و Syntax خود `next.config.ts` با مدل محدود typechecking و محافظت از تنظیمات قبلی PASS. ساخت واقعی Next روی VPS برای Commit جدید **انجام نشده**؛ tag جدید/Deploy/DB migration/activation نیز تا اجرای مجاز اپراتور انجام نشده‌اند. مراحل PASS قبلی به‌عنوان شواهد حفظ شده‌اند و کاندید معتبر پاک یا reset نشده است.
 
 **ادامه:** اسکریپت موجود `ops/vps/halleus-bitpay-activate.sh` از GitHub SHA جدید اجرا شود، فقط بعد از Build موفق، تست‌های متمرکز، تطبیق قرارداد درگاه حساب مالک و تأیید جداگانهٔ Migration/Activation به prompt محرمانهٔ `HALLEUS_BITPAY_API_KEY` برسد. کلید را در چت یا GitHub قرار نده. `S1=IN_PROGRESS` تا انتشار، مهاجرت، تأیید live و تراکنش کنترل‌شده؛ `S2..S4=NOT_STARTED`.
+
+## BITPAY_S1_NEXT_OUTPUT_COMPONENT_BUDGET — ۲۰۲۶-۱۱-۱۱
+
+**شواهد واقعی VPS از Commit `eb4719b21803ab720561328085776606f233b246`:** `production_database_backup=PASS` و آرشیو خواندنی بود؛ `pinned_source_sync=PASS`؛ Tag `v0.1.bitpay-s1-eb4719b21803` ساخته و Push شد؛ نصب قفل‌شده، Encoding، Wiki inbound، Turbopack، TypeScript و پیش‌رندر تمام ۳۲۴ صفحه در زمان ۱۷٫۲ ثانیه PASS شدند. هشدار NFT در next.config.ts غیرمهلک بود. Build cache (۲۲۳۴۹۳۹۹ بایت) حذف شد. موتور رسمی پس از build، گزارش زیر را ثبت کرد:
+- `STORAGE_CANDIDATE bytes=739127164 budget=744488960` — PASS.
+- `dependencies bytes=444826405 budget=452984832` — PASS.
+- `build_output bytes=228666461 budget=228589568` — FAIL (اختلاف **۷۶٬۸۹۳ بایت**).
+- Public از آن‌جا که چک متوقف شد چاپ نشد؛ محتوای tracked عمومی GitHub `4,410,973` بایت بود و زیر سقف `4,718,592` قرار دارد. برای موفقیت Production همچنان باید این چک در خود موتور رسمی اجرا شود.
+
+**رفع متمرکز:** در `ops/vps/halleus-release-storage.env` فقط `HALLEUS_BUILD_OUTPUT_BUDGET_BYTES` از ۲۱۸ MiB (`228589568`) به **۲۲۲ MiB** (`232783872`) افزایش یافت؛ حاشیهٔ اندازه‌گیری‌شده `4117411` بایت. سقف کلی ۷۱۰ MiB (`744488960`)، سقف وابستگی‌ها `452984832`، public `4718592`، گیت فضای آزاد، Keep=2 و Rollback دست‌نخورده‌اند. گارد `scripts/check-vps-release-workflow.mjs` هم همهٔ چهار سقف ثابت را کنترل می‌کند. شبیه‌سازی ریاضی چهار محدودیت با دادهٔ واقعی لاگ و گاردهای ایزولهٔ بیت‌پی (R1, R2, R3، Activation، Gateway، TS) PASS؛ اجرای Build و storage checks کاندید جدید در VPS هنوز انجام نشده است.
+
+**وضعیت:** Cleanup رسمی، worktree کاندید غیرفعال را حذف کرد، اما release فعال و DB/Secret عوض نشدند. مرحلهٔ فعال‌سازی در `S1=IN_PROGRESS / NEXT=VPS_CANONICAL_RELEASE_CONTINUE` باقی است. اپراتور باید با SHA پین‌شدهٔ جدید اسکریپت واحد موجود را اجرا کند و فقط بعد از پاس‌شدن همهٔ گاردها، تأیید صریح Migration، نصب کلید خصوصی بیت‌پی و فعال‌سازی انجام می‌شود. هیچ تأیید پرداخت واقعی هنوز وجود ندارد؛ `S2..S4=NOT_STARTED`.
