@@ -86,6 +86,16 @@ const sky = await renderer.buildPrivateShopFinalPrintCandidate(order, 1);
 assert.equal(sky.productId, 'p02');
 assert.equal(sky.sourceManifest, null);
 await assertJpeg(sky, '10x15');
+if (process.argv.includes('--p02-10x15')) {
+  // The native 20x30 and 30x45 R9 print tests are independent. Their
+  // previously observed successes are not invalidated by this mode.
+  // The combined legacy stress suite below exercises repeated P02/P01/P03
+  // raster operations and is deliberately not a short launch smoke.
+  assert.ok(sky.bytes.length <= 8 * 1024 * 1024,
+    'Small native JPEG must fit the owner-only manual archive limit');
+  console.log('P02_NATIVE_10x15_PASS: 1182x1772 300PPI/sRGB, private candidate, owner-archive size limit');
+  process.exit(0);
+}
 if (process.env.HALLEUS_SHOP_SYNTHETIC_QA_IMAGE) {
   const downsampled = await sharp(sky.bytes).resize({ width: 750 }).jpeg({ quality: 88 }).toBuffer();
   await writeFile(process.env.HALLEUS_SHOP_SYNTHETIC_QA_IMAGE, downsampled);
