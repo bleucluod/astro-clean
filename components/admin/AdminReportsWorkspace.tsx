@@ -18,6 +18,7 @@ const OVERVIEW_PAGE_SIZE = 10;
 
 const EMPTY_FILTERS: AdminReportFilters = {
   search: "",
+  deletionState: null,
   dateFrom: null,
   dateTo: null,
   birthCity: null,
@@ -282,6 +283,10 @@ export function AdminReportsWorkspace({
     report: AdminReportSummary,
     action: "restrict_visibility" | "update_title" | "soft_delete",
   ) {
+    if (report.deletionState === "owner_deleted") {
+      setError("این گزارش قبلاً توسط کاربر حذف شده و فقط در آمار تولید باقی مانده است.");
+      return;
+    }
     if (
       action === "soft_delete" &&
       !window.confirm(
@@ -518,7 +523,7 @@ export function AdminReportsWorkspace({
                 <small>{detail.ownerDisplayName || detail.ownerUserId}</small>
               </div>
               <span className={styles.statusPill} data-tone={reportTone(detail.visibility)}>
-                {detail.visibility}
+                {detail.deletionState === "owner_deleted" ? "حذف‌شده توسط کاربر" : detail.visibility}
               </span>
             </div>
             <div className={styles.detailGrid}>
@@ -547,6 +552,7 @@ export function AdminReportsWorkspace({
               <div><span>حجم row</span><strong>{formatBytes(detail.storageBytes)}</strong></div>
               <div><span>حجم report JSON</span><strong>{formatBytes(detail.reportJsonBytes)}</strong></div>
               <div><span>ساخته‌شده</span><strong>{formatDate(detail.createdAt)}</strong></div>
+              {detail.deletedAt ? <div><span>حذف توسط کاربر</span><strong>{formatDate(detail.deletedAt)}</strong></div> : null}
             </div>
             {comparisonDetail ? (
               <section
@@ -587,7 +593,7 @@ export function AdminReportsWorkspace({
               </section>
             ) : null}
             <div className={styles.recordActions}>
-              {detail.reportType === "comparison" ? (
+              {detail.deletionState === "active" && detail.reportType === "comparison" ? (
                 <button
                   type="button"
                   onClick={() =>
@@ -603,10 +609,14 @@ export function AdminReportsWorkspace({
                   مشاهدهٔ محتوای خصوصی رابطه
                 </button>
               ) : null}
-              <button type="button" onClick={() => void readContact(detail)}>مشاهدهٔ ثبت‌شدهٔ اطلاعات تماس</button>
-              <button type="button" onClick={() => void mutate(detail, "update_title")}>ویرایش عنوان</button>
-              <button type="button" onClick={() => void mutate(detail, "restrict_visibility")}>محدودسازی</button>
-              {canDelete ? (
+              {detail.deletionState === "active" ? (
+                <>
+                  <button type="button" onClick={() => void readContact(detail)}>مشاهدهٔ ثبت‌شدهٔ اطلاعات تماس</button>
+                  <button type="button" onClick={() => void mutate(detail, "update_title")}>ویرایش عنوان</button>
+                  <button type="button" onClick={() => void mutate(detail, "restrict_visibility")}>محدودسازی</button>
+                </>
+              ) : null}
+              {canDelete && detail.deletionState === "active" ? (
                 <button className={styles.dangerButton} type="button" onClick={() => void mutate(detail, "soft_delete")}>
                   حذف گزارش
                 </button>
@@ -655,7 +665,7 @@ export function AdminReportsWorkspace({
                   <p>آخرین گزارش‌ها و عملیات ضروری؛ تحلیل‌های سنگین در تب عملیات‌اند.</p>
                 </div>
                 <strong>{(payload?.total ?? 0).toLocaleString("fa-IR")}</strong>
-                <span>گزارش فعال</span>
+                <span>گزارش تولیدشده (بدون حذف‌های ادمین)</span>
               </section>
 
               <section className={styles.reportRecentSection}>
@@ -681,13 +691,13 @@ export function AdminReportsWorkspace({
                           <span>{report.ownerDisplayName || report.ownerUserId || "مهمان"}</span>
                           <span>{report.ownerKind}</span>
                           <span>{report.accessTier}</span>
-                          <span>{report.visibility}</span>
+                          <span>{report.deletionState === "owner_deleted" ? "حذف‌شده توسط کاربر" : report.visibility}</span>
                           {report.birthCity ? <span>تولد: {formatBirthPlace(report)}</span> : null}
                           {report.currentResidenceCity ? <span>سکونت: {formatResidencePlace(report)}</span> : null}
                         </div>
                         <div className={styles.reportRecentActions}>
                           <Link href={`/admini/reports/${report.id}`}>جزئیات</Link>
-                          {canDelete ? (
+                          {canDelete && report.deletionState === "active" ? (
                             <button
                               className={styles.dangerButton}
                               type="button"
@@ -733,7 +743,7 @@ export function AdminReportsWorkspace({
                     <span className={styles.eyebrow}>Cohort Explorer</span>
                     <strong>گزارش‌ها بر اساس دادهٔ canonical</strong>
                     <small>
-                      cohort فعال: {(payload?.total ?? 0).toLocaleString("fa-IR")} گزارش
+                      گزارش‌های قابل‌شمارش: {(payload?.total ?? 0).toLocaleString("fa-IR")}
                     </small>
                   </div>
                   <span>بازکردن ابزارهای تحلیل</span>
@@ -766,6 +776,7 @@ export function AdminReportsWorkspace({
                         placeholder="شناسه، عنوان، سوژه، صاحب حساب، شهر یا کشور"
                       />
                     </label>
+                    <label>وضعیت حذف<select value={draftFilters.deletionState ?? ""} onChange={(event) => updateFilter("deletionState", event.target.value === "active" || event.target.value === "owner_deleted" ? event.target.value : null)}><option value="">همهٔ تولیدها</option><option value="active">حذف‌نشده</option><option value="owner_deleted">حذف‌شده توسط کاربر</option></select></label>
                     <label>نوع گزارش<select value={draftFilters.reportType ?? ""} onChange={(event) => updateFilter("reportType", event.target.value || null)}><option value="">همه</option>{payload?.options.reportTypes.map((value) => <option key={value} value={value}>{formatReportType(value)}</option>)}</select></label>
                     <label>Guest / Account<select value={draftFilters.ownerKind ?? ""} onChange={(event) => updateFilter("ownerKind", event.target.value || null)}><option value="">همه</option>{payload?.options.ownerKinds.map((value) => <option key={value}>{value}</option>)}</select></label>
                     <label>Free / Premium<select value={draftFilters.accessTier ?? ""} onChange={(event) => updateFilter("accessTier", event.target.value || null)}><option value="">همه</option>{payload?.options.accessTiers.map((value) => <option key={value}>{value}</option>)}</select></label>
@@ -850,9 +861,9 @@ export function AdminReportsWorkspace({
                               <td>{formatBirthLine(report)}</td>
                               <td>{formatBirthPlace(report)}</td>
                               <td>{(report.ownerDisplayName ?? report.ownerUserId) || "—"}<small>{report.ownerKind} · {report.accountPlan ?? "—"}</small></td>
-                              <td><span className={styles.statusPill} data-tone={reportTone(report.visibility)}>{report.visibility}</span><small>{report.accessTier}</small></td>
+                              <td><span className={styles.statusPill} data-tone={reportTone(report.visibility)}>{report.deletionState === "owner_deleted" ? "حذف‌شده توسط کاربر" : report.visibility}</span><small>{report.accessTier}</small></td>
                               <td>{formatBytes(report.storageBytes)}<small>JSON {formatBytes(report.reportJsonBytes)}</small></td>
-                              <td>{formatDate(report.createdAt)}</td>
+                              <td>{formatDate(report.createdAt)}{report.deletedAt ? <small>حذف کاربر: {formatDate(report.deletedAt)}</small> : null}</td>
                               <td><Link href={`/admini/reports/${report.id}`}>جزئیات</Link></td>
                             </tr>
                           ))}

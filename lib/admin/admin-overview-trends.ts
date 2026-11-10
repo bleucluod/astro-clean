@@ -91,8 +91,21 @@ export async function getAdminOverviewTrends(
            count(*) filter (where coalesce(source, 'account') <> 'guest')::int as account_reports,
            count(*) filter (where visibility = 'public')::int as public_reports,
            count(*) filter (where visibility <> 'public')::int as private_reports
-    from public.halleus_reports
-    where deleted_at is null
+    from public.halleus_reports as r
+    where (
+      r.deleted_at is null
+      or (
+        r.deleted_by::text = r.user_id
+        and r.delete_reason = 'Deleted by report owner.'
+        and not exists (
+          select 1 from halleus_private.admin_audit_events as deletion_audit
+          where deletion_audit.target_type = 'report'
+            and deletion_audit.target_id = r.id
+            and deletion_audit.action = 'admin.report.soft_deleted'
+            and deletion_audit.success = true
+        )
+      )
+    )
       and created_at >= (${from}::date - interval '1 day')
       and (created_at at time zone 'Asia/Tehran')::date >= ${from}::date
     group by 1

@@ -123,6 +123,8 @@ export function normalizeAdminReportRow(raw: unknown): AdminReportSummary {
     indexable: visibility === "public" && publicationState === "public",
     createdAt: asString(row.created_at),
     updatedAt: asString(row.updated_at),
+    deletedAt: cleanNullable(row.deleted_at),
+    deletionState: row.deleted_at ? "owner_deleted" : "active",
   };
 }
 
@@ -181,12 +183,26 @@ async function loadCanonicalAdminReports() {
       ) as report_version,
       r.created_at::text as created_at,
       r.updated_at::text as updated_at,
+      r.deleted_at::text as deleted_at,
       pg_column_size(r)::int as storage_bytes,
       pg_column_size(r.report_json)::int as report_json_bytes,
       count(*) over()::int as full_count
     from public.halleus_reports as r
     left join public.halleus_users as u on u.id = r.user_id
-    where r.deleted_at is null
+    where (
+      r.deleted_at is null
+      or (
+        r.deleted_by::text = r.user_id
+        and r.delete_reason = 'Deleted by report owner.'
+        and not exists (
+          select 1 from halleus_private.admin_audit_events as deletion_audit
+          where deletion_audit.target_type = 'report'
+            and deletion_audit.target_id = r.id
+            and deletion_audit.action = 'admin.report.soft_deleted'
+            and deletion_audit.success = true
+        )
+      )
+    )
     order by r.created_at desc
     limit ${REPORT_INTELLIGENCE_SCAN_LIMIT + 1}
   `;
@@ -195,7 +211,7 @@ async function loadCanonicalAdminReports() {
   if (fullCount > REPORT_INTELLIGENCE_SCAN_LIMIT) {
     throw new AdminAccessError(
       413,
-      `Reports Intelligence currently supports up to ${REPORT_INTELLIGENCE_SCAN_LIMIT.toLocaleString("en-US")} active reports without introducing BI infrastructure.`,
+      `Reports Intelligence currently supports up to ${REPORT_INTELLIGENCE_SCAN_LIMIT.toLocaleString("en-US")} counted reports without introducing BI infrastructure.`,
     );
   }
   return rows.map(normalizeAdminReportRow);
@@ -241,6 +257,7 @@ export function filterAdminReports(
     if (filters.dateFrom && createdDay < filters.dateFrom) return false;
     if (filters.dateTo && createdDay > filters.dateTo) return false;
     if (!includesSearch(report, search)) return false;
+    if (filters.deletionState && report.deletionState !== filters.deletionState) return false;
     if (!sameFilter(report.birthCity, filters.birthCity)) return false;
     if (!sameFilter(report.birthCountry, filters.birthCountry)) return false;
     if (!sameFilter(report.reportType, filters.reportType)) return false;
@@ -284,6 +301,7 @@ export function readAdminReportFilters(params: URLSearchParams): AdminReportFilt
   }
   return {
     search: (params.get("search") ?? "").trim().slice(0, 160),
+    deletionState: params.get("deletionState") === "owner_deleted" ? "owner_deleted" : params.get("deletionState") === "active" ? "active" : null,
     dateFrom: readDateParam(params, "dateFrom"),
     dateTo: readDateParam(params, "dateTo"),
     birthCity: readShortParam(params, "birthCity"),
@@ -532,6 +550,8 @@ export function buildAdminReportCsv(reports: readonly AdminReportSummary[]) {
     ["report_json_bytes", (report) => report.reportJsonBytes],
     ["created_at", (report) => report.createdAt],
     ["updated_at", (report) => report.updatedAt],
+    ["deletion_state", (report) => report.deletionState],
+    ["deleted_at", (report) => report.deletedAt],
   ];
   const lines = [
     columns.map(([label]) => csvCell(label)).join(","),
@@ -560,6 +580,7 @@ export async function getAdminReportCsvCohort(filters: AdminReportFilters) {
 export function auditSafeReportFilters(filters: AdminReportFilters) {
   return {
     searchApplied: Boolean(filters.search),
+    deletionState: filters.deletionState ?? null,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     birthCity: filters.birthCity,

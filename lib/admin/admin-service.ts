@@ -93,11 +93,28 @@ async function safeFailureAudit(
 export async function getAdminOverview(): Promise<AdminOverviewPayload> {
   const sql = getAdminDatabase();
   const rows = await sql`
+    with counted_reports as (
+      select visibility from public.halleus_reports as r
+      where (
+      r.deleted_at is null
+      or (
+        r.deleted_by::text = r.user_id
+        and r.delete_reason = 'Deleted by report owner.'
+        and not exists (
+          select 1 from halleus_private.admin_audit_events as deletion_audit
+          where deletion_audit.target_type = 'report'
+            and deletion_audit.target_id = r.id
+            and deletion_audit.action = 'admin.report.soft_deleted'
+            and deletion_audit.success = true
+        )
+      )
+    )
+    )
     select
       (select count(*) from public.halleus_users)::int as users,
-      (select count(*) from public.halleus_reports)::int as reports,
-      (select count(*) from public.halleus_reports where visibility = 'public')::int as public_reports,
-      (select count(*) from public.halleus_reports where visibility <> 'public')::int as private_reports,
+      (select count(*) from counted_reports)::int as reports,
+      (select count(*) from counted_reports where visibility = 'public')::int as public_reports,
+      (select count(*) from counted_reports where visibility <> 'public')::int as private_reports,
       (
         select count(*)
         from halleus_private.premium_requests
@@ -178,7 +195,20 @@ export async function listAdminUsers(
       ) as latest_note
     from public.halleus_users u
     left join auth.users a on a.id::text = u.id
-    left join public.halleus_reports r on r.user_id = u.id and r.deleted_at is null
+    left join public.halleus_reports r on r.user_id = u.id and (
+      r.deleted_at is null
+      or (
+        r.deleted_by::text = r.user_id
+        and r.delete_reason = 'Deleted by report owner.'
+        and not exists (
+          select 1 from halleus_private.admin_audit_events as deletion_audit
+          where deletion_audit.target_type = 'report'
+            and deletion_audit.target_id = r.id
+            and deletion_audit.action = 'admin.report.soft_deleted'
+            and deletion_audit.success = true
+        )
+      )
+    )
     where (
       ${query}::text is null
       or u.id ilike ${query}
@@ -429,10 +459,24 @@ export async function listAdminReports(
         nullif(r.report_json ->> 'reportVersion', '')
       ) as report_version,
       r.created_at::text as created_at,
-      r.updated_at::text as updated_at
+      r.updated_at::text as updated_at,
+      r.deleted_at::text as deleted_at
     from public.halleus_reports as r
     left join public.halleus_users as u on u.id = r.user_id
-    where r.deleted_at is null
+    where (
+      r.deleted_at is null
+      or (
+        r.deleted_by::text = r.user_id
+        and r.delete_reason = 'Deleted by report owner.'
+        and not exists (
+          select 1 from halleus_private.admin_audit_events as deletion_audit
+          where deletion_audit.target_type = 'report'
+            and deletion_audit.target_id = r.id
+            and deletion_audit.action = 'admin.report.soft_deleted'
+            and deletion_audit.success = true
+        )
+      )
+    )
       and (
         ${query}::text is null
         or r.id ilike ${query}
@@ -515,6 +559,8 @@ export async function listAdminReports(
       indexable: visibility === "public" && publicationState === "public",
       createdAt: asString(row.created_at),
       updatedAt: asString(row.updated_at),
+      deletedAt: asNullableString(row.deleted_at),
+      deletionState: row.deleted_at ? "owner_deleted" : "active",
     };
   });
 }

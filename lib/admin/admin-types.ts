@@ -115,10 +115,13 @@ export type AdminReportSummary = {
   indexable: boolean;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
+  deletionState: "active" | "owner_deleted";
 };
 
 export type AdminReportFilters = {
   search: string;
+  deletionState?: "active" | "owner_deleted" | null;
   dateFrom: string | null;
   dateTo: string | null;
   birthCity: string | null;
