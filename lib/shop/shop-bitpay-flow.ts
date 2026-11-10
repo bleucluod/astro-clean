@@ -96,7 +96,10 @@ export async function finishBitPayReturn(requestUrl: string): Promise<'paid' | '
   }
   // An already-settled order is authoritative; do not ask the provider to re-verify
   // and risk treating its expected 'already verified' answer as a failed payment.
-  if (attempt.status === 'verified') return 'paid';
+  if (attempt.status === 'verified') {
+    if (attempt.providerTransactionId !== callback.transactionId) throw new ShopBitPayAttemptError();
+    return 'paid';
+  }
   const verified = await verifyBitPayIrPayment({
     apiKey, providerPaymentId: attempt.providerPaymentId,
     transactionId: callback.transactionId,

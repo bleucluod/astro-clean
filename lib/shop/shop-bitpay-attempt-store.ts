@@ -207,12 +207,13 @@ export async function getBitPayReturnAttempt(input: {
   amountToman: number;
   providerPaymentId: string;
   status: 'redirect_ready' | 'verify_pending' | 'verified';
+  providerTransactionId: string | null;
 }> | null> {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.attemptId)
       || !digest(input.callbackTokenHash)) return null;
   const sql = getAdminDatabase();
   const rows = await sql`
-    select attempt.id, orders.display_number, attempt.amount_toman, attempt.provider_payment_id, attempt.status
+    select attempt.id, orders.display_number, attempt.amount_toman, attempt.provider_payment_id, attempt.provider_transaction_id, attempt.status
     from halleus_private.shop_payment_attempts as attempt
     join halleus_private.shop_orders as orders on orders.id = attempt.order_id
     where attempt.id = ${input.attemptId}::uuid
@@ -227,5 +228,6 @@ export async function getBitPayReturnAttempt(input: {
     amountToman: Number(rows[0].amount_toman),
     providerPaymentId: String(rows[0].provider_payment_id),
     status: rows[0].status as 'redirect_ready' | 'verify_pending' | 'verified',
+    providerTransactionId: rows[0].provider_transaction_id === null ? null : String(rows[0].provider_transaction_id),
   };
 }

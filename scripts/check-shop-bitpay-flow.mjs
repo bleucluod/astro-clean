@@ -27,7 +27,7 @@ const accessHash = 'a'.repeat(64);
 const secret = 'fake-secret-for-synthetic-fixture-only-1234';
 const apiKey = 'fake-api-not-a-real-merchant-credential';
 let providerCalls = 0, settleCalls = 0, proof = '', current = null, id = null;
-let providerStatus = 'paid';
+let providerStatus = 'paid', alreadyVerified = false;
 const deps = {
   'node:crypto': { createHash, createHmac },
   './bitpay-ir-client': {
@@ -64,7 +64,7 @@ const deps = {
     recordBitPayRedirect: async input => { assert.equal(input.attemptId, attemptId); id = input.providerPaymentId; },
     getBitPayReturnAttempt: async input => input.attemptId === attemptId
       && input.callbackTokenHash === current.callbackTokenHash && id
-      ? { attemptId, orderNumber, amountToman: 100000, providerPaymentId: id, status: 'redirect_ready' } : null,
+      ? { attemptId, orderNumber, amountToman: 100000, providerPaymentId: id, status: alreadyVerified ? 'verified' : 'redirect_ready', providerTransactionId: alreadyVerified ? '99887' : null } : null,
     settleVerifiedBitPayAttempt: async input => { settleCalls++; assert.equal(input.trustedVerification.status, 'paid'); },
   },
 };
@@ -88,6 +88,11 @@ assert.equal(settleCalls, 0);
 providerStatus = 'paid';
 assert.equal(await flow.finishBitPayReturn(callback), 'paid');
 assert.equal(settleCalls, 1);
+alreadyVerified = true;
+assert.equal(await flow.finishBitPayReturn(callback), 'paid', 'genuine duplicate callback');
+await assert.rejects(flow.finishBitPayReturn(callback.replace('trans_id=99887', 'trans_id=111')));
+assert.equal(settleCalls, 1, 'replays never double settle');
+alreadyVerified = false;
 current = null; id = null;
 await flow.startBitPayPayment({ orderNumber, accessHash });
 assert.equal(providerCalls, 2);

@@ -170,3 +170,10 @@
 **مانع واقعی برای Done/Release:** مستندات فعلی API حساب مالک و اثبات واحد پول/کدهای Verify، Preflight فقط‌خواندنی و بک‌آپ Self-hosted Supabase/VPS، اجرای تست Migration 0034 روی PostgreSQL ایزوله، تست امنیت/Runtime/Next build کاندید کامل، تأیید UI پرداخت و مجوز مشخص مالک برای اجرای Migration، نصب Secret در VPS، روشن‌کردن درگاه و پرداخت واقعی. فقط پس از پاس‌شدن و تأیید عملیات حساس، انتشار مستقل طبق اسکریپت `ops/vps/halleus-release.sh` انجام شود. در rollback کد، دادهٔ تراکنش حذف/بازنشانی نشود.
 
 **وضعیت بعد از این Commit:** `S1=IN_PROGRESS / FULL_SOURCE_CANDIDATE_PREPARED / RELEASE_BLOCKED_BY_EXTERNAL_PREFLIGHT`. `S2..S4=NOT_STARTED`. نه Migration اجرا شده، نه درگاه واقعی روشن شده، نه VPS منتشر شده است.
+
+## BITPAY_S1_CALLBACK_REPLAY_QA — security finding and fixed candidate (۲۰۲۶-۱۱-۱۰)
+
+- **Finding:** A repeated callback for an already-`verified` attempt was previously returned as `paid` on the stored attempt status alone, even when the incoming `trans_id` differed. The original settlement write was guarded, but the repeat confirmation response was too permissive.
+- **Fix:** The private return lookup now exposes the stored provider transaction ID, and repeated callbacks report `paid` only when that value equals the submitted transaction ID. Mismatched or missing IDs fail closed. Fresh payments still require independent authenticated provider Verify and atomic settlement.
+- **Runtime QA evidence (isolated exact matching source files):** R1 client synthetic, R2 ledger synthetic, R3 GET/POST callback guard with new genuine/mismatched replay fixtures: PASS; strict isolated TypeScript for payment/DB route modules: PASS. No external DB connection, full Next.js build, merchant API contract or live provider verification was performed; do not interpret these as production acceptance.
+- **Release gate unchanged:** `S1=IN_PROGRESS`; the site still has its online gateway hard-disabled, migration 0034 unapplied, real VPS credentials absent from GitHub and production release blocked pending external preflight and owner approval. Other roadmaps remain untouched.
