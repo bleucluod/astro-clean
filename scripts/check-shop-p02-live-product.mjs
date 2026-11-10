@@ -59,7 +59,7 @@ assert.match(client, /BIRTH_SKY_GALLERY\.map\(/);
 assert.match(css, /\.previewThumbEmpty/);
 assert.match(css, /\.previewCaption/);
 assert.match(copy, /"button": "پیش‌نمایش تابلوی من"/);
-assert.match(route, /index: false/);
+assert.ok(route.includes('robots: { index: true, follow: true }'));
 assert.ok(!client.includes('initial, true'), 'No automatic initial personal preview');
 assert.match(quote, /new Set\(\['p01', 'p02'\]\)/);
 assert.match(quote, /isShopP02OrderEnabled\(\)/);

@@ -48,6 +48,6 @@ assert.match(css, /background: #050609/);
 const shop = read('app/shop/page.tsx');
 assert.match(shop, /\/shop-preview\/p01\/mockup-frameless-gibbous-daylight\.webp/);
 assert.match(shop, /!isShopMvpActive\(\)/);
-assert.match(shop, /robots: \{ index: false, follow: false \}/);
+assert.match(shop, /robots: \{ index: true, follow: true \}/);
 assert.match(read('app/shop/moon-phase-print/page.tsx'), /!isShopMvpActive\(\)/);
 console.log('P01_REAL_RENDERER_GALLERY=PASS images=15 mockups=6 originals=9 examples=4');

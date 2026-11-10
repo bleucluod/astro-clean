@@ -5,12 +5,11 @@ import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
 export function generateMetadata(): Metadata {
-  const indexable = isShopMvpActive();
   return {
   title: 'خرید هدیه خاص و ماندگار | فروشگاه هالیوس',
   description: 'خرید هدیه خاص از هالیوس؛ هدیه هنری و کادو شیک با طرح‌های الهام‌گرفته از آسمان، شخصی‌سازی متناسب با هر اثر و امکان پیگیری سفارش.',
   alternates: { canonical: '/shop' },
-  robots: { index: indexable, follow: indexable },
+  robots: { index: true, follow: true },
   };
 }
 

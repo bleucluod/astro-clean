@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'شبِ ما | تابلوی راه شیری هالیوس',
   description: 'شبِ ما؛ تابلوی هنری راه شیری و کوهستان با نام و پیام اختیاری، چاپ مات روی شاسی بدون قاب.',
   alternates: { canonical: '/shop/milky-way-print' },
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function OurNightProductPage() {

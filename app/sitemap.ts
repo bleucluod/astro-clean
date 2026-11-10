@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { seoRoutes, siteConfig } from "@/lib/config/seo";
-import { isShopMvpActive } from "@/lib/shop/shop-mvp-activation";
 import {
   listPublicWikiSitemapArticles,
   listPublicWikiSitemapCategories,
@@ -20,10 +19,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
-  const shopPageEntries: MetadataRoute.Sitemap = isShopMvpActive() ? [
+  // Indexable product URLs stay in sitemap regardless of checkout availability.
+  const shopPageEntries: MetadataRoute.Sitemap = [
     { url: `${siteConfig.url}/shop`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${siteConfig.url}/shop/moon-phase-print`, changeFrequency: "weekly", priority: 0.8 },
-  ] : [];
+    { url: `${siteConfig.url}/shop/birth-sky-map`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${siteConfig.url}/shop/milky-way-print`, changeFrequency: "weekly", priority: 0.65 },
+  ];
 
   const wikiCategoryEntries: MetadataRoute.Sitemap = wikiCategories.map(
     (category) => ({

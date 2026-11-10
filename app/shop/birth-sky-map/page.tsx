@@ -19,8 +19,7 @@ export const metadata: Metadata = {
   title: 'تابلو آسمان شب تولد؛ نقشه ستاره‌ها | هالیوس',
   description: 'تابلو آسمان شب تولد هالیوس؛ نقشه ستاره‌های محاسبه‌شده برای تاریخ، ساعت و شهر دلخواه، با نام و پیام شخصی و چاپ مات روی شاسی بدون قاب در سه اندازه.',
   alternates: { canonical: '/shop/birth-sky-map' },
-  // The owner is reviewing the real computed product prior to imagery/pricing signoff.
-  robots: { index: false, follow: true },
+  robots: { index: true, follow: true },
 };
 
 // Read the P02 order gate per request, not once during a build.

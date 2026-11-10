@@ -28,12 +28,9 @@ for (const [id, slug] of slugs) {
   const page = read(newPath);
   assert.ok(page.includes("canonical: '" + url + "'"), newPath + ' canonical');
 
-  if (id === 'p01') {
-    assert.match(page, /const indexable = isShopMvpActive\(\)/, 'P01 indexability follows runtime activation');
-    assert.match(page, /index: indexable, follow: indexable/, 'P01 robots gated by activation');
-  } else {
-    assert.ok(page.includes('index: false'), newPath + ' postponed products remain noindex');
-  }
+  assert.ok(page.includes('robots: { index: true, follow: true }'),
+    newPath + ' is always indexable regardless of checkout availability');
+  assert.ok(!page.includes('index: false'), newPath + ' must not declare noindex');
   assert.ok(urlMap.includes(id + ": '" + url + "'"), id + ' mapping');
   assert.ok(catalog.includes("href: getShopProductUrl('" + id + "')"), id + ' catalog link');
   const registered = registry.pages.find((item) => item.page_id === id.toUpperCase());
@@ -43,15 +40,19 @@ for (const [id, slug] of slugs) {
 assert.match(read('app/shop/moon-phase-print/page.tsx'), /!isShopMvpActive\(\)/);
 const p02Page = read('app/shop/birth-sky-map/page.tsx');
 assert.match(p02Page, /<BirthSkyLiveProduct purchaseEnabled=\{isShopP02OrderEnabled\(\)\} \/>/, 'P02 must show real computed artwork and gated purchase');
-assert.match(p02Page, /index: false/, 'P02 remains noindex until approved for sale and content');
+assert.ok(p02Page.includes('robots: { index: true, follow: true }'), 'P02 always indexable');
 assert.doesNotMatch(p02Page, /process\.env\.NODE_ENV === 'production'/, 'P02 display is publicly reviewable');
 assert.match(read('app/shop/milky-way-print/page.tsx'), /process\.env\.NODE_ENV === 'production'/);
 
 assert.match(catalog, /product\.id === 'P01'/);
-assert.match(catalog, /const indexable = isShopMvpActive\(\)/);
+assert.ok(catalog.includes('robots: { index: true, follow: true }'));
 const sitemap = read('app/sitemap.ts');
-assert.match(sitemap, /shopPageEntries: MetadataRoute\.Sitemap = isShopMvpActive\(\)/);
-assert.match(sitemap, /shop\/moon-phase-print/);
+assert.ok(sitemap.includes('shopPageEntries: MetadataRoute.Sitemap = ['));
+assert.ok(!sitemap.includes('isShopMvpActive'), 'sitemap must not depend on checkout state');
+for (const slug of ['moon-phase-print', 'birth-sky-map', 'milky-way-print']) {
+  assert.ok(sitemap.includes('/shop/' + slug), slug + ' must be in sitemap');
+}
+assert.ok(sitemap.includes('/shop`'), 'shop root must remain in sitemap');
 assert.match(checkout, /getShopProductUrl\(item\.productId\)/);
 assert.match(detail, /getShopProductUrl\(item\.id\)/);
 assert.match(schema, /getShopProductUrl\(product\.id\)/);

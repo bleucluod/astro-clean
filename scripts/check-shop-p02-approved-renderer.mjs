@@ -20,7 +20,7 @@ for (const weight of ['Light', 'Regular', 'Medium']) {
   assert.ok(page.includes('Estedad-' + weight + '.ttf'), 'P02 must use identical source font files');
 }
 assert.ok(page.includes("variable: '--font-p02-estedad'"));
-assert.ok(page.includes('index: false'));
+assert.ok(page.includes('robots: { index: true, follow: true }'));
 assert.ok(client.includes('paintShopBirthSkyTypography(context'));
 assert.ok(client.includes('skyOnlyArtwork.current = artModule.renderShopBirthSkyArtwork'));
 assert.ok(client.includes('calculateShopGalacticAtmosphere(reference)'));

@@ -64,7 +64,7 @@ const p02Page = readFileSync(resolve(root, 'app/shop/birth-sky-map/page.tsx'), '
 const p02Preview = readFileSync(resolve(root, 'components/shop/BirthSkyLiveProduct.tsx'), 'utf8');
 assert.match(p02Page, /<BirthSkyLiveProduct purchaseEnabled=\{isShopP02OrderEnabled\(\)\} \/>/,
   'P02 cart action must honor separate server gate');
-assert.match(p02Page, /index: false/, 'P02 must remain noindex during print/gallery review');
+assert.ok(p02Page.includes('robots: { index: true, follow: true }'), 'P02 SEO is independent of checkout');
 assert.match(p02Preview, /validateShopMoment\('p02', values\)/, 'P02 date, clock and city must be validated');
 assert.match(p02Preview, /addShopCartItem\('p02'/, 'P02 must add real personalized items to cart');
 assert.doesNotMatch(p02Preview, /fetch\(/, 'P02 preview must not transmit birth inputs');
