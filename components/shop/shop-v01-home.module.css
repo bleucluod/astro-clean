@@ -751,3 +751,38 @@
   .p02Invitation { display: grid; padding: 19px; }
   .p02Invitation a { width: 100%; justify-content: center; }
 }
+
+/* Two live shop listings must be visible immediately on desktop.
+   Mobile layout and product availability remain unchanged. */
+@media (min-width: 768px) {
+  .hero {
+    height: 310px;
+  }
+
+  .heroCopy {
+    top: auto;
+    bottom: 30px;
+  }
+
+  .collection {
+    padding-top: 26px;
+  }
+
+  .collectionHeader {
+    margin-bottom: 16px;
+  }
+
+  .productGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .productGrid .productCard,
+  .productGrid .cardLink {
+    min-height: 320px;
+  }
+
+  .productGrid .productVisual {
+    height: 320px;
+    aspect-ratio: auto;
+  }
+}
