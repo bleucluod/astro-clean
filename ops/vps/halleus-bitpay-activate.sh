@@ -89,6 +89,15 @@ as_deploy git -C "$SOURCE" show "${PIN}:ops/vps/halleus-bitpay-pg-backup.cjs" |
 chmod 0600 "$BACKUP_FILE"
 pass backup_archive_readable
 
+# The canonical release engine reads the storage contract from SOURCE (not
+# from the detached build worktree). A fetch alone does not update that contract.
+# Fast-forward only the clean, reviewed source branch to the exact pinned SHA;
+# never reset, checkout another branch, or change the live current/previous links.
+as_deploy git -C "$SOURCE" merge --ff-only origin/main || fail 'Cannot fast-forward clean VPS source to the reviewed release.'
+[ "$(as_deploy git -C "$SOURCE" rev-parse HEAD)" = "$PIN" ] || fail 'Source checkout did not reach the pinned GitHub commit.'
+[ -z "$(as_deploy git -C "$SOURCE" status --porcelain=v1 --untracked-files=all)" ] || fail 'VPS source dirty after fast-forward.'
+pass pinned_source_sync
+
 # The tag is pushed before release/migration so rollback has an exact source ref.
 if as_deploy git -C "$SOURCE" rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
   [ "$(as_deploy git -C "$SOURCE" rev-list -n 1 "$TAG")" = "$PIN" ] || fail 'Release tag collision.'

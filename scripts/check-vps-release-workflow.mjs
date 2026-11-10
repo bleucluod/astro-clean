@@ -116,6 +116,7 @@ function validatePnpmDependencyBuildPolicy(workspaceSource, lockSource) {
 
 const releaseSource = read(releasePath);
 const storageContract = read(storageContractPath);
+const bitpayOperatorRelease = read("ops/vps/halleus-bitpay-activate.sh");
 const serviceSource = read(servicePath);
 const deploymentNotes = read(deploymentNotesPath);
 const recoveryNotes = read(recoveryNotesPath);
@@ -168,8 +169,19 @@ requireMarkers("storage release workflow", releaseSource, [
 
 requireMarkers("storage release contract", storageContract, [
   "HALLEUS_STORAGE_CONTRACT_VERSION=1",
-  "HALLEUS_RUNTIME_BUDGET_BYTES=639515015",
+  "HALLEUS_RUNTIME_BUDGET_BYTES=744488960",
   "HALLEUS_KEEP_RELEASES=2",
+]);
+
+requireMarkers("BitPay pinned source sync", bitpayOperatorRelease, [
+  'merge --ff-only origin/main',
+  'pass pinned_source_sync',
+  'git -C "$SOURCE" rev-parse HEAD',
+]);
+forbidMarkers("BitPay pinned source sync", bitpayOperatorRelease, [
+  "git reset --hard",
+  "git clean -fd",
+  "git checkout -f",
 ]);
 
 forbidMarkers("storage release workflow", releaseSource, [
