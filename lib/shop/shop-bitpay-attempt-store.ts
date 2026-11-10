@@ -17,6 +17,7 @@ export type ShopBitPayAttempt = Readonly<{
   amountToman: number;
   status: 'created' | 'redirect_ready' | 'verify_pending' | 'verified' | 'failed' | 'review_required';
   providerPaymentId: string | null;
+  createdNow: boolean;
 }>;
 
 function digest(value: string): boolean { return /^[a-f0-9]{64}$/.test(value); }
@@ -63,7 +64,7 @@ export async function reserveBitPayAttempt(input: {
       return {
         id: String(old.id), orderNumber: String(order.display_number),
         amountToman: Number(old.amount_toman), status: old.status,
-        providerPaymentId: old.provider_payment_id ?? null,
+        providerPaymentId: old.provider_payment_id ?? null, createdNow: false,
       };
     }
     const inserted = await tx`
@@ -78,7 +79,7 @@ export async function reserveBitPayAttempt(input: {
     return {
       id: String(inserted[0].id), orderNumber: String(order.display_number),
       amountToman: Number(order.total_toman), status: 'created' as const,
-      providerPaymentId: null,
+      providerPaymentId: null, createdNow: true,
     };
   });
 }
@@ -194,4 +195,35 @@ export async function settleVerifiedBitPayAttempt(input: {
     `;
     return 'verified' as const;
   });
+}
+
+/** Resolve callback proof to a persisted attempt without trusting provider query fields. */
+export async function getBitPayReturnAttempt(input: {
+  attemptId: string;
+  callbackTokenHash: string;
+}): Promise<Readonly<{
+  attemptId: string;
+  orderNumber: string;
+  amountToman: number;
+  providerPaymentId: string;
+}> | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.attemptId)
+      || !digest(input.callbackTokenHash)) return null;
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select attempt.id, orders.display_number, attempt.amount_toman, attempt.provider_payment_id
+    from halleus_private.shop_payment_attempts as attempt
+    join halleus_private.shop_orders as orders on orders.id = attempt.order_id
+    where attempt.id = ${input.attemptId}::uuid
+      and attempt.callback_token_hash = ${input.callbackTokenHash}
+      and attempt.status in ('redirect_ready', 'verify_pending', 'verified')
+    limit 1
+  `;
+  if (rows.length !== 1 || !decimal(String(rows[0].provider_payment_id))) return null;
+  return {
+    attemptId: String(rows[0].id),
+    orderNumber: String(rows[0].display_number),
+    amountToman: Number(rows[0].amount_toman),
+    providerPaymentId: String(rows[0].provider_payment_id),
+  };
 }

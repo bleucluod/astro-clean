@@ -143,3 +143,15 @@
 
 **روش تحویل مالک:** کار روی GitHub، دریافت امن به‌صورت Pull/Worktree، سپس در مرز انتشار فقط یک دستور رسمی VPS مبتنی بر SHA و Tag تأییدشده. ZIP/Runner صرفاً fallback استثنایی.
 
+## BITPAY_R3_CALLBACK_CHECKPOINT — GitHub code candidate (۲۰۲۶-۱۱-۱۰)
+
+**پیشرفت واقعی مرحلهٔ ۱:** کد مسیرهای سروری شروع و بازگشت BitPay آماده شده، ولی با گیت فعلی `SHOP_ONLINE_GATEWAY_ENABLED = false` **هیچ‌یک قابل استفادهٔ عمومی نیستند** و هیچ API secret، محیط واقعی، Migration، اتصال Checkout یا سرویس VPS تغییر نکرده است.
+
+- `lib/shop/shop-bitpay-flow.ts`: شروع پرداخت فقط بعد از تطبیق دسترسی مهمان و سفارش در Ledger، تولید اثبات محرمانهٔ مخصوص Callback با HMAC و ذخیرهٔ تنها هش آن، درخواست از Provider با مبلغ ثابت سفارش، ذخیرهٔ شناسهٔ Provider قبل از بازگرداندن لینک، جلوگیری از ایجاد درخواست Provider دوم هنگام بازپخش یا وضعیت نامعین، و Verify مستقل پس از Callback. هیچ فیلد برگشتیِ مرورگر مدرک پرداخت نیست.
+- `app/api/shop/payments/bitpay/start/route.ts` و `app/api/shop/payments/bitpay/return/route.ts`: مسیرهای پشت گیت خاموش، خطایابی امن، کنترل Origin/Body در Start با زیرساخت موجود و Limit مستقل؛ بازگشت موفق فقط پس از Verify سروری، پاسخ ۳۰۳ به صفحهٔ پرداخت با حذف شناسه‌ها و اثبات از URL مشتری و `Referrer-Policy: no-referrer`.
+- `lib/shop/shop-bitpay-attempt-store.ts`: تشخیص رزرو تازه در برابر تکرار برای جلوگیری از پرداخت دوباره و lookup محدود به شناسه تلاش + هش اثبات Callback. `lib/shop/shop-shared-rate-limit.ts`: محدودیت مستقل شروع و بازگشت بر اساس هدر IP مورد اعتماد موجود؛ تغییر در محدودیت‌های مسیرهای دیگر نیست.
+- `scripts/check-shop-bitpay-flow.mjs`: گارد synthetic شامل درخواست تکراری، بازگشت/اثبات نامعتبر، نتیجهٔ `pending` و `paid`، نبود Secret، لزوم ذخیرهٔ شناسه، گیت خاموش و پاسخ ۴۰۴، و عدم نشت اثبات در redirect. گاردهای R1 و R2 نیز مجدداً اجرا شدند.
+- **شواهد Local isolated candidate:** `BITPAY_R3_FLOW=PASS`، `BITPAY_IR_CLIENT_R1=PASS`، `BITPAY_ATTEMPT_LEDGER_R2=PASS`، TypeScript strict for changed payment modules/routes with isolated typed dependency stubs PASS، و بررسی whitespace فایل‌های متأثر PASS. Full-repo ESLint/Next build و PostgreSQL واقعی **انجام نشده‌اند**؛ TypeScript isolated معادل TypeCheck کامل repo نیست.
+- **وابستگی‌های حل‌نشده قبل از پرداخت واقعی و RELEASE-BITPAY-01:** دریافت/تطبیق مستندات جاری BitPay.ir مخصوص حساب مالک (به‌ویژه Return/Verify و واحد مبلغ)، بررسی فقط‌خواندنی schema و دسترسی Supabase خودمیزبان، تست مهاجرت ۰۰۳۴ روی PostgreSQL ایزوله، حل هماهنگی تلاش آنلاین با لغو سفارش و اعلام واریز دستی هنگام تراکنش در جریان، UX اتصال دکمهٔ واقعی پرداخت به Checkout، secret در VPS، کنترل استرداد/پرداخت دیررس و تأیید جداگانهٔ Migration/Env/Activation/Release. هیچ‌یک به‌عنوان انجام‌شده تلقی نشود.
+- **وضعیت:** `S1=IN_PROGRESS`; `S2..S4=NOT_STARTED`. این Commit فقط کاندید امن و غیرقابل استفادهٔ عمومی است. گیت انتشار مستقل S1 هنوز باز نشده است.
+

@@ -3,7 +3,8 @@ import { isIP } from 'node:net';
 import { getAdminDatabase } from '@/lib/admin/admin-database';
 import { ShopOrderStateError } from './shop-order-store';
 
-type GuestScope = 'quote' | 'orders' | 'track' | 'mobile_track' | 'transfer' | 'cancel';
+type GuestScope = 'quote' | 'orders' | 'track' | 'mobile_track' | 'transfer' | 'cancel'
+  | 'bitpay_start' | 'bitpay_return';
 
 const guestScopes: Record<string, GuestScope> = {
   '/api/shop/quote': 'quote',
@@ -12,6 +13,8 @@ const guestScopes: Record<string, GuestScope> = {
   '/api/shop/orders/track/mobile': 'mobile_track',
   '/api/shop/orders/transfer': 'transfer',
   '/api/shop/orders/cancel': 'cancel',
+  '/api/shop/payments/bitpay/start': 'bitpay_start',
+  '/api/shop/payments/bitpay/return': 'bitpay_return',
 };
 
 const policies: Record<GuestScope, { maxHits: number; windowSeconds: number }> = {
@@ -22,6 +25,8 @@ const policies: Record<GuestScope, { maxHits: number; windowSeconds: number }> =
   mobile_track: { maxHits: 8, windowSeconds: 900 },
   transfer: { maxHits: 40, windowSeconds: 900 },
   cancel: { maxHits: 30, windowSeconds: 900 },
+  bitpay_start: { maxHits: 10, windowSeconds: 900 },
+  bitpay_return: { maxHits: 40, windowSeconds: 900 },
 };
 
 // The only allowed client identity is an Nginx-overwritten, verified header.
