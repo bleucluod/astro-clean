@@ -107,7 +107,7 @@
 | S3 جذب از ویکی | NOT_STARTED؛ PREVIEW_PENDING | بررسی و پیش‌نمایش ویترین/CTA/هدر/۴۰۴ و تأیید مالک |
 | S4 ادمین/QA/Release | NOT_STARTED؛ DEPENDS_ON_S1_S3 | اجرای یکپارچهٔ پس از تأیید، QA، مجوز release و Smoke |
 
-**تأیید فعلی مالک فقط ثبت همین رودمپ در GitHub است.** هیچ کد/Secret/Migration/Env/Tag/Deploy به اتکای این ثبت تغییر نمی‌کند. هنگام اجرای آینده، ابتدا HEAD/origin/branch/worktree و Authority فعلی را بازبینی کن و تغییرات غیرمرتبط لوکال را حفظ کن. وضعیت شکست و تصمیم‌های باز را در همین فایل به‌روز کن؛ هیچ مرحلهٔ وابسته را بدون تأیید لازم کامل نشمار.
+**مرز اجرای جاری:** مالک پس از ثبت رودمپ، شروع کار و پیشبرد واقعی آن را روی GitHub درخواست کرده است. پیاده‌سازی کاندیدهای غیرفعال و تست آن‌ها مجاز است؛ هیچ مجوزی برای اجرای Migration، افشای Secret، فعال‌سازی پرداخت، Tag یا Deploy از این درخواست استنباط نمی‌شود. هنگام اجرای آینده، ابتدا HEAD/origin/branch/worktree و Authority فعلی را بازبینی کن و تغییرات غیرمرتبط لوکال را حفظ کن. وضعیت شکست و تصمیم‌های باز را در همین فایل به‌روز کن؛ هیچ مرحلهٔ وابسته را بدون تأیید لازم کامل نشمار.
 
 `ROADMAP_COMPLETE` فقط وقتی مجاز است که اتصال BitPay، هر ۷ Easy Win، تأییدهای طراحی/مالی، و انتشار و Verification نهایی واقعاً کامل شده باشند.
 
@@ -117,3 +117,11 @@
 - Fixture result verified in isolated local draft: `BITPAY_IR_CLIENT_R1=PASS`; standalone TypeScript strict `tsc --noEmit` passed. Full Next.js build, affected full-repo ESLint and live provider/DB E2E not run; do not claim them passed. Affected source is inactive pending current merchant docs.
 - **BLOCKED_BY_DEPENDENCY:** Merchant-specific current BitPay.ir API documentation, verified amount unit/field contract, private DB attempt ledger schema and isolation, secure VPS secret staging and explicit authorization for any production migration/activation.
 - No real secret, migration, payment, change to live checkout, Tag, or VPS release in this checkpoint. Next action: validate provider documentation, then finish S1 integration as one scoped candidate; preserve existing working store and manual transfer.
+
+## BITPAY_R2_PRIVATE_ATTEMPT_LEDGER — candidate prepared on GitHub (۲۰۲۶-۱۱-۱۰)
+
+- **Scope:** افزودن `database/migrations/0034_private_shop_bitpay_attempts.sql` (کاندید فقط؛ **روی هیچ DB اجرا نشده**)، `lib/shop/shop-bitpay-attempt-store.ts` (ثبت سروری تلاش، ذخیره شناسه provider، تسویه اتمیک پس از Verify معتبر)، و `scripts/check-shop-bitpay-attempt-ledger.mjs` (fixture مستقل).
+- قفل‌های ایمنی کاندید: فقط سفارش معتبر با secret هش‌شده و وضعیت قابل پرداخت، مبلغ snapshot سرور، دقیقاً یک تلاش باز/تأییدشده در هر سفارش، شناسه‌های provider یکتا، Callback token فقط به صورت هش، قفل `for update`، ثبت immutable event سفارش، و idempotent بودن تأیید تکراری. تأیید کارت‌به‌کارت و استعلام بیت‌پی از هم جدا می‌مانند.
+- **شواهد R2:** گارد `BITPAY_ATTEMPT_LEDGER_R2=PASS` با fixture تراکنشی مصنوعی برای رزرو و تکرار، mismatch مبلغ، تلاش تکراری، provider ID مغایر، لغو سفارش، حالت اعلام واریز دستی، Verify ناموفق، Rollback اتمیک و Event یکتا. `BITPAY_IR_CLIENT_R1=PASS` روی fixture قبلی؛ standalone `tsc -p tsconfig.r2.json` در محیط ایزوله با stub تایپ‌شدهٔ DB و `node --check` پاس شدند؛ بررسی whitespace سه فایل جدید بدون خطا. **این‌ها اجرای PostgreSQL واقعی، build کامل Next.js یا پرداخت واقعی نیستند.**
+- **باقی‌مانده S1:** بررسی قرارداد API فعلی مخصوص حساب مالک، schema و role واقعی self-hosted Supabase فقط‌خواندنی، تأیید مهاجرت/backup و E2E در PostgreSQL ایزوله، اتصال امن شروع پرداخت و Callback/Verify به Checkout، secret امن VPS و تست کنترل‌شدهٔ پرداخت. هیچ API route جدید، Env، DB واقعی یا VPS در R2 تغییر نکرده است.
+- **مرز بعدی:** تا حل وابستگی مستندات/DB، از آماده‌سازی یا انتشار endpoint دریافت پول خودداری کن؛ در اولین مجوز اجرای امن، کاندید R2 را حفظ و فقط بررسی‌های وابسته را ادامه بده. `S1=IN_PROGRESS`، `S2..S4=NOT_STARTED`.
