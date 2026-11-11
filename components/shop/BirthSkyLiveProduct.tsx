@@ -13,6 +13,7 @@ import { BirthSkyEditorial } from './BirthSkyEditorial';
 import { SHOP_P02_SIZES } from './product-detail-data';
 import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
 import { addShopCartItem, readShopCart } from './shop-cart';
+import { useShopGallerySwipe } from './use-shop-gallery-swipe';
 
 const PREVIEW_SIZE = { width: 720, height: 1080 } as const;
 const formatPrice = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
@@ -259,6 +260,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
   const showingPreview = photoIndex === 0 && Boolean(artwork);
   const displayLabel = showingPreview ? 'پیش‌نمایش تابلوی من' : currentPhoto.label;
   const displayAlt = showingPreview ? 'پیش‌نمایش واترمارک‌دار تابلوی شخصی‌سازی‌شده' : currentPhoto.alt;
+  const gallerySwipe = useShopGallerySwipe(changePhoto);
 
   function changePhoto(step: number) {
     const first = artwork ? 0 : 1;
@@ -277,7 +279,9 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
             <span aria-current="page">آسمان تولد</span>
           </nav>
           <button type="button" className={[pdStyles.mainPhotoButton, pdStyles.p01MainPhoto].join(' ')}
-            onClick={() => setZoomOpen(true)} aria-label={'بزرگ‌نمایی ' + displayLabel}>
+            {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}
+            onClick={(event) => { if (event.detail === 0 || gallerySwipe.canOpenZoom()) setZoomOpen(true); }}
+            aria-label={'بزرگ‌نمایی ' + displayLabel}>
             {showingPreview && artwork
               ? <Image unoptimized src={artwork} alt={displayAlt} fill
                   sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
@@ -475,7 +479,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
         className={pdStyles.zoomDialog} aria-label="بزرگ‌نمایی تصاویر آسمان تولد">
         <div className={pdStyles.zoomInner}>
           <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
-          <div className={pdStyles.zoomPhoto}>
+          <div className={pdStyles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
             {showingPreview && artwork
               ? <Image unoptimized src={artwork} alt={displayAlt} fill sizes="95vw" />
               : <Image src={currentPhoto.src} alt={currentPhoto.alt} fill sizes="95vw" />}

@@ -12,6 +12,7 @@ import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { filterHalleusCities, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import styles from './product-detail.module.css';
+import { useShopGallerySwipe } from './use-shop-gallery-swipe';
 import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
 
 const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: '', city: '', cityId: '', names: '', message: '' };
@@ -97,6 +98,9 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const livePrices = useShopLivePrices();
   const price = liveShopPrice(livePrices.prices, id, SHOP_SIZES[sizeIndex].dimension);
+  const gallerySwipe = useShopGallerySwipe((step) => {
+    setPhotoIndex((index) => (index + step + product.gallery.length) % product.gallery.length);
+  });
   const citySuggestions = useMemo(() => id === 'p02' && !form.cityId && form.city.trim().length >= 2
     ? filterHalleusCities(form.city).slice(0, 8) : [], [id, form.city, form.cityId]);
   const formCopy = {
@@ -224,7 +228,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
               <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
               <span aria-current="page">{product.title}</span>
             </nav>
-            <button className={`${styles.mainPhotoButton} ${id === 'p01' ? styles.p01MainPhoto : ''}`} type="button" onClick={() => setZoomOpen(true)} aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
+            <button className={`${styles.mainPhotoButton} ${id === 'p01' ? styles.p01MainPhoto : ''}`} type="button"
+              {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}
+              onClick={(event) => { if (event.detail === 0 || gallerySwipe.canOpenZoom()) setZoomOpen(true); }}
+              aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
               <Image
                 key={product.gallery[photoIndex].src}
                 src={product.gallery[photoIndex].src}
@@ -518,7 +525,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>
         <div className={styles.zoomInner}>
           <button type="button" className={styles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن بزرگ‌نمایی">×</button>
-          <div className={styles.zoomPhoto}><Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" /></div>
+          <div className={styles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}><Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" /></div>
           <div className={styles.zoomActions}>
             <button type="button" onClick={() => setPhotoIndex((photoIndex + product.gallery.length - 1) % product.gallery.length)}>تصویر قبل</button>
             <span>{formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)}</span>
