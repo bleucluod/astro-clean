@@ -321,7 +321,7 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
   }, [retry]);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [transferTime, setTransferTime] = useState('');
-  const [copyState, setCopyState] = useState<'card' | 'iban' | 'order' | ''>('');
+  const [copyState, setCopyState] = useState<'card' | 'iban' | ''>('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [onlineStarting, setOnlineStarting] = useState(false);
@@ -339,7 +339,7 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
       setOnlineStarting(false);
     }
   }
-  async function copyNumber(value: string, key: 'card' | 'iban' | 'order') {
+  async function copyNumber(value: string, key: 'card' | 'iban') {
     try { await navigator.clipboard.writeText(value); setCopyState(key); }
     catch { setCopyState(''); setError('کپی انجام نشد. شماره را انتخاب و کپی کن.'); }
   }
@@ -376,12 +376,12 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
           <div className={styles.checkoutForm}>
             {order.status === 'awaiting_transfer' || order.status === 'payment_rejected' ? <>
             {onlineEnabled ? <section className={styles.formCard}>
-              <div className={styles.sectionHeading}><h2>پرداخت آنلاین امن</h2><span>بیت‌پی</span></div>
+              <div className={styles.sectionHeading}><h2>پرداخت آنلاین</h2></div>
               <p className={styles.fieldNote}>پرداخت پس از تأیید مستقیم درگاه به همین سفارش متصل می‌شود.</p>
               {returnedPending || order.onlinePaymentPending ? <p className={styles.fieldNote} role="status">نتیجهٔ پرداخت قبلی هنوز قطعی نیست. اگر به درگاه رفتی، پیش از واریز دوباره وضعیت سفارش را بررسی کن.</p> : null}
               {onlineError ? <p role="alert" className={styles.error}>{onlineError}</p> : null}
               <button type="button" className={styles.primaryAction} disabled={onlineStarting}
-                onClick={() => void goToBitPay()}><span>{onlineStarting ? 'در حال اتصال…' : order.onlinePaymentPending ? 'ادامهٔ پرداخت قبلی' : 'پرداخت آنلاین با بیت‌پی'}</span><span aria-hidden="true">←</span></button>
+                onClick={() => void goToBitPay()}><span>{onlineStarting ? 'در حال اتصال…' : order.onlinePaymentPending ? 'ادامهٔ پرداخت قبلی' : 'پرداخت آنلاین'}</span><span aria-hidden="true">←</span></button>
             </section> : null}
             {!order.onlinePaymentPending ? <>
             <button type="button" className={styles.paymentMethodToggle}
@@ -416,7 +416,6 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
             </> : <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>پرداخت در حال بررسی است</h2></div>
               <p className={styles.fieldNote}>برای جلوگیری از دریافت دوبارهٔ وجه، تا مشخص‌شدن نتیجهٔ پرداخت آنلاین، کارت‌به‌کارت و لغو فوری این سفارش موقتاً غیرفعال است.</p>
-              <Link className={styles.textLink} href="/shop/track">پیگیری وضعیت سفارش</Link>
             </section>}
             </> : <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>وضعیت سفارش</h2><span>شمارهٔ {formatShopOrderNumber(order.orderNumber)}</span></div>
@@ -437,8 +436,6 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
                 <strong><bdi>{money(order.totalToman)}</bdi> تومان</strong>
               </div>
               <p className={styles.fieldNote}>برای پیگیری، همین شمارهٔ سفارش و موبایلی که ثبت کردی کافیه.</p>
-              <button type="button" className={styles.secondaryAction} onClick={() => void copyNumber(order.orderNumber, 'order')}>{copyState === 'order' ? 'شماره کپی شد ✓' : 'کپی شمارهٔ سفارش'}</button>
-              <Link className={styles.orderTrackAction} href="/shop/track">پیگیری سفارش <span aria-hidden="true">←</span></Link>
             </section>
           </aside>
         </div>

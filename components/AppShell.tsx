@@ -23,6 +23,7 @@ const footerLinks = [
   { href: "/sky", label: "آسمان امروز" },
   { href: "/wiki", label: "ویکی آسترولوژی" },
   { href: "/shop", label: "فروشگاه" },
+  { href: "/shop/track", label: "پیگیری سفارش" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 
