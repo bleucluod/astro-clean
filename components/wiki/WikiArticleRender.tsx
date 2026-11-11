@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Fragment } from "react";
+import { WikiShopShowcaseCard } from "@/components/wiki/WikiShopShowcaseCard";
+import type { PublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
 import type {
   WikiArticleLink,
   WikiArticleSection,
@@ -192,17 +195,20 @@ export function WikiArticleBody({
   sources,
   targets,
   rootId,
+  showcase,
 }: {
   sections: readonly WikiArticleSection[];
   contextLinks: readonly WikiArticleLink[];
   sources: readonly (string | WikiArticleSource)[];
   targets: WikiInternalLinkTargets;
   rootId?: string;
+  showcase?: PublicWikiShopShowcase | null;
 }) {
   return (
     <div className={styles.articleBody} id={rootId}>
-      {sections.map((section) => (
-        <section className={styles.bodySection} key={section.title}>
+      {sections.map((section, index) => (
+        <Fragment key={section.title}>
+        <section className={styles.bodySection}>
           <h2>{section.title}</h2>
           {section.orderedBlocks ? (
             section.orderedBlocks.map((block, index) => {
@@ -292,6 +298,10 @@ export function WikiArticleBody({
             </figure>
           ))}
         </section>
+        {showcase && index === showcase.afterSectionIndex && section.title === showcase.sectionTitle ? (
+          <WikiShopShowcaseCard offer={showcase} />
+        ) : null}
+        </Fragment>
       ))}
 
       {contextLinks.length ? (

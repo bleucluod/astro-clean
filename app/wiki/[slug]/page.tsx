@@ -14,6 +14,7 @@ import { getWikiStickyCtaCampaign } from "@/lib/cta/editorial-sticky-cta";
 import styles from "../wiki.module.css";
 import { WikiStickyCta } from "./WikiStickyCta";
 import { WikiArticleCtaCoordinator } from "./WikiArticleCtaCoordinator";
+import { getPublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
 
 type WikiArticlePageProps = {
   params: Promise<{
@@ -175,6 +176,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
       },
     ],
   };
+  const wikiShopShowcase = await getPublicWikiShopShowcase(article.slug);
   const editorialCta = getWikiEditorialCta(article.slug);
   const stickyCtaCampaign = getWikiStickyCtaCampaign(article.slug);
   const callToAction = editorialCta
@@ -316,6 +318,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
           <WikiArticleBody
             rootId={WIKI_ARTICLE_BODY_ID}
             sections={article.sections}
+            showcase={wikiShopShowcase}
             contextLinks={article.contextLinks ?? []}
             sources={article.sources ?? []}
             targets={internalLinkTargets}

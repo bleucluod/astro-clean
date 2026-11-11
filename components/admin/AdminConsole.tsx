@@ -173,6 +173,7 @@ const wikiSections: {
   { id: "queue", label: "انتشار", capability: "wiki.read" },
   { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write", showInNav: false },
   { id: "import", label: "ورود بسته", capability: "wiki.import.write" },
+  { id: "showcases", label: "ویترین فروشگاه", capability: "wiki.read" },
   { id: "media", label: "رسانه‌ها", capability: "wiki.read" },
   { id: "settings", label: "تنظیمات", capability: "wiki.read" },
 ];
