@@ -47,11 +47,13 @@ esac
 active_sha="$(sed -n 's/^commit=//p' "$CURRENT/.halleus-release")"
 [[ "$active_sha" = "$BASE" || "$active_sha" = "$PIN" ]] || fail 'Unexpected active release. Refusing to overwrite newer work.'
 source_sha="$(as_deploy git -C "$SOURCE" rev-parse HEAD)"
-[[ "$source_sha" = "$BASE" || "$source_sha" = "$PIN" ]] || fail 'Unexpected source HEAD. Refusing to reset valid candidate.'
 systemctl is-active --quiet "$SERVICE" || fail 'Live Halleus service is not active.'
 as_deploy git -C "$SOURCE" fetch origin main --tags || fail 'GitHub fetch failed.'
 [ "$(as_deploy git -C "$SOURCE" rev-parse origin/main)" = "$PIN" ] || fail 'GitHub main is not the pinned candidate.'
-[ "$(as_deploy git -C "$SOURCE" merge-base "$BASE" "$PIN")" = "$BASE" ] || fail 'Pinned candidate is not a descendant of current release.'
+as_deploy git -C "$SOURCE" merge-base --is-ancestor "$BASE" "$source_sha" ||
+  fail 'Source HEAD is outside the reviewed release ancestry.'
+as_deploy git -C "$SOURCE" merge-base --is-ancestor "$source_sha" "$PIN" ||
+  fail 'Source HEAD cannot be safely fast-forwarded to the pinned candidate.'
 exec 8>/run/lock/halleus-shop-prices-release.lock
 flock -n 8 || fail 'A shop price release is already running.'
 
@@ -67,9 +69,29 @@ if [ "$active_sha" = "$PIN" ]; then
   printf '%s\n' 'SHOP_PRICES_ADMIN_RELEASE=PASS'
   exit 0
 fi
-available="$(df -Pk "$BACKUP_DIR" | awk 'END {print $4}')"
-[[ "$available" =~ ^[0-9]+$ ]] && [ "$available" -gt 6291456 ] ||
-  fail 'Insufficient free space for a new private backup + atomic release.'
+# Match the canonical release engine's exact two-runtime-copy headroom,
+# instead of the previous unjustified 6 GiB operator preflight threshold.
+storage_contract="$SOURCE/ops/vps/halleus-release-storage.env"
+[ -f "$storage_contract" ] || fail 'Canonical release storage contract missing.'
+# shellcheck disable=SC1090
+source "$storage_contract"
+[[ "${HALLEUS_RUNTIME_BUDGET_BYTES:-}" =~ ^[1-9][0-9]*$ ]] &&
+  [ "${HALLEUS_HEADROOM_RUNTIME_COPIES:-}" = 2 ] &&
+  [ "${HALLEUS_KEEP_RELEASES:-}" = 2 ] ||
+  fail 'Canonical storage contract invalid; do not override storage safety.'
+required_bytes="$((HALLEUS_RUNTIME_BUDGET_BYTES * HALLEUS_HEADROOM_RUNTIME_COPIES))"
+available_bytes="$(df -PB1 "$BACKUP_DIR" | awk 'END {print $4}')"
+available_inodes="$(df -Pi "$BACKUP_DIR" | awk 'END {print $4}')"
+# Keep explicit space for an additional private backup; previously validated
+# backup archives will be reused instead of needlessly created.
+extra_reserve="$((512 * 1024 * 1024))"
+[[ "$available_bytes" =~ ^[0-9]+$ ]] && [[ "$available_inodes" =~ ^[0-9]+$ ]] ||
+  fail 'Cannot measure free bytes/inodes for pricing release.'
+printf 'SHOP_PRICES_STORAGE: free_bytes=%s required_release_bytes=%s backup_reserve_bytes=%s free_inodes=%s\n' \
+  "$available_bytes" "$required_bytes" "$extra_reserve" "$available_inodes"
+[ "$available_bytes" -ge "$((required_bytes + extra_reserve))" ] &&
+  [ "$available_inodes" -ge 67514 ] ||
+  fail 'Insufficient canonical release headroom plus private backup reserve; no migration attempted.'
 service_pid="$(systemctl show -P MainPID "$SERVICE")"
 [[ "$service_pid" =~ ^[1-9][0-9]*$ ]] && [ -r "/proc/$service_pid/environ" ] ||
   fail 'Cannot establish live Node database environment.'
