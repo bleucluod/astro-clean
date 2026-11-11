@@ -326,6 +326,7 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
   const [submitting, setSubmitting] = useState(false);
   const [onlineStarting, setOnlineStarting] = useState(false);
   const [onlineError, setOnlineError] = useState('');
+  const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
   async function goToBitPay() {
     if (!onlineEnabled || !receipt || !order || onlineStarting
         || !['awaiting_transfer', 'payment_rejected'].includes(order.status)) return;
@@ -383,6 +384,13 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
                 onClick={() => void goToBitPay()}><span>{onlineStarting ? 'در حال اتصال…' : order.onlinePaymentPending ? 'ادامهٔ پرداخت قبلی' : 'پرداخت آنلاین با بیت‌پی'}</span><span aria-hidden="true">←</span></button>
             </section> : null}
             {!order.onlinePaymentPending ? <>
+            <button type="button" className={styles.paymentMethodToggle}
+              aria-expanded={manualPaymentOpen} aria-controls="shop-manual-payment-details"
+              onClick={() => setManualPaymentOpen((open) => !open)}>
+              <span>پرداخت از طریق کارت‌به‌کارت</span>
+              <span aria-hidden="true">{manualPaymentOpen ? '−' : '+'}</span>
+            </button>
+            <div id="shop-manual-payment-details" className={styles.manualPaymentDetails} hidden={!manualPaymentOpen}>
             <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>۱. اطلاعات کارت‌به‌کارت</h2><span>بانک سامان</span></div>
               <div className={styles.bankPanel}>
@@ -404,6 +412,7 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
               {error ? <p role="alert" className={styles.error}>{error}</p> : null}
               <button className={styles.primaryAction} type="submit" disabled={submitting}><span>{submitting ? 'در حال ثبت…' : 'اعلام واریز'}</span><span aria-hidden="true">←</span></button>
             </form>
+            </div>
             </> : <section className={styles.formCard}>
               <div className={styles.sectionHeading}><h2>پرداخت در حال بررسی است</h2></div>
               <p className={styles.fieldNote}>برای جلوگیری از دریافت دوبارهٔ وجه، تا مشخص‌شدن نتیجهٔ پرداخت آنلاین، کارت‌به‌کارت و لغو فوری این سفارش موقتاً غیرفعال است.</p>
@@ -420,7 +429,13 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
               <h2>سفارش شمارهٔ <bdi>{formatShopOrderNumber(order.orderNumber)}</bdi></h2>
               <div className={styles.summaryRow}><span>تعداد محصولات</span><strong>{money(order.itemCount)}</strong></div>
               <div className={styles.summaryRow}><span>روش ارسال</span><strong>{order.carrier === 'post' ? 'پست پیشتاز' : 'تیپاکس'}</strong></div>
-              <div className={styles.summaryTotal}><span>مبلغ قابل واریز</span><strong><bdi>{money(order.totalToman)}</bdi> تومان</strong></div>
+              <div className={styles.summaryTotal}>
+                <span>{['payment_verified', 'preparing', 'shipped', 'delivered'].includes(order.status)
+                  ? 'مبلغ پرداخت‌شده'
+                  : ['awaiting_transfer', 'payment_rejected'].includes(order.status)
+                    ? 'مبلغ قابل واریز' : 'مبلغ سفارش'}</span>
+                <strong><bdi>{money(order.totalToman)}</bdi> تومان</strong>
+              </div>
               <p className={styles.fieldNote}>برای پیگیری، همین شمارهٔ سفارش و موبایلی که ثبت کردی کافیه.</p>
               <button type="button" className={styles.secondaryAction} onClick={() => void copyNumber(order.orderNumber, 'order')}>{copyState === 'order' ? 'شماره کپی شد ✓' : 'کپی شمارهٔ سفارش'}</button>
               <Link className={styles.orderTrackAction} href="/shop/track">پیگیری سفارش <span aria-hidden="true">←</span></Link>
