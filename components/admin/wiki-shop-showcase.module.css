@@ -33,3 +33,26 @@
 .rowCard > div:first-child { display: grid; gap: 5px; }
 .rowCard small { color: #52657a; }
 @media (max-width: 760px) { .panel { padding: 12px; } .fields { grid-template-columns: minmax(0, 1fr); } .rowCard { grid-template-columns: 1fr; } .mock img { width: 75px; height: 100px; } }
+
+
+/* One accessible, fully Persian file-picker control instead of the browser's English input text. */
+.file { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 8px 12px; border: 1px solid #a2b5c8; border-radius: 9px; background: #eef4fb; cursor: pointer; }
+.file span { font-weight: 800; color: #243447; }
+.file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.file:focus-within { outline: 2px solid #3979b4; outline-offset: 2px; }
+.panel[data-demo="true"] .item[data-demo-active="true"] { border-color: #83a9cc; box-shadow: 0 0 0 1px rgba(131, 169, 204, .28); }
+@media (max-width: 760px) {
+  .panel { padding: 14px; gap: 15px; }
+  .header { align-items: stretch; }
+  .header h2 { font-size: 18px; line-height: 1.6; }
+  .header > button { width: 100%; }
+  .summary { padding: 11px 12px; gap: 8px 14px; font-size: 12px; line-height: 1.8; }
+  .toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .toolbar .file { grid-column: 1 / -1; justify-content: center; }
+  .toolbar > button { width: 100%; min-width: 0; font-size: 12px; padding-inline: 6px; }
+  .item { padding: 12px; }
+  .row { align-items: stretch; }
+  .mock { max-width: 100%; }
+  .mock > div { min-width: 0; }
+  .review .row > button { flex: 1 1 100%; }
+}

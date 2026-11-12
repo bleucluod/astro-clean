@@ -1,0 +1,8 @@
+/* Scope all global chrome suppression to this development-only preview. */
+body:has(#wiki-shop-showcases-dev) { background: #f8fafc; }
+body:has(#wiki-shop-showcases-dev) .site-header,
+body:has(#wiki-shop-showcases-dev) .site-footer,
+body:has(#wiki-shop-showcases-dev) [data-mobile-account-fab],
+body:has(#wiki-shop-showcases-dev) [data-wiki-chrome-control] { display: none !important; }
+body:has(#wiki-shop-showcases-dev) #main-content { padding-top: 0; min-height: 100vh; background: #f8fafc; }
+body:has(#wiki-shop-showcases-dev) #main-content > * { max-width: 100%; }

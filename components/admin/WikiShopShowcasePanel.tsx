@@ -24,6 +24,15 @@ type Review = {
   slug?: string; item?: Proposal; existing?: boolean; orderable?: boolean;
 };
 
+/** The development-only preview never contains user or production data. */
+export type WikiShopShowcaseDemoSelection = {
+  article: Article;
+  product: Product;
+  placement: Proposal;
+  saved: boolean;
+  enabled: boolean;
+};
+
 // Visual-only demo fixture: never sent to or stored in any database.
 const demoProducts: Product[] = [
   { id: "p01", name: "ماه آن روز", url: "/shop/moon-phase", image: "/shop-preview/p01/full-both.webp", orderable: true },
@@ -52,13 +61,25 @@ const demoArticles: Article[] = [
   },
 ];
 
-export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
+export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPreviewChange }: {
   token: string; canWrite: boolean; demo?: boolean;
+  onDemoPreviewChange?: (selection: WikiShopShowcaseDemoSelection | null) => void;
 }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [configured, setConfigured] = useState<Configured[]>([]);
-  const [drafts, setDrafts] = useState<Proposal[]>([]);
+  const [drafts, setDrafts] = useState<Proposal[]>(demo ? [{
+    articleId: demoArticles[0].articleId,
+    articleVersion: demoArticles[0].articleVersion,
+    productId: "p01",
+    afterSectionIndex: 1,
+    sectionTitle: demoArticles[0].sections[1].title,
+    title: "ماه آن روز؛ یادگاری یک تاریخ خاص",
+    description: "شکل ماه در روزی که برای تو عزیز است، در تابلویی شخصی و ماندگار.",
+    buttonLabel: "دیدن تابلو ماه آن روز",
+    enabled: false,
+  }] : []);
+  const [activeDraft, setActiveDraft] = useState(0);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [approved, setApproved] = useState<number[]>([]);
   const [publish, setPublish] = useState<Record<number, boolean>>({});
@@ -66,6 +87,20 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const demoStore = useRef<Configured[]>([]);
+
+  useEffect(() => {
+    if (!demo || !onDemoPreviewChange) return;
+    const focusedDraft = drafts[activeDraft] ?? drafts[0];
+    const savedPlacement = configured[0];
+    const placement = focusedDraft ?? savedPlacement;
+    const article = demoArticles.find((item) => item.articleId === placement?.articleId);
+    const product = demoProducts.find((item) => item.id === placement?.productId);
+    onDemoPreviewChange(placement && article && product
+      ? { article, product, placement,
+          saved: !focusedDraft,
+          enabled: !focusedDraft && Boolean(savedPlacement?.enabled) }
+      : null);
+  }, [demo, drafts, activeDraft, configured, onDemoPreviewChange]);
 
   const api = useCallback(async <T extends Record<string, unknown>>(
     path: string, options: RequestInit = {},
@@ -172,6 +207,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       (article.sections.length < 4 || section.index > 0)) ?? [];
 
   function updateDraft(index: number, change: Partial<Proposal>) {
+    if (demo) setActiveDraft(index);
     setDrafts((old) => old.map((item, i) => i === index ? { ...item, ...change } : item));
     setReviews([]);
     setApproved([]);
@@ -186,6 +222,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       setError("مقاله یا محصول مناسبی برای ویترین پیدا نشد.");
       return;
     }
+    if (demo) setActiveDraft(drafts.length);
     setDrafts((old) => [...old, {
       articleId: article.articleId, articleVersion: article.articleVersion,
       productId: product.id, afterSectionIndex: firstSection.index,
@@ -254,6 +291,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
           enabled: false,
         };
       });
+      setActiveDraft(0);
       setDrafts(safe);
       setMessage("پیشنهادها خوانده شدند. قبل از ذخیره، بازبینی و انتخابشان کن.");
     } catch (cause) {
@@ -317,7 +355,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     }));
 
   return (
-    <section className={styles.panel} dir="rtl">
+    <section className={styles.panel} dir="rtl" data-demo={demo ? "true" : undefined}>
       {demo ? <p className={styles.note} role="status"><strong>حالت پیش‌نمایش لوکال:</strong> مقاله‌ها و وضعیت فروش محصولات نمونه‌اند؛ ذخیره و فعال‌سازی فقط در حافظهٔ همین صفحه انجام می‌شود و هیچ تغییری روی سایت یا دیتابیس ندارد.</p> : null}
       <header className={styles.header}>
         <div>
@@ -340,8 +378,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         <>
           <div className={styles.toolbar}>
             <label className={styles.file}>
-              ورود فایل پیشنهادهای AI
-              <input type="file" accept=".json,application/json"
+              <span>ورود فایل پیشنهادهای AI</span>
+              <input type="file" accept=".json,application/json" aria-label="انتخاب فایل JSON پیشنهادهای AI"
                 onChange={(event) => {
                   void importProposals(event.target.files?.[0] ?? null);
                   event.target.value = "";
@@ -361,7 +399,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
                 const product = selectedProduct(draft.productId);
                 const review = reviews[index];
                 return (
-                  <div className={styles.item} key={index}>
+                  <div className={styles.item} key={index} data-demo-active={demo && index === activeDraft ? "true" : undefined}>
                     <div className={styles.row}>
                       <strong>پیشنهاد {Number(index + 1).toLocaleString("fa-IR")}</strong>
                       {review ? <span className={review.valid ? styles.valid : styles.invalid}>
