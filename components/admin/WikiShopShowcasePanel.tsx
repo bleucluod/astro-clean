@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./wiki-shop-showcase.module.css";
 
 type Product = { id: string; name: string; url: string; image: string | null; orderable: boolean };
@@ -24,7 +24,37 @@ type Review = {
   slug?: string; item?: Proposal; existing?: boolean; orderable?: boolean;
 };
 
-export function WikiShopShowcasePanel({ token, canWrite }: { token: string; canWrite: boolean }) {
+// Visual-only demo fixture: never sent to or stored in any database.
+const demoProducts: Product[] = [
+  { id: "p01", name: "ماه آن روز", url: "/shop/moon-phase", image: "/shop-preview/p01/full-both.webp", orderable: true },
+  { id: "p02", name: "آسمان تولد", url: "/shop/birth-sky-map", image: null, orderable: false },
+];
+const demoArticles: Article[] = [
+  {
+    articleId: "11111111-1111-4111-8111-111111111111",
+    articleVersion: 1, title: "نمونهٔ آزمایشی: فاز ماه در روز تولد", slug: "demo-moon",
+    sections: [
+      { index: 0, title: "ماه در روز تولد چه شکلی است؟" },
+      { index: 1, title: "چرا شکل ماه هر روز تغییر می‌کند؟" },
+      { index: 2, title: "چطور تاریخ دلخواه را انتخاب کنیم؟" },
+      { index: 3, title: "جمع‌بندی" },
+    ],
+  },
+  {
+    articleId: "22222222-2222-4222-8222-222222222222",
+    articleVersion: 1, title: "نمونهٔ آزمایشی: نقشهٔ آسمان تولد", slug: "demo-sky",
+    sections: [
+      { index: 0, title: "آسمان تولد چیست؟" },
+      { index: 1, title: "نقش ساعت و شهر تولد" },
+      { index: 2, title: "صورت‌های فلکی در آسمان" },
+      { index: 3, title: "سخن آخر" },
+    ],
+  },
+];
+
+export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
+  token: string; canWrite: boolean; demo?: boolean;
+}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [configured, setConfigured] = useState<Configured[]>([]);
@@ -35,10 +65,77 @@ export function WikiShopShowcasePanel({ token, canWrite }: { token: string; canW
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const demoStore = useRef<Configured[]>([]);
 
   const api = useCallback(async <T extends Record<string, unknown>>(
     path: string, options: RequestInit = {},
   ): Promise<T> => {
+    if (demo) {
+      // No fetch, real API call, authentication bypass or persistent mutation in demo mode.
+      const method = (options.method ?? "GET").toUpperCase();
+      if (method === "GET" && path.includes("mode=export")) {
+        return {
+          ok: true,
+          guide: {
+            schemaVersion: 1,
+            demoOnly: true,
+            instructions: ["These articles and product availability are illustrative, not live data.",
+              "Select a relevant product and place it between H2 sections, never after the last section.",
+              "AI suggestions require manual review; this demo saves nothing to the server."],
+            products: demoProducts,
+            articles: demoArticles.map((article) => ({
+              ...article, allowedAfterSectionIndexes: [1, 2],
+              sections: article.sections.map((section) => ({
+                afterSectionIndex: section.index, sectionTitle: section.title,
+                text: "متن نمونه برای بررسی محل قرارگیری ویترین؛ این مقاله واقعی نیست.",
+              })),
+            })),
+          },
+        } as unknown as T;
+      }
+      if (method === "GET") {
+        return { ok: true, products: demoProducts, articles: demoArticles,
+          configured: demoStore.current } as unknown as T;
+      }
+      const body = JSON.parse(String(options.body ?? "{}")) as {
+        action?: string; proposals?: Proposal[]; items?: Proposal[];
+      };
+      if (method === "POST" && body.action === "preview") {
+        const reviews: Review[] = (body.proposals ?? []).map((item, index) => {
+          const article = demoArticles.find((a) => a.articleId === item.articleId);
+          const product = demoProducts.find((p) => p.id === item.productId);
+          const valid = Boolean(article && product &&
+            item.articleVersion === article.articleVersion &&
+            item.afterSectionIndex > 0 &&
+            item.afterSectionIndex < article.sections.length - 1 &&
+            article.sections[item.afterSectionIndex].title === item.sectionTitle &&
+            item.title?.trim() && item.description?.trim() && item.buttonLabel?.trim());
+          const existing = demoStore.current.find((c) => c.articleId === item.articleId);
+          return { index, valid, error: valid ? undefined : "مقاله، جایگاه یا متن نامعتبر است",
+            articleTitle: article?.title, slug: article?.slug,
+            existing: Boolean(existing), orderable: product?.orderable ?? false,
+            item: valid ? { ...item, expectedRevision: existing?.expectedRevision ?? 0 } : undefined };
+        });
+        return { ok: true, reviews } as unknown as T;
+      }
+      if (method === "PUT" && body.action === "apply") {
+        for (const item of body.items ?? []) {
+          const article = demoArticles.find((a) => a.articleId === item.articleId);
+          const product = demoProducts.find((p) => p.id === item.productId);
+          if (!article || !product) throw new Error("Invalid demo selection");
+          const old = demoStore.current.find((c) => c.articleId === item.articleId);
+          const saved: Configured = {
+            ...item, articleTitle: article.title, slug: article.slug,
+            currentArticleVersion: article.articleVersion, stale: false,
+            enabled: Boolean(item.enabled && product.orderable),
+            expectedRevision: (old?.expectedRevision ?? 0) + 1,
+          };
+          demoStore.current = [...demoStore.current.filter((c) => c.articleId !== item.articleId), saved];
+        }
+        return { ok: true, updatedCount: (body.items ?? []).length } as unknown as T;
+      }
+      throw new Error("Unsupported demo request");
+    }
     const response = await fetch(path, {
       ...options, cache: "no-store",
       headers: {
@@ -52,7 +149,7 @@ export function WikiShopShowcasePanel({ token, canWrite }: { token: string; canW
       throw new Error(typeof body.error === "string" ? body.error : "درخواست پنل انجام نشد.");
     }
     return body as T;
-  }, [token]);
+  }, [token, demo]);
 
   const refresh = useCallback(async () => {
     const data = await api<{
@@ -221,6 +318,7 @@ export function WikiShopShowcasePanel({ token, canWrite }: { token: string; canW
 
   return (
     <section className={styles.panel} dir="rtl">
+      {demo ? <p className={styles.note} role="status"><strong>حالت پیش‌نمایش لوکال:</strong> مقاله‌ها و وضعیت فروش محصولات نمونه‌اند؛ ذخیره و فعال‌سازی فقط در حافظهٔ همین صفحه انجام می‌شود و هیچ تغییری روی سایت یا دیتابیس ندارد.</p> : null}
       <header className={styles.header}>
         <div>
           <h2>ویترین محصولات در مقالات ویکی</h2>

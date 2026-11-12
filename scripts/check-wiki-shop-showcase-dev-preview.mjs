@@ -1,0 +1,18 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+
+const page = fs.readFileSync("app/dev/wiki-shop-showcases/page.tsx", "utf8");
+const panel = fs.readFileSync("components/admin/WikiShopShowcasePanel.tsx", "utf8");
+const admin = fs.readFileSync("components/admin/WikiAdminPanel.tsx", "utf8");
+
+assert.match(page, /process\.env\.NODE_ENV !== "development"\) notFound\(\)/);
+assert.match(page, /robots: \{ index: false, follow: false \}/);
+assert.match(page, /WikiShopShowcasePanel token="" canWrite demo/);
+assert.match(admin, /WikiShopShowcasePanel token=\{token\} canWrite=\{canPublish\}/);
+assert.match(panel, /if \(demo\) \{/);
+assert.match(panel, /No fetch, real API call/);
+assert.match(panel, /demoStore = useRef<Configured\[\]>/);
+assert.match(panel, /demoStore\.current =/);
+assert.match(panel, /const response = await fetch\(path/);
+assert.match(panel, /enabled: Boolean\(item\.enabled && product\.orderable\)/);
+console.log("Wiki showcase development-only preview isolation: PASS");
