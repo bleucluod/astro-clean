@@ -5,6 +5,7 @@ import { getShopProduct } from '@/components/shop/product-detail-data';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import type { ShopProductId } from '@/components/shop/product-detail-data';
 import type { WikiArticleSection } from '@/lib/wiki/wiki-content';
+import { wikiShowcaseSectionAnchor, resolveWikiShowcaseSection } from './wiki-showcase-anchor';
 
 export type WikiShopShowcaseItem = {
   articleId: string;
@@ -12,6 +13,8 @@ export type WikiShopShowcaseItem = {
   productId: ShopProductId;
   afterSectionIndex: number;
   sectionTitle: string;
+  sectionAnchor?: string;
+  proposalId?: string;
   title: string;
   description: string;
   buttonLabel: string;
@@ -148,7 +151,7 @@ export async function listConfiguredWikiShowcases() {
   const rows = await sql`
     select s.article_id::text as article_id, a.slug, a.title as article_title,
            a.content_version, a.sections, s.article_version, s.product_id,
-           s.after_section_index, s.section_title, s.title, s.description,
+           s.after_section_index, s.section_title, s.section_anchor, s.title, s.description,
            s.button_label, s.enabled, s.revision
     from halleus_private.wiki_shop_showcases s
     join public.wiki_articles a on a.id = s.article_id
@@ -168,13 +171,17 @@ export async function listConfiguredWikiShowcases() {
       productId: asString(r.product_id),
       afterSectionIndex: index,
       sectionTitle: asString(r.section_title),
+      sectionAnchor: asString(r.section_anchor),
       title: asString(r.title),
       description: asString(r.description),
       buttonLabel: asString(r.button_label),
       enabled: r.enabled === true,
       expectedRevision: asNumber(r.revision),
       stale: asNumber(r.content_version) !== asNumber(r.article_version) ||
-        sections[index]?.title !== asString(r.section_title),
+        resolveWikiShowcaseSection(sections, {
+          sectionAnchor: asString(r.section_anchor),
+          sectionTitle: asString(r.section_title),
+        }) === null,
     };
   });
 }
@@ -201,6 +208,11 @@ function checkedItem(input: unknown): WikiShopShowcaseItem {
     articleId, articleVersion, productId: productId as ShopProductId,
     afterSectionIndex, expectedRevision,
     sectionTitle: plain(row.sectionTitle, 'sectionTitle', 300),
+    sectionAnchor: typeof row.sectionAnchor === 'string' ? row.sectionAnchor.slice(0, 64) : undefined,
+    proposalId: row.proposalId === undefined ? undefined :
+      (typeof row.proposalId === 'string' &&
+        /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.proposalId)
+        ? row.proposalId : (() => { throw new AdminAccessError(400, 'Invalid proposalId'); })()),
     title: plain(row.title, 'title', 160),
     description: plain(row.description, 'description', 500),
     buttonLabel: plain(row.buttonLabel, 'buttonLabel', 80),
@@ -266,21 +278,36 @@ export async function saveWikiShopShowcaseBatch(actor: VerifiedAdminActor, value
                content_version, sections
         from public.wiki_articles
         where id = ${item.articleId}::uuid
-          and status = 'published' and is_indexable = true
-          and published_at is not null and published_at <= now()
-          and scheduled_for is null and deleted_at is null
+          and deleted_at is null
+          and (not ${item.enabled} or (
+            status = 'published' and is_indexable = true
+            and published_at is not null and published_at <= now()
+            and scheduled_for is null
+          ))
         for update
       `;
       if (!articleRows[0]) throw new AdminAccessError(409, 'Article no longer publicly available');
       const article = normalizeArticle(articleRows[0]);
       checkPlacement(item, article);
+      const targetSection = article.sections[item.afterSectionIndex];
+      const anchor = targetSection ? wikiShowcaseSectionAnchor(targetSection) :
+        item.sectionAnchor || null;
+      if (item.proposalId) {
+        const pending = await tx`
+          select id from halleus_private.wiki_shop_showcase_proposals
+            where id = ${item.proposalId}::uuid and article_id = ${item.articleId}::uuid
+              and status = 'pending'
+            for update
+        `;
+        if (!pending[0]) throw new AdminAccessError(409, 'AI suggestion is no longer pending');
+      }
       const result = await tx`
         insert into halleus_private.wiki_shop_showcases (
-          article_id, product_id, after_section_index, section_title, article_version,
+          article_id, product_id, after_section_index, section_title, section_anchor, article_version,
           title, description, button_label, enabled, updated_by
         ) values (
           ${item.articleId}::uuid, ${item.productId}, ${item.afterSectionIndex},
-          ${item.sectionTitle}, ${item.articleVersion},
+          ${item.sectionTitle}, ${anchor}, ${item.articleVersion},
           ${item.title}, ${item.description}, ${item.buttonLabel}, ${item.enabled},
           ${actor.userId}::uuid
         )
@@ -288,6 +315,7 @@ export async function saveWikiShopShowcaseBatch(actor: VerifiedAdminActor, value
           product_id = excluded.product_id,
           after_section_index = excluded.after_section_index,
           section_title = excluded.section_title,
+          section_anchor = excluded.section_anchor,
           article_version = excluded.article_version,
           title = excluded.title,
           description = excluded.description,
@@ -302,6 +330,14 @@ export async function saveWikiShopShowcaseBatch(actor: VerifiedAdminActor, value
       if (!result.length || (item.expectedRevision === 0 && Number(result[0].revision) !== 1) ||
         (item.expectedRevision > 0 && Number(result[0].revision) !== item.expectedRevision + 1)) {
         throw new AdminAccessError(409, 'Showcase was edited by someone else; refresh the panel');
+      }
+      if (item.proposalId) {
+        await tx`
+          update halleus_private.wiki_shop_showcase_proposals
+            set status = 'published', reviewed_by = ${actor.userId}::uuid, updated_at = now()
+            where id = ${item.proposalId}::uuid and article_id = ${item.articleId}::uuid
+              and status = 'pending'
+        `;
       }
       await tx`
         insert into halleus_private.admin_audit_events (
@@ -322,34 +358,25 @@ export async function saveWikiShopShowcaseBatch(actor: VerifiedAdminActor, value
   return updatedSlugs;
 }
 
-/** Public read is strictly scoped to already-published Wiki articles and enabled, nonstale offers. */
+/** Public read: preserve the approved semantic section after article edits. */
 export async function getPublicWikiShopShowcase(slug: string) {
-  let sql;
-  try {
-    sql = getAdminDatabase();
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") return null;
-    throw error;
-  }
   let rows;
   try {
+    const sql = getAdminDatabase();
     rows = await sql`
-      select s.product_id, s.after_section_index, s.section_title,
-             s.title, s.description, s.button_label
+      select s.product_id, s.after_section_index, s.section_title, s.section_anchor,
+             s.title, s.description, s.button_label, a.sections
       from halleus_private.wiki_shop_showcases s
       join public.wiki_articles a on a.id = s.article_id
       where a.slug = ${slug}
         and a.status = 'published' and a.is_indexable = true
         and a.published_at is not null and a.published_at <= now()
         and a.scheduled_for is null and a.deleted_at is null
-        and s.enabled = true and s.article_version = a.content_version
-        and s.after_section_index < jsonb_array_length(a.sections) - 1
-        and (a.sections->s.after_section_index->>'title') = s.section_title
+        and s.enabled = true
       limit 1
     `;
   } catch (error) {
-    // Product promotions are optional: missing migration, temporary DB failures
-    // or restricted permissions must never take an otherwise healthy Wiki page down.
+    // An optional recommendation must not break Wiki article reading before migration.
     console.warn('WIKI_SHOWCASE_READ_UNAVAILABLE', String(asRecord(error).code ?? 'unknown'));
     return null;
   }
@@ -357,11 +384,18 @@ export async function getPublicWikiShopShowcase(slug: string) {
   const row = asRecord(rows[0]);
   const productId = asString(row.product_id) as ShopProductId;
   if (!productIds.includes(productId) || !available(productId)) return null;
+  const sections = Array.isArray(row.sections) ? row.sections as WikiArticleSection[] : [];
+  const afterSectionIndex = resolveWikiShowcaseSection(sections, {
+    sectionAnchor: asString(row.section_anchor),
+    sectionTitle: asString(row.section_title),
+  });
+  // Missing anchor: no guessed relocation, but keep the approved row for admin review.
+  if (afterSectionIndex === null) return null;
   const product = getShopProduct(productId);
   return {
     productId,
-    afterSectionIndex: asNumber(row.after_section_index),
-    sectionTitle: asString(row.section_title),
+    afterSectionIndex,
+    sectionTitle: sections[afterSectionIndex].title,
     title: asString(row.title),
     description: asString(row.description),
     buttonLabel: asString(row.button_label),

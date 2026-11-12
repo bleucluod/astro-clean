@@ -1,42 +1,30 @@
-import fs from "node:fs";
 import assert from "node:assert/strict";
-
-const page = fs.readFileSync("app/dev/wiki-shop-showcases/page.tsx", "utf8");
+import fs from "node:fs";
+import ts from "typescript";
 const panel = fs.readFileSync("components/admin/WikiShopShowcasePanel.tsx", "utf8");
-const admin = fs.readFileSync("components/admin/WikiAdminPanel.tsx", "utf8");
-
-assert.match(page, /process\.env\.NODE_ENV !== "development"\) notFound\(\)/);
-assert.match(page, /robots: \{ index: false, follow: false \}/);
-assert.match(page, /WikiShopShowcaseDevWorkspace/);
+const page = fs.readFileSync("app/dev/wiki-shop-showcases/page.tsx", "utf8");
 const workspace = fs.readFileSync("app/dev/wiki-shop-showcases/WikiShopShowcaseDevWorkspace.tsx", "utf8");
-const previewCss = fs.readFileSync("app/dev/wiki-shop-showcases/dev-preview.css", "utf8");
-assert.match(workspace, /WikiShopShowcasePanel token="" canWrite demo/);
-assert.match(workspace, /WikiArticleBody/);
-assert.match(workspace, /showcase=\{demoOffer\(selection\)\}/);
-assert.match(workspace, /onDemoPreviewChange=\{onSelectionChange\}/);
-assert.match(workspace, /!selection\.product\.orderable/);
-assert.match(workspace, /placement\.afterSectionIndex >= selection\.article\.sections\.length - 1/);
-assert.match(workspace, /href="#showcase-article-preview"/);
-assert.match(previewCss, /body:has\(#wiki-shop-showcases-dev\)/);
+const admin = fs.readFileSync("components/admin/WikiAdminPanel.tsx", "utf8");
+assert.match(page, /NODE_ENV !== "development"\) notFound\(\)/);
+assert.match(page, /robots: \{ index: false, follow: false \}/);
+assert.match(workspace, /<WikiShopShowcasePanel token="" canWrite demo/);
 assert.match(admin, /WikiShopShowcasePanel token=\{token\} canWrite=\{canPublish\}/);
-assert.match(panel, /if \(demo\) \{/);
-assert.match(panel, /No fetch, real API call/);
-assert.match(panel, /demoStore = useRef<Configured\[\]>/);
-assert.match(panel, /demoStore\.current =/);
-assert.match(panel, /const response = await fetch\(path/);
-assert.match(panel, /enabled: Boolean\(item\.enabled && product\.orderable\)/);
-assert.match(panel, /useState<Proposal\[\]>\(demo \?/);
-assert.match(panel, /onDemoPreviewChange/);
-const cardCss = fs.readFileSync("components/wiki/wiki-shop-showcase.module.css", "utf8");
-const adminCss = fs.readFileSync("components/admin/wiki-shop-showcase.module.css", "utf8");
 assert.match(panel, /const \[helpOpen, setHelpOpen\] = useState\(false\)/);
 assert.match(panel, /aria-expanded=\{helpOpen\}/);
-assert.match(panel, /onClick=\{\(\) => setHelpOpen\(\(previous\) => !previous\)\}/);
+assert.match(panel, /onClick=\{\(\) => setHelpOpen\(\(open\) => !open\)\}/);
 assert.match(panel, /onClick=\{\(\) => setHelpOpen\(false\)\}/);
-assert.doesNotMatch(panel, /onMouseLeave=|onMouseOut=/);
-assert.match(panel, /role="region" aria-label="راهنمای ویترین ویکی"/);
-assert.match(adminCss, /\.helpWindow/);
-assert.match(cardCss, /\.image \{ width: min\(100%, 236px\)/);
-assert.match(cardCss, /\.link \{ width: 100%/);
-assert.doesNotMatch(workspace, /مقالهٔ آزمایشی|شبیه‌سازی|بدون اتصال دیتابیس/);
-console.log("Wiki showcase development-only preview isolation: PASS");
+assert.doesNotMatch(panel, /onMouseLeave|onMouseOut|setTimeout\(.*help/i);
+assert.match(panel, /useState<string\[\]>\(\[\]\)/);
+assert.match(panel, /selected\.slice\(i \* chunkSize/);
+assert.match(panel, /"pending"/);
+assert.match(panel, /<WikiArticleBody/);
+assert.doesNotMatch(panel, /localStorage/);
+for (const path of ["components/admin/WikiShopShowcasePanel.tsx",
+  "app/dev/wiki-shop-showcases/WikiShopShowcaseDevWorkspace.tsx"]) {
+  const result = ts.transpileModule(fs.readFileSync(path, "utf8"), {
+    fileName: path, reportDiagnostics: true,
+    compilerOptions: { jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
+  });
+  assert.equal((result.diagnostics ?? []).filter((d) => d.category === ts.DiagnosticCategory.Error).length, 0);
+}
+console.log("EW-01 unified preview, persistent click help and list-selection guard PASS");

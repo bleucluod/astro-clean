@@ -1,554 +1,758 @@
 "use client";
 
-import Image from "next/image";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { WikiArticleBody } from "@/components/wiki/WikiArticleRender";
+import { wikiShowcaseSectionAnchor } from "@/lib/wiki/wiki-showcase-anchor";
+import type { WikiArticleSection } from "@/lib/wiki/wiki-content";
+import type { PublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
+import wikiStyles from "@/app/wiki/wiki.module.css";
 import styles from "./wiki-shop-showcase.module.css";
 
-type Product = { id: string; name: string; url: string; image: string | null; orderable: boolean };
-type Article = {
-  articleId: string; articleVersion: number; title: string; slug: string;
-  sections: Array<{ index: number; title: string }>;
+type Product = { id: string; name: string; description: string; url: string;
+  image: string | null; orderable: boolean };
+type SectionRef = { index: number; title: string; anchor: string };
+type Showcase = {
+  articleId: string; productId: string; afterSectionIndex: number;
+  sectionTitle: string; sectionAnchor: string; articleVersion: number;
+  title: string; description: string; buttonLabel: string;
+  enabled: boolean; expectedRevision: number; updatedAt: string;
+  position: number | null; blocked: string | null; disabled: boolean;
+  needsReview: boolean; active: boolean;
+};
+type ArticleRow = {
+  articleId: string; stableId: string; slug: string; title: string; categoryId: string;
+  publicationStatus: string; isPublic: boolean; updatedAt: string;
+  articleVersion: number; sections: SectionRef[];
+  showcase: Showcase | null; hasShowcase: boolean; active: boolean;
+  blocked: string | null; needsReview: boolean; hasPending: boolean;
+  hasRejected: boolean; hasSkipped?: boolean; lastExportedAt: string | null;
 };
 type Proposal = {
+  id: string; articleId: string; articleVersion: number;
+  productId: string; afterSectionIndex: number; sectionAnchor: string;
+  sectionTitle: string; title: string; description: string; buttonLabel: string;
+  status: string; reason: string; sourceBatchId: string; createdAt: string;
+};
+type Draft = {
   articleId: string; articleVersion: number; productId: string;
-  afterSectionIndex: number; sectionTitle: string;
+  afterSectionIndex: number; sectionTitle: string; sectionAnchor: string;
   title: string; description: string; buttonLabel: string;
-  expectedRevision?: number; enabled?: boolean;
+  expectedRevision: number; proposalId?: string; enabled: boolean;
 };
-type Configured = Proposal & {
-  articleTitle: string; slug: string; currentArticleVersion: number;
-  enabled: boolean; expectedRevision: number; stale: boolean;
+type ArticleDetail = {
+  articleId: string; title: string; intro: string; summary: string;
+  sections: WikiArticleSection[]; articleVersion: number;
 };
-type Review = {
-  index: number; valid: boolean; error?: string; articleTitle?: string;
-  slug?: string; item?: Proposal; existing?: boolean; orderable?: boolean;
+type Dashboard = {
+  articles: ArticleRow[]; products: Product[]; proposals: Proposal[];
+  counts: { total: number; missing: number; has: number; active: number;
+    disabled: number; pending: number; review: number };
 };
-
-/** The development-only preview never contains user or production data. */
-export type WikiShopShowcaseDemoSelection = {
-  article: Article;
-  product: Product;
-  placement: Proposal;
-  saved: boolean;
-  enabled: boolean;
-};
-
-// Visual-only demo fixture: never sent to or stored in any database.
-const demoProducts: Product[] = [
-  { id: "p01", name: "ماه آن روز", url: "/shop/moon-phase", image: "/shop-preview/p01/full-both.webp", orderable: true },
-  { id: "p02", name: "آسمان تولد", url: "/shop/birth-sky-map", image: null, orderable: false },
+const EMPTY: Dashboard = { articles: [], products: [], proposals: [],
+  counts: { total: 0, missing: 0, has: 0, active: 0, disabled: 0, pending: 0, review: 0 } };
+const LIMIT = 18;
+const demoSections: WikiArticleSection[] = [
+  { title: "ماه در روز تولد چه شکلی است؟", paragraphs: [
+    "هر تاریخ، شکل خاصی از ماه را در آسمان دارد. از هلال تا ماه کامل، سهم روشن آن در طول ماه تغییر می‌کند.",
+    "دیدن ماهِ روز تولد گاهی خاطره‌ای را زنده می‌کند که مدت‌ها از آن گذشته است.",
+  ] },
+  { title: "چرا شکل ماه هر روز تغییر می‌کند؟", paragraphs: [
+    "ماه به دور زمین می‌گردد و ما از زاویه‌های متفاوتی بخش روشن سطح آن را می‌بینیم.",
+    "به همین دلیل تصویر ماه در دو تاریخ نزدیک هم می‌تواند متفاوت باشد.",
+  ] },
+  { title: "چطور تاریخ دلخواه را انتخاب کنیم؟", paragraphs: [
+    "برای انتخاب یک روز خاص، می‌شود تاریخ تولد، سالگرد یا لحظه‌ای را در نظر گرفت که هنوز برایمان معنا دارد.",
+    "هالیوس شکل ماه همان روز را محاسبه می‌کند و از آن تصویری شخصی می‌سازد.",
+  ] },
+  { title: "جمع‌بندی", paragraphs: [
+    "ماه هر روز چهرهٔ خودش را دارد. گاهی همان چهره یادآور روزی می‌شود که دوست داریم نگهش داریم.",
+  ] },
 ];
-const demoArticles: Article[] = [
-  {
-    articleId: "11111111-1111-4111-8111-111111111111",
-    articleVersion: 1, title: "ماه در روز تولد چه شکلی است؟", slug: "demo-moon",
-    sections: [
-      { index: 0, title: "ماه در روز تولد چه شکلی است؟" },
-      { index: 1, title: "چرا شکل ماه هر روز تغییر می‌کند؟" },
-      { index: 2, title: "چطور تاریخ دلخواه را انتخاب کنیم؟" },
-      { index: 3, title: "جمع‌بندی" },
-    ],
-  },
-  {
-    articleId: "22222222-2222-4222-8222-222222222222",
-    articleVersion: 1, title: "آسمان تولد؛ نقش زمان و مکان", slug: "demo-sky",
-    sections: [
-      { index: 0, title: "آسمان تولد چیست؟" },
-      { index: 1, title: "نقش ساعت و شهر تولد" },
-      { index: 2, title: "صورت‌های فلکی در آسمان" },
-      { index: 3, title: "سخن آخر" },
-    ],
-  },
-];
+const demoDetail: ArticleDetail = {
+  articleId: "11111111-1111-4111-8111-111111111111",
+  title: "ماه در روز تولد چه شکلی است؟", intro: "ماه هر روز چهرهٔ خودش را دارد.",
+  summary: "", articleVersion: 1, sections: demoSections,
+};
+const demoProduct: Product = {
+  id: "p01", name: "ماه آن روز", description: "تابلو ماه در تاریخ دلخواه",
+  url: "/shop/moon-phase-print", image: "/shop-preview/p01/full-both.webp", orderable: true,
+};
+function demoDashboard(): Dashboard {
+  const ref: SectionRef[] = demoSections.map((section, index) => ({
+    index, title: section.title, anchor: wikiShowcaseSectionAnchor(section),
+  }));
+  const main: ArticleRow = {
+    articleId: demoDetail.articleId, stableId: "demo-moon", slug: "demo-moon",
+    title: demoDetail.title, categoryId: "moon", publicationStatus: "published",
+    isPublic: true, updatedAt: new Date().toISOString(), articleVersion: 1,
+    sections: ref, showcase: null, hasShowcase: false, active: false,
+    blocked: null, needsReview: false, hasPending: true, hasRejected: false, lastExportedAt: null,
+  };
+  const second: ArticleRow = {
+    ...main, articleId: "22222222-2222-4222-8222-222222222222",
+    stableId: "demo-sky", slug: "demo-sky", title: "آسمان تولد",
+    hasPending: false,
+  };
+  return {
+    articles: [main, second], products: [demoProduct, {
+      id: "p02", name: "آسمان تولد", description: "تابلوی آسمان تولد",
+      url: "/shop/birth-sky-map", image: "/shop-preview/p02/05-raha-parsa-30x45-wall.webp", orderable: false,
+    }],
+    proposals: [{
+      id: "33333333-3333-4333-8333-333333333333", articleId: main.articleId,
+      articleVersion: 1, productId: "p01", afterSectionIndex: 1,
+      sectionTitle: demoSections[1].title, sectionAnchor: ref[1].anchor,
+      title: "ماه آن روز؛ یادگاری یک تاریخ خاص",
+      description: "شکل ماه در روزی که برای تو عزیز است، در تابلویی شخصی و ماندگار.",
+      buttonLabel: "دیدن تابلو ماه آن روز", status: "pending", reason: "",
+      sourceBatchId: "demo", createdAt: new Date().toISOString(),
+    }],
+    counts: { total: 2, missing: 2, has: 0, active: 0, disabled: 0, pending: 1, review: 0 },
+  };
+}
+const formatCount = (n: number) => n.toLocaleString("fa-IR");
 
-export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPreviewChange }: {
+function validPosition(row: ArticleRow, draft: Draft): SectionRef | undefined {
+  return row.sections.find((section) => section.index === draft.afterSectionIndex &&
+    section.title === draft.sectionTitle && section.anchor === draft.sectionAnchor &&
+    section.index < row.sections.length - 1 &&
+    (row.sections.length < 4 || section.index > 0));
+}
+function draftFor(row: ArticleRow, productId: string, proposal?: Proposal): Draft {
+  const selected = row.showcase;
+  const first = row.sections.find((section) => section.index < row.sections.length - 1 &&
+    (row.sections.length < 4 || section.index > 0)) ?? row.sections[0];
+  const from = proposal ?? selected;
+  const matching = row.sections.find((section) => section.anchor === from?.sectionAnchor &&
+    section.index < row.sections.length - 1) ??
+    row.sections.find((section) => section.title === from?.sectionTitle &&
+      section.index < row.sections.length - 1);
+  // An existing approved placement with no matching section must never be silently moved.
+  const chosen = from ? matching : first;
+  return {
+    articleId: row.articleId, articleVersion: proposal?.articleVersion ?? row.articleVersion,
+    productId: from?.productId ?? productId,
+    afterSectionIndex: chosen?.index ?? -1,
+    sectionTitle: chosen?.title ?? "", sectionAnchor: chosen?.anchor ?? "",
+    title: from?.title ?? "", description: from?.description ?? "",
+    buttonLabel: from?.buttonLabel ?? "دیدن محصول",
+    expectedRevision: selected?.expectedRevision ?? 0,
+    ...(proposal ? { proposalId: proposal.id } : {}),
+    enabled: true,
+  };
+}
+
+export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   token: string; canWrite: boolean; demo?: boolean;
-  onDemoPreviewChange?: (selection: WikiShopShowcaseDemoSelection | null) => void;
 }) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [configured, setConfigured] = useState<Configured[]>([]);
-  const [drafts, setDrafts] = useState<Proposal[]>(demo ? [{
-    articleId: demoArticles[0].articleId,
-    articleVersion: demoArticles[0].articleVersion,
-    productId: "p01",
-    afterSectionIndex: 1,
-    sectionTitle: demoArticles[0].sections[1].title,
-    title: "ماه آن روز؛ یادگاری یک تاریخ خاص",
-    description: "شکل ماه در روزی که برای تو عزیز است، در تابلویی شخصی و ماندگار.",
-    buttonLabel: "دیدن تابلو ماه آن روز",
-    enabled: false,
-  }] : []);
-  const [activeDraft, setActiveDraft] = useState(0);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [approved, setApproved] = useState<number[]>([]);
-  const [publish, setPublish] = useState<Record<number, boolean>>({});
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [data, setData] = useState<Dashboard>(demo ? demoDashboard() : EMPTY);
+  const store = useRef<Dashboard>(demo ? demoDashboard() : EMPTY);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [category, setCategory] = useState("all");
+  const [publication, setPublication] = useState("all");
+  const [productFilter, setProductFilter] = useState("all");
+  const [sort, setSort] = useState("title");
+  const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [productIds, setProductIds] = useState<string[]>(demo ? ["p01"] : []);
+  const [checkedProposals, setCheckedProposals] = useState<string[]>([]);
+  const [edits, setEdits] = useState<Record<string, Draft>>({});
+  const [focusedId, setFocusedId] = useState<string>(demo ? demoDetail.articleId : "");
+  const [detail, setDetail] = useState<ArticleDetail | null>(demo ? demoDetail : null);
+  const [draft, setDraft] = useState<Draft | null>(() => {
+    if (!demo) return null;
+    const sample = demoDashboard();
+    return draftFor(sample.articles[0], "p01", sample.proposals[0]);
+  });
   const [helpOpen, setHelpOpen] = useState(false);
   const helpId = useId();
-  const demoStore = useRef<Configured[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+  const articleMap = useMemo(() => new Map(data.articles.map((a) => [a.articleId, a])), [data.articles]);
+  const productMap = useMemo(() => new Map(data.products.map((p) => [p.id, p])), [data.products]);
 
-  useEffect(() => {
-    if (!demo || !onDemoPreviewChange) return;
-    const focusedDraft = drafts[activeDraft] ?? drafts[0];
-    const savedPlacement = configured[0];
-    const placement = focusedDraft ?? savedPlacement;
-    const article = demoArticles.find((item) => item.articleId === placement?.articleId);
-    const product = demoProducts.find((item) => item.id === placement?.productId);
-    onDemoPreviewChange(placement && article && product
-      ? { article, product, placement,
-          saved: !focusedDraft,
-          enabled: !focusedDraft && Boolean(savedPlacement?.enabled) }
-      : null);
-  }, [demo, drafts, activeDraft, configured, onDemoPreviewChange]);
-
-  const api = useCallback(async <T extends Record<string, unknown>>(
-    path: string, options: RequestInit = {},
-  ): Promise<T> => {
-    if (demo) {
-      // No fetch, real API call, authentication bypass or persistent mutation in demo mode.
-      const method = (options.method ?? "GET").toUpperCase();
-      if (method === "GET" && path.includes("mode=export")) {
-        return {
-          ok: true,
-          guide: {
-            schemaVersion: 1,
-            demoOnly: true,
-            instructions: ["These articles and product availability are illustrative, not live data.",
-              "Select a relevant product and place it between H2 sections, never after the last section.",
-              "AI suggestions require manual review; this demo saves nothing to the server."],
-            products: demoProducts,
-            articles: demoArticles.map((article) => ({
-              ...article, allowedAfterSectionIndexes: [1, 2],
-              sections: article.sections.map((section) => ({
-                afterSectionIndex: section.index, sectionTitle: section.title,
-                text: "متن نمونه برای بررسی محل قرارگیری ویترین؛ این مقاله واقعی نیست.",
-              })),
-            })),
-          },
-        } as unknown as T;
-      }
-      if (method === "GET") {
-        return { ok: true, products: demoProducts, articles: demoArticles,
-          configured: demoStore.current } as unknown as T;
-      }
-      const body = JSON.parse(String(options.body ?? "{}")) as {
-        action?: string; proposals?: Proposal[]; items?: Proposal[];
-      };
-      if (method === "POST" && body.action === "preview") {
-        const reviews: Review[] = (body.proposals ?? []).map((item, index) => {
-          const article = demoArticles.find((a) => a.articleId === item.articleId);
-          const product = demoProducts.find((p) => p.id === item.productId);
-          const valid = Boolean(article && product &&
-            item.articleVersion === article.articleVersion &&
-            item.afterSectionIndex > 0 &&
-            item.afterSectionIndex < article.sections.length - 1 &&
-            article.sections[item.afterSectionIndex].title === item.sectionTitle &&
-            item.title?.trim() && item.description?.trim() && item.buttonLabel?.trim());
-          const existing = demoStore.current.find((c) => c.articleId === item.articleId);
-          return { index, valid, error: valid ? undefined : "مقاله، جایگاه یا متن نامعتبر است",
-            articleTitle: article?.title, slug: article?.slug,
-            existing: Boolean(existing), orderable: product?.orderable ?? false,
-            item: valid ? { ...item, expectedRevision: existing?.expectedRevision ?? 0 } : undefined };
-        });
-        return { ok: true, reviews } as unknown as T;
-      }
-      if (method === "PUT" && body.action === "apply") {
-        for (const item of body.items ?? []) {
-          const article = demoArticles.find((a) => a.articleId === item.articleId);
-          const product = demoProducts.find((p) => p.id === item.productId);
-          if (!article || !product) throw new Error("Invalid demo selection");
-          const old = demoStore.current.find((c) => c.articleId === item.articleId);
-          const saved: Configured = {
-            ...item, articleTitle: article.title, slug: article.slug,
-            currentArticleVersion: article.articleVersion, stale: false,
-            enabled: Boolean(item.enabled && product.orderable),
-            expectedRevision: (old?.expectedRevision ?? 0) + 1,
-          };
-          demoStore.current = [...demoStore.current.filter((c) => c.articleId !== item.articleId), saved];
-        }
-        return { ok: true, updatedCount: (body.items ?? []).length } as unknown as T;
-      }
-      throw new Error("Unsupported demo request");
-    }
-    const response = await fetch(path, {
-      ...options, cache: "no-store",
-      headers: {
-        authorization: "Bearer " + token,
-        ...(options.body ? { "content-type": "application/json" } : {}),
-        ...options.headers,
-      },
+  const jsonRequest = useCallback(async <T,>(body: unknown): Promise<T> => {
+    const response = await fetch("/api/admin/wiki/shop-showcases", {
+      method: "POST", cache: "no-store",
+      headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+      body: JSON.stringify(body),
     });
-    const body = await response.json() as Record<string, unknown>;
-    if (!response.ok || body.ok !== true) {
-      throw new Error(typeof body.error === "string" ? body.error : "درخواست پنل انجام نشد.");
-    }
-    return body as T;
-  }, [token, demo]);
+    const parsed = await response.json() as { ok: boolean; error?: string };
+    if (!response.ok || !parsed.ok) throw new Error(parsed.error ?? "درخواست انجام نشد");
+    return parsed as unknown as T;
+  }, [token]);
 
   const refresh = useCallback(async () => {
-    const data = await api<{
-      ok: true; products: Product[]; articles: Article[]; configured: Configured[];
-    }>("/api/admin/wiki/shop-showcases");
-    setProducts(data.products);
-    setArticles(data.articles);
-    setConfigured(data.configured);
-  }, [api]);
+    if (demo) { setData({ ...store.current }); return; }
+    const response = await fetch("/api/admin/wiki/shop-showcases", {
+      headers: { authorization: "Bearer " + token }, cache: "no-store",
+    });
+    const body = await response.json() as Dashboard & { ok: boolean; error?: string };
+    if (!response.ok || !body.ok) throw new Error(body.error ?? "دریافت مقاله‌ها انجام نشد");
+    setData(body);
+    setProductIds((old) => old.length ? old :
+      body.products.filter((p) => p.orderable).map((p) => p.id));
+  }, [token, demo]);
+  useEffect(() => { void refresh().catch((cause) => setError(String(cause))); }, [refresh]);
 
   useEffect(() => {
-    void refresh().catch((cause) => setError(cause instanceof Error ? cause.message : "بارگذاری ویترین انجام نشد."));
-  }, [refresh]);
+    if (!focusedId) { setDetail(null); return; }
+    if (demo) { setDetail({ ...demoDetail, articleId: focusedId,
+      title: data.articles.find((a) => a.articleId === focusedId)?.title ?? demoDetail.title }); return; }
+    let active = true;
+    setDetail(null);
+    void (async () => {
+      try {
+        const response = await fetch("/api/admin/wiki/shop-showcases?mode=article&articleId=" +
+          encodeURIComponent(focusedId), {
+          headers: { authorization: "Bearer " + token }, cache: "no-store",
+        });
+        const body = await response.json() as { ok: boolean; article?: ArticleDetail; error?: string };
+        if (!response.ok || !body.ok || !body.article) throw new Error(body.error ?? "متن مقاله پیدا نشد");
+        if (active) setDetail(body.article);
+      } catch (cause) { if (active) setError(String(cause)); }
+    })();
+    return () => { active = false; };
+  }, [focusedId, token, demo, data.articles]);
 
-  const selectedProduct = (id: string) => products.find((p) => p.id === id);
-  const selectedArticle = (id: string) => articles.find((a) => a.articleId === id);
-  const availablePositions = (article?: Article) =>
-    article?.sections.filter((section) =>
-      section.index < article.sections.length - 1 &&
-      (article.sections.length < 4 || section.index > 0)) ?? [];
+  const filtered = useMemo(() => {
+    const q = query.toLocaleLowerCase("fa").trim();
+    const rows = data.articles.filter((a) => {
+      if (q && ![a.title, a.slug, a.articleId, a.stableId]
+        .some((text) => text.toLocaleLowerCase("fa").includes(q))) return false;
+      if (category !== "all" && a.categoryId !== category) return false;
+      if (publication !== "all" && a.publicationStatus !== publication) return false;
+      if (productFilter !== "all" && a.showcase?.productId !== productFilter) return false;
+      if (status === "missing" && a.hasShowcase) return false;
+      if (status === "has" && !a.hasShowcase) return false;
+      if (status === "active" && !a.active) return false;
+      if (status === "disabled" && !a.showcase?.disabled) return false;
+      if (status === "pending" && !a.hasPending) return false;
+      if (status === "rejected" && !a.hasRejected) return false;
+      if (status === "review" && !a.needsReview) return false;
+      if (status === "blocked" && !(a.hasShowcase && a.blocked)) return false;
+      return true;
+    });
+    rows.sort((a, b) => sort === "recent"
+      ? b.updatedAt.localeCompare(a.updatedAt)
+      : sort === "status"
+        ? Number(b.hasShowcase) - Number(a.hasShowcase) || a.title.localeCompare(b.title, "fa")
+        : a.title.localeCompare(b.title, "fa"));
+    return rows;
+  }, [data.articles, query, status, category, publication, productFilter, sort]);
 
-  function updateDraft(index: number, change: Partial<Proposal>) {
-    if (demo) setActiveDraft(index);
-    setDrafts((old) => old.map((item, i) => i === index ? { ...item, ...change } : item));
-    setReviews([]);
-    setApproved([]);
-    setMessage("");
+  const visibleRows = filtered.slice(page * LIMIT, (page + 1) * LIMIT);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / LIMIT));
+  const categories = [...new Set(data.articles.map((a) => a.categoryId))].sort();
+  const filteredIds = filtered.map((a) => a.articleId);
+  const pending = data.proposals.filter((p) => p.status === "pending");
+  const rejected = data.proposals.filter((p) => p.status === "rejected");
+  const focusRow = articleMap.get(focusedId);
+  const currentProduct = draft ? productMap.get(draft.productId) : null;
+  const positionValid = draft && focusRow ? validPosition(focusRow, draft) : null;
+  const previewOffer: PublicWikiShopShowcase | null = draft && positionValid &&
+    currentProduct?.image && currentProduct.orderable &&
+    draft.title.trim() && draft.description.trim() && draft.buttonLabel.trim() ? {
+      productId: draft.productId as PublicWikiShopShowcase["productId"],
+      afterSectionIndex: draft.afterSectionIndex, sectionTitle: draft.sectionTitle,
+      title: draft.title, description: draft.description, buttonLabel: draft.buttonLabel,
+      url: currentProduct.url, image: currentProduct.image,
+      imageAlt: currentProduct.name,
+    } : null;
+
+  function focusArticle(row: ArticleRow, suggestion?: Proposal) {
+    setFocusedId(row.articleId);
+    setDraft(draftFor(row, data.products.find((p) => p.orderable)?.id ?? "p01", suggestion));
   }
-
-  function addManual() {
-    const article = articles.find((a) => availablePositions(a).length > 0);
-    const firstSection = availablePositions(article)[0];
-    const product = products.find((p) => p.orderable) ?? products[0];
-    if (!article || !firstSection || !product) {
-      setError("مقاله یا محصول مناسبی برای ویترین پیدا نشد.");
-      return;
-    }
-    if (demo) setActiveDraft(drafts.length);
-    setDrafts((old) => [...old, {
-      articleId: article.articleId, articleVersion: article.articleVersion,
-      productId: product.id, afterSectionIndex: firstSection.index,
-      sectionTitle: firstSection.title, title: product.name,
-      description: "", buttonLabel: "مشاهدهٔ تابلو",
-    }]);
-    setReviews([]);
-    setApproved([]);
+  function focusProposal(proposal: Proposal) {
+    const row = articleMap.get(proposal.articleId);
+    if (!row) return;
+    setFocusedId(row.articleId);
+    setDraft(edits[proposal.id] ?? draftFor(row, proposal.productId, proposal));
   }
-
-  async function downloadGuide() {
-    setBusy(true); setError(""); setMessage("");
-    try {
-      const data = await api<{ ok: true; guide: unknown }>(
-        "/api/admin/wiki/shop-showcases?mode=export",
-      );
-      const blob = new Blob([JSON.stringify(data.guide, null, 2)], {
-        type: "application/json;charset=utf-8",
-      });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "halleus-wiki-shop-showcases-ai-guide.json";
-      document.body.append(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-      setMessage("فایل آماده‌ست.");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "دانلود انجام نشد.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function importProposals(file: File | null) {
-    if (!file) return;
-    setError(""); setMessage(""); setReviews([]); setApproved([]);
-    try {
-      if (file.size > 8_000_000 || !file.name.toLowerCase().endsWith(".json")) {
-        throw new Error("فقط فایل JSON حداکثر ۸ مگابایت پذیرفته می‌شود.");
-      }
-      const parsed: unknown = JSON.parse(await file.text());
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        throw new Error("فرمت بسته نامعتبر است.");
-      }
-      const packageObject = parsed as Record<string, unknown>;
-      if (packageObject.schemaVersion !== 1 || !Array.isArray(packageObject.proposals) ||
-        packageObject.proposals.length > 500) {
-        throw new Error("بسته باید schemaVersion=1 و proposals معتبر داشته باشد.");
-      }
-      const safe = packageObject.proposals.map((raw): Proposal => {
-        const p = raw && typeof raw === "object" && !Array.isArray(raw)
-          ? raw as Record<string, unknown> : {};
-        const value = (key: string) => typeof p[key] === "string" ? p[key] as string : "";
-        return {
-          articleId: value("articleId"),
-          articleVersion: Number.isSafeInteger(p.articleVersion) ? p.articleVersion as number : 0,
-          productId: value("productId"),
-          afterSectionIndex: Number.isSafeInteger(p.afterSectionIndex) ? p.afterSectionIndex as number : -1,
-          sectionTitle: value("sectionTitle"),
-          title: value("title"),
-          description: value("description"),
-          buttonLabel: value("buttonLabel"),
-          expectedRevision: 0,
-          enabled: false,
-        };
-      });
-      setActiveDraft(0);
-      setDrafts(safe);
-      setMessage("پیشنهادها آمادهٔ بررسی‌اند.");
-    } catch (cause) {
-      setDrafts([]);
-      setError(cause instanceof Error ? cause.message : "خواندن بسته ناموفق بود.");
-    }
-  }
-
-  async function preview() {
-    setBusy(true); setError(""); setMessage(""); setApproved([]);
-    try {
-      const result = await api<{ ok: true; reviews: Review[] }>(
-        "/api/admin/wiki/shop-showcases", {
-          method: "POST",
-          body: JSON.stringify({ action: "preview", proposals: drafts }),
-        },
-      );
-      setReviews(result.reviews);
-      setDrafts((old) => old.map((item, i) => {
-        const reviewed = result.reviews[i];
-        return reviewed?.valid && reviewed.item ? { ...item, ...reviewed.item } : item;
-      }));
-      setMessage("پیشنهادها بررسی شدند.");
-    } catch (cause) {
-      setReviews([]);
-      setError(cause instanceof Error ? cause.message : "بازبینی ناموفق بود.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function apply(items: Proposal[]) {
-    if (!items.length) return;
-    if (items.length > 100) {
-      setError("در هر نوبت حداکثر ۱۰۰ ویترین را ذخیره کن.");
-      return;
-    }
-    setBusy(true); setError(""); setMessage("");
-    try {
-      await api<{ ok: true; updatedCount: number }>(
-        "/api/admin/wiki/shop-showcases", {
-          method: "PUT",
-          body: JSON.stringify({ action: "apply", items }),
-        },
-      );
-      setMessage(items.length.toLocaleString("fa-IR") + " ویترین با موفقیت ذخیره شد.");
-      setDrafts([]); setReviews([]); setApproved([]);
-      await refresh();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "ذخیره ناموفق بود.");
-      // A failed batch is atomic; keep every reviewed proposal for correction.
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const selectedItems = reviews.filter((r) => r.valid && approved.includes(r.index) && r.item)
-    .map((r) => ({
-      ...r.item!,
-      enabled: Boolean(publish[r.index]) && Boolean(r.orderable),
+  function updateDraft(change: Partial<Draft>) {
+    if (!draft) return;
+    const next = { ...draft, ...change };
+    setDraft(next);
+    if (next.proposalId) setEdits((previous) => ({
+      ...previous, [next.proposalId as string]: next,
     }));
+    setNotice("");
+  }
+  const selectedPublish = checkedProposals.map((id) => data.proposals.find((p) => p.id === id))
+    .filter((p): p is Proposal => Boolean(p));
+  function itemForProposal(p: Proposal): Draft | null {
+    const row = articleMap.get(p.articleId);
+    if (!row) return null;
+    return edits[p.id] ?? draftFor(row, p.productId, p);
+  }
+  const eligibleProposal = (p: Proposal) => {
+    const row = articleMap.get(p.articleId), item = itemForProposal(p);
+    return Boolean(row && item && row.isPublic && productMap.get(item.productId)?.orderable &&
+      item.articleVersion === row.articleVersion && validPosition(row, item) &&
+      item.title.trim() && item.description.trim() && item.buttonLabel.trim());
+  };
 
-  return (
-    <section className={styles.panel} dir="rtl" data-demo={demo ? "true" : undefined}>
-      <header className={styles.header}>
-        <div className={styles.titleGroup}>
-          <h2>ویترین ویکی</h2>
-          {demo ? <span className={styles.demoLabel}>نمونه</span> : null}
-          <div className={styles.helpAnchor}>
-            <button type="button" className={styles.helpButton}
-              aria-label="راهنمای ویترین ویکی" title="راهنما"
-              aria-expanded={helpOpen} aria-controls={helpId}
-              onClick={() => setHelpOpen((previous) => !previous)}>؟</button>
-            {helpOpen ? (
-              <div className={styles.helpWindow} id={helpId} role="region" aria-label="راهنمای ویترین ویکی">
-                <div className={styles.helpHeading}>
-                  <strong>راهنمای ویترین</strong>
-                  <button type="button" className={styles.helpClose} onClick={() => setHelpOpen(false)}>بستن ×</button>
-                </div>
-                <ol>
-                  <li>فهرست مقاله‌ها و محصولات رو برای AI بفرست.</li>
-                  <li>پیشنهادهای AI رو وارد کن یا یک ویترین دستی بساز.</li>
-                  <li>متن و جایگاه کارت رو ببین، بعد موارد دلخواهت رو تأیید و ذخیره کن.</li>
-                </ol>
-                <p>کارت بین بخش‌های مقاله قرار می‌گیره، نه در انتهای اون. محصولی که فروشش بسته باشه برای خرید نمایش داده نمی‌شه.</p>
-                {demo ? <p>این صفحه با داده‌های نمونه کار می‌کنه و چیزی روی سایت یا دیتابیس ذخیره نمی‌شه.</p> : null}
-              </div>
-            ) : null}
-          </div>
-        </div>
-        <button type="button" onClick={() => void downloadGuide()} disabled={busy}>
-          دریافت فایل برای AI
-        </button>
-      </header>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
-      {message ? <p className={styles.success} role="status">{message}</p> : null}
-      <div className={styles.summary}>
-        <span>مقاله‌ها: {articles.length.toLocaleString("fa-IR")}</span>
-        <span>محصول‌ها: {products.length.toLocaleString("fa-IR")}</span>
-        <span>ویترین‌ها: {configured.length.toLocaleString("fa-IR")}</span>
-      </div>
-      {canWrite ? (
-        <>
-          <div className={styles.toolbar}>
-            <label className={styles.file}>
-              <span>ورود فایل پیشنهادهای AI</span>
-              <input type="file" accept=".json,application/json" aria-label="انتخاب فایل JSON پیشنهادهای AI"
-                onChange={(event) => {
-                  void importProposals(event.target.files?.[0] ?? null);
-                  event.target.value = "";
-                }} />
-            </label>
-            <button type="button" onClick={addManual} disabled={busy}>+ افزودن دستی</button>
-            <button type="button" onClick={() => void preview()} disabled={busy || !drafts.length}>
-              بررسی پیشنهادها
-            </button>
-          </div>
-          {drafts.length ? (
-            <div className={styles.review}>
-              <h3>بازبینی پیشنهادها ({drafts.length.toLocaleString("fa-IR")})</h3>
-              {drafts.map((draft, index) => {
-                const article = selectedArticle(draft.articleId);
-                const product = selectedProduct(draft.productId);
-                const review = reviews[index];
-                return (
-                  <div className={styles.item} key={index} data-demo-active={demo && index === activeDraft ? "true" : undefined}>
-                    <div className={styles.row}>
-                      <strong>پیشنهاد {Number(index + 1).toLocaleString("fa-IR")}</strong>
-                      {review ? <span className={review.valid ? styles.valid : styles.invalid}>
-                        {review.valid ? "معتبر" : review.error}
-                      </span> : <span>نیازمند بازبینی</span>}
-                    </div>
-                    <div className={styles.fields}>
-                      <label>مقاله
-                        <select value={draft.articleId} onChange={(event) => {
-                          const next = selectedArticle(event.target.value);
-                          const at = availablePositions(next)[0];
-                          updateDraft(index, {
-                            articleId: next?.articleId ?? event.target.value,
-                            articleVersion: next?.articleVersion ?? 0,
-                            afterSectionIndex: at?.index ?? 0, sectionTitle: at?.title ?? "",
-                            expectedRevision: configured.find((c) => c.articleId === next?.articleId)?.expectedRevision ?? 0,
-                          });
-                        }}>
-                          {!article ? <option value={draft.articleId}>{draft.articleId} (نامعتبر)</option> : null}
-                          {articles.map((a) => <option key={a.articleId} value={a.articleId}>{a.title}</option>)}
-                        </select>
-                      </label>
-                      <label>محصول
-                        <select value={draft.productId} onChange={(event) => updateDraft(index, {
-                          productId: event.target.value,
-                          title: selectedProduct(event.target.value)?.name ?? draft.title,
-                        })}>
-                          {!product ? <option value={draft.productId}>{draft.productId} (نامعتبر)</option> : null}
-                          {products.map((p) => <option key={p.id} value={p.id}>
-                            {p.name}{p.orderable ? "" : " (فروش بسته)"}
-                          </option>)}
-                        </select>
-                      </label>
-                      <label>موقعیت میان مقاله
-                        <select value={draft.afterSectionIndex} onChange={(event) => {
-                          const afterSectionIndex = Number(event.target.value);
-                          const sectionTitle = article?.sections[afterSectionIndex]?.title ?? "";
-                          updateDraft(index, { afterSectionIndex, sectionTitle });
-                        }}>
-                          {!availablePositions(article).some((s) => s.index === draft.afterSectionIndex) ?
-                            <option value={draft.afterSectionIndex}>جایگاه نامعتبر/قدیمی</option> : null}
-                          {availablePositions(article).map((s) => <option key={s.index} value={s.index}>
-                            بعد از: {s.title}
-                          </option>)}
-                        </select>
-                      </label>
-                      <label>عنوان کارت
-                        <input maxLength={160} value={draft.title ?? ""}
-                          onChange={(event) => updateDraft(index, { title: event.target.value })} />
-                      </label>
-                      <label className={styles.wide}>متن معرفی
-                        <textarea maxLength={500} rows={2} value={draft.description ?? ""}
-                          onChange={(event) => updateDraft(index, { description: event.target.value })} />
-                      </label>
-                      <label>متن لینک
-                        <input maxLength={80} value={draft.buttonLabel ?? ""}
-                          onChange={(event) => updateDraft(index, { buttonLabel: event.target.value })} />
-                      </label>
-                    </div>
-                    {!demo ? <div className={styles.mock}>
-                      {product?.image ? <Image src={product.image} width={96} height={120} alt="" /> : null}
-                      <div><small>پیش‌نمایش ویترین · {article?.title ?? "مقاله نامعتبر"}</small>
-                        <strong>{draft.title}</strong>
-                        <p>{draft.description}</p>
-                        <span>{draft.buttonLabel}</span>
-                      </div>
-                    </div> : null}
-                    {review?.valid ? (
-                      <div className={styles.row}>
-                        <label className={styles.check}><input type="checkbox" checked={approved.includes(index)}
-                          onChange={(event) => setApproved((old) => event.target.checked
-                            ? [...old, index] : old.filter((i) => i !== index))} /> تأیید و ذخیرهٔ این پیشنهاد</label>
-                        <label className={styles.check}><input type="checkbox" disabled={!approved.includes(index) || !review.orderable}
-                          checked={Boolean(publish[index]) && approved.includes(index) && Boolean(review.orderable)}
-                          onChange={(event) => setPublish((old) => ({ ...old, [index]: event.target.checked }))} />
-                          فعال‌سازی نمایش در سایت
-                        </label>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-              <div className={styles.row}>
-                <button disabled={busy || !selectedItems.length} type="button"
-                  onClick={() => void apply(selectedItems)}>
-                  ذخیرهٔ {selectedItems.length.toLocaleString("fa-IR")} پیشنهاد تأییدشده
-                </button>
-                <button type="button" disabled={busy} onClick={() => {
-                  setDrafts([]); setReviews([]); setApproved([]);
-                }}>بستن بسته</button>
-              </div>
-            </div>
-          ) : null}
-        </>
-      ) : <p className={styles.empty}>برای ویرایش ویترین به دسترسی انتشار نیاز داری.</p>}
+  async function operation(task: () => Promise<void>) {
+    setLoading(true); setError(""); setNotice("");
+    try { await task(); } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "درخواست انجام نشد");
+    } finally { setLoading(false); }
+  }
+  function updateDemoPublish(items: Draft[], enabled: boolean) {
+    const storeData = store.current;
+    const nextArticles = storeData.articles.map((a) => {
+      const item = items.find((it) => it.articleId === a.articleId);
+      if (!item) return a;
+      const showcase: Showcase = {
+        ...item, enabled, expectedRevision: (a.showcase?.expectedRevision ?? 0) + 1,
+        updatedAt: new Date().toISOString(), position: item.afterSectionIndex,
+        active: enabled, needsReview: false, blocked: null, disabled: !enabled,
+      };
+      return { ...a, showcase, hasShowcase: true, active: enabled,
+        hasPending: false, needsReview: false, blocked: null };
+    });
+    const nextProposals = storeData.proposals.map((p) =>
+      items.some((i) => i.proposalId === p.id) ? { ...p, status: "published" } : p);
+    store.current = { ...storeData, articles: nextArticles, proposals: nextProposals, counts: {
+      total: nextArticles.length, missing: nextArticles.filter((a) => !a.hasShowcase).length,
+      has: nextArticles.filter((a) => a.hasShowcase).length,
+      active: nextArticles.filter((a) => a.active).length,
+      disabled: nextArticles.filter((a) => a.showcase?.disabled).length,
+      pending: nextProposals.filter((p) => p.status === "pending").length,
+      review: 0,
+    } };
+    setData({ ...store.current });
+  }
+  async function publishSelected() {
+    const items = selectedPublish.map(itemForProposal).filter((item): item is Draft => Boolean(item));
+    if (!items.length || selectedPublish.some((p) => !eligibleProposal(p))) {
+      setError("پیشنهادهای انتخاب‌شده رو بررسی کن؛ محصول، نسخه یا جایگاه بعضی‌ها معتبر نیست."); return;
+    }
+    if (!window.confirm(`تأیید و انتشار ${formatCount(items.length)} ویترین انجام بشه؟`)) return;
+    await operation(async () => {
+      if (demo) {
+        updateDemoPublish(items, true);
+        setCheckedProposals([]);
+        setNotice(`${formatCount(items.length)} ویترین منتشر شد.`);
+        return;
+      }
+      const published: string[] = [], failures: string[] = [];
+      for (let index = 0; index < selectedPublish.length; index += 50) {
+        const group = selectedPublish.slice(index, index + 50);
+        try {
+          await jsonRequest({ action: "publish", items: group.map((proposal) => ({
+            ...itemForProposal(proposal), enabled: true,
+          })) });
+          published.push(...group.map((proposal) => proposal.id));
+        } catch (cause) {
+          failures.push(cause instanceof Error ? cause.message : "خطای انتشار");
+        }
+      }
+      await refresh();
+      setCheckedProposals((old) => old.filter((id) => !published.includes(id)));
+      if (!failures.length) setDraft(null);
+      setNotice(`${formatCount(published.length)} ویترین منتشر شد.`);
+      if (failures.length) setError(`${formatCount(failures.length)} دسته ناموفق: ${failures.join("؛ ")}`);
+    });
+  }
+  async function publishManual() {
+    if (!draft || !focusRow || !focusRow.isPublic || !currentProduct?.orderable ||
+      !positionValid || !draft.title.trim() || !draft.description.trim() ||
+      !draft.buttonLabel.trim() || draft.articleVersion !== focusRow.articleVersion) {
+      setError("مقاله، محصول، محل نمایش و متن رو بررسی کن."); return;
+    }
+    if (!window.confirm("این ویترین تأیید و منتشر بشه؟")) return;
+    await operation(async () => {
+      if (demo) updateDemoPublish([draft], true);
+      else { await jsonRequest({ action: "publish", items: [{ ...draft, enabled: true }] }); await refresh(); }
+      setNotice("ویترین منتشر شد.");
+    });
+  }
+  async function rejectChecked() {
+    if (!checkedProposals.length ||
+      !window.confirm(`رد ${formatCount(checkedProposals.length)} پیشنهاد انجام بشه؟`)) return;
+    await operation(async () => {
+      if (demo) {
+        store.current.proposals = store.current.proposals.map((p) =>
+          checkedProposals.includes(p.id) ? { ...p, status: "rejected" } : p);
+        setData({ ...store.current });
+        setCheckedProposals([]);
+        setNotice("پیشنهادها رد شدند.");
+        return;
+      }
+      const rejectedIds: string[] = [], failures: string[] = [];
+      for (let index = 0; index < checkedProposals.length; index += 50) {
+        const ids = checkedProposals.slice(index, index + 50);
+        try {
+          await jsonRequest({ action: "reject", proposalIds: ids });
+          rejectedIds.push(...ids);
+        } catch (cause) {
+          failures.push(cause instanceof Error ? cause.message : "خطای رد پیشنهاد");
+        }
+      }
+      await refresh();
+      setCheckedProposals((old) => old.filter((id) => !rejectedIds.includes(id)));
+      if (!failures.length) setDraft(null);
+      setNotice(`${formatCount(rejectedIds.length)} پیشنهاد رد شد.`);
+      if (failures.length) setError(`${formatCount(failures.length)} دسته ناموفق: ${failures.join("؛ ")}`);
+    });
+  }
+  async function reopenProposal(id: string) {
+    await operation(async () => {
+      if (demo) {
+        store.current.proposals = store.current.proposals.map((p) =>
+          p.id === id ? { ...p, status: "pending" } : p);
+        setData({ ...store.current });
+      } else {
+        await jsonRequest({ action: "reopen", proposalIds: [id] });
+        await refresh();
+      }
+      setNotice("پیشنهاد به صف بررسی برگشت.");
+    });
+  }
+  async function toggleArticles(enabled: boolean, ids: string[]) {
+    const items: Draft[] = [];
+    for (const id of ids) {
+      const row = articleMap.get(id), existing = row?.showcase;
+      if (!row || !existing) continue;
+      const section = existing.position === null ? undefined :
+        row.sections.find((s) => s.index === existing.position);
+      if (enabled && (!row.isPublic || !productMap.get(existing.productId)?.orderable ||
+        !section || section.index >= row.sections.length - 1)) {
+        setError("برخی ویترین‌ها مانع نمایش دارن؛ اون‌ها رو جداگانه بررسی کن."); return;
+      }
+      items.push({
+        articleId: id, articleVersion: enabled ? row.articleVersion : existing.articleVersion,
+        productId: existing.productId,
+        afterSectionIndex: enabled ? (section?.index ?? 0) : existing.afterSectionIndex,
+        sectionTitle: enabled ? (section?.title ?? existing.sectionTitle) : existing.sectionTitle,
+        sectionAnchor: existing.sectionAnchor,
+        title: existing.title, description: existing.description, buttonLabel: existing.buttonLabel,
+        expectedRevision: existing.expectedRevision, enabled,
+      });
+    }
+    if (!items.length) { setError("هیچ ویترین ثبت‌شده‌ای انتخاب نشده."); return; }
+    if (!window.confirm(`${enabled ? "فعال‌کردن" : "غیرفعال‌کردن"} ${formatCount(items.length)} ویترین انجام بشه؟`)) return;
+    await operation(async () => {
+      if (demo) {
+        updateDemoPublish(items, enabled);
+        setNotice(`${formatCount(items.length)} ویترین تغییر کرد.`);
+        return;
+      }
+      let changed = 0;
+      const failures: string[] = [];
+      for (let index = 0; index < items.length; index += 50) {
+        const batch = items.slice(index, index + 50);
+        try {
+          await jsonRequest({ action: "toggle", items: batch });
+          changed += batch.length;
+        } catch (cause) {
+          failures.push(cause instanceof Error ? cause.message : "خطای تغییر وضعیت");
+        }
+      }
+      await refresh();
+      setNotice(`${formatCount(changed)} ویترین ${enabled ? "فعال" : "غیرفعال"} شد.`);
+      if (failures.length) setError(`${formatCount(failures.length)} دسته ناموفق: ${failures.join("؛ ")}`);
+    });
+  }
+  async function exportSelected() {
+    if (!selected.length || !productIds.length) { setError("مقاله و محصول انتخاب کن."); return; }
+    if (demo) { setNotice("دریافت ZIP واقعی از پنل ادمین متصل به ویکی انجام می‌شه."); return; }
+    await operation(async () => {
+      const estimate = await jsonRequest<{ ok: true; estimatedBytes: number; articleCount: number }>({
+        action: "estimate", articleIds: selected,
+      });
+      const averageBytes = Math.max(1, estimate.estimatedBytes / selected.length);
+      const chunkSize = Math.max(1, Math.min(25, Math.floor(10_000_000 / (averageBytes * 1.3))));
+      const batches = Math.ceil(selected.length / chunkSize);
+      const approxMb = (estimate.estimatedBytes / 1_000_000).toLocaleString("fa-IR", {
+        maximumFractionDigits: 1,
+      });
+      if (!window.confirm(`متن انتخاب‌شده حدود ${approxMb} مگابایت است. ${formatCount(batches)} بستهٔ ZIP ساخته شود؟ برای دریافت چند فایل ممکن است مرورگر به اجازه نیاز داشته باشد.`)) return;
+      for (let i = 0; i < batches; i++) {
+        const batch = selected.slice(i * chunkSize, (i + 1) * chunkSize);
+        const response = await fetch("/api/admin/wiki/shop-showcases", {
+          method: "POST", cache: "no-store",
+          headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+          body: JSON.stringify({ action: "export_zip", articleIds: batch, productIds }),
+        });
+        if (!response.ok) {
+          const body = await response.json() as { error?: string };
+          throw new Error(body.error ?? "ساخت ZIP ناموفق بود");
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        const fileName = response.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1];
+        anchor.download = fileName
+          ? fileName.replace(/\.zip$/, `-${i + 1}-of-${batches}.zip`)
+          : `halleus-wiki-showcases-${i + 1}-of-${batches}.zip`;
+        document.body.append(anchor); anchor.click(); anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 3000);
+      }
+      await refresh();
+      setNotice(`${formatCount(batches)} بستهٔ ZIP ساخته شد.`);
+    });
+  }
+  async function importFile(file: File | null) {
+    if (!file) return;
+    if (demo) { setNotice("ورود فایل واقعی در پنل ادمین فعال است."); return; }
+    await operation(async () => {
+      if (file.size > 8_000_000) throw new Error("فایل بزرگ‌تر از ۸ مگابایت است");
+      let result: { accepted: number; errors: Array<{ index: number; error: string }> };
+      if (file.name.toLowerCase().endsWith(".zip")) {
+        const fd = new FormData(); fd.append("file", file);
+        const response = await fetch("/api/admin/wiki/shop-showcases", {
+          method: "POST", headers: { authorization: "Bearer " + token },
+          body: fd,
+        });
+        const body = await response.json() as { ok: boolean; error?: string;
+          accepted: number; errors: Array<{ index: number; error: string }> };
+        if (!response.ok || !body.ok) throw new Error(body.error ?? "فایل وارد نشد");
+        result = body;
+      } else if (file.name.toLowerCase().endsWith(".json")) {
+        const parsed: unknown = JSON.parse(await file.text());
+        result = await jsonRequest({ action: "import", package: parsed });
+      } else throw new Error("فقط ZIP یا JSON قابل ورود است");
+      await refresh();
+      setNotice(`${formatCount(result.accepted)} پیشنهاد وارد شد.` +
+        (result.errors.length ? ` ${formatCount(result.errors.length)} خطا: ` +
+          result.errors.slice(0, 8).map((e) => `ردیف ${formatCount(e.index + 1)}: ${e.error}`).join("؛ ") : ""));
+    });
+  }
 
-      <div className={styles.review}>
-        <h3>ویترین‌های ثبت‌شده</h3>
-        {!configured.length ? <p className={styles.empty}>هنوز ویترینی نساختی.</p> : null}
-        {configured.map((item) => (
-          <div key={item.articleId} className={styles.rowCard}>
-            <div>
-              <strong>{item.articleTitle}</strong>
-              <small>{selectedProduct(item.productId)?.name ?? item.productId} · بعد از «{item.sectionTitle}»</small>
-              <small>{item.stale ? "نیازمند بازبینی پس از تغییر مقاله" :
-                item.enabled ? "فعال" : "غیرفعال"}</small>
-            </div>
-            {canWrite ? <div className={styles.row}>
-              <button type="button" disabled={busy} onClick={() => {
-                const current = selectedArticle(item.articleId);
-                const position = availablePositions(current)
-                  .find((section) => section.index === item.afterSectionIndex && section.title === item.sectionTitle)
-                  ?? availablePositions(current)[0];
-                setDrafts([{ ...item,
-                  articleVersion: current?.articleVersion ?? item.articleVersion,
-                  afterSectionIndex: position?.index ?? item.afterSectionIndex,
-                  sectionTitle: position?.title ?? item.sectionTitle,
-                }]);
-                setReviews([]); setApproved([]);
-                setMessage("ویترین برای ویرایش باز شد.");
-              }}>ویرایش</button>
-              <button type="button" disabled={busy || (item.stale && !item.enabled)}
-                onClick={() => void apply([{ ...item, enabled: !item.enabled }])}>
-                {item.enabled ? "غیرفعال‌کردن" : "فعال‌کردن"}
-              </button>
-            </div> : null}
-          </div>
-        ))}
-      </div>
-    </section>
+  const help = (
+    <div className={styles.helpBox}>
+      <button type="button" className={styles.helpButton} aria-label="راهنمای ویترین"
+        aria-expanded={helpOpen} aria-controls={helpId}
+        onClick={() => setHelpOpen((open) => !open)}>؟</button>
+      {helpOpen ? <div className={styles.helpWindow} id={helpId} role="region" aria-label="راهنمای ویترین">
+        <div className={styles.helpHeading}><strong>راهنمای ویترین</strong>
+          <button type="button" onClick={() => setHelpOpen(false)}>بستن ×</button></div>
+        <p>مقاله‌های بدون ویترین رو فیلتر و انتخاب کن. محصولات مرتبط رو مشخص کن و ZIP بگیر.</p>
+        <p>فایل خروجی AI رو وارد کن؛ پیشنهادها رو یکی‌یکی ببین، ویرایش کن و فقط موارد دلخواهت رو تیک بزن.</p>
+        <p>«تأیید و انتشار» یعنی ویترین همان لحظه فعال می‌شه. بعداً می‌تونی هر ویترین رو دستی یا گروهی خاموش و روشن کنی.</p>
+        <p>اگر مقاله تغییر کنه، جایگاه قبلی تا جایی که هنوز قابل شناسایی باشه حفظ می‌شه و برای بازبینی علامت می‌خوره.</p>
+        {demo ? <p>اینجا داده‌ها نمونه‌اند و چیزی روی سایت ذخیره نمی‌شه.</p> : null}
+      </div> : null}
+    </div>
   );
+
+  return <section className={styles.manager} dir="rtl" data-demo={demo ? "true" : undefined}>
+    <header className={styles.header}>
+      <div className={styles.headerTitle}><h2>ویترین ویکی</h2>{demo ? <small>نمونه</small> : null}{help}</div>
+      <button type="button" onClick={() => void refresh()} disabled={loading}>تازه‌سازی</button>
+    </header>
+    {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+    {notice ? <p role="status" className={styles.success}>{notice}</p> : null}
+    <div className={styles.stats}>
+      <span>مقاله‌ها <b>{formatCount(data.counts.total)}</b></span>
+      <span>بدون ویترین <b>{formatCount(data.counts.missing)}</b></span>
+      <span>دارای ویترین <b>{formatCount(data.counts.has)}</b></span>
+      <span>فعال <b>{formatCount(data.counts.active)}</b></span>
+      <span>منتظر تصمیم <b>{formatCount(data.counts.pending)}</b></span>
+      <span>بازبینی <b>{formatCount(data.counts.review)}</b></span>
+    </div>
+    <div className={styles.filters}>
+      <label>جست‌وجوی مقاله <input value={query} placeholder="عنوان، slug یا شناسه"
+        onChange={(e) => { setQuery(e.target.value); setPage(0); }} /></label>
+      <label>وضعیت ویترین <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }}>
+        {[
+          ["all", "همهٔ مقاله‌ها"], ["missing", "ویترین ندارد / باید ساخته شود"],
+          ["has", "ویترین دارد"], ["active", "ویترین فعال"], ["disabled", "ویترین غیرفعال"],
+          ["pending", "پیشنهاد در انتظار تصمیم"], ["rejected", "پیشنهاد ردشده"],
+          ["review", "پیشنهاد بازبینی"], ["blocked", "مانع نمایش"],
+        ].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select></label>
+      <label>موضوع <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(0); }}>
+        <option value="all">همهٔ موضوع‌ها</option>
+        {categories.map((c) => <option value={c} key={c}>{c}</option>)}
+      </select></label>
+      <label>انتشار مقاله <select value={publication} onChange={(e) => { setPublication(e.target.value); setPage(0); }}>
+        <option value="all">همه</option>
+        {["published", "draft", "scheduled", "archived"].map((state) =>
+          <option key={state} value={state}>{state}</option>)}
+      </select></label>
+      <label>محصول متصل <select value={productFilter} onChange={(e) => { setProductFilter(e.target.value); setPage(0); }}>
+        <option value="all">همه</option>
+        {data.products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+      </select></label>
+      <label>مرتب‌سازی <select value={sort} onChange={(e) => setSort(e.target.value)}>
+        <option value="title">عنوان</option><option value="recent">آخرین ویرایش</option>
+        <option value="status">وضعیت ویترین</option>
+      </select></label>
+    </div>
+    <div className={styles.bulkBar}>
+      <strong>{formatCount(selected.length)} انتخاب‌شده · {formatCount(filtered.length)} نتیجه</strong>
+      <button type="button" onClick={() => setSelected((old) => [...new Set([...old, ...filteredIds])])}>
+        انتخاب تمام نتایج
+      </button>
+      <button type="button" onClick={() => setSelected([])}>لغو انتخاب</button>
+      {canWrite ? <>
+        <button type="button" disabled={!selected.length || loading}
+          onClick={() => void toggleArticles(false, selected)}>خاموش‌کردن ویترین‌های انتخابی</button>
+        <button type="button" disabled={!selected.length || loading}
+          onClick={() => void toggleArticles(true, selected)}>روشن‌کردن ویترین‌های انتخابی</button>
+      </> : null}
+    </div>
+    <div className={styles.columns}>
+      <div className={styles.listColumn}>
+        <div className={styles.articleList}>
+          {visibleRows.map((a) => <article key={a.articleId} className={styles.articleRow}
+            data-focused={focusedId === a.articleId ? "true" : undefined}>
+            <input type="checkbox" aria-label={"انتخاب " + a.title}
+              checked={selected.includes(a.articleId)}
+              onChange={(e) => setSelected((old) => e.target.checked
+                ? [...old.filter((x) => x !== a.articleId), a.articleId]
+                : old.filter((x) => x !== a.articleId))} />
+            <div className={styles.articleRowBody}>
+              <strong>{a.title}</strong><small>{a.categoryId} · {a.publicationStatus}</small>
+              <div className={styles.rowMeta}>
+                <span>{a.hasShowcase ? "ویترین دارد" : "باید ساخته شود"}</span>
+                {a.active ? <span>فعال</span> : null}
+                {a.showcase?.disabled ? <span>غیرفعال</span> : null}
+                {a.hasPending ? <span>پیشنهاد AI</span> : null}
+                {a.hasRejected ? <span>پیشنهاد ردشده</span> : null}
+                {a.hasSkipped ? <span>AI: مورد مرتبطی پیدا نکرد</span> : null}
+                {a.needsReview ? <span>پیشنهاد بازبینی</span> : null}
+                {a.blocked && a.hasShowcase ? <span>{a.blocked}</span> : null}
+                {a.lastExportedAt ? <span>قبلاً در بسته بوده</span> : null}
+              </div>
+              {a.showcase ? <small>محصول: {productMap.get(a.showcase.productId)?.name ?? a.showcase.productId} · پس از «{a.showcase.sectionTitle}»</small> : null}
+              <div className={styles.rowActions}>
+                <button type="button" onClick={() => focusArticle(a)}>
+                  {a.hasShowcase ? "دیدن و ویرایش" : "ساخت ویترین"}
+                </button>
+                {a.isPublic ? <a href={a.slug.startsWith("demo") ? "#showcase-article-preview" : "/wiki/" + a.slug}
+                  target={a.slug.startsWith("demo") ? undefined : "_blank"}
+                  rel={a.slug.startsWith("demo") ? undefined : "noreferrer"}>مقاله</a> : null}
+                {a.showcase && canWrite ? <button type="button" disabled={loading}
+                  onClick={() => void toggleArticles(!a.showcase?.enabled, [a.articleId])}>
+                  {a.showcase.enabled ? "خاموش" : "روشن"}
+                </button> : null}
+              </div>
+            </div>
+          </article>)}
+          {!visibleRows.length ? <p className={styles.empty}>مقاله‌ای با این فیلتر پیدا نشد.</p> : null}
+        </div>
+        <div className={styles.pagination}>
+          <button type="button" disabled={page <= 0} onClick={() => setPage((p) => p - 1)}>قبلی</button>
+          <span>صفحهٔ {formatCount(page + 1)} از {formatCount(pageCount)}</span>
+          <button type="button" disabled={page + 1 >= pageCount} onClick={() => setPage((p) => p + 1)}>بعدی</button>
+        </div>
+        <div className={styles.zipArea}>
+          <h3>بستهٔ AI</h3>
+          <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ حجم بسته پیش از دانلود محاسبه می‌شه و ZIPهای بزرگ جدا می‌شن.</p>
+          <div className={styles.productChecks}>{data.products.map((p) =>
+            <label key={p.id}><input type="checkbox" checked={productIds.includes(p.id)}
+              onChange={(e) => setProductIds((old) => e.target.checked
+                ? [...old, p.id] : old.filter((id) => id !== p.id))} />{p.name}{!p.orderable ? " (فروش بسته)" : ""}</label>)}
+          </div>
+          <button type="button" disabled={!canWrite || loading || !selected.length || !productIds.length}
+            onClick={() => void exportSelected()}>دریافت ZIP برای AI</button>
+        </div>
+        <div className={styles.importArea}>
+          <h3>پیشنهادهای AI</h3>
+          <label className={styles.upload}>ورود ZIP یا JSON
+            <input type="file" accept=".zip,.json,application/json,application/zip"
+              disabled={!canWrite || loading}
+              onChange={(event) => { void importFile(event.target.files?.[0] ?? null); event.target.value = ""; }} />
+          </label>
+          <div className={styles.pendingBar}>
+            <span>{formatCount(pending.length)} منتظر تصمیم</span>
+            <button type="button" onClick={() => setCheckedProposals(pending.map((p) => p.id))}>انتخاب همه</button>
+            <button type="button" onClick={() => setCheckedProposals([])}>لغو</button>
+          </div>
+          {pending.map((p) => {
+            const a = articleMap.get(p.articleId);
+            return <div className={styles.proposalRow} key={p.id}>
+              <input type="checkbox" aria-label={"تأیید " + (a?.title ?? p.articleId)}
+                checked={checkedProposals.includes(p.id)}
+                onChange={(event) => setCheckedProposals((old) => event.target.checked
+                  ? [...old, p.id] : old.filter((id) => id !== p.id))} />
+              <div><strong>{a?.title ?? p.articleId}</strong>
+                <small>{productMap.get(p.productId)?.name ?? p.productId} · {p.sectionTitle}</small>
+                {!eligibleProposal(p) ? <small className={styles.invalid}>نیازمند بررسی نسخه، جایگاه یا فروش محصول</small> : null}
+              </div>
+              <button type="button" onClick={() => focusProposal(p)}>بازبینی</button>
+            </div>;
+          })}
+          {!pending.length ? <p className={styles.empty}>پیشنهاد منتظر تصمیمی نیست.</p> : null}
+          {rejected.length ? <details className={styles.reviewHistory}>
+            <summary>پیشنهادهای ردشده ({formatCount(rejected.length)})</summary>
+            {rejected.map((p) => <div className={styles.proposalRow} key={p.id}>
+              <div><strong>{articleMap.get(p.articleId)?.title ?? p.articleId}</strong>
+                <small>{p.title}</small></div>
+              <button type="button" onClick={() => focusProposal(p)}>دیدن</button>
+              {canWrite ? <button type="button" disabled={loading} onClick={() => void reopenProposal(p.id)}>
+                بازگشت به بررسی
+              </button> : null}
+            </div>)}
+          </details> : null}
+          {canWrite ? <div className={styles.publishActions}>
+            <button type="button" disabled={!checkedProposals.length || loading}
+              onClick={() => void publishSelected()}>تأیید و انتشار {formatCount(checkedProposals.length)} ویترین</button>
+            <button type="button" disabled={!checkedProposals.length || loading}
+              onClick={() => void rejectChecked()}>رد انتخاب‌شده‌ها</button>
+          </div> : null}
+        </div>
+      </div>
+
+      <div className={styles.editorColumn} id="showcase-article-preview">
+        <section className={styles.editor}>
+          <h3>{draft ? "ویرایش ویترین" : "پیش‌نمایش مقاله"}</h3>
+          {draft && focusRow ? <>
+            <div className={styles.editorFields}>
+              <label>مقاله <strong>{focusRow.title}</strong></label>
+              <label>محصول <select value={draft.productId} onChange={(e) => updateDraft({ productId: e.target.value })}>
+                {data.products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.orderable ? "" : " · فروش بسته"}</option>)}
+              </select></label>
+              <label>بعد از کدام بخش؟ <select value={draft.afterSectionIndex} onChange={(e) => {
+                const next = focusRow.sections.find((s) => s.index === Number(e.target.value));
+                if (next) updateDraft({ afterSectionIndex: next.index, sectionTitle: next.title,
+                  sectionAnchor: next.anchor, articleVersion: focusRow.articleVersion });
+              }}>
+                {draft.afterSectionIndex < 0 ? <option value={-1} disabled>جایگاه قبلی پیدا نشد؛ انتخاب کن</option> : null}
+                {focusRow.sections.filter((s) => s.index < focusRow.sections.length - 1 &&
+                  (focusRow.sections.length < 4 || s.index > 0))
+                  .map((s) => <option key={s.index} value={s.index}>{s.title}</option>)}
+              </select></label>
+              <label>عنوان کارت <input value={draft.title} maxLength={160}
+                onChange={(e) => updateDraft({ title: e.target.value })} /></label>
+              <label>متن معرفی <textarea value={draft.description} maxLength={500} rows={3}
+                onChange={(e) => updateDraft({ description: e.target.value })} /></label>
+              <label>متن دکمه <input value={draft.buttonLabel} maxLength={80}
+                onChange={(e) => updateDraft({ buttonLabel: e.target.value })} /></label>
+            </div>
+            {draft.articleVersion !== focusRow.articleVersion ? <p className={styles.warning}>
+              مقاله بعد از پیشنهاد AI ویرایش شده. جایگاه رو دوباره انتخاب کن.</p> : null}
+            {!currentProduct?.orderable ? <p className={styles.warning}>فروش این محصول فعلاً بسته است.</p> : null}
+            {canWrite && !draft.proposalId ? <button type="button" disabled={loading}
+              onClick={() => void publishManual()}>تأیید و انتشار همین ویترین</button> : null}
+            {draft.proposalId ? <p className={styles.hint}>برای انتشار این پیشنهاد، تیکش رو در فهرست پیشنهادهای AI بزن.</p> : null}
+          </> : <p className={styles.empty}>یک مقاله یا پیشنهاد رو از فهرست انتخاب کن.</p>}
+        </section>
+        <section className={styles.previewPane}>
+          <div className={styles.previewTitle}><h3>نمای مقاله</h3>
+            {demo ? <small>نمونه</small> : null}</div>
+          {detail ? <div className={styles.articleCanvas}>
+            <div className={wikiStyles.page} style={{ paddingTop: 0, width: "100%" }}>
+              <article className={styles.articleContent}>
+                <header className={styles.articleHeading}>
+                  <small>ویکی هالیوس</small><h2>{detail.title}</h2>
+                  {detail.intro ? <p>{detail.intro}</p> : null}
+                </header>
+                <WikiArticleBody sections={detail.sections}
+                  sources={[]} contextLinks={[]} targets={{}} showcase={previewOffer} />
+              </article>
+            </div>
+          </div> : <p className={styles.empty}>مقاله‌ای رو انتخاب کن تا اینجا ببینیش.</p>}
+        </section>
+      </div>
+    </div>
+  </section>;
 }
