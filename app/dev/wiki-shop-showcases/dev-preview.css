@@ -6,3 +6,8 @@ body:has(#wiki-shop-showcases-dev) [data-mobile-account-fab],
 body:has(#wiki-shop-showcases-dev) [data-wiki-chrome-control] { display: none !important; }
 body:has(#wiki-shop-showcases-dev) #main-content { padding-top: 0; min-height: 100vh; background: #f8fafc; }
 body:has(#wiki-shop-showcases-dev) #main-content > * { max-width: 100%; }
+
+/* Match the exact existing AppShell and SiteHeader elements on mobile. */
+html:has(#wiki-shop-showcases-dev) header[data-site-header],
+html:has(#wiki-shop-showcases-dev) footer[data-approved-lockup],
+html:has(#wiki-shop-showcases-dev) [class*="mobileAccountFab"] { display: none !important; }

@@ -7,7 +7,7 @@ export function WikiShopShowcaseCard({ offer }: { offer: PublicWikiShopShowcase 
   return (
     <aside className={styles.card} aria-label="اثر مرتبط از فروشگاه هالیوس">
       <Link href={offer.url} className={styles.image} aria-label={'مشاهدهٔ ' + offer.title}>
-        <Image src={offer.image} alt={offer.imageAlt} fill sizes="(max-width: 760px) 120px, 220px" />
+        <Image src={offer.image} alt={offer.imageAlt} fill sizes="(max-width: 760px) 240px, 220px" />
       </Link>
       <div className={styles.content}>
         <span className={styles.eyebrow}>از فروشگاه هالیوس</span>

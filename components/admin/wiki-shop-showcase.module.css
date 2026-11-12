@@ -56,3 +56,26 @@
   .mock > div { min-width: 0; }
   .review .row > button { flex: 1 1 100%; }
 }
+
+.titleGroup { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; min-width: 0; }
+.titleGroup h2 { margin: 0; }
+.demoLabel { font-size: 11px; color: #64748b; }
+.helpAnchor { position: relative; z-index: 20; display: inline-flex; }
+.panel .helpButton { width: 34px; min-width: 34px; height: 34px; min-height: 34px; display: inline-grid; place-items: center; padding: 0; border-radius: 50%; background: #e6f1fc; color: #24435f; font-size: 19px; font-weight: 850; }
+.helpWindow { position: absolute; inset-inline-start: 0; top: calc(100% + 10px); z-index: 30; width: min(370px, calc(100vw - 48px)); max-height: min(70vh, 520px); overflow-y: auto; padding: 16px; border: 1px solid #adc2d6; border-radius: 13px; background: #fff; box-shadow: 0 22px 60px rgba(24, 47, 70, .23); color: #243447; font-size: 13px; line-height: 1.9; }
+.helpHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.panel .helpClose { min-height: 32px; padding: 4px 9px; font-size: 12px; }
+.helpWindow ol { margin: 0 0 12px; padding-inline-start: 22px; }
+.helpWindow li { margin-bottom: 5px; }
+.helpWindow p { margin: 9px 0 0; color: #52657a; }
+.empty { margin: 0; color: #52657a; font-size: 13px; }
+@media (max-width: 760px) {
+  .titleGroup h2 { font-size: 17px; }
+  .panel .helpButton { min-height: 32px; height: 32px; width: 32px; min-width: 32px; }
+  .helpWindow { width: min(335px, calc(100vw - 64px)); }
+}
+
+/* Anchor the open help window to the full header width to avoid mobile viewport overflow. */
+.header { position: relative; z-index: 20; }
+.helpAnchor { position: static; }
+.helpWindow { inset-inline-start: 0; top: calc(100% + 8px); }

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import styles from "./wiki-shop-showcase.module.css";
 
 type Product = { id: string; name: string; url: string; image: string | null; orderable: boolean };
@@ -41,7 +41,7 @@ const demoProducts: Product[] = [
 const demoArticles: Article[] = [
   {
     articleId: "11111111-1111-4111-8111-111111111111",
-    articleVersion: 1, title: "نمونهٔ آزمایشی: فاز ماه در روز تولد", slug: "demo-moon",
+    articleVersion: 1, title: "ماه در روز تولد چه شکلی است؟", slug: "demo-moon",
     sections: [
       { index: 0, title: "ماه در روز تولد چه شکلی است؟" },
       { index: 1, title: "چرا شکل ماه هر روز تغییر می‌کند؟" },
@@ -51,7 +51,7 @@ const demoArticles: Article[] = [
   },
   {
     articleId: "22222222-2222-4222-8222-222222222222",
-    articleVersion: 1, title: "نمونهٔ آزمایشی: نقشهٔ آسمان تولد", slug: "demo-sky",
+    articleVersion: 1, title: "آسمان تولد؛ نقش زمان و مکان", slug: "demo-sky",
     sections: [
       { index: 0, title: "آسمان تولد چیست؟" },
       { index: 1, title: "نقش ساعت و شهر تولد" },
@@ -86,6 +86,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpId = useId();
   const demoStore = useRef<Configured[]>([]);
 
   useEffect(() => {
@@ -250,7 +252,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
-      setMessage("بستهٔ محصولات، مقاله‌ها و قوانین انتخاب جایگاه دانلود شد.");
+      setMessage("فایل آماده‌ست.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "دانلود انجام نشد.");
     } finally {
@@ -293,7 +295,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
       });
       setActiveDraft(0);
       setDrafts(safe);
-      setMessage("پیشنهادها خوانده شدند. قبل از ذخیره، بازبینی و انتخابشان کن.");
+      setMessage("پیشنهادها آمادهٔ بررسی‌اند.");
     } catch (cause) {
       setDrafts([]);
       setError(cause instanceof Error ? cause.message : "خواندن بسته ناموفق بود.");
@@ -314,7 +316,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
         const reviewed = result.reviews[i];
         return reviewed?.valid && reviewed.item ? { ...item, ...reviewed.item } : item;
       }));
-      setMessage("بازبینی انجام شد. فقط موارد انتخاب‌شده در مرحلهٔ بعد ذخیره می‌شوند.");
+      setMessage("پیشنهادها بررسی شدند.");
     } catch (cause) {
       setReviews([]);
       setError(cause instanceof Error ? cause.message : "بازبینی ناموفق بود.");
@@ -356,24 +358,43 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
 
   return (
     <section className={styles.panel} dir="rtl" data-demo={demo ? "true" : undefined}>
-      {demo ? <p className={styles.note} role="status"><strong>حالت پیش‌نمایش لوکال:</strong> مقاله‌ها و وضعیت فروش محصولات نمونه‌اند؛ ذخیره و فعال‌سازی فقط در حافظهٔ همین صفحه انجام می‌شود و هیچ تغییری روی سایت یا دیتابیس ندارد.</p> : null}
       <header className={styles.header}>
-        <div>
-          <h2>ویترین محصولات در مقالات ویکی</h2>
-          <p>یک ویترین متناسب با محتوای مقاله؛ داخل بخش‌های اصلی، نه انتهای مقاله.</p>
+        <div className={styles.titleGroup}>
+          <h2>ویترین ویکی</h2>
+          {demo ? <span className={styles.demoLabel}>نمونه</span> : null}
+          <div className={styles.helpAnchor}>
+            <button type="button" className={styles.helpButton}
+              aria-label="راهنمای ویترین ویکی" title="راهنما"
+              aria-expanded={helpOpen} aria-controls={helpId}
+              onClick={() => setHelpOpen((previous) => !previous)}>؟</button>
+            {helpOpen ? (
+              <div className={styles.helpWindow} id={helpId} role="region" aria-label="راهنمای ویترین ویکی">
+                <div className={styles.helpHeading}>
+                  <strong>راهنمای ویترین</strong>
+                  <button type="button" className={styles.helpClose} onClick={() => setHelpOpen(false)}>بستن ×</button>
+                </div>
+                <ol>
+                  <li>فهرست مقاله‌ها و محصولات رو برای AI بفرست.</li>
+                  <li>پیشنهادهای AI رو وارد کن یا یک ویترین دستی بساز.</li>
+                  <li>متن و جایگاه کارت رو ببین، بعد موارد دلخواهت رو تأیید و ذخیره کن.</li>
+                </ol>
+                <p>کارت بین بخش‌های مقاله قرار می‌گیره، نه در انتهای اون. محصولی که فروشش بسته باشه برای خرید نمایش داده نمی‌شه.</p>
+                {demo ? <p>این صفحه با داده‌های نمونه کار می‌کنه و چیزی روی سایت یا دیتابیس ذخیره نمی‌شه.</p> : null}
+              </div>
+            ) : null}
+          </div>
         </div>
         <button type="button" onClick={() => void downloadGuide()} disabled={busy}>
-          دریافت بسته برای AI
+          دریافت فایل برای AI
         </button>
       </header>
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
       {message ? <p className={styles.success} role="status">{message}</p> : null}
       <div className={styles.summary}>
-        <span>مقاله‌های منتشرشده: {articles.length.toLocaleString("fa-IR")}</span>
-        <span>محصولات: {products.length.toLocaleString("fa-IR")}</span>
-        <span>ویترین‌های ثبت‌شده: {configured.length.toLocaleString("fa-IR")}</span>
+        <span>مقاله‌ها: {articles.length.toLocaleString("fa-IR")}</span>
+        <span>محصول‌ها: {products.length.toLocaleString("fa-IR")}</span>
+        <span>ویترین‌ها: {configured.length.toLocaleString("fa-IR")}</span>
       </div>
-      <p className={styles.note}>بستهٔ خروجی، عنوان و محتوای بخش‌ها، شناسه‌ها، محصولات و قوانین را دارد. AI باید فایل JSON با آرایهٔ proposals برگرداند؛ پیشنهادهایش به‌تنهایی منتشر نمی‌شوند.</p>
       {canWrite ? (
         <>
           <div className={styles.toolbar}>
@@ -393,7 +414,6 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
           {drafts.length ? (
             <div className={styles.review}>
               <h3>بازبینی پیشنهادها ({drafts.length.toLocaleString("fa-IR")})</h3>
-              <p className={styles.note}>انتخاب مقاله، محصول، موقعیت و متن قابل ویرایش است. پس از هر ویرایش، دوباره «بررسی پیشنهادها» را بزن.</p>
               {drafts.map((draft, index) => {
                 const article = selectedArticle(draft.articleId);
                 const product = selectedProduct(draft.productId);
@@ -459,14 +479,14 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
                           onChange={(event) => updateDraft(index, { buttonLabel: event.target.value })} />
                       </label>
                     </div>
-                    <div className={styles.mock}>
+                    {!demo ? <div className={styles.mock}>
                       {product?.image ? <Image src={product.image} width={96} height={120} alt="" /> : null}
                       <div><small>پیش‌نمایش ویترین · {article?.title ?? "مقاله نامعتبر"}</small>
                         <strong>{draft.title}</strong>
                         <p>{draft.description}</p>
                         <span>{draft.buttonLabel}</span>
                       </div>
-                    </div>
+                    </div> : null}
                     {review?.valid ? (
                       <div className={styles.row}>
                         <label className={styles.check}><input type="checkbox" checked={approved.includes(index)}
@@ -494,11 +514,11 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
             </div>
           ) : null}
         </>
-      ) : <p className={styles.note}>دسترسی انتشار برای ویرایش ویترین لازم است؛ خروجی برای AI فقط‌خواندنی است.</p>}
+      ) : <p className={styles.empty}>برای ویرایش ویترین به دسترسی انتشار نیاز داری.</p>}
 
       <div className={styles.review}>
         <h3>ویترین‌های ثبت‌شده</h3>
-        {!configured.length ? <p className={styles.note}>هنوز ویترینی ثبت نشده است.</p> : null}
+        {!configured.length ? <p className={styles.empty}>هنوز ویترینی نساختی.</p> : null}
         {configured.map((item) => (
           <div key={item.articleId} className={styles.rowCard}>
             <div>
@@ -519,7 +539,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false, onDemoPre
                   sectionTitle: position?.title ?? item.sectionTitle,
                 }]);
                 setReviews([]); setApproved([]);
-                setMessage("این ویترین برای ویرایش در بخش بازبینی باز شد.");
+                setMessage("ویترین برای ویرایش باز شد.");
               }}>ویرایش</button>
               <button type="button" disabled={busy || (item.stale && !item.enabled)}
                 onClick={() => void apply([{ ...item, enabled: !item.enabled }])}>
