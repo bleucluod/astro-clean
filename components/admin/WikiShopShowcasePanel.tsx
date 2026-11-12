@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { WikiArticleBody } from "@/components/wiki/WikiArticleRender";
+import { WikiShopShowcaseCard } from "@/components/wiki/WikiShopShowcaseCard";
 import { wikiShowcaseSectionAnchor } from "@/lib/wiki/wiki-showcase-anchor";
 import type { WikiArticleSection } from "@/lib/wiki/wiki-content";
 import type { PublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
@@ -51,6 +52,7 @@ type Dashboard = {
 const EMPTY: Dashboard = { articles: [], products: [], proposals: [],
   counts: { total: 0, missing: 0, has: 0, active: 0, disabled: 0, pending: 0, review: 0 } };
 const LIMIT = 18;
+const PROPOSAL_LIMIT = 8;
 const demoSections: WikiArticleSection[] = [
   { title: "ماه در روز تولد چه شکلی است؟", paragraphs: [
     "هر تاریخ، شکل خاصی از ماه را در آسمان دارد. از هلال تا ماه کامل، سهم روشن آن در طول ماه تغییر می‌کند.",
@@ -149,17 +151,21 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const store = useRef<Dashboard>(demo ? demoDashboard() : EMPTY);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
+  const moreFiltersId = useId();
   const [category, setCategory] = useState("all");
   const [publication, setPublication] = useState("all");
   const [productFilter, setProductFilter] = useState("all");
   const [sort, setSort] = useState("title");
   const [page, setPage] = useState(0);
+  const [proposalPage, setProposalPage] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
   const [productIds, setProductIds] = useState<string[]>(demo ? ["p01"] : []);
   const [checkedProposals, setCheckedProposals] = useState<string[]>([]);
   const [edits, setEdits] = useState<Record<string, Draft>>({});
   const [focusedId, setFocusedId] = useState<string>(demo ? demoDetail.articleId : "");
   const [detail, setDetail] = useState<ArticleDetail | null>(demo ? demoDetail : null);
+  const editorPanelRef = useRef<HTMLDivElement | null>(null);
   const [draft, setDraft] = useState<Draft | null>(() => {
     if (!demo) return null;
     const sample = demoDashboard();
@@ -192,6 +198,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     const body = await response.json() as Dashboard & { ok: boolean; error?: string };
     if (!response.ok || !body.ok) throw new Error(body.error ?? "دریافت مقاله‌ها انجام نشد");
     setData(body);
+    setProposalPage(0);
     setProductIds((old) => old.length ? old :
       body.products.filter((p) => p.orderable).map((p) => p.id));
   }, [token, demo]);
@@ -248,6 +255,10 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const categories = [...new Set(data.articles.map((a) => a.categoryId))].sort();
   const filteredIds = filtered.map((a) => a.articleId);
   const pending = data.proposals.filter((p) => p.status === "pending");
+  const pendingPageCount = Math.max(1, Math.ceil(pending.length / PROPOSAL_LIMIT));
+  const currentProposalPage = Math.min(proposalPage, pendingPageCount - 1);
+  const visiblePending = pending.slice(currentProposalPage * PROPOSAL_LIMIT,
+    (currentProposalPage + 1) * PROPOSAL_LIMIT);
   const rejected = data.proposals.filter((p) => p.status === "rejected");
   const focusRow = articleMap.get(focusedId);
   const currentProduct = draft ? productMap.get(draft.productId) : null;
@@ -262,15 +273,22 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       imageAlt: currentProduct.name,
     } : null;
 
+  function revealEditorOnMobile() {
+    if (window.matchMedia("(max-width: 1100px)").matches) {
+      window.requestAnimationFrame(() => editorPanelRef.current?.scrollIntoView({ block: "start" }));
+    }
+  }
   function focusArticle(row: ArticleRow, suggestion?: Proposal) {
     setFocusedId(row.articleId);
     setDraft(draftFor(row, data.products.find((p) => p.orderable)?.id ?? "p01", suggestion));
+    revealEditorOnMobile();
   }
   function focusProposal(proposal: Proposal) {
     const row = articleMap.get(proposal.articleId);
     if (!row) return;
     setFocusedId(row.articleId);
     setDraft(edits[proposal.id] ?? draftFor(row, proposal.productId, proposal));
+    revealEditorOnMobile();
   }
   function updateDraft(change: Partial<Draft>) {
     if (!draft) return;
@@ -549,16 +567,21 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     </header>
     {error ? <p role="alert" className={styles.error}>{error}</p> : null}
     {notice ? <p role="status" className={styles.success}>{notice}</p> : null}
-    <div className={styles.stats}>
-      <span>مقاله‌ها <b>{formatCount(data.counts.total)}</b></span>
+    <div className={styles.stats} aria-label="وضعیت ویترین‌ها">
+      <span>کل مقاله‌ها <b>{formatCount(data.counts.total)}</b></span>
       <span>بدون ویترین <b>{formatCount(data.counts.missing)}</b></span>
-      <span>دارای ویترین <b>{formatCount(data.counts.has)}</b></span>
-      <span>فعال <b>{formatCount(data.counts.active)}</b></span>
-      <span>منتظر تصمیم <b>{formatCount(data.counts.pending)}</b></span>
-      <span>بازبینی <b>{formatCount(data.counts.review)}</b></span>
+      <span>منتظر بررسی <b>{formatCount(data.counts.pending)}</b></span>
+      <details className={styles.moreStats}>
+        <summary>آمار بیشتر</summary>
+        <div>
+          <span>دارای ویترین <b>{formatCount(data.counts.has)}</b></span>
+          <span>فعال <b>{formatCount(data.counts.active)}</b></span>
+          <span>نیازمند بازبینی <b>{formatCount(data.counts.review)}</b></span>
+        </div>
+      </details>
     </div>
-    <div className={styles.filters}>
-      <label>جست‌وجوی مقاله <input value={query} placeholder="عنوان، slug یا شناسه"
+    <div className={styles.primaryFilters}>
+      <label>جست‌وجوی مقاله <input value={query} placeholder="نام مقاله یا شناسه"
         onChange={(e) => { setQuery(e.target.value); setPage(0); }} /></label>
       <label>وضعیت ویترین <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }}>
         {[
@@ -568,18 +591,27 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
           ["review", "پیشنهاد بازبینی"], ["blocked", "مانع نمایش"],
         ].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select></label>
+      <button type="button" className={styles.moreFiltersButton}
+        aria-controls={moreFiltersId} aria-expanded={moreFiltersOpen}
+        onClick={() => setMoreFiltersOpen((open) => !open)}>
+        {moreFiltersOpen ? "بستن فیلترها" : "فیلترهای بیشتر"}
+        {[category !== "all", publication !== "all", productFilter !== "all", sort !== "title"]
+          .filter(Boolean).length ? " •" : ""}
+      </button>
+    </div>
+    <div className={styles.filters} id={moreFiltersId} hidden={!moreFiltersOpen}>
       <label>موضوع <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(0); }}>
         <option value="all">همهٔ موضوع‌ها</option>
-        {categories.map((c) => <option value={c} key={c}>{c}</option>)}
+        {categories.map((value) => <option value={value} key={value}>{value}</option>)}
       </select></label>
       <label>انتشار مقاله <select value={publication} onChange={(e) => { setPublication(e.target.value); setPage(0); }}>
         <option value="all">همه</option>
-        {["published", "draft", "scheduled", "archived"].map((state) =>
-          <option key={state} value={state}>{state}</option>)}
+        {["published", "draft", "scheduled", "archived"].map((value) =>
+          <option key={value} value={value}>{value}</option>)}
       </select></label>
       <label>محصول متصل <select value={productFilter} onChange={(e) => { setProductFilter(e.target.value); setPage(0); }}>
         <option value="all">همه</option>
-        {data.products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        {data.products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
       </select></label>
       <label>مرتب‌سازی <select value={sort} onChange={(e) => setSort(e.target.value)}>
         <option value="title">عنوان</option><option value="recent">آخرین ویرایش</option>
@@ -587,21 +619,79 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       </select></label>
     </div>
     <div className={styles.bulkBar}>
-      <strong>{formatCount(selected.length)} انتخاب‌شده · {formatCount(filtered.length)} نتیجه</strong>
+      <strong>{formatCount(selected.length)} انتخاب‌شده از {formatCount(filtered.length)} نتیجه</strong>
       <button type="button" onClick={() => setSelected((old) => [...new Set([...old, ...filteredIds])])}>
-        انتخاب تمام نتایج
+        انتخاب نتایج فیلترشده
       </button>
-      <button type="button" onClick={() => setSelected([])}>لغو انتخاب</button>
-      {canWrite ? <>
-        <button type="button" disabled={!selected.length || loading}
-          onClick={() => void toggleArticles(false, selected)}>خاموش‌کردن ویترین‌های انتخابی</button>
-        <button type="button" disabled={!selected.length || loading}
-          onClick={() => void toggleArticles(true, selected)}>روشن‌کردن ویترین‌های انتخابی</button>
-      </> : null}
+      <button type="button" disabled={!selected.length} onClick={() => setSelected([])}>پاک‌کردن انتخاب</button>
+      {canWrite ? <details className={styles.bulkMore}>
+        <summary>مدیریت گروهی</summary>
+        <div>
+          <button type="button" disabled={!selected.length || loading}
+            onClick={() => void toggleArticles(false, selected)}>خاموش‌کردن انتخاب‌شده‌ها</button>
+          <button type="button" disabled={!selected.length || loading}
+            onClick={() => void toggleArticles(true, selected)}>روشن‌کردن انتخاب‌شده‌ها</button>
+        </div>
+      </details> : null}
     </div>
     <div className={styles.columns}>
       <div className={styles.listColumn}>
+        <div className={styles.importArea}>
+          <h3>پیشنهادهای AI</h3>
+          <label className={styles.upload}>ورود ZIP یا JSON
+            <input type="file" accept=".zip,.json,application/json,application/zip"
+              disabled={!canWrite || loading}
+              onChange={(event) => { void importFile(event.target.files?.[0] ?? null); event.target.value = ""; }} />
+          </label>
+          <div className={styles.pendingBar}>
+            <span>{formatCount(pending.length)} منتظر تصمیم</span>
+            <button type="button" onClick={() => setCheckedProposals(pending.map((p) => p.id))}>انتخاب همه</button>
+            <button type="button" onClick={() => setCheckedProposals([])}>لغو</button>
+          </div>
+          {visiblePending.map((p) => {
+            const a = articleMap.get(p.articleId);
+            return <div className={styles.proposalRow} key={p.id}>
+              <input type="checkbox" aria-label={"تأیید " + (a?.title ?? p.articleId)}
+                checked={checkedProposals.includes(p.id)}
+                onChange={(event) => setCheckedProposals((old) => event.target.checked
+                  ? [...old, p.id] : old.filter((id) => id !== p.id))} />
+              <div><strong>{a?.title ?? p.articleId}</strong>
+                <small>{productMap.get(p.productId)?.name ?? p.productId} · {p.sectionTitle}</small>
+                {!eligibleProposal(p) ? <small className={styles.invalid}>نیازمند بررسی نسخه، جایگاه یا فروش محصول</small> : null}
+              </div>
+              <button type="button" onClick={() => focusProposal(p)}>بازبینی</button>
+            </div>;
+          })}
+          {!pending.length ? <p className={styles.empty}>پیشنهاد منتظر تصمیمی نیست.</p> : null}
+          {pendingPageCount > 1 ? <div className={styles.pagination}>
+            <button type="button" disabled={currentProposalPage <= 0}
+              onClick={() => setProposalPage((value) => Math.max(0, value - 1))}>قبلی</button>
+            <span>پیشنهادها: {formatCount(currentProposalPage + 1)} / {formatCount(pendingPageCount)}</span>
+            <button type="button" disabled={currentProposalPage + 1 >= pendingPageCount}
+              onClick={() => setProposalPage((value) => Math.min(value + 1, pendingPageCount - 1))}>بعدی</button>
+          </div> : null}
+          {rejected.length ? <details className={styles.reviewHistory}>
+            <summary>پیشنهادهای ردشده ({formatCount(rejected.length)})</summary>
+            {rejected.map((p) => <div className={styles.proposalRow} key={p.id}>
+              <div><strong>{articleMap.get(p.articleId)?.title ?? p.articleId}</strong>
+                <small>{p.title}</small></div>
+              <button type="button" onClick={() => focusProposal(p)}>دیدن</button>
+              {canWrite ? <button type="button" disabled={loading} onClick={() => void reopenProposal(p.id)}>
+                بازگشت به بررسی
+              </button> : null}
+            </div>)}
+          </details> : null}
+          {canWrite ? <div className={styles.publishActions}>
+            <button type="button" disabled={!checkedProposals.length || loading}
+              onClick={() => void publishSelected()}>تأیید و انتشار {formatCount(checkedProposals.length)} ویترین</button>
+            <button type="button" disabled={!checkedProposals.length || loading}
+              onClick={() => void rejectChecked()}>رد انتخاب‌شده‌ها</button>
+          </div> : null}
+        </div>
         <div className={styles.articleList}>
+          <div className={styles.sectionHeading}>
+            <h3>مقاله‌ها</h3><span>{formatCount(filtered.length)} نتیجه</span>
+          </div>
           {visibleRows.map((a) => <article key={a.articleId} className={styles.articleRow}
             data-focused={focusedId === a.articleId ? "true" : undefined}>
             <input type="checkbox" aria-label={"انتخاب " + a.title}
@@ -655,56 +745,24 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
           <button type="button" disabled={!canWrite || loading || !selected.length || !productIds.length}
             onClick={() => void exportSelected()}>دریافت ZIP برای AI</button>
         </div>
-        <div className={styles.importArea}>
-          <h3>پیشنهادهای AI</h3>
-          <label className={styles.upload}>ورود ZIP یا JSON
-            <input type="file" accept=".zip,.json,application/json,application/zip"
-              disabled={!canWrite || loading}
-              onChange={(event) => { void importFile(event.target.files?.[0] ?? null); event.target.value = ""; }} />
-          </label>
-          <div className={styles.pendingBar}>
-            <span>{formatCount(pending.length)} منتظر تصمیم</span>
-            <button type="button" onClick={() => setCheckedProposals(pending.map((p) => p.id))}>انتخاب همه</button>
-            <button type="button" onClick={() => setCheckedProposals([])}>لغو</button>
-          </div>
-          {pending.map((p) => {
-            const a = articleMap.get(p.articleId);
-            return <div className={styles.proposalRow} key={p.id}>
-              <input type="checkbox" aria-label={"تأیید " + (a?.title ?? p.articleId)}
-                checked={checkedProposals.includes(p.id)}
-                onChange={(event) => setCheckedProposals((old) => event.target.checked
-                  ? [...old, p.id] : old.filter((id) => id !== p.id))} />
-              <div><strong>{a?.title ?? p.articleId}</strong>
-                <small>{productMap.get(p.productId)?.name ?? p.productId} · {p.sectionTitle}</small>
-                {!eligibleProposal(p) ? <small className={styles.invalid}>نیازمند بررسی نسخه، جایگاه یا فروش محصول</small> : null}
-              </div>
-              <button type="button" onClick={() => focusProposal(p)}>بازبینی</button>
-            </div>;
-          })}
-          {!pending.length ? <p className={styles.empty}>پیشنهاد منتظر تصمیمی نیست.</p> : null}
-          {rejected.length ? <details className={styles.reviewHistory}>
-            <summary>پیشنهادهای ردشده ({formatCount(rejected.length)})</summary>
-            {rejected.map((p) => <div className={styles.proposalRow} key={p.id}>
-              <div><strong>{articleMap.get(p.articleId)?.title ?? p.articleId}</strong>
-                <small>{p.title}</small></div>
-              <button type="button" onClick={() => focusProposal(p)}>دیدن</button>
-              {canWrite ? <button type="button" disabled={loading} onClick={() => void reopenProposal(p.id)}>
-                بازگشت به بررسی
-              </button> : null}
-            </div>)}
-          </details> : null}
-          {canWrite ? <div className={styles.publishActions}>
-            <button type="button" disabled={!checkedProposals.length || loading}
-              onClick={() => void publishSelected()}>تأیید و انتشار {formatCount(checkedProposals.length)} ویترین</button>
-            <button type="button" disabled={!checkedProposals.length || loading}
-              onClick={() => void rejectChecked()}>رد انتخاب‌شده‌ها</button>
-          </div> : null}
-        </div>
+
       </div>
 
-      <div className={styles.editorColumn} id="showcase-article-preview">
+      <div className={styles.editorColumn} id="showcase-article-preview" ref={editorPanelRef}>
+        <section className={styles.quickPreview} aria-label="پیش‌نمایش زندهٔ کارت">
+          <div className={styles.previewTitle}>
+            <h3>کارت ویترین</h3>
+            {focusRow ? <small>{focusRow.title}</small> : null}
+          </div>
+          {previewOffer ? <div className={styles.cardStage}>
+            <WikiShopShowcaseCard offer={previewOffer} />
+          </div> : <p className={styles.empty}>
+            {draft && !currentProduct?.orderable ? "فروش این محصول فعلاً بسته است." :
+              "یک پیشنهاد یا مقاله رو انتخاب کن تا کارت رو ببینی."}
+          </p>}
+        </section>
         <section className={styles.editor}>
-          <h3>{draft ? "ویرایش ویترین" : "پیش‌نمایش مقاله"}</h3>
+          <h3>ویرایش ویترین</h3>
           {draft && focusRow ? <>
             <div className={styles.editorFields}>
               <label>مقاله <strong>{focusRow.title}</strong></label>
@@ -736,7 +794,9 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
             {draft.proposalId ? <p className={styles.hint}>برای انتشار این پیشنهاد، تیکش رو در فهرست پیشنهادهای AI بزن.</p> : null}
           </> : <p className={styles.empty}>یک مقاله یا پیشنهاد رو از فهرست انتخاب کن.</p>}
         </section>
-        <section className={styles.previewPane}>
+        <details className={styles.fullArticle}>
+          <summary>نمای کامل مقاله و محل قرارگیری کارت</summary>
+          <section className={styles.previewPane}>
           <div className={styles.previewTitle}><h3>نمای مقاله</h3>
             {demo ? <small>نمونه</small> : null}</div>
           {detail ? <div className={styles.articleCanvas}>
@@ -751,7 +811,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
               </article>
             </div>
           </div> : <p className={styles.empty}>مقاله‌ای رو انتخاب کن تا اینجا ببینیش.</p>}
-        </section>
+          </section>
+        </details>
       </div>
     </div>
   </section>;

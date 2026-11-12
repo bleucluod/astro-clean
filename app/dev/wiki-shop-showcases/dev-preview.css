@@ -11,3 +11,18 @@ body:has(#wiki-shop-showcases-dev) #main-content > * { max-width: 100%; }
 html:has(#wiki-shop-showcases-dev) header[data-site-header],
 html:has(#wiki-shop-showcases-dev) footer[data-approved-lockup],
 html:has(#wiki-shop-showcases-dev) [class*="mobileAccountFab"] { display: none !important; }
+
+/* Keep the development-only preview on the light admin surface, never the Wiki dark shell. */
+html:has(#wiki-shop-showcases-dev),
+body:has(#wiki-shop-showcases-dev),
+body:has(#wiki-shop-showcases-dev) #main-content,
+body:has(#wiki-shop-showcases-dev) #main-content > div {
+  background: #f8fafc !important;
+  color: #243447;
+}
+body:has(#wiki-shop-showcases-dev) #main-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 20px 12px 44px !important;
+}

@@ -93,3 +93,62 @@
 
 .reviewHistory { border-top: 1px solid #e4eaf1; padding-top: 12px; }
 .reviewHistory summary { cursor: pointer; color: #3b526b; font-weight: 750; padding: 8px 0; }
+
+/* EW-01 scoped admin refinement — light Halleus management surface. */
+.manager { background: #f8fafc; border: 1px solid #dce7f0; border-radius: 18px; padding: clamp(14px, 2vw, 24px); gap: 14px; color: #243447; }
+.manager [hidden] { display: none !important; }
+.header { padding-bottom: 2px; }
+.stats { align-items: center; }
+.stats > span { background: #eaf1f8; border-color: #d5e3ef; border-radius: 10px; font-weight: 650; }
+.stats > span b { font-size: 15px; margin-inline-start: 5px; }
+.moreStats { position: relative; font-size: 12px; }
+.moreStats > summary, .bulkMore > summary { cursor: pointer; list-style: none; border: 1px solid #c2d3e2; border-radius: 9px; padding: 9px 12px; color: #435b70; background: #fff; font-weight: 700; }
+.moreStats > summary::-webkit-details-marker, .bulkMore > summary::-webkit-details-marker { display: none; }
+.moreStats[open] > div { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: #fff; border: 1px solid #dae6f0; border-radius: 10px; margin-top: 7px; }
+.moreStats > div > span { padding: 5px 8px; color: #52657a; }
+.primaryFilters { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.primaryFilters label { min-width: 0; }
+.manager .moreFiltersButton { white-space: nowrap; min-height: 40px; background: #e8f0f8; }
+.filters { grid-template-columns: repeat(4, minmax(0, 1fr)); background: #f0f5fa; border: 1px solid #dce7f0; border-radius: 12px; padding: 13px; }
+.bulkBar { border-block-color: #dce7f0; }
+.bulkMore { flex: 1 1 auto; }
+.bulkMore > summary { width: fit-content; }
+.bulkMore[open] > div { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 9px; }
+.columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; }
+.articleList { background: #fff; border: 1px solid #dce6ef; border-radius: 15px; padding: 12px; }
+.sectionHeading { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin: 0 0 4px; }
+.sectionHeading h3 { font-size: 15px; margin: 0; }
+.sectionHeading span { color: #687c90; font-size: 12px; }
+.articleRow { background: #fbfdff; }
+.proposalRow { background: #fbfdff; border: 1px solid #e2ebf3; border-radius: 10px; margin-top: 7px; padding: 11px; align-items: center; }
+.proposalRow > div { min-width: 0; }
+.importArea { border-color: #bdd2e4; box-shadow: 0 6px 24px rgba(36, 52, 71, .035); }
+.editorColumn { scroll-margin-top: 12px; gap: 12px; scrollbar-width: thin; }
+.quickPreview { position: sticky; top: 0; z-index: 5; display: grid; gap: 8px; padding: 13px; border: 1px solid #bed3e4; border-radius: 14px; background: #fff; box-shadow: 0 8px 18px rgba(36, 52, 71, .075); }
+.quickPreview .previewTitle h3 { font-size: 15px; }
+.quickPreview .previewTitle small { max-width: 66%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cardStage { min-width: 0; border-radius: 12px; padding: 5px 12px; background: #101114; }
+.cardStage > aside > a { margin: 7px 0; }
+.fullArticle { background: #fff; border: 1px solid #dce6ef; border-radius: 14px; padding: 10px 14px; }
+.fullArticle > summary { cursor: pointer; padding: 5px 0; font-weight: 750; line-height: 1.8; color: #344b61; }
+.fullArticle[open] .previewPane { margin-top: 10px; border: 0; padding: 0; }
+.fullArticle:not([open]) > .previewPane { display: none; }
+@media (max-width: 1100px) {
+  .primaryFilters { grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto; }
+  .filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .quickPreview { position: static; }
+}
+@media (max-width: 760px) {
+  .manager { padding: 12px; border-radius: 12px; }
+  .primaryFilters { grid-template-columns: minmax(0,1fr); }
+  .filters { grid-template-columns: minmax(0,1fr) minmax(0,1fr); padding: 9px; }
+  .primaryFilters > button { width: 100%; }
+  .bulkMore { flex-basis: 100%; }
+  .bulkMore > summary { width: 100%; }
+  .stats > span { flex: 1 1 auto; }
+  .cardStage { padding: 5px 8px; }
+  .quickPreview { padding: 10px; }
+  .proposalRow { flex-wrap: wrap; }
+  .proposalRow > button { margin-inline-start: auto; }
+  .fullArticle { padding: 10px; }
+}

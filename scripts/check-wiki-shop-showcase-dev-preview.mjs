@@ -27,4 +27,27 @@ for (const path of ["components/admin/WikiShopShowcasePanel.tsx",
   });
   assert.equal((result.diagnostics ?? []).filter((d) => d.category === ts.DiagnosticCategory.Error).length, 0);
 }
+
+const adminCss = fs.readFileSync("components/admin/wiki-shop-showcase.module.css", "utf8");
+const devCss = fs.readFileSync("app/dev/wiki-shop-showcases/dev-preview.css", "utf8");
+const card = fs.readFileSync("components/wiki/WikiShopShowcaseCard.tsx", "utf8");
+assert.match(panel, /aria-expanded=\{moreFiltersOpen\}/);
+assert.match(panel, /hidden=\{!moreFiltersOpen\}/);
+assert.match(panel, /PROPOSAL_LIMIT = 8/);
+assert.match(panel, /pending\.slice\(currentProposalPage \* PROPOSAL_LIMIT/);
+assert.match(panel, /<div className=\{styles\.importArea\}>[\s\S]*?<div className=\{styles\.articleList\}>/);
+assert.match(panel, /<section className=\{styles\.quickPreview\}/);
+assert.match(panel, /<WikiShopShowcaseCard offer=\{previewOffer\}/);
+assert.match(panel, /<details className=\{styles\.fullArticle\}>/);
+assert.match(panel, /<WikiArticleBody/);
+assert.match(panel, /ref=\{editorPanelRef\}/);
+assert.match(panel, /checked=\{checkedProposals\.includes\(p\.id\)\}/);
+assert.match(panel, /checked=\{selected\.includes\(a\.articleId\)\}/);
+assert.match(adminCss, /\.manager \{ background: #f8fafc;/);
+assert.match(adminCss, /\.quickPreview \{ position: sticky; top: 0;/);
+assert.match(adminCss, /\.manager \[hidden\] \{ display: none !important; \}/);
+assert.match(devCss, /#main-content[\s\S]*background: #f8fafc !important;/);
+assert.match(card, /WikiShopShowcaseCard/);
+assert.doesNotMatch(panel, /onMouseLeave|onMouseOut/);
+
 console.log("EW-01 unified preview, persistent click help and list-selection guard PASS");
