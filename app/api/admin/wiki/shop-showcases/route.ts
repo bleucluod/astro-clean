@@ -5,7 +5,7 @@ import {
 import { adminErrorResponse, noStoreJsonResponse, readObject } from "@/lib/admin/admin-http";
 import { saveWikiShopShowcaseBatch } from "@/lib/wiki/wiki-shop-showcase";
 import {
-  buildWikiShowcaseSelectedZip, estimateWikiShowcaseSelectedZip, importWikiShowcaseProposals,
+  buildWikiShowcaseSelectedZip, estimateWikiShowcaseSelectedZip, importWikiShowcaseProposalPackage,
   loadWikiShowcaseDashboard, loadWikiShowcaseArticle, rejectWikiShowcaseProposals,
   reopenWikiShowcaseProposals,
 } from "@/lib/wiki/wiki-shop-showcase-workflow";
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       } catch (cause) {
         throw new AdminAccessError(400, cause instanceof Error ? cause.message : "Invalid ZIP");
       }
-      return noStoreJsonResponse({ ok: true, ...(await importWikiShowcaseProposals(actor, parsed)) });
+      return noStoreJsonResponse({ ok: true, ...(await importWikiShowcaseProposalPackage(actor, parsed)) });
     }
 
     assertAdminMutationRequest(request);
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       });
     }
     if (body.action === "import") {
-      return noStoreJsonResponse({ ok: true, ...(await importWikiShowcaseProposals(actor, body.package)) });
+      return noStoreJsonResponse({ ok: true, ...(await importWikiShowcaseProposalPackage(actor, body.package)) });
     }
     if (body.action === "reject" || body.action === "reopen") {
       const articleIds = body.action === "reject"

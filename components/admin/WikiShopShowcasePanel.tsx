@@ -531,38 +531,30 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       const estimate = await jsonRequest<{ ok: true; estimatedBytes: number; articleCount: number }>({
         action: "estimate", articleIds: selected,
       });
-      const averageBytes = Math.max(1, estimate.estimatedBytes / selected.length);
-      const chunkSize = Math.max(1, Math.min(25, Math.floor(10_000_000 / (averageBytes * 1.3))));
-      const batches = Math.ceil(selected.length / chunkSize);
       const approxMb = (estimate.estimatedBytes / 1_000_000).toLocaleString("fa-IR", {
         maximumFractionDigits: 1,
       });
-      if (!window.confirm(`متن انتخاب‌شده حدود ${approxMb} مگابایت است. ${formatCount(batches)} بستهٔ ZIP ساخته شود؟ برای دریافت چند فایل ممکن است مرورگر به اجازه نیاز داشته باشد.`)) return;
-      for (let i = 0; i < batches; i++) {
-        const batch = selected.slice(i * chunkSize, (i + 1) * chunkSize);
-        const response = await fetch("/api/admin/wiki/shop-showcases", {
-          method: "POST", cache: "no-store",
-          headers: { authorization: "Bearer " + token, "content-type": "application/json" },
-          body: JSON.stringify({ action: "export_zip", articleIds: batch, productIds,
-             productMinimums: Object.fromEntries(productIds.map((id) => [id, productMinimums[id] ?? 0])) }),
-        });
-        if (!response.ok) {
-          const body = await response.json() as { error?: string };
-          throw new Error(body.error ?? "ساخت ZIP ناموفق بود");
-        }
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        const fileName = response.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1];
-        anchor.download = fileName
-          ? fileName.replace(/\.zip$/, `-${i + 1}-of-${batches}.zip`)
-          : `halleus-wiki-showcases-${i + 1}-of-${batches}.zip`;
-        document.body.append(anchor); anchor.click(); anchor.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 3000);
+      if (!window.confirm(`متن ${formatCount(estimate.articleCount)} مقاله حدود ${approxMb} مگابایت است. یک ZIP برای AI دانلود شود؟`)) return;
+      const response = await fetch("/api/admin/wiki/shop-showcases", {
+        method: "POST", cache: "no-store",
+        headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+        body: JSON.stringify({ action: "export_zip", articleIds: selected, productIds,
+          productMinimums: Object.fromEntries(productIds.map((id) => [id, productMinimums[id] ?? 0])) }),
+      });
+      if (!response.ok) {
+        const body = await response.json() as { error?: string };
+        throw new Error(body.error ?? "ساخت ZIP ناموفق بود");
       }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      const fileName = response.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1];
+      anchor.download = fileName ?? "halleus-wiki-showcases-ai.zip";
+      document.body.append(anchor); anchor.click(); anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 3000);
       await refresh();
-      setNotice(`${formatCount(batches)} بستهٔ ZIP ساخته شد.`);
+      setNotice("یک فایل ZIP برای AI دریافت شد.");
     });
   }
   async function importFile(file: File | null) {
@@ -581,10 +573,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
           accepted: number; errors: Array<{ index: number; error: string }> };
         if (!response.ok || !body.ok) throw new Error(body.error ?? "فایل وارد نشد");
         result = body;
-      } else if (file.name.toLowerCase().endsWith(".json")) {
-        const parsed: unknown = JSON.parse(await file.text());
-        result = await jsonRequest({ action: "import", package: parsed });
-      } else throw new Error("فقط ZIP یا JSON قابل ورود است");
+      } else throw new Error("فقط فایل ZIP پیشنهادهای AI قابل ورود است");
       await refresh();
       setNotice(`${formatCount(result.accepted)} پیشنهاد وارد شد.` +
         (result.errors.length ? ` ${formatCount(result.errors.length)} خطا: ` +
@@ -601,7 +590,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         <div className={styles.helpHeading}><strong>راهنمای ویترین</strong>
           <button type="button" onClick={() => setHelpOpen(false)}>بستن ×</button></div>
         <p>مقاله‌ها رو بر اساس وضعیت یا داشتن بخش آزاد فیلتر و انتخاب کن. محصولات و حداقل هدف هرکدوم رو مشخص کن و ZIP بگیر.</p>
-        <p>فایل خروجی AI رو وارد کن؛ پیشنهادها رو یکی‌یکی ببین، ویرایش کن و فقط موارد دلخواهت رو تیک بزن.</p>
+        <p>یک ZIP به AI بده و خروجی AI رو هم در یک ZIP شامل proposals.json تحویل بگیر؛ پیشنهادها رو بازبینی کن و فقط موارد دلخواهت رو تیک بزن.</p>
         <p>هر مقاله می‌تونه چند ویترین در بخش‌های متفاوت داشته باشه؛ هر کارت مستقل ویرایش و خاموش یا روشن می‌شه. «تأیید و انتشار» یعنی ویترین همان لحظه فعال می‌شه. بعداً می‌تونی هر ویترین رو دستی یا گروهی خاموش و روشن کنی.</p>
         <p>اگر مقاله تغییر کنه، جایگاه قبلی تا جایی که هنوز قابل شناسایی باشه حفظ می‌شه و برای بازبینی علامت می‌خوره.</p>
         {demo ? <p>اینجا داده‌ها نمونه‌اند و چیزی روی سایت ذخیره نمی‌شه.</p> : null}
@@ -688,8 +677,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       <div className={styles.listColumn}>
         <div className={styles.importArea}>
           <h3>پیشنهادهای AI</h3>
-          <label className={styles.upload}>ورود ZIP یا JSON
-            <input type="file" accept=".zip,.json,application/json,application/zip"
+          <label className={styles.upload}>ورود یک ZIP پیشنهادهای AI
+            <input type="file" accept=".zip,application/zip"
               disabled={!canWrite || loading}
               onChange={(event) => { void importFile(event.target.files?.[0] ?? null); event.target.value = ""; }} />
           </label>
@@ -793,7 +782,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         <div className={styles.zipArea}>
           <h3>بستهٔ AI</h3>
           <p className={styles.hint}>هدف هر محصول راهنمای پیشنهادهای AI است، نه سهمیهٔ اجباری یا انتشار خودکار. عدد صفر یعنی بدون حداقل.</p>
-          <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ حجم بسته پیش از دانلود محاسبه می‌شه و ZIPهای بزرگ جدا می‌شن.</p>
+          <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ همه در یک ZIP همراه با راهنمای AI و یک شناسهٔ بسته قرار می‌گیرن.</p>
           <div className={styles.rowActions}>
             <button type="button" onClick={() => setProductIds(data.products.map((p) => p.id))}>
               انتخاب همهٔ محصولات

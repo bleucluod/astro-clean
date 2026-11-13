@@ -66,6 +66,10 @@ assert.equal(anchor.resolveWikiShowcaseSection(sections.filter((s) => s !== sect
 "Missing section never relocates by guess");
 
 const zip = loadModule("lib/wiki/wiki-showcase-zip.ts", { "node:zlib": requireNode("node:zlib") });
+const zipSource = read("lib/wiki/wiki-showcase-zip.ts");
+assert.match(zipSource, /MAX_EXPORT_TOTAL = 50_000_000/);
+assert.match(zipSource, /total > MAX_EXPORT_TOTAL/);
+assert.match(zipSource, /total > MAX_TOTAL\) throw new Error\("ZIP expanded size exceeded"\)/);
 const longText = "آسمان و ماه؛ ".repeat(600);
 const zipBuffer = zip.makeWikiShowcaseZip([
   { name: "README_FA.md", data: "راهنما" },
@@ -80,6 +84,17 @@ const local = new DataView(zipBuffer.buffer, zipBuffer.byteOffset, zipBuffer.byt
 const compressedStart = 30 + local.getUint16(26, true) + local.getUint16(28, true);
 badCrc[compressedStart + 2] ^= 1;
 assert.throws(() => zip.readWikiShowcaseZip(badCrc), "CRC/tampering fails");
+
+const manyEntries = zip.makeWikiShowcaseZip(
+  Array.from({ length: 308 }, (_, i) => ({
+    name: "articles/fixture-" + i + ".json", data: JSON.stringify({ index: i }),
+  })),
+);
+assert.equal(zip.readWikiShowcaseZip(manyEntries).size, 308,
+  "Single ZIP can contain hundreds of articles");
+assert.throws(() => zip.makeWikiShowcaseZip(
+  Array.from({ length: 521 }, (_, i) => ({ name: "file-" + i + ".txt", data: "x" })),
+), "ZIP content stays bounded");
 
 class AdminAccessError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -196,9 +211,63 @@ assert.equal(imported.errors.length, 0);
 assert.ok(JSON.parse(exported.get("articles/" + selectedIds[0] + ".json"))
   .sections[0].paragraphs[0].length > 2200);
 assert.ok(inserted >= selectedIds.length, "Export history must persist");
+const allBatch = await workflow.buildWikiShowcaseSelectedZip(actor, {
+  articleIds: articleRows.map((row) => row.id), productIds: ["p01"],
+  productMinimums: { p01: 0 },
+});
+const allEntries = zip.readWikiShowcaseZip(allBatch.bytes);
+assert.equal(allEntries.size, 308, "300 article JSONs and eight guide files in one ZIP");
+assert.equal(JSON.parse(allEntries.get("manifest.json")).articleIds.length, 300);
+const forAIAtScale = {
+  schemaVersion: 2, batchId: allBatch.batchId,
+  proposals: articleRows.slice(40, 170).map((row) => ({
+    articleId: row.id, articleVersion: 2, status: "propose", productId: "p01",
+    afterSectionIndex: 1, sectionTitle: sections[1].title, sectionAnchor: key,
+    title: "پیشنهاد", description: "متن مرتبط", buttonLabel: "دیدن",
+  })),
+};
+const scaled = await workflow.importWikiShowcaseProposalPackage(actor, forAIAtScale);
+assert.equal(scaled.accepted, 130, "Single new AI ZIP accepts over 100 proposals");
+assert.equal(scaled.errors.length, 0);
+const legacyBatches = [];
+for (let i = 0; i < 12; i += 1) {
+  const ids = articleRows.slice(i * 20 + 40, i * 20 + 60).map((row) => row.id);
+  const older = await workflow.buildWikiShowcaseSelectedZip(actor, {
+    articleIds: ids, productIds: ["p01"],
+  });
+  legacyBatches.push({
+    schemaVersion: 2, batchId: older.batchId,
+    proposals: ids.map((id) => ({
+      articleId: id, articleVersion: 2, status: "propose", productId: "p01",
+      afterSectionIndex: 1, sectionTitle: sections[1].title, sectionAnchor: key,
+      title: "پیشنهاد", description: "متن مرتبط", buttonLabel: "دیدن",
+    })),
+  });
+}
+const legacyPackage = { schemaVersion: 3, batches: legacyBatches };
+const legacyZip = zip.makeWikiShowcaseZip([
+  { name: "proposals.json", data: JSON.stringify(legacyPackage) },
+]);
+const legacyImported = await workflow.importWikiShowcaseProposalPackage(actor,
+  JSON.parse(zip.readWikiShowcaseZip(legacyZip).get("proposals.json")));
+assert.equal(legacyImported.accepted, 240, "Twelve old batches import in one ZIP");
+assert.equal(legacyImported.errors.length, 0);
+const beforeRejected = inserted;
+await assert.rejects(workflow.importWikiShowcaseProposalPackage(actor, {
+  schemaVersion: 3, batches: [legacyBatches[0], {
+    ...legacyBatches[1], batchId: "unknown-batch",
+  }],
+}), /Unknown AI batch/, "Unknown batch fails without partial import");
+assert.equal(inserted, beforeRejected);
+await assert.rejects(workflow.importWikiShowcaseProposalPackage(actor, {
+  schemaVersion: 3, batches: [legacyBatches[0], legacyBatches[0]],
+}), /Duplicate AI batch/);
 await assert.rejects(workflow.buildWikiShowcaseSelectedZip(actor, {
-  articleIds: articleRows.slice(0, 26).map((a) => a.id), productIds: ["p01"],
-}), "Batch size limited for predictable downloads");
+  articleIds: Array.from({ length: 501 }, (_, i) =>
+    (i + 1000).toString(16).padStart(8, "0") + "-1111-4111-8111-111111111111"),
+  productIds: ["p01"],
+}), "500 article cap enforced");
+
 
 const route = read("app/api/admin/wiki/shop-showcases/route.ts");
 const service = read("lib/wiki/wiki-shop-showcase.ts");
@@ -211,6 +280,7 @@ assert.match(route, /assertAdminUploadRequest\(request\)/);
 assert.match(route, /assertAdminMutationRequest\(request\)/);
 assert.match(route, /"wiki\.publish\.write"/);
 assert.match(route, /readWikiShowcaseZip/);
+assert.match(route, /importWikiShowcaseProposalPackage/);
 assert.match(route, /revalidatePath\("\/wiki\/" \+ slug/);
 assert.match(service, /resolveWikiShowcaseSection\(sections/);
 assert.match(service, /status = 'published'/);
@@ -231,6 +301,8 @@ assert.match(ui, /selected\.length/);
 assert.match(ui, /checkedProposals/);
 assert.match(ui, /"publish"/);
 assert.match(ui, /"export_zip"/);
+assert.doesNotMatch(ui, /selected\.slice\(i \* chunkSize/);
+assert.match(ui, /فقط فایل ZIP پیشنهادهای AI/);
 assert.match(ui, /<WikiArticleBody/);
 assert.match(card, /<Link href=\{offer\.url\} className=\{styles\.card\}/);
 assert.match(css, /background: #17191d/);

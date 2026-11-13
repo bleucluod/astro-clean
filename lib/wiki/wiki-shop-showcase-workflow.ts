@@ -7,7 +7,7 @@ import { makeWikiShowcaseZip, type ZipFile } from "./wiki-showcase-zip";
 import { wikiShopProductCatalog } from "./wiki-shop-showcase";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const MAX_BATCH = 25;
+const MAX_BATCH = 500;
 type Row = Record<string, unknown>;
 type ValidProposal = {
   sourceIndex: number; articleId: string; articleVersion: number;
@@ -231,8 +231,8 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
   const date = new Date().toISOString();
   const json = (value: unknown) => JSON.stringify(value, null, 2);
   const files: ZipFile[] = [
-    { name: "README_FA.md", data: `# بستهٔ ویترین ویکی هالیوس\n\nشناسه: ${batchId}\n\nفقط مقاله‌ها و محصولات این بسته را بخوان. راهنمای AI_INSTRUCTIONS.md و هدف‌های فعال در targets.json را رعایت کن. در هر مقاله چند ویترین در بخش‌های متفاوت مجاز است، نه چند کارت در یک بخش. اگر هیچ محصولی مرتبط نیست skip بده؛ سهمیه دلیل ایجاد پیشنهاد نامرتبط نیست. فایل proposals.json را در یک ZIP یا به‌تنهایی برگردان. هیچ پیشنهاد AI بدون تأیید مدیر منتشر نمی‌شود.\n` },
-    { name: "AI_INSTRUCTIONS.md", data: `# انتخاب ویترین\n\nبرای هر مقاله چند پیشنهاد در بخش‌های متفاوت مجاز است؛ هر بخش حداکثر یک ویترین و هیچ بخش اشغال‌شده‌ای نباید تکرار شود. هدف حداقل ویترین فعال هر محصول و تعداد فعال فعلی و کسری تا هدف در targets.json آمده‌اند؛ برای جبران کسری فقط جایگاه‌های واقعاً مرتبط پیشنهاد بده. اگر هدف قبلاً تأمین شده، پیشنهاد اضافی صرفاً برای سهمیه نساز. محصولی با orderable=false را برای انتشار پیشنهاد نده. متن فارسی کوتاه و اختصاصی، غیرتکراری و انسانی باشد. پس از یک بخش H2 مرتبط در میانهٔ مقاله قرار بده؛ پس از آخرین بخش ممنوع. شناسهٔ مقاله، نسخه، عنوان بخش، sectionAnchor و afterSectionIndex را دقیق از فایل مقاله بردار. پیشنهادها را در proposals.json با schemaVersion=2 و batchId ثبت کن. برای مقالهٔ نامناسب status=skip و reason را بازگردان. هیچ بدنهٔ مقاله را تغییر نده.\n` },
+    { name: "README_FA.md", data: `# بستهٔ ویترین ویکی هالیوس\n\nشناسه: ${batchId}\n\nفقط مقاله‌ها و محصولات این بسته را بخوان. راهنمای AI_INSTRUCTIONS.md و هدف‌های فعال در targets.json را رعایت کن. در هر مقاله چند ویترین در بخش‌های متفاوت مجاز است، نه چند کارت در یک بخش. اگر هیچ محصولی مرتبط نیست skip بده؛ سهمیه دلیل ایجاد پیشنهاد نامرتبط نیست. فقط یک ZIP برگردان که در ریشهٔ آن proposals.json با schemaVersion=2 و همین batchId قرار دارد. هیچ پیشنهاد AI بدون تأیید مدیر منتشر نمی‌شود.\n` },
+    { name: "AI_INSTRUCTIONS.md", data: `# انتخاب ویترین\n\nبرای هر مقاله چند پیشنهاد در بخش‌های متفاوت مجاز است؛ هر بخش حداکثر یک ویترین و هیچ بخش اشغال‌شده‌ای نباید تکرار شود. هدف حداقل ویترین فعال هر محصول و تعداد فعال فعلی و کسری تا هدف در targets.json آمده‌اند؛ برای جبران کسری فقط جایگاه‌های واقعاً مرتبط پیشنهاد بده. اگر هدف قبلاً تأمین شده، پیشنهاد اضافی صرفاً برای سهمیه نساز. محصولی با orderable=false را برای انتشار پیشنهاد نده. متن فارسی کوتاه و اختصاصی، غیرتکراری و انسانی باشد. پس از یک بخش H2 مرتبط در میانهٔ مقاله قرار بده؛ پس از آخرین بخش ممنوع. شناسهٔ مقاله، نسخه، عنوان بخش، sectionAnchor و afterSectionIndex را دقیق از فایل مقاله بردار. پیشنهادها را در proposals.json با schemaVersion=2 و batchId ثبت کن. برای مقالهٔ نامناسب status=skip و reason را بازگردان. هیچ بدنهٔ مقاله را تغییر نده. خروجی نهایی فقط یک ZIP با فایل proposals.json در ریشهٔ آن است.\n` },
     { name: "manifest.json", data: json({ schemaVersion: 2, batchId, createdAt: date,
       articleIds: ids, productIds: products.map((p) => p.id), productMinimums, count: ids.length }) },
     { name: "products.json", data: json(products) },
@@ -303,7 +303,7 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
 export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw: unknown) {
   const input = asRecord(raw);
   if (input.schemaVersion !== 2 || typeof input.batchId !== "string" || input.batchId.length > 80 ||
-    !Array.isArray(input.proposals) || input.proposals.length > 100 ||
+    !Array.isArray(input.proposals) || input.proposals.length > 500 ||
     !input.proposals.length) throw new AdminAccessError(400, "Invalid AI package version");
   const batchId = input.batchId;
   const sql = getAdminDatabase();
@@ -406,6 +406,73 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
         true, ${actor.correlationId ?? randomUUID()})
       `;
     });
+  }
+  return { accepted, errors };
+}
+
+/** Import one ZIP payload for one new batch or a bundle of legacy export batches.
+ * Preflight every legacy batch against the export ledger before any write.
+ */
+export async function importWikiShowcaseProposalPackage(actor: VerifiedAdminActor, raw: unknown) {
+  const input = asRecord(raw);
+  if (input.schemaVersion !== 3) return importWikiShowcaseProposals(actor, raw);
+  if (!Array.isArray(input.batches) || !input.batches.length || input.batches.length > 25) {
+    throw new AdminAccessError(400, "Invalid bundled AI batches");
+  }
+  const batches = input.batches.map((value: unknown) => {
+    const part = asRecord(value);
+    if (part.schemaVersion !== 2 || typeof part.batchId !== "string" ||
+      !part.batchId || part.batchId.length > 80 ||
+      !Array.isArray(part.proposals) || !part.proposals.length ||
+      part.proposals.length > 500) {
+      throw new AdminAccessError(400, "Invalid AI batch inside ZIP");
+    }
+    return { batchId: part.batchId, proposals: part.proposals };
+  });
+  const batchIds = new Set<string>();
+  const articleBatches = new Map<string, string>();
+  let total = 0;
+  for (const batch of batches) {
+    if (batchIds.has(batch.batchId)) throw new AdminAccessError(400, "Duplicate AI batch");
+    batchIds.add(batch.batchId);
+    for (const value of batch.proposals) {
+      total += 1;
+      if (total > 500) throw new AdminAccessError(400, "Too many AI proposals (500 maximum)");
+      const proposal = asRecord(value);
+      if (typeof proposal.articleId !== "string" || !UUID.test(proposal.articleId)) {
+        throw new AdminAccessError(400, "Invalid article identifier in AI ZIP");
+      }
+      const previous = articleBatches.get(proposal.articleId);
+      if (previous && previous !== batch.batchId) {
+        throw new AdminAccessError(400, "Article belongs to multiple AI batches");
+      }
+      articleBatches.set(proposal.articleId, batch.batchId);
+    }
+  }
+  const sql = getAdminDatabase();
+  // All export identities must be valid before the first proposal is inserted.
+  for (const batch of batches) {
+    const rows = await sql`
+      select article_id::text from halleus_private.wiki_shop_showcase_exports
+      where batch_id = ${batch.batchId}
+    `;
+    if (!rows.length) throw new AdminAccessError(409, "Unknown AI batch");
+    const allowed = new Set(rows.map((row) => asString(row.article_id)));
+    if (batch.proposals.some((value) => !allowed.has(asString(asRecord(value).articleId)))) {
+      throw new AdminAccessError(409, "AI proposal article does not belong to its export batch");
+    }
+  }
+  let accepted = 0;
+  let offset = 0;
+  const errors: Array<{ index: number; error: string }> = [];
+  for (const batch of batches) {
+    const result = await importWikiShowcaseProposals(actor, {
+      schemaVersion: 2, batchId: batch.batchId, proposals: batch.proposals,
+    });
+    accepted += result.accepted;
+    errors.push(...result.errors.map((entry) =>
+      ({ index: entry.index + offset, error: entry.error })));
+    offset += batch.proposals.length;
   }
   return { accepted, errors };
 }

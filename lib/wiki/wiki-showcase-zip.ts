@@ -4,8 +4,9 @@ export type ZipFile = { name: string; data: string | Uint8Array };
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder("utf-8", { fatal: true });
 const MAX_ENTRY = 12_000_000;
-const MAX_TOTAL = 20_000_000;
-const MAX_FILES = 120;
+const MAX_TOTAL = 20_000_000; // Expanded size for uploaded AI ZIPs.
+const MAX_EXPORT_TOTAL = 50_000_000; // Full text of up to 500 articles in one downloaded ZIP.
+const MAX_FILES = 520; // One export: up to 500 article files plus eight guide files.
 
 function crc32(data: Uint8Array): number {
   let crc = 0xffffffff;
@@ -30,7 +31,7 @@ export function makeWikiShowcaseZip(entries: ZipFile[]): Uint8Array {
     const filename = textEncoder.encode(entry.name);
     const input = typeof entry.data === "string" ? textEncoder.encode(entry.data) : entry.data;
     total += input.byteLength;
-    if (input.byteLength > MAX_ENTRY || total > MAX_TOTAL) throw new Error("ZIP content limit exceeded");
+    if (input.byteLength > MAX_ENTRY || total > MAX_EXPORT_TOTAL) throw new Error("ZIP export size limit exceeded (50 MB expanded)");
     const compressed = deflateRawSync(input, { level: 6 });
     const crc = crc32(input);
     const header = Uint8Array.from([
