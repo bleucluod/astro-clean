@@ -90,7 +90,7 @@ export async function loadWikiShowcaseDashboard() {
         from halleus_private.wiki_shop_showcase_exports group by article_id`,
   ]);
   const products = wikiShopProductCatalog();
-  const productMap = new Map(products.map((p) => [p.id, p]));
+  const productMap = new Map<string, (typeof products)[number]>(products.map((p) => [p.id, p]));
   const showcases = new Map<string, Row[]>();
   for (const row of showcaseRows) {
     const articleId = asString(row.article_id);
