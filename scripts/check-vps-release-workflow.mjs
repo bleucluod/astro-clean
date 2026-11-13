@@ -32,8 +32,9 @@ const pnpmWorkspacePath = "pnpm-workspace.yaml";
 const pnpmLockPath = "pnpm-lock.yaml";
 
 const approvedDependencyBuilds = new Map([
-  ["sharp", "0.34.5"],
-  ["unrs-resolver", "1.12.2"],
+  // The lockfile contains both the Next.js transitive and the direct sharp version.
+  ["sharp", ["0.34.5", "0.35.3"]],
+  ["unrs-resolver", ["1.12.2"]],
 ]);
 
 function parsePnpmAllowBuilds(source) {
@@ -86,7 +87,7 @@ function validatePnpmDependencyBuildPolicy(workspaceSource, lockSource) {
     );
   }
 
-  for (const [dependencyName, version] of approvedDependencyBuilds) {
+  for (const [dependencyName, approvedVersions] of approvedDependencyBuilds) {
     if (actualAllowBuilds.get(dependencyName) !== true) {
       policyFailures.push(`${dependencyName} must be explicitly approved with true.`);
     }
@@ -95,12 +96,12 @@ function validatePnpmDependencyBuildPolicy(workspaceSource, lockSource) {
     const lockVersions = [
       ...new Set(
         [...lockSource.matchAll(new RegExp(`^  ${escapedName}@([^:]+):$`, "gm"))]
-          .map((match) => match[1]),
+          .map((match) => match[1].replace(/\(.*$/, "")),
       ),
-    ];
-    if (lockVersions.length !== 1 || lockVersions[0] !== version) {
+    ].sort();
+    if (JSON.stringify(lockVersions) !== JSON.stringify([...approvedVersions].sort())) {
       policyFailures.push(
-        `${dependencyName} approval requires the reviewed lock version ${version}; found ${lockVersions.join(", ") || "none"}.`,
+        `${dependencyName} approval requires reviewed lock versions ${approvedVersions.join(", ")}; found ${lockVersions.join(", ") || "none"}.`,
       );
     }
   }
@@ -285,7 +286,17 @@ const policySelfTests = [
   {
     label: "rejects unreviewed lock-version changes",
     workspace: pnpmWorkspace,
-    lock: pnpmLock.replace("  sharp@0.34.5:", "  sharp@0.34.6:"),
+    lock: pnpmLock.replace("  sharp@0.35.3:", "  sharp@0.35.4:"),
+  },
+  {
+    label: "rejects unexpected sharp snapshot versions",
+    workspace: pnpmWorkspace,
+    lock: pnpmLock.replace("  sharp@0.35.3(@types/node@20.19.43):", "  sharp@0.35.4(@types/node@20.19.43):"),
+  },
+  {
+    label: "rejects a missing approved sharp version",
+    workspace: pnpmWorkspace,
+    lock: pnpmLock.replaceAll("  sharp@0.34.5:", "  sharp@0.34.4:"),
   },
 ];
 

@@ -8,6 +8,7 @@ engine="$repo/ops/vps/halleus-release.sh"
 base=eee77ac98411fb9ef9f1ab40005edb98d1f2785d
 tested=e5faf2dbd3eb759020e48fb415355aa79c92975d
 failed_release=d9e01036200b888ab81d1804fea51534e55b05d0
+previous_candidate=96bb47f5524d2709b8683f7a4bf012e84ab93af3
 logs=/root/halleus-advanced-analytics-qa-7b2df0f3b3b6
 migration="$repo/database/migrations/0041_analytics_engagement_and_hourly.sql"
 node=/usr/local/bin/node
@@ -30,9 +31,9 @@ case "$(g remote get-url origin)" in
   *) fail 'wrong origin';;
 esac
 [ -z "$(g status --porcelain=v1 --untracked-files=all)" ] || fail 'dirty source'
-[ "$(g rev-parse "$pin^")" = "$failed_release" ] || fail 'release resume must be one commit after failed release'
-expected_changes="$(printf '%s\n' ops/vps/halleus-analytics-release.sh ops/vps/halleus-release-storage.env scripts/check-vps-release-workflow.mjs)"
-[ "$(g diff --name-only "$failed_release" "$pin")" = "$expected_changes" ] || fail 'release resume changes exceed approved files'
+[ "$(g rev-parse "$pin^")" = "$previous_candidate" ] || fail 'release resume must be one commit after previous candidate'
+expected_changes="$(printf '%s\n' ops/vps/halleus-analytics-release.sh scripts/check-vps-release-workflow.mjs)"
+[ "$(g diff --name-only "$previous_candidate" "$pin")" = "$expected_changes" ] || fail 'release resume changes exceed approved files'
 [ "$(g hash-object "$repo/ops/vps/halleus-analytics-release.sh")" = "$(g rev-parse "$pin:ops/vps/halleus-analytics-release.sh")" ] || fail 'runner differs from tracked source'
 [ "$(g hash-object "$migration")" = 245346956fecee3cd896962f9f1e1fbef8bcaf38 ] || fail 'migration content mismatch'
 [ "$(stat -c '%u:%a' /etc/halleus/halleus.env)" = 0:600 ] || fail 'private environment permissions'
