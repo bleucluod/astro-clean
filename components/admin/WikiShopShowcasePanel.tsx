@@ -185,6 +185,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [copyFile, setCopyFile] = useState<File | null>(null);
+  const [copyPreview, setCopyPreview] = useState<{ matchedCount: number; changedCount: number; alreadyAppliedCount: number } | null>(null);
   const articleMap = useMemo(() => new Map(data.articles.map((a) => [a.articleId, a])), [data.articles]);
   const productMap = useMemo(() => new Map(data.products.map((p) => [p.id, p])), [data.products]);
 
@@ -581,6 +583,43 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     });
   }
 
+  async function requestCopyUpdate(file: File, copyMode: "preview" | "apply") {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("copyMode", copyMode);
+    const response = await fetch("/api/admin/wiki/shop-showcases", {
+      method: "POST", cache: "no-store",
+      headers: { authorization: "Bearer " + token }, body: form,
+    });
+    const body = await response.json() as { ok: boolean; error?: string;
+      matchedCount: number; changedCount: number; alreadyAppliedCount: number };
+    if (!response.ok || !body.ok) throw new Error(body.error ?? "بررسی بستهٔ اصلاح متن ناموفق بود");
+    return body;
+  }
+  async function previewCopyUpdate(file: File | null) {
+    if (!file || demo) return;
+    setCopyFile(null); setCopyPreview(null);
+    await operation(async () => {
+      if (!file.name.toLowerCase().endsWith(".zip") || file.size > 8_000_000) {
+        throw new Error("برای اصلاح متن فقط فایل ZIP تا ۸ مگابایت مجاز است");
+      }
+      const result = await requestCopyUpdate(file, "preview");
+      setCopyFile(file);
+      setCopyPreview(result);
+      setNotice(`${formatCount(result.matchedCount)} ویترین با بستهٔ اصلاح متن تطبیق داشت؛ هنوز تغییری ذخیره نشده.`);
+    });
+  }
+  async function applyCopyUpdate() {
+    if (!copyFile || !copyPreview || demo) return;
+    if (!window.confirm(`متن ${formatCount(copyPreview.changedCount)} ویترین منتشرشده جایگزین بشه؟ محصول، جایگاه و وضعیت انتشار ثابت می‌مونن.`)) return;
+    await operation(async () => {
+      const result = await requestCopyUpdate(copyFile, "apply");
+      await refresh();
+      setCopyFile(null); setCopyPreview(null);
+      setNotice(`متن ${formatCount(result.changedCount)} ویترین به‌روزرسانی شد؛ ${formatCount(result.alreadyAppliedCount)} مورد قبلاً اعمال شده بود.`);
+    });
+  }
+
   const help = (
     <div className={styles.helpBox}>
       <button type="button" className={styles.helpButton} aria-label="راهنمای ویترین"
@@ -682,6 +721,20 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
               disabled={!canWrite || loading}
               onChange={(event) => { void importFile(event.target.files?.[0] ?? null); event.target.value = ""; }} />
           </label>
+          <div className={styles.importArea}>
+            <h3>متن ویترین‌های منتشرشده</h3>
+            <p className={styles.hint}>فقط برای اصلاح عنوان، توضیح و متن دکمهٔ ویترین‌های موجود؛ هیچ ویترین تازه‌ای ساخته نمی‌شود.</p>
+            <label className={styles.upload}>انتخاب ZIP اصلاح متن
+              <input type="file" accept=".zip,application/zip"
+                disabled={!canWrite || loading}
+                onChange={(event) => { void previewCopyUpdate(event.target.files?.[0] ?? null); event.target.value = ""; }} />
+            </label>
+            {copyPreview ? <div className={styles.rowActions}>
+              <p>{formatCount(copyPreview.matchedCount)} تطبیق · {formatCount(copyPreview.changedCount)} نیازمند تغییر · {formatCount(copyPreview.alreadyAppliedCount)} قبلاً اعمال‌شده</p>
+              <button type="button" disabled={!canWrite || loading || !copyFile}
+                onClick={() => void applyCopyUpdate()}>تأیید و جایگزینی متن</button>
+            </div> : null}
+          </div>
           <div className={styles.pendingBar}>
             <span>{formatCount(pending.length)} منتظر تصمیم</span>
             <button type="button" onClick={() => setCheckedProposals(pending.map((p) => p.id))}>انتخاب همه</button>

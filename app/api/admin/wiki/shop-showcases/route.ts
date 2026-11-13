@@ -4,6 +4,7 @@ import {
 } from "@/lib/admin/admin-auth";
 import { adminErrorResponse, noStoreJsonResponse, readObject } from "@/lib/admin/admin-http";
 import { saveWikiShopShowcaseBatch } from "@/lib/wiki/wiki-shop-showcase";
+import { updatePublishedWikiShowcaseCopy } from "@/lib/wiki/wiki-showcase-copy-update";
 import {
   buildWikiShowcaseSelectedZip, estimateWikiShowcaseSelectedZip, importWikiShowcaseProposalPackage,
   loadWikiShowcaseDashboard, loadWikiShowcaseArticle, rejectWikiShowcaseProposals,
@@ -43,9 +44,30 @@ export async function POST(request: Request) {
           !uploaded.name.toLowerCase().endsWith(".zip")) {
         return noStoreJsonResponse({ ok: false, error: "Invalid ZIP (8 MB maximum)" }, 400);
       }
+      let entries: Map<string, string>;
+      try {
+        entries = readWikiShowcaseZip(new Uint8Array(await uploaded.arrayBuffer()));
+      } catch (cause) {
+        throw new AdminAccessError(400, cause instanceof Error ? cause.message : "Invalid ZIP");
+      }
+      const copyText = entries.get("copy-updates.json");
+      if (copyText) {
+        if (entries.size !== 1) throw new AdminAccessError(400, "Copy ZIP must contain copy-updates.json only");
+        const copyMode = data.get("copyMode");
+        if (copyMode !== "preview" && copyMode !== "apply") {
+          throw new AdminAccessError(400, "Copy update requires preview or apply mode");
+        }
+        let copyParsed: unknown;
+        try { copyParsed = JSON.parse(copyText); }
+        catch { throw new AdminAccessError(400, "Invalid copy-updates.json"); }
+        const outcome = await updatePublishedWikiShowcaseCopy(actor, copyParsed, copyMode === "apply");
+        if (copyMode === "apply") {
+          for (const slug of outcome.slugs) revalidatePath("/wiki/" + slug, "page");
+        }
+        return noStoreJsonResponse({ ok: true, ...outcome });
+      }
       let parsed: unknown;
       try {
-        const entries = readWikiShowcaseZip(new Uint8Array(await uploaded.arrayBuffer()));
         const text = entries.get("proposals.json");
         if (!text) throw new Error("proposals.json missing in ZIP");
         parsed = JSON.parse(text);
