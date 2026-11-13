@@ -196,6 +196,7 @@ export function WikiArticleBody({
   targets,
   rootId,
   showcase,
+  trackShowcases = false,
 }: {
   sections: readonly WikiArticleSection[];
   contextLinks: readonly WikiArticleLink[];
@@ -203,6 +204,7 @@ export function WikiArticleBody({
   targets: WikiInternalLinkTargets;
   rootId?: string;
   showcase?: readonly PublicWikiShopShowcase[] | null;
+  trackShowcases?: boolean;
 }) {
   return (
     <div className={styles.articleBody} id={rootId}>
@@ -300,7 +302,7 @@ export function WikiArticleBody({
         </section>
         {showcase?.filter((offer) => index === offer.afterSectionIndex &&
           section.title === offer.sectionTitle).map((offer) => (
-          <WikiShopShowcaseCard key={offer.id} offer={offer} />
+          <WikiShopShowcaseCard key={offer.id} offer={offer} track={trackShowcases} />
         ))}
         </Fragment>
       ))}

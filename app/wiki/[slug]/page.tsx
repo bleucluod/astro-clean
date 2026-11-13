@@ -319,6 +319,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
             rootId={WIKI_ARTICLE_BODY_ID}
             sections={article.sections}
             showcase={wikiShopShowcase}
+            trackShowcases
             contextLinks={article.contextLinks ?? []}
             sources={article.sources ?? []}
             targets={internalLinkTargets}

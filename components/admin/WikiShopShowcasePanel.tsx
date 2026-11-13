@@ -44,6 +44,12 @@ type ArticleDetail = {
   articleId: string; title: string; intro: string; summary: string;
   sections: WikiArticleSection[]; articleVersion: number;
 };
+type MetricRow = { showcaseId: string; productId: string; impressions: number; clicks: number };
+type MetricsDashboard = {
+  ok: boolean; ready: boolean; window: "7" | "30" | "all";
+  summary: { impressions: number; clicks: number };
+  metrics: MetricRow[];
+};
 type Dashboard = {
   articles: ArticleRow[]; products: Product[]; proposals: Proposal[];
   productCounts: Array<{ productId: string; active: number; configured: number }>;
@@ -115,6 +121,9 @@ function demoDashboard(): Dashboard {
   };
 }
 const formatCount = (n: number) => n.toLocaleString("fa-IR");
+const formatCtr = (clicks: number, impressions: number) => impressions
+  ? (100 * clicks / impressions).toLocaleString("fa-IR", { maximumFractionDigits: 1 }) + "٪"
+  : "—";
 
 function validPosition(row: ArticleRow, draft: Draft): SectionRef | undefined {
   return row.sections.find((section) => section.index === draft.afterSectionIndex &&
@@ -185,10 +194,42 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [metricWindow, setMetricWindow] = useState<"7" | "30" | "all">("7");
+  const [metricSort, setMetricSort] = useState<"clicks" | "ctr" | "impressions">("clicks");
+  const [metricDirection, setMetricDirection] = useState<"desc" | "asc">("desc");
+  const [metricProduct, setMetricProduct] = useState("all");
+  const [metricPage, setMetricPage] = useState(0);
+  const [metricData, setMetricData] = useState<MetricsDashboard | null>(null);
+  const [metricError, setMetricError] = useState("");
   const [copyFile, setCopyFile] = useState<File | null>(null);
   const [copyPreview, setCopyPreview] = useState<{ matchedCount: number; changedCount: number; alreadyAppliedCount: number } | null>(null);
   const articleMap = useMemo(() => new Map(data.articles.map((a) => [a.articleId, a])), [data.articles]);
   const productMap = useMemo(() => new Map(data.products.map((p) => [p.id, p])), [data.products]);
+  const measuredById = useMemo(() => {
+    const result = new Map<string, { impressions: number; clicks: number }>();
+    for (const m of metricData?.metrics ?? []) {
+      const previous = result.get(m.showcaseId) ?? { impressions: 0, clicks: 0 };
+      result.set(m.showcaseId, {
+        impressions: previous.impressions + m.impressions,
+        clicks: previous.clicks + m.clicks,
+      });
+    }
+    return result;
+  }, [metricData]);
+  const performanceRows = useMemo(() => data.articles.flatMap((article) =>
+    article.showcases.filter((s) => metricProduct === "all" || s.productId === metricProduct)
+      .map((s) => {
+        const metric = measuredById.get(s.id) ?? { impressions: 0, clicks: 0 };
+        return { showcaseId: s.id, articleId: article.articleId,
+          articleTitle: article.title, slug: article.slug,
+          productId: s.productId, cardTitle: s.title, ...metric,
+          ctr: metric.impressions ? metric.clicks / metric.impressions : 0 };
+      }))
+    .sort((a, b) => {
+      const left = a[metricSort], right = b[metricSort];
+      return (metricDirection === "desc" ? right - left : left - right) ||
+        a.articleTitle.localeCompare(b.articleTitle, "fa");
+    }), [data.articles, metricProduct, measuredById, metricSort, metricDirection]);
 
   const jsonRequest = useCallback(async <T,>(body: unknown): Promise<T> => {
     const response = await fetch("/api/admin/wiki/shop-showcases", {
@@ -214,6 +255,23 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       body.products.filter((p) => p.orderable).map((p) => p.id));
   }, [token, demo]);
   useEffect(() => { void refresh().catch((cause) => setError(String(cause))); }, [refresh]);
+
+  useEffect(() => {
+    if (demo) return;
+    let active = true;
+    void (async () => {
+      try {
+        const response = await fetch("/api/admin/wiki/shop-showcases?mode=metrics&window=" +
+          metricWindow, { cache: "no-store", headers: { authorization: "Bearer " + token } });
+        const body = await response.json() as MetricsDashboard & { error?: string };
+        if (!response.ok || !body.ok) throw new Error(body.error ?? "آمار ویترین‌ها دریافت نشد");
+        if (active) { setMetricData(body); setMetricError(""); setMetricPage(0); }
+      } catch (cause) {
+        if (active) setMetricError(cause instanceof Error ? cause.message : "خطای دریافت آمار");
+      }
+    })();
+    return () => { active = false; };
+  }, [demo, token, metricWindow]);
 
   useEffect(() => {
     if (!focusedId) { setDetail(null); return; }
@@ -657,6 +715,88 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         </div>
       </details>
     </div>
+    <section className={styles.metricsSection} aria-label="آمار عملکرد ویترین‌ها">
+      <div className={styles.metricsHeading}>
+        <div>
+          <h3>عملکرد ویترین‌های ویکی</h3>
+          <p>شمارش از زمان فعال‌شدن این قابلیت شروع می‌شه؛ نمایش‌ها و کلیک‌ها تعداد رویدادن، نه تعداد کاربران یکتا.</p>
+        </div>
+        <label>بازهٔ آماری
+          <select value={metricWindow} onChange={(event) => setMetricWindow(event.target.value as "7" | "30" | "all")}>
+            <option value="7">۷ روز اخیر</option>
+            <option value="30">۳۰ روز اخیر</option>
+            <option value="all">کل دوره</option>
+          </select>
+        </label>
+      </div>
+      {metricError ? <p className={styles.error} role="alert">{metricError}</p> : null}
+      {!demo && !metricData ? <p className={styles.hint}>در حال خواندن آمار...</p> : null}
+      {demo ? <p className={styles.hint}>آمار فقط از سایت واقعی جمع می‌شه؛ پیش‌نمایش مدیریتی شمرده نمی‌شه.</p>
+        : metricData && !metricData.ready ? <p className={styles.warning}>
+          جدول آمار هنوز فعال نشده؛ ابتدا migration شمارهٔ ۰۰۳۹ باید با تأیید مدیر روی دیتابیس اجرا بشه.
+        </p> : metricData?.ready ? <>
+          <div className={styles.metricTotals}>
+            <span>نمایش واقعی <b>{formatCount(metricData.summary.impressions)}</b></span>
+            <span>کلیک روی ویترین <b>{formatCount(metricData.summary.clicks)}</b></span>
+            <span>نرخ کلیک <b>{formatCtr(metricData.summary.clicks, metricData.summary.impressions)}</b></span>
+          </div>
+          <div className={styles.metricProducts}>
+            {data.products.filter((p) => p.id === "p01" || p.id === "p02").map((product) => {
+              const values = (metricData.metrics ?? []).filter((r) => r.productId === product.id);
+              const impressions = values.reduce((sum, m) => sum + m.impressions, 0);
+              const clicks = values.reduce((sum, m) => sum + m.clicks, 0);
+              return <span key={product.id}><strong>{product.name}</strong>
+                {formatCount(impressions)} نمایش · {formatCount(clicks)} کلیک · {formatCtr(clicks, impressions)}</span>;
+            })}
+          </div>
+          <div className={styles.metricFilters}>
+            <label>محصول
+              <select value={metricProduct} onChange={(event) => { setMetricProduct(event.target.value); setMetricPage(0); }}>
+                <option value="all">همهٔ محصولات</option>
+                {data.products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </label>
+            <label>مرتب‌سازی
+              <select value={metricSort} onChange={(event) => { setMetricSort(event.target.value as "clicks" | "ctr" | "impressions"); setMetricPage(0); }}>
+                <option value="clicks">تعداد کلیک</option>
+                <option value="ctr">نرخ کلیک</option>
+                <option value="impressions">تعداد نمایش</option>
+              </select>
+            </label>
+            <label>ترتیب
+              <select value={metricDirection} onChange={(event) => { setMetricDirection(event.target.value as "desc" | "asc"); setMetricPage(0); }}>
+                <option value="desc">بیشترین اول</option>
+                <option value="asc">کمترین اول</option>
+              </select>
+            </label>
+          </div>
+          <div className={styles.metricTableScroll}>
+            <table className={styles.metricTable}>
+              <thead><tr><th>مقاله / ویترین</th><th>محصول</th><th>نمایش</th><th>کلیک</th><th>CTR</th></tr></thead>
+              <tbody>
+                {performanceRows.slice(metricPage * 20, (metricPage + 1) * 20).map((row) => (
+                  <tr key={row.showcaseId}>
+                    <td><button type="button" className={styles.metricArticleLink}
+                      onClick={() => {
+                        const article = articleMap.get(row.articleId);
+                        const card = article?.showcases.find((s) => s.id === row.showcaseId);
+                        if (article && card) focusArticle(article, undefined, card);
+                      }}>{row.articleTitle}</button><small>{row.cardTitle}</small></td>
+                    <td>{productMap.get(row.productId)?.name ?? row.productId}</td>
+                    <td>{formatCount(row.impressions)}</td><td>{formatCount(row.clicks)}</td>
+                    <td>{formatCtr(row.clicks, row.impressions)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className={styles.pagination}>
+            <button type="button" disabled={metricPage === 0} onClick={() => setMetricPage((n) => n - 1)}>قبلی</button>
+            <span>{formatCount(metricPage + 1)} / {formatCount(Math.max(1, Math.ceil(performanceRows.length / 20)))}</span>
+            <button type="button" disabled={(metricPage + 1) * 20 >= performanceRows.length} onClick={() => setMetricPage((n) => n + 1)}>بعدی</button>
+          </div>
+        </> : null}
+    </section>
     <div className={styles.primaryFilters}>
       <label>جست‌وجوی مقاله <input value={query} placeholder="نام مقاله یا شناسه"
         onChange={(e) => { setQuery(e.target.value); setPage(0); }} /></label>

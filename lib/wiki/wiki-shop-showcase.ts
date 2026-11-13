@@ -391,7 +391,7 @@ export async function getPublicWikiShopShowcase(slug: string) {
   try {
     const sql = getAdminDatabase();
     rows = await sql`
-      select s.article_id::text, s.product_id, s.after_section_index, s.section_title, s.section_anchor,
+      select s.id::text as showcase_id, s.article_id::text, s.product_id, s.after_section_index, s.section_title, s.section_anchor,
              s.title, s.description, s.button_label, a.sections
       from halleus_private.wiki_shop_showcases s
       join public.wiki_articles a on a.id = s.article_id
@@ -426,7 +426,7 @@ export async function getPublicWikiShopShowcase(slug: string) {
     used.add(afterSectionIndex);
     const product = getShopProduct(productId);
     result.push({
-      id: asString(row.article_id) + ':' + afterSectionIndex, productId, afterSectionIndex,
+      id: asString(row.showcase_id), productId, afterSectionIndex,
       sectionTitle: sections[afterSectionIndex].title,
       title: asString(row.title), description: asString(row.description),
       buttonLabel: asString(row.button_label), url: getShopProductUrl(productId),

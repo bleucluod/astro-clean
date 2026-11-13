@@ -4,6 +4,7 @@ import {
 } from "@/lib/admin/admin-auth";
 import { adminErrorResponse, noStoreJsonResponse, readObject } from "@/lib/admin/admin-http";
 import { saveWikiShopShowcaseBatch } from "@/lib/wiki/wiki-shop-showcase";
+import { loadWikiShowcaseMetrics, parseShowcaseMetricsWindow } from "@/lib/wiki/wiki-showcase-metrics";
 import { updatePublishedWikiShowcaseCopy } from "@/lib/wiki/wiki-showcase-copy-update";
 import {
   buildWikiShowcaseSelectedZip, estimateWikiShowcaseSelectedZip, importWikiShowcaseProposalPackage,
@@ -19,6 +20,10 @@ export async function GET(request: Request) {
   try {
     await requireAdminCapability(request, "wiki.read");
     const url = new URL(request.url);
+    if (url.searchParams.get("mode") === "metrics") {
+      const window = parseShowcaseMetricsWindow(url.searchParams.get("window"));
+      return noStoreJsonResponse({ ok: true, ...(await loadWikiShowcaseMetrics(window)) });
+    }
     if (url.searchParams.get("mode") === "article") {
       const articleId = url.searchParams.get("articleId") ?? "";
       return noStoreJsonResponse({ ok: true, article: await loadWikiShowcaseArticle(articleId) });
