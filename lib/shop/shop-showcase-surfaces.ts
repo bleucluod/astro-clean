@@ -4,7 +4,7 @@ import { asNumber, asRecord, asString, getAdminDatabase } from "@/lib/admin/admi
 import { wikiShopProductCatalog } from "@/lib/wiki/wiki-shop-showcase";
 
 import {
-  isShowcaseSurface, isShowcaseSlot,
+  SHOWCASE_SURFACE_SLOTS, isShowcaseSurface, isShowcaseSlot,
   type ShowcaseSurface, type SurfaceOffer, type SurfacePlacement, type SurfaceProposal,
 } from "@/lib/shop/shop-showcase-contract";
 export {

@@ -31,7 +31,8 @@ has("lib/wiki/wiki-showcase-positions.ts", [
 ]);
 has("lib/shop/shop-showcase-ai.ts", [
   "prepareSurfaceShowcaseAIExport", "importSurfaceShowcaseAI", "batchId",
-  "shop_showcase_ai_proposals", "allowed", "validateSurfacePlacement",
+  "shop_showcase_ai_proposals", "products.includes(item.productId)",
+  "surfaces.includes(item.surface)", "validateSurfacePlacement",
 ]);
 has("lib/wiki/wiki-shop-showcase-workflow.ts", [
   "afterPercent", "placementWindows", "surfaceProposals", "surfaces.json",
