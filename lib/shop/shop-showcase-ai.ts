@@ -57,10 +57,12 @@ export async function importSurfaceShowcaseAI(
   if (typeof body.batchId !== "string" || !UUID.test(body.batchId) ||
       !Array.isArray(body.surfaceProposals) || body.surfaceProposals.length > 60)
     throw new AdminAccessError(400, "ساختار پیشنهادهای ویترین صفحات معتبر نیست.");
+  // Capture the validated UUID before entering transaction callbacks.
+  const batchId = body.batchId;
   const sql = getAdminDatabase();
   const [batch] = await sql`select product_ids, surface_ids
     from halleus_private.shop_showcase_ai_batches
-    where id = ${body.batchId}::uuid`;
+    where id = ${batchId}::uuid`;
   if (!batch) throw new AdminAccessError(409, "شناسهٔ بسته با خروجی ادمین تطبیق ندارد.");
   const products = asArray(batch.product_ids);
   const surfaces = asArray(batch.surface_ids);
@@ -99,7 +101,7 @@ export async function importSurfaceShowcaseAI(
     for (const item of valid) {
       const rows = await tx`insert into halleus_private.shop_showcase_ai_proposals
         (batch_id, surface, slot, product_id, title, description, button_label)
-        values (${body.batchId}::uuid, ${item.surface}, ${item.slot},
+        values (${batchId}::uuid, ${item.surface}, ${item.slot},
           ${item.productId}, ${item.title}, ${item.description}, ${item.buttonLabel})
         on conflict (batch_id, surface, slot) do nothing returning id`;
       if (rows[0]) count++;
@@ -108,7 +110,7 @@ export async function importSurfaceShowcaseAI(
       (actor_user_id, actor_role, action, target_type, target_id, before_summary,
        after_summary, success, request_correlation_id)
       values (${actor.userId}::uuid, ${actor.role}, 'shop.showcase.ai.import',
-        'shop_showcase_ai_batch', ${body.batchId}, null,
+        'shop_showcase_ai_batch', ${batchId}, null,
         ${JSON.stringify({ accepted: count })}::jsonb, true,
         ${actor.correlationId || randomUUID()})`;
     return count;

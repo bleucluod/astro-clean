@@ -474,7 +474,8 @@ export async function importWikiShowcaseProposalPackage(actor: VerifiedAdminActo
         (!input.proposals.length && !(input.surfaceProposals as unknown[]).length)) {
       throw new AdminAccessError(400, "Invalid AI proposal package");
     }
-    const wiki = input.proposals.length ?
+    const wikiProposalCount = input.proposals.length;
+    const wiki = wikiProposalCount ?
       await importWikiShowcaseProposals(actor, { ...input, surfaceProposals: undefined }) :
       { accepted: 0, errors: [] as Array<{ index: number; error: string }> };
     const surfaces = (input.surfaceProposals as unknown[]).length ?
@@ -482,7 +483,7 @@ export async function importWikiShowcaseProposalPackage(actor: VerifiedAdminActo
       { accepted: 0, errors: [] as Array<{ index: number; error: string }> };
     return { accepted: wiki.accepted + surfaces.accepted,
       errors: [...wiki.errors, ...surfaces.errors.map(e => ({
-        index: e.index + input.proposals.length, error: e.error }))] };
+        index: e.index + wikiProposalCount, error: e.error }))] };
   }
   if (!Array.isArray(input.batches) || !input.batches.length || input.batches.length > 25) {
     throw new AdminAccessError(400, "Invalid bundled AI batches");

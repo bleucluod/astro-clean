@@ -51,8 +51,10 @@ export async function listPublicSurfaceOffers(surface: ShowcaseSurface): Promise
       title, description, button_label
       from halleus_private.shop_showcase_placements
       where surface = ${surface} and enabled = true`;
-    const products = new Map(wikiShopProductCatalog().filter(p => p.orderable)
-      .map(p => [p.id, p]));
+    const products = new Map<string, ReturnType<typeof wikiShopProductCatalog>[number]>();
+    for (const product of wikiShopProductCatalog()) {
+      if (product.orderable) products.set(product.id, product);
+    }
     return rows.flatMap(row => {
       const product = products.get(asString(row.product_id));
       if (!product?.image || !isShowcaseSlot(surface, row.slot)) return [];
@@ -104,8 +106,8 @@ export async function saveSurfacePlacement(actor: VerifiedAdminActor, raw: unkno
   const item = validateSurfacePlacement(raw, input.enabled === true);
   const id = input.id == null ? null : inputText(input.id, 36, "id");
   const revision = input.expectedRevision ?? 0;
-  if ((id && !UUID.test(id)) || !Number.isSafeInteger(revision) ||
-     (id ? Number(revision) < 1 : revision !== 0))
+  if ((id && !UUID.test(id)) || typeof revision !== "number" ||
+      !Number.isSafeInteger(revision) || (id ? revision < 1 : revision !== 0))
     throw new AdminAccessError(400, "نسخهٔ ویترین معتبر نیست.");
   const sql = getAdminDatabase();
   return sql.begin(async tx => {
