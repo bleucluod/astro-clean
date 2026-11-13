@@ -139,13 +139,14 @@ const sql = async (chunks, ...values) => {
   if (statement.includes("from halleus_private.wiki_shop_showcases")) return stored;
   if (statement.includes("from halleus_private.wiki_shop_showcase_proposals")) return proposals;
   if (statement.includes("from halleus_private.wiki_shop_showcase_exports")) {
-    // Model PostgreSQL product_ids::text rather than an in-memory JSONB array.
+    // PostgreSQL ::text returns JSONB text. Legacy exports store a JSONB
+    // string containing JSON: JSON.stringify(JSON.stringify(productIds)).
     return exports.filter((row) => row.batch_id === values[0]).map((row) => ({
       article_id: row.article_id, product_ids_json: JSON.stringify(row.product_ids),
     }));
   }
   if (statement.includes("insert into halleus_private.wiki_shop_showcase_exports")) {
-    exports.push({ batch_id: values[0], article_id: values[1], product_ids: JSON.parse(values[2]) });
+    exports.push({ batch_id: values[0], article_id: values[1], product_ids: values[2] });
     inserted++; return [];
   }
   if (statement.includes("insert into halleus_private.wiki_shop_showcase_proposals")) {
@@ -211,6 +212,16 @@ const forAI = {
 const imported = await workflow.importWikiShowcaseProposals(actor, forAI);
 assert.equal(imported.accepted, 2, "Two independent proposals on one article import together");
 assert.equal(imported.errors.length, 0);
+assert.equal(typeof exports[0].product_ids, "string", "Fixture models real production JSONB string");
+// Decode ordinary JSONB arrays as well as older JSONB strings without changing records.
+const ordinary = exports.find((row) =>
+  row.batch_id === batch.batchId && row.article_id === selectedIds[1]);
+assert.ok(ordinary);
+const oldRaw = ordinary.product_ids;
+ordinary.product_ids = JSON.parse(oldRaw);
+const ordinaryImport = await workflow.importWikiShowcaseProposals(actor, forAI);
+assert.equal(ordinaryImport.accepted, 2, "Native JSONB arrays still import correctly");
+ordinary.product_ids = oldRaw;
 // A malformed export ledger must fail before writing any AI suggestions.
 const originalLedger = exports.find((row) =>
   row.batch_id === batch.batchId && row.article_id === selectedIds[1]);

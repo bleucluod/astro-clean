@@ -321,6 +321,9 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
     let decoded: unknown;
     try {
       decoded = JSON.parse(asString(r.product_ids_json));
+      // Older exports stored JSON.stringify(productIds) as a JSONB string,
+      // so PostgreSQL's ::text representation needs one further JSON parse.
+      if (typeof decoded === "string") decoded = JSON.parse(decoded);
     } catch {
       throw new AdminAccessError(409, "Invalid exported product ledger");
     }
