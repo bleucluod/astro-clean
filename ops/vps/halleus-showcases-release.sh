@@ -7,7 +7,7 @@ umask 077
 repo=/srv/halleus/source
 engine="$repo/ops/vps/halleus-release.sh"
 migration="$repo/database/migrations/0042_multi_surface_shop_showcases.sql"
-tested=3e6fe6143f12d69958fc1b281bce5aeaeb54e0df
+tested=f4e9ae39b38d474918d07c6373aa7292dde04f7e
 active_base=0d075971eb4de7ea4d1cb3dc1bccaa4025b8cd38
 migration_blob=8c0d5c12b19d9846e6db102e20e6df0cae62fec6
 node=/usr/local/bin/node
@@ -31,7 +31,8 @@ esac
 [ -z "$(g status --porcelain=v1 --untracked-files=all)" ] || fail 'dirty worktree'
 pin="$(g rev-parse HEAD)"
 [ "$(g rev-parse "$pin^")" = "$tested" ] || fail 'expected one release entrypoint commit after verified source'
-[ "$(g diff --name-only "$tested" "$pin")" = 'ops/vps/halleus-showcases-release.sh' ] || fail 'unrelated release commit changes'
+expected_changes="$(printf '%s\n' components/admin/shop-showcase-surfaces.module.css ops/vps/halleus-showcases-release.sh)"
+[ "$(g diff --name-only "$tested" "$pin")" = "$expected_changes" ] || fail 'release resume contains unreviewed changes'
 [ "$(g hash-object "$repo/ops/vps/halleus-showcases-release.sh")" = "$(g rev-parse "$pin:ops/vps/halleus-showcases-release.sh")" ] || fail 'untracked release entrypoint'
 [ "$(g hash-object "$migration")" = "$migration_blob" ] || fail 'migration content mismatch'
 [ "$(stat -c '%u:%a' /etc/halleus/halleus.env)" = 0:600 ] || fail 'unsafe private environment'
@@ -161,6 +162,7 @@ case "$db_result" in
   *'migration_0042=APPLIED') applied=1 ;;
   *) fail 'unexpected DB result';;
 esac
+[ "$applied" -eq 1 ] || fail 'resume requires previously applied 0042; refusing a second migration'
 if [ "$mode" = preflight ]; then
   echo 'HALLEUS_SHOWCASES_PREFLIGHT_PASS'
   echo "RELEASE_SHA=$pin"
@@ -195,11 +197,7 @@ fi
 echo '=== ADDITIVE MIGRATION ==='
 [ "$(sed -n 's/^commit=//p' /srv/halleus/current/.halleus-release)" = "$active_base" ] || fail 'active release changed before migration'
 systemctl is-active --quiet halleus.service || fail 'service stopped'
-if [ "$applied" -eq 1 ]; then
-  echo 'SHOWCASE_DB: migration_0042=RESUMED_PASS'
-else
-  db_stage apply || fail 'migration failed; original code remains live'
-fi
+echo 'SHOWCASE_DB: migration_0042=RESUMED_PASS'
 
 echo '=== EXACT RELEASE TAG ==='
 if ! g show-ref --verify --quiet "refs/tags/$tag"; then

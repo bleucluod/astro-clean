@@ -16,7 +16,7 @@
 .editor input:not([type=checkbox]),.editor select,.editor textarea{width:100%;font:inherit;border:1px solid #bcccdc;background:#fff;color:#243447;border-radius:10px;padding:10px;min-width:0}
 .editor textarea{resize:vertical}
 .check{display:flex!important;flex-direction:row;align-items:center;gap:8px}
-button{font:inherit}
+.root button{font:inherit}
 .root button{border-radius:10px;padding:10px 13px;border:1px solid #6798bd;background:#d9eafd;color:#243447;cursor:pointer}
 .root button:disabled{opacity:.5;cursor:not-allowed}
 .root button:focus-visible{outline:2px solid #577a9c;outline-offset:2px}
