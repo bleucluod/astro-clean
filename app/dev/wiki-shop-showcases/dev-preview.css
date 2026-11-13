@@ -26,3 +26,8 @@ body:has(#wiki-shop-showcases-dev) #main-content {
   margin: 0 !important;
   padding: 20px 12px 44px !important;
 }
+
+/* The mobile navigation is a sibling of the site header, not inside it. */
+body:has(#wiki-shop-showcases-dev) nav[data-mobile-nav="independent-final-v1"] { display: none !important; }
+#wiki-shop-showcases-dev { box-sizing: border-box; max-width: 1320px; min-width: 0; }
+body:has(#wiki-shop-showcases-dev) #main-content { min-width: 0; }

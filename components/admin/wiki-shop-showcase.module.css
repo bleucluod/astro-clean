@@ -161,3 +161,51 @@
 .productChecks > label small { width: 100%; color: #64748b; font-size: 11px; }
 .productChecks > label span { display: grid; gap: 5px; width: 100%; font-size: 11px; }
 .productChecks input[type="number"] { max-width: 92px; }
+
+/* Responsive layout for the showcase workspace; keep the two-pane editor only at roomy widths. */
+@media (min-width: 1201px) {
+  .columns { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 20px; }
+  .manager { font-size: 14px; }
+  .articleRowBody strong { font-size: 14px; }
+  .zipArea, .importArea, .editor, .previewPane { padding: 18px; }
+}
+@media (max-width: 1200px) {
+  .columns { grid-template-columns: minmax(0, 1fr); }
+  .editorColumn { position: static; max-height: none; overflow: visible; padding-inline: 0; }
+  .quickPreview { position: static; }
+  .listColumn > .articleList { order: 1; }
+  .listColumn > .pagination { order: 2; }
+  .listColumn > .importArea { order: 3; }
+  .listColumn > .zipArea { order: 4; }
+}
+@media (max-width: 760px) {
+  .manager { min-width: 0; font-size: 14px; }
+  .manager button { min-width: 0; overflow-wrap: anywhere; }
+  .header, .headerTitle { flex-wrap: wrap; min-width: 0; }
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats > span { width: 100%; min-width: 0; text-align: center; }
+  .stats > .moreStats { grid-column: 1 / -1; }
+  .moreStats > summary { text-align: center; }
+  .primaryFilters, .filters { grid-template-columns: minmax(0, 1fr); }
+  .bulkBar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .bulkBar > strong, .bulkMore { grid-column: 1 / -1; min-width: 0; }
+  .bulkBar > strong { margin: 0; }
+  .manager .bulkBar > button { width: 100%; min-width: 0; }
+  .columns, .listColumn, .editorColumn { width: 100%; min-width: 0; }
+  .quickPreview, .editor, .importArea, .zipArea, .articleList { min-width: 0; }
+  .cardStage { min-width: 0; padding: 6px; }
+  .cardStage > aside, .cardStage > aside > a { min-width: 0; max-width: 100%; width: 100%; }
+  .productChecks { grid-template-columns: minmax(0, 1fr); }
+  .productChecks > label, .productChecks > label span { min-width: 0; }
+  .pendingBar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .pendingBar > span { grid-column: 1 / -1; }
+  .pendingBar > button { width: 100%; }
+  .quickPreview .previewTitle { flex-wrap: wrap; }
+  .quickPreview .previewTitle small { max-width: 100%; }
+  .proposalRow > div, .articleRowBody { overflow-wrap: anywhere; }
+}
+@media (max-width: 420px) {
+  .manager { padding: 10px; }
+  .stats > span { padding: 8px 7px; }
+  .cardStage { padding: 4px; }
+}

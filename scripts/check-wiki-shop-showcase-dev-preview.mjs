@@ -50,4 +50,9 @@ assert.match(devCss, /#main-content[\s\S]*background: #f8fafc !important;/);
 assert.match(card, /WikiShopShowcaseCard/);
 assert.doesNotMatch(panel, /onMouseLeave|onMouseOut/);
 
+assert.match(adminCss, /@media \\(max-width: 1200px\\) \\{[\\s\\S]*?\\.columns \\{ grid-template-columns: minmax\\(0, 1fr\\); \\}/);
+assert.match(adminCss, /\\.listColumn > \\.articleList \\{ order: 1; \\}/);
+assert.match(devCss, /nav\\[data-mobile-nav="independent-final-v1"\\]/);
+assert.match(panel, /عدد صفر یعنی بدون حداقل/);
+
 console.log("EW-01 unified preview, persistent click help and list-selection guard PASS");

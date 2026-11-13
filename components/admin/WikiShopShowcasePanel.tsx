@@ -792,6 +792,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         </div>
         <div className={styles.zipArea}>
           <h3>بستهٔ AI</h3>
+          <p className={styles.hint}>هدف هر محصول راهنمای پیشنهادهای AI است، نه سهمیهٔ اجباری یا انتشار خودکار. عدد صفر یعنی بدون حداقل.</p>
           <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ حجم بسته پیش از دانلود محاسبه می‌شه و ZIPهای بزرگ جدا می‌شن.</p>
           <div className={styles.rowActions}>
             <button type="button" onClick={() => setProductIds(data.products.map((p) => p.id))}>
@@ -807,7 +808,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
                   ? [...old, p.id] : old.filter((id) => id !== p.id))} />
               {p.name}{!p.orderable ? " (فروش بسته)" : ""}
               <small>ویترین فعال: {formatCount(active)} · هدف: {formatCount(productMinimums[p.id] ?? 0)}</small>
-              {productIds.includes(p.id) ? <span>حداقل تعداد ویترین فعال در سایت
+              {productIds.includes(p.id) ? <span>هدف تعداد ویترین فعال برای این محصول
                 <input type="number" min={0} max={500} step={1}
                   disabled={!p.orderable}
                   value={productMinimums[p.id] ?? 0}
