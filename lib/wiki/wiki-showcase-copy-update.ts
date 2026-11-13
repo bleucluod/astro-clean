@@ -10,7 +10,7 @@ type CopyItem = {
   expectedOriginal: CopyFields; replacement: CopyFields;
 };
 type Prepared = { id: string; slug: string; revision: number; item: CopyItem; alreadyApplied: boolean };
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ANCHOR = /^sec1-[a-f0-9]{8}$/;
 
