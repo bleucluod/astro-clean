@@ -9,6 +9,13 @@ import { wikiShopProductCatalog } from "./wiki-shop-showcase";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BATCH = 25;
 type Row = Record<string, unknown>;
+type ValidProposal = {
+  sourceIndex: number; articleId: string; articleVersion: number;
+  status: "pending" | "skipped"; reason?: string;
+  productId?: string; afterSectionIndex?: number;
+  sectionAnchor?: string; sectionTitle?: string;
+  title?: string; description?: string; buttonLabel?: string;
+};
 type StoredArticle = {
   articleId: string; stableId: string; slug: string; title: string;
   categoryId: string; status: string; indexable: boolean;
@@ -298,6 +305,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
   if (input.schemaVersion !== 2 || typeof input.batchId !== "string" || input.batchId.length > 80 ||
     !Array.isArray(input.proposals) || input.proposals.length > 100 ||
     !input.proposals.length) throw new AdminAccessError(400, "Invalid AI package version");
+  const batchId = input.batchId;
   const sql = getAdminDatabase();
   const rows = await sql`
     select article_id::text, product_ids from halleus_private.wiki_shop_showcase_exports
@@ -313,7 +321,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
   const seen = new Set<string>();
   const skipped = new Set<string>();
   const proposed = new Set<string>();
-  const valid: Array<Row> = [], errors: Array<{ index: number; error: string }> = [];
+  const valid: ValidProposal[] = [], errors: Array<{ index: number; error: string }> = [];
   input.proposals.forEach((rawProposal, index) => {
     try {
       const p = asRecord(rawProposal);
@@ -329,7 +337,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
           throw new Error("Skip cannot coexist with article proposals");
         }
         skipped.add(articleId);
-        valid.push({ sourceIndex: index, articleId, articleVersion: p.articleVersion, status: "skipped",
+        valid.push({ sourceIndex: index, articleId, articleVersion: article.articleVersion, status: "skipped",
           reason: short(p.reason, 300, "skip reason") });
         return;
       }
@@ -345,7 +353,8 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
         throw new Error("Only one proposal per article section");
       }
       const section = article.sections.find((s) => s.index === indexValue);
-      if (!section || !Number.isSafeInteger(indexValue) || indexValue >= article.sections.length - 1 ||
+      if (!section || typeof indexValue !== "number" ||
+        !Number.isSafeInteger(indexValue) || indexValue >= article.sections.length - 1 ||
         (article.sections.length >= 4 && indexValue === 0) ||
         section.title !== p.sectionTitle || section.anchor !== p.sectionAnchor) {
         throw new Error("جایگاه مقاله نامعتبر یا قدیمی است");
@@ -357,7 +366,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
       seen.add(slot);
       proposed.add(articleId);
       valid.push({
-        sourceIndex: index, articleId, articleVersion: p.articleVersion, status: "pending",
+        sourceIndex: index, articleId, articleVersion: article.articleVersion, status: "pending",
         productId, afterSectionIndex: indexValue, sectionAnchor: section.anchor,
         sectionTitle: section.title, title: short(p.title, 160, "title"),
         description: short(p.description, 500, "description"),
@@ -376,7 +385,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
           (id, article_id, source_batch_id, product_id, article_version,
            after_section_index, section_anchor, section_title, title, description,
            button_label, status, skip_reason)
-          values (${randomUUID()}::uuid, ${p.articleId}::uuid, ${input.batchId},
+          values (${randomUUID()}::uuid, ${p.articleId}::uuid, ${batchId},
             ${p.productId ?? null}, ${p.articleVersion}, ${p.afterSectionIndex ?? null},
             ${p.sectionAnchor ?? null}, ${p.sectionTitle ?? null},
             ${p.title ?? null}, ${p.description ?? null},
@@ -392,7 +401,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
         (actor_user_id, actor_role, action, target_type, target_id,
          before_summary, after_summary, success, request_correlation_id)
         values (${actor.userId}::uuid, ${actor.role}, 'wiki.showcase.import',
-        'wiki_showcase_batch', ${input.batchId}, null,
+        'wiki_showcase_batch', ${batchId}, null,
         ${JSON.stringify({ accepted, rejected: errors.length })}::jsonb,
         true, ${actor.correlationId ?? randomUUID()})
       `;

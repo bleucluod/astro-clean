@@ -234,5 +234,5 @@ assert.match(ui, /"export_zip"/);
 assert.match(ui, /<WikiArticleBody/);
 assert.match(card, /<Link href=\{offer\.url\} className=\{styles\.card\}/);
 assert.match(css, /background: #17191d/);
-assert.doesNotMatch(css, /animation:|glint|glow|parallax|linear-gradient/i);
+assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), /animation:|glint|glow|parallax|linear-gradient/i);
 console.log("EW-01: multi-slot dashboard, quotas, AI multi-proposals, ZIP and auth guards PASS");

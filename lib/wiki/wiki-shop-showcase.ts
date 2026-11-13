@@ -200,9 +200,11 @@ function checkedItem(input: unknown): WikiShopShowcaseItem {
   const afterSectionIndex = row.afterSectionIndex;
   const articleVersion = row.articleVersion;
   const expectedRevision = row.expectedRevision ?? 0;
-  if (!Number.isSafeInteger(afterSectionIndex) || afterSectionIndex < 0 ||
+  if (typeof afterSectionIndex !== 'number' || !Number.isSafeInteger(afterSectionIndex) ||
+    afterSectionIndex < 0 || typeof articleVersion !== 'number' ||
     !Number.isSafeInteger(articleVersion) || articleVersion < 1 ||
-    !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+    typeof expectedRevision !== 'number' || !Number.isSafeInteger(expectedRevision) ||
+    expectedRevision < 0) {
     throw new AdminAccessError(400, 'Invalid article version, section index or revision');
   }
   const showcaseId = row.showcaseId === undefined ? undefined : plain(row.showcaseId, 'showcaseId', 36);
