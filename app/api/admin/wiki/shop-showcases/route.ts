@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     }
     return noStoreJsonResponse({ ok: true, ...(await loadWikiShowcaseDashboard()) });
   } catch (error) {
-    return adminErrorResponse(error, "Wiki shop showcase read failed; check migrations 0036 and 0037.");
+    return adminErrorResponse(error, "Wiki shop showcase read failed; check migrations 0036, 0037 and 0038.");
   }
 }
 

@@ -13,7 +13,7 @@ type Product = { id: string; name: string; description: string; url: string;
   image: string | null; orderable: boolean };
 type SectionRef = { index: number; title: string; anchor: string };
 type Showcase = {
-  articleId: string; productId: string; afterSectionIndex: number;
+  id: string; articleId: string; productId: string; afterSectionIndex: number;
   sectionTitle: string; sectionAnchor: string; articleVersion: number;
   title: string; description: string; buttonLabel: string;
   enabled: boolean; expectedRevision: number; updatedAt: string;
@@ -24,7 +24,7 @@ type ArticleRow = {
   articleId: string; stableId: string; slug: string; title: string; categoryId: string;
   publicationStatus: string; isPublic: boolean; updatedAt: string;
   articleVersion: number; sections: SectionRef[];
-  showcase: Showcase | null; hasShowcase: boolean; active: boolean;
+  showcase: Showcase | null; showcases: Showcase[]; hasShowcase: boolean; active: boolean;
   blocked: string | null; needsReview: boolean; hasPending: boolean;
   hasRejected: boolean; hasSkipped?: boolean; lastExportedAt: string | null;
 };
@@ -38,7 +38,7 @@ type Draft = {
   articleId: string; articleVersion: number; productId: string;
   afterSectionIndex: number; sectionTitle: string; sectionAnchor: string;
   title: string; description: string; buttonLabel: string;
-  expectedRevision: number; proposalId?: string; enabled: boolean;
+  expectedRevision: number; showcaseId?: string; proposalId?: string; enabled: boolean;
 };
 type ArticleDetail = {
   articleId: string; title: string; intro: string; summary: string;
@@ -46,10 +46,11 @@ type ArticleDetail = {
 };
 type Dashboard = {
   articles: ArticleRow[]; products: Product[]; proposals: Proposal[];
+  productCounts: Array<{ productId: string; active: number; configured: number }>;
   counts: { total: number; missing: number; has: number; active: number;
     disabled: number; pending: number; review: number };
 };
-const EMPTY: Dashboard = { articles: [], products: [], proposals: [],
+const EMPTY: Dashboard = { articles: [], products: [], proposals: [], productCounts: [],
   counts: { total: 0, missing: 0, has: 0, active: 0, disabled: 0, pending: 0, review: 0 } };
 const LIMIT = 18;
 const PROPOSAL_LIMIT = 8;
@@ -87,7 +88,7 @@ function demoDashboard(): Dashboard {
     articleId: demoDetail.articleId, stableId: "demo-moon", slug: "demo-moon",
     title: demoDetail.title, categoryId: "moon", publicationStatus: "published",
     isPublic: true, updatedAt: new Date().toISOString(), articleVersion: 1,
-    sections: ref, showcase: null, hasShowcase: false, active: false,
+    sections: ref, showcase: null, showcases: [], hasShowcase: false, active: false,
     blocked: null, needsReview: false, hasPending: true, hasRejected: false, lastExportedAt: null,
   };
   const second: ArticleRow = {
@@ -96,7 +97,8 @@ function demoDashboard(): Dashboard {
     hasPending: false,
   };
   return {
-    articles: [main, second], products: [demoProduct, {
+    articles: [main, second], productCounts: [{ productId: 'p01', active: 0, configured: 0 }],
+    products: [demoProduct, {
       id: "p02", name: "آسمان تولد", description: "تابلوی آسمان تولد",
       url: "/shop/birth-sky-map", image: "/shop-preview/p02/05-raha-parsa-30x45-wall.webp", orderable: false,
     }],
@@ -120,16 +122,21 @@ function validPosition(row: ArticleRow, draft: Draft): SectionRef | undefined {
     section.index < row.sections.length - 1 &&
     (row.sections.length < 4 || section.index > 0));
 }
-function draftFor(row: ArticleRow, productId: string, proposal?: Proposal): Draft {
-  const selected = row.showcase;
-  const first = row.sections.find((section) => section.index < row.sections.length - 1 &&
-    (row.sections.length < 4 || section.index > 0)) ?? row.sections[0];
+function draftFor(row: ArticleRow, productId: string,
+  proposal?: Proposal, existing?: Showcase | null): Draft {
+  const selected = existing === undefined ?
+    (proposal ? null : row.showcases[0] ?? row.showcase) : existing;
+  const occupied = new Set(row.showcases.filter((s) => s.id !== selected?.id)
+    .map((s) => s.afterSectionIndex));
+  const first = row.sections.find((section) =>
+    section.index < row.sections.length - 1 &&
+    (row.sections.length < 4 || section.index > 0) &&
+    !occupied.has(section.index));
   const from = proposal ?? selected;
   const matching = row.sections.find((section) => section.anchor === from?.sectionAnchor &&
     section.index < row.sections.length - 1) ??
     row.sections.find((section) => section.title === from?.sectionTitle &&
       section.index < row.sections.length - 1);
-  // An existing approved placement with no matching section must never be silently moved.
   const chosen = from ? matching : first;
   return {
     articleId: row.articleId, articleVersion: proposal?.articleVersion ?? row.articleVersion,
@@ -139,6 +146,7 @@ function draftFor(row: ArticleRow, productId: string, proposal?: Proposal): Draf
     title: from?.title ?? "", description: from?.description ?? "",
     buttonLabel: from?.buttonLabel ?? "دیدن محصول",
     expectedRevision: selected?.expectedRevision ?? 0,
+    ...(selected ? { showcaseId: selected.id } : {}),
     ...(proposal ? { proposalId: proposal.id } : {}),
     enabled: true,
   };
@@ -161,6 +169,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const [proposalPage, setProposalPage] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
   const [productIds, setProductIds] = useState<string[]>(demo ? ["p01"] : []);
+  const [productMinimums, setProductMinimums] = useState<Record<string, number>>({});
   const [checkedProposals, setCheckedProposals] = useState<string[]>([]);
   const [edits, setEdits] = useState<Record<string, Draft>>({});
   const [focusedId, setFocusedId] = useState<string>(demo ? demoDetail.articleId : "");
@@ -231,15 +240,18 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         .some((text) => text.toLocaleLowerCase("fa").includes(q))) return false;
       if (category !== "all" && a.categoryId !== category) return false;
       if (publication !== "all" && a.publicationStatus !== publication) return false;
-      if (productFilter !== "all" && a.showcase?.productId !== productFilter) return false;
+      if (productFilter !== "all" && !a.showcases.some((s) => s.productId === productFilter)) return false;
       if (status === "missing" && a.hasShowcase) return false;
       if (status === "has" && !a.hasShowcase) return false;
       if (status === "active" && !a.active) return false;
-      if (status === "disabled" && !a.showcase?.disabled) return false;
+      if (status === "disabled" && !a.showcases.some((s) => s.disabled)) return false;
       if (status === "pending" && !a.hasPending) return false;
       if (status === "rejected" && !a.hasRejected) return false;
       if (status === "review" && !a.needsReview) return false;
       if (status === "blocked" && !(a.hasShowcase && a.blocked)) return false;
+      if (status === "free" && !a.sections.some((s) =>
+        s.index < a.sections.length - 1 && (a.sections.length < 4 || s.index > 0) &&
+        !a.showcases.some((card) => card.afterSectionIndex === s.index))) return false;
       return true;
     });
     rows.sort((a, b) => sort === "recent"
@@ -266,7 +278,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const previewOffer: PublicWikiShopShowcase | null = draft && positionValid &&
     currentProduct?.image && currentProduct.orderable &&
     draft.title.trim() && draft.description.trim() && draft.buttonLabel.trim() ? {
-      productId: draft.productId as PublicWikiShopShowcase["productId"],
+      id: draft.showcaseId ?? "preview",
+       productId: draft.productId as PublicWikiShopShowcase["productId"],
       afterSectionIndex: draft.afterSectionIndex, sectionTitle: draft.sectionTitle,
       title: draft.title, description: draft.description, buttonLabel: draft.buttonLabel,
       url: currentProduct.url, image: currentProduct.image,
@@ -278,9 +291,9 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       window.requestAnimationFrame(() => editorPanelRef.current?.scrollIntoView({ block: "start" }));
     }
   }
-  function focusArticle(row: ArticleRow, suggestion?: Proposal) {
+  function focusArticle(row: ArticleRow, suggestion?: Proposal, existing?: Showcase | null) {
     setFocusedId(row.articleId);
-    setDraft(draftFor(row, data.products.find((p) => p.orderable)?.id ?? "p01", suggestion));
+    setDraft(draftFor(row, data.products.find((p) => p.orderable)?.id ?? "p01", suggestion, existing));
     revealEditorOnMobile();
   }
   function focusProposal(proposal: Proposal) {
@@ -299,6 +312,18 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     }));
     setNotice("");
   }
+  const previewOffers: PublicWikiShopShowcase[] = (focusRow?.showcases ?? [])
+    .filter((card) => card.enabled && card.id !== draft?.showcaseId)
+    .flatMap((card) => {
+      const product = productMap.get(card.productId);
+      return product?.orderable && product.image && card.position !== null ? [{
+        id: card.id, productId: card.productId as PublicWikiShopShowcase["productId"],
+        afterSectionIndex: card.position, sectionTitle: focusRow?.sections[card.position]?.title ?? card.sectionTitle,
+        title: card.title, description: card.description, buttonLabel: card.buttonLabel,
+        url: product.url, image: product.image, imageAlt: product.name,
+      }] : [];
+    });
+  if (previewOffer) previewOffers.push(previewOffer);
   const selectedPublish = checkedProposals.map((id) => data.proposals.find((p) => p.id === id))
     .filter((p): p is Proposal => Boolean(p));
   function itemForProposal(p: Proposal): Draft | null {
@@ -310,7 +335,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     const row = articleMap.get(p.articleId), item = itemForProposal(p);
     return Boolean(row && item && row.isPublic && productMap.get(item.productId)?.orderable &&
       item.articleVersion === row.articleVersion && validPosition(row, item) &&
-      item.title.trim() && item.description.trim() && item.buttonLabel.trim());
+      item.title.trim() && item.description.trim() && item.buttonLabel.trim() &&
+      !row.showcases.some((s) => s.afterSectionIndex === item.afterSectionIndex));
   };
 
   async function operation(task: () => Promise<void>) {
@@ -322,26 +348,42 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   function updateDemoPublish(items: Draft[], enabled: boolean) {
     const storeData = store.current;
     const nextArticles = storeData.articles.map((a) => {
-      const item = items.find((it) => it.articleId === a.articleId);
-      if (!item) return a;
-      const showcase: Showcase = {
-        ...item, enabled, expectedRevision: (a.showcase?.expectedRevision ?? 0) + 1,
-        updatedAt: new Date().toISOString(), position: item.afterSectionIndex,
-        active: enabled, needsReview: false, blocked: null, disabled: !enabled,
-      };
-      return { ...a, showcase, hasShowcase: true, active: enabled,
+      const ours = items.filter((item) => item.articleId === a.articleId);
+      if (!ours.length) return a;
+      const cards = [...a.showcases];
+      for (const item of ours) {
+        const index = cards.findIndex((card) => card.id === item.showcaseId);
+        const card: Showcase = {
+          ...item, id: item.showcaseId ?? crypto.randomUUID(), enabled,
+          expectedRevision: item.expectedRevision + 1,
+          updatedAt: new Date().toISOString(), position: item.afterSectionIndex,
+          active: enabled, needsReview: false, blocked: null, disabled: !enabled,
+        };
+        if (index === -1) cards.push(card);
+        else cards[index] = card;
+      }
+      return { ...a, showcases: cards, showcase: cards[0] ?? null,
+        hasShowcase: cards.length > 0, active: cards.some((c) => c.active),
         hasPending: false, needsReview: false, blocked: null };
     });
     const nextProposals = storeData.proposals.map((p) =>
       items.some((i) => i.proposalId === p.id) ? { ...p, status: "published" } : p);
-    store.current = { ...storeData, articles: nextArticles, proposals: nextProposals, counts: {
-      total: nextArticles.length, missing: nextArticles.filter((a) => !a.hasShowcase).length,
-      has: nextArticles.filter((a) => a.hasShowcase).length,
-      active: nextArticles.filter((a) => a.active).length,
-      disabled: nextArticles.filter((a) => a.showcase?.disabled).length,
-      pending: nextProposals.filter((p) => p.status === "pending").length,
-      review: 0,
-    } };
+    store.current = { ...storeData, articles: nextArticles, proposals: nextProposals,
+      productCounts: storeData.products.map((p) => ({
+        productId: p.id,
+        active: nextArticles.reduce((n, a) =>
+          n + a.showcases.filter((c) => c.productId === p.id && c.active).length, 0),
+        configured: nextArticles.reduce((n, a) =>
+          n + a.showcases.filter((c) => c.productId === p.id).length, 0),
+      })),
+      counts: {
+        total: nextArticles.length, missing: nextArticles.filter((a) => !a.hasShowcase).length,
+        has: nextArticles.filter((a) => a.hasShowcase).length,
+        active: nextArticles.filter((a) => a.active).length,
+        disabled: nextArticles.filter((a) => a.showcases.some((s) => s.disabled)).length,
+        pending: nextProposals.filter((p) => p.status === "pending").length,
+        review: 0,
+      } };
     setData({ ...store.current });
   }
   async function publishSelected() {
@@ -379,7 +421,9 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   async function publishManual() {
     if (!draft || !focusRow || !focusRow.isPublic || !currentProduct?.orderable ||
       !positionValid || !draft.title.trim() || !draft.description.trim() ||
-      !draft.buttonLabel.trim() || draft.articleVersion !== focusRow.articleVersion) {
+      !draft.buttonLabel.trim() || draft.articleVersion !== focusRow.articleVersion ||
+      focusRow.showcases.some((s) => s.afterSectionIndex === draft.afterSectionIndex &&
+        s.id !== draft.showcaseId)) {
       setError("مقاله، محصول، محل نمایش و متن رو بررسی کن."); return;
     }
     if (!window.confirm("این ویترین تأیید و منتشر بشه؟")) return;
@@ -431,26 +475,30 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       setNotice("پیشنهاد به صف بررسی برگشت.");
     });
   }
-  async function toggleArticles(enabled: boolean, ids: string[]) {
+  async function toggleArticles(enabled: boolean, ids: string[], showcaseId?: string) {
     const items: Draft[] = [];
     for (const id of ids) {
-      const row = articleMap.get(id), existing = row?.showcase;
-      if (!row || !existing) continue;
-      const section = existing.position === null ? undefined :
-        row.sections.find((s) => s.index === existing.position);
-      if (enabled && (!row.isPublic || !productMap.get(existing.productId)?.orderable ||
-        !section || section.index >= row.sections.length - 1)) {
-        setError("برخی ویترین‌ها مانع نمایش دارن؛ اون‌ها رو جداگانه بررسی کن."); return;
+      const row = articleMap.get(id);
+      if (!row) continue;
+      for (const existing of row.showcases.filter((s) => !showcaseId || s.id === showcaseId)) {
+        const section = existing.position === null ? undefined :
+          row.sections.find((s) => s.index === existing.position);
+        if (enabled && (!row.isPublic || !productMap.get(existing.productId)?.orderable ||
+          !section || section.index >= row.sections.length - 1 ||
+          (row.sections.length >= 4 && section.index === 0))) {
+          setError("برخی ویترین‌ها مانع نمایش دارن؛ اون‌ها رو جداگانه بررسی کن."); return;
+        }
+        items.push({
+          articleId: id, showcaseId: existing.id,
+          articleVersion: enabled ? row.articleVersion : existing.articleVersion,
+          productId: existing.productId,
+          afterSectionIndex: enabled ? (section?.index ?? 0) : existing.afterSectionIndex,
+          sectionTitle: enabled ? (section?.title ?? existing.sectionTitle) : existing.sectionTitle,
+          sectionAnchor: existing.sectionAnchor,
+          title: existing.title, description: existing.description, buttonLabel: existing.buttonLabel,
+          expectedRevision: existing.expectedRevision, enabled,
+        });
       }
-      items.push({
-        articleId: id, articleVersion: enabled ? row.articleVersion : existing.articleVersion,
-        productId: existing.productId,
-        afterSectionIndex: enabled ? (section?.index ?? 0) : existing.afterSectionIndex,
-        sectionTitle: enabled ? (section?.title ?? existing.sectionTitle) : existing.sectionTitle,
-        sectionAnchor: existing.sectionAnchor,
-        title: existing.title, description: existing.description, buttonLabel: existing.buttonLabel,
-        expectedRevision: existing.expectedRevision, enabled,
-      });
     }
     if (!items.length) { setError("هیچ ویترین ثبت‌شده‌ای انتخاب نشده."); return; }
     if (!window.confirm(`${enabled ? "فعال‌کردن" : "غیرفعال‌کردن"} ${formatCount(items.length)} ویترین انجام بشه؟`)) return;
@@ -495,7 +543,8 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         const response = await fetch("/api/admin/wiki/shop-showcases", {
           method: "POST", cache: "no-store",
           headers: { authorization: "Bearer " + token, "content-type": "application/json" },
-          body: JSON.stringify({ action: "export_zip", articleIds: batch, productIds }),
+          body: JSON.stringify({ action: "export_zip", articleIds: batch, productIds,
+             productMinimums: Object.fromEntries(productIds.map((id) => [id, productMinimums[id] ?? 0])) }),
         });
         if (!response.ok) {
           const body = await response.json() as { error?: string };
@@ -551,9 +600,9 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       {helpOpen ? <div className={styles.helpWindow} id={helpId} role="region" aria-label="راهنمای ویترین">
         <div className={styles.helpHeading}><strong>راهنمای ویترین</strong>
           <button type="button" onClick={() => setHelpOpen(false)}>بستن ×</button></div>
-        <p>مقاله‌های بدون ویترین رو فیلتر و انتخاب کن. محصولات مرتبط رو مشخص کن و ZIP بگیر.</p>
+        <p>مقاله‌ها رو بر اساس وضعیت یا داشتن بخش آزاد فیلتر و انتخاب کن. محصولات و حداقل هدف هرکدوم رو مشخص کن و ZIP بگیر.</p>
         <p>فایل خروجی AI رو وارد کن؛ پیشنهادها رو یکی‌یکی ببین، ویرایش کن و فقط موارد دلخواهت رو تیک بزن.</p>
-        <p>«تأیید و انتشار» یعنی ویترین همان لحظه فعال می‌شه. بعداً می‌تونی هر ویترین رو دستی یا گروهی خاموش و روشن کنی.</p>
+        <p>هر مقاله می‌تونه چند ویترین در بخش‌های متفاوت داشته باشه؛ هر کارت مستقل ویرایش و خاموش یا روشن می‌شه. «تأیید و انتشار» یعنی ویترین همان لحظه فعال می‌شه. بعداً می‌تونی هر ویترین رو دستی یا گروهی خاموش و روشن کنی.</p>
         <p>اگر مقاله تغییر کنه، جایگاه قبلی تا جایی که هنوز قابل شناسایی باشه حفظ می‌شه و برای بازبینی علامت می‌خوره.</p>
         {demo ? <p>اینجا داده‌ها نمونه‌اند و چیزی روی سایت ذخیره نمی‌شه.</p> : null}
       </div> : null}
@@ -589,6 +638,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
           ["has", "ویترین دارد"], ["active", "ویترین فعال"], ["disabled", "ویترین غیرفعال"],
           ["pending", "پیشنهاد در انتظار تصمیم"], ["rejected", "پیشنهاد ردشده"],
           ["review", "پیشنهاد بازبینی"], ["blocked", "مانع نمایش"],
+           ["free", "بخش آزاد برای ویترین جدید"],
         ].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select></label>
       <button type="button" className={styles.moreFiltersButton}
@@ -702,9 +752,9 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
             <div className={styles.articleRowBody}>
               <strong>{a.title}</strong><small>{a.categoryId} · {a.publicationStatus}</small>
               <div className={styles.rowMeta}>
-                <span>{a.hasShowcase ? "ویترین دارد" : "باید ساخته شود"}</span>
+                <span>{a.hasShowcase ? `${formatCount(a.showcases.length)} ویترین دارد` : "باید ساخته شود"}</span>
                 {a.active ? <span>فعال</span> : null}
-                {a.showcase?.disabled ? <span>غیرفعال</span> : null}
+                {a.showcases.some((s) => s.disabled) ? <span>غیرفعال</span> : null}
                 {a.hasPending ? <span>پیشنهاد AI</span> : null}
                 {a.hasRejected ? <span>پیشنهاد ردشده</span> : null}
                 {a.hasSkipped ? <span>AI: مورد مرتبطی پیدا نکرد</span> : null}
@@ -712,19 +762,25 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
                 {a.blocked && a.hasShowcase ? <span>{a.blocked}</span> : null}
                 {a.lastExportedAt ? <span>قبلاً در بسته بوده</span> : null}
               </div>
-              {a.showcase ? <small>محصول: {productMap.get(a.showcase.productId)?.name ?? a.showcase.productId} · پس از «{a.showcase.sectionTitle}»</small> : null}
               <div className={styles.rowActions}>
-                <button type="button" onClick={() => focusArticle(a)}>
-                  {a.hasShowcase ? "دیدن و ویرایش" : "ساخت ویترین"}
-                </button>
+                <button type="button" disabled={!a.sections.some((s) =>
+                  s.index < a.sections.length - 1 && (a.sections.length < 4 || s.index > 0) &&
+                  !a.showcases.some((card) => card.afterSectionIndex === s.index))}
+                  onClick={() => focusArticle(a, undefined, null)}>افزودن ویترین</button>
                 {a.isPublic ? <a href={a.slug.startsWith("demo") ? "#showcase-article-preview" : "/wiki/" + a.slug}
                   target={a.slug.startsWith("demo") ? undefined : "_blank"}
                   rel={a.slug.startsWith("demo") ? undefined : "noreferrer"}>مقاله</a> : null}
-                {a.showcase && canWrite ? <button type="button" disabled={loading}
-                  onClick={() => void toggleArticles(!a.showcase?.enabled, [a.articleId])}>
-                  {a.showcase.enabled ? "خاموش" : "روشن"}
-                </button> : null}
               </div>
+              {a.showcases.map((card) => <div className={styles.showcaseEntry} key={card.id}>
+                <small>{productMap.get(card.productId)?.name ?? card.productId} · پس از «{card.sectionTitle}» · {card.enabled ? "روشن" : "خاموش"}</small>
+                <div className={styles.rowActions}>
+                  <button type="button" onClick={() => focusArticle(a, undefined, card)}>ویرایش این ویترین</button>
+                  {canWrite ? <button type="button" disabled={loading}
+                    onClick={() => void toggleArticles(!card.enabled, [a.articleId], card.id)}>
+                    {card.enabled ? "خاموش" : "روشن"}
+                  </button> : null}
+                </div>
+              </div>)}
             </div>
           </article>)}
           {!visibleRows.length ? <p className={styles.empty}>مقاله‌ای با این فیلتر پیدا نشد.</p> : null}
@@ -737,11 +793,30 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         <div className={styles.zipArea}>
           <h3>بستهٔ AI</h3>
           <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ حجم بسته پیش از دانلود محاسبه می‌شه و ZIPهای بزرگ جدا می‌شن.</p>
-          <div className={styles.productChecks}>{data.products.map((p) =>
-            <label key={p.id}><input type="checkbox" checked={productIds.includes(p.id)}
-              onChange={(e) => setProductIds((old) => e.target.checked
-                ? [...old, p.id] : old.filter((id) => id !== p.id))} />{p.name}{!p.orderable ? " (فروش بسته)" : ""}</label>)}
+          <div className={styles.rowActions}>
+            <button type="button" onClick={() => setProductIds(data.products.map((p) => p.id))}>
+              انتخاب همهٔ محصولات
+            </button>
+            <button type="button" onClick={() => setProductIds([])}>لغو انتخاب محصولات</button>
           </div>
+          <div className={styles.productChecks}>{data.products.map((p) => {
+            const active = data.productCounts.find((c) => c.productId === p.id)?.active ?? 0;
+            return <label key={p.id}>
+              <input type="checkbox" checked={productIds.includes(p.id)}
+                onChange={(e) => setProductIds((old) => e.target.checked
+                  ? [...old, p.id] : old.filter((id) => id !== p.id))} />
+              {p.name}{!p.orderable ? " (فروش بسته)" : ""}
+              <small>ویترین فعال: {formatCount(active)} · هدف: {formatCount(productMinimums[p.id] ?? 0)}</small>
+              {productIds.includes(p.id) ? <span>حداقل تعداد ویترین فعال در سایت
+                <input type="number" min={0} max={500} step={1}
+                  disabled={!p.orderable}
+                  value={productMinimums[p.id] ?? 0}
+                  onChange={(e) => setProductMinimums((old) => ({
+                    ...old, [p.id]: Math.max(0, Math.min(500, Math.floor(Number(e.target.value) || 0))),
+                  }))} />
+              </span> : null}
+            </label>;
+          })}</div>
           <button type="button" disabled={!canWrite || loading || !selected.length || !productIds.length}
             onClick={() => void exportSelected()}>دریافت ZIP برای AI</button>
         </div>
@@ -762,7 +837,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
           </p>}
         </section>
         <section className={styles.editor}>
-          <h3>ویرایش ویترین</h3>
+          <h3>{draft?.showcaseId ? "ویرایش ویترین انتخاب‌شده" : "ساخت ویترین جدید"}</h3>
           {draft && focusRow ? <>
             <div className={styles.editorFields}>
               <label>مقاله <strong>{focusRow.title}</strong></label>
@@ -776,7 +851,9 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
               }}>
                 {draft.afterSectionIndex < 0 ? <option value={-1} disabled>جایگاه قبلی پیدا نشد؛ انتخاب کن</option> : null}
                 {focusRow.sections.filter((s) => s.index < focusRow.sections.length - 1 &&
-                  (focusRow.sections.length < 4 || s.index > 0))
+                   (focusRow.sections.length < 4 || s.index > 0) &&
+                   !focusRow.showcases.some((card) => card.id !== draft.showcaseId &&
+                     card.afterSectionIndex === s.index))
                   .map((s) => <option key={s.index} value={s.index}>{s.title}</option>)}
               </select></label>
               <label>عنوان کارت <input value={draft.title} maxLength={160}
@@ -807,7 +884,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
                   {detail.intro ? <p>{detail.intro}</p> : null}
                 </header>
                 <WikiArticleBody sections={detail.sections}
-                  sources={[]} contextLinks={[]} targets={{}} showcase={previewOffer} />
+                  sources={[]} contextLinks={[]} targets={{}} showcase={previewOffers} />
               </article>
             </div>
           </div> : <p className={styles.empty}>مقاله‌ای رو انتخاب کن تا اینجا ببینیش.</p>}

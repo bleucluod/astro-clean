@@ -96,12 +96,20 @@ const articleRows = Array.from({ length: 300 }, (_, index) => ({
     ? [{ title: "شروع", paragraphs: [longText] }, ...sections.slice(1)]
     : sections,
 }));
-const stored = articleRows.slice(0, 30).map((a) => ({
+const stored = articleRows.slice(0, 30).map((a, i) => ({
+  id: (i + 1001).toString(16).padStart(8, "0") + "-1111-4111-8111-111111111111",
   article_id: a.id, product_id: "p01", article_version: 2, after_section_index: 1,
   section_title: sections[1].title, section_anchor: key,
   title: "ویترین", description: "متن", button_label: "دیدن",
   revision: 1, enabled: true, updated_at: now.toISOString(),
 }));
+stored.push({
+  ...stored[0],
+  id: "99999999-1111-4111-8111-111111111111",
+  after_section_index: 2, section_title: sections[2].title,
+  section_anchor: anchor.wikiShowcaseSectionAnchor(sections[2]),
+});
+const exports = [];
 const proposals = articleRows.slice(30, 40).map((a, i) => ({
   id: (i + 501).toString(16).padStart(8, "0") + "-1111-4111-8111-111111111111",
   article_id: a.id, article_version: 2, product_id: "p01",
@@ -115,7 +123,16 @@ const sql = async (chunks, ...values) => {
   if (statement.includes("from public.wiki_articles")) return articleRows;
   if (statement.includes("from halleus_private.wiki_shop_showcases")) return stored;
   if (statement.includes("from halleus_private.wiki_shop_showcase_proposals")) return proposals;
-  if (statement.includes("from halleus_private.wiki_shop_showcase_exports")) return [];
+  if (statement.includes("from halleus_private.wiki_shop_showcase_exports")) {
+    return exports.filter((row) => row.batch_id === values[0]);
+  }
+  if (statement.includes("insert into halleus_private.wiki_shop_showcase_exports")) {
+    exports.push({ batch_id: values[0], article_id: values[1], product_ids: JSON.parse(values[2]) });
+    inserted++; return [];
+  }
+  if (statement.includes("insert into halleus_private.wiki_shop_showcase_proposals")) {
+    inserted++; return [{ id: "accepted" }];
+  }
   if (statement.includes("insert into")) { inserted++; return []; }
   throw new Error("Unexpected SQL: " + statement);
 };
@@ -144,13 +161,15 @@ assert.equal(dashboard.counts.has, 30);
 assert.equal(dashboard.counts.missing, 270);
 assert.equal(dashboard.counts.active, 30);
 assert.equal(dashboard.counts.pending, 10);
+assert.equal(dashboard.articles[0].showcases.length, 2, 'One article may have independent slots');
+assert.equal(dashboard.productCounts[0].active, 31, 'Count active cards, not just articles');
 assert.equal(dashboard.articles[30].hasShowcase, false,
 "Unapproved AI proposal must still be in missing filter");
 const actor = { userId: "22222222-2222-4222-8222-222222222222",
   role: "owner", correlationId: "test" };
 const selectedIds = [articleRows[0].id, articleRows[31].id];
 const batch = await workflow.buildWikiShowcaseSelectedZip(actor, {
-  articleIds: selectedIds, productIds: ["p01"],
+  articleIds: selectedIds, productIds: ["p01"], productMinimums: { p01: 40 },
 });
 const exported = zip.readWikiShowcaseZip(batch.bytes);
 assert.ok(exported.has("articles/" + selectedIds[0] + ".json"));
@@ -158,6 +177,22 @@ assert.ok(exported.has("articles/" + selectedIds[1] + ".json"));
 assert.ok(!exported.has("articles/" + articleRows[2].id + ".json"),
 "No unselected article may leak into the ZIP");
 assert.equal(JSON.parse(exported.get("products.json")).length, 1);
+assert.equal(JSON.parse(exported.get("targets.json")).minimumActiveByProduct.p01, 40);
+assert.equal(JSON.parse(exported.get("current-showcases.json"))[0].showcases.length, 2);
+const forAI = {
+  schemaVersion: 2, batchId: batch.batchId, proposals: [
+    ...[1, 2].map((index) => ({
+      articleId: selectedIds[1], articleVersion: 2,
+      status: "propose", productId: "p01", afterSectionIndex: index,
+      sectionTitle: sections[index].title,
+      sectionAnchor: anchor.wikiShowcaseSectionAnchor(sections[index]),
+      title: "پیشنهاد", description: "متن مرتبط", buttonLabel: "دیدن",
+    })),
+  ],
+};
+const imported = await workflow.importWikiShowcaseProposals(actor, forAI);
+assert.equal(imported.accepted, 2, "Two independent proposals on one article import together");
+assert.equal(imported.errors.length, 0);
 assert.ok(JSON.parse(exported.get("articles/" + selectedIds[0] + ".json"))
   .sections[0].paragraphs[0].length > 2200);
 assert.ok(inserted >= selectedIds.length, "Export history must persist");
@@ -168,6 +203,7 @@ await assert.rejects(workflow.buildWikiShowcaseSelectedZip(actor, {
 const route = read("app/api/admin/wiki/shop-showcases/route.ts");
 const service = read("lib/wiki/wiki-shop-showcase.ts");
 const migration = read("database/migrations/0037_wiki_showcase_review_workflow.sql");
+const multiMigration = read("database/migrations/0038_wiki_multi_showcase_slots.sql");
 const ui = read("components/admin/WikiShopShowcasePanel.tsx");
 const card = read("components/wiki/WikiShopShowcaseCard.tsx");
 const css = read("components/wiki/wiki-shop-showcase.module.css");
@@ -179,10 +215,17 @@ assert.match(route, /revalidatePath\("\/wiki\/" \+ slug/);
 assert.match(service, /resolveWikiShowcaseSection\(sections/);
 assert.match(service, /status = 'published'/);
 assert.match(service, /where id = \$\{item\.proposalId\}::uuid/);
+assert.match(service, /where id = \$\{item\.showcaseId\}::uuid/);
 assert.match(migration, /enable row level security/g);
 assert.match(migration, /unique \(source_batch_id, article_id\)/);
 assert.doesNotMatch(migration, /drop table|truncate|delete from/i);
+assert.match(multiMigration, /add constraint wiki_shop_showcases_pkey primary key \(id\)/);
+assert.match(multiMigration, /unique index wiki_shop_showcases_article_slot_unique/);
+assert.match(multiMigration, /product_minimums jsonb/);
+assert.doesNotMatch(multiMigration, /drop table|truncate|delete from/i);
 assert.match(ui, /"missing", "ویترین ندارد/);
+assert.match(ui, /"free", "بخش آزاد/);
+assert.match(ui, /انتخاب همهٔ محصولات/);
 assert.match(ui, /"has", "ویترین دارد/);
 assert.match(ui, /selected\.length/);
 assert.match(ui, /checkedProposals/);
@@ -192,4 +235,4 @@ assert.match(ui, /<WikiArticleBody/);
 assert.match(card, /<Link href=\{offer\.url\} className=\{styles\.card\}/);
 assert.match(css, /background: #17191d/);
 assert.doesNotMatch(css, /animation:|glint|glow|parallax|linear-gradient/i);
-console.log("EW-01: 300-article dashboard, selected ZIP, anchors, import/auth gates and graphite card PASS");
+console.log("EW-01: multi-slot dashboard, quotas, AI multi-proposals, ZIP and auth guards PASS");

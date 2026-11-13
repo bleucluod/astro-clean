@@ -202,7 +202,7 @@ export function WikiArticleBody({
   sources: readonly (string | WikiArticleSource)[];
   targets: WikiInternalLinkTargets;
   rootId?: string;
-  showcase?: PublicWikiShopShowcase | null;
+  showcase?: readonly PublicWikiShopShowcase[] | null;
 }) {
   return (
     <div className={styles.articleBody} id={rootId}>
@@ -298,9 +298,10 @@ export function WikiArticleBody({
             </figure>
           ))}
         </section>
-        {showcase && index === showcase.afterSectionIndex && section.title === showcase.sectionTitle ? (
-          <WikiShopShowcaseCard offer={showcase} />
-        ) : null}
+        {showcase?.filter((offer) => index === offer.afterSectionIndex &&
+          section.title === offer.sectionTitle).map((offer) => (
+          <WikiShopShowcaseCard key={offer.id} offer={offer} />
+        ))}
         </Fragment>
       ))}
 

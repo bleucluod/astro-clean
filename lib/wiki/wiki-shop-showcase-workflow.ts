@@ -77,7 +77,7 @@ export async function loadWikiShowcaseDashboard() {
   const sql = getAdminDatabase();
   const [articles, showcaseRows, proposalRows, exportedRows] = await Promise.all([
     loadArticles(),
-    sql`select article_id::text, product_id, after_section_index, section_title,
+    sql`select id::text, article_id::text, product_id, after_section_index, section_title,
                section_anchor, article_version, title, description, button_label,
                enabled, revision, updated_at from halleus_private.wiki_shop_showcases`,
     sql`select id::text, article_id::text, source_batch_id, product_id,
@@ -91,7 +91,11 @@ export async function loadWikiShowcaseDashboard() {
   ]);
   const products = wikiShopProductCatalog();
   const productMap = new Map(products.map((p) => [p.id, p]));
-  const showcases = new Map(showcaseRows.map((r) => [asString(r.article_id), r]));
+  const showcases = new Map<string, Row[]>();
+  for (const row of showcaseRows) {
+    const articleId = asString(row.article_id);
+    showcases.set(articleId, [...(showcases.get(articleId) ?? []), row]);
+  }
   const exported = new Map(exportedRows.map((r) => [asString(r.article_id), String(r.last_exported_at)]));
   const proposals = proposalRows.map((raw) => {
     const p = asRecord(raw);
@@ -110,18 +114,19 @@ export async function loadWikiShowcaseDashboard() {
   const reviewed = new Set(proposals.filter((p) => p.status === "rejected").map((p) => p.articleId));
   const skipped = new Set(proposals.filter((p) => p.status === "skipped").map((p) => p.articleId));
   const resultArticles = articles.map((a) => {
-    const raw = showcases.get(a.articleId);
-    const showcase = raw && {
-      articleId: a.articleId, productId: asString(raw.product_id),
-      afterSectionIndex: asNumber(raw.after_section_index),
-      sectionTitle: asString(raw.section_title), sectionAnchor: asString(raw.section_anchor),
-      articleVersion: asNumber(raw.article_version), title: asString(raw.title),
-      description: asString(raw.description), buttonLabel: asString(raw.button_label),
-      enabled: raw.enabled === true, expectedRevision: asNumber(raw.revision),
-      updatedAt: String(raw.updated_at),
-    };
-    const state = wikiShowcaseStatus(a, showcase,
-      Boolean(showcase && productMap.get(showcase.productId)?.orderable));
+    const cards = (showcases.get(a.articleId) ?? []).map((raw) => {
+      const showcase = {
+        id: asString(raw.id), articleId: a.articleId, productId: asString(raw.product_id),
+        afterSectionIndex: asNumber(raw.after_section_index),
+        sectionTitle: asString(raw.section_title), sectionAnchor: asString(raw.section_anchor),
+        articleVersion: asNumber(raw.article_version), title: asString(raw.title),
+        description: asString(raw.description), buttonLabel: asString(raw.button_label),
+        enabled: raw.enabled === true, expectedRevision: asNumber(raw.revision),
+        updatedAt: String(raw.updated_at),
+      };
+      return { ...showcase, ...wikiShowcaseStatus(a, showcase,
+        Boolean(productMap.get(showcase.productId)?.orderable)) };
+    });
     return {
       articleId: a.articleId, stableId: a.stableId, slug: a.slug, title: a.title,
       categoryId: a.categoryId, publicationStatus: a.status, isPublic: isPublic(a),
@@ -129,20 +134,30 @@ export async function loadWikiShowcaseDashboard() {
       sections: a.sections.map((section, index) => ({
         index, title: section.title, anchor: wikiShowcaseSectionAnchor(section),
       })),
-      showcase: showcase ? { ...showcase, ...state } : null,
-      hasShowcase: state.hasShowcase, active: state.active, blocked: state.blocked,
-      needsReview: state.needsReview, hasPending: pending.has(a.articleId),
-      hasRejected: reviewed.has(a.articleId), hasSkipped: skipped.has(a.articleId),
+      showcases: cards, showcase: cards[0] ?? null,
+      hasShowcase: cards.length > 0, active: cards.some((c) => c.active),
+      blocked: cards.find((c) => c.blocked)?.blocked ??
+        (!isPublic(a) ? "مقاله منتشر نشده" : null),
+      needsReview: cards.some((c) => c.needsReview),
+      hasPending: pending.has(a.articleId), hasRejected: reviewed.has(a.articleId),
+      hasSkipped: skipped.has(a.articleId),
       lastExportedAt: exported.get(a.articleId) ?? null,
     };
   });
+  const productCounts = products.map((p) => ({
+    productId: p.id,
+    active: resultArticles.reduce((n, a) => n + a.showcases.filter((s) =>
+      s.productId === p.id && s.active).length, 0),
+    configured: resultArticles.reduce((n, a) => n + a.showcases.filter((s) =>
+      s.productId === p.id).length, 0),
+  }));
   return {
-    articles: resultArticles, products, proposals,
+    articles: resultArticles, products, proposals, productCounts,
     counts: {
       total: resultArticles.length, missing: resultArticles.filter((a) => !a.hasShowcase).length,
       has: resultArticles.filter((a) => a.hasShowcase).length,
       active: resultArticles.filter((a) => a.active).length,
-      disabled: resultArticles.filter((a) => a.showcase?.disabled).length,
+      disabled: resultArticles.filter((a) => a.showcases.some((s) => s.disabled)).length,
       pending: proposals.filter((p) => p.status === "pending").length,
       review: resultArticles.filter((a) => a.needsReview).length,
     },
@@ -184,6 +199,19 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
   const products = wikiShopProductCatalog().filter((p) => chosenProducts.includes(p.id));
   if (!products.length || products.length !== chosenProducts.length ||
       new Set(chosenProducts).size !== products.length) throw new AdminAccessError(400, "Select products");
+  const requestedMinimums = asRecord(body.productMinimums);
+  const productMinimums: Record<string, number> = {};
+  for (const product of products) {
+    const target = requestedMinimums[product.id] ?? 0;
+    if (!Number.isSafeInteger(target) || (target as number) < 0 || (target as number) > 500 ||
+        (!product.orderable && (target as number) > 0)) {
+      throw new AdminAccessError(400, 'Invalid or unavailable product minimum');
+    }
+    productMinimums[product.id] = target as number;
+  }
+  if (Object.keys(requestedMinimums).some((id) => !products.some((p) => p.id === id))) {
+    throw new AdminAccessError(400, 'Minimum specified for unselected product');
+  }
   const all = await loadArticles();
   const mapped = new Map(all.map((a) => [a.articleId, a]));
   const selected = ids.map((id) => mapped.get(id));
@@ -191,16 +219,21 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
   const dashboard = await loadWikiShowcaseDashboard();
   const current = dashboard.articles.filter((a) => ids.includes(a.articleId))
     .map((a) => ({ articleId: a.articleId, hasShowcase: a.hasShowcase,
-      showcase: a.showcase, pending: a.hasPending, lastExportedAt: a.lastExportedAt }));
+      showcases: a.showcases, pending: a.hasPending, lastExportedAt: a.lastExportedAt }));
   const batchId = randomUUID();
   const date = new Date().toISOString();
   const json = (value: unknown) => JSON.stringify(value, null, 2);
   const files: ZipFile[] = [
-    { name: "README_FA.md", data: `# بستهٔ ویترین ویکی هالیوس\n\nشناسه: ${batchId}\n\nفقط مقاله‌ها و محصولات این بسته را بخوان. راهنمای AI_INSTRUCTIONS.md را رعایت کن. اگر هیچ محصولی برای مقاله مناسب نیست، skip را پیشنهاد بده. فایل proposals.json را در یک ZIP یا به‌تنهایی برگردان. هیچ پیشنهاد AI بدون تأیید مدیر منتشر نمی‌شود.\n` },
-    { name: "AI_INSTRUCTIONS.md", data: `# انتخاب ویترین\n\nبرای هر مقاله حداکثر یک پیشنهاد، فقط محصول مرتبط با متن. محصولی با orderable=false را برای انتشار پیشنهاد نده. متن فارسی کوتاه و اختصاصی، غیرتکراری و انسانی باشد. پس از یک بخش H2 مرتبط در میانهٔ مقاله قرار بده؛ پس از آخرین بخش ممنوع. شناسهٔ مقاله، نسخه، عنوان بخش، sectionAnchor و afterSectionIndex را دقیق از فایل مقاله بردار. پیشنهادها را در proposals.json با schemaVersion=2 و batchId ثبت کن. برای مقالهٔ نامناسب status=skip و reason را بازگردان. هیچ بدنهٔ مقاله را تغییر نده.\n` },
+    { name: "README_FA.md", data: `# بستهٔ ویترین ویکی هالیوس\n\nشناسه: ${batchId}\n\nفقط مقاله‌ها و محصولات این بسته را بخوان. راهنمای AI_INSTRUCTIONS.md و هدف‌های فعال در targets.json را رعایت کن. در هر مقاله چند ویترین در بخش‌های متفاوت مجاز است، نه چند کارت در یک بخش. اگر هیچ محصولی مرتبط نیست skip بده؛ سهمیه دلیل ایجاد پیشنهاد نامرتبط نیست. فایل proposals.json را در یک ZIP یا به‌تنهایی برگردان. هیچ پیشنهاد AI بدون تأیید مدیر منتشر نمی‌شود.\n` },
+    { name: "AI_INSTRUCTIONS.md", data: `# انتخاب ویترین\n\nبرای هر مقاله چند پیشنهاد در بخش‌های متفاوت مجاز است؛ هر بخش حداکثر یک ویترین و هیچ بخش اشغال‌شده‌ای نباید تکرار شود. هدف حداقل ویترین فعال هر محصول و تعداد فعال فعلی و کسری تا هدف در targets.json آمده‌اند؛ برای جبران کسری فقط جایگاه‌های واقعاً مرتبط پیشنهاد بده. اگر هدف قبلاً تأمین شده، پیشنهاد اضافی صرفاً برای سهمیه نساز. محصولی با orderable=false را برای انتشار پیشنهاد نده. متن فارسی کوتاه و اختصاصی، غیرتکراری و انسانی باشد. پس از یک بخش H2 مرتبط در میانهٔ مقاله قرار بده؛ پس از آخرین بخش ممنوع. شناسهٔ مقاله، نسخه، عنوان بخش، sectionAnchor و afterSectionIndex را دقیق از فایل مقاله بردار. پیشنهادها را در proposals.json با schemaVersion=2 و batchId ثبت کن. برای مقالهٔ نامناسب status=skip و reason را بازگردان. هیچ بدنهٔ مقاله را تغییر نده.\n` },
     { name: "manifest.json", data: json({ schemaVersion: 2, batchId, createdAt: date,
-      articleIds: ids, productIds: products.map((p) => p.id), count: ids.length }) },
+      articleIds: ids, productIds: products.map((p) => p.id), productMinimums, count: ids.length }) },
     { name: "products.json", data: json(products) },
+    { name: "targets.json", data: json({ minimumActiveByProduct: productMinimums,
+      activeAcrossSite: dashboard.productCounts,
+      remainingToTarget: Object.fromEntries(products.map((p) => [p.id, Math.max(0,
+        productMinimums[p.id] - (dashboard.productCounts.find((c) => c.productId === p.id)?.active ?? 0))])),
+      note: "Sitewide minimum active target. Suggest only relevant missing cards; manager approves." }) },
     { name: "current-showcases.json", data: json(current) },
     { name: "proposals.schema.json", data: json({
       type: "object", required: ["schemaVersion", "batchId", "proposals"],
@@ -242,9 +275,10 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
   await sql.begin(async (tx) => {
     for (const articleId of ids) {
       await tx`
-        insert into halleus_private.wiki_shop_showcase_exports (batch_id, article_id, product_ids)
+        insert into halleus_private.wiki_shop_showcase_exports (batch_id, article_id, product_ids, product_minimums)
         values (${batchId}, ${articleId}::uuid,
-          ${JSON.stringify(products.map((p) => p.id))}::jsonb)
+          ${JSON.stringify(products.map((p) => p.id))}::jsonb,
+           ${JSON.stringify(productMinimums)}::jsonb)
       `;
     }
     await tx`
@@ -277,18 +311,24 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
   const dashboard = await loadWikiShowcaseDashboard();
   const articles = new Map(dashboard.articles.map((a) => [a.articleId, a]));
   const seen = new Set<string>();
+  const skipped = new Set<string>();
+  const proposed = new Set<string>();
   const valid: Array<Row> = [], errors: Array<{ index: number; error: string }> = [];
   input.proposals.forEach((rawProposal, index) => {
     try {
       const p = asRecord(rawProposal);
       const articleId = short(p.articleId, 36, "articleId");
-      if (!UUID.test(articleId) || !allowedIds.has(articleId) || seen.has(articleId)) {
+      if (!UUID.test(articleId) || !allowedIds.has(articleId)) {
         throw new Error("شناسهٔ مقاله خارج از بسته یا تکراری است");
       }
-      seen.add(articleId);
+
       const article = articles.get(articleId);
       if (!article || article.articleVersion !== p.articleVersion) throw new Error("نسخهٔ مقاله تغییر کرده");
       if (p.status === "skip") {
+        if (skipped.has(articleId) || proposed.has(articleId)) {
+          throw new Error("Skip cannot coexist with article proposals");
+        }
+        skipped.add(articleId);
         valid.push({ sourceIndex: index, articleId, articleVersion: p.articleVersion, status: "skipped",
           reason: short(p.reason, 300, "skip reason") });
         return;
@@ -300,12 +340,22 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
         throw new Error("محصول خارج از بستهٔ انتخاب‌شده است");
       }
       const indexValue = p.afterSectionIndex;
+      const slot = articleId + ":" + String(indexValue);
+      if (skipped.has(articleId) || seen.has(slot)) {
+        throw new Error("Only one proposal per article section");
+      }
       const section = article.sections.find((s) => s.index === indexValue);
       if (!section || !Number.isSafeInteger(indexValue) || indexValue >= article.sections.length - 1 ||
         (article.sections.length >= 4 && indexValue === 0) ||
         section.title !== p.sectionTitle || section.anchor !== p.sectionAnchor) {
         throw new Error("جایگاه مقاله نامعتبر یا قدیمی است");
       }
+      if (article.showcases.some((s) => s.afterSectionIndex === indexValue ||
+          (s.sectionAnchor && s.sectionAnchor === section.anchor))) {
+        throw new Error("This article section already has a showcase");
+      }
+      seen.add(slot);
+      proposed.add(articleId);
       valid.push({
         sourceIndex: index, articleId, articleVersion: p.articleVersion, status: "pending",
         productId, afterSectionIndex: indexValue, sectionAnchor: section.anchor,
@@ -331,7 +381,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
             ${p.sectionAnchor ?? null}, ${p.sectionTitle ?? null},
             ${p.title ?? null}, ${p.description ?? null},
             ${p.buttonLabel ?? null}, ${p.status}, ${p.reason ?? null})
-          on conflict (source_batch_id, article_id) do nothing
+          on conflict do nothing
           returning id
         `;
         if (inserted.length) accepted += 1;
