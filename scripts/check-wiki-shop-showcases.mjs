@@ -139,7 +139,10 @@ const sql = async (chunks, ...values) => {
   if (statement.includes("from halleus_private.wiki_shop_showcases")) return stored;
   if (statement.includes("from halleus_private.wiki_shop_showcase_proposals")) return proposals;
   if (statement.includes("from halleus_private.wiki_shop_showcase_exports")) {
-    return exports.filter((row) => row.batch_id === values[0]);
+    // Model PostgreSQL product_ids::text rather than an in-memory JSONB array.
+    return exports.filter((row) => row.batch_id === values[0]).map((row) => ({
+      article_id: row.article_id, product_ids_json: JSON.stringify(row.product_ids),
+    }));
   }
   if (statement.includes("insert into halleus_private.wiki_shop_showcase_exports")) {
     exports.push({ batch_id: values[0], article_id: values[1], product_ids: JSON.parse(values[2]) });
@@ -208,6 +211,17 @@ const forAI = {
 const imported = await workflow.importWikiShowcaseProposals(actor, forAI);
 assert.equal(imported.accepted, 2, "Two independent proposals on one article import together");
 assert.equal(imported.errors.length, 0);
+// A malformed export ledger must fail before writing any AI suggestions.
+const originalLedger = exports.find((row) =>
+  row.batch_id === batch.batchId && row.article_id === selectedIds[1]);
+assert.ok(originalLedger);
+const savedProducts = originalLedger.product_ids;
+originalLedger.product_ids = "invalid-string-not-an-array";
+const priorWrites = inserted;
+await assert.rejects(workflow.importWikiShowcaseProposals(actor, forAI),
+  /Invalid exported product ledger/);
+assert.equal(inserted, priorWrites, "Invalid product ledger cannot create proposals");
+originalLedger.product_ids = savedProducts;
 assert.ok(JSON.parse(exported.get("articles/" + selectedIds[0] + ".json"))
   .sections[0].paragraphs[0].length > 2200);
 assert.ok(inserted >= selectedIds.length, "Export history must persist");

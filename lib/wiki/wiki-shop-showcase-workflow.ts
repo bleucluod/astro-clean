@@ -308,14 +308,28 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
   const batchId = input.batchId;
   const sql = getAdminDatabase();
   const rows = await sql`
-    select article_id::text, product_ids from halleus_private.wiki_shop_showcase_exports
-      where batch_id = ${input.batchId}
+    select article_id::text, product_ids::text as product_ids_json
+      from halleus_private.wiki_shop_showcase_exports
+      where batch_id = ${batchId}
   `;
   const allowedIds = new Set(rows.map((r) => asString(r.article_id)));
-  const allowedProducts = new Map(rows.map((r) => [
-    asString(r.article_id), Array.isArray(r.product_ids) ? r.product_ids as string[] : [],
-  ]));
   if (!allowedIds.size) throw new AdminAccessError(409, "Unknown AI batch");
+  // Use PostgreSQL's text representation explicitly. Runtime JSONB decoders may
+  // return strings rather than JS arrays; silently treating those as [] rejects
+  // every otherwise valid AI proposal.
+  const allowedProducts = new Map<string, string[]>(rows.map((r) => {
+    let decoded: unknown;
+    try {
+      decoded = JSON.parse(asString(r.product_ids_json));
+    } catch {
+      throw new AdminAccessError(409, "Invalid exported product ledger");
+    }
+    if (!Array.isArray(decoded) || !decoded.every((id) =>
+      typeof id === "string" && wikiShopProductCatalog().some((product) => product.id === id))) {
+      throw new AdminAccessError(409, "Invalid exported product ledger");
+    }
+    return [asString(r.article_id), decoded as string[]];
+  }));
   const dashboard = await loadWikiShowcaseDashboard();
   const articles = new Map(dashboard.articles.map((a) => [a.articleId, a]));
   const seen = new Set<string>();
