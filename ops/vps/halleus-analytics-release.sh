@@ -7,6 +7,7 @@ repo=/srv/halleus/source
 engine="$repo/ops/vps/halleus-release.sh"
 base=eee77ac98411fb9ef9f1ab40005edb98d1f2785d
 tested=e5faf2dbd3eb759020e48fb415355aa79c92975d
+failed_release=d9e01036200b888ab81d1804fea51534e55b05d0
 logs=/root/halleus-advanced-analytics-qa-7b2df0f3b3b6
 migration="$repo/database/migrations/0041_analytics_engagement_and_hourly.sql"
 node=/usr/local/bin/node
@@ -29,8 +30,9 @@ case "$(g remote get-url origin)" in
   *) fail 'wrong origin';;
 esac
 [ -z "$(g status --porcelain=v1 --untracked-files=all)" ] || fail 'dirty source'
-[ "$(g rev-parse "$pin^")" = "$tested" ] || fail 'release runner must be one commit after R2 QA candidate'
-[ "$(g diff --name-only "$tested" "$pin")" = ops/vps/halleus-analytics-release.sh ] || fail 'release commit contains unrelated changes'
+[ "$(g rev-parse "$pin^")" = "$failed_release" ] || fail 'release resume must be one commit after failed release'
+expected_changes="$(printf '%s\n' ops/vps/halleus-analytics-release.sh ops/vps/halleus-release-storage.env scripts/check-vps-release-workflow.mjs)"
+[ "$(g diff --name-only "$failed_release" "$pin")" = "$expected_changes" ] || fail 'release resume changes exceed approved files'
 [ "$(g hash-object "$repo/ops/vps/halleus-analytics-release.sh")" = "$(g rev-parse "$pin:ops/vps/halleus-analytics-release.sh")" ] || fail 'runner differs from tracked source'
 [ "$(g hash-object "$migration")" = 245346956fecee3cd896962f9f1e1fbef8bcaf38 ] || fail 'migration content mismatch'
 [ "$(stat -c '%u:%a' /etc/halleus/halleus.env)" = 0:600 ] || fail 'private environment permissions'
@@ -48,6 +50,9 @@ g fetch origin main --tags || fail 'GitHub fetch failed'
 [ -z "$(g status --porcelain=v1 --untracked-files=all)" ] || fail 'dirty after fetch'
 g --no-pager diff --check "$base" "$pin" || fail 'diff check failed'
 echo 'SAFETY_GATE=PASS'
+
+echo '=== RELEASE POLICY GUARD ==='
+runuser -u deploy -- bash -c 'cd "$1" && "$2" scripts/check-vps-release-workflow.mjs' _ "$repo" "$node" || fail 'storage policy guard failed'
 
 # Official release storage policy and room for a private DB backup.
 # shellcheck disable=SC1090
@@ -144,22 +149,47 @@ NODE
 }
 
 echo '=== DATABASE READ-ONLY PREFLIGHT ==='
-db_stage check || fail 'base schema or database inspection invalid; no mutation'
+db_result="$(db_stage check)" || fail 'base schema or database inspection invalid; no mutation'
+printf '%s\n' "$db_result"
+case "$db_result" in
+  *'migration_0041=APPLIED') already_applied=1 ;;
+  *'migration_0041=NOT_APPLIED') already_applied=0 ;;
+  *) fail 'unexpected migration state' ;;
+esac
 
 # Existing, audited runtime-PID pg_dump helper; archive is root-only.
 backup_dir=/root/halleus-bitpay-preflight
 install -d -m 0700 -o root -g root "$backup_dir"
-backup="$backup_dir/before-analytics-$(date -u +%Y%m%dT%H%M%SZ)-$$.dump"
-[ ! -e "$backup" ] || fail 'backup filename collision'
+backup=''
 echo '=== VERIFIED DATABASE BACKUP ==='
-"$node" "$repo/ops/vps/halleus-bitpay-pg-backup.cjs" "$pid" "$backup" || fail 'database backup or pg_restore verification failed'
-[ -s "$backup" ] && [ "$(stat -c '%u:%a' "$backup")" = 0:600 ] || fail 'backup archive permissions or size invalid'
-echo 'ANALYTICS_DB_BACKUP=PASS'
+if [ "$already_applied" -eq 1 ] && [ -x /usr/lib/postgresql/17/bin/pg_restore ]; then
+  shopt -s nullglob
+  for prior in "$backup_dir"/before-analytics-*.dump; do
+    [ -f "$prior" ] && [ ! -L "$prior" ] && [ -s "$prior" ] || continue
+    [ "$(stat -c '%u:%a' "$prior")" = 0:600 ] || continue
+    /usr/lib/postgresql/17/bin/pg_restore --list "$prior" >/dev/null 2>&1 || continue
+    if [ -z "$backup" ] || [ "$prior" -nt "$backup" ]; then backup="$prior"; fi
+  done
+  shopt -u nullglob
+fi
+if [ -n "$backup" ]; then
+  echo 'ANALYTICS_DB_BACKUP=RESUMED_PASS'
+else
+  backup="$backup_dir/before-analytics-$(date -u +%Y%m%dT%H%M%SZ)-$$.dump"
+  [ ! -e "$backup" ] || fail 'backup filename collision'
+  "$node" "$repo/ops/vps/halleus-bitpay-pg-backup.cjs" "$pid" "$backup" || fail 'database backup or pg_restore verification failed'
+  [ -s "$backup" ] && [ "$(stat -c '%u:%a' "$backup")" = 0:600 ] || fail 'backup archive permissions or size invalid'
+  echo 'ANALYTICS_DB_BACKUP=PASS'
+fi
 
 echo '=== ADDITIVE DATABASE MIGRATION ==='
 [ "$(sed -n 's/^commit=//p' /srv/halleus/current/.halleus-release)" = "$base" ] || fail 'active release changed before migration'
 systemctl is-active --quiet halleus.service || fail 'service stopped before migration'
-db_stage apply || fail 'migration failed; code not deployed; archive preserved'
+if [ "$already_applied" -eq 1 ]; then
+  echo 'ANALYTICS_DB: migration_0041=RESUMED_PASS'
+else
+  db_stage apply || fail 'migration failed; code not deployed; archive preserved'
+fi
 
 # Register exactly one immutable release tag after DB verification.
 echo '=== RELEASE TAG ==='
