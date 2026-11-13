@@ -161,12 +161,18 @@ function draftFor(row: ArticleRow, productId: string,
   };
 }
 
-export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
+export type ShowcaseWorkspaceSection = "overview" | "manage" | "ai" | "metrics";
+export function WikiShopShowcasePanel({ token, canWrite, demo = false,
+  activeSection = "manage", onSectionChange = () => {} }: {
   token: string; canWrite: boolean; demo?: boolean;
+  activeSection?: ShowcaseWorkspaceSection;
+  onSectionChange?: (section: ShowcaseWorkspaceSection) => void;
 }) {
   const [data, setData] = useState<Dashboard>(demo ? demoDashboard() : EMPTY);
   const store = useRef<Dashboard>(demo ? demoDashboard() : EMPTY);
   const [query, setQuery] = useState("");
+  const [aiSearch, setAiSearch] = useState("");
+  const [aiPage, setAiPage] = useState(0);
   const [status, setStatus] = useState("all");
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const moreFiltersId = useId();
@@ -201,6 +207,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   const [metricPage, setMetricPage] = useState(0);
   const [metricData, setMetricData] = useState<MetricsDashboard | null>(null);
   const [metricError, setMetricError] = useState("");
+  const [metricBusy, setMetricBusy] = useState(false);
   const [copyFile, setCopyFile] = useState<File | null>(null);
   const [copyPreview, setCopyPreview] = useState<{ matchedCount: number; changedCount: number; alreadyAppliedCount: number } | null>(null);
   const articleMap = useMemo(() => new Map(data.articles.map((a) => [a.articleId, a])), [data.articles]);
@@ -216,6 +223,14 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     }
     return result;
   }, [metricData]);
+  const totalActiveShowcases = useMemo(() => data.articles.reduce(
+    (sum, a) => sum + a.showcases.filter((s) => s.active).length, 0),
+    [data.articles]);
+  const aiCandidates = useMemo(() => {
+    const q = aiSearch.toLocaleLowerCase("fa").trim();
+    return data.articles.filter((a) => a.isPublic &&
+      (!q || [a.title, a.slug, a.stableId].some((t) => t.toLocaleLowerCase("fa").includes(q))));
+  }, [data.articles, aiSearch]);
   const performanceRows = useMemo(() => data.articles.flatMap((article) =>
     article.showcases.filter((s) => metricProduct === "all" || s.productId === metricProduct)
       .map((s) => {
@@ -256,24 +271,30 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
   }, [token, demo]);
   useEffect(() => { void refresh().catch((cause) => setError(String(cause))); }, [refresh]);
 
-  useEffect(() => {
+  const refreshMetrics = useCallback(async () => {
     if (demo) return;
-    let active = true;
-    void (async () => {
-      try {
-        const response = await fetch("/api/admin/wiki/shop-showcases?mode=metrics&window=" +
-          metricWindow, { cache: "no-store", headers: { authorization: "Bearer " + token } });
-        const body = await response.json() as MetricsDashboard & { error?: string };
-        if (!response.ok || !body.ok) throw new Error(body.error ?? "آمار ویترین‌ها دریافت نشد");
-        if (active) { setMetricData(body); setMetricError(""); setMetricPage(0); }
-      } catch (cause) {
-        if (active) setMetricError(cause instanceof Error ? cause.message : "خطای دریافت آمار");
-      }
-    })();
-    return () => { active = false; };
+    setMetricBusy(true);
+    try {
+      const response = await fetch("/api/admin/wiki/shop-showcases?mode=metrics&window=" +
+        metricWindow, { cache: "no-store", headers: { authorization: "Bearer " + token } });
+      const body = await response.json() as MetricsDashboard & { error?: string };
+      if (!response.ok || !body.ok) throw new Error(body.error ?? "آمار ویترین‌ها دریافت نشد");
+      setMetricData(body);
+      setMetricError("");
+      setMetricPage(0);
+    } catch (cause) {
+      setMetricError(cause instanceof Error ? cause.message : "خطای دریافت آمار");
+    } finally {
+      setMetricBusy(false);
+    }
   }, [demo, token, metricWindow]);
+  useEffect(() => {
+    if (activeSection !== "overview" && activeSection !== "metrics") return;
+    void refreshMetrics();
+  }, [activeSection, refreshMetrics]);
 
   useEffect(() => {
+    if (activeSection !== "manage") return;
     if (!focusedId) { setDetail(null); return; }
     if (demo) { setDetail({ ...demoDetail, articleId: focusedId,
       title: data.articles.find((a) => a.articleId === focusedId)?.title ?? demoDetail.title }); return; }
@@ -291,7 +312,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       } catch (cause) { if (active) setError(String(cause)); }
     })();
     return () => { active = false; };
-  }, [focusedId, token, demo, data.articles]);
+  }, [focusedId, token, demo, data.articles, activeSection]);
 
   const filtered = useMemo(() => {
     const q = query.toLocaleLowerCase("fa").trim();
@@ -346,6 +367,13 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       imageAlt: currentProduct.name,
     } : null;
 
+  const focusedDraftKey = draft?.showcaseId ?? draft?.proposalId ?? null;
+  useEffect(() => {
+    if (activeSection !== "manage" || !focusedDraftKey) return;
+    if (!window.matchMedia("(max-width: 1100px)").matches) return;
+    window.requestAnimationFrame(() => editorPanelRef.current?.scrollIntoView({ block: "start" }));
+  }, [activeSection, focusedDraftKey]);
+
   function revealEditorOnMobile() {
     if (window.matchMedia("(max-width: 1100px)").matches) {
       window.requestAnimationFrame(() => editorPanelRef.current?.scrollIntoView({ block: "start" }));
@@ -361,6 +389,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
     if (!row) return;
     setFocusedId(row.articleId);
     setDraft(edits[proposal.id] ?? draftFor(row, proposal.productId, proposal));
+    onSectionChange("manage");
     revealEditorOnMobile();
   }
   function updateDraft(change: Partial<Draft>) {
@@ -686,7 +715,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
       {helpOpen ? <div className={styles.helpWindow} id={helpId} role="region" aria-label="راهنمای ویترین">
         <div className={styles.helpHeading}><strong>راهنمای ویترین</strong>
           <button type="button" onClick={() => setHelpOpen(false)}>بستن ×</button></div>
-        <p>مقاله‌ها رو بر اساس وضعیت یا داشتن بخش آزاد فیلتر و انتخاب کن. محصولات و حداقل هدف هرکدوم رو مشخص کن و ZIP بگیر.</p>
+        <p>در «مدیریت» ویترین‌ها رو ویرایش کن، در «بسته‌ها و AI» مقاله‌ها و محصولات رو انتخاب کن و ZIP بگیر، و نتیجه رو در «آمار» ببین.</p>
         <p>یک ZIP به AI بده و خروجی AI رو هم در یک ZIP شامل proposals.json تحویل بگیر؛ پیشنهادها رو بازبینی کن و فقط موارد دلخواهت رو تیک بزن.</p>
         <p>هر مقاله می‌تونه چند ویترین در بخش‌های متفاوت داشته باشه؛ هر کارت مستقل ویرایش و خاموش یا روشن می‌شه. «تأیید و انتشار» یعنی ویترین همان لحظه فعال می‌شه. بعداً می‌تونی هر ویترین رو دستی یا گروهی خاموش و روشن کنی.</p>
         <p>اگر مقاله تغییر کنه، جایگاه قبلی تا جایی که هنوز قابل شناسایی باشه حفظ می‌شه و برای بازبینی علامت می‌خوره.</p>
@@ -697,11 +726,15 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
 
   return <section className={styles.manager} dir="rtl" data-demo={demo ? "true" : undefined}>
     <header className={styles.header}>
-      <div className={styles.headerTitle}><h2>ویترین ویکی</h2>{demo ? <small>نمونه</small> : null}{help}</div>
-      <button type="button" onClick={() => void refresh()} disabled={loading}>تازه‌سازی</button>
+      <div className={styles.headerTitle}><span className={styles.workspaceLabel}>ویترین‌ها / {activeSection === "overview" ? "نمای کلی" : activeSection === "manage" ? "مدیریت" : activeSection === "ai" ? "بسته‌ها و AI" : "آمار"}</span>{demo ? <small>نمونه</small> : null}{help}</div>
+      <button type="button" onClick={() => {
+        void refresh().catch((cause) => setError(String(cause)));
+        if (activeSection === "overview" || activeSection === "metrics") void refreshMetrics();
+      }} disabled={loading || metricBusy}>تازه‌سازی</button>
     </header>
     {error ? <p role="alert" className={styles.error}>{error}</p> : null}
     {notice ? <p role="status" className={styles.success}>{notice}</p> : null}
+    {activeSection === "overview" ? <>
     <div className={styles.stats} aria-label="وضعیت ویترین‌ها">
       <span>کل مقاله‌ها <b>{formatCount(data.counts.total)}</b></span>
       <span>بدون ویترین <b>{formatCount(data.counts.missing)}</b></span>
@@ -715,145 +748,140 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         </div>
       </details>
     </div>
-    <section className={styles.metricsSection} aria-label="آمار عملکرد ویترین‌ها">
-      <div className={styles.metricsHeading}>
-        <div>
-          <h3>عملکرد ویترین‌های ویکی</h3>
-          <p>شمارش از زمان فعال‌شدن این قابلیت شروع می‌شه؛ نمایش‌ها و کلیک‌ها تعداد رویدادن، نه تعداد کاربران یکتا.</p>
+    </> : null}
+    {activeSection === "overview" ? <section className={styles.overviewWorkspace} aria-label="نمای کلی ویترین‌ها">
+      <div className={styles.overviewIntro}>
+        <div><span className={styles.overviewKicker}>از مقاله تا محصول</span>
+          <h3>ویترین‌های مرتبط، در یک نگاه</h3>
+          <p>وضعیت انتشار، پیشنهادهای منتظر بررسی و نتیجهٔ کلیک روی ویترین‌ها؛ هر ابزار در بخش خودش.</p>
         </div>
-        <label>بازهٔ آماری
-          <select value={metricWindow} onChange={(event) => setMetricWindow(event.target.value as "7" | "30" | "all")}>
-            <option value="7">۷ روز اخیر</option>
-            <option value="30">۳۰ روز اخیر</option>
-            <option value="all">کل دوره</option>
-          </select>
-        </label>
+        <button type="button" disabled={loading || metricBusy}
+          onClick={() => { void refresh().catch((e) => setError(String(e))); void refreshMetrics(); }}>
+          تازه‌سازی نمای کلی
+        </button>
       </div>
-      {metricError ? <p className={styles.error} role="alert">{metricError}</p> : null}
-      {!demo && !metricData ? <p className={styles.hint}>در حال خواندن آمار...</p> : null}
-      {demo ? <p className={styles.hint}>آمار فقط از سایت واقعی جمع می‌شه؛ پیش‌نمایش مدیریتی شمرده نمی‌شه.</p>
-        : metricData && !metricData.ready ? <p className={styles.warning}>
-          جدول آمار هنوز فعال نشده؛ ابتدا migration شمارهٔ ۰۰۳۹ باید با تأیید مدیر روی دیتابیس اجرا بشه.
-        </p> : metricData?.ready ? <>
-          <div className={styles.metricTotals}>
-            <span>نمایش واقعی <b>{formatCount(metricData.summary.impressions)}</b></span>
-            <span>کلیک روی ویترین <b>{formatCount(metricData.summary.clicks)}</b></span>
-            <span>نرخ کلیک <b>{formatCtr(metricData.summary.clicks, metricData.summary.impressions)}</b></span>
-          </div>
-          <div className={styles.metricProducts}>
-            {data.products.filter((p) => p.id === "p01" || p.id === "p02").map((product) => {
-              const values = (metricData.metrics ?? []).filter((r) => r.productId === product.id);
-              const impressions = values.reduce((sum, m) => sum + m.impressions, 0);
-              const clicks = values.reduce((sum, m) => sum + m.clicks, 0);
-              return <span key={product.id}><strong>{product.name}</strong>
-                {formatCount(impressions)} نمایش · {formatCount(clicks)} کلیک · {formatCtr(clicks, impressions)}</span>;
-            })}
-          </div>
-          <div className={styles.metricFilters}>
-            <label>محصول
-              <select value={metricProduct} onChange={(event) => { setMetricProduct(event.target.value); setMetricPage(0); }}>
-                <option value="all">همهٔ محصولات</option>
-                {data.products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </label>
-            <label>مرتب‌سازی
-              <select value={metricSort} onChange={(event) => { setMetricSort(event.target.value as "clicks" | "ctr" | "impressions"); setMetricPage(0); }}>
-                <option value="clicks">تعداد کلیک</option>
-                <option value="ctr">نرخ کلیک</option>
-                <option value="impressions">تعداد نمایش</option>
-              </select>
-            </label>
-            <label>ترتیب
-              <select value={metricDirection} onChange={(event) => { setMetricDirection(event.target.value as "desc" | "asc"); setMetricPage(0); }}>
-                <option value="desc">بیشترین اول</option>
-                <option value="asc">کمترین اول</option>
-              </select>
-            </label>
-          </div>
-          <div className={styles.metricTableScroll}>
-            <table className={styles.metricTable}>
-              <thead><tr><th>مقاله / ویترین</th><th>محصول</th><th>نمایش</th><th>کلیک</th><th>CTR</th></tr></thead>
-              <tbody>
-                {performanceRows.slice(metricPage * 20, (metricPage + 1) * 20).map((row) => (
-                  <tr key={row.showcaseId}>
-                    <td><button type="button" className={styles.metricArticleLink}
-                      onClick={() => {
-                        const article = articleMap.get(row.articleId);
-                        const card = article?.showcases.find((s) => s.id === row.showcaseId);
-                        if (article && card) focusArticle(article, undefined, card);
-                      }}>{row.articleTitle}</button><small>{row.cardTitle}</small></td>
-                    <td>{productMap.get(row.productId)?.name ?? row.productId}</td>
-                    <td>{formatCount(row.impressions)}</td><td>{formatCount(row.clicks)}</td>
-                    <td>{formatCtr(row.clicks, row.impressions)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className={styles.pagination}>
-            <button type="button" disabled={metricPage === 0} onClick={() => setMetricPage((n) => n - 1)}>قبلی</button>
-            <span>{formatCount(metricPage + 1)} / {formatCount(Math.max(1, Math.ceil(performanceRows.length / 20)))}</span>
-            <button type="button" disabled={(metricPage + 1) * 20 >= performanceRows.length} onClick={() => setMetricPage((n) => n + 1)}>بعدی</button>
-          </div>
-        </> : null}
-    </section>
-    <div className={styles.primaryFilters}>
-      <label>جست‌وجوی مقاله <input value={query} placeholder="نام مقاله یا شناسه"
-        onChange={(e) => { setQuery(e.target.value); setPage(0); }} /></label>
-      <label>وضعیت ویترین <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }}>
-        {[
-          ["all", "همهٔ مقاله‌ها"], ["missing", "ویترین ندارد / باید ساخته شود"],
-          ["has", "ویترین دارد"], ["active", "ویترین فعال"], ["disabled", "ویترین غیرفعال"],
-          ["pending", "پیشنهاد در انتظار تصمیم"], ["rejected", "پیشنهاد ردشده"],
-          ["review", "پیشنهاد بازبینی"], ["blocked", "مانع نمایش"],
-           ["free", "بخش آزاد برای ویترین جدید"],
-        ].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-      </select></label>
-      <button type="button" className={styles.moreFiltersButton}
-        aria-controls={moreFiltersId} aria-expanded={moreFiltersOpen}
-        onClick={() => setMoreFiltersOpen((open) => !open)}>
-        {moreFiltersOpen ? "بستن فیلترها" : "فیلترهای بیشتر"}
-        {[category !== "all", publication !== "all", productFilter !== "all", sort !== "title"]
-          .filter(Boolean).length ? " •" : ""}
-      </button>
-    </div>
-    <div className={styles.filters} id={moreFiltersId} hidden={!moreFiltersOpen}>
-      <label>موضوع <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(0); }}>
-        <option value="all">همهٔ موضوع‌ها</option>
-        {categories.map((value) => <option value={value} key={value}>{value}</option>)}
-      </select></label>
-      <label>انتشار مقاله <select value={publication} onChange={(e) => { setPublication(e.target.value); setPage(0); }}>
-        <option value="all">همه</option>
-        {["published", "draft", "scheduled", "archived"].map((value) =>
-          <option key={value} value={value}>{value}</option>)}
-      </select></label>
-      <label>محصول متصل <select value={productFilter} onChange={(e) => { setProductFilter(e.target.value); setPage(0); }}>
-        <option value="all">همه</option>
-        {data.products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
-      </select></label>
-      <label>مرتب‌سازی <select value={sort} onChange={(e) => setSort(e.target.value)}>
-        <option value="title">عنوان</option><option value="recent">آخرین ویرایش</option>
-        <option value="status">وضعیت ویترین</option>
-      </select></label>
-    </div>
-    <div className={styles.bulkBar}>
-      <strong>{formatCount(selected.length)} انتخاب‌شده از {formatCount(filtered.length)} نتیجه</strong>
-      <button type="button" onClick={() => setSelected((old) => [...new Set([...old, ...filteredIds])])}>
-        انتخاب نتایج فیلترشده
-      </button>
-      <button type="button" disabled={!selected.length} onClick={() => setSelected([])}>پاک‌کردن انتخاب</button>
-      {canWrite ? <details className={styles.bulkMore}>
-        <summary>مدیریت گروهی</summary>
+      <div className={styles.overviewNumbers}>
+        <div><span>ویترین فعال</span><strong>{formatCount(totalActiveShowcases)}</strong>
+          <small>در {formatCount(data.counts.active)} مقاله</small></div>
+        <div><span>نمایش ویترین · {metricWindow === "7" ? "۷ روز اخیر" :
+          metricWindow === "30" ? "۳۰ روز اخیر" : "کل دوره"}</span><strong>{metricData?.ready
+          ? formatCount(metricData.summary.impressions) : "—"}</strong>
+          <small>نمایش‌های ثبت‌شده، نه کاربران یکتا</small></div>
+        <div><span>کلیک روی ویترین · {metricWindow === "7" ? "۷ روز اخیر" :
+          metricWindow === "30" ? "۳۰ روز اخیر" : "کل دوره"}</span><strong>{metricData?.ready
+          ? formatCount(metricData.summary.clicks) : "—"}</strong>
+          <small>CTR: {metricData?.ready
+            ? formatCtr(metricData.summary.clicks, metricData.summary.impressions) : "—"}</small></div>
+      </div>
+      {metricError ? <p role="alert" className={styles.error}>{metricError}</p> : null}
+      <div className={styles.overviewShortcuts}>
+        <button type="button" onClick={() => onSectionChange("manage")}>
+          <strong>مدیریت ویترین‌ها</strong><span>ساخت، ویرایش و خاموش/روشن‌کردن هر جایگاه</span>
+          <span aria-hidden="true">←</span></button>
+        <button type="button" onClick={() => onSectionChange("ai")}>
+          <strong>بسته‌ها و پیشنهادهای AI</strong><span>انتخاب مقاله، ZIP، بازبینی و انتشار پیشنهادها</span>
+          <span aria-hidden="true">←</span></button>
+        <button type="button" onClick={() => onSectionChange("metrics")}>
+          <strong>آمار و عملکرد</strong><span>مقایسهٔ ویترین‌ها، محصولات، کلیک و CTR</span>
+          <span aria-hidden="true">←</span></button>
+      </div>
+      <section className={styles.overviewAttention}>
+        <h4>نیازمند رسیدگی</h4>
         <div>
-          <button type="button" disabled={!selected.length || loading}
-            onClick={() => void toggleArticles(false, selected)}>خاموش‌کردن انتخاب‌شده‌ها</button>
-          <button type="button" disabled={!selected.length || loading}
-            onClick={() => void toggleArticles(true, selected)}>روشن‌کردن انتخاب‌شده‌ها</button>
+          <button type="button" onClick={() => onSectionChange("ai")}>
+            <span>پیشنهادهای در انتظار تصمیم</span><b>{formatCount(data.counts.pending)}</b></button>
+          <button type="button" onClick={() => { setStatus("review"); setPage(0); onSectionChange("manage"); }}>
+            <span>مقاله‌های دارای ویترین نیازمند بازبینی</span><b>{formatCount(data.counts.review)}</b></button>
+          <button type="button" onClick={() => { setStatus("missing"); setPage(0); onSectionChange("manage"); }}>
+            <span>مقاله‌های بدون ویترین</span><b>{formatCount(data.counts.missing)}</b></button>
         </div>
-      </details> : null}
-    </div>
-    <div className={styles.columns}>
-      <div className={styles.listColumn}>
+      </section>
+      <section className={styles.overviewProducts}>
+        <h4>پوشش محصولات</h4>
+        <div>{data.products.map((product) => {
+          const count = data.productCounts.find((item) => item.productId === product.id);
+          return <button type="button" key={product.id}
+            onClick={() => { setProductFilter(product.id); setPage(0); onSectionChange("manage"); }}>
+            <strong>{product.name}</strong>
+            <span>{formatCount(count?.active ?? 0)} فعال از {formatCount(count?.configured ?? 0)} جایگاه</span>
+          </button>;
+        })}</div>
+      </section>
+    </section> : null}
+    {activeSection === "ai" ? <section className={styles.aiWorkspace} aria-label="بسته‌ها و پیشنهادهای AI">
+      <div className={styles.sectionIntro}>
+        <h3>بسته‌ها و پیشنهادهای AI</h3>
+        <p>انتخاب مقاله و محصولات، دریافت بسته، ورود پیشنهادهای AI، بازبینی گروهی و اصلاح متن ویترین‌های منتشرشده.</p>
+      </div>
+      <div className={styles.aiLayout}>
+        <div className={styles.aiLeft}>
+      <section className={styles.aiArticlePicker} aria-label="انتخاب مقاله‌ها برای بستهٔ AI">
+        <div className={styles.aiPickerHeading}>
+          <h3>مقاله‌های بسته</h3>
+          <span>{formatCount(selected.length)} انتخاب‌شده</span>
+        </div>
+        <p className={styles.hint}>از بین مقاله‌های منتشرشده انتخاب کن؛ این انتخاب برای خروجی ZIP استفاده می‌شه.</p>
+        <label>جست‌وجوی مقاله
+          <input value={aiSearch} placeholder="عنوان یا شناسهٔ مقاله"
+            onChange={(event) => { setAiSearch(event.target.value); setAiPage(0); }} />
+        </label>
+        <div className={styles.aiPickerActions}>
+          <button type="button" onClick={() => setSelected((old) =>
+            [...new Set([...old, ...aiCandidates.map((a) => a.articleId)])])}>
+            انتخاب همهٔ نتایج ({formatCount(aiCandidates.length)})
+          </button>
+          <button type="button" disabled={!selected.length} onClick={() => setSelected([])}>پاک‌کردن انتخاب</button>
+        </div>
+        <div className={styles.aiPickerList}>
+          {aiCandidates.slice(aiPage * 12, (aiPage + 1) * 12).map((a) =>
+            <label key={a.articleId}>
+              <input type="checkbox" checked={selected.includes(a.articleId)}
+                onChange={(event) => setSelected((old) => event.target.checked ?
+                  [...new Set([...old, a.articleId])] : old.filter((id) => id !== a.articleId))} />
+              <span>{a.title}</span><small>{formatCount(a.showcases.length)} ویترین</small>
+            </label>)}
+          {!aiCandidates.length ? <p className={styles.empty}>مقاله‌ای با این جست‌وجو پیدا نشد.</p> : null}
+        </div>
+        <div className={styles.pagination}>
+          <button type="button" disabled={aiPage <= 0} onClick={() => setAiPage((v) => v - 1)}>قبلی</button>
+          <span>{formatCount(aiPage + 1)} / {formatCount(Math.max(1, Math.ceil(aiCandidates.length / 12)))}</span>
+          <button type="button" disabled={(aiPage + 1) * 12 >= aiCandidates.length}
+            onClick={() => setAiPage((v) => v + 1)}>بعدی</button>
+        </div>
+      </section>
+        </div>
+        <div className={styles.aiTools}>
+        <div className={styles.zipArea}>
+          <h3>بستهٔ AI</h3>
+          <p className={styles.hint}>هدف هر محصول راهنمای پیشنهادهای AI است، نه سهمیهٔ اجباری یا انتشار خودکار. عدد صفر یعنی بدون حداقل.</p>
+          <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ همه در یک ZIP همراه با راهنمای AI و یک شناسهٔ بسته قرار می‌گیرن.</p>
+          <div className={styles.rowActions}>
+            <button type="button" onClick={() => setProductIds(data.products.map((p) => p.id))}>
+              انتخاب همهٔ محصولات
+            </button>
+            <button type="button" onClick={() => setProductIds([])}>لغو انتخاب محصولات</button>
+          </div>
+          <div className={styles.productChecks}>{data.products.map((p) => {
+            const active = data.productCounts.find((c) => c.productId === p.id)?.active ?? 0;
+            return <label key={p.id}>
+              <input type="checkbox" checked={productIds.includes(p.id)}
+                onChange={(e) => setProductIds((old) => e.target.checked
+                  ? [...old, p.id] : old.filter((id) => id !== p.id))} />
+              {p.name}{!p.orderable ? " (فروش بسته)" : ""}
+              <small>ویترین فعال: {formatCount(active)} · هدف: {formatCount(productMinimums[p.id] ?? 0)}</small>
+              {productIds.includes(p.id) ? <span>هدف تعداد ویترین فعال برای این محصول
+                <input type="number" min={0} max={500} step={1}
+                  disabled={!p.orderable}
+                  value={productMinimums[p.id] ?? 0}
+                  onChange={(e) => setProductMinimums((old) => ({
+                    ...old, [p.id]: Math.max(0, Math.min(500, Math.floor(Number(e.target.value) || 0))),
+                  }))} />
+              </span> : null}
+            </label>;
+          })}</div>
+          <button type="button" disabled={!canWrite || loading || !selected.length || !productIds.length}
+            onClick={() => void exportSelected()}>دریافت ZIP برای AI</button>
+        </div>
         <div className={styles.importArea}>
           <h3>پیشنهادهای AI</h3>
           <label className={styles.upload}>ورود یک ZIP پیشنهادهای AI
@@ -920,6 +948,157 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
               onClick={() => void rejectChecked()}>رد انتخاب‌شده‌ها</button>
           </div> : null}
         </div>
+
+        </div>
+      </div>
+    </section> : null}
+{activeSection === "metrics" ? <>
+    <section className={styles.metricsSection} aria-label="آمار عملکرد ویترین‌ها">
+      <div className={styles.metricsHeading}>
+        <div>
+          <h3>عملکرد ویترین‌های ویکی</h3>
+          <p>شمارش از زمان فعال‌شدن این قابلیت شروع می‌شه؛ نمایش‌ها و کلیک‌ها تعداد رویدادن، نه تعداد کاربران یکتا.</p>
+        </div>
+        <button type="button" disabled={metricBusy} onClick={() => void refreshMetrics()}>{metricBusy ? "در حال بروزرسانی…" : "تازه‌سازی آمار"}</button>
+        <label>بازهٔ آماری
+          <select value={metricWindow} onChange={(event) => setMetricWindow(event.target.value as "7" | "30" | "all")}>
+            <option value="7">۷ روز اخیر</option>
+            <option value="30">۳۰ روز اخیر</option>
+            <option value="all">کل دوره</option>
+          </select>
+        </label>
+      </div>
+      {metricError ? <p className={styles.error} role="alert">{metricError}</p> : null}
+      {!demo && !metricData ? <p className={styles.hint}>در حال خواندن آمار...</p> : null}
+      {demo ? <p className={styles.hint}>آمار فقط از سایت واقعی جمع می‌شه؛ پیش‌نمایش مدیریتی شمرده نمی‌شه.</p>
+        : metricData && !metricData.ready ? <p className={styles.warning}>
+          جدول آمار هنوز فعال نشده؛ ابتدا migration شمارهٔ ۰۰۳۹ باید با تأیید مدیر روی دیتابیس اجرا بشه.
+        </p> : metricData?.ready ? <>
+          <div className={styles.metricTotals}>
+            <span>نمایش واقعی <b>{formatCount(metricData.summary.impressions)}</b></span>
+            <span>کلیک روی ویترین <b>{formatCount(metricData.summary.clicks)}</b></span>
+            <span>نرخ کلیک <b>{formatCtr(metricData.summary.clicks, metricData.summary.impressions)}</b></span>
+          </div>
+          <div className={styles.metricProducts}>
+            {data.products.filter((p) => p.id === "p01" || p.id === "p02").map((product) => {
+              const values = (metricData.metrics ?? []).filter((r) => r.productId === product.id);
+              const impressions = values.reduce((sum, m) => sum + m.impressions, 0);
+              const clicks = values.reduce((sum, m) => sum + m.clicks, 0);
+              return <span key={product.id}><strong>{product.name}</strong>
+                {formatCount(impressions)} نمایش · {formatCount(clicks)} کلیک · {formatCtr(clicks, impressions)}</span>;
+            })}
+          </div>
+          <div className={styles.metricFilters}>
+            <label>محصول
+              <select value={metricProduct} onChange={(event) => { setMetricProduct(event.target.value); setMetricPage(0); }}>
+                <option value="all">همهٔ محصولات</option>
+                {data.products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </label>
+            <label>مرتب‌سازی
+              <select value={metricSort} onChange={(event) => { setMetricSort(event.target.value as "clicks" | "ctr" | "impressions"); setMetricPage(0); }}>
+                <option value="clicks">تعداد کلیک</option>
+                <option value="ctr">نرخ کلیک</option>
+                <option value="impressions">تعداد نمایش</option>
+              </select>
+            </label>
+            <label>ترتیب
+              <select value={metricDirection} onChange={(event) => { setMetricDirection(event.target.value as "desc" | "asc"); setMetricPage(0); }}>
+                <option value="desc">بیشترین اول</option>
+                <option value="asc">کمترین اول</option>
+              </select>
+            </label>
+          </div>
+          <div className={styles.metricTableScroll}>
+            <table className={styles.metricTable}>
+              <thead><tr><th>مقاله / ویترین</th><th>محصول</th><th>نمایش</th><th>کلیک</th><th>CTR</th></tr></thead>
+              <tbody>
+                {performanceRows.slice(metricPage * 20, (metricPage + 1) * 20).map((row) => (
+                  <tr key={row.showcaseId}>
+                    <td><button type="button" className={styles.metricArticleLink}
+                      onClick={() => {
+                        const article = articleMap.get(row.articleId);
+                        const card = article?.showcases.find((s) => s.id === row.showcaseId);
+                        if (article && card) { focusArticle(article, undefined, card); onSectionChange("manage"); }
+                      }}>{row.articleTitle}</button><small>{row.cardTitle}</small></td>
+                    <td>{productMap.get(row.productId)?.name ?? row.productId}</td>
+                    <td>{formatCount(row.impressions)}</td><td>{formatCount(row.clicks)}</td>
+                    <td>{formatCtr(row.clicks, row.impressions)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className={styles.pagination}>
+            <button type="button" disabled={metricPage === 0} onClick={() => setMetricPage((n) => n - 1)}>قبلی</button>
+            <span>{formatCount(metricPage + 1)} / {formatCount(Math.max(1, Math.ceil(performanceRows.length / 20)))}</span>
+            <button type="button" disabled={(metricPage + 1) * 20 >= performanceRows.length} onClick={() => setMetricPage((n) => n + 1)}>بعدی</button>
+          </div>
+        </> : null}
+    </section>
+</> : null}
+    {activeSection === "manage" ? <>
+    <div className={styles.sectionIntro}>
+      <h3>مدیریت ویترین‌ها</h3>
+      <p>مقاله رو پیدا کن، جایگاه هر ویترین رو انتخاب کن و در کنار پیش‌نمایش واقعی ویرایشش کن.</p>
+    </div>
+    <div className={styles.primaryFilters}>
+      <label>جست‌وجوی مقاله <input value={query} placeholder="نام مقاله یا شناسه"
+        onChange={(e) => { setQuery(e.target.value); setPage(0); }} /></label>
+      <label>وضعیت ویترین <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }}>
+        {[
+          ["all", "همهٔ مقاله‌ها"], ["missing", "ویترین ندارد / باید ساخته شود"],
+          ["has", "ویترین دارد"], ["active", "ویترین فعال"], ["disabled", "ویترین غیرفعال"],
+          ["pending", "پیشنهاد در انتظار تصمیم"], ["rejected", "پیشنهاد ردشده"],
+          ["review", "پیشنهاد بازبینی"], ["blocked", "مانع نمایش"],
+           ["free", "بخش آزاد برای ویترین جدید"],
+        ].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select></label>
+      <button type="button" className={styles.moreFiltersButton}
+        aria-controls={moreFiltersId} aria-expanded={moreFiltersOpen}
+        onClick={() => setMoreFiltersOpen((open) => !open)}>
+        {moreFiltersOpen ? "بستن فیلترها" : "فیلترهای بیشتر"}
+        {[category !== "all", publication !== "all", productFilter !== "all", sort !== "title"]
+          .filter(Boolean).length ? " •" : ""}
+      </button>
+    </div>
+    <div className={styles.filters} id={moreFiltersId} hidden={!moreFiltersOpen}>
+      <label>موضوع <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(0); }}>
+        <option value="all">همهٔ موضوع‌ها</option>
+        {categories.map((value) => <option value={value} key={value}>{value}</option>)}
+      </select></label>
+      <label>انتشار مقاله <select value={publication} onChange={(e) => { setPublication(e.target.value); setPage(0); }}>
+        <option value="all">همه</option>
+        {["published", "draft", "scheduled", "archived"].map((value) =>
+          <option key={value} value={value}>{value}</option>)}
+      </select></label>
+      <label>محصول متصل <select value={productFilter} onChange={(e) => { setProductFilter(e.target.value); setPage(0); }}>
+        <option value="all">همه</option>
+        {data.products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
+      </select></label>
+      <label>مرتب‌سازی <select value={sort} onChange={(e) => setSort(e.target.value)}>
+        <option value="title">عنوان</option><option value="recent">آخرین ویرایش</option>
+        <option value="status">وضعیت ویترین</option>
+      </select></label>
+    </div>
+    <div className={styles.bulkBar}>
+      <strong>{formatCount(selected.length)} انتخاب‌شده از {formatCount(filtered.length)} نتیجه</strong>
+      <button type="button" onClick={() => setSelected((old) => [...new Set([...old, ...filteredIds])])}>
+        انتخاب نتایج فیلترشده
+      </button>
+      <button type="button" disabled={!selected.length} onClick={() => setSelected([])}>پاک‌کردن انتخاب</button>
+      {canWrite ? <details className={styles.bulkMore}>
+        <summary>مدیریت گروهی</summary>
+        <div>
+          <button type="button" disabled={!selected.length || loading}
+            onClick={() => void toggleArticles(false, selected)}>خاموش‌کردن انتخاب‌شده‌ها</button>
+          <button type="button" disabled={!selected.length || loading}
+            onClick={() => void toggleArticles(true, selected)}>روشن‌کردن انتخاب‌شده‌ها</button>
+        </div>
+      </details> : null}
+    </div>
+    <div className={styles.columns}>
+      <div className={styles.listColumn}>
         <div className={styles.articleList}>
           <div className={styles.sectionHeading}>
             <h3>مقاله‌ها</h3><span>{formatCount(filtered.length)} نتیجه</span>
@@ -972,37 +1151,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
           <span>صفحهٔ {formatCount(page + 1)} از {formatCount(pageCount)}</span>
           <button type="button" disabled={page + 1 >= pageCount} onClick={() => setPage((p) => p + 1)}>بعدی</button>
         </div>
-        <div className={styles.zipArea}>
-          <h3>بستهٔ AI</h3>
-          <p className={styles.hint}>هدف هر محصول راهنمای پیشنهادهای AI است، نه سهمیهٔ اجباری یا انتشار خودکار. عدد صفر یعنی بدون حداقل.</p>
-          <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ همه در یک ZIP همراه با راهنمای AI و یک شناسهٔ بسته قرار می‌گیرن.</p>
-          <div className={styles.rowActions}>
-            <button type="button" onClick={() => setProductIds(data.products.map((p) => p.id))}>
-              انتخاب همهٔ محصولات
-            </button>
-            <button type="button" onClick={() => setProductIds([])}>لغو انتخاب محصولات</button>
-          </div>
-          <div className={styles.productChecks}>{data.products.map((p) => {
-            const active = data.productCounts.find((c) => c.productId === p.id)?.active ?? 0;
-            return <label key={p.id}>
-              <input type="checkbox" checked={productIds.includes(p.id)}
-                onChange={(e) => setProductIds((old) => e.target.checked
-                  ? [...old, p.id] : old.filter((id) => id !== p.id))} />
-              {p.name}{!p.orderable ? " (فروش بسته)" : ""}
-              <small>ویترین فعال: {formatCount(active)} · هدف: {formatCount(productMinimums[p.id] ?? 0)}</small>
-              {productIds.includes(p.id) ? <span>هدف تعداد ویترین فعال برای این محصول
-                <input type="number" min={0} max={500} step={1}
-                  disabled={!p.orderable}
-                  value={productMinimums[p.id] ?? 0}
-                  onChange={(e) => setProductMinimums((old) => ({
-                    ...old, [p.id]: Math.max(0, Math.min(500, Math.floor(Number(e.target.value) || 0))),
-                  }))} />
-              </span> : null}
-            </label>;
-          })}</div>
-          <button type="button" disabled={!canWrite || loading || !selected.length || !productIds.length}
-            onClick={() => void exportSelected()}>دریافت ZIP برای AI</button>
-        </div>
+
 
       </div>
 
@@ -1051,7 +1200,10 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
             {!currentProduct?.orderable ? <p className={styles.warning}>فروش این محصول فعلاً بسته است.</p> : null}
             {canWrite && !draft.proposalId ? <button type="button" disabled={loading}
               onClick={() => void publishManual()}>تأیید و انتشار همین ویترین</button> : null}
-            {draft.proposalId ? <p className={styles.hint}>برای انتشار این پیشنهاد، تیکش رو در فهرست پیشنهادهای AI بزن.</p> : null}
+            {draft.proposalId ? <div className={styles.proposalReturn}>
+              <p className={styles.hint}>تغییرهای این پیشنهاد ذخیرهٔ موقت شدن؛ برای انتشار یا رد آن به فهرست AI برگرد.</p>
+              <button type="button" onClick={() => onSectionChange("ai")}>بازگشت به پیشنهادهای AI</button>
+            </div> : null}
           </> : <p className={styles.empty}>یک مقاله یا پیشنهاد رو از فهرست انتخاب کن.</p>}
         </section>
         <details className={styles.fullArticle}>
@@ -1075,5 +1227,6 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false }: {
         </details>
       </div>
     </div>
+    </> : null}
   </section>;
 }

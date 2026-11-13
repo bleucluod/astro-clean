@@ -46,7 +46,6 @@ import { WikiArticleBody, WikiInlineText, WikiKeyPoints } from "@/components/wik
 import wikiPublicStyles from "@/app/wiki/wiki.module.css";
 import { getWikiEditorialCta } from "@/lib/wiki/wiki-editorial-cta"; // HALLEUS_WIKI_ADMIN_EDITORIAL_CTA_V12
 import { WikiImagePipelinePanel } from "./WikiImagePipelinePanel";
-import { WikiShopShowcasePanel } from "./WikiShopShowcasePanel";
 import styles from "./admin-console.module.css";
 
 type Props = {
@@ -62,7 +61,6 @@ export type WikiWorkspaceSection =
   | "links"
   | "new"
   | "import"
-  | "showcases"
   | "settings"
   | "categories"
   | "media";
@@ -2514,10 +2512,6 @@ export function WikiAdminPanel({ token, session, activeSection, onSectionChange 
             </div>
           ) : null}
         </section>
-      ) : null}
-
-      {activeSection === "showcases" ? (
-        <WikiShopShowcasePanel token={token} canWrite={canPublish} />
       ) : null}
 
       {activeSection === "import" && canImport ? (

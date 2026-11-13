@@ -14,6 +14,7 @@ import type {
   AdminUserSummary,
 } from "@/lib/admin/admin-types";
 import type { WikiWorkspaceSection } from "./WikiAdminPanel";
+import type { ShowcaseWorkspaceSection } from "./WikiShopShowcasePanel";
 import type { SeoWorkspaceSection } from "./SeoAdminPanel";
 import { AdminOverviewDashboard } from "./AdminOverviewDashboard";
 import styles from "./admin-console.module.css";
@@ -24,6 +25,11 @@ const WikiAdminPanel = dynamic(
     ssr: false,
     loading: () => <div className={styles.panelSkeleton}>ویکی در حال آماده‌شدن است…</div>,
   },
+);
+
+const WikiShopShowcasePanel = dynamic(
+  () => import("./WikiShopShowcasePanel").then((module) => module.WikiShopShowcasePanel),
+  { ssr: false, loading: () => <div className={styles.panelSkeleton}>ویترین‌ها در حال آماده‌شدن هستند…</div> },
 );
 
 const SeoAdminPanel = dynamic(
@@ -63,6 +69,7 @@ type TabId =
   | "premium"
   | "telegram"
   | "wiki"
+  | "showcases"
   | "seo"
   | "audit";
 
@@ -135,6 +142,13 @@ const tabs: {
     group: "content",
   },
   {
+    id: "showcases",
+    label: "ویترین‌ها",
+    shortLabel: "ویترین‌ها",
+    capability: "wiki.read",
+    group: "content",
+  },
+  {
     id: "seo",
     label: "SEO",
     shortLabel: "SEO",
@@ -173,9 +187,15 @@ const wikiSections: {
   { id: "queue", label: "انتشار", capability: "wiki.read" },
   { id: "new", label: "مقالهٔ تازه", capability: "wiki.draft.write", showInNav: false },
   { id: "import", label: "ورود بسته", capability: "wiki.import.write" },
-  { id: "showcases", label: "ویترین فروشگاه", capability: "wiki.read" },
   { id: "media", label: "رسانه‌ها", capability: "wiki.read" },
   { id: "settings", label: "تنظیمات", capability: "wiki.read" },
+];
+
+const showcaseSections: { id: ShowcaseWorkspaceSection; label: string }[] = [
+  { id: "overview", label: "نمای کلی" },
+  { id: "manage", label: "مدیریت ویترین‌ها" },
+  { id: "ai", label: "بسته‌ها و AI" },
+  { id: "metrics", label: "آمار و عملکرد" },
 ];
 
 const seoSections: { id: SeoWorkspaceSection; label: string }[] = [
@@ -315,7 +335,9 @@ export function AdminConsole({
   );
 
   const requestedTab = searchParams.get("tab") as TabId | null;
-  const activeTab =
+  const legacyShowcaseLink = requestedTab === "wiki" &&
+    searchParams.get("section") === "showcases" && hasCapability(session, "wiki.read");
+  const activeTab = legacyShowcaseLink ? "showcases" :
     availableTabs.find((tab) => tab.id === requestedTab)?.id ??
     availableTabs[0]?.id ??
     "overview";
@@ -329,6 +351,16 @@ export function AdminConsole({
     availableWikiSections.find((item) => item.id === requestedWikiSection)?.id ??
     availableWikiSections[0]?.id ??
     "articles";
+  const requestedShowcaseSection = searchParams.get("section") as ShowcaseWorkspaceSection | null;
+  const showcaseSection: ShowcaseWorkspaceSection = legacyShowcaseLink ? "manage" :
+    showcaseSections.find((section) => section.id === requestedShowcaseSection)?.id ?? "overview";
+  useEffect(() => {
+    if (!legacyShowcaseLink) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", "showcases");
+    params.set("section", "manage");
+    router.replace("/admini?" + params.toString(), { scroll: false });
+  }, [legacyShowcaseLink, router, searchParams]);
   const requestedSeoSection = searchParams.get("section") as SeoWorkspaceSection | null;
   const seoSection =
     seoSections.find((item) => item.id === requestedSeoSection)?.id ?? "overview";
@@ -344,7 +376,7 @@ export function AdminConsole({
     (
       tab: TabId,
       options?: {
-        section?: WikiWorkspaceSection | TelegramWorkspaceSection | SeoWorkspaceSection;
+        section?: WikiWorkspaceSection | ShowcaseWorkspaceSection | TelegramWorkspaceSection | SeoWorkspaceSection;
         page?: number;
       },
     ) => {
@@ -352,6 +384,8 @@ export function AdminConsole({
       params.set("tab", tab);
       if (tab === "wiki") {
         params.set("section", options?.section ?? "articles");
+      } else if (tab === "showcases") {
+        params.set("section", options?.section ?? "overview");
       } else if (tab === "seo") {
         params.set("section", options?.section ?? "overview");
       } else if (tab === "telegram") {
@@ -362,7 +396,7 @@ export function AdminConsole({
       const nextPage = options?.page ?? 1;
       if (nextPage > 1) params.set("page", String(nextPage));
       else params.delete("page");
-      router.push(`/admini?${params.toString()}`, { scroll: false });
+      router.push(`/admini?${params.toString()}`, { scroll: tab === "showcases" });
       setDrawerOpen(false);
     },
     [router, searchParams],
@@ -426,7 +460,7 @@ export function AdminConsole({
   }, [showNotice]);
 
   const loadTab = useCallback(async () => {
-    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "seo" || activeTab === "reports" || activeTab === "orders") {
+    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "showcases" || activeTab === "seo" || activeTab === "reports" || activeTab === "orders") {
       return;
     }
     setLoading(true);
@@ -744,6 +778,17 @@ export function AdminConsole({
                         ))}
                       </div>
                     ) : null}
+                    {tab.id === "showcases" && activeTab === "showcases" ? (
+                      <div className={styles.subnav} aria-label="بخش‌های مدیریت ویترین‌ها">
+                        {showcaseSections.map((item) => (
+                          <button type="button" key={item.id}
+                            className={showcaseSection === item.id ? styles.activeSubnav : undefined}
+                            onClick={() => navigate("showcases", { section: item.id })}>
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                     {tab.id === "seo" && activeTab === "seo" ? (
                       <div className={styles.subnav} aria-label="بخش‌های مدیریت SEO">
                         {seoSections.map((item) => (
@@ -776,12 +821,12 @@ export function AdminConsole({
         </Link>
       </aside>
 
-      <main className={`${styles.main} ${activeTab === "wiki" || activeTab === "seo" ? styles.wikiMain : ""}`}>
-        <header className={`${styles.toolbar} ${activeTab === "wiki" || activeTab === "seo" ? styles.wikiToolbar : ""}`}>
+      <main className={`${styles.main} ${activeTab === "wiki" || activeTab === "showcases" || activeTab === "seo" ? styles.wikiMain : ""}`}>
+        <header className={`${styles.toolbar} ${activeTab === "wiki" || activeTab === "showcases" || activeTab === "seo" ? styles.wikiToolbar : ""}`}>
           <div className={styles.toolbarTitle}>
             <span className={styles.eyebrow}>پنل خصوصی هالیوس</span>
             <h2>{activeTabConfig?.label}</h2>
-            {lastUpdatedAt && activeTab !== "telegram" && activeTab !== "wiki" && activeTab !== "seo" ? (
+            {lastUpdatedAt && activeTab !== "telegram" && activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "seo" ? (
               <small>آخرین بروزرسانی: {formatDate(lastUpdatedAt)}</small>
             ) : null}
           </div>
@@ -797,7 +842,7 @@ export function AdminConsole({
                 <button type="submit">جست‌وجو</button>
               </form>
             ) : null}
-            {activeTab !== "wiki" && activeTab !== "seo" && activeTab !== "telegram" ? (
+            {activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "seo" && activeTab !== "telegram" ? (
               <button type="button" onClick={() => void loadTab()} disabled={loading}>
                 تازه‌سازی
               </button>
@@ -807,7 +852,7 @@ export function AdminConsole({
 
         {error ? <p className={styles.error}>{error}</p> : null}
         {message ? <p className={styles.success}>{message}</p> : null}
-        {loading && activeTab !== "wiki" && activeTab !== "seo" && activeTab !== "telegram" && activeTab !== "reports" ? (
+        {loading && activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "seo" && activeTab !== "telegram" && activeTab !== "reports" ? (
           <div className={styles.loadingBar}>در حال دریافت داده…</div>
         ) : null}
 
@@ -1105,6 +1150,15 @@ export function AdminConsole({
             onSectionChange={(section) => navigate("seo", { section })}
             session={session}
             token={token}
+          />
+        ) : null}
+
+        {activeTab === "showcases" ? (
+          <WikiShopShowcasePanel
+            token={token}
+            canWrite={session.capabilities.includes("wiki.publish.write")}
+            activeSection={showcaseSection}
+            onSectionChange={(section) => navigate("showcases", { section })}
           />
         ) : null}
 
