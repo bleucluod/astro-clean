@@ -216,11 +216,16 @@ function MiniBars({ data, mode = "minute" }: {
 }
 function Donut({ rows }: { rows: Array<{ label: string; value: number }> }) {
   const sum = rows.reduce((total, row) => total + row.value, 0);
-  let position = 0;
-  const segments = rows.filter(r => r.value > 0).map((row, index) => {
-    const start = position; position += row.value / Math.max(1, sum) * 100;
-    return colors[index % colors.length] + " " + start + "% " + position + "%";
-  });
+  const segments = rows.filter(row => row.value > 0).reduce(
+    (state, row, index) => {
+      const next = state.position + row.value / Math.max(1, sum) * 100;
+      return {
+        position: next,
+        stops: [...state.stops, colors[index % colors.length] + " " + state.position + "% " + next + "%"],
+      };
+    },
+    { position: 0, stops: [] as string[] },
+  ).stops;
   const background = segments.length ? "conic-gradient(" + segments.join(",") + ")" :
     "conic-gradient(#e4edf5 0% 100%)";
   return <div className={styles.donutLayout}>
