@@ -15,6 +15,7 @@ import type {
 } from "@/lib/admin/admin-types";
 import type { WikiWorkspaceSection } from "./WikiAdminPanel";
 import type { ShowcaseWorkspaceSection } from "./WikiShopShowcasePanel";
+import type { AnalyticsSection } from "./HalleusAnalyticsPanel";
 import type { SeoWorkspaceSection } from "./SeoAdminPanel";
 import { AdminOverviewDashboard } from "./AdminOverviewDashboard";
 import styles from "./admin-console.module.css";
@@ -30,6 +31,11 @@ const WikiAdminPanel = dynamic(
 const WikiShopShowcasePanel = dynamic(
   () => import("./WikiShopShowcasePanel").then((module) => module.WikiShopShowcasePanel),
   { ssr: false, loading: () => <div className={styles.panelSkeleton}>ویترین‌ها در حال آماده‌شدن هستند…</div> },
+);
+
+const HalleusAnalyticsPanel = dynamic(
+  () => import("./HalleusAnalyticsPanel").then((module) => module.HalleusAnalyticsPanel),
+  { ssr: false, loading: () => <div className={styles.panelSkeleton}>آمار هالیوس در حال آماده‌شدن است…</div> },
 );
 
 const SeoAdminPanel = dynamic(
@@ -63,6 +69,7 @@ const ShopOrdersWorkspace = dynamic(
 
 type TabId =
   | "overview"
+  | "analytics"
   | "users"
   | "reports"
   | "orders"
@@ -103,6 +110,13 @@ const tabs: {
     id: "overview",
     label: "نمای کلی",
     shortLabel: "نمای کلی",
+    capability: "dashboard.read",
+    group: "main",
+  },
+  {
+    id: "analytics",
+    label: "آمار و تحلیل",
+    shortLabel: "آمار",
     capability: "dashboard.read",
     group: "main",
   },
@@ -189,6 +203,13 @@ const wikiSections: {
   { id: "import", label: "ورود بسته", capability: "wiki.import.write" },
   { id: "media", label: "رسانه‌ها", capability: "wiki.read" },
   { id: "settings", label: "تنظیمات", capability: "wiki.read" },
+];
+
+const analyticsSections: { id: AnalyticsSection; label: string }[] = [
+  { id: "overview", label: "نمای کلی" },
+  { id: "traffic", label: "بازدید و آنلاین" },
+  { id: "content", label: "صفحه‌ها و محتوا" },
+  { id: "sales", label: "فروش و تبدیل" },
 ];
 
 const showcaseSections: { id: ShowcaseWorkspaceSection; label: string }[] = [
@@ -361,6 +382,9 @@ export function AdminConsole({
     params.set("section", "manage");
     router.replace("/admini?" + params.toString(), { scroll: false });
   }, [legacyShowcaseLink, router, searchParams]);
+  const requestedAnalyticsSection = searchParams.get("section") as AnalyticsSection | null;
+  const analyticsSection: AnalyticsSection =
+    analyticsSections.find((item) => item.id === requestedAnalyticsSection)?.id ?? "overview";
   const requestedSeoSection = searchParams.get("section") as SeoWorkspaceSection | null;
   const seoSection =
     seoSections.find((item) => item.id === requestedSeoSection)?.id ?? "overview";
@@ -376,13 +400,15 @@ export function AdminConsole({
     (
       tab: TabId,
       options?: {
-        section?: WikiWorkspaceSection | ShowcaseWorkspaceSection | TelegramWorkspaceSection | SeoWorkspaceSection;
+        section?: WikiWorkspaceSection | ShowcaseWorkspaceSection | AnalyticsSection | TelegramWorkspaceSection | SeoWorkspaceSection;
         page?: number;
       },
     ) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", tab);
-      if (tab === "wiki") {
+      if (tab === "analytics") {
+        params.set("section", options?.section ?? "overview");
+      } else if (tab === "wiki") {
         params.set("section", options?.section ?? "articles");
       } else if (tab === "showcases") {
         params.set("section", options?.section ?? "overview");
@@ -460,7 +486,7 @@ export function AdminConsole({
   }, [showNotice]);
 
   const loadTab = useCallback(async () => {
-    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "showcases" || activeTab === "seo" || activeTab === "reports" || activeTab === "orders") {
+    if (!token || !session || activeTab === "telegram" || activeTab === "wiki" || activeTab === "showcases" || activeTab === "analytics" || activeTab === "seo" || activeTab === "reports" || activeTab === "orders") {
       return;
     }
     setLoading(true);
@@ -737,6 +763,17 @@ export function AdminConsole({
                     >
                       {tab.label}
                     </button>
+                    {tab.id === "analytics" && activeTab === "analytics" ? (
+                      <div className={styles.subnav} aria-label="بخش‌های آمار هالیوس">
+                        {analyticsSections.map((item) => (
+                          <button type="button" key={item.id}
+                            className={analyticsSection === item.id ? styles.activeSubnav : undefined}
+                            onClick={() => navigate("analytics", { section: item.id })}>
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                     {tab.id === "telegram" && activeTab === "telegram" ? (
                       <div
                         className={styles.subnav}
@@ -821,12 +858,12 @@ export function AdminConsole({
         </Link>
       </aside>
 
-      <main className={`${styles.main} ${activeTab === "wiki" || activeTab === "showcases" || activeTab === "seo" ? styles.wikiMain : ""}`}>
-        <header className={`${styles.toolbar} ${activeTab === "wiki" || activeTab === "showcases" || activeTab === "seo" ? styles.wikiToolbar : ""}`}>
+      <main className={`${styles.main} ${activeTab === "wiki" || activeTab === "showcases" || activeTab === "analytics" || activeTab === "seo" ? styles.wikiMain : ""}`}>
+        <header className={`${styles.toolbar} ${activeTab === "wiki" || activeTab === "showcases" || activeTab === "analytics" || activeTab === "seo" ? styles.wikiToolbar : ""}`}>
           <div className={styles.toolbarTitle}>
             <span className={styles.eyebrow}>پنل خصوصی هالیوس</span>
             <h2>{activeTabConfig?.label}</h2>
-            {lastUpdatedAt && activeTab !== "telegram" && activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "seo" ? (
+            {lastUpdatedAt && activeTab !== "telegram" && activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "analytics" && activeTab !== "seo" ? (
               <small>آخرین بروزرسانی: {formatDate(lastUpdatedAt)}</small>
             ) : null}
           </div>
@@ -842,7 +879,7 @@ export function AdminConsole({
                 <button type="submit">جست‌وجو</button>
               </form>
             ) : null}
-            {activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "seo" && activeTab !== "telegram" ? (
+            {activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "analytics" && activeTab !== "seo" && activeTab !== "telegram" ? (
               <button type="button" onClick={() => void loadTab()} disabled={loading}>
                 تازه‌سازی
               </button>
@@ -852,7 +889,7 @@ export function AdminConsole({
 
         {error ? <p className={styles.error}>{error}</p> : null}
         {message ? <p className={styles.success}>{message}</p> : null}
-        {loading && activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "seo" && activeTab !== "telegram" && activeTab !== "reports" ? (
+        {loading && activeTab !== "wiki" && activeTab !== "showcases" && activeTab !== "analytics" && activeTab !== "seo" && activeTab !== "telegram" && activeTab !== "reports" ? (
           <div className={styles.loadingBar}>در حال دریافت داده…</div>
         ) : null}
 
@@ -1151,6 +1188,10 @@ export function AdminConsole({
             session={session}
             token={token}
           />
+        ) : null}
+
+        {activeTab === "analytics" ? (
+          <HalleusAnalyticsPanel token={token} activeSection={analyticsSection} />
         ) : null}
 
         {activeTab === "showcases" ? (

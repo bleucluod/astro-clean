@@ -10,6 +10,7 @@ import {
 } from "@/lib/config/analytics";
 
 import styles from "./analytics-consent.module.css";
+import { HalleusAnalyticsTracker } from "./HalleusAnalyticsTracker";
 
 const OPEN_ANALYTICS_SETTINGS_EVENT = "halleus:open-analytics-settings";
 const GA_DISABLE_KEY = `ga-disable-${analyticsConfig.measurementId}`;
@@ -208,12 +209,17 @@ export function AnalyticsConsent() {
     }
   };
 
+  const tracker = isReady
+    ? <HalleusAnalyticsTracker granted={choice === "granted"} pathname={pathname} />
+    : null;
   if (!isReady || !isSettingsOpen) {
-    return null;
+    return tracker;
   }
 
   return (
-    <section
+    <>
+      {tracker}
+      <section
       aria-label="تنظیم آمار بازدید"
       aria-live="polite"
       className={styles.banner}
@@ -235,7 +241,8 @@ export function AnalyticsConsent() {
           آمار غیرفعال شود
         </button>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
 
