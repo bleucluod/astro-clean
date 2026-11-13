@@ -5,6 +5,9 @@ import type { WikiArticleSection } from "@/lib/wiki/wiki-content";
 import { wikiShowcaseSectionAnchor, resolveWikiShowcaseSection } from "./wiki-showcase-anchor";
 import { makeWikiShowcaseZip, type ZipFile } from "./wiki-showcase-zip";
 import { wikiShopProductCatalog } from "./wiki-shop-showcase";
+import { eligibleWikiShowcasePosition, eligibleWikiSectionBoundary, suggestWikiShowcasePositions, wikiSectionEndPercents } from "./wiki-showcase-positions";
+import { prepareSurfaceShowcaseAIExport, importSurfaceShowcaseAI } from "@/lib/shop/shop-showcase-ai";
+import { isShowcaseSurface } from "@/lib/shop/shop-showcase-surfaces";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BATCH = 500;
@@ -140,7 +143,11 @@ export async function loadWikiShowcaseDashboard() {
       updatedAt: a.updatedAt, articleVersion: a.articleVersion,
       sections: a.sections.map((section, index) => ({
         index, title: section.title, anchor: wikiShowcaseSectionAnchor(section),
+        percent: wikiSectionEndPercents(a.sections)[index],
       })),
+      suggestedPositions: suggestWikiShowcasePositions(a.sections,
+        cards.filter(c => c.active && c.position !== null).map(c => c.position as number)),
+      recommendedPositions: suggestWikiShowcasePositions(a.sections),
       showcases: cards, showcase: cards[0] ?? null,
       hasShowcase: cards.length > 0, active: cards.some((c) => c.active),
       blocked: cards.find((c) => c.blocked)?.blocked ??
@@ -201,7 +208,14 @@ export async function estimateWikiShowcaseSelectedZip(input: unknown) {
 
 export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, input: unknown) {
   const body = asRecord(input);
-  const ids = requiredIds(body.articleIds, MAX_BATCH);
+  const ids = Array.isArray(body.articleIds) && body.articleIds.length === 0
+    ? [] : requiredIds(body.articleIds, MAX_BATCH);
+  const requestedSurfaces = body.surfaceIds === undefined ? [] : body.surfaceIds;
+  if (!Array.isArray(requestedSurfaces) ||
+      requestedSurfaces.some(s => !isShowcaseSurface(s)) ||
+      (!ids.length && !requestedSurfaces.length)) {
+    throw new AdminAccessError(400, "Select at least one Wiki article or public surface");
+  }
   const chosenProducts = Array.isArray(body.productIds) ? body.productIds : [];
   const products = wikiShopProductCatalog().filter((p) => chosenProducts.includes(p.id));
   if (!products.length || products.length !== chosenProducts.length ||
@@ -228,19 +242,28 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
     .map((a) => ({ articleId: a.articleId, hasShowcase: a.hasShowcase,
       showcases: a.showcases, pending: a.hasPending, lastExportedAt: a.lastExportedAt }));
   const batchId = randomUUID();
+  const surfaceGuide = requestedSurfaces.length ?
+    await prepareSurfaceShowcaseAIExport(actor, batchId, products.map(p => p.id), requestedSurfaces) : null;
   const date = new Date().toISOString();
   const json = (value: unknown) => JSON.stringify(value, null, 2);
+  const activeSurfaceCounts = Object.fromEntries(products.map(p => [p.id,
+    surfaceGuide?.slots.reduce((count, surface) => count +
+      surface.existing.filter(placement => placement.productId === p.id && placement.enabled).length, 0) ?? 0]));
   const files: ZipFile[] = [
-    { name: "README_FA.md", data: `# بستهٔ ویترین ویکی هالیوس\n\nشناسه: ${batchId}\n\nفقط مقاله‌ها و محصولات این بسته را بخوان. راهنمای AI_INSTRUCTIONS.md و هدف‌های فعال در targets.json را رعایت کن. در هر مقاله چند ویترین در بخش‌های متفاوت مجاز است، نه چند کارت در یک بخش. اگر هیچ محصولی مرتبط نیست skip بده؛ سهمیه دلیل ایجاد پیشنهاد نامرتبط نیست. فقط یک ZIP برگردان که در ریشهٔ آن proposals.json با schemaVersion=2 و همین batchId قرار دارد. هیچ پیشنهاد AI بدون تأیید مدیر منتشر نمی‌شود.\n` },
-    { name: "AI_INSTRUCTIONS.md", data: `# انتخاب ویترین\n\nبرای هر مقاله چند پیشنهاد در بخش‌های متفاوت مجاز است؛ هر بخش حداکثر یک ویترین و هیچ بخش اشغال‌شده‌ای نباید تکرار شود. هدف حداقل ویترین فعال هر محصول و تعداد فعال فعلی و کسری تا هدف در targets.json آمده‌اند؛ برای جبران کسری فقط جایگاه‌های واقعاً مرتبط پیشنهاد بده. اگر هدف قبلاً تأمین شده، پیشنهاد اضافی صرفاً برای سهمیه نساز. محصولی با orderable=false را برای انتشار پیشنهاد نده. متن فارسی کوتاه و اختصاصی، غیرتکراری و انسانی باشد. پس از یک بخش H2 مرتبط در میانهٔ مقاله قرار بده؛ پس از آخرین بخش ممنوع. شناسهٔ مقاله، نسخه، عنوان بخش، sectionAnchor و afterSectionIndex را دقیق از فایل مقاله بردار. پیشنهادها را در proposals.json با schemaVersion=2 و batchId ثبت کن. برای مقالهٔ نامناسب status=skip و reason را بازگردان. هیچ بدنهٔ مقاله را تغییر نده. خروجی نهایی فقط یک ZIP با فایل proposals.json در ریشهٔ آن است.\n` },
+    { name: "README_FA.md", data: `# بستهٔ ویترین ویکی هالیوس\n\nشناسه: ${batchId}\n\nفقط مقاله‌ها و محصولات این بسته را بخوان. راهنمای AI_INSTRUCTIONS.md، فایل POSITIONING_AND_SURFACES_FA.md و هدف‌های فعال در targets.json را رعایت کن. در هر مقاله چند ویترین در بخش‌های متفاوت مجاز است، نه چند کارت در یک بخش. اگر هیچ محصولی مرتبط نیست skip بده؛ سهمیه دلیل ایجاد پیشنهاد نامرتبط نیست. فقط یک ZIP برگردان که در ریشهٔ آن proposals.json با schemaVersion=2 و همین batchId قرار دارد. هیچ پیشنهاد AI بدون تأیید مدیر منتشر نمی‌شود.\n` },
+    { name: "AI_INSTRUCTIONS.md", data: `# انتخاب ویترین\n\nراهنمای POSITIONING_AND_SURFACES_FA.md را هم بخوان؛ پیشنهادهای مقصدهای عمومی را در surfaceProposals بفرست.\n\nبرای هر مقاله چند پیشنهاد در بخش‌های متفاوت مجاز است؛ هر بخش حداکثر یک ویترین و هیچ بخش اشغال‌شده‌ای نباید تکرار شود. هدف حداقل ویترین فعال هر محصول و تعداد فعال فعلی و کسری تا هدف در targets.json آمده‌اند؛ برای جبران کسری فقط جایگاه‌های واقعاً مرتبط پیشنهاد بده. اگر هدف قبلاً تأمین شده، پیشنهاد اضافی صرفاً برای سهمیه نساز. محصولی با orderable=false را برای انتشار پیشنهاد نده. متن فارسی کوتاه و اختصاصی، غیرتکراری و انسانی باشد. پس از یک بخش H2 مرتبط در میانهٔ مقاله قرار بده؛ پس از آخرین بخش ممنوع. شناسهٔ مقاله، نسخه، عنوان بخش، sectionAnchor و afterSectionIndex را دقیق از فایل مقاله بردار. پیشنهادها را در proposals.json با schemaVersion=2 و batchId ثبت کن. برای مقالهٔ نامناسب status=skip و reason را بازگردان. هیچ بدنهٔ مقاله را تغییر نده. خروجی نهایی فقط یک ZIP با فایل proposals.json در ریشهٔ آن است.\n` },
     { name: "manifest.json", data: json({ schemaVersion: 2, batchId, createdAt: date,
-      articleIds: ids, productIds: products.map((p) => p.id), productMinimums, count: ids.length }) },
+      articleIds: ids, productIds: products.map((p) => p.id),
+      surfaceIds: surfaceGuide?.surfaces ?? [], productMinimums, count: ids.length }) },
+    { name: "surfaces.json", data: json(surfaceGuide?.slots ?? []) },
     { name: "products.json", data: json(products) },
     { name: "targets.json", data: json({ minimumActiveByProduct: productMinimums,
-      activeAcrossSite: dashboard.productCounts,
+      activeAcrossWiki: dashboard.productCounts,
+      activeAcrossSelectedSurfaces: activeSurfaceCounts,
       remainingToTarget: Object.fromEntries(products.map((p) => [p.id, Math.max(0,
-        productMinimums[p.id] - (dashboard.productCounts.find((c) => c.productId === p.id)?.active ?? 0))])),
-      note: "Sitewide minimum active target. Suggest only relevant missing cards; manager approves." }) },
+        productMinimums[p.id] - (dashboard.productCounts.find((c) => c.productId === p.id)?.active ?? 0) -
+        (activeSurfaceCounts[p.id] ?? 0))])),
+      note: "Minimum across Wiki and selected public surfaces. Relevance overrides quotas; manager approves." }) },
     { name: "current-showcases.json", data: json(current) },
     { name: "proposals.schema.json", data: json({
       type: "object", required: ["schemaVersion", "batchId", "proposals"],
@@ -254,17 +277,26 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
             afterSectionIndex: { type: "integer" }, sectionTitle: { type: "string" },
             sectionAnchor: { type: "string" }, title: { type: "string" },
             description: { type: "string" }, buttonLabel: { type: "string" },
-          } } } },
+          } } },
+        surfaceProposals: { type: "array", items: { type: "object",
+          required: ["surface", "slot", "productId", "title", "description", "buttonLabel"],
+          properties: { surface: { enum: surfaceGuide?.surfaces ?? [] },
+            slot: { type: "string" }, productId: { enum: products.map(p => p.id) },
+            title: { type: "string" }, description: { type: "string" },
+            buttonLabel: { type: "string" } } } } },
     }) },
     { name: "proposals.example.json", data: json({
-      schemaVersion: 2, batchId, proposals: [{
+      schemaVersion: 2, batchId,
+      proposals: ids.length ? [{
         articleId: ids[0], articleVersion: selected[0]?.articleVersion,
         status: "skip", reason: "محصول مرتبطی پیدا نشد",
-      }],
+      }] : [],
+      surfaceProposals: [],
     }) },
   ];
   selected.forEach((a) => {
     if (!a) return;
+    const percents = wikiSectionEndPercents(a.sections);
     files.push({ name: "articles/" + a.articleId + ".json", data: json({
       articleId: a.articleId, stableId: a.stableId, slug: a.slug,
       title: a.title, categoryId: a.categoryId, publicationStatus: a.status,
@@ -273,10 +305,14 @@ export async function buildWikiShowcaseSelectedZip(actor: VerifiedAdminActor, in
       sections: a.sections.map((section, index) => ({
         ...section, index, afterSectionIndex: index,
         sectionAnchor: wikiShowcaseSectionAnchor(section),
-        eligible: index < a.sections.length - 1 && (a.sections.length < 4 || index > 0),
+        afterPercent: percents[index],
+        eligible: eligibleWikiShowcasePosition(a.sections, index, percents),
       })),
+      suggestedPositions: suggestWikiShowcasePositions(a.sections),
+      placementWindows: { early: [15, 30], late: [60, 80] },
     }) });
   });
+  files.push({ name: "POSITIONING_AND_SURFACES_FA.md", data: "برای مقالات بلند: ویترین اول پس از H2 نزدیک ۱۵ تا ۳۰ درصد محتوای واقعی و ویترین دوم نزدیک ۶۰ تا ۸۰ درصد. afterPercent و suggestedPositions در فایل مقاله مشخص‌اند. مقالهٔ کوتاه/نامرتبط را به زور چندویترینی نکن. ویترین فعلی را خودکار جابه‌جا نکن؛ مدیر به‌صورت دستی بازبینی می‌کند.\n\nدر surfaces.json سه مقصد عمومی natal، synastry، sky و جایگاه‌هایشان مشخص است. کنار proposals (پیشنهادهای ویکی)، آرایهٔ surfaceProposals هم در همان proposals.json بنویس: هر مورد surface، slot، productId، title، description، buttonLabel دارد. هر مقصد چند ویترین در جایگاه‌های متفاوت می‌تواند داشته باشد. فقط جایگاه خالی، محصول قابل سفارش و متن اختصاصی؛ بدون هیچ دادهٔ تولد، رابطه، گزارش یا شناسهٔ شخصی. اگر فقط مقصدهای عمومی انتخاب شده‌اند proposals می‌تواند [] باشد. AI صرفاً پیشنهاد می‌دهد و مدیر منتشر می‌کند." });
   const bytes = makeWikiShowcaseZip(files);
   const sql = getAdminDatabase();
   await sql.begin(async (tx) => {
@@ -359,7 +395,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
         return;
       }
       if (p.status !== "propose") throw new Error("وضعیت پیشنهاد نامعتبر است");
-      const productId = short(p.productId, 3, "product");
+      const productId = short(p.productId, 40, "product");
       if (!dashboard.products.some((product) => product.id === productId) ||
           !allowedProducts.get(articleId)?.includes(productId)) {
         throw new Error("محصول خارج از بستهٔ انتخاب‌شده است");
@@ -372,7 +408,7 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
       const section = article.sections.find((s) => s.index === indexValue);
       if (!section || typeof indexValue !== "number" ||
         !Number.isSafeInteger(indexValue) || indexValue >= article.sections.length - 1 ||
-        (article.sections.length >= 4 && indexValue === 0) ||
+        !eligibleWikiSectionBoundary(indexValue, article.sections.length, section.percent) ||
         section.title !== p.sectionTitle || section.anchor !== p.sectionAnchor) {
         throw new Error("جایگاه مقاله نامعتبر یا قدیمی است");
       }
@@ -432,7 +468,22 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
  */
 export async function importWikiShowcaseProposalPackage(actor: VerifiedAdminActor, raw: unknown) {
   const input = asRecord(raw);
-  if (input.schemaVersion !== 3) return importWikiShowcaseProposals(actor, raw);
+  if (input.schemaVersion !== 3) {
+    if (input.schemaVersion !== 2 || !Array.isArray(input.proposals) ||
+        !Array.isArray(input.surfaceProposals ?? []) ||
+        (!input.proposals.length && !(input.surfaceProposals as unknown[]).length)) {
+      throw new AdminAccessError(400, "Invalid AI proposal package");
+    }
+    const wiki = input.proposals.length ?
+      await importWikiShowcaseProposals(actor, { ...input, surfaceProposals: undefined }) :
+      { accepted: 0, errors: [] as Array<{ index: number; error: string }> };
+    const surfaces = (input.surfaceProposals as unknown[]).length ?
+      await importSurfaceShowcaseAI(actor, input) :
+      { accepted: 0, errors: [] as Array<{ index: number; error: string }> };
+    return { accepted: wiki.accepted + surfaces.accepted,
+      errors: [...wiki.errors, ...surfaces.errors.map(e => ({
+        index: e.index + input.proposals.length, error: e.error }))] };
+  }
   if (!Array.isArray(input.batches) || !input.batches.length || input.batches.length > 25) {
     throw new AdminAccessError(400, "Invalid bundled AI batches");
   }

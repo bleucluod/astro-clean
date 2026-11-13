@@ -1,11 +1,12 @@
 import { AdminAccessError, type VerifiedAdminActor } from '@/lib/admin/admin-auth';
 import { asNumber, asRecord, asString, getAdminDatabase } from '@/lib/admin/admin-database';
 import { isShopMvpActive, isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
-import { getShopProduct } from '@/components/shop/product-detail-data';
+import { getShopProduct, getAllShopProducts } from '@/components/shop/product-detail-data';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import type { ShopProductId } from '@/components/shop/product-detail-data';
 import type { WikiArticleSection } from '@/lib/wiki/wiki-content';
 import { wikiShowcaseSectionAnchor, resolveWikiShowcaseSection } from './wiki-showcase-anchor';
+import { eligibleWikiShowcasePosition } from "./wiki-showcase-positions";
 
 export type WikiShopShowcaseItem = {
   showcaseId?: string;
@@ -35,7 +36,7 @@ type SourceArticle = {
   sections: WikiArticleSection[];
 };
 
-const productIds: readonly ShopProductId[] = ['p01', 'p02', 'p03'];
+const productIds: readonly ShopProductId[] = getAllShopProducts().map((product) => product.id);
 const available = (productId: ShopProductId) =>
   productId === 'p01' ? isShopMvpActive()
     : productId === 'p02' ? isShopP02OrderEnabled() : false;
@@ -236,8 +237,7 @@ function checkPlacement(item: WikiShopShowcaseItem, article: SourceArticle, revi
     throw new AdminAccessError(409, 'Article changed since AI export: ' + article.slug);
   }
   const i = item.afterSectionIndex;
-  if (i >= article.sections.length - 1 ||
-    (article.sections.length >= 4 && i === 0) ||
+  if (!eligibleWikiShowcasePosition(article.sections, i) ||
     article.sections[i]?.title !== item.sectionTitle) {
     throw new AdminAccessError(409, 'Invalid or stale mid-article position: ' + article.slug);
   }

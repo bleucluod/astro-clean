@@ -11,6 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ReportBirthChartWheel } from "@/components/ReportBirthChartWheel";
+import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
 import { ReportV3Experience } from "@/components/ReportV3Experience";
 import { ReportAdaptiveOverview } from "@/components/report/ReportAdaptiveNarrative";
 import { buildLiveReportReadingContract } from "@/lib/report-output/live-report-reading-contract";
@@ -535,6 +536,7 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
           }
         />
       ) : null}
+      <SurfaceShowcaseSlot surface="natal" slot="after-summary" />
 
       <details
         className={styles.journeyNavigator}
@@ -724,6 +726,7 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
             </aside>
           </div>
         </section>
+        <SurfaceShowcaseSlot surface="natal" slot="after-report" />
 
         <section
           className={styles.flowSection}
@@ -737,8 +740,7 @@ export function ReportProductReader({ report, storedAccessTier = null, initialAc
             <HumanTransitReading data={transitData} />
           )}
         </section>
-
-
+        <SurfaceShowcaseSlot surface="natal" slot="after-sky" />
 
         <section
           className={styles.flowSection}

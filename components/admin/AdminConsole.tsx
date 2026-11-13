@@ -33,6 +33,11 @@ const WikiShopShowcasePanel = dynamic(
   { ssr: false, loading: () => <div className={styles.panelSkeleton}>ویترین‌ها در حال آماده‌شدن هستند…</div> },
 );
 
+const ShopShowcaseSurfacesPanel = dynamic(
+  () => import("./ShopShowcaseSurfacesPanel").then(module => module.ShopShowcaseSurfacesPanel),
+  { ssr: false, loading: () => <div className={styles.panelSkeleton}>ویترین‌های صفحات در حال آماده‌شدن‌اند…</div> },
+);
+
 const HalleusAnalyticsPanel = dynamic(
   () => import("./HalleusAnalyticsPanel").then((module) => module.HalleusAnalyticsPanel),
   { ssr: false, loading: () => <div className={styles.panelSkeleton}>آمار هالیوس در حال آماده‌شدن است…</div> },
@@ -217,7 +222,8 @@ const analyticsSections: { id: AnalyticsSection; label: string }[] = [
 
 const showcaseSections: { id: ShowcaseWorkspaceSection; label: string }[] = [
   { id: "overview", label: "نمای کلی" },
-  { id: "manage", label: "مدیریت ویترین‌ها" },
+  { id: "manage", label: "ویترین‌های ویکی" },
+  { id: "surfaces", label: "گزارش‌ها و آسمان" },
   { id: "ai", label: "بسته‌ها و AI" },
   { id: "metrics", label: "آمار و عملکرد" },
 ];
@@ -1197,7 +1203,14 @@ export function AdminConsole({
           <HalleusAnalyticsPanel token={token} activeSection={analyticsSection} />
         ) : null}
 
-        {activeTab === "showcases" ? (
+        {activeTab === "showcases" && showcaseSection === "surfaces" ? (
+          <ShopShowcaseSurfacesPanel
+            token={token}
+            canWrite={session.capabilities.includes("wiki.publish.write")}
+            onOpenAi={() => navigate("showcases", { section: "ai" })}
+          />
+        ) : null}
+        {activeTab === "showcases" && showcaseSection !== "surfaces" ? (
           <WikiShopShowcasePanel
             token={token}
             canWrite={session.capabilities.includes("wiki.publish.write")}

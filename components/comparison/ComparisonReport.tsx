@@ -47,6 +47,7 @@ import type {
 } from "@/types/synastry-engine";
 
 import styles from "./comparison.module.css";
+import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
 
 const INITIAL_TECHNICAL_CONTACT_LIMIT = 8;
 type TechnicalContactCategory =
@@ -406,6 +407,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
               ))}
             </div>
           </section>
+          <SurfaceShowcaseSlot surface="synastry" slot="after-patterns" />
 
           <div className={styles.chapterSequence}>
             {reading.chapters.map((chapter) => (
@@ -413,6 +415,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             ))}
           </div>
 
+          <SurfaceShowcaseSlot surface="synastry" slot="after-chapters" />
           <FullInterpretationReading full={reading.fullInterpretation} />
 
           <section className={styles.relationshipChapter} id="comparison-growth">
@@ -436,6 +439,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             </div>
           </section>
 
+          <SurfaceShowcaseSlot surface="synastry" slot="after-growth" />
           <section className={styles.limitationsCard}>
             <p className={styles.eyebrow}>حدود این خوانش</p>
             <p>{reading.readingLimitFa}</p>

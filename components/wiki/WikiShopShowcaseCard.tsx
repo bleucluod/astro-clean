@@ -5,12 +5,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { analyticsConfig } from "@/lib/config/analytics";
 import type { PublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
+import type { ShowcaseSurface, SurfaceOffer } from "@/lib/shop/shop-showcase-contract";
 import styles from "./wiki-shop-showcase.module.css";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function trackingContext(id: string): string | null {
-  if (!UUID.test(id) || !window.location.pathname.startsWith("/wiki/")) return null;
+function trackingContext(id: string, surface?: ShowcaseSurface): string | null {
+  if (!UUID.test(id)) return null;
+  const path = window.location.pathname;
+  if (surface === "natal" && !/^\/reports\/[^/]+$/.test(path)) return null;
+  if (surface === "synastry" && !/^\/compare\/[^/]+$/.test(path)) return null;
+  if (surface === "sky" && path !== "/sky" && !/^\/sky\/\d{4}-\d{2}-\d{2}$/.test(path)) return null;
+  if (!surface && !path.startsWith("/wiki/")) return null;
   try {
     const saved = window.localStorage.getItem(analyticsConfig.consentStorageKey);
     if (saved) {
@@ -18,26 +24,29 @@ function trackingContext(id: string): string | null {
       if (setting.version === analyticsConfig.consentVersion && setting.choice === "denied") return null;
     }
   } catch { /* No storage access means no persisted opt-out. */ }
-  const slug = window.location.pathname.slice("/wiki/".length).replace(/\/$/, "");
+  if (surface) return surface; // no report URL, ID, chart data, or personal context
+  const slug = path.slice("/wiki/".length).replace(/\/$/, "");
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : null;
 }
 
-function reportShowcaseEvent(id: string, event: "impression" | "click") {
-  const slug = trackingContext(id);
-  if (!slug) return;
-  const data = JSON.stringify({ id, slug, event });
+function reportShowcaseEvent(id: string, event: "impression" | "click", surface?: ShowcaseSurface) {
+  const context = trackingContext(id, surface);
+  if (!context) return;
+  const endpoint = surface ? "/api/shop/showcase-event" : "/api/wiki/showcase-event";
+  const data = JSON.stringify(surface ? { id, surface, event } : { id, slug: context, event });
   const body = new Blob([data], { type: "application/json" });
   try {
-    if (navigator.sendBeacon?.("/api/wiki/showcase-event", body)) return;
-    void fetch("/api/wiki/showcase-event", {
+    if (navigator.sendBeacon?.(endpoint, body)) return;
+    void fetch(endpoint, {
       method: "POST", body, keepalive: true, credentials: "omit",
     }).catch(() => {});
   } catch { /* Measurements may fail; the product link remains usable. */ }
 }
 
 /** The preview is untracked; public cards opt in explicitly. No visitor identity is stored. */
-export function WikiShopShowcaseCard({ offer, track = false }: {
-  offer: PublicWikiShopShowcase; track?: boolean;
+export function WikiShopShowcaseCard({ offer, track = false, trackSurface }: {
+  offer: PublicWikiShopShowcase | SurfaceOffer; track?: boolean;
+  trackSurface?: ShowcaseSurface;
 }) {
   const ref = useRef<HTMLElement>(null);
   const impressionSent = useRef(false);
@@ -59,7 +68,7 @@ export function WikiShopShowcaseCard({ offer, track = false }: {
         timer = null;
         if (document.visibilityState === "visible" && !impressionSent.current) {
           impressionSent.current = true;
-          reportShowcaseEvent(offer.id, "impression");
+          reportShowcaseEvent(offer.id, "impression", trackSurface);
           observer.disconnect();
         }
       }, 750);
@@ -67,15 +76,15 @@ export function WikiShopShowcaseCard({ offer, track = false }: {
     observer.observe(ref.current);
     document.addEventListener("visibilitychange", stop);
     return () => { stop(); observer.disconnect(); document.removeEventListener("visibilitychange", stop); };
-  }, [offer.id, track]);
+  }, [offer.id, track, trackSurface]);
 
   const recordClick = () => {
     if (!track) return;
     if (!impressionSent.current) {
       impressionSent.current = true;
-      reportShowcaseEvent(offer.id, "impression");
+      reportShowcaseEvent(offer.id, "impression", trackSurface);
     }
-    reportShowcaseEvent(offer.id, "click");
+    reportShowcaseEvent(offer.id, "click", trackSurface);
   };
 
   return <aside ref={ref} aria-label="اثر مرتبط از فروشگاه هالیوس">

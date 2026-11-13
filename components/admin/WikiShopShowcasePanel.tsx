@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { WikiArticleBody } from "@/components/wiki/WikiArticleRender";
 import { WikiShopShowcaseCard } from "@/components/wiki/WikiShopShowcaseCard";
 import { wikiShowcaseSectionAnchor } from "@/lib/wiki/wiki-showcase-anchor";
+import { eligibleWikiSectionBoundary } from "@/lib/wiki/wiki-showcase-positions";
 import type { WikiArticleSection } from "@/lib/wiki/wiki-content";
 import type { PublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
 import wikiStyles from "@/app/wiki/wiki.module.css";
@@ -11,7 +12,8 @@ import styles from "./wiki-shop-showcase.module.css";
 
 type Product = { id: string; name: string; description: string; url: string;
   image: string | null; orderable: boolean };
-type SectionRef = { index: number; title: string; anchor: string };
+type SectionRef = { index: number; title: string; anchor: string; percent?: number };
+type PositionSuggestion = { index: number; percent: number; window: "early" | "late" };
 type Showcase = {
   id: string; articleId: string; productId: string; afterSectionIndex: number;
   sectionTitle: string; sectionAnchor: string; articleVersion: number;
@@ -25,6 +27,7 @@ type ArticleRow = {
   publicationStatus: string; isPublic: boolean; updatedAt: string;
   articleVersion: number; sections: SectionRef[];
   showcase: Showcase | null; showcases: Showcase[]; hasShowcase: boolean; active: boolean;
+  recommendedPositions?: PositionSuggestion[]; suggestedPositions?: PositionSuggestion[];
   blocked: string | null; needsReview: boolean; hasPending: boolean;
   hasRejected: boolean; hasSkipped?: boolean; lastExportedAt: string | null;
 };
@@ -128,8 +131,7 @@ const formatCtr = (clicks: number, impressions: number) => impressions
 function validPosition(row: ArticleRow, draft: Draft): SectionRef | undefined {
   return row.sections.find((section) => section.index === draft.afterSectionIndex &&
     section.title === draft.sectionTitle && section.anchor === draft.sectionAnchor &&
-    section.index < row.sections.length - 1 &&
-    (row.sections.length < 4 || section.index > 0));
+    eligibleWikiSectionBoundary(section.index, row.sections.length, section.percent ?? 0));
 }
 function draftFor(row: ArticleRow, productId: string,
   proposal?: Proposal, existing?: Showcase | null): Draft {
@@ -137,10 +139,11 @@ function draftFor(row: ArticleRow, productId: string,
     (proposal ? null : row.showcases[0] ?? row.showcase) : existing;
   const occupied = new Set(row.showcases.filter((s) => s.id !== selected?.id)
     .map((s) => s.afterSectionIndex));
-  const first = row.sections.find((section) =>
-    section.index < row.sections.length - 1 &&
-    (row.sections.length < 4 || section.index > 0) &&
-    !occupied.has(section.index));
+  const suggested = row.recommendedPositions?.find(s => !occupied.has(s.index));
+  const first = (suggested && row.sections.find(s => s.index === suggested.index)) ??
+    row.sections.find(section =>
+      eligibleWikiSectionBoundary(section.index, row.sections.length, section.percent ?? 0) &&
+      !occupied.has(section.index));
   const from = proposal ?? selected;
   const matching = row.sections.find((section) => section.anchor === from?.sectionAnchor &&
     section.index < row.sections.length - 1) ??
@@ -161,7 +164,7 @@ function draftFor(row: ArticleRow, productId: string,
   };
 }
 
-export type ShowcaseWorkspaceSection = "overview" | "manage" | "ai" | "metrics";
+export type ShowcaseWorkspaceSection = "overview" | "manage" | "surfaces" | "ai" | "metrics";
 export function WikiShopShowcasePanel({ token, canWrite, demo = false,
   activeSection = "manage", onSectionChange = () => {} }: {
   token: string; canWrite: boolean; demo?: boolean;
@@ -184,6 +187,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
   const [proposalPage, setProposalPage] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
   const [productIds, setProductIds] = useState<string[]>(demo ? ["p01"] : []);
+  const [surfaceIds, setSurfaceIds] = useState<string[]>(["natal", "synastry", "sky"]);
   const [productMinimums, setProductMinimums] = useState<Record<string, number>>({});
   const [checkedProposals, setCheckedProposals] = useState<string[]>([]);
   const [edits, setEdits] = useState<Record<string, Draft>>({});
@@ -331,7 +335,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
       if (status === "review" && !a.needsReview) return false;
       if (status === "blocked" && !(a.hasShowcase && a.blocked)) return false;
       if (status === "free" && !a.sections.some((s) =>
-        s.index < a.sections.length - 1 && (a.sections.length < 4 || s.index > 0) &&
+        eligibleWikiSectionBoundary(s.index, a.sections.length, s.percent ?? 0) &&
         !a.showcases.some((card) => card.afterSectionIndex === s.index))) return false;
       return true;
     });
@@ -614,20 +618,23 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
     });
   }
   async function exportSelected() {
-    if (!selected.length || !productIds.length) { setError("مقاله و محصول انتخاب کن."); return; }
+    if ((!selected.length && !surfaceIds.length) || !productIds.length) {
+      setError("حداقل یک مقاله یا مقصد و یک محصول انتخاب کن."); return;
+    }
     if (demo) { setNotice("دریافت ZIP واقعی از پنل ادمین متصل به ویکی انجام می‌شه."); return; }
     await operation(async () => {
-      const estimate = await jsonRequest<{ ok: true; estimatedBytes: number; articleCount: number }>({
-        action: "estimate", articleIds: selected,
-      });
+      const estimate = selected.length ?
+        await jsonRequest<{ ok: true; estimatedBytes: number; articleCount: number }>({
+          action: "estimate", articleIds: selected,
+        }) : { estimatedBytes: 0, articleCount: 0 };
       const approxMb = (estimate.estimatedBytes / 1_000_000).toLocaleString("fa-IR", {
         maximumFractionDigits: 1,
       });
-      if (!window.confirm(`متن ${formatCount(estimate.articleCount)} مقاله حدود ${approxMb} مگابایت است. یک ZIP برای AI دانلود شود؟`)) return;
+      if (!window.confirm(`متن ${formatCount(estimate.articleCount)} مقاله حدود ${approxMb} مگابایت است؛ ${surfaceIds.length} مقصد دیگر هم انتخاب شده. ZIP یکپارچه دریافت شود؟`)) return;
       const response = await fetch("/api/admin/wiki/shop-showcases", {
         method: "POST", cache: "no-store",
         headers: { authorization: "Bearer " + token, "content-type": "application/json" },
-        body: JSON.stringify({ action: "export_zip", articleIds: selected, productIds,
+        body: JSON.stringify({ action: "export_zip", articleIds: selected, surfaceIds, productIds,
           productMinimums: Object.fromEntries(productIds.map((id) => [id, productMinimums[id] ?? 0])) }),
       });
       if (!response.ok) {
@@ -854,7 +861,13 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
         <div className={styles.zipArea}>
           <h3>بستهٔ AI</h3>
           <p className={styles.hint}>هدف هر محصول راهنمای پیشنهادهای AI است، نه سهمیهٔ اجباری یا انتشار خودکار. عدد صفر یعنی بدون حداقل.</p>
-          <p>{formatCount(selected.length)} مقالهٔ انتخاب‌شده؛ همه در یک ZIP همراه با راهنمای AI و یک شناسهٔ بسته قرار می‌گیرن.</p>
+          <p>{formatCount(selected.length)} مقاله و {formatCount(surfaceIds.length)} مقصد عمومی در همان ZIP همراه راهنمای AI قرار می‌گیرن.</p>
+          <div className={styles.productChecks}>
+            {([["natal", "گزارش چارت تولد"], ["synastry", "سینستری"], ["sky", "آسمان /sky"]] as const).map(([id,label]) =>
+              <label key={id}><input type="checkbox" checked={surfaceIds.includes(id)}
+                onChange={(event) => setSurfaceIds(old => event.target.checked ?
+                  [...old, id] : old.filter(v => v !== id))} />{label}</label>)}
+          </div>
           <div className={styles.rowActions}>
             <button type="button" onClick={() => setProductIds(data.products.map((p) => p.id))}>
               انتخاب همهٔ محصولات
@@ -879,8 +892,9 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
               </span> : null}
             </label>;
           })}</div>
-          <button type="button" disabled={!canWrite || loading || !selected.length || !productIds.length}
-            onClick={() => void exportSelected()}>دریافت ZIP برای AI</button>
+          <button type="button" disabled={!canWrite || loading ||
+              (!selected.length && !surfaceIds.length) || !productIds.length}
+            onClick={() => void exportSelected()}>دریافت ZIP مشترک برای AI</button>
         </div>
         <div className={styles.importArea}>
           <h3>پیشنهادهای AI</h3>
@@ -980,7 +994,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
             <span>نرخ کلیک <b>{formatCtr(metricData.summary.clicks, metricData.summary.impressions)}</b></span>
           </div>
           <div className={styles.metricProducts}>
-            {data.products.filter((p) => p.id === "p01" || p.id === "p02").map((product) => {
+            {data.products.filter((p) => p.orderable).map((product) => {
               const values = (metricData.metrics ?? []).filter((r) => r.productId === product.id);
               const impressions = values.reduce((sum, m) => sum + m.impressions, 0);
               const clicks = values.reduce((sum, m) => sum + m.clicks, 0);
@@ -1118,6 +1132,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
                 {a.showcases.some((s) => s.disabled) ? <span>غیرفعال</span> : null}
                 {a.hasPending ? <span>پیشنهاد AI</span> : null}
                 {a.hasRejected ? <span>پیشنهاد ردشده</span> : null}
+                {a.recommendedPositions?.length ? <span>چیدمان پیشنهادی: {a.recommendedPositions.map(p => (p.window === "early" ? "ابتدا" : "ادامه") + " " + p.percent + "٪").join("، ")}</span> : null}
                 {a.hasSkipped ? <span>AI: مورد مرتبطی پیدا نکرد</span> : null}
                 {a.needsReview ? <span>پیشنهاد بازبینی</span> : null}
                 {a.blocked && a.hasShowcase ? <span>{a.blocked}</span> : null}
@@ -1125,7 +1140,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
               </div>
               <div className={styles.rowActions}>
                 <button type="button" disabled={!a.sections.some((s) =>
-                  s.index < a.sections.length - 1 && (a.sections.length < 4 || s.index > 0) &&
+                  eligibleWikiSectionBoundary(s.index, a.sections.length, s.percent ?? 0) &&
                   !a.showcases.some((card) => card.afterSectionIndex === s.index))}
                   onClick={() => focusArticle(a, undefined, null)}>افزودن ویترین</button>
                 {a.isPublic ? <a href={a.slug.startsWith("demo") ? "#showcase-article-preview" : "/wiki/" + a.slug}
@@ -1182,12 +1197,26 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
                   sectionAnchor: next.anchor, articleVersion: focusRow.articleVersion });
               }}>
                 {draft.afterSectionIndex < 0 ? <option value={-1} disabled>جایگاه قبلی پیدا نشد؛ انتخاب کن</option> : null}
-                {focusRow.sections.filter((s) => s.index < focusRow.sections.length - 1 &&
-                   (focusRow.sections.length < 4 || s.index > 0) &&
+                {focusRow.sections.filter((s) =>
+                   eligibleWikiSectionBoundary(s.index, focusRow.sections.length, s.percent ?? 0) &&
                    !focusRow.showcases.some((card) => card.id !== draft.showcaseId &&
                      card.afterSectionIndex === s.index))
-                  .map((s) => <option key={s.index} value={s.index}>{s.title}</option>)}
+                  .map((s) => <option key={s.index} value={s.index}>{s.title} · {s.percent ?? "—"}٪</option>)}
               </select></label>
+              {focusRow.recommendedPositions?.length ? <div className={styles.rowActions}>
+                {focusRow.recommendedPositions.filter(p =>
+                  !focusRow.showcases.some(card => card.id !== draft.showcaseId &&
+                    card.afterSectionIndex === p.index)).map(p => (
+                  <button type="button" key={p.window} onClick={() => {
+                    const section = focusRow.sections[p.index];
+                    if (section) updateDraft({ afterSectionIndex: p.index,
+                      sectionTitle: section.title, sectionAnchor: section.anchor,
+                      articleVersion: focusRow.articleVersion });
+                  }}>
+                    جایگاه پیشنهادی {p.window === "early" ? "اول" : "دوم"} · {p.percent}٪
+                  </button>
+                ))}
+              </div> : null}
               <label>عنوان کارت <input value={draft.title} maxLength={160}
                 onChange={(e) => updateDraft({ title: e.target.value })} /></label>
               <label>متن معرفی <textarea value={draft.description} maxLength={500} rows={3}

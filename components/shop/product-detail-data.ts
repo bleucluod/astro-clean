@@ -240,6 +240,11 @@ const products: Record<ShopProductId, ShopProduct> = {
   },
 };
 
+/** Public catalogue is the single source of product IDs for showcase pickers. */
+export function getAllShopProducts(): ShopProduct[] {
+  return Object.values(products);
+}
+
 export function getShopProduct(id: ShopProductId): ShopProduct {
   return products[id];
 }

@@ -2,6 +2,7 @@ import { R3ApprovedInlineParagraphs } from "@/components/r3-approved-visible-cop
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { SkyCityPicker } from "@/components/SkyCityPicker";
+import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
 import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
 import { SKY_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import { SkyPublicWheel } from "@/components/SkyPublicWheel";
@@ -334,6 +335,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
               <R3ApprovedInlineParagraphs page="sky" sectionTitle="وضعیت ماه امروز؛ نشان، فاز و روشنایی" />
       </section>
 
+      <SurfaceShowcaseSlot surface="sky" slot="after-moon" />
       <section className={styles.contentSection} data-interpretation-source={reportInterpretation.source}>
         <header>
           <span className={styles.eyebrow}>روابط آسمان</span>
@@ -346,6 +348,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
               <R3ApprovedInlineParagraphs page="sky" sectionTitle="مهم‌ترین ترنزیت‌ها و زاویه‌های روز" />
       </section>
 
+      <SurfaceShowcaseSlot surface="sky" slot="after-aspects" />
       <section className={styles.contentSection}>
         <header><span className={styles.eyebrow}>به ترتیب زمان</span><h2>رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟</h2><p className={styles.sectionIntro}>خط زمانی امروز نشان می‌دهد چه رویدادی گذشته و چه چیزی تا پایان روز پیش رو است.</p></header>
         {snapshot.timeline.length ? <ol className={styles.timeline}>{snapshot.timeline.map((event, index) => { const occurredAt = "occurredAt" in event ? event.occurredAt : undefined; const isPast = occurredAt ? new Date(occurredAt).getTime() < now : false; return <li key={`${event.type}-${index}`} data-state={occurredAt ? (isPast ? "past" : "future") : "untimed"}><time>{formatTime(occurredAt, city.timezone)}</time><span>{eventText(event)}</span><small>{occurredAt ? (isPast ? "گذشته" : "پیش رو") : "بدون زمان دقیق"}</small></li>; })}</ol> : <p className={styles.empty}>رویدادی برای این روز نداریم.</p>}
@@ -355,6 +358,7 @@ function ReadyExperience({ result }: { result: Extract<SkyPublicDeliveryResult, 
             <R3ApprovedInlineParagraphs page="sky" sectionTitle="رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟" />
       </section>
 
+    <SurfaceShowcaseSlot surface="sky" slot="after-timeline" />
     <section className={styles.contentSection}>
       <header><span className={styles.eyebrow}>راهنمای کوتاه</span><h2>این داده‌ها را چگونه به زندگی خودت ربط بدهی؟</h2></header>
       <div className={styles.aspectList}><details open><summary>ترنزیت چیست؟</summary><p>ترنزیت به جایگاه و حرکت فعلی سیاره‌ها گفته می‌شود. این صفحه وضعیت عمومی روز را نشان می‌دهد؛ ارتباط فردی فقط با مقایسه با چارت تولد بررسی می‌شود.</p></details><details open><summary>چرا شهر و منطقه زمانی مهم‌اند؟</summary><p>تاریخ محلی و ساعت رویدادها به منطقه زمانی شهر وابسته‌اند و ممکن است برای دو شهر متفاوت نمایش داده شوند.</p></details><details open><summary>آیا حرکت برگشتی یعنی اتفاق بد؟</summary><p>خیر. رتروگراد یک وضعیت محاسباتی است و به‌تنهایی نتیجهٔ قطعی دربارهٔ زندگی فرد نمی‌دهد.</p></details></div>
