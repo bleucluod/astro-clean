@@ -1,5 +1,6 @@
 "use client";
 
+import { HALLEUS_ANALYTICS_ACTION } from "@/lib/analytics/first-party";
 import Link from "next/link";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { AccountProductAccessCard } from "@/components/monetization/ProductAccessCards";
@@ -469,6 +470,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
 
     generationInFlightRef.current = true;
     trackComparePublicAggregateEvent("compare_generation_started");
+    window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "compare_start" }));
     setProductLocked(false);
     setIsWorking(true);
     setMessage("");
@@ -542,6 +544,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     }
 
     savePrivateComparison(result.record);
+    window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "compare_complete" }));
     pendingGenerationRef.current = null;
     router.push(`/compare/${encodeURIComponent(result.record.id)}`);
   }

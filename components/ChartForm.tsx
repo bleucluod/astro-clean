@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
+import { HALLEUS_ANALYTICS_ACTION } from "@/lib/analytics/first-party";
 import type {
   AstrologyReport,
   BirthInput,
@@ -853,6 +854,9 @@ export function ChartForm({
     }
 
     const { normalizedForm, engineCity } = normalizedBirth;
+    if (!comparisonMode) {
+      window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "chart_start" }));
+    }
     try {
       const realEngineResult = await requestRealEngineReportData(normalizedForm, engineCity);
 
@@ -883,6 +887,9 @@ export function ChartForm({
         );
       }
 
+      if (!comparisonMode) {
+        window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "chart_complete" }));
+      }
       if (comparisonMode) {
         notifyLocalDataChanged();
         submissionInFlightRef.current = false;

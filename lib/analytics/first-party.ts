@@ -4,7 +4,13 @@ export const analyticsSources = [
 ] as const;
 export type AnalyticsSource = (typeof analyticsSources)[number];
 export type AnalyticsArea = "home" | "wiki" | "shop" | "chart" | "sky" | "compare" | "other";
-export type AnalyticsEventKind = "page" | "heartbeat" | "product_click" | "chart_start" | "checkout_start" | "leave";
+export type AnalyticsEventKind =
+  | "page" | "resume" | "heartbeat" | "engagement" | "scroll" | "leave"
+  | "product_click" | "internal_click" | "chart_start" | "chart_complete"
+  | "compare_start" | "compare_complete" | "checkout_start";
+export type AnalyticsActionKind = Exclude<AnalyticsEventKind, "page" | "resume" | "heartbeat" | "engagement" | "scroll" | "leave">;
+export const HALLEUS_ANALYTICS_ACTION = "halleus:analytics-action";
+export const HALLEUS_ANALYTICS_CHOICE_CHANGED = "halleus:analytics-choice-changed";
 
 const exact = new Set([
   "/", "/chart", "/compare", "/sky", "/wiki", "/shop",

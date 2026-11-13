@@ -162,11 +162,18 @@ export function AnalyticsConsent() {
     });
 
     const openSettings = () => setIsSettingsOpen(true);
+    const syncPrivacyChoice = (event: StorageEvent) => {
+      if (event.key !== analyticsConfig.consentStorageKey) return;
+      setChoice(readStoredChoice() ?? "granted");
+      lastTrackedPath.current = null;
+    };
     window.addEventListener(OPEN_ANALYTICS_SETTINGS_EVENT, openSettings);
+    window.addEventListener("storage", syncPrivacyChoice);
 
     return () => {
       isActive = false;
       window.removeEventListener(OPEN_ANALYTICS_SETTINGS_EVENT, openSettings);
+      window.removeEventListener("storage", syncPrivacyChoice);
     };
   }, []);
 
@@ -227,9 +234,10 @@ export function AnalyticsConsent() {
       <div className={styles.copy}>
         <strong>آمار بازدید هالیوس</strong>
         <p>
-          هالیوس بازدید صفحه‌های عمومی و اطلاعات فنی پایهٔ مرورگر را برای
-          بهترشدن محصول به‌صورت آماری می‌سنجد. دادهٔ تولد، محتوای گزارش، نام،
-          شماره، ایمیل و شناسهٔ گزارش ارسال نمی‌شود.
+          هالیوس بازدید صفحه‌های عمومی، زمان حضور فعال، میزان مطالعهٔ صفحه
+          و کلیک‌های کلی را به‌صورت آماری می‌سنجد. اطلاعات تولد، محتوای گزارش،
+          نام، شماره، ایمیل و شناسهٔ گزارش وارد آمار نمی‌شوند.
+          این تنظیم برای آمار داخلی هالیوس و آمار بازدید عمومی مشترک است.
         </p>
       </div>
 

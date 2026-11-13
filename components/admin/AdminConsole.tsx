@@ -207,9 +207,12 @@ const wikiSections: {
 
 const analyticsSections: { id: AnalyticsSection; label: string }[] = [
   { id: "overview", label: "نمای کلی" },
-  { id: "traffic", label: "بازدید و آنلاین" },
-  { id: "content", label: "صفحه‌ها و محتوا" },
+  { id: "live", label: "آنلاین در لحظه" },
+  { id: "traffic", label: "بازدید و ورودی‌ها" },
+  { id: "content", label: "عملکرد محتوا" },
+  { id: "time", label: "زمان حضور" },
   { id: "sales", label: "فروش و تبدیل" },
+  { id: "tools", label: "ابزارهای هالیوس" },
 ];
 
 const showcaseSections: { id: ShowcaseWorkspaceSection; label: string }[] = [

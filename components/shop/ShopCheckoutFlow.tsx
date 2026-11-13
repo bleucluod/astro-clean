@@ -1,5 +1,6 @@
 'use client';
 
+import { HALLEUS_ANALYTICS_ACTION } from "@/lib/analytics/first-party";
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -219,6 +220,7 @@ export function ShopCheckoutScreen() {
       setQuote(verified);
       setQuotedCart(cartKey);
       setSubmitted(true);
+      window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "checkout_start" }));
     } catch (error) {
       if (requestId !== quoteRequest.current) return;
       setError(error instanceof Error ? error.message : 'محاسبهٔ مبلغ انجام نشد. دوباره تلاش کن.');
