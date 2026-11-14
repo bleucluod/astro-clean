@@ -25,7 +25,7 @@ for (const marker of [
   "openJourneyStep(firstIncomplete.id as ChartJourneyStepId)",
   "formRef.current?.requestSubmit()",
   "ref={mainSubmitRef}",
-  "bounds.top > window.innerHeight - 96",
+  "bounds.bottom <= 0",
   "setShowStickyAction(!keyboardOpen",
   "createPortal(",
   "document.body,",
@@ -56,6 +56,14 @@ expect(
     form.includes("!comparisonMode && stickyPortalReady ? createPortal("),
   "Comparison mode must not mount the standalone journey",
 );
+expect(
+  form.includes('const [showStickyAction, setShowStickyAction] = useState(false);') &&
+  form.includes("setShowStickyAction(!keyboardOpen && bounds.bottom <= 0);") &&
+  !form.includes("bounds.top > window.innerHeight - 96") &&
+  form.includes('window.addEventListener("scroll", update, { passive: true });') &&
+  form.includes('window.addEventListener("resize", update);') &&
+  form.includes('aria-hidden={!(showStickyAction && !isSubmitting && realEngineRequest.status === "idle")}'),
+  "Mobile sticky action must start hidden and appear only after scrolling past the submit button");
 expect((form.match(/<ChartSelect\b/g) ?? []).length === 8, "Date/time selects changed");
 expect(form.includes('onSubmit={handleSubmit}'), "Birth form submit contract missing");
 expect(form.includes("requestRealEngineReportData(normalizedForm, engineCity)"), "Engine bridge changed");

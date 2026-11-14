@@ -431,7 +431,7 @@ export function ChartForm({
   const openReportTimerRef = useRef<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingStep, setEditingStep] = useState<ChartJourneyStepId>("name");
-  const [showStickyAction, setShowStickyAction] = useState(true);
+  const [showStickyAction, setShowStickyAction] = useState(false);
   const [stickyPortalReady, setStickyPortalReady] = useState(false);
   const mainSubmitRef = useRef<HTMLButtonElement>(null);
   const [fieldErrors, setFieldErrors] = useState<ChartFieldErrors>({});
@@ -623,7 +623,7 @@ export function ChartForm({
       const keyboardOpen = Boolean(
         window.visualViewport && window.visualViewport.height < window.innerHeight * 0.72,
       );
-      setShowStickyAction(!keyboardOpen && bounds.top > window.innerHeight - 96);
+      setShowStickyAction(!keyboardOpen && bounds.bottom <= 0);
     };
     const frame = window.requestAnimationFrame(update);
     window.addEventListener("scroll", update, { passive: true });
