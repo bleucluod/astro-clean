@@ -1,0 +1,165 @@
+.page {
+  --ink: #f1f1f0;
+  --muted: #abb0b5;
+  --subtle: #858b90;
+  --line: rgba(220, 223, 226, .13);
+  width: 100%; min-height: 100vh; overflow: clip;
+  color: var(--ink); background: #08090a;
+  font-family: var(--font-vazirmatn), "Vazirmatn", Tahoma, sans-serif;
+  font-size: 15px; line-height: 1.95;
+}
+.page * { box-sizing: border-box; }
+.page a { text-decoration: none; }
+.page button { font: inherit; cursor: pointer; }
+.page p { color: #b8bdc1; margin: 0; line-height: 2; }
+.page h1, .page h2, .page h3 { color: #f3f3f1; margin: 0; font-weight: 730; letter-spacing: -.026em; }
+.container { max-width: 1160px; padding: 0 25px 55px; margin: auto; }
+.hero { display: grid; grid-template-columns: minmax(0,.86fr) minmax(0,1.14fr); align-items: center; gap: 24px; min-height: 500px; }
+.heroIntro { max-width: 440px; }
+.kicker { display: inline-block; font-size: 12px; color: #a3a9b0; letter-spacing: .01em; }
+.heroIntro h1 { font-size: clamp(32px,3.6vw,51px); line-height: 1.55; margin: 14px 0 19px; text-wrap: balance; }
+.heroIntro h1 em { font-style: normal; font-weight: 450; color: #c4c7cb; }
+.heroIntro p { font-size: 16px; color: #b0b5ba; }
+.engineMark { display: inline-block; font: 9px/1.5 Arial, sans-serif; letter-spacing: .07em; color: #6f777f; margin-top: 22px; }
+.heroScene { position: relative; max-width: 640px; width: 100%; margin-inline: auto; text-align: center;
+  background: radial-gradient(circle,rgba(168,175,183,.035) 1%,transparent 64%); }
+.sceneLabel { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: #878f96; padding: 0 10px; }
+.heroScene > p { font-size: 12px; color: #8e969c; margin-top: -7px; }
+.wheelWrap { position: relative; width: 100%; aspect-ratio: 1; max-width: 630px; margin: 0 auto; }
+.wheel { display: block; width: 100%; height: 100%; }
+.ringMajor { fill: none; stroke: #7c858e; stroke-width: 1.15; stroke-opacity: .6; }
+.ringMinor { fill: none; stroke: #667078; stroke-width: .8; stroke-opacity: .5; }
+.spoke { stroke: #58636c; stroke-opacity: .4; stroke-width: 1; }
+.aspectLine { stroke: #b7c0c8; stroke-width: 1.15; }
+.zodiacSymbol { fill: #abb3bb; font-size: 21px; font-family: "Segoe UI Symbol", Arial, sans-serif; }
+.core { fill: #15181b; stroke: #666e75; stroke-opacity: .45; }
+.coreText { fill: #c5ccd3; font: 11px Arial,sans-serif; letter-spacing: 1px; }
+.coreSub { fill: #7b828a; font: 10px Arial,sans-serif; }
+.planetPin { position: absolute; transform: translate(-50%,-50%); display: grid; place-items: center; width: 29px; height: 29px;
+  background: #11151a; border: 1px solid #747d86; border-radius: 50%; color: #f1f2f3; font-size: 19px; line-height: 1; 
+  box-shadow: 0 1px 8px #07080b; padding: 0; transition: background .16s,border .16s; }
+.planetPin:hover,.planetPin:focus-visible { background: #343d45; outline: 2px solid #c1c9d0; outline-offset: 2px; z-index: 2; }
+.heroFacts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: 0; padding: 16px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.heroFacts > div { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 3px 20px; }
+.heroFacts > div + div { padding-right: 20px; border-right: 1px solid var(--line); }
+.heroFacts span,.moonFact span { color: #9a9fa6; font-size: 12px; }
+.heroFacts strong,.moonFact strong { color: #f1f1f0; font-size: 16px; line-height: 1.7; font-weight: 700; }
+.moonFact small { color: #9fa8ad; font-size: 11px; }
+.timeModes { display: flex; justify-content: space-between; align-items: end; gap: 20px; border-bottom: 1px solid var(--line); padding-top: 28px; scroll-margin-top: 65px; }
+.timeModes > span { color: #adb2b7; padding-bottom: 14px; font-size: 14px; }
+.timeModes nav { display: flex; gap: 25px; }
+.mode,.modeCurrent { display: block; padding: 13px 3px 14px; font-size: 14px; color: #9b9fa5; border-bottom: 2px solid transparent; }
+.modeCurrent { color: #f4f5f5; border-color: #d6d9db; font-weight: 750; }
+.period { padding-top: 29px; }
+.period h2 { font-size: 27px; margin-top: 4px; margin-bottom: 6px; }
+.period > p { margin-bottom: 15px; }
+.dayRail { display: flex; gap: 0; width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain;
+  scrollbar-width: thin; padding-bottom: 11px; border-bottom: 1px solid var(--line); }
+.day,.dayActive { display: flex; flex-direction: column; gap: 1px; flex: 0 0 auto; min-width: 91px; text-align: center;
+  padding: 12px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #aeb6bc; border-radius: 0; }
+.dayActive { color: #f2f3f4; border-bottom-color: #d5d9dd; background: #161a1d; }
+.day small { font-size: 11px; color: #92999f; }
+.dayActive small { color: #c4c9ce; font-size: 11px; }
+.day strong,.dayActive strong { font-size: 14px; font-weight: 700; }
+.day span,.dayActive span { color: #a6abb1; font-size: 11px; }
+.periodReading { padding: 24px 0 0; }
+.periodReading h3 { font-size: 20px; margin-bottom: 5px; }
+.periodMeta { display: flex; gap: 14px; flex-wrap: wrap; color: #adb2b7; font-size: 12px; margin: 11px 0 14px; }
+.periodMeta span + span::before { content: "·"; margin-left: 14px; color: #81878d; }
+.periodEvents { border-top: 1px solid var(--line); padding-top: 13px; }
+.periodEvents > strong { color: #e2e5e6; font-weight: 700; font-size: 14px; }
+.periodEvents > div { display: flex; gap: 18px; padding: 9px 0; border-bottom: 1px solid #202326; color: #bbc0c4; font-size: 13px; }
+.periodEvents time { color: #929aa1; min-width: 75px; }
+.reading { max-width: 850px; padding: 31px 0 29px; border-bottom: 1px solid var(--line); }
+.reading h2 { font-size: clamp(22px,2.5vw,30px); line-height: 1.7; margin: 5px 0 11px; }
+.reading > p { font-size: 15.5px; line-height: 2.05; }
+.lead { font-size: 18px !important; color: #e0e2e3 !important; }
+.reason { padding: 15px 0 0; margin-top: 18px; border-top: 1px solid var(--line); }
+.reason > span { color: #9ca6ac; font-size: 12px; }
+.reason p { font-size: 15px; color: #d2d5d7; }
+.more { margin-top: 18px; color: #b6bac0; font-size: 15px; }
+.more summary { cursor: pointer; color: #cbd1d7; font-weight: 650; padding: 11px 0; border-top: 1px solid #262a2d; list-style-position: inside; }
+.more[open] summary { margin-bottom: 10px; }
+.more p { font-size: 15px; line-height: 2.1; margin: 0 0 15px; color: #bfc5c9; }
+.more a { color: #d3e0e9; text-decoration: underline; text-underline-offset: 3px; }
+.more h3 { margin: 15px 0 8px; font-size: 18px; }
+.signRail { display: flex; width: 100%; gap: 4px; overflow-x: auto; scrollbar-width: thin; padding: 11px 0 16px; }
+.sign,.signActive { flex: 0 0 auto; min-width: 62px; display: flex; gap: 3px; align-items: center; flex-direction: column; padding: 10px 11px;
+  background: transparent; border: 0; border-bottom: 1px solid transparent; color: #929ba1; font-size: 12px; }
+.signActive { color: #f0f3f6; border-bottom-color: #cbd1d6; }
+.sign span,.signActive span { font: 23px/1.3 "Segoe UI Symbol",Arial,sans-serif; }
+.signReading { border-top: 1px solid #292c30; padding: 16px 0 0; }
+.signReading > span { font-size: 14px; color: #e3e5e7; font-weight: 700; }
+.signReading > p { font-size: 15px; }
+.moonBig { display: flex; gap: 22px; align-items: center; padding: 8px 0; }
+.moonBig > span { font-size: 59px; line-height: 1; color: #c0c6cd; }
+.moonBig .moonFact { display: flex; flex-direction: column; }
+.planetList { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 26px; margin: 11px 0; }
+.planetList button { display: grid; grid-template-columns: 30px 1fr auto 24px; align-items: center; gap: 10px; padding: 12px 0;
+  color: #e2e4e7; background: transparent; border: 0; border-bottom: 1px solid #292d31; text-align: start; }
+.planetList button > span:first-child { font: 22px "Segoe UI Symbol", Arial,sans-serif; color: #b5bec7; }
+.planetList button strong { font-size: 14px; }
+.planetList button small { font-size: 12px; color: #a7adb3; }
+.planetList button > span:last-child { color: #a3a9af; }
+.eventList { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 28px; }
+.eventList > div { padding: 12px 0; border-bottom: 1px solid #24282c; }
+.eventList strong { display: block; font-size: 14px; color: #e2e5e8; }
+.eventList span { display: block; font-size: 12px; color: #a2a9b0; }
+.eventList p { font-size: 13.5px; margin-top: 5px; }
+.timeline > div { display: flex; gap: 22px; padding: 11px 0; border-bottom: 1px solid #272b2e; color: #c1c6ca; font-size: 14px; }
+.timeline time { min-width: 85px; color: #9ca4ab; }
+.cta { max-width: 850px; margin: 45px 0; background: #16191d; border: 1px solid #363b40; border-radius: 16px; padding: 25px; }
+.cta > span { color: #b0b7be; font-size: 12px; }
+.cta h2 { font-size: 25px; margin: 6px 0; }
+.cta a { display: inline-block; margin-top: 15px; padding: 9px 20px; border: 1px solid #82949f; border-radius: 10px; color: #e9f0f5; background: #242c33; }
+.footer { text-align: center; color: #878d94; padding: 28px 20px; font-size: 11px; border-top: 1px solid var(--line); }
+.sheetBackdrop { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: end; justify-content: center; background: rgba(0,0,0,.75); }
+.sheet { position: relative; max-width: 510px; width: 100%; max-height: min(80vh,650px); overflow: auto; padding: 22px 27px 37px; 
+  background: #181b1f; border: 1px solid #515860; border-radius: 23px 23px 0 0; color: #f0f1f2; }
+.sheetClose { position: absolute; left: 17px; top: 11px; font: 28px Arial,sans-serif !important; color: #e0e4e7; border: 0; background: none; }
+.sheetGlyph { font-size: 42px; color: #dae1e7; text-align: center; }
+.sheet h2 { font-size: 26px; text-align: center; }
+.sheet > p { text-align: center; font-size: 15px; }
+.sheet dl { margin: 18px 0; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #353b40; }
+.sheet dl div { display: flex; flex-direction: column; gap: 4px; padding: 14px; }
+.sheet dt { font-size: 12px; color: #adb4ba; }
+.sheet dd { margin: 0; color: #edf0f2; }
+.page button:focus-visible,.page a:focus-visible,.page summary:focus-visible { outline: 2px solid #c7d4de; outline-offset: 3px; }
+@media(max-width:840px) {
+  .hero { grid-template-columns: 1fr; gap: 2px; min-height: 0; }
+  .heroIntro { max-width: 720px; padding: 31px 0 5px; }
+  .heroIntro h1 { font-size: clamp(31px,5vw,43px); }
+  .heroScene { max-width: 600px; }
+}
+@media(max-width:580px) {
+  .container { padding: 0 19px 40px; }
+  .heroIntro { padding-top: 23px; }
+  .heroIntro h1 { font-size: clamp(27px,8vw,36px); line-height: 1.54; margin: 8px 0 11px; }
+  .heroIntro p { font-size: 15px; line-height: 1.93; }
+  .engineMark { margin-top: 12px; }
+  .sceneLabel { font-size: 10px; }
+  .wheelWrap { width: calc(100% + 14px); margin-inline: -7px; }
+  .planetPin { width: 24px; height: 24px; font-size: 17px; }
+  .heroScene > p { font-size: 11px; }
+  .heroFacts { grid-template-columns: 1fr 1fr; padding: 11px 0; row-gap: 14px; }
+  .heroFacts > div { padding: 0 !important; }
+  .heroFacts > div + div { padding-right: 15px !important; }
+  .heroFacts > div:nth-child(3) { grid-column: 1/-1; border: 0; border-top: 1px solid var(--line); padding: 12px 0 0 !important; }
+  .heroFacts strong,.moonFact strong { font-size: 14px; }
+  .timeModes { padding-top: 20px; }
+  .timeModes nav { gap: 12px; }
+  .mode,.modeCurrent { padding: 12px 3px; font-size: 13px; }
+  .timeModes > span { font-size: 12px; }
+  .period h2 { font-size: 23px; }
+  .day,.dayActive { min-width: 84px; padding: 11px 8px; }
+  .reading { padding: 23px 0 20px; }
+  .reading h2 { font-size: 21px; }
+  .lead { font-size: 16px !important; }
+  .reading > p,.more p { font-size: 15px; }
+  .planetList { grid-template-columns: 1fr; gap: 0; }
+  .eventList { grid-template-columns: 1fr; gap: 0; }
+  .cta { padding: 19px; }
+  .cta h2 { font-size: 21px; }
+}
+@media(prefers-reduced-motion: reduce) { .planetPin { transition: none; } }
