@@ -1108,7 +1108,7 @@ export function ChartForm({
                   onClick={() => openJourneyStep("name")}>
                   <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
                   <span className={journeyStyles.summaryTitle}>نام</span>
-                  <strong className={journeyStyles.summaryValue}>{form.name.trim()}</strong>
+                  <strong className={journeyStyles.summaryValue}>{(form.name ?? "").trim()}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
                 <div className={journeyStyles.stepBody} id="chart-journey-name" onFocusCapture={() => setEditingStep("name")}>
@@ -1340,7 +1340,6 @@ export function ChartForm({
                     <ChartSelect
                       key={`hour-${birthTimeMode}`}
                       ariaLabel="ساعت تولد از صفر تا بیست‌وسه"
-                      disabled={birthTimeMode === "unknown"}
                       placeholder="انتخاب"
                       value={birthTimeParts.hour}
                       onChange={(value) =>
@@ -1360,7 +1359,6 @@ export function ChartForm({
                     <ChartSelect
                       key={`minute-${birthTimeMode}`}
                       ariaLabel="دقیقه تولد"
-                      disabled={birthTimeMode === "unknown"}
                       placeholder="انتخاب"
                       value={birthTimeParts.minute}
                       onChange={(value) =>
