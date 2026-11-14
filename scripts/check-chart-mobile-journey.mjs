@@ -144,7 +144,7 @@ expect(
   (pickerCss.match(/\.wheelViewport:not\(\.wheelTouched\)/g) ?? []).length === 5 &&
   pickerCss.includes("height: 120px;") &&
   pickerCss.includes("height: 40px;") &&
-  pickerCss.includes("background: #191b1e;") &&
+  pickerCss.includes("background: var(--chart-bg, #050609);") &&
   pickerCss.includes("@media (prefers-reduced-motion: reduce)"),
   "Wheel hint must animate subtly but stop after touch/keyboard and honor reduced motion");
 expect(
@@ -177,6 +177,23 @@ expect(
   !pickerCss.includes(".inlinePanel"),
   "Wheel layout must remain in document flow without overlays");
 
+expect(
+  form.includes('year: "1377"') &&
+  form.includes('month: "12"') &&
+  form.includes('day: "12"') &&
+  form.includes('hour: "11"') &&
+  form.includes('minute: "12"') &&
+  form.includes('comparisonMode ? initialJalaliBirthDateParts : chartDefaultJalaliBirthDateParts') &&
+  form.includes('comparisonMode ? initialBirthTimeParts : chartDefaultBirthTimeParts') &&
+  form.includes('comparisonMode ? initialForm : { ...initialForm, birthTime: "11:12" }'),
+  "/chart birth wheels must start at 1377/12/12 and 11:12 without prefilling /compare");
+expect(
+  pickerCss.includes("background: var(--chart-bg, #050609);") &&
+  !pickerCss.includes("#111315") &&
+  !pickerCss.includes("#191b1e") &&
+  pickerCss.includes("rgba(5,6,9,.75)") &&
+  routeCss.includes("--chart-bg: #050609;"),
+  "Wheel backgrounds must use the existing Halleus chart background token");
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handleScroll}") &&
   picker.includes("TIME_WHEEL_HOURS") && picker.includes("TIME_WHEEL_MINUTES") &&
