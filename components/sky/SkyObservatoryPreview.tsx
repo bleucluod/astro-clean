@@ -233,13 +233,23 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
   const reading = useMemo(() => buildSkyPublicReportInterpretation(active), [active]);
   const upcomingToday = active.timeline.find(item => "occurredAt" in item && item.occurredAt &&
     new Date(item.occurredAt).getTime() >= new Date(referenceTime).getTime());
+  const featuredEvent = view === "today" ? upcomingToday : active.timeline[0];
+  const modeTitle = view === "today" ? "آسترولوژی امروز" :
+    view === "week" ? "آسترولوژی این هفته" : "آسترولوژی این ماه";
+  const modeSubtitle = view === "today" ? "ماه، سیارات و ترنزیت‌های روز" :
+    view === "week" ? "هفت روز، یک مسیر آسمانی" : "چرخهٔ ماه و حرکت سیارات";
+  const modeIntro = view === "today" ?
+    "حرکت ماه، موقعیت سیارات و مهم‌ترین زاویه‌های روز را روی نقشهٔ واقعی آسمان ببین." :
+    view === "week" ?
+    "روی هفت روز هفته حرکت کن؛ نقشهٔ آسمان و خوانش هر روز با انتخاب تو تغییر می‌کند." :
+    "فازهای ماه، جابه‌جایی سیارات و رویدادهای مهم این ماه شمسی را دنبال کن.";
   const allEvents = period?.snapshots.flatMap(s => s.timeline) ?? active.timeline;
   const url = (next: View) => "/sky/preview?view=" + next +
     "&city=" + encodeURIComponent(cityId) + "#time-modes";
   const signGuides = SIGN_IDS.map(id=>({id,...buildSignGuide(id,active)}));
   const selectedGuide = signGuides.find(item=>item.id===sign);
   const dailyGuide = buildHumanDailyGuide(active,timezone,new Date(referenceTime).getTime());
-  return <div className={styles.page} dir="rtl" id="sky-public-experience">
+  return <div className={styles.page} dir="rtl" id="sky-public-experience" data-sky-mode={view}>
     <EditorialStickyCtaSequence campaign={SKY_STICKY_CTA_CAMPAIGN} endId="sky-personal-chart-cta" rootId="sky-public-experience" />
     <div className={styles.container}>
       <div className={styles.stage}>
@@ -247,8 +257,8 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <div className={styles.heroIntro}>
           <span className={styles.kicker}><i className={styles.liveDot} aria-hidden="true"/>
             {dateLabel(active.input.localDate, timezone)} · {city}</span>
-          <h1>آسترولوژی امروز؛ <em>ماه، سیارات و ترنزیت‌های روز</em></h1>
-          <p>حرکت ماه، موقعیت سیارات و مهم‌ترین زاویه‌های روز را روی نقشهٔ واقعی آسمان ببین.</p>
+          <h1>{modeTitle}<em>{modeSubtitle}</em></h1>
+          <p>{modeIntro}</p>
           <details className={styles.heroEditorial}>
             <summary>آشنایی با آسترولوژی امروز</summary>
             <p>بعضی روزها یک موضوع بیشتر از بقیه ذهنت را درگیر می‌کند؛ روز دیگر همان موضوع آسان‌تر پیش می‌رود. برای خواندن این تفاوت‌ها در زبان آسترولوژی، اول باید بدانی آسمان واقعاً چه وضعیتی دارد. آسترولوژی امروز در هالیوس از جایگاه محاسبه‌شدهٔ ماه و سیاره‌ها شروع می‌شود: هر جسم در کدام نشان است، چه زاویه‌ای با بقیه دارد و چه تغییراتی تا پایان روز در پیش است.</p>
@@ -262,7 +272,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
           </div>
           <Wheel snapshot={active} onChoose={setPlanet}/>
           <div className={styles.sceneFoot}>
-            <div><span>چارت آسترولوژی امروز</span><strong>نقشهٔ محاسبه‌شدهٔ آسمان</strong></div>
+            <div><span>{view === "today" ? "چارت آسترولوژی امروز" : "چارت آسمان روز انتخاب‌شده"}</span><strong>نقشهٔ محاسبه‌شدهٔ آسمان</strong></div>
             <a href="#sky-city-tools">تغییر شهر رصد</a>
           </div>
         </div>
@@ -272,8 +282,8 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <div><span>مهم‌ترین زاویه</span><strong>{active.aspects[0] ?
           SKY_ASPECT_LABELS[active.aspects[0].kind]+" "+SKY_BODY_LABELS[active.aspects[0].leftBody]+
           " و "+SKY_BODY_LABELS[active.aspects[0].rightBody] : "زاویه‌ای ثبت نشده"}</strong></div>
-        <div><span>رویداد پیش رو</span><strong>{upcomingToday ?
-          eventLabel(upcomingToday) : "رویداد بعدی ثبت نشده"}</strong></div>
+        <div><span>{view === "today" ? "رویداد پیش رو" : "رویداد این روز"}</span><strong>{featuredEvent ?
+          eventLabel(featuredEvent) : "رویدادی ثبت نشده"}</strong></div>
       </div>
       <div className={styles.timeModes} id="time-modes">
         <span>کاوش در زمان</span>
@@ -286,13 +296,6 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
             </Link>)}
         </nav>
       </div>
-      </div>
-      <div className={styles.signalRail} aria-label="خلاصهٔ رصد">
-        <div><span>☉</span><small>خورشید در</small><strong>{active.planetaryStates.find(p=>p.body==="sun") ? SKY_SIGN_LABELS[active.planetaryStates.find(p=>p.body==="sun")!.sign] : "—"}</strong></div>
-        <div><span>☽</span><small>ماه در</small><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "—"}</strong></div>
-        <div><span>◐</span><small>فاز ماه</small><strong>{moonLabel(active)}</strong></div>
-        <div><span>◇</span><small>زاویه‌ها</small><strong>{active.aspects.length.toLocaleString("fa-IR")}</strong></div>
-        <div><span>↺</span><small>برگشتی‌ها</small><strong>{active.planetaryStates.filter(p=>p.motion==="retrograde").length.toLocaleString("fa-IR")}</strong></div>
       </div>
       {view!=="today"&&period&&<section className={styles.period}>
         <div className={styles.periodLede}>
@@ -370,15 +373,22 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
               </div>):<p>رویداد زمان‌دار دیگری در این بازه ثبت نشده است.</p>}
         </div>
       </section>}
+      <div className={styles.signalRail} aria-label="خلاصهٔ رصد">
+        <div><span>☉</span><small>خورشید در</small><strong>{active.planetaryStates.find(p=>p.body==="sun") ? SKY_SIGN_LABELS[active.planetaryStates.find(p=>p.body==="sun")!.sign] : "—"}</strong></div>
+        <div><span>☽</span><small>ماه در</small><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "—"}</strong></div>
+        <div><span>◐</span><small>فاز ماه</small><strong>{moonLabel(active)}</strong></div>
+        <div><span>◇</span><small>زاویه‌ها</small><strong>{active.aspects.length.toLocaleString("fa-IR")}</strong></div>
+        <div><span>↺</span><small>برگشتی‌ها</small><strong>{active.planetaryStates.filter(p=>p.motion==="retrograde").length.toLocaleString("fa-IR")}</strong></div>
+      </div>
       <section className={styles.overview} id="sky-overview">
       <section className={styles.reading} id="sky-reading">
-        <span className={styles.kicker}>خواندن سریع امروز</span>
-        <h2>امروز از کدام بخش آسمان شروع کنی؟</h2>
+        <span className={styles.kicker}>{view === "today" ? "خواندن سریع امروز" : "خوانش روز انتخاب‌شده"}</span>
+        <h2>{view === "today" ? "امروز از کدام بخش آسمان شروع کنی؟" : "آسمان این روز چه چیزی می‌گوید؟"}</h2>
         <p className={styles.lead}>{dailyGuide.tone}</p>
         <p className={styles.subLead}>{dailyGuide.personalLine}</p>
         <div className={styles.dailySignals}>
-          <div><span>تمرکز روز</span><strong>{dailyGuide.focus}</strong></div>
-          <div><span>پیشنهاد امروز</span><strong>{dailyGuide.action}</strong></div>
+          <div><span>تمرکز این روز</span><strong>{dailyGuide.focus}</strong></div>
+          <div><span>پیشنهاد این روز</span><strong>{dailyGuide.action}</strong></div>
         </div>
         <details className={styles.more}><summary>جمع‌بندی محاسبات روز</summary><p>{reading.summary}</p>
           <p>{dailyGuide.moonReason}</p><p>{dailyGuide.aspectReason}</p>
@@ -395,7 +405,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       </section>
       <aside className={styles.planetPreview} aria-label="جایگاه‌های اصلی سیارات">
         <span className={styles.kicker}>PLANET POSITIONS</span>
-        <h2>جایگاه سیارات در آسمان امروز</h2>
+        <h2>جایگاه سیارات در روز انتخاب‌شده</h2>
         <div>{active.planetaryStates.slice(0,4).map(state=>
           <button type="button" key={state.body} onClick={()=>setPlanet(state.body)}>
             <span>{SKY_BODY_SYMBOLS[state.body]}</span><strong>{SKY_BODY_LABELS[state.body]}</strong>

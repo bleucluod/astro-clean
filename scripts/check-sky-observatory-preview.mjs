@@ -53,6 +53,8 @@ requireText(client, [
   "styles.exploreTiles", "styles.heroEditorial",
   "buildHumanDailyGuide", "buildSignGuide",
   "SkyCityPicker", "EditorialStickyCtaSequence",
+  "data-sky-mode={view}", "modeTitle", "modeSubtitle",
+  "featuredEvent", "styles.weekLine",
 ]);
 requireText(css, [
   "var(--font-vazirmatn)", ".heroScene", ".timeModes",
@@ -60,6 +62,7 @@ requireText(css, [
   ".sceneFoot", ".weekLine", ".moonPhases",
   ".phaseOrb", ".coreRing", ".tick", "var(--font-vazirmatn)",
   ".stage", ".signalRail", ".overview", ".planetPreview", ".exploreTiles",
+  ".weekLine::before", ".page[data-sky-mode=\"week\"]",
 ]);
 const p = sources.get(period) ?? "";
 if (/Math\.random|fakePlanet|mockSnapshot|sampleData/.test(p))
@@ -102,6 +105,8 @@ if (!/snapshot\.planetaryStates/.test(wheel) ||
   errors.push("Wheel must render engine planetary states");
 if (!/snapshot\.aspects\.slice\s*\(\s*0\s*,\s*[1-9]\d*\s*\)/.test(wheel))
   errors.push("Wheel must render computed planetary aspects");
+if (c.indexOf('className={styles.period}') > c.indexOf('className={styles.signalRail}'))
+  errors.push("Period timeline should precede secondary signals");
 if (c.includes("styles.dayRail") || c.includes("styles.dayActive"))
   errors.push("Reject legacy dashboard day tiles; use V9 week timeline");
 if (!c.includes("data-phase={phase}"))
