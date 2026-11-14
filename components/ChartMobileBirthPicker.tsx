@@ -44,7 +44,7 @@ function dayLimit(mode: DateMode, year: string, month: string) {
     : 31;
 }
 
-const DATE_WHEEL_ITEM_HEIGHT = 48;
+const DATE_WHEEL_ITEM_HEIGHT = 40;
 type DateWheelOption = { value: string; label: string };
 
 function DateWheel({
@@ -117,6 +117,8 @@ function DateWheel({
           ref={scrollRef}
           className={styles.wheelViewport + (wheelTouched ? " " + styles.wheelTouched : "")}
           onPointerDown={() => setWheelTouched(true)}
+          onTouchStart={() => setWheelTouched(true)}
+          onWheel={() => setWheelTouched(true)}
           role="spinbutton"
           tabIndex={0}
           aria-label={label}

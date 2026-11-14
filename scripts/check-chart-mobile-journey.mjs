@@ -121,7 +121,11 @@ for (const marker of [
   ".wheelRow",
   "scroll-snap-type: y mandatory;",
   "touch-action: pan-y;",
-  "chartWheelScrollHint",
+  "chartDayWheelHint",
+  "chartMonthWheelHint",
+  "chartYearWheelHint",
+  "chartHourWheelHint",
+  "chartMinuteWheelHint",
   "@media (prefers-reduced-motion: reduce)",
 ]) {
   expect(pickerCss.includes(marker), "Always visible wheel styling missing: " + marker);
@@ -133,10 +137,14 @@ expect(
   "Date and time number wheels must have no heading row");
 expect(
   picker.includes('onPointerDown={() => setWheelTouched(true)}') &&
+  picker.includes('onTouchStart={() => setWheelTouched(true)}') &&
+  picker.includes('onWheel={() => setWheelTouched(true)}') &&
   picker.includes('setWheelTouched(true);') &&
   picker.includes('wheelTouched ? " " + styles.wheelTouched') &&
-  pickerCss.includes("animation: chartWheelScrollHint 4.6s ease-in-out infinite;") &&
-  pickerCss.includes(".wheelTouched,") &&
+  (pickerCss.match(/\.wheelViewport:not\(\.wheelTouched\)/g) ?? []).length === 5 &&
+  pickerCss.includes("height: 120px;") &&
+  pickerCss.includes("height: 40px;") &&
+  pickerCss.includes("background: #191b1e;") &&
   pickerCss.includes("@media (prefers-reduced-motion: reduce)"),
   "Wheel hint must animate subtly but stop after touch/keyboard and honor reduced motion");
 expect(

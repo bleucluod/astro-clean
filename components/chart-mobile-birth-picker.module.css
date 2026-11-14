@@ -3,7 +3,7 @@
 .alwaysPicker { display: none; }
 
 @media (max-width: 760px) {
-  .alwaysPicker { display: block; min-width: 0; width: 100%; margin: 7px 0 4px; }
+  .alwaysPicker { display: block; min-width: 0; width: 100%; margin: 4px 0 2px; }
 }
 .wheelPicker {
   display: grid;
@@ -12,6 +12,9 @@
   gap: 7px;
   width: 100%;
   min-width: 0;
+  padding: 4px;
+  border-radius: 14px;
+  background: #111315;
 }
 .dateWheelPicker {
   grid-template-columns: minmax(0, .8fr) minmax(0, 1.32fr) minmax(0, 1fr);
@@ -20,21 +23,28 @@
 }
 .timeWheelPicker { direction: rtl; }
 .wheelColumn { min-width: 0; }
-.wheelFrame { position: relative; height: 144px; overflow: hidden; }
+.wheelFrame {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: #191b1e;
+  box-shadow: inset 0 0 0 1px rgba(190, 195, 200, .1);
+}
 .wheelFrame::after {
   content: "";
   position: absolute;
   z-index: 2;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgba(8,12,18,.72), transparent 36%, transparent 64%, rgba(8,12,18,.72));
+  background: linear-gradient(to bottom, rgba(18,19,21,.75), transparent 35%, transparent 65%, rgba(18,19,21,.75));
 }
 .wheelViewport {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: 144px;
-  padding: 48px 0;
+  height: 120px;
+  padding: 40px 0;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
@@ -43,61 +53,95 @@
   touch-action: pan-y;
   outline: none;
   -webkit-overflow-scrolling: touch;
-  /* A small vertical invitation to scroll; purely visual, never changes the picked value. */
-  animation: chartWheelScrollHint 4.6s ease-in-out infinite;
-  will-change: transform;
 }
-.wheelTouched,
-.wheelViewport:hover,
-.wheelViewport:focus-visible,
-.wheelViewport:active {
-  animation: none;
+/* The five wheel columns invite a swipe at different rhythms, without changing scrollTop. */
+.dateWheelPicker .wheelColumn:nth-child(1) .wheelViewport:not(.wheelTouched) {
+  animation: chartDayWheelHint 5.1s ease-in-out -1.2s infinite;
 }
+.dateWheelPicker .wheelColumn:nth-child(2) .wheelViewport:not(.wheelTouched) {
+  animation: chartMonthWheelHint 6.8s ease-in-out -.7s infinite;
+}
+.dateWheelPicker .wheelColumn:nth-child(3) .wheelViewport:not(.wheelTouched) {
+  animation: chartYearWheelHint 7.4s ease-in-out -3.4s infinite;
+}
+.timeWheelPicker .wheelColumn:nth-child(1) .wheelViewport:not(.wheelTouched) {
+  animation: chartHourWheelHint 5.8s ease-in-out -2.3s infinite;
+}
+.timeWheelPicker .wheelColumn:nth-child(2) .wheelViewport:not(.wheelTouched) {
+  animation: chartMinuteWheelHint 6.2s ease-in-out -4s infinite;
+}
+.wheelViewport:focus-visible, .wheelViewport:active { animation: none !important; }
 .wheelViewport::-webkit-scrollbar { display: none; }
 .wheelViewport:focus-visible { outline: 2px solid #bbdff8; outline-offset: -3px; border-radius: 12px; }
 .wheelRow {
   display: grid;
   place-items: center;
   width: 100%;
-  height: 48px;
+  height: 40px;
   padding: 0 3px;
   border: 0;
   background: transparent;
-  color: #b5c7d8;
+  color: #969da4;
   font: inherit;
-  font-size: clamp(.8rem, 3.5vw, 1.12rem);
-  font-weight: 550;
+  font-size: clamp(.72rem, 2.9vw, .9rem);
+  font-weight: 520;
   font-variant-numeric: tabular-nums;
   opacity: .72;
   line-height: 1.25;
   scroll-snap-align: center;
   cursor: pointer;
 }
-.dateWheelPicker .wheelColumn:nth-child(2) .wheelRow { font-size: clamp(.76rem, 3.3vw, 1rem); }
-.wheelActive { color: #f6fbff; font-weight: 800; opacity: 1; }
+.dateWheelPicker .wheelColumn:nth-child(2) .wheelRow { font-size: clamp(.72rem, 2.8vw, .85rem); }
+.wheelActive, .dateWheelPicker .wheelColumn:nth-child(2) .wheelActive {
+  color: #f4f5f6;
+  font-size: clamp(.9rem, 3.35vw, 1.03rem);
+  font-weight: 800;
+  opacity: 1;
+}
 .wheelSelection {
   position: absolute;
   z-index: 0;
   inset-inline: 0;
-  top: calc(50% - 24px);
-  height: 48px;
-  border: 1px solid rgba(177,214,241,.38);
-  border-radius: 12px;
-  background: rgba(157,198,225,.13);
+  top: calc(50% - 20px);
+  height: 40px;
+  border: 1px solid rgba(184,190,195,.25);
+  border-radius: 10px;
+  background: rgba(136,142,147,.15);
   pointer-events: none;
 }
 @media (max-width: 360px) {
   .dateWheelPicker { gap: 3px; }
-  .wheelRow { font-size: .85rem; }
-  .dateWheelPicker .wheelColumn:nth-child(2) .wheelRow { font-size: .79rem; }
+  .wheelRow { font-size: .74rem; }
+  .dateWheelPicker .wheelColumn:nth-child(2) .wheelRow { font-size: .72rem; }
+  .wheelActive, .dateWheelPicker .wheelColumn:nth-child(2) .wheelActive { font-size: .92rem; }
 }
 
-/* HALLEUS_CHART_SCROLL_WHEEL_AFFORDANCE_20261114 */
-@keyframes chartWheelScrollHint {
-  0%, 14%, 64%, 100% { transform: translateY(0); }
-  27% { transform: translateY(-6px); }
-  41% { transform: translateY(4px); }
+/* HALLEUS_CHART_COMPACT_ASYNC_WHEEL_HINTS_20261114 */
+@keyframes chartDayWheelHint {
+  0%, 14%, 67%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-4px); }
+  42% { transform: translateY(2px); }
+}
+@keyframes chartMonthWheelHint {
+  0%, 21%, 74%, 100% { transform: translateY(0); }
+  35% { transform: translateY(4px); }
+  54% { transform: translateY(-2px); }
+}
+@keyframes chartYearWheelHint {
+  0%, 17%, 76%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+  48% { transform: translateY(1px); }
+}
+@keyframes chartHourWheelHint {
+  0%, 25%, 81%, 100% { transform: translateY(0); }
+  39% { transform: translateY(3px); }
+  55% { transform: translateY(-3px); }
+}
+@keyframes chartMinuteWheelHint {
+  0%, 10%, 63%, 100% { transform: translateY(0); }
+  23% { transform: translateY(-2px); }
+  40% { transform: translateY(4px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wheelViewport { animation: none; will-change: auto; }
+  .wheelViewport { animation: none !important; }
 }
