@@ -144,8 +144,8 @@ expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handle
   !picker.includes("chooseMinute("), "iPhone-like time wheels must support touch scrolling and minute precision");
 expect(form.includes("chart-residence-location") &&
   form.includes("journeyStyles.residenceOptional") &&
-  form.indexOf("chart-residence-location") > form.indexOf('id="chart-journey-city"') &&
-  form.indexOf("chart-residence-location") < form.indexOf('className="chart-optional-details"') &&
+  form.indexOf('chart-residence-location " + journeyStyles.residenceField') > form.indexOf('id="chart-journey-city"') &&
+  form.indexOf('chart-residence-location " + journeyStyles.residenceField') < form.indexOf('className="chart-optional-details"') &&
   form.includes("if (includeTransitReading)"), "Optional current-residence city must be visible after birth city and transit behavior preserved");
 expect(style.includes(".residenceField") && style.includes(".residenceOptional"), "Residence layout styles missing");
 expect(
