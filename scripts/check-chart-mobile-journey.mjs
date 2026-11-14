@@ -113,8 +113,10 @@ for (const marker of [
   "min-height: 44px;",
   ".monthGrid",
   ".dayGrid",
-  ".hourGrid",
-  ".minuteGrid",
+  ".wheelPicker",
+  ".wheelViewport",
+  ".wheelSelection",
+  "scroll-snap-type: y mandatory;",
   ".portal",
   ".sheet",
   "@media (prefers-reduced-motion: reduce)",
@@ -123,6 +125,15 @@ for (const marker of [
 }
 
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
+expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handleScroll}") &&
+  picker.includes("TIME_WHEEL_HOURS") && picker.includes("TIME_WHEEL_MINUTES") &&
+  !picker.includes("chooseMinute("), "iPhone-like time wheels must support touch scrolling and minute precision");
+expect(form.includes("chart-residence-location") &&
+  form.includes("journeyStyles.residenceOptional") &&
+  form.indexOf("chart-residence-location") > form.indexOf('id="chart-journey-city"') &&
+  form.indexOf("chart-residence-location") < form.indexOf('className="chart-optional-details"') &&
+  form.includes("if (includeTransitReading)"), "Optional current-residence city must be visible after birth city and transit behavior preserved");
+expect(style.includes(".residenceField") && style.includes(".residenceOptional"), "Residence layout styles missing");
 expect(
   style.includes(".journeyRoot.journeyRoot :global(.chart-form-progress)") &&
   /\.journeyRoot\.journeyRoot\s+:global\(\.chart-form-progress\)\s*\{[^}]*display:\s*none\s*!important;/.test(style),

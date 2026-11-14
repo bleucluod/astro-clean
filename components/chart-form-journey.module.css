@@ -262,3 +262,26 @@
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Current residence remains visible directly after the birth city step. */
+.residenceField { margin: 8px 0 2px; }
+.residenceOptional {
+  display: inline-flex;
+  margin-inline-start: 8px;
+  padding: 1px 7px;
+  border: 1px solid rgba(182, 204, 223, .28);
+  border-radius: 999px;
+  color: #c6d7e5;
+  font-size: .68rem;
+  font-weight: 580;
+  vertical-align: middle;
+}
+@media (max-width: 760px) {
+  .journeyRoot .residenceField {
+    margin: 0;
+    padding: 8px 0 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(195, 213, 227, .1) !important;
+    background: transparent !important;
+  }
+}

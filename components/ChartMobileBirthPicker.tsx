@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type UIEvent as ReactUIEvent } from "react";
 import { createPortal } from "react-dom";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import styles from "./chart-mobile-birth-picker.module.css";
@@ -227,6 +227,99 @@ export function MobileBirthDatePicker({
   );
 }
 
+
+const TIME_WHEEL_ITEM_HEIGHT = 48;
+const TIME_WHEEL_HOURS = Array.from({ length: 24 }, (_, index) => twoDigits(index));
+const TIME_WHEEL_MINUTES = Array.from({ length: 60 }, (_, index) => twoDigits(index));
+
+function TimeWheel({
+  label, value, options, onChange,
+}: {
+  label: string;
+  value: string;
+  options: readonly string[];
+  onChange: (next: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const initialValue = useRef(value);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop =
+          Math.max(0, options.indexOf(initialValue.current)) * TIME_WHEEL_ITEM_HEIGHT;
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [options]);
+
+  function choose(next: string) {
+    onChange(next);
+    const index = options.indexOf(next);
+    if (index < 0) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    scrollRef.current?.scrollTo({
+      top: index * TIME_WHEEL_ITEM_HEIGHT,
+      behavior: reduceMotion ? "instant" : "smooth",
+    });
+  }
+
+  function handleScroll(event: ReactUIEvent<HTMLDivElement>) {
+    const index = Math.max(0, Math.min(
+      options.length - 1,
+      Math.round(event.currentTarget.scrollTop / TIME_WHEEL_ITEM_HEIGHT),
+    ));
+    if (options[index] !== value) onChange(options[index]);
+  }
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const index = Math.max(0, options.indexOf(value));
+    let nextIndex = index;
+    if (event.key === "ArrowDown") nextIndex = Math.min(options.length - 1, index + 1);
+    else if (event.key === "ArrowUp") nextIndex = Math.max(0, index - 1);
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = options.length - 1;
+    else return;
+    event.preventDefault();
+    choose(options[nextIndex]);
+  }
+
+  return (
+    <div className={styles.wheelColumn}>
+      <span className={styles.wheelLabel}>{label}</span>
+      <div className={styles.wheelFrame}>
+        <div
+          ref={scrollRef}
+          className={styles.wheelViewport}
+          role="spinbutton"
+          tabIndex={0}
+          aria-label={label}
+          aria-valuemin={0}
+          aria-valuemax={options.length - 1}
+          aria-valuenow={Number(value)}
+          aria-valuetext={Number(value).toLocaleString("fa-IR", { minimumIntegerDigits: 2, useGrouping: false })}
+          onScroll={handleScroll}
+          onKeyDown={handleKeyDown}
+        >
+          {options.map((option) => (
+            <button
+              type="button"
+              key={option}
+              tabIndex={-1}
+              aria-hidden="true"
+              className={styles.wheelRow + (option === value ? " " + styles.wheelActive : "")}
+              onClick={() => choose(option)}
+            >
+              {Number(option).toLocaleString("fa-IR", { minimumIntegerDigits: 2, useGrouping: false })}
+            </button>
+          ))}
+        </div>
+        <span className={styles.wheelSelection} aria-hidden="true" />
+      </div>
+    </div>
+  );
+}
+
 export function MobileBirthTimePicker({
   value, onConfirm,
 }: {
@@ -234,41 +327,29 @@ export function MobileBirthTimePicker({
   onConfirm: (value: MobileTimeParts) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState<MobileTimeParts>({ hour: "12", minute: "00" });
   const [error, setError] = useState("");
   const close = useCallback(() => setOpen(false), []);
   const openPicker = () => {
-    setDraft(value.hour && value.minute ? value.hour + ":" + value.minute : "");
+    setDraft({
+      hour: value.hour || "12",
+      minute: value.minute || "00",
+    });
     setError("");
     setOpen(true);
   };
-  const parsed = parseTime(draft);
   const hasValue = Boolean(value.hour && value.minute);
-  function updateDraft(value: string) {
-    setDraft(englishDigits(value).replace(/[^\d:]/g, "").slice(0, 5));
-    setError("");
-  }
-  function chooseHour(hour: string) {
-    setDraft(hour + ":" + (parsed?.minute ?? "00"));
-    setError("");
-  }
-  function chooseMinute(minute: string) {
-    if (!parsed) {
-      setError("اول ساعت را انتخاب یا تایپ کن.");
-      return;
-    }
-    setDraft(parsed.hour + ":" + minute);
-    setError("");
-  }
+
   function save() {
-    const chosen = parseTime(draft);
+    const chosen = parseTime(draft.hour + ":" + draft.minute);
     if (!chosen) {
-      setError("ساعت معتبر بین ۰۰:۰۰ تا ۲۳:۵۹ وارد کن.");
+      setError("ساعت انتخاب‌شده معتبر نیست.");
       return;
     }
     onConfirm(chosen);
     close();
   }
+
   return (
     <>
       <button type="button" className={"chart-mobile-picker-trigger " + styles.trigger}
@@ -281,39 +362,13 @@ export function MobileBirthTimePicker({
       </button>
       {open ? (
         <PickerSheet title="انتخاب ساعت تولد" onClose={close}>
-          <p className={styles.intro}>مثلاً ۱۴۳۰ یا ۱۴:۳۰ تایپ کن، یا ساعت و دقیقه را انتخاب کن. دقیقه می‌تواند هر عددی از ۰۰ تا ۵۹ باشد.</p>
-          <label className={styles.timeLabel}>
-            <span>ساعت تولد (۲۴ ساعته)</span>
-            <input
-              className={styles.timeInput}
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              dir="ltr"
-              placeholder="14:30"
-              value={draft}
-              onChange={(event) => updateDraft(event.target.value)}
-              onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); save(); } }}
-            />
-          </label>
-          <div className={styles.sectionLabel}>ساعت را انتخاب کن</div>
-          <div className={styles.hourGrid}>
-            {Array.from({ length: 24 }, (_, index) => {
-              const hour = twoDigits(index);
-              return <button key={hour} type="button"
-                className={styles.dayChoice + (parsed?.hour === hour ? " " + styles.selected : "")}
-                aria-pressed={parsed?.hour === hour}
-                onClick={() => chooseHour(hour)}>{index.toLocaleString("fa-IR", { minimumIntegerDigits: 2 })}</button>;
-            })}
-          </div>
-          <div className={styles.sectionLabel}>دقیقه‌های پرکاربرد یا تایپ دقیقهٔ دقیق</div>
-          <div className={styles.minuteGrid}>
-            {["00", "15", "30", "45"].map((minute) => (
-              <button key={minute} type="button"
-                className={styles.choice + (parsed?.minute === minute ? " " + styles.selected : "")}
-                aria-pressed={parsed?.minute === minute}
-                onClick={() => chooseMinute(minute)}>{Number(minute).toLocaleString("fa-IR", { minimumIntegerDigits: 2 })}</button>
-            ))}
+          <p className={styles.intro}>مثل ساعت آیفون، چرخ ساعت و دقیقه را بالا یا پایین بکش؛ انتخاب روی عدد وسط می‌ایستد.</p>
+          <div className={styles.wheelPicker} dir="ltr" role="group" aria-label="انتخاب ساعت تولد به‌صورت ۲۴ ساعته">
+            <TimeWheel label="ساعت" options={TIME_WHEEL_HOURS} value={draft.hour}
+              onChange={(hour) => { setDraft((current) => ({ ...current, hour })); setError(""); }} />
+            <span className={styles.wheelColon} aria-hidden="true">:</span>
+            <TimeWheel label="دقیقه" options={TIME_WHEEL_MINUTES} value={draft.minute}
+              onChange={(minute) => { setDraft((current) => ({ ...current, minute })); setError(""); }} />
           </div>
           {error ? <p className={styles.error} role="alert">{error}</p> : null}
           <button type="button" className={styles.confirm} onClick={save}>تأیید ساعت تولد</button>

@@ -209,8 +209,8 @@ function makeFaLabel(codes: number[]) {
   return String.fromCharCode(...codes);
 }
 
-const CURRENT_RESIDENCE_LABEL = makeFaLabel([1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
-const CURRENT_RESIDENCE_PLACEHOLDER = makeFaLabel([1606,1575,1605,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1608,1575,1585,1583,32,1705,1606,1740,1583]);
+const CURRENT_RESIDENCE_LABEL = "شهر سکونت فعلی";
+const CURRENT_RESIDENCE_PLACEHOLDER = "نام شهر سکونت فعلی را وارد کنید";
 const CURRENT_RESIDENCE_SUGGESTIONS_LABEL = makeFaLabel([1662,1740,1588,1606,1607,1575,1583,1607,1575,1740,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740]);
 const CURRENT_RESIDENCE_NOT_FOUND_MESSAGE = makeFaLabel([1601,1593,1604,1575,1611,32,1575,1740,1606,32,1588,1607,1585,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1583,1585,32,1601,1607,1585,1587,1578,32,1575,1740,1585,1575,1606,32,1662,1740,1583,1575,32,1606,1588,1583,46]);
 const CURRENT_RESIDENCE_REQUIRED_MESSAGE = makeFaLabel([1576,1585,1575,1740,32,1570,1587,1605,1575,1606,32,1575,1605,1585,1608,1586,1548,32,1605,1581,1604,32,1586,1606,1583,1711,1740,32,1601,1593,1604,1740,32,1585,1575,32,1607,1605,32,1575,1606,1578,1582,1575,1576,32,1705,1606,46]);
@@ -603,9 +603,7 @@ export function ChartForm({
     }
     if (includeTransitReading &&
       !(selectedCurrentResidenceCityId || findHalleusCityByName(currentResidenceCity.trim()))) {
-      const input = formRef.current?.querySelector<HTMLElement>(".chart-transit-location input");
-      const disclosure = formRef.current?.querySelector<HTMLDetailsElement>(".chart-optional-details");
-      if (disclosure) disclosure.open = true;
+      const input = formRef.current?.querySelector<HTMLElement>(".chart-residence-location input");
       input?.scrollIntoView({ block: "center", behavior: "smooth" });
       input?.focus({ preventScroll: true });
       return;
@@ -1478,64 +1476,32 @@ export function ChartForm({
               </div>
 
               {!comparisonMode ? (
-                <details className="chart-optional-details">
-                  <summary>اختیاری: آسمان امروز را هم روی چارتم ببین</summary>
-                  <label className="chart-transit-choice chart-field-full">
-                <input
-                  type="checkbox"
-                  checked={includeTransitReading}
-                  onChange={(event) => {
-                    setIncludeTransitReading(event.target.checked);
-                    clearFieldError("currentResidence");
-                  }}
-                />
-                <span>
-                  <strong>آسمان امروز را روی چارتت ببین</strong>
-                  <small>
-                    جای سیاره‌های امروز را کنار چارت تولدت می‌گذاریم تا ببینی این روزها کدام بخش‌های چارتت پررنگ‌ترند. محل زندگی فعلی فقط برای همین مقایسه لازم است و به گزارش تولدت اضافه نمی‌شود.
-                  </small>
-                </span>
-              </label>
-
-                  {includeTransitReading ? (
-                <div className="chart-field chart-city-field chart-city-card chart-transit-location">
+                <div className={"chart-field chart-city-field chart-city-card chart-transit-location chart-residence-location " + journeyStyles.residenceField}>
                   <label className="chart-city-label">
                     <span className="chart-field-label">
                       <span aria-hidden="true">⌖</span>
                       {CURRENT_RESIDENCE_LABEL}
+                      <small className={journeyStyles.residenceOptional}>اختیاری</small>
                     </span>
                     <input
+                      autoComplete="address-level2"
                       value={currentResidenceCity}
-                      onChange={(event) =>
-                        updateCurrentResidenceCity(event.target.value)
-                      }
+                      onChange={(event) => updateCurrentResidenceCity(event.target.value)}
                       onKeyDown={(event) => {
-                        if (
-                          event.key === "Enter" &&
-                          currentResidenceSuggestions[0]
-                        ) {
+                        if (event.key === "Enter" && currentResidenceSuggestions[0]) {
                           event.preventDefault();
-                          selectCurrentResidenceCity(
-                            currentResidenceSuggestions[0],
-                          );
+                          selectCurrentResidenceCity(currentResidenceSuggestions[0]);
                         }
                       }}
                       placeholder={CURRENT_RESIDENCE_PLACEHOLDER}
                     />
                   </label>
-
                   {currentResidenceSuggestions.length > 0 ? (
-                    <div
-                      className="city-suggestion-chips has-suggestions"
-                      aria-label={CURRENT_RESIDENCE_SUGGESTIONS_LABEL}
-                    >
+                    <div className="city-suggestion-chips has-suggestions"
+                      aria-label={CURRENT_RESIDENCE_SUGGESTIONS_LABEL}>
                       {currentResidenceSuggestions.map((city) => (
-                        <button
-                          key={city.id}
-                          type="button"
-                          onClick={() => selectCurrentResidenceCity(city)}
-                          className="city-suggestion-chip"
-                        >
+                        <button key={city.id} type="button" className="city-suggestion-chip"
+                          onClick={() => selectCurrentResidenceCity(city)}>
                           {getHalleusCityDisplayName(city)}
                         </button>
                       ))}
@@ -1544,6 +1510,21 @@ export function ChartForm({
                   <FieldError message={fieldErrors.currentResidence} />
                 </div>
               ) : null}
+
+              {!comparisonMode ? (
+                <details className="chart-optional-details">
+                  <summary>اختیاری: آسمان امروز را هم روی چارتم ببین</summary>
+                  <label className="chart-transit-choice chart-field-full">
+                    <input type="checkbox" checked={includeTransitReading}
+                      onChange={(event) => {
+                        setIncludeTransitReading(event.target.checked);
+                        clearFieldError("currentResidence");
+                      }} />
+                    <span>
+                      <strong>آسمان امروز را روی چارتت ببین</strong>
+                      <small>برای این مقایسه، انتخاب شهر سکونت فعلی از پیشنهادهای بالا لازم است. بدون فعال‌کردن این گزینه، شهر سکونت اختیاری می‌ماند.</small>
+                    </span>
+                  </label>
                 </details>
               ) : null}
             </div>
