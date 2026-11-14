@@ -43,10 +43,11 @@ export async function prepareSurfaceShowcaseAIExport(
     })),
     existing: dashboard.placements.filter(p => p.surface === surface),
   }));
-  await getAdminDatabase()`insert into halleus_private.shop_showcase_ai_batches
+  const sql = getAdminDatabase();
+  await sql`insert into halleus_private.shop_showcase_ai_batches
     (id, product_ids, surface_ids, created_by)
-    values (${batchId}::uuid, ${JSON.stringify(productIds)}::jsonb,
-      ${JSON.stringify(surfaces)}::jsonb, ${actor.userId}::uuid)`;
+    values (${batchId}::uuid, ${sql.json(productIds)}::jsonb,
+      ${sql.json(surfaces)}::jsonb, ${actor.userId}::uuid)`;
   return { surfaces, slots };
 }
 

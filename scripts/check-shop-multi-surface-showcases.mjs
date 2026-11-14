@@ -33,7 +33,12 @@ has("lib/shop/shop-showcase-ai.ts", [
   "prepareSurfaceShowcaseAIExport", "importSurfaceShowcaseAI", "batchId",
   "shop_showcase_ai_proposals", "products.includes(item.productId)",
   "surfaces.includes(item.surface)", "validateSurfacePlacement",
+  "sql.json(productIds)", "sql.json(surfaces)",
 ]);
+const showcaseAI = read("lib/shop/shop-showcase-ai.ts");
+if (showcaseAI.includes("${JSON.stringify(productIds)}::jsonb") || showcaseAI.includes("${JSON.stringify(surfaces)}::jsonb")) {
+  failed.push("AI batch JSONB inputs must bind arrays via sql.json, not stringify");
+}
 has("lib/wiki/wiki-shop-showcase-workflow.ts", [
   "afterPercent", "placementWindows", "surfaceProposals", "surfaces.json",
   "POSITIONING_AND_SURFACES_FA.md", "prepareSurfaceShowcaseAIExport",
