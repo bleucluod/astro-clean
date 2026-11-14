@@ -291,12 +291,14 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
   }, [planet, moonOpen]);
   const active = period?.snapshots.find(s => s.input.localDate === selectedDate) ?? today;
   const moon = active.planetaryStates.find(p => p.body === "moon");
+  const todayMoon = today.planetaryStates.find(p => p.body === "moon");
+  const retroToday = today.planetaryStates.filter(p => p.motion === "retrograde");
   const primary = active.aspects[0];
   const selectedPlanet = active.planetaryStates.find(p => p.body === planet);
   const reading = useMemo(() => buildSkyPublicReportInterpretation(active), [active]);
-  const modeTitle = view === "today" ? "آسمان امروز" :
+  const modeTitle = view === "today" ? "آسترولوژی امروز" :
     view === "week" ? "آسمان این هفته" : "آسمان این ماه";
-  const modeSubtitle = view === "today" ? "موقعیت واقعی ماه و سیاره‌ها" :
+  const modeSubtitle = view === "today" ? "آسمان امروز، با داده‌های واقعی" :
     view === "week" ? "هفت روز، یک مسیر آسمانی" : "چرخهٔ ماه و حرکت سیاره‌ها";
   const modeIntro = view === "today" ?
     "حرکت ماه، موقعیت سیارات و مهم‌ترین زاویه‌های روز را روی نقشهٔ واقعی آسمان ببین." :
@@ -304,6 +306,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
     "روی هفت روز هفته حرکت کن؛ نقشهٔ آسمان و خوانش هر روز با انتخاب تو تغییر می‌کند." :
     "فازهای ماه، جابه‌جایی سیارات و رویدادهای مهم این ماه شمسی را دنبال کن.";
   const allEvents = period?.snapshots.flatMap(s => s.timeline) ?? active.timeline;
+  const moonIngress = allEvents.find(event => event.type === "ingress" && event.body === "moon");
   const url = (next: View) => "/sky/preview?view=" + next +
     "&city=" + encodeURIComponent(cityId) + "#time-modes";
   const signGuides = SIGN_IDS.map(id=>({id,...buildSignGuide(id,active)}));
@@ -459,6 +462,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section className={styles.reading} id="sky-reading">
         <span className={styles.kicker}>{view === "today" ? "خواندن سریع امروز" : "خوانش روز انتخاب‌شده"}</span>
         <h2>{view === "today" ? "امروز از کدام بخش آسمان شروع کنی؟" : "آسمان این روز چه چیزی می‌گوید؟"}</h2>
+        <p className={styles.contextNote}>آسترولوژی امروز از جایگاه واقعی ماه و سیاره‌ها شروع می‌شود، نه از پیش‌گویی. ترنزیت امروز را هم بهتر است کنار زاویه‌ها و حرکت‌های محاسبه‌شده بخوانی، نه به‌عنوان نتیجه‌ای قطعی.</p>
         <p className={styles.lead}>{dailyGuide.tone}</p>
         <p className={styles.subLead}>{dailyGuide.personalLine}</p>
         <div className={styles.dailySignals}>
@@ -493,6 +497,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section className={styles.reading} id="sky-moon">
         <span className={styles.kicker}>{view === "today" ? "ماه امروز" : "ماه در روز انتخاب‌شده"}</span>
         <h2>{view === "today" ? "وضعیت ماه امروز؛ نشان، فاز و روشنایی" : "وضعیت ماه در روز انتخاب‌شده؛ نشان، فاز و روشنایی"}</h2>
+        <p className={styles.contextNote}>وضعیت ماه امروز هم به نشانی که ماه در آن قرار دارد بستگی دارد و هم به بخش روشن قرص آن. درصد روشنایی ماه امروز {today.moonPhase ? pct(today.moonPhase.illuminationFraction) : "ثبت نشده"} است؛ تصویر این بخش فاز {view === "today" ? "همین امروز" : "روز انتخاب‌شده"} را نشان می‌دهد.</p>
         <div className={styles.moonExperience}>
           <div className={styles.moonVisual}>
             <SkyMoonVisual label={city + " · ماه در " + (moon ? SKY_SIGN_LABELS[moon.sign] : "نامشخص")}
@@ -518,6 +523,8 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section className={styles.reading} id="sky-planets">
         <span className={styles.kicker}>جایگاه‌ها</span>
         <h2>{view === "today" ? "وضعیت سیارات امروز؛ هر جسم کجاست و چگونه حرکت می‌کند؟" : "وضعیت سیارات در روز انتخاب‌شده؛ جایگاه و حرکت"}</h2>
+        <p className={styles.contextNote}>{view === "today" ? "وضعیت سیارات امروز را می‌توان از نشان، درجه و جهت حرکت هر جسم خواند." : "برای دیدن وضعیت سیارات امروز، نمای «امروز» را انتخاب کن؛ فهرست فعلی متعلق به تاریخ بالای چرخ است."}</p>
+        <p className={styles.contextNote}>موقعیت سیارات امروز با نشان و درجه مشخص می‌شود. حرکت سیارات امروز هم می‌گوید کدام جسم مستقیم حرکت می‌کند و کدام‌یک ظاهراً برگشتی است. در نمای هفته و ماه، همین اطلاعات برای روز انتخاب‌شده تغییر می‌کند.</p>
         <div className={styles.planetList}>{active.planetaryStates.map(item =>
           <button type="button" key={item.body} onClick={() => setPlanet(item.body)}>
             <span>{SKY_BODY_SYMBOLS[item.body]}</span>
@@ -532,6 +539,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section className={styles.reading} id="sky-aspects">
         <span className={styles.kicker}>روابط آسمان</span>
         <h2>مهم‌ترین ترنزیت‌ها و زاویه‌های روز</h2>
+        <p className={styles.contextNote}>{view === "today" ? "ترنزیت سیارات امروز را از رابطهٔ زاویه‌ای آن‌ها و مقدار اورب می‌توان خواند." : "ترنزیت سیارات امروز در نمای «امروز» دیده می‌شود؛ زاویه‌های زیر برای روزی است که انتخاب کرده‌ای."} هر زاویه به دو سیاره مربوط است و کوچک‌تر بودن اورب، نزدیکی آن به حالت دقیق را نشان می‌دهد.</p>
         <div className={styles.eventList}>{active.aspects.slice(0,8).map((aspect,i)=>
           <div key={i}><strong>{SKY_BODY_LABELS[aspect.leftBody]} و {SKY_BODY_LABELS[aspect.rightBody]}</strong>
           <span>{SKY_ASPECT_LABELS[aspect.kind]} · اورب {aspect.orb.toLocaleString("fa-IR",{maximumFractionDigits:2})}°</span>
@@ -545,6 +553,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section className={styles.reading} id="sky-events">
         <span className={styles.kicker}>به ترتیب زمان</span>
         <h2>{view === "today" ? "رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟" : "رویدادهای نجومی روز انتخاب‌شده؛ به ترتیب زمان"}</h2>
+        <p className={styles.contextNote}>زمان تغییر نشان ماه {moonIngress ? "در این بازه: " + eventMoment(moonIngress.occurredAt, timezone) + "؛ " + eventLabel(moonIngress) + "." : "در رویدادهای این بازه ثبت نشده است."} ساعت‌ها با منطقهٔ زمانی {city} نمایش داده می‌شوند.</p>
         <div className={styles.timeline}>{active.timeline.slice(0,12).map((event,i)=>
           <div key={i}><time>{eventTime("occurredAt" in event ? event.occurredAt : undefined,timezone)}</time>
             <span>{eventLabel(event)}</span></div>)}</div>
@@ -588,6 +597,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <span className={styles.kicker}>نمای نجومی</span>
         <h2>خلاصهٔ آسمان در یک نگاه</h2>
         <p>موقعیت سیاره‌ها، درجه‌ها و زاویه‌ها در چرخ بالا از دادهٔ محاسبه‌شدهٔ روز انتخاب‌شده نمایش داده می‌شوند.</p>
+        <p className={styles.contextNote}>{view === "today" ? "موقعیت نجومی امروز روی همین چرخ دیده می‌شود؛ با انتخاب هر سیاره می‌توانی درجهٔ دقیق و جهت حرکت آن را بخوانی." : "برای مقایسه با موقعیت نجومی امروز، نمای «امروز» را انتخاب کن؛ این چرخ وضعیت روز انتخاب‌شده را نشان می‌دهد."}</p>
         <details className={styles.more}><summary>چارت آسمان امروز چه چیزی نشان می‌دهد؟</summary>
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="خلاصهٔ آسمان در یک نگاه"/>
         </details>
@@ -609,6 +619,15 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section className={styles.reading} id="sky-faq">
         <span className={styles.kicker}>پرسش‌های رایج</span>
         <h2>پرسش‌های رایج دربارهٔ آسمان امروز</h2>
+        <details className={styles.more}><summary>ماه امروز در چه برجی است؟</summary>
+          <p>برای اینکه ببینی ماه امروز در کدام نشان است، جایگاه محاسبه‌شدهٔ آن را بخوان: {todayMoon ? "ماه امروز در " + SKY_SIGN_LABELS[todayMoon.sign] + " است." : "جایگاه ماه برای امروز ثبت نشده است."} «برج» و «نشان» اینجا به بخش‌های زودیاک اشاره دارند؛ فاز و روشنایی ماه دو دادهٔ متفاوت‌اند.</p>
+        </details>
+        <details className={styles.more}><summary>کدام سیارات رترو هستند؟</summary>
+          <p>سیارات برگشتی امروز {retroToday.length ? retroToday.map(item => SKY_BODY_LABELS[item.body]).join("، ") + " هستند." : "در دادهٔ امروز ثبت نشده‌اند."} برگشتی یا رترو به حرکت ظاهری سیاره از دید زمین گفته می‌شود. در نمای هفته و ماه، وضعیت حرکت برای روز انتخاب‌شده به‌روز می‌شود.</p>
+        </details>
+        <details className={styles.more}><summary>جنبه‌های امروز چه فرقی با جایگاه سیارات دارند؟</summary>
+          <p>زاویه سیارات امروز ارتباط زاویه‌ای دو جرم را نشان می‌دهد، نه نشان یا درجهٔ مستقل هر کدام را. نوع زاویه و فاصلهٔ آن از مقدار دقیق (اورب) در فهرست ترنزیت‌ها دیده می‌شود.</p>
+        </details>
         <details className={styles.more}><summary>آیا آسترولوژی امروز همان فال روزانه است؟</summary><p>نه. داده‌های جایگاه سیارات، فاز ماه و زاویه‌های روز از محاسبه می‌آیند. فال روزانه معمولاً متنی تفسیری برای یک نشان است. این صفحه علاوه بر توضیح‌های نمادین، خودِ داده‌ها و خط زمانی را هم نشان می‌دهد؛ بنابراین می‌توانی میان محاسبه و برداشت فرق بگذاری.</p></details><details className={styles.more}><summary>ساعت رویدادها برای کدام شهر است؟</summary><p>ساعت‌ها بر اساس منطقهٔ زمانی شهری که داده برای آن به دست آمده نمایش داده می‌شوند. در نمای فعلی، تهران پیش‌فرض است و انتخاب‌گر عمومیِ تغییر شهر و تاریخ دیده نمی‌شود. برای یک تاریخ واحد، ساعت محلی همان رویداد در شهرهای مختلف می‌تواند فرق کند.</p></details><details className={styles.more}><summary>فاز ماه امروز چگونه محاسبه می‌شود؟</summary><p>نام فاز و درصد روشنایی از دادهٔ محاسبه‌شدهٔ همان روز به دست می‌آیند. فاز ماه با نشان ماه یکی نیست: فاز از هندسهٔ روشنایی صحبت می‌کند و نشان از محل ماه در زودیاک.</p></details><details className={styles.more}><summary>چرا بعضی روزها داده نمایش داده نمی‌شود؟</summary><p>اگر تاریخ خواسته‌شده خارج از روز پشتیبانی‌شده باشد یا دادهٔ معتبر آن درخواست در دسترس نباشد، هالیوس وضعیت نبود داده را نشان می‌دهد و روز دیگری را بی‌خبر جایگزین نمی‌کند. این رفتار از نمایش عددی ظاهراً دقیق ولی نامربوط بهتر است.</p></details>
       </section>
       <details className={styles.cityTools} id="sky-city-tools"><summary>انتخاب شهر رصد</summary>

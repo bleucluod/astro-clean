@@ -80,6 +80,7 @@ requireText(css, [
   ".sweepViewport", ".sweepTrack", ".sweepGroup", ".sweepSignalViewport", ".sweepSignViewport",
   ".sweepExploreViewport", "@keyframes skyReadingSweep", "animation-play-state:paused",
   ".moonSheet", ".moonVisualHint", ".aspectFlow", ".compactReading",
+  ".contextNote",
 ]);
 const showcaseSlot = read("components/shop/SurfaceShowcaseSlot.tsx");
 for (const marker of ["previewFallback?: SurfaceOffer", "track={!previewFallback}", "publishedOffer ?? previewFallback ?? null"]) {
@@ -100,6 +101,13 @@ for (const marker of [
   'idPrefix="sky-preview-modal"', 'idPrefix="sky-preview-inline"',
   'onClick={() => setMoonOpen(true)}', 'CompactReading',
 ]) if (!railSource.includes(marker)) errors.push("Sky interactive preview must retain: " + marker);
+const targetTerms = ["آسترولوژی امروز","وضعیت سیارات امروز","موقعیت سیارات امروز","ماه امروز در چه برجی است","وضعیت ماه امروز","فاز ماه امروز","ترنزیت امروز","ترنزیت سیارات امروز","سیارات برگشتی امروز","جنبه‌های امروز","آسمان امروز","چارت آسمان امروز","حرکت سیارات امروز","ماه امروز در کدام نشان است","درصد روشنایی ماه امروز","زمان تغییر نشان ماه","کدام سیارات رترو هستند","زاویه سیارات امروز","موقعیت نجومی امروز"];
+const skyMarkup = sources.get(client) ?? "";
+for (const keyword of targetTerms) {
+  if (!skyMarkup.includes(keyword)) errors.push("Missing owned /sky query in preview copy: " + keyword);
+}
+if (!skyMarkup.includes('className={styles.contextNote}'))
+  errors.push("Owned keywords must be placed in useful prose, not a hidden keyword list");
 const homeMoonStyles = read("app/home.module.css");
 for (const marker of [".skyMoonCompact", ".skyMoonCompact .skyMoonDisc"]) {
   if (!homeMoonStyles.includes(marker)) errors.push("Shared moon compact style missing: " + marker);

@@ -529,6 +529,14 @@
   .page .exploreTiles a{flex-basis:78%;min-height:145px}
 }
 
+/* Scoped factual context paragraphs: keep owned queries embedded in useful explanations. */
+.page .contextNote{
+  max-width:800px;margin:9px 0 16px;font-size:15px;line-height:2.03;
+  color:#d4e1ec!important;font-weight:450;
+}
+@media(max-width:600px){
+  .page .contextNote{font-size:15px;line-height:2.03;margin-block:8px 14px}
+}
 /* Sky observatory preview: mobile-first reading contrast, 2026-11-14. */
 .page{
   --sky-read-title:#f8fbff;
