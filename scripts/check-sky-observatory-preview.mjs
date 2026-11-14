@@ -41,7 +41,6 @@ requireText(period, [
 ]);
 requireText(client, [
   "SkyObservatoryPreview", "period?.snapshots.find",
-  "snapshot.planetaryStates.map", "snapshot.aspects.slice(0, 12)",
   "buildSkyPublicReportInterpretation",
   '<SurfaceShowcaseSlot surface="sky" slot="after-moon"/>',
   '<SurfaceShowcaseSlot surface="sky" slot="after-timeline"/>',
@@ -64,6 +63,14 @@ const c = sources.get(client) ?? "";
 if (/Math\.random|mockSnapshot|samplePlanet/.test(c))
   errors.push("Client must not fabricate astronomical values");
 if (c.includes("Date.now()")) errors.push("Client must use stable SSR referenceTime");
+const wheelStart = c.indexOf("function Wheel(");
+const wheelEnd = c.indexOf("export function SkyObservatoryPreview(", wheelStart);
+const wheel = wheelStart >= 0 && wheelEnd > wheelStart ? c.slice(wheelStart, wheelEnd) : "";
+if (!/snapshot\.planetaryStates/.test(wheel) ||
+    !/(?:sorted|snapshot\.planetaryStates)\.map\s*\(/.test(wheel))
+  errors.push("Wheel must render engine planetary states");
+if (!/snapshot\.aspects\.slice\s*\(\s*0\s*,\s*[1-9]\d*\s*\)/.test(wheel))
+  errors.push("Wheel must render computed planetary aspects");
 if (c.includes("styles.dayRail") || c.includes("styles.dayActive"))
   errors.push("Reject legacy dashboard day tiles; use V9 week timeline");
 if (!c.includes("data-phase={phase}"))
