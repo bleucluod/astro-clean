@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 const form = readFileSync("components/ChartForm.tsx", "utf8");
 const style = readFileSync("components/chart-form-journey.module.css", "utf8");
 const page = readFileSync("app/chart/page.tsx", "utf8");
+const picker = readFileSync("components/ChartMobileBirthPicker.tsx", "utf8");
+const pickerCss = readFileSync("components/chart-mobile-birth-picker.module.css", "utf8");
 const errors = [];
 const expect = (condition, message) => {
   if (!condition) errors.push(message);
@@ -68,19 +70,58 @@ expect(routeCss.includes("HALLEUS_CHART_MOBILE_COMPACT_READABLE_20261114"), "Mob
 expect(routeCss.includes(".formPanel :global(.chart-time-title-row)"), "Time unknown control must remain inline");
 expect(routeCss.includes("flex-direction: row !important;"), "Mobile time row must not stack");
 expect(
-  routeCss.includes("HALLEUS_CHART_COMPACT_DATE_TIME_20261114") &&
-  routeCss.includes(".birth-date-picker-grid .chart-select-segment") &&
-  routeCss.includes(".birth-time-picker-grid .chart-select-segment") &&
-  routeCss.includes("display: block !important;") &&
-  routeCss.includes("inset-block-start: 3px !important;") &&
-  routeCss.includes("pointer-events: none !important;") &&
-  routeCss.includes(".birth-date-picker-grid .chart-native-select") &&
-  routeCss.includes(".birth-time-picker-grid .chart-native-select") &&
-  routeCss.includes("min-height: 44px !important;") &&
-  routeCss.includes("font-size: 16px !important;") &&
-  !routeCss.includes("grid-template-rows: auto 44px;"),
-  "Mobile date/time should use a single 44px row with small overlaid labels, not stacked label plus select heights",
+  routeCss.includes("HALLEUS_CHART_MOBILE_CUSTOM_PICKERS_20261114") &&
+  routeCss.includes(".formPanel :global(.birth-date-picker-grid),") &&
+  routeCss.includes(".formPanel :global(.birth-time-picker-grid) {") &&
+  routeCss.includes("display: none !important;"),
+  "Legacy birth dropdown grids must be hidden only on /chart mobile",
 );
+for (const marker of [
+  "MobileBirthDatePicker",
+  "MobileBirthTimePicker",
+  "onConfirm={applyMobileBirthDate}",
+  "onConfirm={applyMobileBirthTime}",
+  "type MobileDateParts",
+  "type MobileTimeParts",
+  "chart-mobile-picker-trigger, .chart-native-select",
+  '!comparisonMode && birthTimeMode === "known"',
+]) {
+  expect(form.includes(marker), "New chart-only picker bridge missing: " + marker);
+}
+for (const marker of [
+  "export function MobileBirthDatePicker",
+  "export function MobileBirthTimePicker",
+  "createPortal(",
+  'role="dialog"',
+  'aria-modal="true"',
+  'event.key === "Escape"',
+  'event.key !== "Tab"',
+  'inputMode="numeric"',
+  'maxLength={4}',
+  "parseJalaliDateInput(",
+  "validGregorian(",
+  "onConfirm({ ...draft })",
+  "onConfirm(chosen)",
+  "years.includes(parts.year)",
+  "hour > 23 || minute > 59",
+]) {
+  expect(picker.includes(marker), "Mobile birth picker behavior missing: " + marker);
+}
+for (const marker of [
+  ".trigger { display: none; }",
+  "@media (max-width: 760px)",
+  "min-height: 44px;",
+  ".monthGrid",
+  ".dayGrid",
+  ".hourGrid",
+  ".minuteGrid",
+  ".portal",
+  ".sheet",
+  "@media (prefers-reduced-motion: reduce)",
+]) {
+  expect(pickerCss.includes(marker), "New mobile picker design missing: " + marker);
+}
+
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(
   style.includes(".journeyRoot.journeyRoot :global(.chart-form-progress)") &&
@@ -94,5 +135,5 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log("CHART_MOBILE_JOURNEY_CHECK=PASS");
-  console.log("Four validated steps, editable summaries, sticky portal, and real submit preserved.");
+  console.log("Four validated steps, editable summaries, custom date/time sheets, sticky portal, and real submit preserved.");
 }

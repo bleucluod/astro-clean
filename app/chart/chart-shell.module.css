@@ -3535,62 +3535,12 @@
   }
 
 
-  /* HALLEUS_CHART_COMPACT_DATE_TIME_20261114
-     A single 44px-tall control: small label over the full-size native tap target. */
+  /* HALLEUS_CHART_MOBILE_CUSTOM_PICKERS_20261114
+     The legacy dropdown controls stay mounted for desktop and /compare only.
+     /chart mobile uses its own accessible date/time bottom sheets. */
   .formPanel :global(.birth-date-picker-grid),
   .formPanel :global(.birth-time-picker-grid) {
-    min-height: 0 !important;
-    margin-top: 4px !important;
-    padding: 0 !important;
-    gap: 0 !important;
-    align-content: start !important;
-  }
-  .formPanel :global(.birth-date-picker-grid .chart-select-segment),
-  .formPanel :global(.birth-time-picker-grid .chart-select-segment) {
-    position: relative !important;
-    display: block !important;
-    box-sizing: border-box !important;
-    min-height: 44px !important;
-    height: 44px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  .formPanel :global(.birth-date-picker-grid .chart-select-segment > span),
-  .formPanel :global(.birth-time-picker-grid .chart-select-segment > span) {
-    position: absolute !important;
-    z-index: 1 !important;
-    inset-block-start: 3px !important;
-    inset-inline-start: 8px !important;
-    line-height: 1.1 !important;
-    font-size: .62rem !important;
-    font-weight: 650 !important;
-    color: #dce9f5 !important;
-    pointer-events: none !important;
-  }
-  .formPanel :global(.birth-date-picker-grid .chart-select),
-  .formPanel :global(.birth-time-picker-grid .chart-select) {
-    display: block !important;
-    min-height: 44px !important;
-    height: 44px !important;
-  }
-  .formPanel :global(.birth-date-picker-grid .chart-native-select),
-  .formPanel :global(.birth-time-picker-grid .chart-native-select) {
-    display: block !important;
-    box-sizing: border-box !important;
-    min-height: 44px !important;
-    height: 44px !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 12px 8px 0 !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    font-size: 16px !important;
-    font-weight: 500 !important;
-    line-height: 1.2 !important;
-    text-align: right !important;
-    touch-action: manipulation;
+    display: none !important;
   }
 
 }

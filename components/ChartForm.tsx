@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import journeyStyles from "./chart-form-journey.module.css";
 import {
+  MobileBirthDatePicker,
+  MobileBirthTimePicker,
+  type MobileDateParts,
+  type MobileTimeParts,
+} from "./ChartMobileBirthPicker";
+import {
   type CSSProperties,
   type FormEvent,
   useEffect,
@@ -576,7 +582,7 @@ export function ChartForm({
         '[data-chart-step="' + stepId + '"]',
       );
       const selector = stepId === "date" || stepId === "time"
-        ? ".chart-native-select, .chart-select-trigger"
+        ? ".chart-mobile-picker-trigger, .chart-native-select, .chart-select-trigger"
         : "input:not([type=checkbox])";
       const targets = container?.querySelectorAll<HTMLElement>(selector);
       const target = Array.from(targets ?? []).find((item) => item.getClientRects().length > 0);
@@ -670,6 +676,22 @@ export function ChartForm({
       ...current,
       [field]: value,
     }));
+  }
+
+  function applyMobileBirthDate(parts: MobileDateParts) {
+    clearFieldError("birthDate");
+    if (dateMode === "jalali") {
+      setBirthDateParts({ ...parts });
+    } else {
+      setGregorianBirthDateParts({ ...parts });
+    }
+    updateField("birthDate", "");
+  }
+
+  function applyMobileBirthTime(parts: MobileTimeParts) {
+    clearFieldError("birthTime");
+    setBirthTimeParts({ ...parts });
+    updateField("birthTime", parts.hour + ":" + parts.minute);
   }
 
   function updateDateMode(nextMode: BirthDateMode) {
@@ -1187,6 +1209,16 @@ export function ChartForm({
                   </div>
                 </div>
 
+                {!comparisonMode ? (
+                  <MobileBirthDatePicker
+                    mode={dateMode}
+                    value={dateMode === "jalali" ? birthDateParts : gregorianBirthDateParts}
+                    yearOptions={dateMode === "jalali" ? JALALI_YEAR_OPTIONS : GREGORIAN_YEAR_OPTIONS}
+                    monthOptions={dateMode === "jalali" ? JALALI_MONTH_OPTIONS : GREGORIAN_MONTH_OPTIONS}
+                    onConfirm={applyMobileBirthDate}
+                  />
+                ) : null}
+
                                 {dateMode === "jalali" ? (
                   <div
                     className="birth-date-picker-grid"
@@ -1328,6 +1360,10 @@ export function ChartForm({
                     <span>ساعت تولدم را نمی‌دانم</span>
                   </label>
                 </div>
+
+                {!comparisonMode && birthTimeMode === "known" ? (
+                  <MobileBirthTimePicker value={birthTimeParts} onConfirm={applyMobileBirthTime} />
+                ) : null}
 
                 {birthTimeMode === "known" ? (
                   <div
