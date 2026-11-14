@@ -428,36 +428,95 @@
   .page .exploreTiles a{flex-basis:78%;min-height:145px}
 }
 
-/* Accessibility/readability pass restricted to the development observatory surface. */
-.page small{font-size:13px;line-height:1.65;color:#c6d5e0}
+/* Sky observatory preview: mobile-first reading contrast, 2026-11-14. */
+.page{
+  --sky-read-title:#f8fbff;
+  --sky-read-body:#e6eef6;
+  --sky-read-muted:#d1deeb;
+}
+.page h1,.page h2,.page h3{
+  color:var(--sky-read-title)!important;
+  letter-spacing:normal!important;
+}
+.page .heroIntro h1 em,.page .periodLede h2 em{
+  color:var(--sky-read-muted)!important;
+}
+.page p,.page li{color:var(--sky-read-body)!important}
+.page small{font-size:14px;color:var(--sky-read-muted)!important;line-height:1.7}
 .page .kicker,.page .heroFacts span,.page .moonFact span,
-.page .dailySignals span,.page .reason>span{font-size:13px;color:#cfdae3}
-.page .heroIntro>p,.page .heroEditorial p{color:#dde7ed}
-.page .heroEditorial summary,.page .more summary,.page .signArchive summary{font-size:15px;color:#e3ebf1}
-.page .more p,.page .signArchive p,.page .reason p{font-size:16px;color:#dae5ed}
-.page .subLead{color:#d2e0e9!important}
-.page .sceneFoot,.page .sceneFoot a{color:#d5e2eb}
-.page .sceneFoot>div span{color:#c1d1dd}
-.page .weekStage>p,.page .monthStage>p{font-size:16px}
-.page .weekReading>span,.page .monthReading>span,.page .periodEvents time{font-size:14px;color:#c8d8e3}
-.page .periodEvents strong{font-size:16px}
-.page .eventList span,.page .planetList button small,.page .signReading small{font-size:14px;color:#c7d8e3}
-.page .eventList p{font-size:16px}
-.page .weekDay small,.page .weekDayActive small,.page .phase small,.page .phaseActive small{font-size:13px}
-.page .phase strong,.page .phaseActive strong{font-size:15px}
+.page .dailySignals span,.page .reason>span{
+  font-size:14px;color:var(--sky-read-muted)!important;
+}
+.page .heroIntro>p,.page .reading p,.page .heroEditorial p,
+.page .more p,.page .signArchive p,.page .reason p,
+.page .weekReading p,.page .monthReading p{
+  font-size:16px;line-height:2.06;font-weight:470;
+  color:var(--sky-read-body)!important;
+}
+.page :global([data-r3-approved-inline="sky"]),
+.page :global([data-r3-approved-inline="sky"] p),
+.page :global([data-r3-approved-inline="sky"] li){
+  color:var(--sky-read-body)!important;
+  font-size:16px;line-height:2.06;
+}
+.page .lead{font-size:18px!important;color:var(--sky-read-title)!important;font-weight:550}
+.page .subLead{font-size:16px!important;color:var(--sky-read-body)!important}
+.page .heroEditorial summary,.page .more summary,.page .signArchive summary,
+.page .cityTools>summary{
+  font-size:15px;color:var(--sky-read-title)!important;
+  line-height:1.95;
+}
+.page .sceneLabel,.page .sceneFoot,.page .sceneFoot a,
+.page .sceneFoot>div span,.page .planetPreview>a{
+  color:var(--sky-read-muted)!important;font-size:13px;
+}
+.page .sceneLabel span:first-child{font-size:11px;color:var(--sky-read-muted)!important}
+.page .heroFacts strong,.page .moonFact strong{font-size:16px;color:var(--sky-read-title)}
+.page .moonFact small,.page .planetPreview>div button small,
+.page .planetList button small,.page .exploreTiles small,
+.page .signReading small,.page .signArchive small{
+  font-size:14px;color:var(--sky-read-muted)!important;
+}
+.page .planetPreview>div button strong,.page .planetList button strong,
+.page .dailySignals strong{font-size:15px;color:var(--sky-read-title)}
+.page .sign,.page .signActive{font-size:14px;color:var(--sky-read-muted)}
+.page .signActive{color:var(--sky-read-title)}
+.page .weekStage>p,.page .monthStage>p,
+.page .periodLede>p{font-size:16px;color:var(--sky-read-body)!important}
+.page .weekReading>span,.page .monthReading>span,.page .periodEvents time,
+.page .timeline time{
+  font-size:14px;color:var(--sky-read-muted)!important;
+}
+.page .weekDay small,.page .weekDayActive small,
+.page .phase small,.page .phaseActive small{font-size:14px;color:var(--sky-read-muted)!important}
+.page .weekDay strong,.page .weekDayActive strong,
+.page .phase strong,.page .phaseActive strong{
+  color:var(--sky-read-title)!important;
+}
+.page .phase:disabled{opacity:.65}
+.page .periodEvents strong,.page .eventList strong{font-size:16px;color:var(--sky-read-title)}
+.page .eventList span{font-size:14px;color:var(--sky-read-muted)!important}
+.page .eventList p,.page .timeline>div{font-size:16px;color:var(--sky-read-body)!important}
+.page .footer{font-size:13px;color:var(--sky-read-muted)!important}
 @media(max-width:600px){
-  .page .heroIntro>p{font-size:16px}
-  .page .sceneLabel,.page .sceneFoot{font-size:12px}
-  .page .sceneLabel span:first-child{font-size:10px}
-  .page .sceneFoot>div span,.page .sceneFoot>a{font-size:12px}
-  .page .sceneFoot strong,.page .heroFacts strong,.page .moonFact strong{font-size:15px}
-  .page .heroFacts span,.page .moonFact span,.page .signalRail small{font-size:13px}
-  .page .signalRail strong{font-size:14px}
-  .page .moonPhases{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 8px}
-  .page .phaseOrb{max-width:88px}
+  .page .heroIntro h1{font-size:clamp(33px,8.8vw,40px);line-height:1.42}
+  .page .heroIntro h1 em{display:block;font-size:.71em;line-height:1.62}
+  .page .heroIntro>p{font-size:17px;line-height:2.03}
+  .page .reading h2,.page .periodLede h2{
+    font-size:clamp(24px,6.3vw,29px);line-height:1.65;
+  }
+  .page .weekReading h3,.page .monthReading h3{font-size:24px;line-height:1.65}
+  .page .reading p,.page .weekReading p,.page .monthReading p,
+  .page .more p,.page .signArchive p,
+  .page :global([data-r3-approved-inline="sky"] p),
+  .page :global([data-r3-approved-inline="sky"] li){
+    font-size:16.5px;line-height:2.06;
+  }
+  .page .heroFacts span,.page .moonFact span,.page .signalRail small{font-size:14px}
+  .page .heroFacts strong,.page .moonFact strong,.page .signalRail strong{font-size:15px}
+  .page .sceneLabel,.page .sceneFoot,.page .sceneFoot a{font-size:13px}
+  .page .sceneLabel span:first-child{font-size:11px}
+  .page .phase small,.page .phaseActive small,
   .page .phase strong,.page .phaseActive strong{font-size:14px}
-  .page .phase small,.page .phaseActive small{font-size:13px}
-  .page .weekDay,.page .weekDayActive{min-height:100px}
-  .page .reading p,.page :global([data-r3-approved-inline="sky"] p){color:#dfe8ef;line-height:2.08}
 }
 @media(prefers-reduced-motion:reduce){.planetPin{transition:none}}
