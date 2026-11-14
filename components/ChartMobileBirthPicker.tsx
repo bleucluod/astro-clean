@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type KeyboardEvent as ReactKeyboardEvent, type UIEvent as ReactUIEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type UIEvent as ReactUIEvent } from "react";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import styles from "./chart-mobile-birth-picker.module.css";
 
@@ -56,6 +56,7 @@ function DateWheel({
   onChange: (value: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [wheelTouched, setWheelTouched] = useState(false);
   const settlingRef = useRef(true);
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
 
@@ -98,6 +99,7 @@ function DateWheel({
   }
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    setWheelTouched(true);
     let nextIndex = selectedIndex;
     if (event.key === "ArrowDown") nextIndex = Math.min(options.length - 1, selectedIndex + 1);
     else if (event.key === "ArrowUp") nextIndex = Math.max(0, selectedIndex - 1);
@@ -110,11 +112,11 @@ function DateWheel({
 
   return (
     <div className={styles.wheelColumn}>
-      <span className={styles.wheelLabel}>{label}</span>
       <div className={styles.wheelFrame}>
         <div
           ref={scrollRef}
-          className={styles.wheelViewport}
+          className={styles.wheelViewport + (wheelTouched ? " " + styles.wheelTouched : "")}
+          onPointerDown={() => setWheelTouched(true)}
           role="spinbutton"
           tabIndex={0}
           aria-label={label}

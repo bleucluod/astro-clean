@@ -20,21 +20,6 @@
 }
 .timeWheelPicker { direction: rtl; }
 .wheelColumn { min-width: 0; }
-.wheelLabel {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 0;
-  height: 48px;
-  padding: 0 5px;
-  border: 1px solid #647f98;
-  border-radius: 13px;
-  background: #26394b;
-  color: #f0f6fc;
-  font-size: .76rem;
-  font-weight: 750;
-  text-align: center;
-}
 .wheelFrame { position: relative; height: 144px; overflow: hidden; }
 .wheelFrame::after {
   content: "";
@@ -58,6 +43,15 @@
   touch-action: pan-y;
   outline: none;
   -webkit-overflow-scrolling: touch;
+  /* A small vertical invitation to scroll; purely visual, never changes the picked value. */
+  animation: chartWheelScrollHint 4.6s ease-in-out infinite;
+  will-change: transform;
+}
+.wheelTouched,
+.wheelViewport:hover,
+.wheelViewport:focus-visible,
+.wheelViewport:active {
+  animation: none;
 }
 .wheelViewport::-webkit-scrollbar { display: none; }
 .wheelViewport:focus-visible { outline: 2px solid #bbdff8; outline-offset: -3px; border-radius: 12px; }
@@ -96,5 +90,14 @@
   .dateWheelPicker { gap: 3px; }
   .wheelRow { font-size: .85rem; }
   .dateWheelPicker .wheelColumn:nth-child(2) .wheelRow { font-size: .79rem; }
-  .wheelLabel { padding-inline: 3px; }
+}
+
+/* HALLEUS_CHART_SCROLL_WHEEL_AFFORDANCE_20261114 */
+@keyframes chartWheelScrollHint {
+  0%, 14%, 64%, 100% { transform: translateY(0); }
+  27% { transform: translateY(-6px); }
+  41% { transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wheelViewport { animation: none; will-change: auto; }
 }

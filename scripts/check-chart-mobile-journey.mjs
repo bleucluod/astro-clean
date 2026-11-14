@@ -113,7 +113,6 @@ for (const marker of [
 for (const marker of [
   ".alwaysPicker { display: none; }",
   "@media (max-width: 760px)",
-  ".wheelLabel",
   ".wheelPicker",
   ".dateWheelPicker",
   ".timeWheelPicker",
@@ -122,9 +121,24 @@ for (const marker of [
   ".wheelRow",
   "scroll-snap-type: y mandatory;",
   "touch-action: pan-y;",
+  "chartWheelScrollHint",
+  "@media (prefers-reduced-motion: reduce)",
 ]) {
   expect(pickerCss.includes(marker), "Always visible wheel styling missing: " + marker);
 }
+expect(
+  !picker.includes('<span className={styles.wheelLabel}>') &&
+  !pickerCss.includes(".wheelLabel") &&
+  (picker.match(/<DateWheel /g) ?? []).length === 5,
+  "Date and time number wheels must have no heading row");
+expect(
+  picker.includes('onPointerDown={() => setWheelTouched(true)}') &&
+  picker.includes('setWheelTouched(true);') &&
+  picker.includes('wheelTouched ? " " + styles.wheelTouched') &&
+  pickerCss.includes("animation: chartWheelScrollHint 4.6s ease-in-out infinite;") &&
+  pickerCss.includes(".wheelTouched,") &&
+  pickerCss.includes("@media (prefers-reduced-motion: reduce)"),
+  "Wheel hint must animate subtly but stop after touch/keyboard and honor reduced motion");
 expect(
   !picker.includes("createPortal(") &&
   !picker.includes("InlinePicker") &&
