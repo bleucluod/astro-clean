@@ -568,6 +568,8 @@ export function ChartForm({
   }, []);
 
   function isCollapsedStep(stepId: ChartJourneyStepId) {
+    // Keep date/time wheels visible on the standalone /chart mobile journey.
+    if (!comparisonMode && (stepId === "date" || stepId === "time")) return false;
     const step = chartProgress.steps.find((entry) => entry.id === stepId);
     const errorKey: ChartFieldId = stepId === "date" ? "birthDate"
       : stepId === "time" ? "birthTime"
@@ -582,7 +584,7 @@ export function ChartForm({
         '[data-chart-step="' + stepId + '"]',
       );
       const selector = stepId === "date" || stepId === "time"
-        ? ".chart-mobile-picker-trigger, .chart-native-select, .chart-select-trigger"
+        ? ".wheelViewport, .chart-native-select, .chart-select-trigger"
         : "input:not([type=checkbox])";
       const targets = container?.querySelectorAll<HTMLElement>(selector);
       const target = Array.from(targets ?? []).find((item) => item.getClientRects().length > 0);
@@ -689,7 +691,7 @@ export function ChartForm({
   function applyMobileBirthTime(parts: MobileTimeParts) {
     clearFieldError("birthTime");
     setBirthTimeParts({ ...parts });
-    updateField("birthTime", parts.hour + ":" + parts.minute);
+    updateField("birthTime", parts.hour && parts.minute ? parts.hour + ":" + parts.minute : "");
   }
 
   function updateDateMode(nextMode: BirthDateMode) {

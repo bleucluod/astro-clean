@@ -89,66 +89,72 @@ for (const marker of [
   expect(form.includes(marker), "New chart-only picker bridge missing: " + marker);
 }
 for (const marker of [
+  "HALLEUS_CHART_ALWAYS_VISIBLE_BIRTH_WHEELS_20261114",
   "export function MobileBirthDatePicker",
   "export function MobileBirthTimePicker",
-  "InlinePicker",
-  'role="group"',
-  'aria-expanded={open}',
-  'event.key === "Escape"',
-  'triggerRef.current?.focus({ preventScroll: true })',
+  "data-chart-date-wheels",
+  "data-chart-time-wheels",
+  'role="spinbutton"',
   "DATE_WHEEL_ITEM_HEIGHT",
   "dayWheelOptions",
+  "TIME_WHEEL_HOURS",
+  "TIME_WHEEL_MINUTES",
+  "validDate(mode, value, yearOptions)",
+  'Number(next.day) > dayLimit(mode, next.year, next.month)',
+  'onConfirm(next)',
+  'onConfirm({ ...value, hour })',
+  'onConfirm({ ...value, minute })',
   "parseJalaliDateInput(",
   "validGregorian(",
-  "onConfirm({ ...draft })",
-  "onConfirm(chosen)",
   "years.includes(parts.year)",
-  "hour > 23 || minute > 59",
 ]) {
-  expect(picker.includes(marker), "Mobile birth picker behavior missing: " + marker);
+  expect(picker.includes(marker), "Always visible wheel behavior missing: " + marker);
 }
 for (const marker of [
-  ".trigger { display: none; }",
+  ".alwaysPicker { display: none; }",
   "@media (max-width: 760px)",
-  "min-height: 44px;",
-  ".dateWheelPicker",
-  ".dateWheelPicker .wheelRow",
+  ".wheelLabel",
   ".wheelPicker",
+  ".dateWheelPicker",
+  ".timeWheelPicker",
   ".wheelViewport",
   ".wheelSelection",
+  ".wheelRow",
   "scroll-snap-type: y mandatory;",
-  ".inlinePanel",
-  ".inlineHeader",
-  "@media (prefers-reduced-motion: reduce)",
+  "touch-action: pan-y;",
 ]) {
-  expect(pickerCss.includes(marker), "New mobile picker design missing: " + marker);
+  expect(pickerCss.includes(marker), "Always visible wheel styling missing: " + marker);
 }
-
-expect(picker.includes("HALLEUS_IOS_DATE_WHEELS_20261114") &&
-  picker.includes('role="spinbutton"') &&
-  picker.includes('onScroll={handleScroll}') &&
-  picker.includes('onChange={(day) => changeDraft("day", day)}') &&
-  picker.includes('onChange={(month) => changeDraft("month", month)}') &&
-  picker.includes('onChange={(year) => changeDraft("year", year)}') &&
-  picker.includes('Number(next.day) > dayLimit(mode, next.year, next.month)') &&
-  picker.includes('const valid = validDate(mode, draft, yearOptions);') &&
-  picker.includes('onConfirm({ ...draft })'), "Date wheels, calendar validation, or apply bridge missing");
-expect(pickerCss.includes(".dateWheelPicker") &&
-  pickerCss.includes("scroll-snap-type: y mandatory;"), "Date wheel snap styling missing");
-expect(!picker.includes('className={styles.yearInput}') &&
-  !picker.includes('className={styles.monthGrid}') &&
-  !picker.includes('className={styles.dayGrid}'), "Old date grid still mounted");
-expect(picker.includes("HALLEUS_CHART_INLINE_WHEELS_20261114") &&
+expect(
   !picker.includes("createPortal(") &&
-  !picker.includes('aria-modal="true"') &&
-  !picker.includes("document.body.style.overflow") &&
-  picker.includes('id="chart-inline-date-picker"') &&
-  picker.includes('id="chart-inline-time-picker"') &&
-  (picker.match(/<InlinePicker /g) ?? []).length === 2 &&
-  (picker.match(/aria-expanded={open}/g) ?? []).length === 2,
-  "Mobile date/time wheels must expand inline without a modal");
-expect(pickerCss.includes(".inlinePanel .wheelViewport { height: 192px; padding: 72px 0; }") &&
-  pickerCss.includes(".inlinePanel { display: none; }"), "Inline mobile wheel sizing and desktop hiding missing");
+  !picker.includes("InlinePicker") &&
+  !picker.includes("PickerSheet") &&
+  !picker.includes("setOpen(") &&
+  !picker.includes("onClick={openPicker}") &&
+  !picker.includes("تأیید ساعت تولد") &&
+  !picker.includes("تأیید تاریخ تولد") &&
+  !picker.includes("type ReactNode"),
+  "Date and time must render as permanently visible wheels without trigger, sheet or confirm");
+expect(
+  (picker.match(/<DateWheel /g) ?? []).length === 5 &&
+  picker.includes('label="روز"') &&
+  picker.includes('label="ماه"') &&
+  picker.includes('label="سال"') &&
+  picker.includes('label="ساعت"') &&
+  picker.includes('label="دقیقه"'),
+  "Three date wheels and two time wheels must be directly mounted");
+expect(
+  form.includes('if (!comparisonMode && (stepId === "date" || stepId === "time")) return false;') &&
+  form.includes('parts.hour && parts.minute ? parts.hour + ":" + parts.minute : ""') &&
+  form.includes('onConfirm={applyMobileBirthDate}') &&
+  form.includes('onConfirm={applyMobileBirthTime}') &&
+  form.includes('".wheelViewport, .chart-native-select, .chart-select-trigger"'),
+  "Keep date/time always visible in /chart and prevent partial time submissions");
+expect(
+  !pickerCss.includes("position: fixed;") && !pickerCss.includes(".portal") &&
+  !pickerCss.includes(".inlinePanel"),
+  "Wheel layout must remain in document flow without overlays");
+
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handleScroll}") &&
   picker.includes("TIME_WHEEL_HOURS") && picker.includes("TIME_WHEEL_MINUTES") &&
@@ -171,5 +177,5 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log("CHART_MOBILE_JOURNEY_CHECK=PASS");
-  console.log("Four validated steps, editable summaries, inline mobile wheels, sticky action, and real submit preserved.");
+  console.log("Four validated steps, always visible date/time wheels, safe partial time, sticky action, and real submit preserved.");
 }
