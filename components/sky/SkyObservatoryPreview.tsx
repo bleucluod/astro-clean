@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { SkyMoonVisual } from "@/components/HomepageLiveSky";
 import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
@@ -161,6 +161,94 @@ function buildSignGuide(sign: SkyDailyZodiacSign, snapshot: SkyDailySnapshot) {
 }
 
 
+
+/** A native-scroll, seamless mobile rail. One copy is accessible; both copies work with pointer input. */
+function AutoSweepRail({ label, groupClassName, variant, renderItems }: {
+  label: string;
+  groupClassName: string;
+  variant: "signal" | "sign";
+  renderItems: (duplicate: boolean) => ReactNode;
+}) {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const held = useRef({ hover: false, touch: false, focus: false });
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const compact = window.matchMedia("(max-width: 720px)");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const firstGroup = viewport.querySelector<HTMLElement>('[data-sweep-original="true"]');
+    if (!firstGroup) return;
+    let visible = true;
+    let previous = 0;
+    let frameId = 0;
+    let lastCompact = compact.matches;
+    const observer = typeof IntersectionObserver === "function"
+      ? new IntersectionObserver(entries => { visible = Boolean(entries[0]?.isIntersecting); }, {
+          rootMargin: "80px",
+        })
+      : null;
+    observer?.observe(viewport);
+
+    const advance = (now: number) => {
+      const elapsed = previous ? Math.max(0, Math.min(now - previous, 50)) : 0;
+      previous = now;
+      if (compact.matches !== lastCompact) {
+        viewport.scrollLeft = 0;
+        lastCompact = compact.matches;
+      }
+      if (compact.matches && !reduced.matches && visible &&
+        document.visibilityState === "visible" &&
+        !held.current.hover && !held.current.touch && !held.current.focus) {
+        const span = firstGroup.getBoundingClientRect().width;
+        if (span > viewport.clientWidth + 1) {
+          // RTL uses negative scrollLeft on modern browsers; wrapping at one
+          // identical group preserves the visible frame without a jump.
+          const next = viewport.scrollLeft - elapsed * 0.018;
+          viewport.scrollLeft = next <= -span ? next + span : next;
+        }
+      }
+      frameId = window.requestAnimationFrame(advance);
+    };
+    frameId = window.requestAnimationFrame(advance);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      observer?.disconnect();
+    };
+  }, []);
+
+  return <div ref={viewportRef}
+    className={variant === "signal"
+      ? styles.sweepViewport + " " + styles.sweepSignalViewport
+      : styles.sweepViewport + " " + styles.sweepSignViewport}
+    role="group" aria-label={label}
+    onPointerEnter={event => {
+      if (event.pointerType === "mouse" || event.pointerType === "pen") held.current.hover = true;
+    }}
+    onPointerLeave={event => {
+      if (event.pointerType === "mouse" || event.pointerType === "pen") held.current.hover = false;
+      if (event.pointerType !== "mouse") held.current.touch = false;
+    }}
+    onPointerDown={() => { held.current.touch = true; }}
+    onPointerUp={() => { held.current.touch = false; }}
+    onPointerCancel={() => { held.current.touch = false; }}
+    onFocusCapture={event => {
+      if (event.target instanceof HTMLElement && event.target.matches(":focus-visible"))
+        held.current.focus = true;
+    }}
+    onBlurCapture={event => {
+      if (!event.relatedTarget || !event.currentTarget.contains(event.relatedTarget))
+        held.current.focus = false;
+    }}>
+    <div className={styles.sweepTrack}>
+      <div className={styles.sweepGroup + " " + groupClassName}
+        data-sweep-original="true" dir="rtl">{renderItems(false)}</div>
+      <div className={styles.sweepGroup + " " + groupClassName}
+        aria-hidden="true" dir="rtl">{renderItems(true)}</div>
+    </div>
+  </div>;
+}
+
 function Wheel({ snapshot, onChoose }: { snapshot: SkyDailySnapshot; onChoose: (id: SkyDailyBodyId) => void }) {
   const sorted = [...snapshot.planetaryStates].sort((a,b) => a.longitude-b.longitude);
   return <div className={styles.wheelWrap}>
@@ -249,6 +337,14 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
   const signGuides = SIGN_IDS.map(id=>({id,...buildSignGuide(id,active)}));
   const selectedGuide = signGuides.find(item=>item.id===sign);
   const dailyGuide = buildHumanDailyGuide(active,timezone,new Date(referenceTime).getTime());
+  const signalItems = [
+    { id: "sun", symbol: "☉", label: "خورشید در", value: active.planetaryStates.find(p=>p.body==="sun") ?
+      SKY_SIGN_LABELS[active.planetaryStates.find(p=>p.body==="sun")!.sign] : "—" },
+    { id: "moon", symbol: "☽", label: "ماه در", value: moon ? SKY_SIGN_LABELS[moon.sign] : "—" },
+    { id: "phase", symbol: "◐", label: "فاز ماه", value: moonLabel(active) },
+    { id: "aspects", symbol: "◇", label: "زاویه‌ها", value: active.aspects.length.toLocaleString("fa-IR") },
+    { id: "retro", symbol: "↺", label: "برگشتی‌ها", value: active.planetaryStates.filter(p=>p.motion==="retrograde").length.toLocaleString("fa-IR") },
+  ];
   return <div className={styles.page} dir="rtl" id="sky-public-experience" data-sky-mode={view}>
     <EditorialStickyCtaSequence campaign={SKY_STICKY_CTA_CAMPAIGN} endId="sky-personal-chart-cta" rootId="sky-public-experience" />
     <div className={styles.container}>
@@ -361,13 +457,10 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
               </div>):<p>رویداد زمان‌دار دیگری در این بازه ثبت نشده است.</p>}
         </div>
       </section>}
-      <div className={styles.signalRail} aria-label="خلاصهٔ رصد">
-        <div><span>☉</span><small>خورشید در</small><strong>{active.planetaryStates.find(p=>p.body==="sun") ? SKY_SIGN_LABELS[active.planetaryStates.find(p=>p.body==="sun")!.sign] : "—"}</strong></div>
-        <div><span>☽</span><small>ماه در</small><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "—"}</strong></div>
-        <div><span>◐</span><small>فاز ماه</small><strong>{moonLabel(active)}</strong></div>
-        <div><span>◇</span><small>زاویه‌ها</small><strong>{active.aspects.length.toLocaleString("fa-IR")}</strong></div>
-        <div><span>↺</span><small>برگشتی‌ها</small><strong>{active.planetaryStates.filter(p=>p.motion==="retrograde").length.toLocaleString("fa-IR")}</strong></div>
-      </div>
+      <AutoSweepRail label="خلاصهٔ رصد" groupClassName={styles.signalRail} variant="signal"
+        renderItems={() => signalItems.map(item =>
+          <div key={item.id}><span>{item.symbol}</span><small>{item.label}</small><strong>{item.value}</strong></div>
+        )}/>
       <section className={styles.overview} id="sky-overview">
       <section className={styles.reading} id="sky-reading">
         <span className={styles.kicker}>{view === "today" ? "خواندن سریع امروز" : "خوانش روز انتخاب‌شده"}</span>
@@ -472,11 +565,11 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section className={styles.reading} id="sky-signs">
         <span className={styles.kicker}>برای نشان تو</span>
         <h2>{view === "today" ? "ترنزیت‌های امروز برای دوازده نشان" : "ترنزیت‌های روز انتخاب‌شده برای دوازده نشان"}</h2>
-        <div className={styles.signRail} role="group" aria-label="انتخاب نشان">
-          {SIGN_IDS.map((id,idx)=><button type="button" key={id}
+        <AutoSweepRail label="انتخاب نشان" groupClassName={styles.signRail} variant="sign"
+          renderItems={duplicate => SIGN_IDS.map((id,idx)=><button type="button" key={id}
+            tabIndex={duplicate ? -1 : undefined}
             aria-pressed={sign === id} className={sign === id ? styles.signActive : styles.sign}
-            onClick={() => setSign(id)}><span>{SKY_SIGN_SYMBOLS[idx]}</span>{SKY_SIGN_LABELS[id]}</button>)}
-        </div>
+            onClick={() => setSign(id)}><span>{SKY_SIGN_SYMBOLS[idx]}</span>{SKY_SIGN_LABELS[id]}</button>)}/>
         <div className={styles.signReading}><span>{SKY_SIGN_LABELS[sign]}</span>
           <p>{selectedGuide?.tone}</p><small>{selectedGuide?.reason}</small>
         </div>

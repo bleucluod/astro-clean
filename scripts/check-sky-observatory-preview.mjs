@@ -57,6 +57,9 @@ requireText(client, [
   "SkyCityPicker", "EditorialStickyCtaSequence",
   "data-sky-mode={view}", "modeTitle", "modeSubtitle",
   "SkyMoonVisual", "showPanel={false}", "styles.moonExperience",
+  "AutoSweepRail", "renderItems={duplicate => SIGN_IDS.map", "prefers-reduced-motion: reduce",
+  "onPointerEnter", "onPointerDown", "onPointerUp", "onPointerCancel",
+  "tabIndex={duplicate ? -1 : undefined}",
   "styles.sheetVisual", "styles.sheetMetrics", "styles.sheetTechnical",
   "styles.weekLine", "previewOffers",
 ]);
@@ -69,6 +72,7 @@ requireText(css, [
   ".weekLine::before", ".page[data-sky-mode=\"week\"]",
   "flex:1 1 0;display:grid", "flex:1 0 53px",
   ".moonExperience", ".moonDetails", ".sheetOrbit", ".sheetReading",
+  ".sweepViewport", ".sweepTrack", ".sweepGroup", ".sweepSignalViewport", ".sweepSignViewport",
 ]);
 const showcaseSlot = read("components/shop/SurfaceShowcaseSlot.tsx");
 for (const marker of ["previewFallback?: SurfaceOffer", "track={!previewFallback}", "publishedOffer ?? previewFallback ?? null"]) {
@@ -78,6 +82,15 @@ for (const id of ["after-moon", "after-aspects", "after-timeline"]) {
   if (!(sources.get(client) ?? "").includes('slot="' + id + '" previewFallback={previewOffers["' + id + '"]}'))
     errors.push("Preview fallback missing for slot: " + id);
 }
+const railSource = sources.get(client) ?? "";
+for (const marker of [
+  'groupClassName={styles.signalRail} variant="signal"',
+  'groupClassName={styles.signRail} variant="sign"',
+  'data-sweep-original="true"',
+  'aria-hidden="true" dir="rtl"',
+  'tabIndex={duplicate ? -1 : undefined}',
+  'document.visibilityState === "visible"',
+]) if (!railSource.includes(marker)) errors.push("Looping rail must retain: " + marker);
 const homeMoon = sources.get("components/HomepageLiveSky.tsx") ?? "";
 for (const marker of ["export function SkyMoonVisual", "moon-apollo11.webp", "buildMoonShadowPath", "showPanel = true"]) {
   if (!homeMoon.includes(marker)) errors.push("Reusable homepage moon contract missing: " + marker);
