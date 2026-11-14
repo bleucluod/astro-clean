@@ -178,5 +178,5 @@ if (errors.length) {
   process.exitCode = 1;
 } else {
   console.log("SKY_OBSERVATORY_PREVIEW_CHECK=PASS");
-  console.log("Development-only; daily/weekly/monthly use Halleus engine snapshots; production /sky unchanged.");
+  console.log("Preview stays development-only; the shared public observatory uses genuine Sky engine snapshots.");
 }

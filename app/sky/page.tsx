@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
-import { FinalEditorialPage } from "@/components/FinalEditorialPage";
-import { SkyHeroLive, SkyPublicExperience } from "@/components/SkyPublicExperience";
+import { SkyPublicExperience } from "@/components/SkyPublicExperience";
+import { SkyObservatoryPreview } from "@/components/sky/SkyObservatoryPreview";
+import { getSkyObservatoryPeriod, type SkyObservatoryPeriod } from "@/lib/sky-public/sky-observatory-period";
 import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { selectPublicWikiArticlesByPreferredSlugs } from "@/lib/wiki/wiki-public-discovery";
 import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
@@ -28,7 +29,13 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
   const query = await searchParams;
   const first = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
   const city = first(query.city);
+  const requestedView = first(query.view);
+  const view: "today" | SkyObservatoryPeriod =
+    requestedView === "week" || requestedView === "month" ? requestedView : "today";
   const [result, catalog] = await Promise.all([deliverSkyPublicSnapshot({ city, date: first(query.date) }), getPublicWikiIndex()]);
+  const period = result.status === "ready" && view !== "today"
+    ? await getSkyObservatoryPeriod(result.city.id, result.currentLocalDate, view)
+    : null;
   const relatedArticles = selectPublicWikiArticlesByPreferredSlugs(catalog.articles, ["what-is-moon-sign", "astrology-transits-explained", "retrograde-planets-explained", "mordad-1405-transit-guide"]).map((article) => ({ slug: article.slug, title: article.shortTitle }));
   const webPageJsonLd = {
     "@context": "https://schema.org",
@@ -62,7 +69,7 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
         name: "ساعت رویدادها برای کدام شهر است؟",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "ساعت‌ها بر اساس منطقهٔ زمانی شهری که داده برای آن به دست آمده نمایش داده می‌شوند. در نمای فعلی، تهران پیش‌فرض است و انتخاب‌گر عمومیِ تغییر شهر و تاریخ دیده نمی‌شود. برای یک تاریخ واحد، ساعت محلی همان رویداد در شهرهای مختلف می‌تواند فرق کند.",
+          text: "ساعت‌ها بر اساس منطقهٔ زمانی شهری که داده برای آن به دست آمده نمایش داده می‌شوند. در حالت پیش‌فرض تهران مبناست و می‌توانی شهر رصد را از بخش «انتخاب شهر رصد» تغییر بدهی. برای یک تاریخ واحد، ساعت محلی همان رویداد در شهرهای مختلف می‌تواند فرق کند.",
         },
       },
       {
@@ -80,14 +87,25 @@ export default async function SkyPage({ searchParams }: { searchParams: Promise<
     <script dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageJsonLd) }} type="application/ld+json" />
     <script dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} type="application/ld+json" />
     <div className={styles.skyPage}>
-      <FinalEditorialPage
-        pageKey="sky"
-        includeSections={["sky-hero"]}
-        slots={{
-          "sky-hero": <SkyHeroLive result={result} />,
-        }}
-      />
-      <SkyPublicExperience result={result} cityQuery={city} relatedArticles={relatedArticles} embedded showControls={false} />
+      {result.status === "ready" ? (
+        <SkyObservatoryPreview
+          basePath="/sky"
+          city={result.city.faName}
+          cityId={result.city.id}
+          timezone={result.city.timezone}
+          today={result.snapshot}
+          period={period}
+          view={view}
+          referenceTime={result.viewedAt}
+          previewOffers={{}}
+          relatedArticles={relatedArticles}
+        />
+      ) : (
+        <section dir="rtl" aria-label="وضعیت آسمان امروز">
+          <h1>آسترولوژی امروز</h1>
+          <SkyPublicExperience result={result} cityQuery={city} embedded showControls={false} />
+        </section>
+      )}
     </div>
   </>;
 }

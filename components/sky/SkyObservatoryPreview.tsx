@@ -271,10 +271,15 @@ function Wheel({ snapshot, onChoose }: { snapshot: SkyDailySnapshot; onChoose: (
     })}
   </div>;
 }
-export function SkyObservatoryPreview({ city, cityId, timezone, today, period, view, referenceTime, previewOffers }: {
+export function SkyObservatoryPreview({
+  city, cityId, timezone, today, period, view, referenceTime, previewOffers,
+  basePath = "/sky/preview", relatedArticles = [],
+}: {
   city: string; cityId: string; timezone: string;
   today: SkyDailySnapshot; period: SkyObservatoryPeriodData | null; view: View; referenceTime: string;
   previewOffers: Record<string, SurfaceOffer>;
+  basePath?: "/sky" | "/sky/preview";
+  relatedArticles?: ReadonlyArray<{ slug: string; title: string }>;
 }) {
   const [selectedDate, setSelectedDate] = useState(today.input.localDate);
   const [planet, setPlanet] = useState<SkyDailyBodyId | null>(null);
@@ -307,7 +312,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
     "فازهای ماه، جابه‌جایی سیارات و رویدادهای مهم این ماه شمسی را دنبال کن.";
   const allEvents = period?.snapshots.flatMap(s => s.timeline) ?? active.timeline;
   const moonIngress = allEvents.find(event => event.type === "ingress" && event.body === "moon");
-  const url = (next: View) => "/sky/preview?view=" + next +
+  const url = (next: View) => basePath + "?view=" + next +
     "&city=" + encodeURIComponent(cityId) + "#time-modes";
   const signGuides = SIGN_IDS.map(id=>({id,...buildSignGuide(id,active)}));
   const selectedGuide = signGuides.find(item=>item.id===sign);
@@ -524,7 +529,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <span className={styles.kicker}>جایگاه‌ها</span>
         <h2>{view === "today" ? "وضعیت سیارات امروز؛ هر جسم کجاست و چگونه حرکت می‌کند؟" : "وضعیت سیارات در روز انتخاب‌شده؛ جایگاه و حرکت"}</h2>
         <p className={styles.contextNote}>{view === "today" ? "وضعیت سیارات امروز را می‌توان از نشان، درجه و جهت حرکت هر جسم خواند." : "برای دیدن وضعیت سیارات امروز، نمای «امروز» را انتخاب کن؛ فهرست فعلی متعلق به تاریخ بالای چرخ است."}</p>
-        <p className={styles.contextNote}>موقعیت سیارات امروز با نشان و درجه مشخص می‌شود. حرکت سیارات امروز هم می‌گوید کدام جسم مستقیم حرکت می‌کند و کدام‌یک ظاهراً برگشتی است. در نمای هفته و ماه، همین اطلاعات برای روز انتخاب‌شده تغییر می‌کند.</p>
+        <p className={styles.contextNote}>موقعیت سیارات امروز را از نشان و درجهٔ هر جسم می‌توان خواند؛ در کنار آن، حرکت سیارات امروز مشخص می‌کند کدام‌یک مستقیم‌اند و کدام‌یک از دید زمین ظاهراً برگشتی دیده می‌شوند. در هفته و ماه این اطلاعات برای روز انتخاب‌شده به‌روز می‌شوند.</p>
         <div className={styles.planetList}>{active.planetaryStates.map(item =>
           <button type="button" key={item.body} onClick={() => setPlanet(item.body)}>
             <span>{SKY_BODY_SYMBOLS[item.body]}</span>
@@ -615,6 +620,12 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <details className={styles.more}><summary>ارتباط آسمان امروز و چارت شخصی</summary>
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="این داده‌ها را چگونه به زندگی خودت ربط بدهی؟"/>
         </details>
+        {relatedArticles.length > 0 ? <nav className={styles.relatedWiki} aria-label="مطالعهٔ بیشتر در ویکی هالیوس">
+          <strong>مطالعهٔ بیشتر</strong>
+          <ul>{relatedArticles.map(article =>
+            <li key={article.slug}><Link href={"/wiki/" + article.slug}>{article.title}</Link></li>
+          )}</ul>
+        </nav> : null}
       </section>
       <section className={styles.reading} id="sky-faq">
         <span className={styles.kicker}>پرسش‌های رایج</span>
@@ -628,10 +639,10 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <details className={styles.more}><summary>جنبه‌های امروز چه فرقی با جایگاه سیارات دارند؟</summary>
           <p>زاویه سیارات امروز ارتباط زاویه‌ای دو جرم را نشان می‌دهد، نه نشان یا درجهٔ مستقل هر کدام را. نوع زاویه و فاصلهٔ آن از مقدار دقیق (اورب) در فهرست ترنزیت‌ها دیده می‌شود.</p>
         </details>
-        <details className={styles.more}><summary>آیا آسترولوژی امروز همان فال روزانه است؟</summary><p>نه. داده‌های جایگاه سیارات، فاز ماه و زاویه‌های روز از محاسبه می‌آیند. فال روزانه معمولاً متنی تفسیری برای یک نشان است. این صفحه علاوه بر توضیح‌های نمادین، خودِ داده‌ها و خط زمانی را هم نشان می‌دهد؛ بنابراین می‌توانی میان محاسبه و برداشت فرق بگذاری.</p></details><details className={styles.more}><summary>ساعت رویدادها برای کدام شهر است؟</summary><p>ساعت‌ها بر اساس منطقهٔ زمانی شهری که داده برای آن به دست آمده نمایش داده می‌شوند. در نمای فعلی، تهران پیش‌فرض است و انتخاب‌گر عمومیِ تغییر شهر و تاریخ دیده نمی‌شود. برای یک تاریخ واحد، ساعت محلی همان رویداد در شهرهای مختلف می‌تواند فرق کند.</p></details><details className={styles.more}><summary>فاز ماه امروز چگونه محاسبه می‌شود؟</summary><p>نام فاز و درصد روشنایی از دادهٔ محاسبه‌شدهٔ همان روز به دست می‌آیند. فاز ماه با نشان ماه یکی نیست: فاز از هندسهٔ روشنایی صحبت می‌کند و نشان از محل ماه در زودیاک.</p></details><details className={styles.more}><summary>چرا بعضی روزها داده نمایش داده نمی‌شود؟</summary><p>اگر تاریخ خواسته‌شده خارج از روز پشتیبانی‌شده باشد یا دادهٔ معتبر آن درخواست در دسترس نباشد، هالیوس وضعیت نبود داده را نشان می‌دهد و روز دیگری را بی‌خبر جایگزین نمی‌کند. این رفتار از نمایش عددی ظاهراً دقیق ولی نامربوط بهتر است.</p></details>
+        <details className={styles.more}><summary>آیا آسترولوژی امروز همان فال روزانه است؟</summary><p>نه. داده‌های جایگاه سیارات، فاز ماه و زاویه‌های روز از محاسبه می‌آیند. فال روزانه معمولاً متنی تفسیری برای یک نشان است. این صفحه علاوه بر توضیح‌های نمادین، خودِ داده‌ها و خط زمانی را هم نشان می‌دهد؛ بنابراین می‌توانی میان محاسبه و برداشت فرق بگذاری.</p></details><details className={styles.more}><summary>ساعت رویدادها برای کدام شهر است؟</summary><p>ساعت‌ها بر اساس منطقهٔ زمانی شهری که داده برای آن به دست آمده نمایش داده می‌شوند. در حالت پیش‌فرض تهران مبناست و می‌توانی شهر رصد را از بخش «انتخاب شهر رصد» تغییر بدهی. برای یک تاریخ واحد، ساعت محلی همان رویداد در شهرهای مختلف می‌تواند فرق کند.</p></details><details className={styles.more}><summary>فاز ماه امروز چگونه محاسبه می‌شود؟</summary><p>نام فاز و درصد روشنایی از دادهٔ محاسبه‌شدهٔ همان روز به دست می‌آیند. فاز ماه با نشان ماه یکی نیست: فاز از هندسهٔ روشنایی صحبت می‌کند و نشان از محل ماه در زودیاک.</p></details><details className={styles.more}><summary>چرا بعضی روزها داده نمایش داده نمی‌شود؟</summary><p>اگر تاریخ خواسته‌شده خارج از روز پشتیبانی‌شده باشد یا دادهٔ معتبر آن درخواست در دسترس نباشد، هالیوس وضعیت نبود داده را نشان می‌دهد و روز دیگری را بی‌خبر جایگزین نمی‌کند. این رفتار از نمایش عددی ظاهراً دقیق ولی نامربوط بهتر است.</p></details>
       </section>
       <details className={styles.cityTools} id="sky-city-tools"><summary>انتخاب شهر رصد</summary>
-        <form method="get" action="/sky/preview">
+        <form method="get" action={basePath}>
           <input type="hidden" name="view" value={view}/>
           <SkyCityPicker initialCity={{id:cityId,faName:city,provinceFaName:""}}/>
           <button type="submit">نمایش آسمان این شهر</button>

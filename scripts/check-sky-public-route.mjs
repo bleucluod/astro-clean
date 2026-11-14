@@ -33,9 +33,12 @@ requireAll("Public Sky page", page, [
   "deliverSkyPublicSnapshot",
   "searchParams",
   "آسمان امروز",
-  'includeSections={["sky-hero"]}',
-  "SkyHeroLive",
-  '"sky-hero": <SkyHeroLive result={result} />',
+  "<SkyObservatoryPreview",
+  'basePath="/sky"',
+  "previewOffers={{}}",
+  "getSkyObservatoryPeriod",
+  'result.status === "ready"',
+  "relatedArticles={relatedArticles}",
   "showControls={false}",
   '"@type": "FAQPage"',
 ]);
@@ -83,8 +86,23 @@ requireAll("Public Sky delivery", delivery, [
 ]);
 forbidAll("Public Sky delivery", delivery, ["report-generation", "natal", "personalTransit", "fallbackSnapshot"]);
 
-if (sitemap.includes('"/sky"')) {
-  throw new Error("Public Sky must not enter the sitemap before the discovery batch.");
+const seo = read("lib/config/seo.ts");
+requireAll("Public Sky canonical route", seo, ['{ path: "/sky"']);
+requireAll("Sitemap generator", sitemap, ["seoRoutes.map", "publicPageEntries"]);
+const observatory = read("components/sky/SkyObservatoryPreview.tsx");
+requireAll("Published Sky navigation", observatory, [
+  'basePath = "/sky/preview"', 'basePath + "?view="', 'action={basePath}',
+  'relatedArticles.map(article', 'previewFallback={previewOffers["after-moon"]}',
+]);
+if (page.includes('<FinalEditorialPage') || page.includes('<SkyHeroLive')) {
+  throw new Error("Ready public Sky must not render duplicate legacy hero or editorial blocks.");
+}
+if (!page.includes('result.status === "ready"') ||
+    !page.includes("<SkyPublicExperience result={result}")) {
+  throw new Error("Public Sky must preserve unavailable-state fallback.");
+}
+if (page.includes("wikiShopProductCatalog") || page.includes("SKY_PREVIEW_COPY")) {
+  throw new Error("Public Sky must not publish preview-only showcase samples.");
 }
 
 console.log("Public Sky route and snapshot delivery check passed.");

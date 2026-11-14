@@ -537,6 +537,13 @@
 @media(max-width:600px){
   .page .contextNote{font-size:15px;line-height:2.03;margin-block:8px 14px}
 }
+/* Contextual discovery remains subordinate to the observational content. */
+.relatedWiki{margin:22px 0 8px;padding:15px 0;border-top:1px solid rgba(200,218,233,.2)}
+.relatedWiki>strong{color:#edf3f8;font-size:15px}
+.relatedWiki ul{display:flex;flex-wrap:wrap;gap:10px 18px;margin:12px 0 0;padding:0;list-style:none}
+.relatedWiki li{margin:0}
+.relatedWiki a{font-size:14px;line-height:1.85;color:#d2e6f4;text-decoration:underline;text-underline-offset:4px}
+.relatedWiki a:hover,.relatedWiki a:focus-visible{color:#fff}
 /* Sky observatory preview: mobile-first reading contrast, 2026-11-14. */
 .page{
   --sky-read-title:#f8fbff;
