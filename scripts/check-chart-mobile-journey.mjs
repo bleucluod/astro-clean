@@ -83,7 +83,7 @@ for (const marker of [
   "onConfirm={applyMobileBirthTime}",
   "type MobileDateParts",
   "type MobileTimeParts",
-  "chart-mobile-picker-trigger, .chart-native-select",
+  ".wheelViewport, .chart-native-select, .chart-select-trigger",
   '!comparisonMode && birthTimeMode === "known"',
 ]) {
   expect(form.includes(marker), "New chart-only picker bridge missing: " + marker);
