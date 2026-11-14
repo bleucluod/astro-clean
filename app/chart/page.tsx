@@ -100,9 +100,6 @@ export default async function ChartPage() {
             چارت تولد رایگان فارسی
           </h1>
 
-          <p className={styles.heroQuickLead}>
-            تاریخ، ساعت و شهر تولدت را وارد کن و چارت شخصی خودت را با تفسیر فارسی ببین.
-          </p>
           <div className={styles.heroQuickPreview}>
             <Image alt="" width={1254} height={1254} sizes="56px"
               src="/halleus-chart-wheel-sample-polished-centered.webp" />

@@ -10,9 +10,9 @@
   .journeyRoot :global(.chart-form-progress) { display: none !important; }
   .journeyRoot .journeyProgress {
     display: grid;
-    gap: 10px;
-    margin: 0 0 4px;
-    padding: 8px 0 13px;
+    gap: 5px;
+    margin: 0;
+    padding: 0 0 7px;
     border-bottom: 1px solid rgba(176,201,223,.13);
   }
   .progressHeading {
@@ -54,8 +54,8 @@
     display: grid;
     justify-items: center;
     gap: 4px;
-    color: #8e9eae;
-    font-size: .68rem;
+    color: #e8f0f8;
+    font-size: .7rem;
     font-weight: 580;
   }
   .orbitDot {
@@ -66,7 +66,7 @@
     border: 1px solid #506479;
     border-radius: 50%;
     background: #111b26;
-    color: #93a6b9;
+    color: #e8f0f8;
     font-size: .69rem;
     font-variant-numeric: tabular-nums;
     transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, color 220ms ease;
@@ -80,11 +80,7 @@
     animation: chartJourneySpark 280ms ease-out both;
   }
   .progressHint {
-    margin: 0;
-    text-align: center;
-    color: #93aabf;
-    font-size: .7rem;
-    line-height: 1.7;
+    display: none;
   }
   .journeyRoot :global(.chart-form-fields) {
     display: grid !important;
@@ -100,7 +96,7 @@
   .journeyRoot .journeyStep:focus-within { border-color: rgba(175,208,232,.32); }
   .journeyRoot .stepBody { display: block; }
   .journeyRoot .journeyStep :global(.chart-field) {
-    padding: 10px 0 !important;
+    padding: 6px 0 !important;
     border: 0 !important;
     background: transparent !important;
   }
@@ -111,6 +107,18 @@
   .journeyRoot .journeyStep :global(.chart-field input) {
     min-height: 47px !important;
     font-size: 16px !important;
+  }
+  .journeyRoot .journeyStep :global(.time-unknown-choice input) {
+    inline-size: 20px !important;
+    min-inline-size: 20px !important;
+    max-inline-size: 20px !important;
+    block-size: 20px !important;
+    min-block-size: 20px !important;
+    max-block-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    flex: 0 0 20px !important;
   }
   .journeyRoot .stepCollapsed .stepBody { display: none; }
   .journeyRoot .stepCollapsed .stepSummary {
@@ -141,7 +149,7 @@
     font-size: .7rem;
   }
   .summaryTitle {
-    color: #b3c8d9;
+    color: #eef5fc;
     font-size: .75rem;
     white-space: nowrap;
   }
@@ -156,7 +164,7 @@
     white-space: nowrap;
   }
   .summaryEdit {
-    color: #98b6cc;
+    color: #e2effb;
     font-size: .72rem;
     text-decoration: underline;
     text-underline-offset: 3px;

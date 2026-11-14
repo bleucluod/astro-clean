@@ -61,6 +61,13 @@ expect(form.includes("saveGeneratedReportWithAccountFallback("), "Persistence ch
 expect(form.includes('detail: "chart_complete"'), "Analytics completion changed");
 expect(page.includes('data-chart-seo-landing="transactional-birth-chart"'), "Chart landing removed");
 expect(page.includes('id="chart-report-details"'), "Editorial and report sample removed");
+expect(!page.includes("تاریخ، ساعت و شهر تولدت را وارد کن و چارت شخصی خودت را با تفسیر فارسی ببین."), "Redundant hero instruction must be removed");
+expect(page.includes("تاریخ، ساعت و شهر تولدت را وارد کن تا چارت تولد شخصی تو محاسبه شود."), "Existing SEO explanation below form missing");
+const routeCss = readFileSync("app/chart/chart-shell.module.css", "utf8");
+expect(routeCss.includes("HALLEUS_CHART_MOBILE_COMPACT_READABLE_20261114"), "Mobile spacing/contrast fix missing");
+expect(routeCss.includes(".formPanel :global(.chart-time-title-row)"), "Time unknown control must remain inline");
+expect(routeCss.includes("flex-direction: row !important;"), "Mobile time row must not stack");
+expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 
 if (errors.length > 0) {
   console.error("Chart mobile journey check failed:");

@@ -3441,4 +3441,96 @@
   .formPanel :global(.chart-account-option){margin-top:7px !important;padding-block:10px !important}
   .formAfterword{margin:5px 15px 16px}
   .heroEditorial{margin:0}
+
+  /* HALLEUS_CHART_MOBILE_COMPACT_READABLE_20261114 */
+  .page { gap: 7px; }
+  .page .hero { padding-block: 2px 4px !important; }
+  .heroTitle { margin-top: 2px; line-height: 1.4; }
+  .formPanelHeading { padding: 7px 14px 0 !important; }
+  .formPanelHeading h2 { line-height: 1.5; }
+  .formPanel :global(.chart-reference-content) {
+    padding: 0 14px 12px !important;
+    gap: 0 !important;
+  }
+  .formPanel :global(.chart-reference-form) {
+    gap: 0 !important;
+    grid-auto-rows: max-content;
+    align-content: start !important;
+  }
+  .formPanel :global(.chart-form-fields) {
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-content: start !important;
+  }
+  .formPanel :global(.chart-time-title-row) {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .formPanel :global(.chart-time-title-row > .chart-field-label) {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .formPanel :global(.time-unknown-choice) {
+    display: inline-flex !important;
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 32px !important;
+    padding: 4px 6px !important;
+    gap: 6px !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    border: 1px solid rgba(220,238,255,.2);
+    border-radius: 10px;
+    color: #f3f7fc !important;
+    font-size: .67rem !important;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .formPanel :global(.time-unknown-choice span) {
+    color: #f3f7fc !important;
+    -webkit-text-fill-color: #f3f7fc !important;
+  }
+  .formPanel :global(.time-unknown-choice input) {
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    inline-size: 20px !important;
+    min-inline-size: 20px !important;
+    max-inline-size: 20px !important;
+    block-size: 20px !important;
+    min-block-size: 20px !important;
+    max-block-size: 20px !important;
+    flex: 0 0 20px !important;
+    margin: 0 !important;
+  }
+  .editorialParagraph,
+  .formAfterword,
+  .detailParagraph,
+  .detailNote,
+  .detailList,
+  .educationHeading p,
+  .reportSampleCopy p,
+  .sampleCaption,
+  .reportStripItems small,
+  .supportSectionCopy p,
+  .supportSectionCopy li,
+  .formPanel :global(.chart-form-reassurance),
+  .formPanel :global(.field-hint),
+  .formPanel :global(.chart-select-segment > span),
+  .formPanel :global(.chart-optional-details > summary) {
+    color: #f0f5fa !important;
+    -webkit-text-fill-color: #f0f5fa !important;
+  }
+  .formPanel :global(.chart-field input::placeholder) {
+    color: #cfdce9 !important;
+    -webkit-text-fill-color: #cfdce9 !important;
+    opacity: 1 !important;
+  }
 }
