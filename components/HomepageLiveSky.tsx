@@ -97,19 +97,21 @@ export function SkyMoonVisual({
   illuminationFraction,
   phase,
   showPanel = true,
+  idPrefix = "home",
 }: {
   label: string;
   illuminationFraction?: number;
   phase?: "new" | "waxing" | "full" | "waning";
   showPanel?: boolean;
+  idPrefix?: string;
 }) {
   const illumination = Math.max(0, Math.min(1, illuminationFraction ?? 0));
   const shadowPath = buildMoonShadowPath(illumination, phase);
   const shadowGradient = getMoonShadowGradient(phase);
-  const shadowGradientId = `home-moon-shadow-${phase ?? "unavailable"}`;
-  const shadowEdgeId = `home-moon-shadow-edge-${phase ?? "unavailable"}`;
-  const shadowBlurId = `home-moon-shadow-blur-${phase ?? "unavailable"}`;
-  const shadowEdgeBlurId = `home-moon-shadow-edge-blur-${phase ?? "unavailable"}`;
+  const shadowGradientId = `${idPrefix}-moon-shadow-${phase ?? "unavailable"}`;
+  const shadowEdgeId = `${idPrefix}-moon-shadow-edge-${phase ?? "unavailable"}`;
+  const shadowBlurId = `${idPrefix}-moon-shadow-blur-${phase ?? "unavailable"}`;
+  const shadowEdgeBlurId = `${idPrefix}-moon-shadow-edge-blur-${phase ?? "unavailable"}`;
 
   return (
     <div className={styles.skyVisual} aria-hidden="true">

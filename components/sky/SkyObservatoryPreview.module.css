@@ -66,12 +66,16 @@
   filter:drop-shadow(0 5px 38px rgba(0,0,0,.78));
 }
 .wheel{display:block;width:100%;height:100%}
-.ringMajor{fill:none;stroke:#d2d7dd;stroke-opacity:.63;stroke-width:1.15}
-.ringMinor{fill:none;stroke:#9faebc;stroke-opacity:.42;stroke-width:.98}
-.tick{stroke:#aebbc8;stroke-opacity:.53;stroke-width:.9}
-.spoke{stroke:#b3bdc7;stroke-opacity:.4;stroke-width:.9}
+.ringMajor{fill:none;stroke:#d5e2ee;stroke-opacity:.62;stroke-width:1.12}
+.ringMinor{fill:none;stroke:#9fb5ca;stroke-opacity:.29;stroke-width:.82}
+.tick{stroke:#aebbc8;stroke-opacity:.4;stroke-width:.72}
+.tickMajor{stroke:#d4e5f1;stroke-opacity:.78;stroke-width:1.35}
+.spoke{stroke:#b3c6d8;stroke-opacity:.27;stroke-width:.8}
 .zodiacSymbol{fill:#f0f1f1;font:23px "Segoe UI Symbol",Arial,sans-serif}
-.aspectLine{stroke:#96aebf;stroke-width:1.08}
+.aspectLine{stroke:#96aebf;stroke-width:1.08;transition:opacity .2s ease}
+.aspectFlow{stroke:#a4c7cc;stroke-width:1.12}
+.aspectTension{stroke:#c6aeb6;stroke-width:1.04}
+.aspectUnion{stroke:#c4d1df;stroke-width:1.25}
 .core{fill:#111820;stroke:#9dacb8;stroke-opacity:.55}
 .coreRing{fill:none;stroke:#879ba9;stroke-opacity:.4}
 .coreText{fill:#e1e6e9;font:11px Arial,sans-serif;letter-spacing:.09em}
@@ -80,7 +84,7 @@
   width:30px;height:30px;padding:0;border:1px solid #8fa9ba;border-radius:50%;
   background:#111c26;color:#f2f5f7;font:20px "Segoe UI Symbol",Arial,sans-serif!important;
   box-shadow:0 0 0 3px #09111ad0,0 0 10px #080b10;transition:background .2s,box-shadow .2s}
-.planetPin:hover,.planetPin:focus-visible{z-index:3;background:#344b5a;box-shadow:0 0 0 5px #8fa9ba33}
+.planetPin:hover,.planetPin:focus-visible,.planetPinActive{z-index:3;background:#344b5a;border-color:#e5f4ff;box-shadow:0 0 0 5px #8fa9ba33,0 0 20px rgba(171,207,238,.35)}
 .sceneFoot{display:flex;justify-content:space-between;align-items:center;gap:13px;padding:0 15px;
   margin-top:-4px;color:#adbac4;font-size:12px}
 .sceneFoot>div{display:flex;flex-direction:column}
@@ -188,42 +192,49 @@
 .page :global([data-r3-approved-inline="sky"] h3) {font-size:18px;color:#f0f2f3}
 .signRail{display:flex;gap:8px;overflow-x:auto;padding:12px 0 14px;scrollbar-width:thin}
 
-/* Real-scrolling mobile sweep rails: native touch scroll and seamless duplicate groups. */
+/* Compositor-driven seamless continuous rails; both halves have equal geometry. */
 .sweepViewport{position:relative;width:100%;overflow:visible}
 .sweepTrack{display:block}
 .sweepGroup{width:100%;min-width:0}
 .sweepTrack>.sweepGroup:nth-child(2){display:none}
+@keyframes skyReadingSweep{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(50%,0,0)}
+}
 @media(max-width:720px){
-  .page .sweepViewport{
-    overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
-    scroll-behavior:auto;scrollbar-width:none;-ms-overflow-style:none;
-  }
-  .page .sweepViewport::-webkit-scrollbar{display:none}
+  .page .sweepViewport{overflow:hidden;overscroll-behavior-x:contain}
   .page .sweepTrack{display:flex;direction:rtl;width:max-content;align-items:stretch}
   .page .sweepTrack>.sweepGroup:nth-child(2){display:flex}
   .page .sweepGroup{flex:0 0 auto;width:max-content;min-width:0}
-  .page .signalRail.sweepGroup{
-    display:flex;grid-template-columns:none;gap:0;margin:0;padding:12px 0;
-    border:0;background:transparent;
-  }
-  .page .signalRail.sweepGroup>div{
-    display:grid;flex:0 0 118px;min-width:118px;gap:3px;
-    grid-template-columns:23px minmax(0,1fr);grid-template-rows:auto auto;
-    padding:4px 10px;align-content:center;
-  }
+  .page .signalRail.sweepGroup{display:flex;grid-template-columns:none;gap:0;margin:0;padding:12px 0;border:0;background:transparent}
+  .page .signalRail.sweepGroup>div{display:grid;flex:0 0 118px;min-width:118px;gap:3px;grid-template-columns:23px minmax(0,1fr);grid-template-rows:auto auto;padding:4px 10px;align-content:center}
   .page .signalRail.sweepGroup>div:last-child{border-left:1px solid var(--line)}
-  .page .signRail.sweepGroup{
-    display:flex;gap:8px;overflow:visible;padding:12px 8px 14px 0;margin:0;
-    scrollbar-width:none;
-  }
+  .page .signRail.sweepGroup{display:flex;gap:8px;overflow:visible;padding:12px 8px 14px 0;margin:0;scrollbar-width:none}
   .page .signRail.sweepGroup .sign,.page .signRail.sweepGroup .signActive{flex:0 0 76px}
+  .page .exploreTiles.sweepGroup{display:flex;gap:10px;overflow:visible;padding:0 10px 8px 0;margin:0}
+  .page .exploreTiles.sweepGroup>a{flex:0 0 242px;min-height:125px}
   .page .sweepSignalViewport{border-block:1px solid var(--line)}
+}
+@media(max-width:720px) and (prefers-reduced-motion:no-preference){
+  .page .sweepTrack{animation:skyReadingSweep 35s linear infinite;will-change:transform}
+  .page .sweepSignViewport .sweepTrack{animation-duration:58s}
+  .page .sweepExploreViewport .sweepTrack{animation-duration:43s}
+  .page .sweepViewport[data-sweep-held="true"] .sweepTrack,
+  .page .sweepViewport:focus-within .sweepTrack{animation-play-state:paused}
+}
+@media(max-width:720px) and (hover:hover) and (prefers-reduced-motion:no-preference){
+  .page .sweepViewport:hover .sweepTrack{animation-play-state:paused}
+}
+@media(max-width:720px) and (prefers-reduced-motion:reduce){
+  .page .sweepViewport{overflow-x:auto;scrollbar-width:thin}
+  .page .sweepTrack{animation:none!important;transform:none!important}
+  .page .sweepTrack>.sweepGroup:nth-child(2){display:none}
 }
 @media(max-width:600px){
   .page .sweepSignalViewport{margin:14px -18px 22px;width:calc(100% + 36px)}
   .page .signalRail.sweepGroup{padding:11px 0}
-  .page .signalRail.sweepGroup>div{flex-basis:118px}
   .page .sweepSignViewport{margin-top:8px}
+  .page .sweepExploreViewport{margin-top:12px}
 }
 .sign,.signActive{border:0;border-bottom:1px solid transparent;flex:0 0 72px;
   background:transparent;padding:7px 4px 9px;display:flex;flex-direction:column;gap:2px;
@@ -392,7 +403,7 @@
   .sceneLabel{padding:0 8px;font-size:10px}
   .sceneLabel span:first-child{font-size:8px;letter-spacing:.09em}
   .wheelWrap{max-width:480px}
-  .planetPin{width:24px;height:24px;font-size:16px!important}
+  .planetPin{width:28px;height:28px;font-size:17px!important}
   .sceneFoot{padding:0 9px;font-size:10px}
   .sceneFoot>div span{font-size:10px}
   .sceneFoot strong{font-size:11px}
@@ -570,7 +581,10 @@
 }
 .moonExperience{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);
   align-items:center;gap:clamp(14px,3vw,38px);padding:10px 0 18px}
-.moonVisual{width:100%;min-width:0;max-width:350px;overflow:clip;isolation:isolate}
+.moonVisual{display:block;width:100%;min-width:0;max-width:350px;overflow:clip;isolation:isolate;padding:0;border:0;border-radius:20px;background:transparent;color:#e8f1f8;cursor:zoom-in;text-align:center}
+.moonVisual:focus-visible{outline:2px solid #d8e8f5;outline-offset:3px}
+.moonVisualHint{display:block;padding:1px 0 8px;font-size:13px;color:#cad9e6}
+.moonVisual:hover .moonVisualHint{text-decoration:underline;text-underline-offset:3px}
 .moonDetails{min-width:0;padding:15px 0;border-block:1px solid var(--line)}
 .moonDetails .moonFact{display:grid;gap:2px}
 .moonDetails .moonFact span{font-size:15px;color:#cbd9e4}
@@ -605,4 +619,24 @@
   .page .sheetMetrics>div{padding:11px 5px}
   .page .sheet{padding-inline:20px}
 }
-@media(prefers-reduced-motion:reduce){.planetPin{transition:none}}
+.moonSheet{padding-top:22px;text-align:center}
+.moonSheet>.sheetEyebrow{display:block;padding:19px 38px 0;font-size:14px;color:#bfcedc}
+.moonSheet>h2{margin:6px 0 0;font-size:27px}
+.moonSheetImage{display:grid;place-items:center;max-width:355px;margin:0 auto;min-height:310px}
+.moonSheetFacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:3px 0 15px}
+.moonSheetFacts>div{display:grid;gap:4px;background:rgba(29,44,58,.74);padding:10px 4px;border:1px solid #7790a634;border-radius:12px}
+.moonSheetFacts span{font-size:12px;color:#bfcfdf}
+.moonSheetFacts strong{font-size:15px;color:#f0f7fd}
+.moonSheet>p{font-size:15px;line-height:2;color:#d5e2ec!important}
+.compactReading{margin-top:8px}
+.compactReading p{font-size:15px;line-height:2.07;margin:0;color:#dce7f1}
+.compactReading button{display:inline-flex;margin:8px 0 0;padding:4px 0;border:0;background:none;color:#d0e6f4;font-size:13px;text-decoration:underline;text-underline-offset:4px}
+.page .container>.reading{padding-block:30px 27px}
+.page .eventList>div{padding-block:16px}
+.page .eventList>div .compactReading{margin-top:8px}
+@media(max-width:600px){
+  .page .container>.reading{padding-block:26px 23px}
+  .page .reading h2{margin-bottom:12px}
+  .page .moonSheetImage{min-height:285px}
+}
+@media(prefers-reduced-motion:reduce){.planetPin{transition:none}.aspectLine{transition:none}}

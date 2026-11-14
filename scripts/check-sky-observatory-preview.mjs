@@ -57,9 +57,11 @@ requireText(client, [
   "SkyCityPicker", "EditorialStickyCtaSequence",
   "data-sky-mode={view}", "modeTitle", "modeSubtitle",
   "SkyMoonVisual", "showPanel={false}", "styles.moonExperience",
-  "AutoSweepRail", "renderItems={duplicate => SIGN_IDS.map", "prefers-reduced-motion: reduce",
-  "onPointerEnter", "onPointerDown", "onPointerUp", "onPointerCancel",
-  "tabIndex={duplicate ? -1 : undefined}",
+  "AutoSweepRail", "renderItems={duplicate => SIGN_IDS.map",
+  "groupClassName={styles.exploreTiles}", "data-sweep-held={touchHeld",
+  "tabIndex={duplicate ? -1 : undefined}", "CompactReading", "setMoonOpen",
+  "styles.moonSheet", "styles.moonSheetImage", "styles.moonVisualHint",
+  "styles.aspectFlow", "styles.aspectTension", "styles.aspectUnion",
   "styles.sheetVisual", "styles.sheetMetrics", "styles.sheetTechnical",
   "styles.weekLine", "previewOffers",
 ]);
@@ -73,6 +75,8 @@ requireText(css, [
   "flex:1 1 0;display:grid", "flex:1 0 53px",
   ".moonExperience", ".moonDetails", ".sheetOrbit", ".sheetReading",
   ".sweepViewport", ".sweepTrack", ".sweepGroup", ".sweepSignalViewport", ".sweepSignViewport",
+  ".sweepExploreViewport", "@keyframes skyReadingSweep", "animation-play-state:paused",
+  ".moonSheet", ".moonVisualHint", ".aspectFlow", ".compactReading",
 ]);
 const showcaseSlot = read("components/shop/SurfaceShowcaseSlot.tsx");
 for (const marker of ["previewFallback?: SurfaceOffer", "track={!previewFallback}", "publishedOffer ?? previewFallback ?? null"]) {
@@ -86,13 +90,15 @@ const railSource = sources.get(client) ?? "";
 for (const marker of [
   'groupClassName={styles.signalRail} variant="signal"',
   'groupClassName={styles.signRail} variant="sign"',
-  'data-sweep-original="true"',
-  'aria-hidden="true" dir="rtl"',
+  'groupClassName={styles.exploreTiles} variant="explore"',
+  'data-sweep-original="true"', 'aria-hidden="true" dir="rtl"',
   'tabIndex={duplicate ? -1 : undefined}',
-  'document.visibilityState === "visible"',
-]) if (!railSource.includes(marker)) errors.push("Looping rail must retain: " + marker);
+  'data-sweep-held={touchHeld ? "true" : "false"}',
+  'idPrefix="sky-preview-modal"', 'idPrefix="sky-preview-inline"',
+  'onClick={() => setMoonOpen(true)}', 'CompactReading',
+]) if (!railSource.includes(marker)) errors.push("Sky interactive preview must retain: " + marker);
 const homeMoon = sources.get("components/HomepageLiveSky.tsx") ?? "";
-for (const marker of ["export function SkyMoonVisual", "moon-apollo11.webp", "buildMoonShadowPath", "showPanel = true"]) {
+for (const marker of ["export function SkyMoonVisual", "moon-apollo11.webp", "buildMoonShadowPath", "showPanel = true", "idPrefix = \"home\""]) {
   if (!homeMoon.includes(marker)) errors.push("Reusable homepage moon contract missing: " + marker);
 }
 const obs = sources.get(client) ?? "";

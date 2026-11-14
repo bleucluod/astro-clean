@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { SkyMoonVisual } from "@/components/HomepageLiveSky";
 import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
@@ -163,83 +163,22 @@ function buildSignGuide(sign: SkyDailyZodiacSign, snapshot: SkyDailySnapshot) {
 
 
 /** A native-scroll, seamless mobile rail. One copy is accessible; both copies work with pointer input. */
+/** GPU-composited looping rail, paused without losing animation position. */
 function AutoSweepRail({ label, groupClassName, variant, renderItems }: {
-  label: string;
-  groupClassName: string;
-  variant: "signal" | "sign";
+  label: string; groupClassName: string;
+  variant: "signal" | "sign" | "explore";
   renderItems: (duplicate: boolean) => ReactNode;
 }) {
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const held = useRef({ hover: false, touch: false, focus: false });
-
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
-    const compact = window.matchMedia("(max-width: 720px)");
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const firstGroup = viewport.querySelector<HTMLElement>('[data-sweep-original="true"]');
-    if (!firstGroup) return;
-    let visible = true;
-    let previous = 0;
-    let frameId = 0;
-    let lastCompact = compact.matches;
-    const observer = typeof IntersectionObserver === "function"
-      ? new IntersectionObserver(entries => { visible = Boolean(entries[0]?.isIntersecting); }, {
-          rootMargin: "80px",
-        })
-      : null;
-    observer?.observe(viewport);
-
-    const advance = (now: number) => {
-      const elapsed = previous ? Math.max(0, Math.min(now - previous, 50)) : 0;
-      previous = now;
-      if (compact.matches !== lastCompact) {
-        viewport.scrollLeft = 0;
-        lastCompact = compact.matches;
-      }
-      if (compact.matches && !reduced.matches && visible &&
-        document.visibilityState === "visible" &&
-        !held.current.hover && !held.current.touch && !held.current.focus) {
-        const span = firstGroup.getBoundingClientRect().width;
-        if (span > viewport.clientWidth + 1) {
-          // RTL uses negative scrollLeft on modern browsers; wrapping at one
-          // identical group preserves the visible frame without a jump.
-          const next = viewport.scrollLeft - elapsed * 0.018;
-          viewport.scrollLeft = next <= -span ? next + span : next;
-        }
-      }
-      frameId = window.requestAnimationFrame(advance);
-    };
-    frameId = window.requestAnimationFrame(advance);
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      observer?.disconnect();
-    };
-  }, []);
-
-  return <div ref={viewportRef}
-    className={variant === "signal"
-      ? styles.sweepViewport + " " + styles.sweepSignalViewport
-      : styles.sweepViewport + " " + styles.sweepSignViewport}
-    role="group" aria-label={label}
-    onPointerEnter={event => {
-      if (event.pointerType === "mouse" || event.pointerType === "pen") held.current.hover = true;
-    }}
-    onPointerLeave={event => {
-      if (event.pointerType === "mouse" || event.pointerType === "pen") held.current.hover = false;
-      if (event.pointerType !== "mouse") held.current.touch = false;
-    }}
-    onPointerDown={() => { held.current.touch = true; }}
-    onPointerUp={() => { held.current.touch = false; }}
-    onPointerCancel={() => { held.current.touch = false; }}
-    onFocusCapture={event => {
-      if (event.target instanceof HTMLElement && event.target.matches(":focus-visible"))
-        held.current.focus = true;
-    }}
-    onBlurCapture={event => {
-      if (!event.relatedTarget || !event.currentTarget.contains(event.relatedTarget))
-        held.current.focus = false;
-    }}>
+  const [touchHeld, setTouchHeld] = useState(false);
+  const variantStyle = variant === "signal" ? styles.sweepSignalViewport :
+    variant === "sign" ? styles.sweepSignViewport : styles.sweepExploreViewport;
+  return <div role="group" aria-label={label}
+    className={styles.sweepViewport + " " + variantStyle}
+    data-sweep-held={touchHeld ? "true" : "false"}
+    onPointerDown={event => { if (event.pointerType !== "mouse") setTouchHeld(true); }}
+    onPointerUp={() => setTouchHeld(false)}
+    onPointerCancel={() => setTouchHeld(false)}
+    onPointerLeave={event => { if (event.pointerType !== "mouse") setTouchHeld(false); }}>
     <div className={styles.sweepTrack}>
       <div className={styles.sweepGroup + " " + groupClassName}
         data-sweep-original="true" dir="rtl">{renderItems(false)}</div>
@@ -249,23 +188,41 @@ function AutoSweepRail({ label, groupClassName, variant, renderItems }: {
   </div>;
 }
 
+function CompactReading({ text }: { text?: string }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!text) return null;
+  if (text.length <= 265) return <p>{text}</p>;
+  const boundary = [...text.matchAll(/[.!؟](?:\s|$)/gu)]
+    .map(match => (match.index ?? 0) + 1)
+    .find(index => index >= 110 && index <= 230);
+  const wordBoundary = text.lastIndexOf(" ", 230);
+  const preview = text.slice(0, boundary ?? (wordBoundary > 110 ? wordBoundary : 230)).trim();
+  return <div className={styles.compactReading}>
+    <p>{expanded ? text : preview + (/[.!؟]$/u.test(preview) ? "" : "…")}</p>
+    <button type="button" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
+      {expanded ? "بستن توضیح" : "خواندن توضیح کامل"}
+    </button>
+  </div>;
+}
+
 function Wheel({ snapshot, onChoose }: { snapshot: SkyDailySnapshot; onChoose: (id: SkyDailyBodyId) => void }) {
+  const [highlightBody, setHighlightBody] = useState<SkyDailyBodyId | null>(null);
   const sorted = [...snapshot.planetaryStates].sort((a,b) => a.longitude-b.longitude);
   return <div className={styles.wheelWrap}>
     <svg className={styles.wheel} viewBox="0 0 640 640" role="img"
       aria-label="نقشهٔ محاسبه‌شدهٔ آسمان؛ موقعیت سیارات و زاویه‌ها">
       <defs><radialGradient id="sky-v9-wheel-well">
-        <stop offset="0%" stopColor="#1b1d20"/>
-        <stop offset="68%" stopColor="#14161a"/>
-        <stop offset="100%" stopColor="#090a0c"/>
+        <stop offset="0%" stopColor="#1c2935"/>
+        <stop offset="65%" stopColor="#111c26"/>
+        <stop offset="100%" stopColor="#090e15"/>
       </radialGradient></defs>
       <circle cx="320" cy="320" r="309" fill="url(#sky-v9-wheel-well)"/>
-      {[305,293,278,239,212,184,139].map((radius,i)=>
+      {[305,293,278,239,212,184].map((radius,i)=>
         <circle key={radius} cx="320" cy="320" r={radius}
           className={i<3?styles.ringMajor:styles.ringMinor}/>)}
       {Array.from({length:72},(_,i)=>{
         const start=position(i*5,i%6===0?284:298),end=position(i*5,305);
-        return <line key={i} x1={start.x} y1={start.y} x2={end.x} y2={end.y} className={styles.tick}/>;
+        return <line key={i} x1={start.x} y1={start.y} x2={end.x} y2={end.y} className={i%6===0 ? styles.tickMajor : styles.tick}/>;
       })}
       {Array.from({length:12},(_,i)=>{
         const from=position(i*30,213),to=position(i*30,291),symbol=position(i*30+15,257);
@@ -280,8 +237,13 @@ function Wheel({ snapshot, onChoose }: { snapshot: SkyDailySnapshot; onChoose: (
         const b=snapshot.planetaryStates.find(p=>p.body===aspect.rightBody);
         if(!a||!b)return null;
         const from=position(a.longitude,183),to=position(b.longitude,183);
+        const related=highlightBody===aspect.leftBody || highlightBody===aspect.rightBody;
+        const tone=aspect.kind==="trine" || aspect.kind==="sextile"
+          ? styles.aspectFlow : aspect.kind==="square" || aspect.kind==="opposition"
+            ? styles.aspectTension : styles.aspectUnion;
         return <line key={i} x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-          className={styles.aspectLine} opacity={aspect.orb<=1?.65:.28}/>;
+          className={styles.aspectLine+" "+tone}
+          opacity={highlightBody ? (related ? .94 : .055) : (aspect.orb<=1 ? .54 : .20)}/>;
       })}
       <circle cx="320" cy="320" r="49" className={styles.core}/>
       <circle cx="320" cy="320" r="33" className={styles.coreRing}/>
@@ -290,11 +252,18 @@ function Wheel({ snapshot, onChoose }: { snapshot: SkyDailySnapshot; onChoose: (
     </svg>
     {sorted.map((state,i)=>{
       const prev=sorted[(i-1+sorted.length)%sorted.length];
-      const close=((state.longitude-prev.longitude+360)%360)<13;
-      const at=position(state.longitude,close?196:214);
+      const next=sorted[(i+1)%sorted.length];
+      const nearPrev=((state.longitude-prev.longitude+360)%360)<14;
+      const nearNext=((next.longitude-state.longitude+360)%360)<14;
+      const at=position(state.longitude,nearPrev&&nearNext ? 184 : nearPrev ? 196 : 214);
       const xy:CSSProperties={left:(at.x/640*100)+"%",top:(at.y/640*100)+"%"};
-      return <button type="button" key={state.body} className={styles.planetPin}
+      return <button type="button" key={state.body}
+        className={styles.planetPin+(highlightBody===state.body ? " "+styles.planetPinActive : "")}
         style={xy} onClick={()=>onChoose(state.body)}
+        onPointerEnter={()=>setHighlightBody(state.body)}
+        onPointerLeave={()=>setHighlightBody(null)}
+        onFocus={()=>setHighlightBody(state.body)}
+        onBlur={()=>setHighlightBody(null)}
         title={SKY_BODY_LABELS[state.body]+" · "+SKY_SIGN_LABELS[state.sign]}
         aria-label={SKY_BODY_LABELS[state.body]+" در "+SKY_SIGN_LABELS[state.sign]}>
         {SKY_BODY_SYMBOLS[state.body]}
@@ -309,14 +278,17 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
 }) {
   const [selectedDate, setSelectedDate] = useState(today.input.localDate);
   const [planet, setPlanet] = useState<SkyDailyBodyId | null>(null);
+  const [moonOpen, setMoonOpen] = useState(false);
   const [sign, setSign] = useState<SkyDailyZodiacSign>("gemini");
-  useEffect(() => { setSelectedDate(today.input.localDate); setPlanet(null); }, [view, today.input.localDate]);
+  useEffect(() => { setSelectedDate(today.input.localDate); setPlanet(null); setMoonOpen(false); }, [view, today.input.localDate]);
   useEffect(() => {
-    if (!planet) return;
-    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setPlanet(null); };
+    if (!planet && !moonOpen) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setPlanet(null); setMoonOpen(false); }
+    };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [planet]);
+  }, [planet, moonOpen]);
   const active = period?.snapshots.find(s => s.input.localDate === selectedDate) ?? today;
   const moon = active.planetaryStates.find(p => p.body === "moon");
   const primary = active.aspects[0];
@@ -387,10 +359,8 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       {view!=="today"&&period&&<section className={styles.period}>
         <div className={styles.periodLede}>
           <span className={styles.kicker}>{view==="week"?"WEEKLY SKYLINE":"LUNAR CYCLE"} · موتور هالیوس</span>
-          <h2>{view==="week"?"مسیر هفت روز آسمان":"چرخهٔ ماه در این ماه"}</h2>
-          <p>از {shortDate(period.startDate,timezone)} تا {shortDate(period.endDate,timezone)}؛
-            {view==="week"?" تغییرات ماه و رویدادهای هفت روز را دنبال کن.":
-              " چرخهٔ ماه و تغییرات مهم این ماه شمسی را ببین."}</p>
+          <h2>{view==="week"?"روزهای پیش رو":"فازهای ماه"}</h2>
+          <p>از {shortDate(period.startDate,timezone)} تا {shortDate(period.endDate,timezone)}</p>
         </div>
         {view==="week"?<div className={styles.weekStage}>
           <p>برای دیدن نقشهٔ هر روز، یکی از تاریخ‌ها را انتخاب کن.</p>
@@ -500,14 +470,18 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <span className={styles.kicker}>{view === "today" ? "ماه امروز" : "ماه در روز انتخاب‌شده"}</span>
         <h2>{view === "today" ? "وضعیت ماه امروز؛ نشان، فاز و روشنایی" : "وضعیت ماه در روز انتخاب‌شده؛ نشان، فاز و روشنایی"}</h2>
         <div className={styles.moonExperience}>
-          <div className={styles.moonVisual}>
+          <button type="button" className={styles.moonVisual}
+            onClick={() => setMoonOpen(true)} aria-label="نمای بزرگ ماه و جزئیات فاز">
             <SkyMoonVisual label={city + " · ماه در " + (moon ? SKY_SIGN_LABELS[moon.sign] : "نامشخص")}
               illuminationFraction={active.moonPhase?.illuminationFraction}
-              phase={active.moonPhase?.phase} showPanel={false}/>
-          </div>
+              phase={active.moonPhase?.phase} showPanel={false} idPrefix="sky-preview-inline"/>
+            <span className={styles.moonVisualHint}>برای دیدن جزئیات، ماه را لمس کن</span>
+          </button>
           <div className={styles.moonDetails}>
             <MoonFact snapshot={active}/>
-            <p>تصویر از عکس واقعی ماه و سایهٔ فاز محاسبه‌شدهٔ همین روز ساخته شده است.</p>
+            <p>{active.moonPhase && active.moonPhase.illuminationFraction < 0.08
+              ? "ماه در این روز بسیار کم‌نور است؛ تاریکی تصویر به معنی خطای بارگذاری نیست."
+              : "تصویر از عکس واقعی ماه و سایهٔ فاز محاسبه‌شدهٔ همین روز ساخته شده است."}</p>
           </div>
         </div>
         <details className={styles.more}><summary>دربارهٔ فاز و وضعیت ماه بخوان</summary>
@@ -535,7 +509,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <div className={styles.eventList}>{active.aspects.slice(0,8).map((aspect,i)=>
           <div key={i}><strong>{SKY_BODY_LABELS[aspect.leftBody]} و {SKY_BODY_LABELS[aspect.rightBody]}</strong>
           <span>{SKY_ASPECT_LABELS[aspect.kind]} · اورب {aspect.orb.toLocaleString("fa-IR",{maximumFractionDigits:2})}°</span>
-          <p>{reading.aspectReadings[skyPublicAspectKey(aspect)]}</p></div>)}</div>
+          <CompactReading text={reading.aspectReadings[skyPublicAspectKey(aspect)]}/></div>)}</div>
         {!active.aspects.length ? <p>زاویهٔ مهمی در دادهٔ این روز ثبت نشده است.</p> : null}
         <details className={styles.more}><summary>روش محاسبه و تفسیر زاویه‌ها</summary>
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="مهم‌ترین ترنزیت‌ها و زاویه‌های روز"/>
@@ -556,11 +530,12 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <SurfaceShowcaseSlot surface="sky" slot="after-timeline" previewFallback={previewOffers["after-timeline"]}/>
       <section className={styles.explore} aria-label="کاوش بیشتر در آسمان">
         <h2>کاوش بیشتر در آسمان</h2>
-        <div className={styles.exploreTiles}>
-          <a href="#sky-moon"><span>☽</span><strong>چرخهٔ ماه</strong><small>فاز، روشنایی و جایگاه واقعی</small></a>
-          <Link href={url("week")}><span>✧</span><strong>ترنزیت‌های این هفته</strong><small>هفت روز محاسبه‌شده</small></Link>
-          <a href="#sky-guide"><span>◇</span><strong>راهنمای چارت آسمان</strong><small>نشان‌ها و زاویه‌ها</small></a>
-        </div>
+        <AutoSweepRail label="کاوش بیشتر در آسمان" groupClassName={styles.exploreTiles} variant="explore"
+          renderItems={duplicate => <>
+            <a tabIndex={duplicate ? -1 : undefined} href="#sky-moon"><span>☽</span><strong>چرخهٔ ماه</strong><small>فاز، روشنایی و جایگاه واقعی</small></a>
+            <Link tabIndex={duplicate ? -1 : undefined} href={url("week")}><span>✧</span><strong>ترنزیت‌های این هفته</strong><small>هفت روز محاسبه‌شده</small></Link>
+            <a tabIndex={duplicate ? -1 : undefined} href="#sky-guide"><span>◇</span><strong>راهنمای چارت آسمان</strong><small>نشان‌ها و زاویه‌ها</small></a>
+          </>}/>
       </section>
       <section className={styles.reading} id="sky-signs">
         <span className={styles.kicker}>برای نشان تو</span>
@@ -571,7 +546,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
             aria-pressed={sign === id} className={sign === id ? styles.signActive : styles.sign}
             onClick={() => setSign(id)}><span>{SKY_SIGN_SYMBOLS[idx]}</span>{SKY_SIGN_LABELS[id]}</button>)}/>
         <div className={styles.signReading}><span>{SKY_SIGN_LABELS[sign]}</span>
-          <p>{selectedGuide?.tone}</p><small>{selectedGuide?.reason}</small>
+          <p>{selectedGuide?.tone}</p><CompactReading text={selectedGuide?.reason}/>
         </div>
         <details className={styles.signArchive}><summary>خوانش تمام دوازده نشان</summary>
           <div>{signGuides.map(item=>
@@ -624,6 +599,26 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       </section>
     </div>
     <footer className={styles.footer}>HALLEUS SKY · داده‌های محاسبه‌شده با موتور هالیوس · پیش‌نمایش فقط در محیط توسعه</footer>
+    {moonOpen ? <div className={styles.sheetBackdrop} onClick={() => setMoonOpen(false)}>
+      <section role="dialog" aria-modal="true" aria-label="جزئیات ماه"
+        className={styles.sheet+" "+styles.moonSheet} onClick={event => event.stopPropagation()}>
+        <button type="button" className={styles.sheetClose} onClick={() => setMoonOpen(false)} aria-label="بستن">×</button>
+        <span className={styles.sheetEyebrow}>{dateLabel(active.input.localDate,timezone)}</span>
+        <h2>{moon ? "ماه در "+SKY_SIGN_LABELS[moon.sign] : "ماه آسمان"}</h2>
+        <div className={styles.moonSheetImage}>
+          <SkyMoonVisual label={city} illuminationFraction={active.moonPhase?.illuminationFraction}
+            phase={active.moonPhase?.phase} showPanel={false} idPrefix="sky-preview-modal"/>
+        </div>
+        <div className={styles.moonSheetFacts}>
+          <div><span>فاز</span><strong>{moonLabel(active)}</strong></div>
+          <div><span>روشنایی</span><strong>{active.moonPhase ? pct(active.moonPhase.illuminationFraction) : "ثبت نشده"}</strong></div>
+          <div><span>نشان</span><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "نامشخص"}</strong></div>
+        </div>
+        <p>{active.moonPhase && active.moonPhase.illuminationFraction < 0.08
+          ? "کم‌نور بودن ماه در این تاریخ طبیعی است؛ تصویر فاز محاسبه‌شده را نمایش می‌دهد، نه خطای بارگذاری."
+          : "تصویر از همان عکس واقعی ماه و سایهٔ محاسبه‌شدهٔ این تاریخ ساخته شده است."}</p>
+      </section>
+    </div> : null}
     {selectedPlanet ? <div className={styles.sheetBackdrop} onClick={() => setPlanet(null)}>
       <section role="dialog" aria-modal="true" aria-label={"جایگاه "+SKY_BODY_LABELS[selectedPlanet.body]}
         className={styles.sheet} onClick={event => event.stopPropagation()}>
@@ -643,7 +638,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         </dl>
         <div className={styles.sheetReading}>
           <h3>خوانش {SKY_BODY_LABELS[selectedPlanet.body]} در این روز</h3>
-          <p>{reading.planetReadings[selectedPlanet.body]}</p>
+          <CompactReading text={reading.planetReadings[selectedPlanet.body]}/>
         </div>
         <details className={styles.sheetTechnical}>
           <summary>جزئیات محاسباتی</summary>
