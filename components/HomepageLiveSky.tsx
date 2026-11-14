@@ -92,14 +92,16 @@ function getMoonShadowGradient(phase?: "new" | "waxing" | "full" | "waning") {
   return { x1: "0%", x2: "76%" };
 }
 
-function SkyMoonVisual({
+export function SkyMoonVisual({
   label,
   illuminationFraction,
   phase,
+  showPanel = true,
 }: {
   label: string;
   illuminationFraction?: number;
   phase?: "new" | "waxing" | "full" | "waning";
+  showPanel?: boolean;
 }) {
   const illumination = Math.max(0, Math.min(1, illuminationFraction ?? 0));
   const shadowPath = buildMoonShadowPath(illumination, phase);
@@ -184,7 +186,7 @@ function SkyMoonVisual({
           </div>
         </div>
       </div>
-      <div className={styles.skyFloatingPanel}>
+      {showPanel ? <div className={styles.skyFloatingPanel}>
         <span>داده زنده آسمان</span>
         <strong>{label}</strong>
         <small>
@@ -192,7 +194,7 @@ function SkyMoonVisual({
             ? `${phaseLabel(phase)} · ${(illumination * 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })}٪ روشنایی`
             : "داده محاسبه‌شده هالیوس"}
         </small>
-      </div>
+      </div> : null}
     </div>
   );
 }

@@ -11,6 +11,7 @@ const paths = [
   "lib/sky-public/sky-observatory-period.ts",
   "components/sky/SkyObservatoryPreview.tsx",
   "components/sky/SkyObservatoryPreview.module.css",
+  "components/HomepageLiveSky.tsx",
 ];
 const sources = new Map(paths.map(path => [path, read(path)]));
 for (const path of paths.filter(path => path.endsWith(".ts") || path.endsWith(".tsx"))) {
@@ -55,7 +56,9 @@ requireText(client, [
   "buildHumanDailyGuide", "buildSignGuide",
   "SkyCityPicker", "EditorialStickyCtaSequence",
   "data-sky-mode={view}", "modeTitle", "modeSubtitle",
-  "featuredEvent", "styles.weekLine", "previewOffers",
+  "SkyMoonVisual", "showPanel={false}", "styles.moonExperience",
+  "styles.sheetVisual", "styles.sheetMetrics", "styles.sheetTechnical",
+  "styles.weekLine", "previewOffers",
 ]);
 requireText(css, [
   "var(--font-vazirmatn)", ".heroScene", ".timeModes",
@@ -65,6 +68,7 @@ requireText(css, [
   ".stage", ".signalRail", ".overview", ".planetPreview", ".exploreTiles",
   ".weekLine::before", ".page[data-sky-mode=\"week\"]",
   "flex:1 1 0;display:grid", "flex:1 0 53px",
+  ".moonExperience", ".moonDetails", ".sheetOrbit", ".sheetReading",
 ]);
 const showcaseSlot = read("components/shop/SurfaceShowcaseSlot.tsx");
 for (const marker of ["previewFallback?: SurfaceOffer", "track={!previewFallback}", "publishedOffer ?? previewFallback ?? null"]) {
@@ -74,6 +78,16 @@ for (const id of ["after-moon", "after-aspects", "after-timeline"]) {
   if (!(sources.get(client) ?? "").includes('slot="' + id + '" previewFallback={previewOffers["' + id + '"]}'))
     errors.push("Preview fallback missing for slot: " + id);
 }
+const homeMoon = sources.get("components/HomepageLiveSky.tsx") ?? "";
+for (const marker of ["export function SkyMoonVisual", "moon-apollo11.webp", "buildMoonShadowPath", "showPanel = true"]) {
+  if (!homeMoon.includes(marker)) errors.push("Reusable homepage moon contract missing: " + marker);
+}
+const obs = sources.get(client) ?? "";
+if (!(obs.indexOf("<Wheel snapshot={active}") >= 0 && obs.indexOf("styles.heroEditorial") > obs.indexOf("<Wheel snapshot={active}")))
+  errors.push("Hero editorial must follow the live wheel");
+if (!(obs.indexOf('id="sky-moon"') < obs.indexOf('id="sky-planets"') &&
+  obs.indexOf('id="sky-planets"') < obs.indexOf('id="sky-signs"')))
+  errors.push("Observed sky sections must precede optional learning sections");
 const p = sources.get(period) ?? "";
 if (/Math\.random|fakePlanet|mockSnapshot|sampleData/.test(p))
   errors.push("Period data must never be fabricated");

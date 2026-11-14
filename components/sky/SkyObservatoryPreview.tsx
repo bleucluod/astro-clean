@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import { SkyMoonVisual } from "@/components/HomepageLiveSky";
 import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
 import { SKY_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import { SkyCityPicker } from "@/components/SkyCityPicker";
@@ -233,13 +234,10 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
   const primary = active.aspects[0];
   const selectedPlanet = active.planetaryStates.find(p => p.body === planet);
   const reading = useMemo(() => buildSkyPublicReportInterpretation(active), [active]);
-  const upcomingToday = active.timeline.find(item => "occurredAt" in item && item.occurredAt &&
-    new Date(item.occurredAt).getTime() >= new Date(referenceTime).getTime());
-  const featuredEvent = view === "today" ? upcomingToday : active.timeline[0];
-  const modeTitle = view === "today" ? "آسترولوژی امروز" :
-    view === "week" ? "آسترولوژی این هفته" : "آسترولوژی این ماه";
-  const modeSubtitle = view === "today" ? "ماه، سیارات و ترنزیت‌های روز" :
-    view === "week" ? "هفت روز، یک مسیر آسمانی" : "چرخهٔ ماه و حرکت سیارات";
+  const modeTitle = view === "today" ? "آسمان امروز" :
+    view === "week" ? "آسمان این هفته" : "آسمان این ماه";
+  const modeSubtitle = view === "today" ? "موقعیت واقعی ماه و سیاره‌ها" :
+    view === "week" ? "هفت روز، یک مسیر آسمانی" : "چرخهٔ ماه و حرکت سیاره‌ها";
   const modeIntro = view === "today" ?
     "حرکت ماه، موقعیت سیارات و مهم‌ترین زاویه‌های روز را روی نقشهٔ واقعی آسمان ببین." :
     view === "week" ?
@@ -260,12 +258,6 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
           <span className={styles.kicker}><i className={styles.liveDot} aria-hidden="true"/>
             {dateLabel(active.input.localDate, timezone)} · {city}</span>
           <h1>{modeTitle}<em>{modeSubtitle}</em></h1>
-          <p>{modeIntro}</p>
-          <details className={styles.heroEditorial}>
-            <summary>آشنایی با آسترولوژی امروز</summary>
-            <p>بعضی روزها یک موضوع بیشتر از بقیه ذهنت را درگیر می‌کند؛ روز دیگر همان موضوع آسان‌تر پیش می‌رود. برای خواندن این تفاوت‌ها در زبان آسترولوژی، اول باید بدانی آسمان واقعاً چه وضعیتی دارد. آسترولوژی امروز در هالیوس از جایگاه محاسبه‌شدهٔ ماه و سیاره‌ها شروع می‌شود: هر جسم در کدام نشان است، چه زاویه‌ای با بقیه دارد و چه تغییراتی تا پایان روز در پیش است.</p>
-            <p>این نگاه با یک پیش‌گوییِ آماده فرق دارد. در یک لحظه، جایگاه سیاره‌ها مبنای مشترک خوانش است؛ اما برداشت شخصی از آن به چارت تولد هر نفر وابسته است. استرولوژی امروز هم از همین جایگاه‌ها و حرکت‌های جاری حرف می‌زند، نه از اتفاق قطعی زندگی تو. اینجا اول نقشهٔ عمومی روز را می‌خوانی و بعد، اگر بخواهی، سراغ چارت شخصی خودت می‌روی.</p>
-          </details>
         </div>
         <div className={styles.heroScene}>
           <div className={styles.sceneLabel}>
@@ -279,13 +271,10 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
           </div>
         </div>
       </section>
-      <div className={styles.heroFacts}>
-        <MoonFact snapshot={active}/>
-        <div><span>مهم‌ترین زاویه</span><strong>{active.aspects[0] ?
-          SKY_ASPECT_LABELS[active.aspects[0].kind]+" "+SKY_BODY_LABELS[active.aspects[0].leftBody]+
-          " و "+SKY_BODY_LABELS[active.aspects[0].rightBody] : "زاویه‌ای ثبت نشده"}</strong></div>
-        <div><span>{view === "today" ? "رویداد پیش رو" : "رویداد این روز"}</span><strong>{featuredEvent ?
-          eventLabel(featuredEvent) : "رویدادی ثبت نشده"}</strong></div>
+      <div className={styles.heroFacts} aria-label="خلاصهٔ سریع آسمان">
+        <div><span>ماه در</span><strong>{moon ? SKY_SIGN_LABELS[moon.sign] : "نامشخص"}</strong></div>
+        <div><span>فاز ماه</span><strong>{moonLabel(active)}</strong></div>
+        <div><span>زاویهٔ مهم</span><strong>{primary ? SKY_ASPECT_LABELS[primary.kind] : "ثبت نشده"}</strong></div>
       </div>
       <div className={styles.timeModes} id="time-modes">
         <span>کاوش در زمان</span>
@@ -302,15 +291,13 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       {view!=="today"&&period&&<section className={styles.period}>
         <div className={styles.periodLede}>
           <span className={styles.kicker}>{view==="week"?"WEEKLY SKYLINE":"LUNAR CYCLE"} · موتور هالیوس</span>
-          <h2>{view==="week"?"آسترولوژی این هفته؛":"آسترولوژی این ماه؛"}
-            <em>{view==="week"?" هفت روز، یک مسیر آسمانی":" ریتم یک چرخهٔ کامل"}</em></h2>
+          <h2>{view==="week"?"مسیر هفت روز آسمان":"چرخهٔ ماه در این ماه"}</h2>
           <p>از {shortDate(period.startDate,timezone)} تا {shortDate(period.endDate,timezone)}؛
             {view==="week"?" تغییرات ماه و رویدادهای هفت روز را دنبال کن.":
               " چرخهٔ ماه و تغییرات مهم این ماه شمسی را ببین."}</p>
         </div>
         {view==="week"?<div className={styles.weekStage}>
-          <h3>روی مسیر هفته حرکت کن</h3>
-          <p>هر نقطه یک روز محاسبه‌شده از موتور هالیوس است.</p>
+          <p>برای دیدن نقشهٔ هر روز، یکی از تاریخ‌ها را انتخاب کن.</p>
           <div className={styles.weekLine} role="group" aria-label="روزهای هفته">
             {period.snapshots.map(day=>{
               const date=day.input.localDate,chosen=active.input.localDate===date;
@@ -340,8 +327,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
             </p></div>
           </div>
         </div>:<div className={styles.monthStage}>
-          <h3>چرخهٔ ماه در یک نگاه</h3>
-          <p>مرحله‌ای از ماه را لمس کن و روز واقعی آن را ببین.</p>
+          <p>یکی از فازها را انتخاب کن تا تصویر ماه و جزئیات همان روز تغییر کنند.</p>
           <div className={styles.moonPhases} role="group" aria-label="چرخهٔ ماه">
             {(["new","waxing","full","waning"] as const).map(phase=>{
               const found=period.snapshots.find(day=>day.moonPhase?.phase===phase);
@@ -417,47 +403,20 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <a href="#sky-planets">نمایش هر ده سیاره</a>
       </aside>
       </section>
-      <section className={styles.explore} aria-label="کاوش بیشتر در آسمان">
-        <h2>کاوش بیشتر در آسمان</h2>
-        <div className={styles.exploreTiles}>
-          <a href="#sky-moon"><span>☽</span><strong>چرخهٔ ماه</strong><small>فاز، روشنایی و جایگاه واقعی</small></a>
-          <Link href={url("week")}><span>✧</span><strong>ترنزیت‌های این هفته</strong><small>هفت روز محاسبه‌شده</small></Link>
-          <a href="#sky-guide"><span>◇</span><strong>راهنمای چارت آسمان</strong><small>نشان‌ها و زاویه‌ها</small></a>
-        </div>
-      </section>
-      <section className={styles.reading} id="sky-signs">
-        <span className={styles.kicker}>برای نشان تو</span>
-        <h2>ترنزیت‌های امروز برای دوازده نشان</h2>
-        <div className={styles.signRail} role="group" aria-label="انتخاب نشان">
-          {SIGN_IDS.map((id,idx)=><button type="button" key={id}
-            aria-pressed={sign === id} className={sign === id ? styles.signActive : styles.sign}
-            onClick={() => setSign(id)}><span>{SKY_SIGN_SYMBOLS[idx]}</span>{SKY_SIGN_LABELS[id]}</button>)}
-        </div>
-        <div className={styles.signReading}><span>{SKY_SIGN_LABELS[sign]}</span>
-          <p>{selectedGuide?.tone}</p><small>{selectedGuide?.reason}</small>
-        </div>
-        <details className={styles.signArchive}><summary>خوانش تمام دوازده نشان</summary>
-          <div>{signGuides.map(item=>
-            <article key={item.id}><h3>{SKY_SIGN_LABELS[item.id]}</h3>
-              <p>{item.tone}</p><small>{item.reason}</small>
-            </article>)}</div>
-        </details>
-        <details className={styles.more}><summary>متن آموزشی کامل دوازده نشان و هوروسکوپ امروز</summary>
-          <R3ApprovedInlineParagraphs page="sky" sectionTitle="ترنزیت‌های امروز برای دوازده نشان"/>
-        </details>
-      </section>
-      <section className={styles.reading}>
-        <span className={styles.kicker}>نمای نجومی</span>
-        <h2>خلاصهٔ آسمان در یک نگاه</h2>
-        <p>موقعیت سیارات امروز، درجه‌ها و زاویه‌ها در چرخ بالا از دادهٔ محاسبه‌شدهٔ همان روز نمایش داده می‌شوند.</p>
-        <details className={styles.more}><summary>چارت آسمان امروز چه چیزی نشان می‌دهد؟</summary>
-          <R3ApprovedInlineParagraphs page="sky" sectionTitle="خلاصهٔ آسمان در یک نگاه"/>
-        </details>
-      </section>
       <section className={styles.reading} id="sky-moon">
-        <span className={styles.kicker}>ماه امروز</span>
-        <h2>وضعیت ماه امروز؛ نشان، فاز و روشنایی</h2>
-        <div className={styles.moonBig}><span>☽</span><MoonFact snapshot={active}/></div>
+        <span className={styles.kicker}>{view === "today" ? "ماه امروز" : "ماه در روز انتخاب‌شده"}</span>
+        <h2>{view === "today" ? "وضعیت ماه امروز؛ نشان، فاز و روشنایی" : "وضعیت ماه در روز انتخاب‌شده؛ نشان، فاز و روشنایی"}</h2>
+        <div className={styles.moonExperience}>
+          <div className={styles.moonVisual}>
+            <SkyMoonVisual label={city + " · ماه در " + (moon ? SKY_SIGN_LABELS[moon.sign] : "نامشخص")}
+              illuminationFraction={active.moonPhase?.illuminationFraction}
+              phase={active.moonPhase?.phase} showPanel={false}/>
+          </div>
+          <div className={styles.moonDetails}>
+            <MoonFact snapshot={active}/>
+            <p>تصویر از عکس واقعی ماه و سایهٔ فاز محاسبه‌شدهٔ همین روز ساخته شده است.</p>
+          </div>
+        </div>
         <details className={styles.more}><summary>دربارهٔ فاز و وضعیت ماه بخوان</summary>
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="وضعیت ماه امروز؛ نشان، فاز و روشنایی"/>
         </details>
@@ -465,7 +424,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <SurfaceShowcaseSlot surface="sky" slot="after-moon" previewFallback={previewOffers["after-moon"]}/>
       <section className={styles.reading} id="sky-planets">
         <span className={styles.kicker}>جایگاه‌ها</span>
-        <h2>وضعیت سیارات امروز؛ هر جسم کجاست و چگونه حرکت می‌کند؟</h2>
+        <h2>{view === "today" ? "وضعیت سیارات امروز؛ هر جسم کجاست و چگونه حرکت می‌کند؟" : "وضعیت سیارات در روز انتخاب‌شده؛ جایگاه و حرکت"}</h2>
         <div className={styles.planetList}>{active.planetaryStates.map(item =>
           <button type="button" key={item.body} onClick={() => setPlanet(item.body)}>
             <span>{SKY_BODY_SYMBOLS[item.body]}</span>
@@ -492,7 +451,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <SurfaceShowcaseSlot surface="sky" slot="after-aspects" previewFallback={previewOffers["after-aspects"]}/>
       <section className={styles.reading} id="sky-events">
         <span className={styles.kicker}>به ترتیب زمان</span>
-        <h2>رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟</h2>
+        <h2>{view === "today" ? "رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟" : "رویدادهای نجومی روز انتخاب‌شده؛ به ترتیب زمان"}</h2>
         <div className={styles.timeline}>{active.timeline.slice(0,12).map((event,i)=>
           <div key={i}><time>{eventTime("occurredAt" in event ? event.occurredAt : undefined,timezone)}</time>
             <span>{eventLabel(event)}</span></div>)}</div>
@@ -502,10 +461,53 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         </details>
       </section>
       <SurfaceShowcaseSlot surface="sky" slot="after-timeline" previewFallback={previewOffers["after-timeline"]}/>
+      <section className={styles.explore} aria-label="کاوش بیشتر در آسمان">
+        <h2>کاوش بیشتر در آسمان</h2>
+        <div className={styles.exploreTiles}>
+          <a href="#sky-moon"><span>☽</span><strong>چرخهٔ ماه</strong><small>فاز، روشنایی و جایگاه واقعی</small></a>
+          <Link href={url("week")}><span>✧</span><strong>ترنزیت‌های این هفته</strong><small>هفت روز محاسبه‌شده</small></Link>
+          <a href="#sky-guide"><span>◇</span><strong>راهنمای چارت آسمان</strong><small>نشان‌ها و زاویه‌ها</small></a>
+        </div>
+      </section>
+      <section className={styles.reading} id="sky-signs">
+        <span className={styles.kicker}>برای نشان تو</span>
+        <h2>{view === "today" ? "ترنزیت‌های امروز برای دوازده نشان" : "ترنزیت‌های روز انتخاب‌شده برای دوازده نشان"}</h2>
+        <div className={styles.signRail} role="group" aria-label="انتخاب نشان">
+          {SIGN_IDS.map((id,idx)=><button type="button" key={id}
+            aria-pressed={sign === id} className={sign === id ? styles.signActive : styles.sign}
+            onClick={() => setSign(id)}><span>{SKY_SIGN_SYMBOLS[idx]}</span>{SKY_SIGN_LABELS[id]}</button>)}
+        </div>
+        <div className={styles.signReading}><span>{SKY_SIGN_LABELS[sign]}</span>
+          <p>{selectedGuide?.tone}</p><small>{selectedGuide?.reason}</small>
+        </div>
+        <details className={styles.signArchive}><summary>خوانش تمام دوازده نشان</summary>
+          <div>{signGuides.map(item=>
+            <article key={item.id}><h3>{SKY_SIGN_LABELS[item.id]}</h3>
+              <p>{item.tone}</p><small>{item.reason}</small>
+            </article>)}</div>
+        </details>
+        <details className={styles.more}><summary>متن آموزشی کامل دوازده نشان و هوروسکوپ امروز</summary>
+          <R3ApprovedInlineParagraphs page="sky" sectionTitle="ترنزیت‌های امروز برای دوازده نشان"/>
+        </details>
+      </section>
+      <section className={styles.reading}>
+        <span className={styles.kicker}>نمای نجومی</span>
+        <h2>خلاصهٔ آسمان در یک نگاه</h2>
+        <p>موقعیت سیاره‌ها، درجه‌ها و زاویه‌ها در چرخ بالا از دادهٔ محاسبه‌شدهٔ روز انتخاب‌شده نمایش داده می‌شوند.</p>
+        <details className={styles.more}><summary>چارت آسمان امروز چه چیزی نشان می‌دهد؟</summary>
+          <R3ApprovedInlineParagraphs page="sky" sectionTitle="خلاصهٔ آسمان در یک نگاه"/>
+        </details>
+      </section>
       <section className={styles.reading} id="sky-guide">
         <span className={styles.kicker}>راهنمای کاربردی</span>
         <h2>این داده‌ها را چگونه به زندگی خودت ربط بدهی؟</h2>
         <p>برای خواندن شخصی‌تر، آسمان روز را کنار چارت تولد خودت قرار بده.</p>
+        <p>{modeIntro}</p>
+          <details className={styles.heroEditorial}>
+            <summary>آشنایی با آسترولوژی امروز</summary>
+            <p>بعضی روزها یک موضوع بیشتر از بقیه ذهنت را درگیر می‌کند؛ روز دیگر همان موضوع آسان‌تر پیش می‌رود. برای خواندن این تفاوت‌ها در زبان آسترولوژی، اول باید بدانی آسمان واقعاً چه وضعیتی دارد. آسترولوژی امروز در هالیوس از جایگاه محاسبه‌شدهٔ ماه و سیاره‌ها شروع می‌شود: هر جسم در کدام نشان است، چه زاویه‌ای با بقیه دارد و چه تغییراتی تا پایان روز در پیش است.</p>
+            <p>این نگاه با یک پیش‌گوییِ آماده فرق دارد. در یک لحظه، جایگاه سیاره‌ها مبنای مشترک خوانش است؛ اما برداشت شخصی از آن به چارت تولد هر نفر وابسته است. استرولوژی امروز هم از همین جایگاه‌ها و حرکت‌های جاری حرف می‌زند، نه از اتفاق قطعی زندگی تو. اینجا اول نقشهٔ عمومی روز را می‌خوانی و بعد، اگر بخواهی، سراغ چارت شخصی خودت می‌روی.</p>
+          </details>
         <details className={styles.more}><summary>ارتباط آسمان امروز و چارت شخصی</summary>
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="این داده‌ها را چگونه به زندگی خودت ربط بدهی؟"/>
         </details>
@@ -533,12 +535,27 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
       <section role="dialog" aria-modal="true" aria-label={"جایگاه "+SKY_BODY_LABELS[selectedPlanet.body]}
         className={styles.sheet} onClick={event => event.stopPropagation()}>
         <button type="button" className={styles.sheetClose} onClick={()=>setPlanet(null)} aria-label="بستن">×</button>
-        <div className={styles.sheetGlyph}>{SKY_BODY_SYMBOLS[selectedPlanet.body]}</div>
-        <h2>{SKY_BODY_LABELS[selectedPlanet.body]}</h2>
-        <p>{SKY_SIGN_LABELS[selectedPlanet.sign]} · {selectedPlanet.degreeInSign.toLocaleString("fa-IR",{maximumFractionDigits:2})} درجه</p>
-        <dl><div><dt>طول دایرةالبروجی</dt><dd>{selectedPlanet.longitude.toLocaleString("fa-IR",{maximumFractionDigits:3})}°</dd></div>
-        <div><dt>جهت حرکت</dt><dd>{SKY_MOTION_LABELS[selectedPlanet.motion]}</dd></div></dl>
-        <p>{reading.planetReadings[selectedPlanet.body]}</p>
+        <div className={styles.sheetVisual}>
+          <div className={styles.sheetOrbit} aria-hidden="true">
+            <span className={styles.sheetGlyph}>{SKY_BODY_SYMBOLS[selectedPlanet.body]}</span>
+          </div>
+          <span className={styles.sheetEyebrow}>موقعیت محاسبه‌شدهٔ سیاره</span>
+          <h2>{SKY_BODY_LABELS[selectedPlanet.body]}</h2>
+          <p className={styles.sheetPosition}>{SKY_SIGN_LABELS[selectedPlanet.sign]} · {selectedPlanet.degreeInSign.toLocaleString("fa-IR",{maximumFractionDigits:2})}°</p>
+        </div>
+        <dl className={styles.sheetMetrics}>
+          <div><dt>نشان</dt><dd>{SKY_SIGN_LABELS[selectedPlanet.sign]}</dd></div>
+          <div><dt>درجه</dt><dd>{selectedPlanet.degreeInSign.toLocaleString("fa-IR",{maximumFractionDigits:2})}°</dd></div>
+          <div><dt>جهت حرکت</dt><dd>{SKY_MOTION_LABELS[selectedPlanet.motion]}</dd></div>
+        </dl>
+        <div className={styles.sheetReading}>
+          <h3>خوانش {SKY_BODY_LABELS[selectedPlanet.body]} در این روز</h3>
+          <p>{reading.planetReadings[selectedPlanet.body]}</p>
+        </div>
+        <details className={styles.sheetTechnical}>
+          <summary>جزئیات محاسباتی</summary>
+          <dl><div><dt>طول دایرةالبروجی</dt><dd>{selectedPlanet.longitude.toLocaleString("fa-IR",{maximumFractionDigits:3})}°</dd></div></dl>
+        </details>
       </section>
     </div> : null}
   </div>;
