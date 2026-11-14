@@ -46,10 +46,16 @@ requireText(client, [
   '<SurfaceShowcaseSlot surface="sky" slot="after-moon"/>',
   '<SurfaceShowcaseSlot surface="sky" slot="after-timeline"/>',
   "R3ApprovedInlineParagraphs", "setPlanet",
+  "styles.heroScene", "styles.sceneFoot", "styles.planetRail",
+  "styles.weekLine", "styles.weekDayActive",
+  "styles.moonPhases", "styles.phaseOrb",
+  "snapshot.planetaryStates", "snapshot.aspects",
 ]);
 requireText(css, [
   "var(--font-vazirmatn)", ".heroScene", ".timeModes",
   ".sheetBackdrop", "@media(max-width:580px)",
+  ".sceneFoot", ".planetRail", ".weekLine", ".moonPhases",
+  ".phaseOrb", ".coreRing", ".tick", "var(--font-vazirmatn)",
 ]);
 const p = sources.get(period) ?? "";
 if (/Math\.random|fakePlanet|mockSnapshot|sampleData/.test(p))
@@ -58,6 +64,13 @@ const c = sources.get(client) ?? "";
 if (/Math\.random|mockSnapshot|samplePlanet/.test(c))
   errors.push("Client must not fabricate astronomical values");
 if (c.includes("Date.now()")) errors.push("Client must use stable SSR referenceTime");
+if (c.includes("styles.dayRail") || c.includes("styles.dayActive"))
+  errors.push("Reject legacy dashboard day tiles; use V9 week timeline");
+if (!c.includes("data-phase={phase}"))
+  errors.push("Month must expose real engine-computed lunar phases");
+if (!c.includes('onClick={() => onChoose(state.body)}') &&
+    !c.includes('onClick={()=>onChoose(state.body)}'))
+  errors.push("Wheel must support direct planetary interaction");
 if (errors.length) {
   console.error("SKY_OBSERVATORY_PREVIEW_CHECK_FAILED");
   errors.forEach(error => console.error("- " + error));

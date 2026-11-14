@@ -163,3 +163,185 @@
   .cta h2 { font-size: 21px; }
 }
 @media(prefers-reduced-motion: reduce) { .planetPin { transition: none; } }
+
+
+/* V9 visual contract: cinematic observatory, sourced from approved HTML composition.
+   Deliberately override older development-preview dashboard rules above. */
+.page { --line:rgba(225,228,231,.12); background:#08090a; color:#f1f1f2; font-size:16px; }
+.page .container { max-width:1192px; padding:0 26px 58px; }
+.page .hero {
+  display:grid; grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);
+  align-items:center; min-height:540px; gap:clamp(18px,4vw,58px);
+  background:radial-gradient(ellipse at 52% 49%,rgba(180,186,193,.025),transparent 58%);
+}
+.page .heroIntro { max-width:500px; padding:18px 0 36px; }
+.page .kicker { display:inline-flex; align-items:center; gap:10px; font-size:12px; color:#a6abb0; }
+.liveDot { background:#e3e3e0; width:5px; height:5px; flex:none; border-radius:50%;
+  box-shadow:0 0 11px rgba(226,227,229,.25); }
+.page .heroIntro h1 { font-size:clamp(33px,3.45vw,50px); line-height:1.54;
+  letter-spacing:-.04em; font-weight:800; margin:13px 0 18px; }
+.page .heroIntro h1 em { display:block; font-style:normal; color:#c4c6c8; font-weight:490; }
+.page .heroIntro p { font-size:16px; line-height:2.08; color:#b5b7bb; max-width:410px; }
+.page .heroScene {
+  position:relative; max-width:660px; width:100%; padding:8px 0 6px;
+  background:transparent; border:0; margin:0 auto; isolation:isolate;
+}
+.page .heroScene::before { position:absolute; inset:0 -5%; content:""; pointer-events:none;
+  background-image:radial-gradient(#afb4ba .7px,transparent 1.3px);
+  background-size:65px 73px; opacity:.22;
+  mask-image:radial-gradient(ellipse,#000 5%,transparent 68%); z-index:-1; }
+.page .heroScene::after { content:""; position:absolute; inset:8%; pointer-events:none;
+  background:radial-gradient(circle,rgba(154,161,171,.064),transparent 67%); filter:blur(9px); z-index:-1; }
+.page .sceneLabel { padding:5px 3px; color:#969da3; font-size:11px; opacity:.8; }
+.page .sceneLabel > span:first-child { font:9px/1.4 Arial,sans-serif; letter-spacing:.14em; }
+.page .wheelWrap { width:min(100%,640px); max-width:640px; margin:0 auto; filter:drop-shadow(0 11px 33px rgba(0,0,0,.6)); }
+.page .wheel { width:100%; display:block; }
+.page .ringMajor { fill:none; stroke:#a1a7ac; stroke-width:1.2; stroke-opacity:.46; }
+.page .ringMinor { fill:none; stroke:#858e95; stroke-width:.92; stroke-opacity:.34; }
+.tick { stroke:#b7bdc3; stroke-width:.8; stroke-opacity:.46; }
+.page .spoke { stroke:#979fa7; stroke-width:1; stroke-opacity:.35; }
+.page .aspectLine { stroke:#d1d8de; stroke-width:1.1; }
+.page .zodiacSymbol { fill:#d1d1d0; font:24px "Segoe UI Symbol",serif; }
+.page .core { fill:#16191c; stroke:#7e858c; stroke-width:1; stroke-opacity:.65; }
+.coreRing { fill:none; stroke:#848b90; stroke-opacity:.28; stroke-width:1; }
+.page .coreText { fill:#dedede; font:11px/1 Arial,sans-serif; letter-spacing:.12em; }
+.page .coreSub { fill:#858c94; font:8px/1 Arial,sans-serif; letter-spacing:.03em; }
+.page .planetPin { width:32px; height:32px; background:#14171b; border:1px solid #8d959c;
+  box-shadow:0 0 0 3px #0c0d0f99,0 2px 9px #0009; font-size:21px; }
+.page .planetPin:hover,.page .planetPin:focus-visible { z-index:3; background:#2a3036; border-color:#f1f2f3; }
+.sceneFoot { margin-top:-7px; padding:0 5px; display:flex; align-items:center;
+  justify-content:space-between; gap:10px; text-align:start; }
+.sceneFoot div { display:flex; flex-direction:column; }
+.sceneFoot span { font-size:11px; color:#9099a1; }
+.sceneFoot strong { font-size:13px; color:#ccd0d3; font-weight:570; }
+.page .heroFacts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  border-top:1px solid #2b2e32; border-bottom:1px solid #24272b; padding:19px 0 16px; }
+.page .heroFacts > div { padding:0 25px; border:0; border-left:1px solid #282c30; }
+.page .heroFacts > div:first-child { padding-right:0; }
+.page .heroFacts > div:last-child { border:0; }
+.page .heroFacts strong,.page .moonFact strong { color:#efefed; font-size:19px; font-weight:680; line-height:1.6; }
+.page .heroFacts span,.page .moonFact span { color:#9aa0a6; font-size:12px; }
+.page .timeModes { margin-top:16px; display:flex; align-items:end; justify-content:space-between;
+  padding:11px 0 0; gap:15px; border-bottom:1px solid #292c30; }
+.page .timeModes > span { color:#d1d1d0; font-size:15px; padding-bottom:11px; }
+.page .timeModes nav { gap:28px; }
+.page .mode,.page .modeCurrent { font-size:14px; padding:12px 5px 12px; border-bottom-width:1px; }
+.planetRail { display:flex; overflow-x:auto; margin:0; border-bottom:1px solid #23262a;
+  scrollbar-width:thin; }
+.planetRail button { min-width:72px; flex:1 0 72px; padding:11px 5px 8px;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  color:#d8dce1; background:transparent; border:0; border-bottom:1px solid transparent; }
+.planetRail button:hover,.planetRail button:focus-visible { background:#15191c; border-bottom-color:#909aa2; }
+.planetRail button span { font:25px/1.25 Georgia,serif; }
+.planetRail button small { font-size:11px; color:#9ea5ac; }
+.page .period { padding:27px 0 9px; }
+.periodLede { max-width:830px; padding:0 0 15px; }
+.periodLede h2 { font-size:clamp(27px,3.6vw,41px); line-height:1.52; margin:9px 0; }
+.periodLede h2 em { color:#b9bdc1; font-weight:490; font-style:normal; }
+.periodLede p { font-size:15px; line-height:2; }
+.weekStage,.monthStage { border-top:1px solid #34383d; border-bottom:1px solid #34383d;
+  padding:22px 0; max-width:100%; }
+.weekStage h3,.monthStage h3 { font-size:25px; font-weight:720; }
+.weekStage > p,.monthStage > p { font-size:14px; }
+.weekLine { display:flex; border-bottom:1px solid #32373b; gap:0; padding:15px 0 5px;
+  margin-bottom:18px; overflow-x:auto; }
+.weekDay,.weekDayActive { display:grid; flex:1; min-width:46px; place-items:center; gap:1px;
+  background:transparent; border:0; border-bottom:2px solid transparent;
+  padding:7px 4px 12px; color:#9da4aa; text-align:center; }
+.weekDayActive { color:#f4f4f4; border-bottom-color:#d8dbdd; }
+.weekDay small,.weekDayActive small { font-size:11px; color:inherit; }
+.weekDay strong,.weekDayActive strong { font-size:24px; font-weight:700; }
+.weekDay i,.weekDayActive i { display:block; width:5px; height:5px; border-radius:50%; background:#484f55; }
+.weekDayActive i { background:#e5e6e7; }
+.weekReading,.monthReading { max-width:760px; padding:8px 0 13px; }
+.weekReading > span,.monthReading > span { color:#abb0b5; font-size:12px; }
+.weekReading h3,.monthReading h3 { font-size:26px; margin:4px 0; }
+.weekReading p,.monthReading p { font-size:15px; color:#bbc0c5; }
+.weekHint { margin-top:13px; display:flex; gap:15px; align-items:center;
+  border-top:1px solid #2b2f32; padding-top:15px; }
+.weekHint span { color:#e0e2e4; font:37px Georgia,serif; }
+.weekHint p { margin:0; }
+.moonPhases { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+  margin:19px 0 14px; }
+.phase,.phaseActive { background:transparent; color:#a9b0b6; border:0; border-bottom:2px solid transparent;
+  padding:9px 3px; display:flex; flex-direction:column; gap:5px; align-items:center; }
+.phaseActive { color:#f1f2f3; border-bottom-color:#d8dcde; }
+.phase:disabled { opacity:.36; cursor:not-allowed; }
+.phase strong,.phaseActive strong { font-size:13px; font-weight:670; }
+.phase small,.phaseActive small { color:#8e959d; font-size:11px; }
+.phaseOrb { display:block; width:min(100%,106px); aspect-ratio:1; border-radius:50%;
+  background:radial-gradient(circle at 34% 34%,#b9babc 2%,#7c8084 33%,#282c30 81%);
+  box-shadow:inset -7px -8px 20px #0009,0 0 25px #ffffff08;
+  filter:grayscale(1); }
+.phaseOrb[data-phase="new"] { background:radial-gradient(circle at 30% 30%,#37383a,#0d0e10 70%); }
+.phaseOrb[data-phase="waxing"] { clip-path:ellipse(49% 50% at 50% 50%);
+  background:linear-gradient(90deg,#a8aaab 10%,#4a4e50 45%,#111315 52%); }
+.phaseOrb[data-phase="waning"] { background:linear-gradient(90deg,#17191b 47%,#6c7074 55%,#b5b7b9); }
+.periodEvents { max-width:850px; padding:21px 0; border:0; }
+.periodEvents h3 { font-size:20px; margin-bottom:9px; }
+.periodEvents > div { display:grid; grid-template-columns:125px 1fr; gap:15px;
+  padding:11px 0; border-top:1px solid #292d30; }
+.periodEvents time { font-size:12px; color:#949ca4; }
+.periodEvents strong { font-size:14px; color:#e0e3e6; font-weight:590; }
+.page .reading { padding:31px 0 28px; border-bottom:1px solid #282c30; }
+.page .reading h2 { font-size:clamp(23px,2.5vw,30px); line-height:1.65; }
+.page .reading > p,.page .more p { font-size:16px; color:#c0c5ca; line-height:2.06; }
+.page .lead { color:#e5e5e3 !important; font-size:17px !important; }
+.page .more summary { color:#cbd1d5; }
+.page .signReading > p { font-size:16px; line-height:2.05; }
+.page .eventList p { color:#bfc5ca; font-size:15px; }
+.page .sheet { border-radius:19px 19px 0 0; background:#181b1e; }
+@media(max-width:860px) {
+  .page .hero { display:block; min-height:0; }
+  .page .heroIntro { max-width:790px; padding:25px 0 11px; }
+  .page .heroScene { width:100%; max-width:690px; }
+}
+@media(max-width:620px) {
+  .page .container { padding:0 18px 45px; }
+  .page .heroIntro { padding:15px 0 8px; }
+  .page .heroIntro h1 { font-size:clamp(27px,7.8vw,36px);
+    line-height:1.52; letter-spacing:-.035em; margin:9px 0 8px; }
+  .page .heroIntro p { font-size:15px; line-height:1.96; }
+  .page .heroScene { margin:0 -18px; width:calc(100% + 36px); padding:0 15px 3px; }
+  .page .sceneLabel { padding:8px 1px 0; font-size:10px; }
+  .page .sceneLabel > span:first-child { font-size:8px; letter-spacing:.04em; }
+  .page .wheelWrap { width:100%; max-width:475px; margin:-2px auto -5px; }
+  .page .planetPin { width:25px; height:25px; font-size:18px; }
+  .sceneFoot { margin:0; padding:0 2px; }
+  .sceneFoot span { font-size:10px; }
+  .sceneFoot strong { font-size:12px; }
+  .page .heroFacts { grid-template-columns:repeat(3,minmax(0,1fr)); padding:14px 0 12px; gap:0; }
+  .page .heroFacts > div { padding:0 9px !important; border-top:0 !important; border-right:0 !important;
+    border-left:1px solid #303338 !important; grid-column:auto !important; }
+  .page .heroFacts > div:first-child { padding-right:0 !important; }
+  .page .heroFacts > div:last-child { border-left:0 !important; }
+  .page .heroFacts span,.page .moonFact span { font-size:10px; }
+  .page .heroFacts strong,.page .moonFact strong { font-size:clamp(12px,3.6vw,16px); line-height:1.55; }
+  .page .moonFact small { font-size:10px; }
+  .page .timeModes { display:block; margin-top:12px; padding:8px 0 0; }
+  .page .timeModes > span { display:block; padding:0; font-size:12px; color:#a2a5a9; }
+  .page .timeModes nav { justify-content:space-between; gap:0; width:100%; }
+  .page .mode,.page .modeCurrent { flex:1; text-align:center; font-size:13px; min-height:43px; padding:8px 3px 10px; }
+  .planetRail { margin:0 -18px; padding:0 10px; }
+  .planetRail button { flex:0 0 70px; min-width:70px; }
+  .page .reading { padding:26px 0 23px; }
+  .page .reading h2 { font-size:23px; }
+  .page .reading > p,.page .more p { font-size:16px; }
+  .weekStage,.monthStage { padding:17px 0; }
+  .weekStage h3,.monthStage h3 { font-size:23px; }
+  .weekDay,.weekDayActive { min-width:45px; }
+  .weekDay strong,.weekDayActive strong { font-size:21px; }
+  .weekDay small,.weekDayActive small { font-size:10px; }
+  .weekReading h3,.monthReading h3 { font-size:24px; }
+  .moonPhases { gap:4px; }
+  .phaseOrb { width:min(100%,72px); }
+  .phase strong,.phaseActive strong { font-size:11px; }
+  .phase small,.phaseActive small { font-size:10px; }
+  .periodEvents > div { grid-template-columns:86px minmax(0,1fr); gap:10px; }
+}
+@media(max-width:355px) {
+  .page .heroIntro h1 { font-size:26px; }
+  .page .heroFacts strong { font-size:12px; }
+  .sceneFoot > span { display:none; }
+}
+@media(prefers-reduced-motion:reduce) { .planetRail button { transition:none; } }

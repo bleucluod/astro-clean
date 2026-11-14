@@ -64,48 +64,58 @@ function MoonFact({ snapshot }: { snapshot: SkyDailySnapshot }) {
   </div>;
 }
 function Wheel({ snapshot, onChoose }: { snapshot: SkyDailySnapshot; onChoose: (id: SkyDailyBodyId) => void }) {
+  const sorted = [...snapshot.planetaryStates].sort((a,b) => a.longitude-b.longitude);
   return <div className={styles.wheelWrap}>
     <svg className={styles.wheel} viewBox="0 0 640 640" role="img"
-      aria-label="چرخ عمومی آسمان، با موقعیت‌های محاسبه‌شدهٔ سیارات و زاویه‌ها">
-      <circle cx="320" cy="320" r="289" className={styles.ringMajor}/>
-      <circle cx="320" cy="320" r="241" className={styles.ringMajor}/>
-      <circle cx="320" cy="320" r="190" className={styles.ringMinor}/>
-      <circle cx="320" cy="320" r="120" className={styles.ringMinor}/>
-      {Array.from({ length: 12 }, (_, i) => {
-        const inside = position(i * 30, 190);
-        const outside = position(i * 30, 290);
-        const sign = position(i * 30 + 15, 264);
+      aria-label="نقشهٔ محاسبه‌شدهٔ آسمان؛ موقعیت سیارات و زاویه‌ها">
+      <defs><radialGradient id="sky-v9-wheel-well">
+        <stop offset="0%" stopColor="#1b1d20"/>
+        <stop offset="68%" stopColor="#14161a"/>
+        <stop offset="100%" stopColor="#090a0c"/>
+      </radialGradient></defs>
+      <circle cx="320" cy="320" r="309" fill="url(#sky-v9-wheel-well)"/>
+      {[305,293,278,239,212,184,139].map((radius,i)=>
+        <circle key={radius} cx="320" cy="320" r={radius}
+          className={i<3?styles.ringMajor:styles.ringMinor}/>)}
+      {Array.from({length:72},(_,i)=>{
+        const start=position(i*5,i%6===0?284:298),end=position(i*5,305);
+        return <line key={i} x1={start.x} y1={start.y} x2={end.x} y2={end.y} className={styles.tick}/>;
+      })}
+      {Array.from({length:12},(_,i)=>{
+        const from=position(i*30,213),to=position(i*30,291),symbol=position(i*30+15,257);
         return <g key={i}>
-          <line x1={inside.x} y1={inside.y} x2={outside.x} y2={outside.y} className={styles.spoke}/>
-          <text x={sign.x} y={sign.y} textAnchor="middle" dominantBaseline="middle" className={styles.zodiacSymbol}>
-            {SKY_SIGN_SYMBOLS[i]}
-          </text>
+          <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} className={styles.spoke}/>
+          <text x={symbol.x} y={symbol.y} textAnchor="middle" dominantBaseline="central"
+            className={styles.zodiacSymbol}>{SKY_SIGN_SYMBOLS[i]}</text>
         </g>;
       })}
-      {snapshot.aspects.slice(0, 12).map((aspect, i) => {
-        const a = snapshot.planetaryStates.find(p => p.body === aspect.leftBody);
-        const b = snapshot.planetaryStates.find(p => p.body === aspect.rightBody);
-        if (!a || !b) return null;
-        const from = position(a.longitude, 181), to = position(b.longitude, 181);
+      {snapshot.aspects.slice(0,22).map((aspect,i)=>{
+        const a=snapshot.planetaryStates.find(p=>p.body===aspect.leftBody);
+        const b=snapshot.planetaryStates.find(p=>p.body===aspect.rightBody);
+        if(!a||!b)return null;
+        const from=position(a.longitude,183),to=position(b.longitude,183);
         return <line key={i} x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-          className={styles.aspectLine} strokeOpacity={aspect.orb <= 1 ? 0.7 : 0.35}/>;
+          className={styles.aspectLine} opacity={aspect.orb<=1?.65:.28}/>;
       })}
-      <circle cx="320" cy="320" r="37" className={styles.core}/>
-      <text x="320" y="314" textAnchor="middle" className={styles.coreText}>HALLEUS</text>
-      <text x="320" y="337" textAnchor="middle" className={styles.coreSub}>SKY</text>
+      <circle cx="320" cy="320" r="49" className={styles.core}/>
+      <circle cx="320" cy="320" r="33" className={styles.coreRing}/>
+      <text x="320" y="319" textAnchor="middle" className={styles.coreText}>HALLEUS</text>
+      <text x="320" y="336" textAnchor="middle" className={styles.coreSub}>SKY</text>
     </svg>
-    {snapshot.planetaryStates.map(state => {
-      const at = position(state.longitude, 208);
-      const positionStyle: CSSProperties = { left: (at.x / 640 * 100) + "%", top: (at.y / 640 * 100) + "%" };
+    {sorted.map((state,i)=>{
+      const prev=sorted[(i-1+sorted.length)%sorted.length];
+      const close=((state.longitude-prev.longitude+360)%360)<13;
+      const at=position(state.longitude,close?196:214);
+      const xy:CSSProperties={left:(at.x/640*100)+"%",top:(at.y/640*100)+"%"};
       return <button type="button" key={state.body} className={styles.planetPin}
-        style={positionStyle} onClick={() => onChoose(state.body)}
-        aria-label={SKY_BODY_LABELS[state.body] + " در " + SKY_SIGN_LABELS[state.sign]}>
+        style={xy} onClick={()=>onChoose(state.body)}
+        title={SKY_BODY_LABELS[state.body]+" · "+SKY_SIGN_LABELS[state.sign]}
+        aria-label={SKY_BODY_LABELS[state.body]+" در "+SKY_SIGN_LABELS[state.sign]}>
         {SKY_BODY_SYMBOLS[state.body]}
       </button>;
     })}
   </div>;
 }
-
 export function SkyObservatoryPreview({ city, cityId, timezone, today, period, view, referenceTime }: {
   city: string; cityId: string; timezone: string;
   today: SkyDailySnapshot; period: SkyObservatoryPeriodData | null; view: View; referenceTime: string;
@@ -139,71 +149,127 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
     "خوانش این نشان را کنار زاویه‌های واقعی روز بررسی کن.";
   return <div className={styles.page} dir="rtl">
     <div className={styles.container}>
-      <section className={styles.hero}>
+      <section className={styles.hero} id="sky-presence">
         <div className={styles.heroIntro}>
-          <span className={styles.kicker}>رصدخانهٔ هالیوس · {dateLabel(today.input.localDate, timezone)}</span>
+          <span className={styles.kicker}><i className={styles.liveDot} aria-hidden="true"/>
+            {dateLabel(today.input.localDate, timezone)} · {city}</span>
           <h1>آسترولوژی امروز؛ <em>ماه، سیارات و ترنزیت‌های روز</em></h1>
-          <p>آسمان را از روی موقعیت‌های محاسبه‌شده ببین؛ روی سیاره‌ها لمس کن و جزئیات همان روز را بخوان.</p>
-          <span className={styles.engineMark}>ASTRONOMY ENGINE · {today.calculationVersion}</span>
+          <p>امروز آسمان را ببین؛ جایگاه‌ها و زاویه‌ها را لمس کن و خوانش روز را دنبال کن.</p>
         </div>
         <div className={styles.heroScene}>
-          <div className={styles.sceneLabel}><span>نقشهٔ محاسبه‌شدهٔ آسمان</span><span>{city}</span></div>
+          <div className={styles.sceneLabel}>
+            <span>HALLEUS / OBSERVATORY</span>
+            <span>موقعیت واقعی · {city}</span>
+          </div>
           <Wheel snapshot={today} onChoose={setPlanet}/>
-          <p>چارت آسترولوژی امروز · لمس سیاره برای جزئیات</p>
+          <div className={styles.sceneFoot}>
+            <div><span>چارت آسترولوژی امروز</span><strong>نقشهٔ محاسبه‌شدهٔ آسمان</strong></div>
+            <span>برای جزئیات روی سیاره لمس کن</span>
+          </div>
         </div>
       </section>
       <div className={styles.heroFacts}>
         <MoonFact snapshot={today}/>
-        <div><span>زاویهٔ برجسته</span><strong>{today.aspects[0] ?
-          SKY_ASPECT_LABELS[today.aspects[0].kind] + " " + SKY_BODY_LABELS[today.aspects[0].leftBody] + " و " + SKY_BODY_LABELS[today.aspects[0].rightBody] :
-          "زاویه‌ای ثبت نشده"}</strong></div>
-        <div><span>رویداد بعدی</span><strong>{upcomingToday ? eventLabel(upcomingToday) : "رویداد بعدی ثبت نشده"}</strong></div>
+        <div><span>مهم‌ترین زاویه</span><strong>{today.aspects[0] ?
+          SKY_ASPECT_LABELS[today.aspects[0].kind]+" "+SKY_BODY_LABELS[today.aspects[0].leftBody]+
+          " و "+SKY_BODY_LABELS[today.aspects[0].rightBody] : "زاویه‌ای ثبت نشده"}</strong></div>
+        <div><span>رویداد پیش رو</span><strong>{upcomingToday ?
+          eventLabel(upcomingToday) : "رویداد بعدی ثبت نشده"}</strong></div>
       </div>
       <div className={styles.timeModes} id="time-modes">
         <span>کاوش در زمان</span>
         <nav aria-label="بازهٔ رصد آسمان">
           {(["today","week","month"] as const).map(item =>
-            <Link key={item} href={url(item)} className={view === item ? styles.modeCurrent : styles.mode}>
-              {item === "today" ? "امروز" : item === "week" ? "این هفته" : "این ماه"}
+            <Link key={item} href={url(item)}
+              aria-current={view===item?"page":undefined}
+              className={view===item?styles.modeCurrent:styles.mode}>
+              {item==="today"?"امروز":item==="week"?"این هفته":"این ماه"}
             </Link>)}
         </nav>
       </div>
-      {view !== "today" && period ? <section className={styles.period}>
-        <span className={styles.kicker}>دادهٔ واقعی موتور · {period.snapshots.length.toLocaleString("fa-IR")} روز</span>
-        <h2>{view === "week" ? "آسترولوژی این هفته" : "آسترولوژی این ماه"}</h2>
-        <p>از {shortDate(period.startDate,timezone)} تا {shortDate(period.endDate,timezone)}؛ روزها و رویدادهای ثبت‌شدهٔ این بازه را بررسی کن.</p>
-        <div className={styles.dayRail} role="group" aria-label="انتخاب روز رصد">
-          {period.snapshots.map(day => {
-            const date = day.input.localDate;
-            return <button type="button" key={date}
-              className={active.input.localDate === date ? styles.dayActive : styles.day}
-              aria-pressed={active.input.localDate === date} onClick={() => setSelectedDate(date)}>
-              <small>{new Intl.DateTimeFormat("fa-IR", { timeZone: timezone, weekday: "short" }).format(new Date(date + "T12:00:00Z"))}</small>
-              <strong>{shortDate(date,timezone)}</strong>
-              <span>{SKY_BODY_SYMBOLS.moon} {day.planetaryStates.find(p=>p.body==="moon") ? SKY_SIGN_LABELS[day.planetaryStates.find(p=>p.body==="moon")!.sign] : "—"}</span>
-            </button>;
-          })}
+      {view==="today"&&<div className={styles.planetRail} aria-label="لمس سیارات">
+        {today.planetaryStates.map(item=>
+          <button type="button" key={item.body} onClick={()=>setPlanet(item.body)}>
+            <span>{SKY_BODY_SYMBOLS[item.body]}</span>
+            <small>{SKY_BODY_LABELS[item.body]}</small>
+          </button>)}
+      </div>}
+      {view!=="today"&&period&&<section className={styles.period}>
+        <div className={styles.periodLede}>
+          <span className={styles.kicker}>{view==="week"?"WEEKLY SKYLINE":"LUNAR CYCLE"} · موتور هالیوس</span>
+          <h2>{view==="week"?"آسترولوژی این هفته؛":"آسترولوژی این ماه؛"}
+            <em>{view==="week"?" هفت روز، یک مسیر آسمانی":" ریتم یک چرخهٔ کامل"}</em></h2>
+          <p>از {shortDate(period.startDate,timezone)} تا {shortDate(period.endDate,timezone)}؛
+            {view==="week"?" تغییرات ماه و رویدادهای هفت روز را دنبال کن.":
+              " چرخهٔ ماه و تغییرات مهم این ماه شمسی را ببین."}</p>
         </div>
-        <div className={styles.periodReading}>
-          <h3>آسمان {dateLabel(active.input.localDate, timezone)}</h3>
-          <p>{active.planetaryStates.find(p => p.body === "moon") ?
-            "ماه در " + SKY_SIGN_LABELS[active.planetaryStates.find(p => p.body === "moon")!.sign] +
-            " قرار دارد. " + moonLabel(active) + " و " + (active.moonPhase ? pct(active.moonPhase.illuminationFraction) : "روشنایی نامشخص") +
-            " از وضعیت محاسبه‌شدهٔ این روز به‌دست آمده است." :
-            "دادهٔ ماه برای این روز ثبت نشده است."}</p>
-          <div className={styles.periodMeta}>
-            <span>{active.aspects.length.toLocaleString("fa-IR")} زاویه</span>
-            <span>{active.timeline.length.toLocaleString("fa-IR")} رویداد</span>
-            <span>{active.planetaryStates.filter(p => p.motion === "retrograde").length.toLocaleString("fa-IR")} سیارهٔ برگشتی</span>
+        {view==="week"?<div className={styles.weekStage}>
+          <h3>روی مسیر هفته حرکت کن</h3>
+          <p>هر نقطه یک روز محاسبه‌شده از موتور هالیوس است.</p>
+          <div className={styles.weekLine} role="group" aria-label="روزهای هفته">
+            {period.snapshots.map(day=>{
+              const date=day.input.localDate,chosen=active.input.localDate===date;
+              return <button type="button" key={date}
+                className={chosen?styles.weekDayActive:styles.weekDay}
+                aria-pressed={chosen} onClick={()=>setSelectedDate(date)}>
+                <small>{new Intl.DateTimeFormat("fa-IR",{timeZone:timezone,weekday:"short"}).format(new Date(date+"T12:00:00Z"))}</small>
+                <strong>{new Intl.DateTimeFormat("fa-IR",{timeZone:timezone,day:"numeric"}).format(new Date(date+"T12:00:00Z"))}</strong>
+                <i aria-hidden="true"/>
+              </button>;
+            })}
           </div>
-          <div className={styles.periodEvents}>
-            <strong>رویدادهای بازه</strong>
-            {allEvents.length ? allEvents.slice(0, 12).map((event, idx) =>
-              <div key={idx}><time>{eventMoment("occurredAt" in event ? event.occurredAt : undefined, timezone)}</time><span>{eventLabel(event)}</span></div>)
-              : <p>رویداد زمان‌دار دیگری در دادهٔ این بازه ثبت نشده است.</p>}
+          <div className={styles.weekReading} aria-live="polite">
+            <span>{dateLabel(active.input.localDate,timezone)}</span>
+            <h3>{active.aspects[0]?SKY_ASPECT_LABELS[active.aspects[0].kind]+" "+
+              SKY_BODY_LABELS[active.aspects[0].leftBody]+" و "+
+              SKY_BODY_LABELS[active.aspects[0].rightBody]:"مرور وضعیت آسمان"}</h3>
+            <p>{active.planetaryStates.find(p=>p.body==="moon")?
+              "ماه در "+SKY_SIGN_LABELS[active.planetaryStates.find(p=>p.body==="moon")!.sign]+
+              " است؛ "+moonLabel(active)+" با "+
+              (active.moonPhase?pct(active.moonPhase.illuminationFraction):"روشنایی نامشخص")+
+              " چارچوب خوانش این روز را شکل می‌دهد.":
+              "جایگاه ماه برای این روز ثبت نشده است."}</p>
+            <div className={styles.weekHint}><span>☽</span><p>
+              {active.timeline.length.toLocaleString("fa-IR")} رویداد و
+              {active.aspects.length.toLocaleString("fa-IR")} زاویه در این روز محاسبه شده.
+            </p></div>
           </div>
+        </div>:<div className={styles.monthStage}>
+          <h3>چرخهٔ ماه در یک نگاه</h3>
+          <p>مرحله‌ای از ماه را لمس کن و روز واقعی آن را ببین.</p>
+          <div className={styles.moonPhases} role="group" aria-label="چرخهٔ ماه">
+            {(["new","waxing","full","waning"] as const).map(phase=>{
+              const found=period.snapshots.find(day=>day.moonPhase?.phase===phase);
+              const chosen=!!found&&active.input.localDate===found.input.localDate;
+              return <button type="button" key={phase} disabled={!found}
+                className={chosen?styles.phaseActive:styles.phase}
+                aria-pressed={chosen} onClick={()=>found&&setSelectedDate(found.input.localDate)}>
+                <span className={styles.phaseOrb} data-phase={phase} aria-hidden="true"/>
+                <strong>{phaseLabel[phase]}</strong>
+                <small>{found?shortDate(found.input.localDate,timezone):"در این ماه ثبت نشده"}</small>
+              </button>;
+            })}
+          </div>
+          <div className={styles.monthReading} aria-live="polite">
+            <span>{dateLabel(active.input.localDate,timezone)}</span>
+            <h3>{moonLabel(active)}</h3>
+            <p>در این روز روشنایی ماه
+              {active.moonPhase?" "+pct(active.moonPhase.illuminationFraction):" ثبت نشده"}
+              است؛ این مقدار از دادهٔ محاسبه‌شدهٔ همان تاریخ به‌دست آمده است.</p>
+          </div>
+        </div>}
+        <div className={styles.periodEvents}>
+          <h3>رویدادهای مهم {view==="week"?"هفته":"ماه"}</h3>
+          {allEvents.length?allEvents.slice()
+            .sort((a,b)=>(("occurredAt" in a?a.occurredAt:"")??"")
+              .localeCompare((("occurredAt" in b?b.occurredAt:"")??"")))
+            .slice(0,view==="week"?7:12).map((event,i)=>
+              <div key={i}>
+                <time>{eventMoment("occurredAt" in event?event.occurredAt:undefined,timezone)}</time>
+                <strong>{eventLabel(event)}</strong>
+              </div>):<p>رویداد زمان‌دار دیگری در این بازه ثبت نشده است.</p>}
         </div>
-      </section> : null}
+      </section>}
       <section className={styles.reading} id="sky-reading">
         <span className={styles.kicker}>خواندن سریع امروز</span>
         <h2>امروز از کدام بخش آسمان شروع کنی؟</h2>
