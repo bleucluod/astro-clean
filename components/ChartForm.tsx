@@ -1257,7 +1257,9 @@ export function ChartForm({
               </div>
 
               {!comparisonMode ? (
-                <label className="chart-transit-choice chart-field-full">
+                <details className="chart-optional-details">
+                  <summary>اختیاری: آسمان امروز را هم روی چارتم ببین</summary>
+                  <label className="chart-transit-choice chart-field-full">
                 <input
                   type="checkbox"
                   checked={includeTransitReading}
@@ -1273,9 +1275,8 @@ export function ChartForm({
                   </small>
                 </span>
               </label>
-              ) : null}
 
-              {includeTransitReading ? (
+                  {includeTransitReading ? (
                 <div className="chart-field chart-city-field chart-city-card chart-transit-location">
                   <label className="chart-city-label">
                     <span className="chart-field-label">
@@ -1322,25 +1323,12 @@ export function ChartForm({
                   <FieldError message={fieldErrors.currentResidence} />
                 </div>
               ) : null}
+                </details>
+              ) : null}
             </div>
           </form>
 
-          {!comparisonMode ? (
-            <div className="chart-account-option">
-              <label className="chart-account-option-toggle">
-                <input
-                  type="checkbox"
-                  checked={showAccountPanel}
-                  onChange={(event) => setShowAccountPanel(event.target.checked)}
-                />
-                <span className="chart-account-option-copy">
-                  <strong>گزارشم را در حساب هالیوس نگه دار</strong>
-                </span>
-              </label>
 
-              {showAccountPanel ? <LazySupabaseAuthPanel compact /> : null}
-            </div>
-          ) : null}
           <div className="chart-form-actions">
             <button
               className="button chart-submit-button"
@@ -1366,6 +1354,28 @@ export function ChartForm({
             </button>
           </div>
 
+          {!comparisonMode ? (
+            <p className="chart-form-reassurance">
+              گزارش پایه رایگان است و برای ساختش به ثبت‌نام نیاز نداری.
+            </p>
+          ) : null}
+
+          {!comparisonMode ? (
+            <div className="chart-account-option">
+              <label className="chart-account-option-toggle">
+                <input
+                  type="checkbox"
+                  checked={showAccountPanel}
+                  onChange={(event) => setShowAccountPanel(event.target.checked)}
+                />
+                <span className="chart-account-option-copy">
+                  <strong>گزارشم را در حساب هالیوس نگه دار</strong>
+                </span>
+              </label>
+
+              {showAccountPanel ? <LazySupabaseAuthPanel compact /> : null}
+            </div>
+          ) : null}
           {realEngineRequest.status !== "idle" ? (
             <div className="chart-generation-overlay">
               <section

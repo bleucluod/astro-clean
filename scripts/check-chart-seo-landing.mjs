@@ -74,6 +74,24 @@ if (!(heroIndex >= 0 && workspaceIndex > heroIndex && reportStripIndex > workspa
 if (!(reportDetailsIndex > reportStripIndex && sampleIndex > reportDetailsIndex)) {
   failures.push("chart sample image must live inside the report output section after the form/report summary");
 }
+for (const phrase of [
+  "تاریخ، ساعت و شهر تولدت را وارد کن تا چارت تولد شخصی تو محاسبه شود.",
+  "ساخت نسخهٔ پایه رایگان است. اگر ساعت دقیق تولدت را ندانی هم می‌توانی چارتت را بسازی؛",
+  "نام، تاریخ تولد، ساعت تولد و شهر تولدت را وارد کن. تاریخ را می‌توانی با تقویم شمسی یا میلادی انتخاب کنی.",
+]) {
+  if (count(page, phrase) !== 1) failures.push("Chart approved editorial copy changed or duplicated: " + phrase);
+}
+const previewLocation = page.indexOf("className={styles.heroQuickPreview}");
+const editorialLocation = page.indexOf("className={styles.heroEditorial}");
+if (!(previewLocation > heroIndex && previewLocation < workspaceIndex &&
+  editorialLocation > workspaceIndex && editorialLocation < reportStripIndex)) {
+  failures.push("Chart mobile first-form arrangement is not preserved");
+}
+if (!form.includes('className="chart-optional-details"') ||
+  !form.includes('className="chart-form-reassurance"')) {
+  failures.push("Chart optional controls or primary CTA reassurance missing");
+}
+
 if (page.includes('className={styles.previewPanel}')) {
   failures.push("chart sample image must not render as a sidebar beside the form");
 }
