@@ -314,6 +314,20 @@ function ChartSelect({
       className={isOpen ? "chart-select is-open" : "chart-select"}
       ref={rootRef}
     >
+      <select
+        className="chart-native-select"
+        style={{ display: "none" }}
+        aria-label={ariaLabel}
+        dir="rtl"
+        disabled={disabled}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {options.map((option) => (
+          <option value={option.value} key={option.value}>{option.label}</option>
+        ))}
+      </select>
       <button
         type="button"
         className="chart-select-trigger"
@@ -1161,7 +1175,8 @@ export function ChartForm({
                   </label>
                 </div>
 
-                                <div
+                {birthTimeMode === "known" ? (
+                  <div
                   className="birth-time-picker-grid"
                   role="group"
                   aria-label="انتخاب ساعت تولد به‌صورت ۲۴ ساعته"
@@ -1206,6 +1221,7 @@ export function ChartForm({
                     />
                   </div>
                 </div>
+                ) : null}
 
                 {birthTimeMode === "unknown" ? (
                   <small className="field-hint">

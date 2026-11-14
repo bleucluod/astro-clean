@@ -87,6 +87,25 @@ if (!(previewLocation > heroIndex && previewLocation < workspaceIndex &&
   editorialLocation > workspaceIndex && editorialLocation < reportStripIndex)) {
   failures.push("Chart mobile first-form arrangement is not preserved");
 }
+for (const marker of [
+  'className="chart-native-select"',
+  'onChange={(event) => onChange(event.target.value)}',
+  'birthTimeMode === "known" ? (',
+]) {
+  if (!form.includes(marker)) failures.push("Chart mobile select contract missing: " + marker);
+}
+const chartStyles = read("app/chart/chart-shell.module.css");
+for (const marker of [
+  ".page .education,",
+  ".page .finalCta {",
+  "animation-timeline: auto !important;",
+  "opacity: 1 !important;",
+  ".formPanel :global(.chart-native-select)",
+  ".formPanel :global(.chart-form-progress-steps){display:none !important}",
+  "padding-block:11px !important;",
+]) {
+  if (!chartStyles.includes(marker)) failures.push("Chart mobile readability CSS missing: " + marker);
+}
 if (!form.includes('className="chart-optional-details"') ||
   !form.includes('className="chart-form-reassurance"')) {
   failures.push("Chart optional controls or primary CTA reassurance missing");

@@ -3336,3 +3336,109 @@
   .editorialParagraph{font-size:.83rem;line-height:2.05}
 }
 @media (prefers-reduced-motion:reduce){.heroCopy,.heroVisual{animation:none}}
+
+
+/* HALLEUS_CHART_MOBILE_FORM_READABILITY_20261114
+   Do not hide long educational sections until scroll: all copy stays visible. */
+.page .education,
+.page .finalCta {
+  animation: none !important;
+  animation-timeline: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.formPanel :global(.chart-native-select) {display:none !important}
+@media (max-width:760px) {
+  /* The birth-chart tool starts immediately instead of sitting below a second CTA. */
+  .page {gap:10px;padding-top:4px}
+  .page .hero {
+    min-height:0 !important;
+    padding:8px 5px 9px !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+  .heroKicker {min-height:0;padding:0;border:0;background:none;font-size:.68rem}
+  .heroTitle {margin:4px 0 0;font-size:clamp(1.48rem,5.8vw,1.85rem);line-height:1.6}
+  .heroQuickLead {max-width:36ch;margin:2px 0 0;font-size:.84rem;line-height:1.75}
+  .heroActions,
+  .heroTrustRow,
+  .heroQuickPreview {display:none !important}
+  .page .workspace{margin:0}
+  .formPanelHeading{padding:14px 16px 0 !important}
+  .formPanelHeading h2{font-size:1.02rem;line-height:1.75;margin:0}
+  .formPanel :global(.chart-reference-content){padding:0 14px 16px !important}
+  .formPanel :global(.chart-reference-form){padding:0 !important}
+  .formPanel :global(.chart-form-progress){
+    margin:0 0 8px !important;padding:3px 0 8px !important;gap:7px !important
+  }
+  .formPanel :global(.chart-form-progress-header){margin:0 !important}
+  .formPanel :global(.chart-form-progress-steps){display:none !important}
+  .formPanel :global(.chart-form-progress-bar){
+    width:100% !important;height:4px !important;margin:0 !important;overflow:hidden !important
+  }
+  .formPanel :global(.chart-form-progress-bar::after){height:4px !important}
+  .formPanel :global(.chart-field){
+    padding-block:11px !important;
+    margin:0 !important;
+    border-bottom:1px solid rgba(210,228,242,.09) !important
+  }
+  .formPanel :global(.chart-field:last-child){border-bottom:0 !important}
+  .formPanel :global(.chart-form-fields){gap:0 !important}
+  .formPanel :global(.chart-field-label){font-size:.85rem !important}
+  .formPanel :global(.chart-field-label > span:first-child){width:20px !important;height:20px !important}
+  .formPanel :global(.chart-field-title-row){gap:7px}
+  .formPanel :global(.date-mode-switch){min-height:34px;border-radius:9px}
+  .formPanel :global(.date-mode-button){min-height:34px;font-size:.78rem !important}
+  .formPanel :global(.birth-date-picker-grid),
+  .formPanel :global(.birth-time-picker-grid){
+    margin-top:7px !important;
+    gap:5px !important;
+  }
+  .formPanel :global(.chart-select-trigger),
+  .formPanel :global(.chart-select-options){display:none !important}
+  .formPanel :global(.chart-native-select){
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    height:46px !important;
+    min-height:46px !important;
+    padding:0 8px !important;
+    border:1px solid rgba(196,216,232,.22) !important;
+    border-radius:10px !important;
+    color:#eff6fd !important;
+    background:#111b28 !important;
+    font:inherit !important;
+    font-size:16px !important;
+    font-weight:600 !important;
+    text-align:right !important;
+    direction:rtl !important;
+    touch-action:manipulation;
+    color-scheme:dark;
+  }
+  .formPanel :global(.chart-native-select:focus-visible){
+    outline:2px solid #9dc5e6 !important;
+    outline-offset:1px;
+  }
+  .formPanel :global(.chart-native-select:disabled){opacity:.55}
+  .formPanel :global(.chart-select-segment){padding:5px 3px !important;gap:4px !important}
+  .formPanel :global(.chart-select-segment > span){font-size:.68rem !important}
+  .formPanel :global(.birth-date-picker-grid){padding:3px 4px !important}
+  .formPanel :global(.birth-time-picker-grid){grid-template-columns:repeat(2,minmax(0,1fr))}
+  .formPanel :global(.time-unknown-choice){min-height:34px !important}
+  .formPanel :global(.chart-city-field input){min-height:48px !important}
+  .formPanel :global(.chart-optional-details){margin-top:9px}
+  .formPanel :global(.chart-optional-details > summary){min-height:44px}
+  .formPanel :global(.chart-form-actions){margin-top:0 !important}
+  .formPanel :global(.chart-submit-button){
+    min-height:53px !important;margin-top:12px !important;
+    border-radius:12px !important;
+    font-size:.97rem !important
+  }
+  .formPanel :global(.chart-form-actions::after){margin-top:6px}
+  .formPanel :global(.chart-account-option){margin-top:7px !important;padding-block:10px !important}
+  .formAfterword{margin:5px 15px 16px}
+  .heroEditorial{margin:0}
+}
