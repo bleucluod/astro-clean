@@ -218,8 +218,27 @@ expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handle
 expect(form.includes("chart-residence-location") &&
   form.includes("journeyStyles.residenceOptional") &&
   form.indexOf('chart-residence-location " + journeyStyles.residenceField') > form.indexOf('id="chart-journey-city"') &&
-  form.indexOf('chart-residence-location " + journeyStyles.residenceField') < form.indexOf('className="chart-optional-details"') &&
+  form.indexOf('chart-residence-location " + journeyStyles.residenceField') < form.indexOf('className="chart-form-actions"') &&
   form.includes("if (includeTransitReading)"), "Optional current-residence city must be visible after birth city and transit behavior preserved");
+expect(
+  form.includes('placeholder="نام خود را به فارسی وارد کنید"') &&
+  !form.includes('placeholder="نام فارسی خود را وارد کنید"') &&
+  form.includes('const includeTransitReading = !comparisonMode && Boolean(currentResidenceCity.trim());') &&
+  form.includes("if (includeTransitReading)") &&
+  form.includes("CURRENT_RESIDENCE_NOT_FOUND_MESSAGE") &&
+  form.includes("currentResidenceCityId: selectedCurrentResidenceCity.id") &&
+  !form.includes("setIncludeTransitReading(") &&
+  !form.includes("chart-optional-details") &&
+  !form.includes("chart-transit-choice"),
+  "Name placeholder and automatic current-city transit must replace the old toggle");
+expect(
+  routeCss.includes("HALLEUS_CHART_RESIDENCE_FIELD_MATCH_20261115") &&
+  routeCss.includes(".formPanel :global(.chart-reference-page .chart-residence-location)") &&
+  routeCss.includes(".formPanel :global(.chart-reference-page .chart-residence-location input)") &&
+  routeCss.includes("height: 47px !important;") &&
+  routeCss.includes("padding: 0 14px !important;") &&
+  routeCss.includes("border-radius: 13px !important;"),
+  "Residence input must match the birth-city dimensions without changing comparison");
 expect(style.includes(".residenceField") && style.includes(".residenceOptional"), "Residence layout styles missing");
 expect(
   style.includes(".journeyRoot.journeyRoot :global(.chart-form-progress)") &&

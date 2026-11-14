@@ -30,7 +30,7 @@ const requiredChartMarkers = [
   "birthLatitude",
   "birthLongitude",
   "birthTimezone",
-  "نام فارسی خود را وارد کنید",
+  "نام خود را به فارسی وارد کنید",
   "birth-time-picker-grid",
   "TIME_HOUR_OPTIONS",
   "selectBirthCity(city)",
@@ -40,6 +40,16 @@ const requiredChartMarkers = [
   "نزدیک‌ترین شهر",
   "ساخت گزارش",
 ];
+
+const transitFollowsResidence =
+  chartForm.includes("const includeTransitReading = !comparisonMode && Boolean(currentResidenceCity.trim());") &&
+  chartForm.includes("if (includeTransitReading)") &&
+  chartForm.includes("currentResidenceCityId: selectedCurrentResidenceCity.id") &&
+  !chartForm.includes("setIncludeTransitReading(") &&
+  !chartForm.includes("chart-optional-details");
+if (!transitFollowsResidence) {
+  failures.push("Current-residence city must drive transit without a separate checkbox");
+}
 
 for (const marker of requiredChartMarkers) {
   if (!chartForm.includes(marker)) {

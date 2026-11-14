@@ -435,11 +435,12 @@ export function ChartForm({
   const [stickyPortalReady, setStickyPortalReady] = useState(false);
   const mainSubmitRef = useRef<HTMLButtonElement>(null);
   const [fieldErrors, setFieldErrors] = useState<ChartFieldErrors>({});
-  const [includeTransitReading, setIncludeTransitReading] = useState(false);
   const [generatedReportPath, setGeneratedReportPath] = useState("");
   const [showOpenReportButton, setShowOpenReportButton] = useState(false);
 
   const [currentResidenceCity, setCurrentResidenceCity] = useState("");
+  // Current residence is optional, but when supplied it enables a personal transit reading.
+  const includeTransitReading = !comparisonMode && Boolean(currentResidenceCity.trim());
   const [selectedBirthCityId, setSelectedBirthCityId] = useState("");
   const [selectedCurrentResidenceCityId, setSelectedCurrentResidenceCityId] =
     useState("");
@@ -1153,7 +1154,7 @@ export function ChartForm({
                       sanitizePersianName(event.target.value),
                     );
                   }}
-                  placeholder="نام فارسی خود را وارد کنید"
+                  placeholder="نام خود را به فارسی وارد کنید"
                 />
                 <FieldError message={fieldErrors.name} />
               </label>
@@ -1513,22 +1514,6 @@ export function ChartForm({
                 </div>
               ) : null}
 
-              {!comparisonMode ? (
-                <details className="chart-optional-details">
-                  <summary>اختیاری: آسمان امروز را هم روی چارتم ببین</summary>
-                  <label className="chart-transit-choice chart-field-full">
-                    <input type="checkbox" checked={includeTransitReading}
-                      onChange={(event) => {
-                        setIncludeTransitReading(event.target.checked);
-                        clearFieldError("currentResidence");
-                      }} />
-                    <span>
-                      <strong>آسمان امروز را روی چارتت ببین</strong>
-                      <small>برای این مقایسه، انتخاب شهر سکونت فعلی از پیشنهادهای بالا لازم است. بدون فعال‌کردن این گزینه، شهر سکونت اختیاری می‌ماند.</small>
-                    </span>
-                  </label>
-                </details>
-              ) : null}
             </div>
           </form>
 
