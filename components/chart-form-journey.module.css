@@ -1,0 +1,248 @@
+
+/* HALLEUS_CHART_JOURNEY_MOBILE_20261114
+   Local to the standalone /chart form; comparison and desktop stay unchanged. */
+.journeyRoot {}
+.journeyStep { display: contents; }
+.stepBody { display: contents; }
+.stepSummary, .journeyProgress, .stickyBar { display: none; }
+
+@media (max-width: 760px) {
+  .journeyRoot :global(.chart-form-progress) { display: none !important; }
+  .journeyRoot .journeyProgress {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 4px;
+    padding: 8px 0 13px;
+    border-bottom: 1px solid rgba(176,201,223,.13);
+  }
+  .progressHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #dce8f2;
+    font-size: .82rem;
+    font-weight: 680;
+  }
+  .progressHeading strong {
+    color: #abc7df;
+    font-size: .72rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .orbitTrack {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+    gap: 4px;
+    direction: rtl;
+    padding-top: 2px;
+  }
+  .orbitTrack::before {
+    content: "";
+    position: absolute;
+    top: 16px;
+    right: 12.5%;
+    left: 12.5%;
+    height: 1px;
+    background: linear-gradient(90deg, #304456, #8299ae, #304456);
+    opacity: .7;
+  }
+  .orbitStep {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    color: #8e9eae;
+    font-size: .68rem;
+    font-weight: 580;
+  }
+  .orbitDot {
+    display: grid;
+    place-items: center;
+    width: 27px;
+    height: 27px;
+    border: 1px solid #506479;
+    border-radius: 50%;
+    background: #111b26;
+    color: #93a6b9;
+    font-size: .69rem;
+    font-variant-numeric: tabular-nums;
+    transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, color 220ms ease;
+  }
+  .orbitComplete { color: #d5e7f4; }
+  .orbitComplete .orbitDot {
+    border-color: #d0e5f4;
+    background: #324f66;
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(164,204,235,.09), 0 0 16px rgba(155,198,230,.16);
+    animation: chartJourneySpark 280ms ease-out both;
+  }
+  .progressHint {
+    margin: 0;
+    text-align: center;
+    color: #93aabf;
+    font-size: .7rem;
+    line-height: 1.7;
+  }
+  .journeyRoot :global(.chart-form-fields) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+  }
+  .journeyRoot .journeyStep {
+    display: block;
+    min-width: 0;
+    border-bottom: 1px solid rgba(195,213,227,.1);
+    transition: border-color 180ms ease, background 180ms ease;
+  }
+  .journeyRoot .journeyStep:focus-within { border-color: rgba(175,208,232,.32); }
+  .journeyRoot .stepBody { display: block; }
+  .journeyRoot .journeyStep :global(.chart-field) {
+    padding: 10px 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+  .journeyRoot .journeyStep :global(.chart-field-label) {
+    font-size: .86rem !important;
+    color: #d9e8f4 !important;
+  }
+  .journeyRoot .journeyStep :global(.chart-field input) {
+    min-height: 47px !important;
+    font-size: 16px !important;
+  }
+  .journeyRoot .stepCollapsed .stepBody { display: none; }
+  .journeyRoot .stepCollapsed .stepSummary {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 51px;
+    margin: 0;
+    padding: 8px 2px;
+    border: 0;
+    background: transparent;
+    text-align: right;
+    cursor: pointer;
+    touch-action: manipulation;
+    animation: chartJourneyAppear 190ms ease-out both;
+  }
+  .summaryCheck {
+    display: grid;
+    place-items: center;
+    flex: 0 0 21px;
+    width: 21px;
+    height: 21px;
+    border: 1px solid #8db2ce;
+    border-radius: 50%;
+    background: #213b51;
+    color: #e6f5ff;
+    font-size: .7rem;
+  }
+  .summaryTitle {
+    color: #b3c8d9;
+    font-size: .75rem;
+    white-space: nowrap;
+  }
+  .summaryValue {
+    margin-inline-start: auto;
+    min-width: 0;
+    overflow: hidden;
+    color: #f2f7fb;
+    font-size: .83rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .summaryEdit {
+    color: #98b6cc;
+    font-size: .72rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .stepSummary:focus-visible, .stickyButton:focus-visible {
+    outline: 2px solid #a9d4f1;
+    outline-offset: 3px;
+  }
+  .stickyBar {
+    position: fixed;
+    z-index: 90;
+    right: max(12px, env(safe-area-inset-right));
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    max-width: 480px;
+    min-height: 67px;
+    margin: 0 auto;
+    padding: 10px 11px;
+    border: 1px solid rgba(164,196,220,.35);
+    border-radius: 18px;
+    background: rgba(12,20,30,.96);
+    box-shadow: 0 14px 48px rgba(0,0,0,.5);
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(calc(100% + 25px));
+    transition: opacity 220ms ease, transform 260ms cubic-bezier(.22,1,.36,1), visibility 260ms;
+  }
+  .stickyVisible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .stickyCopy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+    color: #eff5fb;
+    text-align: right;
+  }
+  .stickyCopy strong { font-size: .78rem; font-weight: 760; line-height: 1.5; }
+  .stickyCopy small { color: #a0b9cc; font-size: .66rem; line-height: 1.6; }
+  .stickyButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    min-height: 46px;
+    padding: 8px 13px;
+    border: 0;
+    border-radius: 12px;
+    background: #d9eafd;
+    color: #243447;
+    font: inherit;
+    font-size: .83rem;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 180ms ease, transform 180ms ease;
+  }
+  .stickyButton:active { transform: scale(.97); }
+  .stickyButton:disabled { cursor: wait; opacity: .65; }
+  .stickyButton span { font-size: 1rem; }
+}
+
+@media (max-width: 355px) {
+  .stickyCopy small { font-size: .6rem; }
+  .stickyButton { padding-inline: 10px; font-size: .78rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbitDot, .journeyStep, .stickyBar, .stickyButton { animation: none !important; transition: none !important; }
+  .stepCollapsed .stepSummary { animation: none !important; }
+}
+@keyframes chartJourneySpark {
+  from { transform: scale(.87); }
+  to { transform: scale(1); }
+}
+@keyframes chartJourneyAppear {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -3,6 +3,8 @@
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
+import journeyStyles from "./chart-form-journey.module.css";
 import {
   type CSSProperties,
   type FormEvent,
@@ -101,6 +103,7 @@ const UNKNOWN_BIRTH_TIME = "12:00";
 const MAX_CITY_SUGGESTIONS = 7;
 
 type BirthDateMode = "jalali" | "gregorian";
+type ChartJourneyStepId = "name" | "date" | "time" | "city";
 type BirthTimeMode = "known" | "unknown";
 
 type JalaliBirthDateParts = {
@@ -421,6 +424,10 @@ export function ChartForm({
   const submissionInFlightRef = useRef(false);
   const openReportTimerRef = useRef<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingStep, setEditingStep] = useState<ChartJourneyStepId>("name");
+  const [showStickyAction, setShowStickyAction] = useState(true);
+  const [stickyPortalReady, setStickyPortalReady] = useState(false);
+  const mainSubmitRef = useRef<HTMLButtonElement>(null);
   const [fieldErrors, setFieldErrors] = useState<ChartFieldErrors>({});
   const [includeTransitReading, setIncludeTransitReading] = useState(false);
   const [generatedReportPath, setGeneratedReportPath] = useState("");
@@ -511,12 +518,15 @@ export function ChartForm({
         (selectedBirthCityId || findHalleusCityByName(form.birthCity)),
     );
     const steps = [
-      { id: "name", label: "نام", complete: Boolean((form.name ?? "").trim()) },
+      { id: "name", label: "نام", complete: Boolean(sanitizePersianName(form.name ?? "").trim()) },
       {
         id: "date",
         label: "تاریخ تولد",
         complete: Boolean(
-          dateParts.year && dateParts.month && dateParts.day,
+          dateParts.year && dateParts.month && dateParts.day &&
+            (dateMode === "jalali"
+              ? parseJalaliDateInput(getSelectedJalaliDateInput(dateParts)).ok
+              : Number(dateParts.day) <= getGregorianDayCount(dateParts.year, dateParts.month)),
         ),
       },
       {
@@ -532,7 +542,7 @@ export function ChartForm({
 
     return {
       completed,
-      percentage: (Math.max(completed - 1, 0) / (steps.length - 1)) * 100,
+      percentage: (completed / steps.length) * 100,
       steps,
     };
   }, [
@@ -545,6 +555,80 @@ export function ChartForm({
     gregorianBirthDateParts,
     selectedBirthCityId,
   ]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setStickyPortalReady(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  function isCollapsedStep(stepId: ChartJourneyStepId) {
+    const step = chartProgress.steps.find((entry) => entry.id === stepId);
+    const errorKey: ChartFieldId = stepId === "date" ? "birthDate"
+      : stepId === "time" ? "birthTime"
+      : stepId === "city" ? "birthCity" : "name";
+    return Boolean(!comparisonMode && step?.complete && editingStep !== stepId && !fieldErrors[errorKey]);
+  }
+
+  function openJourneyStep(stepId: ChartJourneyStepId) {
+    setEditingStep(stepId);
+    window.requestAnimationFrame(() => {
+      const container = formRef.current?.querySelector<HTMLElement>(
+        '[data-chart-step="' + stepId + '"]',
+      );
+      const selector = stepId === "date" || stepId === "time"
+        ? ".chart-native-select, .chart-select-trigger"
+        : "input:not([type=checkbox])";
+      const targets = container?.querySelectorAll<HTMLElement>(selector);
+      const target = Array.from(targets ?? []).find((item) => item.getClientRects().length > 0);
+      container?.scrollIntoView({
+        block: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
+      target?.focus({ preventScroll: true });
+    });
+  }
+
+  function submitFromSticky() {
+    if (isSubmitting) return;
+    const firstIncomplete = chartProgress.steps.find((step) => !step.complete);
+    if (firstIncomplete) {
+      openJourneyStep(firstIncomplete.id as ChartJourneyStepId);
+      return;
+    }
+    if (includeTransitReading &&
+      !(selectedCurrentResidenceCityId || findHalleusCityByName(currentResidenceCity.trim()))) {
+      const input = formRef.current?.querySelector<HTMLElement>(".chart-transit-location input");
+      const disclosure = formRef.current?.querySelector<HTMLDetailsElement>(".chart-optional-details");
+      if (disclosure) disclosure.open = true;
+      input?.scrollIntoView({ block: "center", behavior: "smooth" });
+      input?.focus({ preventScroll: true });
+      return;
+    }
+    formRef.current?.requestSubmit();
+  }
+
+  useEffect(() => {
+    if (comparisonMode) return;
+    const update = () => {
+      const button = mainSubmitRef.current;
+      if (!button) return;
+      const bounds = button.getBoundingClientRect();
+      const keyboardOpen = Boolean(
+        window.visualViewport && window.visualViewport.height < window.innerHeight * 0.72,
+      );
+      setShowStickyAction(!keyboardOpen && bounds.top > window.innerHeight - 96);
+    };
+    const frame = window.requestAnimationFrame(update);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("resize", update);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("resize", update);
+    };
+  }, [comparisonMode, chartProgress.completed, editingStep, includeTransitReading]);
 
   function clearFieldError(field: ChartFieldId) {
     setFieldErrors((current) => {
@@ -945,7 +1029,7 @@ export function ChartForm({
   }
 
   return (
-    <section className="chart-reference-page" aria-label="فرم ساخت چارت تولد">
+    <section className={comparisonMode ? "chart-reference-page" : "chart-reference-page " + journeyStyles.journeyRoot} aria-label="فرم ساخت چارت تولد">
       <div className="chart-reference-shell">
         <div className="chart-reference-content">
           <form
@@ -955,6 +1039,33 @@ export function ChartForm({
             onSubmit={handleSubmit}
             ref={formRef}
           >
+            {!comparisonMode ? (
+              <div className={journeyStyles.journeyProgress} aria-live="polite">
+                <div className={journeyStyles.progressHeading}>
+                  <span>آسمان تو در حال شکل‌گرفتنه</span>
+                  <strong>{chartProgress.completed.toLocaleString("fa-IR")} از ۴</strong>
+                </div>
+                <div className={journeyStyles.orbitTrack}>
+                  {chartProgress.steps.map((step, index) => (
+                    <span
+                      key={step.id}
+                      className={journeyStyles.orbitStep + (step.complete ? " " + journeyStyles.orbitComplete : "")}
+                      aria-label={step.label + ": " + (step.complete ? "تکمیل شده" : "تکمیل نشده")}
+                    >
+                      <span className={journeyStyles.orbitDot} aria-hidden="true">
+                        {step.complete ? "✓" : (index + 1).toLocaleString("fa-IR")}
+                      </span>
+                      <span>{step.label}</span>
+                    </span>
+                  ))}
+                </div>
+                <p className={journeyStyles.progressHint}>
+                  {chartProgress.completed === 4
+                    ? "اطلاعات اصلی آماده است؛ می‌تونی آسمان تولدت رو بسازی."
+                    : "هر اطلاعاتی که تکمیل کنی، یک نقطه از آسمانت روشن می‌شه."}
+                </p>
+              </div>
+            ) : null}
             <div className="chart-form-progress" aria-live="polite">
               <div className="chart-form-progress-header">
                 <span>پیشرفت اطلاعات ضروری</span>
@@ -988,6 +1099,19 @@ export function ChartForm({
             </div>
 
             <div className="chart-form-fields">
+              <div className={journeyStyles.journeyStep + (isCollapsedStep("name") ? " " + journeyStyles.stepCollapsed : "")}
+                data-chart-step="name" onFocusCapture={() => setEditingStep("name")}>
+                <button type="button" className={journeyStyles.stepSummary}
+                  aria-controls="chart-journey-name"
+                  aria-label="ویرایش نام"
+                  aria-expanded={!isCollapsedStep("name")}
+                  onClick={() => openJourneyStep("name")}>
+                  <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                  <span className={journeyStyles.summaryTitle}>نام</span>
+                  <strong className={journeyStyles.summaryValue}>{form.name.trim()}</strong>
+                  <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                </button>
+                <div className={journeyStyles.stepBody} id="chart-journey-name">
               <label className="chart-field chart-field-full">
                 <span className="chart-field-label">
                   <span aria-hidden="true">♙</span>
@@ -1011,7 +1135,22 @@ export function ChartForm({
                 />
                 <FieldError message={fieldErrors.name} />
               </label>
+                </div>
+              </div>
 
+              <div className={journeyStyles.journeyStep + (isCollapsedStep("date") ? " " + journeyStyles.stepCollapsed : "")}
+                data-chart-step="date" onFocusCapture={() => setEditingStep("date")}>
+                <button type="button" className={journeyStyles.stepSummary}
+                  aria-controls="chart-journey-date"
+                  aria-label="ویرایش تاریخ تولد"
+                  aria-expanded={!isCollapsedStep("date")}
+                  onClick={() => openJourneyStep("date")}>
+                  <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                  <span className={journeyStyles.summaryTitle}>تاریخ تولد</span>
+                  <strong className={journeyStyles.summaryValue}>{dateMode === "jalali" ? [birthDateParts.day, birthDateParts.month, birthDateParts.year].join("/") : [gregorianBirthDateParts.day, gregorianBirthDateParts.month, gregorianBirthDateParts.year].join("/")}</strong>
+                  <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                </button>
+                <div className={journeyStyles.stepBody} id="chart-journey-date">
               <div className="chart-field chart-field-full">
                 <div className="chart-field-title-row">
                   <span className="chart-field-label">
@@ -1153,7 +1292,22 @@ export function ChartForm({
                 )}
                 <FieldError message={fieldErrors.birthDate} />
               </div>
+                </div>
+              </div>
 
+              <div className={journeyStyles.journeyStep + (isCollapsedStep("time") ? " " + journeyStyles.stepCollapsed : "")}
+                data-chart-step="time" onFocusCapture={() => setEditingStep("time")}>
+                <button type="button" className={journeyStyles.stepSummary}
+                  aria-controls="chart-journey-time"
+                  aria-label="ویرایش ساعت تولد"
+                  aria-expanded={!isCollapsedStep("time")}
+                  onClick={() => openJourneyStep("time")}>
+                  <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                  <span className={journeyStyles.summaryTitle}>ساعت تولد</span>
+                  <strong className={journeyStyles.summaryValue}>{birthTimeMode === "unknown" ? "ساعت نامشخص" : [birthTimeParts.hour, birthTimeParts.minute].join(":")}</strong>
+                  <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                </button>
+                <div className={journeyStyles.stepBody} id="chart-journey-time">
               <div className="chart-field chart-field-full">
                 <div className="chart-field-title-row chart-time-title-row">
                   <span className="chart-field-label">
@@ -1230,7 +1384,22 @@ export function ChartForm({
                 ) : null}
                 <FieldError message={fieldErrors.birthTime} />
               </div>
+                </div>
+              </div>
 
+              <div className={journeyStyles.journeyStep + (isCollapsedStep("city") ? " " + journeyStyles.stepCollapsed : "")}
+                data-chart-step="city" onFocusCapture={() => setEditingStep("city")}>
+                <button type="button" className={journeyStyles.stepSummary}
+                  aria-controls="chart-journey-city"
+                  aria-label="ویرایش شهر تولد"
+                  aria-expanded={!isCollapsedStep("city")}
+                  onClick={() => openJourneyStep("city")}>
+                  <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                  <span className={journeyStyles.summaryTitle}>شهر تولد</span>
+                  <strong className={journeyStyles.summaryValue}>{form.birthCity.trim()}</strong>
+                  <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                </button>
+                <div className={journeyStyles.stepBody} id="chart-journey-city">
               <div className="chart-field chart-city-field chart-city-card">
                 <label className="chart-city-label">
                   <span className="chart-field-label">
@@ -1270,6 +1439,8 @@ export function ChartForm({
                   </div>
                 ) : null}
                 <FieldError message={fieldErrors.birthCity} />
+              </div>
+                </div>
               </div>
 
               {!comparisonMode ? (
@@ -1348,6 +1519,7 @@ export function ChartForm({
           <div className="chart-form-actions">
             <button
               className="button chart-submit-button"
+              ref={mainSubmitRef}
               type="submit"
               form="chart-birth-data-form"
               disabled={isSubmitting}
@@ -1391,6 +1563,25 @@ export function ChartForm({
 
               {showAccountPanel ? <LazySupabaseAuthPanel compact /> : null}
             </div>
+          ) : null}
+          {!comparisonMode && stickyPortalReady ? createPortal(
+            <div className={journeyStyles.stickyBar + (showStickyAction ? " " + journeyStyles.stickyVisible : "")}
+              aria-hidden={!showStickyAction} data-chart-sticky-action="mobile">
+              <div className={journeyStyles.stickyCopy}>
+                <strong>{chartProgress.completed === 4 ? "آسمان تو آماده‌ست" : "آسمان تو شکل می‌گیره"}</strong>
+                <small>{chartProgress.completed === 4
+                  ? "آمادهٔ ساخت چارت شخصی"
+                  : (4 - chartProgress.completed).toLocaleString("fa-IR") + " اطلاعات باقی‌ مونده"}</small>
+              </div>
+              <button type="button" className={journeyStyles.stickyButton}
+                tabIndex={showStickyAction ? 0 : -1}
+                disabled={isSubmitting}
+                onClick={submitFromSticky}>
+                {isSubmitting ? "در حال ساخت…" : "ساخت چارت تولد"}
+                <span aria-hidden="true">←</span>
+              </button>
+            </div>,
+            document.body,
           ) : null}
           {realEngineRequest.status !== "idle" ? (
             <div className="chart-generation-overlay">
