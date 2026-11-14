@@ -697,3 +697,35 @@
   .page .moonSheetImage{min-height:285px}
 }
 @media(prefers-reduced-motion:reduce){.planetPin{transition:none}.aspectLine{transition:none}}
+
+/* HALLEUS_SKY_TOUCH_RAILS_20261114: native mobile gestures for controls. */
+.manualSweep{scrollbar-width:thin;scrollbar-color:#657e93 transparent}
+@media (max-width:720px){
+  .page .manualSweep{
+    display:block;max-width:100%;overflow-x:auto !important;overflow-y:hidden !important;
+    scroll-snap-type:x proximity;scroll-padding-inline:14px;-webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;touch-action:pan-x pan-y;
+  }
+  .page .manualSweep>.sweepGroup{
+    display:flex !important;flex-wrap:nowrap;flex-direction:row;
+    width:max-content !important;min-width:100%;margin:0;
+    transform:none !important;animation:none !important;
+  }
+  .page .manualSweep>.signRail{gap:10px;padding:10px 12px 15px}
+  .page .manualSweep>.signRail .sign,
+  .page .manualSweep>.signRail .signActive{
+    box-sizing:border-box;flex:0 0 108px !important;min-width:108px !important;min-height:94px;
+    padding:10px 8px !important;gap:6px;border-radius:13px;
+    border:1px solid rgba(173,196,214,.24);background:rgba(25,38,52,.72);
+    color:#d5e4f0;font-size:14px;line-height:1.65;white-space:nowrap;
+    scroll-snap-align:center;cursor:pointer;touch-action:manipulation;
+  }
+  .page .manualSweep>.signRail .signActive{
+    border-color:#c3d8e9;background:#30485d;color:#fff;
+    box-shadow:0 0 0 1px rgba(198,218,236,.1) inset;
+  }
+  .page .manualSweep>.signRail .sign span,
+  .page .manualSweep>.signRail .signActive span{font-size:28px;line-height:1.3}
+  .page .manualSweep>.exploreTiles{gap:12px;padding:3px 12px 15px}
+  .page .manualSweep>.exploreTiles a{scroll-snap-align:start;touch-action:manipulation}
+}

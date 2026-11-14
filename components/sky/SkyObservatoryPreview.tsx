@@ -172,6 +172,14 @@ function AutoSweepRail({ label, groupClassName, variant, renderItems }: {
   const [touchHeld, setTouchHeld] = useState(false);
   const variantStyle = variant === "signal" ? styles.sweepSignalViewport :
     variant === "sign" ? styles.sweepSignViewport : styles.sweepExploreViewport;
+  // Links and buttons must stay still under a finger; only read-only facts auto-sweep.
+  if (variant !== "signal") {
+    return <div role="group" aria-label={label} dir="rtl"
+      className={styles.sweepViewport + " " + variantStyle + " " + styles.manualSweep}>
+      <div className={styles.sweepGroup + " " + groupClassName}
+        data-sweep-original="true" dir="rtl">{renderItems(false)}</div>
+    </div>;
+  }
   return <div role="group" aria-label={label}
     className={styles.sweepViewport + " " + variantStyle}
     data-sweep-held={touchHeld ? "true" : "false"}

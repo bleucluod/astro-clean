@@ -6,6 +6,16 @@ const siteHeader = readFileSync("components/SiteHeader.tsx", "utf8");
 const navigation = readFileSync("lib/config/navigation.ts", "utf8");
 const globals = readFileSync("app/globals.css", "utf8");
 const appShellCss = readFileSync("components/app-shell.module.css", "utf8");
+for (const marker of [
+  'aria-controls="halleus-mobile-navigation"',
+  'aria-expanded={isMobileMenuOpen}',
+  'className={styles.mobileMenuToggle}',
+  'className={styles.mobileMenuPanel}',
+  'setIsMobileMenuOpen(false)',
+]) if (!siteHeader.includes(marker)) failures.push("Mobile hamburger contract missing: " + marker);
+for (const marker of [".mobileMenuToggle", ".mobileMenuPanel", ".mobileMenuPanel[hidden]", ".mobileMenuAccount"]) {
+  if (!appShellCss.includes(marker)) failures.push("Mobile hamburger styling missing: " + marker);
+}
 const homePage = `${readFileSync("app/page.tsx", "utf8")}\n${readFileSync("content/public-editorial-final/03-homepage.md", "utf8")}`;
 const privacyPage = `${readFileSync("app/privacy/page.tsx", "utf8")}\n${readFileSync("content/public-editorial-final/10-privacy.md", "utf8")}`;
 const comparePage = readFileSync("app/compare/page.tsx", "utf8");

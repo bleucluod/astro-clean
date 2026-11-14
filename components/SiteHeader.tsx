@@ -69,6 +69,30 @@ export function SiteHeader() {
   const mobileScrollDistanceRef = useRef(0);
   const [isHidden, setIsHidden] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    if (mobileNavRef.current) mobileNavRef.current.dataset.mobileScrollVisibility = "visible";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    const closeOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !mobileNavRef.current?.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("pointerdown", closeOutside);
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("pointerdown", closeOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     lastScrollYRef.current = window.scrollY;
@@ -231,7 +255,7 @@ export function SiteHeader() {
     let animationFrame = 0;
 
     const setVisibility = (visible: boolean) => {
-      mobileNav.dataset.mobileScrollVisibility = visible
+      mobileNav.dataset.mobileScrollVisibility = visible || mobileNav.dataset.mobileMenuOpen === "true"
         ? "visible"
         : "hidden";
     };
@@ -404,6 +428,7 @@ export function SiteHeader() {
         data-report-reader-header={isReportReader ? "true" : undefined}
         aria-label="ناوبری اصلی موبایل"
         data-mobile-nav="independent-final-v1"
+        data-mobile-menu-open={isMobileMenuOpen ? "true" : "false"}
       >
         <IntentPrefetchLink
           href="/"
@@ -428,8 +453,31 @@ export function SiteHeader() {
           هالیوس
         </span>
 
-        <div className={isReportReader ? `${styles.mobileNavLinks} ${styles.mobileNavLinksReportReader}` : styles.mobileNavLinks}>
+        <button
+          type="button"
+          className={styles.mobileMenuToggle}
+          aria-label={isMobileMenuOpen ? "بستن منوی هالیوس" : "باز کردن منوی هالیوس"}
+          aria-controls="halleus-mobile-navigation"
+          aria-expanded={isMobileMenuOpen}
+          onClick={() => setIsMobileMenuOpen(open => !open)}
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            {isMobileMenuOpen ? <path d="M5 5l14 14M19 5L5 19" /> :
+              <path d="M4 7h16M4 12h16M4 17h16" />}
+          </svg>
+        </button>
+        <div id="halleus-mobile-navigation" className={styles.mobileMenuPanel}
+          hidden={!isMobileMenuOpen}
+          onClick={event => {
+            if (event.target instanceof Element && event.target.closest("a")) {
+              setIsMobileMenuOpen(false);
+            }
+          }}>
           <NavLinks />
+          {!isShopRoute && <IntentPrefetchLink href="/profile" className={styles.mobileMenuAccount}>
+            حساب من
+          </IntentPrefetchLink>}
         </div>
       </nav>
 

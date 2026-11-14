@@ -59,7 +59,7 @@ requireText(client, [
   "SkyCityPicker", "EditorialStickyCtaSequence",
   "data-sky-mode={view}", "modeTitle", "modeSubtitle",
   "SkyMoonVisual", "showPanel={false}", "styles.moonExperience",
-  "AutoSweepRail", "renderItems={duplicate => SIGN_IDS.map",
+  "AutoSweepRail", "renderItems={duplicate => SIGN_IDS.map", "variant !== \"signal\"", "styles.manualSweep",
   "groupClassName={styles.exploreTiles}", "data-sweep-held={touchHeld",
   "tabIndex={duplicate ? -1 : undefined}", "CompactReading", "setMoonOpen",
   "styles.moonSheet", "styles.moonSheetImage", "styles.moonVisualHint",
@@ -80,7 +80,7 @@ requireText(css, [
   ".sweepViewport", ".sweepTrack", ".sweepGroup", ".sweepSignalViewport", ".sweepSignViewport",
   ".sweepExploreViewport", "@keyframes skyReadingSweep", "animation-play-state:paused",
   ".moonSheet", ".moonVisualHint", ".aspectFlow", ".compactReading",
-  ".contextNote",
+  ".contextNote", ".manualSweep", "touch-action:pan-x pan-y",
 ]);
 const showcaseSlot = read("components/shop/SurfaceShowcaseSlot.tsx");
 for (const marker of ["previewFallback?: SurfaceOffer", "track={!previewFallback}", "publishedOffer ?? previewFallback ?? null"]) {
