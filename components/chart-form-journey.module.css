@@ -7,7 +7,15 @@
 .stepSummary, .journeyProgress, .stickyBar { display: none; }
 
 @media (max-width: 760px) {
-  .journeyRoot :global(.chart-form-progress) { display: none !important; }
+  /* The route stylesheet sets display:grid!important on this legacy progress.
+     Override its two-class selector, so the mobile orbit is the only progress UI. */
+  .journeyRoot.journeyRoot :global(.chart-form-progress) {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
   .journeyRoot .journeyProgress {
     display: grid;
     gap: 5px;

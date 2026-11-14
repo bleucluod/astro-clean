@@ -68,6 +68,11 @@ expect(routeCss.includes("HALLEUS_CHART_MOBILE_COMPACT_READABLE_20261114"), "Mob
 expect(routeCss.includes(".formPanel :global(.chart-time-title-row)"), "Time unknown control must remain inline");
 expect(routeCss.includes("flex-direction: row !important;"), "Mobile time row must not stack");
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
+expect(
+  style.includes(".journeyRoot.journeyRoot :global(.chart-form-progress)") &&
+  /\.journeyRoot\.journeyRoot\s+:global\(\.chart-form-progress\)\s*\{[^}]*display:\s*none\s*!important;/.test(style),
+  "Legacy progress must be hidden by a higher-specificity mobile rule",
+);
 
 if (errors.length > 0) {
   console.error("Chart mobile journey check failed:");
