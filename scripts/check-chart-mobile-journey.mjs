@@ -91,11 +91,11 @@ for (const marker of [
 for (const marker of [
   "export function MobileBirthDatePicker",
   "export function MobileBirthTimePicker",
-  "createPortal(",
-  'role="dialog"',
-  'aria-modal="true"',
+  "InlinePicker",
+  'role="group"',
+  'aria-expanded={open}',
   'event.key === "Escape"',
-  'event.key !== "Tab"',
+  'triggerRef.current?.focus({ preventScroll: true })',
   "DATE_WHEEL_ITEM_HEIGHT",
   "dayWheelOptions",
   "parseJalaliDateInput(",
@@ -117,8 +117,8 @@ for (const marker of [
   ".wheelViewport",
   ".wheelSelection",
   "scroll-snap-type: y mandatory;",
-  ".portal",
-  ".sheet",
+  ".inlinePanel",
+  ".inlineHeader",
   "@media (prefers-reduced-motion: reduce)",
 ]) {
   expect(pickerCss.includes(marker), "New mobile picker design missing: " + marker);
@@ -138,6 +138,17 @@ expect(pickerCss.includes(".dateWheelPicker") &&
 expect(!picker.includes('className={styles.yearInput}') &&
   !picker.includes('className={styles.monthGrid}') &&
   !picker.includes('className={styles.dayGrid}'), "Old date grid still mounted");
+expect(picker.includes("HALLEUS_CHART_INLINE_WHEELS_20261114") &&
+  !picker.includes("createPortal(") &&
+  !picker.includes('aria-modal="true"') &&
+  !picker.includes("document.body.style.overflow") &&
+  picker.includes('id="chart-inline-date-picker"') &&
+  picker.includes('id="chart-inline-time-picker"') &&
+  (picker.match(/<InlinePicker /g) ?? []).length === 2 &&
+  (picker.match(/aria-expanded={open}/g) ?? []).length === 2,
+  "Mobile date/time wheels must expand inline without a modal");
+expect(pickerCss.includes(".inlinePanel .wheelViewport { height: 192px; padding: 72px 0; }") &&
+  pickerCss.includes(".inlinePanel { display: none; }"), "Inline mobile wheel sizing and desktop hiding missing");
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handleScroll}") &&
   picker.includes("TIME_WHEEL_HOURS") && picker.includes("TIME_WHEEL_MINUTES") &&
@@ -160,5 +171,5 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log("CHART_MOBILE_JOURNEY_CHECK=PASS");
-  console.log("Four validated steps, editable summaries, custom date/time sheets, sticky portal, and real submit preserved.");
+  console.log("Four validated steps, editable summaries, inline mobile wheels, sticky action, and real submit preserved.");
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type UIEvent as ReactUIEvent } from "react";
-import { createPortal } from "react-dom";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import styles from "./chart-mobile-birth-picker.module.css";
 
@@ -62,63 +61,24 @@ function parseTime(value: string): MobileTimeParts | null {
   return { hour: twoDigits(hour), minute: twoDigits(minute) };
 }
 
-function PickerSheet({
-  title, onClose, children,
-}: {
+// HALLEUS_CHART_INLINE_WHEELS_20261114
+function InlinePicker({ id, title, onClose, children }: {
+  id: string;
   title: string;
   onClose: () => void;
   children: ReactNode;
 }) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const focused = document.activeElement;
-    const oldOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const frame = window.requestAnimationFrame(() => closeRef.current?.focus({ preventScroll: true }));
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-      if (event.key !== "Tab" || !panelRef.current) return;
-      const items = Array.from(panelRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]):not([tabindex="-1"]), input:not([disabled]), [role="spinbutton"][tabindex="0"]',
-      ));
-      if (!items.length) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = oldOverflow;
-      if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
-    };
-  }, [onClose]);
-
-  return createPortal(
-    <div className={styles.portal} dir="rtl">
-      <button type="button" className={styles.backdrop} aria-label="بستن انتخابگر" tabIndex={-1} onClick={onClose} />
-      <section className={styles.sheet} role="dialog" aria-modal="true" aria-label={title} ref={panelRef}>
-        <header className={styles.sheetHeader}>
-          <div className={styles.sheetHeading}>
-            <span className={styles.eyebrow}>هالیوس · اطلاعات تولد</span>
-            <h3>{title}</h3>
-          </div>
-          <button className={styles.close} ref={closeRef} type="button" aria-label="بستن" onClick={onClose}>×</button>
-        </header>
-        <div className={styles.sheetScroll}>{children}</div>
-      </section>
-    </div>, document.body,
+  return (
+    <div id={id} className={styles.inlinePanel} role="group" aria-label={title}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") { event.stopPropagation(); onClose(); }
+      }}>
+      <div className={styles.inlineHeader}>
+        <strong>{title}</strong>
+        <button type="button" className={styles.inlineClose} onClick={onClose}>بستن</button>
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -235,7 +195,11 @@ export function MobileBirthDatePicker({
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<MobileDateParts>({ year: "", month: "", day: "" });
   const [error, setError] = useState("");
-  const close = useCallback(() => setOpen(false), []);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => {
+    setOpen(false);
+    triggerRef.current?.focus({ preventScroll: true });
+  }, []);
   const openPicker = () => {
     setDraft({ ...value });
     setError("");
@@ -287,7 +251,8 @@ export function MobileBirthDatePicker({
   return (
     <>
       <button type="button" className={"chart-mobile-picker-trigger " + styles.trigger}
-        onClick={openPicker} aria-label="انتخاب تاریخ تولد">
+        ref={triggerRef} onClick={open ? close : openPicker} aria-label="انتخاب تاریخ تولد"
+        aria-expanded={open} aria-controls={open ? "chart-inline-date-picker" : undefined}>
         <span className={styles.triggerText}>
           <small>تاریخ تولد {mode === "jalali" ? "شمسی" : "میلادی"}</small>
           <strong>{hasValue ? value.day + " " + displayMonth + " " +
@@ -296,7 +261,7 @@ export function MobileBirthDatePicker({
         <span className={styles.triggerIcon} aria-hidden="true">▦</span>
       </button>
       {open ? (
-        <PickerSheet title="انتخاب تاریخ تولد" onClose={close}>
+        <InlinePicker id="chart-inline-date-picker" title="انتخاب تاریخ تولد" onClose={close}>
           <p className={styles.intro}>روز، ماه و سال را مثل ساعت آیفون بالا و پایین بکش؛ هر سه باید انتخاب شوند.</p>
           <div className={styles.wheelPicker + " " + styles.dateWheelPicker}
             dir="rtl" role="group" aria-label="روز، ماه و سال تولد">
@@ -309,7 +274,7 @@ export function MobileBirthDatePicker({
           </div>
           {error ? <p className={styles.error} role="alert">{error}</p> : null}
           <button type="button" className={styles.confirm} onClick={save}>تأیید تاریخ تولد</button>
-        </PickerSheet>
+        </InlinePicker>
       ) : null}
     </>
   );
@@ -416,7 +381,11 @@ export function MobileBirthTimePicker({
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<MobileTimeParts>({ hour: "12", minute: "00" });
   const [error, setError] = useState("");
-  const close = useCallback(() => setOpen(false), []);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => {
+    setOpen(false);
+    triggerRef.current?.focus({ preventScroll: true });
+  }, []);
   const openPicker = () => {
     setDraft({
       hour: value.hour || "12",
@@ -440,7 +409,8 @@ export function MobileBirthTimePicker({
   return (
     <>
       <button type="button" className={"chart-mobile-picker-trigger " + styles.trigger}
-        onClick={openPicker} aria-label="انتخاب ساعت تولد">
+        ref={triggerRef} onClick={open ? close : openPicker} aria-label="انتخاب ساعت تولد"
+        aria-expanded={open} aria-controls={open ? "chart-inline-time-picker" : undefined}>
         <span className={styles.triggerText}>
           <small>ساعت تولد</small>
           <strong>{hasValue ? value.hour + ":" + value.minute : "ساعت و دقیقه را انتخاب کن"}</strong>
@@ -448,7 +418,7 @@ export function MobileBirthTimePicker({
         <span className={styles.triggerIcon} aria-hidden="true">◷</span>
       </button>
       {open ? (
-        <PickerSheet title="انتخاب ساعت تولد" onClose={close}>
+        <InlinePicker id="chart-inline-time-picker" title="انتخاب ساعت تولد" onClose={close}>
           <p className={styles.intro}>مثل ساعت آیفون، چرخ ساعت و دقیقه را بالا یا پایین بکش؛ انتخاب روی عدد وسط می‌ایستد.</p>
           <div className={styles.wheelPicker} dir="ltr" role="group" aria-label="انتخاب ساعت تولد به‌صورت ۲۴ ساعته">
             <TimeWheel label="ساعت" options={TIME_WHEEL_HOURS} value={draft.hour}
@@ -459,7 +429,7 @@ export function MobileBirthTimePicker({
           </div>
           {error ? <p className={styles.error} role="alert">{error}</p> : null}
           <button type="button" className={styles.confirm} onClick={save}>تأیید ساعت تولد</button>
-        </PickerSheet>
+        </InlinePicker>
       ) : null}
     </>
   );
