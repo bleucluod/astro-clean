@@ -206,7 +206,7 @@
   .page .sweepTrack{display:flex;direction:rtl;width:max-content;align-items:stretch}
   .page .sweepTrack>.sweepGroup:nth-child(2){display:flex}
   .page .sweepGroup{flex:0 0 auto;width:max-content;min-width:0}
-  .page .signalRail.sweepGroup{display:flex;grid-template-columns:none;gap:0;margin:0;padding:12px 0;border:0;background:transparent}
+  .page .signalRail.sweepGroup{display:flex;grid-template-columns:none;gap:0;margin:0;padding:12px 0;border:0;background:transparent;overflow:visible}
   .page .signalRail.sweepGroup>div{display:grid;flex:0 0 118px;min-width:118px;gap:3px;grid-template-columns:23px minmax(0,1fr);grid-template-rows:auto auto;padding:4px 10px;align-content:center}
   .page .signalRail.sweepGroup>div:last-child{border-left:1px solid var(--line)}
   .page .signRail.sweepGroup{display:flex;gap:8px;overflow:visible;padding:12px 8px 14px 0;margin:0;scrollbar-width:none}
@@ -581,10 +581,11 @@
 }
 .moonExperience{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);
   align-items:center;gap:clamp(14px,3vw,38px);padding:10px 0 18px}
-.moonVisual{display:block;width:100%;min-width:0;max-width:350px;overflow:clip;isolation:isolate;padding:0;border:0;border-radius:20px;background:transparent;color:#e8f1f8;cursor:zoom-in;text-align:center}
-.moonVisual:focus-visible{outline:2px solid #d8e8f5;outline-offset:3px}
-.moonVisualHint{display:block;padding:1px 0 8px;font-size:13px;color:#cad9e6}
-.moonVisual:hover .moonVisualHint{text-decoration:underline;text-underline-offset:3px}
+.moonVisual{position:relative;display:block;width:100%;min-width:0;max-width:350px;overflow:clip;isolation:isolate;padding:0;border-radius:20px;text-align:center}
+.moonVisualButton{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;width:100%;padding:0 8px 6px;border:0;background:transparent;color:#e8f1f8;cursor:zoom-in}
+.moonVisualButton:focus-visible{outline:2px solid #d8e8f5;outline-offset:-3px}
+.moonVisualHint{display:block;padding:4px 8px;font-size:13px;color:#d8e5f1;background:rgba(9,15,22,.75);border-radius:99px}
+.moonVisualButton:hover .moonVisualHint{text-decoration:underline;text-underline-offset:3px}
 .moonDetails{min-width:0;padding:15px 0;border-block:1px solid var(--line)}
 .moonDetails .moonFact{display:grid;gap:2px}
 .moonDetails .moonFact span{font-size:15px;color:#cbd9e4}

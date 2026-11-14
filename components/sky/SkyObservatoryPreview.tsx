@@ -470,13 +470,15 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         <span className={styles.kicker}>{view === "today" ? "ماه امروز" : "ماه در روز انتخاب‌شده"}</span>
         <h2>{view === "today" ? "وضعیت ماه امروز؛ نشان، فاز و روشنایی" : "وضعیت ماه در روز انتخاب‌شده؛ نشان، فاز و روشنایی"}</h2>
         <div className={styles.moonExperience}>
-          <button type="button" className={styles.moonVisual}
-            onClick={() => setMoonOpen(true)} aria-label="نمای بزرگ ماه و جزئیات فاز">
+          <div className={styles.moonVisual}>
             <SkyMoonVisual label={city + " · ماه در " + (moon ? SKY_SIGN_LABELS[moon.sign] : "نامشخص")}
               illuminationFraction={active.moonPhase?.illuminationFraction}
               phase={active.moonPhase?.phase} showPanel={false} idPrefix="sky-preview-inline"/>
-            <span className={styles.moonVisualHint}>برای دیدن جزئیات، ماه را لمس کن</span>
-          </button>
+            <button type="button" className={styles.moonVisualButton}
+              onClick={() => setMoonOpen(true)} aria-label="نمای بزرگ ماه و جزئیات فاز">
+              <span className={styles.moonVisualHint}>برای دیدن جزئیات، ماه را لمس کن</span>
+            </button>
+          </div>
           <div className={styles.moonDetails}>
             <MoonFact snapshot={active}/>
             <p>{active.moonPhase && active.moonPhase.illuminationFraction < 0.08
