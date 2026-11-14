@@ -12,7 +12,7 @@ export {
   isShowcaseSurface, isShowcaseSlot,
   type ShowcaseSurface, type SurfaceOffer, type SurfacePlacement, type SurfaceProposal,
 } from "@/lib/shop/shop-showcase-contract";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PRODUCT_ID = /^[a-z][a-z0-9_-]{1,39}$/;
 
 const inputText = (value: unknown, max: number, name: string) => {

@@ -21,6 +21,12 @@ has("lib/shop/shop-showcase-contract.ts", [
   "after-patterns", "after-chapters", "after-growth",
   "after-moon", "after-aspects", "after-timeline",
 ]);
+
+const surfaceShowcaseSource = read("lib/shop/shop-showcase-surfaces.ts");
+const canonicalUuidPattern = "const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;";
+if (!surfaceShowcaseSource.includes(canonicalUuidPattern)) {
+  failed.push("Multi-surface proposal and placement UUID guard must use 8-4-4-4-12");
+}
 has("lib/shop/shop-showcase-surfaces.ts", [
   "shop-showcase-contract", "wikiShopProductCatalog()", "expectedRevision",
   "on conflict (surface, slot)", "admin_audit_events", "enabled = true",
