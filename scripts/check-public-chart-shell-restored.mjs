@@ -9,8 +9,9 @@ for (const marker of [
   'import type { Metadata } from "next"',
   'import { ChartForm } from "@/components/ChartForm"',
   "export const metadata",
-  "title: \"ساخت چارت تولد رایگان | گزارش تولد فارسی هالیوس\"",
-  "return <ChartForm />",
+  'title: "چارت تولد رایگان فارسی با تفسیر | هالیوس"',
+  "<ChartForm />",
+  'className={styles.workspace}',
 ]) {
   if (!chartSource.includes(marker)) {
     failures.push(`app/chart/page.tsx missing public chart shell marker: ${marker}`);

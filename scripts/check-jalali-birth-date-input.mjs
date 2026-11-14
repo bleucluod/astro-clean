@@ -25,14 +25,14 @@ const requiredChartMarkers = [
   "birthDate: normalizedBirthDate",
   'dateMode === "jalali"',
   'updateDateMode("gregorian")',
-  'aria-label="سال تولد شمسی"',
-  'aria-label="ماه تولد شمسی"',
-  'aria-label="روز تولد شمسی"',
+  'ariaLabel="سال تولد شمسی"',
+  'ariaLabel="ماه تولد شمسی"',
+  'ariaLabel="روز تولد شمسی"',
   'aria-label="انتخاب تاریخ تولد میلادی"',
-  'aria-label="سال تولد میلادی"',
-  'aria-label="ماه تولد میلادی"',
-  'aria-label="روز تولد میلادی"',
-  "<select",
+  'ariaLabel="سال تولد میلادی"',
+  'ariaLabel="ماه تولد میلادی"',
+  'ariaLabel="روز تولد میلادی"',
+  "<ChartSelect",
 ];
 
 for (const marker of requiredChartMarkers) {
@@ -56,10 +56,10 @@ for (const marker of [
 
 for (const marker of [
   'birthCountry: "ایران"',
-  "birthCountry: initialForm.birthCountry",
+  "birthCountry: selectedCity.countryFaName",
 ]) {
   if (!chartFormSource.includes(marker)) {
-    failures.push(`ChartForm must keep internal Iran birthCountry marker: ${marker}`);
+    failures.push(`ChartForm must keep default Iran/city-derived country marker: ${marker}`);
   }
 }
 
@@ -91,19 +91,20 @@ if (!normalizedFormPattern.test(chartFormSource)) {
 }
 
 const gregorianInputPattern =
-  /dateMode\s*===\s*"jalali"\s*\?\s*\([\s\S]*?:\s*\([\s\S]*?aria-label="انتخاب تاریخ تولد میلادی"[\s\S]*?aria-label="سال تولد میلادی"[\s\S]*?aria-label="ماه تولد میلادی"[\s\S]*?aria-label="روز تولد میلادی"/;
+  /dateMode\s*===\s*"jalali"\s*\?\s*\([\s\S]*?:\s*\([\s\S]*?aria-label="انتخاب تاریخ تولد میلادی"[\s\S]*?ariaLabel="سال تولد میلادی"[\s\S]*?ariaLabel="ماه تولد میلادی"[\s\S]*?ariaLabel="روز تولد میلادی"/;
 
 if (!gregorianInputPattern.test(chartFormSource)) {
   failures.push(
-    "ChartForm must render three select controls in the Gregorian branch.",
+    "ChartForm must retain all three Gregorian ChartSelect controls.",
   );
 }
 
-const birthControlSelectCount = chartFormSource.match(/<select/g)?.length ?? 0;
+const birthControlSelectCount = chartFormSource.match(/<ChartSelect\b/g)?.length ?? 0;
 
-if (birthControlSelectCount < 8) {
+if (birthControlSelectCount !== 8 ||
+    !chartFormSource.includes('className="chart-native-select"')) {
   failures.push(
-    `ChartForm expected Jalali, Gregorian, and 24-hour select controls; found ${birthControlSelectCount}.`,
+    `ChartForm must keep 8 Jalali/Gregorian/time selectors with native mobile controls; found ${birthControlSelectCount}.`,
   );
 }
 

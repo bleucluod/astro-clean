@@ -168,8 +168,11 @@ for (const marker of [
 ]) {
   requireMarker("chart structured data", page, marker);
 }
-if (count(page, '"@type":') !== 3) {
-  failures.push(`chart structured-data graph must contain exactly three @type nodes; found ${count(page, '"@type":')}`);
+const graphNodes = ['"@type": "WebPage"', '"@type": "ImageObject"', '"@type": "WebApplication"'];
+if (graphNodes.some((type) => count(page, type) !== 1) ||
+    count(page, '"@type":') - count(page, '"@type": "Offer"') !== 3 ||
+    count(page, '"@type": "Offer"') !== 1) {
+  failures.push("chart schema must retain 3 top-level graph entities and its single nested Offer");
 }
 forbidMarker("chart structured data", page, "FAQPage");
 

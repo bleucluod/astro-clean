@@ -12,25 +12,25 @@ const checkProject = packageJson.scripts?.["check:project"] ?? "";
 const requiredChartMarkers = [
   "requestRealEngineReportData",
   "/api/engine/real-chart",
-  "attachRealEngineSnapshotToReport",
+  "attachReportGenerationContext(realEngineResult.report!, realEngineResult)",
   "saveGeneratedReportWithAccountFallback(",
-  "navigationGraceMs: 2200",
+  "navigationGraceMs: 0",
   "submissionInFlightRef",
-  "chart-journey-notification",
+  "chart-generation-overlay",
   "showOpenReportButton",
   "FieldError",
   "includeTransitReading",
   "loadLastStudyLocation",
   "buildReportSaveFallbackMessage",
-  "ذخیره حساب یا لینک noindex موقتاً پاسخ نداد",
+  "ذخیرهٔ گزارش روی هالیوس تأیید نشد",
   "disabled={isSubmitting}",
-  "IRAN_CITY_OPTIONS",
-  "findIranCityByName",
-  "getIranCityDisplayName",
+  "HALLEUS_CITY_OPTIONS",
+  "findHalleusCityByName",
+  "getHalleusCityDisplayName",
   "birthLatitude",
   "birthLongitude",
   "birthTimezone",
-  "نام خود را وارد کنید",
+  "نام فارسی خود را وارد کنید",
   "birth-time-picker-grid",
   "TIME_HOUR_OPTIONS",
   "selectBirthCity(city)",
@@ -103,8 +103,9 @@ for (const removedFile of [
   }
 }
 
-if (!chartPage.includes("return <ChartForm />")) {
-  failures.push("Public chart page should render ChartForm directly.");
+if (!chartPage.includes("<ChartForm />") ||
+    !chartPage.includes('className={styles.workspace}')) {
+  failures.push("Public chart page must render the ChartForm inside its workspace.");
 }
 
 if (

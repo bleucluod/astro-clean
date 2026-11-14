@@ -10,17 +10,16 @@ for (const marker of [
   "/api/engine/real-chart",
   "requestRealEngineReportData",
   "RealEngineRequestState",
-  "isRealEngineLoading",
-  "IRAN_CITY_OPTIONS",
-  "findIranCityByName",
-  "getIranCityDisplayName",
+  "realEngineRequest.status",
+  "HALLEUS_CITY_OPTIONS",
+  "findHalleusCityByName",
+  "getHalleusCityDisplayName",
   "birthLatitude",
   "birthLongitude",
   "birthTimezone",
-  "createMockReport",
-  "saveGeneratedReportWithAccountFallback(nextReport)",
-  "router.push(`/reports/${saveResult.accountRecord?.id ?? saveResult.localRecord.id}`)",
-  "router.push(`/reports/${saveResult.accountRecord.id}`)",
+  "attachReportGenerationContext(realEngineResult.report!, realEngineResult)",
+  "saveGeneratedReportWithAccountFallback(",
+  "router.push(nextPath)",
 ]) {
   if (!chartFormSource.includes(marker)) {
     failures.push(`ChartForm real engine final bridge missing marker: ${marker}`);
@@ -46,8 +45,9 @@ if (!chartFormSource.includes('status: "ready"')) {
   failures.push("ChartForm must track a ready state for real engine submit flow.");
 }
 
-if (!chartPageSource.includes("return <ChartForm />")) {
-  failures.push("Public chart page should render ChartForm directly.");
+if (!chartPageSource.includes("<ChartForm />") ||
+    !chartPageSource.includes('className={styles.workspace}')) {
+  failures.push("Public chart page must render ChartForm inside the workspace.");
 }
 
 for (const removedFile of [

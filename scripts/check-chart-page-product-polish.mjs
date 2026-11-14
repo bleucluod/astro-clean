@@ -40,16 +40,28 @@ for (const marker of [
 }
 
 for (const marker of [
+  "requestRealEngineReportData(normalizedForm, engineCity)",
+  "attachReportGenerationContext(realEngineResult.report!, realEngineResult)",
+  'await import("@/lib/storage/account-report-save-client")',
+  "saveGeneratedReportWithAccountFallback(",
+  "router.push(nextPath)",
+  "/reports/",
+  "birthCountry: selectedCity.countryFaName",
+  "birthLatitude: selectedCity.latitude",
+  "birthLongitude: selectedCity.longitude",
+  "birthTimezone: selectedCity.timezone",
+]) {
+  requireMarker("ChartForm engine/report flow", chartForm, marker);
+}
+
+for (const forbidden of [
   "buildReportForSave(",
   "buildLocalFallbackReport(",
   "enhanceReportOutputV2(createMockReport(normalizedForm))",
-  "requestRealEngineReportData(",
-  "saveGeneratedReportWithAccountFallback(",
-  "router.push(",
-  "/reports/",
-  "birthCountry: initialForm.birthCountry",
 ]) {
-  requireMarker("ChartForm engine/report flow", chartForm, marker);
+  if (chartForm.includes(forbidden)) {
+    failures.push("ChartForm unexpectedly restored retired report fallback: " + forbidden);
+  }
 }
 
 for (const marker of [
