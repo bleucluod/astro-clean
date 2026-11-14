@@ -364,13 +364,19 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
         </div>
         {view==="week"?<div className={styles.weekStage}>
           <p>برای دیدن نقشهٔ هر روز، یکی از تاریخ‌ها را انتخاب کن.</p>
-          <div className={styles.weekLine} role="group" aria-label="روزهای هفته">
+          <div className={styles.weekLine} role="group" aria-label="انتخاب روز هفته">
             {period.snapshots.map(day=>{
               const date=day.input.localDate,chosen=active.input.localDate===date;
+              const weekday=new Intl.DateTimeFormat("fa-IR",{timeZone:timezone,weekday:"short"}).format(new Date(date+"T12:00:00Z"));
               return <button type="button" key={date}
                 className={chosen?styles.weekDayActive:styles.weekDay}
-                aria-pressed={chosen} onClick={()=>setSelectedDate(date)}>
-                <small>{new Intl.DateTimeFormat("fa-IR",{timeZone:timezone,weekday:"short"}).format(new Date(date+"T12:00:00Z"))}</small>
+                aria-label={dateLabel(date,timezone)} aria-current={chosen?"date":undefined}
+                aria-pressed={chosen}
+                onClick={event=>{
+                  setSelectedDate(date);
+                  event.currentTarget.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});
+                }}>
+                <small>{weekday}</small>
                 <strong>{new Intl.DateTimeFormat("fa-IR",{timeZone:timezone,day:"numeric"}).format(new Date(date+"T12:00:00Z"))}</strong>
                 <i aria-hidden="true"/>
               </button>;
@@ -393,26 +399,44 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
             </p></div>
           </div>
         </div>:<div className={styles.monthStage}>
-          <p>یکی از فازها را انتخاب کن تا تصویر ماه و جزئیات همان روز تغییر کنند.</p>
-          <div className={styles.moonPhases} role="group" aria-label="چرخهٔ ماه">
+          <div className={styles.monthMoonHero} aria-live="polite">
+            <div className={styles.monthMoonImage}>
+              <SkyMoonVisual label={city}
+                illuminationFraction={active.moonPhase?.illuminationFraction}
+                phase={active.moonPhase?.phase} showPanel={false}
+                idPrefix="sky-month-hero"/>
+            </div>
+            <div className={styles.monthMoonDetails}>
+              <span>{dateLabel(active.input.localDate,timezone)}</span>
+              <h3>{moonLabel(active)}</h3>
+              <p>{active.moonPhase ? pct(active.moonPhase.illuminationFraction)+" روشنایی" : "روشنایی ثبت نشده"}</p>
+              <p>{moon ? "ماه در "+SKY_SIGN_LABELS[moon.sign] : "جایگاه ماه ثبت نشده"}</p>
+              <button type="button" onClick={()=>setMoonOpen(true)}>نمای بزرگ ماه</button>
+            </div>
+          </div>
+          <p className={styles.monthPhaseIntro}>برای دیدن وضعیت هر فاز، آن را انتخاب کن.</p>
+          <div className={styles.moonPhases} role="group" aria-label="انتخاب فازهای ماه">
             {(["new","waxing","full","waning"] as const).map(phase=>{
               const found=period.snapshots.find(day=>day.moonPhase?.phase===phase);
-              const chosen=!!found&&active.input.localDate===found.input.localDate;
-              return <button type="button" key={phase} disabled={!found}
-                className={chosen?styles.phaseActive:styles.phase}
-                aria-pressed={chosen} onClick={()=>found&&setSelectedDate(found.input.localDate)}>
-                <span className={styles.phaseOrb} data-phase={phase} aria-hidden="true"/>
+              const chosen=active.moonPhase?.phase===phase;
+              return <div key={phase} className={chosen?styles.phaseActive:styles.phase}
+                data-phase={phase}>
+                <div className={styles.phaseThumb} aria-hidden="true">
+                  {found?.moonPhase ?
+                    <SkyMoonVisual label={phaseLabel[phase]}
+                      illuminationFraction={found.moonPhase.illuminationFraction}
+                      phase={found.moonPhase.phase} showPanel={false} compact
+                      idPrefix={"sky-month-thumb-"+phase}/> :
+                    <span className={styles.phaseOrb} data-phase={phase} aria-hidden="true"/>}
+                </div>
                 <strong>{phaseLabel[phase]}</strong>
-                <small>{found?shortDate(found.input.localDate,timezone):"در این ماه ثبت نشده"}</small>
-              </button>;
+                <small>{found?shortDate(found.input.localDate,timezone):"ثبت نشده"}</small>
+                <button type="button" className={styles.phaseHit}
+                  disabled={!found} aria-pressed={chosen}
+                  aria-label={phaseLabel[phase]+"، "+(found?shortDate(found.input.localDate,timezone):"ثبت نشده")}
+                  onClick={()=>found&&setSelectedDate(found.input.localDate)}/>
+              </div>;
             })}
-          </div>
-          <div className={styles.monthReading} aria-live="polite">
-            <span>{dateLabel(active.input.localDate,timezone)}</span>
-            <h3>{moonLabel(active)}</h3>
-            <p>در این روز روشنایی ماه
-              {active.moonPhase?" "+pct(active.moonPhase.illuminationFraction):" ثبت نشده"}
-              است؛ این مقدار از دادهٔ محاسبه‌شدهٔ همان تاریخ به‌دست آمده است.</p>
           </div>
         </div>}
         <div className={styles.periodEvents}>

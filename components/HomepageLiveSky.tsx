@@ -98,12 +98,14 @@ export function SkyMoonVisual({
   phase,
   showPanel = true,
   idPrefix = "home",
+  compact = false,
 }: {
   label: string;
   illuminationFraction?: number;
   phase?: "new" | "waxing" | "full" | "waning";
   showPanel?: boolean;
   idPrefix?: string;
+  compact?: boolean;
 }) {
   const illumination = Math.max(0, Math.min(1, illuminationFraction ?? 0));
   const shadowPath = buildMoonShadowPath(illumination, phase);
@@ -114,7 +116,7 @@ export function SkyMoonVisual({
   const shadowEdgeBlurId = `${idPrefix}-moon-shadow-edge-blur-${phase ?? "unavailable"}`;
 
   return (
-    <div className={styles.skyVisual} aria-hidden="true">
+    <div className={compact ? styles.skyMoonCompact : styles.skyVisual} aria-hidden="true">
       <div className={styles.skyMoonStage}>
         <span className={styles.skyMoonOrbitPrimary} />
         <span className={styles.skyMoonOrbitSecondary} />

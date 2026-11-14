@@ -50,6 +50,8 @@ requireText(client, [
   "styles.heroScene", "styles.sceneFoot",
   "styles.weekLine", "styles.weekDayActive",
   "styles.moonPhases", "styles.phaseOrb",
+  "styles.monthMoonHero", "styles.monthMoonDetails", "styles.phaseThumb",
+  "compact", "idPrefix={\"sky-month-thumb-\"+phase}",
   "snapshot.planetaryStates", "snapshot.aspects",
   "styles.stage", "styles.signalRail", "styles.overview", "styles.planetPreview",
   "styles.exploreTiles", "styles.heroEditorial",
@@ -70,6 +72,7 @@ requireText(css, [
   ".sheetBackdrop", "@media(max-width:600px)",
   ".sceneFoot", ".weekLine", ".moonPhases",
   ".phaseOrb", ".coreRing", ".tick", "var(--font-vazirmatn)",
+  ".monthMoonHero", ".monthMoonDetails", ".phaseHit", "scroll-snap-type:x proximity",
   ".stage", ".signalRail", ".overview", ".planetPreview", ".exploreTiles",
   ".weekLine::before", ".page[data-sky-mode=\"week\"]",
   "flex:1 1 0;display:grid", "flex:1 0 53px",
@@ -97,8 +100,12 @@ for (const marker of [
   'idPrefix="sky-preview-modal"', 'idPrefix="sky-preview-inline"',
   'onClick={() => setMoonOpen(true)}', 'CompactReading',
 ]) if (!railSource.includes(marker)) errors.push("Sky interactive preview must retain: " + marker);
+const homeMoonStyles = read("app/home.module.css");
+for (const marker of [".skyMoonCompact", ".skyMoonCompact .skyMoonDisc"]) {
+  if (!homeMoonStyles.includes(marker)) errors.push("Shared moon compact style missing: " + marker);
+}
 const homeMoon = sources.get("components/HomepageLiveSky.tsx") ?? "";
-for (const marker of ["export function SkyMoonVisual", "moon-apollo11.webp", "buildMoonShadowPath", "showPanel = true", "idPrefix = \"home\""]) {
+for (const marker of ["export function SkyMoonVisual", "moon-apollo11.webp", "buildMoonShadowPath", "showPanel = true", "idPrefix = \"home\"", "compact = false"]) {
   if (!homeMoon.includes(marker)) errors.push("Reusable homepage moon contract missing: " + marker);
 }
 const obs = sources.get(client) ?? "";
