@@ -1189,7 +1189,7 @@ export function ChartForm({
                 </button>
                 <div className={journeyStyles.stepBody} id="chart-journey-date" onFocusCapture={() => setEditingStep("date")}>
               <div className="chart-field chart-field-full">
-                <div className="chart-field-title-row">
+                <div className="chart-field-title-row chart-date-title-row">
                   <span className="chart-field-label">
                     <span aria-hidden="true">▣</span>
                     تاریخ تولد

@@ -142,7 +142,8 @@ expect(
   picker.includes('setWheelTouched(true);') &&
   picker.includes('wheelTouched ? " " + styles.wheelTouched') &&
   (pickerCss.match(/\.wheelViewport:not\(\.wheelTouched\)/g) ?? []).length === 5 &&
-  pickerCss.includes("height: 120px;") &&
+  pickerCss.includes("height: 88px;") &&
+  pickerCss.includes("padding: 24px 0;") &&
   pickerCss.includes("height: 40px;") &&
   pickerCss.includes("background: var(--chart-bg, #050609);") &&
   pickerCss.includes("@media (prefers-reduced-motion: reduce)"),
@@ -194,6 +195,21 @@ expect(
   pickerCss.includes("rgba(5,6,9,.75)") &&
   routeCss.includes("--chart-bg: #050609;"),
   "Wheel backgrounds must use the existing Halleus chart background token");
+expect(
+  form.includes('className="chart-field-title-row chart-date-title-row"') &&
+  routeCss.includes("HALLEUS_CHART_MOBILE_DATE_SWITCH_INLINE_20261114") &&
+  routeCss.includes(".formPanel :global(.chart-date-title-row > .date-mode-switch)") &&
+  routeCss.includes("width: auto !important;") &&
+  routeCss.includes("grid-template-columns: repeat(2, minmax(53px, 1fr)) !important;") &&
+  routeCss.includes("font-size: .68rem !important;"),
+  "Calendar toggle must fit left of the birth-date title on mobile");
+expect(
+  pickerCss.includes("height: 88px;") &&
+  pickerCss.includes("padding: 24px 0;") &&
+  pickerCss.includes("top: calc(50% - 20px);") &&
+  pickerCss.includes("height: 40px;") &&
+  pickerCss.includes("box-shadow: none;"),
+  "Only the selected 40px wheel row should be prominent inside the 88px viewport");
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handleScroll}") &&
   picker.includes("TIME_WHEEL_HOURS") && picker.includes("TIME_WHEEL_MINUTES") &&

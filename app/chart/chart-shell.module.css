@@ -3544,3 +3544,42 @@
   }
 
 }
+
+/* HALLEUS_CHART_MOBILE_DATE_SWITCH_INLINE_20261114
+   Keep calendar tabs to the left of the title, without stacking or stretching. */
+@media (max-width: 760px) {
+  .formPanel :global(.chart-date-title-row) {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 8px !important;
+  }
+  .formPanel :global(.chart-date-title-row > .chart-field-label) {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .formPanel :global(.chart-date-title-row > .date-mode-switch) {
+    display: inline-grid !important;
+    grid-template-columns: repeat(2, minmax(53px, 1fr)) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 138px;
+    flex: 0 0 auto;
+    min-height: 0 !important;
+    padding: 2px !important;
+    border-radius: 8px !important;
+  }
+  .formPanel :global(.chart-date-title-row .date-mode-button) {
+    min-height: 30px !important;
+    min-width: 0 !important;
+    padding: 0 7px !important;
+    border-radius: 6px !important;
+    font-size: .68rem !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+  }
+}
