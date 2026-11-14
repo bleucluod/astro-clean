@@ -1100,7 +1100,7 @@ export function ChartForm({
 
             <div className="chart-form-fields">
               <div className={journeyStyles.journeyStep + (isCollapsedStep("name") ? " " + journeyStyles.stepCollapsed : "")}
-                data-chart-step="name" onFocusCapture={() => setEditingStep("name")}>
+                data-chart-step="name">
                 <button type="button" className={journeyStyles.stepSummary}
                   aria-controls="chart-journey-name"
                   aria-label="ویرایش نام"
@@ -1111,7 +1111,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{form.name.trim()}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-name">
+                <div className={journeyStyles.stepBody} id="chart-journey-name" onFocusCapture={() => setEditingStep("name")}>
               <label className="chart-field chart-field-full">
                 <span className="chart-field-label">
                   <span aria-hidden="true">♙</span>
@@ -1139,7 +1139,7 @@ export function ChartForm({
               </div>
 
               <div className={journeyStyles.journeyStep + (isCollapsedStep("date") ? " " + journeyStyles.stepCollapsed : "")}
-                data-chart-step="date" onFocusCapture={() => setEditingStep("date")}>
+                data-chart-step="date">
                 <button type="button" className={journeyStyles.stepSummary}
                   aria-controls="chart-journey-date"
                   aria-label="ویرایش تاریخ تولد"
@@ -1150,7 +1150,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{dateMode === "jalali" ? [birthDateParts.day, birthDateParts.month, birthDateParts.year].join("/") : [gregorianBirthDateParts.day, gregorianBirthDateParts.month, gregorianBirthDateParts.year].join("/")}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-date">
+                <div className={journeyStyles.stepBody} id="chart-journey-date" onFocusCapture={() => setEditingStep("date")}>
               <div className="chart-field chart-field-full">
                 <div className="chart-field-title-row">
                   <span className="chart-field-label">
@@ -1296,7 +1296,7 @@ export function ChartForm({
               </div>
 
               <div className={journeyStyles.journeyStep + (isCollapsedStep("time") ? " " + journeyStyles.stepCollapsed : "")}
-                data-chart-step="time" onFocusCapture={() => setEditingStep("time")}>
+                data-chart-step="time">
                 <button type="button" className={journeyStyles.stepSummary}
                   aria-controls="chart-journey-time"
                   aria-label="ویرایش ساعت تولد"
@@ -1307,7 +1307,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{birthTimeMode === "unknown" ? "ساعت نامشخص" : [birthTimeParts.hour, birthTimeParts.minute].join(":")}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-time">
+                <div className={journeyStyles.stepBody} id="chart-journey-time" onFocusCapture={() => setEditingStep("time")}>
               <div className="chart-field chart-field-full">
                 <div className="chart-field-title-row chart-time-title-row">
                   <span className="chart-field-label">
@@ -1388,7 +1388,7 @@ export function ChartForm({
               </div>
 
               <div className={journeyStyles.journeyStep + (isCollapsedStep("city") ? " " + journeyStyles.stepCollapsed : "")}
-                data-chart-step="city" onFocusCapture={() => setEditingStep("city")}>
+                data-chart-step="city">
                 <button type="button" className={journeyStyles.stepSummary}
                   aria-controls="chart-journey-city"
                   aria-label="ویرایش شهر تولد"
@@ -1399,7 +1399,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{form.birthCity.trim()}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-city">
+                <div className={journeyStyles.stepBody} id="chart-journey-city" onFocusCapture={() => setEditingStep("city")}>
               <div className="chart-field chart-city-field chart-city-card">
                 <label className="chart-city-label">
                   <span className="chart-field-label">
@@ -1565,8 +1565,8 @@ export function ChartForm({
             </div>
           ) : null}
           {!comparisonMode && stickyPortalReady ? createPortal(
-            <div className={journeyStyles.stickyBar + (showStickyAction ? " " + journeyStyles.stickyVisible : "")}
-              aria-hidden={!showStickyAction} data-chart-sticky-action="mobile">
+            <div className={journeyStyles.stickyBar + (showStickyAction && !isSubmitting && realEngineRequest.status === "idle" ? " " + journeyStyles.stickyVisible : "")}
+              aria-hidden={!(showStickyAction && !isSubmitting && realEngineRequest.status === "idle")} data-chart-sticky-action="mobile">
               <div className={journeyStyles.stickyCopy}>
                 <strong>{chartProgress.completed === 4 ? "آسمان تو آماده‌ست" : "آسمان تو شکل می‌گیره"}</strong>
                 <small>{chartProgress.completed === 4
@@ -1574,7 +1574,7 @@ export function ChartForm({
                   : (4 - chartProgress.completed).toLocaleString("fa-IR") + " اطلاعات باقی‌ مونده"}</small>
               </div>
               <button type="button" className={journeyStyles.stickyButton}
-                tabIndex={showStickyAction ? 0 : -1}
+                tabIndex={showStickyAction && !isSubmitting && realEngineRequest.status === "idle" ? 0 : -1}
                 disabled={isSubmitting}
                 onClick={submitFromSticky}>
                 {isSubmitting ? "در حال ساخت…" : "ساخت چارت تولد"}
