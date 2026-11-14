@@ -24,7 +24,7 @@ for (const marker of [
 for (const marker of [
   'id="chart-birth-data-form"',
   'aria-labelledby="birth-data-heading"',
-  "نام فارسی خود را وارد کنید",
+  "نام خود را به فارسی وارد کنید",
   "تاریخ تولد",
   "شمسی",
   "میلادی",

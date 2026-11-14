@@ -106,9 +106,16 @@ for (const marker of [
 ]) {
   if (!chartStyles.includes(marker)) failures.push("Chart mobile readability CSS missing: " + marker);
 }
-if (!form.includes('className="chart-optional-details"') ||
-  !form.includes('className="chart-form-reassurance"')) {
-  failures.push("Chart optional controls or primary CTA reassurance missing");
+if (!form.includes('className="chart-form-reassurance"')) {
+  failures.push("Chart primary CTA reassurance missing");
+}
+if (!form.includes('chart-residence-location " + journeyStyles.residenceField') ||
+  !form.includes('const includeTransitReading = !comparisonMode && Boolean(currentResidenceCity.trim());') ||
+  !form.includes("if (includeTransitReading)") ||
+  !form.includes("currentResidenceCityId: selectedCurrentResidenceCity.id") ||
+  form.includes('className="chart-optional-details"') ||
+  form.includes("setIncludeTransitReading(")) {
+  failures.push("Chart residence-driven transit contract missing or obsolete toggle restored");
 }
 
 if (page.includes('className={styles.previewPanel}')) {
