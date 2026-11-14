@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type UIEvent as ReactUIEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type UIEvent as ReactUIEvent } from "react";
 import { createPortal } from "react-dom";
 import { parseJalaliDateInput } from "@/lib/date/jalali";
 import styles from "./chart-mobile-birth-picker.module.css";
@@ -83,7 +83,7 @@ function PickerSheet({
       }
       if (event.key !== "Tab" || !panelRef.current) return;
       const items = Array.from(panelRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]):not([tabindex="-1"]), input:not([disabled])',
+        'button:not([disabled]):not([tabindex="-1"]), input:not([disabled]), [role="spinbutton"][tabindex="0"]',
       ));
       if (!items.length) return;
       const first = items[0];
@@ -114,11 +114,112 @@ function PickerSheet({
             <span className={styles.eyebrow}>هالیوس · اطلاعات تولد</span>
             <h3>{title}</h3>
           </div>
-          <button className={styles.close} type="button" aria-label="بستن" onClick={onClose}>×</button>
+          <button className={styles.close} ref={closeRef} type="button" aria-label="بستن" onClick={onClose}>×</button>
         </header>
         <div className={styles.sheetScroll}>{children}</div>
       </section>
     </div>, document.body,
+  );
+}
+
+// HALLEUS_IOS_DATE_WHEELS_20261114
+const DATE_WHEEL_ITEM_HEIGHT = 48;
+type DateWheelOption = { value: string; label: string };
+
+function DateWheel({
+  label, value, options, onChange,
+}: {
+  label: string;
+  value: string;
+  options: readonly DateWheelOption[];
+  onChange: (value: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const settlingRef = useRef(true);
+  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
+
+  useEffect(() => {
+    settlingRef.current = true;
+    let readyFrame = 0;
+    const frame = window.requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        const index = Math.max(0, options.findIndex((option) => option.value === value));
+        scrollRef.current.scrollTop = index * DATE_WHEEL_ITEM_HEIGHT;
+      }
+      readyFrame = window.requestAnimationFrame(() => { settlingRef.current = false; });
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(readyFrame);
+    };
+    // Only recenter when wheel options change; do not interrupt touch scrolling.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options]);
+
+  function choose(index: number) {
+    const selected = options[index];
+    if (!selected) return;
+    onChange(selected.value);
+    scrollRef.current?.scrollTo({
+      top: index * DATE_WHEEL_ITEM_HEIGHT,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
+  }
+
+  function handleScroll(event: ReactUIEvent<HTMLDivElement>) {
+    if (settlingRef.current) return;
+    const index = Math.max(0, Math.min(
+      options.length - 1,
+      Math.round(event.currentTarget.scrollTop / DATE_WHEEL_ITEM_HEIGHT),
+    ));
+    const selected = options[index];
+    if (selected && selected.value !== value) onChange(selected.value);
+  }
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    let nextIndex = selectedIndex;
+    if (event.key === "ArrowDown") nextIndex = Math.min(options.length - 1, selectedIndex + 1);
+    else if (event.key === "ArrowUp") nextIndex = Math.max(0, selectedIndex - 1);
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = options.length - 1;
+    else return;
+    event.preventDefault();
+    choose(nextIndex);
+  }
+
+  return (
+    <div className={styles.wheelColumn}>
+      <span className={styles.wheelLabel}>{label}</span>
+      <div className={styles.wheelFrame}>
+        <div
+          ref={scrollRef}
+          className={styles.wheelViewport}
+          role="spinbutton"
+          tabIndex={0}
+          aria-label={label}
+          aria-valuemin={0}
+          aria-valuemax={options.length - 1}
+          aria-valuenow={selectedIndex}
+          aria-valuetext={options[selectedIndex]?.label ?? "انتخاب نشده"}
+          onScroll={handleScroll}
+          onKeyDown={handleKeyDown}
+        >
+          {options.map((option, index) => (
+            <button
+              key={option.value || "empty"}
+              type="button"
+              tabIndex={-1}
+              aria-hidden="true"
+              className={styles.wheelRow + (option.value === value ? " " + styles.wheelActive : "")}
+              onClick={() => choose(index)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <span className={styles.wheelSelection} aria-hidden="true" />
+      </div>
+    </div>
   );
 }
 
@@ -145,6 +246,25 @@ export function MobileBirthDatePicker({
   const maxDays = dayLimit(mode, draft.year, draft.month);
   const valid = validDate(mode, draft, yearOptions);
 
+  const dayWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
+    { value: "", label: "روز" },
+    ...Array.from({ length: maxDays }, (_, index) => ({
+      value: twoDigits(index + 1),
+      label: (index + 1).toLocaleString("fa-IR"),
+    })),
+  ], [maxDays]);
+  const monthWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
+    { value: "", label: "ماه" },
+    ...monthOptions.map((month) => ({ value: month.value, label: month.label })),
+  ], [monthOptions]);
+  const yearWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
+    { value: "", label: "سال" },
+    ...yearOptions.map((year) => ({
+      value: year,
+      label: Number(year).toLocaleString("fa-IR", { useGrouping: false }),
+    })),
+  ], [yearOptions]);
+
   function changeDraft(field: keyof MobileDateParts, nextValue: string) {
     setError("");
     setDraft((previous) => {
@@ -157,7 +277,7 @@ export function MobileBirthDatePicker({
 
   function save() {
     if (!valid) {
-      setError("سال، ماه و روز معتبر را انتخاب کن.");
+      setError("روز، ماه و سال معتبر را انتخاب کن.");
       return;
     }
     onConfirm({ ...draft });
@@ -166,12 +286,8 @@ export function MobileBirthDatePicker({
 
   return (
     <>
-      <button
-        type="button"
-        className={"chart-mobile-picker-trigger " + styles.trigger}
-        onClick={openPicker}
-        aria-label="انتخاب تاریخ تولد"
-      >
+      <button type="button" className={"chart-mobile-picker-trigger " + styles.trigger}
+        onClick={openPicker} aria-label="انتخاب تاریخ تولد">
         <span className={styles.triggerText}>
           <small>تاریخ تولد {mode === "jalali" ? "شمسی" : "میلادی"}</small>
           <strong>{hasValue ? value.day + " " + displayMonth + " " +
@@ -181,43 +297,15 @@ export function MobileBirthDatePicker({
       </button>
       {open ? (
         <PickerSheet title="انتخاب تاریخ تولد" onClose={close}>
-          <p className={styles.intro}>سال را تایپ کن و ماه و روز را از گزینه‌های زیر انتخاب کن.</p>
-          <label className={styles.yearLabel}>
-            <span>سال تولد {mode === "jalali" ? "شمسی" : "میلادی"}</span>
-            <input
-              className={styles.yearInput}
-              value={draft.year}
-              inputMode="numeric"
-              autoComplete="bday-year"
-              maxLength={4}
-              dir="ltr"
-              placeholder={mode === "jalali" ? "۱۳۷۸" : "۱۹۹۹"}
-              onChange={(event) => changeDraft("year", englishDigits(event.target.value).replace(/\D/g, "").slice(0, 4))}
-            />
-          </label>
-          <div className={styles.sectionLabel}>ماه تولد</div>
-          <div className={styles.monthGrid}>
-            {monthOptions.map((month) => (
-              <button
-                type="button" key={month.value}
-                className={styles.choice + (draft.month === month.value ? " " + styles.selected : "")}
-                aria-pressed={draft.month === month.value}
-                onClick={() => changeDraft("month", month.value)}
-              >{month.label}</button>
-            ))}
-          </div>
-          <div className={styles.sectionLabel}>روز تولد</div>
-          <div className={styles.dayGrid}>
-            {Array.from({ length: maxDays }, (_, index) => {
-              const day = twoDigits(index + 1);
-              return (
-                <button type="button" key={day}
-                  className={styles.dayChoice + (draft.day === day ? " " + styles.selected : "")}
-                  aria-pressed={draft.day === day}
-                  onClick={() => changeDraft("day", day)}
-                >{(index + 1).toLocaleString("fa-IR")}</button>
-              );
-            })}
+          <p className={styles.intro}>روز، ماه و سال را مثل ساعت آیفون بالا و پایین بکش؛ هر سه باید انتخاب شوند.</p>
+          <div className={styles.wheelPicker + " " + styles.dateWheelPicker}
+            dir="rtl" role="group" aria-label="روز، ماه و سال تولد">
+            <DateWheel label="روز" value={draft.day} options={dayWheelOptions}
+              onChange={(day) => changeDraft("day", day)} />
+            <DateWheel label="ماه" value={draft.month} options={monthWheelOptions}
+              onChange={(month) => changeDraft("month", month)} />
+            <DateWheel key={mode} label="سال" value={draft.year} options={yearWheelOptions}
+              onChange={(year) => changeDraft("year", year)} />
           </div>
           {error ? <p className={styles.error} role="alert">{error}</p> : null}
           <button type="button" className={styles.confirm} onClick={save}>تأیید تاریخ تولد</button>
@@ -226,7 +314,6 @@ export function MobileBirthDatePicker({
     </>
   );
 }
-
 
 const TIME_WHEEL_ITEM_HEIGHT = 48;
 const TIME_WHEEL_HOURS = Array.from({ length: 24 }, (_, index) => twoDigits(index));

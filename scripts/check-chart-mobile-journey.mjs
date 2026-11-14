@@ -96,8 +96,8 @@ for (const marker of [
   'aria-modal="true"',
   'event.key === "Escape"',
   'event.key !== "Tab"',
-  'inputMode="numeric"',
-  'maxLength={4}',
+  "DATE_WHEEL_ITEM_HEIGHT",
+  "dayWheelOptions",
   "parseJalaliDateInput(",
   "validGregorian(",
   "onConfirm({ ...draft })",
@@ -111,8 +111,8 @@ for (const marker of [
   ".trigger { display: none; }",
   "@media (max-width: 760px)",
   "min-height: 44px;",
-  ".monthGrid",
-  ".dayGrid",
+  ".dateWheelPicker",
+  ".dateWheelPicker .wheelRow",
   ".wheelPicker",
   ".wheelViewport",
   ".wheelSelection",
@@ -124,6 +124,20 @@ for (const marker of [
   expect(pickerCss.includes(marker), "New mobile picker design missing: " + marker);
 }
 
+expect(picker.includes("HALLEUS_IOS_DATE_WHEELS_20261114") &&
+  picker.includes('role="spinbutton"') &&
+  picker.includes('onScroll={handleScroll}') &&
+  picker.includes('onChange={(day) => changeDraft("day", day)}') &&
+  picker.includes('onChange={(month) => changeDraft("month", month)}') &&
+  picker.includes('onChange={(year) => changeDraft("year", year)}') &&
+  picker.includes('Number(next.day) > dayLimit(mode, next.year, next.month)') &&
+  picker.includes('const valid = validDate(mode, draft, yearOptions);') &&
+  picker.includes('onConfirm({ ...draft })'), "Date wheels, calendar validation, or apply bridge missing");
+expect(pickerCss.includes(".dateWheelPicker") &&
+  pickerCss.includes("scroll-snap-type: y mandatory;"), "Date wheel snap styling missing");
+expect(!picker.includes('className={styles.yearInput}') &&
+  !picker.includes('className={styles.monthGrid}') &&
+  !picker.includes('className={styles.dayGrid}'), "Old date grid still mounted");
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(picker.includes('role="spinbutton"') && picker.includes("onScroll={handleScroll}") &&
   picker.includes("TIME_WHEEL_HOURS") && picker.includes("TIME_WHEEL_MINUTES") &&

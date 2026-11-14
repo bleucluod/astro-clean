@@ -157,6 +157,21 @@
   border-radius: 20px;
   background: linear-gradient(160deg, #152436, #101a27);
 }
+.dateWheelPicker {
+  direction: rtl;
+  grid-template-columns: minmax(0, .72fr) minmax(0, 1.48fr) minmax(0, 1fr);
+  gap: 5px;
+  padding-inline: 8px;
+}
+.dateWheelPicker .wheelLabel { font-size: .76rem; }
+.dateWheelPicker .wheelRow { font-size: clamp(.82rem, 3.5vw, 1.15rem); letter-spacing: -.015em; }
+.dateWheelPicker .wheelColumn:nth-child(2) .wheelRow { font-size: clamp(.8rem, 3.3vw, 1rem); }
+@media (max-width: 360px) {
+  .dateWheelPicker { gap: 2px; padding-inline: 4px; }
+  .dateWheelPicker .wheelRow { font-size: .83rem; }
+  .dateWheelPicker .wheelColumn:nth-child(2) .wheelRow { font-size: .76rem; }
+}
+
 .wheelColumn { min-width: 0; }
 .wheelLabel { display: block; margin: 0 0 4px; color: #c4daea; font-size: .78rem; font-weight: 650; text-align: center; }
 .wheelFrame { position: relative; height: 240px; overflow: hidden; }
