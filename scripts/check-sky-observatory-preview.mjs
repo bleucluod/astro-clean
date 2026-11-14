@@ -75,7 +75,7 @@ requireText(css, [
   ".monthMoonHero", ".monthMoonDetails", ".phaseHit", "scroll-snap-type:x proximity",
   ".stage", ".signalRail", ".overview", ".planetPreview", ".exploreTiles",
   ".weekLine::before", ".page[data-sky-mode=\"week\"]",
-  "flex:1 1 0;display:grid", "flex:1 0 53px",
+  "flex:1 1 0;display:grid", "flex:1 0 83px",
   ".moonExperience", ".moonDetails", ".sheetOrbit", ".sheetReading",
   ".sweepViewport", ".sweepTrack", ".sweepGroup", ".sweepSignalViewport", ".sweepSignViewport",
   ".sweepExploreViewport", "@keyframes skyReadingSweep", "animation-play-state:paused",
@@ -163,7 +163,9 @@ if (!/snapshot\.planetaryStates/.test(wheel) ||
   errors.push("Wheel must render engine planetary states");
 if (!/snapshot\.aspects\.slice\s*\(\s*0\s*,\s*[1-9]\d*\s*\)/.test(wheel))
   errors.push("Wheel must render computed planetary aspects");
-if (c.indexOf('className={styles.period}') > c.indexOf('className={styles.signalRail}'))
+const periodStart = c.indexOf('className={styles.period}');
+const signalStart = c.indexOf('groupClassName={styles.signalRail} variant="signal"');
+if (periodStart < 0 || signalStart < 0 || periodStart > signalStart)
   errors.push("Period timeline should precede secondary signals");
 if (c.includes("styles.dayRail") || c.includes("styles.dayActive"))
   errors.push("Reject legacy dashboard day tiles; use V9 week timeline");
