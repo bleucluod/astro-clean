@@ -71,10 +71,15 @@ expect(
   routeCss.includes("HALLEUS_CHART_COMPACT_DATE_TIME_20261114") &&
   routeCss.includes(".birth-date-picker-grid .chart-select-segment") &&
   routeCss.includes(".birth-time-picker-grid .chart-select-segment") &&
-  routeCss.includes("grid-template-rows: auto 44px;") &&
-  routeCss.includes("height: 44px !important;") &&
-  routeCss.includes("font-size: 16px !important;"),
-  "Mobile date/time must be compact with usable 44px touch targets and 16px text",
+  routeCss.includes("display: block !important;") &&
+  routeCss.includes("inset-block-start: 3px !important;") &&
+  routeCss.includes("pointer-events: none !important;") &&
+  routeCss.includes(".birth-date-picker-grid .chart-native-select") &&
+  routeCss.includes(".birth-time-picker-grid .chart-native-select") &&
+  routeCss.includes("min-height: 44px !important;") &&
+  routeCss.includes("font-size: 16px !important;") &&
+  !routeCss.includes("grid-template-rows: auto 44px;"),
+  "Mobile date/time should use a single 44px row with small overlaid labels, not stacked label plus select heights",
 );
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(
