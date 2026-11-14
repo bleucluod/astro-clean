@@ -9,7 +9,7 @@
 .page *{box-sizing:border-box}
 .page h1,.page h2,.page h3,.page p{margin:0}
 .page h1,.page h2,.page h3{color:#f2f4f6;letter-spacing:-.022em;line-height:1.55}
-.page p{color:#c5cdd4;line-height:2}
+.page p{color:#dce5eb;line-height:2}
 .page button{font:inherit;cursor:pointer}
 .page a{color:inherit;text-decoration:none}
 .page button:focus-visible,.page a:focus-visible,.page summary:focus-visible{outline:2px solid #dae5ec;outline-offset:3px}
@@ -113,13 +113,17 @@
   box-shadow:inset 0 1px 2px #0006;
 }
 .mode,.modeCurrent{
-  background:linear-gradient(180deg,#52677f,#34485c);
-  box-shadow:inset 0 1px rgba(245,249,252,.45),0 2px 13px #0005;
-  border:1px solid rgba(186,205,219,.42);
-  color:#fff;font-weight:720;
+  flex:1 1 0;display:grid;place-items:center;min-width:0;min-height:45px;
+  padding:8px 9px;border:1px solid transparent;border-radius:24px;
+  background:transparent;box-shadow:none;color:#d4dfe7;
+  font-size:14px;font-weight:630;text-align:center;white-space:nowrap;
 }
-.modeCurrent{background:linear-gradient(180deg,#415975,#25394f);box-shadow:inset 0 1px #b6d0e75c;
-  border:1px solid #7690a85c;color:#fff;font-weight:720}
+.mode:hover,.mode:focus-visible{background:rgba(137,158,179,.17);color:#fff}
+.modeCurrent{
+  background:linear-gradient(180deg,#51677d,#33495c);
+  box-shadow:inset 0 1px rgba(245,249,252,.34),0 2px 10px #0005;
+  border-color:rgba(186,205,219,.48);color:#fff;font-weight:750;
+}
 .signalRail{
   display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
   padding:13px 0;margin:12px 0 16px;border-block:1px solid rgba(187,202,214,.13);
@@ -142,7 +146,7 @@
   font-size:clamp(24px,2.25vw,30px);font-weight:715;margin:5px 0 12px;
   color:#f3f4f5;line-height:1.6;
 }
-.reading p{font-size:16px;line-height:2.13;color:#cbd2d8}
+.reading p{font-size:16px;line-height:2.13;color:#dce5eb}
 .lead{font-size:17px!important;color:#ebf0f3!important;font-weight:520}
 .subLead{font-size:15px!important;margin-top:9px!important;color:#b8c8d1!important}
 .dailySignals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:17px 0 0}
@@ -185,7 +189,7 @@
 .more p,.heroEditorial p,.signArchive p{margin-bottom:13px;font-size:15px;line-height:2.06;color:#c3ced7}
 .more a{color:#d5e6ef;text-decoration:underline;text-underline-offset:3px}
 .page :global([data-r3-approved-inline="sky"]) {color:#c3ced7}
-.page :global([data-r3-approved-inline="sky"] p) {font-size:15px;line-height:2.1;color:#c3cfd8}
+.page :global([data-r3-approved-inline="sky"] p) {font-size:16px;line-height:2.1;color:#dce5eb}
 .page :global([data-r3-approved-inline="sky"] a) {color:#d5e9f3;text-decoration:underline;text-underline-offset:3px}
 .page :global([data-r3-approved-inline="sky"] h3) {font-size:18px;color:#f0f2f3}
 .signRail{display:flex;gap:8px;overflow-x:auto;padding:12px 0 14px;scrollbar-width:thin}
@@ -241,8 +245,12 @@
   background:linear-gradient(90deg,transparent,#6b8295 12%,#8da3b7 52%,#6b8295 88%,transparent);
 }
 .weekDay,.weekDayActive{
-  color:#fff;outline-offset:2px;
+  flex:1 0 53px;min-width:53px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:5px;padding:10px 5px 13px;
+  border:0;border-bottom:2px solid transparent;background:none;
+  color:#cbd9e3;outline-offset:2px;position:relative;z-index:1;
 }
+.weekDay:hover,.weekDay:focus-visible{background:rgba(174,192,209,.1);color:#fff}
 .weekDayActive{color:#fff;border-bottom-color:#e4edf2}
 .weekDay strong,.weekDayActive strong{font-size:22px}
 .weekDay small,.weekDayActive small{font-size:11px}
@@ -326,7 +334,7 @@
   .heroIntro{padding:14px 0 6px}
   .heroIntro h1{font-size:clamp(33px,8.9vw,40px);line-height:1.38;letter-spacing:-.035em;margin-bottom:10px}
   .heroIntro h1 em{display:block;font-size:.66em;line-height:1.55;margin-top:6px}
-  .heroIntro h1 em{display:inline}
+  .heroIntro h1 em{display:block}
   .heroIntro>p{font-size:15px;line-height:1.88}
   .kicker{font-size:11px}
   .heroEditorial{margin-top:5px}
@@ -418,5 +426,38 @@
   .page .reading p,.page :global([data-r3-approved-inline="sky"] p){color:#cdd4da;line-height:2.13}
   .page .reading h2{font-size:24px;line-height:1.62}
   .page .exploreTiles a{flex-basis:78%;min-height:145px}
+}
+
+/* Accessibility/readability pass restricted to the development observatory surface. */
+.page small{font-size:13px;line-height:1.65;color:#c6d5e0}
+.page .kicker,.page .heroFacts span,.page .moonFact span,
+.page .dailySignals span,.page .reason>span{font-size:13px;color:#cfdae3}
+.page .heroIntro>p,.page .heroEditorial p{color:#dde7ed}
+.page .heroEditorial summary,.page .more summary,.page .signArchive summary{font-size:15px;color:#e3ebf1}
+.page .more p,.page .signArchive p,.page .reason p{font-size:16px;color:#dae5ed}
+.page .subLead{color:#d2e0e9!important}
+.page .sceneFoot,.page .sceneFoot a{color:#d5e2eb}
+.page .sceneFoot>div span{color:#c1d1dd}
+.page .weekStage>p,.page .monthStage>p{font-size:16px}
+.page .weekReading>span,.page .monthReading>span,.page .periodEvents time{font-size:14px;color:#c8d8e3}
+.page .periodEvents strong{font-size:16px}
+.page .eventList span,.page .planetList button small,.page .signReading small{font-size:14px;color:#c7d8e3}
+.page .eventList p{font-size:16px}
+.page .weekDay small,.page .weekDayActive small,.page .phase small,.page .phaseActive small{font-size:13px}
+.page .phase strong,.page .phaseActive strong{font-size:15px}
+@media(max-width:600px){
+  .page .heroIntro>p{font-size:16px}
+  .page .sceneLabel,.page .sceneFoot{font-size:12px}
+  .page .sceneLabel span:first-child{font-size:10px}
+  .page .sceneFoot>div span,.page .sceneFoot>a{font-size:12px}
+  .page .sceneFoot strong,.page .heroFacts strong,.page .moonFact strong{font-size:15px}
+  .page .heroFacts span,.page .moonFact span,.page .signalRail small{font-size:13px}
+  .page .signalRail strong{font-size:14px}
+  .page .moonPhases{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 8px}
+  .page .phaseOrb{max-width:88px}
+  .page .phase strong,.page .phaseActive strong{font-size:14px}
+  .page .phase small,.page .phaseActive small{font-size:13px}
+  .page .weekDay,.page .weekDayActive{min-height:100px}
+  .page .reading p,.page :global([data-r3-approved-inline="sky"] p){color:#dfe8ef;line-height:2.08}
 }
 @media(prefers-reduced-motion:reduce){.planetPin{transition:none}}

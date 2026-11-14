@@ -7,6 +7,7 @@ import { SKY_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import { SkyCityPicker } from "@/components/SkyCityPicker";
 import { R3ApprovedInlineParagraphs } from "@/components/r3-approved-visible-copy";
 import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
+import type { SurfaceOffer } from "@/lib/shop/shop-showcase-contract";
 import type {
   SkyDailyBodyId, SkyDailySnapshot, SkyDailyTimelineEvent, SkyDailyZodiacSign,
 } from "@/lib/sky-daily/sky-daily-contract";
@@ -212,9 +213,10 @@ function Wheel({ snapshot, onChoose }: { snapshot: SkyDailySnapshot; onChoose: (
     })}
   </div>;
 }
-export function SkyObservatoryPreview({ city, cityId, timezone, today, period, view, referenceTime }: {
+export function SkyObservatoryPreview({ city, cityId, timezone, today, period, view, referenceTime, previewOffers }: {
   city: string; cityId: string; timezone: string;
   today: SkyDailySnapshot; period: SkyObservatoryPeriodData | null; view: View; referenceTime: string;
+  previewOffers: Record<string, SurfaceOffer>;
 }) {
   const [selectedDate, setSelectedDate] = useState(today.input.localDate);
   const [planet, setPlanet] = useState<SkyDailyBodyId | null>(null);
@@ -460,7 +462,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="وضعیت ماه امروز؛ نشان، فاز و روشنایی"/>
         </details>
       </section>
-      <SurfaceShowcaseSlot surface="sky" slot="after-moon"/>
+      <SurfaceShowcaseSlot surface="sky" slot="after-moon" previewFallback={previewOffers["after-moon"]}/>
       <section className={styles.reading} id="sky-planets">
         <span className={styles.kicker}>جایگاه‌ها</span>
         <h2>وضعیت سیارات امروز؛ هر جسم کجاست و چگونه حرکت می‌کند؟</h2>
@@ -487,7 +489,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="مهم‌ترین ترنزیت‌ها و زاویه‌های روز"/>
         </details>
       </section>
-      <SurfaceShowcaseSlot surface="sky" slot="after-aspects"/>
+      <SurfaceShowcaseSlot surface="sky" slot="after-aspects" previewFallback={previewOffers["after-aspects"]}/>
       <section className={styles.reading} id="sky-events">
         <span className={styles.kicker}>به ترتیب زمان</span>
         <h2>رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟</h2>
@@ -499,7 +501,7 @@ export function SkyObservatoryPreview({ city, cityId, timezone, today, period, v
           <R3ApprovedInlineParagraphs page="sky" sectionTitle="رویدادهای نجومی امروز؛ چه چیزی گذشته و چه چیزی در راه است؟"/>
         </details>
       </section>
-      <SurfaceShowcaseSlot surface="sky" slot="after-timeline"/>
+      <SurfaceShowcaseSlot surface="sky" slot="after-timeline" previewFallback={previewOffers["after-timeline"]}/>
       <section className={styles.reading} id="sky-guide">
         <span className={styles.kicker}>راهنمای کاربردی</span>
         <h2>این داده‌ها را چگونه به زندگی خودت ربط بدهی؟</h2>

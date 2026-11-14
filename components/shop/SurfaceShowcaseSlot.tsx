@@ -17,18 +17,25 @@ function load(surface: ShowcaseSurface) {
   responses.set(surface, { at: Date.now(), promise });
   return promise;
 }
-/** No report ID or personal data is sent. A slot is empty unless an admin activates an offer. */
-export function SurfaceShowcaseSlot({ surface, slot }: { surface: ShowcaseSurface; slot: string }) {
-  const [offer, setOffer] = useState<SurfaceOffer | null>(null);
+/** Public routes have no fallback; samples are supplied only by the development preview. */
+export function SurfaceShowcaseSlot({ surface, slot, previewFallback }: {
+  surface: ShowcaseSurface; slot: string; previewFallback?: SurfaceOffer;
+}) {
+  const [publishedOffer, setPublishedOffer] = useState<SurfaceOffer | null>(null);
   useEffect(() => {
     let live = true;
     void load(surface).then(offers => {
-      if (live) setOffer(offers.find(item => item.slot === slot) ?? null);
+      if (live) setPublishedOffer(offers.find(item => item.slot === slot) ?? null);
     });
     return () => { live = false; };
   }, [surface, slot]);
+  const offer = publishedOffer ?? previewFallback ?? null;
   if (!offer) return null;
+  const isSample = !publishedOffer && !!previewFallback;
   return <div data-shop-showcase-surface={surface} data-shop-showcase-slot={slot}>
-    <WikiShopShowcaseCard offer={offer} track trackSurface={surface} />
+    {isSample ? <p style={{ color: "#e1e8ee", fontSize: 14, lineHeight: 1.8, margin: "8px 0 0" }}>
+      نمونهٔ چیدمان ویترین · منتشر نشده و بدون ثبت آمار
+    </p> : null}
+    <WikiShopShowcaseCard offer={offer} track={!previewFallback} trackSurface={surface} />
   </div>;
 }

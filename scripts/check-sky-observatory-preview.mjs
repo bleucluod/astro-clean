@@ -33,6 +33,7 @@ requireText(page, [
   'process.env.NODE_ENV !== "development"', "notFound()",
   "robots: { index: false, follow: false }", "deliverSkyPublicSnapshot",
   "getSkyObservatoryPeriod", "referenceTime={result.viewedAt}",
+  "wikiShopProductCatalog", "previewOffers={previewOffers}", "SHOWCASE_SURFACE_SLOTS.sky",
 ]);
 requireText(period, [
   "buildSkyDailySnapshot", "unstable_cache", "u-ca-persian",
@@ -42,8 +43,8 @@ requireText(period, [
 requireText(client, [
   "SkyObservatoryPreview", "period?.snapshots.find",
   "buildSkyPublicReportInterpretation",
-  '<SurfaceShowcaseSlot surface="sky" slot="after-moon"/>',
-  '<SurfaceShowcaseSlot surface="sky" slot="after-timeline"/>',
+  '<SurfaceShowcaseSlot surface="sky" slot="after-moon" previewFallback={previewOffers["after-moon"]}/>',
+  '<SurfaceShowcaseSlot surface="sky" slot="after-timeline" previewFallback={previewOffers["after-timeline"]}/>',
   "R3ApprovedInlineParagraphs", "setPlanet",
   "styles.heroScene", "styles.sceneFoot",
   "styles.weekLine", "styles.weekDayActive",
@@ -54,7 +55,7 @@ requireText(client, [
   "buildHumanDailyGuide", "buildSignGuide",
   "SkyCityPicker", "EditorialStickyCtaSequence",
   "data-sky-mode={view}", "modeTitle", "modeSubtitle",
-  "featuredEvent", "styles.weekLine",
+  "featuredEvent", "styles.weekLine", "previewOffers",
 ]);
 requireText(css, [
   "var(--font-vazirmatn)", ".heroScene", ".timeModes",
@@ -63,7 +64,16 @@ requireText(css, [
   ".phaseOrb", ".coreRing", ".tick", "var(--font-vazirmatn)",
   ".stage", ".signalRail", ".overview", ".planetPreview", ".exploreTiles",
   ".weekLine::before", ".page[data-sky-mode=\"week\"]",
+  "flex:1 1 0;display:grid", "flex:1 0 53px",
 ]);
+const showcaseSlot = read("components/shop/SurfaceShowcaseSlot.tsx");
+for (const marker of ["previewFallback?: SurfaceOffer", "track={!previewFallback}", "publishedOffer ?? previewFallback ?? null"]) {
+  if (!showcaseSlot.includes(marker)) errors.push("Showcase preview safety contract missing: " + marker);
+}
+for (const id of ["after-moon", "after-aspects", "after-timeline"]) {
+  if (!(sources.get(client) ?? "").includes('slot="' + id + '" previewFallback={previewOffers["' + id + '"]}'))
+    errors.push("Preview fallback missing for slot: " + id);
+}
 const p = sources.get(period) ?? "";
 if (/Math\.random|fakePlanet|mockSnapshot|sampleData/.test(p))
   errors.push("Period data must never be fabricated");
