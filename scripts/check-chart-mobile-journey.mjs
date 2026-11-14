@@ -67,6 +67,15 @@ const routeCss = readFileSync("app/chart/chart-shell.module.css", "utf8");
 expect(routeCss.includes("HALLEUS_CHART_MOBILE_COMPACT_READABLE_20261114"), "Mobile spacing/contrast fix missing");
 expect(routeCss.includes(".formPanel :global(.chart-time-title-row)"), "Time unknown control must remain inline");
 expect(routeCss.includes("flex-direction: row !important;"), "Mobile time row must not stack");
+expect(
+  routeCss.includes("HALLEUS_CHART_COMPACT_DATE_TIME_20261114") &&
+  routeCss.includes(".birth-date-picker-grid .chart-select-segment") &&
+  routeCss.includes(".birth-time-picker-grid .chart-select-segment") &&
+  routeCss.includes("grid-template-rows: auto 44px;") &&
+  routeCss.includes("height: 44px !important;") &&
+  routeCss.includes("font-size: 16px !important;"),
+  "Mobile date/time must be compact with usable 44px touch targets and 16px text",
+);
 expect(style.includes("padding: 0 0 7px;") && style.includes("display: none;"), "Mobile progress spacing not tightened");
 expect(
   style.includes(".journeyRoot.journeyRoot :global(.chart-form-progress)") &&

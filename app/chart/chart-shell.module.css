@@ -3533,4 +3533,37 @@
     -webkit-text-fill-color: #cfdce9 !important;
     opacity: 1 !important;
   }
+
+  /* HALLEUS_CHART_COMPACT_DATE_TIME_20261114
+     Remove wasted wrapper padding; retain accessible 44px tap targets. */
+  .formPanel :global(.birth-date-picker-grid),
+  .formPanel :global(.birth-time-picker-grid) {
+    min-height: 0 !important;
+    margin-top: 4px !important;
+    padding: 0 !important;
+    gap: 2px !important;
+    align-content: start !important;
+  }
+  .formPanel :global(.birth-date-picker-grid .chart-select-segment),
+  .formPanel :global(.birth-time-picker-grid .chart-select-segment) {
+    min-height: 0 !important;
+    padding: 2px 3px !important;
+    gap: 1px !important;
+    grid-template-rows: auto 44px;
+    align-content: center !important;
+  }
+  .formPanel :global(.birth-date-picker-grid .chart-select-segment > span),
+  .formPanel :global(.birth-time-picker-grid .chart-select-segment > span) {
+    font-size: .67rem !important;
+    line-height: 1.25 !important;
+    color: #eff6fd !important;
+  }
+  .formPanel :global(.birth-date-picker-grid .chart-native-select),
+  .formPanel :global(.birth-time-picker-grid .chart-native-select) {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding-inline: 5px !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+  }
 }
