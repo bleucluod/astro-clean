@@ -179,15 +179,16 @@ expect(
   "Wheel layout must remain in document flow without overlays");
 
 expect(
-  form.includes('year: "1377"') &&
-  form.includes('month: "12"') &&
-  form.includes('day: "12"') &&
-  form.includes('hour: "11"') &&
-  form.includes('minute: "12"') &&
-  form.includes('comparisonMode ? initialJalaliBirthDateParts : chartDefaultJalaliBirthDateParts') &&
-  form.includes('comparisonMode ? initialBirthTimeParts : chartDefaultBirthTimeParts') &&
-  form.includes('comparisonMode ? initialForm : { ...initialForm, birthTime: "11:12" }'),
-  "/chart birth wheels must start at 1377/12/12 and 11:12 without prefilling /compare");
+  !form.includes("chartDefaultJalaliBirthDateParts") &&
+  !form.includes("chartDefaultBirthTimeParts") &&
+  form.includes("useState<BirthInput>(initialForm)") &&
+  form.includes("useState<JalaliBirthDateParts>(") &&
+  form.includes("initialJalaliBirthDateParts,") &&
+  form.includes("useState<BirthTimeParts>(initialBirthTimeParts)") &&
+  ["روز", "ماه", "سال", "ساعت", "دقیقه"].every((label) =>
+    picker.includes('value: "", label: "' + label + '"')) &&
+  !picker.includes('value: "", label: "—"'),
+  "Birth date and time must start unselected with labeled first wheel items");
 expect(
   pickerCss.includes("background: var(--chart-bg, #050609);") &&
   !pickerCss.includes("#111315") &&

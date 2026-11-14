@@ -134,18 +134,6 @@ const initialBirthTimeParts: BirthTimeParts = {
   minute: "",
 };
 
-// The standalone /chart opens on a useful, editable example.
-// /compare keeps its empty input contract.
-const chartDefaultJalaliBirthDateParts: JalaliBirthDateParts = {
-  year: "1377",
-  month: "12",
-  day: "12",
-};
-const chartDefaultBirthTimeParts: BirthTimeParts = {
-  hour: "11",
-  minute: "12",
-};
-
 type HalleusCityOption = (typeof HALLEUS_CITY_OPTIONS)[number];
 
 type RealEnginePlacement = {
@@ -424,19 +412,16 @@ export function ChartForm({
 } = {}) {
   const router = useRouter();
   const comparisonMode = mode === "comparison";
-  const [form, setForm] = useState<BirthInput>(() =>
-    comparisonMode ? initialForm : { ...initialForm, birthTime: "11:12" },
-  );
+  const [form, setForm] = useState<BirthInput>(initialForm);
   const [dateMode, setDateMode] = useState<BirthDateMode>("jalali");
   const [birthDateParts, setBirthDateParts] = useState<JalaliBirthDateParts>(
-    comparisonMode ? initialJalaliBirthDateParts : chartDefaultJalaliBirthDateParts,
+    initialJalaliBirthDateParts,
   );
   const [gregorianBirthDateParts, setGregorianBirthDateParts] =
     useState<JalaliBirthDateParts>(initialJalaliBirthDateParts);
   const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>("known");
-  const [birthTimeParts, setBirthTimeParts] = useState<BirthTimeParts>(
-    comparisonMode ? initialBirthTimeParts : chartDefaultBirthTimeParts,
-  );
+  const [birthTimeParts, setBirthTimeParts] =
+    useState<BirthTimeParts>(initialBirthTimeParts);
   const [showAccountPanel, setShowAccountPanel] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =

@@ -161,18 +161,18 @@ export function MobileBirthDatePicker({
 }) {
   const maxDays = dayLimit(mode, value.year, value.month);
   const dayWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
-    { value: "", label: "—" },
+    { value: "", label: "روز" },
     ...Array.from({ length: maxDays }, (_, index) => ({
       value: twoDigits(index + 1),
       label: (index + 1).toLocaleString("fa-IR"),
     })),
   ], [maxDays]);
   const monthWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
-    { value: "", label: "—" },
+    { value: "", label: "ماه" },
     ...monthOptions.map((month) => ({ value: month.value, label: month.label })),
   ], [monthOptions]);
   const yearWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
-    { value: "", label: "—" },
+    { value: "", label: "سال" },
     ...yearOptions.map((year) => ({
       value: year,
       label: Number(year).toLocaleString("fa-IR", { useGrouping: false }),
@@ -206,14 +206,14 @@ export function MobileBirthDatePicker({
 
 
 const TIME_WHEEL_HOURS: readonly DateWheelOption[] = [
-  { value: "", label: "—" },
+  { value: "", label: "ساعت" },
   ...Array.from({ length: 24 }, (_, index) => ({
     value: twoDigits(index),
     label: index.toLocaleString("fa-IR", { minimumIntegerDigits: 2, useGrouping: false }),
   })),
 ];
 const TIME_WHEEL_MINUTES: readonly DateWheelOption[] = [
-  { value: "", label: "—" },
+  { value: "", label: "دقیقه" },
   ...Array.from({ length: 60 }, (_, index) => ({
     value: twoDigits(index),
     label: index.toLocaleString("fa-IR", { minimumIntegerDigits: 2, useGrouping: false }),
