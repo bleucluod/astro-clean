@@ -1,28 +1,38 @@
-.page { min-height: 100vh; padding: 45px 0 100px; background: #f8fafc; color: #243447; font-family: var(--font-vazirmatn), sans-serif; }
-.container { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
-.header { margin-bottom: 32px; }
-.kicker { color: #526c83; font-size: 13px; font-weight: 650; }
-.header h1 { margin: 9px 0 9px; font-size: clamp(25px, 3vw, 35px); line-height: 1.5; }
-.header p { margin: 0; color: #52657a; line-height: 1.9; }
-.layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: start; gap: clamp(25px, 4vw, 65px); direction: ltr; }
+.page { min-height: 100vh; padding: 38px 0 92px; background: #f8fafc; color: #243447; font-family: var(--font-vazirmatn), sans-serif; }
+.container { width: min(1140px, calc(100% - 48px)); margin: 0 auto; }
+.header { margin-bottom: 36px; }
+.kicker, .editorKicker { color: #54728c; font-size: 12px; font-weight: 600; }
+.header h1 { margin: 9px 0 7px; font-size: clamp(25px, 3.5vw, 38px); line-height: 1.55; font-weight: 650; }
+.header p { margin: 0; line-height: 2; font-size: 14px; color: #52657a; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: start; gap: clamp(30px, 4vw, 65px); direction: ltr; }
 .previewPanel, .editor { min-width: 0; direction: rtl; }
-.previewPanel { display: grid; gap: 15px; justify-items: center; }
-.board { display: block; width: min(100%, 490px); aspect-ratio: 4 / 5; overflow: hidden; background: #0d1e2d; box-shadow: 0 17px 40px #162f453a; border-radius: 1px; }
+.previewPanel { display: grid; gap: 13px; justify-items: center; }
+.board { display: block; aspect-ratio: 4 / 5; width: min(100%, 490px); border-radius: 0; background: #000000; overflow: hidden; box-shadow: 0 18px 38px #162f4527, 0 2px 9px #162f4519; }
 .board svg { display: block; width: 100%; height: 100%; }
-.note { margin: 0; width: min(100%, 510px); color: #52657a; font-size: 12px; line-height: 2; }
-.editor { border: 1px solid #dce6ee; border-radius: 18px; padding: clamp(19px, 3vw, 31px); background: #fff; box-shadow: 0 9px 35px #2434470a; }
-.editor h2 { margin: 0 0 6px; font-size: 22px; }
-.editor > p { margin: 0 0 23px; color: #52657a; font-size: 14px; line-height: 2; }
-.form { display: grid; gap: 10px; }
-.form label { font-size: 13px; color: #34485a; font-weight: 650; }
-.form input { min-width: 0; width: 100%; min-height: 47px; padding: 11px 13px; border: 1px solid #bcccdc; border-radius: 10px; background: #f8fafc; color: #243447; font: inherit; font-size: 15px; }
-.form input:focus-visible, .submit:focus-visible { outline: 2px solid #3b7ca9; outline-offset: 2px; }
-.form small { color: #52657a; font-size: 12px; line-height: 1.85; }
-.error { color: #a42843; font-size: 13px; line-height: 1.85; margin: 0; }
-.submit { min-height: 48px; margin-top: 9px; padding: 10px 20px; border: 0; border-radius: 10px; background: #316d99; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
-.submit:hover { background: #255e89; }
-.info { margin-top: 27px; padding-top: 18px; border-top: 1px solid #e2eaf0; }
-.info strong { font-size: 13px; }
-.info p { margin: 5px 0 0; color: #52657a; font-size: 12px; line-height: 1.95; }
-@media (max-width: 850px) { .layout { grid-template-columns: 1fr; } .previewPanel { order: -1; } .editor { max-width: 610px; width: 100%; margin: 0 auto; } }
-@media (max-width: 550px) { .page { padding-top: 24px; } .container { width: calc(100% - 30px); } .header { margin-bottom: 20px; } .layout { gap: 22px; } .editor { border-radius: 14px; } }
+.pendingNote { width: min(100%, 490px); margin: 0; padding: 9px 11px; border-radius: 8px; background: #e8f0f5; color: #405e72; font-size: 12px; line-height: 2; box-sizing: border-box; }
+.note { width: min(100%, 490px); font-size: 12px; line-height: 2; color: #5e7181; margin: 0; }
+.editor { padding: clamp(22px, 3vw, 34px); background: #fff; border: 1px solid #dce5ed; border-radius: 16px; box-shadow: 0 8px 35px #24344709; }
+.editor h2 { margin: 8px 0 5px; font-size: 24px; line-height: 1.55; font-weight: 700; }
+.editorIntro p { margin: 0 0 22px; font-size: 14px; line-height: 2.1; color: #51667b; }
+.form { display: grid; gap: 11px; }
+.form label { font-size: 13px; font-weight: 650; color: #32475c; }
+.form input { box-sizing: border-box; min-width: 0; min-height: 48px; width: 100%; padding: 9px 14px; background: #f8fafc; border: 1px solid #c2d1df; border-radius: 10px; color: #243447; font: inherit; font-size: 15px; }
+.form input:focus-visible, .submit:focus-visible, .cityOptions button:focus-visible { outline: 2px solid #357da6; outline-offset: 2px; }
+.form small { color: #5b6e80; font-size: 12px; line-height: 1.9; }
+.error { color: #9b2940; font-size: 13px; line-height: 1.95; margin: 2px 0; }
+.submit { min-height: 48px; padding: 11px 20px; margin-top: 7px; border: 0; border-radius: 10px; color: #fff; background: #326e9b; font: inherit; font-weight: 700; cursor: pointer; }
+.submit:hover { background: #265c85; }
+.signInfo, .signChanged { margin-top: 22px; padding: 14px 16px; border: 1px solid #dae6ed; border-radius: 11px; background: #f5f9fc; }
+.signChanged { border-color: #c4d5e0; background: #f2f7fa; }
+.signInfo strong, .signChanged strong { display: block; color: #304f67; font-size: 13px; }
+.signInfo p, .signChanged p { margin: 5px 0 0; color: #52657a; font-size: 12px; line-height: 1.95; }
+.boundaryFields { display: grid; gap: 9px; margin-top: 6px; padding: 14px; border-radius: 10px; background: #f4f8fc; border: 1px solid #d4e2ed; }
+.boundaryFields strong { font-size: 13px; color: #39536a; line-height: 1.8; }
+.cityOptions { display: grid; gap: 3px; max-height: 245px; overflow: auto; background: #fff; border: 1px solid #cedae4; border-radius: 8px; padding: 4px; }
+.cityOptions button { text-align: right; width: 100%; padding: 10px 8px; background: none; border: 0; border-radius: 6px; cursor: pointer; font: inherit; font-size: 13px; color: #243447; }
+.cityOptions button:hover { background: #eaf2f8; }
+.info { border-top: 1px solid #e2eaf0; padding-top: 17px; margin-top: 24px; }
+.info strong { font-size: 12px; }
+.info p { font-size: 12px; color: #52657a; line-height: 2; margin: 5px 0 0; }
+@media (max-width: 850px) { .layout { grid-template-columns: 1fr; } .previewPanel { order: -1; } .editor { width: min(100%, 590px); box-sizing: border-box; margin: 0 auto; } }
+@media (max-width: 550px) { .page { padding: 24px 0 75px; } .container { width: calc(100% - 30px); } .header { margin-bottom: 24px; } .layout { gap: 23px; } .editor { padding: 20px; border-radius: 14px; } }
