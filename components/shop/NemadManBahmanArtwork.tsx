@@ -32,10 +32,18 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
       <desc>صورت فلکی مرجع J2000 با جهت شمال بالا و شرق چپ؛ این تصویر نقشهٔ آسمان تولد نیست.</desc>
       <defs>
         <radialGradient id="nemad-globe" cx="51%" cy="48%" r="70%">
-          <stop stopColor={isLight ? '#F5F8FB' : '#15191d'}/>
-          <stop offset=".62" stopColor={isLight ? '#EBF1F6' : '#0d1115'}/>
-          <stop offset="1" stopColor={isLight ? '#E0E9F0' : '#080a0c'}/>
+          <stop stopColor={isLight ? '#F5F8FB' : '#293945'}/>
+          <stop offset=".62" stopColor={isLight ? '#E4ECF3' : '#1B2933'}/>
+          <stop offset="1" stopColor={isLight ? '#CFDBE5' : '#101922'}/>
         </radialGradient>
+        {/* Subtle, deterministic matte paper tooth — no random grain or sky haze.
+            It sits below all stars, illustrations, typography and glyphs. */}
+        <pattern id="nemad-paper-tooth" width="11" height="11" patternUnits="userSpaceOnUse">
+          <circle cx="1.7" cy="2.8" r=".37"
+            fill={isLight ? '#60778B' : '#A4B2BD'} opacity={isLight ? '.15' : '.11'}/>
+          <circle cx="7.4" cy="8.6" r=".27"
+            fill={isLight ? '#60778B' : '#A4B2BD'} opacity={isLight ? '.11' : '.08'}/>
+        </pattern>
         <radialGradient id="nemad-star-halo">
           <stop stopColor={isLight ? '#526D86' : '#f5faff'} stopOpacity={isLight ? '.26' : '.52'}/>
           <stop offset=".28" stopColor={isLight ? '#718BA3' : '#e3edf5'} stopOpacity={isLight ? '.10' : '.15'}/>
@@ -79,8 +87,9 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
         </filter>
         <clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r="380"/></clipPath>
       </defs>
-      <rect width="900" height="1350" fill={isLight ? '#F8FAFC' : '#000000'}/>
+      <rect width="900" height="1350" fill={isLight ? '#EBF1F5' : '#111820'}/>
       <circle cx="450" cy="430" r="380" fill="url(#nemad-globe)"/>
+      <rect width="900" height="1350" fill="url(#nemad-paper-tooth)" pointerEvents="none"/>
       <g clipPath="url(#nemad-sky-clip)">
         <g transform="translate(450 430) scale(1.293) translate(-450 -358)">
           <g>

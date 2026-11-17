@@ -7,7 +7,7 @@
 .layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: start; gap: clamp(30px, 4vw, 65px); direction: ltr; }
 .previewPanel, .editor { min-width: 0; direction: rtl; }
 .previewPanel { display: grid; gap: 13px; justify-items: center; }
-.board { display: block; aspect-ratio: 2 / 3; width: min(100%, 490px); border-radius: 0; background: #000000; overflow: hidden; box-shadow: 0 18px 38px #162f4527, 0 2px 9px #162f4519; }
+.board { display: block; aspect-ratio: 2 / 3; width: min(100%, 490px); border-radius: 0; background: #111820; overflow: hidden; box-shadow: 0 18px 38px #162f4527, 0 2px 9px #162f4519; }
 .board svg { display: block; width: 100%; height: 100%; }
 .pendingNote { width: min(100%, 490px); margin: 0; padding: 9px 11px; border-radius: 8px; background: #e8f0f5; color: #405e72; font-size: 12px; line-height: 2; box-sizing: border-box; }
 .note { width: min(100%, 490px); font-size: 12px; line-height: 2; color: #5e7181; margin: 0; }
@@ -54,4 +54,4 @@
 .themeOption:hover { background: #DBE7F1; }
 .themeActive { color: #243447; background: #FFFFFF; border-color: #D3DFE9; box-shadow: 0 1px 4px #24344712; }
 .themeOption:focus-visible, .themeActive:focus-visible { outline: 2px solid #357da6; outline-offset: 2px; }
-.lightBoard { background: #F8FAFC; }
+.lightBoard { background: #EBF1F5; }

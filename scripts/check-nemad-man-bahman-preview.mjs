@@ -68,13 +68,22 @@ for (const expected of [
   assert.ok(engine.includes(expected), 'Missing zodiac / astronomical evidence: ' + expected);
 }
 assert.match(poster, /sky\.stars\.map/, 'Actual catalogue stars required');
-assert.match(poster, /<rect width="900" height="1350" fill=\{isLight \? '#F8FAFC' : '#000000'\}\/>/,
-  'Approved dark canvas must remain black and light canvas must be cool white');
-assert.match(poster, /stopColor=\{isLight \? '#E0E9F0' : '#080a0c'\}/,
-  'Approved dark disc and cool light disc must both be preserved');
+assert.match(poster, /<rect width="900" height="1350" fill=\{isLight \? '#EBF1F5' : '#111820'\}\/>/,
+  'Midnight Graphite and Silver Mist canvas colors must be retained');
+assert.match(poster, /stopColor=\{isLight \? '#F5F8FB' : '#293945'\}/,
+  'Both celestial discs need their approved soft radial centers');
+assert.match(poster, /stopColor=\{isLight \? '#CFDBE5' : '#101922'\}/,
+  'Both celestial discs need the approved cool outer tones');
+assert.match(poster, /id="nemad-paper-tooth"/,
+  'A subtle print-safe paper tooth must be present');
+assert.match(poster, /fill="url\(#nemad-paper-tooth\)" pointerEvents="none"/,
+  'The texture must live behind celestial lines, glyphs and typography');
 assert.match(poster, /NEMAD_MAN_ZODIAC_GLYPHS\[sign\.id\]/, 'Render the approved shared icon pack');
 assert.ok(!poster.includes('nemad-wisps') && !poster.includes('nemad-grain'), 'Do not reinstate blue haze or aggressive grain');
-assert.match(css, /background: #000000;/, 'The poster container must also be black');
+assert.match(css, /\.board \{[^\n]*background: #111820;/,
+  'Dark preview board must match the graphite canvas');
+assert.match(css, /\.lightBoard \{ background: #EBF1F5; \}/,
+  'Light preview board must match the cool mist canvas');
 assert.match(poster, /sky\.paths\.map/, 'Sourced line geometry required');
 assert.match(poster, /star\.radius/, 'Star marker size must come from brightness');
 assert.ok(poster.includes('> 16 ? 46 : Array.from(name).length > 9 ? 58 : 72'),
@@ -240,7 +249,8 @@ assert.match(client, /aria-pressed=\{posterTheme === 'dark'\}/, 'Dark style sele
 assert.match(client, /theme=\{posterTheme\}/, 'Style switch must drive the actual SVG');
 assert.match(client, /preview\.sign\.id \+ '-' \+ posterTheme \+ '-' \+ printSize/,
   'Filename must distinguish styles and sizes');
-assert.match(css, /\.lightBoard \{ background: #F8FAFC; \}/, 'Light board must be cool');
+assert.match(css, /\.lightBoard \{ background: #EBF1F5; \}/,
+  'Silver Mist board must match the light poster background');
 assert.match(css, /\.themeSwitch/, 'Style choice buttons required');
 assert.match(css, /\.exportButton/, 'Preview download button needs styles');
 assert.match(exportHelper, /canvas\.toBlob/, 'PNG must be encoded from the renderer SVG');
