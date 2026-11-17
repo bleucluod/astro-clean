@@ -1,4 +1,5 @@
 import { getNemadPosterSky, type NemadSign } from '@/lib/shop/nemad-man-bahman-preview';
+import { NEMAD_MAN_ZODIAC_GLYPHS } from '@/lib/shop/nemad-man-zodiac-glyphs';
 
 /** Frameless, black-on-black minimal poster aligned to the approved Aquarius sample.
  * All constellation lines and stars use the existing J2000 catalogue data.
@@ -9,7 +10,6 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
   const sky = getNemadPosterSky(sign);
   const latinName = /^[\x20-\x7E]+$/.test(name);
   const nameSize = Array.from(name).length > 16 ? 43 : Array.from(name).length > 9 ? 51 : 61;
-  const glyph = sign.id === 'aquarius';
 
   return (
     <svg viewBox="0 0 900 1125" xmlns="http://www.w3.org/2000/svg" role="img"
@@ -53,15 +53,8 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
         ))}
       </g>
       <circle cx="450" cy="358" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
-      <g fill="none" stroke="#e6edf1" strokeWidth="4.0" strokeLinecap="round" opacity=".95">
-        {glyph ? <>
-          <path d="M391 752 Q405 737 419 752 T447 752 T475 752 T503 752"/>
-          <path d="M391 769 Q405 754 419 769 T447 769 T475 769 T503 769"/>
-        </> : null}
-      </g>
-      {!glyph ? (
-        <text x="450" y="768" textAnchor="middle" fontSize="65" fontFamily="'Noto Sans Symbols 2', sans-serif" fill="#e6edf1">{sign.glyph}</text>
-      ) : null}
+      {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
+      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
       <g fill="#e9f0f4" textAnchor="middle" fontFamily="var(--font-vazirmatn), Vazirmatn, 'Noto Sans Arabic', sans-serif">
         <text x="450" y="845" fontWeight="420" fontSize="46">{sign.fa}</text>
         <text x="450" y="935" fontSize={nameSize} fontWeight="500" direction={latinName ? 'ltr' : 'rtl'}>{name}</text>
