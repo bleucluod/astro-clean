@@ -140,8 +140,14 @@ assert.ok(!poster.includes('پیش‌نمایش هالیوس'), 'Printed waterma
 assert.match(poster, /stroke=\{isLight \? '#F8FAFC' : '#09131b'\} strokeOpacity=\{isLight \? '\.25' : '\.68'\}/,
   'Original dark typography stroke must be preserved');
 assert.match(poster, /strokeWidth="2\.3" paintOrder="stroke"/, 'Text stroke width unchanged');
-assert.match(poster, /filter=\{isLight \? undefined : 'url\(#nemad-night-text-soft-glow\)'\}/,
-  'Dark name glow must remain dark-only');
+assert.match(poster, /filter=\{isLight \? 'url\(#nemad-light-name-depth\)' : 'url\(#nemad-night-text-soft-glow\)'\}/,
+  'Light name depth and approved dark name glow must stay theme-specific');
+assert.match(poster, /id="nemad-light-name-depth"/, 'Light variant needs a separate name depth treatment');
+assert.match(poster, /floodColor="#465E75" floodOpacity="\.28"/,
+  'Premium light name shadow must remain restrained');
+for (const tone of ['#1E3348', '#8096A8', '#20364D']) {
+  assert.ok(poster.includes(tone), 'Missing cool graphite-silver name ink stop: ' + tone);
+}
 assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="1\.25"/,
   'Night typography soft bloom is missing');
 assert.match(poster, /floodOpacity="\.10" result="nemad-soft-tint"/, 'Name glow must stay subtle');

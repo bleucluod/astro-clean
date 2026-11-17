@@ -52,11 +52,29 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
           <stop offset=".48" stopColor="#eef4f9"/>
           <stop offset="1" stopColor="#b9c9d8"/>
         </linearGradient>
+        {/* A visibly layered, cool graphite-silver ink for the personal name
+            in the light colorway, separate from the approved night silver. */}
         <linearGradient id="nemad-name-ink" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#243447"/>
-          <stop offset=".55" stopColor="#2F4052"/>
-          <stop offset="1" stopColor="#52657A"/>
+          <stop offset="0" stopColor="#1E3348"/>
+          <stop offset=".30" stopColor="#344E66"/>
+          <stop offset=".47" stopColor="#8096A8"/>
+          <stop offset=".56" stopColor="#536E85"/>
+          <stop offset=".78" stopColor="#304A62"/>
+          <stop offset="1" stopColor="#20364D"/>
         </linearGradient>
+        {/* A quiet ink impression beneath the light name. SVG-local so PNG
+            exports and previews use the same depth without web font effects. */}
+        <filter id="nemad-light-name-depth" x="-25%" y="-60%" width="150%" height="220%"
+          colorInterpolationFilters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="nemad-ink-blur"/>
+          <feOffset in="nemad-ink-blur" dx="0" dy="3" result="nemad-ink-offset"/>
+          <feFlood floodColor="#465E75" floodOpacity=".28" result="nemad-ink-color"/>
+          <feComposite in="nemad-ink-color" in2="nemad-ink-offset" operator="in" result="nemad-ink-shadow"/>
+          <feMerge>
+            <feMergeNode in="nemad-ink-shadow"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
         {/* Tint existing approved WebP only in light mode; preserve raster alpha. */}
         <filter id="nemad-light-glyph-ink" colorInterpolationFilters="sRGB">
           <feColorMatrix type="matrix"
@@ -106,7 +124,7 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
         <text x="450" y="1090" fontSize={nameSize} fontWeight="500"
           fill={isLight ? 'url(#nemad-name-ink)' : 'url(#nemad-name-silver)'} strokeWidth="1.7"
           direction={latinName ? 'ltr' : 'rtl'}
-          filter={isLight ? undefined : 'url(#nemad-night-text-soft-glow)'}>{name}</text>
+          filter={isLight ? 'url(#nemad-light-name-depth)' : 'url(#nemad-night-text-soft-glow)'}>{name}</text>
       </g>
       <text x="450" y="1190" textAnchor="middle"
         fontFamily={estedad.style.fontFamily}
