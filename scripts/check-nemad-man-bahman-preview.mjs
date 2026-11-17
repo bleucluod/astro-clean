@@ -99,26 +99,36 @@ for (const [weight, file] of [
 }
 assert.equal((poster.match(/fontFamily=\{estedad.style.fontFamily\}/g) || []).length, 2,
   'Estedad font family must cover both name/sign and the date');
-assert.match(poster, /y="980" fontWeight="300"/, 'Subtle zodiac label must use Estedad Light');
+assert.match(poster, /y=\{isLight \? 1040 : 980\} fontWeight="300"/,
+  'Light label moves down while approved dark baseline remains at 980');
 assert.ok(!poster.includes('FarZiba') && !css.includes('FarZiba') && !css.includes('far-ziba-font'),
   'Reject legacy Far Ziba fallback in the active renderer');
 assert.ok(!existsSync(resolve(root, 'app/shop/nemad-man/bahman-preview/far-ziba-font/route.ts')),
   'Unused Far Ziba preview font endpoint should be absent');
 assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
   'Night of Us font reference changed');
-assert.match(poster, /y="980" fontWeight="300" fontSize="31"/,
-  'Zodiac heading geometry remains approved');
+assert.match(poster, /y=\{isLight \? 1040 : 980\} fontWeight="300" fontSize="31"/,
+  'Zodiac label size and both theme baselines must remain approved');
 assert.match(poster, /fill=\{isLight \? '#52657A' : '#bcccdc'\} opacity="\.8"/,
   'Zodiac heading must be readable in both colorways');
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500"/, 'Dominant personal name');
 assert.match(poster, /id="nemad-name-silver"/, 'Name-only silver gradient missing');
-assert.match(poster, /fill=\{isLight \? '#243447' : 'url\(#nemad-name-silver\)'\} strokeWidth="1\.7"/,
-  'Light name must be uniform graphite; dark retains approved silver gradient');
-assert.ok(!poster.includes('nemad-name-ink'), 'Light name must not use a mid-tone shine gradient');
+assert.match(poster, /fill=\{isLight \? 'url\(#nemad-light-name-matte\)' : 'url\(#nemad-name-silver\)'\}/,
+  'Light name uses matte graphite; dark name keeps its silver gradient');
+assert.match(poster, /stroke=\{isLight \? '#1B3043' : undefined\} strokeOpacity=\{isLight \? '\.58' : undefined\}/,
+  'Light name should have a fine ink keyline without changing dark stroke');
+assert.match(poster, /strokeWidth=\{isLight \? '1\.25' : '1\.7'\}/,
+  'Light ink keyline stays delicate and approved dark stroke width remains 1.7');
+assert.ok(!poster.includes('nemad-name-ink'), 'Disallow the rejected shiny metallic band');
+for (const matteInk of ['#1B3043', '#30495E', '#1C3347']) {
+  assert.ok(poster.includes(matteInk), 'Missing matte graphite ink tone: ' + matteInk);
+}
+assert.ok(!poster.includes('#8096A8'), 'Rejected white-centered highlight may not return');
 assert.ok(!poster.includes('fill="url(#nemad-name-silver)" opacity=".8"'),
   'Zodiac label must not share the personal name highlight');
 assert.ok(!poster.includes('M421 979 H479'), 'No name/date divider');
-assert.match(poster, /y="1190" textAnchor="middle"/, 'Date sits closer to the name');
+assert.match(poster, /y=\{isLight \? 1220 : 1190\} textAnchor="middle"/,
+  'Light date balances the enlarged disc; dark date remains at 1190');
 assert.match(poster, /fontFamily=\{estedad.style.fontFamily\}/, 'Date must use Estedad');
 assert.match(poster, /direction="rtl" unicodeBidi="isolate">\{date\}<\/text>/,
   'Mixed Persian Gregorian date must stay bidi-isolated');
@@ -144,10 +154,10 @@ assert.match(poster, /strokeWidth="2\.3" paintOrder="stroke"/, 'Text stroke widt
 assert.match(poster, /filter=\{isLight \? 'url\(#nemad-light-name-depth\)' : 'url\(#nemad-night-text-soft-glow\)'\}/,
   'Light name depth and approved dark name glow must stay theme-specific');
 assert.match(poster, /id="nemad-light-name-depth"/, 'Light variant needs a separate name depth treatment');
-assert.match(poster, /floodColor="#52657A" floodOpacity="\.12"/,
-  'Light name should use only a micro-shadow, not advertising-style shine');
-assert.match(poster, /stdDeviation="1\.2" result="nemad-ink-blur"/,
-  'Light name depth must remain soft and unobtrusive');
+assert.match(poster, /floodColor="#597187" floodOpacity="\.24"/,
+  'Light name gains restrained paper-like depth, not reflective shine');
+assert.match(poster, /stdDeviation="2\.4" result="nemad-ink-blur"/,
+  'Light name depth must stay soft and controlled');
 assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="1\.25"/,
   'Night typography soft bloom is missing');
 assert.match(poster, /floodOpacity="\.10" result="nemad-soft-tint"/, 'Name glow must stay subtle');
@@ -167,29 +177,35 @@ assert.ok(!/fetch\(|localStorage|sessionStorage|addShopCartItem|router\.push|toD
 assert.match(css, /@media \(max-width: 850px\)/, 'Mobile preview required');
 assert.match(poster, /viewBox="0 0 900 1350"/, 'Poster must use exact 2:3 ratio');
 assert.match(css, /aspect-ratio: 2 \/ 3/, 'Preview must be 2:3');
-assert.match(poster, /<clipPath id="nemad-sky-clip"><circle cx="450" cy=\{isLight \? 388 : 430\} r=\{isLight \? 337 : 294\}\/><\/clipPath>/,
-  'Light disc is larger while approved dark clip remains unchanged');
-assert.match(poster, /<g transform=\{isLight \? 'translate\(450 388\) scale\(1\.146\) translate\(-450 -358\)' : 'translate\(0 72\)'\}>/,
-  'Light star field scales uniformly without changing approved dark projection');
-assert.match(poster, /r=\{isLight \? 337 : 294\} fill="url\(#nemad-globe\)"/,
-  'Light circle fill must use larger radius than dark circle');
-assert.match(poster, /r=\{isLight \? 337 : 294\} stroke=\{isLight \? '#7790A4' : '#d8e0e5'\}/,
-  'Circle rim must match the corresponding fill and clip');
-assert.match(poster, /x="340" y="755" width="220" height="180"/, 'Approved glyph size must not be stretched');
+assert.match(poster, /<clipPath id="nemad-sky-clip"><circle cx="450" cy=\{isLight \? 405 : 430\} r=\{isLight \? 380 : 294\}\/><\/clipPath>/,
+  'Larger light disc and original dark clip must remain aligned');
+assert.match(poster, /<g transform=\{isLight \? 'translate\(450 405\) scale\(1\.293\) translate\(-450 -358\)' : 'translate\(0 72\)'\}>/,
+  'Enlarged light stars must scale uniformly without altering dark projection');
+assert.match(poster, /r=\{isLight \? 380 : 294\} fill="url\(#nemad-globe\)"/,
+  'Circle fill must retain separate theme radii');
+assert.match(poster, /r=\{isLight \? 380 : 294\} stroke=\{isLight \? '#7790A4' : '#d8e0e5'\}/,
+  'Circle rim must follow the theme radius');
+assert.match(poster, /x="340" y=\{isLight \? 815 : 755\} width="220" height="180"/,
+  'Approved zodiac asset size and dark position must remain unchanged');
 assert.match(poster, /filter=\{isLight \? 'url\(#nemad-light-glyph-ink\)' : undefined\}/,
   'Tint only the approved glyph in light variant');
 assert.match(poster, /<feColorMatrix type="matrix"/, 'Light glyph must preserve approved shape');
-// Both colorways retain the approved 30px minimum gap to the glyph.
-const darkDisc = { centerY: 430, radius: 294 };
-const lightDisc = { centerY: 388, radius: 337 };
-assert.ok(755 - (darkDisc.centerY + darkDisc.radius) >= 30 &&
-  755 - (lightDisc.centerY + lightDisc.radius) >= 30 &&
-  lightDisc.centerY - lightDisc.radius >= 50 &&
-  980 - (755 + 180) >= 40,
-  'Neither colorway may collide with the glyph, label or top safe area');
-assert.ok(lightDisc.radius > darkDisc.radius && lightDisc.radius / darkDisc.radius > 1.14,
-  'The light celestial disc should be substantially larger');
-assert.match(poster, /y="1090" fontSize=\{nameSize\}/, 'Name must fit the 2:3 canvas');
+// Enlarged light disc reflows only the light layout. Dark poster coordinates are locked.
+const darkDisc = { centerY: 430, radius: 294, glyphY: 755, labelY: 980, nameY: 1090, dateY: 1190 };
+const lightDisc = { centerY: 405, radius: 380, glyphY: 815, labelY: 1040, nameY: 1138, dateY: 1220 };
+assert.ok(darkDisc.glyphY - (darkDisc.centerY + darkDisc.radius) >= 30 &&
+  lightDisc.glyphY - (lightDisc.centerY + lightDisc.radius) >= 30 &&
+  lightDisc.centerY - lightDisc.radius >= 25 &&
+  450 - lightDisc.radius >= 65 &&
+  lightDisc.labelY - (lightDisc.glyphY + 180) >= 40 &&
+  lightDisc.nameY - lightDisc.labelY >= 90 &&
+  lightDisc.dateY - lightDisc.nameY >= 78 &&
+  1293 - lightDisc.dateY >= 70,
+  'Light disc and typography must fit safely inside the 2:3 print canvas');
+assert.ok(lightDisc.radius > darkDisc.radius && lightDisc.radius / 337 > 1.12,
+  'The enlarged light sky must be visibly larger than the previous preview');
+assert.match(poster, /y=\{isLight \? 1138 : 1090\} fontSize=\{nameSize\}/,
+  'Light name moves below the glyph while dark name stays at 1090');
 assert.match(exportHelper, /const POSTER_HEIGHT = 1350/, 'PNG export must match 2:3 SVG height');
 assert.ok(!exportHelper.includes('PNG_SCALE'), 'Legacy fixed-size PNG output must be removed');
 assert.match(client, /<select id="nemad-output-size"/, 'Three print-size options must be visible');

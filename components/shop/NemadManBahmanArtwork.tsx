@@ -52,13 +52,18 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
           <stop offset=".48" stopColor="#eef4f9"/>
           <stop offset="1" stopColor="#b9c9d8"/>
         </linearGradient>
-        {/* The light name uses uniform graphite ink, never a silver shine.
-            A barely visible offset keeps its letterforms crisp on cool white. */}
+        {/* Matte graphite typography: smooth dark-on-dark tonal depth,
+            with no white stripe or reflective highlight across the name. */}
+        <linearGradient id="nemad-light-name-matte" x1="0" y1="0" x2=".10" y2="1">
+          <stop offset="0" stopColor="#1B3043"/>
+          <stop offset=".58" stopColor="#30495E"/>
+          <stop offset="1" stopColor="#1C3347"/>
+        </linearGradient>
         <filter id="nemad-light-name-depth" x="-25%" y="-60%" width="150%" height="220%"
           colorInterpolationFilters="sRGB">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1.2" result="nemad-ink-blur"/>
-          <feOffset in="nemad-ink-blur" dx="0" dy="1.3" result="nemad-ink-offset"/>
-          <feFlood floodColor="#52657A" floodOpacity=".12" result="nemad-ink-color"/>
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="nemad-ink-blur"/>
+          <feOffset in="nemad-ink-blur" dx="0" dy="2.8" result="nemad-ink-offset"/>
+          <feFlood floodColor="#597187" floodOpacity=".24" result="nemad-ink-color"/>
           <feComposite in="nemad-ink-color" in2="nemad-ink-offset" operator="in" result="nemad-ink-shadow"/>
           <feMerge>
             <feMergeNode in="nemad-ink-shadow"/>
@@ -70,12 +75,12 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
           <feColorMatrix type="matrix"
             values="0.25 0 0 0 0.035  0 0.30 0 0 0.04  0 0 0.35 0 0.05  0 0 0 1 0"/>
         </filter>
-        <clipPath id="nemad-sky-clip"><circle cx="450" cy={isLight ? 388 : 430} r={isLight ? 337 : 294}/></clipPath>
+        <clipPath id="nemad-sky-clip"><circle cx="450" cy={isLight ? 405 : 430} r={isLight ? 380 : 294}/></clipPath>
       </defs>
       <rect width="900" height="1350" fill={isLight ? '#F8FAFC' : '#000000'}/>
-      <circle cx="450" cy={isLight ? 388 : 430} r={isLight ? 337 : 294} fill="url(#nemad-globe)"/>
+      <circle cx="450" cy={isLight ? 405 : 430} r={isLight ? 380 : 294} fill="url(#nemad-globe)"/>
       <g clipPath="url(#nemad-sky-clip)">
-        <g transform={isLight ? 'translate(450 388) scale(1.146) translate(-450 -358)' : 'translate(0 72)'}>
+        <g transform={isLight ? 'translate(450 405) scale(1.293) translate(-450 -358)' : 'translate(0 72)'}>
           <g>
           {sky.stars.map((star, index) => (
             <g key={`catalogue-${index}`}>
@@ -100,23 +105,25 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
         ))}
         </g>
       </g>
-      <circle cx="450" cy={isLight ? 388 : 430} r={isLight ? 337 : 294} stroke={isLight ? '#7790A4' : '#d8e0e5'}
+      <circle cx="450" cy={isLight ? 405 : 430} r={isLight ? 380 : 294} stroke={isLight ? '#7790A4' : '#d8e0e5'}
         strokeOpacity={isLight ? '.28' : '.045'} strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
-      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="755" width="220" height="180"
+      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y={isLight ? 815 : 755} width="220" height="180"
         preserveAspectRatio="xMidYMid meet" filter={isLight ? 'url(#nemad-light-glyph-ink)' : undefined} />
       {/* Editorial group: quiet zodiac, prominent name, date without a divider. */}
       <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
         stroke={isLight ? '#F8FAFC' : '#09131b'} strokeOpacity={isLight ? '.25' : '.68'}
         strokeWidth="2.3" paintOrder="stroke">
-        <text x="450" y="980" fontWeight="300" fontSize="31"
+        <text x="450" y={isLight ? 1040 : 980} fontWeight="300" fontSize="31"
           fill={isLight ? '#52657A' : '#bcccdc'} opacity=".8">{sign.displayFa}</text>
-        <text x="450" y="1090" fontSize={nameSize} fontWeight="500"
-          fill={isLight ? '#243447' : 'url(#nemad-name-silver)'} strokeWidth="1.7"
+        <text x="450" y={isLight ? 1138 : 1090} fontSize={nameSize} fontWeight="500"
+          fill={isLight ? 'url(#nemad-light-name-matte)' : 'url(#nemad-name-silver)'}
+          stroke={isLight ? '#1B3043' : undefined} strokeOpacity={isLight ? '.58' : undefined}
+          strokeWidth={isLight ? '1.25' : '1.7'}
           direction={latinName ? 'ltr' : 'rtl'}
           filter={isLight ? 'url(#nemad-light-name-depth)' : 'url(#nemad-night-text-soft-glow)'}>{name}</text>
       </g>
-      <text x="450" y="1190" textAnchor="middle"
+      <text x="450" y={isLight ? 1220 : 1190} textAnchor="middle"
         fontFamily={estedad.style.fontFamily}
         fontSize="25" fontWeight="400" fill={isLight ? '#52657A' : '#bcccdc'}
         opacity={isLight ? '.86' : '.76'}
