@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState, type FormEvent, type ChangeEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type ChangeEvent } from 'react';
 import { filterHalleusCities, findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
+import { downloadNemadPosterPng } from '@/lib/shop/nemad-man-preview-export';
 import styles from './nemad-man-bahman-preview.module.css';
 
 function referenceExample(): BahmanPreview {
@@ -22,6 +23,9 @@ export function NemadManBahmanPreview() {
   const [cityId, setCityId] = useState('');
   const [needsDetails, setNeedsDetails] = useState(false);
   const [error, setError] = useState('');
+  const [exportError, setExportError] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const boardRef = useRef<HTMLDivElement>(null);
   const matchedCity = findHalleusCityById(cityId);
   const cities = useMemo(() => !cityId && cityName.trim().length > 1
     ? filterHalleusCities(cityName).slice(0, 7) : [], [cityName, cityId]);
@@ -39,6 +43,23 @@ export function NemadManBahmanPreview() {
     setError('');
   }
 
+  async function downloadPoster() {
+    const svg = boardRef.current?.querySelector('svg');
+    if (!svg) {
+      setExportError('تابلو برای خروجی گرفتن آماده نیست.');
+      return;
+    }
+    setExportError('');
+    setExporting(true);
+    try {
+      await downloadNemadPosterPng(svg, 'halleus-nemad-' + preview.sign.id + '.png');
+    } catch (failure) {
+      setExportError(failure instanceof Error ? failure.message : 'گرفتن خروجی PNG ناموفق بود.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const changedSign = preview.sign.id !== 'aquarius';
 
   return (
@@ -51,7 +72,11 @@ export function NemadManBahmanPreview() {
         </header>
         <div className={styles.layout}>
           <section className={styles.previewPanel} aria-label="پیش‌نمایش شخصی‌سازی‌شده">
-            <div className={styles.board}><NemadManBahmanArtwork name={preview.name} date={preview.gregorianDate} sign={preview.sign}/></div>
+            <div className={styles.board} ref={boardRef}><NemadManBahmanArtwork name={preview.name} date={preview.gregorianDate} sign={preview.sign}/></div>
+            <button className={styles.exportButton} type="button" disabled={exporting} onClick={() => { void downloadPoster(); }}>
+              {exporting ? 'در حال آماده‌سازی PNG...' : 'دریافت PNG با فونت اصلی · ۱۸۰۰ × ۲۲۵۰'}
+            </button>
+            {exportError ? <p className={styles.error} role="alert">{exportError}</p> : null}
             {needsDetails ? <p className={styles.pendingNote}>این تصویر هنوز نمونهٔ قبلی است؛ با تکمیل ساعت و شهر تولد، نشان صحیح به‌جای آن نمایش داده می‌شود.</p> : null}
             <p className={styles.note}>ستاره‌ها و خطوط صورت فلکی از دادهٔ نجومی J2000 گرفته شده‌اند؛ این طرح، نقشهٔ آسمان لحظهٔ تولد نیست. تصویر روی شاسی بدون قاب چاپ می‌شود.</p>
           </section>

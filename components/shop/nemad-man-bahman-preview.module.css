@@ -36,3 +36,9 @@
 .info p { font-size: 12px; color: #52657a; line-height: 2; margin: 5px 0 0; }
 @media (max-width: 850px) { .layout { grid-template-columns: 1fr; } .previewPanel { order: -1; } .editor { width: min(100%, 590px); box-sizing: border-box; margin: 0 auto; } }
 @media (max-width: 550px) { .page { padding: 24px 0 75px; } .container { width: calc(100% - 30px); } .header { margin-bottom: 24px; } .layout { gap: 23px; } .editor { padding: 20px; border-radius: 14px; } }
+
+/* Download is available only within the existing development preview. */
+.exportButton { width: min(100%, 490px); min-height: 44px; padding: 9px 18px; border: 1px solid #285d84; border-radius: 10px; background: #326e9b; color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.exportButton:hover:not(:disabled) { background: #265c85; }
+.exportButton:focus-visible { outline: 2px solid #357da6; outline-offset: 3px; }
+.exportButton:disabled { opacity: .65; cursor: wait; }

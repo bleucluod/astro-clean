@@ -26,6 +26,8 @@ const client = read(modules[1]);
 const poster = read(modules[2]);
 const engine = read(modules[3]);
 const css = read('components/shop/nemad-man-bahman-preview.module.css');
+const exportHelper = read('lib/shop/nemad-man-preview-export.ts');
+const fontRoute = read('app/shop/nemad-man/bahman-preview/font/route.ts');
 const figureCatalog = JSON.parse(read('lib/shop/catalog/constellations-d3-celestial-v1.json'));
 const stars = JSON.parse(read('lib/shop/catalog/bsc5-bright-stars-mag6.json'));
 const signIds = ['Ari','Tau','Gem','Cnc','Leo','Vir','Lib','Sco','Sgr','Cap','Aqr','Psc'];
@@ -139,6 +141,16 @@ assert.ok(engine.includes("displayFa: 'آکواریوس'"), 'Approved Aquarius l
 assert.equal((engine.match(/displayFa: '/g) || []).length, 12, 'All 12 signs require transliterated names');
 assert.ok(!/fetch\(|localStorage|sessionStorage|addShopCartItem|router\.push|toDataURL|downloadPng/i.test(client + poster + engine), 'No network, persistence, cart or export in dev preview');
 assert.match(css, /@media \(max-width: 850px\)/, 'Mobile preview required');
+assert.match(client, /downloadNemadPosterPng\(svg,/, 'Preview must provide PNG download');
+assert.match(css, /\.exportButton/, 'Preview download button needs styles');
+assert.match(exportHelper, /canvas\.toBlob/, 'PNG must be encoded from the renderer SVG');
+assert.match(exportHelper, /font\?weight=/, 'Embedded Estedad font source must be local');
+assert.match(exportHelper, /image\.setAttribute\('href', await blobToDataUrl/, 'Glyphs must be inlined into export');
+assert.match(exportHelper, /url\.origin !== window\.location\.origin/, 'Glyph fetch must be same-origin');
+assert.match(fontRoute, /process\.env\.NODE_ENV === 'production'/, 'Font bridge must be development-only');
+for (const font of ['Estedad-Light.ttf', 'Estedad-Regular.ttf', 'Estedad-Medium.ttf']) {
+  assert.ok(fontRoute.includes(font), 'Missing exported font weight: ' + font);
+}
 // A source-geometry projection test: increasing right ascension goes LEFT.
 const aqr = figureCatalog.features.find((f) => f.id === 'Aqr').geometry.coordinates.flat();
 const ra = aqr.map((p) => p[0]);
