@@ -114,6 +114,13 @@ assert.match(poster, /y="1009" textAnchor="middle"/, 'Date sits closer to the na
 assert.match(poster, /fontFamily=\{estedad.style.fontFamily\}/, 'Date must use Estedad');
 assert.match(poster, /direction="rtl" unicodeBidi="isolate">\{date\}<\/text>/,
   'Mixed Persian Gregorian date must stay bidi-isolated');
+assert.match(poster, /x="450" y="1056" textAnchor="middle"/,
+  'The final poster must show the bottom brand wordmark');
+assert.match(poster, /fontSize="13" fontWeight="400" fill="#bcccdc" direction="ltr"/,
+  'The bottom brand styling must match approved P02 typography');
+assert.ok(poster.includes('H  A  L  L  E  U  S'),
+  'Bottom HALLEUS wordmark must match the other posters');
+
 assert.ok(engine.includes("new Intl.DateTimeFormat('fa-IR-u-ca-gregory'"),
   'Gregorian Persian date formatter must remain the single date source');
 assert.ok(engine.includes(".replace(/\\u0654/g, '')"), 'Combining hamza must be removed from Gregorian date');
