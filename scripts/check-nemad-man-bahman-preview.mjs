@@ -68,7 +68,7 @@ for (const expected of [
   assert.ok(engine.includes(expected), 'Missing zodiac / astronomical evidence: ' + expected);
 }
 assert.match(poster, /sky\.stars\.map/, 'Actual catalogue stars required');
-assert.match(poster, /<rect width="900" height="1125" fill="#000000"\/>/, 'Full poster background must remain pure black');
+assert.match(poster, /<rect width="900" height="1350" fill="#000000"\/>/, 'Full poster background must remain pure black');
 assert.match(poster, /stopColor="#080a0c"/, 'Inner sky disc must remain near-black');
 assert.match(poster, /NEMAD_MAN_ZODIAC_GLYPHS\[sign\.id\]/, 'Render the approved shared icon pack');
 assert.ok(!poster.includes('nemad-wisps') && !poster.includes('nemad-grain'), 'Do not reinstate blue haze or aggressive grain');
@@ -97,14 +97,14 @@ for (const [weight, file] of [
 }
 assert.equal((poster.match(/fontFamily=\{estedad.style.fontFamily\}/g) || []).length, 2,
   'Estedad font family must cover both name/sign and the date');
-assert.match(poster, /y="845" fontWeight="300"/, 'Subtle zodiac label must use Estedad Light');
+assert.match(poster, /y="980" fontWeight="300"/, 'Subtle zodiac label must use Estedad Light');
 assert.ok(!poster.includes('FarZiba') && !css.includes('FarZiba') && !css.includes('far-ziba-font'),
   'Reject legacy Far Ziba fallback in the active renderer');
 assert.ok(!existsSync(resolve(root, 'app/shop/nemad-man/bahman-preview/far-ziba-font/route.ts')),
   'Unused Far Ziba preview font endpoint should be absent');
 assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
   'Night of Us font reference changed');
-assert.match(poster, /y="845" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
+assert.match(poster, /y="980" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500"/, 'Dominant personal name');
 assert.match(poster, /id="nemad-name-silver"/, 'Name-only silver gradient missing');
 assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="1\.7"/,
@@ -112,16 +112,16 @@ assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="1\.7"/,
 assert.ok(!poster.includes('fill="url(#nemad-name-silver)" opacity=".8"'),
   'Zodiac label must not share the personal name highlight');
 assert.ok(!poster.includes('M421 979 H479'), 'No name/date divider');
-assert.match(poster, /y="1009" textAnchor="middle"/, 'Date sits closer to the name');
+assert.match(poster, /y="1190" textAnchor="middle"/, 'Date sits closer to the name');
 assert.match(poster, /fontFamily=\{estedad.style.fontFamily\}/, 'Date must use Estedad');
 assert.match(poster, /direction="rtl" unicodeBidi="isolate">\{date\}<\/text>/,
   'Mixed Persian Gregorian date must stay bidi-isolated');
 assert.match(read('lib/shop/shop-birth-sky-r9.ts'),
   /fontText\('H  A  L  L  E  U  S',1500,4310,52,400,'#8A96A1',\{anchor:'middle',dir:'ltr',opacity:\.52\}\)/,
   'P02 R9 footer reference changed; review Nemad Man parity');
-assert.match(poster, /x="450" y="1078" textAnchor="middle"/,
+assert.match(poster, /x="450" y="1293" textAnchor="middle"/,
   'Nemad Man footer must match P02 relative vertical placement');
-assert.match(poster, /fontSize="13" fontWeight="400" fill="#8A96A1" opacity="\.52" direction="ltr"/,
+assert.match(poster, /fontSize="15\.6" fontWeight="400" fill="#8A96A1" opacity="\.52" direction="ltr"/,
   'Nemad Man footer must match P02 font weight, size, silver tone and opacity');
 assert.ok(poster.includes('H  A  L  L  E  U  S'),
   'Bottom HALLEUS wordmark must match the other posters');
@@ -144,6 +144,34 @@ assert.ok(engine.includes("displayFa: 'آکواریوس'"), 'Approved Aquarius l
 assert.equal((engine.match(/displayFa: '/g) || []).length, 12, 'All 12 signs require transliterated names');
 assert.ok(!/fetch\(|localStorage|sessionStorage|addShopCartItem|router\.push|toDataURL|downloadPng/i.test(client + poster + engine), 'No network, persistence, cart or export in dev preview');
 assert.match(css, /@media \(max-width: 850px\)/, 'Mobile preview required');
+assert.match(poster, /viewBox="0 0 900 1350"/, 'Poster must use exact 2:3 ratio');
+assert.match(css, /aspect-ratio: 2 \/ 3/, 'Preview must be 2:3');
+assert.match(poster, /<clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r="294"\/><\/clipPath>/,
+  'The astronomical disc and its clip must move together');
+assert.match(poster, /transform="translate\(0 72\)"/,
+  'Real catalogue stars, lines and nodes must move without distortion');
+assert.match(poster, /x="340" y="711" width="220" height="180"/, 'Approved glyph size must not be stretched');
+assert.match(poster, /y="1090" fontSize=\{nameSize\}/, 'Name must fit the 2:3 canvas');
+assert.match(exportHelper, /const POSTER_HEIGHT = 1350/, 'PNG export must match 2:3 SVG height');
+assert.ok(!exportHelper.includes('PNG_SCALE'), 'Legacy fixed-size PNG output must be removed');
+assert.match(client, /<select id="nemad-output-size"/, 'Three print-size options must be visible');
+assert.match(client, /getNemadPosterPixelSize\(printSize\)/, 'Visible output pixels must match selection');
+assert.match(exportHelper, /context.drawImage\(picture, 0, 0, pixels.width, pixels.height\)/,
+  'PNG must render to selected full pixel dimensions');
+assert.match(exportHelper, /const TARGET_PPI = 300;/, 'Physical dimensions must be 300 PPI');
+const physicalSizes = [['10x15', 10, 15], ['20x30', 20, 30], ['30x45', 30, 45]];
+for (const [id, width, height] of physicalSizes) {
+  assert.ok(exportHelper.includes("'" + id + "': { label:") &&
+    exportHelper.includes("widthCm: " + width + ", heightCm: " + height),
+    'Missing approved physical size: ' + id);
+  assert.ok(read('components/shop/product-detail-data.ts').includes("dimension: '" + id + "'"),
+    'Size differs from existing shop catalog: ' + id);
+  const widthPx = Math.ceil(width / 2.54 * 300);
+  const heightPx = Math.ceil(height / 2.54 * 300);
+  assert.ok(widthPx > 0 && heightPx > 0 && Math.abs(widthPx / heightPx - 2 / 3) < .001);
+  assert.ok(widthPx >= Math.ceil(width / 2.54 * 300) &&
+    heightPx >= Math.ceil(height / 2.54 * 300));
+}
 assert.match(client, /downloadNemadPosterPng\(svg,/, 'Preview must provide PNG download');
 assert.match(css, /\.exportButton/, 'Preview download button needs styles');
 assert.match(exportHelper, /canvas\.toBlob/, 'PNG must be encoded from the renderer SVG');

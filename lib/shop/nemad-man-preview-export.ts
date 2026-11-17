@@ -2,8 +2,27 @@
  * approved glyph pixels and the three actual Estedad files are inlined first. */
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const POSTER_WIDTH = 900;
-const POSTER_HEIGHT = 1125;
-const PNG_SCALE = 2;
+const POSTER_HEIGHT = 1350;
+const TARGET_PPI = 300;
+
+// Development-preview PNG sizes. These physical dimensions match SHOP_SIZES.
+// Files remain review assets; production print approval follows its own contract.
+export const NEMAD_POSTER_SIZES = {
+  '10x15': { label: '۱۰ × ۱۵ سانتی‌متر', widthCm: 10, heightCm: 15 },
+  '20x30': { label: '۲۰ × ۳۰ سانتی‌متر', widthCm: 20, heightCm: 30 },
+  '30x45': { label: '۳۰ × ۴۵ سانتی‌متر', widthCm: 30, heightCm: 45 },
+} as const;
+
+export type NemadPosterSize = keyof typeof NEMAD_POSTER_SIZES;
+
+export function getNemadPosterPixelSize(size: NemadPosterSize) {
+  const selected = NEMAD_POSTER_SIZES[size];
+  if (!selected) throw new Error('اندازهٔ خروجی معتبر نیست.');
+  return {
+    width: Math.ceil(selected.widthCm / 2.54 * TARGET_PPI),
+    height: Math.ceil(selected.heightCm / 2.54 * TARGET_PPI),
+  };
+}
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -52,7 +71,7 @@ async function embedSourceAssets(svg: SVGSVGElement): Promise<string> {
   return new XMLSerializer().serializeToString(clone);
 }
 
-export async function downloadNemadPosterPng(source: SVGSVGElement, filename: string): Promise<void> {
+export async function downloadNemadPosterPng(source: SVGSVGElement, filename: string, size: NemadPosterSize): Promise<void> {
   const svgText = await embedSourceAssets(source);
   const sourceUrl = URL.createObjectURL(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }));
   let pngUrl: string | null = null;
@@ -64,12 +83,12 @@ export async function downloadNemadPosterPng(source: SVGSVGElement, filename: st
       picture.src = sourceUrl;
     });
     const canvas = document.createElement('canvas');
-    canvas.width = POSTER_WIDTH * PNG_SCALE;
-    canvas.height = POSTER_HEIGHT * PNG_SCALE;
+    const pixels = getNemadPosterPixelSize(size);
+    canvas.width = pixels.width;
+    canvas.height = pixels.height;
     const context = canvas.getContext('2d');
     if (!context) throw new Error('مرورگر امکان ساخت خروجی PNG را ندارد.');
-    context.scale(PNG_SCALE, PNG_SCALE);
-    context.drawImage(picture, 0, 0, POSTER_WIDTH, POSTER_HEIGHT);
+    context.drawImage(picture, 0, 0, pixels.width, pixels.height);
     const png = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((file) => file ? resolve(file) : reject(new Error('ساخت فایل PNG ناموفق بود.')), 'image/png');
     });

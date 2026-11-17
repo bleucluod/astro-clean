@@ -4,7 +4,10 @@ import { useMemo, useRef, useState, type FormEvent, type ChangeEvent } from 'rea
 import { filterHalleusCities, findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
-import { downloadNemadPosterPng } from '@/lib/shop/nemad-man-preview-export';
+import {
+  downloadNemadPosterPng, getNemadPosterPixelSize, NEMAD_POSTER_SIZES,
+  type NemadPosterSize,
+} from '@/lib/shop/nemad-man-preview-export';
 import styles from './nemad-man-bahman-preview.module.css';
 
 function referenceExample(): BahmanPreview {
@@ -13,6 +16,7 @@ function referenceExample(): BahmanPreview {
   return value.value;
 }
 const example = referenceExample();
+const sizeOptions: NemadPosterSize[] = ['10x15', '20x30', '30x45'];
 
 export function NemadManBahmanPreview() {
   const [name, setName] = useState('آراد');
@@ -25,8 +29,10 @@ export function NemadManBahmanPreview() {
   const [error, setError] = useState('');
   const [exportError, setExportError] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [printSize, setPrintSize] = useState<NemadPosterSize>('20x30');
   const boardRef = useRef<HTMLDivElement>(null);
   const matchedCity = findHalleusCityById(cityId);
+  const outputPixels = getNemadPosterPixelSize(printSize);
   const cities = useMemo(() => !cityId && cityName.trim().length > 1
     ? filterHalleusCities(cityName).slice(0, 7) : [], [cityName, cityId]);
 
@@ -52,7 +58,7 @@ export function NemadManBahmanPreview() {
     setExportError('');
     setExporting(true);
     try {
-      await downloadNemadPosterPng(svg, 'halleus-nemad-' + preview.sign.id + '.png');
+      await downloadNemadPosterPng(svg, 'halleus-nemad-' + preview.sign.id + '-' + printSize + '.png', printSize);
     } catch (failure) {
       setExportError(failure instanceof Error ? failure.message : 'گرفتن خروجی PNG ناموفق بود.');
     } finally {
@@ -73,8 +79,16 @@ export function NemadManBahmanPreview() {
         <div className={styles.layout}>
           <section className={styles.previewPanel} aria-label="پیش‌نمایش شخصی‌سازی‌شده">
             <div className={styles.board} ref={boardRef}><NemadManBahmanArtwork name={preview.name} date={preview.gregorianDate} sign={preview.sign}/></div>
+            <label className={styles.exportSize} htmlFor="nemad-output-size">
+              اندازهٔ خروجی (۳۰۰ پیکسل در اینچ)
+              <select id="nemad-output-size" value={printSize} disabled={exporting}
+                onChange={(event: ChangeEvent<HTMLSelectElement>) => setPrintSize(event.target.value as NemadPosterSize)}>
+                {sizeOptions.map((size) => <option key={size} value={size}>{NEMAD_POSTER_SIZES[size].label}</option>)}
+              </select>
+            </label>
             <button className={styles.exportButton} type="button" disabled={exporting} onClick={() => { void downloadPoster(); }}>
-              {exporting ? 'در حال آماده‌سازی PNG...' : 'دریافت PNG با فونت اصلی · ۱۸۰۰ × ۲۲۵۰'}
+              {exporting ? 'در حال آماده‌سازی PNG...' :
+                `دریافت PNG با فونت اصلی · ${outputPixels.width.toLocaleString('fa-IR')} × ${outputPixels.height.toLocaleString('fa-IR')}`}
             </button>
             {exportError ? <p className={styles.error} role="alert">{exportError}</p> : null}
             {needsDetails ? <p className={styles.pendingNote}>این تصویر هنوز نمونهٔ قبلی است؛ با تکمیل ساعت و شهر تولد، نشان صحیح به‌جای آن نمایش داده می‌شود.</p> : null}
@@ -122,7 +136,7 @@ export function NemadManBahmanPreview() {
             </div> : null}
             <div className={styles.info}>
               <strong>نسخهٔ آزمایشی، فقط برای بررسی طرح</strong>
-              <p>هنوز سفارش، پرداخت، خروجی چاپ و ذخیرهٔ اطلاعات فعال نیستند. نام و تاریخ فقط در مرورگر استفاده می‌شوند.</p>
+              <p>هنوز سفارش، پرداخت و ذخیرهٔ اطلاعات فعال نیستند. فایل PNG برای بررسی و چاپ آزمایشی است، نه فایل نهایی تأییدشدهٔ چاپ.</p>
             </div>
           </section>
         </div>

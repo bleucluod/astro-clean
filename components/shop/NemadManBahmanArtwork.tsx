@@ -22,7 +22,7 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
   const nameSize = Array.from(name).length > 16 ? 46 : Array.from(name).length > 9 ? 58 : 72;
 
   return (
-    <svg viewBox="0 0 900 1125" xmlns="http://www.w3.org/2000/svg" role="img"
+    <svg viewBox="0 0 900 1350" xmlns="http://www.w3.org/2000/svg" role="img"
       aria-label={`پیش‌نمایش تابلوی بدون قاب ${sign.displayFa} برای ${name}، ${date}`}>
       <title>{`تابلو مینیمال برج ${sign.displayFa} / ${sign.en}`}</title>
       <desc>صورت فلکی مرجع J2000 با جهت شمال بالا و شرق چپ؛ این تصویر نقشهٔ آسمان تولد نیست.</desc>
@@ -50,12 +50,13 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
           <stop offset=".48" stopColor="#eef4f9"/>
           <stop offset="1" stopColor="#b9c9d8"/>
         </linearGradient>
-        <clipPath id="nemad-sky-clip"><circle cx="450" cy="358" r="294"/></clipPath>
+        <clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r="294"/></clipPath>
       </defs>
-      <rect width="900" height="1125" fill="#000000"/>
-      <circle cx="450" cy="358" r="294" fill="url(#nemad-globe)"/>
+      <rect width="900" height="1350" fill="#000000"/>
+      <circle cx="450" cy="430" r="294" fill="url(#nemad-globe)"/>
       <g clipPath="url(#nemad-sky-clip)">
-        <g>
+        <g transform="translate(0 72)">
+          <g>
           {sky.stars.map((star, index) => (
             <g key={`catalogue-${index}`}>
               {star.prominent ? <circle cx={star.x} cy={star.y} r={star.radius * 6.7} fill="url(#nemad-star-halo)" opacity=".6" /> : null}
@@ -74,26 +75,27 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
             <circle cx={star.x} cy={star.y} r={star.radius * .86} fill="#f1f5f8"/>
           </g>
         ))}
+        </g>
       </g>
-      <circle cx="450" cy="358" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
+      <circle cx="450" cy="430" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
-      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
+      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="711" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
       {/* Editorial group: quiet zodiac, prominent name, date without a divider. */}
       <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
         stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
-        <text x="450" y="845" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
-        <text x="450" y="935" fontSize={nameSize} fontWeight="500"
+        <text x="450" y="980" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
+        <text x="450" y="1090" fontSize={nameSize} fontWeight="500"
           fill="url(#nemad-name-silver)" strokeWidth="1.7"
           direction={latinName ? 'ltr' : 'rtl'} filter="url(#nemad-night-text-soft-glow)">{name}</text>
       </g>
-      <text x="450" y="1009" textAnchor="middle"
+      <text x="450" y="1190" textAnchor="middle"
         fontFamily={estedad.style.fontFamily}
         fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76"
         direction="rtl" unicodeBidi="isolate">{date}</text>
       {/* P02 R9 footer reference: x 1500/3000, y 4310/4500, size 52/4500.
-          Preserve relative vertical placement, color and opacity on this 900x1125 poster. */}
-      <text x="450" y="1078" textAnchor="middle" fontFamily={estedad.style.fontFamily}
-        fontSize="13" fontWeight="400" fill="#8A96A1" opacity=".52" direction="ltr">
+          Preserve relative vertical placement, color and opacity on this 900x1350 poster. */}
+      <text x="450" y="1293" textAnchor="middle" fontFamily={estedad.style.fontFamily}
+        fontSize="15.6" fontWeight="400" fill="#8A96A1" opacity=".52" direction="ltr">
         H  A  L  L  E  U  S
       </text>
     </svg>
