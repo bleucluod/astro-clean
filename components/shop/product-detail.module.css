@@ -650,3 +650,27 @@
 @media (prefers-reduced-motion: reduce) {
   .p01Thumbnails { scroll-behavior: auto; }
 }
+
+/* Nemad Man reuses the P03 product-detail layout with the approved poster SVG. */
+.nemadMainPhoto { aspect-ratio: 2 / 3; max-width: 510px; margin-inline: auto; border-radius: 0; }
+.nemadArtwork { display: block; width: 100%; height: 100%; aspect-ratio: 2 / 3; overflow: hidden; }
+.nemadArtwork svg { display: block; width: 100%; height: 100%; }
+.nemadThumbnails { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 510px; margin-inline: auto; }
+.nemadThemeSwatch { display: grid; place-items: center; width: 100%; height: 100%; color: #D9EAFD; background: #111820; font-size: 13px; font-weight: 700; }
+.nemadLightSwatch { color: #243447; background: #EBF1F5; }
+.nemadSizeGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; }
+.nemadSizeCard { display: grid; gap: 5px; place-items: center; min-height: 110px; padding: 12px; border: 1px solid #3A4B5A; border-radius: 10px; background: #111820; }
+.nemadSizeCard strong { color: #F8FAFC; font-size: 22px; }
+.nemadSizeCard span { color: #BCCCDC; font-size: 12px; }
+.nemadZoomPhoto { height: min(74dvh, 790px); display: grid; place-items: center; }
+.nemadZoomPhoto .nemadArtwork { width: min(100%, 520px); height: auto; }
+.nemadMonthLinks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; }
+.nemadMonthLinks a { display: block; padding: 13px 9px; border: 1px solid #35495B; border-radius: 9px; text-align: center; color: #D9EAFD; text-decoration: none; font-size: 13px; }
+.nemadMonthLinks a[aria-current="page"] { border-color: #BCCCDC; background: #1C2A36; }
+@media (max-width: 760px) {
+  .mainPhotoButton.nemadMainPhoto { width: min(100%, 480px); aspect-ratio: 2 / 3; border-radius: 0; }
+  .nemadMonthLinks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nemadSizeGrid { gap: 7px; }
+  .nemadSizeCard { min-height: 88px; padding: 9px 4px; }
+  .nemadSizeCard strong { font-size: 17px; }
+}

@@ -2,7 +2,12 @@ import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 
 export type ShopProductId = 'p01' | 'p02' | 'p03';
 
-export type ShopCopySection = { title: string; paragraphs: string[]; subheading?: { title: string; paragraphs: string[] } };
+export type ShopCopySection = {
+  title: string;
+  paragraphs: string[];
+  subheading?: { title: string; paragraphs: string[] };
+  subheadings?: { title: string; paragraphs: string[] }[];
+};
 
 export type ShopProduct = {
   id: ShopProductId;

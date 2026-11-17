@@ -7,13 +7,22 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { siteConfig } from '@/lib/config/seo';
 import { buildShopProductStructuredData } from './product-schema';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
-import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProductId, type ShopCopySection } from './product-detail-data';
+import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProduct, type ShopProductId, type ShopCopySection } from './product-detail-data';
+import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
+import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { filterHalleusCities, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import styles from './product-detail.module.css';
 import { useShopGallerySwipe } from './use-shop-gallery-swipe';
 import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
+
+export type NemadProductPage = {
+  slug: string;
+  months: { slug: string; title: string }[];
+  product: ShopProduct;
+  initial: BahmanPreview;
+};
 
 const emptyDetails: ShopPersonalization = { calendar: 'jalali', date: '', time: '', city: '', cityId: '', names: '', message: '' };
 
@@ -35,6 +44,12 @@ function ApprovedProductCopy({ sections }: { sections: ShopCopySection[] }) {
                 {section.subheading.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
             ) : null}
+            {section.subheadings?.map((subheading) => (
+              <div key={subheading.title} className={styles.editorialSubsectionInner}>
+                <h3>{subheading.title}</h3>
+                {subheading.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              </div>
+            ))}
           </div>
         ))}
       </div>
@@ -81,9 +96,9 @@ function SizeIllustration({ id, title }: { id: ShopProductId; title: string }) {
   );
 }
 
-export function ProductDetail({ id }: { id: ShopProductId }) {
+export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadProductPage }) {
   const router = useRouter();
-  const product = getShopProduct(id);
+  const product = nemad?.product ?? getShopProduct(id);
   const related = getRelatedProducts(id);
   const [sizeIndex, setSizeIndex] = useState(1);
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -92,18 +107,30 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
   const [form, setForm] = useState<ShopPersonalization>(emptyDetails);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [formError, setFormError] = useState('');
+  const [nemadPreview, setNemadPreview] = useState<BahmanPreview | null>(nemad?.initial ?? null);
+  const [nemadNeedsDetails, setNemadNeedsDetails] = useState(false);
   const [isFooterVisible, setFooterVisible] = useState(false);
   const [isFormVisible, setFormVisible] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const livePrices = useShopLivePrices();
-  const price = liveShopPrice(livePrices.prices, id, SHOP_SIZES[sizeIndex].dimension);
+  const price = nemad ? null : liveShopPrice(livePrices.prices, id, SHOP_SIZES[sizeIndex].dimension);
+  const nemadTheme = photoIndex === 0 ? 'dark' : 'light';
+  const artwork = nemadPreview ?? nemad?.initial;
   const gallerySwipe = useShopGallerySwipe((step) => {
     setPhotoIndex((index) => (index + step + product.gallery.length) % product.gallery.length);
   });
-  const citySuggestions = useMemo(() => id === 'p02' && !form.cityId && form.city.trim().length >= 2
-    ? filterHalleusCities(form.city).slice(0, 8) : [], [id, form.city, form.cityId]);
-  const formCopy = {
+  const citySuggestions = useMemo(() =>
+    (id === 'p02' || (nemad && nemadNeedsDetails)) && !form.cityId && form.city.trim().length >= 2
+      ? filterHalleusCities(form.city).slice(0, 8) : [],
+  [id, nemad, nemadNeedsDetails, form.city, form.cityId]);
+  const formCopy = nemad ? {
+    title: 'نام چه کسی را کنار ستاره‌ها بنویسیم؟',
+    intro: 'یک نام و یک تاریخ؛ دو جزئیات کوچک برای نشانی که مخصوص اوست.',
+    date: 'تاریخ تولد شمسی',
+    names: 'نام روی تابلو',
+    details: '',
+  } : {
     p01: {
       title: 'کدام روز را به ماه می‌سپاری؟',
       intro: 'بعضی لحظه‌ها می‌گذرند، اما دلمان می‌خواهد نورشان جایی بماند.',
@@ -127,10 +154,12 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
     },
   }[id];
   const hideMobileBar = isFooterVisible || isFormVisible;
-  const structuredData = livePrices.prices ? buildShopProductStructuredData(product, siteConfig.url, id === 'p01', livePrices.prices) : null;
+  const structuredData = !nemad && livePrices.prices
+    ? buildShopProductStructuredData(product, siteConfig.url, id === 'p01', livePrices.prices) : null;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      if (nemad) return;
       const key = new URLSearchParams(window.location.search).get('edit');
       if (!key) return;
       const item = readShopCart().find((entry) => entry.key === key && entry.productId === id);
@@ -141,7 +170,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
       setEditingKey(item.key);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [id]);
+  }, [id, nemad]);
 
   useEffect(() => {
     const dialog = zoomDialog.current;
@@ -197,6 +226,19 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
   function confirmDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (nemad) {
+      const result = validateBahmanPreview(form.names, form.date,
+        { time: form.time, cityId: form.cityId });
+      if (!result.ok) {
+        setNemadNeedsDetails(result.reason === 'needs-birth-details');
+        setFormError(result.message);
+        return;
+      }
+      setNemadPreview(result.value);
+      setNemadNeedsDetails(false);
+      setFormError('');
+      return;
+    }
     if (price === null) {
       setFormError('قیمت فروشگاه قابل بررسی نیست؛ دوباره تلاش کن.');
       return;
@@ -228,19 +270,26 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
               <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
               <span aria-current="page">{product.title}</span>
             </nav>
-            <button className={`${styles.mainPhotoButton} ${id === 'p01' ? styles.p01MainPhoto : ''}`} type="button"
+            <button className={`${styles.mainPhotoButton} ${id === 'p01' ? styles.p01MainPhoto : ''} ${nemad ? styles.nemadMainPhoto : ''}`} type="button"
               {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}
               onClick={(event) => { if (event.detail === 0 || gallerySwipe.canOpenZoom()) setZoomOpen(true); }}
               aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
-              <Image
-                key={product.gallery[photoIndex].src}
-                src={product.gallery[photoIndex].src}
-                alt={product.gallery[photoIndex].alt}
-                fill
-                priority={photoIndex === 0}
-                sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
-                className={id === 'p01' ? styles.portraitPhoto : photoIndex === 0 ? styles.primaryPhoto : styles.portraitPhoto}
-              />
+              {nemad && artwork ? (
+                <span className={styles.nemadArtwork}>
+                  <NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                    sign={artwork.sign} theme={nemadTheme} />
+                </span>
+              ) : (
+                <Image
+                  key={product.gallery[photoIndex].src}
+                  src={product.gallery[photoIndex].src}
+                  alt={product.gallery[photoIndex].alt}
+                  fill
+                  priority={photoIndex === 0}
+                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+                  className={id === 'p01' ? styles.portraitPhoto : photoIndex === 0 ? styles.primaryPhoto : styles.portraitPhoto}
+                />
+              )}
               <span className={styles.zoomHint} aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="10.5" cy="10.5" r="6.5" />
@@ -248,7 +297,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                 </svg>
               </span>
             </button>
-            <div className={`${styles.thumbnails} ${id === 'p01' ? styles.p01Thumbnails : ''}`} aria-label="تصاویر محصول">
+            <div className={`${styles.thumbnails} ${id === 'p01' ? styles.p01Thumbnails : ''} ${nemad ? styles.nemadThumbnails : ''}`} aria-label={nemad ? 'انتخاب مدل تابلو' : 'تصاویر محصول'}>
               {product.gallery.map((photo, index) => (
                 <button
                   type="button"
@@ -258,7 +307,9 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                   aria-label={`نمایش تصویر ${index + 1}: ${photo.label}`}
                   aria-pressed={photoIndex === index}
                 >
-                  <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 82px, 156px" />
+                  {nemad ? <span className={`${styles.nemadThemeSwatch} ${index === 0 ? '' : styles.nemadLightSwatch}`}>
+                    {index === 0 ? 'مینیمال مشکی' : 'مینیمال روشن'}
+                  </span> : <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 82px, 156px" />}
                 </button>
               ))}
             </div>
@@ -289,10 +340,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                   ))}
                 </div>
               </fieldset>
-              <div className={styles.priceBlock}>
+              {!nemad ? <div className={styles.priceBlock}>
                 <p className={styles.priceLabel}>قیمت</p>
                 <p className={styles.price} aria-live="polite"><bdi>{price === null ? 'در حال دریافت…' : formatPrice(price)}</bdi><span>تومان</span></p>
-              </div>
+              </div> : null}
               <a className={styles.sizeGuideLink} href="#size-guide">مقایسهٔ اندازه‌ها روی دیوار <span aria-hidden="true">↓</span></a>
               <form id="personalize" onSubmit={confirmDetails} className={styles.personalizeForm} aria-label={`شخصی‌سازی ${product.title}`}>
                 <div className={styles.formIntro}>
@@ -300,7 +351,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                   <h2 className={styles.formTitle}>{formCopy.title}</h2>
                   <p className={styles.formPoem}>{formCopy.intro}</p>
                 </div>
-                <div className={styles.calendarChooser}>
+                {!nemad ? <div className={styles.calendarChooser}>
                   <span className={styles.calendarLabel}>تقویم</span>
                   <div className={styles.calendarSwitch} role="group" aria-label="نوع تقویم">
                     {([['jalali', 'شمسی'], ['gregorian', 'میلادی']] as const).map(([calendar, label]) => (
@@ -313,7 +364,7 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                       >{label}</button>
                     ))}
                   </div>
-                </div>
+                </div> : null}
                 <div className={styles.formField}>
                   <label htmlFor={form.calendar === 'jalali' ? 'jalali-year' : 'product-date'}>{formCopy.date}</label>
                   {form.calendar === 'jalali' ? (
@@ -325,20 +376,20 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                       ] as const).map(({ label, placeholder, id: inputId, length }, index) => (
                         <div className={styles.jalaliDatePart} key={inputId}>
                           <label htmlFor={inputId}>{label}</label>
-                          <input id={inputId} type="text" inputMode="numeric" autoComplete="off" dir="ltr" required={id !== 'p03'} maxLength={length} placeholder={placeholder} value={form.date.split('/')[index] || ''} onChange={(event) => updateJalaliPart(index as 0 | 1 | 2, event.target.value)} />
+                          <input id={inputId} type="text" inputMode="numeric" autoComplete="off" dir="ltr" required={Boolean(nemad) || id !== 'p03'} maxLength={length} placeholder={placeholder} value={form.date.split('/')[index] || ''} onChange={(event) => updateJalaliPart(index as 0 | 1 | 2, event.target.value)} />
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className={styles.dateInputShell}>
-                      <input id="product-date" dir="ltr" required={id !== 'p03'} value={form.date} type="date" onChange={(event) => updateForm('date', event.target.value)} />
+                      <input id="product-date" dir="ltr" required={Boolean(nemad) || id !== 'p03'} value={form.date} type="date" onChange={(event) => updateForm('date', event.target.value)} />
                     </div>
                   )}
                 </div>
                 {id === 'p01' ? (
                   <p className={styles.formHint}>برای محاسبهٔ فاز ماه، ساعت ۱۲ ظهر به وقت تهران در تاریخ انتخابی مبناست؛ نیازی به واردکردن ساعت یا شهر نیست.</p>
                 ) : null}
-                {id === 'p02' ? (
+                {(id === 'p02' || (nemad && nemadNeedsDetails)) ? (
                   <>
                     <div className={styles.dateFields}>
                       <div className={styles.formField}><label htmlFor="product-time">ساعت دقیق تولد</label><input id="product-time" type="time" dir="ltr" required value={form.time} onChange={(event) => updateForm('time', event.target.value)} /></div>
@@ -360,17 +411,21 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                             ))}
                           </ul>
                         ) : null}
-                        <small id="shop-city-hint">برای نقشهٔ واقعی آسمان، شهر را حتماً از فهرست انتخاب کن.</small>
+                        <small id="shop-city-hint">{nemad ? 'در تاریخ‌های مرزی، شهر به تعیین دقیق نشان کمک می‌کند.' : 'برای نقشهٔ واقعی آسمان، شهر را حتماً از فهرست انتخاب کن.'}</small>
                       </div>
                     </div>
-                    <p className={styles.formHint}>برای نقشهٔ ستاره‌ها، تاریخ، ساعت و شهر دقیق تولد اهمیت دارند.</p>
+                    <p className={styles.formHint}>{nemad
+                      ? 'برای روزهای نزدیک مرز دو برج، ساعت و شهر تولد هم لازم می‌شوند.'
+                      : 'برای نقشهٔ ستاره‌ها، تاریخ، ساعت و شهر دقیق تولد اهمیت دارند.'}</p>
                   </>
                 ) : null}
                 <div className={styles.formField}>
-                  <label htmlFor="product-names">{formCopy.names} <small>(اختیاری)</small></label>
-                  <input id="product-names" type="text" maxLength={60} placeholder={id === 'p03' ? 'مثلاً هاله و آراد' : 'نامی که دوست داری روی تابلو باشد…'} value={form.names} onChange={(event) => updateForm('names', event.target.value)} />
+                  <label htmlFor="product-names">{formCopy.names} {nemad ? null : <small>(اختیاری)</small>}</label>
+                  <input id="product-names" type="text" required={Boolean(nemad)}
+                    maxLength={nemad ? 28 : 60}
+                    placeholder={nemad ? 'مثلاً آراد' : id === 'p03' ? 'مثلاً هاله و آراد' : 'نامی که دوست داری روی تابلو باشد…'} value={form.names} onChange={(event) => updateForm('names', event.target.value)} />
                 </div>
-                <details className={styles.optionalFields}>
+                {!nemad ? <details className={styles.optionalFields}>
                   <summary>{formCopy.details} <span aria-hidden="true">+</span></summary>
                   <div className={styles.optionalFieldsInner}>
                     <div className={styles.formField}>
@@ -379,17 +434,18 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
                       <small>حداکثر ۶۰ نویسه</small>
                     </div>
                   </div>
-                </details>
+                </details> : null}
                 {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
-                <button className={styles.confirmAction} type="submit" disabled={id !== 'p01'}>
-                  <span className={styles.confirmLabel}>{id !== 'p01' ? 'به‌زودی قابل سفارش' : editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن به سبد خرید'}</span>
+                <button className={styles.confirmAction} type="submit" disabled={!nemad && id !== 'p01'}>
+                  <span className={styles.confirmLabel}>{nemad ? 'ساخت پیش‌نمایش شخصی' :
+                    id !== 'p01' ? 'به‌زودی قابل سفارش' : editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن به سبد خرید'}</span>
                   <span className={styles.confirmArrow} aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg></span>
                 </button>
               </form>
               {id === 'p01' ? <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link> : null}
               <div className={styles.specification}>
                 <span>{product.highlight}</span>
-                <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span>
+                {!nemad ? <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span> : null}
               </div>
             </div>
           </div>
@@ -419,7 +475,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
 
         <section className={styles.storySection} aria-labelledby="story-heading">
           <div className={styles.storyImage}>
-            <Image src={product.gallery[1].src} alt={product.gallery[1].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />
+            {nemad && artwork ? (
+              <div className={styles.nemadArtwork}><NemadManBahmanArtwork
+                name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></div>
+            ) : <Image src={product.gallery[1].src} alt={product.gallery[1].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />}
           </div>
           <div className={styles.storyCopy}>
             <span className={styles.sectionKicker}>داستان این اثر</span>
@@ -438,7 +497,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <div className={styles.craftLabels}><span>سطح مات</span><span>چاپ روی شاسی</span><span>سه اندازه</span></div>
           </div>
           <div className={styles.craftImage}>
-            <Image src={product.gallery[3].src} alt={product.gallery[3].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />
+            {nemad && artwork ? (
+              <div className={styles.nemadArtwork}><NemadManBahmanArtwork
+                name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></div>
+            ) : <Image src={product.gallery[3].src} alt={product.gallery[3].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />}
           </div>
         </section>
 
@@ -449,22 +511,28 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
             <p>هر سه اندازه، نسبت تصویر یکسانی دارند؛ تفاوت در جایی است که می‌خواهی تابلو دیده شود.</p>
           </div>
           <div className={styles.sizeGuideFrame}>
-            <SizeIllustration id={id} title={product.title} />
-            <button type="button" className={styles.sizeZoomButton} onClick={() => setSizeZoomOpen(true)} aria-label="بزرگ‌نمایی مقایسهٔ اندازه‌ها">
+            {nemad ? <div className={styles.nemadSizeGrid}>
+              {SHOP_SIZES.map(size => <div key={size.dimension} className={styles.nemadSizeCard}>
+                <strong>{size.label}</strong><span>سانتی‌متر</span>
+              </div>)}
+            </div> : <SizeIllustration id={id} title={product.title} />}
+            {!nemad ? <button type="button" className={styles.sizeZoomButton} onClick={() => setSizeZoomOpen(true)} aria-label="بزرگ‌نمایی مقایسهٔ اندازه‌ها">
               <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5M10.5 8v5M8 10.5h5" /></svg>
               <span>بزرگ‌نمایی</span>
-            </button>
+            </button> : null}
           </div>
-          <p className={styles.sizeNote}>سه تصویر برای تصور جای هر اندازه در خانه‌اند؛ برای مقایسه، ماگ و وسایل معمولی کنار تابلو قرار گرفته‌اند. ابعاد دقیق زیر هر تصویر نوشته شده است. در موبایل، تصویرها را به طرفین ورق بزن.</p>
+          <p className={styles.sizeNote}>{nemad
+            ? 'از اندازهٔ کوچک کنار کتاب‌ها تا تابلویی بزرگ‌تر برای دیوار؛ هر سه اندازه نسبت یکسانی دارند.'
+            : 'سه تصویر برای تصور جای هر اندازه در خانه‌اند؛ برای مقایسه، ماگ و وسایل معمولی کنار تابلو قرار گرفته‌اند. ابعاد دقیق زیر هر تصویر نوشته شده است. در موبایل، تصویرها را به طرفین ورق بزن.'}</p>
         </section>
 
-        <section className={styles.dispatchStrip} aria-label="چاپ و ارسال">
+        <section className={styles.dispatchStrip} aria-label={nemad ? 'ویژگی‌های تابلو' : 'چاپ و ارسال'}>
           <div><strong>سه اندازهٔ انتخابی</strong><span>۱۰×۱۵، ۲۰×۳۰، ۳۰×۴۵ سانتی‌متر</span></div>
-          <div><strong>چاپ مات روی شاسی</strong><span>آماده برای نصب و هدیه‌دادن</span></div>
-          <div><strong>ارسال با پست یا تیپاکس</strong><span>تحویل به شرکت حمل‌ونقل تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری. زمان رسیدن بسته به مقصد بستگی دارد.</span></div>
+          <div><strong>چاپ مات روی شاسی</strong><span>{nemad ? 'طراحی مینیمال بدون قاب' : 'آماده برای نصب و هدیه‌دادن'}</span></div>
+          {!nemad ? <div><strong>ارسال با پست یا تیپاکس</strong><span>تحویل به شرکت حمل‌ونقل تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری. زمان رسیدن بسته به مقصد بستگی دارد.</span></div> : null}
         </section>
 
-        {product.postCraftSections?.length ? <ApprovedProductCopy sections={product.postCraftSections} /> : null}
+        {!nemad && product.postCraftSections?.length ? <ApprovedProductCopy sections={product.postCraftSections} /> : null}
 
         <section className={styles.faqSection} aria-labelledby="faq-heading">
           <span className={styles.sectionKicker}>برای انتخاب مطمئن‌تر</span>
@@ -479,7 +547,9 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           </div>
         </section>
 
-        {id !== 'p01' ? <section className={styles.editorialSection} aria-labelledby="editorial-heading">
+        {nemad && product.postCraftSections?.length ? <ApprovedProductCopy sections={product.postCraftSections} /> : null}
+
+        {id !== 'p01' && !nemad ? <section className={styles.editorialSection} aria-labelledby="editorial-heading">
           <span className={styles.sectionKicker}>بیشتر دربارهٔ این اثر</span>
           <h2 id="editorial-heading">{product.editorialTitle}</h2>
           {product.editorialIntro.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -501,7 +571,15 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
           </section>
         ) : null}
 
-        {id !== 'p01' ? <section className={styles.relatedSection} aria-labelledby="related-heading">
+        {nemad ? <section className={styles.relatedSection} aria-labelledby="related-heading">
+          <div className={styles.relatedHeading}><span className={styles.sectionKicker}>مجموعهٔ نماد من</span>
+            <h2 id="related-heading">نماد ماه‌های دیگر</h2></div>
+          <nav className={styles.nemadMonthLinks} aria-label="نماد ماه‌های تولد">
+            {nemad.months.map((item) => <Link key={item.slug}
+              href={`/shop/nemad-man/${item.slug}`}
+              aria-current={item.slug === nemad.slug ? 'page' : undefined}>{item.title}</Link>)}
+          </nav>
+        </section> : id !== 'p01' ? <section className={styles.relatedSection} aria-labelledby="related-heading">
           <div className={styles.relatedHeading}><span className={styles.sectionKicker}>از همین مجموعه</span><h2 id="related-heading">شاید این آثار را هم دوست داشته باشی</h2></div>
           <div className={styles.relatedGrid}>
             {related.map((item) => (
@@ -517,15 +595,21 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
         </section> : null}
       </div>
 
-      <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
+      {!nemad ? <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
         <div><small>قیمت</small><strong><bdi>{price === null ? 'در حال دریافت…' : formatPrice(price)}</bdi> <span>تومان</span></strong></div>
         {id === 'p01' ? <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'افزودن به سبد'}</span></a> : <span>به‌زودی</span>}
-      </div>
+      </div> : null}
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>
         <div className={styles.zoomInner}>
           <button type="button" className={styles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن بزرگ‌نمایی">×</button>
-          <div className={styles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}><Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" /></div>
+          <div className={`${styles.zoomPhoto} ${nemad ? styles.nemadZoomPhoto : ''}`}
+              {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
+              {nemad && artwork ? <div className={styles.nemadArtwork}>
+                <NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                  sign={artwork.sign} theme={nemadTheme}/>
+              </div> : <Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" />}
+            </div>
           <div className={styles.zoomActions}>
             <button type="button" onClick={() => setPhotoIndex((photoIndex + product.gallery.length - 1) % product.gallery.length)}>تصویر قبل</button>
             <span>{formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)}</span>
@@ -538,7 +622,10 @@ export function ProductDetail({ id }: { id: ShopProductId }) {
         <div className={styles.zoomInner}>
           <button type="button" className={styles.dialogClose} onClick={() => setSizeZoomOpen(false)} aria-label="بستن مقایسهٔ اندازه‌ها">×</button>
           <h2 className={styles.sizeZoomTitle}>سه اندازه، سه جای واقعی در خانه</h2>
-          <div className={styles.sizeZoomContent}><SizeIllustration id={id} title={product.title} /></div>
+          <div className={styles.sizeZoomContent}>{nemad
+              ? <div className={styles.nemadSizeGrid}>{SHOP_SIZES.map(size =>
+                <div key={size.dimension} className={styles.nemadSizeCard}><strong>{size.label}</strong><span>سانتی‌متر</span></div>)}</div>
+              : <SizeIllustration id={id} title={product.title} />}</div>
           <p className={styles.sizeZoomNote}>این‌ها عکس‌های نمایشی برای تصور اندازه‌ها هستند، نه اندازه‌گیری دقیق روی صفحه‌نمایش.</p>
         </div>
       </dialog>
