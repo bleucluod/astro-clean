@@ -112,8 +112,9 @@ assert.match(poster, /fill=\{isLight \? '#52657A' : '#bcccdc'\} opacity="\.8"/,
   'Zodiac heading must be readable in both colorways');
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500"/, 'Dominant personal name');
 assert.match(poster, /id="nemad-name-silver"/, 'Name-only silver gradient missing');
-assert.match(poster, /fill=\{isLight \? 'url\(#nemad-name-ink\)' : 'url\(#nemad-name-silver\)'\} strokeWidth="1\.7"/,
-  'Dark name keeps its approved silver gradient; light name uses slate ink');
+assert.match(poster, /fill=\{isLight \? '#243447' : 'url\(#nemad-name-silver\)'\} strokeWidth="1\.7"/,
+  'Light name must be uniform graphite; dark retains approved silver gradient');
+assert.ok(!poster.includes('nemad-name-ink'), 'Light name must not use a mid-tone shine gradient');
 assert.ok(!poster.includes('fill="url(#nemad-name-silver)" opacity=".8"'),
   'Zodiac label must not share the personal name highlight');
 assert.ok(!poster.includes('M421 979 H479'), 'No name/date divider');
@@ -143,11 +144,10 @@ assert.match(poster, /strokeWidth="2\.3" paintOrder="stroke"/, 'Text stroke widt
 assert.match(poster, /filter=\{isLight \? 'url\(#nemad-light-name-depth\)' : 'url\(#nemad-night-text-soft-glow\)'\}/,
   'Light name depth and approved dark name glow must stay theme-specific');
 assert.match(poster, /id="nemad-light-name-depth"/, 'Light variant needs a separate name depth treatment');
-assert.match(poster, /floodColor="#465E75" floodOpacity="\.28"/,
-  'Premium light name shadow must remain restrained');
-for (const tone of ['#1E3348', '#8096A8', '#20364D']) {
-  assert.ok(poster.includes(tone), 'Missing cool graphite-silver name ink stop: ' + tone);
-}
+assert.match(poster, /floodColor="#52657A" floodOpacity="\.12"/,
+  'Light name should use only a micro-shadow, not advertising-style shine');
+assert.match(poster, /stdDeviation="1\.2" result="nemad-ink-blur"/,
+  'Light name depth must remain soft and unobtrusive');
 assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="1\.25"/,
   'Night typography soft bloom is missing');
 assert.match(poster, /floodOpacity="\.10" result="nemad-soft-tint"/, 'Name glow must stay subtle');
@@ -167,18 +167,28 @@ assert.ok(!/fetch\(|localStorage|sessionStorage|addShopCartItem|router\.push|toD
 assert.match(css, /@media \(max-width: 850px\)/, 'Mobile preview required');
 assert.match(poster, /viewBox="0 0 900 1350"/, 'Poster must use exact 2:3 ratio');
 assert.match(css, /aspect-ratio: 2 \/ 3/, 'Preview must be 2:3');
-assert.match(poster, /<clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r="294"\/><\/clipPath>/,
-  'The astronomical disc and its clip must move together');
-assert.match(poster, /transform="translate\(0 72\)"/,
-  'Real catalogue stars, lines and nodes must move without distortion');
+assert.match(poster, /<clipPath id="nemad-sky-clip"><circle cx="450" cy=\{isLight \? 388 : 430\} r=\{isLight \? 337 : 294\}\/><\/clipPath>/,
+  'Light disc is larger while approved dark clip remains unchanged');
+assert.match(poster, /<g transform=\{isLight \? 'translate\(450 388\) scale\(1\.146\) translate\(-450 -358\)' : 'translate\(0 72\)'\}>/,
+  'Light star field scales uniformly without changing approved dark projection');
+assert.match(poster, /r=\{isLight \? 337 : 294\} fill="url\(#nemad-globe\)"/,
+  'Light circle fill must use larger radius than dark circle');
+assert.match(poster, /r=\{isLight \? 337 : 294\} stroke=\{isLight \? '#7790A4' : '#d8e0e5'\}/,
+  'Circle rim must match the corresponding fill and clip');
 assert.match(poster, /x="340" y="755" width="220" height="180"/, 'Approved glyph size must not be stretched');
 assert.match(poster, /filter=\{isLight \? 'url\(#nemad-light-glyph-ink\)' : undefined\}/,
   'Tint only the approved glyph in light variant');
 assert.match(poster, /<feColorMatrix type="matrix"/, 'Light glyph must preserve approved shape');
-// Circle bottom = 430 + 294 = 724; glyph begins at 755, leaving a 31px gap.
-// The glyph box ends at 935, still 45px before the zodiac label baseline (980).
-assert.ok(755 - (430 + 294) >= 30 && 980 - (755 + 180) >= 40,
-  'Zodiac glyph must remain separated from both the sky disc and label');
+// Both colorways retain the approved 30px minimum gap to the glyph.
+const darkDisc = { centerY: 430, radius: 294 };
+const lightDisc = { centerY: 388, radius: 337 };
+assert.ok(755 - (darkDisc.centerY + darkDisc.radius) >= 30 &&
+  755 - (lightDisc.centerY + lightDisc.radius) >= 30 &&
+  lightDisc.centerY - lightDisc.radius >= 50 &&
+  980 - (755 + 180) >= 40,
+  'Neither colorway may collide with the glyph, label or top safe area');
+assert.ok(lightDisc.radius > darkDisc.radius && lightDisc.radius / darkDisc.radius > 1.14,
+  'The light celestial disc should be substantially larger');
 assert.match(poster, /y="1090" fontSize=\{nameSize\}/, 'Name must fit the 2:3 canvas');
 assert.match(exportHelper, /const POSTER_HEIGHT = 1350/, 'PNG export must match 2:3 SVG height');
 assert.ok(!exportHelper.includes('PNG_SCALE'), 'Legacy fixed-size PNG output must be removed');

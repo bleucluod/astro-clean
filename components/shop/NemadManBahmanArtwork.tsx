@@ -52,23 +52,13 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
           <stop offset=".48" stopColor="#eef4f9"/>
           <stop offset="1" stopColor="#b9c9d8"/>
         </linearGradient>
-        {/* A visibly layered, cool graphite-silver ink for the personal name
-            in the light colorway, separate from the approved night silver. */}
-        <linearGradient id="nemad-name-ink" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1E3348"/>
-          <stop offset=".30" stopColor="#344E66"/>
-          <stop offset=".47" stopColor="#8096A8"/>
-          <stop offset=".56" stopColor="#536E85"/>
-          <stop offset=".78" stopColor="#304A62"/>
-          <stop offset="1" stopColor="#20364D"/>
-        </linearGradient>
-        {/* A quiet ink impression beneath the light name. SVG-local so PNG
-            exports and previews use the same depth without web font effects. */}
+        {/* The light name uses uniform graphite ink, never a silver shine.
+            A barely visible offset keeps its letterforms crisp on cool white. */}
         <filter id="nemad-light-name-depth" x="-25%" y="-60%" width="150%" height="220%"
           colorInterpolationFilters="sRGB">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="nemad-ink-blur"/>
-          <feOffset in="nemad-ink-blur" dx="0" dy="3" result="nemad-ink-offset"/>
-          <feFlood floodColor="#465E75" floodOpacity=".28" result="nemad-ink-color"/>
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.2" result="nemad-ink-blur"/>
+          <feOffset in="nemad-ink-blur" dx="0" dy="1.3" result="nemad-ink-offset"/>
+          <feFlood floodColor="#52657A" floodOpacity=".12" result="nemad-ink-color"/>
           <feComposite in="nemad-ink-color" in2="nemad-ink-offset" operator="in" result="nemad-ink-shadow"/>
           <feMerge>
             <feMergeNode in="nemad-ink-shadow"/>
@@ -80,12 +70,12 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
           <feColorMatrix type="matrix"
             values="0.25 0 0 0 0.035  0 0.30 0 0 0.04  0 0 0.35 0 0.05  0 0 0 1 0"/>
         </filter>
-        <clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r="294"/></clipPath>
+        <clipPath id="nemad-sky-clip"><circle cx="450" cy={isLight ? 388 : 430} r={isLight ? 337 : 294}/></clipPath>
       </defs>
       <rect width="900" height="1350" fill={isLight ? '#F8FAFC' : '#000000'}/>
-      <circle cx="450" cy="430" r="294" fill="url(#nemad-globe)"/>
+      <circle cx="450" cy={isLight ? 388 : 430} r={isLight ? 337 : 294} fill="url(#nemad-globe)"/>
       <g clipPath="url(#nemad-sky-clip)">
-        <g transform="translate(0 72)">
+        <g transform={isLight ? 'translate(450 388) scale(1.146) translate(-450 -358)' : 'translate(0 72)'}>
           <g>
           {sky.stars.map((star, index) => (
             <g key={`catalogue-${index}`}>
@@ -110,7 +100,7 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
         ))}
         </g>
       </g>
-      <circle cx="450" cy="430" r="294" stroke={isLight ? '#7790A4' : '#d8e0e5'}
+      <circle cx="450" cy={isLight ? 388 : 430} r={isLight ? 337 : 294} stroke={isLight ? '#7790A4' : '#d8e0e5'}
         strokeOpacity={isLight ? '.28' : '.045'} strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
       <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="755" width="220" height="180"
@@ -122,7 +112,7 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
         <text x="450" y="980" fontWeight="300" fontSize="31"
           fill={isLight ? '#52657A' : '#bcccdc'} opacity=".8">{sign.displayFa}</text>
         <text x="450" y="1090" fontSize={nameSize} fontWeight="500"
-          fill={isLight ? 'url(#nemad-name-ink)' : 'url(#nemad-name-silver)'} strokeWidth="1.7"
+          fill={isLight ? '#243447' : 'url(#nemad-name-silver)'} strokeWidth="1.7"
           direction={latinName ? 'ltr' : 'rtl'}
           filter={isLight ? 'url(#nemad-light-name-depth)' : 'url(#nemad-night-text-soft-glow)'}>{name}</text>
       </g>
