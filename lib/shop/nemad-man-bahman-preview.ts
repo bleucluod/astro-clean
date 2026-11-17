@@ -19,7 +19,7 @@ export type NemadSign = {
 export const NEMAD_SIGNS: readonly NemadSign[] = [
   { id: 'aries', fa: 'حمل', displayFa: 'آریس', en: 'ARIES', glyph: '♈', figure: 'Ari' },
   { id: 'taurus', fa: 'ثور', displayFa: 'تارس', en: 'TAURUS', glyph: '♉', figure: 'Tau' },
-  { id: 'gemini', fa: 'جوزا', displayFa: 'جمینای', en: 'GEMINI', glyph: '♊', figure: 'Gem' },
+  { id: 'gemini', fa: 'جوزا', displayFa: 'جمنای', en: 'GEMINI', glyph: '♊', figure: 'Gem' },
   { id: 'cancer', fa: 'سرطان', displayFa: 'کنسر', en: 'CANCER', glyph: '♋', figure: 'Cnc' },
   { id: 'leo', fa: 'اسد', displayFa: 'لئو', en: 'LEO', glyph: '♌', figure: 'Leo' },
   { id: 'virgo', fa: 'سنبله', displayFa: 'ویرگو', en: 'VIRGO', glyph: '♍', figure: 'Vir' },

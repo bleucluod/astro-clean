@@ -142,6 +142,13 @@ assert.match(poster, /feMergeNode in="SourceGraphic"/,
 assert.match(read('app/globals.css'), /font-family: "Dana"/, 'Registered Dana font family missing');
 assert.ok(engine.includes("displayFa: 'آکواریوس'"), 'Approved Aquarius label missing');
 assert.equal((engine.match(/displayFa: '/g) || []).length, 12, 'All 12 signs require transliterated names');
+for (const [sign, name] of [
+  ['taurus', 'تارس'], ['gemini', 'جمنای'], ['sagittarius', 'سجیتریس'],
+]) {
+  assert.ok(engine.includes("id: '" + sign + "'") &&
+    engine.includes("displayFa: '" + name + "'"),
+    'Approved Nemad Man Persian label missing: ' + sign);
+}
 assert.ok(!/fetch\(|localStorage|sessionStorage|addShopCartItem|router\.push|toDataURL|downloadPng/i.test(client + poster + engine), 'No network, persistence, cart or export in dev preview');
 assert.match(css, /@media \(max-width: 850px\)/, 'Mobile preview required');
 assert.match(poster, /viewBox="0 0 900 1350"/, 'Poster must use exact 2:3 ratio');
