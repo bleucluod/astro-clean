@@ -47,7 +47,7 @@ export function NemadManBahmanPreview() {
         <header className={styles.header}>
           <span className={styles.kicker}>نماد من · پیش‌نمایش طراحی مینیمال</span>
           <h1>یک نشان از آسمان، برای خودت</h1>
-          <p>از دلو شروع کرده‌ایم؛ نام و تاریخ تولد را وارد کن تا نشان خورشیدی با محاسبهٔ واقعی تعیین شود.</p>
+          <p>از آکواریوس شروع کرده‌ایم؛ نام و تاریخ تولد را وارد کن تا نشان خورشیدی با محاسبهٔ واقعی تعیین شود.</p>
         </header>
         <div className={styles.layout}>
           <section className={styles.previewPanel} aria-label="پیش‌نمایش شخصی‌سازی‌شده">
@@ -90,10 +90,10 @@ export function NemadManBahmanPreview() {
               <button className={styles.submit} type="submit">ساخت پیش‌نمایش</button>
             </form>
             {!needsDetails && !error ? <div className={changedSign ? styles.signChanged : styles.signInfo} role="status" aria-live="polite">
-              <strong>{changedSign ? `برج این تاریخ ${preview.sign.fa} (${preview.sign.en}) است` : 'نشان این تاریخ: دلو (Aquarius)'}</strong>
+              <strong>{changedSign ? `برج این تاریخ ${preview.sign.displayFa} (${preview.sign.en}) است` : 'نشان این تاریخ: آکواریوس (Aquarius)'}</strong>
               <p>{changedSign
                 ? 'این تاریخ در برج دلو نیست؛ بدون نیاز به تأیید، طرح برج درست را نمایش دادیم. طراحی اختصاصی سایر برج‌ها در ادامه کامل می‌شود.'
-                : 'صورت فلکی دلو با الگوی معتبر ستاره‌های واقعی نمایش داده شده است.'}</p>
+                : 'صورت فلکی آکواریوس با الگوی معتبر ستاره‌های واقعی نمایش داده شده است.'}</p>
             </div> : null}
             <div className={styles.info}>
               <strong>نسخهٔ آزمایشی، فقط برای بررسی طرح</strong>

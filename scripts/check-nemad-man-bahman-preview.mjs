@@ -75,6 +75,11 @@ assert.match(poster, /sky\.paths\.map/, 'Sourced line geometry required');
 assert.match(poster, /star\.radius/, 'Star marker size must come from brightness');
 assert.ok(!poster.includes('sign.glyph') && !poster.includes('M391 752'), 'Do not use font glyphs or manual waves');
 assert.match(poster, /fontSize=\{nameSize\}/, 'Name should have first priority');
+assert.match(poster, /sign\.displayFa/, 'Poster must use the approved transliterated zodiac name');
+assert.match(poster, /fontFamily="Dana, sans-serif"/, 'Poster must use existing Dana font');
+assert.match(read('app/globals.css'), /font-family: "Dana"/, 'Registered Dana font family missing');
+assert.ok(engine.includes("displayFa: 'آکواریوس'"), 'Approved Aquarius label missing');
+assert.equal((engine.match(/displayFa: '/g) || []).length, 12, 'All 12 signs require transliterated names');
 assert.ok(!/fetch\(|localStorage|sessionStorage|addShopCartItem|router\.push|toDataURL|downloadPng/i.test(client + poster + engine), 'No network, persistence, cart or export in dev preview');
 assert.match(css, /@media \(max-width: 850px\)/, 'Mobile preview required');
 // A source-geometry projection test: increasing right ascension goes LEFT.

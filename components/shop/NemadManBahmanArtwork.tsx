@@ -9,12 +9,12 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
 }) {
   const sky = getNemadPosterSky(sign);
   const latinName = /^[\x20-\x7E]+$/.test(name);
-  const nameSize = Array.from(name).length > 16 ? 43 : Array.from(name).length > 9 ? 51 : 61;
+  const nameSize = Array.from(name).length > 16 ? 47 : Array.from(name).length > 9 ? 56 : 70;
 
   return (
     <svg viewBox="0 0 900 1125" xmlns="http://www.w3.org/2000/svg" role="img"
-      aria-label={`پیش‌نمایش تابلوی بدون قاب ${sign.fa} برای ${name}، ${date}`}>
-      <title>{`تابلو مینیمال برج ${sign.fa} / ${sign.en}`}</title>
+      aria-label={`پیش‌نمایش تابلوی بدون قاب ${sign.displayFa} برای ${name}، ${date}`}>
+      <title>{`تابلو مینیمال برج ${sign.displayFa} / ${sign.en}`}</title>
       <desc>صورت فلکی مرجع J2000 با جهت شمال بالا و شرق چپ؛ این تصویر نقشهٔ آسمان تولد نیست.</desc>
       <defs>
         <radialGradient id="nemad-globe" cx="51%" cy="48%" r="70%">
@@ -55,13 +55,13 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       <circle cx="450" cy="358" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
       <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
-      <g fill="#e9f0f4" textAnchor="middle" fontFamily="var(--font-vazirmatn), Vazirmatn, 'Noto Sans Arabic', sans-serif">
-        <text x="450" y="845" fontWeight="420" fontSize="46">{sign.fa}</text>
+      <g fill="#e9f0f4" textAnchor="middle" fontFamily="Dana, sans-serif">
+        <text x="450" y="845" fontWeight="400" fontSize="40">{sign.displayFa}</text>
         <text x="450" y="935" fontSize={nameSize} fontWeight="500" direction={latinName ? 'ltr' : 'rtl'}>{name}</text>
-        <text x="450" y="1013" fontSize="28" fontWeight="390" fill="#c5cbd1" direction="rtl">{date}</text>
+        <text x="450" y="1013" fontSize="28" fontWeight="400" fill="#c5cbd1" direction="rtl">{date}</text>
       </g>
       <text x="450" y="1088" textAnchor="middle" fontSize="13" opacity=".34"
-        fontFamily="var(--font-vazirmatn), Vazirmatn, sans-serif" fill="#a7adb3">پیش‌نمایش هالیوس</text>
+        fontFamily="Dana, sans-serif" fill="#a7adb3">پیش‌نمایش هالیوس</text>
     </svg>
   );
 }
