@@ -13,6 +13,7 @@ const modules = [
   'lib/shop/nemad-man-bahman-preview.ts',
   'lib/shop/nemad-man-preview-export.ts',
   'lib/shop/nemad-man-preview-zip.ts',
+  'lib/shop/nemad-man-preview-webp.ts',
 ];
 for (const file of modules) {
   const result = ts.transpileModule(read(file), {
@@ -30,6 +31,7 @@ const engine = read(modules[3]);
 const css = read('components/shop/nemad-man-bahman-preview.module.css');
 const exportHelper = read('lib/shop/nemad-man-preview-export.ts');
 const zipHelper = read('lib/shop/nemad-man-preview-zip.ts');
+const webpHelper = read('lib/shop/nemad-man-preview-webp.ts');
 const fontRoute = read('app/shop/nemad-man/bahman-preview/font/route.ts');
 const figureCatalog = JSON.parse(read('lib/shop/catalog/constellations-d3-celestial-v1.json'));
 const stars = JSON.parse(read('lib/shop/catalog/bsc5-bright-stars-mag6.json'));
@@ -267,6 +269,18 @@ assert.ok(client.includes("const size: NemadPosterSize = '10x15'"),
   'The temporary batch must use the intended review size');
 assert.match(client, /packageNemadPosterPngs\(entries\)/,
   '24 PNGs must be packed in one ZIP');
+assert.match(client, /downloadAll24\('webp'\)/,
+  'Separate WebP bulk-download button required');
+assert.match(client, /renderNemadPosterWebpFromPng\(png, expected\)/,
+  'WebP must start from the approved PNG rasterization');
+assert.match(client, /packageNemadPosterWebps\(/,
+  'WebP must be validated and packed');
+assert.match(zipHelper, /content\.length < 100_000/,
+  'Each packed WebP must be strictly under 100,000 bytes');
+assert.match(webpHelper, /candidate\.size >= MAX_WEBP_BYTES/,
+  'Encoder must enforce the WebP byte ceiling');
+assert.match(webpHelper, /decoded\.width !== expected\.width \|\| decoded\.height !== expected\.height/,
+  'WebP dimensions must be validated by decoding');
 assert.match(exportHelper, /export async function renderNemadPosterPngBlob/,
   'Bulk export must reuse the existing font-and-glyph rasterization');
 assert.ok(exportHelper.includes('await renderNemadPosterPngBlob(source, size)'),

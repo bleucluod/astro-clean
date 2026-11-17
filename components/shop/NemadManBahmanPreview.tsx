@@ -9,7 +9,8 @@ import {
   downloadNemadPosterPng, renderNemadPosterPngBlob, getNemadPosterPixelSize, NEMAD_POSTER_SIZES,
   type NemadPosterSize,
 } from '@/lib/shop/nemad-man-preview-export';
-import { packageNemadPosterPngs } from '@/lib/shop/nemad-man-preview-zip';
+import { packageNemadPosterPngs, packageNemadPosterWebps } from '@/lib/shop/nemad-man-preview-zip';
+import { renderNemadPosterWebpFromPng } from '@/lib/shop/nemad-man-preview-webp';
 import styles from './nemad-man-bahman-preview.module.css';
 
 function referenceExample(): BahmanPreview {
@@ -53,6 +54,7 @@ export function NemadManBahmanPreview({
   const [batchProgress, setBatchProgress] = useState(0);
   const [batchError, setBatchError] = useState('');
   const [batchDone, setBatchDone] = useState(false);
+  const [batchFormat, setBatchFormat] = useState<'png' | 'webp'>('png');
   const [batchArtwork, setBatchArtwork] = useState<BatchArtwork | null>(null);
   const batchBusyRef = useRef(false);
   const batchBoardRef = useRef<HTMLDivElement>(null);
@@ -114,10 +116,11 @@ export function NemadManBahmanPreview({
     });
   }
 
-  async function downloadAll24() {
+  async function downloadAll24(format: 'png' | 'webp' = 'png') {
     if (batchBusyRef.current || exporting) return;
     batchBusyRef.current = true;
     setBatchBusy(true);
+    setBatchFormat(format);
     setBatchError('');
     setBatchDone(false);
     setBatchProgress(0);
@@ -156,20 +159,22 @@ export function NemadManBahmanPreview({
               header.getUint32(20) !== expected.height) {
             throw new Error('ابعاد خروجی PNG برای ' + monthSlugs[index] + ' درست نیست.');
           }
-          entries.push({
-            name: String(index + 1).padStart(2, '0') + '-' + monthSlugs[index] +
-              '-sign-' + theme + '.png',
-            png,
-          });
+          const stem = String(index + 1).padStart(2, '0') + '-' + monthSlugs[index] +
+            '-sign-' + theme;
+          const file = format === 'webp'
+            ? await renderNemadPosterWebpFromPng(png, expected) : png;
+          entries.push({ name: stem + (format === 'webp' ? '.webp' : '.png'), png: file });
           setBatchProgress(entries.length);
         }
       }
-      const zip = await packageNemadPosterPngs(entries);
+      const zip = format === 'webp'
+        ? await packageNemadPosterWebps(entries.map(({ name, png }) => ({ name, webp: png })))
+        : await packageNemadPosterPngs(entries);
       const url = URL.createObjectURL(zip);
       try {
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'halleus-24-month-signs-10x15.zip';
+        link.download = format === 'webp' ? 'halleus-24-month-signs-10x15-under100kb-webp.zip' : 'halleus-24-month-signs-10x15.zip';
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -227,10 +232,18 @@ export function NemadManBahmanPreview({
               {batchBusy ? `در حال ساخت مجموعه · ${batchProgress} از ۲۴` :
                 'دریافت همهٔ ۲۴ طرح در یک ZIP (۱۰×۱۵)'}
             </button>
-            <p className={styles.batchNote}>نام، سال و روزِ واردشده ثابت می‌مانند؛ فقط ماه عوض می‌شود.
-              هر ماه یک طرح مشکی و یک طرح روشن دارد.</p>
+            <button className={styles.batchExportButton} type="button"
+              disabled={exporting || batchBusy} onClick={() => { void downloadAll24('webp'); }}>
+              {batchBusy && batchFormat === 'webp' ? `در حال فشرده‌سازی WebP · ${batchProgress} از ۲۴` :
+                'دریافت ۲۴ تصویر WebP زیر ۱۰۰KB در یک ZIP (۱۰×۱۵)'}
+            </button>
+            <p className={styles.batchNote}>نام، سال و روز ثابت می‌مانند؛ فقط ماه تغییر می‌کند.
+              برای هر ماه یک نسخهٔ مشکی و یک نسخهٔ روشن ساخته می‌شود.
+              WebPها با همان ابعاد PNG برای موکاپ و گالری‌اند، نه فایل نهایی چاپ.</p>
             {batchError ? <p className={styles.error} role="alert">{batchError}</p> : null}
-            {batchDone ? <p className={styles.batchSuccess} role="status">۲۴ فایل PNG آماده و در یک ZIP دانلود شدند.</p> : null}
+            {batchDone ? <p className={styles.batchSuccess} role="status">
+              ۲۴ فایل {batchFormat === 'webp' ? 'WebP زیر ۱۰۰KB' : 'PNG'} آماده و در یک ZIP دانلود شدند.
+            </p> : null}
             {needsDetails ? <p className={styles.pendingNote}>این تصویر هنوز نمونهٔ قبلی است؛ با تکمیل ساعت و شهر تولد، نشان صحیح به‌جای آن نمایش داده می‌شود.</p> : null}
             <p className={styles.note}>ستاره‌ها و خطوط صورت فلکی از دادهٔ نجومی J2000 گرفته شده‌اند؛ این طرح، نقشهٔ آسمان لحظهٔ تولد نیست. تصویر روی شاسی بدون قاب چاپ می‌شود.</p>
           </section>

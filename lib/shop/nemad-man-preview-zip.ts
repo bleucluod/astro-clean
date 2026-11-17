@@ -1,9 +1,10 @@
 /**
- * Tiny ZIP (STORE) packer for temporary, local-only Nemad Man PNG previews.
- * PNG is already compressed; STORE avoids external dependencies and 24 browser
+ * Tiny ZIP (STORE) packer for temporary, local-only Nemad Man PNG/WebP previews.
+ * Both formats are already compressed; STORE avoids dependencies and 24 browser
  * download prompts. This does not render or modify any poster.
  */
 type NemadZipEntry = { name: string; png: Blob };
+type NemadWebpZipEntry = { name: string; webp: Blob };
 
 const crcTable = new Uint32Array(256);
 for (let n = 0; n < 256; n++) {
@@ -18,7 +19,13 @@ function crc32(data: Uint8Array): number {
   return (crc ^ 0xffffffff) >>> 0;
 }
 
-export async function packageNemadPosterPngs(entries: NemadZipEntry[]): Promise<Blob> {
+export async function packageNemadPosterWebps(entries: NemadWebpZipEntry[]): Promise<Blob> {
+  return packageNemadPosterPngs(entries.map(({ name, webp }) => ({ name, png: webp })), 'webp');
+}
+
+export async function packageNemadPosterPngs(
+  entries: NemadZipEntry[], format: 'png' | 'webp' = 'png',
+): Promise<Blob> {
   if (entries.length !== 24) throw new Error('بستهٔ نماد من باید دقیقاً ۲۴ تصویر داشته باشد.');
   const names = new Set<string>();
   const parts: BlobPart[] = [];
@@ -28,15 +35,23 @@ export async function packageNemadPosterPngs(entries: NemadZipEntry[]): Promise<
   let directoryBytes = 0;
 
   for (const entry of entries) {
-    if (!/^[0-9]{2}-[a-z]+-sign-(dark|light)\.png$/.test(entry.name) || names.has(entry.name)) {
+    const validName = format === 'png'
+      ? /^[0-9]{2}-[a-z]+-sign-(dark|light)\.png$/.test(entry.name)
+      : /^[0-9]{2}-[a-z]+-sign-(dark|light)\.webp$/.test(entry.name);
+    if (!validName || names.has(entry.name)) {
       throw new Error('نام فایل‌های خروجی تکراری یا نامعتبر است.');
     }
     names.add(entry.name);
     const content = new Uint8Array(await entry.png.arrayBuffer());
-    if (entry.png.type !== 'image/png' || content.length < 24 ||
-        content[0] !== 137 || content[1] !== 80 || content[2] !== 78 || content[3] !== 71 ||
-        content[4] !== 13 || content[5] !== 10 || content[6] !== 26 || content[7] !== 10) {
-      throw new Error('خروجی PNG معتبر نیست: ' + entry.name);
+    const validPng = entry.png.type === 'image/png' && content.length >= 24 &&
+      content[0] === 137 && content[1] === 80 && content[2] === 78 && content[3] === 71 &&
+      content[4] === 13 && content[5] === 10 && content[6] === 26 && content[7] === 10;
+    const validWebp = entry.png.type === 'image/webp' &&
+      content.length >= 12 && content.length < 100_000 &&
+      content[0] === 82 && content[1] === 73 && content[2] === 70 && content[3] === 70 &&
+      content[8] === 87 && content[9] === 69 && content[10] === 66 && content[11] === 80;
+    if (format === 'png' ? !validPng : !validWebp) {
+      throw new Error('فایل ' + format + ' نامعتبر یا بیش از سقف حجم است: ' + entry.name);
     }
 
     const filename = encoder.encode(entry.name);
