@@ -22,6 +22,8 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
   const isLight = theme === 'light';
   const latinName = /^[\x20-\x7E]+$/.test(name);
   const nameSize = Array.from(name).length > 16 ? 46 : Array.from(name).length > 9 ? 58 : 72;
+  // Preserve the matte treatment while reducing only the light name's footprint.
+  const displayNameSize = isLight ? Math.round(nameSize * .9) : nameSize;
 
   return (
     <svg viewBox="0 0 900 1350" xmlns="http://www.w3.org/2000/svg" role="img"
@@ -75,12 +77,12 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
           <feColorMatrix type="matrix"
             values="0.25 0 0 0 0.035  0 0.30 0 0 0.04  0 0 0.35 0 0.05  0 0 0 1 0"/>
         </filter>
-        <clipPath id="nemad-sky-clip"><circle cx="450" cy={isLight ? 405 : 430} r={isLight ? 380 : 294}/></clipPath>
+        <clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r={isLight ? 380 : 294}/></clipPath>
       </defs>
       <rect width="900" height="1350" fill={isLight ? '#F8FAFC' : '#000000'}/>
-      <circle cx="450" cy={isLight ? 405 : 430} r={isLight ? 380 : 294} fill="url(#nemad-globe)"/>
+      <circle cx="450" cy="430" r={isLight ? 380 : 294} fill="url(#nemad-globe)"/>
       <g clipPath="url(#nemad-sky-clip)">
-        <g transform={isLight ? 'translate(450 405) scale(1.293) translate(-450 -358)' : 'translate(0 72)'}>
+        <g transform={isLight ? 'translate(450 430) scale(1.293) translate(-450 -358)' : 'translate(0 72)'}>
           <g>
           {sky.stars.map((star, index) => (
             <g key={`catalogue-${index}`}>
@@ -105,27 +107,30 @@ export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
         ))}
         </g>
       </g>
-      <circle cx="450" cy={isLight ? 405 : 430} r={isLight ? 380 : 294} stroke={isLight ? '#7790A4' : '#d8e0e5'}
+      <circle cx="450" cy="430" r={isLight ? 380 : 294} stroke={isLight ? '#7790A4' : '#d8e0e5'}
         strokeOpacity={isLight ? '.28' : '.045'} strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
-      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y={isLight ? 815 : 755} width="220" height="180"
+      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]}
+        x={isLight ? 354 : 340} y={isLight ? 840 : 755}
+        width={isLight ? 192 : 220} height={isLight ? 158 : 180}
         preserveAspectRatio="xMidYMid meet" filter={isLight ? 'url(#nemad-light-glyph-ink)' : undefined} />
       {/* Editorial group: quiet zodiac, prominent name, date without a divider. */}
       <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
         stroke={isLight ? '#F8FAFC' : '#09131b'} strokeOpacity={isLight ? '.25' : '.68'}
         strokeWidth="2.3" paintOrder="stroke">
-        <text x="450" y={isLight ? 1040 : 980} fontWeight="300" fontSize="31"
+        <text x="450" y={isLight ? 1042 : 980} fontWeight="300"
+          fontSize={isLight ? 27 : 31}
           fill={isLight ? '#52657A' : '#bcccdc'} opacity=".8">{sign.displayFa}</text>
-        <text x="450" y={isLight ? 1138 : 1090} fontSize={nameSize} fontWeight="500"
+        <text x="450" y={isLight ? 1134 : 1090} fontSize={displayNameSize} fontWeight="500"
           fill={isLight ? 'url(#nemad-light-name-matte)' : 'url(#nemad-name-silver)'}
           stroke={isLight ? '#1B3043' : undefined} strokeOpacity={isLight ? '.58' : undefined}
           strokeWidth={isLight ? '1.25' : '1.7'}
           direction={latinName ? 'ltr' : 'rtl'}
           filter={isLight ? 'url(#nemad-light-name-depth)' : 'url(#nemad-night-text-soft-glow)'}>{name}</text>
       </g>
-      <text x="450" y={isLight ? 1220 : 1190} textAnchor="middle"
+      <text x="450" y={isLight ? 1209 : 1190} textAnchor="middle"
         fontFamily={estedad.style.fontFamily}
-        fontSize="25" fontWeight="400" fill={isLight ? '#52657A' : '#bcccdc'}
+        fontSize={isLight ? 22 : 25} fontWeight="400" fill={isLight ? '#52657A' : '#bcccdc'}
         opacity={isLight ? '.86' : '.76'}
         direction="rtl" unicodeBidi="isolate">{date}</text>
       {/* P02 R9 footer reference: x 1500/3000, y 4310/4500, size 52/4500.
