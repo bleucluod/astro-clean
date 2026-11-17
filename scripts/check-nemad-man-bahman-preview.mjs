@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import ts from 'typescript';
 
@@ -76,25 +76,31 @@ assert.match(poster, /star\.radius/, 'Star marker size must come from brightness
 assert.ok(!poster.includes('sign.glyph') && !poster.includes('M391 752'), 'Do not use font glyphs or manual waves');
 assert.match(poster, /fontSize=\{nameSize\}/, 'Name should have first priority');
 assert.match(poster, /sign\.displayFa/, 'Poster must use the approved transliterated zodiac name');
-assert.match(poster, /fontFamily="HalleusFarZibaPreview, Vazirmatn, 'Noto Naskh Arabic', sans-serif"/,
-  'Far Ziba preview should replace the poster headline and name font');
-assert.match(css, /font-family: "HalleusFarZibaPreview"/,
-  'Far Ziba test font registration missing');
-assert.match(css, /far-ziba-font/, 'Far Ziba font preview URL missing');
-const trialRoute = read('app/shop/nemad-man/bahman-preview/far-ziba-font/route.ts');
-assert.ok(trialRoute.includes("process.env.NODE_ENV === 'production') notFound()"),
-  'Far Ziba font preview must not be exposed in production');
-assert.ok(trialRoute.includes("Far_Ziba.zip") && trialRoute.includes('Far_Ziba/Far_Ziba.ttf'),
-  'Far Ziba route must use the owner-provided archive');
-assert.match(trialRoute, /inflateRawSync/, 'Far Ziba font must be decompressed from the approved archive');
+assert.match(poster, /import localFont from 'next\/font\/local'/, 'Poster must load its bundled font');
+for (const [weight, file] of [
+  ['300', 'Estedad-Light.ttf'],
+  ['400', 'Estedad-Regular.ttf'],
+  ['500', 'Estedad-Medium.ttf'],
+]) {
+  assert.ok(poster.includes(file) && poster.includes("weight: '" + weight + "'"),
+    'Missing Estedad preview font/weight: ' + file);
+  assert.ok(readFileSync(resolve(root, 'assets/shop-print/fonts', file)).length > 1000,
+    'Estedad font asset missing: ' + file);
+}
+assert.equal((poster.match(/fontFamily=\{estedad.style.fontFamily\}/g) || []).length, 2,
+  'Estedad font family must cover both name/sign and the date');
+assert.match(poster, /y="832" fontWeight="300"/, 'Subtle zodiac label must use Estedad Light');
+assert.ok(!poster.includes('FarZiba') && !css.includes('FarZiba') && !css.includes('far-ziba-font'),
+  'Reject legacy Far Ziba fallback in the active renderer');
+assert.ok(!existsSync(resolve(root, 'app/shop/nemad-man/bahman-preview/far-ziba-font/route.ts')),
+  'Unused Far Ziba preview font endpoint should be absent');
 assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
   'Night of Us font reference changed');
-assert.match(poster, /y="832" fontWeight="400" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
+assert.match(poster, /y="832" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500" fill="#f2f6fa"/, 'Dominant personal name');
 assert.match(poster, /d="M421 979 H479"/, 'Divider missing');
 assert.match(poster, /y="1025" textAnchor="middle"/, 'Date alignment missing');
-assert.match(poster, /fontFamily="var\(--font-vazirmatn, 'Noto Sans Arabic'\), Vazirmatn, 'Noto Sans Arabic', sans-serif"/,
-  'Date must use the real site Vazirmatn with legible Persian-digit fallback');
+assert.match(poster, /fontFamily=\{estedad.style.fontFamily\}/, 'Date must use Estedad');
 assert.match(poster, /direction="rtl" unicodeBidi="isolate">\{date\}<\/text>/,
   'Mixed Persian Gregorian date must stay bidi-isolated');
 assert.ok(engine.includes("new Intl.DateTimeFormat('fa-IR-u-ca-gregory'"),

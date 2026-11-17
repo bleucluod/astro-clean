@@ -1,5 +1,15 @@
+import localFont from 'next/font/local';
 import { getNemadPosterSky, type NemadSign } from '@/lib/shop/nemad-man-bahman-preview';
 import { NEMAD_MAN_ZODIAC_GLYPHS } from '@/lib/shop/nemad-man-zodiac-glyphs';
+
+const estedad = localFont({
+  src: [
+    { path: '../../assets/shop-print/fonts/Estedad-Light.ttf', weight: '300', style: 'normal' },
+    { path: '../../assets/shop-print/fonts/Estedad-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../../assets/shop-print/fonts/Estedad-Medium.ttf', weight: '500', style: 'normal' },
+  ],
+  display: 'swap',
+});
 
 /** Frameless, black-on-black minimal poster aligned to the approved Aquarius sample.
  * All constellation lines and stars use the existing J2000 catalogue data.
@@ -63,15 +73,15 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
       <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
       {/* A single editorial grouping: quiet zodiac, prominent name, delicate rule and date. */}
-      <g textAnchor="middle" fontFamily="HalleusFarZibaPreview, Vazirmatn, 'Noto Naskh Arabic', sans-serif"
+      <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
         stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
-        <text x="450" y="832" fontWeight="400" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
+        <text x="450" y="832" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
         <text x="450" y="935" fontSize={nameSize} fontWeight="500" fill="#f2f6fa"
           direction={latinName ? 'ltr' : 'rtl'} filter="url(#nemad-night-text-soft-glow)">{name}</text>
       </g>
       <path d="M421 979 H479" stroke="#9aa6b2" strokeWidth="1" strokeLinecap="round" opacity=".6"/>
       <text x="450" y="1025" textAnchor="middle"
-        fontFamily="var(--font-vazirmatn, 'Noto Sans Arabic'), Vazirmatn, 'Noto Sans Arabic', sans-serif"
+        fontFamily={estedad.style.fontFamily}
         fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76"
         direction="rtl" unicodeBidi="isolate">{date}</text>
     </svg>

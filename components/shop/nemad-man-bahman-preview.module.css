@@ -1,11 +1,3 @@
-/* Development preview font from the owner-uploaded archive; not licensed for release. */
-@font-face {
-  font-family: "HalleusFarZibaPreview";
-  src: url("/shop/nemad-man/bahman-preview/far-ziba-font") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
 .page { min-height: 100vh; padding: 38px 0 92px; background: #f8fafc; color: #243447; font-family: var(--font-vazirmatn), sans-serif; }
 .container { width: min(1140px, calc(100% - 48px)); margin: 0 auto; }
 .header { margin-bottom: 36px; }
