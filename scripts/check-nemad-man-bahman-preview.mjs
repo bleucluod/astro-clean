@@ -157,7 +157,11 @@ assert.match(poster, /<clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r=
   'The astronomical disc and its clip must move together');
 assert.match(poster, /transform="translate\(0 72\)"/,
   'Real catalogue stars, lines and nodes must move without distortion');
-assert.match(poster, /x="340" y="711" width="220" height="180"/, 'Approved glyph size must not be stretched');
+assert.match(poster, /x="340" y="755" width="220" height="180"/, 'Approved glyph size must not be stretched');
+// Circle bottom = 430 + 294 = 724; glyph begins at 755, leaving a 31px gap.
+// The glyph box ends at 935, still 45px before the zodiac label baseline (980).
+assert.ok(755 - (430 + 294) >= 30 && 980 - (755 + 180) >= 40,
+  'Zodiac glyph must remain separated from both the sky disc and label');
 assert.match(poster, /y="1090" fontSize=\{nameSize\}/, 'Name must fit the 2:3 canvas');
 assert.match(exportHelper, /const POSTER_HEIGHT = 1350/, 'PNG export must match 2:3 SVG height');
 assert.ok(!exportHelper.includes('PNG_SCALE'), 'Legacy fixed-size PNG output must be removed');

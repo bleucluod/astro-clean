@@ -79,7 +79,7 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       </g>
       <circle cx="450" cy="430" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
-      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="711" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
+      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="755" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
       {/* Editorial group: quiet zodiac, prominent name, date without a divider. */}
       <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
         stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
