@@ -96,27 +96,29 @@ assert.ok(!existsSync(resolve(root, 'app/shop/nemad-man/bahman-preview/far-ziba-
   'Unused Far Ziba preview font endpoint should be absent');
 assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
   'Night of Us font reference changed');
-assert.match(poster, /y="832" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
+assert.match(poster, /y="845" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500"/, 'Dominant personal name');
 assert.match(poster, /id="nemad-name-silver"/, 'Name-only silver gradient missing');
-assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="2\.8"/,
+assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="2"/,
   'Name must get the subtle Night of Us silver highlight');
 assert.ok(!poster.includes('fill="url(#nemad-name-silver)" opacity=".8"'),
   'Zodiac label must not share the personal name highlight');
-assert.match(poster, /d="M421 979 H479"/, 'Divider missing');
-assert.match(poster, /y="1025" textAnchor="middle"/, 'Date alignment missing');
+assert.ok(!poster.includes('M421 979 H479'), 'No name/date divider');
+assert.match(poster, /y="1009" textAnchor="middle"/, 'Date sits closer to the name');
 assert.match(poster, /fontFamily=\{estedad.style.fontFamily\}/, 'Date must use Estedad');
 assert.match(poster, /direction="rtl" unicodeBidi="isolate">\{date\}<\/text>/,
   'Mixed Persian Gregorian date must stay bidi-isolated');
 assert.ok(engine.includes("new Intl.DateTimeFormat('fa-IR-u-ca-gregory'"),
   'Gregorian Persian date formatter must remain the single date source');
+assert.ok(engine.includes(".replace(/\\u0654/g, '')"), 'Combining hamza must be removed from Gregorian date');
 assert.ok(!poster.includes('پیش‌نمایش هالیوس'), 'Printed watermark must be absent');
 assert.match(poster, /stroke="#09131b" strokeOpacity="\.68" strokeWidth="2\.3" paintOrder="stroke"/,
   'Typography must preserve the Night of Us proof stroke treatment');
 assert.match(poster, /filter="url\(#nemad-night-text-soft-glow\)"/,
   'Subtle night typography glow must be scoped to the poster text');
-assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="2\.4"/,
+assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="1\.5"/,
   'Night typography soft bloom is missing');
+assert.match(poster, /floodOpacity="\.14" result="nemad-soft-tint"/, 'Name glow must stay subtle');
 assert.match(poster, /feMergeNode in="SourceGraphic"/,
   'Original letterforms must stay sharp above the glow');
 assert.match(read('app/globals.css'), /font-family: "Dana"/, 'Registered Dana font family missing');

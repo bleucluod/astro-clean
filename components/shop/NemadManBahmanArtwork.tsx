@@ -39,8 +39,8 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
         </radialGradient>
         {/* Reuse the Night of Us proof lettering; soft cool-white glow is kept restrained on black. */}
         <filter id="nemad-night-text-soft-glow" x="-30%" y="-65%" width="160%" height="230%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="nemad-soft-alpha"/>
-          <feFlood floodColor="#d9eafd" floodOpacity=".24" result="nemad-soft-tint"/>
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="nemad-soft-alpha"/>
+          <feFlood floodColor="#d9eafd" floodOpacity=".14" result="nemad-soft-tint"/>
           <feComposite in="nemad-soft-tint" in2="nemad-soft-alpha" operator="in" result="nemad-soft-glow"/>
           <feMerge><feMergeNode in="nemad-soft-glow"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
@@ -78,16 +78,15 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       <circle cx="450" cy="358" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
       <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
-      {/* A single editorial grouping: quiet zodiac, prominent name, delicate rule and date. */}
+      {/* Editorial group: quiet zodiac, prominent name, date without a divider. */}
       <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
         stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
-        <text x="450" y="832" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
+        <text x="450" y="845" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
         <text x="450" y="935" fontSize={nameSize} fontWeight="500"
-          fill="url(#nemad-name-silver)" strokeWidth="2.8"
+          fill="url(#nemad-name-silver)" strokeWidth="2"
           direction={latinName ? 'ltr' : 'rtl'} filter="url(#nemad-night-text-soft-glow)">{name}</text>
       </g>
-      <path d="M421 979 H479" stroke="#9aa6b2" strokeWidth="1" strokeLinecap="round" opacity=".6"/>
-      <text x="450" y="1025" textAnchor="middle"
+      <text x="450" y="1009" textAnchor="middle"
         fontFamily={estedad.style.fontFamily}
         fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76"
         direction="rtl" unicodeBidi="isolate">{date}</text>

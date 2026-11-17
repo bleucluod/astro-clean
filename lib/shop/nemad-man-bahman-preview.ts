@@ -108,7 +108,7 @@ export function validateBahmanPreview(
   if (!sign) throw new Error('Could not determine solar sign safely.');
   const date = new Intl.DateTimeFormat('fa-IR-u-ca-gregory', {
     timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(new Date(parsed.gregorianIso + 'T12:00:00Z'));
+  }).format(new Date(parsed.gregorianIso + 'T12:00:00Z')).replace(/\u0654/g, '');
   return { ok: true, value: { name, date: parsed.normalizedJalali, gregorianDate: date, sign, exactInstant } };
 }
 
