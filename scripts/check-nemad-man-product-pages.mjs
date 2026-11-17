@@ -22,12 +22,21 @@ const client = read('components/shop/ProductDetail.tsx');
 const poster = read('components/shop/NemadManBahmanArtwork.tsx');
 const previewClient = read('components/shop/NemadManBahmanPreview.tsx');
 const batchExporter = read('scripts/export-nemad-24.mjs');
-assert.ok(previewClient.includes("get('batchPrintSize')"),
-  'The existing preview must initialize batch size through React state');
+const sourcePreview = read('app/shop/nemad-man/bahman-preview/page.tsx');
+assert.ok(sourcePreview.includes('initialPreview={result.value}'),
+  'The original preview must receive real solar-sign results server-side');
+assert.ok(sourcePreview.includes('initialPrintSize={printSize}'),
+  'The requested print size must be passed as an initial React prop');
+assert.ok(previewClient.includes('useState<NemadPosterSize>(initialPrintSize)'),
+  'Existing React preview must initialize size from server props');
+assert.ok(previewClient.includes("data-preview-hydrated={hydrated ? 'true' : 'false'}"),
+  'Batch process must prove the preview has hydrated before clicking');
+assert.ok(batchExporter.includes("url.searchParams.set('batchMonth',String(month))"),
+  'Each sample must be loaded through the existing astronomical preview');
 assert.ok(batchExporter.includes("batchUrl.searchParams.set('batchPrintSize', chosenSize)"),
-  'Exporter must supply the requested size before React mounts');
-assert.ok(!batchExporter.includes('element.dispatchEvent(new Event("change"'),
-  'No synthetic controlled-select change events');
+  'Exporter must supply requested size before the first React mount');
+assert.ok(!batchExporter.includes('Input.insertText'),
+  'Do not rely on synthetic browser typing for controlled React inputs');
 assert.ok(batchExporter.includes('head.readUInt32BE(16)!==pixels[0]'),
   'Every real PNG must be checked for the selected dimensions');
 assert.ok(batchExporter.includes('good!==24||files.length!==24'),

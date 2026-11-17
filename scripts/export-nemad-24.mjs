@@ -29,6 +29,8 @@ const stamp = new Date().toISOString().replace(/[:.]/g,'-');
 const downloads = path.join(homedir(),'Downloads');
 const outputDir = path.join(downloads,'Halleus-Nemad-24-'+chosenSize+'-'+stamp);
 let browser,server,socket,profile,trace=[];
+const browserExceptions=[];
+let previewUrl;
 let nextId=0;
 const outstanding = new Map();
 const sleep = ms => new Promise(ok=>setTimeout(ok,ms));
@@ -133,6 +135,11 @@ async function openBrowser(url, executable) {
     socket.onerror=()=>reject(Error('Browser WebSocket failed'));
     socket.onmessage=e=>{
       let value;try{value=JSON.parse(e.data);}catch{return;}
+      if(value.method==='Runtime.exceptionThrown'){
+        const exception=value.params?.exceptionDetails;
+        browserExceptions.push(String(exception?.exception?.description||exception?.text||'unknown').slice(0,500));
+        if(browserExceptions.length>8)browserExceptions.shift();
+      }
       const req=outstanding.get(value.id);
       if(!req)return;
       outstanding.delete(value.id);clearTimeout(req.timer);
@@ -140,13 +147,18 @@ async function openBrowser(url, executable) {
     };
   });
   await send('Page.enable');
+  await send('Runtime.enable');
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:outputDir});
   const batchUrl = new URL(url);
+  batchUrl.searchParams.set('batchMonth', '1');
+  batchUrl.searchParams.set('batchTheme', 'dark');
   batchUrl.searchParams.set('batchPrintSize', chosenSize);
   const nav=await send('Page.navigate',{url: batchUrl.href});
   if(nav.errorText)throw Error('Cannot open original preview: '+nav.errorText);
   await until(()=>evaluate('Boolean(document.querySelector(\'main[data-shop-page="bahman-dev-preview"] svg[viewBox="0 0 900 1350"]\') && document.querySelector("#nemad-date"))'),
     'approved renderer',90000);
+  await until(()=>evaluate('document.querySelector("main[data-shop-page=bahman-dev-preview]")?.dataset.previewHydrated==="true"'),
+    'initial original React hydration',60000);
   await selectPrintSize();
 }
 async function evaluate(expression){
@@ -161,7 +173,13 @@ async function until(fn,label,timeout=30000){
     catch(e){last=String(e);}
     await sleep(190);
   }
-  throw Error('Timeout: '+label+' last='+last);
+  let snapshot;
+  try {
+    snapshot=await evaluate('(()=>{const m=document.querySelector("main[data-shop-page=bahman-dev-preview]");const s=m?.querySelector("#nemad-output-size");const b=[...document.querySelectorAll("button")].find(x=>x.textContent.includes("دریافت PNG"));const svg=m?.querySelector("svg[viewBox]");return {url:location.pathname+location.search,ready:document.readyState,hydrated:m?.dataset.previewHydrated,selected:s?.value,button:b?.textContent?.trim().slice(0,130),title:svg?.querySelector("title")?.textContent,alert:document.querySelector("[role=alert]")?.textContent?.slice(0,180)}})()');
+  } catch(problem) { snapshot={diagnosticError:String(problem)}; }
+  const evidence=JSON.stringify({snapshot,browserExceptions});
+  log('BROWSER_DIAGNOSTICS '+label+' '+evidence);
+  throw Error('Timeout: '+label+' last='+last+' '+evidence);
 }
 async function selectPrintSize() {
   // The existing React preview reads batchPrintSize during its own hydration.
@@ -173,17 +191,28 @@ async function selectPrintSize() {
     +'return selector?.value==='+JSON.stringify(chosenSize)
     +'&&button?.textContent.includes('+JSON.stringify(width)+')'
     +'&&button?.textContent.includes('+JSON.stringify(height)+')})()';
-  await until(()=>evaluate(confirm),'React print size: '+chosenSize,30000);
+  try {
+    await until(()=>evaluate(confirm),'React print size: '+chosenSize,30000);
+  } catch(error) {
+    const snapshot=await evaluate('(()=>{const s=document.querySelector("#nemad-output-size");const b=[...document.querySelectorAll("button")].find(x=>x.textContent.includes("دریافت PNG"));const m=document.querySelector("main[data-shop-page=bahman-dev-preview]");return {url:location.href,hydrated:m?.dataset.previewHydrated,selected:s?.value,downloadButton:b?.textContent?.trim().slice(0,140),alert:document.querySelector("[role=alert]")?.textContent}})()');
+    log('PRINT_SIZE_DIAGNOSTICS='+JSON.stringify(snapshot));
+    throw error;
+  }
   log('Original export size confirmed: '+chosenSize+' ('+pixels.join('x')+' pixels)');
 }
 async function fillDate(date){
-  await evaluate('document.querySelector("#nemad-date").focus(); true');
-  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:2});
-  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:2});
-  await send('Input.insertText',{text:date});
-  await until(()=>evaluate('document.querySelector("#nemad-date").value === '+JSON.stringify(date)),
-    'entered date '+date,7000);
-  await evaluate('document.querySelector(\'main[data-shop-page="bahman-dev-preview"] form button[type="submit"]\').click();true');
+  // Navigate with data that the EXISTING poster preview resolves on the server.
+  // This avoids unreliable synthetic keyboard/input events in React.
+  const month=Number(date.split('/')[1]);
+  if(!Number.isInteger(month)||month<1||month>12)throw Error('Invalid sample month: '+date);
+  const url=new URL(previewUrl);
+  url.searchParams.set('batchMonth',String(month));
+  url.searchParams.set('batchTheme','dark');
+  url.searchParams.set('batchPrintSize',chosenSize);
+  const navigation=await send('Page.navigate',{url:url.href});
+  if(navigation.errorText)throw Error('Original preview navigation failed: '+navigation.errorText);
+  await until(()=>evaluate('document.querySelector("main[data-shop-page=bahman-dev-preview]")?.dataset.previewHydrated==="true"'),
+    'original preview hydration for month '+month,60000);
 }
 async function selectTheme(themeName,color){
   const js='(()=>{let b=[...document.querySelectorAll(\'main[data-shop-page="bahman-dev-preview"] button\')].find(x=>x.textContent.trim()==='
@@ -261,6 +290,7 @@ async function main(){
   log('Original 12-sign × 2-theme preview export; size '+chosenSize+' at 300 PPI');
   try{
     const url=await startPreview();
+    previewUrl=url;
     await openBrowser(url,executable);
     const report=await exportAll();
     log('ALL_24_REAL_RENDERER_PNGS=PASS; '+pixels.join('x'));

@@ -18,10 +18,18 @@ function referenceExample(): BahmanPreview {
 const example = referenceExample();
 const sizeOptions: NemadPosterSize[] = ['10x15', '20x30', '30x45'];
 
-export function NemadManBahmanPreview() {
-  const [name, setName] = useState('آراد');
-  const [date, setDate] = useState('۱۳۷۵/۱۱/۲۵');
-  const [preview, setPreview] = useState<BahmanPreview>(example);
+type NemadBatchInitial = {
+  initialPreview?: BahmanPreview;
+  initialPrintSize?: NemadPosterSize;
+  initialTheme?: NemadPosterTheme;
+};
+
+export function NemadManBahmanPreview({
+  initialPreview, initialPrintSize = '20x30', initialTheme = 'light',
+}: NemadBatchInitial = {}) {
+  const [name, setName] = useState(initialPreview?.name ?? 'آراد');
+  const [date, setDate] = useState(initialPreview?.date ?? '۱۳۷۵/۱۱/۲۵');
+  const [preview, setPreview] = useState<BahmanPreview>(initialPreview ?? example);
   const [birthTime, setBirthTime] = useState('');
   const [cityName, setCityName] = useState('');
   const [cityId, setCityId] = useState('');
@@ -29,15 +37,10 @@ export function NemadManBahmanPreview() {
   const [error, setError] = useState('');
   const [exportError, setExportError] = useState('');
   const [exporting, setExporting] = useState(false);
-  const [printSize, setPrintSize] = useState<NemadPosterSize>('20x30');
-  // Dev-only batch exports use the same controlled React size selection as the UI.
-  useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get('batchPrintSize');
-    if (requested === '10x15' || requested === '20x30' || requested === '30x45') {
-      setPrintSize(requested);
-    }
-  }, []);
-  const [posterTheme, setPosterTheme] = useState<NemadPosterTheme>('light');
+  const [printSize, setPrintSize] = useState<NemadPosterSize>(initialPrintSize);
+  const [posterTheme, setPosterTheme] = useState<NemadPosterTheme>(initialTheme);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => { setHydrated(true); }, []);
   const boardRef = useRef<HTMLDivElement>(null);
   const matchedCity = findHalleusCityById(cityId);
   const outputPixels = getNemadPosterPixelSize(printSize);
@@ -78,7 +81,8 @@ export function NemadManBahmanPreview() {
   const changedSign = preview.sign.id !== 'aquarius';
 
   return (
-    <main className={styles.page} dir="rtl" data-shop-page="bahman-dev-preview">
+    <main className={styles.page} dir="rtl" data-shop-page="bahman-dev-preview"
+      data-preview-hydrated={hydrated ? 'true' : 'false'}>
       <div className={styles.container}>
         <header className={styles.header}>
           <span className={styles.kicker}>نماد من · پیش‌نمایش طراحی مینیمال</span>
