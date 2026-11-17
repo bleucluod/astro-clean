@@ -97,7 +97,12 @@ assert.ok(!existsSync(resolve(root, 'app/shop/nemad-man/bahman-preview/far-ziba-
 assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
   'Night of Us font reference changed');
 assert.match(poster, /y="832" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
-assert.match(poster, /fontSize=\{nameSize\} fontWeight="500" fill="#f2f6fa"/, 'Dominant personal name');
+assert.match(poster, /fontSize=\{nameSize\} fontWeight="500"/, 'Dominant personal name');
+assert.match(poster, /id="nemad-name-silver"/, 'Name-only silver gradient missing');
+assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="2\.8"/,
+  'Name must get the subtle Night of Us silver highlight');
+assert.ok(!poster.includes('fill="url(#nemad-name-silver)" opacity=".8"'),
+  'Zodiac label must not share the personal name highlight');
 assert.match(poster, /d="M421 979 H479"/, 'Divider missing');
 assert.match(poster, /y="1025" textAnchor="middle"/, 'Date alignment missing');
 assert.match(poster, /fontFamily=\{estedad.style.fontFamily\}/, 'Date must use Estedad');

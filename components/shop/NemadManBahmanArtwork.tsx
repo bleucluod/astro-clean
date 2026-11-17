@@ -44,6 +44,12 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
           <feComposite in="nemad-soft-tint" in2="nemad-soft-alpha" operator="in" result="nemad-soft-glow"/>
           <feMerge><feMergeNode in="nemad-soft-glow"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
+        {/* Restrained silver highlight is exclusive to the personal name. */}
+        <linearGradient id="nemad-name-silver" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff"/>
+          <stop offset=".48" stopColor="#eef4f9"/>
+          <stop offset="1" stopColor="#b9c9d8"/>
+        </linearGradient>
         <clipPath id="nemad-sky-clip"><circle cx="450" cy="358" r="294"/></clipPath>
       </defs>
       <rect width="900" height="1125" fill="#000000"/>
@@ -76,7 +82,8 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
         stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
         <text x="450" y="832" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
-        <text x="450" y="935" fontSize={nameSize} fontWeight="500" fill="#f2f6fa"
+        <text x="450" y="935" fontSize={nameSize} fontWeight="500"
+          fill="url(#nemad-name-silver)" strokeWidth="2.8"
           direction={latinName ? 'ltr' : 'rtl'} filter="url(#nemad-night-text-soft-glow)">{name}</text>
       </g>
       <path d="M421 979 H479" stroke="#9aa6b2" strokeWidth="1" strokeLinecap="round" opacity=".6"/>
