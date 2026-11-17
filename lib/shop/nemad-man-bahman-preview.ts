@@ -18,14 +18,14 @@ export type NemadSign = {
 // The sign is determined by the real tropical Sun, not by the Iranian month.
 export const NEMAD_SIGNS: readonly NemadSign[] = [
   { id: 'aries', fa: 'حمل', displayFa: 'آریس', en: 'ARIES', glyph: '♈', figure: 'Ari' },
-  { id: 'taurus', fa: 'ثور', displayFa: 'تاروس', en: 'TAURUS', glyph: '♉', figure: 'Tau' },
+  { id: 'taurus', fa: 'ثور', displayFa: 'تارس', en: 'TAURUS', glyph: '♉', figure: 'Tau' },
   { id: 'gemini', fa: 'جوزا', displayFa: 'جمینای', en: 'GEMINI', glyph: '♊', figure: 'Gem' },
   { id: 'cancer', fa: 'سرطان', displayFa: 'کنسر', en: 'CANCER', glyph: '♋', figure: 'Cnc' },
   { id: 'leo', fa: 'اسد', displayFa: 'لئو', en: 'LEO', glyph: '♌', figure: 'Leo' },
   { id: 'virgo', fa: 'سنبله', displayFa: 'ویرگو', en: 'VIRGO', glyph: '♍', figure: 'Vir' },
   { id: 'libra', fa: 'میزان', displayFa: 'لیبرا', en: 'LIBRA', glyph: '♎', figure: 'Lib' },
   { id: 'scorpio', fa: 'عقرب', displayFa: 'اسکورپیو', en: 'SCORPIO', glyph: '♏', figure: 'Sco' },
-  { id: 'sagittarius', fa: 'قوس', displayFa: 'سجیتاریوس', en: 'SAGITTARIUS', glyph: '♐', figure: 'Sgr' },
+  { id: 'sagittarius', fa: 'قوس', displayFa: 'سجیتریس', en: 'SAGITTARIUS', glyph: '♐', figure: 'Sgr' },
   { id: 'capricorn', fa: 'جدی', displayFa: 'کپریکورن', en: 'CAPRICORN', glyph: '♑', figure: 'Cap' },
   { id: 'aquarius', fa: 'دلو', displayFa: 'آکواریوس', en: 'AQUARIUS', glyph: '♒', figure: 'Aqr' },
   { id: 'pisces', fa: 'حوت', displayFa: 'پایسیز', en: 'PISCES', glyph: '♓', figure: 'Psc' },
