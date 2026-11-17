@@ -76,8 +76,17 @@ assert.match(poster, /star\.radius/, 'Star marker size must come from brightness
 assert.ok(!poster.includes('sign.glyph') && !poster.includes('M391 752'), 'Do not use font glyphs or manual waves');
 assert.match(poster, /fontSize=\{nameSize\}/, 'Name should have first priority');
 assert.match(poster, /sign\.displayFa/, 'Poster must use the approved transliterated zodiac name');
-assert.match(poster, /fontFamily="Vazirmatn, 'Noto Naskh Arabic', sans-serif"/,
-  'Poster must use Night of Us font family');
+assert.match(poster, /fontFamily="HalleusFarZibaPreview, Vazirmatn, 'Noto Naskh Arabic', sans-serif"/,
+  'Far Ziba preview should replace the poster headline and name font');
+assert.match(css, /font-family: "HalleusFarZibaPreview"/,
+  'Far Ziba test font registration missing');
+assert.match(css, /far-ziba-font/, 'Far Ziba font preview URL missing');
+const trialRoute = read('app/shop/nemad-man/bahman-preview/far-ziba-font/route.ts');
+assert.ok(trialRoute.includes("process.env.NODE_ENV === 'production') notFound()"),
+  'Far Ziba font preview must not be exposed in production');
+assert.ok(trialRoute.includes("Far_Ziba.zip") && trialRoute.includes('Far_Ziba/Far_Ziba.ttf'),
+  'Far Ziba route must use the owner-provided archive');
+assert.match(trialRoute, /inflateRawSync/, 'Far Ziba font must be decompressed from the approved archive');
 assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
   'Night of Us font reference changed');
 assert.match(poster, /y="832" fontWeight="400" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');

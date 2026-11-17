@@ -63,7 +63,7 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
       <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
       {/* A single editorial grouping: quiet zodiac, prominent name, delicate rule and date. */}
-      <g textAnchor="middle" fontFamily="Vazirmatn, 'Noto Naskh Arabic', sans-serif"
+      <g textAnchor="middle" fontFamily="HalleusFarZibaPreview, Vazirmatn, 'Noto Naskh Arabic', sans-serif"
         stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
         <text x="450" y="832" fontWeight="400" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
         <text x="450" y="935" fontSize={nameSize} fontWeight="500" fill="#f2f6fa"
