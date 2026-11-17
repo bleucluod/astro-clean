@@ -90,9 +90,10 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
         fontFamily={estedad.style.fontFamily}
         fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76"
         direction="rtl" unicodeBidi="isolate">{date}</text>
-      {/* Match the understated bottom wordmark in the approved P02 poster. */}
-      <text x="450" y="1056" textAnchor="middle" fontFamily={estedad.style.fontFamily}
-        fontSize="13" fontWeight="400" fill="#bcccdc" direction="ltr">
+      {/* P02 R9 footer reference: x 1500/3000, y 4310/4500, size 52/4500.
+          Preserve relative vertical placement, color and opacity on this 900x1125 poster. */}
+      <text x="450" y="1078" textAnchor="middle" fontFamily={estedad.style.fontFamily}
+        fontSize="13" fontWeight="400" fill="#8A96A1" opacity=".52" direction="ltr">
         H  A  L  L  E  U  S
       </text>
     </svg>

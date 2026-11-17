@@ -116,10 +116,13 @@ assert.match(poster, /y="1009" textAnchor="middle"/, 'Date sits closer to the na
 assert.match(poster, /fontFamily=\{estedad.style.fontFamily\}/, 'Date must use Estedad');
 assert.match(poster, /direction="rtl" unicodeBidi="isolate">\{date\}<\/text>/,
   'Mixed Persian Gregorian date must stay bidi-isolated');
-assert.match(poster, /x="450" y="1056" textAnchor="middle"/,
-  'The final poster must show the bottom brand wordmark');
-assert.match(poster, /fontSize="13" fontWeight="400" fill="#bcccdc" direction="ltr"/,
-  'The bottom brand styling must match approved P02 typography');
+assert.match(read('lib/shop/shop-birth-sky-r9.ts'),
+  /fontText\('H  A  L  L  E  U  S',1500,4310,52,400,'#8A96A1',\{anchor:'middle',dir:'ltr',opacity:\.52\}\)/,
+  'P02 R9 footer reference changed; review Nemad Man parity');
+assert.match(poster, /x="450" y="1078" textAnchor="middle"/,
+  'Nemad Man footer must match P02 relative vertical placement');
+assert.match(poster, /fontSize="13" fontWeight="400" fill="#8A96A1" opacity="\.52" direction="ltr"/,
+  'Nemad Man footer must match P02 font weight, size, silver tone and opacity');
 assert.ok(poster.includes('H  A  L  L  E  U  S'),
   'Bottom HALLEUS wordmark must match the other posters');
 
