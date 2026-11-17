@@ -11,13 +11,15 @@ const estedad = localFont({
   display: 'swap',
 });
 
-/** Frameless, black-on-black minimal poster aligned to the approved Aquarius sample.
- * All constellation lines and stars use the existing J2000 catalogue data.
- * The subtle disc and typography are decorative—not a recorded birth sky. */
-export function NemadManBahmanArtwork({ name, date, sign }: {
-  name: string; date: string; sign: NemadSign;
+/** Approved dark design plus a cool light variant; both share one geometry,
+ * astronomical source, typography and the immutable approved zodiac glyphs. */
+export type NemadPosterTheme = 'dark' | 'light';
+
+export function NemadManBahmanArtwork({ name, date, sign, theme = 'dark' }: {
+  name: string; date: string; sign: NemadSign; theme?: NemadPosterTheme;
 }) {
   const sky = getNemadPosterSky(sign);
+  const isLight = theme === 'light';
   const latinName = /^[\x20-\x7E]+$/.test(name);
   const nameSize = Array.from(name).length > 16 ? 46 : Array.from(name).length > 9 ? 58 : 72;
 
@@ -28,14 +30,14 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       <desc>صورت فلکی مرجع J2000 با جهت شمال بالا و شرق چپ؛ این تصویر نقشهٔ آسمان تولد نیست.</desc>
       <defs>
         <radialGradient id="nemad-globe" cx="51%" cy="48%" r="70%">
-          <stop stopColor="#15191d"/>
-          <stop offset=".62" stopColor="#0d1115"/>
-          <stop offset="1" stopColor="#080a0c"/>
+          <stop stopColor={isLight ? '#F5F8FB' : '#15191d'}/>
+          <stop offset=".62" stopColor={isLight ? '#EBF1F6' : '#0d1115'}/>
+          <stop offset="1" stopColor={isLight ? '#E0E9F0' : '#080a0c'}/>
         </radialGradient>
         <radialGradient id="nemad-star-halo">
-          <stop stopColor="#f5faff" stopOpacity=".52"/>
-          <stop offset=".28" stopColor="#e3edf5" stopOpacity=".15"/>
-          <stop offset="1" stopColor="#e3edf5" stopOpacity="0"/>
+          <stop stopColor={isLight ? '#526D86' : '#f5faff'} stopOpacity={isLight ? '.26' : '.52'}/>
+          <stop offset=".28" stopColor={isLight ? '#718BA3' : '#e3edf5'} stopOpacity={isLight ? '.10' : '.15'}/>
+          <stop offset="1" stopColor={isLight ? '#718BA3' : '#e3edf5'} stopOpacity="0"/>
         </radialGradient>
         {/* Reuse the Night of Us proof lettering; soft cool-white glow is kept restrained on black. */}
         <filter id="nemad-night-text-soft-glow" x="-30%" y="-65%" width="160%" height="230%">
@@ -50,9 +52,19 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
           <stop offset=".48" stopColor="#eef4f9"/>
           <stop offset="1" stopColor="#b9c9d8"/>
         </linearGradient>
+        <linearGradient id="nemad-name-ink" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#243447"/>
+          <stop offset=".55" stopColor="#2F4052"/>
+          <stop offset="1" stopColor="#52657A"/>
+        </linearGradient>
+        {/* Tint existing approved WebP only in light mode; preserve raster alpha. */}
+        <filter id="nemad-light-glyph-ink" colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix"
+            values="0.25 0 0 0 0.035  0 0.30 0 0 0.04  0 0 0.35 0 0.05  0 0 0 1 0"/>
+        </filter>
         <clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r="294"/></clipPath>
       </defs>
-      <rect width="900" height="1350" fill="#000000"/>
+      <rect width="900" height="1350" fill={isLight ? '#F8FAFC' : '#000000'}/>
       <circle cx="450" cy="430" r="294" fill="url(#nemad-globe)"/>
       <g clipPath="url(#nemad-sky-clip)">
         <g transform="translate(0 72)">
@@ -60,11 +72,14 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
           {sky.stars.map((star, index) => (
             <g key={`catalogue-${index}`}>
               {star.prominent ? <circle cx={star.x} cy={star.y} r={star.radius * 6.7} fill="url(#nemad-star-halo)" opacity=".6" /> : null}
-              <circle cx={star.x} cy={star.y} r={star.radius} fill="#e5ebef" opacity={Math.min(.87, star.opacity * .84)}/>
+              <circle cx={star.x} cy={star.y} r={star.radius}
+                fill={isLight ? '#526B82' : '#e5ebef'}
+                opacity={isLight ? Math.min(.86, star.opacity * .94) : Math.min(.87, star.opacity * .84)}/>
             </g>
           ))}
         </g>
-        <g fill="none" stroke="#dce5eb" strokeWidth="1.65" strokeOpacity=".95" strokeLinejoin="round" strokeLinecap="round">
+        <g fill="none" stroke={isLight ? '#526B82' : '#dce5eb'} strokeWidth="1.65"
+          strokeOpacity={isLight ? '.80' : '.95'} strokeLinejoin="round" strokeLinecap="round">
           {sky.paths.map((line, index) => (
             <polyline key={`figure-${index}`} points={line.map(({x,y}) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ')}/>
           ))}
@@ -72,30 +87,37 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
         {sky.nodes.map((star, index) => (
           <g key={`key-star-${index}`}>
             <circle cx={star.x} cy={star.y} r={star.radius * 5.35} fill="url(#nemad-star-halo)" opacity=".82"/>
-            <circle cx={star.x} cy={star.y} r={star.radius * .86} fill="#f1f5f8"/>
+            <circle cx={star.x} cy={star.y} r={star.radius * .86} fill={isLight ? '#38546D' : '#f1f5f8'}/>
           </g>
         ))}
         </g>
       </g>
-      <circle cx="450" cy="430" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
+      <circle cx="450" cy="430" r="294" stroke={isLight ? '#7790A4' : '#d8e0e5'}
+        strokeOpacity={isLight ? '.28' : '.045'} strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
-      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="755" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
+      <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="755" width="220" height="180"
+        preserveAspectRatio="xMidYMid meet" filter={isLight ? 'url(#nemad-light-glyph-ink)' : undefined} />
       {/* Editorial group: quiet zodiac, prominent name, date without a divider. */}
       <g textAnchor="middle" fontFamily={estedad.style.fontFamily}
-        stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
-        <text x="450" y="980" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
+        stroke={isLight ? '#F8FAFC' : '#09131b'} strokeOpacity={isLight ? '.25' : '.68'}
+        strokeWidth="2.3" paintOrder="stroke">
+        <text x="450" y="980" fontWeight="300" fontSize="31"
+          fill={isLight ? '#52657A' : '#bcccdc'} opacity=".8">{sign.displayFa}</text>
         <text x="450" y="1090" fontSize={nameSize} fontWeight="500"
-          fill="url(#nemad-name-silver)" strokeWidth="1.7"
-          direction={latinName ? 'ltr' : 'rtl'} filter="url(#nemad-night-text-soft-glow)">{name}</text>
+          fill={isLight ? 'url(#nemad-name-ink)' : 'url(#nemad-name-silver)'} strokeWidth="1.7"
+          direction={latinName ? 'ltr' : 'rtl'}
+          filter={isLight ? undefined : 'url(#nemad-night-text-soft-glow)'}>{name}</text>
       </g>
       <text x="450" y="1190" textAnchor="middle"
         fontFamily={estedad.style.fontFamily}
-        fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76"
+        fontSize="25" fontWeight="400" fill={isLight ? '#52657A' : '#bcccdc'}
+        opacity={isLight ? '.86' : '.76'}
         direction="rtl" unicodeBidi="isolate">{date}</text>
       {/* P02 R9 footer reference: x 1500/3000, y 4310/4500, size 52/4500.
           Preserve relative vertical placement, color and opacity on this 900x1350 poster. */}
       <text x="450" y="1293" textAnchor="middle" fontFamily={estedad.style.fontFamily}
-        fontSize="15.6" fontWeight="400" fill="#8A96A1" opacity=".52" direction="ltr">
+        fontSize="15.6" fontWeight="400" fill={isLight ? '#64748B' : '#8A96A1'}
+        opacity={isLight ? '.70' : '.52'} direction="ltr">
         H  A  L  L  E  U  S
       </text>
     </svg>

@@ -46,3 +46,12 @@
 .exportSize select { box-sizing: border-box; min-height: 44px; width: 100%; padding: 8px 12px; border: 1px solid #c2d1df; border-radius: 9px; background: #fff; color: #243447; font: inherit; cursor: pointer; }
 .exportSize select:focus-visible { outline: 2px solid #357da6; outline-offset: 2px; }
 .exportSize select:disabled { opacity: .65; cursor: wait; }
+
+/* Preview toggle only; the approved dark board remains unchanged. */
+.themeSwitch { box-sizing: border-box; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; width: min(100%, 490px); padding: 5px; background: #E8EFF5; border: 1px solid #D3DFE9; border-radius: 11px; }
+.themeOption, .themeActive { min-width: 0; min-height: 40px; padding: 8px 10px; border: 1px solid transparent; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; }
+.themeOption { color: #52657A; background: transparent; }
+.themeOption:hover { background: #DBE7F1; }
+.themeActive { color: #243447; background: #FFFFFF; border-color: #D3DFE9; box-shadow: 0 1px 4px #24344712; }
+.themeOption:focus-visible, .themeActive:focus-visible { outline: 2px solid #357da6; outline-offset: 2px; }
+.lightBoard { background: #F8FAFC; }

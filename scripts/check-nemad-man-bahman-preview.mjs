@@ -68,8 +68,10 @@ for (const expected of [
   assert.ok(engine.includes(expected), 'Missing zodiac / astronomical evidence: ' + expected);
 }
 assert.match(poster, /sky\.stars\.map/, 'Actual catalogue stars required');
-assert.match(poster, /<rect width="900" height="1350" fill="#000000"\/>/, 'Full poster background must remain pure black');
-assert.match(poster, /stopColor="#080a0c"/, 'Inner sky disc must remain near-black');
+assert.match(poster, /<rect width="900" height="1350" fill=\{isLight \? '#F8FAFC' : '#000000'\}\/>/,
+  'Approved dark canvas must remain black and light canvas must be cool white');
+assert.match(poster, /stopColor=\{isLight \? '#E0E9F0' : '#080a0c'\}/,
+  'Approved dark disc and cool light disc must both be preserved');
 assert.match(poster, /NEMAD_MAN_ZODIAC_GLYPHS\[sign\.id\]/, 'Render the approved shared icon pack');
 assert.ok(!poster.includes('nemad-wisps') && !poster.includes('nemad-grain'), 'Do not reinstate blue haze or aggressive grain');
 assert.match(css, /background: #000000;/, 'The poster container must also be black');
@@ -77,8 +79,8 @@ assert.match(poster, /sky\.paths\.map/, 'Sourced line geometry required');
 assert.match(poster, /star\.radius/, 'Star marker size must come from brightness');
 assert.ok(poster.includes('> 16 ? 46 : Array.from(name).length > 9 ? 58 : 72'),
   'Name size should give priority to the constellation');
-assert.ok(poster.includes('strokeWidth="1.65" strokeOpacity=".95"'),
-  'Constellation lines should stand out');
+assert.match(poster, /stroke=\{isLight \? '#526B82' : '#dce5eb'\} strokeWidth="1\.65"/,
+  'Approved dark constellation and darker light constellation required');
 assert.ok(poster.includes('star.radius * 5.35') && poster.includes('star.radius * .86'),
   'Constellation nodes should be visible');
 assert.ok(!poster.includes('sign.glyph') && !poster.includes('M391 752'), 'Do not use font glyphs or manual waves');
@@ -104,11 +106,14 @@ assert.ok(!existsSync(resolve(root, 'app/shop/nemad-man/bahman-preview/far-ziba-
   'Unused Far Ziba preview font endpoint should be absent');
 assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
   'Night of Us font reference changed');
-assert.match(poster, /y="980" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
+assert.match(poster, /y="980" fontWeight="300" fontSize="31"/,
+  'Zodiac heading geometry remains approved');
+assert.match(poster, /fill=\{isLight \? '#52657A' : '#bcccdc'\} opacity="\.8"/,
+  'Zodiac heading must be readable in both colorways');
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500"/, 'Dominant personal name');
 assert.match(poster, /id="nemad-name-silver"/, 'Name-only silver gradient missing');
-assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="1\.7"/,
-  'Name must get the subtle Night of Us silver highlight');
+assert.match(poster, /fill=\{isLight \? 'url\(#nemad-name-ink\)' : 'url\(#nemad-name-silver\)'\} strokeWidth="1\.7"/,
+  'Dark name keeps its approved silver gradient; light name uses slate ink');
 assert.ok(!poster.includes('fill="url(#nemad-name-silver)" opacity=".8"'),
   'Zodiac label must not share the personal name highlight');
 assert.ok(!poster.includes('M421 979 H479'), 'No name/date divider');
@@ -121,8 +126,10 @@ assert.match(read('lib/shop/shop-birth-sky-r9.ts'),
   'P02 R9 footer reference changed; review Nemad Man parity');
 assert.match(poster, /x="450" y="1293" textAnchor="middle"/,
   'Nemad Man footer must match P02 relative vertical placement');
-assert.match(poster, /fontSize="15\.6" fontWeight="400" fill="#8A96A1" opacity="\.52" direction="ltr"/,
-  'Nemad Man footer must match P02 font weight, size, silver tone and opacity');
+assert.match(poster, /fontSize="15\.6" fontWeight="400" fill=\{isLight \? '#64748B' : '#8A96A1'\}/,
+  'Dark P02 footer must remain approved alongside the light footer');
+assert.match(poster, /opacity=\{isLight \? '\.70' : '\.52'\} direction="ltr"/,
+  'Dark P02 footer opacity must be unchanged');
 assert.ok(poster.includes('H  A  L  L  E  U  S'),
   'Bottom HALLEUS wordmark must match the other posters');
 
@@ -130,10 +137,11 @@ assert.ok(engine.includes("new Intl.DateTimeFormat('fa-IR-u-ca-gregory'"),
   'Gregorian Persian date formatter must remain the single date source');
 assert.ok(engine.includes(".replace(/\\u0654/g, '')"), 'Combining hamza must be removed from Gregorian date');
 assert.ok(!poster.includes('پیش‌نمایش هالیوس'), 'Printed watermark must be absent');
-assert.match(poster, /stroke="#09131b" strokeOpacity="\.68" strokeWidth="2\.3" paintOrder="stroke"/,
-  'Typography must preserve the Night of Us proof stroke treatment');
-assert.match(poster, /filter="url\(#nemad-night-text-soft-glow\)"/,
-  'Subtle night typography glow must be scoped to the poster text');
+assert.match(poster, /stroke=\{isLight \? '#F8FAFC' : '#09131b'\} strokeOpacity=\{isLight \? '\.25' : '\.68'\}/,
+  'Original dark typography stroke must be preserved');
+assert.match(poster, /strokeWidth="2\.3" paintOrder="stroke"/, 'Text stroke width unchanged');
+assert.match(poster, /filter=\{isLight \? undefined : 'url\(#nemad-night-text-soft-glow\)'\}/,
+  'Dark name glow must remain dark-only');
 assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="1\.25"/,
   'Night typography soft bloom is missing');
 assert.match(poster, /floodOpacity="\.10" result="nemad-soft-tint"/, 'Name glow must stay subtle');
@@ -158,6 +166,9 @@ assert.match(poster, /<clipPath id="nemad-sky-clip"><circle cx="450" cy="430" r=
 assert.match(poster, /transform="translate\(0 72\)"/,
   'Real catalogue stars, lines and nodes must move without distortion');
 assert.match(poster, /x="340" y="755" width="220" height="180"/, 'Approved glyph size must not be stretched');
+assert.match(poster, /filter=\{isLight \? 'url\(#nemad-light-glyph-ink\)' : undefined\}/,
+  'Tint only the approved glyph in light variant');
+assert.match(poster, /<feColorMatrix type="matrix"/, 'Light glyph must preserve approved shape');
 // Circle bottom = 430 + 294 = 724; glyph begins at 755, leaving a 31px gap.
 // The glyph box ends at 935, still 45px before the zodiac label baseline (980).
 assert.ok(755 - (430 + 294) >= 30 && 980 - (755 + 180) >= 40,
@@ -184,6 +195,15 @@ for (const [id, width, height] of physicalSizes) {
     heightPx >= Math.ceil(height / 2.54 * 300));
 }
 assert.match(client, /downloadNemadPosterPng\(svg,/, 'Preview must provide PNG download');
+assert.match(poster, /theme = 'dark'/, 'Default renderer theme must remain approved dark');
+assert.match(client, /useState<NemadPosterTheme>\('light'\)/, 'New light preview must be shown first');
+assert.match(client, /aria-pressed=\{posterTheme === 'light'\}/, 'Light style selectable');
+assert.match(client, /aria-pressed=\{posterTheme === 'dark'\}/, 'Dark style selectable');
+assert.match(client, /theme=\{posterTheme\}/, 'Style switch must drive the actual SVG');
+assert.match(client, /preview\.sign\.id \+ '-' \+ posterTheme \+ '-' \+ printSize/,
+  'Filename must distinguish styles and sizes');
+assert.match(css, /\.lightBoard \{ background: #F8FAFC; \}/, 'Light board must be cool');
+assert.match(css, /\.themeSwitch/, 'Style choice buttons required');
 assert.match(css, /\.exportButton/, 'Preview download button needs styles');
 assert.match(exportHelper, /canvas\.toBlob/, 'PNG must be encoded from the renderer SVG');
 assert.match(exportHelper, /font\?weight=/, 'Embedded Estedad font source must be local');

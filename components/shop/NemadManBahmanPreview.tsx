@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, type FormEvent, type ChangeEvent } from 'react';
 import { filterHalleusCities, findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
-import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
+import { NemadManBahmanArtwork, type NemadPosterTheme } from './NemadManBahmanArtwork';
 import {
   downloadNemadPosterPng, getNemadPosterPixelSize, NEMAD_POSTER_SIZES,
   type NemadPosterSize,
@@ -30,6 +30,7 @@ export function NemadManBahmanPreview() {
   const [exportError, setExportError] = useState('');
   const [exporting, setExporting] = useState(false);
   const [printSize, setPrintSize] = useState<NemadPosterSize>('20x30');
+  const [posterTheme, setPosterTheme] = useState<NemadPosterTheme>('light');
   const boardRef = useRef<HTMLDivElement>(null);
   const matchedCity = findHalleusCityById(cityId);
   const outputPixels = getNemadPosterPixelSize(printSize);
@@ -58,7 +59,8 @@ export function NemadManBahmanPreview() {
     setExportError('');
     setExporting(true);
     try {
-      await downloadNemadPosterPng(svg, 'halleus-nemad-' + preview.sign.id + '-' + printSize + '.png', printSize);
+      await downloadNemadPosterPng(svg,
+        'halleus-nemad-' + preview.sign.id + '-' + posterTheme + '-' + printSize + '.png', printSize);
     } catch (failure) {
       setExportError(failure instanceof Error ? failure.message : 'گرفتن خروجی PNG ناموفق بود.');
     } finally {
@@ -78,7 +80,17 @@ export function NemadManBahmanPreview() {
         </header>
         <div className={styles.layout}>
           <section className={styles.previewPanel} aria-label="پیش‌نمایش شخصی‌سازی‌شده">
-            <div className={styles.board} ref={boardRef}><NemadManBahmanArtwork name={preview.name} date={preview.gregorianDate} sign={preview.sign}/></div>
+            <div className={styles.themeSwitch} role="group" aria-label="مدل تابلو">
+              <button type="button" aria-pressed={posterTheme === 'light'}
+                className={posterTheme === 'light' ? styles.themeActive : styles.themeOption}
+                onClick={() => { setPosterTheme('light'); setExportError(''); }}>مینیمال روشن</button>
+              <button type="button" aria-pressed={posterTheme === 'dark'}
+                className={posterTheme === 'dark' ? styles.themeActive : styles.themeOption}
+                onClick={() => { setPosterTheme('dark'); setExportError(''); }}>مینیمال مشکی</button>
+            </div>
+            <div className={posterTheme === 'light' ? `${styles.board} ${styles.lightBoard}` : styles.board} ref={boardRef}>
+              <NemadManBahmanArtwork name={preview.name} date={preview.gregorianDate} sign={preview.sign} theme={posterTheme}/>
+            </div>
             <label className={styles.exportSize} htmlFor="nemad-output-size">
               اندازهٔ خروجی (۳۰۰ پیکسل در اینچ)
               <select id="nemad-output-size" value={printSize} disabled={exporting}
