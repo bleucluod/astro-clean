@@ -9,7 +9,7 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
 }) {
   const sky = getNemadPosterSky(sign);
   const latinName = /^[\x20-\x7E]+$/.test(name);
-  const nameSize = Array.from(name).length > 16 ? 47 : Array.from(name).length > 9 ? 56 : 70;
+  const nameSize = Array.from(name).length > 16 ? 52 : Array.from(name).length > 9 ? 66 : 82;
 
   return (
     <svg viewBox="0 0 900 1125" xmlns="http://www.w3.org/2000/svg" role="img"
@@ -62,15 +62,17 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       <circle cx="450" cy="358" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
       <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
-      <g fill="#f2f6fa" textAnchor="middle" fontFamily="Dana, sans-serif"
-        stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke"
-        filter="url(#nemad-night-text-soft-glow)">
-        <text x="450" y="845" fontWeight="400" fontSize="40">{sign.displayFa}</text>
-        <text x="450" y="935" fontSize={nameSize} fontWeight="500" direction={latinName ? 'ltr' : 'rtl'}>{name}</text>
-        <text x="450" y="1013" fontSize="28" fontWeight="400" fill="#c5cbd1" direction="rtl">{date}</text>
+      {/* A single editorial grouping: quiet zodiac, prominent name, delicate rule and date. */}
+      <g textAnchor="middle" fontFamily="Vazirmatn, 'Noto Naskh Arabic', sans-serif"
+        stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
+        <text x="450" y="832" fontWeight="400" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
+        <text x="450" y="935" fontSize={nameSize} fontWeight="500" fill="#f2f6fa"
+          direction={latinName ? 'ltr' : 'rtl'} filter="url(#nemad-night-text-soft-glow)">{name}</text>
       </g>
-      <text x="450" y="1088" textAnchor="middle" fontSize="13" opacity=".34"
-        fontFamily="Dana, sans-serif" fill="#a7adb3">پیش‌نمایش هالیوس</text>
+      <path d="M421 979 H479" stroke="#9aa6b2" strokeWidth="1" strokeLinecap="round" opacity=".6"/>
+      <text x="450" y="1025" textAnchor="middle"
+        fontFamily="Vazirmatn, 'Noto Naskh Arabic', sans-serif"
+        fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76" direction="rtl">{date}</text>
     </svg>
   );
 }

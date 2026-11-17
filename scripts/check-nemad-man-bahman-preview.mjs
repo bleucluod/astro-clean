@@ -76,7 +76,15 @@ assert.match(poster, /star\.radius/, 'Star marker size must come from brightness
 assert.ok(!poster.includes('sign.glyph') && !poster.includes('M391 752'), 'Do not use font glyphs or manual waves');
 assert.match(poster, /fontSize=\{nameSize\}/, 'Name should have first priority');
 assert.match(poster, /sign\.displayFa/, 'Poster must use the approved transliterated zodiac name');
-assert.match(poster, /fontFamily="Dana, sans-serif"/, 'Poster must use existing Dana font');
+assert.match(poster, /fontFamily="Vazirmatn, 'Noto Naskh Arabic', sans-serif"/,
+  'Poster must use Night of Us font family');
+assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Naskh Arabic', sans-serif"),
+  'Night of Us font reference changed');
+assert.match(poster, /y="832" fontWeight="400" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
+assert.match(poster, /fontSize=\{nameSize\} fontWeight="500" fill="#f2f6fa"/, 'Dominant personal name');
+assert.match(poster, /d="M421 979 H479"/, 'Divider missing');
+assert.match(poster, /y="1025" textAnchor="middle"/, 'Date alignment missing');
+assert.ok(!poster.includes('پیش‌نمایش هالیوس'), 'Printed watermark must be absent');
 assert.match(poster, /stroke="#09131b" strokeOpacity="\.68" strokeWidth="2\.3" paintOrder="stroke"/,
   'Typography must preserve the Night of Us proof stroke treatment');
 assert.match(poster, /filter="url\(#nemad-night-text-soft-glow\)"/,
