@@ -19,7 +19,7 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
 }) {
   const sky = getNemadPosterSky(sign);
   const latinName = /^[\x20-\x7E]+$/.test(name);
-  const nameSize = Array.from(name).length > 16 ? 52 : Array.from(name).length > 9 ? 66 : 82;
+  const nameSize = Array.from(name).length > 16 ? 46 : Array.from(name).length > 9 ? 58 : 72;
 
   return (
     <svg viewBox="0 0 900 1125" xmlns="http://www.w3.org/2000/svg" role="img"
@@ -39,8 +39,8 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
         </radialGradient>
         {/* Reuse the Night of Us proof lettering; soft cool-white glow is kept restrained on black. */}
         <filter id="nemad-night-text-soft-glow" x="-30%" y="-65%" width="160%" height="230%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="nemad-soft-alpha"/>
-          <feFlood floodColor="#d9eafd" floodOpacity=".14" result="nemad-soft-tint"/>
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.25" result="nemad-soft-alpha"/>
+          <feFlood floodColor="#d9eafd" floodOpacity=".10" result="nemad-soft-tint"/>
           <feComposite in="nemad-soft-tint" in2="nemad-soft-alpha" operator="in" result="nemad-soft-glow"/>
           <feMerge><feMergeNode in="nemad-soft-glow"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
@@ -63,15 +63,15 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
             </g>
           ))}
         </g>
-        <g fill="none" stroke="#dce5eb" strokeWidth="1.45" strokeOpacity=".87" strokeLinejoin="round" strokeLinecap="round">
+        <g fill="none" stroke="#dce5eb" strokeWidth="1.65" strokeOpacity=".95" strokeLinejoin="round" strokeLinecap="round">
           {sky.paths.map((line, index) => (
             <polyline key={`figure-${index}`} points={line.map(({x,y}) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ')}/>
           ))}
         </g>
         {sky.nodes.map((star, index) => (
           <g key={`key-star-${index}`}>
-            <circle cx={star.x} cy={star.y} r={star.radius * 4.8} fill="url(#nemad-star-halo)" opacity=".72"/>
-            <circle cx={star.x} cy={star.y} r={star.radius * .78} fill="#f1f5f8"/>
+            <circle cx={star.x} cy={star.y} r={star.radius * 5.35} fill="url(#nemad-star-halo)" opacity=".82"/>
+            <circle cx={star.x} cy={star.y} r={star.radius * .86} fill="#f1f5f8"/>
           </g>
         ))}
       </g>
@@ -83,7 +83,7 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
         stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke">
         <text x="450" y="845" fontWeight="300" fontSize="31" fill="#bcccdc" opacity=".8">{sign.displayFa}</text>
         <text x="450" y="935" fontSize={nameSize} fontWeight="500"
-          fill="url(#nemad-name-silver)" strokeWidth="2"
+          fill="url(#nemad-name-silver)" strokeWidth="1.7"
           direction={latinName ? 'ltr' : 'rtl'} filter="url(#nemad-night-text-soft-glow)">{name}</text>
       </g>
       <text x="450" y="1009" textAnchor="middle"

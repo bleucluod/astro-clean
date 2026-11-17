@@ -73,6 +73,12 @@ assert.ok(!poster.includes('nemad-wisps') && !poster.includes('nemad-grain'), 'D
 assert.match(css, /background: #000000;/, 'The poster container must also be black');
 assert.match(poster, /sky\.paths\.map/, 'Sourced line geometry required');
 assert.match(poster, /star\.radius/, 'Star marker size must come from brightness');
+assert.ok(poster.includes('> 16 ? 46 : Array.from(name).length > 9 ? 58 : 72'),
+  'Name size should give priority to the constellation');
+assert.ok(poster.includes('strokeWidth="1.65" strokeOpacity=".95"'),
+  'Constellation lines should stand out');
+assert.ok(poster.includes('star.radius * 5.35') && poster.includes('star.radius * .86'),
+  'Constellation nodes should be visible');
 assert.ok(!poster.includes('sign.glyph') && !poster.includes('M391 752'), 'Do not use font glyphs or manual waves');
 assert.match(poster, /fontSize=\{nameSize\}/, 'Name should have first priority');
 assert.match(poster, /sign\.displayFa/, 'Poster must use the approved transliterated zodiac name');
@@ -89,7 +95,7 @@ for (const [weight, file] of [
 }
 assert.equal((poster.match(/fontFamily=\{estedad.style.fontFamily\}/g) || []).length, 2,
   'Estedad font family must cover both name/sign and the date');
-assert.match(poster, /y="832" fontWeight="300"/, 'Subtle zodiac label must use Estedad Light');
+assert.match(poster, /y="845" fontWeight="300"/, 'Subtle zodiac label must use Estedad Light');
 assert.ok(!poster.includes('FarZiba') && !css.includes('FarZiba') && !css.includes('far-ziba-font'),
   'Reject legacy Far Ziba fallback in the active renderer');
 assert.ok(!existsSync(resolve(root, 'app/shop/nemad-man/bahman-preview/far-ziba-font/route.ts')),
@@ -99,7 +105,7 @@ assert.ok(read('lib/shop/shop-night-artwork.ts').includes("Vazirmatn, 'Noto Nask
 assert.match(poster, /y="845" fontWeight="300" fontSize="31" fill="#bcccdc" opacity="\.8"/, 'Subtle zodiac heading');
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500"/, 'Dominant personal name');
 assert.match(poster, /id="nemad-name-silver"/, 'Name-only silver gradient missing');
-assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="2"/,
+assert.match(poster, /fill="url\(#nemad-name-silver\)" strokeWidth="1\.7"/,
   'Name must get the subtle Night of Us silver highlight');
 assert.ok(!poster.includes('fill="url(#nemad-name-silver)" opacity=".8"'),
   'Zodiac label must not share the personal name highlight');
@@ -116,9 +122,9 @@ assert.match(poster, /stroke="#09131b" strokeOpacity="\.68" strokeWidth="2\.3" p
   'Typography must preserve the Night of Us proof stroke treatment');
 assert.match(poster, /filter="url\(#nemad-night-text-soft-glow\)"/,
   'Subtle night typography glow must be scoped to the poster text');
-assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="1\.5"/,
+assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="1\.25"/,
   'Night typography soft bloom is missing');
-assert.match(poster, /floodOpacity="\.14" result="nemad-soft-tint"/, 'Name glow must stay subtle');
+assert.match(poster, /floodOpacity="\.10" result="nemad-soft-tint"/, 'Name glow must stay subtle');
 assert.match(poster, /feMergeNode in="SourceGraphic"/,
   'Original letterforms must stay sharp above the glow');
 assert.match(read('app/globals.css'), /font-family: "Dana"/, 'Registered Dana font family missing');
