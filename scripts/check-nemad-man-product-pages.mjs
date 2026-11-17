@@ -27,6 +27,19 @@ assert.ok(client.includes('<NemadManBahmanArtwork'), 'Must reuse existing approv
 assert.ok(client.includes('validateBahmanPreview(form.names, form.date,'), 'Actual zodiac selector required');
 assert.ok(client.includes('disabled={!nemad && id !== \'p01\'}'), 'Purchases stay disabled');
 assert.ok(client.includes('nemad.months.map'), 'Month navigation required');
+assert.ok(client.includes('href={`/shop/${item.slug}-sign`}'),
+  'Month links must use direct /shop/month-sign URLs');
+const canonical = read('app/shop/[slug]/page.tsx');
+assert.match(canonical, /\^\(\[a-z\]\+\)-sign\$/, 'Month-sign suffix contract required');
+assert.match(canonical, /monthMetadata\(await monthParams\(props\)\)/,
+  'Canonical page must reuse the approved product metadata');
+assert.match(canonical, /NemadMonthProductPage\(await monthParams\(props\)\)/,
+  'Canonical page must reuse the existing P03 detail page');
+const exporter = read('scripts/export-nemad-24.mjs');
+assert.match(exporter, /Browser\.setDownloadBehavior/,
+  'Batch script must drive the existing browser export');
+assert.match(exporter, /24.*exports passed/,
+  'Batch exporter must check all 24 images');
 assert.ok(poster.includes('cx="450" cy="430" r="380"'), 'Approved artwork unchanged');
 const months = [
   'farvardin','ordibehesht','khordad','tir','mordad','shahrivar',

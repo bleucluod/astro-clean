@@ -576,7 +576,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
             <h2 id="related-heading">نماد ماه‌های دیگر</h2></div>
           <nav className={styles.nemadMonthLinks} aria-label="نماد ماه‌های تولد">
             {nemad.months.map((item) => <Link key={item.slug}
-              href={`/shop/nemad-man/${item.slug}`}
+              href={`/shop/${item.slug}-sign`}
               aria-current={item.slug === nemad.slug ? 'page' : undefined}>{item.title}</Link>)}
           </nav>
         </section> : id !== 'p01' ? <section className={styles.relatedSection} aria-labelledby="related-heading">
