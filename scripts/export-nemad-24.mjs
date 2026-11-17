@@ -37,9 +37,13 @@ function log(message) {
   trace.push(line); console.log(line);
 }
 function git(...args) { return execFileSync('git',['-C',repo,...args],{encoding:'utf8'}).trim(); }
+// Git for Windows reports C:/..., while fileURLToPath()/Node usually use C:\\... .
+function normalizedRepositoryPath(value) {
+  return path.normalize(value.trim()).replace(/[\\/]+$/, '').toLowerCase();
+}
 function preflight() {
   if (Number(process.versions.node.split('.')[0]) < 22 || typeof WebSocket !== 'function') throw Error('Node.js 22+ required');
-  if (git('rev-parse','--show-toplevel').toLowerCase() !== repo.toLowerCase()) throw Error('SAFETY_FATAL: Wrong repository root');
+  if (normalizedRepositoryPath(git('rev-parse','--show-toplevel')) !== normalizedRepositoryPath(repo)) throw Error('SAFETY_FATAL: Wrong repository root');
   if (!/^(https:\/\/github\.com\/bleucluod\/astro-clean(?:\.git)?|git@github\.com:bleucluod\/astro-clean(?:\.git)?)$/.test(git('remote','get-url','origin'))) throw Error('SAFETY_FATAL: Wrong origin');
   if (git('branch','--show-current') !== 'main') throw Error('SAFETY_FATAL: Wrong branch');
   const ancestor = spawnSync('git',['-C',repo,'merge-base','--is-ancestor',requiredBase,'HEAD']);
@@ -141,6 +145,7 @@ async function openBrowser(url, executable) {
   if(nav.errorText)throw Error('Cannot open original preview: '+nav.errorText);
   await until(()=>evaluate('Boolean(document.querySelector(\'main[data-shop-page="bahman-dev-preview"] svg[viewBox="0 0 900 1350"]\') && document.querySelector("#nemad-date"))'),
     'approved renderer',90000);
+  await selectPrintSize();
 }
 async function evaluate(expression){
   const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
@@ -155,6 +160,25 @@ async function until(fn,label,timeout=30000){
     await sleep(190);
   }
   throw Error('Timeout: '+label+' last='+last);
+}
+async function selectPrintSize() {
+  // Trigger the PRE-EXISTING React <select> handler. This is not an alternative renderer.
+  // The default React size is 20x30, while our review batch defaults to 10x15.
+  const js='(()=>{const element=document.querySelector("#nemad-output-size");if(!element)return false;'
+    +'if(element.value!=='+JSON.stringify(chosenSize)+'){'
+    +'const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set;'
+    +'setter.call(element,'+JSON.stringify(chosenSize)+');'
+    +'element.dispatchEvent(new Event("change",{bubbles:true}));}return true})()';
+  if(!await evaluate(js))throw Error('Original print-size selector unavailable');
+  const width=new Intl.NumberFormat('fa-IR').format(pixels[0]);
+  const height=new Intl.NumberFormat('fa-IR').format(pixels[1]);
+  const confirm='(()=>{const selector=document.querySelector("#nemad-output-size");'
+    +'const button=[...document.querySelectorAll("button")].find(x=>x.textContent.includes("دریافت PNG"));'
+    +'return selector?.value==='+JSON.stringify(chosenSize)
+    +'&&button?.textContent.includes('+JSON.stringify(width)+')'
+    +'&&button?.textContent.includes('+JSON.stringify(height)+')})()';
+  await until(()=>evaluate(confirm),'React print size: '+chosenSize,20000);
+  log('Original export size confirmed: '+chosenSize+' ('+pixels.join('x')+' pixels)');
 }
 async function fillDate(date){
   await evaluate('document.querySelector("#nemad-date").focus(); true');
