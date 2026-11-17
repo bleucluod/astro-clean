@@ -7,7 +7,7 @@
 
 - **Gallery aspect ratio:** exactly **2:3 portrait** for «نماد من» product photos and mockups, not 4:5 or 1:1. The source is `components/shop/product-detail.module.css` (`.nemadMainPhoto`, `.nemadArtwork`, and mobile override).
 - **Three real print sizes:** **10×15 cm**, **20×30 cm**, and **30×45 cm**, all portrait 2:3. Confirmed in `components/shop/product-detail-data.ts` (`SHOP_SIZES`) and `lib/shop/nemad-man-preview-export.ts` (`NEMAD_POSTER_SIZES`).
-- **Physical presentation:** the currently described product is a **frameless print mounted on shasi**. Do not imply an included decorative frame or incorrectly change the artwork.
+- **Physical presentation — hard requirement:** Halleus sells **only the frameless print mounted on shasi**. **Never place any frame around the poster in a mockup**: no wood/metal/plastic frame, border molding, picture-frame profile, mat/passe-partout, glass-front framing or decorative rim. Show the artwork printed directly on a frameless shasi with its honest unframed edge, whether wall-mounted or leaning. Do not imply a frame is included or available.
 
 ## Mandatory visual direction
 
@@ -17,8 +17,8 @@
 4. **Use the actual exported Halleus PNGs**, not an AI redrawing of the zodiac wheel, symbols, stars, personal names, date, logo, glyphs or typography. Only the photographic/mockup environment, lighting, perspective and physically plausible positioning may change. Preserve artwork as exact source pixels wherever practicable, including on a perspective-transformed print surface. Never generate invented replacement lettering.
 5. Show the **three actual sizes clearly across the gallery mockup set**. Each size must have an easy-to-understand, naturally placed real-world scale reference in the same scene (e.g. a standard book, desk lamp, chair, bedside table, desk, console or bed). The relative dimensions must be physically credible and visible at a glance. Use stable/common-size objects; don't artificially resize props to manufacture the comparison.
 6. Label or identify the featured print size **10×15 / 20×30 / 30×45 cm** in gallery copy, caption or a restrained graphic annotation where necessary. A viewer must not have to guess which size a scene represents. Across four mockups of a month, cover **all three sizes**; the fourth may show an alternate room/view or light-vs-dark option. Do not pretend all three products are the same size.
-7. Different mockups should vary meaningfully (surface/placement/camera/room, with accurate scale), while maintaining consistent art direction and the real print product's frameless edge.
-8. Final acceptance: **2:3 export**, original poster details intact, cool-dark premium ambiance, physically realistic print scale, all three sizes communicated in the set, no invented product attributes.
+7. Different mockups should vary meaningfully (surface/placement/camera/room, with accurate scale), while maintaining consistent art direction. **Every visible poster in every mockup must remain frameless**; the surrounding scene may include furniture and decor, but never a frame attached to the printed shasi.
+8. Final acceptance: **2:3 export**, original poster details intact, cool-dark premium ambiance, physically realistic print scale, all three sizes communicated in the set, **absolutely no frame around any poster**, no invented product attributes.
 
 ## Provenance of original exports
 
