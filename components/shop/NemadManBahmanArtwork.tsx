@@ -71,8 +71,9 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       </g>
       <path d="M421 979 H479" stroke="#9aa6b2" strokeWidth="1" strokeLinecap="round" opacity=".6"/>
       <text x="450" y="1025" textAnchor="middle"
-        fontFamily="Vazirmatn, 'Noto Naskh Arabic', sans-serif"
-        fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76" direction="rtl">{date}</text>
+        fontFamily="var(--font-vazirmatn, 'Noto Sans Arabic'), Vazirmatn, 'Noto Sans Arabic', sans-serif"
+        fontSize="25" fontWeight="400" fill="#bcccdc" opacity=".76"
+        direction="rtl" unicodeBidi="isolate">{date}</text>
     </svg>
   );
 }

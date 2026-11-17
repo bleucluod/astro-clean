@@ -84,6 +84,12 @@ assert.match(poster, /y="832" fontWeight="400" fontSize="31" fill="#bcccdc" opac
 assert.match(poster, /fontSize=\{nameSize\} fontWeight="500" fill="#f2f6fa"/, 'Dominant personal name');
 assert.match(poster, /d="M421 979 H479"/, 'Divider missing');
 assert.match(poster, /y="1025" textAnchor="middle"/, 'Date alignment missing');
+assert.match(poster, /fontFamily="var\(--font-vazirmatn, 'Noto Sans Arabic'\), Vazirmatn, 'Noto Sans Arabic', sans-serif"/,
+  'Date must use the real site Vazirmatn with legible Persian-digit fallback');
+assert.match(poster, /direction="rtl" unicodeBidi="isolate">\{date\}<\/text>/,
+  'Mixed Persian Gregorian date must stay bidi-isolated');
+assert.ok(engine.includes("new Intl.DateTimeFormat('fa-IR-u-ca-gregory'"),
+  'Gregorian Persian date formatter must remain the single date source');
 assert.ok(!poster.includes('پیش‌نمایش هالیوس'), 'Printed watermark must be absent');
 assert.match(poster, /stroke="#09131b" strokeOpacity="\.68" strokeWidth="2\.3" paintOrder="stroke"/,
   'Typography must preserve the Night of Us proof stroke treatment');
