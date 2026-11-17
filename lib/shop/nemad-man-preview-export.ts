@@ -71,10 +71,10 @@ async function embedSourceAssets(svg: SVGSVGElement): Promise<string> {
   return new XMLSerializer().serializeToString(clone);
 }
 
-export async function downloadNemadPosterPng(source: SVGSVGElement, filename: string, size: NemadPosterSize): Promise<void> {
+/** Create exactly the same PNG bytes as the original single-image download. */
+export async function renderNemadPosterPngBlob(source: SVGSVGElement, size: NemadPosterSize): Promise<Blob> {
   const svgText = await embedSourceAssets(source);
   const sourceUrl = URL.createObjectURL(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }));
-  let pngUrl: string | null = null;
   try {
     const picture = new Image();
     await new Promise<void>((resolve, reject) => {
@@ -89,10 +89,18 @@ export async function downloadNemadPosterPng(source: SVGSVGElement, filename: st
     const context = canvas.getContext('2d');
     if (!context) throw new Error('مرورگر امکان ساخت خروجی PNG را ندارد.');
     context.drawImage(picture, 0, 0, pixels.width, pixels.height);
-    const png = await new Promise<Blob>((resolve, reject) => {
+    return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((file) => file ? resolve(file) : reject(new Error('ساخت فایل PNG ناموفق بود.')), 'image/png');
     });
-    pngUrl = URL.createObjectURL(png);
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
+}
+
+export async function downloadNemadPosterPng(source: SVGSVGElement, filename: string, size: NemadPosterSize): Promise<void> {
+  const png = await renderNemadPosterPngBlob(source, size);
+  const pngUrl = URL.createObjectURL(png);
+  try {
     const link = document.createElement('a');
     link.href = pngUrl;
     link.download = filename;
@@ -100,10 +108,6 @@ export async function downloadNemadPosterPng(source: SVGSVGElement, filename: st
     link.click();
     link.remove();
   } finally {
-    URL.revokeObjectURL(sourceUrl);
-    if (pngUrl) {
-      const completedUrl = pngUrl;
-      window.setTimeout(() => URL.revokeObjectURL(completedUrl), 30_000);
-    }
+    window.setTimeout(() => URL.revokeObjectURL(pngUrl), 30_000);
   }
 }

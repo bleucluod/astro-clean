@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ChangeEvent } from 'react';
 import { filterHalleusCities, findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
-import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
+import { NEMAD_SIGNS, validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
+import { normalizePersianDigits } from '@/lib/date/jalali';
 import { NemadManBahmanArtwork, type NemadPosterTheme } from './NemadManBahmanArtwork';
 import {
-  downloadNemadPosterPng, getNemadPosterPixelSize, NEMAD_POSTER_SIZES,
+  downloadNemadPosterPng, renderNemadPosterPngBlob, getNemadPosterPixelSize, NEMAD_POSTER_SIZES,
   type NemadPosterSize,
 } from '@/lib/shop/nemad-man-preview-export';
+import { packageNemadPosterPngs } from '@/lib/shop/nemad-man-preview-zip';
 import styles from './nemad-man-bahman-preview.module.css';
 
 function referenceExample(): BahmanPreview {
@@ -17,6 +19,12 @@ function referenceExample(): BahmanPreview {
 }
 const example = referenceExample();
 const sizeOptions: NemadPosterSize[] = ['10x15', '20x30', '30x45'];
+
+const monthSlugs = [
+  'farvardin', 'ordibehesht', 'khordad', 'tir', 'mordad', 'shahrivar',
+  'mehr', 'aban', 'azar', 'dey', 'bahman', 'esfand',
+] as const;
+type BatchArtwork = { key: string; preview: BahmanPreview; theme: NemadPosterTheme };
 
 type NemadBatchInitial = {
   initialPreview?: BahmanPreview;
@@ -41,6 +49,13 @@ export function NemadManBahmanPreview({
   const [posterTheme, setPosterTheme] = useState<NemadPosterTheme>(initialTheme);
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => { setHydrated(true); }, []);
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [batchError, setBatchError] = useState('');
+  const [batchDone, setBatchDone] = useState(false);
+  const [batchArtwork, setBatchArtwork] = useState<BatchArtwork | null>(null);
+  const batchBusyRef = useRef(false);
+  const batchBoardRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const matchedCity = findHalleusCityById(cityId);
   const outputPixels = getNemadPosterPixelSize(printSize);
@@ -78,6 +93,99 @@ export function NemadManBahmanPreview({
     }
   }
 
+  function waitForBatchSvg(key: string, expectedSign: string): Promise<SVGSVGElement> {
+    return new Promise((resolve, reject) => {
+      const deadline = performance.now() + 20000;
+      const inspect = () => {
+        const holder = batchBoardRef.current;
+        const svg = holder?.querySelector('svg');
+        if (holder?.dataset.renderKey === key && svg &&
+            svg.querySelector('title')?.textContent?.includes(expectedSign)) {
+          resolve(svg);
+          return;
+        }
+        if (performance.now() > deadline) {
+          reject(new Error('رندر تابلوی ' + expectedSign + ' آماده نشد.'));
+          return;
+        }
+        window.requestAnimationFrame(inspect);
+      };
+      window.requestAnimationFrame(inspect);
+    });
+  }
+
+  async function downloadAll24() {
+    if (batchBusyRef.current || exporting) return;
+    batchBusyRef.current = true;
+    setBatchBusy(true);
+    setBatchError('');
+    setBatchDone(false);
+    setBatchProgress(0);
+    try {
+      // Keep the name, Jalali year and day fixed; only the month changes.
+      const base = validateBahmanPreview(name, date, { time: birthTime, cityId });
+      if (!base.ok) throw new Error(base.message);
+      const [year, , dayText] = base.value.date.split('/');
+      const day = Number(normalizePersianDigits(dayText));
+      if (!year || !Number.isInteger(day) || day < 1 || day > 28) {
+        throw new Error('برای ساخت ۱۲ ماه با یک روز ثابت، روز تولد را بین ۱ تا ۲۸ انتخاب کن.');
+      }
+      // Prevalidate all 12 samples so no PNG gets the wrong month/sign label.
+      const samples = NEMAD_SIGNS.map((sign, index) => {
+        const sampleDate = year + '/' + String(index + 1).padStart(2, '0') +
+          '/' + String(day).padStart(2, '0');
+        const result = validateBahmanPreview(base.value.name, sampleDate,
+          { time: birthTime, cityId });
+        if (!result.ok || result.value.sign.id !== sign.id) {
+          throw new Error('برجِ روز ' + day + ' در بعضی ماه‌ها قطعی نیست؛ روز ۱۵ یا ۲۵ را امتحان کن.');
+        }
+        return result.value;
+      });
+
+      const entries: { name: string; png: Blob }[] = [];
+      const size: NemadPosterSize = '10x15'; // Review ZIP, independent of individual print setting.
+      const expected = getNemadPosterPixelSize(size);
+      for (let index = 0; index < samples.length; index++) {
+        for (const theme of ['dark', 'light'] as const) {
+          const key = String(index) + '-' + theme;
+          setBatchArtwork({ key, preview: samples[index], theme });
+          const svg = await waitForBatchSvg(key, samples[index].sign.en);
+          const png = await renderNemadPosterPngBlob(svg, size);
+          const header = new DataView(await png.slice(0, 24).arrayBuffer());
+          if (header.byteLength < 24 || header.getUint32(16) !== expected.width ||
+              header.getUint32(20) !== expected.height) {
+            throw new Error('ابعاد خروجی PNG برای ' + monthSlugs[index] + ' درست نیست.');
+          }
+          entries.push({
+            name: String(index + 1).padStart(2, '0') + '-' + monthSlugs[index] +
+              '-sign-' + theme + '.png',
+            png,
+          });
+          setBatchProgress(entries.length);
+        }
+      }
+      const zip = await packageNemadPosterPngs(entries);
+      const url = URL.createObjectURL(zip);
+      try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'halleus-24-month-signs-10x15.zip';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setBatchDone(true);
+      } finally {
+        window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }
+    } catch (failure) {
+      setBatchError(failure instanceof Error ? failure.message : 'ساخت مجموعهٔ ۲۴ طرح انجام نشد.');
+    } finally {
+      setBatchArtwork(null);
+      setBatchBusy(false);
+      batchBusyRef.current = false;
+    }
+  }
+
   const changedSign = preview.sign.id !== 'aquarius';
 
   return (
@@ -104,16 +212,25 @@ export function NemadManBahmanPreview({
             </div>
             <label className={styles.exportSize} htmlFor="nemad-output-size">
               اندازهٔ خروجی (۳۰۰ پیکسل در اینچ)
-              <select id="nemad-output-size" value={printSize} disabled={exporting}
+              <select id="nemad-output-size" value={printSize} disabled={exporting || batchBusy}
                 onChange={(event: ChangeEvent<HTMLSelectElement>) => setPrintSize(event.target.value as NemadPosterSize)}>
                 {sizeOptions.map((size) => <option key={size} value={size}>{NEMAD_POSTER_SIZES[size].label}</option>)}
               </select>
             </label>
-            <button className={styles.exportButton} type="button" disabled={exporting} onClick={() => { void downloadPoster(); }}>
+            <button className={styles.exportButton} type="button" disabled={exporting || batchBusy} onClick={() => { void downloadPoster(); }}>
               {exporting ? 'در حال آماده‌سازی PNG...' :
                 `دریافت PNG با فونت اصلی · ${outputPixels.width.toLocaleString('fa-IR')} × ${outputPixels.height.toLocaleString('fa-IR')}`}
             </button>
             {exportError ? <p className={styles.error} role="alert">{exportError}</p> : null}
+            <button className={styles.batchExportButton} type="button"
+              disabled={exporting || batchBusy} onClick={() => { void downloadAll24(); }}>
+              {batchBusy ? `در حال ساخت مجموعه · ${batchProgress} از ۲۴` :
+                'دریافت همهٔ ۲۴ طرح در یک ZIP (۱۰×۱۵)'}
+            </button>
+            <p className={styles.batchNote}>نام، سال و روزِ واردشده ثابت می‌مانند؛ فقط ماه عوض می‌شود.
+              هر ماه یک طرح مشکی و یک طرح روشن دارد.</p>
+            {batchError ? <p className={styles.error} role="alert">{batchError}</p> : null}
+            {batchDone ? <p className={styles.batchSuccess} role="status">۲۴ فایل PNG آماده و در یک ZIP دانلود شدند.</p> : null}
             {needsDetails ? <p className={styles.pendingNote}>این تصویر هنوز نمونهٔ قبلی است؛ با تکمیل ساعت و شهر تولد، نشان صحیح به‌جای آن نمایش داده می‌شود.</p> : null}
             <p className={styles.note}>ستاره‌ها و خطوط صورت فلکی از دادهٔ نجومی J2000 گرفته شده‌اند؛ این طرح، نقشهٔ آسمان لحظهٔ تولد نیست. تصویر روی شاسی بدون قاب چاپ می‌شود.</p>
           </section>
@@ -164,6 +281,12 @@ export function NemadManBahmanPreview({
           </section>
         </div>
       </div>
+      {batchArtwork ? <div aria-hidden="true" className={styles.batchOffscreen}
+        ref={batchBoardRef} data-render-key={batchArtwork.key}>
+        <NemadManBahmanArtwork name={batchArtwork.preview.name}
+          date={batchArtwork.preview.gregorianDate} sign={batchArtwork.preview.sign}
+          theme={batchArtwork.theme}/>
+      </div> : null}
     </main>
   );
 }

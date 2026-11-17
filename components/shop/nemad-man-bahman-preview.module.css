@@ -55,3 +55,32 @@
 .themeActive { color: #243447; background: #FFFFFF; border-color: #D3DFE9; box-shadow: 0 1px 4px #24344712; }
 .themeOption:focus-visible, .themeActive:focus-visible { outline: 2px solid #357da6; outline-offset: 2px; }
 .lightBoard { background: #EBF1F5; }
+
+/* Temporary local-only batch download control; no changes to approved art. */
+.batchExportButton {
+  width: min(100%, 490px);
+  min-height: 45px;
+  padding: 10px 16px;
+  border: 1px solid #415f78;
+  border-radius: 10px;
+  background: #243447;
+  color: #f8fafc;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.batchExportButton:hover:not(:disabled) { background: #334e65; }
+.batchExportButton:focus-visible { outline: 2px solid #357da6; outline-offset: 3px; }
+.batchExportButton:disabled { cursor: wait; opacity: .65; }
+.batchNote { width: min(100%, 490px); color: #52657a; font-size: 12px; line-height: 2; margin: 0; }
+.batchSuccess { width: min(100%, 490px); color: #276749; font-size: 12px; line-height: 2; margin: 0; }
+.batchOffscreen {
+  position: fixed;
+  top: 0;
+  left: -100000px;
+  width: 900px;
+  height: 1350px;
+  pointer-events: none;
+}
+.batchOffscreen svg { display: block; width: 900px; height: 1350px; }

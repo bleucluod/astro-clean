@@ -11,6 +11,8 @@ const modules = [
   'components/shop/NemadManBahmanPreview.tsx',
   'components/shop/NemadManBahmanArtwork.tsx',
   'lib/shop/nemad-man-bahman-preview.ts',
+  'lib/shop/nemad-man-preview-export.ts',
+  'lib/shop/nemad-man-preview-zip.ts',
 ];
 for (const file of modules) {
   const result = ts.transpileModule(read(file), {
@@ -27,6 +29,7 @@ const poster = read(modules[2]);
 const engine = read(modules[3]);
 const css = read('components/shop/nemad-man-bahman-preview.module.css');
 const exportHelper = read('lib/shop/nemad-man-preview-export.ts');
+const zipHelper = read('lib/shop/nemad-man-preview-zip.ts');
 const fontRoute = read('app/shop/nemad-man/bahman-preview/font/route.ts');
 const figureCatalog = JSON.parse(read('lib/shop/catalog/constellations-d3-celestial-v1.json'));
 const stars = JSON.parse(read('lib/shop/catalog/bsc5-bright-stars-mag6.json'));
@@ -243,7 +246,8 @@ for (const [id, width, height] of physicalSizes) {
 }
 assert.match(client, /downloadNemadPosterPng\(svg,/, 'Preview must provide PNG download');
 assert.match(poster, /theme = 'dark'/, 'Default renderer theme must remain approved dark');
-assert.match(client, /useState<NemadPosterTheme>\('light'\)/, 'New light preview must be shown first');
+assert.match(client, /initialTheme = 'light'/, 'Default preview stays in approved light mode');
+assert.match(client, /useState<NemadPosterTheme>\(initialTheme\)/, 'Original theme state is preserved');
 assert.match(client, /aria-pressed=\{posterTheme === 'light'\}/, 'Light style selectable');
 assert.match(client, /aria-pressed=\{posterTheme === 'dark'\}/, 'Dark style selectable');
 assert.match(client, /theme=\{posterTheme\}/, 'Style switch must drive the actual SVG');
@@ -253,6 +257,24 @@ assert.match(css, /\.lightBoard \{ background: #EBF1F5; \}/,
   'Silver Mist board must match the light poster background');
 assert.match(css, /\.themeSwitch/, 'Style choice buttons required');
 assert.match(css, /\.exportButton/, 'Preview download button needs styles');
+assert.match(client, /downloadAll24\(\)/,
+  'The existing preview must provide a one-click 24-image export');
+assert.match(client, /<NemadManBahmanArtwork name=\{batchArtwork\.preview\.name\}/,
+  'Batch exports must reuse the approved poster component');
+assert.ok(client.includes("result.value.sign.id !== sign.id"),
+  'Each month must be checked against the actual tropical Sun');
+assert.ok(client.includes("const size: NemadPosterSize = '10x15'"),
+  'The temporary batch must use the intended review size');
+assert.match(client, /packageNemadPosterPngs\(entries\)/,
+  '24 PNGs must be packed in one ZIP');
+assert.match(exportHelper, /export async function renderNemadPosterPngBlob/,
+  'Bulk export must reuse the existing font-and-glyph rasterization');
+assert.ok(exportHelper.includes('await renderNemadPosterPngBlob(source, size)'),
+  'Existing single PNG export must reuse the exact same image pipeline');
+assert.match(zipHelper, /entries\.length !== 24/,
+  'ZIP must reject incomplete groups');
+assert.match(css, /\.batchExportButton/, 'Batch button styling required');
+assert.match(css, /\.batchOffscreen/, 'Hidden preview rendering required');
 assert.match(exportHelper, /canvas\.toBlob/, 'PNG must be encoded from the renderer SVG');
 assert.match(exportHelper, /font\?weight=/, 'Embedded Estedad font source must be local');
 assert.match(exportHelper, /image\.setAttribute\('href', await blobToDataUrl/, 'Glyphs must be inlined into export');
