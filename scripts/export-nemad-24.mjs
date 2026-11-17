@@ -141,7 +141,9 @@ async function openBrowser(url, executable) {
   });
   await send('Page.enable');
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:outputDir});
-  const nav=await send('Page.navigate',{url});
+  const batchUrl = new URL(url);
+  batchUrl.searchParams.set('batchPrintSize', chosenSize);
+  const nav=await send('Page.navigate',{url: batchUrl.href});
   if(nav.errorText)throw Error('Cannot open original preview: '+nav.errorText);
   await until(()=>evaluate('Boolean(document.querySelector(\'main[data-shop-page="bahman-dev-preview"] svg[viewBox="0 0 900 1350"]\') && document.querySelector("#nemad-date"))'),
     'approved renderer',90000);
@@ -162,14 +164,8 @@ async function until(fn,label,timeout=30000){
   throw Error('Timeout: '+label+' last='+last);
 }
 async function selectPrintSize() {
-  // Trigger the PRE-EXISTING React <select> handler. This is not an alternative renderer.
-  // The default React size is 20x30, while our review batch defaults to 10x15.
-  const js='(()=>{const element=document.querySelector("#nemad-output-size");if(!element)return false;'
-    +'if(element.value!=='+JSON.stringify(chosenSize)+'){'
-    +'const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set;'
-    +'setter.call(element,'+JSON.stringify(chosenSize)+');'
-    +'element.dispatchEvent(new Event("change",{bubbles:true}));}return true})()';
-  if(!await evaluate(js))throw Error('Original print-size selector unavailable');
+  // The existing React preview reads batchPrintSize during its own hydration.
+  // Avoid synthetic <select> change events: they may not update React state.
   const width=new Intl.NumberFormat('fa-IR').format(pixels[0]);
   const height=new Intl.NumberFormat('fa-IR').format(pixels[1]);
   const confirm='(()=>{const selector=document.querySelector("#nemad-output-size");'
@@ -177,7 +173,7 @@ async function selectPrintSize() {
     +'return selector?.value==='+JSON.stringify(chosenSize)
     +'&&button?.textContent.includes('+JSON.stringify(width)+')'
     +'&&button?.textContent.includes('+JSON.stringify(height)+')})()';
-  await until(()=>evaluate(confirm),'React print size: '+chosenSize,20000);
+  await until(()=>evaluate(confirm),'React print size: '+chosenSize,30000);
   log('Original export size confirmed: '+chosenSize+' ('+pixels.join('x')+' pixels)');
 }
 async function fillDate(date){

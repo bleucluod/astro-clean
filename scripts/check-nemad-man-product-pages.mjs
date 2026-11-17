@@ -20,6 +20,18 @@ for (const path of [
 const route = read('app/shop/nemad-man/[month]/page.tsx');
 const client = read('components/shop/ProductDetail.tsx');
 const poster = read('components/shop/NemadManBahmanArtwork.tsx');
+const previewClient = read('components/shop/NemadManBahmanPreview.tsx');
+const batchExporter = read('scripts/export-nemad-24.mjs');
+assert.ok(previewClient.includes("get('batchPrintSize')"),
+  'The existing preview must initialize batch size through React state');
+assert.ok(batchExporter.includes("batchUrl.searchParams.set('batchPrintSize', chosenSize)"),
+  'Exporter must supply the requested size before React mounts');
+assert.ok(!batchExporter.includes('element.dispatchEvent(new Event("change"'),
+  'No synthetic controlled-select change events');
+assert.ok(batchExporter.includes('head.readUInt32BE(16)!==pixels[0]'),
+  'Every real PNG must be checked for the selected dimensions');
+assert.ok(batchExporter.includes('good!==24||files.length!==24'),
+  'All 24 requested images must complete');
 assert.match(route, /process\.env\.NODE_ENV === 'production'\) notFound\(\)/);
 assert.match(route, /robots: \{ index: false, follow: false \}/);
 assert.ok(client.includes('nemad?.product ?? getShopProduct(id)'), 'Must reuse P03 ProductDetail');

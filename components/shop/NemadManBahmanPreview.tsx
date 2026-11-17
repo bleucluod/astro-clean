@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState, type FormEvent, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ChangeEvent } from 'react';
 import { filterHalleusCities, findHalleusCityById, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { NemadManBahmanArtwork, type NemadPosterTheme } from './NemadManBahmanArtwork';
@@ -30,6 +30,13 @@ export function NemadManBahmanPreview() {
   const [exportError, setExportError] = useState('');
   const [exporting, setExporting] = useState(false);
   const [printSize, setPrintSize] = useState<NemadPosterSize>('20x30');
+  // Dev-only batch exports use the same controlled React size selection as the UI.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('batchPrintSize');
+    if (requested === '10x15' || requested === '20x30' || requested === '30x45') {
+      setPrintSize(requested);
+    }
+  }, []);
   const [posterTheme, setPosterTheme] = useState<NemadPosterTheme>('light');
   const boardRef = useRef<HTMLDivElement>(null);
   const matchedCity = findHalleusCityById(cityId);
