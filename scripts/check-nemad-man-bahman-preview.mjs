@@ -77,6 +77,14 @@ assert.ok(!poster.includes('sign.glyph') && !poster.includes('M391 752'), 'Do no
 assert.match(poster, /fontSize=\{nameSize\}/, 'Name should have first priority');
 assert.match(poster, /sign\.displayFa/, 'Poster must use the approved transliterated zodiac name');
 assert.match(poster, /fontFamily="Dana, sans-serif"/, 'Poster must use existing Dana font');
+assert.match(poster, /stroke="#09131b" strokeOpacity="\.68" strokeWidth="2\.3" paintOrder="stroke"/,
+  'Typography must preserve the Night of Us proof stroke treatment');
+assert.match(poster, /filter="url\(#nemad-night-text-soft-glow\)"/,
+  'Subtle night typography glow must be scoped to the poster text');
+assert.match(poster, /feGaussianBlur in="SourceAlpha" stdDeviation="2\.4"/,
+  'Night typography soft bloom is missing');
+assert.match(poster, /feMergeNode in="SourceGraphic"/,
+  'Original letterforms must stay sharp above the glow');
 assert.match(read('app/globals.css'), /font-family: "Dana"/, 'Registered Dana font family missing');
 assert.ok(engine.includes("displayFa: 'آکواریوس'"), 'Approved Aquarius label missing');
 assert.equal((engine.match(/displayFa: '/g) || []).length, 12, 'All 12 signs require transliterated names');

@@ -27,6 +27,13 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
           <stop offset=".28" stopColor="#e3edf5" stopOpacity=".15"/>
           <stop offset="1" stopColor="#e3edf5" stopOpacity="0"/>
         </radialGradient>
+        {/* Reuse the Night of Us proof lettering; soft cool-white glow is kept restrained on black. */}
+        <filter id="nemad-night-text-soft-glow" x="-30%" y="-65%" width="160%" height="230%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="nemad-soft-alpha"/>
+          <feFlood floodColor="#d9eafd" floodOpacity=".24" result="nemad-soft-tint"/>
+          <feComposite in="nemad-soft-tint" in2="nemad-soft-alpha" operator="in" result="nemad-soft-glow"/>
+          <feMerge><feMergeNode in="nemad-soft-glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
         <clipPath id="nemad-sky-clip"><circle cx="450" cy="358" r="294"/></clipPath>
       </defs>
       <rect width="900" height="1125" fill="#000000"/>
@@ -55,7 +62,9 @@ export function NemadManBahmanArtwork({ name, date, sign }: {
       <circle cx="450" cy="358" r="294" stroke="#d8e0e5" strokeOpacity=".045" strokeWidth="1" fill="none"/>
       {/* Shared user-approved zodiac pack; no hand-drawn or font glyph fallback. */}
       <image href={NEMAD_MAN_ZODIAC_GLYPHS[sign.id]} x="340" y="629" width="220" height="180" preserveAspectRatio="xMidYMid meet" />
-      <g fill="#e9f0f4" textAnchor="middle" fontFamily="Dana, sans-serif">
+      <g fill="#f2f6fa" textAnchor="middle" fontFamily="Dana, sans-serif"
+        stroke="#09131b" strokeOpacity=".68" strokeWidth="2.3" paintOrder="stroke"
+        filter="url(#nemad-night-text-soft-glow)">
         <text x="450" y="845" fontWeight="400" fontSize="40">{sign.displayFa}</text>
         <text x="450" y="935" fontSize={nameSize} fontWeight="500" direction={latinName ? 'ltr' : 'rtl'}>{name}</text>
         <text x="450" y="1013" fontSize="28" fontWeight="400" fill="#c5cbd1" direction="rtl">{date}</text>
