@@ -112,6 +112,8 @@ export async function buildPrivateShopFinalPrintCandidate(
     throw new ShopPrintHandoffError('ردیف محصول چاپی معتبر نیست.', 422);
   }
   const item = handoff.prints[lineNumber - 1];
+  // NM uses the owner-supplied, manually approved print path; it must never fall into P03 artwork.
+  if (item.productId === 'nm') throw new ShopPrintHandoffError('نماد من فقط از مسیر چاپ دستی پشتیبانی می‌کند.', 409);
   const spec = getShopPrintSpec(item.sizeCm);
   const width = spec.minimumNativePixels.width;
   const height = spec.minimumNativePixels.height;

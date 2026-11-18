@@ -41,6 +41,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     if (!order) return noStoreJsonResponse({ ok: false }, 404);
     const print = buildPrivateShopPrintHandoff(order).prints[line - 1];
     if (!print) return noStoreJsonResponse({ ok: false }, 422);
+    // NM is manual-design/owner-supplied JPEG only; never reuse P03 artwork sources.
+    if (print.productId === 'nm') return noStoreJsonResponse({ ok: false }, 404);
     // P01/P03 can only use vetted originals from an explicit private root.
     // Missing source/rights/sha fails closed; proofs are never substitutes.
     const sources = await loadPrivateShopFinalPrintSources(print.productId);
@@ -95,6 +97,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (!order) return noStoreJsonResponse({ ok: false }, 404);
     const print = buildPrivateShopPrintHandoff(order).prints[line - 1];
     if (!print) return noStoreJsonResponse({ ok: false }, 422);
+    // NM is manual-design/owner-supplied JPEG only; never reuse P03 artwork sources.
+    if (print.productId === 'nm') return noStoreJsonResponse({ ok: false }, 404);
     const sources = await loadPrivateShopFinalPrintSources(print.productId);
     const candidate = await buildPrivateShopFinalPrintCandidate(order, line, sources);
     const saved = await archivePrivateShopPrintCandidate(

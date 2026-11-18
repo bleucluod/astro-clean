@@ -10,6 +10,12 @@ const cart = read('components/shop/shop-cart.ts');
 const order = read('app/api/shop/orders/route.ts');
 const route = read('app/shop/nemad-man/[month]/page.tsx');
 const print = read('app/api/admin/shop/orders/[id]/print/route.ts');
+const autoPrint = read('app/api/admin/shop/orders/[id]/print/candidate/route.ts');
+const autoRenderer = read('lib/shop/shop-final-print.ts');
+assert.equal((autoPrint.match(/if \(print\.productId === 'nm'\) return noStoreJsonResponse\(\{ ok: false \}, 404\);/g) ?? []).length, 2,
+  'Nemad must never use P03 private originals via the disabled automatic candidate endpoints');
+assert.match(autoRenderer, /if \(item\.productId === 'nm'\) throw new ShopPrintHandoffError\(/,
+  'Nemad must not fall through to P03 raster rendering');
 const home = read('app/shop/page.tsx');
 const migration = read('database/migrations/0043_nemad_man_shared_prices.sql');
 assert.match(price, /\['p01', 'p02', 'nm'\]/);
