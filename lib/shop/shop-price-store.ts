@@ -1,7 +1,7 @@
 import { getAdminDatabase } from '@/lib/admin/admin-database';
 import { getShopProductPrice, SHOP_SIZES, SHOP_P02_SIZES } from '@/components/shop/product-detail-data';
 
-const productIds = ['p01', 'p02'] as const;
+const productIds = ['p01', 'p02', 'nm'] as const;
 const sizes = ['10x15', '20x30', '30x45'] as const;
 export type ShopPricedProduct = typeof productIds[number];
 export type ShopPricedSize = typeof sizes[number];
@@ -23,7 +23,7 @@ export class ShopPriceInputError extends Error {
 }
 
 function isProduct(value: unknown): value is ShopPricedProduct {
-  return value === 'p01' || value === 'p02';
+  return value === 'p01' || value === 'p02' || value === 'nm';
 }
 function isSize(value: unknown): value is ShopPricedSize {
   return value === '10x15' || value === '20x30' || value === '30x45';
@@ -39,7 +39,7 @@ function basePrice(productId: ShopPricedProduct, size: ShopPricedSize): number {
 export function listBaseShopPrices(): ShopPriceRow[] {
   return productIds.flatMap(productId => sizes.map(size => ({
     productId, size,
-    label: (productId === 'p01' ? SHOP_SIZES : SHOP_P02_SIZES)
+    label: (productId === 'p02' ? SHOP_P02_SIZES : SHOP_SIZES)
       .find(row => row.dimension === size)?.label ?? size,
     basePriceToman: basePrice(productId, size),
     priceToman: basePrice(productId, size),

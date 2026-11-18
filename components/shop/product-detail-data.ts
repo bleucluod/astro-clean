@@ -1,6 +1,6 @@
 import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 
-export type ShopProductId = 'p01' | 'p02' | 'p03';
+export type ShopProductId = 'p01' | 'p02' | 'p03' | 'nm';
 
 export type ShopCopySection = {
   title: string;
@@ -54,10 +54,13 @@ export function getShopProductPrice(productId: string, dimension: string): numbe
   if (productId === 'p02') {
     return SHOP_P02_SIZES.find((size) => size.dimension === dimension)?.price ?? null;
   }
+  if (productId === 'nm') {
+    return SHOP_SIZES.find((size) => size.dimension === dimension)?.price ?? null;
+  }
   return null;
 }
 
-const products: Record<ShopProductId, ShopProduct> = {
+const products: Record<Exclude<ShopProductId, 'nm'>, ShopProduct> = {
   p01: {
     id: 'p01',
     title: 'ماه آن روز',
@@ -245,13 +248,23 @@ const products: Record<ShopProductId, ShopProduct> = {
   },
 };
 
+// NM has a dedicated order identity, never P03 (Shab-e Ma).
+// All month pages share NM pricing; only Bahman is sellable until owner review.
+const nemadOrderProduct: ShopProduct = {
+  ...products.p03,
+  id: 'nm', title: 'نماد من — بهمن',
+  tagline: 'تابلوی شخصی با نشان ستاره‌ای، نام و تاریخ تولد',
+  gallery: [{ src: '/shop-preview/nemad-man/bahman/01-mahsa-1387-11-12-light-console.webp',
+    alt: 'تابلو نماد من برای ماه بهمن', label: 'نماد من — بهمن' }],
+};
+
 /** Public catalogue is the single source of product IDs for showcase pickers. */
 export function getAllShopProducts(): ShopProduct[] {
   return Object.values(products);
 }
 
 export function getShopProduct(id: ShopProductId): ShopProduct {
-  return products[id];
+  return id === 'nm' ? nemadOrderProduct : products[id];
 }
 
 export function getRelatedProducts(id: ShopProductId): ShopProduct[] {

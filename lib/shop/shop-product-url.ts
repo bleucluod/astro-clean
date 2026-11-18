@@ -4,6 +4,7 @@ export const SHOP_PRODUCT_URLS: Record<ShopProductId, string> = {
   p01: '/shop/moon-phase-print',
   p02: '/shop/birth-sky-map',
   p03: '/shop/milky-way-print',
+  nm: '/shop/bahman-sign',
 };
 
 export function getShopProductUrl(id: ShopProductId): string {

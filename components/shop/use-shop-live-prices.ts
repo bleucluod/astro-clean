@@ -8,7 +8,8 @@ export type LiveShopPrices = {
   error: boolean;
 };
 
-const requiredKeys = ['p01:10x15', 'p01:20x30', 'p01:30x45', 'p02:10x15', 'p02:20x30', 'p02:30x45'];
+const requiredKeys = ['p01:10x15', 'p01:20x30', 'p01:30x45', 'p02:10x15', 'p02:20x30', 'p02:30x45',
+  'nm:10x15', 'nm:20x30', 'nm:30x45'];
 
 /** No stale client cache: checkout and live product prices share the DB authority. */
 export function useShopLivePrices(): LiveShopPrices {

@@ -80,7 +80,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     const handoff = buildPrivateShopPrintHandoff(order);
     const print = handoff.prints[Number(lineValues[0]) - 1];
-    if (!print || !['p01', 'p02'].includes(print.productId)) return noStoreJsonResponse({ ok: false }, 422);
+    if (!print || !['p01', 'p02', 'nm'].includes(print.productId)) return noStoreJsonResponse({ ok: false }, 422);
     if (print.productId === 'p02' && !isShopP02OrderEnabled()) return noStoreJsonResponse({ ok: false }, 404);
     const root = process.env.HALLEUS_SHOP_PRINT_ARCHIVE_ROOT;
     if (!root) return noStoreJsonResponse({ ok: false, error: 'آرشیو خصوصی هنوز آماده نیست.' }, 409);
@@ -102,7 +102,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     } finally { reader.releaseLock(); }
     const saved = await archiveOwnerSuppliedShopPrint({
       root, orderId: id, orderNumber: handoff.orderNumber,
-      lineNumber: print.line, productId: print.productId as 'p01' | 'p02', size: print.sizeCm,
+      lineNumber: print.line, productId: print.productId as 'p01' | 'p02' | 'nm', size: print.sizeCm,
       jpeg: Buffer.concat(buffers, size),
     });
     await recordAdminAuditEvent({

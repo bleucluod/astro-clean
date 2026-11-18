@@ -7,7 +7,7 @@ type ProofKind = 'explicit-utc-design-only' | 'private-order-svg-proof' | 'priva
  * No customer fields, privileged storage paths or activation controls are exposed.
  * The actual checkout/production release guard is independent of this display.
  */
-const printEvidence: Record<ShopProductId, {
+const printEvidence: Record<Exclude<ShopProductId, 'nm'>, {
   proofKind: ProofKind;
   proofDescription: string;
   proofNativePixels: { width: number; height: number } | null;
@@ -34,7 +34,7 @@ const printEvidence: Record<ShopProductId, {
 };
 
 export function getShopCatalogReadiness() {
-  const ids: readonly ShopProductId[] = ['p01', 'p02', 'p03'];
+  const ids: readonly Exclude<ShopProductId, 'nm'>[] = ['p01', 'p02', 'p03'];
   return ids.map((id) => {
     const product = getShopProduct(id);
     const evidence = printEvidence[id];

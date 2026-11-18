@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ShopV01Home, type ShopV01Item } from '@/components/shop/ShopV01Home';
-import { isShopMvpActive, isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
+import { isShopMvpActive, isShopP02OrderEnabled, isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
 import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
@@ -41,6 +41,17 @@ const launchCatalog: ShopV01Item[] = [
     imageAlt: 'تابلو آسمان تولد رها و پارسا روی شاسی بدون قاب با طراحی R9 هالیوس',
   },
   {
+    id: 'NM',
+    title: 'نماد من — بهمن',
+    subtitle: 'تابلوی نشان ستاره‌ای آکواریوس، با نام و تاریخ تولد دلخواه.',
+    category: 'آثار ماه تولد',
+    href: '/shop/bahman-sign',
+    priceToman: 900_000,
+    availability: 'available',
+    imageSrc: '/shop-preview/nemad-man/bahman/01-mahsa-1387-11-12-light-console.webp',
+    imageAlt: 'تابلوی نماد من بهمن روی شاسی بدون قاب در فضای خانه',
+  },
+  {
     id: 'P03',
     title: 'شبِ ما',
     subtitle: 'یادگاری از یک شب پرستاره.',
@@ -65,11 +76,13 @@ export default async function ShopPage() {
   }
 
   const p02Enabled = isShopP02OrderEnabled();
+  const nemadEnabled = isShopNemadOrderEnabled();
   const { prices } = await readShopPriceCatalog();
   return <ShopV01Home
-    products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02'))
+    products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02') || (nemadEnabled && product.id === 'NM'))
       .map(product => ({ ...product,
         priceToman: product.id === 'P01' ? prices['p01:10x15']
-          : product.id === 'P02' ? prices['p02:10x15'] : product.priceToman }))}
+          : product.id === 'P02' ? prices['p02:10x15']
+          : product.id === 'NM' ? prices['nm:10x15'] : product.priceToman }))}
     showP02Invitation={!p02Enabled} />;
 }

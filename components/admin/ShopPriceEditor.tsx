@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import styles from './shop-price-editor.module.css';
 
 type PriceRow = {
-  productId: 'p01' | 'p02';
+  productId: 'p01' | 'p02' | 'nm';
   size: '10x15' | '20x30' | '30x45';
   label: string;
   basePriceToman: number;
@@ -16,6 +16,7 @@ type PriceRow = {
 const productNames: Record<PriceRow['productId'], string> = {
   p01: 'ماه آن روز',
   p02: 'آسمان تولد',
+  nm: 'نماد من · قیمت مشترک هر ۱۲ ماه',
 };
 const format = (value: number) => new Intl.NumberFormat('fa-IR').format(value);
 const durations = [
@@ -34,8 +35,8 @@ function parseRows(payload: unknown): PriceRow[] {
     throw new Error('پاسخ مدیریت قیمت معتبر نیست.');
   }
   const rows = (payload as { rows: PriceRow[] }).rows;
-  if (rows.length !== 6 || rows.some(row =>
-    !['p01', 'p02'].includes(row.productId)
+  if (rows.length !== 9 || rows.some(row =>
+    !['p01', 'p02', 'nm'].includes(row.productId)
     || !['10x15', '20x30', '30x45'].includes(row.size)
     || !Number.isInteger(row.priceToman) || row.priceToman < 1000
     || !Number.isInteger(row.basePriceToman) || row.basePriceToman < 1000
@@ -129,12 +130,12 @@ export function ShopPriceEditor({ accessToken }: { accessToken: string }) {
     } finally { setBusy(false); }
   }
 
-  const groups: PriceRow['productId'][] = ['p01', 'p02'];
+  const groups: PriceRow['productId'][] = ['p01', 'p02', 'nm'];
   return <section className={styles.root} aria-labelledby="shop-price-admin-heading">
     <header className={styles.header}>
       <div>
         <h3 id="shop-price-admin-heading">مدیریت قیمت محصولات</h3>
-        <p>قیمت هر اندازه را بدون تغییر کد یا انتشار مجدد تنظیم کن. قیمت آزمایشی سر ساعت تعیین‌شده خودکار منقضی می‌شود.</p>
+        <p>قیمت هر اندازه را بدون تغییر کد یا انتشار مجدد تنظیم کن. «نماد من» سه قیمت مشترک برای هر ۱۲ ماه دارد و مستقل از P01 است. قیمت آزمایشی خودکار منقضی می‌شود.</p>
       </div>
       <button type="button" disabled={busy || loading} onClick={() => void refresh()}>تازه‌سازی</button>
     </header>
@@ -175,7 +176,7 @@ export function ShopPriceEditor({ accessToken }: { accessToken: string }) {
               {row.revision > 0 ? <button disabled={busy} type="button"
                 onClick={() => void apply(row, 'reset')}>بازگردانی قیمت اصلی</button> : null}
             </div>
-          </div> : <button type="button" disabled={busy || loading || rows.length !== 6}
+          </div> : <button type="button" disabled={busy || loading || rows.length !== 9}
             onClick={() => edit(row)}>ویرایش قیمت</button>}
         </div>;
       })}

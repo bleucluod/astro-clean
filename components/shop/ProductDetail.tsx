@@ -109,17 +109,17 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
   const [formError, setFormError] = useState('');
   const [nemadPreview, setNemadPreview] = useState<BahmanPreview | null>(nemad?.initial ?? null);
   const [nemadNeedsDetails, setNemadNeedsDetails] = useState(false);
+  const [nemadTheme, setNemadTheme] = useState<'dark' | 'light'>('dark');
   const [isFooterVisible, setFooterVisible] = useState(false);
   const [isFormVisible, setFormVisible] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const livePrices = useShopLivePrices();
   const hasBahmanPricing = nemad?.slug === 'bahman';
-  const price = liveShopPrice(livePrices.prices, hasBahmanPricing ? 'p01' : id, SHOP_SIZES[sizeIndex].dimension);
-  const nemadTheme = photoIndex === 0 ? 'dark' : 'light';
+  const price = liveShopPrice(livePrices.prices, hasBahmanPricing ? 'nm' : id, SHOP_SIZES[sizeIndex].dimension);
   const artwork = nemadPreview ?? nemad?.initial;
   const gallerySwipe = useShopGallerySwipe((step) => {
-    setPhotoIndex((index) => (index + step + product.gallery.length) % product.gallery.length);
+    selectGalleryPhoto((photoIndex + step + product.gallery.length) % product.gallery.length);
   });
   const citySuggestions = useMemo(() =>
     (id === 'p02' || (nemad && nemadNeedsDetails)) && !form.cityId && form.city.trim().length >= 2
@@ -160,8 +160,20 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (nemad) return;
       const key = new URLSearchParams(window.location.search).get('edit');
+      if (nemad) {
+        if (nemad.slug !== 'bahman' || !key) return;
+        const saved = readShopCart().find(entry => entry.key === key && entry.productId === 'nm'
+          && entry.details.nemadMonth === 'bahman');
+        if (!saved) return;
+        const index = SHOP_SIZES.findIndex(size => size.dimension === saved.size);
+        if (index >= 0) setSizeIndex(index);
+        setForm(saved.details);
+        setEditingKey(saved.key);
+        setNemadTheme(saved.details.nemadTheme === 'light' ? 'light' : 'dark');
+        setPhotoIndex(saved.details.nemadTheme === 'light' ? 1 : 0);
+        return;
+      }
       if (!key) return;
       const item = readShopCart().find((entry) => entry.key === key && entry.productId === id);
       if (!item) return;
@@ -236,7 +248,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
         return;
       }
       setNemadPreview(result.value);
-      setPhotoIndex(0);
+      setPhotoIndex(nemadTheme === 'light' ? 1 : 0);
       setNemadNeedsDetails(false);
       setFormError('');
       return;
@@ -256,6 +268,37 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
     }
     if (!addShopCartItem(id, SHOP_SIZES[sizeIndex].dimension, { ...form }, editingKey ?? undefined)) {
       setFormError('افزودن به سبد ممکن نشد؛ فضای ذخیرهٔ مرورگر یا تعداد آثار را بررسی کن.');
+      return;
+    }
+    router.push('/shop/cart');
+  }
+
+  function selectGalleryPhoto(index: number) {
+    setPhotoIndex(index);
+    if (nemad && index < 2) setNemadTheme(index === 0 ? 'dark' : 'light');
+  }
+
+  function addNemadToCart() {
+    if (!nemad || nemad.slug !== 'bahman') return;
+    if (price === null) { setFormError('قیمت فروشگاه در دسترس نیست؛ دوباره تلاش کن.'); return; }
+    const result = validateBahmanPreview(form.names, form.date, { time: form.time, cityId: form.cityId });
+    if (!result.ok) {
+      setNemadNeedsDetails(result.reason === 'needs-birth-details');
+      setFormError(result.message);
+      return;
+    }
+    const selectedMonth = Number(result.value.date.split('/')[1]);
+    if (selectedMonth !== 11) {
+      setFormError('برای سفارش نماد بهمن، تاریخ تولد باید در ماه بهمن باشد.');
+      return;
+    }
+    setNemadPreview(result.value);
+    setNemadNeedsDetails(false);
+    setFormError('');
+    if (!addShopCartItem('nm', SHOP_SIZES[sizeIndex].dimension, {
+      ...form, calendar: 'jalali', message: '', nemadMonth: 'bahman', nemadTheme,
+    }, editingKey ?? undefined)) {
+      setFormError('افزودن به سبد خرید انجام نشد؛ اطلاعات یا فضای مرورگر را بررسی کن.');
       return;
     }
     router.push('/shop/cart');
@@ -305,7 +348,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                   type="button"
                   key={photo.src}
                   className={`${styles.thumbnail} ${photoIndex === index ? styles.thumbnailActive : ''}`}
-                  onClick={() => setPhotoIndex(index)}
+                  onClick={() => selectGalleryPhoto(index)}
                   aria-label={`نمایش تصویر ${index + 1}: ${photo.label}`}
                   aria-pressed={photoIndex === index}
                 >
@@ -444,8 +487,11 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                     id !== 'p01' ? 'به‌زودی قابل سفارش' : editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن به سبد خرید'}</span>
                   <span className={styles.confirmArrow} aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg></span>
                 </button>
+                {hasBahmanPricing ? <button className={styles.confirmAction} type="button" onClick={addNemadToCart} disabled={price === null}>
+                  <span className={styles.confirmLabel}>{editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن نماد من به سبد خرید'}</span>
+                </button> : null}
               </form>
-              {id === 'p01' ? <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link> : null}
+              {(id === 'p01' || hasBahmanPricing) ? <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link> : null}
               <div className={styles.specification}>
                 <span>{product.highlight}</span>
                 {!nemad ? <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span> : null}
@@ -598,9 +644,9 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
         </section> : null}
       </div>
 
-      {!nemad ? <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
+      {(!nemad || hasBahmanPricing) ? <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
         <div><small>قیمت</small><strong><bdi>{price === null ? (livePrices.error ? 'قیمت در دسترس نیست' : 'در حال دریافت…') : formatPrice(price)}</bdi> <span>تومان</span></strong></div>
-        {id === 'p01' ? <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'افزودن به سبد'}</span></a> : <span>به‌زودی</span>}
+        {(id === 'p01' || hasBahmanPricing) ? <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'انتخاب و افزودن به سبد'}</span></a> : <span>به‌زودی</span>}
       </div> : null}
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)} className={styles.zoomDialog} aria-label={`تصاویر ${product.title}`}>
@@ -614,9 +660,9 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
               </div> : <Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" />}
             </div>
           <div className={styles.zoomActions}>
-            <button type="button" onClick={() => setPhotoIndex((photoIndex + product.gallery.length - 1) % product.gallery.length)}>تصویر قبل</button>
+            <button type="button" onClick={() => selectGalleryPhoto((photoIndex + product.gallery.length - 1) % product.gallery.length)}>تصویر قبل</button>
             <span>{formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)}</span>
-            <button type="button" onClick={() => setPhotoIndex((photoIndex + 1) % product.gallery.length)}>تصویر بعد</button>
+            <button type="button" onClick={() => selectGalleryPhoto((photoIndex + 1) % product.gallery.length)}>تصویر بعد</button>
           </div>
         </div>
       </dialog>

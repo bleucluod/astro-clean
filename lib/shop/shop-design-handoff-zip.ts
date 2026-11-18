@@ -82,6 +82,7 @@ function makeZip(entries: ZipEntry[]) {
 function designPrompt(productId: string, line: number, size: string) {
   const subject = productId === 'p01' ? 'تابلوی فاز واقعی ماه در تاریخ سفارش' :
     productId === 'p02' ? 'نقشهٔ آسمان بر پایهٔ زمان و مکان ثبت‌شده' :
+    productId === 'nm' ? 'نماد من؛ صورت فلکی، نام و تاریخ سفارش با رندرر مصوب' :
       'تابلوی هنری کهکشان راه شیری بدون ادعای بازسازی آسمان تاریخی';
   return [
     '# دستور طراحی دستی هالیوس',
@@ -137,7 +138,7 @@ export function buildPrivateShopDesignHandoffZip(
 
   for (const print of handoff.prints) {
     if (!Number.isInteger(print.line) || print.line < 1 || print.line > 20 ||
-        !['p01', 'p02', 'p03'].includes(print.productId) ||
+        !['p01', 'p02', 'p03', 'nm'].includes(print.productId) ||
         !['10x15', '20x30', '30x45'].includes(print.sizeCm)) {
       throw new Error('Invalid private design handoff line.');
     }
@@ -149,6 +150,10 @@ export function buildPrivateShopDesignHandoffZip(
     } : print.productId === 'p02' && print.birthSkyReference ? {
       kind: 'real-location-and-time-sky',
       calculation: print.birthSkyReference,
+    } : print.productId === 'nm' ? {
+      kind: 'zodiac-constellation-artwork',
+      month: print.personalization.nemadMonth,
+      theme: print.personalization.nemadTheme,
     } : { kind: 'artistic-milky-way-no-astronomical-reconstruction' };
     entries.push(jsonEntry(`${base}/data.json`, {
       format: 'halleus.shop.manual-design-line.v1',
@@ -169,6 +174,8 @@ export function buildPrivateShopDesignHandoffZip(
         cityId: print.personalization.cityId,
         names: print.personalization.names,
         message: print.personalization.message,
+        nemadMonth: print.personalization.nemadMonth,
+        nemadTheme: print.personalization.nemadTheme,
       },
       astronomy,
       artworkGenerated: false,

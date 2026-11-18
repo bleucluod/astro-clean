@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { ProductDetail, type NemadProductPage } from '@/components/shop/ProductDetail';
 import type { ShopCopySection, ShopProduct } from '@/components/shop/product-detail-data';
 import { validateBahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
+import { isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
 
 const months = [
   { slug: 'farvardin', title: 'فروردین' },
@@ -146,8 +147,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function NemadManMonthProductPage({ params }: Props) {
-  if (process.env.NODE_ENV === 'production') notFound();
   const { month } = await params;
+  if (process.env.NODE_ENV === 'production' &&
+      (month !== 'bahman' || !isShopNemadOrderEnabled())) notFound();
   const data = readApprovedMonth(month);
   if (!data) notFound();
   return <ProductDetail key={month} id="p03" nemad={data} />;

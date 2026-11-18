@@ -18,14 +18,14 @@ export async function archiveOwnerSuppliedShopPrint(input: {
   orderId: string;
   orderNumber: string;
   lineNumber: number;
-  productId: 'p01' | 'p02';
+  productId: 'p01' | 'p02' | 'nm';
   size: string;
   jpeg: Buffer;
 }) {
   if (process.platform !== 'linux' || !isAbsolute(input.root) || !orderIdPattern.test(input.orderId) ||
       !isValidShopOrderNumber(input.orderNumber) ||
       !Number.isSafeInteger(input.lineNumber) || input.lineNumber < 1 || input.lineNumber > 20 ||
-      !['p01', 'p02'].includes(input.productId) || !Buffer.isBuffer(input.jpeg) ||
+      !['p01', 'p02', 'nm'].includes(input.productId) || !Buffer.isBuffer(input.jpeg) ||
       input.jpeg.length < 1024 || input.jpeg.length > MAX_JPEG_BYTES) {
     throw new ShopManualPrintArchiveError('فایل چاپ یا مسیر آرشیو معتبر نیست.', 422);
   }

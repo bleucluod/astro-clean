@@ -8,7 +8,7 @@ import { calculateShopBrightStarProof } from './shop-sky-stars';
 const readyForHandoff = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
 const names: Record<string, string> = {
-  p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما',
+  p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما', nm: 'نماد من — بهمن',
 };
 
 export class ShopPrintHandoffError extends Error {
@@ -100,6 +100,8 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
         cityId: item.details.cityId,
         names: item.details.names,
         message: item.details.message,
+        nemadMonth: item.productId === 'nm' ? item.details.nemadMonth : null,
+        nemadTheme: item.productId === 'nm' ? item.details.nemadTheme : null,
       },
       printArtworkReady: false,
     })),

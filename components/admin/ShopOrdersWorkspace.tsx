@@ -15,7 +15,8 @@ type ShopOrderRow = {
 };
 type PrintItem = {
   key: string; productId: string; size: string; quantity: number;
-  details: { calendar: string; date: string; time: string; city: string; names: string; message: string };
+  details: { calendar: string; date: string; time: string; city: string; names: string; message: string;
+    nemadMonth?: string; nemadTheme?: string };
 };
 type ShopOrderDetail = ShopOrderRow & {
   province: string; city: string; address: string; postal_code: string;
@@ -32,7 +33,7 @@ const labels: Record<string, string> = {
   preparing: 'در حال آماده‌سازی', shipped: 'ارسال‌شده', delivered: 'تحویل‌شده',
   cancel_requested: 'درخواست لغو', canceled: 'لغوشده',
 };
-const productNames: Record<string, string> = { p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما' };
+const productNames: Record<string, string> = { p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما', nm: 'نماد من — بهمن' };
 const printHandoffStatuses = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
 class ShopRequestError extends Error {
@@ -212,7 +213,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
   async function uploadFinalPrint() {
     const chosenArtwork = generatedArtwork?.line === uploadLine ? generatedArtwork.blob : uploadFile;
     if (!detail || busy || !['payment_verified', 'preparing'].includes(detail.status) ||
-        !['p01', 'p02'].includes(detail.items[uploadLine - 1]?.productId ?? '') ||
+        !['p01', 'p02', 'nm'].includes(detail.items[uploadLine - 1]?.productId ?? '') ||
         !chosenArtwork || !confirmOrderMatch || !confirmLabPrint) return;
     if (chosenArtwork.size > 8 * 1024 * 1024 || chosenArtwork.size < 1024 ||
         chosenArtwork.type !== 'image/jpeg') {
@@ -380,6 +381,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       <h4>مشخصات محصولات</h4>
       <div className={styles.items}>{detail.items.map((item) => <article key={item.key}>
         <strong>{productNames[item.productId] ?? item.productId} · {item.size} سانتی‌متر · {formatNumber(item.quantity)} عدد</strong>
+        {item.productId === 'nm' ? <small>ماه بهمن · مدل {item.details.nemadTheme === 'light' ? 'روشن' : 'تیره'}</small> : null}
         {item.details.date ? <p>تاریخ: {item.details.date} ({item.details.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</p> : null}
         {item.details.time ? <p>ساعت: {item.details.time}</p> : null}
         {item.details.city ? <p>شهر: {item.details.city}</p> : null}
@@ -390,7 +392,7 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
         <div className={styles.productionHeader}>
           <span className={styles.eyebrow}>ساخت اثر / مرحلهٔ چاپ</span>
           <h4 id="shop-production-title">طرح «{productNames[detail.items[uploadLine - 1]?.productId ?? ''] ?? 'اثر'}» همین سفارش</h4>
-          <p>همان مستر R9b با تاریخ، نام، پیام و اندازهٔ سفارش ساخته می‌شود. فایل ابتدا فقط برای بازبینی توست؛ بدون تأیید نهایی ذخیره نمی‌شود.</p>
+          <p>برای P01/P02 تصویر اختصاصی را بساز؛ برای نماد من، JPG چاپی منطبق با نام، تاریخ، رنگ و اندازهٔ سفارش را از رندرر مصوب آماده و بارگذاری کن. فایل فقط پس از تأیید نهایی ذخیره می‌شود.</p>
         </div>
         <form className={styles.productionGrid} onSubmit={(event) => { event.preventDefault(); void uploadFinalPrint(); }}>
           <div className={styles.productionControls}>

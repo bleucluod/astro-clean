@@ -20,3 +20,9 @@ export function isShopP02OrderEnabled(): boolean {
   if (process.env.NODE_ENV !== 'production') return true;
   return isShopMvpActive() && process.env.HALLEUS_SHOP_P02_ORDERS_ENABLED === 'true';
 }
+
+/** Bahman NM orders are enabled locally; production needs explicit release opt-in. */
+export function isShopNemadOrderEnabled(): boolean {
+  if (process.env.NODE_ENV !== 'production') return true;
+  return isShopMvpActive() && process.env.HALLEUS_SHOP_NEMAD_ORDERS_ENABLED === 'true';
+}

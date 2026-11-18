@@ -122,6 +122,7 @@ function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; 
         {item.details.city ? <span>شهر: {item.details.city}</span> : null}
         {item.details.names ? <span>نام: {item.details.names}</span> : null}
         {item.details.message ? <span>پیام: {item.details.message}</span> : null}
+      {item.productId === 'nm' ? <span>مدل نماد من: {item.details.nemadTheme === 'light' ? 'روشن' : 'تیره'}</span> : null}
       </div>
       <div className={styles.itemActions}>
         <div className={styles.quantity} aria-label={`تعداد ${product.title}`}>

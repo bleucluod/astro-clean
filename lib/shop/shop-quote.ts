@@ -1,6 +1,6 @@
 import { getShopProductPrice } from '@/components/shop/product-detail-data';
 import { assertShopPriceMap, shopPriceKey, type ShopPriceMap } from './shop-price-store';
-import { isShopP02OrderEnabled } from './shop-mvp-activation';
+import { isShopP02OrderEnabled, isShopNemadOrderEnabled } from './shop-mvp-activation';
 import { SHOP_SHIPPING_AND_PACKAGING, type ShopCarrier } from '@/components/shop/shop-checkout-state';
 
 export type ShopQuote = {
@@ -20,8 +20,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-// The third product remains postponed. P02 requires a separate production gate.
-const productIds: ReadonlySet<string> = new Set(['p01', 'p02']);
+// P03 stays closed; NM is a separately gated Nemad Man collection.
+const productIds: ReadonlySet<string> = new Set(['p01', 'p02', 'nm']);
 
 export function quoteShopItems(value: unknown, prices: ShopPriceMap): ShopQuote {
   assertShopPriceMap(prices);
@@ -39,6 +39,7 @@ export function quoteShopItems(value: unknown, prices: ShopPriceMap): ShopQuote 
       throw new ShopQuoteError();
     }
     if (raw.productId === 'p02' && !isShopP02OrderEnabled()) throw new ShopQuoteError();
+    if (raw.productId === 'nm' && !isShopNemadOrderEnabled()) throw new ShopQuoteError();
     const price = getShopProductPrice(raw.productId, raw.size) === null ? null
       : prices[shopPriceKey(raw.productId, raw.size)];
     if (price === null || !Number.isSafeInteger(price) || price < 1000 || price > 10_000_000) throw new ShopQuoteError();

@@ -10,6 +10,8 @@ export type ShopPersonalization = {
   cityId: string;
   names: string;
   message: string;
+  nemadMonth?: 'bahman';
+  nemadTheme?: 'dark' | 'light';
 };
 
 export type ShopSize = (typeof SHOP_SIZES)[number]['dimension'];
@@ -27,8 +29,8 @@ export const SHOP_CART_CHANGED_EVENT = 'halleus:shop-cart-changed';
 const MAX_LINES = 20;
 const MAX_QUANTITY = 10;
 
-const validProductIds: ShopProductId[] = ['p01', 'p02'];
-const detailLimits: Record<keyof ShopPersonalization, number> = {
+const validProductIds: ShopProductId[] = ['p01', 'p02', 'nm'];
+const detailLimits: Record<Exclude<keyof ShopPersonalization, 'nemadMonth' | 'nemadTheme'>, number> = {
   calendar: 9, date: 20, time: 10, city: 100, cityId: 60, names: 60, message: 60,
 };
 
@@ -59,6 +61,16 @@ export function parseShopCart(value: unknown): ShopCartItem[] {
       }
     }
     if (!validateShopMoment(item.productId as ShopProductId, normalizedDetails).ok) continue;
+    if (item.productId === 'nm') {
+      const monthPart = normalizedDetails.date.split('/')[1] ?? '';
+      const monthDigits = monthPart.replace(/[۰-۹]/g, digit => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+        .replace(/[٠-٩]/g, digit => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
+      if (normalizedDetails.calendar !== 'jalali' || Number(monthDigits) !== 11 ||
+          normalizedDetails.nemadMonth !== 'bahman' ||
+          !['dark', 'light'].includes(normalizedDetails.nemadTheme ?? '') ||
+          !normalizedDetails.names.trim() || Array.from(normalizedDetails.names).length > 28 ||
+          normalizedDetails.message !== '') continue;
+    }
     seen.add(item.key);
     items.push({
       key: item.key, productId: item.productId as ShopProductId, size: item.size as ShopSize,
@@ -67,6 +79,8 @@ export function parseShopCart(value: unknown): ShopCartItem[] {
         calendar: details.calendar, date: details.date as string, time: details.time as string,
         city: normalizedDetails.city, cityId: normalizedDetails.cityId,
         names: details.names as string, message: details.message as string,
+        ...(item.productId === 'nm' ? { nemadMonth: 'bahman' as const,
+          nemadTheme: normalizedDetails.nemadTheme as 'dark' | 'light' } : {}),
       },
     });
   }

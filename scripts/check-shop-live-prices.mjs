@@ -38,7 +38,7 @@ const skySizes=[
 ];
 const product={
   SHOP_SIZES:sizes,SHOP_P02_SIZES:skySizes,
-  getShopProductPrice:(id,size)=>(id==='p01'?sizes:id==='p02'?skySizes:[])
+  getShopProductPrice:(id,size)=>(id==='p01'||id==='nm'?sizes:id==='p02'?skySizes:[])
     .find(row=>row.dimension===size)?.price??null,
 };
 const now=Date.now();
@@ -69,9 +69,10 @@ const store=compile('lib/shop/shop-price-store.ts',{
   '@/lib/admin/admin-database':{getAdminDatabase:()=>sql},
   '@/components/shop/product-detail-data':product,
 });
-assert.equal(store.listBaseShopPrices().length,6);
+assert.equal(store.listBaseShopPrices().length,9);
 const snapshot=await store.readShopPriceCatalog();
-assert.equal(snapshot.rows.length,6);
+assert.equal(snapshot.rows.length,9);
+assert.equal(snapshot.prices['nm:20x30'],1599000,'NM starts from the P01 base but has its own overrides');
 assert.equal(snapshot.prices['p01:10x15'],10000,'temporary override');
 assert.equal(snapshot.prices['p02:20x30'],1900000,'expired override automatically ignored');
 assert.equal(snapshot.rows.find(x=>x.productId==='p02'&&x.size==='20x30').revision,3,'expired revision preserved');
