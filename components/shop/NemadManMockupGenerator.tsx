@@ -9,7 +9,7 @@ type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
 type BuiltMockup = { sourceName: string; fileName: string; blob: Blob; bytes: number };
 type SourceVariant = 'all' | 'light' | 'dark';
-type SceneId = 'console' | 'wall-bench';
+type SceneId = 'console' | 'wall-bench' | 'workdesk';
 type MockupScene = {
   id: SceneId;
   label: string;
@@ -59,6 +59,20 @@ const SCENES: MockupScene[] = [
       0.0000695930162, 0.00000535729928,
     ],
     suffix: '-wall-bench',
+  },
+  { id: 'workdesk', label: 'میز کار کنار لپ‌تاپ · شاسی ۱۰×۱۵',
+    path: '/shop-preview/nemad-man/mockup-blank-workdesk-10x15.webp',
+    // Calibrated against the actual 1024×1536 desk photo; a slim, unframed 10×15 panel.
+    front: [
+      { x: 204.0, y: 451.9 }, { x: 567.8, y: 439.2 },
+      { x: 635.4, y: 1006.2 }, { x: 253.0, y: 1050.9 },
+    ],
+    inverse: [
+       0.00267066203287117, -0.000218468168520147, -0.446089290684888,
+       0.0000632154887332265, 0.00181085253442321, -0.831220208954858,
+      -0.000134898876532426, 0.000116022166962026,
+    ],
+    suffix: '-desk-10x15',
   },
 ];
 const OUTPUT_WIDTH = 1024;
@@ -336,11 +350,9 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas در این مرورگر قابل استفاده نیست.');
   ctx.drawImage(scene, 0, 0, width, height);
-  // The wall photo already contains genuine window and foliage shadows across
-  // its blank canvas. Sample those original pixels before covering the face.
-  // Preserve them as a normalized exposure map instead of painting the cream
-  // background over the user's dark or light artwork.
-  const photoPixels = mockup.id === 'wall-bench'
+  // Preserve shadows and surface illumination from the photographed blank
+  // wall/desk panels without bleeding the blank face into the uploaded artwork.
+  const photoPixels = mockup.id === 'wall-bench' || mockup.id === 'workdesk'
     ? ctx.getImageData(0, 0, width, height).data
     : null;
 
@@ -362,6 +374,7 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   const [a, b, c, d, e, f, g, h] = mockup.inverse;
   const srcW = poster.width;
   const srcH = poster.height;
+  const referenceLuminance = mockup.id === 'workdesk' ? 193 : 209;
   const minX = Math.floor(Math.min(...mockup.front.map(p => p.x)));
   const maxX = Math.ceil(Math.max(...mockup.front.map(p => p.x)));
   const minY = Math.floor(Math.min(...mockup.front.map(p => p.y)));
@@ -395,14 +408,13 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
       const p01 = (y1 * srcW + x0) * 4;
       const p11 = (y1 * srcW + x1) * 4;
       const dst = (y * width + x) * 4;
-      // A neutral 209/255 reference is calibrated from the photographed face.
-      // This retains the real, pre-existing light/shadow texture after placing
-      // either a white or a black poster, without reintroducing cream pixels.
+      // Scene-specific neutral white reference. Retain its soft natural shadows
+      // even after replacing the entire 10×15 desk artwork with the uploaded WebP.
       const light = photoPixels
         ? Math.max(0.74, Math.min(1.10, Math.pow((
           photoPixels[dst] * 0.2126 + photoPixels[dst + 1] * 0.7152 +
           photoPixels[dst + 2] * 0.0722
-        ) / 209, 1.22)))
+        ) / referenceLuminance, 1.22)))
         : 1;
       for (let channel = 0; channel < 3; channel++) {
         const art = pixels[p00 + channel] * w00 +
@@ -430,8 +442,8 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   ctx.fill();
   ctx.drawImage(surface, 0, 0);
 
-  // Console keeps its original soft photographic blend; the wall scene's
-  // full normalized exposure/shadows are already baked into the poster pixels.
+  // Console keeps its original blend; wall and desk shadows are already
+  // baked into the projected artwork pixels.
   if (mockup.id === 'console') {
     ctx.globalCompositeOperation = 'multiply';
     ctx.globalAlpha = 0.14;
