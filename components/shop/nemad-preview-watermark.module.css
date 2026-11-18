@@ -14,23 +14,49 @@
 .marks {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  place-items: center;
+  z-index: 1;
   overflow: hidden;
   pointer-events: none;
   user-select: none;
-  isolation: isolate;
 }
-.marks > span {
-  display: block;
+.seal {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: max-content;
-  max-width: none;
   white-space: nowrap;
-  transform: rotate(-24deg);
-  color: #f8fafc;
-  mix-blend-mode: difference;
+  text-align: center;
+  color: #e8eff6;
   opacity: .32;
-  font: 750 clamp(8px, 5cqw, 29px)/1.25 sans-serif;
-  letter-spacing: .045em;
+  font-family: var(--font-persian);
+  font-size: clamp(8px, 3.25cqw, 20px);
+  line-height: 1.25;
+  transform: translate(-50%, -50%) rotate(-11deg);
+}
+.surface[data-theme='light'] .seal {
+  color: #34495d;
+  opacity: .32;
+}
+.first {
+  left: 36%;
+  top: 29%;
+}
+.second {
+  left: 64%;
+  top: 60%;
+}
+.brand {
+  padding-inline-start: .18em;
+  padding-bottom: .17em;
+  border-bottom: 1px solid currentColor;
+  font-size: 1em;
+  font-weight: 650;
+  letter-spacing: .18em;
+}
+.preview {
+  margin-top: .21em;
+  font-size: .83em;
+  font-weight: 500;
+  letter-spacing: normal;
 }

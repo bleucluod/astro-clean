@@ -97,12 +97,17 @@ assert.ok(!live.includes("nemad.slug !== 'bahman'"), 'Sale gate must cover all a
 assert.match(live, /alt=\{nemad \? photo.alt : ''\}/);
 assert.match(detail, /alt=\{nemad \? photo.alt : ''\}/);
 
-assert.equal((live.match(/<NemadPreviewWatermark>/g) ?? []).length, 3);
-assert.equal((detail.match(/<NemadPreviewWatermark>/g) ?? []).length, 4);
+assert.equal((live.match(/<NemadPreviewWatermark theme=\{nemadTheme\}>/g) ?? []).length, 3);
+assert.equal((detail.match(/<NemadPreviewWatermark theme=\{nemadTheme\}>/g) ?? []).length, 4);
 assert.ok(watermark.includes('aria-hidden="true"'));
-assert.ok(watermark.includes('HALLEUS · پیش‌نمایش'));
+assert.ok(watermark.includes('data-theme={theme}'));
+assert.equal((watermark.match(/dir="rtl" lang="fa">پیش‌نمایش<\/span>/g) ?? []).length, 2);
+assert.equal((watermark.match(/dir="ltr">HALLEUS<\/span>/g) ?? []).length, 2);
 assert.match(css, /pointer-events: none/);
-assert.match(css, /mix-blend-mode: difference/);
+assert.match(css, /font-family: var\(--font-persian\)/);
+assert.match(css, /\.surface\[data-theme='light'\] \.seal/);
+assert.ok(!css.includes('mix-blend-mode'), 'Preview must not invert colors');
+assert.ok(!watermark.includes('HALLEUS · پیش‌نمایش'), 'Legacy mixed-direction text must not return');
 assert.ok(!read('components/shop/NemadManBahmanArtwork.tsx').includes('NemadPreviewWatermark'),
   'Print/export SVG must never carry the customer preview watermark');
 console.log('NEMAD_PREVIEW_ALT_WATERMARK=PASS: 72 distinct approved ALT keywords, 48 mockups, 12 months, shared live renderer, screen watermarks');

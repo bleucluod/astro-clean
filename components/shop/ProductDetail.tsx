@@ -324,7 +324,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
               aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
               {nemad && artwork && photoIndex < 2 ? (
                 <span className={styles.nemadArtwork}>
-                  <NemadPreviewWatermark><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                  <NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
                     sign={artwork.sign} theme={nemadTheme} /></NemadPreviewWatermark>
                 </span>
               ) : (
@@ -529,7 +529,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
         <section className={styles.storySection} aria-labelledby="story-heading">
           <div className={styles.storyImage}>
             {nemad && artwork ? (
-              <div className={styles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
+              <div className={styles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork
                 name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></NemadPreviewWatermark></div>
             ) : <Image src={product.gallery[1].src} alt={product.gallery[1].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />}
           </div>
@@ -551,7 +551,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
           </div>
           <div className={styles.craftImage}>
             {nemad && artwork ? (
-              <div className={styles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
+              <div className={styles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork
                 name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></NemadPreviewWatermark></div>
             ) : <Image src={product.gallery[3].src} alt={product.gallery[3].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />}
           </div>
@@ -659,7 +659,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
           <div className={`${styles.zoomPhoto} ${nemad ? styles.nemadZoomPhoto : ''}`}
               {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
               {nemad && artwork && photoIndex < 2 ? <div className={styles.nemadArtwork}>
-                <NemadPreviewWatermark><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                <NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
                   sign={artwork.sign} theme={nemadTheme}/></NemadPreviewWatermark>
               </div> : <Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" />}
             </div>
