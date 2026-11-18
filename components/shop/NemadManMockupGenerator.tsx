@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './NemadManMockupGenerator.module.css';
 
 type Point = { x: number; y: number };
@@ -9,11 +9,21 @@ type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
 
 const TEMPLATE = '/shop-preview/nemad-man/mockup-blank-console.webp';
-// Top-left, top-right, bottom-right, bottom-left of the UNFRAMED canvas front.
-const DEFAULT_QUAD: Quad = [
-  { x: 0.250, y: 0.155 }, { x: 0.844, y: 0.131 },
-  { x: 0.816, y: 0.795 }, { x: 0.205, y: 0.774 },
+// Pixel-verified face of the sole, fixed 1024x1536 scene. Corners are NOT user controls.
+// Top-left, top-right, bottom-right, bottom-left: the visible printable surface only.
+const CANVAS_FRONT: Quad = [
+  { x: 254, y: 241 }, { x: 861, y: 204 },
+  { x: 840, y: 1226 }, { x: 211, y: 1186 },
 ];
+// Inverse projective map from output pixels to source artwork UV coordinates.
+// Solved once for CANVAS_FRONT. A single pixel pass avoids strip gaps and seams.
+const INVERSE = [
+  0.00186885322, 0.0000850377655, -0.495182819,
+  0.0000704023501, 0.00115497909, -0.296232159,
+  0.000140701320, 0.0000495277950,
+] as const;
+const OUTPUT_WIDTH = 1024;
+const OUTPUT_HEIGHT = 1536;
 const MAX_ARTS = 300;
 const MAX_ZIP_BYTES = 120 * 1024 * 1024;
 const MAX_UNPACKED_BYTES = 300 * 1024 * 1024;
@@ -177,74 +187,90 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function cover(ctx: CanvasRenderingContext2D, image: CanvasImageSource, width: number, height: number, sw: number, sh: number) {
-  const scale = Math.max(width / sw, height / sh);
-  const cw = width / scale;
-  const ch = height / scale;
-  ctx.drawImage(image, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, width, height);
-}
-
-function bilinear(q: Quad, u: number, v: number): Point {
-  return {
-    x: (1-u)*(1-v)*q[0].x + u*(1-v)*q[1].x + u*v*q[2].x + (1-u)*v*q[3].x,
-    y: (1-u)*(1-v)*q[0].y + u*(1-v)*q[1].y + u*v*q[2].y + (1-u)*v*q[3].y,
-  };
-}
-
-function compose(scene: HTMLImageElement, poster: ImageBitmap, quad: Quad): HTMLCanvasElement {
-  const width = 1024;
-  const height = 1536;
+function compose(scene: HTMLImageElement, poster: ImageBitmap): HTMLCanvasElement {
+  const width = OUTPUT_WIDTH;
+  const height = OUTPUT_HEIGHT;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas در این مرورگر قابل استفاده نیست.');
-  cover(ctx, scene, width, height, scene.naturalWidth, scene.naturalHeight);
-  // The original artwork is decoded and projected, never redrawn or text-regenerated.
-  const q = quad.map(p => ({ x: p.x * width, y: p.y * height })) as Quad;
+  ctx.drawImage(scene, 0, 0, width, height);
+
+  // Read the actual uploaded artwork. Never generate or retype its typography.
+  const artCanvas = document.createElement('canvas');
+  artCanvas.width = poster.width;
+  artCanvas.height = poster.height;
+  const artCtx = artCanvas.getContext('2d', { willReadFrequently: true });
+  if (!artCtx) throw new Error('پردازش تصویر اصلی ممکن نیست.');
+  artCtx.drawImage(poster, 0, 0);
+  const pixels = artCtx.getImageData(0, 0, poster.width, poster.height).data;
+  const surface = document.createElement('canvas');
+  surface.width = width;
+  surface.height = height;
+  const surfaceCtx = surface.getContext('2d');
+  if (!surfaceCtx) throw new Error('ساخت سطح شاسی ممکن نیست.');
+  const surfaceImage = surfaceCtx.createImageData(width, height);
+  const output = surfaceImage.data;
+  const [a, b, c, d, e, f, g, h] = INVERSE;
+  const srcW = poster.width;
+  const srcH = poster.height;
+  const minX = Math.floor(Math.min(...CANVAS_FRONT.map(p => p.x)));
+  const maxX = Math.ceil(Math.max(...CANVAS_FRONT.map(p => p.x)));
+  const minY = Math.floor(Math.min(...CANVAS_FRONT.map(p => p.y)));
+  const maxY = Math.ceil(Math.max(...CANVAS_FRONT.map(p => p.y)));
+
+  // One inverse-homography sample per output pixel, with bilinear interpolation.
+  // No row/strip meshes, so joins and corners cannot leave white slivers.
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      const px = x + 0.5;
+      const py = y + 0.5;
+      const den = g * px + h * py + 1;
+      const u = (a * px + b * py + c) / den;
+      const v = (d * px + e * py + f) / den;
+      if (u < 0 || v < 0 || u > 1 || v > 1) continue;
+      const sx = u * (srcW - 1);
+      const sy = v * (srcH - 1);
+      const x0 = Math.floor(sx);
+      const y0 = Math.floor(sy);
+      const x1 = Math.min(srcW - 1, x0 + 1);
+      const y1 = Math.min(srcH - 1, y0 + 1);
+      const dx = sx - x0;
+      const dy = sy - y0;
+      const w00 = (1 - dx) * (1 - dy);
+      const w10 = dx * (1 - dy);
+      const w01 = (1 - dx) * dy;
+      const w11 = dx * dy;
+      const p00 = (y0 * srcW + x0) * 4;
+      const p10 = (y0 * srcW + x1) * 4;
+      const p01 = (y1 * srcW + x0) * 4;
+      const p11 = (y1 * srcW + x1) * 4;
+      const dst = (y * width + x) * 4;
+      for (let channel = 0; channel < 4; channel++) {
+        output[dst + channel] = pixels[p00 + channel] * w00 +
+          pixels[p10 + channel] * w10 + pixels[p01 + channel] * w01 +
+          pixels[p11 + channel] * w11;
+      }
+    }
+  }
+  surfaceCtx.putImageData(surfaceImage, 0, 0);
+
+  // Pixel-exact face mask, preserving the dark burned-wood side of the mockup.
   ctx.save();
   ctx.beginPath();
-  ctx.moveTo(q[0].x, q[0].y);
-  ctx.lineTo(q[1].x, q[1].y);
-  ctx.lineTo(q[2].x, q[2].y);
-  ctx.lineTo(q[3].x, q[3].y);
+  ctx.moveTo(CANVAS_FRONT[0].x, CANVAS_FRONT[0].y);
+  for (let i = 1; i < CANVAS_FRONT.length; i++) {
+    ctx.lineTo(CANVAS_FRONT[i].x, CANVAS_FRONT[i].y);
+  }
   ctx.closePath();
   ctx.clip();
-  // Fine strips implement a perspective-ish bilinear quad projection using affine drawing.
-  const strips = 100;
-  for (let n = 0; n < strips; n++) {
-    const u = n / strips;
-    const u1 = (n + 1) / strips;
-    const top = bilinear(q, u, 0);
-    const bottom = bilinear(q, u, 1);
-    const nextTop = bilinear(q, u1, 0);
-    const sx = Math.floor(u * poster.width);
-    const sx2 = Math.ceil(u1 * poster.width);
-    ctx.save();
-    // Local coordinate origin (0,0) maps to the top of this strip.
-    ctx.setTransform((nextTop.x - top.x) / (sx2 - sx),
-      (nextTop.y - top.y) / (sx2 - sx),
-      (bottom.x - top.x) / poster.height,
-      (bottom.y - top.y) / poster.height,
-      top.x, top.y);
-    ctx.drawImage(poster, sx, 0, sx2 - sx, poster.height, 0, 0, sx2 - sx + 1.3, poster.height);
-    ctx.restore();
-  }
-  // Restore a small amount of the original canvas weave and window shading.
-  ctx.save();
+  ctx.drawImage(surface, 0, 0);
+
+  // Subtle illumination from the photographed blank surface, confined to the face.
   ctx.globalCompositeOperation = 'multiply';
-  ctx.globalAlpha = 0.16;
-  cover(ctx, scene, width, height, scene.naturalWidth, scene.naturalHeight);
-  ctx.restore();
-  // Only a small physical lighting veil is applied; text and stars are not regenerated.
-  const gx = Math.min(...q.map(p => p.x));
-  const gw = Math.max(...q.map(p => p.x)) - gx;
-  const light = ctx.createLinearGradient(gx, 0, gx + gw, 0);
-  light.addColorStop(0, 'rgba(247,250,255,0.08)');
-  light.addColorStop(0.42, 'rgba(255,255,255,0)');
-  light.addColorStop(1, 'rgba(20,32,46,0.09)');
-  ctx.fillStyle = light;
-  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 0.14;
+  ctx.drawImage(scene, 0, 0, width, height);
   ctx.restore();
   return canvas;
 }
@@ -293,25 +319,17 @@ function saveBlob(blob: Blob, name: string) {
 export function NemadManMockupGenerator() {
   const filePicker = useRef<HTMLInputElement>(null);
   const folderPicker = useRef<HTMLInputElement>(null);
-  const scenePicker = useRef<HTMLInputElement>(null);
   const cancel = useRef(false);
   const [arts, setArts] = useState<SourceArt[]>([]);
-  const [sceneUrl, setSceneUrl] = useState(TEMPLATE);
-  const [quad, setQuad] = useState<Quad>(DEFAULT_QUAD);
-  const [editing, setEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [limitKb, setLimitKb] = useState(70);
-  const [dragging, setDragging] = useState<number | null>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const previousScene = useRef<string | null>(null);
 
   useEffect(() => {
     folderPicker.current?.setAttribute('webkitdirectory', '');
     folderPicker.current?.setAttribute('directory', '');
-    return () => { if (previousScene.current) URL.revokeObjectURL(previousScene.current); };
   }, []);
 
   const importFiles = useCallback(async (files: File[]) => {
@@ -324,27 +342,15 @@ export function NemadManMockupGenerator() {
     } catch (err) { setError(err instanceof Error ? err.message : 'ورود فایل‌ها ناموفق بود.'); }
   }, [busy]);
 
-  const addScene = useCallback((file: File | undefined) => {
-    if (!file || busy || !file.type.startsWith('image/')) return;
-    if (file.size > 20 * 1024 * 1024) { setError('قالب باید زیر ۲۰ مگابایت باشد.'); return; }
-    if (previousScene.current) URL.revokeObjectURL(previousScene.current);
-    const url = URL.createObjectURL(file);
-    previousScene.current = url;
-    setSceneUrl(url);
-    setQuad(DEFAULT_QUAD);
-    setEditing(true);
-    setError('');
-  }, [busy]);
-
   useEffect(() => {
     let ended = false;
     let url: string | null = null;
     if (!arts.length) { setPreviewUrl(null); return; }
     (async () => {
       try {
-        const [scene, poster] = await Promise.all([loadImage(sceneUrl), createImageBitmap(arts[0].image)]);
+        const [scene, poster] = await Promise.all([loadImage(TEMPLATE), createImageBitmap(arts[0].image)]);
         if (poster.width * poster.height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
-        const canvas = compose(scene, poster, quad);
+        const canvas = compose(scene, poster);
         poster.close();
         const blob = await encodeWebp(canvas, 0.87);
         url = URL.createObjectURL(blob);
@@ -355,17 +361,7 @@ export function NemadManMockupGenerator() {
       }
     })();
     return () => { ended = true; if (url) URL.revokeObjectURL(url); };
-  }, [arts, sceneUrl, quad]);
-
-  const pointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (dragging === null || !stageRef.current) return;
-    const rect = stageRef.current.getBoundingClientRect();
-    const p = {
-      x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
-      y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)),
-    };
-    setQuad(previous => previous.map((old, index) => index === dragging ? p : old) as Quad);
-  };
+  }, [arts]);
 
   const generate = async () => {
     if (busy || !arts.length) return;
@@ -374,7 +370,7 @@ export function NemadManMockupGenerator() {
     setProgress(0);
     setError('');
     try {
-      const scene = await loadImage(sceneUrl);
+      const scene = await loadImage(TEMPLATE);
       const entries: Entry[] = [];
       for (let i = 0; i < arts.length; i++) {
         if (cancel.current) throw new Error('پردازش متوقف شد؛ خروجی ناقص ذخیره نشد.');
@@ -386,7 +382,7 @@ export function NemadManMockupGenerator() {
           poster.close();
           throw new Error('ابعاد بیش از حد مجاز: ' + art.name);
         }
-        const output = compose(scene, poster, quad);
+        const output = compose(scene, poster);
         poster.close();
         const blob = await smallWebp(output, limitKb * 1000);
         const data = new Uint8Array(await blob.arrayBuffer());
@@ -421,14 +417,8 @@ export function NemadManMockupGenerator() {
           فایل‌ها یا ZIP را اینجا رها کن. پوشهٔ شامل ۷۲ تصویر را هم می‌توانی یکجا انتخاب کنی.
         </div>
         <p className={styles.count}>{arts.length ? `${arts.length} تصویر آماده • نمونه: ${arts[0].name}` : 'هنوز تصویری انتخاب نشده است.'}</p>
-        <h2>۲. صحنهٔ موکاپ</h2>
-        <div className={styles.buttons}>
-          <button type="button" className={styles.secondary} disabled={busy} onClick={() => { setSceneUrl(TEMPLATE); setQuad(DEFAULT_QUAD); setEditing(false); }}>کنسولِ آماده</button>
-          <button type="button" className={styles.secondary} disabled={busy} onClick={() => scenePicker.current?.click()}>بارگذاری صحنهٔ خالیِ خودم</button>
-        </div>
-        <input ref={scenePicker} className={styles.hidden} type="file" accept="image/*" onChange={e => { addScene(e.target.files?.[0]); e.target.value = ''; }} />
-        <button type="button" className={styles.textButton} disabled={busy} onClick={() => setEditing(!editing)}>{editing ? 'بستن ویرایش چهار گوشه' : 'تنظیم چهار گوشهٔ شاسی'}</button>
-        <p className={styles.tip}>برای صحنهٔ دلخواه، عکسی با شاسی سفید و بدون طرح انتخاب کن؛ چهار دستگیره را روی گوشه‌های سطح چاپ ببر.</p>
+        <h2>۲. شاسی آماده و خودکار</h2>
+        <p className={styles.tip}>جای طرح روی شاسی ثابت و دقیق است؛ بدون تنظیم دستی گوشه‌ها. لبهٔ برش چوبی قهوه‌ای خیلی تیره دارد و طرح اصلی دست‌نخورده می‌ماند.</p>
         <h2>۳. خروجی نهایی</h2>
         <label className={styles.inlineLabel}>سقف هر WebP
           <select disabled={busy} value={limitKb} onChange={e => setLimitKb(Number(e.target.value))}>
@@ -446,19 +436,10 @@ export function NemadManMockupGenerator() {
       </section>
       <section className={styles.panel}>
         <div className={styles.previewHead}><h2>پیش‌نمایش اولین تصویر</h2><span>۲:۳</span></div>
-        <div className={styles.stage} ref={stageRef}
-          onPointerMove={pointerMove}
-          onPointerUp={() => setDragging(null)}
-          onPointerCancel={() => setDragging(null)}>
-          {/* Artwork pixels are incorporated into the raster preview, not regenerated. */}
+        <div className={styles.stage}>
+          {/* The original uploaded artwork is projected; no AI rendering of text or stars. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="پیش‌نمایش شاسی" src={previewUrl || sceneUrl} />
-          {editing && <>{quad.map((p, index) => <button key={index} type="button"
-            className={styles.handle}
-            style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
-            aria-label={`گوشهٔ ${index + 1}`}
-            onPointerDown={e => { setDragging(index); e.currentTarget.parentElement?.setPointerCapture(e.pointerId); }}
-          >{index + 1}</button>)}</>}
+          <img alt="پیش‌نمایش خودکار شاسی بدون قاب" src={previewUrl || TEMPLATE} />
         </div>
         <p className={styles.previewFoot}>{arts.length ? 'طرح اولین فایل ورودی روی صحنه نشان داده می‌شود.' : 'ابتدا تصاویر خودت را انتخاب کن تا طرح واقعی نمایش داده شود.'}</p>
       </section>

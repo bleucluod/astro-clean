@@ -17,7 +17,6 @@
 .drop { border:1px dashed #9aaebf; border-radius:14px; padding:26px 18px; margin:14px 0 10px; text-align:center; line-height:1.9; color:#52657a; background:#f8fafc; }
 .count { font-size:14px; overflow-wrap:anywhere; color:#315b7d; }
 .tip { font-size:13px; color:#64748b; line-height:1.9; margin-top:12px; }
-.textButton { margin-top:13px; background:transparent; border:none; padding:0; cursor:pointer; color:#315b7d; text-decoration:underline; font:inherit; }
 .inlineLabel { display:flex; align-items:center; gap:15px; margin-bottom:14px; }
 .inlineLabel select { border:1px solid #bcccdc; background:#fff; border-radius:9px; padding:8px; font:inherit; }
 .progress { margin-top:15px; font-weight:600; }
@@ -25,8 +24,7 @@
 .error { color:#9d2626; background:#fff3f3; border-radius:10px; padding:12px; line-height:1.8; }
 .previewHead { display:flex; justify-content:space-between; align-items:center; }
 .previewHead span { color:#64748b; font:600 13px system-ui; }
-.stage { width:min(100%,520px); aspect-ratio:2/3; margin:0 auto; position:relative; overflow:hidden; background:#d9eafd; border-radius:12px; touch-action:none; }
+.stage { width:min(100%,520px); aspect-ratio:2/3; margin:0 auto; position:relative; overflow:hidden; background:#d9eafd; border-radius:12px; }
 .stage img { width:100%; height:100%; display:block; object-fit:cover; }
-.handle { position:absolute; transform:translate(-50%,-50%); border:2px solid white; color:white; background:#315b7d; box-shadow:0 2px 8px #0005; border-radius:50%; width:32px; height:32px; cursor:grab; touch-action:none; font:700 13px system-ui; }
 .previewFoot { color:#64748b; text-align:center; font-size:13px; line-height:1.8; }
 @media(max-width:800px) { .grid{grid-template-columns:minmax(0,1fr)} .panel{padding:16px} .shell{padding-top:23px} }
