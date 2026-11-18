@@ -7,7 +7,7 @@ umask 077
 
 SOURCE=/srv/halleus/source
 ACTIVE=/srv/halleus/current
-BASE=1cda31f6c4369e102761806e0cb2491b4c5fc0ae
+BASE=b8605f551b5ab9ede70fa3a48595348863ceb234
 MIGRATION_BLOB=93459f37207be18770582afb8a41a87096f83bf6
 BACKUP_DIR=/root/halleus-bitpay-preflight
 SCRIPT=ops/vps/halleus-shop-nemad-0043-go-live.sh
@@ -30,7 +30,8 @@ esac
 HEAD="$(git rev-parse HEAD)"
 [ "$HEAD" = "$(git rev-parse origin/main)" ] || fatal 'VPS source is not at origin/main.'
 [ "$(git rev-parse HEAD^)" = "$BASE" ] || fatal 'Unexpected release parent.'
-[ "$(git diff-tree --no-commit-id --name-only -r "$HEAD")" = "$SCRIPT" ] || fatal 'Unexpected changes in release finalizer commit.'
+EXPECTED_CHANGED="$(printf '%s\n' 'lib/shop/nemad-man-bahman-preview.ts' "$SCRIPT")"
+[ "$(git diff-tree --no-commit-id --name-only -r "$HEAD")" = "$EXPECTED_CHANGED" ] || fatal 'Unexpected changes in release finalizer commit.'
 [ "$(git hash-object "$MIGRATION")" = "$MIGRATION_BLOB" ] || fatal 'Migration source differs from reviewed blob.'
 [ -f "$BACKUP_TOOL" ] && [ -f ops/vps/halleus-shop-nemad-go-live.sh ] || fatal 'Release support scripts missing.'
 [ "$(sed -n 's/^commit=//p' "$ACTIVE/.halleus-release")" = "$EXPECTED_ACTIVE" ] || fatal 'Active release changed; preserve the live candidate.'
@@ -79,13 +80,16 @@ DIR=/root/halleus-bitpay-preflight
 [ ! -L "$DIR" ] || { echo 'SAFETY_FATAL: backup directory is a symlink' >&2; exit 2; }
 install -d -m 0700 -o root -g root "$DIR"
 [ "$(stat -c '%u:%a' "$DIR")" = '0:700' ] || { echo 'SAFETY_FATAL: private backup directory permissions' >&2; exit 2; }
-PID="$(systemctl show -P MainPID halleus.service)"
-[[ "$PID" =~ ^[1-9][0-9]*$ ]] || { echo 'EXTERNAL_BLOCK: active app PID unavailable' >&2; exit 3; }
-BACKUP="$DIR/nemad-0043-$(date -u +%Y%m%dT%H%M%SZ)-$$.dump"
-/usr/local/bin/node /srv/halleus/source/ops/vps/halleus-bitpay-pg-backup.cjs "$PID" "$BACKUP"
-[ -s "$BACKUP" ] || { echo 'EXTERNAL_BLOCK: backup missing' >&2; exit 3; }
-chmod 0600 "$BACKUP"
-echo "NEMAD_BACKUP=PASS file=$BACKUP"
+# Resume the already successful R1 backup; never replace the pre-migration snapshot
+# with a dump of the post-migration database.
+BACKUP="$DIR/nemad-0043-20261118T170416Z-458991.dump"
+[ -s "$BACKUP" ] && [ -f "$BACKUP" ] && [ ! -L "$BACKUP" ] ||
+  { echo 'SAFETY_FATAL: original pre-0043 backup unavailable' >&2; exit 2; }
+[ "$(stat -c '%u:%a' "$BACKUP")" = '0:600' ] ||
+  { echo 'SAFETY_FATAL: original backup ownership or mode differs' >&2; exit 2; }
+/usr/lib/postgresql/17/bin/pg_restore --list "$BACKUP" >/dev/null ||
+  { echo 'SAFETY_FATAL: original backup archive unreadable' >&2; exit 2; }
+echo "NEMAD_BACKUP=RESUMED_PASS file=$BACKUP"
 ROOT_BACKUP
 
 # Validate the two exact 0035 constraints, then apply only the tracked 0043
