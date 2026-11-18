@@ -63,14 +63,16 @@ const SCENES: MockupScene[] = [
   { id: 'workdesk', label: 'میز کار کنار لپ‌تاپ · شاسی ۱۰×۱۵',
     path: '/shop-preview/nemad-man/mockup-blank-workdesk-10x15.webp',
     // Calibrated against the actual 1024×1536 desk photo; a slim, unframed 10×15 panel.
+    // Measured from the actual blank artwork contour (pixel-level edge regression).
+    // 0.5px subpixel bleed stays under the existing 1.8px matte-black edge.
     front: [
-      { x: 204.0, y: 451.9 }, { x: 567.8, y: 439.2 },
-      { x: 635.4, y: 1006.2 }, { x: 253.0, y: 1050.9 },
+      { x: 206.307, y: 453.856 }, { x: 565.890, y: 441.208 },
+      { x: 633.019, y: 1004.559 }, { x: 254.969, y: 1048.668 },
     ],
     inverse: [
-       0.00267066203287117, -0.000218468168520147, -0.446089290684888,
-       0.0000632154887332265, 0.00181085253442321, -0.831220208954858,
-      -0.000134898876532426, 0.000116022166962026,
+      0.002704382719498739, -0.0002212474558725392, -0.4575186216209205,
+      6.417555333256209e-05, 0.001824515770615366, -0.8413072731911292,
+      -0.0001350372434986659, 0.0001170981321254611,
     ],
     suffix: '-desk-10x15',
   },
