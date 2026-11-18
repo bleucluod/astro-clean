@@ -34,11 +34,11 @@ for (const key of [
   "canvas.toDataURL('image/webp'",
   'setPhotoIndex(0)',
   'setArtwork(null)',
-  'galleryCount = BIRTH_SKY_GALLERY.length + 1',
-  'disabled={!artwork}',
+  'galleryCount = gallery.length + 1',
+  'disabled={!hasPreview}',
   'liveShopPrice(livePrices.prices',
   "addShopCartItem('p02'",
-  'disabled={!artwork || busy || selectedPrice === null}',
+  'disabled={!hasPreview || busy || selectedPrice === null}',
   'purchaseEnabled',
   "router.push('/shop/cart')",
   "window.document.fonts.load('500 31px '",
@@ -55,15 +55,16 @@ assert.match(read('components/shop/product-detail-data.ts'),
 assert.match(client, /PREVIEW_SIZE = \{ width: 720, height: 1080 \}/);
 assert.match(client, /context\.fillText\(/);
 assert.match(client, /URL\.revokeObjectURL\(url\)/);
-assert.match(client, /BIRTH_SKY_GALLERY\.map\(/);
+assert.match(client, /const gallery = nemad \? nemad\.product\.gallery\.slice\(2\) : BIRTH_SKY_GALLERY/);
+assert.match(client, /\{gallery\.map\(/);
 assert.match(css, /\.previewThumbEmpty/);
 assert.match(css, /\.previewCaption/);
 assert.match(copy, /"button": "پیش‌نمایش تابلوی من"/);
 assert.ok(route.includes('robots: { index: true, follow: true }'));
 assert.ok(!client.includes('initial, true'), 'No automatic initial personal preview');
-assert.match(quote, /new Set\(\['p01', 'p02'\]\)/);
+assert.match(quote, /new Set\(\['p01', 'p02', 'nm'\]\)/);
 assert.match(quote, /isShopP02OrderEnabled\(\)/);
-assert.match(cart, /validProductIds: ShopProductId\[\] = \['p01', 'p02'\]/);
+assert.match(cart, /validProductIds: ShopProductId\[\] = \['p01', 'p02', 'nm'\]/);
 assert.equal((client.match(/context\.fillText\('پیش‌نمایش هالیوس'/g) ?? []).length, 1,
   'exactly one baked-in centered watermark');
 assert.doesNotMatch(client, /for \(let y = -620|for \(let x = -640/);

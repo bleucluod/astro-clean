@@ -41,7 +41,8 @@ assert.ok(batchExporter.includes('head.readUInt32BE(16)!==pixels[0]'),
   'Every real PNG must be checked for the selected dimensions');
 assert.ok(batchExporter.includes('good!==24||files.length!==24'),
   'All 24 requested images must complete');
-assert.match(route, /process\.env\.NODE_ENV === 'production'\) notFound\(\)/);
+assert.match(route, /month !== 'bahman' \|\| !isShopNemadOrderEnabled\(\)/);
+assert.match(route, /<BirthSkyLiveProduct purchaseEnabled=\{isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
 assert.match(route, /robots: \{ index: false, follow: false \}/);
 assert.ok(client.includes('nemad?.product ?? getShopProduct(id)'), 'Must reuse P03 ProductDetail');
 assert.ok(client.includes('<NemadManBahmanArtwork'), 'Must reuse existing approved artwork SVG');

@@ -10,7 +10,11 @@ import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { BIRTH_SKY_HERO } from './birth-sky-content';
 import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
-import { SHOP_P02_SIZES } from './product-detail-data';
+import { NemadManEditorial } from './NemadManEditorial';
+import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
+import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
+import type { NemadProductPage } from './ProductDetail';
+import { SHOP_P02_SIZES, SHOP_SIZES } from './product-detail-data';
 import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
 import { addShopCartItem, readShopCart } from './shop-cart';
 import { useShopGallerySwipe } from './use-shop-gallery-swipe';
@@ -88,25 +92,35 @@ async function makeWatermarkedPreview(svg: string, fontFamily: string): Promise<
   }
 }
 
-export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: boolean }) {
+export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
+  purchaseEnabled: boolean; nemad?: NemadProductPage;
+}) {
   const router = useRouter();
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [input, setInput] = useState<Personalization>(initial);
+  const [input, setInput] = useState<Personalization>(() => nemad ? {
+    ...initial, calendar: 'jalali', date: nemad.initial.date, time: '', city: '',
+    cityId: '', names: nemad.initial.name, message: '',
+  } : initial);
+  const [nemadPreview, setNemadPreview] = useState<BahmanPreview | null>(null);
+  const [nemadNeedsDetails, setNemadNeedsDetails] = useState(false);
+  const [nemadTheme, setNemadTheme] = useState<'dark' | 'light'>('dark');
   const [artwork, setArtwork] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [photoIndex, setPhotoIndex] = useState(1);
-  const [sizeIndex, setSizeIndex] = useState(2);
+  const [sizeIndex, setSizeIndex] = useState(nemad ? 1 : 2);
+  const sizes = nemad ? SHOP_SIZES : SHOP_P02_SIZES;
+  const gallery = nemad ? nemad.product.gallery.slice(2) : BIRTH_SKY_GALLERY;
   const livePrices = useShopLivePrices();
-  const selectedPrice = liveShopPrice(livePrices.prices, 'p02', SHOP_P02_SIZES[sizeIndex].dimension);
+  const selectedPrice = liveShopPrice(livePrices.prices, nemad ? 'nm' : 'p02', sizes[sizeIndex].dimension);
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
   const operation = useRef(0);
   const citySuggestions = useMemo(() => (
-    input.cityId || input.city.trim().length < 2
+    (nemad && !nemadNeedsDetails) || input.cityId || input.city.trim().length < 2
       ? [] : filterHalleusCities(input.city).slice(0, 8)
-  ), [input.city, input.cityId]);
+  ), [input.city, input.cityId, nemad, nemadNeedsDetails]);
 
   const generate = useCallback(async (values: Personalization) => {
     const version = ++operation.current;
@@ -114,6 +128,33 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
     setArtwork(null);
     setPhotoIndex((previous) => previous === 0 ? 1 : previous);
     setError('');
+    if (nemad) {
+      const checked = validateBahmanPreview(values.names, values.date,
+        { time: values.time, cityId: values.cityId });
+      if (version !== operation.current) return;
+      if (!checked.ok) {
+        setNemadPreview(null);
+        setNemadNeedsDetails(checked.reason === 'needs-birth-details');
+        setError(checked.message);
+        setBusy(false);
+        return;
+      }
+      if (Number(checked.value.date.split('/')[1]) !== 11) {
+        setNemadPreview(null);
+        setNemadNeedsDetails(false);
+        setError('برای سفارش نماد بهمن، تاریخ تولد باید در ماه بهمن باشد.');
+        setBusy(false);
+        return;
+      }
+      setNemadPreview(checked.value);
+      setNemadNeedsDetails(false);
+      setPhotoIndex(0);
+      setBusy(false);
+      window.requestAnimationFrame(() => {
+        galleryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      return;
+    }
     const city = findHalleusCityById(values.cityId);
     const validated = validateShopMoment('p02', values);
     if (!city || !validated.ok || !validated.referenceUtc) {
@@ -166,14 +207,14 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
     } finally {
       if (version === operation.current) setBusy(false);
     }
-  }, []);
+  }, [nemad]);
 
   useEffect(() => {
     const key = new URLSearchParams(window.location.search).get('edit');
     if (!purchaseEnabled || !key) return;
-    const item = readShopCart().find((entry) => entry.key === key && entry.productId === 'p02');
-    if (!item) return;
-    const index = SHOP_P02_SIZES.findIndex((size) => size.dimension === item.size);
+    const item = readShopCart().find((entry) => entry.key === key && entry.productId === (nemad ? 'nm' : 'p02'));
+    if (!item || (nemad && item.details.nemadMonth !== 'bahman')) return;
+    const index = sizes.findIndex((size) => size.dimension === item.size);
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
@@ -181,11 +222,17 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
       setEditingKey(item.key);
       if (index >= 0) {
         setSizeIndex(index);
-        setPhotoIndex([5, 3, 1][index]);
+        if (!nemad) setPhotoIndex([5, 3, 1][index]);
+      }
+      if (nemad) {
+        setNemadTheme(item.details.nemadTheme === 'light' ? 'light' : 'dark');
+        const checked = validateBahmanPreview(item.details.names, item.details.date,
+          { time: item.details.time, cityId: item.details.cityId });
+        if (checked.ok) { setNemadPreview(checked.value); setPhotoIndex(0); }
       }
     });
     return () => { cancelled = true; };
-  }, [purchaseEnabled]);
+  }, [purchaseEnabled, nemad, sizes]);
 
   useEffect(() => {
     const dialog = zoomDialog.current;
@@ -197,6 +244,8 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
   function change<K extends keyof Personalization>(field: K, value: Personalization[K]) {
     operation.current += 1;
     setArtwork(null);
+    setNemadPreview(null);
+    if (nemad && (field === 'date' || field === 'names')) setNemadNeedsDetails(false);
     setPhotoIndex((previous) => previous === 0 ? 1 : previous);
     setBusy(false);
     setError('');
@@ -214,6 +263,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
       ...previous, cityId: city.id, city: getHalleusCityDisplayName(city),
     }));
     setArtwork(null);
+    setNemadPreview(null);
     setBusy(false);
     setError('');
   }
@@ -232,8 +282,24 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
   }
 
   function addToCart() {
-    if (!purchaseEnabled || !artwork || busy) return;
+    if (!purchaseEnabled || !(nemad ? nemadPreview : artwork) || busy) return;
     if (selectedPrice === null) { setError('قیمت فروشگاه قابل بررسی نیست؛ دوباره تلاش کن.'); return; }
+    if (nemad) {
+      const checked = validateBahmanPreview(input.names, input.date,
+        { time: input.time, cityId: input.cityId });
+      if (!checked.ok || Number(checked.value.date.split('/')[1]) !== 11) {
+        setError(!checked.ok ? checked.message : 'تاریخ تولد باید در ماه بهمن باشد.');
+        return;
+      }
+      if (!addShopCartItem('nm', sizes[sizeIndex].dimension, {
+        ...input, calendar: 'jalali', message: '', nemadMonth: 'bahman', nemadTheme,
+      }, editingKey ?? undefined)) {
+        setError('افزودن به سبد ممکن نشد؛ اطلاعات سفارش و فضای مرورگر را بررسی کن.');
+        return;
+      }
+      router.push('/shop/cart');
+      return;
+    }
     const validated = validateShopMoment('p02', input);
     if (!validated.ok) {
       setError(validated.message);
@@ -255,34 +321,41 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
     }
   }
 
-  const galleryCount = BIRTH_SKY_GALLERY.length + 1;
-  const currentPhoto = BIRTH_SKY_GALLERY[Math.max(0, photoIndex - 1)];
-  const showingPreview = photoIndex === 0 && Boolean(artwork);
+  const galleryCount = gallery.length + 1;
+  const currentPhoto = gallery[Math.max(0, photoIndex - 1)];
+  const hasPreview = nemad ? Boolean(nemadPreview) : Boolean(artwork);
+  const showingPreview = photoIndex === 0 && hasPreview;
   const displayLabel = showingPreview ? 'پیش‌نمایش تابلوی من' : currentPhoto.label;
-  const displayAlt = showingPreview ? 'پیش‌نمایش واترمارک‌دار تابلوی شخصی‌سازی‌شده' : currentPhoto.alt;
+  const displayAlt = showingPreview ? (nemad ? 'طرح شخصی نماد من با فونت مصوب' :
+    'پیش‌نمایش واترمارک‌دار تابلوی شخصی‌سازی‌شده') : currentPhoto.alt;
   const gallerySwipe = useShopGallerySwipe(changePhoto);
 
   function changePhoto(step: number) {
-    const first = artwork ? 0 : 1;
+    const first = hasPreview ? 0 : 1;
     const count = galleryCount - first;
     setPhotoIndex((index) => first + ((index - first + step + count) % count));
   }
 
 
-  return <main className={[pdStyles.page, styles.page].join(' ')} dir="rtl" data-shop-page="p02-live-product">
+  return <main className={[pdStyles.page, styles.page].join(' ')} dir="rtl"
+    data-shop-page={nemad ? 'nm-live-product' : 'p02-live-product'}>
     <div className={pdStyles.content}>
-      <section className={pdStyles.productHero} aria-label="تابلو آسمان تولد">
+      <section className={pdStyles.productHero} aria-label={nemad ? nemad.product.title : 'تابلو آسمان تولد'}>
         <div ref={galleryRef} className={pdStyles.gallery} style={{ scrollMarginTop: 88 }}>
           <nav className={pdStyles.breadcrumbs} aria-label="مسیر صفحه">
             <Link href="/">هالیوس</Link><span aria-hidden="true">/</span>
             <Link href="/shop">فروشگاه</Link><span aria-hidden="true">/</span>
-            <span aria-current="page">آسمان تولد</span>
+            <span aria-current="page">{nemad ? nemad.product.title : 'آسمان تولد'}</span>
           </nav>
           <button type="button" className={[pdStyles.mainPhotoButton, pdStyles.p01MainPhoto].join(' ')}
             {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}
             onClick={(event) => { if (event.detail === 0 || gallerySwipe.canOpenZoom()) setZoomOpen(true); }}
             aria-label={'بزرگ‌نمایی ' + displayLabel}>
-            {showingPreview && artwork
+            {showingPreview && nemad && nemadPreview
+              ? <span className={pdStyles.nemadArtwork}><NemadManBahmanArtwork
+                  name={nemadPreview.name} date={nemadPreview.gregorianDate}
+                  sign={nemadPreview.sign} theme={nemadTheme} /></span>
+              : showingPreview && artwork
               ? <Image unoptimized src={artwork} alt={displayAlt} fill
                   sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
                   className={pdStyles.portraitPhoto} />
@@ -297,15 +370,18 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
             </span>
           </button>
           <div className={[pdStyles.thumbnails, pdStyles.p01Thumbnails].join(' ')} aria-label="تصاویر محصول و پیش‌نمایش">
-            <button type="button" disabled={!artwork}
+            <button type="button" disabled={!hasPreview}
               className={[pdStyles.thumbnail, styles.previewThumb, showingPreview ? pdStyles.thumbnailActive : ''].filter(Boolean).join(' ')}
               onClick={() => setPhotoIndex(0)} aria-pressed={showingPreview}
-              aria-label={artwork ? 'نمایش پیش‌نمایش تابلوی من' : 'پس از شخصی‌سازی، پیش‌نمایش تابلوی من اینجا ظاهر می‌شود'}>
-              {artwork
-                ? <Image unoptimized src={artwork} alt="" fill sizes="88px" />
+              aria-label={hasPreview ? 'نمایش پیش‌نمایش تابلوی من' : 'پس از شخصی‌سازی، پیش‌نمایش تابلوی من اینجا ظاهر می‌شود'}>
+              {nemad && nemadPreview
+                ? <span className={pdStyles.nemadArtwork}><NemadManBahmanArtwork
+                    name={nemadPreview.name} date={nemadPreview.gregorianDate}
+                    sign={nemadPreview.sign} theme={nemadTheme} /></span>
+                : artwork ? <Image unoptimized src={artwork} alt="" fill sizes="88px" />
                 : <span className={styles.previewThumbEmpty}>پیش‌نمایش تابلوی من</span>}
             </button>
-            {BIRTH_SKY_GALLERY.map((photo, index) => <button type="button" key={photo.src}
+            {gallery.map((photo, index) => <button type="button" key={photo.src}
               className={[pdStyles.thumbnail, photoIndex === index + 1 ? pdStyles.thumbnailActive : ''].filter(Boolean).join(' ')}
               onClick={() => setPhotoIndex(index + 1)} aria-pressed={photoIndex === index + 1}
               aria-label={'نمایش تصویر ' + (index + 2) + ': ' + photo.label}>
@@ -315,17 +391,21 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
           <p className={pdStyles.galleryPosition} aria-live="polite">
             تصویر {formatPrice(photoIndex + 1)} از {formatPrice(galleryCount)} · {displayLabel}
           </p>
-          {showingPreview ? <p className={styles.previewCaption}>چیدمان ستاره‌ها و صورت‌های فلکی بر اساس تاریخ، ساعت و شهر انتخابی تو ساخته شده و مبنای طراحی تابلوی نهایی خواهد بود. این تصویر، پیش‌نمایش کم‌رزولوشن و واترمارک‌دار است.</p> : null}
-          <p className={pdStyles.galleryCaption}>شش موکاپ تأییدشده از شاسی‌های بدون قاب در سه اندازهٔ ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر.</p>
+          {showingPreview ? <p className={styles.previewCaption}>{nemad
+            ? 'این پیش‌نمایش با رندرر مصوب نماد من و نشان خورشیدی محاسبه‌شده ساخته شده است؛ موکاپ‌ها نمونه‌های نمایشی هستند.'
+            : 'چیدمان ستاره‌ها و صورت‌های فلکی بر اساس تاریخ، ساعت و شهر انتخابی تو ساخته شده و مبنای طراحی تابلوی نهایی خواهد بود. این تصویر، پیش‌نمایش کم‌رزولوشن و واترمارک‌دار است.'}</p> : null}
+          <p className={pdStyles.galleryCaption}>{nemad
+            ? nemad.product.galleryNote
+            : 'شش موکاپ تأییدشده از شاسی‌های بدون قاب در سه اندازهٔ ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر.'}</p>
         </div>
 
         <div className={pdStyles.productInfo}>
           <div className={pdStyles.productHeading}>
-            <h1 className={pdStyles.seoProductHeading}>{BIRTH_SKY_HERO.h1}</h1>
-            <p className={pdStyles.tagline}>{BIRTH_SKY_HERO.tagline}</p>
+            <h1 className={pdStyles.seoProductHeading}>{nemad?.product.seoHeading ?? BIRTH_SKY_HERO.h1}</h1>
+            <p className={pdStyles.tagline}>{nemad?.product.tagline ?? BIRTH_SKY_HERO.tagline}</p>
           </div>
           <div className={pdStyles.purchasePanel}>
-            <p className={pdStyles.introduction}>{BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
+            <p className={pdStyles.introduction}>{nemad?.product.introduction ?? BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
             <div className={pdStyles.priceBlock} aria-live="polite">
               <span className={pdStyles.priceLabel}>قیمت این اندازه</span>
               <p className={pdStyles.price}><bdi>{selectedPrice === null ? 'در حال دریافت…' : formatPrice(selectedPrice)}</bdi><span>تومان</span></p>
@@ -333,24 +413,34 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
             <fieldset className={pdStyles.sizes}>
               <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
               <div className={pdStyles.sizeGrid}>
-                {SHOP_P02_SIZES.map((size, i) => <button type="button" key={size.dimension}
+                {sizes.map((size, i) => <button type="button" key={size.dimension}
                   className={[pdStyles.sizeChoice, sizeIndex === i ? pdStyles.sizeSelected : ''].filter(Boolean).join(' ')}
                   aria-pressed={sizeIndex === i}
-                  onClick={() => { setSizeIndex(i); setPhotoIndex([5, 3, 1][i]); }}>
+                  onClick={() => { setSizeIndex(i); if (!nemad) setPhotoIndex([5, 3, 1][i]); }}>
                   <span dir="ltr">{size.label}</span>
                 </button>)}
               </div>
             </fieldset>
-            <a className={pdStyles.sizeGuideLink} href="#p02-size-guide">مقایسهٔ اندازه‌ها در فضای خانه <span aria-hidden="true">↓</span></a>
+            <a className={pdStyles.sizeGuideLink} href={nemad ? '#nm-size-guide' : '#p02-size-guide'}>مقایسهٔ اندازه‌ها در فضای خانه <span aria-hidden="true">↓</span></a>
 
             <form id="personalize" className={pdStyles.personalizeForm} onSubmit={submit}
-              aria-label="شخصی‌سازی آسمان تولد">
+              aria-label={nemad ? 'شخصی‌سازی نماد من' : 'شخصی‌سازی آسمان تولد'}>
               <div className={pdStyles.formIntro}>
                 <span className={pdStyles.formKicker}>شخصی‌سازی اثر</span>
-                <h2 className={pdStyles.formTitle}>آسمان کدام لحظه را نگه داریم؟</h2>
-                <p className={pdStyles.formPoem}>تاریخ، ساعت و شهر را انتخاب کن تا هالیوس آسمان همان لحظه را برای تو به تصویر بکشد.</p>
+                <h2 className={pdStyles.formTitle}>{nemad ? 'نماد چه کسی را بسازیم؟' : 'آسمان کدام لحظه را نگه داریم؟'}</h2>
+                <p className={pdStyles.formPoem}>{nemad
+                  ? 'نام و تاریخ تولد را وارد کن تا طرح شخصی با رندرر مصوب نماد من ساخته شود.'
+                  : 'تاریخ، ساعت و شهر را انتخاب کن تا هالیوس آسمان همان لحظه را برای تو به تصویر بکشد.'}</p>
               </div>
-              <div className={pdStyles.calendarChooser}>
+              {nemad ? <div className={pdStyles.calendarChooser}>
+                <span className={pdStyles.calendarLabel}>مدل تابلو</span>
+                <div className={pdStyles.calendarSwitch} role="group" aria-label="رنگ نماد من">
+                  {([['dark', 'مینیمال مشکی'], ['light', 'مینیمال روشن']] as const).map(([theme, label]) =>
+                    <button key={theme} type="button" disabled={busy}
+                      className={[pdStyles.calendarOption, nemadTheme === theme ? pdStyles.calendarActive : ''].filter(Boolean).join(' ')}
+                      aria-pressed={nemadTheme === theme} onClick={() => setNemadTheme(theme)}>{label}</button>)}
+                </div>
+              </div> : <div className={pdStyles.calendarChooser}>
                 <span className={pdStyles.calendarLabel}>تقویم</span>
                 <div className={pdStyles.calendarSwitch} role="group" aria-label="نوع تقویم">
                   {([['jalali', 'شمسی'], ['gregorian', 'میلادی']] as const).map(([calendar, label]) =>
@@ -366,9 +456,9 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
                         }
                       }}>{label}</button>)}
                 </div>
-              </div>
+              </div>}
               <div className={pdStyles.formField}>
-                <label htmlFor={input.calendar === 'jalali' ? 'p02-jalali-year' : 'p02-gregorian-date'}>تاریخ آن لحظه</label>
+                <label htmlFor={input.calendar === 'jalali' ? 'p02-jalali-year' : 'p02-gregorian-date'}>{nemad ? 'تاریخ تولد شمسی' : 'تاریخ آن لحظه'}</label>
                 {input.calendar === 'jalali'
                   ? <div className={pdStyles.jalaliDateParts} role="group" aria-label="تاریخ شمسی: سال، ماه و روز">
                     {([
@@ -390,14 +480,14 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
                       onChange={(event) => change('date', event.target.value)} />
                   </div>}
               </div>
-              <div className={pdStyles.dateFields}>
+              {(!nemad || nemadNeedsDetails) ? <div className={pdStyles.dateFields}>
                 <div className={pdStyles.formField}>
-                  <label htmlFor="p02-time">ساعت دقیق آن لحظه</label>
+                  <label htmlFor="p02-time">{nemad ? 'ساعت تولد (برای تعیین دقیق برج)' : 'ساعت دقیق آن لحظه'}</label>
                   <input id="p02-time" type="time" dir="ltr" required disabled={busy}
                     value={input.time} onChange={(event) => change('time', event.target.value)} />
                 </div>
                 <div className={pdStyles.formField}>
-                  <label htmlFor="p02-birth-city">شهر آن لحظه</label>
+                  <label htmlFor="p02-birth-city">{nemad ? 'شهر تولد (برای تعیین دقیق برج)' : 'شهر آن لحظه'}</label>
                   <input id="p02-birth-city" required maxLength={100} autoComplete="off" disabled={busy}
                     placeholder="نام شهر را بنویس و انتخاب کن" value={input.city}
                     onChange={(event) => change('city', event.target.value)} />
@@ -409,14 +499,14 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
                     </li>)}
                   </ul> : null}
                 </div>
-              </div>
+              </div> : null}
               <div className={pdStyles.formField}>
-                <label htmlFor="p02-names">نام روی تابلو <small>(اختیاری)</small></label>
-                <input id="p02-names" maxLength={60} disabled={busy} value={input.names}
-                  placeholder="نامی که این آسمان متعلق به اوست"
+                <label htmlFor="p02-names">نام روی تابلو {nemad ? null : <small>(اختیاری)</small>}</label>
+                <input id="p02-names" maxLength={nemad ? 28 : 60} required={Boolean(nemad)} disabled={busy} value={input.names}
+                  placeholder={nemad ? 'نامی که روی نماد نوشته می‌شود' : 'نامی که این آسمان متعلق به اوست'}
                   onChange={(event) => change('names', event.target.value)} />
               </div>
-              <details className={pdStyles.optionalFields}>
+              {!nemad ? <details className={pdStyles.optionalFields}>
                 <summary>پیامی هم کنار این آسمان می‌گذاری؟ <span aria-hidden="true">+</span></summary>
                 <div className={pdStyles.optionalFieldsInner}>
                   <div className={pdStyles.formField}>
@@ -426,44 +516,49 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
                       onChange={(event) => change('message', event.target.value)} />
                   </div>
                 </div>
-              </details>
+              </details> : null}
               {error ? <p className={pdStyles.formError} role="alert">{error}</p> : null}
-              <button className={pdStyles.confirmAction} type="submit" disabled={busy || !input.cityId}>
-                <span className={pdStyles.confirmLabel}>{busy ? 'در حال ساخت آسمان…' : BIRTH_SKY_HERO.button}</span>
+              <button className={pdStyles.confirmAction} type="submit" disabled={busy || ((!nemad || nemadNeedsDetails) && !input.cityId)}>
+                <span className={pdStyles.confirmLabel}>{busy ? (nemad ? 'در حال ساخت پیش‌نمایش…' : 'در حال ساخت آسمان…') :
+                  nemad ? 'ساخت پیش‌نمایش نماد من' : BIRTH_SKY_HERO.button}</span>
                 <span className={pdStyles.confirmArrow} aria-hidden="true">←</span>
               </button>
 
               {purchaseEnabled ? <>
                 <button type="button" className={styles.orderAction}
-                  disabled={!artwork || busy || selectedPrice === null} onClick={addToCart}>
+                  disabled={!hasPreview || busy || selectedPrice === null} onClick={addToCart}>
                   {editingKey ? 'ثبت تغییرات تابلو در سبد' : 'افزودن تابلو به سبد خرید'}
                 </button>
                 <p className={styles.previewAvailability}>
-                  {artwork ? 'طرح شخصی‌ات آماده است. اندازه را انتخاب کن و تابلو را به سبد خرید اضافه کن؛ پرداخت در مرحلهٔ بعد با کارت‌به‌کارت و تأیید دستی انجام می‌شود.' :
+                  {hasPreview ? 'طرح شخصی‌ات آماده است. اندازه را انتخاب کن و تابلو را به سبد خرید اضافه کن؛ پرداخت در مرحلهٔ بعد با کارت‌به‌کارت و تأیید دستی انجام می‌شود.' :
                     'برای سفارش، ابتدا با دکمهٔ بالا پیش‌نمایش تابلویت را بساز.'}
                 </p>
               </> : <p className={styles.previewAvailability}>پیش‌نمایش فعال است؛ ثبت سفارش این محصول تا زمان تأیید انتشار فروش بسته می‌ماند.</p>}
             </form>
             <div className={pdStyles.specification}>
-              <span>محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر</span>
+              <span>{nemad ? 'محاسبهٔ نشان خورشیدی بر اساس تاریخ تولد' : 'محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر'}</span>
               <span>چاپ مات روی شاسی بدون قاب در سه اندازه</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section className={pdStyles.dimensionsSection} id="p02-size-guide" aria-labelledby="p02-size-heading">
+      <section className={pdStyles.dimensionsSection} id={nemad ? 'nm-size-guide' : 'p02-size-guide'} aria-labelledby="p02-size-heading">
         <div className={pdStyles.centerIntro}>
           <span className={pdStyles.sectionKicker}>راهنمای انتخاب اندازه</span>
           <h2 id="p02-size-heading">کدام اندازه برای فضای تو مناسب‌تر است؟</h2>
-          <p>شاسی‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متری را در محیط واقعی ببین.</p>
+          <p>{nemad ? 'سه اندازهٔ چاپ انتخاب می‌کنی؛ تصویرهای زیر نمونهٔ چیدمان‌اند و مقیاس دقیق اندازه‌ها در آن‌ها تضمین نمی‌شود.' : 'شاسی‌های ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متری را در محیط واقعی ببین.'}</p>
         </div>
         <div className={pdStyles.sizeIllustration}>
-          {[
+          {(nemad ? [
+            { src: gallery[0].src, alt: gallery[0].alt, size: '۱۰ × ۱۵', label: 'نمونهٔ چیدمان · کنسول' },
+            { src: gallery[1].src, alt: gallery[1].alt, size: '۲۰ × ۳۰', label: 'نمونهٔ چیدمان · دیوار' },
+            { src: gallery[2].src, alt: gallery[2].alt, size: '۳۰ × ۴۵', label: 'نمونهٔ چیدمان · میز کار' },
+          ] : [
             { src: BIRTH_SKY_GALLERY[4].src, alt: BIRTH_SKY_GALLERY[4].alt, size: '۱۰ × ۱۵', label: 'میز و شلف' },
             { src: BIRTH_SKY_GALLERY[2].src, alt: BIRTH_SKY_GALLERY[2].alt, size: '۲۰ × ۳۰', label: 'دیوار اتاق' },
             { src: BIRTH_SKY_GALLERY[0].src, alt: BIRTH_SKY_GALLERY[0].alt, size: '۳۰ × ۴۵', label: 'دیوار اصلی' },
-          ].map((item) => <figure key={item.size} className={pdStyles.sizeScene}>
+          ]).map((item) => <figure key={item.size} className={pdStyles.sizeScene}>
             <div className={pdStyles.sizeScenePhoto}>
               <Image src={item.src} alt={item.alt} fill sizes="(max-width: 760px) 78vw, 370px"
                 className={styles.sizePhoto} />
@@ -473,16 +568,20 @@ export function BirthSkyLiveProduct({ purchaseEnabled }: { purchaseEnabled: bool
         </div>
       </section>
 
-      <BirthSkyEditorial />
+      {nemad ? <NemadManEditorial product={nemad.product} /> : <BirthSkyEditorial />}
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)}
-        className={pdStyles.zoomDialog} aria-label="بزرگ‌نمایی تصاویر آسمان تولد">
+        className={pdStyles.zoomDialog} aria-label={nemad ? 'بزرگ‌نمایی تصاویر نماد من' : 'بزرگ‌نمایی تصاویر آسمان تولد'}>
         <div className={pdStyles.zoomInner}>
           <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
           <div className={pdStyles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
-            {showingPreview && artwork
-              ? <Image unoptimized src={artwork} alt={displayAlt} fill sizes="95vw" />
-              : <Image src={currentPhoto.src} alt={currentPhoto.alt} fill sizes="95vw" />}
+            {showingPreview && nemad && nemadPreview
+              ? <span className={pdStyles.nemadArtwork}><NemadManBahmanArtwork
+                  name={nemadPreview.name} date={nemadPreview.gregorianDate}
+                  sign={nemadPreview.sign} theme={nemadTheme} /></span>
+              : showingPreview && artwork
+                ? <Image unoptimized src={artwork} alt={displayAlt} fill sizes="95vw" />
+                : <Image src={currentPhoto.src} alt={currentPhoto.alt} fill sizes="95vw" />}
           </div>
           <div className={pdStyles.zoomActions}>
             <button type="button" onClick={() => changePhoto(-1)}>تصویر قبل</button>

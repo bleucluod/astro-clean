@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
+import { BirthSkyLiveProduct } from '@/components/shop/BirthSkyLiveProduct';
 import { notFound } from 'next/navigation';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -6,6 +8,17 @@ import { ProductDetail, type NemadProductPage } from '@/components/shop/ProductD
 import type { ShopCopySection, ShopProduct } from '@/components/shop/product-detail-data';
 import { validateBahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
+
+// Use the same Estedad-loaded product shell as P02, not P03's renderer.
+const estedad = localFont({
+  src: [
+    { path: '../../../../assets/shop-print/fonts/Estedad-Light.ttf', weight: '300', style: 'normal' },
+    { path: '../../../../assets/shop-print/fonts/Estedad-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../../../../assets/shop-print/fonts/Estedad-Medium.ttf', weight: '500', style: 'normal' },
+  ],
+  variable: '--font-p02-estedad',
+  display: 'swap',
+});
 
 const months = [
   { slug: 'farvardin', title: 'فروردین' },
@@ -152,5 +165,10 @@ export default async function NemadManMonthProductPage({ params }: Props) {
       (month !== 'bahman' || !isShopNemadOrderEnabled())) notFound();
   const data = readApprovedMonth(month);
   if (!data) notFound();
+  if (month === 'bahman') {
+    return <div className={estedad.variable}>
+      <BirthSkyLiveProduct purchaseEnabled={isShopNemadOrderEnabled()} nemad={data} />
+    </div>;
+  }
   return <ProductDetail key={month} id="p03" nemad={data} />;
 }
