@@ -47,14 +47,16 @@ const SCENES: MockupScene[] = [
     front: CANVAS_FRONT, inverse: INVERSE, suffix: '' },
   { id: 'wall-bench', label: 'دیوار و نیمکت سنگی',
     path: '/shop-preview/nemad-man/mockup-blank-wall-bench.webp',
+    // Image-derived edge intersections (1024x1536): cover the whole printable face.
+    // The previous coordinates left 2-4 px of bare cream canvas at its seams.
     front: [
-      { x: 264, y: 190 }, { x: 852, y: 163 },
-      { x: 852, y: 1066 }, { x: 262, y: 1061 },
+      { x: 262.356, y: 188.096 }, { x: 854.679, y: 161.057 },
+      { x: 855.822, y: 1068.116 }, { x: 260.802, y: 1059.980 },
     ],
     inverse: [
-      0.001794364503335026, 4.120239961733816e-06, -0.4744950744731765,
-      5.383563249207442e-05, 0.00117242044093851, -0.2369724907562245,
-      6.37364816528944e-05, 4.120239961733726e-06,
+      0.00179028606, 0.00000318994163, -0.470292009,
+      0.0000536078723, 0.00117436709, -0.234957866,
+      0.0000695930162, 0.00000535729928,
     ],
     suffix: '-wall-bench',
   },
@@ -334,6 +336,13 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas در این مرورگر قابل استفاده نیست.');
   ctx.drawImage(scene, 0, 0, width, height);
+  // The wall photo already contains genuine window and foliage shadows across
+  // its blank canvas. Sample those original pixels before covering the face.
+  // Preserve them as a normalized exposure map instead of painting the cream
+  // background over the user's dark or light artwork.
+  const photoPixels = mockup.id === 'wall-bench'
+    ? ctx.getImageData(0, 0, width, height).data
+    : null;
 
   // Read the actual uploaded artwork. Never generate or retype its typography.
   const artCanvas = document.createElement('canvas');
@@ -386,11 +395,22 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
       const p01 = (y1 * srcW + x0) * 4;
       const p11 = (y1 * srcW + x1) * 4;
       const dst = (y * width + x) * 4;
-      for (let channel = 0; channel < 4; channel++) {
-        output[dst + channel] = pixels[p00 + channel] * w00 +
+      // A neutral 209/255 reference is calibrated from the photographed face.
+      // This retains the real, pre-existing light/shadow texture after placing
+      // either a white or a black poster, without reintroducing cream pixels.
+      const light = photoPixels
+        ? Math.max(0.74, Math.min(1.10, Math.pow((
+          photoPixels[dst] * 0.2126 + photoPixels[dst + 1] * 0.7152 +
+          photoPixels[dst + 2] * 0.0722
+        ) / 209, 1.22)))
+        : 1;
+      for (let channel = 0; channel < 3; channel++) {
+        const art = pixels[p00 + channel] * w00 +
           pixels[p10 + channel] * w10 + pixels[p01 + channel] * w01 +
           pixels[p11 + channel] * w11;
+        output[dst + channel] = Math.min(255, art * light);
       }
+      output[dst + 3] = 255;
     }
   }
   surfaceCtx.putImageData(surfaceImage, 0, 0);
@@ -410,10 +430,13 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   ctx.fill();
   ctx.drawImage(surface, 0, 0);
 
-  // Subtle photographic lighting only on the printed face.
-  ctx.globalCompositeOperation = 'multiply';
-  ctx.globalAlpha = 0.14;
-  ctx.drawImage(scene, 0, 0, width, height);
+  // Console keeps its original soft photographic blend; the wall scene's
+  // full normalized exposure/shadows are already baked into the poster pixels.
+  if (mockup.id === 'console') {
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = 0.14;
+    ctx.drawImage(scene, 0, 0, width, height);
+  }
   ctx.restore();
 
   // Hide subpixel white halos at all four joins, keeping a genuinely thin
