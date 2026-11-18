@@ -9,6 +9,15 @@ type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
 type BuiltMockup = { sourceName: string; fileName: string; blob: Blob; bytes: number };
 type SourceVariant = 'all' | 'light' | 'dark';
+type SceneId = 'console' | 'wall-bench';
+type MockupScene = {
+  id: SceneId;
+  label: string;
+  path: string;
+  front: Quad;
+  inverse: readonly [number, number, number, number, number, number, number, number];
+  suffix: string;
+};
 type GitHubHead = { object: { sha: string } };
 type GitHubCommit = { tree: { sha: string } };
 type GitHubTree = { tree: Array<{ path: string; type: string }>; truncated: boolean };
@@ -31,6 +40,25 @@ const INVERSE = [
   7.3190193517959e-05, 0.001144769693486, -0.29326184539669,
   0.00014499156832027, 4.3231528835866e-05,
 ] as const;
+// Separate photographed scenes, each with calibrated printable corners.
+// Original console coordinates and filenames stay unchanged.
+const SCENES: MockupScene[] = [
+  { id: 'console', label: 'کنسول کنار پنجره', path: TEMPLATE,
+    front: CANVAS_FRONT, inverse: INVERSE, suffix: '' },
+  { id: 'wall-bench', label: 'دیوار و نیمکت سنگی',
+    path: '/shop-preview/nemad-man/mockup-blank-wall-bench.webp',
+    front: [
+      { x: 264, y: 190 }, { x: 852, y: 163 },
+      { x: 852, y: 1066 }, { x: 262, y: 1061 },
+    ],
+    inverse: [
+      0.001794364503335026, 4.120239961733816e-06, -0.4744950744731765,
+      5.383563249207442e-05, 0.00117242044093851, -0.2369724907562245,
+      6.37364816528944e-05, 4.120239961733726e-06,
+    ],
+    suffix: '-wall-bench',
+  },
+];
 const OUTPUT_WIDTH = 1024;
 const OUTPUT_HEIGHT = 1536;
 const MAX_ARTS = 300;
@@ -297,7 +325,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function compose(scene: HTMLImageElement, poster: ImageBitmap): HTMLCanvasElement {
+function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupScene): HTMLCanvasElement {
   const width = OUTPUT_WIDTH;
   const height = OUTPUT_HEIGHT;
   const canvas = document.createElement('canvas');
@@ -322,13 +350,13 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap): HTMLCanvasElemen
   if (!surfaceCtx) throw new Error('ساخت سطح شاسی ممکن نیست.');
   const surfaceImage = surfaceCtx.createImageData(width, height);
   const output = surfaceImage.data;
-  const [a, b, c, d, e, f, g, h] = INVERSE;
+  const [a, b, c, d, e, f, g, h] = mockup.inverse;
   const srcW = poster.width;
   const srcH = poster.height;
-  const minX = Math.floor(Math.min(...CANVAS_FRONT.map(p => p.x)));
-  const maxX = Math.ceil(Math.max(...CANVAS_FRONT.map(p => p.x)));
-  const minY = Math.floor(Math.min(...CANVAS_FRONT.map(p => p.y)));
-  const maxY = Math.ceil(Math.max(...CANVAS_FRONT.map(p => p.y)));
+  const minX = Math.floor(Math.min(...mockup.front.map(p => p.x)));
+  const maxX = Math.ceil(Math.max(...mockup.front.map(p => p.x)));
+  const minY = Math.floor(Math.min(...mockup.front.map(p => p.y)));
+  const maxY = Math.ceil(Math.max(...mockup.front.map(p => p.y)));
 
   // One inverse-homography sample per output pixel, with bilinear interpolation.
   // No row/strip meshes, so joins and corners cannot leave white slivers.
@@ -370,9 +398,9 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap): HTMLCanvasElemen
   // Pixel-exact face mask, preserving the dark burned-wood side of the mockup.
   ctx.save();
   ctx.beginPath();
-  ctx.moveTo(CANVAS_FRONT[0].x, CANVAS_FRONT[0].y);
-  for (let i = 1; i < CANVAS_FRONT.length; i++) {
-    ctx.lineTo(CANVAS_FRONT[i].x, CANVAS_FRONT[i].y);
+  ctx.moveTo(mockup.front[0].x, mockup.front[0].y);
+  for (let i = 1; i < mockup.front.length; i++) {
+    ctx.lineTo(mockup.front[i].x, mockup.front[i].y);
   }
   ctx.closePath();
   ctx.clip();
@@ -391,9 +419,9 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap): HTMLCanvasElemen
   // Hide subpixel white halos at all four joins, keeping a genuinely thin
   // matte-black cut edge rather than adding a picture frame.
   ctx.beginPath();
-  ctx.moveTo(CANVAS_FRONT[0].x, CANVAS_FRONT[0].y);
-  for (let i = 1; i < CANVAS_FRONT.length; i++) {
-    ctx.lineTo(CANVAS_FRONT[i].x, CANVAS_FRONT[i].y);
+  ctx.moveTo(mockup.front[0].x, mockup.front[0].y);
+  for (let i = 1; i < mockup.front.length; i++) {
+    ctx.lineTo(mockup.front[i].x, mockup.front[i].y);
   }
   ctx.closePath();
   ctx.lineJoin = 'round';
@@ -465,6 +493,8 @@ export function NemadManMockupGenerator() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [limitKb, setLimitKb] = useState(70);
+  const [sceneId, setSceneId] = useState<SceneId>('console');
+  const activeScene = SCENES.find(scene => scene.id === sceneId) ?? SCENES[0];
 
   const selectedArts = arts.filter(item => selectedSources[item.name] !== false);
   const shownArts = arts.filter(item => variantFilter === 'all' || variantOf(item.name) === variantFilter);
@@ -519,9 +549,9 @@ export function NemadManMockupGenerator() {
     if (!previewArt) { setPreviewUrl(null); return; }
     (async () => {
       try {
-        const [scene, poster] = await Promise.all([loadImage(TEMPLATE), createImageBitmap(previewArt.image)]);
+        const [scene, poster] = await Promise.all([loadImage(activeScene.path), createImageBitmap(previewArt.image)]);
         if (poster.width * poster.height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
-        const canvas = compose(scene, poster);
+        const canvas = compose(scene, poster, activeScene);
         poster.close();
         const blob = await encodeWebp(canvas, 0.87);
         url = URL.createObjectURL(blob);
@@ -532,7 +562,7 @@ export function NemadManMockupGenerator() {
       }
     })();
     return () => { ended = true; if (url) URL.revokeObjectURL(url); };
-  }, [previewArt]);
+  }, [previewArt, sceneId]);
 
   const generate = async () => {
     if (busy || uploading || !selectedArts.length) return;
@@ -542,7 +572,7 @@ export function NemadManMockupGenerator() {
     setError('');
     clearBuilt();
     try {
-      const scene = await loadImage(TEMPLATE);
+      const scene = await loadImage(activeScene.path);
       const entries: Entry[] = [];
       const rendered: BuiltMockup[] = [];
       for (let i = 0; i < selectedArts.length; i++) {
@@ -555,13 +585,16 @@ export function NemadManMockupGenerator() {
           poster.close();
           throw new Error('ابعاد بیش از حد مجاز: ' + art.name);
         }
-        const output = compose(scene, poster);
+        const output = compose(scene, poster, activeScene);
         poster.close();
         const blob = await smallWebp(output, limitKb * 1000);
         const data = new Uint8Array(await blob.arrayBuffer());
-        const path = art.name.replace(IMAGE_RE, '.webp');
+        // Scene suffix avoids filename collisions when the same poster is rendered
+        // in both environments and later uploaded to the private archive.
+        const path = art.name.replace(IMAGE_RE, activeScene.suffix + '.webp');
+        const fileName = leafWebp(art.name).replace(/\.webp$/i, activeScene.suffix + '.webp');
         entries.push({ name: path, data });
-        rendered.push({ sourceName: art.name, fileName: leafWebp(art.name), blob, bytes: blob.size });
+        rendered.push({ sourceName: art.name, fileName, blob, bytes: blob.size });
         setProgress(i + 1);
         // Release the main thread between images so Stop and progress remain responsive.
         await new Promise<void>(resolve => window.setTimeout(resolve, 0));
@@ -647,8 +680,17 @@ export function NemadManMockupGenerator() {
           </div>
           <p className={styles.tip}>برای دیدن نسخهٔ سفید و مشکی، نام فایل را از این فهرست انتخاب کن. فیلتر فقط نمایش فهرست را عوض می‌کند؛ دکمه‌های «فقط طرح روشن/تیره» انتخاب خروجی را تغییر می‌دهند.</p>
         </>}
-        <h2>۳. شاسی آماده و خودکار</h2>
-        <p className={styles.tip}>طرح‌ها با پرسپکتیو ثابت روی شاسی بدون قاب، با لبهٔ مشکی باریک، قرار می‌گیرند.</p>
+        <h2>۳. انتخاب صحنهٔ موکاپ</h2>
+        <label className={styles.inlineLabel}>محیط و چیدمان
+          <select value={sceneId} disabled={busy || uploading} onChange={e => {
+            setSceneId(e.target.value as SceneId);
+            setPreviewUrl(null);
+            clearBuilt();
+          }}>
+            {SCENES.map(scene => <option key={scene.id} value={scene.id}>{scene.label}</option>)}
+          </select>
+        </label>
+        <p className={styles.tip}>هر صحنه جای دقیق چاپ خودش را دارد؛ بدون تنظیم دستی چهار گوشه. طرح اصلی دست‌نخورده و لبهٔ شاسی مشکی و باریک می‌ماند.</p>
         <h2>۴. خروجی نهایی</h2>
         <label className={styles.inlineLabel}>سقف هر WebP
           <select disabled={busy || uploading} value={limitKb} onChange={e => setLimitKb(Number(e.target.value))}>
@@ -699,11 +741,11 @@ export function NemadManMockupGenerator() {
         </>}
       </section>
       <section className={styles.panel}>
-        <div className={styles.previewHead}><h2>پیش‌نمایش تصویر انتخابی</h2><span>۲:۳</span></div>
+        <div className={styles.previewHead}><h2>پیش‌نمایش تصویر انتخابی</h2><span>{activeScene.label} · ۲:۳</span></div>
         <div className={styles.stage}>
           {/* The original uploaded artwork is projected; no AI rendering of text or stars. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="پیش‌نمایش خودکار شاسی بدون قاب" src={previewUrl || TEMPLATE} />
+          <img alt="پیش‌نمایش خودکار شاسی بدون قاب" src={previewUrl || activeScene.path} />
         </div>
         <p className={styles.previewFoot}>{previewArt ? previewArt.name : 'ابتدا یک تصویر یا ZIP انتخاب کن.'}</p>
       </section>
