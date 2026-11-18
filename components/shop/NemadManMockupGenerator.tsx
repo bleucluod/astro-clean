@@ -9,9 +9,9 @@ type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
 type BuiltMockup = { sourceName: string; fileName: string; blob: Blob; bytes: number };
 type SourceVariant = 'all' | 'light' | 'dark';
-type SceneId = 'console' | 'wall-bench' | 'workdesk' | 'gift-wrap' | 'trio-bookshelf';
-type MockupScene = {
-  id: SceneId;
+type SceneId = 'console' | 'wall-bench' | 'workdesk' | 'gift-wrap' | 'couple-wall';
+type SingleMockupScene = {
+  id: Exclude<SceneId, 'couple-wall'>;
   label: string;
   path: string;
   front: Quad;
@@ -19,10 +19,10 @@ type MockupScene = {
   inverse: readonly [number, number, number, number, number, number, number, number];
   suffix: string;
 };
-type TrioSize = 'small' | 'medium' | 'large';
-type TrioChoices = Record<TrioSize, string>;
-type TrioPanel = { id: TrioSize; label: string; front: Quad; outer: Quad;
-  inverse: readonly [number, number, number, number, number, number, number, number]; referenceLuminance: number };
+type MockupScene = SingleMockupScene | { id: 'couple-wall'; label: string; path: string; suffix: string };
+type CoupleSide = 'left' | 'right';
+type CoupleChoices = Record<CoupleSide, string>;
+
 type GitHubHead = { object: { sha: string } };
 type GitHubCommit = { tree: { sha: string } };
 type GitHubTree = { tree: Array<{ path: string; type: string }>; truncated: boolean };
@@ -109,54 +109,20 @@ const SCENES: MockupScene[] = [
     ],
     suffix: '-gift-wrap',
   },
-  { id: 'trio-bookshelf', label: 'کتابخانه · سه اندازه، سه طرح مستقل',
-    path: '/shop-preview/nemad-man/mockup-blank-three-sizes-bookshelf.webp',
-    front: CANVAS_FRONT, inverse: INVERSE, suffix: '-three-sizes' },
+  { id: 'couple-wall', label: 'زوجی · دو شاسی ۱۰×۱۵ روی دیوار',
+    path: '/shop-preview/nemad-man/mockup-blank-couple-wall.webp',
+    suffix: '-couple-10x15',
+  },
 ];
-// Source photograph: approved Pinterest bookshelf scene, centered to 2:3 without stretching.
-// Correct overlap order is large -> medium -> small. The outer silhouettes are
-// occlusion masks, so the rear artwork never paints over a foreground black cut edge.
-const TRIO_PANELS: TrioPanel[] = [
-  { id: 'large', label: '۳۰×۴۵ سانتی\u200cمتر', front: [
-    { x: 381.615, y: 192.0 },
-    { x: 894.675, y: 146.387 },
-    { x: 895.735, y: 1028.95 },
-    { x: 362.534, y: 1027.89 }
-  ], outer: [
-    { x: 376.315, y: 184.575 },
-    { x: 913.756, y: 138.961 },
-    { x: 913.756, y: 1045.923 },
-    { x: 358.294, y: 1043.801 }
-  ], inverse: [0.002176619667246, 4.9686041616e-05, -0.840170413050349, 0.000116901929906, 0.001314925464333, -0.297077217991584, 0.000119412155157, 5.2156839785e-05] as const, referenceLuminance: 58 },
-  { id: 'medium', label: '۲۰×۳۰ سانتی\u200cمتر', front: [
-    { x: 161.126, y: 474.166 },
-    { x: 520.48, y: 472.044 },
-    { x: 518.36, y: 1024.707 },
-    { x: 117.665, y: 1017.282 }
-  ], outer: [
-    { x: 155.826, y: 467.801 },
-    { x: 530.021, y: 463.558 },
-    { x: 526.841, y: 1038.497 },
-    { x: 111.304, y: 1037.437 }
-  ], inverse: [0.003177708649145, 0.000254285301616, -0.632584946839737, 1.3625093808e-05, 0.002307389541484, -1.096280991925642, 5.1892179754e-05, 0.000242294784151] as const, referenceLuminance: 64 },
-  { id: 'small', label: '۱۰×۱۵ سانتی\u200cمتر', front: [
-    { x: 415.536, y: 732.994 },
-    { x: 618.004, y: 734.055 },
-    { x: 616.944, y: 1039.558 },
-    { x: 392.215, y: 1028.95 }
-  ], outer: [
-    { x: 409.176, y: 723.448 },
-    { x: 628.605, y: 727.691 },
-    { x: 626.484, y: 1044.862 },
-    { x: 385.855, y: 1041.68 }
-  ], inverse: [0.007678195283984, 0.000605033665767, -3.634052696037477, -2.9706782975e-05, 0.005669010523415, -4.143006566697439, 0.000210554640566, 0.000579121851875] as const, referenceLuminance: 69 },
-];
-const TRIO_ORDER: TrioSize[] = ['large', 'medium', 'small'];
-// Exact photographic face masks (RGB channels = large / medium / small).
-// Unlike guessed quads they preserve every irregular printed edge and overlap.
-const TRIO_FACE_MASK_PATH = '/shop-preview/nemad-man/mockup-three-sizes-face-masks.png';
-// Foreground blossoms from the approved photo, not reconstructed by AI.
-const TRIO_FLOWERS_PATH = '/shop-preview/nemad-man/mockup-three-sizes-foreground-flowers.png';
+// The approved front-facing photograph has two independent, true 2:3
+// frameless faces. Red and green mask channels capture their exact edges,
+// including natural foreground leaves on the left canvas.
+const COUPLE_MASK_PATH = '/shop-preview/nemad-man/mockup-couple-face-masks.png';
+const COUPLE_SIDES: CoupleSide[] = ['left', 'right'];
+const COUPLE_FACES: Record<CoupleSide, { x: number; y: number; w: number; h: number; channel: 0 | 1 }> = {
+  left: { x: 128, y: 462, w: 362, h: 541, channel: 0 },
+  right: { x: 530, y: 462, w: 360, h: 540, channel: 1 },
+};
 const OUTPUT_WIDTH = 1024;
 const OUTPUT_HEIGHT = 1536;
 const MAX_ARTS = 300;
@@ -423,7 +389,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupScene): HTMLCanvasElement {
+function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: SingleMockupScene): HTMLCanvasElement {
   const width = OUTPUT_WIDTH;
   const height = OUTPUT_HEIGHT;
   const canvas = document.createElement('canvas');
@@ -575,106 +541,73 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   return canvas;
 }
 
-// Separate three-image renderer. Each independent uploaded WebP is projected in
-// its own full 2:3 UV space, then clipped by the physical fronts of later canvases.
-// The approved interior photograph and its pre-existing shadows remain the base.
-function composeTrio(
-  scene: HTMLImageElement,
-  posters: Record<TrioSize, ImageBitmap>,
-  faceMasks: HTMLImageElement,
-  foregroundFlowers: HTMLImageElement,
-): HTMLCanvasElement {
+/** Replace only the printable face pixels; leave every other pixel of the
+ * approved photo (edges, foreground flowers, contact shadows) untouched. */
+function composeCouple(scene: HTMLImageElement, masks: HTMLImageElement,
+  posters: Record<CoupleSide, ImageBitmap>): HTMLCanvasElement {
   const width = OUTPUT_WIDTH;
   const height = OUTPUT_HEIGHT;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('امکان ساخت موکاپ سه‌اندازه در مرورگر وجود ندارد.');
+  if (!ctx) throw new Error('Canvas برای موکاپ زوجی در دسترس نیست.');
   ctx.drawImage(scene, 0, 0, width, height);
-  const photographed = ctx.getImageData(0, 0, width, height).data;
-
-  // Reuse the actual surface outlines from the photographed blank scene.
-  // Each channel is a separate precise opacity mask, including the portions
-  // hidden behind the two nearer boards. The frame itself is never repainted.
-  if (faceMasks.width !== width || faceMasks.height !== height) {
-    throw new Error('ابعاد ماسک سه‌شاسی با قالب تطبیق ندارد.');
-  }
+  const sceneData = ctx.getImageData(0, 0, width, height);
+  const result = sceneData.data;
   const maskCanvas = document.createElement('canvas');
   maskCanvas.width = width;
   maskCanvas.height = height;
   const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
-  if (!maskCtx) throw new Error('ماسک سطح شاسی قابل خواندن نیست.');
-  maskCtx.drawImage(faceMasks, 0, 0);
-  const facePixels = maskCtx.getImageData(0, 0, width, height).data;
-  const channels: Record<TrioSize, number> = { large: 0, medium: 1, small: 2 };
+  if (!maskCtx) throw new Error('ماسک شاسی‌ها قابل خواندن نیست.');
+  maskCtx.drawImage(masks, 0, 0, width, height);
+  const maskPixels = maskCtx.getImageData(0, 0, width, height).data;
 
-  for (const size of TRIO_ORDER) {
-    const panel = TRIO_PANELS.find(item => item.id === size);
-    if (!panel) throw new Error('قالب شاسی ناقص است.');
-    const poster = posters[panel.id];
-    const source = document.createElement('canvas');
-    source.width = poster.width;
-    source.height = poster.height;
-    const sourceCtx = source.getContext('2d', { willReadFrequently: true });
-    if (!sourceCtx) throw new Error('خواندن طرح اصلی ممکن نیست.');
-    sourceCtx.drawImage(poster, 0, 0);
-    const pixels = sourceCtx.getImageData(0, 0, poster.width, poster.height).data;
-    const layer = document.createElement('canvas');
-    layer.width = width;
-    layer.height = height;
-    const layerCtx = layer.getContext('2d');
-    if (!layerCtx) throw new Error('ساخت لایهٔ شاسی ممکن نیست.');
-    const output = layerCtx.createImageData(width, height);
-    const out = output.data;
-    const maskChannel = channels[size];
-    const [a, b, c, d, e, f, g, h] = panel.inverse;
-    const minX = Math.max(0, Math.floor(Math.min(...panel.front.map(point => point.x)) - 6));
-    const maxX = Math.min(width - 1, Math.ceil(Math.max(...panel.front.map(point => point.x)) + 6));
-    const minY = Math.max(0, Math.floor(Math.min(...panel.front.map(point => point.y)) - 6));
-    const maxY = Math.min(height - 1, Math.ceil(Math.max(...panel.front.map(point => point.y)) + 6));
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
-        const dest = (y * width + x) * 4;
-        const coverage = facePixels[dest + maskChannel];
-        if (coverage === 0) continue;
-        const px = x + 0.5;
-        const py = y + 0.5;
-        const denom = g * px + h * py + 1;
-        const u = (a * px + b * py + c) / denom;
-        const v = (d * px + e * py + f) / denom;
-        const sx = Math.max(0, Math.min(poster.width - 1, u * (poster.width - 1)));
-        const sy = Math.max(0, Math.min(poster.height - 1, v * (poster.height - 1)));
-        const x0 = Math.floor(sx), y0 = Math.floor(sy);
-        const x1 = Math.min(poster.width - 1, x0 + 1);
-        const y1 = Math.min(poster.height - 1, y0 + 1);
-        const fx = sx - x0, fy = sy - y0;
-        const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy);
-        const w01 = (1 - fx) * fy, w11 = fx * fy;
-        const p00 = (y0 * poster.width + x0) * 4;
-        const p10 = (y0 * poster.width + x1) * 4;
-        const p01 = (y1 * poster.width + x0) * 4;
-        const p11 = (y1 * poster.width + x1) * 4;
-        const lum = photographed[dest] * 0.2126 + photographed[dest + 1] * 0.7152 +
-          photographed[dest + 2] * 0.0722;
-        const exposure = Math.max(0.78, Math.min(1.12, Math.pow(lum / panel.referenceLuminance, 0.68)));
+  for (const side of COUPLE_SIDES) {
+    const face = COUPLE_FACES[side];
+    const original = posters[side];
+    if (original.width * original.height > MAX_IMAGE_PIXELS) {
+      throw new Error('ابعاد فایل انتخاب‌شده برای موکاپ زوجی بیش از حد مجاز است.');
+    }
+    const painted = document.createElement('canvas');
+    painted.width = face.w;
+    painted.height = face.h;
+    const paintCtx = painted.getContext('2d', { willReadFrequently: true });
+    if (!paintCtx) throw new Error('پردازش تصویر شاسی ممکن نیست.');
+    paintCtx.imageSmoothingQuality = 'high';
+    // 362:541 and 360:540 are calibrated to the full 2:3 print, never a crop.
+    paintCtx.drawImage(original, 0, 0, face.w, face.h);
+    const art = paintCtx.getImageData(0, 0, face.w, face.h).data;
+    for (let py = 0; py < face.h; py++) {
+      for (let px = 0; px < face.w; px++) {
+        const dest = ((face.y + py) * width + face.x + px) * 4;
+        const opacity = maskPixels[dest + face.channel] / 255;
+        if (opacity <= 0) continue;
+        const local = (py * face.w + px) * 4;
+        const luma = result[dest] * 0.2126 + result[dest + 1] * 0.7152 +
+          result[dest + 2] * 0.0722;
+        const shadow = Math.max(0.74, Math.min(1.10, Math.pow(luma / 221, 0.72)));
         for (let channel = 0; channel < 3; channel++) {
-          const art = pixels[p00 + channel] * w00 + pixels[p10 + channel] * w10 +
-            pixels[p01 + channel] * w01 + pixels[p11 + channel] * w11;
-          out[dest + channel] = Math.min(255, art * exposure);
+          const textured = Math.max(0, Math.min(255, art[local + channel] * shadow +
+            (result[dest + channel] - luma) * 0.04));
+          result[dest + channel] = result[dest + channel] * (1 - opacity) + textured * opacity;
         }
-        out[dest + 3] = coverage;
       }
     }
-    layerCtx.putImageData(output, 0, 0);
-    ctx.drawImage(layer, 0, 0);
   }
-
-  // Flowers and thin branches in front of the medium panel must remain in
-  // front after replacing its original artwork. This photographic cutout is
-  // deliberately applied last, after all three independent artwork layers.
-  ctx.drawImage(foregroundFlowers, 105, 440);
+  ctx.putImageData(sceneData, 0, 0);
   return canvas;
+}
+
+function coupleFileName(choices: CoupleChoices, sources: SourceArt[]): string {
+  // Stable filename for the two chosen originals; changing either changes the output.
+  const values = COUPLE_SIDES.map(side => {
+    const source = sources.find(item => item.name === choices[side]);
+    return `${choices[side]}:${source?.image.size ?? 0}`;
+  }).join('|');
+  let hash = 2166136261;
+  for (let i = 0; i < values.length; i++) hash = Math.imul(hash ^ values.charCodeAt(i), 16777619) >>> 0;
+  return `couple-wall-10x15-${hash.toString(36)}.webp`;
 }
 
 function encodeWebp(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
@@ -740,12 +673,11 @@ export function NemadManMockupGenerator() {
   const [progress, setProgress] = useState(0);
   const [limitKb, setLimitKb] = useState(70);
   const [sceneId, setSceneId] = useState<SceneId>('console');
-  const [trioChoices, setTrioChoices] = useState<TrioChoices>({ small: '', medium: '', large: '' });
+  const [coupleChoices, setCoupleChoices] = useState<CoupleChoices>({ left: '', right: '' });
   const activeScene = SCENES.find(scene => scene.id === sceneId) ?? SCENES[0];
-  const isTrio = sceneId === 'trio-bookshelf';
-  const trioSources = TRIO_ORDER.map(size => arts.find(item => item.name === trioChoices[size]));
-  const trioReady = trioSources.every(Boolean) && new Set(TRIO_ORDER.map(size => trioChoices[size])).size === 3;
-
+  const isCouple = sceneId === 'couple-wall';
+  const coupleReady = COUPLE_SIDES.every(side => arts.some(item => item.name === coupleChoices[side])) &&
+    coupleChoices.left !== coupleChoices.right;
 
   const selectedArts = arts.filter(item => selectedSources[item.name] !== false);
   const shownArts = arts.filter(item => variantFilter === 'all' || variantOf(item.name) === variantFilter);
@@ -786,10 +718,10 @@ export function NemadManMockupGenerator() {
     try {
       const next = await collectFiles(files);
       setArts(next);
-      setTrioChoices({ small: next[0]?.name ?? '', medium: next[1]?.name ?? '', large: next[2]?.name ?? '' });
       setSelectedSources(Object.fromEntries(next.map(item => [item.name, true])));
       setVariantFilter('all');
       setPreviewName(next[0]?.name ?? null);
+      setCoupleChoices({ left: next[0]?.name ?? '', right: next[1]?.name ?? '' });
       clearBuilt();
       setProgress(0);
     } catch (err) { setError(err instanceof Error ? err.message : 'ورود فایل‌ها ناموفق بود.'); }
@@ -798,28 +730,29 @@ export function NemadManMockupGenerator() {
   useEffect(() => {
     let ended = false;
     let url: string | null = null;
-    if ((isTrio && !trioReady) || (!isTrio && !previewArt)) {
+    if ((isCouple && !coupleReady) || (!isCouple && !previewArt)) {
       setPreviewUrl(null);
       return;
     }
     (async () => {
-      let bitmaps: ImageBitmap[] = [];
+      const opened: ImageBitmap[] = [];
       try {
         const scene = await loadImage(activeScene.path);
         let canvas: HTMLCanvasElement;
-        if (isTrio) {
-          const sources = TRIO_ORDER.map(size => arts.find(item => item.name === trioChoices[size]));
-          if (sources.some(item => !item)) return;
-          bitmaps = await Promise.all(sources.map(item => createImageBitmap(item!.image)));
-          if (bitmaps.some(bitmap => bitmap.width * bitmap.height > MAX_IMAGE_PIXELS)) throw new Error('ابعاد یکی از تصویرها بیش از حد مجاز است.');
-          const [masks, flowers] = await Promise.all([
-            loadImage(TRIO_FACE_MASK_PATH), loadImage(TRIO_FLOWERS_PATH),
+        if (activeScene.id === 'couple-wall') {
+          const sources = COUPLE_SIDES.map(side => arts.find(item => item.name === coupleChoices[side]));
+          if (sources.some(source => !source)) throw new Error('برای هر دو شاسی طرح جدا انتخاب کن.');
+          const [mask, left, right] = await Promise.all([
+            loadImage(COUPLE_MASK_PATH),
+            createImageBitmap(sources[0]!.image), createImageBitmap(sources[1]!.image),
           ]);
-          canvas = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] }, masks, flowers);
+          opened.push(left, right);
+          canvas = composeCouple(scene, mask, { left, right });
         } else {
-          bitmaps = [await createImageBitmap(previewArt!.image)];
-          if (bitmaps[0].width * bitmaps[0].height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
-          canvas = compose(scene, bitmaps[0], activeScene);
+          const poster = await createImageBitmap(previewArt!.image);
+          opened.push(poster);
+          if (poster.width * poster.height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
+          canvas = compose(scene, poster, activeScene);
         }
         const blob = await encodeWebp(canvas, 0.87);
         url = URL.createObjectURL(blob);
@@ -827,13 +760,13 @@ export function NemadManMockupGenerator() {
         else URL.revokeObjectURL(url);
       } catch (err) {
         if (!ended) setError(err instanceof Error ? err.message : 'پیش‌نمایش ایجاد نشد.');
-      } finally { bitmaps.forEach(bitmap => bitmap.close()); }
+      } finally { opened.forEach(bitmap => bitmap.close()); }
     })();
     return () => { ended = true; if (url) URL.revokeObjectURL(url); };
-  }, [previewArt, sceneId, trioChoices.small, trioChoices.medium, trioChoices.large, arts]);
+  }, [previewArt, sceneId, coupleChoices.left, coupleChoices.right, arts]);
 
   const generate = async () => {
-    if (busy || uploading || (isTrio ? !trioReady : !selectedArts.length)) return;
+    if (busy || uploading || (isCouple ? !coupleReady : !selectedArts.length)) return;
     setBusy(true);
     cancel.current = false;
     setProgress(0);
@@ -841,34 +774,29 @@ export function NemadManMockupGenerator() {
     clearBuilt();
     try {
       const scene = await loadImage(activeScene.path);
-      if (isTrio) {
-        if (!trioReady) throw new Error('برای هر سه اندازه باید یک طرح متفاوت انتخاب کنی.');
-        const selected = TRIO_ORDER.map(size => arts.find(item => item.name === trioChoices[size]));
-        if (selected.some(item => !item)) throw new Error('طرح انتخاب‌شده در ZIP پیدا نشد.');
-        const bitmaps = await Promise.all(selected.map(item => createImageBitmap(item!.image)));
-        let output: HTMLCanvasElement;
-        try {
-          if (bitmaps.some(bitmap => bitmap.width * bitmap.height > MAX_IMAGE_PIXELS)) throw new Error('ابعاد یک تصویر بیش از حد مجاز است.');
-          const [masks, flowers] = await Promise.all([
-            loadImage(TRIO_FACE_MASK_PATH), loadImage(TRIO_FLOWERS_PATH),
-          ]);
-          output = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] }, masks, flowers);
-        } finally { bitmaps.forEach(bitmap => bitmap.close()); }
-        const blob = await smallWebp(output, limitKb * 1000);
-        const joined = TRIO_ORDER.map(size => trioChoices[size]).join('|');
-        let hash = 2166136261;
-        for (let i = 0; i < joined.length; i++) hash = Math.imul(hash ^ joined.charCodeAt(i), 16777619) >>> 0;
-        const name = `three-sizes-bookshelf-${hash.toString(36)}.webp`;
-        const builtItem: BuiltMockup = { sourceName: 'trio-bookshelf', fileName: name, blob, bytes: blob.size };
-        setBuilt([builtItem]);
-        setSelectedUploads({ 'trio-bookshelf': true });
-        setProgress(1);
-        saveBlob(zipBlob([{ name, data: new Uint8Array(await blob.arrayBuffer()) }]), 'Halleus-Three-Sizes-Bookshelf.zip');
-        return;
-      }
       const entries: Entry[] = [];
       const rendered: BuiltMockup[] = [];
-      for (let i = 0; i < selectedArts.length; i++) {
+      if (activeScene.id === 'couple-wall') {
+        if (!coupleReady) throw new Error('دو طرح متفاوت برای زوج انتخاب کن.');
+        const sources = COUPLE_SIDES.map(side => arts.find(item => item.name === coupleChoices[side]));
+        if (sources.some(source => !source)) throw new Error('فایل انتخابی در ZIP موجود نیست.');
+        const masks = await loadImage(COUPLE_MASK_PATH);
+        const opened: ImageBitmap[] = [];
+        let output: HTMLCanvasElement;
+        try {
+          const [left, right] = await Promise.all([
+            createImageBitmap(sources[0]!.image), createImageBitmap(sources[1]!.image),
+          ]);
+          opened.push(left, right);
+          output = composeCouple(scene, masks, { left, right });
+        } finally { opened.forEach(bitmap => bitmap.close()); }
+        if (cancel.current) throw new Error('پردازش متوقف شد.');
+        const blob = await smallWebp(output, limitKb * 1000);
+        const name = coupleFileName(coupleChoices, arts);
+        entries.push({ name, data: new Uint8Array(await blob.arrayBuffer()) });
+        rendered.push({ sourceName: 'couple-wall', fileName: name, blob, bytes: blob.size });
+        setProgress(1);
+      } else for (let i = 0; i < selectedArts.length; i++) {
         if (cancel.current) throw new Error('پردازش متوقف شد؛ خروجی ناقص ذخیره نشد.');
         const art = selectedArts[i];
         let poster: ImageBitmap;
@@ -931,7 +859,7 @@ export function NemadManMockupGenerator() {
     <header className={styles.head}>
       <p className={styles.eyebrow}>HALLEUS • NEMAD MAN</p>
       <h1>مولد گروهی موکاپ</h1>
-      <p>فایل‌های اصلی دست‌نخورده روی شاسی بدون قاب قرار می‌گیرند. ساخت موکاپ و ZIP داخل مرورگر است؛ فقط اگر خودت «ثبت در GitHub» را بزنی، فایل‌های منتخب به مخزن خصوصی ارسال می‌شوند.</p>
+      <p>فایل‌های اصلی بدون بازطراحی روی شاسی بدون قاب قرار می‌گیرند؛ در موکاپ زوجی دو فایل متفاوت انتخاب می‌کنی. ساخت موکاپ و ZIP داخل مرورگر است؛ فقط اگر خودت «ثبت در GitHub» را بزنی، فایل‌های منتخب به مخزن خصوصی ارسال می‌شوند.</p>
     </header>
     <div className={styles.grid}>
       <section className={styles.panel}>
@@ -946,7 +874,7 @@ export function NemadManMockupGenerator() {
           فایل‌ها یا ZIP را اینجا رها کن. پوشهٔ شامل ۷۲ تصویر را هم می‌توانی یکجا انتخاب کنی.
         </div>
         <p className={styles.count}>{arts.length ? `${arts.length} تصویر از ZIP یا پوشه • ${selectedArts.length} تصویر انتخاب‌شده` : 'هنوز تصویری انتخاب نشده است.'}</p>
-        {arts.length > 0 && !isTrio && <>
+        {arts.length > 0 && !isCouple && <>
           <h2>۲. انتخاب تصویر از ZIP</h2>
           <div className={styles.buttons}>
             <button type="button" className={styles.secondary} disabled={busy || uploading} onClick={() => selectSources('all')}>انتخاب همه</button>
@@ -983,20 +911,19 @@ export function NemadManMockupGenerator() {
             {SCENES.map(scene => <option key={scene.id} value={scene.id}>{scene.label}</option>)}
           </select>
         </label>
-        {isTrio && <div className={styles.trioChooser}>
-          <p className={styles.tip}>هر شاسی طرح مستقل دارد. شاسی بزرگ عقب، متوسط جلو و کوچک روی هر دو قرار می‌گیرد. هیچ بخشی از طرحِ پشت، روی شاسی جلویی کشیده نمی‌شود.</p>
-          {([['small', '۱۰×۱۵ · جلو'], ['medium', '۲۰×۳۰ · وسط'], ['large', '۳۰×۴۵ · عقب']] as const).map(([size, label]) =>
-            <label key={size} className={styles.inlineLabel}>{label}
-              <select disabled={busy || uploading || !arts.length} value={trioChoices[size]}
-                onChange={e => { setTrioChoices(previous => ({ ...previous, [size]: e.target.value })); setPreviewUrl(null); clearBuilt(); }}>
-                <option value="">انتخاب طرح</option>
-                {arts.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}
-              </select>
-            </label>
-          )}
-          {!trioReady && <p className={styles.error}>سه فایل متفاوت از ZIP یا پوشه انتخاب کن تا پیش‌نمایش و خروجی سه‌اندازه ساخته شود.</p>}
+        {isCouple && <div className={styles.coupleChooser}>
+          <p className={styles.tip}>برای هر شاسی ۱۰×۱۵ یک تصویر اصلی جدا انتخاب کن؛ دو تابلو روی دیوار، بدون قاب و از روبه‌رو هستن.</p>
+          {COUPLE_SIDES.map(side => <label className={styles.inlineLabel} key={side}>
+            {side === 'left' ? 'شاسی سمت چپ · نفر اول' : 'شاسی سمت راست · نفر دوم'}
+            <select disabled={busy || uploading || !arts.length} value={coupleChoices[side]}
+              onChange={e => { setCoupleChoices(previous => ({ ...previous, [side]: e.target.value })); setPreviewUrl(null); clearBuilt(); }}>
+              <option value="">انتخاب طرح از ZIP…</option>
+              {arts.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}
+            </select>
+          </label>)}
+          {!coupleReady && <p className={styles.tip}>دو فایل متفاوت انتخاب کن تا پیش‌نمایش و خروجی زوجی ساخته شود.</p>}
         </div>}
-        <p className={styles.tip}>هر صحنه جای دقیق چاپ خودش را دارد؛ بدون تنظیم دستی چهار گوشه. طرح اصلی دست‌نخورده و لبهٔ شاسی مشکی و باریک می‌ماند.</p>
+        <p className={styles.tip}>هر صحنه جای دقیق چاپ خودش را دارد؛ بدون تنظیم دستی چهار گوشه. طرح اصلی دست‌نخورده می‌ماند.</p>
         <h2>۴. خروجی نهایی</h2>
         <label className={styles.inlineLabel}>سقف هر WebP
           <select disabled={busy || uploading} value={limitKb} onChange={e => setLimitKb(Number(e.target.value))}>
@@ -1005,12 +932,12 @@ export function NemadManMockupGenerator() {
           </select>
         </label>
         <div className={styles.buttons}>
-          <button type="button" disabled={busy || uploading || (isTrio ? !trioReady : !selectedArts.length)} onClick={() => { void generate(); }}>{isTrio ? 'ساخت موکاپ سه‌اندازه و ZIP یک‌تصویری' : `ساخت ZIP از ${selectedArts.length} تصویر منتخب`}</button>
+          <button type="button" disabled={busy || uploading || (isCouple ? !coupleReady : !selectedArts.length)} onClick={() => { void generate(); }}>{isCouple ? 'ساخت ZIP زوجی از دو طرح مستقل' : `ساخت ZIP از ${selectedArts.length} تصویر منتخب`}</button>
           {busy && <button type="button" className={styles.secondary} onClick={() => { cancel.current = true; }}>توقف</button>}
         </div>
-        {busy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {isTrio ? 1 : selectedArts.length}<progress value={progress} max={isTrio ? 1 : selectedArts.length}/></div>}
+        {busy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {isCouple ? 1 : selectedArts.length}<progress value={progress} max={isCouple ? 1 : selectedArts.length}/></div>}
         {error && <p className={styles.error} role="alert">{error}</p>}
-        <p className={styles.tip}>هر فایل منتخب یک خروجی می‌گیرد و نام‌ها و ساختار پوشه در ZIP حفظ می‌شوند.</p>
+        <p className={styles.tip}>{isCouple ? 'دو طرح مستقل در یک موکاپ واحد، بدون برش یا حاشیهٔ سفید اضافه.' : 'هر فایل منتخب یک خروجی می‌گیرد و نام‌ها و ساختار پوشه در ZIP حفظ می‌شوند.'}</p>
         {built.length > 0 && <>
           <h2>۵. انتخاب فایل‌های قابل ثبت در GitHub</h2>
           <div className={styles.buttons}>
@@ -1053,7 +980,7 @@ export function NemadManMockupGenerator() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt="پیش‌نمایش خودکار شاسی بدون قاب" src={previewUrl || activeScene.path} />
         </div>
-        <p className={styles.previewFoot}>{isTrio ? (trioReady ? 'سه طرح مستقل · ۱۰×۱۵، ۲۰×۳۰، ۳۰×۴۵' : 'سه طرح متفاوت انتخاب کن.') : (previewArt ? previewArt.name : 'ابتدا یک تصویر یا ZIP انتخاب کن.')}</p>
+        <p className={styles.previewFoot}>{isCouple ? (coupleReady ? `${coupleChoices.left} + ${coupleChoices.right}` : 'دو طرح متفاوت از ZIP انتخاب کن.') : (previewArt ? previewArt.name : 'ابتدا یک تصویر یا ZIP انتخاب کن.')}</p>
       </section>
     </div>
   </main>;

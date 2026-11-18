@@ -40,6 +40,7 @@
 .pushButton:disabled { opacity:.45; cursor:not-allowed; }
 .success { margin-top:14px; color:#207048; font-weight:650; }
 .success a { color:inherit; text-decoration:underline; }
-.trioChooser { padding: 12px; margin: 14px 0; border: 1px solid #d9eafd; border-radius: 12px; background: #f8fafc; }
-.trioChooser .inlineLabel { display: flex; justify-content: space-between; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
-.trioChooser select { max-width: 100%; width: min(100%, 370px); overflow: hidden; text-overflow: ellipsis; }
+
+.coupleChooser { background: #f8fafc; border: 1px solid #d9eafd; border-radius: 12px; padding: 14px; margin: 14px 0; }
+.coupleChooser .inlineLabel { flex-wrap: wrap; gap: 9px; }
+.coupleChooser select { min-width: 190px; max-width: 100%; width: min(100%, 350px); overflow: hidden; text-overflow: ellipsis; }
