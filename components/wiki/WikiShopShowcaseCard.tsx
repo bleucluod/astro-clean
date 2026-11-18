@@ -93,7 +93,7 @@ export function WikiShopShowcaseCard({ offer, track = false, trackSurface }: {
       onClick={recordClick} onAuxClick={(event) => { if (event.button === 1) recordClick(); }}>
       <span className={styles.image}>
         <Image src={offer.image} alt={offer.imageAlt} fill
-          sizes="(max-width: 760px) 240px, 180px" />
+          sizes="(max-width: 760px) calc(100vw - 100px), (max-width: 1100px) 280px, 320px" />
       </span>
       <span className={styles.content}>
         <span className={styles.eyebrow}>از فروشگاه هالیوس</span>

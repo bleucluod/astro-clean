@@ -78,7 +78,7 @@
 .productVisual {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: 4px;
   background: #17191c;
@@ -159,11 +159,9 @@
 }
 
 .productDetails {
-  position: absolute;
-  inset: auto 0 0;
-  z-index: 1;
-  padding: 60px 18px 16px;
-  background: linear-gradient(0deg, rgba(0, 0, 0, .86), rgba(0, 0, 0, .46) 48%, transparent);
+  position: static;
+  padding: 16px 18px 20px;
+  background: #11151a;
   text-align: right;
 }
 
@@ -408,13 +406,13 @@
   .collectionHeader { margin-bottom: 24px; }
   .shopHome .collectionHeader h2 { font-size: 25px; }
   .productGrid { grid-template-columns: 1fr; gap: 22px; }
-  .productCard > .productVisual, .visualLink > .productVisual {
+  .productCard .productVisual {
     width: 100%;
     height: auto;
-    aspect-ratio: 6 / 5;
+    aspect-ratio: 2 / 3;
   }
   .visualLink { width: 100%; height: auto; }
-  .productDetails { padding: 64px 18px 18px; direction: rtl; text-align: right; }
+  .productDetails { padding: 15px 17px 19px; direction: rtl; text-align: right; }
   .productHeading { display: flex; align-items: center; }
   .shopHome .productHeading h3 { font-size: 19px; }
   .closingInner { display: block; padding: 30px 0; }
@@ -551,7 +549,7 @@
 
 /* Single featured product: the whole card is one link, with a short unlinked-looking caption. */
 .featuredGrid {
-  width: min(100%, 980px);
+  width: min(100%, 430px);
   margin-inline: auto;
 }
 .featuredCard {
@@ -584,9 +582,8 @@
   line-height: 1.9;
 }
 .featuredCard .cardLink {
-  display: grid;
-  grid-template-columns: minmax(0, .96fr) minmax(0, 1.04fr);
-  min-height: 355px;
+  display: block;
+  min-height: 0;
   border: 1px solid #29323b;
   background: #0b0d10;
   direction: rtl;
@@ -596,33 +593,30 @@
   border-color: #667d90;
 }
 .featuredCard .productVisual {
-  height: 100%;
-  min-height: 355px;
-  aspect-ratio: auto;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 2 / 3;
   border-radius: 0;
 }
 .featuredCard .productDetails {
   position: static;
-  inset: auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 44px;
-  background: transparent;
+  align-items: stretch;
+  padding: 16px 18px 20px;
+  background: #11151a;
   direction: rtl;
   text-align: right;
 }
 .shopHome .featuredCard .productHeading h3 {
-  font-size: clamp(26px, 2.7vw, 34px);
+  font-size: 19px;
   line-height: 1.6;
 }
 .shopHome .featuredCard .productSubtitle {
-  max-width: 31ch;
-  margin-top: 13px;
+  margin-top: 8px;
   color: #cbd7e3;
   -webkit-text-fill-color: #cbd7e3;
-  font-size: 16px;
+  font-size: 13px;
   line-height: 2;
 }
 .shopEditorialPanels {
@@ -681,16 +675,15 @@
 }
 @media (max-width: 767px) {
   .featuredCard .cardLink {
-    grid-template-columns: minmax(0, 1fr);
     min-height: 0;
   }
   .featuredCard .productVisual {
     height: auto;
     min-height: 0;
-    aspect-ratio: 6 / 5;
+    aspect-ratio: 2 / 3;
   }
   .featuredCard .productDetails {
-    padding: 27px 25px 30px;
+    padding: 15px 17px 19px;
   }
   .shopHome .featuredCard .productHeading h3 {
     font-size: 25px;
@@ -778,11 +771,30 @@
 
   .productGrid .productCard,
   .productGrid .cardLink {
-    min-height: 320px;
+    min-height: 0;
   }
 
   .productGrid .productVisual {
-    height: 320px;
-    aspect-ratio: auto;
+    height: auto;
+    aspect-ratio: 2 / 3;
   }
+}
+
+@media (min-width: 1025px) {
+  .productGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.shopHome .productDetails .productSubtitle {
+  color: #c8d5df;
+  -webkit-text-fill-color: #c8d5df;
+}
+.shopHome .productDetails .productPrice {
+  margin: 12px 0 0;
+  color: #f5f9ff;
+  -webkit-text-fill-color: #f5f9ff;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.6;
 }

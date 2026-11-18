@@ -1,11 +1,11 @@
 /* Neutral graphite editorial placement; no motion-on-scroll, glints or ambient animations. */
-.card { display: grid; grid-template-columns: 170px minmax(0, 1fr); align-items: center; gap: 21px;
+.card { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); align-items: center; gap: 24px;
   margin: 28px 0 33px; padding: 19px; border: 1px solid rgba(203, 213, 225, .19); border-radius: 18px;
   background: #17191d; color: #f2f3f6; direction: rtl; text-decoration: none; overflow: hidden; }
 .card:visited { color: #f2f3f6; }
-.image { position: relative; display: block; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 11px;
-  background: #0a0b0e; border: 1px solid rgba(255,255,255,.06); }
-.image img { object-fit: contain; }
+.image { position: relative; display: block; width: 100%; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 11px;
+  background: transparent; border: 0; }
+.image img { object-fit: cover; }
 .content { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; min-width: 0; }
 .eyebrow { color: #b7c0ca; font-size: 11px; font-weight: 750; }
 .title { color: #f8fafc; font-size: 20px; font-weight: 850; line-height: 1.65; }
@@ -21,7 +21,7 @@
 .card:focus-visible { outline: 2px solid #b9d9f0; outline-offset: 3px; }
 @media (max-width: 760px) {
   .card { grid-template-columns: minmax(0,1fr); gap: 14px; padding: 17px; margin: 25px 0; }
-  .image { max-width: 236px; margin: auto; }
+  .image { width: 100%; max-width: none; margin: 0; }
   .content { align-items: stretch; gap: 8px; }
   .title { font-size: 18px; }
   .description { font-size: 13px; }
