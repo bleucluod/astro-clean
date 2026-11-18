@@ -37,7 +37,7 @@ assert.match(panel, /onClick=\{\(\) => setHelpOpen\(\(open\) => !open\)\}/);
 assert.match(panel, /onClick=\{\(\) => setHelpOpen\(false\)\}/);
 assert.doesNotMatch(panel, /onMouseLeave|onMouseOut|setTimeout\(.*help/i);
 assert.match(panel, /useState<string\[\]>\(\[\]\)/);
-assert.match(panel, /articleIds: selected, productIds/);
+assert.match(panel, /articleIds: selected,\s*surfaceIds, productIds/);
 assert.doesNotMatch(panel, /selected\.slice\(i \* chunkSize/);
 assert.match(panel, /"pending"/);
 assert.match(panel, /<WikiArticleBody/);

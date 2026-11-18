@@ -388,7 +388,7 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
     setFocusedId(row.articleId);
     const month = !suggestion && existing === null ? suggestWikiNemadMonth(row.slug, row.title) : null;
     const suggestedId = month ? `nm-${month.slug}` : null;
-    const matched = suggestedId && data.products.find((p) => p.id === suggestedId && p.orderable);
+    const matched = suggestedId ? data.products.find((p) => p.id === suggestedId && p.orderable) : undefined;
     const productId = matched?.id ?? data.products.find((p) => p.orderable)?.id ?? "p01";
     const next = draftFor(row, productId, suggestion, existing);
     if (matched) Object.assign(next, wikiNemadSuggestedCopy(matched.id));

@@ -248,7 +248,14 @@ const allBatch = await workflow.buildWikiShowcaseSelectedZip(actor, {
   productMinimums: { p01: 0 },
 });
 const allEntries = zip.readWikiShowcaseZip(allBatch.bytes);
-assert.equal(allEntries.size, 308, "300 article JSONs and eight guide files in one ZIP");
+const guideFiles = [
+  "README_FA.md", "AI_INSTRUCTIONS.md", "manifest.json", "surfaces.json",
+  "products.json", "targets.json", "current-showcases.json",
+  "proposals.schema.json", "proposals.example.json", "POSITIONING_AND_SURFACES_FA.md",
+];
+assert.equal(allEntries.size, articleRows.length + guideFiles.length,
+  "One article JSON per selected article plus the ten real guide files");
+for (const name of guideFiles) assert.ok(allEntries.has(name), "Missing guide: " + name);
 assert.equal(JSON.parse(allEntries.get("manifest.json")).articleIds.length, 300);
 const forAIAtScale = {
   schemaVersion: 2, batchId: allBatch.batchId,
