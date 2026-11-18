@@ -584,12 +584,26 @@ function composeCouple(scene: HTMLImageElement, masks: HTMLImageElement,
         const opacity = maskPixels[dest + face.channel] / 255;
         if (opacity <= 0) continue;
         const local = (py * face.w + px) * 4;
-        const luma = result[dest] * 0.2126 + result[dest + 1] * 0.7152 +
-          result[dest + 2] * 0.0722;
+        // The original room photo has two leaves crossing the left print face.
+        // They belong to the surrounding scene, not to the uploaded artwork.
+        // Neutralize only their photographed pigment/light signature so it does
+        // not reappear as a second leaf-shaped mark on the replacement poster.
+        const leafCorrection = side === 'left'
+          ? Math.max(0, Math.min(1, (68 - px) / 24)) *
+            Math.max(0, Math.min(1, (py - 264) / 30)) *
+            Math.max(0, Math.min(1, (454 - py) / 35))
+          : 0;
+        const clean = ((face.y + py) * width + face.x + 84) * 4;
+        const luma = (result[dest] * 0.2126 + result[dest + 1] * 0.7152 +
+          result[dest + 2] * 0.0722) * (1 - leafCorrection) +
+          (result[clean] * 0.2126 + result[clean + 1] * 0.7152 +
+          result[clean + 2] * 0.0722) * leafCorrection;
         const shadow = Math.max(0.74, Math.min(1.10, Math.pow(luma / 221, 0.72)));
         for (let channel = 0; channel < 3; channel++) {
+          const sceneTone = result[dest + channel] * (1 - leafCorrection) +
+            result[clean + channel] * leafCorrection;
           const textured = Math.max(0, Math.min(255, art[local + channel] * shadow +
-            (result[dest + channel] - luma) * 0.04));
+            (sceneTone - luma) * 0.04));
           result[dest + channel] = result[dest + channel] * (1 - opacity) + textured * opacity;
         }
       }
