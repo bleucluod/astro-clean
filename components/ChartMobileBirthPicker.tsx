@@ -149,6 +149,101 @@ function DateWheel({
 }
 
 
+
+function digitsOnly(value: string) {
+  return value
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/[^0-9]/g, "");
+}
+
+type QuickField = {
+  label: string;
+  value: string;
+  maxLength: number;
+  placeholder: string;
+  onChange: (value: string) => void;
+};
+
+function QuickEntryDialog({
+  open, title, fields, valid, hint, confirmLabel, onConfirm, onClose,
+}: {
+  open: boolean;
+  title: string;
+  fields: readonly QuickField[];
+  valid: boolean;
+  hint: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) {
+      dialog.showModal();
+      firstInputRef.current?.focus();
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
+  }, [open]);
+
+  return (
+    <dialog ref={dialogRef} className={styles.quickDialog} aria-label={title} onClose={onClose}>
+      <div className={styles.quickPanel} dir="rtl">
+        <div className={styles.quickHeader}>
+          <strong>{title}</strong>
+          <button type="button" className={styles.quickClose} onClick={onClose} aria-label="بستن پنجره">×</button>
+        </div>
+        <div className={styles.quickInputs}>
+          {fields.map((field, index) => (
+            <label className={styles.quickField} key={field.label}>
+              <span>{field.label}</span>
+              <input
+                ref={index === 0 ? firstInputRef : undefined}
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={field.maxLength}
+                value={field.value}
+                placeholder={field.placeholder}
+                onChange={(event) => field.onChange(digitsOnly(event.target.value).slice(0, field.maxLength))}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    if (valid) {
+                      onConfirm();
+                      onClose();
+                    }
+                  }
+                }}
+              />
+            </label>
+          ))}
+        </div>
+        <p className={styles.quickHint} aria-live="polite">
+          {valid ? "آمادهٔ تأیید" : hint}
+        </p>
+        <button type="button" className={styles.quickConfirm} disabled={!valid}
+          onClick={() => { onConfirm(); onClose(); }}>
+          {confirmLabel}
+        </button>
+      </div>
+    </dialog>
+  );
+}
+
+function paddedParts(parts: MobileDateParts): MobileDateParts {
+  return {
+    year: parts.year,
+    month: parts.month ? parts.month.padStart(2, "0") : "",
+    day: parts.day ? parts.day.padStart(2, "0") : "",
+  };
+}
+
 /* HALLEUS_CHART_ALWAYS_VISIBLE_BIRTH_WHEELS_20261114 */
 export function MobileBirthDatePicker({
   mode, value, yearOptions, monthOptions, onConfirm,
@@ -159,6 +254,14 @@ export function MobileBirthDatePicker({
   monthOptions: readonly MonthOption[];
   onConfirm: (value: MobileDateParts) => void;
 }) {
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [quickRevision, setQuickRevision] = useState(0);
+  const [draft, setDraft] = useState<MobileDateParts>(value);
+  const normalizedDraft = paddedParts(draft);
+  const quickValid = validDate(mode, normalizedDraft, yearOptions);
+  const changeDraft = (field: keyof MobileDateParts, nextValue: string) => {
+    setDraft((current) => ({ ...current, [field]: nextValue }));
+  };
   const maxDays = dayLimit(mode, value.year, value.month);
   const dayWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
     { value: "", label: "روز" },
@@ -192,7 +295,7 @@ export function MobileBirthDatePicker({
     <div className={styles.alwaysPicker} data-chart-date-wheels
       role="group" aria-label={"تاریخ تولد " + (mode === "jalali" ? "شمسی" : "میلادی")}
       data-complete={validDate(mode, value, yearOptions)}>
-      <div className={styles.wheelPicker + " " + styles.dateWheelPicker} dir="rtl">
+      <div key={quickRevision} className={styles.wheelPicker + " " + styles.dateWheelPicker} dir="rtl">
         <DateWheel label="روز" value={value.day} options={dayWheelOptions}
           onChange={(day) => changeValue("day", day)} />
         <DateWheel label="ماه" value={value.month} options={monthWheelOptions}
@@ -200,6 +303,28 @@ export function MobileBirthDatePicker({
         <DateWheel key={mode} label="سال" value={value.year} options={yearWheelOptions}
           onChange={(year) => changeValue("year", year)} />
       </div>
+      <button type="button" className={styles.quickTrigger}
+        aria-haspopup="dialog"
+        onClick={() => { setDraft({ ...value }); setQuickOpen(true); }}>
+        ورود سریع تاریخ با کیبورد
+      </button>
+      <QuickEntryDialog
+        open={quickOpen}
+        title={"ورود تاریخ تولد " + (mode === "jalali" ? "شمسی" : "میلادی")}
+        fields={[
+          { label: "روز", value: draft.day, maxLength: 2, placeholder: "۰۱",
+            onChange: (next) => changeDraft("day", next) },
+          { label: "ماه", value: draft.month, maxLength: 2, placeholder: "۰۷",
+            onChange: (next) => changeDraft("month", next) },
+          { label: "سال", value: draft.year, maxLength: 4, placeholder: mode === "jalali" ? "۱۳۷۸" : "۱۹۹۹",
+            onChange: (next) => changeDraft("year", next) },
+        ]}
+        valid={quickValid}
+        hint="روز، ماه و سال معتبر را وارد کن."
+        confirmLabel="تأیید تاریخ"
+        onConfirm={() => { onConfirm(normalizedDraft); setQuickRevision((n) => n + 1); }}
+        onClose={() => setQuickOpen(false)}
+      />
     </div>
   );
 }
@@ -226,15 +351,46 @@ export function MobileBirthTimePicker({
   value: MobileTimeParts;
   onConfirm: (value: MobileTimeParts) => void;
 }) {
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [quickRevision, setQuickRevision] = useState(0);
+  const [draft, setDraft] = useState<MobileTimeParts>(value);
+  const normalizedDraft = {
+    hour: draft.hour ? draft.hour.padStart(2, "0") : "",
+    minute: draft.minute ? draft.minute.padStart(2, "0") : "",
+  };
+  const quickValid = normalizedDraft.hour.length === 2 &&
+    normalizedDraft.minute.length === 2 &&
+    Number(normalizedDraft.hour) <= 23 &&
+    Number(normalizedDraft.minute) <= 59;
   return (
     <div className={styles.alwaysPicker} data-chart-time-wheels
       role="group" aria-label="ساعت تولد به‌صورت ۲۴ ساعته">
-      <div className={styles.wheelPicker + " " + styles.timeWheelPicker} dir="rtl">
+      <div key={quickRevision} className={styles.wheelPicker + " " + styles.timeWheelPicker} dir="rtl">
         <DateWheel label="ساعت" value={value.hour} options={TIME_WHEEL_HOURS}
           onChange={(hour) => onConfirm({ ...value, hour })} />
         <DateWheel label="دقیقه" value={value.minute} options={TIME_WHEEL_MINUTES}
           onChange={(minute) => onConfirm({ ...value, minute })} />
       </div>
+      <button type="button" className={styles.quickTrigger}
+        aria-haspopup="dialog"
+        onClick={() => { setDraft({ ...value }); setQuickOpen(true); }}>
+        ورود سریع ساعت با کیبورد
+      </button>
+      <QuickEntryDialog
+        open={quickOpen}
+        title="ورود ساعت تولد"
+        fields={[
+          { label: "ساعت", value: draft.hour, maxLength: 2, placeholder: "۱۴",
+            onChange: (next) => setDraft((current) => ({ ...current, hour: next })) },
+          { label: "دقیقه", value: draft.minute, maxLength: 2, placeholder: "۳۵",
+            onChange: (next) => setDraft((current) => ({ ...current, minute: next })) },
+        ]}
+        valid={quickValid}
+        hint="ساعت باید بین ۰ تا ۲۳ و دقیقه بین ۰ تا ۵۹ باشد."
+        confirmLabel="تأیید ساعت"
+        onConfirm={() => { onConfirm(normalizedDraft); setQuickRevision((n) => n + 1); }}
+        onClose={() => setQuickOpen(false)}
+      />
     </div>
   );
 }

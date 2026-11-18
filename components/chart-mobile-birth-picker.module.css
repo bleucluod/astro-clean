@@ -145,3 +145,82 @@
 @media (prefers-reduced-motion: reduce) {
   .wheelViewport { animation: none !important; }
 }
+
+/* Optional keyboard entry for mobile date/time wheels. */
+.quickTrigger {
+  display: block;
+  margin: 9px auto 0;
+  padding: 8px 16px;
+  border: 1px solid rgba(150, 194, 228, .5);
+  border-radius: 11px;
+  background: rgba(41, 76, 107, .35);
+  color: #d9eafd;
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.quickTrigger:focus-visible { outline: 2px solid #bcdffd; outline-offset: 2px; }
+.quickDialog {
+  position: fixed;
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid #4d6b84;
+  border-radius: 20px;
+  background: #111e2b;
+  color: #f1f5f9;
+  box-shadow: 0 20px 65px rgba(0,0,0,.5);
+}
+.quickDialog::backdrop { background: rgba(3, 10, 18, .76); }
+.quickPanel { display: grid; gap: 18px; padding: 20px; }
+.quickHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.quickHeader strong { font-size: 1rem; }
+.quickClose {
+  border: 1px solid #4d657c;
+  border-radius: 9px;
+  background: #243447;
+  color: #e2e8f0;
+  width: 34px;
+  height: 34px;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+.quickInputs { display: flex; gap: 9px; }
+.quickField { display: grid; flex: 1; min-width: 0; gap: 7px; color: #d9eafd; font-size: .85rem; }
+.quickField input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 52px;
+  padding: 8px 4px;
+  border: 1px solid #587b9d;
+  border-radius: 10px;
+  background: #243447;
+  color: #f8fafc;
+  font: inherit;
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  direction: ltr;
+}
+.quickField input:focus-visible { outline: 2px solid #bcdffd; outline-offset: 1px; }
+.quickField input::placeholder { color: #9baec0; }
+.quickHint { min-height: 1.2em; margin: 0; color: #bcccdc; font-size: .8rem; }
+.quickConfirm {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #88bdeb;
+  color: #172d42;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.quickConfirm:disabled { opacity: .4; cursor: not-allowed; }
+.quickConfirm:focus-visible { outline: 2px solid #d9eafd; outline-offset: 2px; }
