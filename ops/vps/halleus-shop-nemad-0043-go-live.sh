@@ -7,7 +7,7 @@ umask 077
 
 SOURCE=/srv/halleus/source
 ACTIVE=/srv/halleus/current
-BASE=265cc12e4aee1ac9e072c7125fd4779ee2373c84
+BASE=66585e9bcbeda287b3c4082b3d909eec7c4d069c
 MIGRATION_BLOB=93459f37207be18770582afb8a41a87096f83bf6
 BACKUP_DIR=/root/halleus-bitpay-preflight
 SCRIPT=ops/vps/halleus-shop-nemad-0043-go-live.sh
@@ -31,8 +31,8 @@ HEAD="$(git rev-parse HEAD)"
 [ "$HEAD" = "$(git rev-parse origin/main)" ] || fatal 'VPS source is not at origin/main.'
 [ "$(git rev-parse HEAD^)" = "$BASE" ] || fatal 'Unexpected release parent.'
 EXPECTED_CHANGED="$(printf '%s\n' \
-  "$SCRIPT" \
-  'ops/vps/halleus-shop-nemad-r3-verify-deploy.sh')"
+  'ops/vps/halleus-release-storage.env' \
+  "$SCRIPT")"
 [ "$(git diff-tree --no-commit-id --name-only -r "$HEAD")" = "$EXPECTED_CHANGED" ] || fatal 'Unexpected changes in release finalizer commit.'
 [ "$(git hash-object "$MIGRATION")" = "$MIGRATION_BLOB" ] || fatal 'Migration source differs from reviewed blob.'
 [ -f "$BACKUP_TOOL" ] && [ -f ops/vps/halleus-shop-nemad-go-live.sh ] || fatal 'Release support scripts missing.'
