@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import type { NemadProductPage } from '@/components/shop/ProductDetail';
 import type { ShopCopySection, ShopProduct } from '@/components/shop/product-detail-data';
 import { validateBahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
+import { NEMAD_MONTHS } from '@/lib/shop/nemad-man-months';
 import { isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
 
 // Use the same Estedad-loaded product shell as P02, not P03's renderer.
@@ -20,20 +21,7 @@ const estedad = localFont({
   display: 'swap',
 });
 
-const months = [
-  { slug: 'farvardin', title: 'فروردین' },
-  { slug: 'ordibehesht', title: 'اردیبهشت' },
-  { slug: 'khordad', title: 'خرداد' },
-  { slug: 'tir', title: 'تیر' },
-  { slug: 'mordad', title: 'مرداد' },
-  { slug: 'shahrivar', title: 'شهریور' },
-  { slug: 'mehr', title: 'مهر' },
-  { slug: 'aban', title: 'آبان' },
-  { slug: 'azar', title: 'آذر' },
-  { slug: 'dey', title: 'دی' },
-  { slug: 'bahman', title: 'بهمن' },
-  { slug: 'esfand', title: 'اسفند' },
-] as const;
+const months = NEMAD_MONTHS;
 
 // Approved month-specific dark scenes from the private Nemad mockup archive.
 // The four gallery photographs remain distinct from the two live artwork themes.
@@ -114,7 +102,7 @@ function parseCustomerProduct(source: string, month: string, slug: string): Shop
     throw new Error('Incomplete approved product FAQ: ' + slug);
   }
   return {
-    id: 'p03', // Reuse the existing P03 page renderer; no additional checkout ID.
+    id: 'nm', // Keep Nemad's own order identity; never reuse the Shab-e Ma product ID.
     title: 'نماد من — ' + month,
     seoHeading: fields.title,
     tagline: fields['زیرعنوان'],
@@ -204,7 +192,7 @@ function readApprovedMonth(slug: string): (NemadProductPage & {
     label: 'موکاپ روشن · ۳۰×۴۵',
   });
   return {
-    slug, seoTitle, metaDescription, initial: initial.value,
+    slug: months[index].slug, seoTitle, metaDescription, initial: initial.value,
     months: months.map((item) => ({ slug: item.slug, title: item.title })),
     product,
   };
@@ -221,11 +209,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NemadManMonthProductPage({ params }: Props) {
   const { month } = await params;
-  if (process.env.NODE_ENV === 'production' &&
-      (month !== 'bahman' || !isShopNemadOrderEnabled())) notFound();
+  if (process.env.NODE_ENV === 'production' && !isShopNemadOrderEnabled()) notFound();
   const data = readApprovedMonth(month);
   if (!data) notFound();
   return <div className={estedad.variable}>
-    <BirthSkyLiveProduct key={month} purchaseEnabled={month === 'bahman' && isShopNemadOrderEnabled()} nemad={data} />
+    <BirthSkyLiveProduct key={month} purchaseEnabled={isShopNemadOrderEnabled()} nemad={data} />
   </div>;
 }

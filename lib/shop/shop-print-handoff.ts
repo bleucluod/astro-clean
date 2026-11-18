@@ -4,11 +4,12 @@ import { getShopPrintSpec } from './shop-print-spec';
 import { isValidShopOrderNumber } from './shop-order-number';
 import { findHalleusCityById } from '@/lib/locations/cities';
 import { calculateShopBrightStarProof } from './shop-sky-stars';
+import { getNemadMonthTitle } from './nemad-man-months';
 
 const readyForHandoff = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
 const names: Record<string, string> = {
-  p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما', nm: 'نماد من — بهمن',
+  p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما', nm: 'نماد من',
 };
 
 export class ShopPrintHandoffError extends Error {
@@ -83,7 +84,8 @@ export function buildPrivateShopPrintHandoff(raw: unknown) {
     prints: items.map((item, index) => ({
       line: index + 1,
       productId: item.productId,
-      productTitle: names[item.productId],
+      productTitle: item.productId === 'nm'
+        ? 'نماد من — ' + getNemadMonthTitle(item.details.nemadMonth) : names[item.productId],
       sizeCm: item.size,
       prepressRequirements: getShopPrintSpec(item.size),
       moonReference: getMoonReference(item),

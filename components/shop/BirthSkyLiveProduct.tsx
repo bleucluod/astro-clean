@@ -223,7 +223,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
     const key = new URLSearchParams(window.location.search).get('edit');
     if (!purchaseEnabled || !key) return;
     const item = readShopCart().find((entry) => entry.key === key && entry.productId === (nemad ? 'nm' : 'p02'));
-    if (!item || (nemad && item.details.nemadMonth !== 'bahman')) return;
+    if (!item || (nemad && item.details.nemadMonth !== nemad.slug)) return;
     const index = sizes.findIndex((size) => size.dimension === item.size);
     let cancelled = false;
     queueMicrotask(() => {
@@ -292,8 +292,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
   }
 
   function addToCart() {
-    if (!purchaseEnabled || (nemad && nemad.slug !== 'bahman') ||
-        !(nemad ? nemadPreview : artwork) || busy) return;
+    if (!purchaseEnabled || !(nemad ? nemadPreview : artwork) || busy) return;
     if (selectedPrice === null && !localCartReview) {
       setError('قیمت قطعی قابل دریافت نیست؛ برای ثبت سفارش بعداً دوباره تلاش کن.');
       return;
@@ -306,7 +305,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
         return;
       }
       if (!addShopCartItem('nm', sizes[sizeIndex].dimension, {
-        ...input, calendar: 'jalali', message: '', nemadMonth: 'bahman', nemadTheme,
+        ...input, calendar: 'jalali', message: '', nemadMonth: nemad.slug, nemadTheme,
       }, editingKey ?? undefined)) {
         setError('افزودن به سبد ممکن نشد؛ اطلاعات سفارش و فضای مرورگر را بررسی کن.');
         return;
@@ -590,6 +589,17 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
       </section>
 
       {nemad ? <NemadManEditorial product={nemad.product} /> : <BirthSkyEditorial />}
+
+      {nemad ? <section className={pdStyles.relatedSection} aria-labelledby="nm-related-heading">
+        <div className={pdStyles.relatedHeading}>
+          <span className={pdStyles.sectionKicker}>مجموعهٔ نماد من</span>
+          <h2 id="nm-related-heading">نماد ماه‌های دیگر</h2>
+        </div>
+        <nav className={pdStyles.nemadMonthLinks} aria-label="نماد ماه‌های تولد">
+          {nemad.months.map(item => <Link key={item.slug} href={`/shop/${item.slug}-sign`}
+            aria-current={item.slug === nemad.slug ? 'page' : undefined}>{item.title}</Link>)}
+        </nav>
+      </section> : null}
 
       <dialog ref={zoomDialog} onClose={() => setZoomOpen(false)}
         className={pdStyles.zoomDialog} aria-label={nemad ? 'بزرگ‌نمایی تصاویر نماد من' : 'بزرگ‌نمایی تصاویر آسمان تولد'}>

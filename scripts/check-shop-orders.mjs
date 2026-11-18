@@ -44,13 +44,16 @@ const civilTime = load('lib/shop/shop-civil-time.ts');
 const moment = load('lib/shop/shop-personalization.ts', {
   '@/lib/date/jalali': jalali, '@/lib/locations/cities': cities, './shop-civil-time': civilTime,
 });
+const nemadMonths = load('lib/shop/nemad-man-months.ts');
 const cart = load('components/shop/shop-cart.ts', {
   './product-detail-data': product, '@/lib/shop/shop-personalization': moment,
   '@/lib/locations/cities': cities,
+  '@/lib/shop/nemad-man-months': nemadMonths,
 });
 const priceMap = {
   'p01:10x15': 900_000, 'p01:20x30': 1_599_000, 'p01:30x45': 2_300_000,
   'p02:10x15': 1_100_000, 'p02:20x30': 1_900_000, 'p02:30x45': 2_900_000,
+  'nm:10x15': 900_000, 'nm:20x30': 1_599_000, 'nm:30x45': 2_300_000,
 };
 const pricing = {
   shopPriceKey: (productId, size) => productId + ':' + size,
@@ -96,6 +99,29 @@ const skyPayload = { ...payload, items: [p02Item], expectedTotal: 1_200_000 };
 const skyDraft = parseDraft(skyPayload);
 assert.equal(skyDraft.quote.total, 1_200_000);
 assert.equal(skyDraft.items[0].details.names, '', 'optional name preserved blank in private order');
+// Every Nemad month must reach server-canonical order parsing with the correct
+// month identity, while tampered slugs or dates remain rejected.
+for (const [index, month] of nemadMonths.NEMAD_MONTHS.entries()) {
+  const monthPart = String(index + 1).padStart(2, '0');
+  const nmDetails = {
+    calendar: 'jalali', date: '1403/' + monthPart + '/15', time: '', city: '', cityId: '',
+    names: 'نام نمونه', message: '', nemadMonth: month.slug, nemadTheme: 'dark',
+  };
+  const nmItem = { ...item, key: 'nm-' + month.slug, productId: 'nm',
+    size: '10x15', quantity: 1, details: nmDetails };
+  const nmPayload = { ...payload, items: [nmItem], expectedTotal: 1_000_000 };
+  const parsed = parseDraft(nmPayload);
+  assert.equal(parsed.items.length, 1);
+  assert.equal(parsed.items[0].details.nemadMonth, month.slug);
+  assert.equal(parsed.quote.total, 1_000_000);
+  const nextMonth = nemadMonths.NEMAD_MONTHS[(index + 1) % 12].slug;
+  assert.throws(() => parseDraft({ ...nmPayload, items: [
+    { ...nmItem, details: { ...nmDetails, nemadMonth: nextMonth } },
+  ] }), 'cross-month tampering must fail');
+  assert.throws(() => parseDraft({ ...nmPayload, items: [
+    { ...nmItem, details: { ...nmDetails, nemadMonth: '../bahman' } },
+  ] }), 'invalid month must fail');
+}
 assert.equal(draft.shipping.mobile, '9123456789');
 assert.equal(draft.idempotencyHash, createHash('sha256').update(payload.idempotencyKey).digest('hex'));
 assert.equal(draft.guestAccessHash, createHash('sha256').update(payload.guestAccessCode).digest('hex'));

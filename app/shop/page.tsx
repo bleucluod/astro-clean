@@ -4,6 +4,7 @@ import { isShopMvpActive, isShopP02OrderEnabled, isShopNemadOrderEnabled } from 
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
 import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
+import { NEMAD_MONTHS } from '@/lib/shop/nemad-man-months';
 
 export function generateMetadata(): Metadata {
   return {
@@ -40,17 +41,17 @@ const launchCatalog: ShopV01Item[] = [
     imageSrc: '/shop-preview/p02/05-raha-parsa-30x45-wall.webp',
     imageAlt: 'تابلو آسمان تولد رها و پارسا روی شاسی بدون قاب با طراحی R9 هالیوس',
   },
-  {
-    id: 'NM',
-    title: 'نماد من — بهمن',
-    subtitle: 'تابلوی نشان ستاره‌ای آکواریوس، با نام و تاریخ تولد دلخواه.',
+  ...NEMAD_MONTHS.map(month => ({
+    id: 'NM-' + month.slug,
+    title: 'نماد من — ' + month.title,
+    subtitle: 'صورت فلکی و نام و تاریخ تولد، روی شاسی مینیمال تیره یا روشن.',
     category: 'آثار ماه تولد',
-    href: '/shop/bahman-sign',
+    href: '/shop/' + month.slug + '-sign',
     priceToman: 900_000,
-    availability: 'available',
-    imageSrc: '/shop-preview/nemad-man/bahman/01-mahsa-1387-11-12-light-console.webp',
-    imageAlt: 'تابلوی نماد من بهمن روی شاسی بدون قاب در فضای خانه',
-  },
+    availability: 'available' as const,
+    imageSrc: '/shop-preview/nemad-man/' + month.slug + '/arad-light-black-edge-20261118.webp',
+    imageAlt: 'تابلو نماد ماه تولد ' + month.title + ' با شاسی بدون قاب و لبهٔ مشکی',
+  })),
   {
     id: 'P03',
     title: 'شبِ ما',
@@ -79,10 +80,10 @@ export default async function ShopPage() {
   const nemadEnabled = isShopNemadOrderEnabled();
   const { prices } = await readShopPriceCatalog();
   return <ShopV01Home
-    products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02') || (nemadEnabled && product.id === 'NM'))
+    products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02') || (nemadEnabled && product.id.startsWith('NM-')))
       .map(product => ({ ...product,
         priceToman: product.id === 'P01' ? prices['p01:10x15']
           : product.id === 'P02' ? prices['p02:10x15']
-          : product.id === 'NM' ? prices['nm:10x15'] : product.priceToman }))}
+          : product.id.startsWith('NM-') ? prices['nm:10x15'] : product.priceToman }))}
     showP02Invitation={!p02Enabled} />;
 }

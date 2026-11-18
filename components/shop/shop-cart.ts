@@ -1,6 +1,7 @@
 import { SHOP_SIZES, getShopProductPrice, type ShopProductId } from './product-detail-data';
 import { matchUniqueShopBirthCity, validateShopMoment } from '@/lib/shop/shop-personalization';
 import { getHalleusCityDisplayName } from '@/lib/locations/cities';
+import { getNemadMonthIndex, isNemadMonthSlug, type NemadMonthSlug } from '@/lib/shop/nemad-man-months';
 
 export type ShopPersonalization = {
   calendar: 'jalali' | 'gregorian';
@@ -10,7 +11,7 @@ export type ShopPersonalization = {
   cityId: string;
   names: string;
   message: string;
-  nemadMonth?: 'bahman';
+  nemadMonth?: NemadMonthSlug;
   nemadTheme?: 'dark' | 'light';
 };
 
@@ -65,8 +66,9 @@ export function parseShopCart(value: unknown): ShopCartItem[] {
       const monthPart = normalizedDetails.date.split('/')[1] ?? '';
       const monthDigits = monthPart.replace(/[۰-۹]/g, digit => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
         .replace(/[٠-٩]/g, digit => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
-      if (normalizedDetails.calendar !== 'jalali' || Number(monthDigits) !== 11 ||
-          normalizedDetails.nemadMonth !== 'bahman' ||
+      const monthIndex = getNemadMonthIndex(normalizedDetails.nemadMonth);
+      if (normalizedDetails.calendar !== 'jalali' || monthIndex < 0 ||
+          Number(monthDigits) !== monthIndex + 1 ||
           !['dark', 'light'].includes(normalizedDetails.nemadTheme ?? '') ||
           !normalizedDetails.names.trim() || Array.from(normalizedDetails.names).length > 28 ||
           normalizedDetails.message !== '') continue;
@@ -79,8 +81,9 @@ export function parseShopCart(value: unknown): ShopCartItem[] {
         calendar: details.calendar, date: details.date as string, time: details.time as string,
         city: normalizedDetails.city, cityId: normalizedDetails.cityId,
         names: details.names as string, message: details.message as string,
-        ...(item.productId === 'nm' ? { nemadMonth: 'bahman' as const,
-          nemadTheme: normalizedDetails.nemadTheme as 'dark' | 'light' } : {}),
+        ...(item.productId === 'nm' && isNemadMonthSlug(normalizedDetails.nemadMonth)
+          ? { nemadMonth: normalizedDetails.nemadMonth,
+            nemadTheme: normalizedDetails.nemadTheme as 'dark' | 'light' } : {}),
       },
     });
   }

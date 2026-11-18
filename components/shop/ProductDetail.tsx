@@ -10,6 +10,7 @@ import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProduct, type ShopProductId, type ShopCopySection } from './product-detail-data';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
 import { NemadFullWidthIntro } from './NemadFullWidthIntro';
+import type { NemadMonthSlug } from '@/lib/shop/nemad-man-months';
 import { NemadPreviewWatermark } from './NemadPreviewWatermark';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
@@ -20,8 +21,8 @@ import { useShopGallerySwipe } from './use-shop-gallery-swipe';
 import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
 
 export type NemadProductPage = {
-  slug: string;
-  months: { slug: string; title: string }[];
+  slug: NemadMonthSlug;
+  months: { slug: NemadMonthSlug; title: string }[];
   product: ShopProduct;
   initial: BahmanPreview;
 };

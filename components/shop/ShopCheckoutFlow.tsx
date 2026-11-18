@@ -9,6 +9,7 @@ import { getShopProduct, getShopProductPrice } from './product-detail-data';
 import { liveShopPrice, useShopLivePrices } from './use-shop-live-prices';
 import type { ShopPriceMap } from '@/lib/shop/shop-price-store';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
+import { getNemadMonthTitle } from '@/lib/shop/nemad-man-months';
 import { fetchShopQuote } from './shop-quote-client';
 import type { ShopQuote } from '@/lib/shop/shop-quote';
 import {
@@ -102,6 +103,13 @@ function EmptyCart() {
 
 function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; prices: ShopPriceMap | null; onQuantity: (quantity: number) => void; onRemove: () => void }) {
   const product = getShopProduct(item.productId);
+  const month = item.productId === 'nm' ? getNemadMonthTitle(item.details.nemadMonth) : null;
+  const title = month ? 'نماد من — ' + month : product.title;
+  const href = getShopProductUrl(item.productId, item.details.nemadMonth);
+  const imageSrc = month
+    ? '/shop-preview/nemad-man/' + item.details.nemadMonth + '/arad-light-black-edge-20261118.webp'
+    : product.gallery[0].src;
+  const imageAlt = month ? 'تابلو نماد ماه تولد ' + month + ' با لبهٔ مشکی' : product.gallery[0].alt;
   const size = getShopSize(item.size);
   const liveUnitPrice = liveShopPrice(prices, item.productId, item.size);
   const usingNemadBase = process.env.NODE_ENV !== 'production' && item.productId === 'nm' && liveUnitPrice === null;
@@ -109,11 +117,11 @@ function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; 
   return (
     <article className={styles.itemCard}>
       <div className={styles.itemTop}>
-        <Link className={styles.itemImage} href={getShopProductUrl(item.productId)} aria-label={`مشاهدهٔ ${product.title}`}>
-          <Image src={product.gallery[0].src} alt={product.gallery[0].alt} fill sizes="(max-width: 640px) 108px, 142px" />
+        <Link className={styles.itemImage} href={href} aria-label={`مشاهدهٔ ${title}`}>
+          <Image src={imageSrc} alt={imageAlt} fill sizes="(max-width: 640px) 108px, 142px" />
         </Link>
         <div className={styles.itemInfo}>
-          <h2>{product.title}</h2>
+          <h2>{title}</h2>
           <p>{size.label} سانتی‌متر · چاپ مات روی شاسی</p>
           <strong>{unitPrice === null ? 'در حال دریافت قیمت…' : <>{usingNemadBase ? 'قیمت پایه: ' : ''}<bdi>{money(unitPrice)}</bdi> تومان</>}</strong>
         </div>
@@ -127,12 +135,12 @@ function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; 
       {item.productId === 'nm' ? <span>مدل نماد من: {item.details.nemadTheme === 'light' ? 'روشن' : 'تیره'}</span> : null}
       </div>
       <div className={styles.itemActions}>
-        <div className={styles.quantity} aria-label={`تعداد ${product.title}`}>
+        <div className={styles.quantity} aria-label={`تعداد ${title}`}>
           <button type="button" onClick={() => onQuantity(item.quantity - 1)} disabled={item.quantity <= 1} aria-label="کاهش تعداد">−</button>
           <output aria-live="polite">{money(item.quantity)}</output>
           <button type="button" onClick={() => onQuantity(item.quantity + 1)} disabled={item.quantity >= 10} aria-label="افزایش تعداد">+</button>
         </div>
-        <Link href={`${getShopProductUrl(item.productId)}?edit=${encodeURIComponent(item.key)}#personalize`}>ویرایش مشخصات</Link>
+        <Link href={`${href}?edit=${encodeURIComponent(item.key)}#personalize`}>ویرایش مشخصات</Link>
         <button type="button" className={styles.remove} onClick={onRemove}>حذف</button>
       </div>
       {item.quantity > 1 && unitPrice !== null ? <p className={styles.lineTotal}>جمع این اثر: <bdi>{money(unitPrice * item.quantity)}</bdi> تومان</p> : null}

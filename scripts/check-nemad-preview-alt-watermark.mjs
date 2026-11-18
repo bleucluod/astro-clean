@@ -89,11 +89,11 @@ for (let index = 0; index < months.length; index++) {
   galleryImages += keywords.length;
 }
 assert.equal(galleryImages, 72, '12 months must have 72 distinct ALT keyword assignments');
-assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{month === 'bahman' && isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
+assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
 assert.ok(!route.includes('return <ProductDetail'), 'All months must use the Bahman renderer');
 assert.match(route, /initial\.value\.sign\.id/);
 assert.match(live, /const nemadMonthNumber = nemad \? nemad\.months\.findIndex/);
-assert.match(live, /nemad\.slug !== 'bahman'/);
+assert.ok(!live.includes("nemad.slug !== 'bahman'"), 'Sale gate must cover all approved Nemad months');
 assert.match(live, /alt=\{nemad \? photo.alt : ''\}/);
 assert.match(detail, /alt=\{nemad \? photo.alt : ''\}/);
 

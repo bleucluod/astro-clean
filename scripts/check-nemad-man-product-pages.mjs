@@ -7,7 +7,8 @@ const root = join(import.meta.dirname, '..');
 const read = (path) => readFileSync(join(root, path), 'utf8');
 for (const path of [
   'app/shop/nemad-man/[month]/page.tsx',
-  'components/shop/ProductDetail.tsx',
+  'components/shop/BirthSkyLiveProduct.tsx',
+  'lib/shop/nemad-man-months.ts',
   'components/shop/product-detail-data.ts',
 ]) {
   const result = ts.transpileModule(read(path), {
@@ -18,7 +19,7 @@ for (const path of [
   assert.deepEqual(errors.map(x => ts.flattenDiagnosticMessageText(x.messageText, '\n')), [], 'Parse: ' + path);
 }
 const route = read('app/shop/nemad-man/[month]/page.tsx');
-const client = read('components/shop/ProductDetail.tsx');
+const client = read('components/shop/BirthSkyLiveProduct.tsx');
 const poster = read('components/shop/NemadManBahmanArtwork.tsx');
 const previewClient = read('components/shop/NemadManBahmanPreview.tsx');
 const batchExporter = read('scripts/export-nemad-24.mjs');
@@ -41,14 +42,15 @@ assert.ok(batchExporter.includes('head.readUInt32BE(16)!==pixels[0]'),
   'Every real PNG must be checked for the selected dimensions');
 assert.ok(batchExporter.includes('good!==24||files.length!==24'),
   'All 24 requested images must complete');
-assert.match(route, /month !== 'bahman' \|\| !isShopNemadOrderEnabled\(\)/);
-assert.match(route, /<BirthSkyLiveProduct purchaseEnabled=\{isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
+assert.match(route, /process\.env\.NODE_ENV === 'production' && !isShopNemadOrderEnabled\(\)/);
+assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
+assert.ok(!route.includes('<ProductDetail '), 'All 12 months must use the Bahman renderer');
 assert.match(route, /robots: \{ index: false, follow: false \}/);
-assert.ok(client.includes('nemad?.product ?? getShopProduct(id)'), 'Must reuse P03 ProductDetail');
 assert.ok(client.includes('<NemadManBahmanArtwork'), 'Must reuse existing approved artwork SVG');
-assert.ok(client.includes('validateBahmanPreview(form.names, form.date,'), 'Actual zodiac selector required');
-assert.ok(client.includes('disabled={!nemad && id !== \'p01\'}'), 'Purchases stay disabled');
-assert.ok(client.includes('nemad.months.map'), 'Month navigation required');
+assert.ok(client.includes('validateBahmanPreview(values.names, values.date,'), 'Actual zodiac selector required');
+assert.ok(client.includes('nemadMonth: nemad.slug'), 'Orders must preserve the selected month');
+assert.ok(client.includes("addShopCartItem('nm'"), 'Nemad orders must keep their own product ID');
+assert.ok(!client.includes("nemad.slug !== 'bahman'"), 'No Bahman-only checkout path');
 assert.ok(client.includes('href={`/shop/${item.slug}-sign`}'),
   'Month links must use direct /shop/month-sign URLs');
 const canonical = read('app/shop/[slug]/page.tsx');
@@ -56,7 +58,7 @@ assert.match(canonical, /\^\(\[a-z\]\+\)-sign\$/, 'Month-sign suffix contract re
 assert.match(canonical, /monthMetadata\(await monthParams\(props\)\)/,
   'Canonical page must reuse the approved product metadata');
 assert.match(canonical, /NemadMonthProductPage\(await monthParams\(props\)\)/,
-  'Canonical page must reuse the existing P03 detail page');
+  'Canonical page must reuse the single Nemad product renderer');
 const exporter = read('scripts/export-nemad-24.mjs');
 assert.match(exporter, /Browser\.setDownloadBehavior/,
   'Batch script must drive the existing browser export');
@@ -84,5 +86,6 @@ for (const slug of months) {
   assert.ok(!visible.includes('## گزارش کنترل') && !visible.includes('## یادداشت تحریری'),
     'Internal SEO notes leaked: ' + slug);
 }
-assert.equal((route.match(/\{ slug: '[a-z]+', title: '/g) ?? []).length, 12);
-console.log('NEMAD_MAN_PRODUCT_PAGES=12; APPROVED_CONTENT_BOUNDED=PASS; PURCHASE_DISABLED=PASS');
+assert.match(route, /const months = NEMAD_MONTHS;/);
+assert.equal((read('lib/shop/nemad-man-months.ts').match(/\{ slug: '[a-z]+', title: '/g) ?? []).length, 12);
+console.log('NEMAD_MAN_PRODUCT_PAGES=12; APPROVED_CONTENT_BOUNDED=PASS; SHARED_LIVE_RENDERER=PASS');

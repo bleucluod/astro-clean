@@ -6,6 +6,7 @@ import { ShopCatalogReadiness } from './ShopCatalogReadiness';
 import { ShopPriceEditor } from './ShopPriceEditor';
 import { formatShopInteger, formatShopOrderNumber } from '@/lib/shop/shop-order-number';
 import { buildShopManualCustomerNotice } from '@/lib/shop/shop-manual-notice';
+import { getNemadMonthTitle } from '@/lib/shop/nemad-man-months';
 import styles from './shop-orders-workspace.module.css';
 
 type ShopOrderRow = {
@@ -33,7 +34,12 @@ const labels: Record<string, string> = {
   preparing: 'در حال آماده‌سازی', shipped: 'ارسال‌شده', delivered: 'تحویل‌شده',
   cancel_requested: 'درخواست لغو', canceled: 'لغوشده',
 };
-const productNames: Record<string, string> = { p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما', nm: 'نماد من — بهمن' };
+const productNames: Record<string, string> = { p01: 'ماه آن روز', p02: 'آسمان تولد', p03: 'شبِ ما', nm: 'نماد من' };
+function printItemTitle(item: PrintItem | undefined): string {
+  if (!item) return 'اثر';
+  if (item.productId === 'nm') return 'نماد من — ' + (getNemadMonthTitle(item.details.nemadMonth) ?? 'ماه نامشخص');
+  return productNames[item.productId] ?? item.productId;
+}
 const printHandoffStatuses = new Set(['payment_verified', 'preparing', 'shipped', 'delivered']);
 
 class ShopRequestError extends Error {
@@ -380,8 +386,8 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       </div>
       <h4>مشخصات محصولات</h4>
       <div className={styles.items}>{detail.items.map((item) => <article key={item.key}>
-        <strong>{productNames[item.productId] ?? item.productId} · {item.size} سانتی‌متر · {formatNumber(item.quantity)} عدد</strong>
-        {item.productId === 'nm' ? <small>ماه بهمن · مدل {item.details.nemadTheme === 'light' ? 'روشن' : 'تیره'}</small> : null}
+        <strong>{printItemTitle(item)} · {item.size} سانتی‌متر · {formatNumber(item.quantity)} عدد</strong>
+        {item.productId === 'nm' ? <small>ماه {getNemadMonthTitle(item.details.nemadMonth) ?? 'نامشخص'} · مدل {item.details.nemadTheme === 'light' ? 'روشن' : 'تیره'}</small> : null}
         {item.details.date ? <p>تاریخ: {item.details.date} ({item.details.calendar === 'jalali' ? 'شمسی' : 'میلادی'})</p> : null}
         {item.details.time ? <p>ساعت: {item.details.time}</p> : null}
         {item.details.city ? <p>شهر: {item.details.city}</p> : null}
@@ -391,14 +397,14 @@ export function ShopOrdersWorkspace({ accessToken }: { accessToken: string }) {
       {['payment_verified', 'preparing'].includes(detail.status) ? <section className={styles.production} aria-labelledby="shop-production-title">
         <div className={styles.productionHeader}>
           <span className={styles.eyebrow}>ساخت اثر / مرحلهٔ چاپ</span>
-          <h4 id="shop-production-title">طرح «{productNames[detail.items[uploadLine - 1]?.productId ?? ''] ?? 'اثر'}» همین سفارش</h4>
+          <h4 id="shop-production-title">طرح «{printItemTitle(detail.items[uploadLine - 1])}» همین سفارش</h4>
           <p>برای P01/P02 تصویر اختصاصی را بساز؛ برای نماد من، JPG چاپی منطبق با نام، تاریخ، رنگ و اندازهٔ سفارش را از رندرر مصوب آماده و بارگذاری کن. فایل فقط پس از تأیید نهایی ذخیره می‌شود.</p>
         </div>
         <form className={styles.productionGrid} onSubmit={(event) => { event.preventDefault(); void uploadFinalPrint(); }}>
           <div className={styles.productionControls}>
             <label>ردیف سفارش
               <select value={uploadLine} disabled={busy} onChange={(event) => { setUploadLine(Number(event.target.value)); setGeneratedArtwork(null); setUploadFile(null); setConfirmOrderMatch(false); setConfirmLabPrint(false); }}>
-                {detail.items.map((item, index) => <option key={item.key} value={index + 1}>{index + 1} · {productNames[item.productId] ?? item.productId} · {item.size}</option>)}
+                {detail.items.map((item, index) => <option key={item.key} value={index + 1}>{index + 1} · {printItemTitle(item)} · {item.size}</option>)}
               </select>
             </label>
             <button className={styles.primaryAction} type="button" disabled={busy || !['p01', 'p02'].includes(detail.items[uploadLine - 1]?.productId ?? '')} onClick={() => void generateOrderArtwork()}>{busy ? 'در حال ساخت…' : 'ساخت طرح این سفارش'}</button>

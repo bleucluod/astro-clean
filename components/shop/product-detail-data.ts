@@ -248,14 +248,13 @@ const products: Record<Exclude<ShopProductId, 'nm'>, ShopProduct> = {
   },
 };
 
-// NM has a dedicated order identity, never P03 (Shab-e Ma).
-// All month pages share NM pricing; only Bahman is sellable until owner review.
+// NM keeps a dedicated shared price/order identity; individual months live at /shop/<month>-sign.
 const nemadOrderProduct: ShopProduct = {
   ...products.p03,
-  id: 'nm', title: 'نماد من — بهمن',
+  id: 'nm', title: 'نماد من',
   tagline: 'تابلوی شخصی با نشان ستاره‌ای، نام و تاریخ تولد',
-  gallery: [{ src: '/shop-preview/nemad-man/bahman/01-mahsa-1387-11-12-light-console.webp',
-    alt: 'تابلو نماد من برای ماه بهمن', label: 'نماد من — بهمن' }],
+  gallery: [{ src: '/shop-preview/nemad-man/bahman/arad-light-black-edge-20261118.webp',
+    alt: 'تابلو نماد من روی شاسی بدون قاب با لبهٔ مشکی', label: 'نماد من' }],
 };
 
 /** Public catalogue is the single source of product IDs for showcase pickers. */

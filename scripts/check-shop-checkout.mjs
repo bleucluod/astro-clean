@@ -56,9 +56,11 @@ const civilTime = loadTypeScript('lib/shop/shop-civil-time.ts');
 const moment = loadTypeScript('lib/shop/shop-personalization.ts', {
   '@/lib/date/jalali': jalali, '@/lib/locations/cities': cities, './shop-civil-time': civilTime,
 });
+const nemadMonths = loadTypeScript('lib/shop/nemad-man-months.ts');
 const cart = loadTypeScript('components/shop/shop-cart.ts', {
   './product-detail-data': productData, '@/lib/shop/shop-personalization': moment,
   '@/lib/locations/cities': cities,
+  '@/lib/shop/nemad-man-months': nemadMonths,
 });
 const priceMap = {
   'p01:10x15': 900_000, 'p01:20x30': 1_599_000, 'p01:30x45': 2_300_000,

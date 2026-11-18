@@ -24,7 +24,7 @@ for (const path of [
     'TSX syntax: ' + path);
 }
 
-assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{month === 'bahman' && isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
+assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
 assert.ok(!route.includes('return <ProductDetail'), 'All 12 months must share Bahman live renderer');
 assert.match(route, /const darkScenes: Record<string, readonly \[string, string\]>/);
 assert.match(route, /const earlyDarkScenes: Record<string, string>/);
@@ -32,7 +32,7 @@ assert.match(route, /initial\.value\.sign\.id/);
 assert.match(p02, /const nemadMonthNumber = nemad \? nemad\.months\.findIndex/);
 assert.ok(!p02.includes("Number(checked.value.date.split('/')[1]) !== 11"),
   'Live preview may not be hardcoded to Bahman');
-assert.match(p02, /nemad\.slug !== 'bahman'/);
+assert.ok(!p02.includes("nemad.slug !== 'bahman'"), 'All 12 months must be allowed in NM cart when gated sales are enabled');
 assert.match(oldRoute, /<BirthSkyLiveProduct purchaseEnabled=\{isShopP02OrderEnabled\(\)\}/);
 assert.match(p02, /data-shop-page=\{nemad \? 'nm-live-product' : 'p02-live-product'\}/);
 assert.match(p02, /const gallery = nemad \? nemad\.product\.gallery\.slice\(2\) : BIRTH_SKY_GALLERY/);
@@ -70,7 +70,7 @@ assert.match(editorial, /product\.postCraftSections/);
 assert.match(editorial, /product\.closingCopy/);
 assert.match(artwork, /viewBox="0 0 900 1350"/);
 assert.ok(!p02.includes("addShopCartItem('p03'"), 'NM must never enter P03 orders');
-assert.match(route, /month !== 'bahman' \|\| !isShopNemadOrderEnabled\(\)/);
+assert.match(route, /process\.env\.NODE_ENV === 'production' && !isShopNemadOrderEnabled\(\)/);
 
 
 // User-approved gallery contract: exactly four mockup photographs per month.

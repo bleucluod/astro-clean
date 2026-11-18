@@ -39,9 +39,11 @@ const civilTime = load('lib/shop/shop-civil-time.ts');
 const moment = load('lib/shop/shop-personalization.ts', {
   '@/lib/date/jalali': jalali, '@/lib/locations/cities': cities, './shop-civil-time': civilTime,
 });
+const nemadMonths = load('lib/shop/nemad-man-months.ts');
 const cart = load('components/shop/shop-cart.ts', {
   './product-detail-data': products, '@/lib/shop/shop-personalization': moment,
   '@/lib/locations/cities': cities,
+  '@/lib/shop/nemad-man-months': nemadMonths,
 });
 const printSpec = load('lib/shop/shop-print-spec.ts', { '@/components/shop/product-detail-data': products });
 const catalog = load('src/lib/chart/fixed-star-catalog.ts', {
@@ -61,6 +63,7 @@ const handoff = load('lib/shop/shop-print-handoff.ts', {
   '@/components/shop/shop-cart': cart, './shop-personalization': moment, './shop-print-spec': printSpec,
   '@/lib/locations/cities': cities, './shop-sky-stars': sky,
   './shop-order-number': orderNumber,
+  './nemad-man-months': nemadMonths,
 });
 
 const item = {
@@ -100,6 +103,20 @@ assert.equal(birthSkyHandoff.prints[0].productId, 'p02');
 assert.equal(birthSkyHandoff.prints[0].personalization.city, 'برلین، آلمان');
 assert.ok(birthSkyHandoff.prints[0].birthSkyReference?.referenceUtc,
   'verified P02 orders must include real computed sky reference for private handoff');
+// Fulfillment handoff must retain the exact month rather than labeling all NM
+// orders as Bahman. These fixtures are synthetic and never reach a real database.
+for (const [index, month] of nemadMonths.NEMAD_MONTHS.entries()) {
+  const details = { calendar: 'jalali',
+    date: '1403/' + String(index + 1).padStart(2, '0') + '/15',
+    time: '', city: '', cityId: '', names: 'نام نمونه', message: '',
+    nemadMonth: month.slug, nemadTheme: 'dark',
+  };
+  const nmItem = { ...item, key: 'nm-print-' + month.slug, productId: 'nm', details };
+  const nmHandoff = handoff.buildPrivateShopPrintHandoff({ ...order, items: [nmItem] });
+  assert.equal(nmHandoff.prints[0].productTitle, 'نماد من — ' + month.title);
+  assert.equal(nmHandoff.prints[0].personalization.nemadMonth, month.slug);
+  assert.equal(nmHandoff.prints[0].personalization.nemadTheme, 'dark');
+}
 const birthZip = designZip.buildPrivateShopDesignHandoffZip(birthSkyHandoff);
 assert.ok(birthZip.includes(Buffer.from('"productId": "p02"')),
   'P02 must reach the same owner-only manual design ZIP workflow');
