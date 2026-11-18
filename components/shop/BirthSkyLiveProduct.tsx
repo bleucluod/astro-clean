@@ -113,6 +113,12 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
   const gallery = nemad ? nemad.product.gallery.slice(2) : BIRTH_SKY_GALLERY;
   const livePrices = useShopLivePrices();
   const selectedPrice = liveShopPrice(livePrices.prices, nemad ? 'nm' : 'p02', sizes[sizeIndex].dimension);
+  // The real payment/quote price remains server-authoritative. A missing local DB
+  // must not leave the Nemad product page stuck on an endless loading label.
+  const previewBasePrice = nemad && process.env.NODE_ENV !== 'production' && selectedPrice === null
+    ? sizes[sizeIndex].price : null;
+  const visiblePrice = selectedPrice ?? previewBasePrice;
+  const localCartReview = Boolean(nemad && process.env.NODE_ENV !== 'production');
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -283,7 +289,10 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
 
   function addToCart() {
     if (!purchaseEnabled || !(nemad ? nemadPreview : artwork) || busy) return;
-    if (selectedPrice === null) { setError('قیمت فروشگاه قابل بررسی نیست؛ دوباره تلاش کن.'); return; }
+    if (selectedPrice === null && !localCartReview) {
+      setError('قیمت قطعی قابل دریافت نیست؛ برای ثبت سفارش بعداً دوباره تلاش کن.');
+      return;
+    }
     if (nemad) {
       const checked = validateBahmanPreview(input.names, input.date,
         { time: input.time, cityId: input.cityId });
@@ -407,9 +416,14 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
           <div className={pdStyles.purchasePanel}>
             <p className={pdStyles.introduction}>{nemad?.product.introduction ?? BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
             <div className={pdStyles.priceBlock} aria-live="polite">
-              <span className={pdStyles.priceLabel}>قیمت این اندازه</span>
-              <p className={pdStyles.price}><bdi>{selectedPrice === null ? 'در حال دریافت…' : formatPrice(selectedPrice)}</bdi><span>تومان</span></p>
+              <span className={pdStyles.priceLabel}>{previewBasePrice !== null ? 'قیمت پایهٔ این اندازه' : 'قیمت این اندازه'}</span>
+              <p className={pdStyles.price}><bdi>{visiblePrice === null ? (livePrices.error ? 'قیمت در دسترس نیست' : 'در حال دریافت…') : formatPrice(visiblePrice)}</bdi><span>تومان</span></p>
             </div>
+            {previewBasePrice !== null ? <p className={styles.priceStatus} role="status">
+              {livePrices.error
+                ? 'قیمت پایه نمایش داده شده است؛ اتصال قیمت زنده در دسترس نیست. ثبت نهایی سفارش تا تأیید قیمت سرور امکان‌پذیر نیست.'
+                : 'قیمت پایه تا دریافت قیمت زنده نمایش داده می‌شود؛ قیمت قطعی پیش از ثبت سفارش از سرور تأیید خواهد شد.'}
+            </p> : null}
             <fieldset className={pdStyles.sizes}>
               <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
               <div className={pdStyles.sizeGrid}>
@@ -526,12 +540,14 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
 
               {purchaseEnabled ? <>
                 <button type="button" className={styles.orderAction}
-                  disabled={!hasPreview || busy || selectedPrice === null} onClick={addToCart}>
+                  disabled={!hasPreview || busy || (selectedPrice === null && !localCartReview)} onClick={addToCart}>
                   {editingKey ? 'ثبت تغییرات تابلو در سبد' : 'افزودن تابلو به سبد خرید'}
                 </button>
                 <p className={styles.previewAvailability}>
-                  {hasPreview ? 'طرح شخصی‌ات آماده است. اندازه را انتخاب کن و تابلو را به سبد خرید اضافه کن؛ پرداخت در مرحلهٔ بعد با کارت‌به‌کارت و تأیید دستی انجام می‌شود.' :
-                    'برای سفارش، ابتدا با دکمهٔ بالا پیش‌نمایش تابلویت را بساز.'}
+                  {hasPreview && localCartReview && selectedPrice === null
+                    ? 'می‌توانی انتخابت را در سبد محلی ببینی؛ ادامه تا ثبت سفارش و پرداخت فقط پس از دریافت قیمت قطعی از سرور فعال می‌شود.'
+                    : hasPreview ? 'طرح شخصی‌ات آماده است. اندازه را انتخاب کن و تابلو را به سبد خرید اضافه کن؛ پرداخت در مرحلهٔ بعد با کارت‌به‌کارت و تأیید دستی انجام می‌شود.'
+                    : 'برای سفارش، ابتدا با دکمهٔ بالا پیش‌نمایش تابلویت را بساز.'}
                 </p>
               </> : <p className={styles.previewAvailability}>پیش‌نمایش فعال است؛ ثبت سفارش این محصول تا زمان تأیید انتشار فروش بسته می‌ماند.</p>}
             </form>

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { getShopProduct } from './product-detail-data';
+import { getShopProduct, getShopProductPrice } from './product-detail-data';
 import { liveShopPrice, useShopLivePrices } from './use-shop-live-prices';
 import type { ShopPriceMap } from '@/lib/shop/shop-price-store';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
@@ -103,7 +103,9 @@ function EmptyCart() {
 function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; prices: ShopPriceMap | null; onQuantity: (quantity: number) => void; onRemove: () => void }) {
   const product = getShopProduct(item.productId);
   const size = getShopSize(item.size);
-  const unitPrice = liveShopPrice(prices, item.productId, item.size);
+  const liveUnitPrice = liveShopPrice(prices, item.productId, item.size);
+  const usingNemadBase = process.env.NODE_ENV !== 'production' && item.productId === 'nm' && liveUnitPrice === null;
+  const unitPrice = liveUnitPrice ?? (usingNemadBase ? getShopProductPrice(item.productId, item.size) : null);
   return (
     <article className={styles.itemCard}>
       <div className={styles.itemTop}>
@@ -113,7 +115,7 @@ function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; 
         <div className={styles.itemInfo}>
           <h2>{product.title}</h2>
           <p>{size.label} سانتی‌متر · چاپ مات روی شاسی</p>
-          <strong>{unitPrice === null ? 'در حال دریافت قیمت…' : <><bdi>{money(unitPrice)}</bdi> تومان</>}</strong>
+          <strong>{unitPrice === null ? 'در حال دریافت قیمت…' : <>{usingNemadBase ? 'قیمت پایه: ' : ''}<bdi>{money(unitPrice)}</bdi> تومان</>}</strong>
         </div>
       </div>
       <div className={styles.itemDetails}>
@@ -140,8 +142,15 @@ function CartLine({ item, prices, onQuantity, onRemove }: { item: ShopCartItem; 
 
 function Summary({ items, prices, next, carrier, quote }: { items: ShopCartItem[]; prices: ShopPriceMap | null; next?: 'checkout'; carrier?: ShopCarrier; quote?: ShopQuote | null }) {
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = quote?.subtotal ?? (prices === null ? null
-    : items.reduce((sum, item) => sum + (liveShopPrice(prices, item.productId, item.size) ?? 0) * item.quantity, 0));
+  // Cart-only price illustration when all lines are Nemad Man and live pricing
+  // is offline. Never use this estimate on checkout/payment or enable Next.
+  const showNemadBase = process.env.NODE_ENV !== 'production'
+    && next === 'checkout' && prices === null && items.length > 0
+    && items.every(item => item.productId === 'nm');
+  const subtotal = quote?.subtotal ?? (prices !== null
+    ? items.reduce((sum, item) => sum + (liveShopPrice(prices, item.productId, item.size) ?? 0) * item.quantity, 0)
+    : showNemadBase ? items.reduce((sum, item) =>
+      sum + (getShopProductPrice(item.productId, item.size) ?? 0) * item.quantity, 0) : null);
   const shipping = quote?.shippingAndPackaging ?? (carrier ? SHOP_SHIPPING_AND_PACKAGING[carrier] : null);
   return (
     <aside className={styles.summary} aria-label="خلاصهٔ خرید">
@@ -150,6 +159,7 @@ function Summary({ items, prices, next, carrier, quote }: { items: ShopCartItem[
       {carrier ? <div className={styles.summaryRow}><span>روش ارسال</span><strong>{carrier === 'post' ? 'پست' : 'تیپاکس · پس‌کرایه'}</strong></div> : null}
       <div className={styles.summaryRow}><span>هزینه ارسال و بسته‌بندی</span>{shipping === null ? <span className={styles.pending}>در مرحلهٔ بعد</span> : <strong><bdi>{money(shipping)}</bdi> تومان</strong>}</div>
       <div className={styles.summaryTotal}><span>{shipping === null ? 'جمع محصولات' : 'مبلغ قابل واریز'}</span><strong>{subtotal === null ? 'در حال دریافت…' : <><bdi>{money(subtotal + (shipping ?? 0))}</bdi> تومان</>}</strong></div>
+      {showNemadBase ? <p className={styles.summaryHint} role="status">این مبلغ فقط جمع قیمت‌های پایه برای بررسی محلی سبد است. تا دریافت قیمت قطعی از سرور، ادامهٔ سفارش و پرداخت فعال نمی‌شود.</p> : null}
       {carrier === 'tipax' ? <p className={styles.summaryHint}>هزینهٔ حمل تیپاکس هنگام تحویل بسته به‌صورت پس‌کرایه پرداخت می‌شود؛ مبلغ بالا شامل ۵۰ هزار تومان بسته‌بندی است.</p> : null}
       {next === 'checkout' && prices !== null ? <Link className={styles.primaryAction} href="/shop/checkout"><span>ادامه و ثبت نشانی</span><span aria-hidden="true">←</span></Link> : null}
     </aside>

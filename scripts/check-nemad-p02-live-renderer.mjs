@@ -27,6 +27,19 @@ assert.match(route, /<BirthSkyLiveProduct purchaseEnabled=\{isShopNemadOrderEnab
 assert.match(oldRoute, /<BirthSkyLiveProduct purchaseEnabled=\{isShopP02OrderEnabled\(\)\}/);
 assert.match(p02, /data-shop-page=\{nemad \? 'nm-live-product' : 'p02-live-product'\}/);
 assert.match(p02, /const gallery = nemad \? nemad\.product\.gallery\.slice\(2\) : BIRTH_SKY_GALLERY/);
+assert.match(p02, /const visiblePrice = selectedPrice \?\? previewBasePrice/);
+assert.match(p02, /previewBasePrice = nemad && process\.env\.NODE_ENV !== 'production'/);
+assert.match(p02, /const localCartReview = Boolean\(nemad && process\.env\.NODE_ENV !== 'production'\)/);
+assert.match(p02, /selectedPrice === null && !localCartReview/);
+assert.match(p02, /previewBasePrice !== null \? 'قیمت پایهٔ این اندازه'/);
+assert.match(p02, /ثبت نهایی سفارش تا تأیید قیمت سرور امکان‌پذیر نیست/);
+assert.match(read('components/shop/birth-sky-live-product.module.css'), /\.page \.priceStatus/);
+const checkout = read('components/shop/ShopCheckoutFlow.tsx');
+assert.match(checkout, /next === 'checkout' && prices === null && items\.length > 0/);
+assert.match(checkout, /showNemadBase = process\.env\.NODE_ENV !== 'production'/);
+assert.match(checkout, /items\.every\(item => item\.productId === 'nm'\)/);
+assert.match(checkout, /next === 'checkout' && prices !== null \? <Link/);
+assert.match(checkout, /تا دریافت قیمت قطعی از سرور، ادامهٔ سفارش و پرداخت فعال نمی‌شود/);
 for (const marker of [
   'pdStyles.productHero', 'pdStyles.purchasePanel', 'pdStyles.priceBlock',
   'pdStyles.sizes', 'pdStyles.sizeGrid', 'pdStyles.personalizeForm',

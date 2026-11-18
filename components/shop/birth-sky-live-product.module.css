@@ -205,3 +205,7 @@
 }
 .orderAction:hover:not(:disabled) { background: #2b638e; }
 .orderAction:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Nemad Man displays its canonical base size prices while local DB prices load. */
+.page .priceStatus { margin: 8px 0 2px; padding: 10px 12px; border: 1px solid #405469;
+  border-radius: 9px; background: #101a25; color: #c7d9e8 !important; font-size: 12px; line-height: 1.95; }
