@@ -58,6 +58,9 @@ export function ShopV01Home({ products, showP02Invitation = true }: { products: 
                   <div className={styles.productDetails}>
                     <div className={styles.productHeading}><h3>{item.title}</h3></div>
                     <p className={styles.productSubtitle}>{item.subtitle}</p>
+                    {item.priceToman !== null && item.priceToman > 0 ? (
+                      <p className={styles.productPrice}>از {item.priceToman.toLocaleString('fa-IR')} تومان</p>
+                    ) : null}
                   </div>
                 </>
               );

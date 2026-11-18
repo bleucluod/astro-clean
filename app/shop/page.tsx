@@ -3,7 +3,7 @@ import { ShopV01Home, type ShopV01Item } from '@/components/shop/ShopV01Home';
 import { isShopMvpActive, isShopP02OrderEnabled, isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
-import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
+import { listBaseShopPrices, readShopPriceCatalog } from '@/lib/shop/shop-price-store';
 import { NEMAD_MONTHS } from '@/lib/shop/nemad-man-months';
 
 export function generateMetadata(): Metadata {
@@ -94,7 +94,23 @@ export default async function ShopPage() {
 
   const p02Enabled = isShopP02OrderEnabled();
   const nemadEnabled = isShopNemadOrderEnabled();
-  const { prices } = await readShopPriceCatalog();
+  let prices: Record<string, number>;
+  try {
+    prices = (await readShopPriceCatalog()).prices;
+  } catch (error) {
+    // The local preview database can predate private shop migrations.
+    // Never fall back for production, connection/auth failures, or other missing tables.
+    const missingLocalPriceTable = process.env.NODE_ENV === 'development'
+      && error instanceof Error
+      && 'code' in error && error.code === '42P01'
+      && error.message.includes('halleus_private.shop_price_overrides');
+    if (!missingLocalPriceTable) throw error;
+
+    console.warn('HALLEUS_SHOP_LOCAL_PRICE_PREVIEW: missing local price table; showing base catalog prices only.');
+    prices = Object.fromEntries(listBaseShopPrices().map((row) => [
+      row.productId + ':' + row.size, row.priceToman,
+    ]));
+  }
   return <ShopV01Home
     products={launchCatalog.filter((product) => product.id === 'P01' || (p02Enabled && product.id === 'P02') || (nemadEnabled && product.id.startsWith('NM-')))
       .map(product => ({ ...product,
