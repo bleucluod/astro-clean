@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import styles from './NemadManMockupGenerator.module.css';
+import { NemadManBahmanArtwork, type NemadPosterTheme } from './NemadManBahmanArtwork';
+import { NEMAD_SIGNS, validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
+import { getNemadPosterPixelSize, renderNemadPosterPngBlob } from '@/lib/shop/nemad-man-preview-export';
 
 type Point = { x: number; y: number };
 type Quad = [Point, Point, Point, Point];
@@ -123,6 +126,82 @@ const COUPLE_FACES: Record<CoupleSide, { x: number; y: number; w: number; h: num
   left: { x: 128, y: 462, w: 362, h: 541, channel: 0 },
   right: { x: 530, y: 462, w: 360, h: 540, channel: 1 },
 };
+
+// Four existing single-canvas scenes; the couple template stays manual because it
+// needs two independent sources. Every sample is fictional, with a validated sign.
+const AUTO_SCENE_IDS = ['console', 'wall-bench', 'workdesk', 'gift-wrap'] as const;
+type AutoSceneId = (typeof AUTO_SCENE_IDS)[number];
+type AutoSample = {
+  key: string;
+  month: ArchiveMonth;
+  sceneId: AutoSceneId;
+  theme: NemadPosterTheme;
+  preview: BahmanPreview;
+  fileName: string;
+};
+type AutoArtwork = { key: string; preview: BahmanPreview; theme: NemadPosterTheme };
+
+const AUTO_DEMO_NAMES: ReadonlyArray<readonly [string, string]> = [
+  ['آراد', 'arad'], ['هاله', 'haleh'], ['سارا', 'sara'], ['کیوان', 'keyvan'],
+  ['نازنین', 'nazanin'], ['نیما', 'nima'], ['آوا', 'ava'], ['رها', 'raha'],
+  ['باران', 'baran'], ['پارسا', 'parsa'], ['مهسا', 'mahsa'], ['سام', 'sam'],
+  ['روژان', 'rozhan'], ['مهرداد', 'mehrdad'], ['هستی', 'hasti'], ['آریا', 'aria'],
+  ['ترانه', 'taraneh'], ['نوید', 'navid'], ['الناز', 'elnaz'], ['امیر', 'amir'],
+  ['سورنا', 'sorena'], ['نگار', 'negar'], ['مانی', 'mani'], ['پرستو', 'parastoo'],
+  ['آناهیتا', 'anahita'], ['بردیا', 'bardiya'], ['غزل', 'ghazal'], ['سینا', 'sina'],
+  ['یلدا', 'yalda'], ['کاوه', 'kaveh'], ['رویا', 'roya'], ['ماهان', 'mahan'],
+  ['شیدا', 'sheyda'], ['آرش', 'arash'], ['نورا', 'nora'], ['رضا', 'reza'],
+  ['نیلوفر', 'niloufar'], ['پیمان', 'peyman'], ['فرزانه', 'farzaneh'],
+  ['یونا', 'youna'], ['ستاره', 'setareh'], ['ایلیا', 'iliya'], ['بیتا', 'bita'],
+  ['شایان', 'shayan'], ['بهار', 'bahar'], ['مهتاب', 'mahtab'], ['سپهر', 'sepehr'],
+  ['ندا', 'neda'], ['آبتین', 'abtin'], ['نیکی', 'niki'], ['فرهاد', 'farhad'],
+  ['شادی', 'shadi'], ['آیدا', 'ayda'], ['میلاد', 'milad'], ['پرنیا', 'parnia'],
+];
+
+function buildAutoSamples(): AutoSample[] {
+  const names = [...AUTO_DEMO_NAMES];
+  // Shuffle once per run: 48 distinct example names, no actual customer data.
+  for (let i = names.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [names[i], names[j]] = [names[j], names[i]];
+  }
+  if (names.length < ARCHIVE_MONTHS.length * AUTO_SCENE_IDS.length) {
+    throw new Error('نام نمونه برای تمام ماه‌ها کافی نیست.');
+  }
+  const runId = String(Date.now());
+  const samples: AutoSample[] = [];
+  for (let monthIndex = 0; monthIndex < ARCHIVE_MONTHS.length; monthIndex++) {
+    const month = ARCHIVE_MONTHS[monthIndex];
+    const expectedSign = NEMAD_SIGNS[monthIndex];
+    if (!expectedSign) throw new Error('برج ماه نمونه شناسایی نشد.');
+    for (let sceneIndex = 0; sceneIndex < AUTO_SCENE_IDS.length; sceneIndex++) {
+      const sampleIndex = monthIndex * AUTO_SCENE_IDS.length + sceneIndex;
+      const [name, slug] = names[sampleIndex];
+      const year = 1370 + Math.floor(Math.random() * 20);
+      const randomDay = 12 + Math.floor(Math.random() * 7);
+      let preview: BahmanPreview | null = null;
+      // Different sample birthdays, safely away from the Sun's sign boundary.
+      for (const day of [randomDay, 15, 14, 16, 17, 13, 18]) {
+        const date = `${year}/${String(monthIndex + 1).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
+        const checked = validateBahmanPreview(name, date);
+        if (checked.ok && checked.value.sign.id === expectedSign.id) {
+          preview = checked.value;
+          break;
+        }
+      }
+      if (!preview) throw new Error(`تاریخ نمونه برای ${month} معتبر نشد؛ هیچ ZIP ناقصی ساخته نمی‌شود.`);
+      const theme: NemadPosterTheme = sceneIndex % 2 === 0 ? 'light' : 'dark';
+      const sceneId = AUTO_SCENE_IDS[sceneIndex];
+      const filenameDate = preview.date.replaceAll('/', '-');
+      samples.push({
+        key: `${runId}-${sampleIndex}`, month, sceneId, theme, preview,
+        fileName: `${String(sceneIndex + 1).padStart(2, '0')}-${slug}-${filenameDate}-${theme}-${sceneId}.webp`,
+      });
+    }
+  }
+  return samples;
+}
+
 const OUTPUT_WIDTH = 1024;
 const OUTPUT_HEIGHT = 1536;
 const MAX_ARTS = 300;
@@ -667,6 +746,8 @@ function saveBlob(blob: Blob, name: string) {
 
 export function NemadManMockupGenerator() {
   const filePicker = useRef<HTMLInputElement>(null);
+  const autoBoardRef = useRef<HTMLDivElement>(null);
+  const autoBatchBusyRef = useRef(false);
   const folderPicker = useRef<HTMLInputElement>(null);
   const cancel = useRef(false);
   const [arts, setArts] = useState<SourceArt[]>([]);
@@ -687,6 +768,10 @@ export function NemadManMockupGenerator() {
   const [progress, setProgress] = useState(0);
   const [limitKb, setLimitKb] = useState(70);
   const [sceneId, setSceneId] = useState<SceneId>('console');
+  const [autoBatchArtwork, setAutoBatchArtwork] = useState<AutoArtwork | null>(null);
+  const [autoBatchBusy, setAutoBatchBusy] = useState(false);
+  const [autoBatchProgress, setAutoBatchProgress] = useState(0);
+  const [autoBatchDone, setAutoBatchDone] = useState(false);
   const [coupleChoices, setCoupleChoices] = useState<CoupleChoices>({ left: '', right: '' });
   const activeScene = SCENES.find(scene => scene.id === sceneId) ?? SCENES[0];
   const isCouple = sceneId === 'couple-wall';
@@ -778,6 +863,106 @@ export function NemadManMockupGenerator() {
     })();
     return () => { ended = true; if (url) URL.revokeObjectURL(url); };
   }, [previewArt, sceneId, coupleChoices.left, coupleChoices.right, arts]);
+
+
+  function waitForAutoArtwork(key: string, expectedSign: string): Promise<SVGSVGElement> {
+    return new Promise((resolve, reject) => {
+      const deadline = performance.now() + 20000;
+      const inspect = () => {
+        if (cancel.current) { reject(new Error('ساخت خودکار متوقف شد؛ ZIP ناقص ذخیره نشد.')); return; }
+        const holder = autoBoardRef.current;
+        const svg = holder?.querySelector('svg');
+        if (holder?.dataset.renderKey === key && svg &&
+            svg.querySelector('title')?.textContent?.includes(expectedSign)) {
+          resolve(svg);
+          return;
+        }
+        if (performance.now() > deadline) {
+          reject(new Error('رندر اصلی نماد ' + expectedSign + ' آماده نشد.'));
+          return;
+        }
+        window.requestAnimationFrame(inspect);
+      };
+      window.requestAnimationFrame(inspect);
+    });
+  }
+
+  async function generateAllMonthsAutomatically() {
+    if (autoBatchBusyRef.current || busy || uploading) return;
+    autoBatchBusyRef.current = true;
+    cancel.current = false;
+    setBusy(true);
+    setAutoBatchBusy(true);
+    setAutoBatchProgress(0);
+    setAutoBatchDone(false);
+    setError('');
+    clearBuilt();
+    try {
+      // Validate all fictional name/date/sign combinations BEFORE generating files.
+      const samples = buildAutoSamples();
+      const targetCount = ARCHIVE_MONTHS.length * AUTO_SCENE_IDS.length;
+      if (samples.length !== targetCount) throw new Error('تعداد نمونه‌ها باید دقیقاً ۴۸ باشد.');
+      const expectedPixels = getNemadPosterPixelSize('10x15');
+      const scenes = await Promise.all(AUTO_SCENE_IDS.map(async id => {
+        const template = SCENES.find(scene => scene.id === id);
+        if (!template || template.id === 'couple-wall') throw new Error('قالب تکی موجود نیست: ' + id);
+        return { id, template, image: await loadImage(template.path) };
+      }));
+      const entries: Entry[] = [];
+      const rendered: BuiltMockup[] = [];
+      const manifest: Array<{ month: string; file: string; name: string;
+        jalaliDate: string; sign: string; theme: NemadPosterTheme; scene: AutoSceneId; bytes: number }> = [];
+      for (const sample of samples) {
+        if (cancel.current) throw new Error('ساخت خودکار متوقف شد؛ ZIP ناقص ذخیره نشد.');
+        setAutoBatchArtwork({ key: sample.key, preview: sample.preview, theme: sample.theme });
+        const svg = await waitForAutoArtwork(sample.key, sample.preview.sign.en);
+        const png = await renderNemadPosterPngBlob(svg, '10x15');
+        const poster = await createImageBitmap(png);
+        let webp: Blob;
+        try {
+          if (poster.width !== expectedPixels.width || poster.height !== expectedPixels.height) {
+            throw new Error('ابعاد خروجی رندرر اصلی با اندازهٔ نمونه مطابقت ندارد.');
+          }
+          const scene = scenes.find(item => item.id === sample.sceneId);
+          if (!scene) throw new Error('صحنهٔ موکاپ پیدا نشد.');
+          webp = await smallWebp(compose(scene.image, poster, scene.template), 70_000);
+        } finally { poster.close(); }
+        if (webp.size >= 70_000 || webp.type !== 'image/webp') {
+          throw new Error('حجم یا فرمت موکاپ ' + sample.fileName + ' معتبر نیست.');
+        }
+        const archiveName = `${sample.month}/${sample.fileName}`;
+        entries.push({ name: archiveName, data: new Uint8Array(await webp.arrayBuffer()) });
+        rendered.push({ sourceName: archiveName, fileName: sample.fileName, blob: webp, bytes: webp.size });
+        manifest.push({ month: sample.month, file: archiveName, name: sample.preview.name,
+          jalaliDate: sample.preview.date, sign: sample.preview.sign.id,
+          theme: sample.theme, scene: sample.sceneId, bytes: webp.size });
+        setAutoBatchProgress(entries.length);
+        // Let React paint progress and respond to Stop between individual exports.
+        await new Promise<void>(resolve => window.setTimeout(resolve, 0));
+      }
+      if (entries.length !== targetCount ||
+          ARCHIVE_MONTHS.some(month => entries.filter(entry => entry.name.startsWith(month + '/')).length !== 4)) {
+        throw new Error('تعداد فایل‌های هر ماه دقیقاً چهار تا نیست؛ ZIP ذخیره نشد.');
+      }
+      const metadata = new TextEncoder().encode(JSON.stringify({
+        description: 'Fictional demo names and birthdays; no customer data',
+        totalMockups: targetCount, perMonth: 4, maxBytesExclusive: 70000, samples: manifest,
+      }, null, 2));
+      const zip = zipBlob([...entries, { name: 'manifest.json', data: metadata }]);
+      if (cancel.current) throw new Error('ساخت خودکار متوقف شد؛ ZIP ناقص ذخیره نشد.');
+      setBuilt(rendered);
+      setSelectedUploads(Object.fromEntries(rendered.map(item => [item.sourceName, true])));
+      saveBlob(zip, 'Halleus-Nemad-Man-12-Months-48-Mockups-Under70KB.zip');
+      setAutoBatchDone(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ساخت خودکار موکاپ‌ها ناموفق بود.');
+    } finally {
+      setAutoBatchArtwork(null);
+      setAutoBatchBusy(false);
+      autoBatchBusyRef.current = false;
+      setBusy(false);
+    }
+  }
 
   const generate = async () => {
     if (busy || uploading || (isCouple ? !coupleReady : !selectedArts.length)) return;
@@ -877,6 +1062,22 @@ export function NemadManMockupGenerator() {
     </header>
     <div className={styles.grid}>
       <section className={styles.panel}>
+
+        <div className={styles.drop}>
+          <h2>ساخت خودکار گالری ۱۲ ماه</h2>
+          <p className={styles.tip}>بدون آپلود ورودی: برای هر ماه چهار نمونه با نام و تاریخ تولد ساختگیِ متفاوت ساخته می‌شود؛ دو طرح روشن و دو طرح تیره، در چهار موکاپ تکیِ آماده. خروجی: ۴۸ WebP، هرکدام کمتر از ۷۰٬۰۰۰ بایت، در ۱۲ پوشه + فهرست نمونه‌ها داخل ZIP.</p>
+          <div className={styles.buttons}>
+            <button type="button" disabled={busy || uploading} onClick={() => { void generateAllMonthsAutomatically(); }}>
+              {autoBatchBusy ? 'در حال ساخت ۴۸ موکاپ…' : 'ساخت ۴۸ موکاپ و دریافت ZIP'}
+            </button>
+            {autoBatchBusy && <button type="button" className={styles.secondary} onClick={() => { cancel.current = true; }}>توقف</button>}
+          </div>
+          {autoBatchBusy && <div className={styles.progress} role="status">
+            ساخته‌شده: {autoBatchProgress} از ۴۸
+            <progress value={autoBatchProgress} max={48}/>
+          </div>}
+          {autoBatchDone && <p className={styles.success} role="status">۴۸ موکاپ در ۱۲ پوشه دانلود شد. خروجی‌ها برای انتخاب و ثبت در GitHub هم در فهرست پایین آماده‌اند.</p>}
+        </div>
         <h2>۱. طرح‌ها را وارد کن</h2>
         <div className={styles.buttons}>
           <button type="button" onClick={() => filePicker.current?.click()} disabled={busy || uploading}>انتخاب چند عکس یا ZIP</button>
@@ -949,7 +1150,7 @@ export function NemadManMockupGenerator() {
           <button type="button" disabled={busy || uploading || (isCouple ? !coupleReady : !selectedArts.length)} onClick={() => { void generate(); }}>{isCouple ? 'ساخت ZIP زوجی از دو طرح مستقل' : `ساخت ZIP از ${selectedArts.length} تصویر منتخب`}</button>
           {busy && <button type="button" className={styles.secondary} onClick={() => { cancel.current = true; }}>توقف</button>}
         </div>
-        {busy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {isCouple ? 1 : selectedArts.length}<progress value={progress} max={isCouple ? 1 : selectedArts.length}/></div>}
+        {busy && !autoBatchBusy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {isCouple ? 1 : selectedArts.length}<progress value={progress} max={isCouple ? 1 : selectedArts.length}/></div>}
         {error && <p className={styles.error} role="alert">{error}</p>}
         <p className={styles.tip}>{isCouple ? 'دو طرح مستقل در یک موکاپ واحد، بدون برش یا حاشیهٔ سفید اضافه.' : 'هر فایل منتخب یک خروجی می‌گیرد و نام‌ها و ساختار پوشه در ZIP حفظ می‌شوند.'}</p>
         {built.length > 0 && <>
@@ -996,6 +1197,14 @@ export function NemadManMockupGenerator() {
         </div>
         <p className={styles.previewFoot}>{isCouple ? (coupleReady ? `${coupleChoices.left} + ${coupleChoices.right}` : 'دو طرح متفاوت از ZIP انتخاب کن.') : (previewArt ? previewArt.name : 'ابتدا یک تصویر یا ZIP انتخاب کن.')}</p>
       </section>
+    </div>
+    {/* Invisible live SVG, rendered by the exact approved Nemad Man artwork component. */}
+    <div aria-hidden="true" ref={autoBoardRef} data-render-key={autoBatchArtwork?.key ?? ''}
+      style={{ position: 'fixed', left: '-10000px', top: 0, width: 900, height: 1350,
+        pointerEvents: 'none', overflow: 'hidden' }}>
+      {autoBatchArtwork && <NemadManBahmanArtwork name={autoBatchArtwork.preview.name}
+        date={autoBatchArtwork.preview.gregorianDate} sign={autoBatchArtwork.preview.sign}
+        theme={autoBatchArtwork.theme} />}
     </div>
   </main>;
 }
