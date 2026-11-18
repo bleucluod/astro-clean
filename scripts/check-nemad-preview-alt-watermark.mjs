@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import ts from 'typescript';
 
@@ -37,6 +37,9 @@ assert.ok(detail.includes("'مینیمال تیره' : 'مینیمال روشن'
 for (const [marker, keyword] of [
   ["alt: 'تابلو نماد ماه تولد ' + month", 'dark theme'],
   ["alt: 'تابلو نماد ماه ' + month", 'light theme'],
+  ["alt: 'تابلو ماه تولد ' + months[index].title, 'dark wall mockup'],
+  ["alt: 'هدیه برای متولدین ' + months[index].title, 'dark gift mockup'],
+  ["alt: 'کادو تولد ' + months[index].title, 'early dark scene'],
   ["alt: 'تابلو نماد ' + months[index].title + ' سفارشی", 'first light mockup'],
   ["alt: 'تابلو ماه تولد ' + months[index].title + ' با اسم", 'additional light mockup'],
   ['تابلو ماه تولد بهمن؛ موکاپ تیره', 'Bahman wall mockup'],
@@ -57,7 +60,9 @@ for (let index = 0; index < months.length; index++) {
   const keywords = [
     'تابلو نماد ماه تولد ' + month,
     'تابلو نماد ماه ' + month,
-    ...(slug === 'bahman' ? ['تابلو ماه تولد بهمن', 'هدیه برای متولدین بهمن'] : []),
+    'تابلو ماه تولد ' + month,
+    'هدیه برای متولدین ' + month,
+    ...(index < 3 ? ['کادو تولد ' + month] : []),
     'تابلو نماد ' + month + ' سفارشی',
     ...(index >= 3 ? ['تابلو ماه تولد ' + month + ' با اسم'] : []),
   ];
@@ -68,9 +73,27 @@ for (let index = 0; index < months.length; index++) {
     slug + '/arad-light-black-edge-20261118.webp')));
   if (index >= 3) assert.ok(existsSync(resolve(root, 'public/shop-preview/nemad-man/' +
     slug + '/halle-light-30x45-black-edge-20261118.webp')));
+  const galleryDir = resolve(root, 'public/shop-preview/nemad-man/' + slug);
+  const darkMockups = readdirSync(galleryDir).filter(name => /-dark-.*\.webp$/.test(name));
+  assert.equal(darkMockups.length, index < 3 ? 3 : 2,
+    'Unexpected count of dark mockups: ' + slug);
+  for (const filename of darkMockups) {
+    assert.ok(route.includes(filename), 'Missing dark scene in gallery data: ' + filename);
+    const data = readFileSync(resolve(galleryDir, filename));
+    assert.ok(data.length > 20_000 && data.length < 100_000);
+    assert.equal(data.toString('ascii', 0, 4), 'RIFF');
+    assert.equal(data.toString('ascii', 8, 12), 'WEBP');
+  }
+  assert.equal(darkMockups.length + 1 + (index >= 3 ? 1 : 0), 4,
+    'Each Nemad month must have exactly four mockup photographs');
   galleryImages += keywords.length;
 }
-assert.equal(galleryImages, 47, '12 months must have 47 distinct gallery image keyword assignments');
+assert.equal(galleryImages, 72, '12 months must have 72 distinct ALT keyword assignments');
+assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{month === 'bahman' && isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
+assert.ok(!route.includes('return <ProductDetail'), 'All months must use the Bahman renderer');
+assert.match(route, /initial\.value\.sign\.id/);
+assert.match(live, /const nemadMonthNumber = nemad \? nemad\.months\.findIndex/);
+assert.match(live, /nemad\.slug !== 'bahman'/);
 assert.match(live, /alt=\{nemad \? photo.alt : ''\}/);
 assert.match(detail, /alt=\{nemad \? photo.alt : ''\}/);
 
@@ -82,4 +105,4 @@ assert.match(css, /pointer-events: none/);
 assert.match(css, /mix-blend-mode: difference/);
 assert.ok(!read('components/shop/NemadManBahmanArtwork.tsx').includes('NemadPreviewWatermark'),
   'Print/export SVG must never carry the customer preview watermark');
-console.log('NEMAD_PREVIEW_ALT_WATERMARK=PASS: 47 distinct approved ALT keywords, 12 months, blank customer name, 7 screen watermarks, no print watermark');
+console.log('NEMAD_PREVIEW_ALT_WATERMARK=PASS: 72 distinct approved ALT keywords, 48 mockups, 12 months, shared live renderer, screen watermarks');

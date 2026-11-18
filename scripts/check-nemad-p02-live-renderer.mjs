@@ -24,7 +24,15 @@ for (const path of [
     'TSX syntax: ' + path);
 }
 
-assert.match(route, /<BirthSkyLiveProduct purchaseEnabled=\{isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
+assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{month === 'bahman' && isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
+assert.ok(!route.includes('return <ProductDetail'), 'All 12 months must share Bahman live renderer');
+assert.match(route, /const darkScenes: Record<string, readonly \[string, string\]>/);
+assert.match(route, /const earlyDarkScenes: Record<string, string>/);
+assert.match(route, /initial\.value\.sign\.id/);
+assert.match(p02, /const nemadMonthNumber = nemad \? nemad\.months\.findIndex/);
+assert.ok(!p02.includes("Number(checked.value.date.split('/')[1]) !== 11"),
+  'Live preview may not be hardcoded to Bahman');
+assert.match(p02, /nemad\.slug !== 'bahman'/);
 assert.match(oldRoute, /<BirthSkyLiveProduct purchaseEnabled=\{isShopP02OrderEnabled\(\)\}/);
 assert.match(p02, /data-shop-page=\{nemad \? 'nm-live-product' : 'p02-live-product'\}/);
 assert.match(p02, /const gallery = nemad \? nemad\.product\.gallery\.slice\(2\) : BIRTH_SKY_GALLERY/);
@@ -64,11 +72,21 @@ assert.match(artwork, /viewBox="0 0 900 1350"/);
 assert.ok(!p02.includes("addShopCartItem('p03'"), 'NM must never enter P03 orders');
 assert.match(route, /month !== 'bahman' \|\| !isShopNemadOrderEnabled\(\)/);
 
+
+// User-approved gallery contract: exactly four mockup photographs per month.
+// Bahman retains its two existing dark scenes; other months use verified
+// archived dark scenes, without reviving deprecated light photographs.
+assert.match(route, /darkScenes\[slug\]/);
+assert.match(route, /earlyDarkScenes\[slug\]/);
+assert.match(route, /if \(slug === 'bahman'\) \{/);
 const monthSlugs = [
   'farvardin', 'ordibehesht', 'khordad', 'tir', 'mordad', 'shahrivar',
   'mehr', 'aban', 'azar', 'dey', 'bahman', 'esfand',
 ];
 assert.match(route, /product\.gallery\.push\(\{/);
+assert.match(route, /product\.gallery\.push\(/);
+assert.match(route, /if \(index < 3\) \{/);
+assert.match(route, /if \(index >= 3\) product\.gallery\.push\(\{/);
 assert.match(route, /'\/shop-preview\/nemad-man\/' \+ slug \+ '\/arad-light-black-edge-20261118\.webp'/);
 for (const slug of monthSlugs) {
   const path = 'public/shop-preview/nemad-man/' + slug + '/arad-light-black-edge-20261118.webp';

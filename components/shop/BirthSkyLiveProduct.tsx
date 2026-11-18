@@ -113,6 +113,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
   const [sizeIndex, setSizeIndex] = useState(0);
   const sizes = nemad ? SHOP_SIZES : SHOP_P02_SIZES;
   const gallery = nemad ? nemad.product.gallery.slice(2) : BIRTH_SKY_GALLERY;
+  const nemadMonthNumber = nemad ? nemad.months.findIndex((month) => month.slug === nemad.slug) + 1 : 0;
   const livePrices = useShopLivePrices();
   const selectedPrice = liveShopPrice(livePrices.prices, nemad ? 'nm' : 'p02', sizes[sizeIndex].dimension);
   // The real payment/quote price remains server-authoritative. A missing local DB
@@ -147,10 +148,11 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
         setBusy(false);
         return;
       }
-      if (Number(checked.value.date.split('/')[1]) !== 11) {
+      if (Number(checked.value.date.split('/')[1]) !== nemadMonthNumber) {
         setNemadPreview(null);
         setNemadNeedsDetails(false);
-        setError('برای سفارش نماد بهمن، تاریخ تولد باید در ماه بهمن باشد.');
+        setError('تاریخ تولد باید در ماه ' + nemad.months[nemadMonthNumber - 1]?.title +
+          ' باشد تا پیش‌نمایش نماد همان ماه ساخته شود.');
         setBusy(false);
         return;
       }
@@ -215,7 +217,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
     } finally {
       if (version === operation.current) setBusy(false);
     }
-  }, [nemad]);
+  }, [nemad, nemadMonthNumber]);
 
   useEffect(() => {
     const key = new URLSearchParams(window.location.search).get('edit');
@@ -290,7 +292,8 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
   }
 
   function addToCart() {
-    if (!purchaseEnabled || !(nemad ? nemadPreview : artwork) || busy) return;
+    if (!purchaseEnabled || (nemad && nemad.slug !== 'bahman') ||
+        !(nemad ? nemadPreview : artwork) || busy) return;
     if (selectedPrice === null && !localCartReview) {
       setError('قیمت قطعی قابل دریافت نیست؛ برای ثبت سفارش بعداً دوباره تلاش کن.');
       return;
@@ -298,8 +301,8 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
     if (nemad) {
       const checked = validateBahmanPreview(input.names, input.date,
         { time: input.time, cityId: input.cityId });
-      if (!checked.ok || Number(checked.value.date.split('/')[1]) !== 11) {
-        setError(!checked.ok ? checked.message : 'تاریخ تولد باید در ماه بهمن باشد.');
+      if (!checked.ok || Number(checked.value.date.split('/')[1]) !== nemadMonthNumber) {
+        setError(!checked.ok ? checked.message : 'تاریخ تولد باید با ماه محصول مطابقت داشته باشد.');
         return;
       }
       if (!addShopCartItem('nm', sizes[sizeIndex].dimension, {
