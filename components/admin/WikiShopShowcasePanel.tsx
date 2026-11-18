@@ -5,6 +5,7 @@ import { WikiArticleBody } from "@/components/wiki/WikiArticleRender";
 import { WikiShopShowcaseCard } from "@/components/wiki/WikiShopShowcaseCard";
 import { wikiShowcaseSectionAnchor } from "@/lib/wiki/wiki-showcase-anchor";
 import { eligibleWikiSectionBoundary } from "@/lib/wiki/wiki-showcase-positions";
+import { suggestWikiNemadMonth, wikiNemadSuggestedCopy } from "@/lib/wiki/wiki-nemad-showcase";
 import type { WikiArticleSection } from "@/lib/wiki/wiki-content";
 import type { PublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
 import wikiStyles from "@/app/wiki/wiki.module.css";
@@ -385,7 +386,13 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
   }
   function focusArticle(row: ArticleRow, suggestion?: Proposal, existing?: Showcase | null) {
     setFocusedId(row.articleId);
-    setDraft(draftFor(row, data.products.find((p) => p.orderable)?.id ?? "p01", suggestion, existing));
+    const month = !suggestion && existing === null ? suggestWikiNemadMonth(row.slug, row.title) : null;
+    const suggestedId = month ? `nm-${month.slug}` : null;
+    const matched = suggestedId && data.products.find((p) => p.id === suggestedId && p.orderable);
+    const productId = matched?.id ?? data.products.find((p) => p.orderable)?.id ?? "p01";
+    const next = draftFor(row, productId, suggestion, existing);
+    if (matched) Object.assign(next, wikiNemadSuggestedCopy(matched.id));
+    setDraft(next);
     revealEditorOnMobile();
   }
   function focusProposal(proposal: Proposal) {
@@ -1188,7 +1195,11 @@ export function WikiShopShowcasePanel({ token, canWrite, demo = false,
           {draft && focusRow ? <>
             <div className={styles.editorFields}>
               <label>مقاله <strong>{focusRow.title}</strong></label>
-              <label>محصول <select value={draft.productId} onChange={(e) => updateDraft({ productId: e.target.value })}>
+              <label>محصول <select value={draft.productId} onChange={(e) => {
+                const id = e.target.value;
+                const copy = !draft.showcaseId ? wikiNemadSuggestedCopy(id) : null;
+                updateDraft({ productId: id, ...(copy ?? {}) });
+              }}>
                 {data.products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.orderable ? "" : " · فروش بسته"}</option>)}
               </select></label>
               <label>بعد از کدام بخش؟ <select value={draft.afterSectionIndex} onChange={(e) => {

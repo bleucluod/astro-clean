@@ -66,6 +66,7 @@ assert.equal(anchor.resolveWikiShowcaseSection(sections.filter((s) => s !== sect
 "Missing section never relocates by guess");
 
 const zip = loadModule("lib/wiki/wiki-showcase-zip.ts", { "node:zlib": requireNode("node:zlib") });
+const positions = loadModule("lib/wiki/wiki-showcase-positions.ts");
 const zipSource = read("lib/wiki/wiki-showcase-zip.ts");
 assert.match(zipSource, /MAX_EXPORT_TOTAL = 50_000_000/);
 assert.match(zipSource, /total > MAX_EXPORT_TOTAL/);
@@ -165,6 +166,12 @@ const workflow = loadModule("lib/wiki/wiki-shop-showcase-workflow.ts", {
     asNumber: (v) => Number(v) || 0,
   },
   "./wiki-showcase-anchor": anchor, "./wiki-showcase-zip": zip,
+  "./wiki-showcase-positions": positions,
+  "@/lib/shop/shop-showcase-ai": {
+    prepareSurfaceShowcaseAIExport: () => { throw Error('Unexpected surface export'); },
+    importSurfaceShowcaseAI: () => { throw Error('Unexpected surface import'); },
+  },
+  "@/lib/shop/shop-showcase-surfaces": { isShowcaseSurface: () => false },
   "./wiki-shop-showcase": {
     wikiShopProductCatalog: () => [
       { id: "p01", name: "ماه آن روز", orderable: true, image: "/p01.webp",

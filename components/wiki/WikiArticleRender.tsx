@@ -302,8 +302,7 @@ export function WikiArticleBody({
         </section>
         {showcase?.filter((offer) => index === offer.afterSectionIndex &&
           section.title === offer.sectionTitle).map((offer) => (
-          <WikiShopShowcaseCard key={offer.id} offer={offer}
-             track={trackShowcases && !offer.id.startsWith('auto-nemad-')} />
+          <WikiShopShowcaseCard key={offer.id} offer={offer} track={trackShowcases} />
         ))}
         </Fragment>
       ))}

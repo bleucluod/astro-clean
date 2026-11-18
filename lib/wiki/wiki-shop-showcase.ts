@@ -7,7 +7,7 @@ import type { ShopProductId } from '@/components/shop/product-detail-data';
 import type { WikiArticleSection } from '@/lib/wiki/wiki-content';
 import { wikiShowcaseSectionAnchor, resolveWikiShowcaseSection } from './wiki-showcase-anchor';
 import { eligibleWikiShowcasePosition } from "./wiki-showcase-positions";
-import { automaticNemadWikiOffer, wikiNemadProducts, type WikiNemadShowcaseId } from './wiki-nemad-showcase';
+import { wikiNemadProducts, type WikiNemadShowcaseId } from './wiki-nemad-showcase';
 
 export type WikiShowcaseProductId = ShopProductId | WikiNemadShowcaseId;
 
@@ -391,10 +391,8 @@ export async function saveWikiShopShowcaseBatch(actor: VerifiedAdminActor, value
 }
 
 /** Public read: preserve all independently approved mid-article placements. */
-export async function getPublicWikiShopShowcase(
-  slug: string, article?: { title: string; sections: readonly WikiArticleSection[] },
-) {
-  let rows;
+export async function getPublicWikiShopShowcase(slug: string) {
+  let rows: Record<string, unknown>[];
   try {
     const sql = getAdminDatabase();
     rows = await sql`
@@ -412,7 +410,7 @@ export async function getPublicWikiShopShowcase(
   } catch (error) {
     // Optional cards must never break Wiki reading while the migration is pending.
     console.warn('WIKI_SHOWCASE_READ_UNAVAILABLE', String(asRecord(error).code ?? 'unknown'));
-    rows = [];
+    return [];
   }
   const catalog = new Map(wikiShopProductCatalog().map((product) => [product.id, product]));
   const result: Array<{
@@ -440,13 +438,6 @@ export async function getPublicWikiShopShowcase(
       buttonLabel: asString(row.button_label), url: product.url,
       image: product.image ?? '', imageAlt: product.name,
     });
-  }
-  if (article && isShopNemadOrderEnabled()) {
-    const automatic = automaticNemadWikiOffer(
-      { slug, title: article.title, sections: article.sections }, used,
-      result.map((offer) => offer.productId),
-    );
-    if (automatic) result.push(automatic);
   }
   return result.sort((a, b) => a.afterSectionIndex - b.afterSectionIndex);
 }

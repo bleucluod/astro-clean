@@ -176,8 +176,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
       },
     ],
   };
-  const wikiShopShowcase = await getPublicWikiShopShowcase(article.slug,
-    { title: article.title, sections: article.sections });
+  const wikiShopShowcase = await getPublicWikiShopShowcase(article.slug);
   const editorialCta = getWikiEditorialCta(article.slug);
   const stickyCtaCampaign = getWikiStickyCtaCampaign(article.slug);
   const callToAction = editorialCta

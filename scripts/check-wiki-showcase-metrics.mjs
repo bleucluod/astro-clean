@@ -76,7 +76,7 @@ assert.match(card, /setting\.choice === "denied"/);
 assert.match(card, /onClick=\{recordClick\}/);
 assert.match(card, /track = false/);
 assert.match(publicPage, /trackShowcases/);
-assert.match(article, /track=\{trackShowcases && !offer\.id\.startsWith\('auto-nemad-'\)\}/);
+assert.match(article, /track=\{trackShowcases\}/);
 assert.doesNotMatch(panel, /trackShowcases\s*[,=]/);
 assert.match(publicSource, /s\.id::text as showcase_id/);
 assert.match(publicSource, /id: asString\(row\.showcase_id\)/);
