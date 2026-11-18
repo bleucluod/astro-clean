@@ -365,7 +365,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
             onClick={(event) => { if (event.detail === 0 || gallerySwipe.canOpenZoom()) setZoomOpen(true); }}
             aria-label={'بزرگ‌نمایی ' + displayLabel}>
             {showingPreview && nemad && nemadPreview
-              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
+              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork
                   name={nemadPreview.name} date={nemadPreview.gregorianDate}
                   sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork
@@ -388,7 +388,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
               onClick={() => setPhotoIndex(0)} aria-pressed={showingPreview}
               aria-label={hasPreview ? 'نمایش پیش‌نمایش تابلوی من' : 'پس از شخصی‌سازی، پیش‌نمایش تابلوی من اینجا ظاهر می‌شود'}>
               {nemad && nemadPreview
-                ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
+                ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork
                     name={nemadPreview.name} date={nemadPreview.gregorianDate}
                     sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
                 : artwork ? <Image unoptimized src={artwork} alt="" fill sizes="88px" />
@@ -607,7 +607,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
           <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
           <div className={pdStyles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
             {showingPreview && nemad && nemadPreview
-              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
+              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork
                   name={nemadPreview.name} date={nemadPreview.gregorianDate}
                   sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork
