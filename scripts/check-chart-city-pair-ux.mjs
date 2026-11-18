@@ -107,7 +107,7 @@ if (chartFieldsNodes.length !== 1) {
 }
 
 const chartFields = chartFieldsNodes[0] ?? null;
-const cityCards = chartFields
+const birthCityCards = chartFields
   ? findNodes(
       chartFields,
       (node) =>
@@ -115,10 +115,15 @@ const cityCards = chartFields
         hasClass(node, "chart-city-card"),
     )
   : [];
+const residenceCityCards = findNodes(file, (node) =>
+  ts.isJsxElement(node) &&
+  node.openingElement.getText(file).includes("chart-city-card chart-transit-location chart-residence-location") &&
+  node.openingElement.getText(file).includes("journeyStyles.residenceField"));
+const cityCards = [...birthCityCards, ...residenceCityCards];
 
-if (cityCards.length !== 2) {
+if (birthCityCards.length !== 1 || residenceCityCards.length !== 1) {
   failures.push(
-    `Expected two direct city cards; found ${cityCards.length}.`,
+    `Expected one birth and one optional residence card; found ${birthCityCards.length} birth and ${residenceCityCards.length} residence.`,
   );
 }
 

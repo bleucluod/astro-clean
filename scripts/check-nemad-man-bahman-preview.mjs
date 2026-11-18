@@ -165,7 +165,7 @@ assert.ok(poster.includes('H  A  L  L  E  U  S'),
 
 assert.ok(engine.includes("new Intl.DateTimeFormat('fa-IR-u-ca-gregory'"),
   'Gregorian Persian date formatter must remain the single date source');
-assert.ok(engine.includes(".replace(/\\u0654/g, '')"), 'Combining hamza must be removed from Gregorian date');
+assert.ok(engine.includes(".replace(/\\u{0654}/gu, '')"), 'Combining hamza must be removed from Gregorian date');
 assert.ok(!poster.includes('پیش‌نمایش هالیوس'), 'Printed watermark must be absent');
 assert.match(poster, /stroke=\{isLight \? '#F8FAFC' : '#09131b'\} strokeOpacity=\{isLight \? '\.25' : '\.68'\}/,
   'Original dark typography stroke must be preserved');

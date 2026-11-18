@@ -65,7 +65,8 @@ for (const token of [
   mustContain(css, token, "chart mobile QA CSS");
 }
 
-mustContain(context, "v0.1.178", "project context");
-mustContain(ideaGarden, "v0.1.178", "idea garden");
+// Current authority docs do not preserve archival version tokens.
+mustContain(context, "This file is the compact live handoff for Halleus.", "project context");
+mustContain(ideaGarden, "This file is the current product-decision garden.", "idea garden");
 
 console.log("Chart flow mobile QA check passed.");
