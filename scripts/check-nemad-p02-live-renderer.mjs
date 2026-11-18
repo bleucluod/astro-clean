@@ -14,6 +14,7 @@ const artwork = read('components/shop/NemadManBahmanArtwork.tsx');
 for (const path of [
   'components/shop/BirthSkyLiveProduct.tsx',
   'components/shop/NemadManEditorial.tsx',
+  'components/shop/NemadFullWidthIntro.tsx',
   'app/shop/nemad-man/[month]/page.tsx',
 ]) {
   const source = read(path);
@@ -121,17 +122,31 @@ const nemadGuide = p02.match(/\(nemad \? \[([\s\S]*?)\] : \[/)?.[1] ?? '';
 assert.match(nemadGuide, /gallery\[1\]\.src[^\n]+size: '۱۰ × ۱۵'/);
 assert.match(nemadGuide, /gallery\[0\]\.src[^\n]+size: '۲۰ × ۳۰'/);
 assert.match(nemadGuide, /gallery\[3\]\.src[^\n]+size: '۳۰ × ۴۵'/);
-for (const [source, formClass, introValue, guideClass] of [
-  [p02, 'pdStyles', 'nemad.product.introduction', 'pdStyles'],
-  [legacyGallery, 'styles', 'product.introduction', 'styles'],
+// The Nemad introduction and both specifications live outside the form column.
+const overview = read('components/shop/NemadFullWidthIntro.tsx');
+const overviewCss = read('components/shop/product-detail.module.css');
+assert.match(overview, /className=\{styles\.nemadWideOverview\}/);
+assert.match(overview, /\{introduction\}/);
+assert.match(overview, /محاسبهٔ نشان خورشیدی بر اساس تاریخ تولد/);
+assert.match(overview, /چاپ مات روی شاسی بدون قاب در سه اندازه/);
+assert.match(overviewCss, /\.nemadWideOverview\s*\{[^}]*width: 100%/);
+assert.match(overviewCss, /\.page \.nemadWideIntroduction\s*\{[^}]*max-width: none/);
+for (const [source, formClass, introProp, heroClass, guideClass] of [
+  [p02, 'pdStyles', 'nemad.product.introduction', 'pdStyles.productHero', 'pdStyles.dimensionsSection'],
+  [legacyGallery, 'styles', 'product.introduction', 'styles.productHero', 'styles.dimensionsSection'],
 ]) {
-  const formEnd = source.indexOf('</form>');
-  const introAfter = source.indexOf('{nemad ? <p className={' + formClass + '.introduction}>{' + introValue + '}</p> : null}');
-  const guide = source.indexOf('className={' + guideClass + '.dimensionsSection}');
-  assert.ok(formEnd !== -1 && introAfter > formEnd && guide > introAfter,
-    'Nemad introduction must appear after the form and before the size guide');
+  const heroStart = source.indexOf('className={' + heroClass + '}');
+  const heroEnd = source.indexOf('</section>', heroStart);
+  const overviewAt = source.indexOf('<NemadFullWidthIntro introduction={' + introProp + '} />');
+  const sizeGuideAt = source.indexOf('className={' + guideClass + '}');
+  assert.ok(heroStart >= 0 && heroEnd > heroStart && overviewAt > heroEnd &&
+    sizeGuideAt > overviewAt, 'Nemad overview must follow the hero and precede size guide');
+  assert.equal(source.split('<NemadFullWidthIntro introduction={').length - 1, 1,
+    'Render Nemad overview exactly once per product page');
   assert.ok(source.includes('{!nemad ? <p className={' + formClass + '.introduction}>'),
-    'Do not duplicate the Nemad introduction before the form');
+    'Keep original non-Nemad introduction unchanged');
+  assert.ok(!source.includes('{nemad ? <p className={' + formClass + '.introduction}>'),
+    'Do not render Nemad copy inside the form column');
 }
 assert.ok(read('content/shop-seo/2026-11-06/nemad-man/bahman-approved-v3.md')
   .includes('«نماد من» تصویر آشنای آکواریوس (Aquarius)'));

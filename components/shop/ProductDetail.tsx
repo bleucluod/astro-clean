@@ -9,6 +9,7 @@ import { buildShopProductStructuredData } from './product-schema';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProduct, type ShopProductId, type ShopCopySection } from './product-detail-data';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
+import { NemadFullWidthIntro } from './NemadFullWidthIntro';
 import { NemadPreviewWatermark } from './NemadPreviewWatermark';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
@@ -491,15 +492,16 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                   <span className={styles.confirmLabel}>{editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن نماد من به سبد خرید'}</span>
                 </button> : null}
               </form>
-              {nemad ? <p className={styles.introduction}>{product.introduction}</p> : null}
               {(id === 'p01' || hasBahmanPricing) ? <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link> : null}
-              <div className={styles.specification}>
+              {!nemad ? <div className={styles.specification}>
                 <span>{product.highlight}</span>
-                {!nemad ? <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span> : null}
-              </div>
+                <span>سپردن سفارش به پست یا تیپاکس تا ۷۲ ساعت کاری پس از تأیید پرداخت، همراه با کد رهگیری</span>
+              </div> : null}
             </div>
           </div>
         </section>
+
+        {nemad ? <NemadFullWidthIntro introduction={product.introduction} /> : null}
 
         {product.personalizationExamples?.length ? (
           <section className={styles.personalizationExamples} aria-labelledby="p01-personalization-examples-heading">

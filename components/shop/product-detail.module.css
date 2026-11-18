@@ -677,3 +677,46 @@
   .nemadSizeCard { min-height: 88px; padding: 9px 4px; }
   .nemadSizeCard strong { font-size: 17px; }
 }
+
+/* Nemad Man only: content-wide overview, never part of the form column. */
+.nemadWideOverview {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 56px;
+  padding-top: 26px;
+  border-top: 1px solid var(--pdp-line);
+  direction: rtl;
+  text-align: right;
+}
+.page .nemadWideIntroduction {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  color: #d0dce8 !important;
+  font-size: 16px;
+  line-height: 2.3;
+}
+.nemadWideSpecifications {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  margin-top: 18px;
+  color: #bcccdc;
+  font-size: 13px;
+  line-height: 2;
+}
+.nemadWideSpecifications span::before {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: #a7cce4;
+  content: '';
+  vertical-align: middle;
+}
+@media (max-width: 760px) {
+  .nemadWideOverview { margin-top: 38px; padding-top: 20px; }
+  .page .nemadWideIntroduction { font-size: 14px; line-height: 2.1; }
+  .nemadWideSpecifications { display: grid; gap: 6px; font-size: 12px; }
+}

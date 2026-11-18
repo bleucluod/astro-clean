@@ -11,6 +11,7 @@ import { BIRTH_SKY_HERO } from './birth-sky-content';
 import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
 import { NemadManEditorial } from './NemadManEditorial';
+import { NemadFullWidthIntro } from './NemadFullWidthIntro';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
 import { NemadPreviewWatermark } from './NemadPreviewWatermark';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
@@ -550,14 +551,15 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
                 </p>
               </> : <p className={styles.previewAvailability}>پیش‌نمایش فعال است؛ ثبت سفارش این محصول تا زمان تأیید انتشار فروش بسته می‌ماند.</p>}
             </form>
-            {nemad ? <p className={pdStyles.introduction}>{nemad.product.introduction}</p> : null}
-            <div className={pdStyles.specification}>
-              <span>{nemad ? 'محاسبهٔ نشان خورشیدی بر اساس تاریخ تولد' : 'محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر'}</span>
+            {!nemad ? <div className={pdStyles.specification}>
+              <span>محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر</span>
               <span>چاپ مات روی شاسی بدون قاب در سه اندازه</span>
-            </div>
+            </div> : null}
           </div>
         </div>
       </section>
+
+      {nemad ? <NemadFullWidthIntro introduction={nemad.product.introduction} /> : null}
 
       <section className={pdStyles.dimensionsSection} id={nemad ? 'nm-size-guide' : 'p02-size-guide'} aria-labelledby="p02-size-heading">
         <div className={pdStyles.centerIntro}>
