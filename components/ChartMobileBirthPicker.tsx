@@ -200,46 +200,93 @@ type QuickField = {
   onChange: (value: string) => void;
 };
 
+type QuickValidation = { fieldIndex: number; message: string } | null;
+
+function dateQuickValidation(mode: DateMode, parts: MobileDateParts, years: readonly string[]): QuickValidation {
+  if (!parts.day) return { fieldIndex: 0, message: "روز تولد را وارد کن." };
+  if (!parts.month) return { fieldIndex: 1, message: "ماه تولد را وارد کن." };
+  if (!parts.year) return { fieldIndex: 2, message: "سال تولد را وارد کن." };
+  if (!years.includes(parts.year)) return { fieldIndex: 2, message: "سال تولد در بازهٔ مجاز نیست." };
+  if (!/^(0[1-9]|1[0-2])$/.test(parts.month)) {
+    return { fieldIndex: 1, message: "ماه باید بین ۱ تا ۱۲ باشد." };
+  }
+  if (!/^(0[1-9]|[12][0-9]|3[01])$/.test(parts.day)) {
+    return { fieldIndex: 0, message: "روز باید بین ۱ تا ۳۱ باشد." };
+  }
+  if (!validDate(mode, parts, years)) {
+    return { fieldIndex: 0, message: "این روز برای ماه و سال انتخاب‌شده معتبر نیست." };
+  }
+  return null;
+}
+
+function timeQuickValidation(parts: MobileTimeParts): QuickValidation {
+  if (!parts.hour) return { fieldIndex: 0, message: "ساعت تولد را وارد کن." };
+  if (!parts.minute) return { fieldIndex: 1, message: "دقیقهٔ تولد را وارد کن." };
+  if (!/^(0[0-9]|1[0-9]|2[0-3])$/.test(parts.hour)) {
+    return { fieldIndex: 0, message: "ساعت باید بین ۰ تا ۲۳ باشد." };
+  }
+  if (!/^[0-5][0-9]$/.test(parts.minute)) {
+    return { fieldIndex: 1, message: "دقیقه باید بین ۰ تا ۵۹ باشد." };
+  }
+  return null;
+}
+
 function QuickEntryDialog({
-  open, title, fields, focusIndex, valid, hint, confirmLabel, onConfirm, onClose,
+  open, title, fields, focusIndex, validation, confirmLabel, onConfirm, onClose,
 }: {
   open: boolean;
   title: string;
   fields: readonly QuickField[];
   focusIndex: number;
-  valid: boolean;
-  hint: string;
+  validation: QuickValidation;
   confirmLabel: string;
   onConfirm: () => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const focusedInputRef = useRef<HTMLInputElement>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [attempted, setAttempted] = useState(false);
+
+  function closeQuick() {
+    setAttempted(false);
+    onClose();
+  }
+
+  function handleConfirm() {
+    if (validation) {
+      setAttempted(true);
+      inputRefs.current[validation.fieldIndex]?.focus();
+      return;
+    }
+    onConfirm();
+    closeQuick();
+  }
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.showModal();
-      focusedInputRef.current?.focus();
+      inputRefs.current[focusIndex]?.focus();
     } else if (!open && dialog.open) {
       dialog.close();
     }
-  }, [open]);
+  }, [open, focusIndex]);
 
   return (
-    <dialog ref={dialogRef} className={styles.quickDialog} aria-label={title} onClose={onClose}>
+    <dialog ref={dialogRef} className={styles.quickDialog} aria-label={title} onClose={closeQuick}>
       <div className={styles.quickPanel} dir="rtl">
         <div className={styles.quickHeader}>
           <strong>{title}</strong>
-          <button type="button" className={styles.quickClose} onClick={onClose} aria-label="بستن پنجره">×</button>
+          <button type="button" className={styles.quickClose} onClick={closeQuick} aria-label="بستن پنجره">×</button>
         </div>
         <div className={styles.quickInputs}>
           {fields.map((field, index) => (
             <label className={styles.quickField} key={field.label}>
               <span>{field.label}</span>
               <input
-                ref={index === focusIndex ? focusedInputRef : undefined}
+                ref={(element) => { inputRefs.current[index] = element; }}
+                aria-invalid={attempted && validation?.fieldIndex === index}
                 type="text"
                 inputMode="numeric"
                 autoComplete="off"
@@ -250,21 +297,19 @@ function QuickEntryDialog({
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
                     event.preventDefault();
-                    if (valid) {
-                      onConfirm();
-                      onClose();
-                    }
+                    handleConfirm();
                   }
                 }}
               />
             </label>
           ))}
         </div>
-        <p className={styles.quickHint} aria-live="polite">
-          {valid ? "آمادهٔ تأیید" : hint}
+        <p className={attempted && validation ? styles.quickError : styles.quickHint}
+          role={attempted && validation ? "alert" : undefined} aria-live="polite">
+          {attempted && validation ? validation.message : "عددهای فارسی و انگلیسی هر دو پذیرفته می‌شوند."}
         </p>
-        <button type="button" className={styles.quickConfirm} disabled={!valid}
-          onClick={() => { onConfirm(); onClose(); }}>
+        <button type="button" className={styles.quickConfirm}
+          onClick={handleConfirm}>
           {confirmLabel}
         </button>
       </div>
@@ -301,7 +346,7 @@ export function MobileBirthDatePicker({
     setQuickOpen(true);
   };
   const normalizedDraft = paddedParts(draft);
-  const quickValid = validDate(mode, normalizedDraft, yearOptions);
+  const quickValidation = dateQuickValidation(mode, normalizedDraft, yearOptions);
   const changeDraft = (field: keyof MobileDateParts, nextValue: string) => {
     setDraft((current) => ({ ...current, [field]: nextValue }));
   };
@@ -358,8 +403,7 @@ export function MobileBirthDatePicker({
           { label: "سال", value: draft.year, maxLength: 4, placeholder: mode === "jalali" ? "۱۳۷۸" : "۱۹۹۹",
             onChange: (next) => changeDraft("year", next) },
         ]}
-        valid={quickValid}
-        hint="روز، ماه و سال معتبر را وارد کن."
+        validation={quickValidation}
         confirmLabel="تأیید تاریخ"
         onConfirm={() => { onConfirm(normalizedDraft); setQuickRevision((n) => n + 1); }}
         onClose={() => setQuickOpen(false)}
@@ -404,10 +448,7 @@ export function MobileBirthTimePicker({
     hour: draft.hour ? draft.hour.padStart(2, "0") : "",
     minute: draft.minute ? draft.minute.padStart(2, "0") : "",
   };
-  const quickValid = normalizedDraft.hour.length === 2 &&
-    normalizedDraft.minute.length === 2 &&
-    Number(normalizedDraft.hour) <= 23 &&
-    Number(normalizedDraft.minute) <= 59;
+  const quickValidation = timeQuickValidation(normalizedDraft);
   return (
     <div className={styles.alwaysPicker} data-chart-time-wheels
       role="group" aria-label="ساعت تولد به‌صورت ۲۴ ساعته">
@@ -427,8 +468,7 @@ export function MobileBirthTimePicker({
           { label: "دقیقه", value: draft.minute, maxLength: 2, placeholder: "۳۵",
             onChange: (next) => setDraft((current) => ({ ...current, minute: next })) },
         ]}
-        valid={quickValid}
-        hint="ساعت باید بین ۰ تا ۲۳ و دقیقه بین ۰ تا ۵۹ باشد."
+        validation={quickValidation}
         confirmLabel="تأیید ساعت"
         onConfirm={() => { onConfirm(normalizedDraft); setQuickRevision((n) => n + 1); }}
         onClose={() => setQuickOpen(false)}

@@ -155,20 +155,21 @@
   margin: auto;
   padding: 0;
   overflow-y: auto;
-  border: 1px solid #4d6b84;
+  border: 1px solid #353940;
   border-radius: 20px;
-  background: #111e2b;
+  background: #050609;
   color: #f1f5f9;
-  box-shadow: 0 20px 65px rgba(0,0,0,.5);
+  box-shadow: 0 20px 65px rgba(0,0,0,.6);
+  color-scheme: dark;
 }
 .quickDialog::backdrop { background: rgba(3, 10, 18, .76); }
 .quickPanel { display: grid; gap: 18px; padding: 20px; }
 .quickHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .quickHeader strong { font-size: 1rem; }
 .quickClose {
-  border: 1px solid #4d657c;
+  border: 1px solid #3d424a;
   border-radius: 9px;
-  background: #243447;
+  background: #17191e;
   color: #e2e8f0;
   width: 34px;
   height: 34px;
@@ -183,9 +184,9 @@
   min-width: 0;
   height: 52px;
   padding: 8px 4px;
-  border: 1px solid #587b9d;
+  border: 1px solid #515862;
   border-radius: 10px;
-  background: #243447;
+  background: #101216;
   color: #f8fafc;
   font: inherit;
   font-size: 1.35rem;
@@ -195,7 +196,9 @@
 }
 .quickField input:focus-visible { outline: 2px solid #bcdffd; outline-offset: 1px; }
 .quickField input::placeholder { color: #9baec0; }
-.quickHint { min-height: 1.2em; margin: 0; color: #bcccdc; font-size: .8rem; }
+.quickHint { min-height: 1.2em; margin: 0; color: #bdc5ce; font-size: .8rem; }
+.quickError { min-height: 1.2em; margin: 0; color: #ffb4b4; font-size: .85rem; font-weight: 650; }
+.quickField input[aria-invalid="true"] { border-color: #ff9292; }
 .quickConfirm {
   width: 100%;
   min-height: 48px;
@@ -208,5 +211,4 @@
   font-weight: 800;
   cursor: pointer;
 }
-.quickConfirm:disabled { opacity: .4; cursor: not-allowed; }
 .quickConfirm:focus-visible { outline: 2px solid #d9eafd; outline-offset: 2px; }
