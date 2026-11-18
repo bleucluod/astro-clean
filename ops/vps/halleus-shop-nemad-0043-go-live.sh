@@ -7,7 +7,7 @@ umask 077
 
 SOURCE=/srv/halleus/source
 ACTIVE=/srv/halleus/current
-BASE=514927eeb0ba2fd3468248e0f898e1c224727e9a
+BASE=1cda31f6c4369e102761806e0cb2491b4c5fc0ae
 MIGRATION_BLOB=93459f37207be18770582afb8a41a87096f83bf6
 BACKUP_DIR=/root/halleus-bitpay-preflight
 SCRIPT=ops/vps/halleus-shop-nemad-0043-go-live.sh
@@ -61,7 +61,7 @@ TAG="v2026.11.18-chart-nemad12-db0043-${HEAD:0:7}"
 if git show-ref --verify --quiet "refs/tags/$TAG"; then
   [ "$(git rev-list -n 1 "$TAG")" = "$HEAD" ] || fatal 'Tag collision.'
 else
-  git tag -a "$TAG" "$HEAD" -m 'Halleus chart and 12-month Nemad production go-live' || fatal 'Cannot create release tag.'
+  git tag "$TAG" "$HEAD" || fatal 'Cannot create lightweight release tag.'
 fi
 if timeout 20s env GIT_TERMINAL_PROMPT=0 git push origin "refs/tags/$TAG" >/dev/null 2>&1; then
   printf 'NEMAD_TAG: GitHub=PASS tag=%s\n' "$TAG"
