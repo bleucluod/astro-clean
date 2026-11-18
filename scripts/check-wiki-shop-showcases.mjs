@@ -268,6 +268,11 @@ const forAIAtScale = {
 const scaled = await workflow.importWikiShowcaseProposalPackage(actor, forAIAtScale);
 assert.equal(scaled.accepted, 130, "Single new AI ZIP accepts over 100 proposals");
 assert.equal(scaled.errors.length, 0);
+const beforeInvalidOptional = inserted;
+await assert.rejects(workflow.importWikiShowcaseProposalPackage(actor, {
+  ...forAIAtScale, surfaceProposals: "invalid",
+}), /Invalid AI proposal package/, "Non-array surface proposals remain rejected");
+assert.equal(inserted, beforeInvalidOptional, "Invalid optional surface records must not write");
 const legacyBatches = [];
 for (let i = 0; i < 12; i += 1) {
   const ids = articleRows.slice(i * 20 + 40, i * 20 + 60).map((row) => row.id);

@@ -469,16 +469,17 @@ export async function importWikiShowcaseProposals(actor: VerifiedAdminActor, raw
 export async function importWikiShowcaseProposalPackage(actor: VerifiedAdminActor, raw: unknown) {
   const input = asRecord(raw);
   if (input.schemaVersion !== 3) {
+    const surfaceProposals = input.surfaceProposals ?? [];
     if (input.schemaVersion !== 2 || !Array.isArray(input.proposals) ||
-        !Array.isArray(input.surfaceProposals ?? []) ||
-        (!input.proposals.length && !(input.surfaceProposals as unknown[]).length)) {
+        !Array.isArray(surfaceProposals) ||
+        (!input.proposals.length && !surfaceProposals.length)) {
       throw new AdminAccessError(400, "Invalid AI proposal package");
     }
     const wikiProposalCount = input.proposals.length;
     const wiki = wikiProposalCount ?
       await importWikiShowcaseProposals(actor, { ...input, surfaceProposals: undefined }) :
       { accepted: 0, errors: [] as Array<{ index: number; error: string }> };
-    const surfaces = (input.surfaceProposals as unknown[]).length ?
+    const surfaces = surfaceProposals.length ?
       await importSurfaceShowcaseAI(actor, input) :
       { accepted: 0, errors: [] as Array<{ index: number; error: string }> };
     return { accepted: wiki.accepted + surfaces.accepted,
