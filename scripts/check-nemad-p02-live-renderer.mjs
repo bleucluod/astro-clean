@@ -109,5 +109,8 @@ assert.match(legacyGallery, /!nemad && id === 'p01'/);
 assert.match(p02, /\{!nemad \? <>/);
 assert.ok(!p02.includes('nemad.product.galleryNote'),
   'Do not display approved editorial gallery note under Nemad gallery');
-assert.match(p02, /'شش موکاپ تأییدشده از شاسی‌های بدون قاب/);
+const p02CaptionBlock = p02.match(/\{!nemad \? <>([\s\S]*?)<\/> : null\}/)?.[1] ?? '';
+assert.ok(p02CaptionBlock.includes('pdStyles.galleryPosition') &&
+  p02CaptionBlock.includes('pdStyles.galleryCaption'),
+  'Gallery position and caption must be present only in the original P02 branch');
 console.log('NEMAD_P02_LIVE_RENDERER=PASS: P02 unchanged, 21 approved light WebPs, Bahman dark mockups, no Nemad gallery captions');
