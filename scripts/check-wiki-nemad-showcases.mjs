@@ -74,5 +74,6 @@ assert.match(source, /used\.add\(afterSectionIndex\)/);
 assert.match(page, /getPublicWikiShopShowcase\(article\.slug,\s*\{ title: article\.title, sections: article\.sections \}\)/);
 assert.match(article, /!offer\.id\.startsWith\('auto-nemad-'\)/);
 assert.match(events, /s\.product_id = any\(\$\{orderableProducts\}::text\[\]\)/);
-assert.doesNotMatch(source, /insert into|update halleus_private.*nm-/i);
+assert.doesNotMatch(read('lib/wiki/wiki-nemad-showcase.ts'),
+  /getAdminDatabase|insert into|update halleus_private/i);
 console.log('WIKI_NEMAD_MONTH_SHOWCASES=PASS 12 month URLs, approved images, matching, no collisions, legacy metrics');
