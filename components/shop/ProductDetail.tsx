@@ -101,7 +101,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
   const router = useRouter();
   const product = nemad?.product ?? getShopProduct(id);
   const related = getRelatedProducts(id);
-  const [sizeIndex, setSizeIndex] = useState(1);
+  const [sizeIndex, setSizeIndex] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isZoomOpen, setZoomOpen] = useState(false);
   const [isSizeZoomOpen, setSizeZoomOpen] = useState(false);
@@ -369,7 +369,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
               <p className={styles.tagline}>{product.tagline}</p>
             </div>
             <div className={styles.purchasePanel}>
-              <p className={styles.introduction}>{product.introduction}</p>
+              {!nemad ? <p className={styles.introduction}>{product.introduction}</p> : null}
               <fieldset className={styles.sizes}>
                 <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
                 <div className={styles.sizeGrid}>
@@ -491,6 +491,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                   <span className={styles.confirmLabel}>{editingKey ? 'ذخیرهٔ تغییرات در سبد خرید' : 'افزودن نماد من به سبد خرید'}</span>
                 </button> : null}
               </form>
+              {nemad ? <p className={styles.introduction}>{product.introduction}</p> : null}
               {(id === 'p01' || hasBahmanPricing) ? <Link className={styles.cartLink} href="/shop/cart">مشاهدهٔ سبد خرید <span aria-hidden="true">←</span></Link> : null}
               <div className={styles.specification}>
                 <span>{product.highlight}</span>

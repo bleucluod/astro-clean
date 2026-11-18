@@ -113,4 +113,26 @@ const p02CaptionBlock = p02.match(/\{!nemad \? <>([\s\S]*?)<\/> : null\}/)?.[1] 
 assert.ok(p02CaptionBlock.includes('pdStyles.galleryPosition') &&
   p02CaptionBlock.includes('pdStyles.galleryCaption'),
   'Gallery position and caption must be present only in the original P02 branch');
+// Product pages must start with the lowest-priced 10x15 size, including P01, P02, P03 and NM.
+assert.match(p02, /const \[sizeIndex, setSizeIndex\] = useState\(0\)/);
+assert.match(legacyGallery, /const \[sizeIndex, setSizeIndex\] = useState\(0\)/);
+assert.match(p02, /const \[photoIndex, setPhotoIndex\] = useState\(nemad \? 1 : 5\)/);
+const nemadGuide = p02.match(/\(nemad \? \[([\s\S]*?)\] : \[/)?.[1] ?? '';
+assert.match(nemadGuide, /gallery\[1\]\.src[^\n]+size: '۱۰ × ۱۵'/);
+assert.match(nemadGuide, /gallery\[0\]\.src[^\n]+size: '۲۰ × ۳۰'/);
+assert.match(nemadGuide, /gallery\[3\]\.src[^\n]+size: '۳۰ × ۴۵'/);
+for (const [source, formClass, introValue, guideClass] of [
+  [p02, 'pdStyles', 'nemad.product.introduction', 'pdStyles'],
+  [legacyGallery, 'styles', 'product.introduction', 'styles'],
+]) {
+  const formEnd = source.indexOf('</form>');
+  const introAfter = source.indexOf('{nemad ? <p className={' + formClass + '.introduction}>{' + introValue + '}</p> : null}');
+  const guide = source.indexOf('className={' + guideClass + '.dimensionsSection}');
+  assert.ok(formEnd !== -1 && introAfter > formEnd && guide > introAfter,
+    'Nemad introduction must appear after the form and before the size guide');
+  assert.ok(source.includes('{!nemad ? <p className={' + formClass + '.introduction}>'),
+    'Do not duplicate the Nemad introduction before the form');
+}
+assert.ok(read('content/shop-seo/2026-11-06/nemad-man/bahman-approved-v3.md')
+  .includes('«نماد من» تصویر آشنای آکواریوس (Aquarius)'));
 console.log('NEMAD_P02_LIVE_RENDERER=PASS: P02 unchanged, 21 approved light WebPs, Bahman dark mockups, no Nemad gallery captions');

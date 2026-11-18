@@ -108,8 +108,8 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
   const [artwork, setArtwork] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [photoIndex, setPhotoIndex] = useState(1);
-  const [sizeIndex, setSizeIndex] = useState(nemad ? 1 : 2);
+  const [photoIndex, setPhotoIndex] = useState(nemad ? 1 : 5);
+  const [sizeIndex, setSizeIndex] = useState(0);
   const sizes = nemad ? SHOP_SIZES : SHOP_P02_SIZES;
   const gallery = nemad ? nemad.product.gallery.slice(2) : BIRTH_SKY_GALLERY;
   const livePrices = useShopLivePrices();
@@ -413,7 +413,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
             <p className={pdStyles.tagline}>{nemad?.product.tagline ?? BIRTH_SKY_HERO.tagline}</p>
           </div>
           <div className={pdStyles.purchasePanel}>
-            <p className={pdStyles.introduction}>{nemad?.product.introduction ?? BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p>
+            {!nemad ? <p className={pdStyles.introduction}>{BIRTH_SKY_HERO.intro[1].replaceAll('**', '')}</p> : null}
             <div className={pdStyles.priceBlock} aria-live="polite">
               <span className={pdStyles.priceLabel}>{previewBasePrice !== null ? 'قیمت پایهٔ این اندازه' : 'قیمت این اندازه'}</span>
               <p className={pdStyles.price}><bdi>{visiblePrice === null ? (livePrices.error ? 'قیمت در دسترس نیست' : 'در حال دریافت…') : formatPrice(visiblePrice)}</bdi><span>تومان</span></p>
@@ -550,6 +550,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
                 </p>
               </> : <p className={styles.previewAvailability}>پیش‌نمایش فعال است؛ ثبت سفارش این محصول تا زمان تأیید انتشار فروش بسته می‌ماند.</p>}
             </form>
+            {nemad ? <p className={pdStyles.introduction}>{nemad.product.introduction}</p> : null}
             <div className={pdStyles.specification}>
               <span>{nemad ? 'محاسبهٔ نشان خورشیدی بر اساس تاریخ تولد' : 'محاسبهٔ ستاره‌ها براساس تاریخ، ساعت و شهر'}</span>
               <span>چاپ مات روی شاسی بدون قاب در سه اندازه</span>
@@ -566,8 +567,8 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
         </div>
         <div className={pdStyles.sizeIllustration}>
           {(nemad ? [
-            { src: gallery[0].src, alt: gallery[0].alt, size: '۱۰ × ۱۵', label: 'نمونهٔ چیدمان · دیوار' },
-            { src: gallery[1].src, alt: gallery[1].alt, size: '۲۰ × ۳۰', label: 'نمونهٔ چیدمان · بسته‌بندی هدیه' },
+            { src: gallery[1].src, alt: gallery[1].alt, size: '۱۰ × ۱۵', label: 'نمونهٔ چیدمان · بسته‌بندی هدیه' },
+            { src: gallery[0].src, alt: gallery[0].alt, size: '۲۰ × ۳۰', label: 'نمونهٔ چیدمان · دیوار' },
             { src: gallery[3].src, alt: gallery[3].alt, size: '۳۰ × ۴۵', label: 'نمونهٔ چیدمان · روشن ۳۰×۴۵' },
           ] : [
             { src: BIRTH_SKY_GALLERY[4].src, alt: BIRTH_SKY_GALLERY[4].alt, size: '۱۰ × ۱۵', label: 'میز و شلف' },
