@@ -720,3 +720,20 @@
   .page .nemadWideIntroduction { font-size: 14px; line-height: 2.1; }
   .nemadWideSpecifications { display: grid; gap: 6px; font-size: 12px; }
 }
+
+/* A centered 2:3 viewport keeps the SVG and HTML zoom text aligned on phones. */
+.zoomPhoto {
+  display: grid;
+  place-items: center;
+}
+.zoomPhoto .nemadArtwork {
+  width: min(100%, calc(70dvh * 2 / 3), 430px);
+  height: auto;
+  aspect-ratio: 2 / 3;
+}
+@media (max-width: 760px) {
+  .zoomPhoto .nemadArtwork {
+    width: min(100%, calc(76dvh * 2 / 3), 393px);
+    height: auto;
+  }
+}

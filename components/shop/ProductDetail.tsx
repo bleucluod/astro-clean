@@ -659,7 +659,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
           <div className={`${styles.zoomPhoto} ${nemad ? styles.nemadZoomPhoto : ''}`}
               {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
               {nemad && artwork && photoIndex < 2 ? <div className={styles.nemadArtwork}>
-                <NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                <NemadPreviewWatermark theme={nemadTheme} zoomText={{ name: artwork.name, date: artwork.gregorianDate, sign: artwork.sign.displayFa }}><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
                   sign={artwork.sign} theme={nemadTheme}/></NemadPreviewWatermark>
               </div> : <Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" />}
             </div>

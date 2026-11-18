@@ -607,7 +607,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
           <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
           <div className={pdStyles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
             {showingPreview && nemad && nemadPreview
-              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork
+              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme} zoomText={{ name: nemadPreview.name, date: nemadPreview.gregorianDate, sign: nemadPreview.sign.displayFa }}><NemadManBahmanArtwork
                   name={nemadPreview.name} date={nemadPreview.gregorianDate}
                   sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork
