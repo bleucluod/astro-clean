@@ -1,12 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './NemadManMockupGenerator.module.css';
 
 type Point = { x: number; y: number };
 type Quad = [Point, Point, Point, Point];
 type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
+type BuiltMockup = { sourceName: string; fileName: string; blob: Blob; bytes: number };
+type SourceVariant = 'all' | 'light' | 'dark';
+type GitHubHead = { object: { sha: string } };
+type GitHubCommit = { tree: { sha: string } };
+type GitHubTree = { tree: Array<{ path: string; type: string }>; truncated: boolean };
+type GitHubBlob = { sha: string };
+type GitHubNewTree = { sha: string };
+type GitHubNewCommit = { sha: string };
+
 
 const TEMPLATE = '/shop-preview/nemad-man/mockup-blank-console.webp';
 // Calibrated once to the slim black canvas in the bundled 1024x1536 scene.
@@ -30,6 +39,107 @@ const MAX_UNPACKED_BYTES = 300 * 1024 * 1024;
 const MAX_IMAGE_PIXELS = 20_000_000;
 const IMAGE_RE = /\.(png|jpe?g|webp)$/i;
 const utf8 = new TextEncoder();
+// Explicitly limited to the existing private mockup archive. No arbitrary repo writes.
+const ARCHIVE_REPO = 'bleucluod/halleus-gsc-private-backup';
+const ARCHIVE_FOLDER = 'Halleus-Nemad-Man-24-Exports-20261117/mockups';
+const ARCHIVE_MONTHS = [
+  '01-farvardin', '02-ordibehesht', '03-khordad', '04-tir',
+  '05-mordad', '06-shahrivar', '07-mehr', '08-aban',
+  '09-azar', '10-dey', '11-bahman', '12-esfand',
+] as const;
+type ArchiveMonth = (typeof ARCHIVE_MONTHS)[number];
+
+function variantOf(name: string): 'light' | 'dark' | 'other' {
+  const file = name.replace(/\\/g, '/').split('/').pop() ?? '';
+  if (/(?:^|[-_])light(?=\.[^.]+$)/i.test(file)) return 'light';
+  if (/(?:^|[-_])dark(?=\.[^.]+$)/i.test(file)) return 'dark';
+  return 'other';
+}
+
+function archiveMonthOf(sourceName: string, fallback: ArchiveMonth): ArchiveMonth {
+  const folders = sourceName.replace(/\\/g, '/').split('/');
+  return ARCHIVE_MONTHS.find(month => folders.includes(month)) ?? fallback;
+}
+
+function archivePath(item: BuiltMockup, fallback: ArchiveMonth): string {
+  const month = archiveMonthOf(item.sourceName, fallback);
+  return `${ARCHIVE_FOLDER}/${month}/${item.fileName}`;
+}
+
+function leafWebp(name: string): string {
+  const last = name.replace(/\\/g, '/').split('/').pop() ?? '';
+  return safeName(last).replace(IMAGE_RE, '.webp');
+}
+
+async function githubApi<T>(token: string, path: string, method = 'GET', body?: unknown): Promise<T> {
+  // Credentials are used only for requests directly to api.github.com.
+  const response = await fetch(`https://api.github.com/repos/${ARCHIVE_REPO}${path}`, {
+    method,
+    cache: 'no-store',
+    credentials: 'omit',
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+  if (!response.ok) {
+    const result: { message?: string } = await response.json().catch(() => ({}));
+    throw new Error(`GitHub HTTP ${response.status}: ${result.message ?? 'request failed'}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function base64Of(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const parts: string[] = [];
+  for (let i = 0; i < bytes.length; i += 0x4000) {
+    parts.push(String.fromCharCode(...bytes.subarray(i, i + 0x4000)));
+  }
+  return btoa(parts.join(''));
+}
+
+
+async function publishMockups(
+  token: string,
+  uploads: Array<{ item: BuiltMockup; path: string }>,
+  onProgress: (count: number) => void,
+  onStage: (stage: string) => void,
+): Promise<string> {
+  const unique = new Set(uploads.map(entry => entry.path.toLowerCase()));
+  if (!uploads.length || unique.size !== uploads.length) throw new Error('فایل تکراری یا انتخاب خالی است.');
+      // Safety preflight: never overwrite existing files or bypass a moved branch.
+      const head = await githubApi<GitHubHead>(token, '/git/ref/heads/main');
+      const baseHead = head.object.sha;
+      const parent = await githubApi<GitHubCommit>(token, `/git/commits/${baseHead}`);
+      const tree = await githubApi<GitHubTree>(token, `/git/trees/${parent.tree.sha}?recursive=1`);
+      if (tree.truncated) throw new Error('فهرست مخزن کامل نیست؛ برای جلوگیری از جایگزینی، آپلود متوقف شد.');
+      const existing = new Set(tree.tree.filter(entry => entry.type === 'blob').map(entry => entry.path.toLowerCase()));
+      const conflicts = uploads.filter(upload => existing.has(upload.path.toLowerCase()));
+      if (conflicts.length) {
+        throw new Error(`${conflicts.length} فایل در GitHub از قبل موجود است؛ هیچ فایلی جایگزین نشد. نمونه: ${conflicts[0].path}`);
+      }
+      onStage('آماده‌سازی فایل‌های منتخب…');
+      const entries: Array<{ path: string; mode: '100644'; type: 'blob'; sha: string }> = [];
+      for (const upload of uploads) {
+        const content = await base64Of(upload.item.blob);
+        const blob = await githubApi<GitHubBlob>(token, '/git/blobs', 'POST', { content, encoding: 'base64' });
+        entries.push({ path: upload.path, mode: '100644', type: 'blob', sha: blob.sha });
+        onProgress(entries.length);
+      }
+      onStage('ساخت یک Commit برای تمام فایل‌های منتخب…');
+      const nextTree = await githubApi<GitHubNewTree>(token, '/git/trees', 'POST', {
+        base_tree: parent.tree.sha, tree: entries,
+      });
+      const commit = await githubApi<GitHubNewCommit>(token, '/git/commits', 'POST', {
+        message: `Add ${uploads.length} approved Nemad Man mockups`, tree: nextTree.sha, parents: [baseHead],
+      });
+      onStage('ثبت Commit روی main…');
+      await githubApi(token, '/git/refs/heads/main', 'PATCH', { sha: commit.sha, force: false });
+      return commit.sha;
+}
 
 function safeName(name: string): string {
   const parts = name.replace(/\\/g, '/').split('/')
@@ -339,34 +449,77 @@ export function NemadManMockupGenerator() {
   const folderPicker = useRef<HTMLInputElement>(null);
   const cancel = useRef(false);
   const [arts, setArts] = useState<SourceArt[]>([]);
+  const [selectedSources, setSelectedSources] = useState<Record<string, boolean>>({});
+  const [variantFilter, setVariantFilter] = useState<SourceVariant>('all');
+  const [previewName, setPreviewName] = useState<string | null>(null);
+  const [built, setBuilt] = useState<BuiltMockup[]>([]);
+  const [selectedUploads, setSelectedUploads] = useState<Record<string, boolean>>({});
+  const [fallbackMonth, setFallbackMonth] = useState<ArchiveMonth>('04-tir');
+  const [githubToken, setGithubToken] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const [uploadStage, setUploadStage] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [limitKb, setLimitKb] = useState(70);
 
+  const selectedArts = arts.filter(item => selectedSources[item.name] !== false);
+  const shownArts = arts.filter(item => variantFilter === 'all' || variantOf(item.name) === variantFilter);
+  const previewArt = arts.find(item => item.name === previewName) ?? selectedArts[0] ?? arts[0];
+  const chosenUploads = built.filter(item => selectedUploads[item.sourceName] !== false);
+
+  function clearBuilt() {
+    setBuilt([]);
+    setSelectedUploads({});
+    setUploadSuccess(null);
+    setUploadStage('');
+  }
+
+  function selectSources(mode: 'all' | 'none' | 'light' | 'dark') {
+    setSelectedSources(Object.fromEntries(arts.map(item => [item.name,
+      mode === 'all' || (mode !== 'none' && variantOf(item.name) === mode)])));
+    clearBuilt();
+  }
+
+  function toggleSource(name: string) {
+    setSelectedSources(previous => ({ ...previous, [name]: previous[name] === false }));
+    clearBuilt();
+  }
+
+  function selectUploads(selectAll: boolean) {
+    setSelectedUploads(Object.fromEntries(built.map(item => [item.sourceName, selectAll])));
+    setUploadSuccess(null);
+  }
+
   useEffect(() => {
     folderPicker.current?.setAttribute('webkitdirectory', '');
     folderPicker.current?.setAttribute('directory', '');
   }, []);
 
-  const importFiles = useCallback(async (files: File[]) => {
-    if (busy || !files.length) return;
+  const importFiles = async (files: File[]) => {
+    if (busy || uploading || !files.length) return;
     setError('');
     try {
       const next = await collectFiles(files);
       setArts(next);
+      setSelectedSources(Object.fromEntries(next.map(item => [item.name, true])));
+      setVariantFilter('all');
+      setPreviewName(next[0]?.name ?? null);
+      clearBuilt();
       setProgress(0);
     } catch (err) { setError(err instanceof Error ? err.message : 'ورود فایل‌ها ناموفق بود.'); }
-  }, [busy]);
+  };
 
   useEffect(() => {
     let ended = false;
     let url: string | null = null;
-    if (!arts.length) { setPreviewUrl(null); return; }
+    if (!previewArt) { setPreviewUrl(null); return; }
     (async () => {
       try {
-        const [scene, poster] = await Promise.all([loadImage(TEMPLATE), createImageBitmap(arts[0].image)]);
+        const [scene, poster] = await Promise.all([loadImage(TEMPLATE), createImageBitmap(previewArt.image)]);
         if (poster.width * poster.height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
         const canvas = compose(scene, poster);
         poster.close();
@@ -379,20 +532,22 @@ export function NemadManMockupGenerator() {
       }
     })();
     return () => { ended = true; if (url) URL.revokeObjectURL(url); };
-  }, [arts]);
+  }, [previewArt]);
 
   const generate = async () => {
-    if (busy || !arts.length) return;
+    if (busy || uploading || !selectedArts.length) return;
     setBusy(true);
     cancel.current = false;
     setProgress(0);
     setError('');
+    clearBuilt();
     try {
       const scene = await loadImage(TEMPLATE);
       const entries: Entry[] = [];
-      for (let i = 0; i < arts.length; i++) {
+      const rendered: BuiltMockup[] = [];
+      for (let i = 0; i < selectedArts.length; i++) {
         if (cancel.current) throw new Error('پردازش متوقف شد؛ خروجی ناقص ذخیره نشد.');
-        const art = arts[i];
+        const art = selectedArts[i];
         let poster: ImageBitmap;
         try { poster = await createImageBitmap(art.image); }
         catch { throw new Error('تصویر قابل خواندن نیست: ' + art.name); }
@@ -406,60 +561,151 @@ export function NemadManMockupGenerator() {
         const data = new Uint8Array(await blob.arrayBuffer());
         const path = art.name.replace(IMAGE_RE, '.webp');
         entries.push({ name: path, data });
+        rendered.push({ sourceName: art.name, fileName: leafWebp(art.name), blob, bytes: blob.size });
         setProgress(i + 1);
         // Release the main thread between images so Stop and progress remain responsive.
         await new Promise<void>(resolve => window.setTimeout(resolve, 0));
       }
       const zip = zipBlob(entries);
+      setBuilt(rendered);
+      setSelectedUploads(Object.fromEntries(rendered.map(item => [item.sourceName, true])));
       saveBlob(zip, 'Halleus-Nemad-Man-Mockups-' + entries.length + '.zip');
     } catch (err) { setError(err instanceof Error ? err.message : 'ساخت خروجی ناموفق بود.'); }
     finally { setBusy(false); }
+  };
+
+  const pushSelected = async () => {
+    if (busy || uploading || !chosenUploads.length) return;
+    const token = githubToken.trim();
+    if (!token) { setError('توکن دسترسی به مخزن خصوصی GitHub را وارد کن.'); return; }
+    const uploads = chosenUploads.map(item => ({ item, path: archivePath(item, fallbackMonth) }));
+    const uniquePaths = new Set(uploads.map(upload => upload.path.toLowerCase()));
+    if (uniquePaths.size !== uploads.length) {
+      setError('چند خروجی نام و مسیر مقصد یکسان دارند. فایل‌ها را جدا انتخاب کن تا چیزی اشتباهی جایگزین نشود.');
+      return;
+    }
+    if (!window.confirm(`ثبت ${uploads.length} فایل منتخب در مخزن خصوصی ${ARCHIVE_REPO} روی main؟\nفایل‌های موجود جایگزین نمی‌شوند.`)) return;
+    setUploading(true);
+    setUploadProgress(0);
+    setUploadStage('بررسی وضعیت مخزن و فایل‌های موجود…');
+    setUploadSuccess(null);
+    setError('');
+    try {
+      const sha = await publishMockups(token, uploads, setUploadProgress, setUploadStage);
+      setUploadSuccess(sha);
+      setGithubToken(''); // Clear token from React state after success.
+      setUploadStage(`${uploads.length} فایل با یک Commit ثبت شد.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'آپلود به GitHub ناموفق بود.');
+      setUploadStage('آپلود کامل نشد؛ وضعیت GitHub را پیش از تلاش دوباره بررسی کن.');
+    } finally { setUploading(false); }
   };
 
   return <main className={styles.shell}>
     <header className={styles.head}>
       <p className={styles.eyebrow}>HALLEUS • NEMAD MAN</p>
       <h1>مولد گروهی موکاپ</h1>
-      <p>طرح‌های اصلی را بدون بازطراحی AI روی شاسی بدون قاب می‌گذارد. همه‌چیز در مرورگر پردازش می‌شود؛ تصاویر به سرور فرستاده نمی‌شوند.</p>
+      <p>فایل‌های اصلی دست‌نخورده روی شاسی بدون قاب قرار می‌گیرند. ساخت موکاپ و ZIP داخل مرورگر است؛ فقط اگر خودت «ثبت در GitHub» را بزنی، فایل‌های منتخب به مخزن خصوصی ارسال می‌شوند.</p>
     </header>
     <div className={styles.grid}>
       <section className={styles.panel}>
         <h2>۱. طرح‌ها را وارد کن</h2>
         <div className={styles.buttons}>
-          <button type="button" onClick={() => filePicker.current?.click()} disabled={busy}>انتخاب چند عکس یا ZIP</button>
-          <button type="button" className={styles.secondary} onClick={() => folderPicker.current?.click()} disabled={busy}>انتخاب پوشهٔ کامل</button>
+          <button type="button" onClick={() => filePicker.current?.click()} disabled={busy || uploading}>انتخاب چند عکس یا ZIP</button>
+          <button type="button" className={styles.secondary} onClick={() => folderPicker.current?.click()} disabled={busy || uploading}>انتخاب پوشهٔ کامل</button>
         </div>
         <input ref={filePicker} className={styles.hidden} type="file" multiple accept=".webp,.png,.jpg,.jpeg,.zip" onChange={e => { void importFiles(Array.from(e.target.files ?? [])); e.target.value = ''; }} />
         <input ref={folderPicker} className={styles.hidden} type="file" multiple onChange={e => { void importFiles(Array.from(e.target.files ?? [])); e.target.value = ''; }} />
         <div className={styles.drop} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); void importFiles(Array.from(e.dataTransfer.files)); }}>
           فایل‌ها یا ZIP را اینجا رها کن. پوشهٔ شامل ۷۲ تصویر را هم می‌توانی یکجا انتخاب کنی.
         </div>
-        <p className={styles.count}>{arts.length ? `${arts.length} تصویر آماده • نمونه: ${arts[0].name}` : 'هنوز تصویری انتخاب نشده است.'}</p>
-        <h2>۲. شاسی آماده و خودکار</h2>
-        <p className={styles.tip}>جای طرح روی شاسی ثابت و دقیق است؛ بدون تنظیم دستی گوشه‌ها. لبهٔ برش چوبی قهوه‌ای خیلی تیره دارد و طرح اصلی دست‌نخورده می‌ماند.</p>
-        <h2>۳. خروجی نهایی</h2>
+        <p className={styles.count}>{arts.length ? `${arts.length} تصویر از ZIP یا پوشه • ${selectedArts.length} تصویر انتخاب‌شده` : 'هنوز تصویری انتخاب نشده است.'}</p>
+        {arts.length > 0 && <>
+          <h2>۲. انتخاب تصویر از ZIP</h2>
+          <div className={styles.buttons}>
+            <button type="button" className={styles.secondary} disabled={busy || uploading} onClick={() => selectSources('all')}>انتخاب همه</button>
+            <button type="button" className={styles.secondary} disabled={busy || uploading} onClick={() => selectSources('light')}>فقط طرح روشن</button>
+            <button type="button" className={styles.secondary} disabled={busy || uploading} onClick={() => selectSources('dark')}>فقط طرح تیره</button>
+            <button type="button" className={styles.secondary} disabled={busy || uploading} onClick={() => selectSources('none')}>لغو همه</button>
+          </div>
+          <label className={styles.inlineLabel}>نمایش فایل‌های
+            <select disabled={busy || uploading} value={variantFilter} onChange={e => setVariantFilter(e.target.value as SourceVariant)}>
+              <option value="all">همه</option>
+              <option value="light">روشن (light)</option>
+              <option value="dark">تیره (dark)</option>
+            </select>
+          </label>
+          <div className={styles.fileList}>
+            {shownArts.map(item => <div className={styles.fileItem} key={item.name}>
+              <input type="checkbox" aria-label={`انتخاب ${item.name}`} checked={selectedSources[item.name] !== false}
+                disabled={busy || uploading} onChange={() => toggleSource(item.name)} />
+              <span title={item.name}>{item.name}</span>
+              <button type="button" className={styles.previewButton} disabled={busy || uploading} onClick={() => setPreviewName(item.name)}>
+                {previewName === item.name ? 'در حال نمایش' : 'پیش‌نمایش'}
+              </button>
+            </div>)}
+          </div>
+          <p className={styles.tip}>برای دیدن نسخهٔ سفید و مشکی، نام فایل را از این فهرست انتخاب کن. فیلتر فقط نمایش فهرست را عوض می‌کند؛ دکمه‌های «فقط طرح روشن/تیره» انتخاب خروجی را تغییر می‌دهند.</p>
+        </>}
+        <h2>۳. شاسی آماده و خودکار</h2>
+        <p className={styles.tip}>طرح‌ها با پرسپکتیو ثابت روی شاسی بدون قاب، با لبهٔ مشکی باریک، قرار می‌گیرند.</p>
+        <h2>۴. خروجی نهایی</h2>
         <label className={styles.inlineLabel}>سقف هر WebP
-          <select disabled={busy} value={limitKb} onChange={e => setLimitKb(Number(e.target.value))}>
+          <select disabled={busy || uploading} value={limitKb} onChange={e => setLimitKb(Number(e.target.value))}>
             <option value={70}>۷۰ کیلوبایت</option>
             <option value={100}>۱۰۰ کیلوبایت</option>
           </select>
         </label>
         <div className={styles.buttons}>
-          <button type="button" disabled={busy || !arts.length} onClick={() => { void generate(); }}>ساخت ZIP همهٔ موکاپ‌ها</button>
+          <button type="button" disabled={busy || uploading || !selectedArts.length} onClick={() => { void generate(); }}>ساخت ZIP از {selectedArts.length} تصویر منتخب</button>
           {busy && <button type="button" className={styles.secondary} onClick={() => { cancel.current = true; }}>توقف</button>}
         </div>
-        {busy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {arts.length}<progress value={progress} max={arts.length}/></div>}
+        {busy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {selectedArts.length}<progress value={progress} max={selectedArts.length}/></div>}
         {error && <p className={styles.error} role="alert">{error}</p>}
-        <p className={styles.tip}>هر فایل فقط یک خروجی می‌گیرد؛ نام فایل و پوشه حفظ می‌شود. حجم محدودیت سخت است؛ در صورت نیاز ابعاد و کیفیت به‌تدریج کاهش می‌یابند.</p>
+        <p className={styles.tip}>هر فایل منتخب یک خروجی می‌گیرد و نام‌ها و ساختار پوشه در ZIP حفظ می‌شوند.</p>
+        {built.length > 0 && <>
+          <h2>۵. انتخاب فایل‌های قابل ثبت در GitHub</h2>
+          <div className={styles.buttons}>
+            <button type="button" className={styles.secondary} disabled={uploading} onClick={() => selectUploads(true)}>انتخاب همهٔ خروجی‌ها</button>
+            <button type="button" className={styles.secondary} disabled={uploading} onClick={() => selectUploads(false)}>لغو همهٔ خروجی‌ها</button>
+          </div>
+          <p className={styles.count}>{chosenUploads.length} فایل برای آپلود انتخاب شده</p>
+          <div className={styles.fileList}>
+            {built.map(item => <label key={item.sourceName} className={styles.fileItem}>
+              <input type="checkbox" disabled={uploading} checked={selectedUploads[item.sourceName] !== false}
+                onChange={() => setSelectedUploads(previous => ({ ...previous, [item.sourceName]: previous[item.sourceName] === false }))} />
+              <span title={archivePath(item, fallbackMonth)}>{archivePath(item, fallbackMonth)}</span>
+              <small>{Math.round(item.bytes / 1024)} KiB</small>
+            </label>)}
+          </div>
+          <h2>۶. ثبت انتخابی در GitHub</h2>
+          <p className={styles.tip}>مخزن مقصد ثابت است: <strong>{ARCHIVE_REPO}</strong>، شاخهٔ <strong>main</strong>. پوشهٔ ماه از نام فایل‌ها تشخیص داده می‌شود.</p>
+          <label className={styles.inlineLabel}>ماه برای فایل‌هایی که پوشهٔ ماه ندارند
+            <select disabled={uploading} value={fallbackMonth} onChange={e => setFallbackMonth(e.target.value as ArchiveMonth)}>
+              {ARCHIVE_MONTHS.map(month => <option key={month} value={month}>{month}</option>)}
+            </select>
+          </label>
+          <label className={styles.tokenLabel}>Fine-grained GitHub Token (فقط دسترسی Contents: Read and write به مخزن خصوصی)
+            <input type="password" autoComplete="off" value={githubToken} disabled={uploading}
+              placeholder="github_pat_…" onChange={e => setGithubToken(e.target.value)} />
+          </label>
+          <p className={styles.tip}>توکن فقط در حافظهٔ همین صفحه می‌ماند؛ ذخیره نمی‌شود و بعد از ثبت موفق پاک می‌شود. فایل‌های موجود در GitHub هرگز بازنویسی نمی‌شوند.</p>
+          <button type="button" disabled={busy || uploading || !chosenUploads.length} className={styles.pushButton} onClick={() => { void pushSelected(); }}>
+            {uploading ? 'در حال ثبت در GitHub…' : `Push ${chosenUploads.length} فایل منتخب در GitHub`}
+          </button>
+          {uploading && <div className={styles.progress} role="status">{uploadStage} • {uploadProgress} از {chosenUploads.length}<progress value={uploadProgress} max={chosenUploads.length}/></div>}
+          {!uploading && uploadStage && <p className={styles.tip}>{uploadStage}</p>}
+          {uploadSuccess && <p className={styles.success}>ثبت شد: <a href={`https://github.com/${ARCHIVE_REPO}/commit/${uploadSuccess}`} target="_blank" rel="noreferrer">Commit {uploadSuccess.slice(0, 7)}</a></p>}
+        </>}
       </section>
       <section className={styles.panel}>
-        <div className={styles.previewHead}><h2>پیش‌نمایش اولین تصویر</h2><span>۲:۳</span></div>
+        <div className={styles.previewHead}><h2>پیش‌نمایش تصویر انتخابی</h2><span>۲:۳</span></div>
         <div className={styles.stage}>
           {/* The original uploaded artwork is projected; no AI rendering of text or stars. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt="پیش‌نمایش خودکار شاسی بدون قاب" src={previewUrl || TEMPLATE} />
         </div>
-        <p className={styles.previewFoot}>{arts.length ? 'طرح اولین فایل ورودی روی صحنه نشان داده می‌شود.' : 'ابتدا تصاویر خودت را انتخاب کن تا طرح واقعی نمایش داده شود.'}</p>
+        <p className={styles.previewFoot}>{previewArt ? previewArt.name : 'ابتدا یک تصویر یا ZIP انتخاب کن.'}</p>
       </section>
     </div>
   </main>;
