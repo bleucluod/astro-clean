@@ -134,15 +134,28 @@ function readApprovedMonth(slug: string): (NemadProductPage & {
   if (!initial.ok) throw new Error('Invalid Nemad Man sample date: ' + sampleDate);
   const product = parseCustomerProduct(source, months[index].title, slug);
   if (slug === 'bahman') {
+    // Keep the two approved dark scenes. The former light scenes are no
+    // longer gallery images; one new approved light/black-edge scene replaces them.
     product.gallery = [
       { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#dark', alt: 'پیش‌نمایش شخصی طرح تیرهٔ نماد بهمن', label: 'نماد شخصی · تیره' },
       { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#light', alt: 'پیش‌نمایش شخصی طرح روشن نماد بهمن', label: 'نماد شخصی · روشن' },
-      { src: '/shop-preview/nemad-man/bahman/01-mahsa-1387-11-12-light-console.webp', alt: 'تابلو نماد من با نام مهسا، طرح روشن روی میز کنسول', label: 'موکاپ · میز کنسول' },
       { src: '/shop-preview/nemad-man/bahman/02-nora-1370-11-18-dark-wall-bench.webp', alt: 'تابلو نماد من با نام نورا، طرح تیره روی دیوار', label: 'موکاپ · روی دیوار' },
-      { src: '/shop-preview/nemad-man/bahman/03-reza-1372-11-14-light-workdesk.webp', alt: 'تابلو نماد من با نام رضا، طرح روشن روی میز کار', label: 'موکاپ · میز کار' },
       { src: '/shop-preview/nemad-man/bahman/04-sina-1373-11-16-dark-gift-wrap.webp', alt: 'تابلو نماد من با نام سینا، طرح تیره در بسته‌بندی هدیه', label: 'موکاپ · کادوی نیمه‌باز' },
     ];
   }
+  // One verified approved white-shasi mockup per month, with a black edge.
+  // The existing dark scenes and both interactive artwork themes are preserved.
+  product.gallery.push({
+    src: '/shop-preview/nemad-man/' + slug + '/arad-light-black-edge-20261118.webp',
+    alt: 'موکاپ تابلوی نماد ' + months[index].title + ' با طرح روشن روی شاسی بدون قاب و لبهٔ مشکی',
+    label: 'موکاپ روشن · لبهٔ مشکی',
+  });
+  // Nine additional owner-approved light 30x45 mockups exist only for Tir-Esfand.
+  if (index >= 3) product.gallery.push({
+    src: '/shop-preview/nemad-man/' + slug + '/halle-light-30x45-black-edge-20261118.webp',
+    alt: 'موکاپ روشن تابلوی نماد ' + months[index].title + ' در اندازهٔ ۳۰×۴۵ سانتی‌متر با لبهٔ مشکی',
+    label: 'موکاپ روشن · ۳۰×۴۵',
+  });
   return {
     slug, seoTitle, metaDescription, initial: initial.value,
     months: months.map((item) => ({ slug: item.slug, title: item.title })),

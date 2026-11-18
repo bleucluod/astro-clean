@@ -397,15 +397,13 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
               <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 68px, 88px" />
             </button>)}
           </div>
-          <p className={pdStyles.galleryPosition} aria-live="polite">
-            تصویر {formatPrice(photoIndex + 1)} از {formatPrice(galleryCount)} · {displayLabel}
-          </p>
-          {showingPreview ? <p className={styles.previewCaption}>{nemad
-            ? 'این پیش‌نمایش با رندرر مصوب نماد من و نشان خورشیدی محاسبه‌شده ساخته شده است؛ موکاپ‌ها نمونه‌های نمایشی هستند.'
-            : 'چیدمان ستاره‌ها و صورت‌های فلکی بر اساس تاریخ، ساعت و شهر انتخابی تو ساخته شده و مبنای طراحی تابلوی نهایی خواهد بود. این تصویر، پیش‌نمایش کم‌رزولوشن و واترمارک‌دار است.'}</p> : null}
-          <p className={pdStyles.galleryCaption}>{nemad
-            ? nemad.product.galleryNote
-            : 'شش موکاپ تأییدشده از شاسی‌های بدون قاب در سه اندازهٔ ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر.'}</p>
+          {!nemad ? <>
+            <p className={pdStyles.galleryPosition} aria-live="polite">
+              تصویر {formatPrice(photoIndex + 1)} از {formatPrice(galleryCount)} · {displayLabel}
+            </p>
+            {showingPreview ? <p className={styles.previewCaption}>چیدمان ستاره‌ها و صورت‌های فلکی بر اساس تاریخ، ساعت و شهر انتخابی تو ساخته شده و مبنای طراحی تابلوی نهایی خواهد بود. این تصویر، پیش‌نمایش کم‌رزولوشن و واترمارک‌دار است.</p> : null}
+            <p className={pdStyles.galleryCaption}>شش موکاپ تأییدشده از شاسی‌های بدون قاب در سه اندازهٔ ۱۰×۱۵، ۲۰×۳۰ و ۳۰×۴۵ سانتی‌متر.</p>
+          </> : null}
         </div>
 
         <div className={pdStyles.productInfo}>
@@ -567,9 +565,9 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
         </div>
         <div className={pdStyles.sizeIllustration}>
           {(nemad ? [
-            { src: gallery[0].src, alt: gallery[0].alt, size: '۱۰ × ۱۵', label: 'نمونهٔ چیدمان · کنسول' },
-            { src: gallery[1].src, alt: gallery[1].alt, size: '۲۰ × ۳۰', label: 'نمونهٔ چیدمان · دیوار' },
-            { src: gallery[2].src, alt: gallery[2].alt, size: '۳۰ × ۴۵', label: 'نمونهٔ چیدمان · میز کار' },
+            { src: gallery[0].src, alt: gallery[0].alt, size: '۱۰ × ۱۵', label: 'نمونهٔ چیدمان · دیوار' },
+            { src: gallery[1].src, alt: gallery[1].alt, size: '۲۰ × ۳۰', label: 'نمونهٔ چیدمان · بسته‌بندی هدیه' },
+            { src: gallery[3].src, alt: gallery[3].alt, size: '۳۰ × ۴۵', label: 'نمونهٔ چیدمان · روشن ۳۰×۴۵' },
           ] : [
             { src: BIRTH_SKY_GALLERY[4].src, alt: BIRTH_SKY_GALLERY[4].alt, size: '۱۰ × ۱۵', label: 'میز و شلف' },
             { src: BIRTH_SKY_GALLERY[2].src, alt: BIRTH_SKY_GALLERY[2].alt, size: '۲۰ × ۳۰', label: 'دیوار اتاق' },

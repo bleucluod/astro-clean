@@ -358,9 +358,8 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                 </button>
               ))}
             </div>
-            {(id === 'p01' || hasBahmanPricing) ? <p className={styles.galleryPosition} aria-live="polite">تصویر {formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)} · {product.gallery[photoIndex].label}</p> : null}
-            {product.galleryNote ? <p className={styles.galleryCaption}>{product.galleryNote}</p> : null}
-            {hasBahmanPricing ? <p className={styles.galleryCaption}>چهار موکاپ با نام‌های نمونه هستند؛ برای دیدن طرح با نام و تاریخ دلخواهت، پیش‌نمایش شخصی را بساز.</p> : null}
+            {!nemad && id === 'p01' ? <p className={styles.galleryPosition} aria-live="polite">تصویر {formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)} · {product.gallery[photoIndex].label}</p> : null}
+            {!nemad && product.galleryNote ? <p className={styles.galleryCaption}>{product.galleryNote}</p> : null}
           </div>
 
           <div className={styles.productInfo}>

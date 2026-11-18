@@ -63,15 +63,51 @@ assert.match(artwork, /viewBox="0 0 900 1350"/);
 assert.ok(!p02.includes("addShopCartItem('p03'"), 'NM must never enter P03 orders');
 assert.match(route, /month !== 'bahman' \|\| !isShopNemadOrderEnabled\(\)/);
 
-const mockups = [
-  '01-mahsa-1387-11-12-light-console.webp',
-  '02-nora-1370-11-18-dark-wall-bench.webp',
-  '03-reza-1372-11-14-light-workdesk.webp',
-  '04-sina-1373-11-16-dark-gift-wrap.webp',
+const monthSlugs = [
+  'farvardin', 'ordibehesht', 'khordad', 'tir', 'mordad', 'shahrivar',
+  'mehr', 'aban', 'azar', 'dey', 'bahman', 'esfand',
 ];
-for (const name of mockups) {
-  const file = resolve(root, 'public/shop-preview/nemad-man/bahman', name);
-  assert.ok(existsSync(file), 'Missing Bahman mockup: ' + name);
-  assert.ok(statSync(file).size < 70000, 'Bahman mockup exceeds 70 kB: ' + name);
+assert.match(route, /product\.gallery\.push\(\{/);
+assert.match(route, /'\/shop-preview\/nemad-man\/' \+ slug \+ '\/arad-light-black-edge-20261118\.webp'/);
+for (const slug of monthSlugs) {
+  const path = 'public/shop-preview/nemad-man/' + slug + '/arad-light-black-edge-20261118.webp';
+  const file = resolve(root, path);
+  assert.ok(existsSync(file), 'Missing approved new light mockup: ' + path);
+  assert.ok(statSync(file).size > 20_000 && statSync(file).size < 100_000,
+    'New approved mockup exceeds size bounds: ' + path);
+  const bytes = readFileSync(file);
+  assert.equal(bytes.toString('ascii', 0, 4), 'RIFF', 'Invalid WebP header: ' + path);
+  assert.equal(bytes.toString('ascii', 8, 12), 'WEBP', 'Invalid WebP brand: ' + path);
 }
-console.log('NEMAD_P02_LIVE_RENDERER=PASS: P02 DOM/CSS, NM gallery, theme, cart, approved copy, four WebP');
+const extraLightMonths = monthSlugs.slice(3);
+assert.equal(extraLightMonths.length, 9);
+assert.match(route, /if \(index >= 3\) product\.gallery\.push\(\{/);
+assert.match(route, /'\/shop-preview\/nemad-man\/' \+ slug \+ '\/halle-light-30x45-black-edge-20261118\.webp'/);
+for (const slug of extraLightMonths) {
+  const path = 'public/shop-preview/nemad-man/' + slug + '/halle-light-30x45-black-edge-20261118.webp';
+  const file = resolve(root, path);
+  assert.ok(existsSync(file), 'Missing approved 30x45 light mockup: ' + path);
+  const bytes = readFileSync(file);
+  assert.ok(bytes.length > 20_000 && bytes.length < 100_000,
+    'New 30x45 mockup exceeds size bounds: ' + path);
+  assert.equal(bytes.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(bytes.toString('ascii', 8, 12), 'WEBP');
+}
+for (const dark of ['02-nora-1370-11-18-dark-wall-bench.webp',
+  '04-sina-1373-11-16-dark-gift-wrap.webp']) {
+  const file = resolve(root, 'public/shop-preview/nemad-man/bahman', dark);
+  assert.ok(existsSync(file), 'Missing retained dark mockup: ' + dark);
+  assert.match(route, new RegExp(dark.replaceAll('.', '\\.')));
+}
+for (const oldLight of ['01-mahsa-1387-11-12-light-console.webp',
+  '03-reza-1372-11-14-light-workdesk.webp']) {
+  assert.ok(!route.includes(oldLight), 'Deprecated light mockup remains in Bahman gallery: ' + oldLight);
+}
+const legacyGallery = read('components/shop/ProductDetail.tsx');
+assert.match(legacyGallery, /!nemad && product\.galleryNote/);
+assert.match(legacyGallery, /!nemad && id === 'p01'/);
+assert.match(p02, /\{!nemad \? <>/);
+assert.ok(!p02.includes('nemad.product.galleryNote'),
+  'Do not display approved editorial gallery note under Nemad gallery');
+assert.match(p02, /'شش موکاپ تأییدشده از شاسی‌های بدون قاب/);
+console.log('NEMAD_P02_LIVE_RENDERER=PASS: P02 unchanged, 21 approved light WebPs, Bahman dark mockups, no Nemad gallery captions');
