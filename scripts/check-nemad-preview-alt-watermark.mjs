@@ -37,9 +37,9 @@ assert.ok(detail.includes("'مینیمال تیره' : 'مینیمال روشن'
 for (const [marker, keyword] of [
   ["alt: 'تابلو نماد ماه تولد ' + month", 'dark theme'],
   ["alt: 'تابلو نماد ماه ' + month", 'light theme'],
-  ["alt: 'تابلو ماه تولد ' + months[index].title, 'dark wall mockup'],
-  ["alt: 'هدیه برای متولدین ' + months[index].title, 'dark gift mockup'],
-  ["alt: 'کادو تولد ' + months[index].title, 'early dark scene'],
+  ["alt: 'تابلو ماه تولد ' + months[index].title", 'dark wall mockup'],
+  ["alt: 'هدیه برای متولدین ' + months[index].title", 'dark gift mockup'],
+  ["alt: 'کادو تولد ' + months[index].title", 'early dark scene'],
   ["alt: 'تابلو نماد ' + months[index].title + ' سفارشی", 'first light mockup'],
   ["alt: 'تابلو ماه تولد ' + months[index].title + ' با اسم", 'additional light mockup'],
   ['تابلو ماه تولد بهمن؛ موکاپ تیره', 'Bahman wall mockup'],
