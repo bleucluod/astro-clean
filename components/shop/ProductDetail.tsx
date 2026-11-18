@@ -128,7 +128,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
     (id === 'p02' || (nemad && nemadNeedsDetails)) && !form.cityId && form.city.trim().length >= 2
       ? filterHalleusCities(form.city).slice(0, 8) : [],
   [id, nemad, nemadNeedsDetails, form.city, form.cityId]);
-  const formCopy = nemad ? {
+  const formCopy = nemad || id === 'nm' ? {
     title: 'نام چه کسی را کنار ستاره‌ها بنویسیم؟',
     intro: 'یک نام و یک تاریخ؛ دو جزئیات کوچک برای نشانی که مخصوص اوست.',
     date: 'تاریخ تولد شمسی',

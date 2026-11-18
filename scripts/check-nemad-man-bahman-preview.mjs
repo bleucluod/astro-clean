@@ -113,8 +113,8 @@ for (const [weight, file] of [
   assert.ok(readFileSync(resolve(root, 'assets/shop-print/fonts', file)).length > 1000,
     'Estedad font asset missing: ' + file);
 }
-assert.equal((poster.match(/fontFamily=\{estedad.style.fontFamily\}/g) || []).length, 2,
-  'Estedad font family must cover both name/sign and the date');
+assert.equal((poster.match(/fontFamily=\{estedad.style.fontFamily\}/g) || []).length, 3,
+  'Estedad font family must cover sign, name and date separately');
 assert.match(poster, /y="1042" fontWeight="300" fontSize="27"/,
   'Both variants must share the approved smaller sign label');
 assert.ok(!poster.includes('FarZiba') && !css.includes('FarZiba') && !css.includes('far-ziba-font'),

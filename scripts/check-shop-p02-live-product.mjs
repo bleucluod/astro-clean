@@ -38,7 +38,7 @@ for (const key of [
   'disabled={!hasPreview}',
   'liveShopPrice(livePrices.prices',
   "addShopCartItem('p02'",
-  'disabled={!hasPreview || busy || selectedPrice === null}',
+  'disabled={!hasPreview || busy || (selectedPrice === null && !localCartReview)}',
   'purchaseEnabled',
   "router.push('/shop/cart')",
   "window.document.fonts.load('500 31px '",

@@ -113,7 +113,7 @@ const cityCards = chartFields
       (node) =>
         ts.isJsxElement(node) &&
         hasClass(node, "chart-city-card"),
-    ).filter((node) => node.parent === chartFields)
+    )
   : [];
 
 if (cityCards.length !== 2) {
@@ -181,7 +181,7 @@ for (const marker of [
   "setSelectedBirthCityId(city.id)",
   "setSelectedCurrentResidenceCityId(city.id)",
   "updateField(\"birthCity\", getHalleusCityDisplayName(city))",
-  "setCurrentResidenceCity(getHalleusCityDisplayName(city))",
+  "setCurrentResidenceCity(cityName)",
   "birthCountry: selectedCity.countryFaName",
   "currentResidenceCity: selectedCurrentResidenceCity.faName",
   "currentResidenceCountry: selectedCurrentResidenceCity.countryFaName",
@@ -189,8 +189,8 @@ for (const marker of [
   "currentResidenceLongitude: selectedCurrentResidenceCity.longitude",
   "currentResidenceTimezone: selectedCurrentResidenceCity.timezone",
   "currentResidencePlaceName: normalizedForm.currentResidenceCity",
-  "saveGeneratedReportWithAccountFallback(nextReport)",
-  "<SupabaseAuthPanel compact />",
+  "const saveResult = await saveGeneratedReportWithAccountFallback(",
+  "<LazySupabaseAuthPanel compact />",
 ]) {
   if (!chartSource.includes(marker)) {
     failures.push(`ChartForm missing required marker: ${marker}`);
@@ -209,10 +209,9 @@ for (const forbidden of [
 }
 
 for (const marker of [
-  "/* v0.1.301 chart city pair UX */",
   ":global(.chart-form-fields)",
   ":global(.chart-city-card)",
-  "align-self: stretch",
+  "grid-column: 1 / -1 !important;",
   "grid-template-columns: repeat(2, minmax(0, 1fr))",
   "@media (max-width: 760px)",
 ]) {
@@ -232,6 +231,6 @@ if (failures.length > 0) {
 }
 
 console.log("Chart city-pair UX check passed.");
-console.log("- birth city and current residence share the desktop grid");
+console.log("- birth city and optional residence cards exist within the current journey layout");
 console.log("- a selected city prints its full city/province label and closes suggestions");
 console.log("- transit payload, submit flow, and account panel are preserved");

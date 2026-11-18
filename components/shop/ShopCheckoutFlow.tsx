@@ -318,11 +318,14 @@ export function ShopPaymentScreen({ onlineEnabled = false }: { onlineEnabled?: b
   const [retry, setRetry] = useState(0);
   const [returnedPending, setReturnedPending] = useState(false);
   useEffect(() => {
-    setReturnedPending(new URLSearchParams(window.location.search).get('bitpay') === 'pending');
+    let active = true;
+    // Read the callback query after hydration without a synchronous effect state write.
+    void Promise.resolve().then(() => {
+      if (active) setReturnedPending(new URLSearchParams(window.location.search).get('bitpay') === 'pending');
+    });
     clearCheckoutSession();
     clearLegacyShopOrderIntent();
     const saved = readShopOrderReceipt();
-    let active = true;
     if (!saved) {
       void Promise.resolve().then(() => { if (active) setLoading(false); });
       return () => { active = false; };

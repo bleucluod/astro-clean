@@ -37,7 +37,7 @@ for (const token of [
   "birth-time-picker-grid",
   "city-suggestion-chips",
   "city-suggestion-chip",
-  "chart-form-status",
+  "chart-generation-dialog",
   "ساخت گزارش",
   "ساعت تولدم را نمی‌دانم",
   "گزارشم را در حساب هالیوس نگه دار",
@@ -60,7 +60,7 @@ for (const token of [
   ".birth-time-picker-grid",
   ".city-suggestion-chips",
   ".city-suggestion-chip",
-  ".chart-form-status",
+  ".chart-generation-dialog",
 ]) {
   mustContain(css, token, "chart mobile QA CSS");
 }

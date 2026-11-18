@@ -7,7 +7,7 @@ umask 077
 
 SOURCE=/srv/halleus/source
 ACTIVE=/srv/halleus/current
-BASE=f665de7b01b17d0cefaeba78228272c5ab9e6416
+BASE=4d24b436860f476f4f4181a200335c8459161de5
 MIGRATION_BLOB=93459f37207be18770582afb8a41a87096f83bf6
 BACKUP_DIR=/root/halleus-bitpay-preflight
 SCRIPT=ops/vps/halleus-shop-nemad-0043-go-live.sh
@@ -31,10 +31,18 @@ HEAD="$(git rev-parse HEAD)"
 [ "$HEAD" = "$(git rev-parse origin/main)" ] || fatal 'VPS source is not at origin/main.'
 [ "$(git rev-parse HEAD^)" = "$BASE" ] || fatal 'Unexpected release parent.'
 EXPECTED_CHANGED="$(printf '%s\n' \
-  'app/api/admin/shop/orders/[id]/print/candidate/route.ts' \
-  'lib/shop/shop-final-print.ts' \
+  'components/shop/ProductDetail.tsx' \
+  'components/shop/ShopCheckoutFlow.tsx' \
+  'docs/nemad-mockup-rules.md' \
+  'lib/shop/nemad-man-bahman-preview.ts' \
   "$SCRIPT" \
-  'scripts/check-shop-nemad-selling.mjs')"
+  'ops/vps/halleus-shop-nemad-r2-verify-deploy.sh' \
+  'scripts/check-chart-city-pair-ux.mjs' \
+  'scripts/check-chart-flow-mobile-qa.mjs' \
+  'scripts/check-chart-mobile-journey.mjs' \
+  'scripts/check-nemad-man-bahman-preview.mjs' \
+  'scripts/check-shop-orders.mjs' \
+  'scripts/check-shop-p02-live-product.mjs')"
 [ "$(git diff-tree --no-commit-id --name-only -r "$HEAD")" = "$EXPECTED_CHANGED" ] || fatal 'Unexpected changes in release finalizer commit.'
 [ "$(git hash-object "$MIGRATION")" = "$MIGRATION_BLOB" ] || fatal 'Migration source differs from reviewed blob.'
 [ -f "$BACKUP_TOOL" ] && [ -f ops/vps/halleus-shop-nemad-go-live.sh ] || fatal 'Release support scripts missing.'

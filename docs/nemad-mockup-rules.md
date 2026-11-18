@@ -1,6 +1,6 @@
 # Nemad Man — Product Gallery Mockup Rules
 
-**Status:** Approved visual production brief — 2026-11-17.  
+**Status:** Approved visual production brief — 2026-11-17.
 **Scope:** All future «نماد من» product-gallery mockups for the 12 zodiac months. This document records the mockup contract only; it does not change gallery implementation, approve production printing, or publish any product.
 
 ## Verified product constraints (main branch)
@@ -22,8 +22,8 @@
 
 ## Provenance of original exports
 
-Private backup repository: `bleucluod/halleus-gsc-private-backup`.  
-Source directory: `Halleus-Nemad-Man-24-Exports-20261117/`.  
+Private backup repository: `bleucluod/halleus-gsc-private-backup`.
+Source directory: `Halleus-Nemad-Man-24-Exports-20261117/`.
 The original four `halleus-24-month-signs-10x15*.zip` exports and separately extracted month PNG files in that directory are reference assets. For Farvardin, select the 8 individual `01-farvardin-sign-{dark|light}-zip-{0|1|2|3}.png` files as appropriate for the four persons/two themes. **Do not infer a person's name from zip index; read the artwork**. Do not substitute generated images if a source image cannot be accessed.
 
 ## Change boundary

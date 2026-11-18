@@ -160,7 +160,8 @@ export function getNemadPosterSky(sign: NemadSign): PosterSky {
   const realStars: PosterStar[] = [];
   for (let index = 0; index < BSC.length; index += 4) {
     const ra = BSC[index], dec = BSC[index+1], mag = BSC[index+2];
-    if (!Number.isFinite(ra) || !Number.isFinite(dec) || !Number.isFinite(mag) || mag > 6) continue;
+    if (typeof ra !== 'number' || typeof dec !== 'number' || typeof mag !== 'number' ||
+        !Number.isFinite(ra) || !Number.isFinite(dec) || !Number.isFinite(mag) || mag > 6) continue;
     const point = project(ra, dec);
     const d = Math.hypot(point.x - SKY_CENTER.x, point.y - SKY_CENTER.y);
     if (d > SKY_RADIUS - 5) continue;
@@ -179,10 +180,13 @@ export function getNemadPosterSky(sign: NemadSign): PosterSky {
     unique.add(key);
     let nearest = { distance: Infinity, mag: 6 };
     for (let index = 0; index < BSC.length; index += 4) {
-      const dra = (wrapRa(BSC[index], ra) - ra) * Math.cos(dec * Math.PI / 180);
-      const ddec = BSC[index+1] - dec;
+      const starRa = BSC[index], starDec = BSC[index+1], starMag = BSC[index+2];
+      if (typeof starRa !== 'number' || typeof starDec !== 'number' || typeof starMag !== 'number' ||
+          !Number.isFinite(starRa) || !Number.isFinite(starDec) || !Number.isFinite(starMag)) continue;
+      const dra = (wrapRa(starRa, ra) - ra) * Math.cos(dec * Math.PI / 180);
+      const ddec = starDec - dec;
       const distance = Math.hypot(dra, ddec);
-      if (distance < nearest.distance) nearest = { distance, mag: BSC[index+2] };
+      if (distance < nearest.distance) nearest = { distance, mag: starMag };
     }
     const mag = nearest.distance < .38 ? nearest.mag : 4.5;
     const glow = Math.max(0, (6 - mag) / 6);

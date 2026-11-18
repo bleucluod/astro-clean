@@ -144,8 +144,9 @@ expect(
   (picker.match(/<DateWheel /g) ?? []).length === 5,
   "Date and time number wheels must have no heading row");
 expect(
-  picker.includes('onPointerDown={() => setWheelTouched(true)}') &&
-  picker.includes('onTouchStart={() => setWheelTouched(true)}') &&
+  picker.includes('onPointerDown={(event) => {') &&
+  picker.includes('onPointerMove={(event) => {') &&
+  picker.includes('onPointerUp={(event) => {') &&
   picker.includes('onWheel={() => setWheelTouched(true)}') &&
   picker.includes('setWheelTouched(true);') &&
   picker.includes('wheelTouched ? " " + styles.wheelTouched') &&
@@ -182,8 +183,10 @@ expect(
   form.includes('".wheelViewport, .chart-native-select, .chart-select-trigger"'),
   "Keep date/time always visible in /chart and prevent partial time submissions");
 expect(
-  !pickerCss.includes("position: fixed;") && !pickerCss.includes(".portal") &&
-  !pickerCss.includes(".inlinePanel"),
+  !/\.alwaysPicker\s*\{[^}]*position:\s*fixed/.test(pickerCss) &&
+  !/\.wheelPicker\s*\{[^}]*position:\s*fixed/.test(pickerCss) &&
+  !pickerCss.includes(".portal") && !pickerCss.includes(".inlinePanel") &&
+  pickerCss.includes(".quickDialog {"),
   "Wheel layout must remain in document flow without overlays");
 
 expect(

@@ -223,7 +223,7 @@ assert.doesNotMatch(paymentSource, /showAccessCode|setShowAccessCode/);
 assert.doesNotMatch(paymentSource, /\{receipt\.accessCode\}<\/bdi>/);
 assert.match(paymentSource, /readShopOrderReceipt\(\)/);
 assert.match(paymentSource, /fetchShopOrderWithMobile\(/);
-assert.match(paymentSource, /href="\/shop\/track"/);
+assert.match(paymentSource, /export function ShopOrderTrackScreen\(\)/);
 assert.match(ownerSource, /function formatNumber\(value: number \| string\) \{ return formatShopInteger\(value\); \}/);
 storage.set('halleus.shop.order.receipt.v1', '{broken json');
 assert.equal(client.readShopOrderReceipt(), null);
