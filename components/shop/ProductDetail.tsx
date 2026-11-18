@@ -114,7 +114,8 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
   const zoomDialog = useRef<HTMLDialogElement>(null);
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const livePrices = useShopLivePrices();
-  const price = nemad ? null : liveShopPrice(livePrices.prices, id, SHOP_SIZES[sizeIndex].dimension);
+  const hasBahmanPricing = nemad?.slug === 'bahman';
+  const price = liveShopPrice(livePrices.prices, hasBahmanPricing ? 'p01' : id, SHOP_SIZES[sizeIndex].dimension);
   const nemadTheme = photoIndex === 0 ? 'dark' : 'light';
   const artwork = nemadPreview ?? nemad?.initial;
   const gallerySwipe = useShopGallerySwipe((step) => {
@@ -235,6 +236,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
         return;
       }
       setNemadPreview(result.value);
+      setPhotoIndex(0);
       setNemadNeedsDetails(false);
       setFormError('');
       return;
@@ -274,7 +276,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
               {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}
               onClick={(event) => { if (event.detail === 0 || gallerySwipe.canOpenZoom()) setZoomOpen(true); }}
               aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
-              {nemad && artwork ? (
+              {nemad && artwork && photoIndex < 2 ? (
                 <span className={styles.nemadArtwork}>
                   <NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
                     sign={artwork.sign} theme={nemadTheme} />
@@ -307,14 +309,15 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                   aria-label={`نمایش تصویر ${index + 1}: ${photo.label}`}
                   aria-pressed={photoIndex === index}
                 >
-                  {nemad ? <span className={`${styles.nemadThemeSwatch} ${index === 0 ? '' : styles.nemadLightSwatch}`}>
+                  {nemad && index < 2 ? <span className={`${styles.nemadThemeSwatch} ${index === 0 ? '' : styles.nemadLightSwatch}`}>
                     {index === 0 ? 'مینیمال مشکی' : 'مینیمال روشن'}
                   </span> : <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 82px, 156px" />}
                 </button>
               ))}
             </div>
-            {id === 'p01' ? <p className={styles.galleryPosition} aria-live="polite">تصویر {formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)} · {product.gallery[photoIndex].label}</p> : null}
+            {(id === 'p01' || hasBahmanPricing) ? <p className={styles.galleryPosition} aria-live="polite">تصویر {formatPrice(photoIndex + 1)} از {formatPrice(product.gallery.length)} · {product.gallery[photoIndex].label}</p> : null}
             {product.galleryNote ? <p className={styles.galleryCaption}>{product.galleryNote}</p> : null}
+            {hasBahmanPricing ? <p className={styles.galleryCaption}>چهار موکاپ با نام‌های نمونه هستند؛ برای دیدن طرح با نام و تاریخ دلخواهت، پیش‌نمایش شخصی را بساز.</p> : null}
           </div>
 
           <div className={styles.productInfo}>
@@ -340,9 +343,9 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                   ))}
                 </div>
               </fieldset>
-              {!nemad ? <div className={styles.priceBlock}>
+              {(!nemad || hasBahmanPricing) ? <div className={styles.priceBlock}>
                 <p className={styles.priceLabel}>قیمت</p>
-                <p className={styles.price} aria-live="polite"><bdi>{price === null ? 'در حال دریافت…' : formatPrice(price)}</bdi><span>تومان</span></p>
+                <p className={styles.price} aria-live="polite"><bdi>{price === null ? (livePrices.error ? 'قیمت در دسترس نیست' : 'در حال دریافت…') : formatPrice(price)}</bdi><span>تومان</span></p>
               </div> : null}
               <a className={styles.sizeGuideLink} href="#size-guide">مقایسهٔ اندازه‌ها روی دیوار <span aria-hidden="true">↓</span></a>
               <form id="personalize" onSubmit={confirmDetails} className={styles.personalizeForm} aria-label={`شخصی‌سازی ${product.title}`}>
@@ -596,7 +599,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
       </div>
 
       {!nemad ? <div className={`${styles.mobilePurchaseBar} ${hideMobileBar ? styles.mobilePurchaseBarHidden : ''}`} inert={hideMobileBar} aria-hidden={hideMobileBar}>
-        <div><small>قیمت</small><strong><bdi>{price === null ? 'در حال دریافت…' : formatPrice(price)}</bdi> <span>تومان</span></strong></div>
+        <div><small>قیمت</small><strong><bdi>{price === null ? (livePrices.error ? 'قیمت در دسترس نیست' : 'در حال دریافت…') : formatPrice(price)}</bdi> <span>تومان</span></strong></div>
         {id === 'p01' ? <a href="#personalize"><span>{editingKey ? 'ویرایش انتخاب‌ها' : 'افزودن به سبد'}</span></a> : <span>به‌زودی</span>}
       </div> : null}
 
@@ -605,7 +608,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
           <button type="button" className={styles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن بزرگ‌نمایی">×</button>
           <div className={`${styles.zoomPhoto} ${nemad ? styles.nemadZoomPhoto : ''}`}
               {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
-              {nemad && artwork ? <div className={styles.nemadArtwork}>
+              {nemad && artwork && photoIndex < 2 ? <div className={styles.nemadArtwork}>
                 <NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
                   sign={artwork.sign} theme={nemadTheme}/>
               </div> : <Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" />}

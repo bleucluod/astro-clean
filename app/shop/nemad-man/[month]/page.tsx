@@ -118,10 +118,21 @@ function readApprovedMonth(slug: string): (NemadProductPage & {
   const sampleDate = '1375/' + String(index + 1).padStart(2, '0') + '/15';
   const initial = validateBahmanPreview('آراد', sampleDate);
   if (!initial.ok) throw new Error('Invalid Nemad Man sample date: ' + sampleDate);
+  const product = parseCustomerProduct(source, months[index].title, slug);
+  if (slug === 'bahman') {
+    product.gallery = [
+      { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#dark', alt: 'پیش‌نمایش شخصی طرح تیرهٔ نماد بهمن', label: 'نماد شخصی · تیره' },
+      { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#light', alt: 'پیش‌نمایش شخصی طرح روشن نماد بهمن', label: 'نماد شخصی · روشن' },
+      { src: '/shop-preview/nemad-man/bahman/01-mahsa-1387-11-12-light-console.webp', alt: 'تابلو نماد من با نام مهسا، طرح روشن روی میز کنسول', label: 'موکاپ · میز کنسول' },
+      { src: '/shop-preview/nemad-man/bahman/02-nora-1370-11-18-dark-wall-bench.webp', alt: 'تابلو نماد من با نام نورا، طرح تیره روی دیوار', label: 'موکاپ · روی دیوار' },
+      { src: '/shop-preview/nemad-man/bahman/03-reza-1372-11-14-light-workdesk.webp', alt: 'تابلو نماد من با نام رضا، طرح روشن روی میز کار', label: 'موکاپ · میز کار' },
+      { src: '/shop-preview/nemad-man/bahman/04-sina-1373-11-16-dark-gift-wrap.webp', alt: 'تابلو نماد من با نام سینا، طرح تیره در بسته‌بندی هدیه', label: 'موکاپ · کادوی نیمه‌باز' },
+    ];
+  }
   return {
     slug, seoTitle, metaDescription, initial: initial.value,
     months: months.map((item) => ({ slug: item.slug, title: item.title })),
-    product: parseCustomerProduct(source, months[index].title, slug),
+    product,
   };
 }
 
