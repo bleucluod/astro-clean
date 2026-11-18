@@ -1,6 +1,6 @@
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import { getAdminDatabase } from "@/lib/admin/admin-database";
-import { isShopMvpActive, isShopP02OrderEnabled } from "@/lib/shop/shop-mvp-activation";
+import { wikiShopProductCatalog } from "@/lib/wiki/wiki-shop-showcase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,8 +57,7 @@ export async function POST(request: Request) {
     (event !== "impression" && event !== "click")) return empty(400);
 
   if (!allowEvent(id, event)) return empty(429);
-  const p01 = isShopMvpActive();
-  const p02 = isShopP02OrderEnabled();
+  const orderableProducts = wikiShopProductCatalog().filter(p => p.orderable).map(p => p.id);
   try {
     const sql = getAdminDatabase();
     const rows = await sql`
@@ -74,8 +73,7 @@ export async function POST(request: Request) {
         and a.status = 'published' and a.is_indexable = true
         and a.published_at is not null and a.published_at <= now()
         and a.scheduled_for is null and a.deleted_at is null
-        and ((s.product_id = 'p01' and ${p01}::boolean)
-          or (s.product_id = 'p02' and ${p02}::boolean))
+        and s.product_id = any(${orderableProducts}::text[])
       on conflict (showcase_id, product_id, day) do update
         set impressions = metric.impressions + excluded.impressions,
             clicks = metric.clicks + excluded.clicks

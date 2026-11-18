@@ -76,7 +76,7 @@ assert.match(card, /setting\.choice === "denied"/);
 assert.match(card, /onClick=\{recordClick\}/);
 assert.match(card, /track = false/);
 assert.match(publicPage, /trackShowcases/);
-assert.match(article, /track=\{trackShowcases\}/);
+assert.match(article, /track=\{trackShowcases && !offer\.id\.startsWith\('auto-nemad-'\)\}/);
 assert.doesNotMatch(panel, /trackShowcases\s*[,=]/);
 assert.match(publicSource, /s\.id::text as showcase_id/);
 assert.match(publicSource, /id: asString\(row\.showcase_id\)/);
@@ -134,13 +134,17 @@ const recorder = load("app/api/wiki/showcase-event/route.ts", {
   "@/lib/admin/admin-database": {
     getAdminDatabase: () => async (strings, ...values) => {
       assert.match(strings.join("?"), /on conflict/);
+      assert.ok(values.some(v => Array.isArray(v) && v.includes('nm-mehr') && !v.includes('p03')));
       written++;
       ids.push(values.find((v) => typeof v === "string" && v.startsWith("00000001-")));
       return [{ showcase_id: "ok" }];
     },
   },
-  "@/lib/shop/shop-mvp-activation": {
-    isShopMvpActive: () => true, isShopP02OrderEnabled: () => true,
+  "@/lib/wiki/wiki-shop-showcase": {
+    wikiShopProductCatalog: () => [
+      { id: 'p01', orderable: true }, { id: 'p02', orderable: true },
+      { id: 'nm-mehr', orderable: true }, { id: 'p03', orderable: false },
+    ],
   },
 });
 const id = "00000001-1111-4111-8111-111111111111";

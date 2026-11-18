@@ -1,18 +1,21 @@
 import { AdminAccessError, type VerifiedAdminActor } from '@/lib/admin/admin-auth';
 import { asNumber, asRecord, asString, getAdminDatabase } from '@/lib/admin/admin-database';
-import { isShopMvpActive, isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
-import { getShopProduct, getAllShopProducts } from '@/components/shop/product-detail-data';
+import { isShopMvpActive, isShopP02OrderEnabled, isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
+import { getAllShopProducts } from '@/components/shop/product-detail-data';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import type { ShopProductId } from '@/components/shop/product-detail-data';
 import type { WikiArticleSection } from '@/lib/wiki/wiki-content';
 import { wikiShowcaseSectionAnchor, resolveWikiShowcaseSection } from './wiki-showcase-anchor';
 import { eligibleWikiShowcasePosition } from "./wiki-showcase-positions";
+import { automaticNemadWikiOffer, wikiNemadProducts, type WikiNemadShowcaseId } from './wiki-nemad-showcase';
+
+export type WikiShowcaseProductId = ShopProductId | WikiNemadShowcaseId;
 
 export type WikiShopShowcaseItem = {
   showcaseId?: string;
   articleId: string;
   articleVersion: number;
-  productId: ShopProductId;
+  productId: WikiShowcaseProductId;
   afterSectionIndex: number;
   sectionTitle: string;
   sectionAnchor?: string;
@@ -36,10 +39,14 @@ type SourceArticle = {
   sections: WikiArticleSection[];
 };
 
-const productIds: readonly ShopProductId[] = getAllShopProducts().map((product) => product.id);
-const available = (productId: ShopProductId) =>
+const productIds: readonly WikiShowcaseProductId[] = [
+  ...getAllShopProducts().map((product) => product.id),
+  ...wikiNemadProducts(true).map((product) => product.id),
+];
+const available = (productId: WikiShowcaseProductId) =>
   productId === 'p01' ? isShopMvpActive()
-    : productId === 'p02' ? isShopP02OrderEnabled() : false;
+    : productId === 'p02' ? isShopP02OrderEnabled()
+      : productId.startsWith('nm-') && isShopNemadOrderEnabled();
 
 const plain = (value: unknown, field: string, maxLength: number) => {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > maxLength) {
@@ -78,17 +85,15 @@ export async function listWikiShopShowcaseArticles() {
 }
 
 export function wikiShopProductCatalog() {
-  return productIds.map((id) => {
-    const product = getShopProduct(id);
-    return {
-      id,
-      name: product.title,
-      description: product.introduction,
-      url: getShopProductUrl(id),
-      image: product.gallery[0]?.src ?? null,
-      orderable: available(id),
-    };
-  });
+  const existing = getAllShopProducts().map((product) => ({
+    id: product.id,
+    name: product.title,
+    description: product.introduction,
+    url: getShopProductUrl(product.id),
+    image: product.gallery[0]?.src ?? null,
+    orderable: available(product.id),
+  }));
+  return [...existing, ...wikiNemadProducts(isShopNemadOrderEnabled())];
 }
 
 export async function exportWikiShopShowcaseGuide() {
@@ -195,7 +200,7 @@ function checkedItem(input: unknown): WikiShopShowcaseItem {
     throw new AdminAccessError(400, 'Invalid articleId');
   }
   const productId = row.productId;
-  if (typeof productId !== 'string' || !productIds.includes(productId as ShopProductId)) {
+  if (typeof productId !== 'string' || !productIds.includes(productId as WikiShowcaseProductId)) {
     throw new AdminAccessError(400, 'Unknown product');
   }
   const afterSectionIndex = row.afterSectionIndex;
@@ -216,7 +221,7 @@ function checkedItem(input: unknown): WikiShopShowcaseItem {
     throw new AdminAccessError(409, 'Showcase revision/id mismatch; refresh');
   }
   return {
-    showcaseId, articleId, articleVersion, productId: productId as ShopProductId,
+    showcaseId, articleId, articleVersion, productId: productId as WikiShowcaseProductId,
     afterSectionIndex, expectedRevision,
     sectionTitle: plain(row.sectionTitle, 'sectionTitle', 300),
     sectionAnchor: typeof row.sectionAnchor === 'string' ? row.sectionAnchor.slice(0, 64) : undefined,
@@ -386,7 +391,9 @@ export async function saveWikiShopShowcaseBatch(actor: VerifiedAdminActor, value
 }
 
 /** Public read: preserve all independently approved mid-article placements. */
-export async function getPublicWikiShopShowcase(slug: string) {
+export async function getPublicWikiShopShowcase(
+  slug: string, article?: { title: string; sections: readonly WikiArticleSection[] },
+) {
   let rows;
   try {
     const sql = getAdminDatabase();
@@ -405,18 +412,20 @@ export async function getPublicWikiShopShowcase(slug: string) {
   } catch (error) {
     // Optional cards must never break Wiki reading while the migration is pending.
     console.warn('WIKI_SHOWCASE_READ_UNAVAILABLE', String(asRecord(error).code ?? 'unknown'));
-    return [];
+    rows = [];
   }
+  const catalog = new Map(wikiShopProductCatalog().map((product) => [product.id, product]));
   const result: Array<{
-    id: string; productId: ShopProductId; afterSectionIndex: number; sectionTitle: string;
+    id: string; productId: WikiShowcaseProductId; afterSectionIndex: number; sectionTitle: string;
     title: string; description: string; buttonLabel: string;
     url: string; image: string; imageAlt: string;
   }> = [];
   const used = new Set<number>();
   for (const raw of rows) {
     const row = asRecord(raw);
-    const productId = asString(row.product_id) as ShopProductId;
-    if (!productIds.includes(productId) || !available(productId)) continue;
+    const productId = asString(row.product_id) as WikiShowcaseProductId;
+    const product = catalog.get(productId);
+    if (!product || !product.orderable) continue;
     const sections = Array.isArray(row.sections) ? row.sections as WikiArticleSection[] : [];
     const afterSectionIndex = resolveWikiShowcaseSection(sections, {
       sectionAnchor: asString(row.section_anchor),
@@ -424,14 +433,20 @@ export async function getPublicWikiShopShowcase(slug: string) {
     });
     if (afterSectionIndex === null || used.has(afterSectionIndex)) continue;
     used.add(afterSectionIndex);
-    const product = getShopProduct(productId);
     result.push({
       id: asString(row.showcase_id), productId, afterSectionIndex,
       sectionTitle: sections[afterSectionIndex].title,
       title: asString(row.title), description: asString(row.description),
-      buttonLabel: asString(row.button_label), url: getShopProductUrl(productId),
-      image: product.gallery[0]?.src ?? '', imageAlt: product.gallery[0]?.alt ?? product.title,
+      buttonLabel: asString(row.button_label), url: product.url,
+      image: product.image ?? '', imageAlt: product.name,
     });
+  }
+  if (article && isShopNemadOrderEnabled()) {
+    const automatic = automaticNemadWikiOffer(
+      { slug, title: article.title, sections: article.sections }, used,
+      result.map((offer) => offer.productId),
+    );
+    if (automatic) result.push(automatic);
   }
   return result.sort((a, b) => a.afterSectionIndex - b.afterSectionIndex);
 }
