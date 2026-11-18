@@ -15,6 +15,7 @@ import type {
   WikiLinkGraphEdge,
   WikiLinkScanRules,
 } from "@/lib/wiki/wiki-link-admin-types";
+import { SeoKeywordWorkspace } from "./SeoKeywordWorkspace";
 import styles from "./admin-console.module.css";
 
 export type SeoWorkspaceSection =
@@ -24,6 +25,7 @@ export type SeoWorkspaceSection =
   | "opportunities"
   | "export"
   | "search-console"
+  | "keywords"
   | "settings";
 
 type SeoStatusFilter = "all" | "published" | "scheduled" | "draft";
@@ -1001,9 +1003,9 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
         }
       : belowLiveIncomingTarget > 0
         ? {
-            eyebrow: "اولویت اول",
-            title: `تکمیل ۳ لینک ورودی زنده برای ${formatNumber(belowLiveIncomingTarget)} مقاله`,
-            body: "هر مقاله منتشر باید از حداقل سه مقاله منتشر دیگر لینک متنی طبیعی بگیرد؛ لینک‌های scheduled تا زمان انتشار مقصد فقط planned حساب می‌شوند.",
+            eyebrow: "پیشنهاد بهبود",
+            title: `${formatNumber(belowLiveIncomingTarget)} مقاله زیر هدف پیشنهادی ۳ ورودی است`,
+            body: "سه ورودی یک هدف اختیاری است، نه الزام گوگل یا شرط انتشار. فقط از مقاله‌های واقعاً مرتبط لینک طبیعی بساز.",
             action: "دیدن فرصت‌های لینک‌سازی",
             run: () => onSectionChange("opportunities"),
           }
@@ -1041,7 +1043,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
                 {unresolved > 0 || blocked > 0
                   ? "SEO ویکی نیازمند اصلاح است"
                   : belowLiveIncomingTarget > 0
-                    ? "لینک‌سازی داخلی هنوز به ۳ ورودی زنده نرسیده"
+                    ? "لینک‌سازی مرتبط می‌تواند بهتر شود"
                     : "وضعیت فنی SEO ویکی سالم است"}
               </h2>
               <p>این صفحه فقط چیزهایی را نشان می‌دهد که به تصمیم و اکشن بعدی کمک می‌کنند.</p>
@@ -1065,7 +1067,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
             </button>
             <button type="button" onClick={() => onSectionChange("opportunities")}>
               <strong>{formatNumber(belowLiveIncomingTarget)}</strong>
-              <span>مقاله زیر ۳ لینک ورودی زنده</span>
+              <span>مقاله زیر هدف پیشنهادی ۳ ورودی</span>
             </button>
             <button type="button" onClick={() => onSectionChange("readiness")}>
               <strong>{formatNumber(blocked)}</strong>
@@ -1119,6 +1121,7 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
               ["links", "لینک‌سازی داخلی", "فیلتر، جدول فشرده و جزئیات ورودی و خروجی هر مقاله."],
               ["opportunities", "فرصت‌های رشد", "اولویت‌های عملی از وضعیت انتشار و لینک‌های داخلی."],
               ["export", "خروجی AI", "فایل تمیز برای تحلیل یا ساخت لیست اصلاح."],
+              ["keywords", "نقشهٔ کلیدواژه‌ها", "بانک دائمی کیوردهای ویکی و محصولات، همراه Queryهای GSC و تداخل‌ها."],
               ["search-console", "داده سرچ کنسول", "CSV سرچ کنسول را با لینک‌های داخلی ترکیب کن."],
               ["settings", "تنظیمات اسکن", "قواعد فنی و هدف لینک ورودی، دور از صفحه اصلی."],
             ] as const).map(([section, title, body]) => (
@@ -1367,13 +1370,18 @@ export function SeoAdminPanel({ token, session, activeSection, onSectionChange }
         </section>
       ) : null}
 
+      {activeSection === "keywords" ? (
+        <SeoKeywordWorkspace token={token} canWrite={canSettings}
+          graphArticles={state?.graph.articles ?? []} />
+      ) : null}
+
       {activeSection === "search-console" ? (
         <section className={styles.seoSection}>
           <div className={styles.seoSectionHeader}>
             <div>
               <span className={styles.seoEyebrow}>داده بیرونی</span>
               <h2>داده سرچ کنسول</h2>
-              <p>CSV صفحه‌های Search Console را موقتاً داخل مرورگر تحلیل کن؛ چیزی در دیتابیس ذخیره نمی‌شود.</p>
+              <p>CSV صفحه‌های Search Console را موقتاً اینجا تحلیل کن؛ برای ذخیرهٔ دائمی کوئری‌های هر مقاله یا محصول به «نقشهٔ کلیدواژه‌ها» برو.</p>
             </div>
             {searchConsoleFileName ? <small>{searchConsoleFileName}</small> : null}
           </div>

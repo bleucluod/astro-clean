@@ -234,6 +234,7 @@ const seoSections: { id: SeoWorkspaceSection; label: string }[] = [
   { id: "links", label: "لینک‌سازی داخلی" },
   { id: "opportunities", label: "فرصت‌های رشد" },
   { id: "export", label: "خروجی AI" },
+  { id: "keywords", label: "نقشهٔ کلیدواژه‌ها" },
   { id: "search-console", label: "داده سرچ کنسول" },
   { id: "settings", label: "تنظیمات اسکن" },
 ];

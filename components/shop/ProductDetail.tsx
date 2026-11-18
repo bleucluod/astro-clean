@@ -60,16 +60,10 @@ function ApprovedProductCopy({ sections }: { sections: ShopCopySection[] }) {
   );
 }
 
-function TextWithLinks({ children }: { children: string }) {
-  const parts = children.split(/(<a href="\/shop\/(?:moon-phase-print|birth-sky-map|milky-way-print)">[^<]+<\/a>)/g);
-  return (
-    <>
-      {parts.map((part, i) => {
-        const link = part.match(/^<a href="(\/shop\/(?:moon-phase-print|birth-sky-map|milky-way-print))">([^<]+)<\/a>$/);
-        return link ? <Link key={i} href={link[1]}>{link[2]}</Link> : <span key={i}>{part}</span>;
-      })}
-    </>
-  );
+function plainProductCopy(text: string) {
+  // Sales prose does not send readers to another product mid-paragraph.
+  // Navigation, breadcrumbs and related product cards remain unchanged.
+  return text.replace(/<a href="\/shop\/(?:moon-phase-print|birth-sky-map|milky-way-print)">([^<]+)<\/a>/g, "$1");
 }
 
 const sizeScenes = [
@@ -610,7 +604,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
               {product.editorial.map((section) => (
                 <div key={section.title} className={styles.editorialSubsection}>
                   <h3>{section.title}</h3>
-                  {section.paragraphs.map((paragraph) => <p key={paragraph}><TextWithLinks>{paragraph}</TextWithLinks></p>)}
+                  {section.paragraphs.map((paragraph) => <p key={paragraph}>{plainProductCopy(paragraph)}</p>)}
                 </div>
               ))}
           </div>
