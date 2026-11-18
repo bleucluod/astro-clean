@@ -48,14 +48,16 @@ const DATE_WHEEL_ITEM_HEIGHT = 40;
 type DateWheelOption = { value: string; label: string };
 
 function DateWheel({
-  label, value, options, onChange,
+  label, value, options, onChange, onTap,
 }: {
   label: string;
   value: string;
   options: readonly DateWheelOption[];
   onChange: (value: string) => void;
+  onTap: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const pointerRef = useRef<{ id: number; x: number; y: number; scrollTop: number; moved: boolean } | null>(null);
   const [wheelTouched, setWheelTouched] = useState(false);
   const settlingRef = useRef(true);
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
@@ -89,6 +91,10 @@ function DateWheel({
   }
 
   function handleScroll(event: ReactUIEvent<HTMLDivElement>) {
+    if (pointerRef.current &&
+      Math.abs(event.currentTarget.scrollTop - pointerRef.current.scrollTop) > 2) {
+      pointerRef.current.moved = true;
+    }
     if (settlingRef.current) return;
     const index = Math.max(0, Math.min(
       options.length - 1,
@@ -100,6 +106,11 @@ function DateWheel({
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     setWheelTouched(true);
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onTap();
+      return;
+    }
     let nextIndex = selectedIndex;
     if (event.key === "ArrowDown") nextIndex = Math.min(options.length - 1, selectedIndex + 1);
     else if (event.key === "ArrowUp") nextIndex = Math.max(0, selectedIndex - 1);
@@ -116,12 +127,39 @@ function DateWheel({
         <div
           ref={scrollRef}
           className={styles.wheelViewport + (wheelTouched ? " " + styles.wheelTouched : "")}
-          onPointerDown={() => setWheelTouched(true)}
-          onTouchStart={() => setWheelTouched(true)}
+          onPointerDown={(event) => {
+            setWheelTouched(true);
+            if (!event.isPrimary || event.button !== 0) return;
+            pointerRef.current = {
+              id: event.pointerId,
+              x: event.clientX,
+              y: event.clientY,
+              scrollTop: event.currentTarget.scrollTop,
+              moved: false,
+            };
+          }}
+          onPointerMove={(event) => {
+            const pointer = pointerRef.current;
+            if (!pointer || pointer.id !== event.pointerId) return;
+            if (Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) > 8) {
+              pointer.moved = true;
+            }
+          }}
+          onPointerUp={(event) => {
+            const pointer = pointerRef.current;
+            if (!pointer || pointer.id !== event.pointerId) return;
+            pointerRef.current = null;
+            if (!pointer.moved &&
+              Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) <= 8 &&
+              Math.abs(event.currentTarget.scrollTop - pointer.scrollTop) <= 2) {
+              onTap();
+            }
+          }}
+          onPointerCancel={() => { pointerRef.current = null; }}
           onWheel={() => setWheelTouched(true)}
           role="spinbutton"
           tabIndex={0}
-          aria-label={label}
+          aria-label={label + "؛ لمس برای ورود دستی، کشیدن برای انتخاب"}
           aria-valuemin={0}
           aria-valuemax={options.length - 1}
           aria-valuenow={selectedIndex}
@@ -129,17 +167,14 @@ function DateWheel({
           onScroll={handleScroll}
           onKeyDown={handleKeyDown}
         >
-          {options.map((option, index) => (
-            <button
+          {options.map((option) => (
+            <span
               key={option.value || "empty"}
-              type="button"
-              tabIndex={-1}
               aria-hidden="true"
               className={styles.wheelRow + (option.value === value ? " " + styles.wheelActive : "")}
-              onClick={() => choose(index)}
             >
               {option.label}
-            </button>
+            </span>
           ))}
         </div>
         <span className={styles.wheelSelection} aria-hidden="true" />
@@ -166,11 +201,12 @@ type QuickField = {
 };
 
 function QuickEntryDialog({
-  open, title, fields, valid, hint, confirmLabel, onConfirm, onClose,
+  open, title, fields, focusIndex, valid, hint, confirmLabel, onConfirm, onClose,
 }: {
   open: boolean;
   title: string;
   fields: readonly QuickField[];
+  focusIndex: number;
   valid: boolean;
   hint: string;
   confirmLabel: string;
@@ -178,14 +214,14 @@ function QuickEntryDialog({
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const firstInputRef = useRef<HTMLInputElement>(null);
+  const focusedInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.showModal();
-      firstInputRef.current?.focus();
+      focusedInputRef.current?.focus();
     } else if (!open && dialog.open) {
       dialog.close();
     }
@@ -203,7 +239,7 @@ function QuickEntryDialog({
             <label className={styles.quickField} key={field.label}>
               <span>{field.label}</span>
               <input
-                ref={index === 0 ? firstInputRef : undefined}
+                ref={index === focusIndex ? focusedInputRef : undefined}
                 type="text"
                 inputMode="numeric"
                 autoComplete="off"
@@ -256,7 +292,14 @@ export function MobileBirthDatePicker({
 }) {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickRevision, setQuickRevision] = useState(0);
+  const [quickFocusIndex, setQuickFocusIndex] = useState(0);
   const [draft, setDraft] = useState<MobileDateParts>(value);
+
+  const openQuick = (index: number) => {
+    setDraft({ ...value });
+    setQuickFocusIndex(index);
+    setQuickOpen(true);
+  };
   const normalizedDraft = paddedParts(draft);
   const quickValid = validDate(mode, normalizedDraft, yearOptions);
   const changeDraft = (field: keyof MobileDateParts, nextValue: string) => {
@@ -297,19 +340,15 @@ export function MobileBirthDatePicker({
       data-complete={validDate(mode, value, yearOptions)}>
       <div key={quickRevision} className={styles.wheelPicker + " " + styles.dateWheelPicker} dir="rtl">
         <DateWheel label="روز" value={value.day} options={dayWheelOptions}
-          onChange={(day) => changeValue("day", day)} />
+          onChange={(day) => changeValue("day", day)} onTap={() => openQuick(0)} />
         <DateWheel label="ماه" value={value.month} options={monthWheelOptions}
-          onChange={(month) => changeValue("month", month)} />
+          onChange={(month) => changeValue("month", month)} onTap={() => openQuick(1)} />
         <DateWheel key={mode} label="سال" value={value.year} options={yearWheelOptions}
-          onChange={(year) => changeValue("year", year)} />
+          onChange={(year) => changeValue("year", year)} onTap={() => openQuick(2)} />
       </div>
-      <button type="button" className={styles.quickTrigger}
-        aria-haspopup="dialog"
-        onClick={() => { setDraft({ ...value }); setQuickOpen(true); }}>
-        ورود سریع تاریخ با کیبورد
-      </button>
       <QuickEntryDialog
         open={quickOpen}
+        focusIndex={quickFocusIndex}
         title={"ورود تاریخ تولد " + (mode === "jalali" ? "شمسی" : "میلادی")}
         fields={[
           { label: "روز", value: draft.day, maxLength: 2, placeholder: "۰۱",
@@ -353,7 +392,14 @@ export function MobileBirthTimePicker({
 }) {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickRevision, setQuickRevision] = useState(0);
+  const [quickFocusIndex, setQuickFocusIndex] = useState(0);
   const [draft, setDraft] = useState<MobileTimeParts>(value);
+
+  const openQuick = (index: number) => {
+    setDraft({ ...value });
+    setQuickFocusIndex(index);
+    setQuickOpen(true);
+  };
   const normalizedDraft = {
     hour: draft.hour ? draft.hour.padStart(2, "0") : "",
     minute: draft.minute ? draft.minute.padStart(2, "0") : "",
@@ -367,17 +413,13 @@ export function MobileBirthTimePicker({
       role="group" aria-label="ساعت تولد به‌صورت ۲۴ ساعته">
       <div key={quickRevision} className={styles.wheelPicker + " " + styles.timeWheelPicker} dir="rtl">
         <DateWheel label="ساعت" value={value.hour} options={TIME_WHEEL_HOURS}
-          onChange={(hour) => onConfirm({ ...value, hour })} />
+          onChange={(hour) => onConfirm({ ...value, hour })} onTap={() => openQuick(0)} />
         <DateWheel label="دقیقه" value={value.minute} options={TIME_WHEEL_MINUTES}
-          onChange={(minute) => onConfirm({ ...value, minute })} />
+          onChange={(minute) => onConfirm({ ...value, minute })} onTap={() => openQuick(1)} />
       </div>
-      <button type="button" className={styles.quickTrigger}
-        aria-haspopup="dialog"
-        onClick={() => { setDraft({ ...value }); setQuickOpen(true); }}>
-        ورود سریع ساعت با کیبورد
-      </button>
       <QuickEntryDialog
         open={quickOpen}
+        focusIndex={quickFocusIndex}
         title="ورود ساعت تولد"
         fields={[
           { label: "ساعت", value: draft.hour, maxLength: 2, placeholder: "۱۴",

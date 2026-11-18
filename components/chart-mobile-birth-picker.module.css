@@ -147,20 +147,6 @@
 }
 
 /* Optional keyboard entry for mobile date/time wheels. */
-.quickTrigger {
-  display: block;
-  margin: 9px auto 0;
-  padding: 8px 16px;
-  border: 1px solid rgba(150, 194, 228, .5);
-  border-radius: 11px;
-  background: rgba(41, 76, 107, .35);
-  color: #d9eafd;
-  font: inherit;
-  font-size: .85rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.quickTrigger:focus-visible { outline: 2px solid #bcdffd; outline-offset: 2px; }
 .quickDialog {
   position: fixed;
   box-sizing: border-box;
