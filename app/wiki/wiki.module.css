@@ -11,7 +11,9 @@
   --wiki-violet: #8b929c;
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2rem;
+  min-width: 0;
   width: min(1180px, 100%);
   margin: 0 auto;
   padding-top: clamp(4.7rem, 7vw, 5.8rem);
@@ -646,6 +648,8 @@
 
 .articleMain {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 1rem;
 }
 
@@ -653,6 +657,7 @@
 .keyPoints,
 .articleBody,
 .sideCard {
+  min-width: 0;
   border: 1px solid var(--wiki-border);
   background: linear-gradient(145deg, rgba(17, 20, 26, 0.96), rgba(8, 10, 14, 0.98));
   box-shadow:
@@ -739,12 +744,14 @@
 
 .articleBody {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   padding: clamp(1.4rem, 4vw, 2.5rem);
   border-radius: 28px;
 }
 
 .bodySection {
+  min-width: 0;
   padding: 1.4rem 0;
   border-bottom: 1px solid var(--wiki-border);
 }
@@ -802,6 +809,7 @@
 
 /* R3 editorial tables are scrollable on narrow screens without truncating data. */
 .bodyTableScroll {
+  min-width: 0;
   max-width: 100%;
   margin: 1rem 0 1.25rem;
   overflow-x: auto;
