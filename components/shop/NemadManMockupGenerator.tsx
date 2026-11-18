@@ -152,6 +152,11 @@ const TRIO_PANELS: TrioPanel[] = [
   ], inverse: [0.007678195283984, 0.000605033665767, -3.634052696037477, -2.9706782975e-05, 0.005669010523415, -4.143006566697439, 0.000210554640566, 0.000579121851875] as const, referenceLuminance: 69 },
 ];
 const TRIO_ORDER: TrioSize[] = ['large', 'medium', 'small'];
+// Exact photographic face masks (RGB channels = large / medium / small).
+// Unlike guessed quads they preserve every irregular printed edge and overlap.
+const TRIO_FACE_MASK_PATH = '/shop-preview/nemad-man/mockup-three-sizes-face-masks.png';
+// Foreground blossoms from the approved photo, not reconstructed by AI.
+const TRIO_FLOWERS_PATH = '/shop-preview/nemad-man/mockup-three-sizes-foreground-flowers.png';
 const OUTPUT_WIDTH = 1024;
 const OUTPUT_HEIGHT = 1536;
 const MAX_ARTS = 300;
@@ -573,22 +578,11 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
 // Separate three-image renderer. Each independent uploaded WebP is projected in
 // its own full 2:3 UV space, then clipped by the physical fronts of later canvases.
 // The approved interior photograph and its pre-existing shadows remain the base.
-function insideQuad(x: number, y: number, polygon: Quad, margin = 0): boolean {
-  // A convex clockwise quadrilateral. margin pushes the boundary outwards a few
-  // pixels when protecting the foreground canvas edge from background paint.
-  for (let i = 0; i < 4; i++) {
-    const p = polygon[i];
-    const q = polygon[(i + 1) % 4];
-    const cross = (q.x - p.x) * (y - p.y) - (q.y - p.y) * (x - p.x);
-    const length = Math.hypot(q.x - p.x, q.y - p.y);
-    if (cross < -margin * length) return false;
-  }
-  return true;
-}
-
 function composeTrio(
   scene: HTMLImageElement,
   posters: Record<TrioSize, ImageBitmap>,
+  faceMasks: HTMLImageElement,
+  foregroundFlowers: HTMLImageElement,
 ): HTMLCanvasElement {
   const width = OUTPUT_WIDTH;
   const height = OUTPUT_HEIGHT;
@@ -598,11 +592,25 @@ function composeTrio(
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('امکان ساخت موکاپ سه‌اندازه در مرورگر وجود ندارد.');
   ctx.drawImage(scene, 0, 0, width, height);
-  // Read before painting; luminance is from neutral photographed surfaces,
-  // not from another person's design (preserves soft light/shadow on each print).
   const photographed = ctx.getImageData(0, 0, width, height).data;
-  for (let i = 0; i < TRIO_ORDER.length; i++) {
-    const panel = TRIO_PANELS.find(item => item.id === TRIO_ORDER[i]);
+
+  // Reuse the actual surface outlines from the photographed blank scene.
+  // Each channel is a separate precise opacity mask, including the portions
+  // hidden behind the two nearer boards. The frame itself is never repainted.
+  if (faceMasks.width !== width || faceMasks.height !== height) {
+    throw new Error('ابعاد ماسک سه‌شاسی با قالب تطبیق ندارد.');
+  }
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = width;
+  maskCanvas.height = height;
+  const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+  if (!maskCtx) throw new Error('ماسک سطح شاسی قابل خواندن نیست.');
+  maskCtx.drawImage(faceMasks, 0, 0);
+  const facePixels = maskCtx.getImageData(0, 0, width, height).data;
+  const channels: Record<TrioSize, number> = { large: 0, medium: 1, small: 2 };
+
+  for (const size of TRIO_ORDER) {
+    const panel = TRIO_PANELS.find(item => item.id === size);
     if (!panel) throw new Error('قالب شاسی ناقص است.');
     const poster = posters[panel.id];
     const source = document.createElement('canvas');
@@ -617,21 +625,21 @@ function composeTrio(
     layer.height = height;
     const layerCtx = layer.getContext('2d');
     if (!layerCtx) throw new Error('ساخت لایهٔ شاسی ممکن نیست.');
-    const image = layerCtx.createImageData(width, height);
-    const out = image.data;
-    const nextPanels = TRIO_ORDER.slice(i + 1).map(id => TRIO_PANELS.find(p => p.id === id));
+    const output = layerCtx.createImageData(width, height);
+    const out = output.data;
+    const maskChannel = channels[size];
     const [a, b, c, d, e, f, g, h] = panel.inverse;
-    const minX = Math.max(0, Math.floor(Math.min(...panel.front.map(p => p.x))));
-    const maxX = Math.min(width - 1, Math.ceil(Math.max(...panel.front.map(p => p.x))));
-    const minY = Math.max(0, Math.floor(Math.min(...panel.front.map(p => p.y))));
-    const maxY = Math.min(height - 1, Math.ceil(Math.max(...panel.front.map(p => p.y))));
+    const minX = Math.max(0, Math.floor(Math.min(...panel.front.map(point => point.x)) - 6));
+    const maxX = Math.min(width - 1, Math.ceil(Math.max(...panel.front.map(point => point.x)) + 6));
+    const minY = Math.max(0, Math.floor(Math.min(...panel.front.map(point => point.y)) - 6));
+    const maxY = Math.min(height - 1, Math.ceil(Math.max(...panel.front.map(point => point.y)) + 6));
     for (let y = minY; y <= maxY; y++) {
       for (let x = minX; x <= maxX; x++) {
+        const dest = (y * width + x) * 4;
+        const coverage = facePixels[dest + maskChannel];
+        if (coverage === 0) continue;
         const px = x + 0.5;
         const py = y + 0.5;
-        if (!insideQuad(px, py, panel.front)) continue;
-        // Never cover another canvas, including its thin black cut edge.
-        if (nextPanels.some(front => front && insideQuad(px, py, front.outer, 2))) continue;
         const denom = g * px + h * py + 1;
         const u = (a * px + b * py + c) / denom;
         const v = (d * px + e * py + f) / denom;
@@ -647,23 +655,25 @@ function composeTrio(
         const p10 = (y0 * poster.width + x1) * 4;
         const p01 = (y1 * poster.width + x0) * 4;
         const p11 = (y1 * poster.width + x1) * 4;
-        const dest = (y * width + x) * 4;
-        const lum = photographed[dest] * 0.2126 + photographed[dest + 1] * 0.7152 + photographed[dest + 2] * 0.0722;
+        const lum = photographed[dest] * 0.2126 + photographed[dest + 1] * 0.7152 +
+          photographed[dest + 2] * 0.0722;
         const exposure = Math.max(0.78, Math.min(1.12, Math.pow(lum / panel.referenceLuminance, 0.68)));
-        // Physical contact shadows on the inward edge of overlapping boards.
-        const leftContact = Math.min(1, Math.max(0, (px - Math.min(...panel.front.map(p => p.x))) / 18));
-        const nearEdge = 1 - 0.035 * (1 - leftContact);
         for (let channel = 0; channel < 3; channel++) {
           const art = pixels[p00 + channel] * w00 + pixels[p10 + channel] * w10 +
             pixels[p01 + channel] * w01 + pixels[p11 + channel] * w11;
-          out[dest + channel] = Math.min(255, art * exposure * nearEdge);
+          out[dest + channel] = Math.min(255, art * exposure);
         }
-        out[dest + 3] = 255;
+        out[dest + 3] = coverage;
       }
     }
-    layerCtx.putImageData(image, 0, 0);
+    layerCtx.putImageData(output, 0, 0);
     ctx.drawImage(layer, 0, 0);
   }
+
+  // Flowers and thin branches in front of the medium panel must remain in
+  // front after replacing its original artwork. This photographic cutout is
+  // deliberately applied last, after all three independent artwork layers.
+  ctx.drawImage(foregroundFlowers, 105, 440);
   return canvas;
 }
 
@@ -802,7 +812,10 @@ export function NemadManMockupGenerator() {
           if (sources.some(item => !item)) return;
           bitmaps = await Promise.all(sources.map(item => createImageBitmap(item!.image)));
           if (bitmaps.some(bitmap => bitmap.width * bitmap.height > MAX_IMAGE_PIXELS)) throw new Error('ابعاد یکی از تصویرها بیش از حد مجاز است.');
-          canvas = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] });
+          const [masks, flowers] = await Promise.all([
+            loadImage(TRIO_FACE_MASK_PATH), loadImage(TRIO_FLOWERS_PATH),
+          ]);
+          canvas = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] }, masks, flowers);
         } else {
           bitmaps = [await createImageBitmap(previewArt!.image)];
           if (bitmaps[0].width * bitmaps[0].height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
@@ -836,7 +849,10 @@ export function NemadManMockupGenerator() {
         let output: HTMLCanvasElement;
         try {
           if (bitmaps.some(bitmap => bitmap.width * bitmap.height > MAX_IMAGE_PIXELS)) throw new Error('ابعاد یک تصویر بیش از حد مجاز است.');
-          output = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] });
+          const [masks, flowers] = await Promise.all([
+            loadImage(TRIO_FACE_MASK_PATH), loadImage(TRIO_FLOWERS_PATH),
+          ]);
+          output = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] }, masks, flowers);
         } finally { bitmaps.forEach(bitmap => bitmap.close()); }
         const blob = await smallWebp(output, limitKb * 1000);
         const joined = TRIO_ORDER.map(size => trioChoices[size]).join('|');
