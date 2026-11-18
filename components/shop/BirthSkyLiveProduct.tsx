@@ -12,6 +12,7 @@ import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
 import { NemadManEditorial } from './NemadManEditorial';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
+import { NemadPreviewWatermark } from './NemadPreviewWatermark';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import type { NemadProductPage } from './ProductDetail';
 import { SHOP_P02_SIZES, SHOP_SIZES } from './product-detail-data';
@@ -99,7 +100,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [input, setInput] = useState<Personalization>(() => nemad ? {
     ...initial, calendar: 'jalali', date: nemad.initial.date, time: '', city: '',
-    cityId: '', names: nemad.initial.name, message: '',
+    cityId: '', names: '', message: '',
   } : initial);
   const [nemadPreview, setNemadPreview] = useState<BahmanPreview | null>(null);
   const [nemadNeedsDetails, setNemadNeedsDetails] = useState(false);
@@ -361,9 +362,9 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
             onClick={(event) => { if (event.detail === 0 || gallerySwipe.canOpenZoom()) setZoomOpen(true); }}
             aria-label={'بزرگ‌نمایی ' + displayLabel}>
             {showingPreview && nemad && nemadPreview
-              ? <span className={pdStyles.nemadArtwork}><NemadManBahmanArtwork
+              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
                   name={nemadPreview.name} date={nemadPreview.gregorianDate}
-                  sign={nemadPreview.sign} theme={nemadTheme} /></span>
+                  sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork
               ? <Image unoptimized src={artwork} alt={displayAlt} fill
                   sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
@@ -384,9 +385,9 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
               onClick={() => setPhotoIndex(0)} aria-pressed={showingPreview}
               aria-label={hasPreview ? 'نمایش پیش‌نمایش تابلوی من' : 'پس از شخصی‌سازی، پیش‌نمایش تابلوی من اینجا ظاهر می‌شود'}>
               {nemad && nemadPreview
-                ? <span className={pdStyles.nemadArtwork}><NemadManBahmanArtwork
+                ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
                     name={nemadPreview.name} date={nemadPreview.gregorianDate}
-                    sign={nemadPreview.sign} theme={nemadTheme} /></span>
+                    sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
                 : artwork ? <Image unoptimized src={artwork} alt="" fill sizes="88px" />
                 : <span className={styles.previewThumbEmpty}>پیش‌نمایش تابلوی من</span>}
             </button>
@@ -394,7 +395,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
               className={[pdStyles.thumbnail, photoIndex === index + 1 ? pdStyles.thumbnailActive : ''].filter(Boolean).join(' ')}
               onClick={() => setPhotoIndex(index + 1)} aria-pressed={photoIndex === index + 1}
               aria-label={'نمایش تصویر ' + (index + 2) + ': ' + photo.label}>
-              <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 68px, 88px" />
+              <Image src={photo.src} alt={nemad ? photo.alt : ''} fill sizes="(max-width: 760px) 68px, 88px" />
             </button>)}
           </div>
           {!nemad ? <>
@@ -447,7 +448,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
               {nemad ? <div className={pdStyles.calendarChooser}>
                 <span className={pdStyles.calendarLabel}>مدل تابلو</span>
                 <div className={pdStyles.calendarSwitch} role="group" aria-label="رنگ نماد من">
-                  {([['dark', 'مینیمال مشکی'], ['light', 'مینیمال روشن']] as const).map(([theme, label]) =>
+                  {([['dark', 'مینیمال تیره'], ['light', 'مینیمال روشن']] as const).map(([theme, label]) =>
                     <button key={theme} type="button" disabled={busy}
                       className={[pdStyles.calendarOption, nemadTheme === theme ? pdStyles.calendarActive : ''].filter(Boolean).join(' ')}
                       aria-pressed={nemadTheme === theme} onClick={() => setNemadTheme(theme)}>{label}</button>)}
@@ -515,7 +516,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
               <div className={pdStyles.formField}>
                 <label htmlFor="p02-names">نام روی تابلو {nemad ? null : <small>(اختیاری)</small>}</label>
                 <input id="p02-names" maxLength={nemad ? 28 : 60} required={Boolean(nemad)} disabled={busy} value={input.names}
-                  placeholder={nemad ? 'نامی که روی نماد نوشته می‌شود' : 'نامی که این آسمان متعلق به اوست'}
+                  placeholder={nemad ? 'نام شما' : 'نامی که این آسمان متعلق به اوست'}
                   onChange={(event) => change('names', event.target.value)} />
               </div>
               {!nemad ? <details className={pdStyles.optionalFields}>
@@ -590,9 +591,9 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
           <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
           <div className={pdStyles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
             {showingPreview && nemad && nemadPreview
-              ? <span className={pdStyles.nemadArtwork}><NemadManBahmanArtwork
+              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
                   name={nemadPreview.name} date={nemadPreview.gregorianDate}
-                  sign={nemadPreview.sign} theme={nemadTheme} /></span>
+                  sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork
                 ? <Image unoptimized src={artwork} alt={displayAlt} fill sizes="95vw" />
                 : <Image src={currentPhoto.src} alt={currentPhoto.alt} fill sizes="95vw" />}

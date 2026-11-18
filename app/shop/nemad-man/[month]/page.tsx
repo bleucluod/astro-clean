@@ -100,8 +100,8 @@ function parseCustomerProduct(source: string, month: string, slug: string): Shop
     galleryNote: fields['توضیح تصاویر'] ?? '',
     // Entries are only the two theme choices; their visual is the existing SVG.
     gallery: [
-      { src: '/nemad-man/zodiac-glyphs-v1/aries.webp#dark', alt: 'مینیمال مشکی', label: 'مینیمال مشکی' },
-      { src: '/nemad-man/zodiac-glyphs-v1/aries.webp#light', alt: 'مینیمال روشن', label: 'مینیمال روشن' },
+      { src: '/nemad-man/zodiac-glyphs-v1/aries.webp#dark', alt: 'تابلو نماد ماه تولد ' + month + '؛ پیش‌نمایش مدل مینیمال تیره با نشان برج', label: 'مینیمال تیره' },
+      { src: '/nemad-man/zodiac-glyphs-v1/aries.webp#light', alt: 'تابلو نماد ماه ' + month + '؛ پیش‌نمایش مدل مینیمال روشن با نشان برج', label: 'مینیمال روشن' },
     ],
     storyTitle: sections[0].title, story: sections[0].paragraphs,
     qualityTitle: sections[1].title, quality: sections[1].paragraphs,
@@ -130,30 +130,30 @@ function readApprovedMonth(slug: string): (NemadProductPage & {
   const seoTitle = requireField(source, /^\*\*SEO Title:\*\*\s*(.+)$/m, 'SEO Title');
   const metaDescription = requireField(source, /^\*\*Meta Description:\*\*\s*(.+)$/m, 'Meta Description');
   const sampleDate = '1375/' + String(index + 1).padStart(2, '0') + '/15';
-  const initial = validateBahmanPreview('آراد', sampleDate);
+  const initial = validateBahmanPreview('نام شما', sampleDate);
   if (!initial.ok) throw new Error('Invalid Nemad Man sample date: ' + sampleDate);
   const product = parseCustomerProduct(source, months[index].title, slug);
   if (slug === 'bahman') {
     // Keep the two approved dark scenes. The former light scenes are no
     // longer gallery images; one new approved light/black-edge scene replaces them.
     product.gallery = [
-      { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#dark', alt: 'پیش‌نمایش شخصی طرح تیرهٔ نماد بهمن', label: 'نماد شخصی · تیره' },
-      { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#light', alt: 'پیش‌نمایش شخصی طرح روشن نماد بهمن', label: 'نماد شخصی · روشن' },
-      { src: '/shop-preview/nemad-man/bahman/02-nora-1370-11-18-dark-wall-bench.webp', alt: 'تابلو نماد من با نام نورا، طرح تیره روی دیوار', label: 'موکاپ · روی دیوار' },
-      { src: '/shop-preview/nemad-man/bahman/04-sina-1373-11-16-dark-gift-wrap.webp', alt: 'تابلو نماد من با نام سینا، طرح تیره در بسته‌بندی هدیه', label: 'موکاپ · کادوی نیمه‌باز' },
+      { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#dark', alt: 'تابلو نماد ماه تولد بهمن؛ پیش‌نمایش مدل مینیمال تیره با نشان آبریز', label: 'مینیمال تیره' },
+      { src: '/nemad-man/zodiac-glyphs-v1/aquarius.webp#light', alt: 'تابلو نماد ماه بهمن؛ پیش‌نمایش مدل مینیمال روشن با نشان آبریز', label: 'مینیمال روشن' },
+      { src: '/shop-preview/nemad-man/bahman/02-nora-1370-11-18-dark-wall-bench.webp', alt: 'تابلو ماه تولد بهمن؛ موکاپ تیره با نام نورا روی دیوار', label: 'موکاپ · روی دیوار' },
+      { src: '/shop-preview/nemad-man/bahman/04-sina-1373-11-16-dark-gift-wrap.webp', alt: 'هدیه برای متولدین بهمن؛ موکاپ تیره با نام سینا و بسته‌بندی نیمه‌باز', label: 'موکاپ · کادوی نیمه‌باز' },
     ];
   }
   // One verified approved white-shasi mockup per month, with a black edge.
   // The existing dark scenes and both interactive artwork themes are preserved.
   product.gallery.push({
     src: '/shop-preview/nemad-man/' + slug + '/arad-light-black-edge-20261118.webp',
-    alt: 'موکاپ تابلوی نماد ' + months[index].title + ' با طرح روشن روی شاسی بدون قاب و لبهٔ مشکی',
+    alt: 'تابلو نماد ' + months[index].title + ' سفارشی؛ موکاپ روشن روی شاسی بدون قاب با لبهٔ مشکی',
     label: 'موکاپ روشن · لبهٔ مشکی',
   });
   // Nine additional owner-approved light 30x45 mockups exist only for Tir-Esfand.
   if (index >= 3) product.gallery.push({
     src: '/shop-preview/nemad-man/' + slug + '/halle-light-30x45-black-edge-20261118.webp',
-    alt: 'موکاپ روشن تابلوی نماد ' + months[index].title + ' در اندازهٔ ۳۰×۴۵ سانتی‌متر با لبهٔ مشکی',
+    alt: 'تابلو ماه تولد ' + months[index].title + ' با اسم؛ موکاپ روشن ۳۰×۴۵ سانتی‌متری با لبهٔ مشکی',
     label: 'موکاپ روشن · ۳۰×۴۵',
   });
   return {

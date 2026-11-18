@@ -9,6 +9,7 @@ import { buildShopProductStructuredData } from './product-schema';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProduct, type ShopProductId, type ShopCopySection } from './product-detail-data';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
+import { NemadPreviewWatermark } from './NemadPreviewWatermark';
 import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-cart';
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
@@ -321,8 +322,8 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
               aria-label={`بزرگ‌نمایی ${product.gallery[photoIndex].label}`}>
               {nemad && artwork && photoIndex < 2 ? (
                 <span className={styles.nemadArtwork}>
-                  <NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
-                    sign={artwork.sign} theme={nemadTheme} />
+                  <NemadPreviewWatermark><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                    sign={artwork.sign} theme={nemadTheme} /></NemadPreviewWatermark>
                 </span>
               ) : (
                 <Image
@@ -353,8 +354,8 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                   aria-pressed={photoIndex === index}
                 >
                   {nemad && index < 2 ? <span className={`${styles.nemadThemeSwatch} ${index === 0 ? '' : styles.nemadLightSwatch}`}>
-                    {index === 0 ? 'مینیمال مشکی' : 'مینیمال روشن'}
-                  </span> : <Image src={photo.src} alt="" fill sizes="(max-width: 760px) 82px, 156px" />}
+                    {index === 0 ? 'مینیمال تیره' : 'مینیمال روشن'}
+                  </span> : <Image src={photo.src} alt={nemad ? photo.alt : ''} fill sizes="(max-width: 760px) 82px, 156px" />}
                 </button>
               ))}
             </div>
@@ -468,7 +469,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                   <label htmlFor="product-names">{formCopy.names} {nemad ? null : <small>(اختیاری)</small>}</label>
                   <input id="product-names" type="text" required={Boolean(nemad)}
                     maxLength={nemad ? 28 : 60}
-                    placeholder={nemad ? 'مثلاً آراد' : id === 'p03' ? 'مثلاً هاله و آراد' : 'نامی که دوست داری روی تابلو باشد…'} value={form.names} onChange={(event) => updateForm('names', event.target.value)} />
+                    placeholder={nemad ? 'نام شما' : id === 'p03' ? 'مثلاً هاله و آراد' : 'نامی که دوست داری روی تابلو باشد…'} value={form.names} onChange={(event) => updateForm('names', event.target.value)} />
                 </div>
                 {!nemad ? <details className={styles.optionalFields}>
                   <summary>{formCopy.details} <span aria-hidden="true">+</span></summary>
@@ -524,8 +525,8 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
         <section className={styles.storySection} aria-labelledby="story-heading">
           <div className={styles.storyImage}>
             {nemad && artwork ? (
-              <div className={styles.nemadArtwork}><NemadManBahmanArtwork
-                name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></div>
+              <div className={styles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
+                name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></NemadPreviewWatermark></div>
             ) : <Image src={product.gallery[1].src} alt={product.gallery[1].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />}
           </div>
           <div className={styles.storyCopy}>
@@ -546,8 +547,8 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
           </div>
           <div className={styles.craftImage}>
             {nemad && artwork ? (
-              <div className={styles.nemadArtwork}><NemadManBahmanArtwork
-                name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></div>
+              <div className={styles.nemadArtwork}><NemadPreviewWatermark><NemadManBahmanArtwork
+                name={artwork.name} date={artwork.gregorianDate} sign={artwork.sign} theme={nemadTheme} /></NemadPreviewWatermark></div>
             ) : <Image src={product.gallery[3].src} alt={product.gallery[3].alt} width={563} height={908} sizes="(max-width: 760px) calc(100vw - 32px), 440px" />}
           </div>
         </section>
@@ -654,8 +655,8 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
           <div className={`${styles.zoomPhoto} ${nemad ? styles.nemadZoomPhoto : ''}`}
               {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
               {nemad && artwork && photoIndex < 2 ? <div className={styles.nemadArtwork}>
-                <NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
-                  sign={artwork.sign} theme={nemadTheme}/>
+                <NemadPreviewWatermark><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                  sign={artwork.sign} theme={nemadTheme}/></NemadPreviewWatermark>
               </div> : <Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" />}
             </div>
           <div className={styles.zoomActions}>
