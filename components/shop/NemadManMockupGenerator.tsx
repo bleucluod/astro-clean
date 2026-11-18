@@ -9,18 +9,18 @@ type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
 
 const TEMPLATE = '/shop-preview/nemad-man/mockup-blank-console.webp';
-// Pixel-verified face of the sole, fixed 1024x1536 scene. Corners are NOT user controls.
-// Top-left, top-right, bottom-right, bottom-left: the visible printable surface only.
+// Calibrated once to the slim black canvas in the bundled 1024x1536 scene.
+// Top-left, top-right, bottom-right, bottom-left; never user-adjustable.
 const CANVAS_FRONT: Quad = [
-  { x: 254, y: 241 }, { x: 861, y: 204 },
-  { x: 840, y: 1226 }, { x: 211, y: 1186 },
+  { x: 253, y: 240 }, { x: 863, y: 201 },
+  { x: 843, y: 1229 }, { x: 214, y: 1188 },
 ];
-// Inverse projective map from output pixels to source artwork UV coordinates.
-// Solved once for CANVAS_FRONT. A single pixel pass avoids strip gaps and seams.
+// Exact inverse homography from these four corners to the source image UV.
+// Keep these values paired with CANVAS_FRONT when updating the scene asset.
 const INVERSE = [
-  0.00186885322, 0.0000850377655, -0.495182819,
-  0.0000704023501, 0.00115497909, -0.296232159,
-  0.000140701320, 0.0000495277950,
+  0.0018636185359866, 7.6667851164004e-05, -0.48989577388396,
+  7.3190193517959e-05, 0.001144769693486, -0.29326184539669,
+  0.00014499156832027, 4.3231528835866e-05,
 ] as const;
 const OUTPUT_WIDTH = 1024;
 const OUTPUT_HEIGHT = 1536;
@@ -229,9 +229,10 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap): HTMLCanvasElemen
       const den = g * px + h * py + 1;
       const u = (a * px + b * py + c) / den;
       const v = (d * px + e * py + f) / den;
-      if (u < 0 || v < 0 || u > 1 || v > 1) continue;
-      const sx = u * (srcW - 1);
-      const sy = v * (srcH - 1);
+      // Clamp near the silhouette: a skipped edge pixel leaves the blank
+      // canvas visible as a white triangle in dark artwork, especially in corners.
+      const sx = Math.max(0, Math.min(srcW - 1, u * (srcW - 1)));
+      const sy = Math.max(0, Math.min(srcH - 1, v * (srcH - 1)));
       const x0 = Math.floor(sx);
       const y0 = Math.floor(sy);
       const x1 = Math.min(srcW - 1, x0 + 1);
@@ -265,13 +266,30 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap): HTMLCanvasElemen
   }
   ctx.closePath();
   ctx.clip();
+  // A dark undercoat prevents any anti-aliased edge pixel from revealing the
+  // original white blank surface; the full source artwork then covers it.
+  ctx.fillStyle = '#090b0d';
+  ctx.fill();
   ctx.drawImage(surface, 0, 0);
 
-  // Subtle illumination from the photographed blank surface, confined to the face.
+  // Subtle photographic lighting only on the printed face.
   ctx.globalCompositeOperation = 'multiply';
   ctx.globalAlpha = 0.14;
   ctx.drawImage(scene, 0, 0, width, height);
   ctx.restore();
+
+  // Hide subpixel white halos at all four joins, keeping a genuinely thin
+  // matte-black cut edge rather than adding a picture frame.
+  ctx.beginPath();
+  ctx.moveTo(CANVAS_FRONT[0].x, CANVAS_FRONT[0].y);
+  for (let i = 1; i < CANVAS_FRONT.length; i++) {
+    ctx.lineTo(CANVAS_FRONT[i].x, CANVAS_FRONT[i].y);
+  }
+  ctx.closePath();
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#0c0e10';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
   return canvas;
 }
 
