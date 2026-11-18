@@ -28,15 +28,7 @@
 .stage img { width:100%; height:100%; display:block; object-fit:cover; }
 .previewFoot { color:#64748b; text-align:center; font-size:13px; line-height:1.8; }
 @media(max-width:800px) { .grid{grid-template-columns:minmax(0,1fr)} .panel{padding:16px} .shell{padding-top:23px} }
-.fileList { display:grid; gap:7px; margin:12px 0 15px; max-height:300px; overflow-y:auto; border:1px solid #d9eafd; padding:10px; border-radius:12px; }
-.fileItem { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:10px; padding:8px; border-radius:9px; background:#f8fafc; }
-.fileItem input[type=checkbox] { width:16px; height:16px; accent-color:#315b7d; }
-.fileItem span { overflow-wrap:anywhere; font-size:12px; direction:ltr; text-align:left; }
-.fileItem small { font-size:11px; color:#64748b; }
-.previewButton { border:1px solid #bcccdc; background:#fff; border-radius:8px; padding:7px; font:inherit; font-size:12px; color:#315b7d; cursor:pointer; }
-.tokenLabel { display:grid; gap:9px; color:#3a4a5c; font-size:13px; margin:16px 0; }
-.tokenLabel input { width:100%; border:1px solid #bcccdc; border-radius:10px; padding:12px; font:inherit; direction:ltr; }
-.pushButton { background:#315b7d; color:#fff; font:inherit; padding:12px 16px; border:none; border-radius:11px; font-weight:650; cursor:pointer; }
-.pushButton:disabled { opacity:.45; cursor:not-allowed; }
-.success { margin-top:14px; color:#207048; font-weight:650; }
-.success a { color:inherit; text-decoration:underline; }
+
+.trioChooser { padding: 12px; margin: 14px 0; border: 1px solid #d9eafd; border-radius: 12px; background: #f8fafc; }
+.trioChooser .inlineLabel { display: flex; justify-content: space-between; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
+.trioChooser select { max-width: 100%; width: min(100%, 370px); overflow: hidden; text-overflow: ellipsis; }

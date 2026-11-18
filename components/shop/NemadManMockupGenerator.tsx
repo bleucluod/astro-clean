@@ -9,7 +9,7 @@ type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
 type BuiltMockup = { sourceName: string; fileName: string; blob: Blob; bytes: number };
 type SourceVariant = 'all' | 'light' | 'dark';
-type SceneId = 'console' | 'wall-bench' | 'workdesk' | 'gift-wrap';
+type SceneId = 'console' | 'wall-bench' | 'workdesk' | 'gift-wrap' | 'trio-bookshelf';
 type MockupScene = {
   id: SceneId;
   label: string;
@@ -19,6 +19,10 @@ type MockupScene = {
   inverse: readonly [number, number, number, number, number, number, number, number];
   suffix: string;
 };
+type TrioSize = 'small' | 'medium' | 'large';
+type TrioChoices = Record<TrioSize, string>;
+type TrioPanel = { id: TrioSize; label: string; front: Quad; outer: Quad;
+  inverse: readonly [number, number, number, number, number, number, number, number]; referenceLuminance: number };
 type GitHubHead = { object: { sha: string } };
 type GitHubCommit = { tree: { sha: string } };
 type GitHubTree = { tree: Array<{ path: string; type: string }>; truncated: boolean };
@@ -105,7 +109,49 @@ const SCENES: MockupScene[] = [
     ],
     suffix: '-gift-wrap',
   },
+  { id: 'trio-bookshelf', label: 'کتابخانه · سه اندازه، سه طرح مستقل',
+    path: '/shop-preview/nemad-man/mockup-blank-three-sizes-bookshelf.webp',
+    front: CANVAS_FRONT, inverse: INVERSE, suffix: '-three-sizes' },
 ];
+// Source photograph: approved Pinterest bookshelf scene, centered to 2:3 without stretching.
+// Correct overlap order is large -> medium -> small. The outer silhouettes are
+// occlusion masks, so the rear artwork never paints over a foreground black cut edge.
+const TRIO_PANELS: TrioPanel[] = [
+  { id: 'large', label: '۳۰×۴۵ سانتی\u200cمتر', front: [
+    { x: 381.615, y: 192.0 },
+    { x: 894.675, y: 146.387 },
+    { x: 895.735, y: 1028.95 },
+    { x: 362.534, y: 1027.89 }
+  ], outer: [
+    { x: 376.315, y: 184.575 },
+    { x: 913.756, y: 138.961 },
+    { x: 913.756, y: 1045.923 },
+    { x: 358.294, y: 1043.801 }
+  ], inverse: [0.002176619667246, 4.9686041616e-05, -0.840170413050349, 0.000116901929906, 0.001314925464333, -0.297077217991584, 0.000119412155157, 5.2156839785e-05] as const, referenceLuminance: 58 },
+  { id: 'medium', label: '۲۰×۳۰ سانتی\u200cمتر', front: [
+    { x: 161.126, y: 474.166 },
+    { x: 520.48, y: 472.044 },
+    { x: 518.36, y: 1024.707 },
+    { x: 117.665, y: 1017.282 }
+  ], outer: [
+    { x: 155.826, y: 467.801 },
+    { x: 530.021, y: 463.558 },
+    { x: 526.841, y: 1038.497 },
+    { x: 111.304, y: 1037.437 }
+  ], inverse: [0.003177708649145, 0.000254285301616, -0.632584946839737, 1.3625093808e-05, 0.002307389541484, -1.096280991925642, 5.1892179754e-05, 0.000242294784151] as const, referenceLuminance: 64 },
+  { id: 'small', label: '۱۰×۱۵ سانتی\u200cمتر', front: [
+    { x: 415.536, y: 732.994 },
+    { x: 618.004, y: 734.055 },
+    { x: 616.944, y: 1039.558 },
+    { x: 392.215, y: 1028.95 }
+  ], outer: [
+    { x: 409.176, y: 723.448 },
+    { x: 628.605, y: 727.691 },
+    { x: 626.484, y: 1044.862 },
+    { x: 385.855, y: 1041.68 }
+  ], inverse: [0.007678195283984, 0.000605033665767, -3.634052696037477, -2.9706782975e-05, 0.005669010523415, -4.143006566697439, 0.000210554640566, 0.000579121851875] as const, referenceLuminance: 69 },
+];
+const TRIO_ORDER: TrioSize[] = ['large', 'medium', 'small'];
 const OUTPUT_WIDTH = 1024;
 const OUTPUT_HEIGHT = 1536;
 const MAX_ARTS = 300;
@@ -524,6 +570,103 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   return canvas;
 }
 
+// Separate three-image renderer. Each independent uploaded WebP is projected in
+// its own full 2:3 UV space, then clipped by the physical fronts of later canvases.
+// The approved interior photograph and its pre-existing shadows remain the base.
+function insideQuad(x: number, y: number, polygon: Quad, margin = 0): boolean {
+  // A convex clockwise quadrilateral. margin pushes the boundary outwards a few
+  // pixels when protecting the foreground canvas edge from background paint.
+  for (let i = 0; i < 4; i++) {
+    const p = polygon[i];
+    const q = polygon[(i + 1) % 4];
+    const cross = (q.x - p.x) * (y - p.y) - (q.y - p.y) * (x - p.x);
+    const length = Math.hypot(q.x - p.x, q.y - p.y);
+    if (cross < -margin * length) return false;
+  }
+  return true;
+}
+
+function composeTrio(
+  scene: HTMLImageElement,
+  posters: Record<TrioSize, ImageBitmap>,
+): HTMLCanvasElement {
+  const width = OUTPUT_WIDTH;
+  const height = OUTPUT_HEIGHT;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('امکان ساخت موکاپ سه‌اندازه در مرورگر وجود ندارد.');
+  ctx.drawImage(scene, 0, 0, width, height);
+  // Read before painting; luminance is from neutral photographed surfaces,
+  // not from another person's design (preserves soft light/shadow on each print).
+  const photographed = ctx.getImageData(0, 0, width, height).data;
+  for (let i = 0; i < TRIO_ORDER.length; i++) {
+    const panel = TRIO_PANELS.find(item => item.id === TRIO_ORDER[i]);
+    if (!panel) throw new Error('قالب شاسی ناقص است.');
+    const poster = posters[panel.id];
+    const source = document.createElement('canvas');
+    source.width = poster.width;
+    source.height = poster.height;
+    const sourceCtx = source.getContext('2d', { willReadFrequently: true });
+    if (!sourceCtx) throw new Error('خواندن طرح اصلی ممکن نیست.');
+    sourceCtx.drawImage(poster, 0, 0);
+    const pixels = sourceCtx.getImageData(0, 0, poster.width, poster.height).data;
+    const layer = document.createElement('canvas');
+    layer.width = width;
+    layer.height = height;
+    const layerCtx = layer.getContext('2d');
+    if (!layerCtx) throw new Error('ساخت لایهٔ شاسی ممکن نیست.');
+    const image = layerCtx.createImageData(width, height);
+    const out = image.data;
+    const nextPanels = TRIO_ORDER.slice(i + 1).map(id => TRIO_PANELS.find(p => p.id === id));
+    const [a, b, c, d, e, f, g, h] = panel.inverse;
+    const minX = Math.max(0, Math.floor(Math.min(...panel.front.map(p => p.x))));
+    const maxX = Math.min(width - 1, Math.ceil(Math.max(...panel.front.map(p => p.x))));
+    const minY = Math.max(0, Math.floor(Math.min(...panel.front.map(p => p.y))));
+    const maxY = Math.min(height - 1, Math.ceil(Math.max(...panel.front.map(p => p.y))));
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        const px = x + 0.5;
+        const py = y + 0.5;
+        if (!insideQuad(px, py, panel.front)) continue;
+        // Never cover another canvas, including its thin black cut edge.
+        if (nextPanels.some(front => front && insideQuad(px, py, front.outer, 2))) continue;
+        const denom = g * px + h * py + 1;
+        const u = (a * px + b * py + c) / denom;
+        const v = (d * px + e * py + f) / denom;
+        const sx = Math.max(0, Math.min(poster.width - 1, u * (poster.width - 1)));
+        const sy = Math.max(0, Math.min(poster.height - 1, v * (poster.height - 1)));
+        const x0 = Math.floor(sx), y0 = Math.floor(sy);
+        const x1 = Math.min(poster.width - 1, x0 + 1);
+        const y1 = Math.min(poster.height - 1, y0 + 1);
+        const fx = sx - x0, fy = sy - y0;
+        const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy);
+        const w01 = (1 - fx) * fy, w11 = fx * fy;
+        const p00 = (y0 * poster.width + x0) * 4;
+        const p10 = (y0 * poster.width + x1) * 4;
+        const p01 = (y1 * poster.width + x0) * 4;
+        const p11 = (y1 * poster.width + x1) * 4;
+        const dest = (y * width + x) * 4;
+        const lum = photographed[dest] * 0.2126 + photographed[dest + 1] * 0.7152 + photographed[dest + 2] * 0.0722;
+        const exposure = Math.max(0.78, Math.min(1.12, Math.pow(lum / panel.referenceLuminance, 0.68)));
+        // Physical contact shadows on the inward edge of overlapping boards.
+        const leftContact = Math.min(1, Math.max(0, (px - Math.min(...panel.front.map(p => p.x))) / 18));
+        const nearEdge = 1 - 0.035 * (1 - leftContact);
+        for (let channel = 0; channel < 3; channel++) {
+          const art = pixels[p00 + channel] * w00 + pixels[p10 + channel] * w10 +
+            pixels[p01 + channel] * w01 + pixels[p11 + channel] * w11;
+          out[dest + channel] = Math.min(255, art * exposure * nearEdge);
+        }
+        out[dest + 3] = 255;
+      }
+    }
+    layerCtx.putImageData(image, 0, 0);
+    ctx.drawImage(layer, 0, 0);
+  }
+  return canvas;
+}
+
 function encodeWebp(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(blob => blob && blob.type === 'image/webp'
@@ -587,7 +730,12 @@ export function NemadManMockupGenerator() {
   const [progress, setProgress] = useState(0);
   const [limitKb, setLimitKb] = useState(70);
   const [sceneId, setSceneId] = useState<SceneId>('console');
+  const [trioChoices, setTrioChoices] = useState<TrioChoices>({ small: '', medium: '', large: '' });
   const activeScene = SCENES.find(scene => scene.id === sceneId) ?? SCENES[0];
+  const isTrio = sceneId === 'trio-bookshelf';
+  const trioSources = TRIO_ORDER.map(size => arts.find(item => item.name === trioChoices[size]));
+  const trioReady = trioSources.every(Boolean) && new Set(TRIO_ORDER.map(size => trioChoices[size])).size === 3;
+
 
   const selectedArts = arts.filter(item => selectedSources[item.name] !== false);
   const shownArts = arts.filter(item => variantFilter === 'all' || variantOf(item.name) === variantFilter);
@@ -628,6 +776,7 @@ export function NemadManMockupGenerator() {
     try {
       const next = await collectFiles(files);
       setArts(next);
+      setTrioChoices({ small: next[0]?.name ?? '', medium: next[1]?.name ?? '', large: next[2]?.name ?? '' });
       setSelectedSources(Object.fromEntries(next.map(item => [item.name, true])));
       setVariantFilter('all');
       setPreviewName(next[0]?.name ?? null);
@@ -639,26 +788,39 @@ export function NemadManMockupGenerator() {
   useEffect(() => {
     let ended = false;
     let url: string | null = null;
-    if (!previewArt) { setPreviewUrl(null); return; }
+    if ((isTrio && !trioReady) || (!isTrio && !previewArt)) {
+      setPreviewUrl(null);
+      return;
+    }
     (async () => {
+      let bitmaps: ImageBitmap[] = [];
       try {
-        const [scene, poster] = await Promise.all([loadImage(activeScene.path), createImageBitmap(previewArt.image)]);
-        if (poster.width * poster.height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
-        const canvas = compose(scene, poster, activeScene);
-        poster.close();
+        const scene = await loadImage(activeScene.path);
+        let canvas: HTMLCanvasElement;
+        if (isTrio) {
+          const sources = TRIO_ORDER.map(size => arts.find(item => item.name === trioChoices[size]));
+          if (sources.some(item => !item)) return;
+          bitmaps = await Promise.all(sources.map(item => createImageBitmap(item!.image)));
+          if (bitmaps.some(bitmap => bitmap.width * bitmap.height > MAX_IMAGE_PIXELS)) throw new Error('ابعاد یکی از تصویرها بیش از حد مجاز است.');
+          canvas = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] });
+        } else {
+          bitmaps = [await createImageBitmap(previewArt!.image)];
+          if (bitmaps[0].width * bitmaps[0].height > MAX_IMAGE_PIXELS) throw new Error('ابعاد تصویر ورودی خیلی بزرگ است.');
+          canvas = compose(scene, bitmaps[0], activeScene);
+        }
         const blob = await encodeWebp(canvas, 0.87);
         url = URL.createObjectURL(blob);
         if (!ended) { setPreviewUrl(url); setError(''); }
         else URL.revokeObjectURL(url);
       } catch (err) {
         if (!ended) setError(err instanceof Error ? err.message : 'پیش‌نمایش ایجاد نشد.');
-      }
+      } finally { bitmaps.forEach(bitmap => bitmap.close()); }
     })();
     return () => { ended = true; if (url) URL.revokeObjectURL(url); };
-  }, [previewArt, sceneId]);
+  }, [previewArt, sceneId, trioChoices.small, trioChoices.medium, trioChoices.large, arts]);
 
   const generate = async () => {
-    if (busy || uploading || !selectedArts.length) return;
+    if (busy || uploading || (isTrio ? !trioReady : !selectedArts.length)) return;
     setBusy(true);
     cancel.current = false;
     setProgress(0);
@@ -666,6 +828,28 @@ export function NemadManMockupGenerator() {
     clearBuilt();
     try {
       const scene = await loadImage(activeScene.path);
+      if (isTrio) {
+        if (!trioReady) throw new Error('برای هر سه اندازه باید یک طرح متفاوت انتخاب کنی.');
+        const selected = TRIO_ORDER.map(size => arts.find(item => item.name === trioChoices[size]));
+        if (selected.some(item => !item)) throw new Error('طرح انتخاب‌شده در ZIP پیدا نشد.');
+        const bitmaps = await Promise.all(selected.map(item => createImageBitmap(item!.image)));
+        let output: HTMLCanvasElement;
+        try {
+          if (bitmaps.some(bitmap => bitmap.width * bitmap.height > MAX_IMAGE_PIXELS)) throw new Error('ابعاد یک تصویر بیش از حد مجاز است.');
+          output = composeTrio(scene, { large: bitmaps[0], medium: bitmaps[1], small: bitmaps[2] });
+        } finally { bitmaps.forEach(bitmap => bitmap.close()); }
+        const blob = await smallWebp(output, limitKb * 1000);
+        const joined = TRIO_ORDER.map(size => trioChoices[size]).join('|');
+        let hash = 2166136261;
+        for (let i = 0; i < joined.length; i++) hash = Math.imul(hash ^ joined.charCodeAt(i), 16777619) >>> 0;
+        const name = `three-sizes-bookshelf-${hash.toString(36)}.webp`;
+        const builtItem: BuiltMockup = { sourceName: 'trio-bookshelf', fileName: name, blob, bytes: blob.size };
+        setBuilt([builtItem]);
+        setSelectedUploads({ 'trio-bookshelf': true });
+        setProgress(1);
+        saveBlob(zipBlob([{ name, data: new Uint8Array(await blob.arrayBuffer()) }]), 'Halleus-Three-Sizes-Bookshelf.zip');
+        return;
+      }
       const entries: Entry[] = [];
       const rendered: BuiltMockup[] = [];
       for (let i = 0; i < selectedArts.length; i++) {
@@ -746,7 +930,7 @@ export function NemadManMockupGenerator() {
           فایل‌ها یا ZIP را اینجا رها کن. پوشهٔ شامل ۷۲ تصویر را هم می‌توانی یکجا انتخاب کنی.
         </div>
         <p className={styles.count}>{arts.length ? `${arts.length} تصویر از ZIP یا پوشه • ${selectedArts.length} تصویر انتخاب‌شده` : 'هنوز تصویری انتخاب نشده است.'}</p>
-        {arts.length > 0 && <>
+        {arts.length > 0 && !isTrio && <>
           <h2>۲. انتخاب تصویر از ZIP</h2>
           <div className={styles.buttons}>
             <button type="button" className={styles.secondary} disabled={busy || uploading} onClick={() => selectSources('all')}>انتخاب همه</button>
@@ -783,6 +967,19 @@ export function NemadManMockupGenerator() {
             {SCENES.map(scene => <option key={scene.id} value={scene.id}>{scene.label}</option>)}
           </select>
         </label>
+        {isTrio && <div className={styles.trioChooser}>
+          <p className={styles.tip}>هر شاسی طرح مستقل دارد. شاسی بزرگ عقب، متوسط جلو و کوچک روی هر دو قرار می‌گیرد. هیچ بخشی از طرحِ پشت، روی شاسی جلویی کشیده نمی‌شود.</p>
+          {([['small', '۱۰×۱۵ · جلو'], ['medium', '۲۰×۳۰ · وسط'], ['large', '۳۰×۴۵ · عقب']] as const).map(([size, label]) =>
+            <label key={size} className={styles.inlineLabel}>{label}
+              <select disabled={busy || uploading || !arts.length} value={trioChoices[size]}
+                onChange={e => { setTrioChoices(previous => ({ ...previous, [size]: e.target.value })); setPreviewUrl(null); clearBuilt(); }}>
+                <option value="">انتخاب طرح</option>
+                {arts.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}
+              </select>
+            </label>
+          )}
+          {!trioReady && <p className={styles.error}>سه فایل متفاوت از ZIP یا پوشه انتخاب کن تا پیش‌نمایش و خروجی سه‌اندازه ساخته شود.</p>}
+        </div>}
         <p className={styles.tip}>هر صحنه جای دقیق چاپ خودش را دارد؛ بدون تنظیم دستی چهار گوشه. طرح اصلی دست‌نخورده و لبهٔ شاسی مشکی و باریک می‌ماند.</p>
         <h2>۴. خروجی نهایی</h2>
         <label className={styles.inlineLabel}>سقف هر WebP
@@ -792,10 +989,10 @@ export function NemadManMockupGenerator() {
           </select>
         </label>
         <div className={styles.buttons}>
-          <button type="button" disabled={busy || uploading || !selectedArts.length} onClick={() => { void generate(); }}>ساخت ZIP از {selectedArts.length} تصویر منتخب</button>
+          <button type="button" disabled={busy || uploading || (isTrio ? !trioReady : !selectedArts.length)} onClick={() => { void generate(); }}>{isTrio ? 'ساخت موکاپ سه‌اندازه و ZIP یک‌تصویری' : `ساخت ZIP از ${selectedArts.length} تصویر منتخب`}</button>
           {busy && <button type="button" className={styles.secondary} onClick={() => { cancel.current = true; }}>توقف</button>}
         </div>
-        {busy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {selectedArts.length}<progress value={progress} max={selectedArts.length}/></div>}
+        {busy && <div className={styles.progress} role="status">ساخته‌شده: {progress} از {isTrio ? 1 : selectedArts.length}<progress value={progress} max={isTrio ? 1 : selectedArts.length}/></div>}
         {error && <p className={styles.error} role="alert">{error}</p>}
         <p className={styles.tip}>هر فایل منتخب یک خروجی می‌گیرد و نام‌ها و ساختار پوشه در ZIP حفظ می‌شوند.</p>
         {built.length > 0 && <>
@@ -840,7 +1037,7 @@ export function NemadManMockupGenerator() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt="پیش‌نمایش خودکار شاسی بدون قاب" src={previewUrl || activeScene.path} />
         </div>
-        <p className={styles.previewFoot}>{previewArt ? previewArt.name : 'ابتدا یک تصویر یا ZIP انتخاب کن.'}</p>
+        <p className={styles.previewFoot}>{isTrio ? (trioReady ? 'سه طرح مستقل · ۱۰×۱۵، ۲۰×۳۰، ۳۰×۴۵' : 'سه طرح متفاوت انتخاب کن.') : (previewArt ? previewArt.name : 'ابتدا یک تصویر یا ZIP انتخاب کن.')}</p>
       </section>
     </div>
   </main>;
