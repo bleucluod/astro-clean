@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { WikiLinkGraphArticle } from "@/lib/wiki/wiki-link-admin-types";
 import type { SeoPage, SeoKeyword, SeoGscRow } from "@/lib/seo/seo-keyword-bank";
 import { NEMAD_MONTHS } from "@/lib/shop/nemad-man-months";
@@ -26,6 +26,56 @@ const FALLBACK_PRODUCTS: SeoPage[] = [
     title: "نماد من — " + title, type: "product" as const, status: "indexable",
   })),
 ];
+const PREVIEW_WIKI: SeoPage[] = [
+  { key: "wiki:birth-chart-basics", path: "/wiki/birth-chart-basics", title: "نمونهٔ ویکی: چارت تولد چیست؟", type: "wiki", status: "preview" },
+  { key: "wiki:how-to-read-birth-chart", path: "/wiki/how-to-read-birth-chart", title: "نمونهٔ ویکی: خواندن چارت تولد", type: "wiki", status: "preview" },
+];
+type PreviewLedger = { targets: SeoKeyword[]; queriesByPage: Record<string, SeoGscRow[]> };
+
+function editPreviewLedger(ledger: PreviewLedger, pageKey: string, action: string, values: Record<string, unknown>) {
+  if (action === "save_keyword") {
+    const phrase = String(values.phrase ?? "").trim();
+    const phraseKey = normalizePhrase(phrase);
+    const oldKey = typeof values.originalPhrase === "string" ? normalizePhrase(values.originalPhrase) : "";
+    const kind = values.kind;
+    if (phraseKey.length < 2 || phraseKey.length > 200 ||
+      (kind !== "primary" && kind !== "secondary" && kind !== "long_tail")) {
+      throw new Error("عبارت یا نوع کلیدواژه نامعتبر است.");
+    }
+    if (oldKey && oldKey !== phraseKey && ledger.targets.some((item) =>
+      item.pageKey === pageKey && item.phraseKey === phraseKey)) {
+      throw new Error("این کلیدواژه برای همین صفحه از قبل وجود دارد.");
+    }
+    ledger.targets = ledger.targets
+      .filter((item) => !(item.pageKey === pageKey && (item.phraseKey === oldKey || item.phraseKey === phraseKey)))
+      .map((item) => item.pageKey === pageKey && item.kind === "primary" && kind === "primary"
+        ? { ...item, kind: "secondary" as const } : item);
+    ledger.targets.push({ pageKey, phrase, phraseKey, kind });
+    return;
+  }
+  if (action === "remove_keyword") {
+    const phraseKey = normalizePhrase(String(values.phrase ?? ""));
+    ledger.targets = ledger.targets.filter((item) => !(item.pageKey === pageKey && item.phraseKey === phraseKey));
+    return;
+  }
+  if (action === "import_gsc") {
+    const periodStart = String(values.periodStart ?? "");
+    const periodEnd = String(values.periodEnd ?? "");
+    const sourceName = String(values.sourceName ?? "");
+    const rows = values.rows as CsvMetric[];
+    if (!Array.isArray(rows) || !rows.length || !periodStart || !periodEnd) {
+      throw new Error("داده یا بازهٔ گزارش معتبر نیست.");
+    }
+    const existing = ledger.queriesByPage[pageKey] ?? [];
+    ledger.queriesByPage[pageKey] = existing.filter((row) =>
+      row.periodStart !== periodStart || row.periodEnd !== periodEnd).concat(rows.map((row) => ({
+        ...row, periodStart, periodEnd, sourceName, importedAt: new Date().toISOString(),
+      })));
+    return;
+  }
+  throw new Error("عملیات پیش‌نمایش شناخته نشد.");
+}
+
 const KINDS: { value: KeywordKind; label: string }[] = [
   { value: "primary", label: "اصلی" },
   { value: "secondary", label: "فرعی" },
@@ -133,11 +183,12 @@ function csvQueryRows(text: string, selectedPath: string): CsvMetric[] {
 }
 
 export function SeoKeywordWorkspace({
-  token, canWrite, graphArticles,
+  token, canWrite, graphArticles, previewOnly = false,
 }: {
   token: string;
   canWrite: boolean;
   graphArticles: readonly WikiLinkGraphArticle[];
+  previewOnly?: boolean;
 }) {
   const [data, setData] = useState<BankState>(EMPTY);
   const [selectedKey, setSelectedKey] = useState("");
@@ -153,6 +204,7 @@ export function SeoKeywordWorkspace({
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const previewLedger = useRef<PreviewLedger>({ targets: [], queriesByPage: {} });
 
   const request = useCallback(async (path: string, init?: RequestInit) => {
     const headers = new Headers(init?.headers);
@@ -170,6 +222,16 @@ export function SeoKeywordWorkspace({
 
   const load = useCallback(async (pageKey: string) => {
     setLoading(true);
+    if (previewOnly) {
+      const pages = [...PREVIEW_WIKI, ...FALLBACK_PRODUCTS];
+      setData({ pages, targets: [...previewLedger.current.targets],
+        queries: [...(previewLedger.current.queriesByPage[pageKey] ?? [])] });
+      setConnected(true);
+      setError("");
+      if (!pageKey) setSelectedKey(pages[0]?.key ?? "");
+      setLoading(false);
+      return;
+    }
     try {
       const path = "/api/admin/seo/keywords" +
         (pageKey ? "?pageKey=" + encodeURIComponent(pageKey) : "");
@@ -200,7 +262,7 @@ export function SeoKeywordWorkspace({
     } finally {
       setLoading(false);
     }
-  }, [request, graphArticles]);
+  }, [request, graphArticles, previewOnly]);
 
   useEffect(() => {
     // Loading private SEO data is external synchronization.
@@ -241,10 +303,14 @@ export function SeoKeywordWorkspace({
     if (!selectedKey || !canWrite || !connected) return;
     setBusy(true); setError(""); setNotice("");
     try {
-      await request("/api/admin/seo/keywords", {
-        method: "POST",
-        body: JSON.stringify({ action, pageKey: selectedKey, ...values }),
-      });
+      if (previewOnly) {
+        editPreviewLedger(previewLedger.current, selectedKey, action, values);
+      } else {
+        await request("/api/admin/seo/keywords", {
+          method: "POST",
+          body: JSON.stringify({ action, pageKey: selectedKey, ...values }),
+        });
+      }
       await load(selectedKey);
       setNotice(message);
       return true;
@@ -298,6 +364,11 @@ export function SeoKeywordWorkspace({
   }
 
   return <section className={styles.workspace}>
+    {previewOnly ? <p role="status" className={styles.info}>
+      حالت آزمایشی localhost: بدون ورود و بدون دسترسی به داده‌های خصوصی.
+      افزودن، ویرایش و CSV فقط در حافظهٔ همین صفحه است و با Refresh پاک می‌شود.
+      این آمار و دو نمونهٔ ویکی، دادهٔ واقعی سایت نیستند.
+    </p> : null}
     <header className={styles.heading}>
       <div>
         <small>بانک دائمی کلیدواژه‌های هالیوس</small>

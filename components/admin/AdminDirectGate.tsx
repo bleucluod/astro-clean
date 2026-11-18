@@ -176,6 +176,9 @@ export function AdminDirectGate({
           <button className={styles.primaryAction} type="submit" disabled={loading}>
             {loading ? "در حال ورود…" : "ورود به پنل"}
           </button>
+          {process.env.NODE_ENV === "development" ? (
+            <a href="/admini/seo-preview">پیش‌نمایش SEO بدون ورود (فقط localhost)</a>
+          ) : null}
         </form>
       </div>
     );
