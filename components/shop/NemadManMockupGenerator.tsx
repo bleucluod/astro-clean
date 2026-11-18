@@ -77,34 +77,31 @@ const SCENES: MockupScene[] = [
     ],
     suffix: '-desk-10x15',
   },
-  { id: 'gift-wrap', label: 'کادوی نیمه‌باز · حدود ۶۰٪ طرح نمایان',
+  { id: 'gift-wrap', label: 'کادوی نیمه‌باز · دایره زیر کاغذ',
     path: '/shop-preview/nemad-man/mockup-blank-gift-wrap.webp',
-    // Full 2:3 canvas remains behind wrapping; only the real exposed face is painted.
-    // Front and wrapping seam are calibrated from the user-approved preview.
+    // Full portrait 2:3 art stays behind the photographed wrapping. Only the
+    // real exposed area is clipped; a substantial part of the star circle is hidden.
     front: [
-      { x: 299, y: 366 }, { x: 794, y: 379 },
-      { x: 768, y: 1101 }, { x: 255, y: 1080 },
+      { x: 291.000, y: 480.500 }, { x: 791.500, y: 502.800 },
+      { x: 767.000, y: 1261.000 }, { x: 264.500, y: 1233.500 },
     ],
-    // The gift-paper seam is curved. A four-corner trapezoid leaves white
-    // slivers where the paper meets a dark design; trace the physical lip.
+    // Image-derived paper contact curve from the approved gift photograph.
     visible: [
-      { x: 299, y: 366 }, { x: 793, y: 379 },
-      { x: 771, y: 855 }, { x: 750, y: 854 },
-      { x: 725, y: 858 }, { x: 700, y: 854 },
-      { x: 675, y: 849 }, { x: 650, y: 845 },
-      { x: 625, y: 841 }, { x: 600, y: 836 },
-      { x: 575, y: 831 }, { x: 550, y: 827 },
-      { x: 525, y: 822 }, { x: 500, y: 818 },
-      { x: 475, y: 813 }, { x: 450, y: 808 },
-      { x: 425, y: 803 }, { x: 400, y: 798 },
-      { x: 375, y: 793 }, { x: 350, y: 788 },
-      { x: 325, y: 782 }, { x: 300, y: 778 },
-      { x: 274, y: 774 },
+      { x: 291.000, y: 480.500 }, { x: 791.500, y: 502.800 },
+      { x: 780.000, y: 791.000 }, { x: 768.000, y: 799.000 }, { x: 748.000, y: 805.000 },
+      { x: 728.000, y: 811.000 }, { x: 708.000, y: 816.000 }, { x: 683.000, y: 822.000 },
+      { x: 663.000, y: 812.000 }, { x: 640.000, y: 809.000 }, { x: 620.000, y: 806.000 },
+      { x: 600.000, y: 802.000 }, { x: 580.000, y: 799.000 }, { x: 560.000, y: 795.000 },
+      { x: 540.000, y: 791.000 }, { x: 520.000, y: 787.000 }, { x: 500.000, y: 784.000 },
+      { x: 480.000, y: 780.000 }, { x: 460.000, y: 777.000 }, { x: 440.000, y: 773.000 },
+      { x: 420.000, y: 769.000 }, { x: 400.000, y: 766.000 }, { x: 380.000, y: 761.000 },
+      { x: 360.000, y: 756.000 }, { x: 340.000, y: 751.000 }, { x: 320.000, y: 745.000 },
+      { x: 301.000, y: 739.000 }, { x: 284.000, y: 735.000 },
     ],
     inverse: [
-      0.00208978510766976, 0.000128782275542674, -0.671980060041878,
-      -3.90574247592383e-05, 0.00148718655814023, -0.532632110276311,
-      1.96015039809362e-05, 5.42327274873981e-05,
+      0.00202213726921787, 7.11641934054095e-05, -0.622636340273698,
+      -5.9741244622612e-05, 0.00134083001350543, -0.62688411930418,
+      1.32953775545867e-05, 6.25173554025243e-06,
     ],
     suffix: '-gift-wrap',
   },
@@ -522,7 +519,7 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   }
   ctx.lineJoin = 'round';
   ctx.strokeStyle = '#0c0e10';
-  ctx.lineWidth = 1.8;
+  ctx.lineWidth = mockup.id === 'gift-wrap' ? 3.5 : 1.8;
   ctx.stroke();
   return canvas;
 }
