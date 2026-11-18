@@ -203,7 +203,8 @@ export function SeoKeywordWorkspace({
   }, [request, graphArticles]);
 
   useEffect(() => {
-    // Load the private SEO ledger whenever selection changes.
+    // Loading private SEO data is external synchronization.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load(selectedKey);
   }, [load, selectedKey]);
 
