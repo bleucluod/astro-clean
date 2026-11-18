@@ -280,9 +280,9 @@ function QuickEntryDialog({
           <strong>{title}</strong>
           <button type="button" className={styles.quickClose} onClick={closeQuick} aria-label="بستن پنجره">×</button>
         </div>
-        <div className={styles.quickInputs}>
+        <div className={styles.quickInputs} dir={fields.length === 2 ? "ltr" : "rtl"}>
           {fields.map((field, index) => (
-            <label className={styles.quickField} key={field.label}>
+            <label className={styles.quickField} key={field.label} dir="rtl">
               <span>{field.label}</span>
               <input
                 ref={(element) => { inputRefs.current[index] = element; }}

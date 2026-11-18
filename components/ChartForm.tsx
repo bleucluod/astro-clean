@@ -1369,10 +1369,11 @@ export function ChartForm({
                 {birthTimeMode === "known" ? (
                   <div
                   className="birth-time-picker-grid"
+                  dir="ltr"
                   role="group"
                   aria-label="انتخاب ساعت تولد به‌صورت ۲۴ ساعته"
                 >
-                  <div className="chart-select-segment">
+                  <div className="chart-select-segment" dir="rtl">
                     <span>ساعت تولد</span>
                     <ChartSelect
                       key={`hour-${birthTimeMode}`}
@@ -1391,7 +1392,7 @@ export function ChartForm({
                     />
                   </div>
 
-                  <div className="chart-select-segment">
+                  <div className="chart-select-segment" dir="rtl">
                     <span>دقیقه</span>
                     <ChartSelect
                       key={`minute-${birthTimeMode}`}

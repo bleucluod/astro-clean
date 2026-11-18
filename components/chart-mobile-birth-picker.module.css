@@ -21,7 +21,7 @@
   gap: 4px;
   direction: rtl;
 }
-.timeWheelPicker { direction: rtl; }
+.timeWheelPicker { direction: ltr; }
 .wheelColumn { min-width: 0; }
 .wheelFrame {
   position: relative;
