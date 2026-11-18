@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { seoRoutes, siteConfig } from "@/lib/config/seo";
+import { NEMAD_MONTHS } from "@/lib/shop/nemad-man-months";
 import {
   listPublicWikiSitemapArticles,
   listPublicWikiSitemapCategories,
@@ -25,6 +26,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteConfig.url}/shop/moon-phase-print`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteConfig.url}/shop/birth-sky-map`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteConfig.url}/shop/milky-way-print`, changeFrequency: "weekly", priority: 0.65 },
+    ...NEMAD_MONTHS.map(({ slug }) => ({
+      url: `${siteConfig.url}/shop/${slug}-sign`,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    })),
   ];
 
   const wikiCategoryEntries: MetadataRoute.Sitemap = wikiCategories.map(
