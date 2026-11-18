@@ -16,11 +16,14 @@ vm.runInNewContext(`(function(module,exports){${compiled}\n})`, {
 })(mod, mod.exports);
 const active = mod.exports.isShopMvpActive;
 const p02Active = mod.exports.isShopP02OrderEnabled;
+const nemadActive = mod.exports.isShopNemadOrderEnabled;
 assert.equal(p02Active(), true, 'P02 preview/sale is locally testable in development');
+assert.equal(nemadActive(), true, 'Nemad preview/sale is locally testable in development');
 assert.equal(active(), true, 'development remains previewable');
 env.NODE_ENV = 'production';
 assert.equal(active(), false, 'production must stay closed by default');
 assert.equal(p02Active(), false, 'P02 must remain separately locked in production');
+assert.equal(nemadActive(), false, 'Nemad must remain separately locked in production');
 env.HALLEUS_SHOP_MVP_ENABLED = 'true';
 assert.equal(active(), false, 'an opt-in alone is insufficient');
 Object.assign(env, {
@@ -32,6 +35,12 @@ Object.assign(env, {
 });
 assert.equal(active(), true, 'all explicit release prerequisites permit the intended activation');
 assert.equal(p02Active(), false, 'P01 live must never implicitly unlock P02');
+assert.equal(nemadActive(), false, 'P01 live must never implicitly unlock Nemad');
+env.HALLEUS_SHOP_NEMAD_ORDERS_ENABLED = 'true';
+assert.equal(nemadActive(), true, 'Nemad opens only with its explicit production gate');
+env.HALLEUS_SHOP_NEMAD_ORDERS_ENABLED = 'false';
+assert.equal(nemadActive(), false, 'Nemad closes independently of P01 and P02');
+env.HALLEUS_SHOP_NEMAD_ORDERS_ENABLED = 'true';
 env.HALLEUS_SHOP_P02_ORDERS_ENABLED = 'true';
 assert.equal(p02Active(), true, 'separate P02 approval plus shop prerequisites');
 env.HALLEUS_SHOP_P02_ORDERS_ENABLED = 'false';
@@ -48,6 +57,7 @@ for (const [name, replacement] of [
   env[name] = replacement;
   assert.equal(active(), false, `production gate must reject invalid ${name}`);
   assert.equal(p02Active(), false, `P02 must reject invalid ${name}`);
+  assert.equal(nemadActive(), false, `Nemad must reject invalid ${name}`);
   env[name] = previous;
 }
 const guardedPages = ['app/shop/page.tsx', 'app/shop/moon-phase-print/page.tsx',
@@ -71,10 +81,10 @@ assert.doesNotMatch(p02Preview, /fetch\(/, 'P02 preview must not transmit birth 
 assert.match(readFileSync(resolve(root, 'app/shop/milky-way-print/page.tsx'), 'utf8'),
   /process\.env\.NODE_ENV === 'production'/, 'P03 must remain closed even when P02 is previewable');
 for (const [path, expected] of [
-  ['lib/shop/shop-quote.ts', "new Set(['p01', 'p02'])"],
-  ['components/shop/shop-cart.ts', "['p01', 'p02']"],
+  ['lib/shop/shop-quote.ts', "new Set(['p01', 'p02', 'nm'])"],
+  ['components/shop/shop-cart.ts', "['p01', 'p02', 'nm']"],
 ]) {
   const contents = readFileSync(resolve(root, path), 'utf8');
   assert.ok(contents.includes(expected), `${path} allows P01/P02 only; P03 remains blocked`);
 }
-console.log('Shop MVP activation: default production closure, explicit ingress/private gates, P01 plus separately gated P02; P03 remains closed passed.');
+console.log('Shop MVP activation: default production closure, explicit ingress/private gates, P01 plus separately gated P02 and Nemad; P03 remains closed passed.');

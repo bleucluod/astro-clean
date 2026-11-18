@@ -53,7 +53,8 @@ for (const slug of ['moon-phase-print', 'birth-sky-map', 'milky-way-print']) {
   assert.ok(sitemap.includes('/shop/' + slug), slug + ' must be in sitemap');
 }
 assert.ok(sitemap.includes('/shop`'), 'shop root must remain in sitemap');
-assert.match(checkout, /getShopProductUrl\(item\.productId\)/);
+assert.match(checkout, /getShopProductUrl\(item\.productId, item\.details\.nemadMonth\)/,
+  'Cart edit links must preserve the selected Nemad month');
 assert.match(detail, /getShopProductUrl\(item\.id\)/);
 assert.match(schema, /getShopProductUrl\(product\.id\)/);
 for (const source of [catalog, checkout, detail, copy, schema]) {
