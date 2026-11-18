@@ -9,12 +9,13 @@ type SourceArt = { name: string; image: Blob };
 type Entry = { name: string; data: Uint8Array };
 type BuiltMockup = { sourceName: string; fileName: string; blob: Blob; bytes: number };
 type SourceVariant = 'all' | 'light' | 'dark';
-type SceneId = 'console' | 'wall-bench' | 'workdesk';
+type SceneId = 'console' | 'wall-bench' | 'workdesk' | 'gift-wrap';
 type MockupScene = {
   id: SceneId;
   label: string;
   path: string;
   front: Quad;
+  visible?: Point[]; // Only the exposed print is drawn; the lower portion stays behind gift wrap.
   inverse: readonly [number, number, number, number, number, number, number, number];
   suffix: string;
 };
@@ -75,6 +76,37 @@ const SCENES: MockupScene[] = [
       -0.0001350372434986659, 0.0001170981321254611,
     ],
     suffix: '-desk-10x15',
+  },
+  { id: 'gift-wrap', label: 'کادوی نیمه‌باز · حدود ۶۰٪ طرح نمایان',
+    path: '/shop-preview/nemad-man/mockup-blank-gift-wrap.webp',
+    // Full 2:3 canvas remains behind wrapping; only the real exposed face is painted.
+    // Front and wrapping seam are calibrated from the user-approved preview.
+    front: [
+      { x: 299, y: 366 }, { x: 794, y: 379 },
+      { x: 768, y: 1101 }, { x: 255, y: 1080 },
+    ],
+    // The gift-paper seam is curved. A four-corner trapezoid leaves white
+    // slivers where the paper meets a dark design; trace the physical lip.
+    visible: [
+      { x: 299, y: 366 }, { x: 793, y: 379 },
+      { x: 771, y: 855 }, { x: 750, y: 854 },
+      { x: 725, y: 858 }, { x: 700, y: 854 },
+      { x: 675, y: 849 }, { x: 650, y: 845 },
+      { x: 625, y: 841 }, { x: 600, y: 836 },
+      { x: 575, y: 831 }, { x: 550, y: 827 },
+      { x: 525, y: 822 }, { x: 500, y: 818 },
+      { x: 475, y: 813 }, { x: 450, y: 808 },
+      { x: 425, y: 803 }, { x: 400, y: 798 },
+      { x: 375, y: 793 }, { x: 350, y: 788 },
+      { x: 325, y: 782 }, { x: 300, y: 778 },
+      { x: 274, y: 774 },
+    ],
+    inverse: [
+      0.00208978510766976, 0.000128782275542674, -0.671980060041878,
+      -3.90574247592383e-05, 0.00148718655814023, -0.532632110276311,
+      1.96015039809362e-05, 5.42327274873981e-05,
+    ],
+    suffix: '-gift-wrap',
   },
 ];
 const OUTPUT_WIDTH = 1024;
@@ -354,7 +386,7 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   ctx.drawImage(scene, 0, 0, width, height);
   // Preserve shadows and surface illumination from the photographed blank
   // wall/desk panels without bleeding the blank face into the uploaded artwork.
-  const photoPixels = mockup.id === 'wall-bench' || mockup.id === 'workdesk'
+  const photoPixels = mockup.id === 'wall-bench' || mockup.id === 'workdesk' || mockup.id === 'gift-wrap'
     ? ctx.getImageData(0, 0, width, height).data
     : null;
 
@@ -376,11 +408,24 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   const [a, b, c, d, e, f, g, h] = mockup.inverse;
   const srcW = poster.width;
   const srcH = poster.height;
-  const referenceLuminance = mockup.id === 'workdesk' ? 193 : 209;
+  const referenceLuminance = mockup.id === 'workdesk' ? 193 : mockup.id === 'gift-wrap' ? 203 : 209;
   const minX = Math.floor(Math.min(...mockup.front.map(p => p.x)));
   const maxX = Math.ceil(Math.max(...mockup.front.map(p => p.x)));
   const minY = Math.floor(Math.min(...mockup.front.map(p => p.y)));
   const maxY = Math.ceil(Math.max(...mockup.front.map(p => p.y)));
+  // Precomputed contact line for the curved gift-paper lip, not a straight
+  // line that would incorrectly cover parts of the photographed wrapping.
+  const wrapFold = new Float32Array(width);
+  if (mockup.id === 'gift-wrap' && mockup.visible) {
+    const fold = mockup.visible.slice(2).reverse();
+    for (let i = 1; i < fold.length; i++) {
+      const left = fold[i - 1];
+      const right = fold[i];
+      for (let x = Math.ceil(left.x); x <= Math.floor(right.x); x++) {
+        wrapFold[x] = left.y + (right.y - left.y) * (x - left.x) / (right.x - left.x);
+      }
+    }
+  }
 
   // One inverse-homography sample per output pixel, with bilinear interpolation.
   // No row/strip meshes, so joins and corners cannot leave white slivers.
@@ -416,13 +461,19 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
         ? Math.max(0.74, Math.min(1.10, Math.pow((
           photoPixels[dst] * 0.2126 + photoPixels[dst + 1] * 0.7152 +
           photoPixels[dst + 2] * 0.0722
-        ) / referenceLuminance, 1.22)))
+        ) / referenceLuminance, mockup.id === 'gift-wrap' ? 1.07 : 1.22)))
         : 1;
+      // The physical wrapping lip casts a real, close-contact shadow over the print.
+      // Below this seam the photo is preserved untouched, never stretched or recolored.
+      const foldY = wrapFold[x];
+      const foldDist = Math.max(0, Math.min(100, foldY - py));
+      const wrapShadow = mockup.id === 'gift-wrap' && wrapFold[x] > 0
+        ? 1 - 0.17 * Math.exp(-(foldDist * foldDist) / (2 * 13 * 13)) : 1;
       for (let channel = 0; channel < 3; channel++) {
         const art = pixels[p00 + channel] * w00 +
           pixels[p10 + channel] * w10 + pixels[p01 + channel] * w01 +
           pixels[p11 + channel] * w11;
-        output[dst + channel] = Math.min(255, art * light);
+        output[dst + channel] = Math.min(255, art * light * wrapShadow);
       }
       output[dst + 3] = 255;
     }
@@ -430,11 +481,12 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   surfaceCtx.putImageData(surfaceImage, 0, 0);
 
   // Pixel-exact face mask, preserving the dark burned-wood side of the mockup.
+  const exposedFace = mockup.visible ?? mockup.front;
   ctx.save();
   ctx.beginPath();
-  ctx.moveTo(mockup.front[0].x, mockup.front[0].y);
-  for (let i = 1; i < mockup.front.length; i++) {
-    ctx.lineTo(mockup.front[i].x, mockup.front[i].y);
+  ctx.moveTo(exposedFace[0].x, exposedFace[0].y);
+  for (let i = 1; i < exposedFace.length; i++) {
+    ctx.lineTo(exposedFace[i].x, exposedFace[i].y);
   }
   ctx.closePath();
   ctx.clip();
@@ -456,11 +508,18 @@ function compose(scene: HTMLImageElement, poster: ImageBitmap, mockup: MockupSce
   // Hide subpixel white halos at all four joins, keeping a genuinely thin
   // matte-black cut edge rather than adding a picture frame.
   ctx.beginPath();
-  ctx.moveTo(mockup.front[0].x, mockup.front[0].y);
-  for (let i = 1; i < mockup.front.length; i++) {
-    ctx.lineTo(mockup.front[i].x, mockup.front[i].y);
+  ctx.moveTo(exposedFace[0].x, exposedFace[0].y);
+  ctx.lineTo(exposedFace[1].x, exposedFace[1].y);
+  ctx.lineTo(exposedFace[2].x, exposedFace[2].y);
+  if (mockup.id === 'gift-wrap') {
+    // Only the exposed top and side cuts have a black edge, never the paper lip.
+    const last = exposedFace[exposedFace.length - 1];
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(exposedFace[0].x, exposedFace[0].y);
+  } else {
+    ctx.lineTo(exposedFace[3].x, exposedFace[3].y);
+    ctx.closePath();
   }
-  ctx.closePath();
   ctx.lineJoin = 'round';
   ctx.strokeStyle = '#0c0e10';
   ctx.lineWidth = 1.8;
