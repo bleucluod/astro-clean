@@ -1,169 +1,131 @@
-# Halleus — Sitewide Performance & Stability Roadmap
+# رودمپ اجرایی بهینه‌سازی سرعت کل سایت هالیوس
 
-**Status:** PROPOSED / WORK REVIEW ONLY — not approved for implementation or release  
-**Created:** 2026-11-20  
-**Owner goal:** make the entire Halleus site substantially faster on mobile and desktop, aiming for stable 90+ mobile Lighthouse scores on representative public routes and approaching 95–100 where technically feasible, with **zero accepted visual, functional, privacy or commerce regressions**.  
-**Repository:** https://github.com/bleucluod/astro-clean  
-**Branch:** `main`  
-**Official release engine:** `ops/vps/halleus-release.sh`
+۲۰ نوامبر ۲۰۲۶ · مخزن `bleucluod/astro-clean` · شاخهٔ `main`
 
-> This file is an actionable brief for ChatGPT Work. Its publication approves **documentation only**. It does not authorize editing application code, adding dependencies, creating commits/tags, deploying, changing payments/auth/DB/VPS configuration or activating features. Start with a read-only evidence review; get explicit approval before implementation and a separate explicit approval before the final release.
+**هدف پذیرش:** در هر صفحهٔ عمومی نماینده، میانهٔ Lighthouse موبایل حداقل ۹۰ و حداقل چهار نتیجهٔ ۹۰ یا بالاتر از پنج اجرای هم‌شرایط باشد. برای صفحات سبک‌تر هدف ۹۵ تا ۱۰۰ است. حفظ طراحی، خوانایی فارسی، زمان اولین تعامل، خروجی موتور، حریم خصوصی و صحت سفارش شرط انتشار است.
 
-## 1. Definition of success
+**وضعیت فعلی:** بررسی فنی و تدوین سند انجام شده است. مراحل اجرایی ۰ تا ۷ باز هستند. مجوز این نوبت فقط ثبت رودمپ در گیت‌هاب است. **نقطهٔ شروع پس از تأیید اجرا:** شناسایی SHA نسخهٔ سالمِ فعال و آماده‌کردن محیطی که بتواند خرابی شناخته‌شدهٔ موبایل را روی نسخهٔ مشکل‌دار نشان دهد. انتشار نهایی تأیید جداگانه می‌خواهد.
 
-1. **Whole-site, not /chart-only.** Improve shared runtime first, then route-specific bottlenecks across homepage, chart, compatibility, sky, wiki, store, products, checkout and user/report experiences.
-2. **Stable, measurable results.** Target median mobile Lighthouse Performance **≥90** on each representative public page, aim for **≥95** and possibly ~100 where sustainable. Do not promise 100 universally; measure difficulty and trade-offs per route. Desktop must not regress.
-3. **Real-user experience.** Target field Core Web Vitals at p75 when enough valid data exists: LCP ≤2.5s, INP ≤200ms and CLS ≤0.1. For controlled lab tests, aim for TBT <200ms and reduced LCP/FCP. Lab TBT is **not** INP.
-4. **Visual and functional equivalence.** Maintain the approved design, content, animations worth keeping, mobile layout and all user journeys. No artificially improved scores by hiding meaningful content, preventing legitimate analytics/commerce activity, changing robots/SEO, or disabling features.
-5. **Production safety.** The current working production release remains live until a complete candidate passes validation and its release is explicitly approved. Do not manipulate live data, secrets, env, service, Nginx, or self-hosted Supabase to pursue performance without a separate, evidence-backed approval.
-6. **Honest accounting.** Report measured before/after results, caveats, blocked checks, failures and reproducibility. A passed build or static-marker guard is not a substitute for browser tests.
+## ۱. ترتیب اجرا و معیار عبور
 
-## 2. Verified context, existing failure and baseline discipline
+| مرحله | کار و دامنه | شرط خروج |
+|---|---|---|
+| ۰. ثبت مرجع و قابلیت تست | بررسی read-only مخزن و release فعال، نقطهٔ بازگشت، محیط build، مرورگر و دادهٔ مصنوعی. SHA و tag، worktree تمیز و فایل‌های مجاز ثبت شوند | A/B مشخص، build و مرورگر قابل اجرا، مرجع بصری سالم. اگر SHA فعال فقط از VPS معلوم است یک خروجی current/previous و متادیتا از مالک کافی است |
+| ۱. تثبیت چارت، W1/W5/W8 | تغییر محدود سطح ۲. CSS، تغییرات picker/form و زمان‌بندی GA جدا بازپخش شوند. بخش سالم main حفظ شود | تست روی B قرمز، روی A و C سبز. فرم، چاپ و لنگرها سالم، سنجش جدید FCP/LCP/TBT |
+| ۲. خط مبنای همهٔ خانواده‌ها، W1 | build تولیدی و دادهٔ همسان. رتبه‌بندی بر حسب ms تلف‌شده، تعداد صفحات متاثر، ترافیک تجمیعی در صورت دسترسی و ریسک | جدول هر URL با evidence؛ تصمیم صریح برای هر فرضیه: اقدام، رد، یا نیاز به داده |
+| ۳. هزینهٔ مشترک، W2/W3/W4 | سطح ۳ برای پوسته یا CSS مشترک. تغییر کوچک و قابل‌اندازه‌گیری در client boundary، فونت، CSS، callback یا prefetch با حفظ ظاهر. تغییر در semantics آمار/حریم خصوصی سطح ۴ و خارج از بهینه‌سازی خودکار | کاهش زمان یا بایت بالاتر از نوسان، عدم افت دسکتاپ/ناوبری گرم، رفتار consent و آمار معادل |
+| ۴. اصلاحات خانواده‌ها، W2/W4/W6/W7 | سطح ۲ برای گالری/مسیر؛ سطح ۳ برای وابستگی مشترک یا دادهٔ ثابت. گلوگاه اثبات‌شدهٔ محصول، آسمان، ویکی یا فرم به‌ترتیب سود اندازه‌گیری‌شده انتخاب شود | هر اصلاح اثر قابل تکرار در وضعیت لازم دارد؛ first interaction و تجربهٔ بازدید دوم افت نمی‌کنند |
+| ۵. سنجش مسیرهای حساس، W6/W7 | آزمون‌های قیمت، پرداخت، حساب، گزارش و دسترسی روی دادهٔ آزمایشی. هر تغییر قرارداد امنیتی/مالی/دادهٔ تولید سطح ۴ و نیازمند تصمیم جداست | مبلغ، نتیجه و مجوز دقیق، خطای کنترل‌شده و نبود نشت بین نشست‌ها. مورد مسدود یا تست‌نشده صریحاً باز می‌ماند |
+| ۶. پذیرش یکپارچه، W8 | R1 همهٔ سنجش‌های مستقل را اجرا می‌کند. خطای عادی در یک قسمت مانع سنجش قسمت دیگر نمی‌شود. R2 علت‌های مرتبط را روی همان نسخه اصلاح می‌کند. SHA، ورودی، داده، مرورگر و بخش تغییرکرده برای استفادهٔ مجدد از PASS ثبت شوند | impact plan، گاردهای مرتبط، type/lint مرتبط، build تولیدی و diff check؛ مجموعهٔ بصری، زمان‌ها و سفرها پذیرفته شوند. خطای safety مانند مبنای اشتباه بلافاصله توقف |
+| ۷. مرز انتشار | یک diff و یک نسخهٔ نهایی؛ بدون commit/tag/push میانی. تحویل شامل فایل‌ها، قبل/بعد، موارد رد/مسدود و اثر تولید است. بعد از تأیید جداگانه یک commit/tag/push | یک عملیات نهایی VPS با release engine، بررسی current/previous، service و smoke؛ بلافاصله تست نمای موبایل و سفرهای عمومی. rollback از همان موتور در صورت خرابی و بررسی مجدد |
 
-- At document creation, GitHub `main` points to `137b395160d78741eea7732474c83c447c33e262`, tagged `v2026.11.19-chart-trace-perf-137b395`.
-- The immediately prior performance commits are `35812b8668564d3420d1650080b700af93edad37` (deferred city directory), `50772eb9699ed0672af1a0169f20c556a753b40e` (first-render DOM/offscreen content) and `137b395160d78741eea7732474c83c447c33e262` (GA script deferral on /chart).
-- The `137b395` release built and passed production release smoke checks, **but subsequently exhibited a broken, horizontally enlarged/cropped mobile /chart layout**. The owner rolled production back and reported that mobile appearance was restored; the rolled-back Lighthouse result was **52**. The last confirmed prior release target recorded before rollback was `35812b8668564d3420d1650080b700af93edad37`. **Recheck active/previous release paths and metadata on the VPS before treating any SHA as the current live state.** A GitHub HEAD, checked-out VPS source, and live atomic release are different things.
-- The mobile Lighthouse exports saved privately by the owner include:
-  
-  | Captured (UTC) | Performance | FCP | LCP | TBT | CLS |
-  | --- | ---: | ---: | ---: | ---: | ---: |
-  | 2026-11-19 18:20 | 38 | 4.17s | 5.03s | 5,655ms | 0 |
-  | 2026-11-19 18:49 | 44 | 3.45s | 4.60s | 5,300ms | 0 |
-  | 2026-11-19 20:27; problematic deployed candidate | 49 | 2.16s | 5.00s | 4,510ms | 0 |
+موتور انتشار خودش commit/tag را fetch و تطبیق می‌دهد، build را در worktree جدا انجام می‌دهد، لینک current را اتمیک عوض می‌کند و در شکست smoke بازگشت خودکار دارد. Smoke چارت، HTTP 200 و یک درخواست نامعتبر موتور را می‌سنجد؛ برش فرم موبایل را تشخیص نمی‌دهد. اجرای پیش‌فرض می‌تواند repair و publish-due ویکی را نیز فراخوانی کند. در زمان انتشار نحو و رفتار نسخهٔ واقعی موتور و گزینهٔ موجود `--skip-wiki-maintenance` بررسی و تصمیم روشن ثبت شود تا عملیات دادهٔ ویکی خارج از دامنه انجام نشود. release پس از build پوشهٔ `.next/cache` را پاک می‌کند؛ اولین بازدید پس از فعال‌سازی جدا از cache گرم اندازه‌گیری شود. صرف pull در checkout سورس، سرویس را به نسخهٔ جدید منتقل نمی‌کند.
 
-  All three are mobile lab runs with a 412px emulated viewport, not controlled A/B repetitions. The owner's **52** after rollback is a separate observation, not proof by itself of causation.
-- The 49-score report attributes approximately **4.89s to JS evaluation** and **3.99s to Style/Layout** within main-thread work; the Google Analytics script accounts for ~**1.55s total CPU time** in the boot-up audit. These figures use different attribution categories and **must not be added together**.
-- The problematic Lighthouse report includes an LCP H1 bounding box about **750px wide**, extending beyond the emulated **412px** viewport. An added CSS rule in `app/chart/chart-shell.module.css` uses `contain-intrinsic-size: auto 760px` for offscreen informational sections. This is a **high-priority suspected** grid intrinsic-sizing / horizontal-overflow regression; reproduce and isolate the cause rather than assert it as proven. The old trace guard `scripts/check-chart-trace-first-render.mjs` checked static markers, not viewport geometry.
-- Existing chart performance experiments did improve FCP in the measured runs but failed to demonstrate an acceptable end-to-end result. **Do not redeploy them wholesale or optimize from the defective main branch without reconciling it against the working production layout.**
-- Private Lighthouse/Chrome trace artifacts exist outside the public app repository. Read only through authorized access; keep individual visitor/session identifiers, exports and production secrets out of public GitHub, logs and drafts.
+[موتور انتشار](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/ops/vps/halleus-release.sh) · [سرویس](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/ops/vps/halleus.service) · [برنامهٔ انتخاب چک‌ها](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/scripts/halleus-check-plan.mjs)
 
-## 3. Scope and representative route matrix
+### پوشش هشت محور
 
-Start with representative URL families, then expand to other important routes that share components. Include both mobile and desktop; use safe, synthetic test accounts/data where sign-in is needed.
+| شناسه | محور | مرحلهٔ ارزیابی یا اجرا |
+|---|---|---|
+| W1 | خط مبنا و شواهد تکرارپذیر | ۰ تا ۲ و مقایسهٔ نهایی در ۶ |
+| W2 | JavaScript، اندازهٔ bundle و hydration | ۲ تا ۴ |
+| W3 | پوسته، ناوبری، پیش‌واکشی و آمار | ۲ و ۳ |
+| W4 | فونت، تصویر و مسیر نمایش محتوای اصلی | ۲ تا ۴ |
+| W5 | هندسهٔ RTL، CSS، حرکت و صحت موبایل | ۱، ۴ و ۶ |
+| W6 | رندر سرور، کش، تازگی و مرز داده‌ها | ۲، ۴ و ۵ |
+| W7 | عملکرد و رفتار ویژهٔ خانواده‌های صفحه | ۲، ۴ و ۵ |
+| W8 | پیشگیری از تکرار خرابی، پذیرش و انتشار | از تست اولیه در ۱ تا پذیرش در ۶ و انتشار مجاز در ۷ |
 
-| Family | Examples | Primary failure risks |
-| --- | --- | --- |
-| Shared shell | header, menu, footer, CTA, analytics and route navigation across all pages | shared JS, event listeners, prefetch, icon/image cost, layout stability |
-| Home | `/` | LCP media/hero, fonts, live sky, product previews, shared JS |
-| Birth chart | `/chart` | horizontal overflow, initial hydration, form DOM, city lookup, mobile date/time pickers and submit |
-| Comparison | `/compare` | form and chart calculations, submission correctness |
-| Sky | `/sky` and representative dated page | live/dynamic content, fetches, animation/update behavior |
-| Wiki | `/wiki`, representative `/wiki/[slug]` and category | long content, image priority, interactive CTAs, content layout, editorial visibility |
-| Shop | `/shop`, product detail including `/shop/[slug]` | galleries, image sizes, critical content, current prices and availability |
-| Checkout / commerce | `/shop/cart`, `/shop/checkout`, relevant order/tracking paths | pricing correctness, auth/session boundaries, no double-submit or payment disruption |
-| Account and report | `/profile`, `/reports`, representative owned/shared report | privacy, auth state, sensitive data, complex chart rendering |
-| Operational/admin regression | relevant admin UI where shared shell/config changes can affect it | permissions and private data; no speculative optimization of privileged routes |
+## ۲. مبنای سورس و نسخهٔ سالم
 
-Before measurement, verify that each concrete URL actually exists, is reachable, and represents the intended route. Do not assume all example pages are publicly accessible.
+سند ۱۶۹ خطی، درخت کامل مخزن، هر ۴۱ ورودی `page.tsx` و سورس مرتبط با چارت، پوسته، فروشگاه، آسمان، ویکی، حساب و انتشار از گیت‌هاب بررسی شدند. درخت ۴۱ ورودی شامل مسیرهای پیش‌نمایش، محافظت‌شده و مسیرهای عمداً ۴۰۴ هم هست. این تعداد معادل ۴۱ صفحهٔ عمومی یا ۴۱ اجرای مرورگر نیست.
 
-## 4. Eight required workstreams
+| مرجع | نقش در برنامه |
+|---|---|
+| `9ef9444` | HEAD بررسی‌شدهٔ main در زمان ارزیابی، کامیت سند رودمپ |
+| `137b395` | تگ `v2026.11.19-chart-trace-perf-137b395` روی این SHA است. مرجع بازتولید خرابی |
+| `50772eb` | تغییرات DOM فرم و رندر بخش‌های پایین صفحه |
+| `35812b8` | مرجع احتمالی نسخهٔ سالم، شامل بارگیری درخواستی شهر. تا خواندن متادیتای release فعال، مبنای قطعی تولید نیست |
+| VPS | بازگشت ظاهر سالم و امتیاز ۵۲ را مالک گزارش کرده. SHA فعال، previous و build ID از داخل VPS در این بررسی مشاهده نشدند |
 
-### W1 — Sitewide performance audit and reproducible baseline
+از `35812b8` تا HEAD سه کامیت و شش فایل تفاوت هست. چهار فایل اجرایی عبارت‌اند از `app/chart/chart-shell.module.css`، `components/ChartForm.tsx`، `components/ChartMobileBirthPicker.tsx` و `components/AnalyticsConsent.tsx`. دو فایل دیگر گارد و سند هستند. این محدوده امکان آزمایش جداگانهٔ CSS، فرم و GA را می‌دهد. اگر HEAD یا نسخهٔ فعال عوض شد، مقایسه پیش از اجرا دوباره محاسبه می‌شود.
 
-- Verify exact GitHub origin/branch/HEAD, recent commits and tags, and production `current`/`previous` release metadata separately.
-- Capture lab baselines for route families using the same Chrome/Lighthouse version, viewport, network/CPU throttling and cache state. Use at least **three** comparable lab runs per candidate/route and compare medians plus distributions.
-- Gather LCP element and subparts, FCP, TBT, CLS, Speed Index, transferred/decoded bytes, JS execution, layout/style time, blocking requests and server response. Examine INP and other p75 field CWV only where real data is sufficient and privacy-safe.
-- Inspect original traces and their main-thread long tasks; distinguish server delay, network, third-party execution, hydration and CSS layout costs.
-- Produce a ranked, evidence-linked opportunity list with estimated benefit, risk, affected routes and proof needed. No guessed Lighthouse-point uplift.
+[سند مبنا](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/docs/HALLEUS_SITEWIDE_PERFORMANCE_ROADMAP_2026-11-20.md) · [تفاوت شش فایل](https://github.com/bleucluod/astro-clean/compare/35812b8668564d3420d1650080b700af93edad37...9ef94449dbb03e3758decc45d9dcb4fe4936e4db)
 
-**Exit:** traceable baseline matrix and specific high-impact root causes for major route families.
+## ۳. شواهد عددی چارت و محدودیت‌های بررسی
 
-### W2 — JavaScript, bundle and hydration reduction
+سه خروجی خصوصی Lighthouse 13.5.0 باز و داده‌های داخلی هر سه استخراج شد. نتیجه‌ها متعلق به `/chart` هستند. پروفایل ثبت‌شده ۴۱۲×۸۲۳، روش throttling شبیه‌سازی و ضریب CPU برابر ۴ است.
 
-- Inspect actual Next.js production client bundles and route dependency graphs; identify largest first-load chunks, duplicate libraries and code used only after interaction.
-- Reduce client boundaries: preserve Server Components for static/editorial output; move only actual interaction into small client islands without changing product behavior.
-- Split/defer heavy date/city selectors, chart interactions, optional dialogs, previews and other route-specific widgets only when genuinely absent from first interaction.
-- Evaluate script parsing/evaluation, hydration and event-handler overhead before and after; avoid merely moving tasks a few hundred milliseconds later.
-- Verify no changed engine output, incorrect validation, hydration mismatch, inaccessible control, keyboard/touch regressions or unnecessary network round trips.
+| زمان UTC در ۱۹ نوامبر | امتیاز | FCP | LCP | TBT | CLS | عناصر DOM | benchmarkIndex میزبان |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| ۱۸:۲۰ | ۳۸ | ۴٫۱۷ ثانیه | ۵٫۰۳ ثانیه | ۵٬۶۵۵ ms | ۰ | ۱٬۰۲۶ | ۳۲۹ |
+| ۱۸:۴۹ | ۴۴ | ۳٫۴۵ ثانیه | ۴٫۶۰ ثانیه | ۵٬۳۰۰ ms | ۰ | ۱٬۰۲۶ | ۴۰۸٫۵ |
+| ۲۰:۲۷ | ۴۹ | ۲٫۱۶ ثانیه | ۵٫۰۰ ثانیه | ۴٬۵۱۰ ms | ۰ | ۷۶۷ | ۵۳۰ |
 
-**Exit:** measured lower initial JS execution/TBT and complete functional parity.
+- عنصر LCP در دو اجرای نخست placeholder نام بود. در اجرای ۴۹، H1 با عرض ۷۵۰ و مختصات افقی ۳۶۵− تا ۳۸۵ ثبت شد. ستون سال نیز از ۳۵۱− تا ۱۲۲− بود. بنابراین کاربر می‌توانست بخشی از فرم را نبیند و CLS همچنان صفر باشد. کاهش ۲۵۹ عنصر DOM به‌تنهایی تجربه را اصلاح نکرد.
+- در اجرای آخر، ارزیابی JS حدود ۴٬۸۸۸ ms، Style/Layout حدود ۳٬۹۸۷ ms، زمان CPU اسکریپت GA حدود ۱٬۵۵۱ ms و زمان CPU یک chunk داخلی حدود ۲٬۴۳۷ ms بود. دسته‌های انتساب هم‌پوشانی دارند. هویت ماژول مقصر از نام chunk معلوم نمی‌شود.
+- گزارش برای درخواست سند ریشه حدود ۶۵ ms ثبت کرد. در جزئیات LCP، TTFB مشاهده‌شده حدود ۹۱ ms و تأخیر نمایش عنصر حدود ۱٬۸۸۱ ms بود. این زمان‌های مشاهده‌شده را نباید با LCP شبیه‌سازی‌شدهٔ ۵ ثانیه جمع یا از آن کم کرد. اولویت چارت فعلاً مرورگر است. دربارهٔ زمان سرور آسمان یا فروشگاه هنوز اندازه‌گیری مشابهی نداریم.
+- آخرین اجرا ۳۹ درخواست، ۱۴ اسکریپت، ۵ stylesheet، دو فونت و حدود ۸۲۹ KiB انتقال داشت. Vazirmatn متغیر حدود ۱۰۹ KiB و Dana Bold حدود ۲۷ KiB انتقال داشتند. فرصت تخمینی یکی از عکس‌های نمونه حدود ۲۰ KB بود، در حالی که عنصر LCP متنی بود. فونت و CSS ارزش بررسی دارند، ولی این شواهد اولویت بازفشرده‌سازی کل تصاویر را تأیید نمی‌کنند.
+- فایل Trace مستقل ۱۷٬۶۲۶٬۵۶۲ بایتی در مخزن خصوصی شناسایی شد. خواندن payload کامل آن از اتصال فعلی ممکن نشد. نسبت‌دادن زمان به React، یک کامپوننت، یک selector یا یک تابع باید در trace بازتولیدشده یا با دسترسی مستقیم به آن فایل انجام شود. اجرای Chromium محلی پیش از باز کردن صفحه در مرحلهٔ ساخت socket متوقف شد. در این بررسی نتیجهٔ بصری تازه، build برنامه، امتیاز پس از اصلاح یا baseline برای سایر مسیرها تولید نشد.
 
-### W3 — Shared shell, navigation, tracking and prefetch
+[تفسیر اجزای LCP](https://web.dev/articles/optimize-lcp) · [روش امتیازدهی Lighthouse](https://developer.chrome.com/docs/lighthouse/performance/performance-scoring)
 
-- Audit `components/AppShell.tsx`, `components/SiteHeader.tsx`, `components/IntentPrefetchLink.tsx`, `components/AnalyticsConsent.tsx` and `components/HalleusAnalyticsTracker.tsx` against the deployed runtime.
-- Consolidate redundant scroll/resize/visibility work if profiles show a meaningful impact. Keep header hiding/returning, mobile menu, focus behavior and animations intact.
-- Check always-loaded shared images, CTA bootstrap, route-aware footer controls and prefetch strategy. Avoid speculative global rewrites.
-- Quantify GA4 and first-party analytics cost. Keep public-route gates, consent revocation, non-personalized defaults, and report/private-route exclusions; don't silently disable measurement to raise scores.
-- Keep navigation fast in both warm client transitions and cold page loads.
+## ۴. گلوگاه‌ها و آزمایشی که دربارهٔ هرکدام تصمیم می‌گیرد
 
-**Exit:** shared overhead demonstrably decreases without changing analytics/privacy semantics or shared UI behavior.
+| اولویت و دامنه | شاهد سورس یا گزارش | آزمایش تصمیم‌ساز و اصلاح مشروط |
+|---|---|---|
+| P0، چارت موبایل | والد صفحه grid و RTL است. به بخش‌های آموزشی `content-visibility:auto` و `contain-intrinsic-size:auto 560px` و برای FAQ مقدار ۷۶۰ افزوده شده. shorthand می‌تواند هر دو محور را درگیر کند. گارد فعلی وجود همین الگو را می‌سنجد | روی build خراب در ۴۱۲px فقط آن قانون را خاموش کنیم، ابعاد FAQ، ستون grid، H1 و picker را بخوانیم و با روشن‌کردن مجدد، برگشت عیب را بسنجیم. سپس حذف یا اندازه‌گذاری فقط محور بلوکی، در پایین صفحه، چاپ و لنگرها آزمایش شود. مخفی‌کردن overflow یا کوچک‌کردن کل طرح مردود است |
+| P1، JS و اولین تعامل | علاوه بر CPU اسکریپت‌ها، wheel سال حتی در اجرای ۴۹ دارای ۱۰۲ فرزند بود. شهر در ChartForm از قبل با import درخواستی و امکان retry بار می‌شود. پنجرهٔ ورود و قسمت‌هایی از فرم نیز قبلاً تفکیک شده‌اند | chunk پرهزینه را در همان build به import chain وصل کنیم. در trace زمان parse، اجرا، hydration، layout و اولین لمس را تفکیک کنیم. فقط بخش اثبات‌شده را کوچکتر کنیم. انتخاب سال/شهر/ساعت قبل از اتمام بارگیری، هنگام شکست شبکه و پس از retry باید کار کند |
+| P1، پوسته و آمار | AppShell خودش Server Component است. bootstrap ویکی یک MutationObserver روی کل درخت راه می‌اندازد و تا یافتن مقالهٔ واجدشرایط به مشاهده ادامه می‌دهد. SiteHeader چند مسیر scroll دارد. AnalyticsConsent در چارت بارگیری GA را به idle با سقف ۱۲۰۰ms یا تایمر ۹۰۰ms می‌سپارد | هزینهٔ callbackها در ورود، scroll و جابه‌جایی SPA اندازه‌گیری شود. اگر مؤثر بود bootstrap فقط هنگام نیاز در مسیر ویکی فعال شود و کار تکراری header کم شود. تأخیر GA با بازدید کوتاه، لغو رضایت، رفتن به مسیر خصوصی و رویداد یکتا آزمایش شود. First-party و GA جدا گزارش شوند |
+| P1، فروشگاه و گالری | BirthSkyLiveProduct در نماد با عکس ۱ و در آسمان تولد با عکس ۵ شروع می‌کند، اما شرط `priority` فقط عکس ۱ است. تصویر داخل dialog بسته نیز با `sizes="95vw"` در درخت هست. Next 16 در پروژه موجود است | در هر دو محصول عنصر LCP، currentSrc، زمان کشف، اولویت و درخواست‌های تکراری را روی موبایل/دسکتاپ ببینیم. اولویت را فقط به تصویر واقعاً حیاتی بدهیم. اگر زوم بسته فایل بزرگ می‌گیرد، محتوای گران آن هنگام نیاز آماده شود. بازشدن زوم، swipe، فوکوس و وضوح چاپ مقایسه شوند |
+| P1، پیش‌نمایش محصول | مسیر import کلاینت از BirthSkyLiveProduct به validator و renderer نماد به astronomy-engine، فهرست شهر و کاتالوگ ستاره‌ها می‌رسد. کاتالوگ ستاره ۱۵۱٬۷۶۳ بایت سورس و دارای ۵٬۰۸۰ ستاره است. هندسه برای هر نشان در حافظه memo شده و بعد از بازشدن پیش‌نمایش مصرف دارد | سهم واقعی این داده در JS شروع و مدت اولین ساخت پیش‌نمایش جدا سنجیده شود. اگر معنی‌دار بود، منطق بعد از تعامل جدا شود یا هندسهٔ ثابت ۱۲ نشان با همان تابع در build تولید شود. تطابق مسیرها، مختصات، ستاره‌ها، گلیف، متن، فونت Estedad و واترمارک برای هر دو تم شرط پذیرش است. اعداد سورس اندازهٔ انتقال نیستند |
+| P1 طبق نتیجهٔ اندازه‌گیری، آسمان و خانه | خانه از قبل سه منبع را با Promise.allSettled موازی می‌خواند. /sky داینامیک است ولی snapshot روزانه cache دارد. در نمای هفته/ماه تا ۳۱ snapshot به‌ترتیب محاسبه و نتیجه cache می‌شود | TTFB، زمان محاسبه، payload و تأخیر هم‌زمان درخواست سبک را روی hit و miss جدا کنیم. اگر هزینه بالا بود بازاستفاده از محاسبهٔ معتبر هر روز یا کوچک‌کردن دادهٔ ارسالی ارزیابی شود. شهر، تاریخ محلی، مرز نیمه‌شب و نسخهٔ محاسبه باید درست بمانند |
+| P2، ویکی و خواندن | صفحه/دسته/مقاله revalidate دارند. مخزن داده از React cache، unstable_cache و tag برای index و resolution استفاده می‌کند. کاور مقاله fetchPriority بالا دارد. CTA و ویترین مقاله نیز به صفحه متصل‌اند | cache hit/miss و بازسازی محتوا، بالای صفحه بودن واقعی کاور، بایت HTML/RSC و هزینهٔ CTA روی مقالهٔ کوتاه، بلند و دارای ویترین مقایسه شود. کش تازه فقط با اثبات نقص لایهٔ موجود. تست داخل صفحه و ورود/خروج از مقاله با navigation کلاینت |
+| P2، مقایسه، گزارش و حساب | ComparisonComposer ماژول‌های حساب، storage و Supabase را وارد و در شروع وضعیت را refresh می‌کند. گزارش‌های مالک و مشترک قرارداد ورود متفاوت دارند | زمان تا انتخاب دو چارت آماده، تعداد fetch مهمان/عضو و حجم دادهٔ report اندازه‌گیری شود. دادهٔ ساختگی ثابت برای برابری نتیجه، ترتیب درخواست، مجوز، خروج از حساب و برگشت مرورگر استفاده شود |
+| P2، قیمت و کار سرور | محصول ماهانه متن تأییدشده را با readFileSync و parse برای metadata و page فراخوانی می‌کند. قیمت SSR خوانده می‌شود. هوک قیمت نیز هنگام mount و focus و هر ۱۵ ثانیه با no-store می‌خواند | متن و هندسهٔ ثابت از قیمت و سفارش جدا سنجیده شود. اگر مؤثر بود خواندن مکرر محتوای ثابت کم شود. شمار درخواست و تازگی قیمت در بازگشت تب قبل از هر تغییر سنجیده شود. مقایسهٔ مبلغ صفحه، Offer، سبد و quote، شامل تغییر قیمت بین مراحل، الزامی است |
 
-### W4 — Images, fonts and critical rendering path
+[CSS چارت](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/app/chart/chart-shell.module.css) · [پوسته](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/components/AppShell.tsx#L37) · [گالری و زوم محصول](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/components/shop/BirthSkyLiveProduct.tsx#L365) · [هندسهٔ نشان](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/lib/shop/nemad-man-bahman-preview.ts#L133) · [دوره‌های آسمان](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/lib/sky-public/sky-observatory-period.ts) · [مخزن ویکی](https://github.com/bleucluod/astro-clean/blob/9ef94449dbb03e3758decc45d9dcb4fe4936e4db/lib/wiki/wiki-repository.ts#L990)
 
-- Audit above-the-fold LCP images, hero media, header/logo, product/gallery images and wiki illustrations by route and viewport.
-- Correct `sizes`, intrinsic dimensions/aspect ratios, priority/`fetchPriority`, format/compression and below-fold loading; do not crop, recolor or regenerate approved product artwork.
-- Inspect Vazirmatn and Dana actual usage: the /chart Lighthouse reports requested both. Remove only objectively redundant font requests and retain Persian readability, weight/fallback and visual geometry.
-- Remove truly unused blocking CSS where safe; scope CSS to routes, avoid large global selector changes and preserve print/editorial content.
-- Analyze request chains and verify improvement to the actual LCP element; image bytes are not always the dominant cause.
+## ۵. اندازه‌گیری و مقایسهٔ نسخه‌ها
 
-**Exit:** improved measured LCP/FCP and stable images/fonts/CLS across viewports.
+سه مرجع نگه می‌داریم. A بازسازی SHA فعال سالم و مرجع ظاهر است. B نسخهٔ مشکل‌دار برای اثبات حساسیت تست است. C آخرین main به‌علاوهٔ اصلاحات انتخاب‌شده است. دادهٔ آزمون، منابع خارجی در دسترس، فونت‌ها، feature flagهای مرتبط، منطقهٔ زمانی و نسخهٔ Node/pnpm/Chrome/Lighthouse برای A و C همسان خواهند بود. اولین گام اجرایی اطمینان از build تولیدی، مرورگر قابل اجرا و دسترسی به دادهٔ آزمون است. گزارش شکست وابستگی مانع تحلیل مستقل سورس نمی‌شود.
 
-### W5 — CSS, layout, compositing and mobile correctness
+- یک مرورگر تمیز، بدون افزونه، CPU و شبکهٔ ثابت. اندازهٔ واقعی layout viewport، DPR و user agent ثبت شوند. درخواست سرد مرورگر و درخواست گرم سرور دو متغیر مستقل‌اند. اجرای سرد، بازدید دوم و ناوبری SPA جدا گزارش شوند. سناریوی GA مجاز سناریوی پذیرش عمومی است. برای تشخیص سهم third party یک مقایسهٔ جدا با حذف تشخیصی آن مجاز است و نتیجهٔ آن به‌عنوان امتیاز محصول پذیرفته نمی‌شود.
+- برای غربال اولیه حداقل ۳ اجرای هم‌شرایط به‌ازای هر URL/نسخه. برای پذیرش ۵ اجرای درهم‌تنیدهٔ A و C روی یک میزبان. ثبت هر پنج عدد، میانه و دامنه، و تکرار در یک نوبت مستقل اگر نزدیک مرز ۹۰، پرنوسان یا متناقض‌اند. معیار پایداری برای صفحات عمومی اصلی، میانهٔ ≥۹۰ و حداقل ۴ از ۵ اجرای ≥۹۰ است. بهبود یا افت کوچک‌تر از نوسان مبنا «نامشخص» گزارش شود.
+- برای هر URL، امتیاز، LCP و عنصر آن، FCP، TBT، CLS، Speed Index، TTFB، JS/CSS/فونت/تصویر منتقل‌شده، HTML و RSC، long task، console/hydration error و زمان اقدام اصلی ثبت شود. برای هر گلوگاه عمده یک trace پیش/پس. بودجهٔ بایت و زمان ویژهٔ هر خانواده پس از اندازه‌گیری A تعیین شود. هدف آزمایشگاهی TBT کمتر از ۲۰۰ ms است. دادهٔ واقعی کافی که در دسترس باشد، p75 موبایل و دسکتاپ با LCP ≤۲٫۵s، INP ≤۲۰۰ms و CLS ≤۰٫۱ جدا ثبت می‌شود. Lighthouse جای دادهٔ میدانی INP را نمی‌گیرد.
+- تصویربرداری در ۳۲۰، ۳۶۰، ۳۹۰، ۴۱۲، ۴۳۰، ۷۶۸، ۱۲۸۰ و ۱۴۴۰ پیکسل. چند نقطهٔ اطراف breakpoint واقعی CSS نیز برای قسمت تغییرکرده. مقایسهٔ تصویر پیش از آماده‌شدن JS، پس از بارگیری فونت و hydration، پس از scroll، هنگام فوکوس/بازشدن دیالوگ، و بعد از back/forward. وضعیت ساعت و دادهٔ آسمان ثابت شود؛ برای انیمیشن‌های ضروری snapshot در فاز ثابت و تست مستقل حین حرکت. از پوشاندن کل فرم یا hero در image diff خودداری شود.
+- در RTL علاوه بر scrollWidth ریشه، left/right اجزای قابل‌دید و قابل‌لمس، بریدگی اجداد، hit-test دکمه‌ها و فوکوس ثبت شوند. مثبت‌بودن هر دو شرط لازم است: B باید عیب شناخته‌شده را آشکار کند و A/C باید آن تست را بگذرانند. اختلاف بصری معنادار، خطای تراکنش، دسترسی، خروجی موتور یا افت محسوس اولین تعامل انتشار را متوقف می‌کند.
+- در مقایسهٔ JS، حجم سورس، بایت منتقل‌شده و CPU جدا گزارش شوند؛ ابتدا Network/Coverage/Performance و زنجیرهٔ import در production build، در صورت نیاز ابزار تحلیل متناظر با bundler واقعی. در Next 16 برای LCP تصویری، preload/eager/fetchPriority با توجه به waterfall و مستندات همان نسخه انتخاب شود. تعویض مکانیکی تمام priorityها یا SSR:false برای کل صفحه پذیرفتنی نیست. برای ویکی و قیمت، رفتار tag/invalidation و freshness فعلی مبناست.
 
-- Reproduce the 412px defect from the problematic /chart candidate. Identify the exact element increasing `scrollWidth` and its ancestor/min-content/containment behavior.
-- Treat `contain-intrinsic-size: auto 760px` as a candidate culprit to test; use an explicitly height-only safe alternative **only if** confirmed or remove the optimization.
-- Audit large-grid min sizes, fixed widths, `100vw` misuse, nested overflow, dialogs, sticky elements, animations, paint and forced reflow on heavy pages.
-- Check rendering during initial load, after hydration, while scrolling, with input focus/keyboard, with dialogs open and after navigation.
-- Preserve the design system and animation identity; favor reduced CPU/compositor work rather than indiscriminately removing visual features.
+[راهنمای production](https://nextjs.org/docs/app/guides/production-checklist) · [تحلیل bundle](https://nextjs.org/docs/app/guides/package-bundling) · [بارگیری درخواستی](https://nextjs.org/docs/app/guides/lazy-loading) · [Next Image](https://nextjs.org/docs/app/api-reference/components/image) · [Core Web Vitals](https://web.dev/articles/vitals)
 
-**Exit:** no unintended horizontal page overflow or clipping at 320/360/390/412/430/768px and desktop; visual review of screenshots against the approved production baseline.
+## ۶. مسیرها و سفرهای کاربر
 
-### W6 — Server rendering, caching and dynamic data
+در شروع، URL مشخص، پاسخ HTTP مورد انتظار، محتوای نماینده و دادهٔ ساختگی هر ردیف ثبت می‌شود. صفحهٔ ۴۰۴، redirect، حالت خالی یا صفحهٔ درخواست ورود نباید به‌جای عملکرد صفحهٔ اصلی حساب شود.
 
-- Audit server rendering, static/ISR/dynamic route boundaries, TTFB and cache invalidation per family. Respect Next.js 16.2.9 current source and documented APIs; do not infer behavior from older versions.
-- Retain suitable pre-rendering for public wiki/editorial pages where supported; optimize truly slow server data reads only when measured.
-- Audit image optimization/cache and repeat requests without making user-specific, price, order, checkout, auth, or personal report data publicly cacheable.
-- Before any DB/Auth/Supabase/VPS change inspect `docs/HALLEUS_PROJECT_CONTEXT.md`, related authorities, actual env **names** (never expose values), deployment configuration and `ops/vps/halleus-release.sh`. Production Supabase is **self-hosted** on the VPS; no assumptions about a cloud pooler, ports, hostnames or topology.
-- Do not introduce CDN/proxy/caching/infrastructure work or new monitoring services by default: propose only after measured need and separate explicit approval.
+| خانواده | نمونهٔ اندازه‌گیری | سفر کاربر و بررسی پذیرش |
+|---|---|---|
+| خانه و پوسته | / و یک صفحهٔ ساده مانند /privacy | نمای اول، منوی موبایل، لوگو، CTA، اسکرول، بازگشت، ورود به صفحهٔ بعد و فونت فارسی |
+| چارت | /chart | شمسی/میلادی، ساعت ناشناخته، سال و ساعت با لمس و کیبورد، شهر تولد و سکونت، شکست/تلاش مجدد فهرست شهر، یک ارسال و تطبیق خروجی موتور و چرخ روی دادهٔ ثابت |
+| مقایسه | /compare و نتیجهٔ ساختگی /compare/[comparisonId] | دو انتخاب معتبر، مهمان/عضو، دادهٔ ذخیره‌شدهٔ قبلی، نتیجه و بازگشت |
+| آسمان | /sky، نمای week/month و یک /sky/[date] معتبر | شهر و تاریخ ثابت، کش سرد/گرم، تغییر شهر و تاریخ، نیمه‌شب محلی، درستی نمودار و ارقام |
+| ویکی | /wiki، /wiki/category/[categoryId]، یک مقالهٔ معمولی و یک مقالهٔ بلندِ دارای تصویر و ویترین | ورود مستقیم و از فهرست، لنگر، خواندن تا انتها، عکس، CTA، رفت‌وبرگشت، canonical، robots، structured data و متن SSR |
+| فروشگاه | /shop، /shop/bahman-sign، یک ماه دیگر، /shop/birth-sky-map و محصولات فعال دیگر | تصویر اول، انتخاب عکس/سایز، زوم، تولید پیش‌نمایش، حفظ نوشته و واترمارک و مبلغ، افزودن به سبد؛ پوشش سبک همهٔ ۱۲ URL نماد و تست عمیق روی الگوهای متفاوت |
+| تجارت | /shop/cart، /shop/checkout، /shop/payment، /shop/track و /order طبق وضعیت فعال | سبد خالی و پُر، دوبارکلیک، تغییر قیمت، قطع شبکه، بازگشت/لغو/تکرار پاسخ در محیط آزمایشی، پیگیری نمونه. هیچ پرداخت واقعی یا سفارش تولیدی در آزمون |
+| حساب و گزارش | /profile، /dashboard، /reports، /reports/[reportId]، /reports/shared/[shareToken] | مهمان، مالک، حساب دوم، لینک معتبر/نامعتبر و خروج؛ گزارش کامل با چرخ، نتیجهٔ مجوز، استقلال cache نشست‌ها و نبود دادهٔ حساس در آمار |
+| باقی ورودی‌ها | /pricing، /product، shipping/returns، مسیرهای legacy، /admini و previewها طبق سورس | smoke سبک برای اثرات پوسته؛ انتظار ۴۰۴، gate، redirect یا نمایش برای هر مسیر ثبت شود. پنل و preview هدف امتیاز عمومی نیستند |
 
-**Exit:** latency reductions with proven freshness, privacy and billing boundaries.
+## ۷. مسئولیت‌ها، تأییدها و سقف هدف
 
-### W7 — Family-specific optimizations
+مسئول بررسی گیت‌هاب، آماده‌سازی نسخه‌های مقایسه، اصلاحات، داده‌های آزمون، تحلیل bundle و trace و ارائهٔ نتیجه، مجری رودمپ است. build، Lighthouse و Playwright به محیط آزمون با وابستگی قفل‌شده، مرورگر قابل اجرا و اتصال لازم به سرویس‌های آزمایشی وابسته‌اند. مجری تست‌ها را در محیط آزمون اجرا می‌کند. اجرای گیت‌هاب‌محور یعنی سورس و نسخهٔ قابل دریافت از گیت‌هاب می‌آیند؛ اندازه‌گیری مرورگر در محیط آزمون انجام می‌شود. نیازی به افزودن Actions، PR آزمایشی یا نصب و تست روزمره روی ویندوز مالک نیست. تا زمان تأیید release، نسخهٔ کاری commitنشده است.
 
-- **Chart:** lightweight first paint, precise mobile viewport, city directory only on demand, correct DOB/time pickers, submission/real-engine output unchanged.
-- **Compare:** shared form fixes only after its route is profiled; protect compatibility and result behavior.
-- **Sky:** defer visuals that do not affect first view while preserving source freshness and time-sensitive data.
-- **Wiki:** low-JS editorial HTML, image priority, intact reading order, anchors, CTA triggers and accessibility.
-- **Shop/products:** optimized gallery media and catalog rendering, no changes to product art/text/price/availability semantics.
-- **Checkout:** preserve cart, totals, payment initiation, return/cancel, idempotency and authentication. Do **not** execute a real payment in tests.
-- **Reports/account:** no access-control/privacy leaks, no calculation or content regressions, no personal data in public builds.
+از مالک فقط مدرکی که واقعاً مختص تولید است، اطلاعات یک حساب ساختگی یا sandbox در صورت نیاز، و در صورت تفاوت وابسته به دستگاه، یک تست هدفمند روی گوشی واقعی خواسته می‌شود. اگر اجرای مرورگر از سمت Work همچنان مسدود باشد، پیش از وعدهٔ انتشار یک محیط تست قابل‌اجرا لازم است؛ این پیش‌نیاز در مرحلهٔ صفر تعیین تکلیف می‌شود. دسترسی به کلید واقعی پرداخت، اطلاعات خصوصی کاربر یا env تولید برای بررسی عمومی درخواست نمی‌شود.
 
-**Exit:** route-specific improvements measured independently; no accepted regressions in dependent flows.
+ویکی‌های خواندنی و صفحات ساده محتمل‌ترین نامزدهای ۹۵+ هستند. برای خانه و فهرست‌ها، LCP واقعی و درخواست‌های مشترک تعیین‌کننده‌اند. چارت با TBT نمونهٔ ۴٬۵۱۰ ms تا هدف ۲۰۰ ms حدود ۴٬۳۱۰ ms فاصله دارد. صفحهٔ مقایسه با دادهٔ ذخیره‌شده، محصول با پیش‌نمایش و آسمان ماهانه دو معیار جدا دارند: سرعت ظاهرشدن محتوا و سرعت تکمیل عمل. پیش از baseline هر خانواده، دادن پیش‌بینی عددی برای امتیاز آن قابل دفاع نیست. اگر هزینهٔ باقی‌مانده به رفتار ضروری وابسته شد، بهترین نتیجهٔ تکرارپذیر، علت و بهای گزینهٔ بعدی به مالک ارائه می‌شود. هدف زیر ۹۰ فقط با پذیرش مشخص مالک بسته می‌شود. امتیاز ۱۰۰ در یک اجرا معادل پذیرش نیست.
 
-### W8 — Regression prevention, verification and release
+### حدود تغییر و تحویل نهایی
 
-- Establish responsive browser checks (real browser, not static source-string checks) at 320/360/390/412/430px, tablet and 1280/1440px; compare screenshots and assert `document.documentElement.scrollWidth <= window.innerWidth` when page-level horizontal scrolling is not intentionally part of the design.
-- Assert correct form/touch/keyboard/dialog/navigation flows, chart/compare engine inputs/outputs, article reading, gallery/product pages, cart/checkout, authentication and access controls.
-- Run the repo's existing impact-plan and focused guard/test/lint/type/build checks appropriate to each change. Do not turn a small fix into an unrelated full-repo audit by default.
-- Compare repeated Lighthouse runs and at least one actual browser trace per major bottleneck after each materially changed candidate. Reject regressions in viewport, user journeys, critical CWV, privacy or commercial behavior even if a single Performance score improves.
-- Perform a full safe independent failure-discovery pass on the first integrated candidate (`R1`), gather root causes, repair related failures in one candidate (`R2`) and resume unaffected passed checks rather than rebuilding from scratch.
-- Only after **all** items pass, provide changed files, actual diff summary, baseline-versus-candidate matrix, passed/not-run/blocked/external evidence, known trade-offs, risk, rollback plan and production impact.
-- Await explicit release approval. Commit/tag/push/deploy only at the authorized boundary; use `ops/vps/halleus-release.sh` exclusively for production activation and verify `current`, `previous`, service state and live smoke. A plain Git Pull does **not** activate a versioned release.
-
-**Exit:** approval-ready single release candidate, production untouched until permission.
-
-## 5. Prioritization, guardrails and acceptance gates
-
-**Preferred order:** verify safety/baseline → fix known mobile regression before inheriting defective code → profile and optimize sitewide shared JS/hydration → critical CSS/media/fonts → route-family bottlenecks → protected server/cache improvements when justified → integrated responsive and performance acceptance → separately approved release.
-
-- Prioritize by demonstrated main-thread milliseconds, LCP bottleneck and number of routes affected, not by how sophisticated a technique sounds.
-- Classify effort per **actual change slice**: L1 tiny UI; L2 contained flow; L3 shared/cross-route/performance contracts; L4 auth/privacy/payment/production-critical. Select smallest reliable checks and stricter gates for L4.
-- No unrelated SEO/editorial work, redesigns, sweeping rewrites, infrastructure polish, new GitHub Actions, experimental PRs, Base64 source generation, speculative dependencies or hidden product functionality changes.
-- Preserve product palette, typography, header logo/animation identity, wheel readability and approved artwork. Never use `overflow-x: hidden` or viewport zoom restrictions merely to mask real overflow.
-- Compare with the **working production version**, not only with defective GitHub `main`. Never reset unrelated work, force-push or mutate the production checkout manually.
-- Allow a route to remain below the aspirational 90+ goal only with a documented measured blocker and explicit acceptance; don't claim completion by changing the measurement profile.
-- Keep field data and per-user analytics privacy-safe; no personal health/birth data, auth tokens, private reports, secrets or full private traces in public artifacts.
-
-## 6. Work's first response / expected deliverables
-
-**First pass is READ-ONLY.** Inspect real GitHub repo, current branch/HEAD, relevant authority files, current scoped source and user-provided performance reports (where access is authorized). Verify user-reported rollback state if live VPS access is available; otherwise explicitly mark it as unverified.
-
-Return:
-1. A short executive diagnosis of why 38–49 scores occurred and what the confirmed vs suspected causes are, including the mobile 750px overflow case.
-2. A prioritized whole-site work plan with real affected files/components, estimated blast radius, risks, and measurable acceptance tests.
-3. A route-by-route **baseline collection protocol** and what Work can run autonomously versus what needs live/browser/test-account access, including limitations.
-4. A proposed cohesive implementation candidate that starts from a safe code baseline and does not inherit the broken layout; list any decisions requiring owner approval.
-5. A realistic upper bound/uncertainty discussion for approaching 90–100, not a guarantee; show which routes and metrics are likely hardest.
-6. A clear permission boundary: **do not change source, create a commit/tag, push, deploy or touch production** during the first response. Wait for explicit approval for implementation; wait separately for final release.
-
-**Roadmap completion means all eight workstreams are actually executed and verified, and (if final deployment is explicitly included/authorized) released and smoke-tested. Creating or reviewing this Markdown file does not complete the roadmap.**
+- دامنهٔ این کار سرعت و پایداری تجربهٔ فعلی است. طرح، محتوا، هویت بصری، دسترس‌پذیری، انیمیشن‌های مورد تأیید، نمای چاپ، امکانات و قرارداد SEO در مقایسهٔ قبل/بعد حفظ می‌شوند. تصمیم دربارهٔ CDN، سرویس پایش جدید، تغییر زیرساخت یا مهاجرت داده فقط پس از اثبات نیاز و تأیید مستقل مطرح می‌شود.
+- پیش از پیشنهاد تغییر مرتبط با DB/Auth/VPS، سند `docs/HALLEUS_PROJECT_CONTEXT.md`، پیکربندی استقرار، نحوهٔ مصرف متغیرها و `ops/vps/halleus-release.sh` از SHA روز بررسی شوند. تولید از Supabase خودمیزبان استفاده می‌کند. برای آزمون از دادهٔ ساختگی استفاده شود. در گیت‌هاب عمومی فقط نتایج تجمیعی و بازتولیدپذیر ثبت شوند؛ trace خام، token، شناسهٔ نشست، اطلاعات تولد و محتوای گزارش خصوصی نزد مالک می‌مانند.
+- پیش از release، مجری یک جدول برای هر مسیر با مرجع A و نسخهٔ C، مقادیر هر اجرا، نتیجهٔ بصری و رفتاری، وضعیت `PASS` یا علت شکست/انسداد، و تصمیم نهایی ارائه می‌کند. مورد زیر ۹۰ به مدرکِ گلوگاه باقی‌مانده و پذیرش صریح مالک نیاز دارد. دسترسی یا نتیجهٔ نامعلوم، مورد باز محسوب می‌شود.
+- تنها مرز انتشار، پایان مرحلهٔ ۶ و تأیید صریح مالک برای مرحلهٔ ۷ است. در صورت خرابی پس از فعال‌سازی، از rollback موتور رسمی استفاده و نسخهٔ فعالِ بازیابی‌شده، وضعیت سرویس و سفر کاربر دوباره بررسی شود.
