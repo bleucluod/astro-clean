@@ -2509,12 +2509,30 @@
 
 /* Compact site-wide contact row, immediately above the existing footer. */
 .contactStrip {
+  position: relative;
   width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
-  border-top: 1px solid #dce6f0;
-  border-bottom: 1px solid #dce6f0;
-  background: #f0f5fa;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #090909;
+}
+
+/* A quiet, slowly drifting silver highlight; layout and links stay still. */
+.contactStrip::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 20%, rgba(224, 231, 239, 0.48) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: contactStripShine 12s ease-in-out infinite alternate;
+}
+
+@keyframes contactStripShine {
+  from { background-position: 100% 0; opacity: 0.35; }
+  to { background-position: 0 0; opacity: 0.9; }
 }
 
 .contactStrip::-webkit-scrollbar {
@@ -2539,16 +2557,16 @@
   width: 1px;
   height: 17px;
   flex: 0 0 1px;
-  background: #c4d1de;
+  background: rgba(226, 232, 240, 0.22);
 }
 
 .contactStripLink {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #2f4052;
+  color: #d4d8df;
   text-decoration: none;
-  transition: color 160ms ease;
+  transition: color 220ms ease, transform 220ms ease;
 }
 
 .contactStripLink svg {
@@ -2558,11 +2576,12 @@
 
 .contactStripLink:hover,
 .contactStripLink:focus-visible {
-  color: #1e6a97;
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .contactStripLink:focus-visible {
-  outline: 2px solid #648eaf;
+  outline: 2px solid #bcccdc;
   outline-offset: 5px;
   border-radius: 3px;
 }
@@ -2584,6 +2603,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .contactStrip::before {
+    animation: none;
+  }
+
   .contactStripLink {
     transition: none;
   }
