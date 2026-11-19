@@ -1,7 +1,5 @@
-import { readFileSync } from "node:fs";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import sharp from "sharp";
 
 const failures = [];
 const read = (path) => readFileSync(path, "utf8");
@@ -9,19 +7,29 @@ const assert = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-const shared = read("lib/config/seo.ts");
-const route = read("app/api/social-preview/route.tsx");
+const seo = read("lib/config/seo.ts");
 const layout = read("app/layout.tsx");
 
-assert(shared.includes("export function buildSocialPreviewMetadata("), "Shared social-card metadata builder missing");
-assert(shared.includes("export function socialPreviewImage("), "Unique image URL builder missing");
-assert(shared.includes('url.searchParams.set("page", canonical);'), "Per-page cache identity missing");
-assert(shared.includes('url.searchParams.set("title", title);'), "Page title not included in image identity");
-assert(shared.includes("...social,"), "Public metadata is not using the new card");
-assert(layout.includes("...buildSocialPreviewMetadata({"), "Root layout fallback social card missing");
-assert(!layout.includes('social-share-light-1200x630.png'), "Old logo-card fallback remains in layout");
+assert(!existsSync("app/api/social-preview/route.tsx"), "Runtime image route must be deleted");
+assert(!seo.includes("/api/social-preview"), "Metadata must not target the runtime image endpoint");
+assert(!seo.includes("socialPreviewImage("), "Old runtime image URL builder remains");
+assert(seo.includes("photo ?? existingPreviewImage(canonical)"), "Missing direct asset selection");
+assert(seo.includes("new URL(photo ?? existingPreviewImage(canonical), siteConfig.url).toString()"),
+  "Images must use absolute site URLs");
+assert(seo.includes("images: [{ url: imageUrl, alt: title }]"), "Missing OG image");
+assert(seo.includes("images: [imageUrl]"), "Missing Twitter image");
+assert(seo.includes("images: [articleCover]"), "Existing Wiki article covers must survive");
+assert(seo.includes('"/shop": "/shop-preview/hero-desktop-v012.webp"'), "Shop must use its real hero");
+assert(layout.includes("...buildSocialPreviewMetadata({"), "Global fallback missing");
 
-const expectedPublicPages = [
+const staticAssets = [...seo.matchAll(/^\s*"\/[^"]+": "(\/[^"]+\.(?:webp|png|jpe?g))",?$/gm)]
+  .map((match) => match[1]);
+assert(staticAssets.length >= 13, "Insufficient concrete page-to-image mappings");
+for (const path of staticAssets) {
+  assert(existsSync(join(process.cwd(), "public", path.slice(1))), "Missing static image: " + path);
+}
+
+const publicPageFiles = [
   "app/page.tsx",
   "app/chart/page.tsx",
   "app/compare/page.tsx",
@@ -34,11 +42,11 @@ const expectedPublicPages = [
   "app/wiki/[slug]/page.tsx",
   "app/wiki/category/[categoryId]/page.tsx",
 ];
-for (const path of expectedPublicPages) {
-  assert(read(path).includes("buildPublicPageMetadata("), path + ": missing per-page metadata");
+for (const path of publicPageFiles) {
+  assert(read(path).includes("buildPublicPageMetadata("), path + ": missing page metadata");
 }
 
-const expectedManualPages = [
+const productPageFiles = [
   "app/shop/page.tsx",
   "app/shop/moon-phase-print/page.tsx",
   "app/shop/birth-sky-map/page.tsx",
@@ -47,106 +55,43 @@ const expectedManualPages = [
   "app/shop/nemad-man/[month]/page.tsx",
   "app/sky/[date]/page.tsx",
 ];
-for (const path of expectedManualPages) {
-  assert(read(path).includes("buildSocialPreviewMetadata({"), path + ": missing share card metadata");
+for (const path of productPageFiles) {
+  assert(read(path).includes("buildSocialPreviewMetadata({"), path + ": missing social tags");
 }
 
-const canonicalMonth = read("app/shop/[slug]/page.tsx");
-assert(canonicalMonth.includes("monthMetadata("), "Canonical sign URLs no longer use month social metadata");
-assert(canonicalMonth.includes("robots: { index: true, follow: true }"), "Canonical sign URLs lost indexability");
-const monthSource = read("app/shop/nemad-man/[month]/page.tsx");
-assert(monthSource.includes("data?.product.gallery.find"), "Month share image no longer follows real product gallery");
-assert(monthSource.includes("src.startsWith('/shop-preview/')"), "Month share image no longer uses approved photo");
+const shop = read("app/shop/page.tsx");
+assert(shop.includes('photo: "/shop-preview/hero-desktop-v012.webp"'),
+  "Shop must share the exact existing hero image");
 
-for (const image of [
-  "public/shop-preview/hero-desktop-v012.webp",
-  "public/shop-preview/p01/mockup-frameless-gibbous-daylight.webp",
-  "public/shop-preview/p02/05-raha-parsa-30x45-wall.webp",
-  "public/shop-preview/our-night.webp",
-  "assets/shop-print/fonts/Estedad-Medium.ttf",
-]) {
-  assert(existsSync(join(process.cwd(), image)), "Share card asset missing: " + image);
-}
-
-for (const token of [
-  'import sharp from "sharp"',
-  'export const runtime = "nodejs"',
-  'safePhotoPath(',
-  'value.includes("..")',
-  'value.includes("%")',
-  'fontfile: FONT_PATH',
-  'await sharp(bytes).resize(466, 498',
-  'async function textLayer(',
-  'escapePango(',
-  'new Response(new Uint8Array(image)',
-  '"Cache-Control"',
-]) {
-  assert(route.includes(token), "Share image generator missing: " + token);
-}
-assert(route.includes("readFile(/* turbopackIgnore: true */ path)"), "Dynamic public photo reads must not trace the whole project");
-assert(!route.includes("ImageResponse") && !route.includes("next/og"), "Incompatible ImageResponse font renderer is still present");
-assert(!route.includes("height: maxHeight,\n      align:"), "Pango text must not auto-enlarge into a fixed-height box");
-assert(route.includes("return new Response(new Uint8Array(image)"), "Image response must contain binary PNG");
-assert(shared.includes('url.searchParams.set("v", "2");'), "Share image version must invalidate the old cached URL");
-assert(!route.includes("fetch("), "Share image generator must not fetch untrusted remote photos");
-assert(route.includes("length <= 3_000_000"), "Share image generator lacks photo-size ceiling");
-assert(!route.includes("reportId") && !route.includes("shareToken"), "Share images must exclude private report identifiers");
-
-// Exercise the real production font and photo pipeline before any release.
-try {
-  const fontfile = join(process.cwd(), "assets/shop-print/fonts/Estedad-Medium.ttf");
-  const sampleTitles = [
-    "خرید هدیه خاص و ماندگار | فروشگاه هالیوس",
-    "تابلو نماد ماه تولد بهمن؛ آکواریوس و ردِ ستاره‌ها | هالیوس",
-    "چارت تولد رایگان فارسی با تفسیر | هالیوس",
-  ];
-  for (const title of sampleTitles) {
-    const escaped = title.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
-    const original = await sharp({
-      text: {
-        text: '<span foreground="#ffffff">\u200f' + escaped + '</span>',
-        font: "Estedad 42",
-        fontfile,
-        width: 535,
-        align: "right",
-        wrap: "word-char",
-        rgba: true,
-      },
-    }).png().toBuffer();
-    const bounded = await sharp(original).resize({
-      width: 535,
-      height: 287,
-      fit: "inside",
-      withoutEnlargement: true,
-    }).png().toBuffer();
-    const info = await sharp(bounded).metadata();
-    assert(info.width > 0 && info.width <= 535 && info.height > 0 && info.height <= 287,
-      "Pango text overflow or empty output");
-    const base = sharp({
-      create: { width: 1200, height: 630, channels: 4, background: "#08090b" },
-    });
-    const png = await base.composite([
-      { input: bounded, left: 1120 - info.width, top: 208 },
-    ]).png().toBuffer();
-    assert(png.subarray(0, 8).toString("hex") === "89504e470d0a1a0a" &&
-      png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630,
-      "1200x630 PNG generation failed");
+for (const path of productPageFiles) {
+  const source = read(path);
+  for (const match of source.matchAll(/photo:\s*["'](\/[^"']+\.(?:webp|png|jpe?g))["']/g)) {
+    const image = match[1];
+    assert(existsSync(join(process.cwd(), "public", image.slice(1))),
+      path + ": image missing: " + image);
   }
-  const bytes = readFileSync("public/shop-preview/hero-desktop-v012.webp");
-  const photo = await sharp(bytes).resize(466, 498, { fit: "cover" }).png().toBuffer();
-  const photoInfo = await sharp(photo).metadata();
-  assert(photoInfo.width === 466 && photoInfo.height === 498,
-    "Product photo conversion failed");
-} catch (error) {
-  failures.push("Sharp/Pango actual Estedad runtime rendering failed: " +
-    (error instanceof Error ? error.message : String(error)));
+}
+const sign = read("app/shop/nemad-man/[month]/page.tsx");
+assert(sign.includes("data?.product.gallery.find") &&
+  sign.includes("src.startsWith('/shop-preview/')"),
+  "Zodiac share photos must follow their existing product gallery");
+const canonicalSign = read("app/shop/[slug]/page.tsx");
+assert(canonicalSign.includes("monthMetadata("), "Zodiac canonical route must use product metadata");
+assert(canonicalSign.includes("robots: { index: true, follow: true }"), "Zodiac indexability changed");
+
+for (const [name, path] of [
+  ["shop", "/shop-preview/hero-desktop-v012.webp"],
+  ["moon", "/shop-preview/p01/mockup-frameless-gibbous-daylight.webp"],
+  ["birth sky", "/shop-preview/p02/05-raha-parsa-30x45-wall.webp"],
+  ["night", "/shop-preview/our-night.webp"],
+]) {
+  assert(existsSync(join(process.cwd(), "public", path.slice(1))), "Missing approved " + name + " photo");
 }
 
 if (failures.length) {
-  console.error("Social preview contract failures:");
+  console.error("STATIC_SOCIAL_PREVIEW_FAILURES=" + failures.length);
   for (const failure of failures) console.error("- " + failure);
   process.exit(1);
 }
 console.log("SOCIAL_PREVIEWS_STATIC=PASS");
-console.log("SOCIAL_PREVIEWS_RUNTIME_PANGO=PASS");
-console.log("Public routes, wiki articles/categories, 12 month signs, shop photos and private-data boundary verified.");
+console.log("Direct public images, all known page metadata, Wiki covers, product galleries and no dynamic image endpoint.");

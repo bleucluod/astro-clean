@@ -21,53 +21,40 @@ type SocialPreviewInput = {
   section?: string;
 };
 
-function previewSection(path: string): string {
-  if (path === "/") return "آسترولوژی و خودشناسی";
-  if (path === "/shop") return "فروشگاه هالیوس";
-  if (path.startsWith("/shop/")) return "آثار شخصی‌سازی‌شده";
-  if (path.startsWith("/wiki/category/")) return "دسته‌بندی ویکی";
-  if (path.startsWith("/wiki/")) return "مقالهٔ ویکی هالیوس";
-  if (path === "/wiki") return "ویکی آسترولوژی";
-  if (path.startsWith("/sky")) return "آسمان و ترنزیت‌ها";
-  if (path.startsWith("/compare")) return "رابطه و سیناستری";
-  if (path === "/privacy") return "حریم خصوصی";
-  return "هالیوس";
-}
+// Use existing, public images directly. A crawler must never depend on
+// runtime font rendering, image composition or a custom preview API.
+const SOCIAL_IMAGES: Record<string, string> = {
+  "/": "/halleus-visuals/moon-apollo11.webp",
+  "/chart": "/halleus-chart-wheel-sample-polished-centered.webp",
+  "/compare": "/halleus-compare-og.png",
+  "/sky": "/halleus-visuals/moon-apollo11.webp",
+  "/wiki": "/halleus-chart-wheel-sample-polished-centered.webp",
+  "/product": "/halleus-chart-wheel-sample-polished-centered.webp",
+  "/pricing": "/halleus-order-hero.webp",
+  "/order": "/halleus-order-hero.webp",
+  "/privacy": "/halleus-privacy-hero.webp",
+  "/shop": "/shop-preview/hero-desktop-v012.webp",
+  "/shop/moon-phase-print": "/shop-preview/p01/mockup-frameless-gibbous-daylight.webp",
+  "/shop/birth-sky-map": "/shop-preview/p02/05-raha-parsa-30x45-wall.webp",
+  "/shop/milky-way-print": "/shop-preview/our-night.webp",
+  "/shop/shipping-returns": "/shop-preview/hero-desktop-v012.webp",
+};
 
-/**
- * One server-rendered 1200x630 PNG per public page, with the page's own title
- * and (where present) a verified local image. No private report data is sent.
- * The pathname is part of the URL to keep distinct pages independently cached.
- */
-export function socialPreviewImage({
-  title,
-  canonical,
-  photo,
-  section,
-}: Pick<SocialPreviewInput, "title" | "canonical" | "photo" | "section">) {
-  const url = new URL("/api/social-preview", siteConfig.url);
-  url.searchParams.set("title", title);
-  url.searchParams.set("section", section ?? previewSection(canonical));
-  url.searchParams.set("page", canonical);
-  url.searchParams.set("v", "2");
-
-  if (photo) {
-    try {
-      const resolved = new URL(photo, siteConfig.url);
-      if (resolved.origin === new URL(siteConfig.url).origin) {
-        url.searchParams.set("photo", resolved.pathname);
-      }
-    } catch {
-      // A missing or malformed optional image must not break page metadata.
-    }
+function existingPreviewImage(canonical: string): string {
+  const exact = SOCIAL_IMAGES[canonical];
+  if (exact) return exact;
+  if (canonical.startsWith("/shop/")) return SOCIAL_IMAGES["/shop"];
+  if (canonical.startsWith("/sky/")) return SOCIAL_IMAGES["/sky"];
+  if (canonical.startsWith("/compare/")) return SOCIAL_IMAGES["/compare"];
+  if (canonical.startsWith("/wiki/category/famous-birth-charts")) {
+    return "/wiki/category/famous-birth-charts/01-famous-archetypes.webp";
   }
-
-  return {
-    url: url.toString(),
-    width: 1200,
-    height: 630,
-    alt: title + " | هالیوس",
-  };
+  if (canonical.startsWith("/wiki/")) {
+    if (/moon|lunar|ماه|phase/.test(canonical)) return SOCIAL_IMAGES["/sky"];
+    if (/synastry|relationship|compatib|marriage/.test(canonical)) return SOCIAL_IMAGES["/compare"];
+    return SOCIAL_IMAGES["/wiki"];
+  }
+  return SOCIAL_IMAGES["/"];
 }
 
 export function buildSocialPreviewMetadata({
@@ -75,9 +62,8 @@ export function buildSocialPreviewMetadata({
   description,
   canonical,
   photo,
-  section,
 }: SocialPreviewInput): Pick<Metadata, "openGraph" | "twitter"> {
-  const socialImage = socialPreviewImage({ title, canonical, photo, section });
+  const imageUrl = new URL(photo ?? existingPreviewImage(canonical), siteConfig.url).toString();
   const pageUrl = new URL(canonical, siteConfig.url).toString();
   return {
     openGraph: {
@@ -87,13 +73,13 @@ export function buildSocialPreviewMetadata({
       siteName: siteConfig.name,
       locale: siteConfig.locale,
       type: "website",
-      images: [socialImage],
+      images: [{ url: imageUrl, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [socialImage.url],
+      images: [imageUrl],
     },
   };
 }
@@ -117,8 +103,6 @@ export function buildPublicPageMetadata({
     canonical,
     photo: image?.url,
   });
-  // Preserve real article cover photos (including those hosted in the wiki's
-  // public media storage). Articles without a cover get a unique title card.
   const articleCover = type === "article" && image ? image : null;
   return {
     title,
