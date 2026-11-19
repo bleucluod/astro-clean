@@ -3,7 +3,7 @@
 import Link, { type LinkProps } from "next/link";
 import { useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 
-const DEFERRED_PREFETCH_PREFIXES = ["/chart","/compare","/product","/profile","/sky","/wiki"] as const;
+const DEFERRED_PREFETCH_PREFIXES = ["/chart","/compare","/product","/profile","/sky","/wiki","/shop"] as const;
 
 type IntentPrefetchLinkProps = LinkProps &
   Omit<ComponentPropsWithoutRef<"a">, keyof LinkProps> & {

@@ -373,11 +373,11 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad, initialPriceToman 
                   sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork
               ? <Image unoptimized src={artwork} alt={displayAlt} fill
-                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+                  sizes={nemad ? "(max-width: 760px) calc(100vw - 32px), 510px" : "(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"}
                   className={pdStyles.portraitPhoto} />
               : <Image key={currentPhoto.src} src={currentPhoto.src} alt={currentPhoto.alt} fill
                   priority={photoIndex === 1}
-                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+                  sizes={nemad ? "(max-width: 760px) calc(100vw - 32px), 510px" : "(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"}
                   className={pdStyles.portraitPhoto} />}
             <span className={pdStyles.zoomHint} aria-hidden="true">
               <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

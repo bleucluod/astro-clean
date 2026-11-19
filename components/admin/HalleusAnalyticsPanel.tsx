@@ -330,8 +330,11 @@ export function HalleusAnalyticsPanel({ token, activeSection }: {
 
   useEffect(() => {
     let alive = true;
+    let inFlight = false;
     const controller = new AbortController();
     const read = async () => {
+      if (!alive || document.visibilityState === "hidden" || inFlight) return;
+      inFlight = true;
       try {
         const response = await fetch("/api/admin/analytics?" + query, {
           headers: { authorization: "Bearer " + token }, cache: "no-store",
@@ -343,12 +346,20 @@ export function HalleusAnalyticsPanel({ token, activeSection }: {
       } catch {
         if (alive) setError("در دریافت آمار مشکلی پیش اومده. دوباره تازه‌سازی کن.");
       } finally {
+        inFlight = false;
         if (alive) setLoading(false);
       }
     };
     void read();
+    const onVisibility = () => { if (document.visibilityState === "visible") void read(); };
+    document.addEventListener("visibilitychange", onVisibility);
     const timer = window.setInterval(() => void read(), 20_000);
-    return () => { alive = false; controller.abort(); window.clearInterval(timer); };
+    return () => {
+      alive = false;
+      controller.abort();
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [token, query, revision]);
 
   useEffect(() => {

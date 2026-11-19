@@ -77,19 +77,23 @@ export async function POST(request: Request) {
   const body = payload as Record<string, unknown>;
   if (typeof body.kind !== "string" || !KINDS.has(body.kind as AnalyticsEventKind)) return empty(400);
   const kind = body.kind as AnalyticsEventKind;
-  const expectedKeys = kind === "engagement" ? "kind,path,seconds,sessionId,source" :
+  const expectedKeys = kind === "engagement" || kind === "heartbeat"
+    ? "kind,path,seconds,sessionId,source" :
     kind === "scroll" ? "depth,kind,path,sessionId,source" :
     kind === "page" ? "kind,paid,path,sessionId,source,visitor" :
     "kind,path,sessionId,source";
-  if (Object.keys(body).sort().join(",") !== expectedKeys ||
+  // Old tabs still send heartbeat without seconds until they refresh.
+  const receivedKeys = Object.keys(body).sort().join(",");
+  const legacyHeartbeat = kind === "heartbeat" && receivedKeys === "kind,path,sessionId,source";
+  if ((!legacyHeartbeat && receivedKeys !== expectedKeys) ||
     typeof body.sessionId !== "string" || !UUID.test(body.sessionId) ||
     !isAnalyticsSource(body.source)) return empty(400);
   if (kind === "page" &&
     (typeof body.paid !== "boolean" ||
      !["new", "returning", "unknown"].includes(String(body.visitor)))) return empty(400);
-  if (kind === "engagement" &&
+  if ((kind === "engagement" || (kind === "heartbeat" && !legacyHeartbeat)) &&
     (typeof body.seconds !== "number" || !Number.isInteger(body.seconds) ||
-     body.seconds < 1 || body.seconds > 20)) return empty(400);
+     body.seconds < (kind === "heartbeat" ? 0 : 1) || body.seconds > 20)) return empty(400);
   if (kind === "scroll" && (typeof body.depth !== "number" ||
     ![25, 50, 75, 90, 100].includes(body.depth))) return empty(400);
   const path = normalizeAnalyticsPath(body.path);
@@ -161,7 +165,7 @@ export async function POST(request: Request) {
           on conflict (minute, session_id) do update set area = excluded.area
         `;
       }
-      if (kind === "heartbeat" || kind === "resume") return;
+      if (kind === "resume" || (kind === "heartbeat" && !body.seconds)) return;
 
       const page = zero();
       const site = zero();
@@ -186,7 +190,7 @@ export async function POST(request: Request) {
           seenSite.length && live[0].visitor_kind === "returning" ? 1 : 0;
         page.campaignVisits = site.campaignVisits = seenSite.length && live[0].campaign ? 1 : 0;
       }
-      if (kind === "engagement") {
+      if (kind === "engagement" || kind === "heartbeat") {
         const since = Math.floor(
           (Date.now() - new Date(String(live[0].last_engagement_at)).getTime()) / 1000,
         );

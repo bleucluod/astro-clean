@@ -361,7 +361,7 @@ export default async function Home() {
                 src="/shop-preview/p01/mockup-frameless-gibbous-daylight.webp"
                 alt="تابلوی ماه آن روز در موکاپ واقعی هالیوس"
                 fill
-                sizes="(max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
+                sizes="(max-width: 390px) 88vw, (max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
               />
             </div>
             <div className={styles.shopCardInfo}>
@@ -382,7 +382,7 @@ export default async function Home() {
                 src={`/shop-preview/nemad-man/${featuredNemadMonth.slug}/${featuredNemadCover.file}`}
                 alt={`تابلو نماد من، ${featuredNemadMonth.title}، با موکاپ اصلی هالیوس`}
                 fill
-                sizes="(max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
+                sizes="(max-width: 390px) 88vw, (max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
               />
             </div>
             <div className={styles.shopCardInfo}>
@@ -400,7 +400,7 @@ export default async function Home() {
                 src="/shop-preview/p02/05-raha-parsa-30x45-wall.webp"
                 alt="موکاپ تابلوی آسمان تولد در فروشگاه هالیوس"
                 fill
-                sizes="(max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
+                sizes="(max-width: 390px) 88vw, (max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
               />
             </div>
             <div className={styles.shopCardInfo}>

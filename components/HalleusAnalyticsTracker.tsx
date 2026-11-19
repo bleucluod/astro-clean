@@ -113,7 +113,7 @@ export function HalleusAnalyticsTracker({ granted, pathname }: {
 
     const active = () => { lastInteraction = performance.now(); };
 
-    const flush = (closing = false) => {
+    const flush = (closing = false, combineWithHeartbeat = false) => {
       const now = performance.now();
       const elapsed = Math.max(0, Math.min(20, (now - lastTick) / 1000));
       if (previousVisible && now - lastInteraction <= IDLE_MS) {
@@ -124,13 +124,16 @@ export function HalleusAnalyticsTracker({ granted, pathname }: {
       const seconds = Math.min(20, Math.floor(pendingSeconds));
       if (seconds >= 1) {
         pendingSeconds -= seconds;
-        emit("engagement", path, { seconds });
+        if (!combineWithHeartbeat) emit("engagement", path, { seconds });
       }
+      return seconds;
     };
 
     const heartbeat = () => {
       if (document.visibilityState !== "visible") return;
-      emit("heartbeat", path);
+      // Presence and active seconds share one request on a visible tick.
+      const seconds = flush(false, true);
+      emit("heartbeat", path, { seconds });
     };
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
@@ -177,10 +180,7 @@ export function HalleusAnalyticsTracker({ granted, pathname }: {
       }
     };
     if (previousVisible) emit("page", path);
-    const interval = window.setInterval(() => {
-      flush();
-      heartbeat();
-    }, TICK_MS);
+    const interval = window.setInterval(heartbeat, TICK_MS);
     document.addEventListener("visibilitychange", onVisibility);
     const onPageHide = () => flush(true);
     window.addEventListener("pagehide", onPageHide);

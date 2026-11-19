@@ -175,6 +175,22 @@ check("tracker/consent_visibility_and_idle", () => {
   assert.ok(consent.includes('<HalleusAnalyticsTracker granted={choice === "granted"}'));
   assert.ok(consent.includes('setChoice(readStoredChoice() ?? "granted");'));
 });
+check("performance/heartbeat_coalescing_and_admin_polling", () => {
+  const tracker = read("components/HalleusAnalyticsTracker.tsx");
+  const route = read("app/api/analytics/event/route.ts");
+  const panel = read("components/admin/HalleusAnalyticsPanel.tsx");
+  assert.match(tracker, /const seconds = flush\(false, true\)/);
+  assert.ok(tracker.includes('emit("heartbeat", path, { seconds })'));
+  assert.match(tracker, /if \(!combineWithHeartbeat\) emit\("engagement"/);
+  assert.match(tracker, /setInterval\(heartbeat, TICK_MS\)/);
+  assert.match(route, /legacyHeartbeat/);
+  assert.match(route, /kind === "engagement" \|\| kind === "heartbeat"/);
+  assert.match(route, /kind === "heartbeat" && !body\.seconds/);
+  assert.match(panel, /document\.visibilityState === "hidden" \|\| inFlight/);
+  assert.match(panel, /document\.addEventListener\("visibilitychange", onVisibility\)/);
+  assert.match(panel, /document\.removeEventListener\("visibilitychange", onVisibility\)/);
+});
+
 check("actions/reports_comparison_shop_verified", () => {
   const chart = read("components/ChartForm.tsx");
   const compare = read("components/comparison/ComparisonComposer.tsx");

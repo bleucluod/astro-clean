@@ -22,7 +22,7 @@ function ProductImage({ item }: { item: ShopV01Item }) {
           src={item.imageSrc}
           alt={item.imageAlt ?? item.title}
           fill
-          sizes="(max-width: 767px) calc(100vw - 36px), (max-width: 1024px) 46vw, 30vw"
+          sizes="(max-width: 767px) calc(100vw - 36px), (max-width: 1024px) 46vw, (max-width: 1280px) 29vw, 384px"
           className={styles.productImage}
         />
       ) : (
@@ -67,7 +67,7 @@ export function ShopV01Home({ products, showP02Invitation = true }: { products: 
               return (
                 <article className={products.length === 1 ? styles.featuredCard : styles.productCard} key={item.id}>
                   {item.href ? (
-                    <Link className={styles.cardLink} href={item.href} aria-label={'مشاهدهٔ ' + item.title}>
+                    <Link prefetch={false} className={styles.cardLink} href={item.href} aria-label={'مشاهدهٔ ' + item.title}>
                       {cardContent}
                     </Link>
                   ) : (
@@ -83,7 +83,7 @@ export function ShopV01Home({ products, showP02Invitation = true }: { products: 
               <h3>آسمان تولد، از روی ستاره‌های واقعی</h3>
               <p>تاریخ، ساعت و شهر رو انتخاب کن و پیش‌نمایش نقشهٔ محاسبه‌شدهٔ خودت رو کنار موکاپ‌های تأییدشده ببین.</p>
             </div>
-            <Link href="/shop/birth-sky-map">ساخت و دیدن آسمان تولد</Link>
+            <Link prefetch={false} href="/shop/birth-sky-map">ساخت و دیدن آسمان تولد</Link>
           </aside> : null}
         </div>
       </section>
