@@ -9,6 +9,9 @@ import type { ShopCopySection, ShopProduct } from '@/components/shop/product-det
 import { validateBahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import { NEMAD_MONTHS } from '@/lib/shop/nemad-man-months';
 import { isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
+import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
+import { buildShopProductStructuredData } from '@/components/shop/product-schema';
+import { siteConfig } from '@/lib/config/seo';
 
 // Use the same Estedad-loaded product shell as P02, not P03's renderer.
 const estedad = localFont({
@@ -207,12 +210,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/** Both paths share the same canonical offer URL; the internal alias stays noindex. */
 export default async function NemadManMonthProductPage({ params }: Props) {
   const { month } = await params;
-  if (process.env.NODE_ENV === 'production' && !isShopNemadOrderEnabled()) notFound();
+  const purchaseEnabled = isShopNemadOrderEnabled();
+  if (process.env.NODE_ENV === 'production' && !purchaseEnabled) notFound();
   const data = readApprovedMonth(month);
   if (!data) notFound();
+  const prices = (await readShopPriceCatalog()).prices;
+  const markup = buildShopProductStructuredData(
+    data.product, siteConfig.url, purchaseEnabled, prices, month,
+  );
   return <div className={estedad.variable}>
-    <BirthSkyLiveProduct key={month} purchaseEnabled={isShopNemadOrderEnabled()} nemad={data} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{
+      __html: JSON.stringify(markup).replace(/</g, '\\u003c'),
+    }} />
+    <BirthSkyLiveProduct key={month} purchaseEnabled={isShopNemadOrderEnabled()} nemad={data}
+      initialPriceToman={prices['nm:10x15']} />
   </div>;
 }

@@ -38,6 +38,6 @@ export default async function BirthSkyProductPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{
       __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
     }} />
-    <BirthSkyLiveProduct purchaseEnabled={isShopP02OrderEnabled()} />
+    <BirthSkyLiveProduct purchaseEnabled={isShopP02OrderEnabled()} initialPriceToman={catalog.prices['p02:10x15']} />
   </div>;
 }

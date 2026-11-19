@@ -24,6 +24,7 @@ const footerLinks = [
   { href: "/wiki", label: "ویکی آسترولوژی" },
   { href: "/shop", label: "فروشگاه" },
   { href: "/shop/track", label: "پیگیری سفارش" },
+  { href: "/shop/shipping-returns", label: "ارسال و مرجوعی سفارش" },
   { href: "/privacy", label: "حریم خصوصی" },
 ] as const;
 

@@ -84,7 +84,10 @@ function PageShell({ step, title, subtitle, children }: { step: number; title: s
         </nav>
         <div className={styles.titleBlock}><h1>{title}</h1>{subtitle ? <p>{subtitle}</p> : null}</div>
         {children}
-        <p className={styles.deliveryPromise}>تحویل به پست یا تیپاکس نهایتا تا ۳ روز کاری پس از تأیید پرداخت؛ همراه با کد رهگیری.</p>
+        <p className={styles.deliveryPromise}>تحویل به پست یا تیپاکس حداکثر تا ۳ روز کاری پس از تأیید پرداخت؛
+          زمان حمل تا مقصد به شرکت حمل وابسته است.{' '}
+          <Link href="/shop/shipping-returns">شرایط ارسال و مرجوعی آثار سفارشی</Link>
+        </p>
       </div>
     </div>
   );
