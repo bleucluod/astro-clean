@@ -49,6 +49,43 @@ export function AppShell({ children }: AppShellProps) {
 
       <ShopAwareBackToTop />
 
+      <nav className={styles.contactStrip} aria-label="راه‌های ارتباطی هالیوس" dir="rtl">
+        <div className={styles.contactStripInner}>
+          <span className={styles.contactStripTitle}>ارتباط با ما</span>
+          <span className={styles.contactStripDivider} aria-hidden="true" />
+          <a
+            className={styles.contactStripLink}
+            href="tel:+989353997359"
+            aria-label="تماس با هالیوس: ۰۹۳۵۳۹۹۷۳۵۹"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"
+              fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
+              strokeLinejoin="round">
+              <path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 2.9a2 2 0 0 1-.6 1.7L7.1 10a16 16 0 0 0 6.9 6.9l1.7-1.9a2 2 0 0 1 1.7-.6l2.9.5a2 2 0 0 1 1.7 2Z" />
+            </svg>
+            <span className={styles.contactStripLabel}>تماس</span>
+            <bdi dir="ltr">۰۹۳۵۳۹۹۷۳۵۹</bdi>
+          </a>
+          <span className={styles.contactStripDivider} aria-hidden="true" />
+          <a
+            className={styles.contactStripLink}
+            href="https://t.me/thecloudteam"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="پیام در تلگرام: thecloudteam"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"
+              fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
+              strokeLinejoin="round">
+              <path d="m22 2-7 20-4-9-9-4Z" />
+              <path d="M22 2 11 13" />
+            </svg>
+            <span className={styles.contactStripLabel}>تلگرام</span>
+            <bdi dir="ltr">@thecloudteam</bdi>
+          </a>
+        </div>
+      </nav>
+
       <footer
         data-approved-lockup="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
         className={`site-footer ${styles.footer}`}
