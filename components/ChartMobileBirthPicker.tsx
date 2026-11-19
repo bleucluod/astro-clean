@@ -391,7 +391,8 @@ export function MobileBirthDatePicker({
         <DateWheel key={mode} label="سال" value={value.year} options={yearWheelOptions}
           onChange={(year) => changeValue("year", year)} onTap={() => openQuick(2)} />
       </div>
-      <QuickEntryDialog
+      {quickOpen ? (
+        <QuickEntryDialog
         open={quickOpen}
         focusIndex={quickFocusIndex}
         title={"ورود تاریخ تولد " + (mode === "jalali" ? "شمسی" : "میلادی")}
@@ -407,7 +408,8 @@ export function MobileBirthDatePicker({
         confirmLabel="تأیید تاریخ"
         onConfirm={() => { onConfirm(normalizedDraft); setQuickRevision((n) => n + 1); }}
         onClose={() => setQuickOpen(false)}
-      />
+        />
+      ) : null}
     </div>
   );
 }
@@ -458,7 +460,8 @@ export function MobileBirthTimePicker({
         <DateWheel label="دقیقه" value={value.minute} options={TIME_WHEEL_MINUTES}
           onChange={(minute) => onConfirm({ ...value, minute })} onTap={() => openQuick(1)} />
       </div>
-      <QuickEntryDialog
+      {quickOpen ? (
+        <QuickEntryDialog
         open={quickOpen}
         focusIndex={quickFocusIndex}
         title="ورود ساعت تولد"
@@ -472,7 +475,8 @@ export function MobileBirthTimePicker({
         confirmLabel="تأیید ساعت"
         onConfirm={() => { onConfirm(normalizedDraft); setQuickRevision((n) => n + 1); }}
         onClose={() => setQuickOpen(false)}
-      />
+        />
+      ) : null}
     </div>
   );
 }

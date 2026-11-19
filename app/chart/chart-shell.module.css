@@ -3748,3 +3748,24 @@
   .page .finalCta h2 { font-size: 1.16rem; line-height: 1.7; }
   .page .finalCta p { font-size: .85rem; line-height: 2.02; }
 }
+
+/* HALLEUS_CHART_TRACE_OFFSCREEN_RENDER_V1
+   Skip layout and paint of long informational sections below the interactive form.
+   All content stays in the DOM, discoverable and rendered normally when approached. */
+@supports (content-visibility: auto) {
+  .page > .education[data-chart-section] {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 560px;
+  }
+
+  .page > .education[data-chart-section="faq"] {
+    contain-intrinsic-size: auto 760px;
+  }
+}
+
+@media print {
+  .page > .education[data-chart-section] {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+  }
+}
