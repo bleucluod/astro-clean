@@ -1,6 +1,7 @@
 import { R3ApprovedInlineParagraphs } from "@/components/r3-approved-visible-copy";
 // HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 import type { Metadata } from "next";
+import Image from "next/image";
 import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
 import { IntentPrefetchLink } from "@/components/IntentPrefetchLink";
 
@@ -11,6 +12,7 @@ import { deliverSkyPublicSnapshot } from "@/lib/sky-public/sky-public-delivery";
 import { sortPublicWikiArticlesNewestFirst } from "@/lib/wiki/wiki-public-discovery";
 import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
 import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
+import { getCurrentTehranNemadMonth, NEMAD_SHOP_COVERS } from "@/lib/shop/nemad-man-months";
 
 import styles from "./home.module.css";
 
@@ -166,6 +168,8 @@ export default async function Home() {
     : faqItems.filter(
         (item) => item.question !== "آیا ساخت چارت رایگان است؟",
       );
+  const featuredNemadMonth = getCurrentTehranNemadMonth();
+  const featuredNemadCover = NEMAD_SHOP_COVERS[featuredNemadMonth.slug];
   const learningPaths = learningSeeds.map((seed) => {
     const article = articles.find(
       (candidate) => candidate.slug === seed.preferredSlug,
@@ -336,6 +340,85 @@ export default async function Home() {
       </section>
 
       <HomeHowItWorks />
+
+      <section className={styles.shopShowcase} id="home-shop-showcase" aria-labelledby="shop-featured-title">
+        <header className={styles.shopShowcaseHead}>
+          <div>
+            <span className={styles.shopKicker}>HALLEUS / STUDIO</span>
+            <h2 id="shop-featured-title">لحظه‌های آسمان، برای ماندن روی زمین</h2>
+            <p>بعضی تاریخ‌ها و خاطره‌ها ارزش این رو دارن که هر روز دوباره دیده بشن. این‌ها چند اثر از فروشگاه هالیوس هستن.</p>
+          </div>
+          <IntentPrefetchLink className={styles.shopViewAll} href="/shop">
+            دیدن فروشگاه هالیوس ←
+          </IntentPrefetchLink>
+        </header>
+
+        <div className={styles.shopGrid}>
+          <IntentPrefetchLink className={styles.shopCard} href="/shop/moon-phase-print">
+            <div className={styles.shopCardPicture}>
+              <Image
+                className={styles.shopCardImage}
+                src="/shop-preview/p01/mockup-frameless-gibbous-daylight.webp"
+                alt="تابلوی ماه آن روز در موکاپ واقعی هالیوس"
+                fill
+                sizes="(max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
+              />
+            </div>
+            <div className={styles.shopCardInfo}>
+              <span className={styles.shopCardLabel}>تابلوی شخصی‌سازی‌شده</span>
+              <h3>ماه آن روز</h3>
+              <p>ماه آسمان در تاریخی که برای تو معنا داره.</p>
+              <span className={styles.shopCardArrow} aria-hidden="true">↖</span>
+            </div>
+          </IntentPrefetchLink>
+
+          <IntentPrefetchLink
+            className={styles.shopCard}
+            href={`/shop/${featuredNemadMonth.slug}-sign`}
+          >
+            <div className={styles.shopCardPicture}>
+              <Image
+                className={styles.shopCardImage}
+                src={`/shop-preview/nemad-man/${featuredNemadMonth.slug}/${featuredNemadCover.file}`}
+                alt={`تابلو نماد من، ${featuredNemadMonth.title}، با موکاپ اصلی هالیوس`}
+                fill
+                sizes="(max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
+              />
+            </div>
+            <div className={styles.shopCardInfo}>
+              <span className={styles.shopCardLabel}>از مجموعهٔ ۱۲ نشان تولد</span>
+              <h3>نماد من — {featuredNemadMonth.title}</h3>
+              <p>نشان ماه تولد، نام و تاریخ؛ یادگاری شخصی تو.</p>
+              <span className={styles.shopCardArrow} aria-hidden="true">↖</span>
+            </div>
+          </IntentPrefetchLink>
+
+          <IntentPrefetchLink className={styles.shopCard} href="/shop/birth-sky-map">
+            <div className={styles.shopCardPicture}>
+              <Image
+                className={styles.shopCardImage}
+                src="/shop-preview/p02/05-raha-parsa-30x45-wall.webp"
+                alt="موکاپ تابلوی آسمان تولد در فروشگاه هالیوس"
+                fill
+                sizes="(max-width: 760px) 78vw, (max-width: 1100px) 32vw, 370px"
+              />
+            </div>
+            <div className={styles.shopCardInfo}>
+              <span className={styles.shopCardLabel}>نقشهٔ ستاره‌های تولد</span>
+              <h3>آسمان تولد</h3>
+              <p>یک تکه از آسمان لحظه‌ای که داستان تو آغاز شد.</p>
+              <span className={styles.shopCardArrow} aria-hidden="true">↖</span>
+            </div>
+          </IntentPrefetchLink>
+        </div>
+
+        <div className={styles.shopShowcaseFoot}>
+          <IntentPrefetchLink className={styles.shopMainButton} href="/shop">
+            مشاهدهٔ همهٔ آثار در فروشگاه
+            <span aria-hidden="true">←</span>
+          </IntentPrefetchLink>
+        </div>
+      </section>
 
       <section className={styles.wikiSection} aria-labelledby="wiki-title">
         <header className={styles.sectionHeaderSplit}>

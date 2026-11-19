@@ -2745,3 +2745,238 @@
 .faqSection {
   grid-template-columns: minmax(0, 1fr);
 }
+
+
+/* Approved homepage studio showcase — between How It Works and Wiki. */
+.shopShowcase {
+  position: relative;
+  width: min(1160px, calc(100% - 40px));
+  margin: 54px auto 0;
+  padding: 34px 0 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shopShowcaseHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  margin-bottom: 23px;
+}
+
+.shopShowcaseHead h2 {
+  margin: 8px 0 5px;
+  color: #f7f9fc;
+  font-size: clamp(1.28rem, 2vw, 1.72rem);
+  line-height: 1.7;
+}
+
+.shopShowcaseHead p {
+  max-width: 660px;
+  margin: 0;
+  color: #cbd6e2;
+  font-size: 0.88rem;
+  line-height: 1.9;
+}
+
+.shopKicker {
+  color: #b7c9d9;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.shopViewAll {
+  flex-shrink: 0;
+  padding: 4px 0;
+  border-bottom: 1px solid #788a9e;
+  color: #f2f7ff;
+  font-size: 0.82rem;
+  font-weight: 770;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.shopGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.shopCard {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #29323b;
+  border-radius: 13px;
+  background: #0b0e12;
+  color: #f7f9fc;
+  text-decoration: none;
+  transition: transform 200ms, border-color 200ms;
+}
+
+.shopCard:hover {
+  transform: translateY(-4px);
+  border-color: #8295a9;
+}
+
+.shopCard:focus-visible,
+.shopViewAll:focus-visible,
+.shopMainButton:focus-visible {
+  outline: 2px solid #d9eafd;
+  outline-offset: 4px;
+}
+
+.shopCardPicture {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 4.75;
+  overflow: hidden;
+  background: radial-gradient(circle, #1d2833, #090c10);
+}
+
+.shopCardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 350ms;
+}
+
+.shopCard:hover .shopCardImage {
+  transform: scale(1.025);
+}
+
+.shopCardInfo {
+  min-height: 118px;
+  padding: 17px 20px 20px;
+}
+
+.shopCardLabel {
+  color: #b3c5d7;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.shopCard h3 {
+  margin: 5px 0 4px;
+  color: #f6f8fb;
+  font-size: 1.06rem;
+  line-height: 1.6;
+}
+
+.shopCard p {
+  margin: 0;
+  color: #cbd5df;
+  font-size: 0.77rem;
+  line-height: 1.8;
+}
+
+.shopCardArrow {
+  position: absolute;
+  bottom: 21px;
+  left: 20px;
+  color: #dce6f2;
+  font-size: 20px;
+}
+
+.shopShowcaseFoot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px auto 0;
+}
+
+.page .shopMainButton,
+.page .shopMainButton:visited {
+  display: inline-flex;
+  min-width: 228px;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 12px 21px;
+  border: 1px solid #c1cfdb;
+  border-radius: 10px;
+  background: #e2e9ef;
+  color: #111a24 !important;
+  -webkit-text-fill-color: #111a24 !important;
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.page .shopMainButton:hover {
+  background: #ffffff;
+}
+
+@media (max-width: 760px) {
+  .shopShowcase {
+    width: calc(100% - 24px);
+    margin-top: 52px;
+    padding-top: 25px;
+  }
+
+  .shopShowcaseHead {
+    display: block;
+    margin-bottom: 18px;
+  }
+
+  .shopShowcaseHead p {
+    font-size: 0.81rem;
+  }
+
+  .shopViewAll {
+    display: inline-block;
+    margin-top: 12px;
+  }
+
+  .shopGrid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 9px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+
+  .shopCard {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+  }
+
+  .shopCardPicture {
+    aspect-ratio: 4 / 4.35;
+  }
+
+  .shopCardInfo {
+    min-height: 105px;
+    padding: 14px 15px 19px;
+  }
+
+  .shopCardArrow {
+    bottom: 18px;
+    left: 15px;
+  }
+
+  .shopShowcaseFoot {
+    margin-top: 17px;
+  }
+
+  .page .shopMainButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .shopCard {
+    flex-basis: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shopCard,
+  .shopCardImage {
+    transition: none;
+  }
+}

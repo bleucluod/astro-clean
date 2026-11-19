@@ -5,7 +5,7 @@ import { isShopMvpActive, isShopP02OrderEnabled, isShopNemadOrderEnabled } from 
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import styles from '@/components/shop/shop-v01-home.module.css';
 import { listBaseShopPrices, readShopPriceCatalog } from '@/lib/shop/shop-price-store';
-import { NEMAD_MONTHS } from '@/lib/shop/nemad-man-months';
+import { NEMAD_MONTHS, NEMAD_SHOP_COVERS } from '@/lib/shop/nemad-man-months';
 
 export function generateMetadata(): Metadata {
   return {
@@ -25,21 +25,6 @@ export function generateMetadata(): Metadata {
 export const dynamic = 'force-dynamic';
 
 // Approved shop-cover scenes only; leave each product gallery untouched.
-const nemadShopCovers = {
-  farvardin: { file: '03-nazanin-dark-lounge.webp', theme: 'dark' },
-  ordibehesht: { file: 'arad-light-black-edge-20261118.webp', theme: 'light' },
-  khordad: { file: '02-taraneh-1377-03-13-dark-wall-bench.webp', theme: 'dark' },
-  tir: { file: 'halle-light-30x45-black-edge-20261118.webp', theme: 'light' },
-  mordad: { file: '04-parastoo-1375-05-14-dark-gift-wrap.webp', theme: 'dark' },
-  shahrivar: { file: 'halle-light-30x45-black-edge-20261118.webp', theme: 'light' },
-  mehr: { file: '02-amir-1389-07-14-dark-wall-bench.webp', theme: 'dark' },
-  aban: { file: 'halle-light-30x45-black-edge-20261118.webp', theme: 'light' },
-  azar: { file: '04-sam-1389-09-12-dark-gift-wrap.webp', theme: 'dark' },
-  dey: { file: 'halle-light-30x45-black-edge-20261118.webp', theme: 'light' },
-  bahman: { file: '02-nora-1370-11-18-dark-wall-bench.webp', theme: 'dark' },
-  esfand: { file: 'arad-light-black-edge-20261118.webp', theme: 'light' },
-} as const satisfies Record<(typeof NEMAD_MONTHS)[number]['slug'], { file: string; theme: 'dark' | 'light' }>;
-
 // Keep P03 closed; P02 appears in the catalog only when its purchase gate is open.
 const launchCatalog: ShopV01Item[] = [
   {
@@ -72,8 +57,8 @@ const launchCatalog: ShopV01Item[] = [
     href: '/shop/' + month.slug + '-sign',
     priceToman: 900_000,
     availability: 'available' as const,
-    imageSrc: '/shop-preview/nemad-man/' + month.slug + '/' + nemadShopCovers[month.slug].file,
-    imageAlt: 'تابلو نماد ماه تولد ' + month.title + ' در موکاپ ' + (nemadShopCovers[month.slug].theme === 'dark' ? 'تیره' : 'روشن') + ' روی شاسی بدون قاب',
+    imageSrc: '/shop-preview/nemad-man/' + month.slug + '/' + NEMAD_SHOP_COVERS[month.slug].file,
+    imageAlt: 'تابلو نماد ماه تولد ' + month.title + ' در موکاپ ' + (NEMAD_SHOP_COVERS[month.slug].theme === 'dark' ? 'تیره' : 'روشن') + ' روی شاسی بدون قاب',
   })),
   {
     id: 'P03',
