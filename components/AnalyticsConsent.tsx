@@ -34,7 +34,7 @@ function setAnalyticsDisabled(disabled: boolean): void {
   (analyticsWindow as unknown as Record<string, unknown>)[GA_DISABLE_KEY] = disabled;
 }
 
-function ensureGoogleAnalyticsLoaded(): void {
+function ensureGoogleAnalyticsConfigured(): void {
   const analyticsWindow = getAnalyticsWindow();
 
   if (!analyticsWindow.gtag) {
@@ -58,6 +58,12 @@ function ensureGoogleAnalyticsLoaded(): void {
       send_page_view: false,
     });
   }
+}
+
+function loadGoogleAnalyticsScript(): void {
+  // An idle callback from the previous route must never start tracking a private page.
+  if (!isAnalyticsPublicPath(window.location.pathname)) return;
+  if ((getAnalyticsWindow() as unknown as Record<string, unknown>)[GA_DISABLE_KEY] === true) return;
 
   const existingScript = document.querySelector<HTMLScriptElement>(
     `script[data-halleus-analytics="${analyticsConfig.measurementId}"]`,
@@ -191,7 +197,9 @@ export function AnalyticsConsent() {
     }
 
     setAnalyticsDisabled(false);
-    ensureGoogleAnalyticsLoaded();
+    ensureGoogleAnalyticsConfigured();
+    // Keep the page view in the gtag queue; defer only the external code on /chart.
+    if (pathname !== "/chart") loadGoogleAnalyticsScript();
     getAnalyticsWindow().gtag?.("consent", "update", {
       ad_personalization: "denied",
       ad_storage: "denied",
@@ -203,6 +211,20 @@ export function AnalyticsConsent() {
       sendPublicPageView(pathname);
       lastTrackedPath.current = pathname;
     }
+
+    if (pathname !== "/chart") return;
+    // Let first paint and the form take priority, but bound the analytics delay.
+    let idleCallbackId: number | null = null;
+    let timeoutId: number | null = null;
+    if (typeof window.requestIdleCallback === "function") {
+      idleCallbackId = window.requestIdleCallback(loadGoogleAnalyticsScript, { timeout: 1200 });
+    } else {
+      timeoutId = window.setTimeout(loadGoogleAnalyticsScript, 900);
+    }
+    return () => {
+      if (idleCallbackId !== null) window.cancelIdleCallback(idleCallbackId);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
   }, [choice, isReady, pathname]);
 
   const choose = (nextChoice: AnalyticsConsentChoice) => {
