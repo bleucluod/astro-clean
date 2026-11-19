@@ -11,6 +11,9 @@ const estedad = localFont({
   display: 'swap',
 });
 
+/** Reuse the exact approved Estedad face for HTML-only zoom typography. */
+export const nemadPreviewEstedadFontClassName = estedad.className;
+
 /** Approved dark design plus a cool light variant; both share one geometry,
  * astronomical source, typography and the immutable approved zodiac glyphs. */
 export type NemadPosterTheme = 'dark' | 'light';

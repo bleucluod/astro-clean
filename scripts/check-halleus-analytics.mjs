@@ -64,6 +64,53 @@ check("privacy/public_path_boundary", () => {
   assert.equal(lib.classifyAnalyticsSource("https://www.google.com/search?q=private", "halleus.ir"), "google");
   assert.equal(lib.classifyAnalyticsSource("https://halleus.ir/wiki", "halleus.ir"), "direct");
 });
+check("privacy/automatic_public_page_discovery", () => {
+  const lib = executePure("lib/analytics/first-party.ts");
+  const normalize = lib.normalizeAnalyticsPath;
+  const months = [...read("lib/shop/nemad-man-months.ts").matchAll(/slug: '([a-z]+)'/g)]
+    .map(match => match[1]);
+  assert.equal(months.length, 12, "The canonical Nemad registry must contain all 12 signs");
+  for (const month of months) {
+    const path = "/shop/" + month + "-sign";
+    assert.equal(normalize(path), path, "Missing auto-tracked Nemad page: " + path);
+  }
+  for (const path of [
+    "/shop/new-personalized-product", "/shop/another-product-2027",
+    "/wiki/new-editorial-article", "/wiki/category/new-subject",
+    "/new-public-page", "/new-public-landing-2027",
+    "/shop/shipping-returns", "/shop/cart", "/shop/checkout", "/shop/payment",
+  ]) assert.equal(normalize(path), path, "New public page should be recorded: " + path);
+  for (const path of [
+    "/api/analytics/event", "/admin", "/admini", "/admin/reports/abc",
+    "/dev/wiki-shop-showcases", "/dashboard", "/profile", "/profile/settings",
+    "/account", "/settings", "/login", "/register", "/reports/shared/private-key",
+    "/compare/private-id", "/chart/private-id", "/shop/nemad-man/aban",
+    "/shop/nemad-man/bahman-preview", "/shop/nemad-man/mockup-generator",
+    "/shop/payment/123", "/shop/track/mobile/private-id", "/wiki/foo-preview",
+    "/wiki/prompt-builder-preview", "/sky/preview", "/unknown/private-id",
+    "/admin-private", "/shop/future-draft", "/wiki/foo?token=hidden",
+    "/shop/new-product#fragment", "/shop/x%2Fhidden", "//external/path",
+  ]) assert.equal(normalize(path), null, "Private or unsafe page was accepted: " + path);
+  assert.equal(normalize("/sky/2026-11-19"), "/sky",
+    "Dated sky views must keep their existing aggregated path");
+  assert.equal(lib.analyticsArea("/shop/aban-sign"), "shop");
+});
+
+check("tracking/shared_sanitizer_and_shop_labels", () => {
+  const tracker = read("components/HalleusAnalyticsTracker.tsx");
+  const api = read("app/api/analytics/event/route.ts");
+  const panel = read("components/admin/HalleusAnalyticsPanel.tsx");
+  const route = 'normalizeAnalyticsPath(';
+  assert.ok(tracker.includes(route), "Browser must sanitize every route");
+  assert.ok(api.includes(route), "Server must revalidate every route");
+  assert.match(api, /if \(!path \|\| !allowedAction\(kind, path\)\)/,
+    "Invalid paths must be rejected before aggregation");
+  assert.match(panel, /getNemadMonthTitle\(nemadMonth\[1\]\)/,
+    "Monthly sign pages must show a Persian month title in the admin analytics panel");
+  assert.match(panel, /if \(path\.startsWith\("\/shop\/"\)\)/,
+    "Future product slugs must have a generic page title");
+});
+
 check("ranges/tehran_calendar_and_custom_bounds", () => {
   const range = executePure("lib/admin/halleus-analytics-range.ts");
   const todayParts = new Intl.DateTimeFormat("en-US", {
@@ -128,6 +175,22 @@ check("tracker/consent_visibility_and_idle", () => {
   assert.ok(consent.includes('<HalleusAnalyticsTracker granted={choice === "granted"}'));
   assert.ok(consent.includes('setChoice(readStoredChoice() ?? "granted");'));
 });
+check("performance/heartbeat_coalescing_and_admin_polling", () => {
+  const tracker = read("components/HalleusAnalyticsTracker.tsx");
+  const route = read("app/api/analytics/event/route.ts");
+  const panel = read("components/admin/HalleusAnalyticsPanel.tsx");
+  assert.match(tracker, /const seconds = flush\(false, true\)/);
+  assert.ok(tracker.includes('emit("heartbeat", path, { seconds })'));
+  assert.match(tracker, /if \(!combineWithHeartbeat\) emit\("engagement"/);
+  assert.match(tracker, /setInterval\(heartbeat, TICK_MS\)/);
+  assert.match(route, /legacyHeartbeat/);
+  assert.match(route, /kind === "engagement" \|\| kind === "heartbeat"/);
+  assert.match(route, /kind === "heartbeat" && !body\.seconds/);
+  assert.match(panel, /document\.visibilityState === "hidden" \|\| inFlight/);
+  assert.match(panel, /document\.addEventListener\("visibilitychange", onVisibility\)/);
+  assert.match(panel, /document\.removeEventListener\("visibilitychange", onVisibility\)/);
+});
+
 check("actions/reports_comparison_shop_verified", () => {
   const chart = read("components/ChartForm.tsx");
   const compare = read("components/comparison/ComparisonComposer.tsx");

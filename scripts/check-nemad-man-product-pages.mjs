@@ -42,7 +42,10 @@ assert.ok(batchExporter.includes('head.readUInt32BE(16)!==pixels[0]'),
   'Every real PNG must be checked for the selected dimensions');
 assert.ok(batchExporter.includes('good!==24||files.length!==24'),
   'All 24 requested images must complete');
-assert.match(route, /process\.env\.NODE_ENV === 'production' && !isShopNemadOrderEnabled\(\)/);
+assert.match(route, /const purchaseEnabled = isShopNemadOrderEnabled\(\);/,
+  'Nemad sale gate must be read on every server request');
+assert.match(route, /if \(process\.env\.NODE_ENV === 'production' && !purchaseEnabled\) notFound\(\);/,
+  'Production Nemad routes must stay closed until sale gate is enabled');
 assert.match(route, /<BirthSkyLiveProduct key=\{month\} purchaseEnabled=\{isShopNemadOrderEnabled\(\)\} nemad=\{data\}/);
 assert.ok(!route.includes('<ProductDetail '), 'All 12 months must use the Bahman renderer');
 assert.match(route, /robots: \{ index: false, follow: false \}/);

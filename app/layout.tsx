@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { AppShell } from "@/components/AppShell";
-import { siteConfig } from "@/lib/config/seo";
+import { buildSocialPreviewMetadata, siteConfig } from "@/lib/config/seo";
 import "./globals.css";
 
 const vazirmatn = localFont({
@@ -43,28 +43,11 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  openGraph: {
+  ...buildSocialPreviewMetadata({
     title: siteConfig.title,
     description: siteConfig.description,
-    url: siteConfig.url,
-    siteName: siteConfig.name,
-    locale: siteConfig.locale,
-    type: "website",
-    images: [
-      {
-        url: "/halleus-logo/social-share-light-1200x630.png",
-        width: 1200,
-        height: 630,
-        alt: "هالیوس؛ آسترولوژی، شناخت و مسیر",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.title,
-    description: siteConfig.description,
-    images: ["/halleus-logo/social-share-light-1200x630.png"],
-  },
+    canonical: "/",
+  }),
 };
 
 const baseUrl = siteConfig.url;

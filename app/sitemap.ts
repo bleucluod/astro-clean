@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Indexable product URLs stay in sitemap regardless of checkout availability.
   const shopPageEntries: MetadataRoute.Sitemap = [
     { url: `${siteConfig.url}/shop`, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${siteConfig.url}/shop/shipping-returns`, changeFrequency: "monthly", priority: 0.45 },
     { url: `${siteConfig.url}/shop/moon-phase-print`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteConfig.url}/shop/birth-sky-map`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteConfig.url}/shop/milky-way-print`, changeFrequency: "weekly", priority: 0.65 },

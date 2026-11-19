@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { BirthSkyLiveProduct } from '@/components/shop/BirthSkyLiveProduct';
 import { isShopP02OrderEnabled } from '@/lib/shop/shop-mvp-activation';
-import { siteConfig } from '@/lib/config/seo';
+import { siteConfig, buildSocialPreviewMetadata } from '@/lib/config/seo';
 import { getShopProduct } from '@/components/shop/product-detail-data';
 import { buildShopProductStructuredData } from '@/components/shop/product-schema';
 import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
@@ -22,6 +22,12 @@ const estedad = localFont({
 export const metadata: Metadata = {
   title: 'تابلو آسمان شب تولد؛ نقشه ستاره‌ها | هالیوس',
   description: 'تابلو آسمان شب تولد هالیوس؛ نقشه ستاره‌های محاسبه‌شده برای تاریخ، ساعت و شهر دلخواه، با نام و پیام شخصی و چاپ مات روی شاسی بدون قاب در سه اندازه.',
+  ...buildSocialPreviewMetadata({
+    title: 'تابلو آسمان شب تولد؛ نقشه ستاره‌ها | هالیوس',
+    description: 'تابلو آسمان شب تولد هالیوس؛ نقشه ستاره‌های محاسبه‌شده برای تاریخ، ساعت و شهر دلخواه، با نام و پیام شخصی و چاپ مات روی شاسی بدون قاب در سه اندازه.',
+    canonical: "/shop/birth-sky-map",
+    photo: "/shop-preview/p02/05-raha-parsa-30x45-wall.webp",
+  }),
   alternates: { canonical: '/shop/birth-sky-map' },
   robots: { index: true, follow: true },
 };
@@ -38,6 +44,6 @@ export default async function BirthSkyProductPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{
       __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
     }} />
-    <BirthSkyLiveProduct purchaseEnabled={isShopP02OrderEnabled()} />
+    <BirthSkyLiveProduct purchaseEnabled={isShopP02OrderEnabled()} initialPriceToman={catalog.prices['p02:10x15']} />
   </div>;
 }

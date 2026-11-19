@@ -94,8 +94,8 @@ async function makeWatermarkedPreview(svg: string, fontFamily: string): Promise<
   }
 }
 
-export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
-  purchaseEnabled: boolean; nemad?: NemadProductPage;
+export function BirthSkyLiveProduct({ purchaseEnabled, nemad, initialPriceToman }: {
+  purchaseEnabled: boolean; nemad?: NemadProductPage; initialPriceToman?: number;
 }) {
   const router = useRouter();
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -120,7 +120,10 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
   // must not leave the Nemad product page stuck on an endless loading label.
   const previewBasePrice = nemad && process.env.NODE_ENV !== 'production' && selectedPrice === null
     ? sizes[sizeIndex].price : null;
-  const visiblePrice = selectedPrice ?? previewBasePrice;
+  // SSR price comes from the same DB snapshot as the Offer and checkout quote.
+  // Only show it for the initial 10x15 size; never reuse it after size changes.
+  const initialVisiblePrice = sizeIndex === 0 && !livePrices.error ? initialPriceToman ?? null : null;
+  const visiblePrice = selectedPrice ?? initialVisiblePrice ?? previewBasePrice;
   const localCartReview = Boolean(nemad && process.env.NODE_ENV !== 'production');
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomDialog = useRef<HTMLDialogElement>(null);
@@ -370,11 +373,11 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
                   sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork
               ? <Image unoptimized src={artwork} alt={displayAlt} fill
-                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+                  sizes={nemad ? "(max-width: 760px) calc(100vw - 32px), 510px" : "(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"}
                   className={pdStyles.portraitPhoto} />
               : <Image key={currentPhoto.src} src={currentPhoto.src} alt={currentPhoto.alt} fill
                   priority={photoIndex === 1}
-                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"
+                  sizes={nemad ? "(max-width: 760px) calc(100vw - 32px), 510px" : "(max-width: 760px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), 660px"}
                   className={pdStyles.portraitPhoto} />}
             <span className={pdStyles.zoomHint} aria-hidden="true">
               <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -426,6 +429,10 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
                 ? 'قیمت پایه نمایش داده شده است؛ اتصال قیمت زنده در دسترس نیست. ثبت نهایی سفارش تا تأیید قیمت سرور امکان‌پذیر نیست.'
                 : 'قیمت پایه تا دریافت قیمت زنده نمایش داده می‌شود؛ قیمت قطعی پیش از ثبت سفارش از سرور تأیید خواهد شد.'}
             </p> : null}
+            <p className={pdStyles.galleryCaption}>
+              تحویل به پست یا تیپاکس حداکثر تا ۳ روز کاری پس از تأیید پرداخت؛
+              {' '}<Link href="/shop/shipping-returns">شرایط مرجوعی آثار سفارشی</Link>
+            </p>
             <fieldset className={pdStyles.sizes}>
               <legend>اندازهٔ تابلو <small>(سانتی‌متر)</small></legend>
               <div className={pdStyles.sizeGrid}>
@@ -607,7 +614,7 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad }: {
           <button type="button" className={pdStyles.dialogClose} onClick={() => setZoomOpen(false)} aria-label="بستن">×</button>
           <div className={pdStyles.zoomPhoto} {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
             {showingPreview && nemad && nemadPreview
-              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork
+              ? <span className={pdStyles.nemadArtwork}><NemadPreviewWatermark theme={nemadTheme} zoomText={{ name: nemadPreview.name, date: nemadPreview.gregorianDate, sign: nemadPreview.sign.displayFa }}><NemadManBahmanArtwork
                   name={nemadPreview.name} date={nemadPreview.gregorianDate}
                   sign={nemadPreview.sign} theme={nemadTheme} /></NemadPreviewWatermark></span>
               : showingPreview && artwork

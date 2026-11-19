@@ -60,3 +60,61 @@
   font-weight: 500;
   letter-spacing: normal;
 }
+
+/* Zoom-only HTML typesetting; the approved print SVG remains untouched. */
+.surface[data-zoom-text='true'] > svg > g[text-anchor='middle'] > text,
+.surface[data-zoom-text='true'] > svg > text[direction='rtl'] {
+  visibility: hidden;
+}
+.zoomTypography {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  line-height: 1.1;
+  text-align: center;
+  text-rendering: optimizeLegibility;
+}
+.zoomTypography > span {
+  position: absolute;
+  left: 50%;
+  display: block;
+  max-width: 96%;
+  transform: translate(-50%, -75%);
+  unicode-bidi: isolate;
+  letter-spacing: normal;
+}
+.zoomSign {
+  top: 77.185%;
+  color: #bcccdc;
+  opacity: .8;
+  font-size: 3cqw;
+  font-weight: 300;
+}
+.zoomName {
+  top: 84%;
+  color: #eef4f9;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(217, 234, 253, .13);
+}
+.zoomDate {
+  top: 89.556%;
+  color: #bcccdc;
+  opacity: .76;
+  font-size: 2.444cqw;
+  font-weight: 400;
+}
+.surface[data-theme='light'] .zoomSign,
+.surface[data-theme='light'] .zoomDate {
+  color: #52657a;
+  opacity: .86;
+}
+.surface[data-theme='light'] .zoomName {
+  color: #273c50;
+  text-shadow: 0 1px 1px rgba(27, 48, 67, .16);
+}
+.surface[data-zoom-text='true'] .seal {
+  transform: translate(-50%, -50%);
+}

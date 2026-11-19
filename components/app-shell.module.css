@@ -784,10 +784,42 @@
   }
 
   .footerInner {
-    grid-template-columns: 1fr;
-    gap: 26px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(14px, 5vw, 28px);
+    row-gap: 26px;
     width: calc(100% - 32px);
     padding: 42px 0 32px;
+  }
+
+  .footerInner > .footerBrandBlock {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .footerInner > .footerBrandBlock .footerBrand {
+    justify-self: center;
+    margin-inline: auto;
+  }
+
+  .footerInner > .footerBrandBlock .footerLogoPlate {
+    padding-inline: 0 !important;
+  }
+
+  .footerInner > .footerNavBlock:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  .footerInner > .footerNavBlock:nth-child(3) {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  .footerNavBlock img {
+    max-width: 100%;
+    height: auto;
   }
 
   .footerBottom {
@@ -2505,4 +2537,110 @@
 @media (max-width:360px){
   .mobileNav{grid-template-columns:50px minmax(0,1fr) 44px !important}
   .mobileNav .mobileWordmarkText{font-size:18px !important}
+}
+
+/* Compact site-wide contact row, immediately above the existing footer. */
+.contactStrip {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #090909;
+}
+
+/* A quiet, slowly drifting silver highlight; layout and links stay still. */
+.contactStrip::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 20%, rgba(224, 231, 239, 0.48) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: contactStripShine 12s ease-in-out infinite alternate;
+}
+
+@keyframes contactStripShine {
+  from { background-position: 100% 0; opacity: 0.35; }
+  to { background-position: 0 0; opacity: 0.9; }
+}
+
+.contactStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.contactStripInner {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 12px 16px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(9px, 2vw, 20px);
+  white-space: nowrap;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.contactStripDivider {
+  width: 1px;
+  height: 17px;
+  flex: 0 0 1px;
+  background: rgba(226, 232, 240, 0.22);
+}
+
+.contactStripLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #d4d8df;
+  text-decoration: none;
+  transition: color 220ms ease, transform 220ms ease;
+}
+
+.contactStripLink svg {
+  display: block;
+  flex: 0 0 16px;
+}
+
+.contactStripLink:hover,
+.contactStripLink:focus-visible {
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.contactStripLink:focus-visible {
+  outline: 2px solid #bcccdc;
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+
+@media (max-width: 540px) {
+  .contactStripInner {
+    padding: 11px 7px;
+    gap: 7px;
+    font-size: 0.7rem;
+  }
+
+  .contactStripLink {
+    gap: 5px;
+  }
+
+  .contactStripLabel {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contactStrip::before {
+    animation: none;
+  }
+
+  .contactStripLink {
+    transition: none;
+  }
 }

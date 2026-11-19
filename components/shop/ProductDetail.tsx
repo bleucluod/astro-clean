@@ -4,8 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { siteConfig } from '@/lib/config/seo';
-import { buildShopProductStructuredData } from './product-schema';
 import { getShopProductUrl } from '@/lib/shop/shop-product-url';
 import { getRelatedProducts, getShopProduct, SHOP_SIZES, type ShopProduct, type ShopProductId, type ShopCopySection } from './product-detail-data';
 import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
@@ -93,7 +91,9 @@ function SizeIllustration({ id, title }: { id: ShopProductId; title: string }) {
   );
 }
 
-export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadProductPage }) {
+export function ProductDetail({ id, nemad, initialPriceToman }: {
+  id: ShopProductId; nemad?: NemadProductPage; initialPriceToman?: number;
+}) {
   const router = useRouter();
   const product = nemad?.product ?? getShopProduct(id);
   const related = getRelatedProducts(id);
@@ -113,7 +113,9 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
   const sizeZoomDialog = useRef<HTMLDialogElement>(null);
   const livePrices = useShopLivePrices();
   const hasBahmanPricing = nemad?.slug === 'bahman';
-  const price = liveShopPrice(livePrices.prices, hasBahmanPricing ? 'nm' : id, SHOP_SIZES[sizeIndex].dimension);
+  const livePrice = liveShopPrice(livePrices.prices, hasBahmanPricing ? 'nm' : id, SHOP_SIZES[sizeIndex].dimension);
+  const initialVisiblePrice = sizeIndex === 0 && !livePrices.error ? initialPriceToman ?? null : null;
+  const price = livePrice ?? initialVisiblePrice;
   const artwork = nemadPreview ?? nemad?.initial;
   const gallerySwipe = useShopGallerySwipe((step) => {
     selectGalleryPhoto((photoIndex + step + product.gallery.length) % product.gallery.length);
@@ -152,8 +154,6 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
     },
   }[id];
   const hideMobileBar = isFooterVisible || isFormVisible;
-  const structuredData = !nemad && livePrices.prices
-    ? buildShopProductStructuredData(product, siteConfig.url, id === 'p01', livePrices.prices) : null;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -303,7 +303,6 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
 
   return (
     <div className={styles.page} data-shop-page="product" dir="rtl">
-      {structuredData ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} /> : null}
       <div className={styles.content}>
         <section className={styles.productHero} aria-label={product.title}>
           <div className={styles.gallery}>
@@ -386,6 +385,10 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
                 <p className={styles.priceLabel}>قیمت</p>
                 <p className={styles.price} aria-live="polite"><bdi>{price === null ? (livePrices.error ? 'قیمت در دسترس نیست' : 'در حال دریافت…') : formatPrice(price)}</bdi><span>تومان</span></p>
               </div> : null}
+              <p className={styles.galleryCaption}>
+                تحویل به پست یا تیپاکس حداکثر تا ۳ روز کاری پس از تأیید پرداخت؛
+                {' '}<Link href="/shop/shipping-returns">شرایط مرجوعی آثار سفارشی</Link>
+              </p>
               <a className={styles.sizeGuideLink} href="#size-guide">مقایسهٔ اندازه‌ها روی دیوار <span aria-hidden="true">↓</span></a>
               <form id="personalize" onSubmit={confirmDetails} className={styles.personalizeForm} aria-label={`شخصی‌سازی ${product.title}`}>
                 <div className={styles.formIntro}>
@@ -653,7 +656,7 @@ export function ProductDetail({ id, nemad }: { id: ShopProductId; nemad?: NemadP
           <div className={`${styles.zoomPhoto} ${nemad ? styles.nemadZoomPhoto : ''}`}
               {...gallerySwipe.touchHandlers} style={{ touchAction: 'pan-y pinch-zoom' }}>
               {nemad && artwork && photoIndex < 2 ? <div className={styles.nemadArtwork}>
-                <NemadPreviewWatermark theme={nemadTheme}><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
+                <NemadPreviewWatermark theme={nemadTheme} zoomText={{ name: artwork.name, date: artwork.gregorianDate, sign: artwork.sign.displayFa }}><NemadManBahmanArtwork name={artwork.name} date={artwork.gregorianDate}
                   sign={artwork.sign} theme={nemadTheme}/></NemadPreviewWatermark>
               </div> : <Image src={product.gallery[photoIndex].src} alt={product.gallery[photoIndex].alt} fill sizes="95vw" />}
             </div>
