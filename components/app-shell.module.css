@@ -794,6 +794,26 @@
   .footerInner > .footerBrandBlock {
     grid-column: 1 / -1;
     grid-row: 1;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .footerInner > .footerBrandBlock .footerBrand {
+    justify-self: center;
+    margin-inline: auto;
+  }
+
+  .footerInner > .footerBrandBlock .footerLogoPlate {
+    padding-inline: 0 !important;
+  }
+
+  .footerInner > .footerBrandBlock .footerNote,
+  .footerInner > .footerBrandBlock .footerResponsibility {
+    text-align: center;
+  }
+
+  .footerInner > .footerBrandBlock .footerSocialLink {
+    justify-self: center;
   }
 
   .footerInner > .footerNavBlock:nth-child(2) {
