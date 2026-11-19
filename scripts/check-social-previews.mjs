@@ -82,6 +82,7 @@ for (const token of [
 ]) {
   assert(route.includes(token), "Share image generator missing: " + token);
 }
+assert(route.includes("readFile(/* turbopackIgnore: true */ path)"), "Dynamic public photo reads must not trace the whole project");
 assert(!route.includes("fetch("), "Share image generator must not fetch untrusted remote photos");
 assert(route.includes("length <= 3_000_000"), "Share image generator lacks photo-size ceiling");
 assert(!route.includes("reportId") && !route.includes("shareToken"), "Share images must exclude private report identifiers");

@@ -36,7 +36,9 @@ export async function GET(request: Request) {
   let photo: string | null = null;
   if (path) {
     try {
-      const bytes = await readFile(path);
+      // This is a validated public asset pathname; do not trace every possible
+      // file under the project root into Next's server bundle.
+      const bytes = await readFile(/* turbopackIgnore: true */ path);
       if (bytes.length <= 3_000_000) {
         const png = await sharp(bytes).resize(468, 478, { fit: "cover" }).png().toBuffer();
         photo = "data:image/png;base64," + png.toString("base64");
