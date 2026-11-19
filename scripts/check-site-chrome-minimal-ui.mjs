@@ -209,8 +209,19 @@ if (tabletStart === -1 || mobileStart === -1 || mobileStart <= tabletStart) {
     failures.push("Footer must remain three-column above the mobile breakpoint");
   }
   const mobileRules = appShellCss.slice(mobileStart);
-  if (!/\.footerInner\s*\{[^}]*grid-template-columns\s*:\s*1fr/.test(mobileRules)) {
-    failures.push("Footer must stack to one column at the mobile breakpoint");
+  if (!/\.footerInner\s*\{[^}]*grid-template-columns\s*:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/.test(mobileRules)) {
+    failures.push("Footer must have two columns below the mobile breakpoint");
+  }
+  for (const marker of [
+    ".footerInner > .footerBrandBlock",
+    ".footerInner > .footerNavBlock:nth-child(2)",
+    ".footerInner > .footerNavBlock:nth-child(3)",
+    "grid-column: 1 / -1",
+    "grid-row: 2",
+  ]) {
+    if (!mobileRules.includes(marker)) {
+      failures.push("Mobile footer placement missing: " + marker);
+    }
   }
 }
 

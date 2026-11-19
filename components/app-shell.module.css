@@ -791,8 +791,21 @@
     padding: 42px 0 32px;
   }
 
-  .footerBrandBlock {
+  .footerInner > .footerBrandBlock {
     grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .footerInner > .footerNavBlock:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  .footerInner > .footerNavBlock:nth-child(3) {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
   }
 
   .footerNavBlock img {
