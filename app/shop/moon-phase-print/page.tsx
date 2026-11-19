@@ -4,7 +4,7 @@ import { ProductDetail } from '@/components/shop/ProductDetail';
 import { buildShopProductStructuredData } from '@/components/shop/product-schema';
 import { getShopProduct } from '@/components/shop/product-detail-data';
 import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
-import { siteConfig } from '@/lib/config/seo';
+import { siteConfig, buildSocialPreviewMetadata } from '@/lib/config/seo';
 import { isShopMvpActive } from '@/lib/shop/shop-mvp-activation';
 import styles from '@/components/shop/shop-v01-home.module.css';
 
@@ -12,6 +12,12 @@ export function generateMetadata(): Metadata {
   return {
   title: "تابلو فاز ماه در تاریخ دلخواه | ماه آن روز | هالیوس",
   description: "تابلوی «ماه آن روز» از هالیوس؛ تابلو فاز ماه برای تاریخ دلخواهت، با امکان افزودن نام و پیام، چاپ مات روی شاسی و سه اندازه. خاطره‌ات را به روشنای ماه بسپار.",
+  ...buildSocialPreviewMetadata({
+    title: "تابلو فاز ماه در تاریخ دلخواه | ماه آن روز | هالیوس",
+    description: "تابلوی «ماه آن روز» از هالیوس؛ تابلو فاز ماه برای تاریخ دلخواهت، با امکان افزودن نام و پیام، چاپ مات روی شاسی و سه اندازه. خاطره‌ات را به روشنای ماه بسپار.",
+    canonical: "/shop/moon-phase-print",
+    photo: "/shop-preview/p01/mockup-frameless-gibbous-daylight.webp",
+  }),
   alternates: { canonical: '/shop/moon-phase-print' },
   robots: { index: true, follow: true },
   };

@@ -11,7 +11,7 @@ import { NEMAD_MONTHS } from '@/lib/shop/nemad-man-months';
 import { isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
 import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
 import { buildShopProductStructuredData } from '@/components/shop/product-schema';
-import { siteConfig } from '@/lib/config/seo';
+import { buildSocialPreviewMetadata, siteConfig } from '@/lib/config/seo';
 
 // Use the same Estedad-loaded product shell as P02, not P03's renderer.
 const estedad = localFont({
@@ -202,11 +202,22 @@ function readApprovedMonth(slug: string): (NemadProductPage & {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const data = readApprovedMonth((await params).month);
+  const { month } = await params;
+  const data = readApprovedMonth(month);
+  const title = data?.seoTitle ?? 'نماد من | هالیوس';
+  const description = data?.metaDescription ?? 'تابلوی شخصی نماد ماه تولد از هالیوس.';
+  const photo = data?.product.gallery.find(({ src }) => src.startsWith('/shop-preview/'))?.src;
   return {
-    title: data?.seoTitle ?? 'نماد من | هالیوس',
-    description: data?.metaDescription,
+    title,
+    description,
     robots: { index: false, follow: false },
+    ...buildSocialPreviewMetadata({
+      title,
+      description,
+      canonical: '/shop/' + month + '-sign',
+      photo,
+      section: 'نماد من · هالیوس',
+    }),
   };
 }
 

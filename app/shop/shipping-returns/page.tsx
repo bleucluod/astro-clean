@@ -1,3 +1,4 @@
+import { buildSocialPreviewMetadata } from '@/lib/config/seo';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SHOP_HANDOFF_MAX_BUSINESS_DAYS } from '@/lib/shop/shop-merchant-policy';
@@ -5,6 +6,11 @@ import { SHOP_HANDOFF_MAX_BUSINESS_DAYS } from '@/lib/shop/shop-merchant-policy'
 export const metadata: Metadata = {
   title: 'شرایط ارسال و مرجوعی تابلوهای سفارشی | هالیوس',
   description: 'زمان آماده‌سازی و تحویل تابلوهای هالیوس به پست یا تیپاکس، شیوه پیگیری سفارش و شرایط انصراف و رسیدگی به کالای آسیب‌دیده یا مغایر.',
+  ...buildSocialPreviewMetadata({
+    title: 'شرایط ارسال و مرجوعی تابلوهای سفارشی | هالیوس',
+    description: 'زمان آماده‌سازی و تحویل تابلوهای هالیوس به پست یا تیپاکس، شیوه پیگیری سفارش و شرایط انصراف و رسیدگی به کالای آسیب‌دیده یا مغایر.',
+    canonical: "/shop/shipping-returns",
+  }),
   alternates: { canonical: '/shop/shipping-returns' },
   robots: { index: true, follow: true },
 };

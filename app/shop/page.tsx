@@ -1,3 +1,4 @@
+import { buildSocialPreviewMetadata } from '@/lib/config/seo';
 import type { Metadata } from 'next';
 import { ShopV01Home, type ShopV01Item } from '@/components/shop/ShopV01Home';
 import { isShopMvpActive, isShopP02OrderEnabled, isShopNemadOrderEnabled } from '@/lib/shop/shop-mvp-activation';
@@ -10,6 +11,12 @@ export function generateMetadata(): Metadata {
   return {
   title: 'خرید هدیه خاص و ماندگار | فروشگاه هالیوس',
   description: 'خرید هدیه خاص از هالیوس؛ هدیه هنری و کادو شیک با طرح‌های الهام‌گرفته از آسمان، شخصی‌سازی متناسب با هر اثر و امکان پیگیری سفارش.',
+  ...buildSocialPreviewMetadata({
+    title: 'خرید هدیه خاص و ماندگار | فروشگاه هالیوس',
+    description: 'خرید هدیه خاص از هالیوس؛ هدیه هنری و کادو شیک با طرح‌های الهام‌گرفته از آسمان، شخصی‌سازی متناسب با هر اثر و امکان پیگیری سفارش.',
+    canonical: "/shop",
+    photo: "/shop-preview/hero-desktop-v012.webp",
+  }),
   alternates: { canonical: '/shop' },
   robots: { index: true, follow: true },
   };
