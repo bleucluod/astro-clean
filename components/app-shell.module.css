@@ -2512,9 +2512,9 @@
   width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
-  border-top: 1px solid rgba(188, 204, 220, 0.15);
-  border-bottom: 1px solid rgba(188, 204, 220, 0.12);
-  background: linear-gradient(90deg, #101721, #192431 50%, #101721);
+  border-top: 1px solid #dce6f0;
+  border-bottom: 1px solid #dce6f0;
+  background: #f0f5fa;
 }
 
 .contactStrip::-webkit-scrollbar {
@@ -2535,23 +2535,18 @@
   line-height: 1.5;
 }
 
-.contactStripTitle {
-  color: #f8fafc;
-  font-weight: 740;
-}
-
 .contactStripDivider {
   width: 1px;
   height: 17px;
   flex: 0 0 1px;
-  background: rgba(188, 204, 220, 0.23);
+  background: #c4d1de;
 }
 
 .contactStripLink {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #d9eafd;
+  color: #2f4052;
   text-decoration: none;
   transition: color 160ms ease;
 }
@@ -2563,11 +2558,11 @@
 
 .contactStripLink:hover,
 .contactStripLink:focus-visible {
-  color: #ffffff;
+  color: #1e6a97;
 }
 
 .contactStripLink:focus-visible {
-  outline: 2px solid #bcccdc;
+  outline: 2px solid #648eaf;
   outline-offset: 5px;
   border-radius: 3px;
 }

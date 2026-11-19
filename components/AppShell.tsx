@@ -51,8 +51,6 @@ export function AppShell({ children }: AppShellProps) {
 
       <nav className={styles.contactStrip} aria-label="راه‌های ارتباطی هالیوس" dir="rtl">
         <div className={styles.contactStripInner}>
-          <span className={styles.contactStripTitle}>ارتباط با ما</span>
-          <span className={styles.contactStripDivider} aria-hidden="true" />
           <a
             className={styles.contactStripLink}
             href="tel:+989353997359"
