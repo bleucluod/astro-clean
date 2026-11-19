@@ -49,7 +49,7 @@ export function socialPreviewImage({
   url.searchParams.set("title", title);
   url.searchParams.set("section", section ?? previewSection(canonical));
   url.searchParams.set("page", canonical);
-  url.searchParams.set("v", "1");
+  url.searchParams.set("v", "2");
 
   if (photo) {
     try {

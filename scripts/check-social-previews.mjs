@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import sharp from "sharp";
 
 const failures = [];
 const read = (path) => readFileSync(path, "utf8");
@@ -68,24 +69,78 @@ for (const image of [
 }
 
 for (const token of [
-  'import { ImageResponse } from "next/og"',
+  'import sharp from "sharp"',
   'export const runtime = "nodejs"',
   'safePhotoPath(',
   'value.includes("..")',
   'value.includes("%")',
-  'const fontFile = await readFile(FONT_PATH)',
-  'await sharp(bytes).resize(468, 478',
-  'new ImageResponse(',
-  '...PREVIEW_SIZE',
-  'fontData',
+  'fontfile: FONT_PATH',
+  'await sharp(bytes).resize(466, 498',
+  'async function textLayer(',
+  'escapePango(',
+  'new Response(new Uint8Array(image)',
   '"Cache-Control"',
 ]) {
   assert(route.includes(token), "Share image generator missing: " + token);
 }
 assert(route.includes("readFile(/* turbopackIgnore: true */ path)"), "Dynamic public photo reads must not trace the whole project");
+assert(!route.includes("ImageResponse") && !route.includes("next/og"), "Incompatible ImageResponse font renderer is still present");
+assert(!route.includes("height: maxHeight,\n      align:"), "Pango text must not auto-enlarge into a fixed-height box");
+assert(route.includes("return new Response(new Uint8Array(image)"), "Image response must contain binary PNG");
+assert(shared.includes('url.searchParams.set("v", "2");'), "Share image version must invalidate the old cached URL");
 assert(!route.includes("fetch("), "Share image generator must not fetch untrusted remote photos");
 assert(route.includes("length <= 3_000_000"), "Share image generator lacks photo-size ceiling");
 assert(!route.includes("reportId") && !route.includes("shareToken"), "Share images must exclude private report identifiers");
+
+// Exercise the real production font and photo pipeline before any release.
+try {
+  const fontfile = join(process.cwd(), "assets/shop-print/fonts/Estedad-Medium.ttf");
+  const sampleTitles = [
+    "خرید هدیه خاص و ماندگار | فروشگاه هالیوس",
+    "تابلو نماد ماه تولد بهمن؛ آکواریوس و ردِ ستاره‌ها | هالیوس",
+    "چارت تولد رایگان فارسی با تفسیر | هالیوس",
+  ];
+  for (const title of sampleTitles) {
+    const escaped = title.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
+    const original = await sharp({
+      text: {
+        text: '<span foreground="#ffffff">\u200f' + escaped + '</span>',
+        font: "Estedad 42",
+        fontfile,
+        width: 535,
+        align: "right",
+        wrap: "word-char",
+        rgba: true,
+      },
+    }).png().toBuffer();
+    const bounded = await sharp(original).resize({
+      width: 535,
+      height: 287,
+      fit: "inside",
+      withoutEnlargement: true,
+    }).png().toBuffer();
+    const info = await sharp(bounded).metadata();
+    assert(info.width > 0 && info.width <= 535 && info.height > 0 && info.height <= 287,
+      "Pango text overflow or empty output");
+    const base = sharp({
+      create: { width: 1200, height: 630, channels: 4, background: "#08090b" },
+    });
+    const png = await base.composite([
+      { input: bounded, left: 1120 - info.width, top: 208 },
+    ]).png().toBuffer();
+    assert(png.subarray(0, 8).toString("hex") === "89504e470d0a1a0a" &&
+      png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630,
+      "1200x630 PNG generation failed");
+  }
+  const bytes = readFileSync("public/shop-preview/hero-desktop-v012.webp");
+  const photo = await sharp(bytes).resize(466, 498, { fit: "cover" }).png().toBuffer();
+  const photoInfo = await sharp(photo).metadata();
+  assert(photoInfo.width === 466 && photoInfo.height === 498,
+    "Product photo conversion failed");
+} catch (error) {
+  failures.push("Sharp/Pango actual Estedad runtime rendering failed: " +
+    (error instanceof Error ? error.message : String(error)));
+}
 
 if (failures.length) {
   console.error("Social preview contract failures:");
@@ -93,4 +148,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log("SOCIAL_PREVIEWS_STATIC=PASS");
+console.log("SOCIAL_PREVIEWS_RUNTIME_PANGO=PASS");
 console.log("Public routes, wiki articles/categories, 12 month signs, shop photos and private-data boundary verified.");
