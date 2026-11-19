@@ -49,6 +49,11 @@ export function AppShell({ children }: AppShellProps) {
 
       <ShopAwareBackToTop />
 
+
+      <footer
+        data-approved-lockup="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
+        className={`site-footer ${styles.footer}`}
+      >
       <nav className={styles.contactStrip} aria-label="راه‌های ارتباطی هالیوس" dir="rtl">
         <div className={styles.contactStripInner}>
           <a
@@ -83,11 +88,6 @@ export function AppShell({ children }: AppShellProps) {
           </a>
         </div>
       </nav>
-
-      <footer
-        data-approved-lockup="/halleus-logo/logo-horizontal-bilingual-final-20260804.png"
-        className={`site-footer ${styles.footer}`}
-      >
         <div className={styles.footerAtmosphere} aria-hidden="true">
           <span className={styles.footerPlanet} />
           <span className={styles.footerOrbitPrimary} />

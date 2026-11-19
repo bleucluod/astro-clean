@@ -23,6 +23,35 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 const failures = [];
 
+// The approved phone + Telegram strip is part of the shared footer,
+// not an independent block that can look like a shop-only footer.
+const footerStartIndex = appShell.indexOf("      <footer\n");
+const footerEndIndex = appShell.indexOf("      </footer>", footerStartIndex);
+const stripStartIndex = appShell.indexOf('<nav className={styles.contactStrip}');
+const stripEndIndex = appShell.indexOf("      </nav>", stripStartIndex);
+const innerIndex = appShell.indexOf('className={\`footer-inner', footerStartIndex);
+if (!(footerStartIndex >= 0 && stripStartIndex > footerStartIndex &&
+      stripEndIndex > stripStartIndex && innerIndex > stripEndIndex &&
+      footerEndIndex > innerIndex &&
+      appShell.indexOf('<nav className={styles.contactStrip}', stripStartIndex + 1) === -1)) {
+  failures.push("Contact strip must occur exactly once inside the shared footer, before footer columns");
+}
+for (const marker of [
+  'href="tel:+989353997359"',
+  '۰۹۳۵۳۹۹۷۳۵۹',
+  'href="https://t.me/thecloudteam"',
+  '@thecloudteam',
+]) {
+  if (!appShell.includes(marker)) failures.push("Shared footer contact missing: " + marker);
+}
+const stripCss = appShellCss.slice(appShellCss.indexOf(".contactStrip {"));
+if (!stripCss.includes("background: #090909;") ||
+    !stripCss.includes(".contactStripInner {\n  display: flex;\n  width: 100%;\n  min-width: 0;") ||
+    !stripCss.includes("@media (max-width: 540px)")) {
+  failures.push("Shared black contact strip and compact mobile row styling missing");
+}
+
+
 const appShellMainMarker = '<main className={styles.main} id="main-content">';
 if (appShell.split(appShellMainMarker).length - 1 !== 1) {
   failures.push("AppShell must contain exactly one <main id=main-content> ownership marker");
