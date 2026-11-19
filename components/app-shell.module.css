@@ -784,10 +784,20 @@
   }
 
   .footerInner {
-    grid-template-columns: 1fr;
-    gap: 26px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(14px, 5vw, 28px);
+    row-gap: 26px;
     width: calc(100% - 32px);
     padding: 42px 0 32px;
+  }
+
+  .footerBrandBlock {
+    grid-column: 1 / -1;
+  }
+
+  .footerNavBlock img {
+    max-width: 100%;
+    height: auto;
   }
 
   .footerBottom {
