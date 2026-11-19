@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from "r
 import type {
   AnalyticsDashboard, AnalyticsDailyPoint, AnalyticsPageRow,
 } from "@/lib/admin/halleus-analytics-dashboard";
+import { getNemadMonthTitle } from "@/lib/shop/nemad-man-months";
 import styles from "./halleus-analytics.module.css";
 
 export type AnalyticsSection = "overview" | "live" | "traffic" | "content" | "time" | "sales" | "tools";
@@ -82,6 +83,14 @@ function pathName(path: string, titles?: Record<string, string>): string {
     "/shop/payment": "پرداخت", "/product": "محصولات",
   };
   if (names[path]) return names[path];
+  const nemadMonth = /^\/shop\/([a-z]+)-sign$/.exec(path);
+  if (nemadMonth) {
+    const monthTitle = getNemadMonthTitle(nemadMonth[1]);
+    if (monthTitle) return "نماد من — " + monthTitle;
+  }
+  if (path.startsWith("/shop/")) {
+    return "محصول: " + (path.split("/").pop()?.replaceAll("-", " ") ?? path);
+  }
   if (path.startsWith("/wiki/")) return path.split("/").pop()?.replaceAll("-", " ") ?? path;
   return path;
 }
