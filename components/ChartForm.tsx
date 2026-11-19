@@ -28,12 +28,6 @@ import type {
 } from "@/types/astro";
 import type { GeneratedReportContract } from "@/types/report-generation";
 import {
-  HALLEUS_CITY_OPTIONS,
-  filterHalleusCities,
-  findHalleusCityByName,
-  getHalleusCityDisplayName,
-} from "@/lib/locations/cities";
-import {
   loadLastStudyLocation,
   saveLastStudyLocation,
 } from "@/lib/storage/report-journey-client";
@@ -134,7 +128,19 @@ const initialBirthTimeParts: BirthTimeParts = {
   minute: "",
 };
 
-type HalleusCityOption = (typeof HALLEUS_CITY_OPTIONS)[number];
+// Keep the 8,000-line city directory out of the initial /chart JavaScript.
+type HalleusCityOption = import("@/lib/locations/cities").HalleusCity;
+type CityDirectory = typeof import("@/lib/locations/cities");
+
+// Mirrors the directory's display contract without importing its entire dataset.
+function getHalleusCityDisplayName(city: HalleusCityOption) {
+  if (city.countryCode === "IR") {
+    return city.faName === city.regionFaName
+      ? city.faName
+      : `${city.faName}، ${city.regionFaName}`;
+  }
+  return `${city.faName}، ${city.countryFaName}`;
+}
 
 type RealEnginePlacement = {
   id: string;
@@ -445,6 +451,30 @@ export function ChartForm({
   const [selectedCurrentResidenceCityId, setSelectedCurrentResidenceCityId] =
     useState("");
 
+  const [cityDirectory, setCityDirectory] = useState<CityDirectory | null>(null);
+  const cityDirectoryPromiseRef = useRef<Promise<CityDirectory> | null>(null);
+
+  function ensureCityDirectory(): Promise<CityDirectory> {
+    if (!cityDirectoryPromiseRef.current) {
+      cityDirectoryPromiseRef.current = import("@/lib/locations/cities")
+        .then((directory) => {
+          setCityDirectory(directory);
+          return directory;
+        })
+        .catch((error: unknown) => {
+          cityDirectoryPromiseRef.current = null; // Allow retry on focus or submit.
+          throw error;
+        });
+    }
+    return cityDirectoryPromiseRef.current;
+  }
+
+  function prefetchCityDirectory() {
+    void ensureCityDirectory().catch(() => {
+      // A later field interaction or submit retries; no speculative network loop.
+    });
+  }
+
   useEffect(() => {
     const restoreFrame = window.requestAnimationFrame(() => {
       const savedLocation = loadLastStudyLocation();
@@ -477,29 +507,30 @@ export function ChartForm({
   }, [realEngineRequest.status]);
 
   const citySuggestions = useMemo(() => {
-    if (selectedBirthCityId || !form.birthCity.trim()) {
+    if (!cityDirectory || selectedBirthCityId || !form.birthCity.trim()) {
       return [];
     }
 
-    return filterHalleusCities(form.birthCity).slice(
+    return cityDirectory.filterHalleusCities(form.birthCity).slice(
       0,
       MAX_CITY_SUGGESTIONS,
     );
-  }, [form.birthCity, selectedBirthCityId]);
+  }, [cityDirectory, form.birthCity, selectedBirthCityId]);
 
   const currentResidenceSuggestions = useMemo(() => {
     if (
+      !cityDirectory ||
       selectedCurrentResidenceCityId ||
       !currentResidenceCity.trim()
     ) {
       return [];
     }
 
-    return filterHalleusCities(currentResidenceCity).slice(
+    return cityDirectory.filterHalleusCities(currentResidenceCity).slice(
       0,
       MAX_CITY_SUGGESTIONS,
     );
-  }, [currentResidenceCity, selectedCurrentResidenceCityId]);
+  }, [cityDirectory, currentResidenceCity, selectedCurrentResidenceCityId]);
 
   const gregorianDayOptions = useMemo(
     () =>
@@ -522,7 +553,7 @@ export function ChartForm({
         : gregorianBirthDateParts;
     const hasSelectedCity = Boolean(
       form.birthCity.trim() &&
-        (selectedBirthCityId || findHalleusCityByName(form.birthCity)),
+        (selectedBirthCityId || cityDirectory?.findHalleusCityByName(form.birthCity)),
     );
     const steps = [
       { id: "name", label: "نام", complete: Boolean(sanitizePersianName(form.name ?? "").trim()) },
@@ -557,6 +588,7 @@ export function ChartForm({
     birthTimeMode,
     birthTimeParts,
     dateMode,
+    cityDirectory,
     form.birthCity,
     form.name,
     gregorianBirthDateParts,
@@ -605,7 +637,7 @@ export function ChartForm({
       return;
     }
     if (includeTransitReading &&
-      !(selectedCurrentResidenceCityId || findHalleusCityByName(currentResidenceCity.trim()))) {
+      !(selectedCurrentResidenceCityId || cityDirectory?.findHalleusCityByName(currentResidenceCity.trim()))) {
       const input = formRef.current?.querySelector<HTMLElement>(".chart-residence-location input");
       input?.scrollIntoView({ block: "center", behavior: "smooth" });
       input?.focus({ preventScroll: true });
@@ -647,6 +679,7 @@ export function ChartForm({
   }
 
   function updateCurrentResidenceCity(value: string) {
+    prefetchCityDirectory();
     clearFieldError("currentResidence");
     setSelectedCurrentResidenceCityId("");
     setCurrentResidenceCity(value);
@@ -661,6 +694,7 @@ export function ChartForm({
   }
 
   function updateBirthCity(value: string) {
+    prefetchCityDirectory();
     clearFieldError("birthCity");
     setSelectedBirthCityId("");
     updateField("birthCity", value);
@@ -750,7 +784,7 @@ export function ChartForm({
     }
   }
 
-  function normalizeBirthForm() {
+  function normalizeBirthForm(cities: CityDirectory) {
     const normalizedName = sanitizePersianName(form.name ?? "").trim();
 
     if (!normalizedName) {
@@ -799,8 +833,8 @@ export function ChartForm({
     }
 
     const selectedCity =
-      HALLEUS_CITY_OPTIONS.find((city) => city.id === selectedBirthCityId) ??
-      findHalleusCityByName(normalizedCityName);
+      cities.HALLEUS_CITY_OPTIONS.find((city) => city.id === selectedBirthCityId) ??
+      cities.findHalleusCityByName(normalizedCityName);
 
     if (!selectedCity) {
       throw new ChartFormValidationError("birthCity", "فعلاً این شهر در فهرست ایران پیدا نشد. نزدیک‌ترین شهر پیشنهادی را انتخاب کن.");
@@ -819,9 +853,9 @@ export function ChartForm({
       }
 
       selectedCurrentResidenceCity =
-        HALLEUS_CITY_OPTIONS.find(
+        cities.HALLEUS_CITY_OPTIONS.find(
           (city) => city.id === selectedCurrentResidenceCityId,
-        ) ?? findHalleusCityByName(normalizedCurrentResidenceCityName) ?? null;
+        ) ?? cities.findHalleusCityByName(normalizedCurrentResidenceCityName) ?? null;
 
       if (!selectedCurrentResidenceCity) {
         throw new ChartFormValidationError(
@@ -955,7 +989,7 @@ export function ChartForm({
     let normalizedBirth: ReturnType<typeof normalizeBirthForm>;
 
     try {
-      normalizedBirth = normalizeBirthForm();
+      normalizedBirth = normalizeBirthForm(await ensureCityDirectory());
     } catch (error) {
       submissionInFlightRef.current = false;
       setIsSubmitting(false);
@@ -1446,6 +1480,7 @@ export function ChartForm({
                     required
                     autoComplete="address-level2"
                     value={form.birthCity}
+                    onFocus={prefetchCityDirectory}
                     onChange={(event) => updateBirthCity(event.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" && citySuggestions[0]) {
@@ -1490,6 +1525,7 @@ export function ChartForm({
                     <input
                       autoComplete="address-level2"
                       value={currentResidenceCity}
+                      onFocus={prefetchCityDirectory}
                       onChange={(event) => updateCurrentResidenceCity(event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" && currentResidenceSuggestions[0]) {

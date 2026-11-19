@@ -32,6 +32,26 @@ for (const forbidden of [
   if (chart.includes(forbidden)) failures.push("ChartForm still has initial static import: " + forbidden);
 }
 
+// Lighthouse /chart mobile: the city catalogue must be a deferred interaction chunk.
+for (const marker of [
+  'type CityDirectory = typeof import("@/lib/locations/cities")',
+  'import("@/lib/locations/cities")',
+  'onFocus={prefetchCityDirectory}',
+  'cityDirectory.filterHalleusCities(form.birthCity)',
+  'cityDirectory.filterHalleusCities(currentResidenceCity)',
+  'normalizedBirth = normalizeBirthForm(await ensureCityDirectory())',
+  'cities.HALLEUS_CITY_OPTIONS.find(',
+  'cities.findHalleusCityByName(normalizedCityName)',
+]) {
+  if (!chart.includes(marker)) failures.push("Chart city on-demand loading missing: " + marker);
+}
+if (chart.includes('from "@/lib/locations/cities"')) {
+  failures.push("ChartForm reintroduced the eager city-directory import.");
+}
+if (chart.split('onFocus={prefetchCityDirectory}').length !== 3) {
+  failures.push("Both the birth and current-residence city inputs must preload the directory.");
+}
+
 if (5 > 0) {
   for (const marker of [
     "HALLEUS_RESPONSIVE_CHROME_IMAGE_BATCH5_R1",
