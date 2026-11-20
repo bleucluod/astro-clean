@@ -10,10 +10,11 @@ import { readShopPriceCatalog } from '@/lib/shop/shop-price-store';
 // Same Estedad Light/Regular/Medium assets used by the approved P01 R9b
 // native renderer. Keep the live SVG and downloaded PNG typography aligned.
 const estedad = localFont({
+  preload: false,
   src: [
-    { path: '../../../assets/shop-print/fonts/Estedad-Light.ttf', weight: '300', style: 'normal' },
-    { path: '../../../assets/shop-print/fonts/Estedad-Regular.ttf', weight: '400', style: 'normal' },
-    { path: '../../../assets/shop-print/fonts/Estedad-Medium.ttf', weight: '500', style: 'normal' },
+    { path: '../../../assets/shop-print/fonts/Estedad-Light.woff2', weight: '300', style: 'normal' },
+    { path: '../../../assets/shop-print/fonts/Estedad-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../../../assets/shop-print/fonts/Estedad-Medium.woff2', weight: '500', style: 'normal' },
   ],
   variable: '--font-p02-estedad',
   display: 'swap',

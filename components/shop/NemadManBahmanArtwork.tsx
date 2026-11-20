@@ -3,10 +3,11 @@ import { getNemadPosterSky, type NemadSign } from '@/lib/shop/nemad-man-bahman-p
 import { NEMAD_MAN_ZODIAC_GLYPHS } from '@/lib/shop/nemad-man-zodiac-glyphs';
 
 const estedad = localFont({
+  preload: false,
   src: [
-    { path: '../../assets/shop-print/fonts/Estedad-Light.ttf', weight: '300', style: 'normal' },
-    { path: '../../assets/shop-print/fonts/Estedad-Regular.ttf', weight: '400', style: 'normal' },
-    { path: '../../assets/shop-print/fonts/Estedad-Medium.ttf', weight: '500', style: 'normal' },
+    { path: '../../assets/shop-print/fonts/Estedad-Light.woff2', weight: '300', style: 'normal' },
+    { path: '../../assets/shop-print/fonts/Estedad-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../../assets/shop-print/fonts/Estedad-Medium.woff2', weight: '500', style: 'normal' },
   ],
   display: 'swap',
 });

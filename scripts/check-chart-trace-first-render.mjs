@@ -31,11 +31,11 @@ if (occurrences(picker, "{quickOpen ? (") !== 2) {
   failures.push("Birth date and time dialogs must mount only when opened");
 }
 requireMarker(picker, "dialog.showModal()", "Birth picker dialog interaction removed");
-requireMarker(css, "HALLEUS_CHART_TRACE_OFFSCREEN_RENDER_V1", "Scoped offscreen rule missing");
-requireMarker(css, ".page > .education[data-chart-section]", "Offscreen rule must target chart informational sections only");
-requireMarker(css, "content-visibility: auto;", "Offscreen rendering not enabled");
-requireMarker(css, "@media print", "Print fallback missing");
-requireMarker(css, "content-visibility: visible;", "Print content no longer guaranteed");
+// Offscreen education sections share the chart's intrinsic RTL grid width.
+const educationRules = css.match(/[^{}]*\.education[^{}]*\{[^{}]*\}/g) ?? [];
+if (educationRules.some((rule) => /content-visibility\s*:\s*auto\b|contain-intrinsic-(?:size|width|inline-size)\s*:\s*[^;}]*\d(?:px|rem|em)\b/i.test(rule))) {
+  failures.push("Offscreen containment must not enlarge the chart's mobile grid");
+}
 for (const marker of ['data-chart-section="calculation"', 'data-chart-section="unknown-time"', 'data-chart-section="personal-report"', 'data-chart-section="faq"']) {
   requireMarker(page, marker, "Required editorial section missing: " + marker);
 }

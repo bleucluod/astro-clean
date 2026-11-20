@@ -104,9 +104,9 @@ assert.match(poster, /const displayNameSize = Math\.round\(nameSize \* \.9\);/,
 assert.match(poster, /sign\.displayFa/, 'Poster must use the approved transliterated zodiac name');
 assert.match(poster, /import localFont from 'next\/font\/local'/, 'Poster must load its bundled font');
 for (const [weight, file] of [
-  ['300', 'Estedad-Light.ttf'],
-  ['400', 'Estedad-Regular.ttf'],
-  ['500', 'Estedad-Medium.ttf'],
+  ['300', 'Estedad-Light.woff2'],
+  ['400', 'Estedad-Regular.woff2'],
+  ['500', 'Estedad-Medium.woff2'],
 ]) {
   assert.ok(poster.includes(file) && poster.includes("weight: '" + weight + "'"),
     'Missing Estedad preview font/weight: ' + file);

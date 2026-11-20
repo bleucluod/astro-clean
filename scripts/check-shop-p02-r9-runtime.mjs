@@ -149,7 +149,8 @@ const starless=render({...atlas,aboveHorizonStars:[]},{...figures,lines:[central
 assert.ok(!starless.includes('r="3.3"'),'no invented star highlights');
 
 for(const f of ['Estedad-Light.ttf','Estedad-Regular.ttf','Estedad-Medium.ttf']) {
-  assert.ok(page.includes(f),`P02 missing approved font ${f}`);
+  const browserFont = f.replace(/\.ttf$/, ".woff2");
+  assert.ok(page.includes(browserFont), `P02 missing approved web font ${browserFont}`);
   assert.ok(p01.includes(f)||f==='Estedad-Light.ttf'&&p01.includes('fontDir'),`P01 font parity missing ${f}`);
   assert.ok(approved.includes(f),`approved review font parity ${f}`);
 }

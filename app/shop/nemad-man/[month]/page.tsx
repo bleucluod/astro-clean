@@ -15,10 +15,11 @@ import { buildSocialPreviewMetadata, siteConfig } from '@/lib/config/seo';
 
 // Use the same Estedad-loaded product shell as P02, not P03's renderer.
 const estedad = localFont({
+  preload: false,
   src: [
-    { path: '../../../../assets/shop-print/fonts/Estedad-Light.ttf', weight: '300', style: 'normal' },
-    { path: '../../../../assets/shop-print/fonts/Estedad-Regular.ttf', weight: '400', style: 'normal' },
-    { path: '../../../../assets/shop-print/fonts/Estedad-Medium.ttf', weight: '500', style: 'normal' },
+    { path: '../../../../assets/shop-print/fonts/Estedad-Light.woff2', weight: '300', style: 'normal' },
+    { path: '../../../../assets/shop-print/fonts/Estedad-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../../../../assets/shop-print/fonts/Estedad-Medium.woff2', weight: '500', style: 'normal' },
   ],
   variable: '--font-p02-estedad',
   display: 'swap',
