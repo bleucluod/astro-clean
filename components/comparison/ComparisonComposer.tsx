@@ -2,7 +2,7 @@
 
 import { HALLEUS_ANALYTICS_ACTION } from "@/lib/analytics/first-party";
 import Link from "next/link";
-import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
+import dynamic from "next/dynamic";
 import { AccountProductAccessCard } from "@/components/monetization/ProductAccessCards";
 import { ProductLockedOffer } from "@/components/monetization/ProductAccessCards";
 import { useProductAccess } from "@/lib/monetization/product-access-client";
@@ -47,6 +47,14 @@ import type {
 } from "@/types/synastry-engine";
 
 import styles from "./comparison.module.css";
+
+const LazySupabaseAuthPanel = dynamic(
+  () =>
+    import("@/components/SupabaseAuthPanel").then(
+      (module) => module.SupabaseAuthPanel,
+    ),
+  { ssr: false },
+);
 
 const RELATIONSHIP_OPTIONS: ReadonlyArray<{
   value: SynastryRelationshipContext;
@@ -767,7 +775,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               </header>
 
               <div className={styles.accountModalPanel}>
-                <SupabaseAuthPanel compact />
+                <LazySupabaseAuthPanel compact />
               </div>
 
               <footer className={styles.accountModalStatus} data-state={accountChartsState}>
