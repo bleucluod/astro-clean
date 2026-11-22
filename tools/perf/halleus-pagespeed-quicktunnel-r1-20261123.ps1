@@ -7,6 +7,7 @@ Set-StrictMode -Version Latest
 
 # Halleus PageSpeed A/B: isolated preview, not a production release.
 # Maintained only on perf/20261123-pagespeed-tunnel-runner; never merge into main.
+$RequiredMain='d2a107d45b41940f3694ff483069a5f5c3fcd263'
 $ShaA='cbc39dafbd08e876bf8d977eb3d02849d71f35a4'
 $ShaB='613b12c18b3bcfcc8a8d16a5c12a9de81d2ecb37'
 $RepoPath=[IO.Path]::GetFullPath($RepoPath)
@@ -42,7 +43,337 @@ function Verify-Repo {
   $dirty=@(Git @('status','--porcelain=v1','--untracked-files=all') | Where-Object {$_})
   if($dirty.Count){Fatal ('Main contains uncommitted files: '+($dirty -join '; '))}
   $script:MainHead=[string](Git @('rev-parse','HEAD') | Select-Object -First 1)
-  if($script:MainHead -notmatch '^[a-f0-9]{40}$'){Fatal 'Invalid HEAD'}
+  if($script:MainHead -notmatch '^[a-f0-9]{40}
+  Info ('source main='+$script:MainHead+' (clean)')
+}
+function Verify-Lab {
+  if(Test-Path $Lab){
+    if((Get-Item $Lab -Force).Attributes -band [IO.FileAttributes]::ReparsePoint){Fatal 'Lab path is a link'}
+    if(-not(Test-Path (Join-Path $Lab '.identity'))){Fatal 'Unknown existing lab'}
+    if((Get-Content (Join-Path $Lab '.identity') -Raw).Trim() -ne $Marker){Fatal 'Lab marker mismatch'}
+  }
+  foreach($p in @($WorkA,$WorkB,$Runtime,$Logs)){
+    if(Test-Path $p){
+      if((Get-Item $p -Force).Attributes -band [IO.FileAttributes]::ReparsePoint){Fatal ('Unexpected link: '+$p)}
+    }
+  }
+}
+function Ensure-Lab {
+  if(-not(Test-Path $Lab)){
+    New-Item -ItemType Directory $Lab | Out-Null
+    [IO.File]::WriteAllText((Join-Path $Lab '.identity'),$Marker,[Text.UTF8Encoding]::new($false))
+  }
+  foreach($p in @($Runtime,$Logs)){New-Item -ItemType Directory -Force $p | Out-Null}
+}
+function Check-Worktree([string]$path,[string]$sha) {
+  if(-not(Test-Path $path)){return $false}
+  if(-not(Test-Path (Join-Path $path '.git') -PathType Leaf)){Fatal ('Existing directory not a linked worktree: '+$path)}
+  $h=(& git -C $path rev-parse HEAD | Select-Object -First 1)
+  if($LASTEXITCODE -ne 0 -or $h -ne $sha){Fatal ('Unexpected worktree HEAD: '+$path)}
+  $dirty=@(& git -C $path status --porcelain=v1 --untracked-files=all | Where-Object {$_})
+  if($LASTEXITCODE -ne 0 -or $dirty.Count){Fatal ('Dirty preview worktree: '+$path)}
+  $envs=@(Get-ChildItem $path -File -Force -Filter '.env*' | Where-Object {$_.Name -ne '.env.example'})
+  if($envs.Count){Fatal ('Preview environment file found at '+$path)}
+  return $true
+}
+function Source-Refs {
+  Info 'Fetching two pinned source refs'
+  Git @('fetch','origin','refs/heads/perf/psi-a-cbc39da:refs/remotes/origin/perf/psi-a-cbc39da','refs/heads/perf/psi-b-613b12c:refs/remotes/origin/perf/psi-b-613b12c') | Out-Null
+  $a=[string](Git @('rev-parse','refs/remotes/origin/perf/psi-a-cbc39da') | Select-Object -First 1)
+  $b=[string](Git @('rev-parse','refs/remotes/origin/perf/psi-b-613b12c') | Select-Object -First 1)
+  if($a -ne $ShaA -or $b -ne $ShaB){Fatal 'Source refs do not match pinned SHAs'}
+  $changed=@(Git @('diff','--name-only',$ShaA,$ShaB))
+  if($changed.Count -ne 1 -or $changed[0] -ne 'components/ChartMobileBirthPicker.tsx'){Fatal 'Unexpected A/B source diff'}
+  Git @('diff','--check',$ShaA,$ShaB) | Out-Null
+}
+function Ensure-Worktree([string]$p,[string]$sha){
+  if(Check-Worktree $p $sha){Info ('RESUMED_PASS worktree '+$sha.Substring(0,7));return}
+  Git @('worktree','add','--detach',$p,$sha) | Out-Null
+  if(-not(Check-Worktree $p $sha)){Fatal 'Worktree was not created'}
+}
+function Clean-Env([scriptblock]$body){
+  $names=@(Get-ChildItem Env: | Where-Object {$_.Name -match '(?i)(DATABASE|POSTGRES|SUPABASE|AUTH|SECRET|TOKEN|PASSWORD|PAYMENT|BITPAY|STRIPE|TELEGRAM|VERCEL|HALLEUS|SENTRY|CLOUDFLARE|NEXT_PUBLIC|GOOGLE_APPLICATION_CREDENTIALS)'} | ForEach-Object {$_.Name})
+  $old=@{}
+  foreach($n in $names){$old[$n]=[Environment]::GetEnvironmentVariable($n,'Process');[Environment]::SetEnvironmentVariable($n,$null,'Process')}
+  $nodeEnv=[Environment]::GetEnvironmentVariable('NODE_ENV','Process')
+  [Environment]::SetEnvironmentVariable('NODE_ENV','production','Process')
+  try {& $body} finally {
+    foreach($n in $old.Keys){[Environment]::SetEnvironmentVariable($n,[string]$old[$n],'Process')}
+    [Environment]::SetEnvironmentVariable('NODE_ENV',$nodeEnv,'Process')
+  }
+}
+function Logged([string]$dir,[string]$command,[string[]]$args,[string]$logfile){
+  Push-Location $dir
+  try {
+    $old=$ErrorActionPreference
+    $ErrorActionPreference='Continue'
+    try {
+      $ok=Clean-Env {& $command @args *>&1 | Out-File $logfile -Encoding utf8 -Width 230; $LASTEXITCODE -eq 0}
+      return [bool]$ok
+    } finally {$ErrorActionPreference=$old}
+  } finally {Pop-Location}
+}
+function Build([string]$label,[string]$dir,[string]$sha){
+  if(-not(Check-Worktree $dir $sha)){Fatal ('Missing '+$label)}
+  $fingerprint=$sha+'/'+(Get-FileHash (Join-Path $dir 'pnpm-lock.yaml') -Algorithm SHA256).Hash+'/'+(& node --version)+'/'+(& pnpm --version)
+  $stamp=Join-Path $Runtime ($label+'.stamp')
+  $buildId=Join-Path $dir '.next/BUILD_ID'
+  if((Test-Path $stamp) -and (Test-Path $buildId) -and (Get-Content $stamp -Raw).Trim() -eq $fingerprint){Info ('RESUMED_PASS build '+$label);return}
+  Info ('Installing dependencies for '+$label)
+  if(-not(Logged $dir 'pnpm' @('install','--frozen-lockfile','--prod=false') (Join-Path $Logs ($label+'-install.log')))){
+    $Failures.Add($label+'/install')
+  }
+  if(-not(Test-Path (Join-Path $dir 'node_modules'))){$Failures.Add($label+'/build/BLOCKED_BY_DEPENDENCY');return}
+  foreach($guard in @('scripts/check-chart-trace-first-render.mjs','scripts/check-chart-mobile-journey.mjs')){
+    if(-not(Test-Path (Join-Path $dir $guard))){$Failures.Add($label+'/missing-guard/'+$guard);continue}
+    if(-not(Logged $dir 'node' @($guard) (Join-Path $Logs ($label+'-'+[IO.Path]::GetFileName($guard)+'.log')))){$Failures.Add($label+'/guard/'+$guard)}
+  }
+  Info ('Building '+$label+' (see '+$Logs+')')
+  if(-not(Logged $dir 'pnpm' @('build') (Join-Path $Logs ($label+'-build.log')))){
+    $Failures.Add($label+'/build')
+  } elseif(-not(Test-Path $buildId)) {
+    $Failures.Add($label+'/BUILD_ID-missing')
+  } else {
+    [IO.File]::WriteAllText($stamp,$fingerprint,[Text.UTF8Encoding]::new($false))
+    Info ('PASS build '+$label)
+  }
+}
+function Read-State {
+  if(-not(Test-Path $StatePath)){return @{}}
+  try {
+    $json=Get-Content $StatePath -Raw | ConvertFrom-Json
+    $o=@{}; foreach($p in $json.PSObject.Properties){$o[$p.Name]=$p.Value}
+    return $o
+  } catch {Fatal 'Corrupt process state; will not stop unknown processes'}
+}
+function Save-State([hashtable]$s){
+  [IO.File]::WriteAllText($StatePath,($s|ConvertTo-Json -Depth 4),[Text.UTF8Encoding]::new($false))
+}
+function Owns([string]$name,[object]$info){
+  if(-not $info){return $false}
+  $pidNumber=[int]$info.pid
+  if($pidNumber -le 0){Fatal ('Invalid PID for '+$name)}
+  $proc=Get-CimInstance Win32_Process -Filter "ProcessId=$pidNumber" -ErrorAction SilentlyContinue
+  if(-not $proc){return $false}
+  if(([string]$proc.CommandLine).IndexOf([string]$info.needle,[StringComparison]::OrdinalIgnoreCase) -lt 0){
+    Fatal ('PID was reused or changed: '+$name)
+  }
+  return $true
+}
+function Stop-Owned([hashtable]$s,[string]$name){
+  if(-not $s.ContainsKey($name)){return}
+  $info=$s[$name]
+  if(Owns $name $info){
+    & taskkill.exe /PID ([string]$info.pid) /T /F | Out-Null
+    if($LASTEXITCODE -ne 0){Fatal ('Unable to stop owned process '+$name)}
+  }
+  [void]$s.Remove($name);Save-State $s
+}
+function Port-Used([int]$port){
+  return [bool](@(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue).Count)
+}
+function Ports-Safe([hashtable]$s) {
+  foreach($check in @(@{port=$NextPort;key='next'},@{port=$ProxyPort;key='proxy'})){
+    if(Port-Used $check.port){
+      if(-not($s.ContainsKey($check.key) -and (Owns $check.key $s[$check.key]))){Fatal ('Port in use by unknown service: '+$check.port)}
+    }
+  }
+}
+function Spawn([hashtable]$s,[string]$name,[string]$exe,[string[]]$args,[string]$cwd,[string]$needle){
+  $p=Clean-Env {
+    Start-Process -FilePath $exe -ArgumentList $args -WorkingDirectory $cwd -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $Logs ($name+'-out.log')) -RedirectStandardError (Join-Path $Logs ($name+'-err.log'))
+  }
+  $s[$name]=@{pid=$p.Id;needle=$needle};Save-State $s
+}
+function Reachable([string]$url){
+  for($i=0;$i -lt 30;$i++){
+    try {
+      $r=Invoke-WebRequest -Uri $url -Method Get -UseBasicParsing -TimeoutSec 5 -MaximumRedirection 0
+      if($r.StatusCode -eq 200){return $true}
+    } catch {}
+    Start-Sleep -Milliseconds 600
+  }
+  return $false
+}
+$ProxyJs=@'
+'use strict';
+const http=require('node:http');
+const fs=require('node:fs');
+const path=require('node:path');
+const [localPort, nextPort, dirA, dirB, selectedFile]=process.argv.slice(2);
+if(!selectedFile)process.exit(9);
+const roots={a:dirA,b:dirB};
+const safe={
+  'x-robots-tag':'noindex,nofollow,noarchive',
+  'cache-control':'no-store',
+  'referrer-policy':'no-referrer',
+  'x-content-type-options':'nosniff',
+  'content-security-policy':"default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' blob:; connect-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+};
+function asset(root,route){
+  if(!route.startsWith('/')||route.includes('\\')||route.includes('\0'))return false;
+  const parts=route.slice(1).split('/');
+  if(parts.some(s=>!s||s==='.'||s==='..'||s.startsWith('.')))return false;
+  const base=fs.realpathSync(path.join(root,'public'));
+  const file=path.resolve(base,...parts);
+  if(!file.startsWith(base+path.sep))return false;
+  try{return fs.realpathSync(file).startsWith(base+path.sep)&&fs.statSync(file).isFile()}catch{return false}
+}
+function allowed(req,root){
+  if(!['GET','HEAD'].includes(req.method))return false;
+  if(!req.url||req.url.length>2048||!req.url.startsWith('/')||req.url.startsWith('//')||req.url.includes('\\'))return false;
+  let url;try{url=new URL(req.url,'http://127.0.0.1')}catch{return false}
+  const p=url.pathname;
+  if(p.includes('%')||p.includes('..')||p.includes('//')||p.includes('/.'))return false;
+  if(p==='/chart')return !url.search || ([...url.searchParams.keys()].every(x=>x==='_rsc') && url.searchParams.has('_rsc'));
+  if(p.startsWith('/_next/static/'))return !url.search&&/^\/_next\/static\/[a-zA-Z0-9._\/-]+$/.test(p)&&p.length<300;
+  if(p==='/_next/image'){
+    if([...url.searchParams.keys()].some(x=>!['url','w','q'].includes(x)))return false;
+    const image=url.searchParams.get('url')||'';
+    return image.startsWith('/')&&!image.includes('%')&&asset(root,image);
+  }
+  return !url.search&&asset(root,p);
+}
+function error(res,status){
+  res.writeHead(status,{...safe,'content-type':'text/plain;charset=utf-8'});
+  res.end('Unavailable on Halleus PageSpeed preview');
+}
+http.createServer((req,res)=>{
+  let selected;try{selected=fs.readFileSync(selectedFile,'utf8').trim()}catch{return error(res,503)}
+  if(!roots[selected])return error(res,503);
+  if(!allowed(req,roots[selected]))return error(res,404);
+  const headers={host:'127.0.0.1:'+nextPort,'accept':req.headers.accept||'*/*','accept-encoding':req.headers['accept-encoding']||'identity','user-agent':req.headers['user-agent']||'PageSpeed'};
+  const prox=http.request({hostname:'127.0.0.1',port:Number(nextPort),method:req.method,path:req.url,headers,timeout:30000},up=>{
+    const responseHeaders={...up.headers,...safe};
+    delete responseHeaders['set-cookie'];delete responseHeaders['transfer-encoding'];delete responseHeaders.connection;
+    res.writeHead(up.statusCode||502,responseHeaders);
+    up.pipe(res);
+  });
+  prox.on('error',()=>{if(!res.headersSent)error(res,502);else res.destroy()});
+  prox.on('timeout',()=>prox.destroy());
+  req.pipe(prox);
+}).listen(Number(localPort),'127.0.0.1',()=>console.log('HALLEUS_PSI_PROXY_READY'));
+'@
+function Cloudflared {
+  $cmd=Get-Command cloudflared.exe -ErrorAction SilentlyContinue
+  if($cmd){return $cmd.Source}
+  foreach($p in @(
+    (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\cloudflared.exe'),
+    (Join-Path $env:ProgramFiles 'cloudflared\cloudflared.exe')
+  )) {if(Test-Path $p){return $p}}
+  return $null
+}
+function Tunnel-Url {
+  foreach($f in @((Join-Path $Logs 'tunnel-err.log'),(Join-Path $Logs 'tunnel-out.log'))){
+    if(Test-Path $f){
+      $v=[regex]::Matches((Get-Content $f -Raw),'https://[a-z0-9-]+\.trycloudflare\.com')
+      if($v.Count){return $v[$v.Count-1].Value}
+    }
+  }
+  return $null
+}
+function Start-Variant([string]$kind){
+  $work=if($kind -eq 'a'){$WorkA}else{$WorkB}
+  $sha=if($kind -eq 'a'){$ShaA}else{$ShaB}
+  if(-not(Check-Worktree $work $sha) -or -not(Test-Path (Join-Path $work '.next/BUILD_ID'))){Fatal ('Build not prepared: '+$kind)}
+  $s=Read-State;Ports-Safe $s
+  if($s.ContainsKey('next')){
+    Stop-Owned $s 'next'
+    for($i=0;$i -lt 30 -and (Port-Used $NextPort);$i++){Start-Sleep -Milliseconds 300}
+    if(Port-Used $NextPort){Fatal 'Next port did not release'}
+  }
+  $node=(Get-Command node).Source
+  $next=Join-Path $work 'node_modules\next\dist\bin\next'
+  if(-not(Test-Path $next)){Fatal ('Missing Next binary: '+$next)}
+  Remove-Item $Selection -ErrorAction SilentlyContinue
+  Spawn $s 'next' $node @('"'+$next+'"','start','--hostname','127.0.0.1','--port',[string]$NextPort) $work $next
+  if(-not(Reachable ('http://127.0.0.1:'+$NextPort+'/chart'))){$Failures.Add($kind+'/next-not-ready');return}
+  if(-not $s.ContainsKey('proxy') -or -not(Owns 'proxy' $s['proxy'])){
+    [IO.File]::WriteAllText($ProxyPath,$ProxyJs,[Text.UTF8Encoding]::new($false))
+    & node --check $ProxyPath
+    if($LASTEXITCODE -ne 0){Fatal 'Proxy syntax failed'}
+    Spawn $s 'proxy' $node @('"'+$ProxyPath+'"',[string]$ProxyPort,[string]$NextPort,'"'+$WorkA+'"','"'+$WorkB+'"','"'+$Selection+'"') $Runtime $ProxyPath
+  }
+  [IO.File]::WriteAllText($Selection,$kind,[Text.UTF8Encoding]::new($false))
+  if(-not(Reachable ('http://127.0.0.1:'+$ProxyPort+'/chart'))){$Failures.Add($kind+'/proxy-not-ready');return}
+  foreach($route in @('/api/engine/real-chart','/reports','/admini','/account','/profile')){
+    try{$r=Invoke-WebRequest -Uri ('http://127.0.0.1:'+$ProxyPort+$route) -UseBasicParsing -TimeoutSec 5;$code=[int]$r.StatusCode}
+    catch{$code=[int]$_.Exception.Response.StatusCode}
+    if($code -ne 404){$Failures.Add($kind+'/unsafe-route/'+$route+'/'+$code)}
+  }
+  if($Failures.Count){return}
+  if(-not $s.ContainsKey('tunnel') -or -not(Owns 'tunnel' $s['tunnel'])){
+    $cloud=Cloudflared
+    if(-not $cloud){$Failures.Add('EXTERNAL_BLOCK/cloudflared-missing');Info 'Install: winget install --id Cloudflare.cloudflared --exact';return}
+    foreach($file in @('config.yml','config.yaml')){
+      if(Test-Path (Join-Path (Join-Path $HOME '.cloudflared') $file)){Fatal 'Existing .cloudflared config prevents Quick Tunnel'}
+    }
+    Spawn $s 'tunnel' $cloud @('tunnel','--url',('http://127.0.0.1:'+$ProxyPort)) $Runtime ('--url http://127.0.0.1:'+$ProxyPort)
+  }
+  $url=$null
+  for($i=0;$i -lt 40;$i++){ $url=Tunnel-Url; if($url){break}; Start-Sleep -Milliseconds 500 }
+  if(-not $url){$Failures.Add('EXTERNAL_BLOCK/tunnel-url-not-issued');return}
+  Info ('ACTIVE='+$kind+' COMMIT='+$sha)
+  Info ('PAGE_SPEED_URL='+$url+'/chart')
+  Info ('OPEN_PSI=https://pagespeed.web.dev/analysis?url='+[uri]::EscapeDataString($url+'/chart')+'&form_factor=mobile')
+  Info 'Same URL for A/B as long as the tunnel stays running.'
+}
+function Failure-Zip {
+  if(-not(Test-Path $Logs)){return}
+  $downloads=Join-Path $HOME 'Downloads'
+  New-Item -ItemType Directory $downloads -Force | Out-Null
+  $summary=Join-Path $Logs 'failure-summary.txt'
+  [IO.File]::WriteAllLines($summary,[string[]]@('HEAD='+$MainHead,'A='+$ShaA,'B='+$ShaB,'FAILURES:')+[string[]]$Failures,[Text.UTF8Encoding]::new($false))
+  $zip=Join-Path $downloads ('Halleus-PageSpeed-FailureLogs-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.zip')
+  Compress-Archive -LiteralPath $Logs -DestinationPath $zip -Force
+  Info ('FAILURE_LOGS_ZIP='+$zip)
+}
+try {
+  Verify-Repo;Verify-Lab
+  $s=Read-State;Ports-Safe $s
+  switch($Mode){
+    'Prepare'{
+      Source-Refs;Ensure-Lab
+      Ensure-Worktree $WorkA $ShaA
+      Ensure-Worktree $WorkB $ShaB
+      Build 'a' $WorkA $ShaA
+      Build 'b' $WorkB $ShaB
+      if(-not $Failures.Count){Start-Variant 'a'}
+    }
+    'A'{Start-Variant 'a'}
+    'B'{Start-Variant 'b'}
+    'Stop'{
+      foreach($name in @('tunnel','proxy','next')){Stop-Owned $s $name}
+      Remove-Item $Selection -ErrorAction SilentlyContinue
+      Info 'Stopped owned processes only; builds retained.'
+    }
+    'Status'{
+      foreach($name in @('next','proxy','tunnel')){
+        $status=if($s.ContainsKey($name)){Owns $name $s[$name]}else{$false}
+        Info ($name+'='+$status)
+      }
+      Info ('URL='+[string](Tunnel-Url))
+      if(Test-Path $Selection){Info ('ACTIVE='+(Get-Content $Selection -Raw).Trim())}
+    }
+  }
+  if($Failures.Count){Info ('FAILURES='+($Failures -join '; '));Failure-Zip;exit 1}
+  $head=[string](Git @('rev-parse','HEAD')|Select-Object -First 1)
+  if($head -ne $MainHead){Fatal 'Main HEAD changed during operation'}
+  $dirty=@(Git @('status','--porcelain=v1','--untracked-files=all') | Where-Object {$_})
+  Info ('FINAL_GIT_STATUS=' + $(if($dirty.Count){$dirty -join '; '}else{'CLEAN'}))
+  Info 'A/B diff: components/ChartMobileBirthPicker.tsx only.'
+  Info 'No commit/tag/push/deploy/production changes.'
+} catch {
+  $msg=[string]$_.Exception.Message
+  Info $msg
+  if(-not $msg.StartsWith('SAFETY_FATAL:')){
+    $Failures.Add('CANDIDATE_FAILURE/'+$msg)
+    Failure-Zip
+  }
+  exit 1
+}
+){Fatal 'Invalid HEAD'}
+  if($script:MainHead -ne $RequiredMain){Fatal ('Unexpected main HEAD: '+$script:MainHead+' (expected '+$RequiredMain+')')}
   Info ('source main='+$script:MainHead+' (clean)')
 }
 function Verify-Lab {
