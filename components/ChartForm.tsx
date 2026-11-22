@@ -10,19 +10,6 @@ import {
   type MobileTimeParts,
 } from "./ChartMobileBirthPicker";
 import pickerStyles from "./chart-mobile-birth-picker.module.css";
-
-// Keep mobile wheels in a separate chunk; reserve space until loaded to avoid CLS.
-const mobileWheelPlaceholder = () => (
-  <div className={pickerStyles.alwaysPicker} style={{ minHeight: 54 }} aria-hidden="true" />
-);
-const MobileBirthDatePicker = dynamic(
-  () => import("./ChartMobileBirthPicker").then((module) => module.MobileBirthDatePicker),
-  { ssr: false, loading: mobileWheelPlaceholder },
-);
-const MobileBirthTimePicker = dynamic(
-  () => import("./ChartMobileBirthPicker").then((module) => module.MobileBirthTimePicker),
-  { ssr: false, loading: mobileWheelPlaceholder },
-);
 import {
   type CSSProperties,
   type FormEvent,
@@ -44,6 +31,19 @@ import {
   loadLastStudyLocation,
   saveLastStudyLocation,
 } from "@/lib/storage/report-journey-client";
+
+// Keep mobile wheels in a separate chunk; reserve space until loaded to avoid CLS.
+const mobileWheelPlaceholder = () => (
+  <div className={pickerStyles.alwaysPicker} style={{ minHeight: 54 }} aria-hidden="true" />
+);
+const MobileBirthDatePicker = dynamic(
+  () => import("./ChartMobileBirthPicker").then((module) => module.MobileBirthDatePicker),
+  { ssr: false, loading: mobileWheelPlaceholder },
+);
+const MobileBirthTimePicker = dynamic(
+  () => import("./ChartMobileBirthPicker").then((module) => module.MobileBirthTimePicker),
+  { ssr: false, loading: mobileWheelPlaceholder },
+);
 
 // HALLEUS_CHART_DEFERRED_RUNTIME_BATCH5_R1
 const LazySupabaseAuthPanel = dynamic(
