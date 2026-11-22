@@ -198,8 +198,9 @@ export function AnalyticsConsent() {
 
     setAnalyticsDisabled(false);
     ensureGoogleAnalyticsConfigured();
-    // Keep the page view in the gtag queue; defer only the external code on /chart.
-    if (pathname !== "/chart") loadGoogleAnalyticsScript();
+    // Keep consent and the public page view queued before loading GA4.
+    // Chart and Compare have CPU-heavy first interaction; run the third-party
+    // script after page load instead of competing with initial hydration.
     getAnalyticsWindow().gtag?.("consent", "update", {
       ad_personalization: "denied",
       ad_storage: "denied",
@@ -212,16 +213,31 @@ export function AnalyticsConsent() {
       lastTrackedPath.current = pathname;
     }
 
-    if (pathname !== "/chart") return;
-    // Let first paint and the form take priority, but bound the analytics delay.
+    if (pathname !== "/chart" && pathname !== "/compare") {
+      loadGoogleAnalyticsScript();
+      return;
+    }
+
     let idleCallbackId: number | null = null;
     let timeoutId: number | null = null;
-    if (typeof window.requestIdleCallback === "function") {
-      idleCallbackId = window.requestIdleCallback(loadGoogleAnalyticsScript, { timeout: 1200 });
+    const scheduleAfterLoad = () => {
+      timeoutId = window.setTimeout(() => {
+        timeoutId = null;
+        if (typeof window.requestIdleCallback === "function") {
+          idleCallbackId = window.requestIdleCallback(loadGoogleAnalyticsScript, { timeout: 2500 });
+        } else {
+          loadGoogleAnalyticsScript();
+        }
+      }, 2500);
+    };
+
+    if (document.readyState === "complete") {
+      scheduleAfterLoad();
     } else {
-      timeoutId = window.setTimeout(loadGoogleAnalyticsScript, 900);
+      window.addEventListener("load", scheduleAfterLoad, { once: true });
     }
     return () => {
+      window.removeEventListener("load", scheduleAfterLoad);
       if (idleCallbackId !== null) window.cancelIdleCallback(idleCallbackId);
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
