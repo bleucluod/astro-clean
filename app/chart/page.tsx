@@ -101,8 +101,6 @@ export default async function ChartPage() {
           </h1>
 
           <div className={styles.heroQuickPreview}>
-            <Image alt="" width={1254} height={1254} sizes="56px"
-              src="/halleus-chart-wheel-sample-polished-centered.webp" />
             <span>نمونهٔ چرخ چارت؛ نتیجهٔ تو با اطلاعات تولدت ساخته می‌شود.</span>
           </div>
 
