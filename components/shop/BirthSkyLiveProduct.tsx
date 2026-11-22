@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
@@ -12,9 +13,7 @@ import { BIRTH_SKY_GALLERY } from './birth-sky-gallery';
 import { BirthSkyEditorial } from './BirthSkyEditorial';
 import { NemadManEditorial } from './NemadManEditorial';
 import { NemadFullWidthIntro } from './NemadFullWidthIntro';
-import { NemadManBahmanArtwork } from './NemadManBahmanArtwork';
-import { NemadPreviewWatermark } from './NemadPreviewWatermark';
-import { validateBahmanPreview, type BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
+import type { BahmanPreview } from '@/lib/shop/nemad-man-bahman-preview';
 import type { NemadProductPage } from './ProductDetail';
 import { SHOP_P02_SIZES, SHOP_SIZES } from './product-detail-data';
 import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
@@ -25,6 +24,17 @@ const PREVIEW_SIZE = { width: 720, height: 1080 } as const;
 const formatPrice = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
 import pdStyles from './product-detail.module.css';
 import styles from './birth-sky-live-product.module.css';
+
+// Poster astronomy and its star catalogue are not needed for the initial gallery.
+// Load preview-only components when a personalized preview is first rendered.
+const NemadManBahmanArtwork = dynamic(
+  () => import('./NemadManBahmanArtwork').then((module) => module.NemadManBahmanArtwork),
+  { ssr: false },
+);
+const NemadPreviewWatermark = dynamic(
+  () => import('./NemadPreviewWatermark').then((module) => module.NemadPreviewWatermark),
+  { ssr: false },
+);
 
 type Personalization = {
   calendar: 'jalali' | 'gregorian';
@@ -141,7 +151,14 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad, initialPriceToman 
     setPhotoIndex((previous) => previous === 0 ? 1 : previous);
     setError('');
     if (nemad) {
-      const checked = validateBahmanPreview(values.names, values.date,
+      const previewModule = await import('@/lib/shop/nemad-man-bahman-preview').catch(() => null);
+      if (version !== operation.current) return;
+      if (!previewModule) {
+        setError('بارگذاری پیش‌نمایش انجام نشد. دوباره تلاش کن.');
+        setBusy(false);
+        return;
+      }
+      const checked = previewModule.validateBahmanPreview(values.names, values.date,
         { time: values.time, cityId: values.cityId });
       if (version !== operation.current) return;
       if (!checked.ok) {
@@ -239,9 +256,16 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad, initialPriceToman 
       }
       if (nemad) {
         setNemadTheme(item.details.nemadTheme === 'light' ? 'light' : 'dark');
-        const checked = validateBahmanPreview(item.details.names, item.details.date,
-          { time: item.details.time, cityId: item.details.cityId });
-        if (checked.ok) { setNemadPreview(checked.value); setPhotoIndex(0); }
+        void import('@/lib/shop/nemad-man-bahman-preview')
+          .then(({ validateBahmanPreview }) => {
+            if (cancelled) return;
+            const checked = validateBahmanPreview(item.details.names, item.details.date,
+              { time: item.details.time, cityId: item.details.cityId });
+            if (checked.ok) { setNemadPreview(checked.value); setPhotoIndex(0); }
+          })
+          .catch(() => {
+            if (!cancelled) setError('بارگذاری پیش‌نمایش انجام نشد. دوباره تلاش کن.');
+          });
       }
     });
     return () => { cancelled = true; };
