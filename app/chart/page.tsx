@@ -130,10 +130,10 @@ export default async function ChartPage() {
           <div className={styles.heroPlanet}>
             <Image
               alt=""
-              height={1400}
-              priority
+              height={156}
+              loading="lazy"
               src="/halleus-logo/symbol-transparent-white.png"
-              width={1400}
+              width={156}
             />
             <span className={styles.heroPlanetRing} />
           </div>
