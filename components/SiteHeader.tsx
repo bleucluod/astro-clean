@@ -73,6 +73,7 @@ export function SiteHeader() {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    window.dispatchEvent(new Event("halleus:route-changed"));
   }, [pathname]);
 
   useEffect(() => {

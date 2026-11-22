@@ -38,17 +38,35 @@ const WIKI_EDITORIAL_CTA_BOOTSTRAP = `(() => {
   const KEY = "__HALLEUS_WIKI_CTA_BOOTSTRAP_V23__";
   if (window[KEY]) return;
   window[KEY] = true;
+  let observing = false;
+  let scriptRequested = false;
   const loadWhenNeeded = () => {
+    if (!/^\/wiki(?:\/|$)/.test(location.pathname)) return;
     if (!document.querySelector('[data-wiki-editorial-reviewed="true"]')) return;
     observer.disconnect();
+    observing = false;
+    if (scriptRequested) return;
+    scriptRequested = true;
     const script = document.createElement("script");
     script.src = "/scripts/halleus-wiki-cta-v23.js";
     script.async = true;
     document.head.appendChild(script);
   };
   const observer = new MutationObserver(loadWhenNeeded);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-  loadWhenNeeded();
+  const syncRoute = () => {
+    if (!/^\/wiki(?:\/|$)/.test(location.pathname)) {
+      observer.disconnect();
+      observing = false;
+      return;
+    }
+    if (!observing && !scriptRequested) {
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      observing = true;
+    }
+    loadWhenNeeded();
+  };
+  window.addEventListener("halleus:route-changed", syncRoute);
+  syncRoute();
 })();`;
 
 export function AppShell({ children }: AppShellProps) {
