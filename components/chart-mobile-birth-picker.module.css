@@ -56,19 +56,19 @@
 }
 /* The five wheel columns invite a swipe at different rhythms, without changing scrollTop. */
 .dateWheelPicker .wheelColumn:nth-child(1) .wheelViewport:not(.wheelTouched) {
-  animation: chartDayWheelHint 5.1s ease-in-out -1.2s infinite;
+  animation: chartDayWheelHint 5.1s ease-in-out -1.2s 1;
 }
 .dateWheelPicker .wheelColumn:nth-child(2) .wheelViewport:not(.wheelTouched) {
-  animation: chartMonthWheelHint 6.8s ease-in-out -.7s infinite;
+  animation: chartMonthWheelHint 6.8s ease-in-out -.7s 1;
 }
 .dateWheelPicker .wheelColumn:nth-child(3) .wheelViewport:not(.wheelTouched) {
-  animation: chartYearWheelHint 7.4s ease-in-out -3.4s infinite;
+  animation: chartYearWheelHint 7.4s ease-in-out -3.4s 1;
 }
 .timeWheelPicker .wheelColumn:nth-child(1) .wheelViewport:not(.wheelTouched) {
-  animation: chartHourWheelHint 5.8s ease-in-out -2.3s infinite;
+  animation: chartHourWheelHint 5.8s ease-in-out -2.3s 1;
 }
 .timeWheelPicker .wheelColumn:nth-child(2) .wheelViewport:not(.wheelTouched) {
-  animation: chartMinuteWheelHint 6.2s ease-in-out -4s infinite;
+  animation: chartMinuteWheelHint 6.2s ease-in-out -4s 1;
 }
 .wheelViewport:focus-visible, .wheelViewport:active { animation: none !important; }
 .wheelViewport::-webkit-scrollbar { display: none; }
