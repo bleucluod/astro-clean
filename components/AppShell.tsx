@@ -40,8 +40,9 @@ const WIKI_EDITORIAL_CTA_BOOTSTRAP = `(() => {
   window[KEY] = true;
   let observing = false;
   let scriptRequested = false;
+  const isWikiRoute = () => location.pathname === "/wiki" || location.pathname.startsWith("/wiki/");
   const loadWhenNeeded = () => {
-    if (!/^\/wiki(?:\/|$)/.test(location.pathname)) return;
+    if (!isWikiRoute()) return;
     if (!document.querySelector('[data-wiki-editorial-reviewed="true"]')) return;
     observer.disconnect();
     observing = false;
@@ -54,7 +55,7 @@ const WIKI_EDITORIAL_CTA_BOOTSTRAP = `(() => {
   };
   const observer = new MutationObserver(loadWhenNeeded);
   const syncRoute = () => {
-    if (!/^\/wiki(?:\/|$)/.test(location.pathname)) {
+    if (!isWikiRoute()) {
       observer.disconnect();
       observing = false;
       return;
