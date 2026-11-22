@@ -277,26 +277,35 @@ type ChartSelectOption = {
   label: string;
 };
 
+// Equivalent to fa-IR digit formatting for our fixed numeric option strings,
+// without constructing hundreds of Intl formatters at module initialization.
+const PERSIAN_OPTION_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+function formatPersianOptionDigits(value: string): string {
+  return value.replace(/[0-9]/g, (digit) =>
+    PERSIAN_OPTION_DIGITS.charAt(digit.charCodeAt(0) - 48),
+  );
+}
+
 // Reuse preformatted labels instead of rebuilding hundreds of options on every field change.
 const JALALI_YEAR_SELECT_OPTIONS: readonly ChartSelectOption[] = JALALI_YEAR_OPTIONS.map((year) => ({
   value: year,
-  label: Number(year).toLocaleString("fa-IR", { useGrouping: false }),
+  label: formatPersianOptionDigits(year),
 }));
 const GREGORIAN_YEAR_SELECT_OPTIONS: readonly ChartSelectOption[] = GREGORIAN_YEAR_OPTIONS.map((year) => ({
   value: year,
-  label: Number(year).toLocaleString("fa-IR", { useGrouping: false }),
+  label: formatPersianOptionDigits(year),
 }));
 const JALALI_DAY_SELECT_OPTIONS: readonly ChartSelectOption[] = JALALI_DAY_OPTIONS.map((day) => ({
   value: day,
-  label: Number(day).toLocaleString("fa-IR"),
+  label: formatPersianOptionDigits(String(Number(day))),
 }));
 const TIME_HOUR_SELECT_OPTIONS: readonly ChartSelectOption[] = TIME_HOUR_OPTIONS.map((hour) => ({
   value: hour,
-  label: Number(hour).toLocaleString("fa-IR", { minimumIntegerDigits: 2 }),
+  label: formatPersianOptionDigits(hour),
 }));
 const TIME_MINUTE_SELECT_OPTIONS: readonly ChartSelectOption[] = TIME_MINUTE_OPTIONS.map((minute) => ({
   value: minute,
-  label: Number(minute).toLocaleString("fa-IR", { minimumIntegerDigits: 2 }),
+  label: formatPersianOptionDigits(minute),
 }));
 
 function sanitizePersianName(value: string) {
