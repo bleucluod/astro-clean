@@ -28,7 +28,7 @@ for (const marker of [
   "bounds.bottom <= 0",
   "setShowStickyAction(!keyboardOpen",
   "createPortal(",
-  "document.body,",
+  "createPortal(children, document.body)",
   'data-chart-sticky-action="mobile"',
   "window.visualViewport?.addEventListener",
   'window.matchMedia("(prefers-reduced-motion: reduce)")',
@@ -53,7 +53,8 @@ for (const marker of [
 
 expect(
   form.includes('comparisonMode ? "chart-reference-page"') &&
-    form.includes("!comparisonMode && stickyPortalReady ? createPortal("),
+    /\{!comparisonMode\s*\?\s*\(\s*<ChartStickyPortal>/.test(form) &&
+    form.includes("return ready ? createPortal(children, document.body) : null;"),
   "Comparison mode must not mount the standalone journey",
 );
 expect(
