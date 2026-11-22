@@ -25,9 +25,9 @@ $Failures=[System.Collections.Generic.List[string]]::new()
 
 function Info([string]$s) { Write-Host ('HALLEUS_PSI: '+$s) }
 function Fatal([string]$s) { throw ('SAFETY_FATAL: '+$s) }
-function Git([string[]]$args) {
-  $v=@(& git -C $RepoPath @args)
-  if ($LASTEXITCODE -ne 0) { Fatal ('Git failed: '+($args -join ' ')) }
+function Git([string[]]$Items) {
+  $v=@(& git -C $RepoPath @Items)
+  if ($LASTEXITCODE -ne 0) { Fatal ('Git failed: '+($Items -join ' ')) }
   return $v
 }
 function Verify-Repo {
