@@ -42,6 +42,7 @@ HELP
 }
 
 require_root() { [[ $EUID -eq 0 ]] || die 'Run through sudo'; }
+as_deploy() { runuser -u deploy -- "$@"; }
 require_cmds() {
   local tool
   for tool in git nginx systemctl systemd-run runuser node curl df awk ss getent; do
@@ -51,14 +52,14 @@ require_cmds() {
 check_origin() {
   [[ -d $SOURCE/.git ]] || die "Source checkout missing: $SOURCE"
   local origin branch dirty
-  origin=$(git -C "$SOURCE" remote get-url origin)
+  origin=$(as_deploy git -C "$SOURCE" remote get-url origin)
   case "$origin" in
     https://github.com/bleucluod/astro-clean|https://github.com/bleucluod/astro-clean.git|git@github.com:bleucluod/astro-clean.git|ssh://git@github.com/bleucluod/astro-clean.git) ;;
     *) die "Unexpected origin: $origin" ;;
   esac
-  branch=$(git -C "$SOURCE" symbolic-ref --quiet --short HEAD || true)
+  branch=$(as_deploy git -C "$SOURCE" symbolic-ref --quiet --short HEAD || true)
   [[ $branch == main ]] || die "Unexpected source branch: $branch"
-  dirty=$(git -C "$SOURCE" status --porcelain=v1 --untracked-files=all)
+  dirty=$(as_deploy git -C "$SOURCE" status --porcelain=v1 --untracked-files=all)
   [[ -z $dirty ]] || die 'Production source checkout is dirty; refusing to proceed'
   [[ -f $SOURCE/ops/vps/halleus-release.sh ]] || die 'Release engine missing'
 }
@@ -85,12 +86,12 @@ check_resources() {
   ((available_kb >= 2550000)) || die 'Less than 2.43 GiB MemAvailable; avoid pressure on production'
 }
 check_refs() {
-  git -C "$SOURCE" cat-file -e "${A_SHA}^{commit}" || die "Missing A commit: $A_SHA"
-  git -C "$SOURCE" cat-file -e "${B_SHA}^{commit}" || die "Missing B commit: $B_SHA"
+  as_deploy git -C "$SOURCE" cat-file -e "${A_SHA}^{commit}" || die "Missing A commit: $A_SHA"
+  as_deploy git -C "$SOURCE" cat-file -e "${B_SHA}^{commit}" || die "Missing B commit: $B_SHA"
   local changed
-  changed=$(git -C "$SOURCE" diff --name-only "$A_SHA" "$B_SHA")
+  changed=$(as_deploy git -C "$SOURCE" diff --name-only "$A_SHA" "$B_SHA")
   [[ $changed == components/ChartMobileBirthPicker.tsx ]] || die "Unexpected diff between candidates: $changed"
-  git -C "$SOURCE" diff --check "$A_SHA" "$B_SHA" || die 'Candidate diff whitespace error'
+  as_deploy git -C "$SOURCE" diff --check "$A_SHA" "$B_SHA" || die 'Candidate diff whitespace error'
   log 'candidate_difference=components/ChartMobileBirthPicker.tsx only'
 }
 check_hostnames() {
@@ -128,7 +129,7 @@ check_ports() {
 }
 bootstrap_root() {
   if [[ ! -e $ROOT ]]; then
-    mkdir -m 0750 "$ROOT"
+    mkdir -m 0770 "$ROOT"
     printf '%s\n' "$REVISION" > "$ROOT/.identity"
     chown root:deploy "$ROOT" "$ROOT/.identity"
   fi
@@ -140,12 +141,11 @@ setup_worktree() {
   local key=$1 sha=$2 dest="$ROOT/$1"
   if [[ -e $dest || -L $dest ]]; then
     [[ -d $dest && ! -L $dest && -f $dest/.git ]] || die "Unexpected worktree path: $dest"
-    [[ $(git -C "$dest" rev-parse HEAD) == "$sha" ]] || die "Wrong candidate at $dest"
-    [[ -z $(git -C "$dest" status --porcelain=v1 --untracked-files=all) ]] || die "Dirty preview worktree $dest"
+    [[ $(as_deploy git -C "$dest" rev-parse HEAD) == "$sha" ]] || die "Wrong candidate at $dest"
+    [[ -z $(as_deploy git -C "$dest" status --porcelain=v1 --untracked-files=all) ]] || die "Dirty preview worktree $dest"
     return
   fi
-  git -C "$SOURCE" worktree add --detach "$dest" "$sha"
-  chown -R deploy:deploy "$dest"
+  as_deploy git -C "$SOURCE" worktree add --detach "$dest" "$sha"
   log "worktree_${key}=$sha"
 }
 run_build() {
@@ -329,7 +329,7 @@ print_status() {
   log "production=$(systemctl is-active halleus.service || true)"
   for key in a b; do
     if [[ -d $ROOT/$key && -f $ROOT/$key/.git ]]; then
-      s=$(git -C "$ROOT/$key" rev-parse HEAD)
+      s=$(as_deploy git -C "$ROOT/$key" rev-parse HEAD)
       log "preview_$key sha=$s build=$([[ -f $ROOT/$key/.next/BUILD_ID ]] && cat "$ROOT/$key/.next/BUILD_ID" || echo NONE) service=$(systemctl is-active "halleus-perf-preview-$key.service" || true)"
     else
       log "preview_$key=NOT_PREPARED"
@@ -349,16 +349,16 @@ main() {
   case "$action" in
     inspect)
       check_resources
-      log "source_sha=$(git -C "$SOURCE" rev-parse HEAD)"
-      log "origin=$(git -C "$SOURCE" remote get-url origin)"
-      if git -C "$SOURCE" cat-file -e "${B_SHA}^{commit}" 2>/dev/null; then check_refs; else log 'B SHA not fetched yet; prepare will fetch from pinned branch'; fi
+      log "source_sha=$(as_deploy git -C "$SOURCE" rev-parse HEAD)"
+      log "origin=$(as_deploy git -C "$SOURCE" remote get-url origin)"
+      if as_deploy git -C "$SOURCE" cat-file -e "${B_SHA}^{commit}" 2>/dev/null; then check_refs; else log 'B SHA not fetched yet; prepare will fetch from pinned branch'; fi
       print_status
       ;;
     prepare)
       check_resources
       [[ ! -e $UNIT_A && ! -e $UNIT_B && ! -e $NGINX_CONF ]] || log 'Existing preview exposure found; preserving it'
-      git -C "$SOURCE" fetch origin "refs/heads/$B_BRANCH"
-      [[ $(git -C "$SOURCE" rev-parse FETCH_HEAD) == "$B_SHA" ]] || die 'Candidate branch head has changed; refusing unknown SHA'
+      as_deploy git -C "$SOURCE" fetch origin "refs/heads/$B_BRANCH"
+      [[ $(as_deploy git -C "$SOURCE" rev-parse FETCH_HEAD) == "$B_SHA" ]] || die 'Candidate branch head has changed; refusing unknown SHA'
       check_refs
       bootstrap_root
       setup_worktree a "$A_SHA"
