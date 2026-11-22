@@ -13,6 +13,14 @@ function twoDigits(value: number) {
   return String(value).padStart(2, "0");
 }
 
+// Localized digits without the Intl formatter work for every fixed wheel row.
+const PERSIAN_WHEEL_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+function formatPersianWheelDigits(value: string): string {
+  return value.replace(/[0-9]/g, (digit) =>
+    PERSIAN_WHEEL_DIGITS.charAt(digit.charCodeAt(0) - 48),
+  );
+}
+
 function validGregorian(year: string, month: string, day: string) {
   if (!/^\d{4}$/.test(year) || !/^\d{2}$/.test(month) || !/^\d{2}$/.test(day)) return false;
   const y = Number(year);
@@ -355,7 +363,7 @@ export function MobileBirthDatePicker({
     { value: "", label: "روز" },
     ...Array.from({ length: maxDays }, (_, index) => ({
       value: twoDigits(index + 1),
-      label: (index + 1).toLocaleString("fa-IR"),
+      label: formatPersianWheelDigits(String(index + 1)),
     })),
   ], [maxDays]);
   const monthWheelOptions = useMemo<readonly DateWheelOption[]>(() => [
@@ -366,7 +374,7 @@ export function MobileBirthDatePicker({
     { value: "", label: "سال" },
     ...yearOptions.map((year) => ({
       value: year,
-      label: Number(year).toLocaleString("fa-IR", { useGrouping: false }),
+      label: formatPersianWheelDigits(year),
     })),
   ], [yearOptions]);
 
@@ -419,14 +427,14 @@ const TIME_WHEEL_HOURS: readonly DateWheelOption[] = [
   { value: "", label: "ساعت" },
   ...Array.from({ length: 24 }, (_, index) => ({
     value: twoDigits(index),
-    label: index.toLocaleString("fa-IR", { minimumIntegerDigits: 2, useGrouping: false }),
+    label: formatPersianWheelDigits(twoDigits(index)),
   })),
 ];
 const TIME_WHEEL_MINUTES: readonly DateWheelOption[] = [
   { value: "", label: "دقیقه" },
   ...Array.from({ length: 60 }, (_, index) => ({
     value: twoDigits(index),
-    label: index.toLocaleString("fa-IR", { minimumIntegerDigits: 2, useGrouping: false }),
+    label: formatPersianWheelDigits(twoDigits(index)),
   })),
 ];
 
