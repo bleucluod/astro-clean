@@ -7,14 +7,14 @@ import {
   VEDIC_D1_CALCULATION,
   VEDIC_D1_CONTRACT_VERSION,
   type VedicD1PlacementId,
-} from './vedic-d1-contract.js';
+} from './vedic-d1-contract.ts';
 import {
   VEDIC_D1_BODY_ORDER,
   VEDIC_D1_CLASSIFICATION_VERSION,
   classifyVedicMoon,
   type VedicD1AssembledChart,
-} from './vedic-d1-assembly.js';
-import { getVedicD1NakshatraDisplay } from './vedic-d1-nakshatras.js';
+} from './vedic-d1-assembly.ts';
+import { getVedicD1NakshatraDisplay } from './vedic-d1-nakshatras.ts';
 
 export const VEDIC_D1_NORTH_LAYOUT_VERSION = 'vedic-d1-north-layout/1' as const;
 export const VEDIC_D1_SIGNS_FA = [

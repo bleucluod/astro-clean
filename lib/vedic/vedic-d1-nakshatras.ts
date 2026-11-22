@@ -6,8 +6,8 @@
  * The 27 equal *divisions* are not the varying principal-star longitudes on
  * the cited page. Use the already calculated Moon longitude for membership.
  */
-import type { VedicD1Nakshatra } from './vedic-d1-contract.js';
-import { classifyVedicMoon } from './vedic-d1-assembly.js';
+import type { VedicD1Nakshatra } from './vedic-d1-contract.ts';
+import { classifyVedicMoon } from './vedic-d1-assembly.ts';
 
 export const VEDIC_D1_NAKSHATRA_CATALOG_VERSION = 'vedic-d1-nakshatra-catalog/1' as const;
 

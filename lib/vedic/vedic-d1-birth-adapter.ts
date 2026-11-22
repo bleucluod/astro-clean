@@ -15,7 +15,7 @@ import {
   validateVedicD1BirthRequest,
   type VedicD1City,
   type VedicD1InputResult,
-} from './vedic-d1-contract.js';
+} from './vedic-d1-contract.ts';
 
 export function parseHalleusVedicD1Birth(value: unknown): VedicD1InputResult {
   return validateVedicD1BirthRequest(value, {

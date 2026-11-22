@@ -7,12 +7,12 @@
  * Near boundaries we use the conservative full 3' budget, not the observed
  * fixture maximum, to withhold categorical house/sign/nakshatra labels.
  */
-import type { VedicD1ValidatedBirth } from './vedic-d1-contract.js';
-import { calculateVedicD1TropicalInput, type VedicAstronomyEnginePort } from './vedic-d1-astronomy-port.js';
-import { projectVedicD1Longitudes } from './vedic-d1-projection.js';
-import { assembleVedicD1Chart, type VedicD1SiderealSnapshot } from './vedic-d1-assembly.js';
-import { buildVedicD1FreeReading } from './vedic-d1-free-reading.js';
-import type { VedicD1FreeReading } from './vedic-d1-reading-contract.js';
+import type { VedicD1ValidatedBirth } from './vedic-d1-contract.ts';
+import { calculateVedicD1TropicalInput, type VedicAstronomyEnginePort } from './vedic-d1-astronomy-port.ts';
+import { projectVedicD1Longitudes } from './vedic-d1-projection.ts';
+import { assembleVedicD1Chart, type VedicD1SiderealSnapshot } from './vedic-d1-assembly.ts';
+import { buildVedicD1FreeReading } from './vedic-d1-free-reading.ts';
+import type { VedicD1FreeReading } from './vedic-d1-reading-contract.ts';
 
 export const VEDIC_D1_CERTIFIED_CALCULATION_VERSION = 'vedic-d1-astronomy-engine-2.1.19-lahiri/1' as const;
 export const VEDIC_D1_CONSERVATIVE_MAX_ERROR_ARCMINUTES = 3 as const;

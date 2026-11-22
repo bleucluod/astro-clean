@@ -1,12 +1,12 @@
 /** Public D1 reading builder: imports NO private premium writer/text. */
-import type { VedicD1AssembledChart } from './vedic-d1-assembly.js';
-import { buildVedicD1NorthView } from './vedic-d1-north-layout.js';
+import type { VedicD1AssembledChart } from './vedic-d1-assembly.ts';
+import { buildVedicD1NorthView } from './vedic-d1-north-layout.ts';
 import {
   VEDIC_D1_PREMIUM_CHAPTERS,
   VEDIC_D1_READING_VERSION,
   type VedicD1FreeReading,
   type VedicD1FactualEvidence,
-} from './vedic-d1-reading-contract.js';
+} from './vedic-d1-reading-contract.ts';
 
 export function buildVedicD1FreeReading(chart: VedicD1AssembledChart): VedicD1FreeReading {
   // The layout performs contract and placement consistency checks. It does not

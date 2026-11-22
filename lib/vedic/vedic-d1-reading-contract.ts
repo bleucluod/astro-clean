@@ -3,8 +3,8 @@
  * contracts. A separate future server owner/entitlement check must authorize
  * rendering a private manuscript; none of these types grants access.
  */
-import type { VedicD1PlacementId } from './vedic-d1-contract.js';
-import type { VedicD1NorthView } from './vedic-d1-north-layout.js';
+import type { VedicD1PlacementId } from './vedic-d1-contract.ts';
+import type { VedicD1NorthView } from './vedic-d1-north-layout.ts';
 
 export const VEDIC_D1_READING_VERSION = 'vedic-d1-reading/1' as const;
 export const VEDIC_D1_PREMIUM_CHAPTERS = [

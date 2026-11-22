@@ -11,7 +11,7 @@ import {
   type VedicD1Placement,
   type VedicD1PlacementId,
   type VedicD1ValidatedBirth,
-} from './vedic-d1-contract.js';
+} from './vedic-d1-contract.ts';
 
 export const VEDIC_D1_CLASSIFICATION_VERSION = 'vedic-d1-classes/v1' as const;
 export const VEDIC_D1_BODY_ORDER = [

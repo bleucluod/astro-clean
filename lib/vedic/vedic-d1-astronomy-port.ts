@@ -7,8 +7,8 @@
  * Lahiri projector; it is NOT a certified complete D1 ephemeris until real
  * astronomy-engine@2.1.19 outputs pass the locked independent reference suite.
  */
-import type { VedicD1ValidatedBirth } from './vedic-d1-contract.js';
-import type { VedicD1TropicalInput } from './vedic-d1-projection.js';
+import type { VedicD1ValidatedBirth } from './vedic-d1-contract.ts';
+import type { VedicD1TropicalInput } from './vedic-d1-projection.ts';
 
 export const VEDIC_ASTRONOMY_PORT_VERSION = 'vedic-d1-astronomy-port/1' as const;
 

@@ -3,8 +3,8 @@
  * The caller must supply a server-side certified calculator explicitly;
  * without one the route still fails closed with 503.
  */
-import type { VedicD1InputResult, VedicD1ValidatedBirth } from './vedic-d1-contract.js';
-import { VEDIC_D1_READING_VERSION, type VedicD1FreeReading } from './vedic-d1-reading-contract.js';
+import type { VedicD1InputResult, VedicD1ValidatedBirth } from './vedic-d1-contract.ts';
+import { VEDIC_D1_READING_VERSION, type VedicD1FreeReading } from './vedic-d1-reading-contract.ts';
 
 export const VEDIC_D1_HTTP_VERSION = 'vedic-d1-http/v1' as const;
 export const VEDIC_D1_MAX_BODY_BYTES = 4096;
