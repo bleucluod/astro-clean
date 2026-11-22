@@ -213,17 +213,20 @@ export function AnalyticsConsent() {
     }
 
     if (pathname !== "/chart") return;
-    // Let first paint and the form take priority, but bound the analytics delay.
+    // On the heavy chart form, finish first-load hydration before running third-party GA4.
+    // First-party page tracking and queued GA4 page_view remain immediate.
+    // The bounded delay is limited to /chart; leaving the route cancels pending work.
     let idleCallbackId: number | null = null;
-    let timeoutId: number | null = null;
-    if (typeof window.requestIdleCallback === "function") {
-      idleCallbackId = window.requestIdleCallback(loadGoogleAnalyticsScript, { timeout: 1200 });
-    } else {
-      timeoutId = window.setTimeout(loadGoogleAnalyticsScript, 900);
-    }
+    const timeoutId = window.setTimeout(() => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleCallbackId = window.requestIdleCallback(loadGoogleAnalyticsScript, { timeout: 1500 });
+      } else {
+        loadGoogleAnalyticsScript();
+      }
+    }, 6500);
     return () => {
+      window.clearTimeout(timeoutId);
       if (idleCallbackId !== null) window.cancelIdleCallback(idleCallbackId);
-      if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
   }, [choice, isReady, pathname]);
 
