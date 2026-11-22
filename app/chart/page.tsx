@@ -107,16 +107,16 @@ export default async function ChartPage() {
           </div>
 
           <div className={styles.heroActions}>
-            <Link
+            <a
               className={`${styles.heroPrimary} ${styles.discoveryPrimary}`}
               href="#chart-birth-data-form"
             >
               ساخت چارت تولد رایگان
               <span aria-hidden="true">↓</span>
-            </Link>
-            <Link className={styles.heroSecondary} href="#chart-report-details">
+            </a>
+            <a className={styles.heroSecondary} href="#chart-report-details">
               داخل گزارش چه می‌بینم؟
-            </Link>
+            </a>
           </div>
 
           <div className={styles.heroTrustRow}>
@@ -512,13 +512,13 @@ export default async function ChartPage() {
         <p>
             تاریخ، ساعت و شهر تولدت را وارد کن تا چرخ چارت و تفسیر فارسی شخصی‌ات آماده شود. اگر ساعت دقیق را نداری، در گزارش مشخص می‌کنیم کدام بخش‌ها به آن وابسته‌اند. با ساخت چارت تولد، از جایگاه‌های اصلی شروع می‌کنی و قدم‌به‌قدم الگوهایی را می‌بینی که این نقشه را از یک تعبیر کلی متمایز می‌کنند.
           </p>
-        <Link
+        <a
           className={`${styles.heroPrimary} ${styles.discoveryPrimary}`}
           href="#chart-birth-data-form"
         >
           شروع ساخت چارت تولد
           <span aria-hidden="true">↑</span>
-        </Link>
+        </a>
       </section>
 
       <script
