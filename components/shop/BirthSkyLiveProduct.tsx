@@ -325,10 +325,10 @@ export function BirthSkyLiveProduct({ purchaseEnabled, nemad, initialPriceToman 
       return;
     }
     if (nemad) {
-      const checked = validateBahmanPreview(input.names, input.date,
-        { time: input.time, cityId: input.cityId });
-      if (!checked.ok || Number(checked.value.date.split('/')[1]) !== nemadMonthNumber) {
-        setError(!checked.ok ? checked.message : 'تاریخ تولد باید با ماه محصول مطابقت داشته باشد.');
+      // Preview was validated during generation (or cart-edit restoration).
+      // Any input change clears it, so cart submit needs no eager astronomy import.
+      if (!nemadPreview || Number(nemadPreview.date.split('/')[1]) !== nemadMonthNumber) {
+        setError('تاریخ تولد باید با ماه محصول مطابقت داشته باشد.');
         return;
       }
       if (!addShopCartItem('nm', sizes[sizeIndex].dimension, {
