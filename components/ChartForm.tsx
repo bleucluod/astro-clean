@@ -14,6 +14,7 @@ import {
 import {
   type CSSProperties,
   type FormEvent,
+  type ReactNode,
   useEffect,
   useMemo,
   useRef,
@@ -433,6 +434,22 @@ function ChartSelect({
 
 export type ChartFormMode = "standalone" | "comparison";
 
+// Keep the portal hydration boundary local: mounting it must not
+// re-render the entire chart form on the next animation frame.
+function ChartStickyPortal({ children }: { children: ReactNode }) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setReady(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  return ready ? createPortal(
+    children,
+    document.body,
+  ) : null;
+}
+
 export function ChartForm({
   mode = "standalone",
   onComparisonChartSaved,
@@ -462,7 +479,6 @@ export function ChartForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingStep, setEditingStep] = useState<ChartJourneyStepId>("name");
   const [showStickyAction, setShowStickyAction] = useState(false);
-  const [stickyPortalReady, setStickyPortalReady] = useState(false);
   const mainSubmitRef = useRef<HTMLButtonElement>(null);
   const [fieldErrors, setFieldErrors] = useState<ChartFieldErrors>({});
   const [generatedReportPath, setGeneratedReportPath] = useState("");
@@ -621,11 +637,6 @@ export function ChartForm({
     gregorianBirthDateParts,
     selectedBirthCityId,
   ]);
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => setStickyPortalReady(true));
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
 
   function isCollapsedStep(stepId: ChartJourneyStepId) {
     // Keep date/time wheels visible on the standalone /chart mobile journey.
@@ -1608,8 +1619,9 @@ export function ChartForm({
               {showAccountPanel ? <LazySupabaseAuthPanel compact /> : null}
             </div>
           ) : null}
-          {!comparisonMode && stickyPortalReady ? createPortal(
-            <div className={journeyStyles.stickyBar + (showStickyAction && !isSubmitting && realEngineRequest.status === "idle" ? " " + journeyStyles.stickyVisible : "")}
+          {!comparisonMode ? (
+            <ChartStickyPortal>
+              <div className={journeyStyles.stickyBar + (showStickyAction && !isSubmitting && realEngineRequest.status === "idle" ? " " + journeyStyles.stickyVisible : "")}
               aria-hidden={!(showStickyAction && !isSubmitting && realEngineRequest.status === "idle")} data-chart-sticky-action="mobile">
               <div className={journeyStyles.stickyCopy}>
                 <strong>{chartProgress.completed === 4 ? "آسمان تو آماده‌ست" : "آسمان تو شکل می‌گیره"}</strong>
@@ -1624,8 +1636,8 @@ export function ChartForm({
                 {isSubmitting ? "در حال ساخت…" : "ساخت چارت تولد"}
                 <span aria-hidden="true">←</span>
               </button>
-            </div>,
-            document.body,
+              </div>
+            </ChartStickyPortal>
           ) : null}
           {realEngineRequest.status !== "idle" ? (
             <div className="chart-generation-overlay">

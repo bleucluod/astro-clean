@@ -195,6 +195,8 @@ export function AppShell({ children }: AppShellProps) {
               style={{ width: "fit-content" }}
             >
               <img
+                loading="lazy"
+                decoding="async"
                 referrerPolicy="origin"
                 src="https://trustseal.enamad.ir/logo.aspx?id=7712150&Code=REotxbaOeOKqzFNRhbT9IMjWC8IqBTAA"
                 alt=""
