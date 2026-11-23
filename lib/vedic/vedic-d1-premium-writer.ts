@@ -9,6 +9,7 @@ import type { VedicD1AssembledChart } from './vedic-d1-assembly.ts';
 import { buildVedicD1NorthView, VEDIC_D1_BODIES_FA, VEDIC_D1_SIGNS_FA,
   type VedicD1NorthPlacementRow } from './vedic-d1-north-layout.ts';
 import { VEDIC_D1_PREMIUM_CHAPTERS, type VedicD1FactualEvidence } from './vedic-d1-reading-contract.ts';
+import { buildVedicD1HousesChapter } from './vedic-d1-houses-chapter.ts';
 import { VEDIC_D1_PRIVATE_MANUSCRIPT_VERSION, VEDIC_D1_WRITER_RULES_VERSION,
   type VedicD1PremiumChapter, type VedicD1PrivateManuscriptDraft } from './vedic-d1-premium-contract.ts';
 
@@ -467,56 +468,8 @@ export function buildVedicD1PrivateManuscriptDraft(
       : 'خانهٔ ماه فعلاً نامطمئن است. به جای نسبت دادن نیاز عاطفی به یک حوزهٔ مشخص، یک هفته موقعیت‌هایی را یادداشت کن که در آن‌ها آرام‌تر یا ناآرام‌تر شده‌ای؛ بعد با دادهٔ دقیق‌تر به طبقه‌بندی خانه برگرد.'
   ];
 
-  // A concentration is a count of the seven classical planets, NOT a claim
-  // about strength/yogas/aspects. Do not inflate the count with Rahu/Ketu.
-  const reliable = view.rows.filter(row => row.houseNumber !== null && row.signNameFa !== null &&
-    row.id !== 'rahu' && row.id !== 'ketu');
-  const houseCounts = new Map<number, number>();
-  for (const row of reliable) houseCounts.set(row.houseNumber!, (houseCounts.get(row.houseNumber!) ?? 0) + 1);
-  const ranked = [...reliable].sort((a, b) =>
-    (houseCounts.get(b.houseNumber!)! - houseCounts.get(a.houseNumber!)!) ||
-    (Number([1,4,7,10].includes(b.houseNumber!)) - Number([1,4,7,10].includes(a.houseNumber!))) ||
-    (a.houseNumber! - b.houseNumber!) || a.id.localeCompare(b.id));
-  const focus = ranked[0] ?? null;
-  const companion = ranked.find(row => row.id !== focus?.id &&
-    (focus === null || row.houseNumber !== focus.houseNumber)) ??
-    ranked.find(row => row.id !== focus?.id) ?? null;
-  const sameHouse = focus ? reliable.filter(row => row.houseNumber === focus.houseNumber && row.id !== focus.id) : [];
-  const houseFacts = [
-    focus ? bodyFact(focus, 'focus-primary') : bodyFact(sun, 'focus-primary'),
-    companion ? bodyFact(companion, 'focus-secondary') :
-      bodyFact(focus?.id === 'moon' ? sun : moon, 'focus-secondary'),
-    ...(sameHouse.length > 0 ? [bodyFact(sameHouse[0], 'focus-house-companion')] : []),
-  ];
-  const houseParagraphs = [
-    focus ? 'برای پیدا کردن محورهای برجسته در چارت D1، اول سراغ جایگاه‌هایی می‌رویم که خانهٔ آن‌ها از نظر محاسباتی قابل اتکاست. ' +
-      houseFacts[0].factFa + ' در این بخش، خانهٔ ' + String(focus.houseNumber) +
-      ' به ' + HOUSE_AREAS[focus.houseNumber! - 1] + ' اشاره می‌کند؛ حضور ' +
-      VEDIC_D1_BODIES_FA[focus.id] + ' را می‌توان از زاویهٔ ' + BODY_SYMBOLS[focus.id] +
-      ' خواند، بدون اینکه این قرارگیری را به رخدادی حتمی تعبیر کنیم.'
-      : 'در این نمونه، هیچ خانهٔ سیاره‌ای با اطمینان کافی قابل نام‌گذاری نیست. جدول موقعیت‌ها حفظ شده ولی از ادعای «تأکید خانهٔ مشخص» یا نسبت دادن یک نتیجهٔ زندگی به آن خودداری می‌کنیم؛ این محدودیت برای گزارشی که قرار است قابل اعتماد باشد ضروری است.',
-    companion ? 'برای اینکه گزارش فقط بر یک نقطه بنا نشود، جایگاه دوم را هم کنار آن می‌گذاریم: ' +
-      houseFacts[1].factFa + ' در تعبیر سنتی، ' + VEDIC_D1_BODIES_FA[companion.id] +
-      ' نمادی از ' + BODY_SYMBOLS[companion.id] + ' است. موضوع خانهٔ ' +
-      String(companion.houseNumber) + ' یعنی ' + HOUSE_AREAS[companion.houseNumber! - 1] +
-      ' می‌تواند با محور نخست هم‌پوشانی یا تفاوت داشته باشد؛ پاسخ واقعی را باید در موقعیت‌های زندگی سنجید.'
-      : 'برای خواندن دومین شاهد، جایگاه ماه نیز ثبت شده است: ' + houseFacts[1].factFa +
-      ' این شاهد در وضعیت مرزی جای یک خانهٔ قطعی دیگر را نمی‌گیرد؛ فقط مانع می‌شود کمبود داده با یک تفسیر ساختگی پر شود.',
-    sameHouse.length > 0 && focus
-      ? 'در خانهٔ ' + String(focus.houseNumber) + ' تنها یک جایگاه نداریم. ' + houseFacts[2].factFa +
-        ' کنار ' + VEDIC_D1_BODIES_FA[focus.id] + ' قرار گرفتنِ ' + VEDIC_D1_BODIES_FA[sameHouse[0].id] +
-        ' یعنی دو نماد به موضوع ' + HOUSE_AREAS[focus.houseNumber - 1] +
-        ' گره می‌خورند. این فقط هم‌خانگیِ تمام‌نشان است؛ نه اثبات قرانِ درجه‌ای، قدرت بیشتر یا رویدادی حتمی.'
-      : focus
-        ? 'در خانهٔ انتخاب‌شده، از میان هفت سیارهٔ کلاسیک جایگاه دیگری با طبقه‌بندی مطمئن ثبت نشده است. این کم‌تراکم بودن به معنای کم‌اهمیت بودن آن حوزه نیست؛ انتخاب این محور صرفاً راهی برای خواندن مرحله‌به‌مرحلهٔ دادهٔ موجود است.'
-        : 'چون خانهٔ مطمئنی برای مقایسه نداریم، نه تراکم سیاره‌ای اعلام می‌کنیم و نه خانه‌ای را «قوی‌تر» می‌نامیم. نخست باید درجه‌های مرزی با دادهٔ تولد دقیق‌تر بررسی شوند.',
-    focus && companion
-      ? 'برای کنار هم گذاشتن دو محور، یک موقعیت واقعی پیدا کن که در آن ' + HOUSE_AREAS[focus.houseNumber! - 1] +
-        ' با ' + HOUSE_AREAS[companion.houseNumber! - 1] +
-        ' هم‌زمان مطرح بوده است. نقش ' + VEDIC_D1_BODIES_FA[focus.id] + ' و ' +
-        VEDIC_D1_BODIES_FA[companion.id] + ' را به‌عنوان دو نماد بخوان؛ لازم نیست میانشان جنبهٔ نجومیِ محاسبه‌نشده فرض کنی.'
-      : 'اگر خانه‌ها نامطمئن‌اند، این بخش را با پرسیدن از یک تصمیم روزمره ادامه بده: در آن تصمیم به کدام دادهٔ واقعی تکیه کردی و کدام پیش‌فرض را بعداً اصلاح کردی؟ این تمرین به تحلیل خانهٔ حدسی نیاز ندارد.',
-  ];
+  const { paragraphsFa: houseParagraphs, evidence: houseFacts, focus } =
+    buildVedicD1HousesChapter(view, displayName);
 
   const synthesisFacts = [ascEvidence, moonFacts[0], rulerEvidence, houseFacts[0]];
   const synthParagraphs = [

@@ -1,0 +1,147 @@
+/**
+ * Private Vedic D1 chapter 3: house structure, actual classical occupants,
+ * and rulers. No free-path import, uncomputed aspect, strength, yoga or fate.
+ */
+import type { VedicD1PlacementId } from './vedic-d1-contract.ts';
+import type { VedicD1NorthView, VedicD1NorthPlacementRow } from './vedic-d1-north-layout.ts';
+import { VEDIC_D1_BODIES_FA } from './vedic-d1-north-layout.ts';
+import type { VedicD1FactualEvidence } from './vedic-d1-reading-contract.ts';
+
+type Classic = Exclude<VedicD1PlacementId, 'rahu' | 'ketu'>;
+type Row = VedicD1NorthPlacementRow;
+const RULERS: readonly Classic[] = ['mars','venus','mercury','moon','sun','mercury',
+  'venus','mars','jupiter','saturn','saturn','jupiter'];
+const SIGNS = ['اریس','تارس','جمنای','کنسر','لیو','ویرگو','لیبرا',
+  'اسکورپیو','سجیتریس','کپریکورن','آکواریوس','پایسیز'] as const;
+const AREAS = [
+  'شروع کارها و تعریف نقش در موقعیت‌های تازه',
+  'مدیریت پول، منابع و انتخاب میان نیازهای مختلف',
+  'یادگیری، گفت‌وگو و منتقل کردن یک مهارت',
+  'خانه، ریشه‌ها و مسئولیت‌های زندگی خصوصی',
+  'ساختن، آموزش دادن و پیش بردن ایده‌های خلاق',
+  'برنامهٔ کار، مسئولیت‌های روزانه و حل مشکل‌های تکراری',
+  'توافق‌های دونفره و تقسیم روشن مسئولیت',
+  'منابع و تعهدهای مشترک و تغییرهای نیازمند هماهنگی',
+  'تحصیل، سفر و گسترده‌تر کردن افق یادگیری',
+  'مسیر شغلی، مسئولیت اجتماعی و نتیجهٔ قابل ارائه',
+  'دوستی‌ها، هدف‌های جمعی و شبکهٔ همکاری',
+  'کارهای پشت‌صحنه، خلوت و مدیریت زمانِ دور از دید',
+] as const;
+const SCENES = [
+  'برای راه انداختن کاری تازه باید بدانی کدام قدم اولویت دارد و مسئول هر قسمت کیست.',
+  'در برنامهٔ خرجِ چند ماه آینده باید میان خواستهٔ فوری و منابع محدود انتخاب کنی.',
+  'برای آموزش یک مهارت باید تصمیم بگیری از کدام سؤال و تمرین شروع کنی.',
+  'با تغییر برنامهٔ خانه، تقسیم کارهای کوچک اهمیت تازه‌ای پیدا می‌کند.',
+  'برای ارائهٔ یک ایده باید زمانی را برای تجربه کردن و زمانی را برای تمام کردنش کنار بگذاری.',
+  'کارهای تکراری روی هم جمع شده‌اند و باید گرهِ واقعیِ برنامه را پیدا کنی.',
+  'یک همکاری تازه شروع می‌شود و هر دو طرف باید سهم خود را روشن کنند.',
+  'هزینه یا تعهد مشترکی پیش آمده و لازم است مسئولیت هر نفر معلوم باشد.',
+  'دربارهٔ ادامهٔ تحصیل یا سفری آموزشی میان چند گزینه تصمیم می‌گیری.',
+  'مسئولیت کاری تازه‌ای گرفته‌ای و باید نتیجه و موعد تحویلش روشن شود.',
+  'چند نفر می‌خواهند پروژه‌ای مشترک را شروع کنند و به هدف و نقش‌های واضح نیاز دارند.',
+  'کاری در سکوت پیش می‌رود و باید برای تمرکز، استراحت و بازبینی هم وقت بگذاری.',
+] as const;
+const ROLES: Record<Classic,string> = {
+  sun:'روشن کردن هدف و اولویت', moon:'توجه به ریتم و نیازهای جاریِ کار',
+  mars:'اقدام و باز کردن گرهٔ اجرایی', mercury:'نظم دادن به اطلاعات و گفت‌وگو',
+  jupiter:'دیدن فرصتِ آموزش و رشد', venus:'سنجیدن ارزش و هماهنگ کردن انتخاب‌ها',
+  saturn:'زمان‌بندی، مرزبندی و پیگیری',
+};
+function fact(row:Row,id:string):VedicD1FactualEvidence {
+  const certain=row.signIndex!==null && row.houseNumber!==null;
+  return {
+    id,sourceField:'placements.'+row.id+'.houseNumber',bodyId:row.id,
+    status:certain?'certain':'near-boundary',
+    factFa:certain
+      ? VEDIC_D1_BODIES_FA[row.id]+' در '+SIGNS[row.signIndex!]+' و خانهٔ '+
+        String(row.houseNumber)+' قرار دارد.'
+      : 'خانهٔ '+VEDIC_D1_BODIES_FA[row.id]+' به مرز محاسباتی نزدیک است و قطعی اعلام نمی‌شود.',
+  };
+}
+export type VedicD1HousesChapterResult = {
+  focus:Row|null; evidence:VedicD1FactualEvidence[]; paragraphsFa:string[];
+};
+export function buildVedicD1HousesChapter(view:VedicD1NorthView,displayName=''):VedicD1HousesChapterResult {
+  const reliable=view.rows.filter(row=>row.houseNumber!==null && row.signIndex!==null &&
+    row.id!=='rahu' && row.id!=='ketu');
+  const counts=new Map<number,number>();
+  for(const row of reliable) counts.set(row.houseNumber!,1+(counts.get(row.houseNumber!)??0));
+  const angular=(h:number)=>[1,4,7,10].includes(h)?1:0;
+  // A presentation priority, not an astronomical "strength" measurement.
+  const ranked=[...reliable].sort((a,b)=>
+    (counts.get(b.houseNumber!)!-counts.get(a.houseNumber!)!) ||
+    (angular(b.houseNumber!)-angular(a.houseNumber!)) ||
+    (a.houseNumber!-b.houseNumber!) || a.id.localeCompare(b.id));
+  const focus=ranked[0]??null;
+  const same=focus?ranked.filter(row=>row.houseNumber===focus.houseNumber&&row.id!==focus.id):[];
+  const different=focus?ranked.find(row=>row.houseNumber!==focus.houseNumber)??null:null;
+  const other=different??same[0]??view.rows.find(row=>row.id==='moon')!;
+  const lordId=focus&&focus.signIndex!==null?RULERS[focus.signIndex]:null;
+  const lord=lordId?view.rows.find(row=>row.id===lordId)??null:null;
+  const lordSafe=lord!==null&&lord.signIndex!==null&&lord.houseNumber!==null;
+  const primary=focus??view.rows.find(row=>row.id==='sun')!;
+  const evidence:VedicD1FactualEvidence[]=[
+    fact(primary,'focus-primary'),fact(other,'focus-secondary'),
+    ...(same.length?[fact(same[0],'focus-house-companion')]:[]),
+    ...(same.length>1?[fact(same[1],'focus-house-companion-two')]:[]),
+    ...(lord?[fact(lord,'focus-house-ruler')]:[]),
+  ];
+
+  if(!focus) return {focus:null,evidence,paragraphsFa:[
+    'خانه‌های این نقشه به مرزِ محاسباتی نزدیک‌اند. تا وقتی نشان طالع و شمارهٔ خانه‌ها قابل اتکا نیست، نمی‌توان یکی از خانه‌ها را محور برجسته خواند یا برایش ارتباطی با بخش دیگری از زندگی ساخت.',
+    'خورشید و ماه هنوز جایگاه‌های عددی خود را در جدول دارند، اما این داده‌ها جای یک خانهٔ واقعی را نمی‌گیرند. تعبیرِ پیوند دو حوزه، بدون دو خانهٔ معتبر، فقط داستانی است که دلیل نجومیِ مشخصی ندارد.',
+    'تراکم سیاره‌ها و مسیر حاکمِ خانه زمانی معنا دارند که هم خانهٔ اولیه و هم جایگاه حاکمش با اطمینان شناخته شده باشند. در این وضعیت حتی تغییر کوچکی در ساعت تولد می‌تواند نتیجهٔ خانه‌ای را جابه‌جا کند.',
+    'برای فکر کردن به پیوند حوزه‌های زندگی، فعلاً یک تصمیم واقعی را انتخاب کن که در آن دو تعهد هم‌زمان مطرح بوده‌اند. بنویس محدودیتِ زمان، منابع و سهم هر نفر در تصمیم تو چه نقشی داشته است.',
+    (displayName?displayName+'، ':'')+'در صورت دقیق‌تر شدن دادهٔ تولد، این فصل دوباره از روی چارت ساخته می‌شود. تا آن زمان، کوتاه و مشروط ماندنش از پُرکردنِ جاهای خالی با تعبیرِ مطمئن‌نما ارزشمندتر است.',
+  ]};
+
+  const h=focus.houseNumber!;
+  const n=counts.get(h)!;
+  const theme=AREAS[h-1];
+  const role=ROLES[focus.id as Classic];
+  const ties=[...counts.values()].filter(count=>count===n).length;
+  const reason=n>1
+    ? 'در این خانه '+String(n)+' سیارهٔ کلاسیک با جایگاه مطمئن کنار هم دیده می‌شوند؛ این فقط تراکمِ شمارشی است و به معنای قدرت بیشتر، قرانِ درجه‌ای یا اتفاقی حتمی نیست.'
+    : 'هیچ خانه‌ای بیش از یک سیارهٔ کلاسیکِ مطمئن ندارد؛ بنابراین این خانه فقط نقطهٔ شروعِ مطالعه است، نه محورِ برترِ چارت.';
+  const tie=n>1&&ties>1?' چند خانهٔ دیگر هم به همین اندازه پُر هستند و این یکی محورِ یگانه نیست.':'';
+  const opening='فرض کن '+SCENES[h-1]+' در چارت تو '+evidence[0].factFa+
+    ' خانهٔ '+String(h)+' به '+theme+' مربوط است؛ حضورِ '+
+    VEDIC_D1_BODIES_FA[focus.id]+' از زاویهٔ '+role+
+    ' خوانده می‌شود. چون خانه، موضوعِ کار را مشخص می‌کند و سیاره شیوهٔ پرداختن به آن را، این دو شاهد باید کنار هم خوانده شوند. '+reason+tie;
+  const company=same.length
+    ? 'در همین خانه، '+same.map(row=>VEDIC_D1_BODIES_FA[row.id]).join(' و ')+
+      ' هم قرار '+(same.length===1?'دارد':'دارند')+'. '+
+      'نقشِ '+VEDIC_D1_BODIES_FA[focus.id]+' یعنی '+role+
+      '، کنار نقشِ '+VEDIC_D1_BODIES_FA[same[0].id]+' یعنی '+
+      ROLES[same[0].id as Classic]+
+      '، دو بخش متفاوتِ یک کار مرتبط با '+theme+
+      ' را پیش چشم می‌گذارد. مثلاً آغازِ یک برنامه بدون هماهنگ کردن مرحلهٔ بعد کافی نیست؛ این هم‌خانگی اما به‌خودی‌خود هیچ جنبهٔ نجومیِ محاسبه‌نشده‌ای را ثابت نمی‌کند.'
+    : 'در این چارت سیاره‌های کلاسیکِ مطمئن در خانه‌های جداگانه پخش شده‌اند. پس نمی‌شود از یک تراکمِ ساختگی حرف زد. راهِ دقیق‌تر این است که حوزه‌های مختلف را با مسیرِ حاکمانِ واقعیِ خانه‌ها به هم وصل کنیم و ببینیم کدام تعهدات در تصمیمی روزمره هم‌زمان مطرح می‌شوند.';
+  const ruler=lord===null
+    ? 'برای حاکمِ این خانه شاهد کافی در دست نیست و از پیوند فرضی پرهیز می‌کنیم.'
+    : !lordSafe
+      ? 'حاکمِ نشانِ این خانه '+VEDIC_D1_BODIES_FA[lord.id]+
+        ' است، اما خانهٔ او به مرز محاسبات نزدیک است و نمی‌شود مقصدِ این پیوند را قطعی نامید.'
+      : 'حاکمِ نشانِ این خانه '+VEDIC_D1_BODIES_FA[lord.id]+
+        ' در '+SIGNS[lord.signIndex!]+' و خانهٔ '+String(lord.houseNumber)+
+        ' است. چون حاکمِ خانه در این سنت مسیرِ موضوع را نشان می‌دهد، '+theme+
+        (lord.houseNumber===h
+          ? ' دوباره به همین خانه برمی‌گردد؛ این تمرکز موضوعی نه حکمِ موفقیت است و نه دشواری.'
+          : ' با '+AREAS[lord.houseNumber-1]+
+            ' پیوند پیدا می‌کند؛ دو حوزه‌ای که می‌توانی هنگام انتخاب‌های واقعی کنار هم بسنجی.');
+  const third='برای خواندنِ ساختار چارت، فقط تعدادِ سیاره‌ها کافی نیست؛ باید دید نشانِ هر خانه زیر نظر کدام حاکمِ سنتی است. '+
+    ruler+' این دلیل نجومیِ پیوند است، نه ادعایی دربارهٔ اتفاقی که حتماً در آینده رخ می‌دهد.';
+  const fourth=different
+    ? 'در بخش دیگری از نقشه هم یک جایگاهِ مستقل داریم: '+fact(different,'inline-secondary').factFa+
+      ' این خانه با '+AREAS[different.houseNumber!-1]+' سروکار دارد، درحالی‌که محورِ اول دربارهٔ '+theme+
+      ' بود. '+(displayName?'برای '+displayName+'، ':'در چنین ترکیبی، ')+
+      'وقتی دو وظیفه هم‌زمان منابع و زمان می‌خواهند، تفاوتِ نقشِ این دو حوزه روشن می‌شود؛ این مقایسه از دو خانهٔ محاسبه‌شده آمده، نه از یک توصیفِ کلیِ شخصیت.'
+    : 'در میان جایگاه‌های مطمئنِ این نقشه، خانهٔ مستقلِ دومی برای مقایسه ثبت نشده است. پس برای جذاب‌تر شدنِ متن، تضاد یا پیوندی تازه اختراع نمی‌کنیم؛ خودِ خانهٔ '+String(h)+
+      ' و حاکمِ واقعیِ آن می‌توانند نشان دهند کدام مسئولیت‌ها در یک حوزه به هم وابسته‌اند.';
+  const next=different?.houseNumber??(lordSafe?lord!.houseNumber:null);
+  const ending='دفعهٔ بعد که '+SCENES[h-1]+' از خودت بپرس کدام کار باید زودتر انجام شود و کدام منابع محدودند. '+
+    (next!==null&&next!==h?'بعد ببین موضوعِ '+AREAS[next-1]+' کجای برنامه را تغییر می‌دهد. ':
+      'بعد بررسی کن در همین حوزه کدام تصمیم هنوز مسئول یا موعدِ مشخص ندارد. ')+
+    'این تمرین دربارهٔ ارتباطِ کارکرد خانه‌هاست؛ قرار نیست ویژگی‌های فصل اول یا الگوهای عاطفیِ فصل دوم را دوباره تعریف کند.';
+  return {focus,evidence,paragraphsFa:[opening,company,third,fourth,ending]};
+}

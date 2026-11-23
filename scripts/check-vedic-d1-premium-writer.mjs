@@ -225,6 +225,41 @@ const sameSign = makeChart(fixture.vectors[0], { ascendant: 30 * moonSign + 15 }
 assert.ok(buildVedicD1PrivateManuscriptDraft(sameSign).chapters[3].paragraphsFa[0].includes('هر دو در یک نشان'),
   'Equal ascendant/Moon signs should not be framed as different signs');
 
+
+// CHAPTER3_OWNERSHIP_GUARD: source evidence, non-fabricated concentration and boundary fallback.
+for (const draft of drafts) {
+  const c = draft.chapters[2];
+  assert.equal(c.paragraphsFa.length, 5);
+  assert.ok(c.paragraphsFa.every(p => p.trim().length >= 70));
+  assert.ok(c.evidence.some(e => e.id === 'focus-primary'));
+  assert.ok(c.evidence.some(e => e.id === 'focus-secondary'));
+  assert.ok(c.paragraphsFa.some(p => p.includes('حاکمِ نشانِ این خانه')));
+}
+const houseScatter = makeChart(fixture.vectors[0], {
+  ascendant: 15, sun: 15, moon: 45, mars: 75, mercury: 105,
+  jupiter: 135, venus: 165, saturn: 195,
+}, 0);
+const scatteredChapter = buildVedicD1PrivateManuscriptDraft(houseScatter).chapters[2];
+assert.ok(scatteredChapter.paragraphsFa.join(' ').includes('هیچ خانه‌ای بیش از یک سیارهٔ کلاسیک'));
+assert.ok(!scatteredChapter.evidence.some(e => e.id === 'focus-house-companion'));
+const houseCluster = makeChart(fixture.vectors[0], {
+  ascendant: 15, sun: 35, moon: 38, mars: 40, mercury: 42,
+  jupiter: 44, venus: 46, saturn: 78,
+}, 0);
+const clusteredChapter = buildVedicD1PrivateManuscriptDraft(houseCluster).chapters[2];
+assert.ok(clusteredChapter.evidence.some(e => e.id === 'focus-house-companion'));
+assert.ok(clusteredChapter.evidence.some(e =>
+  e.id === 'focus-house-ruler' && e.bodyId === 'venus' &&
+  e.factFa.includes('خانهٔ 2')));
+assert.ok(clusteredChapter.paragraphsFa.join(' ').includes('تراکمِ شمارشی'));
+const middleName = buildVedicD1PrivateManuscriptDraft(
+  makeChart(fixture.vectors[0]), { displayName: 'نیما' }).chapters[2];
+assert.ok(middleName.paragraphsFa.slice(1).some(p => p.includes('نیما')));
+const uncertainHouse = buildVedicD1PrivateManuscriptDraft(
+  makeChart(fixture.vectors[0], { ascendant: 30.01 }, 3)).chapters[2];
+assert.ok(uncertainHouse.paragraphsFa[0].includes('مرزِ محاسباتی'));
+assert.equal(uncertainHouse.evidence[0].status, 'near-boundary');
+
 // No private writer imports in any public/guest entry point.
 for (const path of [
   'lib/vedic/vedic-d1-free-reading.ts',
