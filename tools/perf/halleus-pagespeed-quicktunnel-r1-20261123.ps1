@@ -26,23 +26,23 @@ $Failures=[System.Collections.Generic.List[string]]::new()
 
 function Info([string]$s) { Write-Host ('HALLEUS_PSI: '+$s) }
 function Fatal([string]$s) { throw ('SAFETY_FATAL: '+$s) }
-function Git([string[]]$Items) {
-  $v=@(& git -C $RepoPath @Items)
+function Invoke-GitChecked([string[]]$Items) {
+  $v=@(& git.exe -C $RepoPath @Items)
   if ($LASTEXITCODE -ne 0) { Fatal ('Git failed: '+($Items -join ' ')) }
   return $v
 }
 function Verify-Repo {
   foreach($tool in @('git','node','pnpm')){
-    if(-not (Get-Command $tool -ErrorAction SilentlyContinue)){Fatal ('Missing tool: '+$tool)}
+    if(-not (Get-Command $(if($tool -eq 'git'){'git.exe'}else{$tool}) -ErrorAction SilentlyContinue)){Fatal ('Missing tool: '+$tool)}
   }
   if(-not(Test-Path (Join-Path $RepoPath '.git'))){Fatal 'Not a Git working tree'}
-  $origin=[string](Git @('remote','get-url','origin') | Select-Object -First 1)
+  $origin=[string](Invoke-GitChecked @('remote','get-url','origin') | Select-Object -First 1)
   if($origin -notin @('https://github.com/bleucluod/astro-clean','https://github.com/bleucluod/astro-clean.git','git@github.com:bleucluod/astro-clean.git')){Fatal ('Wrong origin: '+$origin)}
-  $branch=[string](Git @('branch','--show-current') | Select-Object -First 1)
+  $branch=[string](Invoke-GitChecked @('branch','--show-current') | Select-Object -First 1)
   if($branch -ne 'main'){Fatal ('Expected main, got '+$branch)}
-  $dirty=@(Git @('status','--porcelain=v1','--untracked-files=all') | Where-Object {$_})
+  $dirty=@(Invoke-GitChecked @('status','--porcelain=v1','--untracked-files=all') | Where-Object {$_})
   if($dirty.Count){Fatal ('Main contains uncommitted files: '+($dirty -join '; '))}
-  $script:MainHead=[string](Git @('rev-parse','HEAD') | Select-Object -First 1)
+  $script:MainHead=[string](Invoke-GitChecked @('rev-parse','HEAD') | Select-Object -First 1)
   if($script:MainHead -notmatch '^[a-f0-9]{40}$'){Fatal 'Invalid HEAD'}
   if($script:MainHead -ne $RequiredMain){Fatal ('Unexpected main HEAD: '+$script:MainHead+' (expected '+$RequiredMain+')')}
   Info ('source main='+$script:MainHead+' (clean)')
@@ -69,9 +69,9 @@ function Ensure-Lab {
 function Check-Worktree([string]$path,[string]$sha) {
   if(-not(Test-Path $path)){return $false}
   if(-not(Test-Path (Join-Path $path '.git') -PathType Leaf)){Fatal ('Existing directory not a linked worktree: '+$path)}
-  $h=(& git -C $path rev-parse HEAD | Select-Object -First 1)
+  $h=(& git.exe -C $path rev-parse HEAD | Select-Object -First 1)
   if($LASTEXITCODE -ne 0 -or $h -ne $sha){Fatal ('Unexpected worktree HEAD: '+$path)}
-  $dirty=@(& git -C $path status --porcelain=v1 --untracked-files=all | Where-Object {$_})
+  $dirty=@(& git.exe -C $path status --porcelain=v1 --untracked-files=all | Where-Object {$_})
   if($LASTEXITCODE -ne 0 -or $dirty.Count){Fatal ('Dirty preview worktree: '+$path)}
   $envs=@(Get-ChildItem $path -File -Force -Filter '.env*' | Where-Object {$_.Name -ne '.env.example'})
   if($envs.Count){Fatal ('Preview environment file found at '+$path)}
@@ -79,17 +79,17 @@ function Check-Worktree([string]$path,[string]$sha) {
 }
 function Source-Refs {
   Info 'Fetching two pinned source refs'
-  Git @('fetch','origin','refs/heads/perf/psi-a-cbc39da:refs/remotes/origin/perf/psi-a-cbc39da','refs/heads/perf/psi-b-613b12c:refs/remotes/origin/perf/psi-b-613b12c') | Out-Null
-  $a=[string](Git @('rev-parse','refs/remotes/origin/perf/psi-a-cbc39da') | Select-Object -First 1)
-  $b=[string](Git @('rev-parse','refs/remotes/origin/perf/psi-b-613b12c') | Select-Object -First 1)
+  Invoke-GitChecked @('fetch','origin','refs/heads/perf/psi-a-cbc39da:refs/remotes/origin/perf/psi-a-cbc39da','refs/heads/perf/psi-b-613b12c:refs/remotes/origin/perf/psi-b-613b12c') | Out-Null
+  $a=[string](Invoke-GitChecked @('rev-parse','refs/remotes/origin/perf/psi-a-cbc39da') | Select-Object -First 1)
+  $b=[string](Invoke-GitChecked @('rev-parse','refs/remotes/origin/perf/psi-b-613b12c') | Select-Object -First 1)
   if($a -ne $ShaA -or $b -ne $ShaB){Fatal 'Source refs do not match pinned SHAs'}
-  $changed=@(Git @('diff','--name-only',$ShaA,$ShaB))
+  $changed=@(Invoke-GitChecked @('diff','--name-only',$ShaA,$ShaB))
   if($changed.Count -ne 1 -or $changed[0] -ne 'components/ChartMobileBirthPicker.tsx'){Fatal 'Unexpected A/B source diff'}
-  Git @('diff','--check',$ShaA,$ShaB) | Out-Null
+  Invoke-GitChecked @('diff','--check',$ShaA,$ShaB) | Out-Null
 }
 function Ensure-Worktree([string]$p,[string]$sha){
   if(Check-Worktree $p $sha){Info ('RESUMED_PASS worktree '+$sha.Substring(0,7));return}
-  Git @('worktree','add','--detach',$p,$sha) | Out-Null
+  Invoke-GitChecked @('worktree','add','--detach',$p,$sha) | Out-Null
   if(-not(Check-Worktree $p $sha)){Fatal 'Worktree was not created'}
 }
 function Clean-Env([scriptblock]$body){
@@ -103,13 +103,13 @@ function Clean-Env([scriptblock]$body){
     [Environment]::SetEnvironmentVariable('NODE_ENV',$nodeEnv,'Process')
   }
 }
-function Logged([string]$dir,[string]$command,[string[]]$args,[string]$logfile){
+function Logged([string]$dir,[string]$command,[string[]]$commandArgs,[string]$logfile){
   Push-Location $dir
   try {
     $old=$ErrorActionPreference
     $ErrorActionPreference='Continue'
     try {
-      $ok=Clean-Env {& $command @args *>&1 | Out-File $logfile -Encoding utf8 -Width 230; $LASTEXITCODE -eq 0}
+      $ok=Clean-Env {& $command @commandArgs *>&1 | Out-File $logfile -Encoding utf8 -Width 230; $LASTEXITCODE -eq 0}
       return [bool]$ok
     } finally {$ErrorActionPreference=$old}
   } finally {Pop-Location}
@@ -180,9 +180,9 @@ function Ports-Safe([hashtable]$s) {
     }
   }
 }
-function Spawn([hashtable]$s,[string]$name,[string]$exe,[string[]]$args,[string]$cwd,[string]$needle){
+function Spawn([hashtable]$s,[string]$name,[string]$exe,[string[]]$commandArgs,[string]$cwd,[string]$needle){
   $p=Clean-Env {
-    Start-Process -FilePath $exe -ArgumentList $args -WorkingDirectory $cwd -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $Logs ($name+'-out.log')) -RedirectStandardError (Join-Path $Logs ($name+'-err.log'))
+    Start-Process -FilePath $exe -ArgumentList $commandArgs -WorkingDirectory $cwd -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $Logs ($name+'-out.log')) -RedirectStandardError (Join-Path $Logs ($name+'-err.log'))
   }
   $s[$name]=@{pid=$p.Id;needle=$needle};Save-State $s
 }
@@ -358,9 +358,9 @@ try {
     }
   }
   if($Failures.Count){Info ('FAILURES='+($Failures -join '; '));Failure-Zip;exit 1}
-  $head=[string](Git @('rev-parse','HEAD')|Select-Object -First 1)
+  $head=[string](Invoke-GitChecked @('rev-parse','HEAD')|Select-Object -First 1)
   if($head -ne $MainHead){Fatal 'Main HEAD changed during operation'}
-  $dirty=@(Git @('status','--porcelain=v1','--untracked-files=all') | Where-Object {$_})
+  $dirty=@(Invoke-GitChecked @('status','--porcelain=v1','--untracked-files=all') | Where-Object {$_})
   Info ('FINAL_GIT_STATUS=' + $(if($dirty.Count){$dirty -join '; '}else{'CLEAN'}))
   Info 'A/B diff: components/ChartMobileBirthPicker.tsx only.'
   Info 'No commit/tag/push/deploy/production changes.'
