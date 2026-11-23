@@ -17,7 +17,7 @@ export function VedicD1GuestResult() {
         <span aria-hidden="true">/</span>
         <span aria-current="page">گزارش رایگان</span>
       </nav>
-      <header className={chartStyles.hero + " " + styles.vedicHero}>
+      <header className={chartStyles.hero + " " + styles.vedicHero + " " + styles.resultHero}>
         <div className={chartStyles.heroCopy}>
           <span className={chartStyles.heroKicker}>راشی D1 · گزارش رایگان</span>
           <h1 className={chartStyles.heroTitle}>گزارش چارت تولد ودیک</h1>
@@ -26,11 +26,16 @@ export function VedicD1GuestResult() {
       </header>
       {result ? (
         <section className={styles.freeResult + " " + styles.reportResult} aria-label="نتیجهٔ رایگان چارت ودیک">
-          <p className={styles.resultGreeting}>{result.name}، چارت رایگان ودیک تو آماده است.</p>
-          <p className={styles.freeReading}>{result.reading.shortReading.textFa}</p>
+          <div className={styles.reportWelcome}>
+            <span className={styles.reportKicker}>گزارش شخصی تو</span>
+            <h2 className={styles.resultGreeting}>{result.name}، این نقشهٔ آسمان توست</h2>
+            <p className={styles.freeReading}>{result.reading.shortReading.textFa}</p>
+          </div>
           <VedicD1NorthChart view={result.reading.view} />
-          <p className={styles.resultPrivacy}>فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است.</p>
-          <Link className={styles.resultBackLink} href="/chart/vedic">ویرایش اطلاعات تولد</Link>
+          <div className={styles.reportFooter}>
+            <p className={styles.resultPrivacy}>فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است.</p>
+            <Link className={styles.resultBackLink} href="/chart/vedic">ویرایش اطلاعات تولد</Link>
+          </div>
         </section>
       ) : (
         <section className={styles.emptyResult} role="status">

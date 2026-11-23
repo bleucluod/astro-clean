@@ -45,6 +45,13 @@ for(const unsafe of ['use client','localStorage','sessionStorage','fetch(','wind
 assert.ok(!page.includes('VedicD1NorthChart'),'UI must remain unreachable pending certification');
 assert.ok(!form.includes('<VedicD1NorthChart'), 'Form should navigate to the separate report');
 assert.ok(result.includes('<VedicD1NorthChart view={result.reading.view} />'), 'Result must render ONLY verified server-supplied free view');
+for (const phrase of ['styles.reportWelcome', 'styles.reportKicker', 'styles.reportFooter', 'styles.resultHero']) {
+  assert.ok(result.includes(phrase), 'Missing report visual hierarchy: ' + phrase);
+}
+for (const phrase of ['styles.lagnaHighlight', 'house.signNameFa', 'styles.planetSpot', 'styles.lagnaSpot', 'styles.figureHeading', 'styles.tableHeading']) {
+  assert.ok(component.includes(phrase), 'Missing North Indian visual refinement: ' + phrase);
+}
+assert.ok(component.includes('d={VEDIC_D1_NORTH_GRID_PATH}'), 'The original North Indian diamond geometry must remain unchanged');
 assert.ok(resultPage.includes('robots: { index: false, follow: false }'), 'Guest results must remain noindex');
 assert.ok(form.includes('isVedicD1FreeReading'), 'Guest must reject non-free/unexpected response');
 for(const phrase of ['@media (max-width: 640px)','min-width: 440px','overflow-x: auto',
@@ -52,6 +59,8 @@ for(const phrase of ['@media (max-width: 640px)','min-width: 440px','overflow-x:
   assert.ok(css.includes(phrase),'Missing responsive requirement: '+phrase);
 }
 assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length,'CSS balanced braces');
+assert.ok(css.includes('.svg { width: 100%; min-width: 0; }'), 'The complete North Indian chart must fit on mobile');
+assert.ok(css.includes('.figure {') && css.includes('.summaryItem {'), 'Report visual panels must be present');
 for(const width of [320,360,412]) {
   assert.ok(width<440,'Mobile width should scroll diagram, not shrink planet labels');
   assert.ok(width<520,'Mobile width should scroll readable table');
