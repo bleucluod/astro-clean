@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ChangeEvent, type KeyboardEvent, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type ChangeEvent, type KeyboardEvent, type CSSProperties } from "react";
 import journeyStyles from "@/components/chart-form-journey.module.css";
 import type { HalleusCity } from "@/lib/locations/cities";
 import type { VedicD1FreeReading } from "@/lib/vedic/vedic-d1-reading-contract";
@@ -15,6 +15,11 @@ type JourneyStep = "name" | "date" | "time" | "city";
 
 const CITY_LIMIT = 7;
 const API_PATH = "/api/vedic/d1";
+
+// Disable native form controls until React has attached the city/submit handlers.
+const subscribeToHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
 
 /** Never treat a premium/manuscript-shaped or malformed response as a free chart. */
 function isVedicD1FreeReading(value: unknown): value is VedicD1FreeReading {
@@ -38,7 +43,7 @@ function isVedicD1FreeReading(value: unknown): value is VedicD1FreeReading {
 
 /** Guest-only form. The only successful payload is the public FREE D1 reading. */
 export function VedicD1GuestForm() {
-  const [hydrated, setHydrated] = useState(false);
+  const hydrated = useSyncExternalStore(subscribeToHydration, clientHydrated, serverHydrated);
   const [name, setName] = useState("");
   const [editingStep, setEditingStep] = useState<JourneyStep>("name");
   const [calendar, setCalendar] = useState<Calendar>("jalali");
@@ -62,7 +67,6 @@ export function VedicD1GuestForm() {
 
   useEffect(() => {
     aliveRef.current = true;
-    setHydrated(true);
     return () => {
       aliveRef.current = false;
       activeRequestRef.current?.abort();
@@ -192,7 +196,7 @@ export function VedicD1GuestForm() {
       } else {
         setFeedback({ kind: "unavailable", message: "نتیجهٔ معتبر ودیک دریافت نشد. اطلاعات واردشده در فرم باقی می‌ماند." });
       }
-    } catch (error) {
+    } catch {
       if (controller.signal.aborted || !aliveRef.current) return;
       setFeedback({ kind: "unavailable", message: "فعلاً امکان بررسی چارت ودیک وجود ندارد. اطلاعات واردشده در فرم باقی می‌ماند." });
     } finally {
