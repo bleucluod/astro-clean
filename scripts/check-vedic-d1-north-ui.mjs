@@ -12,6 +12,8 @@ const component=read('components/vedic/VedicD1NorthChart.tsx');
 const css=read('components/vedic/vedic-d1-north.module.css');
 const page=read('app/chart/vedic/page.tsx');
 const form=read('components/vedic/VedicD1GuestForm.tsx');
+const result=read('components/vedic/VedicD1GuestResult.tsx');
+const resultPage=read('app/chart/vedic/result/page.tsx');
 const source=ts.createSourceFile('VedicD1NorthChart.tsx',component,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 assert.equal(source.parseDiagnostics.length,0,'TSX parse error');
 for (const phrase of [
@@ -41,7 +43,9 @@ for(const unsafe of ['use client','localStorage','sessionStorage','fetch(','wind
   assert.ok(!component.includes(unsafe),'Unapproved UI runtime behavior: '+unsafe);
 }
 assert.ok(!page.includes('VedicD1NorthChart'),'UI must remain unreachable pending certification');
-assert.ok(form.includes('<VedicD1NorthChart view={reading.view} />'), 'Guest form must render ONLY server-supplied free view');
+assert.ok(!form.includes('<VedicD1NorthChart'), 'Form should navigate to the separate report');
+assert.ok(result.includes('<VedicD1NorthChart view={result.reading.view} />'), 'Result must render ONLY verified server-supplied free view');
+assert.ok(resultPage.includes('robots: { index: false, follow: false }'), 'Guest results must remain noindex');
 assert.ok(form.includes('isVedicD1FreeReading'), 'Guest must reject non-free/unexpected response');
 for(const phrase of ['@media (max-width: 640px)','min-width: 440px','overflow-x: auto',
   'min-width: 520px','focus-visible','direction: ltr','grid-template-columns: minmax(0, 1fr)']) {

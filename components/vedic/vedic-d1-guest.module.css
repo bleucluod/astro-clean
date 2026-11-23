@@ -24,6 +24,12 @@
 .formRoot :global(.chart-field input) { font-size: 16px !important; }
 .occurrence label { display: inline-flex; align-items: center; min-height: 44px; gap: 7px; font-size: .84rem; }
 .occurrence input { width: 18px; height: 18px; accent-color: #9acff3; }
+.reportResult { margin: 0; }
+.emptyResult { display: grid; gap: 12px; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--chart-border); border-radius: 20px; background: #0b0d11; color: #edf2f7; }
+.emptyResult h2 { margin: 0; font-size: 1.2rem; }
+.emptyResult p { margin: 0; font-size: .88rem; line-height: 1.95; color: #c7cfda; }
+.resultBackLink { display: inline-flex; align-items: center; justify-content: center; width: fit-content; min-height: 44px; padding: 9px 16px; border: 1px solid rgba(220,238,255,.3); border-radius: 12px; color: #ffffff; background: #202c39; text-decoration: none; font-weight: 740; }
+.resultBackLink:focus-visible { outline: 2px solid #dceeff; outline-offset: 3px; }
 .freeResult { display: grid; min-width: 0; gap: 16px; margin: 18px 22px 22px; padding: clamp(14px, 3vw, 24px); border: 1px solid #bcccdc; border-radius: 17px; background: #f8fafc; color: #243447; }
 .resultGreeting { margin: 0; font-size: 1.08rem; font-weight: 790; line-height: 1.7; color: #243447; }
 .freeReading { margin: 0; font-size: .9rem; line-height: 2; color: #2f4052; }
@@ -36,6 +42,7 @@
   .vedicHero { padding: 22px !important; }
   .vedicWorkspace { grid-template-columns: minmax(0, 1fr) !important; }
   .freeResult { margin: 12px; padding: 12px; }
+  .reportResult { margin: 0; }
   .afterword { margin-inline: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {

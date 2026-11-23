@@ -1,10 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type ChangeEvent, type KeyboardEvent, type CSSProperties } from "react";
 import journeyStyles from "@/components/chart-form-journey.module.css";
 import type { HalleusCity } from "@/lib/locations/cities";
 import type { VedicD1FreeReading } from "@/lib/vedic/vedic-d1-reading-contract";
-import { VedicD1NorthChart } from "./VedicD1NorthChart";
+import { useVedicD1GuestSession } from "./VedicD1GuestSession";
 import styles from "./vedic-d1-guest.module.css";
 
 type CityDirectory = typeof import("@/lib/locations/cities");
@@ -43,21 +44,22 @@ function isVedicD1FreeReading(value: unknown): value is VedicD1FreeReading {
 
 /** Guest-only form. The only successful payload is the public FREE D1 reading. */
 export function VedicD1GuestForm() {
+  const router = useRouter();
+  const { result, setResult } = useVedicD1GuestSession();
   const hydrated = useSyncExternalStore(subscribeToHydration, clientHydrated, serverHydrated);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(result?.draft.name ?? "");
   const [editingStep, setEditingStep] = useState<JourneyStep>("name");
-  const [calendar, setCalendar] = useState<Calendar>("jalali");
-  const [birthDate, setBirthDate] = useState("");
-  const [birthTime, setBirthTime] = useState("");
-  const [cityQuery, setCityQuery] = useState("");
-  const [cityId, setCityId] = useState("");
+  const [calendar, setCalendar] = useState<Calendar>(result?.draft.calendar ?? "jalali");
+  const [birthDate, setBirthDate] = useState(result?.draft.birthDate ?? "");
+  const [birthTime, setBirthTime] = useState(result?.draft.birthTime ?? "");
+  const [cityQuery, setCityQuery] = useState(result?.draft.cityQuery ?? "");
+  const [cityId, setCityId] = useState(result?.draft.cityId ?? "");
   const [cityDirectory, setCityDirectory] = useState<CityDirectory | null>(null);
   const [cityLoading, setCityLoading] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
-  const [occurrence, setOccurrence] = useState<Occurrence | "">("");
+  const [occurrence, setOccurrence] = useState<Occurrence | "">(result?.draft.occurrence ?? "");
   const [needsOccurrence, setNeedsOccurrence] = useState(false);
   const [feedback, setFeedback] = useState<FormFeedback | null>(null);
-  const [reading, setReading] = useState<VedicD1FreeReading | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const directoryRef = useRef<CityDirectory | null>(null);
   const cityLoadRef = useRef<Promise<CityDirectory> | null>(null);
@@ -78,7 +80,7 @@ export function VedicD1GuestForm() {
     activeRequestRef.current = null;
     setSubmitting(false);
     setFeedback(null);
-    setReading(null);
+    setResult(null);
   }
 
   async function loadCityDirectory() {
@@ -191,8 +193,13 @@ export function VedicD1GuestForm() {
           ? data.message : "اطلاعات تولد را بررسی کن." });
       } else if (response.status === 200 && data.ok === true &&
           isVedicD1FreeReading(data.reading)) {
-        setReading(data.reading);
+        setResult({
+          name: name.trim(),
+          reading: data.reading,
+          draft: { name, calendar, birthDate, birthTime, cityQuery, cityId, occurrence },
+        });
         setFeedback(null);
+        router.push("/chart/vedic/result");
       } else {
         setFeedback({ kind: "unavailable", message: "نتیجهٔ معتبر ودیک دریافت نشد. اطلاعات واردشده در فرم باقی می‌ماند." });
       }
@@ -212,7 +219,7 @@ export function VedicD1GuestForm() {
       <section className={"chart-reference-page " + journeyStyles.journeyRoot} aria-label="فرم چارت تولد ودیک">
         <div className="chart-reference-shell">
           <div className="chart-reference-content">
-            <p className={styles.hint} id="vedic-form-help">برای محاسبهٔ طالع و خانه‌های ودیک، ساعت دقیق و شهر تولد لازم است. نام فقط در همین صفحه نمایش داده می‌شود.</p>
+            <p className={styles.hint} id="vedic-form-help">برای محاسبهٔ طالع و خانه‌های ودیک، ساعت دقیق و شهر تولد لازم است. نام فقط برای نمایش گزارش در همین مرورگر نگه داشته می‌شود و به API ارسال نمی‌شود.</p>
             {!hydrated && <p className={styles.loadingHint} role="status">در حال آماده‌سازی فرم…</p>}
             <form className="chart-reference-form" id="vedic-guest-form"
               onSubmit={submit} aria-label="اطلاعات تولد ودیک" aria-describedby="vedic-form-help">
@@ -373,18 +380,11 @@ export function VedicD1GuestForm() {
             <p className={styles.privacy}>محاسبهٔ پایه رایگان است؛ برای آن نیازی به حساب کاربری نیست.</p>
             <div className={styles.status} role="status" aria-live="polite" aria-atomic="true">
               {feedback && <p className={feedback.kind === "error" ? styles.error : styles.unavailable}>{feedback.message}</p>}
-              {reading && <p className={styles.success}>چارت رایگان محاسبه شد. نتیجه زیر فرم نمایش داده می‌شود.</p>}
             </div>
           </div>
         </div>
       </section>
-      {reading && <section className={styles.freeResult} aria-label="نتیجهٔ رایگان چارت ودیک">
-        <p className={styles.resultGreeting}>{name.trim()}، چارت رایگان ودیک تو آماده است.</p>
-        <p className={styles.freeReading}>{reading.shortReading.textFa}</p>
-        <VedicD1NorthChart view={reading.view} />
-        <p className={styles.resultPrivacy}>فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است.</p>
-      </section>}
-      <p className={styles.afterword}>نامت فقط روی همین صفحه نمایش داده می‌شود؛ اطلاعات تولد در نشانی صفحه یا کش مشترک ذخیره نمی‌شود.</p>
+      <p className={styles.afterword}>نام و نتیجه فقط تا زمان باز بودن این تجربه در حافظهٔ مرورگر می‌مانند؛ اطلاعات تولد در نشانی صفحه یا کش مشترک ذخیره نمی‌شود.</p>
     </div>
   );
 }

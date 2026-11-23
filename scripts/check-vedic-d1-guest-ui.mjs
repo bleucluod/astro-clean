@@ -9,6 +9,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = path => readFileSync(resolve(root, path), 'utf8');
 const form = read('components/vedic/VedicD1GuestForm.tsx');
 const page = read('app/chart/vedic/page.tsx');
+const resultPage = read('app/chart/vedic/result/page.tsx');
+const resultView = read('components/vedic/VedicD1GuestResult.tsx');
+const session = read('components/vedic/VedicD1GuestSession.tsx');
+const layout = read('app/chart/vedic/layout.tsx');
 const css = read('components/vedic/vedic-d1-guest.module.css');
 const chartCss = read('app/chart/chart-shell.module.css');
 const journeyCss = read('components/chart-form-journey.module.css');
@@ -16,6 +20,10 @@ const journeyCss = read('components/chart-form-journey.module.css');
 for (const [path, value] of [
   ['VedicD1GuestForm.tsx', form],
   ['app/chart/vedic/page.tsx', page],
+  ['app/chart/vedic/result/page.tsx', resultPage],
+  ['components/vedic/VedicD1GuestResult.tsx', resultView],
+  ['components/vedic/VedicD1GuestSession.tsx', session],
+  ['app/chart/vedic/layout.tsx', layout],
 ]) {
   const syntax = ts.createSourceFile(path, value, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   assert.equal(syntax.parseDiagnostics.length, 0,
@@ -43,7 +51,7 @@ const required = [
   'JSON.stringify({', 'API_PATH = "/api/vedic/d1"',
   'TIME_AMBIGUOUS', 'setNeedsOccurrence(true)', 'setOccurrence("earlier")',
   'setOccurrence("later")', 'kind: "unavailable"', 'AbortController',
-  'isVedicD1FreeReading', 'setReading(data.reading)', '<VedicD1NorthChart view={reading.view} />',
+  'isVedicD1FreeReading', 'setResult({', 'router.push("/chart/vedic/result")',
 ];
 for (const phrase of required) assert.ok(form.includes(phrase), 'Missing Vedic form marker: ' + phrase);
 
@@ -78,8 +86,9 @@ assert.match(form, /if \(response\.status === 400 && data\.code === "INPUT_INVAL
 assert.match(form, /response\.status === 200 && data\.ok === true/);
 assert.match(form, /r\.kind === "free-d1"/);
 assert.match(form, /r\.premiumStatus === "not-available"/);
-assert.match(form, /setReading\(null\)/);
-assert.match(form, /reading\.shortReading\.textFa/);
+assert.match(form, /setResult\(null\)/);
+assert.ok(!form.includes('<VedicD1NorthChart'), 'Result cannot render inside form');
+assert.ok(!form.includes('setReading('), 'Old inline result state must be removed');
 assert.match(form, /activeRequestRef\.current\?\.abort\(\)/);
 assert.match(form, /setCityId\(""\)/);
 assert.match(form, /cityLoadRef\.current = import\("@\/lib\/locations\/cities"\)/);
@@ -109,5 +118,28 @@ for (const phrase of [
 assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length,
   'Vedic CSS braces should be balanced');
 
-console.log('PASS Vedic form source: shared /chart shell + four-step journey, local-only name, city suggestions and Enter guard, no-store free POST, noindex and responsive CSS');
+for (const phrase of [
+  'VedicD1GuestSessionProvider', '{children}',
+]) assert.ok(layout.includes(phrase), 'Session provider layout missing: ' + phrase);
+for (const phrase of [
+  'createContext', 'useState<VedicD1GuestResult | null>(null)',
+  'result: VedicD1GuestResult | null', 'reading: VedicD1FreeReading',
+]) assert.ok(session.includes(phrase), 'In-memory guest session contract missing: ' + phrase);
+for (const phrase of [
+  'robots: { index: false, follow: false }', '<VedicD1GuestResult />',
+]) assert.ok(resultPage.includes(phrase), 'Result route must be private/noindex and separately rendered: ' + phrase);
+for (const phrase of [
+  'useVedicD1GuestSession()', 'result ? (', '<VedicD1NorthChart view={result.reading.view} />',
+  'result.reading.shortReading.textFa', 'href="/chart/vedic"',
+  'گزارشی برای نمایش پیدا نشد',
+]) assert.ok(resultView.includes(phrase), 'Result route is missing a fallback or real free reading: ' + phrase);
+assert.ok(form.includes('draft: { name, calendar, birthDate, birthTime, cityQuery, cityId, occurrence }'), 'Form return must restore guest inputs');
+assert.ok(!resultView.includes('fetch('), 'Result route must not recalculate on reload');
+assert.ok(!resultPage.includes('VedicD1NorthChart'), 'Server route must not materialize guest data');
+for (const [path, source] of [['form', form], ['session', session], ['result', resultView], ['result page', resultPage]]) {
+  for (const unsafe of ['localStorage', 'sessionStorage', 'URLSearchParams', 'window.location', 'generateReportContract']) {
+    assert.ok(!source.includes(unsafe), path + ' must not persist/expose guest input: ' + unsafe);
+  }
+}
+console.log('PASS Vedic split flow: form and result on separate noindex routes, in-memory-only verified free response, safe direct-link fallback, return-to-edit draft, shared /chart styles');
 console.log('NOT RUN: real browser hydration, full Next build (wiki DB preflight), screenshot/mobile interaction');
