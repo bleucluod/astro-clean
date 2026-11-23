@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory=$true)][string]$RepoPath,
-  [ValidateSet('Prepare','A','B','Stop','Status')][string]$Mode='Prepare'
+  [ValidateSet('Prepare','A','B','LocalA','LocalB','Stop','Status')][string]$Mode='Prepare'
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
@@ -336,17 +336,24 @@ function Tunnel-Url {
   }
   return $null
 }
-function Start-Variant([string]$kind){
+function Start-Variant([string]$kind,[bool]$LocalOnly=$false){
   $work=if($kind -eq 'a'){$WorkA}else{$WorkB}
   $sha=if($kind -eq 'a'){$ShaA}else{$ShaB}
   if(-not(Check-Worktree $work $sha) -or -not(Test-Path (Join-Path $work '.next/BUILD_ID'))){Fatal ('Build not prepared: '+$kind)}
-  $cloud=Cloudflared
-  if(-not $cloud){
-    $Failures.Add('EXTERNAL_BLOCK/cloudflared-missing')
-    Info 'Install Cloudflare Quick Tunnel CLI: winget install --id Cloudflare.cloudflared --exact'
-    return
+  $cloud=$null
+  if(-not $LocalOnly){
+    $cloud=Cloudflared
+    if(-not $cloud){
+      $Failures.Add('EXTERNAL_BLOCK/cloudflared-missing')
+      Info 'Install Cloudflare Quick Tunnel CLI: winget install --id Cloudflare.cloudflared --exact'
+      return
+    }
   }
   $s=Read-State;Ports-Safe $s
+  if($LocalOnly){
+    # Prevent an existing owned tunnel from publishing a local-only comparison.
+    Stop-Owned $s 'tunnel'
+  }
   if($s.ContainsKey('next')){
     Stop-Owned $s 'next'
     for($i=0;$i -lt 30 -and (Port-Used $NextPort);$i++){Start-Sleep -Milliseconds 300}
@@ -372,6 +379,13 @@ function Start-Variant([string]$kind){
     if($code -ne 404){$Failures.Add($kind+'/unsafe-route/'+$route+'/'+$code)}
   }
   if($Failures.Count){return}
+  if($LocalOnly){
+    Info ('ACTIVE_LOCAL='+$kind+' COMMIT='+$sha)
+    Info ('LOCAL_LIGHTHOUSE_URL=http://127.0.0.1:'+$ProxyPort+'/chart')
+    Info 'Run Chrome DevTools Lighthouse: Navigation, Mobile, Performance.'
+    Info 'This is a local Lighthouse comparison, not a remote PageSpeed Insights score.'
+    return
+  }
   if(-not $s.ContainsKey('tunnel') -or -not(Owns 'tunnel' $s['tunnel'])){
     foreach($file in @('config.yml','config.yaml')){
       if(Test-Path (Join-Path (Join-Path $HOME '.cloudflared') $file)){Fatal 'Existing .cloudflared config prevents Quick Tunnel'}
@@ -439,6 +453,8 @@ try {
     }
     'A'{Start-Variant 'a'}
     'B'{Start-Variant 'b'}
+    'LocalA'{Start-Variant 'a' $true}
+    'LocalB'{Start-Variant 'b' $true}
     'Stop'{
       foreach($name in @('tunnel','proxy','next')){Stop-Owned $s $name}
       Remove-Item $Selection -ErrorAction SilentlyContinue
