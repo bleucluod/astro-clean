@@ -88,6 +88,15 @@ assert.ok(journey.includes('.journeyRoot')&&journey.includes('.journeyProgress')
   'Use latest /chart journey styles');
 assert.ok(!page.includes('previewNotice')&&!page.includes('chartStyles.education'),
   'Remove verbose auxiliary content from input screen');
+for (const redundant of ['styles.breadcrumb', 'chartStyles.heroKicker',
+  'chartStyles.heroLead', 'chartStyles.formPanelHeading', 'chartStyles.panelStep']) {
+  assert.ok(!page.includes(redundant), 'Vedic entry must not repeat page intro: ' + redundant);
+}
+assert.ok(page.includes('<h1 className={chartStyles.heroTitle}>چارت تولد ودیک</h1>'),
+  'Preserve one clear visible page title');
+assert.ok(!form.includes('journeyStyles.progressHeading') &&
+  !form.includes('آسمان تو در حال شکل‌گرفتنه'),
+  'Mobile stepper must not carry a second verbal introduction');
 assert.ok(page.includes('robots: { index: false, follow: false }'));
 assert.ok(session.includes('kind: "untimed"')&&session.includes('kind: "timed"')&&
   session.includes('unknownTime: boolean')&&session.includes('reading: null'),

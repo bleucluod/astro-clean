@@ -243,7 +243,6 @@ export function VedicD1GuestForm() {
     { id: "time", label: "ساعت", complete: unknownTime || Boolean(birthTime) },
     { id: "city", label: "شهر", complete: Boolean(cityId) },
   ];
-  const completed = steps.filter(step => step.complete).length;
   const collapsed = (id: Step) => steps.some(s => s.id === id && s.complete) && editing !== id;
   const draft = {
     name, calendar, birthDate, birthTime: unknownTime ? "" : birthTime,
@@ -380,10 +379,6 @@ export function VedicD1GuestForm() {
             <form className="chart-reference-form" id="vedic-guest-form"
               onSubmit={submit} aria-label="اطلاعات تولد ودیک">
               <div className={journeyStyles.journeyProgress} aria-live="polite">
-                <div className={journeyStyles.progressHeading}>
-                  <span>آسمان تو در حال شکل‌گرفتنه</span>
-                  <strong>{completed.toLocaleString("fa-IR")} از ۴</strong>
-                </div>
                 <div className={journeyStyles.orbitTrack}>
                   {steps.map((step,i) => (
                     <span key={step.id}
