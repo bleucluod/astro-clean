@@ -5,7 +5,7 @@
 import type { VedicD1FactualEvidence, VedicD1PremiumChapterId } from './vedic-d1-reading-contract.ts';
 
 export const VEDIC_D1_PRIVATE_MANUSCRIPT_VERSION = 'vedic-d1-private-manuscript/1' as const;
-export const VEDIC_D1_WRITER_RULES_VERSION = 'vedic-d1-persian-writer/4' as const;
+export const VEDIC_D1_WRITER_RULES_VERSION = 'vedic-d1-persian-writer/5' as const;
 
 export type VedicD1PremiumChapter = {
   id: VedicD1PremiumChapterId;
