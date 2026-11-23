@@ -131,7 +131,6 @@ export default async function ChartPage() {
             <Image
               alt=""
               height={1400}
-              priority
               src="/halleus-logo/symbol-transparent-white.png"
               width={1400}
             />
